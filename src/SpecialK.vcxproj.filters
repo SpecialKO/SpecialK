@@ -191,7 +191,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="..\..\..\..\Downloads\achievement_xbox.wav">
+    <Media Include="..\depends\psn_trophy.wav">
       <Filter>Resource Files</Filter>
     </Media>
   </ItemGroup>
