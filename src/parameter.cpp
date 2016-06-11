@@ -78,7 +78,7 @@ sk::ParameterInt64::set_value (int64_t val)
 void
 sk::ParameterInt64::set_value_str (std::wstring str)
 {
-  value = _wtol (str.c_str ());
+  value = _wtoll (str.c_str ());
 }
 
 

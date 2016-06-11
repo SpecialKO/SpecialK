@@ -503,8 +503,8 @@ SK_VarStub <float>::getValueString (void) const
   snprintf (szFloatString, 32, "%f", getValue ());
 
   // Remove trailing 0's after the .
-  int len = strlen (szFloatString);
-  for (int i = (len - 1); i > 1; i--) {
+  size_t len = strlen (szFloatString);
+  for (size_t i = (len - 1); i > 1; i--) {
     if (szFloatString [i] == '0' && szFloatString [i - 1] != '.')
       len--;
     if (szFloatString [i] != '0' && szFloatString [i] != '\0')

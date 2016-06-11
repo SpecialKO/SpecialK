@@ -1132,7 +1132,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
       extern int SK_ADL_CountPhysicalGPUs (void);
       extern int SK_ADL_CountActiveGPUs   (void);
 
-      dll_log.Log ( L"[DisplayLib]  * Number of Remported AMD Adapters: %i (%i active)",
+      dll_log.Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
                       SK_ADL_CountPhysicalGPUs (),
                         SK_ADL_CountActiveGPUs () );
     }
@@ -1716,9 +1716,11 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
-  dll_log.LogEx  (true, L"[ SpecialK ] Saving user preferences to %s.ini... ", backend);
-  SK_SaveConfig (backend);
-  dll_log.LogEx  (false, L"done!\n");
+  if (sk::NVAPI::app_name != L"ds3t.exe") {
+    dll_log.LogEx  (true, L"[ SpecialK ] Saving user preferences to %s.ini... ", backend);
+    SK_SaveConfig (backend);
+    dll_log.LogEx  (false, L"done!\n");
+  }
 
   dll_log.LogEx  (true, L"[ SteamAPI ] Shutting down Steam API... ");
   SK::SteamAPI::Shutdown ();

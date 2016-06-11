@@ -209,6 +209,7 @@ sk::ParameterBool*    ds3_start_fullscreen = nullptr;
                       
 sk::ParameterBool*    ds3_flip_mode        = nullptr;
 
+sk::ParameterInt64*   ds3_last_addr        = nullptr;
 
 extern HWND hWndRender;
 
@@ -321,16 +322,16 @@ SK_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
 
 // Scan up to 256 MiB worth of data
 #ifdef __WIN32
-#define PAGE_WALK_LIMIT (uint8_t *)((base_addr) + (1 << 27))
+uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 26));
 #else
   // Dark Souls 3 needs this, its address space is completely random to the point
   //   where it may be occupying a range well in excess of 36 bits. Probably a stupid
   //     anti-cheat attempt.
-#define PAGE_WALK_LIMIT (uint8_t *)MAXULONGLONG
+uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
 #endif
 
   //
-  // For practical purposes, let's just assume that all valid games have less than 32 MiB of
+  // For practical purposes, let's just assume that all valid games have less than 256 MiB of
   //   committed executable image data.
   //
   while (VirtualQuery (end_addr, &mem_info, sizeof mem_info) && end_addr < PAGE_WALK_LIMIT) {
@@ -526,9 +527,8 @@ SK_DS3_CenterWindow_Thread (LPVOID user)
       y_off = (ds3_state.monitor.Height - ds3_state.Height) / 2;
     }
 
-    DWORD dwFlags = SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS;
+    DWORD dwFlags = SWP_NOSIZE | SWP_NOZORDER;
 
-    //SetActiveWindow_Original (ds3_state.Window);
     BringWindowToTop         (ds3_state.Window);
     SetForegroundWindow      (ds3_state.Window);
 
@@ -547,14 +547,13 @@ DWORD
 WINAPI
 SK_DS3_FinishResize_Thread (LPVOID user)
 {
-    DWORD dwFlags = SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS;
+  DWORD dwFlags = SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSENDCHANGING;
 
   if (ds3_cfg.window.borderless) {
     SetWindowLongW (ds3_state.Window, GWL_STYLE, WS_POPUP | WS_MINIMIZEBOX);
     dwFlags |= SWP_FRAMECHANGED;
   }
 
-  //SetActiveWindow_Original (ds3_state.Window);
   BringWindowToTop    (ds3_state.Window);
   SetForegroundWindow (ds3_state.Window);
 
@@ -820,6 +819,15 @@ SK_DS3_InitPlugin (void)
 
 
 
+  ds3_last_addr =
+    static_cast <sk::ParameterInt64 *>
+      (ds3_factory.create_parameter <int64_t> (L"Last Known Address"));
+  ds3_last_addr->register_to_ini ( ds3_prefs,
+                                     L"SUS.System",
+                                       L"LastKnownAddr" );
+
+
+
   ds3_dump_textures =
     static_cast <sk::ParameterBool *>
     (ds3_factory.create_parameter <bool> (L"Dump Textures"));
@@ -930,22 +938,49 @@ SK_DS3_InitPlugin (void)
   uint32_t res_x = ds3_default_res_x->get_value ();
   uint32_t res_y = ds3_default_res_y->get_value ();
 
-  void* res_addr =
-    SK_Scan (res_sig, 8, res_mask);
+  void* res_addr = nullptr;
+
+  if (ds3_last_addr->load ()) {
+    res_addr = (void *)ds3_last_addr->get_value ();
+
+    MEMORY_BASIC_INFORMATION mem_info;
+    VirtualQuery (res_addr, &mem_info, sizeof mem_info);
+
+    if (mem_info.Protect & PAGE_NOACCESS)
+      res_addr = nullptr;
+
+    if (res_addr != nullptr && (! memcmp (res_addr, res_sig, 8))) {
+      dll_log.Log ( L"[Asp. Ratio] Skipping Signature Scan,"
+                    L" Last Known Address = GOOD" );
+    } else {
+      res_addr = nullptr;
+    }
+  }
+
+  if (res_addr == nullptr)
+    res_addr = SK_Scan (res_sig, 8, nullptr);
+
+  if (res_addr != nullptr) {
+    ds3_last_addr->set_value ((int64_t)res_addr);
+    ds3_last_addr->store     ();
+    ds3_prefs->write (L"SoulsUnsqueezed.ini");
+  }
 
   void* res_addr_x = res_addr;
   void* res_addr_y = (uint8_t *)res_addr + 4;
 
   if (res_addr != nullptr) {
-    if (res_x != 1920 || res_y != 1080) {
+    if (res_x != ds3_cfg.render.sacrifice_x || res_y != ds3_cfg.render.sacrifice_y) {
       SK_InjectMemory (res_addr_x, (uint8_t *)&res_x, 4, PAGE_EXECUTE_READWRITE);
       SK_InjectMemory (res_addr_y, (uint8_t *)&res_y, 4, PAGE_EXECUTE_READWRITE);
       dll_log.Log ( L"[Asp. Ratio] Custom Default Resolution: (%lux%lu) {%3.2f}",
                       res_x, res_y,
                         (float)res_x / (float)res_y );
+      dll_log.Log ( L"[Asp. Ratio]   >> Sacrifice Address: %ph", res_addr);
     }
   } else {
-    dll_log.Log (L"[Asp. Ratio] >> ERROR: Unable to locate memory address for 1920x1080... <<");
+    dll_log.Log ( L"[Asp. Ratio] >> ERROR: Unable to locate memory address for %lux%lu... <<",
+                  *(uint32_t *)res_sig, *((uint32_t *)res_sig+1) );
   }
 
 #if 0
@@ -1412,7 +1447,6 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
     // Engage Fullscreen Mode At Startup (ARC Hack)
     //
     if (ds3_cfg.render.fullscreen) {
-      Sleep (66);
       CreateThread (nullptr, 0, SK_DS3_FullscreenToggle_Thread, nullptr, 0, nullptr);
     }
   }

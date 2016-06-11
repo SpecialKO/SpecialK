@@ -671,8 +671,11 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         //}
 
         if (hr != S_OK) {
-            dll_log.Log (L"[   DXGI   ] *** IDXGISwapChain::Present (...) returned non-S_OK (%x :: %s)",
-                         hr, SUCCEEDED (hr) ? L"Success" : L"Fail");
+            dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
+                          L"returned non-S_OK (%s :: %s)",
+                            SK_DescribeHRESULT (hr),
+                              SUCCEEDED (hr) ? L"Success" :
+                                               L"Fail" );
         }
       } else {
         // No overlays will work if we don't do this...
@@ -758,6 +761,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
             hWndRender       = desc.OutputWindow;
             game_window.hWnd = hWndRender;
           }
+
+          pDev.Release ();
         }
       }
 
@@ -767,9 +772,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       {
         HRESULT ret = E_FAIL;
 
-        if (pDev != nullptr) {
+        if (pDev != nullptr)
           ret = SK_EndBufferSwap (hr, pDev);
-        }
 
         return ret;
       }
@@ -878,15 +882,16 @@ __declspec (noinline)
     HRESULT ret;
     DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
 
-#if 0
+    //
+    // Necessary provisions for Fullscreen Flip Mode
+    //
     if (Fullscreen && SUCCEEDED (ret)) {
-      mode_desc.RefreshRate = { 0 };
-      ResizeTarget_Original (This, &mode_desc);
+      //mode_desc.RefreshRate = { 0 };
+      //ResizeTarget_Original (This, &mode_desc);
 
       if (bFlipMode)
         ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
     }
-#endif
 
     return ret;
   }
@@ -1017,8 +1022,10 @@ __declspec (noinline)
       //if (config.render.framerate.max_delta_time == 0)
         //bWait = false;
 
-      if (SK_DS3_IsBorderless ())
-        pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+      if (host_app == L"DarkSoulsIII.exe") {
+        if (SK_DS3_IsBorderless ())
+          pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+      }
 
       if (bFlipMode) {
         if (bWait)
@@ -2015,35 +2022,12 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
 LPVOID pfnChangeDisplaySettingsA        = nullptr;
-LPVOID pfnGetClientRect                 = nullptr;
 
 typedef LONG (WINAPI *ChangeDisplaySettingsA_pfn)(
   _In_ DEVMODEA *lpDevMode,
   _In_ DWORD    dwFlags
 );
 ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original = nullptr;
-
-typedef BOOL (WINAPI *GetClientRect_pfn)(
-  _In_ HWND hWnd,
-  _Out_ LPRECT lpRect
-);
-GetClientRect_pfn GetClientRect_Original = nullptr;
-
-BOOL
-WINAPI
-GetClientRect_Detour (
-  _In_ HWND hWnd,
-  _Out_ LPRECT lpRect
-)
-{
-  lpRect->bottom = 2160;
-  lpRect->top    = 0;
-
-  lpRect->left  = 0;
-  lpRect->right = 3840;
-
-  return TRUE;
-}
 
 LONG
 WINAPI

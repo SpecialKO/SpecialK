@@ -108,6 +108,18 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     case ScreenshotRequested_t::k_iCallback:
       steam_log.Log (L" * Game Installed Screenshot Callback");
       break;
+    case UserStatsReceived_t::k_iCallback:
+      steam_log.Log (L" * Game Installed User Stats Receipt Callback");
+      break;
+    case UserStatsStored_t::k_iCallback:
+      steam_log.Log (L" * Game Installed User Stats Storage Callback");
+      break;
+    case UserAchievementStored_t::k_iCallback:
+      steam_log.Log (L" * Game Installed User Achievements Storage Callback");
+      break;
+    case SteamAPICallCompleted_t::k_iCallback:
+      steam_log.Log (L" * Game Installed Async. SteamAPI Completion Callback");
+      break;
     default:
       steam_log.Log ( L" * Game Installed Unknown Callback (Class=%lu00, Id=%lu)",
                         iCallback / 100, iCallback % 100 );
@@ -128,7 +140,9 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 
   SteamAPI_Init_XXX ();
 
-  switch (pCallback->GetICallback ())
+  int iCallback = pCallback->GetICallback ();
+
+  switch (iCallback)
   {
     case GameOverlayActivated_t::k_iCallback:
       steam_log.Log (L" * Game Uninstalled Overlay Activation Callback");
@@ -137,6 +151,22 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
       break;
     case ScreenshotRequested_t::k_iCallback:
       steam_log.Log (L" * Game Uninstalled Screenshot Callback");
+      break;
+    case UserStatsReceived_t::k_iCallback:
+      steam_log.Log (L" * Game Uninstalled User Stats Receipt Callback");
+      break;
+    case UserStatsStored_t::k_iCallback:
+      steam_log.Log (L" * Game Uninstalled User Stats Storage Callback");
+      break;
+    case UserAchievementStored_t::k_iCallback:
+      steam_log.Log (L" * Game Uninstalled User Achievements Storage Callback");
+      break;
+    case SteamAPICallCompleted_t::k_iCallback:
+      steam_log.Log (L" * Game Uninstalled Async. SteamAPI Completion Callback");
+      break;
+    default:
+      steam_log.Log ( L" * Game Uninstalled Unknown Callback (Class=%lu00, Id=%lu)",
+                        iCallback / 100, iCallback % 100 );
       break;
   }
 
