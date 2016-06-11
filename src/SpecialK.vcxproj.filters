@@ -25,6 +25,9 @@
     <Filter Include="Header Files\Backends\DXGI">
       <UniqueIdentifier>{51556ace-0f83-4e7e-86f9-187c3ff300ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -194,5 +197,25 @@
     <Media Include="..\depends\psn_trophy.wav">
       <Filter>Resource Files</Filter>
     </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\depends\nvapi\x86\nvapi.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="..\depends\nvapi\amd64\nvapi64.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="..\depends\MinHook\lib\libMinHook.x64.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="..\depends\MinHook\lib\libMinHook.x86.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="..\depends\steamapi\lib\steam_api.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="..\depends\steamapi\lib\steam_api64.lib">
+      <Filter>Libraries</Filter>
+    </Library>
   </ItemGroup>
 </Project>

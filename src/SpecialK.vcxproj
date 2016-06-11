@@ -664,6 +664,14 @@
   <ItemGroup>
     <Media Include="..\depends\psn_trophy.wav" />
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\depends\MinHook\lib\libMinHook.x64.lib" />
+    <Library Include="..\depends\MinHook\lib\libMinHook.x86.lib" />
+    <Library Include="..\depends\nvapi\amd64\nvapi64.lib" />
+    <Library Include="..\depends\nvapi\x86\nvapi.lib" />
+    <Library Include="..\depends\steamapi\lib\steam_api.lib" />
+    <Library Include="..\depends\steamapi\lib\steam_api64.lib" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
