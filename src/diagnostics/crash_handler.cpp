@@ -313,7 +313,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                   ip,
                     ExceptionInfo->ContextRecord->Rsp,
                       ExceptionInfo->ContextRecord->Rbp );
-  crash_log.Log ( L"[StackFrame] >-< Rsi=%012llxh, Rdi=%016llxh",
+  crash_log.Log ( L"[StackFrame] >-< Rsi=%012llxh, Rdi=%012llxh",
                   ExceptionInfo->ContextRecord->Rsi,
                     ExceptionInfo->ContextRecord->Rdi );
 
