@@ -252,10 +252,12 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   char    szModName [MAX_PATH] = { '\0' };
   HANDLE  hProc                = GetCurrentProcess ();
 
+  SymRefreshModuleList ( hProc );
+
 #ifdef _WIN64
   DWORD64  ip = ExceptionInfo->ContextRecord->Rip;
 #else
-  DWORD64  ip = ExceptionInfo->ContextRecord->Eip;
+  DWORD    ip = ExceptionInfo->ContextRecord->Eip;
 #endif
 
   if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -265,11 +267,12 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
 
 #ifdef _WIN64
-  DWORD64 BaseAddr = 
-#else
-  DWORD64 BaseAddr = 
-#endif
+  DWORD64 BaseAddr =
     SymGetModuleBase64 ( hProc, ip );
+#else
+  DWORD BaseAddr =
+    SymGetModuleBase   ( hProc, ip );
+#endif
 
   char* szDupName    = strdup (szModName);
   char* pszShortName = szDupName + lstrlenA (szDupName);
@@ -306,44 +309,53 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 #else
   crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, ip-BaseAddr);
 
-  crash_log.Log ( L"[StackFrame] <-> Rip=%016xh, Rsp=%016xh, Rbp=%016xh",
+  crash_log.Log ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh",
                   ip,
                     ExceptionInfo->ContextRecord->Rsp,
                       ExceptionInfo->ContextRecord->Rbp );
-  crash_log.Log ( L"[StackFrame] >-< Rsi=%016xh, Rdi=%016xh",
+  crash_log.Log ( L"[StackFrame] >-< Rsi=%012llxh, Rdi=%016llxh",
                   ExceptionInfo->ContextRecord->Rsi,
                     ExceptionInfo->ContextRecord->Rdi );
 
-  crash_log.Log ( L"[  GP Reg  ]       rax:     0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]       rax:     0x%012llx",
                   ExceptionInfo->ContextRecord->Rax );
-  crash_log.Log ( L"[  GP Reg  ]       rbx:     0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]       rbx:     0x%012llx",
                   ExceptionInfo->ContextRecord->Rbx );
-  crash_log.Log ( L"[  GP Reg  ]       rcx:     0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]       rcx:     0x%012llx",
                   ExceptionInfo->ContextRecord->Rcx );
-  crash_log.Log ( L"[  GP Reg  ]       rdx:     0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]       rdx:     0x%012llx",
                   ExceptionInfo->ContextRecord->Rdx );
-  crash_log.Log ( L"[  GP Reg  ]        r8:     0x%016x       r9:      0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]        r8:     0x%012llx       r9:      0x%012llx",
                   ExceptionInfo->ContextRecord->R8,
                   ExceptionInfo->ContextRecord->R9 );
-  crash_log.Log ( L"[  GP Reg  ]       r10:     0x%016x      r11:      0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]       r10:     0x%012llx      r11:      0x%012llx",
                   ExceptionInfo->ContextRecord->R10,
                   ExceptionInfo->ContextRecord->R11 );
-  crash_log.Log ( L"[  GP Reg  ]       r12:     0x%016x      r13:      0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]       r12:     0x%012llx      r13:      0x%012llx",
                   ExceptionInfo->ContextRecord->R12,
                   ExceptionInfo->ContextRecord->R13 );
-  crash_log.Log ( L"[  GP Reg  ]       r14:     0x%016x      r15:      0x%016x",
+  crash_log.Log ( L"[  GP Reg  ]       r14:     0x%012llx      r15:      0x%012llx",
                   ExceptionInfo->ContextRecord->R14,
                   ExceptionInfo->ContextRecord->R15 );
   crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
                   ExceptionInfo->ContextRecord->EFlags );
 #endif
 
+#ifdef _WIN64
+  SymLoadModule64 ( hProc,
+                      nullptr,
+                        pszShortName,
+                          nullptr,
+                            BaseAddr,
+                              0 );
+#else
   SymLoadModule ( hProc,
                     nullptr,
-                      szModName,
+                      pszShortName,
                         nullptr,
                           BaseAddr,
                             0 );
+#endif
 
   SYMBOL_INFO_PACKAGE sip;
   sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
@@ -352,16 +364,17 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   DWORD64 Displacement = 0;
 
   if ( SymFromAddr ( hProc,
-                       ip,
+                       (DWORD64)ip,
                          &Displacement,
                            &sip.si ) ) {
     crash_log.Log (
       L"-----------------------------------------------------------");
 
+    DWORD Disp;
+#ifdef _WIN64
     IMAGEHLP_LINE64 ihl64;
     ihl64.SizeOfStruct = sizeof IMAGEHLP_LINE64;
 
-    DWORD Disp;
     BOOL  bFileAndLine =
       SymGetLineFromAddr64 ( hProc, ip, &Disp, &ihl64 );
 
@@ -370,6 +383,19 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                       sip.si.Name,
                         ihl64.FileName,
                           ihl64.LineNumber );
+#else
+    IMAGEHLP_LINE ihl;
+    ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+
+    BOOL  bFileAndLine =
+      SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+
+    if (bFileAndLine) {
+      crash_log.Log ( L"[-(Source)-] [!] %hs  <%hs:%lu>",
+                      sip.si.Name,
+                        ihl.FileName,
+                          ihl.LineNumber );
+#endif
     } else {
       crash_log.Log ( L"[--(Name)--] [!] %hs",
                       sip.si.Name );
@@ -377,7 +403,11 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
   crash_log.Log (L"-----------------------------------------------------------");
 
-  SymUnloadModule (GetCurrentProcess (), BaseAddr);
+#ifdef _WIN64
+  SymUnloadModule64 (hProc, BaseAddr);
+#else
+  SymUnloadModule   (hProc, BaseAddr);
+#endif
 
   free (szDupName);
 
