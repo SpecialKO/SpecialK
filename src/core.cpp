@@ -24,6 +24,8 @@
 #include "core.h"
 #include "stdafx.h"
 
+#include "diagnostics/crash_handler.h"
+
 #include "log.h"
 
 #include "steam_api.h"
@@ -939,6 +941,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
     dll_log.LogEx (false, L"done!\n");
   }
 
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
+
   if (! lstrcmpW (pwszShortName, L"BatmanAK.exe"))
     USE_SLI = false;
 
@@ -1208,6 +1213,9 @@ WaitForInit (void)
 #else
   SK_LoadLazyImports32 ();
 #endif
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Reinstall ();
 }
 
 
@@ -1548,7 +1556,8 @@ SK_ShutdownCore (const wchar_t* backend)
   ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (budget_log);
-  SK_AutoClose_Log (   dll_log );
+  SK_AutoClose_Log ( crash_log);
+  SK_AutoClose_Log (   dll_log);
 
   SK_UnloadImports ();
 

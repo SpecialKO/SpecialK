@@ -516,7 +516,7 @@ public:
 
       extern HMODULE hModSelf;
       HRSRC   default_sound =
-        FindResource (hModSelf, MAKEINTRESOURCE (IDR_WAVE1), L"WAVE");
+        FindResource (hModSelf, MAKEINTRESOURCE (IDR_TROPHY), L"WAVE");
 
       if (default_sound != nullptr) {
         HGLOBAL sound_ref     =

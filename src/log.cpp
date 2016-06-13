@@ -75,6 +75,10 @@ sk_logger_t::close (void)
     fclose (fLog);
   }
 
+  if (lines == 0) {
+    DeleteFileA (name.c_str ());
+  }
+
   initialized = false;
   silent      = true;
 
@@ -87,6 +91,9 @@ sk_logger_t::init (const char* const szFileName,
 {
   if (initialized)
     return true;
+
+  lines = 0;
+  name  = szFileName;
 
   //
   // Split the path, so we can create the log directory if necessary
@@ -151,6 +158,8 @@ sk_logger_t::LogEx (bool                 _Timestamp,
     return;
   }
 
+  ++lines;
+
   if (_Timestamp) {
     wchar_t wszLogTime [128];
 
@@ -186,6 +195,8 @@ sk_logger_t::Log   (_In_z_ _Printf_format_string_
     return;
   }
 
+  ++lines;
+
   wchar_t wszLogTime [128];
 
   WORD ms = SK_Timestamp (wszLogTime);
@@ -219,6 +230,8 @@ sk_logger_t::Log   (_In_z_ _Printf_format_string_
     LeaveCriticalSection (&log_mutex);
     return;
   }
+
+  ++lines;
 
   wchar_t wszLogTime [128];
 

@@ -41,6 +41,9 @@
 #include "command.h"
 #include "framerate.h"
 
+extern LARGE_INTEGER SK_QueryPerf (void);
+
+
 struct sk_window_s {
   HWND    hWnd;
   WNDPROC WndProc_Original;
@@ -1471,12 +1474,14 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
     if (pSwapChainDesc != nullptr) {
       dll_log.LogEx ( true,
-                        L"[   DXGI   ]  SwapChain: (%lux%lu@%lu Hz - Scaling: %s) - "
+                        L"[   DXGI   ]  SwapChain: (%lux%lu@%4.1f Hz - Scaling: %s) - "
                         L"[%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
                           pSwapChainDesc->BufferDesc.Width,
                           pSwapChainDesc->BufferDesc.Height,
-                          pSwapChainDesc->BufferDesc.RefreshRate.Numerator / 
-                          pSwapChainDesc->BufferDesc.RefreshRate.Denominator,
+                          pSwapChainDesc->BufferDesc.RefreshRate.Denominator > 0 ? 
+                   (float)pSwapChainDesc->BufferDesc.RefreshRate.Numerator /
+                   (float)pSwapChainDesc->BufferDesc.RefreshRate.Denominator :
+                   (float)pSwapChainDesc->BufferDesc.RefreshRate.Numerator,
                           pSwapChainDesc->BufferDesc.Scaling == 0 ?
                             L"Unspecified" :
                           pSwapChainDesc->BufferDesc.Scaling == 1 ?
@@ -2074,6 +2079,10 @@ dxgi_init_callback (finish_pfn finish)
   dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %08Xh",
     (CreateDXGIFactory2_Import = \
       (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
+
+  // This is ridiculous, but at least one user of Souls "Unsqueezed" has a thoroughly
+  //   broken operating system that requires this.
+  LoadLibrary (L"d3d11.dll");
 
   SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
                        D3D11CreateDeviceAndSwapChain_Detour,
@@ -2921,8 +2930,7 @@ D3D11Dev_CreateTexture2D_Override (
     }
   }
 
-  LARGE_INTEGER             load_start;
-  QueryPerformanceCounter (&load_start);
+  LARGE_INTEGER             load_start = SK_QueryPerf ();
 
   uint32_t checksum  = 0;
   uint32_t cache_tag = 0;
@@ -3017,8 +3025,7 @@ D3D11Dev_CreateTexture2D_Override (
         load_info.Width          = D3DX11_DEFAULT;// pDesc->Width;
 
         if (SUCCEEDED (D3DX11CreateTextureFromFileW (This, wszTex, &load_info, nullptr, (ID3D11Resource**)ppTexture2D, nullptr))) {
-          LARGE_INTEGER             load_end;
-          QueryPerformanceCounter (&load_end);
+          LARGE_INTEGER             load_end = SK_QueryPerf ();
 
           self_invoke = false;
 
@@ -3044,8 +3051,7 @@ D3D11Dev_CreateTexture2D_Override (
   HRESULT ret =
     D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
-  LARGE_INTEGER             load_end;
-  QueryPerformanceCounter (&load_end);
+  LARGE_INTEGER             load_end = SK_QueryPerf ();
 
   if ( SUCCEEDED (ret) && (! self_invoke) && cacheable ) {
     SK_D3D11CriticalSection critical_scope (&auto_cs);

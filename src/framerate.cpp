@@ -166,7 +166,7 @@ SK::Framerate::Init (void)
           (LPVOID *)&pfnQueryPerformanceCounter );
   SK_EnableHook (pfnQueryPerformanceCounter);
 
-  if (! (GetModuleHandle (L"tsfix.dll") || GetModuleHandle (L"PrettyPrinny.dll"))) {
+  if (! GetModuleHandle (L"PrettyPrinny.dll")) {
     SK_CreateDLLHook ( L"kernel32.dll", "Sleep",
                        Sleep_Detour, 
             (LPVOID *)&Sleep_Original,

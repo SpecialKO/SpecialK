@@ -545,11 +545,6 @@ SK_DrawOSD (void)
         isDivinityOrigSin = true;
     }
 
-    if (isTalesOfZestiria) {
-      OSD_PRINTF "Tales of Zestiria \"Fix\" v 1.3.1   %ws\n\n",
-                 time
-      OSD_END
-    }
     else if (isFallout4) {
       OSD_PRINTF "Fallout 4 \"Works\" v 0.2.2   %ws\n\n",
                  time

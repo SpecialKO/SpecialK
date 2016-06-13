@@ -207,6 +207,7 @@ struct sk_config_t
     int     init_delay        = 250;
     bool    silent            = false;
     bool    allow_dev_trans   = false;
+    bool    handle_crashes    = true;
     bool    prefer_fahrenheit = true;
     std::wstring
             version           = SK_VER_STR;

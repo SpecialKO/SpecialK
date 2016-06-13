@@ -457,7 +457,7 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
     if (visible && vkCode == VK_BACK) {
       if (keyDown) {
         size_t len = strlen (text);
-                len--;
+               len--;
 
         if (len < 1)
           len = 1;

@@ -285,7 +285,7 @@ extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define SUS_VERSION_NUM L"0.3.0"
+#define SUS_VERSION_NUM L"0.3.2"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
 
 LPVOID __SK_base_img_addr = nullptr;
@@ -826,7 +826,14 @@ SK_DS3_InitPlugin (void)
                                      L"SUS.System",
                                        L"LastKnownAddr" );
 
-
+#if 0
+  sk::ParameterStringW ini_ver =
+    static_cast <sk::ParameterStringW *>
+      (ds3_factory.create_parameter <std::wstring> (L"Last Version"));
+  ds3_last_addr->register_to_ini ( ds3_prefs,
+                                     L"SUS.System",
+                                       L"Version" );
+#endif
 
   ds3_dump_textures =
     static_cast <sk::ParameterBool *>

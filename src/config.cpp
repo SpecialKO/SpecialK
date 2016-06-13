@@ -28,7 +28,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.3.0";
+std::wstring SK_VER_STR = L"0.3.1";
 
 static sk::INI::File*  dll_ini = nullptr;
 
@@ -136,11 +136,11 @@ struct {
 } nvidia;
 
 sk::ParameterFloat*     mem_reserve;
+sk::ParameterBool*      handle_crashes;
+sk::ParameterBool*      prefer_fahrenheit;
 sk::ParameterInt*       init_delay;
 sk::ParameterBool*      silent;
 sk::ParameterStringW*   version;
-sk::ParameterBool*      prefer_fahrenheit;
-
 struct {
   struct {
     sk::ParameterInt*   target_fps;
@@ -321,7 +321,7 @@ SK_LoadConfig (std::wstring name) {
       );
   init_delay->register_to_ini (
     dll_ini,
-      L"RSFN.System",
+      L"SpecialK.System",
         L"InitDelay" );
 
   silent =
@@ -331,7 +331,7 @@ SK_LoadConfig (std::wstring name) {
       );
   silent->register_to_ini (
     dll_ini,
-      L"RSFN.System",
+      L"SpecialK.System",
         L"Silent" );
 
   prefer_fahrenheit =
@@ -341,8 +341,19 @@ SK_LoadConfig (std::wstring name) {
       );
   prefer_fahrenheit->register_to_ini (
     dll_ini,
-      L"RSFN.System",
+      L"SpecialK.System",
         L"PreferFahrenheit" );
+
+  handle_crashes =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Use Custom Crash Handler")
+      );
+  handle_crashes->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"UseCrashHandler" );
+
 
   version =
     static_cast <sk::ParameterStringW *>
@@ -351,7 +362,7 @@ SK_LoadConfig (std::wstring name) {
       );
   version->register_to_ini (
     dll_ini,
-      L"RSFN.System",
+      L"SpecialK.System",
         L"Version" );
 
 
@@ -547,7 +558,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.show->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"Show" );
 
   osd.update_method.pump =
@@ -557,7 +568,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.update_method.pump->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"AutoPump" );
 
   osd.update_method.pump_interval =
@@ -567,7 +578,7 @@ SK_LoadConfig (std::wstring name) {
     );
   osd.update_method.pump_interval->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"PumpInterval" );
 
   osd.text.red =
@@ -577,7 +588,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.text.red->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"TextColorRed" );
 
   osd.text.green =
@@ -587,7 +598,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.text.green->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"TextColorGreen" );
 
   osd.text.blue =
@@ -597,7 +608,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.text.blue->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"TextColorBlue" );
 
   osd.viewport.pos_x =
@@ -607,7 +618,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.viewport.pos_x->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"PositionX" );
 
   osd.viewport.pos_y =
@@ -617,7 +628,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.viewport.pos_y->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"PositionY" );
 
   osd.viewport.scale =
@@ -627,7 +638,7 @@ SK_LoadConfig (std::wstring name) {
       );
   osd.viewport.scale->register_to_ini (
     dll_ini,
-      L"RSFN.OSD",
+      L"SpecialK.OSD",
         L"Scale" );
 
 
@@ -951,6 +962,10 @@ SK_LoadConfig (std::wstring name) {
     config.system.silent = silent->get_value ();
   if (prefer_fahrenheit->load ())
     config.system.prefer_fahrenheit = prefer_fahrenheit->get_value ();
+
+  if (handle_crashes->load ())
+    config.system.handle_crashes = handle_crashes->get_value ();
+
   if (version->load ())
     config.system.version = version->get_value ();
 
@@ -1118,6 +1133,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   init_delay->store                      ();
   silent->store                          ();
   prefer_fahrenheit->store               ();
+
+  handle_crashes->set_value              (config.system.handle_crashes);
+  handle_crashes->store                  ();
 
   version->set_value                     (SK_VER_STR);
   version->store                         ();

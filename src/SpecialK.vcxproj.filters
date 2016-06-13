@@ -28,6 +28,12 @@
     <Filter Include="Libraries">
       <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Diagnostics">
+      <UniqueIdentifier>{05e53788-2b5b-4da9-8e0a-749b8481056a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Diagnostics">
+      <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -108,6 +114,9 @@
     <ClInclude Include="dxgi_backend.h">
       <Filter>Header Files\Backends\DXGI</Filter>
     </ClInclude>
+    <ClInclude Include="diagnostics\crash_handler.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -182,10 +191,16 @@
     <ClCompile Include="dxgi.cpp">
       <Filter>Source Files\Backends\DXGI</Filter>
     </ClCompile>
+    <ClCompile Include="diagnostics\crash_handler.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="d3d9.def">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="wave2.bin">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +210,9 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\depends\psn_trophy.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="..\depends\crash.wav">
       <Filter>Resource Files</Filter>
     </Media>
   </ItemGroup>

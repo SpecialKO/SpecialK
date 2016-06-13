@@ -22,6 +22,7 @@
 #define __SK__LOG_H__
 
 #include <cstdio>
+#include <string>
 
 #include <minwindef.h>
 #include <minwinbase.h>
@@ -64,8 +65,8 @@ struct sk_logger_t
     return AutoClose (this);
   }
 
-  bool init (const char* const szFilename,
-    const char* const szMode);
+  bool init ( const char* const szFilename,
+              const char* const szMode );
 
   void close (void);
 
@@ -80,15 +81,18 @@ struct sk_logger_t
     char const* const _Format, ...);
 
   FILE*            fLog        = NULL;
+  std::string      name        = "";
   bool             silent      = false;
   bool             initialized = false;
-  CRITICAL_SECTION log_mutex =   { 0 };
+  int              lines       =   0;
+  CRITICAL_SECTION log_mutex   = { 0 };
 };
 
 //
 // TODO, we may want to wrap some synchronization construct around these
 //
 extern sk_logger_t dll_log;
+extern sk_logger_t crash_log;
 extern sk_logger_t budget_log;
 
 #endif /* __SK__LOG_H__ */

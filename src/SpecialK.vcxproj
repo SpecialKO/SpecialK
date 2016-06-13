@@ -238,7 +238,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -292,6 +292,7 @@
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -440,7 +441,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -484,7 +485,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN64;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -611,6 +612,7 @@
     <ClInclude Include="console.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="d3d9_backend.h" />
+    <ClInclude Include="diagnostics\crash_handler.h" />
     <ClInclude Include="dxgi_backend.h" />
     <ClInclude Include="dxgi_interfaces.h" />
     <ClInclude Include="framerate.h" />
@@ -633,6 +635,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="adl.cpp" />
+    <ClCompile Include="diagnostics\crash_handler.cpp" />
     <ClCompile Include="SpecialK.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="config.cpp" />
@@ -659,11 +662,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="d3d9.def" />
+    <None Include="wave2.bin" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Media Include="..\depends\crash.wav" />
     <Media Include="..\depends\psn_trophy.wav" />
   </ItemGroup>
   <ItemGroup>
