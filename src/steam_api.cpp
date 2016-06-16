@@ -1042,7 +1042,7 @@ SteamAPI_Init_XXX (void)
 
   if (stats)
     stats->RequestCurrentStats ();
-  else 
+  else
   // Close, but no - we still have not initialized this monster.
   {
     //init = false;

@@ -1,3 +1,37 @@
+ /************************************************************************************************************************************\
+|*                                                                                                                                    *|
+|*     Copyright © 2012 NVIDIA Corporation.  All rights reserved.                                                                     *|
+|*                                                                                                                                    *|
+|*  NOTICE TO USER:                                                                                                                   *|
+|*                                                                                                                                    *|
+|*  This software is subject to NVIDIA ownership rights under U.S. and international Copyright laws.                                  *|
+|*                                                                                                                                    *|
+|*  This software and the information contained herein are PROPRIETARY and CONFIDENTIAL to NVIDIA                                     *|
+|*  and are being provided solely under the terms and conditions of an NVIDIA software license agreement.                             *|
+|*  Otherwise, you have no rights to use or access this software in any manner.                                                       *|
+|*                                                                                                                                    *|
+|*  If not covered by the applicable NVIDIA software license agreement:                                                               *|
+|*  NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOFTWARE FOR ANY PURPOSE.                                            *|
+|*  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR IMPLIED WARRANTY OF ANY KIND.                                                           *|
+|*  NVIDIA DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,                                                                     *|
+|*  INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.                       *|
+|*  IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,                               *|
+|*  OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,                         *|
+|*  NEGLIGENCE OR OTHER TORTIOUS ACTION,  ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOURCE CODE.            *|
+|*                                                                                                                                    *|
+|*  U.S. Government End Users.                                                                                                        *|
+|*  This software is a "commercial item" as that term is defined at 48 C.F.R. 2.101 (OCT 1995),                                       *|
+|*  consisting  of "commercial computer  software"  and "commercial computer software documentation"                                  *|
+|*  as such terms are  used in 48 C.F.R. 12.212 (SEPT 1995) and is provided to the U.S. Government only as a commercial end item.     *|
+|*  Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through 227.7202-4 (JUNE 1995),                                          *|
+|*  all U.S. Government End Users acquire the software with only those rights set forth herein.                                       *|
+|*                                                                                                                                    *|
+|*  Any use of this software in individual and commercial software must include,                                                      *|
+|*  in the user documentation and internal comments to the code,                                                                      *|
+|*  the above Disclaimer (as applicable) and U.S. Government End Users Notice.                                                        *|
+|*                                                                                                                                    *|
+ \************************************************************************************************************************************/
+
 ////////////////////////// NVIDIA SHADER EXTENSIONS /////////////////
 
 // this file is to be #included in the app HLSL shader code to make
@@ -400,3 +434,335 @@ float NvInterlockedAddFp32(RWTexture3D<float> uav, uint3 address, float val)
     return __NvAtomicAddFP32(uav, address, val);
 }
 
+
+//----------------------------------------------------------------------------//
+//---------------------- Typed UAV Load functions ----------------------------//
+//----------------------------------------------------------------------------//
+
+// loads value from a UAV of a 4-component resource of any unorm, snorm or float format 
+// (e.g, DXGI_FORMAT_R8G8B8A8_UNORM, R16G16B16A16_FLOAT or  DXGI_FORMAT_R32G32B32A32_FLOAT)
+// the loaded value is automatically converted to fp32 and returned
+float4 NvLoadUavTyped(RWTexture1D<float4> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x    = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u);
+}
+
+float4 NvLoadUavTyped(RWTexture2D<float4> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u);
+}
+
+float4 NvLoadUavTyped(RWTexture3D<float4> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz  = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u);
+}
+
+
+
+// loads value from a UAV of a 2-component resource of any unorm, snorm or float format 
+// the loaded value is automatically converted to fp32 and returned
+float2 NvLoadUavTyped(RWTexture1D<float2> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x   = address;
+    g_NvidiaExt[index].opcode    = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u.xy);
+}
+
+float2 NvLoadUavTyped(RWTexture2D<float2> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u.xy);
+}
+
+float2 NvLoadUavTyped(RWTexture3D<float2> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz   = address;
+    g_NvidiaExt[index].opcode      = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u.xy);
+}
+
+
+// loads value from a UAV of a single component resource of any unorm, snorm or float format 
+// the loaded value is automatically converted to fp32 and returned
+float NvLoadUavTyped(RWTexture1D<float> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x    = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u.x);
+}
+
+float NvLoadUavTyped(RWTexture2D<float> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u.x);
+}
+
+float NvLoadUavTyped(RWTexture3D<float> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz   = address;
+    g_NvidiaExt[index].opcode      = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asfloat(g_NvidiaExt[index].dst0u.x);
+}
+
+
+// loads value from a UAV of a 4-component resource of any uint format 
+// (e.g, DXGI_FORMAT_R8G8B8A8_UINT, DXGI_FORMAT_R32G32B32A32_UINT)
+// the loaded value is automatically converted to uint32 and returned
+uint4 NvLoadUavTyped(RWTexture1D<uint4> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x    = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u);
+}
+
+uint4 NvLoadUavTyped(RWTexture2D<uint4> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u);
+}
+
+uint4 NvLoadUavTyped(RWTexture3D<uint4> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz  = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u);
+}
+
+
+
+// loads value from a UAV of a 2-component resource of any uint format
+// the loaded value is automatically converted to uint32 and returned
+uint2 NvLoadUavTyped(RWTexture1D<uint2> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x   = address;
+    g_NvidiaExt[index].opcode    = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u.xy);
+}
+
+uint2 NvLoadUavTyped(RWTexture2D<uint2> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u.xy);
+}
+
+uint2 NvLoadUavTyped(RWTexture3D<uint2> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz   = address;
+    g_NvidiaExt[index].opcode      = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u.xy);
+}
+
+
+// loads value from a UAV of a single component resource of any uint format
+// the loaded value is automatically converted to uint32 and returned
+uint NvLoadUavTyped(RWTexture1D<uint> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x    = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u.x);
+}
+
+uint NvLoadUavTyped(RWTexture2D<uint> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u.x);
+}
+
+uint NvLoadUavTyped(RWTexture3D<uint> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz   = address;
+    g_NvidiaExt[index].opcode      = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return (g_NvidiaExt[index].dst0u.x);
+}
+
+
+// loads value from a UAV of a 4-component resource of any signed integer format 
+// (e.g, DXGI_FORMAT_R8G8B8A8_SINT, DXGI_FORMAT_R32G32B32A32_SINT)
+// the loaded value is automatically converted to int32 and returned
+int4 NvLoadUavTyped(RWTexture1D<int4> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x    = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u);
+}
+
+int4 NvLoadUavTyped(RWTexture2D<int4> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u);
+}
+
+int4 NvLoadUavTyped(RWTexture3D<int4> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz  = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u);
+}
+
+
+
+// loads value from a UAV of a 2-component resource of any signed integer format 
+// the loaded value is automatically converted to int32 and returned
+int2 NvLoadUavTyped(RWTexture1D<int2> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x   = address;
+    g_NvidiaExt[index].opcode    = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u.xy);
+}
+
+int2 NvLoadUavTyped(RWTexture2D<int2> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u.xy);
+}
+
+int2 NvLoadUavTyped(RWTexture3D<int2> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz   = address;
+    g_NvidiaExt[index].opcode      = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u.xy);
+}
+
+// loads value from a UAV of a single component resource of signed integer format 
+// the loaded value is automatically converted to int32 and returned
+int NvLoadUavTyped(RWTexture1D<int> uav, uint address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.x    = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u.x);
+}
+
+int NvLoadUavTyped(RWTexture2D<int> uav, uint2 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xy   = address;
+    g_NvidiaExt[index].opcode     = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u.x);
+}
+
+int NvLoadUavTyped(RWTexture3D<int> uav, uint3 address)
+{
+    __NvReferenceUAVForOp(uav);
+
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].src0u.xyz   = address;
+    g_NvidiaExt[index].opcode      = NV_EXTN_OP_TYPED_UAV_LOAD;
+
+    return asint(g_NvidiaExt[index].dst0u.x);
+}

@@ -28,7 +28,7 @@ NvAPI_GPU_GetMemoryInfo_Detour ( NvPhysicalGpuHandle            hPhysicalGpu,
                                  NV_DISPLAY_DRIVER_MEMORY_INFO *pMemoryInfo )
 {
   if (fo4_spoof_memory == nullptr) {
-    fo4_spoof_memory = 
+    fo4_spoof_memory =
       static_cast <sk::ParameterInt *>
         (fo4_factory.create_parameter <int> (L"Memory Multiplier"));
     fo4_spoof_memory->register_to_ini ( fo4_prefs,
@@ -56,9 +56,13 @@ NvAPI_GPU_GetMemoryInfo_Detour ( NvPhysicalGpuHandle            hPhysicalGpu,
 
 LPVOID NVAPI_GPU_GETMEMORYINFO_PROC;
 
+extern void WINAPI SK_D3D11_EnableTexCache (bool enable);
+
 void
 SK_FO4_InitPlugin (void)
 {
+  SK_D3D11_EnableTexCache (true);
+
   if (fo4_prefs == nullptr) {
     std::wstring fo4_prefs_file =
       SK_GetDocumentsDir () +
@@ -88,7 +92,7 @@ SK_FO4_IsFullscreen (void)
   SK_FO4_InitPlugin ();
 
   if (fo4_fullscreen == nullptr) {
-    fo4_fullscreen = 
+    fo4_fullscreen =
       static_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Fullscreen Mode"));
     fo4_fullscreen->register_to_ini ( fo4_prefs,
@@ -107,7 +111,7 @@ SK_FO4_IsBorderlessWindow (void)
   SK_FO4_InitPlugin ();
 
   if (fo4_borderless == nullptr) {
-    fo4_borderless = 
+    fo4_borderless =
       static_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Borderless Window"));
     fo4_borderless->register_to_ini ( fo4_prefs,

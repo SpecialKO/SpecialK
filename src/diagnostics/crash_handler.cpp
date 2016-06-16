@@ -117,12 +117,12 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
       last_chance = true;
 
+      // Shutdown the module gracefully
+      DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
+
       PlaySound ( (LPCWSTR)crash_sound.buf,
                     nullptr,
                       SND_SYNC | SND_MEMORY );
-
-      // Shutdown the module gracefully
-      DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
     }
   }
 

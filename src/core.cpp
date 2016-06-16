@@ -442,7 +442,7 @@ SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
       pAdapter3->SetVideoMemoryReservation (
         (i - 1),
         DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-        (i == 1 || USE_SLI) ? 
+        (i == 1 || USE_SLI) ?
         uint64_t (mem_info.AvailableForReservation *
           config.mem.reserve * 0.01f) :
         0
@@ -479,7 +479,7 @@ SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
         (i - 1),
         DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
         (i == 1 || USE_SLI) ?
-        uint64_t (mem_info.AvailableForReservation * 
+        uint64_t (mem_info.AvailableForReservation *
           config.mem.reserve * 0.01f) :
         0
         );
@@ -657,8 +657,31 @@ WINAPI BudgetThread (LPVOID user_data)
       budget_log.LogEx (true, L"[ DXGI 1.4 ] Local Memory.....:");
 
       while (i < nodes) {
-        if (dwWaitStatus == WAIT_OBJECT_0)
+        if (dwWaitStatus == WAIT_OBJECT_0) {
+          static UINT64 LastBudget = 0ULL;
+
           mem_stats [i].budget_changes++;
+
+#if 0
+          int64_t over_budget =
+            LastBudget -
+            mem_info [buffer].local [i].Budget;
+
+          extern uint32_t SK_D3D11_amount_to_purge;
+          SK_D3D11_amount_to_purge += max (0, over_budget);
+
+/*
+          if (LastBudget > (mem_info [buffer].local [i].Budget + 1024 * 1024 * 128)) {
+            extern bool   SK_D3D11_need_tex_reset;
+            extern UINT64 SK_D3D11_amount_to_purge;
+            SK_D3D11_need_tex_reset  = true;
+            SK_D3D11_amount_to_purge = LastBudget - mem_info [buffer].local [i].Budget;
+          }
+*/
+#endif
+
+          LastBudget = mem_info [buffer].local [i].Budget;
+        }
 
         if (i > 0) {
           budget_log.LogEx (false, L"\n");
@@ -1232,6 +1255,9 @@ WINAPI DllThread (LPVOID user)
     init_params_t* params = (init_params_t *)user;
 
     SK_InitCore (params->backend, params->callback);
+
+    extern uint32_t SK_D3D11_amount_to_purge;
+    SK_GetCommandProcessor ()->AddVariable ("VRAM.Purge", new SK_VarStub <int32_t> ((int32_t *)&SK_D3D11_amount_to_purge));
 
     if (host_app == L"DarkSoulsIII.exe") {
       SK_DS3_InitPlugin ();
@@ -2057,7 +2083,7 @@ DoKeyboard (void)
     if (! toggle_mem) {
       config.mem.show = (! config.mem.show);
 
-      if (config.mem.show) 
+      if (config.mem.show)
         SK_StartPerfMonThreads ();
     }
 

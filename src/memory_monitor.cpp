@@ -80,7 +80,7 @@ SK_MonitorProcess (LPVOID user)
                      CLSID_WbemRefresher,
                      NULL,
                      CLSCTX_INPROC_SERVER,
-                     IID_IWbemRefresher, 
+                     IID_IWbemRefresher,
                      (void**) &proc.pRefresher )
              )
      )

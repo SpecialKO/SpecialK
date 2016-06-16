@@ -37,7 +37,7 @@ QueryPerformanceCounter_t QueryPerformanceCounter_Original = nullptr;
 auto SK_CurrentPerf = []()->
  LARGE_INTEGER
   {
-    LARGE_INTEGER                     time; 
+    LARGE_INTEGER                     time;
     QueryPerformanceCounter_Original (&time);
     return                            time;
   };
@@ -125,7 +125,7 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
     //last_perfCount = thread_perf [GetCurrentThreadId ()];
 
     // Mess with the numbers slightly to prevent hiccups
-    lpPerformanceCount->QuadPart += (lpPerformanceCount->QuadPart - last_perfCount.QuadPart) * 
+    lpPerformanceCount->QuadPart += (lpPerformanceCount->QuadPart - last_perfCount.QuadPart) *
       fudge_factor/* * freq.QuadPart*/;
     memcpy (&last_perfCount, lpPerformanceCount, sizeof (LARGE_INTEGER) );
     //thread_perf [GetCurrentThreadId ()] = last_perfCount;
@@ -168,7 +168,7 @@ SK::Framerate::Init (void)
 
   if (! GetModuleHandle (L"PrettyPrinny.dll")) {
     SK_CreateDLLHook ( L"kernel32.dll", "Sleep",
-                       Sleep_Detour, 
+                       Sleep_Detour,
             (LPVOID *)&Sleep_Original,
             (LPVOID *)&pfnSleep );
     SK_EnableHook (pfnSleep);

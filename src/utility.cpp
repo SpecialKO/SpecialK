@@ -34,7 +34,7 @@ int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
   return
-    MessageBox (NULL, caption.c_str (), title.c_str (), 
+    MessageBox (NULL, caption.c_str (), title.c_str (),
                 flags | MB_SYSTEMMODAL | MB_TOPMOST | MB_SETFOREGROUND);
 }
 
@@ -112,7 +112,7 @@ SK_FullCopy (std::wstring from, std::wstring to)
   WideCharToMultiByte (CP_OEMCP, 0, to.c_str (), -1, szFileTo, MAX_PATH, NULL, NULL);
   HFILE hfTo = OpenFile (szFileTo, &ofTo, NULL);
 
-  
+
   HANDLE hTo = HandleToHandle64 (&hfTo);
   CloseHandle (hTo);
 

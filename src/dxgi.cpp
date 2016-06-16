@@ -77,8 +77,32 @@ extern "C++" bool SK_DS3_IsBorderless       (void);
 extern "C++" HRESULT STDMETHODCALLTYPE
                   SK_DS3_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 
+void SK_D3D11_ResourceCheckpoint (void);
+void SK_D3D11_TexCacheCheckpoint (void);
+
+void SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex);
+
+
 //#define FULL_RESOLUTION
 
+typedef ULONG (WINAPI *IUnknown_Release_pfn)(IUnknown* This);
+IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
+
+ULONG
+WINAPI
+IUnknown_Release (IUnknown* This)
+{
+  ID3D11Texture2D* pTex = nullptr;
+  if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex)))) {
+    ULONG count = IUnknown_Release_Original (pTex);
+
+    if (pTex != nullptr && count == 1) {
+      SK_D3D11_RemoveTexFromCache (pTex);
+    }
+  }
+
+  return IUnknown_Release_Original (This);
+}
 
 extern int                      gpu_prio;
 
@@ -136,16 +160,16 @@ extern "C" {
     (REFIID riid,  void** ppFactory);
 
   typedef HRESULT (WINAPI *D3D11CreateDeviceAndSwapChain_pfn)(
-    _In_opt_                             IDXGIAdapter*, 
+    _In_opt_                             IDXGIAdapter*,
                                          D3D_DRIVER_TYPE,
                                          HMODULE,
-                                         UINT, 
-    _In_reads_opt_ (FeatureLevels) CONST D3D_FEATURE_LEVEL*, 
+                                         UINT,
+    _In_reads_opt_ (FeatureLevels) CONST D3D_FEATURE_LEVEL*,
                                          UINT FeatureLevels,
                                          UINT,
     _In_opt_                       CONST DXGI_SWAP_CHAIN_DESC*,
     _Out_opt_                            IDXGISwapChain**,
-    _Out_opt_                            ID3D11Device**, 
+    _Out_opt_                            ID3D11Device**,
     _Out_opt_                            D3D_FEATURE_LEVEL*,
     _Out_opt_                            ID3D11DeviceContext**);
 
@@ -187,19 +211,19 @@ extern "C" {
                                          IDXGIOutput     *This,
                               /* [in] */ DXGI_FORMAT      EnumFormat,
                               /* [in] */ UINT             Flags,
-                              /* [annotation][out][in] */ 
+                              /* [annotation][out][in] */
                                 _Inout_  UINT            *pNumModes,
-                              /* [annotation][out] */ 
+                              /* [annotation][out] */
 _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                          DXGI_MODE_DESC *pDesc );
 
   typedef HRESULT (STDMETHODCALLTYPE *FindClosestMatchingMode_pfn)(
                                          IDXGIOutput    *This,
-                             /* [annotation][in] */ 
+                             /* [annotation][in] */
                              _In_  const DXGI_MODE_DESC *pModeToMatch,
-                             /* [annotation][out] */ 
+                             /* [annotation][out] */
                              _Out_       DXGI_MODE_DESC *pClosestMatch,
-                             /* [annotation][in] */ 
+                             /* [annotation][in] */
                               _In_opt_  IUnknown *pConcernedDevice );
 
   typedef HRESULT (STDMETHODCALLTYPE *WaitForVBlank_pfn)(
@@ -643,6 +667,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     }
 #endif
 
+    SK_D3D11_TexCacheCheckpoint ();
+
     SK_BeginBufferSwap ();
 
     HRESULT hr = E_FAIL;
@@ -796,9 +822,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   DXGIOutput_GetDisplayModeList_Override ( IDXGIOutput    *This,
                                 /* [in] */ DXGI_FORMAT     EnumFormat,
                                 /* [in] */ UINT            Flags,
-                                /* [annotation][out][in] */ 
+                                /* [annotation][out][in] */
                                   _Inout_  UINT           *pNumModes,
-                                /* [annotation][out] */ 
+                                /* [annotation][out] */
 _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                            DXGI_MODE_DESC *pDesc)
   {
@@ -816,11 +842,11 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   HRESULT
   STDMETHODCALLTYPE
   DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
-                                                /* [annotation][in] */ 
+                                                /* [annotation][in]  */
                                     _In_  const DXGI_MODE_DESC *pModeToMatch,
-                                                /* [annotation][out] */ 
+                                                /* [annotation][out] */
                                          _Out_  DXGI_MODE_DESC *pClosestMatch,
-                                                /* [annotation][in] */ 
+                                                /* [annotation][in]  */
                                       _In_opt_  IUnknown       *pConcernedDevice )
   {
 //    dll_log.Log (L"[   DXGI   ] [!] IDXGIOutput::FindClosestMatchingMode (...)");
@@ -913,7 +939,7 @@ __declspec (noinline)
     DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeBuffers", L"%lu,%lu,%lu,...,0x%08X,0x%08X",
                         BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
-    if ( config.render.framerate.buffer_count != -1 && 
+    if ( config.render.framerate.buffer_count != -1           &&
          config.render.framerate.buffer_count !=  BufferCount &&
          BufferCount                          !=  0 ) {
       BufferCount = config.render.framerate.buffer_count;
@@ -972,7 +998,7 @@ __declspec (noinline)
         L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
         pDesc->BufferDesc.Width,
         pDesc->BufferDesc.Height,
-        pDesc->BufferDesc.RefreshRate.Denominator > 0 ? 
+        pDesc->BufferDesc.RefreshRate.Denominator > 0 ?
         (float)pDesc->BufferDesc.RefreshRate.Numerator /
         (float)pDesc->BufferDesc.RefreshRate.Denominator :
         (float)pDesc->BufferDesc.RefreshRate.Numerator,
@@ -1280,6 +1306,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
   {
     //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)", pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 
+    //SK_D3D11_ResourceCheckpoint ();
+
     CComPtr <ID3D11Texture2D> pTex;
     if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
       //if (SK_D3D11_TextureIsCached (pTex)) {
@@ -1301,6 +1329,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
      _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   {
+    //SK_D3D11_ResourceCheckpoint ();
+
     CComPtr <ID3D11Texture2D> pTex;
     if (SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
       //if (SK_D3D11_TextureIsCached (pTex)) {
@@ -1319,6 +1349,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     _In_ ID3D11Resource      *pDstResource,
     _In_ ID3D11Resource      *pSrcResource )
   {
+    //SK_D3D11_ResourceCheckpoint ();
+
     dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
 
     D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
@@ -1418,7 +1450,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     //
     // DXGI Adapter Override (for performance)
     //
-    
+
     IDXGIAdapter* pGameAdapter     = pAdapter;
     IDXGIAdapter* pOverrideAdapter = nullptr;
 
@@ -1478,7 +1510,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                         L"[%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
                           pSwapChainDesc->BufferDesc.Width,
                           pSwapChainDesc->BufferDesc.Height,
-                          pSwapChainDesc->BufferDesc.RefreshRate.Denominator > 0 ? 
+                          pSwapChainDesc->BufferDesc.RefreshRate.Denominator > 0 ?
                    (float)pSwapChainDesc->BufferDesc.RefreshRate.Numerator /
                    (float)pSwapChainDesc->BufferDesc.RefreshRate.Denominator :
                    (float)pSwapChainDesc->BufferDesc.RefreshRate.Numerator,
@@ -2070,7 +2102,7 @@ dxgi_init_callback (finish_pfn finish)
   dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
   dll_log.Log (L"[   DXGI   ] ================================");
 
-  dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh", 
+  dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh",
     (CreateDXGIFactory_Import =  \
       (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
   dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %08Xh",
@@ -2132,10 +2164,14 @@ SK_LoadRealDXGI (void)
   return LoadLibraryW (wszBackendDLL);
 }
 
+CRITICAL_SECTION tex_cs;
+
 bool
 SK::DXGI::Startup (void)
 {
   SK_LoadRealDXGI ();
+
+  InitializeCriticalSectionAndSpinCount (&tex_cs, 5000UL);
 
   return SK_StartupCore (L"dxgi", dxgi_init_callback);
 }
@@ -2172,6 +2208,7 @@ struct SK_D3D11_TexMgr {
                                   size_t                mem_size,
                                   uint64_t              load_time );
 
+  void             reset         (void);
   bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
 
   struct tex2D_descriptor_s {
@@ -2181,6 +2218,7 @@ struct SK_D3D11_TexMgr {
     uint64_t              load_time  = 0ULL;
     uint32_t              crc32      = 0x00;
     uint32_t              hits       = 0;
+    uint64_t              last_used  = 0ULL;
   };
 
   std::unordered_set      <ID3D11Texture2D *>      TexRefs_2D;
@@ -2238,10 +2276,15 @@ SK::DXGI::Shutdown (void)
 #endif
   }
 
+  DeleteCriticalSection (&tex_cs);
+
   return SK_ShutdownCore (L"dxgi");
 }
 
 
+
+bool         SK_D3D11_need_tex_reset  = false;
+uint32_t     SK_D3D11_amount_to_purge = 0ULL;
 
 bool         SK_D3D11_dump_textures   = false;// true;
 bool         SK_D3D11_inject_textures = false;
@@ -2258,10 +2301,161 @@ SK_D3D11_TexMgr::isTexture2D (uint32_t crc32)
   if (! SK_D3D11_cache_textures)
     return false;
 
-  if (crc32 != 0x00 && HashMap_2D.count (crc32))
+  EnterCriticalSection (&tex_cs);
+
+  if (crc32 != 0x00 && HashMap_2D.count (crc32)) {
+    LeaveCriticalSection (&tex_cs);
     return true;
+  }
+
+  LeaveCriticalSection (&tex_cs);
 
   return false;
+}
+
+void
+SK_D3D11_ResetTexCache (void)
+{
+  EnterCriticalSection (&tex_cs);
+  SK_D3D11_Textures.reset ();
+  LeaveCriticalSection (&tex_cs);
+}
+
+void
+SK_D3D11_TexCacheCheckpoint (void)
+{
+  if (SK_D3D11_amount_to_purge > 0) {
+    //dll_log.Log (L"[DX11TexMgr] DXGI 1.4 Budget Change: Triggered a texture manager purge...");
+
+    //SK_D3D11_need_tex_reset = false;
+    SK_D3D11_Textures.reset ();
+  }
+}
+
+#include <windows.h>
+#include <tlhelp32.h>
+#include <queue>
+
+std::queue <DWORD>
+SK_SuspendAllOtherThreads (void)
+{
+  std::queue <DWORD> threads;
+
+  HANDLE hSnap =
+    CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0);
+
+  if (hSnap != INVALID_HANDLE_VALUE)
+  {
+    THREADENTRY32 tent;
+    tent.dwSize = sizeof THREADENTRY32;
+
+    if (Thread32First (hSnap, &tent))
+    {
+      do
+      {
+        if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
+                                  sizeof (tent.th32OwnerProcessID) )
+        {
+          if ( tent.th32ThreadID       != GetCurrentThreadId  () &&
+               tent.th32OwnerProcessID == GetCurrentProcessId () )
+          {
+            HANDLE hThread =
+              OpenThread (THREAD_ALL_ACCESS, FALSE, tent.th32ThreadID);
+
+            if (hThread != NULL)
+            {
+              //if (WaitForSingleObject (hThread, 0) != WAIT_ABANDONED) {
+                threads.push  (tent.th32ThreadID);
+                SuspendThread (hThread);
+              //}
+              CloseHandle     (hThread);
+            }
+          }
+        }
+
+        tent.dwSize = sizeof (tent);
+      } while (Thread32Next (hSnap, &tent));
+    }
+
+    CloseHandle (hSnap);
+  }
+
+  return threads;
+}
+
+void
+SK_ResumeThreads (std::queue <DWORD> threads)
+{
+  while (! threads.empty ())
+  {
+    DWORD tid = threads.front ();
+
+    HANDLE hThread =
+      OpenThread (THREAD_ALL_ACCESS, FALSE, tid);
+
+    if (hThread != NULL)
+    {
+      ResumeThread (hThread);
+      CloseHandle  (hThread);
+    }
+
+    threads.pop ();
+  }
+}
+
+
+#include <set>
+#include <vector>
+#include <algorithm>
+#include <functional>
+
+void
+SK_D3D11_TexMgr::reset (void)
+{
+  EnterCriticalSection (&tex_cs);
+  //std::queue <DWORD> tids =
+    //SK_SuspendAllOtherThreads ();
+
+  std::vector <SK_D3D11_TexMgr::tex2D_descriptor_s *> textures;
+  textures.reserve (TexRefs_2D.size ());
+
+  int      count  = 0;
+  uint32_t purged = 0UL;
+
+  for ( ID3D11Texture2D* tex : TexRefs_2D ) {
+    if (Textures_2D.count (tex))
+      textures.push_back (Textures_2D [tex]);
+  }
+
+  std::sort (textures.begin (), textures.end (), []( SK_D3D11_TexMgr::tex2D_descriptor_s* a,
+                                                     SK_D3D11_TexMgr::tex2D_descriptor_s* b ) {
+        return b->last_used > a->last_used;
+  });
+
+  const int max_count = 16;
+
+  for ( SK_D3D11_TexMgr::tex2D_descriptor_s* desc : textures ) {
+    if (desc != nullptr && desc->texture != nullptr && desc->texture->Release () == 0) {
+      count++;
+      purged += (uint32_t)desc->mem_size;
+
+      HashMap_2D.erase  (desc->crc32);
+      TexRefs_2D.erase  (desc->texture);
+      Textures_2D.erase (desc->texture);
+
+      if (purged >= SK_D3D11_amount_to_purge || count >= max_count) {
+        SK_D3D11_amount_to_purge -= purged;
+        dll_log.Log ( L"[DX11TexMgr] Purged %llu MiB of texture data across %lu textures",
+                        purged >> 20ULL, count );
+
+        break;
+      }
+    }
+  }
+
+  LeaveCriticalSection (&tex_cs);
+
+  //SK_ResumeThreads (tids);
 }
 
 ID3D11Texture2D*
@@ -2269,6 +2463,8 @@ SK_D3D11_TexMgr::getTexture2D (uint32_t crc32, const D3D11_TEXTURE2D_DESC* pDesc
 {
   if (! SK_D3D11_cache_textures)
     return nullptr;
+
+  EnterCriticalSection (&tex_cs);
 
   ID3D11Texture2D* pTex2D = nullptr;
 
@@ -2310,11 +2506,14 @@ SK_D3D11_TexMgr::getTexture2D (uint32_t crc32, const D3D11_TEXTURE2D_DESC* pDesc
           *pTimeSaved = fTime;
         }
 
+        desc2d->last_used = SK_QueryPerf ().QuadPart;
         desc2d->hits++;
 
         RedundantData_2D += size;
         RedundantTime_2D += fTime;
         RedundantLoads_2D++;
+
+        LeaveCriticalSection (&tex_cs);
 
         return pTex2D;
       }
@@ -2328,6 +2527,8 @@ SK_D3D11_TexMgr::getTexture2D (uint32_t crc32, const D3D11_TEXTURE2D_DESC* pDesc
     }
   }
 
+  LeaveCriticalSection (&tex_cs);
+
   return pTex2D;
 }
 
@@ -2337,8 +2538,14 @@ SK_D3D11_TextureIsCached (ID3D11Texture2D* pTex)
   if (! SK_D3D11_cache_textures)
     return false;
 
-  if (SK_D3D11_Textures.Textures_2D.count (pTex))
+  EnterCriticalSection (&tex_cs);
+
+  if (SK_D3D11_Textures.Textures_2D.count (pTex)) {
+    LeaveCriticalSection (&tex_cs);
     return true;
+  }
+
+  LeaveCriticalSection (&tex_cs);
 
   return false;
 }
@@ -2349,17 +2556,21 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex)
   if (! SK_D3D11_TextureIsCached (pTex))
     return;
 
-  uint32_t crc32 = SK_D3D11_Textures.Textures_2D [pTex]->crc32;
+  EnterCriticalSection (&tex_cs);
 
-  SK_D3D11_Textures.Textures_2D.erase (pTex);
-  SK_D3D11_Textures.HashMap_2D.erase  (crc32);
-  SK_D3D11_Textures.TexRefs_2D.erase  (pTex);
+  if (pTex != nullptr) {
+    uint32_t crc32 = SK_D3D11_Textures.Textures_2D [pTex]->crc32;
 
-  pTex->Release ();
+    SK_D3D11_Textures.Textures_2D.erase (pTex);
+    SK_D3D11_Textures.HashMap_2D.erase  (crc32);
+    SK_D3D11_Textures.TexRefs_2D.erase  (pTex);
+  }
+
+  LeaveCriticalSection (&tex_cs);
 }
 
 void
-SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex, 
+SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
                           const D3D11_TEXTURE2D_DESC *pDesc,
                                 uint32_t              crc32,
                                 size_t                mem_size,
@@ -2371,6 +2582,8 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   if (pTex == nullptr || crc32 == 0x00)
     return;
 
+  EnterCriticalSection (&tex_cs);
+
   //if (! injectable_textures.count (crc32))
     //return;
 
@@ -2380,14 +2593,16 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
   if (pDesc->Usage != D3D11_USAGE_DEFAULT &&
       pDesc->Usage != D3D11_USAGE_IMMUTABLE) {
-    dll_log.Log ( L"[DX11TexMgr] Texture '%08X' Is Not Cacheable Due To Usage: %lu",
-                  crc32, pDesc->Usage );
+//    dll_log.Log ( L"[DX11TexMgr] Texture '%08X' Is Not Cacheable Due To Usage: %lu",
+//                  crc32, pDesc->Usage );
+    LeaveCriticalSection (&tex_cs);
     return;
   }
 
   if (pDesc->CPUAccessFlags != 0x00) {
-    dll_log.Log ( L"[DX11TexMgr] Texture '%08X' Is Not Cacheable Due To CPUAccessFlags: 0x%X",
-                  crc32, pDesc->CPUAccessFlags );
+//    dll_log.Log ( L"[DX11TexMgr] Texture '%08X' Is Not Cacheable Due To CPUAccessFlags: 0x%X",
+//                  crc32, pDesc->CPUAccessFlags );
+    LeaveCriticalSection (&tex_cs);
     return;
   }
 
@@ -2400,12 +2615,16 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   desc2d->mem_size  =  mem_size;
   desc2d->crc32     =  crc32;
 
-  TexRefs_2D.insert  (pTex);
-  HashMap_2D.insert  (std::pair <uint32_t,          ID3D11Texture2D *>  (crc32, pTex));
-  Textures_2D.insert (std::pair <ID3D11Texture2D *, tex2D_descriptor_s*> (pTex, desc2d));
+  desc2d->last_used =  SK_QueryPerf ().QuadPart;
 
   // Hold a reference ourselves so that the game cannot free it
   pTex->AddRef ();
+
+  TexRefs_2D.insert  (pTex);
+  HashMap_2D.insert  (std::pair <uint32_t,          ID3D11Texture2D *>   (crc32, pTex));
+  Textures_2D.insert (std::pair <ID3D11Texture2D *, tex2D_descriptor_s*> (pTex, desc2d));
+
+  LeaveCriticalSection (&tex_cs);
 }
 
 #include <Shlwapi.h>
@@ -2418,6 +2637,8 @@ SK_D3D11_PopulateResourceList (void)
 
   if (init || SK_D3D11_res_root.empty ())
     return;
+
+  EnterCriticalSection (&tex_cs);
 
   init = true;
 
@@ -2536,6 +2757,8 @@ SK_D3D11_PopulateResourceList (void)
     dll_log.LogEx ( false, L" %lu files (%3.1f MiB)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
   }
+
+  LeaveCriticalSection (&tex_cs);
 }
 
 void
@@ -2578,64 +2801,68 @@ void
 WINAPI
 SK_D3D11_AddTexHash ( std::wstring name, uint32_t hash )
 {
+  EnterCriticalSection (&tex_cs);
   if (! tex_hashes.count (hash))
     tex_hashes.insert (std::make_pair (hash, name));
   //tex_hashes [hash] = name;
+  LeaveCriticalSection (&tex_cs);
 }
 
 void
 WINAPI
 SK_D3D11_RemoveTexHash (uint32_t hash)
 {
+  EnterCriticalSection (&tex_cs);
   if (tex_hashes.count (hash))
     tex_hashes.erase (hash);
+  LeaveCriticalSection (&tex_cs);
 }
 
 
-static uint32_t crc32_tab[] = { 
-   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 
-   0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 
-   0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2, 
-   0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7, 
-   0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9, 
-   0xfa0f3d63, 0x8d080df5, 0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172, 
-   0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c, 
-   0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59, 
-   0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116, 0x21b4f4b5, 0x56b3c423, 
-   0xcfba9599, 0xb8bda50f, 0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924, 
-   0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d, 0x76dc4190, 0x01db7106, 
-   0x98d220bc, 0xefd5102a, 0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433, 
-   0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818, 0x7f6a0dbb, 0x086d3d2d, 
-   0x91646c97, 0xe6635c01, 0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e, 
-   0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457, 0x65b0d9c6, 0x12b7e950, 
-   0x8bbeb8ea, 0xfcb9887c, 0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65, 
-   0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2, 0x4adfa541, 0x3dd895d7, 
-   0xa4d1c46d, 0xd3d6f4fb, 0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0, 
-   0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9, 0x5005713c, 0x270241aa, 
-   0xbe0b1010, 0xc90c2086, 0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f, 
-   0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4, 0x59b33d17, 0x2eb40d81, 
-   0xb7bd5c3b, 0xc0ba6cad, 0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a, 
-   0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683, 0xe3630b12, 0x94643b84, 
-   0x0d6d6a3e, 0x7a6a5aa8, 0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1, 
-   0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe, 0xf762575d, 0x806567cb, 
-   0x196c3671, 0x6e6b06e7, 0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc, 
-   0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5, 0xd6d6a3e8, 0xa1d1937e, 
-   0x38d8c2c4, 0x4fdff252, 0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b, 
-   0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60, 0xdf60efc3, 0xa867df55, 
-   0x316e8eef, 0x4669be79, 0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236, 
-   0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f, 0xc5ba3bbe, 0xb2bd0b28, 
-   0x2bb45a92, 0x5cb36a04, 0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d, 
-   0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a, 0x9c0906a9, 0xeb0e363f, 
-   0x72076785, 0x05005713, 0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38, 
-   0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21, 0x86d3d2d4, 0xf1d4e242, 
-   0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777, 
-   0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff, 0xf862ae69, 
-   0x616bffd3, 0x166ccf45, 0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2, 
-   0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc, 
-   0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9, 
-   0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 
-   0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 
-   0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d 
+static uint32_t crc32_tab[] = {
+   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
+   0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
+   0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
+   0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
+   0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9,
+   0xfa0f3d63, 0x8d080df5, 0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172,
+   0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c,
+   0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,
+   0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116, 0x21b4f4b5, 0x56b3c423,
+   0xcfba9599, 0xb8bda50f, 0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924,
+   0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d, 0x76dc4190, 0x01db7106,
+   0x98d220bc, 0xefd5102a, 0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433,
+   0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818, 0x7f6a0dbb, 0x086d3d2d,
+   0x91646c97, 0xe6635c01, 0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e,
+   0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457, 0x65b0d9c6, 0x12b7e950,
+   0x8bbeb8ea, 0xfcb9887c, 0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65,
+   0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2, 0x4adfa541, 0x3dd895d7,
+   0xa4d1c46d, 0xd3d6f4fb, 0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0,
+   0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9, 0x5005713c, 0x270241aa,
+   0xbe0b1010, 0xc90c2086, 0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f,
+   0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4, 0x59b33d17, 0x2eb40d81,
+   0xb7bd5c3b, 0xc0ba6cad, 0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a,
+   0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683, 0xe3630b12, 0x94643b84,
+   0x0d6d6a3e, 0x7a6a5aa8, 0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1,
+   0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe, 0xf762575d, 0x806567cb,
+   0x196c3671, 0x6e6b06e7, 0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc,
+   0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5, 0xd6d6a3e8, 0xa1d1937e,
+   0x38d8c2c4, 0x4fdff252, 0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b,
+   0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60, 0xdf60efc3, 0xa867df55,
+   0x316e8eef, 0x4669be79, 0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236,
+   0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f, 0xc5ba3bbe, 0xb2bd0b28,
+   0x2bb45a92, 0x5cb36a04, 0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d,
+   0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a, 0x9c0906a9, 0xeb0e363f,
+   0x72076785, 0x05005713, 0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38,
+   0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21, 0x86d3d2d4, 0xf1d4e242,
+   0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777,
+   0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff, 0xf862ae69,
+   0x616bffd3, 0x166ccf45, 0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2,
+   0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc,
+   0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
+   0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693,
+   0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
+   0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
  };
 
 __declspec (noinline)
@@ -2654,7 +2881,7 @@ crc32 (uint32_t crc, const void *buf, size_t size)
   return crc ^ ~0U;
 }
 
-typedef enum D3DX11_IMAGE_FILE_FORMAT { 
+typedef enum D3DX11_IMAGE_FILE_FORMAT {
   D3DX11_IFF_BMP          = 0,
   D3DX11_IFF_JPG          = 1,
   D3DX11_IFF_PNG          = 3,
@@ -2926,7 +3153,7 @@ D3D11Dev_CreateTexture2D_Override (
 
     if (SK_D3D11_TextureIsCached (*ppTexture2D)) {
       dll_log.Log (L"[DX11TexMgr] The game is replacing an existing texture, consider making a shadow copy...");
-      SK_D3D11_RemoveTexFromCache (*ppTexture2D);
+      //SK_D3D11_RemoveTexFromCache (*ppTexture2D);
     }
   }
 
@@ -3051,6 +3278,18 @@ D3D11Dev_CreateTexture2D_Override (
   HRESULT ret =
     D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
+
+  if (ppTexture2D != nullptr) {
+    static bool init = false;
+    if (! init) {
+      DXGI_VIRTUAL_OVERRIDE ( ppTexture2D, 2, "IUnknown::Release",
+                              IUnknown_Release,
+                              IUnknown_Release_Original,
+                              IUnknown_Release_pfn );
+      init = true;
+    }
+  }
+
   LARGE_INTEGER             load_end = SK_QueryPerf ();
 
   if ( SUCCEEDED (ret) && (! self_invoke) && cacheable ) {
@@ -3090,4 +3329,17 @@ WINAPI
 SK_DXGI_SetPreferredAdapter (int override_id)
 {
   SK_DXGI_preferred_adapter = override_id;
+}
+
+
+void
+SK_D3D11_ResourceCheckpoint (void)
+{
+  if (SK_D3D11_amount_to_purge > 0) {
+  //if (SK_D3D11_need_tex_reset) {
+    //dll_log.Log (L"[DX11TexMgr] DXGI 1.4 Budget Change: Triggered a texture manager purge...");
+
+    //SK_D3D11_need_tex_reset = false;
+    SK_D3D11_Textures.reset ();
+  }
 }

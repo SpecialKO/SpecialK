@@ -161,18 +161,18 @@ if (nvapi_init)
 
       if (NVAPI_OK == NvAPI_GPU_GetMemoryInfo (gpu, &meminfo))
       {
-        int64_t local = 
-          (meminfo.availableDedicatedVideoMemory) - 
+        int64_t local =
+          (meminfo.availableDedicatedVideoMemory) -
           (meminfo.curAvailableDedicatedVideoMemory);
 
         gpu_stats.gpus [i].memory_B.local = local * 1024LL;
 
-        gpu_stats.gpus [i].memory_B.total = 
+        gpu_stats.gpus [i].memory_B.total =
           ((meminfo.dedicatedVideoMemory) -
            (meminfo.curAvailableDedicatedVideoMemory)) * 1024LL;
 
         // Compute Non-Local
-        gpu_stats.gpus [i].memory_B.nonlocal = 
+        gpu_stats.gpus [i].memory_B.nonlocal =
           gpu_stats.gpus [i].memory_B.total - gpu_stats.gpus [i].memory_B.local;
       }
 
@@ -242,7 +242,7 @@ if (nvapi_init)
                     gpu_stats.gpus [i].volts_mV.supported = true;
                     gpu_stats.gpus [i].volts_mV.over      = true;
 
-                    NV_GPU_PSTATE20_BASE_VOLTAGE_ENTRY_V1* voltage = 
+                    NV_GPU_PSTATE20_BASE_VOLTAGE_ENTRY_V1* voltage =
                       &ps20info.ov.voltages [volt];
 
                     gpu_stats.gpus [i].volts_mV.core = voltage->volt_uV/1000.0f;
@@ -272,7 +272,7 @@ if (nvapi_init)
                   gpu_stats.gpus [i].volts_mV.supported = true;
                   gpu_stats.gpus [i].volts_mV.over      = false;
 
-                  NV_GPU_PSTATE20_BASE_VOLTAGE_ENTRY_V1* voltage = 
+                  NV_GPU_PSTATE20_BASE_VOLTAGE_ENTRY_V1* voltage =
                     &ps20info.pstates [pstate].baseVoltages [volt];
 
                   gpu_stats.gpus [i].volts_mV.core = voltage->volt_uV/1000.0f;

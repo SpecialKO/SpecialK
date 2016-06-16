@@ -56,6 +56,7 @@
 #define OGL_OVERLAY_SUPPORT_STRING                 L"Enable overlay"
 #define OGL_QUALITY_ENHANCEMENTS_STRING            L"High level control of the rendering quality on OpenGL"
 #define OGL_SINGLE_BACKDEPTH_BUFFER_STRING         L"Unified back/depth buffer"
+#define OGL_SLI_MULTICAST_STRING                   L"Enable NV_gpu_multicast extension"
 #define OGL_THREAD_CONTROL_STRING                  L"Threaded optimization"
 #define OGL_TRIPLE_BUFFER_STRING                   L"Triple buffering"
 #define OGL_VIDEO_EDITING_MODE_STRING              L"OpenGL video-editing mode"
@@ -78,11 +79,13 @@
 #define FXAA_ENABLE_STRING                         L"Enable FXAA"
 #define FXAA_INDICATOR_ENABLE_STRING               L"Enable FXAA Indicator"
 #define MCSFRSHOWSPLIT_STRING                      L"SLI indicator"
+#define NV_QUALITY_UPSCALING_STRING                L"NVIDIA Quality upscaling"
 #define OPTIMUS_MAXAA_STRING                       L"Maximum AA samples allowed for a given application"
 #define PHYSXINDICATOR_STRING                      L"Display the PhysX indicator"
 #define PREFERRED_PSTATE_STRING                    L"Power management mode"
 #define PREVENT_UI_AF_OVERRIDE_STRING              L"No override of Anisotropic filtering"
 #define PS_FRAMERATE_LIMITER_STRING                L"Frame Rate Limiter"
+#define PS_FRAMERATE_LIMITER_2_CONTROL_STRING      L"Frame Rate Limiter 2 Control"
 #define PS_FRAMERATE_LIMITER_GPS_CTRL_STRING       L"Frame Rate Monitor"
 #define PS_FRAMERATE_MONITOR_CTRL_STRING           L"Frame Rate Monitor Control"
 #define SHIM_MAXRES_STRING                         L"Maximum resolution allowed for a given application"
@@ -99,6 +102,9 @@
 #define VRRFEATUREINDICATOR_STRING                 L"Toggle the VRR global feature"
 #define VRROVERLAYINDICATOR_STRING                 L"Display the VRR Overlay Indicator"
 #define VRRREQUESTSTATE_STRING                     L"VRR requested state"
+#define VRR_APP_OVERRIDE_STRING                    L"G-SYNC"
+#define VRR_APP_OVERRIDE_REQUEST_STATE_STRING      L"G-SYNC"
+#define VRR_MODE_STRING                            L"Enable G-SYNC globally"
 #define VSYNCSMOOTHAFR_STRING                      L"Flag to control smooth AFR behavior"
 #define VSYNCVRRCONTROL_STRING                     L"Variable refresh Rate"
 #define VSYNC_BEHAVIOR_FLAGS_STRING                L"Vsync - Behavior Flags"
@@ -114,6 +120,8 @@
 #define ICAFE_LOGO_CONFIG_STRING                   L"ICafe Settings"
 #define LODBIASADJUST_STRING                       L"Texture filtering - LOD Bias"
 #define MAXWELL_B_SAMPLE_INTERLEAVE_STRING         L"Enable sample interleaving (MFAA)"
+#define NLS_ALLOW_STRING                           L"NVIDIA Predefined Nonlinear Scale Usage"
+#define NLS_ENABLE_STRING                          L"Enable Nonlinear Scale"
 #define PRERENDERLIMIT_STRING                      L"Maximum pre-rendered frames"
 #define PS_SHADERDISKCACHE_STRING                  L"Shader Cache"
 #define PS_TEXFILTER_ANISO_OPTS2_STRING            L"Texture filtering - Anisotropic sample optimization"
@@ -144,8 +152,9 @@ enum ESetting {
     OGL_OVERLAY_SUPPORT_ID                        = 0x206C28C4,
     OGL_QUALITY_ENHANCEMENTS_ID                   = 0x20797D6C,
     OGL_SINGLE_BACKDEPTH_BUFFER_ID                = 0x20A29055,
+    OGL_SLI_MULTICAST_ID                          = 0x2092D3BE,
     OGL_THREAD_CONTROL_ID                         = 0x20C1221E,
-    OGL_TRIPLE_BUFFER_ID                          = 0x20FDD1F9,   
+    OGL_TRIPLE_BUFFER_ID                          = 0x20FDD1F9,
     OGL_VIDEO_EDITING_MODE_ID                     = 0x20EE02B4,
     AA_BEHAVIOR_FLAGS_ID                          = 0x10ECDB82,
     AA_MODE_ALPHATOCOVERAGE_ID                    = 0x10FC2D9C,
@@ -166,11 +175,13 @@ enum ESetting {
     FXAA_ENABLE_ID                                = 0x1074C972,
     FXAA_INDICATOR_ENABLE_ID                      = 0x1068FB9C,
     MCSFRSHOWSPLIT_ID                             = 0x10287051,
+    NV_QUALITY_UPSCALING_ID                       = 0x10444444,
     OPTIMUS_MAXAA_ID                              = 0x10F9DC83,
     PHYSXINDICATOR_ID                             = 0x1094F16F,
     PREFERRED_PSTATE_ID                           = 0x1057EB71,
     PREVENT_UI_AF_OVERRIDE_ID                     = 0x103BCCB5,
     PS_FRAMERATE_LIMITER_ID                       = 0x10834FEE,
+    PS_FRAMERATE_LIMITER_2_CONTROL_ID             = 0x10834FFF,
     PS_FRAMERATE_LIMITER_GPS_CTRL_ID              = 0x10834F01,
     PS_FRAMERATE_MONITOR_CTRL_ID                  = 0x10834F05,
     SHIM_MAXRES_ID                                = 0x10F9DC82,
@@ -187,6 +198,9 @@ enum ESetting {
     VRRFEATUREINDICATOR_ID                        = 0x1094F157,
     VRROVERLAYINDICATOR_ID                        = 0x1095F16F,
     VRRREQUESTSTATE_ID                            = 0x1094F1F7,
+    VRR_APP_OVERRIDE_ID                           = 0x10A879CF,
+    VRR_APP_OVERRIDE_REQUEST_STATE_ID             = 0x10A879AC,
+    VRR_MODE_ID                                   = 0x1194F158,
     VSYNCSMOOTHAFR_ID                             = 0x101AE763,
     VSYNCVRRCONTROL_ID                            = 0x10A879CE,
     VSYNC_BEHAVIOR_FLAGS_ID                       = 0x10FDEC23,
@@ -202,6 +216,8 @@ enum ESetting {
     ICAFE_LOGO_CONFIG_ID                          = 0x00DB1337,
     LODBIASADJUST_ID                              = 0x00738E8F,
     MAXWELL_B_SAMPLE_INTERLEAVE_ID                = 0x0098C1AC,
+    NLS_ALLOW_ID                                  = 0x00041806,
+    NLS_ENABLE_ID                                 = 0x00120618,
     PRERENDERLIMIT_ID                             = 0x007BA09E,
     PS_SHADERDISKCACHE_ID                         = 0x00198FFF,
     PS_TEXFILTER_ANISO_OPTS2_ID                   = 0x00E73211,
@@ -214,9 +230,9 @@ enum ESetting {
     SET_VAB_DATA_ID                               = 0x00AB8687,
     VSYNCMODE_ID                                  = 0x00A879CF,
     VSYNCTEARCONTROL_ID                           = 0x005A375C,
-    TOTAL_DWORD_SETTING_NUM = 82,
+    TOTAL_DWORD_SETTING_NUM = 90,
     TOTAL_WSTRING_SETTING_NUM = 4,
-    TOTAL_SETTING_NUM = 86,
+    TOTAL_SETTING_NUM = 94,
     INVALID_SETTING_ID = 0xFFFFFFFF
 };
 
@@ -271,7 +287,7 @@ enum EValues_OGL_EVENT_LOG_SEVERITY_THRESHOLD {
     OGL_EVENT_LOG_SEVERITY_THRESHOLD_INFORMATION         = 3,
     OGL_EVENT_LOG_SEVERITY_THRESHOLD_ALL                 = 4,
     OGL_EVENT_LOG_SEVERITY_THRESHOLD_NUM_VALUES = 5,
-    OGL_EVENT_LOG_SEVERITY_THRESHOLD_DEFAULT = OGL_EVENT_LOG_SEVERITY_THRESHOLD_CRITICAL
+    OGL_EVENT_LOG_SEVERITY_THRESHOLD_DEFAULT = OGL_EVENT_LOG_SEVERITY_THRESHOLD_ALL
 };
 
 enum EValues_OGL_FORCE_BLIT {
@@ -338,6 +354,14 @@ enum EValues_OGL_SINGLE_BACKDEPTH_BUFFER {
     OGL_SINGLE_BACKDEPTH_BUFFER_USE_HW_DEFAULT           = 0xffffffff,
     OGL_SINGLE_BACKDEPTH_BUFFER_NUM_VALUES = 3,
     OGL_SINGLE_BACKDEPTH_BUFFER_DEFAULT = OGL_SINGLE_BACKDEPTH_BUFFER_DISABLE
+};
+
+enum EValues_OGL_SLI_MULTICAST {
+    OGL_SLI_MULTICAST_DISABLE                            = 0x00,
+    OGL_SLI_MULTICAST_ENABLE                             = 0x01,
+    OGL_SLI_MULTICAST_FORCE_DISABLE                      = 0x02,
+    OGL_SLI_MULTICAST_NUM_VALUES = 3,
+    OGL_SLI_MULTICAST_DEFAULT = OGL_SLI_MULTICAST_DISABLE
 };
 
 enum EValues_OGL_THREAD_CONTROL {
@@ -581,6 +605,13 @@ enum EValues_MCSFRSHOWSPLIT {
     MCSFRSHOWSPLIT_DEFAULT = MCSFRSHOWSPLIT_DISABLED
 };
 
+enum EValues_NV_QUALITY_UPSCALING {
+    NV_QUALITY_UPSCALING_OFF                             = 0,
+    NV_QUALITY_UPSCALING_ON                              = 1,
+    NV_QUALITY_UPSCALING_NUM_VALUES = 2,
+    NV_QUALITY_UPSCALING_DEFAULT = NV_QUALITY_UPSCALING_OFF
+};
+
 enum EValues_OPTIMUS_MAXAA {
     OPTIMUS_MAXAA_MIN                                    = 0,
     OPTIMUS_MAXAA_MAX                                    = 16,
@@ -620,6 +651,7 @@ enum EValues_PS_FRAMERATE_LIMITER {
     PS_FRAMERATE_LIMITER_FPS_30                          = 0x0000001e,
     PS_FRAMERATE_LIMITER_FPS_40                          = 0x00000028,
     PS_FRAMERATE_LIMITER_FPSMASK                         = 0x000000ff,
+    PS_FRAMERATE_LIMITER_FRL2                            = 0x00010000,
     PS_FRAMERATE_LIMITER_FORCE_VSYNC_OFF                 = 0x00040000,
     PS_FRAMERATE_LIMITER_GPS_WEB                         = 0x00080000,
     PS_FRAMERATE_LIMITER_FORCE_OPTIMUS_POLICY            = 0x00100000,
@@ -635,8 +667,20 @@ enum EValues_PS_FRAMERATE_LIMITER {
     PS_FRAMERATE_LIMITER_ENABLED                         = 0x80000000,
     PS_FRAMERATE_LIMITER_OPENGL_REMOTE_DESKTOP           = 0xe010003c,
     PS_FRAMERATE_LIMITER_MASK                            = 0xff7C00ff,
-    PS_FRAMERATE_LIMITER_NUM_VALUES = 20,
+    PS_FRAMERATE_LIMITER_NUM_VALUES = 21,
     PS_FRAMERATE_LIMITER_DEFAULT = PS_FRAMERATE_LIMITER_DISABLED
+};
+
+enum EValues_PS_FRAMERATE_LIMITER_2_CONTROL {
+    PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_CE              = 0x00000000,
+    PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_3D              = 0x00000001,
+    PS_FRAMERATE_LIMITER_2_CONTROL_AVOID_NOOP            = 0x00000002,
+    PS_FRAMERATE_LIMITER_2_CONTROL_ALLOW_ALL_MAXWELL     = 0x00000010,
+    PS_FRAMERATE_LIMITER_2_CONTROL_ALLOW_ALL             = 0x00000020,
+    PS_FRAMERATE_LIMITER_2_CONTROL_FORCE_OFF             = 0x00000040,
+    PS_FRAMERATE_LIMITER_2_CONTROL_DEFAULT_FOR_GM10X     = 0x00000011,
+    PS_FRAMERATE_LIMITER_2_CONTROL_NUM_VALUES = 7,
+    PS_FRAMERATE_LIMITER_2_CONTROL_DEFAULT = PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_CE
 };
 
 enum EValues_PS_FRAMERATE_LIMITER_GPS_CTRL {
@@ -660,8 +704,17 @@ enum EValues_PS_FRAMERATE_MONITOR_CTRL {
     PS_FRAMERATE_MONITOR_CTRL_THRESHOLD_PCT_MASK         = 0x000000FF,
     PS_FRAMERATE_MONITOR_CTRL_MOVING_AVG_X_MASK          = 0x00000F00,
     PS_FRAMERATE_MONITOR_CTRL_MOVING_AVG_X_SHIFT         = 8,
+    PS_FRAMERATE_MONITOR_CTRL_ENABLE_ON_VSYNC            = 0x00800000,
+    PS_FRAMERATE_MONITOR_CTRL_VSYNC_OFFSET_MASK          = 0x0000F000,
+    PS_FRAMERATE_MONITOR_CTRL_VSYNC_OFFSET_SHIFT         = 12,
+    PS_FRAMERATE_MONITOR_CTRL_FPS_USE_FRL                = 0x00000000,
+    PS_FRAMERATE_MONITOR_CTRL_FPS_30                     = 0x1E000000,
+    PS_FRAMERATE_MONITOR_CTRL_FPS_60                     = 0x3C000000,
+    PS_FRAMERATE_MONITOR_CTRL_FPS_MASK                   = 0xFF000000,
+    PS_FRAMERATE_MONITOR_CTRL_FPS_SHIFT                  = 24,
     PS_FRAMERATE_MONITOR_CTRL_OPTIMAL_SETTING            = 0x00000364,
-    PS_FRAMERATE_MONITOR_CTRL_NUM_VALUES = 5,
+    PS_FRAMERATE_MONITOR_CTRL_VSYNC_OPTIMAL_SETTING      = 0x0080f364,
+    PS_FRAMERATE_MONITOR_CTRL_NUM_VALUES = 14,
     PS_FRAMERATE_MONITOR_CTRL_DEFAULT = PS_FRAMERATE_MONITOR_CTRL_DISABLED
 };
 
@@ -698,9 +751,9 @@ enum EValues_SHIM_RENDERING_OPTIONS {
     SHIM_RENDERING_OPTIONS_FLASHPLAYER_HOST_DETECT       = 0x00000004,
     SHIM_RENDERING_OPTIONS_VIDEO_DRM_APP_DETECT          = 0x00000008,
     SHIM_RENDERING_OPTIONS_IGNORE_OVERRIDES              = 0x00000010,
-    SHIM_RENDERING_OPTIONS_CHILDPROCESS_DETECT           = 0x00000020,
+    SHIM_RENDERING_OPTIONS_RESERVED1                     = 0x00000020,
     SHIM_RENDERING_OPTIONS_ENABLE_DWM_ASYNC_PRESENT      = 0x00000040,
-    SHIM_RENDERING_OPTIONS_PARENTPROCESS_DETECT          = 0x00000080,
+    SHIM_RENDERING_OPTIONS_RESERVED2                     = 0x00000080,
     SHIM_RENDERING_OPTIONS_ALLOW_INHERITANCE             = 0x00000100,
     SHIM_RENDERING_OPTIONS_DISABLE_WRAPPERS              = 0x00000200,
     SHIM_RENDERING_OPTIONS_DISABLE_DXGI_WRAPPERS         = 0x00000400,
@@ -709,13 +762,14 @@ enum EValues_SHIM_RENDERING_OPTIONS {
     SHIM_RENDERING_OPTIONS_IGPU_TRANSCODING              = 0x00002000,
     SHIM_RENDERING_OPTIONS_DISABLE_CUDA                  = 0x00004000,
     SHIM_RENDERING_OPTIONS_ALLOW_CP_CAPS_FOR_VIDEO       = 0x00008000,
-    SHIM_RENDERING_OPTIONS_ENABLE_NEW_HOOKING            = 0x00010000,
+    SHIM_RENDERING_OPTIONS_IGPU_TRANSCODING_FWD_OPTIMUS  = 0x00010000,
     SHIM_RENDERING_OPTIONS_DISABLE_DURING_SECURE_BOOT    = 0x00020000,
     SHIM_RENDERING_OPTIONS_INVERT_FOR_QUADRO             = 0x00040000,
     SHIM_RENDERING_OPTIONS_INVERT_FOR_MSHYBRID           = 0x00080000,
     SHIM_RENDERING_OPTIONS_REGISTER_PROCESS_ENABLE_GOLD  = 0x00100000,
     SHIM_RENDERING_OPTIONS_HANDLE_WINDOWED_MODE_PERF_OPT = 0x00200000,
-    SHIM_RENDERING_OPTIONS_NUM_VALUES = 23,
+    SHIM_RENDERING_OPTIONS_HANDLE_WIN7_ASYNC_RUNTIME_BUG = 0x00400000,
+    SHIM_RENDERING_OPTIONS_NUM_VALUES = 24,
     SHIM_RENDERING_OPTIONS_DEFAULT = SHIM_RENDERING_OPTIONS_DEFAULT_RENDERING_MODE
 };
 
@@ -806,9 +860,38 @@ enum EValues_VRROVERLAYINDICATOR {
 
 enum EValues_VRRREQUESTSTATE {
     VRRREQUESTSTATE_DISABLED                             = 0x0,
-    VRRREQUESTSTATE_ENABLED                              = 0x1,
-    VRRREQUESTSTATE_NUM_VALUES = 2,
-    VRRREQUESTSTATE_DEFAULT = VRRREQUESTSTATE_ENABLED
+    VRRREQUESTSTATE_FULLSCREEN_ONLY                      = 0x1,
+    VRRREQUESTSTATE_FULLSCREEN_AND_WINDOWED              = 0x2,
+    VRRREQUESTSTATE_NUM_VALUES = 3,
+    VRRREQUESTSTATE_DEFAULT = VRRREQUESTSTATE_FULLSCREEN_ONLY
+};
+
+enum EValues_VRR_APP_OVERRIDE {
+    VRR_APP_OVERRIDE_ALLOW                               = 0,
+    VRR_APP_OVERRIDE_FORCE_OFF                           = 1,
+    VRR_APP_OVERRIDE_DISALLOW                            = 2,
+    VRR_APP_OVERRIDE_ULMB                                = 3,
+    VRR_APP_OVERRIDE_FIXED_REFRESH                       = 4,
+    VRR_APP_OVERRIDE_NUM_VALUES = 5,
+    VRR_APP_OVERRIDE_DEFAULT = VRR_APP_OVERRIDE_ALLOW
+};
+
+enum EValues_VRR_APP_OVERRIDE_REQUEST_STATE {
+    VRR_APP_OVERRIDE_REQUEST_STATE_ALLOW                 = 0,
+    VRR_APP_OVERRIDE_REQUEST_STATE_FORCE_OFF             = 1,
+    VRR_APP_OVERRIDE_REQUEST_STATE_DISALLOW              = 2,
+    VRR_APP_OVERRIDE_REQUEST_STATE_ULMB                  = 3,
+    VRR_APP_OVERRIDE_REQUEST_STATE_FIXED_REFRESH         = 4,
+    VRR_APP_OVERRIDE_REQUEST_STATE_NUM_VALUES = 5,
+    VRR_APP_OVERRIDE_REQUEST_STATE_DEFAULT = VRR_APP_OVERRIDE_REQUEST_STATE_ALLOW
+};
+
+enum EValues_VRR_MODE {
+    VRR_MODE_DISABLED                                    = 0x0,
+    VRR_MODE_FULLSCREEN_ONLY                             = 0x1,
+    VRR_MODE_FULLSCREEN_AND_WINDOWED                     = 0x2,
+    VRR_MODE_NUM_VALUES = 3,
+    VRR_MODE_DEFAULT = VRR_MODE_FULLSCREEN_ONLY
 };
 
 enum EValues_VSYNCSMOOTHAFR {
@@ -938,6 +1021,20 @@ enum EValues_MAXWELL_B_SAMPLE_INTERLEAVE {
     MAXWELL_B_SAMPLE_INTERLEAVE_DEFAULT = MAXWELL_B_SAMPLE_INTERLEAVE_OFF
 };
 
+enum EValues_NLS_ALLOW {
+    NLS_ALLOW_DISALLOWED                                 = 0,
+    NLS_ALLOW_ALLOWED                                    = 1,
+    NLS_ALLOW_NUM_VALUES = 2,
+    NLS_ALLOW_DEFAULT = NLS_ALLOW_ALLOWED
+};
+
+enum EValues_NLS_ENABLE {
+    NLS_ENABLE_OFF                                       = 0,
+    NLS_ENABLE_ON                                        = 1,
+    NLS_ENABLE_NUM_VALUES = 2,
+    NLS_ENABLE_DEFAULT = NLS_ENABLE_OFF
+};
+
 enum EValues_PRERENDERLIMIT {
     PRERENDERLIMIT_MIN                                   = 0x00,
     PRERENDERLIMIT_MAX                                   = 0xff,
@@ -991,9 +1088,10 @@ enum EValues_QUALITY_ENHANCEMENTS {
 };
 
 enum EValues_REFRESH_RATE_OVERRIDE {
-    REFRESH_RATE_OVERRIDE_APPLICATION_CONTROLLED         = 0,
-    REFRESH_RATE_OVERRIDE_HIGHEST_AVAILABLE              = 1,
-    REFRESH_RATE_OVERRIDE_NUM_VALUES = 2,
+    REFRESH_RATE_OVERRIDE_APPLICATION_CONTROLLED         = 0x00000000,
+    REFRESH_RATE_OVERRIDE_HIGHEST_AVAILABLE              = 0x00000001,
+    REFRESH_RATE_OVERRIDE_LOW_LATENCY_RR_MASK            = 0x00000FF0,
+    REFRESH_RATE_OVERRIDE_NUM_VALUES = 3,
     REFRESH_RATE_OVERRIDE_DEFAULT = REFRESH_RATE_OVERRIDE_APPLICATION_CONTROLLED
 };
 

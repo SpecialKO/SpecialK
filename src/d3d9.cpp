@@ -150,7 +150,7 @@ d3d9_init_callback (finish_pfn finish)
   dll_log.Log (L"[   D3D9   ] Importing Direct3DCreate9{Ex}...");
   dll_log.Log (L"[   D3D9   ] ================================");
 
-  dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh", 
+  dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh",
     (Direct3DCreate9_Import) =  \
       (Direct3DCreate9PROC)GetProcAddress (backend_dll, "Direct3DCreate9"));
   dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh",
@@ -230,13 +230,13 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
   int TargetFPS = config.render.framerate.target_fps;
 
   // First consider D3D9Ex FullScreen Mode
-  int Refresh   = pFullscreenMode != nullptr ? 
+  int Refresh   = pFullscreenMode != nullptr ?
                     pFullscreenMode->RefreshRate :
                     0;
 
   // Then, use the presentation parameters
   if (Refresh == 0) {
-    Refresh = pPresentationParameters != nullptr ? 
+    Refresh = pPresentationParameters != nullptr ?
                 pPresentationParameters->FullScreen_RefreshRateInHz :
                 0;
   }
@@ -456,7 +456,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
     return _default_impl _Args;                                           \
 }
 
-D3D9_STUB_VOIDP   (void*, Direct3DShaderValidatorCreate, (void), 
+D3D9_STUB_VOIDP   (void*, Direct3DShaderValidatorCreate, (void),
                                                          (    ))
 
 D3D9_STUB_INT     (int,   D3DPERF_BeginEvent, (D3DCOLOR color, LPCWSTR name),
@@ -483,7 +483,7 @@ D3DPERF_EndEvent (void)
   typedef int (STDMETHODCALLTYPE *passthrough_t) (void);
 
   static passthrough_t _default_impl = nullptr;
-  
+
   if (_default_impl == nullptr) {
     static const char* szName = "D3DPERF_EndEvent";
     _default_impl = (passthrough_t)GetProcAddress (backend_dll, szName);
