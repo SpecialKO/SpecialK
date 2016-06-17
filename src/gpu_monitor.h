@@ -24,6 +24,7 @@
 
 #include <Windows.h>
 #include <stdint.h>
+#include "../depends/nvapi/nvapi.h"
 
 // 64?! Isn't that a bit ridiculous memory wise? But NvAPI wants it that big
 #define MAX_GPUS 64
@@ -107,7 +108,7 @@ struct gpu_sensors_t {
       }
     } hwinfo;
 
-    uint32_t nv_gpuid;
+    NvU32    nv_gpuid;
     uint32_t nv_perf_state;
   } gpus [MAX_GPUS];
 

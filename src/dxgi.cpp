@@ -19,6 +19,12 @@
  *
 **/
 #define _CRT_SECURE_NO_WARNINGS
+#define PSAPI_VERSION 1
+
+#include <Windows.h>
+#include <psapi.h>
+
+#pragma comment (lib, psapi.lib)
 
 #include "dxgi_backend.h"
 
@@ -2324,7 +2330,21 @@ SK_D3D11_ResetTexCache (void)
 void
 SK_D3D11_TexCacheCheckpoint (void)
 {
-  if (SK_D3D11_amount_to_purge > 0) {
+  static bool      init               = false;
+  static ULONGLONG ullMemoryTotal_KiB = 0;
+  static HANDLE    hProc              = nullptr;
+
+  if (! init) {
+    hProc = GetCurrentProcess ();
+    GetPhysicallyInstalledSystemMemory (&ullMemoryTotal_KiB);
+  }
+
+  PROCESS_MEMORY_COUNTERS pmc = { 0 };
+  pmc.cb = sizeof pmc;
+
+  GetProcessMemoryInfo (hProc, &pmc, sizeof pmc);
+
+  if ((config.mem.reserve / 100.0f) * ullMemoryTotal_KiB < (pmc.PagefileUsage >> 10)) {
     //dll_log.Log (L"[DX11TexMgr] DXGI 1.4 Budget Change: Triggered a texture manager purge...");
 
     //SK_D3D11_need_tex_reset = false;

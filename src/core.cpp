@@ -662,24 +662,6 @@ WINAPI BudgetThread (LPVOID user_data)
 
           mem_stats [i].budget_changes++;
 
-#if 0
-          int64_t over_budget =
-            LastBudget -
-            mem_info [buffer].local [i].Budget;
-
-          extern uint32_t SK_D3D11_amount_to_purge;
-          SK_D3D11_amount_to_purge += max (0, over_budget);
-
-/*
-          if (LastBudget > (mem_info [buffer].local [i].Budget + 1024 * 1024 * 128)) {
-            extern bool   SK_D3D11_need_tex_reset;
-            extern UINT64 SK_D3D11_amount_to_purge;
-            SK_D3D11_need_tex_reset  = true;
-            SK_D3D11_amount_to_purge = LastBudget - mem_info [buffer].local [i].Budget;
-          }
-*/
-#endif
-
           LastBudget = mem_info [buffer].local [i].Budget;
         }
 

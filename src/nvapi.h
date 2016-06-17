@@ -35,6 +35,28 @@ struct DXGI_ADAPTER_DESC;
 extern "C" {
 #endif
 
+
+typedef struct _NV_PCIE_INFO_UNKNOWN
+{
+    NvU32 unknown0;
+    NvU32 unknown1;
+    NvU32 unknown2;
+    NvU32 unknown3;
+    NvU32 unknown4;
+    NvU32 unknown5;
+    NvU32 unknown6;
+    NvU32 unknown7;
+} NV_PCIE_INFO_UNKNOWN;
+
+typedef struct _NV_PCIE_INFO
+{
+    NvU32                   version;          //!< Structure version
+    NV_PCIE_INFO_UNKNOWN    info [5];
+} NV_PCIE_INFO;
+
+#define NV_PCIE_INFO_VER   MAKE_NVAPI_VERSION(NV_PCIE_INFO, 2)
+
+#if 0
 typedef struct
 {
   NvU32                   version;                            //!< Structure version
@@ -51,9 +73,10 @@ typedef NV_GPU_PCIE_INFO_V2 NV_GPU_PCIE_INFO;
 
 #define NV_GPU_PCIE_INFO_VER_2  MAKE_NVAPI_VERSION(NV_GPU_PCIE_INFO_V2,2)
 #define NV_GPU_PCIE_INFO_VER    NV_GPU_PCIE_INFO_VER_2
+#endif
 
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetPCIEInfo_t)
-    (NvPhysicalGpuHandle handle, NV_GPU_PCIE_INFO* info);
+    (NvPhysicalGpuHandle handle, NV_PCIE_INFO* info);
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetRamType_t)
     (NvPhysicalGpuHandle handle, NvU32* memtype);
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetFBWidthAndLocation_t)

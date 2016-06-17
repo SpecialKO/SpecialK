@@ -438,7 +438,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       NvAPI_GPU_GetFBWidthAndLocation =
         (NvAPI_GPU_GetFBWidthAndLocation_t)NvAPI_QueryInterface (0x11104158);
       NvAPI_GPU_GetPCIEInfo =
-        (NvAPI_GPU_GetPCIEInfo_t)NvAPI_QueryInterface (0xE3795199);
+        (NvAPI_GPU_GetPCIEInfo_t)NvAPI_QueryInterface (0xE3795199UL);
       NvAPI_GetPhysicalGPUFromGPUID =
         (NvAPI_GetPhysicalGPUFromGPUID_t)NvAPI_QueryInterface (0x5380AD1A);
       NvAPI_GetGPUIDFromPhysicalGPU =

@@ -24,10 +24,15 @@
 
 #include "log.h"
 
+#include <algorithm>
+#include <vector>
+
 gpu_sensors_t gpu_stats;
 
 #include "nvapi.h"
 extern BOOL nvapi_init;
+
+//#define PCIE_WORKS
 
 #include "adl.h"
 extern BOOL ADL_init;
@@ -75,15 +80,32 @@ if (nvapi_init)
 
     gpu_stats.num_gpus = gpu_count;
 
+    static std::vector <NvU32> gpu_ids;
+    static bool init = false;
+
+    if (! init) {
+      for (int i = 0; i < gpu_stats.num_gpus; i++) {
+        NvU32 gpu_id;
+        NvAPI_GetGPUIDFromPhysicalGPU (gpus [i], &gpu_id );
+        gpu_ids.push_back (gpu_id);
+      }
+
+      std::sort (gpu_ids.begin (), gpu_ids.end ());
+
+      init = true;
+    }
+
     for (int i = 0; i < gpu_stats.num_gpus; i++) {
       NvPhysicalGpuHandle gpu;
 
       // In order for DXGI Adapter info to match up... don't just assign
       //   these GPUs willy-nilly, use the high 24-bits of the GPUID as
       //     a bitmask.
-      NvAPI_GetPhysicalGPUFromGPUID (1 << (i + 8), &gpu);
+      //NvAPI_GetPhysicalGPUFromGPUID (1 << (i + 8), &gpu);
+      //gpu_stats.gpus [i].nv_gpuid = (1 << (i + 8));
 
-      gpu_stats.gpus [i].nv_gpuid = (1 << (i + 8));
+      NvAPI_GetPhysicalGPUFromGPUID (gpu_ids [i], &gpu);
+      gpu_stats.gpus [i].nv_gpuid = gpu_ids [i];
 
       NvAPI_Status        status =
         NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
@@ -136,14 +158,23 @@ if (nvapi_init)
         }
       }
 
-//#define PCIE_WORKS
-#ifdef PCIE_WORKS
       NvU32 pcie_lanes;
       if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth(gpu, &pcie_lanes))
       {
-        gpu_stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
+        gpu_stats.gpus [i].hwinfo.pcie_lanes         = pcie_lanes;
       }
-#endif
+
+      NV_PCIE_INFO pcieinfo;
+      pcieinfo.version = NV_PCIE_INFO_VER;
+
+      if (NVAPI_OK == NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo)) {
+        gpu_stats.gpus [i].hwinfo.pcie_gen   =
+          pcieinfo.info [0].unknown5;//states [pstate].pciLinkRate;
+        gpu_stats.gpus [i].hwinfo.pcie_lanes =
+          pcieinfo.info [0].unknown6;//pstates [pstate].pciLinkWidth;
+        gpu_stats.gpus [i].hwinfo.pcie_transfer_rate =
+          pcieinfo.info [0].unknown0;//pstates [pstate].pciLinkTransferRate;
+      }
 
       NvU32 mem_width, mem_loc, mem_type;
       if (NVAPI_OK == NvAPI_GPU_GetFBWidthAndLocation (gpu, &mem_width, &mem_loc))
@@ -215,23 +246,8 @@ if (nvapi_init)
 
         if (NVAPI_OK == NvAPI_GPU_GetCurrentPstate (gpu, &current_pstate))
         {
-#ifdef PCIE_WORKS
-          NV_GPU_PCIE_INFO pcieinfo;
-          pcieinfo.version = NV_GPU_PCIE_INFO_VER;
-
-          NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo);
-#endif
-
           for (NvU32 pstate = 0; pstate < ps20info.numPstates; pstate++) {
             if (ps20info.pstates [pstate].pstateId == current_pstate) {
-#ifdef PCIE_WORKS
-              gpu_stats.gpus [i].hwinfo.pcie_gen   =
-                pcieinfo.pstates [pstate].pciLinkRate;
-              gpu_stats.gpus [i].hwinfo.pcie_lanes =
-                pcieinfo.pstates [pstate].pciLinkWidth;
-              gpu_stats.gpus [i].hwinfo.pcie_transfer_rate =
-                pcieinfo.pstates [pstate].pciLinkTransferRate;
-#endif
 #if 1
               // First, check for over-voltage...
               if (gpu_stats.gpus [i].volts_mV.supported == false)

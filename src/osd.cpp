@@ -441,6 +441,8 @@ SK_InstallOSD (void)
 SK::Framerate::Stats frame_history;
 SK::Framerate::Stats frame_history2;
 
+#include "command.h"
+
 BOOL
 SK_DrawOSD (void)
 {
@@ -455,6 +457,15 @@ SK_DrawOSD (void)
   }
 
   static bool cleared = false;
+
+  // Automatically free VRAM cache when it is a bit on the excessive side
+  if (process_stats.memory.page_file_bytes >> 30ULL > 28) {
+    SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 9999");
+  }
+
+  if (process_stats.memory.page_file_bytes >> 30ULL < 12) {
+    SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 0");
+  }
 
   if ((! config.osd.show) && cleared)
     return TRUE;
@@ -610,6 +621,14 @@ SK_DrawOSD (void)
 
             double effective_mean = frame_history2.calcMean  ();
 
+            static double fps           = 0.0;
+            static DWORD  last_fps_time = timeGetTime ();
+
+            if (timeGetTime () - last_fps_time > 666) {
+              fps           = 1000.0 / mean;
+              last_fps_time = timeGetTime ();
+            }
+
             std::wstring api_name = SK_GetAPINameFromOSDFlags (pApp->dwFlags);
 
             if (mean != INFINITY) {
@@ -617,14 +636,14 @@ SK_DrawOSD (void)
                 OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>",
                   api_name.c_str (),
                     // Cast to FP to avoid integer division by zero.
-                    1000.0f * (float)pApp->dwFrames / (float)(pApp->dwTime1 - pApp->dwTime0),
-                    mean,
-                      sqrt (sd),
-                        min,
-                          max,
-                            hitches,
-                              1000.0 / effective_mean,
-                                effective_mean
+                    fps,////1000.0f * (float)pApp->dwFrames / (float)(pApp->dwTime1 - pApp->dwTime0),
+                      mean,
+                        sqrt (sd),
+                          min,
+                            max,
+                              hitches,
+                                1000.0 / effective_mean,
+                                  effective_mean
                 OSD_END
 #if 0
               //
@@ -679,12 +698,12 @@ SK_DrawOSD (void)
                 OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)",
                   api_name.c_str (),
                     // Cast to FP to avoid integer division by zero.
-                    1000.0f * (float)pApp->dwFrames / (float)(pApp->dwTime1 - pApp->dwTime0),
-                    mean,
-                      sqrt (sd),
-                        min,
-                          max,
-                            hitches
+                    fps,//1000.0f * (float)pApp->dwFrames / (float)(pApp->dwTime1 - pApp->dwTime0),
+                      mean,
+                        sqrt (sd),
+                          min,
+                            max,
+                              hitches
                 OSD_END
               }
             }
@@ -884,18 +903,15 @@ SK_DrawOSD (void)
       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
 
       if (nvapi_init) {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB\n",//(%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
           i,
-           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL
-#if 0
-          ,
+           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
                        gpu_stats.gpus [i].loads_percent.bus,
                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
               ((double)gpu_stats.gpus [i].loads_percent.bus / 100.0),
                        pcie_gen,
                        gpu_stats.gpus [i].hwinfo.pcie_lanes
                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
-#endif
         OSD_END
       } else {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %li.0x%lu\n",
@@ -944,18 +960,15 @@ SK_DrawOSD (void)
       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
 
       if (nvapi_init) {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB\n",// (%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
           i,
-                       gpu_stats.gpus [i].memory_B.nonlocal >> 20ULL
-#if 0
-          ,
+                       gpu_stats.gpus [i].memory_B.nonlocal >> 20ULL,
                        gpu_stats.gpus [i].loads_percent.bus,
                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
               ((double)gpu_stats.gpus [i].loads_percent.bus / 100.0),
                        pcie_gen,
                        gpu_stats.gpus [i].hwinfo.pcie_lanes
                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
-#endif
         OSD_END
       } else {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %li.0x%lu\n",

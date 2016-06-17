@@ -451,7 +451,7 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
   if (nCode == 0) {
     BYTE    vkCode   = LOWORD (wParam) & 0xFF;
     BYTE    scanCode = HIWORD (lParam) & 0x7F;
-    bool    repeated = LOWORD (lParam);
+    SHORT   repeated = LOWORD (lParam);
     bool    keyDown  = ! (lParam & 0x80000000);
 
     if (visible && vkCode == VK_BACK) {
