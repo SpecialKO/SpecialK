@@ -61,9 +61,10 @@ EXPORTS
   SK_D3D11_SetResourceRoot       = SK_D3D11_SetResourceRoot       @600
   SK_D3D11_EnableTexDump         = SK_D3D11_EnableTexDump         @601
   SK_D3D11_EnableTexInject       = SK_D3D11_EnableTexInject       @602
-  SK_D3D11_EnableTexCache        = SK_D3D11_EnableTexCache        @603
-  SK_D3D11_AddTexHash            = SK_D3D11_AddTexHash            @604
-  SK_D3D11_RemoveTexHash         = SK_D3D11_RemoveTexHash         @605
+  SK_D3D11_EnableTexInject_FFX   = SK_D3D11_EnableTexInject_FFX   @603
+  SK_D3D11_EnableTexCache        = SK_D3D11_EnableTexCache        @604
+  SK_D3D11_AddTexHash            = SK_D3D11_AddTexHash            @605
+  SK_D3D11_RemoveTexHash         = SK_D3D11_RemoveTexHash         @606
   SK_DXGI_EnableFlipMode         = SK_DXGI_EnableFlipMode         @680
   SK_DXGI_SetPreferredAdapter    = SK_DXGI_SetPreferredAdapter    @681
   SKX_D3D11_MarkTextures         = SKX_D3D11_MarkTextures         @698

@@ -157,6 +157,24 @@ struct {
   } d3d9;
 } render;
 
+struct {
+  struct {
+    sk::ParameterBool*    precise_hash;
+    sk::ParameterBool*    dump;
+    sk::ParameterBool*    inject;
+    sk::ParameterBool*    cache;
+    sk::ParameterStringW* res_root;
+  } d3d11;
+  struct {
+    sk::ParameterInt*     min_evict;
+    sk::ParameterInt*     max_evict;
+    sk::ParameterInt*     min_size;
+    sk::ParameterInt*     max_size;
+    sk::ParameterInt*     min_entries;
+    sk::ParameterInt*     max_entries;
+  } cache;
+} texture;
+
 
 bool
 SK_LoadConfig (std::wstring name) {
@@ -496,6 +514,116 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.DXGI",
           L"FudgeFactor" );
+
+    texture.d3d11.cache =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Cache Textures")
+        );
+    texture.d3d11.cache->register_to_ini (
+      dll_ini,
+        L"Textures.D3D11",
+          L"Cache" );
+
+    texture.d3d11.precise_hash =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Precise Hash Generation")
+        );
+    texture.d3d11.precise_hash->register_to_ini (
+      dll_ini,
+        L"Textures.D3D11",
+          L"PreciseHash" );
+
+    texture.d3d11.dump =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Dump Textures")
+        );
+    texture.d3d11.dump->register_to_ini (
+      dll_ini,
+        L"Textures.D3D11",
+          L"Dump" );
+
+    texture.d3d11.inject =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Inject Textures")
+        );
+    texture.d3d11.inject->register_to_ini (
+      dll_ini,
+        L"Textures.D3D11",
+          L"Inject" );
+
+    texture.d3d11.res_root =
+      static_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"Resource Root")
+        );
+    texture.d3d11.res_root->register_to_ini (
+      dll_ini,
+        L"Textures.D3D11",
+          L"ResourceRoot" );
+
+    texture.cache.min_entries =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Minimum Cached Textures")
+        );
+    texture.cache.min_entries->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"MinEntries" );
+
+    texture.cache.max_entries =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Maximum Cached Textures")
+        );
+    texture.cache.max_entries->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"MaxEntries" );
+
+    texture.cache.min_evict =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Minimum Textures to Evict")
+        );
+    texture.cache.min_evict->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"MinEvict" );
+
+    texture.cache.max_evict =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Maximum Textures to Evict")
+        );
+    texture.cache.max_evict->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"MaxEvict" );
+
+    texture.cache.min_size =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Minimum Textures to Evict")
+        );
+    texture.cache.min_size->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"MinSizeInMiB" );
+
+    texture.cache.max_size =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Maximum Textures to Evict")
+        );
+    texture.cache.max_size->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"MaxSizeInMiB" );
   }
 
   
@@ -922,6 +1050,30 @@ SK_LoadConfig (std::wstring name) {
       if (render.framerate.fudge_factor->load ())
         config.render.framerate.fudge_factor =
           render.framerate.fudge_factor->get_value ();
+
+      if (texture.d3d11.cache->load ())
+        config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
+      if (texture.d3d11.precise_hash->load ())
+        config.textures.d3d11.precise_hash = texture.d3d11.precise_hash->get_value ();
+      if (texture.d3d11.dump->load ())
+        config.textures.d3d11.dump = texture.d3d11.dump->get_value ();
+      if (texture.d3d11.inject->load ())
+        config.textures.d3d11.inject = texture.d3d11.inject->get_value ();
+      if (texture.d3d11.res_root->load ())
+        config.textures.d3d11.res_root = texture.d3d11.res_root->get_value ();
+
+      if (texture.cache.max_entries->load ())
+        config.textures.cache.max_entries = texture.cache.max_entries->get_value ();
+      if (texture.cache.min_entries->load ())
+        config.textures.cache.min_entries = texture.cache.min_entries->get_value ();
+      if (texture.cache.max_evict->load ())
+        config.textures.cache.max_evict = texture.cache.max_evict->get_value ();
+      if (texture.cache.min_evict->load ())
+        config.textures.cache.min_evict = texture.cache.min_evict->get_value ();
+      if (texture.cache.max_size->load ())
+        config.textures.cache.max_size = texture.cache.max_size->get_value ();
+      if (texture.cache.min_size->load ())
+        config.textures.cache.min_size = texture.cache.min_size->get_value ();
     }
 
     if (dll_role == D3D9) {
@@ -1029,6 +1181,19 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       render.framerate.max_delta_time->set_value (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->set_value   (config.render.framerate.flip_discard);
       render.framerate.fudge_factor->set_value   (config.render.framerate.fudge_factor);
+
+      texture.d3d11.cache->set_value        (config.textures.d3d11.cache);
+      texture.d3d11.precise_hash->set_value (config.textures.d3d11.precise_hash);
+      texture.d3d11.dump->set_value         (config.textures.d3d11.dump);
+      texture.d3d11.inject->set_value       (config.textures.d3d11.inject);
+      texture.d3d11.res_root->set_value     (config.textures.d3d11.res_root);
+
+      texture.cache.max_entries->set_value (config.textures.cache.max_entries);
+      texture.cache.min_entries->set_value (config.textures.cache.min_entries);
+      texture.cache.max_evict->set_value   (config.textures.cache.max_evict);
+      texture.cache.min_evict->set_value   (config.textures.cache.min_evict);
+      texture.cache.max_size->set_value    (config.textures.cache.max_size);
+      texture.cache.min_size->set_value    (config.textures.cache.min_size);
     }
 
     if (dll_role == D3D9) {
@@ -1103,6 +1268,20 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       render.framerate.max_delta_time->store ();
       render.framerate.flip_discard->store   ();
       render.framerate.fudge_factor->store   ();
+
+      texture.d3d11.cache->store        ();
+      texture.d3d11.precise_hash->store ();
+      texture.d3d11.dump->store         ();
+      texture.d3d11.inject->store       ();
+      texture.d3d11.res_root->store     ();
+
+      texture.cache.max_entries->store ();
+      texture.cache.min_entries->store ();
+      texture.cache.max_evict->store   ();
+      texture.cache.min_evict->store   ();
+      texture.cache.max_size->store    ();
+      texture.cache.min_size->store    ();
+
     }
 
     if (dll_role == D3D9) {

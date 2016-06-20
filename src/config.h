@@ -189,6 +189,25 @@ struct sk_config_t
 
   struct {
     struct {
+      bool    precise_hash     = false;
+      bool    dump             = false;
+      bool    inject           = true;
+      bool    cache            = false;
+      std::wstring
+              res_root         = L"SK_Res";
+    } d3d11;
+    struct {
+      int     min_evict        = 32;
+      int     max_evict        = 1024;
+      int     min_entries      = 256;
+      int     max_entries      = 8192;
+      int     min_size         = 384L;
+      int     max_size         = 2048L;
+    } cache;
+  } textures;
+
+  struct {
+    struct {
       std::wstring
               compatibility   = L"0x00000000";
       std::wstring

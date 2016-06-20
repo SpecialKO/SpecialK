@@ -662,6 +662,26 @@ WINAPI BudgetThread (LPVOID user_data)
 
           mem_stats [i].budget_changes++;
 
+          int64_t over_budget =
+            LastBudget -
+            mem_info [buffer].local [i].Budget;
+
+          extern bool SK_D3D11_need_tex_reset;
+
+          SK_D3D11_need_tex_reset = (over_budget > 0);
+
+          //extern uint32_t SK_D3D11_amount_to_purge;
+          //SK_D3D11_amount_to_purge += max (0, over_budget);
+
+/*
+          if (LastBudget > (mem_info [buffer].local [i].Budget + 1024 * 1024 * 128)) {
+            extern bool   SK_D3D11_need_tex_reset;
+            extern UINT64 SK_D3D11_amount_to_purge;
+            SK_D3D11_need_tex_reset  = true;
+            SK_D3D11_amount_to_purge = LastBudget - mem_info [buffer].local [i].Budget;
+          }
+*/
+
           LastBudget = mem_info [buffer].local [i].Budget;
         }
 
@@ -1238,7 +1258,7 @@ WINAPI DllThread (LPVOID user)
 
     SK_InitCore (params->backend, params->callback);
 
-    extern uint32_t SK_D3D11_amount_to_purge;
+    extern int32_t SK_D3D11_amount_to_purge;
     SK_GetCommandProcessor ()->AddVariable ("VRAM.Purge", new SK_VarStub <int32_t> ((int32_t *)&SK_D3D11_amount_to_purge));
 
     if (host_app == L"DarkSoulsIII.exe") {

@@ -34,6 +34,12 @@
     <Filter Include="Header Files\Diagnostics">
       <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\DirectXTex">
+      <UniqueIdentifier>{a27bd44f-f740-4eb2-8fbd-578a0cca981a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DirectXTex">
+      <UniqueIdentifier>{53877763-ffe5-4232-9427-f0c56a07fa57}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -117,6 +123,27 @@
     <ClInclude Include="diagnostics\crash_handler.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="..\depends\DirectXTex\BC.h">
+      <Filter>Header Files\DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\DirectXTex\BCDirectCompute.h">
+      <Filter>Header Files\DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\DirectXTex\DDS.h">
+      <Filter>Header Files\DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\DirectXTex\DirectXTex.h">
+      <Filter>Header Files\DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\DirectXTex\DirectXTexP.h">
+      <Filter>Header Files\DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\DirectXTex\Filters.h">
+      <Filter>Header Files\DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\DirectXTex\scoped.h">
+      <Filter>Header Files\DirectXTex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -193,6 +220,63 @@
     </ClCompile>
     <ClCompile Include="diagnostics\crash_handler.cpp">
       <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\BC.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\BC4BC5.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\BC6HBC7.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\BCDirectCompute.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompress.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompressGPU.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexConvert.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexD3D11.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexDDS.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexFlipRotate.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexImage.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexMipmaps.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexMisc.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexNormalMaps.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexPMAlpha.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexResize.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexTGA.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexUtil.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

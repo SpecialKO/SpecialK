@@ -40,6 +40,19 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo );
 
+typedef LPTOP_LEVEL_EXCEPTION_FILTER (WINAPI *SetUnhandledExceptionFilter_pfn)(
+    _In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter
+);
+
+SetUnhandledExceptionFilter_pfn SetUnhandledExceptionFilter_Original = nullptr;
+
+LPTOP_LEVEL_EXCEPTION_FILTER
+WINAPI
+SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter)
+{
+  return SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
+}
+
 void
 CrashHandler::Reinstall (void)
 {
@@ -70,6 +83,10 @@ CrashHandler::Init (void)
 
   if (! crash_log.initialized)
     crash_log.init ("logs/crash.log", "w");
+
+  //SK_CreateDLLHook ( L"kernel32.dll", "SetUnhandledExceptionFilter",
+                     //SetUnhandledExceptionFilter_Detour,
+          //(LPVOID *)&SetUnhandledExceptionFilter_Original );
 
   SymInitialize (
     GetCurrentProcess (),

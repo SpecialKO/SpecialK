@@ -606,6 +606,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\depends\DirectXTex\BC.h" />
+    <ClInclude Include="..\depends\DirectXTex\BCDirectCompute.h" />
+    <ClInclude Include="..\depends\DirectXTex\DDS.h" />
+    <ClInclude Include="..\depends\DirectXTex\DirectXTex.h" />
+    <ClInclude Include="..\depends\DirectXTex\DirectXTexP.h" />
+    <ClInclude Include="..\depends\DirectXTex\Filters.h" />
+    <ClInclude Include="..\depends\DirectXTex\scoped.h" />
     <ClInclude Include="adl.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="config.h" />
@@ -634,6 +641,25 @@
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\depends\DirectXTex\BC.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\BC4BC5.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\BC6HBC7.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\BCDirectCompute.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompress.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompressGPU.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexConvert.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexD3D11.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexDDS.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexFlipRotate.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexImage.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexMipmaps.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexMisc.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexNormalMaps.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexPMAlpha.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexResize.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexTGA.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexUtil.cpp" />
+    <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="adl.cpp" />
     <ClCompile Include="diagnostics\crash_handler.cpp" />
     <ClCompile Include="SpecialK.cpp" />

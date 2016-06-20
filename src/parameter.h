@@ -125,9 +125,9 @@ class ParameterInt64 : public Parameter <int64_t>
 {
 public:
   std::wstring get_value_str (void);
-  int64_t      get_value (void);
+  int64_t      get_value     (void);
 
-  void         set_value (int64_t val);
+  void         set_value     (int64_t val);
   void         set_value_str (std::wstring str);
 
 protected:

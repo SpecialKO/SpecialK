@@ -557,7 +557,7 @@ SK_DrawOSD (void)
     }
 
     else if (isFallout4) {
-      OSD_PRINTF "Fallout 4 \"Works\" v 0.2.2   %ws\n\n",
+      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.0   %ws\n\n",
                  time
       OSD_END
     } else if (isDivinityOrigSin) {
@@ -1133,6 +1133,18 @@ SK_DrawOSD (void)
     commit_peak.c_str      (),
     virtual_peak.c_str     ()
   OSD_END
+
+  extern bool     SK_D3D11_need_tex_reset;
+  extern uint32_t SK_D3D11_amount_to_purge;
+  extern bool     SK_D3D11_cache_textures;
+
+  if (SK_D3D11_cache_textures) {
+    extern std::string SK_D3D11_SummarizeTexCache (void);
+
+    OSD_M_PRINTF "\n%s",
+      SK_D3D11_SummarizeTexCache ().c_str ()
+    OSD_END
+  }
 
   extern int gpu_prio;
 

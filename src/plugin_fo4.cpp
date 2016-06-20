@@ -56,13 +56,9 @@ NvAPI_GPU_GetMemoryInfo_Detour ( NvPhysicalGpuHandle            hPhysicalGpu,
 
 LPVOID NVAPI_GPU_GETMEMORYINFO_PROC;
 
-extern void WINAPI SK_D3D11_EnableTexCache (bool enable);
-
 void
 SK_FO4_InitPlugin (void)
 {
-  SK_D3D11_EnableTexCache (true);
-
   if (fo4_prefs == nullptr) {
     std::wstring fo4_prefs_file =
       SK_GetDocumentsDir () +
