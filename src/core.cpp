@@ -1037,6 +1037,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"----------------------------------------------------------------------"
     L"---------------------\n");
 
+  extern void __crc32_init (void);
+  __crc32_init ();
 
   MH_STATUS WINAPI SK_Init_MinHook (void);
   SK_Init_MinHook ();
