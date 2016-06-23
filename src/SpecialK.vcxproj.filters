@@ -191,9 +191,6 @@
     <ClCompile Include="utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="adl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="steam_api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -276,6 +273,9 @@
       <Filter>Source Files\DirectXTex</Filter>
     </ClCompile>
     <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp">
+      <Filter>Source Files\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="adl.cpp">
       <Filter>Source Files\DirectXTex</Filter>
     </ClCompile>
   </ItemGroup>

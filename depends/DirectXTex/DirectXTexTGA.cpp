@@ -852,12 +852,12 @@ HRESULT GetMetadataFromTGAFile( LPCWSTR szFile, TexMetadata& metadata )
     if ( !szFile )
         return E_INVALIDARG;
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
-    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
-#else
+//#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+//    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
+//#else
     ScopedHandle hFile( safe_handle( CreateFileW( szFile, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
                                                   FILE_FLAG_SEQUENTIAL_SCAN, 0 ) ) );
-#endif
+//#endif
     if ( !hFile )
     {
         return HRESULT_FROM_WIN32( GetLastError() );
@@ -969,12 +969,12 @@ HRESULT LoadFromTGAFile( LPCWSTR szFile, TexMetadata* metadata, ScratchImage& im
 
     image.Release();
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
-    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
-#else
+//#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+//    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
+//#else
     ScopedHandle hFile( safe_handle( CreateFileW( szFile, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
                                                   FILE_FLAG_SEQUENTIAL_SCAN, 0 ) ) );
-#endif
+//#endif
     if ( !hFile )
     {
         return HRESULT_FROM_WIN32( GetLastError() );
@@ -1292,11 +1292,11 @@ HRESULT SaveToTGAFile( const Image& image, LPCWSTR szFile )
         return hr;
 
     // Create file and write header
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
-    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_WRITE, 0, CREATE_ALWAYS, 0 ) ) );
-#else
+//#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+//    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_WRITE, 0, CREATE_ALWAYS, 0 ) ) );
+//#else
     ScopedHandle hFile( safe_handle( CreateFileW( szFile, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0 ) ) );
-#endif
+//#endif
     if ( !hFile )
     {
         return HRESULT_FROM_WIN32( GetLastError() );

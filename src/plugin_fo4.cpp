@@ -66,6 +66,7 @@ SK_FO4_InitPlugin (void)
 
     fo4_prefs = new sk::INI::File ((wchar_t *)fo4_prefs_file.c_str ());
     fo4_prefs->parse ();
+
   }
 
   //nvapi64_dll = LoadLibrary (L"nvapi64.dll");
@@ -118,4 +119,130 @@ SK_FO4_IsBorderlessWindow (void)
   }
 
   return (fo4_borderless->get_value ());
+}
+
+#include "config.h"
+
+DWORD
+WINAPI
+SK_FO4_RealizeFullscreenBorderless (LPVOID user)
+{
+  DXGI_SWAP_CHAIN_DESC desc;
+  ((IDXGISwapChain *)user)->GetDesc (&desc);
+
+  MONITORINFO minfo;
+  minfo.cbSize = sizeof MONITORINFO;
+
+  GetMonitorInfo (MonitorFromWindow (desc.OutputWindow, MONITOR_DEFAULTTONEAREST), &minfo);
+
+  SetWindowPos ( desc.OutputWindow,
+                  HWND_TOP,
+                    minfo.rcMonitor.left, minfo.rcMonitor.top,
+                      minfo.rcMonitor.right - minfo.rcMonitor.left,
+                      minfo.rcMonitor.bottom - minfo.rcMonitor.top,
+                        SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOREPOSITION | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW );
+
+  return 0;
+}
+
+RECT window;
+
+typedef BOOL (WINAPI *GetWindowRect_pfn)(HWND, LPRECT);
+GetWindowRect_pfn GetWindowRect_Original = nullptr;
+
+typedef BOOL (WINAPI *GetClientRect_pfn)(HWND, LPRECT);
+GetClientRect_pfn GetClientRect_Original = nullptr;
+
+BOOL
+WINAPI
+GetClientRect_Detour (
+    _In_  HWND   hWnd,
+    _Out_ LPRECT lpRect )
+{
+  *lpRect = window;
+  return TRUE;
+}
+
+BOOL
+WINAPI
+GetWindowRect_Detour (
+    _In_   HWND  hWnd,
+    _Out_ LPRECT lpRect )
+{
+  *lpRect = window;
+  return TRUE;
+}
+
+typedef LRESULT (CALLBACK *SK_DetourWindowProc_pfn)( _In_  HWND   hWnd,
+                      _In_  UINT   uMsg,
+                      _In_  WPARAM wParam,
+                      _In_  LPARAM lParam );
+SK_DetourWindowProc_pfn SK_DetourWindowProc_Original = nullptr;
+
+__declspec (noinline)
+LRESULT
+CALLBACK
+SK_FO4_DetourWindowProc ( _In_  HWND   hWnd,
+                          _In_  UINT   uMsg,
+                          _In_  WPARAM wParam,
+                          _In_  LPARAM lParam )
+{
+ if (uMsg == WM_WINDOWPOSCHANGED || uMsg == WM_WINDOWPOSCHANGING)
+    return 0;
+
+  if (uMsg == WM_MOVE || uMsg == WM_MOVING)
+    return 0;
+
+  if (uMsg == WM_SIZE || uMsg == WM_SIZING)
+    return 0;
+
+  return SK_DetourWindowProc_Original (hWnd, uMsg, wParam, lParam);
+}
+
+
+HRESULT
+STDMETHODCALLTYPE
+SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
+                           UINT            SyncInterval,
+                           UINT            Flags )
+{
+  DXGI_SWAP_CHAIN_DESC desc;
+  This->GetDesc (&desc);
+
+  // Fix the broken borderless window system that doesn't scale the swapchain
+  //   properly.
+  if (SK_FO4_IsBorderlessWindow ()) {
+    window.top    = 0;
+    window.left   = 0;
+    window.bottom = desc.BufferDesc.Height;
+    window.right  = desc.BufferDesc.Width;
+
+    SK_CreateDLLHook ( L"user32.dll", "GetWindowRect",
+                       GetWindowRect_Detour,
+             (LPVOID*)&GetWindowRect_Original );
+
+    SK_CreateDLLHook ( L"user32.dll", "GetClientRect",
+                       GetClientRect_Detour,
+             (LPVOID*)&GetClientRect_Original );
+
+    extern __declspec (noinline)
+    LRESULT
+    CALLBACK
+    SK_DetourWindowProc ( _In_  HWND   hWnd,
+                          _In_  UINT   uMsg,
+                          _In_  WPARAM wParam,
+                          _In_  LPARAM lParam );
+
+    SK_CreateFuncHook ( L"SK_DetourWindowProc",
+                          SK_DetourWindowProc,
+                          SK_FO4_DetourWindowProc,
+               (LPVOID *)&SK_DetourWindowProc_Original );
+    SK_EnableHook (SK_DetourWindowProc);
+
+    CreateThread (nullptr, 0, SK_FO4_RealizeFullscreenBorderless, (LPVOID)This, 0, nullptr);
+
+    return S_OK;
+  }
+
+  return E_FAIL;
 }

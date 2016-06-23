@@ -59,6 +59,7 @@ SK_EstablishDllRole (HMODULE hModule)
 }
 
 static bool attached = false;
+static int  refs     = 0;
 
 bool
 SK_Attach (DLL_ROLE role)
@@ -66,17 +67,23 @@ SK_Attach (DLL_ROLE role)
   switch (role)
   {
   case DLL_ROLE::DXGI:
+    ++refs;
     attached = true;
     return SK::DXGI::Startup ();
     break;
+
   case DLL_ROLE::D3D9:
+    ++refs;
     attached = true;
     return SK::D3D9::Startup ();
     break;
+
   case DLL_ROLE::OpenGL:
+    ++refs;
     attached = true;
     return SK::OpenGL::Startup ();
     break;
+
   case DLL_ROLE::Vulkan:
     break;
   }
@@ -87,22 +94,29 @@ SK_Attach (DLL_ROLE role)
 bool
 SK_Detach (DLL_ROLE role)
 {
-  switch (role)
-  {
-  case DLL_ROLE::DXGI:
-    attached = false;
-    return SK::DXGI::Shutdown ();
-    break;
-  case DLL_ROLE::D3D9:
-    attached = false;
-    return SK::D3D9::Shutdown ();
-    break;
-  case DLL_ROLE::OpenGL:
-    attached = false;
-    return SK::OpenGL::Shutdown ();
-    break;
-  case DLL_ROLE::Vulkan:
-    break;
+  --refs;
+
+  if (refs <= 0) {
+    switch (role)
+    {
+    case DLL_ROLE::DXGI:
+      attached = false;
+      return SK::DXGI::Shutdown ();
+      break;
+    case DLL_ROLE::D3D9:
+      attached = false;
+      return SK::D3D9::Shutdown ();
+      break;
+    case DLL_ROLE::OpenGL:
+      attached = false;
+      return SK::OpenGL::Shutdown ();
+      break;
+    case DLL_ROLE::Vulkan:
+      break;
+    }
+
+    extern void SK_ShutdownCOM (void);
+    SK_ShutdownCOM ();
   }
 
   return false;
@@ -122,6 +136,7 @@ APIENTRY DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
+#define IGNORE_THREAD_ATTACH
 #ifdef IGNORE_THREAD_ATTACH
       DisableThreadLibraryCalls (hModule);
 #endif
@@ -162,9 +177,6 @@ APIENTRY DllMain ( HMODULE hModule,
       if (attached)
       {
         SK_Detach (dll_role);
-
-        extern void SK_ShutdownCOM (void);
-        SK_ShutdownCOM ();
       }
     } break;
   }

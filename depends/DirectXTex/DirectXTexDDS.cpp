@@ -1355,12 +1355,12 @@ HRESULT GetMetadataFromDDSFile( LPCWSTR szFile, DWORD flags, TexMetadata& metada
     if ( !szFile )
         return E_INVALIDARG;
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
-    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
-#else
+//#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+//    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
+//#else
     ScopedHandle hFile( safe_handle( CreateFileW( szFile, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
                                                   FILE_FLAG_SEQUENTIAL_SCAN, 0 ) ) );
-#endif
+//#endif
     if ( !hFile )
     {
         return HRESULT_FROM_WIN32( GetLastError() );
@@ -1474,12 +1474,12 @@ HRESULT LoadFromDDSFile( LPCWSTR szFile, DWORD flags, TexMetadata* metadata, Scr
 
     image.Release();
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
-    ScopedHandle hFile( safe_handle ( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
-#else
+//#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+//    ScopedHandle hFile( safe_handle ( CreateFile2( szFile, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, 0 ) ) );
+//#else
     ScopedHandle hFile( safe_handle ( CreateFileW( szFile, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
                                                    FILE_FLAG_SEQUENTIAL_SCAN, 0 ) ) );
-#endif
+//#endif
 
     if ( !hFile )
     {
@@ -1867,11 +1867,11 @@ HRESULT SaveToDDSFile( const Image* images, size_t nimages, const TexMetadata& m
         return hr;
 
     // Create file and write header
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
-    ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_WRITE | DELETE, 0, CREATE_ALWAYS, 0 ) ) );
-#else
+//#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+    //ScopedHandle hFile( safe_handle( CreateFile2( szFile, GENERIC_WRITE | DELETE, 0, CREATE_ALWAYS, 0 ) ) );
+//#else
     ScopedHandle hFile( safe_handle( CreateFileW( szFile, GENERIC_WRITE | DELETE, 0, 0, CREATE_ALWAYS, 0, 0 ) ) );
-#endif
+//#endif
     if ( !hFile )
     {
         return HRESULT_FROM_WIN32( GetLastError() );

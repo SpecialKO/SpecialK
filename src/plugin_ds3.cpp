@@ -182,31 +182,31 @@ SK_DS3_PluginKeyPress ( BOOL Control,
 
 
 sk::ParameterFactory  ds3_factory;
-                      
+
 sk::INI::File*        ds3_prefs            = nullptr;
-                      
+
 sk::ParameterInt*     ds3_hud_res_x        = nullptr;
 sk::ParameterInt*     ds3_hud_res_y        = nullptr;
 sk::ParameterInt*     ds3_hud_offset_x     = nullptr;
 sk::ParameterInt*     ds3_hud_offset_y     = nullptr;
 sk::ParameterBool*    ds3_hud_stretch      = nullptr;
-                      
+
 sk::ParameterInt*     ds3_default_res_x    = nullptr;
 sk::ParameterInt*     ds3_default_res_y    = nullptr;
 sk::ParameterInt*     ds3_sacrificial_x    = nullptr;
 sk::ParameterInt*     ds3_sacrificial_y    = nullptr;
-                      
+
 sk::ParameterBool*    ds3_dump_textures    = nullptr;
 sk::ParameterBool*    ds3_inject_textures  = nullptr;
 sk::ParameterBool*    ds3_cache_textures   = nullptr;
 sk::ParameterStringW* ds3_resource_root    = nullptr;
-                      
+
 sk::ParameterBool*    ds3_fullscreen       = nullptr;
 sk::ParameterBool*    ds3_borderless       = nullptr;
 sk::ParameterBool*    ds3_center           = nullptr;
-                      
+
 sk::ParameterBool*    ds3_start_fullscreen = nullptr;
-                      
+
 sk::ParameterBool*    ds3_flip_mode        = nullptr;
 
 sk::ParameterInt64*   ds3_last_addr        = nullptr;
@@ -900,16 +900,17 @@ SK_DS3_InitPlugin (void)
 
 
 
+#if 0
   extern void WINAPI SK_D3D11_SetResourceRoot (std::wstring root);
-  extern void WINAPI SK_D3D11_EnableTexDump (bool enable);
+  extern void WINAPI SK_D3D11_EnableTexDump   (bool enable);
   extern void WINAPI SK_D3D11_EnableTexInject (bool enable);
-  extern void WINAPI SK_D3D11_EnableTexCache (bool enable);
+  extern void WINAPI SK_D3D11_EnableTexCache  (bool enable);
 
   SK_D3D11_SetResourceRoot (ds3_cfg.textures.res_root);
   SK_D3D11_EnableTexDump   (ds3_cfg.textures.dump);
   SK_D3D11_EnableTexInject (ds3_cfg.textures.inject);
   SK_D3D11_EnableTexCache  (ds3_cfg.textures.cache);
-
+#endif
 
 
   ds3_sacrificial_x =

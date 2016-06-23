@@ -61,12 +61,6 @@ struct sk_window_s {
   WNDPROC WndProc_Original;
 };
 
-struct SK_texdump_s {
-  ID3D11Texture2D*     tex;
-  D3D11_TEXTURE2D_DESC desc;
-  uint32_t             crc32;
-};
-
 extern sk_window_s game_window;
 
 
@@ -134,6 +128,10 @@ typedef HRESULT (WINAPI *D3DX11CreateTextureFromFileW_pfn)(
 
 extern "C++" bool SK_FO4_IsFullscreen       (void);
 extern "C++" bool SK_FO4_IsBorderlessWindow (void);
+
+extern "C++" HRESULT STDMETHODCALLTYPE
+                  SK_FO4_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
+
 
 
 // TODO: Get this stuff out of here, it's breaking what _DSlittle design work there is.
@@ -892,23 +890,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
     if (first_frame) {
       if (sk::NVAPI::app_name == L"Fallout4.exe") {
-        // Fix the broken borderless window system that doesn't scale the swapchain
-        //   properly.
-        if (SK_FO4_IsBorderlessWindow ()) {
-          DEVMODE devmode = { 0 };
-          devmode.dmSize = sizeof DEVMODE;
-          EnumDisplaySettings (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
-
-          DXGI_SWAP_CHAIN_DESC desc;
-          This->GetDesc (&desc);
-
-          if (devmode.dmPelsHeight != desc.BufferDesc.Height ||
-              devmode.dmPelsWidth  != desc.BufferDesc.Width) {
-            devmode.dmPelsWidth  = desc.BufferDesc.Width;
-            devmode.dmPelsHeight = desc.BufferDesc.Height;
-            ChangeDisplaySettings (&devmode, CDS_FULLSCREEN);
-          }
-        }
+        SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
       }
 
       else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe") {
@@ -2569,7 +2551,7 @@ static uint32_t crc32_tab[] = {
    0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
  };
 
-__inline
+__declspec (noinline)
 uint32_t
 __cdecl
 crc32 (uint32_t crc, const void *buf, size_t size)
@@ -2956,10 +2938,30 @@ SK_D3D11_PopulateResourceList (void)
 
             bool compressed = false;
 
-            if (StrStrIW (fd.cFileName, L"Uncompressed_"))
-              swscanf (fd.cFileName, L"Uncompressed_%08X_%08X.dds", &top_crc32, &checksum);
-            else {
-              swscanf (fd.cFileName, L"Compressed_%08X_%08X.dds", &top_crc32, &checksum);
+            if (StrStrIW (fd.cFileName, L"Uncompressed_")) {
+              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_")) {
+                swscanf ( fd.cFileName,
+                            L"Uncompressed_%08X_%08X.dds",
+                              &top_crc32,
+                                &checksum );
+              } else {
+                swscanf ( fd.cFileName,
+                            L"Uncompressed_%08X.dds",
+                              &top_crc32 );
+                checksum = 0x00;
+              }
+            } else {
+              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_")) {
+                swscanf ( fd.cFileName,
+                            L"Compressed_%08X_%08X.dds",
+                              &top_crc32,
+                                &checksum );
+              } else {
+                swscanf ( fd.cFileName,
+                            L"Compressed_%08X.dds",
+                              &top_crc32 );
+                checksum = 0x00;
+              }
               compressed = true;
             }
 
@@ -2982,7 +2984,10 @@ SK_D3D11_PopulateResourceList (void)
                             L"the same top-level LOD hash (%08X) <<",
                               top_crc32 );
 
-            dumped_textures.insert (top_crc32);
+            if (checksum == 0x00)
+              dumped_textures.insert (top_crc32);
+            else
+              dumped_collisions.insert (crc32 (top_crc32, &checksum, 4));
           }
         }
       } while (FindNextFileW (hFind, &fd) != 0);
@@ -3350,9 +3355,9 @@ SK_D3D11_BytesPerPixel (DXGI_FORMAT fmt)
   }
 }
 
-__inline
+__declspec (noinline)
 uint32_t
-__fastcall
+__cdecl
 crc32_tex (  _In_        const D3D11_TEXTURE2D_DESC   *pDesc,
              _In_opt_    const D3D11_SUBRESOURCE_DATA *pInitialData,
              _Out_opt_         size_t                 *pSize,
@@ -3360,8 +3365,8 @@ crc32_tex (  _In_        const D3D11_TEXTURE2D_DESC   *pDesc,
 {
   // Ignore Cubemaps for Now
   if (pDesc->MiscFlags == 0x04) {
-    //dll_log.Log (L"[ Tex Hash ] >> Will not hash cubemap");
-    //return 0;
+    dll_log.Log (L"[ Tex Hash ] >> Will not hash cubemap");
+    return 0;
   }
 
   if (pDesc->MiscFlags != 0x00) {
@@ -3450,9 +3455,9 @@ crc32_tex (  _In_        const D3D11_TEXTURE2D_DESC   *pDesc,
 //
 // OLD, BUGGY Algorithm... must remain here for compatibility with UnX :(
 //
-__inline
+__declspec (noinline)
 uint32_t
-__fastcall
+__cdecl
 crc32_ffx (  _In_        const D3D11_TEXTURE2D_DESC   *pDesc,
              _In_opt_    const D3D11_SUBRESOURCE_DATA *pInitialData,
              _Out_opt_         size_t                 *pSize )
@@ -3670,10 +3675,10 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 
   bool compressed = false;
 
-  if (pDesc->Format >= DXGI_FORMAT_BC1_TYPELESS && pDesc->Format <= DXGI_FORMAT_BC5_SNORM)
-    compressed = true;
-
-  if (pDesc->Format >= DXGI_FORMAT_BC6H_TYPELESS && pDesc->Format <= DXGI_FORMAT_BC7_UNORM_SRGB)
+  if ( ( pDesc->Format >= DXGI_FORMAT_BC1_TYPELESS &&
+         pDesc->Format <= DXGI_FORMAT_BC5_SNORM )  ||
+       ( pDesc->Format >= DXGI_FORMAT_BC6H_TYPELESS &&
+         pDesc->Format <= DXGI_FORMAT_BC7_UNORM_SRGB ) )
     compressed = true;
 
   wchar_t wszOutPath [MAX_PATH] = { L'\0' };
@@ -3724,7 +3729,7 @@ D3D11Dev_CreateTexture2D_Override (
   bool early_out = false;
 
   if ((! (SK_D3D11_cache_textures || SK_D3D11_dump_textures || SK_D3D11_inject_textures)) ||
-         texinject_tid == GetCurrentThreadId () )
+         texinject_tid == GetCurrentThreadId ())
     early_out = true;
 
   if (early_out)
@@ -3747,12 +3752,11 @@ D3D11Dev_CreateTexture2D_Override (
         (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)) ) &&
         (pDesc->CPUAccessFlags == 0x0);
 
-  cacheable = cacheable && pInitialData != nullptr && ppTexture2D != nullptr;
+  cacheable = cacheable && ppTexture2D != nullptr;
 
   bool dumpable = 
               cacheable && pDesc->Usage != D3D11_USAGE_DYNAMIC &&
-                           pDesc->Usage != D3D11_USAGE_STAGING &&
-                           pDesc->SampleDesc.Count == 1;
+                           pDesc->Usage != D3D11_USAGE_STAGING;
 
   uint32_t top_crc32 = 0x00;
   uint32_t ffx_crc32 = 0x00;
@@ -3922,10 +3926,7 @@ D3D11Dev_CreateTexture2D_Override (
       SK_D3D11_dump_textures )
   {
     if (! SK_D3D11_IsDumped (top_crc32, checksum)) {
-      D3D11_TEXTURE2D_DESC desc;
-      (*ppTexture2D)->GetDesc (&desc);
-
-      SK_D3D11_DumpTexture2D (&desc, pInitialData, top_crc32, checksum);
+      SK_D3D11_DumpTexture2D (pDesc, pInitialData, top_crc32, checksum);
     }
   }
 
