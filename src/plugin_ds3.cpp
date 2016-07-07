@@ -196,11 +196,6 @@ sk::ParameterInt*     ds3_default_res_y    = nullptr;
 sk::ParameterInt*     ds3_sacrificial_x    = nullptr;
 sk::ParameterInt*     ds3_sacrificial_y    = nullptr;
 
-sk::ParameterBool*    ds3_dump_textures    = nullptr;
-sk::ParameterBool*    ds3_inject_textures  = nullptr;
-sk::ParameterBool*    ds3_cache_textures   = nullptr;
-sk::ParameterStringW* ds3_resource_root    = nullptr;
-
 sk::ParameterBool*    ds3_fullscreen       = nullptr;
 sk::ParameterBool*    ds3_borderless       = nullptr;
 sk::ParameterBool*    ds3_center           = nullptr;
@@ -269,13 +264,6 @@ struct {
     bool fullscreen  = false;
     bool center      = true;
   } window;
-
-  struct {
-    std::wstring res_root = L"SUS_Res";
-    bool         dump     = false;
-    bool         inject   = true;
-    bool         cache    = true;
-  } textures;
 } ds3_cfg;
 
 
@@ -835,51 +823,6 @@ SK_DS3_InitPlugin (void)
                                        L"Version" );
 #endif
 
-  ds3_dump_textures =
-    static_cast <sk::ParameterBool *>
-    (ds3_factory.create_parameter <bool> (L"Dump Textures"));
-  ds3_dump_textures->register_to_ini ( ds3_prefs,
-                                         L"SUS.Textures",
-                                           L"Dump" );
-
-  if (ds3_dump_textures->load ()) {
-    ds3_cfg.textures.dump = ds3_dump_textures->get_value ();
-  }
-
-  ds3_inject_textures =
-    static_cast <sk::ParameterBool *>
-    (ds3_factory.create_parameter <bool> (L"Inject Textures"));
-  ds3_inject_textures->register_to_ini ( ds3_prefs,
-                                           L"SUS.Textures",
-                                             L"Inject" );
-
-  if (ds3_inject_textures->load ()) {
-    ds3_cfg.textures.inject = ds3_inject_textures->get_value ();
-  }
-
-  ds3_cache_textures =
-    static_cast <sk::ParameterBool *>
-    (ds3_factory.create_parameter <bool> (L"Cache Textures"));
-  ds3_cache_textures->register_to_ini ( ds3_prefs,
-                                         L"SUS.Textures",
-                                           L"Cache" );
-
-  if (ds3_cache_textures->load ()) {
-    ds3_cfg.textures.cache = ds3_cache_textures->get_value ();
-  }
-
-  ds3_resource_root =
-    static_cast <sk::ParameterStringW *>
-    (ds3_factory.create_parameter <std::wstring> (L"Resource Root"));
-  ds3_resource_root->register_to_ini ( ds3_prefs,
-                                         L"SUS.Textures",
-                                           L"ResourceRoot" );
-
-  if (ds3_resource_root->load ()) {
-    ds3_cfg.textures.res_root = ds3_resource_root->get_value ();
-  }
-
-
   ds3_default_res_x =
     static_cast <sk::ParameterInt *>
       (ds3_factory.create_parameter <int> (L"Base (Windowed) Resolution"));
@@ -897,20 +840,6 @@ SK_DS3_InitPlugin (void)
                                            L"DefaultResY" );
 
   ds3_default_res_y->load ();
-
-
-
-#if 0
-  extern void WINAPI SK_D3D11_SetResourceRoot (std::wstring root);
-  extern void WINAPI SK_D3D11_EnableTexDump   (bool enable);
-  extern void WINAPI SK_D3D11_EnableTexInject (bool enable);
-  extern void WINAPI SK_D3D11_EnableTexCache  (bool enable);
-
-  SK_D3D11_SetResourceRoot (ds3_cfg.textures.res_root);
-  SK_D3D11_EnableTexDump   (ds3_cfg.textures.dump);
-  SK_D3D11_EnableTexInject (ds3_cfg.textures.inject);
-  SK_D3D11_EnableTexCache  (ds3_cfg.textures.cache);
-#endif
 
 
   ds3_sacrificial_x =

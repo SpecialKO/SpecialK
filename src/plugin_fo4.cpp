@@ -1,5 +1,7 @@
 #include <string>
 
+#include "config.h"
+
 #include "ini.h"
 #include "parameter.h"
 #include "utility.h"
@@ -8,10 +10,15 @@
 
 sk::ParameterFactory fo4_factory;
 
+// These are the actual GAME settings
 sk::INI::File*       fo4_prefs        = nullptr;
 sk::ParameterBool*   fo4_fullscreen   = nullptr;
 sk::ParameterBool*   fo4_borderless   = nullptr;
-sk::ParameterInt*    fo4_spoof_memory = nullptr;
+
+// The MOD's settings
+sk::ParameterBool*   fo4w_flipmode    = nullptr;
+sk::ParameterBool*   fo4w_fullscreen  = nullptr;
+sk::ParameterBool*   fo4w_center      = nullptr;
 
 #define __NvAPI_GPU_GetMemoryInfo 0x07F9B368
 
@@ -19,6 +26,7 @@ HMODULE nvapi64_dll;
 #include "core.h"
 #include "nvapi.h"
 
+#if 0
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetMemoryInfo_t)(NvPhysicalGpuHandle hPhysicalGpu, NV_DISPLAY_DRIVER_MEMORY_INFO *pMemoryInfo);
 NvAPI_GPU_GetMemoryInfo_t NvAPI_GPU_GetMemoryInfo_Original = nullptr;
 
@@ -53,6 +61,7 @@ NvAPI_GPU_GetMemoryInfo_Detour ( NvPhysicalGpuHandle            hPhysicalGpu,
 
   return status;
 }
+#endif
 
 LPVOID NVAPI_GPU_GETMEMORYINFO_PROC;
 
@@ -66,7 +75,6 @@ SK_FO4_InitPlugin (void)
 
     fo4_prefs = new sk::INI::File ((wchar_t *)fo4_prefs_file.c_str ());
     fo4_prefs->parse ();
-
   }
 
   //nvapi64_dll = LoadLibrary (L"nvapi64.dll");
@@ -78,9 +86,71 @@ SK_FO4_InitPlugin (void)
 
     //(NvAPI_GPU_GetMemoryInfo_t)NvAPI_QueryInterface (__NvAPI_GPU_GetMemoryInfo);
 
+#if 0
   SK_CreateFuncHook ( L"NvAPI_GPU_GetMemoryInfo", NvAPI_GPU_GetMemoryInfo,
                         NvAPI_GPU_GetMemoryInfo_Detour, (LPVOID *)&NvAPI_GPU_GetMemoryInfo_Original );
   SK_EnableHook     (NvAPI_GPU_GetMemoryInfo);
+#endif
+}
+
+bool
+SK_FO4_MaximizeBorderless (void)
+{
+  extern sk::INI::File* dll_ini;
+
+  SK_FO4_InitPlugin ();
+
+  if (fo4w_fullscreen == nullptr) {
+    fo4w_fullscreen =
+      static_cast <sk::ParameterBool *>
+        (fo4_factory.create_parameter <bool> (L"Maximize Borderless Window"));
+    fo4w_fullscreen->register_to_ini ( dll_ini,
+                                        L"FO4W.PlugIn",
+                                          L"FullscreenWindow" );
+    fo4w_fullscreen->load ();
+  }
+
+  return (fo4w_fullscreen->get_value ());
+}
+
+bool
+SK_FO4_CenterWindow (void)
+{
+  extern sk::INI::File* dll_ini;
+
+  SK_FO4_InitPlugin ();
+
+  if (fo4w_center == nullptr) {
+    fo4w_center =
+      static_cast <sk::ParameterBool *>
+        (fo4_factory.create_parameter <bool> (L"Center Borderless Window"));
+    fo4w_center->register_to_ini ( dll_ini,
+                                     L"FO4W.PlugIn",
+                                       L"CenterWindow" );
+    fo4w_center->load ();
+  }
+
+  return (fo4w_center->get_value ());
+}
+
+bool
+SK_FO4_UseFlipMode (void)
+{
+  extern sk::INI::File* dll_ini;
+
+  SK_FO4_InitPlugin ();
+
+  if (fo4w_flipmode == nullptr) {
+    fo4w_flipmode =
+      static_cast <sk::ParameterBool *>
+        (fo4_factory.create_parameter <bool> (L"Use Flip Mode"));
+    fo4w_flipmode->register_to_ini ( dll_ini,
+                                       L"FO4W.PlugIn",
+                                         L"FlipMode" );
+    fo4w_flipmode->load ();
+  }
+
+  return (fo4w_flipmode->get_value ());
 }
 
 bool
@@ -123,29 +193,75 @@ SK_FO4_IsBorderlessWindow (void)
 
 #include "config.h"
 
+RECT window;
+
 DWORD
 WINAPI
 SK_FO4_RealizeFullscreenBorderless (LPVOID user)
 {
+  DEVMODE devmode = { 0 };
+  devmode.dmSize  = sizeof DEVMODE;
+
+  EnumDisplaySettings (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
+
   DXGI_SWAP_CHAIN_DESC desc;
   ((IDXGISwapChain *)user)->GetDesc (&desc);
+
+  //
+  // Resize the desktop for DSR
+  //
+  if (devmode.dmPelsHeight < desc.BufferDesc.Height ||
+      devmode.dmPelsWidth  < desc.BufferDesc.Width) {
+    devmode.dmPelsWidth  = desc.BufferDesc.Width;
+    devmode.dmPelsHeight = desc.BufferDesc.Height;
+    ChangeDisplaySettings (&devmode, CDS_FULLSCREEN);
+  }
 
   MONITORINFO minfo;
   minfo.cbSize = sizeof MONITORINFO;
 
   GetMonitorInfo (MonitorFromWindow (desc.OutputWindow, MONITOR_DEFAULTTONEAREST), &minfo);
 
-  SetWindowPos ( desc.OutputWindow,
-                  HWND_TOP,
-                    minfo.rcMonitor.left, minfo.rcMonitor.top,
-                      minfo.rcMonitor.right - minfo.rcMonitor.left,
-                      minfo.rcMonitor.bottom - minfo.rcMonitor.top,
-                        SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOREPOSITION | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW );
+  if (SK_FO4_MaximizeBorderless ()) {
+    SetWindowPos ( desc.OutputWindow,
+                     HWND_TOP,
+                       minfo.rcMonitor.left, minfo.rcMonitor.top,
+                         minfo.rcMonitor.right - minfo.rcMonitor.left,
+                         minfo.rcMonitor.bottom - minfo.rcMonitor.top,
+                           SWP_NOSENDCHANGING | SWP_NOACTIVATE    | SWP_NOREPOSITION |
+                           SWP_NOMOVE         | SWP_NOOWNERZORDER | SWP_NOREDRAW );
+  }
+
+  else if (SK_FO4_CenterWindow ()) {
+    extern HWND __stdcall SK_GetGameWindow (void);
+
+    AdjustWindowRect (&minfo.rcWork, GetWindowLongW (SK_GetGameWindow (), GWL_STYLE), FALSE);
+
+    LONG mon_width  = minfo.rcWork.right  - minfo.rcWork.left;
+    LONG mon_height = minfo.rcWork.bottom - minfo.rcWork.top;
+
+    LONG win_width  = min (mon_width,  desc.BufferDesc.Width);
+    LONG win_height = min (mon_height, desc.BufferDesc.Height);
+
+    RECT window;
+
+    window.left = max (0, (mon_width  - win_width)  / 2);
+    window.top  = max (0, (mon_height - win_height) / 2);
+
+    window.right  = window.left + win_width;
+    window.bottom = window.top  + win_height;
+
+    SetWindowPos ( desc.OutputWindow,
+                     HWND_TOP,
+                       window.left, window.top,
+                         window.right  - window.left,
+                         window.bottom - window.top,
+                           SWP_NOSENDCHANGING | SWP_NOACTIVATE  |
+                           SWP_NOOWNERZORDER  | SWP_NOREDRAW );
+  }
 
   return 0;
 }
-
-RECT window;
 
 typedef BOOL (WINAPI *GetWindowRect_pfn)(HWND, LPRECT);
 GetWindowRect_pfn GetWindowRect_Original = nullptr;

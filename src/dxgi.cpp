@@ -26,9 +26,10 @@
 
 #pragma comment (lib, "psapi.lib")
 
-#include "dxgi_backend.h"
 
 #include "dxgi_interfaces.h"
+#include "dxgi_backend.h"
+
 #include <d3d11.h>
 #include <d3d11_1.h>
 
@@ -61,8 +62,11 @@ struct sk_window_s {
   WNDPROC WndProc_Original;
 };
 
-extern sk_window_s game_window;
+SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11;
 
+DWORD dwRenderThread = 0x0000;
+
+extern sk_window_s game_window;
 
 extern std::wstring host_app;
 
@@ -126,12 +130,16 @@ typedef HRESULT (WINAPI *D3DX11CreateTextureFromFileW_pfn)(
   _Out_ HRESULT                *pHResult
 );
 
+extern "C++" bool SK_FO4_UseFlipMode        (void);
 extern "C++" bool SK_FO4_IsFullscreen       (void);
 extern "C++" bool SK_FO4_IsBorderlessWindow (void);
 
 extern "C++" HRESULT STDMETHODCALLTYPE
                   SK_FO4_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 
+
+extern "C++" HRESULT STDMETHODCALLTYPE
+                  SK_TW3_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 
 
 // TODO: Get this stuff out of here, it's breaking what _DSlittle design work there is.
@@ -147,12 +155,14 @@ bool  __stdcall SK_D3D11_TextureIsCached       ( ID3D11Texture2D*     pTex );
 void  __stdcall SK_D3D11_UseTexture            ( ID3D11Texture2D*     pTex );
 void  __stdcall SK_D3D11_RemoveTexFromCache    ( ID3D11Texture2D*     pTex );
 
+void  __stdcall SK_D3D11_UpdateRenderStats     ( IDXGISwapChain*      pSwapChain );
+
 //#define FULL_RESOLUTION
 
 D3DX11CreateTextureFromFileW_pfn D3DX11CreateTextureFromFileW = nullptr;
 HMODULE                          hModD3DX11_43                = nullptr;
 
-DWORD texinject_tid = 0;
+__declspec (thread) bool texinject_thread = false;
 
 typedef ULONG (WINAPI *IUnknown_Release_pfn)(IUnknown* This);
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
@@ -161,7 +171,7 @@ ULONG
 WINAPI
 IUnknown_Release (IUnknown* This)
 {
-  if (texinject_tid != GetCurrentThreadId ()) {
+  if (! texinject_thread) {
     ID3D11Texture2D* pTex = nullptr;
     if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex)))) {
       ULONG count = IUnknown_Release_Original (pTex);
@@ -185,7 +195,7 @@ ULONG
 WINAPI
 IUnknown_AddRef (IUnknown* This)
 {
-  if (texinject_tid != GetCurrentThreadId ()) {
+  if (! texinject_thread) {
     ID3D11Texture2D* pTex = (ID3D11Texture2D *)This;//nullptr;
 
     // This would cause the damn thing to recurse infinitely...
@@ -812,6 +822,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     }
 #endif
 
+    // Start / End / Readback Pipeline Stats
+    SK_D3D11_UpdateRenderStats (This);
+
     SK_BeginBufferSwap ();
 
     HRESULT hr = E_FAIL;
@@ -896,6 +909,11 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe") {
         SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
       }
+
+      else if (sk::NVAPI::app_name == L"witcher3.exe") {
+        SK_TW3_PresentFirstFrame (This, SyncInterval, Flags);
+      }
+
 
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
@@ -1161,13 +1179,16 @@ __declspec (noinline)
 
       if (host_app == L"Fallout4.exe") {
         if (bFlipMode) {
-          bFlipMode = (! SK_FO4_IsFullscreen ());
-          if (bFlipMode) {
-            bFlipMode = (! config.nvidia.sli.override);
-          }
+          bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+          //if (bFlipMode) {
+            //bFlipMode = (! config.nvidia.sli.override);
+          //}
         }
 
         bFlipMode = bFlipMode && pDesc->BufferDesc.Scaling == 0;
+      } else {
+        if (config.render.framerate.flip_discard)
+         bFlipMode = dxgi_caps.present.flip_sequential;
       }
 
       bWait     = bFlipMode && dxgi_caps.present.waitable;
@@ -1676,6 +1697,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
     if (res == S_OK && (ppDevice != NULL))
     {
+      dwRenderThread = GetCurrentThreadId ();
+
       dll_log.Log (L"[  D3D 11  ] >> Device = 0x%08Xh", *ppDevice);
     }
 
@@ -2615,25 +2638,30 @@ SK_D3D11_TexMgr::reset (void)
   for ( SK_D3D11_TexMgr::tex2D_descriptor_s desc : textures ) {
     size_t mem_size = (size_t)(desc.mem_size >> 20);
 
-    if (desc.texture != nullptr && desc.texture->Release () == 0) {
-      count++;
+    if (desc.texture != nullptr) {
+      if (IUnknown_AddRef_Original (desc.texture) <= 2 && desc.texture->Release () == 1) {
+        desc.texture->Release ();
+        count++;
 
-      purged += mem_size;
+        purged += mem_size;
 
-      AggregateSize_2D = max (0, AggregateSize_2D);
+        AggregateSize_2D = max (0, AggregateSize_2D);
 
-      if ( ( (AggregateSize_2D >> 20ULL) <= cache_opts.min_size &&
-                                   count >= cache_opts.min_evict ) ||
-           (SK_D3D11_amount_to_purge     <= purged              &&
-                                   count >= cache_opts.min_evict ) ||
-                                   count >= max_count )
-      {
-        SK_D3D11_amount_to_purge = max (0, SK_D3D11_amount_to_purge);
-        //dll_log.Log ( L"[DX11TexMgr] Purged %llu MiB of texture "
-                        //L"data across %lu textures",
-                        //purged >> 20ULL, count );
+        if ( ( (AggregateSize_2D >> 20ULL) <= cache_opts.min_size &&
+                                     count >= cache_opts.min_evict ) ||
+             (SK_D3D11_amount_to_purge     <= purged              &&
+                                     count >= cache_opts.min_evict ) ||
+                                     count >= max_count )
+        {
+          SK_D3D11_amount_to_purge = max (0, SK_D3D11_amount_to_purge);
+          //dll_log.Log ( L"[DX11TexMgr] Purged %llu MiB of texture "
+                          //L"data across %lu textures",
+                          //purged >> 20ULL, count );
 
-        break;
+          break;
+        }
+      } else {
+        desc.texture->Release ();
       }
     }
   }
@@ -3004,7 +3032,7 @@ SK_D3D11_PopulateResourceList (void)
     int             files  = 0;
     LARGE_INTEGER   liSize = { 0 };
 
-    dll_log.LogEx ( true, L"[DX11TexMgr] Enumerating Legacy injectable..." );
+    dll_log.LogEx ( true, L"[DX11TexMgr] Enumerating FFX inject..." );
 
     lstrcatW (wszTexInjectDir_FFX, L"\\*");
 
@@ -3098,19 +3126,30 @@ SK_D3D11_IsTexHashed (uint32_t top_crc32, uint32_t hash)
 
 void
 WINAPI
+SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum);
+
+void
+WINAPI
 SK_D3D11_AddTexHash ( std::wstring name, uint32_t top_crc32, uint32_t hash )
 {
   if (hash != 0x00) {
-    if (! SK_D3D11_IsTexHashed (top_crc32, hash))
+    if (! SK_D3D11_IsTexHashed (top_crc32, hash)) {
       SK_AutoCriticalSection critical (&hash_cs);
 
       tex_hashes_ex.insert (std::make_pair (crc32c (top_crc32, (const uint8_t *)&hash, 4), name));
+      SK_D3D11_AddInjectable (top_crc32, hash);
+    }
   }
 
-  if (! SK_D3D11_IsTexHashed (hash, 0x00)) {
+  if (! SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
     SK_AutoCriticalSection critical (&hash_cs);
 
-    tex_hashes.insert (std::make_pair (hash, name));
+    tex_hashes.insert (std::make_pair (top_crc32, name));
+
+    if (! SK_D3D11_inject_textures_ffx)
+      SK_D3D11_AddInjectable (top_crc32, 0x00);
+    else
+      injectable_ffx.insert (top_crc32);
   }
 }
 
@@ -3334,23 +3373,34 @@ crc32_tex (  _In_        const D3D11_TEXTURE2D_DESC   *pDesc,
   if (compressed) {
     for (unsigned int i = 0; i < pDesc->MipLevels; i++) {
       char* pData    = (char *)pInitialData [i].pSysMem;
-      int scanlength = bpp == 0 ?
+      int stride = bpp == 0 ?
           max (1, ((width + 3) / 4) ) * 8 :
           max (1, ((width + 3) / 4) ) * 16;
 
-      // Scanlength is perhaps the wrong term here, we are running through
-      //   the compressed image block-by-block, the lines we are "scanning"
-      //     actually represent 4 rows of image data.
-      for (unsigned int j = 0; j < height; j += 4) {
-        checksum =
-          crc32c (checksum, (const uint8_t *)pData, scanlength);
+      // Fast path:  Data is tightly packed and alignment agrees with
+      //               convention...
+      if (stride == pInitialData [i].SysMemPitch) {
+        unsigned int lod_size = stride * (height / 4 +
+                                          height % 4);
 
-        // Respect the engine's reported stride, while making sure to
-        //   only read the 4x4 blocks that have legal data. Any padding
-        //     the engine uses will not be included in our hash since the
-        //       values are undefined.
-        pData += pInitialData [i].SysMemPitch;
-        size  += scanlength;
+        checksum = crc32c (checksum, (const uint8_t *)pData, lod_size);
+        size    += lod_size;
+      }
+
+      else {
+        // We are running through the compressed image block-by-block,
+        //  the lines we are "scanning" actually represent 4 rows of image data.
+        for (unsigned int j = 0; j < height; j += 4) {
+          checksum =
+            crc32c (checksum, (const uint8_t *)pData, stride);
+
+          // Respect the engine's reported stride, while making sure to
+          //   only read the 4x4 blocks that have legal data. Any padding
+          //     the engine uses will not be included in our hash since the
+          //       values are undefined.
+          pData += pInitialData [i].SysMemPitch;
+          size  += stride;
+        }
       }
 
       if (i == 0 && pLOD0_CRC32 != nullptr)
@@ -3366,12 +3416,23 @@ crc32_tex (  _In_        const D3D11_TEXTURE2D_DESC   *pDesc,
       char* pData      = (char *)pInitialData [i].pSysMem;
       int   scanlength = SK_D3D11_BytesPerPixel (pDesc->Format) * width;
 
-      for (unsigned int j = 0; j < height; j++) {
-        checksum =
-          crc32c (checksum, (const uint8_t *)pData, scanlength);
+      // Fast path:  Data is tightly packed and alignment agrees with
+      //               convention...
+      if (scanlength == pInitialData [i].SysMemPitch) {
+        unsigned int lod_size = (scanlength * height);
 
-        pData += pInitialData [i].SysMemPitch;
-        size  += scanlength;
+        checksum = crc32c (checksum, (const uint8_t *)pData, lod_size);
+        size    += lod_size;
+      }
+
+      else {
+        for (unsigned int j = 0; j < height; j++) {
+          checksum =
+            crc32c (checksum, (const uint8_t *)pData, scanlength);
+
+          pData += pInitialData [i].SysMemPitch;
+          size  += scanlength;
+        }
       }
 
       if (i == 0 && pLOD0_CRC32 != nullptr)
@@ -3625,16 +3686,16 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   lstrcatW (wszOutPath, host_app.c_str ());
 
   if (compressed && config.textures.d3d11.precise_hash) {
-    wsprintfW ( wszOutName, L"%s\\Compressed_%08X_%08X.dds",
+    _swprintf ( wszOutName, L"%s\\Compressed_%08X_%08X.dds",
                   wszOutPath, top_crc32, checksum );
   } else if (compressed) {
-    wsprintfW ( wszOutName, L"%s\\Compressed_%08X.dds",
+    _swprintf ( wszOutName, L"%s\\Compressed_%08X.dds",
                   wszOutPath, top_crc32 );
   } else if (config.textures.d3d11.precise_hash) {
-    wsprintfW ( wszOutName, L"%s\\Uncompressed_%08X_%08X.dds",
+    _swprintf ( wszOutName, L"%s\\Uncompressed_%08X_%08X.dds",
                   wszOutPath, top_crc32, checksum );
   } else {
-    wsprintfW ( wszOutName, L"%s\\Uncompressed_%08X.dds",
+    _swprintf ( wszOutName, L"%s\\Uncompressed_%08X.dds",
                   wszOutPath, top_crc32 );
   }
 
@@ -3665,7 +3726,7 @@ D3D11Dev_CreateTexture2D_Override (
   bool early_out = false;
 
   if ((! (SK_D3D11_cache_textures || SK_D3D11_dump_textures || SK_D3D11_inject_textures)) ||
-         texinject_tid == GetCurrentThreadId ())
+         texinject_thread)
     early_out = true;
 
   if (early_out)
@@ -3683,12 +3744,12 @@ D3D11Dev_CreateTexture2D_Override (
                    pInitialData->pSysMem != nullptr &&
                    pDesc->Width > 0 && pDesc->Height > 0;
 
-  cacheable = cacheable                                  &&
+  cacheable &=
     (! ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
         (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)) ) &&
         (pDesc->CPUAccessFlags == 0x0);
 
-  cacheable = cacheable && ppTexture2D != nullptr;
+  cacheable &= ppTexture2D != nullptr;
 
   bool dumpable = 
               cacheable && pDesc->Usage != D3D11_USAGE_DYNAMIC &&
@@ -3734,21 +3795,21 @@ D3D11Dev_CreateTexture2D_Override (
 
       {
         if (SK_D3D11_IsTexHashed (ffx_crc32, 0x00)) {
-          wsprintfW ( wszTex, L"%s\\%s",
+          _swprintf ( wszTex, L"%s\\%s",
               SK_D3D11_res_root.c_str (),
                   SK_D3D11_TexHashToName (ffx_crc32, 0x00).c_str ()
           );
         }
 
         else if (SK_D3D11_IsTexHashed (top_crc32, checksum)) {
-          wsprintfW ( wszTex, L"%s\\%s",
+          _swprintf ( wszTex, L"%s\\%s",
                         SK_D3D11_res_root.c_str (),
                             SK_D3D11_TexHashToName (top_crc32,checksum).c_str ()
                     );
         }
 
         else if (SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
-          wsprintfW ( wszTex, L"%s\\%s",
+          _swprintf ( wszTex, L"%s\\%s",
                         SK_D3D11_res_root.c_str (),
                             SK_D3D11_TexHashToName (top_crc32, 0x00).c_str ()
                     );
@@ -3756,7 +3817,7 @@ D3D11Dev_CreateTexture2D_Override (
 
         else if ( SK_D3D11_inject_textures           &&
                   SK_D3D11_IsInjectable_FFX (ffx_crc32) ) {
-          wsprintfW ( wszTex,
+          _swprintf ( wszTex,
                         L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
                           SK_D3D11_res_root.c_str (),
                             ffx_crc32 );
@@ -3765,7 +3826,7 @@ D3D11Dev_CreateTexture2D_Override (
         else if ( /*config.textures.d3d11.precise_hash &&*/
                   SK_D3D11_inject_textures           &&
                   SK_D3D11_IsInjectable (top_crc32, checksum) ) {
-          wsprintfW ( wszTex,
+          _swprintf ( wszTex,
                         L"%s\\inject\\textures\\%08X_%08X.dds",
                           SK_D3D11_res_root.c_str (),
                             top_crc32, checksum );
@@ -3773,7 +3834,7 @@ D3D11Dev_CreateTexture2D_Override (
 
         else if ( SK_D3D11_inject_textures &&
                   SK_D3D11_IsInjectable (top_crc32, 0x00) ) {
-          wsprintfW ( wszTex,
+          _swprintf ( wszTex,
                         L"%s\\inject\\textures\\%08X.dds",
                           SK_D3D11_res_root.c_str (),
                             top_crc32 );
@@ -3806,7 +3867,7 @@ D3D11Dev_CreateTexture2D_Override (
         load_info.Usage          = pDesc->Usage;
         load_info.Width          = D3DX11_DEFAULT;
 
-        texinject_tid = GetCurrentThreadId ();
+        texinject_thread = true;
 
         if ( SUCCEEDED ( D3DX11CreateTextureFromFileW (
                            This, wszTex,
@@ -3817,7 +3878,7 @@ D3D11Dev_CreateTexture2D_Override (
         {
           LARGE_INTEGER load_end = SK_QueryPerf ();
 
-          texinject_tid = 0;
+          texinject_thread = false;
 
           SK_D3D11_Textures.refTexture2D (
             *ppTexture2D,
@@ -3830,7 +3891,7 @@ D3D11Dev_CreateTexture2D_Override (
           return S_OK;
         }
 
-        texinject_tid = 0;
+        texinject_thread = false;
       }
     }
   }
@@ -3866,7 +3927,7 @@ D3D11Dev_CreateTexture2D_Override (
     }
   }
 
-  cacheable = cacheable &&
+  cacheable &=
     (SK_D3D11_cache_textures || SK_D3D11_IsInjectable (top_crc32, checksum));
 
   if ( SUCCEEDED (ret) && cacheable ) {
@@ -3887,4 +3948,186 @@ WINAPI
 SK_DXGI_SetPreferredAdapter (int override_id)
 {
   SK_DXGI_preferred_adapter = override_id;
+}
+
+
+
+
+
+void
+__stdcall
+SK_D3D11_UpdateRenderStats (IDXGISwapChain* pSwapChain)
+{
+  if (! (pSwapChain && config.render.show))
+    return;
+
+  CComPtr <ID3D11Device> dev = nullptr;
+
+  if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&dev)))) {
+    CComPtr <ID3D11DeviceContext> dev_ctx = nullptr;
+
+    dev->GetImmediateContext (&dev_ctx);
+
+    SK::DXGI::PipelineStatsD3D11& pipeline_stats =
+      SK::DXGI::pipeline_stats_d3d11;
+
+    if (pipeline_stats.query.async != nullptr) {
+      if (pipeline_stats.query.active) {
+        dev_ctx->End (pipeline_stats.query.async);
+        pipeline_stats.query.active = false;
+      } else {
+        HRESULT hr =
+          dev_ctx->GetData ( pipeline_stats.query.async,
+                              &pipeline_stats.last_results,
+                                sizeof D3D11_QUERY_DATA_PIPELINE_STATISTICS,
+                                  0x0 );
+        if (hr == S_OK) {
+          pipeline_stats.query.async->Release ();
+          pipeline_stats.query.async = nullptr;
+        }
+      }
+    }
+
+    else {
+      D3D11_QUERY_DESC query_desc {
+        D3D11_QUERY_PIPELINE_STATISTICS, 0x00
+      };
+
+      if (SUCCEEDED (dev->CreateQuery (&query_desc, &pipeline_stats.query.async))) {
+        dev_ctx->Begin (pipeline_stats.query.async);
+        pipeline_stats.query.active = true;
+      }
+    }
+  }
+}
+
+std::wstring
+SK_CountToString (uint64_t count)
+{
+  wchar_t str [64];
+
+  unsigned int unit = 0;
+
+  if      (count > 1000000000UL) unit = 1000000000UL;
+  else if (count > 1000000)      unit = 1000000UL;
+  else if (count > 1000)         unit = 1000UL;
+  else                           unit = 1UL;
+
+  switch (unit)
+  {
+    case 1000000000UL:
+      _swprintf (str, L"%6.2f Billion ", (float)count / (float)unit);
+      break;
+    case 1000000UL:
+      _swprintf (str, L"%6.2f Million ", (float)count / (float)unit);
+      break;
+    case 1000UL:
+      _swprintf (str, L"%6.2f Thousand", (float)count / (float)unit);
+      break;
+    case 1UL:
+    default:
+      _swprintf (str, L"%15llu", count);
+      break;
+  }
+
+  return str;
+}
+
+std::wstring
+SK::DXGI::getPipelineStatsDesc (void)
+{
+  wchar_t wszDesc [1024];
+
+  D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
+    pipeline_stats_d3d11.last_results;
+
+  //
+  // VERTEX SHADING
+  //
+  if (stats.VSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"  VERTEX : %s   (%s Verts ==> %s Triangles)\n",
+                    SK_CountToString (stats.VSInvocations).c_str (),
+                      SK_CountToString (stats.IAVertices).c_str (),
+                        SK_CountToString (stats.IAPrimitives).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"  VERTEX : <Unused>\n" );
+  }
+
+  //
+  // GEOMETRY SHADING
+  //
+  if (stats.GSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  GEOM   : %s   (%s Prims)\n",
+                    wszDesc,
+                      SK_CountToString (stats.GSInvocations).c_str (),
+                        SK_CountToString (stats.GSPrimitives).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  GEOM   : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // TESSELLATION
+  //
+  if (stats.HSInvocations > 0 || stats.DSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  TESS   : %s Hull ==> %s Domain\n",
+                    wszDesc,
+                      SK_CountToString (stats.HSInvocations).c_str (),
+                        SK_CountToString (stats.DSInvocations).c_str () ) ;
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  TESS   : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // RASTERIZATION
+  //
+  if (stats.CInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
+                    wszDesc, 100.0f *
+                        ( (float)stats.CPrimitives /
+                          (float)stats.CInvocations ),
+                      SK_CountToString (stats.CInvocations).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  RASTER : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // PIXEL SHADING
+  //
+  if (stats.PSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  PIXEL  : %s   (%s Triangles OUT)\n",
+                    wszDesc,
+                      SK_CountToString (stats.PSInvocations).c_str (),
+                        SK_CountToString (stats.CPrimitives).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  PIXEL  : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // COMPUTE
+  //
+  if (stats.CSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  COMPUTE: %s\n",
+                    wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  COMPUTE: <Unused>\n",
+                    wszDesc );
+  }
+
+  return wszDesc;
 }

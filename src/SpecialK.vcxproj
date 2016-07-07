@@ -353,7 +353,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -369,8 +369,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>C:\Program Files (x86)\Steam\SteamApps\common\Disgaea PC\OpenGL32.dll</OutputFile>
       <ModuleDefinitionFile>d3d9.def</ModuleDefinitionFile>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -662,6 +662,7 @@
     <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="adl.cpp" />
     <ClCompile Include="diagnostics\crash_handler.cpp" />
+    <ClCompile Include="plugin_tw3.cpp" />
     <ClCompile Include="SpecialK.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="config.cpp" />

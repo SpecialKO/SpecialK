@@ -282,6 +282,8 @@ public:
     }
 };
 
+#include <string>
+
 namespace SK
 {
   namespace D3D9
@@ -290,6 +292,17 @@ namespace SK
     bool Startup  (void);
     bool Shutdown (void);
 
+    std::wstring getPipelineStatsDesc (void);
+
+    struct PipelineStatsD3D9 {
+      struct StatQueryD3D9 {
+        IDirect3DQuery9* object = nullptr;
+        bool             active = false;
+      } query;
+
+      D3DDEVINFO_D3D9PIPELINETIMINGS 
+                 last_results;
+    } extern pipeline_stats_d3d9;
   }
 }
 

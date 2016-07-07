@@ -34,6 +34,9 @@
 sk_logger_t steam_log;
 HANDLE       hSteamHeap = NULL;
 
+// Some games (e.g. Fallout 4) require special treatment
+extern std::wstring host_app;
+
 static bool init = false;
 
 // We're not going to use DLL Import - we will load these function pointers
@@ -84,7 +87,7 @@ S_API SteamAPI_GetHSteamPipe_t      SteamAPI_GetHSteamPipe      = nullptr;
 
 S_API SteamClient_t                 SteamClient                 = nullptr;
 
-bool S_CALLTYPE SteamAPI_Init_XXX (void);
+bool S_CALLTYPE SK_SteamAPI_Init (void);
 
 
 S_API SteamAPI_RegisterCallback_t   SteamAPI_RegisterCallback_Original   = nullptr;
@@ -97,7 +100,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
   EnterCriticalSection (&callback_cs);
 
-  SteamAPI_Init_XXX ();
+//  SK_SteamAPI_Init ();
 
   switch (iCallback)
   {
@@ -138,7 +141,7 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 {
   EnterCriticalSection (&callback_cs);
 
-  SteamAPI_Init_XXX ();
+//  SK_SteamAPI_Init ();
 
   int iCallback = pCallback->GetICallback ();
 
@@ -184,10 +187,9 @@ void HookSteam (void)
 {
   static bool init = false;
   if (! init) {
-    steam_log.init ("logs/steam_api.log", "w");
-    steam_log.silent = config.steam.silent;
-    InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
     init = true;
+  } else {
+    return;
   }
 
   if (config.steam.silent)
@@ -211,11 +213,6 @@ void HookSteam (void)
                      (LPVOID *)&SteamAPI_UnregisterCallback_Original,
                      (LPVOID *)&SteamAPI_UnregisterCallback);
   SK_EnableHook (SteamAPI_UnregisterCallback);
-  SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_Init",
-                     SteamAPI_Init_Detour,
-                     (LPVOID *)&SteamAPI_Init_Original,
-                     (LPVOID *)&SteamAPI_Init);
-  SK_EnableHook (SteamAPI_Init);
 }
 
 
@@ -575,7 +572,7 @@ public:
       steam_log.LogEx (false,
                               L"  + Human Readable Name...: %hs\n",
                          achievement.name_);
-      if (strlen (achievement.desc_))
+      if (achievement.desc_ != nullptr && strlen (achievement.desc_))
         steam_log.LogEx (false,
                                 L"  *- Detailed Description.: %hs\n",
                           achievement.desc_);
@@ -614,7 +611,8 @@ public:
     if (pParam->m_nGameID != SK::SteamAPI::AppID ())
       return;
 
-    log_all_achievements ();
+    if (host_app != L"Fallout4.exe")
+      log_all_achievements ();
   }
 
   STEAM_CALLBACK ( SK_Steam_AchievementManager,
@@ -692,7 +690,7 @@ SK_UnlockSteamAchievement (int idx)
   // * Lazy loading steam_api*.dll is supported though usually doesn't work.
   //
   if (! init)
-    SK::SteamAPI::Init (false);
+    SK::SteamAPI::Init (true);
 
   steam_log.LogEx (true, L" >> Attempting to Unlock Achievement: %i... ",
     idx );
@@ -882,6 +880,35 @@ SK::SteamAPI::Init (bool pre_load)
   static int    init_tries = 0;
   static time_t last_try   = 0;
 
+  if (init_tries++ == 0) {
+    steam_log.init ("logs/steam_api.log", "w");
+    steam_log.silent = config.steam.silent;
+    InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
+  }
+
+  if (SteamAPI_Init == nullptr) {
+#ifndef _WIN64
+    const wchar_t* wszSteamDLLName = L"steam_api.dll";
+#else
+    const wchar_t* wszSteamDLLName = L"steam_api64.dll";
+#endif
+
+    if (pre_load)
+      LoadLibrary (wszSteamDLLName);
+
+    SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_Init",
+                       SteamAPI_Init_Detour,
+                       (LPVOID *)&SteamAPI_Init_Original,
+                       (LPVOID *)&SteamAPI_Init);
+    SK_EnableHook (SteamAPI_Init);
+
+    HookSteam ();
+  }
+
+  else if ((! init) && (pre_load)) {
+    init = SK_SteamAPI_Init ();
+  }
+
   if (init)
     return;
 
@@ -920,7 +947,7 @@ SK::SteamAPI::AppID (void)
   ISteamUtils* utils = steam_ctx.Utils ();
 
   if (utils != nullptr) {
-    uint32_t id = utils->GetAppID ();
+    static uint32_t id = utils->GetAppID ();
 
     // If no AppID was manually set, let's assign one now.
     if (config.steam.appid == 0)
@@ -991,23 +1018,21 @@ SteamAPI_Init_Detour (void)
   bool ret = SteamAPI_Init_Original ();
 
   if (ret == true && (! steam_log.silent))
-    SteamAPI_Init_XXX ();
+    SK_SteamAPI_Init ();
 
   return ret;
 }
 
 bool
 S_CALLTYPE
-SteamAPI_Init_XXX (void)
+SK_SteamAPI_Init (void)
 {
   int init_tries = 1;
-
-  static bool init = false;
 
   if (init)
     return true;
 
-  bool ret = true;
+  bool ret = false;
 
 #ifdef _WIN64
   const wchar_t* steam_dll_str    = L"steam_api64.dll";
@@ -1018,18 +1043,12 @@ SteamAPI_Init_XXX (void)
   HMODULE hSteamAPI = nullptr;
   bool    bImported = false;
 
-  if (true) {//tpre_load) {
-    if (init_tries == 1) {
-      steam_log.Log (L" @ %s was already loaded...\n", steam_dll_str);
-    }
-
-    hSteamAPI = GetModuleHandle (steam_dll_str);
-  }
-  else {
-    hSteamAPI = LoadLibrary (steam_dll_str);
+  if (init_tries == 1) {
+    steam_log.Log (L" @ %s was already loaded...\n", steam_dll_str);
   }
 
-  bImported = SK_Load_SteamAPI_Imports (hSteamAPI, /*pre_load*/true);
+  hSteamAPI = GetModuleHandle          (steam_dll_str);
+  bImported = SK_Load_SteamAPI_Imports (hSteamAPI, false);//true);
 
   if (! bImported) {
     //init = false;
@@ -1040,32 +1059,35 @@ SteamAPI_Init_XXX (void)
 
   ISteamUserStats* stats = steam_ctx.UserStats ();
 
-  if (stats)
+  if (stats) {
     stats->RequestCurrentStats ();
+
+    steam_log.Log (L" Creating Achievement Manager...");
+
+    // Don't report our own callbacks!
+    SK_DisableHook (SteamAPI_RegisterCallback);
+    {
+      steam_achievements = new SK_Steam_AchievementManager (
+          config.steam.achievement_sound.c_str ()
+        );
+    }
+    SK_EnableHook (SteamAPI_RegisterCallback);
+
+    steam_log.LogEx (false, L"\n");
+
+    // Phew, finally!
+    steam_log.Log (L"--- Initialization Finished (%d tries) ---", init_tries);
+
+    init = true;
+    ret  = true;
+  }
+
   else
   // Close, but no - we still have not initialized this monster.
   {
-    //init = false;
-    //return false;
+    init = false;
+    ret  = false;
   }
-
-  steam_log.Log (L" Creating Achievement Manager...");
-
-  // Don't report our own callbacks!
-  SK_DisableHook (SteamAPI_RegisterCallback);
-  {
-    steam_achievements = new SK_Steam_AchievementManager (
-        config.steam.achievement_sound.c_str ()
-      );
-  }
-  SK_EnableHook (SteamAPI_RegisterCallback);
-
-  steam_log.LogEx (false, L"\n");
-
-  // Phew, finally!
-  steam_log.Log (L"--- Initialization Finished (%d tries) ---", init_tries);
-
-  init = true;
 
   return ret;
 }

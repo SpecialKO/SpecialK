@@ -278,6 +278,9 @@
     <ClCompile Include="adl.cpp">
       <Filter>Source Files\DirectXTex</Filter>
     </ClCompile>
+    <ClCompile Include="plugin_tw3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="d3d9.def">

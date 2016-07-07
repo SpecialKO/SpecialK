@@ -48,6 +48,8 @@
 #include "command.h"
 #include "framerate.h"
 
+#include "steam_api.h"
+
 #include <atlbase.h>
 
 memory_stats_t mem_stats [MAX_GPU_NODES];
@@ -82,7 +84,7 @@ BOOL                     nvapi_init = FALSE;
 int                      gpu_prio;
 uint32_t                 frames_drawn = 0;
 
-HMODULE backend_dll;
+HMODULE                  backend_dll  = 0;
 
 char*   szOSD;
 
@@ -663,8 +665,11 @@ WINAPI BudgetThread (LPVOID user_data)
           mem_stats [i].budget_changes++;
 
           int64_t over_budget =
-            LastBudget -
+            mem_info [buffer].local [i].CurrentUsage -
             mem_info [buffer].local [i].Budget;
+
+            //LastBudget -
+            //mem_info [buffer].local [i].Budget;
 
           extern bool SK_D3D11_need_tex_reset;
 
@@ -809,6 +814,14 @@ osd_pump (LPVOID lpThreadParam)
   while (true) {
     Sleep ((DWORD)(config.osd.pump_interval * 1000.0f));
     SK_EndBufferSwap (S_OK, nullptr);
+
+    static int tries = 0, init = 0;
+    if ((! init) && SK::SteamAPI::AppID () == 0 && tries++ < 1200) {
+      SK::SteamAPI::Init (true);
+
+      if (SK::SteamAPI::AppID () != 0)
+        init = 1;
+    }
   }
 
   return 0;
@@ -1040,14 +1053,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   extern void __crc32_init (void);
   __crc32_init ();
 
-  MH_STATUS WINAPI SK_Init_MinHook (void);
-  SK_Init_MinHook ();
-
   SK::Framerate::Init ();
-
-  // Setup hooks before we initialize the library
-  extern void HookSteam (void);
-  HookSteam ();
 
   // Hard-code the AppID for ToZ
   //if (! lstrcmpW (pwszShortName, L"Tales of Zestiria.exe"))
@@ -1062,23 +1068,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
   SK_LoadEarlyImports64 ();
 #else
   SK_LoadEarlyImports32 ();
-#endif
-
-#ifdef STEAM_EARLY
-  // Start Steam EARLY, so that it can hook into everything at an opportune
-  //   time.
-  if (SK::SteamAPI::AppID () == 0)
-  {
-    // Module was already loaded... yay!
-#ifdef _WIN64
-    if (GetModuleHandle (L"steam_api64.dll"))
-#else
-    if (GetModuleHandle (L"steam_api.dll"))
-#endif
-      SK::SteamAPI::Init (true);
-    else
-      SK::SteamAPI::Init (false);
-  }
 #endif
 
   if (config.system.silent) {
@@ -1275,73 +1264,7 @@ WINAPI DllThread (LPVOID user)
   return 0;
 }
 
-
-typedef DECLSPEC_IMPORT HMODULE (WINAPI *LoadLibraryA_t)(LPCSTR  lpFileName);
-typedef DECLSPEC_IMPORT HMODULE (WINAPI *LoadLibraryW_t)(LPCWSTR lpFileName);
-
-LoadLibraryA_t LoadLibraryA_Original = nullptr;
-LoadLibraryW_t LoadLibraryW_Original = nullptr;
-
 extern HMODULE hModSelf;
-
-HMODULE
-WINAPI
-LoadLibraryA_Detour (LPCSTR lpFileName)
-{
-  if (lpFileName == nullptr)
-    return NULL;
-
-  if (strstr (lpFileName, "GameOverlayRenderer")) {
-    //dll_log.Log (L" *** Delaying Steam Overlay for 15 seconds!");
-    //Sleep (15000UL);
-  }
-  else {
-    if (dll_role == D3D9 && (! stricmp (lpFileName, "d3d9.dll")))
-      return hModSelf;
-    if (dll_role == DXGI && (! stricmp (lpFileName, "dxgi.dll")))
-      return hModSelf;
-    //dll_log.Log (L" $$$ Loading Library: %hs", lpFileName);
-  }
-
-  HMODULE hMod = LoadLibraryA_Original (lpFileName);
-
-  if (strstr (lpFileName, "steam_api") ||
-      strstr (lpFileName, "SteamworksNative")) {
-    //SK::SteamAPI::Init (false);
-  }
-
-  return hMod;
-}
-
-HMODULE
-WINAPI
-LoadLibraryW_Detour (LPCWSTR lpFileName)
-{
-  if (lpFileName == nullptr)
-    return NULL;
-
-  if (wcsstr (lpFileName, L"GameOverlayRenderer")) {
-    //dll_log.Log (L" *** Delaying Steam Overlay for 15 seconds!");
-    //Sleep (15000UL);
-  }
-  else {
-    if (dll_role == D3D9 && (! wcsicmp (lpFileName, L"d3d9.dll")))
-      return hModSelf;
-    if (dll_role == DXGI && (! wcsicmp (lpFileName, L"dxgi.dll")))
-      return hModSelf;
-    //dll_log.Log (L" $$$ Loading Library: %s", lpFileName);
-  }
-
-  HMODULE hMod = LoadLibraryW_Original (lpFileName);
-
-  if (wcsstr (lpFileName, L"steam_api") ||
-      wcsstr (lpFileName, L"SteamworksNative")) {
-    //SK::SteamAPI::Init (false);
-  }
-
-  return hMod;
-}
-
 
 MH_STATUS
 WINAPI
@@ -1500,26 +1423,6 @@ SK_Init_MinHook (void)
                     MH_StatusToString (status) );
   }
 
-#if 0
-  //
-  // Hook LoadLibrary so that we can watch for things like steam_api*.dll
-  //
-  SK_CreateDLLHook ( L"kernel32.dll",
-                       "LoadLibraryA",
-                         LoadLibraryA_Detour,
-                           (LPVOID *)&LoadLibraryA_Original );
-
-  //SK_EnableHook (LoadLibraryA_Original);
-
-  SK_CreateDLLHook ( L"kernel32.dll",
-                       "LoadLibraryW",
-                         LoadLibraryW_Detour,
-                           (LPVOID *)&LoadLibraryW_Original );
-
-  //SK_EnableHook (LoadLibraryW_Original);
-  SK_EnableHook (MH_ALL_HOOKS);
-#endif
-
   return status;
 }
 
@@ -1547,6 +1450,18 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! dll_heap)
     return false;
+
+  // Do this from the startup thread
+  SK_Init_MinHook ();
+
+  // SteamAPI DLL was already loaded... yay!
+#ifdef _WIN64
+  if (GetModuleHandle (L"steam_api64.dll"))
+#else
+  if (GetModuleHandle (L"steam_api.dll"))
+#endif
+    SK::SteamAPI::Init (false);
+
 
   InitializeCriticalSectionAndSpinCount (&budget_mutex,  4000);
   InitializeCriticalSectionAndSpinCount (&init_mutex,    50000);
@@ -1796,34 +1711,23 @@ SK_BeginBufferSwap (void)
 {
   static int import_tries = 0;
 
+  if (import_tries++ == 0) {
   // Load user-defined DLLs (Late)
 #ifdef _WIN64
-  SK_LoadLateImports64 ();
+    SK_LoadLateImports64 ();
 #else
-  SK_LoadLateImports32 ();
+    SK_LoadLateImports32 ();
 #endif
-
-  if (import_tries++ < 5 && SK::SteamAPI::AppID () == 0)
-  {
-    // Module was already loaded... yay!
-#ifdef _WIN64
-    if (GetModuleHandle (L"steam_api64.dll"))
-#else
-    //if (GetModuleHandle (L"msvc120.dll"))
-    //if (GetModuleHandle (L"steam_api.dll"))
-    if (true)
-#endif
-    {
-      SK::SteamAPI::Init (true);
-    } else {
-      //
-      // YIKES, Steam's still not loaded?!
-      //
-      //   ** This probably is not a SteamWorks game...
-      //
-      SK::SteamAPI::Init (false);
-    }
   }
+
+  static int tries = 0, init = 0;
+  if ((! init) && SK::SteamAPI::AppID () == 0 && tries++ < 1200) {
+    SK::SteamAPI::Init (true);
+
+    if (SK::SteamAPI::AppID () != 0)
+      init = 1;
+  }
+
 
   extern void SK_DrawConsole (void);
   SK_DrawConsole ();
@@ -2221,6 +2125,19 @@ DoKeyboard (void)
   } else {
     toggle_osd = false;
   }
+
+  static bool toggle_render = false;
+  if (HIWORD (GetAsyncKeyState (config.render.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState (config.render.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState (config.render.keys.toggle [2])))
+  {
+    if (! toggle_render)
+      config.render.show = (! config.render.show);
+    toggle_render = true;
+  } else {
+    toggle_render = false;
+  }
+
 }
 #endif
 

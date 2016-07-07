@@ -30,9 +30,9 @@
 #include "core.h"
 
 // Trivial in OpenGL
-#define WaitForInit() 
+//#define WaitForInit() 
 
-//extern void WaitForInit (void);
+extern void WaitForInit (void);
 extern bool SK_InitCOM (void);
 
 extern "C"
@@ -115,8 +115,11 @@ opengl_init_callback (finish_pfn finish)
 {
   // COM probably isn't initialized in the calling thread in a GL application
   //   like it would be in D3D...
-  HANDLE hThread =
-    CreateThread (nullptr, 0, opengl_init_thread, (LPVOID)finish, 0x00, nullptr);
+
+  //HANDLE hThread =
+    //CreateThread (nullptr, 0, opengl_init_thread, (LPVOID)finish, 0x00, nullptr);
+
+  opengl_init_thread ((LPVOID)finish);
 }
 
 }
@@ -176,12 +179,15 @@ extern "C"
   __declspec (nothrow)                                                    \
   _Return WINAPI                                                          \
   _Name _Proto {                                                          \
-    WaitForInit ();                                                       \
-                                                                          \
     typedef _Return (WINAPI *passthrough_t) _Proto;                       \
     static passthrough_t _default_impl = nullptr;                         \
                                                                           \
     if (_default_impl == nullptr) {                                       \
+      WaitForInit ();                                                     \
+                                                                          \
+      while (! backend_dll)                                               \
+        WaitForInit ();                                                   \
+                                                                          \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_t)GetProcAddress (backend_dll, szName);\
                                                                           \
@@ -200,12 +206,15 @@ extern "C"
   __declspec (nothrow)                                                    \
   void WINAPI                                                             \
   _Name _Proto {                                                          \
-    WaitForInit ();                                                       \
-                                                                          \
     typedef void (WINAPI *passthrough_t) _Proto;                          \
     static passthrough_t _default_impl = nullptr;                         \
                                                                           \
     if (_default_impl == nullptr) {                                       \
+      WaitForInit ();                                                     \
+                                                                          \
+      while (! backend_dll)                                               \
+        WaitForInit ();                                                   \
+                                                                          \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_t)GetProcAddress (backend_dll, szName);\
                                                                           \

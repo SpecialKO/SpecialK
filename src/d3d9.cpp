@@ -30,7 +30,16 @@
 #include <cstdlib>
 #include <string>
 
+#include <atlbase.h>
+
 #include "log.h"
+
+SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
+
+extern "C++" void
+__stdcall
+SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pDevice = nullptr);
+
 
 typedef IDirect3D9*
   (STDMETHODCALLTYPE *Direct3DCreate9PROC)(  UINT           SDKVersion);
@@ -297,6 +306,8 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 {
   g_pD3D9Dev = This;
 
+  //SK_D3D9_UpdateRenderStats (This);
+
   SK_BeginBufferSwap ();
 
   HRESULT hr = D3D9PresentEx_Original (This,
@@ -331,6 +342,8 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                                              D3DPRESENT_FORCEIMMEDIATE | D3DPRESENT_DONOTWAIT );
 
   g_pD3D9Dev = This;
+
+  SK_D3D9_UpdateRenderStats (nullptr, This);
 
   SK_BeginBufferSwap ();
 
@@ -527,6 +540,8 @@ CreateAdditionalSwapChain_t D3D9CreateAdditionalSwapChain_Original = nullptr;
                           _In_ const RGNDATA          *pDirtyRegion,
                           _In_       DWORD             dwFlags)
   {
+    SK_D3D9_UpdateRenderStats (This);
+
     SK_BeginBufferSwap ();
 
     HRESULT hr = D3D9PresentSwap_Original (This,
@@ -1818,4 +1833,99 @@ Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
   }
 
   return hr;
+}
+
+void
+__stdcall
+SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pDevice)
+{
+  if (! ((pDevice || pSwapChain) && config.render.show))
+    return;
+
+  SK::D3D9::PipelineStatsD3D9& pipeline_stats =
+    SK::D3D9::pipeline_stats_d3d9;
+
+  CComPtr <IDirect3DDevice9> dev = pDevice;
+
+  if (pDevice != nullptr || (pDevice == nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev)))) {
+    if (pipeline_stats.query.object != nullptr) {
+      if (pipeline_stats.query.active) {
+        pipeline_stats.query.object->Issue (D3DISSUE_END);
+        pipeline_stats.query.active = false;
+      } else {
+        HRESULT hr =
+          pipeline_stats.query.object->GetData (
+                              &pipeline_stats.last_results,
+                                sizeof D3DDEVINFO_D3D9PIPELINETIMINGS,
+                                  D3DGETDATA_FLUSH );
+        if (hr == S_OK) {
+          pipeline_stats.query.object->Release ();
+          pipeline_stats.query.object = nullptr;
+        }
+      }
+    }
+
+    else {
+      if (SUCCEEDED (dev->CreateQuery (D3DQUERYTYPE_PIPELINETIMINGS, &pipeline_stats.query.object))) {
+        pipeline_stats.query.object->Issue (D3DISSUE_BEGIN);
+        pipeline_stats.query.active = true;
+      }
+    }
+  }
+}
+
+std::wstring
+SK::D3D9::getPipelineStatsDesc (void)
+{
+  wchar_t wszDesc [1024];
+
+  D3DDEVINFO_D3D9PIPELINETIMINGS& stats =
+    pipeline_stats_d3d9.last_results;
+
+  //
+  // VERTEX SHADING
+  //
+  if (stats.VertexProcessingTimePercent > 0.0f) {
+    _swprintf ( wszDesc,
+                  L"  VERTEX : %5.2f%%\n",
+                    stats.VertexProcessingTimePercent );
+  } else {
+    _swprintf ( wszDesc,
+                  L"  VERTEX : <Unused>\n" );
+  }
+
+  //
+  // PIXEL SHADING
+  //
+  if (stats.PixelProcessingTimePercent > 0.0f) {
+    _swprintf ( wszDesc,
+                  L"%s  PIXEL  : %5.2f%%\n",
+                    wszDesc,
+                      stats.PixelProcessingTimePercent );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  PIXEL  : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // OTHER
+  //
+  if (stats.OtherGPUProcessingTimePercent > 0.0f) {
+    _swprintf ( wszDesc,
+                  L"%s  OTHER  : %5.2f%%\n",
+                    wszDesc, stats.OtherGPUProcessingTimePercent);
+  }
+
+  //
+  // IDLE
+  //
+  if (stats.GPUIdleTimePercent > 0.0f) {
+    _swprintf ( wszDesc,
+                  L"%s  IDLE   : %5.2f%%\n",
+                    wszDesc,
+                      stats.GPUIdleTimePercent );
+  }
+
+  return wszDesc;
 }

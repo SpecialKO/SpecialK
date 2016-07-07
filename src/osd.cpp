@@ -42,7 +42,12 @@
 
 #include "log.h"
 
+#include "dxgi_backend.h"
+#include "d3d9_backend.h"
+
 #define OSD_PRINTF   if (config.osd.show)     { pszOSD += sprintf (pszOSD,
+#define OSD_R_PRINTF if (config.osd.show &&\
+                         config.render.show)  { pszOSD += sprintf (pszOSD,
 #define OSD_M_PRINTF if (config.osd.show &&\
                          config.mem.show)     { pszOSD += sprintf (pszOSD,
 #define OSD_B_PRINTF if (config.osd.show &&\
@@ -207,6 +212,29 @@ SK_GetSharedMemory (void)
 #include "log.h"
 
 #include <d3d9.h>
+
+bool
+SK_IsD3D9 (DWORD dwFlags = 0x00)
+{
+  static bool d3d9 = false;
+
+  if ((dwFlags != 0x00) && ((dwFlags & APPFLAG_D3D9) || 
+                            (dwFlags & APPFLAG_D3D9EX)))
+    d3d9 = true;
+
+  return d3d9;
+}
+
+bool
+SK_IsD3D11 (DWORD dwFlags = 0x00)
+{
+  static bool d3d11 = false;
+
+  if ((dwFlags != 0x00) && (dwFlags & APPFLAG_D3D11))
+    d3d11 = true;
+
+  return d3d11;
+}
 
 std::wstring
 SK_GetAPINameFromOSDFlags (DWORD dwFlags)
@@ -557,7 +585,7 @@ SK_DrawOSD (void)
     }
 
     else if (isFallout4) {
-      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.0   %ws\n\n",
+      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.1   %ws\n\n",
                  time
       OSD_END
     } else if (isDivinityOrigSin) {
@@ -629,6 +657,8 @@ SK_DrawOSD (void)
               last_fps_time = timeGetTime ();
             }
 
+                                    SK_IsD3D9                 (pApp->dwFlags);
+                                    SK_IsD3D11                (pApp->dwFlags);
             std::wstring api_name = SK_GetAPINameFromOSDFlags (pApp->dwFlags);
 
             if (mean != INFINITY) {
@@ -991,6 +1021,18 @@ SK_DrawOSD (void)
   }
 
   //OSD_G_PRINTF "\n" OSD_END
+
+  if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 ())) {
+    if (SK_IsD3D11 ()) {
+      OSD_R_PRINTF "\n%ws",
+        SK::DXGI::getPipelineStatsDesc ().c_str ()
+      OSD_END
+    } else {
+      OSD_R_PRINTF "\n%ws",
+        SK::D3D9::getPipelineStatsDesc ().c_str ()
+      OSD_END
+    }
+  }
 
   OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
                  "User: %#3llu%%   Interrupt: %#3llu%%)\n",

@@ -185,6 +185,12 @@ struct sk_config_t
       bool    force_d3d9ex     = false;
       int     hook_type        = 0;
     } d3d9;
+
+    // OSD Render Stats (D3D11 Only Right Now)
+    bool      show             = false;
+    struct {
+      BYTE toggle [4]      = { VK_CONTROL, VK_SHIFT, 'R', 0 };
+    } keys;
   } render;
 
   struct {

@@ -75,6 +75,18 @@ void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
+#if 0
+  extern DWORD dwRenderThread;
+  if ( GetCurrentThreadId () == dwRenderThread ) {
+    if (dwMilliseconds < 10) {
+      YieldProcessor ();
+      return;
+    }
+  }
+#endif
+
+  //dll_log.Log (L"Sleep (%lu) - tid: 0x%X", dwMilliseconds, GetCurrentThreadId ());
+
   //last_sleep = dwMilliseconds;
 
   //if (config.framerate.yield_processor && dwMilliseconds == 0)

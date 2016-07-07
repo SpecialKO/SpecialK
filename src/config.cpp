@@ -28,9 +28,9 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.3.1";
+std::wstring SK_VER_STR = L"0.3.2";
 
-static sk::INI::File*  dll_ini = nullptr;
+sk::INI::File*  dll_ini = nullptr;
 
 sk_config_t config;
 

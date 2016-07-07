@@ -22,14 +22,28 @@
 #ifndef __SK__DXGI_BACKEND_H__
 #define __SK__DXGI_BACKEND_H__
 
+#include <string>
+
+#include <d3d11.h>
+
 namespace SK
 {
   namespace DXGI
   {
-
     bool Startup  (void);
     bool Shutdown (void);
 
+    std::wstring getPipelineStatsDesc (void);
+
+    struct PipelineStatsD3D11 {
+      struct StatQueryD3D11 {
+        ID3D11Query* async  = nullptr;
+        bool         active = false;
+      } query;
+
+      D3D11_QUERY_DATA_PIPELINE_STATISTICS
+                 last_results;
+    } extern pipeline_stats_d3d11;
   }
 }
 
