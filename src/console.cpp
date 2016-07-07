@@ -231,7 +231,7 @@ struct sk_window_s {
   WNDPROC WndProc_Original = nullptr;
 } game_window;
 
-  __declspec (noinline)
+__declspec (noinline)
 LRESULT
 CALLBACK
 SK_DetourWindowProc ( _In_  HWND   hWnd,
