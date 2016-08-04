@@ -360,67 +360,15 @@ SK_Console::MessagePump (LPVOID hook_ptr)
     Sleep (1);
   }
 
-#if 0
-  while (! (pHooks->mouse = SetWindowsHookEx ( WH_MOUSE,
-              MouseProc,
-                hModSelf,
-                  dwThreadId ))) {
-    _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
-
-    dll_log.Log ( L"  @ SetWindowsHookEx failed: 0x%04X (%s)",
-      err.WCode (), err.ErrorMessage () );
-
-    ++hits;
-
-    if (hits >= 5) {
-      dll_log.Log ( L"  * Failed to install mouse hook after %lu tries... "
-        L"bailing out!",
-        hits );
-      return 0;
-    }
-
-    Sleep (1);
-  }
-#endif
-
   dll_log.Log ( L"[CmdConsole]  * Installed keyboard hook for command console... "
                 L"%lu %s (%lu ms!)",
                   hits,
                     hits > 1 ? L"tries" : L"try",
                       timeGetTime () - dwTime );
 
-  //193 - 199
-
-  // Pump the sucker
-  while (true) {
-    Sleep (10);
-
-#if 0
-    if (g_pSwapChainDXGI != nullptr) {
-      BOOL bFullscreen;
-
-      IDXGIOutput* pOut = nullptr;
-      if (FAILED (g_pSwapChainDXGI->GetFullscreenState (&bFullscreen, &pOut)))
-        bFullscreen = FALSE;
-
-      if (pOut != nullptr)
-        pOut->Release ();
-
-      if (GetForegroundWindow () != hWndRender ||
-          GetActiveWindow     () != hWndRender) {
-        if (bFullscreen) {
-          g_pSwapChainDXGI->SetFullscreenState (FALSE, pOut);
-        }
-      } else {
-        if (! bFullscreen) {
-          ShowWindow (hWndRender, SW_MINIMIZE);
-          ShowWindow (hWndRender, SW_RESTORE);
-          g_pSwapChainDXGI->SetFullscreenState (TRUE, pOut);
-        }
-      }
-    }
-#endif
-  }
+  // This may look strange, but this thread is a dummy that must be kept alive
+  //   in order for the input hook to work.
+  Sleep (INFINITE);
 
   return 0;
 }
@@ -579,6 +527,9 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
 void
 SK_DrawConsole (void)
 {
+  if (bNoConsole)
+    return;
+
   // Drop the first frame so that the console shows up below
   //   the main OSD.
   if (frames_drawn > 1) {

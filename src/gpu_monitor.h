@@ -60,10 +60,10 @@ struct gpu_sensors_t {
     } volts_mV;
 
     struct {
-      int32_t gpu;
-      //int32_t ram;
-      //int32_t psu;
-      //int32_t pcb;
+      int32_t gpu = 0;
+      int32_t ram = 0;
+      int32_t psu = 0;
+      int32_t pcb = 0;
     } temps_c;
 
     struct {

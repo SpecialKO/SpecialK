@@ -144,6 +144,9 @@
     <ClInclude Include="..\depends\DirectXTex\scoped.h">
       <Filter>Header Files\DirectXTex</Filter>
     </ClInclude>
+    <ClInclude Include="diagnostics\debug_utils.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -280,6 +283,9 @@
     </ClCompile>
     <ClCompile Include="plugin_tw3.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="diagnostics\debug_utils.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

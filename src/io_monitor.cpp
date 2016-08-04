@@ -143,7 +143,7 @@ namespace COM {
 
   struct {
     bool init = false;
-  } __declspec (thread) local;
+  } /*__declspec (thread)*/ local;
 }
 
 bool

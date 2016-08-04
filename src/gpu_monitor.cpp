@@ -148,13 +148,13 @@ if (nvapi_init)
 #else
           if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
             gpu_stats.gpus [i].temps_c.gpu = thermal.sensor [j].currentTemp;
+          if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_MEMORY)
+            gpu_stats.gpus [i].temps_c.ram = thermal.sensor [j].currentTemp;
+          if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_POWER_SUPPLY)
+            gpu_stats.gpus [i].temps_c.psu = thermal.sensor [j].currentTemp;
+          if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_BOARD)
+            gpu_stats.gpus [i].temps_c.pcb = thermal.sensor [j].currentTemp;
 #endif
-          //if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_MEMORY)
-            //gpu_stats.gpus [i].temps_c.ram = thermal.sensor [j].currentTemp;
-          //if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_POWER_SUPPLY)
-            //gpu_stats.gpus [i].temps_c.psu = thermal.sensor [j].currentTemp;
-          //if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_BOARD)
-            //gpu_stats.gpus [i].temps_c.pcb = thermal.sensor [j].currentTemp;
         }
       }
 

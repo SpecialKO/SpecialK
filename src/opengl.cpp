@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -34,6 +34,9 @@
 
 extern void WaitForInit (void);
 extern bool SK_InitCOM (void);
+
+void __stdcall
+SK_GL_UpdateRenderStats (void);
 
 extern "C"
 {
@@ -1144,6 +1147,8 @@ SwapBuffers (HDC hDC)
       (SwapBuffers_pfn)GetProcAddress (hModGDI32, "SwapBuffers");
   }
 
+  SK_GL_UpdateRenderStats ();
+
   BOOL status = FALSE;
 
   if (gdi_swap_buffers != nullptr)
@@ -1178,6 +1183,8 @@ wglSwapBuffers (HDC hDC)
     wgl_swap_buffers =
       (wglSwapBuffers_pfn)GetProcAddress (backend_dll, "wglSwapBuffers");
   }
+
+  SK_GL_UpdateRenderStats ();
 
   BOOL status = FALSE;
 
@@ -1218,4 +1225,387 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesA,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
 OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, FLOAT f0, FLOAT f1, int i0, LPGLYPHMETRICSFLOAT pgmf),
                                      (    hDC,       dw0,       dw1,       dw2,       f0,       f1,     i0,                     pgmf));
 
+}
+
+
+
+#define GL_TRUE  TRUE
+#define GL_FALSE FALSE
+
+#define GL_QUERY_RESULT           0x8866
+#define GL_QUERY_RESULT_AVAILABLE 0x8867
+#define GL_QUERY_RESULT_NO_WAIT   0x9194
+
+#define GL_TIMESTAMP              0x8E28
+#define GL_TIME_ELAPSED           0x88BF
+
+typedef int64_t  GLint64;
+typedef uint64_t GLuint64;
+
+typedef GLvoid    (WINAPI *glGenQueries_pfn)   (GLsizei n​,       GLuint *ids​);
+typedef GLvoid    (WINAPI *glDeleteQueries_pfn)(GLsizei n​, const GLuint *ids​);
+
+typedef GLvoid    (WINAPI *glBeginQuery_pfn)       (GLenum target​, GLuint id​);
+typedef GLvoid    (WINAPI *glBeginQueryIndexed_pfn)(GLenum target​, GLuint index​, GLuint id​);
+typedef GLvoid    (WINAPI *glEndQuery_pfn)         (GLenum target​);
+
+typedef GLboolean (WINAPI *glIsQuery_pfn)            (GLuint id​);
+typedef GLvoid    (WINAPI *glQueryCounter_pfn)       (GLuint id, GLenum target);
+typedef GLvoid    (WINAPI *glGetQueryObjectiv_pfn)   (GLuint id, GLenum pname, GLint    *params);
+typedef GLvoid    (WINAPI *glGetQueryObjecti64v_pfn) (GLuint id, GLenum pname, GLint64  *params);
+typedef GLvoid    (WINAPI *glGetQueryObjectui64v_pfn)(GLuint id, GLenum pname, GLuint64 *params);
+
+glGenQueries_pfn          glGenQueries;
+glDeleteQueries_pfn       glDeleteQueries;
+
+glBeginQuery_pfn          glBeginQuery;
+glBeginQueryIndexed_pfn   glBeginQueryIndexed;
+glEndQuery_pfn            glEndQuery;
+
+glIsQuery_pfn             glIsQuery;
+glQueryCounter_pfn        glQueryCounter;
+glGetQueryObjectiv_pfn    glGetQueryObjectiv;
+glGetQueryObjecti64v_pfn  glGetQueryObjecti64v;
+glGetQueryObjectui64v_pfn glGetQueryObjectui64v;
+
+namespace GLPerf
+{
+  bool Init     (void);
+  bool Shutdown (void);
+
+  void StartFrame (void);
+  void EndFrame   (void);
+
+  class PipelineQuery {
+  public:
+    PipelineQuery (const wchar_t* wszName, GLenum target) {
+      name_ = wszName;
+      glGenQueries (1, &query_);
+
+      finished_  = GL_FALSE;
+      ready_     = GL_TRUE;
+
+      target_    = target;
+    }
+
+   ~PipelineQuery (GLvoid) {
+      if (glIsQuery (query_)) {
+        glDeleteQueries (1, &query_);
+        query_ = 0;
+      }
+    }
+
+    std::wstring getName         (GLvoid) {
+      return name_;
+    }
+
+    GLvoid    beginQuery         (GLvoid) {
+      active_   = GL_TRUE;
+      ready_    = GL_FALSE;
+      glBeginQuery (target_, query_);
+      finished_ = GL_FALSE;
+      result_   = 0;
+    }
+    GLvoid    endQuery           (GLvoid) {
+      active_   = GL_FALSE;
+      glEndQuery (query_);
+    }
+
+    GLboolean isFinished         (GLvoid) {
+      GLint finished;
+
+      glGetQueryObjectiv (query_, GL_QUERY_RESULT_AVAILABLE, &finished);
+
+      finished_ = (finished > 0);
+
+      if (finished_)
+        return GL_TRUE;
+
+      return GL_FALSE;
+    }
+    GLboolean isReady            (GLvoid) {
+      return ready_;
+    }
+    GLboolean isActive           (GLvoid) {
+      return active_;
+    }
+
+    // Will return immediately if not ready
+    GLboolean getResulIfFinished (GLuint64* pResult) {
+      if (isFinished ()) {
+        getResult (pResult);
+        return GL_TRUE;
+      }
+
+      return GL_FALSE;
+    }
+
+    GLvoid    getResult          (GLuint64* pResult) { // Will BLOCK
+      glGetQueryObjectui64v (query_, GL_QUERY_RESULT, pResult);
+      ready_ = GL_TRUE;
+
+      result_ = *pResult;
+    }
+
+    GLuint64 getLastResult (void) {
+      return result_;
+    }
+
+  protected:
+    GLboolean    active_;
+    GLboolean    finished_; // Has GL given us the data yet?
+    GLboolean    ready_;    // Has the old value has been retrieved yet?
+
+    GLuint64     result_;   // Cached result
+
+  private:
+    GLuint       query_;    // GL Name of Query Object
+    GLenum       target_;   // Target;
+    std::wstring name_;     // Human-readable name
+  };
+
+  bool HAS_pipeline_query;
+
+  enum {
+    IAVertices    = 0,
+    IAPrimitives  = 1,
+    VSInvocations = 2,
+    GSInvocations = 3,
+    GSPrimitives  = 4,
+    CInvocations  = 5,
+    CPrimitives   = 6,
+    PSInvocations = 7,
+    HSInvocations = 8,
+    DSInvocations = 9,
+    CSInvocations = 10,
+
+    PipelineStateCount
+  };
+
+  PipelineQuery* pipeline_states [PipelineStateCount];
+}
+
+#define GL_VERTICES_SUBMITTED_ARB                          0x82EE
+#define GL_PRIMITIVES_SUBMITTED_ARB                        0x82EF
+#define GL_VERTEX_SHADER_INVOCATIONS_ARB                   0x82F0
+#define GL_TESS_CONTROL_SHADER_PATCHES_ARB                 0x82F1
+#define GL_TESS_EVALUATION_SHADER_INVOCATIONS_ARB          0x82F2
+#define GL_GEOMETRY_SHADER_INVOCATIONS                     0x887F
+#define GL_GEOMETRY_SHADER_PRIMITIVES_EMITTED_ARB          0x82F3
+#define GL_FRAGMENT_SHADER_INVOCATIONS_ARB                 0x82F4
+#define GL_COMPUTE_SHADER_INVOCATIONS_ARB                  0x82F5
+#define GL_CLIPPING_INPUT_PRIMITIVES_ARB                   0x82F6
+#define GL_CLIPPING_OUTPUT_PRIMITIVES_ARB                  0x82F7
+
+bool
+GLPerf::Init (void)
+{
+  glGenQueries =
+    (glGenQueries_pfn)wglGetProcAddress ("glGenQueries");
+
+  glDeleteQueries =
+    (glDeleteQueries_pfn)wglGetProcAddress ("glDeleteQueries");
+
+  glBeginQuery =
+    (glBeginQuery_pfn)wglGetProcAddress ("glBeginQuery");
+
+  glBeginQueryIndexed =
+    (glBeginQueryIndexed_pfn)wglGetProcAddress ("glBeginQueryIndexed");
+
+  glEndQuery =
+    (glEndQuery_pfn)wglGetProcAddress ("glEndQuery");
+
+  glIsQuery =
+    (glIsQuery_pfn)wglGetProcAddress ("glIsQuery");
+
+  glQueryCounter =
+    (glQueryCounter_pfn)wglGetProcAddress ("glQueryCounter");
+
+  glGetQueryObjectiv =
+    (glGetQueryObjectiv_pfn)wglGetProcAddress ("glGetQueryObjectiv");
+
+  glGetQueryObjecti64v =
+    (glGetQueryObjecti64v_pfn)wglGetProcAddress ("glGetQueryObjecti64v");
+
+  glGetQueryObjectui64v =
+    (glGetQueryObjectui64v_pfn)wglGetProcAddress ("glGetQueryObjectui64v");
+
+  HAS_pipeline_query = true;
+
+#if 0
+    glGenQueries && glDeleteQueries && glBeginQuery       && glBeginQueryIndexed  && glEndQuery &&
+    glIsQuery    && glQueryCounter  && glGetQueryObjectiv && glGetQueryObjecti64v && glGetQueryObjectui64v;
+#endif
+
+  if (HAS_pipeline_query) {
+    pipeline_states [ 0] = new PipelineQuery (L"Vertices Submitted",                         GL_VERTICES_SUBMITTED_ARB);
+    pipeline_states [ 1] = new PipelineQuery (L"Primitives Submitted",                       GL_PRIMITIVES_SUBMITTED_ARB);
+    pipeline_states [ 2] = new PipelineQuery (L"Vertex Shader Invocations",                  GL_VERTEX_SHADER_INVOCATIONS_ARB);
+    pipeline_states [ 3] = new PipelineQuery (L"Tessellation Control Shader Patches",        GL_TESS_CONTROL_SHADER_PATCHES_ARB);
+    pipeline_states [ 4] = new PipelineQuery (L"Tessellation Evaluation Shader Invocations", GL_TESS_EVALUATION_SHADER_INVOCATIONS_ARB);
+    pipeline_states [ 5] = new PipelineQuery (L"Geometry Shader Invocations",                GL_GEOMETRY_SHADER_INVOCATIONS);
+    pipeline_states [ 6] = new PipelineQuery (L"Geometry Shader Primitives Emitted",         GL_GEOMETRY_SHADER_PRIMITIVES_EMITTED_ARB);
+    pipeline_states [ 7] = new PipelineQuery (L"Fragment Shader Invocations",                GL_FRAGMENT_SHADER_INVOCATIONS_ARB);
+    pipeline_states [ 8] = new PipelineQuery (L"Compute Shader Invocations",                 GL_COMPUTE_SHADER_INVOCATIONS_ARB);
+    pipeline_states [ 9] = new PipelineQuery (L"Clipping Input Primitives",                  GL_CLIPPING_INPUT_PRIMITIVES_ARB);
+    pipeline_states [10] = new PipelineQuery (L"Clipping Output Primitives",                 GL_CLIPPING_OUTPUT_PRIMITIVES_ARB);
+
+    return true;
+  }
+
+  return false;
+}
+
+#include "config.h"
+
+#include <d3d11.h>
+
+void
+__stdcall
+SK_GL_UpdateRenderStats (void)
+{
+  if (! (config.render.show))
+    return;
+
+  static bool init = false;
+
+  if (! init) {
+    GLPerf::Init ();
+    init = true;
+  }
+
+  //SK::DXGI::PipelineStatsD3D11& pipeline_stats =
+    //SK::DXGI::pipeline_stats_d3d11;
+
+  for (int i = 0; i < 11; i++) {
+    if (GLPerf::pipeline_states [i] != nullptr) {
+      if (GLPerf::pipeline_states [i]->isReady ()) {
+        GLPerf::pipeline_states [i]->beginQuery ();
+      }
+
+      else if (GLPerf::pipeline_states [i]->isActive ()) {
+        GLPerf::pipeline_states [i]->endQuery ();
+      }
+
+      if (! GLPerf::pipeline_states [i]->isActive ()) {
+        GLuint64 result;
+        GLPerf::pipeline_states [i]->getResulIfFinished (&result);
+      }
+    }
+  }
+}
+
+extern std::wstring
+SK_CountToString (uint64_t count);
+
+std::wstring
+SK::OpenGL::getPipelineStatsDesc (void)
+{
+  wchar_t wszDesc [1024];
+
+  D3D11_QUERY_DATA_PIPELINE_STATISTICS stats = { 0 };
+
+  if (GLPerf::HAS_pipeline_query) {
+    stats.IAVertices    = GLPerf::pipeline_states [GLPerf::IAVertices   ]->getLastResult ();
+    stats.IAPrimitives  = GLPerf::pipeline_states [GLPerf::IAPrimitives ]->getLastResult ();
+    stats.VSInvocations = GLPerf::pipeline_states [GLPerf::VSInvocations]->getLastResult ();
+    stats.GSInvocations = GLPerf::pipeline_states [GLPerf::GSInvocations]->getLastResult ();
+    stats.GSPrimitives  = GLPerf::pipeline_states [GLPerf::GSPrimitives ]->getLastResult ();
+    stats.CInvocations  = GLPerf::pipeline_states [GLPerf::CInvocations ]->getLastResult ();
+    stats.CPrimitives   = GLPerf::pipeline_states [GLPerf::CPrimitives  ]->getLastResult ();
+    stats.PSInvocations = GLPerf::pipeline_states [GLPerf::PSInvocations]->getLastResult ();
+    stats.HSInvocations = GLPerf::pipeline_states [GLPerf::HSInvocations]->getLastResult ();
+    stats.DSInvocations = GLPerf::pipeline_states [GLPerf::DSInvocations]->getLastResult ();
+    stats.CSInvocations = GLPerf::pipeline_states [GLPerf::CSInvocations]->getLastResult ();
+  }
+
+  //
+  // VERTEX SHADING
+  //
+  if (stats.VSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"  VERTEX : %s   (%s Verts ==> %s Triangles)\n",
+                    SK_CountToString (stats.VSInvocations).c_str (),
+                      SK_CountToString (stats.IAVertices).c_str (),
+                        SK_CountToString (stats.IAPrimitives).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"  VERTEX : <Unused>\n" );
+  }
+
+  //
+  // GEOMETRY SHADING
+  //
+  if (stats.GSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  GEOM   : %s   (%s Prims)\n",
+                    wszDesc,
+                      SK_CountToString (stats.GSInvocations).c_str (),
+                        SK_CountToString (stats.GSPrimitives).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  GEOM   : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // TESSELLATION
+  //
+  if (stats.HSInvocations > 0 || stats.DSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  TESS   : %s Hull ==> %s Domain\n",
+                    wszDesc,
+                      SK_CountToString (stats.HSInvocations).c_str (),
+                        SK_CountToString (stats.DSInvocations).c_str () ) ;
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  TESS   : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // RASTERIZATION
+  //
+  if (stats.CInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
+                    wszDesc, 100.0f *
+                        ( (float)stats.CPrimitives /
+                          (float)stats.CInvocations ),
+                      SK_CountToString (stats.CInvocations).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  RASTER : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // PIXEL SHADING
+  //
+  if (stats.PSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  PIXEL  : %s   (%s Triangles OUT)\n",
+                    wszDesc,
+                      SK_CountToString (stats.PSInvocations).c_str (),
+                        SK_CountToString (stats.CPrimitives).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  PIXEL  : <Unused>\n",
+                    wszDesc );
+  }
+
+  //
+  // COMPUTE
+  //
+  if (stats.CSInvocations > 0) {
+    _swprintf ( wszDesc,
+                  L"%s  COMPUTE: %s\n",
+                    wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
+  } else {
+    _swprintf ( wszDesc,
+                  L"%s  COMPUTE: <Unused>\n",
+                    wszDesc );
+  }
+
+  return wszDesc;
 }

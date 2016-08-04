@@ -19,6 +19,8 @@
  *
 **/
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "d3d9_backend.h"
 #include "log.h"
 
@@ -33,6 +35,8 @@
 #include <atlbase.h>
 
 #include "log.h"
+
+int swapping = 0;
 
 SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
 
@@ -306,9 +310,10 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 {
   g_pD3D9Dev = This;
 
-  //SK_D3D9_UpdateRenderStats (This);
+  SK_D3D9_UpdateRenderStats (nullptr, This);
 
-  SK_BeginBufferSwap ();
+  if (swapping++ == 0)
+    SK_BeginBufferSwap ();
 
   HRESULT hr = D3D9PresentEx_Original (This,
                                        pSourceRect,
@@ -317,7 +322,7 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
                                        pDirtyRegion,
                                        dwFlags);
 
-  if (! config.osd.pump)
+  if (--swapping == 0 && (! config.osd.pump))
     return SK_EndBufferSwap ( hr,
                                 (IUnknown *)This );
 
@@ -333,19 +338,25 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                  _In_       HWND              hDestWindowOverride,
                  _In_ const RGNDATA          *pDirtyRegion)
 {
-  if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX)
-    return D3D9PresentCallbackEx ( (IDirect3DDevice9Ex *)This,
-                                     pSourceRect,
-                                       pDestRect,
-                                         hDestWindowOverride,
-                                           pDirtyRegion,
-                                             D3DPRESENT_FORCEIMMEDIATE | D3DPRESENT_DONOTWAIT );
+  if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX) {
+    HRESULT hr =
+      D3D9PresentCallbackEx ( (IDirect3DDevice9Ex *)This,
+                                pSourceRect,
+                                  pDestRect,
+                                    hDestWindowOverride,
+                                      pDirtyRegion,
+                                        D3DPRESENT_FORCEIMMEDIATE |
+                                        D3DPRESENT_DONOTWAIT );
+
+    return hr;
+  }
 
   g_pD3D9Dev = This;
 
   SK_D3D9_UpdateRenderStats (nullptr, This);
 
-  SK_BeginBufferSwap ();
+  if (swapping++ == 0)
+    SK_BeginBufferSwap ();
 
   HRESULT hr = D3D9Present_Original (This,
                                      pSourceRect,
@@ -353,7 +364,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                                      hDestWindowOverride,
                                      pDirtyRegion);
 
-  if (! config.osd.pump)
+  if (--swapping == 0 && (! config.osd.pump))
     return SK_EndBufferSwap ( hr,
                               (IUnknown *)This );
 
@@ -542,7 +553,8 @@ CreateAdditionalSwapChain_t D3D9CreateAdditionalSwapChain_Original = nullptr;
   {
     SK_D3D9_UpdateRenderStats (This);
 
-    SK_BeginBufferSwap ();
+    if (swapping++ == 0)
+      SK_BeginBufferSwap ();
 
     HRESULT hr = D3D9PresentSwap_Original (This,
                                            pSourceRect,
@@ -552,7 +564,7 @@ CreateAdditionalSwapChain_t D3D9CreateAdditionalSwapChain_Original = nullptr;
                                            dwFlags);
 
     // We are manually pumping OSD updates, do not do them on buffer swaps.
-    if (config.osd.pump) {
+    if (--swapping != 0 || config.osd.pump) {
       return hr;
     }
 
@@ -666,8 +678,8 @@ COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9Reset ( IDirect3DDevice9      *This,
-            D3DPRESENT_PARAMETERS *pPresentationParameters )
+D3D9Reset_Override ( IDirect3DDevice9      *This,
+                     D3DPRESENT_PARAMETERS *pPresentationParameters )
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh) - "
                 L"[Calling Thread: 0x%04x]",
@@ -1360,7 +1372,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
   void** vftable = *(void***)*ppReturnedDeviceInterface;
 
   D3D9_VIRTUAL_OVERRIDE (ppReturnedDeviceInterface, 16,
-                         "IDirect3DDevice9::Reset", D3D9Reset,
+                         "IDirect3DDevice9::Reset", D3D9Reset_Override,
                          D3D9Reset_Original, D3D9Reset_t);
 
   if (config.render.d3d9.hook_type == 1) {

@@ -28,7 +28,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.3.2";
+std::wstring SK_VER_STR = L"0.3.3";
 
 sk::INI::File*  dll_ini = nullptr;
 
@@ -136,6 +136,7 @@ struct {
 } nvidia;
 
 sk::ParameterFloat*     mem_reserve;
+sk::ParameterBool*      debug_output;
 sk::ParameterBool*      handle_crashes;
 sk::ParameterBool*      prefer_fahrenheit;
 sk::ParameterInt*       init_delay;
@@ -371,6 +372,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"SpecialK.System",
         L"UseCrashHandler" );
+
+  debug_output =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Log Application's Debug Output")
+      );
+  debug_output->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"DebugOutput" );
 
 
   version =
@@ -1117,6 +1128,9 @@ SK_LoadConfig (std::wstring name) {
 
   if (handle_crashes->load ())
     config.system.handle_crashes = handle_crashes->get_value ();
+
+  if (debug_output->load ())
+    config.system.display_debug_out = debug_output->get_value ();
 
   if (version->load ())
     config.system.version = version->get_value ();

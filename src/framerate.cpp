@@ -29,6 +29,7 @@
 #include "core.h" // Hooking
 
 #include <d3d9.h>
+#include <atlbase.h>
 extern IDirect3DDevice9 *g_pD3D9Dev;
 
 typedef BOOL (WINAPI *QueryPerformanceCounter_t)(_Out_ LARGE_INTEGER *lpPerformanceCount);
@@ -219,27 +220,26 @@ SK::Framerate::Limiter::Limiter (double target)
 void
 SK::Framerate::Limiter::init (double target)
 {
+  QueryPerformanceFrequency (&freq);
+
   ms  = 1000.0 / target;
   fps = target;
 
   frames = 0;
 
-  IDirect3DDevice9Ex* d3d9ex = nullptr;
+  CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
+
   if (g_pD3D9Dev != nullptr) {
-    g_pD3D9Dev->QueryInterface ( __uuidof (IDirect3DDevice9Ex),
-                                   (void **)&d3d9ex );
-  }
+    g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
 
-  QueryPerformanceFrequency (&freq);
-
-  // Align the start to VBlank for minimum input latency
-  if (d3d9ex != nullptr) {
-    d3d9ex->SetMaximumFrameLatency (1);
-    d3d9ex->WaitForVBlank          (0);
-    d3d9ex->SetMaximumFrameLatency (
-      config.render.framerate.pre_render_limit == -1 ?
-           2 : config.render.framerate.pre_render_limit );
-    d3d9ex->Release                ();
+    // Align the start to VBlank for minimum input latency
+    if (d3d9ex != nullptr) {
+      d3d9ex->SetMaximumFrameLatency (1);
+      d3d9ex->WaitForVBlank          (0);
+      d3d9ex->SetMaximumFrameLatency (
+        config.render.framerate.pre_render_limit == -1 ?
+             2 : config.render.framerate.pre_render_limit );
+    }
   }
 
   QueryPerformanceCounter_Original (&start);
@@ -289,10 +289,10 @@ SK::Framerate::Limiter::wait (void)
 
   if (next.QuadPart > 0ULL) {
     // If available (Windows 7+), wait on the swapchain
-    IDirect3DDevice9Ex* d3d9ex = nullptr;
+    CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
+
     if (g_pD3D9Dev != nullptr) {
-      g_pD3D9Dev->QueryInterface ( __uuidof (IDirect3DDevice9Ex),
-                                     (void **)&d3d9ex );
+      g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
     }
 
     while (time.QuadPart < next.QuadPart) {
@@ -318,9 +318,6 @@ SK::Framerate::Limiter::wait (void)
 
       QueryPerformanceCounter_Original (&time);
     }
-
-    if (d3d9ex != nullptr)
-      d3d9ex->Release ();
   }
 
   else {

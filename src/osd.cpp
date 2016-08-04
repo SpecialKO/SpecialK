@@ -44,6 +44,7 @@
 
 #include "dxgi_backend.h"
 #include "d3d9_backend.h"
+#include "opengl_backend.h"
 
 #define OSD_PRINTF   if (config.osd.show)     { pszOSD += sprintf (pszOSD,
 #define OSD_R_PRINTF if (config.osd.show &&\
@@ -85,6 +86,8 @@ bool osd_init          = false;
 static CRITICAL_SECTION osd_cs  = { 0 };
 static bool             cs_init = false;
 
+std::wstring rtss_hook_dll = L"";
+
 class SK_AutoCriticalSection {
 public:
   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
@@ -92,16 +95,16 @@ public:
   {
     cs_ = pCS;
 
-    ////if (try_only)
-      ////TryEnter ();
-    ////else {
-      ////Enter ();
-    ////}
+    if (try_only)
+      TryEnter ();
+    else {
+      Enter ();
+    }
   }
 
   ~SK_AutoCriticalSection (void)
   {
-    ////Leave ();
+    Leave ();
   }
 
   bool try_result (void)
@@ -138,7 +141,7 @@ private:
 BOOL
 SK_ReleaseSharedMemory (LPVOID lpMemory)
 {
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   if (lpMemory != nullptr) {
     return UnmapViewOfFile (lpMemory);
@@ -150,7 +153,7 @@ SK_ReleaseSharedMemory (LPVOID lpMemory)
 LPVOID
 SK_GetSharedMemory (DWORD dwProcID)
 {
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   if (osd_shutting_down && osd_init == false)
     return nullptr;
@@ -204,7 +207,7 @@ SK_GetSharedMemory (DWORD dwProcID)
 LPVOID
 SK_GetSharedMemory (void)
 {
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   return SK_GetSharedMemory (GetCurrentProcessId ());
 }
@@ -234,6 +237,17 @@ SK_IsD3D11 (DWORD dwFlags = 0x00)
     d3d11 = true;
 
   return d3d11;
+}
+
+bool
+SK_IsOpenGL (DWORD dwFlags = 0x00)
+{
+  static bool ogl = false;
+
+  if ((dwFlags != 0x00) && (dwFlags & APPFLAG_OGL))
+    ogl = true;
+
+  return ogl;
 }
 
 std::wstring
@@ -378,14 +392,17 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
 #include <d3d9.h>
 extern IDirect3DSwapChain9* g_pSwapChain9;
 
+std::string external_osd_name;
+
 BOOL
 __stdcall
 SK_DrawExternalOSD (std::string app_name, std::string text)
 {
   if (! cs_init) {
-    InitializeCriticalSectionAndSpinCount (&osd_cs, (1UL << 31));
-    cs_init = true;
+    return TRUE;
   }
+
+  external_osd_name = app_name;
 
   SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
 
@@ -535,6 +552,17 @@ SK_DrawOSD (void)
 
     osd_init = true;
 
+#ifndef _WIN64
+    HMODULE hModRTSS = GetModuleHandle (L"RTSSHooks.dll");
+#else
+    HMODULE hModRTSS = GetModuleHandle (L"RTSSHooks64.dll");
+#endif
+
+    wchar_t wszRTSSModFile [MAX_PATH];
+    GetModuleFileNameW (hModRTSS, wszRTSSModFile, MAX_PATH);
+
+    rtss_hook_dll = wszRTSSModFile;
+
     dll_log.LogEx ( true,
       L"[   RTSS   ] Opening Connection to RivaTuner Statistics Server... " );
 
@@ -585,7 +613,7 @@ SK_DrawOSD (void)
     }
 
     else if (isFallout4) {
-      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.1   %ws\n\n",
+      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.2   %ws\n\n",
                  time
       OSD_END
     } else if (isDivinityOrigSin) {
@@ -659,6 +687,7 @@ SK_DrawOSD (void)
 
                                     SK_IsD3D9                 (pApp->dwFlags);
                                     SK_IsD3D11                (pApp->dwFlags);
+                                    SK_IsOpenGL               (pApp->dwFlags);
             std::wstring api_name = SK_GetAPINameFromOSDFlags (pApp->dwFlags);
 
             if (mean != INFINITY) {
@@ -837,12 +866,20 @@ SK_DrawOSD (void)
           gpu_stats.gpus [i].volts_mV.core
         OSD_END
       }
+    } else {
+      // Padding because no voltage reading is available
+      OSD_G_PRINTF ",         "
+      OSD_END
     }
 
-    if (gpu_stats.gpus [i].fans_rpm.supported)
+    if (gpu_stats.gpus [i].fans_rpm.supported && gpu_stats.gpus [i].fans_rpm.gpu > 0)
     {
       OSD_G_PRINTF ", %#4lu RPM",
         gpu_stats.gpus [i].fans_rpm.gpu
+      OSD_END
+    } else {
+      // Padding because no RPM reading is available
+      OSD_G_PRINTF ",         "
       OSD_END
     }
 
@@ -915,15 +952,18 @@ SK_DrawOSD (void)
         gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
       OSD_END
 
-#if 0
       // Add memory temperature if it exists
-      if (i <= gpu_stats.num_gpus &&
-          gpu_stats.gpus [i].temps_c.ram != 0) {
-        OSD_G_PRINTF " (%#3luC)",
-          gpu_stats.gpus [i].temps_c.ram
+      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0) {
+        std::wstring temp = 
+          SK_FormatTemperature (
+            gpu_stats.gpus [i].temps_c.gpu,
+              Celsius,
+                config.system.prefer_fahrenheit ? Fahrenheit :
+                                                  Celsius );
+        OSD_G_PRINTF ", (%ws)",
+          temp.c_str ()
         OSD_END
       }
-#endif
 
       OSD_G_PRINTF "\n" OSD_END
     }
@@ -1009,27 +1049,35 @@ SK_DrawOSD (void)
         OSD_END
       }
 
-#if 0
       // Add memory temperature if it exists
-      if (gpu_stats.gpus [i].temps_c.ram != 0) {
-        OSD_G_PRINTF " (%#3luC)",
-          gpu_stats.gpus [i].temps_c.ram
+      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0) {
+        std::wstring temp = 
+          SK_FormatTemperature (
+            gpu_stats.gpus [i].temps_c.gpu,
+              Celsius,
+                config.system.prefer_fahrenheit ? Fahrenheit :
+                                                  Celsius );
+        OSD_G_PRINTF ", (%ws)",
+          temp.c_str ()
         OSD_END
       }
-#endif
     }
   }
 
   //OSD_G_PRINTF "\n" OSD_END
 
-  if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 ())) {
+  if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ())) {
     if (SK_IsD3D11 ()) {
       OSD_R_PRINTF "\n%ws",
         SK::DXGI::getPipelineStatsDesc ().c_str ()
       OSD_END
-    } else {
+    } else if (SK_IsD3D9 ()) {
       OSD_R_PRINTF "\n%ws",
         SK::D3D9::getPipelineStatsDesc ().c_str ()
+      OSD_END
+    } else if (SK_IsOpenGL ()) {
+      OSD_R_PRINTF "\n%ws",
+        SK::OpenGL::getPipelineStatsDesc ().c_str ()
       OSD_END
     }
   }
@@ -1370,10 +1418,23 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 void
 SK_ReleaseOSD (void)
 {
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
+
+  // Reload the RTSS DLL so we can update the text
+  HMODULE hModRTSS =
+    LoadLibraryW (rtss_hook_dll.c_str ());
 
   osd_shutting_down = true;
-  SK_UpdateOSD ("");
+  osd_init          = true;
+
+  SK_UpdateOSD   ("", nullptr, external_osd_name.c_str ());
+
+  osd_init          = true;
+  osd_shutting_down = true;
+
+  SK_UpdateOSD   ("");
+
+  FreeLibrary    (hModRTSS);
 }
 
 
@@ -1383,7 +1444,7 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   // 0,0 means don't touch anything.
   if (x == 0 && y == 0)
@@ -1438,7 +1499,7 @@ SK_SetOSDColor (int red, int green, int blue, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   LPVOID pMapAddr =
     SK_GetSharedMemory ();
@@ -1504,7 +1565,7 @@ SK_SetOSDScale (DWORD dwScale, bool relative, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   LPVOID pMapAddr =
     SK_GetSharedMemory ();
@@ -1561,7 +1622,7 @@ SK_ResizeOSD (int scale_incr, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  SK_AutoCriticalSection auto_cs (&osd_cs);
+  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   SK_SetOSDScale (scale_incr, true, lpAppName);
 }

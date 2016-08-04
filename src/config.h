@@ -234,6 +234,7 @@ struct sk_config_t
     bool    allow_dev_trans   = false;
     bool    handle_crashes    = true;
     bool    prefer_fahrenheit = true;
+    bool    display_debug_out = false;
     std::wstring
             version           = SK_VER_STR;
   } system;

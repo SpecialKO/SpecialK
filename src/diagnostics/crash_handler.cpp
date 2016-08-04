@@ -88,6 +88,11 @@ CrashHandler::Init (void)
                      //SetUnhandledExceptionFilter_Detour,
           //(LPVOID *)&SetUnhandledExceptionFilter_Original );
 
+  SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
+                  SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
+                  SYMOPT_DEFERRED_LOADS );
+
+
   SymInitialize (
     GetCurrentProcess (),
       NULL,
@@ -114,37 +119,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
   static bool             last_chance = false;
 
-  static CONTEXT          last_ctx = { 0 };
-  static EXCEPTION_RECORD last_exc = { 0 };
-
-  if (last_chance)
-    return 0;
-
-  // On second chance it's pretty clear that no exception handler exists,
-  //   terminate the software.
-  if (! memcmp (&last_ctx, ExceptionInfo->ContextRecord, sizeof CONTEXT)) {
-    if (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD)) {
-      extern HMODULE       hModSelf;
-      extern BOOL APIENTRY DllMain (HMODULE hModule,
-                                    DWORD   ul_reason_for_call,
-                                    LPVOID  /* lpReserved */);
-
-      sk_logger_t::AutoClose close_me =
-        crash_log.auto_close ();
-
-      last_chance = true;
-
-      // Shutdown the module gracefully
-      DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
-
-      PlaySound ( (LPCWSTR)crash_sound.buf,
-                    nullptr,
-                      SND_SYNC | SND_MEMORY );
-    }
-  }
-
-  last_ctx = *ExceptionInfo->ContextRecord;
-  last_exc = *ExceptionInfo->ExceptionRecord;
+  static CONTEXT          last_ctx  = { 0 };
+  static EXCEPTION_RECORD last_exc  = { 0 };
+  static LARGE_INTEGER    last_time = { 0 };
 
   std::wstring desc;
 
@@ -358,6 +335,94 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                   ExceptionInfo->ContextRecord->EFlags );
 #endif
 
+  crash_log.Log (
+    L"-----------------------------------------------------------");
+
+#ifdef _WIN64
+  SymUnloadModule64 (hProc, BaseAddr);
+#else
+  SymUnloadModule   (hProc, BaseAddr);
+#endif
+
+  free (szDupName);
+
+  CONTEXT ctx = *ExceptionInfo->ContextRecord;
+
+#ifdef _WIN64
+  STACKFRAME64 stackframe;
+#else
+  STACKFRAME   stackframe;
+#endif
+
+  stackframe.AddrPC.Mode   = AddrModeFlat;
+  stackframe.AddrPC.Offset = ip;
+
+  stackframe.AddrStack.Mode = AddrModeFlat;
+#ifdef _WIN64
+  stackframe.AddrStack.Offset = ctx.Rsp;
+#else
+  stackframe.AddrStack.Offset = ctx.Esp;
+#endif
+
+  stackframe.AddrFrame.Mode = AddrModeFlat;
+#ifdef _WIN64
+  stackframe.AddrFrame.Offset = ctx.Rbp;
+#else
+  stackframe.AddrFrame.Offset = ctx.Ebp;
+#endif
+
+  do {
+#ifdef _WIN64
+  bool ret =
+  StackWalk64 ( IMAGE_FILE_MACHINE_AMD64,
+                  hProc,
+                    GetCurrentThread (),
+                      &stackframe,
+                        &ctx,
+                          nullptr, nullptr,
+                            nullptr, nullptr );
+#else
+  bool ret =
+  StackWalk ( IMAGE_FILE_MACHINE_I386,
+                hProc,
+                  GetCurrentThread (),
+                    &stackframe,
+                      &ctx,
+                        nullptr, nullptr,
+                          nullptr, nullptr );
+
+#endif
+
+  if (! ret)
+    break;
+
+  SymRefreshModuleList ( hProc );
+
+  ip = stackframe.AddrPC.Offset;
+
+  if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                            (LPCWSTR)ip,
+                              &hModSource )) {
+    GetModuleFileNameA (hModSource, szModName, MAX_PATH);
+  }
+
+#ifdef _WIN64
+  BaseAddr =
+    SymGetModuleBase64 ( hProc, ip );
+#else
+  BaseAddr =
+    SymGetModuleBase   ( hProc, ip );
+#endif
+
+  szDupName    = strdup (szModName);
+  pszShortName = szDupName + lstrlenA (szDupName);
+
+  while (  pszShortName      >  szDupName &&
+    *(pszShortName - 1) != '\\')
+    --pszShortName;
+
+  free (szDupName);
+
 #ifdef _WIN64
   SymLoadModule64 ( hProc,
                       nullptr,
@@ -384,9 +449,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                        (DWORD64)ip,
                          &Displacement,
                            &sip.si ) ) {
-    crash_log.Log (
-      L"-----------------------------------------------------------");
-
     DWORD Disp;
 #ifdef _WIN64
     IMAGEHLP_LINE64 ihl64;
@@ -418,19 +480,52 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                       sip.si.Name );
     }
   }
-  crash_log.Log (L"-----------------------------------------------------------");
 
 #ifdef _WIN64
   SymUnloadModule64 (hProc, BaseAddr);
 #else
   SymUnloadModule   (hProc, BaseAddr);
 #endif
+  } while (true);
 
-  free (szDupName);
+  crash_log.Log (L"-----------------------------------------------------------");
 
-  if (ExceptionInfo->ExceptionRecord->ExceptionFlags != EXCEPTION_NONCONTINUABLE)
+
+  // On second chance it's pretty clear that no exception handler exists,
+  //   terminate the software.
+  bool repeated = (! memcmp (&last_ctx, ExceptionInfo->ContextRecord, sizeof CONTEXT)) &&
+                  (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
+  bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
+
+  if (repeated || non_continue) {
+    extern HMODULE       hModSelf;
+    extern BOOL APIENTRY DllMain (HMODULE hModule,
+                                  DWORD   ul_reason_for_call,
+                                  LPVOID  /* lpReserved */);
+
+    sk_logger_t::AutoClose close_me =
+      crash_log.auto_close ();
+
+    last_chance = true;
+
+    PlaySound ( (LPCWSTR)crash_sound.buf,
+                  nullptr,
+                    SND_SYNC |
+                    SND_MEMORY );
+
+    // Shutdown the module gracefully
+    DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
+
+    return EXCEPTION_EXECUTE_HANDLER;
+  }
+
+  last_ctx = *ExceptionInfo->ContextRecord;
+  last_exc = *ExceptionInfo->ExceptionRecord;
+
+
+  if (ExceptionInfo->ExceptionRecord->ExceptionFlags == 0)
     return EXCEPTION_CONTINUE_EXECUTION;
   else {
-    return UnhandledExceptionFilter (ExceptionInfo);
+    return EXCEPTION_EXECUTE_HANDLER;
   }
 }

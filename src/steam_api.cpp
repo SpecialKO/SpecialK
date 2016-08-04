@@ -893,7 +893,7 @@ SK::SteamAPI::Init (bool pre_load)
     const wchar_t* wszSteamDLLName = L"steam_api64.dll";
 #endif
 
-    if (pre_load)
+    if (pre_load && (! GetModuleHandle (wszSteamDLLName)))
       LoadLibrary (wszSteamDLLName);
 
     SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_Init",

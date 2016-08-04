@@ -25,6 +25,7 @@
 #include "stdafx.h"
 
 #include "diagnostics/crash_handler.h"
+#include "diagnostics/debug_utils.h"
 
 #include "log.h"
 
@@ -827,8 +828,6 @@ osd_pump (LPVOID lpThreadParam)
   return 0;
 }
 
-
-
 void
 SK_StartPerfMonThreads (void)
 {
@@ -981,6 +980,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init ();
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
 
   if (! lstrcmpW (pwszShortName, L"BatmanAK.exe"))
     USE_SLI = false;
@@ -1235,6 +1237,144 @@ WaitForInit (void)
 }
 
 
+//
+// TODO : Move me somewhere more sensible...
+//
+class skMemCmd : public SK_Command {
+public:
+  SK_CommandResult execute (const char* szArgs);
+
+  int         getNumArgs         (void) { return 2; }
+  int         getNumOptionalArgs (void) { return 1; }
+  int         getNumRequiredArgs (void) {
+    return getNumArgs () - getNumOptionalArgs ();
+  }
+
+protected:
+private:
+};
+
+SK_CommandResult
+skMemCmd::execute (const char* szArgs)
+{
+  if (szArgs == nullptr)
+    return SK_CommandResult ("mem", szArgs);
+
+  intptr_t addr;
+  char     type;
+  char     val [256] = { '\0' };
+
+  sscanf (szArgs, "%c %x %s", &type, &addr, val);
+
+  static uint8_t* base_addr = nullptr;
+
+  if (base_addr == nullptr) {
+    base_addr = (uint8_t *)GetModuleHandle (nullptr);
+
+    MEMORY_BASIC_INFORMATION mem_info;
+    VirtualQuery (base_addr, &mem_info, sizeof mem_info);
+
+    base_addr = (uint8_t *)mem_info.BaseAddress;
+
+    //IMAGE_DOS_HEADER* pDOS =
+      //(IMAGE_DOS_HEADER *)mem_info.AllocationBase;
+    //IMAGE_NT_HEADERS* pNT  =
+      //(IMAGE_NT_HEADERS *)((intptr_t)(pDOS + pDOS->e_lfanew));
+  }
+
+  addr += (intptr_t)base_addr;
+
+  char result [512];
+
+  switch (type) {
+    case 'b':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 1, PAGE_READWRITE, &dwOld);
+          uint8_t out;
+          sscanf (val, "%hhx", &out);
+          *(uint8_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 1, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%u", *(uint8_t *)addr);
+
+      return SK_CommandResult ("mem", szArgs, result, 1);
+      break;
+    case 's':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 2, PAGE_READWRITE, &dwOld);
+          uint16_t out;
+          sscanf (val, "%hx", &out);
+          *(uint16_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 2, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%u", *(uint16_t *)addr);
+      return SK_CommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'i':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
+          uint32_t out;
+          sscanf (val, "%x", &out);
+          *(uint32_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%u", *(uint32_t *)addr);
+      return SK_CommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'd':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
+          double out;
+          sscanf (val, "%lf", &out);
+          *(double *)addr = out;
+        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%f", *(double *)addr);
+      return SK_CommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'f':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
+          float out;
+          sscanf (val, "%f", &out);
+          *(float *)addr = out;
+        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%f", *(float *)addr);
+      return SK_CommandResult ("mem", szArgs, result, 1);
+      break;
+    case 't':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 256, PAGE_READWRITE, &dwOld);
+          strcpy ((char *)addr, val);
+        VirtualProtect ((LPVOID)addr, 256, dwOld, &dwOld);
+      }
+      sprintf (result, "%s", (char *)addr);
+      return SK_CommandResult ("mem", szArgs, result, 1);
+      break;
+  }
+
+  return SK_CommandResult ("mem", szArgs);
+}
+
+
 struct init_params_t {
   const wchar_t* backend;
   void*          callback;
@@ -1251,6 +1391,10 @@ WINAPI DllThread (LPVOID user)
 
     extern int32_t SK_D3D11_amount_to_purge;
     SK_GetCommandProcessor ()->AddVariable ("VRAM.Purge", new SK_VarStub <int32_t> ((int32_t *)&SK_D3D11_amount_to_purge));
+
+    skMemCmd* mem = new skMemCmd ();
+
+    SK_GetCommandProcessor ()->AddCommand ("mem", mem);
 
     if (host_app == L"DarkSoulsIII.exe") {
       SK_DS3_InitPlugin ();
@@ -1453,6 +1597,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   // Do this from the startup thread
   SK_Init_MinHook ();
+
+  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
+  SK::Diagnostics::Debugger::Allow ();
 
   // SteamAPI DLL was already loaded... yay!
 #ifdef _WIN64
@@ -1720,14 +1867,17 @@ SK_BeginBufferSwap (void)
 #endif
   }
 
-  static int tries = 0, init = 0;
-  if ((! init) && SK::SteamAPI::AppID () == 0 && tries++ < 1200) {
-    SK::SteamAPI::Init (true);
+  static int steam_tries = 0, init = 0;
+  if ((! init) && steam_tries++ < 12000) {
+    // Every 15 frames, try to initialize SteamAPI again
+    if (! (steam_tries % 15)) {
+      if (SK::SteamAPI::AppID () != 0)
+        init = 1;
 
-    if (SK::SteamAPI::AppID () != 0)
-      init = 1;
+      else
+        SK::SteamAPI::Init (true);
+    }
   }
-
 
   extern void SK_DrawConsole (void);
   SK_DrawConsole ();

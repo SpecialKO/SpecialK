@@ -39,6 +39,7 @@ EXPORTS
   D3D9SetTexture_Override                = D3D9SetTexture_Override                @516
   D3D9DrawPrimitive_Override             = D3D9DrawPrimitive_Override             @517
   D3D9StretchRect_Override               = D3D9StretchRect_Override               @518
+  D3D9Reset_Override                     = D3D9Reset_Override                     @519
   ;D3D9UpdateSurface_Override             = D3D9UpdateSurface_Override             @519
   D3D9SetRenderState_Override            = D3D9SetRenderState_Override            @520
   D3D9DrawPrimitiveUP_Override           = D3D9DrawPrimitiveUP_Override           @521

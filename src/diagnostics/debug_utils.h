@@ -19,21 +19,23 @@
  *
 **/
 
-#ifndef __SK__CRASH_HANDLER_H__
-#define __SK__CRASH_HANDLER_H__
+#ifndef __SK__DEBUG_UTILS_H__
+#define __SK__DEBUG_UTILS_H__
+
+#include <Windows.h>
 
 namespace SK
 {
   namespace Diagnostics
   {
-    namespace CrashHandler
+    namespace Debugger
     {
-      void Init     (void);
-      void Shutdown (void);
-
-      void Reinstall (void);
+      bool Allow        (bool bAllow = true);
+      void SpawnConsole (void);
     }
   }
 }
 
-#endif /* __SK__CRASH_HANDLER_H__ */
+BOOL WINAPI SK_IsDebuggerPresent (void);
+
+#endif /* __SK__DEBUG_UTILS_H__ */
