@@ -518,8 +518,6 @@ SK_SteamAPI_TakeScreenshot = SK_SteamAPI_TakeScreenshot @900
 ;     redesign.  TRY NOT TO USE THESE!
 ;
 
-SK_Config_GetTargetFPS      = SK_Config_GetTargetFPS      @1000
-SK_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState @1001
+SK_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState @1000
 
-BMF_Config_GetTargetFPS      = SK_Config_GetTargetFPS      @9000
-BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState @9001
+BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState @9000

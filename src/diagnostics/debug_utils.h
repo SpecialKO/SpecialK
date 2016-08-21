@@ -23,6 +23,9 @@
 #define __SK__DEBUG_UTILS_H__
 
 #include <Windows.h>
+#include "../log.h"
+
+extern sk_logger_t game_debug;
 
 namespace SK
 {

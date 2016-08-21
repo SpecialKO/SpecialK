@@ -19,6 +19,7 @@
  *
 **/
 
+#define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 #include "stdafx.h"
@@ -28,9 +29,6 @@
 #include "log.h"
 
 #include "core.h"
-
-// Trivial in OpenGL
-//#define WaitForInit() 
 
 extern void WaitForInit (void);
 extern bool SK_InitCOM (void);
@@ -128,6 +126,8 @@ opengl_init_callback (finish_pfn finish)
 }
 
 
+HMODULE local_gl = 0;
+
 HMODULE
 SK_LoadRealGL (void)
 {
@@ -147,13 +147,28 @@ SK_LoadRealGL (void)
 
   lstrcatW (wszBackendDLL, L"\\OpenGL32.dll");
 
-  return LoadLibraryW (wszBackendDLL);
+  if (local_gl == 0)
+    local_gl = LoadLibraryW (wszBackendDLL);
+  else {
+    HMODULE hMod;
+    GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
+  }
+
+  return local_gl;
+}
+
+void
+SK_FreeRealGL (void)
+{
+  FreeLibrary (local_gl);
 }
 
 
 bool
 SK::OpenGL::Startup (void)
 {
+  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+
   //
   // For Thread Local Storage to work correctly, this is the only option.
   //
@@ -170,6 +185,8 @@ SK::OpenGL::Startup (void)
 bool
 SK::OpenGL::Shutdown (void)
 {
+  SK_FreeRealGL ();
+
   return SK_ShutdownCore (L"OpenGL32");
 }
 
@@ -187,9 +204,6 @@ extern "C"
                                                                           \
     if (_default_impl == nullptr) {                                       \
       WaitForInit ();                                                     \
-                                                                          \
-      while (! backend_dll)                                               \
-        WaitForInit ();                                                   \
                                                                           \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_t)GetProcAddress (backend_dll, szName);\
@@ -214,9 +228,6 @@ extern "C"
                                                                           \
     if (_default_impl == nullptr) {                                       \
       WaitForInit ();                                                     \
-                                                                          \
-      while (! backend_dll)                                               \
-        WaitForInit ();                                                   \
                                                                           \
       static const char* szName = #_Name;                                 \
       _default_impl = (passthrough_t)GetProcAddress (backend_dll, szName);\

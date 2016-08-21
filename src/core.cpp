@@ -331,7 +331,7 @@ SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
       //   the running thread still needs a reference counted.
       pAdapter3->AddRef ();
 
-      DWORD WINAPI BudgetThread (LPVOID user_data);
+      unsigned int __stdcall BudgetThread (LPVOID user_data);
 
       budget_thread =
         (budget_thread_params_t *)
@@ -349,8 +349,13 @@ SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
       budget_log.silent       = true;
 
       budget_thread->handle =
-        CreateThread (NULL, 0, BudgetThread, (LPVOID)budget_thread,
-          0, NULL);
+        (HANDLE)
+          _beginthreadex ( nullptr,
+                             0,
+                               BudgetThread,
+                                 (LPVOID)budget_thread,
+                                   0,
+                                     nullptr );
 
       while (! budget_thread->ready)
         ;
@@ -502,8 +507,9 @@ SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
 const uint32_t BUDGET_POLL_INTERVAL = 66UL; // How often to sample the budget
                                             //  in msecs
 
-DWORD
-WINAPI BudgetThread (LPVOID user_data)
+unsigned int
+__stdcall
+BudgetThread (LPVOID user_data)
 {
   budget_thread_params_t* params =
     (budget_thread_params_t *)user_data;
@@ -808,21 +814,27 @@ WINAPI BudgetThread (LPVOID user_data)
 
 // Stupid solution for games that inexplicibly draw to the screen
 //   without ever swapping buffers.
-DWORD
-WINAPI
+unsigned int
+__stdcall
 osd_pump (LPVOID lpThreadParam)
-{
+{ 
   while (true) {
     Sleep ((DWORD)(config.osd.pump_interval * 1000.0f));
     SK_EndBufferSwap (S_OK, nullptr);
 
-    static int tries = 0, init = 0;
-    if ((! init) && SK::SteamAPI::AppID () == 0 && tries++ < 1200) {
-      SK::SteamAPI::Init (true);
+#if 0
+    static int steam_tries = 0, init = 0;
+    if ((! init) && steam_tries++ < 12000) {
+      // Every 15 frames, try to initialize SteamAPI again
+      if (! (steam_tries % 15)) {
+        if (SK::SteamAPI::AppID () != 0)
+          init = 1;
 
-      if (SK::SteamAPI::AppID () != 0)
-        init = 1;
+        else
+          SK::SteamAPI::Init (true);
+      }
     }
+#endif
   }
 
   return 0;
@@ -837,7 +849,16 @@ SK_StartPerfMonThreads (void)
     //
     if (process_stats.hThread == 0) {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
-      process_stats.hThread = CreateThread (NULL, 0, SK_MonitorProcess, NULL, 0, NULL);
+
+      process_stats.hThread = 
+        (HANDLE)
+          _beginthreadex ( nullptr,
+                             0,
+                               SK_MonitorProcess,
+                                 nullptr,
+                                   0,
+                                     nullptr );
+
       if (process_stats.hThread != 0)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (process_stats.hThread));
       else
@@ -851,7 +872,16 @@ SK_StartPerfMonThreads (void)
     //
     if (cpu_stats.hThread == 0) {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
-      cpu_stats.hThread = CreateThread (NULL, 0, SK_MonitorCPU, NULL, 0, NULL);
+
+      cpu_stats.hThread = 
+        (HANDLE)
+          _beginthreadex ( nullptr,
+                             0,
+                               SK_MonitorCPU,
+                                 nullptr,
+                                   0,
+                                     nullptr );
+
       if (cpu_stats.hThread != 0)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (cpu_stats.hThread));
       else
@@ -862,8 +892,16 @@ SK_StartPerfMonThreads (void)
   if (config.disk.show) {
     if (disk_stats.hThread == 0) {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
+
       disk_stats.hThread =
-        CreateThread (NULL, 0, SK_MonitorDisk, NULL, 0, NULL);
+        (HANDLE)
+          _beginthreadex ( nullptr,
+                             0,
+                               SK_MonitorDisk,
+                                 nullptr,
+                                   0,
+                                     nullptr );
+
       if (disk_stats.hThread != 0)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (disk_stats.hThread));
       else
@@ -874,8 +912,16 @@ SK_StartPerfMonThreads (void)
   if (config.pagefile.show) {
     if (pagefile_stats.hThread == 0) {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
+
       pagefile_stats.hThread =
-        CreateThread (NULL, 0, SK_MonitorPagefile, NULL, 0, NULL);
+        (HANDLE)
+          _beginthreadex ( nullptr,
+                             0,
+                               SK_MonitorPagefile,
+                                 nullptr,
+                                   0,
+                                     nullptr );
+
       if (pagefile_stats.hThread != 0)
         dll_log.LogEx ( false, L"tid=0x%04x\n",
                           GetThreadId (pagefile_stats.hThread) );
@@ -904,7 +950,16 @@ SK_InitFinishCallback (void)
     // Create a thread that pumps the OSD
   if (config.osd.pump) {
     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
-    hPumpThread = CreateThread (NULL, 0, osd_pump, NULL, 0, NULL);
+
+    hPumpThread =
+      (HANDLE)
+        _beginthreadex ( nullptr,
+                           0,
+                             osd_pump,
+                               nullptr,
+                                 0,
+                                   nullptr );
+
     if (hPumpThread != nullptr)
       dll_log.LogEx (false, L"tid=0x%04x, interval=%04.01f ms\n",
                        hPumpThread, config.osd.pump_interval * 1000.0f);
@@ -977,12 +1032,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK_SaveConfig (backend);
     dll_log.LogEx (false, L"done!\n");
   }
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
 
   if (! lstrcmpW (pwszShortName, L"BatmanAK.exe"))
     USE_SLI = false;
@@ -1192,7 +1241,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   pConsole->Start ();
 
   typedef void (WINAPI *finish_pfn)  (void);
-  typedef void (WINAPI *callback_pfn)(finish_pfn);
+  typedef void (WINAPI *callback_pfn)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
   callback_pfn callback_fn = (callback_pfn)callback;
   callback_fn (SK_InitFinishCallback);
 }
@@ -1204,12 +1253,13 @@ WaitForInit (void)
 {
   static volatile LONG init = FALSE;
 
-  if (init)
+  if (InterlockedCompareExchange (&init, FALSE, FALSE)) {
     return;
-
-  if (hInitThread) {
-    WaitForSingleObject (hInitThread, INFINITE);
   }
+
+  WaitForSingleObject (
+    InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
+      INFINITE );
 
   // First thread to reach this point wins ... a shiny new car and
   //   various other initialization tasks.
@@ -1222,18 +1272,19 @@ WaitForInit (void)
   //     them as soon as all DLL code is loaded. Then it becomes a sloppy race
   //       for each attached thread to finish its DllMain (...) function.
   //
-  if (InterlockedCompareExchange (&init, TRUE, FALSE))
-    return;
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
+    CloseHandle (InterlockedExchangePointer ((void **)&hInitThread, nullptr));
 
-  // Load user-defined DLLs (Lazy)
+    // Load user-defined DLLs (Lazy)
 #ifdef _WIN64
-  SK_LoadLazyImports64 ();
+    SK_LoadLazyImports64 ();
 #else
-  SK_LoadLazyImports32 ();
+    SK_LoadLazyImports32 ();
 #endif
 
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Reinstall ();
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Reinstall ();
+  }
 }
 
 
@@ -1260,11 +1311,15 @@ skMemCmd::execute (const char* szArgs)
   if (szArgs == nullptr)
     return SK_CommandResult ("mem", szArgs);
 
-  intptr_t addr;
-  char     type;
-  char     val [256] = { '\0' };
+  uintptr_t addr;
+  char      type;
+  char      val [256] = { '\0' };
 
-  sscanf (szArgs, "%c %x %s", &type, &addr, val);
+#ifdef _WIN64
+  sscanf (szArgs, "%c %llx %s", &type, &addr, val);
+#else
+  sscanf (szArgs, "%c %lx %s", &type, &addr, val);
+#endif
 
   static uint8_t* base_addr = nullptr;
 
@@ -1279,10 +1334,10 @@ skMemCmd::execute (const char* szArgs)
     //IMAGE_DOS_HEADER* pDOS =
       //(IMAGE_DOS_HEADER *)mem_info.AllocationBase;
     //IMAGE_NT_HEADERS* pNT  =
-      //(IMAGE_NT_HEADERS *)((intptr_t)(pDOS + pDOS->e_lfanew));
+      //(IMAGE_NT_HEADERS *)((uintptr_t)(pDOS + pDOS->e_lfanew));
   }
 
-  addr += (intptr_t)base_addr;
+  addr += (uintptr_t)base_addr;
 
   char result [512];
 
@@ -1380,25 +1435,46 @@ struct init_params_t {
   void*          callback;
 };
 
-DWORD
-WINAPI DllThread (LPVOID user)
+unsigned int
+__stdcall
+DllThread (LPVOID user)
 {
   EnterCriticalSection (&init_mutex);
   {
-    init_params_t* params = (init_params_t *)user;
+    init_params_t* params =
+      (init_params_t *)user;
 
     SK_InitCore (params->backend, params->callback);
 
     extern int32_t SK_D3D11_amount_to_purge;
-    SK_GetCommandProcessor ()->AddVariable ("VRAM.Purge", new SK_VarStub <int32_t> ((int32_t *)&SK_D3D11_amount_to_purge));
+    SK_GetCommandProcessor ()->AddVariable (
+      "VRAM.Purge",
+        new SK_VarStub <int32_t> (
+          (int32_t *)&SK_D3D11_amount_to_purge
+        )
+    );
 
     skMemCmd* mem = new skMemCmd ();
 
     SK_GetCommandProcessor ()->AddCommand ("mem", mem);
 
-    if (host_app == L"DarkSoulsIII.exe") {
+    //
+    // Game-Specific Stuff that I am not proud of
+    //
+    if (host_app == L"DarkSoulsIII.exe")
       SK_DS3_InitPlugin ();
-      SK_GetCommandProcessor ()->ProcessCommandFormatted ("TargetFPS %lu", config.render.framerate.target_fps);
+
+    if (host_app != L"Tales of Zestiria.exe") {
+      SK_GetCommandProcessor ()->ProcessCommandFormatted (
+        "TargetFPS %f",
+          config.render.framerate.target_fps
+      );
+    }
+
+    // Get rid of the game output log if the user doesn't want it...
+    if (! config.system.game_output) {
+      game_debug.close ();
+      game_debug.silent = true;
     }
 
     HeapFree (dll_heap, 0, params);
@@ -1562,9 +1638,11 @@ SK_Init_MinHook (void)
   MH_STATUS status;
 
   if ((status = MH_Initialize ()) != MH_OK) {
+#if 0
     dll_log.Log ( L"[ Min Hook ] Failed to Initialize MinHook Library! "
                   L"(Status: \"%hs\")",
                     MH_StatusToString (status) );
+#endif
   }
 
   return status;
@@ -1625,14 +1703,30 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init->callback = callback;
 
 #if 1
-  hInitThread = CreateThread (NULL, 0, DllThread, init, 0, NULL);
+  game_debug.init ("logs/game_output.log", "w");
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+  hInitThread = 
+    (HANDLE)
+      _beginthreadex ( nullptr,
+                         0,
+                           DllThread,
+                             init,
+                               0x00,
+                                 nullptr );
 
   // Give other DXGI hookers time to queue up before processing any calls
   //   that they make. But don't wait here infinitely, or we will deadlock!
 
   /* Default: 0.25 secs seems adequate */
-  if (hInitThread != 0)
-    WaitForSingleObject (hInitThread, config.system.init_delay);
+  //if (hInitThread != 0) {
+    //Sleep (config.system.init_delay);
+  //}
 #else
   DllThread (init);
 #endif
@@ -1647,6 +1741,7 @@ SK_ShutdownCore (const wchar_t* backend)
 {
   ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
+  SK_AutoClose_Log (game_debug);
   SK_AutoClose_Log (budget_log);
   SK_AutoClose_Log ( crash_log);
   SK_AutoClose_Log (   dll_log);
@@ -1660,6 +1755,7 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
 
     TerminateThread (hPumpThread, 0);
+    CloseHandle     (hPumpThread);
     hPumpThread = 0;
 
     dll_log.LogEx   (false, L"done!\n");
@@ -1773,6 +1869,7 @@ SK_ShutdownCore (const wchar_t* backend)
                                        // then we're killing
                                        // the thing!
     TerminateThread (process_stats.hThread, 0);
+    CloseHandle     (process_stats.hThread);
     process_stats.hThread  = 0;
     dll_log.LogEx (false, L"done!\n");
   }
@@ -1785,6 +1882,7 @@ SK_ShutdownCore (const wchar_t* backend)
                                                      // then we're killing
                                                      // the thing!
     TerminateThread (cpu_stats.hThread, 0);
+    CloseHandle     (cpu_stats.hThread);
     cpu_stats.hThread  = 0;
     cpu_stats.num_cpus = 0;
     dll_log.LogEx (false, L"done!\n");
@@ -1798,6 +1896,7 @@ SK_ShutdownCore (const wchar_t* backend)
                                                       // then we're killing
                                                       // the thing!
     TerminateThread (disk_stats.hThread, 0);
+    CloseHandle     (disk_stats.hThread);
     disk_stats.hThread   = 0;
     disk_stats.num_disks = 0;
     dll_log.LogEx (false, L"done!\n");
@@ -1812,6 +1911,7 @@ SK_ShutdownCore (const wchar_t* backend)
                                        // then we're killing
                                        // the thing!
     TerminateThread (pagefile_stats.hThread, 0);
+    CloseHandle     (pagefile_stats.hThread);
     pagefile_stats.hThread       = 0;
     pagefile_stats.num_pagefiles = 0;
     dll_log.LogEx (false, L"done!\n");
@@ -1844,6 +1944,8 @@ SK_ShutdownCore (const wchar_t* backend)
   HeapDestroy (dll_heap);
 
   SymCleanup (GetCurrentProcess ());
+
+  FreeLibrary (backend_dll);
 
   return true;
 }
@@ -1878,9 +1980,6 @@ SK_BeginBufferSwap (void)
         SK::SteamAPI::Init (true);
     }
   }
-
-  extern void SK_DrawConsole (void);
-  SK_DrawConsole ();
 }
 
 extern void SK_UnlockSteamAchievement (int idx);
@@ -1893,8 +1992,8 @@ ULONGLONG poll_interval = 0;
 #endif
 
 #ifdef MT_KEYBOARD
-DWORD
-WINAPI
+unsigned int
+__stdcall
 KeyboardThread (void* user)
 {
   ULONGLONG last_osd_scale { 0ULL };
@@ -2072,7 +2171,10 @@ while (true)
   } else {
     toggle_osd = false;
   }
-} return 0; }
+}
+
+return 0;
+}
 #else
 
 extern bool com_init;
@@ -2316,7 +2418,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     // Every 10 ms
     poll_interval = freq.QuadPart / 100ULL;
 
-    CreateThread (nullptr, 0, KeyboardThread, nullptr, 0, nullptr);
+    _beginthreadex (
+      nullptr,
+        0,
+          KeyboardThread,
+            nullptr,
+              0,
+                nullptr );
   }
 #else
   DoKeyboard ();
@@ -2333,8 +2441,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   frames_drawn++;
 
-  //if (dll_role != DLL_ROLE::D3D9)
-    SK_DrawOSD ();
+  extern void SK_DrawConsole     (void);
+  extern void SK_DrawTexMgrStats (void);
+  SK_DrawTexMgrStats ();
+  SK_DrawConsole     ();
+  SK_DrawOSD         ();
 
   //SK::SteamAPI::Pump ();
 

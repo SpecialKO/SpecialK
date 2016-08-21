@@ -18,6 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <Windows.h>
 
@@ -29,8 +30,10 @@
 #include "core.h" // Hooking
 
 #include <d3d9.h>
+#include <d3d11.h>
 #include <atlbase.h>
 extern IDirect3DDevice9 *g_pD3D9Dev;
+extern IDXGISwapChain   *g_pDXGISwap;
 
 typedef BOOL (WINAPI *QueryPerformanceCounter_t)(_Out_ LARGE_INTEGER *lpPerformanceCount);
 QueryPerformanceCounter_t QueryPerformanceCounter_Original = nullptr;
@@ -100,7 +103,7 @@ Sleep_Detour (DWORD dwMilliseconds)
 #ifdef DUAL_USE_MAX_DELTA
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
-  if (dwMilliseconds >= config.render.framerate.max_delta_time) {
+  if (dwMilliseconds >= (DWORD)config.render.framerate.max_delta_time) {
     //if (dwMilliseconds == 0)
       //return YieldProcessor ();
 #endif
@@ -229,6 +232,7 @@ SK::Framerate::Limiter::init (double target)
 
   CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
 
+  // D3D9
   if (g_pD3D9Dev != nullptr) {
     g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
 
@@ -239,6 +243,20 @@ SK::Framerate::Limiter::init (double target)
       d3d9ex->SetMaximumFrameLatency (
         config.render.framerate.pre_render_limit == -1 ?
              2 : config.render.framerate.pre_render_limit );
+    }
+  }
+
+  CComPtr <IDXGISwapChain> dxgi_swap = nullptr;
+
+  // D3D11
+  if (g_pDXGISwap != nullptr) {
+    g_pDXGISwap->QueryInterface ( IID_PPV_ARGS (&dxgi_swap) );
+
+    if (dxgi_swap != nullptr) {
+      CComPtr <IDXGIOutput> output = nullptr;
+      if (SUCCEEDED (dxgi_swap->GetContainingOutput (&output))) {
+        output->WaitForVBlank ();
+      }
     }
   }
 
@@ -291,9 +309,21 @@ SK::Framerate::Limiter::wait (void)
     // If available (Windows 7+), wait on the swapchain
     CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
 
+    // D3D9Ex
     if (g_pD3D9Dev != nullptr) {
       g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
     }
+
+    CComPtr <IDXGISwapChain> dxgi_swap   = nullptr;
+    CComPtr <IDXGIOutput>    dxgi_output = nullptr;
+
+    // D3D10/11/12
+    if (g_pDXGISwap != nullptr) {
+      if (SUCCEEDED (g_pDXGISwap->QueryInterface ( IID_PPV_ARGS (&dxgi_swap) ))) {
+        dxgi_swap->GetContainingOutput (&dxgi_output);
+      }
+    }
+
 
     while (time.QuadPart < next.QuadPart) {
 #if 0
@@ -303,6 +333,8 @@ SK::Framerate::Limiter::wait (void)
       if (true/*wait_for_vblank*/ && (double)(next.QuadPart - time.QuadPart) > (0.016666666667 * (double)freq.QuadPart)) {
         if (d3d9ex != nullptr) {
           d3d9ex->WaitForVBlank (0);
+        } else if (dxgi_output != nullptr) {
+          dxgi_output->WaitForVBlank ();
         }
       }
 #endif

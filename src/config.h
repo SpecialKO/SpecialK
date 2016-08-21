@@ -173,18 +173,22 @@ struct sk_config_t
 
   struct {
     struct {
-      int     target_fps       =  0;
+      float   target_fps       =  0.0f;
       int     pre_render_limit = -1;
       int     present_interval = -1;
       int     buffer_count     = -1;
-      int     max_delta_time   =  0;
+      int     max_delta_time   =  0; // Bad old setting; needs to be phased out
       bool    flip_discard     = false;
-      float   fudge_factor     = 3.333333f;
+      int     swapchain_wait   =  0;
     } framerate;
     struct {
       bool    force_d3d9ex     = false;
       int     hook_type        = 0;
+      int     refresh_rate     = -1;
     } d3d9;
+    struct {
+      int     adapter_override = -1;
+    } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
     bool      show             = false;
@@ -229,12 +233,21 @@ struct sk_config_t
   } nvidia;
 
   struct {
+    struct {
+      int     timeout         = 1500UL;
+      bool    manage          = false;
+      bool    keys_activate   = true;
+    } cursor;
+  } input;
+
+  struct {
     int     init_delay        = 250;
     bool    silent            = false;
     bool    allow_dev_trans   = false;
     bool    handle_crashes    = true;
     bool    prefer_fahrenheit = true;
     bool    display_debug_out = false;
+    bool    game_output       = true;
     std::wstring
             version           = SK_VER_STR;
   } system;

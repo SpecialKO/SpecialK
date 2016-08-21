@@ -58,34 +58,31 @@ SK_EstablishDllRole (HMODULE hModule)
   return true;
 }
 
-static bool attached = false;
-static int  refs     = 0;
+volatile ULONG attached = FALSE;
+volatile ULONG refs     = 0;
 
 bool
 SK_Attach (DLL_ROLE role)
 {
-  switch (role)
+  if (! InterlockedCompareExchange (&attached, TRUE, FALSE))
   {
-  case DLL_ROLE::DXGI:
-    ++refs;
-    attached = true;
-    return SK::DXGI::Startup ();
-    break;
+    switch (role)
+    {
+    case DLL_ROLE::DXGI:
+      return SK::DXGI::Startup   ();
+      break;
 
-  case DLL_ROLE::D3D9:
-    ++refs;
-    attached = true;
-    return SK::D3D9::Startup ();
-    break;
+    case DLL_ROLE::D3D9:
+      return SK::D3D9::Startup   ();
+      break;
 
-  case DLL_ROLE::OpenGL:
-    ++refs;
-    attached = true;
-    return SK::OpenGL::Startup ();
-    break;
+    case DLL_ROLE::OpenGL:
+      return SK::OpenGL::Startup ();
+      break;
 
-  case DLL_ROLE::Vulkan:
-    break;
+    case DLL_ROLE::Vulkan:
+      break;
+    }
   }
 
   return false;
@@ -94,29 +91,27 @@ SK_Attach (DLL_ROLE role)
 bool
 SK_Detach (DLL_ROLE role)
 {
-  --refs;
+  ULONG local_refs = InterlockedDecrement (&refs);
 
-  if (refs <= 0) {
+  if (InterlockedCompareExchange (&attached, FALSE, TRUE))
+  {
+    extern void SK_ShutdownCOM (void);
+    SK_ShutdownCOM ();
+
     switch (role)
     {
     case DLL_ROLE::DXGI:
-      attached = false;
-      return SK::DXGI::Shutdown ();
+      return SK::DXGI::Shutdown   ();
       break;
     case DLL_ROLE::D3D9:
-      attached = false;
-      return SK::D3D9::Shutdown ();
+      return SK::D3D9::Shutdown   ();
       break;
     case DLL_ROLE::OpenGL:
-      attached = false;
       return SK::OpenGL::Shutdown ();
       break;
     case DLL_ROLE::Vulkan:
       break;
     }
-
-    extern void SK_ShutdownCOM (void);
-    SK_ShutdownCOM ();
   }
 
   return false;
@@ -125,7 +120,7 @@ SK_Detach (DLL_ROLE role)
 //#define IGNORE_THREAD_ATTACH
 
 // We need this to load embedded resources correctly...
-HMODULE hModSelf;
+HMODULE hModSelf = 0;
 
 BOOL
 APIENTRY DllMain ( HMODULE hModule,
@@ -136,47 +131,66 @@ APIENTRY DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
-#define IGNORE_THREAD_ATTACH
-#ifdef IGNORE_THREAD_ATTACH
-      DisableThreadLibraryCalls (hModule);
-#endif
+      ULONG local_refs = InterlockedIncrement (&refs);
 
-      if (! attached)
-      {
-        hModSelf = hModule;
+      InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0);
 
-        SK_EstablishDllRole (hModule);
-        SK_Attach           (dll_role);
-      }
+      SK_EstablishDllRole (hModule);
+      SK_Attach           (dll_role);
+
+      // We need TLS managed by the real OpenGL DLL for context
+      //   management to work, so we cannot do this...
+//      if (dll_role != DLL_ROLE::OpenGL)
+//        DisableThreadLibraryCalls (hModule);
     } break;
 
-#if 0
 #ifndef IGNORE_THREAD_ATTACH
     case DLL_THREAD_ATTACH:
+      InterlockedIncrement (&refs);
       //dll_log.Log (L"Custom dxgi.dll Attached (tid=%x)",
       //                GetCurrentThreadId ());
       if (dll_role == DLL_ROLE::OpenGL) {
-        extern HMODULE LoadRealGL (void);
-        LoadRealGL ();
+        extern HMODULE SK_LoadRealGL (void);
+        SK_LoadRealGL ();
+      }
+
+      else if (dll_role == DLL_ROLE::D3D9) {
+        extern HMODULE SK_LoadRealD3D9 (void);
+        SK_LoadRealD3D9 ();
+      }
+
+      else if (dll_role == DLL_ROLE::DXGI) {
+        extern HMODULE SK_LoadRealDXGI (void);
+        SK_LoadRealDXGI ();
       }
       break;
 
     case DLL_THREAD_DETACH:
+      InterlockedDecrement (&refs);
       //dll_log.Log (L"Custom dxgi.dll Detached (tid=%x)",
       //                GetCurrentThreadId ());
       if (dll_role == DLL_ROLE::OpenGL) {
-        //extern HMODULE FreeRealGL (void);
-        //FreeRealGL ();
+        extern void SK_FreeRealGL (void);
+        SK_FreeRealGL ();
+      }
+
+      else if (dll_role == DLL_ROLE::D3D9) {
+        extern void SK_FreeRealD3D9 (void);
+        SK_FreeRealD3D9 ();
+      }
+
+      else if (dll_role == DLL_ROLE::DXGI) {
+        extern void SK_FreeRealDXGI (void);
+        SK_FreeRealDXGI ();
       }
       break;
-#endif
 #endif
 
     case DLL_PROCESS_DETACH:
     {
-      if (attached)
+      //if (InterlockedCompareExchange (&attached, FALSE, FALSE))
       {
-        SK_Detach (dll_role);
+        SK_Detach                (dll_role);
       }
     } break;
   }

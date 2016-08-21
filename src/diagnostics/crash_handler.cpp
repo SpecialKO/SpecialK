@@ -371,31 +371,11 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   stackframe.AddrFrame.Offset = ctx.Ebp;
 #endif
 
+  std::string top_func = "";
+
+  bool ret = true;
+
   do {
-#ifdef _WIN64
-  bool ret =
-  StackWalk64 ( IMAGE_FILE_MACHINE_AMD64,
-                  hProc,
-                    GetCurrentThread (),
-                      &stackframe,
-                        &ctx,
-                          nullptr, nullptr,
-                            nullptr, nullptr );
-#else
-  bool ret =
-  StackWalk ( IMAGE_FILE_MACHINE_I386,
-                hProc,
-                  GetCurrentThread (),
-                    &stackframe,
-                      &ctx,
-                        nullptr, nullptr,
-                          nullptr, nullptr );
-
-#endif
-
-  if (! ret)
-    break;
-
   SymRefreshModuleList ( hProc );
 
   ip = stackframe.AddrPC.Offset;
@@ -420,8 +400,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   while (  pszShortName      >  szDupName &&
     *(pszShortName - 1) != '\\')
     --pszShortName;
-
-  free (szDupName);
 
 #ifdef _WIN64
   SymLoadModule64 ( hProc,
@@ -458,10 +436,11 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       SymGetLineFromAddr64 ( hProc, ip, &Disp, &ihl64 );
 
     if (bFileAndLine) {
-      crash_log.Log ( L"[-(Source)-] [!] %hs  <%hs:%lu>",
-                      sip.si.Name,
-                        ihl64.FileName,
-                          ihl64.LineNumber );
+      crash_log.Log ( L"[-(Source)-] [!] {%hs} %hs  <%hs:%lu> ",
+                      pszShortName,
+                        sip.si.Name,
+                          ihl64.FileName,
+                            ihl64.LineNumber );
 #else
     IMAGEHLP_LINE ihl;
     ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
@@ -470,15 +449,23 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
 
     if (bFileAndLine) {
-      crash_log.Log ( L"[-(Source)-] [!] %hs  <%hs:%lu>",
-                      sip.si.Name,
-                        ihl.FileName,
-                          ihl.LineNumber );
+      crash_log.Log ( L"[-(Source)-] [!] {%24hs}  %64hs  <%hs:%lu>",
+                      pszShortName,
+                        sip.si.Name,
+                          ihl.FileName,
+                            ihl.LineNumber );
 #endif
     } else {
-      crash_log.Log ( L"[--(Name)--] [!] %hs",
-                      sip.si.Name );
+      crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %64hs",
+                      pszShortName,
+                        sip.si.Name );
     }
+
+    if (top_func == "")
+      top_func = sip.si.Name;
+
+
+    free (szDupName);
   }
 
 #ifdef _WIN64
@@ -486,7 +473,28 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 #else
   SymUnloadModule   (hProc, BaseAddr);
 #endif
-  } while (true);
+
+#ifdef _WIN64
+  ret =
+  StackWalk64 ( IMAGE_FILE_MACHINE_AMD64,
+                  hProc,
+                    GetCurrentThread (),
+                      &stackframe,
+                        &ctx,
+                          nullptr, nullptr,
+                            nullptr, nullptr );
+#else
+  ret =
+  StackWalk ( IMAGE_FILE_MACHINE_I386,
+                hProc,
+                  GetCurrentThread (),
+                    &stackframe,
+                      &ctx,
+                        nullptr, nullptr,
+                          nullptr, nullptr );
+
+#endif
+  } while (ret == true);
 
   crash_log.Log (L"-----------------------------------------------------------");
 

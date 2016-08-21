@@ -35,6 +35,9 @@
 #pragma comment (lib, "winmm.lib")
 
 #include <comdef.h>
+#include <process.h>
+
+#include <windowsx.h>
 
 struct window_t {
   DWORD proc_id;
@@ -81,7 +84,7 @@ SK_Console::SK_Console (void) { }
 SK_Console*
 SK_Console::getInstance (void)
 {
-  if (pConsole == NULL)
+  if (pConsole == nullptr)
     pConsole = new SK_Console ();
 
   return pConsole;
@@ -100,7 +103,8 @@ SK_Console::Draw (void)
   static bool          carret    = false;
   static LARGE_INTEGER last_time = { 0 };
 
-  std::string output;
+  static std::string last_output = "";
+         std::string output;
 
   if (visible) {
     output += text;
@@ -130,35 +134,39 @@ SK_Console::Draw (void)
     }
   }
 
-  extern BOOL
-  __stdcall
-  SK_DrawExternalOSD (std::string app_name, std::string text);
-  SK_DrawExternalOSD ("SpecialK Console", output);
+  if (last_output != output) {
+    last_output = output;
+    extern BOOL
+    __stdcall
+    SK_DrawExternalOSD (std::string app_name, std::string text);
+    SK_DrawExternalOSD ("SpecialK Console", output);
+  }
 }
 
 void
 SK_Console::Start (void)
 {
-  // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
-  if (GetModuleHandle (L"tzfix.dll") || GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"tsfix.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
+  // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
+  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"tsfix.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
     bNoConsole = true;
     return;
   }
 
   hMsgPump =
-    CreateThread ( NULL,
-                      NULL,
-                        SK_Console::MessagePump,
-                          &hooks,
-                            NULL,
-                              NULL );
+    (HANDLE)
+      _beginthreadex ( nullptr,
+                         0,
+                           SK_Console::MessagePump,
+                             &hooks,
+                               0,
+                                 nullptr );
 }
 
 void
 SK_Console::End (void)
 {
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
-  if (GetModuleHandle (L"tzfix.dll") || GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"tsfix.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"tsfix.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
     bNoConsole = true;
     return;
   }
@@ -182,6 +190,10 @@ typedef SHORT (WINAPI *GetAsyncKeyState_pfn)(
   _In_ int vKey
 );
 
+typedef SHORT (WINAPI *GetKeyState_pfn)(
+  _In_ int nVirtKey
+);
+
 typedef UINT (WINAPI *GetRawInputData_pfn)(
   _In_      HRAWINPUT hRawInput,
   _In_      UINT      uiCommand,
@@ -190,6 +202,7 @@ typedef UINT (WINAPI *GetRawInputData_pfn)(
   _In_      UINT      cbSizeHeader
 );
 
+GetKeyState_pfn      GetKeyState_Original      = nullptr;
 GetAsyncKeyState_pfn GetAsyncKeyState_Original = nullptr;
 GetRawInputData_pfn  GetRawInputData_Original  = nullptr;
 
@@ -226,6 +239,18 @@ GetAsyncKeyState_Detour (_In_ int vKey)
   return GetAsyncKeyState_Original (vKey);
 }
 
+SHORT
+WINAPI
+GetKeyState_Detour (_In_ int nVirtKey)
+{
+  // Block keyboard input to the game while the console is active
+  if (SK_Console::getInstance ()->isVisible ()) {
+    return 0;
+  }
+
+  return GetKeyState_Original (nVirtKey);
+}
+
 struct sk_window_s {
   HWND    hWnd             = 0x00;
   WNDPROC WndProc_Original = nullptr;
@@ -250,6 +275,93 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       return DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
+  if (config.input.cursor.manage)
+  {
+    //extern bool IsControllerPluggedIn (INT iJoyID);
+
+    struct {
+      POINTS pos      = { 0 }; // POINT (Short) - Not POINT plural ;)
+      DWORD  sampled  = 0UL;
+      bool   cursor   = true;
+
+      int    init     = false;
+      int    timer_id = 0x68992;
+    } static last_mouse;
+
+   auto ActivateCursor = [](bool changed = false)->
+    bool
+     {
+       bool was_active = last_mouse.cursor;
+
+       if (! last_mouse.cursor) {
+         while (ShowCursor (TRUE) < 0) ;
+         last_mouse.cursor = true;
+       }
+
+       if (changed)
+         last_mouse.sampled = timeGetTime ();
+
+       return (last_mouse.cursor != was_active);
+     };
+
+   auto DeactivateCursor = []()->
+    bool
+     {
+       if (! last_mouse.cursor)
+         return false;
+
+       bool was_active = last_mouse.cursor;
+
+       if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout) {
+         while (ShowCursor (FALSE) >= 0) ;
+         last_mouse.cursor = false;
+       }
+
+       return (last_mouse.cursor != was_active);
+     };
+
+    if (! last_mouse.init) {
+      if (config.input.cursor.timeout != 0)
+        SetTimer (hWnd, last_mouse.timer_id, config.input.cursor.timeout / 2, nullptr);
+      else
+        SetTimer (hWnd, last_mouse.timer_id, 250/*USER_TIMER_MINIMUM*/, nullptr);
+
+      last_mouse.init = true;
+    }
+
+    bool activation_event =
+      (uMsg == WM_MOUSEMOVE);
+
+    // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
+    if (activation_event) {
+      const short threshold = 2;
+
+      // Filter out small movements
+      if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
+           abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
+        activation_event = false;
+
+      last_mouse.pos = MAKEPOINTS (lParam);
+    }
+
+    if (config.input.cursor.keys_activate)
+      activation_event |= ( uMsg == WM_CHAR       ||
+                            uMsg == WM_SYSKEYDOWN ||
+                            uMsg == WM_SYSKEYUP );
+
+    // If timeout is 0, just hide the thing indefinitely
+    if (activation_event && config.input.cursor.timeout != 0)
+      ActivateCursor (true);
+
+    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id) {
+      if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
+        DeactivateCursor ();
+
+      else
+        ActivateCursor ();
+    }
+  }
+
   return CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
 }
 
@@ -261,6 +373,10 @@ SK_InstallWindowHook (HWND hWnd)
   SK_CreateDLLHook ( L"user32.dll", "GetRawInputData",
                      GetRawInputData_Detour,
            (LPVOID*)&GetRawInputData_Original );
+
+  SK_CreateDLLHook ( L"user32.dll", "GetKeyState",
+                     GetKeyState_Detour,
+           (LPVOID*)&GetKeyState_Original );
 
   SK_CreateDLLHook ( L"user32.dll", "GetAsyncKeyState",
                      GetAsyncKeyState_Detour,
@@ -284,8 +400,8 @@ SK_GetGameWindow (void)
 }
 
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_Console::MessagePump (LPVOID hook_ptr)
 {
   hooks_t* pHooks = (hooks_t *)hook_ptr;
@@ -305,7 +421,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
 
   while (true) {
     // Spin until the game has drawn a frame
-    if (hWndRender == 0 && (! frames_drawn)) {
+    if (hWndRender == 0 || (! frames_drawn)) {
       Sleep (83);
       continue;
     }
@@ -396,7 +512,7 @@ LRESULT
 CALLBACK
 SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
 {
-  if (nCode == 0) {
+  if (nCode >= 0) {
     BYTE    vkCode   = LOWORD (wParam) & 0xFF;
     BYTE    scanCode = HIWORD (lParam) & 0x7F;
     SHORT   repeated = LOWORD (lParam);
@@ -414,19 +530,19 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
       }
     }
 
-    else if ((vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT)) {
+    else if (vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT) {
       if (keyDown) keys_ [VK_SHIFT] = 0x81; else keys_ [VK_SHIFT] = 0x00;
     }
 
-    else if ((vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU)) {
+    else if (vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU) {
       if (keyDown) keys_ [VK_MENU] = 0x81; else keys_ [VK_MENU] = 0x00;
     }
 
-    else if ((!repeated) && vkCode == VK_CAPITAL) {
-      if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x81; else keys_ [VK_CAPITAL] = 0x00;
+    else if ((! repeated) && vkCode == VK_CAPITAL) {
+      if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x82; else keys_ [VK_CAPITAL] = 0x00;
     }
 
-    else if ((vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)) {
+    else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL) {
       if (keyDown) keys_ [VK_CONTROL] = 0x81; else keys_ [VK_CONTROL] = 0x00;
     }
 
@@ -492,13 +608,15 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
 
       if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && keys_ [VK_TAB] && vkCode == VK_TAB && new_press) {
         visible = ! visible;
+
         // This will pause/unpause the game
         SK::SteamAPI::SetOverlayState (visible);
 
         return -1;
       }
 
-      if (visible) {
+      // Don't print the tab character, it's pretty useless.
+      if (visible && vkCode != VK_TAB) {
         char key_str [2];
         key_str [1] = '\0';
 
@@ -517,9 +635,10 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
 
     else if ((! keyDown))
       keys_ [vkCode] = 0x00;
-
-    if (visible) return -1;
   }
+
+  if (nCode >= 0 && visible)
+    return -1;
 
   return CallNextHookEx (SK_Console::getInstance ()->hooks.keyboard, nCode, wParam, lParam);
 };

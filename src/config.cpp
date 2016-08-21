@@ -28,7 +28,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.3.3";
+std::wstring SK_VER_STR = L"0.4.0";
 
 sk::INI::File*  dll_ini = nullptr;
 
@@ -137,6 +137,7 @@ struct {
 
 sk::ParameterFloat*     mem_reserve;
 sk::ParameterBool*      debug_output;
+sk::ParameterBool*      game_output;
 sk::ParameterBool*      handle_crashes;
 sk::ParameterBool*      prefer_fahrenheit;
 sk::ParameterInt*       init_delay;
@@ -144,17 +145,20 @@ sk::ParameterBool*      silent;
 sk::ParameterStringW*   version;
 struct {
   struct {
-    sk::ParameterInt*   target_fps;
+    sk::ParameterFloat* target_fps;
     sk::ParameterInt*   prerender_limit;
     sk::ParameterInt*   present_interval;
     sk::ParameterInt*   buffer_count;
     sk::ParameterInt*   max_delta_time;
     sk::ParameterBool*  flip_discard;
-    sk::ParameterFloat* fudge_factor;
   } framerate;
+  struct {
+    sk::ParameterInt*   adapter_override;
+  } dxgi;
   struct {
     sk::ParameterBool*  force_d3d9ex;
     sk::ParameterInt*   hook_type;
+    sk::ParameterInt*   refresh_rate;
   } d3d9;
 } render;
 
@@ -175,6 +179,14 @@ struct {
     sk::ParameterInt*     max_entries;
   } cache;
 } texture;
+
+struct {
+  struct {
+    sk::ParameterBool*  manage;
+    sk::ParameterBool*  keys_activate;
+    sk::ParameterFloat* timeout;
+  } cursor;
+} input;
 
 
 bool
@@ -322,6 +334,37 @@ SK_LoadConfig (std::wstring name) {
         L"Show" );
 
 
+  input.cursor.manage =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Manage Cursor Visibility")
+      );
+  input.cursor.manage->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"Manage" );
+
+  input.cursor.keys_activate =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Keyboard Input Activates Cursor")
+      );
+  input.cursor.keys_activate->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"KeyboardActivates" );
+
+  input.cursor.timeout =
+    static_cast <sk::ParameterFloat *>
+      (g_ParameterFactory.create_parameter <float> (
+        L"Hide Delay")
+      );
+  input.cursor.timeout->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"Timeout" );
+
+
   mem_reserve =
     static_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
@@ -376,12 +419,23 @@ SK_LoadConfig (std::wstring name) {
   debug_output =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
-        L"Log Application's Debug Output")
+        L"Print Application's Debug Output in real-time")
       );
   debug_output->register_to_ini (
     dll_ini,
       L"SpecialK.System",
         L"DebugOutput" );
+
+  game_output =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Log Application's Debug Output")
+      );
+  game_output->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"GameOutput" );
+
 
 
   version =
@@ -414,9 +468,19 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.D3D9",
           L"HookType" );
-    render.framerate.target_fps =
+    render.d3d9.refresh_rate =
       static_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
+          L"Fullscreen Refresh Rate")
+        );
+    render.d3d9.refresh_rate->register_to_ini (
+      dll_ini,
+        L"Render.D3D9",
+          L"RefreshRate" );
+
+    render.framerate.target_fps =
+      static_cast <sk::ParameterFloat *>
+        (g_ParameterFactory.create_parameter <float> (
           L"Framerate Target")
         );
     render.framerate.target_fps->register_to_ini (
@@ -457,8 +521,8 @@ SK_LoadConfig (std::wstring name) {
 
   if (dll_role == DXGI) {
     render.framerate.target_fps =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
+      static_cast <sk::ParameterFloat *>
+        (g_ParameterFactory.create_parameter <float> (
           L"Framerate Target")
         );
     render.framerate.target_fps->register_to_ini (
@@ -516,15 +580,15 @@ SK_LoadConfig (std::wstring name) {
         L"Render.DXGI",
           L"UseFlipDiscard" );
 
-    render.framerate.fudge_factor =
-      static_cast <sk::ParameterFloat *>
-        (g_ParameterFactory.create_parameter <float> (
-          L"Framerate Limiter Fudge Factor")
+    render.dxgi.adapter_override =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Override DXGI Adapter")
         );
-    render.framerate.fudge_factor->register_to_ini (
+    render.dxgi.adapter_override->register_to_ini (
       dll_ini,
         L"Render.DXGI",
-          L"FudgeFactor" );
+          L"AdapterOverride" );
 
     texture.d3d11.cache =
       static_cast <sk::ParameterBool *>
@@ -637,7 +701,7 @@ SK_LoadConfig (std::wstring name) {
           L"MaxSizeInMiB" );
   }
 
-  
+
   nvidia.api.disable =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -1058,9 +1122,10 @@ SK_LoadConfig (std::wstring name) {
       if (render.framerate.flip_discard->load ())
         config.render.framerate.flip_discard =
           render.framerate.flip_discard->get_value ();
-      if (render.framerate.fudge_factor->load ())
-        config.render.framerate.fudge_factor =
-          render.framerate.fudge_factor->get_value ();
+
+      if (render.dxgi.adapter_override->load ())
+        config.render.dxgi.adapter_override =
+          render.dxgi.adapter_override->get_value ();
 
       if (texture.d3d11.cache->load ())
         config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
@@ -1094,8 +1159,18 @@ SK_LoadConfig (std::wstring name) {
       if (render.d3d9.hook_type->load ())
         config.render.d3d9.hook_type =
           render.d3d9.hook_type->get_value ();
+      if (render.d3d9.refresh_rate->load ())
+        config.render.d3d9.refresh_rate =
+          render.d3d9.refresh_rate->get_value ();
     }
   }
+
+  if (input.cursor.manage->load ())
+    config.input.cursor.manage = input.cursor.manage->get_value ();
+  if (input.cursor.keys_activate->load ())
+    config.input.cursor.keys_activate = input.cursor.keys_activate->get_value ();
+  if (input.cursor.timeout->load ())
+    config.input.cursor.timeout = 1000UL * input.cursor.timeout->get_value ();
 
   if (steam.achievements.nosound->load ())
     config.steam.nosound = steam.achievements.nosound->get_value ();
@@ -1131,6 +1206,9 @@ SK_LoadConfig (std::wstring name) {
 
   if (debug_output->load ())
     config.system.display_debug_out = debug_output->get_value ();
+
+  if (game_output->load ())
+    config.system.game_output = game_output->get_value ();
 
   if (version->load ())
     config.system.version = version->get_value ();
@@ -1179,6 +1257,10 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   monitoring.SLI.show->set_value             (config.sli.show);
   monitoring.time.show->set_value            (config.time.show);
 
+  input.cursor.manage->set_value             (config.input.cursor.manage);
+  input.cursor.keys_activate->set_value      (config.input.cursor.keys_activate);
+  input.cursor.timeout->set_value            ((float)config.input.cursor.timeout / 1000.0f);
+
   if (dll_role == D3D9 || dll_role == DXGI) {
     render.framerate.target_fps->set_value       (config.render.framerate.target_fps);
     render.framerate.prerender_limit->set_value  (config.render.framerate.pre_render_limit);
@@ -1194,7 +1276,6 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     if (dll_role == DXGI) {
       render.framerate.max_delta_time->set_value (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->set_value   (config.render.framerate.flip_discard);
-      render.framerate.fudge_factor->set_value   (config.render.framerate.fudge_factor);
 
       texture.d3d11.cache->set_value        (config.textures.d3d11.cache);
       texture.d3d11.precise_hash->set_value (config.textures.d3d11.precise_hash);
@@ -1213,6 +1294,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     if (dll_role == D3D9) {
       render.d3d9.force_d3d9ex->set_value (config.render.d3d9.force_d3d9ex);
       render.d3d9.hook_type->set_value    (config.render.d3d9.hook_type);
+      render.d3d9.refresh_rate->set_value (config.render.d3d9.refresh_rate);
     }
   }
 
@@ -1263,6 +1345,10 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   monitoring.pagefile.show->store        ();
   monitoring.pagefile.interval->store    ();
 
+  input.cursor.manage->store             ();
+  input.cursor.keys_activate->store      ();
+  input.cursor.timeout->store            ();
+
   nvidia.api.disable->store              ();
 
   if (dll_role == D3D9 || dll_role == DXGI) {
@@ -1281,7 +1367,6 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     if (dll_role == DXGI) {
       render.framerate.max_delta_time->store ();
       render.framerate.flip_discard->store   ();
-      render.framerate.fudge_factor->store   ();
 
       texture.d3d11.cache->store        ();
       texture.d3d11.precise_hash->store ();
@@ -1301,6 +1386,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     if (dll_role == D3D9) {
       render.d3d9.force_d3d9ex->store ();
       render.d3d9.hook_type->store    ();
+      render.d3d9.refresh_rate->store ();
     }
   }
 
@@ -1330,6 +1416,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   handle_crashes->set_value              (config.system.handle_crashes);
   handle_crashes->store                  ();
 
+  game_output->set_value                 (config.system.game_output);
+  game_output->store                     ();
+
   version->set_value                     (SK_VER_STR);
   version->store                         ();
 
@@ -1341,19 +1430,4 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       dll_ini = nullptr;
     }
   }
-}
-
-
-
-
-
-//
-// Hacks that break what little planning this project had to begin with ;)
-//
-
-uint32_t
-__cdecl
-SK_Config_GetTargetFPS (void)
-{
-  return config.render.framerate.target_fps;
 }

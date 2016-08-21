@@ -26,6 +26,8 @@
 
 #include "framerate.h"
 
+#include <process.h>
+
 void
 SK_CountIO (io_perf_t& ioc, const double update)
 {
@@ -135,7 +137,7 @@ namespace COM {
       void Unlock       (void);
     } wmi;
 
-    int              threads         = 0;
+    LONG               threads         = 0;
 
     HRESULT InitThread   (void);
     bool    UninitThread (void);
@@ -143,7 +145,7 @@ namespace COM {
 
   struct {
     bool init = false;
-  } /*__declspec (thread)*/ local;
+  } __declspec (thread) local;
 }
 
 bool
@@ -157,13 +159,15 @@ COM::Base::WMI::InitLocks (void)
 void
 COM::Base::WMI::Lock (void)
 {
-  EnterCriticalSection (&cs);
+  if (init)
+    EnterCriticalSection (&cs);
 }
 
 void
 COM::Base::WMI::Unlock (void)
 {
-  LeaveCriticalSection (&cs);
+  if (init)
+    LeaveCriticalSection (&cs);
 }
 
 HRESULT
@@ -172,7 +176,7 @@ COM::Base::InitThread (void)
   HRESULT hr = CoInitializeEx (NULL, COINIT_MULTITHREADED);
 
   if (SUCCEEDED (hr)) {
-    ++threads;
+    InterlockedIncrement (&threads);
 
     local.init = true;
 
@@ -180,7 +184,7 @@ COM::Base::InitThread (void)
   }
   
   else {
-    CoUninitialize ();
+    //CoUninitialize ();
 
     local.init = false;
 
@@ -196,7 +200,7 @@ COM::Base::UninitThread (void)
 
     local.init = false;
 
-    --threads;
+    InterlockedDecrement (&threads);
 
     return true;
   }
@@ -204,8 +208,8 @@ COM::Base::UninitThread (void)
   return false;
 }
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_WMI_ServerThread (LPVOID lpUser)
 {
   HRESULT hr;
@@ -321,9 +325,8 @@ WMI_CLEANUP:
     COM::base.wmi.pNameSpace = nullptr;
   }
 
-  COM::base.wmi.init = 0;
   COM::base.wmi.Unlock ();
-
+  COM::base.wmi.init = 0;
 
   return 0;
 }
@@ -392,7 +395,13 @@ SK_InitWMI (void)
     COM::base.wmi.InitLocks ();
 
     COM::base.wmi.hServerThread =
-      CreateThread (nullptr, 0, SK_WMI_ServerThread, nullptr, 0x00, nullptr);
+      (HANDLE)
+        _beginthreadex ( nullptr,
+                           0,
+                             SK_WMI_ServerThread,
+                               nullptr,
+                                 0x00,
+                                   nullptr );
 
     while (COM::base.wmi.init < 0)
       Sleep (10);
@@ -401,7 +410,7 @@ SK_InitWMI (void)
       COM::base.wmi.hServerThread = 0;
   }
 
-  return COM::base.wmi.init;
+  return COM::base.wmi.init > 0;
 }
 
 //
@@ -432,9 +441,9 @@ SK_ShutdownCOM (void)
         COM::base.wmi.pNameSpace = nullptr;
       }
 
-      DeleteCriticalSection (&COM::base.wmi.cs);
-
       COM::base.wmi.init = false;
+
+      DeleteCriticalSection (&COM::base.wmi.cs);
 
       if (COM::base.wmi.hServerThread != 0) {
         TerminateThread (COM::base.wmi.hServerThread, 0);
@@ -451,8 +460,8 @@ cpu_perf_t cpu_stats;
 
 #include "config.h"
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_MonitorCPU (LPVOID user_param)
 {
   if (! SK_InitWMI ())
@@ -574,6 +583,8 @@ SK_MonitorCPU (LPVOID user_param)
 
         goto CPU_CLEANUP;
       }
+
+      cpu.dwNumReturned = min (cpu.dwNumObjects, cpu.dwNumReturned);
     }
     else
     {
@@ -775,7 +786,7 @@ CPU_CLEANUP:
     cpu.pRefresher = nullptr;
   }
 
-  COM::base.wmi.Unlock ();
+  COM::base.wmi.Unlock   ();
   COM::base.UninitThread ();
 
   return 0;
@@ -783,8 +794,8 @@ CPU_CLEANUP:
 
 disk_perf_t disk_stats;
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_MonitorDisk (LPVOID user)
 {
   if (! SK_InitWMI ())
@@ -900,6 +911,8 @@ SK_MonitorDisk (LPVOID user)
       {
         goto DISK_CLEANUP;
       }
+
+      disk.dwNumReturned = min (disk.dwNumObjects, disk.dwNumReturned);
     }
     else
     {
@@ -1182,8 +1195,8 @@ DISK_CLEANUP:
 
 pagefile_perf_t pagefile_stats;
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_MonitorPagefile (LPVOID user)
 {
   if (! SK_InitWMI ())
@@ -1292,6 +1305,8 @@ SK_MonitorPagefile (LPVOID user)
       {
         goto PAGEFILE_CLEANUP;
       }
+
+      pagefile.dwNumReturned = min (pagefile.dwNumObjects, pagefile.dwNumReturned);
     }
     else
     {

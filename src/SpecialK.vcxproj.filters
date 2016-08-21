@@ -40,6 +40,12 @@
     <Filter Include="Header Files\DirectXTex">
       <UniqueIdentifier>{53877763-ffe5-4232-9427-f0c56a07fa57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\D3D9">
+      <UniqueIdentifier>{038d867a-cc76-4b6b-be3b-f0c825a7fbd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\D3D9">
+      <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -93,9 +99,6 @@
     <ClInclude Include="adl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="d3d9_backend.h">
-      <Filter>Header Files\Backends</Filter>
-    </ClInclude>
     <ClInclude Include="opengl_backend.h">
       <Filter>Header Files\Backends</Filter>
     </ClInclude>
@@ -147,6 +150,12 @@
     <ClInclude Include="diagnostics\debug_utils.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="d3d9_backend.h">
+      <Filter>Header Files\Backends\D3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d9\texmgr.h">
+      <Filter>Header Files\Backends\D3D9</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -181,9 +190,6 @@
     </ClCompile>
     <ClCompile Include="memory_monitor.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d9.cpp">
-      <Filter>Source Files\Backends</Filter>
     </ClCompile>
     <ClCompile Include="opengl.cpp">
       <Filter>Source Files\Backends</Filter>
@@ -286,6 +292,12 @@
     </ClCompile>
     <ClCompile Include="diagnostics\debug_utils.cpp">
       <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d9.cpp">
+      <Filter>Source Files\Backends\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d9\texmgr.cpp">
+      <Filter>Source Files\Backends\D3D9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

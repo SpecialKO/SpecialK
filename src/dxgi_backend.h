@@ -44,6 +44,10 @@ namespace SK
       D3D11_QUERY_DATA_PIPELINE_STATISTICS
                  last_results;
     } extern pipeline_stats_d3d11;
+
+    //extern HMODULE hModD3D10;
+    extern HMODULE hModD3D11;
+    //extern HMODULE hModD3D12;
   }
 }
 

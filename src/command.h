@@ -22,13 +22,7 @@
 #ifndef __SK__COMMAND_H__
 #define __SK__COMMAND_H__
 
-#ifdef _MSC_VER
 # include <unordered_map>
-//# include <hash_map>
-//# define hash_map stdext::hash_map
-#else
-# include <hash_map.h>
-#endif
 
 #include <locale> // tolower (...)
 

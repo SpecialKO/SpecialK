@@ -30,7 +30,7 @@
 #define _NO_CVCONST_H
 #include <dbghelp.h>
 
-FILE* fGameOutput = nullptr;
+sk_logger_t game_debug;
 
 typedef BOOL (WINAPI *TerminateProcess_pfn)(HANDLE hProcess, UINT uExitCode);
 TerminateProcess_pfn TerminateProcess_Original = nullptr;
@@ -56,26 +56,20 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
 {
   // fprintf is stupid, but lpOutputString already contains a newline and
   //   fputs would just add another one...
-  fprintf (fGameOutput, "%s", lpOutputString);
-  fprintf (stdout,      "%s", lpOutputString);
+  game_debug.LogEx (true,   L"%hs", lpOutputString);
+  fprintf          (stdout,  "%s",  lpOutputString);
 
   OutputDebugStringA_Original (lpOutputString);
-
-  if (config.system.display_debug_out)
-    fflush (fGameOutput);
 }
 
 void
 WINAPI
 OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 {
-  fprintf (fGameOutput, "%ws", lpOutputString);
-  fprintf (stdout,      "%ws", lpOutputString);
+  game_debug.LogEx (true,   L"%s",  lpOutputString);
+  fprintf          (stdout,  "%ws", lpOutputString);
 
   OutputDebugStringW_Original (lpOutputString);
-
-  if (config.system.display_debug_out)
-    fflush (fGameOutput);
 }
 
 bool spoof_debugger = false;
@@ -102,11 +96,6 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
           (LPVOID *)&IsDebuggerPresent_Original );
 
   spoof_debugger = bAllow;
-
-  //
-  // TODO: Move into own function
-  //
-  fGameOutput = fopen ("logs/game_output.log", "w+");
 
   SK_CreateDLLHook ( L"kernel32.dll", "OutputDebugStringA",
                      OutputDebugStringA_Detour,
@@ -140,5 +129,8 @@ SK_IsDebuggerPresent (void) {
     SK::Diagnostics::Debugger::Allow (); // DONTCARE, just init
   }
 
-  return IsDebuggerPresent_Original ();
+  if (IsDebuggerPresent_Original)
+    return IsDebuggerPresent_Original ();
+
+  return FALSE;
 }

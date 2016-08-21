@@ -66,8 +66,8 @@ struct process_stats_t : WMI_refresh_instance_thread_t
 
 extern process_stats_t process_stats;
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_MonitorProcess (LPVOID user);
 
 #endif /* __SK__MEMORY_MONITOR_H__ */

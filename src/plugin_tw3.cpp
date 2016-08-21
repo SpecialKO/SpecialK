@@ -10,6 +10,8 @@
 
 #include "core.h"
 
+#include <process.h>
+
 sk::ParameterFactory tw3_factory;
 
 // The MOD's settings
@@ -103,8 +105,8 @@ SK_FO4_IsBorderlessWindow (void)
 
 static RECT window;
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_TW3_RealizeFullscreenBorderless (LPVOID user)
 {
   DEVMODE devmode = { 0 };
@@ -240,7 +242,12 @@ SK_TW3_ResizeBuffers (IDXGISwapChain *This,
     This->GetFullscreenState (&fullscreen, nullptr);
 
     if (SK_TW3_MaximizeBorderless () && (! fullscreen)) {
-      CreateThread (nullptr, 0, SK_TW3_RealizeFullscreenBorderless, (LPVOID)This, 0, nullptr);
+      _beginthreadex ( nullptr,
+                         0,
+                           SK_TW3_RealizeFullscreenBorderless,
+                             (LPVOID)This,
+                               0x00,
+                                 nullptr );
     }
   }
 
@@ -294,7 +301,12 @@ SK_TW3_PresentFirstFrame ( IDXGISwapChain *This,
     SK_EnableHook (DXGISwap_ResizeBuffers_Override);
 
 
-    CreateThread (nullptr, 0, SK_TW3_RealizeFullscreenBorderless, (LPVOID)This, 0, nullptr);
+    _beginthreadex ( nullptr,
+                       0,
+                         SK_TW3_RealizeFullscreenBorderless,
+                           (LPVOID)This,
+                             0x00,
+                               nullptr );
 
     return S_OK;
   //}

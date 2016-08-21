@@ -68,8 +68,8 @@ public:
 
   bool isVisible (void) { return visible; }
 
-  static DWORD
-    WINAPI
+  static unsigned int
+    __stdcall
     MessagePump (LPVOID hook_ptr);
 
   static LRESULT

@@ -18,6 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "osd.h"
 
@@ -83,9 +84,6 @@ bool osd_shutting_down = false;
 // Initialize some things (like color, position and scale) on first use
 bool osd_init          = false;
 
-static CRITICAL_SECTION osd_cs  = { 0 };
-static bool             cs_init = false;
-
 std::wstring rtss_hook_dll = L"";
 
 class SK_AutoCriticalSection {
@@ -141,8 +139,6 @@ private:
 BOOL
 SK_ReleaseSharedMemory (LPVOID lpMemory)
 {
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
-
   if (lpMemory != nullptr) {
     return UnmapViewOfFile (lpMemory);
   }
@@ -153,8 +149,6 @@ SK_ReleaseSharedMemory (LPVOID lpMemory)
 LPVOID
 SK_GetSharedMemory (DWORD dwProcID)
 {
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
-
   if (osd_shutting_down && osd_init == false)
     return nullptr;
 
@@ -207,8 +201,6 @@ SK_GetSharedMemory (DWORD dwProcID)
 LPVOID
 SK_GetSharedMemory (void)
 {
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
-
   return SK_GetSharedMemory (GetCurrentProcessId ());
 }
 
@@ -384,10 +376,6 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   return wszOut;
 }
 
-
-#include <dwmapi.h>
-#pragma comment (lib, "dwmapi.lib")
-
 #define CINTERFACE
 #include <d3d9.h>
 extern IDirect3DSwapChain9* g_pSwapChain9;
@@ -398,10 +386,6 @@ BOOL
 __stdcall
 SK_DrawExternalOSD (std::string app_name, std::string text)
 {
-  if (! cs_init) {
-    return TRUE;
-  }
-
   external_osd_name = app_name;
 
   SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
@@ -436,8 +420,6 @@ void
 SK_InstallOSD (void)
 {
 #if 0
-  SK_AutoCriticalSection auto_cs (&osd_cs);
-
 #ifndef _WIN64
   HMODULE hModRTSS = GetModuleHandle (L"RTSSHooks.dll");
 #else
@@ -480,6 +462,9 @@ SK_InstallOSD (void)
 #endif
   }
 #endif
+  SK_SetOSDScale (config.osd.scale);
+  SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
+  SK_SetOSDColor (config.osd.red, config.osd.green, config.osd.blue);
 }
 
 
@@ -496,32 +481,21 @@ SK_DrawOSD (void)
 
   SK::Framerate::Tick (dt, now);
 
-  if (! cs_init) {
-    InitializeCriticalSectionAndSpinCount (&osd_cs, (1UL << 31));
-    cs_init = true;
-  }
-
   static bool cleared = false;
 
+#if 0
   // Automatically free VRAM cache when it is a bit on the excessive side
-  if (process_stats.memory.page_file_bytes >> 30ULL > 28) {
+  if ((process_stats.memory.page_file_bytes >> 30ULL) > 28) {
     SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 9999");
   }
 
-  if (process_stats.memory.page_file_bytes >> 30ULL < 12) {
+  if ((process_stats.memory.page_file_bytes >> 30ULL) < 12) {
     SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 0");
   }
+#endif
 
   if ((! config.osd.show) && cleared)
     return TRUE;
-
-#if 0
-  SK_AutoCriticalSection auto_cs (&osd_cs, true);
-
-  if (! auto_cs.try_result ()) {
-    return false;
-  }
-#endif
 
   //
   // Enough attempts to cover 15 Seconds at 240 Hz
@@ -537,19 +511,18 @@ SK_DrawOSD (void)
     ++connect_attempts;
 
     // Test for _equality_, because we only want to print this once!
-    if (connect_attempts == MAX_RTSS_ATTEMPTS-1)
-      SK_InstallOSD ();
     if (connect_attempts == MAX_RTSS_ATTEMPTS) {
       dll_log.Log (L"[   RTSS   ] Exhausted Connection Attempts... disabling OSD!");
-      //DwmEnableMMCSS (TRUE);
+      config.osd.show  = false;
+      cleared          = true;
+      connect_attempts = 1; // Restart the counter so that the OSD can be turned on
+                            //   if RTSS is started after the game.
     }
 
-    return false;
+    return FALSE;
   }
 
   if (! osd_init) {
-    //DwmEnableMMCSS (TRUE);
-
     osd_init = true;
 
 #ifndef _WIN64
@@ -568,10 +541,6 @@ SK_DrawOSD (void)
 
     dll_log.LogEx ( false,
       L"successful after %u attempt(s)!\n", connect_attempts );
-
-    SK_SetOSDScale (config.osd.scale);
-    SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
-    SK_SetOSDColor (config.osd.red, config.osd.green, config.osd.blue);
 
     SK_InstallOSD ();
   }
@@ -613,7 +582,7 @@ SK_DrawOSD (void)
     }
 
     else if (isFallout4) {
-      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.2   %ws\n\n",
+      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.3   %ws\n\n",
                  time
       OSD_END
     } else if (isDivinityOrigSin) {
@@ -1333,8 +1302,6 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  SK_AutoCriticalSection auto_cs (&osd_cs);
-
   static DWORD dwProcID =
     GetCurrentProcessId ();
 
@@ -1418,8 +1385,6 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 void
 SK_ReleaseOSD (void)
 {
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
-
   // Reload the RTSS DLL so we can update the text
   HMODULE hModRTSS =
     LoadLibraryW (rtss_hook_dll.c_str ());
@@ -1443,8 +1408,6 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
     lpAppName = "Special K";
-
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   // 0,0 means don't touch anything.
   if (x == 0 && y == 0)
@@ -1498,8 +1461,6 @@ SK_SetOSDColor (int red, int green, int blue, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
     lpAppName = "Special K";
-
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   LPVOID pMapAddr =
     SK_GetSharedMemory ();
@@ -1565,8 +1526,6 @@ SK_SetOSDScale (DWORD dwScale, bool relative, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
-
   LPVOID pMapAddr =
     SK_GetSharedMemory ();
 
@@ -1621,8 +1580,6 @@ SK_ResizeOSD (int scale_incr, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
     lpAppName = "Special K";
-
-  //SK_AutoCriticalSection auto_cs (&osd_cs);
 
   SK_SetOSDScale (scale_incr, true, lpAppName);
 }

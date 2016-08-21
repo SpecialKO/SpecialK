@@ -49,7 +49,7 @@ namespace COM {
       void Unlock       (void);
     } wmi;
 
-    int              threads;
+    LONG               threads;
 
     HRESULT InitThread   (void);
     bool    UninitThread (void);
@@ -60,8 +60,8 @@ extern bool SK_InitWMI     (void);
 
 process_stats_t process_stats;
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_MonitorProcess (LPVOID user)
 {
   if (! SK_InitWMI ())

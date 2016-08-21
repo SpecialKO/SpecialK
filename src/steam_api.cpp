@@ -963,6 +963,9 @@ void
 __stdcall
 SK::SteamAPI::SetOverlayState (bool active)
 {
+  if (config.steam.silent)
+    return;
+
   EnterCriticalSection (&callback_cs);
 
   GameOverlayActivated_t state;
@@ -1048,7 +1051,7 @@ SK_SteamAPI_Init (void)
   }
 
   hSteamAPI = GetModuleHandle          (steam_dll_str);
-  bImported = SK_Load_SteamAPI_Imports (hSteamAPI, false);//true);
+  bImported = SK_Load_SteamAPI_Imports (hSteamAPI, true);
 
   if (! bImported) {
     //init = false;

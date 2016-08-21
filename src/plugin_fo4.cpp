@@ -8,6 +8,8 @@
 
 #include "log.h"
 
+#include <process.h>
+
 sk::ParameterFactory fo4_factory;
 
 // These are the actual GAME settings
@@ -195,8 +197,8 @@ SK_FO4_IsBorderlessWindow (void)
 
 RECT window;
 
-DWORD
-WINAPI
+unsigned int
+__stdcall
 SK_FO4_RealizeFullscreenBorderless (LPVOID user)
 {
   DEVMODE devmode = { 0 };
@@ -355,7 +357,12 @@ SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
                (LPVOID *)&SK_DetourWindowProc_Original );
     SK_EnableHook (SK_DetourWindowProc);
 
-    CreateThread (nullptr, 0, SK_FO4_RealizeFullscreenBorderless, (LPVOID)This, 0, nullptr);
+    _beginthreadex ( nullptr,
+                       0,
+                         SK_FO4_RealizeFullscreenBorderless,
+                           (LPVOID)This,
+                             0x00,
+                               nullptr );
 
     return S_OK;
   }
