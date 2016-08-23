@@ -330,8 +330,10 @@ public:
     if (SteamAPI_RunCallbacks == nullptr)
       return false;
 
-    if (! SteamAPI_InitSafe ())
-      return false;
+    if (config.steam.preload) {
+      if (! SteamAPI_InitSafe ())
+        return false;
+    }
 
     client_ = SteamClient ();
 
@@ -1026,6 +1028,10 @@ SteamAPI_Init_Detour (void)
   return ret;
 }
 
+//
+// This entire code is a big old mess, full of compatibility hacks
+//   it needs to be re-written with fresh eyes some day :)
+//
 bool
 S_CALLTYPE
 SK_SteamAPI_Init (void)
@@ -1051,11 +1057,11 @@ SK_SteamAPI_Init (void)
   }
 
   hSteamAPI = GetModuleHandle          (steam_dll_str);
-  bImported = SK_Load_SteamAPI_Imports (hSteamAPI, true);
+  bImported = SK_Load_SteamAPI_Imports (hSteamAPI, config.steam.preload);
 
-  if (! bImported) {
-    //init = false;
-    //return false;
+  if (config.steam.preload && (! bImported)) {
+    init = false;
+    return false;
   }
 
   steam_ctx.Init (hSteamAPI);

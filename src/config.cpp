@@ -28,7 +28,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.4.0";
+std::wstring SK_VER_STR = L"0.4.1";
 
 sk::INI::File*  dll_ini = nullptr;
 
@@ -115,6 +115,7 @@ struct {
 
   struct {
     sk::ParameterInt*     appid;
+    sk::ParameterBool*    preload;
   } system;
 
   struct {
@@ -926,6 +927,16 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.System",
         L"AppID" );
 
+  steam.system.preload =
+    static_cast <sk::ParameterBool *>
+    (g_ParameterFactory.create_parameter <bool> (
+      L"Whether to pre-load the SteamAPI DLL")
+    );
+  steam.system.preload->register_to_ini (
+    dll_ini,
+      L"Steam.System",
+        L"Preload" );
+
   steam.log.silent =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -1193,6 +1204,8 @@ SK_LoadConfig (std::wstring name) {
 
   if (steam.system.appid->load ())
     config.steam.appid = steam.system.appid->get_value ();
+  if (steam.system.preload->load ())
+    config.steam.preload = steam.system.preload->get_value ();
 
   if (init_delay->load ())
     config.system.init_delay = init_delay->get_value ();
@@ -1312,6 +1325,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   }
 
   steam.system.appid->set_value              (config.steam.appid);
+  steam.system.preload->set_value            (config.steam.preload);
 
   steam.log.silent->set_value                (config.steam.silent);
 
@@ -1406,6 +1420,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   steam.achievements.notify_corner->store ();
   steam.achievements.notify_insetX->store ();
   steam.achievements.notify_insetY->store ();
+  steam.system.preload->store             ();
   steam.system.appid->store               ();
   steam.log.silent->store                 ();
 

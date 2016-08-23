@@ -167,6 +167,8 @@ struct sk_config_t
     bool    nosound           = false;
     bool    silent            = false;
 
+    bool    preload           = false;
+
     int     appid             = 0;
   } steam;
 
