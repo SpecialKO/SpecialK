@@ -760,6 +760,71 @@ D3D9EndScene_Override (IDirect3DDevice9* This)
   return hr;
 }
 
+void
+SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
+{
+  static LPVOID vftable_17  = nullptr;
+  static LPVOID vftable_121 = nullptr;
+
+  void** vftable = *(void***)*&pDev;
+
+  if (D3D9Present_Original != nullptr) {
+    if (config.render.d3d9.hook_type == 0) {
+      //dll_log.Log (L"Rehooking IDirect3DDevice9::Present (...)");
+
+      if (MH_OK == SK_RemoveHook (vftable [17]))
+        D3D9Present_Original = nullptr;
+      else {
+        dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
+                      L"IDirect3DDevice9::Present (...)!" );
+        if (MH_OK == SK_RemoveHook (vftable_17))
+          D3D9Present_Original = nullptr;
+      }
+    }
+  }
+
+  D3D9_INTERCEPT ( &pDev, 17,
+                   "IDirect3DDevice9::Present",
+                    D3D9PresentCallback,
+                    D3D9Present_Original,
+                    D3D9PresentDevice_pfn );
+
+  vftable_17 = vftable [17];
+
+  CComPtr <IDirect3DDevice9Ex> pDevEx;
+
+  if (SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevEx))))
+  {
+    vftable = *(void***)*&pDevEx;
+
+    if (D3D9PresentEx_Original != nullptr) {
+      if (config.render.d3d9.hook_type == 0) {
+        //dll_log.Log (L"Rehooking IDirect3DDevice9Ex::PresentEx (...)");
+
+        if (MH_OK == SK_RemoveHook (vftable [121]))
+          D3D9PresentEx_Original = nullptr;
+        else {
+          dll_log.Log ( L"[   D3D9   ] Altered vftable detectd, re-hooking "
+                        L"IDirect3DDevice9Ex::PresentEx (...)!" );
+          if (MH_OK == SK_RemoveHook (vftable_121))
+            D3D9PresentEx_Original = nullptr;
+        }
+      }
+    }
+
+    //
+    // D3D9Ex Specific Stuff
+    //
+    D3D9_INTERCEPT ( &pDevEx, 121,
+                       "IDirect3DDevice9Ex::PresentEx",
+                        D3D9PresentCallbackEx,
+                        D3D9PresentEx_Original,
+                        D3D9PresentDeviceEx_pfn );
+
+    vftable_121 = vftable [121];
+  }
+}
+
 COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
@@ -791,6 +856,8 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
 
+  SK_D3D9_HookPresent (This);
+
   return hr;
 }
 
@@ -816,6 +883,12 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
                                             pFullscreenDisplayMode ));
+
+  CComPtr <IDirect3DDevice9> pDev = nullptr;
+
+  if (SUCCEEDED (This->QueryInterface ( IID_PPV_ARGS (&pDev) ))) {
+    SK_D3D9_HookPresent (pDev);
+  }
 
   return hr;
 }
@@ -1372,6 +1445,10 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (! SUCCEEDED (ret))
     return ret;
 
+  SK_SetPresentParamsD3D9 ( (IDirect3DDevice9 *)*ppReturnedDeviceInterface,
+                              pPresentationParameters );
+
+
       D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                           "IDirect3DDevice9::SetCursorPosition",
                           D3D9SetCursorPosition_Override,
@@ -1536,11 +1613,8 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (hFocusWindow != 0)
     hWndRender = hFocusWindow;
 
-  SK_SetPresentParamsD3D9 ( (IDirect3DDevice9 *)*ppReturnedDeviceInterface,
-                              pPresentationParameters );
-
   //// Allow the hooked function to change stuff immediately
-  return (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
+  return S_OK; ////////return (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
 }
 
 HRESULT
@@ -1607,6 +1681,10 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     return ret;
   }
 
+  SK_SetPresentParamsD3D9 ( *ppReturnedDeviceInterface,
+                               pPresentationParameters );
+
+
       D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                           "IDirect3DDevice9::SetCursorPosition",
                           D3D9SetCursorPosition_Override,
@@ -1771,11 +1849,8 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   if (hFocusWindow != 0)
     hWndRender = hFocusWindow;
 
-  SK_SetPresentParamsD3D9 ( *ppReturnedDeviceInterface,
-                               pPresentationParameters );
-
-  //// Allow the hooked function to change stuff immediately
-  return (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
+  //// Allow the hooked function to change stuff immediately (no, don't)
+  return S_OK; ////////return (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
 }
 
 
@@ -2144,27 +2219,16 @@ HookD3D9Ex (LPVOID user)
                         D3D9Reset_Override,
                         D3D9Reset_Original,
                         D3D9Reset_pfn );
-
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 17,
-                       "IDirect3DDevice9::Present",
-                        D3D9PresentCallback,
-                        D3D9Present_Original,
-                        D3D9PresentDevice_pfn );
-
       //
       // D3D9Ex Specific Stuff
       //
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 121,
-                       "IDirect3DDevice9Ex::PresentEx",
-                        D3D9PresentCallbackEx,
-                        D3D9PresentEx_Original,
-                        D3D9PresentDeviceEx_pfn );
-
       D3D9_INTERCEPT ( ppReturnedDeviceInterface, 132,
                        "IDirect3DDevice9Ex::ResetEx",
                         D3D9ResetEx,
                         D3D9ResetEx_Original,
                         D3D9ResetEx_pfn );
+
+      SK_D3D9_HookPresent (pD3D9DevEx);
     }
   }
 

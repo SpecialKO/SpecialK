@@ -69,13 +69,13 @@ struct sk_window_s {
 HMODULE                      SK::DXGI::hModD3D11 = 0;
 SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11;
 
-DWORD         dwRenderThread = 0x0000;
-volatile bool __d3d11_ready  = false;
+         DWORD dwRenderThread = 0x0000;
+volatile LONG  __d3d11_ready  = FALSE;
 
 void WaitForInitD3D11 (void)
 {
-  while (! __d3d11_ready)
-    Sleep (16);
+  while (! InterlockedCompareExchange (&__d3d11_ready, FALSE, FALSE))
+    Sleep (config.system.init_delay);
 }
 
 extern sk_window_s game_window;
@@ -371,6 +371,11 @@ SKX_D3D11_EnableFullscreen (bool bFullscreen)
 
 bool __stdcall SK_D3D11_TextureIsCached    (ID3D11Texture2D* pTex);
 void __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex);
+
+
+unsigned int __stdcall HookD3D11                   (LPVOID user);
+void                   SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain);
+void         WINAPI    SK_DXGI_SetPreferredAdapter (int override_id);
 
 
 struct dxgi_caps_t {
@@ -1295,7 +1300,7 @@ __declspec (noinline)
       //mode_desc.RefreshRate = { 0 };
       //ResizeTarget_Original (This, &mode_desc);
 
-      if (bFlipMode)
+      //if (bFlipMode)
         ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
     }
 
@@ -1330,6 +1335,8 @@ __declspec (noinline)
     HRESULT ret;
     DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
 
+    SK_DXGI_HookPresent (This);
+
     return ret;
   }
 
@@ -1351,6 +1358,8 @@ __declspec (noinline)
 
     HRESULT ret;
     DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
+
+    SK_DXGI_HookPresent (This);
 
     return ret;
   }
@@ -1491,16 +1500,29 @@ __declspec (noinline)
     }
 
 
-    if (fake)
-      return CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain);
+    if (fake) {
+      HRESULT hr = 
+        CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain);
+
+      if ( SUCCEEDED (hr)         &&
+           ppSwapChain != nullptr &&
+        (*ppSwapChain) != nullptr )
+      {
+        SK_DXGI_HookPresent (*ppSwapChain);
+      }
+
+      return hr;
+    }
 
 
     DXGI_CALL(ret, CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain));
 
-    if ( SUCCEEDED (ret)      &&
-         ppSwapChain  != NULL &&
-       (*ppSwapChain) != NULL )
+    if ( SUCCEEDED (ret)         &&
+         ppSwapChain  != nullptr &&
+       (*ppSwapChain) != nullptr )
     {
+      SK_DXGI_HookPresent (*ppSwapChain);
+
       //if (bFlipMode || bWait)
         //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count, pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 
@@ -2771,9 +2793,6 @@ void WINAPI SK_D3D11_PopulateResourceList (void);
 
 typedef void (WINAPI *finish_pfn)(void);
 
-unsigned int __stdcall HookD3D11                   (LPVOID user);
-void         WINAPI    SK_DXGI_SetPreferredAdapter (int override_id);
-
 void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
@@ -2953,6 +2972,64 @@ SK::DXGI::Startup (void)
 
 extern "C" bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t* backend);
 
+
+void
+SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
+{
+  static LPVOID vftable_8  = nullptr;
+  static LPVOID vftable_22 = nullptr;
+
+  void** vftable = *(void***)*&pSwapChain;
+
+  if (Present_Original != nullptr) {
+    //dll_log.Log (L"Rehooking IDXGISwapChain::Present (...)");
+
+    if (MH_OK == SK_RemoveHook (vftable [8]))
+      Present_Original = nullptr;
+    else {
+      dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
+                    L"IDXGISwapChain::Present (...)!" );
+      if (MH_OK == SK_RemoveHook (vftable_8))
+        Present_Original = nullptr;
+    }
+  }
+
+  DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
+                      "IDXGISwapChain::Present",
+                       PresentCallback,
+                       Present_Original,
+                       PresentSwapChain_pfn );
+
+  vftable_8 = vftable [8];
+
+
+  CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
+
+  if (SUCCEEDED (pSwapChain->QueryInterface (IID_PPV_ARGS (&pSwapChain1)))) {
+    vftable = *(void***)*&pSwapChain1;
+
+    if (Present1_Original != nullptr) {
+      //dll_log.Log (L"Rehooking IDXGISwapChain::Present1 (...)");
+
+      if (MH_OK == SK_RemoveHook (vftable [22]))
+        Present1_Original = nullptr;
+      else {
+        dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
+                      L"IDXGISwapChain1::Present1 (...)!" );
+        if (MH_OK == SK_RemoveHook (vftable_22))
+          Present1_Original = nullptr;
+      }
+    }
+
+    DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
+                        "IDXGISwapChain1::Present1",
+                         Present1Callback,
+                         Present1_Original,
+                         Present1SwapChain1_pfn );
+
+    vftable_22 = vftable [22];
+  }
+}
 
 unsigned int
 __stdcall
@@ -3145,24 +3222,9 @@ HookD3D11 (LPVOID user)
           }
         }
 
+        SK_DXGI_HookPresent (pSwapChain);
+
         __d3d11_ready = true;
-
-        Sleep (1000UL);
-
-        //
-        // Insert a delay here if necessary for third-party compatibility
-        //
-
-        DXGI_VIRTUAL_HOOK (&pSwapChain, 8, "IDXGISwapChain::Present",
-                                PresentCallback, Present_Original,
-                                PresentSwapChain_pfn);
-
-        CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
-        if (SUCCEEDED (pSwapChain->QueryInterface (IID_PPV_ARGS (&pSwapChain1)))) {
-          DXGI_VIRTUAL_HOOK (&pSwapChain1, 22, "IDXGISwapChain1::Present1",
-                                  Present1Callback, Present1_Original,
-                                  Present1SwapChain1_pfn);
-        }
       }
     }
   }
