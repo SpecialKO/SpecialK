@@ -958,6 +958,12 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
   {
     g_pDXGISwap = This;
 
+    //
+    // Early-out for games that use testing to minimize blocking
+    //
+    if (PresentFlags & DXGI_PRESENT_TEST)
+      return Present1_Original (This, SyncInterval, PresentFlags, pPresentParameters);
+
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
 
@@ -1048,6 +1054,13 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
                                        UINT            Flags)
   {
     g_pDXGISwap = This;
+
+    //
+    // Early-out for games that use testing to minimize blocking
+    //
+    if (Flags & DXGI_PRESENT_TEST)
+      return Present_Original (This, SyncInterval, Flags);
+
 
 #ifdef DARK_SOULS
     if (__DS3_HEIGHT != nullptr) {
@@ -2861,6 +2874,8 @@ dxgi_init_callback (finish_pfn finish)
     SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root);
   }
 
+  SK_GetCommandProcessor ()->AddVariable ("TexCache.Enable",
+         new SK_VarStub <bool> ((bool *)&config.textures.d3d11.cache));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEntries",
          new SK_VarStub <int> ((int *)&cache_opts.max_entries));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MinEntries",
