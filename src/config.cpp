@@ -28,7 +28,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.4.1";
+std::wstring SK_VER_STR = L"0.4.2";
 
 sk::INI::File*  dll_ini = nullptr;
 
@@ -154,12 +154,14 @@ struct {
     sk::ParameterBool*  flip_discard;
   } framerate;
   struct {
-    sk::ParameterInt*   adapter_override;
+    sk::ParameterInt*     adapter_override;
+    sk::ParameterStringW* max_res;
+    sk::ParameterStringW* min_res;
   } dxgi;
   struct {
-    sk::ParameterBool*  force_d3d9ex;
-    sk::ParameterInt*   hook_type;
-    sk::ParameterInt*   refresh_rate;
+    sk::ParameterBool*    force_d3d9ex;
+    sk::ParameterInt*     hook_type;
+    sk::ParameterInt*     refresh_rate;
   } d3d9;
 } render;
 
@@ -590,6 +592,27 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.DXGI",
           L"AdapterOverride" );
+
+    render.dxgi.max_res =
+      static_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"Maximum Resolution To Report")
+        );
+    render.dxgi.max_res->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"MaxRes" );
+
+    render.dxgi.min_res =
+      static_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"Minimum Resolution To Report")
+        );
+    render.dxgi.min_res->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"MinRes" );
+
 
     texture.d3d11.cache =
       static_cast <sk::ParameterBool *>
@@ -1138,6 +1161,19 @@ SK_LoadConfig (std::wstring name) {
         config.render.dxgi.adapter_override =
           render.dxgi.adapter_override->get_value ();
 
+      if (render.dxgi.max_res->load ()) {
+        swscanf ( render.dxgi.max_res->get_value_str ().c_str (),
+                    L"%lux%lu",
+                    &config.render.dxgi.res.max.x,
+                      &config.render.dxgi.res.max.y );
+      }
+      if (render.dxgi.min_res->load ()) {
+        swscanf ( render.dxgi.min_res->get_value_str ().c_str (),
+                    L"%lux%lu",
+                    &config.render.dxgi.res.min.x,
+                      &config.render.dxgi.res.min.y );
+      }
+
       if (texture.d3d11.cache->load ())
         config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
       if (texture.d3d11.precise_hash->load ())
@@ -1302,6 +1338,20 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       texture.cache.min_evict->set_value   (config.textures.cache.min_evict);
       texture.cache.max_size->set_value    (config.textures.cache.max_size);
       texture.cache.min_size->set_value    (config.textures.cache.min_size);
+
+      wchar_t wszFormattedRes [64] = { L'\0' };
+
+      _swprintf ( wszFormattedRes, L"%lux%lu",
+                    config.render.dxgi.res.max.x,
+                      config.render.dxgi.res.max.y );
+
+      render.dxgi.max_res->set_value_str (wszFormattedRes);
+
+      _swprintf ( wszFormattedRes, L"%lux%lu",
+                    config.render.dxgi.res.min.x,
+                      config.render.dxgi.res.min.y );
+
+      render.dxgi.min_res->set_value_str (wszFormattedRes);
     }
 
     if (dll_role == D3D9) {
@@ -1395,6 +1445,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       texture.cache.max_size->store    ();
       texture.cache.min_size->store    ();
 
+      render.dxgi.max_res->store ();
+      render.dxgi.min_res->store ();
     }
 
     if (dll_role == D3D9) {

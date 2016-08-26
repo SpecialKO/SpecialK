@@ -190,6 +190,18 @@ struct sk_config_t
     } d3d9;
     struct {
       int     adapter_override = -1;
+      struct {
+        struct {
+          unsigned int x       =  0;
+          unsigned int y       =  0;
+          bool isZero (void) { return x == 0 && y == 0; };
+        } min;
+        struct {
+          unsigned int x       =  0;
+          unsigned int y       =  0;
+          bool isZero (void) { return x == 0 && y == 0; };
+        } max;
+      } res;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)

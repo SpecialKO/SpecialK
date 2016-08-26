@@ -48,9 +48,13 @@
 #include "command.h"
 #include "framerate.h"
 
+#undef min
+#undef max
+
 #include <set>
 #include <queue>
 #include <vector>
+#include <limits>
 #include <algorithm>
 #include <functional>
 
@@ -376,6 +380,94 @@ void __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex);
 unsigned int __stdcall HookD3D11                   (LPVOID user);
 void                   SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain);
 void         WINAPI    SK_DXGI_SetPreferredAdapter (int override_id);
+
+
+enum SK_DXGI_ResType {
+  WIDTH  = 0,
+  HEIGHT = 1
+};
+
+auto SK_DXGI_RestrictResMax = []( SK_DXGI_ResType dim,
+                                  auto&           last,
+                                  auto            idx,
+                                  auto            covered,
+                                  DXGI_MODE_DESC* pDesc )->
+bool
+ {
+   auto& val = dim == WIDTH ? pDesc [idx].Width :
+                              pDesc [idx].Height;
+
+   auto  max = dim == WIDTH ? config.render.dxgi.res.max.x :
+                              config.render.dxgi.res.max.y;
+
+   bool covered_already = covered.count (idx) > 0;
+
+   if ( (max > 0 &&
+         val > max) || covered_already ) {
+     for ( int i = idx ; i > 0 ; --i ) {
+       if ( config.render.dxgi.res.max.x >= pDesc [i].Width  &&
+            config.render.dxgi.res.max.y >= pDesc [i].Height &&
+            covered.count (i) == 0 ) {
+         pDesc [idx] = pDesc [i];
+         covered.insert (idx);
+         covered.insert (i);
+         return false;
+       }
+     }
+
+     covered.insert (idx);
+
+     pDesc [idx].Width  = config.render.dxgi.res.max.x;
+     pDesc [idx].Height = config.render.dxgi.res.max.y;
+
+     return true;
+   }
+
+   covered.insert (idx);
+
+   return false;
+ };
+
+auto SK_DXGI_RestrictResMin = []( SK_DXGI_ResType dim,
+                                  auto&           first,
+                                  auto            idx,
+                                  auto            covered,
+                                  DXGI_MODE_DESC* pDesc )->
+bool
+ {
+   auto& val = dim == WIDTH ? pDesc [idx].Width :
+                              pDesc [idx].Height;
+
+   auto  min = dim == WIDTH ? config.render.dxgi.res.min.x :
+                              config.render.dxgi.res.min.y;
+
+   bool covered_already = covered.count (idx) > 0;
+
+   if ( (min > 0 &&
+         val < min) || covered_already ) {
+     for ( int i = 0 ; i < idx ; ++i ) {
+       if ( config.render.dxgi.res.min.x <= pDesc [i].Width  &&
+            config.render.dxgi.res.min.y <= pDesc [i].Height &&
+            covered.count (i) == 0 ) {
+         pDesc [idx] = pDesc [i];
+         covered.insert (idx);
+         covered.insert (i);
+         return false;
+       }
+     }
+
+     covered.insert (idx);
+
+     pDesc [idx].Width  = config.render.dxgi.res.min.x;
+     pDesc [idx].Height = config.render.dxgi.res.min.y;
+
+     return true;
+   }
+
+   covered.insert (idx);
+
+   return false;
+ };
 
 
 struct dxgi_caps_t {
@@ -1096,29 +1188,26 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
     }
 
     if (! bFlipMode) {
+      hr = S_OK;//((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
+              //(This, interval, flags | DXGI_PRESENT_TEST);
+
       // Test first, then do
-      //if (S_OK == ((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
-                    //(This, interval, flags | DXGI_PRESENT_TEST)) {
+      if (SUCCEEDED (hr)) {
         hr =
           ((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
                        (This, interval, flags);
-      //}
+      }
 
-      if (hr != S_OK) {
+      if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED) {
           dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
                         L"returned non-S_OK (%s :: %s)",
                           SK_DescribeHRESULT (hr),
                             SUCCEEDED (hr) ? L"Success" :
                                              L"Fail" );
       }
-    } else {
-      // No overlays will work if we don't do this...
-      /////if (config.osd.show) {
-        hr =
-          ((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
-          (This, 0, flags | DXGI_PRESENT_DO_NOT_SEQUENCE | DXGI_PRESENT_DO_NOT_WAIT);
-      /////}
+    }
 
+    else {
       DXGI_PRESENT_PARAMETERS pparams;
       pparams.DirtyRectsCount = 0;
       pparams.pDirtyRects     = nullptr;
@@ -1128,7 +1217,20 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
       CComPtr <IDXGISwapChain1> pSwapChain1;
       if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain1))))
       {
-        hr = Present1_Original (pSwapChain1, interval, flags, &pparams);
+        //hr = Present1_Original (pSwapChain1, interval, flags | DXGI_PRESENT_TEST, &pparams);
+
+        bool can_present = true;//SUCCEEDED (hr);
+
+        if (can_present) {
+        // No overlays will work if we don't do this...
+        /////if (config.osd.show) {
+          hr =
+            ((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
+            (This, 0, flags | DXGI_PRESENT_DO_NOT_SEQUENCE | DXGI_PRESENT_DO_NOT_WAIT);
+        /////}
+
+          hr = Present1_Original (pSwapChain1, interval, flags, &pparams);
+        }
       }
     }
 
@@ -1223,12 +1325,86 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
 _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                            DXGI_MODE_DESC *pDesc)
   {
-//    dll_log.Log (L"[   DXGI   ] [!] IDXGIOutput::GetDisplayModeList (...)");
+    if (pDesc != nullptr) {
+      dll_log.Log ( L"[   DXGI   ] [!] IDXGIOutput::GetDisplayModeList (%ph, "
+                                         L"EnumFormat=%lu, Flags=%lu, *pNumModes=%lu, "
+                                         L"%ph)",
+                    This,
+                    EnumFormat,
+                        Flags,
+                          *pNumModes,
+                             pDesc );
+    }
 
     HRESULT hr =
-      GetDisplayModeList_Original (This, EnumFormat, DXGI_ENUM_MODES_SCALING, pNumModes, pDesc);
+      GetDisplayModeList_Original (
+        This,
+          EnumFormat,
+            Flags | DXGI_ENUM_MODES_SCALING,
+              pNumModes,
+                pDesc );
 
-//    dll_log.Log (L" >> %lu modes", *pNumModes);
+    DXGI_MODE_DESC* pDescLocal = nullptr;
+
+    if (pDesc == nullptr && SUCCEEDED (hr)) {
+      pDescLocal = 
+        (DXGI_MODE_DESC *)
+          malloc (sizeof DXGI_MODE_DESC * *pNumModes);
+      pDesc      = pDescLocal;
+
+      hr =
+        GetDisplayModeList_Original (
+          This,
+            EnumFormat,
+              Flags | DXGI_ENUM_MODES_SCALING,
+                pNumModes,
+                  pDesc );
+    }
+
+    if (SUCCEEDED (hr)) {
+      int removed_count = 0;
+
+      if ( ! ( config.render.dxgi.res.min.isZero () &&
+               config.render.dxgi.res.max.isZero () ) &&
+           *pNumModes != 0 ) {
+        int last  = *pNumModes;
+        int first = 0;
+
+        std::set <int> coverage_min;
+        std::set <int> coverage_max;
+
+        if (! config.render.dxgi.res.min.isZero ()) {
+          // Restrict MAX (Sequential Scan: Last->First)
+          for ( int i = *pNumModes - 1 ; i >= 0 ; --i ) {
+            if (SK_DXGI_RestrictResMin (WIDTH,  first, i,  coverage_min, pDesc) |
+                SK_DXGI_RestrictResMin (HEIGHT, first, i,  coverage_min, pDesc))
+              ++removed_count;
+          }
+        }
+
+        if (! config.render.dxgi.res.max.isZero ()) {
+          // Restrict MAX (Sequential Scan: First->Last)
+          for ( int i = 0 ; i < *pNumModes ; ++i ) {
+            if (SK_DXGI_RestrictResMax (WIDTH,  last, i, coverage_max, pDesc) |
+                SK_DXGI_RestrictResMax (HEIGHT, last, i, coverage_max, pDesc))
+              ++removed_count;
+          }
+        }
+      }
+
+      if (pDesc != nullptr && pDescLocal == nullptr) {
+        dll_log.Log ( L"[   DXGI   ]      >> %lu modes (%lu removed)",
+                        *pNumModes,
+                          removed_count );
+      }
+    }
+
+    if (pDescLocal != nullptr) {
+      free (pDescLocal);
+      pDescLocal = nullptr;
+      pDesc      = nullptr;
+    }
+
     return hr;
   }
 
@@ -1479,7 +1655,7 @@ __declspec (noinline)
 
         // Flip Presentation Model requires 3 Buffers
         config.render.framerate.buffer_count =
-          max (3, config.render.framerate.buffer_count);
+          std::max (3, config.render.framerate.buffer_count);
 
         if (config.render.framerate.flip_discard &&
             dxgi_caps.present.flip_discard)
@@ -1684,7 +1860,7 @@ __declspec (noinline)
 
         // Flip Presentation Model requires 3 Buffers
         config.render.framerate.buffer_count =
-          max (3, config.render.framerate.buffer_count);
+          std::max (3, config.render.framerate.buffer_count);
 
         if (config.render.framerate.flip_discard &&
             dxgi_caps.present.flip_discard)
@@ -3353,10 +3529,6 @@ SK::DXGI::Shutdown (void)
                       (float)SK_D3D11_Textures.RedundantData_2D /
                                  (1024.0f * 1024.0f),
                         SK_D3D11_Textures.RedundantLoads_2D );
-
-    std::unordered_map      < ID3D11Texture2D *,
-                            SK_D3D11_TexMgr::tex2D_descriptor_s >::iterator it
-      = SK_D3D11_Textures.Textures_2D.begin ();
   }
 
   if (sk::NVAPI::app_name == L"DarkSoulsIII.exe") {
@@ -3373,7 +3545,7 @@ SK::DXGI::Shutdown (void)
   DeleteCriticalSection (&cs_texinject);
 #endif
 
-  FreeLibrary (hModD3D11);
+  ////FreeLibrary (hModD3D11);
 
   return SK_ShutdownCore (L"dxgi");
 }
@@ -3508,7 +3680,7 @@ SK_D3D11_TexMgr::reset (void)
 
         purged += mem_size;
 
-        AggregateSize_2D = max (0, AggregateSize_2D);
+        AggregateSize_2D = std::max ((size_t)0, AggregateSize_2D);
 
         if ( ( (AggregateSize_2D >> 20ULL) <= cache_opts.min_size &&
                                      count >= cache_opts.min_evict ) ||
@@ -3516,7 +3688,7 @@ SK_D3D11_TexMgr::reset (void)
                                      count >= cache_opts.min_evict ) ||
                                      count >= max_count )
         {
-          SK_D3D11_amount_to_purge = max (0, SK_D3D11_amount_to_purge);
+          SK_D3D11_amount_to_purge = std::max (0, SK_D3D11_amount_to_purge);
           //dll_log.Log ( L"[DX11TexMgr] Purged %llu MiB of texture "
                           //L"data across %lu textures",
                           //purged >> 20ULL, count );
@@ -4240,8 +4412,8 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
     for (unsigned int i = 0; i < pDesc->MipLevels; i++) {
       char* pData    = (char *)pInitialData [i].pSysMem;
       int stride = bpp == 0 ?
-          max (1, ((width + 3) / 4) ) * 8 :
-          max (1, ((width + 3) / 4) ) * 16;
+          std::max (1UL, ((width + 3) / 4UL) ) * 8UL :
+          std::max (1UL, ((width + 3) / 4UL) ) * 16UL;
 
       // Fast path:  Data is tightly packed and alignment agrees with
       //               convention...

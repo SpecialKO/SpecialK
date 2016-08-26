@@ -43,8 +43,10 @@ namespace SK
       ~Limiter (void) {
       }
 
-      void init (double target);
-      void wait (void);
+      void     init (double target);
+      void     wait (void);
+      bool try_wait (void); // No actual wait, just return
+                            //  whether a wait would have occurred.
 
       void   set_limit (double target);
       double get_limit (void) { return fps; };

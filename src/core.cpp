@@ -1739,6 +1739,8 @@ bool
 WINAPI
 SK_ShutdownCore (const wchar_t* backend)
 {
+  dll_log.Log (L"[ SpecialK ] --- Beginning Shutdown ---");
+
   ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);

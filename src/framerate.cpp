@@ -270,6 +270,23 @@ SK::Framerate::Limiter::init (double target)
   next.QuadPart = start.QuadPart + (ms / 1000.0) * freq.QuadPart;
 }
 
+bool
+SK::Framerate::Limiter::try_wait (void)
+{
+  if (target_fps == 0)
+    return false;
+
+  LARGE_INTEGER next_;
+  next_.QuadPart = (start.QuadPart + (double)(frames+1) * (ms / 1000.0) * (double)freq.QuadPart);
+
+  QueryPerformanceCounter_Original (&time);
+
+  if (time.QuadPart < next_.QuadPart)
+    return true;
+
+  return false;
+}
+
 void
 SK::Framerate::Limiter::wait (void)
 {
