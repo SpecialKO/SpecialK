@@ -28,7 +28,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.4.2";
+std::wstring SK_VER_STR = L"0.4.3";
 
 sk::INI::File*  dll_ini = nullptr;
 
@@ -157,6 +157,7 @@ struct {
     sk::ParameterInt*     adapter_override;
     sk::ParameterStringW* max_res;
     sk::ParameterStringW* min_res;
+    sk::ParameterInt*     swapchain_wait;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -612,6 +613,16 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.DXGI",
           L"MinRes" );
+
+    render.dxgi.swapchain_wait =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Time to wait in msec. for SwapChain")
+        );
+    render.dxgi.swapchain_wait->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"SwapChainWait" );
 
 
     texture.d3d11.cache =
@@ -1174,6 +1185,9 @@ SK_LoadConfig (std::wstring name) {
                       &config.render.dxgi.res.min.y );
       }
 
+      if (render.dxgi.swapchain_wait->load ())
+        config.render.framerate.swapchain_wait = render.dxgi.swapchain_wait->get_value ();
+
       if (texture.d3d11.cache->load ())
         config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
       if (texture.d3d11.precise_hash->load ())
@@ -1341,17 +1355,19 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
       wchar_t wszFormattedRes [64] = { L'\0' };
 
-      _swprintf ( wszFormattedRes, L"%lux%lu",
-                    config.render.dxgi.res.max.x,
-                      config.render.dxgi.res.max.y );
+      wsprintf ( wszFormattedRes, L"%lux%lu",
+                   config.render.dxgi.res.max.x,
+                     config.render.dxgi.res.max.y );
 
-      render.dxgi.max_res->set_value_str (wszFormattedRes);
+      render.dxgi.max_res->set_value (wszFormattedRes);
 
-      _swprintf ( wszFormattedRes, L"%lux%lu",
-                    config.render.dxgi.res.min.x,
-                      config.render.dxgi.res.min.y );
+      wsprintf ( wszFormattedRes, L"%lux%lu",
+                   config.render.dxgi.res.min.x,
+                     config.render.dxgi.res.min.y );
 
-      render.dxgi.min_res->set_value_str (wszFormattedRes);
+      render.dxgi.min_res->set_value (wszFormattedRes);
+
+      render.dxgi.swapchain_wait->set_value (config.render.framerate.swapchain_wait);
     }
 
     if (dll_role == D3D9) {
@@ -1447,6 +1463,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
       render.dxgi.max_res->store ();
       render.dxgi.min_res->store ();
+
+      render.dxgi.swapchain_wait->store ();
     }
 
     if (dll_role == D3D9) {

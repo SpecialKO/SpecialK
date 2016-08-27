@@ -1477,12 +1477,18 @@ DllThread (LPVOID user)
       game_debug.silent = true;
     }
 
+    SK_SaveConfig (params->backend);
+
     HeapFree (dll_heap, 0, params);
   }
   LeaveCriticalSection (&init_mutex);
 
   return 0;
+
 }
+
+#include <wingdi.h>
+#include <gl/gl.h>
 
 extern HMODULE hModSelf;
 

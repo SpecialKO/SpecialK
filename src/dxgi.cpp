@@ -535,13 +535,21 @@ extern "C" {
                                   _Out_  IDXGISwapChain       **ppSwapChain);
 
   typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChainForHwnd_pfn)(
+                                         IDXGIFactory2                    *This,
+                              _In_       IUnknown                         *pDevice,
+                              _In_       HWND                              hWnd,
+                              _In_ const DXGI_SWAP_CHAIN_DESC1            *pDesc,
+                          _In_opt_ const DXGI_SWAP_CHAIN_FULLSCREEN_DESC  *pFullscreenDesc,
+                          _In_opt_       IDXGIOutput                      *pRestrictToOutput,
+                             _Out_       IDXGISwapChain1                 **ppSwapChain);
+
+  typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChainForCoreWindow_pfn)(
                                          IDXGIFactory2                   *This,
                               _In_       IUnknown                        *pDevice,
-                              _In_       HWND                             hWnd,
+                              _In_       IUnknown                        *pWindow,
                               _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
-                          _In_opt_ const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
                           _In_opt_       IDXGIOutput                     *pRestrictToOutput,
-                             _Out_       IDXGISwapChain1                 **ppSwapChain);
+                             _Out_       IDXGISwapChain1                **ppSwapChain);
 
   typedef HRESULT (STDMETHODCALLTYPE *SetFullscreenState_pfn)(
                                          IDXGISwapChain *This,
@@ -621,10 +629,11 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   ResizeBuffers_pfn       ResizeBuffers_Original       = nullptr;
   ResizeTarget_pfn        ResizeTarget_Original        = nullptr;
 
-  GetDisplayModeList_pfn      GetDisplayModeList_Original      = nullptr;
-  FindClosestMatchingMode_pfn FindClosestMatchingMode_Original = nullptr;
-  WaitForVBlank_pfn           WaitForVBlank_Original           = nullptr;
-  CreateSwapChainForHwnd_pfn  CreateSwapChainForHwnd_Original  = nullptr;
+  GetDisplayModeList_pfn           GetDisplayModeList_Original           = nullptr;
+  FindClosestMatchingMode_pfn      FindClosestMatchingMode_Original      = nullptr;
+  WaitForVBlank_pfn                WaitForVBlank_Original                = nullptr;
+  CreateSwapChainForHwnd_pfn       CreateSwapChainForHwnd_Original       = nullptr;
+  CreateSwapChainForCoreWindow_pfn CreateSwapChainForCoreWindow_Original = nullptr;
 
   GetDesc_pfn             GetDesc_Original             = nullptr;
   GetDesc1_pfn            GetDesc1_Original            = nullptr;
@@ -1682,9 +1691,10 @@ __declspec (noinline)
       }
 
       if (! fake) {
-        dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s]",
+        dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
                        bFlipMode ? L"Flip" : L"Traditional",
-                         bWait ? L"Yes" : L"No" );
+                         bWait ? L"Yes" : L"No",
+                           bWait ? config.render.framerate.swapchain_wait : 0 );
       }
     }
 
@@ -1712,6 +1722,189 @@ __declspec (noinline)
     {
       SK_DXGI_HookPresent (*ppSwapChain);
 
+      //if (bFlipMode || bWait)
+        //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count, pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+
+      const uint32_t max_latency = config.render.framerate.pre_render_limit;
+
+      CComPtr <IDXGISwapChain2> pSwapChain2;
+      if ( bFlipMode && bWait &&
+           SUCCEEDED ( (*ppSwapChain)->QueryInterface (IID_PPV_ARGS (&pSwapChain2)) )
+          )
+      {
+        if (max_latency < 16) {
+          dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+          pSwapChain2->SetMaximumFrameLatency (max_latency);
+        }
+
+        HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
+
+        pSwapChain2.Release ();
+
+        WaitForSingleObjectEx ( hWait,
+                                  config.render.framerate.swapchain_wait,
+                                    TRUE );
+      }
+      else
+      {
+        if (max_latency != -1) {
+          CComPtr <IDXGIDevice1> pDevice1;
+
+          if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
+                             IID_PPV_ARGS (&pDevice1)
+                          )
+                        )
+             )
+          {
+            dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
+            pDevice1->SetMaximumFrameLatency (max_latency);
+          }
+        }
+      }
+
+      CComPtr <ID3D11Device> pDev;
+
+      if (SUCCEEDED ( pDevice->QueryInterface ( IID_PPV_ARGS (&pDev) )
+                    )
+         )
+      {
+        // Dangerous to hold a reference to this don't you think?!
+        g_pD3D11Dev = pDev;
+      }
+    }
+
+    return ret;
+  }
+
+  HRESULT
+  STDMETHODCALLTYPE
+  DXGIFactory_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *This,
+                                           _In_       IUnknown                  *pDevice,
+                                           _In_       IUnknown                  *pWindow,
+                                           _In_ /*const*/ DXGI_SWAP_CHAIN_DESC1 *pDesc,
+                                       _In_opt_       IDXGIOutput               *pRestrictToOutput,
+                                          _Out_       IDXGISwapChain1          **ppSwapChain )
+  {
+    std::wstring iname = SK_GetDXGIFactoryInterface (This);
+
+    // Wrong prototype, but who cares right now? :P
+    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChainForCoreWindow", L"%08Xh, %08Xh, %08Xh",
+                      pDevice, pDesc, ppSwapChain);
+
+    HRESULT ret;
+
+    if (pDesc != nullptr) {
+      dll_log.LogEx ( true,
+        L"[   DXGI   ]  SwapChain: (%lux%lu - Scaling: %s) - {%s}"
+        L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
+        pDesc->Width,
+        pDesc->Height,
+        pDesc->Scaling == 0 ?
+        L"Unspecified" :
+        pDesc->Scaling == 1 ?
+        L"Centered" : L"Stretched",
+        L"Windowed",
+        pDesc->BufferCount,
+        pDesc->Flags,
+        pDesc->SwapEffect == 0 ?
+        L"Discard" :
+        pDesc->SwapEffect == 1 ?
+        L"Sequential" :
+        pDesc->SwapEffect == 2 ?
+        L"<Unknown>" :
+        pDesc->SwapEffect == 3 ?
+        L"Flip Sequential" :
+        pDesc->SwapEffect == 4 ?
+        L"Flip Discard" : L"<Unknown>");
+
+#if 0
+      // Set things up to make the swap chain Alt+Enter friendly
+      if (bAlwaysAllowFullscreen) {
+        pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        pDesc->Windowed                           = true;
+        pDesc->BufferDesc.RefreshRate.Denominator = 0;
+        pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+      }
+#endif
+
+      if (! bFlipMode)
+        bFlipMode =
+          ( dxgi_caps.present.flip_sequential && (
+            ( host_app == L"Fallout4.exe") ||
+              SK_DS3_UseFlipMode ()        ||
+              SK_TW3_UseFlipMode () ) );
+
+      if (host_app == L"Fallout4.exe") {
+        if (bFlipMode) {
+          bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+        }
+
+        bFlipMode = bFlipMode && pDesc->Scaling == 0;
+      } else {
+        if (config.render.framerate.flip_discard)
+         bFlipMode = dxgi_caps.present.flip_sequential;
+      }
+
+      bWait = bFlipMode && dxgi_caps.present.waitable;
+
+      // We cannot change the swapchain parameters if this is used...
+      bWait = bWait && config.render.framerate.swapchain_wait > 0;
+
+      if (host_app == L"DarkSoulsIII.exe") {
+        if (SK_DS3_IsBorderless ())
+          pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+      }
+
+      if (bFlipMode) {
+        if (bWait)
+          pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+
+        // Flip Presentation Model requires 3 Buffers
+        config.render.framerate.buffer_count =
+          std::max (3, config.render.framerate.buffer_count);
+
+        if (config.render.framerate.flip_discard &&
+            dxgi_caps.present.flip_discard)
+          pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        else
+          pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+      }
+
+      else {
+        // Resort to triple-buffering if flip mode is not available
+        if (config.render.framerate.buffer_count > 2)
+          config.render.framerate.buffer_count = 2;
+
+        pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+      }
+
+      if (config.render.framerate.buffer_count != -1)
+        pDesc->BufferCount = config.render.framerate.buffer_count;
+
+      // We cannot switch modes on a waitable swapchain
+      if (bFlipMode && bWait) {
+        pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+        pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+      }
+
+      dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
+                     bFlipMode ? L"Flip" : L"Traditional",
+                       bWait ? L"Yes" : L"No",
+                         bWait ? config.render.framerate.swapchain_wait : 0 );
+    }
+
+    DXGI_CALL( ret, CreateSwapChainForCoreWindow_Original (
+                      This,
+                        pDevice,
+                          pWindow,
+                            pDesc,
+                              pRestrictToOutput,
+                                ppSwapChain ) );
+
+    if ( SUCCEEDED (ret)      &&
+         ppSwapChain  != NULL &&
+       (*ppSwapChain) != NULL )
+    {
       //if (bFlipMode || bWait)
         //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count, pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 
@@ -1886,9 +2079,10 @@ __declspec (noinline)
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
 
-      dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s]",
+      dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
                      bFlipMode ? L"Flip" : L"Traditional",
-                       bWait ? L"Yes" : L"No" );
+                       bWait ? L"Yes" : L"No",
+                         bWait ? config.render.framerate.swapchain_wait : 0 );
     }
 
     DXGI_CALL(ret, CreateSwapChainForHwnd_Original (This, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain));
@@ -3271,13 +3465,44 @@ HookD3D11 (LPVOID user)
                              EnumAdapters_pfn );
       }
 
+      //  0 QueryInterface 
+      //  1 AddRef
+      //  2 Release
+      //  3 SetPrivateData
+      //  4 SetPrivateDataInterface
+      //  5 GetPrivateData
+      //  6 GetParent
+      //  7 EnumAdapters
+      //  8 MakeWindowAssociation
+      //  9 GetWindowAssociation
+      // 10 CreateSwapChain
+      // 11 CreateSoftwareAdapter
+      // 12 EnumAdapters1
+      // 13 IsCurrent
+      // 14 IsWindowedStereoEnabled
+      // 15 CreateSwapChainForHwnd
+      // 16 CreateSwapChainForCoreWindow
+      // 17 GetSharedResourceAdapterLuid
+      // 18 RegisterStereoStatusWindow
+      // 19 RegisterStereoStatusEvent
+      // 20 UnregisterStereoStatus
+      // 21 RegisterOcclusionStatusWindow
+      // 22 RegisterOcclusionStatusEvent
+      // 23 UnregisterOcclusionStatus
+      // 24 CreateSwapChainForComposition
+
       // DXGI 1.2+
       if (iver > 1) {
         DXGI_VIRTUAL_HOOK ( &pFactory,   15,
-                            "IDXGIFactory::CreateSwapChainForHwnd",
+                            "IDXGIFactory2::CreateSwapChainForHwnd",
                              DXGIFactory_CreateSwapChainForHwnd_Override,
                                          CreateSwapChainForHwnd_Original,
                                          CreateSwapChainForHwnd_pfn );
+        DXGI_VIRTUAL_HOOK ( &pFactory,   16,
+                            "IDXGIFactory2::CreateSwapChainForCoreWindow",
+                             DXGIFactory_CreateSwapChainForCoreWindow_Override,
+                                         CreateSwapChainForCoreWindow_Original,
+                                         CreateSwapChainForCoreWindow_pfn );
       }
     }
   }
