@@ -101,6 +101,52 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D );
 
+#define D3D_FEATURE_LEVEL_12_0 0xc000
+#define D3D_FEATURE_LEVEL_12_1 0xc100
+
+std::wstring
+SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
+                             const DWORD* pFeatureLevels )
+{
+  std::wstring out = L"";
+
+  for (UINT i = 0; i < FeatureLevels; i++)
+  {
+    switch (pFeatureLevels [i])
+    {
+    case D3D_FEATURE_LEVEL_9_1:
+      out += L" 9.1";
+      break;
+    case D3D_FEATURE_LEVEL_9_2:
+      out += L" 9.2";
+      break;
+    case D3D_FEATURE_LEVEL_9_3:
+      out += L" 9.3";
+      break;
+    case D3D_FEATURE_LEVEL_10_0:
+      out += L" 10.0";
+      break;
+    case D3D_FEATURE_LEVEL_10_1:
+      out += L" 10.1";
+      break;
+    case D3D_FEATURE_LEVEL_11_0:
+      out += L" 11.0";
+      break;
+    case D3D_FEATURE_LEVEL_11_1:
+      out += L" 11.1";
+      break;
+    case D3D_FEATURE_LEVEL_12_0:
+      out += L" 12.0";
+      break;
+    case D3D_FEATURE_LEVEL_12_1:
+      out += L" 12.1";
+      break;
+    }
+  }
+
+  return out;
+}
+
 typedef enum D3DX11_IMAGE_FILE_FORMAT {
   D3DX11_IFF_BMP          = 0,
   D3DX11_IFF_JPG          = 1,
@@ -2406,43 +2452,17 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
     DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
 
-    dll_log.LogEx (true, L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - ", FeatureLevels);
+    // Even if the game doesn't care about the feature level, we do.
+    D3D_FEATURE_LEVEL ret_level;
 
-    for (UINT i = 0; i < FeatureLevels; i++) {
-      switch (pFeatureLevels [i])
-      {
-      case D3D_FEATURE_LEVEL_9_1:
-        dll_log.LogEx (false, L" 9_1");
-        break;
-      case D3D_FEATURE_LEVEL_9_2:
-        dll_log.LogEx (false, L" 9_2");
-        break;
-      case D3D_FEATURE_LEVEL_9_3:
-        dll_log.LogEx (false, L" 9_3");
-        break;
-      case D3D_FEATURE_LEVEL_10_0:
-        dll_log.LogEx (false, L" 10_0");
-        break;
-      case D3D_FEATURE_LEVEL_10_1:
-        dll_log.LogEx (false, L" 10_1");
-        break;
-      case D3D_FEATURE_LEVEL_11_0:
-        dll_log.LogEx (false, L" 11_0");
-        break;
-      case D3D_FEATURE_LEVEL_11_1:
-        dll_log.LogEx (false, L" 11_1");
-        break;
-        //case D3D_FEATURE_LEVEL_12_0:
-        //dll_log.LogEx (false, L" 12_0");
-        //break;
-        //case D3D_FEATURE_LEVEL_12_1:
-        //dll_log.LogEx (false, L" 12_1");
-        //break;
-      }
-    }
-
-    dll_log.LogEx (false, L"\n");
-
+    dll_log.LogEx ( true,
+                      L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
+                        FeatureLevels,
+                          SK_DXGI_FeatureLevelsToStr (
+                            FeatureLevels,
+                              (DWORD *)pFeatureLevels
+                          ).c_str ()
+                  );
 
 #if 0
     if (d3d11_caps.feature_level.d3d11_1) {
@@ -2531,14 +2551,26 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                                 FeatureLevels,
                                 SDKVersion,
                                 ppDevice,
-                                pFeatureLevel,
+                                &ret_level,
                                 ppImmediateContext));
 
     if (SUCCEEDED (res)) {
       dwRenderThread = GetCurrentThreadId ();
 
-      if (ppDevice != nullptr)
-        dll_log.Log (L"[  D3D 11  ] >> Device = 0x%08Xh", *ppDevice);
+      if (pFeatureLevel != nullptr)
+        *pFeatureLevel = ret_level;
+
+      if (ppDevice != nullptr) {
+        if (*ppDevice != g_pD3D11Dev) {
+          dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
+                          *ppDevice,
+                            SK_DXGI_FeatureLevelsToStr ( 1,
+                                                          (DWORD *)&ret_level
+                                                       ).c_str ()
+                      );
+          g_pD3D11Dev = *ppDevice;
+        }
+      }
     }
 
     return res;
@@ -2564,6 +2596,9 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     // Detect devices that were only created for the purpose of creating hooks....
     bool bFake = false;
 
+    // Even if the game doesn't care about the feature level, we do.
+    D3D_FEATURE_LEVEL ret_level;
+
     if ( pSwapChainDesc != nullptr &&
          pSwapChainDesc->BufferCount                        == 1                        &&
          pSwapChainDesc->SwapEffect                         == DXGI_SWAP_EFFECT_DISCARD &&
@@ -2576,42 +2611,14 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     if (! bFake) {
       DXGI_LOG_CALL_0 (L"D3D11CreateDeviceAndSwapChain");
 
-      dll_log.LogEx (true, L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - ", FeatureLevels);
-
-      for (UINT i = 0; i < FeatureLevels; i++) {
-        switch (pFeatureLevels [i])
-        {
-        case D3D_FEATURE_LEVEL_9_1:
-          dll_log.LogEx (false, L" 9_1");
-          break;
-        case D3D_FEATURE_LEVEL_9_2:
-          dll_log.LogEx (false, L" 9_2");
-          break;
-        case D3D_FEATURE_LEVEL_9_3:
-          dll_log.LogEx (false, L" 9_3");
-          break;
-        case D3D_FEATURE_LEVEL_10_0:
-          dll_log.LogEx (false, L" 10_0");
-          break;
-        case D3D_FEATURE_LEVEL_10_1:
-          dll_log.LogEx (false, L" 10_1");
-          break;
-        case D3D_FEATURE_LEVEL_11_0:
-          dll_log.LogEx (false, L" 11_0");
-          break;
-        case D3D_FEATURE_LEVEL_11_1:
-          dll_log.LogEx (false, L" 11_1");
-          break;
-          //case D3D_FEATURE_LEVEL_12_0:
-          //dll_log.LogEx (false, L" 12_0");
-          //break;
-          //case D3D_FEATURE_LEVEL_12_1:
-          //dll_log.LogEx (false, L" 12_1");
-          //break;
-        }
-      }
-
-      dll_log.LogEx (false, L"\n");
+      dll_log.LogEx ( true,
+                        L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
+                          FeatureLevels,
+                            SK_DXGI_FeatureLevelsToStr (
+                              FeatureLevels,
+                                (DWORD *)pFeatureLevels
+                            ).c_str ()
+                    );
     }
 
 
@@ -2712,11 +2719,14 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                                             pSwapChainDesc,
                                             ppSwapChain,
                                             ppDevice,
-                                            pFeatureLevel,
+                                            &ret_level,
                                             ppImmediateContext));
 
     if (res == S_OK)
     {
+      if (pFeatureLevel != nullptr)
+        *pFeatureLevel = ret_level;
+
       if (pSwapChainDesc != nullptr) {
         // Fake, created by (UNKNOWN)
         if ( pSwapChainDesc->BufferDesc.Width  == 256 &&
@@ -2744,8 +2754,17 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                          dwRenderThread == GetCurrentThreadId ()) ) {
         dwRenderThread = GetCurrentThreadId ();
 
-        if (ppDevice != nullptr)
-          dll_log.Log (L"[  D3D 11  ] >> Device = 0x%08Xh", *ppDevice);
+        if (ppDevice != nullptr) {
+          if (*ppDevice != g_pD3D11Dev) {
+            dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
+                            *ppDevice,
+                              SK_DXGI_FeatureLevelsToStr ( 1,
+                                                            (DWORD *)&ret_level
+                                                         ).c_str ()
+                        );
+            g_pD3D11Dev = *ppDevice;
+          }
+        }
       }
     }
 

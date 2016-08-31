@@ -148,7 +148,7 @@ void
 SK_Console::Start (void)
 {
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
-  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"tsfix.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
     bNoConsole = true;
     return;
   }
@@ -167,7 +167,7 @@ void
 SK_Console::End (void)
 {
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
-  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"tsfix.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
     bNoConsole = true;
     return;
   }
@@ -663,9 +663,9 @@ SK_DrawConsole (void)
   if (bNoConsole)
     return;
 
-  // Drop the first frame so that the console shows up below
+  // Drop the first few frames so that the console shows up below
   //   the main OSD.
-  if (frames_drawn > 1) {
+  if (frames_drawn > 15) {
     SK_Console* pConsole = SK_Console::getInstance ();
     pConsole->Draw ();
   }
@@ -676,6 +676,13 @@ __stdcall
 SK_GetFramesDrawn (void)
 {
   return frames_drawn;
+}
+
+BOOL
+__stdcall
+SK_IsConsoleVisible (void)
+{
+  return SK_Console::getInstance ()->isVisible ();
 }
 
 SK_Console* SK_Console::pConsole      = nullptr;

@@ -822,20 +822,6 @@ osd_pump (LPVOID lpThreadParam)
   while (true) {
     Sleep ((DWORD)(config.osd.pump_interval * 1000.0f));
     SK_EndBufferSwap (S_OK, nullptr);
-
-#if 0
-    static int steam_tries = 0, init = 0;
-    if ((! init) && steam_tries++ < 12000) {
-      // Every 15 frames, try to initialize SteamAPI again
-      if (! (steam_tries % 15)) {
-        if (SK::SteamAPI::AppID () != 0)
-          init = 1;
-
-        else
-          SK::SteamAPI::Init (true);
-      }
-    }
-#endif
   }
 
   return 0;
@@ -936,16 +922,6 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
-//#define DEBUG_SYMS
-#ifdef DEBUG_SYMS
-  dll_log.LogEx (true, L" @ Loading Debug Symbols: ");
-
-  SymInitializeW       (GetCurrentProcess (), NULL, TRUE);
-  SymRefreshModuleList (GetCurrentProcess ());
-
-  dll_log.LogEx (false, L"done!\n");
-#endif
-
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
     // Create a thread that pumps the OSD
@@ -1002,6 +978,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
     *(pwszShortName - 1) != L'\\')
     --pwszShortName;
 
+  *(pwszShortName - 1) = L'\0';
+
   wchar_t log_fname [MAX_PATH];
   log_fname [MAX_PATH - 1] = '\0';
 
@@ -1033,12 +1011,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
   }
 
   if (config.system.central_repository) {
-    wchar_t wszWork [MAX_PATH + 2];
-    GetCurrentDirectoryW (MAX_PATH, wszWork);
-
     // Create Symlink for end-user's convenience
-    if (GetFileAttributes (L"SpecialK") == INVALID_FILE_ATTRIBUTES) {
-      std::wstring link (wszWork);
+    if ( GetFileAttributes ( std::wstring (
+                               std::wstring (wszProcessName) +
+                                 L"\\SpecialK"
+                             ).c_str ()
+                           ) == INVALID_FILE_ATTRIBUTES ) {
+      std::wstring link (wszProcessName);
       link += L"\\SpecialK\\";
 
       CreateSymbolicLink (
@@ -1349,11 +1328,6 @@ skMemCmd::execute (const char* szArgs)
     VirtualQuery (base_addr, &mem_info, sizeof mem_info);
 
     base_addr = (uint8_t *)mem_info.BaseAddress;
-
-    //IMAGE_DOS_HEADER* pDOS =
-      //(IMAGE_DOS_HEADER *)mem_info.AllocationBase;
-    //IMAGE_NT_HEADERS* pNT  =
-      //(IMAGE_NT_HEADERS *)((uintptr_t)(pDOS + pDOS->e_lfanew));
   }
 
   addr += (uintptr_t)base_addr;
@@ -1752,12 +1726,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (! dll_heap)
     return false;
 
-
-  // Allow users to centralize all files if they want
-  if (GetFileAttributes (L"SpecialK.central") != INVALID_FILE_ATTRIBUTES)
-    config.system.central_repository = true;
-
-
   DWORD   dwProcessSize = MAX_PATH;
   wchar_t wszProcessName [MAX_PATH];
 
@@ -1774,6 +1742,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   host_app = pwszShortName;
 
   *pwszShortName = L'\0';
+
+  // Allow users to centralize all files if they want
+  if ( GetFileAttributes ( std::wstring (
+                             std::wstring (wszProcessName) +
+                             L"\\SpecialK.central"
+                           ).c_str ()
+                         ) != INVALID_FILE_ATTRIBUTES )
+    config.system.central_repository = true;
 
 
   if (config.system.central_repository) {
