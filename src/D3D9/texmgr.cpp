@@ -67,7 +67,7 @@ extern QueryPerformanceCounter_t QueryPerformanceCounter_Original;
 sk::d3d9::TextureManager
   sk::d3d9::tex_mgr;
 
-sk_logger_t tex_log;
+iSK_Logger tex_log;
 
 #include <set>
 
@@ -1998,7 +1998,7 @@ sk::d3d9::TextureManager::Init (void)
     CreateDirectoryW (SK_TEXTURE_DIR, nullptr);
 
   tex_log.silent = false;
-  tex_log.init ("logs/textures.log", "w");
+  tex_log.init (L"logs/textures.log", L"w");
 
   if (GetModuleHandle (L"D3DX9_41.DLL"))
     d3dx9_ver = L"D3DX9_41.DLL";
@@ -2361,29 +2361,29 @@ sk::d3d9::TextureManager::Init (void)
 
   resample_pool = new SK_TextureThreadPool ();
 
-  SK_CommandProcessor& command =
+  SK_ICommandProcessor& command =
     *SK_GetCommandProcessor ();
 
   command.AddVariable (
     "Textures.Remap",
-      new SK_VarStub <bool> (&__remap_textures) );
+      new SK_IVarStub <bool> (&__remap_textures) );
 
   command.AddVariable (
     "Textures.Purge",
-      new SK_VarStub <bool> (&__need_purge) );
+      new SK_IVarStub <bool> (&__need_purge) );
 
   command.AddVariable (
     "Textures.Trace",
-      new SK_VarStub <bool> (&__log_used) );
+      new SK_IVarStub <bool> (&__log_used) );
 
   command.AddVariable (
     "Textures.ShowCache",
-      new SK_VarStub <bool> (&__show_cache) );
+      new SK_IVarStub <bool> (&__show_cache) );
 
   // TODO: Hookup to CONFIG
   command.AddVariable (
     "Textures.MaxCacheSize",
-      new SK_VarStub <int> (&/*config.textures.*/___max_cache_in_mib) );
+      new SK_IVarStub <int> (&/*config.textures.*/___max_cache_in_mib) );
 }
 
 

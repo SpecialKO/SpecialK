@@ -43,10 +43,14 @@
 #include <string>
 
 #include "log.h"
+#include "utility.h"
 
 #include "core.h"
 #include "command.h"
+#include "console.h"
 #include "framerate.h"
+
+#include "diagnostics/crash_handler.h"
 
 #undef min
 #undef max
@@ -483,6 +487,12 @@ struct dxgi_caps_t {
   } present;
 } dxgi_caps;
 
+struct d3d11_caps_t {
+  struct {
+    bool d3d11_1         = false;
+  } feature_level;
+} d3d11_caps;
+
 extern "C" {
   typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory2_pfn) \
     (UINT Flags, REFIID riid,  void** ppFactory);
@@ -752,7 +762,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         dll_log.Log (                                                       \
           L"Unable to locate symbol  %s in dxgi.dll",                       \
           L#_Name);                                                         \
-        return E_NOTIMPL;                                                   \
+        return (_Return)E_NOTIMPL;                                          \
       }                                                                     \
     }                                                                       \
                                                                             \
@@ -761,6 +771,32 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       L#_Name, L#_Proto, GetCurrentThreadId ());                            \
                                                                             \
     return _default_impl _Args;                                             \
+}
+
+#define DXGI_STUB_(_Name, _Proto, _Args)                                    \
+  __declspec (nothrow) void STDMETHODCALLTYPE                               \
+  _Name _Proto {                                                            \
+    WaitForInit ();                                                         \
+                                                                            \
+    typedef void (STDMETHODCALLTYPE *passthrough_pfn) _Proto;               \
+    static passthrough_pfn _default_impl = nullptr;                         \
+                                                                            \
+    if (_default_impl == nullptr) {                                         \
+      static const char* szName = #_Name;                                   \
+      _default_impl = (passthrough_pfn)GetProcAddress (backend_dll, szName);\
+                                                                            \
+      if (_default_impl == nullptr) {                                       \
+        dll_log.Log (                                                       \
+          L"Unable to locate symbol  %s in dxgi.dll",                       \
+          L#_Name );                                                        \
+      }                                                                     \
+    }                                                                       \
+                                                                            \
+    dll_log.Log (L"[   DXGI   ] [!] %s %s - "                               \
+             L"[Calling Thread: 0x%04x]",                                   \
+      L#_Name, L#_Proto, GetCurrentThreadId ());                            \
+                                                                            \
+    _default_impl _Args;                                                    \
 }
 
   extern "C++" {
@@ -1349,7 +1385,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       GetDisplayModeList_Original (
         This,
           EnumFormat,
-            Flags | DXGI_ENUM_MODES_SCALING,
+            Flags /*| DXGI_ENUM_MODES_SCALING*/,
               pNumModes,
                 pDesc );
 
@@ -1365,7 +1401,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         GetDisplayModeList_Original (
           This,
             EnumFormat,
-              Flags | DXGI_ENUM_MODES_SCALING,
+              Flags /*| DXGI_ENUM_MODES_SCALING*/,
                 pNumModes,
                   pDesc );
     }
@@ -1451,7 +1487,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
                               _Out_opt_  BOOL            *pFullscreen,
                               _Out_opt_  IDXGIOutput    **ppTarget )
   {
-    return GetFullscreenState_Original (This, pFullscreen, ppTarget);// nullptr, nullptr);
+    return GetFullscreenState_Original (This, pFullscreen, ppTarget);
   }
 
   COM_DECLSPEC_NOTHROW
@@ -1494,7 +1530,7 @@ __declspec (noinline)
     //
     // Necessary provisions for Fullscreen Flip Mode
     //
-    if (Fullscreen && SUCCEEDED (ret)) {
+    if (/*Fullscreen &&*/SUCCEEDED (ret)) {
       //mode_desc.RefreshRate = { 0 };
       //ResizeTarget_Original (This, &mode_desc);
 
@@ -1527,8 +1563,8 @@ __declspec (noinline)
     }
 
     // Fake it
-    if (bWait)
-      return S_OK;
+    //if (bWait)
+      //return S_OK;
 
     HRESULT ret;
     DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
@@ -1555,7 +1591,20 @@ __declspec (noinline)
                         pNewTargetParameters->Scaling );
 
     HRESULT ret;
-    DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
+
+    if (SK_GetHostApp () == L"DXMD.exe") {
+      DXGI_MODE_DESC new_new_params =
+        *pNewTargetParameters;
+
+      new_new_params.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+      DXGI_MODE_DESC* pNewNewTargetParameters =
+        &new_new_params;
+
+      DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
+    } else {
+      DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
+    }
 
     SK_DXGI_HookPresent (This);
 
@@ -2395,14 +2444,25 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     dll_log.LogEx (false, L"\n");
 
 
-    if (! wcsicmp (host_app.c_str (), L"Batman_win7.exe")) {
-      dll_log.Log (L"[   DXGI   ] Feature Level Override for Win7 Compliance!");
+#if 0
+    if (d3d11_caps.feature_level.d3d11_1) {
+      if (! wcsicmp (SK_GetHostApp ().c_str (), L"DXMD.exe")) {
+        dll_log.Log (L"[   DXGI   ] Feature Level Override: D3D 11.1");
 
-      FeatureLevels = 1;
-      D3D_FEATURE_LEVEL pOverride [] = { D3D_FEATURE_LEVEL_11_0 };
+        FeatureLevels = FeatureLevels + 1;
 
-      pFeatureLevels = pOverride;
+        static D3D_FEATURE_LEVEL pOverride [10];
+
+        pOverride [0] = D3D_FEATURE_LEVEL_11_1;
+
+        memcpy ( &pOverride [1],
+                   pFeatureLevels,
+                    sizeof (D3D_FEATURE_LEVEL) * (FeatureLevels - 1) );
+
+        pFeatureLevels = pOverride;
+      }
     }
+#endif
 
     //
     // DXGI Adapter Override (for performance)
@@ -2554,15 +2614,6 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
       dll_log.LogEx (false, L"\n");
     }
 
-
-    if (! wcsicmp (host_app.c_str (), L"Batman_win7.exe")) {
-      dll_log.Log (L"[   DXGI   ] Feature Level Override for Win7 Compliance!");
-
-      FeatureLevels = 1;
-      D3D_FEATURE_LEVEL pOverride [] = { D3D_FEATURE_LEVEL_11_0 };
-
-      pFeatureLevels = pOverride;
-    }
 
     //
     // DXGI Adapter Override (for performance)
@@ -3100,21 +3151,12 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     (const void *pLayers, UINT NumLayers),
     (pLayers, NumLayers))
 
-  HRESULT
-  STDMETHODCALLTYPE DXGIDumpJournal (void)
-  {
-    DXGI_LOG_CALL_0 (L"DXGIDumpJournal");
-
-    return E_NOTIMPL;
-  }
-
-  HRESULT
-  STDMETHODCALLTYPE DXGIReportAdapterConfiguration (void)
-  {
-    DXGI_LOG_CALL_0 (L"DXGIReportAdapterConfiguration");
-
-    return E_NOTIMPL;
-  }
+  DXGI_STUB_ (             DXGIDumpJournal,
+               (const char *szPassThrough),
+                           (szPassThrough) );
+  DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
+               (DWORD dwUnknown),
+                     (dwUnknown) );
 }
 
 
@@ -3214,17 +3256,17 @@ dxgi_init_callback (finish_pfn finish)
 
 
 
-  SK_CommandProcessor* pCommandProc =
+  SK_ICommandProcessor* pCommandProc =
     SK_GetCommandProcessor ();
 
   pCommandProc->AddVariable ( "PresentationInterval",
-          new SK_VarStub <int> (&config.render.framerate.present_interval));
+          new SK_IVarStub <int> (&config.render.framerate.present_interval));
   pCommandProc->AddVariable ( "PreRenderLimit",
-          new SK_VarStub <int> (&config.render.framerate.pre_render_limit));
+          new SK_IVarStub <int> (&config.render.framerate.pre_render_limit));
   pCommandProc->AddVariable ( "BufferCount",
-          new SK_VarStub <int> (&config.render.framerate.buffer_count));
+          new SK_IVarStub <int> (&config.render.framerate.buffer_count));
   pCommandProc->AddVariable ( "UseFlipDiscard",
-          new SK_VarStub <bool> (&config.render.framerate.flip_discard));
+          new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
 
   cache_opts.max_entries = config.textures.cache.max_entries;
   cache_opts.min_entries = config.textures.cache.min_entries;
@@ -3245,19 +3287,19 @@ dxgi_init_callback (finish_pfn finish)
   }
 
   SK_GetCommandProcessor ()->AddVariable ("TexCache.Enable",
-         new SK_VarStub <bool> ((bool *)&config.textures.d3d11.cache));
+         new SK_IVarStub <bool> ((bool *)&config.textures.d3d11.cache));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEntries",
-         new SK_VarStub <int> ((int *)&cache_opts.max_entries));
+         new SK_IVarStub <int> ((int *)&cache_opts.max_entries));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MinEntries",
-         new SK_VarStub <int> ((int *)&cache_opts.min_entries));
+         new SK_IVarStub <int> ((int *)&cache_opts.min_entries));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxSize",
-         new SK_VarStub <int> ((int *)&cache_opts.max_size));
+         new SK_IVarStub <int> ((int *)&cache_opts.max_size));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MinSize",
-         new SK_VarStub <int> ((int *)&cache_opts.min_size));
+         new SK_IVarStub <int> ((int *)&cache_opts.min_size));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MinEvict",
-         new SK_VarStub <int> ((int *)&cache_opts.min_evict));
+         new SK_IVarStub <int> ((int *)&cache_opts.min_evict));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEvict",
-         new SK_VarStub <int> ((int *)&cache_opts.max_evict));
+         new SK_IVarStub <int> ((int *)&cache_opts.max_evict));
 
   SK_D3D11_PopulateResourceList ();
 
@@ -3295,8 +3337,8 @@ dxgi_init_callback (finish_pfn finish)
                                0x00,
                                  nullptr );
 
-  SK_EnableHook       (pfnD3D11CreateDevice);
-  SK_EnableHook       (pfnD3D11CreateDeviceAndSwapChain);
+  SK_EnableHook      (pfnD3D11CreateDevice);
+  SK_EnableHook      (pfnD3D11CreateDeviceAndSwapChain);
 #endif
 
   finish ();
@@ -3304,9 +3346,12 @@ dxgi_init_callback (finish_pfn finish)
 
 HMODULE local_dxgi = 0;
 
+//#define DXMD
+
 HMODULE
 SK_LoadRealDXGI (void)
 {
+#ifndef DXMD
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
 
 #ifdef _WIN64
@@ -3329,6 +3374,7 @@ SK_LoadRealDXGI (void)
     HMODULE hMod;
     GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
   }
+#endif
 
   return local_dxgi;
 }
@@ -3336,7 +3382,9 @@ SK_LoadRealDXGI (void)
 void
 SK_FreeRealDXGI (void)
 {
+#ifndef DXMD
   FreeLibrary (local_dxgi);
+#endif
 }
 
 bool
@@ -3414,23 +3462,33 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
 
     vftable_22 = vftable [22];
   }
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Reinstall ();
 }
 
 unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
 {
-  CComPtr <IDXGIFactory> pFactory = nullptr;
-  CComPtr <IDXGIAdapter> pAdapter = nullptr;
+  CComPtr <IDXGIFactory>  pFactory  = nullptr;
+  CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
+  CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
 
   HRESULT hr =
     CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
 
   if (SUCCEEDED (hr)) {
     if (pFactory) {
-      pFactory->EnumAdapters (0, &pAdapter);
-
       int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+
+      CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+
+      if (iver > 0) {
+        if (SUCCEEDED (CreateDXGIFactory1_Import ( IID_PPV_ARGS (&pFactory1) ))) {
+          pFactory1->EnumAdapters1 (0, &pAdapter1);
+        }
+      }
 
       DXGI_VIRTUAL_HOOK ( &pFactory,     10,
                           "IDXGIFactory::CreateSwapChain",
@@ -3542,22 +3600,48 @@ HookD3D11 (LPVOID user)
   D3D_FEATURE_LEVEL             featureLevel;
   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
-  HRESULT hrx;
+  HRESULT hrx = E_FAIL;
 
-  { hrx =
-    D3D11CreateDeviceAndSwapChain_Import (
-      pAdapter,
-        D3D_DRIVER_TYPE_UNKNOWN,
-          nullptr,
-            0,
-              nullptr,
-                0,
-                  D3D11_SDK_VERSION,
-                    &desc,
-                      &pSwapChain,
-                        &pDevice,
-                          &featureLevel,
-                            &pImmediateContext );
+  {
+    if (pAdapter1 != nullptr) {
+      D3D_FEATURE_LEVEL test_11_1 = D3D_FEATURE_LEVEL_11_1;
+
+      hrx =
+      D3D11CreateDeviceAndSwapChain_Import (
+        pAdapter1,
+          D3D_DRIVER_TYPE_UNKNOWN,
+            nullptr,
+              0,
+                &test_11_1,
+                  1,
+                    D3D11_SDK_VERSION,
+                      &desc,
+                        &pSwapChain,
+                          &pDevice,
+                            &featureLevel,
+                              &pImmediateContext );
+
+      if (SUCCEEDED (hrx)) {
+        d3d11_caps.feature_level.d3d11_1 = true;
+      }
+    }
+
+    if (FAILED (hrx)) {
+      hrx =
+      D3D11CreateDeviceAndSwapChain_Import (
+        pAdapter,
+          D3D_DRIVER_TYPE_UNKNOWN,
+            nullptr,
+              0,
+                nullptr,
+                  0,
+                    D3D11_SDK_VERSION,
+                      &desc,
+                        &pSwapChain,
+                          &pDevice,
+                            &featureLevel,
+                              &pImmediateContext );
+    }
 
   if (SUCCEEDED (hrx)) {
     if (pDevice && pImmediateContext && pSwapChain) {
@@ -3653,6 +3737,12 @@ HookD3D11 (LPVOID user)
   return 0;
 }
 
+
+std::wstring
+SK_DXGI_FormatToString (DXGI_FORMAT fmt)
+{
+
+}
 
 #include <unordered_set>
 
@@ -3770,7 +3860,7 @@ SK::DXGI::Shutdown (void)
   DeleteCriticalSection (&cs_texinject);
 #endif
 
-  ////FreeLibrary (hModD3D11);
+  FreeLibrary (hModD3D11);
 
   return SK_ShutdownCore (L"dxgi");
 }
@@ -3841,10 +3931,10 @@ SK_D3D11_TexCacheCheckpoint (void)
 
   if ( (SK_D3D11_Textures.AggregateSize_2D >> 20ULL) > cache_opts.max_size    ||
         SK_D3D11_Textures.TexRefs_2D.size ()         > cache_opts.max_entries ||
-        SK_D3D11_need_tex_reset                                             /*||
+        SK_D3D11_need_tex_reset                                               ||
        (config.mem.reserve / 100.0f) * ullMemoryTotal_KiB 
                                                      < 
-                          (pmc.PagefileUsage >> 10UL)*/ )
+                          (pmc.PagefileUsage >> 10UL) )
   {
     //dll_log.Log (L"[DX11TexMgr] DXGI 1.4 Budget Change: Triggered a texture manager purge...");
 
@@ -4129,12 +4219,15 @@ SK_D3D11_PopulateResourceList (void)
 
   init = true;
 
-  wchar_t wszTexDumpDir [MAX_PATH] = { L'\0' };
+  wchar_t wszTexDumpDir_RAW [ MAX_PATH     ] = { L'\0' };
+  wchar_t wszTexDumpDir     [ MAX_PATH + 2 ] = { L'\0' };
 
+  lstrcatW (wszTexDumpDir_RAW, SK_D3D11_res_root.c_str ());
+  lstrcatW (wszTexDumpDir_RAW, L"\\dump\\textures\\");
+  lstrcatW (wszTexDumpDir_RAW, host_app.c_str ());
 
-  lstrcatW (wszTexDumpDir, SK_D3D11_res_root.c_str ());
-  lstrcatW (wszTexDumpDir, L"\\dump\\textures\\");
-  lstrcatW (wszTexDumpDir, host_app.c_str ());
+  wcscpy ( wszTexDumpDir,
+             SK_EvalEnvironmentVars (wszTexDumpDir_RAW).c_str () );
 
   //
   // Walk custom textures so we don't have to query the filesystem on every
@@ -4159,7 +4252,10 @@ SK_D3D11_PopulateResourceList (void)
     if (hFind != INVALID_HANDLE_VALUE) {
       do {
         if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES) {
-          if (StrStrIW (fd.cFileName, L".dds")) {
+          // Dumped Metadata has the extension .dds.txt, do not
+          //   include these while scanning for textures.
+          if (    StrStrIW (fd.cFileName, L".dds")    &&
+               (! StrStrIW (fd.cFileName, L".dds.txt") ) ) {
             uint32_t top_crc32;
             uint32_t checksum;
 
@@ -4228,10 +4324,14 @@ SK_D3D11_PopulateResourceList (void)
                                  (double)liCompressed.QuadPart /  (1024.0 * 1024.0) );
   }
 
-  wchar_t wszTexInjectDir [MAX_PATH] = { L'\0' };
+  wchar_t wszTexInjectDir_RAW [ MAX_PATH     ] = { L'\0' };
+  wchar_t wszTexInjectDir     [ MAX_PATH + 2 ] = { L'\0' };
 
-  lstrcatW (wszTexInjectDir, SK_D3D11_res_root.c_str ());
-  lstrcatW (wszTexInjectDir, L"\\inject\\textures");
+  lstrcatW (wszTexInjectDir_RAW, SK_D3D11_res_root.c_str ());
+  lstrcatW (wszTexInjectDir_RAW, L"\\inject\\textures");
+
+  wcscpy ( wszTexInjectDir,
+             SK_EvalEnvironmentVars (wszTexInjectDir_RAW).c_str () );
 
   if ( GetFileAttributesW (wszTexInjectDir) !=
          INVALID_FILE_ATTRIBUTES ) {
@@ -4283,10 +4383,14 @@ SK_D3D11_PopulateResourceList (void)
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
   }
 
-  wchar_t wszTexInjectDir_FFX [MAX_PATH] = { L'\0' };
+  wchar_t wszTexInjectDir_FFX_RAW [ MAX_PATH     ] = { L'\0' };
+  wchar_t wszTexInjectDir_FFX     [ MAX_PATH + 2 ] = { L'\0' };
 
-  lstrcatW (wszTexInjectDir_FFX, SK_D3D11_res_root.c_str ());
-  lstrcatW (wszTexInjectDir_FFX, L"\\inject\\textures\\UnX_Old");
+  lstrcatW (wszTexInjectDir_FFX_RAW, SK_D3D11_res_root.c_str ());
+  lstrcatW (wszTexInjectDir_FFX_RAW, L"\\inject\\textures\\UnX_Old");
+
+  wcscpy ( wszTexInjectDir_FFX,
+             SK_EvalEnvironmentVars (wszTexInjectDir_FFX_RAW).c_str () );
 
   if ( GetFileAttributesW (wszTexInjectDir_FFX) !=
          INVALID_FILE_ATTRIBUTES ) {
@@ -4910,28 +5014,16 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
       break;
   }
 
-  wchar_t wszPath [MAX_PATH] = { L'\0' };
+  wchar_t wszPath [ MAX_PATH + 2 ] = { L'\0' };
 
-  lstrcatW (wszPath, SK_D3D11_res_root.c_str ());
+  wcscpy ( wszPath,
+             SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
 
-  if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
-    CreateDirectoryW (wszPath, nullptr);
-
-  lstrcatW (wszPath, L"/dump");
-
-  if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
-    CreateDirectoryW (wszPath, nullptr);
-
-  lstrcatW (wszPath, L"/textures");
-
-  if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
-    CreateDirectoryW (wszPath, nullptr);
-
-  lstrcatW (wszPath, L"/");
+  lstrcatW (wszPath, L"/dump/textures/");
   lstrcatW (wszPath, host_app.c_str ());
+  lstrcatW (wszPath, L"/");
 
-  if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
-    CreateDirectoryW (wszPath, nullptr);
+  SK_CreateDirectories (wszPath);
 
   bool compressed = false;
 
@@ -4941,10 +5033,12 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
          pDesc->Format <= DXGI_FORMAT_BC7_UNORM_SRGB ) )
     compressed = true;
 
-  wchar_t wszOutPath [MAX_PATH] = { L'\0' };
-  wchar_t wszOutName [MAX_PATH] = { L'\0' };
+  wchar_t wszOutPath [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszOutName [MAX_PATH + 2] = { L'\0' };
 
-  lstrcatW (wszOutPath, SK_D3D11_res_root.c_str ());
+  wcscpy ( wszOutPath,
+             SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+
   lstrcatW (wszOutPath, L"\\dump\\textures\\");
   lstrcatW (wszOutPath, host_app.c_str ());
 
@@ -4968,6 +5062,39 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                       wszOutName,
                         top_crc32,
                           checksum );
+
+      wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { L'\0' };
+
+      _swprintf (wszMetaFilename, L"%s.txt", wszOutName);
+
+      FILE* fMetaData = _wfopen (wszMetaFilename, L"w+");
+
+      if (fMetaData != nullptr) {
+        fprintf ( fMetaData,
+                  "Dumped Name:    %ws\n"
+                  "Texture:        %08x::%08x\n"
+                  "Dimensions:     (%lux%lu)\n"
+                  "Format:         %03lu\n"
+                  "BindFlags:      0x%04x\n"
+                  "Usage:          0x%04x\n"
+                  "CPUAccessFlags: 0x%02x\n"
+                  "Misc:           0x%02x\n"
+                  "MipLODs:        %02lu\n"
+                  "ArraySize:      %02lu",
+                  wszOutName,
+                    top_crc32,
+                      checksum,
+                        pDesc->Width, pDesc->Height,
+                        pDesc->Format,
+                          pDesc->BindFlags,
+                            pDesc->Usage,
+                              pDesc->CPUAccessFlags,
+                                pDesc->MiscFlags,
+                                  pDesc->MipLevels,
+                                    pDesc->ArraySize );
+
+        fclose (fMetaData);
+      }
 
       return SaveToDDSFile ( image.GetImages (), image.GetImageCount (),
                                image.GetMetadata (), DirectX::DDS_FLAGS_NONE,
@@ -5054,27 +5181,30 @@ D3D11Dev_CreateTexture2D_Override (
 
   if (cacheable) {
     if (D3DX11CreateTextureFromFileW != nullptr && SK_D3D11_res_root.length ()) {
-      wchar_t wszTex [MAX_PATH] = { L'\0' };
+      wchar_t wszTex [MAX_PATH + 2] = { L'\0' };
 
       {
+        wcscpy ( wszTex,
+                  SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+
         if (SK_D3D11_IsTexHashed (ffx_crc32, 0x00)) {
           _swprintf ( wszTex, L"%s\\%s",
-              SK_D3D11_res_root.c_str (),
-                  SK_D3D11_TexHashToName (ffx_crc32, 0x00).c_str ()
+                        wszTex,
+                          SK_D3D11_TexHashToName (ffx_crc32, 0x00).c_str ()
           );
         }
 
         else if (SK_D3D11_IsTexHashed (top_crc32, checksum)) {
           _swprintf ( wszTex, L"%s\\%s",
-                        SK_D3D11_res_root.c_str (),
-                            SK_D3D11_TexHashToName (top_crc32,checksum).c_str ()
+                        wszTex,
+                          SK_D3D11_TexHashToName (top_crc32,checksum).c_str ()
                     );
         }
 
         else if (SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
           _swprintf ( wszTex, L"%s\\%s",
-                        SK_D3D11_res_root.c_str (),
-                            SK_D3D11_TexHashToName (top_crc32, 0x00).c_str ()
+                        wszTex,
+                          SK_D3D11_TexHashToName (top_crc32, 0x00).c_str ()
                     );
         }
 
@@ -5083,7 +5213,7 @@ D3D11Dev_CreateTexture2D_Override (
                   SK_D3D11_IsInjectable (top_crc32, checksum) ) {
           _swprintf ( wszTex,
                         L"%s\\inject\\textures\\%08X_%08X.dds",
-                          SK_D3D11_res_root.c_str (),
+                          wszTex,
                             top_crc32, checksum );
         }
 
@@ -5091,7 +5221,7 @@ D3D11Dev_CreateTexture2D_Override (
                   SK_D3D11_IsInjectable (top_crc32, 0x00) ) {
           _swprintf ( wszTex,
                         L"%s\\inject\\textures\\%08X.dds",
-                          SK_D3D11_res_root.c_str (),
+                          wszTex,
                             top_crc32 );
         }
 
@@ -5099,7 +5229,7 @@ D3D11Dev_CreateTexture2D_Override (
                   SK_D3D11_IsInjectable_FFX (ffx_crc32) ) {
           _swprintf ( wszTex,
                         L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
-                          SK_D3D11_res_root.c_str (),
+                          wszTex,
                             ffx_crc32 );
         }
 
@@ -8286,13 +8416,13 @@ dxgi_init_callback (finish_pfn finish)
     SK_GetCommandProcessor ();
 
   pCommandProc->AddVariable ( "PresentationInterval",
-          new SK_VarStub <int> (&config.render.framerate.present_interval));
+          new SK_IVarStub <int> (&config.render.framerate.present_interval));
   pCommandProc->AddVariable ( "PreRenderLimit",
-          new SK_VarStub <int> (&config.render.framerate.pre_render_limit));
+          new SK_IVarStub <int> (&config.render.framerate.pre_render_limit));
   pCommandProc->AddVariable ( "BufferCount",
-          new SK_VarStub <int> (&config.render.framerate.buffer_count));
+          new SK_IVarStub <int> (&config.render.framerate.buffer_count));
   pCommandProc->AddVariable ( "UseFlipDiscard",
-          new SK_VarStub <bool> (&config.render.framerate.flip_discard));
+          new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
 
   cache_opts.max_entries = config.textures.cache.max_entries;
   cache_opts.min_entries = config.textures.cache.min_entries;
@@ -8313,17 +8443,17 @@ dxgi_init_callback (finish_pfn finish)
   }
 
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEntries",
-         new SK_VarStub <int> ((int *)&cache_opts.max_entries));
+         new SK_IVarStub <int> ((int *)&cache_opts.max_entries));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MinEntries",
-         new SK_VarStub <int> ((int *)&cache_opts.min_entries));
+         new SK_IVarStub <int> ((int *)&cache_opts.min_entries));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxSize",
-         new SK_VarStub <int> ((int *)&cache_opts.max_size));
+         new SK_IVarStub <int> ((int *)&cache_opts.max_size));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MinSize",
-         new SK_VarStub <int> ((int *)&cache_opts.min_size));
+         new SK_IVarStub <int> ((int *)&cache_opts.min_size));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MinEvict",
-         new SK_VarStub <int> ((int *)&cache_opts.min_evict));
+         new SK_IVarStub <int> ((int *)&cache_opts.min_evict));
   SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEvict",
-         new SK_VarStub <int> ((int *)&cache_opts.max_evict));
+         new SK_IVarStub <int> ((int *)&cache_opts.max_evict));
 
   SK_D3D11_PopulateResourceList ();
 
@@ -9473,7 +9603,7 @@ SK_D3D11_BytesPerPixel (DXGI_FORMAT fmt)
     case DXGI_FORMAT_R8_UNORM:                   return 1;
     case DXGI_FORMAT_R8_UINT:                    return 1;
     case DXGI_FORMAT_R8_SNORM:                   return 1;
-    case DXGI_FORMAT_R8_SINT:                    return 1;
+    case DXGI_FORMAT_R8_SINT:                    return 1
     case DXGI_FORMAT_A8_UNORM:                   return 1;
     case DXGI_FORMAT_R1_UNORM:                   return 1;
 

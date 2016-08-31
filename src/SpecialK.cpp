@@ -26,6 +26,7 @@
 #include "dxgi_backend.h"
 #include "d3d9_backend.h"
 #include "opengl_backend.h"
+#include "log.h"
 
 DLL_ROLE dll_role;
 
@@ -93,25 +94,35 @@ SK_Detach (DLL_ROLE role)
 {
   ULONG local_refs = InterlockedDecrement (&refs);
 
-  if (InterlockedCompareExchange (&attached, FALSE, TRUE))
+  if (local_refs == 0 && InterlockedCompareExchange (&attached, FALSE, TRUE))
   {
     extern void SK_ShutdownCOM (void);
-    SK_ShutdownCOM ();
 
     switch (role)
     {
     case DLL_ROLE::DXGI:
-      return SK::DXGI::Shutdown   ();
-      break;
+    {
+      bool ret = SK::DXGI::Shutdown    ();
+                        SK_ShutdownCOM ();
+      return ret;
+    } break;
     case DLL_ROLE::D3D9:
-      return SK::D3D9::Shutdown   ();
-      break;
+    {
+      bool ret = SK::D3D9::Shutdown    ();
+                        SK_ShutdownCOM ();
+      return ret;
+    } break;
     case DLL_ROLE::OpenGL:
-      return SK::OpenGL::Shutdown ();
-      break;
+    {
+      bool ret = SK::OpenGL::Shutdown    ();
+                          SK_ShutdownCOM ();
+      return ret;
+    } break;
     case DLL_ROLE::Vulkan:
       break;
     }
+  } else {
+    dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
   }
 
   return false;
@@ -146,7 +157,7 @@ APIENTRY DllMain ( HMODULE hModule,
 
 #ifndef IGNORE_THREAD_ATTACH
     case DLL_THREAD_ATTACH:
-      InterlockedIncrement (&refs);
+      //InterlockedIncrement (&refs);
       //dll_log.Log (L"Custom dxgi.dll Attached (tid=%x)",
       //                GetCurrentThreadId ());
       if (dll_role == DLL_ROLE::OpenGL) {
@@ -166,7 +177,7 @@ APIENTRY DllMain ( HMODULE hModule,
       break;
 
     case DLL_THREAD_DETACH:
-      InterlockedDecrement (&refs);
+      //InterlockedDecrement (&refs);
       //dll_log.Log (L"Custom dxgi.dll Detached (tid=%x)",
       //                GetCurrentThreadId ());
       if (dll_role == DLL_ROLE::OpenGL) {
@@ -188,9 +199,13 @@ APIENTRY DllMain ( HMODULE hModule,
 
     case DLL_PROCESS_DETACH:
     {
-      //if (InterlockedCompareExchange (&attached, FALSE, FALSE))
+      if (InterlockedCompareExchange (&attached, FALSE, FALSE))
       {
-        SK_Detach                (dll_role);
+        return SK_Detach (dll_role);
+      } else {
+        // Sanity FAILURE: Attempt to detach something that was not properly attached?!
+        dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+        return false;
       }
     } break;
   }

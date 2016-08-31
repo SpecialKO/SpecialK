@@ -158,7 +158,7 @@ float target_fps        = 0.0;
 void
 SK::Framerate::Init (void)
 {
-  SK_CommandProcessor* pCommandProc =
+  SK_ICommandProcessor* pCommandProc =
     SK_GetCommandProcessor ();
 
   // TEMP HACK BECAUSE THIS ISN'T STORED in D3D9.INI
@@ -169,12 +169,12 @@ SK::Framerate::Init (void)
     config.render.framerate.max_delta_time = 0;
 
   pCommandProc->AddVariable ( "MaxDeltaTime",
-          new SK_VarStub <int> (&config.render.framerate.max_delta_time));
+          new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
 
   pCommandProc->AddVariable ( "LimiterTolerance",
-          new SK_VarStub <float> (&limiter_tolerance));
+          new SK_IVarStub <float> (&limiter_tolerance));
   pCommandProc->AddVariable ( "TargetFPS",
-          new SK_VarStub <float> (&target_fps));
+          new SK_IVarStub <float> (&target_fps));
 
   SK_CreateDLLHook ( L"kernel32.dll", "QueryPerformanceCounter",
                      QueryPerformanceCounter_Detour,

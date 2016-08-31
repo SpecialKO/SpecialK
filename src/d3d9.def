@@ -475,6 +475,10 @@ SK_GetFramesDrawn        = SK_GetFramesDrawn        @406
 SK_DetourWindowProc      = SK_DetourWindowProc      @407
 SK_GetGameWindow         = SK_GetGameWindow         @408
 SK_PluginKeyPress        = SK_PluginKeyPress        @409
+SK_GetConfigPath         = SK_GetConfigPath         @430
+SK_CreateLog             = SK_CreateLog             @431
+SK_CreateINI             = SK_CreateINI             @432
+SK_CreateVar             = SK_CreateVar             @433
 
 QueryPerformanceCounter_Detour = QueryPerformanceCounter_Detour @410
 Sleep_Detour                   = Sleep_Detour                   @411

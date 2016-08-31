@@ -13,7 +13,7 @@
 sk::ParameterFactory fo4_factory;
 
 // These are the actual GAME settings
-sk::INI::File*       fo4_prefs        = nullptr;
+iSK_INI*             fo4_prefs        = nullptr;
 sk::ParameterBool*   fo4_fullscreen   = nullptr;
 sk::ParameterBool*   fo4_borderless   = nullptr;
 
@@ -75,7 +75,7 @@ SK_FO4_InitPlugin (void)
       SK_GetDocumentsDir () +
       std::wstring (L"\\My Games\\Fallout4\\Fallout4Prefs.ini");
 
-    fo4_prefs = new sk::INI::File ((wchar_t *)fo4_prefs_file.c_str ());
+    fo4_prefs = new iSK_INI ((wchar_t *)fo4_prefs_file.c_str ());
     fo4_prefs->parse ();
   }
 
@@ -98,7 +98,8 @@ SK_FO4_InitPlugin (void)
 bool
 SK_FO4_MaximizeBorderless (void)
 {
-  extern sk::INI::File* dll_ini;
+  iSK_INI* dll_ini =
+    SK_GetDLLConfig ();
 
   SK_FO4_InitPlugin ();
 
@@ -118,7 +119,8 @@ SK_FO4_MaximizeBorderless (void)
 bool
 SK_FO4_CenterWindow (void)
 {
-  extern sk::INI::File* dll_ini;
+  iSK_INI* dll_ini =
+    SK_GetDLLConfig ();
 
   SK_FO4_InitPlugin ();
 
@@ -138,7 +140,8 @@ SK_FO4_CenterWindow (void)
 bool
 SK_FO4_UseFlipMode (void)
 {
-  extern sk::INI::File* dll_ini;
+  iSK_INI* dll_ini =
+    SK_GetDLLConfig ();
 
   SK_FO4_InitPlugin ();
 

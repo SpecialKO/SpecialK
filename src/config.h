@@ -255,15 +255,15 @@ struct sk_config_t
   } input;
 
   struct {
-    int     init_delay        = 250;
-    bool    silent            = false;
-    bool    allow_dev_trans   = false;
-    bool    handle_crashes    = true;
-    bool    prefer_fahrenheit = true;
-    bool    display_debug_out = false;
-    bool    game_output       = true;
+    int     init_delay         = 250;
+    bool    silent             = false;
+    bool    handle_crashes     = true;
+    bool    prefer_fahrenheit  = true;
+    bool    display_debug_out  = false;
+    bool    game_output        = true;
+    bool    central_repository = false;
     std::wstring
-            version           = SK_VER_STR;
+            version            = SK_VER_STR;
   } system;
 };
 

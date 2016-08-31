@@ -25,60 +25,82 @@
 #include <map>
 #include <vector>
 
-namespace sk {
-namespace INI {
-  class File
-  {
-  public:
-             File (wchar_t* filename);
-    virtual ~File (void);
+#include <Unknwnbase.h>
 
-    void parse  (void);
-    void import (std::wstring import_data);
-    void write  (std::wstring fname);
+// {B526D074-2F4D-4BAE-B6EC-11CB3779B199}
+static const GUID IID_SK_INISection = 
+{ 0xb526d074, 0x2f4d, 0x4bae, { 0xb6, 0xec, 0x11, 0xcb, 0x37, 0x79, 0xb1, 0x99 } };
 
-    class Section
-    {
-    public:
-      Section (void) {
-      }
+interface iSK_INISection : public IUnknown
+{
+public:
+  iSK_INISection (void) {
+  }
 
-      Section (std::wstring section_name) {
-        name = section_name;
-      }
+  iSK_INISection (std::wstring section_name) {
+    name = section_name;
+  }
 
-      std::wstring& get_value     (std::wstring key);
-      bool          contains_key  (std::wstring key);
-      void          add_key_value (std::wstring key, std::wstring value);
+  /*** IUnknown methods ***/
+  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);
+  STDMETHOD_ (ULONG, AddRef)        (THIS);
+  STDMETHOD_ (ULONG, Release)       (THIS);
 
-      //protected:
-      //private:
-      std::wstring                              name;
-      std::map     <std::wstring, std::wstring> pairs;
-      std::vector  <std::wstring>               ordered_keys;
-    };
+  STDMETHOD_ (std::wstring&, get_value)    (std::wstring key);
+  STDMETHOD_ (void,          set_name)     (std::wstring name_);
+  STDMETHOD_ (bool,          contains_key) (std::wstring key);
+  STDMETHOD_ (void,          add_key_value)(std::wstring key, std::wstring value);
 
-    const std::map <std::wstring, Section>& get_sections (void);
+  //protected:
+  //private:
+  std::wstring                              name;
+  std::map     <std::wstring, std::wstring> pairs;
+  std::vector  <std::wstring>               ordered_keys;
 
-    Section& get_section      (std::wstring section);
-    bool     contains_section (std::wstring section);
+  ULONG                                     refs;
+};
 
-  protected:
-  private:
-    FILE*     fINI;
+// {DD2B1E00-6C14-4659-8B45-FCEF1BC2C724}
+static const GUID IID_SK_INI = 
+{ 0xdd2b1e00, 0x6c14, 0x4659, { 0x8b, 0x45, 0xfc, 0xef, 0x1b, 0xc2, 0xc7, 0x24 } };
 
-    wchar_t*  wszName;
-    wchar_t*  wszData;
+interface iSK_INI : public IUnknown
+{
+  typedef const std::map <std::wstring, iSK_INISection> _TSectionMap;
 
-    std::map <std::wstring, Section>
-              sections;
+           iSK_INI (const wchar_t* filename);
+  virtual ~iSK_INI (void);
 
-    // Preserve insertion order so that we write the INI file in the
-    //   same order we read it. Otherwise things get jumbled around
-    //     arbitrarily as the map is re-hashed.
-    std::vector <std::wstring>
-              ordered_sections;
-  };
-}}
+  /*** IUnknown methods ***/
+  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);
+  STDMETHOD_ (ULONG, AddRef)        (THIS);
+  STDMETHOD_ (ULONG, Release)       (THIS);
+
+  STDMETHOD_ (void, parse)  (THIS);
+  STDMETHOD_ (void, import) (THIS_ std::wstring import_data);
+  STDMETHOD_ (void, write)  (THIS_ std::wstring fname);
+
+  STDMETHOD_ (_TSectionMap&,   get_sections)    (THIS);
+  STDMETHOD_ (iSK_INISection&, get_section)     (std::wstring section);
+  STDMETHOD_ (bool,            contains_section)(std::wstring section);
+
+protected:
+private:
+  FILE*     fINI;
+
+  wchar_t*  wszName;
+  wchar_t*  wszData;
+
+  std::map <std::wstring, iSK_INISection>
+            sections;
+
+  // Preserve insertion order so that we write the INI file in the
+  //   same order we read it. Otherwise things get jumbled around
+  //     arbitrarily as the map is re-hashed.
+  std::vector <std::wstring>
+            ordered_sections;
+
+  ULONG     refs;
+};
 
 #endif /* __SK__INI_H__ */

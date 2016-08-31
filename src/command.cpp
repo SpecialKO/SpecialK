@@ -23,14 +23,14 @@
 
 #include "command.h"
 
-SK_CommandProcessor*
+SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void)
 {
-  static SK_CommandProcessor* command = nullptr;
+  static SK_ICommandProcessor* command = nullptr;
 
   if (command == nullptr) {
-    command = new SK_CommandProcessor ();
+    command = new SK_ICommandProcessor ();
   }
 
   return command;
@@ -75,20 +75,20 @@ str_hash_compare <std::string, std::less <std::string> >::operator() (const std:
   return hash_string (_lhs) < hash_string (_rhs);
 }
 
-class SK_SourceCmd : public SK_Command
+class SK_SourceCmd : public SK_ICommand
 {
 public:
-  SK_SourceCmd (SK_CommandProcessor* cmd_proc) {
+  SK_SourceCmd (SK_ICommandProcessor* cmd_proc) {
     processor_ = cmd_proc;
   }
 
-  SK_CommandResult execute (const char* szArgs) {
+  SK_ICommandResult execute (const char* szArgs) {
     /* TODO: Replace with a special tokenizer / parser... */
     FILE* src = fopen (szArgs, "r");
 
     if (! src) {
       return
-        SK_CommandResult ( "source", szArgs,
+        SK_ICommandResult ( "source", szArgs,
           "Could not open file!",
           false,
           NULL,
@@ -112,11 +112,11 @@ public:
 
     fclose (src);
 
-    return SK_CommandResult ( "source", szArgs,
-                                "Success",
-                                  num_lines,
-                                    NULL,
-                                      this );
+    return SK_ICommandResult ( "source", szArgs,
+                                 "Success",
+                                   num_lines,
+                                     NULL,
+                                       this );
   }
 
   int getNumArgs (void) {
@@ -133,19 +133,19 @@ public:
   }
 
 private:
-  SK_CommandProcessor* processor_;
+  SK_ICommandProcessor* processor_;
 
 };
 
-SK_CommandProcessor::SK_CommandProcessor (void)
+SK_ICommandProcessor::SK_ICommandProcessor (void)
 {
-  SK_Command* src = new SK_SourceCmd (this);
+  SK_ICommand* src = new SK_SourceCmd (this);
 
   AddCommand ("source", src);
 }
 
-const SK_Command*
-SK_CommandProcessor::AddCommand (const char* szCommand, SK_Command* pCommand)
+const SK_ICommand*
+SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
 {
   if (szCommand == NULL || strlen (szCommand) < 1)
     return NULL;
@@ -163,10 +163,13 @@ SK_CommandProcessor::AddCommand (const char* szCommand, SK_Command* pCommand)
 }
 
 bool
-SK_CommandProcessor::RemoveCommand (const char* szCommand)
+SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 {
   if (FindCommand (szCommand) != NULL) {
-    std::unordered_map <std::string, SK_Command*, str_hash_compare <std::string> >::iterator
+    std::unordered_map < std::string,
+                           SK_ICommand*,
+                             str_hash_compare <std::string>
+                       >::iterator
       command = commands_.find (szCommand);
 
     commands_.erase (command);
@@ -176,10 +179,13 @@ SK_CommandProcessor::RemoveCommand (const char* szCommand)
   return false;
 }
 
-SK_Command*
-SK_CommandProcessor::FindCommand (const char* szCommand) const
+SK_ICommand*
+SK_ICommandProcessor::FindCommand (const char* szCommand) const
 {
-  std::unordered_map <std::string, SK_Command*, str_hash_compare <std::string> >::const_iterator
+  std::unordered_map < std::string,
+                         SK_ICommand*,
+                           str_hash_compare <std::string>
+                     >::const_iterator
     command = commands_.find (szCommand);
 
   if (command != commands_.end ())
@@ -190,8 +196,8 @@ SK_CommandProcessor::FindCommand (const char* szCommand) const
 
 
 
-const SK_Variable*
-SK_CommandProcessor::AddVariable (const char* szVariable, SK_Variable* pVariable)
+const SK_IVariable*
+SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariable)
 {
   if (szVariable == NULL || strlen (szVariable) < 1)
     return NULL;
@@ -209,10 +215,13 @@ SK_CommandProcessor::AddVariable (const char* szVariable, SK_Variable* pVariable
 }
 
 bool
-SK_CommandProcessor::RemoveVariable (const char* szVariable)
+SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 {
   if (FindVariable (szVariable) != NULL) {
-    std::unordered_map <std::string, SK_Variable*, str_hash_compare <std::string> >::iterator
+    std::unordered_map < std::string,
+                           SK_IVariable*,
+                             str_hash_compare <std::string>
+                       >::iterator
       variable = variables_.find (szVariable);
 
     variables_.erase (variable);
@@ -222,10 +231,13 @@ SK_CommandProcessor::RemoveVariable (const char* szVariable)
   return false;
 }
 
-const SK_Variable*
-SK_CommandProcessor::FindVariable (const char* szVariable) const
+const SK_IVariable*
+SK_ICommandProcessor::FindVariable (const char* szVariable) const
 {
-  std::unordered_map <std::string, SK_Variable*, str_hash_compare <std::string> >::const_iterator
+  std::unordered_map < std::string,
+                         SK_IVariable*,
+                           str_hash_compare <std::string>
+                     >::const_iterator
     variable = variables_.find (szVariable);
 
   if (variable != variables_.end ())
@@ -236,8 +248,8 @@ SK_CommandProcessor::FindVariable (const char* szVariable) const
 
 
 
-SK_CommandResult
-SK_CommandProcessor::ProcessCommandLine (const char* szCommandLine)
+SK_ICommandResult
+SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 {
   if (szCommandLine != NULL && strlen (szCommandLine))
   {
@@ -280,7 +292,7 @@ SK_CommandProcessor::ProcessCommandLine (const char* szCommandLine)
     this command... If no arguments were passed, it MUST be
     an empty string. */
 
-    SK_Command* cmd = FindCommand (cmd_word.c_str ());
+    SK_ICommand* cmd = FindCommand (cmd_word.c_str ());
 
     if (cmd != NULL) {
       return cmd->execute (cmd_args.c_str ());
@@ -288,14 +300,14 @@ SK_CommandProcessor::ProcessCommandLine (const char* szCommandLine)
 
     /* No command found, perhaps the word was a variable? */
 
-    const SK_Variable* var = FindVariable (cmd_word.c_str ());
+    const SK_IVariable* var = FindVariable (cmd_word.c_str ());
 
     if (var != NULL) {
-      if (var->getType () == SK_Variable::Boolean)
+      if (var->getType () == SK_IVariable::Boolean)
       {
         if (command_args_len > 0) {
-          SK_VarStub <bool>* bool_var = (SK_VarStub <bool>*) var;
-          bool               bool_val = false;
+          SK_IVarStub <bool>* bool_var = (SK_IVarStub <bool>*) var;
+          bool                bool_val = false;
 
           /* False */
           if (! (_stricmp (cmd_args.c_str (), "false") && _stricmp (cmd_args.c_str (), "0") &&
@@ -318,17 +330,17 @@ SK_CommandProcessor::ProcessCommandLine (const char* szCommandLine)
             bool_var->setValue (bool_val);
 
             /* ^^^ TODO: Consider adding a toggle (...) function to
-            the bool specialization of SK_VarStub... */
+            the bool specialization of SK_IVarStub... */
           } else {
             // Unknown Trailing Characters
           }
         }
       }
 
-      else if (var->getType () == SK_Variable::Int)
+      else if (var->getType () == SK_IVariable::Int)
       {
         if (command_args_len > 0) {
-          int original_val = ((SK_VarStub <int>*) var)->getValue ();
+          int original_val = ((SK_IVarStub <int>*) var)->getValue ();
           int int_val = 0;
 
           /* Increment */
@@ -341,14 +353,14 @@ SK_CommandProcessor::ProcessCommandLine (const char* szCommandLine)
           } else
             int_val = atoi (cmd_args.c_str ());
 
-          ((SK_VarStub <int>*) var)->setValue (int_val);
+          ((SK_IVarStub <int>*) var)->setValue (int_val);
         }
       }
 
-      else if (var->getType () == SK_Variable::Short)
+      else if (var->getType () == SK_IVariable::Short)
       {
         if (command_args_len > 0) {
-          short original_val = ((SK_VarStub <short>*) var)->getValue ();
+          short original_val = ((SK_IVarStub <short>*) var)->getValue ();
           short short_val    = 0;
 
           /* Increment */
@@ -361,35 +373,35 @@ SK_CommandProcessor::ProcessCommandLine (const char* szCommandLine)
           } else
             short_val = (short)atoi (cmd_args.c_str ());
 
-          ((SK_VarStub <short>*) var)->setValue (short_val);
+          ((SK_IVarStub <short>*) var)->setValue (short_val);
         }
       }
 
-      else if (var->getType () == SK_Variable::Float)
+      else if (var->getType () == SK_IVariable::Float)
       {
         if (command_args_len > 0) {
-          //          float original_val = ((SK_VarStub <float>*) var)->getValue ();
+          //          float original_val = ((SK_IVarStub <float>*) var)->getValue ();
           float float_val = (float)atof (cmd_args.c_str ());
 
-          ((SK_VarStub <float>*) var)->setValue (float_val);
+          ((SK_IVarStub <float>*) var)->setValue (float_val);
         }
       }
 
-      return SK_CommandResult (cmd_word, cmd_args, var->getValueString (), true, var, NULL);
+      return SK_ICommandResult (cmd_word, cmd_args, var->getValueString (), true, var, NULL);
     } else {
       /* Default args --> failure... */
-      return SK_CommandResult (cmd_word, cmd_args); 
+      return SK_ICommandResult (cmd_word, cmd_args); 
     }
   } else {
     /* Invalid Command Line (not long enough). */
-    return SK_CommandResult (std::string (szCommandLine)); /* Default args --> failure... */
+    return SK_ICommandResult (std::string (szCommandLine)); /* Default args --> failure... */
   }
 }
 
 #include <cstdarg>
 
-SK_CommandResult
-SK_CommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
+SK_ICommandResult
+SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
 {
   va_list ap;
   int     len;
@@ -407,7 +419,7 @@ SK_CommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
   vsprintf (szFormattedCommandLine, szCommandFormat, ap);
   va_end   (ap);
 
-  SK_CommandResult result =
+  SK_ICommandResult result =
     ProcessCommandLine (szFormattedCommandLine);
 
   free (szFormattedCommandLine);
@@ -419,8 +431,8 @@ SK_CommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
 
 
 template <>
-SK_VarStub <bool>::SK_VarStub ( bool*                 var,
-                                SK_iVariableListener* pListener ) :
+SK_IVarStub <bool>::SK_IVarStub ( bool*                 var,
+                                  SK_IVariableListener* pListener ) :
   var_ (var)
 {
   listener_ = pListener;
@@ -429,7 +441,7 @@ SK_VarStub <bool>::SK_VarStub ( bool*                 var,
 
 template <>
 std::string
-SK_VarStub <bool>::getValueString (void) const
+SK_IVarStub <bool>::getValueString (void) const
 {
   if (getValue ())
     return std::string ("true");
@@ -438,8 +450,8 @@ SK_VarStub <bool>::getValueString (void) const
 }
 
 template <>
-SK_VarStub <const char*>::SK_VarStub ( const char**          var,
-                                       SK_iVariableListener* pListener ) :
+SK_IVarStub <const char*>::SK_IVarStub ( const char**          var,
+                                         SK_IVariableListener* pListener ) :
   var_ (var)
 {
   listener_ = pListener;
@@ -447,8 +459,8 @@ SK_VarStub <const char*>::SK_VarStub ( const char**          var,
 }
 
 template <>
-SK_VarStub <int>::SK_VarStub ( int*                  var,
-                               SK_iVariableListener* pListener ) :
+SK_IVarStub <int>::SK_IVarStub ( int*                  var,
+                                 SK_IVariableListener* pListener ) :
   var_ (var)
 {
   listener_ = pListener;
@@ -457,7 +469,7 @@ SK_VarStub <int>::SK_VarStub ( int*                  var,
 
 template <>
 std::string
-SK_VarStub <int>::getValueString (void) const
+SK_IVarStub <int>::getValueString (void) const
 {
   char szIntString [32];
   snprintf (szIntString, 32, "%d", getValue ());
@@ -467,8 +479,8 @@ SK_VarStub <int>::getValueString (void) const
 
 
 template <>
-SK_VarStub <short>::SK_VarStub ( short*                var,
-                                 SK_iVariableListener* pListener ) :
+SK_IVarStub <short>::SK_IVarStub ( short*                var,
+                                   SK_IVariableListener* pListener ) :
   var_ (var)
 {
   listener_ = pListener;
@@ -477,7 +489,7 @@ SK_VarStub <short>::SK_VarStub ( short*                var,
 
 template <>
 std::string
-SK_VarStub <short>::getValueString (void) const
+SK_IVarStub <short>::getValueString (void) const
 {
   char szShortString [32];
   snprintf (szShortString, 32, "%d", getValue ());
@@ -487,8 +499,8 @@ SK_VarStub <short>::getValueString (void) const
 
 
 template <>
-SK_VarStub <float>::SK_VarStub ( float*                var,
-                                 SK_iVariableListener* pListener ) :
+SK_IVarStub <float>::SK_IVarStub ( float*                var,
+                                   SK_IVariableListener* pListener ) :
   var_ (var)
 {
   listener_ = pListener;
@@ -497,7 +509,7 @@ SK_VarStub <float>::SK_VarStub ( float*                var,
 
 template <>
 std::string
-SK_VarStub <float>::getValueString (void) const
+SK_IVarStub <float>::getValueString (void) const
 {
   char szFloatString [32];
   snprintf (szFloatString, 32, "%f", getValue ());
@@ -514,4 +526,33 @@ SK_VarStub <float>::getValueString (void) const
   szFloatString [len] = '\0';
 
   return std::string (szFloatString);
+}
+
+__declspec (dllexport)
+SK_IVariable*
+__stdcall
+SK_CreateVar ( SK_IVariable::VariableType type,
+               void*                      var,
+               SK_IVariableListener      *pListener )
+{
+  switch (type) {
+    case SK_IVariable::Float:
+      return new SK_IVarStub <float> ((float *)var, pListener);
+    case SK_IVariable::Double:
+      return nullptr;
+    case SK_IVariable::Boolean:
+      return new SK_IVarStub <bool> ((bool *)var, pListener);
+    case SK_IVariable::Byte:
+      return nullptr;
+    case SK_IVariable::Short:
+      return new SK_IVarStub <short> ((short *)var, pListener);
+    case SK_IVariable::Int:
+      return new SK_IVarStub <int> ((int *)var, pListener);
+    case SK_IVariable::LongInt:
+      return nullptr;
+    case SK_IVariable::String:
+      return new SK_IVarStub <const char *> ((const char **)var, pListener);
+  }
+
+  return nullptr;
 }

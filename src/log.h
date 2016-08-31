@@ -27,7 +27,11 @@
 #include <minwindef.h>
 #include <minwinbase.h>
 
-#define SK_AutoClose_Log(log) sk_logger_t::AutoClose closeme_##log = (log).auto_close ();
+// {A4BF1773-CAAB-48F3-AD88-C2AB5C23BD6F}
+static const GUID IID_SK_Logger = 
+{ 0xa4bf1773, 0xcaab, 0x48f3, { 0xad, 0x88, 0xc2, 0xab, 0x5c, 0x23, 0xbd, 0x6f } };
+
+#define SK_AutoClose_Log(log) iSK_Logger::AutoClose closeme_##log = (log).auto_close ();
 
 //
 // NOTE: This is a barbaric approach to the problem... we clearly have a
@@ -40,11 +44,11 @@
 //        * Consdier using a stack-based approach if these logs become
 //            indecipherable in the future.
 //            
-struct sk_logger_t
+interface iSK_Logger : public IUnknown
 {
   class AutoClose
   {
-  friend struct sk_logger_t;
+  friend interface iSK_Logger;
   public:
     ~AutoClose (void)
     {
@@ -55,44 +59,59 @@ struct sk_logger_t
     }
 
   protected:
-    AutoClose (sk_logger_t* log) : log_ (log) { }
+    AutoClose (iSK_Logger* log) : log_ (log) { }
 
   private:
-    sk_logger_t* log_;
+    iSK_Logger* log_;
   };
 
   AutoClose auto_close (void) {
     return AutoClose (this);
   }
 
-  bool init ( const char* const szFilename,
-              const char* const szMode );
+  iSK_Logger (void) {
+    AddRef ();
+  }
 
-  void close (void);
+  virtual ~iSK_Logger (void) {
+    Release ();
+  }
 
-  void LogEx (bool                 _Timestamp,
-    _In_z_ _Printf_format_string_
-    wchar_t const* const _Format, ...);
+  /*** IUnknown methods ***/
+  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);
+  STDMETHOD_ (ULONG, AddRef)        (THIS);
+  STDMETHOD_ (ULONG, Release)       (THIS);
 
-  void Log   (_In_z_ _Printf_format_string_
-    wchar_t const* const _Format, ...);
+  STDMETHOD_ (bool, init)(THIS_ const wchar_t* const wszFilename,
+                                const wchar_t* const wszMode );
+  STDMETHOD_ (void, close)(THIS);
 
-  void Log   (_In_z_ _Printf_format_string_
-    char const* const _Format, ...);
+  STDMETHOD_ (void, LogEx)(THIS_ bool                 _Timestamp,
+                              _In_z_ _Printf_format_string_
+                                 wchar_t const* const _Format,
+                                                      ... );
+  STDMETHOD_ (void, Log)  (THIS_ _In_z_ _Printf_format_string_
+                                 wchar_t const* const _Format,
+                                                      ... );
+  STDMETHOD_ (void, Log)  (THIS_ _In_z_ _Printf_format_string_
+                                 char const* const    _Format,
+                                                      ... );
 
   FILE*            fLog        = NULL;
-  std::string      name        = "";
+  std::wstring     name        = L"";
   bool             silent      = false;
   bool             initialized = false;
   int              lines       =   0;
   CRITICAL_SECTION log_mutex   = { 0 };
+  ULONG            refs        =   0UL;
 };
 
-//
-// TODO, we may want to wrap some synchronization construct around these
-//
-extern sk_logger_t dll_log;
-extern sk_logger_t crash_log;
-extern sk_logger_t budget_log;
+extern iSK_Logger dll_log;
+extern iSK_Logger crash_log;
+extern iSK_Logger budget_log;
+
+iSK_Logger*
+__stdcall
+SK_CreateLog (const wchar_t* const wszName);
 
 #endif /* __SK__LOG_H__ */

@@ -24,13 +24,14 @@
 #include "core.h"
 #include "parameter.h"
 #include "import.h"
+#include "utility.h"
 #include "ini.h"
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.4.3";
+std::wstring SK_VER_STR = L"0.5.0";
 
-sk::INI::File*  dll_ini = nullptr;
+iSK_INI*    dll_ini = nullptr;
 
 sk_config_t config;
 
@@ -196,8 +197,14 @@ struct {
 bool
 SK_LoadConfig (std::wstring name) {
   // Load INI File
-  std::wstring full_name = name + L".ini";
-  dll_ini = new sk::INI::File ((wchar_t *)full_name.c_str ());
+  std::wstring full_name;
+
+  full_name = SK_GetConfigPath () +
+                name              +
+                  L".ini";
+
+  dll_ini =
+    new iSK_INI (full_name.c_str ());
 
   bool empty = dll_ini->get_sections ().empty ();
 
@@ -981,10 +988,10 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.Log",
         L"Silent" );
 
-  const std::map <std::wstring, sk::INI::File::Section>& sections =
+  iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
 
-  std::map <std::wstring, sk::INI::File::Section>::const_iterator sec =
+  iSK_INI::_TSectionMap::const_iterator sec =
     sections.begin ();
 
   int import = 0;
@@ -1507,7 +1514,13 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   version->set_value                     (SK_VER_STR);
   version->store                         ();
 
-  dll_ini->write (name + L".ini");
+  std::wstring full_name;
+
+  full_name = SK_GetConfigPath () + 
+                name              +
+                  L".ini";
+
+  dll_ini->write (full_name);
 
   if (close_config) {
     if (dll_ini != nullptr) {

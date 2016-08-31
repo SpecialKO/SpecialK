@@ -19,6 +19,8 @@
  *
 **/
 
+#include <Windows.h>
+
 #include "import.h"
 #include "log.h"
 

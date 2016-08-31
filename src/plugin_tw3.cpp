@@ -26,7 +26,8 @@ SK_TW3_InitPlugin (void)
 bool
 SK_TW3_MaximizeBorderless (void)
 {
-  extern sk::INI::File* dll_ini;
+  iSK_INI* dll_ini =
+    SK_GetDLLConfig ();
 
   if (tw3_fullscreen == nullptr) {
     tw3_fullscreen =
@@ -44,7 +45,8 @@ SK_TW3_MaximizeBorderless (void)
 bool
 SK_TW3_UseFlipMode (void)
 {
-  extern sk::INI::File* dll_ini;
+  iSK_INI* dll_ini =
+    SK_GetDLLConfig ();
 
   SK_TW3_InitPlugin ();
 

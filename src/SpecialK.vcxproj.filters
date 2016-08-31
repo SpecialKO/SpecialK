@@ -28,9 +28,6 @@
     <Filter Include="Libraries">
       <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Diagnostics">
-      <UniqueIdentifier>{05e53788-2b5b-4da9-8e0a-749b8481056a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Diagnostics">
       <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
     </Filter>
@@ -45,6 +42,9 @@
     </Filter>
     <Filter Include="Header Files\Backends\D3D9">
       <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Diagnostics">
+      <UniqueIdentifier>{05e53788-2b5b-4da9-8e0a-749b8481056a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -298,6 +298,9 @@
     </ClCompile>
     <ClCompile Include="d3d9\texmgr.cpp">
       <Filter>Source Files\Backends\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="diagnostics\compatibility.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

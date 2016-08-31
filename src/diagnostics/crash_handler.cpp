@@ -24,6 +24,7 @@
 #include "../core.h"
 #include "../log.h"
 #include "../resource.h"
+#include "../utility.h"
 
 #include <Windows.h>
 
@@ -56,7 +57,7 @@ SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopL
 void
 CrashHandler::Reinstall (void)
 {
-  SetErrorMode (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+  SetErrorMode                (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
   SetUnhandledExceptionFilter (SK_TopLevelExceptionFilter);
 }
 
@@ -82,7 +83,7 @@ CrashHandler::Init (void)
   }
 
   if (! crash_log.initialized)
-    crash_log.init ("logs/crash.log", "w");
+    crash_log.init (L"logs/crash.log", L"w");
 
   //SK_CreateDLLHook ( L"kernel32.dll", "SetUnhandledExceptionFilter",
                      //SetUnhandledExceptionFilter_Detour,
@@ -111,7 +112,7 @@ CrashHandler::Shutdown (void)
 
 
 
-sk_logger_t crash_log;
+iSK_Logger crash_log;
 
 LONG
 WINAPI
@@ -506,13 +507,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
   if (repeated || non_continue) {
-    extern HMODULE       hModSelf;
-    extern BOOL APIENTRY DllMain (HMODULE hModule,
-                                  DWORD   ul_reason_for_call,
-                                  LPVOID  /* lpReserved */);
-
-    sk_logger_t::AutoClose close_me =
-      crash_log.auto_close ();
+    SK_AutoClose_Log (crash_log);
 
     last_chance = true;
 
@@ -522,7 +517,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                     SND_MEMORY );
 
     // Shutdown the module gracefully
-    DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
+    SK_SelfDestruct ();
 
     return EXCEPTION_EXECUTE_HANDLER;
   }

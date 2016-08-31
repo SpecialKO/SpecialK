@@ -32,6 +32,7 @@
 
 extern void WaitForInit (void);
 extern bool SK_InitCOM (void);
+extern HWND hWndRender;
 
 void __stdcall
 SK_GL_UpdateRenderStats (void);
@@ -1146,6 +1147,12 @@ SwapBuffers (HDC hDC)
 #endif
   WaitForInit ();
 
+
+  // Setup our window message hook for the command console
+  if (hWndRender == 0 || (! IsWindow (hWndRender)))
+    hWndRender = WindowFromDC (hDC);
+
+
   SK_BeginBufferSwap ();
 
   typedef BOOL (WINAPI *SwapBuffers_pfn)(HDC);
@@ -1184,6 +1191,12 @@ wglSwapBuffers (HDC hDC)
 #endif
 
   WaitForInit ();
+
+
+  // Setup our window message hook for the command console
+  if (hWndRender == 0 || (! IsWindow (hWndRender)))
+    hWndRender = WindowFromDC (hDC);
+
 
   SK_BeginBufferSwap ();
 

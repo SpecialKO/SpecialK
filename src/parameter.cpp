@@ -22,6 +22,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NON_CONFORMING_SWPRINTFS
 
+#include <Windows.h>
 #include "parameter.h"
 
 std::wstring
@@ -238,3 +239,63 @@ sk::ParameterFactory::create_parameter <std::wstring> (const wchar_t* name)
 
   return param;
 }
+
+
+#if 0
+bool
+STDMETHODCALLTYPE
+iSK_Parameter::load (void)
+{
+  if (ini != nullptr) {
+    iSK_INISection& section = ini->get_section (ini_section);
+
+    if (section.contains_key (ini_key)) {
+      set_value_str (section.get_value (ini_key));
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+STDMETHODCALLTYPE
+iSK_Parameter::store (void)
+{
+  bool ret = false;
+
+  if (ini != nullptr) {
+    iSK_INISection& section = ini->get_section (ini_section);
+
+    // If this operation actually creates a section, we need to make sure
+    //   that section has a name!
+    section.set_name (ini_section);
+
+    if (section.contains_key (ini_key)) {
+      section.get_value (ini_key) = get_value_str ().c_str ();
+      ret = true;
+    }
+
+    // Add this key/value if it doesn't already exist.
+    else {
+      section.add_key_value (ini_key, get_value_str ().c_str ());
+      ret = true;// +1;
+    }
+  }
+
+  return ret;
+}
+#endif
+
+#if 0
+void
+STDMETHODCALLTYPE
+iSK_ParameterBase::register_to_ini ( iSK_INI      *file,
+                                     std::wstring  section,
+                                     std::wstring  key )
+{
+  ini         = file;
+  ini_section = section;
+  ini_key     = key;
+}
+#endif

@@ -28,6 +28,7 @@
 #include "diagnostics/debug_utils.h"
 
 #include "log.h"
+#include "utility.h"
 
 #include "steam_api.h"
 
@@ -514,7 +515,7 @@ BudgetThread (LPVOID user_data)
   budget_thread_params_t* params =
     (budget_thread_params_t *)user_data;
 
-  if (budget_log.init ("logs/dxgi_budget.log", "w")) {
+  if (budget_log.init (L"logs/dxgi_budget.log", L"w")) {
     params->tid       = GetCurrentThreadId ();
     params->event     = CreateEvent (NULL, FALSE, FALSE, L"DXGIMemoryBudget");
     budget_log.silent = true;
@@ -988,18 +989,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     return;
   }
 
-  char log_fname [MAX_PATH];
-  log_fname [MAX_PATH - 1] = '\0';
-
-  sprintf (log_fname, "logs/%ws.log", backend);
-
-  dll_log.init (log_fname, "w");
-  dll_log.Log  (L"%s.log created", backend);
-
-  dll_log.LogEx (false,
-    L"------------------------------------------------------------------------"
-    L"-------------------\n");
-
   DWORD   dwProcessSize = MAX_PATH;
   wchar_t wszProcessName [MAX_PATH];
 
@@ -1013,7 +1002,17 @@ SK_InitCore (const wchar_t* backend, void* callback)
     *(pwszShortName - 1) != L'\\')
     --pwszShortName;
 
-  host_app = pwszShortName;
+  wchar_t log_fname [MAX_PATH];
+  log_fname [MAX_PATH - 1] = '\0';
+
+  wsprintf (log_fname, L"logs/%s.log", backend);
+
+  dll_log.init (log_fname, L"w");
+  dll_log.Log  (L"%s.log created", backend);
+
+  dll_log.LogEx (false,
+    L"------------------------------------------------------------------------"
+    L"-------------------\n");
 
   extern HMODULE hModSelf;
   wchar_t wszModuleName  [MAX_PATH];
@@ -1031,6 +1030,23 @@ SK_InitCore (const wchar_t* backend, void* callback)
     dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
     SK_SaveConfig (backend);
     dll_log.LogEx (false, L"done!\n");
+  }
+
+  if (config.system.central_repository) {
+    wchar_t wszWork [MAX_PATH + 2];
+    GetCurrentDirectoryW (MAX_PATH, wszWork);
+
+    // Create Symlink for end-user's convenience
+    if (GetFileAttributes (L"SpecialK") == INVALID_FILE_ATTRIBUTES) {
+      std::wstring link (wszWork);
+      link += L"\\SpecialK\\";
+
+      CreateSymbolicLink (
+        link.c_str                  (),
+          SK_GetConfigPath ().c_str (),
+            SYMBOLIC_LINK_FLAG_DIRECTORY
+      );
+    }
   }
 
   if (! lstrcmpW (pwszShortName, L"BatmanAK.exe"))
@@ -1236,6 +1252,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
+  extern void SK_InitCompatBlacklist (void);
+
+  SK_InitCompatBlacklist ();
 
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
@@ -1291,9 +1310,9 @@ WaitForInit (void)
 //
 // TODO : Move me somewhere more sensible...
 //
-class skMemCmd : public SK_Command {
+class skMemCmd : public SK_ICommand {
 public:
-  SK_CommandResult execute (const char* szArgs);
+  SK_ICommandResult execute (const char* szArgs);
 
   int         getNumArgs         (void) { return 2; }
   int         getNumOptionalArgs (void) { return 1; }
@@ -1305,11 +1324,11 @@ protected:
 private:
 };
 
-SK_CommandResult
+SK_ICommandResult
 skMemCmd::execute (const char* szArgs)
 {
   if (szArgs == nullptr)
-    return SK_CommandResult ("mem", szArgs);
+    return SK_ICommandResult ("mem", szArgs);
 
   uintptr_t addr;
   char      type;
@@ -1355,7 +1374,7 @@ skMemCmd::execute (const char* szArgs)
 
       sprintf (result, "%u", *(uint8_t *)addr);
 
-      return SK_CommandResult ("mem", szArgs, result, 1);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 's':
       if (strlen (val)) {
@@ -1369,7 +1388,7 @@ skMemCmd::execute (const char* szArgs)
       }
 
       sprintf (result, "%u", *(uint16_t *)addr);
-      return SK_CommandResult ("mem", szArgs, result, 1);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'i':
       if (strlen (val)) {
@@ -1383,7 +1402,7 @@ skMemCmd::execute (const char* szArgs)
       }
 
       sprintf (result, "%u", *(uint32_t *)addr);
-      return SK_CommandResult ("mem", szArgs, result, 1);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'd':
       if (strlen (val)) {
@@ -1397,7 +1416,7 @@ skMemCmd::execute (const char* szArgs)
       }
 
       sprintf (result, "%f", *(double *)addr);
-      return SK_CommandResult ("mem", szArgs, result, 1);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'f':
       if (strlen (val)) {
@@ -1411,7 +1430,7 @@ skMemCmd::execute (const char* szArgs)
       }
 
       sprintf (result, "%f", *(float *)addr);
-      return SK_CommandResult ("mem", szArgs, result, 1);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 't':
       if (strlen (val)) {
@@ -1422,11 +1441,11 @@ skMemCmd::execute (const char* szArgs)
         VirtualProtect ((LPVOID)addr, 256, dwOld, &dwOld);
       }
       sprintf (result, "%s", (char *)addr);
-      return SK_CommandResult ("mem", szArgs, result, 1);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
   }
 
-  return SK_CommandResult ("mem", szArgs);
+  return SK_ICommandResult ("mem", szArgs);
 }
 
 
@@ -1449,7 +1468,7 @@ DllThread (LPVOID user)
     extern int32_t SK_D3D11_amount_to_purge;
     SK_GetCommandProcessor ()->AddVariable (
       "VRAM.Purge",
-        new SK_VarStub <int32_t> (
+        new SK_IVarStub <int32_t> (
           (int32_t *)&SK_D3D11_amount_to_purge
         )
     );
@@ -1492,6 +1511,52 @@ DllThread (LPVOID user)
 
 extern HMODULE hModSelf;
 
+class SK_HookedFunction {
+public:
+  enum Type {
+    DLL,
+    VFTable,
+    Generic,
+    Invalid
+  };
+
+protected:
+  Type             type     = Invalid;
+  const char*      name     = "<Initialize_Me>";
+
+  struct {
+    uintptr_t      detour   = 0xCaFACADE;
+    uintptr_t      original = 0x8badf00d;
+    uintptr_t      target   = 0xdeadc0de;
+  } addr;
+
+  union {
+    struct {
+      int_fast16_t idx      = -1;
+    } vftbl;
+
+    struct {
+      HANDLE       module   = 0; // Hold a reference; don't let
+                                 //   software unload the DLL while it is
+                                 //     hooked!
+    } dll;
+  };
+
+  bool             enabled  = false;
+};
+
+class HookManager {
+public:
+  bool validateVFTables (void);
+  void rehookVFTables   (void);
+
+  void uninstallAll     (void);
+  void reinstallAll     (void);
+  void install          (SK_HookedFunction* pfn);
+
+std::vector <SK_HookedFunction> hooks;
+};
+
 MH_STATUS
 WINAPI
 SK_CreateFuncHook ( LPCWSTR pwszFuncName,
@@ -1524,17 +1589,25 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                    LPVOID *ppFuncAddr )
 {
 #if 1
-  HMODULE hMod = GetModuleHandle (pwszModule);
+  HMODULE hMod = nullptr;
 
-#if 0
-  if (hMod == NULL) {
-    if (LoadLibraryW_Original != nullptr) {
-      hMod = LoadLibraryW_Original (pwszModule);
-    } else {
-      hMod = LoadLibraryW (pwszModule);
-    }
+  // First try to get (and permanently hold) a reference to the hooked module
+  if (! GetModuleHandleEx (
+          GET_MODULE_HANDLE_EX_FLAG_PIN,
+            pwszModule,
+              &hMod ) ) {
+    //
+    // If that fails, partially load the module into memory to establish our
+    //   function hook.
+    //
+    //  Defer the standard DllMain (...) entry-point until the
+    //    software actually loads the library on its own.
+    //
+    hMod = LoadLibraryEx (
+             pwszModule,
+               nullptr,
+                 DONT_RESOLVE_DLL_REFERENCES );
   }
-#endif
 
   LPVOID    pFuncAddr = nullptr;
   MH_STATUS status    = MH_OK;
@@ -1679,19 +1752,56 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (! dll_heap)
     return false;
 
+
+  // Allow users to centralize all files if they want
+  if (GetFileAttributes (L"SpecialK.central") != INVALID_FILE_ATTRIBUTES)
+    config.system.central_repository = true;
+
+
+  DWORD   dwProcessSize = MAX_PATH;
+  wchar_t wszProcessName [MAX_PATH];
+
+  HANDLE hProc = GetCurrentProcess ();
+
+  QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+
+  wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
+
+  while (  pwszShortName      >  wszProcessName &&
+    *(pwszShortName - 1) != L'\\')
+    --pwszShortName;
+
+  host_app = pwszShortName;
+
+  *pwszShortName = L'\0';
+
+
+  if (config.system.central_repository) {
+    SK_SetConfigPath (
+      SK_EvalEnvironmentVars (
+        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\"
+      ) + SK_GetHostApp () + L"\\"
+    );
+  } else {
+    SK_SetConfigPath (std::wstring (wszProcessName) + L"\\");
+  }
+
+
   // Do this from the startup thread
   SK_Init_MinHook ();
 
   // Don't let Steam prevent me from attaching a debugger at startup, damnit!
   SK::Diagnostics::Debugger::Allow ();
 
+  if (! config.steam.silent) {
   // SteamAPI DLL was already loaded... yay!
 #ifdef _WIN64
-  if (GetModuleHandle (L"steam_api64.dll"))
+    if (GetModuleHandle (L"steam_api64.dll"))
 #else
-  if (GetModuleHandle (L"steam_api.dll"))
+    if (GetModuleHandle (L"steam_api.dll"))
 #endif
-    SK::SteamAPI::Init (false);
+      SK::SteamAPI::Init (false);
+  }
 
 
   InitializeCriticalSectionAndSpinCount (&budget_mutex,  4000);
@@ -1709,7 +1819,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init->callback = callback;
 
 #if 1
-  game_debug.init ("logs/game_output.log", "w");
+  game_debug.init (L"logs/game_output.log", L"w");
 
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init ();
@@ -1745,8 +1855,6 @@ bool
 WINAPI
 SK_ShutdownCore (const wchar_t* backend)
 {
-  dll_log.Log (L"[ SpecialK ] --- Beginning Shutdown ---");
-
   ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);
@@ -1931,9 +2039,11 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx  (false, L"done!\n");
   }
 
-  dll_log.LogEx  (true, L"[ SteamAPI ] Shutting down Steam API... ");
-  SK::SteamAPI::Shutdown ();
-  dll_log.LogEx  (false, L"done!\n");
+  if ((! config.steam.silent) && config.steam.preload) {
+    dll_log.LogEx  (true, L"[ SteamAPI ] Shutting down Steam API... ");
+    SK::SteamAPI::Shutdown ();
+    dll_log.LogEx  (false, L"done!\n");
+  }
 
   SK::Framerate::Shutdown ();
 
@@ -1977,15 +2087,17 @@ SK_BeginBufferSwap (void)
 #endif
   }
 
-  static int steam_tries = 0, init = 0;
-  if ((! init) && steam_tries++ < 12000) {
-    // Every 15 frames, try to initialize SteamAPI again
-    if (! (steam_tries % 15)) {
-      if (SK::SteamAPI::AppID () != 0)
-        init = 1;
+  if ((! config.steam.silent) && (! config.steam.preload)) {
+    static int steam_tries = 0, init = 0;
+    if ((! init) && steam_tries++ < 12000) {
+      // Every 15 frames, try to initialize SteamAPI again
+      if (! (steam_tries % 15)) {
+        if (SK::SteamAPI::AppID () != 0)
+          init = 1;
 
-      else
-        SK::SteamAPI::Init (true);
+        else
+          SK::SteamAPI::Init (true);
+      }
     }
   }
 }
@@ -2467,4 +2579,26 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
   return hr;
+}
+
+
+std::wstring SK_ConfigPath;
+
+//
+// To be used internally only, by the time any plug-in has
+//   been activated, Special K will have already established
+//     this path and loaded its config.
+//
+void
+__stdcall
+SK_SetConfigPath (std::wstring path)
+{
+  SK_ConfigPath = path;
+}
+
+std::wstring
+__stdcall
+SK_GetConfigPath (void)
+{
+  return SK_ConfigPath;
 }

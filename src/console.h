@@ -81,4 +81,8 @@ public:
     KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam);
 };
 
+HWND
+__stdcall
+SK_GetGameWindow (void);
+
 #endif /* __SK__CONSOLE_H__ */

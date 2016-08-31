@@ -23,6 +23,9 @@
 
 #include <Windows.h>
 #include "log.h"
+#include "core.h"
+#include "config.h"
+#include "utility.h"
 
 WORD
 SK_Timestamp (wchar_t* const out)
@@ -64,11 +67,11 @@ SK_Timestamp (wchar_t* const out)
   return stLogTime.wMilliseconds;
 }
 
-sk_logger_t dll_log, budget_log;
+iSK_Logger dll_log, budget_log;
 
 
 void
-sk_logger_t::close (void)
+iSK_Logger::close (void)
 {
   if (fLog != NULL) {
     fflush (fLog);
@@ -76,7 +79,12 @@ sk_logger_t::close (void)
   }
 
   if (lines == 0) {
-    DeleteFileA (name.c_str ());
+    std::wstring full_name =
+      SK_GetConfigPath ();
+
+    full_name += name;
+
+    DeleteFileW (full_name.c_str ());
   }
 
   initialized = false;
@@ -86,49 +94,25 @@ sk_logger_t::close (void)
 }
 
 bool
-sk_logger_t::init (const char* const szFileName,
-                   const char* const szMode)
+iSK_Logger::init ( const wchar_t* const wszFileName,
+                   const wchar_t* const wszMode )
 {
   if (initialized)
     return true;
 
   lines = 0;
-  name  = szFileName;
+  name  = wszFileName;
 
-  //
-  // Split the path, so we can create the log directory if necessary
-  //
-  if (strstr (szFileName, "\\") ||
-      strstr (szFileName, "/")) {
-    char* szSplitPath = _strdup (szFileName);
+  std::wstring full_name =
+    SK_GetConfigPath ();
 
-    // Replace all instances of '/' with '\'
-    size_t len = strlen (szSplitPath);
-    for (size_t i = 0; i < len; i++) {
-      if (szSplitPath [i] == '/')
-        szSplitPath [i] = '\\';
-    }
+  SK_CreateDirectories (
+    std::wstring (full_name + L"logs").c_str ()
+  );
 
-    char* szSplitter  = strrchr (szSplitPath, '\\');
-         *szSplitter  = '\0';
+  full_name += wszFileName;
 
-    char path [MAX_PATH] = { '\0' };
-
-    char* subpath = strtok (szSplitPath, "\\");
-
-    // For each subdirectory, create it...
-    while (subpath != nullptr) {
-      strcat           (path, subpath);
-      CreateDirectoryA (path, NULL);
-      strcat           (path, "\\");
-
-      subpath = strtok (NULL, "\\");
-    }
-
-    free (szSplitPath);
-  }
-
-  fLog = fopen (szFileName, szMode);
+  fLog = _wfopen (full_name.c_str (), wszMode);
 
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 2500);
 
@@ -142,9 +126,10 @@ sk_logger_t::init (const char* const szFileName,
 }
 
 void
-sk_logger_t::LogEx (bool                 _Timestamp,
+iSK_Logger::LogEx ( bool                 _Timestamp,
   _In_z_ _Printf_format_string_
-  wchar_t const* const _Format, ...)
+                     wchar_t const* const _Format,
+                                          ... )
 {
   va_list _ArgList;
 
@@ -180,8 +165,9 @@ sk_logger_t::LogEx (bool                 _Timestamp,
 }
 
 void
-sk_logger_t::Log   (_In_z_ _Printf_format_string_
-  wchar_t const* const _Format, ...)
+iSK_Logger::Log   ( _In_z_ _Printf_format_string_
+                    wchar_t const* const _Format,
+                                         ... )
 {
   va_list _ArgList;
 
@@ -216,8 +202,9 @@ sk_logger_t::Log   (_In_z_ _Printf_format_string_
 }
 
 void
-sk_logger_t::Log   (_In_z_ _Printf_format_string_
-  char const* const _Format, ...)
+iSK_Logger::Log   ( _In_z_ _Printf_format_string_
+                    char const* const _Format,
+                                      ... )
 {
   va_list _ArgList;
 
@@ -249,4 +236,40 @@ sk_logger_t::Log   (_In_z_ _Printf_format_string_
   fflush    (fLog);
 
   LeaveCriticalSection (&log_mutex);
+}
+
+HRESULT
+iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj)
+{
+  if (IsEqualGUID (riid, IID_SK_Logger)) {
+    AddRef ();
+    *ppvObj = this;
+    return S_OK;
+  }
+
+  return E_NOTIMPL;
+}
+
+ULONG
+iSK_Logger::AddRef (THIS)
+{
+  return InterlockedIncrement (&refs);
+}
+
+ULONG
+iSK_Logger::Release (THIS)
+{
+  return InterlockedDecrement (&refs);
+}
+
+iSK_Logger*
+__stdcall
+SK_CreateLog (const wchar_t* const wszName)
+{
+  iSK_Logger* pLog = new iSK_Logger ();
+
+  pLog->init   (wszName, L"w+");
+  pLog->silent = false;
+
+  return pLog;
 }

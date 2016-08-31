@@ -57,8 +57,10 @@ ErrorMessage (errno_t        err,
 #define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) != 0) \
 dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage ((z), #x, (y), __LINE__, __FUNCTION__, __FILE__)); }
 
-sk::INI::File::File (wchar_t* filename)
+iSK_INI::iSK_INI (const wchar_t* filename)
 {
+  AddRef ();
+
   sections.clear ();
 
   // We skip a few bytes (Unicode BOM) in crertain cirumstances, so this is the
@@ -115,7 +117,7 @@ sk::INI::File::File (wchar_t* filename)
   }
 }
 
-sk::INI::File::~File (void)
+iSK_INI::~iSK_INI (void)
 {
   if (wszName != nullptr) {
     delete [] wszName;
@@ -126,12 +128,14 @@ sk::INI::File::~File (void)
     delete[] wszData;
     wszData = nullptr;
   }
+
+  Release ();
 }
 
-sk::INI::File::Section
+iSK_INISection
 Process_Section (wchar_t* buffer, wchar_t* name, int start, int end)
 {
-  sk::INI::File::Section section (name);
+  iSK_INISection section (name);
 
   int key = start;
   for (int k = key; k < end; k++) {
@@ -166,7 +170,7 @@ Process_Section (wchar_t* buffer, wchar_t* name, int start, int end)
 }
 
 bool
-Import_Section (sk::INI::File::Section& section, wchar_t* buffer, int start, int end)
+Import_Section (iSK_INISection& section, wchar_t* buffer, int start, int end)
 {
   int key = start;
   for (int k = key; k < end; k++) {
@@ -208,7 +212,7 @@ Import_Section (sk::INI::File::Section& section, wchar_t* buffer, int start, int
 }
 
 void
-sk::INI::File::parse (void)
+iSK_INI::parse (void)
 {
   if (wszData != nullptr) {
     int len = lstrlenW (wszData);
@@ -269,9 +273,9 @@ sk::INI::File::parse (void)
           }
         }
 
-        Section section = Process_Section (wszData, sec_name, start, finish);
+        iSK_INISection section = Process_Section (wszData, sec_name, start, finish);
 
-        sections.insert (std::pair <std::wstring, Section> (sec_name, section));
+        sections.insert (std::pair <std::wstring, iSK_INISection> (sec_name, section));
         ordered_sections.push_back (sec_name);
         delete [] sec_name;
 
@@ -288,7 +292,7 @@ sk::INI::File::parse (void)
 }
 
 void
-sk::INI::File::import (std::wstring import_data)
+iSK_INI::import (std::wstring import_data)
 {
   wchar_t* wszImport = _wcsdup (import_data.c_str ());
 
@@ -353,16 +357,16 @@ sk::INI::File::import (std::wstring import_data)
 
         // Import if the section already exists
         if (contains_section (sec_name)) {
-          Section& section = get_section (sec_name);
+          iSK_INISection& section = get_section (sec_name);
 
           Import_Section (section, wszImport, start, finish);
         }
 
         // Insert otherwise
         else {
-          Section section = Process_Section (wszImport, sec_name, start, finish);
+          iSK_INISection section = Process_Section (wszImport, sec_name, start, finish);
 
-          sections.insert (std::pair <std::wstring, Section> (sec_name, section));
+          sections.insert (std::pair <std::wstring, iSK_INISection> (sec_name, section));
           ordered_sections.push_back (sec_name);
         }
         delete [] sec_name;
@@ -384,7 +388,7 @@ sk::INI::File::import (std::wstring import_data)
 std::wstring invalid = L"Invalid";
 
 std::wstring&
-sk::INI::File::Section::get_value (std::wstring key)
+iSK_INISection::get_value (std::wstring key)
 {
   std::map <std::wstring, std::wstring>::iterator it_key = pairs.find (key);
 
@@ -394,8 +398,14 @@ sk::INI::File::Section::get_value (std::wstring key)
   return invalid;
 }
 
+void
+iSK_INISection::set_name (std::wstring name_)
+{
+  name = name_;
+}
+
 bool
-sk::INI::File::Section::contains_key (std::wstring key)
+iSK_INISection::contains_key (std::wstring key)
 {
   for ( std::map <std::wstring, std::wstring>::iterator it = pairs.begin ();
           it != pairs.end ();
@@ -408,20 +418,20 @@ sk::INI::File::Section::contains_key (std::wstring key)
 }
 
 void
-sk::INI::File::Section::add_key_value (std::wstring key, std::wstring value)
+iSK_INISection::add_key_value (std::wstring key, std::wstring value)
 {
   pairs.insert (std::pair <std::wstring, std::wstring> (key, value));
   ordered_keys.push_back (key);
 }
 
 bool
-sk::INI::File::contains_section (std::wstring section)
+iSK_INI::contains_section (std::wstring section)
 {
   return sections.count (section) > 0;
 }
 
-sk::INI::File::Section&
-sk::INI::File::get_section (std::wstring section)
+iSK_INISection&
+iSK_INI::get_section (std::wstring section)
 {
   if (! sections.count (section))
     ordered_sections.push_back (section);
@@ -430,7 +440,7 @@ sk::INI::File::get_section (std::wstring section)
 }
 
 void
-sk::INI::File::write (std::wstring fname)
+iSK_INI::write (std::wstring fname)
 {
   FILE*   fOut;
   errno_t ret;
@@ -449,7 +459,7 @@ sk::INI::File::write (std::wstring fname)
   std::vector <std::wstring>::iterator end = ordered_sections.end   ();
 
   while (it != end) {
-    Section& section = get_section (*it);
+    iSK_INISection& section = get_section (*it);
     if (section.name.length ()) {
       fwprintf (fOut, L"[%s]\n", section.name.c_str ());
 
@@ -478,8 +488,67 @@ sk::INI::File::write (std::wstring fname)
 }
 
 
-const std::map <std::wstring, sk::INI::File::Section>&
-sk::INI::File::get_sections (void)
+iSK_INI::_TSectionMap&
+iSK_INI::get_sections (void)
 {
   return sections;
+}
+
+
+HRESULT
+iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
+{
+  if (IsEqualGUID (riid, IID_SK_INI)) {
+    AddRef ();
+    *ppvObj = this;
+    return S_OK;
+  }
+
+  return E_NOTIMPL;
+}
+
+ULONG
+iSK_INI::AddRef (THIS)
+{
+  return InterlockedIncrement (&refs);
+}
+
+ULONG
+iSK_INI::Release (THIS)
+{
+  return InterlockedDecrement (&refs);
+}
+
+
+HRESULT
+iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj)
+{
+  if (IsEqualGUID (riid, IID_SK_INISection)) {
+    AddRef ();
+    *ppvObj = this;
+    return S_OK;
+  }
+
+  return E_NOTIMPL;
+}
+
+ULONG
+iSK_INISection::AddRef (THIS)
+{
+  return InterlockedIncrement (&refs);
+}
+
+ULONG
+iSK_INISection::Release (THIS)
+{
+  return InterlockedDecrement (&refs);
+}
+
+iSK_INI*
+__stdcall
+SK_CreateINI (const wchar_t* const wszName)
+{
+  iSK_INI* pINI = new iSK_INI (wszName);
+
+  return pINI;
 }

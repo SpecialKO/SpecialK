@@ -68,6 +68,48 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
   return true;
 }
 
+bool
+SK_CreateDirectories ( const wchar_t* wszPath )
+{
+  wchar_t* wszSubDir = wcsdup (wszPath), *iter;
+
+  for (iter = wszSubDir; *iter != L'\0'; ++iter) {
+    if (*iter == L'\\' || *iter == L'//') {
+      *iter = L'\0';
+
+      if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
+        CreateDirectoryW (wszSubDir, nullptr);
+
+      *iter = L'\\';
+    }
+
+    // The final subdirectory (FULL PATH)
+    if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
+      CreateDirectoryW (wszSubDir, nullptr);
+  }
+
+  free (wszSubDir);
+
+  return true;
+}
+
+std::wstring
+SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
+{
+  wchar_t* wszEvaluated =
+    (wchar_t *)malloc (sizeof (wchar_t) * (MAX_PATH + 2));
+
+  ExpandEnvironmentStringsW ( wszEvaluateMe,
+                                wszEvaluated,
+                                  MAX_PATH + 2 );
+
+  std::wstring ret_str (wszEvaluated);
+
+  free (wszEvaluated);
+
+  return ret_str;
+}
+
 #include <string>
 
 bool
@@ -822,4 +864,33 @@ uint32_t
 crc32c (uint32_t crc, buffer input, size_t length)
 {
   return append_func (crc, input, length);
+}
+
+extern std::wstring host_app;
+
+std::wstring
+SK_GetHostApp (void)
+{
+  return host_app;
+}
+
+#include "ini.h"
+
+iSK_INI*
+SK_GetDLLConfig (void)
+{
+  extern iSK_INI* dll_ini;
+  return dll_ini;
+}
+
+
+extern HMODULE       hModSelf;
+extern BOOL APIENTRY DllMain (HMODULE hModule,
+                              DWORD   ul_reason_for_call,
+                              LPVOID  /* lpReserved */);
+
+void
+SK_SelfDestruct (void)
+{
+  DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
 }

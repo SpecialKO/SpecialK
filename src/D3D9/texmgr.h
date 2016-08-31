@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 #include "../log.h"
-extern sk_logger_t tex_log;
+extern iSK_Logger tex_log;
 
 //#include "render.h"
 #include <d3d9.h>

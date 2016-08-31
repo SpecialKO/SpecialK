@@ -25,7 +25,7 @@
 #include <Windows.h>
 #include "../log.h"
 
-extern sk_logger_t game_debug;
+extern iSK_Logger game_debug;
 
 namespace SK
 {

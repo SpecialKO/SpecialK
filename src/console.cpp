@@ -30,6 +30,7 @@
 #include "log.h"
 #include "config.h"
 #include "command.h"
+#include "utility.h"
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -266,6 +267,19 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 {
   bool console_visible =
     SK_Console::getInstance ()->isVisible ();
+
+  // HACK: Fallout 4 terminates abnormally at shutdown, meaning DllMain will
+  //         never be called.
+  //
+  //       To properly shutdown the DLL, trap this window message instead of
+  //         relying on DllMain (...) to be called.
+  if ( hWnd             == game_window.hWnd &&
+       uMsg             == WM_DESTROY       &&
+       SK_GetHostApp () == L"Fallout4.exe" ) {
+    dll_log.Log ( L"[ SpecialK ] --- Invoking DllMain shutdown in response to "
+                  L"WM_DESTROY ---" );
+    SK_SelfDestruct ();
+  }
 
   if (console_visible) {
     if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
@@ -571,7 +585,7 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
         size_t len = strlen (text+1);
         // Don't process empty or pure whitespace command lines
         if (len > 0 && strspn (text+1, " ") != len) {
-          SK_CommandResult result =
+          SK_ICommandResult result =
             SK_GetCommandProcessor ()->ProcessCommandLine (text+1);
 
           if (result.getStatus ()) {

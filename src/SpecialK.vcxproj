@@ -803,6 +803,7 @@
     <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="adl.cpp" />
     <ClCompile Include="d3d9\texmgr.cpp" />
+    <ClCompile Include="diagnostics\compatibility.cpp" />
     <ClCompile Include="diagnostics\crash_handler.cpp" />
     <ClCompile Include="diagnostics\debug_utils.cpp" />
     <ClCompile Include="plugin_tw3.cpp" />

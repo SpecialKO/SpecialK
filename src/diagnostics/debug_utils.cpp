@@ -30,7 +30,7 @@
 #define _NO_CVCONST_H
 #include <dbghelp.h>
 
-sk_logger_t game_debug;
+iSK_Logger game_debug;
 
 typedef BOOL (WINAPI *TerminateProcess_pfn)(HANDLE hProcess, UINT uExitCode);
 TerminateProcess_pfn TerminateProcess_Original = nullptr;

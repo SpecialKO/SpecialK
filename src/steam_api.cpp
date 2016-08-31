@@ -31,8 +31,8 @@
 // PlaySound
 #pragma comment (lib, "winmm.lib")
 
-sk_logger_t steam_log;
-HANDLE       hSteamHeap = NULL;
+iSK_Logger steam_log;
+HANDLE     hSteamHeap = NULL;
 
 // Some games (e.g. Fallout 4) require special treatment
 extern std::wstring host_app;
@@ -883,7 +883,7 @@ SK::SteamAPI::Init (bool pre_load)
   static time_t last_try   = 0;
 
   if (init_tries++ == 0) {
-    steam_log.init ("logs/steam_api.log", "w");
+    steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
   }

@@ -145,6 +145,14 @@ extern "C" {
   const wchar_t* SK_DescribeHRESULT (HRESULT result);
 }
 
+void
+__stdcall
+SK_SetConfigPath (std::wstring path);
+
+std::wstring
+__stdcall
+SK_GetConfigPath (void);
+
 enum DLL_ROLE {
   // Graphics APIs
   DXGI       = 0x01, // D3D 10-12

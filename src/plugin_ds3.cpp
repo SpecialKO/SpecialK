@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <Windows.h>
 #include "ini.h"
 #include "parameter.h"
 #include "utility.h"
@@ -275,7 +276,7 @@ SK_DS3_D3DX11SaveTextureToFileW (
 
 sk::ParameterFactory  ds3_factory;
 
-sk::INI::File*        ds3_prefs            = nullptr;
+iSK_INI*              ds3_prefs            = nullptr;
 
 sk::ParameterInt*     ds3_hud_res_x        = nullptr;
 sk::ParameterInt*     ds3_hud_res_y        = nullptr;
@@ -365,7 +366,7 @@ extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define SUS_VERSION_NUM L"0.3.4"
+#define SUS_VERSION_NUM L"0.3.5"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
 
 LPVOID __SK_base_img_addr = nullptr;
@@ -825,9 +826,9 @@ SK_DS3_InitPlugin (void)
     SK_SetPluginName (SUS_VERSION_STR);
 
     std::wstring ds3_prefs_file =
-      std::wstring (L"SoulsUnsqueezed.ini");
+      SK_GetConfigPath () + L"SoulsUnsqueezed.ini";
 
-    ds3_prefs = new sk::INI::File ((wchar_t *)ds3_prefs_file.c_str ());
+    ds3_prefs = new iSK_INI ((wchar_t *)ds3_prefs_file.c_str ());
     ds3_prefs->parse ();
   }
 
@@ -1036,7 +1037,10 @@ SK_DS3_InitPlugin (void)
   if (res_addr != nullptr) {
     ds3_last_addr->set_value ((int64_t)res_addr);
     ds3_last_addr->store     ();
-    ds3_prefs->write (L"SoulsUnsqueezed.ini");
+
+    ds3_prefs->write (
+      SK_GetConfigPath () + L"SoulsUnsqueezed.ini" 
+    );
   }
 
   void* res_addr_x = res_addr;

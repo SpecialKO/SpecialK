@@ -22,55 +22,56 @@
 #ifndef __SK__COMMAND_H__
 #define __SK__COMMAND_H__
 
+#include <Unknwnbase.h>
+
 # include <unordered_map>
 
 #include <locale> // tolower (...)
 
 template <typename T>
-class SK_VarStub;// : public SK_Variable
+interface SK_IVarStub;
 
-class SK_Variable;
-class SK_Command;
+interface SK_IVariable;
+interface SK_ICommand;
 
-class SK_CommandResult
+interface SK_ICommandResult
 {
-public:
-  SK_CommandResult (       std::string   word,
-                           std::string   arguments = "",
-                           std::string   result    = "",
-                           int           status = false,
-                     const SK_Variable*  var    = NULL,
-                     const SK_Command*   cmd    = NULL ) : word_   (word),
-                                                           args_   (arguments),
-                                                           result_ (result) {
+  SK_ICommandResult (       std::string   word,
+                            std::string   arguments = "",
+                            std::string   result    = "",
+                            int           status = false,
+                      const SK_IVariable*  var    = NULL,
+                      const SK_ICommand*   cmd    = NULL ) : word_   (word),
+                                                             args_   (arguments),
+                                                             result_ (result) {
     var_    = var;
     cmd_    = cmd;
     status_ = status;
   }
 
-  std::string         getWord     (void) const { return word_;   }
-  std::string         getArgs     (void) const { return args_;   }
-  std::string         getResult   (void) const { return result_; }
+  std::string          getWord     (void) const { return word_;   }
+  std::string          getArgs     (void) const { return args_;   }
+  std::string          getResult   (void) const { return result_; }
 
-  const SK_Variable*  getVariable (void) const { return var_;    }
-  const SK_Command*   getCommand  (void) const { return cmd_;    }
+  const SK_IVariable*  getVariable (void) const { return var_;    }
+  const SK_ICommand*   getCommand  (void) const { return cmd_;    }
 
-  int                 getStatus   (void) const { return status_; }
+  int                  getStatus   (void) const { return status_; }
 
 protected:
 
 private:
-  const SK_Variable*  var_;
-  const SK_Command*   cmd_;
+  const SK_IVariable* var_;
+  const SK_ICommand*  cmd_;
         std::string   word_;
         std::string   args_;
         std::string   result_;
         int           status_;
 };
 
-class SK_Command {
-public:
-  virtual SK_CommandResult execute (const char* szArgs) = 0;
+interface SK_ICommand
+{
+  virtual SK_ICommandResult execute (const char* szArgs) = 0;
 
   virtual const char* getHelp            (void) { return "No Help Available"; }
 
@@ -79,15 +80,12 @@ public:
   virtual int         getNumRequiredArgs (void) {
     return getNumArgs () - getNumOptionalArgs ();
   }
-
-protected:
-private:
 };
 
-class SK_Variable
+interface SK_IVariable
 {
-  friend class SK_iVariableListener;
-public:
+  friend interface SK_IVariableListener;
+
   enum VariableType {
     Float,
     Double,
@@ -103,33 +101,32 @@ public:
     Unknown
   } VariableTypes;
 
-  virtual VariableType  getType        (void) const = 0;
-  virtual std::string   getValueString (void) const = 0;
+  virtual VariableType  getType         (void) const = 0;
+  virtual std::string   getValueString  (void) const = 0;
+  virtual void*         getValuePointer (void) const = 0;
 
 protected:
   VariableType type_;
 };
 
-class SK_iVariableListener
+interface SK_IVariableListener
 {
-public:
-  virtual bool OnVarChange (SK_Variable* var, void* val = NULL) = 0;
-protected:
+  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL) = 0;
 };
 
 template <typename T>
-class SK_VarStub : public SK_Variable
+interface SK_IVarStub : public SK_IVariable
 {
-  friend class SK_iVariableListener;
-public:
-  SK_VarStub (void) : type_     (Unknown),
-                      var_      (NULL),
-                      listener_ (NULL)     { };
+  friend interface SK_IVariableListener;
 
-  SK_VarStub ( T*                     var,
-                SK_iVariableListener* pListener = NULL );
+  SK_IVarStub (void) : type_     (Unknown),
+                       var_      (NULL),
+                       listener_ (NULL)     { };
 
-  SK_Variable::VariableType getType (void) const
+  SK_IVarStub ( T*                    var,
+                SK_IVariableListener* pListener = NULL );
+
+  SK_IVariable::VariableType getType (void) const
   {
     return type_;
   }
@@ -144,16 +141,21 @@ public:
       *var_ = val;
   }
 
+  // Public interface, the other one is not visible outside this DLL.
+  void* getValuePointer (void) const {
+    return (void *)getValuePtr ();
+  }
+
   /// NOTE: Avoid doing this, as much as possible...
-  T* getValuePtr (void) { return var_; }
+  T* getValuePtr (void) const { return var_; }
 
   typedef  T _Tp;
 
 protected:
-  typename SK_VarStub::_Tp* var_;
+  typename SK_IVarStub::_Tp* var_;
 
 private:
-  SK_iVariableListener*     listener_;
+  SK_IVariableListener*     listener_;
 };
 
 #define SK_CaseAdjust(ch,lower) ((lower) ? ::tolower ((int)(ch)) : (ch))
@@ -184,49 +186,55 @@ private:
   _Pr comp;
 };
 
-typedef std::pair <std::string, SK_Command*>  SK_CommandRecord;
-typedef std::pair <std::string, SK_Variable*> SK_VariableRecord;
+typedef std::pair <std::string, SK_ICommand*>  SK_CommandRecord;
+typedef std::pair <std::string, SK_IVariable*> SK_VariableRecord;
 
 
-class SK_CommandProcessor
+interface SK_ICommandProcessor
 {
-public:
-  SK_CommandProcessor (void);
+  SK_ICommandProcessor (void);
 
-  virtual ~SK_CommandProcessor (void)
+  virtual ~SK_ICommandProcessor (void)
   {
   }
 
-  SK_Command* FindCommand   (const char* szCommand) const;
+  virtual SK_ICommand*       FindCommand   (const char* szCommand) const;
 
-  const SK_Command* AddCommand    ( const char*  szCommand,
-                                     SK_Command* pCommand );
-  bool               RemoveCommand ( const char* szCommand );
-
-
-  const SK_Variable* FindVariable  (const char* szVariable) const;
-
-  const SK_Variable* AddVariable    ( const char*   szVariable,
-                                       SK_Variable* pVariable  );
-  bool                RemoveVariable ( const char*   szVariable );
+  virtual const SK_ICommand* AddCommand    ( const char*  szCommand,
+                                             SK_ICommand* pCommand );
+  virtual bool               RemoveCommand ( const char* szCommand );
 
 
-  SK_CommandResult ProcessCommandLine      (const char* szCommandLine);
-  SK_CommandResult ProcessCommandFormatted (const char* szCommandFormat, ...);
+  virtual const SK_IVariable* FindVariable  (const char* szVariable) const;
+
+  virtual const SK_IVariable* AddVariable    ( const char*   szVariable,
+                                               SK_IVariable* pVariable  );
+  virtual bool                RemoveVariable ( const char*   szVariable );
+
+
+  virtual SK_ICommandResult ProcessCommandLine      (const char* szCommandLine);
+  virtual SK_ICommandResult ProcessCommandFormatted (const char* szCommandFormat, ...);
 
 
 protected:
 private:
-  std::unordered_map < std::string, SK_Command*,
+  std::unordered_map < std::string, SK_ICommand*,
     str_hash_compare <std::string> > commands_;
-  std::unordered_map < std::string, SK_Variable*,
+  std::unordered_map < std::string, SK_IVariable*,
     str_hash_compare <std::string> > variables_;
 };
 
 
 __declspec (dllexport)
-SK_CommandProcessor*
+SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void);
+
+__declspec (dllexport)
+SK_IVariable*
+__stdcall
+SK_CreateVar ( SK_IVariable::VariableType type,
+               void*                      var,
+               SK_IVariableListener      *pListener = nullptr );
 
 #endif /* __SK__COMMAND_H__ */

@@ -22,18 +22,30 @@
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
+#include <Windows.h>
 
 #include <cstdint>
 #include <string>
 
-std::wstring  SK_GetDocumentsDir      (void);
-bool          SK_GetUserProfileDir    (wchar_t* buf, uint32_t* pdwLen);
-bool          SK_IsTrue               (const wchar_t* string);
-int           SK_MessageBox           (std::wstring caption,
+interface iSK_INI;
+
+typedef void *HANDLE;
+
+std::wstring   SK_GetDocumentsDir      (void);
+bool           SK_CreateDirectories    (const wchar_t* wszPath);
+std::wstring   SK_EvalEnvironmentVars  (const wchar_t* wszEvaluateMe);
+bool           SK_GetUserProfileDir    (wchar_t* buf, uint32_t* pdwLen);
+bool           SK_IsTrue               (const wchar_t* string);
+int            SK_MessageBox           (std::wstring caption,
                                         std::wstring title,
                                         uint32_t     flags);
 
-void          SK_SetNormalFileAttribs (std::wstring file);
+void           SK_SetNormalFileAttribs (std::wstring file);
+
+std::wstring   SK_GetHostApp           (void);
+iSK_INI*       SK_GetDLLConfig         (void);
+
+void           SK_SelfDestruct         (void);
 
 /*
     Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.
