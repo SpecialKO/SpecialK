@@ -760,6 +760,87 @@ D3D9EndScene_Override (IDirect3DDevice9* This)
   return hr;
 }
 
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9Reset_Override ( IDirect3DDevice9      *This,
+                     D3DPRESENT_PARAMETERS *pPresentationParameters );
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9ResetEx ( IDirect3DDevice9Ex    *This,
+              D3DPRESENT_PARAMETERS *pPresentationParameters,
+              D3DDISPLAYMODEEX      *pFullscreenDisplayMode );
+
+void
+SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
+{
+  static LPVOID vftable_16  = nullptr;
+  static LPVOID vftable_132 = nullptr;
+
+  void** vftable = *(void***)*&pDev;
+
+  if (D3D9Reset_Original != nullptr) {
+    if (config.render.d3d9.hook_type == 0) {
+      //dll_log.Log (L"Rehooking IDirect3DDevice9::Present (...)");
+
+      if (MH_OK == SK_RemoveHook (vftable [16]))
+        D3D9Reset_Original = nullptr;
+      else {
+        dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
+                      L"IDirect3DDevice9::Reset (...)!" );
+        if (MH_OK == SK_RemoveHook (vftable_16))
+          D3D9Reset_Original = nullptr;
+      }
+    }
+  }
+
+  D3D9_INTERCEPT ( &pDev, 16,
+                   "IDirect3DDevice9::Reset",
+                    D3D9Reset_Override,
+                    D3D9Reset_Original,
+                    D3D9Reset_pfn );
+
+  vftable_16 = vftable [16];
+
+  //
+  // D3D9Ex Specific Stuff
+  //
+
+  CComPtr <IDirect3DDevice9Ex> pDevEx;
+
+  if (SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevEx))))
+  {
+    vftable = *(void***)*&pDevEx;
+
+    if (D3D9ResetEx_Original != nullptr) {
+      if (config.render.d3d9.hook_type == 0) {
+        //dll_log.Log (L"Rehooking IDirect3DDevice9Ex::ResetEx (...)");
+
+        if (MH_OK == SK_RemoveHook (vftable [132]))
+          D3D9ResetEx_Original = nullptr;
+        else {
+          dll_log.Log ( L"[   D3D9   ] Altered vftable detectd, re-hooking "
+                        L"IDirect3DDevice9Ex::ResetEx (...)!" );
+          if (MH_OK == SK_RemoveHook (vftable_132))
+            D3D9ResetEx_Original = nullptr;
+        }
+      }
+    }
+
+    D3D9_INTERCEPT ( &pDevEx, 132,
+                    "IDirect3DDevice9Ex::ResetEx",
+                     D3D9ResetEx,
+                     D3D9ResetEx_Original,
+                     D3D9ResetEx_pfn );
+
+    vftable_132 = vftable [132];
+  }
+}
+
 void
 SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 {
@@ -2214,20 +2295,7 @@ HookD3D9Ex (LPVOID user)
 
       IDirect3DDevice9Ex**ppReturnedDeviceInterface = &pD3D9DevEx;
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 16,
-                       "IDirect3DDevice9::Reset",
-                        D3D9Reset_Override,
-                        D3D9Reset_Original,
-                        D3D9Reset_pfn );
-      //
-      // D3D9Ex Specific Stuff
-      //
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 132,
-                       "IDirect3DDevice9Ex::ResetEx",
-                        D3D9ResetEx,
-                        D3D9ResetEx_Original,
-                        D3D9ResetEx_pfn );
-
+      SK_D3D9_HookReset   (pD3D9DevEx);
       SK_D3D9_HookPresent (pD3D9DevEx);
     }
   }

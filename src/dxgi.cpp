@@ -108,6 +108,9 @@ std::wstring
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
                              const DWORD* pFeatureLevels )
 {
+  if (FeatureLevels == 0 || pFeatureLevels == nullptr)
+    return L"N/A";
+
   std::wstring out = L"";
 
   for (UINT i = 0; i < FeatureLevels; i++)
@@ -1201,10 +1204,10 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
           if (bAlwaysAllowFullscreen)
             pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
 
-#if 0
-          hWndRender       = desc.OutputWindow;
-          game_window.hWnd = hWndRender;
-#endif
+          if (game_window.hWnd == 0) {
+            hWndRender       = desc.OutputWindow;
+            game_window.hWnd = hWndRender;
+          }
         }
       }
     }
@@ -2557,9 +2560,6 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     if (SUCCEEDED (res)) {
       dwRenderThread = GetCurrentThreadId ();
 
-      if (pFeatureLevel != nullptr)
-        *pFeatureLevel = ret_level;
-
       if (ppDevice != nullptr) {
         if (*ppDevice != g_pD3D11Dev) {
           dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
@@ -2572,6 +2572,9 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
         }
       }
     }
+
+    if (pFeatureLevel != nullptr)
+      *pFeatureLevel = ret_level;
 
     return res;
   }
@@ -2722,11 +2725,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                                             &ret_level,
                                             ppImmediateContext));
 
-    if (res == S_OK)
+    if (SUCCEEDED (res))//res == S_OK)
     {
-      if (pFeatureLevel != nullptr)
-        *pFeatureLevel = ret_level;
-
       if (pSwapChainDesc != nullptr) {
         // Fake, created by (UNKNOWN)
         if ( pSwapChainDesc->BufferDesc.Width  == 256 &&
@@ -2767,6 +2767,9 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
         }
       }
     }
+
+    if (pFeatureLevel != nullptr)
+      *pFeatureLevel = ret_level;
 
     return res;
   }
@@ -3498,6 +3501,8 @@ HookD3D11 (LPVOID user)
     CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
 
   if (SUCCEEDED (hr)) {
+    pFactory->EnumAdapters (0, &pAdapter);
+
     if (pFactory) {
       int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
@@ -3620,47 +3625,47 @@ HookD3D11 (LPVOID user)
   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
   HRESULT hrx = E_FAIL;
-
   {
     if (pAdapter1 != nullptr) {
       D3D_FEATURE_LEVEL test_11_1 = D3D_FEATURE_LEVEL_11_1;
 
       hrx =
-      D3D11CreateDeviceAndSwapChain_Import (
-        pAdapter1,
-          D3D_DRIVER_TYPE_UNKNOWN,
-            nullptr,
-              0,
-                &test_11_1,
-                  1,
-                    D3D11_SDK_VERSION,
-                      &desc,
-                        &pSwapChain,
-                          &pDevice,
-                            &featureLevel,
-                              &pImmediateContext );
+        D3D11CreateDeviceAndSwapChain_Import (
+          pAdapter1,
+            D3D_DRIVER_TYPE_UNKNOWN,
+              nullptr,
+                0,
+                  &test_11_1,
+                    1,
+                      D3D11_SDK_VERSION,
+                        &desc,
+                          &pSwapChain,
+                            &pDevice,
+                              &featureLevel,
+                                &pImmediateContext );
 
       if (SUCCEEDED (hrx)) {
         d3d11_caps.feature_level.d3d11_1 = true;
       }
     }
 
-    if (FAILED (hrx)) {
+    if (! SUCCEEDED (hrx)) {
       hrx =
-      D3D11CreateDeviceAndSwapChain_Import (
-        pAdapter,
-          D3D_DRIVER_TYPE_UNKNOWN,
-            nullptr,
-              0,
-                nullptr,
-                  0,
-                    D3D11_SDK_VERSION,
-                      &desc,
-                        &pSwapChain,
-                          &pDevice,
-                            &featureLevel,
-                              &pImmediateContext );
+        D3D11CreateDeviceAndSwapChain_Import (
+          pAdapter,
+            D3D_DRIVER_TYPE_UNKNOWN,
+              nullptr,
+                0,
+                  nullptr,
+                    0,
+                      D3D11_SDK_VERSION,
+                        &desc,
+                          &pSwapChain,
+                            &pDevice,
+                              &featureLevel,
+                                &pImmediateContext );
     }
+  }
 
   if (SUCCEEDED (hrx)) {
     if (pDevice && pImmediateContext && pSwapChain) {
@@ -3746,7 +3751,6 @@ HookD3D11 (LPVOID user)
         __d3d11_ready = true;
       }
     }
-  }
   }
 
   DestroyWindow (hwnd);

@@ -1231,9 +1231,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
-  extern void SK_InitCompatBlacklist (void);
-
-  SK_InitCompatBlacklist ();
 
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
@@ -1242,6 +1239,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
   typedef void (WINAPI *callback_pfn)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
   callback_pfn callback_fn = (callback_pfn)callback;
   callback_fn (SK_InitFinishCallback);
+
+  extern void EnumLoadedModules (void);
+  EnumLoadedModules ();
 }
 
 
@@ -1254,6 +1254,11 @@ WaitForInit (void)
   if (InterlockedCompareExchange (&init, FALSE, FALSE)) {
     return;
   }
+
+  // Prevent a race condition caused by undefined behavior in RTSS
+  if (! InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr))
+    while (! InterlockedCompareExchange (&init, FALSE, FALSE))
+      ;
 
   WaitForSingleObject (
     InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
@@ -1736,7 +1741,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
 
   while (  pwszShortName      >  wszProcessName &&
-    *(pwszShortName - 1) != L'\\')
+         *(pwszShortName - 1) != L'\\')
     --pwszShortName;
 
   host_app = pwszShortName;
@@ -1765,6 +1770,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   // Do this from the startup thread
   SK_Init_MinHook ();
+
+  extern void SK_InitCompatBlacklist (void);
+  SK_InitCompatBlacklist ();
 
   // Don't let Steam prevent me from attaching a debugger at startup, damnit!
   SK::Diagnostics::Debugger::Allow ();

@@ -27,6 +27,8 @@
 #include "../core.h"
 #include "../log.h"
 
+bool SK_LoadLibrary_SILENCE = true;
+
 typedef HMODULE (WINAPI *LoadLibraryA_pfn)(LPCSTR  lpFileName);
 typedef HMODULE (WINAPI *LoadLibraryW_pfn)(LPCWSTR lpFileName);
 
@@ -53,11 +55,57 @@ extern HMODULE hModSelf;
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
 
+
+#include <d3d9.h>
+
+typedef HRESULT
+  (STDMETHODCALLTYPE *Direct3DCreate9ExPROC)(UINT           SDKVersion,
+                                             IDirect3D9Ex** d3d9ex);
+extern Direct3DCreate9ExPROC Direct3DCreate9Ex_Import;
+
+extern IDirect3DDevice9* g_pD3D9Dev;
+
+extern void
+SK_D3D9_HookReset (IDirect3DDevice9 *pDev);
+
+extern void
+SK_D3D9_HookPresent (IDirect3DDevice9 *pDev);
+
+
+DWORD
+WINAPI
+DelayLoadDLL_Thread (LPVOID user)
+{
+  const DWORD delay_in_sec = 5;
+
+  WaitForInit ();
+  Sleep       (delay_in_sec * 1000UL);
+
+  dll_log.Log ( L"[DLL Compat] *** Delayed DLL '%s' for "
+                L"%lu seconds.",
+                  (const wchar_t *)user,
+                    delay_in_sec );
+
+  LoadLibraryW_Original ((const wchar_t *)user);
+
+  free ((void *)user);
+
+  if (Direct3DCreate9Ex_Import != nullptr) {
+    SK_D3D9_HookReset   (g_pD3D9Dev);
+    SK_D3D9_HookPresent (g_pD3D9Dev);
+  }
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
 BOOL
 BlacklistLibraryW (LPCWSTR lpFileName)
 {
   if (StrStrIW (lpFileName, L"ltc_game32")) {
-    dll_log.Log (L"[Black List] Preventing Raptr's overlay, it likes to crash games!");
+    if (! (SK_LoadLibrary_SILENCE))
+      dll_log.Log (L"[Black List] Preventing Raptr's overlay, it likes to crash games!");
     return TRUE;
   }
 
@@ -102,7 +150,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   HMODULE hMod = LoadLibraryA_Original (lpFileName);
 
-  if (hModEarly != hMod)
+  if (hModEarly != hMod && (! SK_LoadLibrary_SILENCE))
     dll_log.Log (L"[DLL Loader] Game loaded '%#64hs' <LoadLibraryA>", lpFileName);
 
   return hMod;
@@ -122,7 +170,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
 
   HMODULE hMod = LoadLibraryW_Original (lpFileName);
 
-  if (hModEarly != hMod)
+  if (hModEarly != hMod && (! SK_LoadLibrary_SILENCE))
     dll_log.Log (L"[DLL Loader] Game loaded '%#64s' <LoadLibraryW>", lpFileName);
 
   return hMod;
@@ -145,8 +193,9 @@ LoadLibraryExA_Detour (
 
   HMODULE hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
 
-  if (hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
-                               (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))))
+  if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
+                                (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE)))
+                         && (! SK_LoadLibrary_SILENCE) )
     dll_log.Log (L"[DLL Loader] Game loaded '%#64hs' <LoadLibraryExA>", lpFileName);
 
   return hMod;
@@ -169,8 +218,9 @@ LoadLibraryExW_Detour (
 
   HMODULE hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
 
-  if (hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
-                               (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))))
+  if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
+                                (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE)))
+                         && (! SK_LoadLibrary_SILENCE) )
     dll_log.Log (L"[DLL Loader] Game loaded '%#64s' <LoadLibraryExW>", lpFileName);
 
   return hMod;
@@ -194,4 +244,70 @@ SK_InitCompatBlacklist (void)
   SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryExW",
                      LoadLibraryExW_Detour,
            (LPVOID*)&LoadLibraryExW_Original );
+}
+
+#define PSAPI_VERSION 1
+
+#include <Windows.h>
+#include <psapi.h>
+
+#pragma comment (lib, "psapi.lib")
+
+void
+EnumLoadedModules (void)
+{
+  // Begin logging new loads after this
+  SK_LoadLibrary_SILENCE = false;
+
+  static iSK_Logger* pLogger = SK_CreateLog (L"logs/preloads.log");
+
+  DWORD        dwProcID = GetCurrentProcessId ();
+
+  HMODULE      hMods [1024];
+  HANDLE       hProc = nullptr;
+  DWORD        cbNeeded;
+  unsigned int i;
+
+  // Get a handle to the process.
+  hProc = OpenProcess ( PROCESS_QUERY_INFORMATION |
+                        PROCESS_VM_READ,
+                          FALSE,
+                            dwProcID );
+
+  if (hProc == nullptr) {
+    pLogger->close ();
+    delete pLogger;
+    return;
+  }
+
+#if 0
+  if ( EnumProcessModules ( hProc,
+                              hMods,
+                                sizeof (hMods),
+                                  &cbNeeded) )
+  {
+    for ( i = 0; i < (cbNeeded / sizeof (HMODULE)); i++ )
+    {
+      wchar_t szModName [MAX_PATH + 2];
+
+      // Get the full path to the module's file.
+      if ( GetModuleFileNameExW ( hProc,
+                                    hMods [i],
+                                      szModName,
+                                        sizeof (szModName) /
+                                        sizeof (wchar_t) ) )
+      {
+        pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
+                        (uintptr_t)hMods [i],
+                          szModName );
+      }
+    }
+  }
+#endif
+
+  // Release the handle to the process.
+  CloseHandle (hProc);
+
+  pLogger->close ();
+  delete pLogger;
 }

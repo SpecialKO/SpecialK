@@ -582,7 +582,7 @@ SK_DrawOSD (void)
     }
 
     else if (isFallout4) {
-      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.3   %ws\n\n",
+      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.4   %ws\n\n",
                  time
       OSD_END
     } else if (isDivinityOrigSin) {

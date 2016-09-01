@@ -890,6 +890,7 @@ extern BOOL APIENTRY DllMain (HMODULE hModule,
                               LPVOID  /* lpReserved */);
 
 void
+__stdcall
 SK_SelfDestruct (void)
 {
   DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);

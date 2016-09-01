@@ -45,7 +45,7 @@ void           SK_SetNormalFileAttribs (std::wstring file);
 std::wstring   SK_GetHostApp           (void);
 iSK_INI*       SK_GetDLLConfig         (void);
 
-void           SK_SelfDestruct         (void);
+void __stdcall SK_SelfDestruct         (void);
 
 /*
     Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.
