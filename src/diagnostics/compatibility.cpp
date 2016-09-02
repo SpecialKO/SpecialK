@@ -20,19 +20,31 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 
+#define ISOLATION_AWARE_ENABLED 1
+#define PSAPI_VERSION           1
+
 #include <Windows.h>
+
+#include <psapi.h>
+#pragma comment (lib, "psapi.lib")
+
+#include <Commctrl.h>
+#pragma comment (lib,    "advapi32.lib")
+#pragma comment (lib,    "user32.lib")
+#pragma comment (lib,    "comctl32.lib")
+#pragma comment (linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' "  \
+                         "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
+                         " language='*'\"")
 
 #include "../config.h"
 
 #include "../core.h"
 #include "../log.h"
+#include "../utility.h"
 
-#define PSAPI_VERSION 1
+extern std::wstring SK_GetRTSSInstallDir (void);
 
-#include <Windows.h>
-#include <psapi.h>
-
-#pragma comment (lib, "psapi.lib")
+BOOL WINAPI SK_ValidateGlobalRTSSProfile (void);
 
 bool SK_LoadLibrary_SILENCE = true;
 
@@ -289,6 +301,13 @@ SK_InitCompatBlacklist (void)
            (LPVOID*)&LoadLibraryExW_Original );
 }
 
+struct SK_ThirdPartyDLLs {
+  struct {
+    HMODULE rtss_hooks    = nullptr;
+    HMODULE steam_overlay = nullptr;
+  } overlays;
+} third_party_dlls;
+
 void
 EnumLoadedModules (void)
 {
@@ -323,18 +342,35 @@ EnumLoadedModules (void)
   {
     for ( i = 0; i < (cbNeeded / sizeof (HMODULE)); i++ )
     {
-      wchar_t szModName [MAX_PATH + 2];
+      wchar_t wszModName [MAX_PATH + 2];
 
       // Get the full path to the module's file.
       if ( GetModuleFileNameExW ( hProc,
                                     hMods [i],
-                                      szModName,
-                                        sizeof (szModName) /
+                                      wszModName,
+                                        sizeof (wszModName) /
                                         sizeof (wchar_t) ) )
       {
+        if ( (! third_party_dlls.overlays.rtss_hooks) &&
+              StrStrIW (wszModName, L"RTSSHooks") ) {
+            // Hold a reference to this DLL so it is not unloaded prematurely
+            GetModuleHandleEx ( 0x00,
+                                  wszModName,
+                                    &third_party_dlls.overlays.rtss_hooks );
+        }
+
+        else if ( (! third_party_dlls.overlays.steam_overlay) &&
+                   StrStrIW (wszModName, L"gameoverlayrenderer") ) {
+            // Hold a reference to this DLL so it is not unloaded prematurely
+            GetModuleHandleEx ( 0x00,
+                                  wszModName,
+                                    &third_party_dlls.overlays.steam_overlay );
+        }
+
+
         pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
                         (uintptr_t)hMods [i],
-                          szModName );
+                          wszModName );
       }
     }
   }
@@ -344,4 +380,228 @@ EnumLoadedModules (void)
 
   pLogger->close ();
   delete pLogger;
+
+  if (third_party_dlls.overlays.rtss_hooks != nullptr) {
+    SK_ValidateGlobalRTSSProfile ();
+  }
+
+  // In 64-bit builds, RTSS is really sneaky :-/
+  else if (SK_GetRTSSInstallDir ().length ()) {
+    SK_ValidateGlobalRTSSProfile ();
+  }
+}
+
+
+#include <Commctrl.h>
+#include <comdef.h>
+
+enum task_item_t {
+  Content         = TDE_CONTENT,
+  ExpandedInfo    = TDE_EXPANDED_INFORMATION,
+  Footer          = TDE_FOOTER,
+  MainInstruction = TDE_MAIN_INSTRUCTION
+};
+
+void
+SK_TaskDialogUpdateText ( _In_ HWND hWnd, task_item_t item, std::wstring content )
+{
+  SendMessage (hWnd, TDM_SET_ELEMENT_TEXT, TDE_CONTENT, (LPARAM)content.c_str ());
+}
+
+HRESULT
+CALLBACK
+TaskDialogCallback (
+  _In_ HWND     hWnd,
+  _In_ UINT     uNotification,
+  _In_ WPARAM   wParam,
+  _In_ LPARAM   lParam,
+  _In_ LONG_PTR dwRefData
+)
+{
+  if (uNotification == TDN_HYPERLINK_CLICKED) {
+    ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOW);
+    return S_OK;
+  }
+
+  return S_OK;
+}
+
+#include "../config.h"
+#include "../ini.h"
+
+BOOL
+WINAPI
+SK_ValidateGlobalRTSSProfile (void)
+{
+  if (config.system.ignore_rtss_delay)
+    return TRUE;
+
+  wchar_t wszRTSSHooks [MAX_PATH + 2] = { L'\0' };
+
+  if (third_party_dlls.overlays.rtss_hooks) {
+    GetModuleFileNameW (
+      third_party_dlls.overlays.rtss_hooks,
+        wszRTSSHooks,
+          MAX_PATH );
+
+    wchar_t* pwszShortName = wszRTSSHooks + lstrlenW (wszRTSSHooks);
+
+    while (  pwszShortName      >  wszRTSSHooks &&
+           *(pwszShortName - 1) != L'\\')
+      --pwszShortName;
+
+    *(pwszShortName - 1) = L'\0';
+  } else {
+    wcscpy (wszRTSSHooks, SK_GetRTSSInstallDir ().c_str ());
+  }
+
+  lstrcatW (wszRTSSHooks, L"\\Profiles\\Global");
+
+
+  iSK_INI rtss_global (wszRTSSHooks);
+
+  rtss_global.parse ();
+
+  iSK_INISection& rtss_hooking =
+    rtss_global.get_section (L"Hooking");
+
+
+  bool valid = true;
+
+
+  if ( (! rtss_hooking.contains_key (L"InjectionDelay")) ) {
+    rtss_hooking.add_key_value (L"InjectionDelay", L"5000");
+    valid = false;
+  }
+  else if (_wtol (rtss_hooking.get_value (L"InjectionDelay").c_str()) < 5000) {
+    rtss_hooking.get_value (L"InjectionDelay") = L"5000";
+    valid = false;
+  }
+
+
+  if ( (! rtss_hooking.contains_key (L"InjectionDelayTriggers")) ) {
+    rtss_hooking.add_key_value (
+      L"InjectionDelayTriggers",
+        L"d3d9.dll,steam_api.dll,steam_api64.dll,dxgi.dll"
+    );
+    valid = false;
+  }
+
+  else {
+    std::wstring& triggers =
+      rtss_hooking.get_value (L"InjectionDelayTriggers");
+
+    const wchar_t* delay_dlls [] = { L"d3d9.dll",
+                                     L"steam_api.dll",
+                                     L"steam_api64.dll",
+                                     L"dxgi.dll" };
+
+    const int     num_delay_dlls =
+      sizeof (delay_dlls) / sizeof (const wchar_t *);
+
+    for (int i = 0; i < num_delay_dlls; i++) {
+      if (triggers.find (delay_dlls [i]) == std::wstring::npos) {
+        valid = false;
+        triggers += L",";
+        triggers += delay_dlls [i];
+      }
+    }
+  }
+
+  // No action is necessary, delay triggers are working as intended.
+  if (valid)
+    return TRUE;
+
+  int               nButtonPressed = 0;
+  TASKDIALOGCONFIG  config         = {0};
+
+  int idx = 0;
+
+  config.cbSize             = sizeof (config);
+  config.hInstance          = GetModuleHandle (nullptr);
+  config.hwndParent         = GetForegroundWindow ();
+  config.pszWindowTitle     = L"Special K Compatibility Layer";
+  config.dwCommonButtons    = TDCBF_OK_BUTTON;
+  config.pButtons           = nullptr;
+  config.cButtons           = 0;
+  config.dwFlags            = TDF_ENABLE_HYPERLINKS;
+  config.pfCallback         = TaskDialogCallback;
+  config.lpCallbackData     = 0;
+
+  config.pszMainInstruction = L"RivaTuner Statistics Server Incompatibility";
+
+  wchar_t wszFooter [1024];
+
+  // Delay triggers are invalid, but we can do nothing about it due to
+  //   privilige issues.
+  if (! SK_IsAdmin ()) {
+    config.pszMainIcon        = TD_WARNING_ICON;
+    config.pszContent         = L"RivaTuner Statistics Server requires a 5 second injection delay to workaround "
+                                L"compatibility issues.";
+
+    config.pszFooterIcon      = TD_SHIELD_ICON;
+    config.pszFooter          = L"This can be fixed by starting the game as Admin once.";
+
+    config.pszVerificationText = L"Check here if you do not care (risky).";
+
+    BOOL verified;
+
+    TaskDialogIndirect (&config, nullptr, nullptr, &verified);
+
+    if (verified)
+      ::config.system.ignore_rtss_delay = true;
+    else
+      ExitProcess (0);
+  } else {
+    config.pszMainIcon        = TD_INFORMATION_ICON;
+
+    config.pszContent         = L"RivaTuner Statistics Server requires a 5 second injection delay to workaround "
+                                L"compatibility issues.";
+
+    config.dwCommonButtons    = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
+    config.nDefaultButton     = IDNO;
+
+    wsprintf ( wszFooter,
+
+                L"\r\n\r\n"
+
+                L"Proposed Changes\r\n\r\n"
+
+                L"<A HREF=\"%s\">%s</A>\r\n\r\n"
+
+                L"[Hooking]\r\n"
+                L"InjectionDelay=%s\r\n"
+                L"InjectionDelayTriggers=%s",
+
+                  wszRTSSHooks, wszRTSSHooks,
+                    rtss_global.get_section (L"Hooking").get_value (L"InjectionDelay").c_str (),
+                      rtss_global.get_section (L"Hooking").get_value (L"InjectionDelayTriggers").c_str () );
+
+    config.pszExpandedInformation = wszFooter;
+    config.pszExpandedControlText = L"Apply Proposed Config Changes?";
+
+    int nButton;
+
+    TaskDialogIndirect (&config, &nButton, nullptr, nullptr);
+
+    if (nButton == IDYES) {
+      // Delay triggers are invalid, and we are going to fix them...
+      dll_log.Log ( L"[RTSSCompat] NEW Global Profile:  InjectDelay=%s,  DelayTriggers=%s",
+                      rtss_global.get_section (L"Hooking").get_value (L"InjectionDelay").c_str (),
+                        rtss_global.get_section (L"Hooking").get_value (L"InjectionDelayTriggers").c_str () );
+
+      rtss_global.write (wszRTSSHooks);
+
+      ShellExecute ( GetDesktopWindow (),
+                      L"OPEN",
+                        SK_GetHostApp ().c_str (),
+                          NULL,
+                            NULL,
+                              SW_SHOWDEFAULT );
+
+      ExitProcess (0);
+    }
+  }
+
+  return TRUE;
 }

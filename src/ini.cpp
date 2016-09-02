@@ -143,11 +143,9 @@ Process_Section (wchar_t* buffer, wchar_t* name, int start, int end)
       wchar_t* key_str = new wchar_t [k - key + 1];
       wcsncpy (key_str, buffer + key, k - key);
       key_str [k - key] = L'\0';
-      //if (! section.name.compare (L"IniVersion"))
-      //MessageBoxW (NULL, key_str, L"Key", MB_OK);
 
       int value = k + 1;
-      for (int l = value; l < end; l++) {
+      for (int l = value; l <= end; l++) {
         if (l > end - 1 || buffer [l] == L'\n') {
           key = l + 1;
           k = l + 1;
@@ -336,7 +334,6 @@ iSK_INI::import (std::wstring import_data)
         wchar_t* sec_name = new wchar_t [end - begin + 1];
         wcsncpy (sec_name, wszImport + begin, end - begin);
         sec_name [end - begin] = L'\0';
-        //MessageBoxW (NULL, sec_name, L"Section", MB_OK);
 
         int start = end + 2;
         int finish = start;

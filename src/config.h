@@ -262,6 +262,7 @@ struct sk_config_t
     bool    display_debug_out  = false;
     bool    game_output        = true;
     bool    central_repository = false;
+    bool    ignore_rtss_delay  = false;
     std::wstring
             version            = SK_VER_STR;
   } system;

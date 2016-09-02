@@ -36,6 +36,7 @@ bool           SK_CreateDirectories    (const wchar_t* wszPath);
 std::wstring   SK_EvalEnvironmentVars  (const wchar_t* wszEvaluateMe);
 bool           SK_GetUserProfileDir    (wchar_t* buf, uint32_t* pdwLen);
 bool           SK_IsTrue               (const wchar_t* string);
+bool           SK_IsAdmin              (void);
 int            SK_MessageBox           (std::wstring caption,
                                         std::wstring title,
                                         uint32_t     flags);

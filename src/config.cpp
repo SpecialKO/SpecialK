@@ -29,7 +29,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.5.0";
+std::wstring SK_VER_STR = L"0.5.1";
 
 iSK_INI*    dll_ini = nullptr;
 
@@ -142,9 +142,11 @@ sk::ParameterBool*      debug_output;
 sk::ParameterBool*      game_output;
 sk::ParameterBool*      handle_crashes;
 sk::ParameterBool*      prefer_fahrenheit;
+sk::ParameterBool*      ignore_rtss_delay;
 sk::ParameterInt*       init_delay;
 sk::ParameterBool*      silent;
 sk::ParameterStringW*   version;
+
 struct {
   struct {
     sk::ParameterFloat* target_fps;
@@ -448,6 +450,15 @@ SK_LoadConfig (std::wstring name) {
         L"GameOutput" );
 
 
+  ignore_rtss_delay =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Ignore RTSS Delay Incompatibilities")
+      );
+  ignore_rtss_delay->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"IgnoreRTSSHookDelay" );
 
   version =
     static_cast <sk::ParameterStringW *>
@@ -1280,6 +1291,9 @@ SK_LoadConfig (std::wstring name) {
   if (game_output->load ())
     config.system.game_output = game_output->get_value ();
 
+  if (ignore_rtss_delay->load ())
+    config.system.ignore_rtss_delay = ignore_rtss_delay->get_value ();
+
   if (version->load ())
     config.system.version = version->get_value ();
 
@@ -1510,6 +1524,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   game_output->set_value                 (config.system.game_output);
   game_output->store                     ();
+
+  ignore_rtss_delay->set_value           (config.system.ignore_rtss_delay);
+  ignore_rtss_delay->store               ();
 
   version->set_value                     (SK_VER_STR);
   version->store                         ();

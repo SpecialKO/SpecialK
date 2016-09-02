@@ -874,6 +874,58 @@ SK_GetHostApp (void)
   return host_app;
 }
 
+#include <tlhelp32.h>
+
+PROCESSENTRY32
+FindProcessByName (const wchar_t* wszName)
+{
+  HANDLE         hProcessSnap;
+  PROCESSENTRY32 pe32;
+
+  hProcessSnap = CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+
+  if (hProcessSnap == INVALID_HANDLE_VALUE)
+    return pe32;
+
+  pe32.dwSize = sizeof (PROCESSENTRY32);
+
+  if (! Process32First (hProcessSnap, &pe32))
+  {
+    CloseHandle (hProcessSnap);
+    return pe32;
+  }
+
+  do
+  {
+    if (wcsstr (pe32.szExeFile, wszName))
+      return pe32;
+  } while (Process32Next (hProcessSnap, &pe32));
+
+  CloseHandle (hProcessSnap);
+  return pe32;
+}
+
+std::wstring
+SK_GetRTSSInstallDir (void)
+{
+  PROCESSENTRY32 pe32 = FindProcessByName (L"RTSS.exe");
+
+  wchar_t wszPath [MAX_PATH] = { '\0' };
+
+  if (wcsstr (pe32.szExeFile, L"RTSS.exe")) {
+    HANDLE hProcess = OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION , FALSE, pe32.th32ProcessID);
+
+    DWORD len = MAX_PATH;
+    QueryFullProcessImageName (hProcess, 0, wszPath, &len);
+
+    *(wcsstr (wszPath, L"RTSS.exe")) = L'\0';
+
+    CloseHandle (hProcess);
+  }
+
+  return wszPath;
+}
+
 #include "ini.h"
 
 iSK_INI*

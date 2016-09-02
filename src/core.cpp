@@ -975,7 +975,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
 
   while (  pwszShortName      >  wszProcessName &&
-    *(pwszShortName - 1) != L'\\')
+         *(pwszShortName - 1) != L'\\')
     --pwszShortName;
 
   *(pwszShortName - 1) = L'\0';
