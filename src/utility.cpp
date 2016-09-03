@@ -874,6 +874,17 @@ SK_GetHostApp (void)
   return host_app;
 }
 
+std::wstring
+SK_GetModuleName (HMODULE hDll)
+{
+  wchar_t wszDllFullName [MAX_PATH];
+          wszDllFullName [MAX_PATH - 1] = L'\0';
+
+  GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
+
+  return wcsrchr (wszDllFullName, L'\\') + 1;
+}
+
 #include <tlhelp32.h>
 
 PROCESSENTRY32
@@ -946,4 +957,22 @@ __stdcall
 SK_SelfDestruct (void)
 {
   DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
+}
+
+HMODULE
+SK_GetCallingDLL (LPVOID pReturn)
+{
+  HMODULE hCallingMod;
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+                      GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                        (LPCWSTR)_ReturnAddress (),
+                          &hCallingMod );
+
+  return hCallingMod;
+}
+
+std::wstring
+SK_GetCallerName (LPVOID pReturn)
+{
+  return SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }

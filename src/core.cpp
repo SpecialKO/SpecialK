@@ -34,11 +34,7 @@
 
 #pragma warning   (push)
 #pragma warning   (disable: 4091)
-#  define PSAPI_VERSION 1
-#  include <Psapi.h>
 #  include <DbgHelp.h>
-#
-#  pragma comment (lib, "psapi.lib")
 #  pragma comment (lib, "dbghelp.lib")
 #pragma warning   (pop)
 
@@ -993,11 +989,11 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"-------------------\n");
 
   extern HMODULE hModSelf;
-  wchar_t wszModuleName  [MAX_PATH];
-  GetModuleBaseName (hProc, hModSelf, wszModuleName, MAX_PATH);
 
-  dll_log.Log (L">> (%s) [%s] <<", pwszShortName, wszModuleName);
+  std::wstring   module_name   = SK_GetModuleName  (hModSelf);
+  const wchar_t* wszModuleName = module_name.c_str ();
 
+  dll_log.Log   (      L">> (%s) [%s] <<", pwszShortName, wszModuleName);
   dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", backend);
 
   if (SK_LoadConfig (backend)) {
@@ -1487,8 +1483,6 @@ DllThread (LPVOID user)
 
 #include <wingdi.h>
 #include <gl/gl.h>
-
-extern HMODULE hModSelf;
 
 class SK_HookedFunction {
 public:

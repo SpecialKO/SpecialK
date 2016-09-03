@@ -22,10 +22,6 @@
 #define PSAPI_VERSION 1
 
 #include <Windows.h>
-#include <psapi.h>
-
-#pragma comment (lib, "psapi.lib")
-
 
 #include "dxgi_interfaces.h"
 #include "dxgi_backend.h"
@@ -730,10 +726,11 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       return L"UNKNOWN";
     }
   }
-#define DXGI_CALL(_Ret, _Call) {                                     \
-  dll_log.LogEx (true, L"[   DXGI   ]  Calling original function: ");\
-  (_Ret) = (_Call);                                                  \
-  dll_log.LogEx (false, L" (ret=%s)\n", SK_DescribeHRESULT (_Ret)); \
+
+#define DXGI_CALL(_Ret, _Call) {                                      \
+  (_Ret) = (_Call);                                                   \
+  dll_log.Log ( L"[   DXGI   ] [@]  Return: %s  -  < " L#_Call L" >", \
+                SK_DescribeHRESULT (_Ret) );                          \
 }
 
   // Interface-based DXGI call
@@ -2956,7 +2953,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
         }
       }
 
-      dll_log.LogEx(true,L"[   DXGI   ]   @ Returning Adapter %lu: '%s' (LUID: %08X:%08X)",
+      dll_log.LogEx(true,L"[   DXGI   ]  @ Returned Adapter %lu: '%s' (LUID: %08X:%08X)",
         Adapter,
           desc.Description,
             desc.AdapterLuid.HighPart,
@@ -3926,6 +3923,11 @@ SK_D3D11_ResetTexCache (void)
   SK_D3D11_Textures.reset ();
 }
 
+#define PSAPI_VERSION           1
+
+#include <psapi.h>
+#pragma comment (lib, "psapi.lib")
+
 void
 __stdcall
 SK_D3D11_TexCacheCheckpoint (void)
@@ -3947,8 +3949,8 @@ SK_D3D11_TexCacheCheckpoint (void)
   if ((iter % 3))
     return;
 
-  PROCESS_MEMORY_COUNTERS pmc = { 0 };
-  pmc.cb = sizeof pmc;
+  PROCESS_MEMORY_COUNTERS pmc    = { 0 };
+                          pmc.cb = sizeof pmc;
 
   GetProcessMemoryInfo (hProc, &pmc, sizeof pmc);
 
@@ -8024,7 +8026,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
         }
       }
 
-      dll_log.LogEx(true,L"[   DXGI   ]   @ Returning Adapter %lu: '%s' (LUID: %08X:%08X)",
+      dll_log.LogEx(true,L"[   DXGI   ]  @ Returned Adapter %lu: '%s' (LUID: %08X:%08X)",
         Adapter,
           desc.Description,
             desc.AdapterLuid.HighPart,

@@ -302,9 +302,9 @@ extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
 }
 
 #define D3D9_CALL(_Ret, _Call) {                                      \
-  dll_log.LogEx (true, L"[   D3D9   ]  Calling original function: "); \
   (_Ret) = (_Call);                                                   \
-  dll_log.LogEx (false, L"(ret=%s)\n", SK_DescribeHRESULT (_Ret));    \
+  dll_log.Log ( L"[   D3D9   ] [@]  Return: %s  -  < " L#_Call L" >", \
+                  SK_DescribeHRESULT (_Ret) );                        \
 }
 
 void

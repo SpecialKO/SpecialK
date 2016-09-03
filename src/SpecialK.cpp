@@ -27,19 +27,15 @@
 #include "d3d9_backend.h"
 #include "opengl_backend.h"
 #include "log.h"
+#include "utility.h"
 
 DLL_ROLE dll_role;
 
 bool
 SK_EstablishDllRole (HMODULE hModule)
 {
-  wchar_t wszDllFullName [MAX_PATH];
-  wszDllFullName [MAX_PATH - 1] = L'\0';
-
-  GetModuleFileName (hModule, wszDllFullName, MAX_PATH - 1);
-
-  wchar_t* wszDllName = wcsrchr (wszDllFullName, L'\\') + 1;
-
+  std::wstring   dll_name   = SK_GetModuleName (hModule);
+  const wchar_t* wszDllName = dll_name.c_str   ();
 
   if (! _wcsicmp (wszDllName, L"dxgi.dll"))
     dll_role = DLL_ROLE::DXGI;

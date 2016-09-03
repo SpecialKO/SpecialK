@@ -32,6 +32,7 @@ interface iSK_INI;
 typedef void *HANDLE;
 
 std::wstring   SK_GetDocumentsDir      (void);
+std::wstring   SK_GetRTSSInstallDir    (void);
 bool           SK_CreateDirectories    (const wchar_t* wszPath);
 std::wstring   SK_EvalEnvironmentVars  (const wchar_t* wszEvaluateMe);
 bool           SK_GetUserProfileDir    (wchar_t* buf, uint32_t* pdwLen);
@@ -45,6 +46,10 @@ void           SK_SetNormalFileAttribs (std::wstring file);
 
 std::wstring   SK_GetHostApp           (void);
 iSK_INI*       SK_GetDLLConfig         (void);
+
+HMODULE        SK_GetCallingDLL        (LPVOID pReturn);
+std::wstring   SK_GetCallerName        (LPVOID pReturn);
+std::wstring   SK_GetModuleName        (HMODULE hDll);
 
 void __stdcall SK_SelfDestruct         (void);
 

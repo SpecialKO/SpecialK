@@ -42,9 +42,8 @@
 #include "../log.h"
 #include "../utility.h"
 
-extern std::wstring SK_GetRTSSInstallDir (void);
-
 BOOL WINAPI SK_ValidateGlobalRTSSProfile (void);
+void        SK_ReHookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = true;
 
@@ -119,17 +118,16 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                        LPCSTR  lpFileName,
                        LPCSTR  lpFunction )
 {
-  char szBaseName [MAX_PATH + 2] = { '\0' };
+  std::wstring   mod_name   = SK_GetModuleName (hCallingMod);
+  const wchar_t* wszModName = mod_name.c_str   ();
 
-  GetModuleBaseNameA ( GetCurrentProcess (),
-                        hCallingMod,
-                          szBaseName,
-                            MAX_PATH );
-
-  dll_log.Log ( "[DLL Loader]   ( %-28s ) loaded '%#64s' <%s>",
-                  szBaseName,
+  dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64s' <%s>",
+                  wszModName,
                     lpFileName,
                       lpFunction );
+
+  if (StrStrIW (wszModName, L"gameoverlayrenderer"))
+    SK_ReHookLoadLibrary ();
 }
 
 void
@@ -137,17 +135,16 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                        LPCWSTR lpFileName,
                        LPCWSTR lpFunction )
 {
-  wchar_t wszBaseName [MAX_PATH + 2] = { L'\0' };
-
-  GetModuleBaseNameW ( GetCurrentProcess (),
-                        hCallingMod,
-                          wszBaseName,
-                            MAX_PATH );
+  std::wstring   mod_name   = SK_GetModuleName (hCallingMod);
+  const wchar_t* wszModName = mod_name.c_str   ();
 
   dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s>",
-                  wszBaseName,
+                  wszModName,
                     lpFileName,
                       lpFunction );
+
+  if (StrStrIW (wszModName, L"gameoverlayrenderer"))
+    SK_ReHookLoadLibrary ();
 }
 
 
@@ -281,24 +278,75 @@ LoadLibraryExW_Detour (
   return hMod;
 }
 
+struct sk_loader_hooks_t {
+  LPVOID LoadLibraryA_target   = nullptr;
+  LPVOID LoadLibraryExA_target = nullptr;
+  LPVOID LoadLibraryW_target   = nullptr;
+  LPVOID LoadLibraryExW_target = nullptr;
+} _loader_hooks;
+
+// Gameoverlayrenderer{64}.dll messes with LoadLibrary hooking, which
+//   means identifying which DLL loaded another becomes impossible
+//     unless we remove and re-install our hooks.
 void
-SK_InitCompatBlacklist (void)
+SK_ReHookLoadLibrary (void)
 {
+  if (_loader_hooks.LoadLibraryA_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryA_target);
+    _loader_hooks.LoadLibraryA_target = nullptr;
+  }
+
   SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryA",
                      LoadLibraryA_Detour,
-           (LPVOID*)&LoadLibraryA_Original );
+           (LPVOID*)&LoadLibraryA_Original,
+                    &_loader_hooks.LoadLibraryA_target );
+
+  SK_EnableHook (_loader_hooks.LoadLibraryA_target);
+
+
+  if (_loader_hooks.LoadLibraryW_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryW_target);
+    _loader_hooks.LoadLibraryW_target = nullptr;
+  }
 
   SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryW",
                      LoadLibraryW_Detour,
-           (LPVOID*)&LoadLibraryW_Original );
+           (LPVOID*)&LoadLibraryW_Original,
+                    &_loader_hooks.LoadLibraryW_target );
+
+  SK_EnableHook (_loader_hooks.LoadLibraryW_target);
+
+
+  if (_loader_hooks.LoadLibraryExA_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryExA_target);
+    _loader_hooks.LoadLibraryExA_target = nullptr;
+  }
 
   SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryExA",
                      LoadLibraryExA_Detour,
-           (LPVOID*)&LoadLibraryExA_Original );
+           (LPVOID*)&LoadLibraryExA_Original,
+                    &_loader_hooks.LoadLibraryExA_target );
+
+  SK_EnableHook (_loader_hooks.LoadLibraryExA_target);
+
+
+  if (_loader_hooks.LoadLibraryExW_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryExW_target);
+    _loader_hooks.LoadLibraryExW_target = nullptr;
+  }
 
   SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryExW",
                      LoadLibraryExW_Detour,
-           (LPVOID*)&LoadLibraryExW_Original );
+           (LPVOID*)&LoadLibraryExW_Original,
+                    &_loader_hooks.LoadLibraryExW_target );
+
+  SK_EnableHook (_loader_hooks.LoadLibraryExW_target);
+}
+
+void
+SK_InitCompatBlacklist (void)
+{
+  SK_ReHookLoadLibrary ();
 }
 
 struct SK_ThirdPartyDLLs {
@@ -353,18 +401,20 @@ EnumLoadedModules (void)
       {
         if ( (! third_party_dlls.overlays.rtss_hooks) &&
               StrStrIW (wszModName, L"RTSSHooks") ) {
-            // Hold a reference to this DLL so it is not unloaded prematurely
-            GetModuleHandleEx ( 0x00,
-                                  wszModName,
-                                    &third_party_dlls.overlays.rtss_hooks );
+          // Hold a reference to this DLL so it is not unloaded prematurely
+          GetModuleHandleEx ( 0x00,
+                                wszModName,
+                                  &third_party_dlls.overlays.rtss_hooks );
+          SK_ReHookLoadLibrary ();
         }
 
         else if ( (! third_party_dlls.overlays.steam_overlay) &&
                    StrStrIW (wszModName, L"gameoverlayrenderer") ) {
-            // Hold a reference to this DLL so it is not unloaded prematurely
-            GetModuleHandleEx ( 0x00,
-                                  wszModName,
-                                    &third_party_dlls.overlays.steam_overlay );
+          // Hold a reference to this DLL so it is not unloaded prematurely
+          GetModuleHandleEx ( 0x00,
+                                wszModName,
+                                  &third_party_dlls.overlays.steam_overlay );
+          SK_ReHookLoadLibrary ();
         }
 
 
