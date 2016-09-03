@@ -814,8 +814,8 @@ SK_DXGI_BeginHooking (void)
 }
 
 #define WaitForInit() {    \
-  SK_DXGI_BeginHooking (); \
   ::WaitForInit        (); \
+  SK_DXGI_BeginHooking (); \
 }
 
 #define DXGI_STUB(_Return, _Name, _Proto, _Args)                            \
