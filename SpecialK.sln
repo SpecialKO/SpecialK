@@ -15,6 +15,8 @@ Global
 		OpenGL|x86 = OpenGL|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		SwordCoastLegends|x64 = SwordCoastLegends|x64
+		SwordCoastLegends|x86 = SwordCoastLegends|x86
 		TSFix|x64 = TSFix|x64
 		TSFix|x86 = TSFix|x86
 		UnX|x64 = UnX|x64
@@ -37,6 +39,10 @@ Global
 		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.Release|x64.Build.0 = Release|x64
 		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.Release|x86.ActiveCfg = Release|Win32
 		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.Release|x86.Build.0 = Release|Win32
+		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.SwordCoastLegends|x64.ActiveCfg = MGSVTPP|x64
+		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.SwordCoastLegends|x64.Build.0 = MGSVTPP|x64
+		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.SwordCoastLegends|x86.ActiveCfg = MGSVTPP|Win32
+		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.SwordCoastLegends|x86.Build.0 = MGSVTPP|Win32
 		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.TSFix|x64.ActiveCfg = TSFix|x64
 		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.TSFix|x64.Build.0 = TSFix|x64
 		{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}.TSFix|x86.ActiveCfg = TSFix|Win32

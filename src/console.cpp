@@ -455,6 +455,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
     if (dwProc != GetCurrentProcessId ()) {
       //dll_log.Log (L" *** Tried to hook the wrong process!!!");
       Sleep (83);
+
       continue;
     }
 

@@ -82,6 +82,10 @@ void WaitForInitD3D11 (void)
     Sleep (config.system.init_delay);
 }
 
+// For DXGI compliance, do not mix-and-match factory types
+bool SK_DXGI_use_factory1 = false;
+bool SK_DXGI_factory_init = false;
+
 extern sk_window_s game_window;
 
 extern std::wstring host_app;
@@ -792,6 +796,28 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   DXGI_LOG_CALL_END                                            \
 }
 
+void
+SK_DXGI_BeginHooking (void)
+{
+  volatile static ULONG hooked = FALSE;
+
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE)) {
+    HANDLE hHookInit =
+      (HANDLE)
+        _beginthreadex ( nullptr,
+                           0,
+                             HookD3D11,
+                               nullptr,
+                                 0x00,
+                                   nullptr );
+  }
+}
+
+#define WaitForInit() {    \
+  SK_DXGI_BeginHooking (); \
+  ::WaitForInit        (); \
+}
+
 #define DXGI_STUB(_Return, _Name, _Proto, _Args)                            \
   __declspec (nothrow) _Return STDMETHODCALLTYPE                            \
   _Name _Proto {                                                            \
@@ -1144,8 +1170,13 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
     //
     // Early-out for games that use testing to minimize blocking
     //
-    if (PresentFlags & DXGI_PRESENT_TEST)
-      return Present1_Original (This, SyncInterval, PresentFlags, pPresentParameters);
+    if (PresentFlags & DXGI_PRESENT_TEST) {
+      return Present1_Original (
+               This,
+                 SyncInterval,
+                   PresentFlags,
+                     pPresentParameters );
+    }
 
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
@@ -1198,8 +1229,12 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
           DXGI_SWAP_CHAIN_DESC desc;
           This->GetDesc (&desc);
 
-          if (bAlwaysAllowFullscreen)
-            pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
+          if (bAlwaysAllowFullscreen) {
+            pFactory->MakeWindowAssociation (
+              desc.OutputWindow,
+                DXGI_MWA_NO_WINDOW_CHANGES
+            );
+          }
 
           if (game_window.hWnd == 0) {
             hWndRender       = desc.OutputWindow;
@@ -1279,14 +1314,11 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
     }
 
     if (! bFlipMode) {
-      hr = S_OK;//((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
-              //(This, interval, flags | DXGI_PRESENT_TEST);
+      hr = S_OK;
 
       // Test first, then do
       if (SUCCEEDED (hr)) {
-        hr =
-          ((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
-                       (This, interval, flags);
+        hr = Present_Original (This, interval, flags);
       }
 
       if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED) {
@@ -1308,16 +1340,17 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
       CComPtr <IDXGISwapChain1> pSwapChain1;
       if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain1))))
       {
-        //hr = Present1_Original (pSwapChain1, interval, flags | DXGI_PRESENT_TEST, &pparams);
-
         bool can_present = true;//SUCCEEDED (hr);
 
         if (can_present) {
         // No overlays will work if we don't do this...
         /////if (config.osd.show) {
           hr =
-            ((HRESULT (*)(IDXGISwapChain *, UINT, UINT))Present_Original)
-            (This, 0, flags | DXGI_PRESENT_DO_NOT_SEQUENCE | DXGI_PRESENT_DO_NOT_WAIT);
+            Present_Original (
+              This,
+                0,
+                  flags | DXGI_PRESENT_DO_NOT_SEQUENCE | DXGI_PRESENT_DO_NOT_WAIT );
+
         /////}
 
           hr = Present1_Original (pSwapChain1, interval, flags, &pparams);
@@ -2349,13 +2382,13 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
   {
     //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)", pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 
-    //CComPtr <ID3D11Texture2D> pTex;
-    //if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
-      //if (SK_D3D11_TextureIsCached (pTex)) {
-        //dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
-        //SK_D3D11_RemoveTexFromCache (pTex);
-      //}
-    //}
+    CComPtr <ID3D11Texture2D> pTex;
+    if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
+      if (SK_D3D11_TextureIsCached (pTex)) {
+        dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
+        SK_D3D11_RemoveTexFromCache (pTex);
+      }
+    }
 
     D3D11_UpdateSubresource_Original (This, pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
   }
@@ -2370,13 +2403,13 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
      _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   {
-    //CComPtr <ID3D11Texture2D> pTex;
-    //if (SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
-      //if (SK_D3D11_TextureIsCached (pTex)) {
-        //dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
-        //SK_D3D11_RemoveTexFromCache (pTex);
-      //}
-    //}
+    CComPtr <ID3D11Texture2D> pTex;
+    if (SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
+      if (SK_D3D11_TextureIsCached (pTex)) {
+        dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
+        SK_D3D11_RemoveTexFromCache (pTex);
+      }
+    }
 
     return D3D11_Map_Original (This, pResource, Subresource, MapType, MapFlags, pMappedResource);
   }
@@ -2388,7 +2421,15 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     _In_ ID3D11Resource      *pDstResource,
     _In_ ID3D11Resource      *pSrcResource )
   {
-    dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
+    //CComPtr <ID3D11Texture2D> pSrcTex;
+    CComPtr <ID3D11Texture2D> pDstTex;
+
+    if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pDstTex)))) {
+      if (SK_D3D11_TextureIsCached (pDstTex)) {
+        dll_log.Log (L"[DX11TexMgr] Cached texture was modified... removing from cache!");
+        SK_D3D11_RemoveTexFromCache (pDstTex);
+      }
+    }
 
     D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
   }
@@ -2416,6 +2457,11 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                                  _Out_ void   **ppFactory);
 
+  __declspec (nothrow)
+    HRESULT
+    STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
+                                    _Out_ void   **ppFactory);
+
   // Do this in a thread because it is not safe to do from
   //   the thread that created the window or drives the message
   //     pump...
@@ -2432,6 +2478,61 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     CloseHandle (GetCurrentThread ());
 
     return 0;
+  }
+
+  void
+  SK_DXGI_AdapterOverride ( IDXGIAdapter*&   pAdapter,
+                            D3D_DRIVER_TYPE& DriverType )
+  {
+    IDXGIAdapter* pGameAdapter     = pAdapter;
+    IDXGIAdapter* pOverrideAdapter = nullptr;
+
+    IDXGIFactory* pFactory = nullptr;
+
+    HRESULT res =
+      pAdapter == nullptr ? E_FAIL :
+                            pAdapter->GetParent (IID_PPV_ARGS (&pFactory));
+
+    if (FAILED (res)) {
+      res = SK_DXGI_use_factory1 ? CreateDXGIFactory1_Import (__uuidof (IDXGIFactory1), (void **)&pFactory) :
+                                   CreateDXGIFactory_Import  (__uuidof (IDXGIFactory),  (void **)&pFactory);
+    }
+
+    if (SUCCEEDED (res)) {
+      if (pFactory != nullptr) {
+        if (pAdapter == nullptr)
+          EnumAdapters_Original (pFactory, 0, &pGameAdapter);
+
+        pAdapter   = pGameAdapter;
+        DriverType = D3D_DRIVER_TYPE_UNKNOWN;
+
+        if ( SK_DXGI_preferred_adapter != -1 &&
+             SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
+        {
+          DXGI_ADAPTER_DESC game_desc;
+          DXGI_ADAPTER_DESC override_desc;
+
+          pGameAdapter->GetDesc     (&game_desc);
+          pOverrideAdapter->GetDesc (&override_desc);
+
+          if ( game_desc.VendorId     == Vendors::Intel     &&
+               override_desc.VendorId != Vendors::Microsoft &&
+               override_desc.VendorId != Vendors::Intel )
+          {
+            dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Using '%s' instead of '%s') !!!",
+                          override_desc.Description, game_desc.Description );
+
+            pAdapter = pOverrideAdapter;
+            pGameAdapter->Release ();
+          } else {
+            SK_DXGI_preferred_adapter = -1;
+            pOverrideAdapter->Release ();
+          }
+        }
+
+        pFactory->Release ();
+      }
+    }
   }
 
   HRESULT
@@ -2488,48 +2589,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     // DXGI Adapter Override (for performance)
     //
 
-    IDXGIAdapter* pGameAdapter     = pAdapter;
-    IDXGIAdapter* pOverrideAdapter = nullptr;
-
-    if (true) {//pAdapter == nullptr) {
-      IDXGIFactory* pFactory = nullptr;
-
-      if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory), (void **)&pFactory))) {
-        if (pFactory != nullptr) {
-          if (pAdapter == nullptr)
-            EnumAdapters_Original (pFactory, 0, &pGameAdapter);
-
-          pAdapter   = pGameAdapter;
-          DriverType = D3D_DRIVER_TYPE_UNKNOWN;
-
-          if ( SK_DXGI_preferred_adapter != -1 &&
-               SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
-          {
-            DXGI_ADAPTER_DESC game_desc;
-            DXGI_ADAPTER_DESC override_desc;
-
-            pGameAdapter->GetDesc     (&game_desc);
-            pOverrideAdapter->GetDesc (&override_desc);
-
-            if ( game_desc.VendorId     == Vendors::Intel     &&
-                 override_desc.VendorId != Vendors::Microsoft &&
-                 override_desc.VendorId != Vendors::Intel )
-            {
-              dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Using '%s' instead of '%s') !!!",
-                            override_desc.Description, game_desc.Description );
-
-              pAdapter = pOverrideAdapter;
-              pGameAdapter->Release ();
-            } else {
-              SK_DXGI_preferred_adapter = -1;
-              pOverrideAdapter->Release ();
-            }
-          }
-
-          pFactory->Release ();
-        }
-      }
-    }
+    SK_DXGI_AdapterOverride ( pAdapter, DriverType );
 
     if (pAdapter != nullptr) {
       int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
@@ -2621,53 +2681,11 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                     );
     }
 
-
     //
     // DXGI Adapter Override (for performance)
     //
 
-    IDXGIAdapter* pGameAdapter     = pAdapter;
-    IDXGIAdapter* pOverrideAdapter = nullptr;
-
-    if (true) {//pAdapter == nullptr) {
-      IDXGIFactory* pFactory = nullptr;
-
-      if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory), (void **)&pFactory))) {
-        if (pFactory != nullptr) {
-          if (pAdapter == nullptr)
-            EnumAdapters_Original (pFactory, 0, &pGameAdapter);
-
-          pAdapter   = pGameAdapter;
-          DriverType = D3D_DRIVER_TYPE_UNKNOWN;
-
-          if ( SK_DXGI_preferred_adapter != -1 &&
-               SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
-          {
-            DXGI_ADAPTER_DESC game_desc;
-            DXGI_ADAPTER_DESC override_desc;
-
-            pGameAdapter->GetDesc     (&game_desc);
-            pOverrideAdapter->GetDesc (&override_desc);
-
-            if ( game_desc.VendorId     == Vendors::Intel     &&
-                 override_desc.VendorId != Vendors::Microsoft &&
-                 override_desc.VendorId != Vendors::Intel )
-            {
-              dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Using '%s' instead of '%s') !!!",
-                            override_desc.Description, game_desc.Description );
-
-              pAdapter = pOverrideAdapter;
-              pGameAdapter->Release ();
-            } else {
-              SK_DXGI_preferred_adapter = -1;
-              pOverrideAdapter->Release ();
-            }
-          }
-
-          pFactory->Release ();
-        }
-      }
-    }
+    SK_DXGI_AdapterOverride ( pAdapter, DriverType );
 
     if (pAdapter != nullptr) {
       int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
@@ -3084,6 +3102,12 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                                    _Out_ void   **ppFactory)
   {
+    // For DXGI compliance, do not mix-and-match
+    if (SK_DXGI_use_factory1)
+      return CreateDXGIFactory1 (riid, ppFactory);
+
+    SK_DXGI_factory_init = true;
+
     WaitForInit ();
 
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
@@ -3103,6 +3127,13 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
                                     _Out_ void   **ppFactory)
   {
+    // For DXGI compliance, do not mix-and-match
+    if ((! SK_DXGI_use_factory1) && (SK_DXGI_factory_init))
+      return CreateDXGIFactory (riid, ppFactory);
+
+    SK_DXGI_use_factory1 = true;
+    SK_DXGI_factory_init = true;
+
     WaitForInit ();
 
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
@@ -3129,6 +3160,9 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                                           REFIID   riid,
                                     _Out_ void   **ppFactory)
   {
+    SK_DXGI_use_factory1 = true;
+    SK_DXGI_factory_init = true;
+
     WaitForInit ();
 
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
@@ -3344,21 +3378,10 @@ dxgi_init_callback (finish_pfn finish)
         GetProcAddress (hModD3DX11_43, "D3DX11GetImageInfoFromFileW");
   }
 
-#if 0
-  HookD3D11 (nullptr);
-#else
-  HANDLE hHookInit =
-    (HANDLE)
-      _beginthreadex ( nullptr, 
-                         0,
-                           HookD3D11,
-                             nullptr,
-                               0x00,
-                                 nullptr );
+  SK_DXGI_BeginHooking ();
 
-  SK_EnableHook      (pfnD3D11CreateDevice);
-  SK_EnableHook      (pfnD3D11CreateDeviceAndSwapChain);
-#endif
+  SK_EnableHook (pfnD3D11CreateDevice);
+  SK_EnableHook (pfnD3D11CreateDeviceAndSwapChain);
 
   finish ();
 }
@@ -3677,7 +3700,7 @@ HookD3D11 (LPVOID user)
                                D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                                D3D11_VSSetConstantBuffers_pfn);
 
-#if 0
+#ifdef STRICT_CACHING
         DXGI_VIRTUAL_HOOK (&pImmediateContext, 14, "ID3D11DeviceContext::Map",
                              D3D11_Map_Override, D3D11_Map_Original,
                              D3D11_Map_pfn);
@@ -3691,7 +3714,9 @@ HookD3D11 (LPVOID user)
         DXGI_VIRTUAL_HOOK (&pImmediateContext, 45, "ID3D11DeviceContext::RSSetScissorRects",
                              D3D11_RSSetScissorRects_Override, D3D11_RSSetScissorRects_Original,
                              D3D11_RSSetScissorRects_pfn);
+#endif
 
+#ifdef STRICT_CACHING
         DXGI_VIRTUAL_HOOK (&pImmediateContext, 47, "ID3D11DeviceContext::CopyResource",
                              D3D11_CopyResource_Override, D3D11_CopyResource_Original,
                              D3D11_CopyResource_pfn);

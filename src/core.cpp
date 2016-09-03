@@ -990,7 +990,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   extern HMODULE hModSelf;
 
-  std::wstring   module_name   = SK_GetModuleName  (hModSelf);
+  std::wstring   module_name   = SK_GetModuleName (hModSelf);
   const wchar_t* wszModuleName = module_name.c_str ();
 
   dll_log.Log   (      L">> (%s) [%s] <<", pwszShortName, wszModuleName);

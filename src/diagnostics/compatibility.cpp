@@ -85,6 +85,13 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     return TRUE;
   }
 
+  if ( StrStrIW (lpFileName, L"k_fps32") ||
+       StrStrIW (lpFileName, L"k_fps64") ) {
+    if (! (SK_LoadLibrary_SILENCE))
+      dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
+    return TRUE;
+  }
+
 #if 0
   if (StrStrIW (lpFileName, L"igdusc32")) {
     dll_log->Log (L"[Black List] Intel D3D11 Driver Bypassed");
