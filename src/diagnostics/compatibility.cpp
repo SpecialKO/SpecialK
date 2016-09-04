@@ -75,21 +75,46 @@ extern HMODULE hModSelf;
 
 #pragma intrinsic(_ReturnAddress)
 
+#if 0
+#include <unordered_set>
+#include <string>
+#include "../command.h" // str_hash_compare
+typedef std::unordered_set < std::wstring, str_hash_compare <std::wstring> > SK_StringSetW;
+SK_StringSetW rehook_loadlib;
+#endif
+
 BOOL
 BlacklistLibraryW (LPCWSTR lpFileName)
 {
-  if ( StrStrIW (lpFileName, L"ltc_game32") ||
-       StrStrIW (lpFileName, L"ltc_game64") ) {
-    if (! (SK_LoadLibrary_SILENCE))
-      dll_log.Log (L"[Black List] Preventing Raptr's overlay, it likes to crash games!");
-    return TRUE;
-  }
+  //if (blacklist.count (wcsrchr (lpFileName, L'\\') + 1))
+  //{
+    if ( StrStrIW (lpFileName, L"ltc_game") ) {
+      if (! (SK_LoadLibrary_SILENCE))
+        dll_log.Log (L"[Black List] Preventing Raptr's overlay, it likes to crash games!");
+      return TRUE;
+    }
 
-  if ( StrStrIW (lpFileName, L"k_fps32") ||
-       StrStrIW (lpFileName, L"k_fps64") ) {
-    if (! (SK_LoadLibrary_SILENCE))
-      dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
-    return TRUE;
+    else if ( StrStrIW (lpFileName, L"k_fps") ) {
+      if (! (SK_LoadLibrary_SILENCE))
+        dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
+      return TRUE;
+    }
+
+    //if (! (SK_LoadLibrary_SILENCE)) {
+      //dll_log.Log ( L"[Black List] Miscellaneous Blacklisted DLL '%s' disabled.",
+                      //lpFileName );
+    //}
+
+    //return TRUE;
+  //}
+
+
+  static bool isTalesOfZestiria = 
+    StrStrIW (SK_GetHostApp ().c_str (), L"Tales of Zestiria.exe") != nullptr;
+
+if (isTalesOfZestiria) {
+    if (StrStrIW (lpFileName, L"GeDoSaTo"))
+      return TRUE;
   }
 
 #if 0
@@ -133,7 +158,11 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                     lpFileName,
                       lpFunction );
 
-  if (StrStrIW (wszModName, L"gameoverlayrenderer"))
+  // This is silly, this many string comparions per-load is
+  //   not good. Hash the string and compare it in the future.
+  if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+       StrStrIW (wszModName, L"RTSSHooks") ||
+       StrStrIW (wszModName, L"GeDoSaTo") )
     SK_ReHookLoadLibrary ();
 }
 
@@ -150,7 +179,11 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                     lpFileName,
                       lpFunction );
 
-  if (StrStrIW (wszModName, L"gameoverlayrenderer"))
+  // This is silly, this many string comparions per-load is
+  //   not good. Hash the string and compare it in the future.
+  if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+       StrStrIW (wszModName, L"RTSSHooks") ||
+       StrStrIW (wszModName, L"GeDoSaTo") )
     SK_ReHookLoadLibrary ();
 }
 
@@ -286,18 +319,52 @@ LoadLibraryExW_Detour (
 }
 
 struct sk_loader_hooks_t {
+  // Manually unhooked for compatibility, DO NOT rehook!
+  bool   unhooked              = false;
+
   LPVOID LoadLibraryA_target   = nullptr;
   LPVOID LoadLibraryExA_target = nullptr;
   LPVOID LoadLibraryW_target   = nullptr;
   LPVOID LoadLibraryExW_target = nullptr;
 } _loader_hooks;
 
+struct SK_ThirdPartyDLLs {
+  struct {
+    HMODULE rtss_hooks    = nullptr;
+    HMODULE steam_overlay = nullptr;
+  } overlays;
+  struct {
+    HMODULE gedosato      = nullptr;
+  } misc;
+} third_party_dlls;
+
+bool
+WINAPI
+SK_CheckForGeDoSaTo (void)
+{
+  if (third_party_dlls.misc.gedosato)
+    return true;
+
+  return false;
+}
+
+//
 // Gameoverlayrenderer{64}.dll messes with LoadLibrary hooking, which
 //   means identifying which DLL loaded another becomes impossible
 //     unless we remove and re-install our hooks.
+//
+//   ** GeDoSaTo and RTSS may also do the same depending on config. **
+//
+// Hook order with LoadLibrary is not traditionally important for a mod
+//   system such as Special K, but the compatibility layer benefits from
+//     knowing exactly WHAT was responsible for loading a library.
+//
 void
 SK_ReHookLoadLibrary (void)
 {
+  if (_loader_hooks.unhooked)
+    return;
+
   if (_loader_hooks.LoadLibraryA_target != nullptr) {
     SK_RemoveHook (_loader_hooks.LoadLibraryA_target);
     _loader_hooks.LoadLibraryA_target = nullptr;
@@ -351,17 +418,46 @@ SK_ReHookLoadLibrary (void)
 }
 
 void
-SK_InitCompatBlacklist (void)
+SK_UnhookLoadLibrary (void)
 {
-  SK_ReHookLoadLibrary ();
+  _loader_hooks.unhooked = true;
+
+  if (_loader_hooks.LoadLibraryA_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryA_target);
+    _loader_hooks.LoadLibraryA_target = nullptr;
+  }
+
+  if (_loader_hooks.LoadLibraryW_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryW_target);
+    _loader_hooks.LoadLibraryW_target = nullptr;
+  }
+
+  if (_loader_hooks.LoadLibraryExA_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryExA_target);
+    _loader_hooks.LoadLibraryExA_target = nullptr;
+  }
+
+  if (_loader_hooks.LoadLibraryExW_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.LoadLibraryExW_target);
+    _loader_hooks.LoadLibraryExW_target = nullptr;
+  }
 }
 
-struct SK_ThirdPartyDLLs {
-  struct {
-    HMODULE rtss_hooks    = nullptr;
-    HMODULE steam_overlay = nullptr;
-  } overlays;
-} third_party_dlls;
+void
+SK_InitCompatBlacklist (void)
+{
+#if 0
+  rehook_loadlib.insert (L"gameoverlayrenderer.dll");
+  rehook_loadlib.insert (L"gameoverlayrenderer64.dll");
+
+  rehook_loadlib.insert (L"GeDoSaTo.dll");
+
+  rehook_loadlib.insert (L"RTSSHooks.dll");
+  rehook_loadlib.insert (L"RTSSHooks64.dll");
+#endif
+
+  SK_ReHookLoadLibrary ();
+}
 
 void
 EnumLoadedModules (void)
@@ -421,6 +517,15 @@ EnumLoadedModules (void)
           GetModuleHandleEx ( 0x00,
                                 wszModName,
                                   &third_party_dlls.overlays.steam_overlay );
+          SK_ReHookLoadLibrary ();
+        }
+
+        else if ( (! third_party_dlls.misc.gedosato) &&
+                   StrStrIW (wszModName, L"GeDoSaTo") ) {
+          // Hold a reference to this DLL so it is not unloaded prematurely
+          GetModuleHandleEx ( 0x00,
+                                wszModName,
+                                  &third_party_dlls.misc.gedosato );
           SK_ReHookLoadLibrary ();
         }
 

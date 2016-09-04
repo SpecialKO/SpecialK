@@ -406,6 +406,8 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
   }
 }
 
+extern bool WINAPI SK_CheckForGeDoSaTo (void);
+
 COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
@@ -422,12 +424,22 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
   SK_BeginBufferSwap ();
 
-  HRESULT hr = D3D9PresentEx_Original (This,
-                                       pSourceRect,
-                                       pDestRect,
-                                       hDestWindowOverride,
-                                       pDirtyRegion,
-                                       dwFlags);
+  HRESULT hr = E_FAIL;
+
+  // Hack for GeDoSaTo
+  if (! SK_CheckForGeDoSaTo ())
+    hr = D3D9PresentEx_Original ( This,
+                                    pSourceRect,
+                                      pDestRect,
+                                        hDestWindowOverride,
+                                           pDirtyRegion,
+                                            dwFlags );
+  else
+    hr = D3D9Present_Original ( This,
+                                  pSourceRect,
+                                    pDestRect,
+                                      hDestWindowOverride,
+                                        pDirtyRegion );
 
   if (! config.osd.pump)
     return SK_EndBufferSwap ( hr,
@@ -823,7 +835,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
         if (MH_OK == SK_RemoveHook (vftable [132]))
           D3D9ResetEx_Original = nullptr;
         else {
-          dll_log.Log ( L"[   D3D9   ] Altered vftable detectd, re-hooking "
+          dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
                         L"IDirect3DDevice9Ex::ResetEx (...)!" );
           if (MH_OK == SK_RemoveHook (vftable_132))
             D3D9ResetEx_Original = nullptr;
@@ -885,7 +897,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
         if (MH_OK == SK_RemoveHook (vftable [121]))
           D3D9PresentEx_Original = nullptr;
         else {
-          dll_log.Log ( L"[   D3D9   ] Altered vftable detectd, re-hooking "
+          dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
                         L"IDirect3DDevice9Ex::PresentEx (...)!" );
           if (MH_OK == SK_RemoveHook (vftable_121))
             D3D9PresentEx_Original = nullptr;

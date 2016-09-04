@@ -74,7 +74,7 @@ SK_CreateDirectories ( const wchar_t* wszPath )
   wchar_t* wszSubDir = wcsdup (wszPath), *iter;
 
   for (iter = wszSubDir; *iter != L'\0'; ++iter) {
-    if (*iter == L'\\' || *iter == L'//') {
+    if (*iter == L'\\' || *iter == L'/') {
       *iter = L'\0';
 
       if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
