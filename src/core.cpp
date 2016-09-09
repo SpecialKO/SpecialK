@@ -1777,6 +1777,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                          ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
 
+  if (SK_GetCallerName ().find (L"SpecialK") != std::wstring::npos)
+    config.system.central_repository = true;
+
 
   if (config.system.central_repository) {
     SK_SetConfigPath (
@@ -1860,7 +1863,7 @@ bool
 WINAPI
 SK_ShutdownCore (const wchar_t* backend)
 {
-  ChangeDisplaySettingsA (nullptr, CDS_RESET);
+  //ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);
   SK_AutoClose_Log (budget_log);

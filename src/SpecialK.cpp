@@ -38,6 +38,7 @@ SK_EstablishDllRole (HMODULE hModule)
   std::wstring   dll_name   = SK_GetModuleName (hModule);
   const wchar_t* wszDllName = dll_name.c_str   ();
 
+
   if (! _wcsicmp (wszDllName, L"dxgi.dll"))
     dll_role = DLL_ROLE::DXGI;
 
@@ -47,11 +48,33 @@ SK_EstablishDllRole (HMODULE hModule)
   else if (! _wcsicmp (wszDllName, L"OpenGL32.dll"))
     dll_role = DLL_ROLE::OpenGL;
 
+
+  //
+  // This is an injected DLL, not a drop-in DLL...
+  //
+  else if ( wcsstr (wszDllName, L"SpecialK") )
+  {
+    if      ( GetFileAttributesW (L"SpecialK.d3d9") != INVALID_FILE_ATTRIBUTES )
+      dll_role = DLL_ROLE::D3D9;
+
+    else if ( GetFileAttributesW (L"SpecialK.dxgi") != INVALID_FILE_ATTRIBUTES )
+      dll_role = DLL_ROLE::DXGI;
+
+    else if ( GetFileAttributesW (L"SpecialK.OpenGL32") != INVALID_FILE_ATTRIBUTES )
+      dll_role = DLL_ROLE::OpenGL;
+
+    // Opted out of automatic injection
+    else
+      return false;
+  }
+
+
   //
   // Fallback to d3d9
   //
   else
     dll_role = DLL_ROLE::D3D9;
+
 
   return true;
 }
@@ -146,8 +169,12 @@ DllMain ( HMODULE hModule,
 
       InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0);
 
-      SK_EstablishDllRole (hModule);
-      SK_Attach           (dll_role);
+      // We reserve the right to deny attaching the DLL, this will generally
+      //   happen for non-Steam games if the DLL is injected system-wide.
+      if (! SK_EstablishDllRole (hModule))
+        return FALSE;
+
+      SK_Attach (dll_role);
 
       // We need TLS managed by the real OpenGL DLL for context
       //   management to work, so we cannot do this...
