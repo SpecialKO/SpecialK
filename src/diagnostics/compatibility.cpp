@@ -112,8 +112,10 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     StrStrIW (SK_GetHostApp ().c_str (), L"Tales of Zestiria.exe") != nullptr;
 
   if (isTalesOfZestiria) {
-    if (StrStrIW (lpFileName, L"GeDoSaTo"))
+    if (StrStrIW (lpFileName, L"GeDoSaTo")) {
+      dll_log.Log ( L"[Black List] GeDoSaTo Disabled for Tales of Zestiria, it is not thread safe.");
       return TRUE;
+    }
   }
 
 #if 0

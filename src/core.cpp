@@ -80,11 +80,18 @@ extern "C++" void SK_DS3_InitPlugin (void);
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init = FALSE;
 int                      gpu_prio;
-uint32_t                 frames_drawn = 0;
+
+volatile
+ULONG                frames_drawn = 0UL;
+
+ULONG
+__stdcall
+SK_GetFramesDrawn (void)
+{
+  return frames_drawn;
+}
 
 HMODULE                  backend_dll  = 0;
-
-char*   szOSD;
 
 #include <d3d9.h>
 
@@ -942,12 +949,6 @@ SK_InitFinishCallback (void)
     else
       dll_log.LogEx (false, L"failed!\n");
   }
-
-  szOSD =
-    (char *)
-    HeapAlloc ( dll_heap,
-      HEAP_ZERO_MEMORY,
-      sizeof (char) * 16384 );
 
   SK_StartPerfMonThreads ();
 
@@ -2563,7 +2564,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
-  frames_drawn++;
+  InterlockedIncrement (&frames_drawn);
 
   extern void SK_DrawConsole     (void);
   extern void SK_DrawTexMgrStats (void);

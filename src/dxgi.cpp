@@ -71,6 +71,14 @@ extern void  __stdcall SK_D3D12_UpdateRenderStats     ( IDXGISwapChain*      pSw
 extern BOOL __stdcall SK_NvAPI_SetFramerateLimit  (uint32_t limit);
 extern void __stdcall SK_NvAPI_SetAppFriendlyName (const wchar_t* wszFriendlyName);
 
+volatile LONG  __dxgi_ready  = FALSE;
+
+void WaitForInitDXGI (void)
+{
+  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+    Sleep (config.system.init_delay);
+}
+
 unsigned int __stdcall HookDXGI (LPVOID user);
 
 #define D3D_FEATURE_LEVEL_12_0 0xc000
@@ -482,8 +490,6 @@ SK_DXGI_BeginHooking (void)
 }
 
 #define WaitForInit() {    \
-  SK_D3D11_Init ();        \
-  SK_D3D12_Init ();        \
   ::WaitForInit        (); \
   SK_DXGI_BeginHooking (); \
 }
@@ -1901,6 +1907,9 @@ __declspec (noinline)
   SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
                             D3D_DRIVER_TYPE* DriverType )
   {
+    if (EnumAdapters_Original == nullptr)
+      WaitForInitDXGI ();
+
     if (SK_DXGI_preferred_adapter == -1)
       return;
 
@@ -2604,10 +2613,16 @@ SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 }
 
 
+extern void WaitForInitD3D11 (void);
+
 unsigned int
 __stdcall
 HookDXGI (LPVOID user)
 {
+  SK_D3D11_Init    ();
+
+  WaitForInitD3D11 ();
+
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
   CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
   CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
@@ -2798,10 +2813,12 @@ HookDXGI (LPVOID user)
       DestroyWindow (hwnd);
 
       SK_DXGI_HookPresent (pSwapChain);
+
+      InterlockedExchange (&__dxgi_ready, TRUE);
     }
   }
 
-  //CloseHandle (GetCurrentThread ());
+  CloseHandle (GetCurrentThread ());
 
   return 0;
 }

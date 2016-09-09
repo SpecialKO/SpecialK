@@ -24,6 +24,12 @@
 
 #include "RTSSSharedMemory.h"
 
+enum SK_RTSS_Version {
+  Version_2_8  = 2008,
+  Version_2_9  = 2009,
+  Version_2_10 = 2010
+} SK_RTSS_ver = Version_2_8;
+
 #pragma comment (lib, "Shlwapi.lib")
 #include <Shlwapi.h>
 
@@ -71,7 +77,7 @@
                          config.io.show)      { pszOSD += sprintf (pszOSD,
 #define OSD_END    ); }
 
-extern char* szOSD;
+char szOSD [32768] = { '\0' };
 
 #include "nvapi.h"
 extern NV_GET_CURRENT_SLI_STATE sli_state;
@@ -87,6 +93,7 @@ bool osd_init          = false;
 std::wstring rtss_hook_dll = L"";
 
 BOOL
+__stdcall
 SK_ReleaseSharedMemory (LPVOID lpMemory)
 {
   if (lpMemory != nullptr) {
@@ -97,6 +104,7 @@ SK_ReleaseSharedMemory (LPVOID lpMemory)
 }
 
 LPVOID
+__stdcall
 SK_GetSharedMemory (DWORD dwProcID)
 {
   if (osd_shutting_down && osd_init == false)
@@ -149,6 +157,7 @@ SK_GetSharedMemory (DWORD dwProcID)
 }
 
 LPVOID
+__stdcall
 SK_GetSharedMemory (void)
 {
   return SK_GetSharedMemory (GetCurrentProcessId ());
@@ -159,24 +168,42 @@ SK_GetSharedMemory (void)
 #include <d3d9.h>
 
 bool
+__stdcall
 SK_IsD3D9 (DWORD dwFlags = 0x00)
 {
   static bool d3d9 = false;
 
-  if ((dwFlags != 0x00) && ((dwFlags & APPFLAG_D3D9) || 
-                            (dwFlags & APPFLAG_D3D9EX)))
-    d3d9 = true;
+  if (SK_RTSS_ver <= SK_RTSS_Version::Version_2_8) {
+    if (  (dwFlags != 0x00) &&
+        ( (dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) ==
+           APPFLAG_DEPRECATED_D3D9 ||
+          (dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) ==
+           APPFLAG_DEPRECATED_D3D9EX ) )
+      d3d9 = true;
+  } else {
+    if ((dwFlags != 0x00) && (((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D9) ||
+                              ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D9EX)))
+      d3d9 = true;
+  }
 
   return d3d9;
 }
 
 bool
+__stdcall
 SK_IsD3D11 (DWORD dwFlags = 0x00)
 {
   static bool d3d11 = false;
 
-  if ((dwFlags != 0x00) && (dwFlags & APPFLAG_D3D11))
-    d3d11 = true;
+  if (SK_RTSS_ver <= SK_RTSS_Version::Version_2_8) {
+    if (  (dwFlags != 0x00) &&
+        ( (dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) ==
+           APPFLAG_DEPRECATED_D3D11 ) )
+      d3d11 = true;
+  } else {
+    if ((dwFlags != 0x00) && ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D11))
+      d3d11 = true;
+  }
 
   return d3d11;
 }
@@ -186,8 +213,10 @@ SK_IsD3D12 (DWORD dwFlags = 0x00)
 {
   static bool d3d12 = false;
 
-  if ((dwFlags != 0x00) && (dwFlags & APPFLAG_D3D12))
-    d3d12 = true;
+  if (SK_RTSS_ver <= SK_RTSS_Version::Version_2_9) {
+    if ((dwFlags != 0x00) && ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D12))
+      d3d12 = true;
+  }
 
   return d3d12;
 }
@@ -197,8 +226,15 @@ SK_IsOpenGL (DWORD dwFlags = 0x00)
 {
   static bool ogl = false;
 
-  if ((dwFlags != 0x00) && (dwFlags & APPFLAG_OGL))
-    ogl = true;
+  if (SK_RTSS_ver <= SK_RTSS_Version::Version_2_8) {
+    if (  (dwFlags != 0x00) &&
+        ( (dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) ==
+           APPFLAG_DEPRECATED_OGL ) )
+      ogl = true;
+  } else {
+    if ((dwFlags != 0x00) && ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_OGL))
+      ogl = true;
+  }
 
   return ogl;
 }
@@ -206,31 +242,60 @@ SK_IsOpenGL (DWORD dwFlags = 0x00)
 std::wstring
 SK_GetAPINameFromOSDFlags (DWORD dwFlags)
 {
-  // All three are DXGI-based and probable
-  if (dwFlags & APPFLAG_D3D12)
-    return L"D3D12";
-  if (dwFlags & APPFLAG_D3D11)
-    return L"D3D11";
-  if (dwFlags & APPFLAG_D3D10)
-    return L"D3D10";
+  if (SK_RTSS_ver <= SK_RTSS_Version::Version_2_8) {
+    // Both are DXGI-based and probable
+    if ((dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) == APPFLAG_DEPRECATED_D3D11)
+      return L"D3D11";
+    if ((dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) == APPFLAG_DEPRECATED_D3D10)
+      return L"D3D10";
 
-  if (dwFlags & APPFLAG_OGL)
-    return L"OpenGL";
+    if ((dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) == APPFLAG_DEPRECATED_OGL)
+      return L"OpenGL";
 
-  if (dwFlags & APPFLAG_D3D9EX)
-    return L"D3D9Ex";
-
-  if (dwFlags & APPFLAG_D3D9) {
-      extern IDirect3DDevice9*   g_pD3D9Dev;
-    CComPtr <IDirect3DDevice9Ex> pExDev;
-
-    // TODO: Add a query for this with its code written in d3d9.cpp, instead of, well querying it ;)
-    if ( g_pD3D9Dev != nullptr &&
-         SUCCEEDED (g_pD3D9Dev->QueryInterface (IID_PPV_ARGS (&pExDev))) ) {
+    if ((dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) == APPFLAG_DEPRECATED_D3D9EX)
       return L"D3D9Ex";
-    }
 
-    return L"D3D9";
+    if ((dwFlags & APPFLAG_DEPRECATED_API_USAGE_MASK) == APPFLAG_DEPRECATED_D3D9) {
+        extern IDirect3DDevice9*   g_pD3D9Dev;
+      CComPtr <IDirect3DDevice9Ex> pExDev;
+
+      // TODO: Add a query for this with its code written in d3d9.cpp, instead of, well querying it ;)
+      if ( g_pD3D9Dev != nullptr &&
+          SUCCEEDED (g_pD3D9Dev->QueryInterface (IID_PPV_ARGS (&pExDev))) ) {
+        return L"D3D9Ex";
+      }
+
+      return L"D3D9";
+    }
+  }
+
+  else {
+    // All three are DXGI-based and probable
+    if ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D12)
+      return L"D3D12";
+    if ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D11)
+      return L"D3D11";
+    if ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D10)
+      return L"D3D10";
+
+    if ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_OGL)
+      return L"OpenGL";
+
+    if ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D9EX)
+      return L"D3D9Ex";
+
+    if ((dwFlags & APPFLAG_API_USAGE_MASK) == APPFLAG_D3D9) {
+        extern IDirect3DDevice9*   g_pD3D9Dev;
+      CComPtr <IDirect3DDevice9Ex> pExDev;
+
+      // TODO: Add a query for this with its code written in d3d9.cpp, instead of, well querying it ;)
+      if ( g_pD3D9Dev != nullptr &&
+          SUCCEEDED (g_pD3D9Dev->QueryInterface (IID_PPV_ARGS (&pExDev))) ) {
+        return L"D3D9Ex";
+      }
+
+      return L"D3D9";
+    }
   }
 
 #ifdef OLDER_D3D_SUPPORT
@@ -380,6 +445,7 @@ SK_SetPluginName (std::wstring name)
 }
 
 void
+__stdcall
 SK_InstallOSD (void)
 {
 #if 0
@@ -425,6 +491,7 @@ SK_InstallOSD (void)
 #endif
   }
 #endif
+
   SK_SetOSDScale (config.osd.scale);
   SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
   SK_SetOSDColor (config.osd.red, config.osd.green, config.osd.blue);
@@ -437,6 +504,7 @@ SK::Framerate::Stats frame_history2;
 #include "command.h"
 
 BOOL
+__stdcall
 SK_DrawOSD (void)
 {
   LARGE_INTEGER now;
@@ -581,6 +649,21 @@ SK_DrawOSD (void)
       if ((pMem->dwSignature == 'RTSS') && 
           (pMem->dwVersion >= 0x00020000))
       {
+        static bool rtss_version_known = false;
+
+        if (! rtss_version_known) {
+          if (pMem->dwVersion == 0x0002000a)
+            SK_RTSS_ver = Version_2_10;
+
+          else if (pMem->dwVersion == 0x00020009)
+            SK_RTSS_ver = Version_2_9;
+
+          else
+            SK_RTSS_ver = Version_2_8;
+
+          rtss_version_known = true;
+        }
+
         for (DWORD dwApp = 0; dwApp < pMem->dwAppArrSize; dwApp++)
         {
           RTSS_SHARED_MEMORY::LPRTSS_SHARED_MEMORY_APP_ENTRY pApp =
@@ -1260,6 +1343,7 @@ SK_DrawOSD (void)
 }
 
 BOOL
+__stdcall
 SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
@@ -1346,6 +1430,7 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 }
 
 void
+__stdcall
 SK_ReleaseOSD (void)
 {
   // Reload the RTSS DLL so we can update the text
@@ -1367,6 +1452,7 @@ SK_ReleaseOSD (void)
 
 
 void
+__stdcall
 SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
@@ -1420,6 +1506,7 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
 }
 
 void
+__stdcall
 SK_SetOSDColor (int red, int green, int blue, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
@@ -1484,6 +1571,7 @@ SK_SetOSDColor (int red, int green, int blue, LPCSTR lpAppName)
 }
 
 void
+__stdcall 
 SK_SetOSDScale (DWORD dwScale, bool relative, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
@@ -1539,6 +1627,7 @@ SK_SetOSDScale (DWORD dwScale, bool relative, LPCSTR lpAppName)
 }
 
 void
+__stdcall 
 SK_ResizeOSD (int scale_incr, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)

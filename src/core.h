@@ -102,7 +102,6 @@ extern bool USE_SLI;
 
 extern NV_GET_CURRENT_SLI_STATE sli_state;
 extern BOOL                     nvapi_init;
-extern uint32_t                 frames_drawn;
 
 extern "C" {
   // We have some really sneaky overlays that manage to call some of our

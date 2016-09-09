@@ -211,7 +211,7 @@ HookD3D12 (LPVOID user)
 
   if (SUCCEEDED (hrx)) {
 #endif
-    __d3d12_ready = true;
+    InterlockedExchange (&__d3d12_ready, TRUE);
 //  }
 
   CloseHandle (GetCurrentThread ());

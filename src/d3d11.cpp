@@ -67,8 +67,13 @@ HMODULE SK::DXGI::hModD3D11 = 0;
 
 volatile LONG  __d3d11_ready  = FALSE;
 
+extern
+void WaitForInitDXGI (void);
+
 void WaitForInitD3D11 (void)
 {
+  //WaitForInitDXGI ();
+
   while (! InterlockedCompareExchange (&__d3d11_ready, FALSE, FALSE))
     Sleep (config.system.init_delay);
 }
@@ -832,8 +837,8 @@ SK_D3D11_TexMgr::isTexture2D (uint32_t crc32)
 
   if (crc32 != 0x00 && HashMap_2D.count (crc32)) {
     return true;
-  }
 
+  }
   return false;
 }
 
@@ -1445,6 +1450,9 @@ void
 WINAPI
 SK_D3D11_AddTexHash ( std::wstring name, uint32_t top_crc32, uint32_t hash )
 {
+  // UNX calls this before D3D11 is initialized
+  WaitForInitD3D11 ();
+
   if (hash != 0x00) {
     if (! SK_D3D11_IsTexHashed (top_crc32, hash)) {
       SK_AutoCriticalSection critical (&hash_cs);
@@ -2487,7 +2495,7 @@ volatile LONG SK_D3D11_initialized = FALSE;
 void
 SK_D3D11_Init (void)
 {
-  if (SK::DXGI::hModD3D11 == nullptr) {
+  if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE)) {
     SK::DXGI::hModD3D11 = LoadLibrary (L"d3d11.dll");
 
     SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDevice",
@@ -2575,7 +2583,7 @@ SK_D3D11_Init (void)
 void
 SK_D3D11_Shutdown (void)
 {
-  if (false)//InterlockedCompareExchange (&SK_D3D11_initialized, FALSE, TRUE))
+  if (! InterlockedCompareExchange (&SK_D3D11_initialized, FALSE, TRUE))
     return;
 
   if (SK_D3D11_Textures.RedundantLoads_2D > 0) {
@@ -2587,17 +2595,22 @@ SK_D3D11_Shutdown (void)
                         SK_D3D11_Textures.RedundantLoads_2D );
   }
 
-  DeleteCriticalSection (&tex_cs);
-  DeleteCriticalSection (&hash_cs);
-  DeleteCriticalSection (&dump_cs);
-  DeleteCriticalSection (&cache_cs);
-  DeleteCriticalSection (&inject_cs);
+  SK_D3D11_Textures.reset ();
+
+  // Stop caching while we shutdown
+  SK_D3D11_cache_textures = false;
+
+  if (FreeLibrary (SK::DXGI::hModD3D11)) {
+    DeleteCriticalSection (&tex_cs);
+    DeleteCriticalSection (&hash_cs);
+    DeleteCriticalSection (&dump_cs);
+    DeleteCriticalSection (&cache_cs);
+    DeleteCriticalSection (&inject_cs);
 
 #ifdef NO_TLS
-  DeleteCriticalSection (&cs_texinject);
+    DeleteCriticalSection (&cs_texinject);
 #endif
-
-  FreeLibrary (SK::DXGI::hModD3D11);
+  }
 }
 
 void
@@ -2715,7 +2728,7 @@ HookD3D11 (LPVOID user)
                              D3D11_UpdateSubresource_pfn);
       }
 
-      __d3d11_ready = true;
+      InterlockedExchange (&__d3d11_ready, TRUE);
     }
   }
 

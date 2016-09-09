@@ -329,7 +329,7 @@ WINAPI
 SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
                        D3DDISPLAYMODEEX*      pFullscreenMode = nullptr )
 {
-  int TargetFPS = config.render.framerate.target_fps;
+  int TargetFPS = (int)config.render.framerate.target_fps;
 
   // First consider D3D9Ex FullScreen Mode
   int Refresh   = pFullscreenMode != nullptr ?
@@ -448,6 +448,18 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
                                       hDestWindowOverride,
                                         pDirtyRegion );
 
+  extern HWND hWndRender;
+
+  if (hWndRender == 0 || (! IsWindow (hWndRender))) {
+    DWORD dwProc;
+
+    DWORD dwThreadId =
+      GetWindowThreadProcessId (GetForegroundWindow (), &dwProc);
+
+    if (dwProc == GetCurrentProcessId ())
+      hWndRender = GetForegroundWindow ();
+  }
+
   if (! config.osd.pump)
     return SK_EndBufferSwap ( hr,
                                 (IUnknown *)This );
@@ -469,6 +481,8 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
   SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
 #endif
 
+  g_pD3D9Dev = This;
+
   if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX) {
     HRESULT hr =
       D3D9PresentCallbackEx ( (IDirect3DDevice9Ex *)This,
@@ -482,8 +496,6 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
     return hr;
   }
 
-  g_pD3D9Dev = This;
-
   SK_D3D9_UpdateRenderStats (nullptr, This);
 
   SK_BeginBufferSwap ();
@@ -493,6 +505,18 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                                      pDestRect,
                                      hDestWindowOverride,
                                      pDirtyRegion);
+
+  extern HWND hWndRender;
+
+  if (hWndRender == 0 || (! IsWindow (hWndRender))) {
+    DWORD dwProc;
+
+    DWORD dwThreadId =
+      GetWindowThreadProcessId (GetForegroundWindow (), &dwProc);
+
+    if (dwProc == GetCurrentProcessId ())
+      hWndRender = GetForegroundWindow ();
+  }
 
   if (! config.osd.pump)
     return SK_EndBufferSwap ( hr,
@@ -687,6 +711,15 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
                                            hDestWindowOverride,
                                            pDirtyRegion,
                                            dwFlags);
+
+    extern HWND hWndRender;
+
+    if (hWndRender == 0 || (! IsWindow (hWndRender))) {
+      D3DPRESENT_PARAMETERS pparams;
+
+      if (SUCCEEDED (This->GetPresentParameters (&pparams)))
+        hWndRender = pparams.hDeviceWindow;
+    }
 
     // We are manually pumping OSD updates, do not do them on buffer swaps.
     if (config.osd.pump) {

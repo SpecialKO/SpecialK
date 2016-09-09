@@ -421,6 +421,11 @@ SK_GetGameWindow (void)
 }
 
 
+extern
+ULONG
+__stdcall
+SK_GetFramesDrawn (void);
+
 unsigned int
 __stdcall
 SK_Console::MessagePump (LPVOID hook_ptr)
@@ -442,7 +447,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
 
   while (true) {
     // Spin until the game has drawn a frame
-    if (hWndRender == 0 || (! frames_drawn)) {
+    if (hWndRender == 0 || (! SK_GetFramesDrawn ())) {
       Sleep (83);
       continue;
     }
@@ -664,17 +669,10 @@ SK_DrawConsole (void)
 
   // Drop the first few frames so that the console shows up below
   //   the main OSD.
-  if (frames_drawn > 15) {
+  if (SK_GetFramesDrawn () > 15) {
     SK_Console* pConsole = SK_Console::getInstance ();
     pConsole->Draw ();
   }
-}
-
-uint32_t
-__stdcall
-SK_GetFramesDrawn (void)
-{
-  return frames_drawn;
 }
 
 BOOL

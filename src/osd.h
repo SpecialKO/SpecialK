@@ -26,24 +26,20 @@
 #include <Windows.h>
 #include <stdint.h>
 
-//#include "stdafx.h"
-//#include "dxgi_interfaces.h"
+LPVOID __stdcall SK_GetSharedMemory     (void);
+BOOL   __stdcall SK_ReleaseSharedMemory (LPVOID pMemory);
 
-LPVOID SK_GetSharedMemory     (void);
-BOOL   SK_ReleaseSharedMemory (LPVOID pMemory);
+void __stdcall SK_InstallOSD       (void);
+BOOL __stdcall SK_DrawOSD          (void);
+BOOL __stdcall SK_UpdateOSD        (LPCSTR lpText, LPVOID pMapAddr = nullptr, LPCSTR lpAppName = nullptr);
+void __stdcall SK_ReleaseOSD       (void);
 
-void SK_InstallOSD       (void);
-BOOL SK_DrawOSD          (void);
-BOOL SK_UpdateOSD        (LPCSTR lpText, LPVOID pMapAddr = nullptr, LPCSTR lpAppName = nullptr);
-void SK_ReleaseOSD       (void);
-
-void SK_SetOSDPos        (int x,   int y,                           LPCSTR lpAppName = nullptr);
+void __stdcall SK_SetOSDPos        (int x,   int y,                           LPCSTR lpAppName = nullptr);
 
 // Any value out of range: [0,255] means IGNORE that color
-void SK_SetOSDColor      (int red, int green, int blue,             LPCSTR lpAppName = nullptr);
-//void BMF_SetOSDShadow     (int red, int green, int blue);
+void __stdcall SK_SetOSDColor      (int red, int green, int blue,             LPCSTR lpAppName = nullptr);
 
-void SK_SetOSDScale      (DWORD dwScale, bool relative = false,     LPCSTR lpAppName = nullptr);
-void SK_ResizeOSD        (int scale_incr,                           LPCSTR lpAppName = nullptr);
+void __stdcall SK_SetOSDScale      (DWORD dwScale, bool relative = false,     LPCSTR lpAppName = nullptr);
+void __stdcall SK_ResizeOSD        (int scale_incr,                           LPCSTR lpAppName = nullptr);
 
 #endif /* __SK__OSD_H__ */
