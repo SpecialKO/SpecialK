@@ -1,0 +1,343 @@
+#include "core.h"
+#include "command.h"
+#include "config.h"
+#include "dxgi_backend.h"
+#include "log.h"
+
+extern LARGE_INTEGER SK_QueryPerf (void);
+#include "framerate.h"
+
+#include <Windows.h>
+#include <atlbase.h>
+
+#define D3D12_IGNORE_SDK_LAYERS
+#include "d3d12_interfaces.h"
+
+#undef min
+#undef max
+
+#include <algorithm>
+
+LPVOID                pfnD3D12CreateDevice     = nullptr;
+volatile
+D3D12CreateDevice_pfn D3D12CreateDevice_Import = nullptr;
+
+HMODULE               SK::DXGI::hModD3D12      = 0;
+
+IUnknown*             g_pD3D12Dev              = nullptr;
+volatile
+LONG                  __d3d12_ready            = FALSE;
+
+void
+WaitForInitD3D12 (void)
+{
+  while (! InterlockedCompareExchange (&__d3d12_ready, FALSE, FALSE))
+    Sleep (config.system.init_delay);
+}
+
+namespace SK {
+  namespace DXGI {
+    struct PipelineStatsD3D12 {
+      struct StatQueryD3D12 {
+        ID3D12QueryHeap* heap   = nullptr;
+        bool             active = false;
+      } query;
+
+      D3D12_QUERY_DATA_PIPELINE_STATISTICS
+                 last_results;
+    } pipeline_stats_d3d11;
+  };
+};
+
+
+HRESULT
+WINAPI
+D3D12CreateDevice_Detour (
+  _In_opt_  IUnknown          *pAdapter,
+            D3D_FEATURE_LEVEL  MinimumFeatureLevel,
+  _In_      REFIID             riid,
+  _Out_opt_ void             **ppDevice )
+{
+  WaitForInitD3D12 ();
+
+  DXGI_LOG_CALL_0 (L"D3D12CreateDevice");
+
+  dll_log.LogEx ( true,
+                    L"[  D3D 12  ]  <~> Minimum Feature Level - %s\n",
+                        SK_DXGI_FeatureLevelsToStr (
+                          1,
+                            (DWORD *)&MinimumFeatureLevel
+                        ).c_str ()
+                );
+
+  if (pAdapter != nullptr) {
+    int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
+
+    // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
+    if (iver >= 3) {
+      SK_StartDXGI_1_4_BudgetThread ((IDXGIAdapter **)&pAdapter);
+    }
+  }
+
+  HRESULT res;
+
+  DXGI_CALL (res, 
+    D3D12CreateDevice_Import ( pAdapter,
+                                 MinimumFeatureLevel,
+                                   riid,
+                                     ppDevice )
+  );
+
+  if (SUCCEEDED (res)) {
+    dwRenderThread = GetCurrentThreadId ();
+
+    if (ppDevice != nullptr) {
+      if (*ppDevice != g_pD3D12Dev) {
+        // TODO: This isn't the right way to get the feature level
+        dll_log.Log ( L"[  D3D 12  ] >> Device = 0x%08Xh (Feature Level:%s)",
+                        *ppDevice,
+                          SK_DXGI_FeatureLevelsToStr ( 1,
+                                                        (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
+                                                     ).c_str ()
+                    );
+        g_pD3D12Dev = (IUnknown *)*ppDevice;
+      }
+    }
+  }
+
+  return res;
+}
+
+volatile LONG SK_D3D12_initialized = FALSE;
+
+void
+SK_D3D12_Init (void)
+{
+  if (SK::DXGI::hModD3D12 == nullptr) {
+    SK::DXGI::hModD3D12 = LoadLibrary (L"d3d12.dll");
+
+    SK_CreateDLLHook ( L"d3d12.dll", "D3D12CreateDevice",
+                        D3D12CreateDevice_Detour,
+              (LPVOID *)&D3D12CreateDevice_Import,
+                        &pfnD3D12CreateDevice );
+  }
+}
+
+void
+SK_D3D12_Shutdown (void)
+{
+  if (false) //InterlockedCompareExchange (&SK_D3D12_initialized, FALSE, TRUE))
+    return;
+
+  FreeLibrary (SK::DXGI::hModD3D12);
+}
+
+void
+SK_D3D12_EnableHooks (void)
+{
+  SK_EnableHook (pfnD3D12CreateDevice);
+}
+
+unsigned int
+__stdcall
+HookD3D12 (LPVOID user)
+{
+#if 0
+  CComPtr <IDXGIFactory>  pFactory  = nullptr;
+  CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
+  CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+
+  HRESULT hr =
+    CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
+
+  if (SUCCEEDED (hr)) {
+    pFactory->EnumAdapters (0, &pAdapter);
+
+    if (pFactory) {
+      int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+
+      CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+
+      if (iver > 0) {
+        if (SUCCEEDED (CreateDXGIFactory1_Import ( IID_PPV_ARGS (&pFactory1) ))) {
+          pFactory1->EnumAdapters1 (0, &pAdapter1);
+        }
+      }
+    }
+  }
+
+  CComPtr <ID3D11Device>        pDevice           = nullptr;
+  D3D_FEATURE_LEVEL             featureLevel;
+  CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
+
+  HRESULT hrx = E_FAIL;
+  {
+    if (pAdapter1 != nullptr) {
+      D3D_FEATURE_LEVEL test_11_1 = D3D_FEATURE_LEVEL_11_1;
+
+      hrx =
+        D3D11CreateDevice_Import (
+          pAdapter1,
+            D3D_DRIVER_TYPE_UNKNOWN,
+              nullptr,
+                0,
+                  &test_11_1,
+                    1,
+                      D3D11_SDK_VERSION,
+                        &pDevice,
+                          &featureLevel,
+                            &pImmediateContext );
+
+      if (SUCCEEDED (hrx)) {
+        d3d11_caps.feature_level.d3d11_1 = true;
+      }
+    }
+
+    if (! SUCCEEDED (hrx)) {
+      hrx =
+        D3D11CreateDevice_Import (
+          pAdapter,
+            D3D_DRIVER_TYPE_UNKNOWN,
+              nullptr,
+                0,
+                  nullptr,
+                    0,
+                      D3D11_SDK_VERSION,
+                        &pDevice,
+                          &featureLevel,
+                            &pImmediateContext );
+    }
+  }
+
+  if (SUCCEEDED (hrx)) {
+#endif
+    __d3d12_ready = true;
+//  }
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+extern void
+SK_D3D11_SetPipelineStats (void* pData);
+
+void
+__stdcall
+SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
+{
+  if (! (pSwapChain && config.render.show))
+    return;
+
+  // Need more debug time with D3D12
+  return;
+
+  CComPtr <ID3D12Device> dev = nullptr;
+
+  if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&dev)))) {
+    static CComPtr <ID3D12CommandAllocator>    cmd_alloc = nullptr;
+    static CComPtr <ID3D12GraphicsCommandList> cmd_list  = nullptr;
+    static CComPtr <ID3D12Resource>            query_res = nullptr;
+    static CComPtr <ID3D12CommandQueue>        cmd_queue = nullptr;
+
+    if (cmd_alloc == nullptr) {
+      dev->CreateCommandAllocator ( D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                      IID_PPV_ARGS (&cmd_alloc) );
+
+      D3D12_COMMAND_QUEUE_DESC queue_desc = { };
+
+      queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+      queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+      dev->CreateCommandQueue ( &queue_desc,
+                                  IID_PPV_ARGS (&cmd_queue) );
+
+      if (query_res == nullptr) {
+        D3D12_HEAP_PROPERTIES heap_props = { D3D12_HEAP_TYPE_READBACK, 
+                                             D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+                                             D3D12_MEMORY_POOL_UNKNOWN,
+                                             0xFF,
+                                             0xFF };
+
+        D3D12_RESOURCE_DESC res_desc = { };
+        res_desc.Width     = sizeof D3D12_QUERY_DATA_PIPELINE_STATISTICS;
+        res_desc.Flags     = D3D12_RESOURCE_FLAG_NONE;
+        res_desc.Alignment = 0;
+
+        dev->CreateCommittedResource ( &heap_props,
+                                       D3D12_HEAP_FLAG_NONE,
+                                       &res_desc,
+                                       D3D12_RESOURCE_STATE_COPY_DEST,
+                                       nullptr,
+                                       IID_PPV_ARGS (&query_res) );
+      }
+    }
+
+    if (cmd_alloc != nullptr && cmd_list == nullptr) {
+      dev->CreateCommandList ( 0,
+                                 D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                   cmd_alloc,
+                                     nullptr,
+                                       IID_PPV_ARGS (&cmd_list) );
+    }
+
+    if (cmd_alloc == nullptr)
+      return;
+
+    SK::DXGI::PipelineStatsD3D12& pipeline_stats =
+      SK::DXGI::pipeline_stats_d3d11;
+
+    if (pipeline_stats.query.heap != nullptr) {
+      if (pipeline_stats.query.active) {
+        cmd_list->EndQuery (pipeline_stats.query.heap, D3D12_QUERY_TYPE_PIPELINE_STATISTICS, 0);
+        cmd_list->Close    ();
+
+        cmd_queue->ExecuteCommandLists (1, (ID3D12CommandList * const*)&cmd_list);
+
+        //dev_ctx->End (pipeline_stats.query.heap[);
+        pipeline_stats.query.active = false;
+      } else {
+        cmd_list->ResolveQueryData ( pipeline_stats.query.heap,
+                                       D3D12_QUERY_TYPE_PIPELINE_STATISTICS,
+                                         0, 1,
+                                           query_res,
+                                             0 );
+
+        if (true) {//hr == S_OK) {
+          pipeline_stats.query.heap->Release ();
+          pipeline_stats.query.heap = nullptr;
+
+          cmd_list.Release ();
+          cmd_list = nullptr;
+
+          void *pData = nullptr;
+
+          D3D12_RANGE range = { 0, sizeof D3D12_QUERY_DATA_PIPELINE_STATISTICS };
+
+          query_res->Map (0, &range, &pData);
+
+          SK_D3D11_SetPipelineStats (pData);
+
+          static const D3D12_RANGE unmap_range = { 0, 0 };
+
+          query_res->Unmap (0, &unmap_range);
+        }
+      }
+    }
+
+    else {
+      D3D12_QUERY_HEAP_DESC query_heap_desc {
+        D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS, 1, 0xFF /* 255 GPUs seems like enough? :P */
+      };
+
+      if (SUCCEEDED (dev->CreateQueryHeap (&query_heap_desc, IID_PPV_ARGS (&pipeline_stats.query.heap)))) {
+        cmd_list->BeginQuery (pipeline_stats.query.heap, D3D12_QUERY_TYPE_PIPELINE_STATISTICS, 0);
+        cmd_list->Close      ();
+
+        cmd_queue->ExecuteCommandLists (1, (ID3D12CommandList * const*)&cmd_list);
+        //dev->BeginQuery (Begin (pipeline_stats.query.heap);
+        pipeline_stats.query.active = true;
+      }
+    }
+  }
+}

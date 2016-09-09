@@ -6,6 +6,81 @@
 #ifndef _RTSS_SHARED_MEMORY_INCLUDED_
 #define _RTSS_SHARED_MEMORY_INCLUDED_
 /////////////////////////////////////////////////////////////////////////////
+//#include "RTSSHooksTypes.h"
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_CAPS_VERSION_V1_0							0x00010000
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_CAPS_MAX_INPUT_FORMATS						4
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_CAPS_FLAGS_RESIZE_SUPPORTED					0x00000001
+#define ENCODER_CAPS_FLAGS_QUALITY_SUPPORTED				0x00000002
+#define ENCODER_CAPS_FLAGS_CONFIGURE_SUPPORTED				0x00000004
+#define ENCODER_CAPS_FLAGS_MULTITHREADING_SAFE				0x00000008
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_INPUT_FORMAT_RGB3							'3BGR'
+#define ENCODER_INPUT_FORMAT_RGB4							'4BGR'
+#define ENCODER_INPUT_FORMAT_NV12							'21VN'
+//////////////////////////////////////////////////////////////////////
+typedef struct ENCODER_CAPS
+{	
+	//v1.0
+	DWORD		dwVersion;
+	DWORD		dwFlags;
+	DWORD		dwInputFormatsNum;
+	DWORD		dwInputFormats[ENCODER_CAPS_MAX_INPUT_FORMATS];
+	DWORD		dwOutputFormat;
+	char		szDesc[MAX_PATH];
+} ENCODER_CAPS, *LPENCODER_CAPS;
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_STAT_VERSION_V1_0							0x00010000
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_STAT_TYPE_DESC								0x00000000
+#define ENCODER_STAT_TYPE_LAST_ERROR						0x00000001
+//////////////////////////////////////////////////////////////////////
+typedef struct ENCODER_STAT
+{	
+	//v1.0
+	DWORD		dwVersion;
+	DWORD		dwType;
+	LPBYTE		lpData;
+	DWORD		dwSize;
+} ENCODER_STAT, *LPENCODER_STAT;
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_INPUT_VERSION_V1_0							0x00010000
+//////////////////////////////////////////////////////////////////////
+typedef struct ENCODER_INPUT
+{	
+	//v1.0
+	DWORD		dwVersion;
+	DWORD		dwFlags;
+	DWORDLONG	qwTimestamp;
+	DWORD		dwInputFormat;
+	DWORD		dwInputWidth;
+	DWORD		dwInputHeight;
+	DWORD		dwOutputWidth;
+	DWORD		dwOutputHeight;
+	DWORD		dwFramerate;
+	DWORD		dwQuality;
+	LPBYTE		lpInputData;
+	DWORD		dwInputSize;
+} ENCODER_INPUT, *LPENCODER_INPUT;
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_OUTPUT_FLAG_KEYFRAME						0x00000001
+//////////////////////////////////////////////////////////////////////
+#define ENCODER_OUTPUT_VERSION_V1_0							0x00010000
+//////////////////////////////////////////////////////////////////////
+typedef struct ENCODER_OUTPUT
+{	
+	//v1.0
+	DWORD		dwVersion;
+	DWORD		dwFlags;
+	DWORDLONG	qwTimestamp;
+	LPBYTE		lpOutputData;
+	DWORD		dwOutputSize;
+	LPVOID		lpContext;
+} ENCODER_OUTPUT, *LPENCODER_OUTPUT;
+
+/////////////////////////////////////////////////////////////////////////////
 // v1.0 memory structure
 typedef struct RTSS_SHARED_MEMORY_V_1_0
 {
@@ -253,15 +328,33 @@ typedef struct RTSS_SHARED_MEMORY_V_1_3
 		//maximum instantaneous framerate measured during statistics record period 
 } RTSS_SHARED_MEMORY_V_1_3, *LPRTSS_SHARED_MEMORY_V_1_3;
 /////////////////////////////////////////////////////////////////////////////
-#define APPFLAG_DD												0x00000010
-#define APPFLAG_D3D8											0x00000100
-#define APPFLAG_D3D9											0x00001000
-#define APPFLAG_D3D9EX											0x00002000
-#define APPFLAG_OGL												0x00010000
-#define APPFLAG_D3D10											0x00100000
-#define APPFLAG_D3D11											0x01000000
 
-#define APPFLAG_API_USAGE_MASK									(APPFLAG_DD | APPFLAG_D3D8 | APPFLAG_D3D9 | APPFLAG_D3D9EX | APPFLAG_OGL | APPFLAG_D3D10  | APPFLAG_D3D11)
+// WARNING! The following API usage flags are deprecated and valid in 2.9 
+// and older shared memory layout only
+
+#define APPFLAG_DEPRECATED_DD									0x00000010
+#define APPFLAG_DEPRECATED_D3D8									0x00000100
+#define APPFLAG_DEPRECATED_D3D9									0x00001000
+#define APPFLAG_DEPRECATED_D3D9EX								0x00002000
+#define APPFLAG_DEPRECATED_OGL									0x00010000
+#define APPFLAG_DEPRECATED_D3D10								0x00100000
+#define APPFLAG_DEPRECATED_D3D11								0x01000000
+
+#define APPFLAG_DEPRECATED_API_USAGE_MASK						(APPFLAG_DD | APPFLAG_D3D8 | APPFLAG_D3D9 | APPFLAG_D3D9EX | APPFLAG_OGL | APPFLAG_D3D10  | APPFLAG_D3D11)
+
+// The following API usage flags are valid in 2.10 and newer shared memory 
+// layout only
+
+#define APPFLAG_OGL												0x00000001 
+#define APPFLAG_DD												0x00000002
+#define APPFLAG_D3D8											0x00000003
+#define APPFLAG_D3D9											0x00000004
+#define APPFLAG_D3D9EX											0x00000005
+#define APPFLAG_D3D10											0x00000006
+#define APPFLAG_D3D11											0x00000007
+#define APPFLAG_D3D12											0x00000008
+
+#define APPFLAG_API_USAGE_MASK									0x0000FFFF
 
 #define APPFLAG_PROFILE_UPDATE_REQUESTED						0x10000000
 /////////////////////////////////////////////////////////////////////////////
@@ -445,12 +538,21 @@ typedef struct RTSS_SHARED_MEMORY
 		LARGE_INTEGER qwAudioCapturePTTEventPush2;
 		LARGE_INTEGER qwAudioCapturePTTEventRelease2;
 
+		//next fields are valid for v2.8 and newer shared memory format only
+
+		DWORD	dwPrerecordSizeLimit;
+		DWORD	dwPrerecordTimeLimit;
+
 	} RTSS_SHARED_MEMORY_APP_ENTRY, *LPRTSS_SHARED_MEMORY_APP_ENTRY;
 
 	RTSS_SHARED_MEMORY_OSD_ENTRY arrOSD[8];
 		//array of OSD slots
 	RTSS_SHARED_MEMORY_APP_ENTRY arrApp[256];
 		//array of application descriptors
+
+	//next fields are valid for v2.9 and newer shared memory format only
+
+	/////////VIDEO_CAPTURE_PARAM autoVideoCaptureParam;
 
 } RTSS_SHARED_MEMORY, *LPRTSS_SHARED_MEMORY;
 /////////////////////////////////////////////////////////////////////////////

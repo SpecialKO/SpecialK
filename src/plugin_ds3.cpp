@@ -145,7 +145,7 @@ typedef HRESULT (WINAPI *D3DX11CreateTextureFromMemory_pfn)(
   _Out_ HRESULT                *pHResult
 );
 
-D3D11_RSSetViewports_pfn          D3D11_RSSetViewports_Original          = nullptr;
+static D3D11_RSSetViewports_pfn   D3D11_RSSetViewports_Original          = nullptr;
 
 DXGISwap_ResizeTarget_pfn         DXGISwap_ResizeTarget_Original         = nullptr;
 DXGISwap_ResizeBuffers_pfn        DXGISwap_ResizeBuffers_Original        = nullptr;
@@ -160,7 +160,7 @@ D3DX11SaveTextureToFileW_pfn      D3DX11SaveTextureToFileW_Original = nullptr;
 
 
 
-extern "C" void    WINAPI D3D11_RSSetViewports_Override     ( ID3D11DeviceContext*,
+extern     void    WINAPI D3D11_RSSetViewports_Override     ( ID3D11DeviceContext*,
                                                               UINT,
                                                         const D3D11_VIEWPORT* );
 extern     HRESULT WINAPI D3D11Dev_CreateTexture2D_Override ( ID3D11Device*,

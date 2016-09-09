@@ -93,9 +93,6 @@
     <ClInclude Include="memory_monitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dxgi_interfaces.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="adl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -155,6 +152,12 @@
     </ClInclude>
     <ClInclude Include="d3d9\texmgr.h">
       <Filter>Header Files\Backends\D3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12_interfaces.h">
+      <Filter>Header Files\Backends\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="dxgi_interfaces.h">
+      <Filter>Header Files\Backends\DXGI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -301,6 +304,12 @@
     </ClCompile>
     <ClCompile Include="diagnostics\compatibility.cpp">
       <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12.cpp">
+      <Filter>Source Files\Backends\DXGI</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d11.cpp">
+      <Filter>Source Files\Backends\DXGI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

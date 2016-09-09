@@ -89,6 +89,7 @@ char*   szOSD;
 #include <d3d9.h>
 
 const wchar_t*
+__stdcall
 SK_DescribeHRESULT (HRESULT result)
 {
   switch (result)
@@ -309,6 +310,7 @@ SK_DescribeHRESULT (HRESULT result)
 }
 
 void
+__stdcall
 SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
 {
   //
@@ -824,6 +826,7 @@ osd_pump (LPVOID lpThreadParam)
 }
 
 void
+__stdcall
 SK_StartPerfMonThreads (void)
 {
   if (config.mem.show) {
@@ -952,6 +955,7 @@ SK_InitFinishCallback (void)
 }
 
 void
+__stdcall
 SK_InitCore (const wchar_t* backend, void* callback)
 {
   EnterCriticalSection (&init_mutex);
@@ -1236,7 +1240,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   callback_pfn callback_fn = (callback_pfn)callback;
   callback_fn (SK_InitFinishCallback);
 
-  extern void EnumLoadedModules (void);
+  extern void __stdcall EnumLoadedModules (void);
   EnumLoadedModules ();
 }
 
@@ -1622,6 +1626,27 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
 MH_STATUS
 WINAPI
+SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
+                       LPVOID *ppVFTable,
+                       DWORD   dwOffset,
+                       LPVOID  pDetour,
+                       LPVOID *ppOriginal )
+{
+  MH_STATUS ret =
+    SK_CreateFuncHook (
+      pwszFuncName,
+        ppVFTable [dwOffset],
+          pDetour,
+            ppOriginal );
+
+  if (ret == MH_OK)
+    ret = SK_EnableHook (ppVFTable [dwOffset]);
+
+  return ret;
+}
+
+MH_STATUS
+WINAPI
 SK_EnableHook (LPVOID pTarget)
 {
   MH_STATUS status =
@@ -1718,6 +1743,7 @@ SK_UnInit_MinHook (void)
 
 
 bool
+__stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
   dll_heap = HeapCreate (HEAP_CREATE_ENABLE_EXECUTE, 0, 0);
@@ -1765,7 +1791,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   // Do this from the startup thread
   SK_Init_MinHook ();
 
-  extern void SK_InitCompatBlacklist (void);
+  extern void __stdcall SK_InitCompatBlacklist (void);
   SK_InitCompatBlacklist ();
 
   // Don't let Steam prevent me from attaching a debugger at startup, damnit!

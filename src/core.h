@@ -110,9 +110,9 @@ extern "C" {
   //     so we don't crash and burn!
   void WaitForInit (void);
 
-  void        SK_InitCore     (const wchar_t* backend, void* callback);
-  bool        SK_StartupCore  (const wchar_t* backend, void* callback);
-  bool WINAPI SK_ShutdownCore (const wchar_t* backend);
+  void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
+  bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
+  bool WINAPI    SK_ShutdownCore (const wchar_t* backend);
 
   MH_STATUS WINAPI
       SK_CreateFuncHook ( LPCWSTR pwszFuncName,
@@ -124,6 +124,14 @@ extern "C" {
       SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                          LPVOID  pDetour,    LPVOID *ppOriginal,
                          LPVOID *ppFuncAddr = nullptr );
+
+  MH_STATUS WINAPI
+    SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
+                           LPVOID *ppVFTable,
+                           DWORD   dwOffset,
+                           LPVOID  pDetour,
+                           LPVOID *ppOriginal );
+
 
   MH_STATUS WINAPI
        SK_EnableHook   (LPVOID pTarget);
@@ -140,9 +148,9 @@ extern "C" {
   HRESULT STDMETHODCALLTYPE SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
 
   struct IDXGIAdapter;
-  void SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter);
+  void           __stdcall SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter);
 
-  const wchar_t* SK_DescribeHRESULT (HRESULT result);
+  const wchar_t* __stdcall SK_DescribeHRESULT (HRESULT result);
 }
 
 void

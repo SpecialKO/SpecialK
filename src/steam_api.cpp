@@ -93,11 +93,64 @@ bool S_CALLTYPE SK_SteamAPI_Init (void);
 S_API SteamAPI_RegisterCallback_t   SteamAPI_RegisterCallback_Original   = nullptr;
 S_API SteamAPI_UnregisterCallback_t SteamAPI_UnregisterCallback_Original = nullptr;
 
+class SK_Steam_OverlayManager {
+public:
+  SK_Steam_OverlayManager (void) :
+       activation ( this, &SK_Steam_OverlayManager::OnActivate      ) {
+    cursor_visible_ = false;
+  }
+
+  STEAM_CALLBACK ( SK_Steam_OverlayManager,
+                   OnActivate,
+                   GameOverlayActivated_t,
+                   activation )
+  {
+    if (active_ != pParam->m_bActive) {
+      if (pParam->m_bActive) {
+        cursor_visible_ = ShowCursor (FALSE) >= -1;
+                          ShowCursor (TRUE);
+      }
+
+      // Restore the original cursor state.
+      else {
+        if (! cursor_visible_) {
+          while (ShowCursor (FALSE) >= 0)
+            ;
+        }
+      }
+    }
+
+    active_ = pParam->m_bActive;
+  }
+
+  bool isActive (void) { return active_; }
+
+private:
+  bool cursor_visible_; // Cursor visible prior to activation?
+  bool active_;
+} *overlay_manager = nullptr;
+
+bool
+WINAPI
+SK_IsSteamOverlayActive (void)
+{
+  if (overlay_manager)
+    return overlay_manager->isActive ();
+
+  return false;
+}
+
+
+#include "utility.h"
+
 S_API
 void
 S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
+  std::wstring caller = 
+    SK_GetCallerName ();
+
   EnterCriticalSection (&callback_cs);
 
 //  SK_SteamAPI_Init ();
@@ -105,27 +158,33 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   switch (iCallback)
   {
     case GameOverlayActivated_t::k_iCallback:
-      steam_log.Log (L" * Game Installed Overlay Activation Callback");
+      steam_log.Log ( L" * (%-28s) Installed Overlay Activation Callback",
+                        caller.c_str () );
       overlay_activation_callbacks.insert (pCallback);
       break;
     case ScreenshotRequested_t::k_iCallback:
-      steam_log.Log (L" * Game Installed Screenshot Callback");
+      steam_log.Log ( L" * (%-28s) Installed Screenshot Callback",
+                        caller.c_str () );
       break;
     case UserStatsReceived_t::k_iCallback:
-      steam_log.Log (L" * Game Installed User Stats Receipt Callback");
+      steam_log.Log ( L" * (%-28s) Installed User Stats Receipt Callback",
+                        caller.c_str () );
       break;
     case UserStatsStored_t::k_iCallback:
-      steam_log.Log (L" * Game Installed User Stats Storage Callback");
+      steam_log.Log ( L" * (%-28s) Installed User Stats Storage Callback",
+                        caller.c_str () );
       break;
     case UserAchievementStored_t::k_iCallback:
-      steam_log.Log (L" * Game Installed User Achievements Storage Callback");
+      steam_log.Log ( L" * (%-28s) Installed User Achievements Storage Callback",
+                        caller.c_str () );
       break;
     case SteamAPICallCompleted_t::k_iCallback:
-      steam_log.Log (L" * Game Installed Async. SteamAPI Completion Callback");
+      steam_log.Log ( L" * (%-28s) Installed Async. SteamAPI Completion Callback",
+                        caller.c_str () );
       break;
     default:
-      steam_log.Log ( L" * Game Installed Unknown Callback (Class=%lu00, Id=%lu)",
-                        iCallback / 100, iCallback % 100 );
+      steam_log.Log ( L" * (%-28s) Installed Unknown Callback (Class=%lu00, Id=%lu)",
+                        caller.c_str (), iCallback / 100, iCallback % 100 );
       break;
   }
 
@@ -139,6 +198,9 @@ void
 S_CALLTYPE
 SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 {
+  std::wstring caller = 
+    SK_GetCallerName ();
+
   EnterCriticalSection (&callback_cs);
 
 //  SK_SteamAPI_Init ();
@@ -148,28 +210,34 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
   switch (iCallback)
   {
     case GameOverlayActivated_t::k_iCallback:
-      steam_log.Log (L" * Game Uninstalled Overlay Activation Callback");
+      steam_log.Log ( L" * (%-28s) Uninstalled Overlay Activation Callback",
+                        caller.c_str () );
       if (overlay_activation_callbacks.find (pCallback) != overlay_activation_callbacks.end ())
         overlay_activation_callbacks.erase (pCallback);
       break;
     case ScreenshotRequested_t::k_iCallback:
-      steam_log.Log (L" * Game Uninstalled Screenshot Callback");
+      steam_log.Log ( L" * (%-28s) Uninstalled Screenshot Callback",
+                        caller.c_str () );
       break;
     case UserStatsReceived_t::k_iCallback:
-      steam_log.Log (L" * Game Uninstalled User Stats Receipt Callback");
+      steam_log.Log ( L" * (%-28s) Uninstalled User Stats Receipt Callback",
+                        caller.c_str () );
       break;
     case UserStatsStored_t::k_iCallback:
-      steam_log.Log (L" * Game Uninstalled User Stats Storage Callback");
+      steam_log.Log ( L" * (%-28s) Uninstalled User Stats Storage Callback",
+                        caller.c_str () );
       break;
     case UserAchievementStored_t::k_iCallback:
-      steam_log.Log (L" * Game Uninstalled User Achievements Storage Callback");
+      steam_log.Log ( L" * (%-28s) Uninstalled User Achievements Storage Callback",
+                        caller.c_str () );
       break;
     case SteamAPICallCompleted_t::k_iCallback:
-      steam_log.Log (L" * Game Uninstalled Async. SteamAPI Completion Callback");
+      steam_log.Log ( L" * (%-28s) Uninstalled Async. SteamAPI Completion Callback",
+                        caller.c_str () );
       break;
     default:
-      steam_log.Log ( L" * Game Uninstalled Unknown Callback (Class=%lu00, Id=%lu)",
-                        iCallback / 100, iCallback % 100 );
+      steam_log.Log ( L" * (%-28s) Uninstalled Unknown Callback (Class=%lu00, Id=%lu)",
+                        caller.c_str (), iCallback / 100, iCallback % 100 );
       break;
   }
 
@@ -208,6 +276,7 @@ void HookSteam (void)
                      (LPVOID *)&SteamAPI_RegisterCallback_Original,
                      (LPVOID *)&SteamAPI_RegisterCallback);
   SK_EnableHook (SteamAPI_RegisterCallback);
+
   SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_UnregisterCallback",
                      SteamAPI_UnregisterCallback_Detour,
                      (LPVOID *)&SteamAPI_UnregisterCallback_Original,
@@ -1079,6 +1148,7 @@ SK_SteamAPI_Init (void)
       steam_achievements = new SK_Steam_AchievementManager (
           config.steam.achievement_sound.c_str ()
         );
+      overlay_manager    = new SK_Steam_OverlayManager ();
     }
     SK_EnableHook (SteamAPI_RegisterCallback);
 

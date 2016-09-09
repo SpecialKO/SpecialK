@@ -37,6 +37,7 @@
 #include <atlbase.h>
 
 #include "log.h"
+#include "utility.h"
 
 volatile LONG                        __d3d9_ready = FALSE;
 SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
@@ -45,7 +46,9 @@ unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user);
 
-void WaitForInit_D3D9 (void)
+void
+WINAPI
+WaitForInit_D3D9 (void)
 {
   while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
     Sleep (config.system.init_delay);
@@ -139,12 +142,13 @@ Direct3DCreate9PROC   Direct3DCreate9_Import   = nullptr;
 Direct3DCreate9ExPROC Direct3DCreate9Ex_Import = nullptr;
 
 IDirect3DDevice9*     g_pD3D9Dev = nullptr;
-D3DPRESENT_PARAMETERS g_D3D9PresentParams;
+D3DPRESENT_PARAMETERS g_D3D9PresentParams  = { 0 };
 
 
 HMODULE local_d3d9 = 0;
 
 HMODULE
+WINAPI
 SK_LoadRealD3D9 (void)
 {
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
@@ -174,6 +178,7 @@ SK_LoadRealD3D9 (void)
 }
 
 void
+WINAPI
 SK_FreeRealD3D9 (void)
 {
   // Decrease the reference count
@@ -308,6 +313,7 @@ extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
 }
 
 void
+WINAPI
 SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
   if (BehaviorFlags & D3DCREATE_SOFTWARE_VERTEXPROCESSING) {
@@ -319,6 +325,7 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 }
 
 void
+WINAPI
 SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
                        D3DDISPLAYMODEEX*      pFullscreenMode = nullptr )
 {
@@ -457,6 +464,11 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                  _In_       HWND              hDestWindowOverride,
                  _In_ const RGNDATA          *pDirtyRegion)
 {
+#if 0
+  SetThreadIdealProcessor (GetCurrentThread (),       6);
+  SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
+#endif
+
   if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX) {
     HRESULT hr =
       D3D9PresentCallbackEx ( (IDirect3DDevice9Ex *)This,
@@ -707,9 +719,10 @@ D3D9CreateAdditionalSwapChain_Override (
   )
 {
   dll_log.Log (L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
-    L"[Calling Thread: 0x%04x]",
+    L"[%s, tid=0x%04x]",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
-    pPresentationParameters, pSwapChain, GetCurrentThreadId ()
+      pPresentationParameters, pSwapChain,
+        SK_GetCallerName ().c_str (), GetCurrentThreadId ()
   );
 
   HRESULT hr;
@@ -854,6 +867,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
 }
 
 void
+WINAPI
 SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 {
   static LPVOID vftable_17  = nullptr;
@@ -926,9 +940,9 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                      D3DPRESENT_PARAMETERS *pPresentationParameters )
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh) - "
-                L"[Calling Thread: 0x%04x]",
+                L"[%s, tid=0x%04x]",
                 L"IDirect3DDevice9::Reset", This, pPresentationParameters,
-                                GetCurrentThreadId ()
+                  SK_GetCallerName ().c_str (), GetCurrentThreadId ()
   );
 
   SK_D3D9_SetFPSTarget    (      pPresentationParameters);
@@ -963,10 +977,10 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
               D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
-                L"[Calling Thread: 0x%04x]",
+                L"[%s, tid=0x%04x]",
                   L"IDirect3DDevice9Ex::ResetEx",
                     This, pPresentationParameters, pFullscreenDisplayMode,
-                      GetCurrentThreadId () );
+                      SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
   SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
   SK_SetPresentParamsD3D9 (This, pPresentationParameters);
@@ -1497,6 +1511,10 @@ WINAPI
 SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pparams)
 {
   memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
+
+  if (config.render.d3d9.force_fullscreen)
+    pparams->Windowed = FALSE;
+
   return pparams;
 }
 
@@ -1514,17 +1532,20 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                              IDirect3DDevice9Ex    **ppReturnedDeviceInterface)
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %lu, %lu, %08Xh, 0x%04X, %08Xh, %08Xh, %08Xh) - "
-                L"[Calling Thread: 0x%04x]",
+                L"[%s, tid=0x%04x]",
                 L"IDirect3D9Ex::CreateDeviceEx",
                   This, Adapter, (DWORD)DeviceType,
                     hFocusWindow, BehaviorFlags, pPresentationParameters,
                       pFullscreenDisplayMode, ppReturnedDeviceInterface,
-                        GetCurrentThreadId () );
+                        SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
   SK_D3D9_SetFPSTarget       (pPresentationParameters, pFullscreenDisplayMode);
   SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
 
   HRESULT ret;
+
+  SK_SetPresentParamsD3D9 ( nullptr,
+                              pPresentationParameters );
 
   D3D9_CALL (ret, D3D9CreateDeviceEx_Original (This,
                                                Adapter,
@@ -1542,172 +1563,171 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                               pPresentationParameters );
 
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
-                          "IDirect3DDevice9::SetCursorPosition",
-                          D3D9SetCursorPosition_Override,
-                          D3D9SetCursorPosition_Original,
-                          SetCursorPosition_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
+                      "IDirect3DDevice9::SetCursorPosition",
+                      D3D9SetCursorPosition_Override,
+                      D3D9SetCursorPosition_Original,
+                      SetCursorPosition_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 13,
-                          "IDirect3DDevice9::CreateAdditionalSwapChain",
-                          D3D9CreateAdditionalSwapChain_Override,
-                          D3D9CreateAdditionalSwapChain_Original,
-                          CreateAdditionalSwapChain_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 13,
+                      "IDirect3DDevice9::CreateAdditionalSwapChain",
+                      D3D9CreateAdditionalSwapChain_Override,
+                      D3D9CreateAdditionalSwapChain_Original,
+                      CreateAdditionalSwapChain_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 23,
-                          "IDirect3DDevice9::CreateTexture",
-                          D3D9CreateTexture_Override,
-                          D3D9CreateTexture_Original,
-                          CreateTexture_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 23,
+                      "IDirect3DDevice9::CreateTexture",
+                      D3D9CreateTexture_Override,
+                      D3D9CreateTexture_Original,
+                      CreateTexture_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 28,
-                          "IDirect3DDevice9::CreateRenderTarget",
-                          D3D9CreateRenderTarget_Override,
-                          D3D9CreateRenderTarget_Original,
-                          CreateRenderTarget_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 28,
+                      "IDirect3DDevice9::CreateRenderTarget",
+                      D3D9CreateRenderTarget_Override,
+                      D3D9CreateRenderTarget_Original,
+                      CreateRenderTarget_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 29,
-                          "IDirect3DDevice9::CreateDepthStencilSurface",
-                          D3D9CreateDepthStencilSurface_Override,
-                          D3D9CreateDepthStencilSurface_Original,
-                          CreateDepthStencilSurface_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 29,
+                      "IDirect3DDevice9::CreateDepthStencilSurface",
+                      D3D9CreateDepthStencilSurface_Override,
+                      D3D9CreateDepthStencilSurface_Original,
+                      CreateDepthStencilSurface_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 31,
-                          "IDirect3DDevice9::UpdateTexture",
-                          D3D9UpdateTexture_Override,
-                          D3D9UpdateTexture_Original,
-                          UpdateTexture_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 31,
+                      "IDirect3DDevice9::UpdateTexture",
+                      D3D9UpdateTexture_Override,
+                      D3D9UpdateTexture_Original,
+                      UpdateTexture_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 34,
-                          "IDirect3DDevice9::StretchRect",
-                          D3D9StretchRect_Override,
-                          D3D9StretchRect_Original,
-                          StretchRect_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 34,
+                      "IDirect3DDevice9::StretchRect",
+                      D3D9StretchRect_Override,
+                      D3D9StretchRect_Original,
+                      StretchRect_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 37,
-                          "IDirect3DDevice9::SetRenderTarget",
-                          D3D9SetRenderTarget_Override,
-                          D3D9SetRenderTarget_Original,
-                          SetRenderTarget_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 37,
+                      "IDirect3DDevice9::SetRenderTarget",
+                      D3D9SetRenderTarget_Override,
+                      D3D9SetRenderTarget_Original,
+                      SetRenderTarget_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 39,
-                       "IDirect3DDevice9::SetDepthStencilSurface",
-                        D3D9SetDepthStencilSurface_Override,
-                        D3D9SetDepthStencilSurface_Original,
-                        SetDepthStencilSurface_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 39,
+                   "IDirect3DDevice9::SetDepthStencilSurface",
+                    D3D9SetDepthStencilSurface_Override,
+                    D3D9SetDepthStencilSurface_Original,
+                    SetDepthStencilSurface_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface,
-                       41,
-                       "IDirect3DDevice9::BeginScene",
-                        D3D9BeginScene_Override,
-                        D3D9BeginScene_Original,
-                        BeginScene_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface,
+                   41,
+                   "IDirect3DDevice9::BeginScene",
+                    D3D9BeginScene_Override,
+                    D3D9BeginScene_Original,
+                    BeginScene_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface,
-                       42,
-                       "IDirect3DDevice9::EndScene",
-                        D3D9EndScene_Override,
-                        D3D9EndScene_Original,
-                        EndScene_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface,
+                   42,
+                   "IDirect3DDevice9::EndScene",
+                    D3D9EndScene_Override,
+                    D3D9EndScene_Original,
+                    EndScene_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 47,
-                       "IDirect3DDevice9::SetViewport",
-                        D3D9SetViewport_Override,
-                        D3D9SetViewport_Original,
-                        SetViewport_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 47,
+                   "IDirect3DDevice9::SetViewport",
+                    D3D9SetViewport_Override,
+                    D3D9SetViewport_Original,
+                    SetViewport_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 57,
-                       "IDirect3DDevice9::SetRenderState",
-                        D3D9SetRenderState_Override,
-                        D3D9SetRenderState_Original,
-                        SetRenderState_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 57,
+                   "IDirect3DDevice9::SetRenderState",
+                    D3D9SetRenderState_Override,
+                    D3D9SetRenderState_Original,
+                    SetRenderState_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 65,
-                       "IDirect3DDevice9::SetTexture",
-                        D3D9SetTexture_Override,
-                        D3D9SetTexture_Original,
-                        SetTexture_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 65,
+                   "IDirect3DDevice9::SetTexture",
+                    D3D9SetTexture_Override,
+                    D3D9SetTexture_Original,
+                    SetTexture_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 69,
-                       "IDirect3DDevice9::SetSamplerState",
-                        D3D9SetSamplerState_Override,
-                        D3D9SetSamplerState_Original,
-                        SetSamplerState_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 69,
+                   "IDirect3DDevice9::SetSamplerState",
+                    D3D9SetSamplerState_Override,
+                    D3D9SetSamplerState_Original,
+                    SetSamplerState_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 75,
-                       "IDirect3DDevice9::SetScissorRect",
-                        D3D9SetScissorRect_Override,
-                        D3D9SetScissorRect_Original,
-                        SetScissorRect_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 75,
+                   "IDirect3DDevice9::SetScissorRect",
+                    D3D9SetScissorRect_Override,
+                    D3D9SetScissorRect_Original,
+                    SetScissorRect_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 81,
-                       "IDirect3DDevice9::DrawPrimitive",
-                        D3D9DrawPrimitive_Override,
-                        D3D9DrawPrimitive_Original,
-                        DrawPrimitive_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 81,
+                   "IDirect3DDevice9::DrawPrimitive",
+                    D3D9DrawPrimitive_Override,
+                    D3D9DrawPrimitive_Original,
+                    DrawPrimitive_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 82,
-                       "IDirect3DDevice9::DrawIndexedPrimitive",
-                        D3D9DrawIndexedPrimitive_Override,
-                        D3D9DrawIndexedPrimitive_Original,
-                        DrawIndexedPrimitive_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 82,
+                   "IDirect3DDevice9::DrawIndexedPrimitive",
+                    D3D9DrawIndexedPrimitive_Override,
+                    D3D9DrawIndexedPrimitive_Original,
+                    DrawIndexedPrimitive_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 83,
-                       "IDirect3DDevice9::DrawPrimitiveUP",
-                        D3D9DrawPrimitiveUP_Override,
-                        D3D9DrawPrimitiveUP_Original,
-                        DrawPrimitiveUP_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 83,
+                   "IDirect3DDevice9::DrawPrimitiveUP",
+                    D3D9DrawPrimitiveUP_Override,
+                    D3D9DrawPrimitiveUP_Original,
+                    DrawPrimitiveUP_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 84,
-                       "IDirect3DDevice9::DrawIndexedPrimitiveUP",
-                        D3D9DrawIndexedPrimitiveUP_Override,
-                        D3D9DrawIndexedPrimitiveUP_Original,
-                        DrawIndexedPrimitiveUP_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 84,
+                   "IDirect3DDevice9::DrawIndexedPrimitiveUP",
+                    D3D9DrawIndexedPrimitiveUP_Override,
+                    D3D9DrawIndexedPrimitiveUP_Original,
+                    DrawIndexedPrimitiveUP_pfn );
 
 #if 0
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 87,
-                       "IDirect3DDevice9::SetVertexDeclaration",
-                        D3D9SetVertexDeclaration_Override,
-                        D3D9SetVertexDeclaration_Original,
-                        SetVertexDeclaration_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 87,
+                   "IDirect3DDevice9::SetVertexDeclaration",
+                    D3D9SetVertexDeclaration_Override,
+                    D3D9SetVertexDeclaration_Original,
+                    SetVertexDeclaration_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 89,
-                       "IDirect3DDevice9::DrawIndexedPrimitive",
-                        D3D9SetFVF_Override,
-                        D3D9SetFVF_Original,
-                        SetFVF_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 89,
+                   "IDirect3DDevice9::DrawIndexedPrimitive",
+                    D3D9SetFVF_Override,
+                    D3D9SetFVF_Original,
+                    SetFVF_pfn );
 #endif
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 92,
-                       "IDirect3DDevice9::SetVertexShader",
-                        D3D9SetVertexShader_Override,
-                        D3D9SetVertexShader_Original,
-                        SetVertexShader_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 92,
+                   "IDirect3DDevice9::SetVertexShader",
+                    D3D9SetVertexShader_Override,
+                    D3D9SetVertexShader_Original,
+                    SetVertexShader_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 94,
-                       "IDirect3DDevice9::SetSetVertexShaderConstantF",
-                        D3D9SetVertexShaderConstantF_Override,
-                        D3D9SetVertexShaderConstantF_Original,
-                        SetVertexShaderConstantF_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 94,
+                   "IDirect3DDevice9::SetSetVertexShaderConstantF",
+                    D3D9SetVertexShaderConstantF_Override,
+                    D3D9SetVertexShaderConstantF_Original,
+                    SetVertexShaderConstantF_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
-                       "IDirect3DDevice9::SetPixelShader",
-                        D3D9SetPixelShader_Override,
-                        D3D9SetPixelShader_Original,
-                        SetPixelShader_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
+                   "IDirect3DDevice9::SetPixelShader",
+                    D3D9SetPixelShader_Override,
+                    D3D9SetPixelShader_Original,
+                    SetPixelShader_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 109,
-                       "IDirect3DDevice9::SetPixelShaderConstantF",
-                        D3D9SetPixelShaderConstantF_Override,
-                        D3D9SetPixelShaderConstantF_Original,
-                        SetPixelShaderConstantF_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 109,
+                   "IDirect3DDevice9::SetPixelShaderConstantF",
+                    D3D9SetPixelShaderConstantF_Override,
+                    D3D9SetPixelShaderConstantF_Original,
+                    SetPixelShaderConstantF_pfn );
 
   extern HWND hWndRender;
   if (hFocusWindow != 0)
     hWndRender = hFocusWindow;
 
-  //// Allow the hooked function to change stuff immediately
-  return S_OK; ////////return (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
+  return ret;
 }
 
 HRESULT
@@ -1722,15 +1742,19 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                            IDirect3DDevice9**     ppReturnedDeviceInterface)
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %lu, %lu, %08Xh, 0x%04X, %08Xh, %08Xh) - "
-                L"[Calling Thread: 0x%04x]",
+                L"[%s, tid=0x%04x]",
                   L"IDirect3D9::CreateDevice", This, Adapter, (DWORD)DeviceType,
                     hFocusWindow, BehaviorFlags, pPresentationParameters,
-                      ppReturnedDeviceInterface, GetCurrentThreadId ());
+                      ppReturnedDeviceInterface,
+                        SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
   SK_D3D9_SetFPSTarget       (pPresentationParameters);
   SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
 
   HRESULT ret;
+
+  SK_SetPresentParamsD3D9 ( nullptr,
+                               pPresentationParameters );
 
   D3D9_CALL (ret, D3D9CreateDevice_Original ( This, Adapter,
                                           DeviceType,
@@ -1777,173 +1801,171 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   SK_SetPresentParamsD3D9 ( *ppReturnedDeviceInterface,
                                pPresentationParameters );
 
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
+                      "IDirect3DDevice9::SetCursorPosition",
+                      D3D9SetCursorPosition_Override,
+                      D3D9SetCursorPosition_Original,
+                      SetCursorPosition_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
-                          "IDirect3DDevice9::SetCursorPosition",
-                          D3D9SetCursorPosition_Override,
-                          D3D9SetCursorPosition_Original,
-                          SetCursorPosition_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 13,
+                      "IDirect3DDevice9::CreateAdditionalSwapChain",
+                      D3D9CreateAdditionalSwapChain_Override,
+                      D3D9CreateAdditionalSwapChain_Original,
+                      CreateAdditionalSwapChain_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 13,
-                          "IDirect3DDevice9::CreateAdditionalSwapChain",
-                          D3D9CreateAdditionalSwapChain_Override,
-                          D3D9CreateAdditionalSwapChain_Original,
-                          CreateAdditionalSwapChain_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 23,
+                      "IDirect3DDevice9::CreateTexture",
+                      D3D9CreateTexture_Override,
+                      D3D9CreateTexture_Original,
+                      CreateTexture_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 23,
-                          "IDirect3DDevice9::CreateTexture",
-                          D3D9CreateTexture_Override,
-                          D3D9CreateTexture_Original,
-                          CreateTexture_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 28,
+                      "IDirect3DDevice9::CreateRenderTarget",
+                      D3D9CreateRenderTarget_Override,
+                      D3D9CreateRenderTarget_Original,
+                      CreateRenderTarget_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 28,
-                          "IDirect3DDevice9::CreateRenderTarget",
-                          D3D9CreateRenderTarget_Override,
-                          D3D9CreateRenderTarget_Original,
-                          CreateRenderTarget_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 29,
+                      "IDirect3DDevice9::CreateDepthStencilSurface",
+                      D3D9CreateDepthStencilSurface_Override,
+                      D3D9CreateDepthStencilSurface_Original,
+                      CreateDepthStencilSurface_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 29,
-                          "IDirect3DDevice9::CreateDepthStencilSurface",
-                          D3D9CreateDepthStencilSurface_Override,
-                          D3D9CreateDepthStencilSurface_Original,
-                          CreateDepthStencilSurface_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 31,
+                      "IDirect3DDevice9::UpdateTexture",
+                      D3D9UpdateTexture_Override,
+                      D3D9UpdateTexture_Original,
+                      UpdateTexture_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 31,
-                          "IDirect3DDevice9::UpdateTexture",
-                          D3D9UpdateTexture_Override,
-                          D3D9UpdateTexture_Original,
-                          UpdateTexture_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 34,
+                      "IDirect3DDevice9::StretchRect",
+                      D3D9StretchRect_Override,
+                      D3D9StretchRect_Original,
+                      StretchRect_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 34,
-                          "IDirect3DDevice9::StretchRect",
-                          D3D9StretchRect_Override,
-                          D3D9StretchRect_Original,
-                          StretchRect_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 37,
+                      "IDirect3DDevice9::SetRenderTarget",
+                      D3D9SetRenderTarget_Override,
+                      D3D9SetRenderTarget_Original,
+                      SetRenderTarget_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 37,
-                          "IDirect3DDevice9::SetRenderTarget",
-                          D3D9SetRenderTarget_Override,
-                          D3D9SetRenderTarget_Original,
-                          SetRenderTarget_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 39,
+                   "IDirect3DDevice9::SetDepthStencilSurface",
+                    D3D9SetDepthStencilSurface_Override,
+                    D3D9SetDepthStencilSurface_Original,
+                    SetDepthStencilSurface_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 39,
-                       "IDirect3DDevice9::SetDepthStencilSurface",
-                        D3D9SetDepthStencilSurface_Override,
-                        D3D9SetDepthStencilSurface_Original,
-                        SetDepthStencilSurface_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface,
+                   41,
+                   "IDirect3DDevice9::BeginScene",
+                    D3D9BeginScene_Override,
+                    D3D9BeginScene_Original,
+                    BeginScene_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface,
-                       41,
-                       "IDirect3DDevice9::BeginScene",
-                        D3D9BeginScene_Override,
-                        D3D9BeginScene_Original,
-                        BeginScene_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface,
+                   42,
+                   "IDirect3DDevice9::EndScene",
+                    D3D9EndScene_Override,
+                    D3D9EndScene_Original,
+                    EndScene_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface,
-                       42,
-                       "IDirect3DDevice9::EndScene",
-                        D3D9EndScene_Override,
-                        D3D9EndScene_Original,
-                        EndScene_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 47,
+                   "IDirect3DDevice9::SetViewport",
+                    D3D9SetViewport_Override,
+                    D3D9SetViewport_Original,
+                    SetViewport_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 47,
-                       "IDirect3DDevice9::SetViewport",
-                        D3D9SetViewport_Override,
-                        D3D9SetViewport_Original,
-                        SetViewport_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 57,
+                   "IDirect3DDevice9::SetRenderState",
+                    D3D9SetRenderState_Override,
+                    D3D9SetRenderState_Original,
+                    SetRenderState_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 57,
-                       "IDirect3DDevice9::SetRenderState",
-                        D3D9SetRenderState_Override,
-                        D3D9SetRenderState_Original,
-                        SetRenderState_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 65,
+                   "IDirect3DDevice9::SetTexture",
+                    D3D9SetTexture_Override,
+                    D3D9SetTexture_Original,
+                    SetTexture_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 65,
-                       "IDirect3DDevice9::SetTexture",
-                        D3D9SetTexture_Override,
-                        D3D9SetTexture_Original,
-                        SetTexture_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 69,
+                   "IDirect3DDevice9::SetSamplerState",
+                    D3D9SetSamplerState_Override,
+                    D3D9SetSamplerState_Original,
+                    SetSamplerState_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 69,
-                       "IDirect3DDevice9::SetSamplerState",
-                        D3D9SetSamplerState_Override,
-                        D3D9SetSamplerState_Original,
-                        SetSamplerState_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 75,
+                   "IDirect3DDevice9::SetScissorRect",
+                    D3D9SetScissorRect_Override,
+                    D3D9SetScissorRect_Original,
+                    SetScissorRect_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 75,
-                       "IDirect3DDevice9::SetScissorRect",
-                        D3D9SetScissorRect_Override,
-                        D3D9SetScissorRect_Original,
-                        SetScissorRect_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 81,
+                   "IDirect3DDevice9::DrawPrimitive",
+                    D3D9DrawPrimitive_Override,
+                    D3D9DrawPrimitive_Original,
+                    DrawPrimitive_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 81,
-                       "IDirect3DDevice9::DrawPrimitive",
-                        D3D9DrawPrimitive_Override,
-                        D3D9DrawPrimitive_Original,
-                        DrawPrimitive_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 82,
+                   "IDirect3DDevice9::DrawIndexedPrimitive",
+                    D3D9DrawIndexedPrimitive_Override,
+                    D3D9DrawIndexedPrimitive_Original,
+                    DrawIndexedPrimitive_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 82,
-                       "IDirect3DDevice9::DrawIndexedPrimitive",
-                        D3D9DrawIndexedPrimitive_Override,
-                        D3D9DrawIndexedPrimitive_Original,
-                        DrawIndexedPrimitive_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 83,
+                   "IDirect3DDevice9::DrawPrimitiveUP",
+                    D3D9DrawPrimitiveUP_Override,
+                    D3D9DrawPrimitiveUP_Original,
+                    DrawPrimitiveUP_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 83,
-                       "IDirect3DDevice9::DrawPrimitiveUP",
-                        D3D9DrawPrimitiveUP_Override,
-                        D3D9DrawPrimitiveUP_Original,
-                        DrawPrimitiveUP_pfn );
-
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 84,
-                       "IDirect3DDevice9::DrawIndexedPrimitiveUP",
-                        D3D9DrawIndexedPrimitiveUP_Override,
-                        D3D9DrawIndexedPrimitiveUP_Original,
-                        DrawIndexedPrimitiveUP_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 84,
+                   "IDirect3DDevice9::DrawIndexedPrimitiveUP",
+                    D3D9DrawIndexedPrimitiveUP_Override,
+                    D3D9DrawIndexedPrimitiveUP_Original,
+                    DrawIndexedPrimitiveUP_pfn );
 
 #if 0
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 87,
-                       "IDirect3DDevice9::SetVertexDeclaration",
-                        D3D9SetVertexDeclaration_Override,
-                        D3D9SetVertexDeclaration_Original,
-                        SetVertexDeclaration_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 87,
+                   "IDirect3DDevice9::SetVertexDeclaration",
+                    D3D9SetVertexDeclaration_Override,
+                    D3D9SetVertexDeclaration_Original,
+                    SetVertexDeclaration_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 89,
-                       "IDirect3DDevice9::DrawIndexedPrimitive",
-                        D3D9SetFVF_Override,
-                        D3D9SetFVF_Original,
-                        SetFVF_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 89,
+                   "IDirect3DDevice9::DrawIndexedPrimitive",
+                    D3D9SetFVF_Override,
+                    D3D9SetFVF_Original,
+                    SetFVF_pfn );
 #endif
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 92,
-                       "IDirect3DDevice9::SetVertexShader",
-                        D3D9SetVertexShader_Override,
-                        D3D9SetVertexShader_Original,
-                        SetVertexShader_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 92,
+                   "IDirect3DDevice9::SetVertexShader",
+                    D3D9SetVertexShader_Override,
+                    D3D9SetVertexShader_Original,
+                    SetVertexShader_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 94,
-                       "IDirect3DDevice9::SetSetVertexShaderConstantF",
-                        D3D9SetVertexShaderConstantF_Override,
-                        D3D9SetVertexShaderConstantF_Original,
-                        SetVertexShaderConstantF_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 94,
+                   "IDirect3DDevice9::SetSetVertexShaderConstantF",
+                    D3D9SetVertexShaderConstantF_Override,
+                    D3D9SetVertexShaderConstantF_Original,
+                    SetVertexShaderConstantF_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
-                       "IDirect3DDevice9::SetPixelShader",
-                        D3D9SetPixelShader_Override,
-                        D3D9SetPixelShader_Original,
-                        SetPixelShader_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
+                   "IDirect3DDevice9::SetPixelShader",
+                    D3D9SetPixelShader_Override,
+                    D3D9SetPixelShader_Original,
+                    SetPixelShader_pfn );
 
-      D3D9_INTERCEPT ( ppReturnedDeviceInterface, 109,
-                       "IDirect3DDevice9::SetPixelShaderConstantF",
-                        D3D9SetPixelShaderConstantF_Override,
-                        D3D9SetPixelShaderConstantF_Original,
-                        SetPixelShaderConstantF_pfn );
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 109,
+                   "IDirect3DDevice9::SetPixelShaderConstantF",
+                    D3D9SetPixelShaderConstantF_Override,
+                    D3D9SetPixelShaderConstantF_Original,
+                    SetPixelShaderConstantF_pfn );
 
   extern HWND hWndRender;
   if (hFocusWindow != 0)
     hWndRender = hFocusWindow;
 
-  //// Allow the hooked function to change stuff immediately (no, don't)
-  return S_OK; ////////return (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
+  return ret;
 }
 
 
@@ -1973,8 +1995,9 @@ Direct3DCreate9 (UINT SDKVersion)
   if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (SDKVersion, &pD3D9))) {
     if (Direct3DCreate9_Import) {
       dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
-        L"[Calling Thread: 0x%04x]",
-        L"Direct3DCreate9", SDKVersion, GetCurrentThreadId ());
+        L"[%s, tid=0x%04x]",
+        L"Direct3DCreate9", SDKVersion,
+          SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
       d3d9 = Direct3DCreate9_Import (SDKVersion);
     }
@@ -1998,11 +2021,11 @@ Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
   WaitForInit_D3D9 ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %08Xh) - "
-                L"[Calling Thread: 0x%04x]",
+                L"[%s, tid=0x%04x]",
                   L"Direct3DCreate9Ex",
                     SDKVersion,
                       ppD3D,
-                        GetCurrentThreadId () );
+                        SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
   HRESULT hr = E_FAIL;
 
@@ -2059,6 +2082,7 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
 }
 
 std::wstring
+WINAPI
 SK::D3D9::getPipelineStatsDesc (void)
 {
   wchar_t wszDesc [1024];

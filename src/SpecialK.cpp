@@ -32,6 +32,7 @@
 DLL_ROLE dll_role;
 
 bool
+__stdcall
 SK_EstablishDllRole (HMODULE hModule)
 {
   std::wstring   dll_name   = SK_GetModuleName (hModule);
@@ -59,6 +60,7 @@ volatile ULONG attached = FALSE;
 volatile ULONG refs     = 0;
 
 bool
+__stdcall
 SK_Attach (DLL_ROLE role)
 {
   if (! InterlockedCompareExchange (&attached, TRUE, FALSE))
@@ -86,6 +88,7 @@ SK_Attach (DLL_ROLE role)
 }
 
 bool
+__stdcall
 SK_Detach (DLL_ROLE role)
 {
   ULONG local_refs = InterlockedDecrement (&refs);
@@ -130,9 +133,10 @@ SK_Detach (DLL_ROLE role)
 HMODULE hModSelf = 0;
 
 BOOL
-APIENTRY DllMain ( HMODULE hModule,
-                   DWORD   ul_reason_for_call,
-                   LPVOID  lpReserved )
+APIENTRY
+DllMain ( HMODULE hModule,
+          DWORD   ul_reason_for_call,
+          LPVOID  lpReserved )
 {
   switch (ul_reason_for_call)
   {
@@ -162,7 +166,7 @@ APIENTRY DllMain ( HMODULE hModule,
       }
 
       else if (dll_role == DLL_ROLE::D3D9) {
-        extern HMODULE SK_LoadRealD3D9 (void);
+        extern HMODULE WINAPI SK_LoadRealD3D9 (void);
         SK_LoadRealD3D9 ();
       }
 
@@ -182,7 +186,7 @@ APIENTRY DllMain ( HMODULE hModule,
       }
 
       else if (dll_role == DLL_ROLE::D3D9) {
-        extern void SK_FreeRealD3D9 (void);
+        extern void WINAPI SK_FreeRealD3D9 (void);
         SK_FreeRealD3D9 ();
       }
 

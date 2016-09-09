@@ -174,7 +174,6 @@ SK_Console::End (void)
 
   TerminateThread     (hMsgPump, 0);
   UnhookWindowsHookEx (hooks.keyboard);
-  UnhookWindowsHookEx (hooks.mouse);
 }
 
 HANDLE
@@ -257,6 +256,10 @@ struct sk_window_s {
   WNDPROC WndProc_Original = nullptr;
 } game_window;
 
+extern bool
+WINAPI
+SK_IsSteamOverlayActive (void);
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -308,11 +311,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        bool was_active = last_mouse.cursor;
 
        if (! last_mouse.cursor) {
-         while (ShowCursor (TRUE) < 0) ;
-         last_mouse.cursor = true;
+         if (! SK_IsSteamOverlayActive ()) {
+           while (ShowCursor (TRUE) < 0) ;
+           last_mouse.cursor = true;
+         }
        }
 
-       if (changed)
+       if (changed && (! SK_IsSteamOverlayActive ()))
          last_mouse.sampled = timeGetTime ();
 
        return (last_mouse.cursor != was_active);
@@ -327,8 +332,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        bool was_active = last_mouse.cursor;
 
        if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout) {
-         while (ShowCursor (FALSE) >= 0) ;
-         last_mouse.cursor = false;
+         if (! SK_IsSteamOverlayActive ()) {
+           while (ShowCursor (FALSE) >= 0) ;
+           last_mouse.cursor = false;
+          }
        }
 
        return (last_mouse.cursor != was_active);
@@ -344,7 +351,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
 
     bool activation_event =
-      (uMsg == WM_MOUSEMOVE);
+      (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
 
     // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
     if (activation_event) {
@@ -367,7 +374,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (activation_event && config.input.cursor.timeout != 0)
       ActivateCursor (true);
 
-    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id) {
+    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id && (! SK_IsSteamOverlayActive ())) {
       if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
         DeactivateCursor ();
 
@@ -502,15 +509,6 @@ SK_Console::MessagePump (LPVOID hook_ptr)
   Sleep (INFINITE);
 
   return 0;
-}
-
-LRESULT
-CALLBACK
-SK_Console::MouseProc (int nCode, WPARAM wParam, LPARAM lParam)
-{
-  MOUSEHOOKSTRUCT* pmh = (MOUSEHOOKSTRUCT *)lParam;
-
-  return CallNextHookEx (SK_Console::getInstance ()->hooks.mouse, nCode, wParam, lParam);
 }
 
 // Plugins can hook this if they do not have their own input handler

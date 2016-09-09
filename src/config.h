@@ -154,58 +154,60 @@ struct sk_config_t
 
   struct {
     std::wstring
-            achievement_sound = L"";
-    bool    achievement_sshot = false;
-    int     notify_corner     = 4; // 0=Top-Left,
-                                   // 1=Top-Right,
-                                   // 2=Bottom-Left,
-                                   // 3=Bottom-Right,
-                                   // 4=Don't Care
-    int     inset_x           = 0;
-    int     inset_y           = 0;
+            achievement_sound   = L"";
+    bool    achievement_sshot   = false;
+    int     notify_corner       = 4; // 0=Top-Left,
+                                     // 1=Top-Right,
+                                     // 2=Bottom-Left,
+                                     // 3=Bottom-Right,
+                                     // 4=Don't Care
+    int     inset_x             = 0;
+    int     inset_y             = 0;
 
-    bool    nosound           = false;
-    bool    silent            = false;
+    bool    nosound             = false;
+    bool    silent              = false;
 
-    bool    preload           = false;
+    bool    preload             = false;
 
-    int     appid             = 0;
+    int     appid               = 0;
   } steam;
 
 
   struct {
     struct {
-      float   target_fps       =  0.0f;
-      int     pre_render_limit = -1;
-      int     present_interval = -1;
-      int     buffer_count     = -1;
-      int     max_delta_time   =  0; // Bad old setting; needs to be phased out
-      bool    flip_discard     = false;
-      int     swapchain_wait   =  0;
+      float   target_fps        =  0.0f;
+      int     pre_render_limit  = -1;
+      int     present_interval  = -1;
+      int     buffer_count      = -1;
+      int     max_delta_time    =  0; // Bad old setting; needs to be phased out
+      bool    flip_discard      = false;
+      int     swapchain_wait    =  0;
+      int     pin_render_thread = -1;
     } framerate;
     struct {
-      bool    force_d3d9ex     = false;
-      int     hook_type        = 0;
-      int     refresh_rate     = -1;
+      bool    force_d3d9ex      = false;
+      bool    force_fullscreen  = false;
+      int     hook_type         = 0;
+      int     refresh_rate      = -1;
     } d3d9;
     struct {
-      int     adapter_override = -1;
+      int     adapter_override  = -1;
       struct {
         struct {
-          unsigned int x       =  0;
-          unsigned int y       =  0;
+          unsigned int x        =  0;
+          unsigned int y        =  0;
           bool isZero (void) { return x == 0 && y == 0; };
         } min;
         struct {
-          unsigned int x       =  0;
-          unsigned int y       =  0;
+          unsigned int x        =  0;
+          unsigned int y        =  0;
           bool isZero (void) { return x == 0 && y == 0; };
         } max;
       } res;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
-    bool      show             = false;
+    bool      show              = false;
     struct {
       BYTE toggle [4]      = { VK_CONTROL, VK_SHIFT, 'R', 0 };
     } keys;
@@ -213,58 +215,59 @@ struct sk_config_t
 
   struct {
     struct {
-      bool    precise_hash     = false;
-      bool    dump             = false;
-      bool    inject           = true;
-      bool    cache            = false;
+      bool    precise_hash      = false;
+      bool    dump              = false;
+      bool    inject            = true;
+      bool    cache             = false;
       std::wstring
-              res_root         = L"SK_Res";
+              res_root          = L"SK_Res";
     } d3d11;
     struct {
-      int     min_evict        = 32;
-      int     max_evict        = 1024;
-      int     min_entries      = 256;
-      int     max_entries      = 8192;
-      int     min_size         = 384L;
-      int     max_size         = 2048L;
+      int     min_evict         = 32;
+      int     max_evict         = 1024;
+      int     min_entries       = 256;
+      int     max_entries       = 8192;
+      int     min_size          = 384L;
+      int     max_size          = 2048L;
+      bool    ignore_nonmipped  = false;
     } cache;
   } textures;
 
   struct {
     struct {
       std::wstring
-              compatibility   = L"0x00000000";
+              compatibility     = L"0x00000000";
       std::wstring
-              mode            = L"Auto";
+              mode              = L"Auto";
       std::wstring
-              num_gpus        = L"Auto";
-      bool    override        = false;
+              num_gpus          = L"Auto";
+      bool    override          = false;
     } sli;
 
     struct {
-      bool    disable         = false;
+      bool    disable           = false;
     } api;
   } nvidia;
 
   struct {
     struct {
-      int     timeout         = 1500UL;
-      bool    manage          = false;
-      bool    keys_activate   = true;
+      int     timeout           = 1500UL;
+      bool    manage            = false;
+      bool    keys_activate     = true;
     } cursor;
   } input;
 
   struct {
-    int     init_delay         = 250;
-    bool    silent             = false;
-    bool    handle_crashes     = true;
-    bool    prefer_fahrenheit  = true;
-    bool    display_debug_out  = false;
-    bool    game_output        = true;
-    bool    central_repository = false;
-    bool    ignore_rtss_delay  = false;
+    int     init_delay          = 250;
+    bool    silent              = false;
+    bool    handle_crashes      = true;
+    bool    prefer_fahrenheit   = true;
+    bool    display_debug_out   = false;
+    bool    game_output         = true;
+    bool    central_repository  = false;
+    bool    ignore_rtss_delay   = false;
     std::wstring
-            version            = SK_VER_STR;
+            version             = SK_VER_STR;
   } system;
 };
 

@@ -292,7 +292,7 @@ namespace SK
     bool Startup  (void);
     bool Shutdown (void);
 
-    std::wstring getPipelineStatsDesc (void);
+    std::wstring WINAPI getPipelineStatsDesc (void);
 
     struct PipelineStatsD3D9 {
       struct StatQueryD3D9 {

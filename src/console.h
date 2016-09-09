@@ -35,12 +35,11 @@ private:
   HANDLE               hMsgPump;
   struct hooks_t {
     HHOOK              keyboard;
-    HHOOK              mouse;
   } hooks;
 
   static SK_Console*   pConsole;
 
-  static char          text [4096];
+  static char          text  [4096];
 
   static BYTE          keys_ [256];
   static bool          visible;
@@ -71,10 +70,6 @@ public:
   static unsigned int
     __stdcall
     MessagePump (LPVOID hook_ptr);
-
-  static LRESULT
-    CALLBACK
-    MouseProc (int nCode, WPARAM wParam, LPARAM lParam);
 
   static LRESULT
     CALLBACK

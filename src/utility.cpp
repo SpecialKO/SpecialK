@@ -965,7 +965,7 @@ SK_GetCallingDLL (LPVOID pReturn)
   HMODULE hCallingMod;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                        (LPCWSTR)_ReturnAddress (),
+                        (LPCWSTR)pReturn,
                           &hCallingMod );
 
   return hCallingMod;

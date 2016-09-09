@@ -896,6 +896,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="core.h" />
+    <ClInclude Include="d3d12_interfaces.h" />
     <ClInclude Include="d3d9\texmgr.h" />
     <ClInclude Include="d3d9_backend.h" />
     <ClInclude Include="diagnostics\crash_handler.h" />
@@ -941,6 +942,8 @@
     <ClCompile Include="..\depends\DirectXTex\DirectXTexUtil.cpp" />
     <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="adl.cpp" />
+    <ClCompile Include="d3d11.cpp" />
+    <ClCompile Include="d3d12.cpp" />
     <ClCompile Include="d3d9\texmgr.cpp" />
     <ClCompile Include="diagnostics\compatibility.cpp" />
     <ClCompile Include="diagnostics\crash_handler.cpp" />

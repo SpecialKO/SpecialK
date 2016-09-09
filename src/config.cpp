@@ -29,7 +29,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.5.1";
+std::wstring SK_VER_STR = L"0.6.0";
 
 iSK_INI*    dll_ini = nullptr;
 
@@ -164,6 +164,7 @@ struct {
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
+    sk::ParameterBool*    force_fullscreen;
     sk::ParameterInt*     hook_type;
     sk::ParameterInt*     refresh_rate;
   } d3d9;
@@ -184,6 +185,7 @@ struct {
     sk::ParameterInt*     max_size;
     sk::ParameterInt*     min_entries;
     sk::ParameterInt*     max_entries;
+    sk::ParameterBool*    ignore_non_mipped;
   } cache;
 } texture;
 
@@ -490,6 +492,15 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.D3D9",
           L"HookType" );
+    render.d3d9.force_fullscreen =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Force Fullscreen Mode")
+        );
+    render.d3d9.force_fullscreen->register_to_ini (
+      dll_ini,
+        L"Render.D3D9",
+          L"ForceFullscreen" );
     render.d3d9.refresh_rate =
       static_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
@@ -752,6 +763,16 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Textures.Cache",
           L"MaxSizeInMiB" );
+
+    texture.cache.ignore_non_mipped =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Ignore textures without mipmaps?")
+        );
+    texture.cache.ignore_non_mipped->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"IgnoreNonMipmapped" );
   }
 
 
@@ -1182,9 +1203,14 @@ SK_LoadConfig (std::wstring name) {
       if (render.framerate.max_delta_time->load ())
         config.render.framerate.max_delta_time =
           render.framerate.max_delta_time->get_value ();
-      if (render.framerate.flip_discard->load ())
+      if (render.framerate.flip_discard->load ()) {
         config.render.framerate.flip_discard =
           render.framerate.flip_discard->get_value ();
+
+        extern bool SK_DXGI_use_factory1;
+        if (config.render.framerate.flip_discard)
+          SK_DXGI_use_factory1 = true;
+      }
 
       if (render.dxgi.adapter_override->load ())
         config.render.dxgi.adapter_override =
@@ -1229,12 +1255,22 @@ SK_LoadConfig (std::wstring name) {
         config.textures.cache.max_size = texture.cache.max_size->get_value ();
       if (texture.cache.min_size->load ())
         config.textures.cache.min_size = texture.cache.min_size->get_value ();
+      if (texture.cache.ignore_non_mipped->load ())
+        config.textures.cache.ignore_nonmipped = texture.cache.ignore_non_mipped->get_value ();
+
+      extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
+
+      if (config.render.dxgi.adapter_override != -1)
+        SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
     }
 
     if (dll_role == D3D9) {
       if (render.d3d9.force_d3d9ex->load ())
         config.render.d3d9.force_d3d9ex =
           render.d3d9.force_d3d9ex->get_value ();
+      if (render.d3d9.force_fullscreen->load ())
+        config.render.d3d9.force_fullscreen =
+          render.d3d9.force_fullscreen->get_value ();
       if (render.d3d9.hook_type->load ())
         config.render.d3d9.hook_type =
           render.d3d9.hook_type->get_value ();
@@ -1374,6 +1410,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       texture.cache.max_size->set_value    (config.textures.cache.max_size);
       texture.cache.min_size->set_value    (config.textures.cache.min_size);
 
+      texture.cache.ignore_non_mipped->set_value (config.textures.cache.ignore_nonmipped);
+
       wchar_t wszFormattedRes [64] = { L'\0' };
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
@@ -1392,9 +1430,10 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     }
 
     if (dll_role == D3D9) {
-      render.d3d9.force_d3d9ex->set_value (config.render.d3d9.force_d3d9ex);
-      render.d3d9.hook_type->set_value    (config.render.d3d9.hook_type);
-      render.d3d9.refresh_rate->set_value (config.render.d3d9.refresh_rate);
+      render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
+      render.d3d9.force_fullscreen->set_value (config.render.d3d9.force_fullscreen);
+      render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
+      render.d3d9.refresh_rate->set_value     (config.render.d3d9.refresh_rate);
     }
   }
 
@@ -1482,6 +1521,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       texture.cache.max_size->store    ();
       texture.cache.min_size->store    ();
 
+      texture.cache.ignore_non_mipped->store ();
+
       render.dxgi.max_res->store ();
       render.dxgi.min_res->store ();
 
@@ -1489,9 +1530,10 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     }
 
     if (dll_role == D3D9) {
-      render.d3d9.force_d3d9ex->store ();
-      render.d3d9.hook_type->store    ();
-      render.d3d9.refresh_rate->store ();
+      render.d3d9.force_d3d9ex->store     ();
+      render.d3d9.force_fullscreen->store ();
+      render.d3d9.hook_type->store        ();
+      render.d3d9.refresh_rate->store     ();
     }
   }
 

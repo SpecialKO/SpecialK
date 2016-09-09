@@ -86,56 +86,6 @@ bool osd_init          = false;
 
 std::wstring rtss_hook_dll = L"";
 
-class SK_AutoCriticalSection {
-public:
-  SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
-                           bool              try_only = false )
-  {
-    cs_ = pCS;
-
-    if (try_only)
-      TryEnter ();
-    else {
-      Enter ();
-    }
-  }
-
-  ~SK_AutoCriticalSection (void)
-  {
-    Leave ();
-  }
-
-  bool try_result (void)
-  {
-    return acquired_;
-  }
-
-protected:
-  bool TryEnter (_Acquires_lock_(* this->cs_) void)
-  {
-    return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
-  }
-
-  void Enter (_Acquires_lock_(* this->cs_) void)
-  {
-    EnterCriticalSection (cs_);
-
-    acquired_ = true;
-  }
-
-  void Leave (_Releases_lock_(* this->cs_) void)
-  {
-    if (acquired_ != false)
-      LeaveCriticalSection (cs_);
-
-    acquired_ = false;
-  }
-
-private:
-  bool              acquired_;
-  CRITICAL_SECTION* cs_;
-};
-
 BOOL
 SK_ReleaseSharedMemory (LPVOID lpMemory)
 {
@@ -232,6 +182,17 @@ SK_IsD3D11 (DWORD dwFlags = 0x00)
 }
 
 bool
+SK_IsD3D12 (DWORD dwFlags = 0x00)
+{
+  static bool d3d12 = false;
+
+  if ((dwFlags != 0x00) && (dwFlags & APPFLAG_D3D12))
+    d3d12 = true;
+
+  return d3d12;
+}
+
+bool
 SK_IsOpenGL (DWORD dwFlags = 0x00)
 {
   static bool ogl = false;
@@ -245,7 +206,9 @@ SK_IsOpenGL (DWORD dwFlags = 0x00)
 std::wstring
 SK_GetAPINameFromOSDFlags (DWORD dwFlags)
 {
-  // Both are DXGI-based and probable
+  // All three are DXGI-based and probable
+  if (dwFlags & APPFLAG_D3D12)
+    return L"D3D12";
   if (dwFlags & APPFLAG_D3D11)
     return L"D3D11";
   if (dwFlags & APPFLAG_D3D10)

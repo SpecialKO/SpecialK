@@ -42,8 +42,8 @@
 #include "../log.h"
 #include "../utility.h"
 
-BOOL WINAPI SK_ValidateGlobalRTSSProfile (void);
-void        SK_ReHookLoadLibrary         (void);
+BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
+void __stdcall SK_ReHookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = true;
 
@@ -73,8 +73,6 @@ extern HMODULE hModSelf;
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
 
-#pragma intrinsic(_ReturnAddress)
-
 #if 0
 #include <unordered_set>
 #include <string>
@@ -84,6 +82,7 @@ SK_StringSetW rehook_loadlib;
 #endif
 
 BOOL
+__stdcall
 BlacklistLibraryW (LPCWSTR lpFileName)
 {
   //if (blacklist.count (wcsrchr (lpFileName, L'\\') + 1))
@@ -112,7 +111,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
   static bool isTalesOfZestiria = 
     StrStrIW (SK_GetHostApp ().c_str (), L"Tales of Zestiria.exe") != nullptr;
 
-if (isTalesOfZestiria) {
+  if (isTalesOfZestiria) {
     if (StrStrIW (lpFileName, L"GeDoSaTo"))
       return TRUE;
   }
@@ -135,6 +134,7 @@ if (isTalesOfZestiria) {
 }
 
 BOOL
+__stdcall
 BlacklistLibraryA (LPCSTR lpFileName)
 {
   wchar_t wszWideLibName [MAX_PATH];
@@ -146,6 +146,7 @@ BlacklistLibraryA (LPCSTR lpFileName)
 
 
 void
+__stdcall
 SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                        LPCSTR  lpFileName,
                        LPCSTR  lpFunction )
@@ -204,13 +205,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
   HMODULE hMod = LoadLibraryA_Original (lpFileName);
 
   if (hModEarly != hMod && (! SK_LoadLibrary_SILENCE)) {
-    HMODULE hCallingMod;
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-                        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                          (LPCWSTR)_ReturnAddress (),
-                            &hCallingMod );
-
-    SK_TraceLoadLibraryA ( hCallingMod,
+    SK_TraceLoadLibraryA ( SK_GetCallingDLL (),
                              lpFileName,
                                "LoadLibraryA" );
   }
@@ -233,13 +228,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
   HMODULE hMod = LoadLibraryW_Original (lpFileName);
 
   if (hModEarly != hMod && (! SK_LoadLibrary_SILENCE)) {
-    HMODULE hCallingMod;
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-                        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                          (LPCWSTR)_ReturnAddress (),
-                            &hCallingMod );
-
-    SK_TraceLoadLibraryW ( hCallingMod,
+    SK_TraceLoadLibraryW ( SK_GetCallingDLL (),
                              lpFileName,
                                L"LoadLibraryW" );
   }
@@ -254,9 +243,6 @@ LoadLibraryExA_Detour (
   _Reserved_ HANDLE hFile,
   _In_       DWORD  dwFlags )
 {
-  LPVOID retn =
-    _ReturnAddress ();
-
   if (lpFileName == nullptr)
     return NULL;
 
@@ -270,13 +256,7 @@ LoadLibraryExA_Detour (
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE)))
                          && (! SK_LoadLibrary_SILENCE) ) {
-    HMODULE hCallingMod;
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-                        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                          (LPCWSTR)_ReturnAddress (),
-                            &hCallingMod );
-
-    SK_TraceLoadLibraryA ( hCallingMod,
+    SK_TraceLoadLibraryA ( SK_GetCallingDLL (),
                              lpFileName,
                                "LoadLibraryExA" );
   }
@@ -304,13 +284,7 @@ LoadLibraryExW_Detour (
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE)))
                          && (! SK_LoadLibrary_SILENCE) ) {
-    HMODULE hCallingMod;
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-                        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                          (LPCWSTR)_ReturnAddress (),
-                            &hCallingMod );
-
-    SK_TraceLoadLibraryW ( hCallingMod,
+    SK_TraceLoadLibraryW ( SK_GetCallingDLL (),
                              lpFileName,
                                L"LoadLibraryExW" );
   }
@@ -339,7 +313,7 @@ struct SK_ThirdPartyDLLs {
 } third_party_dlls;
 
 bool
-WINAPI
+__stdcall
 SK_CheckForGeDoSaTo (void)
 {
   if (third_party_dlls.misc.gedosato)
@@ -360,6 +334,7 @@ SK_CheckForGeDoSaTo (void)
 //     knowing exactly WHAT was responsible for loading a library.
 //
 void
+__stdcall
 SK_ReHookLoadLibrary (void)
 {
   if (_loader_hooks.unhooked)
@@ -444,6 +419,7 @@ SK_UnhookLoadLibrary (void)
 }
 
 void
+__stdcall
 SK_InitCompatBlacklist (void)
 {
 #if 0
@@ -460,6 +436,7 @@ SK_InitCompatBlacklist (void)
 }
 
 void
+__stdcall
 EnumLoadedModules (void)
 {
   // Begin logging new loads after this
@@ -557,19 +534,6 @@ EnumLoadedModules (void)
 #include <Commctrl.h>
 #include <comdef.h>
 
-enum task_item_t {
-  Content         = TDE_CONTENT,
-  ExpandedInfo    = TDE_EXPANDED_INFORMATION,
-  Footer          = TDE_FOOTER,
-  MainInstruction = TDE_MAIN_INSTRUCTION
-};
-
-void
-SK_TaskDialogUpdateText ( _In_ HWND hWnd, task_item_t item, std::wstring content )
-{
-  SendMessage (hWnd, TDM_SET_ELEMENT_TEXT, TDE_CONTENT, (LPARAM)content.c_str ());
-}
-
 HRESULT
 CALLBACK
 TaskDialogCallback (
@@ -592,7 +556,7 @@ TaskDialogCallback (
 #include "../ini.h"
 
 BOOL
-WINAPI
+__stdcall
 SK_ValidateGlobalRTSSProfile (void)
 {
   if (config.system.ignore_rtss_delay)
@@ -632,11 +596,11 @@ SK_ValidateGlobalRTSSProfile (void)
 
 
   if ( (! rtss_hooking.contains_key (L"InjectionDelay")) ) {
-    rtss_hooking.add_key_value (L"InjectionDelay", L"5000");
+    rtss_hooking.add_key_value (L"InjectionDelay", L"10000");
     valid = false;
   }
-  else if (_wtol (rtss_hooking.get_value (L"InjectionDelay").c_str()) < 5000) {
-    rtss_hooking.get_value (L"InjectionDelay") = L"5000";
+  else if (_wtol (rtss_hooking.get_value (L"InjectionDelay").c_str()) < 10000) {
+    rtss_hooking.get_value (L"InjectionDelay") = L"10000";
     valid = false;
   }
 
@@ -698,7 +662,7 @@ SK_ValidateGlobalRTSSProfile (void)
   //   privilige issues.
   if (! SK_IsAdmin ()) {
     config.pszMainIcon        = TD_WARNING_ICON;
-    config.pszContent         = L"RivaTuner Statistics Server requires a 5 second injection delay to workaround "
+    config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
                                 L"compatibility issues.";
 
     config.pszFooterIcon      = TD_SHIELD_ICON;
@@ -717,7 +681,7 @@ SK_ValidateGlobalRTSSProfile (void)
   } else {
     config.pszMainIcon        = TD_INFORMATION_ICON;
 
-    config.pszContent         = L"RivaTuner Statistics Server requires a 5 second injection delay to workaround "
+    config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
                                 L"compatibility issues.";
 
     config.dwCommonButtons    = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;

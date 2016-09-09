@@ -47,11 +47,66 @@ void           SK_SetNormalFileAttribs (std::wstring file);
 std::wstring   SK_GetHostApp           (void);
 iSK_INI*       SK_GetDLLConfig         (void);
 
-HMODULE        SK_GetCallingDLL        (LPVOID pReturn);
-std::wstring   SK_GetCallerName        (LPVOID pReturn);
+#pragma intrinsic (_ReturnAddress)
+
+HMODULE        SK_GetCallingDLL        (LPVOID pReturn = _ReturnAddress ());
+std::wstring   SK_GetCallerName        (LPVOID pReturn = _ReturnAddress ());
 std::wstring   SK_GetModuleName        (HMODULE hDll);
 
 void __stdcall SK_SelfDestruct         (void);
+
+
+class SK_AutoCriticalSection {
+public:
+  SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
+                           bool              try_only = false )
+  {
+    cs_ = pCS;
+
+    if (try_only)
+      TryEnter ();
+    else {
+      Enter ();
+    }
+  }
+
+  ~SK_AutoCriticalSection (void)
+  {
+    Leave ();
+  }
+
+  bool try_result (void)
+  {
+    return acquired_;
+  }
+
+protected:
+  bool TryEnter (_Acquires_lock_(* this->cs_) void)
+  {
+    return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
+  }
+
+  void Enter (_Acquires_lock_(* this->cs_) void)
+  {
+    EnterCriticalSection (cs_);
+
+    acquired_ = true;
+  }
+
+  void Leave (_Releases_lock_(* this->cs_) void)
+  {
+    if (acquired_ != false)
+      LeaveCriticalSection (cs_);
+
+    acquired_ = false;
+  }
+
+private:
+  bool              acquired_;
+  CRITICAL_SECTION* cs_;
+};
+
+
 
 /*
     Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.
