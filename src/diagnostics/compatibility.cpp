@@ -640,6 +640,12 @@ SK_ValidateGlobalRTSSProfile (void)
   if (valid)
     return TRUE;
 
+  static BOOL warned = FALSE;
+
+  // Prevent the dialog from repeatedly popping up if the user decides to ignore
+  if (warned)
+    return TRUE;
+
   int               nButtonPressed = 0;
   TASKDIALOGCONFIG  config         = {0};
 
@@ -659,6 +665,11 @@ SK_ValidateGlobalRTSSProfile (void)
   config.pszMainInstruction = L"RivaTuner Statistics Server Incompatibility";
 
   wchar_t wszFooter [1024];
+
+
+  // Make the following dialog the ONLY thing the process is doing
+  std::queue <DWORD> suspended_tids =
+    SK_SuspendAllOtherThreads ();
 
   // Delay triggers are invalid, but we can do nothing about it due to
   //   privilige issues.
@@ -730,6 +741,10 @@ SK_ValidateGlobalRTSSProfile (void)
       ExitProcess (0);
     }
   }
+
+  warned = TRUE;
+
+  SK_ResumeThreads (suspended_tids);
 
   return TRUE;
 }

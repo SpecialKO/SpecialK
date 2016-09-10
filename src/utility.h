@@ -53,6 +53,13 @@ HMODULE        SK_GetCallingDLL        (LPVOID pReturn = _ReturnAddress ());
 std::wstring   SK_GetCallerName        (LPVOID pReturn = _ReturnAddress ());
 std::wstring   SK_GetModuleName        (HMODULE hDll);
 
+#include <queue>
+
+std::queue <DWORD>
+               SK_SuspendAllOtherThreads (void);
+void
+               SK_ResumeThreads          (std::queue <DWORD> threads);
+
 void __stdcall SK_SelfDestruct         (void);
 
 

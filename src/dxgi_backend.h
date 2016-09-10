@@ -219,6 +219,19 @@ typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
 
+typedef HRESULT (WINAPI *D3D11CreateDeviceAndSwapChain_pfn)(
+  _In_opt_                             IDXGIAdapter*,
+                                       D3D_DRIVER_TYPE,
+                                       HMODULE,
+                                       UINT,
+  _In_reads_opt_ (FeatureLevels) CONST D3D_FEATURE_LEVEL*,
+                                       UINT FeatureLevels,
+                                       UINT,
+  _In_opt_                       CONST DXGI_SWAP_CHAIN_DESC*,
+  _Out_opt_                            IDXGISwapChain**,
+  _Out_opt_                            ID3D11Device**,
+  _Out_opt_                            D3D_FEATURE_LEVEL*,
+  _Out_opt_                            ID3D11DeviceContext**);
 
 typedef HRESULT (WINAPI *D3D12CreateDevice_pfn)(
   _In_opt_  IUnknown          *pAdapter,
@@ -226,8 +239,9 @@ typedef HRESULT (WINAPI *D3D12CreateDevice_pfn)(
   _In_      REFIID             riid,
   _Out_opt_ void             **ppDevice);
 
-extern volatile D3D11CreateDevice_pfn D3D11CreateDevice_Import;
-extern volatile D3D12CreateDevice_pfn D3D12CreateDevice_Import;
+extern volatile D3D11CreateDevice_pfn             D3D11CreateDevice_Import;
+extern volatile D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import;
+extern volatile D3D12CreateDevice_pfn             D3D12CreateDevice_Import;
 
   extern          ID3D11Device*         g_pD3D11Dev;
   extern          IUnknown*             g_pD3D12Dev;

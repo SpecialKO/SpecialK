@@ -118,6 +118,18 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
+  SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
+                  SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
+                  SYMOPT_DEFERRED_LOADS );
+
+
+  SymInitialize (
+    GetCurrentProcess (),
+      NULL,
+        TRUE );
+
+  SymRefreshModuleList (GetCurrentProcess ());
+
   static bool             last_chance = false;
 
   static CONTEXT          last_ctx  = { 0 };

@@ -976,3 +976,72 @@ SK_GetCallerName (LPVOID pReturn)
 {
   return SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
+
+
+#include <tlhelp32.h>
+#include <queue>
+
+std::queue <DWORD>
+SK_SuspendAllOtherThreads (void)
+{
+  std::queue <DWORD> threads;
+
+  HANDLE hSnap =
+    CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0);
+
+  if (hSnap != INVALID_HANDLE_VALUE)
+  {
+    THREADENTRY32 tent;
+    tent.dwSize = sizeof THREADENTRY32;
+
+    if (Thread32First (hSnap, &tent))
+    {
+      do
+      {
+        if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
+                                  sizeof (tent.th32OwnerProcessID) )
+        {
+          if ( tent.th32ThreadID       != GetCurrentThreadId  () &&
+               tent.th32OwnerProcessID == GetCurrentProcessId () )
+          {
+            HANDLE hThread =
+              OpenThread (THREAD_ALL_ACCESS, FALSE, tent.th32ThreadID);
+
+            if (hThread != NULL)
+            {
+              threads.push (tent.th32ThreadID);
+              SuspendThread (hThread);
+              CloseHandle   (hThread);
+            }
+          }
+        }
+
+        tent.dwSize = sizeof (tent);
+      } while (Thread32Next (hSnap, &tent));
+    }
+
+    CloseHandle (hSnap);
+  }
+
+  return threads;
+}
+
+void
+SK_ResumeThreads (std::queue <DWORD> threads)
+{
+  while (! threads.empty ())
+  {
+    DWORD tid = threads.front ();
+
+    HANDLE hThread =
+      OpenThread (THREAD_ALL_ACCESS, FALSE, tid);
+
+    if (hThread != NULL)
+    {
+      ResumeThread (hThread);
+      CloseHandle  (hThread);
+    }
+
+    threads.pop ();
+  }
+}

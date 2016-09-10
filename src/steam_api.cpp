@@ -114,8 +114,13 @@ public:
       // Restore the original cursor state.
       else {
         if (! cursor_visible_) {
+          ULONG calls = 0;
+
+          steam_log.Log (L"  (Steam Overlay Deactivation:  Hiding Mouse Cursor...");
           while (ShowCursor (FALSE) >= 0)
-            ;
+            ++calls;
+
+          steam_log.Log (L"  (Steam Overlay Deactivation:  Finished after %lu tries", calls);
         }
       }
     }
@@ -951,11 +956,17 @@ SK::SteamAPI::Init (bool pre_load)
   static int    init_tries = 0;
   static time_t last_try   = 0;
 
-  if (init_tries++ == 0) {
+  if ((time (NULL) - last_try) > 5 && init_tries++ == 0) {
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
   }
+
+  // We want to give the init a second-chance because it's not quite
+  //  up to snuff yet, but some games would just continue to try and
+  //   do this indefinitely.
+  if (init_tries > 12)
+    return;
 
   if (SteamAPI_Init == nullptr) {
 #ifndef _WIN64
@@ -967,13 +978,15 @@ SK::SteamAPI::Init (bool pre_load)
     if (pre_load && (! GetModuleHandle (wszSteamDLLName)))
       LoadLibrary (wszSteamDLLName);
 
-    SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_Init",
-                       SteamAPI_Init_Detour,
-                       (LPVOID *)&SteamAPI_Init_Original,
-                       (LPVOID *)&SteamAPI_Init);
-    SK_EnableHook (SteamAPI_Init);
+    if (GetModuleHandle (wszSteamDLLName) != NULL) {
+      SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_Init",
+                         SteamAPI_Init_Detour,
+                         (LPVOID *)&SteamAPI_Init_Original,
+                         (LPVOID *)&SteamAPI_Init);
+      SK_EnableHook (SteamAPI_Init);
 
-    HookSteam ();
+      HookSteam ();
+    }
   }
 
   else if ((! init) && (pre_load)) {
@@ -981,12 +994,6 @@ SK::SteamAPI::Init (bool pre_load)
   }
 
   if (init)
-    return;
-
-  // We want to give the init a second-chance because it's not quite
-  //  up to snuff yet, but some games would just continue to try and
-  //   do this indefinitely.
-  if (init_tries > 4 && (time (NULL) - last_try) < 5)
     return;
 
   last_try = time (NULL);

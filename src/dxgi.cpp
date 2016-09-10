@@ -983,7 +983,7 @@ extern "C" {
           pSwapChain2.Release ();
 
           WaitForSingleObjectEx ( hWait,
-                                    config.render.framerate.swapchain_wait,
+                                    500,//config.render.framerate.swapchain_wait,
                                       TRUE );
         }
       }
@@ -1484,10 +1484,10 @@ __declspec (noinline)
         pSwapChain2.Release ();
 
         WaitForSingleObjectEx ( hWait,
-                                  config.render.framerate.swapchain_wait,
+                                  500,//config.render.framerate.swapchain_wait,
                                     TRUE );
       }
-      else
+      //else
       {
         if (max_latency != -1) {
           CComPtr <IDXGIDevice1> pDevice1;
@@ -2810,12 +2810,12 @@ HookDXGI (LPVOID user)
         }
       }
 
-      DestroyWindow (hwnd);
-
       SK_DXGI_HookPresent (pSwapChain);
 
       InterlockedExchange (&__dxgi_ready, TRUE);
     }
+
+    DestroyWindow (hwnd);
   }
 
   CloseHandle (GetCurrentThread ());
