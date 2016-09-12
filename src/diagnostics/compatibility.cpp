@@ -87,13 +87,16 @@ BlacklistLibraryW (LPCWSTR lpFileName)
 {
   //if (blacklist.count (wcsrchr (lpFileName, L'\\') + 1))
   //{
+#if 0
     if ( StrStrIW (lpFileName, L"ltc_game") ) {
       if (! (SK_LoadLibrary_SILENCE))
-        dll_log.Log (L"[Black List] Preventing Raptr's overlay, it likes to crash games!");
+        dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
       return TRUE;
     }
 
-    else if ( StrStrIW (lpFileName, L"k_fps") ) {
+    else
+#endif
+    if ( StrStrIW (lpFileName, L"k_fps") ) {
       if (! (SK_LoadLibrary_SILENCE))
         dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
       return TRUE;
@@ -508,6 +511,12 @@ EnumLoadedModules (void)
           SK_ReHookLoadLibrary ();
         }
 
+        else if ( StrStrIW (wszModName, L"ltc_help")) {
+          MessageBox ( NULL,
+                       L"AMD Gaming Evolved or Raptr is running, please exit this software to prevent compatibility problems.",
+                       L"Special K Compatibility Layer", MB_OK | MB_ICONEXCLAMATION );
+        }
+
 
         pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
                         (uintptr_t)hMods [i],
@@ -610,7 +619,7 @@ SK_ValidateGlobalRTSSProfile (void)
   if ( (! rtss_hooking.contains_key (L"InjectionDelayTriggers")) ) {
     rtss_hooking.add_key_value (
       L"InjectionDelayTriggers",
-        L"d3d9.dll,steam_api.dll,steam_api64.dll,dxgi.dll"
+        L"SpecialK32.dll,d3d9.dll,steam_api.dll,steam_api64.dll,dxgi.dll,SpecialK64.dll"
     );
     valid = false;
   }
@@ -619,10 +628,12 @@ SK_ValidateGlobalRTSSProfile (void)
     std::wstring& triggers =
       rtss_hooking.get_value (L"InjectionDelayTriggers");
 
-    const wchar_t* delay_dlls [] = { L"d3d9.dll",
+    const wchar_t* delay_dlls [] = { L"SpecialK32.dll",
+                                     L"d3d9.dll",
                                      L"steam_api.dll",
                                      L"steam_api64.dll",
-                                     L"dxgi.dll" };
+                                     L"dxgi.dll",
+                                     L"SpecialK64.dll" };
 
     const int     num_delay_dlls =
       sizeof (delay_dlls) / sizeof (const wchar_t *);

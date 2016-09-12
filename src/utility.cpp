@@ -882,7 +882,12 @@ SK_GetModuleName (HMODULE hDll)
 
   GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
 
-  return wcsrchr (wszDllFullName, L'\\') + 1;
+  const wchar_t* wszShort = wcsrchr (wszDllFullName, L'\\') + 1;
+
+  if (wszShort == (const wchar_t *)1)
+    wszShort = wszDllFullName;
+
+  return wszShort;
 }
 
 #include <tlhelp32.h>
@@ -947,7 +952,7 @@ SK_GetDLLConfig (void)
 }
 
 
-extern HMODULE       hModSelf;
+extern HMODULE __stdcall SK_GetDLL (void);
 extern BOOL APIENTRY DllMain (HMODULE hModule,
                               DWORD   ul_reason_for_call,
                               LPVOID  /* lpReserved */);
@@ -956,7 +961,7 @@ void
 __stdcall
 SK_SelfDestruct (void)
 {
-  DllMain (hModSelf, DLL_PROCESS_DETACH, nullptr);
+  DllMain (SK_GetDLL (), DLL_PROCESS_DETACH, nullptr);
 }
 
 HMODULE

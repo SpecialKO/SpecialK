@@ -993,9 +993,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"------------------------------------------------------------------------"
     L"-------------------\n");
 
-  extern HMODULE hModSelf;
+  extern HMODULE __stdcall SK_GetDLL ();
 
-  std::wstring   module_name   = SK_GetModuleName (hModSelf);
+  std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszModuleName = module_name.c_str ();
 
   dll_log.Log   (      L">> (%s) [%s] <<", pwszShortName, wszModuleName);
@@ -1243,6 +1243,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   extern void __stdcall EnumLoadedModules (void);
   EnumLoadedModules ();
+
+  // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+  SK_LoadPlugIns64 ();
+#else
+  SK_LoadPlugIns32 ();
+#endif
 }
 
 
@@ -1256,14 +1263,19 @@ WaitForInit (void)
     return;
   }
 
+#if 0
   // Prevent a race condition caused by undefined behavior in RTSS
   if (! InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr))
     while (! InterlockedCompareExchange (&init, FALSE, FALSE))
       ;
+#endif
 
-  WaitForSingleObject (
-    InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
-      INFINITE );
+  while (InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr)) {
+    if ( WAIT_OBJECT_0 == WaitForSingleObject (
+      InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
+        150 ) )
+      break;
+  }
 
   // First thread to reach this point wins ... a shiny new car and
   //   various other initialization tasks.
@@ -1483,7 +1495,6 @@ DllThread (LPVOID user)
   LeaveCriticalSection (&init_mutex);
 
   return 0;
-
 }
 
 #include <wingdi.h>
@@ -1584,7 +1595,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     hMod = LoadLibraryEx (
              pwszModule,
                nullptr,
-                 DONT_RESOLVE_DLL_REFERENCES );
+                 0x00 /*DONT_RESOLVE_DLL_REFERENCES*/ );
   }
 
   LPVOID    pFuncAddr = nullptr;
@@ -1621,6 +1632,67 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     *ppFuncAddr = pFuncAddr;
   else
     SK_EnableHook (pFuncAddr);
+
+  return status;
+}
+
+MH_STATUS
+WINAPI
+SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
+                    LPVOID  pDetour,    LPVOID *ppOriginal,
+                    LPVOID *ppFuncAddr )
+{
+#if 1
+  HMODULE hMod = nullptr;
+
+  // First try to get (and permanently hold) a reference to the hooked module
+  if (! GetModuleHandleEx (
+          GET_MODULE_HANDLE_EX_FLAG_PIN,
+            pwszModule,
+              &hMod ) ) {
+    //
+    // If that fails, partially load the module into memory to establish our
+    //   function hook.
+    //
+    //  Defer the standard DllMain (...) entry-point until the
+    //    software actually loads the library on its own.
+    //
+    hMod = LoadLibraryEx (
+             pwszModule,
+               nullptr,
+                 0x00 /*DONT_RESOLVE_DLL_REFERENCES*/ );
+  }
+
+  LPVOID    pFuncAddr = nullptr;
+  MH_STATUS status    = MH_OK;
+
+  if (hMod == 0)
+    status = MH_ERROR_MODULE_NOT_FOUND;
+
+  else {
+    pFuncAddr =
+      GetProcAddress (hMod, pszProcName);
+
+    status =
+      MH_CreateHook ( pFuncAddr,
+                        pDetour,
+                          ppOriginal );
+  }
+#else
+  MH_STATUS status =
+    MH_CreateHookApi ( pwszModule,
+                         pszProcName,
+                           pDetour,
+                             ppOriginal );
+#endif
+
+  if (status != MH_OK) {
+    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
+                  L"(Status: \"%hs\")",
+                    pszProcName,
+                      pwszModule,
+                        MH_StatusToString (status) );
+  }
 
   return status;
 }
@@ -1826,7 +1898,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init->backend  = backend;
   init->callback = callback;
 
-#if 1
   game_debug.init (L"logs/game_output.log", L"w");
 
   if (config.system.handle_crashes)
@@ -1835,25 +1906,25 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
-  hInitThread = 
-    (HANDLE)
-      _beginthreadex ( nullptr,
-                         0,
-                           DllThread,
-                             init,
-                               0x00,
-                                 nullptr );
+  if (dll_role != DLL_ROLE::OpenGL) {
+    hInitThread =
+      (HANDLE)
+        _beginthreadex ( nullptr,
+                          0,
+                             DllThread,
+                               init,
+                                 0x00,
+                                   nullptr );
 
-  // Give other DXGI hookers time to queue up before processing any calls
-  //   that they make. But don't wait here infinitely, or we will deadlock!
+    // Give other DXGI hookers time to queue up before processing any calls
+    //   that they make. But don't wait here infinitely, or we will deadlock!
 
-  /* Default: 0.25 secs seems adequate */
-  //if (hInitThread != 0) {
-    //Sleep (config.system.init_delay);
-  //}
-#else
-  DllThread (init);
-#endif
+    /* Default: 0.25 secs seems adequate */
+    //if (hInitThread != 0) {
+      //Sleep (config.system.init_delay);
+  } else {
+    DllThread (nullptr);
+  }
 
   return true;
 }
@@ -1863,7 +1934,13 @@ bool
 WINAPI
 SK_ShutdownCore (const wchar_t* backend)
 {
-  //ChangeDisplaySettingsA (nullptr, CDS_RESET);
+  // These games do not handle resolution correctly
+  if ( SK_GetHostApp () == L"DarkSoulsIII.exe" ||
+       SK_GetHostApp () == L"Fallout4.exe"     ||
+       SK_GetHostApp () == L"FFX.exe"          ||
+       SK_GetHostApp () == L"FFX-2.exe"        ||
+       SK_GetHostApp () == L"dis1_st.exe" )
+    ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);
   SK_AutoClose_Log (budget_log);
@@ -2093,6 +2170,9 @@ SK_BeginBufferSwap (void)
 #else
     SK_LoadLateImports32 ();
 #endif
+
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Reinstall ();
   }
 
   if ((! config.steam.silent) && (! config.steam.preload)) {

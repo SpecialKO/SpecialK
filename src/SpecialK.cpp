@@ -153,7 +153,25 @@ SK_Detach (DLL_ROLE role)
 //#define IGNORE_THREAD_ATTACH
 
 // We need this to load embedded resources correctly...
-HMODULE hModSelf = 0;
+volatile HMODULE hModSelf = 0;
+
+HMODULE
+__stdcall
+SK_GetDLL (void)
+{
+  return hModSelf;
+}
+
+DWORD
+WINAPI
+StartDLL (LPVOID user)
+{
+  SK_Attach (dll_role);
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
 
 BOOL
 APIENTRY
@@ -174,7 +192,16 @@ DllMain ( HMODULE hModule,
       if (! SK_EstablishDllRole (hModule))
         return FALSE;
 
+#if 0
+      CreateThread ( nullptr,
+                       0,
+                         StartDLL,
+                           nullptr,
+                             0x00,
+                               nullptr );
+#else
       SK_Attach (dll_role);
+#endif
 
       // We need TLS managed by the real OpenGL DLL for context
       //   management to work, so we cannot do this...

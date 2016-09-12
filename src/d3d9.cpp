@@ -42,6 +42,11 @@
 volatile LONG                        __d3d9_ready = FALSE;
 SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
 
+void
+SK_D3D9_Inject (void)
+{
+}
+
 unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user);
@@ -192,15 +197,34 @@ void
 WINAPI
 d3d9_init_callback (finish_pfn finish)
 {
+  extern HMODULE __stdcall SK_GetDLL (void);
+
   dll_log.Log (L"[   D3D9   ] Importing Direct3DCreate9{Ex}...");
   dll_log.Log (L"[   D3D9   ] ================================");
 
-  dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh",
-    (Direct3DCreate9_Import) =  \
-      (Direct3DCreate9PROC)GetProcAddress (backend_dll, "Direct3DCreate9"));
-  dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh",
-    (Direct3DCreate9Ex_Import) =  \
-      (Direct3DCreate9ExPROC)GetProcAddress (backend_dll, "Direct3DCreate9Ex"));
+  if (! wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll")) {
+    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh",
+      (Direct3DCreate9_Import) =  \
+        (Direct3DCreate9PROC)GetProcAddress (backend_dll, "Direct3DCreate9"));
+    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh",
+      (Direct3DCreate9Ex_Import) =  \
+        (Direct3DCreate9ExPROC)GetProcAddress (backend_dll, "Direct3DCreate9Ex"));
+  } else {
+    SK_CreateDLLHook ( L"d3d9.dll",
+                       "Direct3DCreate9",
+                       Direct3DCreate9,
+            (LPVOID *)&Direct3DCreate9_Import );
+
+    SK_CreateDLLHook ( L"d3d9.dll",
+                       "Direct3DCreate9Ex",
+                       Direct3DCreate9Ex,
+            (LPVOID *)&Direct3DCreate9Ex_Import );
+
+    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh  { Hooked }",
+      (Direct3DCreate9_Import) );
+    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh  { Hooked }",
+      (Direct3DCreate9Ex_Import) );
+  }
 
 #if 0
   HookD3D9Ex (nullptr);
@@ -2367,11 +2391,13 @@ HookD3D9Ex (LPVOID user)
       SK_D3D9_HookReset   (pD3D9DevEx);
       SK_D3D9_HookPresent (pD3D9DevEx);
     }
+
+    DestroyWindow (hwnd);
+
+    InterlockedExchange (&__d3d9_ready, TRUE);
   }
 
-  DestroyWindow (hwnd);
-
-  InterlockedExchange (&__d3d9_ready, TRUE);
+  _endthreadex (0);
 
   return 0;
 }

@@ -67,13 +67,8 @@ HMODULE SK::DXGI::hModD3D11 = 0;
 
 volatile LONG  __d3d11_ready  = FALSE;
 
-extern
-void WaitForInitDXGI (void);
-
 void WaitForInitD3D11 (void)
 {
-  //WaitForInitDXGI ();
-
   while (! InterlockedCompareExchange (&__d3d11_ready, FALSE, FALSE))
     Sleep (config.system.init_delay);
 }
@@ -268,7 +263,7 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
-  WaitForInitD3D11 ();
+  //WaitForInitD3D11 ();
 
   DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
 
@@ -370,7 +365,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
-  WaitForInitD3D11 ();
+  //WaitForInitD3D11 ();
 
   // Detect devices that were only created for the purpose of creating hooks....
   bool bFake = false;
@@ -1451,7 +1446,7 @@ WINAPI
 SK_D3D11_AddTexHash ( std::wstring name, uint32_t top_crc32, uint32_t hash )
 {
   // UNX calls this before D3D11 is initialized
-  WaitForInitD3D11 ();
+  //WaitForInitD3D11 ();
 
   if (hash != 0x00) {
     if (! SK_D3D11_IsTexHashed (top_crc32, hash)) {
@@ -2626,6 +2621,13 @@ unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
 {
+  if (InterlockedCompareExchange (&__d3d11_ready, TRUE, TRUE)) {
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }
+
+  dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
+
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
   CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
   CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;

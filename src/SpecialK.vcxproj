@@ -246,10 +246,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Tales of Symphonia\</OutDir>
+    <OutDir>C:\Users\Andon\Documents\My Mods\SpecialK\</OutDir>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <TargetName>d3d9</TargetName>
+    <TargetName>SpecialK32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MGSVTPP|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -284,8 +284,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>dxgi</TargetName>
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\DARK SOULS III\Game\</OutDir>
+    <TargetName>SpecialK64</TargetName>
+    <OutDir>C:\Users\Andon\Documents\MyMods~1\SpecialK\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MGSVTPP|x64'">
@@ -544,13 +544,14 @@
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <BrowseInformation>true</BrowseInformation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>C:\Program Files (x86)\Steam\steamapps\common\Tales of Symphonia\d3d9.dll</OutputFile>
+      <OutputFile>C:\Users\Andon\Documents\My Mods\SpecialK\SpecialK32.dll</OutputFile>
       <ModuleDefinitionFile>d3d9.def</ModuleDefinitionFile>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -816,7 +817,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>C:\Program Files (x86)\Steam\steamapps\common\DARK SOULS III\Game\dxgi.dll</OutputFile>
+      <OutputFile>C:\Users\Andon\Documents\MyMods~1\SpecialK\SpecialK64.dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>

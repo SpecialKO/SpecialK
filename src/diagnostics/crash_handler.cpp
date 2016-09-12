@@ -33,7 +33,7 @@
 
 #pragma comment( lib, "dbghelp.lib" )
 
-extern HMODULE hModSelf;
+extern HMODULE __stdcall SK_GetDLL (void);
 
 using namespace SK::Diagnostics;
 
@@ -72,11 +72,11 @@ void
 CrashHandler::Init (void)
 {
   HRSRC   default_sound =
-    FindResource (hModSelf, MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
+    FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
 
   if (default_sound != nullptr) {
     crash_sound.ref   =
-      LoadResource (hModSelf, default_sound);
+      LoadResource (SK_GetDLL (), default_sound);
 
     if (crash_sound.ref != 0)
       crash_sound.buf = (uint8_t *)LockResource (crash_sound.ref);

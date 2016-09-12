@@ -1907,11 +1907,11 @@ __declspec (noinline)
   SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
                             D3D_DRIVER_TYPE* DriverType )
   {
-    if (EnumAdapters_Original == nullptr)
-      WaitForInitDXGI ();
-
     if (SK_DXGI_preferred_adapter == -1)
       return;
+
+    if (EnumAdapters_Original == nullptr)
+      WaitForInitDXGI ();
 
     IDXGIAdapter* pGameAdapter     = (*ppAdapter);
     IDXGIAdapter* pOverrideAdapter = nullptr;
@@ -2449,6 +2449,8 @@ void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
 {
+extern HMODULE __stdcall SK_GetDLL (void);
+
   SK_D3D11_Init ();
   SK_D3D12_Init ();
 
@@ -2458,15 +2460,46 @@ dxgi_init_callback (finish_pfn finish)
   dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
   dll_log.Log (L"[   DXGI   ] ================================");
 
-  dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh",
-    (CreateDXGIFactory_Import =  \
-      (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
-  dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %08Xh",
-    (CreateDXGIFactory1_Import = \
-      (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1")));
-  dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %08Xh",
-    (CreateDXGIFactory2_Import = \
-      (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
+
+  if (! wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")) {
+    dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh",
+      (CreateDXGIFactory_Import =  \
+        (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
+    dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %08Xh",
+      (CreateDXGIFactory1_Import = \
+        (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1")));
+    dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %08Xh",
+      (CreateDXGIFactory2_Import = \
+        (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
+  } else {
+    if (GetProcAddress (hBackend, "CreateDXGIFactory"))
+      SK_CreateDLLHook ( L"dxgi.dll",
+                         "CreateDXGIFactory",
+                         CreateDXGIFactory,
+              (LPVOID *)&CreateDXGIFactory_Import );
+
+    if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
+      SK_CreateDLLHook ( L"dxgi.dll",
+                         "CreateDXGIFactory1",
+                         CreateDXGIFactory1,
+              (LPVOID *)&CreateDXGIFactory1_Import );
+
+    if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
+      SK_CreateDLLHook ( L"dxgi.dll",
+                         "CreateDXGIFactory2",
+                         CreateDXGIFactory2,
+              (LPVOID *)&CreateDXGIFactory2_Import );
+
+    dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh  %s",
+      (CreateDXGIFactory_Import),
+        (CreateDXGIFactory_Import ? L"{ Hooked }" : L"" ) );
+    dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %08Xh  %s",
+      (CreateDXGIFactory1_Import),
+        (CreateDXGIFactory1_Import ? L"{ Hooked }" : L"" ) );
+    dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %08Xh  %s",
+      (CreateDXGIFactory2_Import),
+        (CreateDXGIFactory2_Import ? L"{ Hooked }" : L"" ) );
+  }
 
   if (CreateDXGIFactory1_Import != nullptr) {
     SK_DXGI_use_factory1 = true;
@@ -2612,16 +2645,16 @@ SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 
 }
 
-
-extern void WaitForInitD3D11 (void);
-
 unsigned int
 __stdcall
 HookDXGI (LPVOID user)
 {
-  SK_D3D11_Init    ();
+  if (InterlockedCompareExchange (&__dxgi_ready, TRUE, TRUE)) {
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }
 
-  WaitForInitD3D11 ();
+  dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
   CComPtr <IDXGIAdapter>  pAdapter  = nullptr;

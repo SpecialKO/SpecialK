@@ -587,13 +587,13 @@ public:
       steam_log.Log (L"  * Failed to Load Unlock Sound: '%s', using DEFAULT",
                        wszUnlockSound);
 
-      extern HMODULE hModSelf;
+      extern HMODULE __stdcall SK_GetDLL (void);
       HRSRC   default_sound =
-        FindResource (hModSelf, MAKEINTRESOURCE (IDR_TROPHY), L"WAVE");
+        FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_TROPHY), L"WAVE");
 
       if (default_sound != nullptr) {
         HGLOBAL sound_ref     =
-          LoadResource (hModSelf, default_sound);
+          LoadResource (SK_GetDLL (), default_sound);
         if (sound_ref != 0) {
           unlock_sound        = (uint8_t *)LockResource (sound_ref);
 

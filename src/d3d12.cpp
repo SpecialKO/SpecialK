@@ -116,10 +116,14 @@ SK_D3D12_Init (void)
   if (SK::DXGI::hModD3D12 == nullptr) {
     SK::DXGI::hModD3D12 = LoadLibrary (L"d3d12.dll");
 
-    SK_CreateDLLHook ( L"d3d12.dll", "D3D12CreateDevice",
-                        D3D12CreateDevice_Detour,
-              (LPVOID *)&D3D12CreateDevice_Import,
-                        &pfnD3D12CreateDevice );
+    if (SK::DXGI::hModD3D12 != nullptr) {
+      dll_log.Log (L"[  D3D 12  ]   Hooking D3D12");
+
+      SK_CreateDLLHook ( L"d3d12.dll", "D3D12CreateDevice",
+                          D3D12CreateDevice_Detour,
+                (LPVOID *)&D3D12CreateDevice_Import,
+                          &pfnD3D12CreateDevice );
+    }
   }
 }
 
@@ -135,13 +139,19 @@ SK_D3D12_Shutdown (void)
 void
 SK_D3D12_EnableHooks (void)
 {
-  SK_EnableHook (pfnD3D12CreateDevice);
+  if (pfnD3D12CreateDevice != nullptr)
+    SK_EnableHook (pfnD3D12CreateDevice);
 }
 
 unsigned int
 __stdcall
 HookD3D12 (LPVOID user)
 {
+  if (InterlockedCompareExchange (&__d3d12_ready, TRUE, TRUE)) {
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }
+
 #if 0
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
   CComPtr <IDXGIAdapter>  pAdapter  = nullptr;

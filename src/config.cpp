@@ -29,7 +29,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.6.0";
+std::wstring SK_VER_STR = L"0.6.1";
 
 iSK_INI*    dll_ini = nullptr;
 

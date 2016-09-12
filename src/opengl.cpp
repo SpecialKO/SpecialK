@@ -23,19 +23,40 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 #include "stdafx.h"
+#include <Shlwapi.h>
 //#include <Windows.h>
 
 #include "opengl_backend.h"
 #include "log.h"
 
+#include "utility.h"
+
+extern HMODULE WINAPI SK_GetDLL (void);
+
 #include "core.h"
 
-extern void WaitForInit (void);
+#define WaitForInit() ;
+
+//extern void WaitForInit (void);
 extern bool SK_InitCOM (void);
 extern HWND hWndRender;
 
 void __stdcall
 SK_GL_UpdateRenderStats (void);
+
+typedef BOOL (WINAPI *SwapBuffers_pfn)(HDC);
+typedef BOOL (WINAPI *wglSwapBuffers_pfn)(HDC);
+
+SwapBuffers_pfn    gdi_swap_buffers = nullptr;
+wglSwapBuffers_pfn wgl_swap_buffers = nullptr;
+
+// True if this is an injected DLL rather than OpenGL32.dll
+BOOL  GL_HOOKED = FALSE;
+ULONG GL_HOOKS  = 0UL;
+
+void
+WINAPI
+SK_HookGL (void);
 
 extern "C"
 {
@@ -46,6 +67,24 @@ DWORD
 WINAPI
 opengl_init_thread (LPVOID lpUser)
 {
+  if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
+                   L"OPENGL32.dll" ) ) {
+    dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
+    SK_HookGL   ();
+    dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
+                    GL_HOOKS );
+  }
+
+  ((finish_pfn)lpUser) ();
+
+  return 0;
+}
+
+DWORD
+WINAPI
+DXGI_Thread (LPVOID user)
+{
+  CoInitialize (nullptr);
   SK_InitCOM ();
 
   dll_log.Log (L"[ OpenGL32 ] Doing things that look odd in GL");
@@ -106,8 +145,6 @@ opengl_init_thread (LPVOID lpUser)
     factory->Release ();
   }
 
-  ((finish_pfn)lpUser) ();
-
   return 0;
 }
 
@@ -122,6 +159,9 @@ opengl_init_callback (finish_pfn finish)
     //CreateThread (nullptr, 0, opengl_init_thread, (LPVOID)finish, 0x00, nullptr);
 
   opengl_init_thread ((LPVOID)finish);
+
+  HANDLE hThread =
+    CreateThread (nullptr, 0, DXGI_Thread, nullptr, 0x00, nullptr);
 }
 
 }
@@ -196,52 +236,52 @@ SK::OpenGL::Shutdown (void)
 extern "C"
 {
 
-#define OPENGL_STUB(_Return, _Name, _Proto, _Args)                        \
-  __declspec (nothrow)                                                    \
-  _Return WINAPI                                                          \
-  _Name _Proto {                                                          \
-    typedef _Return (WINAPI *passthrough_t) _Proto;                       \
-    static passthrough_t _default_impl = nullptr;                         \
-                                                                          \
-    if (_default_impl == nullptr) {                                       \
-      WaitForInit ();                                                     \
-                                                                          \
-      static const char* szName = #_Name;                                 \
-      _default_impl = (passthrough_t)GetProcAddress (backend_dll, szName);\
-                                                                          \
-      if (_default_impl == nullptr) {                                     \
-        dll_log.Log (                                                     \
-          L"[ OpenGL32 ] Unable to locate symbol  %s in OpenGL32.dll",    \
-          L#_Name);                                                       \
-        return 0;                                                         \
-      }                                                                   \
-    }                                                                     \
-                                                                          \
-    return _default_impl _Args;                                           \
+#define OPENGL_STUB(_Return, _Name, _Proto, _Args)                          \
+    typedef _Return (WINAPI *imp_##_Name##_pfn) _Proto;                     \
+    imp_##_Name##_pfn imp_##_Name = nullptr;                                \
+                                                                            \
+  __declspec (nothrow)                                                      \
+  _Return WINAPI                                                            \
+  _Name _Proto {                                                            \
+    if (imp_##_Name == nullptr) {                                           \
+      WaitForInit ();                                                       \
+                                                                            \
+      static const char* szName = #_Name;                                   \
+      imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (backend_dll, szName);\
+                                                                            \
+      if (imp_##_Name == nullptr) {                                         \
+        dll_log.Log (                                                       \
+          L"[ OpenGL32 ] Unable to locate symbol  %s in OpenGL32.dll",      \
+          L#_Name);                                                         \
+        return 0;                                                           \
+      }                                                                     \
+    }                                                                       \
+                                                                            \
+    return imp_##_Name _Args;                                               \
 }
 
-#define OPENGL_STUB_(_Name, _Proto, _Args)                                \
-  __declspec (nothrow)                                                    \
-  void WINAPI                                                             \
-  _Name _Proto {                                                          \
-    typedef void (WINAPI *passthrough_t) _Proto;                          \
-    static passthrough_t _default_impl = nullptr;                         \
-                                                                          \
-    if (_default_impl == nullptr) {                                       \
-      WaitForInit ();                                                     \
-                                                                          \
-      static const char* szName = #_Name;                                 \
-      _default_impl = (passthrough_t)GetProcAddress (backend_dll, szName);\
-                                                                          \
-      if (_default_impl == nullptr) {                                     \
-        dll_log.Log (                                                     \
-          L"[ OpenGL32 ] Unable to locate symbol  %s in OpenGL32.dll",    \
-          L#_Name);                                                       \
-        return;                                                           \
-      }                                                                   \
-    }                                                                     \
-                                                                          \
-    _default_impl _Args;                                                  \
+#define OPENGL_STUB_(_Name, _Proto, _Args)                                  \
+    typedef void (WINAPI *imp_##_Name##_pfn) _Proto;                        \
+    imp_##_Name##_pfn imp_##_Name = nullptr;                                \
+                                                                            \
+  __declspec (nothrow)                                                      \
+  void WINAPI                                                               \
+  _Name _Proto {                                                            \
+    if (imp_##_Name == nullptr) {                                           \
+      WaitForInit ();                                                       \
+                                                                            \
+      static const char* szName = #_Name;                                   \
+      imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (backend_dll, szName);\
+                                                                            \
+      if (imp_##_Name == nullptr) {                                         \
+        dll_log.Log (                                                       \
+          L"[ OpenGL32 ] Unable to locate symbol  %s in OpenGL32.dll",      \
+          L#_Name);                                                         \
+        return;                                                             \
+      }                                                                     \
+    }                                                                       \
+                                                                            \
+    imp_##_Name _Args;                                                      \
 }
 
 #include <cstdint>
@@ -1155,9 +1195,6 @@ SwapBuffers (HDC hDC)
 
   SK_BeginBufferSwap ();
 
-  typedef BOOL (WINAPI *SwapBuffers_pfn)(HDC);
-  static SwapBuffers_pfn gdi_swap_buffers = nullptr;
-
   if (gdi_swap_buffers == nullptr) {
     HMODULE hModGDI32 = LoadLibrary (L"gdi32.dll");
 
@@ -1199,9 +1236,6 @@ wglSwapBuffers (HDC hDC)
 
 
   SK_BeginBufferSwap ();
-
-  typedef BOOL (WINAPI *wglSwapBuffers_pfn)(HDC);
-  static wglSwapBuffers_pfn wgl_swap_buffers = nullptr;
 
   if (wgl_swap_buffers == nullptr) {
     wgl_swap_buffers =
@@ -1632,4 +1666,405 @@ SK::OpenGL::getPipelineStatsDesc (void)
   }
 
   return wszDesc;
+}
+
+extern
+MH_STATUS
+WINAPI
+SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
+                    LPVOID  pDetour,    LPVOID *ppOriginal,
+                    LPVOID *ppFuncAddr );
+
+#define SK_DLL_HOOK(Backend,Func)     \
+  SK_CreateDLLHook ( Backend,         \
+                    #Func,            \
+                     Func,            \
+    (LPVOID *)&imp_ ## Func ); ++GL_HOOKS;
+
+#define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
+
+void
+WINAPI
+SK_HookGL (void)
+{
+  GL_HOOKED = TRUE;
+
+  HMODULE hModGDI32 =
+    LoadLibrary (L"gdi32.dll");
+
+  wchar_t wszBackendDLL [MAX_PATH + 1] = { L'\0' };
+
+  wcscpy (wszBackendDLL, SK_GetModuleName (backend_dll).c_str ());
+
+  SK_CreateDLLHook ( wszBackendDLL,
+                     "wglSwapBuffers",
+                     wglSwapBuffers,
+          (LPVOID *)&wgl_swap_buffers );
+
+  SK_CreateDLLHook ( L"gdi32.dll",
+                     "SwapBuffers",
+                     SwapBuffers,
+          (LPVOID *)&gdi_swap_buffers );
+
+  SK_GL_HOOK(glAccum);
+  SK_GL_HOOK(glAlphaFunc);
+  SK_GL_HOOK(glAreTexturesResident);
+  SK_GL_HOOK(glArrayElement);
+  SK_GL_HOOK(glBegin);
+  SK_GL_HOOK(glBindTexture);
+  SK_GL_HOOK(glBitmap);
+  SK_GL_HOOK(glBlendFunc);
+  SK_GL_HOOK(glCallList);
+  SK_GL_HOOK(glCallLists);
+  SK_GL_HOOK(glClear);
+  SK_GL_HOOK(glClearAccum);
+  SK_GL_HOOK(glClearColor);
+  SK_GL_HOOK(glClearDepth);
+  SK_GL_HOOK(glClearIndex);
+  SK_GL_HOOK(glClearStencil);
+  SK_GL_HOOK(glClipPlane);
+  SK_GL_HOOK(glColor3b);
+  SK_GL_HOOK(glColor3bv);
+  SK_GL_HOOK(glColor3d);
+  SK_GL_HOOK(glColor3dv);
+  SK_GL_HOOK(glColor3f);
+  SK_GL_HOOK(glColor3fv);
+  SK_GL_HOOK(glColor3i);
+  SK_GL_HOOK(glColor3iv);
+  SK_GL_HOOK(glColor3s);
+  SK_GL_HOOK(glColor3sv);
+  SK_GL_HOOK(glColor3ub);
+  SK_GL_HOOK(glColor3ubv);
+  SK_GL_HOOK(glColor3ui);
+  SK_GL_HOOK(glColor3uiv);
+  SK_GL_HOOK(glColor3us);
+  SK_GL_HOOK(glColor3usv);
+  SK_GL_HOOK(glColor4b);
+  SK_GL_HOOK(glColor4bv);
+  SK_GL_HOOK(glColor4d);
+  SK_GL_HOOK(glColor4dv);
+  SK_GL_HOOK(glColor4f);
+  SK_GL_HOOK(glColor4fv);
+  SK_GL_HOOK(glColor4i);
+  SK_GL_HOOK(glColor4iv);
+  SK_GL_HOOK(glColor4s);
+  SK_GL_HOOK(glColor4sv);
+  SK_GL_HOOK(glColor4ub);
+  SK_GL_HOOK(glColor4ubv);
+  SK_GL_HOOK(glColor4ui);
+  SK_GL_HOOK(glColor4uiv);
+  SK_GL_HOOK(glColor4us);
+  SK_GL_HOOK(glColor4usv);
+  SK_GL_HOOK(glColorMask);
+  SK_GL_HOOK(glColorMaterial);
+  SK_GL_HOOK(glColorPointer);
+  SK_GL_HOOK(glCopyPixels);
+  SK_GL_HOOK(glCopyTexImage1D);
+  SK_GL_HOOK(glCopyTexImage2D);
+  SK_GL_HOOK(glCopyTexSubImage1D);
+  SK_GL_HOOK(glCopyTexSubImage2D);
+  SK_GL_HOOK(glCullFace);
+  SK_GL_HOOK(glDebugEntry);
+  SK_GL_HOOK(glDeleteLists);
+  SK_GL_HOOK(glDeleteTextures);
+  SK_GL_HOOK(glDepthFunc);
+  SK_GL_HOOK(glDepthMask);
+  SK_GL_HOOK(glDepthRange);
+  SK_GL_HOOK(glDisable);
+  SK_GL_HOOK(glDisableClientState);
+  SK_GL_HOOK(glDrawArrays);
+  SK_GL_HOOK(glDrawBuffer);
+  SK_GL_HOOK(glDrawElements);
+  SK_GL_HOOK(glDrawPixels);
+  SK_GL_HOOK(glEdgeFlag);
+  SK_GL_HOOK(glEdgeFlagPointer);
+  SK_GL_HOOK(glEdgeFlagv);
+  SK_GL_HOOK(glEnable);
+  SK_GL_HOOK(glEnableClientState);
+  SK_GL_HOOK(glEnd);
+  SK_GL_HOOK(glEndList);
+  SK_GL_HOOK(glEvalCoord1d);
+  SK_GL_HOOK(glEvalCoord1dv);
+  SK_GL_HOOK(glEvalCoord1f);
+  SK_GL_HOOK(glEvalCoord1fv);
+  SK_GL_HOOK(glEvalCoord2d);
+  SK_GL_HOOK(glEvalCoord2dv);
+  SK_GL_HOOK(glEvalCoord2f);
+  SK_GL_HOOK(glEvalCoord2fv);
+  SK_GL_HOOK(glEvalMesh1);
+  SK_GL_HOOK(glEvalMesh2);
+  SK_GL_HOOK(glEvalPoint1);
+  SK_GL_HOOK(glEvalPoint2);
+  SK_GL_HOOK(glFeedbackBuffer);
+  SK_GL_HOOK(glFinish);
+  SK_GL_HOOK(glFlush);
+  SK_GL_HOOK(glFogf);
+  SK_GL_HOOK(glFogfv);
+  SK_GL_HOOK(glFogi);
+  SK_GL_HOOK(glFogiv);
+  SK_GL_HOOK(glFrontFace);
+  SK_GL_HOOK(glFrustum);
+  SK_GL_HOOK(glGenLists);
+  SK_GL_HOOK(glGenTextures);
+  SK_GL_HOOK(glGetBooleanv);
+  SK_GL_HOOK(glGetClipPlane);
+  SK_GL_HOOK(glGetDoublev);
+  SK_GL_HOOK(glGetError);
+  SK_GL_HOOK(glGetFloatv);
+  SK_GL_HOOK(glGetIntegerv);
+  SK_GL_HOOK(glGetLightfv);
+  SK_GL_HOOK(glGetLightiv);
+  SK_GL_HOOK(glGetMapdv);
+  SK_GL_HOOK(glGetMapfv);
+  SK_GL_HOOK(glGetMapiv);
+  SK_GL_HOOK(glGetMaterialfv);
+  SK_GL_HOOK(glGetMaterialiv);
+  SK_GL_HOOK(glGetPixelMapfv);
+  SK_GL_HOOK(glGetPixelMapuiv);
+  SK_GL_HOOK(glGetPixelMapusv);
+  SK_GL_HOOK(glGetPointerv);
+  SK_GL_HOOK(glGetPolygonStipple);
+  SK_GL_HOOK(glGetString);
+  SK_GL_HOOK(glGetTexEnvfv);
+  SK_GL_HOOK(glGetTexEnviv);
+  SK_GL_HOOK(glGetTexGendv);
+  SK_GL_HOOK(glGetTexGenfv);
+  SK_GL_HOOK(glGetTexGeniv);
+  SK_GL_HOOK(glGetTexImage);
+  SK_GL_HOOK(glGetTexLevelParameterfv);
+  SK_GL_HOOK(glGetTexLevelParameteriv);
+  SK_GL_HOOK(glGetTexParameterfv);
+  SK_GL_HOOK(glGetTexParameteriv);
+  SK_GL_HOOK(glHint);
+  SK_GL_HOOK(glIndexMask);
+  SK_GL_HOOK(glIndexPointer);
+  SK_GL_HOOK(glIndexd);
+  SK_GL_HOOK(glIndexdv);
+  SK_GL_HOOK(glIndexf);
+  SK_GL_HOOK(glIndexfv);
+  SK_GL_HOOK(glIndexi);
+  SK_GL_HOOK(glIndexiv);
+  SK_GL_HOOK(glIndexs);
+  SK_GL_HOOK(glIndexsv);
+  SK_GL_HOOK(glIndexub);
+  SK_GL_HOOK(glIndexubv);
+  SK_GL_HOOK(glInitNames);
+  SK_GL_HOOK(glInterleavedArrays);
+  SK_GL_HOOK(glIsEnabled);
+  SK_GL_HOOK(glIsList);
+  SK_GL_HOOK(glIsTexture);
+  SK_GL_HOOK(glLightModelf);
+  SK_GL_HOOK(glLightModelfv);
+  SK_GL_HOOK(glLightModeli);
+  SK_GL_HOOK(glLightModeliv);
+  SK_GL_HOOK(glLightf);
+  SK_GL_HOOK(glLightfv);
+  SK_GL_HOOK(glLighti);
+  SK_GL_HOOK(glLightiv);
+  SK_GL_HOOK(glLineStipple);
+  SK_GL_HOOK(glLineWidth);
+  SK_GL_HOOK(glListBase);
+  SK_GL_HOOK(glLoadIdentity);
+  SK_GL_HOOK(glLoadMatrixd);
+  SK_GL_HOOK(glLoadMatrixf);
+  SK_GL_HOOK(glLoadName);
+  SK_GL_HOOK(glLogicOp);
+  SK_GL_HOOK(glMap1d);
+  SK_GL_HOOK(glMap1f);
+  SK_GL_HOOK(glMap2d);
+  SK_GL_HOOK(glMap2f);
+  SK_GL_HOOK(glMapGrid1d);
+  SK_GL_HOOK(glMapGrid1f);
+  SK_GL_HOOK(glMapGrid2d);
+  SK_GL_HOOK(glMapGrid2f);
+  SK_GL_HOOK(glMaterialf);
+  SK_GL_HOOK(glMaterialfv);
+  SK_GL_HOOK(glMateriali);
+  SK_GL_HOOK(glMaterialiv);
+  SK_GL_HOOK(glMatrixMode);
+  SK_GL_HOOK(glMultMatrixd);
+  SK_GL_HOOK(glMultMatrixf);
+  SK_GL_HOOK(glNewList);
+  SK_GL_HOOK(glNormal3b);
+  SK_GL_HOOK(glNormal3bv);
+  SK_GL_HOOK(glNormal3d);
+  SK_GL_HOOK(glNormal3dv);
+  SK_GL_HOOK(glNormal3f);
+  SK_GL_HOOK(glNormal3fv);
+  SK_GL_HOOK(glNormal3i);
+  SK_GL_HOOK(glNormal3iv);
+  SK_GL_HOOK(glNormal3s);
+  SK_GL_HOOK(glNormal3sv);
+  SK_GL_HOOK(glNormalPointer);
+  SK_GL_HOOK(glOrtho);
+  SK_GL_HOOK(glPassThrough);
+  SK_GL_HOOK(glPixelMapfv);
+  SK_GL_HOOK(glPixelMapuiv);
+  SK_GL_HOOK(glPixelMapusv);
+  SK_GL_HOOK(glPixelStoref);
+  SK_GL_HOOK(glPixelStorei);
+  SK_GL_HOOK(glPixelTransferf);
+  SK_GL_HOOK(glPixelTransferi);
+  SK_GL_HOOK(glPixelZoom);
+  SK_GL_HOOK(glPointSize);
+  SK_GL_HOOK(glPolygonMode);
+  SK_GL_HOOK(glPolygonOffset);
+  SK_GL_HOOK(glPolygonStipple);
+  SK_GL_HOOK(glPopAttrib);
+  SK_GL_HOOK(glPopClientAttrib);
+  SK_GL_HOOK(glPopMatrix);
+  SK_GL_HOOK(glPopName);
+  SK_GL_HOOK(glPrioritizeTextures);
+  SK_GL_HOOK(glPushAttrib);
+  SK_GL_HOOK(glPushClientAttrib);
+  SK_GL_HOOK(glPushMatrix);
+  SK_GL_HOOK(glPushName);
+  SK_GL_HOOK(glRasterPos2d);
+  SK_GL_HOOK(glRasterPos2dv);
+  SK_GL_HOOK(glRasterPos2f);
+  SK_GL_HOOK(glRasterPos2fv);
+  SK_GL_HOOK(glRasterPos2i);
+  SK_GL_HOOK(glRasterPos2iv);
+  SK_GL_HOOK(glRasterPos2s);
+  SK_GL_HOOK(glRasterPos2sv);
+  SK_GL_HOOK(glRasterPos3d);
+  SK_GL_HOOK(glRasterPos3dv);
+  SK_GL_HOOK(glRasterPos3f);
+  SK_GL_HOOK(glRasterPos3fv);
+  SK_GL_HOOK(glRasterPos3i);
+  SK_GL_HOOK(glRasterPos3iv);
+  SK_GL_HOOK(glRasterPos3s);
+  SK_GL_HOOK(glRasterPos3sv);
+  SK_GL_HOOK(glRasterPos4d);
+  SK_GL_HOOK(glRasterPos4dv);
+  SK_GL_HOOK(glRasterPos4f);
+  SK_GL_HOOK(glRasterPos4fv);
+  SK_GL_HOOK(glRasterPos4i);
+  SK_GL_HOOK(glRasterPos4iv);
+  SK_GL_HOOK(glRasterPos4s);
+  SK_GL_HOOK(glRasterPos4sv);
+  SK_GL_HOOK(glReadBuffer);
+  SK_GL_HOOK(glReadPixels);
+  SK_GL_HOOK(glRectd);
+  SK_GL_HOOK(glRectdv);
+  SK_GL_HOOK(glRectf);
+  SK_GL_HOOK(glRectfv);
+  SK_GL_HOOK(glRecti);
+  SK_GL_HOOK(glRectiv);
+  SK_GL_HOOK(glRects);
+  SK_GL_HOOK(glRectsv);
+  SK_GL_HOOK(glRenderMode);
+  SK_GL_HOOK(glRotated);
+  SK_GL_HOOK(glRotatef);
+  SK_GL_HOOK(glScaled);
+  SK_GL_HOOK(glScalef);
+  SK_GL_HOOK(glScissor);
+  SK_GL_HOOK(glSelectBuffer);
+  SK_GL_HOOK(glShadeModel);
+  SK_GL_HOOK(glStencilFunc);
+  SK_GL_HOOK(glStencilMask);
+  SK_GL_HOOK(glStencilOp);
+  SK_GL_HOOK(glTexCoord1d);
+  SK_GL_HOOK(glTexCoord1dv);
+  SK_GL_HOOK(glTexCoord1f);
+  SK_GL_HOOK(glTexCoord1fv);
+  SK_GL_HOOK(glTexCoord1i);
+  SK_GL_HOOK(glTexCoord1iv);
+  SK_GL_HOOK(glTexCoord1s);
+  SK_GL_HOOK(glTexCoord1sv);
+  SK_GL_HOOK(glTexCoord2d);
+  SK_GL_HOOK(glTexCoord2dv);
+  SK_GL_HOOK(glTexCoord2f);
+  SK_GL_HOOK(glTexCoord2fv);
+  SK_GL_HOOK(glTexCoord2i);
+  SK_GL_HOOK(glTexCoord2iv);
+  SK_GL_HOOK(glTexCoord2s);
+  SK_GL_HOOK(glTexCoord2sv);
+  SK_GL_HOOK(glTexCoord3d);
+  SK_GL_HOOK(glTexCoord3dv);
+  SK_GL_HOOK(glTexCoord3f);
+  SK_GL_HOOK(glTexCoord3fv);
+  SK_GL_HOOK(glTexCoord3i);
+  SK_GL_HOOK(glTexCoord3iv);
+  SK_GL_HOOK(glTexCoord3s);
+  SK_GL_HOOK(glTexCoord3sv);
+  SK_GL_HOOK(glTexCoord4d);
+  SK_GL_HOOK(glTexCoord4dv);
+  SK_GL_HOOK(glTexCoord4f);
+  SK_GL_HOOK(glTexCoord4fv);
+  SK_GL_HOOK(glTexCoord4i);
+  SK_GL_HOOK(glTexCoord4iv);
+  SK_GL_HOOK(glTexCoord4s);
+  SK_GL_HOOK(glTexCoord4sv);
+  SK_GL_HOOK(glTexCoordPointer);
+  SK_GL_HOOK(glTexEnvf);
+  SK_GL_HOOK(glTexEnvfv);
+  SK_GL_HOOK(glTexEnvi);
+  SK_GL_HOOK(glTexEnviv);
+  SK_GL_HOOK(glTexGend);
+  SK_GL_HOOK(glTexGendv);
+  SK_GL_HOOK(glTexGenf);
+  SK_GL_HOOK(glTexGenfv);
+  SK_GL_HOOK(glTexGeni);
+  SK_GL_HOOK(glTexGeniv);
+  SK_GL_HOOK(glTexImage1D);
+  SK_GL_HOOK(glTexImage2D);
+  SK_GL_HOOK(glTexParameterf);
+  SK_GL_HOOK(glTexParameterfv);
+  SK_GL_HOOK(glTexParameteri);
+  SK_GL_HOOK(glTexParameteriv);
+  SK_GL_HOOK(glTexSubImage1D);
+  SK_GL_HOOK(glTexSubImage2D);
+  SK_GL_HOOK(glTranslated);
+  SK_GL_HOOK(glTranslatef);
+  SK_GL_HOOK(glVertex2d);
+  SK_GL_HOOK(glVertex2dv);
+  SK_GL_HOOK(glVertex2f);
+  SK_GL_HOOK(glVertex2fv);
+  SK_GL_HOOK(glVertex2i);
+  SK_GL_HOOK(glVertex2iv);
+  SK_GL_HOOK(glVertex2s);
+  SK_GL_HOOK(glVertex2sv);
+  SK_GL_HOOK(glVertex3d);
+  SK_GL_HOOK(glVertex3dv);
+  SK_GL_HOOK(glVertex3f);
+  SK_GL_HOOK(glVertex3fv);
+  SK_GL_HOOK(glVertex3i);
+  SK_GL_HOOK(glVertex3iv);
+  SK_GL_HOOK(glVertex3s);
+  SK_GL_HOOK(glVertex3sv);
+  SK_GL_HOOK(glVertex4d);
+  SK_GL_HOOK(glVertex4dv);
+  SK_GL_HOOK(glVertex4f);
+  SK_GL_HOOK(glVertex4fv);
+  SK_GL_HOOK(glVertex4i);
+  SK_GL_HOOK(glVertex4iv);
+  SK_GL_HOOK(glVertex4s);
+  SK_GL_HOOK(glVertex4sv);
+  SK_GL_HOOK(glVertexPointer);
+  SK_GL_HOOK(glViewport);
+
+  SK_GL_HOOK(wglCopyContext);
+  SK_GL_HOOK(wglCreateLayerContext);
+  SK_GL_HOOK(wglDeleteContext);
+  SK_GL_HOOK(wglGetCurrentContext);
+  SK_GL_HOOK(wglGetCurrentDC);
+
+  SK_GL_HOOK(wglGetProcAddress);
+  SK_GL_HOOK(wglCreateContext);
+
+  SK_GL_HOOK(wglMakeCurrent);
+  SK_GL_HOOK(wglShareLists);
+  SK_GL_HOOK(wglUseFontBitmapsA);
+  SK_GL_HOOK(wglUseFontBitmapsW);
+  SK_GL_HOOK(wglChoosePixelFormat);
+  SK_GL_HOOK(wglDescribeLayerPlane);
+  SK_GL_HOOK(wglDescribePixelFormat);
+  SK_GL_HOOK(wglGetLayerPaletteEntries);
+  SK_GL_HOOK(wglGetPixelFormat);
+  SK_GL_HOOK(wglRealizeLayerPalette);
+  SK_GL_HOOK(wglSetLayerPaletteEntries);
+  SK_GL_HOOK(wglSetPixelFormat);
+
+  MH_EnableHook (MH_ALL_HOOKS);
 }

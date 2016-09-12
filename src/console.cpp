@@ -436,7 +436,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
 
   text [0] = '>';
 
-  extern    HMODULE hModSelf;
+  extern HMODULE __stdcall SK_GetDLL (void);
 
   HWND  hWndForeground;
   DWORD dwThreadId;
@@ -484,7 +484,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
 
   while (! (pHooks->keyboard = SetWindowsHookEx ( WH_KEYBOARD,
               KeyboardProc,
-                hModSelf,
+                SK_GetDLL (),
                   dwThreadId ))) {
     _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 

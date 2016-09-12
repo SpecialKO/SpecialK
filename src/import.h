@@ -37,7 +37,7 @@ extern const std::wstring SK_IMPORT_ARCH_X64;
 extern const std::wstring SK_IMPORT_ARCH_WIN32;
 
 struct import_t {
-  HMODULE                hLibrary     = 0;
+  HMODULE               hLibrary     = 0;
 
   sk::ParameterStringW* filename     = nullptr;
   sk::ParameterStringW* when         = nullptr; // 0 = Early,  1 = Late,  2 = Lazy
@@ -51,10 +51,12 @@ extern import_t imports [SK_MAX_IMPORTS];
 void SK_LoadEarlyImports64 (void);
 void SK_LoadLateImports64  (void);
 void SK_LoadLazyImports64  (void);
+void SK_LoadPlugIns64      (void);
 
 void SK_LoadEarlyImports32 (void);
 void SK_LoadLateImports32  (void);
 void SK_LoadLazyImports32  (void);
+void SK_LoadPlugIns32      (void);
 
 void SK_UnloadImports (void);
 
