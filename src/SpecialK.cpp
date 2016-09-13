@@ -188,7 +188,7 @@ DllMain ( HMODULE hModule,
       InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0);
 
       // We reserve the right to deny attaching the DLL, this will generally
-      //   happen for non-Steam games if the DLL is injected system-wide.
+      //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
         return FALSE;
 
@@ -200,7 +200,11 @@ DllMain ( HMODULE hModule,
                              0x00,
                                nullptr );
 #else
-      SK_Attach (dll_role);
+      // Similar to before, we can deny injection. If we fail at this point,
+      //   it is usually because the host application has been identified and
+      //     is blacklisted.
+      if (! SK_Attach (dll_role))
+        return FALSE;
 #endif
 
       // We need TLS managed by the real OpenGL DLL for context

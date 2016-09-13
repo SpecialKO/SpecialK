@@ -2447,14 +2447,21 @@ typedef void (WINAPI *finish_pfn)(void);
 
 void
 WINAPI
-dxgi_init_callback (finish_pfn finish)
+SK_HookDXGI (void)
 {
+  static volatile ULONG hooked = FALSE;
+
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+    return;
+
 extern HMODULE __stdcall SK_GetDLL (void);
 
   SK_D3D11_Init ();
   SK_D3D12_Init ();
 
-  HMODULE hBackend = backend_dll;
+  HMODULE hBackend = 
+    dll_role == DLL_ROLE::DXGI ? backend_dll :
+                                   GetModuleHandle (L"dxgi.dll");
 
 
   dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
@@ -2522,9 +2529,17 @@ extern HMODULE __stdcall SK_GetDLL (void);
 
   SK_D3D11_EnableHooks ();
   SK_D3D12_EnableHooks ();
+}
+
+void
+WINAPI
+dxgi_init_callback (finish_pfn finish)
+{
+  SK_HookDXGI ();
 
   finish ();
 }
+
 
 HMODULE local_dxgi = 0;
 

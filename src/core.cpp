@@ -1595,7 +1595,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     hMod = LoadLibraryEx (
              pwszModule,
                nullptr,
-                 0x00 /*DONT_RESOLVE_DLL_REFERENCES*/ );
+                 /*DONT_RESOLVE_DLL_REFERENCES*/0 );
   }
 
   LPVOID    pFuncAddr = nullptr;
@@ -1660,7 +1660,7 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     hMod = LoadLibraryEx (
              pwszModule,
                nullptr,
-                 0x00 /*DONT_RESOLVE_DLL_REFERENCES*/ );
+                 /*DONT_RESOLVE_DLL_REFERENCES*/0 );
   }
 
   LPVOID    pFuncAddr = nullptr;
@@ -1839,6 +1839,19 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   host_app = pwszShortName;
 
+  //
+  // Internal blacklist, the user will have the ability to setup their
+  //   own later...
+  //
+  if ( (! wcsicmp (host_app.c_str (), L"steam.exe"))              ||
+       (! wcsicmp (host_app.c_str (), L"GameOverlayUI.exe"))      ||
+       (! wcsicmp (host_app.c_str (), L"streaming_client.exe"))   ||
+       (! wcsicmp (host_app.c_str (), L"steamerrorreporter.exe")) ||
+       (! wcsicmp (host_app.c_str (), L"notepad.exe")) ) {
+    HeapDestroy (dll_heap);
+    return false;
+  }
+
   *pwszShortName = L'\0';
 
   // Allow users to centralize all files if they want
@@ -1892,8 +1905,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                                    HEAP_ZERO_MEMORY,
                                      sizeof (init_params_t) );
 
-  if (! init)
+  if (! init) {
+    HeapDestroy (dll_heap);
     return false;
+  }
 
   init->backend  = backend;
   init->callback = callback;
@@ -1906,7 +1921,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
-  if (dll_role != DLL_ROLE::OpenGL) {
+  if (SK_GetHostApp () != L"dis1_st.exe") {
     hInitThread =
       (HANDLE)
         _beginthreadex ( nullptr,
@@ -1915,15 +1930,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                                init,
                                  0x00,
                                    nullptr );
-
-    // Give other DXGI hookers time to queue up before processing any calls
-    //   that they make. But don't wait here infinitely, or we will deadlock!
-
-    /* Default: 0.25 secs seems adequate */
-    //if (hInitThread != 0) {
-      //Sleep (config.system.init_delay);
   } else {
-    DllThread (nullptr);
+    DllThread (init);
   }
 
   return true;

@@ -517,6 +517,23 @@ EnumLoadedModules (void)
                        L"Special K Compatibility Layer", MB_OK | MB_ICONEXCLAMATION );
         }
 
+        else if ( StrStrIW (wszModName, L"\\opengl32.dll")) {
+          extern void WINAPI SK_HookGL (void);
+
+          SK_HookGL ();
+        }
+
+        else if ( StrStrIW (wszModName, L"\\dxgi.dll")) {
+          extern void WINAPI SK_HookDXGI (void);
+
+          SK_HookDXGI ();
+        }
+
+        else if ( StrStrIW (wszModName, L"\\d3d9.dll")) {
+          extern void WINAPI SK_HookD3D9 (void);
+
+          SK_HookD3D9 ();
+        }
 
         pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
                         (uintptr_t)hMods [i],
@@ -538,6 +555,13 @@ EnumLoadedModules (void)
   // In 64-bit builds, RTSS is really sneaky :-/
   else if (SK_GetRTSSInstallDir ().length ()) {
     SK_ValidateGlobalRTSSProfile ();
+  }
+
+  else if ( GetModuleHandle (L"RTSSHooks.dll") ||
+            GetModuleHandle (L"RTSSHooks64.dll") ) {
+    SK_ValidateGlobalRTSSProfile ();
+
+    SK_ReHookLoadLibrary ();
   }
 }
 

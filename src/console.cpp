@@ -621,7 +621,7 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
 
       keys_ [vkCode] = 0x81;
 
-      if (new_press)
+      if (new_press && (! SK_IsSteamOverlayActive ()))
         SK_PluginKeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
 
       if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && keys_ [VK_TAB] && vkCode == VK_TAB && new_press) {

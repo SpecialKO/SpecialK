@@ -98,6 +98,7 @@ public:
   SK_Steam_OverlayManager (void) :
        activation ( this, &SK_Steam_OverlayManager::OnActivate      ) {
     cursor_visible_ = false;
+    active_         = false;
   }
 
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
@@ -116,11 +117,14 @@ public:
         if (! cursor_visible_) {
           ULONG calls = 0;
 
-          steam_log.Log (L"  (Steam Overlay Deactivation:  Hiding Mouse Cursor...");
+          steam_log.Log (L"  (Steam Overlay Deactivation:  Hiding Mouse Cursor... )");
           while (ShowCursor (FALSE) >= 0)
             ++calls;
 
-          steam_log.Log (L"  (Steam Overlay Deactivation:  Finished after %lu tries", calls);
+          if (calls == 0)
+            steam_log.Log (L"  (Steam Overlay Deactivation:  Overlay is functioning correctly => NOP)");
+          else
+            steam_log.Log (L"  (Steam Overlay Deactivation:  Overlay leaked state => Took %lu tries)", calls);
         }
       }
     }

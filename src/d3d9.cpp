@@ -195,9 +195,18 @@ typedef void (WINAPI *finish_pfn)(void);
 
 void
 WINAPI
-d3d9_init_callback (finish_pfn finish)
+SK_HookD3D9 (void)
 {
+  static volatile ULONG hooked = FALSE;
+
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+    return;
+
   extern HMODULE __stdcall SK_GetDLL (void);
+
+  HMODULE hBackend = 
+    dll_role == DLL_ROLE::D3D9 ? backend_dll :
+                                   GetModuleHandle (L"d3d9.dll");
 
   dll_log.Log (L"[   D3D9   ] Importing Direct3DCreate9{Ex}...");
   dll_log.Log (L"[   D3D9   ] ================================");
@@ -205,10 +214,10 @@ d3d9_init_callback (finish_pfn finish)
   if (! wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll")) {
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh",
       (Direct3DCreate9_Import) =  \
-        (Direct3DCreate9PROC)GetProcAddress (backend_dll, "Direct3DCreate9"));
+        (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9"));
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh",
       (Direct3DCreate9Ex_Import) =  \
-        (Direct3DCreate9ExPROC)GetProcAddress (backend_dll, "Direct3DCreate9Ex"));
+        (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
   } else {
     SK_CreateDLLHook ( L"d3d9.dll",
                        "Direct3DCreate9",
@@ -241,9 +250,17 @@ d3d9_init_callback (finish_pfn finish)
   WaitForSingleObject (hThread, INFINITE);
   CloseHandle         (hThread);
 #endif
+}
+
+void
+WINAPI
+d3d9_init_callback (finish_pfn finish)
+{
+  SK_HookD3D9 ();
 
   finish ();
 }
+
 
 bool
 SK::D3D9::Startup (void)
