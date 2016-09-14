@@ -68,7 +68,11 @@ typedef HMODULE (WINAPI *LoadLibraryExW_pfn)
 LoadLibraryExA_pfn LoadLibraryExA_Original = nullptr;
 LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;
 
-extern HMODULE hModSelf;
+extern HMODULE __stdcall SK_GetDLL (void);
+
+extern void WINAPI SK_HookGL   (void);
+extern void WINAPI SK_HookD3D9 (void);
+extern void WINAPI SK_HookDXGI (void);
 
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
@@ -159,10 +163,12 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
   std::wstring   mod_name   = SK_GetModuleName (hCallingMod);
   const wchar_t* wszModName = mod_name.c_str   ();
 
-  dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64s' <%s>",
-                  wszModName,
-                    lpFileName,
-                      lpFunction );
+  if (! SK_LoadLibrary_SILENCE) {
+    dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64s' <%s>",
+                    wszModName,
+                      lpFileName,
+                        lpFunction );
+  }
 
   // This is silly, this many string comparions per-load is
   //   not good. Hash the string and compare it in the future.
@@ -170,6 +176,15 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
        StrStrIW (wszModName, L"RTSSHooks") ||
        StrStrIW (wszModName, L"GeDoSaTo") )
     SK_ReHookLoadLibrary ();
+
+  else if (hCallingMod != SK_GetDLL ()) {
+         if ( StrStrIA (lpFileName, "d3d9.dll")     )
+      SK_HookD3D9 ();
+    else if ( StrStrIA (lpFileName, "dxgi.dll")     )
+      SK_HookDXGI ();
+    else if ( StrStrIA (lpFileName, "opengl32.dll") )
+      SK_HookGL   ();
+  }
 }
 
 void
@@ -180,10 +195,12 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
   std::wstring   mod_name   = SK_GetModuleName (hCallingMod);
   const wchar_t* wszModName = mod_name.c_str   ();
 
-  dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s>",
-                  wszModName,
-                    lpFileName,
-                      lpFunction );
+  if (! SK_LoadLibrary_SILENCE) {
+    dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s>",
+                    wszModName,
+                      lpFileName,
+                        lpFunction );
+  }
 
   // This is silly, this many string comparions per-load is
   //   not good. Hash the string and compare it in the future.
@@ -191,6 +208,15 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
        StrStrIW (wszModName, L"RTSSHooks") ||
        StrStrIW (wszModName, L"GeDoSaTo") )
     SK_ReHookLoadLibrary ();
+
+  else if (hCallingMod != SK_GetDLL ()) {
+         if ( StrStrIW (lpFileName, L"d3d9.dll")     )
+      SK_HookD3D9 ();
+    else if ( StrStrIW (lpFileName, L"dxgi.dll")     )
+      SK_HookDXGI ();
+    else if ( StrStrIW (lpFileName, L"opengl32.dll") )
+      SK_HookGL   ();
+  }
 }
 
 
@@ -209,7 +235,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   HMODULE hMod = LoadLibraryA_Original (lpFileName);
 
-  if (hModEarly != hMod && (! SK_LoadLibrary_SILENCE)) {
+  if (hModEarly != hMod) {
     SK_TraceLoadLibraryA ( SK_GetCallingDLL (),
                              lpFileName,
                                "LoadLibraryA" );
@@ -232,7 +258,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
 
   HMODULE hMod = LoadLibraryW_Original (lpFileName);
 
-  if (hModEarly != hMod && (! SK_LoadLibrary_SILENCE)) {
+  if (hModEarly != hMod) {
     SK_TraceLoadLibraryW ( SK_GetCallingDLL (),
                              lpFileName,
                                L"LoadLibraryW" );
@@ -259,8 +285,7 @@ LoadLibraryExA_Detour (
   HMODULE hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
 
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
-                                (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE)))
-                         && (! SK_LoadLibrary_SILENCE) ) {
+                                (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) ) {
     SK_TraceLoadLibraryA ( SK_GetCallingDLL (),
                              lpFileName,
                                "LoadLibraryExA" );
@@ -287,8 +312,7 @@ LoadLibraryExW_Detour (
   HMODULE hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
 
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
-                                (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE)))
-                         && (! SK_LoadLibrary_SILENCE) ) {
+                                (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) ) {
     SK_TraceLoadLibraryW ( SK_GetCallingDLL (),
                              lpFileName,
                                L"LoadLibraryExW" );
@@ -355,7 +379,7 @@ SK_ReHookLoadLibrary (void)
            (LPVOID*)&LoadLibraryA_Original,
                     &_loader_hooks.LoadLibraryA_target );
 
-  SK_EnableHook (_loader_hooks.LoadLibraryA_target);
+  MH_QueueEnableHook (_loader_hooks.LoadLibraryA_target);
 
 
   if (_loader_hooks.LoadLibraryW_target != nullptr) {
@@ -368,7 +392,7 @@ SK_ReHookLoadLibrary (void)
            (LPVOID*)&LoadLibraryW_Original,
                     &_loader_hooks.LoadLibraryW_target );
 
-  SK_EnableHook (_loader_hooks.LoadLibraryW_target);
+  MH_QueueEnableHook (_loader_hooks.LoadLibraryW_target);
 
 
   if (_loader_hooks.LoadLibraryExA_target != nullptr) {
@@ -381,7 +405,7 @@ SK_ReHookLoadLibrary (void)
            (LPVOID*)&LoadLibraryExA_Original,
                     &_loader_hooks.LoadLibraryExA_target );
 
-  SK_EnableHook (_loader_hooks.LoadLibraryExA_target);
+  MH_QueueEnableHook (_loader_hooks.LoadLibraryExA_target);
 
 
   if (_loader_hooks.LoadLibraryExW_target != nullptr) {
@@ -394,7 +418,9 @@ SK_ReHookLoadLibrary (void)
            (LPVOID*)&LoadLibraryExW_Original,
                     &_loader_hooks.LoadLibraryExW_target );
 
-  SK_EnableHook (_loader_hooks.LoadLibraryExW_target);
+  MH_QueueEnableHook (_loader_hooks.LoadLibraryExW_target);
+
+  MH_ApplyQueued ();
 }
 
 void
@@ -444,6 +470,10 @@ void
 __stdcall
 EnumLoadedModules (void)
 {
+  bool loaded_gl   = false;
+  bool loaded_d3d9 = false;
+  bool loaded_dxgi = false;
+
   // Begin logging new loads after this
   SK_LoadLibrary_SILENCE = false;
 
@@ -491,6 +521,7 @@ EnumLoadedModules (void)
                                 wszModName,
                                   &third_party_dlls.overlays.rtss_hooks );
           SK_ReHookLoadLibrary ();
+          Sleep (16);
         }
 
         else if ( (! third_party_dlls.overlays.steam_overlay) &&
@@ -500,6 +531,7 @@ EnumLoadedModules (void)
                                 wszModName,
                                   &third_party_dlls.overlays.steam_overlay );
           SK_ReHookLoadLibrary ();
+          Sleep (16);
         }
 
         else if ( (! third_party_dlls.misc.gedosato) &&
@@ -509,31 +541,47 @@ EnumLoadedModules (void)
                                 wszModName,
                                   &third_party_dlls.misc.gedosato );
           SK_ReHookLoadLibrary ();
+          Sleep (16);
         }
 
         else if ( StrStrIW (wszModName, L"ltc_help")) {
+          //std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
+
           MessageBox ( NULL,
-                       L"AMD Gaming Evolved or Raptr is running, please exit this software to prevent compatibility problems.",
+                       L"AMD Gaming Evolved or Raptr is running; expect weird"
+                       L" things to happen including the game mysteriously "
+                       L"exiting.\r\n\r\n\tFor best results, do not use that "
+                       L"software's overlay features with this game.",
                        L"Special K Compatibility Layer", MB_OK | MB_ICONEXCLAMATION );
+
+          //SK_ResumeThreads (tids);
         }
 
-        else if ( StrStrIW (wszModName, L"\\opengl32.dll")) {
-          extern void WINAPI SK_HookGL (void);
+        else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (! (dll_role & DLL_ROLE::OpenGL))) {
+          dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
           SK_HookGL ();
+
+          loaded_gl = true;
         }
 
-        else if ( StrStrIW (wszModName, L"\\dxgi.dll")) {
-          extern void WINAPI SK_HookDXGI (void);
+#if 0
+        else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (! (dll_role & DLL_ROLE::DXGI))) {
+          dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
           SK_HookDXGI ();
+
+          loaded_dxgi = true;
         }
 
-        else if ( StrStrIW (wszModName, L"\\d3d9.dll")) {
-          extern void WINAPI SK_HookD3D9 (void);
+        else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (! (dll_role & DLL_ROLE::D3D9))) {
+          dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
           SK_HookD3D9 ();
+
+          loaded_d3d9 = true;
         }
+#endif
 
         pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
                         (uintptr_t)hMods [i],
@@ -560,8 +608,37 @@ EnumLoadedModules (void)
   else if ( GetModuleHandle (L"RTSSHooks.dll") ||
             GetModuleHandle (L"RTSSHooks64.dll") ) {
     SK_ValidateGlobalRTSSProfile ();
+    // RTSS is in High App Detection or Stealth Mode
+    //
+    //   The software is probably going to crash.
+    dll_log.Log ( L"[RTSSCompat] RTSS appears to be in High App Detection or Stealth mode, "
+                  L"your game is probably going to crash." );
+  }
 
-    SK_ReHookLoadLibrary ();
+  extern void __stdcall SK_TestRenderImports (HMODULE hMod, bool*, bool*, bool*);
+
+  bool imports_gl   = false,
+       imports_d3d9 = false,
+       imports_dxgi = false;
+
+  SK_TestRenderImports (GetModuleHandle (nullptr), &imports_gl, &imports_d3d9, &imports_dxgi);
+
+  if ( (! loaded_gl) && imports_gl && (! (dll_role & DLL_ROLE::OpenGL))) {
+    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
+
+    SK_HookGL ();
+  }
+
+  if ( (! loaded_dxgi) && imports_dxgi && (! (dll_role & DLL_ROLE::DXGI))) {
+    //dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+
+    //SK_HookDXGI ();
+  }
+
+  if ( (! loaded_d3d9) && imports_d3d9 && (! (dll_role & DLL_ROLE::D3D9))) {
+    //dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+
+    //SK_HookD3D9 ();
   }
 }
 

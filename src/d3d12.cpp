@@ -117,8 +117,6 @@ SK_D3D12_Init (void)
     SK::DXGI::hModD3D12 = LoadLibrary (L"d3d12.dll");
 
     if (SK::DXGI::hModD3D12 != nullptr) {
-      dll_log.Log (L"[  D3D 12  ]   Hooking D3D12");
-
       SK_CreateDLLHook ( L"d3d12.dll", "D3D12CreateDevice",
                           D3D12CreateDevice_Detour,
                 (LPVOID *)&D3D12CreateDevice_Import,
@@ -151,6 +149,9 @@ HookD3D12 (LPVOID user)
     CloseHandle (GetCurrentThread ());
     return 0;
   }
+
+  if (SK::DXGI::hModD3D12 != nullptr) {
+    dll_log.Log (L"[  D3D 12  ]   Hooking D3D12");
 
 #if 0
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
@@ -222,7 +223,7 @@ HookD3D12 (LPVOID user)
   if (SUCCEEDED (hrx)) {
 #endif
     InterlockedExchange (&__d3d12_ready, TRUE);
-//  }
+  }
 
   CloseHandle (GetCurrentThread ());
 

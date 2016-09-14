@@ -1720,6 +1720,27 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
 
 MH_STATUS
 WINAPI
+SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
+                        LPVOID *ppVFTable,
+                        DWORD   dwOffset,
+                        LPVOID  pDetour,
+                        LPVOID *ppOriginal )
+{
+  MH_STATUS ret =
+    SK_CreateFuncHook (
+      pwszFuncName,
+        ppVFTable [dwOffset],
+          pDetour,
+            ppOriginal );
+
+  if (ret == MH_OK)
+    ret = MH_QueueEnableHook (ppVFTable [dwOffset]);
+
+  return ret;
+}
+
+MH_STATUS
+WINAPI
 SK_EnableHook (LPVOID pTarget)
 {
   MH_STATUS status =

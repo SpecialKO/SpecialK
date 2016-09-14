@@ -159,7 +159,7 @@ void
 WINAPI
 opengl_init_callback (finish_pfn finish)
 {
-  //SK_HookGL ();
+  SK_HookGL ();
 
   finish ();
 }
@@ -216,7 +216,14 @@ SK::OpenGL::Startup (void)
   //
   //   >>> This was VERY hard to debug, so please pay attention! <<<
   //
-  SK_LoadRealGL ();
+  std::wstring   dll_name   = SK_GetModuleName (SK_GetDLL ());
+  const wchar_t* wszDllName = dll_name.c_str   ();
+
+  if (! wcsstr (wszDllName, L"SpecialK") ) {
+    SK_LoadRealGL ();
+  } else {
+    LoadLibrary (L"OpenGL32.dll");
+  }
 
   return SK_StartupCore (L"OpenGL32", opengl_init_callback);
 }
@@ -1665,21 +1672,7 @@ SK_HookGL (void)
     dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
 
     if (true) {
-      wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
-
-#ifdef _WIN64
-      GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#else
-      BOOL bWOW64;
-      ::IsWow64Process (GetCurrentProcess (), &bWOW64);
-
-      if (bWOW64)
-        GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
-      else
-        GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#endif
-
-      lstrcatW (wszBackendDLL, L"\\OpenGL32.dll");
+      wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
       SK_CreateDLLHook ( wszBackendDLL,
                         "wglSwapBuffers",

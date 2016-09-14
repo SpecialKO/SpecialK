@@ -544,7 +544,9 @@
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <BrowseInformation>true</BrowseInformation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <AssemblerOutput>All</AssemblerOutput>
+      <PreprocessKeepComments>true</PreprocessKeepComments>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

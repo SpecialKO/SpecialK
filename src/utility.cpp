@@ -30,6 +30,8 @@
 #include <process.h>
 #include <tlhelp32.h>
 
+#include <Shlwapi.h>
+
 int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
@@ -890,6 +892,17 @@ SK_GetModuleName (HMODULE hDll)
   return wszShort;
 }
 
+std::wstring
+SK_GetModuleFullName (HMODULE hDll)
+{
+  wchar_t wszDllFullName [MAX_PATH];
+          wszDllFullName [MAX_PATH - 1] = L'\0';
+
+  GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
+
+  return wszDllFullName;
+}
+
 #include <tlhelp32.h>
 
 PROCESSENTRY32
@@ -1050,3 +1063,136 @@ SK_ResumeThreads (std::queue <DWORD> threads)
     threads.pop ();
   }
 }
+
+
+
+DWORD
+__stdcall
+SK_RVA2FileOff ( DWORD                 rva,
+                 PIMAGE_SECTION_HEADER pSec,
+                 PIMAGE_NT_HEADERS     pNt );
+
+void
+__stdcall
+SK_TestRenderImports (HMODULE hMod, bool* gl, bool* d3d9, bool* dxgi)
+{
+  wchar_t wszDllFullName [MAX_PATH];
+          wszDllFullName [MAX_PATH - 1] = L'\0';
+
+  GetModuleFileName (hMod, wszDllFullName, MAX_PATH - 1);
+
+  HANDLE hFile = 
+    CreateFile ( wszDllFullName,
+                   GENERIC_READ,
+                     0x00,
+                       nullptr,
+                         OPEN_EXISTING,
+                           FILE_ATTRIBUTE_NORMAL,
+                             NULL );
+
+  DWORD dwRead,
+        dwSize = GetFileSize (hFile, nullptr);
+
+  LPVOID pImage = VirtualAlloc ( nullptr,
+                                   dwSize,
+                                     MEM_COMMIT,
+                                       PAGE_READWRITE );
+
+  ReadFile    (hFile, pImage, dwSize, &dwRead, nullptr);
+  CloseHandle (hFile);
+
+  __try
+  {
+    PIMAGE_NT_HEADERS     pNtHdr =
+      (PIMAGE_NT_HEADERS)(
+        PCHAR (pImage) + PIMAGE_DOS_HEADER (pImage)->e_lfanew
+      );
+
+    PIMAGE_SECTION_HEADER pSecHdr =
+      IMAGE_FIRST_SECTION (pNtHdr);
+
+    PIMAGE_IMPORT_DESCRIPTOR pImpDesc;
+    PIMAGE_DATA_DIRECTORY    pImgDir = 
+      &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
+
+    if (pImgDir->Size != 0)
+    {
+      pImpDesc =
+        (PIMAGE_IMPORT_DESCRIPTOR)(
+          (DWORD_PTR)pImage + SK_RVA2FileOff (
+                                pImgDir->VirtualAddress,
+                                  pSecHdr,
+                                    pNtHdr
+                              )
+        );
+
+      while (pImpDesc->Name != NULL)
+      {
+        //dll_log.Log ( L"[ImportTbl] (Library Name   : %-28hs)",
+          //(PCHAR)(
+            //(DWORD_PTR)pImage + SK_RVA2FileOff (
+                                  //(pImpDesc++)->Name,
+                                    //pSecHdr,
+                                      //pNtHdr
+                                //)
+          //)
+        //);
+
+        PCHAR szImport = 
+          (PCHAR)(
+            (DWORD_PTR)pImage + SK_RVA2FileOff (
+                                  (pImpDesc++)->Name,
+                                    pSecHdr,
+                                      pNtHdr
+                                )
+          );
+
+        if ( gl != nullptr && StrStrIA (szImport, "OpenGL32.dll") )
+          *gl = true;
+
+        if ( d3d9 != nullptr && StrStrIA (szImport, "d3d9.dll") )
+          *d3d9 = true;
+
+        if ( dxgi != nullptr && StrStrIA (szImport, "dxgi.dll") )
+          *dxgi = true;
+      }
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+    if (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION) {
+      dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
+                    L"Walk Import Table." );
+    }
+  }
+
+  if (pImage != nullptr)
+    VirtualFree (pImage, dwSize, MEM_DECOMMIT);
+
+  return;
+}
+
+DWORD
+__stdcall
+SK_RVA2FileOff ( DWORD                 rva,
+                 PIMAGE_SECTION_HEADER pSecRoot,
+                 PIMAGE_NT_HEADERS     pNt )
+{
+  PIMAGE_SECTION_HEADER pSec;
+
+  if (rva == 0)
+    return rva;
+
+  pSec = pSecRoot;
+
+  for (WORD i = 0; i < pNt->FileHeader.NumberOfSections; i++)
+  {
+    if ( rva >= pSec->VirtualAddress &&
+         rva <  pSec->VirtualAddress + pSec->Misc.VirtualSize )
+      break;
+
+    ++pSec;
+  }
+
+  return (rva - pSec->VirtualAddress + pSec->PointerToRawData);
+} 

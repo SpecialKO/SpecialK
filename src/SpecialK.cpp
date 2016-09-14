@@ -29,6 +29,10 @@
 #include "log.h"
 #include "utility.h"
 
+// Indicates that the DLL is injected purely as a hooker, rather than
+//   as a wrapper DLL.
+bool injected = false;
+
 DLL_ROLE dll_role;
 
 bool
@@ -50,7 +54,7 @@ SK_EstablishDllRole (HMODULE hModule)
 
 
   //
-  // This is an injected DLL, not a drop-in DLL...
+  // This is an injected DLL, not a wrapper DLL...
   //
   else if ( wcsstr (wszDllName, L"SpecialK") )
   {
@@ -66,6 +70,8 @@ SK_EstablishDllRole (HMODULE hModule)
     // Opted out of automatic injection
     else
       return false;
+
+    injected = true;
   }
 
 
@@ -215,44 +221,50 @@ DllMain ( HMODULE hModule,
 
 #ifndef IGNORE_THREAD_ATTACH
     case DLL_THREAD_ATTACH:
-      //InterlockedIncrement (&refs);
+    {
       //dll_log.Log (L"Custom dxgi.dll Attached (tid=%x)",
       //                GetCurrentThreadId ());
-      if (dll_role == DLL_ROLE::OpenGL) {
-        extern HMODULE SK_LoadRealGL (void);
-        SK_LoadRealGL ();
-      }
+      if (! injected) {
+        if (dll_role == DLL_ROLE::OpenGL) {
+          extern HMODULE SK_LoadRealGL (void);
+          SK_LoadRealGL ();
+        }
 
-      else if (dll_role == DLL_ROLE::D3D9) {
-        extern HMODULE WINAPI SK_LoadRealD3D9 (void);
-        SK_LoadRealD3D9 ();
-      }
+        else if (dll_role == DLL_ROLE::D3D9) {
+          extern HMODULE WINAPI SK_LoadRealD3D9 (void);
+          SK_LoadRealD3D9 ();
+        }
 
-      else if (dll_role == DLL_ROLE::DXGI) {
-        extern HMODULE SK_LoadRealDXGI (void);
-        SK_LoadRealDXGI ();
+        else if (dll_role == DLL_ROLE::DXGI) {
+          extern HMODULE SK_LoadRealDXGI (void);
+          SK_LoadRealDXGI ();
+        }
       }
-      break;
+    } break;
 
     case DLL_THREAD_DETACH:
+    {
       //InterlockedDecrement (&refs);
       //dll_log.Log (L"Custom dxgi.dll Detached (tid=%x)",
       //                GetCurrentThreadId ());
-      if (dll_role == DLL_ROLE::OpenGL) {
-        extern void SK_FreeRealGL (void);
-        SK_FreeRealGL ();
-      }
 
-      else if (dll_role == DLL_ROLE::D3D9) {
-        extern void WINAPI SK_FreeRealD3D9 (void);
-        SK_FreeRealD3D9 ();
-      }
+      if (! injected) {
+        if (dll_role == DLL_ROLE::OpenGL) {
+          extern void SK_FreeRealGL (void);
+          SK_FreeRealGL ();
+        }
 
-      else if (dll_role == DLL_ROLE::DXGI) {
-        extern void SK_FreeRealDXGI (void);
-        SK_FreeRealDXGI ();
+        else if (dll_role == DLL_ROLE::D3D9) {
+          extern void WINAPI SK_FreeRealD3D9 (void);
+          SK_FreeRealD3D9 ();
+        }
+
+        else if (dll_role == DLL_ROLE::DXGI) {
+          extern void SK_FreeRealDXGI (void);
+          SK_FreeRealDXGI ();
+        }
       }
-      break;
+    } break;
 #endif
 
     case DLL_PROCESS_DETACH:

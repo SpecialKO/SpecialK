@@ -199,8 +199,9 @@ SK_HookD3D9 (void)
 {
   static volatile ULONG hooked = FALSE;
 
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE)) {
     return;
+  }
 
   extern HMODULE __stdcall SK_GetDLL (void);
 
@@ -219,20 +220,37 @@ SK_HookD3D9 (void)
       (Direct3DCreate9Ex_Import) =  \
         (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
   } else {
-    SK_CreateDLLHook ( L"d3d9.dll",
-                       "Direct3DCreate9",
-                       Direct3DCreate9,
-            (LPVOID *)&Direct3DCreate9_Import );
+    extern
+    MH_STATUS
+    WINAPI
+    SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
+                        LPVOID  pDetour,    LPVOID *ppOriginal,
+                        LPVOID *ppFuncAddr );
 
-    SK_CreateDLLHook ( L"d3d9.dll",
-                       "Direct3DCreate9Ex",
-                       Direct3DCreate9Ex,
-            (LPVOID *)&Direct3DCreate9Ex_Import );
+    LPVOID Create9   = nullptr;
+    LPVOID Create9Ex = nullptr;
+
+    SK_CreateDLLHook2 ( L"d3d9.dll",
+                        "Direct3DCreate9",
+                        Direct3DCreate9,
+             (LPVOID *)&Direct3DCreate9_Import,
+                       &Create9 );
+
+    SK_CreateDLLHook2 ( L"d3d9.dll",
+                        "Direct3DCreate9Ex",
+                        Direct3DCreate9Ex,
+             (LPVOID *)&Direct3DCreate9Ex_Import,
+                       &Create9Ex );
+
+    MH_QueueEnableHook (Create9);
+    MH_QueueEnableHook (Create9Ex);
 
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh  { Hooked }",
       (Direct3DCreate9_Import) );
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh  { Hooked }",
       (Direct3DCreate9Ex_Import) );
+
+    MH_ApplyQueued ();
   }
 
 #if 0
@@ -285,23 +303,23 @@ SK::D3D9::Shutdown (void)
 }
 
 
-extern "C" MH_STATUS
+extern MH_STATUS
 WINAPI
-SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
-                       LPVOID *ppVFTable,
-                       DWORD   dwOffset,
-                       LPVOID  pDetour,
-                       LPVOID *ppOriginal );
+SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
+                        LPVOID *ppVFTable,
+                        DWORD   dwOffset,
+                        LPVOID  pDetour,
+                        LPVOID *ppOriginal );
 
 #define D3D9_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {     \
   void** vftable = *(void***)*(_Base);                                        \
                                                                               \
   if ((_Original) == nullptr) {                                               \
-    SK_CreateVFTableHook ( L##_Name,                                          \
-                             vftable,                                         \
-                               (_Index),                                      \
-                                 (_Override),                                 \
-                                   (LPVOID *)&(_Original));                   \
+    SK_CreateVFTableHook2 ( L##_Name,                                         \
+                              vftable,                                        \
+                                (_Index),                                     \
+                                  (_Override),                                \
+                                    (LPVOID *)&(_Original));                  \
   }                                                                           \
 }
 
@@ -810,6 +828,8 @@ D3D9CreateAdditionalSwapChain_Override (
                      "IDirect3DSwapChain9::Present",
                      D3D9PresentSwapCallback, D3D9PresentSwap_Original,
                      D3D9PresentSwapChain_pfn );
+
+    MH_ApplyQueued ();
   }
 
   return hr;
@@ -1038,6 +1058,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                                       pPresentationParameters));
 
   SK_D3D9_HookPresent (This);
+  MH_ApplyQueued ();
 
   return hr;
 }
@@ -1069,6 +1090,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   if (SUCCEEDED (This->QueryInterface ( IID_PPV_ARGS (&pDev) ))) {
     SK_D3D9_HookPresent (pDev);
+    MH_ApplyQueued      ();
   }
 
   return hr;
@@ -1801,6 +1823,8 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (hFocusWindow != 0)
     hWndRender = hFocusWindow;
 
+  MH_ApplyQueued ();
+
   return ret;
 }
 
@@ -2038,6 +2062,8 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   extern HWND hWndRender;
   if (hFocusWindow != 0)
     hWndRender = hFocusWindow;
+
+  MH_ApplyQueued ();
 
   return ret;
 }
@@ -2410,6 +2436,8 @@ HookD3D9Ex (LPVOID user)
     }
 
     DestroyWindow (hwnd);
+
+    MH_ApplyQueued ();
 
     InterlockedExchange (&__d3d9_ready, TRUE);
   }
