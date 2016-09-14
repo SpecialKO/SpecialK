@@ -176,18 +176,16 @@ SK::Framerate::Init (void)
   pCommandProc->AddVariable ( "TargetFPS",
           new SK_IVarStub <float> (&target_fps));
 
-  SK_CreateDLLHook ( L"kernel32.dll", "QueryPerformanceCounter",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "QueryPerformanceCounter",
                      QueryPerformanceCounter_Detour,
           (LPVOID *)&QueryPerformanceCounter_Original,
           (LPVOID *)&pfnQueryPerformanceCounter );
-  SK_EnableHook (pfnQueryPerformanceCounter);
 
   if (! GetModuleHandle (L"PrettyPrinny.dll")) {
-    SK_CreateDLLHook ( L"kernel32.dll", "Sleep",
+    SK_CreateDLLHook2 ( L"kernel32.dll", "Sleep",
                        Sleep_Detour,
             (LPVOID *)&Sleep_Original,
             (LPVOID *)&pfnSleep );
-    SK_EnableHook (pfnSleep);
   }
 #if 0
   else {
@@ -197,6 +195,8 @@ SK::Framerate::Init (void)
                            "QueryPerformanceCounter" );
   }
 #endif
+
+  MH_ApplyQueued ();
 }
 
 void

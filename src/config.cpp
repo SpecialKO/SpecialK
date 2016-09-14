@@ -197,6 +197,10 @@ struct {
   } cursor;
 } input;
 
+struct {
+  sk::ParameterBool* ignore_raptr;
+} compatibility;
+
 
 bool
 SK_LoadConfig (std::wstring name) {
@@ -378,6 +382,17 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Input.Cursor",
         L"Timeout" );
+
+
+  compatibility.ignore_raptr =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Ignore Raptr")
+      );
+  compatibility.ignore_raptr->register_to_ini (
+    dll_ini,
+      L"Compatibility.General",
+        L"IgnoreRaptr" );
 
 
   mem_reserve =
@@ -1327,6 +1342,9 @@ SK_LoadConfig (std::wstring name) {
   if (game_output->load ())
     config.system.game_output = game_output->get_value ();
 
+  if (compatibility.ignore_raptr->load ())
+    config.compatibility.ignore_raptr = compatibility.ignore_raptr->get_value ();
+
   if (ignore_rtss_delay->load ())
     config.system.ignore_rtss_delay = ignore_rtss_delay->get_value ();
 
@@ -1455,6 +1473,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   steam.log.silent->set_value                (config.steam.silent);
 
+  compatibility.ignore_raptr->set_value      (config.compatibility.ignore_raptr);
+
   init_delay->set_value                      (config.system.init_delay);
   silent->set_value                          (config.system.silent);
   prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
@@ -1556,6 +1576,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   steam.system.preload->store             ();
   steam.system.appid->store               ();
   steam.log.silent->store                 ();
+
+  compatibility.ignore_raptr->store      ();
 
   init_delay->store                      ();
   silent->store                          ();

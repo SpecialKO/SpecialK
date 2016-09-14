@@ -1061,52 +1061,52 @@ SK_DS3_InitPlugin (void)
   }
 
 #if 0
-  SK_CreateDLLHook ( L"user32.dll",
+  SK_CreateDLLHook2 ( L"user32.dll",
                       "GetSystemMetrics",
                        GetSystemMetrics_Detour,
             (LPVOID *)&GetSystemMetrics_Original );
 #endif
 
-  SK_CreateDLLHook ( L"user32.dll",
-                     "SetWindowPos",
-                      SK_DS3_SetWindowPos,
-           (LPVOID *)&SetWindowPos_Original );
+  SK_CreateDLLHook2 ( L"user32.dll",
+                      "SetWindowPos",
+                       SK_DS3_SetWindowPos,
+            (LPVOID *)&SetWindowPos_Original );
 
-  SK_CreateDLLHook ( L"user32.dll",
-                     "SetActiveWindow",
-                      SK_DS3_SetActiveWindow,
-           (LPVOID *)&SetActiveWindow_Original );
+  SK_CreateDLLHook2 ( L"user32.dll",
+                      "SetActiveWindow",
+                       SK_DS3_SetActiveWindow,
+            (LPVOID *)&SetActiveWindow_Original );
 
   SK_CreateFuncHook ( L"ID3D11DeviceContext::RSSetViewports",
                         D3D11_RSSetViewports_Override,
                           SK_DS3_RSSetViewports,
                             (LPVOID *)&D3D11_RSSetViewports_Original );
-  SK_EnableHook (D3D11_RSSetViewports_Override);
+  MH_QueueEnableHook (D3D11_RSSetViewports_Override);
 
   SK_CreateFuncHook ( L"IDXGISwapChain::ResizeTarget",
                         DXGISwap_ResizeTarget_Override,
                           SK_DS3_ResizeTarget,
                             (LPVOID *)&DXGISwap_ResizeTarget_Original );
-  SK_EnableHook (DXGISwap_ResizeTarget_Override);
+  MH_QueueEnableHook (DXGISwap_ResizeTarget_Override);
 
   SK_CreateFuncHook ( L"IDXGISwapChain::ResizeBuffers",
                         DXGISwap_ResizeBuffers_Override,
                           SK_DS3_ResizeBuffers,
                             (LPVOID *)&DXGISwap_ResizeBuffers_Original );
-  SK_EnableHook (DXGISwap_ResizeBuffers_Override);
+  MH_QueueEnableHook (DXGISwap_ResizeBuffers_Override);
 
 
   SK_CreateFuncHook ( L"IDXGISwapChain::GetFullscreenState",
                         DXGISwap_GetFullscreenState_Override,
                           SK_DS3_GetFullscreenState,
                             (LPVOID *)&DXGISwap_GetFullscreenState_Original );
-  SK_EnableHook (DXGISwap_GetFullscreenState_Override);
+  MH_QueueEnableHook (DXGISwap_GetFullscreenState_Override);
 
   SK_CreateFuncHook ( L"IDXGISwapChain::SetFullscreenState",
                         DXGISwap_SetFullscreenState_Override,
                           SK_DS3_SetFullscreenState,
                             (LPVOID *)&DXGISwap_SetFullscreenState_Original );
-  SK_EnableHook (DXGISwap_SetFullscreenState_Override);
+  MH_QueueEnableHook (DXGISwap_SetFullscreenState_Override);
 
 
   LPVOID lpvPluginKeyPress = nullptr;
@@ -1115,15 +1115,15 @@ SK_DS3_InitPlugin (void)
                         SK_PluginKeyPress,
                           SK_DS3_PluginKeyPress,
                             (LPVOID *)&lpvPluginKeyPress );
-  SK_EnableHook (SK_PluginKeyPress);
+  MH_QueueEnableHook (SK_PluginKeyPress);
 
 
-  SK_CreateDLLHook ( L"D3DX11_43.DLL",
+  SK_CreateDLLHook2 ( L"D3DX11_43.DLL",
                      "D3DX11CreateTextureFromMemory",
                      SK_DS3_D3DX11CreateTextureFromMemory,
           (LPVOID *)&D3DX11CreateTextureFromMemory_Original );
 
-  SK_CreateDLLHook ( L"D3DX11_43.DLL",
+  SK_CreateDLLHook2 ( L"D3DX11_43.DLL",
                      "D3DX11SaveTextureToFileW",
                      SK_DS3_D3DX11SaveTextureToFileW,
           (LPVOID *)&D3DX11SaveTextureToFileW_Original );
@@ -1135,8 +1135,10 @@ SK_DS3_InitPlugin (void)
                          SK_ShutdownCore,
                            SK_DS3_ShutdownPlugin,
                              (LPVOID *)&SK_ShutdownCore_Original );
-  SK_EnableHook (SK_ShutdownCore);
+  MH_QueueEnableHook (SK_ShutdownCore);
 #endif
+
+  MH_ApplyQueued ();
 }
 
 

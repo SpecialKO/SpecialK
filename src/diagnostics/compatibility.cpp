@@ -544,15 +544,29 @@ EnumLoadedModules (void)
           Sleep (16);
         }
 
-        else if ( StrStrIW (wszModName, L"ltc_help")) {
+        else if ( StrStrIW (wszModName, L"ltc_help") && (! config.compatibility.ignore_raptr) ) {
           //std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
 
-          MessageBox ( NULL,
-                       L"AMD Gaming Evolved or Raptr is running; expect weird"
-                       L" things to happen including the game mysteriously "
-                       L"exiting.\r\n\r\n\tFor best results, do not use that "
-                       L"software's overlay features with this game.",
-                       L"Special K Compatibility Layer", MB_OK | MB_ICONEXCLAMATION );
+          void
+          SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
+                                  PCWSTR   wszMainIcon,
+                                  wchar_t* wszContent,
+                                  wchar_t* wszConfirmation,
+                                  wchar_t* wszFooter,
+                                  PCWSTR   wszFooterIcon,
+                                  wchar_t* wszVerifyText,
+                                  BOOL*    verify );
+
+          SK_TaskBoxWithConfirm ( L"AMD Gaming Evolved or Raptr is running",
+                                  TD_WARNING_ICON,
+                                  L"In some software you can expect weird things to happen, including"
+                                  L" the game mysteriously disappearing.\n\n"
+                                  L"If the game behaves strangely, you may need to turn the Raptr overlay off.",
+                                  nullptr,
+                                  nullptr,
+                                  nullptr,
+                                  L"Check here to ignore this warning in the future.",
+                                  (BOOL *)&config.compatibility.ignore_raptr );
 
           //SK_ResumeThreads (tids);
         }
@@ -565,23 +579,21 @@ EnumLoadedModules (void)
           loaded_gl = true;
         }
 
-#if 0
         else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (! (dll_role & DLL_ROLE::DXGI))) {
-          dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+          //dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
-          SK_HookDXGI ();
+          //SK_HookDXGI ();
 
           loaded_dxgi = true;
         }
 
         else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (! (dll_role & DLL_ROLE::D3D9))) {
-          dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+          //dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
-          SK_HookD3D9 ();
+          //SK_HookD3D9 ();
 
           loaded_d3d9 = true;
         }
-#endif
 
         pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
                         (uintptr_t)hMods [i],
@@ -859,4 +871,64 @@ SK_ValidateGlobalRTSSProfile (void)
   SK_ResumeThreads (suspended_tids);
 
   return TRUE;
+}
+
+
+void
+SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
+                        PCWSTR   wszMainIcon,
+                        wchar_t* wszContent,
+                        wchar_t* wszConfirmation,
+                        wchar_t* wszFooter,
+                        PCWSTR   wszFooterIcon,
+                        wchar_t* wszVerifyText,
+                        BOOL*    verify )
+{
+  int               nButtonPressed = 0;
+  TASKDIALOGCONFIG  config         = {0};
+
+  int idx = 0;
+
+  HWND hWndForeground = GetForegroundWindow ();
+
+  config.cbSize             = sizeof (config);
+  config.hInstance          = GetModuleHandle (nullptr);
+  config.hwndParent         = hWndForeground;
+  config.pszWindowTitle     = L"Special K Compatibility Layer";
+  config.dwCommonButtons    = TDCBF_OK_BUTTON;
+  config.pButtons           = nullptr;
+  config.cButtons           = 0;
+  config.dwFlags            = 0x00;
+  config.pfCallback         = nullptr;
+  config.lpCallbackData     = 0;
+
+  config.pszMainInstruction = wszMainInstruction;
+
+  DWORD dwProcId;
+  DWORD dwThreadId =
+      GetWindowThreadProcessId (hWndForeground, &dwProcId);
+
+  std::queue <DWORD> suspended_tids;
+
+  if (dwProcId == GetCurrentProcessId ()) {
+    // Make the following dialog the ONLY thing the process is doing
+    suspended_tids =
+      SK_SuspendAllOtherThreads ();
+  } else {
+    config.hwndParent = GetDesktopWindow ();
+  }
+
+  config.pszMainIcon        = wszMainIcon;
+  config.pszContent         = wszContent;
+
+  config.pszFooterIcon      = wszFooterIcon;
+  config.pszFooter          = wszFooter;
+
+  config.pszVerificationText = wszVerifyText;
+
+  TaskDialogIndirect (&config, nullptr, nullptr, verify);
+
+  if (dwProcId == GetCurrentProcessId ()) {
+    SK_ResumeThreads (suspended_tids);
+  }
 }

@@ -72,38 +72,40 @@ DWORD
 WINAPI
 DXGI_Thread (LPVOID user)
 {
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+  if (! (dll_role & DLL_ROLE::DXGI)) {
+    CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 
-  typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)(REFIID,IDXGIFactory**);
+    typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)(REFIID,IDXGIFactory**);
 
-  static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
-  static CreateDXGIFactory_pfn CreateDXGIFactory =
-    (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
+    static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
+    static CreateDXGIFactory_pfn CreateDXGIFactory =
+      (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
 
-  IDXGIFactory* factory = nullptr;
+    IDXGIFactory* factory = nullptr;
 
-  // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
-  if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory)) && factory != nullptr) {
-    IDXGIAdapter* adapter = nullptr;
+    // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
+    if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory)) && factory != nullptr) {
+      IDXGIAdapter* adapter = nullptr;
 
-    if  (SUCCEEDED (factory->EnumAdapters (0, &adapter)) && adapter != nullptr) {
-      DXGI_ADAPTER_DESC desc;
+      if  (SUCCEEDED (factory->EnumAdapters (0, &adapter)) && adapter != nullptr) {
+        DXGI_ADAPTER_DESC desc;
 
-      IDXGIAdapter* adapter_original = adapter;
+        IDXGIAdapter* adapter_original = adapter;
 
-      if (SUCCEEDED (adapter->GetDesc (&desc))) {
-        if (desc.VendorId == 0x8086) {
-          dll_log.Log (L"[ DXGI 1.0 ] Game appears to be running on an Intel GPU?!");
+        if (SUCCEEDED (adapter->GetDesc (&desc))) {
+          if (desc.VendorId == 0x8086) {
+            dll_log.Log (L"[ DXGI 1.0 ] Game appears to be running on an Intel GPU?!");
+          }
+        }
+
+        if (adapter != nullptr) {
+          SK_StartDXGI_1_4_BudgetThread (&adapter);
+          adapter->Release ();
         }
       }
 
-      if (adapter != nullptr) {
-        SK_StartDXGI_1_4_BudgetThread (&adapter);
-        adapter->Release ();
-      }
+      factory->Release ();
     }
-
-    factory->Release ();
   }
 
   return 0;
@@ -1640,13 +1642,6 @@ SK::OpenGL::getPipelineStatsDesc (void)
   return wszDesc;
 }
 
-extern
-MH_STATUS
-WINAPI
-SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                    LPVOID  pDetour,    LPVOID *ppOriginal,
-                    LPVOID *ppFuncAddr = nullptr );
-
 #define SK_DLL_HOOK(Backend,Func)     \
   SK_CreateDLLHook2 ( Backend,         \
                      #Func,            \
@@ -1674,10 +1669,10 @@ SK_HookGL (void)
     if (true) {
       wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
-      SK_CreateDLLHook ( wszBackendDLL,
-                        "wglSwapBuffers",
-                         wglSwapBuffers,
-              (LPVOID *)&wgl_swap_buffers );
+      SK_CreateDLLHook2 ( wszBackendDLL,
+                         "wglSwapBuffers",
+                          wglSwapBuffers,
+               (LPVOID *)&wgl_swap_buffers );
 
       ++GL_HOOKS;
 
@@ -2040,7 +2035,7 @@ SK_HookGL (void)
       SK_GL_HOOK(wglSetLayerPaletteEntries);
       SK_GL_HOOK(wglSetPixelFormat);
 
-      MH_EnableHook (MH_ALL_HOOKS);
+      MH_ApplyQueued ();
     }
 
     InterlockedExchange (&__gl_ready, TRUE);

@@ -2260,6 +2260,8 @@ D3D11Dev_CreateTexture2D_Override (
                           IUnknown_AddRef_Original,
                           IUnknown_AddRef_pfn );
 
+      MH_ApplyQueued ();
+
       init = true;
     }
   }
@@ -2729,6 +2731,8 @@ HookD3D11 (LPVOID user)
                              D3D11_UpdateSubresource_Override, D3D11_UpdateSubresource_Original,
                              D3D11_UpdateSubresource_pfn);
       }
+
+      MH_ApplyQueued ();
 
       InterlockedExchange (&__d3d11_ready, TRUE);
     }

@@ -258,6 +258,10 @@ struct sk_config_t
   } input;
 
   struct {
+    bool    ignore_raptr        = false;
+  } compatibility;
+
+  struct {
     int     init_delay          = 250;
     bool    silent              = false;
     bool    handle_crashes      = true;

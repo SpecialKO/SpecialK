@@ -391,17 +391,19 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 void
 SK_InstallWindowHook (HWND hWnd)
 {
-  SK_CreateDLLHook ( L"user32.dll", "GetRawInputData",
+  SK_CreateDLLHook2 ( L"user32.dll", "GetRawInputData",
                      GetRawInputData_Detour,
            (LPVOID*)&GetRawInputData_Original );
 
-  SK_CreateDLLHook ( L"user32.dll", "GetKeyState",
+  SK_CreateDLLHook2 ( L"user32.dll", "GetKeyState",
                      GetKeyState_Detour,
            (LPVOID*)&GetKeyState_Original );
 
-  SK_CreateDLLHook ( L"user32.dll", "GetAsyncKeyState",
+  SK_CreateDLLHook2 ( L"user32.dll", "GetAsyncKeyState",
                      GetAsyncKeyState_Detour,
            (LPVOID*)&GetAsyncKeyState_Original );
+
+  MH_ApplyQueued ();
 
   game_window.hWnd = hWnd;
 
@@ -471,7 +473,8 @@ SK_Console::MessagePump (LPVOID hook_ptr)
       continue;
     }
 
-    break;
+    if (SK_GetFramesDrawn ())
+      break;
   }
   dll_log.Log ( L"[CmdConsole]  # Found window in %03.01f seconds, "
                 L"installing keyboard hook...",

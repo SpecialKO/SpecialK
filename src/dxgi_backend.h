@@ -61,11 +61,11 @@
   void** vftable = *(void***)*(_Base);                                        \
                                                                               \
   if ((_Original) == nullptr) {                                               \
-    SK_CreateVFTableHook ( L##_Name,                                          \
-                             vftable,                                         \
-                               (_Index),                                      \
-                                 (_Override),                                 \
-                                   (LPVOID *)&(_Original));                   \
+    SK_CreateVFTableHook2 ( L##_Name,                                         \
+                              vftable,                                        \
+                                (_Index),                                     \
+                                  (_Override),                                \
+                                    (LPVOID *)&(_Original));                  \
   }                                                                           \
 }
 

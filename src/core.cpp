@@ -1692,6 +1692,8 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                     pszProcName,
                       pwszModule,
                         MH_StatusToString (status) );
+  } else {
+    MH_QueueEnableHook (ppFuncAddr);
   }
 
   return status;

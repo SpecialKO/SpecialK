@@ -220,30 +220,15 @@ SK_HookD3D9 (void)
       (Direct3DCreate9Ex_Import) =  \
         (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
   } else {
-    extern
-    MH_STATUS
-    WINAPI
-    SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                        LPVOID  pDetour,    LPVOID *ppOriginal,
-                        LPVOID *ppFuncAddr );
-
-    LPVOID Create9   = nullptr;
-    LPVOID Create9Ex = nullptr;
-
     SK_CreateDLLHook2 ( L"d3d9.dll",
                         "Direct3DCreate9",
                         Direct3DCreate9,
-             (LPVOID *)&Direct3DCreate9_Import,
-                       &Create9 );
+             (LPVOID *)&Direct3DCreate9_Import );
 
     SK_CreateDLLHook2 ( L"d3d9.dll",
                         "Direct3DCreate9Ex",
                         Direct3DCreate9Ex,
-             (LPVOID *)&Direct3DCreate9Ex_Import,
-                       &Create9Ex );
-
-    MH_QueueEnableHook (Create9);
-    MH_QueueEnableHook (Create9Ex);
+             (LPVOID *)&Direct3DCreate9Ex_Import );
 
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh  { Hooked }",
       (Direct3DCreate9_Import) );
@@ -1820,8 +1805,11 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                     SetPixelShaderConstantF_pfn );
 
   extern HWND hWndRender;
-  if (hFocusWindow != 0)
+  if (hFocusWindow != 0) {
     hWndRender = hFocusWindow;
+    SetForegroundWindow (hFocusWindow);
+    BringWindowToTop    (hFocusWindow);
+  }
 
   MH_ApplyQueued ();
 
@@ -2060,8 +2048,11 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     SetPixelShaderConstantF_pfn );
 
   extern HWND hWndRender;
-  if (hFocusWindow != 0)
+  if (hFocusWindow != 0) {
     hWndRender = hFocusWindow;
+    SetForegroundWindow (hFocusWindow);
+    BringWindowToTop    (hFocusWindow);
+  }
 
   MH_ApplyQueued ();
 
@@ -2277,23 +2268,25 @@ HookD3D9Ex (LPVOID user)
                    )
        )
     {
-      static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
-      static CreateDXGIFactory_pfn CreateDXGIFactory =
-        (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
+      if (! (dll_role & DLL_ROLE::DXGI)) {
+        static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
+        static CreateDXGIFactory_pfn CreateDXGIFactory =
+          (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
 
-      IDXGIFactory* factory = nullptr;
+        IDXGIFactory* factory = nullptr;
 
-      // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
-      if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory))) {
-        IDXGIAdapter* adapter = nullptr;
+        // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
+        if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory))) {
+          IDXGIAdapter* adapter = nullptr;
 
-        if (SUCCEEDED (factory->EnumAdapters (0, &adapter))) {
-          SK_StartDXGI_1_4_BudgetThread (&adapter);
+          if (SUCCEEDED (factory->EnumAdapters (0, &adapter))) {
+            SK_StartDXGI_1_4_BudgetThread (&adapter);
 
-          adapter->Release ();
+            adapter->Release ();
+          }
+
+          factory->Release ();
         }
-
-        factory->Release ();
       }
 
       //dll_log.Log (L"Hooking D3D9Ex ...");

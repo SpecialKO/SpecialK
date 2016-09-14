@@ -1263,6 +1263,7 @@ __declspec (noinline)
     DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
 
     SK_DXGI_HookPresent (This);
+    MH_ApplyQueued      ();
 
     return ret;
   }
@@ -1300,6 +1301,7 @@ __declspec (noinline)
     }
 
     SK_DXGI_HookPresent (This);
+    MH_ApplyQueued      ();
 
     return ret;
   }
@@ -1450,6 +1452,7 @@ __declspec (noinline)
         (*ppSwapChain) != nullptr )
       {
         SK_DXGI_HookPresent (*ppSwapChain);
+        MH_ApplyQueued      ();
       }
 
       return hr;
@@ -1463,6 +1466,7 @@ __declspec (noinline)
        (*ppSwapChain) != nullptr )
     {
       SK_DXGI_HookPresent (*ppSwapChain);
+      MH_ApplyQueued      ();
 
       //if (bFlipMode || bWait)
         //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count, pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
@@ -2205,6 +2209,8 @@ __declspec (noinline)
 
     dll_log.LogEx (false, L"\n");
 
+    MH_ApplyQueued ();
+
     return S_OK;
   }
 
@@ -2480,22 +2486,22 @@ extern HMODULE __stdcall SK_GetDLL (void);
         (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
   } else {
     if (GetProcAddress (hBackend, "CreateDXGIFactory"))
-      SK_CreateDLLHook ( L"dxgi.dll",
-                         "CreateDXGIFactory",
-                         CreateDXGIFactory,
-              (LPVOID *)&CreateDXGIFactory_Import );
+      SK_CreateDLLHook2 ( L"dxgi.dll",
+                          "CreateDXGIFactory",
+                          CreateDXGIFactory,
+               (LPVOID *)&CreateDXGIFactory_Import );
 
     if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
-      SK_CreateDLLHook ( L"dxgi.dll",
-                         "CreateDXGIFactory1",
-                         CreateDXGIFactory1,
-              (LPVOID *)&CreateDXGIFactory1_Import );
+      SK_CreateDLLHook2 ( L"dxgi.dll",
+                          "CreateDXGIFactory1",
+                          CreateDXGIFactory1,
+               (LPVOID *)&CreateDXGIFactory1_Import );
 
     if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
-      SK_CreateDLLHook ( L"dxgi.dll",
-                         "CreateDXGIFactory2",
-                         CreateDXGIFactory2,
-              (LPVOID *)&CreateDXGIFactory2_Import );
+      SK_CreateDLLHook2 ( L"dxgi.dll",
+                          "CreateDXGIFactory2",
+                          CreateDXGIFactory2,
+               (LPVOID *)&CreateDXGIFactory2_Import );
 
     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh  %s",
       (CreateDXGIFactory_Import),
@@ -2506,6 +2512,8 @@ extern HMODULE __stdcall SK_GetDLL (void);
     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %08Xh  %s",
       (CreateDXGIFactory2_Import),
         (CreateDXGIFactory2_Import ? L"{ Hooked }" : L"" ) );
+
+    MH_ApplyQueued ();
   }
 
   if (CreateDXGIFactory1_Import != nullptr) {
@@ -2859,6 +2867,8 @@ HookDXGI (LPVOID user)
       }
 
       SK_DXGI_HookPresent (pSwapChain);
+
+      MH_ApplyQueued ();
 
       InterlockedExchange (&__dxgi_ready, TRUE);
     }
