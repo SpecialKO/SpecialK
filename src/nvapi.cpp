@@ -25,8 +25,8 @@
 #include <d3d11.h>
 
 #include "nvapi.h"
-#include "../depends/nvapi/NvApiDriverSettings.h"
-#include "../depends/nvapi/nvapi_lite_sli.h"
+#include <nvapi/NvApiDriverSettings.h>
+#include <nvapi/nvapi_lite_sli.h>
 
 #include "core.h"
 
@@ -46,9 +46,9 @@ NvAPI_GetPhysicalGPUFromGPUID_t   NvAPI_GetPhysicalGPUFromGPUID;
 NvAPI_GetGPUIDFromPhysicalGPU_t   NvAPI_GetGPUIDFromPhysicalGPU;
 
 #ifdef _WIN64
-#pragma comment (lib, "../depends/nvapi/amd64/nvapi64.lib")
+#pragma comment (lib, "nvapi/amd64/nvapi64.lib")
 #else
-#pragma comment (lib, "../depends/nvapi/x86/nvapi.lib")
+#pragma comment (lib, "nvapi/x86/nvapi.lib")
 #endif
 
 using namespace sk;
@@ -424,8 +424,10 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       //
 #ifdef _WIN64
       static HMODULE hLib = LoadLibrary (L"nvapi64.dll");
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
 #else
       static HMODULE hLib = LoadLibrary (L"nvapi.dll");
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll", &hLib);
 #endif
 
     if (hLib != nullptr) {

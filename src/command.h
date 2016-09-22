@@ -28,6 +28,11 @@
 
 #include <locale> // tolower (...)
 
+#undef min
+#undef max
+
+#include <algorithm>
+
 template <typename T>
 interface SK_IVarStub;
 
@@ -36,9 +41,9 @@ interface SK_ICommand;
 
 interface SK_ICommandResult
 {
-  SK_ICommandResult (       std::string   word,
-                            std::string   arguments = "",
-                            std::string   result    = "",
+  SK_ICommandResult (       const char*   word,
+                            const char*   arguments = "",
+                            const char*   result    = "",
                             int           status = false,
                       const SK_IVariable*  var    = NULL,
                       const SK_ICommand*   cmd    = NULL ) : word_   (word),
@@ -49,9 +54,9 @@ interface SK_ICommandResult
     status_ = status;
   }
 
-  std::string          getWord     (void) const { return word_;   }
-  std::string          getArgs     (void) const { return args_;   }
-  std::string          getResult   (void) const { return result_; }
+  const char*          getWord     (void) const { return word_.c_str   (); }
+  const char*          getArgs     (void) const { return args_.c_str   (); }
+  const char*          getResult   (void) const { return result_.c_str (); }
 
   const SK_IVariable*  getVariable (void) const { return var_;    }
   const SK_ICommand*   getCommand  (void) const { return cmd_;    }
@@ -101,9 +106,10 @@ interface SK_IVariable
     Unknown
   } VariableTypes;
 
-  virtual VariableType  getType         (void) const = 0;
-  virtual std::string   getValueString  (void) const = 0;
-  virtual void*         getValuePointer (void) const = 0;
+  virtual VariableType  getType         (void)                        const = 0;
+  virtual void          getValueString  ( _Out_opt_     char* szOut,
+                                          _Inout_   uint32_t* dwLen ) const = 0;
+  virtual void*         getValuePointer (void)                        const = 0;
 
 protected:
   VariableType type_;
@@ -131,7 +137,13 @@ interface SK_IVarStub : public SK_IVariable
     return type_;
   }
 
-  virtual std::string getValueString (void) const { return "(null)"; }
+  virtual void          getValueString  ( _Out_opt_ char*     szOut,
+                                          _Inout_   uint32_t* dwLen ) const {
+    if (szOut != nullptr)
+      strncpy (szOut, "(null)", *dwLen);
+
+    *dwLen = std::min (*dwLen, (uint32_t)strlen ("(null)"));
+  }
 
   const T& getValue (void) const { return *var_; }
   void     setValue (T& val)     {

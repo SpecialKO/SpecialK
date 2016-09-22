@@ -24,7 +24,11 @@
 #include <Windows.h>
 #include <string>
 
-extern std::wstring SK_VER_STR;
+extern const wchar_t* SK_VER_STR;
+
+const wchar_t*
+__stdcall
+SK_GetVersionStr (void);
 
 struct sk_config_t
 {
@@ -259,6 +263,8 @@ struct sk_config_t
 
   struct {
     bool    ignore_raptr        = false;
+    bool    disable_raptr       = false;
+    bool    rehook_loadlibrary  = true;
   } compatibility;
 
   struct {

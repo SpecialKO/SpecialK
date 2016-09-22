@@ -97,13 +97,18 @@ interface iSK_Logger : public IUnknown
                                  char const* const    _Format,
                                                       ... );
 
-  FILE*            fLog        = NULL;
-  std::wstring     name        = L"";
-  bool             silent      = false;
-  bool             initialized = false;
-  int              lines       =   0;
-  CRITICAL_SECTION log_mutex   = { 0 };
-  ULONG            refs        =   0UL;
+  HANDLE           hLogFile              = INVALID_HANDLE_VALUE;
+  wchar_t          name [ MAX_PATH + 2 ] = { L'\0' };
+  bool             silent                = false;
+  bool             initialized           = false;
+  int              lines                 =   0;
+  CRITICAL_SECTION log_mutex             = { 0 };
+  ULONG            refs                  =   0UL;
+
+  struct {
+    wchar_t        raw       [ 8192] = { L'\0' };
+    wchar_t        formatted [16384] = { L'\0' };
+  } buffers;
 };
 
 extern iSK_Logger dll_log;

@@ -22,7 +22,7 @@
 #define __SK__STEAM_API_H__
 
 #define _CRT_SECURE_NO_WARNINGS
-#include "../depends/steamapi/steam_api.h"
+#include <steamapi/steam_api.h>
 
 #include <stdint.h>
 

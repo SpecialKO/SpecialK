@@ -55,13 +55,13 @@
 #include <algorithm>
 #include <functional>
 
+#define DXGI_CENTERED
+
 DWORD dwRenderThread = 0x0000;
 
 // For DXGI compliance, do not mix-and-match factory types
 bool SK_DXGI_use_factory1 = false;
 bool SK_DXGI_factory_init = false;
-
-extern std::wstring host_app;
 
 extern void  __stdcall SK_D3D11_TexCacheCheckpoint    ( void );
 extern void  __stdcall SK_D3D11_UpdateRenderStats     ( IDXGISwapChain*      pSwapChain );
@@ -1286,7 +1286,7 @@ __declspec (noinline)
 
     HRESULT ret;
 
-    if (SK_GetHostApp () == L"DXMD.exe") {
+    if (! lstrcmpW (SK_GetHostApp (), L"DXMD.exe")) {
       DXGI_MODE_DESC new_new_params =
         *pNewTargetParameters;
 
@@ -1297,7 +1297,19 @@ __declspec (noinline)
 
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
     } else {
+#ifdef DXGI_CENTERED
+      DXGI_MODE_DESC new_new_params =
+        *pNewTargetParameters;
+
+      new_new_params.Scaling = DXGI_MODE_SCALING_CENTERED;
+
+      DXGI_MODE_DESC* pNewNewTargetParameters =
+        &new_new_params;
+
+      DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
+#else
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
+#endif
     }
 
     SK_DXGI_HookPresent (This);
@@ -1374,11 +1386,11 @@ __declspec (noinline)
       if (! bFlipMode)
         bFlipMode =
           ( dxgi_caps.present.flip_sequential && (
-            ( host_app == L"Fallout4.exe") ||
+            ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
               SK_DS3_UseFlipMode ()        ||
               SK_TW3_UseFlipMode () ) );
 
-      if (host_app == L"Fallout4.exe") {
+      if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) {
         if (bFlipMode) {
           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
         }
@@ -1392,12 +1404,16 @@ __declspec (noinline)
       //if (bFlipMode)
         //pDesc->BufferDesc.Scaling = DXGI_MODE_SCALING_CENTERED;
 
+#ifdef DXGI_CENTERED
+      pDesc->BufferDesc.Scaling = DXGI_MODE_SCALING_CENTERED;
+#endif
+
       bWait = bFlipMode && dxgi_caps.present.waitable;
 
       // We cannot change the swapchain parameters if this is used...
       bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-      if (host_app == L"DarkSoulsIII.exe") {
+      if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) {
         if (SK_DS3_IsBorderless ())
           pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
@@ -1576,11 +1592,11 @@ __declspec (noinline)
       if (! bFlipMode)
         bFlipMode =
           ( dxgi_caps.present.flip_sequential && (
-            ( host_app == L"Fallout4.exe") ||
-              SK_DS3_UseFlipMode ()        ||
-              SK_TW3_UseFlipMode () ) );
+            ( (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
+              SK_DS3_UseFlipMode ()                            ||
+              SK_TW3_UseFlipMode () ) ) );
 
-      if (host_app == L"Fallout4.exe") {
+      if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) {
         if (bFlipMode) {
           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
         }
@@ -1596,7 +1612,7 @@ __declspec (noinline)
       // We cannot change the swapchain parameters if this is used...
       bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-      if (host_app == L"DarkSoulsIII.exe") {
+      if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) {
         if (SK_DS3_IsBorderless ())
           pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
@@ -1763,9 +1779,9 @@ __declspec (noinline)
       if (! bFlipMode)
         bFlipMode =
           ( dxgi_caps.present.flip_sequential && (
-            ( host_app == L"Fallout4.exe") ||
-              SK_DS3_UseFlipMode ()        ||
-              SK_TW3_UseFlipMode () ) );
+            ( (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
+              SK_DS3_UseFlipMode ()                            ||
+              SK_TW3_UseFlipMode () ) ) );
 
       if (config.render.framerate.flip_discard)
         bFlipMode = dxgi_caps.present.flip_sequential;
@@ -2466,8 +2482,8 @@ extern HMODULE __stdcall SK_GetDLL (void);
   SK_D3D12_Init ();
 
   HMODULE hBackend = 
-    dll_role == DLL_ROLE::DXGI ? backend_dll :
-                                   GetModuleHandle (L"dxgi.dll");
+    (SK_GetDLLRole () & DLL_ROLE::DXGI) ? backend_dll :
+                                            GetModuleHandle (L"dxgi.dll");
 
 
   dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
@@ -2535,6 +2551,9 @@ extern HMODULE __stdcall SK_GetDLL (void);
 
   SK_DXGI_BeginHooking ();
 
+  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+    Sleep (100UL);
+
   SK_D3D11_EnableHooks ();
   SK_D3D12_EnableHooks ();
 }
@@ -2543,7 +2562,11 @@ void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
 {
-  SK_HookDXGI ();
+  extern void SK_BootDXGI (void);
+  SK_BootDXGI ();
+
+  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+    Sleep (100UL);
 
   finish ();
 }
@@ -2676,6 +2699,8 @@ HookDXGI (LPVOID user)
     CloseHandle (GetCurrentThread ());
     return 0;
   }
+
+  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
@@ -2875,6 +2900,8 @@ HookDXGI (LPVOID user)
 
     DestroyWindow (hwnd);
   }
+
+  CoUninitialize ();
 
   CloseHandle (GetCurrentThread ());
 

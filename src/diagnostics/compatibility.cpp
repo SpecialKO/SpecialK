@@ -47,6 +47,10 @@ void __stdcall SK_ReHookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = true;
 
+typedef BOOL (WINAPI *FreeLibrary_pfn)(HMODULE hLibModule);
+
+FreeLibrary_pfn FreeLibrary_Original = nullptr;
+
 typedef HMODULE (WINAPI *LoadLibraryA_pfn)(LPCSTR  lpFileName);
 typedef HMODULE (WINAPI *LoadLibraryW_pfn)(LPCWSTR lpFileName);
 
@@ -91,15 +95,13 @@ BlacklistLibraryW (LPCWSTR lpFileName)
 {
   //if (blacklist.count (wcsrchr (lpFileName, L'\\') + 1))
   //{
-#if 0
-    if ( StrStrIW (lpFileName, L"ltc_game") ) {
+    if ( config.compatibility.disable_raptr && StrStrIW (lpFileName, L"ltc_game") ) {
       if (! (SK_LoadLibrary_SILENCE))
         dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
       return TRUE;
     }
 
     else
-#endif
     if ( StrStrIW (lpFileName, L"k_fps") ) {
       if (! (SK_LoadLibrary_SILENCE))
         dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
@@ -113,17 +115,6 @@ BlacklistLibraryW (LPCWSTR lpFileName)
 
     //return TRUE;
   //}
-
-
-  static bool isTalesOfZestiria = 
-    StrStrIW (SK_GetHostApp ().c_str (), L"Tales of Zestiria.exe") != nullptr;
-
-  if (isTalesOfZestiria) {
-    if (StrStrIW (lpFileName, L"GeDoSaTo")) {
-      dll_log.Log ( L"[Black List] GeDoSaTo Disabled for Tales of Zestiria, it is not thread safe.");
-      return TRUE;
-    }
-  }
 
 #if 0
   if (StrStrIW (lpFileName, L"igdusc32")) {
@@ -153,6 +144,45 @@ BlacklistLibraryA (LPCSTR lpFileName)
   return BlacklistLibraryW (wszWideLibName);
 }
 
+void
+SK_BootD3D9 (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+
+  SK_HookD3D9 ();
+}
+
+void
+SK_BootDXGI (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+
+  SK_HookDXGI ();
+}
+
+void
+SK_BootOpenGL (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
+
+  SK_HookGL ();
+}
+
 
 void
 __stdcall
@@ -174,16 +204,32 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
   //   not good. Hash the string and compare it in the future.
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
        StrStrIW (wszModName, L"RTSSHooks") ||
-       StrStrIW (wszModName, L"GeDoSaTo") )
-    SK_ReHookLoadLibrary ();
+       StrStrIW (wszModName, L"GeDoSaTo") ) {
+    if (config.compatibility.rehook_loadlibrary)
+      SK_ReHookLoadLibrary ();
+  }
 
   else if (hCallingMod != SK_GetDLL ()) {
-         if ( StrStrIA (lpFileName, "d3d9.dll")     )
-      SK_HookD3D9 ();
-    else if ( StrStrIA (lpFileName, "dxgi.dll")     )
-      SK_HookDXGI ();
-    else if ( StrStrIA (lpFileName, "opengl32.dll") )
-      SK_HookGL   ();
+    std::wstring calling_name = SK_GetModuleName (hCallingMod);
+         if ( StrStrIA (lpFileName,             "d3d9.dll") ||
+              StrStrIW (calling_name.c_str (), L"d3d9.dll")  )
+      SK_BootD3D9   ();
+    else if ( StrStrIA (lpFileName,             "dxgi.dll") ||
+              StrStrIW (calling_name.c_str (), L"dxgi.dll")  )
+      SK_BootDXGI   ();
+    else if ( StrStrIA (lpFileName,             "opengl32.dll") ||
+              StrStrIW (calling_name.c_str (), L"opengl32.dll")  )
+      SK_BootOpenGL ();
+  }
+
+  // Some software repeatedly loads and unloads this, which can
+  //   cause TLS-related problems if left unchecked... just leave
+  //     the damn thing loaded permanently!
+  if (StrStrIA (lpFileName, "d3dcompiler_")) {
+    static HMODULE hModDontCare;
+    GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_PIN,
+                           lpFileName,
+                             &hModDontCare );
   }
 }
 
@@ -206,20 +252,76 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
   //   not good. Hash the string and compare it in the future.
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
        StrStrIW (wszModName, L"RTSSHooks") ||
-       StrStrIW (wszModName, L"GeDoSaTo") )
-    SK_ReHookLoadLibrary ();
+       StrStrIW (wszModName, L"GeDoSaTo") ) {
+    if (config.compatibility.rehook_loadlibrary)
+      SK_ReHookLoadLibrary ();
+  }
 
   else if (hCallingMod != SK_GetDLL ()) {
-         if ( StrStrIW (lpFileName, L"d3d9.dll")     )
-      SK_HookD3D9 ();
-    else if ( StrStrIW (lpFileName, L"dxgi.dll")     )
-      SK_HookDXGI ();
-    else if ( StrStrIW (lpFileName, L"opengl32.dll") )
-      SK_HookGL   ();
+    std::wstring calling_name = SK_GetModuleName (hCallingMod);
+         if ( StrStrIW (lpFileName,            L"d3d9.dll") ||
+              StrStrIW (calling_name.c_str (), L"d3d9.dll")  )
+      SK_BootD3D9   ();
+    else if ( StrStrIW (lpFileName,            L"dxgi.dll") ||
+              StrStrIW (calling_name.c_str (), L"dxgi.dll")  )
+      SK_BootDXGI   ();
+    else if ( StrStrIW (lpFileName,            L"opengl32.dll") ||
+              StrStrIW (calling_name.c_str (), L"opengl32.dll")  )
+      SK_BootOpenGL ();
+  }
+
+  // Some software repeatedly loads and unloads this, which can
+  //   cause TLS-related problems if left unchecked... just leave
+  //     the damn thing loaded permanently!
+  if (StrStrIW (lpFileName, L"d3dcompiler_")) {
+    static HMODULE hModDontCare;
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
+                           lpFileName,
+                             &hModDontCare );
   }
 }
 
 
+
+BOOL
+WINAPI
+FreeLibrary_Detour (HMODULE hLibModule)
+{
+  bool specialk_free = (SK_GetCallingDLL () == SK_GetDLL ());
+
+  if (specialk_free)
+    return FreeLibrary_Original (hLibModule);
+
+  std::wstring free_name = SK_GetModuleName (hLibModule);
+
+  // BLACKLIST FreeLibrary for VERY important DLLs
+  if (
+#ifdef _WIN32
+       (! lstrcmpiW (free_name.c_str (), L"steam_api.dll"))   ||
+       (! lstrcmpiW (free_name.c_str (), L"nvapi.dll"))       ||
+       (! lstrcmpiW (free_name.c_str (), L"SpecialK32.dll"))  ||
+#else
+       (! lstrcmpiW (free_name.c_str (), L"steam_api64.dll")) ||
+       (! lstrcmpiW (free_name.c_str (), L"SpecialK64.dll"))  ||
+       (! lstrcmpiW (free_name.c_str (), L"nvapi64.dll"))     ||
+#endif
+       (! lstrcmpiW (free_name.c_str (), L"d3d11.dll"))       ||
+       (! lstrcmpiW (free_name.c_str (), L"d3d9.dll"))        ||
+       (! lstrcmpiW (free_name.c_str (), L"dxgi.dll"))        ||
+       (! lstrcmpiW (free_name.c_str (), L"OpenGL32.dll"))
+    )
+    return FALSE;
+
+  bool bRet = FreeLibrary_Original (hLibModule);
+
+  if (bRet && GetModuleHandle (free_name.c_str ()) == nullptr) {
+    dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64s'",
+                    SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
+                      free_name.c_str () );
+  }
+
+  return bRet;
+}
 
 HMODULE
 WINAPI
@@ -329,6 +431,8 @@ struct sk_loader_hooks_t {
   LPVOID LoadLibraryExA_target = nullptr;
   LPVOID LoadLibraryW_target   = nullptr;
   LPVOID LoadLibraryExW_target = nullptr;
+
+  LPVOID FreeLibrary_target    = nullptr;
 } _loader_hooks;
 
 struct SK_ThirdPartyDLLs {
@@ -420,6 +524,20 @@ SK_ReHookLoadLibrary (void)
 
   MH_QueueEnableHook (_loader_hooks.LoadLibraryExW_target);
 
+
+  if (_loader_hooks.FreeLibrary_target != nullptr) {
+    SK_RemoveHook (_loader_hooks.FreeLibrary_target);
+    _loader_hooks.FreeLibrary_target = nullptr;
+  }
+
+  SK_CreateDLLHook ( L"kernel32.dll", "FreeLibrary",
+                     FreeLibrary_Detour,
+           (LPVOID*)&FreeLibrary_Original,
+                    &_loader_hooks.FreeLibrary_target );
+
+  MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
+
+
   MH_ApplyQueued ();
 }
 
@@ -470,9 +588,9 @@ void
 __stdcall
 EnumLoadedModules (void)
 {
-  bool loaded_gl   = false;
-  bool loaded_d3d9 = false;
-  bool loaded_dxgi = false;
+  static bool loaded_gl   = false;
+  static bool loaded_d3d9 = false;
+  static bool loaded_dxgi = false;
 
   // Begin logging new loads after this
   SK_LoadLibrary_SILENCE = false;
@@ -520,8 +638,11 @@ EnumLoadedModules (void)
           GetModuleHandleEx ( 0x00,
                                 wszModName,
                                   &third_party_dlls.overlays.rtss_hooks );
-          SK_ReHookLoadLibrary ();
-          Sleep (16);
+
+          if (config.compatibility.rehook_loadlibrary) {
+            SK_ReHookLoadLibrary ();
+            Sleep (16);
+          }
         }
 
         else if ( (! third_party_dlls.overlays.steam_overlay) &&
@@ -530,8 +651,11 @@ EnumLoadedModules (void)
           GetModuleHandleEx ( 0x00,
                                 wszModName,
                                   &third_party_dlls.overlays.steam_overlay );
-          SK_ReHookLoadLibrary ();
-          Sleep (16);
+
+          if (config.compatibility.rehook_loadlibrary) {
+            SK_ReHookLoadLibrary ();
+            Sleep (16);
+          }
         }
 
         else if ( (! third_party_dlls.misc.gedosato) &&
@@ -540,14 +664,16 @@ EnumLoadedModules (void)
           GetModuleHandleEx ( 0x00,
                                 wszModName,
                                   &third_party_dlls.misc.gedosato );
-          SK_ReHookLoadLibrary ();
-          Sleep (16);
+
+          if (config.compatibility.rehook_loadlibrary) {
+            SK_ReHookLoadLibrary ();
+            Sleep (16);
+          }
         }
 
         else if ( StrStrIW (wszModName, L"ltc_help") && (! config.compatibility.ignore_raptr) ) {
-          //std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
-
-          void
+          HRESULT
+          __stdcall
           SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
                                   PCWSTR   wszMainIcon,
                                   wchar_t* wszContent,
@@ -567,30 +693,22 @@ EnumLoadedModules (void)
                                   nullptr,
                                   L"Check here to ignore this warning in the future.",
                                   (BOOL *)&config.compatibility.ignore_raptr );
-
-          //SK_ResumeThreads (tids);
         }
 
-        else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (! (dll_role & DLL_ROLE::OpenGL))) {
-          dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
-
-          SK_HookGL ();
+        else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (! (SK_GetDLLRole () & DLL_ROLE::OpenGL))) {
+          SK_BootOpenGL ();
 
           loaded_gl = true;
         }
 
-        else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (! (dll_role & DLL_ROLE::DXGI))) {
-          //dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
-
-          //SK_HookDXGI ();
+        else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) {
+          SK_BootDXGI ();
 
           loaded_dxgi = true;
         }
 
-        else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (! (dll_role & DLL_ROLE::D3D9))) {
-          //dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
-
-          //SK_HookD3D9 ();
+        else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (! (SK_GetDLLRole () & DLL_ROLE::D3D9))) {
+          SK_BootD3D9 ();
 
           loaded_d3d9 = true;
         }
@@ -627,36 +745,31 @@ EnumLoadedModules (void)
                   L"your game is probably going to crash." );
   }
 
-  extern void __stdcall SK_TestRenderImports (HMODULE hMod, bool*, bool*, bool*);
-
   bool imports_gl   = false,
        imports_d3d9 = false,
        imports_dxgi = false;
 
   SK_TestRenderImports (GetModuleHandle (nullptr), &imports_gl, &imports_d3d9, &imports_dxgi);
 
-  if ( (! loaded_gl) && imports_gl && (! (dll_role & DLL_ROLE::OpenGL))) {
-    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
-
-    SK_HookGL ();
+  if ( (! loaded_gl) && imports_gl && (! (SK_GetDLLRole () & DLL_ROLE::OpenGL))) {
+    SK_BootOpenGL ();
   }
 
-  if ( (! loaded_dxgi) && imports_dxgi && (! (dll_role & DLL_ROLE::DXGI))) {
-    //dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
-
-    //SK_HookDXGI ();
+  if ( (! loaded_dxgi) && imports_dxgi && (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) {
+    SK_BootDXGI ();
   }
 
-  if ( (! loaded_d3d9) && imports_d3d9 && (! (dll_role & DLL_ROLE::D3D9))) {
-    //dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
-
-    //SK_HookD3D9 ();
+  if ( (! loaded_d3d9) && imports_d3d9 && (! (SK_GetDLLRole () & DLL_ROLE::D3D9))) {
+    SK_BootD3D9 ();
   }
 }
 
 
 #include <Commctrl.h>
 #include <comdef.h>
+
+extern volatile ULONG SK_bypass_dialog_active;
+                HWND  SK_bypass_dialog_hwnd;
 
 HRESULT
 CALLBACK
@@ -668,9 +781,38 @@ TaskDialogCallback (
   _In_ LONG_PTR dwRefData
 )
 {
+  if (uNotification == TDN_TIMER) {
+    if (GetForegroundWindow () != hWnd) {
+      SetFocus          (hWnd);
+    }
+
+    SetActiveWindow     (hWnd);
+    SetForegroundWindow (hWnd);
+    BringWindowToTop    (hWnd);
+  }
+
   if (uNotification == TDN_HYPERLINK_CLICKED) {
     ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOW);
     return S_OK;
+  }
+
+  if (uNotification == TDN_CREATED) {
+    bool not_foreground = false;
+
+    if (GetForegroundWindow () != hWnd)
+      SetFocus (hWnd);
+
+    SetActiveWindow     (hWnd);
+    SetForegroundWindow (hWnd);
+    BringWindowToTop    (hWnd);
+
+    SK_bypass_dialog_hwnd = hWnd;
+
+    InterlockedExchange (&SK_bypass_dialog_active, TRUE);
+  }
+
+  if (uNotification == TDN_DESTROYED) {
+    InterlockedExchange (&SK_bypass_dialog_active, FALSE);
   }
 
   return S_OK;
@@ -792,8 +934,8 @@ SK_ValidateGlobalRTSSProfile (void)
 
 
   // Make the following dialog the ONLY thing the process is doing
-  std::queue <DWORD> suspended_tids =
-    SK_SuspendAllOtherThreads ();
+  //std::queue <DWORD> suspended_tids =
+    //SK_SuspendAllOtherThreads ();
 
   // Delay triggers are invalid, but we can do nothing about it due to
   //   privilige issues.
@@ -857,7 +999,7 @@ SK_ValidateGlobalRTSSProfile (void)
 
       ShellExecute ( GetDesktopWindow (),
                       L"OPEN",
-                        SK_GetHostApp ().c_str (),
+                        SK_GetHostApp (),
                           NULL,
                             NULL,
                               SW_SHOWDEFAULT );
@@ -868,13 +1010,13 @@ SK_ValidateGlobalRTSSProfile (void)
 
   warned = TRUE;
 
-  SK_ResumeThreads (suspended_tids);
+  //SK_ResumeThreads (suspended_tids);
 
   return TRUE;
 }
 
-
-void
+HRESULT
+__stdcall
 SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
                         PCWSTR   wszMainIcon,
                         wchar_t* wszContent,
@@ -884,6 +1026,8 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
                         wchar_t* wszVerifyText,
                         BOOL*    verify )
 {
+  bool timer = true;
+
   int               nButtonPressed = 0;
   TASKDIALOGCONFIG  config         = {0};
 
@@ -899,7 +1043,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   config.pButtons           = nullptr;
   config.cButtons           = 0;
   config.dwFlags            = 0x00;
-  config.pfCallback         = nullptr;
+  config.pfCallback         = TaskDialogCallback;
   config.lpCallbackData     = 0;
 
   config.pszMainInstruction = wszMainInstruction;
@@ -908,12 +1052,8 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   DWORD dwThreadId =
       GetWindowThreadProcessId (hWndForeground, &dwProcId);
 
-  std::queue <DWORD> suspended_tids;
-
   if (dwProcId == GetCurrentProcessId ()) {
-    // Make the following dialog the ONLY thing the process is doing
-    suspended_tids =
-      SK_SuspendAllOtherThreads ();
+    //ShowWindow       (hWndForeground,       SW_HIDE);
   } else {
     config.hwndParent = GetDesktopWindow ();
   }
@@ -926,9 +1066,99 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
 
   config.pszVerificationText = wszVerifyText;
 
-  TaskDialogIndirect (&config, nullptr, nullptr, verify);
+  if (verify != nullptr && *verify)
+    config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
-  if (dwProcId == GetCurrentProcessId ()) {
-    SK_ResumeThreads (suspended_tids);
+  if (timer)
+    config.dwFlags |= TDF_CALLBACK_TIMER;
+
+  HRESULT hr = TaskDialogIndirect (&config, &nButtonPressed, nullptr, verify);
+
+  return hr;
+}
+
+unsigned int
+__stdcall
+SK_Bypass_CRT (LPVOID user)
+{
+  //std::queue <DWORD> tids =
+    //SK_SuspendAllOtherThreads ();
+
+  wchar_t wszBlacklist [MAX_PATH] = { L'\0' };
+
+  lstrcatW (wszBlacklist, L"SpecialK.deny.");
+  lstrcatW (wszBlacklist, SK_GetHostApp ());
+
+  wchar_t* pwszDot = wcsrchr (wszBlacklist, L'.');
+
+  if (pwszDot != nullptr)
+    *pwszDot = L'\0';
+
+  BOOL disable = 
+    (GetFileAttributesW (wszBlacklist) != INVALID_FILE_ATTRIBUTES);
+
+  HRESULT hr =
+  SK_TaskBoxWithConfirm ( L"Special K Injection Compatibility Options",
+                          TD_SHIELD_ICON,
+                          L"By pressing Ctrl + Shift at application start, you"
+                          L" have opted into compatibility mode.\n\nUse the"
+                          L" menu options provided to troubleshoot problems"
+                          L" that may be caused by the mod.",
+
+                          nullptr,//L"Check here to DISABLE Special K for this game.",
+
+                          L"You can re-enable auto-injection at any time by "
+                          L"holding Ctrl + Shift down at startup.",
+                          TD_INFORMATION_ICON,
+
+                          L"Check here to DISABLE Special K for this game.",
+                          &disable );
+
+  if (SUCCEEDED (hr)) {
+    if (disable) {
+      FILE* fDeny = _wfopen (wszBlacklist, L"w");
+
+      if (fDeny) {
+        fputc  ('\0', fDeny);
+        fflush (      fDeny);
+        fclose (      fDeny);
+      }
+    } else {
+      DeleteFileW (wszBlacklist);
+    }
   }
+
+  ShellExecute ( GetDesktopWindow (),
+                   L"OPEN",
+                     SK_GetHostApp (),
+                       nullptr,
+                         nullptr,
+                           SW_SHOWNORMAL );
+
+  ExitProcess (0);
+
+  InterlockedExchange (&SK_bypass_dialog_active, FALSE);
+
+  return 0;
+}
+
+#include <process.h>
+
+DWORD
+__stdcall
+SK_Bypass_THREAD (LPVOID user)
+{
+  _beginthreadex ( nullptr, 0, SK_Bypass_CRT, user, 0x00, nullptr );
+
+  return 0;
+}
+
+bool
+__stdcall
+SK_BypassInject (void)
+{
+  HANDLE hTaskThread =
+    CreateThread ( nullptr, 0, SK_Bypass_THREAD, GetCurrentThread (), 0x00, nullptr );
+
+  return TRUE;
 }

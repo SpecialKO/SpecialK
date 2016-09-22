@@ -24,6 +24,7 @@
 #include "../core.h"
 #include "../log.h"
 #include "../resource.h"
+#include "../utility.h"
 
 #include <Windows.h>
 
@@ -39,7 +40,8 @@ BOOL
 WINAPI
 TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
 {
-  OutputDebugString (L" *** BLOCKED TerminateProcess (...) ***");
+  OutputDebugString ( L" *** BLOCKED TerminateProcess (...) ***\n\t" );
+  OutputDebugString ( SK_GetCallerName ().c_str () );
 
   return FALSE;
 }

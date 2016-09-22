@@ -25,13 +25,7 @@
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
 
-#include "../depends/MinHook/include/MinHook.h"
-
-#ifdef _WIN64
-#pragma comment (lib, "../depends/MinHook/lib/libMinHook.x64.lib")
-#else
-#pragma comment (lib, "../depends/MinHook/lib/libMinHook.x86.lib")
-#endif
+#include <MinHook/MinHook.h>
 
 #include "memory_monitor.h"
 #include "nvapi.h"
@@ -92,7 +86,6 @@ struct mem_info_t {
 extern memory_stats_t mem_stats [MAX_GPU_NODES];
 extern mem_info_t     mem_info  [NumBuffers];
 
-extern HANDLE           dll_heap;
 extern HMODULE          backend_dll;
 extern CRITICAL_SECTION budget_mutex;
 extern CRITICAL_SECTION init_mutex;
@@ -169,11 +162,19 @@ extern "C" {
 
 void
 __stdcall
-SK_SetConfigPath (std::wstring path);
+SK_SetConfigPath (const wchar_t* path);
 
-std::wstring
+const wchar_t*
 __stdcall
 SK_GetConfigPath (void);
+
+DLL_ROLE
+__stdcall
+SK_GetDLLRole (void);
+
+void
+__cdecl
+SK_SetDLLRole (DLL_ROLE role);
 
 enum DLL_ROLE {
   // Graphics APIs
@@ -186,7 +187,5 @@ enum DLL_ROLE {
   PlugIn     = 0x00010000, // Stuff like Tales of Zestiria "Fix"
   ThirdParty = 0x80000000
 };
-
-extern DLL_ROLE dll_role;
 
 #endif /* __SK__CORE_H__ */

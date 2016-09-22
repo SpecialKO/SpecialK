@@ -24,7 +24,7 @@
 
 #include <Windows.h>
 #include <stdint.h>
-#include "../depends/nvapi/nvapi.h"
+#include <nvapi/nvapi.h>
 
 // 64?! Isn't that a bit ridiculous memory wise? But NvAPI wants it that big
 #define MAX_GPUS 64

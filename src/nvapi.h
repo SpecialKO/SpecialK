@@ -22,7 +22,7 @@
 #ifndef __SK__NVAPI_H__
 #define __SK__NVAPI_H__
 
-#include "../depends/nvapi/nvapi.h"
+#include <nvapi/nvapi.h>
 #include <Windows.h>
 
 #include <string>

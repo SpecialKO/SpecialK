@@ -29,47 +29,111 @@
 #include "log.h"
 #include "utility.h"
 
+#include <Shlwapi.h>
+#include <process.h>
+
 // Indicates that the DLL is injected purely as a hooker, rather than
 //   as a wrapper DLL.
 bool injected = false;
 
-DLL_ROLE dll_role;
+bool
+__stdcall
+SK_IsInjected (void)
+{
+  return injected;
+}
+
+HANDLE hThreadAttach = 0;
 
 bool
 __stdcall
 SK_EstablishDllRole (HMODULE hModule)
 {
-  std::wstring   dll_name   = SK_GetModuleName (hModule);
-  const wchar_t* wszDllName = dll_name.c_str   ();
+  wchar_t wszDllFullName [MAX_PATH];
+          wszDllFullName [MAX_PATH - 1] = L'\0';
 
+  GetModuleFileName (hModule, wszDllFullName, MAX_PATH - 1);
 
-  if (! _wcsicmp (wszDllName, L"dxgi.dll"))
-    dll_role = DLL_ROLE::DXGI;
+  const wchar_t* wszShort = wcsrchr (wszDllFullName, L'\\') + 1;
 
-  else if (! _wcsicmp (wszDllName, L"d3d9.dll"))
-    dll_role = DLL_ROLE::D3D9;
+  if (wszShort == (const wchar_t *)1)
+    wszShort = wszDllFullName;
 
-  else if (! _wcsicmp (wszDllName, L"OpenGL32.dll"))
-    dll_role = DLL_ROLE::OpenGL;
+  if (! lstrcmpiW (wszShort, L"dxgi.dll"))
+    SK_SetDLLRole (DLL_ROLE::DXGI);
+
+  else if (! lstrcmpiW (wszShort, L"d3d9.dll"))
+    SK_SetDLLRole (DLL_ROLE::D3D9);
+
+  else if (! lstrcmpiW (wszShort, L"OpenGL32.dll"))
+    SK_SetDLLRole (DLL_ROLE::OpenGL);
 
 
   //
   // This is an injected DLL, not a wrapper DLL...
   //
-  else if ( wcsstr (wszDllName, L"SpecialK") )
+  else if ( wcsstr (wszShort, L"SpecialK") )
   {
-    if      ( GetFileAttributesW (L"SpecialK.d3d9") != INVALID_FILE_ATTRIBUTES )
-      dll_role = DLL_ROLE::D3D9;
+    bool explicit_inject = false;
 
-    else if ( GetFileAttributesW (L"SpecialK.dxgi") != INVALID_FILE_ATTRIBUTES )
-      dll_role = DLL_ROLE::DXGI;
+    if      ( GetFileAttributesW (L"SpecialK.d3d9") != INVALID_FILE_ATTRIBUTES ) {
+      SK_SetDLLRole (DLL_ROLE::D3D9);
+      explicit_inject = true;
+    }
 
-    else if ( GetFileAttributesW (L"SpecialK.OpenGL32") != INVALID_FILE_ATTRIBUTES )
-      dll_role = DLL_ROLE::OpenGL;
+    else if ( GetFileAttributesW (L"SpecialK.dxgi") != INVALID_FILE_ATTRIBUTES ) {
+      SK_SetDLLRole (DLL_ROLE::DXGI);
+      explicit_inject = true;
+    }
 
-    // Opted out of automatic injection
-    else
-      return false;
+    else if ( GetFileAttributesW (L"SpecialK.OpenGL32") != INVALID_FILE_ATTRIBUTES ) {
+      SK_SetDLLRole (DLL_ROLE::OpenGL);
+      explicit_inject = true;
+    }
+
+    // Opted out of explicit injection, now try automatic
+    if (! explicit_inject) {
+
+#ifdef _WIN64
+      sk_import_test_s steam_tests [] = { { "steam_api64.dll", false },
+                                          { "steamnative.dll", false },
+                                          { "CSteamworks.dll", false } };
+#else
+      sk_import_test_s steam_tests [] = { { "steam_api.dll",   false },
+                                          { "steamnative.dll", false },
+                                          { "CSteamworks.dll", false } };
+#endif
+
+      SK_TestImports ( GetModuleHandle (nullptr), steam_tests, 3 );
+
+      DWORD   dwProcessSize = MAX_PATH;
+      wchar_t wszProcessName [MAX_PATH] = { L'\0' };
+
+      HANDLE hProc = GetCurrentProcess ();
+
+      QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+
+      bool is_steamworks_game =
+        ( steam_tests [0].used | steam_tests [1].used | steam_tests [2].used ) ||
+          StrStrIW (wszProcessName, L"steamapps");
+
+      if (is_steamworks_game) {
+        bool gl = false, d3d9 = false, dxgi = false;
+
+        SK_TestRenderImports ( GetModuleHandle (nullptr), &gl, &d3d9, &dxgi );
+
+        if (dxgi)
+          SK_SetDLLRole (DLL_ROLE::DXGI);
+        else if (d3d9)
+          SK_SetDLLRole (DLL_ROLE::D3D9);
+        else if (gl)
+          SK_SetDLLRole (DLL_ROLE::OpenGL);
+        else
+          SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
+      } else {
+        return false;
+      }
+    }
 
     injected = true;
   }
@@ -79,7 +143,7 @@ SK_EstablishDllRole (HMODULE hModule)
   // Fallback to d3d9
   //
   else
-    dll_role = DLL_ROLE::D3D9;
+    SK_SetDLLRole (DLL_ROLE::D3D9);
 
 
   return true;
@@ -92,20 +156,23 @@ bool
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
-  if (! InterlockedCompareExchange (&attached, TRUE, FALSE))
+  if (! InterlockedCompareExchange (&attached, FALSE, FALSE))
   {
     switch (role)
     {
     case DLL_ROLE::DXGI:
-      return SK::DXGI::Startup   ();
+      InterlockedCompareExchange (&attached, SK::DXGI::Startup (), FALSE);
+      return attached;
       break;
 
     case DLL_ROLE::D3D9:
-      return SK::D3D9::Startup   ();
+      InterlockedCompareExchange (&attached, SK::D3D9::Startup (), FALSE);
+      return attached;
       break;
 
     case DLL_ROLE::OpenGL:
-      return SK::OpenGL::Startup ();
+      InterlockedCompareExchange (&attached, SK::OpenGL::Startup (), FALSE);
+      return attached;
       break;
 
     case DLL_ROLE::Vulkan:
@@ -156,7 +223,7 @@ SK_Detach (DLL_ROLE role)
   return false;
 }
 
-//#define IGNORE_THREAD_ATTACH
+#define IGNORE_THREAD_ATTACH
 
 // We need this to load embedded resources correctly...
 volatile HMODULE hModSelf = 0;
@@ -168,16 +235,20 @@ SK_GetDLL (void)
   return hModSelf;
 }
 
+#if 0
 DWORD
 WINAPI
 StartDLL (LPVOID user)
 {
-  SK_Attach (dll_role);
+  if (! SK_Attach (SK_GetDLLRole ())) {
+    FreeLibraryAndExitThread (hModSelf, 0x00);
+  }
 
   CloseHandle (GetCurrentThread ());
 
   return 0;
 }
+#endif
 
 BOOL
 APIENTRY
@@ -189,6 +260,8 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
+      hThreadAttach = GetCurrentThread ();
+
       ULONG local_refs = InterlockedIncrement (&refs);
 
       InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0);
@@ -198,39 +271,34 @@ DllMain ( HMODULE hModule,
       if (! SK_EstablishDllRole (hModule))
         return FALSE;
 
-#if 0
-      CreateThread ( nullptr,
-                       0,
-                         StartDLL,
-                           nullptr,
-                             0x00,
-                               nullptr );
-#else
-      // Similar to before, we can deny injection. If we fail at this point,
-      //   it is usually because the host application has been identified and
-      //     is blacklisted.
-      if (! SK_Attach (dll_role))
-        return FALSE;
-#endif
+      DWORD   dwProcessSize = MAX_PATH;
+      wchar_t wszProcessName [MAX_PATH];
 
-      // We need TLS managed by the real OpenGL DLL for context
-      //   management to work, so we cannot do this...
-//      if (dll_role != DLL_ROLE::OpenGL)
-//        DisableThreadLibraryCalls (hModule);
+      HANDLE hProc = GetCurrentProcess ();
+
+      QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+
+      wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
+
+      while (  pwszShortName      >  wszProcessName &&
+             *(pwszShortName - 1) != L'\\')
+        --pwszShortName;
+
+      return SK_Attach (SK_GetDLLRole ());
     } break;
 
 #ifndef IGNORE_THREAD_ATTACH
     case DLL_THREAD_ATTACH:
     {
+      if (dll_role == DLL_ROLE::OpenGL) {
+        extern HMODULE SK_LoadRealGL (void);
+        SK_LoadRealGL ();
+      }
+
       //dll_log.Log (L"Custom dxgi.dll Attached (tid=%x)",
       //                GetCurrentThreadId ());
       if (! injected) {
-        if (dll_role == DLL_ROLE::OpenGL) {
-          extern HMODULE SK_LoadRealGL (void);
-          SK_LoadRealGL ();
-        }
-
-        else if (dll_role == DLL_ROLE::D3D9) {
+        if (dll_role == DLL_ROLE::D3D9) {
           extern HMODULE WINAPI SK_LoadRealD3D9 (void);
           SK_LoadRealD3D9 ();
         }
@@ -247,14 +315,13 @@ DllMain ( HMODULE hModule,
       //InterlockedDecrement (&refs);
       //dll_log.Log (L"Custom dxgi.dll Detached (tid=%x)",
       //                GetCurrentThreadId ());
+      if (dll_role == DLL_ROLE::OpenGL) {
+        extern void SK_FreeRealGL (void);
+        SK_FreeRealGL ();
+      }
 
       if (! injected) {
-        if (dll_role == DLL_ROLE::OpenGL) {
-          extern void SK_FreeRealGL (void);
-          SK_FreeRealGL ();
-        }
-
-        else if (dll_role == DLL_ROLE::D3D9) {
+        if (dll_role == DLL_ROLE::D3D9) {
           extern void WINAPI SK_FreeRealD3D9 (void);
           SK_FreeRealD3D9 ();
         }
@@ -271,7 +338,7 @@ DllMain ( HMODULE hModule,
     {
       if (InterlockedCompareExchange (&attached, FALSE, FALSE))
       {
-        return SK_Detach (dll_role);
+        return SK_Detach (SK_GetDLLRole ());
       } else {
         // Sanity FAILURE: Attempt to detach something that was not properly attached?!
         dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");

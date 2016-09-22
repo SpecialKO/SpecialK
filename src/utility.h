@@ -31,6 +31,7 @@ interface iSK_INI;
 
 typedef void *HANDLE;
 
+bool           SK_GetDocumentsDir      (_Out_opt_ wchar_t* buf, _Inout_ uint32_t* pdwLen);
 std::wstring   SK_GetDocumentsDir      (void);
 std::wstring   SK_GetRTSSInstallDir    (void);
 bool           SK_CreateDirectories    (const wchar_t* wszPath);
@@ -44,7 +45,7 @@ int            SK_MessageBox           (std::wstring caption,
 
 void           SK_SetNormalFileAttribs (std::wstring file);
 
-std::wstring   SK_GetHostApp           (void);
+const wchar_t* SK_GetHostApp           (void);
 iSK_INI*       SK_GetDLLConfig         (void);
 
 #pragma intrinsic (_ReturnAddress)
@@ -61,6 +62,19 @@ void
                SK_ResumeThreads          (std::queue <DWORD> threads);
 
 void __stdcall SK_SelfDestruct         (void);
+
+
+struct sk_import_test_s {
+  const char* szModuleName;
+  bool        used;
+};
+
+void __stdcall SK_TestImports          (HMODULE hMod, sk_import_test_s* pTests, int nCount);
+void           SK_TestRenderImports    (HMODULE hMod, bool* gl, bool* d3d9, bool* dxgi);
+
+void*
+__stdcall
+SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask);
 
 
 class SK_AutoCriticalSection {

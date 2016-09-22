@@ -585,8 +585,6 @@ SK_DrawOSD (void)
   buffer_t buffer = mem_info [0].buffer;
   int      nodes  = mem_info [buffer].nodes;
 
-  extern std::wstring SK_VER_STR;
-
   if (config.time.show)
   {
     SYSTEMTIME st;
@@ -613,7 +611,7 @@ SK_DrawOSD (void)
     }
 
     else if (isFallout4) {
-      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.4   %ws\n\n",
+      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
                  time
       OSD_END
     } else if (isDivinityOrigSin) {
@@ -634,7 +632,7 @@ SK_DrawOSD (void)
       OSD_END
     } else {
       OSD_PRINTF "Special K v %ws   %ws\n\n",
-                 SK_VER_STR.c_str (), time
+                 SK_GetVersionStr (), time
       OSD_END
     }
   }

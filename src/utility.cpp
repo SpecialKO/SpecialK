@@ -49,10 +49,41 @@ SK_GetDocumentsDir (void)
     return NULL;
 
   wchar_t* str;
+
   SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
+
   std::wstring ret = str;
+
   CoTaskMemFree (str);
+
   return ret;
+}
+
+bool
+SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
+{
+  HANDLE hToken;
+
+  if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken))
+    return false;
+
+  wchar_t* str;
+
+  if ( SUCCEEDED (
+         SHGetKnownFolderPath (
+           FOLDERID_Documents, 0, hToken, &str
+         )
+       )
+     )
+  {
+    if (buf != nullptr && pdwLen != nullptr && *pdwLen > 0) {
+      wcsncpy (buf, str, *pdwLen);
+    }
+
+    CoTaskMemFree (str);
+
+    return true;
+  }
 }
 
 bool
@@ -74,6 +105,18 @@ bool
 SK_CreateDirectories ( const wchar_t* wszPath )
 {
   wchar_t* wszSubDir = wcsdup (wszPath), *iter;
+
+  wchar_t* wszLastSlash     = wcsrchr (wszSubDir, L'/');
+  wchar_t* wszLastBackslash = wcsrchr (wszSubDir, L'\\');
+
+  if (wszLastSlash > wszLastBackslash)
+    *wszLastSlash = L'\0';
+  else if (wszLastBackslash != nullptr)
+    *wszLastBackslash = L'\0';
+  else {
+    free (wszSubDir);
+    return false;
+  }
 
   for (iter = wszSubDir; *iter != L'\0'; ++iter) {
     if (*iter == L'\\' || *iter == L'/') {
@@ -868,14 +911,6 @@ crc32c (uint32_t crc, buffer input, size_t length)
   return append_func (crc, input, length);
 }
 
-extern std::wstring host_app;
-
-std::wstring
-SK_GetHostApp (void)
-{
-  return host_app;
-}
-
 std::wstring
 SK_GetModuleName (HMODULE hDll)
 {
@@ -1025,7 +1060,7 @@ SK_SuspendAllOtherThreads (void)
             HANDLE hThread =
               OpenThread (THREAD_ALL_ACCESS, FALSE, tent.th32ThreadID);
 
-            if (hThread != NULL)
+            if (hThread != GetCurrentThread ())
             {
               threads.push (tent.th32ThreadID);
               SuspendThread (hThread);
@@ -1054,7 +1089,7 @@ SK_ResumeThreads (std::queue <DWORD> threads)
     HANDLE hThread =
       OpenThread (THREAD_ALL_ACCESS, FALSE, tid);
 
-    if (hThread != NULL)
+    if (hThread != GetCurrentThread ())
     {
       ResumeThread (hThread);
       CloseHandle  (hThread);
@@ -1064,97 +1099,57 @@ SK_ResumeThreads (std::queue <DWORD> threads)
   }
 }
 
-
-
-DWORD
-__stdcall
-SK_RVA2FileOff ( DWORD                 rva,
-                 PIMAGE_SECTION_HEADER pSec,
-                 PIMAGE_NT_HEADERS     pNt );
-
 void
 __stdcall
-SK_TestRenderImports (HMODULE hMod, bool* gl, bool* d3d9, bool* dxgi)
+SK_TestImports (HMODULE hMod, sk_import_test_s* pTests, int nCount)
 {
-  wchar_t wszDllFullName [MAX_PATH];
-          wszDllFullName [MAX_PATH - 1] = L'\0';
-
-  GetModuleFileName (hMod, wszDllFullName, MAX_PATH - 1);
-
-  HANDLE hFile = 
-    CreateFile ( wszDllFullName,
-                   GENERIC_READ,
-                     0x00,
-                       nullptr,
-                         OPEN_EXISTING,
-                           FILE_ATTRIBUTE_NORMAL,
-                             NULL );
-
-  DWORD dwRead,
-        dwSize = GetFileSize (hFile, nullptr);
-
-  LPVOID pImage = VirtualAlloc ( nullptr,
-                                   dwSize,
-                                     MEM_COMMIT,
-                                       PAGE_READWRITE );
-
-  ReadFile    (hFile, pImage, dwSize, &dwRead, nullptr);
-  CloseHandle (hFile);
-
   __try
   {
-    PIMAGE_NT_HEADERS     pNtHdr =
-      (PIMAGE_NT_HEADERS)(
-        PCHAR (pImage) + PIMAGE_DOS_HEADER (pImage)->e_lfanew
+    uintptr_t                pImgBase =
+      (uintptr_t)GetModuleHandle (nullptr);
+
+    MEMORY_BASIC_INFORMATION mem_info;
+    VirtualQuery ((LPCVOID)pImgBase, &mem_info, sizeof mem_info);
+
+    pImgBase = (uintptr_t)mem_info.BaseAddress;
+
+    PIMAGE_NT_HEADERS        pNtHdr   =
+      PIMAGE_NT_HEADERS ( pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew );
+
+    PIMAGE_DATA_DIRECTORY    pImgDir  =
+        &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
+
+    PIMAGE_IMPORT_DESCRIPTOR pImpDesc =
+      PIMAGE_IMPORT_DESCRIPTOR (
+        pImgBase + pImgDir->VirtualAddress
       );
 
-    PIMAGE_SECTION_HEADER pSecHdr =
-      IMAGE_FIRST_SECTION (pNtHdr);
+    //dll_log.Log (L"[Import Tbl] Size=%lu", pImgDir->Size);
 
-    PIMAGE_IMPORT_DESCRIPTOR pImpDesc;
-    PIMAGE_DATA_DIRECTORY    pImgDir = 
-      &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (pImgDir->Size < (1024 * 2048)) {
+      int hits = 0;
 
-    if (pImgDir->Size != 0)
-    {
-      pImpDesc =
-        (PIMAGE_IMPORT_DESCRIPTOR)(
-          (DWORD_PTR)pImage + SK_RVA2FileOff (
-                                pImgDir->VirtualAddress,
-                                  pSecHdr,
-                                    pNtHdr
-                              )
-        );
+      uintptr_t end = (uintptr_t)pImpDesc + pImgDir->Size;
 
-      while (pImpDesc->Name != NULL)
-      {
-        //dll_log.Log ( L"[ImportTbl] (Library Name   : %-28hs)",
-          //(PCHAR)(
-            //(DWORD_PTR)pImage + SK_RVA2FileOff (
-                                  //(pImpDesc++)->Name,
-                                    //pSecHdr,
-                                      //pNtHdr
-                                //)
-          //)
-        //);
+      while ((uintptr_t)pImpDesc < end) {
+        if (pImpDesc->Name == NULL) {
+          ++pImpDesc;
+          continue;
+        }
 
-        PCHAR szImport = 
-          (PCHAR)(
-            (DWORD_PTR)pImage + SK_RVA2FileOff (
-                                  (pImpDesc++)->Name,
-                                    pSecHdr,
-                                      pNtHdr
-                                )
-          );
+        const char* szImport = (const char *)(pImgBase + (pImpDesc++)->Name);
 
-        if ( gl != nullptr && StrStrIA (szImport, "OpenGL32.dll") )
-          *gl = true;
+        //dll_log.Log (L"%hs", szImport);
 
-        if ( d3d9 != nullptr && StrStrIA (szImport, "d3d9.dll") )
-          *d3d9 = true;
+        for (int i = 0; i < nCount; i++) {
+          if ((! pTests [i].used) && StrStrIA (szImport, pTests [i].szModuleName)) {
+            pTests [i].used = true;
+            ++hits;
+          }
+        }
 
-        if ( dxgi != nullptr && StrStrIA (szImport, "dxgi.dll") )
-          *dxgi = true;
+        if (hits == nCount)
+          break;
       }
     }
   }
@@ -1165,34 +1160,140 @@ SK_TestRenderImports (HMODULE hMod, bool* gl, bool* d3d9, bool* dxgi)
                     L"Walk Import Table." );
     }
   }
-
-  if (pImage != nullptr)
-    VirtualFree (pImage, dwSize, MEM_DECOMMIT);
-
-  return;
 }
 
-DWORD
-__stdcall
-SK_RVA2FileOff ( DWORD                 rva,
-                 PIMAGE_SECTION_HEADER pSecRoot,
-                 PIMAGE_NT_HEADERS     pNt )
+void
+SK_TestRenderImports (HMODULE hMod, bool* gl, bool* d3d9, bool* dxgi)
 {
-  PIMAGE_SECTION_HEADER pSec;
+  static sk_import_test_s tests [] = { { "OpenGL32.dll", false },
+                                       { "d3d9.dll",     false },
+                                       { "dxgi.dll",     false } };
 
-  if (rva == 0)
-    return rva;
+  SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);
 
-  pSec = pSecRoot;
+  *gl   = tests [0].used;
+  *d3d9 = tests [1].used;
+  *dxgi = tests [2].used;
+}
 
-  for (WORD i = 0; i < pNt->FileHeader.NumberOfSections; i++)
-  {
-    if ( rva >= pSec->VirtualAddress &&
-         rva <  pSec->VirtualAddress + pSec->Misc.VirtualSize )
+
+
+static LPVOID __SK_base_img_addr = nullptr;
+static LPVOID __SK_end_img_addr  = nullptr;
+
+void*
+__stdcall
+SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
+{
+  uint8_t* base_addr = (uint8_t *)GetModuleHandle (nullptr);
+
+  MEMORY_BASIC_INFORMATION mem_info;
+  VirtualQuery (base_addr, &mem_info, sizeof mem_info);
+
+           base_addr = (uint8_t *)mem_info.BaseAddress;
+  uint8_t* end_addr  = (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
+
+#if 0
+  if (base_addr != (uint8_t *)0x400000) {
+    dll_log->Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
+                     base_addr );
+  }
+#endif
+
+  size_t pages = 0;
+
+// Scan up to 32 MiB worth of data
+#define PAGE_WALK_LIMIT (base_addr) + (1 << 26)
+
+  //
+  // For practical purposes, let's just assume that all valid games have less than 32 MiB of
+  //   committed executable image data.
+  //
+  while (VirtualQuery (end_addr, &mem_info, sizeof mem_info) && end_addr < PAGE_WALK_LIMIT) {
+    if (mem_info.Protect & PAGE_NOACCESS || (! (mem_info.Type & MEM_IMAGE)))
       break;
 
-    ++pSec;
+    pages += VirtualQuery (end_addr, &mem_info, sizeof mem_info);
+
+    end_addr = (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
+  } 
+
+  if (end_addr > PAGE_WALK_LIMIT) {
+#if 0
+    dll_log->Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
+                     end_addr );
+    dll_log->Log ( L"[ Sig Scan ]  >> Restricting to %ph",
+                     PAGE_WALK_LIMIT );
+#endif
+    end_addr = PAGE_WALK_LIMIT;
   }
 
-  return (rva - pSec->VirtualAddress + pSec->PointerToRawData);
-} 
+#if 0
+  dll_log->Log ( L"[ Sig Scan ] Module image consists of %lu pages, from %ph to %ph",
+                   pages,
+                     base_addr,
+                       end_addr );
+#endif
+
+  __SK_base_img_addr = base_addr;
+  __SK_end_img_addr  = end_addr;
+
+  uint8_t*  begin = (uint8_t *)base_addr;
+  uint8_t*  it    = begin;
+  int       idx   = 0;
+
+  while (it < end_addr)
+  {
+    VirtualQuery (it, &mem_info, sizeof mem_info);
+
+    // Bail-out once we walk into an address range that is not resident, because
+    //   it does not belong to the original executable.
+    if (mem_info.RegionSize == 0)
+      break;
+
+    uint8_t* next_rgn =
+     (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
+
+    if ( (! (mem_info.Type    & MEM_IMAGE))  ||
+         (! (mem_info.State   & MEM_COMMIT)) ||
+             mem_info.Protect & PAGE_NOACCESS ) {
+      it    = next_rgn;
+      idx   = 0;
+      begin = it;
+      continue;
+    }
+
+    // Do not search past the end of the module image!
+    if (next_rgn >= end_addr)
+      break;
+
+    while (it < next_rgn) {
+      uint8_t* scan_addr = it;
+
+      bool match = (*scan_addr == pattern [idx]);
+
+      // For portions we do not care about... treat them
+      //   as matching.
+      if (mask != nullptr && (! mask [idx]))
+        match = true;
+
+      if (match) {
+        if (++idx == len)
+          return (void *)begin;
+
+        ++it;
+      }
+
+      else {
+        // No match?!
+        if (it > end_addr - len)
+          break;
+
+        it  = ++begin;
+        idx = 0;
+      }
+    }
+  }
+
+  return nullptr;
+}

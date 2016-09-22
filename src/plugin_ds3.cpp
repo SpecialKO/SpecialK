@@ -825,10 +825,12 @@ SK_DS3_InitPlugin (void)
 
     SK_SetPluginName (SUS_VERSION_STR);
 
-    std::wstring ds3_prefs_file =
-      SK_GetConfigPath () + L"SoulsUnsqueezed.ini";
+    wchar_t ds3_prefs_file [MAX_PATH] = { L'\0' };
 
-    ds3_prefs = new iSK_INI ((wchar_t *)ds3_prefs_file.c_str ());
+    lstrcatW (ds3_prefs_file, SK_GetConfigPath ());
+    lstrcatW (ds3_prefs_file, L"SoulsUnsqueezed.ini");
+
+    ds3_prefs = new iSK_INI (ds3_prefs_file);
     ds3_prefs->parse ();
   }
 
@@ -1038,9 +1040,12 @@ SK_DS3_InitPlugin (void)
     ds3_last_addr->set_value ((int64_t)res_addr);
     ds3_last_addr->store     ();
 
-    ds3_prefs->write (
-      SK_GetConfigPath () + L"SoulsUnsqueezed.ini" 
-    );
+    wchar_t config_file [MAX_PATH] = { L'\0' };
+
+    lstrcatW (config_file, SK_GetConfigPath ());
+    lstrcatW (config_file, L"SoulsUnsqueezed.ini");
+
+    ds3_prefs->write (config_file);
   }
 
   void* res_addr_x = res_addr;

@@ -31,6 +31,8 @@
 
 #include "utility.h"
 
+#include <process.h>
+
 extern HMODULE WINAPI SK_GetDLL (void);
 
 #include "core.h"
@@ -68,11 +70,11 @@ void
 WINAPI
 SK_HookGL (void);
 
-DWORD
+unsigned int
 WINAPI
 DXGI_Thread (LPVOID user)
 {
-  if (! (dll_role & DLL_ROLE::DXGI)) {
+  if (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) {
     CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 
     typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)(REFIID,IDXGIFactory**);
@@ -106,6 +108,8 @@ DXGI_Thread (LPVOID user)
 
       factory->Release ();
     }
+
+    CoUninitialize ();
   }
 
   return 0;
@@ -157,11 +161,13 @@ BOOL
 WINAPI
 wglSwapBuffers (HDC hDC);
 
+extern "C++" void SK_BootOpenGL (void);
+
 void
 WINAPI
 opengl_init_callback (finish_pfn finish)
 {
-  SK_HookGL ();
+  SK_BootOpenGL ();
 
   finish ();
 }
@@ -176,19 +182,25 @@ SK_LoadRealGL (void)
 {
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
 
-#ifdef _WIN64
-  GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#else
-  BOOL bWOW64;
-  ::IsWow64Process (GetCurrentProcess (), &bWOW64);
+  extern bool injected;
 
-  if (bWOW64)
-    GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
-  else
+  if (! injected) {
+#ifdef _WIN64
     GetSystemDirectory (wszBackendDLL, MAX_PATH);
+#else
+    BOOL bWOW64;
+    ::IsWow64Process (GetCurrentProcess (), &bWOW64);
+
+    if (bWOW64)
+      GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
+    else
+      GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #endif
 
-  lstrcatW (wszBackendDLL, L"\\OpenGL32.dll");
+    lstrcatW (wszBackendDLL, L"\\");
+  }
+
+  lstrcatW (wszBackendDLL, L"OpenGL32.dll");
 
   if (local_gl == 0)
     local_gl = LoadLibraryW (wszBackendDLL);
@@ -1171,10 +1183,10 @@ SwapBuffers (HDC hDC)
   SK_BeginBufferSwap ();
 
   if (gdi_swap_buffers == nullptr) {
-    HMODULE hModGDI32 = LoadLibrary (L"gdi32.dll");
+    //HMODULE hModGDI32 = LoadLibrary (L"OpenGL32.dll");
 
     gdi_swap_buffers =
-      (SwapBuffers_pfn)GetProcAddress (hModGDI32, "SwapBuffers");
+      (SwapBuffers_pfn)GetProcAddress (backend_dll, "SwapBuffers");
   }
 
   SK_GL_UpdateRenderStats ();
@@ -2046,12 +2058,12 @@ SK_HookGL (void)
     InterlockedExchange (&__gl_ready, TRUE);
   }
 
-  CreateThread ( nullptr,
-                   0,
-                     DXGI_Thread,
-                       nullptr,
-                         0x00,
-                           nullptr );
+  _beginthreadex ( nullptr,
+                     0,
+                       DXGI_Thread,
+                         nullptr,
+                           0x00,
+                             nullptr );
 
   GL_HOOKED = TRUE;
 }

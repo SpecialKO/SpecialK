@@ -21,6 +21,8 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#include <memory>
+
 #include "command.h"
 
 SK_ICommandProcessor*
@@ -387,14 +389,24 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         }
       }
 
-      return SK_ICommandResult (cmd_word, cmd_args, var->getValueString (), true, var, NULL);
+      uint32_t len = 256;
+      var->getValueString (nullptr, &len);
+
+      std::unique_ptr <char> pszNew (new char [len + 1]);
+                             pszNew.get () [len] = '\0';
+
+      ++len;
+
+      var->getValueString (pszNew.get (), &len);
+
+      return SK_ICommandResult (cmd_word.c_str (), cmd_args.c_str (), pszNew.get (), true, var, NULL);
     } else {
       /* Default args --> failure... */
-      return SK_ICommandResult (cmd_word, cmd_args); 
+      return SK_ICommandResult (cmd_word.c_str (), cmd_args.c_str ());
     }
   } else {
     /* Invalid Command Line (not long enough). */
-    return SK_ICommandResult (std::string (szCommandLine)); /* Default args --> failure... */
+    return SK_ICommandResult (szCommandLine); /* Default args --> failure... */
   }
 }
 
@@ -440,13 +452,27 @@ SK_IVarStub <bool>::SK_IVarStub ( bool*                 var,
 }
 
 template <>
-std::string
-SK_IVarStub <bool>::getValueString (void) const
+void
+SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
+                                     _Inout_   uint32_t* dwLen ) const
 {
-  if (getValue ())
-    return std::string ("true");
-  else
-    return std::string ("false");
+  uint32_t len;
+
+  if (getValue ()) {
+    len = strlen ("true");
+
+    if (szOut != nullptr)
+      strncpy (szOut, "true", *dwLen);
+
+    *dwLen = std::min (*dwLen, len);
+  } else {
+    len = strlen ("false");
+
+    if (szOut != nullptr)
+      strncpy (szOut, "false", *dwLen);
+
+    *dwLen = std::min (*dwLen, len);
+  }
 }
 
 template <>
@@ -468,13 +494,14 @@ SK_IVarStub <int>::SK_IVarStub ( int*                  var,
 }
 
 template <>
-std::string
-SK_IVarStub <int>::getValueString (void) const
+void
+SK_IVarStub <int>::getValueString ( _Out_opt_ char*     szOut,
+                                    _Inout_   uint32_t* dwLen ) const
 {
-  char szIntString [32];
-  snprintf (szIntString, 32, "%d", getValue ());
-
-  return std::string (szIntString);
+  if (szOut != nullptr)
+    *dwLen = snprintf (szOut, *dwLen, "%li", getValue ());
+  else
+    *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%li", getValue ()));
 }
 
 
@@ -488,13 +515,14 @@ SK_IVarStub <short>::SK_IVarStub ( short*                var,
 }
 
 template <>
-std::string
-SK_IVarStub <short>::getValueString (void) const
+void
+SK_IVarStub <short>::getValueString ( _Out_opt_ char*     szOut,
+                                      _Inout_   uint32_t* dwLen ) const
 {
-  char szShortString [32];
-  snprintf (szShortString, 32, "%d", getValue ());
-
-  return std::string (szShortString);
+  if (szOut != nullptr)
+    *dwLen = snprintf (szOut, *dwLen, "%i", getValue ());
+  else
+    *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%i", getValue ()));
 }
 
 
@@ -508,24 +536,28 @@ SK_IVarStub <float>::SK_IVarStub ( float*                var,
 }
 
 template <>
-std::string
-SK_IVarStub <float>::getValueString (void) const
+void
+SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
+                                      _Inout_   uint32_t* dwLen ) const
 {
-  char szFloatString [32];
-  snprintf (szFloatString, 32, "%f", getValue ());
+  if (szOut != nullptr) {
+    *dwLen = snprintf (szOut, *dwLen, "%f", getValue ());
 
-  // Remove trailing 0's after the .
-  size_t len = strlen (szFloatString);
-  for (size_t i = (len - 1); i > 1; i--) {
-    if (szFloatString [i] == '0' && szFloatString [i - 1] != '.')
-      len--;
-    if (szFloatString [i] != '0' && szFloatString [i] != '\0')
-      break;
+    // Remove trailing 0's after the .
+    size_t len = *dwLen;
+
+    for (size_t i = (len - 1); i > 1; i--) {
+      if (szOut [i] == '0' && szOut [i - 1] != '.')
+        len--;
+      if (szOut [i] != '0' && szOut [i] != '\0')
+        break;
+    }
+
+    szOut [len] = '\0';
+    *dwLen = len;
+  } else {
+    *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%f", getValue ()));
   }
-
-  szFloatString [len] = '\0';
-
-  return std::string (szFloatString);
 }
 
 __declspec (dllexport)

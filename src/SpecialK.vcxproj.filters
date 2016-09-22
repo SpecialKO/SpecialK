@@ -159,6 +159,9 @@
     <ClInclude Include="dxgi_interfaces.h">
       <Filter>Header Files\Backends\DXGI</Filter>
     </ClInclude>
+    <ClInclude Include="diagnostics\compatibility.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -316,9 +319,6 @@
     <None Include="d3d9.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="wave2.bin">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
@@ -332,25 +332,8 @@
     <Media Include="..\depends\crash.wav">
       <Filter>Resource Files</Filter>
     </Media>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\depends\nvapi\x86\nvapi.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\nvapi\amd64\nvapi64.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\MinHook\lib\libMinHook.x64.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\MinHook\lib\libMinHook.x86.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\steamapi\lib\steam_api.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\steamapi\lib\steam_api64.lib">
-      <Filter>Libraries</Filter>
-    </Library>
+    <Media Include="..\..\..\..\Downloads\xbox.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>

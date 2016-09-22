@@ -278,11 +278,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //         relying on DllMain (...) to be called.
   if ( hWnd             == game_window.hWnd &&
        uMsg             == WM_DESTROY       &&
-       SK_GetHostApp () == L"Fallout4.exe" ) {
+       (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ) {
     dll_log.Log ( L"[ SpecialK ] --- Invoking DllMain shutdown in response to "
                   L"WM_DESTROY ---" );
     SK_SelfDestruct ();
   }
+
+  extern volatile ULONG SK_bypass_dialog_active;
+
+  if (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE))
+    return DefWindowProc (hWnd, uMsg, wParam, lParam);
 
   if (console_visible) {
     if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
@@ -473,7 +478,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
       continue;
     }
 
-    if (SK_GetFramesDrawn ())
+    if (SK_GetFramesDrawn () > 1)
       break;
   }
   dll_log.Log ( L"[CmdConsole]  # Found window in %03.01f seconds, "

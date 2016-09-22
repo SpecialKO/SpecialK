@@ -29,13 +29,16 @@
 #include "log.h"
 #include "steam_api.h"
 
-std::wstring SK_VER_STR = L"0.6.3";
+const wchar_t*        SK_VER_STR = L"0.6.10";
 
-iSK_INI*    dll_ini = nullptr;
-
-sk_config_t config;
-
+iSK_INI*               dll_ini   = nullptr;
+sk_config_t            config;
 sk::ParameterFactory g_ParameterFactory;
+
+extern
+bool
+__stdcall
+SK_IsInjected (void);
 
 struct {
   struct {
@@ -199,6 +202,8 @@ struct {
 
 struct {
   sk::ParameterBool* ignore_raptr;
+  sk::ParameterBool* disable_raptr;
+  sk::ParameterBool* rehook_loadlibrary;
 } compatibility;
 
 
@@ -210,6 +215,8 @@ SK_LoadConfig (std::wstring name) {
   full_name = SK_GetConfigPath () +
                 name              +
                   L".ini";
+
+  SK_CreateDirectories (full_name.c_str ());
 
   dll_ini =
     new iSK_INI (full_name.c_str ());
@@ -387,12 +394,32 @@ SK_LoadConfig (std::wstring name) {
   compatibility.ignore_raptr =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
-        L"Ignore Raptr")
+        L"Ignore Raptr Warning")
       );
   compatibility.ignore_raptr->register_to_ini (
     dll_ini,
       L"Compatibility.General",
         L"IgnoreRaptr" );
+
+  compatibility.disable_raptr =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Forcefully Disable Raptr")
+      );
+  compatibility.disable_raptr->register_to_ini (
+    dll_ini,
+      L"Compatibility.General",
+        L"DisableRaptr" );
+
+  compatibility.rehook_loadlibrary =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Rehook LoadLibrary When RTSS/Steam/GeDoSaTo hook it")
+      );
+  compatibility.rehook_loadlibrary->register_to_ini (
+    dll_ini,
+      L"Compatibility.General",
+        L"RehookLoadLibrary" );
 
 
   mem_reserve =
@@ -488,7 +515,48 @@ SK_LoadConfig (std::wstring name) {
         L"Version" );
 
 
-  if (dll_role == D3D9) {
+  render.framerate.target_fps =
+    static_cast <sk::ParameterFloat *>
+      (g_ParameterFactory.create_parameter <float> (
+        L"Framerate Target")
+      );
+  render.framerate.target_fps->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"TargetFPS" );
+
+  render.framerate.buffer_count =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"Number of BackBuffers in the SwapChain")
+      );
+  render.framerate.buffer_count->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"BackBufferCount" );
+
+  render.framerate.present_interval =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"Presentation Interval")
+      );
+  render.framerate.present_interval->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"PresentationInterval" );
+
+  render.framerate.prerender_limit =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"Maximum Frames to Render-Ahead")
+      );
+  render.framerate.prerender_limit->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"PreRenderLimit" );
+
+
+  if (SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9)) {
     render.d3d9.force_d3d9ex =
       static_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
@@ -525,89 +593,9 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.D3D9",
           L"RefreshRate" );
-
-    render.framerate.target_fps =
-      static_cast <sk::ParameterFloat *>
-        (g_ParameterFactory.create_parameter <float> (
-          L"Framerate Target")
-        );
-    render.framerate.target_fps->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"TargetFPS" );
-
-    render.framerate.buffer_count =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Number of BackBuffers in the SwapChain")
-        );
-    render.framerate.buffer_count->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"BackBufferCount" );
-
-    render.framerate.present_interval =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Presentation Interval")
-        );
-    render.framerate.present_interval->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"PresentationInterval" );
-
-    render.framerate.prerender_limit =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Maximum Frames to Render-Ahead")
-        );
-    render.framerate.prerender_limit->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"PreRenderLimit" );
   }
 
-  if (dll_role == DXGI) {
-    render.framerate.target_fps =
-      static_cast <sk::ParameterFloat *>
-        (g_ParameterFactory.create_parameter <float> (
-          L"Framerate Target")
-        );
-    render.framerate.target_fps->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"TargetFPS" );
-
-    render.framerate.prerender_limit =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Maximum Frames to Render-Ahead")
-        );
-    render.framerate.prerender_limit->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"PreRenderLimit" );
-
-    render.framerate.buffer_count =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Number of Buffers in the SwapChain")
-        );
-    render.framerate.buffer_count->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"SwapChainBufferCount" );
-
-    render.framerate.present_interval =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Presentation Interval")
-        );
-    render.framerate.present_interval->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"PresentationInterval" );
-
+  if (SK_IsInjected () || (SK_GetDLLRole () & (DLL_ROLE::DXGI))) {
     render.framerate.max_delta_time =
       static_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
@@ -1115,6 +1103,14 @@ SK_LoadConfig (std::wstring name) {
   //
   // Load Parameters
   //
+  if (compatibility.ignore_raptr->load ())
+    config.compatibility.ignore_raptr = compatibility.ignore_raptr->get_value ();
+  if (compatibility.disable_raptr->load ())
+    config.compatibility.disable_raptr = compatibility.disable_raptr->get_value ();
+  if (compatibility.rehook_loadlibrary->load ())
+    config.compatibility.rehook_loadlibrary = compatibility.rehook_loadlibrary->get_value ();
+
+
   if (monitoring.io.show->load ())
     config.io.show = monitoring.io.show->get_value ();
   if (monitoring.io.interval->load ())
@@ -1157,49 +1153,15 @@ SK_LoadConfig (std::wstring name) {
   if (monitoring.time.show->load ())
     config.time.show = monitoring.time.show->get_value ();
 
-  if (osd.show->load ())
-    config.osd.show = osd.show->get_value ();
-
-  if (osd.update_method.pump->load ())
-    config.osd.pump = osd.update_method.pump->get_value ();
-
-  if (osd.update_method.pump_interval->load ())
-    config.osd.pump_interval = osd.update_method.pump_interval->get_value ();
-
-  if (osd.text.red->load ())
-    config.osd.red = osd.text.red->get_value ();
-  if (osd.text.green->load ())
-    config.osd.green = osd.text.green->get_value ();
-  if (osd.text.blue->load ())
-    config.osd.blue = osd.text.blue->get_value ();
-
-  if (osd.viewport.pos_x->load ())
-    config.osd.pos_x = osd.viewport.pos_x->get_value ();
-  if (osd.viewport.pos_y->load ())
-    config.osd.pos_y = osd.viewport.pos_y->get_value ();
-  if (osd.viewport.scale->load ())
-    config.osd.scale = osd.viewport.scale->get_value ();
-
   if (monitoring.SLI.show->load ())
     config.sli.show = monitoring.SLI.show->get_value ();
 
   if (nvidia.api.disable->load ())
     config.nvidia.api.disable = nvidia.api.disable->get_value ();
 
-  if (dll_role == D3D9 || dll_role == DXGI) {
-    if (render.framerate.target_fps->load ())
-      config.render.framerate.target_fps =
-        render.framerate.target_fps->get_value ();
-    if (render.framerate.buffer_count->load ())
-      config.render.framerate.buffer_count =
-        render.framerate.buffer_count->get_value ();
-    if (render.framerate.prerender_limit->load ())
-      config.render.framerate.pre_render_limit =
-        render.framerate.prerender_limit->get_value ();
-    if (render.framerate.present_interval->load ())
-      config.render.framerate.present_interval =
-        render.framerate.present_interval->get_value ();
-
+  if ( SK_IsInjected () ||
+         ( SK_GetDLLRole () & DLL_ROLE::D3D9 ||
+           SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
     // SLI only works in Direct3D
     if (nvidia.sli.compatibility->load ())
       config.nvidia.sli.compatibility =
@@ -1214,7 +1176,35 @@ SK_LoadConfig (std::wstring name) {
       config.nvidia.sli.override =
         nvidia.sli.override->get_value ();
 
-    if (dll_role == DXGI) {
+    if (render.framerate.target_fps->load ())
+      config.render.framerate.target_fps =
+        render.framerate.target_fps->get_value ();
+    if (render.framerate.buffer_count->load ())
+      config.render.framerate.buffer_count =
+        render.framerate.buffer_count->get_value ();
+    if (render.framerate.prerender_limit->load ())
+      config.render.framerate.pre_render_limit =
+        render.framerate.prerender_limit->get_value ();
+    if (render.framerate.present_interval->load ())
+      config.render.framerate.present_interval =
+        render.framerate.present_interval->get_value ();
+
+    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
+      if (render.d3d9.force_d3d9ex->load ())
+        config.render.d3d9.force_d3d9ex =
+          render.d3d9.force_d3d9ex->get_value ();
+      if (render.d3d9.force_fullscreen->load ())
+        config.render.d3d9.force_fullscreen =
+          render.d3d9.force_fullscreen->get_value ();
+      if (render.d3d9.hook_type->load ())
+        config.render.d3d9.hook_type =
+          render.d3d9.hook_type->get_value ();
+      if (render.d3d9.refresh_rate->load ())
+        config.render.d3d9.refresh_rate =
+          render.d3d9.refresh_rate->get_value ();
+    }
+
+    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::DXGI) {
       if (render.framerate.max_delta_time->load ())
         config.render.framerate.max_delta_time =
           render.framerate.max_delta_time->get_value ();
@@ -1278,21 +1268,6 @@ SK_LoadConfig (std::wstring name) {
       if (config.render.dxgi.adapter_override != -1)
         SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
     }
-
-    if (dll_role == D3D9) {
-      if (render.d3d9.force_d3d9ex->load ())
-        config.render.d3d9.force_d3d9ex =
-          render.d3d9.force_d3d9ex->get_value ();
-      if (render.d3d9.force_fullscreen->load ())
-        config.render.d3d9.force_fullscreen =
-          render.d3d9.force_fullscreen->get_value ();
-      if (render.d3d9.hook_type->load ())
-        config.render.d3d9.hook_type =
-          render.d3d9.hook_type->get_value ();
-      if (render.d3d9.refresh_rate->load ())
-        config.render.d3d9.refresh_rate =
-          render.d3d9.refresh_rate->get_value ();
-    }
   }
 
   if (input.cursor.manage->load ())
@@ -1326,12 +1301,40 @@ SK_LoadConfig (std::wstring name) {
   if (steam.system.preload->load ())
     config.steam.preload = steam.system.preload->get_value ();
 
+
+  if (osd.show->load ())
+    config.osd.show = osd.show->get_value ();
+
+  if (osd.update_method.pump->load ())
+    config.osd.pump = osd.update_method.pump->get_value ();
+
+  if (osd.update_method.pump_interval->load ())
+    config.osd.pump_interval = osd.update_method.pump_interval->get_value ();
+
+  if (osd.text.red->load ())
+    config.osd.red = osd.text.red->get_value ();
+  if (osd.text.green->load ())
+    config.osd.green = osd.text.green->get_value ();
+  if (osd.text.blue->load ())
+    config.osd.blue = osd.text.blue->get_value ();
+
+  if (osd.viewport.pos_x->load ())
+    config.osd.pos_x = osd.viewport.pos_x->get_value ();
+  if (osd.viewport.pos_y->load ())
+    config.osd.pos_y = osd.viewport.pos_y->get_value ();
+  if (osd.viewport.scale->load ())
+    config.osd.scale = osd.viewport.scale->get_value ();
+
+
   if (init_delay->load ())
     config.system.init_delay = init_delay->get_value ();
   if (silent->load ())
     config.system.silent = silent->get_value ();
   if (prefer_fahrenheit->load ())
     config.system.prefer_fahrenheit = prefer_fahrenheit->get_value ();
+
+  if (ignore_rtss_delay->load ())
+    config.system.ignore_rtss_delay = ignore_rtss_delay->get_value ();
 
   if (handle_crashes->load ())
     config.system.handle_crashes = handle_crashes->get_value ();
@@ -1341,12 +1344,6 @@ SK_LoadConfig (std::wstring name) {
 
   if (game_output->load ())
     config.system.game_output = game_output->get_value ();
-
-  if (compatibility.ignore_raptr->load ())
-    config.compatibility.ignore_raptr = compatibility.ignore_raptr->get_value ();
-
-  if (ignore_rtss_delay->load ())
-    config.system.ignore_rtss_delay = ignore_rtss_delay->get_value ();
 
   if (version->load ())
     config.system.version = version->get_value ();
@@ -1359,47 +1356,52 @@ SK_LoadConfig (std::wstring name) {
 
 void
 SK_SaveConfig (std::wstring name, bool close_config) {
-  monitoring.memory.show->set_value          (config.mem.show);
-  mem_reserve->set_value                     (config.mem.reserve);
+  compatibility.ignore_raptr->set_value       (config.compatibility.ignore_raptr);
+  compatibility.disable_raptr->set_value      (config.compatibility.disable_raptr);
+  compatibility.rehook_loadlibrary->set_value (config.compatibility.rehook_loadlibrary);
 
-  monitoring.fps.show->set_value             (config.fps.show);
+  monitoring.memory.show->set_value           (config.mem.show);
+  mem_reserve->set_value                      (config.mem.reserve);
 
-  monitoring.io.show->set_value              (config.io.show);
-  monitoring.io.interval->set_value          (config.io.interval);
+  monitoring.fps.show->set_value              (config.fps.show);
 
-  monitoring.cpu.show->set_value             (config.cpu.show);
-  monitoring.cpu.interval->set_value         (config.cpu.interval);
-  monitoring.cpu.simple->set_value           (config.cpu.simple);
+  monitoring.io.show->set_value               (config.io.show);
+  monitoring.io.interval->set_value           (config.io.interval);
 
-  monitoring.gpu.show->set_value             (config.gpu.show);
-  monitoring.gpu.print_slowdown->set_value   (config.gpu.print_slowdown);
-  monitoring.gpu.interval->set_value         (config.gpu.interval);
+  monitoring.cpu.show->set_value              (config.cpu.show);
+  monitoring.cpu.interval->set_value          (config.cpu.interval);
+  monitoring.cpu.simple->set_value            (config.cpu.simple);
 
-  monitoring.disk.show->set_value            (config.disk.show);
-  monitoring.disk.interval->set_value        (config.disk.interval);
-  monitoring.disk.type->set_value            (config.disk.type);
+  monitoring.gpu.show->set_value              (config.gpu.show);
+  monitoring.gpu.print_slowdown->set_value    (config.gpu.print_slowdown);
+  monitoring.gpu.interval->set_value          (config.gpu.interval);
 
-  monitoring.pagefile.show->set_value        (config.pagefile.show);
-  monitoring.pagefile.interval->set_value    (config.pagefile.interval);
+  monitoring.disk.show->set_value             (config.disk.show);
+  monitoring.disk.interval->set_value         (config.disk.interval);
+  monitoring.disk.type->set_value             (config.disk.type);
 
-  osd.show->set_value                        (config.osd.show);
-  osd.update_method.pump->set_value          (config.osd.pump);
-  osd.update_method.pump_interval->set_value (config.osd.pump_interval);
-  osd.text.red->set_value                    (config.osd.red);
-  osd.text.green->set_value                  (config.osd.green);
-  osd.text.blue->set_value                   (config.osd.blue);
-  osd.viewport.pos_x->set_value              (config.osd.pos_x);
-  osd.viewport.pos_y->set_value              (config.osd.pos_y);
-  osd.viewport.scale->set_value              (config.osd.scale);
+  monitoring.pagefile.show->set_value         (config.pagefile.show);
+  monitoring.pagefile.interval->set_value     (config.pagefile.interval);
 
-  monitoring.SLI.show->set_value             (config.sli.show);
-  monitoring.time.show->set_value            (config.time.show);
+  monitoring.SLI.show->set_value              (config.sli.show);
+  monitoring.time.show->set_value             (config.time.show);
 
-  input.cursor.manage->set_value             (config.input.cursor.manage);
-  input.cursor.keys_activate->set_value      (config.input.cursor.keys_activate);
-  input.cursor.timeout->set_value            ((float)config.input.cursor.timeout / 1000.0f);
+  osd.show->set_value                         (config.osd.show);
+  osd.update_method.pump->set_value           (config.osd.pump);
+  osd.update_method.pump_interval->set_value  (config.osd.pump_interval);
+  osd.text.red->set_value                     (config.osd.red);
+  osd.text.green->set_value                   (config.osd.green);
+  osd.text.blue->set_value                    (config.osd.blue);
+  osd.viewport.pos_x->set_value               (config.osd.pos_x);
+  osd.viewport.pos_y->set_value               (config.osd.pos_y);
+  osd.viewport.scale->set_value               (config.osd.scale);
 
-  if (dll_role == D3D9 || dll_role == DXGI) {
+  input.cursor.manage->set_value              (config.input.cursor.manage);
+  input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
+  input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
+
+  if ( SK_IsInjected () ||
+      (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
     render.framerate.target_fps->set_value       (config.render.framerate.target_fps);
     render.framerate.prerender_limit->set_value  (config.render.framerate.pre_render_limit);
     render.framerate.buffer_count->set_value     (config.render.framerate.buffer_count);
@@ -1411,7 +1413,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     nvidia.sli.num_gpus->set_value               (config.nvidia.sli.num_gpus);
     nvidia.sli.override->set_value               (config.nvidia.sli.override);
 
-    if (dll_role == DXGI) {
+    if (  SK_IsInjected () ||
+        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
       render.framerate.max_delta_time->set_value (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->set_value   (config.render.framerate.flip_discard);
 
@@ -1447,7 +1450,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       render.dxgi.swapchain_wait->set_value (config.render.framerate.swapchain_wait);
     }
 
-    if (dll_role == D3D9) {
+    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
       render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
       render.d3d9.force_fullscreen->set_value (config.render.d3d9.force_fullscreen);
       render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
@@ -1473,45 +1476,49 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   steam.log.silent->set_value                (config.steam.silent);
 
-  compatibility.ignore_raptr->set_value      (config.compatibility.ignore_raptr);
-
   init_delay->set_value                      (config.system.init_delay);
   silent->set_value                          (config.system.silent);
   prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
 
-  monitoring.memory.show->store          ();
-  mem_reserve->store                     ();
+  compatibility.ignore_raptr->store       ();
+  compatibility.disable_raptr->store      ();
+  compatibility.rehook_loadlibrary->store ();
 
-  monitoring.SLI.show->store             ();
-  monitoring.time.show->store            ();
+  monitoring.memory.show->store           ();
+  mem_reserve->store                      ();
 
-  monitoring.fps.show->store             ();
+  monitoring.SLI.show->store              ();
+  monitoring.time.show->store             ();
 
-  monitoring.io.show->store              ();
-  monitoring.io.interval->store          ();
+  monitoring.fps.show->store              ();
 
-  monitoring.cpu.show->store             ();
-  monitoring.cpu.interval->store         ();
-  monitoring.cpu.simple->store           ();
+  monitoring.io.show->store               ();
+  monitoring.io.interval->store           ();
 
-  monitoring.gpu.show->store             ();
-  monitoring.gpu.print_slowdown->store   ();
-  monitoring.gpu.interval->store         ();
+  monitoring.cpu.show->store              ();
+  monitoring.cpu.interval->store          ();
+  monitoring.cpu.simple->store            ();
 
-  monitoring.disk.show->store            ();
-  monitoring.disk.interval->store        ();
-  monitoring.disk.type->store            ();
+  monitoring.gpu.show->store              ();
+  monitoring.gpu.print_slowdown->store    ();
+  monitoring.gpu.interval->store          ();
 
-  monitoring.pagefile.show->store        ();
-  monitoring.pagefile.interval->store    ();
+  monitoring.disk.show->store             ();
+  monitoring.disk.interval->store         ();
+  monitoring.disk.type->store             ();
 
-  input.cursor.manage->store             ();
-  input.cursor.keys_activate->store      ();
-  input.cursor.timeout->store            ();
+  monitoring.pagefile.show->store         ();
+  monitoring.pagefile.interval->store     ();
 
-  nvidia.api.disable->store              ();
+  input.cursor.manage->store              ();
+  input.cursor.keys_activate->store       ();
+  input.cursor.timeout->store             ();
 
-  if (dll_role == D3D9 || dll_role == DXGI) {
+  nvidia.api.disable->store               ();
+
+  if (  SK_IsInjected ()                  || 
+      ( SK_GetDLLRole () & DLL_ROLE::DXGI ||
+        SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
     render.framerate.target_fps->store       ();
     render.framerate.buffer_count->store     ();
     render.framerate.prerender_limit->store  ();
@@ -1524,7 +1531,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       nvidia.sli.override->store             ();
     }
 
-    if (dll_role == DXGI) {
+    if (  SK_IsInjected () ||
+        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
       render.framerate.max_delta_time->store ();
       render.framerate.flip_discard->store   ();
 
@@ -1549,7 +1557,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       render.dxgi.swapchain_wait->store ();
     }
 
-    if (dll_role == D3D9) {
+    if (  SK_IsInjected () ||
+        ( SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
       render.d3d9.force_d3d9ex->store     ();
       render.d3d9.force_fullscreen->store ();
       render.d3d9.hook_type->store        ();
@@ -1577,11 +1586,12 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   steam.system.appid->store               ();
   steam.log.silent->store                 ();
 
-  compatibility.ignore_raptr->store      ();
-
   init_delay->store                      ();
   silent->store                          ();
   prefer_fahrenheit->store               ();
+
+  ignore_rtss_delay->set_value           (config.system.ignore_rtss_delay);
+  ignore_rtss_delay->store               ();
 
   handle_crashes->set_value              (config.system.handle_crashes);
   handle_crashes->store                  ();
@@ -1589,19 +1599,16 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   game_output->set_value                 (config.system.game_output);
   game_output->store                     ();
 
-  ignore_rtss_delay->set_value           (config.system.ignore_rtss_delay);
-  ignore_rtss_delay->store               ();
-
   version->set_value                     (SK_VER_STR);
   version->store                         ();
 
-  std::wstring full_name;
+  wchar_t wszFullName [ MAX_PATH + 2 ] = { L'\0' };
 
-  full_name = SK_GetConfigPath () + 
-                name              +
-                  L".ini";
+  lstrcatW (wszFullName, SK_GetConfigPath ());
+  lstrcatW (wszFullName,       name.c_str ());
+  lstrcatW (wszFullName,             L".ini");
 
-  dll_ini->write (full_name);
+  dll_ini->write (wszFullName);
 
   if (close_config) {
     if (dll_ini != nullptr) {
@@ -1609,4 +1616,11 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       dll_ini = nullptr;
     }
   }
+}
+
+const wchar_t*
+__stdcall
+SK_GetVersionStr (void)
+{
+  return SK_VER_STR;
 }

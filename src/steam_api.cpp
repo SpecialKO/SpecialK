@@ -26,16 +26,13 @@
 #include "core.h"
 
 #include "config.h"
+#include "ini.h"
 #include "log.h"
 
 // PlaySound
 #pragma comment (lib, "winmm.lib")
 
 iSK_Logger steam_log;
-HANDLE     hSteamHeap = NULL;
-
-// Some games (e.g. Fallout 4) require special treatment
-extern std::wstring host_app;
 
 static bool init = false;
 
@@ -106,7 +103,7 @@ public:
                    GameOverlayActivated_t,
                    activation )
   {
-    if (active_ != pParam->m_bActive) {
+    if (active_ != (bool)pParam->m_bActive) {
       if (pParam->m_bActive) {
         cursor_visible_ = ShowCursor (FALSE) >= -1;
                           ShowCursor (TRUE);
@@ -129,7 +126,7 @@ public:
       }
     }
 
-    active_ = pParam->m_bActive;
+    active_ = (bool)pParam->m_bActive;
   }
 
   bool isActive (void) { return active_; }
@@ -255,6 +252,11 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
   LeaveCriticalSection (&callback_cs);
 }
 
+typedef bool (S_CALLTYPE* SteamAPI_InitSafe_pfn)(void);
+SteamAPI_InitSafe_pfn SteamAPI_InitSafe_Original = nullptr;
+
+bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
+
 typedef bool (S_CALLTYPE* SteamAPI_Init_pfn)(void);
 SteamAPI_Init_pfn SteamAPI_Init_Original = nullptr;
 
@@ -305,9 +307,6 @@ public:
 
     wchar_t wszSteamDLLName [MAX_PATH];
     GetModuleFileNameW (hSteamDLL, wszSteamDLLName, MAX_PATH);
-
-    if (hSteamHeap == nullptr)
-      hSteamHeap = HeapCreate (HEAP_CREATE_ENABLE_EXECUTE, 0, 0);
 
     if (SteamAPI_InitSafe == nullptr) {
       SteamAPI_InitSafe =
@@ -475,13 +474,6 @@ public:
   }
 
   void Shutdown (void) {
-
-
-    if (hSteamHeap != nullptr) {
-      HeapDestroy (hSteamHeap);
-      hSteamHeap = nullptr;
-    }
-
     client_      = nullptr;
     user_stats_  = nullptr;
     utils_       = nullptr;
@@ -567,17 +559,56 @@ public:
        stat_listener   ( this, &SK_Steam_AchievementManager::OnRecvStats   ),
        stat_receipt    ( this, &SK_Steam_AchievementManager::AckStoreStats )
   {
-    FILE* fWAV = _wfopen (wszUnlockSound, L"rb");
+    bool xbox = false,
+         psn  = false;
 
-    if (fWAV != nullptr) {
+    wchar_t wszFileName [MAX_PATH + 2] = { L'\0' };
+
+    if (! wcslen (wszUnlockSound)) {
+      iSK_INI achievement_ini (
+        SK_EvalEnvironmentVars (
+          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\default_achievements.ini"
+        ).c_str ());
+
+      achievement_ini.parse ();
+
+      // If the config file is empty, establish defaults and then write it.
+      if (achievement_ini.get_sections ().size () == 0) {
+        achievement_ini.import ( L"[Steam.Achievements]\n"
+                                 L"SoundFile=psn\n"
+                                 L"NoSound=false\n"
+                                 L"TakeScreenshot=false\n" );
+        achievement_ini.write (        SK_EvalEnvironmentVars (
+          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\default_achievements.ini"
+        ).c_str ());
+      }
+
+      if (achievement_ini.contains_section (L"Steam.Achievements")) {
+        iSK_INISection& sec = achievement_ini.get_section (L"Steam.Achievements");
+        if (sec.contains_key (L"SoundFile"))
+          wcscpy (wszFileName, sec.get_value (L"SoundFile").c_str ());
+      }
+    } else {
+      wcscpy (wszFileName, wszUnlockSound);
+    }
+
+    if ((! wcsicmp (wszFileName, L"psn")))
+      psn = true;
+    else if (! wcsicmp (wszFileName, L"xbox"))
+      xbox = true;
+
+    FILE* fWAV = _wfopen (wszFileName, L"rb");
+
+    if ((! psn) && (! xbox) && fWAV != nullptr)
+    {
       steam_log.LogEx (true, L"  >> Loading Achievement Unlock Sound: '%s'...",
-                       wszUnlockSound);
+                       wszFileName);
 
                   fseek  (fWAV, 0, SEEK_END);
       long size = ftell  (fWAV);
                   rewind (fWAV);
 
-      unlock_sound = (uint8_t *)HeapAlloc (hSteamHeap, HEAP_ZERO_MEMORY, size);
+      unlock_sound = (uint8_t *)new uint8_t [size];
 
       if (unlock_sound != nullptr)
         fread  (unlock_sound, size, 1, fWAV);
@@ -588,12 +619,22 @@ public:
 
       default_loaded = false;
     } else {
-      steam_log.Log (L"  * Failed to Load Unlock Sound: '%s', using DEFAULT",
-                       wszUnlockSound);
+      // Default to PSN if not specified
+      if ((! psn) && (! xbox))
+        psn = true;
+
+      steam_log.Log (L"  * Loading Built-In Achievement Unlock Sound: '%s'",
+                       wszFileName);
 
       extern HMODULE __stdcall SK_GetDLL (void);
-      HRSRC   default_sound =
-        FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_TROPHY), L"WAVE");
+      HRSRC   default_sound;
+
+      if (psn)
+        default_sound =
+          FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_TROPHY), L"WAVE");
+      else
+        default_sound =
+          FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_XBOX), L"WAVE");
 
       if (default_sound != nullptr) {
         HGLOBAL sound_ref     =
@@ -609,7 +650,7 @@ public:
 
   ~SK_Steam_AchievementManager (void) {
     if ((! default_loaded) && (unlock_sound != nullptr)) {
-      HeapFree (hSteamHeap, 0, unlock_sound);
+      delete [] unlock_sound;
       unlock_sound = nullptr;
     }
   }
@@ -691,7 +732,7 @@ public:
     if (pParam->m_nGameID != SK::SteamAPI::AppID ())
       return;
 
-    if (host_app != L"Fallout4.exe")
+    if (lstrcmpiW (SK_GetHostApp (), L"Fallout4.exe"))
       log_all_achievements ();
   }
 
@@ -732,14 +773,6 @@ public:
                       pParam->m_nMaxProgress,
      100.0f * ((float)pParam->m_nCurProgress / (float)pParam->m_nMaxProgress));
     }
-  }
-
-  void* operator new (size_t size) {
-    return HeapAlloc (hSteamHeap, HEAP_ZERO_MEMORY, size);
-  }
-
-  void operator delete (void* pMemory) {
-    HeapFree (hSteamHeap, 0, pMemory);
   }
 
 protected:
@@ -979,15 +1012,22 @@ SK::SteamAPI::Init (bool pre_load)
     const wchar_t* wszSteamDLLName = L"steam_api64.dll";
 #endif
 
-    if (pre_load && (! GetModuleHandle (wszSteamDLLName)))
+    HMODULE hModSteam;
+
+    if (pre_load && (! GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, wszSteamDLLName, &hModSteam)))
       LoadLibrary (wszSteamDLLName);
 
-    if (GetModuleHandle (wszSteamDLLName) != NULL) {
-      SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_Init",
+    if (GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, wszSteamDLLName, &hModSteam)) {
+      SK_CreateDLLHook2 (wszSteamDLLName, "SteamAPI_Init",
                          SteamAPI_Init_Detour,
                          (LPVOID *)&SteamAPI_Init_Original,
                          (LPVOID *)&SteamAPI_Init);
-      SK_EnableHook (SteamAPI_Init);
+
+      //SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_InitSafe",
+                         //SteamAPI_InitSafe_Detour,
+                         //(LPVOID *)&SteamAPI_InitSafe_Original,
+                         //(LPVOID *)&SteamAPI_InitSafe);
+      MH_ApplyQueued ();
 
       HookSteam ();
     }
@@ -1091,6 +1131,13 @@ SK::SteamAPI::TakeScreenshot (void)
 
 bool
 S_CALLTYPE
+SteamAPI_InitSafe_Detour (void)
+{
+  return SteamAPI_InitSafe_Original ();
+}
+
+bool
+S_CALLTYPE
 SteamAPI_Init_Detour (void)
 {
   static int  init_tries = -1;
@@ -1132,7 +1179,7 @@ SK_SteamAPI_Init (void)
   HMODULE hSteamAPI = nullptr;
   bool    bImported = false;
 
-  if (init_tries == 1) {
+  if (init_tries++ == 1) {
     steam_log.Log (L" @ %s was already loaded...\n", steam_dll_str);
   }
 

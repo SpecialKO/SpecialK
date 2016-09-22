@@ -30,7 +30,11 @@
 #include "log.h"
 #include "utility.h"
 
-#include "steam_api.h"
+#ifdef _WIN64
+#pragma comment (lib, "MinHook/libMinHook.x64.lib")
+#else
+#pragma comment (lib, "MinHook/libMinHook.x86.lib")
+#endif
 
 #pragma warning   (push)
 #pragma warning   (disable: 4091)
@@ -53,22 +57,19 @@
 memory_stats_t mem_stats [MAX_GPU_NODES];
 mem_info_t     mem_info  [NumBuffers];
 
-HANDLE           dll_heap      = { 0 };
 CRITICAL_SECTION budget_mutex  = { 0 };
 CRITICAL_SECTION init_mutex    = { 0 };
 volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
 struct budget_thread_params_t {
-  IDXGIAdapter3   *pAdapter;
-  DWORD            tid;
-  HANDLE           handle;
-  DWORD            cookie;
-  HANDLE           event;
-  volatile bool    ready;
-} *budget_thread = nullptr;
-
-std::wstring host_app;
+  IDXGIAdapter3   *pAdapter = nullptr;
+  DWORD            tid      = 0UL;
+  HANDLE           handle   = INVALID_HANDLE_VALUE;
+  DWORD            cookie   = 0UL;
+  HANDLE           event    = INVALID_HANDLE_VALUE;
+  volatile ULONG   ready    = FALSE;
+} budget_thread;
 
 // Disable SLI memory in Batman Arkham Knight
 bool USE_SLI = true;
@@ -81,17 +82,32 @@ NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init = FALSE;
 int                      gpu_prio;
 
+HMODULE                  backend_dll  = 0;
+
+// NOT the working directory, this is the directory that
+//   the executable is located in.
+const wchar_t*
+SK_GetHostPath (void);
+
+extern
+bool
+__stdcall
+SK_IsInjected (void);
+
+extern
+HMODULE
+__stdcall
+SK_GetDLL (void);
+
 volatile
-ULONG                frames_drawn = 0UL;
+ULONG frames_drawn = 0UL;
 
 ULONG
 __stdcall
 SK_GetFramesDrawn (void)
 {
-  return frames_drawn;
+  return InterlockedCompareExchange (&frames_drawn, 0, 0);
 }
-
-HMODULE                  backend_dll  = 0;
 
 #include <d3d9.h>
 
@@ -332,54 +348,50 @@ SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
     // We darn sure better not spawn multiple threads!
     EnterCriticalSection (&budget_mutex);
 
-    if (budget_thread == nullptr) {
+    if (budget_thread.handle == INVALID_HANDLE_VALUE) {
       // We're going to Release this interface after thread spawnning, but
       //   the running thread still needs a reference counted.
       pAdapter3->AddRef ();
 
       unsigned int __stdcall BudgetThread (LPVOID user_data);
 
-      budget_thread =
-        (budget_thread_params_t *)
-        HeapAlloc ( dll_heap,
-          HEAP_ZERO_MEMORY,
-          sizeof (budget_thread_params_t) );
+      ZeroMemory (&budget_thread, sizeof budget_thread_params_t);
 
       dll_log.LogEx (true,
         L"[ DXGI 1.4 ]   $ Spawning Memory Budget Change Thread..: ");
 
-      budget_thread->pAdapter = pAdapter3;
-      budget_thread->tid      = 0;
-      budget_thread->event    = 0;
-      budget_thread->ready    = false;
-      budget_log.silent       = true;
+      budget_thread.pAdapter = pAdapter3;
+      budget_thread.tid      = 0;
+      budget_thread.event    = 0;
+      InterlockedExchange (&budget_thread.ready, FALSE);
+      budget_log.silent      = true;
 
-      budget_thread->handle =
+      budget_thread.handle =
         (HANDLE)
           _beginthreadex ( nullptr,
                              0,
                                BudgetThread,
-                                 (LPVOID)budget_thread,
-                                   0,
+                                 (LPVOID)&budget_thread,
+                                   0x00,
                                      nullptr );
 
-      while (! budget_thread->ready)
+      while (! InterlockedCompareExchange (&budget_thread.ready, FALSE, FALSE))
         ;
 
-      if (budget_thread->tid != 0) {
-        dll_log.LogEx (false, L"tid=0x%04x\n", budget_thread->tid);
+      if (budget_thread.tid != 0) {
+        dll_log.LogEx (false, L"tid=0x%04x\n", budget_thread.tid);
 
         dll_log.LogEx (true,
           L"[ DXGI 1.4 ]   %% Setting up Budget Change Notification.: ");
 
         HRESULT result =
           pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
-            budget_thread->event, &budget_thread->cookie
+            budget_thread.event, &budget_thread.cookie
             );
 
         if (SUCCEEDED (result)) {
           dll_log.LogEx (false, L"eid=0x%x, cookie=%u\n",
-            budget_thread->event, budget_thread->cookie);
+            budget_thread.event, budget_thread.cookie);
         } else {
           dll_log.LogEx (false, L"Failed! (%s)\n",
             SK_DescribeHRESULT (result));
@@ -524,23 +536,23 @@ BudgetThread (LPVOID user_data)
     params->tid       = GetCurrentThreadId ();
     params->event     = CreateEvent (NULL, FALSE, FALSE, L"DXGIMemoryBudget");
     budget_log.silent = true;
-    params->ready     = true;
+
+    InterlockedExchange (&params->ready, TRUE);
   } else {
     params->tid    = 0;
-    params->ready  = true; // Not really :P
+
+    InterlockedExchange (&params->ready, TRUE); // Not really :P
     return -1;
   }
 
-  HANDLE hThreadHeap = HeapCreate (0, 0, 0);
-
-  while (params->ready) {
+  while (InterlockedCompareExchange (&params->ready, FALSE, FALSE)) {
     if (params->event == 0)
       break;
 
     DWORD dwWaitStatus = WaitForSingleObject (params->event,
       BUDGET_POLL_INTERVAL);
 
-    if (! params->ready) {
+    if (! InterlockedCompareExchange (&params->ready, FALSE, FALSE)) {
       ResetEvent (params->event);
       break;
     }
@@ -565,7 +577,7 @@ BudgetThread (LPVOID user_data)
       ) ;
 
     // Fix for AMD drivers, that don't allow querying non-local memory
-    int nodes = max (0, node - 1);
+    int nodes = std::max (0, node - 1);
 
     node = 0;
 
@@ -582,86 +594,12 @@ BudgetThread (LPVOID user_data)
     // Set the number of SLI/CFX Nodes
     mem_info [buffer].nodes = nodes;
 
-#if 0
-    static time_t last_flush = time (NULL);
-    static time_t last_empty = time (NULL);
-    static uint64_t last_budget =
-      mem_info [buffer].local [0].Budget;
-    static bool queued_flush = false;
-    if (dwWaitStatus == WAIT_OBJECT_0 && last_budget >
-      mem_info [buffer].local [0].Budget)
-      queued_flush = true;
-    if (FlushAllCaches != nullptr
-      && (last_budget > mem_info [buffer].local [0].Budget && time (NULL) -
-        last_flush > 2 ||
-        (queued_flush && time (NULL) - last_flush > 2)
-        )
-      )
-    {
-      bool silence = budget_log.silent;
-      budget_log.silent = false;
-      if (last_budget > mem_info [buffer].local [0].Budget) {
-        budget_log.Log (
-          L"Flushing caches because budget shrunk... (%05u MiB --> %05u MiB)",
-          last_budget >> 20ULL,
-          mem_info [buffer].local [0].Budget >> 20ULL);
-      } else {
-        budget_log.Log (
-          L"Flushing caches due to deferred budget shrink... (%u second(s))",
-          2);
-      }
-      SetSystemFileCacheSize (-1, -1, NULL);
-      FlushAllCaches (StreamMgr);
-      last_flush = time (NULL);
-      budget_log.Log (L" >> Compacting Process Heap...");
-      HANDLE hHeap = GetProcessHeap ();
-      HeapCompact (hHeap, 0);
-      struct heap_opt_t {
-        DWORD version;
-        DWORD length;
-      } heap_opt;`
-
-        heap_opt.version = 1;
-      heap_opt.length  = sizeof (heap_opt_t);
-      HeapSetInformation (NULL, (_HEAP_INFORMATION_CLASS)3, &heap_opt,
-        heap_opt.length);
-      budget_log.silent = silence;
-      queued_flush = false;
-    }
-#endif
-
     static uint64_t last_budget =
       mem_info [buffer].local [0].Budget;
 
     if (dwWaitStatus == WAIT_OBJECT_0 && config.load_balance.use)
     {
       INT prio = 0;
-
-#if 0
-      if (g_pDXGIDev != nullptr &&
-        SUCCEEDED (g_pDXGIDev->GetGPUThreadPriority (&prio)))
-      {
-        if (last_budget > mem_info [buffer].local [0].Budget &&
-          mem_info [buffer].local [0].CurrentUsage >
-          mem_info [buffer].local [0].Budget)
-        {
-          if (prio > -7)
-          {
-            g_pDXGIDev->SetGPUThreadPriority (--prio);
-          }
-        }
-
-        else if (last_budget < mem_info [buffer].local [0].Budget &&
-          mem_info [buffer].local [0].CurrentUsage <
-          mem_info [buffer].local [0].Budget)
-        {
-          if (prio < 7)
-          {
-            g_pDXGIDev->SetGPUThreadPriority (++prio);
-          }
-        }
-      }
-#endif
 
       last_budget = mem_info [buffer].local [0].Budget;
     }
@@ -769,23 +707,6 @@ BudgetThread (LPVOID user_data)
         i++;
       }
 
-#if 0
-      if (g_pDXGIDev != nullptr)
-      {
-        if (config.load_balance.use)
-        {
-          if (SUCCEEDED (g_pDXGIDev->GetGPUThreadPriority (&gpu_prio)))
-          {
-          }
-        } else {
-          if (gpu_prio != 0) {
-            gpu_prio = 0;
-            g_pDXGIDev->SetGPUThreadPriority (gpu_prio);
-          }
-        }
-      }
-#endif
-
       budget_log.LogEx (false, L"\n");
     }
 
@@ -794,25 +715,6 @@ BudgetThread (LPVOID user_data)
 
     mem_info [0].buffer = buffer;
   }
-
-#if 0
-  if (g_pDXGIDev != nullptr) {
-    // Releasing this actually causes driver crashes, so ...
-    //   let it leak, what do we care?
-    //ULONG refs = g_pDXGIDev->AddRef ();
-    //if (refs > 2)
-    //g_pDXGIDev->Release ();
-    //g_pDXGIDev->Release   ();
-
-#ifdef ALLOW_DEVICE_TRANSITION
-    g_pDXGIDev->Release ();
-#endif
-    g_pDXGIDev = nullptr;
-  }
-#endif
-
-  if (hThreadHeap != 0)
-    HeapDestroy (hThreadHeap);
 
   return 0;
 }
@@ -825,7 +727,7 @@ __stdcall
 osd_pump (LPVOID lpThreadParam)
 { 
   while (true) {
-    Sleep ((DWORD)(config.osd.pump_interval * 1000.0f));
+    Sleep            ((DWORD)(config.osd.pump_interval * 1000.0f));
     SK_EndBufferSwap (S_OK, nullptr);
   }
 
@@ -924,6 +826,8 @@ SK_StartPerfMonThreads (void)
   }
 }
 
+std::queue <DWORD> suspended_tids;
+
 void
 __stdcall
 SK_InitFinishCallback (void)
@@ -966,28 +870,15 @@ SK_InitCore (const wchar_t* backend, void* callback)
     return;
   }
 
-  DWORD   dwProcessSize = MAX_PATH;
-  wchar_t wszProcessName [MAX_PATH];
-
   HANDLE hProc = GetCurrentProcess ();
 
-  QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
-
-  wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
-
-  while (  pwszShortName      >  wszProcessName &&
-         *(pwszShortName - 1) != L'\\')
-    --pwszShortName;
-
-  *(pwszShortName - 1) = L'\0';
-
   wchar_t log_fname [MAX_PATH];
-  log_fname [MAX_PATH - 1] = '\0';
+  log_fname [MAX_PATH - 1] = L'\0';
 
-  wsprintf (log_fname, L"logs/%s.log", backend);
+  wsprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
   dll_log.init (log_fname, L"w");
-  dll_log.Log  (L"%s.log created", backend);
+  dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
 
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
@@ -998,38 +889,46 @@ SK_InitCore (const wchar_t* backend, void* callback)
   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszModuleName = module_name.c_str ();
 
-  dll_log.Log   (      L">> (%s) [%s] <<", pwszShortName, wszModuleName);
-  dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", backend);
+  dll_log.Log   (      L">> (%s) [%s] <<",
+                         SK_GetHostApp (),
+                           wszModuleName );
 
-  if (SK_LoadConfig (backend)) {
+  const wchar_t* config_name = backend;
+
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
+
+  dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+
+  if (SK_LoadConfig (config_name)) {
     dll_log.LogEx (false, L"done!\n");
   } else {
+    dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
     dll_log.LogEx (false, L"failed!\n");
     // If no INI file exists, write one immediately.
     dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
-    SK_SaveConfig (backend);
+    SK_SaveConfig (config_name);
     dll_log.LogEx (false, L"done!\n");
   }
 
   if (config.system.central_repository) {
     // Create Symlink for end-user's convenience
-    if ( GetFileAttributes ( std::wstring (
-                               std::wstring (wszProcessName) +
-                                 L"\\SpecialK"
+    if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
+                               std::wstring (L"\\SpecialK")
                              ).c_str ()
                            ) == INVALID_FILE_ATTRIBUTES ) {
-      std::wstring link (wszProcessName);
+      std::wstring link (SK_GetHostPath ());
       link += L"\\SpecialK\\";
 
       CreateSymbolicLink (
-        link.c_str                  (),
-          SK_GetConfigPath ().c_str (),
+        link.c_str         (),
+          SK_GetConfigPath (),
             SYMBOLIC_LINK_FLAG_DIRECTORY
       );
     }
   }
 
-  if (! lstrcmpW (pwszShortName, L"BatmanAK.exe"))
+  if (! lstrcmpW (SK_GetHostApp (), L"BatmanAK.exe"))
     USE_SLI = false;
 
   dll_log.LogEx (false,
@@ -1053,6 +952,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
     GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #endif
 
+  wchar_t wszWorkDir [MAX_PATH + 2] = { L'\0' };
+  GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
+
+  dll_log.Log (L" Working Directory:          %s", wszWorkDir);
   dll_log.Log (L" System Directory:           %s", wszBackendDLL);
 
   lstrcatW (wszBackendDLL, L"\\");
@@ -1068,14 +971,17 @@ SK_InitCore (const wchar_t* backend, void* callback)
   }
 
   bool load_proxy = false;
-  extern import_t imports [SK_MAX_IMPORTS];
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-    if (imports [i].role != nullptr && imports [i].role->get_value () == backend) {
-      dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
-      dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
-      load_proxy = true;
-      break;
+  if (! SK_IsInjected ()) {
+    extern import_t imports [SK_MAX_IMPORTS];
+
+    for (int i = 0; i < SK_MAX_IMPORTS; i++) {
+      if (imports [i].role != nullptr && imports [i].role->get_value () == backend) {
+        dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
+        dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
+        load_proxy = true;
+        break;
+      }
     }
   }
 
@@ -1097,18 +1003,20 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"----------------------------------------------------------------------"
     L"---------------------\n");
 
+
+  game_debug.init (L"logs/game_output.log", L"w");
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+
   extern void __crc32_init (void);
   __crc32_init ();
 
   SK::Framerate::Init ();
-
-  // Hard-code the AppID for ToZ
-  //if (! lstrcmpW (pwszShortName, L"Tales of Zestiria.exe"))
-    //config.steam.appid = 351970;
-
-  // Game won't start from the commandline without this...
-  if (! lstrcmpW (pwszShortName, L"dis1_st.exe"))
-    config.steam.appid = 405900;
 
   // Load user-defined DLLs (Early)
 #ifdef _WIN64
@@ -1120,17 +1028,23 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if (config.system.silent) {
     dll_log.silent = true;
 
-    std::wstring log_fnameW (backend);
+    std::wstring log_fnameW;
+
+    if (! SK_IsInjected ())
+      log_fnameW = backend;
+    else
+      log_fnameW = L"SpecialK";
+
     log_fnameW += L".log";
 
-    DeleteFile     (log_fnameW.c_str ());
+    DeleteFile (log_fnameW.c_str ());
   } else {
     dll_log.silent = false;
   }
 
   dll_log.LogEx (true, L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI): ");
 
-  nvapi_init = sk::NVAPI::InitializeLibrary (pwszShortName);
+  nvapi_init = sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
 
   dll_log.LogEx (false, L" %s\n", nvapi_init ? L"Success" : L"Failed");
 
@@ -1167,7 +1081,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     //
     if (sk::NVAPI::CountSLIGPUs () && config.nvidia.sli.override) {
       if (! sk::NVAPI::SetSLIOverride
-              ( dll_role,
+              ( SK_GetDLLRole (),
                   config.nvidia.sli.mode.c_str (),
                     config.nvidia.sli.num_gpus.c_str (),
                       config.nvidia.sli.compatibility.c_str ()
@@ -1182,7 +1096,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
       ShellExecute ( GetDesktopWindow (),
                        L"OPEN",
-                         pwszShortName,
+                         SK_GetHostApp (),
                            NULL,
                              NULL,
                                SW_SHOWDEFAULT );
@@ -1206,7 +1120,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
-  HMODULE hMod = GetModuleHandle (pwszShortName);
+  HMODULE hMod = GetModuleHandle (SK_GetHostApp ());
 
   if (hMod != NULL) {
     DWORD* dwOptimus = (DWORD *)GetProcAddress (hMod, "NvOptimusEnablement");
@@ -1236,13 +1150,15 @@ SK_InitCore (const wchar_t* backend, void* callback)
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
 
+  // Setup the compatibility backend, which monitors loaded libraries,
+  //   blacklists bad DLLs and detects render APIs...
+  extern void __stdcall EnumLoadedModules (void);
+  EnumLoadedModules ();
+
   typedef void (WINAPI *finish_pfn)  (void);
   typedef void (WINAPI *callback_pfn)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
   callback_pfn callback_fn = (callback_pfn)callback;
   callback_fn (SK_InitFinishCallback);
-
-  extern void __stdcall EnumLoadedModules (void);
-  EnumLoadedModules ();
 
   // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
@@ -1253,6 +1169,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 }
 
 
+volatile ULONG SK_bypass_dialog_active = FALSE;
 
 void
 WaitForInit (void)
@@ -1263,12 +1180,24 @@ WaitForInit (void)
     return;
   }
 
-#if 0
   // Prevent a race condition caused by undefined behavior in RTSS
-  if (! InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr))
-    while (! InterlockedCompareExchange (&init, FALSE, FALSE))
-      ;
+  if (! InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr)) {
+    dll_log.Log ( L"[ MultiThr ] Race condition detected during startup (tid=%x)",
+                    GetCurrentThreadId () );
+#if 0
+    while (! InterlockedCompareExchange (&init, FALSE, FALSE)) {
+      dll_log.Log ( L"[ MultiThr ] Race condition avoided (tid=%x)",
+                      GetCurrentThreadId () );
+      Sleep (150);
+    }
 #endif
+  }
+
+  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
+    dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
+                      GetCurrentThreadId () );
+    Sleep (150);
+  }
 
   while (InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr)) {
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
@@ -1444,53 +1373,75 @@ skMemCmd::execute (const char* szArgs)
 struct init_params_t {
   const wchar_t* backend;
   void*          callback;
-};
+} init_;
 
 unsigned int
+__stdcall
+DllThread_CRT (LPVOID user)
+{
+  init_params_t* params =
+    &init_;
+
+  if (! config.steam.silent) {
+  // SteamAPI DLL was already loaded... yay!
+#ifdef _WIN64
+    if (GetModuleHandle (L"steam_api64.dll"))
+#else
+    if (GetModuleHandle (L"steam_api.dll"))
+#endif
+      SK::SteamAPI::Init (false);
+  }
+
+  SK_InitCore (params->backend, params->callback);
+
+  extern int32_t SK_D3D11_amount_to_purge;
+  SK_GetCommandProcessor ()->AddVariable (
+    "VRAM.Purge",
+      new SK_IVarStub <int32_t> (
+        (int32_t *)&SK_D3D11_amount_to_purge
+      )
+  );
+
+  skMemCmd* mem = new skMemCmd ();
+
+  SK_GetCommandProcessor ()->AddCommand ("mem", mem);
+
+  //
+  // Game-Specific Stuff that I am not proud of
+  //
+  if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+    SK_DS3_InitPlugin ();
+
+  if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe")) {
+    SK_GetCommandProcessor ()->ProcessCommandFormatted (
+      "TargetFPS %f",
+        config.render.framerate.target_fps
+    );
+  }
+
+  // Get rid of the game output log if the user doesn't want it...
+  if (! config.system.game_output) {
+    game_debug.close ();
+    game_debug.silent = true;
+  }
+
+  const wchar_t* config_name = params->backend;
+
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
+
+  SK_SaveConfig (config_name);
+
+  return 0;
+}
+
+DWORD
 __stdcall
 DllThread (LPVOID user)
 {
   EnterCriticalSection (&init_mutex);
   {
-    init_params_t* params =
-      (init_params_t *)user;
-
-    SK_InitCore (params->backend, params->callback);
-
-    extern int32_t SK_D3D11_amount_to_purge;
-    SK_GetCommandProcessor ()->AddVariable (
-      "VRAM.Purge",
-        new SK_IVarStub <int32_t> (
-          (int32_t *)&SK_D3D11_amount_to_purge
-        )
-    );
-
-    skMemCmd* mem = new skMemCmd ();
-
-    SK_GetCommandProcessor ()->AddCommand ("mem", mem);
-
-    //
-    // Game-Specific Stuff that I am not proud of
-    //
-    if (host_app == L"DarkSoulsIII.exe")
-      SK_DS3_InitPlugin ();
-
-    if (host_app != L"Tales of Zestiria.exe") {
-      SK_GetCommandProcessor ()->ProcessCommandFormatted (
-        "TargetFPS %f",
-          config.render.framerate.target_fps
-      );
-    }
-
-    // Get rid of the game output log if the user doesn't want it...
-    if (! config.system.game_output) {
-      game_debug.close ();
-      game_debug.silent = true;
-    }
-
-    SK_SaveConfig (params->backend);
-
-    HeapFree (dll_heap, 0, params);
+    DllThread_CRT (&init_);
   }
   LeaveCriticalSection (&init_mutex);
 
@@ -1693,6 +1644,9 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                       pwszModule,
                         MH_StatusToString (status) );
   } else {
+    if (ppFuncAddr != nullptr)
+      *ppFuncAddr = pFuncAddr;
+
     MH_QueueEnableHook (ppFuncAddr);
   }
 
@@ -1739,6 +1693,22 @@ SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
     ret = MH_QueueEnableHook (ppVFTable [dwOffset]);
 
   return ret;
+}
+
+MH_STATUS
+WINAPI
+SK_ApplyQueuedHooks (void)
+{
+  MH_STATUS status =
+    MH_ApplyQueued ();
+
+  if (status != MH_OK) {
+    dll_log.Log(L"[ Min Hook ] Failed to Enable Deferred Hooks!"
+                  L" (Status: \"%hs\")",
+                      MH_StatusToString (status) );
+  }
+
+  return status;
 }
 
 MH_STATUS
@@ -1838,66 +1808,93 @@ SK_UnInit_MinHook (void)
 
 
 
+extern
+HMODULE
+__stdcall
+SK_GetDLL (void);
+
+extern bool __stdcall SK_BypassInject (void);
+
+// Brutal hack that assumes the executable has a .exe extension...
+//   FIXME
+void
+SK_PathRemoveExtension (wchar_t* wszInOut)
+{
+  wszInOut [lstrlenW (wszInOut) - 3] = L'\0';
+}
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  dll_heap = HeapCreate (HEAP_CREATE_ENABLE_EXECUTE, 0, 0);
+  wchar_t wszBlacklistFile [MAX_PATH] = { L'\0' };
 
-  if (! dll_heap)
+  lstrcatW (wszBlacklistFile, L"SpecialK.deny.");
+  lstrcatW (wszBlacklistFile, SK_GetHostApp ());
+
+  SK_PathRemoveExtension (wszBlacklistFile);
+
+  if ( (! lstrcmpiW (SK_GetHostApp (), L"steam.exe"))              ||
+       (! lstrcmpiW (SK_GetHostApp (), L"GameOverlayUI.exe"))      ||
+       (! lstrcmpiW (SK_GetHostApp (), L"streaming_client.exe"))   ||
+       (! lstrcmpiW (SK_GetHostApp (), L"steamerrorreporter.exe")) ||
+       (! lstrcmpiW (SK_GetHostApp (), L"notepad.exe")) )
     return false;
 
-  DWORD   dwProcessSize = MAX_PATH;
-  wchar_t wszProcessName [MAX_PATH];
+  // Only the injector version can be bypassed, the wrapper version
+  //   must fully initialize or the game will not be able to use the
+  //     DLL it is wrapping.
+  if ( SK_IsInjected    ()         &&
+       GetAsyncKeyState (VK_SHIFT) &&
+       GetAsyncKeyState (VK_CONTROL) )
+    SK_BypassInject ();
 
-  HANDLE hProc = GetCurrentProcess ();
+  else {
+    bool blacklist =
+      SK_IsInjected () &&
+      (GetFileAttributesW (wszBlacklistFile) != INVALID_FILE_ATTRIBUTES);
 
-  QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
-
-  wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
-
-  while (  pwszShortName      >  wszProcessName &&
-         *(pwszShortName - 1) != L'\\')
-    --pwszShortName;
-
-  host_app = pwszShortName;
-
-  //
-  // Internal blacklist, the user will have the ability to setup their
-  //   own later...
-  //
-  if ( (! wcsicmp (host_app.c_str (), L"steam.exe"))              ||
-       (! wcsicmp (host_app.c_str (), L"GameOverlayUI.exe"))      ||
-       (! wcsicmp (host_app.c_str (), L"streaming_client.exe"))   ||
-       (! wcsicmp (host_app.c_str (), L"steamerrorreporter.exe")) ||
-       (! wcsicmp (host_app.c_str (), L"notepad.exe")) ) {
-    HeapDestroy (dll_heap);
-    return false;
+    //
+    // Internal blacklist, the user will have the ability to setup their
+    //   own later...
+    //
+    if ( blacklist ) {
+      return false;
+    }
   }
-
-  *pwszShortName = L'\0';
 
   // Allow users to centralize all files if they want
-  if ( GetFileAttributes ( std::wstring (
-                             std::wstring (wszProcessName) +
-                             L"\\SpecialK.central"
-                           ).c_str ()
-                         ) != INVALID_FILE_ATTRIBUTES )
+  if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
 
-  if (SK_GetCallerName ().find (L"SpecialK") != std::wstring::npos)
+  if (SK_IsInjected ())
     config.system.central_repository = true;
 
+
+
+  wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
+          wszConfigPath [  MAX_PATH  ] = L'\0';
 
   if (config.system.central_repository) {
-    SK_SetConfigPath (
-      SK_EvalEnvironmentVars (
-        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\"
-      ) + SK_GetHostApp () + L"\\"
+    uint32_t dwLen = MAX_PATH;
+
+    ExpandEnvironmentStringsW (
+      L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\",
+        wszConfigPath,
+          MAX_PATH
     );
-  } else {
-    SK_SetConfigPath (std::wstring (wszProcessName) + L"\\");
+
+    lstrcatW (wszConfigPath, SK_GetHostApp ());
   }
+
+  else {
+    lstrcatW (wszConfigPath, SK_GetHostPath ());
+  }
+
+  lstrcatW (wszConfigPath, L"\\");
+
+  SK_CreateDirectories (wszConfigPath);
+  SK_SetConfigPath     (wszConfigPath);
 
 
   // Do this from the startup thread
@@ -1909,53 +1906,32 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   // Don't let Steam prevent me from attaching a debugger at startup, damnit!
   SK::Diagnostics::Debugger::Allow ();
 
-  if (! config.steam.silent) {
-  // SteamAPI DLL was already loaded... yay!
-#ifdef _WIN64
-    if (GetModuleHandle (L"steam_api64.dll"))
-#else
-    if (GetModuleHandle (L"steam_api.dll"))
-#endif
-      SK::SteamAPI::Init (false);
-  }
+
+  // Hard-code the AppID for ToZ
+  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+    config.steam.appid = 351970;
+
+  // Game won't start from the commandline without this...
+  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
+    config.steam.appid = 405900;
 
 
   InitializeCriticalSectionAndSpinCount (&budget_mutex,  4000);
   InitializeCriticalSectionAndSpinCount (&init_mutex,    50000);
 
-  init_params_t *init =
-    (init_params_t *)HeapAlloc ( dll_heap,
-                                   HEAP_ZERO_MEMORY,
-                                     sizeof (init_params_t) );
+  ZeroMemory (&init_, sizeof init_params_t);
 
-  if (! init) {
-    HeapDestroy (dll_heap);
-    return false;
-  }
+  init_.backend  = backend;
+  init_.callback = callback;
 
-  init->backend  = backend;
-  init->callback = callback;
-
-  game_debug.init (L"logs/game_output.log", L"w");
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
-
-  if (SK_GetHostApp () != L"dis1_st.exe") {
-    hInitThread =
-      (HANDLE)
-        _beginthreadex ( nullptr,
-                          0,
-                             DllThread,
-                               init,
-                                 0x00,
-                                   nullptr );
-  } else {
-    DllThread (init);
-  }
+  hInitThread =
+    (HANDLE)
+      CreateThread ( nullptr,
+                       0,
+                         DllThread,
+                           &init_,
+                             0x00,
+                               nullptr );
 
   return true;
 }
@@ -1966,11 +1942,11 @@ WINAPI
 SK_ShutdownCore (const wchar_t* backend)
 {
   // These games do not handle resolution correctly
-  if ( SK_GetHostApp () == L"DarkSoulsIII.exe" ||
-       SK_GetHostApp () == L"Fallout4.exe"     ||
-       SK_GetHostApp () == L"FFX.exe"          ||
-       SK_GetHostApp () == L"FFX-2.exe"        ||
-       SK_GetHostApp () == L"dis1_st.exe" )
+  if ( (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) ||
+       (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))     ||
+       (! lstrcmpW (SK_GetHostApp (), L"FFX.exe"))          ||
+       (! lstrcmpW (SK_GetHostApp (), L"FFX-2.exe"))        ||
+       (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe")) )
     ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);
@@ -1999,7 +1975,7 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_ReleaseOSD ();
   dll_log.LogEx  (false, L"done!\n");
 
-  if (budget_thread != nullptr) {
+  if (budget_thread.handle != INVALID_HANDLE_VALUE) {
     config.load_balance.use = false; // Turn this off while shutting down
 
     dll_log.LogEx (
@@ -2007,10 +1983,10 @@ SK_ShutdownCore (const wchar_t* backend)
         L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
     );
 
-    budget_thread->ready = false;
+    InterlockedExchange (&budget_thread.ready, FALSE);
 
     DWORD dwWaitState =
-      SignalObjectAndWait (budget_thread->event, budget_thread->handle,
+      SignalObjectAndWait (budget_thread.event, budget_thread.handle,
                            1000UL, TRUE); // Give 1 second, and
                                           // then we're killing
                                           // the thing!
@@ -2019,8 +1995,10 @@ SK_ShutdownCore (const wchar_t* backend)
       dll_log.LogEx (false, L"done!\n");
     else {
       dll_log.LogEx (false, L"timed out (killing manually)!\n");
-      TerminateThread (budget_thread->handle, 0);
+      TerminateThread (budget_thread.handle, 0);
     }
+
+    budget_thread.handle = INVALID_HANDLE_VALUE;
 
     // Record the final statistics always
     budget_log.silent = false;
@@ -2073,23 +2051,7 @@ SK_ShutdownCore (const wchar_t* backend)
       }
     }
 
-    //ULONG refs = 0;
-    //if (budget_thread->pAdapter != nullptr) {
-    //refs = budget_thread->pAdapter->AddRef ();
-    //budget_log.LogEx (true, L" >> Budget Adapter has %u refs. left...\n",
-    //refs - 1);
-
-    //budget_thread->pAdapter->
-    //UnregisterVideoMemoryBudgetChangeNotification
-    //(budget_thread->cookie);
-
-    //if (refs > 2)
-    //budget_thread->pAdapter->Release ();
-    //budget_thread->pAdapter->Release   ();
-    //}
-
-    HeapFree (dll_heap, NULL, budget_thread);
-    budget_thread = nullptr;
+    budget_thread.handle = INVALID_HANDLE_VALUE;
   }
 
   if (process_stats.hThread != 0) {
@@ -2149,10 +2111,15 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
+  const wchar_t* config_name = backend;
+
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
+
   if (sk::NVAPI::app_name != L"ds3t.exe") {
-    dll_log.LogEx  (true, L"[ SpecialK ] Saving user preferences to %s.ini... ", backend);
-    SK_SaveConfig (backend);
-    dll_log.LogEx  (false, L"done!\n");
+    dll_log.LogEx (true,  L"[ SpecialK ] Saving user preferences to %s.ini... ", config_name);
+    SK_SaveConfig (config_name);
+    dll_log.LogEx (false, L"done!\n");
   }
 
   if ((! config.steam.silent) && config.steam.preload) {
@@ -2175,8 +2142,6 @@ SK_ShutdownCore (const wchar_t* backend)
   dll_log.Log (L"[ SpecialK ] Custom %s.dll Detached (pid=0x%04x)",
     backend, GetCurrentProcessId ());
 
-  HeapDestroy (dll_heap);
-
   SymCleanup (GetCurrentProcess ());
 
   FreeLibrary (backend_dll);
@@ -2192,6 +2157,14 @@ void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
+  extern volatile ULONG SK_bypass_dialog_active;
+  extern          HWND  SK_bypass_dialog_hwnd;
+
+  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
+    SetForegroundWindow (SK_bypass_dialog_hwnd);
+    Sleep (100);
+  }
+
   static int import_tries = 0;
 
   if (import_tries++ == 0) {
@@ -2701,7 +2674,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 }
 
 
-std::wstring SK_ConfigPath;
+wchar_t SK_ConfigPath [MAX_PATH];
 
 //
 // To be used internally only, by the time any plug-in has
@@ -2710,14 +2683,78 @@ std::wstring SK_ConfigPath;
 //
 void
 __stdcall
-SK_SetConfigPath (std::wstring path)
+SK_SetConfigPath (const wchar_t* path)
 {
-  SK_ConfigPath = path;
+  lstrcpyW (SK_ConfigPath, path);
 }
 
-std::wstring
+const wchar_t*
 __stdcall
 SK_GetConfigPath (void)
 {
   return SK_ConfigPath;
+}
+
+wchar_t host_app [ MAX_PATH + 2 ] = { L'\0' };
+
+const wchar_t*
+SK_GetHostApp (void)
+{
+  static volatile ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
+    DWORD   dwProcessSize = MAX_PATH;
+    wchar_t wszProcessName [MAX_PATH] = { L'\0' };
+
+    HANDLE hProc = GetCurrentProcess ();
+
+    QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+
+    wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
+
+    while (  pwszShortName      >  wszProcessName &&
+           *(pwszShortName - 1) != L'\\')
+      --pwszShortName;
+
+    lstrcpynW (host_app, pwszShortName, MAX_PATH);
+  }
+
+  return host_app;
+}
+
+// NOT the working directory, this is the directory that
+//   the executable is located in.
+const wchar_t*
+SK_GetHostPath (void)
+{
+  static volatile ULONG init                = FALSE;
+  static wchar_t  wszProcessName [MAX_PATH] = { L'\0' };
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
+           DWORD   dwProcessSize = MAX_PATH;
+
+    HANDLE hProc = GetCurrentProcess ();
+
+    QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+
+    *(wcsrchr (wszProcessName, L'\\')) = L'\0';
+  }
+
+  return wszProcessName;
+}
+
+DLL_ROLE dll_role;
+
+DLL_ROLE
+__stdcall
+SK_GetDLLRole (void)
+{
+  return dll_role;
+}
+
+void
+__cdecl
+SK_SetDLLRole (DLL_ROLE role)
+{
+  dll_role = role;
 }

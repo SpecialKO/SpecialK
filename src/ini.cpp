@@ -210,6 +210,7 @@ Import_Section (iSK_INISection& section, wchar_t* buffer, int start, int end)
 }
 
 void
+__stdcall
 iSK_INI::parse (void)
 {
   if (wszData != nullptr) {
@@ -290,9 +291,10 @@ iSK_INI::parse (void)
 }
 
 void
-iSK_INI::import (std::wstring import_data)
+__stdcall
+iSK_INI::import (const wchar_t* import_data)
 {
-  wchar_t* wszImport = _wcsdup (import_data.c_str ());
+  wchar_t* wszImport = _wcsdup (import_data);
 
   if (wszImport != nullptr) {
     int len = lstrlenW (wszImport);
@@ -385,7 +387,8 @@ iSK_INI::import (std::wstring import_data)
 std::wstring invalid = L"Invalid";
 
 std::wstring&
-iSK_INISection::get_value (std::wstring key)
+__stdcall
+iSK_INISection::get_value (const wchar_t* key)
 {
   std::map <std::wstring, std::wstring>::iterator it_key = pairs.find (key);
 
@@ -396,18 +399,20 @@ iSK_INISection::get_value (std::wstring key)
 }
 
 void
-iSK_INISection::set_name (std::wstring name_)
+__stdcall
+iSK_INISection::set_name (const wchar_t* name_)
 {
   name = name_;
 }
 
 bool
-iSK_INISection::contains_key (std::wstring key)
+__stdcall
+iSK_INISection::contains_key (const wchar_t* key)
 {
   for ( std::map <std::wstring, std::wstring>::iterator it = pairs.begin ();
           it != pairs.end ();
             it++ ) {
-    if ((*it).first == key)
+    if ((*it).first == std::wstring (key))
       return true;
   }
 
@@ -415,20 +420,23 @@ iSK_INISection::contains_key (std::wstring key)
 }
 
 void
-iSK_INISection::add_key_value (std::wstring key, std::wstring value)
+__stdcall
+iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 {
   pairs.insert (std::pair <std::wstring, std::wstring> (key, value));
   ordered_keys.push_back (key);
 }
 
 bool
-iSK_INI::contains_section (std::wstring section)
+__stdcall
+iSK_INI::contains_section (const wchar_t* section)
 {
   return sections.count (section) > 0;
 }
 
 iSK_INISection&
-iSK_INI::get_section (std::wstring section)
+__stdcall
+iSK_INI::get_section (const wchar_t* section)
 {
   if (! sections.count (section))
     ordered_sections.push_back (section);
@@ -436,16 +444,21 @@ iSK_INI::get_section (std::wstring section)
   return sections [section];
 }
 
+#include "utility.h"
+
 void
-iSK_INI::write (std::wstring fname)
+__stdcall
+iSK_INI::write (const wchar_t* fname)
 {
+  SK_CreateDirectories (fname);
+
   FILE*   fOut;
   errno_t ret;
 
   // Strip Read-Only
   /////////AD_SetNormalFileAttribs (fname);
 
-  TRY_FILE_IO (_wfopen_s (&fOut, fname.c_str (), L"w,ccs=UTF-16LE"), fname.c_str (), ret);
+  TRY_FILE_IO (_wfopen_s (&fOut, fname, L"w,ccs=UTF-16LE"), fname, ret);
 
   if (ret != 0 || fOut == 0) {
     //AD_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname.c_str (), MB_OK | MB_ICONSTOP);
@@ -456,7 +469,7 @@ iSK_INI::write (std::wstring fname)
   std::vector <std::wstring>::iterator end = ordered_sections.end   ();
 
   while (it != end) {
-    iSK_INISection& section = get_section (*it);
+    iSK_INISection& section = get_section ((*it).c_str ());
     if (section.name.length ()) {
       fwprintf (fOut, L"[%s]\n", section.name.c_str ());
 
@@ -464,7 +477,7 @@ iSK_INI::write (std::wstring fname)
       std::vector <std::wstring>::iterator key_end = section.ordered_keys.end   ();
 
       while (key_it != key_end) {
-        std::wstring val = section.get_value (*key_it);
+        std::wstring val = section.get_value ((*key_it).c_str ());
         fwprintf (fOut, L"%s=%s\n", key_it->c_str (), val.c_str ());
         ++key_it;
       }
@@ -486,6 +499,7 @@ iSK_INI::write (std::wstring fname)
 
 
 iSK_INI::_TSectionMap&
+__stdcall
 iSK_INI::get_sections (void)
 {
   return sections;
@@ -493,6 +507,7 @@ iSK_INI::get_sections (void)
 
 
 HRESULT
+__stdcall
 iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
   if (IsEqualGUID (riid, IID_SK_INI)) {
@@ -505,12 +520,14 @@ iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 }
 
 ULONG
+__stdcall
 iSK_INI::AddRef (THIS)
 {
   return InterlockedIncrement (&refs);
 }
 
 ULONG
+__stdcall
 iSK_INI::Release (THIS)
 {
   return InterlockedDecrement (&refs);
@@ -518,6 +535,7 @@ iSK_INI::Release (THIS)
 
 
 HRESULT
+__stdcall
 iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
   if (IsEqualGUID (riid, IID_SK_INISection)) {
@@ -530,12 +548,14 @@ iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 }
 
 ULONG
+__stdcall
 iSK_INISection::AddRef (THIS)
 {
   return InterlockedIncrement (&refs);
 }
 
 ULONG
+__stdcall
 iSK_INISection::Release (THIS)
 {
   return InterlockedDecrement (&refs);

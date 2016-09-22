@@ -281,7 +281,7 @@ D3D11CreateDevice_Detour (
 
 #if 0
     if (d3d11_caps.feature_level.d3d11_1) {
-      if (! wcsicmp (SK_GetHostApp ().c_str (), L"DXMD.exe")) {
+      if (! lstrcmpW (SK_GetHostApp (), L"DXMD.exe")) {
         dll_log.Log (L"[   DXGI   ] Feature Level Override: D3D 11.1");
 
         FeatureLevels = FeatureLevels + 1;
@@ -714,7 +714,7 @@ CRITICAL_SECTION dump_cs;
 CRITICAL_SECTION cache_cs;
 CRITICAL_SECTION inject_cs;
 
-void WINAPI SK_D3D11_SetResourceRoot      (std::wstring root);
+void WINAPI SK_D3D11_SetResourceRoot      (const wchar_t* root);
 void WINAPI SK_D3D11_EnableTexDump        (bool enable);
 void WINAPI SK_D3D11_EnableTexInject      (bool enable);
 void WINAPI SK_D3D11_EnableTexCache       (bool enable);
@@ -818,9 +818,6 @@ bool         SK_D3D11_inject_textures     = false;
 bool         SK_D3D11_cache_textures      = false;
 bool         SK_D3D11_mark_textures       = false;
 std::wstring SK_D3D11_res_root            = L"";
-
-// From core.cpp
-extern std::wstring host_app;
 
 bool
 SK_D3D11_TexMgr::isTexture2D (uint32_t crc32)
@@ -1170,7 +1167,7 @@ SK_D3D11_PopulateResourceList (void)
 
   lstrcatW (wszTexDumpDir_RAW, SK_D3D11_res_root.c_str ());
   lstrcatW (wszTexDumpDir_RAW, L"\\dump\\textures\\");
-  lstrcatW (wszTexDumpDir_RAW, host_app.c_str ());
+  lstrcatW (wszTexDumpDir_RAW, SK_GetHostApp ());
 
   wcscpy ( wszTexDumpDir,
              SK_EvalEnvironmentVars (wszTexDumpDir_RAW).c_str () );
@@ -1383,7 +1380,7 @@ SK_D3D11_PopulateResourceList (void)
 
 void
 WINAPI
-SK_D3D11_SetResourceRoot (std::wstring root)
+SK_D3D11_SetResourceRoot (const wchar_t* root)
 {
   SK_D3D11_res_root = root;
 }
@@ -1443,7 +1440,7 @@ SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum);
 
 void
 WINAPI
-SK_D3D11_AddTexHash ( std::wstring name, uint32_t top_crc32, uint32_t hash )
+SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
 {
   // UNX calls this before D3D11 is initialized
   //WaitForInitD3D11 ();
@@ -1969,7 +1966,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
              SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
 
   lstrcatW (wszPath, L"/dump/textures/");
-  lstrcatW (wszPath, host_app.c_str ());
+  lstrcatW (wszPath, SK_GetHostApp ());
   lstrcatW (wszPath, L"/");
 
   SK_CreateDirectories (wszPath);
@@ -1989,7 +1986,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
              SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
 
   lstrcatW (wszOutPath, L"\\dump\\textures\\");
-  lstrcatW (wszOutPath, host_app.c_str ());
+  lstrcatW (wszOutPath, SK_GetHostApp ());
 
   if (compressed && config.textures.d3d11.precise_hash) {
     _swprintf ( wszOutName, L"%s\\Compressed_%08X_%08X.dds",
@@ -2495,15 +2492,15 @@ SK_D3D11_Init (void)
   if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE)) {
     SK::DXGI::hModD3D11 = LoadLibrary (L"d3d11.dll");
 
-    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDevice",
-                        D3D11CreateDevice_Detour,
-             (LPVOID *)&D3D11CreateDevice_Import,
-                       &pfnD3D11CreateDevice );
+    SK_CreateDLLHook2 ( L"d3d11.dll", "D3D11CreateDevice",
+                         D3D11CreateDevice_Detour,
+              (LPVOID *)&D3D11CreateDevice_Import,
+                        &pfnD3D11CreateDevice );
 
-    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
-                        D3D11CreateDeviceAndSwapChain_Detour,
-             (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
-                       &pfnD3D11CreateDeviceAndSwapChain );
+    SK_CreateDLLHook2 ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
+                         D3D11CreateDeviceAndSwapChain_Detour,
+              (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
+                        &pfnD3D11CreateDeviceAndSwapChain );
 
 #ifdef NO_TLS
     InitializeCriticalSectionAndSpinCount (&cs_texinject, 0x4000);
@@ -2531,7 +2528,7 @@ SK_D3D11_Init (void)
       SK_D3D11_EnableTexCache  (config.textures.d3d11.cache);
       SK_D3D11_EnableTexDump   (config.textures.d3d11.dump);
       SK_D3D11_EnableTexInject (config.textures.d3d11.inject);
-      SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root);
+      SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
     }
 
     SK_GetCommandProcessor ()->AddVariable ("TexCache.Enable",
@@ -2627,6 +2624,8 @@ HookD3D11 (LPVOID user)
     CloseHandle (GetCurrentThread ());
     return 0;
   }
+
+  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 
   dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
 
@@ -2737,6 +2736,8 @@ HookD3D11 (LPVOID user)
       InterlockedExchange (&__d3d11_ready, TRUE);
     }
   }
+
+  CoUninitialize ();
 
   CloseHandle (GetCurrentThread ());
 

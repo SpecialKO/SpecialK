@@ -1,8 +1,8 @@
 #ifndef __SK__ADL_H__
 #define __SK__ADL_H__
 
-#include "../depends/adl/adl_structures.h"
-#include "../depends/adl/adl_sdk.h"
+#include <adl/adl_structures.h>
+#include <adl/adl_sdk.h>
 
 typedef int ( *ADL_MAIN_CONTROL_CREATE )(ADL_MAIN_MALLOC_CALLBACK, int );
 typedef int ( *ADL_MAIN_CONTROL_DESTROY )();

@@ -42,10 +42,9 @@
 volatile LONG                        __d3d9_ready = FALSE;
 SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
 
-void
-SK_D3D9_Inject (void)
-{
-}
+unsigned int
+__stdcall
+HookD3D9 (LPVOID user);
 
 unsigned int
 __stdcall
@@ -206,7 +205,7 @@ SK_HookD3D9 (void)
   extern HMODULE __stdcall SK_GetDLL (void);
 
   HMODULE hBackend = 
-    dll_role == DLL_ROLE::D3D9 ? backend_dll :
+    (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
                                    GetModuleHandle (L"d3d9.dll");
 
   dll_log.Log (L"[   D3D9   ] Importing Direct3DCreate9{Ex}...");
@@ -234,32 +233,34 @@ SK_HookD3D9 (void)
       (Direct3DCreate9_Import) );
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh  { Hooked }",
       (Direct3DCreate9Ex_Import) );
-
-    MH_ApplyQueued ();
   }
 
-#if 0
-  HookD3D9Ex (nullptr);
-#else
   HANDLE hThread =
     (HANDLE)
       _beginthreadex ( nullptr,
                          0,
-                           HookD3D9Ex,
+                           HookD3D9,
                              nullptr,
                                0x00,
                                  nullptr );
 
-  WaitForSingleObject (hThread, INFINITE);
-  CloseHandle         (hThread);
-#endif
+  MH_ApplyQueued ();
+
+  while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
+    WaitForSingleObject (hThread, 100UL);
+
+  CloseHandle (hThread);
 }
 
 void
 WINAPI
 d3d9_init_callback (finish_pfn finish)
 {
-  SK_HookD3D9 ();
+  extern void SK_BootD3D9 (void);
+  SK_BootD3D9 ();
+
+  while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
+    Sleep (100UL);
 
   finish ();
 }
@@ -382,28 +383,28 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
 
   // Then, use the presentation parameters
   if (Refresh == 0) {
-    Refresh = pPresentationParameters != nullptr ?
-                pPresentationParameters->FullScreen_RefreshRateInHz :
-                0;
+    if ( pPresentationParameters           != nullptr &&
+         pPresentationParameters->Windowed == FALSE )
+      Refresh = pPresentationParameters->FullScreen_RefreshRateInHz;
+    else
+      Refresh = 0;
   }
 
   if (config.render.d3d9.refresh_rate != -1) {
-    if (pFullscreenMode != nullptr) {
+    if ( pPresentationParameters           != nullptr &&
+         pPresentationParameters->Windowed == FALSE) {
       Refresh = config.render.d3d9.refresh_rate;
 
-      pFullscreenMode->RefreshRate =
-        config.render.d3d9.refresh_rate;
-    }
+      if ( pFullscreenMode != nullptr )
+        pFullscreenMode->RefreshRate = Refresh;
 
-    if (pPresentationParameters != nullptr) {
-      Refresh = config.render.d3d9.refresh_rate;
-
-      pPresentationParameters->FullScreen_RefreshRateInHz =
-        config.render.d3d9.refresh_rate;
+      pPresentationParameters->FullScreen_RefreshRateInHz = Refresh;
     }
   }
 
-  if (TargetFPS != 0 && Refresh != 0) {
+  if ( TargetFPS != 0 && Refresh != 0       &&
+       pPresentationParameters   != nullptr &&
+       pPresentationParameters->Windowed == FALSE) {
     if (Refresh >= TargetFPS) {
       if (! (Refresh % TargetFPS)) {
         dll_log.Log ( L"[   D3D9   ]  >> Targeting %li FPS - using 1:%li VSYNC;"
@@ -442,7 +443,8 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
 
     if ( config.render.framerate.present_interval != -1 &&
          config.render.framerate.present_interval !=
-            pPresentationParameters->PresentationInterval ) {
+            pPresentationParameters->PresentationInterval &&
+         pPresentationParameters                  != nullptr ) {
       dll_log.Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%lu)",
                       pPresentationParameters->PresentationInterval,
                         config.render.framerate.present_interval );
@@ -1024,8 +1026,10 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                   SK_GetCallerName ().c_str (), GetCurrentThreadId ()
   );
 
-  SK_D3D9_SetFPSTarget    (      pPresentationParameters);
-  SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  if (__d3d9_ready) {
+    SK_D3D9_SetFPSTarget    (      pPresentationParameters);
+    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  }
 
 #if 0
   // The texture manager built-in to SK is derived from these ...
@@ -1062,8 +1066,10 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                     This, pPresentationParameters, pFullscreenDisplayMode,
                       SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
-  SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
-  SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  if (__d3d9_ready) {
+    SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
+    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  }
 
   HRESULT hr;
 
@@ -1596,6 +1602,16 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
   if (config.render.d3d9.force_fullscreen)
     pparams->Windowed = FALSE;
 
+  extern HWND hWndRender;
+
+  if (__d3d9_ready) {
+    if ((! IsWindow (hWndRender)) && pparams->hDeviceWindow != 0) {
+      hWndRender = pparams->hDeviceWindow;
+      SetForegroundWindow (hWndRender);
+      BringWindowToTop    (hWndRender);
+    }
+  }
+
   return pparams;
 }
 
@@ -1625,8 +1641,10 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
 
   HRESULT ret;
 
-  SK_SetPresentParamsD3D9 ( nullptr,
-                              pPresentationParameters );
+  // Don't do this for the dummy context we create during init.
+  if (__d3d9_ready)
+    SK_SetPresentParamsD3D9 ( nullptr,
+                                pPresentationParameters );
 
   D3D9_CALL (ret, D3D9CreateDeviceEx_Original (This,
                                                Adapter,
@@ -1640,10 +1658,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (! SUCCEEDED (ret))
     return ret;
 
-  SK_SetPresentParamsD3D9 ( (IDirect3DDevice9 *)*ppReturnedDeviceInterface,
-                              pPresentationParameters );
-
-
+  if (__d3d9_ready) {
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                       "IDirect3DDevice9::SetCursorPosition",
                       D3D9SetCursorPosition_Override,
@@ -1804,14 +1819,16 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                     D3D9SetPixelShaderConstantF_Original,
                     SetPixelShaderConstantF_pfn );
 
-  extern HWND hWndRender;
-  if (hFocusWindow != 0) {
-    hWndRender = hFocusWindow;
-    SetForegroundWindow (hFocusWindow);
-    BringWindowToTop    (hFocusWindow);
-  }
+    SK_SetPresentParamsD3D9 ( (IDirect3DDevice9 *)*ppReturnedDeviceInterface,
+                                pPresentationParameters );
 
-  MH_ApplyQueued ();
+    (*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, pFullscreenDisplayMode);
+
+    if (hFocusWindow != nullptr) {
+      SetForegroundWindow (hFocusWindow);
+      BringWindowToTop    (hFocusWindow);
+    }
+  }
 
   return ret;
 }
@@ -1839,8 +1856,9 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
 
   HRESULT ret;
 
-  SK_SetPresentParamsD3D9 ( nullptr,
-                               pPresentationParameters );
+  if (__d3d9_ready)
+    SK_SetPresentParamsD3D9 ( nullptr,
+                                 pPresentationParameters );
 
   D3D9_CALL (ret, D3D9CreateDevice_Original ( This, Adapter,
                                           DeviceType,
@@ -1884,9 +1902,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     return ret;
   }
 
-  SK_SetPresentParamsD3D9 ( *ppReturnedDeviceInterface,
-                               pPresentationParameters );
-
+  if (__d3d9_ready) {
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                       "IDirect3DDevice9::SetCursorPosition",
                       D3D9SetCursorPosition_Override,
@@ -1905,7 +1921,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                       D3D9CreateTexture_Original,
                       CreateTexture_pfn );
 
-  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 28,
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 2*8,
                       "IDirect3DDevice9::CreateRenderTarget",
                       D3D9CreateRenderTarget_Override,
                       D3D9CreateRenderTarget_Original,
@@ -2047,14 +2063,16 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     D3D9SetPixelShaderConstantF_Original,
                     SetPixelShaderConstantF_pfn );
 
-  extern HWND hWndRender;
-  if (hFocusWindow != 0) {
-    hWndRender = hFocusWindow;
-    SetForegroundWindow (hFocusWindow);
-    BringWindowToTop    (hFocusWindow);
-  }
+    SK_SetPresentParamsD3D9 ( *ppReturnedDeviceInterface,
+                                 pPresentationParameters );
 
-  MH_ApplyQueued ();
+    (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
+
+    if (hFocusWindow != nullptr) {
+      SetForegroundWindow (hFocusWindow);
+      BringWindowToTop    (hFocusWindow);
+    }
+  }
 
   return ret;
 }
@@ -2069,6 +2087,12 @@ Direct3DCreate9 (UINT SDKVersion)
 {
   WaitForInit      ();
   WaitForInit_D3D9 ();
+
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
+                L"[%s, tid=0x%04x]",
+                  L"Direct3DCreate9",
+                    SDKVersion,
+                      SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
   bool force_d3d9ex = config.render.d3d9.force_d3d9ex;
 
@@ -2092,7 +2116,7 @@ Direct3DCreate9 (UINT SDKVersion)
 
       d3d9 = Direct3DCreate9_Import (SDKVersion);
     }
-  } else {
+  } else if (force_d3d9ex) {
     return pD3D9;
   }
 
@@ -2231,16 +2255,17 @@ SK::D3D9::getPipelineStatsDesc (void)
 
 unsigned int
 __stdcall
-HookD3D9Ex (LPVOID user)
+HookD3D9 (LPVOID user)
 {
-  CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 
-  HRESULT hr =
-    Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex);
+  CComPtr <IDirect3D9> pD3D9 = nullptr;
+
+  pD3D9 = Direct3DCreate9_Import (D3D_SDK_VERSION);
 
   HWND hwnd = 0;
 
-  if (SUCCEEDED (hr)) {
+  if (pD3D9 != nullptr) {
     hwnd =
       CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
                         WS_OVERLAPPEDWINDOW,
@@ -2251,57 +2276,31 @@ HookD3D9Ex (LPVOID user)
     D3DPRESENT_PARAMETERS pparams;
     ZeroMemory (&pparams, sizeof (pparams));
 
-    pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
+    pparams.SwapEffect       = D3DSWAPEFFECT_DISCARD;
     pparams.BackBufferFormat = D3DFMT_UNKNOWN;
     pparams.Windowed         = TRUE;
 
-    CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
+    CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
-    if ( SUCCEEDED ( pD3D9Ex->CreateDeviceEx (
+    if ( SUCCEEDED ( pD3D9->CreateDevice (
                        D3DADAPTER_DEFAULT,
                          D3DDEVTYPE_HAL,
                            hwnd,
                              D3DCREATE_HARDWARE_VERTEXPROCESSING,
                                &pparams,
-                                 nullptr,
-                                   &pD3D9DevEx )
+                                 &pD3D9Dev )
                    )
        )
     {
-      if (! (dll_role & DLL_ROLE::DXGI)) {
-        static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
-        static CreateDXGIFactory_pfn CreateDXGIFactory =
-          (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
+      dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
+      extern HWND hWndRender;
+      hWndRender = 0;
 
-        IDXGIFactory* factory = nullptr;
-
-        // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
-        if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory))) {
-          IDXGIAdapter* adapter = nullptr;
-
-          if (SUCCEEDED (factory->EnumAdapters (0, &adapter))) {
-            SK_StartDXGI_1_4_BudgetThread (&adapter);
-
-            adapter->Release ();
-          }
-
-          factory->Release ();
-        }
-      }
-
-      //dll_log.Log (L"Hooking D3D9Ex ...");
-
-      D3D9_INTERCEPT ( &pD3D9Ex, 16,
+      D3D9_INTERCEPT ( &pD3D9, 16,
                        "IDirect3D9::CreateDevice",
                         D3D9CreateDevice_Override,
                         D3D9CreateDevice_Original,
                         D3D9CreateDevice_pfn );
-
-      D3D9_INTERCEPT ( &pD3D9Ex, 20,
-                       "IDirect3D9Ex::CreateDeviceEx",
-                        D3D9CreateDeviceEx_Override,
-                        D3D9CreateDeviceEx_Original,
-                        D3D9CreateDeviceEx_pfn );
 
       //vtbl (This)
       //-----------
@@ -2422,20 +2421,223 @@ HookD3D9Ex (LPVOID user)
       // 117 DeletePatch
       // 118 CreateQuery
 
-      IDirect3DDevice9Ex**ppReturnedDeviceInterface = &pD3D9DevEx;
+      IDirect3DDevice9**ppReturnedDeviceInterface = &pD3D9Dev;
 
-      SK_D3D9_HookReset   (pD3D9DevEx);
-      SK_D3D9_HookPresent (pD3D9DevEx);
+      SK_D3D9_HookReset   (pD3D9Dev);
+      SK_D3D9_HookPresent (pD3D9Dev);
+
+      dll_log.Log (L"[   D3D9   ]   * Success");
+    } else {
+      dll_log.Log (L"[   D3D9   ]   * Failure");
     }
 
     DestroyWindow (hwnd);
 
+    CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+
+    HRESULT hr =
+      Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex);
+
+    HWND hwnd = 0;
+
+    if (SUCCEEDED (hr)) {
+      dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
+      hwnd =
+        CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
+                          WS_OVERLAPPEDWINDOW,
+                            CW_USEDEFAULT, CW_USEDEFAULT,
+                              800, 600, 0,
+                                nullptr, nullptr, 0x00 );
+
+      D3DPRESENT_PARAMETERS pparams;
+      ZeroMemory (&pparams, sizeof (pparams));
+
+      pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
+      pparams.BackBufferFormat = D3DFMT_UNKNOWN;
+      pparams.Windowed         = TRUE;
+
+      CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
+
+      if ( SUCCEEDED ( pD3D9Ex->CreateDeviceEx (
+                         D3DADAPTER_DEFAULT,
+                           D3DDEVTYPE_HAL,
+                             hwnd,
+                               D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                                 &pparams,
+                                   nullptr,
+                                     &pD3D9DevEx )
+                    )
+        )
+      {
+        extern HWND hWndRender;
+        hWndRender = 0;
+
+        D3D9_INTERCEPT ( &pD3D9Ex, 20,
+                         "IDirect3D9Ex::CreateDeviceEx",
+                          D3D9CreateDeviceEx_Override,
+                          D3D9CreateDeviceEx_Original,
+                          D3D9CreateDeviceEx_pfn );
+
+        IDirect3DDevice9Ex**ppReturnedDeviceInterface = &pD3D9DevEx;
+
+        SK_D3D9_HookReset   (pD3D9DevEx);
+        SK_D3D9_HookPresent (pD3D9DevEx);
+
+        dll_log.Log (L"[   D3D9   ]   * Success");
+      } else {
+        dll_log.Log (L"[   D3D9   ]   * Failure");
+      }
+
+      DestroyWindow (hwnd);
+    }
+
     MH_ApplyQueued ();
 
+    extern HWND hWndRender;
+    hWndRender = 0;
+
     InterlockedExchange (&__d3d9_ready, TRUE);
+
+    if (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) {
+      static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
+      static CreateDXGIFactory_pfn CreateDXGIFactory =
+        (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
+
+      IDXGIFactory* factory = nullptr;
+
+      // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
+      if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory))) {
+        IDXGIAdapter* adapter = nullptr;
+
+        if (SUCCEEDED (factory->EnumAdapters (0, &adapter))) {
+          SK_StartDXGI_1_4_BudgetThread (&adapter);
+
+          adapter->Release ();
+        }
+
+        factory->Release ();
+      }
+    }
   }
 
-  _endthreadex (0);
+  CoUninitialize ();
 
   return 0;
 }
+
+unsigned int
+__stdcall
+HookD3D9Ex (LPVOID user)
+{
+  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+
+  CoUninitialize ();
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
+// This is not supported on Windows 7, so load it at run-time instead of
+//   compile-time linking.
+typedef BOOL (WINAPI *WaitOnAddress_pfn)(
+    _In_reads_bytes_(AddressSize) volatile VOID  *Address,
+    _In_reads_bytes_(AddressSize)          PVOID  CompareAddress,
+    _In_                                   SIZE_T AddressSize,
+    _In_opt_                               DWORD  dwMilliseconds
+);
+
+WaitOnAddress_pfn WaitOnAddress_Win8 = nullptr;
+
+struct SK_addr_watch_s {
+        LPVOID   addr;
+        void*    val;
+        size_t   size;
+  const wchar_t* desc;
+};
+
+unsigned int
+__stdcall
+SK_D3D9_HookWatch (LPVOID user)
+{
+  if (WaitOnAddress_Win8 == nullptr) {
+    WaitOnAddress_Win8 =
+      (WaitOnAddress_pfn)
+        GetProcAddress (
+          GetModuleHandle (L"Kernel32.dll"),
+            "WaitOnAddress"
+        );
+  }
+
+  if (WaitOnAddress_Win8 != nullptr) {
+    SK_addr_watch_s* watch =
+      (SK_addr_watch_s *)user;
+
+    while (WaitOnAddress_Win8 (watch->addr, watch->val, watch->size, -1)) {
+      if (memcmp (watch->addr, watch->val, watch->size)) {
+        dll_log.Log ( L"[Hook-Watch] Address '%s' changed...",
+                      watch->desc );
+        memcpy (watch->val, watch->addr, watch->size);
+      }
+    }
+  } else {
+    SK_addr_watch_s* watch =
+      (SK_addr_watch_s *)user;
+
+    while (true) {
+      if (memcmp (watch->addr, watch->val, watch->size)) {
+        dll_log.Log ( L"[Hook Watch] Address '%s' changed from '%s' to %s",
+                      watch->desc,
+                        SK_GetModuleName (
+                          SK_GetCallingDLL (
+                            (LPVOID *)watch->val
+                          )
+                        ).c_str (),
+                        SK_GetModuleName (
+                          SK_GetCallingDLL (
+                            (LPVOID *)watch->addr
+                          )
+                        ).c_str ()
+        );
+        memcpy (watch->val, watch->addr, watch->size);
+      }
+      Sleep (100UL);
+    }
+  }
+
+  return 0;
+}
+
+      void** vftable = *(void***)*&pD3D9DevEx;
+      SK_addr_watch_s* watch = new SK_addr_watch_s;
+      watch->addr = vftable [17];
+      watch->val  = new DWORD;
+      watch->size = sizeof DWORD;
+      watch->desc = L"IDirect3DDevice9::Present (...)";
+
+      *(DWORD *)watch->val = *(DWORD *)vftable [17];
+
+      _beginthreadex ( nullptr,
+                         0,
+                           SK_D3D9_HookWatch,
+                             (LPVOID)watch,
+                               0x00,
+                                 nullptr );
+#endif

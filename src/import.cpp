@@ -27,7 +27,7 @@
 
 #include <comdef.h>
 
-extern std::wstring host_app;
+#include <shlwapi.h>
 
 const std::wstring SK_IMPORT_EARLY  = L"Early";
 const std::wstring SK_IMPORT_PLUGIN = L"PlugIn";
@@ -101,7 +101,7 @@ SK_LoadEarlyImports64 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {
@@ -162,7 +162,7 @@ SK_LoadPlugIns64 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {
@@ -223,7 +223,7 @@ SK_LoadLateImports64 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {
@@ -277,7 +277,7 @@ SK_LoadLazyImports64 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {
@@ -366,7 +366,7 @@ SK_LoadEarlyImports32 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {
@@ -427,7 +427,7 @@ SK_LoadPlugIns32 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {
@@ -487,7 +487,7 @@ SK_LoadLateImports32 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {
@@ -541,7 +541,7 @@ SK_LoadLazyImports32 (void)
         imports [i].blacklist->get_value_str () :
         L"";
 
-    if (blacklist.find (host_app) != std::wstring::npos)
+    if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
     if (imports [i].filename != nullptr) {

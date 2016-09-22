@@ -27,29 +27,24 @@
 #include "config.h"
 #include "utility.h"
 
+typedef void (WINAPI *GetSystemTimePreciseAsFileTime_WIN8_pfn)(_Out_ LPFILETIME);
+
+static volatile GetSystemTimePreciseAsFileTime_WIN8_pfn
+  GetSystemTimePreciseAsFileTime_WIN8 = nullptr;
+
 WORD
+__stdcall
 SK_Timestamp (wchar_t* const out)
 {
   SYSTEMTIME stLogTime;
 
-#if 0
-  // Check for Windows 8 / Server 2012
-  static bool __hasSystemTimePrecise =
-    (LOBYTE (LOWORD (GetVersion ())) == 6  &&
-     HIBYTE (LOWORD (GetVersion ())) >= 2) ||
-     LOBYTE (LOWORD (GetVersion () > 6));
-
-  // More accurate timestamp is available on Windows 6.2+
-  if (__hasSystemTimePrecise) {
-    FILETIME   ftLogTime;
-    GetSystemTimePreciseAsFileTime (&ftLogTime);
-    FileTimeToSystemTime           (&ftLogTime, &stLogTime);
+  if (GetSystemTimePreciseAsFileTime_WIN8 != nullptr) {
+    FILETIME                              ftLogTime;
+    GetSystemTimePreciseAsFileTime_WIN8 (&ftLogTime);
+    FileTimeToSystemTime                (&ftLogTime, &stLogTime);
   } else {
-#endif
     GetLocalTime (&stLogTime);
-#if 0
   }
-#endif
 
   wchar_t date [64] = { L'\0' };
   wchar_t time [64] = { L'\0' };
@@ -71,20 +66,23 @@ iSK_Logger dll_log, budget_log;
 
 
 void
+__stdcall
 iSK_Logger::close (void)
 {
-  if (fLog != NULL) {
-    fflush (fLog);
-    fclose (fLog);
+  if (hLogFile != INVALID_HANDLE_VALUE) {
+    FlushFileBuffers (hLogFile);
+    CloseHandle      (hLogFile);
+
+    hLogFile = INVALID_HANDLE_VALUE;
   }
 
   if (lines == 0) {
-    std::wstring full_name =
-      SK_GetConfigPath ();
+    wchar_t full_name [MAX_PATH + 2] = { L'\0' };
 
-    full_name += name;
+    lstrcatW (full_name, SK_GetConfigPath ());
+    lstrcatW (full_name, name);
 
-    DeleteFileW (full_name.c_str ());
+    DeleteFileW (full_name);
   }
 
   initialized = false;
@@ -94,6 +92,7 @@ iSK_Logger::close (void)
 }
 
 bool
+__stdcall
 iSK_Logger::init ( const wchar_t* const wszFileName,
                    const wchar_t* const wszMode )
 {
@@ -101,22 +100,27 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
     return true;
 
   lines = 0;
-  name  = wszFileName;
+  lstrcpynW (name, wszFileName, MAX_PATH + 1);
 
-  std::wstring full_name =
-    SK_GetConfigPath ();
+  wchar_t full_name [MAX_PATH + 2] = { L'\0' };
 
-  SK_CreateDirectories (
-    std::wstring (full_name + L"logs").c_str ()
-  );
+  lstrcatW (full_name, SK_GetConfigPath ());
+  lstrcatW (full_name, wszFileName);
 
-  full_name += wszFileName;
+  SK_CreateDirectories (full_name);
 
-  fLog = _wfopen (full_name.c_str (), wszMode);
+  hLogFile =
+    CreateFileW ( full_name,
+                    GENERIC_WRITE,
+                      FILE_SHARE_READ,
+                        nullptr,
+                          CREATE_ALWAYS,
+                            FILE_FLAG_SEQUENTIAL_SCAN,
+                              nullptr );
 
-  BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 2500);
+  BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 50000);
 
-  if ((! bRet) || (fLog == NULL)) {
+  if ((! bRet) || (hLogFile == INVALID_HANDLE_VALUE)) {
     silent = true;
     return false;
   }
@@ -126,6 +130,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
 }
 
 void
+__stdcall
 iSK_Logger::LogEx ( bool                 _Timestamp,
   _In_z_ _Printf_format_string_
                      wchar_t const* const _Format,
@@ -133,112 +138,173 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
 {
   va_list _ArgList;
 
-  if (! initialized)
+  if ((! initialized) || silent || hLogFile == INVALID_HANDLE_VALUE)
     return;
+
+  wchar_t wszLogTime [128];
+  int     len;
+
+  if (_Timestamp) {
+    WORD ms  = SK_Timestamp (wszLogTime);
+         len = swprintf     (wszLogTime, L"%s%03u: ", wszLogTime, ms);
+  }
 
   EnterCriticalSection (&log_mutex);
 
-  if ((! fLog) || silent) {
-    LeaveCriticalSection (&log_mutex);
-    return;
-  }
-
-  ++lines;
-
   if (_Timestamp) {
-    wchar_t wszLogTime [128];
-
-    WORD ms = SK_Timestamp (wszLogTime);
-
-    fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+    WriteFile ( hLogFile, wszLogTime,
+                  len * sizeof (wchar_t),
+                    nullptr, nullptr );
   }
+
+  len = 0;
 
   va_start (_ArgList, _Format);
   {
-    vfwprintf (fLog, _Format, _ArgList);
+    // ASSERT: Length <= 1024 characters
+    len += vswprintf (buffers.raw, _Format, _ArgList);
   }
   va_end   (_ArgList);
 
-  fflush (fLog);
+  len = min (8192, len);
+
+  wchar_t* pwszDest = buffers.formatted;
+  int      adj_len  = 0;
+
+  for (int i = 0; i < len; i++) {
+    if (buffers.raw [i] == L'\n') {
+      *(pwszDest++) = L'\r';
+      ++adj_len, ++lines;
+    }
+
+    *(pwszDest++) = buffers.raw [i];
+    ++adj_len;
+  }
+
+  WriteFile ( hLogFile, buffers.formatted,
+                adj_len * sizeof (wchar_t),
+                  nullptr, nullptr );
 
   LeaveCriticalSection (&log_mutex);
 }
 
 void
+__stdcall
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     wchar_t const* const _Format,
                                          ... )
 {
   va_list _ArgList;
 
-  if (! initialized)
+  if ((! initialized) || silent || hLogFile == INVALID_HANDLE_VALUE)
     return;
+
+  wchar_t wszLogTime [128];
+  int     len;
+
+  WORD ms  = SK_Timestamp (wszLogTime);
+       len = swprintf     (wszLogTime, L"%s%03u: ", wszLogTime, ms);
 
   EnterCriticalSection (&log_mutex);
 
-  if ((! fLog) || silent) {
-    LeaveCriticalSection (&log_mutex);
-    return;
-  }
+  WriteFile ( hLogFile, wszLogTime,
+                len * sizeof (wchar_t),
+                  nullptr, nullptr );
 
-  ++lines;
-
-  wchar_t wszLogTime [128];
-
-  WORD ms = SK_Timestamp (wszLogTime);
-
-  fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+  len = 0;
 
   va_start (_ArgList, _Format);
   {
-    vfwprintf (fLog, _Format, _ArgList);
+    // ASSERT: Length <= 1024 characters
+    len += vswprintf (buffers.raw, _Format, _ArgList);
   }
   va_end   (_ArgList);
 
-  fwprintf  (fLog, L"\n");
-  fflush    (fLog);
+  len = min (8192, len);
+
+  wchar_t* pwszDest = buffers.formatted;
+  int      adj_len  = 0;
+
+  for (int i = 0; i < len; i++) {
+    if (buffers.raw [i] == L'\n') {
+      *(pwszDest++) = L'\r';
+      ++adj_len, ++lines;
+    }
+
+    *(pwszDest++) = buffers.raw [i];
+    ++adj_len;
+  }
+
+  WriteFile ( hLogFile, buffers.formatted,
+                adj_len * sizeof (wchar_t),
+                  nullptr, nullptr );
+
+  WriteFile (hLogFile, L"\r\n", sizeof (wchar_t) * 2, nullptr, nullptr);
+  ++lines;
 
   LeaveCriticalSection (&log_mutex);
 }
 
 void
+__stdcall
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     char const* const _Format,
                                       ... )
 {
   va_list _ArgList;
 
-  if (! initialized)
+  if ((! initialized) || silent || hLogFile == INVALID_HANDLE_VALUE)
     return;
-
-  EnterCriticalSection (&log_mutex);
-
-  if ((! fLog) || silent) {
-    LeaveCriticalSection (&log_mutex);
-    return;
-  }
-
-  ++lines;
 
   wchar_t wszLogTime [128];
 
-  WORD ms = SK_Timestamp (wszLogTime);
+  WORD ms  = SK_Timestamp (wszLogTime);
+  int  len = swprintf     (wszLogTime, L"%s%03u: ", wszLogTime, ms);
 
-  fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+  EnterCriticalSection (&log_mutex);
+
+  WriteFile ( hLogFile, wszLogTime,
+                len * sizeof (wchar_t),
+                  nullptr, nullptr );
+
+  len = 0;
 
   va_start (_ArgList, _Format);
   {
-    vfprintf (fLog, _Format, _ArgList);
+    // ASSERT: Length <= 1024 characters
+    len += vsprintf ((char *)buffers.raw, _Format, _ArgList);
   }
   va_end   (_ArgList);
 
-  fwprintf  (fLog, L"\n");
-  fflush    (fLog);
+  len = min (16384, len);
+
+  char* pszDest = (char *)buffers.formatted;
+  int   adj_len = 0;
+
+  for (int i = 0; i < len; i++) {
+    if (buffers.raw [i] == '\n') {
+      *(pszDest++) = '\r';
+      ++adj_len, ++lines;
+    }
+
+    *(pszDest++) = buffers.raw [i];
+    ++adj_len;
+  }
+
+  adj_len = swprintf (buffers.formatted, L"%hs", (char *)buffers.raw);
+
+  WriteFile ( hLogFile, buffers.formatted,
+                adj_len * sizeof (wchar_t),
+                  nullptr, nullptr );
+
+  WriteFile (hLogFile, L"\r\n", sizeof (wchar_t) * 2, nullptr, nullptr);
+  ++lines;
 
   LeaveCriticalSection (&log_mutex);
 }
 
 HRESULT
+__stdcall
 iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
   if (IsEqualGUID (riid, IID_SK_Logger)) {
@@ -251,12 +317,14 @@ iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 }
 
 ULONG
+__stdcall
 iSK_Logger::AddRef (THIS)
 {
   return InterlockedIncrement (&refs);
 }
 
 ULONG
+__stdcall
 iSK_Logger::Release (THIS)
 {
   return InterlockedDecrement (&refs);
@@ -266,10 +334,32 @@ iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName)
 {
+  // Check for Windows 8 / Server 2012
+  static bool __hasSystemTimePrecise =
+    (LOBYTE (LOWORD (GetVersion ())) == 6  &&
+     HIBYTE (LOWORD (GetVersion ())) >= 2) ||
+     LOBYTE (LOWORD (GetVersion () > 6));
+
+  static volatile ULONG init = FALSE;
+
   iSK_Logger* pLog = new iSK_Logger ();
 
   pLog->init   (wszName, L"w+");
   pLog->silent = false;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
+    if (__hasSystemTimePrecise) {
+      InterlockedExchangePointer (
+        (volatile LPVOID *)
+          &GetSystemTimePreciseAsFileTime_WIN8,
+            GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                               "GetSystemTimePreciseAsFileTime" )
+      );
+
+      dll_log.Log ( L"[ ModernOS ] Using 1us precision log timestamp only "
+                    L"available on modern operating systems." );
+    }
+  }
 
   return pLog;
 }

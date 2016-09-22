@@ -502,11 +502,15 @@ BMF_NvAPI_SetLauncher        = SK_NvAPI_SetLauncher        @9424
 BMF_NvAPI_AddLauncherToProf  = SK_NvAPI_AddLauncherToProf  @9425
 
 
-SK_CreateFuncHook = SK_CreateFuncHook @450
-SK_CreateDLLHook  = SK_CreateDLLHook  @451
-SK_EnableHook     = SK_EnableHook     @452
-SK_DisableHook    = SK_DisableHook    @453
-SK_RemoveHook     = SK_RemoveHook     @454
+SK_CreateFuncHook     = SK_CreateFuncHook     @450
+SK_CreateDLLHook      = SK_CreateDLLHook      @451
+SK_CreateDLLHook2     = SK_CreateDLLHook2     @452
+SK_CreateVFTableHook  = SK_CreateVFTableHook  @453
+SK_CreateVFTableHook2 = SK_CreateVFTableHook2 @454
+SK_ApplyQueuedHooks   = SK_ApplyQueuedHooks   @455
+SK_EnableHook         = SK_EnableHook         @456
+SK_DisableHook        = SK_DisableHook        @457
+SK_RemoveHook         = SK_RemoveHook         @458
 
 BMF_CreateFuncHook = SK_CreateFuncHook @9450
 BMF_CreateDLLHook  = SK_CreateDLLHook  @9451
