@@ -261,6 +261,16 @@ extern bool
 WINAPI
 SK_IsSteamOverlayActive (void);
 
+// Avoid static storage in the callback function
+struct {
+  POINTS pos      = { 0 }; // POINT (Short) - Not POINT plural ;)
+  DWORD  sampled  = 0UL;
+  bool   cursor   = true;
+
+  int    init     = false;
+  int    timer_id = 0x68993;
+} last_mouse;
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -301,15 +311,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (config.input.cursor.manage)
   {
     //extern bool IsControllerPluggedIn (INT iJoyID);
-
-    struct {
-      POINTS pos      = { 0 }; // POINT (Short) - Not POINT plural ;)
-      DWORD  sampled  = 0UL;
-      bool   cursor   = true;
-
-      int    init     = false;
-      int    timer_id = 0x68992;
-    } static last_mouse;
 
    auto ActivateCursor = [](bool changed = false)->
     bool

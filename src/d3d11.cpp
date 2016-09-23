@@ -1462,7 +1462,7 @@ WINAPI
 SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
 {
   // UNX calls this before D3D11 is initialized
-  //WaitForInitD3D11 ();
+  WaitForInitD3D11 ();
 
   if (hash != 0x00) {
     if (! SK_D3D11_IsTexHashed (top_crc32, hash)) {
@@ -1489,6 +1489,9 @@ void
 WINAPI
 SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
 {
+  // UNX calls this before D3D11 is initialized
+  WaitForInitD3D11 ();
+
   if (hash != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash)) {
     SK_AutoCriticalSection critical (&hash_cs);
 
@@ -1504,6 +1507,9 @@ std::wstring
 __stdcall
 SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
 {
+  // UNX calls this before D3D11 is initialized
+  WaitForInitD3D11 ();
+
   std::wstring ret = L"";
 
   if (hash != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash)) {

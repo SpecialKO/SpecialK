@@ -393,6 +393,9 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
   if (config.render.d3d9.refresh_rate != -1) {
     if ( pPresentationParameters           != nullptr &&
          pPresentationParameters->Windowed == FALSE) {
+      dll_log.Log ( L"[  D3D9  ]  >> Refresh Rate Override: %li",
+                      config.render.d3d9.refresh_rate );
+
       Refresh = config.render.d3d9.refresh_rate;
 
       if ( pFullscreenMode != nullptr )
@@ -1029,10 +1032,10 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   //
   // RTSS will deadlock us if we use this condition, unfortunately
   //
-  //if (__d3d9_ready) {
+  if (__d3d9_ready) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters);
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-  //}
+  }
 
 #if 0
   // The texture manager built-in to SK is derived from these ...
@@ -1073,10 +1076,10 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   //
   // RTSS will deadlock us if we use this condition, unfortunately
   //
-  //if (__d3d9_ready) {
+  if (__d3d9_ready) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-  //}
+  }
 
   HRESULT hr;
 
@@ -1087,6 +1090,8 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     SK_D3D9_HookPresent (pDev);
     MH_ApplyQueued      ();
   }
+
+  pDev.Release ();
 
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
@@ -1615,8 +1620,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
   if (__d3d9_ready) {
     if ((! IsWindow (hWndRender)) && pparams->hDeviceWindow != 0) {
       hWndRender = pparams->hDeviceWindow;
-      SetForegroundWindow (hWndRender);
-      BringWindowToTop    (hWndRender);
     }
   }
 

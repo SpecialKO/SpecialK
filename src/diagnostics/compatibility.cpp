@@ -89,15 +89,38 @@ typedef std::unordered_set < std::wstring, str_hash_compare <std::wstring> > SK_
 SK_StringSetW rehook_loadlib;
 #endif
 
+DWORD
+WINAPI
+SK_DelayLoadThreadW_FOREGROUND (LPVOID user)
+{
+  extern HWND hWndRender;
+
+  while (GetForegroundWindow () != hWndRender)
+    Sleep (100UL);
+
+  LoadLibraryW_Original ((LPCWSTR)user);
+
+  free (user);
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
 BOOL
 __stdcall
 BlacklistLibraryW (LPCWSTR lpFileName)
 {
   //if (blacklist.count (wcsrchr (lpFileName, L'\\') + 1))
   //{
-    if ( config.compatibility.disable_raptr && StrStrIW (lpFileName, L"ltc_game") ) {
-      if (! (SK_LoadLibrary_SILENCE))
-        dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
+    if ( StrStrIW (lpFileName, L"ltc_game") ) {
+      if (config.compatibility.disable_raptr) {
+        if (! (SK_LoadLibrary_SILENCE))
+          dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
+      } else {
+        dll_log.Log (L"[PlaysTVFix] Delaying Raptr overlay until window is in foreground...");
+        CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
+      }
       return TRUE;
     }
 
@@ -190,8 +213,8 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                        LPCSTR  lpFileName,
                        LPCSTR  lpFunction )
 {
-  std::wstring   mod_name   = SK_GetModuleName (hCallingMod);
-  const wchar_t* wszModName = mod_name.c_str   ();
+  wchar_t wszModName [MAX_PATH] = { L'\0' };
+  wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
   if (! SK_LoadLibrary_SILENCE) {
     dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64s' <%s>",
@@ -226,7 +249,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
   //   cause TLS-related problems if left unchecked... just leave
   //     the damn thing loaded permanently!
   if (StrStrIA (lpFileName, "d3dcompiler_")) {
-    static HMODULE hModDontCare;
+    HMODULE hModDontCare;
     GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_PIN,
                            lpFileName,
                              &hModDontCare );
@@ -238,8 +261,8 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                        LPCWSTR lpFileName,
                        LPCWSTR lpFunction )
 {
-  std::wstring   mod_name   = SK_GetModuleName (hCallingMod);
-  const wchar_t* wszModName = mod_name.c_str   ();
+  wchar_t wszModName [MAX_PATH] = { L'\0' };
+  wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
   if (! SK_LoadLibrary_SILENCE) {
     dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s>",
@@ -274,7 +297,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
   //   cause TLS-related problems if left unchecked... just leave
   //     the damn thing loaded permanently!
   if (StrStrIW (lpFileName, L"d3dcompiler_")) {
-    static HMODULE hModDontCare;
+    HMODULE hModDontCare;
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
                            lpFileName,
                              &hModDontCare );

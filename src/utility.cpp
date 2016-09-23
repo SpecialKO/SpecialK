@@ -915,14 +915,14 @@ crc32c (uint32_t crc, buffer input, size_t length)
 std::wstring
 SK_GetModuleName (HMODULE hDll)
 {
-  wchar_t wszDllFullName [MAX_PATH];
-          wszDllFullName [MAX_PATH - 1] = L'\0';
+  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { L'\0' };
+          wszDllFullName [   MAX_PATH   ] =   L'\0';
 
   GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
 
   const wchar_t* wszShort = wcsrchr (wszDllFullName, L'\\') + 1;
 
-  if (wszShort == (const wchar_t *)(sizeof (wchar_t)))
+  if ((uintptr_t)wszShort == (sizeof (wchar_t)))
     wszShort = wszDllFullName;
 
   return wszShort;
@@ -931,8 +931,8 @@ SK_GetModuleName (HMODULE hDll)
 std::wstring
 SK_GetModuleFullName (HMODULE hDll)
 {
-  wchar_t wszDllFullName [MAX_PATH];
-          wszDllFullName [MAX_PATH - 1] = L'\0';
+  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { L'\0' };
+          wszDllFullName [   MAX_PATH   ] =   L'\0';
 
   GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
 
