@@ -1,3 +1,5 @@
+ #define _CRT_SECURE_NO_WARNINGS
+
 #include "core.h"
 #include "command.h"
 #include "config.h"
@@ -153,7 +155,7 @@ HMODULE                          hModD3DX11_43                = nullptr;
 std::set <DWORD> texinject_tids;
 CRITICAL_SECTION cs_texinject;
 #else
-static __declspec (thread) bool texinject_thread = false;
+#include "tls.h"
 #endif
 
 bool SK_D3D11_IsTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
@@ -167,7 +169,14 @@ bool SK_D3D11_IsTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
 
   return bRet;
 #else
-  return texinject_thread;
+  SK_TLS* pTLS = SK_GetTLS ();
+
+  if (pTLS != nullptr)
+    return pTLS->d3d11.texinject_thread;
+  else {
+    dll_log.Log (L"[ SpecialK ] >> Thread-Local Storage is BORKED! <<");
+    return false;
+  }
 #endif
 }
 
@@ -178,7 +187,12 @@ void SK_D3D11_ClearTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
   texinject_tids.erase (dwThreadId);
   LeaveCriticalSection (&cs_texinject);
 #else
-  texinject_thread = false;
+  SK_TLS* pTLS = SK_GetTLS ();
+
+  if (pTLS != nullptr)
+    pTLS->d3d11.texinject_thread = false;
+  else
+    dll_log.Log (L"[ SpecialK ] >> Thread-Local Storage is BORKED! <<");
 #endif
 }
 
@@ -189,7 +203,12 @@ void SK_D3D11_SetTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
   texinject_tids.insert (dwThreadId);
   LeaveCriticalSection (&cs_texinject);
 #else
-  texinject_thread = true;
+  SK_TLS* pTLS = SK_GetTLS ();
+
+  if (pTLS != nullptr)
+    pTLS->d3d11.texinject_thread = true;
+  else
+    dll_log.Log (L"[ SpecialK ] >> Thread-Local Storage is BORKED! <<");
 #endif
 }
 
@@ -2625,8 +2644,8 @@ HookD3D11 (LPVOID user)
     return 0;
   }
 
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
-
+CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+{
   dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
 
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
@@ -2737,7 +2756,8 @@ HookD3D11 (LPVOID user)
     }
   }
 
-  CoUninitialize ();
+}
+CoUninitialize ();
 
   CloseHandle (GetCurrentThread ());
 

@@ -281,7 +281,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     SymGetModuleBase   ( hProc, ip );
 #endif
 
-  char* szDupName    = strdup (szModName);
+  char* szDupName    = _strdup (szModName);
   char* pszShortName = szDupName + lstrlenA (szDupName);
 
   while (  pszShortName      >  szDupName &&
@@ -407,7 +407,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     SymGetModuleBase   ( hProc, ip );
 #endif
 
-  szDupName    = strdup (szModName);
+  szDupName    = _strdup (szModName);
   pszShortName = szDupName + lstrlenA (szDupName);
 
   while (  pszShortName      >  szDupName &&

@@ -1167,8 +1167,8 @@ SK_DS3_CreateTexture2D (
 
   D3D11_TEXTURE2D_DESC *pDescNew = new D3D11_TEXTURE2D_DESC (*pDesc);
 
-  bool rt           = pDescNew->BindFlags & D3D11_BIND_RENDER_TARGET;
-  bool depthstencil = pDescNew->BindFlags & D3D11_BIND_DEPTH_STENCIL;
+  BOOL rt           = pDescNew->BindFlags & D3D11_BIND_RENDER_TARGET;
+  BOOL depthstencil = pDescNew->BindFlags & D3D11_BIND_DEPTH_STENCIL;
 
   //bool is_16by9 = false;
 
@@ -1226,7 +1226,7 @@ SK_DS3_GetFullscreenState (
       DXGISwap_GetFullscreenState_Original (This, &bFullscreen, ppTarget);
 
     //if (SUCCEEDED (hr))
-    ds3_state.Fullscreen = bFullscreen;
+    ds3_state.Fullscreen = (bFullscreen != FALSE);
   } else {
     DXGISwap_GetFullscreenState_Original (This, nullptr, ppTarget);
   }
@@ -1247,7 +1247,7 @@ SK_DS3_SetFullscreenState (
 {
   // No need to check if the mode switch actually worked, we're faking it
   if (ds3_cfg.window.borderless)
-    ds3_state.Fullscreen = Fullscreen;
+    ds3_state.Fullscreen = (Fullscreen != FALSE);
 
   ds3_state.SwapChain  = This;
 
@@ -1313,7 +1313,7 @@ SK_DS3_SetFullscreenState (
   }
 
   bool original_state  = ds3_state.Fullscreen;
-  ds3_state.Fullscreen = Fullscreen;
+  ds3_state.Fullscreen = (Fullscreen != FALSE);
 
   HRESULT ret =
     DXGISwap_SetFullscreenState_Original (This, Fullscreen, pTarget);
@@ -1394,7 +1394,7 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
 {
   D3D11_VIEWPORT* pNewViewports = new D3D11_VIEWPORT [NumViewports];
 
-  for (int i = 0; i < NumViewports; i++) {
+  for (UINT i = 0; i < NumViewports; i++) {
     pNewViewports [i] = pViewports [i];
 
     //bool is_16by9 = false;
@@ -1442,14 +1442,14 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
         float excess_width   = rescaled_width - pNewViewports [i].Width;
 
         pNewViewports [i].Width    *= ((float)ds3_state.Width / (float)ds3_state.Height) / (16.0f / 9.0f);
-        pNewViewports [i].Height   = ds3_state.Height;
+        pNewViewports [i].Height   = (float)ds3_state.Height;
         pNewViewports [i].TopLeftX = -excess_width / 2.0f;
         pNewViewports [i].TopLeftY = 0.0f;
       } else {
         float rescaled_height = pNewViewports [i].Height * (16.0f / 9.0f) / ((float)ds3_state.Width / (float)ds3_state.Height);
         float excess_height   = rescaled_height - pNewViewports [i].Height;
 
-        pNewViewports [i].Width    = ds3_state.Width;
+        pNewViewports [i].Width    = (float)ds3_state.Width;
         pNewViewports [i].Height   *= (16.0f / 9.0f) / ((float)ds3_state.Width / (float)ds3_state.Height);
         pNewViewports [i].TopLeftX = 0.0f;
         pNewViewports [i].TopLeftY = -excess_height / 2.0f;

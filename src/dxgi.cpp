@@ -2490,7 +2490,7 @@ extern HMODULE __stdcall SK_GetDLL (void);
   dll_log.Log (L"[   DXGI   ] ================================");
 
 
-  if (! wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")) {
+  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")) {
     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh",
       (CreateDXGIFactory_Import =  \
         (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
@@ -2700,8 +2700,8 @@ HookDXGI (LPVOID user)
     return 0;
   }
 
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
-
+CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+{
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
@@ -2901,7 +2901,8 @@ HookDXGI (LPVOID user)
     DestroyWindow (hwnd);
   }
 
-  CoUninitialize ();
+}
+CoUninitialize ();
 
   CloseHandle (GetCurrentThread ());
 

@@ -18,6 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "utility.h"
 
@@ -104,7 +105,7 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_CreateDirectories ( const wchar_t* wszPath )
 {
-  wchar_t* wszSubDir = wcsdup (wszPath), *iter;
+  wchar_t* wszSubDir = _wcsdup (wszPath), *iter;
 
   wchar_t* wszLastSlash     = wcsrchr (wszSubDir, L'/');
   wchar_t* wszLastBackslash = wcsrchr (wszSubDir, L'\\');
@@ -921,7 +922,7 @@ SK_GetModuleName (HMODULE hDll)
 
   const wchar_t* wszShort = wcsrchr (wszDllFullName, L'\\') + 1;
 
-  if (wszShort == (const wchar_t *)1)
+  if (wszShort == (const wchar_t *)(sizeof (wchar_t)))
     wszShort = wszDllFullName;
 
   return wszShort;

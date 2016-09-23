@@ -116,12 +116,14 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
 #pragma comment (lib, "wbemuuid.lib")
 
+#include <unordered_map>
+
 namespace COM {
   struct Base {
-    bool               init          = false;
+    volatile ULONG     init          = FALSE;
 
     struct WMI {
-      int              init          = -1;
+      volatile LONG    init          = -1;
 
       IWbemServices*   pNameSpace    = nullptr;
       IWbemLocator*    pWbemLocator  = nullptr;
@@ -143,15 +145,21 @@ namespace COM {
     bool    UninitThread (void);
   } base;
 
-  struct {
+  struct thread_local_t {
     bool init = false;
-  } __declspec (thread) local;
+  };
+
+  std::unordered_map <DWORD, thread_local_t> local;
+  CRITICAL_SECTION                           local_cs = { 0 };
 }
 
 bool
 COM::Base::WMI::InitLocks (void)
 {
-  InitializeCriticalSectionAndSpinCount (&cs, 5000);
+  static volatile ULONG __init = FALSE;
+
+  if (! InterlockedCompareExchange (&__init, TRUE, FALSE))
+    InitializeCriticalSectionAndSpinCount (&cs, 50000);
 
   return true;
 }
@@ -178,15 +186,19 @@ COM::Base::InitThread (void)
   if (SUCCEEDED (hr)) {
     InterlockedIncrement (&threads);
 
-    local.init = true;
+    EnterCriticalSection (&local_cs);
+    local [GetCurrentThreadId ()].init = true;
+    LeaveCriticalSection (&local_cs);
 
     return hr;
   }
-  
-  else {
-    //CoUninitialize ();
 
-    local.init = false;
+  else {
+    CoUninitialize ();
+
+    EnterCriticalSection (&local_cs);
+    local [GetCurrentThreadId ()].init = false;
+    LeaveCriticalSection (&local_cs);
 
     return hr;
   }
@@ -195,15 +207,20 @@ COM::Base::InitThread (void)
 bool
 COM::Base::UninitThread (void)
 {
-  if (local.init) {
+  EnterCriticalSection (&local_cs);
+  if (local [GetCurrentThreadId ()].init) {
+  LeaveCriticalSection (&local_cs);
     CoUninitialize ();
 
-    local.init = false;
+    EnterCriticalSection (&local_cs);
+    local [GetCurrentThreadId ()].init = false;
+    LeaveCriticalSection (&local_cs);
 
     InterlockedDecrement (&threads);
 
     return true;
   }
+  LeaveCriticalSection (&local_cs);
 
   return false;
 }
@@ -213,6 +230,8 @@ __stdcall
 SK_WMI_ServerThread (LPVOID lpUser)
 {
   HRESULT hr;
+
+  COM::base.wmi.InitLocks ();
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemLocator, 
@@ -298,9 +317,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   pUnk->Release ();
 
-  COM::base.wmi.init = 1;
-  COM::base.wmi.Unlock ();
-
+  InterlockedExchange (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
   Sleep (INFINITE);
@@ -326,7 +343,7 @@ WMI_CLEANUP:
   }
 
   COM::base.wmi.Unlock ();
-  COM::base.wmi.init = 0;
+  InterlockedExchange (&COM::base.wmi.init, 0);
 
   return 0;
 }
@@ -336,6 +353,13 @@ SK_InitCOM (void)
 {
   HRESULT hr;
 
+  if (! InterlockedCompareExchange (&COM::base.init, 0, 0)) {
+    static ULONG __init_local_threads = FALSE;
+
+    if (! InterlockedCompareExchange (&__init_local_threads, TRUE, FALSE))
+      InitializeCriticalSectionAndSpinCount (&COM::local_cs, 500000000);
+  }
+
   if (FAILED (hr = COM::base.InitThread ())) {
     dll_log.Log (L"[COM Thread] Failure to initialize COM for the calling thread "
                  L"(%s:%d) -- 0x%X",
@@ -344,7 +368,7 @@ SK_InitCOM (void)
     return false;
   }
 
-  if (COM::base.init)
+  if (InterlockedCompareExchange (&COM::base.init, 0, 0))
     return true;
 
   if (FAILED (hr = CoInitializeSecurity (
@@ -370,14 +394,14 @@ SK_InitCOM (void)
 
   Sleep (100);
 
-  COM::base.init = true;
+  InterlockedExchange (&COM::base.init, TRUE);
 
   return true;
 
 COM_CLEANUP:
   COM::base.UninitThread ();
 
-  COM::base.init = false;
+  InterlockedExchange (&COM::base.init, FALSE);
 
   return false;
 }
@@ -388,29 +412,25 @@ SK_InitWMI (void)
   if (! SK_InitCOM ())
     return false;
 
-  if (COM::base.wmi.init > 0)
+  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0)
     return true;
 
-  if (COM::base.wmi.hServerThread == 0) {
-    COM::base.wmi.InitLocks ();
-
-    COM::base.wmi.hServerThread =
+  InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread,
       (HANDLE)
         _beginthreadex ( nullptr,
                            0,
                              SK_WMI_ServerThread,
                                nullptr,
                                  0x00,
-                                   nullptr );
+                                   nullptr ), 0);
 
-    while (COM::base.wmi.init < 0)
-      Sleep (10);
+  while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) < 0)
+    Sleep (10);
 
-    if (COM::base.wmi.init == 0)
-      COM::base.wmi.hServerThread = 0;
-  }
+  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) == 0)
+    InterlockedExchangePointer (&COM::base.wmi.hServerThread, 0);
 
-  return COM::base.wmi.init > 0;
+  return InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0;
 }
 
 //
@@ -419,9 +439,9 @@ SK_InitWMI (void)
 void
 SK_ShutdownCOM (void)
 {
-  if (COM::base.init)
+  if (InterlockedCompareExchange (&COM::base.init, 0, 0))
   {
-    if (COM::base.wmi.init)
+    if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
     {
       if (COM::base.wmi.pWbemLocator != nullptr)
       {
@@ -441,7 +461,7 @@ SK_ShutdownCOM (void)
         COM::base.wmi.pNameSpace = nullptr;
       }
 
-      COM::base.wmi.init = false;
+      InterlockedExchange (&COM::base.wmi.init, FALSE);
 
       DeleteCriticalSection (&COM::base.wmi.cs);
 
@@ -451,8 +471,10 @@ SK_ShutdownCOM (void)
       }
     }
 
-    //COM::base.UninitThread ();
-    COM::base.init = false;
+    COM::base.UninitThread ();
+    InterlockedExchange (&COM::base.init, FALSE);
+
+    DeleteCriticalSection (&COM::local_cs);
   }
 }
 
@@ -538,7 +560,7 @@ SK_MonitorCPU (LPVOID user_param)
 
     cpu.dwNumReturned = 0;
 
-    COM::base.wmi.Unlock ();
+    COM::base.wmi.Lock ();
 
     if (FAILED (hr = cpu.pRefresher->Refresh (0L)))
     {
@@ -551,6 +573,7 @@ SK_MonitorCPU (LPVOID user_param)
                                  cpu.dwNumObjects,
                                  cpu.apEnumAccess,
                                  &cpu.dwNumReturned );
+
 
     // If the buffer was not big enough,
     // allocate a bigger buffer and retry.

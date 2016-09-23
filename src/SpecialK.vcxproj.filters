@@ -162,6 +162,9 @@
     <ClInclude Include="diagnostics\compatibility.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="tls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -333,6 +336,9 @@
       <Filter>Resource Files</Filter>
     </Media>
     <Media Include="..\..\..\..\Downloads\xbox.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="..\depends\xbox.wav">
       <Filter>Resource Files</Filter>
     </Media>
   </ItemGroup>

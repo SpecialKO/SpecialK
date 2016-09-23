@@ -20,6 +20,7 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <Windows.h>
 #include "log.h"
@@ -109,12 +110,18 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
 
   SK_CreateDirectories (full_name);
 
+  DWORD dwFileAttribs = GetFileAttributesW (full_name);
+
+  if (dwFileAttribs == INVALID_FILE_ATTRIBUTES)
+    dwFileAttribs = FILE_ATTRIBUTE_NORMAL;
+
   hLogFile =
     CreateFileW ( full_name,
                     GENERIC_WRITE,
                       FILE_SHARE_READ,
                         nullptr,
                           CREATE_ALWAYS,
+                            dwFileAttribs |
                             FILE_FLAG_SEQUENTIAL_SCAN,
                               nullptr );
 
@@ -282,12 +289,12 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   int   adj_len = 0;
 
   for (int i = 0; i < len; i++) {
-    if (buffers.raw [i] == '\n') {
+    if (((char *)buffers.raw) [i] == '\n') {
       *(pszDest++) = '\r';
       ++adj_len, ++lines;
     }
 
-    *(pszDest++) = buffers.raw [i];
+    *(pszDest++) = ((char *)buffers.raw) [i];
     ++adj_len;
   }
 
@@ -334,11 +341,13 @@ iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName)
 {
+#if 0
   // Check for Windows 8 / Server 2012
   static bool __hasSystemTimePrecise =
     (LOBYTE (LOWORD (GetVersion ())) == 6  &&
      HIBYTE (LOWORD (GetVersion ())) >= 2) ||
      LOBYTE (LOWORD (GetVersion () > 6));
+#endif
 
   static volatile ULONG init = FALSE;
 
@@ -347,6 +356,7 @@ SK_CreateLog (const wchar_t* const wszName)
   pLog->init   (wszName, L"w+");
   pLog->silent = false;
 
+#if 0
   if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
     if (__hasSystemTimePrecise) {
       InterlockedExchangePointer (
@@ -360,6 +370,7 @@ SK_CreateLog (const wchar_t* const wszName)
                     L"available on modern operating systems." );
     }
   }
+#endif
 
   return pLog;
 }

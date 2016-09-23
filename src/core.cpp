@@ -30,6 +30,8 @@
 #include "log.h"
 #include "utility.h"
 
+#include "tls.h"
+
 #ifdef _WIN64
 #pragma comment (lib, "MinHook/libMinHook.x64.lib")
 #else
@@ -875,7 +877,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   wchar_t log_fname [MAX_PATH];
   log_fname [MAX_PATH - 1] = L'\0';
 
-  wsprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+  swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
   dll_log.init (log_fname, L"w");
   dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
@@ -1170,12 +1172,12 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
 
 volatile ULONG SK_bypass_dialog_active = FALSE;
-
+volatile  LONG init                    = FALSE; // Do not use static storage,
+                                                //   the C Runtime may not be
+                                                //     init yet.
 void
 WaitForInit (void)
 {
-  static volatile LONG init = FALSE;
-
   if (InterlockedCompareExchange (&init, FALSE, FALSE)) {
     return;
   }
@@ -1375,10 +1377,21 @@ struct init_params_t {
   void*          callback;
 } init_;
 
+extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
+
 unsigned int
 __stdcall
 DllThread_CRT (LPVOID user)
 {
+  // Delay the initialization of the CRT until this thread starts,
+  //   this helps with odd behavior in DllMain while the loader-lock is
+  //     in contention.
+  _CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
+  _CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_THREAD_ATTACH,  nullptr);
+
+  // Initialize TLS for this thread
+  SK_GetTLS ();
+
   init_params_t* params =
     &init_;
 

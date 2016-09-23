@@ -245,8 +245,8 @@ SK_FO4_RealizeFullscreenBorderless (LPVOID user)
     LONG mon_width  = minfo.rcWork.right  - minfo.rcWork.left;
     LONG mon_height = minfo.rcWork.bottom - minfo.rcWork.top;
 
-    LONG win_width  = min (mon_width,  desc.BufferDesc.Width);
-    LONG win_height = min (mon_height, desc.BufferDesc.Height);
+    LONG win_width  = min (mon_width,  (LONG)desc.BufferDesc.Width);
+    LONG win_height = min (mon_height, (LONG)desc.BufferDesc.Height);
 
     RECT window;
 

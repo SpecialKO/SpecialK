@@ -29,7 +29,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-const wchar_t*        SK_VER_STR = L"0.6.10";
+const wchar_t*        SK_VER_STR = L"0.6.11";
 
 iSK_INI*               dll_ini   = nullptr;
 sk_config_t            config;
@@ -1275,7 +1275,7 @@ SK_LoadConfig (std::wstring name) {
   if (input.cursor.keys_activate->load ())
     config.input.cursor.keys_activate = input.cursor.keys_activate->get_value ();
   if (input.cursor.timeout->load ())
-    config.input.cursor.timeout = 1000UL * input.cursor.timeout->get_value ();
+    config.input.cursor.timeout = (int)(1000.0 * input.cursor.timeout->get_value ());
 
   if (steam.achievements.nosound->load ())
     config.steam.nosound = steam.achievements.nosound->get_value ();

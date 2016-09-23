@@ -287,13 +287,17 @@ BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
-  bool specialk_free = (SK_GetCallingDLL () == SK_GetDLL ());
+//  bool specialk_free = (SK_GetCallingDLL () == SK_GetDLL ());
 
-  if (specialk_free)
-    return FreeLibrary_Original (hLibModule);
+//  if (specialk_free)
+//    return FreeLibrary_Original (hLibModule);
 
   std::wstring free_name = SK_GetModuleName (hLibModule);
 
+  if (! lstrcmpiW (free_name.c_str (), L"dbghelp.dll"))
+    return false;
+
+#if 0
   // BLACKLIST FreeLibrary for VERY important DLLs
   if (
 #ifdef _WIN32
@@ -311,11 +315,12 @@ FreeLibrary_Detour (HMODULE hLibModule)
        (! lstrcmpiW (free_name.c_str (), L"OpenGL32.dll"))
     )
     return FALSE;
+#endif
 
   bool bRet = FreeLibrary_Original (hLibModule);
 
   if (bRet && GetModuleHandle (free_name.c_str ()) == nullptr) {
-    dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64s'",
+    dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls'",
                     SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
                       free_name.c_str () );
   }
@@ -525,6 +530,7 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.LoadLibraryExW_target);
 
 
+#if 0
   if (_loader_hooks.FreeLibrary_target != nullptr) {
     SK_RemoveHook (_loader_hooks.FreeLibrary_target);
     _loader_hooks.FreeLibrary_target = nullptr;
@@ -536,7 +542,7 @@ SK_ReHookLoadLibrary (void)
                     &_loader_hooks.FreeLibrary_target );
 
   MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
-
+#endif
 
   MH_ApplyQueued ();
 }

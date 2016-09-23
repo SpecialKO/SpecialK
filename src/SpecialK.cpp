@@ -29,8 +29,32 @@
 #include "log.h"
 #include "utility.h"
 
+#include "tls.h"
+
+volatile DWORD __SK_TLS_INDEX = -1;
+
+SK_TLS*
+__stdcall
+SK_GetTLS (void)
+{
+  LPVOID lpvData = TlsGetValue (__SK_TLS_INDEX);
+
+  if (lpvData == nullptr) {
+    lpvData = (LPVOID) LocalAlloc (LPTR, sizeof SK_TLS);
+
+    if (! TlsSetValue (__SK_TLS_INDEX, lpvData)) {
+      LocalFree (lpvData);
+      return nullptr;
+    }
+  }
+
+  return (SK_TLS *)lpvData;
+}
+
 #include <Shlwapi.h>
 #include <process.h>
+
+extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
 // Indicates that the DLL is injected purely as a hooker, rather than
 //   as a wrapper DLL.
@@ -42,6 +66,17 @@ SK_IsInjected (void)
 {
   return injected;
 }
+
+// We need this to load embedded resources correctly...
+volatile HMODULE hModSelf = 0;
+
+HMODULE
+__stdcall
+SK_GetDLL (void)
+{
+  return hModSelf;
+}
+
 
 HANDLE hThreadAttach = 0;
 
@@ -152,7 +187,7 @@ SK_EstablishDllRole (HMODULE hModule)
 volatile ULONG attached = FALSE;
 volatile ULONG refs     = 0;
 
-bool
+BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
@@ -183,7 +218,7 @@ SK_Attach (DLL_ROLE role)
   return false;
 }
 
-bool
+BOOL
 __stdcall
 SK_Detach (DLL_ROLE role)
 {
@@ -197,20 +232,20 @@ SK_Detach (DLL_ROLE role)
     {
     case DLL_ROLE::DXGI:
     {
-      bool ret = SK::DXGI::Shutdown    ();
-                        SK_ShutdownCOM ();
+      BOOL ret = SK::DXGI::Shutdown    ();
+//                        SK_ShutdownCOM ();
       return ret;
     } break;
     case DLL_ROLE::D3D9:
     {
-      bool ret = SK::D3D9::Shutdown    ();
-                        SK_ShutdownCOM ();
+      BOOL ret = SK::D3D9::Shutdown    ();
+//                        SK_ShutdownCOM ();
       return ret;
     } break;
     case DLL_ROLE::OpenGL:
     {
-      bool ret = SK::OpenGL::Shutdown    ();
-                          SK_ShutdownCOM ();
+      BOOL ret = SK::OpenGL::Shutdown    ();
+//                          SK_ShutdownCOM ();
       return ret;
     } break;
     case DLL_ROLE::Vulkan:
@@ -223,17 +258,7 @@ SK_Detach (DLL_ROLE role)
   return false;
 }
 
-#define IGNORE_THREAD_ATTACH
-
-// We need this to load embedded resources correctly...
-volatile HMODULE hModSelf = 0;
-
-HMODULE
-__stdcall
-SK_GetDLL (void)
-{
-  return hModSelf;
-}
+//#define IGNORE_THREAD_ATTACH
 
 #if 0
 DWORD
@@ -284,66 +309,70 @@ DllMain ( HMODULE hModule,
              *(pwszShortName - 1) != L'\\')
         --pwszShortName;
 
-      return SK_Attach (SK_GetDLLRole ());
+      bool ret = SK_Attach (SK_GetDLLRole ());
+
+      if (ret) {
+        __SK_TLS_INDEX = TlsAlloc ();
+
+        if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES) {
+          ret = false;
+
+          MessageBox ( NULL,
+                         L"Out of TLS Indexes",
+                           L"Cannot Init. Special K",
+                             MB_ICONERROR | MB_OK | MB_APPLMODAL );
+        }
+      }
+
+      return ret;
     } break;
 
 #ifndef IGNORE_THREAD_ATTACH
     case DLL_THREAD_ATTACH:
     {
-      if (dll_role == DLL_ROLE::OpenGL) {
-        extern HMODULE SK_LoadRealGL (void);
-        SK_LoadRealGL ();
-      }
+      if (InterlockedCompareExchange (&attached, FALSE, FALSE)) {
+        _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
 
-      //dll_log.Log (L"Custom dxgi.dll Attached (tid=%x)",
-      //                GetCurrentThreadId ());
-      if (! injected) {
-        if (dll_role == DLL_ROLE::D3D9) {
-          extern HMODULE WINAPI SK_LoadRealD3D9 (void);
-          SK_LoadRealD3D9 ();
-        }
+        LPVOID lpvData = (LPVOID) LocalAlloc (LPTR, sizeof SK_TLS);
 
-        else if (dll_role == DLL_ROLE::DXGI) {
-          extern HMODULE SK_LoadRealDXGI (void);
-          SK_LoadRealDXGI ();
-        }
+        if (lpvData != nullptr)
+          if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+            LocalFree (lpvData);
       }
     } break;
 
     case DLL_THREAD_DETACH:
     {
-      //InterlockedDecrement (&refs);
-      //dll_log.Log (L"Custom dxgi.dll Detached (tid=%x)",
-      //                GetCurrentThreadId ());
-      if (dll_role == DLL_ROLE::OpenGL) {
-        extern void SK_FreeRealGL (void);
-        SK_FreeRealGL ();
-      }
+      if (InterlockedCompareExchange (&attached, FALSE, FALSE)) {
+        LPVOID lpvData = (LPVOID) TlsGetValue (__SK_TLS_INDEX);
 
-      if (! injected) {
-        if (dll_role == DLL_ROLE::D3D9) {
-          extern void WINAPI SK_FreeRealD3D9 (void);
-          SK_FreeRealD3D9 ();
+        if (lpvData != nullptr) {
+          LocalFree   (lpvData);
+          TlsSetValue (__SK_TLS_INDEX, nullptr);
         }
 
-        else if (dll_role == DLL_ROLE::DXGI) {
-          extern void SK_FreeRealDXGI (void);
-          SK_FreeRealDXGI ();
-        }
+        _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
       }
     } break;
 #endif
 
     case DLL_PROCESS_DETACH:
     {
+      bool ret = false;
+
       if (InterlockedCompareExchange (&attached, FALSE, FALSE))
       {
-        return SK_Detach (SK_GetDLLRole ());
+        ret = SK_Detach (SK_GetDLLRole ());
+
+        TlsFree   (__SK_TLS_INDEX);
+        _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
       } else {
         // Sanity FAILURE: Attempt to detach something that was not properly attached?!
         dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
         return false;
       }
+
+      return ret;
     } break;
   }
 

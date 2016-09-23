@@ -103,7 +103,7 @@ public:
                    GameOverlayActivated_t,
                    activation )
   {
-    if (active_ != (bool)pParam->m_bActive) {
+    if (active_ != (pParam->m_bActive != FALSE)) {
       if (pParam->m_bActive) {
         cursor_visible_ = ShowCursor (FALSE) >= -1;
                           ShowCursor (TRUE);
@@ -126,7 +126,7 @@ public:
       }
     }
 
-    active_ = (bool)pParam->m_bActive;
+    active_ = (pParam->m_bActive != FALSE);
   }
 
   bool isActive (void) { return active_; }
@@ -592,9 +592,9 @@ public:
       wcscpy (wszFileName, wszUnlockSound);
     }
 
-    if ((! wcsicmp (wszFileName, L"psn")))
+    if ((! _wcsicmp (wszFileName, L"psn")))
       psn = true;
-    else if (! wcsicmp (wszFileName, L"xbox"))
+    else if (! _wcsicmp (wszFileName, L"xbox"))
       xbox = true;
 
     FILE* fWAV = _wfopen (wszFileName, L"rb");
