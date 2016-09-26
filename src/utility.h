@@ -70,7 +70,7 @@ struct sk_import_test_s {
 };
 
 void __stdcall SK_TestImports          (HMODULE hMod, sk_import_test_s* pTests, int nCount);
-void           SK_TestRenderImports    (HMODULE hMod, bool* gl, bool* d3d9, bool* dxgi);
+void           SK_TestRenderImports    (HMODULE hMod, bool* gl, bool* vulkan, bool* d3d9, bool* dxgi);
 
 void*
 __stdcall

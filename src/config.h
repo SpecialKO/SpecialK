@@ -171,7 +171,8 @@ struct sk_config_t
     bool    nosound             = false;
     bool    silent              = false;
 
-    bool    preload             = false;
+    int     init_delay          = 5000UL;
+    bool    auto_pump_callbacks = true;
 
     int     appid               = 0;
   } steam;
@@ -208,6 +209,7 @@ struct sk_config_t
           bool isZero (void) { return x == 0 && y == 0; };
         } max;
       } res;
+      int     scaling_mode      =  -1; // -1 = Don't Care
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)

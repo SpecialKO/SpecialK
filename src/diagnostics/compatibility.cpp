@@ -74,9 +74,10 @@ LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;
 
 extern HMODULE __stdcall SK_GetDLL (void);
 
-extern void WINAPI SK_HookGL   (void);
-extern void WINAPI SK_HookD3D9 (void);
-extern void WINAPI SK_HookDXGI (void);
+extern void WINAPI SK_HookGL     (void);
+extern void WINAPI SK_HookVulkan (void);
+extern void WINAPI SK_HookD3D9   (void);
+extern void WINAPI SK_HookDXGI   (void);
 
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
@@ -206,6 +207,19 @@ SK_BootOpenGL (void)
   SK_HookGL ();
 }
 
+void
+SK_BootVulkan (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
+
+  SK_HookVulkan ();
+}
+
 
 void
 __stdcall
@@ -232,7 +246,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  else if (hCallingMod != SK_GetDLL ()) {
+  else /*if (hCallingMod != SK_GetDLL ())*/ {
     std::wstring calling_name = SK_GetModuleName (hCallingMod);
          if ( StrStrIA (lpFileName,             "d3d9.dll") ||
               StrStrIW (calling_name.c_str (), L"d3d9.dll")  )
@@ -243,6 +257,19 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     else if ( StrStrIA (lpFileName,             "opengl32.dll") ||
               StrStrIW (calling_name.c_str (), L"opengl32.dll")  )
       SK_BootOpenGL ();
+    else if ( StrStrIA (lpFileName,             "vulkan-1.dll") ||
+              StrStrIW (calling_name.c_str (), L"vulkan-1.dll")  )
+      SK_BootVulkan ();
+
+    if (StrStrIA (lpFileName, "CSteamworks.dll")) {
+      extern void SK_HookCSteamworks (void);
+      SK_HookCSteamworks ();
+    } else if (StrStrIA (lpFileName, "steam_api.dll")   ||
+               StrStrIA (lpFileName, "steam_api64.dll") ||
+               StrStrIA (lpFileName, "SteamNative.dll") ) {
+      extern void SK_HookSteamAPI (void);
+      SK_HookSteamAPI ();
+    }
   }
 
   // Some software repeatedly loads and unloads this, which can
@@ -280,7 +307,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  else if (hCallingMod != SK_GetDLL ()) {
+  else /*if (hCallingMod != SK_GetDLL ())*/ {
     std::wstring calling_name = SK_GetModuleName (hCallingMod);
          if ( StrStrIW (lpFileName,            L"d3d9.dll") ||
               StrStrIW (calling_name.c_str (), L"d3d9.dll")  )
@@ -291,6 +318,19 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     else if ( StrStrIW (lpFileName,            L"opengl32.dll") ||
               StrStrIW (calling_name.c_str (), L"opengl32.dll")  )
       SK_BootOpenGL ();
+    else if ( StrStrIW (lpFileName,            L"vulkan-1.dll") ||
+              StrStrIW (calling_name.c_str (), L"vulkan-1.dll")  )
+      SK_BootVulkan ();
+
+    if (StrStrIW (lpFileName, L"CSteamworks.dll")) {
+      extern void SK_HookCSteamworks (void);
+      SK_HookCSteamworks ();
+    } else if (StrStrIW (lpFileName, L"steam_api.dll")   ||
+               StrStrIW (lpFileName, L"steam_api64.dll") ||
+               StrStrIW (lpFileName, L"SteamNative.dll") ) {
+      extern void SK_HookSteamAPI (void);
+      SK_HookSteamAPI ();
+    }
   }
 
   // Some software repeatedly loads and unloads this, which can
@@ -617,9 +657,10 @@ void
 __stdcall
 EnumLoadedModules (void)
 {
-  static bool loaded_gl   = false;
-  static bool loaded_d3d9 = false;
-  static bool loaded_dxgi = false;
+  static bool loaded_gl     = false;
+  static bool loaded_vulkan = false;
+  static bool loaded_d3d9   = false;
+  static bool loaded_dxgi   = false;
 
   // Begin logging new loads after this
   SK_LoadLibrary_SILENCE = false;
@@ -730,6 +771,12 @@ EnumLoadedModules (void)
           loaded_gl = true;
         }
 
+        else if ( StrStrIW (wszModName, L"\\vulkan-1.dll") && (! (SK_GetDLLRole () & DLL_ROLE::Vulkan))) {
+          SK_BootVulkan ();
+
+          loaded_vulkan = true;
+        }
+
         else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) {
           SK_BootDXGI ();
 
@@ -774,14 +821,23 @@ EnumLoadedModules (void)
                   L"your game is probably going to crash." );
   }
 
-  bool imports_gl   = false,
-       imports_d3d9 = false,
-       imports_dxgi = false;
+  bool imports_gl     = false,
+       imports_vulkan = false,
+       imports_d3d9   = false,
+       imports_dxgi   = false;
 
-  SK_TestRenderImports (GetModuleHandle (nullptr), &imports_gl, &imports_d3d9, &imports_dxgi);
+  SK_TestRenderImports ( GetModuleHandle (nullptr),
+                           &imports_gl,
+                             &imports_vulkan,
+                               &imports_d3d9,
+                                 &imports_dxgi );
 
   if ( (! loaded_gl) && imports_gl && (! (SK_GetDLLRole () & DLL_ROLE::OpenGL))) {
     SK_BootOpenGL ();
+  }
+
+  if ( (! loaded_vulkan) && imports_vulkan && (! (SK_GetDLLRole () & DLL_ROLE::Vulkan))) {
+    SK_BootVulkan ();
   }
 
   if ( (! loaded_dxgi) && imports_dxgi && (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) {

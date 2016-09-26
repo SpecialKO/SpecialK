@@ -29,7 +29,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-const wchar_t*        SK_VER_STR = L"0.6.11";
+const wchar_t*        SK_VER_STR = L"0.6.13";
 
 iSK_INI*               dll_ini   = nullptr;
 sk_config_t            config;
@@ -119,7 +119,8 @@ struct {
 
   struct {
     sk::ParameterInt*     appid;
-    sk::ParameterBool*    preload;
+    sk::ParameterInt*     init_delay;
+    sk::ParameterBool*    auto_pump;
   } system;
 
   struct {
@@ -164,6 +165,7 @@ struct {
     sk::ParameterStringW* max_res;
     sk::ParameterStringW* min_res;
     sk::ParameterInt*     swapchain_wait;
+    sk::ParameterStringW* scaling_mode;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -656,6 +658,16 @@ SK_LoadConfig (std::wstring name) {
         L"Render.DXGI",
           L"SwapChainWait" );
 
+    render.dxgi.scaling_mode =
+      static_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"Scaling Preference (DontCare | Centered | Stretched)")
+        );
+    render.dxgi.scaling_mode->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"Scaling" );
+
 
     texture.d3d11.cache =
       static_cast <sk::ParameterBool *>
@@ -1003,15 +1015,25 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.System",
         L"AppID" );
 
-  steam.system.preload =
-    static_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Whether to pre-load the SteamAPI DLL")
+  steam.system.init_delay =
+    static_cast <sk::ParameterInt *>
+    (g_ParameterFactory.create_parameter <int> (
+      L"How long to delay SteamAPI initialization if the game doesn't do it")
     );
-  steam.system.preload->register_to_ini (
+  steam.system.init_delay->register_to_ini (
     dll_ini,
       L"Steam.System",
-        L"Preload" );
+        L"AutoInitDelay" );
+
+  steam.system.auto_pump =
+    static_cast <sk::ParameterBool *>
+    (g_ParameterFactory.create_parameter <bool> (
+      L"Should we force the game to run Steam callbacks?")
+    );
+  steam.system.auto_pump->register_to_ini (
+    dll_ini,
+      L"Steam.System",
+        L"AutoPumpCallbacks" );
 
   steam.log.silent =
     static_cast <sk::ParameterBool *>
@@ -1234,6 +1256,38 @@ SK_LoadConfig (std::wstring name) {
                       &config.render.dxgi.res.min.y );
       }
 
+      // Default = Don't Care
+      config.render.dxgi.scaling_mode = -1;
+
+      if (render.dxgi.scaling_mode->load ()) {
+        if (! wcsicmp (
+                render.dxgi.scaling_mode->get_value_str ().c_str (),
+                L"Unspecified"
+              )
+           )
+        {
+          config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_UNSPECIFIED;
+        }
+
+        else if (! wcsicmp (
+                     render.dxgi.scaling_mode->get_value_str ().c_str (),
+                     L"Centered"
+                   )
+                )
+        {
+          config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_CENTERED;
+        }
+
+        else if (! wcsicmp (
+                     render.dxgi.scaling_mode->get_value_str ().c_str (),
+                     L"Stretched"
+                   )
+                )
+        {
+          config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_STRETCHED;
+        }
+      }
+
       if (render.dxgi.swapchain_wait->load ())
         config.render.framerate.swapchain_wait = render.dxgi.swapchain_wait->get_value ();
 
@@ -1298,8 +1352,10 @@ SK_LoadConfig (std::wstring name) {
 
   if (steam.system.appid->load ())
     config.steam.appid = steam.system.appid->get_value ();
-  if (steam.system.preload->load ())
-    config.steam.preload = steam.system.preload->get_value ();
+  if (steam.system.init_delay->load ())
+    config.steam.init_delay = steam.system.init_delay->get_value ();
+  if (steam.system.auto_pump->load ())
+    config.steam.auto_pump_callbacks = steam.system.auto_pump->get_value ();
 
 
   if (osd.show->load ())
@@ -1448,6 +1504,21 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       render.dxgi.min_res->set_value (wszFormattedRes);
 
       render.dxgi.swapchain_wait->set_value (config.render.framerate.swapchain_wait);
+
+      switch (config.render.dxgi.scaling_mode) {
+        case DXGI_MODE_SCALING_UNSPECIFIED:
+          render.dxgi.scaling_mode->set_value (L"Unspecified");
+          break;
+        case DXGI_MODE_SCALING_CENTERED:
+          render.dxgi.scaling_mode->set_value (L"Centered");
+          break;
+        case DXGI_MODE_SCALING_STRETCHED:
+          render.dxgi.scaling_mode->set_value (L"Stretched");
+          break;
+        default:
+          render.dxgi.scaling_mode->set_value (L"DontCare");
+          break;
+      }
     }
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
@@ -1472,7 +1543,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   }
 
   steam.system.appid->set_value              (config.steam.appid);
-  steam.system.preload->set_value            (config.steam.preload);
+  steam.system.init_delay->set_value         (config.steam.init_delay);
+  steam.system.auto_pump->set_value          (config.steam.auto_pump_callbacks);
 
   steam.log.silent->set_value                (config.steam.silent);
 
@@ -1551,8 +1623,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
       texture.cache.ignore_non_mipped->store ();
 
-      render.dxgi.max_res->store ();
-      render.dxgi.min_res->store ();
+      render.dxgi.max_res->store      ();
+      render.dxgi.min_res->store      ();
+      render.dxgi.scaling_mode->store ();
 
       render.dxgi.swapchain_wait->store ();
     }
@@ -1582,8 +1655,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   steam.achievements.notify_corner->store ();
   steam.achievements.notify_insetX->store ();
   steam.achievements.notify_insetY->store ();
-  steam.system.preload->store             ();
   steam.system.appid->store               ();
+  steam.system.init_delay->store          ();
+  steam.system.auto_pump->store           ();
   steam.log.silent->store                 ();
 
   init_delay->store                      ();

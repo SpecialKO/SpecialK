@@ -153,9 +153,9 @@ SK_EstablishDllRole (HMODULE hModule)
           StrStrIW (wszProcessName, L"steamapps");
 
       if (is_steamworks_game) {
-        bool gl = false, d3d9 = false, dxgi = false;
+        bool gl = false, vulkan = false, d3d9 = false, dxgi = false;
 
-        SK_TestRenderImports ( GetModuleHandle (nullptr), &gl, &d3d9, &dxgi );
+        SK_TestRenderImports ( GetModuleHandle (nullptr), &gl, &vulkan, &d3d9, &dxgi );
 
         if (dxgi)
           SK_SetDLLRole (DLL_ROLE::DXGI);
@@ -163,6 +163,8 @@ SK_EstablishDllRole (HMODULE hModule)
           SK_SetDLLRole (DLL_ROLE::D3D9);
         else if (gl)
           SK_SetDLLRole (DLL_ROLE::OpenGL);
+        //else if (vulkan)
+          //SK_SetDLLRole (DLL_ROLE::Vulkan);
         else
           SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
       } else {

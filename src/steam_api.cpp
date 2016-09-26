@@ -34,7 +34,7 @@
 
 iSK_Logger steam_log;
 
-static bool init = false;
+static volatile ULONG init = FALSE;
 
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
@@ -83,9 +83,6 @@ S_API SteamAPI_GetHSteamUser_t      SteamAPI_GetHSteamUser      = nullptr;
 S_API SteamAPI_GetHSteamPipe_t      SteamAPI_GetHSteamPipe      = nullptr;
 
 S_API SteamClient_t                 SteamClient                 = nullptr;
-
-bool S_CALLTYPE SK_SteamAPI_Init (void);
-
 
 S_API SteamAPI_RegisterCallback_t   SteamAPI_RegisterCallback_Original   = nullptr;
 S_API SteamAPI_UnregisterCallback_t SteamAPI_UnregisterCallback_Original = nullptr;
@@ -159,8 +156,6 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 
   EnterCriticalSection (&callback_cs);
 
-//  SK_SteamAPI_Init ();
-
   switch (iCallback)
   {
     case GameOverlayActivated_t::k_iCallback:
@@ -208,8 +203,6 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     SK_GetCallerName ();
 
   EnterCriticalSection (&callback_cs);
-
-//  SK_SteamAPI_Init ();
 
   int iCallback = pCallback->GetICallback ();
 
@@ -262,51 +255,161 @@ SteamAPI_Init_pfn SteamAPI_Init_Original = nullptr;
 
 bool S_CALLTYPE SteamAPI_Init_Detour (void);
 
-void HookSteam (void)
-{
-  static bool init = false;
-  if (! init) {
-    init = true;
-  } else {
-    return;
-  }
-
-  if (config.steam.silent)
-    return;
-
-#ifndef _WIN64
-  const wchar_t* wszSteamDLLName = L"steam_api.dll";
-#else
-  const wchar_t* wszSteamDLLName = L"steam_api64.dll";
-#endif
-
-  LoadLibrary (wszSteamDLLName);
-
-  SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_RegisterCallback",
-                       SteamAPI_RegisterCallback_Detour,
-                     (LPVOID *)&SteamAPI_RegisterCallback_Original,
-                     (LPVOID *)&SteamAPI_RegisterCallback);
-  SK_EnableHook (SteamAPI_RegisterCallback);
-
-  SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_UnregisterCallback",
-                     SteamAPI_UnregisterCallback_Detour,
-                     (LPVOID *)&SteamAPI_UnregisterCallback_Original,
-                     (LPVOID *)&SteamAPI_UnregisterCallback);
-  SK_EnableHook (SteamAPI_UnregisterCallback);
-}
-
-
 extern "C" void __cdecl SteamAPIDebugTextHook (int nSeverity, const char *pchDebugText);
 
 class SK_SteamAPIContext {
 public:
-  bool Init (HMODULE hSteamDLL)
+  bool InitCSteamworks (HMODULE hSteamDLL)
   {
     if (config.steam.silent)
       return false;
 
-    wchar_t wszSteamDLLName [MAX_PATH];
-    GetModuleFileNameW (hSteamDLL, wszSteamDLLName, MAX_PATH);
+    if (SteamAPI_InitSafe == nullptr) {
+      SteamAPI_InitSafe =
+        (SteamAPI_InitSafe_t)GetProcAddress (
+          hSteamDLL,
+            "InitSafe"
+        );
+    }
+
+    if (SteamAPI_GetHSteamUser == nullptr) {
+      SteamAPI_GetHSteamUser =
+        (SteamAPI_GetHSteamUser_t)GetProcAddress (
+           hSteamDLL,
+             "GetHSteamUser_"
+        );
+    }
+
+    if (SteamAPI_GetHSteamPipe == nullptr) {
+      SteamAPI_GetHSteamPipe =
+        (SteamAPI_GetHSteamPipe_t)GetProcAddress (
+           hSteamDLL,
+             "GetHSteamPipe_"
+        );
+    }
+
+    SteamAPI_IsSteamRunning =
+      (SteamAPI_IsSteamRunning_t)GetProcAddress (
+         hSteamDLL,
+           "IsSteamRunning"
+      );
+
+    if (SteamClient == nullptr) {
+      SteamClient =
+        (SteamClient_t)GetProcAddress (
+           hSteamDLL,
+             "SteamClient_"
+        );
+    }
+
+    if (SteamAPI_Shutdown == nullptr) {
+      SteamAPI_Shutdown =
+        (SteamAPI_Shutdown_t)GetProcAddress (
+          hSteamDLL,
+            "Shutdown"
+        );
+    }
+
+    bool success = true;
+
+    if (SteamAPI_GetHSteamUser == nullptr) {
+      steam_log.Log (L"Could not load GetHSteamUser (...)");
+      success = false;
+    }
+
+    if (SteamAPI_GetHSteamPipe == nullptr) {
+      steam_log.Log (L"Could not load GetHSteamPipe (...)");
+      success = false;
+    }
+
+    if (SteamClient == nullptr) {
+      steam_log.Log (L"Could not load SteamClient (...)");
+      success = false;
+    }
+
+    if (SteamAPI_RegisterCallback == nullptr) {
+      steam_log.Log (L"Could not load RegisterCallback (...)");
+      success = false;
+    }
+
+    if (SteamAPI_UnregisterCallback == nullptr) {
+      steam_log.Log (L"Could not load UnregisterCallback (...)");
+      success = false;
+    }
+
+    if (SteamAPI_RunCallbacks == nullptr) {
+      steam_log.Log (L"Could not load RunCallbacks (...)");
+      success = false;
+    }
+
+    if (! success)
+      return false;
+
+    client_ = SteamClient ();
+
+    HSteamUser hSteamUser = SteamAPI_GetHSteamUser ();
+    HSteamPipe hSteamPipe = SteamAPI_GetHSteamPipe ();
+
+    if (! client_)
+      return false;
+
+    user_stats_ =
+      client_->GetISteamUserStats (
+        hSteamUser,
+          hSteamPipe,
+            STEAMUSERSTATS_INTERFACE_VERSION
+      );
+
+    if (user_stats_ == nullptr) {
+      steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
+                        STEAMUSERSTATS_INTERFACE_VERSION );
+      return false;
+    }
+
+    utils_ =
+      client_->GetISteamUtils ( hSteamPipe,
+                                  STEAMUTILS_INTERFACE_VERSION );
+
+    if (utils_ == nullptr) {
+      steam_log.Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
+                        STEAMUTILS_INTERFACE_VERSION );
+      return false;
+    }
+
+    screenshots_ =
+      client_->GetISteamScreenshots ( hSteamUser,
+                                        hSteamPipe,
+                                          STEAMSCREENSHOTS_INTERFACE_VERSION );
+
+    if (screenshots_ == nullptr) {
+      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
+                        STEAMSCREENSHOTS_INTERFACE_VERSION );
+      return false;
+    }
+
+    steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
+    SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
+    steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
+
+    // 4 == Don't Care
+    if (config.steam.notify_corner != 4)
+      utils_->SetOverlayNotificationPosition (
+        (ENotificationPosition)config.steam.notify_corner
+      );
+
+    if (config.steam.inset_x != 0 ||
+        config.steam.inset_y != 0) {
+      utils_->SetOverlayNotificationInset (config.steam.inset_x,
+                                           config.steam.inset_y);
+    }
+
+    return true;
+  }
+
+  bool InitSteamAPI (HMODULE hSteamDLL)
+  {
+    if (config.steam.silent)
+      return false;
 
     if (SteamAPI_InitSafe == nullptr) {
       SteamAPI_InitSafe =
@@ -346,30 +449,6 @@ public:
         );
     }
 
-    if (SteamAPI_RegisterCallback == nullptr) {
-#if 0
-      SteamAPI_RegisterCallback =
-        (SteamAPI_RegisterCallback_t)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_RegisterCallback"
-        );
-#else
-      HookSteam ();
-#endif
-    }
-
-    if (SteamAPI_UnregisterCallback == nullptr) {
-#if 0
-      SteamAPI_UnregisterCallback =
-        (SteamAPI_UnregisterCallback_t)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_UnregisterCallback"
-        );
-#else
-      HookSteam ();
-#endif
-    }
-
     if (SteamAPI_RunCallbacks == nullptr) {
       SteamAPI_RunCallbacks =
         (SteamAPI_RunCallbacks_t)GetProcAddress (
@@ -386,31 +465,40 @@ public:
         );
     }
 
-    if (SteamAPI_InitSafe == nullptr)
-      return false;
+    bool success = true;
 
-    if (SteamAPI_GetHSteamUser == nullptr)
-      return false;
-
-    if (SteamAPI_GetHSteamPipe == nullptr)
-      return false;
-
-    if (SteamClient == nullptr)
-      return false;
-
-    if (SteamAPI_RegisterCallback == nullptr)
-      return false;
-
-    if (SteamAPI_UnregisterCallback == nullptr)
-      return false;
-
-    if (SteamAPI_RunCallbacks == nullptr)
-      return false;
-
-    if (config.steam.preload) {
-      if (! SteamAPI_InitSafe ())
-        return false;
+    if (SteamAPI_GetHSteamUser == nullptr) {
+      steam_log.Log (L"Could not load SteamAPI_GetHSteamUser (...)");
+      success = false;
     }
+
+    if (SteamAPI_GetHSteamPipe == nullptr) {
+      steam_log.Log (L"Could not load SteamAPI_GetHSteamPipe (...)");
+      success = false;
+    }
+
+    if (SteamClient == nullptr) {
+      steam_log.Log (L"Could not load SteamClient (...)");
+      success = false;
+    }
+
+    if (SteamAPI_RegisterCallback == nullptr) {
+      steam_log.Log (L"Could not load SteamAPI_RegisterCallback (...)");
+      success = false;
+    }
+
+    if (SteamAPI_UnregisterCallback == nullptr) {
+      steam_log.Log (L"Could not load SteamAPI_UnregisterCallback (...)");
+      success = false;
+    }
+
+    if (SteamAPI_RunCallbacks == nullptr) {
+      steam_log.Log (L"Could not load SteamAPI_RunCallbacks (...)");
+      success = false;
+    }
+
+    if (! success)
+      return false;
 
     client_ = SteamClient ();
 
@@ -501,6 +589,19 @@ private:
   ISteamUtils*       utils_       = nullptr;
   ISteamScreenshots* screenshots_ = nullptr;
 } steam_ctx;
+
+volatile LONGLONG SK_SteamAPI_CallbackRunCount = 0LL;
+
+SteamAPI_RunCallbacks_t SteamAPI_RunCallbacks_Original = nullptr;
+
+void
+S_CALLTYPE
+SteamAPI_RunCallbacks_Detour (void)
+{
+  InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
+
+  SteamAPI_RunCallbacks_Original ();
+}
 
 #if 0
 struct BaseStats_t
@@ -729,8 +830,11 @@ public:
   {
     // Sometimes we receive event callbacks for games that aren't this one...
     //   ignore those!
-    if (pParam->m_nGameID != SK::SteamAPI::AppID ())
+    if (pParam->m_nGameID != SK::SteamAPI::AppID ()) {
+      steam_log.Log ( L" >>> Received achievement stats for unrelated game (AppId=%lu) <<<",
+                        pParam->m_nGameID );
       return;
+    }
 
     if (lstrcmpiW (SK_GetHostApp (), L"Fallout4.exe"))
       log_all_achievements ();
@@ -743,8 +847,11 @@ public:
   {
     // Sometimes we receive event callbacks for games that aren't this one...
     //   ignore those!
-    if (pParam->m_nGameID != SK::SteamAPI::AppID ())
+    if (pParam->m_nGameID != SK::SteamAPI::AppID ()) {
+      steam_log.Log ( L" >>> Received achievement unlock for unrelated game (AppId=%lu) <<<",
+                        pParam->m_nGameID );
       return;
+    }
 
     SK_SteamAchievement achievement (
       pParam->m_rgchAchievementName,
@@ -796,15 +903,6 @@ S_API bool S_CALLTYPE SteamAPI_Init_Detour (void);
 void
 SK_UnlockSteamAchievement (int idx)
 {
-  //
-  // If we got this far without initialization, something's weird - but
-  //   we CAN recover.
-  //
-  // * Lazy loading steam_api*.dll is supported though usually doesn't work.
-  //
-  if (! init)
-    SK::SteamAPI::Init (true);
-
   steam_log.LogEx (true, L" >> Attempting to Unlock Achievement: %i... ",
     idx );
 
@@ -876,111 +974,6 @@ SteamAPIDebugTextHook (int nSeverity, const char *pchDebugText)
     nSeverity, pchDebugText);
 }
 
-// Fancy name, for something that barely does anything ...
-//   most init is done in the SK_SteamAPIContext singleton.
-bool
-SK_Load_SteamAPI_Imports (HMODULE hDLL, bool pre_load)
-{
-#define STEAM_INIT_FUNC_SAFE SteamAPI_InitSafe
-#define STEAM_INIT_FUNC      SteamAPI_Init
-
-  SteamAPI_Init =
-    (SteamAPI_Init_t)GetProcAddress (
-      hDLL,
-      "SteamAPI_Init"
-    );
-
-  SteamAPI_InitSafe =
-    (SteamAPI_InitSafe_t)GetProcAddress (
-       hDLL,
-         "SteamAPI_InitSafe"
-    );
-
-  SteamAPI_RestartAppIfNecessary =
-    (SteamAPI_RestartAppIfNecessary_t)GetProcAddress (
-      hDLL,
-        "SteamAPI_RestartAppIfNecessary"
-    );
-
-  if (SteamClient == nullptr) {
-    SteamClient =
-      (SteamClient_t)GetProcAddress (
-         hDLL,
-           "SteamClient"
-      );
-  }
-
-  if (SteamClient != nullptr && SteamClient () != nullptr && (! pre_load)) {
-    steam_log.Log (L" * Skipping SteamAPI Initialization - game already did it...");
-    return true;
-  }
-
-  // If we are pre-loading, then we may have to initialize SteamAPI ourselves :(
-  if (STEAM_INIT_FUNC_SAFE != nullptr && pre_load) {
-    int appid;
-
-    FILE* steam_appid = fopen ("steam_appid.txt", "r+");
-    if (steam_appid == nullptr) {
-      steam_log.LogEx (true, L"  * No steam_appid.txt in the CWD... ");
-      if (config.steam.appid != 0 &&
-          config.steam.appid != 1) {
-        steam_appid = fopen ("steam_appid.txt", "w+");
-        fprintf (steam_appid, "%d", config.steam.appid);
-        fclose (steam_appid);
-        steam_log.LogEx (false, L"wrote one for %d!\n\n",
-                           config.steam.appid);
-        return SK_Load_SteamAPI_Imports (hDLL, pre_load);
-      } else {
-        steam_log.LogEx (false, L"\n");
-      }
-
-      // If we are pre-loading the DLL, we cannot recover from this...
-      if (pre_load)
-        return false;
-    } else {
-      fscanf (steam_appid, "%d", &appid);
-      fclose (steam_appid);
-
-      config.steam.appid = appid;
-    }
-
-    bool ret = false;
-
-    if (config.steam.appid != 0) {
-      steam_log.LogEx (true, L"Starting Steam App (%lu)... ", config.steam.appid);
-
-      STEAMAPI_CALL1 (ret, RestartAppIfNecessary, (config.steam.appid));
-
-      if (ret) {
-        steam_log.LogEx (false, L"Steam will Restart!\n");
-        exit (0);
-        return false;
-      }
-      else {
-        steam_log.LogEx (false, L"Success!\n");
-      }
-    }
-
-    steam_log.LogEx (true, L" [!] SteamAPI_InitSafe ()... ");
-
-    ret = STEAM_INIT_FUNC_SAFE ();
-
-    steam_log.LogEx (false, L"%s! (Status: %lu) [%d-bit]\n\n",
-      ret ? L"done" : L"failed",
-      (unsigned)ret,
-#ifdef _WIN64
-      64
-#else
-      32
-#endif
-      );
-
-    return ret;
-  }
-
-  return false;
-}
-
 #include <ctime>
 
 void
@@ -988,59 +981,6 @@ SK::SteamAPI::Init (bool pre_load)
 {
   if (config.steam.silent)
     return;
-
-  // We allow a fixed number of chances to initialize, and then we give up.
-  static int    init_tries = 0;
-  static time_t last_try   = 0;
-
-  if ((time (NULL) - last_try) > 5 && init_tries++ == 0) {
-    steam_log.init (L"logs/steam_api.log", L"w");
-    steam_log.silent = config.steam.silent;
-    InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
-  }
-
-  // We want to give the init a second-chance because it's not quite
-  //  up to snuff yet, but some games would just continue to try and
-  //   do this indefinitely.
-  if (init_tries > 12)
-    return;
-
-  if (SteamAPI_Init == nullptr) {
-#ifndef _WIN64
-    const wchar_t* wszSteamDLLName = L"steam_api.dll";
-#else
-    const wchar_t* wszSteamDLLName = L"steam_api64.dll";
-#endif
-
-    HMODULE hModSteam;
-
-    if (pre_load && (! GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, wszSteamDLLName, &hModSteam)))
-      LoadLibrary (wszSteamDLLName);
-
-    if (GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, wszSteamDLLName, &hModSteam)) {
-      SK_CreateDLLHook2 (wszSteamDLLName, "SteamAPI_Init",
-                         SteamAPI_Init_Detour,
-                         (LPVOID *)&SteamAPI_Init_Original,
-                         (LPVOID *)&SteamAPI_Init);
-
-      //SK_CreateDLLHook (wszSteamDLLName, "SteamAPI_InitSafe",
-                         //SteamAPI_InitSafe_Detour,
-                         //(LPVOID *)&SteamAPI_InitSafe_Original,
-                         //(LPVOID *)&SteamAPI_InitSafe);
-      MH_ApplyQueued ();
-
-      HookSteam ();
-    }
-  }
-
-  else if ((! init) && (pre_load)) {
-    init = SK_SteamAPI_Init ();
-  }
-
-  if (init)
-    return;
-
-  last_try = time (NULL);
 }
 
 void
@@ -1053,15 +993,62 @@ SK::SteamAPI::Shutdown (void)
 
 void SK::SteamAPI::Pump (void)
 {
-#if 0
   if (steam_ctx.UserStats ()) {
     if (SteamAPI_RunCallbacks != nullptr)
       SteamAPI_RunCallbacks ();
-  } else {
-    Init (true);
   }
-#endif
 }
+
+DWORD
+WINAPI
+SteamAPI_PumpThread (LPVOID user)
+{
+  // Wait 5 seconds, then begin a timing investigation
+  Sleep (5000);
+
+  // First, begin a timing probe.
+  //
+  //   If after 15 seconds the game has not called SteamAPI_RunCallbacks
+  //     frequently enough, switch the thread to auto-pump mode.
+
+  LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
+
+  const UINT TEST_PERIOD = 15;
+
+  Sleep (TEST_PERIOD * 1000UL);
+
+  LONGLONG callback_count1 = SK_SteamAPI_CallbackRunCount;
+
+  double callback_freq = (double)(callback_count1 - callback_count0) / (double)TEST_PERIOD;
+
+  steam_log.Log ( L"Game runs its callbacks at ~%5.2f Hz ... this is %s the "
+                  L"minimum threshold for achievement unlock sound.\n",
+                    callback_freq, callback_freq > 3.0 ? L"above" : L"below" );
+
+  // If the timing period failed, then start auto-pumping.
+  //
+  if (callback_freq < 3.0) {
+    steam_log.Log ( L" >> Installing a callback auto-pump at 4 Hz.\n\n");
+
+    while (true) {
+      Sleep (250);
+
+      SK::SteamAPI::Pump ();
+    }
+  }
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+void
+StartSteamPump (void)
+{
+  if (config.steam.auto_pump_callbacks)
+    CreateThread (nullptr, 0, SteamAPI_PumpThread, nullptr, 0x00, nullptr);
+}
+
 
 uint32_t
 SK::SteamAPI::AppID (void)
@@ -1123,116 +1110,122 @@ SK::SteamAPI::TakeScreenshot (void)
 
 
 
-
-
-
-
-
-
 bool
 S_CALLTYPE
 SteamAPI_InitSafe_Detour (void)
 {
-  return SteamAPI_InitSafe_Original ();
-}
-
-bool
-S_CALLTYPE
-SteamAPI_Init_Detour (void)
-{
-  static int  init_tries = -1;
+  static int init_tries = -1;
 
   if (++init_tries == 0) {
-    steam_log.Log (L"Initializing SteamWorks Backend");
-    steam_log.Log (L"-------------------------------\n");
+    steam_log.Log ( L"Initializing SteamWorks Backend  << %s >>",
+                      SK_GetCallerName ().c_str () );
+    steam_log.Log (L"----------(InitSafe)-----------\n");
   }
 
-  bool ret = SteamAPI_Init_Original ();
-
-  if (ret == true && (! steam_log.silent))
-    SK_SteamAPI_Init ();
-
-  return ret;
-}
-
-//
-// This entire code is a big old mess, full of compatibility hacks
-//   it needs to be re-written with fresh eyes some day :)
-//
-bool
-S_CALLTYPE
-SK_SteamAPI_Init (void)
-{
-  int init_tries = 1;
-
-  if (init)
-    return true;
-
-  bool ret = false;
-
+  if (SteamAPI_InitSafe_Original ()) {
 #ifdef _WIN64
   const wchar_t* steam_dll_str    = L"steam_api64.dll";
 #else
   const wchar_t* steam_dll_str = L"steam_api.dll";
 #endif
 
-  HMODULE hSteamAPI = nullptr;
-  bool    bImported = false;
+    HMODULE hSteamAPI = GetModuleHandle (steam_dll_str);
 
-  if (init_tries++ == 1) {
-    steam_log.Log (L" @ %s was already loaded...\n", steam_dll_str);
-  }
+    steam_ctx.InitSteamAPI (hSteamAPI);
 
-  hSteamAPI = GetModuleHandle          (steam_dll_str);
-  bImported = SK_Load_SteamAPI_Imports (hSteamAPI, config.steam.preload);
+    ISteamUserStats* stats = steam_ctx.UserStats ();
 
-  if (config.steam.preload && (! bImported)) {
-    init = false;
-    return false;
-  }
+    if (stats) {
+      if (InterlockedCompareExchange (&::init, TRUE, FALSE))
+        return true;
 
-  steam_ctx.Init (hSteamAPI);
+      stats->RequestCurrentStats ();
 
-  ISteamUserStats* stats = steam_ctx.UserStats ();
+      steam_log.Log (L" Creating Achievement Manager...");
 
-  if (stats) {
-    stats->RequestCurrentStats ();
+      // Don't report our own callbacks!
+      SK_DisableHook (SteamAPI_RegisterCallback);
+      {
+        steam_achievements = new SK_Steam_AchievementManager (
+            config.steam.achievement_sound.c_str ()
+          );
+        overlay_manager    = new SK_Steam_OverlayManager ();
+      }
+      SK_EnableHook (SteamAPI_RegisterCallback);
 
-    steam_log.Log (L" Creating Achievement Manager...");
-
-    // Don't report our own callbacks!
-    SK_DisableHook (SteamAPI_RegisterCallback);
-    {
-      steam_achievements = new SK_Steam_AchievementManager (
-          config.steam.achievement_sound.c_str ()
-        );
-      overlay_manager    = new SK_Steam_OverlayManager ();
+      steam_log.LogEx (false, L"\n");
     }
-    SK_EnableHook (SteamAPI_RegisterCallback);
 
-    steam_log.LogEx (false, L"\n");
+    steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                      init_tries + 1,
+                        SK::SteamAPI::AppID () );
 
-    // Phew, finally!
-    steam_log.Log (L"--- Initialization Finished (%d tries) ---", init_tries);
+    StartSteamPump ();
 
-    init = true;
-    ret  = true;
+    return true;
   }
 
-  else
-  // Close, but no - we still have not initialized this monster.
-  {
-    init = false;
-    ret  = false;
-  }
-
-  return ret;
+  return false;
 }
 
+bool
+S_CALLTYPE
+SteamAPI_Init_Detour (void)
+{
+  static int init_tries = -1;
 
-//
-// Hacks that break what little planning this project had to begin with ;)
-//
+  if (++init_tries == 0) {
+    steam_log.Log ( L"Initializing SteamWorks Backend  << %s >>",
+                      SK_GetCallerName ().c_str () );
+    steam_log.Log (L"-------------------------------\n");
+  }
+
+  if (SteamAPI_Init_Original ()) {
+#ifdef _WIN64
+  const wchar_t* steam_dll_str    = L"steam_api64.dll";
+#else
+  const wchar_t* steam_dll_str = L"steam_api.dll";
+#endif
+
+    HMODULE hSteamAPI = GetModuleHandle (steam_dll_str);
+
+    steam_ctx.InitSteamAPI (hSteamAPI);
+
+    ISteamUserStats* stats = steam_ctx.UserStats ();
+
+    if (stats) {
+      if (InterlockedCompareExchange (&::init, TRUE, FALSE))
+        return true;
+
+      stats->RequestCurrentStats ();
+
+      steam_log.Log (L" Creating Achievement Manager...");
+
+      // Don't report our own callbacks!
+      SK_DisableHook (SteamAPI_RegisterCallback);
+      {
+        steam_achievements = new SK_Steam_AchievementManager (
+            config.steam.achievement_sound.c_str ()
+          );
+        overlay_manager    = new SK_Steam_OverlayManager ();
+      }
+      SK_EnableHook (SteamAPI_RegisterCallback);
+
+      steam_log.LogEx (false, L"\n");
+    }
+
+    steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                      init_tries + 1,
+                        SK::SteamAPI::AppID () );
+
+    StartSteamPump ();
+
+    return true;
+  }
+
+  return false;
+}
+
 
 void
 __stdcall
@@ -1246,4 +1239,205 @@ __stdcall
 SK_SteamAPI_TakeScreenshot (void)
 {
   return SK::SteamAPI::TakeScreenshot ();
+}
+
+
+typedef bool (S_CALLTYPE *InitSafe_pfn)(void);
+InitSafe_pfn InitSafe_Original = nullptr;
+
+bool
+S_CALLTYPE
+InitSafe_Detour (void)
+{
+  static int init_tries = -1;
+
+  if (++init_tries == 0) {
+    steam_log.Log ( L"Initializing CSteamWorks Backend  << %s >>",
+                      SK_GetCallerName ().c_str () );
+    steam_log.Log (L"-----------(InitSafe)-----------\n");
+  }
+
+  if (InitSafe_Original ()) {
+    HMODULE hSteamAPI = GetModuleHandle (L"CSteamworks.dll");
+
+    steam_ctx.InitCSteamworks (hSteamAPI);
+
+    ISteamUserStats* stats = steam_ctx.UserStats ();
+
+    if (stats) {
+      if (InterlockedCompareExchange (&::init, TRUE, FALSE))
+        return true;
+
+      stats->RequestCurrentStats ();
+
+      steam_log.Log (L" Creating Achievement Manager...");
+
+      // Don't report our own callbacks!
+      SK_DisableHook (SteamAPI_RegisterCallback);
+      {
+        steam_achievements = new SK_Steam_AchievementManager (
+            config.steam.achievement_sound.c_str ()
+          );
+        overlay_manager    = new SK_Steam_OverlayManager ();
+      }
+      SK_EnableHook (SteamAPI_RegisterCallback);
+
+      steam_log.LogEx (false, L"\n");
+    }
+
+    steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                      init_tries + 1,
+                        SK::SteamAPI::AppID () );
+
+    StartSteamPump ();
+
+    return true;
+  }
+
+  return false;
+}
+
+DWORD
+WINAPI
+CSteamworks_Delay_Init (LPVOID user)
+{
+  int tries = 0;
+
+  while ((! ::init) && tries < 120) {
+    Sleep (config.steam.init_delay);
+
+    if (init)
+      break;
+
+    if (InitSafe_Detour != nullptr)
+      InitSafe_Detour ();
+
+    ++tries;
+  }
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+static volatile ULONG __hooked = FALSE;
+
+void
+SK_HookCSteamworks (void)
+{
+  if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE)) {
+    steam_log.init (L"logs/steam_api.log", L"w");
+    steam_log.silent = config.steam.silent;
+    InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
+  }
+
+  static volatile ULONG __CSteamworks_hook = FALSE;
+
+  if (InterlockedCompareExchange (&__CSteamworks_hook, TRUE, FALSE))
+    return;
+
+  steam_log.Log (L"CSteamworks.dll was loaded, hooking...");
+
+  SK_CreateDLLHook2 ( L"CSteamworks.dll",
+                      "InitSafe",
+                      InitSafe_Detour,
+           (LPVOID *)&InitSafe_Original );
+
+#if 0
+  SK_CreateDLLHook ( L"CSteamworks.dll", "RegisterCallback",
+                     SteamAPI_RegisterCallback_Detour,
+                   (LPVOID *)&SteamAPI_RegisterCallback_Original,
+                   (LPVOID *)&SteamAPI_RegisterCallback);
+  SK_EnableHook (SteamAPI_RegisterCallback);
+
+  SK_CreateDLLHook (L"CSteamworks.dll", "UnregisterCallback",
+                     SteamAPI_UnregisterCallback_Detour,
+                     (LPVOID *)&SteamAPI_UnregisterCallback_Original,
+                     (LPVOID *)&SteamAPI_UnregisterCallback);
+  SK_EnableHook (SteamAPI_UnregisterCallback);
+#endif
+
+  MH_ApplyQueued ();
+
+  if (config.steam.init_delay > 0)
+    CreateThread (nullptr, 0, CSteamworks_Delay_Init, nullptr, 0x00, nullptr);
+}
+
+DWORD
+WINAPI
+SteamAPI_Delay_Init (LPVOID user)
+{
+  int tries = 0;
+
+  while ((! ::init) && tries < 120) {
+    Sleep (config.steam.init_delay);
+
+    if (init)
+      break;
+
+    if (SteamAPI_InitSafe_Detour != nullptr)
+      SteamAPI_InitSafe_Detour ();
+
+    ++tries;
+  }
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+void
+SK_HookSteamAPI (void)
+{
+  if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE)) {
+    steam_log.init (L"logs/steam_api.log", L"w");
+    steam_log.silent = config.steam.silent;
+    InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
+  }
+
+  static volatile ULONG __SteamAPI_hook = FALSE;
+
+  if (InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
+    return;
+
+#ifdef _WIN64
+    const wchar_t* wszSteamAPI = L"steam_api64.dll";
+#else
+    const wchar_t* wszSteamAPI = L"steam_api.dll";
+#endif
+
+  steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
+
+  SK_CreateDLLHook2 ( wszSteamAPI,
+                      "SteamAPI_InitSafe",
+                      SteamAPI_InitSafe_Detour,
+           (LPVOID *)&SteamAPI_InitSafe_Original );
+
+  SK_CreateDLLHook2 ( wszSteamAPI,
+                      "SteamAPI_Init",
+                      SteamAPI_Init_Detour,
+           (LPVOID *)&SteamAPI_Init_Original );
+
+  SK_CreateDLLHook2 ( wszSteamAPI,
+                      "SteamAPI_RegisterCallback",
+                      SteamAPI_RegisterCallback_Detour,
+           (LPVOID *)&SteamAPI_RegisterCallback_Original,
+           (LPVOID *)&SteamAPI_RegisterCallback );
+
+  SK_CreateDLLHook2 ( wszSteamAPI,
+                      "SteamAPI_UnregisterCallback",
+                      SteamAPI_UnregisterCallback_Detour,
+           (LPVOID *)&SteamAPI_UnregisterCallback_Original,
+           (LPVOID *)&SteamAPI_UnregisterCallback );
+
+  SK_CreateDLLHook2 ( wszSteamAPI,
+                      "SteamAPI_RunCallbacks",
+                      SteamAPI_RunCallbacks_Detour,
+           (LPVOID *)&SteamAPI_RunCallbacks_Original,
+           (LPVOID *)&SteamAPI_RunCallbacks );
+
+  MH_ApplyQueued ();
+
+  if (config.steam.init_delay > 0)
+    CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
 }

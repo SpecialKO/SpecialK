@@ -836,8 +836,10 @@ SK_InitFinishCallback (void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
+  extern BOOL SK_UsingVulkan (void);
+
     // Create a thread that pumps the OSD
-  if (config.osd.pump) {
+  if (config.osd.pump || SK_UsingVulkan ()) {
     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
 
     hPumpThread =
@@ -872,6 +874,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
     return;
   }
 
+  extern HMODULE __stdcall SK_GetDLL ();
+  extern void              SK_TestSteamImports (HMODULE hMod);
+
   HANDLE hProc = GetCurrentProcess ();
 
   wchar_t log_fname [MAX_PATH];
@@ -885,8 +890,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
     L"-------------------\n");
-
-  extern HMODULE __stdcall SK_GetDLL ();
 
   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszModuleName = module_name.c_str ();
@@ -1013,6 +1016,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
+
+
+  SK_TestSteamImports (SK_GetDLL ());
 
 
   extern void __crc32_init (void);
@@ -1175,6 +1181,7 @@ volatile ULONG SK_bypass_dialog_active = FALSE;
 volatile  LONG init                    = FALSE; // Do not use static storage,
                                                 //   the C Runtime may not be
                                                 //     init yet.
+
 void
 WaitForInit (void)
 {
@@ -1394,16 +1401,6 @@ DllThread_CRT (LPVOID user)
 
   init_params_t* params =
     &init_;
-
-  if (! config.steam.silent) {
-  // SteamAPI DLL was already loaded... yay!
-#ifdef _WIN64
-    if (GetModuleHandle (L"steam_api64.dll"))
-#else
-    if (GetModuleHandle (L"steam_api.dll"))
-#endif
-      SK::SteamAPI::Init (false);
-  }
 
   SK_InitCore (params->backend, params->callback);
 
@@ -2135,11 +2132,13 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
-  if ((! config.steam.silent) && config.steam.preload) {
+#if 0
+  if ((! config.steam.silent)) {
     dll_log.LogEx  (true, L"[ SteamAPI ] Shutting down Steam API... ");
     SK::SteamAPI::Shutdown ();
     dll_log.LogEx  (false, L"done!\n");
   }
+#endif
 
   SK::Framerate::Shutdown ();
 
@@ -2190,20 +2189,6 @@ SK_BeginBufferSwap (void)
 
     if (config.system.handle_crashes)
       SK::Diagnostics::CrashHandler::Reinstall ();
-  }
-
-  if ((! config.steam.silent) && (! config.steam.preload)) {
-    static int steam_tries = 0, init = 0;
-    if ((! init) && steam_tries++ < 12000) {
-      // Every 15 frames, try to initialize SteamAPI again
-      if (! (steam_tries % 15)) {
-        if (SK::SteamAPI::AppID () != 0)
-          init = 1;
-
-        else
-          SK::SteamAPI::Init (true);
-      }
-    }
   }
 }
 
@@ -2671,8 +2656,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   SK_DrawTexMgrStats ();
   SK_DrawConsole     ();
   SK_DrawOSD         ();
-
-  //SK::SteamAPI::Pump ();
 
   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 

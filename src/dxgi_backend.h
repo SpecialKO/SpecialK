@@ -172,6 +172,9 @@ extern HWND  hWndRender;
 
 extern sk_window_s game_window;
 
+const wchar_t*
+SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode);
+
 std::wstring
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
                              const DWORD* pFeatureLevels );

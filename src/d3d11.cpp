@@ -1,3 +1,24 @@
+/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
  #define _CRT_SECURE_NO_WARNINGS
 
 #include "core.h"
@@ -282,7 +303,7 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
-  //WaitForInitD3D11 ();
+  HookD3D11 (nullptr);
 
   DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
 
@@ -297,26 +318,6 @@ D3D11CreateDevice_Detour (
                             (DWORD *)pFeatureLevels
                         ).c_str ()
                 );
-
-#if 0
-    if (d3d11_caps.feature_level.d3d11_1) {
-      if (! lstrcmpW (SK_GetHostApp (), L"DXMD.exe")) {
-        dll_log.Log (L"[   DXGI   ] Feature Level Override: D3D 11.1");
-
-        FeatureLevels = FeatureLevels + 1;
-
-        static D3D_FEATURE_LEVEL pOverride [10];
-
-        pOverride [0] = D3D_FEATURE_LEVEL_11_1;
-
-        memcpy ( &pOverride [1],
-                   pFeatureLevels,
-                    sizeof (D3D_FEATURE_LEVEL) * (FeatureLevels - 1) );
-
-        pFeatureLevels = pOverride;
-      }
-    }
-#endif
 
   //
   // DXGI Adapter Override (for performance)
@@ -384,7 +385,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
-  //WaitForInitD3D11 ();
+  HookD3D11 (nullptr);
 
   // Detect devices that were only created for the purpose of creating hooks....
   bool bFake = false;
@@ -392,13 +393,17 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level;
 
-  if ( pSwapChainDesc != nullptr &&
-       pSwapChainDesc->BufferCount                        == 1                        &&
-       pSwapChainDesc->SwapEffect                         == DXGI_SWAP_EFFECT_DISCARD &&
-       pSwapChainDesc->BufferDesc.Width                   == 800                      &&
-       pSwapChainDesc->BufferDesc.Height                  == 600                      &&
-       pSwapChainDesc->BufferDesc.RefreshRate.Denominator == 1                        &&
-       pSwapChainDesc->BufferDesc.RefreshRate.Numerator   == 60 )
+  // Allow override of swapchain parameters
+  DXGI_SWAP_CHAIN_DESC* swap_chain_desc     = (DXGI_SWAP_CHAIN_DESC *)pSwapChainDesc;
+  DXGI_SWAP_CHAIN_DESC  swap_chain_override = { 0 };
+
+  if ( swap_chain_desc != nullptr &&
+       swap_chain_desc->BufferCount                        == 1                        &&
+       swap_chain_desc->SwapEffect                         == DXGI_SWAP_EFFECT_DISCARD &&
+       swap_chain_desc->BufferDesc.Width                   == 800                      &&
+       swap_chain_desc->BufferDesc.Height                  == 600                      &&
+       swap_chain_desc->BufferDesc.RefreshRate.Denominator == 1                        &&
+       swap_chain_desc->BufferDesc.RefreshRate.Numerator   == 60 )
     bFake = true;
 
   if (! bFake) {
@@ -429,32 +434,54 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
   }
 
-  if (pSwapChainDesc != nullptr && (! bFake)) {
+  if (swap_chain_desc != nullptr && (! bFake)) {
     dll_log.LogEx ( true,
                       L"[   DXGI   ]  SwapChain: (%lux%lu@%4.1f Hz - Scaling: %s) - "
                       L"[%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
-                        pSwapChainDesc->BufferDesc.Width,
-                        pSwapChainDesc->BufferDesc.Height,
-                        pSwapChainDesc->BufferDesc.RefreshRate.Denominator > 0 ?
-                 (float)pSwapChainDesc->BufferDesc.RefreshRate.Numerator /
-                 (float)pSwapChainDesc->BufferDesc.RefreshRate.Denominator :
-                 (float)pSwapChainDesc->BufferDesc.RefreshRate.Numerator,
-                        pSwapChainDesc->BufferDesc.Scaling == 0 ?
+                        swap_chain_desc->BufferDesc.Width,
+                        swap_chain_desc->BufferDesc.Height,
+                        swap_chain_desc->BufferDesc.RefreshRate.Denominator > 0 ?
+                 (float)swap_chain_desc->BufferDesc.RefreshRate.Numerator /
+                 (float)swap_chain_desc->BufferDesc.RefreshRate.Denominator :
+                 (float)swap_chain_desc->BufferDesc.RefreshRate.Numerator,
+                        swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
                           L"Unspecified" :
-                        pSwapChainDesc->BufferDesc.Scaling == 1 ?
-                          L"Centered" : L"Stretched",
-                        pSwapChainDesc->BufferCount,
-                        pSwapChainDesc->Flags,
-                        pSwapChainDesc->SwapEffect == 0 ?
+                          swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED  ?
+                            L"Centered" :
+                            L"Stretched",
+                        swap_chain_desc->BufferCount,
+                        swap_chain_desc->Flags,
+                        swap_chain_desc->SwapEffect == 0         ?
                           L"Discard" :
-                        pSwapChainDesc->SwapEffect == 1 ?
-                          L"Sequential" :
-                        pSwapChainDesc->SwapEffect == 2 ?
-                          L"<Unknown>" :
-                        pSwapChainDesc->SwapEffect == 3 ?
-                          L"Flip Sequential" :
-                        pSwapChainDesc->SwapEffect == 4 ?
-                          L"Flip Discard" : L"<Unknown>");
+                          swap_chain_desc->SwapEffect == 1       ?
+                            L"Sequential" :
+                            swap_chain_desc->SwapEffect == 2     ?
+                              L"<Unknown>" :
+                              swap_chain_desc->SwapEffect == 3   ?
+                                L"Flip Sequential" :
+                                swap_chain_desc->SwapEffect == 4 ?
+                                  L"Flip Discard" :
+                                  L"<Unknown>");
+
+    swap_chain_override = *swap_chain_desc;
+    swap_chain_desc     = &swap_chain_override;
+
+    if ( config.render.dxgi.scaling_mode      != -1 &&
+          swap_chain_desc->BufferDesc.Scaling !=
+            (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode ) {
+      dll_log.Log ( L"[  D3D 11  ]  >> Scaling Override "
+                    L"(Requested: %s, Using: %s)",
+                      SK_DXGI_DescribeScalingMode (
+                        swap_chain_desc->BufferDesc.Scaling
+                      ),
+                        SK_DXGI_DescribeScalingMode (
+                          (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+                        )
+                  );
+
+      swap_chain_desc->BufferDesc.Scaling =
+        (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+    }
   }
 
   HRESULT res;
@@ -467,29 +494,29 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                           pFeatureLevels,
                                           FeatureLevels,
                                           SDKVersion,
-                                          pSwapChainDesc,
+                                          swap_chain_desc,
                                           ppSwapChain,
                                           ppDevice,
                                           &ret_level,
                                           ppImmediateContext));
 
-  if (SUCCEEDED (res))//res == S_OK)
+  if (SUCCEEDED (res))
   {
-    if (pSwapChainDesc != nullptr) {
+    if (swap_chain_desc != nullptr) {
       // Fake, created by (UNKNOWN)
-      if ( pSwapChainDesc->BufferDesc.Width  == 256 &&
-           pSwapChainDesc->BufferDesc.Height == 256 )
+      if ( swap_chain_desc->BufferDesc.Width  == 256 &&
+           swap_chain_desc->BufferDesc.Height == 256 )
         bFake = true;
 
       if ((! bFake) && ( dwRenderThread == 0x00 ||
                          dwRenderThread == GetCurrentThreadId () )) {
         if ( hWndRender                   != 0 &&
-             pSwapChainDesc->OutputWindow != 0 &&
-             pSwapChainDesc->OutputWindow != hWndRender )
+             swap_chain_desc->OutputWindow != 0 &&
+             swap_chain_desc->OutputWindow != hWndRender )
           dll_log.Log (L"[  D3D 11  ] Game created a new window?!");
 
         if (hWndRender == nullptr || (! IsWindow (hWndRender))) {
-          hWndRender       = pSwapChainDesc->OutputWindow;
+          hWndRender       = swap_chain_desc->OutputWindow;
           game_window.hWnd = hWndRender;
         }
       }
@@ -1461,8 +1488,8 @@ void
 WINAPI
 SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
 {
-  // UNX calls this before D3D11 is initialized
-  WaitForInitD3D11 ();
+  // Allow UnX to call this before a device has been created.
+  SK_D3D11_Init ();
 
   if (hash != 0x00) {
     if (! SK_D3D11_IsTexHashed (top_crc32, hash)) {
@@ -1489,8 +1516,8 @@ void
 WINAPI
 SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
 {
-  // UNX calls this before D3D11 is initialized
-  WaitForInitD3D11 ();
+  // Allow UnX to call this before a device has been created.
+  SK_D3D11_Init ();
 
   if (hash != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash)) {
     SK_AutoCriticalSection critical (&hash_cs);
@@ -1507,8 +1534,8 @@ std::wstring
 __stdcall
 SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
 {
-  // UNX calls this before D3D11 is initialized
-  WaitForInitD3D11 ();
+  // Allow UnX to call this before a device has been created.
+  SK_D3D11_Init ();
 
   std::wstring ret = L"";
 
@@ -2640,18 +2667,23 @@ SK_D3D11_EnableHooks (void)
 }
 
 
+extern
+unsigned int __stdcall HookD3D12                   (LPVOID user);
 
+volatile ULONG __d3d11_hooked = FALSE;
+
+__declspec (nothrow)
 unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
 {
-  if (InterlockedCompareExchange (&__d3d11_ready, TRUE, TRUE)) {
-    CloseHandle (GetCurrentThread ());
+  // This only needs to be done once
+  if (InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE)) {
     return 0;
   }
 
-CoInitializeEx (nullptr, COINIT_MULTITHREADED);
-{
+  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+
   dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
 
   CComPtr <IDXGIFactory>  pFactory  = nullptr;
@@ -2762,10 +2794,7 @@ CoInitializeEx (nullptr, COINIT_MULTITHREADED);
     }
   }
 
-}
-CoUninitialize ();
-
-  CloseHandle (GetCurrentThread ());
+  HookD3D12 (nullptr);
 
   return 0;
 }

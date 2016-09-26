@@ -46,6 +46,18 @@
     <Filter Include="Source Files\Diagnostics">
       <UniqueIdentifier>{05e53788-2b5b-4da9-8e0a-749b8481056a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Vulkan">
+      <UniqueIdentifier>{b3e55d30-eb61-4133-9051-ecef8c9b2ba3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\OpenGL">
+      <UniqueIdentifier>{660a5a14-f7cb-46cd-b8db-7a4c79494b74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\OpenGL">
+      <UniqueIdentifier>{84c84912-d7f2-47e1-a62f-3d158cdf57fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Vulkan">
+      <UniqueIdentifier>{9dab1f98-acb1-4149-9520-8225f69fc95a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -95,9 +107,6 @@
     </ClInclude>
     <ClInclude Include="adl.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="opengl_backend.h">
-      <Filter>Header Files\Backends</Filter>
     </ClInclude>
     <ClInclude Include="core.h">
       <Filter>Header Files</Filter>
@@ -165,6 +174,12 @@
     <ClInclude Include="tls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="opengl_backend.h">
+      <Filter>Header Files\Backends\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="vulkan_backend.h">
+      <Filter>Header Files\Backends\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -199,9 +214,6 @@
     </ClCompile>
     <ClCompile Include="memory_monitor.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="opengl.cpp">
-      <Filter>Source Files\Backends</Filter>
     </ClCompile>
     <ClCompile Include="core.cpp">
       <Filter>Source Files</Filter>
@@ -316,6 +328,12 @@
     </ClCompile>
     <ClCompile Include="d3d11.cpp">
       <Filter>Source Files\Backends\DXGI</Filter>
+    </ClCompile>
+    <ClCompile Include="opengl.cpp">
+      <Filter>Source Files\Backends\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan.cpp">
+      <Filter>Source Files\Backends\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
