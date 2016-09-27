@@ -30,18 +30,18 @@
 
 namespace COM {
   struct Base {
-    bool               init;
+    volatile ULONG     init          = FALSE;
 
     struct WMI {
-      bool             init;
+      volatile LONG    init          = -1;
 
-      IWbemServices*   pNameSpace;
-      IWbemLocator*    pWbemLocator;
-      BSTR             bstrNameSpace;
+      IWbemServices*   pNameSpace    = nullptr;
+      IWbemLocator*    pWbemLocator  = nullptr;
+      BSTR             bstrNameSpace = nullptr;
 
-      HANDLE           hServerThread;
+      HANDLE           hServerThread = 0;
 
-      CRITICAL_SECTION cs;
+      CRITICAL_SECTION cs            = { 0 };
 
       bool InitLocks    (void);
 
@@ -49,11 +49,15 @@ namespace COM {
       void Unlock       (void);
     } wmi;
 
-    LONG               threads;
+    LONG               threads         = 0;
 
     HRESULT InitThread   (void);
     bool    UninitThread (void);
   } extern base;
+
+  struct thread_local_t {
+    bool init = false;
+  };
 }
 
 extern bool SK_InitWMI     (void);

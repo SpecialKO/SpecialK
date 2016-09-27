@@ -1032,7 +1032,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   //
   // RTSS will deadlock us if we use this condition, unfortunately
   //
-  if (__d3d9_ready) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters);
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
   }
@@ -1076,7 +1076,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   //
   // RTSS will deadlock us if we use this condition, unfortunately
   //
-  if (__d3d9_ready) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
   }
@@ -1617,7 +1617,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
   extern HWND hWndRender;
 
-  if (__d3d9_ready) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     if ((! IsWindow (hWndRender)) && pparams->hDeviceWindow != 0) {
       hWndRender = pparams->hDeviceWindow;
     }
@@ -1653,7 +1653,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   HRESULT ret;
 
   // Don't do this for the dummy context we create during init.
-  if (__d3d9_ready)
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
     SK_SetPresentParamsD3D9 ( nullptr,
                                 pPresentationParameters );
 
@@ -1669,7 +1669,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (! SUCCEEDED (ret))
     return ret;
 
-  if (__d3d9_ready) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                       "IDirect3DDevice9::SetCursorPosition",
                       D3D9SetCursorPosition_Override,
@@ -1862,7 +1862,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
 
   HRESULT ret;
 
-  if (__d3d9_ready)
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
     SK_SetPresentParamsD3D9 ( nullptr,
                                  pPresentationParameters );
 
@@ -1908,7 +1908,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     return ret;
   }
 
-  if (__d3d9_ready) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                       "IDirect3DDevice9::SetCursorPosition",
                       D3D9SetCursorPosition_Override,

@@ -20,6 +20,7 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include "core.h"
 #include "stdafx.h"
@@ -108,7 +109,7 @@ ULONG
 __stdcall
 SK_GetFramesDrawn (void)
 {
-  return InterlockedCompareExchange (&frames_drawn, 0, 0);
+  return InterlockedExchangeAdd (&frames_drawn, 0);
 }
 
 #include <d3d9.h>

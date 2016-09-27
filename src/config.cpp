@@ -29,7 +29,7 @@
 #include "log.h"
 #include "steam_api.h"
 
-const wchar_t*        SK_VER_STR = L"0.6.13";
+const wchar_t*        SK_VER_STR = L"0.6.14";
 
 iSK_INI*               dll_ini   = nullptr;
 sk_config_t            config;
@@ -1260,7 +1260,7 @@ SK_LoadConfig (std::wstring name) {
       config.render.dxgi.scaling_mode = -1;
 
       if (render.dxgi.scaling_mode->load ()) {
-        if (! wcsicmp (
+        if (! _wcsicmp (
                 render.dxgi.scaling_mode->get_value_str ().c_str (),
                 L"Unspecified"
               )
@@ -1269,7 +1269,7 @@ SK_LoadConfig (std::wstring name) {
           config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_UNSPECIFIED;
         }
 
-        else if (! wcsicmp (
+        else if (! _wcsicmp (
                      render.dxgi.scaling_mode->get_value_str ().c_str (),
                      L"Centered"
                    )
@@ -1278,7 +1278,7 @@ SK_LoadConfig (std::wstring name) {
           config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_CENTERED;
         }
 
-        else if (! wcsicmp (
+        else if (! _wcsicmp (
                      render.dxgi.scaling_mode->get_value_str ().c_str (),
                      L"Stretched"
                    )

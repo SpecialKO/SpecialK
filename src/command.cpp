@@ -459,14 +459,14 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
   uint32_t len;
 
   if (getValue ()) {
-    len = strlen ("true");
+    len = (uint32_t)strlen ("true");
 
     if (szOut != nullptr)
       strncpy (szOut, "true", *dwLen);
 
     *dwLen = std::min (*dwLen, len);
   } else {
-    len = strlen ("false");
+    len = (uint32_t)strlen ("false");
 
     if (szOut != nullptr)
       strncpy (szOut, "false", *dwLen);
@@ -553,8 +553,8 @@ SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
         break;
     }
 
-    szOut [len] = '\0';
-    *dwLen = len;
+    szOut [len-1] = '\0';
+    *dwLen = (uint32_t)len;
   } else {
     *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%f", getValue ()));
   }

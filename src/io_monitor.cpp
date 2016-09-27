@@ -167,14 +167,14 @@ COM::Base::WMI::InitLocks (void)
 void
 COM::Base::WMI::Lock (void)
 {
-  if (init)
+  if (InterlockedExchangeAdd (&init, 0))
     EnterCriticalSection (&cs);
 }
 
 void
 COM::Base::WMI::Unlock (void)
 {
-  if (init)
+  if (InterlockedExchangeAdd (&init, 0))
     LeaveCriticalSection (&cs);
 }
 

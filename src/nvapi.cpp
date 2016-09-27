@@ -530,7 +530,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 
   // Allow the end-user to override this using the INI file
   if (config.render.framerate.target_fps != 0)
-    limit = config.render.framerate.target_fps;
+    limit = (uint32_t)config.render.framerate.target_fps;
 
   // Don't set anything up.
   if (limit == 0)

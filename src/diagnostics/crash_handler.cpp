@@ -386,7 +386,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   std::string top_func = "";
 
-  bool ret = true;
+  BOOL ret = TRUE;
 
   do {
   SymRefreshModuleList ( hProc );
@@ -507,7 +507,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                           nullptr, nullptr );
 
 #endif
-  } while (ret == true);
+  } while (ret == TRUE);
 
   crash_log.Log (L"-----------------------------------------------------------");
 

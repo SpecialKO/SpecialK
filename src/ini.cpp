@@ -55,7 +55,7 @@ ErrorMessage (errno_t        err,
 }
 
 #define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) != 0) \
-dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage ((z), #x, (y), __LINE__, __FUNCTION__, __FILE__)); }
+dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage ((z), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str ()); }
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {

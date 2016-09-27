@@ -73,7 +73,7 @@ volatile LONG  __dxgi_ready  = FALSE;
 
 void WaitForInitDXGI (void)
 {
-  if ((volatile LPVOID)CreateDXGIFactory_Import == nullptr) {
+  if (CreateDXGIFactory_Import == nullptr) {
     extern void SK_BootDXGI (void);
     SK_BootDXGI ();
   }
@@ -114,7 +114,7 @@ SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
 
   std::wstring out = L"";
 
-  for (UINT i = 0; i < FeatureLevels; i++)
+  for (int i = 0; i < FeatureLevels; i++)
   {
     switch (pFeatureLevels [i])
     {
@@ -538,6 +538,7 @@ SK_DXGI_BeginHooking (void)
         dll_log.Log (                                                       \
           L"Unable to locate symbol  %s in dxgi.dll",                       \
           L#_Name );                                                        \
+        return;                                                             \
       }                                                                     \
     }                                                                       \
                                                                             \
@@ -1126,7 +1127,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
         if (! config.render.dxgi.res.max.isZero ()) {
           // Restrict MAX (Sequential Scan: First->Last)
-          for ( int i = 0 ; i < *pNumModes ; ++i ) {
+          for ( UINT i = 0 ; i < *pNumModes ; ++i ) {
             if (SK_DXGI_RestrictResMax (WIDTH,  last, i, coverage_max, pDesc) |
                 SK_DXGI_RestrictResMax (HEIGHT, last, i, coverage_max, pDesc))
               ++removed_count;
@@ -1136,7 +1137,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
       if (config.render.dxgi.scaling_mode != -1) {
         if (config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED) {
-          for ( int i = *pNumModes - 1 ; i >= 0 ; --i ) {
+          for ( INT i = (INT)*pNumModes - 1 ; i >= 0 ; --i ) {
             if ( pDesc [i].Scaling != DXGI_MODE_SCALING_UNSPECIFIED &&
                  pDesc [i].Scaling != config.render.dxgi.scaling_mode ) {
               pDesc [i] = pDesc [i + 1];
@@ -1345,6 +1346,8 @@ __declspec (noinline)
         &new_new_params;
 
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
+    } else {
+      DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
     }
 
     SK_DXGI_HookPresent (This);

@@ -49,6 +49,8 @@ std::multiset <class CCallbackBase *> overlay_activation_callbacks;
 CRITICAL_SECTION callback_cs = { 0 };
 
 
+bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
+
 S_API typedef bool (S_CALLTYPE *SteamAPI_Init_t    )(void);
 S_API typedef bool (S_CALLTYPE *SteamAPI_InitSafe_t)(void);
 
@@ -151,6 +153,15 @@ void
 S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
+  // Sometimes a game will have initialized SteamAPI before this DLL was loaded,
+  //   we will usually catch wind of this because callbacks will be registered
+  //     seemingly before initialization.
+  //
+  //  Take this opportunity to finish SteamAPI initialization for SpecialK.
+  if (! InterlockedExchangeAdd (&::init, 0)) {
+    SteamAPI_InitSafe_Detour ();
+  }
+
   std::wstring caller = 
     SK_GetCallerName ();
 
@@ -1301,9 +1312,12 @@ DWORD
 WINAPI
 CSteamworks_Delay_Init (LPVOID user)
 {
+  CloseHandle (GetCurrentThread ());
+  return 0;
+
   int tries = 0;
 
-  while ((! ::init) && tries < 120) {
+  while ((! InterlockedExchangeAdd (&::init, 0)) && tries < 120) {
     Sleep (config.steam.init_delay);
 
     if (init)
@@ -1367,9 +1381,12 @@ DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID user)
 {
+  CloseHandle (GetCurrentThread ());
+  return 0;
+
   int tries = 0;
 
-  while ((! ::init) && tries < 120) {
+  while ((! InterlockedExchangeAdd (&::init, 0)) && tries < 120) {
     Sleep (config.steam.init_delay);
 
     if (init)

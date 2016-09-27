@@ -432,7 +432,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
     end_addr = (uint8_t *)PAGE_WALK_LIMIT;
   }
 
-  dll_log.Log ( L"[ Sig Scan ] Module image consists of %lu pages, from %ph to %ph",
+  dll_log.Log ( L"[ Sig Scan ] Module image consists of %zu pages, from %ph to %ph",
                   pages,
                     base_addr,
                       end_addr );

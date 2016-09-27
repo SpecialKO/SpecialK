@@ -82,6 +82,8 @@ extern void WINAPI SK_HookDXGI   (void);
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
 
+extern bool __stdcall SK_IsInjected (void);
+
 #if 0
 #include <unordered_set>
 #include <string>
@@ -246,20 +248,26 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  else /*if (hCallingMod != SK_GetDLL ())*/ {
+  else if (hCallingMod != SK_GetDLL ()) {
+    bool         self_load    = (hCallingMod == SK_GetDLL ());
     std::wstring calling_name = SK_GetModuleName (hCallingMod);
-         if ( StrStrIA (lpFileName,             "d3d9.dll") ||
-              StrStrIW (calling_name.c_str (), L"d3d9.dll")  )
+
+         if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
+              ( StrStrIA (lpFileName,             "d3d9.dll") ||
+                StrStrIW (calling_name.c_str (), L"d3d9.dll") )  )
       SK_BootD3D9   ();
-    else if ( StrStrIA (lpFileName,             "dxgi.dll") ||
-              StrStrIW (calling_name.c_str (), L"dxgi.dll")  )
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
+              ( StrStrIA (lpFileName,             "dxgi.dll") ||
+                StrStrIW (calling_name.c_str (), L"dxgi.dll") ))
       SK_BootDXGI   ();
-    else if ( StrStrIA (lpFileName,             "opengl32.dll") ||
-              StrStrIW (calling_name.c_str (), L"opengl32.dll")  )
+    else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) &&
+              ( StrStrIA (lpFileName,             "OpenGL32.dll") ||
+                StrStrIW (calling_name.c_str (), L"OpenGL32.dll") ))
       SK_BootOpenGL ();
-    else if ( StrStrIA (lpFileName,             "vulkan-1.dll") ||
-              StrStrIW (calling_name.c_str (), L"vulkan-1.dll")  )
+    else if (   StrStrIA (lpFileName,             "vulkan-1.dll") ||
+                StrStrIW (calling_name.c_str (), L"vulkan-1.dll")  )
       SK_BootVulkan ();
+
 
     if (StrStrIA (lpFileName, "CSteamworks.dll")) {
       extern void SK_HookCSteamworks (void);
@@ -307,16 +315,21 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  else /*if (hCallingMod != SK_GetDLL ())*/ {
+  else {
+    bool         self_load    = (hCallingMod == SK_GetDLL ());
     std::wstring calling_name = SK_GetModuleName (hCallingMod);
-         if ( StrStrIW (lpFileName,            L"d3d9.dll") ||
-              StrStrIW (calling_name.c_str (), L"d3d9.dll")  )
+
+         if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
+              ( StrStrIW (lpFileName,            L"d3d9.dll") ||
+                StrStrIW (calling_name.c_str (), L"d3d9.dll") )  )
       SK_BootD3D9   ();
-    else if ( StrStrIW (lpFileName,            L"dxgi.dll") ||
-              StrStrIW (calling_name.c_str (), L"dxgi.dll")  )
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
+              ( StrStrIW (lpFileName,            L"dxgi.dll") ||
+                StrStrIW (calling_name.c_str (), L"dxgi.dll") ))
       SK_BootDXGI   ();
-    else if ( StrStrIW (lpFileName,            L"opengl32.dll") ||
-              StrStrIW (calling_name.c_str (), L"opengl32.dll")  )
+    else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) &&
+              ( StrStrIW (lpFileName,            L"OpenGL32.dll") ||
+                StrStrIW (calling_name.c_str (), L"OpenGL32.dll") ))
       SK_BootOpenGL ();
     else if ( StrStrIW (lpFileName,            L"vulkan-1.dll") ||
               StrStrIW (calling_name.c_str (), L"vulkan-1.dll")  )
@@ -380,7 +393,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
     return FALSE;
 #endif
 
-  bool bRet = FreeLibrary_Original (hLibModule);
+  BOOL bRet = FreeLibrary_Original (hLibModule);
 
   if (bRet && GetModuleHandle (free_name.c_str ()) == nullptr) {
     dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls'",
@@ -765,25 +778,25 @@ EnumLoadedModules (void)
                                   (BOOL *)&config.compatibility.ignore_raptr );
         }
 
-        else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (! (SK_GetDLLRole () & DLL_ROLE::OpenGL))) {
+        else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
           SK_BootOpenGL ();
 
           loaded_gl = true;
         }
 
-        else if ( StrStrIW (wszModName, L"\\vulkan-1.dll") && (! (SK_GetDLLRole () & DLL_ROLE::Vulkan))) {
+        else if ( StrStrIW (wszModName, L"\\vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
           SK_BootVulkan ();
 
           loaded_vulkan = true;
         }
 
-        else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) {
+        else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
           SK_BootDXGI ();
 
           loaded_dxgi = true;
         }
 
-        else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (! (SK_GetDLLRole () & DLL_ROLE::D3D9))) {
+        else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
           SK_BootD3D9 ();
 
           loaded_d3d9 = true;
@@ -832,19 +845,19 @@ EnumLoadedModules (void)
                                &imports_d3d9,
                                  &imports_dxgi );
 
-  if ( (! loaded_gl) && imports_gl && (! (SK_GetDLLRole () & DLL_ROLE::OpenGL))) {
+  if ( (! loaded_gl) && imports_gl && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
     SK_BootOpenGL ();
   }
 
-  if ( (! loaded_vulkan) && imports_vulkan && (! (SK_GetDLLRole () & DLL_ROLE::Vulkan))) {
+  if ( (! loaded_vulkan) && imports_vulkan && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
     SK_BootVulkan ();
   }
 
-  if ( (! loaded_dxgi) && imports_dxgi && (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) {
+  if ( (! loaded_dxgi) && imports_dxgi && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
     SK_BootDXGI ();
   }
 
-  if ( (! loaded_d3d9) && imports_d3d9 && (! (SK_GetDLLRole () & DLL_ROLE::D3D9))) {
+  if ( (! loaded_d3d9) && imports_d3d9 && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
     SK_BootD3D9 ();
   }
 }

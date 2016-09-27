@@ -1218,9 +1218,11 @@ SK_TestSteamImports (HMODULE hMod)
       if (GetModuleHandle (L"CSteamworks.dll")) {
         SK_HookCSteamworks ();
         steam_imported = true;
-      } else if ( LoadLibrary (L"steam_api.dll")   ||
-                  LoadLibrary (L"steam_api64.dll") ||
-                  GetModuleHandle (L"SteamNative.dll") ) {
+      }
+
+      if( LoadLibrary (L"steam_api.dll")   ||
+          LoadLibrary (L"steam_api64.dll") ||
+          GetModuleHandle (L"SteamNative.dll") ) {
         SK_HookSteamAPI ();
         steam_imported = true;
       }

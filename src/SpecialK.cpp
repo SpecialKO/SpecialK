@@ -189,6 +189,53 @@ SK_EstablishDllRole (HMODULE hModule)
 volatile ULONG attached = FALSE;
 volatile ULONG refs     = 0;
 
+#include <Winver.h>
+//#pragma comment (lib, "Mincore_Downlevel.lib")
+#pragma comment (lib, "version.lib")
+
+bool
+SK_IsDLLSpecialK (const wchar_t* wszName)
+{
+  UINT     cbTranslatedBytes = 0,
+           cbProductBytes    = 0;
+
+  uint8_t  cbData      [16384];
+  wchar_t  wszPropName [50];
+
+  wchar_t* wszProduct; // Will point somewhere in cbData
+
+  struct LANGANDCODEPAGE {
+    WORD wLanguage;
+    WORD wCodePage;
+  } *lpTranslate;
+
+  if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
+    return false;
+
+  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
+                           wszName,
+                             0x00,
+                               16384,
+                                 cbData );
+
+  VerQueryValue ( cbData,
+                    TEXT ("\\VarFileInfo\\Translation"),
+                      (LPVOID *)&lpTranslate,
+                                &cbTranslatedBytes );
+
+  swprintf ( wszPropName,
+               L"\\StringFileInfo\\%04x%04x\\ProductName",
+                 lpTranslate [0].wLanguage,
+                   lpTranslate [0].wCodePage );
+
+  VerQueryValue ( cbData,
+                    wszPropName,
+                      (LPVOID *)&wszProduct,
+                                &cbProductBytes );
+
+  return (! lstrcmpiW (wszProduct, L"Special K"));
+}
+
 BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
@@ -198,18 +245,33 @@ SK_Attach (DLL_ROLE role)
     switch (role)
     {
     case DLL_ROLE::DXGI:
-      InterlockedCompareExchange (&attached, SK::DXGI::Startup (), FALSE);
-      return attached;
+      // If this is the global injector and there is a wrapper version of Special K
+      //  in the DLL search path, then bail-out!
+      if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
+        return FALSE;
+
+      InterlockedCompareExchange    (&attached, SK::DXGI::Startup (), FALSE);
+      return InterlockedExchangeAdd (&attached, 0);
       break;
 
     case DLL_ROLE::D3D9:
-      InterlockedCompareExchange (&attached, SK::D3D9::Startup (), FALSE);
-      return attached;
+      // If this is the global injector and there is a wrapper version of Special K
+      //  in the DLL search path, then bail-out!
+      if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
+        return FALSE;
+
+      InterlockedCompareExchange    (&attached, SK::D3D9::Startup (), FALSE);
+      return InterlockedExchangeAdd (&attached, 0);
       break;
 
     case DLL_ROLE::OpenGL:
-      InterlockedCompareExchange (&attached, SK::OpenGL::Startup (), FALSE);
-      return attached;
+      // If this is the global injector and there is a wrapper version of Special K
+      //  in the DLL search path, then bail-out!
+      if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
+        return FALSE;
+
+      InterlockedCompareExchange    (&attached, SK::OpenGL::Startup (), FALSE);
+      return InterlockedExchangeAdd (&attached, 0);
       break;
 
     case DLL_ROLE::Vulkan:
@@ -217,7 +279,7 @@ SK_Attach (DLL_ROLE role)
     }
   }
 
-  return false;
+  return FALSE;
 }
 
 BOOL
@@ -260,23 +322,6 @@ SK_Detach (DLL_ROLE role)
   return false;
 }
 
-//#define IGNORE_THREAD_ATTACH
-
-#if 0
-DWORD
-WINAPI
-StartDLL (LPVOID user)
-{
-  if (! SK_Attach (SK_GetDLLRole ())) {
-    FreeLibraryAndExitThread (hModSelf, 0x00);
-  }
-
-  CloseHandle (GetCurrentThread ());
-
-  return 0;
-}
-#endif
-
 BOOL
 APIENTRY
 DllMain ( HMODULE hModule,
@@ -311,13 +356,13 @@ DllMain ( HMODULE hModule,
              *(pwszShortName - 1) != L'\\')
         --pwszShortName;
 
-      bool ret = SK_Attach (SK_GetDLLRole ());
+      BOOL ret = SK_Attach (SK_GetDLLRole ());
 
       if (ret) {
         __SK_TLS_INDEX = TlsAlloc ();
 
         if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES) {
-          ret = false;
+          ret = FALSE;
 
           MessageBox ( NULL,
                          L"Out of TLS Indexes",
@@ -329,10 +374,9 @@ DllMain ( HMODULE hModule,
       return ret;
     } break;
 
-#ifndef IGNORE_THREAD_ATTACH
     case DLL_THREAD_ATTACH:
     {
-      if (InterlockedCompareExchange (&attached, FALSE, FALSE)) {
+      if (InterlockedExchangeAdd (&attached, 0)) {
         _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
 
         LPVOID lpvData = (LPVOID) LocalAlloc (LPTR, sizeof SK_TLS);
@@ -345,7 +389,7 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_DETACH:
     {
-      if (InterlockedCompareExchange (&attached, FALSE, FALSE)) {
+      if (InterlockedExchangeAdd (&attached, 0)) {
         LPVOID lpvData = (LPVOID) TlsGetValue (__SK_TLS_INDEX);
 
         if (lpvData != nullptr) {
@@ -356,22 +400,21 @@ DllMain ( HMODULE hModule,
         _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
       }
     } break;
-#endif
 
     case DLL_PROCESS_DETACH:
     {
-      bool ret = false;
+      BOOL ret = FALSE;
 
-      if (InterlockedCompareExchange (&attached, FALSE, FALSE))
+      if (InterlockedExchangeAdd (&attached, 0))
       {
-        ret = SK_Detach (SK_GetDLLRole ());
-
-        TlsFree   (__SK_TLS_INDEX);
-        _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
+        ret =
+          SK_Detach (SK_GetDLLRole ());
+        TlsFree     (__SK_TLS_INDEX);
+        _CRT_INIT   ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
       } else {
-        // Sanity FAILURE: Attempt to detach something that was not properly attached?!
+        //Sanity FAILURE: Attempt to detach something that was not properly attached?!
         dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
-        return false;
+        return FALSE;
       }
 
       return ret;

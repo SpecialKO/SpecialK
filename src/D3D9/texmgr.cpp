@@ -965,8 +965,8 @@ public:
     return (! results_.empty ());
   }
 
-  int queueLength (void) {
-    int num = 0;
+  size_t queueLength (void) {
+    size_t num = 0;
 
     EnterCriticalSection (&cs_jobs);
     {
@@ -1240,7 +1240,7 @@ InjectTexture (sk_tex_load_s* load)
       load->pSrcData = new uint8_t [size];
 
       if (load->pSrcData != nullptr) {
-        ReadFile (hTexFile, load->pSrcData, size, &read, nullptr);
+        ReadFile (hTexFile, load->pSrcData, (DWORD)size, &read, nullptr);
 
         load->SrcDataSize = read;
 
@@ -1327,10 +1327,10 @@ SK_D3D9_LoadQueuedTextures (void)
     if (streaming > 1)
       texmgr_stats += 's';
 
-    int queue_len = resample_pool->queueLength ();
+    size_t queue_len = resample_pool->queueLength ();
 
     if (queue_len) {
-      sprintf (szFormatted, " (%lu queued)", queue_len);
+      sprintf (szFormatted, " (%zu queued)", queue_len);
       texmgr_stats += szFormatted;
     }
 
@@ -1352,7 +1352,7 @@ SK_D3D9_LoadQueuedTextures (void)
     texmgr_stats += szFormatted;
 
     if (textures_to_stream.size ()) {
-      sprintf (szFormatted, " (%lu outstanding)", textures_to_stream.size ());
+      sprintf (szFormatted, " (%zu outstanding)", textures_to_stream.size ());
       texmgr_stats += szFormatted;
     }
 
@@ -1419,8 +1419,8 @@ SK_D3D9_LoadQueuedTextures (void)
       sk::d3d9::tex_mgr.getTexture (load->checksum);
 
     if (pTex != nullptr) {
-      pTex->load_time = 1000.0f * (double)(load->end.QuadPart - load->start.QuadPart) /
-                                      (double)load->freq.QuadPart;
+      pTex->load_time = 1000.0f * (float)(load->end.QuadPart - load->start.QuadPart) /
+                                      (float)load->freq.QuadPart;
     }
 
     ISKTextureD3D9* pSKTex =
@@ -1673,7 +1673,8 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
                                  load_op->type == sk_tex_load_s::Immediate ) ) {
       load_op->SrcDataSize =
         injectable_textures.count (checksum) == 0 ?
-          0 : injectable_textures [checksum].size;
+          0UL :
+          (UINT)injectable_textures [checksum].size;
 
       load_op->pDest = *ppTexture;
       EnterCriticalSection        (&cs_tex_stream);
@@ -1796,7 +1797,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
       pTex->d3d9_tex->AddRef ();
       pTex->refs++;
 
-      pTex->load_time = 1000.0f * (double)(end.QuadPart - start.QuadPart) / (double)freq.QuadPart;
+      pTex->load_time = 1000.0f * (float)(end.QuadPart - start.QuadPart) / (float)freq.QuadPart;
 
       sk::d3d9::tex_mgr.addTexture (checksum, pTex, SrcDataSize);
     }
@@ -2635,7 +2636,7 @@ sk::d3d9::TextureManager::updateOSD (void)
   osd_stats = "";
 
   char szFormatted [64];
-  sprintf ( szFormatted, "%6lu Total Textures : %8.2f MiB",
+  sprintf ( szFormatted, "%6zu Total Textures : %8.2f MiB",
               numTextures () + numInjectedTextures (),
                 cache_total );
   osd_stats += szFormatted;
@@ -2652,7 +2653,7 @@ sk::d3d9::TextureManager::updateOSD (void)
 
   osd_stats += szFormatted;
 
-  sprintf ( szFormatted, "%6lu  Base Textures : %8.2f MiB    %s\n",
+  sprintf ( szFormatted, "%6zu  Base Textures : %8.2f MiB    %s\n",
               numTextures (),
                 cache_basic,
                   __remap_textures ? "" : "<----" );
@@ -2744,7 +2745,7 @@ ResampleTexture (sk_tex_load_s* load)
   QueryPerformanceFrequency        (&load->freq);
   QueryPerformanceCounter_Original (&load->start);
 
-  D3DXIMAGE_INFO img_info;
+  D3DXIMAGE_INFO img_info = { 0 };
 
   D3DXGetImageInfoFromFileInMemory (
     load->pSrcData,
