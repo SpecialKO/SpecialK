@@ -61,6 +61,7 @@ std::queue <DWORD>
 void
                SK_ResumeThreads          (std::queue <DWORD> threads);
 
+bool __stdcall SK_IsDLLSpecialK        (const wchar_t* wszName);
 void __stdcall SK_SelfDestruct         (void);
 
 
@@ -71,6 +72,17 @@ struct sk_import_test_s {
 
 void __stdcall SK_TestImports          (HMODULE hMod, sk_import_test_s* pTests, int nCount);
 void           SK_TestRenderImports    (HMODULE hMod, bool* gl, bool* vulkan, bool* d3d9, bool* dxgi);
+
+
+const wchar_t*
+SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr);
+
+const wchar_t*
+SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr);
+
+int
+SK_Path_wcsicmp (const wchar_t* wszStr1, const wchar_t* wszStr2);
+
 
 void*
 __stdcall

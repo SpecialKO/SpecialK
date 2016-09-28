@@ -183,9 +183,9 @@ SK_LoadRealGL (void)
 {
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
 
-  extern bool injected;
+  extern bool __stdcall SK_IsInjected (void);
 
-  if (! injected) {
+  if (! SK_IsInjected ()) {
 #ifdef _WIN64
     GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #else

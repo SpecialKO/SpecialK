@@ -1978,8 +1978,12 @@ __declspec (noinline)
     if (SK_DXGI_preferred_adapter == -1)
       return;
 
-    if (EnumAdapters_Original == nullptr)
+    if (EnumAdapters_Original == nullptr) {
       WaitForInitDXGI ();
+
+      if (EnumAdapters_Original == nullptr)
+        return;
+    }
 
     IDXGIAdapter* pGameAdapter     = (*ppAdapter);
     IDXGIAdapter* pOverrideAdapter = nullptr;
@@ -2136,7 +2140,7 @@ __declspec (noinline)
     }
 
     if (SK_GetHostApp () == L"Fallout4.exe" && SK_GetCallerName () == L"Fallout4.exe") {
-      dll_log.Log ( L"[   DXGI   ] Dedicated Video: %llu, Dedicated System: %llu, Shared System: %llu",
+      dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu, Dedicated System: %zu, Shared System: %zu",
                       pDesc->DedicatedVideoMemory,
                         pDesc->DedicatedSystemMemory,
                           pDesc->SharedSystemMemory );

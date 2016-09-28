@@ -1226,7 +1226,7 @@ SK_D3D11_PopulateResourceList (void)
          INVALID_FILE_ATTRIBUTES ) {
     WIN32_FIND_DATA fd;
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
-    int             files  = 0;
+    unsigned int    files  = 0UL;
     LARGE_INTEGER   liSize = { 0 };
 
     LARGE_INTEGER   liCompressed   = { 0 };

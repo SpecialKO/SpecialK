@@ -370,7 +370,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
 
   std::wstring free_name = SK_GetModuleName (hLibModule);
 
-  if (! lstrcmpiW (free_name.c_str (), L"dbghelp.dll"))
+  if (! SK_Path_wcsicmp (free_name.c_str (), L"dbghelp.dll"))
     return false;
 
 #if 0
@@ -1011,22 +1011,22 @@ SK_ValidateGlobalRTSSProfile (void)
     return TRUE;
 
   int               nButtonPressed = 0;
-  TASKDIALOGCONFIG  config         = {0};
+  TASKDIALOGCONFIG  task_config    = {0};
 
   int idx = 0;
 
-  config.cbSize             = sizeof (config);
-  config.hInstance          = GetModuleHandle (nullptr);
-  config.hwndParent         = GetForegroundWindow ();
-  config.pszWindowTitle     = L"Special K Compatibility Layer";
-  config.dwCommonButtons    = TDCBF_OK_BUTTON;
-  config.pButtons           = nullptr;
-  config.cButtons           = 0;
-  config.dwFlags            = TDF_ENABLE_HYPERLINKS;
-  config.pfCallback         = TaskDialogCallback;
-  config.lpCallbackData     = 0;
+  task_config.cbSize             = sizeof (task_config);
+  task_config.hInstance          = GetModuleHandle (nullptr);
+  task_config.hwndParent         = GetForegroundWindow ();
+  task_config.pszWindowTitle     = L"Special K Compatibility Layer";
+  task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
+  task_config.pButtons           = nullptr;
+  task_config.cButtons           = 0;
+  task_config.dwFlags            = TDF_ENABLE_HYPERLINKS;
+  task_config.pfCallback         = TaskDialogCallback;
+  task_config.lpCallbackData     = 0;
 
-  config.pszMainInstruction = L"RivaTuner Statistics Server Incompatibility";
+  task_config.pszMainInstruction = L"RivaTuner Statistics Server Incompatibility";
 
   wchar_t wszFooter [1024];
 
@@ -1038,31 +1038,31 @@ SK_ValidateGlobalRTSSProfile (void)
   // Delay triggers are invalid, but we can do nothing about it due to
   //   privilige issues.
   if (! SK_IsAdmin ()) {
-    config.pszMainIcon        = TD_WARNING_ICON;
-    config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
-                                L"compatibility issues.";
+    task_config.pszMainIcon        = TD_WARNING_ICON;
+    task_config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
+                                     L"compatibility issues.";
 
-    config.pszFooterIcon      = TD_SHIELD_ICON;
-    config.pszFooter          = L"This can be fixed by starting the game as Admin once.";
+    task_config.pszFooterIcon      = TD_SHIELD_ICON;
+    task_config.pszFooter          = L"This can be fixed by starting the game as Admin once.";
 
-    config.pszVerificationText = L"Check here if you do not care (risky).";
+    task_config.pszVerificationText = L"Check here if you do not care (risky).";
 
     BOOL verified;
 
-    TaskDialogIndirect (&config, nullptr, nullptr, &verified);
+    TaskDialogIndirect (&task_config, nullptr, nullptr, &verified);
 
     if (verified)
-      ::config.system.ignore_rtss_delay = true;
+      config.system.ignore_rtss_delay = true;
     else
       ExitProcess (0);
   } else {
-    config.pszMainIcon        = TD_INFORMATION_ICON;
+    task_config.pszMainIcon        = TD_INFORMATION_ICON;
 
-    config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
-                                L"compatibility issues.";
+    task_config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
+                                     L"compatibility issues.";
 
-    config.dwCommonButtons    = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
-    config.nDefaultButton     = IDNO;
+    task_config.dwCommonButtons    = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
+    task_config.nDefaultButton     = IDNO;
 
     wsprintf ( wszFooter,
 
@@ -1080,12 +1080,12 @@ SK_ValidateGlobalRTSSProfile (void)
                     rtss_global.get_section (L"Hooking").get_value (L"InjectionDelay").c_str (),
                       rtss_global.get_section (L"Hooking").get_value (L"InjectionDelayTriggers").c_str () );
 
-    config.pszExpandedInformation = wszFooter;
-    config.pszExpandedControlText = L"Apply Proposed Config Changes?";
+    task_config.pszExpandedInformation = wszFooter;
+    task_config.pszExpandedControlText = L"Apply Proposed Config Changes?";
 
     int nButton;
 
-    TaskDialogIndirect (&config, &nButton, nullptr, nullptr);
+    TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr);
 
     if (nButton == IDYES) {
       // Delay triggers are invalid, and we are going to fix them...
@@ -1127,24 +1127,24 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   bool timer = true;
 
   int               nButtonPressed = 0;
-  TASKDIALOGCONFIG  config         = {0};
+  TASKDIALOGCONFIG  task_config    = {0};
 
   int idx = 0;
 
   HWND hWndForeground = GetForegroundWindow ();
 
-  config.cbSize             = sizeof (config);
-  config.hInstance          = GetModuleHandle (nullptr);
-  config.hwndParent         = hWndForeground;
-  config.pszWindowTitle     = L"Special K Compatibility Layer";
-  config.dwCommonButtons    = TDCBF_OK_BUTTON;
-  config.pButtons           = nullptr;
-  config.cButtons           = 0;
-  config.dwFlags            = 0x00;
-  config.pfCallback         = TaskDialogCallback;
-  config.lpCallbackData     = 0;
+  task_config.cbSize             = sizeof (task_config);
+  task_config.hInstance          = GetModuleHandle (nullptr);
+  task_config.hwndParent         = hWndForeground;
+  task_config.pszWindowTitle     = L"Special K Compatibility Layer";
+  task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
+  task_config.pButtons           = nullptr;
+  task_config.cButtons           = 0;
+  task_config.dwFlags            = 0x00;
+  task_config.pfCallback         = TaskDialogCallback;
+  task_config.lpCallbackData     = 0;
 
-  config.pszMainInstruction = wszMainInstruction;
+  task_config.pszMainInstruction = wszMainInstruction;
 
   DWORD dwProcId;
   DWORD dwThreadId =
@@ -1153,24 +1153,28 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   if (dwProcId == GetCurrentProcessId ()) {
     //ShowWindow       (hWndForeground,       SW_HIDE);
   } else {
-    config.hwndParent = GetDesktopWindow ();
+    task_config.hwndParent = GetDesktopWindow ();
   }
 
-  config.pszMainIcon        = wszMainIcon;
-  config.pszContent         = wszContent;
+  task_config.pszMainIcon        = wszMainIcon;
+  task_config.pszContent         = wszContent;
 
-  config.pszFooterIcon      = wszFooterIcon;
-  config.pszFooter          = wszFooter;
+  task_config.pszFooterIcon      = wszFooterIcon;
+  task_config.pszFooter          = wszFooter;
 
-  config.pszVerificationText = wszVerifyText;
+  task_config.pszVerificationText = wszVerifyText;
 
   if (verify != nullptr && *verify)
-    config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
+    task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
   if (timer)
-    config.dwFlags |= TDF_CALLBACK_TIMER;
+    task_config.dwFlags |= TDF_CALLBACK_TIMER;
 
-  HRESULT hr = TaskDialogIndirect (&config, &nButtonPressed, nullptr, verify);
+  HRESULT hr =
+    TaskDialogIndirect ( &task_config,
+                          &nButtonPressed,
+                            nullptr,
+                              verify );
 
   return hr;
 }

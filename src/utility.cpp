@@ -260,7 +260,7 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
   }
 
   do {
-    if (! lstrcmpiW (wszProcName, pe32.szExeFile)) {
+    if (! SK_Path_wcsicmp (wszProcName, pe32.szExeFile)) {
       CloseHandle (hProcSnap);
       return true;
     }
@@ -973,17 +973,23 @@ FindProcessByName (const wchar_t* wszName)
 std::wstring
 SK_GetRTSSInstallDir (void)
 {
-  PROCESSENTRY32 pe32 = FindProcessByName (L"RTSS.exe");
+  PROCESSENTRY32 pe32 =
+    FindProcessByName (L"RTSS.exe");
 
   wchar_t wszPath [MAX_PATH] = { '\0' };
 
   if (wcsstr (pe32.szExeFile, L"RTSS.exe")) {
-    HANDLE hProcess = OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION , FALSE, pe32.th32ProcessID);
+    HANDLE hProcess =
+      OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION , FALSE, pe32.th32ProcessID);
 
     DWORD len = MAX_PATH;
     QueryFullProcessImageName (hProcess, 0, wszPath, &len);
 
-    *(wcsstr (wszPath, L"RTSS.exe")) = L'\0';
+    wchar_t* wszRTSS =
+      wcsstr (wszPath, L"RTSS.exe");
+
+    if (wszRTSS != nullptr)
+      *wszRTSS = L'\0';
 
     CloseHandle (hProcess);
   }
@@ -1155,11 +1161,10 @@ SK_TestImports (HMODULE hMod, sk_import_test_s* pTests, int nCount)
     }
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER) {
-    if (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION) {
-      dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
-                    L"Walk Import Table." );
-    }
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+               EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
+    dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
+                  L"Walk Import Table." );
   }
 }
 
@@ -1230,10 +1235,137 @@ SK_TestSteamImports (HMODULE hMod)
   }
 }
 
+int
+SK_Path_wcsicmp (const wchar_t* wszStr1, const wchar_t* wszStr2)
+{
+  int ret =
+    CompareString ( LOCALE_INVARIANT,
+                      NORM_IGNORECASE | NORM_IGNOREWIDTH |
+                      NORM_IGNORENONSPACE,
+                        wszStr1, lstrlenW (wszStr1),
+                          wszStr2, lstrlenW (wszStr2) );
+
+  // To make this a drop-in replacement for wcsicmp, subtract
+  //   2 from non-zero return values
+  return (ret != 0) ?
+    (ret - 2) : 0;
+}
+
+const wchar_t*
+SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr)
+{
+  int len = 0;
+
+  for (len = 0; len < MAX_PATH; ++len) {
+    if (wszStr [len] == L'\0')
+      break;
+  }
+
+  const wchar_t* wszSearch = &wszStr [len];
+
+  while (wszSearch >= wszStr) {
+    if (*wszSearch == wchr)
+      break;
+
+    --wszSearch;
+  }
+
+  return (wszSearch < wszStr) ?
+           nullptr : wszSearch;
+}
+
+const wchar_t*
+SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr)
+{
+#if 0
+  int            len     =
+    min (lstrlenW (wszSubStr), MAX_PATH);
+
+  const wchar_t* it       = wszStr;
+  const wchar_t* wszScan  = it;
+  const wchar_t* wszBegin = it;
+
+  int            idx     = 0;
+
+  while (it < (wszStr + MAX_PATH)) {
+    bool match = (*wszScan == wszSubStr [idx]);
+
+    if (match) {
+      if (++idx == len)
+        return wszBegin;
+
+      ++it;
+    }
+
+    else {
+      if (it > (wszStr + MAX_PATH - len))
+        break;
+
+      it  = ++wszBegin;
+      idx = 0;
+    }
+  }
+
+  return (it <= (wszStr + MAX_PATH - len)) ?
+           wszBegin : nullptr;
+#else
+  return wcsstr (wszStr, wszSubStr);
+#endif
+}
 
 
-static LPVOID __SK_base_img_addr = nullptr;
-static LPVOID __SK_end_img_addr  = nullptr;
+#include <Winver.h>
+//#pragma comment (lib, "Mincore_Downlevel.lib") // Windows 8     (Delay-Load)
+#pragma comment (lib, "version.lib")             // Windows 2000+ (Normal Import)
+
+bool
+__stdcall
+SK_IsDLLSpecialK (const wchar_t* wszName)
+{
+  UINT     cbTranslatedBytes = 0,
+           cbProductBytes    = 0;
+
+  uint8_t  cbData      [4096];
+  wchar_t  wszPropName [50];
+
+  wchar_t* wszProduct; // Will point somewhere in cbData
+
+  struct LANGANDCODEPAGE {
+    WORD wLanguage;
+    WORD wCodePage;
+  } *lpTranslate;
+
+  if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
+    return false;
+
+  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
+                           wszName,
+                             0x00,
+                               4096,
+                                 cbData );
+
+  VerQueryValue ( cbData,
+                    TEXT ("\\VarFileInfo\\Translation"),
+                      (LPVOID *)&lpTranslate,
+                                &cbTranslatedBytes );
+
+  wsprintfW ( wszPropName,
+                L"\\StringFileInfo\\%04x%04x\\ProductName",
+                  lpTranslate [0].wLanguage,
+                    lpTranslate [0].wCodePage );
+
+  VerQueryValue ( cbData,
+                    wszPropName,
+                      (LPVOID *)&wszProduct,
+                                &cbProductBytes );
+
+  return (! SK_Path_wcsicmp (wszProduct, L"Special K"));
+}
+
+
+
+LPVOID __SK_base_img_addr = nullptr;
+LPVOID __SK_end_img_addr  = nullptr;
 
 void*
 __stdcall

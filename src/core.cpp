@@ -970,7 +970,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   const wchar_t* dll_name = wszBackendDLL;
 
-  if (! lstrcmpiW (wszProxyName, wszModuleName)) {
+  if (! SK_Path_wcsicmp (wszProxyName, wszModuleName)) {
     dll_name = wszBackendDLL;
   } else {
     dll_name = wszProxyName;
@@ -1845,11 +1845,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   SK_PathRemoveExtension (wszBlacklistFile);
 
-  if ( (! lstrcmpiW (SK_GetHostApp (), L"steam.exe"))              ||
-       (! lstrcmpiW (SK_GetHostApp (), L"GameOverlayUI.exe"))      ||
-       (! lstrcmpiW (SK_GetHostApp (), L"streaming_client.exe"))   ||
-       (! lstrcmpiW (SK_GetHostApp (), L"steamerrorreporter.exe")) ||
-       (! lstrcmpiW (SK_GetHostApp (), L"notepad.exe")) )
+  if ( (! SK_Path_wcsicmp (SK_GetHostApp (), L"steam.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp (), L"GameOverlayUI.exe"))      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp (), L"streaming_client.exe"))   ||
+       (! SK_Path_wcsicmp (SK_GetHostApp (), L"steamerrorreporter.exe")) ||
+       (! SK_Path_wcsicmp (SK_GetHostApp (), L"notepad.exe")) )
     return false;
 
   // Only the injector version can be bypassed, the wrapper version
@@ -1935,14 +1935,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init_.backend  = backend;
   init_.callback = callback;
 
-  hInitThread =
-    (HANDLE)
-      CreateThread ( nullptr,
-                       0,
-                         DllThread,
-                           &init_,
-                             0x00,
-                               nullptr );
+  InterlockedExchangePointer (
+    (void **)&hInitThread,
+      (HANDLE)
+        CreateThread ( nullptr,
+                         0,
+                           DllThread,
+                             &init_,
+                               0x00,
+                                 nullptr )
+  );
 
   return true;
 }

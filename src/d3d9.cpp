@@ -298,11 +298,11 @@ SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
                         LPVOID *ppOriginal );
 
 #define D3D9_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {     \
-  void** vftable = *(void***)*(_Base);                                        \
+  void** _vftable = *(void***)*(_Base);                                       \
                                                                               \
   if ((_Original) == nullptr) {                                               \
     SK_CreateVFTableHook2 ( L##_Name,                                         \
-                              vftable,                                        \
+                              _vftable,                                       \
                                 (_Index),                                     \
                                   (_Override),                                \
                                     (LPVOID *)&(_Original));                  \
@@ -437,7 +437,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
     if ( config.render.framerate.buffer_count != -1 &&
          config.render.framerate.buffer_count != 
            pPresentationParameters->BackBufferCount ) {
-      dll_log.Log ( L"[   D3D9   ]  >> Backbuffer Override: (Requested=%lu, Override=%lu)",
+      dll_log.Log ( L"[   D3D9   ]  >> Backbuffer Override: (Requested=%lu, Override=%li)",
                       pPresentationParameters->BackBufferCount,
                         config.render.framerate.buffer_count );
       pPresentationParameters->BackBufferCount =
@@ -448,7 +448,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
          config.render.framerate.present_interval !=
             pPresentationParameters->PresentationInterval &&
          pPresentationParameters                  != nullptr ) {
-      dll_log.Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%lu)",
+      dll_log.Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%li)",
                       pPresentationParameters->PresentationInterval,
                         config.render.framerate.present_interval );
       pPresentationParameters->PresentationInterval =
@@ -2439,7 +2439,7 @@ HookD3D9 (LPVOID user)
       HRESULT hr =
         Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex);
 
-      HWND hwnd = 0;
+      hwnd = 0;
 
       if (SUCCEEDED (hr)) {
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
@@ -2450,7 +2450,6 @@ HookD3D9 (LPVOID user)
                                 800, 600, 0,
                                   nullptr, nullptr, 0x00 );
 
-        D3DPRESENT_PARAMETERS pparams;
         ZeroMemory (&pparams, sizeof (pparams));
 
         pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;

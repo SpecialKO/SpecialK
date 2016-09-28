@@ -34,7 +34,7 @@
 
 iSK_Logger steam_log;
 
-static volatile ULONG init = FALSE;
+static volatile ULONG __SK_Steam_init = FALSE;
 
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
@@ -158,7 +158,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   //     seemingly before initialization.
   //
   //  Take this opportunity to finish SteamAPI initialization for SpecialK.
-  if (! InterlockedExchangeAdd (&::init, 0)) {
+  if (! InterlockedExchangeAdd (&__SK_Steam_init, 0)) {
     SteamAPI_InitSafe_Detour ();
   }
 
@@ -847,7 +847,7 @@ public:
       return;
     }
 
-    if (lstrcmpiW (SK_GetHostApp (), L"Fallout4.exe"))
+    if (SK_Path_wcsicmp (SK_GetHostApp (), L"Fallout4.exe"))
       log_all_achievements ();
   }
 
@@ -1147,7 +1147,7 @@ SteamAPI_InitSafe_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&::init, TRUE, FALSE))
+      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE))
         return true;
 
       stats->RequestCurrentStats ();
@@ -1205,7 +1205,7 @@ SteamAPI_Init_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&::init, TRUE, FALSE))
+      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE))
         return true;
 
       stats->RequestCurrentStats ();
@@ -1276,7 +1276,7 @@ InitSafe_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&::init, TRUE, FALSE))
+      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE))
         return true;
 
       stats->RequestCurrentStats ();
@@ -1317,10 +1317,12 @@ CSteamworks_Delay_Init (LPVOID user)
 
   int tries = 0;
 
-  while ((! InterlockedExchangeAdd (&::init, 0)) && tries < 120) {
+  while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
+            tries < 120 )
+  {
     Sleep (config.steam.init_delay);
 
-    if (init)
+    if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
       break;
 
     if (InitSafe_Detour != nullptr)
@@ -1386,10 +1388,12 @@ SteamAPI_Delay_Init (LPVOID user)
 
   int tries = 0;
 
-  while ((! InterlockedExchangeAdd (&::init, 0)) && tries < 120) {
+  while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
+            tries < 120 )
+  {
     Sleep (config.steam.init_delay);
 
-    if (init)
+    if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
       break;
 
     if (SteamAPI_InitSafe_Detour != nullptr)

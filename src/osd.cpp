@@ -436,6 +436,8 @@ static bool isPlugin          = false;
 //        needs a proper formal design.
 std::wstring plugin_name = L"";
 
+// FIXME: For the love of @#$% do not pass std::wstring objects across
+//          DLL boundaries !!
 void
 __stdcall
 SK_SetPluginName (std::wstring name)

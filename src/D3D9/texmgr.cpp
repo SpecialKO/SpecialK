@@ -22,10 +22,10 @@
 std::wstring      d3dx9_ver = L"";
 HMODULE sk::d3d9::d3dx9_dll = 0;
 
-int  ___worker_threads   = 6;
-int  ___max_cache_in_mib = 4096;
-bool ___cache            = true;
-bool ___dump             = false;
+unsigned int  ___worker_threads   = 6;
+int           ___max_cache_in_mib = 4096;
+bool          ___cache            = true;
+bool          ___dump             = false;
 
 
 typedef HRESULT (STDMETHODCALLTYPE *StretchRect_pfn)
@@ -2421,8 +2421,8 @@ sk::d3d9::TextureManager::purge (void)
 {
   int      released           = 0;
   int      released_injected  = 0;
-  uint64_t reclaimed          = 0;
-  uint64_t reclaimed_injected = 0;
+  int64_t  reclaimed          = 0;
+  int64_t  reclaimed_injected = 0;
 
   tex_log.Log (L"[ Tex. Mgr ] -- TextureManager::purge (...) -- ");
 

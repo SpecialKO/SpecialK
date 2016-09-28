@@ -369,9 +369,10 @@ SK_SetPluginName (std::wstring name);
 #define SUS_VERSION_NUM L"0.3.5"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
 
-LPVOID __SK_base_img_addr = nullptr;
-LPVOID __SK_end_img_addr  = nullptr;
+static LPVOID __SK_base_img_addr = nullptr;
+static LPVOID __SK_end_img_addr  = nullptr;
 
+static
 void*
 SK_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
 {

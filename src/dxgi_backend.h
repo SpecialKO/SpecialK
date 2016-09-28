@@ -58,11 +58,11 @@
 }
 
 #define DXGI_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {     \
-  void** vftable = *(void***)*(_Base);                                        \
+  void** _vftable = *(void***)*(_Base);                                       \
                                                                               \
   if ((_Original) == nullptr) {                                               \
     SK_CreateVFTableHook2 ( L##_Name,                                         \
-                              vftable,                                        \
+                              _vftable,                                       \
                                 (_Index),                                     \
                                   (_Override),                                \
                                     (LPVOID *)&(_Original));                  \

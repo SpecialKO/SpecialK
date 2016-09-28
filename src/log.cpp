@@ -491,7 +491,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
     SK_GetConfigPath ();
 
   SK_CreateDirectories (
-    std::wstring (full_name + L"logs").c_str ()
+    std::wstring (full_name + L"logs\\").c_str ()
   );
 
   full_name += wszFileName;
