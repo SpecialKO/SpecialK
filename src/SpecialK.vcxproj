@@ -1118,6 +1118,9 @@
     <ClCompile Include="plugin_fo4.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="steam_api.cpp" />
+    <ClCompile Include="update\archive.cpp" />
+    <ClCompile Include="update\network.cpp" />
+    <ClCompile Include="update\version.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="vulkan.cpp" />
   </ItemGroup>

@@ -271,6 +271,44 @@ struct {
   int    timer_id = 0x68993;
 } last_mouse;
 
+DWORD
+WINAPI
+SK_RealizeForegroundWindow (HWND hWndForeground)
+{
+  static volatile ULONG nest_lvl = 0UL;
+
+  while (InterlockedExchangeAddAcquire (&nest_lvl, 0))
+    Sleep (50UL);
+
+  InterlockedIncrementAcquire (&nest_lvl);
+
+  // Aren't lambdas fun?! :)
+  _beginthreadex (
+    nullptr,
+      0,
+        [](LPVOID user)->
+
+        unsigned int
+        WINAPI
+        {
+          SetForegroundWindow ((HWND)user);
+          BringWindowToTop    ((HWND)user);
+
+          CloseHandle (GetCurrentThread ());
+
+          return 0;
+        },
+
+        (LPVOID)hWndForeground,
+      0x00,
+    nullptr
+  );
+
+  InterlockedDecrementRelease (&nest_lvl);
+
+  return 0UL;
+}
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -294,11 +332,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                   L"WM_DESTROY ---" );
     SK_SelfDestruct ();
   }
-
-  extern volatile ULONG SK_bypass_dialog_active;
-
-  if (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE))
-    return DefWindowProc (hWnd, uMsg, wParam, lParam);
 
   if (console_visible) {
     if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)

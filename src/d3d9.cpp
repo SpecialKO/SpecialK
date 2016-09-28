@@ -361,12 +361,14 @@ void
 WINAPI
 SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
+#if 0
   if (BehaviorFlags & D3DCREATE_SOFTWARE_VERTEXPROCESSING) {
     dll_log.Log (L"[CompatHack] D3D9 Fixup: "
                  L"Software Vertex Processing Replaced with Mixed-Mode.");
     BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
     BehaviorFlags |=  D3DCREATE_MIXED_VERTEXPROCESSING;
   }
+#endif
 }
 
 void
@@ -454,11 +456,6 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
       pPresentationParameters->PresentationInterval =
         config.render.framerate.present_interval;
     }
-
-    extern HWND hWndRender;
-
-    if (hWndRender == 0 || (! IsWindow (hWndRender)))
-      hWndRender = pPresentationParameters->hDeviceWindow;
   }
 }
 
@@ -500,13 +497,10 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
   extern HWND hWndRender;
 
   if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-    DWORD dwProc;
-
-    DWORD dwThreadId =
-      GetWindowThreadProcessId (GetForegroundWindow (), &dwProc);
-
-    if (dwProc == GetCurrentProcessId ())
-      hWndRender = GetForegroundWindow ();
+    // Only alter this HWND after the first frame is rendered, this
+    //   filters out software that creates swapchains for the sole purpose of
+    //     hooking the COM interface.
+    hWndRender = g_D3D9PresentParams.hDeviceWindow;
   }
 
   if (! config.osd.pump)
@@ -558,13 +552,10 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
   extern HWND hWndRender;
 
   if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-    DWORD dwProc;
-
-    DWORD dwThreadId =
-      GetWindowThreadProcessId (GetForegroundWindow (), &dwProc);
-
-    if (dwProc == GetCurrentProcessId ())
-      hWndRender = GetForegroundWindow ();
+    // Only alter this HWND after the first frame is rendered, this
+    //   filters out software that creates swapchains for the sole purpose of
+    //     hooking the COM interface.
+    hWndRender = g_D3D9PresentParams.hDeviceWindow;
   }
 
   if (! config.osd.pump)
@@ -764,10 +755,10 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
     extern HWND hWndRender;
 
     if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-      D3DPRESENT_PARAMETERS pparams;
-
-      if (SUCCEEDED (This->GetPresentParameters (&pparams)))
-        hWndRender = pparams.hDeviceWindow;
+      // Only alter this HWND after the first frame is rendered, this
+      //   filters out software that creates swapchains for the sole purpose of
+      //     hooking the COM interface.
+      hWndRender       = g_D3D9PresentParams.hDeviceWindow;
     }
 
     // We are manually pumping OSD updates, do not do them on buffer swaps.
@@ -1615,14 +1606,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
   if (config.render.d3d9.force_fullscreen)
     pparams->Windowed = FALSE;
 
-  extern HWND hWndRender;
-
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
-    if ((! IsWindow (hWndRender)) && pparams->hDeviceWindow != 0) {
-      hWndRender = pparams->hDeviceWindow;
-    }
-  }
-
   return pparams;
 }
 
@@ -2294,8 +2277,6 @@ HookD3D9 (LPVOID user)
         )
       {
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
-        extern HWND hWndRender;
-        hWndRender = 0;
 
         D3D9_INTERCEPT ( &pD3D9, 16,
                         "IDirect3D9::CreateDevice",
@@ -2469,9 +2450,6 @@ HookD3D9 (LPVOID user)
                       )
           )
         {
-          extern HWND hWndRender;
-          hWndRender = 0;
-
           D3D9_INTERCEPT ( &pD3D9Ex, 20,
                            "IDirect3D9Ex::CreateDeviceEx",
                             D3D9CreateDeviceEx_Override,
@@ -2492,9 +2470,6 @@ HookD3D9 (LPVOID user)
       }
 
       MH_ApplyQueued ();
-
-      extern HWND hWndRender;
-      hWndRender = 0;
 
       InterlockedExchange (&__d3d9_ready, TRUE);
 
@@ -2529,12 +2504,6 @@ unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user)
 {
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
-  {
-
-  }
-  CoUninitialize ();
-
   return 0;
 }
 

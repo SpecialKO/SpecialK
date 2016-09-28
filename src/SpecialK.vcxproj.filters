@@ -58,6 +58,9 @@
     <Filter Include="Header Files\Backends\Vulkan">
       <UniqueIdentifier>{9dab1f98-acb1-4149-9520-8225f69fc95a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Update">
+      <UniqueIdentifier>{e6ec08a7-8e65-4d10-90c4-450c13e4a46e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -334,6 +337,15 @@
     </ClCompile>
     <ClCompile Include="vulkan.cpp">
       <Filter>Source Files\Backends\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="update\version.cpp">
+      <Filter>Source Files\Update</Filter>
+    </ClCompile>
+    <ClCompile Include="update\archive.cpp">
+      <Filter>Source Files\Update</Filter>
+    </ClCompile>
+    <ClCompile Include="update\network.cpp">
+      <Filter>Source Files\Update</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

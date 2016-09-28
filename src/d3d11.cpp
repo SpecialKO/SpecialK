@@ -515,10 +515,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
              swap_chain_desc->OutputWindow != hWndRender )
           dll_log.Log (L"[  D3D 11  ] Game created a new window?!");
 
-        if (hWndRender == nullptr || (! IsWindow (hWndRender))) {
-          hWndRender       = swap_chain_desc->OutputWindow;
-          game_window.hWnd = hWndRender;
-        }
+        //if (hWndRender == nullptr || (! IsWindow (hWndRender))) {
+          //hWndRender       = swap_chain_desc->OutputWindow;
+          //game_window.hWnd = hWndRender;
+        //}
       }
     }
 

@@ -851,7 +851,7 @@ extern "C" {
             );
           }
 
-          if (game_window.hWnd == 0) {
+          if (hWndRender == 0 || (! IsWindow (hWndRender))) {
             hWndRender       = desc.OutputWindow;
             game_window.hWnd = hWndRender;
           }

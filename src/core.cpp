@@ -1178,7 +1178,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 }
 
 
-volatile ULONG SK_bypass_dialog_active = FALSE;
+volatile  LONG SK_bypass_dialog_active = FALSE;
 volatile  LONG init                    = FALSE; // Do not use static storage,
                                                 //   the C Runtime may not be
                                                 //     init yet.
@@ -1203,17 +1203,17 @@ WaitForInit (void)
 #endif
   }
 
-  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
-    dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
-                      GetCurrentThreadId () );
-    Sleep (150);
-  }
-
   while (InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr)) {
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
       InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
         150 ) )
       break;
+  }
+
+  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
+    dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
+                      GetCurrentThreadId () );
+    Sleep (150);
   }
 
   // First thread to reach this point wins ... a shiny new car and
@@ -1404,6 +1404,12 @@ DllThread_CRT (LPVOID user)
     &init_;
 
   SK_InitCore (params->backend, params->callback);
+
+  extern void
+  __stdcall
+  SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK");
+
+  SK_FetchVersionInfo ();
 
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
@@ -1834,6 +1840,35 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
   wszInOut [lstrlenW (wszInOut) - 3] = L'\0';
 }
 
+wchar_t SK_RootPath   [MAX_PATH];
+wchar_t SK_ConfigPath [MAX_PATH];
+
+const wchar_t*
+__stdcall
+SK_GetRootPath (void)
+{
+  return SK_RootPath;
+}
+
+//
+// To be used internally only, by the time any plug-in has
+//   been activated, Special K will have already established
+//     this path and loaded its config.
+//
+void
+__stdcall
+SK_SetConfigPath (const wchar_t* path)
+{
+  lstrcpyW (SK_ConfigPath, path);
+}
+
+const wchar_t*
+__stdcall
+SK_GetConfigPath (void)
+{
+  return SK_ConfigPath;
+}
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
@@ -1857,8 +1892,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //     DLL it is wrapping.
   if ( SK_IsInjected    ()         &&
        GetAsyncKeyState (VK_SHIFT) &&
-       GetAsyncKeyState (VK_CONTROL) )
+       GetAsyncKeyState (VK_CONTROL) ) {
     SK_BypassInject ();
+    return false;
+  }
 
   else {
     bool blacklist =
@@ -1891,17 +1928,20 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     ExpandEnvironmentStringsW (
       L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\",
-        wszConfigPath,
+        SK_RootPath,
           MAX_PATH
     );
 
-    lstrcatW (wszConfigPath, SK_GetHostApp ());
+    lstrcatW (wszConfigPath, SK_GetRootPath ());
+    lstrcatW (wszConfigPath, SK_GetHostApp  ());
   }
 
   else {
+    lstrcatW (SK_RootPath,   SK_GetHostPath ());
     lstrcatW (wszConfigPath, SK_GetHostPath ());
   }
 
+  lstrcatW (SK_RootPath,   L"\\");
   lstrcatW (wszConfigPath, L"\\");
 
   SK_CreateDirectories (wszConfigPath);
@@ -2172,13 +2212,9 @@ void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
-  extern volatile ULONG SK_bypass_dialog_active;
-  extern          HWND  SK_bypass_dialog_hwnd;
-
-  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
-    SetForegroundWindow (SK_bypass_dialog_hwnd);
-    Sleep (100);
-  }
+  // Throttle, but do not deadlock the render loop
+  if (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE))
+    Sleep (166);
 
   static int import_tries = 0;
 
@@ -2670,28 +2706,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
   return hr;
-}
-
-
-wchar_t SK_ConfigPath [MAX_PATH];
-
-//
-// To be used internally only, by the time any plug-in has
-//   been activated, Special K will have already established
-//     this path and loaded its config.
-//
-void
-__stdcall
-SK_SetConfigPath (const wchar_t* path)
-{
-  lstrcpyW (SK_ConfigPath, path);
-}
-
-const wchar_t*
-__stdcall
-SK_GetConfigPath (void)
-{
-  return SK_ConfigPath;
 }
 
 wchar_t host_app [ MAX_PATH + 2 ] = { L'\0' };

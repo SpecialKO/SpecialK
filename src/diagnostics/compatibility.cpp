@@ -24,6 +24,7 @@
 #define PSAPI_VERSION           1
 
 #include <Windows.h>
+#include <process.h>
 
 #include <psapi.h>
 #pragma comment (lib, "psapi.lib")
@@ -755,27 +756,8 @@ EnumLoadedModules (void)
         }
 
         else if ( StrStrIW (wszModName, L"ltc_help") && (! config.compatibility.ignore_raptr) ) {
-          HRESULT
-          __stdcall
-          SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
-                                  PCWSTR   wszMainIcon,
-                                  wchar_t* wszContent,
-                                  wchar_t* wszConfirmation,
-                                  wchar_t* wszFooter,
-                                  PCWSTR   wszFooterIcon,
-                                  wchar_t* wszVerifyText,
-                                  BOOL*    verify );
-
-          SK_TaskBoxWithConfirm ( L"AMD Gaming Evolved or Raptr is running",
-                                  TD_WARNING_ICON,
-                                  L"In some software you can expect weird things to happen, including"
-                                  L" the game mysteriously disappearing.\n\n"
-                                  L"If the game behaves strangely, you may need to turn the Raptr overlay off.",
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  L"Check here to ignore this warning in the future.",
-                                  (BOOL *)&config.compatibility.ignore_raptr );
+          extern unsigned int __stdcall SK_RaptrWarn_CRT (LPVOID user);
+          _beginthreadex ( nullptr, 0, SK_RaptrWarn_CRT, nullptr, 0x00, nullptr );
         }
 
         else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
@@ -866,8 +848,8 @@ EnumLoadedModules (void)
 #include <Commctrl.h>
 #include <comdef.h>
 
-extern volatile ULONG SK_bypass_dialog_active;
-                HWND  SK_bypass_dialog_hwnd;
+extern volatile LONG SK_bypass_dialog_active;
+                HWND SK_bypass_dialog_hwnd;
 
 HRESULT
 CALLBACK
@@ -880,13 +862,14 @@ TaskDialogCallback (
 )
 {
   if (uNotification == TDN_TIMER) {
-    if (GetForegroundWindow () != hWnd) {
-      SetFocus          (hWnd);
-    }
+    DWORD dwProcId;
+    DWORD dwThreadId =
+      GetWindowThreadProcessId (GetForegroundWindow (), &dwProcId);
 
-    SetActiveWindow     (hWnd);
-    SetForegroundWindow (hWnd);
-    BringWindowToTop    (hWnd);
+    if (dwProcId == GetCurrentProcessId ()) {
+      extern DWORD WINAPI SK_RealizeForegroundWindow (HWND);
+      SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
+    }
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED) {
@@ -894,23 +877,22 @@ TaskDialogCallback (
     return S_OK;
   }
 
+  if (uNotification == TDN_DIALOG_CONSTRUCTED) {
+    while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+      Sleep (10);
+
+    InterlockedIncrementAcquire (&SK_bypass_dialog_active);
+  }
+
   if (uNotification == TDN_CREATED) {
-    bool not_foreground = false;
-
-    if (GetForegroundWindow () != hWnd)
-      SetFocus (hWnd);
-
-    SetActiveWindow     (hWnd);
-    SetForegroundWindow (hWnd);
-    BringWindowToTop    (hWnd);
-
     SK_bypass_dialog_hwnd = hWnd;
 
-    InterlockedExchange (&SK_bypass_dialog_active, TRUE);
+    extern DWORD WINAPI SK_RealizeForegroundWindow (HWND);
+    SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
   }
 
   if (uNotification == TDN_DESTROYED) {
-    InterlockedExchange (&SK_bypass_dialog_active, FALSE);
+    InterlockedDecrementRelease (&SK_bypass_dialog_active);
   }
 
   return S_OK;
@@ -1030,11 +1012,6 @@ SK_ValidateGlobalRTSSProfile (void)
 
   wchar_t wszFooter [1024];
 
-
-  // Make the following dialog the ONLY thing the process is doing
-  //std::queue <DWORD> suspended_tids =
-    //SK_SuspendAllOtherThreads ();
-
   // Delay triggers are invalid, but we can do nothing about it due to
   //   privilige issues.
   if (! SK_IsAdmin ()) {
@@ -1095,20 +1072,22 @@ SK_ValidateGlobalRTSSProfile (void)
 
       rtss_global.write (wszRTSSHooks);
 
-      ShellExecute ( GetDesktopWindow (),
-                      L"OPEN",
-                        SK_GetHostApp (),
-                          NULL,
-                            NULL,
-                              SW_SHOWDEFAULT );
+      STARTUPINFO         sinfo;
+      PROCESS_INFORMATION pinfo;
+
+      sinfo.cb          = sizeof STARTUPINFO;
+      sinfo.wShowWindow = SW_SHOWDEFAULT;
+
+      CreateProcess ( L"Game", (LPWSTR)SK_GetHostApp (), nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr, nullptr, &sinfo, &pinfo);
+
+      WaitForSingleObject (pinfo.hProcess, INFINITE);
+      ResumeThread        (pinfo.hThread);
 
       ExitProcess (0);
     }
   }
 
   warned = TRUE;
-
-  //SK_ResumeThreads (suspended_tids);
 
   return TRUE;
 }
@@ -1146,15 +1125,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
 
   task_config.pszMainInstruction = wszMainInstruction;
 
-  DWORD dwProcId;
-  DWORD dwThreadId =
-      GetWindowThreadProcessId (hWndForeground, &dwProcId);
-
-  if (dwProcId == GetCurrentProcessId ()) {
-    //ShowWindow       (hWndForeground,       SW_HIDE);
-  } else {
-    task_config.hwndParent = GetDesktopWindow ();
-  }
+  task_config.hwndParent = GetDesktopWindow ();
 
   task_config.pszMainIcon        = wszMainIcon;
   task_config.pszContent         = wszContent;
@@ -1181,11 +1152,41 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
 
 unsigned int
 __stdcall
+SK_RaptrWarn_CRT (LPVOID user)
+{
+  HRESULT
+  __stdcall
+  SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
+                          PCWSTR   wszMainIcon,
+                          wchar_t* wszContent,
+                          wchar_t* wszConfirmation,
+                          wchar_t* wszFooter,
+                          PCWSTR   wszFooterIcon,
+                          wchar_t* wszVerifyText,
+                          BOOL*    verify );
+
+  SK_TaskBoxWithConfirm ( L"AMD Gaming Evolved or Raptr is running",
+                          TD_WARNING_ICON,
+                          L"In some software you can expect weird things to happen, including"
+                          L" the game mysteriously disappearing.\n\n"
+                          L"If the game behaves strangely, you may need to turn the Raptr overlay off.",
+                          nullptr,
+                          nullptr,
+                          nullptr,
+                          L"Check here to ignore this warning in the future.",
+                          (BOOL *)&config.compatibility.ignore_raptr );
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
+
+unsigned int
+__stdcall
 SK_Bypass_CRT (LPVOID user)
 {
-  //std::queue <DWORD> tids =
-    //SK_SuspendAllOtherThreads ();
-
   wchar_t wszBlacklist [MAX_PATH] = { L'\0' };
 
   lstrcatW (wszBlacklist, L"SpecialK.deny.");
@@ -1230,37 +1231,41 @@ SK_Bypass_CRT (LPVOID user)
     }
   }
 
-  ShellExecute ( GetDesktopWindow (),
-                   L"OPEN",
-                     SK_GetHostApp (),
-                       nullptr,
-                         nullptr,
-                           SW_SHOWNORMAL );
 
-  ExitProcess (0);
+  STARTUPINFO         sinfo = { 0 };
+  PROCESS_INFORMATION pinfo = { 0 };
 
-  InterlockedExchange (&SK_bypass_dialog_active, FALSE);
+  sinfo.cb          = sizeof STARTUPINFO;
+  sinfo.dwFlags     = STARTF_USESHOWWINDOW;
+  sinfo.wShowWindow = SW_SHOWDEFAULT;
+
+  CreateProcess (
+    nullptr,
+      (LPWSTR)SK_GetHostApp (),
+        nullptr, nullptr,
+          TRUE,
+            CREATE_SUSPENDED,
+              nullptr, nullptr,
+                &sinfo, &pinfo );
+
+  ResumeThread     (pinfo.hThread);
+  TerminateProcess (GetCurrentProcess (), 0x00);
 
   return 0;
 }
 
 #include <process.h>
 
-DWORD
-__stdcall
-SK_Bypass_THREAD (LPVOID user)
-{
-  _beginthreadex ( nullptr, 0, SK_Bypass_CRT, user, 0x00, nullptr );
-
-  return 0;
-}
-
 bool
 __stdcall
 SK_BypassInject (void)
 {
-  HANDLE hTaskThread =
-    CreateThread ( nullptr, 0, SK_Bypass_THREAD, GetCurrentThread (), 0x00, nullptr );
+  // Delay the initialization of the CRT until this thread starts,
+  //   this helps with odd behavior in DllMain while the loader-lock is
+  //     in contention.
+  _CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_THREAD_ATTACH,  nullptr);
+
+  _beginthreadex ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
 
   return TRUE;
 }
