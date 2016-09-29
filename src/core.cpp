@@ -1389,6 +1389,21 @@ extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lp
 
 unsigned int
 __stdcall
+CheckVersionThread (LPVOID user)
+{
+  extern void
+  __stdcall
+  SK_FetchVersionInfo (const wchar_t* wszProduct);
+
+  SK_FetchVersionInfo (L"SpecialK");
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+unsigned int
+__stdcall
 DllThread_CRT (LPVOID user)
 {
   // Delay the initialization of the CRT until this thread starts,
@@ -1404,12 +1419,6 @@ DllThread_CRT (LPVOID user)
     &init_;
 
   SK_InitCore (params->backend, params->callback);
-
-  extern void
-  __stdcall
-  SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK");
-
-  SK_FetchVersionInfo ();
 
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
@@ -1448,6 +1457,8 @@ DllThread_CRT (LPVOID user)
     config_name = L"SpecialK";
 
   SK_SaveConfig (config_name);
+
+  _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
   return 0;
 }
@@ -1840,8 +1851,8 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
   wszInOut [lstrlenW (wszInOut) - 3] = L'\0';
 }
 
-wchar_t SK_RootPath   [MAX_PATH];
-wchar_t SK_ConfigPath [MAX_PATH];
+wchar_t SK_RootPath   [MAX_PATH] = { L'\0' };
+wchar_t SK_ConfigPath [MAX_PATH] = { L'\0' };
 
 const wchar_t*
 __stdcall

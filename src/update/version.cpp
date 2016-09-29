@@ -48,36 +48,38 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
     HANDLE hVersionConfig =
       CreateFile ( wszVersionFile,
                      GENERIC_READ,
-                       FILE_SHARE_READ,
+                       FILE_SHARE_READ | FILE_SHARE_WRITE,
                          nullptr,
                            OPEN_EXISTING,
-                             FILE_ATTRIBUTE_NORMAL |
+                             GetFileAttributes (wszVersionFile) |
                              FILE_FLAG_SEQUENTIAL_SCAN,
                                nullptr );
 
-    FILETIME ftCreation;
-    FILETIME ftNow;
+    if (hVersionConfig != INVALID_HANDLE_VALUE) {
+      FILETIME ftCreation;
+      FILETIME ftNow;
 
-    if (GetFileTime ( hVersionConfig, &ftCreation, nullptr, nullptr )) {
-      GetSystemTimeAsFileTime (&ftNow);
+      if (GetFileTime ( hVersionConfig, &ftCreation, nullptr, nullptr )) {
+        GetSystemTimeAsFileTime (&ftNow);
 
-      LARGE_INTEGER liCreation {
-        ftCreation.dwLowDateTime,
-        ftCreation.dwHighDateTime
-      };
+        LARGE_INTEGER liCreation {
+          ftCreation.dwLowDateTime,
+          ftCreation.dwHighDateTime
+        };
 
-      LARGE_INTEGER liNow {
-        ftCreation.dwLowDateTime,
-        ftCreation.dwHighDateTime
-      };
+        LARGE_INTEGER liNow {
+          ftCreation.dwLowDateTime,
+          ftCreation.dwHighDateTime
+        };
 
-      // Check Version:  Once every 6 hours
-      if ((liNow.QuadPart - liCreation.QuadPart) < 216000000000ULL) {
-        should_fetch = false;
+        // Check Version:  Once every 6 hours
+        if ((liNow.QuadPart - liCreation.QuadPart) < 216000000000ULL) {
+          should_fetch = false;
+        }
       }
-    }
 
-    CloseHandle (hVersionConfig);
+      CloseHandle (hVersionConfig);
+    }
   }
 
   if (! should_fetch)
@@ -91,6 +93,9 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
             0x00
     );
 
+  if (! hInetRoot)
+    return;
+
   HINTERNET hInetGitHub =
     InternetConnect ( hInetRoot,
                         L"raw.githubusercontent.com",
@@ -100,15 +105,29 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
                                 0x00,
                                   (DWORD_PTR)&dwInetCtx );
 
+  if (! hInetGitHub) {
+    InternetCloseHandle (hInetRoot);
+    return;
+  }
+
+  PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
+
   HINTERNET hInetGitHubOpen =
     HttpOpenRequest ( hInetGitHub,
                         nullptr,
-                          L"https://raw.githubusercontent.com/Kaldaien/SpecialK/master/version.ini",
+                          L"http://raw.githubusercontent.com/Kaldaien/SpecialK/master/version.ini",
                             L"HTTP/1.1",
                               nullptr,
-                                nullptr,
-                                  0x00,
+                                rgpszAcceptTypes,
+                                  INTERNET_FLAG_NO_UI          | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
+                                  INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_IGNORE_CERT_CN_INVALID,
                                     (DWORD_PTR)&dwInetCtx );
+
+  if (! hInetGitHubOpen) {
+    InternetCloseHandle (hInetGitHub);
+    InternetCloseHandle (hInetRoot);
+    return;
+  }
 
   if ( HttpSendRequestW ( hInetGitHubOpen,
                             nullptr,
@@ -117,26 +136,29 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
                                   0 ) ) {
     DWORD dwSize;
 
-    HttpEndRequest ( hInetGitHubOpen, nullptr, 0x00, 0 );
-
     if ( InternetQueryDataAvailable ( hInetGitHubOpen,
                                         &dwSize,
                                           0x00, NULL )
-       )
+      )
     {
+      DWORD dwAttribs = GetFileAttributes (wszVersionFile);
+
+      if (dwAttribs == INVALID_FILE_ATTRIBUTES)
+        dwAttribs = FILE_ATTRIBUTE_NORMAL;
+
       HANDLE hVersionFile =
         CreateFileW ( wszVersionFile,
                         GENERIC_WRITE,
                           FILE_SHARE_READ,
                             nullptr,
                               CREATE_ALWAYS,
-                                FILE_ATTRIBUTE_NORMAL |
+                                dwAttribs |
                                 FILE_FLAG_SEQUENTIAL_SCAN,
                                   nullptr );
 
-      while (dwSize > 0) {
+      while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0) {
         DWORD    dwRead = 0;
-        uint8_t *pData  = new uint8_t [dwSize];
+        uint8_t *pData  = (uint8_t *)malloc (dwSize);
 
         if (! pData)
           break;
@@ -147,18 +169,17 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
                                       &dwRead )
           )
         {
-          if (hVersionFile != INVALID_HANDLE_VALUE) {
-            DWORD dwWritten;
+          DWORD dwWritten;
 
-            WriteFile ( hVersionFile,
-                          pData,
-                            dwRead,
-                              &dwWritten,
-                                nullptr );
-          }
+          WriteFile ( hVersionFile,
+                        pData,
+                          dwRead,
+                            &dwWritten,
+                              nullptr );
         }
 
-        delete [] pData;
+        free (pData);
+        pData = nullptr;
 
         if (! InternetQueryDataAvailable ( hInetGitHubOpen,
                                              &dwSize,
@@ -167,8 +188,11 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
            ) break;
       }
 
-      CloseHandle (hVersionFile);
+      if (hVersionFile != INVALID_HANDLE_VALUE)
+        CloseHandle (hVersionFile);
     }
+
+    HttpEndRequest ( hInetGitHubOpen, nullptr, 0x00, 0 );
   }
 
   InternetCloseHandle (hInetGitHubOpen);

@@ -1263,7 +1263,7 @@ SK_BypassInject (void)
   // Delay the initialization of the CRT until this thread starts,
   //   this helps with odd behavior in DllMain while the loader-lock is
   //     in contention.
-  _CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_THREAD_ATTACH,  nullptr);
+  //_CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_THREAD_ATTACH,  nullptr);
 
   _beginthreadex ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
 
