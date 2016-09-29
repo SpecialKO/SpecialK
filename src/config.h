@@ -171,7 +171,7 @@ struct sk_config_t
     bool    nosound             = false;
     bool    silent              = false;
 
-    int     init_delay          = 30000UL;
+    int     init_delay          = 100UL;
     bool    auto_pump_callbacks = true;
 
     int     appid               = 0;

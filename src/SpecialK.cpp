@@ -47,6 +47,9 @@ SK_TLS*
 __stdcall
 SK_GetTLS (void)
 {
+  if (__SK_TLS_INDEX == -1)
+    return nullptr;
+
   LPVOID lpvData =
     TlsGetValue (__SK_TLS_INDEX);
 
@@ -78,7 +81,8 @@ HMODULE
 __stdcall
 SK_GetDLL (void)
 {
-  return hModSelf;
+  return (HMODULE)
+    InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, 0, 0);
 }
 
 bool
@@ -340,7 +344,7 @@ DllMain ( HMODULE hModule,
       //
       //          0xc0000142
       //
-      if (InterlockedCompareExchangePointerNoFence ((LPVOID *)&hModSelf, hModule, 0))
+      if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
         return FALSE;
 
       // We reserve the right to deny attaching the DLL, this will generally
@@ -404,8 +408,8 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_ATTACH:
     {
-      if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
-      {
+      //if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
+      //{
         _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
 
         LPVOID lpvData =
@@ -415,14 +419,14 @@ DllMain ( HMODULE hModule,
           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
             LocalFree (lpvData);
         }
-      }
+      //}
     } break;
 
 
     case DLL_THREAD_DETACH:
     {
-      if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
-      {
+      //if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
+      //{
         LPVOID lpvData =
           (LPVOID)TlsGetValue (__SK_TLS_INDEX);
 
@@ -432,7 +436,7 @@ DllMain ( HMODULE hModule,
         }
 
         _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
-      }
+      //}
     } break;
   }
 

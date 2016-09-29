@@ -277,22 +277,22 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 {
   static volatile ULONG nest_lvl = 0UL;
 
-  while (InterlockedExchangeAddAcquire (&nest_lvl, 0))
-    Sleep (50UL);
+  while (InterlockedExchangeAdd (&nest_lvl, 0))
+    Sleep (125);
 
   InterlockedIncrementAcquire (&nest_lvl);
 
   // Aren't lambdas fun?! :)
-  _beginthreadex (
+  CreateThread (
     nullptr,
       0,
         [](LPVOID user)->
 
-        unsigned int
+        DWORD
         WINAPI
         {
-          SetForegroundWindow ((HWND)user);
           BringWindowToTop    ((HWND)user);
+          SetForegroundWindow ((HWND)user);
 
           CloseHandle (GetCurrentThread ());
 

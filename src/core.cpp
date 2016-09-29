@@ -39,6 +39,9 @@
 #pragma comment (lib, "MinHook/libMinHook.x86.lib")
 #endif
 
+extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
+
+
 #pragma warning   (push)
 #pragma warning   (disable: 4091)
 #  include <DbgHelp.h>
@@ -1385,17 +1388,21 @@ struct init_params_t {
   void*          callback;
 } init_;
 
-extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
-
 unsigned int
 __stdcall
 CheckVersionThread (LPVOID user)
 {
-  extern void
+  extern bool
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
 
-  SK_FetchVersionInfo (L"SpecialK");
+  if (SK_FetchVersionInfo (L"SpecialK")) {
+    extern HRESULT
+      __stdcall
+      SK_TestVersion (const wchar_t* wszProduct);
+
+    SK_TestVersion (L"SpecialK");
+  }
 
   CloseHandle (GetCurrentThread ());
 
@@ -1406,12 +1413,6 @@ unsigned int
 __stdcall
 DllThread_CRT (LPVOID user)
 {
-  // Delay the initialization of the CRT until this thread starts,
-  //   this helps with odd behavior in DllMain while the loader-lock is
-  //     in contention.
-  _CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
-  _CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_THREAD_ATTACH,  nullptr);
-
   // Initialize TLS for this thread
   SK_GetTLS ();
 
@@ -1905,7 +1906,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        GetAsyncKeyState (VK_SHIFT) &&
        GetAsyncKeyState (VK_CONTROL) ) {
     SK_BypassInject ();
-    return false;
+    return true;
   }
 
   else {
@@ -1922,6 +1923,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
   }
 
+  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
+
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
@@ -1934,13 +1937,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
           wszConfigPath [  MAX_PATH  ] = L'\0';
 
+          SK_RootPath   [    0     ]   = L'\0';
+          SK_RootPath   [ MAX_PATH ]   = L'\0';
+
   if (config.system.central_repository) {
     uint32_t dwLen = MAX_PATH;
 
     ExpandEnvironmentStringsW (
       L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\",
         SK_RootPath,
-          MAX_PATH
+          MAX_PATH - 1
     );
 
     lstrcatW (wszConfigPath, SK_GetRootPath ());
@@ -1977,14 +1983,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
     config.steam.appid = 405900;
 
-
-  InitializeCriticalSectionAndSpinCount (&budget_mutex,  4000);
-  InitializeCriticalSectionAndSpinCount (&init_mutex,    50000);
-
   ZeroMemory (&init_, sizeof init_params_t);
 
   init_.backend  = backend;
   init_.callback = callback;
+
+  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
+  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
 
   InterlockedExchangePointer (
     (void **)&hInitThread,
@@ -2224,7 +2229,7 @@ STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
   // Throttle, but do not deadlock the render loop
-  if (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE))
+  if (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
     Sleep (166);
 
   static int import_tries = 0;

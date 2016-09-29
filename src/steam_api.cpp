@@ -1142,7 +1142,8 @@ SteamAPI_InitSafe_Detour (void)
 
     HMODULE hSteamAPI = GetModuleHandle (steam_dll_str);
 
-    steam_ctx.InitSteamAPI (hSteamAPI);
+    if (! steam_ctx.UserStats ())
+      steam_ctx.InitSteamAPI (hSteamAPI);
 
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
@@ -1271,7 +1272,8 @@ InitSafe_Detour (void)
   if (InitSafe_Original ()) {
     HMODULE hSteamAPI = GetModuleHandle (L"CSteamworks.dll");
 
-    steam_ctx.InitCSteamworks (hSteamAPI);
+    if (! steam_ctx.UserStats ())
+      steam_ctx.InitCSteamworks (hSteamAPI);
 
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
@@ -1312,9 +1314,6 @@ DWORD
 WINAPI
 CSteamworks_Delay_Init (LPVOID user)
 {
-  CloseHandle (GetCurrentThread ());
-  return 0;
-
   int tries = 0;
 
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
@@ -1383,9 +1382,6 @@ DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID user)
 {
-  CloseHandle (GetCurrentThread ());
-  return 0;
-
   int tries = 0;
 
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&

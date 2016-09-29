@@ -93,24 +93,6 @@ typedef std::unordered_set < std::wstring, str_hash_compare <std::wstring> > SK_
 SK_StringSetW rehook_loadlib;
 #endif
 
-DWORD
-WINAPI
-SK_DelayLoadThreadW_FOREGROUND (LPVOID user)
-{
-  extern HWND hWndRender;
-
-  while (GetForegroundWindow () != hWndRender)
-    Sleep (100UL);
-
-  LoadLibraryW_Original ((LPCWSTR)user);
-
-  free (user);
-
-  CloseHandle (GetCurrentThread ());
-
-  return 0;
-}
-
 BOOL
 __stdcall
 BlacklistLibraryW (LPCWSTR lpFileName)
@@ -121,11 +103,11 @@ BlacklistLibraryW (LPCWSTR lpFileName)
       if (config.compatibility.disable_raptr) {
         if (! (SK_LoadLibrary_SILENCE))
           dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
-      } else {
-        dll_log.Log (L"[PlaysTVFix] Delaying Raptr overlay until window is in foreground...");
-        CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
+        return TRUE;
       }
-      return TRUE;
+
+      //dll_log.Log (L"[PlaysTVFix] Delaying Raptr overlay until window is in foreground...");
+      //CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
     }
 
     else
@@ -664,6 +646,7 @@ SK_InitCompatBlacklist (void)
   rehook_loadlib.insert (L"RTSSHooks64.dll");
 #endif
 
+  memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
   SK_ReHookLoadLibrary ();
 }
 
@@ -679,7 +662,7 @@ EnumLoadedModules (void)
   // Begin logging new loads after this
   SK_LoadLibrary_SILENCE = false;
 
-  static iSK_Logger* pLogger = SK_CreateLog (L"logs/preloads.log");
+  iSK_Logger* pLogger = SK_CreateLog (L"logs/preloads.log");
 
   DWORD        dwProcID = GetCurrentProcessId ();
 
@@ -755,9 +738,17 @@ EnumLoadedModules (void)
           }
         }
 
-        else if ( StrStrIW (wszModName, L"ltc_help") && (! config.compatibility.ignore_raptr) ) {
-          extern unsigned int __stdcall SK_RaptrWarn_CRT (LPVOID user);
-          _beginthreadex ( nullptr, 0, SK_RaptrWarn_CRT, nullptr, 0x00, nullptr );
+        else if ( StrStrIW (wszModName, L"ltc_help") && (! (config.compatibility.ignore_raptr || config.compatibility.disable_raptr)) ) {
+          static bool warned = false;
+
+          // When Raptr's in full effect, it has its own overlay plus PlaysTV ...
+          //   only warn about ONE of these things!
+          if (! warned) {
+            warned = true;
+
+            extern DWORD __stdcall SK_RaptrWarn (LPVOID user);
+            CreateThread ( nullptr, 0, SK_RaptrWarn, nullptr, 0x00, nullptr );
+          }
         }
 
         else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
@@ -782,6 +773,18 @@ EnumLoadedModules (void)
           SK_BootD3D9 ();
 
           loaded_d3d9 = true;
+        }
+
+        else if (StrStrIW (wszModName, L"CSteamworks.dll")) {
+          extern void SK_HookCSteamworks (void);
+          SK_HookCSteamworks ();
+        }
+
+        else if (StrStrIW (wszModName, L"steam_api.dll")   ||
+                   StrStrIW (wszModName, L"steam_api64.dll") ||
+                   StrStrIW (wszModName, L"SteamNative.dll") ) {
+          extern void SK_HookSteamAPI (void);
+          SK_HookSteamAPI ();
         }
 
         pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
@@ -1070,20 +1073,26 @@ SK_ValidateGlobalRTSSProfile (void)
                       rtss_global.get_section (L"Hooking").get_value (L"InjectionDelay").c_str (),
                         rtss_global.get_section (L"Hooking").get_value (L"InjectionDelayTriggers").c_str () );
 
-      rtss_global.write (wszRTSSHooks);
+      rtss_global.write  (wszRTSSHooks);
 
-      STARTUPINFO         sinfo;
-      PROCESS_INFORMATION pinfo;
+      STARTUPINFO         sinfo = { 0 };
+      PROCESS_INFORMATION pinfo = { 0 };
 
       sinfo.cb          = sizeof STARTUPINFO;
+      sinfo.dwFlags     = STARTF_USESHOWWINDOW;
       sinfo.wShowWindow = SW_SHOWDEFAULT;
 
-      CreateProcess ( L"Game", (LPWSTR)SK_GetHostApp (), nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr, nullptr, &sinfo, &pinfo);
+      CreateProcess (
+        nullptr,
+          (LPWSTR)SK_GetHostApp (),
+            nullptr, nullptr,
+              TRUE,
+                CREATE_SUSPENDED,
+                  nullptr, nullptr,
+                    &sinfo, &pinfo );
 
-      WaitForSingleObject (pinfo.hProcess, INFINITE);
-      ResumeThread        (pinfo.hThread);
-
-      ExitProcess (0);
+      ResumeThread     (pinfo.hThread);
+      TerminateProcess (GetCurrentProcess (), 0x00);
     }
   }
 
@@ -1150,38 +1159,110 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   return hr;
 }
 
-unsigned int
+HRESULT
 __stdcall
-SK_RaptrWarn_CRT (LPVOID user)
-{
-  HRESULT
-  __stdcall
-  SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
+SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
                           PCWSTR   wszMainIcon,
                           wchar_t* wszContent,
                           wchar_t* wszConfirmation,
                           wchar_t* wszFooter,
                           PCWSTR   wszFooterIcon,
                           wchar_t* wszVerifyText,
-                          BOOL*    verify );
+                          BOOL*    verify,
+                          wchar_t* wszCommand )
+{
+  bool timer = true;
 
-  SK_TaskBoxWithConfirm ( L"AMD Gaming Evolved or Raptr is running",
-                          TD_WARNING_ICON,
-                          L"In some software you can expect weird things to happen, including"
-                          L" the game mysteriously disappearing.\n\n"
-                          L"If the game behaves strangely, you may need to turn the Raptr overlay off.",
-                          nullptr,
-                          nullptr,
-                          nullptr,
-                          L"Check here to ignore this warning in the future.",
-                          (BOOL *)&config.compatibility.ignore_raptr );
+  int               nButtonPressed = 0;
+  TASKDIALOGCONFIG  task_config    = {0};
+
+  int idx = 0;
+
+  HWND hWndForeground = GetForegroundWindow ();
+
+  task_config.cbSize             = sizeof (task_config);
+  task_config.hInstance          = GetModuleHandle (nullptr);
+  task_config.hwndParent         = hWndForeground;
+  task_config.pszWindowTitle     = L"Special K Compatibility Layer";
+  task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
+
+  TASKDIALOG_BUTTON button;
+  button.nButtonID     = 0xdead01ae;
+  button.pszButtonText = wszCommand;
+
+  task_config.pButtons           = &button;
+  task_config.cButtons           = 1;
+
+  task_config.dwFlags            = 0x00;
+  task_config.dwFlags           |= TDF_USE_COMMAND_LINKS;
+
+  task_config.pfCallback         = TaskDialogCallback;
+  task_config.lpCallbackData     = 0;
+
+  task_config.pszMainInstruction = wszMainInstruction;
+
+  task_config.hwndParent = GetDesktopWindow ();
+
+  task_config.pszMainIcon        = wszMainIcon;
+  task_config.pszContent         = wszContent;
+
+  task_config.pszFooterIcon      = wszFooterIcon;
+  task_config.pszFooter          = wszFooter;
+
+  task_config.pszVerificationText = wszVerifyText;
+
+  if (verify != nullptr && *verify)
+    task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
+
+  if (timer)
+    task_config.dwFlags |= TDF_CALLBACK_TIMER;
+
+  HRESULT hr =
+    TaskDialogIndirect ( &task_config,
+                          &nButtonPressed,
+                            nullptr,
+                              verify );
+
+  if (nButtonPressed == 0xdead01ae) {
+    config.compatibility.disable_raptr = true;
+  }
+
+  return hr;
+}
+
+DWORD
+WINAPI
+SK_RaptrWarn (LPVOID user)
+{
+  HRESULT
+  __stdcall
+  SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
+                            PCWSTR   wszMainIcon,
+                            wchar_t* wszContent,
+                            wchar_t* wszConfirmation,
+                            wchar_t* wszFooter,
+                            PCWSTR   wszFooterIcon,
+                            wchar_t* wszVerifyText,
+                            BOOL*    verify,
+                            wchar_t* wszCommand );
+
+  SK_TaskBoxWithConfirmEx ( L"AMD Gaming Evolved or Raptr is running",
+                            TD_WARNING_ICON,
+                            L"In some software you can expect weird things to happen, including"
+                            L" the game mysteriously disappearing.\n\n"
+                            L"If the game behaves strangely, you may need to disable it.",
+                            nullptr,
+                            nullptr,
+                            nullptr,
+                            L"Check here to ignore this warning in the future.",
+                            (BOOL *)&config.compatibility.ignore_raptr,
+                            L"Disable Raptr / Plays.TV\n\n"
+                            L"Special K will disable it (for this game)." );
 
   CloseHandle (GetCurrentThread ());
 
   return 0;
 }
-
-extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
 unsigned int
 __stdcall
@@ -1251,6 +1332,7 @@ SK_Bypass_CRT (LPVOID user)
   ResumeThread     (pinfo.hThread);
   TerminateProcess (GetCurrentProcess (), 0x00);
 
+
   return 0;
 }
 
@@ -1260,11 +1342,6 @@ bool
 __stdcall
 SK_BypassInject (void)
 {
-  // Delay the initialization of the CRT until this thread starts,
-  //   this helps with odd behavior in DllMain while the loader-lock is
-  //     in contention.
-  //_CRT_INIT ((HINSTANCE)SK_GetDLL (), DLL_THREAD_ATTACH,  nullptr);
-
   _beginthreadex ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
 
   return TRUE;

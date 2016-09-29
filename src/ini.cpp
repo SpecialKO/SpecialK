@@ -441,7 +441,11 @@ iSK_INI::get_section (const wchar_t* section)
   if (! sections.count (section))
     ordered_sections.push_back (section);
 
-  return sections [section];
+  iSK_INISection& ret = sections [section];
+
+  ret.name = section;
+
+  return ret;
 }
 
 #include "utility.h"
@@ -452,16 +456,17 @@ iSK_INI::write (const wchar_t* fname)
 {
   SK_CreateDirectories (fname);
 
-  FILE*   fOut;
-  errno_t ret;
+  FILE*   fOut = nullptr;
+  errno_t ret  = 0;
 
   // Strip Read-Only
   /////////AD_SetNormalFileAttribs (fname);
 
-  TRY_FILE_IO (_wfopen_s (&fOut, fname, L"w,ccs=UTF-16LE"), fname, ret);
+  TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
+  //fOut = _wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO);
 
   if (ret != 0 || fOut == 0) {
-    //AD_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname.c_str (), MB_OK | MB_ICONSTOP);
+    SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname, MB_OK | MB_ICONSTOP);
     return;
   }
 
@@ -470,7 +475,8 @@ iSK_INI::write (const wchar_t* fname)
 
   while (it != end) {
     iSK_INISection& section = get_section ((*it).c_str ());
-    if (section.name.length ()) {
+
+    if (section.name.length () && section.ordered_keys.size ()) {
       fwprintf (fOut, L"[%s]\n", section.name.c_str ());
 
       std::vector <std::wstring>::iterator key_it  = section.ordered_keys.begin ();

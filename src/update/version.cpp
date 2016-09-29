@@ -19,6 +19,8 @@
  *
 **/
 
+#include "../utility.h"
+
 #include <Windows.h>
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
@@ -31,27 +33,61 @@ SK_GetRootPath (void);
 
 DWORD dwInetCtx;
 
-void
+bool
 __stdcall
 SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 {
-  wchar_t   wszVersionFile [MAX_PATH] = { L'\0' };
+  wchar_t wszRepoFile [MAX_PATH] = { L'\0' };
 
-  lstrcatW (wszVersionFile, SK_GetRootPath ());
-  lstrcatW (wszVersionFile, wszProduct);
-  lstrcatW (wszVersionFile, L"_");
-  lstrcatW (wszVersionFile, L"version.ini");
+  extern const wchar_t* __stdcall SK_GetRootPath (void);
+
+  //Profiles/
+  //PlugIns/
+
+  //Version/...
+  //Version/<OLD>/...
+
+  //installed.ini
+  //repository.ini
+
+  //UPDATE_<tmp>.ini
+  //UPDATE_<tmp>.7z
+
+
+  /// LocalName=UnX  GlobalName=PlugIns/UnX
+  //UnX_Ver/... (PlugIns/UnX/Version/...)
+  // installed.ini
+  // <OLD>/...
+
+  //UnX_Res/... (PlugIns/UnX/Resources/...)
+
+
+  //// LocalName=TSFix  GlobalName=PlugIns/TSFix
+
+  //TSFix_Ver/... (PlugIns/TSFix/Version/...)
+  // installed.ini
+  // <OLD>/...
+
+  //TSFix_Res/... (PlugIns/TSFix/Resources/...)
+
+
+  lstrcatW (wszRepoFile, SK_GetRootPath ());
+  lstrcatW (wszRepoFile, L"Version\\");
+
+  SK_CreateDirectories (wszRepoFile);
+
+  lstrcatW (wszRepoFile, L"repository.ini");
 
   bool should_fetch = true;
 
-  if (GetFileAttributes (wszVersionFile) != INVALID_FILE_ATTRIBUTES) {
+  if (GetFileAttributes (wszRepoFile) != INVALID_FILE_ATTRIBUTES) {
     HANDLE hVersionConfig =
-      CreateFile ( wszVersionFile,
+      CreateFile ( wszRepoFile,
                      GENERIC_READ,
                        FILE_SHARE_READ | FILE_SHARE_WRITE,
                          nullptr,
                            OPEN_EXISTING,
-                             GetFileAttributes (wszVersionFile) |
+                             GetFileAttributes (wszRepoFile) |
                              FILE_FLAG_SEQUENTIAL_SCAN,
                                nullptr );
 
@@ -83,7 +119,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   }
 
   if (! should_fetch)
-    return;
+    return false;
 
   HINTERNET hInetRoot =
     InternetOpen (
@@ -94,7 +130,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
     );
 
   if (! hInetRoot)
-    return;
+    return false;
 
   HINTERNET hInetGitHub =
     InternetConnect ( hInetRoot,
@@ -107,15 +143,21 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 
   if (! hInetGitHub) {
     InternetCloseHandle (hInetRoot);
-    return;
+    return false;
   }
 
-  PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
+  wchar_t wszRemoteRepoURL [MAX_PATH] = { L'\0' };
+
+  wsprintf ( wszRemoteRepoURL,
+               L"/Kaldaien/%s/master/version.ini",
+                 wszProduct );
+
+  PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
 
   HINTERNET hInetGitHubOpen =
     HttpOpenRequest ( hInetGitHub,
                         nullptr,
-                          L"http://raw.githubusercontent.com/Kaldaien/SpecialK/master/version.ini",
+                          wszRemoteRepoURL,
                             L"HTTP/1.1",
                               nullptr,
                                 rgpszAcceptTypes,
@@ -126,7 +168,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   if (! hInetGitHubOpen) {
     InternetCloseHandle (hInetGitHub);
     InternetCloseHandle (hInetRoot);
-    return;
+    return false;
   }
 
   if ( HttpSendRequestW ( hInetGitHubOpen,
@@ -141,13 +183,13 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
                                           0x00, NULL )
       )
     {
-      DWORD dwAttribs = GetFileAttributes (wszVersionFile);
+      DWORD dwAttribs = GetFileAttributes (wszRepoFile);
 
       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
         dwAttribs = FILE_ATTRIBUTE_NORMAL;
 
       HANDLE hVersionFile =
-        CreateFileW ( wszVersionFile,
+        CreateFileW ( wszRepoFile,
                         GENERIC_WRITE,
                           FILE_SHARE_READ,
                             nullptr,
@@ -198,4 +240,6 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   InternetCloseHandle (hInetGitHubOpen);
   InternetCloseHandle (hInetGitHub);
   InternetCloseHandle (hInetRoot);
+
+  return true;
 }
