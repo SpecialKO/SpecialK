@@ -1125,6 +1125,7 @@
     <ClCompile Include="vulkan.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\version.ini" />
     <None Include="d3d9.def" />
   </ItemGroup>
   <ItemGroup>

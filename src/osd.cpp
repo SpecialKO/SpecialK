@@ -421,6 +421,17 @@ SK_DrawExternalOSD (std::string app_name, std::string text)
   return TRUE;
 }
 
+BOOL
+__stdcall
+SKX_DrawExternalOSD (const char* szAppName, const char* szText)
+{
+  external_osd_name = szAppName;
+
+  SK_UpdateOSD (szText, nullptr, szAppName);
+
+  return TRUE;
+}
+
 
 //Stupid Hack, rewrite me... (IN PROGRESS - see isPlugin below)
 static bool isArkhamKnight    = false;
@@ -443,6 +454,14 @@ __stdcall
 SK_SetPluginName (std::wstring name)
 {
   plugin_name = name;
+  isPlugin    = true;
+}
+
+void
+__stdcall
+SKX_SetPluginName (const wchar_t* wszName)
+{
+  plugin_name = wszName;
   isPlugin    = true;
 }
 

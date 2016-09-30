@@ -1399,9 +1399,9 @@ CheckVersionThread (LPVOID user)
   if (SK_FetchVersionInfo (L"SpecialK")) {
     extern HRESULT
       __stdcall
-      SK_TestVersion (const wchar_t* wszProduct);
+      SK_UpdateSoftware (const wchar_t* wszProduct);
 
-    SK_TestVersion (L"SpecialK");
+    SK_UpdateSoftware (L"SpecialK");
   }
 
   CloseHandle (GetCurrentThread ());
@@ -1459,7 +1459,8 @@ DllThread_CRT (LPVOID user)
 
   SK_SaveConfig (config_name);
 
-  _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+  if (SK_IsInjected ())
+    _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
   return 0;
 }
@@ -1950,6 +1951,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     );
 
     lstrcatW (wszConfigPath, SK_GetRootPath ());
+    lstrcatW (wszConfigPath, L"Profiles\\");
     lstrcatW (wszConfigPath, SK_GetHostApp  ());
   }
 

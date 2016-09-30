@@ -332,11 +332,9 @@ DownloadDialogCallback (
   return S_FALSE;
 }
 
-//HRESULT
-//SK_UpdateSoftware (const wchar_t* wszVersionURL)
 HRESULT
 __stdcall
-SK_TestVersion (const wchar_t* wszProduct)
+SK_UpdateSoftware (const wchar_t* wszProduct)
 {
   int               nButtonPressed =   0;
   TASKDIALOGCONFIG  task_config    = { 0 };
@@ -408,7 +406,8 @@ SK_TestVersion (const wchar_t* wszProduct)
                 wszDontCare,
                   &build.installed );
 
-  build.installed = -1;
+  if (empty)
+    build.installed = -1;
 
   iSK_INISection& latest_ver =
     repo_ini.get_section (L"Version.Latest");
@@ -466,8 +465,9 @@ SK_TestVersion (const wchar_t* wszProduct)
       wchar_t wszUpdateTempFile [MAX_PATH];
 
       swprintf ( wszUpdateTempFile, 
-                   L"%s.7z",
-                     build.latest.package );
+                   L"%s\\Version\\%s.7z",
+                     SK_GetRootPath (),
+                       build.latest.package );
 
       wcsncpy (get->wszLocalPath, wszUpdateTempFile, MAX_PATH - 1);
 
@@ -485,7 +485,7 @@ SK_TestVersion (const wchar_t* wszProduct)
                               wszUpdateTempFile,
                                 nullptr,
                                   nullptr,
-                                    SW_SHOWMAXIMIZED );
+                                    SW_SHOWNORMAL );
 
           if (empty) {
             install_ini.import ( L"[Version.Local]\n"

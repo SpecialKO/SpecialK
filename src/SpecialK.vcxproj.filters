@@ -352,6 +352,7 @@
     <None Include="d3d9.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="..\version.ini" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

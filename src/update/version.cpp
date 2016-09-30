@@ -19,7 +19,9 @@
  *
 **/
 
+#include "../ini.h"
 #include "../utility.h"
+#include "../log.h"
 
 #include <Windows.h>
 #include <Wininet.h>
@@ -37,7 +39,8 @@ bool
 __stdcall
 SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 {
-  wchar_t wszRepoFile [MAX_PATH] = { L'\0' };
+  wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
+  wchar_t wszRepoFile    [MAX_PATH] = { L'\0' };
 
   extern const wchar_t* __stdcall SK_GetRootPath (void);
 
@@ -71,20 +74,61 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   //TSFix_Res/... (PlugIns/TSFix/Resources/...)
 
 
+  lstrcatW (wszInstallFile, SK_GetRootPath ());
+  lstrcatW (wszInstallFile, L"Version\\");
+
   lstrcatW (wszRepoFile, SK_GetRootPath ());
   lstrcatW (wszRepoFile, L"Version\\");
 
   SK_CreateDirectories (wszRepoFile);
 
-  lstrcatW (wszRepoFile, L"repository.ini");
+  lstrcatW (wszInstallFile, L"installed.ini");
+  lstrcatW (wszRepoFile,    L"repository.ini");
 
   bool should_fetch = true;
 
-  if (GetFileAttributes (wszRepoFile) != INVALID_FILE_ATTRIBUTES) {
+  // Update frequency (measured in 100ns)
+  ULONGLONG update_freq = 0ULL;
+
+  if (GetFileAttributes (wszInstallFile) != INVALID_FILE_ATTRIBUTES) {
+    iSK_INI install_ini (wszInstallFile);
+
+    install_ini.parse ();
+
+    if (! install_ini.get_sections ().empty ()) {
+      iSK_INISection& user_prefs =
+        install_ini.get_section (L"Update.User");
+
+      std::wstring freq =
+        user_prefs.get_value (L"Frequency");
+
+      wchar_t h [3] = { L"0" },
+              d [3] = { L"0" },
+              w [3] = { L"0" };
+
+      swscanf ( freq.c_str (), L"%3[^h]h", h );
+
+      const ULONGLONG _Hour = 36000000000ULL;
+
+      update_freq += (   1ULL * _Hour * _wtoi (h) );
+      update_freq += (  24ULL * _Hour * _wtoi (d) );
+      update_freq += ( 168ULL * _Hour * _wtoi (w) );
+
+      //dll_log.Log ( L"Update Frequency: %lu hours, %lu days, %lu weeks (%s)",
+                      //_wtoi (h), _wtoi (d), _wtoi (w), freq.c_str () );
+
+      if (freq == L"never")
+        update_freq = MAXLONGLONG;
+    }
+  }
+
+  if (GetFileAttributes (wszRepoFile) != INVALID_FILE_ATTRIBUTES)
+  {
     HANDLE hVersionConfig =
       CreateFile ( wszRepoFile,
                      GENERIC_READ,
-                       FILE_SHARE_READ | FILE_SHARE_WRITE,
+                       FILE_SHARE_READ |
+                       FILE_SHARE_WRITE,
                          nullptr,
                            OPEN_EXISTING,
                              GetFileAttributes (wszRepoFile) |
@@ -92,24 +136,18 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
                                nullptr );
 
     if (hVersionConfig != INVALID_HANDLE_VALUE) {
-      FILETIME ftCreation;
-      FILETIME ftNow;
+      FILETIME ftModify, ftNow;
 
-      if (GetFileTime ( hVersionConfig, &ftCreation, nullptr, nullptr )) {
+      if (GetFileTime (hVersionConfig, nullptr, nullptr, &ftModify))
+      {
         GetSystemTimeAsFileTime (&ftNow);
 
-        LARGE_INTEGER liCreation {
-          ftCreation.dwLowDateTime,
-          ftCreation.dwHighDateTime
-        };
+        LARGE_INTEGER
+          liModify { ftModify.dwLowDateTime, ftModify.dwHighDateTime },
+          liNow    { ftNow.dwLowDateTime,      ftNow.dwHighDateTime  };
 
-        LARGE_INTEGER liNow {
-          ftCreation.dwLowDateTime,
-          ftCreation.dwHighDateTime
-        };
-
-        // Check Version:  Once every 6 hours
-        if ((liNow.QuadPart - liCreation.QuadPart) < 216000000000ULL) {
+        // Check Version:  User Preference (default=6h)
+        if ((liNow.QuadPart - liModify.QuadPart) < update_freq) {
           should_fetch = false;
         }
       }

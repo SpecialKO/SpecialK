@@ -134,6 +134,12 @@ typedef HRESULT (STDMETHODCALLTYPE *D3D9ResetEx_pfn)(
            D3DPRESENT_PARAMETERS *pPresentationParameters,
            D3DDISPLAYMODEEX      *pFullscreenDisplayMode );
 
+typedef void (STDMETHODCALLTYPE *SetGammaRamp_pfn)(
+           IDirect3DDevice9      *This,
+_In_       UINT                   iSwapChain,
+_In_       DWORD                  Flags,
+_In_ const D3DGAMMARAMP          *pRamp );
+
 D3D9PresentDevice_pfn    D3D9Present_Original        = nullptr;
 D3D9PresentDeviceEx_pfn  D3D9PresentEx_Original      = nullptr;
 D3D9PresentSwapChain_pfn D3D9PresentSwap_Original    = nullptr;
@@ -141,6 +147,8 @@ D3D9CreateDevice_pfn     D3D9CreateDevice_Original   = nullptr;
 D3D9CreateDeviceEx_pfn   D3D9CreateDeviceEx_Original = nullptr;
 D3D9Reset_pfn            D3D9Reset_Original          = nullptr;
 D3D9ResetEx_pfn          D3D9ResetEx_Original        = nullptr;
+
+SetGammaRamp_pfn      D3D9SetGammaRamp_Original      = nullptr;
 
 Direct3DCreate9PROC   Direct3DCreate9_Import   = nullptr;
 Direct3DCreate9ExPROC Direct3DCreate9Ex_Import = nullptr;
@@ -473,7 +481,7 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 {
   g_pD3D9Dev = This;
 
-  SK_D3D9_UpdateRenderStats (nullptr, This);
+  //SK_D3D9_UpdateRenderStats (nullptr, This);
 
   SK_BeginBufferSwap ();
 
@@ -526,20 +534,22 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   g_pD3D9Dev = This;
 
-  if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX) {
+  if ( g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX ||
+       GetModuleHandle (L"tsfix.dll") )
+  {
     HRESULT hr =
       D3D9PresentCallbackEx ( (IDirect3DDevice9Ex *)This,
                                 pSourceRect,
                                   pDestRect,
                                     hDestWindowOverride,
                                       pDirtyRegion,
-                                        D3DPRESENT_FORCEIMMEDIATE |
+     (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX) ? D3DPRESENT_FORCEIMMEDIATE : D3DPRESENT_INTERVAL_ONE |
                                         D3DPRESENT_DONOTWAIT );
 
     return hr;
   }
 
-  SK_D3D9_UpdateRenderStats (nullptr, This);
+  //SK_D3D9_UpdateRenderStats (nullptr, This);
 
   SK_BeginBufferSwap ();
 
@@ -741,7 +751,7 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
                           _In_ const RGNDATA          *pDirtyRegion,
                           _In_       DWORD             dwFlags)
   {
-    SK_D3D9_UpdateRenderStats (This);
+    //SK_D3D9_UpdateRenderStats (This);
 
     SK_BeginBufferSwap ();
 
@@ -1089,6 +1099,24 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                                             pFullscreenDisplayMode ));
 
   return hr;
+}
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D9SetGammaRamp_Override ( IDirect3DDevice9 *This,
+                 _In_       UINT              iSwapChain,
+                 _In_       DWORD             Flags,
+                 _In_ const D3DGAMMARAMP     *pRamp )
+{
+  dll_log.Log (L"[   D3D9   ] SetGammaRamp (...) ");
+
+  return
+    D3D9SetGammaRamp_Original ( This,
+                                  iSwapChain,
+                                    Flags,
+                                      pRamp );
 }
 
 typedef HRESULT (STDMETHODCALLTYPE *DrawPrimitive_pfn)
@@ -1665,6 +1693,12 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       D3D9CreateAdditionalSwapChain_Original,
                       CreateAdditionalSwapChain_pfn );
 
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 21,
+                      "IDirect3DDevice9::SetGammaRamp",
+                      D3D9SetGammaRamp_Override,
+                      D3D9SetGammaRamp_Original,
+                      SetGammaRamp_pfn );
+
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 23,
                       "IDirect3DDevice9::CreateTexture",
                       D3D9CreateTexture_Override,
@@ -1891,7 +1925,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     return ret;
   }
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (true) {//if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                       "IDirect3DDevice9::SetCursorPosition",
                       D3D9SetCursorPosition_Override,
@@ -1903,6 +1937,12 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                       D3D9CreateAdditionalSwapChain_Override,
                       D3D9CreateAdditionalSwapChain_Original,
                       CreateAdditionalSwapChain_pfn );
+
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 21,
+                      "IDirect3DDevice9::SetGammaRamp",
+                      D3D9SetGammaRamp_Override,
+                      D3D9SetGammaRamp_Original,
+                      SetGammaRamp_pfn );
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 23,
                       "IDirect3DDevice9::CreateTexture",

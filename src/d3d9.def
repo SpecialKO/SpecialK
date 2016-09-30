@@ -482,6 +482,9 @@ SK_CreateVar             = SK_CreateVar             @433
 SK_IsConsoleVisible      = SK_IsConsoleVisible      @434
 SK_SelfDestruct          = SK_SelfDestruct          @435
 
+SK_FetchVersionInfo      = SK_FetchVersionInfo      @475
+SK_UpdateSoftware        = SK_UpdateSoftware        @476
+
 QueryPerformanceCounter_Detour = QueryPerformanceCounter_Detour @410
 Sleep_Detour                   = Sleep_Detour                   @411
 GetAsyncKeyState_Detour        = GetAsyncKeyState_Detour        @412
@@ -529,5 +532,8 @@ SK_SteamAPI_TakeScreenshot = SK_SteamAPI_TakeScreenshot @900
 ;
 
 SK_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState @1000
+
+SKX_DrawExternalOSD         = SKX_DrawExternalOSD         @1001 ; No more C++ string across DLL boundaries
+SKX_SetPluginName           = SKX_SetPluginName           @1002 ; No more C++ string across DLL boundaries
 
 BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState @9000
