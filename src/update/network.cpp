@@ -22,9 +22,13 @@
 #define ISOLATION_AWARE_ENABLED 1
 
 #include "../ini.h"
+#include "../parameter.h"
 #include "../utility.h"
 
+#include "../resource.h"
+
 #include <Windows.h>
+#include <windowsx.h>
 
 #include <CommCtrl.h>
 #pragma comment (lib,    "advapi32.lib")
@@ -41,6 +45,14 @@
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
 
+extern const wchar_t* __stdcall SK_GetRootPath (void);
+
+enum {
+  STATUS_UPDATED   = 1,
+  STATUS_REMINDER  = 2,
+  STATUS_CANCELLED = 4,
+  STATUS_FAILED    = 8
+};
 
 struct sk_internet_get_t {
   wchar_t wszHostName  [INTERNET_MAX_HOST_NAME_LENGTH];
@@ -50,7 +62,7 @@ struct sk_internet_get_t {
   int     status;
 };
 
-DWORD
+unsigned int
 WINAPI
 DownloadThread (LPVOID user)
 {
@@ -222,7 +234,7 @@ DownloadThread (LPVOID user)
 
     HttpEndRequest ( hInetHTTPGetReq, nullptr, 0x00, 0 );
 
-    get->status = 1;
+    get->status = STATUS_UPDATED;
   }
 
   else {
@@ -237,16 +249,167 @@ DownloadThread (LPVOID user)
 
 CLEANUP:
   SetErrorState ();
-  get->status = 0;
+  get->status = STATUS_FAILED;
 
 END:
   //if (! get->hTaskDlg)
     //delete get;
 
+  CloseHandle (GetCurrentThread ());
+
   return 0;
 }
 
-HANDLE hThreadDownload = { 0 };
+HWND hWndRemind = 0;
+#define ID_REMIND 0
+
+INT_PTR
+CALLBACK
+RemindMeLater_DlgProc (
+  _In_ HWND   hWndDlg,
+  _In_ UINT   uMsg,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam )
+{
+  HWND hWndNextCheck =
+    GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
+
+  switch (uMsg) {
+    case WM_INITDIALOG:
+    {
+      ComboBox_InsertString (hWndNextCheck, 0, L"Next launch");
+      ComboBox_InsertString (hWndNextCheck, 1, L"After 15 Minutes");
+      ComboBox_InsertString (hWndNextCheck, 2, L"After 1 Hour");
+      ComboBox_InsertString (hWndNextCheck, 3, L"After 12 Hours");
+      ComboBox_InsertString (hWndNextCheck, 4, L"Tomorrow");
+      ComboBox_InsertString (hWndNextCheck, 5, L"Never");
+
+      ComboBox_SetCurSel (hWndNextCheck, 0);
+
+      return 0;
+    } break;
+
+    case WM_COMMAND:
+    {
+      if (LOWORD (wParam) == IDOK)
+      {
+        FILETIME                  ftNow;
+        GetSystemTimeAsFileTime (&ftNow);
+
+        LARGE_INTEGER next_li {
+          ftNow.dwLowDateTime, ftNow.dwHighDateTime
+        };
+
+        LONGLONG next =
+          next_li.QuadPart;
+
+        bool never = false;
+
+        const LONGLONG _Minute =   600000000LL;
+        const LONGLONG _Hour   = 36000000000LL;
+
+        switch (ComboBox_GetCurSel (hWndNextCheck))
+        {
+          // Immediate
+          case 0:
+          default:
+            break;
+
+          case 1:
+            next += (15 * _Minute);
+            break;
+
+          case 2:
+            next += (1 * _Hour);
+            break;
+
+          case 3:
+            next += (12 * _Hour);
+            break;
+
+          case 4:
+            next += (24 * _Hour);
+            break;
+
+          case 5:
+            next  = -1;
+            never = true;
+            break;
+        }
+
+        wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
+
+        wsprintf ( wszInstallFile,
+              L"%s\\Version\\installed.ini",
+                SK_GetRootPath () );
+
+        iSK_INI install_ini (wszInstallFile);
+
+        install_ini.parse ();
+
+        bool empty = false;
+
+        if (! install_ini.get_sections ().size ())
+          empty = true;
+
+        iSK_INISection& user_prefs =
+          install_ini.get_section (L"Update.User");
+
+        if (empty)
+          user_prefs.set_name (L"Update.User");
+
+        sk::ParameterFactory ParameterFactory;
+
+        if (! never) {
+          sk::ParameterInt64* remind_time =
+            (sk::ParameterInt64 *)
+              ParameterFactory.create_parameter <int64_t> (L"Reminder");
+
+          remind_time->register_to_ini (
+            &install_ini,
+              L"Update.User",
+                L"Reminder"
+          );
+
+          remind_time->set_value (next);
+          remind_time->store     ();
+
+          delete remind_time;
+        }
+
+        else {
+          sk::ParameterStringW* frequency =
+            (sk::ParameterStringW *)
+              ParameterFactory.create_parameter <std::wstring> (
+                L"Frequency"
+              );
+
+          frequency->register_to_ini (
+            &install_ini,
+              L"Update.User",
+                L"Frequency"
+          );
+
+          user_prefs.remove_key (L"Reminder");
+
+          frequency->set_value (L"never");
+          frequency->store     ();
+
+          delete frequency;
+        }
+
+        install_ini.write (wszInstallFile);
+
+        EndDialog (hWndDlg, 0);
+        hWndRemind = (HWND)INVALID_HANDLE_VALUE;
+
+        return 0;
+      }
+    } break;
+  }
+
+  return 0;
+}
 
 HRESULT
 CALLBACK
@@ -255,12 +418,22 @@ DownloadDialogCallback (
   _In_ UINT     uNotification,
   _In_ WPARAM   wParam,
   _In_ LPARAM   lParam,
-  _In_ LONG_PTR dwRefData
-)
+  _In_ LONG_PTR dwRefData )
 {
+  sk_internet_get_t* get =
+    (sk_internet_get_t *)dwRefData;
+
+
+  // Don't allow this window to be used while the
+  //   reminder dialog is visible.
+  if (IsWindow (hWndRemind))
+    return S_FALSE;
+
+
   extern DWORD WINAPI SK_RealizeForegroundWindow (HWND);
 
-  if (uNotification == TDN_TIMER) {
+  if (uNotification == TDN_TIMER)
+  {
     DWORD dwProcId;
     DWORD dwThreadId =
       GetWindowThreadProcessId (GetForegroundWindow (), &dwProcId);
@@ -270,10 +443,9 @@ DownloadDialogCallback (
       SK_RealizeForegroundWindow (hWnd);
     }
 
-    sk_internet_get_t* get =
-      (sk_internet_get_t *)dwRefData;
-
-    if (get->status == 1) {
+    if ( get->status == STATUS_UPDATED   ||
+         get->status == STATUS_CANCELLED ||
+         get->status == STATUS_REMINDER ) {
       EndDialog ( hWnd, 0 );
       return S_OK;
     }
@@ -301,24 +473,36 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_BUTTON_CLICKED)
   {
-    if (wParam == IDYES)
+    if (wParam == ID_REMIND)
     {
-      sk_internet_get_t* get =
-        (sk_internet_get_t *)dwRefData;
+      extern HMODULE
+      __stdcall
+      SK_GetDLL (void);
 
+      hWndRemind =
+        CreateDialog ( SK_GetDLL (),
+                         MAKEINTRESOURCE (IDD_REMIND_ME_LATER),
+                           hWnd,
+                             RemindMeLater_DlgProc );
+
+      get->status = STATUS_REMINDER;
+    }
+
+    else if (wParam == IDYES)
+    {
       get->hTaskDlg = hWnd;
 
-      hThreadDownload =
-        CreateThread ( nullptr, 0, DownloadThread, (LPVOID)get, 0x00, nullptr );
+      _beginthreadex ( nullptr,
+                         0,
+                          DownloadThread,
+                            (LPVOID)get,
+                              0x00,
+                              nullptr );
     }
 
     else {
-      sk_internet_get_t* get =
-        (sk_internet_get_t *)dwRefData;
-
-      get->status = 0;
-
-      return S_OK;
+      //get->status = STATUS_CANCELLED;
+      //return S_OK;
     }
   }
 
@@ -345,8 +529,21 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   task_config.hInstance          = GetModuleHandle (nullptr);
   task_config.hwndParent         = GetDesktopWindow ();
   task_config.pszWindowTitle     = L"Special K Auto-Update";
-  task_config.pButtons           = nullptr;
-  task_config.cButtons           = 0;
+
+  TASKDIALOG_BUTTON buttons [3];
+
+  buttons [0].nButtonID     = IDYES;
+  buttons [0].pszButtonText = L"Yes";
+
+  buttons [1].nButtonID     = 0;
+  buttons [1].pszButtonText = L"Remind me later (or disable)";
+
+
+  task_config.pButtons           = buttons;
+  task_config.cButtons           = 2;
+  task_config.dwCommonButtons    = 0x00;
+  task_config.nDefaultButton     = 0;
+
   task_config.dwFlags            = TDF_ENABLE_HYPERLINKS | TDF_SHOW_PROGRESS_BAR   | TDF_SIZE_TO_CONTENT |
                                    TDF_CALLBACK_TIMER    | TDF_EXPANDED_BY_DEFAULT | TDF_EXPAND_FOOTER_AREA;
   task_config.pfCallback         = DownloadDialogCallback;
@@ -355,11 +552,6 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   task_config.pszMainIcon        = TD_INFORMATION_ICON;
 
   task_config.pszContent         = L"Would you like to upgrade now?";
-
-  task_config.dwCommonButtons    = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
-  task_config.nDefaultButton     = IDNO;
-
-  extern const wchar_t* __stdcall SK_GetRootPath (void);
 
   wchar_t wszRepoFile    [MAX_PATH] = { L'\0' };
   wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
@@ -393,6 +585,10 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   if (! install_ini.get_sections ().size ())
     empty = true;
 
+  // Not exactly empty, but certainly not in a working state.
+  if (! install_ini.contains_section (L"Version.Local"))
+    empty = true;
+
   iSK_INISection& installed_ver =
     install_ini.get_section (L"Version.Local");
 
@@ -408,6 +604,12 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   if (empty)
     build.installed = -1;
+
+  // Set the reminder in case the update fails... we do not want
+  //   the repository.ini file's updated timestamp to delay a second
+  //     attempt by the user to upgrade.
+  install_ini.import (L"[Update.User]\nReminder=0\n");
+  install_ini.write  (wszInstallFile);
 
   iSK_INISection& latest_ver =
     repo_ini.get_section (L"Version.Latest");
@@ -479,7 +681,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
       int nButton = 0;
 
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr))) {
-        if (get->status == 1) {
+        if (get->status == STATUS_UPDATED) {
           ShellExecuteW ( GetDesktopWindow (),
                             L"Open",
                               wszUpdateTempFile,
@@ -499,6 +701,8 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
           installed_ver.get_value (L"InstallPackage") =
             latest_ver.get_value (L"InstallPackage");
 
+          // Remove reminder if we successfully install...
+          install_ini.get_section (L"Update.User").remove_key (L"Reminder");
           install_ini.write (wszInstallFile);
 
           TerminateProcess (GetCurrentProcess (), 0x00);

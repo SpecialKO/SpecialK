@@ -539,6 +539,44 @@ iSK_INI::Release (THIS)
   return InterlockedDecrement (&refs);
 }
 
+bool
+__stdcall
+iSK_INI::remove_section (const wchar_t* wszSection)
+{
+  for ( auto it  = ordered_sections.begin ();
+             it != ordered_sections.end   ();
+           ++it )
+  {
+    if (*it == wszSection) {
+      ordered_sections.erase (it);
+      sections.erase         (wszSection);
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+__stdcall
+iSK_INISection::remove_key (const wchar_t* wszKey)
+{
+  for ( auto it  = ordered_keys.begin ();
+             it != ordered_keys.end   ();
+           ++it )
+  {
+    if (*it == wszKey) {
+      ordered_keys.erase (it);
+      pairs.erase        (wszKey);
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
 
 HRESULT
 __stdcall

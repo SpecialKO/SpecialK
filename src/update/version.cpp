@@ -20,6 +20,8 @@
 **/
 
 #include "../ini.h"
+#include "../parameter.h"
+
 #include "../utility.h"
 #include "../log.h"
 
@@ -39,6 +41,13 @@ bool
 __stdcall
 SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 {
+  FILETIME                  ftNow;
+  GetSystemTimeAsFileTime (&ftNow);
+
+  LARGE_INTEGER
+    liNow { ftNow.dwLowDateTime, ftNow.dwHighDateTime };
+
+
   wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
   wchar_t wszRepoFile    [MAX_PATH] = { L'\0' };
 
@@ -85,6 +94,9 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   lstrcatW (wszInstallFile, L"installed.ini");
   lstrcatW (wszRepoFile,    L"repository.ini");
 
+  bool need_remind  = false,
+       has_remind   = false;
+
   bool should_fetch = true;
 
   // Update frequency (measured in 100ns)
@@ -99,6 +111,9 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
       iSK_INISection& user_prefs =
         install_ini.get_section (L"Update.User");
 
+      bool has_freq =
+        user_prefs.contains_key (L"Frequency");
+
       std::wstring freq =
         user_prefs.get_value (L"Frequency");
 
@@ -107,6 +122,14 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
               w [3] = { L"0" };
 
       swscanf ( freq.c_str (), L"%3[^h]h", h );
+
+      // Default to 6h if unspecified
+      if (! has_freq) {
+        wcscpy (h, L"6");
+
+        install_ini.import (L"[Update.User]\nFrequency=6h\n");
+        install_ini.write  (wszInstallFile);
+      }
 
       const ULONGLONG _Hour = 36000000000ULL;
 
@@ -119,6 +142,34 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 
       if (freq == L"never")
         update_freq = MAXLONGLONG;
+
+      else if (user_prefs.contains_key (L"Reminder"))
+      {
+        has_remind = true;
+
+        sk::ParameterFactory ParameterFactory;
+
+        sk::ParameterInt64* remind_time =
+          (sk::ParameterInt64 *)
+            ParameterFactory.create_parameter <int64_t> (L"Reminder");
+
+        remind_time->register_to_ini (
+          &install_ini,
+            L"Update.User",
+              L"Reminder"
+        );
+
+        remind_time->load ();
+
+        if (liNow.QuadPart >= remind_time->get_value ()) {
+          need_remind = true;
+
+          user_prefs.remove_key (L"Reminder");
+          install_ini.write (wszInstallFile);
+        }
+
+        delete remind_time;
+      }
     }
   }
 
@@ -136,15 +187,12 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
                                nullptr );
 
     if (hVersionConfig != INVALID_HANDLE_VALUE) {
-      FILETIME ftModify, ftNow;
+      FILETIME ftModify;
 
       if (GetFileTime (hVersionConfig, nullptr, nullptr, &ftModify))
       {
-        GetSystemTimeAsFileTime (&ftNow);
-
         LARGE_INTEGER
-          liModify { ftModify.dwLowDateTime, ftModify.dwHighDateTime },
-          liNow    { ftNow.dwLowDateTime,      ftNow.dwHighDateTime  };
+          liModify { ftModify.dwLowDateTime, ftModify.dwHighDateTime };
 
         // Check Version:  User Preference (default=6h)
         if ((liNow.QuadPart - liModify.QuadPart) < update_freq) {
@@ -156,7 +204,13 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
     }
   }
 
-  if (! should_fetch)
+  //
+  // If a reminder is setup, allow it to override the user's
+  //   normal check frequency.
+  //
+  //   So that, for example, a 6h frequency can be delayed up to 1 week.
+  //
+  if (! (( should_fetch && (! has_remind)) || need_remind))
     return false;
 
   HINTERNET hInetRoot =

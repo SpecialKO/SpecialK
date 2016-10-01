@@ -50,6 +50,7 @@ public:
   STDMETHOD_ (void,          set_name)     (const wchar_t* name_);
   STDMETHOD_ (bool,          contains_key) (const wchar_t* key);
   STDMETHOD_ (void,          add_key_value)(const wchar_t* key, const wchar_t* value);
+  STDMETHOD_ (bool,          remove_key)   (const wchar_t* key);
 
   //protected:
   //private:
@@ -83,6 +84,7 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (_TSectionMap&,   get_sections)    (THIS);
   STDMETHOD_ (iSK_INISection&, get_section)     (const wchar_t* section);
   STDMETHOD_ (bool,            contains_section)(const wchar_t* section);
+  STDMETHOD_ (bool,            remove_section)  (const wchar_t* section);
 
 protected:
 private:
