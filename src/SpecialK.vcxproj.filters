@@ -61,6 +61,9 @@
     <Filter Include="Source Files\Update">
       <UniqueIdentifier>{e6ec08a7-8e65-4d10-90c4-450c13e4a46e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\lzma">
+      <UniqueIdentifier>{d0606294-afda-4c24-8ae0-b30ac9bf174a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -346,6 +349,129 @@
     </ClCompile>
     <ClCompile Include="update\network.cpp">
       <Filter>Source Files\Update</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zAlloc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zArcIn.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zBuf.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zBuf2.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zCrc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zCrcOpt.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zDec.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zFile.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\7zStream.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Aes.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\AesOpt.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Alloc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Bcj2.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Bcj2Enc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Bra.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Bra86.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\BraIA64.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\CpuArch.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Delta.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\LzFind.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\LzFindMt.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Lzma2Dec.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Lzma2Enc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Lzma86Dec.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Lzma86Enc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\LzmaDec.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\LzmaEnc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\LzmaLib.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\MtCoder.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Ppmd7.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Ppmd7Dec.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Ppmd7Enc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Sha256.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Sort.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Threads.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\Xz.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\XzCrc64.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\XzCrc64Opt.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\XzDec.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\XzEnc.c">
+      <Filter>Source Files\lzma</Filter>
+    </ClCompile>
+    <ClCompile Include="..\depends\lzma\XzIn.c">
+      <Filter>Source Files\lzma</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

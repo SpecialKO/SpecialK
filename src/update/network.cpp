@@ -595,15 +595,17 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   if (empty)
     installed_ver.set_name (L"Version.Local");
 
-  wchar_t wszDontCare [128];
+  wchar_t wszCurrentBuild [128];
 
   swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
               L"%128[^,],%lu",
-                wszDontCare,
+                wszCurrentBuild,
                   &build.installed );
 
-  if (empty)
+  if (empty) {
+    *wszCurrentBuild = L'\0';
     build.installed = -1;
+  }
 
   // Set the reminder in case the update fails... we do not want
   //   the repository.ini file's updated timestamp to delay a second
@@ -682,30 +684,29 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr))) {
         if (get->status == STATUS_UPDATED) {
-          ShellExecuteW ( GetDesktopWindow (),
-                            L"Open",
-                              wszUpdateTempFile,
-                                nullptr,
-                                  nullptr,
-                                    SW_SHOWNORMAL );
+          extern HRESULT
+          SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion);
 
-          if (empty) {
-            install_ini.import ( L"[Version.Local]\n"
-                                 L"Branch=Latest\n"
-                                 L"InstallPackage= \n\n"
+          if (SUCCEEDED (SK_Decompress7z (wszUpdateTempFile, wszCurrentBuild)))
+          {
+            if (empty) {
+              install_ini.import ( L"[Version.Local]\n"
+                                   L"Branch=Latest\n"
+                                   L"InstallPackage= \n\n"
 
-                                 L"[Update.User]\n"
-                                 L"Frequency=6h\n\n" );
+                                   L"[Update.User]\n"
+                                   L"Frequency=6h\n\n" );
+            }
+
+            installed_ver.get_value (L"InstallPackage") =
+              latest_ver.get_value (L"InstallPackage");
+
+            // Remove reminder if we successfully install...
+            install_ini.get_section (L"Update.User").remove_key (L"Reminder");
+            install_ini.write (wszInstallFile);
+
+            TerminateProcess (GetCurrentProcess (), 0x00);
           }
-
-          installed_ver.get_value (L"InstallPackage") =
-            latest_ver.get_value (L"InstallPackage");
-
-          // Remove reminder if we successfully install...
-          install_ini.get_section (L"Update.User").remove_key (L"Reminder");
-          install_ini.write (wszInstallFile);
-
-          TerminateProcess (GetCurrentProcess (), 0x00);
         }
       }
 
