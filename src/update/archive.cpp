@@ -69,6 +69,14 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
 
   SzArEx_Init (&arc);
 
+  struct file_entry_s {
+    uint32_t     fileno;
+    uint64_t     filesize;
+    std::wstring name;
+  };
+
+  std::vector <file_entry_s> files;
+
   if ( SzArEx_Open ( &arc,
                        &look_stream.s,
                          &thread_alloc,
@@ -85,100 +93,120 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
 
       SzArEx_GetFileNameUtf16 (&arc, i, (UInt16 *)wszEntry);
 
-      // Truncate to 32-bits --> there's no way in hell a texture will ever be >= 2 GiB
-      uint32_t fileSize = SzArEx_GetFileSize (&arc, i);
-
-      uint8_t* pData =
-        (uint8_t *)malloc (fileSize * 20);
-
-      uint32_t block_idx     = 0xFFFFFFFF;
-      Byte*    out           = (Byte *)pData;
-      size_t   out_len       =         fileSize * 20;
-      size_t   offset        = 0;
-      size_t   decomp_size   = 0;
+      uint64_t fileSize = SzArEx_GetFileSize (&arc, i);
 
       wchar_t* pwszEntry = wszEntry;
 
       if (*wszEntry == L'\\')
         pwszEntry++;
 
-      if ( SZ_OK !=
-             SzArEx_Extract ( &arc,          &look_stream.s, i,
-                              &block_idx,    &out,           &out_len,
-                              &offset,       &decomp_size,
-                              &thread_alloc, &thread_tmp_alloc ) ) {
-        dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
-                        pwszEntry );
-        free (pData);
-        return E_FAIL;
-      }
-
-      extern const wchar_t*
-      __stdcall
-      SK_GetRootPath (void);
-
-      wchar_t wszDestPath [MAX_PATH] = { L'\0' };
-      wcscpy (wszDestPath, SK_GetRootPath ());
-
-      lstrcatW (wszDestPath, pwszEntry);
-
-      if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES) {
-        wchar_t wszMovePath [MAX_PATH] = { L'\0' };
-
-        wcscpy (wszMovePath, SK_GetRootPath ());
-
-        lstrcatW (wszMovePath, L"Version\\");
-
-        if (wszOldVersion != nullptr && lstrlenW (wszOldVersion)) {
-          lstrcatW (wszMovePath, wszOldVersion);
-          lstrcatW (wszMovePath, L"\\");
-          SK_CreateDirectories (wszMovePath);
-        }
-
-        lstrcatW (wszMovePath, pwszEntry);
-
-        if (wszOldVersion == nullptr || (! lstrlenW (wszOldVersion))) {
-          lstrcatW (wszMovePath, L".old");
-        }
-
-        MoveFileExW (wszDestPath, wszMovePath, MOVEFILE_REPLACE_EXISTING);
-      }
-
-      HANDLE hOutFile =
-        CreateFileW ( wszDestPath,
-                        GENERIC_WRITE,
-                          FILE_SHARE_READ,
-                            nullptr,
-                              CREATE_ALWAYS,
-                                FILE_ATTRIBUTE_NORMAL |
-                                FILE_FLAG_SEQUENTIAL_SCAN,
-                                  nullptr );
-
-      if (hOutFile != INVALID_HANDLE_VALUE) {
-        DWORD dwWritten;
-
-        WriteFile ( hOutFile,
-                      pData,
-                        fileSize,
-                          &dwWritten,
-                              nullptr );
-
-        CloseHandle (hOutFile);
-      }
-
-      else {
-        dll_log.Log ( L"[AutoUpdate] Failed to open file: '%s'",
-                        wszDestPath );
-        free (pData);
-        return E_FAIL;
-      }
-
-      free (pData);
+      files.push_back (file_entry_s { i, fileSize, pwszEntry });
     }
+
+    File_Close  (&arc_stream.file);
+  }
+
+  for (int i = 0; i < files.size (); i++)
+  {
+    int fileno = files [i].fileno;
+
+    if (InFile_OpenW (&arc_stream.file, wszArchive))
+    {
+      dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
+                      wszArchive );
+
+      SzArEx_Free (&arc, &thread_alloc);
+
+      return E_FAIL;
+    }
+
+    uint32_t block_idx     = 0xFFFFFFFF;
+    Byte*    out           = nullptr;
+    size_t   out_len       = 0;
+    size_t   offset        = 0;
+    size_t   decomp_size   = 0;
+
+    if ( SZ_OK !=
+           SzArEx_Extract ( &arc,          &look_stream.s, files [i].fileno,
+                            &block_idx,    &out,           &out_len,
+                            &offset,       &decomp_size,
+                            &thread_alloc, &thread_tmp_alloc ) ) {
+      dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
+                      files [i].name.c_str () );
+
+      File_Close  (&arc_stream.file);
+      SzArEx_Free (&arc, &thread_alloc);
+
+      return E_FAIL;
+    }
+
+    extern const wchar_t*
+    __stdcall
+    SK_GetRootPath (void);
+
+    wchar_t wszDestPath [MAX_PATH] = { L'\0' };
+    wcscpy (wszDestPath, SK_GetRootPath ());
+
+    lstrcatW (wszDestPath, files [i].name.c_str ());
+
+    if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES) {
+      wchar_t wszMovePath [MAX_PATH] = { L'\0' };
+
+      wcscpy (wszMovePath, SK_GetRootPath ());
+
+      lstrcatW (wszMovePath, L"Version\\");
+
+      if (wszOldVersion != nullptr && lstrlenW (wszOldVersion)) {
+        lstrcatW (wszMovePath, wszOldVersion);
+        lstrcatW (wszMovePath, L"\\");
+        SK_CreateDirectories (wszMovePath);
+      }
+
+      lstrcatW (wszMovePath, files [i].name.c_str ());
+
+      if (wszOldVersion == nullptr || (! lstrlenW (wszOldVersion))) {
+        lstrcatW (wszMovePath, L".old");
+      }
+
+      MoveFileExW (wszDestPath, wszMovePath, MOVEFILE_REPLACE_EXISTING);
+    }
+
+    HANDLE hOutFile =
+      CreateFileW ( wszDestPath,
+                      GENERIC_WRITE,
+                        FILE_SHARE_READ,
+                          nullptr,
+                            CREATE_ALWAYS,
+                              FILE_ATTRIBUTE_NORMAL |
+                              FILE_FLAG_SEQUENTIAL_SCAN,
+                                nullptr );
+
+    if (hOutFile != INVALID_HANDLE_VALUE) {
+      DWORD dwWritten;
+
+      WriteFile ( hOutFile,
+                    out,
+                      decomp_size,
+                        &dwWritten,
+                            nullptr );
+
+      CloseHandle (hOutFile);
+    }
+
+    else {
+      dll_log.Log ( L"[AutoUpdate] Failed to open file: '%s'",
+                      wszDestPath );
+
+      File_Close  (&arc_stream.file);
+      SzArEx_Free (&arc, &thread_alloc);
+
+      return E_FAIL;
+    }
+
+    File_Close  (&arc_stream.file);
   }
 
   SzArEx_Free (&arc, &thread_alloc);
-  File_Close  (&arc_stream.file);
 
   return S_OK;
 }

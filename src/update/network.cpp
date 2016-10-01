@@ -705,8 +705,19 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
             install_ini.write (wszInstallFile);
 
+            MessageBox ( NULL,
+                          L"Upgrade Successful",
+                          L"Please Relaunch Your Game",
+                            MB_OK );
+
             TerminateProcess (GetCurrentProcess (), 0x00);
+
+            // Obviously this never returns, but compiler OCD is compelling!
+            return S_OK;
           }
+
+          else
+            return E_FAIL;
         }
       }
 
