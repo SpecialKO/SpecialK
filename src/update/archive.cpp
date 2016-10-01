@@ -19,6 +19,9 @@
  *
 **/
 
+#include <Windows.h>
+
+#include "../log.h"
 #include "../utility.h"
 
 #include <cstdint>
@@ -59,8 +62,8 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
 
   if (InFile_OpenW (&arc_stream.file, wszArchive))
   {
-      //tex_log->Log ( L"[Inject Tex]  ** Cannot open archive file: %s",
-                       //arc_name );
+    dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
+                    wszArchive );
     return E_FAIL;
   }
 
@@ -90,15 +93,23 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
 
       uint32_t block_idx     = 0xFFFFFFFF;
       Byte*    out           = (Byte *)pData;
-      size_t   out_len       =         fileSize;
+      size_t   out_len       =         fileSize * 20;
       size_t   offset        = 0;
       size_t   decomp_size   = 0;
+
+      wchar_t* pwszEntry = wszEntry;
+
+      if (*wszEntry == L'\\')
+        pwszEntry++;
 
       if ( SZ_OK !=
              SzArEx_Extract ( &arc,          &look_stream.s, i,
                               &block_idx,    &out,           &out_len,
                               &offset,       &decomp_size,
                               &thread_alloc, &thread_tmp_alloc ) ) {
+        dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
+                        pwszEntry );
+        free (pData);
         return E_FAIL;
       }
 
@@ -109,7 +120,7 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
       wchar_t wszDestPath [MAX_PATH] = { L'\0' };
       wcscpy (wszDestPath, SK_GetRootPath ());
 
-      lstrcatW (wszDestPath, wszEntry);
+      lstrcatW (wszDestPath, pwszEntry);
 
       if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES) {
         wchar_t wszMovePath [MAX_PATH] = { L'\0' };
@@ -124,13 +135,13 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
           SK_CreateDirectories (wszMovePath);
         }
 
-        lstrcatW (wszMovePath, wszEntry);
+        lstrcatW (wszMovePath, pwszEntry);
 
         if (wszOldVersion == nullptr || (! lstrlenW (wszOldVersion))) {
           lstrcatW (wszMovePath, L".old");
         }
 
-        MoveFileW (wszDestPath, wszMovePath);
+        MoveFileExW (wszDestPath, wszMovePath, MOVEFILE_REPLACE_EXISTING);
       }
 
       HANDLE hOutFile =
@@ -153,9 +164,16 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
                               nullptr );
 
         CloseHandle (hOutFile);
-      } else {
+      }
+
+      else {
+        dll_log.Log ( L"[AutoUpdate] Failed to open file: '%s'",
+                        wszDestPath );
+        free (pData);
         return E_FAIL;
       }
+
+      free (pData);
     }
   }
 
