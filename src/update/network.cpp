@@ -551,40 +551,6 @@ DecompressionProgressCallback (int current, int total)
   return 0;
 }
 
-uint64_t
-SK_GetFileSize (const wchar_t* wszFile)
-{
-  uint64_t size = 0;
-
-  DWORD dwFileAttribs =
-    GetFileAttributes (wszFile);
-
-  if (dwFileAttribs == INVALID_FILE_ATTRIBUTES)
-    return size;
-
-  HANDLE hFile =
-    CreateFile ( wszFile,
-                   GENERIC_READ,
-                     FILE_SHARE_READ |
-                     FILE_SHARE_WRITE,
-                       nullptr,
-                         OPEN_EXISTING,
-                          dwFileAttribs,
-                            nullptr );
-
-  DWORD dwSizeHigh,
-        dwSizeLow =
-          GetFileSize (hFile, &dwSizeHigh);
-
-  ULARGE_INTEGER uli {
-    dwSizeLow, dwSizeHigh
-  };
-
-  CloseHandle (hFile);
-
-  return uli.QuadPart;
-}
-
 static volatile LONG __SK_UpdateStatus = 0;
 
 INT_PTR
@@ -627,7 +593,7 @@ Update_DlgProc (
       wchar_t wszDownloadSize [32],
               wszBackupSize   [32];
 
-      swprintf ( wszDownloadSize, L"1 File\t(%5.2f MiB)",
+      swprintf ( wszDownloadSize, L"   1 File,  %5.2f MiB",
                    (double)fsize / (1024.0 * 1024.0) );
 
       int      backup_count = 0;
@@ -650,9 +616,23 @@ Update_DlgProc (
         }
       }
 
-      swprintf ( wszBackupSize, L"%lu Files\t(%5.2f MiB)",
+      swprintf ( wszBackupSize, L"%4lu Files, %5.2f MiB",
                    backup_count,
                      (double)backup_size / (1024.0 * 1024.0) );
+
+      HFONT header_font =
+        CreateFont ( 14,
+                       0, 0, 0,
+                         FW_MEDIUM,
+                           FALSE, FALSE, FALSE,
+                             DEFAULT_CHARSET,
+                               OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                                 CLEARTYPE_NATURAL_QUALITY,
+                                   MONO_FONT,
+                                     L"Consolas" );
+
+      SetWindowFont  (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), header_font, true);
+      SetWindowFont  (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   header_font, true);
 
       Static_SetText (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), wszDownloadSize);
       Static_SetText (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   wszBackupSize);
@@ -748,18 +728,28 @@ Update_DlgProc (
 
           wchar_t wszBackupMessage [4096];
 
+          extern bool config_files_changed;
+
           if (update_dlg_backup) {
             swprintf ( wszBackupMessage,
                          L"Your old files have been backed up "
-                         L"<a href=\"%s\\Version\\%s\\\">here.</a>",
+                         L"<a href=\"%s\\Version\\%s\\\">here.</a>\n\n\%s",
                            SK_GetRootPath (),
-                             update_dlg_build );
+                             update_dlg_build,
+                              config_files_changed ?
+                L"Config files were altered, but your originals "
+                L"have been backed up." :
+                  L"No config files were altered by this release."
+            );
           }
 
           else {
             swprintf ( wszBackupMessage,
-                         L"Old files have been replaced, please review your "
-                         L"configuration because settings may have changed." );
+                         L"Existing mod files were overwritten%s",
+                           config_files_changed ?
+                L"; config files were altered, but your originals "
+                L"have been backed up." :
+                  L"; no config files were altered." );
           }
 
           task_cfg.pszContent = wszBackupMessage;

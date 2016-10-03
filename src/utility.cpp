@@ -33,6 +33,9 @@
 
 #include <Shlwapi.h>
 
+#undef min
+#undef max
+
 int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
@@ -1482,4 +1485,204 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
   }
 
   return nullptr;
+}
+
+uint64_t
+__stdcall
+SK_GetFileSize (const wchar_t* wszFile)
+{
+  uint64_t size = 0;
+
+  DWORD dwFileAttribs =
+    GetFileAttributes (wszFile);
+
+  if (dwFileAttribs == INVALID_FILE_ATTRIBUTES)
+    return size;
+
+  HANDLE hFile =
+    CreateFile ( wszFile,
+                   GENERIC_READ,
+                     FILE_SHARE_READ |
+                     FILE_SHARE_WRITE,
+                       nullptr,
+                         OPEN_EXISTING,
+                          dwFileAttribs,
+                            nullptr );
+
+  DWORD dwSizeHigh,
+        dwSizeLow =
+          GetFileSize (hFile, &dwSizeHigh);
+
+  ULARGE_INTEGER uli {
+    dwSizeLow, dwSizeHigh
+  };
+
+  CloseHandle (hFile);
+
+  return uli.QuadPart;
+}
+
+enum sk_hash_algo {
+  SK_NO_HASH    = 0x0,
+
+  // CRC32 (XOR operands swapped; exaggerates small differences in data)
+  SK_CRC32_KAL  = 0x1,
+
+  //
+  // CRC32C ( Hardware Algorithm:  SSE4.2                  )
+  //        ( Software Algorithm:  Optimized by Mark Adler )
+  //
+  SK_CRC32C     = 0x2,
+
+  SK_NUM_HASHES = 2
+};
+
+uint32_t
+__stdcall
+SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile)
+{
+  uint32_t _hash32 = 0UL;
+
+  uint64_t size =
+    SK_GetFileSize (wszFile);
+
+  // Invalid file
+  if (size == 0)
+    return _hash32;
+
+  switch (algorithm)
+  {
+    // Traditional CRC32 (but XOR operands swapped)
+    case SK_CRC32_KAL:
+    case SK_CRC32C:
+    {
+      DWORD dwFileAttribs =
+        GetFileAttributes (wszFile);
+
+      HANDLE hFile =
+        CreateFile ( wszFile,
+                       GENERIC_READ,
+                         FILE_SHARE_READ |
+                         FILE_SHARE_WRITE,
+                           nullptr,
+                             OPEN_EXISTING,
+                               dwFileAttribs,
+                                 nullptr );
+
+      if (hFile == INVALID_HANDLE_VALUE)
+        return _hash32;
+
+      // Read up to 16 MiB at a time.
+      const uint32_t MAX_CHUNK =
+        (1024UL * 1024UL * 16UL);
+
+      const uint32_t read_size =
+        size <= std::numeric_limits <uint32_t>::max () ?
+          std::min (MAX_CHUNK, (uint32_t)size) :
+                    MAX_CHUNK;
+
+      uint8_t* buf = (uint8_t *)malloc (read_size);
+
+      DWORD    dwReadChunk = 0UL;
+      uint64_t qwReadTotal = 0ULL;
+
+      do
+      {
+        ReadFile ( hFile,
+                     buf,
+                       read_size,
+                         &dwReadChunk,
+                           nullptr );
+
+        switch (algorithm)
+        {
+          case SK_CRC32_KAL:
+            _hash32 = crc32 ( _hash32, buf, dwReadChunk );
+            break;
+
+          case SK_CRC32C:
+            _hash32 = crc32c ( _hash32, buf, dwReadChunk );
+            break;
+        }
+
+        qwReadTotal += dwReadChunk;
+      } while ( qwReadTotal < size && dwReadChunk > 0 );
+
+      CloseHandle (hFile);
+
+      return _hash32;
+    }
+    break;
+
+    // Invalid Algorithm
+    default:
+      return _hash32;
+  }
+}
+
+uint32_t
+__stdcall
+SK_GetFileCRC32 (const wchar_t* wszFile)
+{
+  return SK_GetFileHash_32 (SK_CRC32_KAL, wszFile);
+}
+
+uint32_t
+__stdcall
+SK_GetFileCRC32C (const wchar_t* wszFile)
+{
+  return SK_GetFileHash_32 (SK_CRC32C, wszFile);
+}
+
+void
+__stdcall
+SK_wcsrep ( const wchar_t*   wszIn,
+                  wchar_t** pwszOut,
+            const wchar_t*   wszOld,
+            const wchar_t*   wszNew )
+{
+        wchar_t* wszTemp;
+  const wchar_t* wszFound = wcsstr (wszIn, wszOld);
+
+  if (! wszFound) {
+    *pwszOut =
+      (wchar_t *)malloc (wcslen (wszIn) + 1);
+
+    wcscpy (*pwszOut, wszIn);
+    return;
+  }
+
+  int idx = wszFound - wszIn;
+
+  *pwszOut =
+    (wchar_t *)realloc (  *pwszOut,
+                            wcslen (wszIn)  - wcslen (wszOld) +
+                            wcslen (wszNew) + 1 );
+
+  wcsncpy ( *pwszOut, wszIn, idx    );
+  wcscpy  ( *pwszOut + idx,  wszNew );
+  wcscpy  ( *pwszOut + idx + wcslen (wszNew),
+               wszIn + idx + wcslen (wszOld) );
+
+  wszTemp =
+    (wchar_t *)malloc (idx + wcslen (wszNew) + 1);
+
+  wcsncpy (wszTemp, *pwszOut, idx + wcslen (wszNew));
+  wszTemp [idx + wcslen (wszNew)] = '\0';
+
+  SK_wcsrep ( wszFound + wcslen (wszOld),
+                pwszOut,
+                  wszOld,
+                    wszNew );
+
+  wszTemp =
+    (wchar_t *)realloc ( wszTemp,
+                           wcslen ( wszTemp) +
+                           wcslen (*pwszOut) + 1 );
+
+  lstrcatW (wszTemp, *pwszOut);
+
+  free (*pwszOut);
+
+  *pwszOut = wszTemp;
 }

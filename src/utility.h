@@ -73,6 +73,18 @@ struct sk_import_test_s {
 void __stdcall SK_TestImports          (HMODULE hMod, sk_import_test_s* pTests, int nCount);
 void           SK_TestRenderImports    (HMODULE hMod, bool* gl, bool* vulkan, bool* d3d9, bool* dxgi);
 
+void
+__stdcall
+SK_wcsrep ( const wchar_t*   wszIn,
+                  wchar_t** pwszOut,
+            const wchar_t*   wszOld,
+            const wchar_t*   wszNew );
+
+
+uint64_t __stdcall SK_GetFileSize   (const wchar_t* wszFile);
+uint32_t __stdcall SK_GetFileCRC32  (const wchar_t* wszFile);
+uint32_t __stdcall SK_GetFileCRC32C (const wchar_t* wszFile);
+
 
 const wchar_t*
 SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr);
