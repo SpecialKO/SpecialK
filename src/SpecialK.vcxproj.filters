@@ -485,6 +485,7 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="..\version.ini" />
+    <None Include="..\installer.dll" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

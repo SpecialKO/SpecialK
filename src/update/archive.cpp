@@ -132,6 +132,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     }
   }
 
+  // Now that we have a set of ALL files and a set of config files,
+  //   remove the config files from the other set so that we have
+  //     two disjoint sets of files.
   auto   it  = files.begin ();
   while (it != files.end ()) {
 
@@ -401,15 +404,6 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                             nullptr );
 
       CloseHandle (hOutFile);
-
-      uint32_t u32   = SK_GetFileCRC32C (wszDefaultConfig);
-      uint32_t u32_2 = SK_GetFileCRC32C (wszNewConfig);
-
-      wchar_t wszMessageBox  [1024];
-      swprintf ( wszMessageBox, L"%s (%x) <==> %s (%x)",
-                   wszDefaultConfig, u32,
-                     wszNewConfig, u32_2 );
-      MessageBox (NULL, wszMessageBox, L"Test", MB_OK);
 
       if ( GetFileAttributes (wszDefaultConfig)  == INVALID_FILE_ATTRIBUTES ||
              SK_GetFileCRC32C (wszDefaultConfig) !=
