@@ -33,10 +33,12 @@
 #include <lzma/7zFile.h>
 #include <lzma/7zVersion.h>
 
+#include "archive.h"
+
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
-HRESULT
-SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
+std::vector <sk_file_entry_s>
+SK_Get7ZFileContents (const wchar_t* wszArchive)
 {
   CrcGenerateTable ();
 
@@ -58,24 +60,15 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
   thread_tmp_alloc.Alloc = SzAllocTemp;
   thread_tmp_alloc.Free  = SzFreeTemp;
 
-  CSzArEx      arc;
+  std::vector <sk_file_entry_s> files;
 
   if (InFile_OpenW (&arc_stream.file, wszArchive))
   {
-    dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
-                    wszArchive );
-    return E_FAIL;
+    return files;
   }
 
+  CSzArEx       arc;
   SzArEx_Init (&arc);
-
-  struct file_entry_s {
-    uint32_t     fileno;
-    uint64_t     filesize;
-    std::wstring name;
-  };
-
-  std::vector <file_entry_s> files;
 
   if ( SzArEx_Open ( &arc,
                        &look_stream.s,
@@ -100,31 +93,77 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
       if (*wszEntry == L'\\')
         pwszEntry++;
 
-      files.push_back (file_entry_s { i, fileSize, pwszEntry });
+      files.push_back (sk_file_entry_s { i, fileSize, pwszEntry });
     }
 
     File_Close  (&arc_stream.file);
+  }
+
+  SzArEx_Free (&arc, &thread_alloc);
+
+  return files;
+}
+
+HRESULT
+SK_Decompress7z ( const wchar_t*            wszArchive,
+                  const wchar_t*            wszOldVersion,
+                  bool                      backup,
+                  SK_7Z_DECOMP_PROGRESS_PFN callback )
+{
+  std::vector <sk_file_entry_s> files =
+    SK_Get7ZFileContents (wszArchive);
+
+  CrcGenerateTable ();
+
+  CFileInStream arc_stream;
+  CLookToRead   look_stream;
+
+  FileInStream_CreateVTable (&arc_stream);
+  LookToRead_CreateVTable   (&look_stream, False);
+
+  look_stream.realStream = &arc_stream.s;
+  LookToRead_Init         (&look_stream);
+
+  ISzAlloc      thread_alloc;
+  ISzAlloc      thread_tmp_alloc;
+
+  thread_alloc.Alloc     = SzAlloc;
+  thread_alloc.Free      = SzFree;
+
+  thread_tmp_alloc.Alloc = SzAllocTemp;
+  thread_tmp_alloc.Free  = SzFreeTemp;
+
+  CSzArEx      arc;
+
+  SzArEx_Init (&arc);
+
+  uint32_t block_idx     = 0xFFFFFFFF;
+
+  if ( InFile_OpenW (&arc_stream.file, wszArchive) ||
+       SzArEx_Open ( &arc,
+                       &look_stream.s,
+                         &thread_alloc,
+                           &thread_tmp_alloc ) != SZ_OK )
+  {
+    dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
+                    wszArchive );
+
+    SzArEx_Free (&arc, &thread_alloc);
+
+    return E_FAIL;
   }
 
   for (int i = 0; i < files.size (); i++)
   {
     int fileno = files [i].fileno;
 
-    if (InFile_OpenW (&arc_stream.file, wszArchive))
-    {
-      dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
-                      wszArchive );
-
-      SzArEx_Free (&arc, &thread_alloc);
-
-      return E_FAIL;
-    }
-
-    uint32_t block_idx     = 0xFFFFFFFF;
     Byte*    out           = nullptr;
     size_t   out_len       = 0;
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
+
+    dll_log.Log ( L"[AutoUpdate] Extracting file ('%s')",
+                    files [i].name.c_str () );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream.s, files [i].fileno,
@@ -145,26 +184,28 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
     SK_GetRootPath (void);
 
     wchar_t wszDestPath [MAX_PATH] = { L'\0' };
+    wchar_t wszMovePath [MAX_PATH] = { L'\0' };
+
     wcscpy (wszDestPath, SK_GetRootPath ());
 
     lstrcatW (wszDestPath, files [i].name.c_str ());
 
     if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES) {
-      wchar_t wszMovePath [MAX_PATH] = { L'\0' };
-
       wcscpy (wszMovePath, SK_GetRootPath ());
 
       lstrcatW (wszMovePath, L"Version\\");
 
-      if (wszOldVersion != nullptr && lstrlenW (wszOldVersion)) {
+      if (wszOldVersion != nullptr && lstrlenW (wszOldVersion) && backup) {
         lstrcatW (wszMovePath, wszOldVersion);
         lstrcatW (wszMovePath, L"\\");
-        SK_CreateDirectories (wszMovePath);
       }
 
       lstrcatW (wszMovePath, files [i].name.c_str ());
 
-      if (wszOldVersion == nullptr || (! lstrlenW (wszOldVersion))) {
+      // If the archive contains sub-directories, this will create them
+      SK_CreateDirectories (wszMovePath);
+
+      if (wszOldVersion == nullptr || (! lstrlenW (wszOldVersion)) || (! backup)) {
         lstrcatW (wszMovePath, L".old");
       }
 
@@ -174,7 +215,7 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
     HANDLE hOutFile =
       CreateFileW ( wszDestPath,
                       GENERIC_WRITE,
-                        FILE_SHARE_READ,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
                           nullptr,
                             CREATE_ALWAYS,
                               FILE_ATTRIBUTE_NORMAL |
@@ -186,11 +227,18 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
 
       WriteFile ( hOutFile,
                     out,
-                      decomp_size,
+                      out_len,
                         &dwWritten,
                             nullptr );
 
       CloseHandle (hOutFile);
+
+      // We still need to move files in order to replace ones currently
+      //   involving execution, but if the user does not want backups,
+      //     attempt to delete the moved files.
+      if (! backup) {
+        DeleteFileW (wszMovePath);
+      }
     }
 
     else {
@@ -203,9 +251,12 @@ SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion)
       return E_FAIL;
     }
 
-    File_Close  (&arc_stream.file);
+    if (callback != nullptr) {
+      callback (i + 1, files.size ());
+    }
   }
 
+  File_Close  (&arc_stream.file);
   SzArEx_Free (&arc, &thread_alloc);
 
   return S_OK;

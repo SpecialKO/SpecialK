@@ -18,6 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_SECURE_NO_WARNINGS
 #define ISOLATION_AWARE_ENABLED 1
 
@@ -26,6 +27,8 @@
 #include "../utility.h"
 
 #include "../resource.h"
+
+#include "archive.h"
 
 #include <Windows.h>
 #include <windowsx.h>
@@ -46,6 +49,7 @@
 #pragma comment (lib, "wininet.lib")
 
 extern const wchar_t* __stdcall SK_GetRootPath (void);
+extern HMODULE        __stdcall SK_GetDLL      (void);
 
 enum {
   STATUS_UPDATED   = 1,
@@ -61,6 +65,15 @@ struct sk_internet_get_t {
   HWND    hTaskDlg;
   int     status;
 };
+
+
+bool    update_dlg_backup = false;
+bool    update_dlg_keep   = false;
+
+wchar_t update_dlg_file     [MAX_PATH];
+wchar_t update_dlg_build    [MAX_PATH];
+wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH];
+
 
 unsigned int
 WINAPI
@@ -260,7 +273,9 @@ END:
   return 0;
 }
 
-HWND hWndRemind = 0;
+HWND hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+HWND hWndRemind    = 0;
+
 #define ID_REMIND 0
 
 INT_PTR
@@ -475,10 +490,6 @@ DownloadDialogCallback (
   {
     if (wParam == ID_REMIND)
     {
-      extern HMODULE
-      __stdcall
-      SK_GetDLL (void);
-
       hWndRemind =
         CreateDialog ( SK_GetDLL (),
                          MAKEINTRESOURCE (IDD_REMIND_ME_LATER),
@@ -514,6 +525,303 @@ DownloadDialogCallback (
   }
 
   return S_FALSE;
+}
+
+
+#include <Windowsx.h>
+#include <CommCtrl.h>
+
+int
+__stdcall
+DecompressionProgressCallback (int current, int total)
+{
+  static int last_total = 0;
+
+  HWND hWndProgress =
+    GetDlgItem (hWndUpdateDlg, IDC_UPDATE_PROGRESS);
+
+  if (total != last_total) {
+    SendMessage (hWndProgress, PBM_SETSTATE, PBST_NORMAL, 0UL);
+    SendMessage (hWndProgress, PBM_SETRANGE, 0UL, MAKEWPARAM (0, total));
+    total = last_total;
+  }
+
+  SendMessage (hWndProgress, PBM_SETPOS, current, 0UL);
+
+  return 0;
+}
+
+uint64_t
+SK_GetFileSize (const wchar_t* wszFile)
+{
+  uint64_t size = 0;
+
+  DWORD dwFileAttribs =
+    GetFileAttributes (wszFile);
+
+  if (dwFileAttribs == INVALID_FILE_ATTRIBUTES)
+    return size;
+
+  HANDLE hFile =
+    CreateFile ( wszFile,
+                   GENERIC_READ,
+                     FILE_SHARE_READ |
+                     FILE_SHARE_WRITE,
+                       nullptr,
+                         OPEN_EXISTING,
+                          dwFileAttribs,
+                            nullptr );
+
+  DWORD dwSizeHigh,
+        dwSizeLow =
+          GetFileSize (hFile, &dwSizeHigh);
+
+  ULARGE_INTEGER uli {
+    dwSizeLow, dwSizeHigh
+  };
+
+  CloseHandle (hFile);
+
+  return uli.QuadPart;
+}
+
+static volatile LONG __SK_UpdateStatus = 0;
+
+INT_PTR
+CALLBACK
+Update_DlgProc (
+  _In_ HWND   hWndDlg,
+  _In_ UINT   uMsg,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam )
+{
+  HWND hWndNextCheck =
+    GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
+
+  switch (uMsg) {
+    case WM_INITDIALOG:
+    {
+      hWndUpdateDlg = hWndDlg;
+
+      HWND hWndBackup =
+        GetDlgItem (hWndUpdateDlg, IDC_BACKUP_FILES);
+
+      HWND hWndKeepDownloads =
+        GetDlgItem (hWndUpdateDlg, IDC_KEEP_DOWNLOADS);
+
+      Button_SetCheck (hWndBackup,        update_dlg_backup);
+      Button_SetCheck (hWndKeepDownloads, update_dlg_keep);
+
+      HWND hWndProgress =
+        GetDlgItem (hWndUpdateDlg, IDC_UPDATE_PROGRESS);
+
+      SendMessage (hWndProgress, PBM_SETRANGE, 0UL,         MAKEWPARAM (0, 1));
+      SendMessage (hWndProgress, PBM_SETPOS,   1,           0UL);
+      SendMessage (hWndProgress, PBM_SETSTATE, PBST_PAUSED, 0UL);
+
+      uint64_t fsize = SK_GetFileSize (update_dlg_file);
+
+      std::vector <sk_file_entry_s> files =
+        SK_Get7ZFileContents (update_dlg_file);
+
+      wchar_t wszDownloadSize [32],
+              wszBackupSize   [32];
+
+      swprintf ( wszDownloadSize, L"1 File\t(%5.2f MiB)",
+                   (double)fsize / (1024.0 * 1024.0) );
+
+      int      backup_count = 0;
+      uint64_t backup_size  = 0ULL;
+
+      for ( auto it = files.begin (); it != files.end (); ++it )
+      {
+        wchar_t wszFinalPath [MAX_PATH] = { L'\0' };
+        wcscpy (wszFinalPath, SK_GetRootPath ());
+
+        lstrcatW (wszFinalPath, it->name.c_str ());
+
+        // This function returns 0 if no file exists
+        uint64_t bsize =
+          SK_GetFileSize (wszFinalPath);
+
+        if (bsize != 0) {
+          backup_size += bsize;
+          ++backup_count;
+        }
+      }
+
+      swprintf ( wszBackupSize, L"%lu Files\t(%5.2f MiB)",
+                   backup_count,
+                     (double)backup_size / (1024.0 * 1024.0) );
+
+      Static_SetText (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), wszDownloadSize);
+      Static_SetText (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   wszBackupSize);
+
+      return TRUE;
+    }
+
+    case WM_COMMAND:
+    {
+      if (LOWORD (wParam) == IDC_MANUAL_CMD) {
+        ShellExecuteW ( nullptr,
+                          L"OPEN",
+                            (wchar_t *)update_dlg_file,
+                              nullptr, nullptr,
+                                SW_SHOW );
+
+        InterlockedExchange ( &__SK_UpdateStatus, 1 );
+        EndDialog           (  hWndUpdateDlg,     0 );
+        hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+      }
+
+      if (LOWORD (wParam) == IDC_AUTO_CMD)
+      {
+        InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
+
+        bool update_dlg_backup =
+          Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_BACKUP_FILES));
+
+        if ( SUCCEEDED ( SK_Decompress7z (
+                           update_dlg_file,
+                             update_dlg_build,
+                               update_dlg_backup,
+                                 DecompressionProgressCallback
+                         )
+             )
+           )
+        {
+          TASKDIALOGCONFIG task_cfg;
+          ZeroMemory (&task_cfg, sizeof TASKDIALOGCONFIG);
+
+          task_cfg.cbSize = sizeof TASKDIALOGCONFIG;
+
+          task_cfg.hwndParent         = hWndUpdateDlg;
+          task_cfg.hInstance          = SK_GetDLL ();
+
+          task_cfg.pszMainIcon        = TD_INFORMATION_ICON;
+          task_cfg.dwFlags            = TDF_ENABLE_HYPERLINKS | TDF_USE_COMMAND_LINKS;
+
+          TASKDIALOG_BUTTON buttons [2];
+          buttons [0].nButtonID       = IDOK;
+          buttons [0].pszButtonText   = L"Finish Update\nThe game will automatically exit.";
+
+          buttons [1].nButtonID       = 0;
+          buttons [1].pszButtonText   = L"View Release Notes";
+
+          task_cfg.pButtons           = buttons;
+          task_cfg.cButtons           = 2;
+
+          task_cfg.pszWindowTitle     = L"Special K Software Update";
+          task_cfg.pszMainInstruction = L"Software Update Successful";
+
+          task_cfg.pfCallback =
+            []( HWND     hWnd,
+                UINT     uNotification,
+                WPARAM   wParam,
+                LPARAM   lParam,
+                LONG_PTR dwRefData ) ->
+            HRESULT
+            {
+              switch (uNotification)
+              {
+                case TDN_HYPERLINK_CLICKED:
+                  ShellExecuteW ( nullptr,
+                                    L"OPEN",
+                                      (wchar_t *)lParam,
+                                        nullptr, nullptr,
+                                          SW_SHOW );
+                  break;
+
+                case TDN_BUTTON_CLICKED:
+                  if (wParam == 0) {
+                    ShellExecuteW ( nullptr,
+                                      L"OPEN",
+                                        (wchar_t *)update_dlg_relnotes,
+                                          nullptr, nullptr,
+                                            SW_SHOW );
+                  }
+                  break;
+              }
+
+              return S_OK;
+            };
+
+          wchar_t wszBackupMessage [4096];
+
+          if (update_dlg_backup) {
+            swprintf ( wszBackupMessage,
+                         L"Your old files have been backed up "
+                         L"<a href=\"%s\\Version\\%s\\\">here.</a>",
+                           SK_GetRootPath (),
+                             update_dlg_build );
+          }
+
+          else {
+            swprintf ( wszBackupMessage,
+                         L"Old files have been replaced, please review your "
+                         L"configuration because settings may have changed." );
+          }
+
+          task_cfg.pszContent = wszBackupMessage;
+
+          TaskDialogIndirect ( &task_cfg, nullptr, nullptr, nullptr );
+
+          update_dlg_keep =
+            Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_KEEP_DOWNLOADS));
+
+          if (! update_dlg_keep)
+            DeleteFileW (update_dlg_file);
+
+          // SUCCESS:
+          InterlockedExchange ( &__SK_UpdateStatus, 1 );
+          EndDialog           (  hWndUpdateDlg,     0 );
+          hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+        }
+
+        else {
+          // FAILURE:
+          InterlockedExchange ( &__SK_UpdateStatus, -1 );
+          EndDialog           (  hWndUpdateDlg,      0 );
+          hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+        }
+      }
+
+      return 1;
+    }
+
+    case WM_DESTROY:
+    {
+      hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+      return 0;
+    }
+  }
+
+  return 0;
+}
+
+unsigned int
+__stdcall
+UpdateDlg_Thread (LPVOID user)
+{
+  CreateDialog ( SK_GetDLL (),
+                   MAKEINTRESOURCE (IDD_UPDATE),
+                    GetDesktopWindow (),
+                      Update_DlgProc );
+
+  MSG  msg;
+  BOOL bRet;
+
+  while ((bRet = GetMessage (&msg, NULL, 0, 0)) != 0)
+  {
+    if (bRet == -1) {
+      return 0;
+    }
+
+    TranslateMessage (&msg);
+    DispatchMessage  (&msg);
+  }
+
+  return 0;
 }
 
 HRESULT
@@ -629,6 +937,9 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
                 build.latest.package,
                   &build.latest.in_branch );
 
+  wcscpy ( update_dlg_relnotes,
+            latest_ver.get_value (L"ReleaseNotes").c_str () );
+
   if (build.latest.in_branch > build.installed) {
     wchar_t wszArchiveName [MAX_PATH];
     wsprintf ( wszArchiveName,
@@ -684,10 +995,59 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr))) {
         if (get->status == STATUS_UPDATED) {
-          extern HRESULT
-          SK_Decompress7z (const wchar_t* wszArchive, const wchar_t* wszOldVersion);
+          sk::ParameterFactory ParameterFactory;
 
-          if (SUCCEEDED (SK_Decompress7z (wszUpdateTempFile, wszCurrentBuild)))
+          sk::ParameterBool* backup_pref =
+            (sk::ParameterBool *)
+              ParameterFactory.create_parameter <bool> (L"BackupFiles");
+
+          backup_pref->register_to_ini (
+            &install_ini,
+              L"Update.User",
+                L"BackupFiles" );
+
+          sk::ParameterBool* keep_pref =
+            (sk::ParameterBool *)
+              ParameterFactory.create_parameter <bool> (L"KeepDownloads");
+
+          keep_pref->register_to_ini (
+            &install_ini,
+              L"Update.User",
+                L"KeepDownloads" );
+
+          if (backup_pref->load ())
+            update_dlg_backup = backup_pref->get_value ();
+          else
+            update_dlg_backup = true;
+
+          if (keep_pref->load ())
+            update_dlg_keep = keep_pref->get_value ();
+          else
+            update_dlg_keep = false;
+
+          wcscpy (update_dlg_file,  wszUpdateTempFile);
+          wcscpy (update_dlg_build, wszCurrentBuild);
+
+          InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
+
+          _beginthreadex ( nullptr,
+                             0,
+                               UpdateDlg_Thread,
+                                 nullptr,
+                                   0x00,
+                                     nullptr );
+
+          LONG status = 0;
+
+          while ( ( status =
+                      InterlockedCompareExchange ( &__SK_UpdateStatus,
+                                                     0,
+                                                       0 )
+                  ) == 0
+                )
+            Sleep (15);
+
+          if ( InterlockedCompareExchange ( &__SK_UpdateStatus, 0, 0 ) == 1 )
           {
             if (empty) {
               install_ini.import ( L"[Version.Local]\n"
@@ -695,29 +1055,38 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
                                    L"InstallPackage= \n\n"
 
                                    L"[Update.User]\n"
-                                   L"Frequency=6h\n\n" );
+                                   L"Frequency=6h\n"
+                                   L"BackupFiles=true\n"
+                                   L"KeepDownloads=false\n\n" );
             }
+
+            keep_pref->set_value (update_dlg_keep);
+            keep_pref->store     ();
+
+            backup_pref->set_value (update_dlg_backup);
+            backup_pref->store     ();
 
             installed_ver.get_value (L"InstallPackage") =
               latest_ver.get_value (L"InstallPackage");
 
             // Remove reminder if we successfully install...
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
-            install_ini.write (wszInstallFile);
-
-            MessageBox ( NULL,
-                          L"Upgrade Successful",
-                          L"Please Relaunch Your Game",
-                            MB_OK );
+            install_ini.write       (wszInstallFile);
 
             TerminateProcess (GetCurrentProcess (), 0x00);
 
-            // Obviously this never returns, but compiler OCD is compelling!
+            // Laughably, my own software is designed to prevent
+            //   TerminateProcess (...) in some situations, so this
+            //     fallback is necessary.
+            ExitProcess      (0x00);
+
             return S_OK;
           }
 
-          else
+          // Update Failed
+          else {
             return E_FAIL;
+          }
         }
       }
 

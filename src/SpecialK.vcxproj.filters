@@ -64,6 +64,9 @@
     <Filter Include="Source Files\lzma">
       <UniqueIdentifier>{d0606294-afda-4c24-8ae0-b30ac9bf174a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Update">
+      <UniqueIdentifier>{6c9ee774-936a-4832-8a8a-c4cbf5b9a6f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -185,6 +188,9 @@
     </ClInclude>
     <ClInclude Include="vulkan_backend.h">
       <Filter>Header Files\Backends\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="update\archive.h">
+      <Filter>Header Files\Update</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

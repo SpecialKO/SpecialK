@@ -1234,6 +1234,12 @@ DWORD
 WINAPI
 SK_RaptrWarn (LPVOID user)
 {
+  // Don't check for Raptr while installing something...
+  if (! SK_Path_wcsicmp (SK_GetHostApp (), L"SKIM.exe")) {
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }
+
   HRESULT
   __stdcall
   SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,

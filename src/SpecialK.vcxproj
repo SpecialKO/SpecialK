@@ -64,6 +64,7 @@
     <RootNamespace>SpecialK</RootNamespace>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName />
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -1065,6 +1066,7 @@
     <ClInclude Include="steam_api.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tls.h" />
+    <ClInclude Include="update\archive.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="vulkan_backend.h" />
   </ItemGroup>
