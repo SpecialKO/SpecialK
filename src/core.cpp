@@ -1944,11 +1944,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.central_repository) {
     uint32_t dwLen = MAX_PATH;
 
-    ExpandEnvironmentStringsW (
-      L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\",
-        SK_RootPath,
-          MAX_PATH - 1
-    );
+    if (! wcsstr (SK_GetHostApp (), L"SKIM")) {
+      ExpandEnvironmentStringsW (
+        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\",
+          SK_RootPath,
+            MAX_PATH - 1
+      );
+    } else {
+      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+    }
 
     lstrcatW (wszConfigPath, SK_GetRootPath ());
     lstrcatW (wszConfigPath, L"Profiles\\");
@@ -1956,7 +1960,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   else {
-    lstrcatW (SK_RootPath,   SK_GetHostPath ());
+    if (! wcsstr (SK_GetHostApp (), L"SKIM")) {
+      lstrcatW (SK_RootPath,   SK_GetHostPath ());
+    } else {
+      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+    }
     lstrcatW (wszConfigPath, SK_GetHostPath ());
   }
 
