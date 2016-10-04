@@ -1235,7 +1235,7 @@ WINAPI
 SK_RaptrWarn (LPVOID user)
 {
   // Don't check for Raptr while installing something...
-  if (! SK_Path_wcsicmp (SK_GetHostApp (), L"SKIM.exe")) {
+  if (SK_IsHostAppSKIM ()) {
     CloseHandle (GetCurrentThread ());
     return 0;
   }
