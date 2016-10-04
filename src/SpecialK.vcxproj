@@ -1177,6 +1177,7 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\..\..\..\Downloads\xbox.wav" />
+    <Media Include="..\depends\annoying.wav" />
     <Media Include="..\depends\crash.wav" />
     <Media Include="..\depends\psn_trophy.wav" />
     <Media Include="..\depends\xbox.wav" />

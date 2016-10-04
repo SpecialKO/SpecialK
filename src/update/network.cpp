@@ -279,6 +279,11 @@ HWND hWndRemind    = 0;
 
 #define ID_REMIND 0
 
+struct {
+  HGLOBAL  ref = 0;
+  uint8_t* buf = nullptr;
+} static annoy_sound;
+
 INT_PTR
 CALLBACK
 RemindMeLater_DlgProc (
@@ -293,6 +298,17 @@ RemindMeLater_DlgProc (
   switch (uMsg) {
     case WM_INITDIALOG:
     {
+      HRSRC   default_sound =
+        FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_ANNOYING), L"WAVE");
+
+      if (default_sound != nullptr) {
+        annoy_sound.ref   =
+          LoadResource (SK_GetDLL (), default_sound);
+
+        if (annoy_sound.ref != 0)
+          annoy_sound.buf = (uint8_t *)LockResource (annoy_sound.ref);
+      }
+
       ComboBox_InsertString (hWndNextCheck, 0, L"Next launch");
       ComboBox_InsertString (hWndNextCheck, 1, L"After 15 Minutes");
       ComboBox_InsertString (hWndNextCheck, 2, L"After 1 Hour");
@@ -309,6 +325,11 @@ RemindMeLater_DlgProc (
     {
       if (LOWORD (wParam) == IDOK)
       {
+        PlaySound ( (LPCWSTR)annoy_sound.buf,
+                    nullptr,
+                      SND_SYNC |
+                      SND_MEMORY );
+
         FILETIME                  ftNow;
         GetSystemTimeAsFileTime (&ftNow);
 

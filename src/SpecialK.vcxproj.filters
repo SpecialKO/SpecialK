@@ -505,5 +505,8 @@
     <Media Include="..\depends\xbox.wav">
       <Filter>Resource Files</Filter>
     </Media>
+    <Media Include="..\depends\annoying.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>
