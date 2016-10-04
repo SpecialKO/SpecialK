@@ -26,6 +26,7 @@
 #include "../parameter.h"
 #include "../utility.h"
 
+#include "../core.h"
 #include "../resource.h"
 
 #include "archive.h"
@@ -477,6 +478,8 @@ DownloadDialogCallback (
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_POS,   1,           0L);
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
 
+    SK_RealizeForegroundWindow (hWnd);
+
     return S_OK;
   }
 
@@ -637,6 +640,10 @@ Update_DlgProc (
       Static_SetText (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), wszDownloadSize);
       Static_SetText (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   wszBackupSize);
 
+      // Initiate the update automatically.
+      if (SK_IsHostAppSKIM ())
+        SendMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
+
       return TRUE;
     }
 
@@ -683,7 +690,12 @@ Update_DlgProc (
 
           TASKDIALOG_BUTTON buttons [2];
           buttons [0].nButtonID       = IDOK;
-          buttons [0].pszButtonText   = L"Finish Update\nThe game will automatically exit.";
+
+          if (! SK_IsHostAppSKIM ()) {
+            buttons [0].pszButtonText = L"Finish Update\nThe game will automatically exit.";
+          } else {
+            buttons [0].pszButtonText = L"Finish Install\nSKIM will automatically exit.";
+          }
 
           buttons [1].nButtonID       = 0;
           buttons [1].pszButtonText   = L"View Release Notes";
@@ -691,8 +703,17 @@ Update_DlgProc (
           task_cfg.pButtons           = buttons;
           task_cfg.cButtons           = 2;
 
-          task_cfg.pszWindowTitle     = L"Special K Software Update";
-          task_cfg.pszMainInstruction = L"Software Update Successful";
+          // Regular Software Update
+          if (! SK_IsHostAppSKIM ()) {
+            task_cfg.pszWindowTitle     = L"Special K Software Update";
+            task_cfg.pszMainInstruction = L"Software Update Successful";
+          }
+
+          // Software Installation
+          else {
+            task_cfg.pszWindowTitle     = L"Special K Software Install";
+            task_cfg.pszMainInstruction = L"Software Installation Successful";
+          }
 
           task_cfg.pfCallback =
             []( HWND     hWnd,
@@ -726,30 +747,33 @@ Update_DlgProc (
               return S_OK;
             };
 
-          wchar_t wszBackupMessage [4096];
+          wchar_t wszBackupMessage [4096] = { L'\0' };
 
           extern bool config_files_changed;
 
-          if (update_dlg_backup) {
-            swprintf ( wszBackupMessage,
-                         L"Your old files have been backed up "
-                         L"<a href=\"%s\\Version\\%s\\\">here.</a>\n\n\%s",
-                           SK_GetRootPath (),
-                             update_dlg_build,
-                              config_files_changed ?
-                L"Config files were altered, but your originals "
-                L"have been backed up." :
-                  L"No config files were altered by this release."
-            );
-          }
 
-          else {
-            swprintf ( wszBackupMessage,
-                         L"Existing mod files were overwritten%s",
-                           config_files_changed ?
-                L"; config files were altered, but your originals "
-                L"have been backed up." :
-                  L"; no config files were altered." );
+          if (! SK_IsHostAppSKIM ()) {
+            if (update_dlg_backup) {
+              swprintf ( wszBackupMessage,
+                           L"Your old files have been backed up "
+                           L"<a href=\"%s\\Version\\%s\\\">here.</a>\n\n\%s",
+                             SK_GetRootPath (),
+                               update_dlg_build,
+                                config_files_changed ?
+                  L"Config files were altered, but your originals "
+                  L"have been backed up." :
+                    L"No config files were altered by this release."
+              );
+            }
+
+            else {
+              swprintf ( wszBackupMessage,
+                           L"Existing mod files were overwritten%s",
+                             config_files_changed ?
+                  L"; config files were altered, but your originals "
+                  L"have been backed up." :
+                    L"; no config files were altered." );
+            }
           }
 
           task_cfg.pszContent = wszBackupMessage;
@@ -826,7 +850,11 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   task_config.cbSize             = sizeof (task_config);
   task_config.hInstance          = GetModuleHandle (nullptr);
   task_config.hwndParent         = GetDesktopWindow ();
-  task_config.pszWindowTitle     = L"Special K Auto-Update";
+
+  if (! SK_IsHostAppSKIM ())
+    task_config.pszWindowTitle   = L"Special K Auto-Update";
+  else
+    task_config.pszWindowTitle   = L"Special K Software Install";
 
   TASKDIALOG_BUTTON buttons [3];
 
@@ -846,10 +874,19 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
                                    TDF_CALLBACK_TIMER    | TDF_EXPANDED_BY_DEFAULT | TDF_EXPAND_FOOTER_AREA;
   task_config.pfCallback         = DownloadDialogCallback;
 
-  task_config.pszMainInstruction = L"Software Update Available for Download";
-  task_config.pszMainIcon        = TD_INFORMATION_ICON;
+  if (! SK_IsHostAppSKIM ()) {
+    task_config.pszMainInstruction = L"Software Update Available for Download";
+    task_config.pszMainIcon        = TD_INFORMATION_ICON;
 
-  task_config.pszContent         = L"Would you like to upgrade now?";
+    task_config.pszContent         = L"Would you like to upgrade now?";
+  }
+
+  else {
+    task_config.pszMainInstruction = L"Software Installation Ready to Download";
+    task_config.pszMainIcon        = TD_INFORMATION_ICON;
+
+    task_config.pszContent         = L"Would you like to begin installation now?";
+  }
 
   wchar_t wszRepoFile    [MAX_PATH] = { L'\0' };
   wchar_t wszInstallFile [MAX_PATH] = { L'\0' };

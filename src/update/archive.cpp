@@ -24,6 +24,7 @@
 
 #include "../log.h"
 #include "../utility.h"
+#include "../core.h"
 
 #include <cstdlib>
 #include <cstdint>
@@ -118,6 +119,10 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                   bool                      backup,
                   SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
+  // Don't back stuff up if we're installing :P
+  if (SK_IsHostAppSKIM ())
+    backup = false;
+
   std::vector <sk_file_entry_s> files =
     SK_Get7ZFileContents (wszArchive);
 

@@ -1944,7 +1944,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.central_repository) {
     uint32_t dwLen = MAX_PATH;
 
-    if (! wcsstr (SK_GetHostApp (), L"SKIM")) {
+    if (! SK_IsHostAppSKIM ()) {
       ExpandEnvironmentStringsW (
         L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\",
           SK_RootPath,
@@ -1960,7 +1960,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   else {
-    if (! wcsstr (SK_GetHostApp (), L"SKIM")) {
+    if (! SK_IsHostAppSKIM ()) {
       lstrcatW (SK_RootPath,   SK_GetHostPath ());
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
@@ -2735,6 +2735,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 }
 
 wchar_t host_app [ MAX_PATH + 2 ] = { L'\0' };
+
+bool
+__cdecl
+SK_IsHostAppSKIM (void)
+{
+  return (wcsstr (SK_GetHostApp (), L"SKIM") != nullptr);
+}
 
 const wchar_t*
 SK_GetHostApp (void)

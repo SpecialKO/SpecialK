@@ -176,6 +176,10 @@ void
 __cdecl
 SK_SetDLLRole (DLL_ROLE role);
 
+bool
+__cdecl
+SK_IsHostAppSKIM (void);
+
 enum DLL_ROLE {
   // Graphics APIs
   DXGI       = 0x01, // D3D 10-12
