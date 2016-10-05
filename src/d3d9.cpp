@@ -277,7 +277,13 @@ d3d9_init_callback (finish_pfn finish)
 bool
 SK::D3D9::Startup (void)
 {
-  return SK_StartupCore (L"d3d9", d3d9_init_callback);
+  std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
+
+  bool ret = SK_StartupCore (L"d3d9", d3d9_init_callback);
+
+  SK_ResumeThreads (tids);
+
+  return ret;
 }
 
 bool
@@ -534,8 +540,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   g_pD3D9Dev = This;
 
-  if ( g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX ||
-       GetModuleHandle (L"tsfix.dll") )
+  if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX)
   {
     HRESULT hr =
       D3D9PresentCallbackEx ( (IDirect3DDevice9Ex *)This,
@@ -543,7 +548,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                                   pDestRect,
                                     hDestWindowOverride,
                                       pDirtyRegion,
-     (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX) ? D3DPRESENT_FORCEIMMEDIATE : D3DPRESENT_INTERVAL_ONE |
+                                        D3DPRESENT_FORCEIMMEDIATE |
                                         D3DPRESENT_DONOTWAIT );
 
     return hr;
@@ -1328,7 +1333,7 @@ typedef HRESULT (STDMETHODCALLTYPE *SetVertexShaderConstantF_pfn)
 
 SetVertexShaderConstantF_pfn D3D9SetVertexShaderConstantF_Original = nullptr;
 
-__declspec (dllexport)
+__declspec (noinline)
 COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE
@@ -1521,7 +1526,7 @@ typedef HRESULT (STDMETHODCALLTYPE *SetRenderTarget_pfn)
 
 SetRenderTarget_pfn D3D9SetRenderTarget_Original = nullptr;
 
-__declspec (dllexport)
+__declspec (noinline)
 COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE
@@ -1538,7 +1543,7 @@ typedef HRESULT (STDMETHODCALLTYPE *SetDepthStencilSurface_pfn)
 
 SetDepthStencilSurface_pfn D3D9SetDepthStencilSurface_Original = nullptr;
 
-__declspec (dllexport)
+__declspec (noinline)
 COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE

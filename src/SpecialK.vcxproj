@@ -1069,6 +1069,7 @@
     <ClInclude Include="update\archive.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="vulkan_backend.h" />
+    <ClInclude Include="DLL_VERSION.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\depends\DirectXTex\BC.cpp" />

@@ -325,10 +325,13 @@ RemindMeLater_DlgProc (
     {
       if (LOWORD (wParam) == IDOK)
       {
-        PlaySound ( (LPCWSTR)annoy_sound.buf,
-                    nullptr,
-                      SND_SYNC |
-                      SND_MEMORY );
+        srand (GetCurrentProcessId ());
+
+        if (! (rand () % 2))
+          PlaySound ( (LPCWSTR)annoy_sound.buf,
+                      nullptr,
+                        SND_ASYNC |
+                        SND_MEMORY );
 
         FILETIME                  ftNow;
         GetSystemTimeAsFileTime (&ftNow);
@@ -489,7 +492,7 @@ DownloadDialogCallback (
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED) {
-    ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOW);
+    ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOWMAXIMIZED);
 
     return S_OK;
   }
@@ -675,7 +678,7 @@ Update_DlgProc (
                           L"OPEN",
                             (wchar_t *)update_dlg_file,
                               nullptr, nullptr,
-                                SW_SHOW );
+                                SW_SHOWMAXIMIZED );
 
         InterlockedExchange ( &__SK_UpdateStatus, 1 );
         EndDialog           (  hWndUpdateDlg,     0 );
@@ -751,7 +754,7 @@ Update_DlgProc (
                                     L"OPEN",
                                       (wchar_t *)lParam,
                                         nullptr, nullptr,
-                                          SW_SHOW );
+                                          SW_SHOWMAXIMIZED );
                   break;
 
                 case TDN_BUTTON_CLICKED:
@@ -760,7 +763,7 @@ Update_DlgProc (
                                       L"OPEN",
                                         (wchar_t *)update_dlg_relnotes,
                                           nullptr, nullptr,
-                                            SW_SHOW );
+                                            SW_SHOWMAXIMIZED );
                   }
                   break;
               }
@@ -1040,6 +1043,21 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
       task_config.pszCollapsedControlText = L"Show More Details";
 
       int nButton = 0;
+
+      extern HWND SK_bypass_dialog_hwnd;
+      while (SK_bypass_dialog_hwnd != 0 && IsWindow (SK_bypass_dialog_hwnd)) {
+        MSG  msg;
+        BOOL bRet;
+
+        if ((bRet = GetMessage (&msg, 0, 0, 0)) != 0)
+        {
+          if (bRet == -1)
+            break;
+
+          TranslateMessage (&msg);
+          DispatchMessage  (&msg);
+        }
+      }
 
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr))) {
         if (get->status == STATUS_UPDATED) {

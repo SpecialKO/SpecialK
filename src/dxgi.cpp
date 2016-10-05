@@ -2670,7 +2670,13 @@ SK_FreeRealDXGI (void)
 bool
 SK::DXGI::Startup (void)
 {
-  return SK_StartupCore (L"dxgi", dxgi_init_callback);
+  std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
+
+  bool ret = SK_StartupCore (L"dxgi", dxgi_init_callback);
+
+  SK_ResumeThreads (tids);
+
+  return ret;
 }
 
 extern "C" bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t* backend);

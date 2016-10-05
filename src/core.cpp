@@ -1843,7 +1843,7 @@ HMODULE
 __stdcall
 SK_GetDLL (void);
 
-extern bool __stdcall SK_BypassInject (void);
+extern std::pair <std::queue <DWORD>, bool> __stdcall SK_BypassInject (void);
 
 // Brutal hack that assumes the executable has a .exe extension...
 //   FIXME
@@ -1906,8 +1906,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if ( SK_IsInjected    ()         &&
        GetAsyncKeyState (VK_SHIFT) &&
        GetAsyncKeyState (VK_CONTROL) ) {
-    SK_BypassInject ();
-    return true;
+    std::pair <std::queue <DWORD>, bool> retval =
+      SK_BypassInject ();
+
+    if (retval.second) {
+      SK_ResumeThreads (retval.first);
+      return false;
+    }
+
+    SK_ResumeThreads (retval.first);
   }
 
   else {
@@ -2233,6 +2240,7 @@ SK_ShutdownCore (const wchar_t* backend)
 
 
 
+__declspec (noinline)
 COM_DECLSPEC_NOTHROW
 void
 STDMETHODCALLTYPE
@@ -2668,6 +2676,7 @@ DoKeyboard (void)
 }
 #endif
 
+__declspec (noinline)
 COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE

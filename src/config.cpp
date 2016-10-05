@@ -29,7 +29,9 @@
 #include "log.h"
 #include "steam_api.h"
 
-const wchar_t*       SK_VER_STR = L"0.6.23.1";
+#include "DLL_VERSION.H"
+
+const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
 
 iSK_INI*             dll_ini    = nullptr;
 sk_config_t          config;

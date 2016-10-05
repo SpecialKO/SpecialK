@@ -884,6 +884,8 @@ TaskDialogCallback (
     while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
       Sleep (10);
 
+    SK_bypass_dialog_hwnd = hWnd;
+
     InterlockedIncrementAcquire (&SK_bypass_dialog_active);
   }
 
@@ -895,6 +897,7 @@ TaskDialogCallback (
   }
 
   if (uNotification == TDN_DESTROYED) {
+    SK_bypass_dialog_hwnd = 0;
     InterlockedDecrementRelease (&SK_bypass_dialog_active);
   }
 
@@ -1079,8 +1082,8 @@ SK_ValidateGlobalRTSSProfile (void)
       PROCESS_INFORMATION pinfo = { 0 };
 
       sinfo.cb          = sizeof STARTUPINFO;
-      sinfo.dwFlags     = STARTF_USESHOWWINDOW;
-      sinfo.wShowWindow = SW_SHOWDEFAULT;
+      sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_RUNFULLSCREEN;
+      sinfo.wShowWindow = SW_SHOWNORMAL;
 
       CreateProcess (
         nullptr,
@@ -1093,6 +1096,7 @@ SK_ValidateGlobalRTSSProfile (void)
 
       ResumeThread     (pinfo.hThread);
       TerminateProcess (GetCurrentProcess (), 0x00);
+      ExitProcess      (0x00);
     }
   }
 
@@ -1122,8 +1126,8 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   HWND hWndForeground = GetForegroundWindow ();
 
   task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = GetModuleHandle (nullptr);
-  task_config.hwndParent         = hWndForeground;
+  task_config.hInstance          = nullptr;
+  task_config.hwndParent         = 0;//hWndForeground;
   task_config.pszWindowTitle     = L"Special K Compatibility Layer";
   task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
   task_config.pButtons           = nullptr;
@@ -1134,7 +1138,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
 
   task_config.pszMainInstruction = wszMainInstruction;
 
-  task_config.hwndParent = GetDesktopWindow ();
+  task_config.hwndParent = 0;//GetDesktopWindow ();
 
   task_config.pszMainIcon        = wszMainIcon;
   task_config.pszContent         = wszContent;
@@ -1149,6 +1153,21 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
 
   if (timer)
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
+
+  extern HWND SK_bypass_dialog_hwnd;
+  while (SK_bypass_dialog_hwnd != 0 && IsWindow (SK_bypass_dialog_hwnd)) {
+    MSG  msg;
+    BOOL bRet;
+
+    if ((bRet = GetMessage (&msg, 0, 0, 0)) != 0)
+    {
+      if (bRet == -1)
+        break;
+
+      TranslateMessage (&msg);
+      DispatchMessage  (&msg);
+    }
+  }
 
   HRESULT hr =
     TaskDialogIndirect ( &task_config,
@@ -1181,8 +1200,8 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   HWND hWndForeground = GetForegroundWindow ();
 
   task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = GetModuleHandle (nullptr);
-  task_config.hwndParent         = hWndForeground;
+  task_config.hInstance          = nullptr;//GetModuleHandle (nullptr);
+  task_config.hwndParent         = 0;//hWndForeground;
   task_config.pszWindowTitle     = L"Special K Compatibility Layer";
   task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
 
@@ -1194,14 +1213,15 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   task_config.cButtons           = 1;
 
   task_config.dwFlags            = 0x00;
-  task_config.dwFlags           |= TDF_USE_COMMAND_LINKS;
+  task_config.dwFlags           |= TDF_USE_COMMAND_LINKS | TDF_SIZE_TO_CONTENT |
+                                   TDF_POSITION_RELATIVE_TO_WINDOW;
 
   task_config.pfCallback         = TaskDialogCallback;
   task_config.lpCallbackData     = 0;
 
   task_config.pszMainInstruction = wszMainInstruction;
 
-  task_config.hwndParent = GetDesktopWindow ();
+  task_config.hwndParent = 0;//GetDesktopWindow ();
 
   task_config.pszMainIcon        = wszMainIcon;
   task_config.pszContent         = wszContent;
@@ -1229,6 +1249,14 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
 
   return hr;
 }
+
+enum {
+  SK_BYPASS_UNKNOWN    = 0x0,
+  SK_BYPASS_ACTIVATE   = 0x1,
+  SK_BYPASS_DEACTIVATE = 0x2
+};
+
+volatile LONG SK_BypassResult = SK_BYPASS_UNKNOWN;
 
 DWORD
 WINAPI
@@ -1270,22 +1298,17 @@ SK_RaptrWarn (LPVOID user)
   return 0;
 }
 
+struct sk_bypass_s {
+  BOOL    disable;
+  wchar_t wszBlacklist [MAX_PATH];
+} __bypass;
+
 unsigned int
 __stdcall
 SK_Bypass_CRT (LPVOID user)
 {
-  wchar_t wszBlacklist [MAX_PATH] = { L'\0' };
-
-  lstrcatW (wszBlacklist, L"SpecialK.deny.");
-  lstrcatW (wszBlacklist, SK_GetHostApp ());
-
-  wchar_t* pwszDot = wcsrchr (wszBlacklist, L'.');
-
-  if (pwszDot != nullptr)
-    *pwszDot = L'\0';
-
-  BOOL disable = 
-    (GetFileAttributesW (wszBlacklist) != INVALID_FILE_ATTRIBUTES);
+  BOOL     disable      = __bypass.disable;
+  wchar_t* wszBlacklist = __bypass.wszBlacklist;
 
   HRESULT hr =
   SK_TaskBoxWithConfirm ( L"Special K Injection Compatibility Options",
@@ -1313,42 +1336,80 @@ SK_Bypass_CRT (LPVOID user)
         fflush (      fDeny);
         fclose (      fDeny);
       }
+
+      InterlockedExchange (&SK_BypassResult, SK_BYPASS_ACTIVATE);
     } else {
       DeleteFileW (wszBlacklist);
+      InterlockedExchange (&SK_BypassResult, SK_BYPASS_DEACTIVATE);
     }
   }
 
+  InterlockedExchange (&SK_bypass_dialog_active, 0);
 
-  STARTUPINFO         sinfo = { 0 };
-  PROCESS_INFORMATION pinfo = { 0 };
+  if (disable != __bypass.disable)
+  {
+    STARTUPINFO         sinfo = { 0 };
+    PROCESS_INFORMATION pinfo = { 0 };
 
-  sinfo.cb          = sizeof STARTUPINFO;
-  sinfo.dwFlags     = STARTF_USESHOWWINDOW;
-  sinfo.wShowWindow = SW_SHOWDEFAULT;
+    sinfo.cb          = sizeof STARTUPINFO;
+    sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_RUNFULLSCREEN;
+    sinfo.wShowWindow = SW_SHOWNORMAL;
 
-  CreateProcess (
-    nullptr,
-      (LPWSTR)SK_GetHostApp (),
-        nullptr, nullptr,
-          TRUE,
-            CREATE_SUSPENDED,
-              nullptr, nullptr,
-                &sinfo, &pinfo );
+    CreateProcess (
+      nullptr,
+        (LPWSTR)SK_GetHostApp (),
+          nullptr, nullptr,
+            TRUE,
+              CREATE_SUSPENDED,
+                nullptr, nullptr,
+                  &sinfo, &pinfo );
 
-  ResumeThread     (pinfo.hThread);
-  TerminateProcess (GetCurrentProcess (), 0x00);
+    ResumeThread     (pinfo.hThread);
+    TerminateProcess (GetCurrentProcess (), 0x00);
+    ExitProcess      (0x00);
+  }
 
+  CloseHandle (GetCurrentThread ());
 
   return 0;
 }
 
 #include <process.h>
 
-bool
+std::pair <std::queue <DWORD>, bool>
 __stdcall
 SK_BypassInject (void)
 {
-  _beginthreadex ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
+  std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
 
-  return TRUE;
+  lstrcatW (__bypass.wszBlacklist, L"SpecialK.deny.");
+  lstrcatW (__bypass.wszBlacklist, SK_GetHostApp ());
+
+  wchar_t* pwszDot = wcsrchr (__bypass.wszBlacklist, L'.');
+
+  if (pwszDot != nullptr)
+    *pwszDot = L'\0';
+
+  __bypass.disable = 
+    (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
+
+  HANDLE hThread =
+    (HANDLE)
+      _beginthreadex ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
+
+  MSG  msg;
+  BOOL bRet;
+
+  while (InterlockedCompareExchangeAcquire (&SK_bypass_dialog_active, 0, 0)) {
+    if ((bRet = GetMessage (&msg, 0, 0, 0)) != 0)
+    {
+      if (bRet == -1)
+        break;
+
+      TranslateMessage (&msg);
+      DispatchMessage  (&msg);
+    }
+  }
+
+  return std::make_pair (tids, __bypass.disable);
 }

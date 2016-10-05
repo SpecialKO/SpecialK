@@ -192,6 +192,9 @@
     <ClInclude Include="update\archive.h">
       <Filter>Header Files\Update</Filter>
     </ClInclude>
+    <ClInclude Include="DLL_VERSION.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
