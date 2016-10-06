@@ -88,7 +88,7 @@ DownloadThread (LPVOID user)
       LRESULT
       {
         if (get->hTaskDlg != 0)
-          return SendMessage ( get->hTaskDlg,
+          return PostMessage ( get->hTaskDlg,
                                  Msg,
                                    wParam,
                                      lParam );
@@ -491,9 +491,9 @@ DownloadDialogCallback (
   }
 
   if (uNotification == TDN_DIALOG_CONSTRUCTED) {
-    SendMessage (hWnd, TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, 1));
-    SendMessage (hWnd, TDM_SET_PROGRESS_BAR_POS,   1,           0L);
-    SendMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
+    PostMessage (hWnd, TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, 1));
+    PostMessage (hWnd, TDM_SET_PROGRESS_BAR_POS,   1,           0L);
+    PostMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
 
     SK_RealizeForegroundWindow (hWnd);
 
@@ -561,12 +561,12 @@ DecompressionProgressCallback (int current, int total)
     GetDlgItem (hWndUpdateDlg, IDC_UPDATE_PROGRESS);
 
   if (total != last_total) {
-    SendMessage (hWndProgress, PBM_SETSTATE, PBST_NORMAL, 0UL);
-    SendMessage (hWndProgress, PBM_SETRANGE, 0UL, MAKEWPARAM (0, total));
+    PostMessage (hWndProgress, PBM_SETSTATE, PBST_NORMAL, 0UL);
+    PostMessage (hWndProgress, PBM_SETRANGE, 0UL, MAKEWPARAM (0, total));
     total = last_total;
   }
 
-  SendMessage (hWndProgress, PBM_SETPOS, current, 0UL);
+  PostMessage (hWndProgress, PBM_SETPOS, current, 0UL);
 
   return 0;
 }
@@ -601,9 +601,9 @@ Update_DlgProc (
       HWND hWndProgress =
         GetDlgItem (hWndUpdateDlg, IDC_UPDATE_PROGRESS);
 
-      SendMessage (hWndProgress, PBM_SETRANGE, 0UL,         MAKEWPARAM (0, 1));
-      SendMessage (hWndProgress, PBM_SETPOS,   1,           0UL);
-      SendMessage (hWndProgress, PBM_SETSTATE, PBST_PAUSED, 0UL);
+      PostMessage (hWndProgress, PBM_SETRANGE, 0UL,         MAKEWPARAM (0, 1));
+      PostMessage (hWndProgress, PBM_SETPOS,   1,           0UL);
+      PostMessage (hWndProgress, PBM_SETSTATE, PBST_PAUSED, 0UL);
 
       uint64_t fsize = SK_GetFileSize (update_dlg_file);
 
@@ -659,7 +659,7 @@ Update_DlgProc (
 
       // Initiate the update automatically.
       if (SK_IsHostAppSKIM ())
-        SendMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
+        PostMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
 
       return TRUE;
     }
