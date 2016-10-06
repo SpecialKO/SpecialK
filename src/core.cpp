@@ -1963,6 +1963,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       );
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
+      lstrcatW            (SK_RootPath, L"\\");
     }
 
     lstrcatW (wszConfigPath, SK_GetRootPath ());
@@ -1975,6 +1976,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       lstrcatW (SK_RootPath,   SK_GetHostPath ());
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
+      lstrcatW            (SK_RootPath, L"\\");
     }
     lstrcatW (wszConfigPath, SK_GetHostPath ());
   }
