@@ -1957,34 +1957,29 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     if (! SK_IsHostAppSKIM ()) {
       ExpandEnvironmentStringsW (
-        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\",
+        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
           SK_RootPath,
             MAX_PATH - 1
       );
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
-      lstrcatW            (SK_RootPath, L"\\");
     }
 
     lstrcatW (wszConfigPath, SK_GetRootPath ());
-    lstrcatW (wszConfigPath, L"Profiles\\");
+    lstrcatW (wszConfigPath, L"\\Profiles\\");
     lstrcatW (wszConfigPath, SK_GetHostApp  ());
   }
 
   else {
     if (! SK_IsHostAppSKIM ()) {
       lstrcatW (SK_RootPath,   SK_GetHostPath ());
-      lstrcatW (wszConfigPath, SK_GetHostPath ());
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
-
-      lstrcatW (wszConfigPath, SK_GetRootPath ());
-      lstrcatW (wszConfigPath, L"Profiles\\");
-      lstrcatW (wszConfigPath, SK_GetHostApp  ());
     }
+    lstrcatW (wszConfigPath, SK_GetHostPath ());
   }
 
-  //lstrcatW (SK_RootPath,   L"\\");
+  lstrcatW (SK_RootPath,   L"\\");
   lstrcatW (wszConfigPath, L"\\");
 
   SK_CreateDirectories (wszConfigPath);
