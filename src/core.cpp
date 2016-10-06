@@ -907,17 +907,19 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
-
-  if (SK_LoadConfig (config_name)) {
-    dll_log.LogEx (false, L"done!\n");
-  } else {
+  if (! SK_IsHostAppSKIM ()) {
     dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
-    dll_log.LogEx (false, L"failed!\n");
-    // If no INI file exists, write one immediately.
-    dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
-    SK_SaveConfig (config_name);
-    dll_log.LogEx (false, L"done!\n");
+
+    if (SK_LoadConfig (config_name)) {
+      dll_log.LogEx (false, L"done!\n");
+    } else {
+      dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+      dll_log.LogEx (false, L"failed!\n");
+      // If no INI file exists, write one immediately.
+      dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
+      SK_SaveConfig (config_name);
+      dll_log.LogEx (false, L"done!\n");
+    }
   }
 
   if (config.system.central_repository) {
@@ -1457,7 +1459,8 @@ DllThread_CRT (LPVOID user)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  SK_SaveConfig (config_name);
+  if (! SK_IsHostAppSKIM ())
+    SK_SaveConfig (config_name);
 
   // For the global injector, when not started by SKIM, check its version
   if (SK_IsInjected () && (! SK_IsHostAppSKIM ()))
