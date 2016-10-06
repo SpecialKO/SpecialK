@@ -1974,14 +1974,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   else {
     if (! SK_IsHostAppSKIM ()) {
       lstrcatW (SK_RootPath,   SK_GetHostPath ());
+      lstrcatW (wszConfigPath, SK_GetHostPath ());
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
-      lstrcatW            (SK_RootPath, L"\\");
+
+      lstrcatW (wszConfigPath, SK_GetRootPath ());
+      lstrcatW (wszConfigPath, L"Profiles\\");
+      lstrcatW (wszConfigPath, SK_GetHostApp  ());
     }
-    lstrcatW (wszConfigPath, SK_GetHostPath ());
   }
 
-  lstrcatW (SK_RootPath,   L"\\");
+  //lstrcatW (SK_RootPath,   L"\\");
   lstrcatW (wszConfigPath, L"\\");
 
   SK_CreateDirectories (wszConfigPath);
