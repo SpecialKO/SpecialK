@@ -410,7 +410,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
       CloseHandle (hOutFile);
 
-      if ( GetFileAttributes (wszDefaultConfig)  == INVALID_FILE_ATTRIBUTES ||
+      if ( GetFileAttributes (wszUserConfig)     == INVALID_FILE_ATTRIBUTES ||
+           GetFileAttributes (wszDefaultConfig)  == INVALID_FILE_ATTRIBUTES ||
              SK_GetFileCRC32C (wszDefaultConfig) !=
              SK_GetFileCRC32C (wszNewConfig)         )
       {
