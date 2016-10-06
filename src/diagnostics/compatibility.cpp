@@ -865,14 +865,14 @@ TaskDialogCallback (
 )
 {
   if (uNotification == TDN_TIMER) {
-    DWORD dwProcId;
-    DWORD dwThreadId =
-      GetWindowThreadProcessId (GetForegroundWindow (), &dwProcId);
+    //DWORD dwProcId;
+    //DWORD dwThreadId =
+      //GetWindowThreadProcessId (GetForegroundWindow (), &dwProcId);
 
-    if (dwProcId == GetCurrentProcessId ()) {
+    //if (dwProcId == GetCurrentProcessId ()) {
       extern DWORD WINAPI SK_RealizeForegroundWindow (HWND);
       SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
-    }
+    //}
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED) {
@@ -1004,8 +1004,8 @@ SK_ValidateGlobalRTSSProfile (void)
   int idx = 0;
 
   task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = GetModuleHandle (nullptr);
-  task_config.hwndParent         = GetForegroundWindow ();
+  task_config.hInstance          = SK_GetDLL ();
+  task_config.hwndParent         = GetActiveWindow ();
   task_config.pszWindowTitle     = L"Special K Compatibility Layer";
   task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
   task_config.pButtons           = nullptr;
@@ -1126,8 +1126,8 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   HWND hWndForeground = GetForegroundWindow ();
 
   task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = nullptr;
-  task_config.hwndParent         = 0;//hWndForeground;
+  task_config.hInstance          = SK_GetDLL ();
+  task_config.hwndParent         = GetActiveWindow ();
   task_config.pszWindowTitle     = L"Special K Compatibility Layer";
   task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
   task_config.pButtons           = nullptr;
@@ -1137,8 +1137,6 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   task_config.lpCallbackData     = 0;
 
   task_config.pszMainInstruction = wszMainInstruction;
-
-  task_config.hwndParent = 0;//GetDesktopWindow ();
 
   task_config.pszMainIcon        = wszMainIcon;
   task_config.pszContent         = wszContent;
@@ -1200,8 +1198,7 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   HWND hWndForeground = GetForegroundWindow ();
 
   task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = nullptr;//GetModuleHandle (nullptr);
-  task_config.hwndParent         = 0;//hWndForeground;
+  task_config.hInstance          = SK_GetDLL ();
   task_config.pszWindowTitle     = L"Special K Compatibility Layer";
   task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
 
@@ -1221,7 +1218,7 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
 
   task_config.pszMainInstruction = wszMainInstruction;
 
-  task_config.hwndParent = 0;//GetDesktopWindow ();
+  task_config.hwndParent         = GetActiveWindow ();
 
   task_config.pszMainIcon        = wszMainIcon;
   task_config.pszContent         = wszContent;

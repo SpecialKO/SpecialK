@@ -1459,7 +1459,8 @@ DllThread_CRT (LPVOID user)
 
   SK_SaveConfig (config_name);
 
-  if (SK_IsInjected ())
+  // For the global injector, when not started by SKIM, check its version
+  if (SK_IsInjected () && (! SK_IsHostAppSKIM ()))
     _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
   return 0;

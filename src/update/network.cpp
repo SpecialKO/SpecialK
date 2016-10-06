@@ -474,14 +474,7 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    DWORD dwProcId;
-    DWORD dwThreadId =
-      GetWindowThreadProcessId (GetForegroundWindow (), &dwProcId);
-
-    if ( dwProcId               == GetCurrentProcessId () &&
-         GetForegroundWindow () != GetDesktopWindow    () ) {
-      SK_RealizeForegroundWindow (hWnd);
-    }
+    SK_RealizeForegroundWindow (hWnd);
 
     if ( get->status == STATUS_UPDATED   ||
          get->status == STATUS_CANCELLED ||
@@ -873,7 +866,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   task_config.cbSize             = sizeof (task_config);
   task_config.hInstance          = GetModuleHandle (nullptr);
-  task_config.hwndParent         = GetDesktopWindow ();
+  task_config.hwndParent         = GetActiveWindow ();
 
   if (! SK_IsHostAppSKIM ())
     task_config.pszWindowTitle   = L"Special K Auto-Update";
@@ -895,7 +888,8 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   task_config.nDefaultButton     = 0;
 
   task_config.dwFlags            = TDF_ENABLE_HYPERLINKS | TDF_SHOW_PROGRESS_BAR   | TDF_SIZE_TO_CONTENT |
-                                   TDF_CALLBACK_TIMER    | TDF_EXPANDED_BY_DEFAULT | TDF_EXPAND_FOOTER_AREA;
+                                   TDF_CALLBACK_TIMER    | TDF_EXPANDED_BY_DEFAULT | TDF_EXPAND_FOOTER_AREA |
+                                   TDF_POSITION_RELATIVE_TO_WINDOW;
   task_config.pfCallback         = DownloadDialogCallback;
 
   if (! SK_IsHostAppSKIM ()) {

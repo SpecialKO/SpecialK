@@ -489,6 +489,7 @@
     </None>
     <None Include="..\version.ini" />
     <None Include="..\installer.dll" />
+    <None Include="..\installer64.dll" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

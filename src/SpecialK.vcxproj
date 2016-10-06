@@ -1170,6 +1170,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\installer.dll" />
+    <None Include="..\installer64.dll" />
     <None Include="..\version.ini" />
     <None Include="d3d9.def" />
   </ItemGroup>
