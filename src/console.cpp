@@ -23,7 +23,7 @@
 #include "console.h"
 #include "core.h"
 
-#include <stdint.h>
+#include <stdint.h>>
 
 #include <string>
 #include "steam_api.h"

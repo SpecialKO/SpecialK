@@ -412,8 +412,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
       if ( GetFileAttributes (wszUserConfig)     == INVALID_FILE_ATTRIBUTES ||
            GetFileAttributes (wszDefaultConfig)  == INVALID_FILE_ATTRIBUTES ||
-             SK_GetFileCRC32C (wszDefaultConfig) !=
-             SK_GetFileCRC32C (wszNewConfig)         )
+             SK_GetFileCRC32C (wszDefaultConfig, nullptr) !=
+             SK_GetFileCRC32C (wszNewConfig,     nullptr)         )
       {
         if (GetFileAttributes (wszUserConfig) != INVALID_FILE_ATTRIBUTES)
           config_files_changed = true;

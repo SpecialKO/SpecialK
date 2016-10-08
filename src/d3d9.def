@@ -485,6 +485,10 @@ SK_SelfDestruct          = SK_SelfDestruct          @435
 SK_FetchVersionInfo      = SK_FetchVersionInfo      @475
 SK_UpdateSoftware        = SK_UpdateSoftware        @476
 
+SK_GetFileCRC32          = SK_GetFileCRC32          @480
+SK_GetFileCRC32C         = SK_GetFileCRC32C         @481
+SK_GetFileHash_32        = SK_GetFileHash_32        @482
+
 QueryPerformanceCounter_Detour = QueryPerformanceCounter_Detour @410
 Sleep_Detour                   = Sleep_Detour                   @411
 GetAsyncKeyState_Detour        = GetAsyncKeyState_Detour        @412

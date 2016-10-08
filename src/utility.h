@@ -80,10 +80,13 @@ SK_wcsrep ( const wchar_t*   wszIn,
             const wchar_t*   wszOld,
             const wchar_t*   wszNew );
 
+typedef void (__stdcall *SK_HashProgressCallback_pfn)(uint64_t current, uint64_t total);
 
-uint64_t __stdcall SK_GetFileSize   (const wchar_t* wszFile);
-uint32_t __stdcall SK_GetFileCRC32  (const wchar_t* wszFile);
-uint32_t __stdcall SK_GetFileCRC32C (const wchar_t* wszFile);
+uint64_t __stdcall SK_GetFileSize   ( const wchar_t* wszFile );
+uint32_t __stdcall SK_GetFileCRC32  ( const wchar_t* wszFile,
+                         SK_HashProgressCallback_pfn callback = nullptr );
+uint32_t __stdcall SK_GetFileCRC32C ( const wchar_t* wszFile,
+                         SK_HashProgressCallback_pfn callback = nullptr );
 
 
 const wchar_t*

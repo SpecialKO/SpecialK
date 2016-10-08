@@ -1522,6 +1522,8 @@ SK_GetFileSize (const wchar_t* wszFile)
   return uli.QuadPart;
 }
 
+typedef void (__stdcall *SK_HashProgressCallback_pfn)(uint64_t current, uint64_t total);
+
 enum sk_hash_algo {
   SK_NO_HASH    = 0x0,
 
@@ -1539,7 +1541,7 @@ enum sk_hash_algo {
 
 uint32_t
 __stdcall
-SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile)
+SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile, SK_HashProgressCallback_pfn callback = nullptr)
 {
   uint32_t _hash32 = 0UL;
 
@@ -1604,8 +1606,10 @@ SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile)
             _hash32 = crc32c ( _hash32, buf, dwReadChunk );
             break;
         }
-
         qwReadTotal += dwReadChunk;
+
+        if (callback != nullptr)
+          callback (qwReadTotal, size);
       } while ( qwReadTotal < size && dwReadChunk > 0 );
 
       CloseHandle (hFile);
@@ -1622,16 +1626,18 @@ SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile)
 
 uint32_t
 __stdcall
-SK_GetFileCRC32 (const wchar_t* wszFile)
+SK_GetFileCRC32 (const wchar_t* wszFile, SK_HashProgressCallback_pfn callback)
 {
-  return SK_GetFileHash_32 (SK_CRC32_KAL, wszFile);
+  return SK_GetFileHash_32 (SK_CRC32_KAL, wszFile, callback);
 }
 
 uint32_t
 __stdcall
-SK_GetFileCRC32C (const wchar_t* wszFile)
+SK_GetFileCRC32C (const wchar_t* wszFile, SK_HashProgressCallback_pfn callback)
 {
-  return SK_GetFileHash_32 (SK_CRC32C, wszFile);
+  __crc32_init ();
+
+  return SK_GetFileHash_32 (SK_CRC32C, wszFile, callback);
 }
 
 void

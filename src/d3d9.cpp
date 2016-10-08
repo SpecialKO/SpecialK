@@ -1634,10 +1634,14 @@ D3DPRESENT_PARAMETERS*
 WINAPI
 SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pparams)
 {
-  memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    if (pparams != nullptr) {
+      if (config.render.d3d9.force_fullscreen)
+        pparams->Windowed = FALSE;
 
-  if (config.render.d3d9.force_fullscreen)
-    pparams->Windowed = FALSE;
+      memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
+    }
+  }
 
   return pparams;
 }
@@ -1856,6 +1860,8 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
     SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
 
     MH_ApplyQueued          ();
+
+    (*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
   }
 
   return ret;
@@ -2099,6 +2105,8 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
 
     SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
     SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
+
+    (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
 
     MH_ApplyQueued          ();
   }
