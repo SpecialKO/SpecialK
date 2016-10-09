@@ -1136,12 +1136,8 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
             install_ini.write       (wszInstallFile);
 
-            TerminateProcess (GetCurrentProcess (), 0x00);
-
-            // Laughably, my own software is designed to prevent
-            //   TerminateProcess (...) in some situations, so this
-            //     fallback is necessary.
-            ExitProcess      (0x00);
+            extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
+            SK_TerminateParentProcess (0x00);
 
             return S_OK;
           }

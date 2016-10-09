@@ -39,6 +39,17 @@ typedef BOOL (WINAPI *TerminateProcess_pfn)(HANDLE hProcess, UINT uExitCode);
 TerminateProcess_pfn TerminateProcess_Original = nullptr;
 
 BOOL
+__stdcall
+SK_TerminateParentProcess (UINT uExitCode)
+{
+  if (TerminateProcess_Original != nullptr) {
+    return TerminateProcess_Original (GetCurrentProcess (), uExitCode);
+  } else {
+    return TerminateProcess (GetCurrentProcess (), uExitCode);
+  }
+}
+
+BOOL
 WINAPI
 TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
 {

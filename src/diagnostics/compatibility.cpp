@@ -1095,8 +1095,9 @@ SK_ValidateGlobalRTSSProfile (void)
                     &sinfo, &pinfo );
 
       ResumeThread     (pinfo.hThread);
-      TerminateProcess (GetCurrentProcess (), 0x00);
-      ExitProcess      (0x00);
+
+      extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
+      SK_TerminateParentProcess (0x00);
     }
   }
 
@@ -1362,8 +1363,9 @@ SK_Bypass_CRT (LPVOID user)
                   &sinfo, &pinfo );
 
     ResumeThread     (pinfo.hThread);
-    TerminateProcess (GetCurrentProcess (), 0x00);
-    ExitProcess      (0x00);
+
+    extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
+    SK_TerminateParentProcess (0x00);
   }
 
   CloseHandle (GetCurrentThread ());
