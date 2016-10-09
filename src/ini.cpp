@@ -866,7 +866,6 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
 
   for (wchar_t* k = key; k < end; k = CharNextW (k)) {
     if (k < penultimate && *k == L'=') {
-
       wchar_t*    key_str = new    wchar_t    [k - key + 1];
       ZeroMemory (key_str, sizeof (wchar_t) * (k - key + 1));
 
@@ -880,6 +879,11 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
           key = CharNextW (l);
             k = key;
 
+          if (l == end) {
+            l = CharNextW (l);
+            k = end;
+          }
+
              wchar_t* val_str = new    wchar_t [   l - value + 1];
           ZeroMemory (val_str, sizeof (wchar_t) * (l - value + 1));
 
@@ -891,7 +895,7 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
           section.add_key_value (key_str, val_str);
 
           delete [] val_str;
-          l = end;
+          l = end + 1;
         }
       }
 
@@ -1055,7 +1059,7 @@ iSK_INI::parse (void)
         }
 
         iSK_INISection section =
-          Process_Section (sec_name, start, CharPrevW (start, finish));
+          Process_Section (sec_name, start, finish);
 
         sections.insert (
           std::pair <std::wstring, iSK_INISection> (
@@ -1192,7 +1196,7 @@ iSK_INI::import (const wchar_t* import_data)
         // Insert otherwise
         else {
           iSK_INISection section =
-            Process_Section (sec_name, start, CharPrevW (start, finish));
+            Process_Section (sec_name, start, finish);
 
           sections.insert (
             std::pair <std::wstring, iSK_INISection> (
