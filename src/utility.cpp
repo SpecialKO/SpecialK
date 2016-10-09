@@ -108,8 +108,7 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_CreateDirectories ( const wchar_t* wszPath )
 {
-  wchar_t* wszSubDir = _wcsdup (wszPath), *iter;
-
+  wchar_t* wszSubDir        = _wcsdup (wszPath), *iter;
   wchar_t* wszLastSlash     = wcsrchr (wszSubDir, L'/');
   wchar_t* wszLastBackslash = wcsrchr (wszSubDir, L'\\');
 
@@ -122,7 +121,7 @@ SK_CreateDirectories ( const wchar_t* wszPath )
     return false;
   }
 
-  for (iter = wszSubDir; *iter != L'\0'; ++iter) {
+  for (iter = wszSubDir; *iter != L'\0'; iter = CharNextW (iter)) {
     if (*iter == L'\\' || *iter == L'/') {
       *iter = L'\0';
 
@@ -164,20 +163,31 @@ SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
 bool
 SK_IsTrue (const wchar_t* string)
 {
-  if (std::wstring (string).length () == 1 &&
-    string [0] == L'1')
+  const wchar_t* pstr = string;
+
+  if ( std::wstring (string).length () == 1 &&
+                                 *pstr == L'1' )
     return true;
 
   if (std::wstring (string).length () != 4)
     return false;
 
-  if (towlower (string [0]) != L't')
+  if (towlower (*pstr) != L't')
     return false;
-  if (towlower (string [1]) != L'r')
+
+  pstr = CharNextW (pstr);
+
+  if (towlower (*pstr) != L'r')
     return false;
-  if (towlower (string [2]) != L'u')
+
+  pstr = CharNextW (pstr);
+
+  if (towlower (*pstr) != L'u')
     return false;
-  if (towlower (string [3]) != L'e')
+
+  pstr = CharNextW (pstr);
+
+  if (towlower (*pstr) != L'e')
     return false;
 
   return true;
@@ -189,26 +199,30 @@ SK_FullCopy (std::wstring from, std::wstring to)
 {
   // Strip Read-Only
   SK_SetNormalFileAttribs (to);
-  DeleteFile (to.c_str ());
+
+  DeleteFile (to.c_str   ());
   CopyFile   (from.c_str (), to.c_str (), FALSE);
 
   WIN32_FIND_DATA FromFileData;
   HANDLE hFrom = FindFirstFile (from.c_str (), &FromFileData);
 
-  OFSTRUCT ofTo;
-  ofTo.cBytes = sizeof (OFSTRUCT);
+  HANDLE hTo =
+    CreateFile ( to.c_str (),
+                   GENERIC_READ      | GENERIC_WRITE,
+                     FILE_SHARE_READ | FILE_SHARE_WRITE,
+                       nullptr,
+                         OPEN_EXISTING,
+                           GetFileAttributes (to.c_str ()),
+                             nullptr );
 
-  char     szFileTo [MAX_PATH];
+  // Here's where the magic happens, apply the attributes from the
+  //   original file to the new one!
+  SetFileTime ( hTo,
+                  &FromFileData.ftCreationTime,
+                    &FromFileData.ftLastAccessTime,
+                      &FromFileData.ftLastWriteTime );
 
-  WideCharToMultiByte (CP_OEMCP, 0, to.c_str (), -1, szFileTo, MAX_PATH, NULL, NULL);
-  HFILE hfTo = OpenFile (szFileTo, &ofTo, NULL);
-
-
-  HANDLE hTo = HandleToHandle64 (&hfTo);
   CloseHandle (hTo);
-
-  // Here's where the magic happens, apply the attributes from the original file to the new one!
-  SetFileTime (hTo, &FromFileData.ftCreationTime, &FromFileData.ftLastAccessTime, &FromFileData.ftLastWriteTime);
 
   FindClose   (hFrom);
 }
@@ -923,10 +937,12 @@ SK_GetModuleName (HMODULE hDll)
 
   GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
 
-  const wchar_t* wszShort = wcsrchr (wszDllFullName, L'\\') + 1;
+  const wchar_t* wszShort = wcsrchr (wszDllFullName, L'\\');
 
-  if ((uintptr_t)wszShort == (sizeof (wchar_t)))
+  if (wszShort == nullptr)
     wszShort = wszDllFullName;
+  else
+    wszShort = CharNextW (wszShort);
 
   return wszShort;
 }
@@ -1257,20 +1273,21 @@ SK_Path_wcsicmp (const wchar_t* wszStr1, const wchar_t* wszStr2)
 const wchar_t*
 SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr)
 {
-  int len = 0;
+             int len     = 0;
+  const wchar_t* pwszStr = wszStr;
 
-  for (len = 0; len < MAX_PATH; ++len) {
-    if (wszStr [len] == L'\0')
+  for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr)) {
+    if (*pwszStr == L'\0')
       break;
   }
 
-  const wchar_t* wszSearch = &wszStr [len];
+  const wchar_t* wszSearch = pwszStr;
 
   while (wszSearch >= wszStr) {
     if (*wszSearch == wchr)
       break;
 
-    --wszSearch;
+    wszSearch = CharPrevW (wszStr, wszSearch);
   }
 
   return (wszSearch < wszStr) ?

@@ -1861,7 +1861,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
 
     MH_ApplyQueued          ();
 
-    (*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
+    //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
   }
 
   return ret;
@@ -2106,7 +2106,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
     SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
 
-    (*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
+    //(*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
 
     MH_ApplyQueued          ();
   }
