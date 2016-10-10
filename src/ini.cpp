@@ -1311,12 +1311,13 @@ iSK_INI::write (const wchar_t* fname)
       TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-8"), fname, ret);
       break;
 
-    case INI_UTF16LE:
+    // Cannot preserve this, consider adding a byte-swap on file close
+    case INI_UTF16BE:
       TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
       break;
 
-    // Cannot preserve this, consider adding a byte-swap on file close
-    case INI_UTF16BE:
+    default:
+    case INI_UTF16LE:
       TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
       break;
   }
