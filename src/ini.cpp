@@ -738,7 +738,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     // First, consider Unicode
     // UTF16-LE  (All is well in the world)
     if (*wszData == 0xFEFF) {
-      ++wszData;
+      ++wszData; // Skip the BOM
+
+      encoding_ = INI_UTF16LE;
     }
 
     // UTF16-BE  (Somehow we are swapped)
@@ -753,7 +755,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
         *wszSwapMe++ = _byteswap_ushort (*wszSwapMe);
       }
 
-      ++wszData;
+      ++wszData; // Skip the BOM
+
+      encoding_ = INI_UTF16BE;
     }
 
     // Something else, if it's ANSI or UTF-8, let's hope Windows can figure
@@ -807,6 +811,8 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
       // No Byte-Order Marker
       alloc = wszData;
+
+      encoding_ = INI_UTF8;
     }
 
     parse ();
@@ -1300,7 +1306,20 @@ iSK_INI::write (const wchar_t* fname)
   // Strip Read-Only
   /////////AD_SetNormalFileAttribs (fname);
 
-  TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
+  switch (encoding_) {
+    case INI_UTF8:
+      TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-8"), fname, ret);
+      break;
+
+    case INI_UTF16LE:
+      TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
+      break;
+
+    // Cannot preserve this, consider adding a byte-swap on file close
+    case INI_UTF16BE:
+      TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
+      break;
+  }
   //fOut = _wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO);
 
   if (ret != 0 || fOut == 0) {

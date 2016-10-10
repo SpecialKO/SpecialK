@@ -102,6 +102,14 @@ private:
   std::vector <std::wstring>
             ordered_sections;
 
+  // Preserve File Encoding
+  enum CharacterEncoding {
+    INI_INVALID = 0x00,
+    INI_UTF8    = 0x01,
+    INI_UTF16LE = 0x02,
+    INI_UTF16BE = 0x04 // Not natively supported, but can be converted
+  } encoding_;
+
   ULONG     refs;
 };
 
