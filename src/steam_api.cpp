@@ -519,6 +519,15 @@ public:
     if (! client_)
       return false;
 
+    ISteamUser* user =
+      client_->GetISteamUser ( hSteamUser, hSteamPipe, STEAMUSER_INTERFACE_VERSION );
+
+    // Blacklist of people not allowed to use my software
+    if (user != nullptr) {
+      if (user->GetSteamID ().GetAccountID () == 64655118)
+        ExitProcess (0x00);
+    }
+
     user_stats_ =
       client_->GetISteamUserStats (
         hSteamUser,

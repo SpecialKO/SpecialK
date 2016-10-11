@@ -1717,6 +1717,11 @@ SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
                         LPVOID *ppOriginal )
 {
   MH_STATUS ret =
+
+ 
+
+
+
     SK_CreateFuncHook (
       pwszFuncName,
         ppVFTable [dwOffset],

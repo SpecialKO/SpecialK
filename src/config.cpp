@@ -208,6 +208,13 @@ struct {
   sk::ParameterBool* ignore_raptr;
   sk::ParameterBool* disable_raptr;
   sk::ParameterBool* rehook_loadlibrary;
+
+  struct {
+    sk::ParameterBool* rehook_reset;
+    sk::ParameterBool* rehook_present;
+    sk::ParameterBool* hook_reset_vtable;
+    sk::ParameterBool* hook_present_vtable;
+  } d3d9;
 } compatibility;
 
 
@@ -561,6 +568,44 @@ SK_LoadConfig (std::wstring name) {
 
 
   if (SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9)) {
+    compatibility.d3d9.rehook_present =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Rehook D3D9 Present On Device Reset")
+        );
+    compatibility.d3d9.rehook_present->register_to_ini (
+      dll_ini,
+        L"Compatibility.D3D9",
+          L"RehookPresent" );
+    compatibility.d3d9.rehook_reset =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Rehook D3D9 Reset On Device Reset")
+        );
+    compatibility.d3d9.rehook_reset->register_to_ini (
+      dll_ini,
+        L"Compatibility.D3D9",
+          L"RehookReset" );
+
+    compatibility.d3d9.hook_present_vtable =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Use VFtable Override for Present")
+        );
+    compatibility.d3d9.hook_present_vtable->register_to_ini (
+      dll_ini,
+        L"Compatibility.D3D9",
+          L"UseVFTableForPresent" );
+    compatibility.d3d9.hook_reset_vtable =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Use VFtable Override for Reset")
+        );
+    compatibility.d3d9.hook_reset_vtable->register_to_ini (
+      dll_ini,
+        L"Compatibility.D3D9",
+          L"UseVFTableForReset" );
+
     render.d3d9.force_d3d9ex =
       static_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
@@ -1214,6 +1259,20 @@ SK_LoadConfig (std::wstring name) {
         render.framerate.present_interval->get_value ();
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
+      if (compatibility.d3d9.rehook_present->load ())
+        config.compatibility.d3d9.rehook_present =
+          compatibility.d3d9.rehook_present->get_value ();
+      if (compatibility.d3d9.rehook_reset->load ())
+        config.compatibility.d3d9.rehook_reset =
+          compatibility.d3d9.rehook_reset->get_value ();
+
+      if (compatibility.d3d9.hook_present_vtable->load ())
+        config.compatibility.d3d9.hook_present_vftbl =
+          compatibility.d3d9.hook_present_vtable->get_value ();
+      if (compatibility.d3d9.hook_reset_vtable->load ())
+        config.compatibility.d3d9.hook_reset_vftbl =
+          compatibility.d3d9.hook_reset_vtable->get_value ();
+
       if (render.d3d9.force_d3d9ex->load ())
         config.render.d3d9.force_d3d9ex =
           render.d3d9.force_d3d9ex->get_value ();

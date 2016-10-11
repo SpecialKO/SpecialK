@@ -266,7 +266,14 @@ struct sk_config_t
   struct {
     bool    ignore_raptr        = false;
     bool    disable_raptr       = false;
-    bool    rehook_loadlibrary  = true;
+    bool    rehook_loadlibrary  = false;
+
+    struct {
+      bool  rehook_reset        = false;
+      bool  rehook_present      = false;
+      bool  hook_reset_vftbl    = false;
+      bool  hook_present_vftbl  = false;
+    } d3d9;
   } compatibility;
 
   struct {

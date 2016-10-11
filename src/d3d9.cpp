@@ -899,7 +899,9 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   void** vftable = *(void***)*&pDev;
 
   if (D3D9Reset_Original != nullptr) {
-    if (config.render.d3d9.hook_type == 0) {
+    if ( config.render.d3d9.hook_type == 0              &&
+         (! config.compatibility.d3d9.hook_reset_vftbl) &&
+            config.compatibility.d3d9.rehook_reset ) {
       //dll_log.Log (L"Rehooking IDirect3DDevice9::Present (...)");
 
       if (MH_OK == SK_RemoveHook (vftable [16]))
@@ -913,13 +915,21 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
     }
   }
 
-  D3D9_INTERCEPT ( &pDev, 16,
-                   "IDirect3DDevice9::Reset",
-                    D3D9Reset_Override,
-                    D3D9Reset_Original,
-                    D3D9Reset_pfn );
+  int hook_type = config.render.d3d9.hook_type;
 
-  vftable_16 = vftable [16];
+  if (config.compatibility.d3d9.hook_reset_vftbl)
+    config.render.d3d9.hook_type = 1;
+
+  if (D3D9Reset_Original == nullptr || config.compatibility.d3d9.rehook_reset) {
+    D3D9_INTERCEPT ( &pDev, 16,
+                     "IDirect3DDevice9::Reset",
+                      D3D9Reset_Override,
+                      D3D9Reset_Original,
+                      D3D9Reset_pfn );
+    vftable_16 = vftable [16];
+  }
+
+  config.render.d3d9.hook_type = hook_type;
 
   //
   // D3D9Ex Specific Stuff
@@ -932,7 +942,9 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
     vftable = *(void***)*&pDevEx;
 
     if (D3D9ResetEx_Original != nullptr) {
-      if (config.render.d3d9.hook_type == 0) {
+      if ( config.render.d3d9.hook_type == 0              &&
+           (! config.compatibility.d3d9.hook_reset_vftbl) &&
+              config.compatibility.d3d9.rehook_reset ) {
         //dll_log.Log (L"Rehooking IDirect3DDevice9Ex::ResetEx (...)");
 
         if (MH_OK == SK_RemoveHook (vftable [132]))
@@ -946,13 +958,20 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
       }
     }
 
-    D3D9_INTERCEPT ( &pDevEx, 132,
-                    "IDirect3DDevice9Ex::ResetEx",
-                     D3D9ResetEx,
-                     D3D9ResetEx_Original,
-                     D3D9ResetEx_pfn );
+    if (config.compatibility.d3d9.hook_reset_vftbl)
+      config.render.d3d9.hook_type = 1;
 
-    vftable_132 = vftable [132];
+  if (D3D9ResetEx_Original == nullptr || config.compatibility.d3d9.rehook_reset) {
+      D3D9_INTERCEPT ( &pDevEx, 132,
+                      "IDirect3DDevice9Ex::ResetEx",
+                      D3D9ResetEx,
+                      D3D9ResetEx_Original,
+                      D3D9ResetEx_pfn );
+
+      vftable_132 = vftable [132];
+    }
+
+    config.render.d3d9.hook_type = hook_type;
   }
 }
 
@@ -966,7 +985,9 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   void** vftable = *(void***)*&pDev;
 
   if (D3D9Present_Original != nullptr) {
-    if (config.render.d3d9.hook_type == 0) {
+    if ( config.render.d3d9.hook_type == 0                &&
+         (! config.compatibility.d3d9.hook_present_vftbl) &&
+            config.compatibility.d3d9.rehook_present ) {
       //dll_log.Log (L"Rehooking IDirect3DDevice9::Present (...)");
 
       if (MH_OK == SK_RemoveHook (vftable [17]))
@@ -980,13 +1001,22 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
     }
   }
 
-  D3D9_INTERCEPT ( &pDev, 17,
-                   "IDirect3DDevice9::Present",
-                    D3D9PresentCallback,
-                    D3D9Present_Original,
-                    D3D9PresentDevice_pfn );
+  int hook_type = config.render.d3d9.hook_type;
 
-  vftable_17 = vftable [17];
+  if (config.compatibility.d3d9.hook_present_vftbl)
+    config.render.d3d9.hook_type = 1;
+
+  if (D3D9Present_Original == nullptr || config.compatibility.d3d9.rehook_present) {
+    D3D9_INTERCEPT ( &pDev, 17,
+                     "IDirect3DDevice9::Present",
+                      D3D9PresentCallback,
+                      D3D9Present_Original,
+                      D3D9PresentDevice_pfn );
+
+    vftable_17 = vftable [17];
+  }
+
+  config.render.d3d9.hook_type = hook_type;
 
   CComPtr <IDirect3DDevice9Ex> pDevEx;
 
@@ -995,7 +1025,9 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
     vftable = *(void***)*&pDevEx;
 
     if (D3D9PresentEx_Original != nullptr) {
-      if (config.render.d3d9.hook_type == 0) {
+      if ( config.render.d3d9.hook_type == 0              &&
+         (! config.compatibility.d3d9.hook_present_vftbl) &&
+            config.compatibility.d3d9.rehook_present ) {
         //dll_log.Log (L"Rehooking IDirect3DDevice9Ex::PresentEx (...)");
 
         if (MH_OK == SK_RemoveHook (vftable [121]))
@@ -1009,16 +1041,23 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
       }
     }
 
-    //
-    // D3D9Ex Specific Stuff
-    //
-    D3D9_INTERCEPT ( &pDevEx, 121,
-                       "IDirect3DDevice9Ex::PresentEx",
-                        D3D9PresentCallbackEx,
-                        D3D9PresentEx_Original,
-                        D3D9PresentDeviceEx_pfn );
+    if (config.compatibility.d3d9.hook_present_vftbl)
+      config.render.d3d9.hook_type = 1;
 
-    vftable_121 = vftable [121];
+    if (D3D9PresentEx_Original == nullptr || config.compatibility.d3d9.rehook_present) {
+      //
+      // D3D9Ex Specific Stuff
+      //
+      D3D9_INTERCEPT ( &pDevEx, 121,
+                         "IDirect3DDevice9Ex::PresentEx",
+                          D3D9PresentCallbackEx,
+                          D3D9PresentEx_Original,
+                          D3D9PresentDeviceEx_pfn );
+
+      vftable_121 = vftable [121];
+    }
+
+    config.render.d3d9.hook_type = hook_type;
   }
 }
 
@@ -1055,8 +1094,12 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   HRESULT hr;
 
-  SK_D3D9_HookReset   (This);
-  SK_D3D9_HookPresent (This);
+  if (config.compatibility.d3d9.rehook_reset)
+    SK_D3D9_HookReset   (This);
+
+  if (config.compatibility.d3d9.rehook_present)
+    SK_D3D9_HookPresent (This);
+
   MH_ApplyQueued ();
 
   D3D9_CALL (hr, D3D9Reset_Original (This,
@@ -1092,8 +1135,12 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   CComPtr <IDirect3DDevice9> pDev = nullptr;
 
   if (SUCCEEDED (This->QueryInterface ( IID_PPV_ARGS (&pDev) ))) {
+  if (config.compatibility.d3d9.rehook_reset)
     SK_D3D9_HookReset   (pDev);
+
+  if (config.compatibility.d3d9.rehook_present)
     SK_D3D9_HookPresent (pDev);
+
     MH_ApplyQueued      ();
   }
 
