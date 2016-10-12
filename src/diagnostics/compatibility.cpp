@@ -97,21 +97,25 @@ BOOL
 __stdcall
 BlacklistLibraryW (LPCWSTR lpFileName)
 {
-  //if (blacklist.count (wcsrchr (lpFileName, L'\\') + 1))
-  //{
-    if ( StrStrIW (lpFileName, L"ltc_game") ) {
-      if (config.compatibility.disable_raptr) {
-        if (! (SK_LoadLibrary_SILENCE))
-          dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
-        return TRUE;
-      }
-
-      //dll_log.Log (L"[PlaysTVFix] Delaying Raptr overlay until window is in foreground...");
-      //CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
+  if ( StrStrIW (lpFileName, L"ltc_game") ) {
+    if (config.compatibility.disable_raptr) {
+      if (! (SK_LoadLibrary_SILENCE))
+        dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
+      return TRUE;
     }
 
-    else
-    if ( StrStrIW (lpFileName, L"k_fps") ) {
+    //dll_log.Log (L"[PlaysTVFix] Delaying Raptr overlay until window is in foreground...");
+    //CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
+  }
+
+  else
+    if ( StrStrIW (lpFileName, L"0Kraken71ChromaDevProps") ) {
+      if (! (SK_LoadLibrary_SILENCE))
+        dll_log.Log (L"[Black List] Disabling Razer Kraken 7.1 Chroma Support DLL.");
+      return TRUE;
+    }
+
+    else if ( StrStrIW (lpFileName, L"k_fps") ) {
       if (! (SK_LoadLibrary_SILENCE))
         dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
       return TRUE;
