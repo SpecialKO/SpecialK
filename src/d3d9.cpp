@@ -1097,7 +1097,8 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   if (config.compatibility.d3d9.rehook_reset)
     SK_D3D9_HookReset   (This);
 
-  if (config.compatibility.d3d9.rehook_present)
+  if ( config.compatibility.d3d9.rehook_present ||
+       D3D9Present_Original == nullptr )
     SK_D3D9_HookPresent (This);
 
   MH_ApplyQueued ();
