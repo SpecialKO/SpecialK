@@ -928,9 +928,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     return;
   }
 
-  extern void __crc32_init (void);
-  __crc32_init ();
-
   if (config.system.central_repository) {
     // Create Symlink for end-user's convenience
     if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
@@ -1022,6 +1019,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
   dll_log.LogEx (false,
     L"----------------------------------------------------------------------"
     L"---------------------\n");
+
+  extern void __crc32_init (void);
+  __crc32_init ();
 
 
   game_debug.init (L"logs/game_output.log", L"w");
@@ -1428,6 +1428,9 @@ DllThread_CRT (LPVOID user)
     &init_;
 
   SK_InitCore (params->backend, params->callback);
+
+  if (SK_IsHostAppSKIM ())
+    return 0;
 
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
