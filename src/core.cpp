@@ -920,7 +920,16 @@ SK_InitCore (const wchar_t* backend, void* callback)
       SK_SaveConfig (config_name);
       dll_log.LogEx (false, L"done!\n");
     }
+  } else {
+    extern void __crc32_init (void);
+    __crc32_init ();
+
+    LeaveCriticalSection (&init_mutex);
+    return;
   }
+
+  extern void __crc32_init (void);
+  __crc32_init ();
 
   if (config.system.central_repository) {
     // Create Symlink for end-user's convenience
@@ -1026,9 +1035,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   SK_TestSteamImports (SK_GetDLL ());
 
-
-  extern void __crc32_init (void);
-  __crc32_init ();
 
   SK::Framerate::Init ();
 
