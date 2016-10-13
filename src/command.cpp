@@ -425,18 +425,22 @@ SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
   char* szFormattedCommandLine =
     (char *)malloc (sizeof (char) * (len + 1));
 
-  *(szFormattedCommandLine + len) = '\0';
+  if (szFormattedCommandLine != nullptr) {
+    *(szFormattedCommandLine + len) = '\0';
 
-  va_start (ap, szCommandFormat);
-  vsprintf (szFormattedCommandLine, szCommandFormat, ap);
-  va_end   (ap);
+    va_start  (ap, szCommandFormat);
+    vsnprintf (szFormattedCommandLine, len, szCommandFormat, ap);
+    va_end    (ap);
 
-  SK_ICommandResult result =
-    ProcessCommandLine (szFormattedCommandLine);
+    SK_ICommandResult result =
+      ProcessCommandLine (szFormattedCommandLine);
 
-  free (szFormattedCommandLine);
+    free (szFormattedCommandLine);
 
-  return result;
+    return result;
+  }
+
+  return SK_ICommandResult ("OUT OF MEMORY");
 }
 
 /** Variable Type Support **/
@@ -553,7 +557,7 @@ SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
         break;
     }
 
-    szOut [len-1] = '\0';
+    szOut [len] = '\0';
     *dwLen = (uint32_t)len;
   } else {
     *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%f", getValue ()));

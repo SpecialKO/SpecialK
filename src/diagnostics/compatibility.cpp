@@ -1098,7 +1098,10 @@ SK_ValidateGlobalRTSSProfile (void)
                   nullptr, nullptr,
                     &sinfo, &pinfo );
 
-      ResumeThread     (pinfo.hThread);
+      ResumeThread (pinfo.hThread);
+
+      CloseHandle  (pinfo.hThread);
+      CloseHandle  (pinfo.hProcess);
 
       extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
       SK_TerminateParentProcess (0x00);
@@ -1367,6 +1370,8 @@ SK_Bypass_CRT (LPVOID user)
                   &sinfo, &pinfo );
 
     ResumeThread     (pinfo.hThread);
+    CloseHandle      (pinfo.hThread);
+    CloseHandle      (pinfo.hProcess);
 
     extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
     SK_TerminateParentProcess (0x00);

@@ -100,7 +100,7 @@ DownloadThread (LPVOID user)
       void
       {
         TaskMsg ( TDM_SET_PROGRESS_BAR_POS,
-                    MAXUINT16 * ((double)cur / (double)max),
+                    (INT16)(MAXINT16 * ((double)cur / (double)max)),
                       0L );
       };
 
@@ -114,7 +114,7 @@ DownloadThread (LPVOID user)
         TaskMsg (TDM_SET_PROGRESS_BAR_STATE, PBST_ERROR,  0L);
       };
 
-  TaskMsg (TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, MAXUINT16));
+  TaskMsg (TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, MAXINT16));
   TaskMsg (TDM_SET_PROGRESS_BAR_STATE, PBST_NORMAL, 0L);
 
   SetProgress (0, 0);
@@ -172,7 +172,7 @@ DownloadThread (LPVOID user)
                                 nullptr,
                                   0 ) ) {
 
-    DWORD dwContentLength;
+    DWORD dwContentLength     = 0;
     DWORD dwContentLength_Len = sizeof DWORD;
     DWORD dwSize;
 
@@ -336,17 +336,17 @@ RemindMeLater_DlgProc (
         FILETIME                  ftNow;
         GetSystemTimeAsFileTime (&ftNow);
 
-        LARGE_INTEGER next_li {
+        ULARGE_INTEGER next_uli {
           ftNow.dwLowDateTime, ftNow.dwHighDateTime
         };
 
-        LONGLONG next =
-          next_li.QuadPart;
+        ULONGLONG next =
+          next_uli.QuadPart;
 
         bool never = false;
 
-        const LONGLONG _Minute =   600000000LL;
-        const LONGLONG _Hour   = 36000000000LL;
+        const ULONGLONG _Minute =   600000000ULL;
+        const ULONGLONG _Hour   = 36000000000ULL;
 
         switch (ComboBox_GetCurSel (hWndNextCheck))
         {
@@ -411,7 +411,7 @@ RemindMeLater_DlgProc (
                 L"Reminder"
           );
 
-          remind_time->set_value (next);
+          remind_time->set_value ((int64_t)next);
           remind_time->store     ();
 
           delete remind_time;
@@ -616,8 +616,8 @@ Update_DlgProc (
       swprintf ( wszDownloadSize, L"   1 File,  %5.2f MiB",
                    (double)fsize / (1024.0 * 1024.0) );
 
-      int      backup_count = 0;
-      uint64_t backup_size  = 0ULL;
+      unsigned int backup_count = 0;
+      uint64_t     backup_size  = 0ULL;
 
       for ( auto it = files.begin (); it != files.end (); ++it )
       {
@@ -683,7 +683,7 @@ Update_DlgProc (
         InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
         bool update_dlg_backup =
-          Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_BACKUP_FILES));
+          Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_BACKUP_FILES)) != 0;
 
         if ( SUCCEEDED ( SK_Decompress7z (
                            update_dlg_file,
@@ -773,7 +773,7 @@ Update_DlgProc (
             if (update_dlg_backup) {
               swprintf ( wszBackupMessage,
                            L"Your old files have been backed up "
-                           L"<a href=\"%s\\Version\\%s\\\">here.</a>\n\n\%s",
+                           L"<a href=\"%s\\Version\\%s\\\">here.</a>\n\n%s",
                              SK_GetRootPath (),
                                update_dlg_build,
                                 config_files_changed ?
@@ -798,7 +798,7 @@ Update_DlgProc (
           TaskDialogIndirect ( &task_cfg, nullptr, nullptr, nullptr );
 
           update_dlg_keep =
-            Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_KEEP_DOWNLOADS));
+            Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_KEEP_DOWNLOADS)) != 0;
 
           if (! update_dlg_keep)
             DeleteFileW (update_dlg_file);
@@ -924,12 +924,12 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   repo_ini.parse    ();
 
   struct {
-    int installed;
+    unsigned int   installed;
 
     struct {
-      int     in_branch; // TODO
-      int     overall;
-      wchar_t package [128];
+      unsigned int in_branch; // TODO
+      unsigned int overall;
+      wchar_t      package [128];
     } latest;
   } build;
 

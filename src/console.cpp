@@ -23,7 +23,7 @@
 #include "console.h"
 #include "core.h"
 
-#include <stdint.h>>
+#include <cstdint>
 
 #include <string>
 #include "steam_api.h"
@@ -282,14 +282,12 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 
   InterlockedIncrementAcquire (&nest_lvl);
 
-  // Aren't lambdas fun?! :)
   CreateThread (
     nullptr,
       0,
         [](LPVOID user)->
 
         DWORD
-        WINAPI
         {
           BringWindowToTop    ((HWND)user);
           SetForegroundWindow ((HWND)user);
@@ -483,7 +481,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
   HWND  hWndForeground;
   DWORD dwThreadId;
 
-  int hits = 0;
+  unsigned int hits = 0;
 
   DWORD dwTime = timeGetTime ();
 

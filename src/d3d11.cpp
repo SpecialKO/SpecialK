@@ -1313,7 +1313,7 @@ SK_D3D11_PopulateResourceList (void)
                                  (double)liCompressed.QuadPart /  (1024.0 * 1024.0) );
   }
 
-  wchar_t wszTexInjectDir_RAW [ MAX_PATH     ] = { L'\0' };
+  wchar_t wszTexInjectDir_RAW [ MAX_PATH + 2 ] = { L'\0' };
   wchar_t wszTexInjectDir     [ MAX_PATH + 2 ] = { L'\0' };
 
   lstrcatW (wszTexInjectDir_RAW, SK_D3D11_res_root.c_str ());
@@ -1326,7 +1326,7 @@ SK_D3D11_PopulateResourceList (void)
          INVALID_FILE_ATTRIBUTES ) {
     WIN32_FIND_DATA fd;
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
-    int             files  = 0;
+    unsigned int    files  = 0;
     LARGE_INTEGER   liSize = { 0 };
 
     dll_log.LogEx ( true, L"[DX11TexMgr] Enumerating injectable..." );
@@ -1706,6 +1706,12 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   // Ignore Cubemaps for Now
   if (pDesc->MiscFlags == 0x04) {
 //    dll_log.Log (L"[ Tex Hash ] >> Will not hash cubemap");
+    if (pLOD0_CRC32)
+      *pLOD0_CRC32 = 0x0000;
+
+    if (pSize)
+      *pSize       = 0;
+
     return 0;
   }
 

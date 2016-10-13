@@ -964,7 +964,7 @@ PROCESSENTRY32
 FindProcessByName (const wchar_t* wszName)
 {
   HANDLE         hProcessSnap;
-  PROCESSENTRY32 pe32;
+  PROCESSENTRY32 pe32 = { 0 };
 
   hProcessSnap = CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
 
@@ -1657,6 +1657,7 @@ SK_GetFileCRC32C (const wchar_t* wszFile, SK_HashProgressCallback_pfn callback)
   return SK_GetFileHash_32 (SK_CRC32C, wszFile, callback);
 }
 
+#if 0
 void
 __stdcall
 SK_wcsrep ( const wchar_t*   wszIn,
@@ -1709,3 +1710,4 @@ SK_wcsrep ( const wchar_t*   wszIn,
 
   *pwszOut = wszTemp;
 }
+#endif

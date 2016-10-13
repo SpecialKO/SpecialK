@@ -100,7 +100,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   bool should_fetch = true;
 
   // Update frequency (measured in 100ns)
-  ULONGLONG update_freq = 0ULL;
+  LONGLONG update_freq = 0LL;
 
   if (GetFileAttributes (wszInstallFile) != INVALID_FILE_ATTRIBUTES) {
     iSK_INI install_ini (wszInstallFile);

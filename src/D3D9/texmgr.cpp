@@ -2019,7 +2019,7 @@ sk::d3d9::TextureManager::Init (void)
          INVALID_FILE_ATTRIBUTES ) {
     WIN32_FIND_DATA fd;
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
-    int             files  = 0;
+    unsigned int    files  = 0;
     LARGE_INTEGER   liSize = { 0 };
 
     tex_log.LogEx ( true, L"[Inject Tex] Enumerating injectable textures..." );
@@ -2510,7 +2510,7 @@ sk::d3d9::TextureManager::purge (void)
         reclaimed_injected += ovr_size;
       }
     } else {
-      tex_log.Log (L"[ Tex. Mgr ] Invalid reference count (%lu)!", tex_refs);
+      tex_log.Log (L"[ Tex. Mgr ] Invalid reference count (%li)!", tex_refs);
     }
 
     ++released;

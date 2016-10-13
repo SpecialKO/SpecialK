@@ -836,7 +836,7 @@ std::queue <DWORD> suspended_tids;
 
 void
 __stdcall
-SK_InitFinishCallback (void)
+SK_InitFinishCallback (_Releases_exclusive_lock_ (init_mutex) void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
@@ -1169,8 +1169,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
   extern void __stdcall EnumLoadedModules (void);
   EnumLoadedModules ();
 
-  typedef void (WINAPI *finish_pfn)  (void);
-  typedef void (WINAPI *callback_pfn)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
+  typedef void (WINAPI *finish_pfn)  (_Releases_exclusive_lock_ (init_mutex) void);
+  typedef void (WINAPI *callback_pfn)(finish_pfn);
   callback_pfn callback_fn = (callback_pfn)callback;
   callback_fn (SK_InitFinishCallback);
 
@@ -1303,7 +1303,7 @@ skMemCmd::execute (const char* szArgs)
 
         VirtualProtect ((LPVOID)addr, 1, PAGE_READWRITE, &dwOld);
           uint8_t out;
-          sscanf (val, "%hhx", &out);
+          sscanf (val, "%hhux", &out);
           *(uint8_t *)addr = out;
         VirtualProtect ((LPVOID)addr, 1, dwOld, &dwOld);
       }
@@ -1547,7 +1547,7 @@ SK_CreateFuncHook ( LPCWSTR pwszFuncName,
   //   Direct3D devices are created during runtime.
   if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED) {
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
-                  L"[Address: %04Xh]!  (Status: \"%hs\")",
+                  L"[Address: %04ph]!  (Status: \"%hs\")",
                     pwszFuncName,
                       pTarget,
                         MH_StatusToString (status) );
@@ -1759,7 +1759,7 @@ SK_EnableHook (LPVOID pTarget)
 
   if (status != MH_OK) {
     if (pTarget != MH_ALL_HOOKS) {
-      dll_log.Log(L"[ Min Hook ] Failed to Enable Hook with Address: %04Xh!"
+      dll_log.Log(L"[ Min Hook ] Failed to Enable Hook with Address: %04ph!"
                   L" (Status: \"%hs\")",
                     pTarget,
                       MH_StatusToString (status) );
@@ -1862,8 +1862,8 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
   wszInOut [lstrlenW (wszInOut) - 3] = L'\0';
 }
 
-wchar_t SK_RootPath   [MAX_PATH] = { L'\0' };
-wchar_t SK_ConfigPath [MAX_PATH] = { L'\0' };
+wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
+wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
 
 const wchar_t*
 __stdcall

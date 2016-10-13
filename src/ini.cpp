@@ -772,7 +772,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
         utf8 ? 3 : 0;
 
       const int       real_size =
-        size - offset;
+        size - (int)offset;
 
       char* start_addr =
         ((char *)wszData) + offset;

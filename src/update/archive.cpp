@@ -202,7 +202,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     return E_FAIL;
   }
 
-  for (int i = 0; i < files.size (); i++)
+  for (unsigned int i = 0; i < files.size (); i++)
   {
     int fileno = files [i].fileno;
 
@@ -332,7 +332,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     return E_FAIL;
   }
 
-  for (int i = 0; i < config_files.size (); i++)
+  for (unsigned int i = 0; i < config_files.size (); i++)
   {
     int fileno = config_files [i].fileno;
 
@@ -358,11 +358,11 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDefaultConfig [MAX_PATH] = { L'\0' }; // Existing Default Cfg
-    wchar_t wszNewConfig     [MAX_PATH] = { L'\0' }; // Just Downloaded
+    wchar_t wszDefaultConfig [MAX_PATH + 2] = { L'\0' }; // Existing Default Cfg
+    wchar_t wszNewConfig     [MAX_PATH + 2] = { L'\0' }; // Just Downloaded
 
-    wchar_t wszUserConfig    [MAX_PATH] = { L'\0' }; // Currently Deployed
-    wchar_t wszOldConfig     [MAX_PATH] = { L'\0' }; // Backed-Up User Cfg
+    wchar_t wszUserConfig    [MAX_PATH + 2] = { L'\0' }; // Currently Deployed
+    wchar_t wszOldConfig     [MAX_PATH + 2] = { L'\0' }; // Backed-Up User Cfg
 
     wcscpy   (wszDefaultConfig, SK_GetRootPath ());
     wcscpy   (wszUserConfig,    SK_GetRootPath ());
