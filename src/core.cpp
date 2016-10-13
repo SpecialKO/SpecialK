@@ -1950,6 +1950,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     config.system.central_repository = true;
 
 
+  // Don't start SteamAPI if we're running the installer...
+  if (SK_IsHostAppSKIM ())
+    config.steam.init_delay = 0;
+
 
   wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
           wszConfigPath [  MAX_PATH  ] = L'\0';

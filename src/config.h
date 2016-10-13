@@ -171,7 +171,7 @@ struct sk_config_t
     bool    nosound             = false;
     bool    silent              = false;
 
-    int     init_delay          = 100UL;
+    int     init_delay          = 0UL; // Disable to prevent crashing in many games
     bool    auto_pump_callbacks = true;
 
     int     appid               = 0;

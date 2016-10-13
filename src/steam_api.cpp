@@ -48,6 +48,8 @@ static volatile ULONG __SK_Steam_init = FALSE;
 std::multiset <class CCallbackBase *> overlay_activation_callbacks;
 CRITICAL_SECTION callback_cs = { 0 };
 
+CRITICAL_SECTION init_cs = { 0 };
+
 
 bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
 
@@ -562,9 +564,9 @@ public:
       return false;
     }
 
-    steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
-    SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
-    steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
+    //steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
+    //SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
+    //steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
 
     // 4 == Don't Care
     if (config.steam.notify_corner != 4)
@@ -1134,6 +1136,8 @@ bool
 S_CALLTYPE
 SteamAPI_InitSafe_Detour (void)
 {
+  EnterCriticalSection (&init_cs);
+
   static int init_tries = -1;
 
   if (++init_tries == 0) {
@@ -1157,8 +1161,10 @@ SteamAPI_InitSafe_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE))
+      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE)) {
+        LeaveCriticalSection (&init_cs);
         return true;
+      }
 
       stats->RequestCurrentStats ();
 
@@ -1183,9 +1189,11 @@ SteamAPI_InitSafe_Detour (void)
 
     StartSteamPump ();
 
+    LeaveCriticalSection (&init_cs);
     return true;
   }
 
+  LeaveCriticalSection (&init_cs);
   return false;
 }
 
@@ -1193,6 +1201,8 @@ bool
 S_CALLTYPE
 SteamAPI_Init_Detour (void)
 {
+  EnterCriticalSection (&init_cs);
+
   static int init_tries = -1;
 
   if (++init_tries == 0) {
@@ -1215,8 +1225,10 @@ SteamAPI_Init_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE))
+      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE)) {
+        LeaveCriticalSection (&init_cs);
         return true;
+      }
 
       stats->RequestCurrentStats ();
 
@@ -1241,9 +1253,11 @@ SteamAPI_Init_Detour (void)
 
     StartSteamPump ();
 
+    LeaveCriticalSection (&init_cs);
     return true;
   }
 
+  LeaveCriticalSection (&init_cs);
   return false;
 }
 
@@ -1270,6 +1284,8 @@ bool
 S_CALLTYPE
 InitSafe_Detour (void)
 {
+  EnterCriticalSection (&init_cs);
+
   static int init_tries = -1;
 
   if (++init_tries == 0) {
@@ -1287,8 +1303,10 @@ InitSafe_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE))
+      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE)) {
+        LeaveCriticalSection (&init_cs);
         return true;
+      }
 
       stats->RequestCurrentStats ();
 
@@ -1313,9 +1331,11 @@ InitSafe_Detour (void)
 
     StartSteamPump ();
 
+    LeaveCriticalSection (&init_cs);
     return true;
   }
 
+  LeaveCriticalSection (&init_cs);
   return false;
 }
 
@@ -1344,7 +1364,8 @@ CSteamworks_Delay_Init (LPVOID user)
   return 0;
 }
 
-static volatile ULONG __hooked = FALSE;
+volatile ULONG __hooked           = FALSE;
+volatile ULONG __CSteamworks_hook = FALSE;
 
 void
 SK_HookCSteamworks (void)
@@ -1353,16 +1374,18 @@ SK_HookCSteamworks (void)
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
+    InitializeCriticalSectionAndSpinCount (&init_cs,     1048576UL);
   }
 
-  static volatile ULONG __CSteamworks_hook = FALSE;
-
-  if (InterlockedCompareExchange (&__CSteamworks_hook, TRUE, FALSE))
+  EnterCriticalSection (&init_cs);
+  if (InterlockedCompareExchange (&__CSteamworks_hook, TRUE, FALSE)) {
+    LeaveCriticalSection (&init_cs);
     return;
+  }
 
   steam_log.Log (L"CSteamworks.dll was loaded, hooking...");
 
-  SK_CreateDLLHook2 ( L"CSteamworks.dll",
+  SK_CreateDLLHook ( L"CSteamworks.dll",
                       "InitSafe",
                       InitSafe_Detour,
            (LPVOID *)&InitSafe_Original );
@@ -1381,10 +1404,10 @@ SK_HookCSteamworks (void)
   SK_EnableHook (SteamAPI_UnregisterCallback);
 #endif
 
-  MH_ApplyQueued ();
-
   if (config.steam.init_delay > 0)
     CreateThread (nullptr, 0, CSteamworks_Delay_Init, nullptr, 0x00, nullptr);
+
+  LeaveCriticalSection (&init_cs);
 }
 
 DWORD
@@ -1412,6 +1435,8 @@ SteamAPI_Delay_Init (LPVOID user)
   return 0;
 }
 
+volatile ULONG __SteamAPI_hook = FALSE;
+
 void
 SK_HookSteamAPI (void)
 {
@@ -1419,12 +1444,14 @@ SK_HookSteamAPI (void)
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
+    InitializeCriticalSectionAndSpinCount (&init_cs,     1048576UL);
   }
 
-  static volatile ULONG __SteamAPI_hook = FALSE;
-
-  if (InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
+  EnterCriticalSection (&init_cs);
+  if (InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE)) {
+    LeaveCriticalSection (&init_cs);
     return;
+  }
 
 #ifdef _WIN64
     const wchar_t* wszSteamAPI = L"steam_api64.dll";
@@ -1434,36 +1461,36 @@ SK_HookSteamAPI (void)
 
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_InitSafe",
-                      SteamAPI_InitSafe_Detour,
-           (LPVOID *)&SteamAPI_InitSafe_Original );
+  SK_CreateDLLHook ( wszSteamAPI,
+                     "SteamAPI_InitSafe",
+                     SteamAPI_InitSafe_Detour,
+          (LPVOID *)&SteamAPI_InitSafe_Original );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_Init",
-                      SteamAPI_Init_Detour,
-           (LPVOID *)&SteamAPI_Init_Original );
+  SK_CreateDLLHook ( wszSteamAPI,
+                     "SteamAPI_Init",
+                     SteamAPI_Init_Detour,
+          (LPVOID *)&SteamAPI_Init_Original );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_RegisterCallback",
-                      SteamAPI_RegisterCallback_Detour,
-           (LPVOID *)&SteamAPI_RegisterCallback_Original,
-           (LPVOID *)&SteamAPI_RegisterCallback );
+  SK_CreateDLLHook ( wszSteamAPI,
+                     "SteamAPI_RegisterCallback",
+                     SteamAPI_RegisterCallback_Detour,
+          (LPVOID *)&SteamAPI_RegisterCallback_Original,
+          (LPVOID *)&SteamAPI_RegisterCallback );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_UnregisterCallback",
-                      SteamAPI_UnregisterCallback_Detour,
-           (LPVOID *)&SteamAPI_UnregisterCallback_Original,
-           (LPVOID *)&SteamAPI_UnregisterCallback );
+  SK_CreateDLLHook ( wszSteamAPI,
+                     "SteamAPI_UnregisterCallback",
+                     SteamAPI_UnregisterCallback_Detour,
+          (LPVOID *)&SteamAPI_UnregisterCallback_Original,
+          (LPVOID *)&SteamAPI_UnregisterCallback );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_RunCallbacks",
-                      SteamAPI_RunCallbacks_Detour,
-           (LPVOID *)&SteamAPI_RunCallbacks_Original,
-           (LPVOID *)&SteamAPI_RunCallbacks );
-
-  MH_ApplyQueued ();
+  SK_CreateDLLHook ( wszSteamAPI,
+                     "SteamAPI_RunCallbacks",
+                     SteamAPI_RunCallbacks_Detour,
+          (LPVOID *)&SteamAPI_RunCallbacks_Original,
+          (LPVOID *)&SteamAPI_RunCallbacks );
 
   if (config.steam.init_delay > 0)
     CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
+
+  LeaveCriticalSection (&init_cs);
 }

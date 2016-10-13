@@ -784,9 +784,9 @@ EnumLoadedModules (void)
           SK_HookCSteamworks ();
         }
 
-        else if (StrStrIW (wszModName, L"steam_api.dll")   ||
-                   StrStrIW (wszModName, L"steam_api64.dll") ||
-                   StrStrIW (wszModName, L"SteamNative.dll") ) {
+        else if ( StrStrIW (wszModName, L"steam_api.dll")   ||
+                  StrStrIW (wszModName, L"steam_api64.dll") ||
+                  StrStrIW (wszModName, L"SteamNative.dll") ) {
           extern void SK_HookSteamAPI (void);
           SK_HookSteamAPI ();
         }

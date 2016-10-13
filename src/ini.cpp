@@ -802,8 +802,8 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
       MultiByteToWideChar ( CP_UTF8, 0, string, real_size, wszData, converted_size );
 
-      dll_log.Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
-                      wszName );
+      //dll_log.Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
+                      //wszName );
 
       wszData [converted_size] = L'\0';
 
