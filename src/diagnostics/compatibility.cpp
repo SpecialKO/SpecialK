@@ -1098,7 +1098,8 @@ SK_ValidateGlobalRTSSProfile (void)
                   nullptr, nullptr,
                     &sinfo, &pinfo );
 
-      ResumeThread (pinfo.hThread);
+      while (ResumeThread (pinfo.hThread))
+        ;
 
       CloseHandle  (pinfo.hThread);
       CloseHandle  (pinfo.hProcess);

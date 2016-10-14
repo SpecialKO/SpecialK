@@ -1117,8 +1117,10 @@ SK_ResumeThreads (std::queue <DWORD> threads)
 
     if (hThread != GetCurrentThread ())
     {
-      ResumeThread (hThread);
-      CloseHandle  (hThread);
+      while (ResumeThread (hThread))
+        ;
+
+      CloseHandle (hThread);
     }
 
     threads.pop ();
