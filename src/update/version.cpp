@@ -127,7 +127,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
       if (! has_freq) {
         wcscpy (h, L"6");
 
-        install_ini.import (L"[Update.User]\nFrequency=6h\n");
+        install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
         install_ini.write  (wszInstallFile);
       }
 

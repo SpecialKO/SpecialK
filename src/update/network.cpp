@@ -866,7 +866,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   task_config.cbSize             = sizeof (task_config);
   task_config.hInstance          = GetModuleHandle (nullptr);
-  task_config.hwndParent         = GetActiveWindow ();
+  task_config.hwndParent         = nullptr;//GetActiveWindow ();
 
   if (! SK_IsHostAppSKIM ())
     task_config.pszWindowTitle   = L"Special K Auto-Update";

@@ -703,8 +703,8 @@ ErrorMessage (errno_t        err,
   return wszFormattedError;
 }
 
-#define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) != 0) \
-dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage ((z), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str ()); }
+#define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) == nullptr) \
+dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str ()); }
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
@@ -719,7 +719,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   wszName = _wcsdup (filename);
 
   errno_t ret;
-  TRY_FILE_IO (_wfopen_s (&fINI, filename, L"rb"), filename, ret);
+  TRY_FILE_IO (_wfsopen (filename, L"rb", _SH_DENYNO), filename, fINI);
 
   if (ret == 0 && fINI != 0) {
                 fseek  (fINI, 0, SEEK_END);
@@ -1308,17 +1308,17 @@ iSK_INI::write (const wchar_t* fname)
 
   switch (encoding_) {
     case INI_UTF8:
-      TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-8"), fname, ret);
+      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-8", _SH_DENYNO), fname, fOut);
       break;
 
     // Cannot preserve this, consider adding a byte-swap on file close
     case INI_UTF16BE:
-      TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
+      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
       break;
 
     default:
     case INI_UTF16LE:
-      TRY_FILE_IO (_wfopen_s (&fOut, fname, L"wtc,ccs=UTF-16LE"), fname, ret);
+      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
       break;
   }
   //fOut = _wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO);

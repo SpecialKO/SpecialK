@@ -2008,24 +2008,22 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_SetConfigPath     (wszConfigPath);
 
 
-  if (! SK_IsHostAppSKIM ()) {
-    // Do this from the startup thread
-    SK_Init_MinHook ();
+  // Do this from the startup thread
+  SK_Init_MinHook ();
 
-    extern void __stdcall SK_InitCompatBlacklist (void);
-    SK_InitCompatBlacklist ();
+  extern void __stdcall SK_InitCompatBlacklist (void);
+  SK_InitCompatBlacklist ();
 
-    // Don't let Steam prevent me from attaching a debugger at startup, damnit!
-    SK::Diagnostics::Debugger::Allow ();
+  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
+  SK::Diagnostics::Debugger::Allow ();
 
-    // Hard-code the AppID for ToZ
-    if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
-      config.steam.appid = 351970;
+  // Hard-code the AppID for ToZ
+  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+    config.steam.appid = 351970;
 
-    // Game won't start from the commandline without this...
-    if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
-      config.steam.appid = 405900;
-  }
+  // Game won't start from the commandline without this...
+  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
+    config.steam.appid = 405900;
 
   ZeroMemory (&init_, sizeof init_params_t);
 
