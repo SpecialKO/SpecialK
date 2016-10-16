@@ -718,7 +718,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   wszName = _wcsdup (filename);
 
-  errno_t ret;
+  errno_t ret = 0;
   TRY_FILE_IO (_wfsopen (filename, L"rb", _SH_DENYNO), filename, fINI);
 
   if (ret == 0 && fINI != 0) {
