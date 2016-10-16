@@ -379,7 +379,7 @@ RemindMeLater_DlgProc (
 
         wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
 
-        wsprintf ( wszInstallFile,
+        swprintf ( wszInstallFile,
               L"%s\\Version\\installed.ini",
                 SK_GetRootPath () );
 
@@ -909,11 +909,11 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   wchar_t wszRepoFile    [MAX_PATH] = { L'\0' };
   wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
 
-  wsprintf ( wszRepoFile,
+  swprintf ( wszRepoFile,
               L"%s\\Version\\repository.ini",
                 SK_GetRootPath () );
 
-  wsprintf ( wszInstallFile,
+  swprintf ( wszInstallFile,
               L"%s\\Version\\installed.ini",
                 SK_GetRootPath () );
 
@@ -953,27 +953,27 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   wchar_t wszCurrentBuild [128];
 
-  swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
-              L"%128[^,],%lu",
-                wszCurrentBuild,
-                  &build.installed );
-
   if (empty) {
     *wszCurrentBuild = L'\0';
     build.installed = -1;
+  } else {
+    swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
+                L"%128[^,],%lu",
+                  wszCurrentBuild,
+                    &build.installed );
   }
 
   // Set the reminder in case the update fails... we do not want
   //   the repository.ini file's updated timestamp to delay a second
   //     attempt by the user to upgrade.
-  install_ini.import (L"[Update.User]\nReminder=0\n");
+  install_ini.import (L"[Update.User]\nReminder=0\n\n");
   install_ini.write  (wszInstallFile);
 
   iSK_INISection& latest_ver =
     repo_ini.get_section (L"Version.Latest");
 
   wchar_t wszFullDetails [4096];
-  wsprintf ( wszFullDetails,
+  swprintf ( wszFullDetails,
               L"<a href=\"%s\">%s</a>\n\n"
               L"%s",
                 latest_ver.get_value (L"ReleaseNotes").c_str    (),
@@ -990,7 +990,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   if (build.latest.in_branch > build.installed) {
     wchar_t wszArchiveName [MAX_PATH];
-    wsprintf ( wszArchiveName,
+    swprintf ( wszArchiveName,
                 L"Archive.%s",
                   build.latest.package );
 

@@ -178,8 +178,9 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
     HANDLE hVersionConfig =
       CreateFile ( wszRepoFile,
                      GENERIC_READ,
-                       FILE_SHARE_READ |
-                       FILE_SHARE_WRITE,
+                       FILE_SHARE_READ  |
+                       FILE_SHARE_WRITE |
+                       FILE_SHARE_DELETE,
                          nullptr,
                            OPEN_EXISTING,
                              GetFileAttributes (wszRepoFile) |
@@ -240,7 +241,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 
   wchar_t wszRemoteRepoURL [MAX_PATH] = { L'\0' };
 
-  wsprintf ( wszRemoteRepoURL,
+  swprintf ( wszRemoteRepoURL,
                L"/Kaldaien/%s/master/version.ini",
                  wszProduct );
 
@@ -283,7 +284,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
       HANDLE hVersionFile =
         CreateFileW ( wszRepoFile,
                         GENERIC_WRITE,
-                          FILE_SHARE_READ,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
                             nullptr,
                               CREATE_ALWAYS,
                                 dwAttribs |
