@@ -246,7 +246,7 @@ DownloadThread (LPVOID user)
         SetErrorState ();
     }
 
-    HttpEndRequest ( hInetHTTPGetReq, nullptr, 0x00, 0 );
+    //HttpEndRequest ( hInetHTTPGetReq, nullptr, 0x00, 0 );
 
     get->status = STATUS_UPDATED;
   }

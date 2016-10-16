@@ -327,7 +327,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
         CloseHandle (hVersionFile);
     }
 
-    HttpEndRequest ( hInetGitHubOpen, nullptr, 0x00, 0 );
+    //HttpEndRequest ( hInetGitHubOpen, nullptr, 0x00, 0 );
   }
 
   InternetCloseHandle (hInetGitHubOpen);
