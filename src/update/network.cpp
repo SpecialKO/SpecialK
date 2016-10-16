@@ -866,7 +866,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   task_config.cbSize             = sizeof (task_config);
   task_config.hInstance          = GetModuleHandle (nullptr);
-  task_config.hwndParent         = nullptr;//GetActiveWindow ();
+  task_config.hwndParent         = GetActiveWindow ();
 
   if (! SK_IsHostAppSKIM ())
     task_config.pszWindowTitle   = L"Special K Auto-Update";
@@ -924,12 +924,12 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   repo_ini.parse    ();
 
   struct {
-    unsigned int   installed;
+    signed int   installed;
 
     struct {
-      unsigned int in_branch; // TODO
-      unsigned int overall;
-      wchar_t      package [128];
+      signed int in_branch; // TODO
+      signed int overall;
+      wchar_t    package [128];
     } latest;
   } build;
 
@@ -958,7 +958,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
     build.installed = -1;
   } else {
     swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
-                L"%128[^,],%lu",
+                L"%128[^,],%li",
                   wszCurrentBuild,
                     &build.installed );
   }
@@ -981,7 +981,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
                     latest_ver.get_value (L"Description").c_str () );
 
   swscanf ( latest_ver.get_value (L"InstallPackage").c_str (),
-              L"%128[^,],%lu",
+              L"%128[^,],%li",
                 build.latest.package,
                   &build.latest.in_branch );
 
