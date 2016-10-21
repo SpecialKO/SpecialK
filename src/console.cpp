@@ -145,6 +145,104 @@ SK_Console::Draw (void)
   }
 }
 
+
+struct sk_window_s {
+  HWND    hWnd             = 0x00;
+  WNDPROC WndProc_Original = nullptr;
+  LONG    style            = 0x00;
+  LONG    style_ex         = 0x00;
+} game_window;
+
+
+typedef LONG
+(WINAPI *SetWindowLongA_pfn)(
+    _In_ HWND hWnd,
+    _In_ int nIndex,
+    _In_ LONG dwNewLong);
+
+typedef LONG
+(WINAPI *SetWindowLongW_pfn)(
+    _In_ HWND hWnd,
+    _In_ int nIndex,
+    _In_ LONG dwNewLong);
+
+SetWindowLongW_pfn      SetWindowLongW_Original      = nullptr;
+SetWindowLongA_pfn      SetWindowLongA_Original      = nullptr;
+
+LONG
+WINAPI
+SetWindowLongA_Detour (
+  _In_ HWND hWnd,
+  _In_ int nIndex,
+  _In_ LONG dwNewLong
+)
+{
+  if (hWnd != game_window.hWnd) {
+    return SetWindowLongA_Original ( hWnd,
+                                       nIndex,
+                                         dwNewLong );
+  }
+
+  if (nIndex == GWL_EXSTYLE || nIndex == GWL_STYLE) {
+    //dll_log->Log ( L"[Window Mgr] SetWindowLongA (0x%06X, %s, 0x%06X)",
+                     //hWnd,
+               //nIndex == GWL_EXSTYLE ? L"GWL_EXSTYLE" :
+                                       //L" GWL_STYLE ",
+                       //dwNewLong );
+  }
+
+  // Override window styles
+  if (nIndex == GWL_STYLE || nIndex == GWL_EXSTYLE) {
+    // For proper return behavior
+    DWORD dwOldStyle = GetWindowLong (hWnd, nIndex);
+
+    // Allow the game to change its frame
+    if (! config.window.borderless)
+      return SetWindowLongA_Original (hWnd, nIndex, dwNewLong);
+
+    return dwOldStyle;
+  }
+
+  return SetWindowLongA_Original (hWnd, nIndex, dwNewLong);
+}
+
+LONG
+WINAPI
+SetWindowLongW_Detour (
+  _In_ HWND hWnd,
+  _In_ int nIndex,
+  _In_ LONG dwNewLong
+)
+{
+  if (hWnd != game_window.hWnd) {
+    return SetWindowLongW_Original ( hWnd,
+                                       nIndex,
+                                         dwNewLong );
+  }
+
+  if (nIndex == GWL_EXSTYLE || nIndex == GWL_STYLE) {
+    //dll_log->Log ( L"[Window Mgr] SetWindowLongA (0x%06X, %s, 0x%06X)",
+                     //hWnd,
+               //nIndex == GWL_EXSTYLE ? L"GWL_EXSTYLE" :
+                                       //L" GWL_STYLE ",
+                       //dwNewLong );
+  }
+
+  // Override window styles
+  if (nIndex == GWL_STYLE || nIndex == GWL_EXSTYLE) {
+    // For proper return behavior
+    DWORD dwOldStyle = GetWindowLong (hWnd, nIndex);
+
+    // Allow the game to change its frame
+    if (! config.window.borderless)
+      return SetWindowLongW_Original (hWnd, nIndex, dwNewLong);
+
+    return dwOldStyle;
+  }
+
+  return SetWindowLongW_Original (hWnd, nIndex, dwNewLong);
+}
+
 void
 SK_Console::Start (void)
 {
@@ -152,6 +250,18 @@ SK_Console::Start (void)
   if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
     bNoConsole = true;
     return;
+  }
+
+  if (config.window.borderless) {
+    SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongA",
+                          SetWindowLongA_Detour,
+                (LPVOID*)&SetWindowLongA_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongW",
+                          SetWindowLongW_Detour,
+                (LPVOID*)&SetWindowLongW_Original );
+
+    SK_ApplyQueuedHooks ();
   }
 
   hMsgPump =
@@ -251,11 +361,6 @@ GetKeyState_Detour (_In_ int nVirtKey)
 
   return GetKeyState_Original (nVirtKey);
 }
-
-struct sk_window_s {
-  HWND    hWnd             = 0x00;
-  WNDPROC WndProc_Original = nullptr;
-} game_window;
 
 extern bool
 WINAPI
@@ -451,6 +556,18 @@ SK_InstallWindowHook (HWND hWnd)
   SetWindowLongPtrW ( game_window.hWnd,
                      GWLP_WNDPROC,
                        (LONG_PTR)SK_DetourWindowProc );
+
+  if (config.window.borderless) {
+    game_window.style = 0x10000000;
+
+    SetWindowLongA_Original (game_window.hWnd, GWL_STYLE, game_window.style);
+    SetWindowPos            ( game_window.hWnd, 0, 0, 0, 0, 0,
+                              SWP_FRAMECHANGED   | SWP_NOSIZE        | SWP_NOMOVE     |
+                              SWP_NOZORDER       | SWP_NOREDRAW      | SWP_NOACTIVATE |
+                              SWP_NOSENDCHANGING | SWP_NOOWNERZORDER | SWP_NOCOPYBITS );
+  } else {                         
+    game_window.style = 0x90CA0000;
+  }
 }
 
 HWND

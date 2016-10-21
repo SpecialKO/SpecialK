@@ -264,6 +264,10 @@ struct sk_config_t
   } input;
 
   struct {
+    bool    borderless          = false;
+  } window;
+
+  struct {
     bool    ignore_raptr        = false;
     bool    disable_raptr       = false;
     bool    rehook_loadlibrary  = false;

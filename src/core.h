@@ -139,6 +139,8 @@ extern "C" {
                             LPVOID *ppOriginal );
 
 
+  MH_STATUS WINAPI
+    SK_ApplyQueuedHooks (void);
 
   MH_STATUS WINAPI
        SK_EnableHook   (LPVOID pTarget);

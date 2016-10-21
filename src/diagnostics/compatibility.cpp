@@ -109,7 +109,13 @@ BlacklistLibraryW (LPCWSTR lpFileName)
   }
 
   else
-    if ( StrStrIW (lpFileName, L"0Kraken71ChromaDevProps") ) {
+    if ( StrStrIW (lpFileName, L"Nahimic2DevProps") ) {
+      if (! (SK_LoadLibrary_SILENCE))
+        dll_log.Log (L"[Black List] Disabling MSI Nahimic Support DLL.");
+      return TRUE;
+    }
+
+    else if ( StrStrIW (lpFileName, L"0Kraken71ChromaDevProps") ) {
       if (! (SK_LoadLibrary_SILENCE))
         dll_log.Log (L"[Black List] Disabling Razer Kraken 7.1 Chroma Support DLL.");
       return TRUE;

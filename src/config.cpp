@@ -205,6 +205,10 @@ struct {
 } input;
 
 struct {
+  sk::ParameterBool* borderless;
+} window;
+
+struct {
   sk::ParameterBool* ignore_raptr;
   sk::ParameterBool* disable_raptr;
   sk::ParameterBool* rehook_loadlibrary;
@@ -400,6 +404,18 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Input.Cursor",
         L"Timeout" );
+
+
+  window.borderless =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Borderless Window Mode")
+      );
+  window.borderless->register_to_ini (
+    dll_ini,
+      L"Window.Dimensions",
+        L"Borderless" );
+
 
 
   compatibility.ignore_raptr =
@@ -1392,6 +1408,9 @@ SK_LoadConfig (std::wstring name) {
   if (input.cursor.timeout->load ())
     config.input.cursor.timeout = (int)(1000.0 * input.cursor.timeout->get_value ());
 
+  if (window.borderless->load ())
+    config.window.borderless = window.borderless->get_value ();
+
   if (steam.achievements.nosound->load ())
     config.steam.nosound = steam.achievements.nosound->get_value ();
   if (steam.achievements.sound_file->load ())
@@ -1516,6 +1535,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
   input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
+
+  window.borderless->set_value                (config.window.borderless);
 
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
