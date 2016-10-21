@@ -265,6 +265,9 @@ struct sk_config_t
 
   struct {
     bool    borderless          = false;
+    bool    center              = false;
+    int     x_offset            = 0;
+    int     y_offset            = 0;
   } window;
 
   struct {

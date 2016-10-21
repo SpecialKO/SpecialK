@@ -485,6 +485,9 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
                    _In_ const RGNDATA            *pDirtyRegion,
                    _In_       DWORD               dwFlags)
 {
+  if (This == nullptr)
+    return E_NOINTERFACE;
+
   g_pD3D9Dev = This;
 
   //SK_D3D9_UpdateRenderStats (nullptr, This);
@@ -514,7 +517,16 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
     // Only alter this HWND after the first frame is rendered, this
     //   filters out software that creates swapchains for the sole purpose of
     //     hooking the COM interface.
-    hWndRender = g_D3D9PresentParams.hDeviceWindow;
+    D3DPRESENT_PARAMETERS pparams;
+
+    IDirect3DSwapChain9* pSwapChain = nullptr;
+
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+      if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
+        hWndRender = pparams.hDeviceWindow;
+
+      pSwapChain->Release ();
+    }
   }
 
   if (! config.osd.pump)
@@ -537,6 +549,9 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
   SetThreadIdealProcessor (GetCurrentThread (),       6);
   SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
 #endif
+
+  if (This == nullptr)
+    return E_NOINTERFACE;
 
   g_pD3D9Dev = This;
 
@@ -570,7 +585,16 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
     // Only alter this HWND after the first frame is rendered, this
     //   filters out software that creates swapchains for the sole purpose of
     //     hooking the COM interface.
-    hWndRender = g_D3D9PresentParams.hDeviceWindow;
+    D3DPRESENT_PARAMETERS pparams;
+
+    IDirect3DSwapChain9* pSwapChain = nullptr;
+
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+      if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
+        hWndRender = pparams.hDeviceWindow;
+
+      pSwapChain->Release ();
+    }
   }
 
   if (! config.osd.pump)
@@ -756,6 +780,9 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
                           _In_ const RGNDATA          *pDirtyRegion,
                           _In_       DWORD             dwFlags)
   {
+    if (This == nullptr)
+      return E_NOINTERFACE;
+
     //SK_D3D9_UpdateRenderStats (This);
 
     SK_BeginBufferSwap ();
@@ -773,7 +800,10 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
       // Only alter this HWND after the first frame is rendered, this
       //   filters out software that creates swapchains for the sole purpose of
       //     hooking the COM interface.
-      hWndRender       = g_D3D9PresentParams.hDeviceWindow;
+      D3DPRESENT_PARAMETERS pparams;
+
+      if (SUCCEEDED (This->GetPresentParameters (&pparams)))
+        hWndRender = pparams.hDeviceWindow;
     }
 
     // We are manually pumping OSD updates, do not do them on buffer swaps.
@@ -1068,6 +1098,9 @@ STDMETHODCALLTYPE
 D3D9Reset_Override ( IDirect3DDevice9      *This,
                      D3DPRESENT_PARAMETERS *pPresentationParameters )
 {
+  if (This == nullptr || pPresentationParameters == nullptr)
+    return E_NOINTERFACE;
+
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh) - "
                 L"[%s, tid=0x%04x]",
                 L"IDirect3DDevice9::Reset", This, pPresentationParameters,
@@ -1117,6 +1150,9 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
               D3DPRESENT_PARAMETERS *pPresentationParameters,
               D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
 {
+  if (This == nullptr || pPresentationParameters == nullptr)
+    return E_NOINTERFACE;
+
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
                 L"[%s, tid=0x%04x]",
                   L"IDirect3DDevice9Ex::ResetEx",

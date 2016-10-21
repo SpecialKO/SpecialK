@@ -206,6 +206,9 @@ struct {
 
 struct {
   sk::ParameterBool* borderless;
+  sk::ParameterBool* center;
+  sk::ParameterInt*  x_off;
+  sk::ParameterInt*  y_off;
 } window;
 
 struct {
@@ -415,6 +418,36 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Window.Dimensions",
         L"Borderless" );
+
+  window.center =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Center the Window")
+      );
+  window.center->register_to_ini (
+    dll_ini,
+      L"Window.Dimensions",
+        L"Center" );
+
+  window.x_off =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"X Offset")
+      );
+  window.x_off->register_to_ini (
+    dll_ini,
+      L"Window.Dimensions",
+        L"XOffset" );
+
+  window.y_off =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"Y Offset")
+      );
+  window.y_off->register_to_ini (
+    dll_ini,
+      L"Window.Dimensions",
+        L"YOffset" );
 
 
 
@@ -1410,6 +1443,12 @@ SK_LoadConfig (std::wstring name) {
 
   if (window.borderless->load ())
     config.window.borderless = window.borderless->get_value ();
+  if (window.center->load ())
+    config.window.center = window.center->get_value ();
+  if (window.x_off->load ())
+    config.window.x_offset = window.x_off->get_value ();
+  if (window.y_off->load ())
+    config.window.y_offset = window.y_off->get_value ();
 
   if (steam.achievements.nosound->load ())
     config.steam.nosound = steam.achievements.nosound->get_value ();
@@ -1537,6 +1576,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
 
   window.borderless->set_value                (config.window.borderless);
+  window.center->set_value                    (config.window.center);
+  window.x_off->set_value                     (config.window.x_offset);
+  window.y_off->set_value                     (config.window.y_offset);
 
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
@@ -1667,6 +1709,11 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   input.cursor.manage->store              ();
   input.cursor.keys_activate->store       ();
   input.cursor.timeout->store             ();
+
+  window.borderless->store                ();
+  window.center->store                    ();
+  window.x_off->store                     ();
+  window.y_off->store                     ();
 
   nvidia.api.disable->store               ();
 

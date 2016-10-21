@@ -1033,6 +1033,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
 
+  SK_Console* pConsole = SK_Console::getInstance ();
+  pConsole->Start ();
+
+
   SK_TestSteamImports (SK_GetDLL ());
 
 
@@ -1166,9 +1170,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
-
-  SK_Console* pConsole = SK_Console::getInstance ();
-  pConsole->Start ();
 
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...

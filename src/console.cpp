@@ -26,6 +26,7 @@
 #include <cstdint>
 
 #include <string>
+#include <algorithm>
 #include "steam_api.h"
 
 #include "log.h"
@@ -145,14 +146,24 @@ SK_Console::Draw (void)
   }
 }
 
+typedef BOOL
+(WINAPI *MoveWindow_pfn)(
+    _In_ HWND hWnd,
+    _In_ int  X,
+    _In_ int  Y,
+    _In_ int  nWidth,
+    _In_ int  nHeight,
+    _In_ BOOL bRedraw );
 
-struct sk_window_s {
-  HWND    hWnd             = 0x00;
-  WNDPROC WndProc_Original = nullptr;
-  LONG    style            = 0x00;
-  LONG    style_ex         = 0x00;
-} game_window;
-
+typedef BOOL
+(WINAPI *SetWindowPos_pfn)(
+    _In_     HWND hWnd,
+    _In_opt_ HWND hWndInsertAfter,
+    _In_     int  X,
+    _In_     int  Y,
+    _In_     int  cx,
+    _In_     int  cy,
+    _In_     UINT uFlags );
 
 typedef LONG
 (WINAPI *SetWindowLongA_pfn)(
@@ -166,8 +177,270 @@ typedef LONG
     _In_ int nIndex,
     _In_ LONG dwNewLong);
 
-SetWindowLongW_pfn      SetWindowLongW_Original      = nullptr;
-SetWindowLongA_pfn      SetWindowLongA_Original      = nullptr;
+typedef BOOL
+(WINAPI *AdjustWindowRect_pfn)(
+    _Inout_ LPRECT lpRect,
+    _In_    DWORD  dwStyle,
+    _In_    BOOL   bMenu );
+
+typedef BOOL
+(WINAPI *AdjustWindowRectEx_pfn)(
+    _Inout_ LPRECT lpRect,
+    _In_    DWORD  dwStyle,
+    _In_    BOOL   bMenu,
+    _In_    DWORD  dwExStyle );
+
+
+struct sk_window_s {
+  HWND    hWnd             = 0x00;
+  WNDPROC WndProc_Original = nullptr;
+  LONG    style            = 0x00;
+  LONG    style_ex         = 0x00;
+  RECT    rect;
+
+  void    getRenderDims (long& x, long& y) {
+    x = (rect.right  - rect.left);
+    y = (rect.bottom - rect.top);
+  }
+} game_window;
+
+SetWindowPos_pfn       SetWindowPos_Original       = nullptr;
+MoveWindow_pfn         MoveWindow_Original         = nullptr;
+SetWindowLongW_pfn     SetWindowLongW_Original     = nullptr;
+SetWindowLongA_pfn     SetWindowLongA_Original     = nullptr;
+AdjustWindowRect_pfn   AdjustWindowRect_Original   = nullptr;
+AdjustWindowRectEx_pfn AdjustWindowRectEx_Original = nullptr;
+
+void SK_AdjustWindow (void);
+
+
+BOOL
+WINAPI
+MoveWindow_Detour(
+    _In_ HWND hWnd,
+    _In_ int  X,
+    _In_ int  Y,
+    _In_ int  nWidth,
+    _In_ int  nHeight,
+    _In_ BOOL bRedraw )
+{
+  if (hWnd != game_window.hWnd) {
+    return MoveWindow_Original ( hWnd,
+                                   X, Y,
+                                     nWidth, nHeight,
+                                       bRedraw );
+  }
+
+  dll_log.Log (L"[Window Mgr][!] MoveWindow (...)");
+
+  game_window.rect.left = X;
+  game_window.rect.top  = Y;
+
+  game_window.rect.right  = X + nWidth;
+  game_window.rect.bottom = Y + nHeight;
+
+  BOOL bRet = FALSE;
+
+  //if (! config.render.allow_background)
+    bRet = MoveWindow_Original (hWnd, X, Y, nWidth, nHeight, bRedraw);
+  //else
+    //bRet = TRUE;
+
+  SK_AdjustWindow ();
+
+  return bRet;
+}
+
+BOOL
+WINAPI
+SetWindowPos_Detour(
+    _In_     HWND hWnd,
+    _In_opt_ HWND hWndInsertAfter,
+    _In_     int  X,
+    _In_     int  Y,
+    _In_     int  cx,
+    _In_     int  cy,
+    _In_     UINT uFlags)
+{
+  if (hWnd != game_window.hWnd) {
+    return SetWindowPos_Original ( hWnd, hWndInsertAfter,
+                                     X, Y,
+                                       cx, cy,
+                                         uFlags );
+  }
+
+  long render_width,
+       render_height;
+
+  game_window.getRenderDims (render_width, render_height);
+
+  render_width  = std::max (render_width,  0L);
+  render_height = std::max (render_height, 0L);
+
+#if 0
+  dll_log->Log ( L"[Window Mgr][!] SetWindowPos (...)");
+#endif
+
+  // Ignore this, because it's invalid.
+  if ((cy == 0 || cx == 0) && (! (uFlags & SWP_NOSIZE))) {
+    game_window.rect.right  = game_window.rect.left + render_width;
+    game_window.rect.bottom = game_window.rect.top  + render_height;
+
+    dll_log.Log ( L"[Window Mgr] *** Encountered invalid SetWindowPos (...) - "
+                                     L"{cy:%lu, cx:%lu, uFlags:0x%x} - "
+                                     L"<left:%lu, top:%lu, WxH=(%lux%lu)>",
+                     cy, cx, uFlags,
+                       game_window.rect.left, game_window.rect.top,
+                         render_width, render_height );
+
+    return TRUE;
+  }
+
+#if 0
+  dll_log->Log ( L"  >> Before :: Top-Left: [%d/%d], Bottom-Right: [%d/%d]",
+                   tsf::window.window_rect.left, tsf::window.window_rect.top,
+                     tsf::window.window_rect.right, tsf::window.window_rect.bottom );
+#endif
+
+  int original_width  = game_window.rect.right -
+                        game_window.rect.left;
+  int original_height = game_window.rect.bottom -
+                        game_window.rect.top;
+
+  if (original_width <= 0 || original_height <= 0) {
+    original_width  = render_width;
+    original_height = render_height;
+  }
+
+  if (! (uFlags & SWP_NOMOVE)) {
+    game_window.rect.left = X;
+    game_window.rect.top  = Y;
+  }
+
+  if (! (uFlags & SWP_NOSIZE)) {
+    game_window.rect.right  = game_window.rect.left + cx;
+    game_window.rect.bottom = game_window.rect.top  + cy;
+  } else {
+    game_window.rect.right  = game_window.rect.left +
+                                original_width;
+    game_window.rect.bottom = game_window.rect.top  +
+                                original_height;
+  }
+
+#if 0
+  dll_log->Log ( L"  >> After :: Top-Left: [%d/%d], Bottom-Right: [%d/%d]",
+                   tsf::window.window_rect.left, tsf::window.window_rect.top,
+                     tsf::window.window_rect.right, tsf::window.window_rect.bottom );
+#endif
+
+  //
+  // Fix an invalid scenario that happens for some reason...
+  //
+  if (game_window.rect.left == game_window.rect.right)
+    game_window.rect.left = 0;
+  if (game_window.rect.left == game_window.rect.right)
+    game_window.rect.right = game_window.rect.left + render_width;
+
+  if (game_window.rect.top == game_window.rect.bottom)
+    game_window.rect.top = 0;
+  if (game_window.rect.top == game_window.rect.bottom)
+    game_window.rect.bottom = game_window.rect.top + render_height;
+
+
+
+#if 0
+  // Let the game manage its window position...
+  if (! config.render.borderless)
+    return SetWindowPos_Original (hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+  else
+    return TRUE;
+#else
+#if 0
+  if (config.window.borderless) {
+    BOOL bRet = TRUE;
+
+    //if (! tsf::RenderFix::fullscreen)
+      bRet =
+        SetWindowPos_Original ( hWnd,
+                                  hWndInsertAfter,
+                                    0, 0,
+                                      render_width, render_height,
+                                        uFlags | SWP_SHOWWINDOW );
+
+    return bRet;
+  }
+  else
+#endif
+  {
+    RECT new_rect = game_window.rect;
+
+    AdjustWindowRect_Original ( &new_rect,
+                                  game_window.style,
+                                    FALSE );
+
+    if (! (uFlags & SWP_NOMOVE)) {
+      X = new_rect.left;
+      Y = new_rect.top;
+
+      game_window.rect.left = X;
+      game_window.rect.top  = Y;
+    } else {
+      X = 0;
+      Y = 0;
+    }
+
+    if (! (uFlags & SWP_NOSIZE)) {
+      cx = new_rect.right  - new_rect.left;
+      cy = new_rect.bottom - new_rect.top;
+
+      game_window.rect.right  = game_window.rect.left + cx;
+      game_window.rect.bottom = game_window.rect.top  + cy;
+    } else {
+      cx = 0;
+      cy = 0;
+    }
+
+    BOOL bRet =
+      SetWindowPos_Original ( hWnd, hWndInsertAfter,
+                                X, Y,
+                                  cx, cy,
+                                    uFlags );
+
+    SK_AdjustWindow ();
+
+    return bRet;
+  }
+#endif
+}
+
+BOOL
+WINAPI
+AdjustWindowRect_Detour (
+    _Inout_ LPRECT lpRect,
+    _In_    DWORD  dwStyle,
+    _In_    BOOL   bMenu )
+{
+  if (! config.window.borderless) {
+    return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
+  }
+
+  return TRUE;
+}
+
+BOOL
+WINAPI
+AdjustWindowRectEx_Detour (
+    _Inout_ LPRECT lpRect,
+    _In_    DWORD  dwStyle,
+    _In_    BOOL   bMenu,
+    _In_    DWORD  dwExStyle )
+{
+  if (! config.window.borderless) {
+    return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
+  }
+
+  return TRUE;
+}
 
 LONG
 WINAPI
@@ -244,6 +517,128 @@ SetWindowLongW_Detour (
 }
 
 void
+SK_AdjustWindow (void)
+{
+  HMONITOR hMonitor =
+    MonitorFromWindow ( game_window.hWnd,
+                          MONITOR_DEFAULTTONEAREST );
+
+  MONITORINFO mi = { 0 };
+  mi.cbSize      = sizeof (mi);
+
+  GetMonitorInfo (hMonitor, &mi);
+
+#if 0
+  if (fullscreen) {
+    //dll_log->Log (L"BorderManager::AdjustWindow - Fullscreen");
+
+    SetWindowPos_Original ( tsf::window.hwnd,
+                              HWND_TOP,
+                                mi.rcMonitor.left,
+                                mi.rcMonitor.top,
+                                  mi.rcMonitor.right  - mi.rcMonitor.left,
+                                  mi.rcMonitor.bottom - mi.rcMonitor.top,
+                                    SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOSENDCHANGING );
+    dll_log->Log ( L"[Border Mgr] FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
+                     mi.rcMonitor.left, mi.rcMonitor.top,
+                       mi.rcMonitor.right - mi.rcMonitor.left,
+                         mi.rcMonitor.bottom - mi.rcMonitor.top );
+  } else
+#endif
+  {
+    //dll_log->Log (L"BorderManager::AdjustWindow - Windowed");
+
+    AdjustWindowRect_Original (
+      &mi.rcWork,
+        game_window.style,
+          FALSE
+    );
+
+    LONG mon_width  = mi.rcWork.right  - mi.rcWork.left;
+    LONG mon_height = mi.rcWork.bottom - mi.rcWork.top;
+
+    LONG render_width,
+         render_height;
+
+    game_window.getRenderDims (render_width, render_height);
+
+    LONG win_width  = std::min (mon_width,  render_width);
+    LONG win_height = std::min (mon_height, render_height);
+
+    if (config.window.x_offset >= 0)
+      game_window.rect.left  = mi.rcWork.left  + config.window.x_offset;
+    else
+      game_window.rect.right = mi.rcWork.right + config.window.x_offset + 1;
+
+
+    if (config.window.y_offset >= 0)
+      game_window.rect.top    = mi.rcWork.top    + config.window.y_offset;
+    else
+      game_window.rect.bottom = mi.rcWork.bottom + config.window.y_offset + 1;
+
+
+    if (config.window.center && config.window.x_offset == 0 && config.window.y_offset == 0) {
+      //dll_log->Log ( L"[Window Mgr] Center --> (%li,%li)",
+      //                 mi.rcWork.right - mi.rcWork.left,
+      //                   mi.rcWork.bottom - mi.rcWork.top );
+
+      game_window.rect.left = std::max (0L, (mon_width  - win_width)  / 2);
+      game_window.rect.top  = std::max (0L, (mon_height - win_height) / 2);
+    }
+
+
+    if (config.window.x_offset >= 0)
+      game_window.rect.right = game_window.rect.left  + win_width;
+    else
+      game_window.rect.left  = game_window.rect.right - win_width;
+
+
+    if (config.window.y_offset >= 0)
+      game_window.rect.bottom = game_window.rect.top    + win_height;
+    else
+      game_window.rect.top    = game_window.rect.bottom - win_height;
+
+
+    //AdjustWindowRect_Original ( &game_window.rect,
+                                  //game_window.style,
+                                    //FALSE );
+
+    int push_right = 0;
+
+    if (game_window.rect.left < 0)
+      push_right = 0 - game_window.rect.left;
+
+    game_window.rect.left  += push_right;
+    game_window.rect.right += push_right;
+
+
+    int push_down = 0;
+
+    if (game_window.rect.top < 0)
+      push_down = 0 - game_window.rect.top;
+
+    game_window.rect.top    += push_down;
+    game_window.rect.bottom += push_down;
+
+
+    SetWindowPos_Original ( game_window.hWnd,
+                              HWND_TOP,
+                                game_window.rect.left, game_window.rect.top,
+                                  game_window.rect.right  - game_window.rect.left,
+                                  game_window.rect.bottom - game_window.rect.top,
+                                    (config.window.borderless ? SWP_FRAMECHANGED : 0x0) |
+                                      SWP_NOZORDER      | SWP_NOREDRAW   |
+                                      SWP_NOOWNERZORDER | SWP_NOACTIVATE |
+                                      SWP_NOCOPYBITS );
+
+    dll_log.Log ( L"[Border Mgr] WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li)",
+                    game_window.rect.left, game_window.rect.top,
+                       game_window.rect.right - game_window.rect.left,
+                         game_window.rect.bottom - game_window.rect.top );
+  }
+}
+
+void
 SK_Console::Start (void)
 {
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
@@ -252,14 +647,34 @@ SK_Console::Start (void)
     return;
   }
 
-  if (config.window.borderless) {
+  if ( config.window.borderless ||
+       config.window.center     ||
+       config.window.x_offset   ||
+       config.window.y_offset )
+  {
+    SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
+                          SetWindowPos_Detour,
+               (LPVOID *)&SetWindowPos_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "MoveWindow",
+                          MoveWindow_Detour,
+               (LPVOID *)&MoveWindow_Original );
+
     SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongA",
                           SetWindowLongA_Detour,
-                (LPVOID*)&SetWindowLongA_Original );
+               (LPVOID *)&SetWindowLongA_Original );
 
     SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongW",
                           SetWindowLongW_Detour,
-                (LPVOID*)&SetWindowLongW_Original );
+               (LPVOID *)&SetWindowLongW_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRect",
+                          AdjustWindowRect_Detour,
+               (LPVOID *)&AdjustWindowRect_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRectEx",
+                          AdjustWindowRectEx_Detour,
+               (LPVOID *)&AdjustWindowRectEx_Original );
 
     SK_ApplyQueuedHooks ();
   }
@@ -557,16 +972,36 @@ SK_InstallWindowHook (HWND hWnd)
                      GWLP_WNDPROC,
                        (LONG_PTR)SK_DetourWindowProc );
 
-  if (config.window.borderless) {
-    game_window.style = 0x10000000;
+  if (! config.window.borderless)
+    game_window.style = GetWindowLongA (game_window.hWnd, GWL_STYLE);//0x90CA0000;
+  else
+    game_window.style = WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX;
 
-    SetWindowLongA_Original (game_window.hWnd, GWL_STYLE, game_window.style);
-    SetWindowPos            ( game_window.hWnd, 0, 0, 0, 0, 0,
-                              SWP_FRAMECHANGED   | SWP_NOSIZE        | SWP_NOMOVE     |
-                              SWP_NOZORDER       | SWP_NOREDRAW      | SWP_NOACTIVATE |
-                              SWP_NOSENDCHANGING | SWP_NOOWNERZORDER | SWP_NOCOPYBITS );
-  } else {                         
-    game_window.style = 0x90CA0000;
+  if ( config.window.borderless ||
+       config.window.center     ||
+       config.window.x_offset   ||
+       config.window.y_offset )
+  {
+    GetWindowRect (game_window.hWnd, &game_window.rect);
+
+    if (config.window.borderless)
+      SetWindowLongA_Original (game_window.hWnd, GWL_STYLE, game_window.style);
+
+    SK_AdjustWindow ();
+
+#if 0
+    AdjustWindowRect_Original ( &game_window.rect,
+                                  game_window.style,
+                                    FALSE );
+
+    SetWindowPos_Original ( game_window.hWnd, HWND_TOP,
+                              game_window.rect.left, game_window.rect.top,
+                                game_window.rect.right  - game_window.rect.left,
+                                game_window.rect.bottom - game_window.rect.top,
+                                  SWP_FRAMECHANGED  | SWP_NOZORDER   |
+                                  SWP_NOREDRAW      | SWP_NOACTIVATE |
+                                  SWP_NOOWNERZORDER | SWP_NOCOPYBITS );
+#endif
   }
 }
 

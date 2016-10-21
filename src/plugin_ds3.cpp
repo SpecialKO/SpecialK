@@ -48,9 +48,9 @@ typedef HWND (WINAPI *SetActiveWindow_pfn)(
 
 
 //GetSystemMetrics_pfn     GetSystemMetrics_Original     = nullptr;
-EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
-SetWindowPos_pfn         SetWindowPos_Original         = nullptr;
-SetActiveWindow_pfn      SetActiveWindow_Original      = nullptr;
+static EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
+static SetWindowPos_pfn         SetWindowPos_Original         = nullptr;
+static SetActiveWindow_pfn      SetActiveWindow_Original      = nullptr;
 
 #include <d3d11.h>
 

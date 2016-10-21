@@ -18,6 +18,8 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#define _CRT_NON_CONFORMING_SWPRINTFS
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "../ini.h"
 #include "../parameter.h"
