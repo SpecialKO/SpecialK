@@ -363,12 +363,12 @@ NVAPI::UnloadLibrary (void)
 
       NvAPI_Status ret;
 
-    NVAPI_CALL2 (Unload (), ret);
+    ret = NvAPI_Unload ();//NVAPI_CALL2 (Unload (), ret);
 
-    if (ret == NVAPI_OK) {
+    //if (ret == NVAPI_OK) {
       bLibShutdown = TRUE;
       bLibInit     = FALSE;
-    }
+    //}
   }
 
   return bLibShutdown;
@@ -422,12 +422,12 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       // Time to initialize a few undocumented (if you do not sign an NDA)
       //   parts of NvAPI, hurray!
       //
+      static HMODULE hLib = nullptr;
+
 #ifdef _WIN64
-      static HMODULE hLib = LoadLibrary (L"nvapi64.dll");
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, L"nvapi64.dll", &hLib);
 #else
-      static HMODULE hLib = LoadLibrary (L"nvapi.dll");
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll", &hLib);
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, L"nvapi.dll",   &hLib);
 #endif
 
     if (hLib != nullptr) {
@@ -478,8 +478,10 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       nv_hardware = false;
     }
 
-    if (nv_hardware == false)
+    if (nv_hardware == false) {
       bLibInit = FALSE;
+      hLib     = nullptr;
+    }
   }
 
   //if (! CheckDriverVersion ()) {

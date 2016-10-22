@@ -143,24 +143,24 @@ struct {
   } api;
 } nvidia;
 
-sk::ParameterFloat*     mem_reserve;
-sk::ParameterBool*      debug_output;
-sk::ParameterBool*      game_output;
-sk::ParameterBool*      handle_crashes;
-sk::ParameterBool*      prefer_fahrenheit;
-sk::ParameterBool*      ignore_rtss_delay;
-sk::ParameterInt*       init_delay;
-sk::ParameterBool*      silent;
-sk::ParameterStringW*   version;
+sk::ParameterFloat*       mem_reserve;
+sk::ParameterBool*        debug_output;
+sk::ParameterBool*        game_output;
+sk::ParameterBool*        handle_crashes;
+sk::ParameterBool*        prefer_fahrenheit;
+sk::ParameterBool*        ignore_rtss_delay;
+sk::ParameterInt*         init_delay;
+sk::ParameterBool*        silent;
+sk::ParameterStringW*     version;
 
 struct {
   struct {
-    sk::ParameterFloat* target_fps;
-    sk::ParameterInt*   prerender_limit;
-    sk::ParameterInt*   present_interval;
-    sk::ParameterInt*   buffer_count;
-    sk::ParameterInt*   max_delta_time;
-    sk::ParameterBool*  flip_discard;
+    sk::ParameterFloat*   target_fps;
+    sk::ParameterInt*     prerender_limit;
+    sk::ParameterInt*     present_interval;
+    sk::ParameterInt*     buffer_count;
+    sk::ParameterInt*     max_delta_time;
+    sk::ParameterBool*    flip_discard;
   } framerate;
   struct {
     sk::ParameterInt*     adapter_override;
@@ -198,30 +198,30 @@ struct {
 
 struct {
   struct {
-    sk::ParameterBool*  manage;
-    sk::ParameterBool*  keys_activate;
-    sk::ParameterFloat* timeout;
+    sk::ParameterBool*    manage;
+    sk::ParameterBool*    keys_activate;
+    sk::ParameterFloat*   timeout;
   } cursor;
 } input;
 
 struct {
-  sk::ParameterBool* borderless;
-  sk::ParameterBool* center;
-  sk::ParameterInt*  x_off;
-  sk::ParameterInt*  y_off;
-  sk::ParameterBool* background_render;
+  sk::ParameterBool*      borderless;
+  sk::ParameterBool*      center;
+  sk::ParameterInt*       x_off;
+  sk::ParameterInt*       y_off;
+  sk::ParameterBool*      background_render;
 } window;
 
 struct {
-  sk::ParameterBool* ignore_raptr;
-  sk::ParameterBool* disable_raptr;
-  sk::ParameterBool* rehook_loadlibrary;
+  sk::ParameterBool*      ignore_raptr;
+  sk::ParameterBool*      disable_raptr;
+  sk::ParameterBool*      rehook_loadlibrary;
 
   struct {
-    sk::ParameterBool* rehook_reset;
-    sk::ParameterBool* rehook_present;
-    sk::ParameterBool* hook_reset_vtable;
-    sk::ParameterBool* hook_present_vtable;
+    sk::ParameterBool*    rehook_reset;
+    sk::ParameterBool*    rehook_present;
+    sk::ParameterBool*    hook_reset_vtable;
+    sk::ParameterBool*    hook_present_vtable;
   } d3d9;
 } compatibility;
 

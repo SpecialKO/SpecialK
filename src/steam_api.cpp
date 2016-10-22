@@ -52,6 +52,7 @@ CRITICAL_SECTION init_cs = { 0 };
 
 
 bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
+bool S_CALLTYPE SteamAPI_Init_Detour     (void);
 
 S_API typedef bool (S_CALLTYPE *SteamAPI_Init_t    )(void);
 S_API typedef bool (S_CALLTYPE *SteamAPI_InitSafe_t)(void);
@@ -161,7 +162,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   //
   //  Take this opportunity to finish SteamAPI initialization for SpecialK.
   if (! InterlockedExchangeAdd (&__SK_Steam_init, 0)) {
-    SteamAPI_InitSafe_Detour ();
+    SteamAPI_Init_Detour ();
   }
 
   std::wstring caller = 
@@ -1138,6 +1139,12 @@ SteamAPI_InitSafe_Detour (void)
 {
   EnterCriticalSection (&init_cs);
 
+  // In case we already initialized stuff...
+  if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE)) {
+    LeaveCriticalSection (&init_cs);
+    return true;
+  }
+
   static int init_tries = -1;
 
   if (++init_tries == 0) {
@@ -1146,14 +1153,20 @@ SteamAPI_InitSafe_Detour (void)
     steam_log.Log (L"----------(InitSafe)-----------\n");
   }
 
+  // TODO: Scoped UnHook / ReHook
+  SK_DisableHook (SteamAPI_RegisterCallback);
+
   if (SteamAPI_InitSafe_Original ()) {
+    InterlockedExchange (&__SK_Steam_init, TRUE);
+
 #ifdef _WIN64
   const wchar_t* steam_dll_str    = L"steam_api64.dll";
 #else
   const wchar_t* steam_dll_str = L"steam_api.dll";
 #endif
 
-    HMODULE hSteamAPI = GetModuleHandle (steam_dll_str);
+    HMODULE hSteamAPI;
+    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, steam_dll_str, &hSteamAPI);
 
     if (! steam_ctx.UserStats ())
       steam_ctx.InitSteamAPI (hSteamAPI);
@@ -1161,24 +1174,14 @@ SteamAPI_InitSafe_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE)) {
-        LeaveCriticalSection (&init_cs);
-        return true;
-      }
-
       stats->RequestCurrentStats ();
 
       steam_log.Log (L" Creating Achievement Manager...");
 
-      // Don't report our own callbacks!
-      SK_DisableHook (SteamAPI_RegisterCallback);
-      {
-        steam_achievements = new SK_Steam_AchievementManager (
-            config.steam.achievement_sound.c_str ()
-          );
-        overlay_manager    = new SK_Steam_OverlayManager ();
-      }
-      SK_EnableHook (SteamAPI_RegisterCallback);
+      steam_achievements = new SK_Steam_AchievementManager (
+          config.steam.achievement_sound.c_str ()
+        );
+      overlay_manager    = new SK_Steam_OverlayManager ();
 
       steam_log.LogEx (false, L"\n");
     }
@@ -1189,9 +1192,13 @@ SteamAPI_InitSafe_Detour (void)
 
     StartSteamPump ();
 
+    SK_EnableHook (SteamAPI_RegisterCallback);
+
     LeaveCriticalSection (&init_cs);
     return true;
   }
+
+  SK_EnableHook (SteamAPI_RegisterCallback);
 
   LeaveCriticalSection (&init_cs);
   return false;
@@ -1203,6 +1210,12 @@ SteamAPI_Init_Detour (void)
 {
   EnterCriticalSection (&init_cs);
 
+  // In case we already initialized stuff...
+  if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE)) {
+    LeaveCriticalSection (&init_cs);
+    return true;
+  }
+
   static int init_tries = -1;
 
   if (++init_tries == 0) {
@@ -1211,38 +1224,33 @@ SteamAPI_Init_Detour (void)
     steam_log.Log (L"-------------------------------\n");
   }
 
+  SK_DisableHook (SteamAPI_RegisterCallback);
+
   if (SteamAPI_Init_Original ()) {
+    InterlockedExchange (&__SK_Steam_init, TRUE);
+
 #ifdef _WIN64
   const wchar_t* steam_dll_str    = L"steam_api64.dll";
 #else
   const wchar_t* steam_dll_str = L"steam_api.dll";
 #endif
 
-    HMODULE hSteamAPI = GetModuleHandle (steam_dll_str);
+    HMODULE hSteamAPI;
+    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, steam_dll_str, &hSteamAPI);
 
     steam_ctx.InitSteamAPI (hSteamAPI);
 
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE)) {
-        LeaveCriticalSection (&init_cs);
-        return true;
-      }
-
       stats->RequestCurrentStats ();
 
       steam_log.Log (L" Creating Achievement Manager...");
 
-      // Don't report our own callbacks!
-      SK_DisableHook (SteamAPI_RegisterCallback);
-      {
-        steam_achievements = new SK_Steam_AchievementManager (
-            config.steam.achievement_sound.c_str ()
-          );
-        overlay_manager    = new SK_Steam_OverlayManager ();
-      }
-      SK_EnableHook (SteamAPI_RegisterCallback);
+      steam_achievements = new SK_Steam_AchievementManager (
+          config.steam.achievement_sound.c_str ()
+        );
+      overlay_manager    = new SK_Steam_OverlayManager ();
 
       steam_log.LogEx (false, L"\n");
     }
@@ -1253,9 +1261,13 @@ SteamAPI_Init_Detour (void)
 
     StartSteamPump ();
 
+    SK_EnableHook (SteamAPI_RegisterCallback);
+
     LeaveCriticalSection (&init_cs);
     return true;
   }
+
+  SK_EnableHook (SteamAPI_RegisterCallback);
 
   LeaveCriticalSection (&init_cs);
   return false;
@@ -1286,6 +1298,12 @@ InitSafe_Detour (void)
 {
   EnterCriticalSection (&init_cs);
 
+  // In case we already initialized stuff...
+  if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE)) {
+    LeaveCriticalSection (&init_cs);
+    return true;
+  }
+
   static int init_tries = -1;
 
   if (++init_tries == 0) {
@@ -1294,8 +1312,13 @@ InitSafe_Detour (void)
     steam_log.Log (L"-----------(InitSafe)-----------\n");
   }
 
+  SK_DisableHook (SteamAPI_RegisterCallback);
+
   if (InitSafe_Original ()) {
-    HMODULE hSteamAPI = GetModuleHandle (L"CSteamworks.dll");
+    InterlockedExchange (&__SK_Steam_init, TRUE);
+
+    HMODULE hSteamAPI;
+    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"CSteamworks.dll", &hSteamAPI);
 
     if (! steam_ctx.UserStats ())
       steam_ctx.InitCSteamworks (hSteamAPI);
@@ -1303,24 +1326,14 @@ InitSafe_Detour (void)
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
     if (stats) {
-      if (InterlockedCompareExchange (&__SK_Steam_init, TRUE, FALSE)) {
-        LeaveCriticalSection (&init_cs);
-        return true;
-      }
-
       stats->RequestCurrentStats ();
 
       steam_log.Log (L" Creating Achievement Manager...");
 
-      // Don't report our own callbacks!
-      SK_DisableHook (SteamAPI_RegisterCallback);
-      {
-        steam_achievements = new SK_Steam_AchievementManager (
-            config.steam.achievement_sound.c_str ()
-          );
-        overlay_manager    = new SK_Steam_OverlayManager ();
-      }
-      SK_EnableHook (SteamAPI_RegisterCallback);
+      steam_achievements = new SK_Steam_AchievementManager (
+          config.steam.achievement_sound.c_str ()
+        );
+      overlay_manager    = new SK_Steam_OverlayManager ();
 
       steam_log.LogEx (false, L"\n");
     }
@@ -1331,9 +1344,13 @@ InitSafe_Detour (void)
 
     StartSteamPump ();
 
+    SK_EnableHook (SteamAPI_RegisterCallback);
+
     LeaveCriticalSection (&init_cs);
     return true;
   }
+
+  SK_EnableHook (SteamAPI_RegisterCallback);
 
   LeaveCriticalSection (&init_cs);
   return false;
@@ -1461,33 +1478,35 @@ SK_HookSteamAPI (void)
 
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                      "SteamAPI_InitSafe",
                      SteamAPI_InitSafe_Detour,
           (LPVOID *)&SteamAPI_InitSafe_Original );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                      "SteamAPI_Init",
                      SteamAPI_Init_Detour,
           (LPVOID *)&SteamAPI_Init_Original );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                      "SteamAPI_RegisterCallback",
                      SteamAPI_RegisterCallback_Detour,
           (LPVOID *)&SteamAPI_RegisterCallback_Original,
           (LPVOID *)&SteamAPI_RegisterCallback );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                      "SteamAPI_UnregisterCallback",
                      SteamAPI_UnregisterCallback_Detour,
           (LPVOID *)&SteamAPI_UnregisterCallback_Original,
           (LPVOID *)&SteamAPI_UnregisterCallback );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                      "SteamAPI_RunCallbacks",
                      SteamAPI_RunCallbacks_Detour,
           (LPVOID *)&SteamAPI_RunCallbacks_Original,
           (LPVOID *)&SteamAPI_RunCallbacks );
+
+  SK_ApplyQueuedHooks ();
 
   if (config.steam.init_delay > 0)
     CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
