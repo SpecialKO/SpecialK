@@ -268,6 +268,7 @@ struct sk_config_t
     bool    center              = false;
     int     x_offset            = 0;
     int     y_offset            = 0;
+    bool    background_render   = false;
   } window;
 
   struct {

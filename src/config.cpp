@@ -209,6 +209,7 @@ struct {
   sk::ParameterBool* center;
   sk::ParameterInt*  x_off;
   sk::ParameterInt*  y_off;
+  sk::ParameterBool* background_render;
 } window;
 
 struct {
@@ -416,7 +417,7 @@ SK_LoadConfig (std::wstring name) {
       );
   window.borderless->register_to_ini (
     dll_ini,
-      L"Window.Dimensions",
+      L"Window.System",
         L"Borderless" );
 
   window.center =
@@ -426,8 +427,18 @@ SK_LoadConfig (std::wstring name) {
       );
   window.center->register_to_ini (
     dll_ini,
-      L"Window.Dimensions",
+      L"Window.System",
         L"Center" );
+
+  window.background_render =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Render While Window is in Background")
+      );
+  window.background_render->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"RenderInBackground" );
 
   window.x_off =
     static_cast <sk::ParameterInt *>
@@ -436,7 +447,7 @@ SK_LoadConfig (std::wstring name) {
       );
   window.x_off->register_to_ini (
     dll_ini,
-      L"Window.Dimensions",
+      L"Window.System",
         L"XOffset" );
 
   window.y_off =
@@ -446,7 +457,7 @@ SK_LoadConfig (std::wstring name) {
       );
   window.y_off->register_to_ini (
     dll_ini,
-      L"Window.Dimensions",
+      L"Window.System",
         L"YOffset" );
 
 
@@ -1445,6 +1456,8 @@ SK_LoadConfig (std::wstring name) {
     config.window.borderless = window.borderless->get_value ();
   if (window.center->load ())
     config.window.center = window.center->get_value ();
+  if (window.background_render->load ())
+    config.window.background_render = window.background_render->get_value ();
   if (window.x_off->load ())
     config.window.x_offset = window.x_off->get_value ();
   if (window.y_off->load ())
@@ -1577,6 +1590,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
+  window.background_render->set_value         (config.window.background_render);
   window.x_off->set_value                     (config.window.x_offset);
   window.y_off->set_value                     (config.window.y_offset);
 
@@ -1712,6 +1726,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   window.borderless->store                ();
   window.center->store                    ();
+  window.background_render->store         ();
   window.x_off->store                     ();
   window.y_off->store                     ();
 

@@ -194,6 +194,7 @@ typedef BOOL
 struct sk_window_s {
   HWND    hWnd             = 0x00;
   WNDPROC WndProc_Original = nullptr;
+  bool    active           = false;
   LONG    style            = 0x00;
   LONG    style_ex         = 0x00;
   RECT    rect;
@@ -400,8 +401,10 @@ SetWindowPos_Detour(
       cy = 0;
     }
 
+    // Fix really weird behavior that happens in Tales of Zestiria
+    //   and Tales of Symphonia ... NEVER ALLOW TOPMOST!
     BOOL bRet =
-      SetWindowPos_Original ( hWnd, hWndInsertAfter,
+      SetWindowPos_Original ( hWnd, HWND_NOTOPMOST,
                                 X, Y,
                                   cx, cy,
                                     uFlags );
@@ -622,14 +625,13 @@ SK_AdjustWindow (void)
 
 
     SetWindowPos_Original ( game_window.hWnd,
-                              HWND_TOP,
+                              HWND_NOTOPMOST,
                                 game_window.rect.left, game_window.rect.top,
                                   game_window.rect.right  - game_window.rect.left,
                                   game_window.rect.bottom - game_window.rect.top,
                                     (config.window.borderless ? SWP_FRAMECHANGED : 0x0) |
-                                      SWP_NOZORDER      | SWP_NOREDRAW   |
                                       SWP_NOOWNERZORDER | SWP_NOACTIVATE |
-                                      SWP_NOCOPYBITS );
+                                      SWP_NOCOPYBITS    | SWP_ASYNCWINDOWPOS );
 
     dll_log.Log ( L"[Border Mgr] WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li)",
                     game_window.rect.left, game_window.rect.top,
@@ -835,6 +837,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  if (hWnd != game_window.hWnd)
+    return DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+  static bool last_active = game_window.active;
+
   bool console_visible =
     SK_Console::getInstance ()->isVisible ();
 
@@ -849,14 +856,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     dll_log.Log ( L"[ SpecialK ] --- Invoking DllMain shutdown in response to "
                   L"WM_DESTROY ---" );
     SK_SelfDestruct ();
-  }
-
-  if (console_visible) {
-    if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
-      return DefWindowProc (hWnd, uMsg, wParam, lParam);
-    // Block RAW Input
-    if (uMsg == WM_INPUT)
-      return DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
   if (config.input.cursor.manage)
@@ -939,6 +938,78 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       else
         ActivateCursor ();
     }
+  }
+
+  last_active = game_window.active;
+
+  // Ignore this event
+  if (uMsg == WM_MOUSEACTIVATE && config.window.background_render) {
+    if ((HWND)wParam == game_window.hWnd) {
+      dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
+      game_window.active = true;
+
+      return MA_ACTIVATEANDEAT;
+    }
+
+    return MA_NOACTIVATE;
+  }
+
+  // Allow the game to run in the background
+  if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE || uMsg == WM_NCACTIVATE /*|| uMsg == WM_MOUSEACTIVATE*/)
+  {
+    if (uMsg == WM_NCACTIVATE) {
+      if (wParam == TRUE) {
+        //dll_log->Log (L"[Window Mgr] Application Activated");
+
+        game_window.active = true;
+      } else {
+        //dll_log->Log (L"[Window Mgr] Application Deactivated");
+
+        game_window.active = false;
+      }
+
+      // We must fully consume one of these messages or audio will stop playing
+      //   when the game loses focus, so do not simply pass this through to the
+      //     default window procedure.
+      if (config.window.background_render) {
+        //if (config.window.fix_taskbar)
+          //TSFix_RealizeForegroundWindow ();
+
+        return 0;
+      }
+    }
+
+    if (config.window.background_render)
+      return 1;
+  }
+
+#if 0
+  // Block the menu key from messing with stuff
+  if ( config.input.block_left_alt &&
+       (uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP) ) {
+    // Make an exception for Alt+Enter, for fullscreen mode toggle.
+    //   F4 as well for exit
+    if ( wParam != VK_RETURN && wParam != VK_F4 &&
+         wParam != VK_TAB    && wParam != VK_PRINT )
+      return DefWindowProc (hWnd, uMsg, wParam, lParam);
+  }
+#endif
+
+  bool background_render =
+    config.window.background_render && (! game_window.active);
+
+  // Block keyboard input to the game while the console is visible
+  if (console_visible || (background_render && uMsg != WM_SYSKEYDOWN)) {
+    // Only prevent the mouse from working while the window is in the bg
+    if (config.window.background_render && uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
+      return DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+    if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
+      return DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+    // Block RAW Input
+    if (console_visible && uMsg == WM_INPUT)
+      return DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
   return CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
