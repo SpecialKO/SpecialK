@@ -527,8 +527,13 @@ public:
 
     // Blacklist of people not allowed to use my software
     if (user != nullptr) {
-      if (user->GetSteamID ().GetAccountID () == 64655118)
+      uint32_t aid = user->GetSteamID ().GetAccountID ();
+
+      if (aid == 64655118 || aid == 183437803) {
+        SK_MessageBox ( L"You are not authorized to use this software",
+                          L"Unauthorized User", MB_ICONWARNING | MB_OK );
         ExitProcess (0x00);
+      }
     }
 
     user_stats_ =

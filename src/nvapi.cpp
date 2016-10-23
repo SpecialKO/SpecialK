@@ -39,11 +39,11 @@
 //
 //  ** (I am not breaking any NDA; I found these the hard way!)
 //
-NvAPI_GPU_GetRamType_t            NvAPI_GPU_GetRamType;
-NvAPI_GPU_GetFBWidthAndLocation_t NvAPI_GPU_GetFBWidthAndLocation;
-NvAPI_GPU_GetPCIEInfo_t           NvAPI_GPU_GetPCIEInfo;
-NvAPI_GetPhysicalGPUFromGPUID_t   NvAPI_GetPhysicalGPUFromGPUID;
-NvAPI_GetGPUIDFromPhysicalGPU_t   NvAPI_GetGPUIDFromPhysicalGPU;
+NvAPI_GPU_GetRamType_pfn            NvAPI_GPU_GetRamType;
+NvAPI_GPU_GetFBWidthAndLocation_pfn NvAPI_GPU_GetFBWidthAndLocation;
+NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo;
+NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID;
+NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU;
 
 #ifdef _WIN64
 #pragma comment (lib, "nvapi/amd64/nvapi64.lib")
@@ -365,10 +365,10 @@ NVAPI::UnloadLibrary (void)
 
     ret = NvAPI_Unload ();//NVAPI_CALL2 (Unload (), ret);
 
-    //if (ret == NVAPI_OK) {
+    if (ret == NVAPI_OK) {
       bLibShutdown = TRUE;
       bLibInit     = FALSE;
-    //}
+    }
   }
 
   return bLibShutdown;
@@ -425,27 +425,27 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       static HMODULE hLib = nullptr;
 
 #ifdef _WIN64
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, L"nvapi64.dll", &hLib);
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
 #else
-      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, L"nvapi.dll",   &hLib);
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
 #endif
 
     if (hLib != nullptr) {
-      typedef void* (*NvAPI_QueryInterface_t)(unsigned int ordinal);
+      typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int ordinal);
 
-      static NvAPI_QueryInterface_t NvAPI_QueryInterface =
-        (NvAPI_QueryInterface_t)GetProcAddress (hLib, "nvapi_QueryInterface");
+      static NvAPI_QueryInterface_pfn NvAPI_QueryInterface =
+        (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
 
       NvAPI_GPU_GetRamType =
-        (NvAPI_GPU_GetRamType_t)NvAPI_QueryInterface (0x57F7CAAC);
+        (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface (0x57F7CAAC);
       NvAPI_GPU_GetFBWidthAndLocation =
-        (NvAPI_GPU_GetFBWidthAndLocation_t)NvAPI_QueryInterface (0x11104158);
+        (NvAPI_GPU_GetFBWidthAndLocation_pfn)NvAPI_QueryInterface (0x11104158);
       NvAPI_GPU_GetPCIEInfo =
-        (NvAPI_GPU_GetPCIEInfo_t)NvAPI_QueryInterface (0xE3795199UL);
+        (NvAPI_GPU_GetPCIEInfo_pfn)NvAPI_QueryInterface (0xE3795199UL);
       NvAPI_GetPhysicalGPUFromGPUID =
-        (NvAPI_GetPhysicalGPUFromGPUID_t)NvAPI_QueryInterface (0x5380AD1A);
+        (NvAPI_GetPhysicalGPUFromGPUID_pfn)NvAPI_QueryInterface (0x5380AD1A);
       NvAPI_GetGPUIDFromPhysicalGPU =
-        (NvAPI_GetGPUIDFromPhysicalGPU_t)NvAPI_QueryInterface (0x6533EA3E);
+        (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface (0x6533EA3E);
 
       if (NvAPI_GPU_GetRamType == nullptr) {
         dll_log.LogEx (false, L"missing NvAPI_GPU_GetRamType ");
@@ -484,28 +484,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
     }
   }
 
-  //if (! CheckDriverVersion ()) {
-    //MessageBox (NULL,
-                //L"WARNING:  Your display drivers are too old to play this game!\n",
-                //L"Please update your display drivers (Minimum Version = 355.82)",
-                //MB_OK | MB_ICONEXCLAMATION);
-  //}
-
   return (bLibInit = TRUE);
-}
-
-bool
-NVAPI::CheckDriverVersion (void)
-{
-  NvU32 ver;
-  GetDriverVersion (&ver);
-
-  return ver >= 35582;
-  if (ver < 35582) {
-    return false;
-  }
-
-  return true;
 }
 
 NV_GET_CURRENT_SLI_STATE
@@ -656,12 +635,12 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
     HMODULE hLib = LoadLibrary (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
-    typedef void* (*NvAPI_QueryInterface_t)(unsigned int offset);
-    typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_t)(void);
-    NvAPI_QueryInterface_t       NvAPI_QueryInterface       =
-      (NvAPI_QueryInterface_t)GetProcAddress (hLib, "nvapi_QueryInterface");
-    NvAPI_RestartDisplayDriver_t NvAPI_RestartDisplayDriver =
-      (NvAPI_RestartDisplayDriver_t)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
+    typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
+    typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
+    NvAPI_QueryInterface_pfn       NvAPI_QueryInterface       =
+      (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+    NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
+      (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
 
     NvAPI_RestartDisplayDriver ();
   }
@@ -1011,12 +990,12 @@ SK_NvAPI_AddLauncherToProf (void)
     HMODULE hLib = LoadLibrary (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
-    typedef void* (*NvAPI_QueryInterface_t)(unsigned int offset);
-    typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_t)(void);
-    NvAPI_QueryInterface_t       NvAPI_QueryInterface       =
-      (NvAPI_QueryInterface_t)GetProcAddress (hLib, "nvapi_QueryInterface");
-    NvAPI_RestartDisplayDriver_t NvAPI_RestartDisplayDriver =
-      (NvAPI_RestartDisplayDriver_t)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
+    typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
+    typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
+    NvAPI_QueryInterface_pfn       NvAPI_QueryInterface       =
+      (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+    NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
+      (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
 
     NvAPI_RestartDisplayDriver ();
   }

@@ -108,21 +108,23 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     //CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
   }
 
-  else
-    if ( StrStrIW (lpFileName, L"Nahimic2DevProps") ) {
-      if (! (SK_LoadLibrary_SILENCE))
-        dll_log.Log (L"[Black List] Disabling MSI Nahimic Support DLL.");
+  else {
+    const wchar_t* wszNahimic = StrStrIW (lpFileName, L"Nahimic");
+
+    if ( wszNahimic != nullptr && StrStrIW (wszNahimic, L"DevProps") ) {
+      //if (! (SK_LoadLibrary_SILENCE))
+        dll_log.Log (L"[Black List] Disabling MSI Nahimic Support DLL(s)!");
       return TRUE;
     }
 
     else if ( StrStrIW (lpFileName, L"0Kraken71ChromaDevProps") ) {
-      if (! (SK_LoadLibrary_SILENCE))
+      //if (! (SK_LoadLibrary_SILENCE))
         dll_log.Log (L"[Black List] Disabling Razer Kraken 7.1 Chroma Support DLL.");
       return TRUE;
     }
 
     else if ( StrStrIW (lpFileName, L"k_fps") ) {
-      if (! (SK_LoadLibrary_SILENCE))
+      //if (! (SK_LoadLibrary_SILENCE))
         dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
       return TRUE;
     }
@@ -148,6 +150,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     return TRUE;
   }
 #endif
+  }
 
   return FALSE;
 }

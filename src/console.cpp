@@ -190,14 +190,29 @@ typedef BOOL
     _In_    BOOL   bMenu,
     _In_    DWORD  dwExStyle );
 
+typedef BOOL
+(WINAPI *ClipCursor_pfn)(
+    _In_opt_ const RECT *lpRect
+);
+
 
 struct sk_window_s {
   HWND    hWnd             = 0x00;
   WNDPROC WndProc_Original = nullptr;
-  bool    active           = false;
+
+  bool    active           = true;
+
   LONG    style            = 0x00;
   LONG    style_ex         = 0x00;
-  RECT    rect;
+
+  RECT    rect        { 0, 0,
+                        0, 0 };
+
+  RECT    cursor_clip { LONG_MIN, LONG_MIN,
+                        LONG_MAX, LONG_MAX };
+
+  // Cursor position when window activation changed
+  POINT   cursor_pos;
 
   void    getRenderDims (long& x, long& y) {
     x = (rect.right  - rect.left);
@@ -205,6 +220,7 @@ struct sk_window_s {
   }
 } game_window;
 
+ClipCursor_pfn         ClipCursor_Original         = nullptr;
 SetWindowPos_pfn       SetWindowPos_Original       = nullptr;
 MoveWindow_pfn         MoveWindow_Original         = nullptr;
 SetWindowLongW_pfn     SetWindowLongW_Original     = nullptr;
@@ -214,6 +230,20 @@ AdjustWindowRectEx_pfn AdjustWindowRectEx_Original = nullptr;
 
 void SK_AdjustWindow (void);
 
+
+BOOL
+WINAPI
+ClipCursor_Detour (const RECT *lpRect)
+{
+  if (lpRect != nullptr)
+    game_window.cursor_clip = *lpRect;
+
+  if (game_window.active) {
+    return ClipCursor_Original (lpRect);
+  } else {
+    return ClipCursor_Original (nullptr);
+  }
+}
 
 BOOL
 WINAPI
@@ -557,13 +587,34 @@ SK_AdjustWindow (void)
           FALSE
     );
 
-    LONG mon_width  = mi.rcWork.right  - mi.rcWork.left;
-    LONG mon_height = mi.rcWork.bottom - mi.rcWork.top;
+
+    LONG mon_width   = mi.rcWork.right     - mi.rcWork.left;
+    LONG mon_height  = mi.rcWork.bottom    - mi.rcWork.top;
+
+    LONG real_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
+    LONG real_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
     LONG render_width,
          render_height;
 
     game_window.getRenderDims (render_width, render_height);
+
+
+    // No adjustment if the window is full-width
+    if (render_width == real_width) {
+      mon_width       = real_width;
+      mi.rcWork.right = mi.rcMonitor.right;
+      mi.rcWork.left  = mi.rcMonitor.left;
+    }
+
+
+    // No adjustment if the window is full-height
+    if (render_height == real_height) {
+      mon_height       = real_height;
+      mi.rcWork.top    = mi.rcMonitor.top;
+      mi.rcWork.bottom = mi.rcMonitor.bottom;
+    }
+
 
     LONG win_width  = std::min (mon_width,  render_width);
     LONG win_height = std::min (mon_height, render_height);
@@ -623,15 +674,12 @@ SK_AdjustWindow (void)
     game_window.rect.top    += push_down;
     game_window.rect.bottom += push_down;
 
-
     SetWindowPos_Original ( game_window.hWnd,
                               HWND_NOTOPMOST,
                                 game_window.rect.left, game_window.rect.top,
                                   game_window.rect.right  - game_window.rect.left,
                                   game_window.rect.bottom - game_window.rect.top,
-                                    (config.window.borderless ? SWP_FRAMECHANGED : 0x0) |
-                                      SWP_NOOWNERZORDER | SWP_NOACTIVATE |
-                                      SWP_NOCOPYBITS    | SWP_ASYNCWINDOWPOS );
+                                      SWP_NOCOPYBITS | SWP_ASYNCWINDOWPOS );
 
     dll_log.Log ( L"[Border Mgr] WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li)",
                     game_window.rect.left, game_window.rect.top,
@@ -649,14 +697,19 @@ SK_Console::Start (void)
     return;
   }
 
-  if ( config.window.borderless ||
-       config.window.center     ||
-       config.window.x_offset   ||
+  if ( config.window.borderless        ||
+       config.window.center            ||
+       config.window.background_render ||
+       config.window.x_offset          ||
        config.window.y_offset )
   {
     SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
                           SetWindowPos_Detour,
                (LPVOID *)&SetWindowPos_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "ClipCursor",
+                          ClipCursor_Detour,
+               (LPVOID *)&ClipCursor_Original );
 
     SK_CreateDLLHook2 ( L"user32.dll", "MoveWindow",
                           MoveWindow_Detour,
@@ -744,10 +797,18 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 {
   int size = GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
-  // Block keyboard input to the game while the console is active
-  if (SK_Console::getInstance ()->isVisible () && uiCommand == RID_INPUT) {
-    *pcbSize = 0;
-    return 0;
+  if (uiCommand == RID_INPUT) {
+    // Block keyboard input to the game while the console is active
+    if (SK_Console::getInstance ()->isVisible ()) {
+      *pcbSize = 0;
+      return 0;
+    }
+
+    // Block keyboard input to the game while it's in the background
+    if (config.window.background_render && (! game_window.active)) {
+      *pcbSize = 0;
+      return 0;
+    }
   }
 
   return size;
@@ -764,6 +825,10 @@ GetAsyncKeyState_Detour (_In_ int vKey)
     SK_ConsumeVKey (vKey);
   }
 
+  // Block keyboard input to the game while it's in the background
+  if (config.window.background_render && (! game_window.active))
+    SK_ConsumeVKey (vKey);
+
   return GetAsyncKeyState_Original (vKey);
 }
 
@@ -775,6 +840,10 @@ GetKeyState_Detour (_In_ int nVirtKey)
   if (SK_Console::getInstance ()->isVisible ()) {
     return 0;
   }
+
+  // Block keyboard input to the game while it's in the background
+  if (config.window.background_render && (! game_window.active))
+    return 0;
 
   return GetKeyState_Original (nVirtKey);
 }
@@ -962,21 +1031,28 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         //dll_log->Log (L"[Window Mgr] Application Activated");
 
         game_window.active = true;
+
+        GetCursorPos (&game_window.cursor_pos);
+
+        if (config.window.background_render)
+          ClipCursor (&game_window.cursor_clip);
       } else {
         //dll_log->Log (L"[Window Mgr] Application Deactivated");
 
         game_window.active = false;
+
+        if (config.window.background_render) {
+          ClipCursor   ( nullptr );
+          SetCursorPos ( game_window.cursor_pos.x,
+                         game_window.cursor_pos.y );
+        }
       }
 
       // We must fully consume one of these messages or audio will stop playing
       //   when the game loses focus, so do not simply pass this through to the
       //     default window procedure.
-      if (config.window.background_render) {
-        //if (config.window.fix_taskbar)
-          //TSFix_RealizeForegroundWindow ();
-
+      if (config.window.background_render)
         return 0;
-      }
     }
 
     if (config.window.background_render)
@@ -995,6 +1071,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 #endif
 
+  if (config.window.background_render) {
+    if ((! game_window.active) && uMsg == WM_MOUSEMOVE) {
+      GetCursorPos (&game_window.cursor_pos);
+    }
+  }
+
   bool background_render =
     config.window.background_render && (! game_window.active);
 
@@ -1002,7 +1084,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (console_visible || (background_render && uMsg != WM_SYSKEYDOWN)) {
     // Only prevent the mouse from working while the window is in the bg
     if (config.window.background_render && uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
-      return DefWindowProc (hWnd, uMsg, wParam, lParam);
+      return 0;//DefWindowProc (hWnd, uMsg, wParam, lParam);
 
     if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
       return DefWindowProc (hWnd, uMsg, wParam, lParam);
@@ -1048,31 +1130,31 @@ SK_InstallWindowHook (HWND hWnd)
   else
     game_window.style = WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX;
 
+  // In the future, we'll want to do this stuff regardless ... for now,
+  //   we have to contend with some game-specific plugins that manage
+  //     window positioning internally.
   if ( config.window.borderless ||
        config.window.center     ||
        config.window.x_offset   ||
        config.window.y_offset )
   {
+    GetCursorPos  (&game_window.cursor_pos);
+
     GetWindowRect (game_window.hWnd, &game_window.rect);
 
-    if (config.window.borderless)
+    if (config.window.borderless) {
       SetWindowLongA_Original (game_window.hWnd, GWL_STYLE, game_window.style);
+      SetWindowPos_Original   ( game_window.hWnd,
+                                  HWND_TOP,
+                                    0, 0,
+                                      0, 0,
+                                        SWP_NOMOVE   | SWP_NOSIZE |
+                                        SWP_NOZORDER | SWP_FRAMECHANGED );
+    }
 
     SK_AdjustWindow ();
 
-#if 0
-    AdjustWindowRect_Original ( &game_window.rect,
-                                  game_window.style,
-                                    FALSE );
-
-    SetWindowPos_Original ( game_window.hWnd, HWND_TOP,
-                              game_window.rect.left, game_window.rect.top,
-                                game_window.rect.right  - game_window.rect.left,
-                                game_window.rect.bottom - game_window.rect.top,
-                                  SWP_FRAMECHANGED  | SWP_NOZORDER   |
-                                  SWP_NOREDRAW      | SWP_NOACTIVATE |
-                                  SWP_NOOWNERZORDER | SWP_NOCOPYBITS );
-#endif
+    SK_RealizeForegroundWindow (game_window.hWnd);
   }
 }
 

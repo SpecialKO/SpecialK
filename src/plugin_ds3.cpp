@@ -20,6 +20,11 @@ typedef bool (WINAPI *ShutdownPlugin_pfn)(const wchar_t *);
 static ShutdownPlugin_pfn SK_ShutdownCore_Original = nullptr;
 extern "C" bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t *);
 
+extern
+bool
+__stdcall
+SK_IsInjected (void);
+
 ///////////////////////////////////////////
 // WinAPI Hooks
 ///////////////////////////////////////////
@@ -366,8 +371,29 @@ extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define SUS_VERSION_NUM L"0.3.5"
+#define SUS_VERSION_NUM L"0.4.0"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
+
+unsigned int
+__stdcall
+SK_DS3_CheckVersionThread (LPVOID user)
+{
+  extern bool
+  __stdcall
+  SK_FetchVersionInfo (const wchar_t* wszProduct);
+
+  if (SK_FetchVersionInfo (L"SoulsUnsqueezed")) {
+    extern HRESULT
+      __stdcall
+      SK_UpdateSoftware (const wchar_t* wszProduct);
+
+    SK_UpdateSoftware (L"SoulsUnsqueezed");
+  }
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
 
 static LPVOID __SK_base_img_addr = nullptr;
 static LPVOID __SK_end_img_addr  = nullptr;
@@ -629,10 +655,10 @@ unsigned int
 __stdcall
 SK_DS3_FinishResize_Thread (LPVOID user)
 {
-  DWORD dwFlags = SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSENDCHANGING;
+  DWORD dwFlags = SWP_NOMOVE | SWP_NOSENDCHANGING;
 
   if (ds3_cfg.window.borderless) {
-    SetWindowLongW (ds3_state.Window, GWL_STYLE, WS_POPUP | WS_MINIMIZEBOX);
+    SetWindowLongW (ds3_state.Window, GWL_STYLE, WS_POPUP | WS_MINIMIZEBOX | WS_VISIBLE);
     dwFlags |= SWP_FRAMECHANGED;
   }
 
@@ -734,7 +760,15 @@ SK_DS3_SetWindowPos (
   _In_     int  cy,
   _In_     UINT uFlags )
 {
-  return TRUE;
+  if (hWnd == ds3_state.Window)
+    return TRUE;
+  else
+    return SetWindowPos_Original (
+      hWnd,
+        hWndInsertAfter,
+          X, Y,
+            cx, cy,
+              uFlags );
 }
 
 HWND
@@ -800,6 +834,14 @@ SK_DisableDPIScaling (void)
 void
 SK_DS3_InitPlugin (void)
 {
+  if (! SK_IsInjected ())
+    _beginthreadex ( nullptr,
+                       0,
+                         SK_DS3_CheckVersionThread,
+                           nullptr,
+                             0x00,
+                               nullptr );
+
   SK_DisableDPIScaling ();
 
   __DS3_WIDTH  = &ds3_state.Width;

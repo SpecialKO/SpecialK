@@ -30,7 +30,6 @@
 enum   DLL_ROLE;
 struct DXGI_ADAPTER_DESC;
 
-// Reverse Engineered NDA portions of NvAPI (hush, hush -- *wink*)
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,20 +37,20 @@ extern "C" {
 
 typedef struct _NV_PCIE_INFO_UNKNOWN
 {
-    NvU32 unknown0;
-    NvU32 unknown1;
-    NvU32 unknown2;
-    NvU32 unknown3;
-    NvU32 unknown4;
-    NvU32 unknown5;
-    NvU32 unknown6;
-    NvU32 unknown7;
+  NvU32 unknown0;
+  NvU32 unknown1;
+  NvU32 unknown2;
+  NvU32 unknown3;
+  NvU32 unknown4;
+  NvU32 unknown5;
+  NvU32 unknown6;
+  NvU32 unknown7;
 } NV_PCIE_INFO_UNKNOWN;
 
 typedef struct _NV_PCIE_INFO
 {
-    NvU32                   version;          //!< Structure version
-    NV_PCIE_INFO_UNKNOWN    info [5];
+  NvU32                   version;          //!< Structure version
+  NV_PCIE_INFO_UNKNOWN    info [5];
 } NV_PCIE_INFO;
 
 #define NV_PCIE_INFO_VER   MAKE_NVAPI_VERSION(NV_PCIE_INFO, 2)
@@ -75,24 +74,24 @@ typedef NV_GPU_PCIE_INFO_V2 NV_GPU_PCIE_INFO;
 #define NV_GPU_PCIE_INFO_VER    NV_GPU_PCIE_INFO_VER_2
 #endif
 
-typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetPCIEInfo_t)
+typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetPCIEInfo_pfn)
     (NvPhysicalGpuHandle handle, NV_PCIE_INFO* info);
-typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetRamType_t)
+typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetRamType_pfn)
     (NvPhysicalGpuHandle handle, NvU32* memtype);
-typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetFBWidthAndLocation_t)
+typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetFBWidthAndLocation_pfn)
     (NvPhysicalGpuHandle handle, NvU32* width, NvU32* loc);
-typedef NvAPI_Status (__cdecl *NvAPI_GetPhysicalGPUFromGPUID_t)
+typedef NvAPI_Status (__cdecl *NvAPI_GetPhysicalGPUFromGPUID_pfn)
     (NvU32 gpuid, NvPhysicalGpuHandle* gpu);
-typedef NvAPI_Status (__cdecl *NvAPI_GetGPUIDFromPhysicalGPU_t)
+typedef NvAPI_Status (__cdecl *NvAPI_GetGPUIDFromPhysicalGPU_pfn)
     (NvPhysicalGpuHandle gpu, NvU32* gpuid);
 
 
 
-extern NvAPI_GPU_GetRamType_t            NvAPI_GPU_GetRamType;
-extern NvAPI_GPU_GetFBWidthAndLocation_t NvAPI_GPU_GetFBWidthAndLocation;
-extern NvAPI_GPU_GetPCIEInfo_t           NvAPI_GPU_GetPCIEInfo;
-extern NvAPI_GetPhysicalGPUFromGPUID_t   NvAPI_GetPhysicalGPUFromGPUID;
-extern NvAPI_GetGPUIDFromPhysicalGPU_t   NvAPI_GetGPUIDFromPhysicalGPU;
+extern NvAPI_GPU_GetRamType_pfn            NvAPI_GPU_GetRamType;
+extern NvAPI_GPU_GetFBWidthAndLocation_pfn NvAPI_GPU_GetFBWidthAndLocation;
+extern NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo;
+extern NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID;
+extern NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU;
 
 #ifdef __cplusplus
 }
@@ -100,10 +99,6 @@ extern NvAPI_GetGPUIDFromPhysicalGPU_t   NvAPI_GetGPUIDFromPhysicalGPU;
 
 namespace sk {
 namespace NVAPI {
-
-// r353_23
-#define MINIMUM_DRIVER_VERSION 35582
-
   BOOL InitializeLibrary (const wchar_t* wszAppName);
   BOOL UnloadLibrary     (void);
 
@@ -131,14 +126,6 @@ namespace NVAPI {
 
   std::wstring
        GetDriverVersion  (NvU32* pVer = NULL);
-
-  // In typical NVIDIA fashion, you literally cannot
-  //   run this game without updating your driver first.
-  //
-  //   The game doesn't ever check this, so we might as well do
-  //     that too.
-  bool
-    CheckDriverVersion   (void);
 
   std::wstring
        ErrorMessage      (_NvAPI_Status err,
