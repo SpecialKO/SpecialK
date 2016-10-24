@@ -2149,9 +2149,6 @@ D3D11Dev_CreateTexture2D_Override (
               cacheable && pDesc->Usage != D3D11_USAGE_DYNAMIC &&
                            pDesc->Usage != D3D11_USAGE_STAGING;
 
-  if (cache_opts.ignore_non_mipped)
-    cacheable &= pDesc->MipLevels > 1;
-
   uint32_t top_crc32 = 0x00;
   uint32_t ffx_crc32 = 0x00;
 
@@ -2162,14 +2159,25 @@ D3D11Dev_CreateTexture2D_Override (
       ffx_crc32 = crc32_ffx (pDesc, pInitialData, &size);
     }
 
+    bool injectable = (
+           checksum != 0x00 &&
+            ( SK_D3D11_IsInjectable     (top_crc32, checksum) ||
+              SK_D3D11_IsInjectable     (top_crc32, 0x00)     ||
+              SK_D3D11_IsInjectable_FFX (ffx_crc32)
+            )
+         );
+
     if ( checksum != 0x00 &&
-         ( SK_D3D11_cache_textures                         ||
-           SK_D3D11_IsInjectable     (top_crc32, checksum) ||
-           SK_D3D11_IsInjectable     (top_crc32, 0x00)     ||
-           SK_D3D11_IsInjectable_FFX (ffx_crc32)
+         ( SK_D3D11_cache_textures ||
+           injectable
          )
        )
     {
+      // If this isn't an injectable texture, then filter out non-mipmapped
+      //   textures.
+      if ((! injectable) && cache_opts.ignore_non_mipped)
+        cacheable &= pDesc->MipLevels > 1;
+
       cache_tag  = crc32c (top_crc32, (uint8_t *)pDesc, sizeof D3D11_TEXTURE2D_DESC);
       pCachedTex = SK_D3D11_Textures.getTexture2D (cache_tag, pDesc);
     } else {
@@ -2190,57 +2198,58 @@ D3D11Dev_CreateTexture2D_Override (
     if (D3DX11CreateTextureFromFileW != nullptr && SK_D3D11_res_root.length ()) {
       wchar_t wszTex [MAX_PATH + 2] = { L'\0' };
 
-      {
-        wcscpy ( wszTex,
-                  SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+      
+      wcscpy ( wszTex,
+                SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
 
-        if (SK_D3D11_IsTexHashed (ffx_crc32, 0x00)) {
-          _swprintf ( wszTex, L"%s\\%s",
-                        wszTex,
-                          SK_D3D11_TexHashToName (ffx_crc32, 0x00).c_str ()
-          );
-        }
-
-        else if (SK_D3D11_IsTexHashed (top_crc32, checksum)) {
-          _swprintf ( wszTex, L"%s\\%s",
-                        wszTex,
-                          SK_D3D11_TexHashToName (top_crc32,checksum).c_str ()
-                    );
-        }
-
-        else if (SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
-          _swprintf ( wszTex, L"%s\\%s",
-                        wszTex,
-                          SK_D3D11_TexHashToName (top_crc32, 0x00).c_str ()
-                    );
-        }
-
-        else if ( /*config.textures.d3d11.precise_hash &&*/
-                  SK_D3D11_inject_textures           &&
-                  SK_D3D11_IsInjectable (top_crc32, checksum) ) {
-          _swprintf ( wszTex,
-                        L"%s\\inject\\textures\\%08X_%08X.dds",
-                          wszTex,
-                            top_crc32, checksum );
-        }
-
-        else if ( SK_D3D11_inject_textures &&
-                  SK_D3D11_IsInjectable (top_crc32, 0x00) ) {
-          _swprintf ( wszTex,
-                        L"%s\\inject\\textures\\%08X.dds",
-                          wszTex,
-                            top_crc32 );
-        }
-
-        else if ( SK_D3D11_inject_textures           &&
-                  SK_D3D11_IsInjectable_FFX (ffx_crc32) ) {
-          _swprintf ( wszTex,
-                        L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
-                          wszTex,
-                            ffx_crc32 );
-        }
-
+      if (SK_D3D11_IsTexHashed (ffx_crc32, 0x00)) {
+        _swprintf ( wszTex, L"%s\\%s",
+                      wszTex,
+                        SK_D3D11_TexHashToName (ffx_crc32, 0x00).c_str ()
+        );
       }
+
+      else if (SK_D3D11_IsTexHashed (top_crc32, checksum)) {
+        _swprintf ( wszTex, L"%s\\%s",
+                      wszTex,
+                        SK_D3D11_TexHashToName (top_crc32,checksum).c_str ()
+                  );
+      }
+
+      else if (SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
+        _swprintf ( wszTex, L"%s\\%s",
+                      wszTex,
+                        SK_D3D11_TexHashToName (top_crc32, 0x00).c_str ()
+                  );
+      }
+
+      else if ( /*config.textures.d3d11.precise_hash &&*/
+                SK_D3D11_inject_textures           &&
+                SK_D3D11_IsInjectable (top_crc32, checksum) ) {
+        _swprintf ( wszTex,
+                      L"%s\\inject\\textures\\%08X_%08X.dds",
+                        wszTex,
+                          top_crc32, checksum );
+      }
+
+      else if ( SK_D3D11_inject_textures &&
+                SK_D3D11_IsInjectable (top_crc32, 0x00) ) {
+        _swprintf ( wszTex,
+                      L"%s\\inject\\textures\\%08X.dds",
+                        wszTex,
+                          top_crc32 );
+      }
+
+      else if ( SK_D3D11_inject_textures           &&
+                SK_D3D11_IsInjectable_FFX (ffx_crc32) ) {
+        _swprintf ( wszTex,
+                      L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
+                        wszTex,
+                          ffx_crc32 );
+      }
+
+      // Not a hashed texture, not an injectable texture, skip it...
+      else *wszTex = L'\0';
 
       if (                   *wszTex  != L'\0' &&
            GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
