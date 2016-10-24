@@ -1413,7 +1413,7 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
             ((LPBYTE)pMem + pMem->dwOSDArrOffset +
                   dwEntry * pMem->dwOSDEntrySize);
 
-        if (dwPass)
+        if (dwPass && (! osd_shutting_down))
         {
           if (! strlen (pEntry->szOSDOwner))
             strcpy (pEntry->szOSDOwner, lpAppName);
@@ -1430,15 +1430,40 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
           else
             strncpy (pEntry->szOSD,   lpText, sizeof pEntry->szOSD   - 1);
 
-          pMem->dwOSDFrame++;
+          // Erase all traces of ourself
+          if (osd_shutting_down) {
+               pMem->dwOSDFrame++;
+            *pEntry->szOSDOwner = '\0';
+          }
 
           bResult = TRUE;
-          break;
+
+          if (! osd_shutting_down)
+            break;
         }
       }
 
       if (bResult)
         break;
+    }
+  }
+
+  if (bResult) {
+    for (DWORD dwApp = 0; dwApp < pMem->dwAppArrSize; dwApp++)
+    {
+      RTSS_SHARED_MEMORY::LPRTSS_SHARED_MEMORY_APP_ENTRY pApp =
+        (RTSS_SHARED_MEMORY::LPRTSS_SHARED_MEMORY_APP_ENTRY)
+        ((LPBYTE)pMem + pMem->dwAppArrOffset +
+          dwApp * pMem->dwAppEntrySize);
+
+      if (pApp->dwProcessID == GetCurrentProcessId ())
+      {
+        pApp->dwFlags |= OSDFLAG_UPDATED;
+        pApp->dwOSDFrame++;
+
+        if (! osd_shutting_down)
+          break;
+      }
     }
   }
 
