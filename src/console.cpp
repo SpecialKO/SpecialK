@@ -214,6 +214,10 @@ struct sk_window_s {
   // Cursor position when window activation changed
   POINT   cursor_pos;
 
+  // State to restore the cursor to
+  //  (TODO: Should probably be a reference count to return to)
+  bool    cursor_visible = true;
+
   void    getRenderDims (long& x, long& y) {
     x = (rect.right  - rect.left);
     y = (rect.bottom - rect.top);
@@ -937,7 +941,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        bool was_active = last_mouse.cursor;
 
        if (! last_mouse.cursor) {
-         if (! SK_IsSteamOverlayActive ()) {
+         if ((! SK_IsSteamOverlayActive ()) && game_window.active) {
            while (ShowCursor (TRUE) < 0) ;
            last_mouse.cursor = true;
          }
@@ -958,7 +962,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        bool was_active = last_mouse.cursor;
 
        if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout) {
-         if (! SK_IsSteamOverlayActive ()) {
+         if ((! SK_IsSteamOverlayActive ()) && game_window.active) {
            while (ShowCursor (FALSE) >= 0) ;
            last_mouse.cursor = false;
           }
@@ -1000,7 +1004,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (activation_event && config.input.cursor.timeout != 0)
       ActivateCursor (true);
 
-    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id && (! SK_IsSteamOverlayActive ())) {
+    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id && (! SK_IsSteamOverlayActive ())  && game_window.active) {
       if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
         DeactivateCursor ();
 
@@ -1034,14 +1038,27 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         GetCursorPos (&game_window.cursor_pos);
 
-        if (config.window.background_render)
+        if (config.window.background_render) {
+          if (! game_window.cursor_visible) {
+            while (ShowCursor (FALSE) > 0)
+              ;
+          }
+
           ClipCursor (&game_window.cursor_clip);
+        }
       } else {
+        
         //dll_log->Log (L"[Window Mgr] Application Deactivated");
 
         game_window.active = false;
 
         if (config.window.background_render) {
+          game_window.cursor_visible =
+            ShowCursor (TRUE) > 1;
+
+          while (ShowCursor (TRUE) < 1)
+            ;
+
           ClipCursor   ( nullptr );
           SetCursorPos ( game_window.cursor_pos.x,
                          game_window.cursor_pos.y );

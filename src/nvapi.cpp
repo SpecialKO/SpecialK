@@ -98,31 +98,21 @@ NVAPI::ErrorMessage (_NvAPI_Status err,
                      const char*   function_name,
                      const char*   file_name)
 {
-  char szError [64];
+  char szError [256];
 
   NvAPI_GetErrorMessage (err, szError);
 
-  wchar_t wszError          [64];
-  wchar_t wszFile           [256];
-  wchar_t wszFunction       [256];
-  wchar_t wszArgs           [256];
-  wchar_t wszFormattedError [1024];
-
-  MultiByteToWideChar (CP_OEMCP, 0, szError,       -1, wszError,     64);
-  MultiByteToWideChar (CP_OEMCP, 0, file_name,     -1, wszFile,     256);
-  MultiByteToWideChar (CP_OEMCP, 0, function_name, -1, wszFunction, 256);
-  MultiByteToWideChar (CP_OEMCP, 0, args,          -1, wszArgs,     256);
-  *wszFormattedError = L'\0';
+  wchar_t wszFormattedError [1024] = { L'\0' };
 
   swprintf ( wszFormattedError, 1024,
-              L"Line %u of %s (in %s (...)):\n"
+              L"Line %u of %s (in %hs (...)):\n"
               L"------------------------\n\n"
-              L"NvAPI_%s\n\n\t>> %s <<",
+              L"NvAPI_%hs\n\n\t>> %hs <<",
                line_no,
-                wszFile,
-                 wszFunction,
-                  wszArgs,
-                   wszError );
+                file_name,
+                 function_name,
+                  args,
+                   szError );
 
   return wszFormattedError;
 }
@@ -341,7 +331,7 @@ NVAPI::GetDriverVersion (NvU32* pVer)
   // The driver-branch string's not particularly user frieldy,
   //   let's do this the right way and report a number the end-user
   //     is actually going to recognize...
-  swprintf (ver_wstr, 64, L"%u.%u", ver / 100, ver % 100);
+  _snwprintf (ver_wstr, 64, L"%u.%u", ver / 100, ver % 100);
 
   if (pVer != NULL)
     *pVer = ver;

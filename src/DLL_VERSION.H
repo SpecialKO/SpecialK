@@ -3,7 +3,7 @@
 
 #define SK_MAJOR 0
 #define SK_MINOR 6
-#define SK_BUILD 32
+#define SK_BUILD 33
 #define SK_REV   0
 
 
