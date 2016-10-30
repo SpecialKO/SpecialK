@@ -2048,6 +2048,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   return true;
 }
 
+// Post-shutdown achievement statistics for things like friend unlock rate
+extern void SK_SteamAPI_LogAllAchievements (void);
+
 extern "C" {
 bool
 WINAPI

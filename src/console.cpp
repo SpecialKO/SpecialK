@@ -1034,35 +1034,39 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (wParam == TRUE) {
         //dll_log->Log (L"[Window Mgr] Application Activated");
 
-        game_window.active = true;
-
         GetCursorPos (&game_window.cursor_pos);
 
-        if (config.window.background_render) {
+        if (config.window.background_render && game_window.active != true) {
+          game_window.active = true;
+
           if (! game_window.cursor_visible) {
-            while (ShowCursor (FALSE) > 0)
+            while (ShowCursor (FALSE) >= 0)
               ;
           }
 
           ClipCursor (&game_window.cursor_clip);
         }
+
+        game_window.active = true;
       } else {
         
         //dll_log->Log (L"[Window Mgr] Application Deactivated");
 
-        game_window.active = false;
+        if (config.window.background_render && (game_window.active != false)) {
+          game_window.active = false;
 
-        if (config.window.background_render) {
           game_window.cursor_visible =
-            ShowCursor (TRUE) > 1;
+            ShowCursor (TRUE) >= 1;
 
-          while (ShowCursor (TRUE) < 1)
+          while (ShowCursor (TRUE) < 0)
             ;
 
           ClipCursor   ( nullptr );
           SetCursorPos ( game_window.cursor_pos.x,
                          game_window.cursor_pos.y );
         }
+
+        game_window.active = false;
       }
 
       // We must fully consume one of these messages or audio will stop playing
