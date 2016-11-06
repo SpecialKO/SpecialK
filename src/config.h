@@ -157,6 +157,14 @@ struct sk_config_t
 
 
   struct {
+    struct {
+      bool  pull_friend_stats   = true;
+      bool  pull_global_stats   = true;
+      bool  show_popup          = true;
+      int   popup_duration      = 5000UL;
+      int   popup_corner        = 1; // XXX: Use actual coordinates
+    } achievements;
+
     std::wstring
             achievement_sound   = L"";
     bool    achievement_sshot   = false;

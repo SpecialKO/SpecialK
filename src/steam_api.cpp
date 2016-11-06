@@ -40,21 +40,31 @@ static volatile ULONG __SK_Steam_init = FALSE;
 //  by hand.
 #define STEAM_API_NODLL
 #include "steam_api.h"
-//#include "../depends/steamapi/steam_api.h"
 
+
+#include <time.h>
 
 // To spoof Overlay Activation (pause the game)
 #include <set>
 #include <unordered_map>
 
 std::multiset <class CCallbackBase *> overlay_activation_callbacks;
-CRITICAL_SECTION callback_cs = { 0 };
 
-CRITICAL_SECTION init_cs = { 0 };
+CRITICAL_SECTION callback_cs = { 0 };
+CRITICAL_SECTION init_cs     = { 0 };
+CRITICAL_SECTION popup_cs    = { 0 };
+
+#undef min
+#undef max
+
+#include "CEGUI/CEGUI.h"
+#include "CEGUI/System.h"
 
 
 bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
 bool S_CALLTYPE SteamAPI_Init_Detour     (void);
+
+void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
 
 S_API typedef bool (S_CALLTYPE *SteamAPI_Init_t    )(void);
 S_API typedef bool (S_CALLTYPE *SteamAPI_InitSafe_t)(void);
@@ -101,6 +111,8 @@ S_API SteamClient_t                 SteamClient                 = nullptr;
 
 S_API SteamAPI_RegisterCallback_t   SteamAPI_RegisterCallback_Original   = nullptr;
 S_API SteamAPI_UnregisterCallback_t SteamAPI_UnregisterCallback_Original = nullptr;
+
+S_API SteamAPI_Shutdown_t           SteamAPI_Shutdown_Original = nullptr;
 
 class SK_Steam_OverlayManager {
 public:
@@ -161,6 +173,9 @@ SK_IsSteamOverlayActive (void)
 
 #include "utility.h"
 
+ISteamUserStats* SK_SteamAPI_UserStats   (void);
+void             SK_SteamAPI_ContextInit (HMODULE hSteamAPI);
+
 S_API
 void
 S_CALLTYPE
@@ -172,7 +187,43 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   //
   //  Take this opportunity to finish SteamAPI initialization for SpecialK.
   if (! InterlockedExchangeAdd (&__SK_Steam_init, 0)) {
-    SteamAPI_Init_Detour ();
+    CreateThread ( nullptr, 0,
+         [](LPVOID user) ->
+    DWORD {
+      Sleep (5000UL);
+
+      if (! InterlockedExchangeAdd (&__SK_Steam_init, 0)) {
+        steam_log.Log ( L"Initializing SteamWorks Backend  << %s >>",
+                          SK_GetCallerName ().c_str () );
+        steam_log.Log (L"----------(Implicit)-----------\n");
+
+        // TODO: Scoped UnHook / ReHook
+        SK_DisableHook (SteamAPI_RegisterCallback);
+
+        InterlockedExchange (&__SK_Steam_init, TRUE);
+
+#ifdef _WIN64
+        const wchar_t* steam_dll_str = L"steam_api64.dll";
+#else
+        const wchar_t* steam_dll_str = L"steam_api.dll";
+#endif
+
+        HMODULE hSteamAPI;
+        GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, steam_dll_str, &hSteamAPI);
+
+        SK_SteamAPI_ContextInit (hSteamAPI);
+
+        steam_log.Log ( L"--- Initialization Finished ([AppId: %lu]) ---\n\n",
+                          SK::SteamAPI::AppID () );
+
+        //StartSteamPump ();
+
+        SK_EnableHook (SteamAPI_RegisterCallback);
+      }
+
+      CloseHandle (GetCurrentThread ());
+      return 0;
+    }, nullptr, 0x00, nullptr );
   }
 
   std::wstring caller = 
@@ -377,6 +428,32 @@ public:
     if (! client_)
       return false;
 
+    user_ =
+      client_->GetISteamUser (
+        hSteamUser,
+          hSteamPipe,
+            STEAMUSER_INTERFACE_VERSION
+      );
+
+    if (user_ == nullptr) {
+      steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
+                        STEAMUSER_INTERFACE_VERSION );
+      return false;
+    }
+
+    friends_ =
+      client_->GetISteamFriends (
+        hSteamUser,
+          hSteamPipe,
+            STEAMFRIENDS_INTERFACE_VERSION
+      );
+
+    if (friends_ == nullptr) {
+      steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
+                        STEAMFRIENDS_INTERFACE_VERSION );
+      return false;
+    }
+
     user_stats_ =
       client_->GetISteamUserStats (
         hSteamUser,
@@ -387,6 +464,19 @@ public:
     if (user_stats_ == nullptr) {
       steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
                         STEAMUSERSTATS_INTERFACE_VERSION );
+      return false;
+    }
+
+    apps_ =
+      client_->GetISteamApps (
+        hSteamUser,
+          hSteamPipe,
+            STEAMAPPS_INTERFACE_VERSION
+      );
+
+    if (apps_ == nullptr) {
+      steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
+                        STEAMAPPS_INTERFACE_VERSION );
       return false;
     }
 
@@ -426,6 +516,9 @@ public:
       utils_->SetOverlayNotificationInset (config.steam.inset_x,
                                            config.steam.inset_y);
     }
+
+    void SK_SteamAPI_InitManagers (void);
+    SK_SteamAPI_InitManagers ();
 
     return true;
   }
@@ -470,14 +563,6 @@ public:
         (SteamClient_t)GetProcAddress (
            hSteamDLL,
              "SteamClient"
-        );
-    }
-
-    if (SteamAPI_RunCallbacks == nullptr) {
-      SteamAPI_RunCallbacks =
-        (SteamAPI_RunCallbacks_t)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_RunCallbacks"
         );
     }
 
@@ -540,6 +625,8 @@ public:
     if (! success)
       return false;
 
+    SteamAPI_InitSafe_Original ();
+
     client_ = SteamClient ();
 
     HSteamUser hSteamUser = SteamAPI_GetHSteamUser ();
@@ -555,15 +642,19 @@ public:
             STEAMUSER_INTERFACE_VERSION
       );
 
-    // Blacklist of people not allowed to use my software
-    if (user_ != nullptr) {
-      uint32_t aid = user_->GetSteamID ().GetAccountID ();
+    if (user_ == nullptr) {
+      steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
+                        STEAMUSER_INTERFACE_VERSION );
+      return false;
+    }
 
-      if (aid == 64655118 || aid == 183437803) {
-        SK_MessageBox ( L"You are not authorized to use this software",
-                          L"Unauthorized User", MB_ICONWARNING | MB_OK );
-        ExitProcess (0x00);
-      }
+    // Blacklist of people not allowed to use my software
+    uint32_t aid = user_->GetSteamID ().GetAccountID ();
+
+    if (aid == 64655118 || aid == 183437803) {
+      SK_MessageBox ( L"You are not authorized to use this software",
+                        L"Unauthorized User", MB_ICONWARNING | MB_OK );
+      ExitProcess (0x00);
     }
 
     friends_ =
@@ -589,6 +680,19 @@ public:
     if (user_stats_ == nullptr) {
       steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
                         STEAMUSERSTATS_INTERFACE_VERSION );
+      return false;
+    }
+
+    apps_ =
+      client_->GetISteamApps (
+        hSteamUser,
+          hSteamPipe,
+            STEAMAPPS_INTERFACE_VERSION
+      );
+
+    if (apps_ == nullptr) {
+      steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
+                        STEAMAPPS_INTERFACE_VERSION );
       return false;
     }
 
@@ -629,6 +733,9 @@ public:
                                            config.steam.inset_y);
     }
 
+    void SK_SteamAPI_InitManagers (void);
+    SK_SteamAPI_InitManagers ();
+
     return true;
   }
 
@@ -636,6 +743,7 @@ public:
     client_      = nullptr;
     user_        = nullptr;
     user_stats_  = nullptr;
+    apps_        = nullptr;
     friends_     = nullptr;
     utils_       = nullptr;
     screenshots_ = nullptr;
@@ -651,6 +759,7 @@ public:
 
   ISteamUser*        User        (void) { return user_;        }
   ISteamUserStats*   UserStats   (void) { return user_stats_;  }
+  ISteamApps*        Apps        (void) { return apps_;        }
   ISteamFriends*     Friends     (void) { return friends_;     }
   ISteamUtils*       Utils       (void) { return utils_;       }
   ISteamScreenshots* Screenshots (void) { return screenshots_; }
@@ -662,23 +771,11 @@ private:
   ISteamClient*      client_      = nullptr;
   ISteamUser*        user_        = nullptr;
   ISteamUserStats*   user_stats_  = nullptr;
+  ISteamApps*        apps_        = nullptr;
   ISteamFriends*     friends_     = nullptr;
   ISteamUtils*       utils_       = nullptr;
   ISteamScreenshots* screenshots_ = nullptr;
 } steam_ctx;
-
-volatile LONGLONG SK_SteamAPI_CallbackRunCount = 0LL;
-
-SteamAPI_RunCallbacks_t SteamAPI_RunCallbacks_Original = nullptr;
-
-void
-S_CALLTYPE
-SteamAPI_RunCallbacks_Detour (void)
-{
-  InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
-
-  SteamAPI_RunCallbacks_Original ();
-}
 
 #if 0
 struct BaseStats_t
@@ -730,6 +827,64 @@ Steam_Callback_RunStatEx (CCallbackBase *pThis, void           *pvParam,
 }
 #endif
 
+#define FREEBIE     96.0f
+#define COMMON      75.0f
+#define UNCOMMON    50.0f
+#define RARE        25.0f
+#define VERY_RARE   15.0f
+#define ONE_PERCENT  1.0f
+
+const char*
+SK_Steam_RarityToColor (float percent)
+{
+  if (percent <= ONE_PERCENT)
+    return "FFFF1111";
+
+  if (percent <= VERY_RARE)
+    return "FFFFC711";
+
+  if (percent <= RARE)
+    return "FFFFFACD";
+
+  if (percent <= UNCOMMON)
+    return "FF0084FF";
+
+  if (percent <= COMMON)
+    return "FFFFFFFF";
+
+  if (percent >= FREEBIE)
+    return "FFBBBBBB";
+
+  return "FFFFFFFF";
+}
+
+const char*
+SK_Steam_RarityToName (float percent)
+{
+  if (percent <= ONE_PERCENT)
+    return "The Other 1%";
+
+  if (percent <= VERY_RARE)
+    return "Very Rare";
+
+  if (percent <= RARE)
+    return "Rare";
+
+  if (percent <= UNCOMMON)
+    return "Uncommon";
+
+  if (percent <= COMMON)
+    return "Common";
+
+  if (percent >= FREEBIE)
+    return "Freebie";
+
+  return "Common";
+}
+
+bool has_global_data  = false;
+int  next_friend      = 0;
+
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
 class SK_Steam_AchievementManager {
@@ -737,7 +892,9 @@ public:
   SK_Steam_AchievementManager (const wchar_t* wszUnlockSound) :
        unlock_listener ( this, &SK_Steam_AchievementManager::OnUnlock                ),
        stat_listener   ( this, &SK_Steam_AchievementManager::OnRecvStats             ),
-       stat_receipt    ( this, &SK_Steam_AchievementManager::AckStoreStats           )
+       stat_receipt    ( this, &SK_Steam_AchievementManager::AckStoreStats           ),
+       icon_listener   ( this, &SK_Steam_AchievementManager::OnRecvIcon              ),
+       async_complete  ( this, &SK_Steam_AchievementManager::OnAsyncComplete         )
   {
     bool xbox = false,
          psn  = false;
@@ -826,6 +983,12 @@ public:
         }
       }
     }
+
+    achievements.list.resize (steam_ctx.UserStats ()->GetNumAchievements ());
+
+    for (int i = 0; i < achievements.list.size (); i++) {
+      achievements.list [i] = nullptr;
+    }
   }
 
   ~SK_Steam_AchievementManager (void) {
@@ -835,9 +998,9 @@ public:
     }
   }
 
-  class SK_SteamAchievement {
+  class Achievement {
   public:
-    SK_SteamAchievement (const char* szName, ISteamUserStats* stats) {
+    Achievement (const char* szName, ISteamUserStats* stats) {
       global_percent_ = 0.0f;
       unlocked_       = false;
       time_           = 0;
@@ -845,18 +1008,21 @@ public:
       friends_.possible = 0;
       friends_.unlocked = 0;
 
+      icons_.achieved   = nullptr;
+      icons_.unachieved = nullptr;
+
       name_ =
-        strdup (szName);
+        _strdup (szName);
 
       human_name_ =
-        strdup (stats->GetAchievementDisplayAttribute (name_, "name"));
+        _strdup (stats->GetAchievementDisplayAttribute (name_, "name"));
       desc_ =
-        strdup (stats->GetAchievementDisplayAttribute (name_, "desc"));
+        _strdup (stats->GetAchievementDisplayAttribute (name_, "desc"));
 
       update (stats);
     }
 
-    ~SK_SteamAchievement (void)
+    ~Achievement (void)
     {
       if (name_ != nullptr) {
         free ((void *)name_);
@@ -872,16 +1038,34 @@ public:
         free ((void *)desc_);
         desc_ = nullptr;
       }
+
+      if (icons_.unachieved != nullptr) {
+        free ((void *)icons_.unachieved);
+        icons_.unachieved = nullptr;
+      }
+
+      if (icons_.achieved != nullptr) {
+        free ((void *)icons_.achieved);
+        icons_.achieved = nullptr;
+      }
     }
 
-    void update (ISteamUserStats* stats) {
+    void update (ISteamUserStats* stats)
+    {
       stats->GetAchievementAndUnlockTime ( name_,
                                              &unlocked_,
                                                (uint32_t *)&time_ );
+    }
 
-      stats->GetAchievementAchievedPercent (
-        name_,
-          &global_percent_ );
+    void update_global (ISteamUserStats* stats)
+    {
+      // Reset to 0.0 on read failure
+      if (! stats->GetAchievementAchievedPercent (
+              name_,
+                &global_percent_ ) ) {
+        steam_log.Log (L" Global Achievement Read Failure For '%hs'", name_);
+        global_percent_ = 0.0f;
+      }
     }
 
     const char* name_;
@@ -895,6 +1079,11 @@ public:
       int possible; // Number of friends who may be able to unlock
     } friends_;
 
+    struct {
+      uint8_t*  achieved;
+      uint8_t*  unachieved;
+    } icons_;
+
     bool        unlocked_;
     __time32_t  time_;
   };
@@ -903,13 +1092,14 @@ public:
   {
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
-    // Couldn't get the Stats interface -- OHNOES!
-    if (stats == nullptr)
-      return;
-
     for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
     {
-      SK_SteamAchievement& achievement = *achievements.list [i];
+      Achievement* pAchievement = achievements.list [i];
+
+      if (! pAchievement)
+        continue;
+
+      Achievement& achievement = *pAchievement;
 
       steam_log.LogEx (false, L"\n [%c] Achievement %03lu......: '%hs'\n",
                          achievement.unlocked_ ? L'X' : L' ',
@@ -945,29 +1135,112 @@ public:
   }
 
   STEAM_CALLRESULT ( SK_Steam_AchievementManager,
-                     GlobalAchievementsReady,
-                     GlobalAchievementPercentagesReady_t,
-                     global_percent )
+                     OnRecvFriendStats,
+                     UserStatsReceived_t,
+                     friend_listener )
   {
-    global_percent.Cancel ();
+    friend_listener.Cancel ();
 
-    ISteamUserStats* stats =
-      steam_ctx.UserStats ();
-
-    if (stats != nullptr) {
-      if (pParam->m_nGameID == SK::SteamAPI::AppID ()) {
-        for (int i = 0; i < achievements.list.size (); i++) {
-          achievements.list [i]->update (stats);
-
-        }
-      }
-    } else {
-      steam_log.Log ( L"Got Global Stats from SteamAPI, but no "
-                      L"ISteamUserStats interface exists?!" );
+    if (pParam->m_nGameID != SK::SteamAPI::AppID ()) {
+      steam_log.Log ( L" Got User Achievement Stats for Wrong Game (%lu)",
+                        pParam->m_nGameID );
+      return;
     }
 
-    if (SK_Path_wcsicmp (SK_GetHostApp (), L"Fallout4.exe"))
-      log_all_achievements ();
+    // A user may return kEResultFail if they don't own this game, so
+    //   do this anyway so we can continue enumerating all friends.
+    if (true /*pParam->m_eResult == k_EResultOK */)
+    {
+      ISteamUser*      user    = steam_ctx.User      ();
+      ISteamUserStats* stats   = steam_ctx.UserStats ();
+      ISteamFriends*   friends = steam_ctx.Friends   ();
+
+      // If the stats are not for the player, they are probably for one of
+      //   the player's friends.
+      if ( k_EFriendRelationshipFriend ==
+             friends->GetFriendRelationship (pParam->m_steamIDUser) )
+      {
+        bool can_unlock = false;
+
+        for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
+        {
+          char* szName = _strdup (stats->GetAchievementName (i));
+
+          stats->GetUserAchievement (
+            pParam->m_steamIDUser,
+              szName,
+                &friend_stats [pParam->m_steamIDUser.GetAccountID ()][i]
+          );
+
+          if (friend_stats [pParam->m_steamIDUser.GetAccountID ()][i]) {
+            // On the first unlocked achievement, make a note...
+            if (! can_unlock) {
+              steam_log.Log ( L"Received Achievement Stats for Friend: '%hs'",
+                                friends->GetFriendPersonaName (pParam->m_steamIDUser) );
+            }
+
+            can_unlock = true;
+
+            ++achievements.list [i]->friends_.unlocked;
+
+            steam_log.Log (L" >> Has unlocked '%24hs'", szName);
+          }
+
+          free ((void *)szName);
+        }
+
+        // Second pass over all achievements, incrementing the number of friends who
+        //   can potentially unlock them.
+        if (can_unlock) {
+          for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
+            ++achievements.list [i]->friends_.possible;
+        }
+
+        int friend_count = friends->GetFriendCount (k_EFriendFlagImmediate);
+
+        if (friend_count > 0 && next_friend < friend_count) {
+          SteamAPICall_t hCall =
+            stats->RequestUserStats (
+              friends->GetFriendByIndex ( next_friend++,
+                                            k_EFriendFlagImmediate
+                                        )
+                                    );
+
+          friend_listener.Set (
+            hCall,
+              this,
+                &SK_Steam_AchievementManager::OnRecvFriendStats );
+        }
+      }
+    }
+  }
+
+  STEAM_CALLBACK ( SK_Steam_AchievementManager,
+                   OnAsyncComplete,
+                   SteamAPICallCompleted_t,
+                   async_complete )
+  {
+    bool failed = true;
+
+    steam_ctx.Utils ()->IsAPICallCompleted (pParam->m_hAsyncCall, &failed);
+
+    if (pParam->m_hAsyncCall == global_request)
+    {
+      if (! failed) {
+        has_global_data = true;
+
+        extern void SK_SteamAPI_UpdateGlobalAchievements (void);
+        SK_SteamAPI_UpdateGlobalAchievements ();
+      }
+
+      else {
+        steam_log.Log ( L" Non-Zero Result for GlobalAchievementPercentagesReady_t"
+                           );
+
+        has_global_data = false;
+        return;
+      }
+    }
   }
 
   STEAM_CALLBACK ( SK_Steam_AchievementManager,
@@ -982,6 +1255,21 @@ public:
 
     steam_log.Log ( L" >> Stats Stored for AppID: %llu",
                       pParam->m_nGameID );
+  }
+
+  STEAM_CALLBACK ( SK_Steam_AchievementManager,
+                   OnRecvIcon,
+                   UserAchievementIconFetched_t,
+                   icon_listener )
+  {
+    if (pParam->m_nGameID.AppID () != SK::SteamAPI::AppID ()) {
+      steam_log.Log ( L" >>> Received achievement icon for unrelated game (AppId=%lu) <<<",
+                        pParam->m_nGameID.AppID () );
+      return;
+    }
+
+    if (pParam->m_nIconHandle == 0)
+      return;
   }
 
   STEAM_CALLBACK ( SK_Steam_AchievementManager,
@@ -1001,72 +1289,75 @@ public:
     ISteamUserStats* stats   = steam_ctx.UserStats ();
     ISteamFriends*   friends = steam_ctx.Friends   ();
 
-    if (pParam->m_steamIDUser.GetAccountID () == user->GetSteamID ().GetAccountID ()) {
-      for (uint32 i = 0; i < friends->GetFriendCount (k_EFriendFlagAll); i++) {
-        stats->RequestUserStats (friends->GetFriendByIndex (i, k_EFriendFlagAll));
-      }
-
-      SteamAPICall_t call =
-        stats->RequestGlobalAchievementPercentages ();
-
-      global_percent.Set (
-        call,
-          this,
-            &SK_Steam_AchievementManager::GlobalAchievementsReady );
-
-      achievements.list.resize (stats->GetNumAchievements ());
+    // For the player
+    if ( pParam->m_steamIDUser.GetAccountID () ==
+         user->GetSteamID ().GetAccountID   () )
+    {
+      //steam_log.Log (L" Game has %lu achievements...", stats->GetNumAchievements ());
 
       for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
       {
+        //steam_log.Log (L"  >> %hs", stats->GetAchievementName (i));
+
         if (achievements.list [i] == nullptr) {
+          char* szName = _strdup (stats->GetAchievementName (i));
+
           achievements.list [i] =
-            new SK_SteamAchievement (
-                  stats->GetAchievementName (i),
+            new Achievement (
+                  szName,
                   stats
                 );
-        } else {
+
+          achievements.string_map [achievements.list [i]->name_] =
+            achievements.list [i];
+
           achievements.list [i]->update (stats);
+
+          // Start pre-loading images so we do not hitch on achievement unlock...
+
+          if (! achievements.list [i]->unlocked_)
+            stats->SetAchievement   (szName);
+
+          // After setting the achievement, fetch the icon -- this is
+          //   necessary so that the unlock dialog does not display
+          //     the locked icon.
+          stats->GetAchievementIcon (szName);
+
+          if (! achievements.list [i]->unlocked_)
+            stats->ClearAchievement (szName);
+
+          free ((void *)szName);
         }
 
-        achievements.string_map [achievements.list [i]->name_] =
-          achievements.list [i];
+        achievements.list [i]->update (stats);
       }
-    }
 
-    // If the stats are not for the player, they are probably for one of
-    //   the player's friends.
-    else if ( k_EFriendRelationshipFriend ==
-                friends->GetFriendRelationship (pParam->m_steamIDUser) ) {
-      bool can_unlock = false;
+      if (config.steam.achievements.pull_global_stats && (! has_global_data)) {
+        has_global_data = true;
 
-      for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
+        global_request =
+          stats->RequestGlobalAchievementPercentages ();
+      }
+
+      // On first stat reception, trigger an update for all friends so that
+      //   we can display friend achievement stats.
+      if ( next_friend == 0 && config.steam.achievements.pull_friend_stats )
       {
-        stats->GetUserAchievement (
-          pParam->m_steamIDUser,
-            stats->GetAchievementName (i),
-              &friend_stats [pParam->m_steamIDUser.GetAccountID ()][i]
-        );
+        int friend_count = friends->GetFriendCount (k_EFriendFlagImmediate);
 
-        if (friend_stats [pParam->m_steamIDUser.GetAccountID ()][i]) {
-          // On the first unlocked achievement, make a note...
-          if (! can_unlock) {
-            steam_log.Log ( L"Received Achievement Stats for Friend: '%hs'",
-                              friends->GetFriendPersonaName (pParam->m_steamIDUser) );
-          }
+        if (friend_count > 0) {
+          SteamAPICall_t hCall =
+            stats->RequestUserStats (
+              friends->GetFriendByIndex ( next_friend++,
+                                            k_EFriendFlagImmediate
+                                        )
+                                    );
 
-          can_unlock = true;
-
-          ++achievements.list [i]->friends_.unlocked;
-
-          steam_log.Log (L" >> Has unlocked '%24hs'", stats->GetAchievementName (i));
+          friend_listener.Set (
+            hCall,
+              this,
+                &SK_Steam_AchievementManager::OnRecvFriendStats );
         }
-      }
-
-      // Second pass over all achievements, incrementing the number of friends who
-      //   can potentially unlock them.
-      if (can_unlock) {
-        for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
-          ++achievements.list [i]->friends_.possible;
       }
     }
   }
@@ -1084,42 +1375,261 @@ public:
       return;
     }
 
-    SK_SteamAchievement* achievement =
-      achievements.string_map [
+    Achievement* achievement =
+      getAchievement (
         pParam->m_rgchAchievementName
-      ];
+      );
 
-    if ( achievement != nullptr &&
-         pParam->m_nMaxProgress == pParam->m_nCurProgress ) {
+    if (achievement != nullptr)
+      achievement->update (steam_ctx.UserStats ());
+
+    int idx =
+      steam_ctx.UserStats ()->GetAchievementIcon (pParam->m_rgchAchievementName);
+
+    // If this is != 1.0, the achievement has not been unlocked, the update
+    //   is for progress reporting purposes only.
+    float progress = 0.0f;
+
+    if ( pParam->m_nMaxProgress == pParam->m_nCurProgress )
+    {
             //->m_nMaxProgress == 0 &&
       //pParam->m_nCurProgress == 0) {
+      progress = 1.0f;
+
       if (! config.steam.nosound)
         PlaySound ( (LPCWSTR)unlock_sound, NULL, SND_ASYNC | SND_MEMORY );
 
-      steam_log.Log (L" Achievement: '%hs' (%hs) - Unlocked!",
-        achievement->human_name_, achievement->desc_);
+      if (achievement != nullptr) {
+        steam_log.Log (L" Achievement: '%hs' (%hs) - Unlocked!",
+          achievement->human_name_, achievement->desc_);
+      }
 
       if (config.steam.achievement_sshot) {
         SK::SteamAPI::TakeScreenshot ();
       }
     }
 
-    else if (achievement != nullptr) {
+    else if (achievement != nullptr)
+    {
+      progress = 
+        (float)pParam->m_nCurProgress /
+        (float)pParam->m_nMaxProgress;
+
       steam_log.Log (L" Achievement: '%hs' (%hs) - "
                      L"Progress %lu / %lu (%04.01f%%)",
                 achievement->human_name_,
                 achievement->desc_,
                       pParam->m_nCurProgress,
                       pParam->m_nMaxProgress,
-     100.0f * ((float)pParam->m_nCurProgress / (float)pParam->m_nMaxProgress));
+                        100.0f * progress );
     }
+
+    else
+    {
+      steam_log.Log ( L" Got Rogue Achievement Storage: '%hs'",
+                        pParam->m_rgchAchievementName );
+    }
+
+    if (config.steam.achievements.show_popup && achievement != nullptr) {
+      CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
+
+    if ( pSys                 != nullptr &&
+         pSys->getRenderer () != nullptr )
+    {
+      EnterCriticalSection (&popup_cs);
+
+      try {
+
+      CEGUI::WindowManager& window_mgr = CEGUI::WindowManager::getDllSingleton ();
+      CEGUI::Window*        achv_popup = window_mgr.loadLayoutFromFile      ("Achievements.layout");
+
+      CEGUI::Window* achv_title = achv_popup->getChild ("Achievement/Title");
+      achv_title->setText (achievement->human_name_);
+
+      CEGUI::Window* achv_desc = achv_popup->getChild ("Achievement/Description");
+      achv_desc->setText (achievement->desc_);
+
+      CEGUI::Window* achv_rank = achv_popup->getChild ("Achievement/Rank");
+      achv_rank->setProperty ( "NormalTextColour",
+                                 SK_Steam_RarityToColor (achievement->global_percent_)
+                             );
+      achv_rank->setText ( SK_Steam_RarityToName (achievement->global_percent_) );
+
+      CEGUI::Window* achv_global = achv_popup->getChild ("Achievement/GlobalRarity");
+      char szGlobal [32] = { '\0' };
+      snprintf ( szGlobal, 32,
+                   "Global: %6.2f%%",
+                     achievement->global_percent_ );
+      achv_global->setText (szGlobal);
+
+      CEGUI::Window* achv_friend = achv_popup->getChild ("Achievement/FriendRarity");
+      char szFriend [32] = { '\0' };
+      snprintf ( szFriend, 32,
+                   "Friends: %6.2f%%",
+          100.0 * ((double)          achievement->friends_.unlocked /
+                   (double)std::max (achievement->friends_.possible, 1)) );
+      achv_friend->setText (szFriend);
+
+
+      // If the server hasn't updated the unlock time, just use the curren time
+      if (achievement != nullptr && achievement->time_ == 0)
+        _time32 (&achievement->time_);
+
+
+      CEGUI::Window* achv_unlock  = achv_popup->getChild ("Achievement/UnlockTime");
+      CEGUI::Window* achv_percent = achv_popup->getChild ("Achievement/ProgressBar");
+
+      char szUnlockTime [128] = { '\0' };
+      if (progress == 1.0f) {
+        snprintf ( szUnlockTime, 128,
+                     "Unlocked: %s", _ctime32 (&achievement->time_)
+                 );
+
+        achv_percent->setProperty ( "CurrentProgress", "1.0" );
+      }
+
+      else {
+        snprintf ( szUnlockTime, 16,
+                     "%5.4f",
+                       progress
+                 );
+
+        achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
+
+        snprintf ( szUnlockTime, 128,
+                     "Current Progress: %lu/%lu (%6.2f%%)",
+                     pParam->m_nCurProgress, pParam->m_nMaxProgress,
+                     100.0f * progress
+                 );
+      }
+      achv_unlock->setText (szUnlockTime);
+
+
+      // Icon width and height
+      uint32 w, h;
+
+      if (idx != 0) {
+        steam_ctx.Utils ()->GetImageSize (idx, &w, &h);
+
+        if (achievement->icons_.achieved == nullptr) {
+          achievement->icons_.achieved =
+            (uint8_t *)malloc (4 * w * h);
+
+          steam_ctx.Utils ()->GetImageRGBA (
+            idx,
+              achievement->icons_.achieved,
+                4 * w * h
+          );
+        }
+      }
+
+      steam_log.Log ( L" * Fetched RGBA Icon (idx=%lu) for Achievement: '%hs'  (%lux%lu)",
+                        idx, achievement->name_, w, h );
+
+      if (achievement->icons_.achieved != nullptr) {
+        bool exists = CEGUI::ImageManager::getDllSingleton ().isDefined (achievement->name_);
+
+        const CEGUI::Image& img =
+           exists ?
+            CEGUI::ImageManager::getDllSingleton ().get    (              achievement->name_) :
+            CEGUI::ImageManager::getDllSingleton ().create ("BasicImage", achievement->name_);
+
+        if (! exists) {
+          /* StaticImage */
+          CEGUI::Texture& Tex =
+            pSys->getRenderer ()->createTexture (achievement->name_);
+
+          Tex.loadFromMemory ( achievement->icons_.achieved,
+                                 CEGUI::Sizef ((float)w, (float)h),
+                                   CEGUI::Texture::PF_RGBA );
+
+          ((CEGUI::BasicImage &)img).setTexture (&Tex);
+
+          const CEGUI::Rectf rect (CEGUI::Vector2f (0.0f, 0.0f), Tex.getOriginalDataSize ());
+          ((CEGUI::BasicImage &)img).setArea       (rect);
+          ((CEGUI::BasicImage &)img).setAutoScaled (CEGUI::ASM_Both);
+        }
+
+        CEGUI::Window* staticImage = achv_popup->getChild ("Achievement/Icon");
+        staticImage->setProperty ( "Image",
+                                     achievement->name_ );
+      }
+
+      SK_AchievementPopup popup;
+
+      popup.window      = achv_popup;
+      popup.time        = timeGetTime ();
+      popup.achievement = achievement;
+
+      pSys->getDefaultGUIContext ().setRootWindow (popup.window);
+
+      char    szAppName [256] = { '\0' };
+      bool    avail           = false;
+      AppId_t app             = 0;
+
+      bool has_app =
+        steam_ctx.Apps ()->BGetDLCDataByIndex
+        (
+          0, &app,
+            &avail,
+              szAppName, 255
+        );
+
+      popup.window->getChild ("Achievement")->setText (
+        has_app ? szAppName :
+                  ""
+      );
+      popup.window->show    ();
+
+      popups.push_back (popup);
+
+      } catch (...) {
+      }
+
+      LeaveCriticalSection (&popup_cs);
+    }
+    }
+  }
+
+  void DrawPopups (void)
+  {
+    if (! popups.size ())
+      return;
+
+    EnterCriticalSection (&popup_cs);
+
+    try {
+      #define POPUP_DURATION_MS config.steam.achievements.popup_duration
+
+      std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
+
+      while (it != popups.end ()) {
+        if (timeGetTime () < (*it).time + POPUP_DURATION_MS) {
+          (*it++).window->show ();
+        } else {
+          (*it).window->hide ();
+
+          it = popups.erase (it);
+        }
+      }
+    } catch (...) {}
+
+    LeaveCriticalSection (&popup_cs);
+  }
+
+  Achievement* getAchievement (const char* szName)
+  {
+    if (achievements.string_map.count (szName))
+      return achievements.string_map [szName];
+
+    return nullptr;
   }
 
 protected:
 private:
   struct SK_AchievementData {
-    std::vector        <             SK_SteamAchievement*> list;
-    std::unordered_map <std::string, SK_SteamAchievement*> string_map;
+    std::vector        <             Achievement*> list;
+    std::unordered_map <std::string, Achievement*> string_map;
   } achievements; // SELF
 
   std::unordered_map <
@@ -1127,8 +1637,18 @@ private:
       std::unordered_map < uint32_t, bool >
   > friend_stats;
 
-  bool     default_loaded;
-  uint8_t* unlock_sound;   // A .WAV (PCM) file
+  struct SK_AchievementPopup {
+    CEGUI::Window* window;
+    DWORD          time;
+    Achievement*   achievement;
+  };
+
+  std::vector <SK_AchievementPopup> popups;
+
+  SteamAPICall_t global_request;
+
+  bool           default_loaded;
+  uint8_t*       unlock_sound;   // A .WAV (PCM) file
 } *steam_achievements = nullptr;
 
 #if 0
@@ -1154,12 +1674,17 @@ SK_SteamAPI_LogAllAchievements (void)
 void
 SK_UnlockSteamAchievement (int idx)
 {
+  if (config.steam.silent)
+    return;
+
   steam_log.LogEx (true, L" >> Attempting to Unlock Achievement: %i... ",
     idx );
 
   ISteamUserStats* stats = steam_ctx.UserStats ();
 
-  if (stats) {
+  if ( stats                        && idx <
+       stats->GetNumAchievements () )
+  {
     // I am dubious about querying these things by name, so duplicate this
     //   string immediately.
     const char* szName = _strdup (stats->GetAchievementName (idx));
@@ -1172,6 +1697,11 @@ SK_UnlockSteamAchievement (int idx)
       store.m_nMaxProgress = 0;
       store.m_nGameID = SK::SteamAPI::AppID ();
       strncpy (store.m_rgchAchievementName, szName, 128);
+
+      SK_Steam_AchievementManager::Achievement* achievement =
+        steam_achievements->getAchievement (
+          store.m_rgchAchievementName
+        );
 
       steam_achievements->OnUnlock (&store);
 
@@ -1210,7 +1740,57 @@ SK_UnlockSteamAchievement (int idx)
     steam_log.LogEx (false, L" (ISteamUserStats is NULL?!)\n");
   }
 
-  SK_SteamAPI_LogAllAchievements ();
+  if (SK_Path_wcsicmp (SK_GetHostApp (), L"Fallout4.exe"))
+    SK_SteamAPI_LogAllAchievements ();
+}
+
+void
+SK_SteamAPI_UpdateGlobalAchievements (void)
+{
+  ISteamUserStats* stats =
+    steam_ctx.UserStats ();
+
+  if (stats != nullptr) {
+    const int num_achievements = stats->GetNumAchievements ();
+
+    for (int i = 0; i < num_achievements; i++) {
+      const char* szName = _strdup (stats->GetAchievementName (i));
+
+      SK_Steam_AchievementManager::Achievement* achievement =
+        steam_achievements->getAchievement (szName);
+
+      if (achievement != nullptr) {
+        achievement->update_global (stats);
+      } else {
+        dll_log.Log ( L" Got Global Data For Unknown Achievement ('%hs')",
+                        szName );
+      }
+
+      free ((void *)szName);
+    }
+  } else {
+    steam_log.Log ( L"Got Global Stats from SteamAuPI, but no "
+                    L"ISteamUserStats interface exists?!" );
+  }
+
+  if (SK_Path_wcsicmp (SK_GetHostApp (), L"Fallout4.exe"))
+    SK_SteamAPI_LogAllAchievements ();
+}
+
+volatile LONGLONG SK_SteamAPI_CallbackRunCount = 0LL;
+
+SteamAPI_RunCallbacks_t SteamAPI_RunCallbacks_Original = nullptr;
+
+void
+S_CALLTYPE
+SteamAPI_RunCallbacks_Detour (void)
+{
+  InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
+
+  if (steam_achievements != nullptr)
+    steam_achievements->DrawPopups ();
+
+  SteamAPI_RunCallbacks_Original ();
 }
 
 #define STEAMAPI_CALL1(x,y,z) ((x) = SteamAPI_##y z)
@@ -1401,21 +1981,6 @@ SteamAPI_InitSafe_Detour (void)
     if (! steam_ctx.UserStats ())
       steam_ctx.InitSteamAPI (hSteamAPI);
 
-    ISteamUserStats* stats = steam_ctx.UserStats ();
-
-    if (stats) {
-      steam_log.Log (L" Creating Achievement Manager...");
-
-      steam_achievements = new SK_Steam_AchievementManager (
-          config.steam.achievement_sound.c_str ()
-        );
-      overlay_manager    = new SK_Steam_OverlayManager ();
-
-      steam_log.LogEx (false, L"\n");
-
-      stats->RequestCurrentStats ();
-    }
-
     steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
                       init_tries + 1,
                         SK::SteamAPI::AppID () );
@@ -1432,6 +1997,18 @@ SteamAPI_InitSafe_Detour (void)
 
   LeaveCriticalSection (&init_cs);
   return false;
+}
+
+void
+S_CALLTYPE
+SteamAPI_Shutdown_Detour (void)
+{
+  steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
+
+  steam_ctx.Shutdown         ();
+  SteamAPI_Shutdown_Original ();
+
+  InterlockedExchange (&__SK_Steam_init, 0);
 }
 
 bool
@@ -1469,21 +2046,6 @@ SteamAPI_Init_Detour (void)
     GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, steam_dll_str, &hSteamAPI);
 
     steam_ctx.InitSteamAPI (hSteamAPI);
-
-    ISteamUserStats* stats = steam_ctx.UserStats ();
-
-    if (stats) {
-      steam_log.Log (L" Creating Achievement Manager...");
-
-      steam_achievements = new SK_Steam_AchievementManager (
-          config.steam.achievement_sound.c_str ()
-        );
-      overlay_manager    = new SK_Steam_OverlayManager ();
-
-      steam_log.LogEx (false, L"\n");
-
-      stats->RequestCurrentStats ();
-    }
 
     steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
                       init_tries + 1,
@@ -1553,21 +2115,6 @@ InitSafe_Detour (void)
     if (! steam_ctx.UserStats ())
       steam_ctx.InitCSteamworks (hSteamAPI);
 
-    ISteamUserStats* stats = steam_ctx.UserStats ();
-
-    if (stats) {
-      steam_log.Log (L" Creating Achievement Manager...");
-
-      steam_achievements = new SK_Steam_AchievementManager (
-          config.steam.achievement_sound.c_str ()
-        );
-      overlay_manager    = new SK_Steam_OverlayManager ();
-
-      steam_log.LogEx (false, L"\n");
-
-      stats->RequestCurrentStats ();
-    }
-
     steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
                       init_tries + 1,
                         SK::SteamAPI::AppID () );
@@ -1621,6 +2168,7 @@ SK_HookCSteamworks (void)
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
+    InitializeCriticalSectionAndSpinCount (&popup_cs,    16384UL);
     InitializeCriticalSectionAndSpinCount (&init_cs,     1048576UL);
   }
 
@@ -1691,6 +2239,7 @@ SK_HookSteamAPI (void)
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
+    InitializeCriticalSectionAndSpinCount (&popup_cs,    16384UL);
     InitializeCriticalSectionAndSpinCount (&init_cs,     1048576UL);
   }
 
@@ -1718,6 +2267,11 @@ SK_HookSteamAPI (void)
                      SteamAPI_Init_Detour,
           (LPVOID *)&SteamAPI_Init_Original );
 
+  SK_CreateDLLHook ( wszSteamAPI,
+                      "SteamAPI_Shutdown",
+                      SteamAPI_Shutdown_Detour,
+           (LPVOID *)&SteamAPI_Shutdown_Original );
+
   SK_CreateDLLHook2 ( wszSteamAPI,
                      "SteamAPI_RegisterCallback",
                      SteamAPI_RegisterCallback_Detour,
@@ -1742,4 +2296,37 @@ SK_HookSteamAPI (void)
     CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
 
   LeaveCriticalSection (&init_cs);
+}
+
+ISteamUserStats*
+SK_SteamAPI_UserStats (void)
+{
+  return steam_ctx.UserStats ();
+}
+
+void
+SK_SteamAPI_ContextInit (HMODULE hSteamAPI)
+{
+  steam_ctx.InitSteamAPI (hSteamAPI);
+}
+
+void
+SK_SteamAPI_InitManagers (void)
+{
+  ISteamUserStats* stats =
+    steam_ctx.UserStats ();
+
+  steam_log.Log (L" Creating Achievement Manager...");
+
+  steam_achievements = new SK_Steam_AchievementManager (
+      config.steam.achievement_sound.c_str ()
+    );
+  overlay_manager    = new SK_Steam_OverlayManager ();
+
+  steam_log.LogEx (false, L"\n");
+
+  SteamAPICall_t call =
+    stats->RequestGlobalAchievementPercentages ();
+
+  stats->RequestCurrentStats ();
 }

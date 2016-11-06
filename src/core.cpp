@@ -2009,6 +2009,28 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_SetConfigPath     (wszConfigPath);
 
 
+  wchar_t wszCEGUIModPath [MAX_PATH];
+  wchar_t wszCEGUITestDLL [MAX_PATH];
+
+#ifdef _WIN64
+  _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_RootPath);
+#else
+  _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32", SK_RootPath);
+#endif
+
+   SetDllDirectoryW (wszCEGUIModPath);
+
+   lstrcatW (wszCEGUITestDLL, wszCEGUIModPath);
+   lstrcatW (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+
+   if (GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES)
+     dll_log.Log (L"[  CEGUI   ]  Found CEGUI Installation: Enabling GUI...");
+
+  _swprintf         (wszCEGUIModPath, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+  _wputenv          (wszCEGUIModPath);
+
+
+
   // Do this from the startup thread
   SK_Init_MinHook ();
 

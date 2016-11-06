@@ -197,6 +197,224 @@ SK_FreeRealD3D9 (void)
   FreeLibrary (local_d3d9);
 }
 
+#undef min
+#undef max
+
+#include "CEGUI/CEGUI.h"
+#include "CEGUI/System.h"
+#include "CEGUI/DefaultResourceProvider.h"
+#include "CEGUI/ImageManager.h"
+#include "CEGUI/Image.h"
+#include "CEGUI/Font.h"
+#include "CEGUI/Scheme.h"
+#include "CEGUI/WindowManager.h"
+#include "CEGUI/falagard/WidgetLookManager.h"
+#include "CEGUI/ScriptModule.h"
+#include "CEGUI/XMLParser.h"
+#include "CEGUI/GeometryBuffer.h"
+#include "CEGUI/GUIContext.h"
+#include "CEGUI/RenderTarget.h"
+#include "CEGUI/AnimationManager.h"
+#include "CEGUI/FontManager.h"
+#include "CEGUI/RendererModules/Direct3D9/Renderer.h"
+
+#pragma comment (lib, "d3dx9.lib")
+
+#ifdef _WIN64
+#pragma comment (lib, "CEGUI/x64/CEGUIDirect3D9Renderer-0.lib")
+#else
+#pragma comment (lib, "CEGUI/Win32/CEGUIDirect3D9Renderer-0.lib")
+#endif
+
+CEGUI::Direct3D9Renderer* cegD3D9    = nullptr;
+IDirect3DStateBlock9*     cegD3D9_SB = nullptr;
+
+static volatile ULONG __gui_reset = TRUE;
+
+void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
+
+void
+SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
+{
+  if (cegD3D9 == nullptr) {
+    ResetCEGUI_D3D9 (pDev);
+  }
+
+  else {
+    CComPtr <IDirect3DStateBlock9> pStateBlock = nullptr;
+    pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock);
+
+    if (! pStateBlock)
+      return;
+
+    pStateBlock->Capture ();
+
+    bool new_sb = (! cegD3D9_SB);
+
+    if (new_sb) {
+      pDev->CreateStateBlock (D3DSBT_ALL, &cegD3D9_SB);
+
+      pDev->SetVertexShader (nullptr);
+      pDev->SetPixelShader  (nullptr);
+
+      pDev->SetRenderState (D3DRS_FILLMODE,  D3DFILL_SOLID);
+      pDev->SetRenderState (D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
+      pDev->SetRenderState (D3DRS_CULLMODE,  D3DCULL_NONE);
+
+      pDev->SetRenderState (D3DRS_ALPHABLENDENABLE, TRUE);
+      pDev->SetRenderState (D3DRS_SRCBLEND,         D3DBLEND_ONE);
+      pDev->SetRenderState (D3DRS_DESTBLEND,        D3DBLEND_INVSRCALPHA);
+
+      pDev->SetRenderState (D3DRS_ALPHATESTENABLE, TRUE);
+      pDev->SetRenderState (D3DRS_ALPHAFUNC,       D3DCMP_GREATER);
+
+      pDev->SetRenderState (D3DRS_ZENABLE,      FALSE);
+      pDev->SetRenderState (D3DRS_ZWRITEENABLE, FALSE);
+      pDev->SetRenderState (D3DRS_ZFUNC,        D3DCMP_ALWAYS);
+      pDev->SetRenderState (D3DRS_COLORVERTEX,  FALSE);
+
+      pDev->SetTextureStageState (0, D3DTSS_ALPHAOP,   D3DTOP_MODULATE);
+      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+
+      pDev->SetRenderState       (D3DRS_LIGHTING, FALSE);
+
+      cegD3D9_SB->Capture ();
+    } else {
+      cegD3D9_SB->Apply ();
+    }
+
+    D3DVIEWPORT9        vp_orig;
+    pDev->GetViewport (&vp_orig);
+
+    D3DPRESENT_PARAMETERS pp;
+
+    if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp))) {
+      if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0) {
+        D3DVIEWPORT9 vp_new;
+
+        vp_new.X      = 0;
+        vp_new.Y      = 0;
+        vp_new.Width  = pp.BackBufferWidth;
+        vp_new.Height = pp.BackBufferHeight;
+
+        vp_new.MinZ = 0.0f;
+        vp_new.MaxZ = 1.0f;
+
+        pDev->SetViewport (&vp_new);
+      }
+    }
+
+    CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+
+    pDev->SetViewport (&vp_orig);
+
+    pStateBlock->Apply ();
+  }
+}
+
+void
+ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
+{
+  if (cegD3D9 == nullptr)
+  {
+    if (cegD3D9_SB != nullptr) {
+      cegD3D9_SB->Release ();
+      cegD3D9_SB = nullptr;
+    }
+
+    //if (GetFileAttributes (L"CEGUIDirect3D9Renderer-0.dll") == INVALID_FILE_ATTRIBUTES)
+      //return;
+
+    try {
+      cegD3D9 = (CEGUI::Direct3D9Renderer *)
+        &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev);
+    } catch (...) {
+      cegD3D9 = nullptr;
+      return;
+    }
+
+    try {
+
+    extern const wchar_t*
+    __stdcall
+    SK_GetRootPath (void);
+
+    // initialise the required dirs for the DefaultResourceProvider
+    CEGUI::DefaultResourceProvider* rp =
+        static_cast<CEGUI::DefaultResourceProvider*>
+            (CEGUI::System::getDllSingleton().getResourceProvider());
+    //initDataPathPrefix("datapath");//dataPathPrefixOverride);
+    //getDataPathPrefix());
+    char szRootPath [MAX_PATH];
+    snprintf (szRootPath, MAX_PATH, "%ws", SK_GetRootPath ());
+
+    CEGUI::String dataPathPrefix ( ( std::string (szRootPath) + 
+                                     std::string ("CEGUI/datafiles") ).c_str () );
+
+    /* for each resource type, set a resource group directory. We cast strings
+       to "const CEGUI::utf8*" in order to support general Unicode strings,
+       rather than only ASCII strings (even though currently they're all ASCII).
+       */
+    rp->setResourceGroupDirectory("schemes",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/schemes/"));
+    rp->setResourceGroupDirectory("imagesets",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/imagesets/"));
+    rp->setResourceGroupDirectory("fonts",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/fonts/"));
+    rp->setResourceGroupDirectory("layouts",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/layouts/"));
+    rp->setResourceGroupDirectory("looknfeels",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/looknfeel/"));
+    rp->setResourceGroupDirectory("lua_scripts",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/lua_scripts/"));
+    rp->setResourceGroupDirectory("schemas",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/xml_schemas/"));
+    rp->setResourceGroupDirectory("animations",
+      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/animations/"));
+
+    // set the default resource groups to be used
+    CEGUI::ImageManager::setImagesetDefaultResourceGroup ("imagesets");
+    //CEGUI::ImageManager::addImageType                    ("BasicImage");
+    CEGUI::Font::setDefaultResourceGroup                 ("fonts");
+    CEGUI::Scheme::setDefaultResourceGroup               ("schemes");
+    CEGUI::WidgetLookManager::setDefaultResourceGroup    ("looknfeels");
+    CEGUI::WindowManager::setDefaultResourceGroup        ("layouts");
+    CEGUI::ScriptModule::setDefaultResourceGroup         ("lua_scripts");
+    CEGUI::AnimationManager::setDefaultResourceGroup     ("animations");
+
+    CEGUI::SchemeManager* pSchemeMgr =
+      CEGUI::SchemeManager::getDllSingletonPtr ();
+
+    pSchemeMgr->createFromFile ("VanillaSkin.scheme");
+    pSchemeMgr->createFromFile ("TaharezLook.scheme");
+
+    CEGUI::FontManager* pFontMgr =
+      CEGUI::FontManager::getDllSingletonPtr ();
+
+    pFontMgr->createFromFile ("DejaVuSans-10-NoScale.font");
+    //pFontMgr->createFromFile ("DejaVuSans-14-NoScale.font");
+    pFontMgr->createFromFile ("DejaVuSans-12-NoScale.font");
+    //pFontMgr->createFromFile ("Jura-18.font");
+    pFontMgr->createFromFile ("Jura-18-NoScale.font");
+    //pFontMgr->createFromFile ("Jura-13.font");
+    pFontMgr->createFromFile ("Jura-13-NoScale.font");
+    //pFontMgr->createFromFile ("Jura-10.font");
+    pFontMgr->createFromFile ("Jura-10-NoScale.font");
+    //pFontMgr->createFromFile ("Consolas-12.font");
+
+    CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
+
+    // setup default group for validation schemas
+    CEGUI::XMLParser* parser = pSys->getXMLParser ();
+
+    if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
+      parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
+  } catch (...) { }
+  }
+}
+
+
 
 typedef void (WINAPI *finish_pfn)(void);
 
@@ -496,6 +714,12 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
   HRESULT hr = E_FAIL;
 
+  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+
+  if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+    SK_CEGUI_DrawD3D9 (This, pSwapChain);
+  }
+
   // Hack for GeDoSaTo
   if (! SK_CheckForGeDoSaTo ())
     hr = D3D9PresentEx_Original ( This,
@@ -572,6 +796,12 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
   //SK_D3D9_UpdateRenderStats (nullptr, This);
 
   SK_BeginBufferSwap ();
+
+  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+
+  if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+    SK_CEGUI_DrawD3D9 (This, pSwapChain);
+  }
 
   HRESULT hr = D3D9Present_Original (This,
                                      pSourceRect,
@@ -786,6 +1016,12 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
     //SK_D3D9_UpdateRenderStats (This);
 
     SK_BeginBufferSwap ();
+
+    CComPtr <IDirect3DDevice9> pDev = nullptr;
+
+    if (SUCCEEDED (This->GetDevice (&pDev))) {
+      SK_CEGUI_DrawD3D9 (pDev, This);
+    }
 
     HRESULT hr = D3D9PresentSwap_Original (This,
                                            pSourceRect,
@@ -1136,6 +1372,16 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   MH_ApplyQueued ();
 
+  if (cegD3D9 != nullptr) {
+    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+    cegD3D9->destroySystem ();
+
+    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+
+    cegD3D9    = nullptr;
+    cegD3D9_SB = nullptr;
+  }
+
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
 
@@ -1182,6 +1428,16 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   }
 
   pDev.Release ();
+
+  if (cegD3D9 != nullptr) {
+    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+    cegD3D9->destroySystem ();
+
+    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+
+    cegD3D9    = nullptr;
+    cegD3D9_SB = nullptr;
+  }
 
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
