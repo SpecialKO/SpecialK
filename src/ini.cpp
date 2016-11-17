@@ -1292,6 +1292,37 @@ iSK_INI::get_section (const wchar_t* section)
   return ret;
 }
 
+#include <cstdarg>
+
+iSK_INISection&
+__stdcall
+iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
+                         wchar_t const* const    _Format,
+                                                 ... )
+{
+  wchar_t wszFormatted [128];
+
+  int len = 0;
+
+  va_list   _ArgList;
+  va_start (_ArgList, _Format);
+  {
+    // ASSERT: Length <= 127 characters
+    len += vswprintf (wszFormatted, _Format, _ArgList);
+  }
+  va_end   (_ArgList);
+
+  if (! sections.count (wszFormatted))
+    ordered_sections.push_back (wszFormatted);
+
+  iSK_INISection& ret = sections [wszFormatted];
+
+  ret.name = wszFormatted;
+
+  return ret;
+}
+
+
 #include "utility.h"
 
 void

@@ -86,6 +86,10 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (bool,            contains_section)(const wchar_t* section);
   STDMETHOD_ (bool,            remove_section)  (const wchar_t* section);
 
+  STDMETHOD_ (iSK_INISection&, get_section_f)   ( THIS_ _In_z_ _Printf_format_string_
+                                                  wchar_t const* const _Format,
+                                                                       ... );
+
 protected:
 private:
   FILE*     fINI;

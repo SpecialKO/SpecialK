@@ -236,6 +236,9 @@ void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
 void
 SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 {
+  if (! config.cegui.enable)
+    return;
+
   if (cegD3D9 == nullptr) {
     ResetCEGUI_D3D9 (pDev);
   }
@@ -316,6 +319,9 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
+  if (! config.cegui.enable)
+    return;
+
   if (cegD3D9 == nullptr)
   {
     if (cegD3D9_SB != nullptr) {
@@ -323,94 +329,23 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       cegD3D9_SB = nullptr;
     }
 
-    //if (GetFileAttributes (L"CEGUIDirect3D9Renderer-0.dll") == INVALID_FILE_ATTRIBUTES)
-      //return;
-
     try {
       cegD3D9 = (CEGUI::Direct3D9Renderer *)
         &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev);
+
+      extern void
+      SK_CEGUI_RelocateLog (void);
+
+      SK_CEGUI_RelocateLog ();
     } catch (...) {
       cegD3D9 = nullptr;
       return;
     }
 
-    try {
+    extern void
+    SK_CEGUI_InitBase (void);
 
-    extern const wchar_t*
-    __stdcall
-    SK_GetRootPath (void);
-
-    // initialise the required dirs for the DefaultResourceProvider
-    CEGUI::DefaultResourceProvider* rp =
-        static_cast<CEGUI::DefaultResourceProvider*>
-            (CEGUI::System::getDllSingleton().getResourceProvider());
-    //initDataPathPrefix("datapath");//dataPathPrefixOverride);
-    //getDataPathPrefix());
-    char szRootPath [MAX_PATH];
-    snprintf (szRootPath, MAX_PATH, "%ws", SK_GetRootPath ());
-
-    CEGUI::String dataPathPrefix ( ( std::string (szRootPath) + 
-                                     std::string ("CEGUI/datafiles") ).c_str () );
-
-    /* for each resource type, set a resource group directory. We cast strings
-       to "const CEGUI::utf8*" in order to support general Unicode strings,
-       rather than only ASCII strings (even though currently they're all ASCII).
-       */
-    rp->setResourceGroupDirectory("schemes",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/schemes/"));
-    rp->setResourceGroupDirectory("imagesets",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/imagesets/"));
-    rp->setResourceGroupDirectory("fonts",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/fonts/"));
-    rp->setResourceGroupDirectory("layouts",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/layouts/"));
-    rp->setResourceGroupDirectory("looknfeels",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/looknfeel/"));
-    rp->setResourceGroupDirectory("lua_scripts",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/lua_scripts/"));
-    rp->setResourceGroupDirectory("schemas",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/xml_schemas/"));
-    rp->setResourceGroupDirectory("animations",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/animations/"));
-
-    // set the default resource groups to be used
-    CEGUI::ImageManager::setImagesetDefaultResourceGroup ("imagesets");
-    //CEGUI::ImageManager::addImageType                    ("BasicImage");
-    CEGUI::Font::setDefaultResourceGroup                 ("fonts");
-    CEGUI::Scheme::setDefaultResourceGroup               ("schemes");
-    CEGUI::WidgetLookManager::setDefaultResourceGroup    ("looknfeels");
-    CEGUI::WindowManager::setDefaultResourceGroup        ("layouts");
-    CEGUI::ScriptModule::setDefaultResourceGroup         ("lua_scripts");
-    CEGUI::AnimationManager::setDefaultResourceGroup     ("animations");
-
-    CEGUI::SchemeManager* pSchemeMgr =
-      CEGUI::SchemeManager::getDllSingletonPtr ();
-
-    pSchemeMgr->createFromFile ("VanillaSkin.scheme");
-    pSchemeMgr->createFromFile ("TaharezLook.scheme");
-
-    CEGUI::FontManager* pFontMgr =
-      CEGUI::FontManager::getDllSingletonPtr ();
-
-    pFontMgr->createFromFile ("DejaVuSans-10-NoScale.font");
-    //pFontMgr->createFromFile ("DejaVuSans-14-NoScale.font");
-    pFontMgr->createFromFile ("DejaVuSans-12-NoScale.font");
-    //pFontMgr->createFromFile ("Jura-18.font");
-    pFontMgr->createFromFile ("Jura-18-NoScale.font");
-    //pFontMgr->createFromFile ("Jura-13.font");
-    pFontMgr->createFromFile ("Jura-13-NoScale.font");
-    //pFontMgr->createFromFile ("Jura-10.font");
-    pFontMgr->createFromFile ("Jura-10-NoScale.font");
-    //pFontMgr->createFromFile ("Consolas-12.font");
-
-    CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
-
-    // setup default group for validation schemas
-    CEGUI::XMLParser* parser = pSys->getXMLParser ();
-
-    if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
-      parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
-  } catch (...) { }
+    SK_CEGUI_InitBase ();
   }
 }
 
@@ -1372,18 +1307,24 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   MH_ApplyQueued ();
 
+
   if (cegD3D9 != nullptr) {
     CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-    cegD3D9->destroySystem ();
 
     if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+        cegD3D9_SB  = nullptr;
 
-    cegD3D9    = nullptr;
-    cegD3D9_SB = nullptr;
+    cegD3D9->destroySystem ();
+    cegD3D9 = nullptr;
   }
+
 
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
+
+
+  ResetCEGUI_D3D9 (This);
+
 
   return hr;
 }
@@ -1429,19 +1370,25 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   pDev.Release ();
 
+
   if (cegD3D9 != nullptr) {
     CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-    cegD3D9->destroySystem ();
 
     if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+        cegD3D9_SB  = nullptr;
 
-    cegD3D9    = nullptr;
-    cegD3D9_SB = nullptr;
+    cegD3D9->destroySystem ();
+    cegD3D9 = nullptr;
   }
+
 
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
                                             pFullscreenDisplayMode ));
+
+
+  ResetCEGUI_D3D9 (This);
+
 
   return hr;
 }

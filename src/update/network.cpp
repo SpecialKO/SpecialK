@@ -925,6 +925,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
   struct {
     signed int   installed;
+    wchar_t      branch  [128];
 
     struct {
       signed int in_branch; // TODO
@@ -956,11 +957,13 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   if (empty) {
     *wszCurrentBuild = L'\0';
     build.installed = -1;
+    wcscpy (build.branch, L"Latest");
   } else {
     swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
                 L"%128[^,],%li",
                   wszCurrentBuild,
                     &build.installed );
+    wcscpy (build.branch, installed_ver.get_value (L"Branch").c_str ());
   }
 
   // Set the reminder in case the update fails... we do not want
@@ -970,7 +973,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   install_ini.write  (wszInstallFile);
 
   iSK_INISection& latest_ver =
-    repo_ini.get_section (L"Version.Latest");
+    repo_ini.get_section_f (L"Version.%s", build.branch);
 
   wchar_t wszFullDetails [4096];
   swprintf ( wszFullDetails,
@@ -989,13 +992,9 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
             latest_ver.get_value (L"ReleaseNotes").c_str () );
 
   if (build.latest.in_branch > build.installed) {
-    wchar_t wszArchiveName [MAX_PATH];
-    swprintf ( wszArchiveName,
-                L"Archive.%s",
-                  build.latest.package );
-
     iSK_INISection& archive =
-      repo_ini.get_section (wszArchiveName);
+      repo_ini.get_section_f ( L"Archive.%s",
+                                 build.latest.package );
 
     sk_internet_get_t* get =
       new sk_internet_get_t;
@@ -1027,7 +1026,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
       wchar_t wszUpdateTempFile [MAX_PATH];
 
-      swprintf ( wszUpdateTempFile, 
+      swprintf ( wszUpdateTempFile,
                    L"%s\\Version\\%s.7z",
                      SK_GetRootPath (),
                        build.latest.package );

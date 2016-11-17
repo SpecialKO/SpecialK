@@ -190,6 +190,16 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     CreateThread ( nullptr, 0,
          [](LPVOID user) ->
     DWORD {
+      static bool spawned_init = false;
+
+      // Already started a late init. thread
+      if (spawned_init) {
+        CloseHandle (GetCurrentThread ());
+        return 0;
+      }
+
+      spawned_init = true;
+
       Sleep (5000UL);
 
       if (! InterlockedExchangeAdd (&__SK_Steam_init, 0)) {
@@ -216,7 +226,9 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
         steam_log.Log ( L"--- Initialization Finished ([AppId: %lu]) ---\n\n",
                           SK::SteamAPI::AppID () );
 
-        //StartSteamPump ();
+        extern void StartSteamPump (void);
+
+        StartSteamPump ();
 
         SK_EnableHook (SteamAPI_RegisterCallback);
       }
@@ -252,6 +264,10 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       break;
     case UserAchievementStored_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Installed User Achievements Storage Callback",
+                        caller.c_str () );
+      break;
+    case DlcInstalled_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed DLC Installation Callback",
                         caller.c_str () );
       break;
     case SteamAPICallCompleted_t::k_iCallback:
@@ -303,6 +319,10 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
       break;
     case UserAchievementStored_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Uninstalled User Achievements Storage Callback",
+                        caller.c_str () );
+      break;
+    case DlcInstalled_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled DLC Installation Callback",
                         caller.c_str () );
       break;
     case SteamAPICallCompleted_t::k_iCallback:
@@ -984,9 +1004,12 @@ public:
       }
     }
 
-    achievements.list.resize (steam_ctx.UserStats ()->GetNumAchievements ());
+    uint32_t reserve =
+      std::max (steam_ctx.UserStats ()->GetNumAchievements (), (uint32_t)128UL);
 
-    for (int i = 0; i < achievements.list.size (); i++) {
+    achievements.list.resize (reserve);
+
+    for (uint32_t i = 0; i < reserve; i++) {
       achievements.list [i] = nullptr;
     }
   }
@@ -1430,7 +1453,7 @@ public:
                         pParam->m_rgchAchievementName );
     }
 
-    if (config.steam.achievements.show_popup && achievement != nullptr) {
+    if (config.cegui.enable && config.steam.achievements.show_popup && achievement != nullptr) {
       CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
 
     if ( pSys                 != nullptr &&
@@ -1672,7 +1695,7 @@ SK_SteamAPI_LogAllAchievements (void)
 }
 
 void
-SK_UnlockSteamAchievement (int idx)
+SK_UnlockSteamAchievement (uint32_t idx)
 {
   if (config.steam.silent)
     return;
@@ -1878,8 +1901,15 @@ SteamAPI_PumpThread (LPVOID user)
 void
 StartSteamPump (void)
 {
+  static bool pump_started = false;
+
+  if (pump_started)
+    return;
+
   if (config.steam.auto_pump_callbacks)
     CreateThread (nullptr, 0, SteamAPI_PumpThread, nullptr, 0x00, nullptr);
+
+  pump_started = true;
 }
 
 
@@ -2005,10 +2035,23 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
-  steam_ctx.Shutdown         ();
-  SteamAPI_Shutdown_Original ();
+  //steam_ctx.Shutdown         ();
+  //SteamAPI_Shutdown_Original ();
 
   InterlockedExchange (&__SK_Steam_init, 0);
+
+  CreateThread ( nullptr, 0,
+       [](LPVOID user) ->
+  DWORD {
+    Sleep (1000UL);
+
+    if (SteamAPI_InitSafe ()) {
+      StartSteamPump ();
+    }
+
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }, nullptr, 0x00, nullptr );
 }
 
 bool

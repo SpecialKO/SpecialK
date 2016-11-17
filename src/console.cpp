@@ -1015,30 +1015,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   last_active = game_window.active;
 
-  // Ignore this event
-  if (uMsg == WM_MOUSEACTIVATE && config.window.background_render) {
-    if ((HWND)wParam == game_window.hWnd) {
-      dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
-      game_window.active = true;
+  auto ActivateWindow = [](bool active = false)->
+  void
+    {
+      bool was_active = last_active;
+      game_window.active = active;
 
-      return MA_ACTIVATEANDEAT;
-    }
-
-    return MA_NOACTIVATE;
-  }
-
-  // Allow the game to run in the background
-  if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE || uMsg == WM_NCACTIVATE /*|| uMsg == WM_MOUSEACTIVATE*/)
-  {
-    if (uMsg == WM_NCACTIVATE) {
-      if (wParam == TRUE) {
-        //dll_log->Log (L"[Window Mgr] Application Activated");
-
+      if (active && (! was_active)) {
         GetCursorPos (&game_window.cursor_pos);
 
-        if (config.window.background_render && game_window.active != true) {
-          game_window.active = true;
-
+        if (config.window.background_render) {
           if (! game_window.cursor_visible) {
             while (ShowCursor (FALSE) >= 0)
               ;
@@ -1047,14 +1033,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           ClipCursor (&game_window.cursor_clip);
         }
 
-        game_window.active = true;
-      } else {
-        
-        //dll_log->Log (L"[Window Mgr] Application Deactivated");
+        if (config.window.confine_cursor) {
+          //dll_log.Log (L"[Window Mgr] Confining Mouse Cursor");
+          GetWindowRect       (game_window.hWnd, &game_window.rect);
+          ClipCursor_Original (&game_window.rect);
+        }
+      }
 
-        if (config.window.background_render && (game_window.active != false)) {
-          game_window.active = false;
-
+      else if ((! active) && was_active) {
+        if (config.window.background_render) {
           game_window.cursor_visible =
             ShowCursor (TRUE) >= 1;
 
@@ -1066,7 +1053,40 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                          game_window.cursor_pos.y );
         }
 
-        game_window.active = false;
+        if (config.window.confine_cursor) {
+          //dll_log.Log (L"[Window Mgr] Unconfining Mouse Cursor");
+          ClipCursor_Original (nullptr);
+        }
+      }
+   };
+
+  // Ignore this event
+  if (uMsg == WM_MOUSEACTIVATE && config.window.background_render) {
+    if ((HWND)wParam == game_window.hWnd) {
+      dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
+
+      ActivateWindow (true);
+
+      return MA_ACTIVATEANDEAT;
+    }
+
+    ActivateWindow (false);
+
+    return MA_NOACTIVATE;
+  }
+
+  // Allow the game to run in the background
+  if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE || uMsg == WM_NCACTIVATE /*|| uMsg == WM_MOUSEACTIVATE*/)
+  {
+    if (uMsg == WM_NCACTIVATE) {
+      if (wParam == TRUE && last_active == false) {
+        //dll_log->Log (L"[Window Mgr] Application Activated (Non-Client)");
+        ActivateWindow (true);
+      }
+
+      else if (wParam == FALSE && last_active == true) {
+        //dll_log->Log (L"[Window Mgr] Application Deactivated (Non-Client)");
+        ActivateWindow (false);
       }
 
       // We must fully consume one of these messages or audio will stop playing
@@ -1074,6 +1094,29 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       //     default window procedure.
       if (config.window.background_render)
         return 0;
+    }
+
+    else if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE) {
+      switch (wParam)
+      {
+        case 1:  // WA_ACTIVE / TRUE
+        case 2:  // WA_CLICKACTIVE
+        default: // Unknown
+        {
+          if (last_active == false) {
+            //dll_log->Log (L"[Window Mgr] Application Activated (WM_ACTIVATEAPP)");
+            ActivateWindow (true);
+          }
+        } break;
+
+        case 0: // WA_INACTIVE / FALSE
+        {
+          if (last_active == true) {
+            //dll_log->Log (L"[Window Mgr] Application Deactivated (WM_ACTIVATEAPP)");
+            ActivateWindow (false);
+          }
+        } break;
+      }
     }
 
     if (config.window.background_render)

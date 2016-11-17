@@ -59,6 +59,13 @@ extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lp
 #include "steam_api.h"
 
 #include <atlbase.h>
+#include <comdef.h>
+
+#include <delayimp.h>
+
+#include "CEGUI/CEGUI.h"
+#include "CEGUI/System.h"
+#include "CEGUI/Logger.h"
 
 memory_stats_t mem_stats [MAX_GPU_NODES];
 mem_info_t     mem_info  [NumBuffers];
@@ -104,6 +111,11 @@ extern
 HMODULE
 __stdcall
 SK_GetDLL (void);
+
+extern
+const wchar_t*
+__stdcall
+SK_GetRootPath (void);
 
 volatile
 ULONG frames_drawn = 0UL;
@@ -1024,6 +1036,54 @@ SK_InitCore (const wchar_t* backend, void* callback)
   __crc32_init ();
 
 
+
+  if (config.cegui.enable)
+  {
+    // Disable until we validate CEGUI's state
+    config.cegui.enable = false;
+
+    wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
+    wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
+
+#ifdef _WIN64
+    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
+#else
+    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32", SK_GetRootPath ());
+#endif
+
+    lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
+    lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+
+    if (GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES) {
+      dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
+
+      config.cegui.enable = true;
+
+      SetDllDirectoryW         (wszCEGUIModPath);
+
+      wchar_t wszEnvVar     [MAX_PATH] = { L'\0' };
+      wchar_t wszWorkingDir [MAX_PATH] = { L'\0' };
+
+      _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+      _wputenv  (wszEnvVar);
+
+      GetCurrentDirectoryW (MAX_PATH, wszWorkingDir);
+
+      // Some games will rebase themselves, it is important to know the
+      //   game's working directory at the time CEGUI was initialized.
+      _swprintf (wszEnvVar, L"CEGUI_WORKING_DIR=%s", wszWorkingDir);
+      _wputenv  (wszEnvVar);
+
+      __HrLoadAllImportsForDll ("CEGUIBase-0.dll");
+
+      __HrLoadAllImportsForDll ("CEGUIDirect3D9Renderer-0.dll");
+      __HrLoadAllImportsForDll ("CEGUIDirect3D11Renderer-0.dll");
+
+      SetDllDirectoryW         (nullptr);
+    }
+  }
+
+
   game_debug.init (L"logs/game_output.log", L"w");
 
   if (config.system.handle_crashes)
@@ -1862,7 +1922,7 @@ HMODULE
 __stdcall
 SK_GetDLL (void);
 
-extern std::pair <std::queue <DWORD>, bool> __stdcall SK_BypassInject (void);
+extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
 
 // Brutal hack that assumes the executable has a .exe extension...
 //   FIXME
@@ -1929,7 +1989,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if ( SK_IsInjected    ()         &&
        GetAsyncKeyState (VK_SHIFT) &&
        GetAsyncKeyState (VK_CONTROL) ) {
-    std::pair <std::queue <DWORD>, bool> retval =
+    std::pair <std::queue <DWORD>, BOOL> retval =
       SK_BypassInject ();
 
     if (retval.second) {
@@ -2007,28 +2067,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   SK_CreateDirectories (wszConfigPath);
   SK_SetConfigPath     (wszConfigPath);
-
-
-  wchar_t wszCEGUIModPath [MAX_PATH];
-  wchar_t wszCEGUITestDLL [MAX_PATH];
-
-#ifdef _WIN64
-  _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_RootPath);
-#else
-  _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32", SK_RootPath);
-#endif
-
-   SetDllDirectoryW (wszCEGUIModPath);
-
-   lstrcatW (wszCEGUITestDLL, wszCEGUIModPath);
-   lstrcatW (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
-
-   if (GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES)
-     dll_log.Log (L"[  CEGUI   ]  Found CEGUI Installation: Enabling GUI...");
-
-  _swprintf         (wszCEGUIModPath, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
-  _wputenv          (wszCEGUIModPath);
-
 
 
   // Do this from the startup thread
@@ -2311,12 +2349,26 @@ SK_BeginBufferSwap (void)
     SK_LoadLateImports32 ();
 #endif
 
+    // Steam Init: Better late than never
+
+    if (GetModuleHandle (L"CSteamworks.dll")) {
+      extern void SK_HookCSteamworks (void);
+      SK_HookCSteamworks ();
+    }
+
+    else if ( GetModuleHandle (L"steam_api.dll")   ||
+              GetModuleHandle (L"steam_api64.dll") ||
+              GetModuleHandle (L"SteamNative.dll") ) {
+      extern void SK_HookSteamAPI (void);
+      SK_HookSteamAPI ();
+    }
+
     if (config.system.handle_crashes)
       SK::Diagnostics::CrashHandler::Reinstall ();
   }
 }
 
-extern void SK_UnlockSteamAchievement (int idx);
+extern void SK_UnlockSteamAchievement (uint32_t idx);
 
 ULONGLONG poll_interval = 0;
 

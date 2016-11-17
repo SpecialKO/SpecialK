@@ -328,8 +328,6 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
       if (hVersionFile != INVALID_HANDLE_VALUE)
         CloseHandle (hVersionFile);
     }
-
-    //HttpEndRequest ( hInetGitHubOpen, nullptr, 0x00, 0 );
   }
 
   InternetCloseHandle (hInetGitHubOpen);

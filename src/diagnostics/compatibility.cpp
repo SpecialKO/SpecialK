@@ -276,7 +276,6 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     }
   }
 
-#if 0
   // Some software repeatedly loads and unloads this, which can
   //   cause TLS-related problems if left unchecked... just leave
   //     the damn thing loaded permanently!
@@ -286,7 +285,6 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                            lpFileName,
                              &hModDontCare );
   }
-#endif
 }
 
 void
@@ -344,7 +342,6 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     }
   }
 
-#if 0
   // Some software repeatedly loads and unloads this, which can
   //   cause TLS-related problems if left unchecked... just leave
   //     the damn thing loaded permanently!
@@ -354,7 +351,6 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                            lpFileName,
                              &hModDontCare );
   }
-#endif
 }
 
 
@@ -1398,7 +1394,7 @@ SK_Bypass_CRT (LPVOID user)
 
 #include <process.h>
 
-std::pair <std::queue <DWORD>, bool>
+std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {

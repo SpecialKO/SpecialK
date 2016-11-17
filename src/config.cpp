@@ -210,6 +210,7 @@ struct {
   sk::ParameterInt*       x_off;
   sk::ParameterInt*       y_off;
   sk::ParameterBool*      background_render;
+  sk::ParameterBool*      confine_cursor;
 } window;
 
 struct {
@@ -459,6 +460,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Window.System",
         L"YOffset" );
+
+  window.confine_cursor =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Confine the Mouse Cursor to the Game Window.")
+      );
+  window.confine_cursor->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"ConfineCursor" );
 
 
 
@@ -1462,6 +1473,8 @@ SK_LoadConfig (std::wstring name) {
     config.window.x_offset = window.x_off->get_value ();
   if (window.y_off->load ())
     config.window.y_offset = window.y_off->get_value ();
+  if (window.confine_cursor->load ())
+    config.window.confine_cursor = window.confine_cursor->get_value ();
 
   if (steam.achievements.nosound->load ())
     config.steam.nosound = steam.achievements.nosound->get_value ();
@@ -1593,6 +1606,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.background_render->set_value         (config.window.background_render);
   window.x_off->set_value                     (config.window.x_offset);
   window.y_off->set_value                     (config.window.y_offset);
+  window.confine_cursor->set_value            (config.window.confine_cursor);
 
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
@@ -1729,6 +1743,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.background_render->store         ();
   window.x_off->store                     ();
   window.y_off->store                     ();
+  window.confine_cursor->store            ();
 
   nvidia.api.disable->store               ();
 

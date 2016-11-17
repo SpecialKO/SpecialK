@@ -157,6 +157,11 @@ struct sk_config_t
 
 
   struct {
+    bool    enable              = true;
+  } cegui;
+
+
+  struct {
     struct {
       bool  pull_friend_stats   = true;
       bool  pull_global_stats   = true;
@@ -277,6 +282,7 @@ struct sk_config_t
     int     x_offset            = 0;
     int     y_offset            = 0;
     bool    background_render   = false;
+    bool    confine_cursor      = false;
   } window;
 
   struct {

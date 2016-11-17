@@ -28,6 +28,9 @@
 
 #include <Windows.h>
 
+// Fix warnings in dbghelp.h
+#pragma warning (disable : 4091)
+
 #define _NO_CVCONST_H
 #include <dbghelp.h>
 
