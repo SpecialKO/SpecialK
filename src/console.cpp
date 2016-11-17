@@ -598,6 +598,8 @@ SK_AdjustWindow (void)
     LONG real_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
     LONG real_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
+    GetWindowRect (game_window.hWnd, &game_window.rect);
+
     LONG render_width,
          render_height;
 
@@ -963,9 +965,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
        if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout) {
          if ((! SK_IsSteamOverlayActive ()) && game_window.active) {
-           while (ShowCursor (FALSE) >= 0) ;
+           while (ShowCursor (FALSE) >= -1) ;
            last_mouse.cursor = false;
-          }
+
+           last_mouse.sampled = timeGetTime ();
+         }
        }
 
        return (last_mouse.cursor != was_active);
@@ -1004,7 +1008,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (activation_event && config.input.cursor.timeout != 0)
       ActivateCursor (true);
 
-    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id && (! SK_IsSteamOverlayActive ())  && game_window.active) {
+    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id && (! SK_IsSteamOverlayActive ()) && game_window.active) {
       if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
         DeactivateCursor ();
 
@@ -1072,12 +1076,21 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     ActivateWindow (false);
 
-    return MA_NOACTIVATE;
+    dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate");
+
+    return MA_ACTIVATE;
+  }
+
+  if (config.window.background_render && (uMsg == WM_KILLFOCUS || uMsg == WM_SETFOCUS)) {
+    DefWindowProc (hWnd, uMsg, wParam, lParam);
+    return 0;
   }
 
   // Allow the game to run in the background
   if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE || uMsg == WM_NCACTIVATE /*|| uMsg == WM_MOUSEACTIVATE*/)
   {
+    CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, TRUE, (LPARAM)hWnd);
+
     if (uMsg == WM_NCACTIVATE) {
       if (wParam == TRUE && last_active == false) {
         //dll_log->Log (L"[Window Mgr] Application Activated (Non-Client)");
@@ -1087,13 +1100,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       else if (wParam == FALSE && last_active == true) {
         //dll_log->Log (L"[Window Mgr] Application Deactivated (Non-Client)");
         ActivateWindow (false);
-      }
 
-      // We must fully consume one of these messages or audio will stop playing
-      //   when the game loses focus, so do not simply pass this through to the
-      //     default window procedure.
-      if (config.window.background_render)
-        return 0;
+        // We must fully consume one of these messages or audio will stop playing
+        //   when the game loses focus, so do not simply pass this through to the
+        //     default window procedure.
+        if (config.window.background_render) {
+          DefWindowProc (hWnd, uMsg, wParam, lParam);
+          return 0;
+        }
+      }
     }
 
     else if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE) {
@@ -1114,13 +1129,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           if (last_active == true) {
             //dll_log->Log (L"[Window Mgr] Application Deactivated (WM_ACTIVATEAPP)");
             ActivateWindow (false);
+
+            if (config.window.background_render) {
+              DefWindowProc (hWnd, uMsg, wParam, lParam);
+              return 0;
+            }
           }
         } break;
       }
     }
-
-    if (config.window.background_render)
-      return 1;
   }
 
 #if 0
@@ -1148,7 +1165,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (console_visible || (background_render && uMsg != WM_SYSKEYDOWN)) {
     // Only prevent the mouse from working while the window is in the bg
     if (config.window.background_render && uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
-      return 0;//DefWindowProc (hWnd, uMsg, wParam, lParam);
+      return DefWindowProc (hWnd, uMsg, wParam, lParam);
 
     if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
       return DefWindowProc (hWnd, uMsg, wParam, lParam);
@@ -1203,8 +1220,6 @@ SK_InstallWindowHook (HWND hWnd)
        config.window.y_offset )
   {
     GetCursorPos  (&game_window.cursor_pos);
-
-    GetWindowRect (game_window.hWnd, &game_window.rect);
 
     if (config.window.borderless) {
       SetWindowLongA_Original (game_window.hWnd, GWL_STYLE, game_window.style);

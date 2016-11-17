@@ -127,10 +127,15 @@ public:
                    GameOverlayActivated_t,
                    activation )
   {
-    if (active_ != (pParam->m_bActive != FALSE)) {
+    if (active_ != pParam->m_bActive) {
       if (pParam->m_bActive) {
-        cursor_visible_ = ShowCursor (FALSE) >= -1;
-                          ShowCursor (TRUE);
+        static bool first = true;
+
+        if (first) {
+          cursor_visible_ = ShowCursor (FALSE) >= -1;
+                            ShowCursor (TRUE);
+          first = false;
+        }
       }
 
       // Restore the original cursor state.
@@ -150,7 +155,7 @@ public:
       }
     }
 
-    active_ = (pParam->m_bActive != FALSE);
+    active_ = pParam->m_bActive;
   }
 
   bool isActive (void) { return active_; }
@@ -246,10 +251,11 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   switch (iCallback)
   {
     case GameOverlayActivated_t::k_iCallback:
+    {
       steam_log.Log ( L" * (%-28s) Installed Overlay Activation Callback",
                         caller.c_str () );
       overlay_activation_callbacks.insert (pCallback);
-      break;
+    } break;
     case ScreenshotRequested_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Installed Screenshot Callback",
                         caller.c_str () );
@@ -285,6 +291,17 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   LeaveCriticalSection (&callback_cs);
 }
 
+void
+SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
+{
+  __try {
+    if (overlay_activation_callbacks.find (pCallback) != overlay_activation_callbacks.end ())
+      overlay_activation_callbacks.erase (pCallback);
+  } __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+           EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
+  }
+}
+
 S_API
 void
 S_CALLTYPE
@@ -302,8 +319,9 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     case GameOverlayActivated_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Uninstalled Overlay Activation Callback",
                         caller.c_str () );
-      if (overlay_activation_callbacks.find (pCallback) != overlay_activation_callbacks.end ())
-        overlay_activation_callbacks.erase (pCallback);
+
+      SK_SteamAPI_EraseActivationCallback (pCallback);
+
       break;
     case ScreenshotRequested_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Uninstalled Screenshot Callback",
@@ -1946,8 +1964,12 @@ SK::SteamAPI::SetOverlayState (bool active)
   std::set <CCallbackBase *>::iterator it =
     overlay_activation_callbacks.begin ();
 
-  while (it != overlay_activation_callbacks.end ()) {
-    (*it++)->Run (&state);
+  __try {
+    while (it != overlay_activation_callbacks.end ()) {
+      (*it++)->Run (&state);
+    }
+  } __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+               EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
   }
 
   LeaveCriticalSection (&callback_cs);
@@ -2350,7 +2372,8 @@ SK_SteamAPI_UserStats (void)
 void
 SK_SteamAPI_ContextInit (HMODULE hSteamAPI)
 {
-  steam_ctx.InitSteamAPI (hSteamAPI);
+  if (! steam_ctx.UserStats ())
+    steam_ctx.InitSteamAPI (hSteamAPI);
 }
 
 void
