@@ -461,7 +461,7 @@ AdjustWindowRect_Detour (
     return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
   }
 
-  return TRUE;
+  return AdjustWindowRect_Original (lpRect, WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX, FALSE);
 }
 
 BOOL
@@ -476,7 +476,7 @@ AdjustWindowRectEx_Detour (
     return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
   }
 
-  return TRUE;
+  return AdjustWindowRect_Original (lpRect, WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX, FALSE);
 }
 
 LONG
@@ -585,11 +585,13 @@ SK_AdjustWindow (void)
   {
     //dll_log->Log (L"BorderManager::AdjustWindow - Windowed");
 
-    AdjustWindowRect_Original (
-      &mi.rcWork,
-        game_window.style,
-          FALSE
-    );
+    if (! config.window.borderless) {
+      AdjustWindowRect_Original (
+        &mi.rcWork,
+          game_window.style,
+            FALSE
+      );
+    }
 
 
     LONG mon_width   = mi.rcWork.right     - mi.rcWork.left;
@@ -736,6 +738,9 @@ SK_Console::Start (void)
     SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRectEx",
                           AdjustWindowRectEx_Detour,
                (LPVOID *)&AdjustWindowRectEx_Original );
+
+    if (config.window.borderless)
+      game_window.style = WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX;
 
     SK_ApplyQueuedHooks ();
   }
