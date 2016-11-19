@@ -283,6 +283,7 @@ struct sk_config_t
     int     y_offset            = 0;
     bool    background_render   = false;
     bool    confine_cursor      = false;
+    bool    fullscreen          = false;
   } window;
 
   struct {

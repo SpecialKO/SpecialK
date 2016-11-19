@@ -357,7 +357,10 @@ typedef enum _NvAPI_Status
     NVAPI_TIMING_NOT_SUPPORTED                  = -204,    //!< Provided timing is not supported.
     NVAPI_HDCP_ENCRYPTION_FAILED                = -205,    //!< HDCP Encryption Failed for the device. Would be applicable when the device is HDCP Capable.
     NVAPI_PCLK_LIMITATION_FAILED                = -206,    //!< Provided mode is over sink device pclk limitation.
-    NVAPI_NO_CONNECTOR_FOUND                    = -207,    //!< No connector on GPU found.
+    NVAPI_NO_CONNECTOR_FOUND                    = -207,    //!< No connector on GPU found. 
+    NVAPI_HDCP_DISABLED                         = -208,    //!< When a non-HDCP capable HMD is connected, we would inform user by this code.
+    NVAPI_API_IN_USE                            = -209,    //!< Atleast an API is still being called
+    NVAPI_NVIDIA_DISPLAY_NOT_FOUND              = -210,    //!< No display found on Nvidia GPU(s).
 } NvAPI_Status;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -447,6 +450,7 @@ typedef NV_DISPLAY_DRIVER_MEMORY_INFO_V3 NV_DISPLAY_DRIVER_MEMORY_INFO;
 // FUNCTION NAME: NvAPI_GPU_GetMemoryInfo
 //
 //!   DESCRIPTION: This function retrieves the available driver memory footprint for the specified GPU. 
+//!                If the GPU is in TCC Mode, only dedicatedVideoMemory will be returned in pMemoryInfo (NV_DISPLAY_DRIVER_MEMORY_INFO).
 //!
 //! SUPPORTED OS:  Windows XP and higher
 //!
@@ -482,7 +486,7 @@ NVAPI_INTERFACE NvAPI_GPU_GetMemoryInfo(NvPhysicalGpuHandle hPhysicalGpu, NV_DIS
 //! \note In drivers older than 105.00, all physical GPU handles get invalidated on a
 //!       modeset. So the calling applications need to renum the handles after every modeset.\n
 //!       With drivers 105.00 and up, all physical GPU handles are constant.
-//!       Physical GPU handles are constant as long as the GPUs are not physically moved and 
+//!       Physical GPU handles are constant as long as the GPUs are not physically moved and
 //!       the SBIOS VGA order is unchanged.
 //!
 //!       For GPU handles in TCC MODE please use NvAPI_EnumTCCPhysicalGPUs()
@@ -499,13 +503,14 @@ NVAPI_INTERFACE NvAPI_GPU_GetMemoryInfo(NvPhysicalGpuHandle hPhysicalGpu, NV_DIS
 //! \ingroup gpu
 ///////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_EnumPhysicalGPUs(NvPhysicalGpuHandle nvGPUHandle[NVAPI_MAX_PHYSICAL_GPUS], NvU32 *pGpuCount);
-#if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)
+#if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__) || defined(__d3d12_h__)
 
 NV_DECLARE_HANDLE(NVDX_ObjectHandle);  // DX Objects
 static const NVDX_ObjectHandle NVDX_OBJECT_NONE = 0;
 
-#endif //if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)
+#endif //if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__) || defined(__d3d12_h__)
 #if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d11_h__)
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_D3D_GetObjectHandleForResource

@@ -33,12 +33,6 @@
 
 #include "tls.h"
 
-#ifdef _WIN64
-#pragma comment (lib, "MinHook/libMinHook.x64.lib")
-#else
-#pragma comment (lib, "MinHook/libMinHook.x86.lib")
-#endif
-
 extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
 
@@ -890,56 +884,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     return;
   }
 
-  extern HMODULE __stdcall SK_GetDLL ();
-  extern void              SK_TestSteamImports (HMODULE hMod);
-
-  HANDLE hProc = GetCurrentProcess ();
-
-  wchar_t log_fname [MAX_PATH];
-  log_fname [MAX_PATH - 1] = L'\0';
-
-  swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
-
-  dll_log.init (log_fname, L"w");
-  dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
-
-  dll_log.LogEx (false,
-    L"------------------------------------------------------------------------"
-    L"-------------------\n");
-
-  std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
-  const wchar_t* wszModuleName = module_name.c_str ();
-
-  dll_log.Log   (      L">> (%s) [%s] <<",
-                         SK_GetHostApp (),
-                           wszModuleName );
-
-  const wchar_t* config_name = backend;
-
-  if (SK_IsInjected ())
-    config_name = L"SpecialK";
-
-  if (! SK_IsHostAppSKIM ()) {
-    dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
-
-    if (SK_LoadConfig (config_name)) {
-      dll_log.LogEx (false, L"done!\n");
-    } else {
-      dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
-      dll_log.LogEx (false, L"failed!\n");
-      // If no INI file exists, write one immediately.
-      dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
-      SK_SaveConfig (config_name);
-      dll_log.LogEx (false, L"done!\n");
-    }
-  } else {
-    extern void __crc32_init (void);
-    __crc32_init ();
-
-    LeaveCriticalSection (&init_mutex);
-    return;
-  }
-
   if (config.system.central_repository) {
     // Create Symlink for end-user's convenience
     if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
@@ -959,6 +903,11 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   if (! lstrcmpW (SK_GetHostApp (), L"BatmanAK.exe"))
     USE_SLI = false;
+
+  HANDLE hProc = GetCurrentProcess ();
+
+  std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
+  const wchar_t* wszModuleName = module_name.c_str ();
 
   dll_log.LogEx (false,
     L"----------------------------------------------------------------------"
@@ -1092,11 +1041,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
-
-  SK_Console* pConsole = SK_Console::getInstance ();
-  pConsole->Start ();
-
-
+  extern void SK_TestSteamImports (HMODULE hMod);
   SK_TestSteamImports (SK_GetDLL ());
 
 
@@ -2094,6 +2039,62 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
   InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
 
+  EnterCriticalSection (&init_mutex);
+
+  extern HMODULE __stdcall SK_GetDLL ();
+
+  HANDLE hProc = GetCurrentProcess ();
+
+  wchar_t log_fname [MAX_PATH];
+  log_fname [MAX_PATH - 1] = L'\0';
+
+  swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+
+  dll_log.init (log_fname, L"w");
+  dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
+
+  dll_log.LogEx (false,
+    L"------------------------------------------------------------------------"
+    L"-------------------\n");
+
+  std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
+  const wchar_t* wszModuleName = module_name.c_str ();
+
+  dll_log.Log   (      L">> (%s) [%s] <<",
+                         SK_GetHostApp (),
+                           wszModuleName );
+
+  const wchar_t* config_name = backend;
+
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
+
+  if (! SK_IsHostAppSKIM ()) {
+    dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+
+    if (SK_LoadConfig (config_name)) {
+      dll_log.LogEx (false, L"done!\n");
+    } else {
+      dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+      dll_log.LogEx (false, L"failed!\n");
+      // If no INI file exists, write one immediately.
+      dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
+      SK_SaveConfig (config_name);
+      dll_log.LogEx (false, L"done!\n");
+    }
+  } else {
+    extern void __crc32_init (void);
+    __crc32_init ();
+
+    LeaveCriticalSection (&init_mutex);
+    return true;
+  }
+
+  SK_Console* pConsole = SK_Console::getInstance ();
+  pConsole->Start ();
+
+  LeaveCriticalSection (&init_mutex);
+
   InterlockedExchangePointer (
     (void **)&hInitThread,
       (HANDLE)
@@ -2365,6 +2366,20 @@ SK_BeginBufferSwap (void)
 
     if (config.system.handle_crashes)
       SK::Diagnostics::CrashHandler::Reinstall ();
+  }
+
+  extern void SK_AdjustWindow (void);
+  extern void SK_HookWinAPI   (void);
+
+  static bool first = true;
+
+  if (first) {
+    SK_HookWinAPI ();
+
+    if (SK_GetGameWindow () != 0) {
+      SK_AdjustWindow ();
+      first = false;
+    }
   }
 }
 

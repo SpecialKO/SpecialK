@@ -31,9 +31,6 @@
     <Filter Include="Header Files\Diagnostics">
       <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\DirectXTex">
-      <UniqueIdentifier>{a27bd44f-f740-4eb2-8fbd-578a0cca981a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\DirectXTex">
       <UniqueIdentifier>{53877763-ffe5-4232-9427-f0c56a07fa57}</UniqueIdentifier>
     </Filter>
@@ -60,9 +57,6 @@
     </Filter>
     <Filter Include="Source Files\Update">
       <UniqueIdentifier>{e6ec08a7-8e65-4d10-90c4-450c13e4a46e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\lzma">
-      <UniqueIdentifier>{d0606294-afda-4c24-8ae0-b30ac9bf174a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Update">
       <UniqueIdentifier>{6c9ee774-936a-4832-8a8a-c4cbf5b9a6f4}</UniqueIdentifier>
@@ -263,66 +257,6 @@
     <ClCompile Include="diagnostics\crash_handler.cpp">
       <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\BC.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\BC4BC5.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\BC6HBC7.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\BCDirectCompute.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompress.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompressGPU.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexConvert.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexD3D11.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexDDS.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexFlipRotate.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexImage.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexMipmaps.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexMisc.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexNormalMaps.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexPMAlpha.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexResize.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexTGA.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexUtil.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="adl.cpp">
-      <Filter>Source Files\DirectXTex</Filter>
-    </ClCompile>
     <ClCompile Include="plugin_tw3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -359,128 +293,8 @@
     <ClCompile Include="update\network.cpp">
       <Filter>Source Files\Update</Filter>
     </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zAlloc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zArcIn.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zBuf.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zBuf2.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zCrc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zCrcOpt.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zDec.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zFile.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\7zStream.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Aes.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\AesOpt.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Alloc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Bcj2.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Bcj2Enc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Bra.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Bra86.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\BraIA64.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\CpuArch.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Delta.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\LzFind.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\LzFindMt.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Lzma2Dec.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Lzma2Enc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Lzma86Dec.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Lzma86Enc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\LzmaDec.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\LzmaEnc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\LzmaLib.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\MtCoder.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Ppmd7.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Ppmd7Dec.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Ppmd7Enc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Sha256.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Sort.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Threads.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\Xz.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\XzCrc64.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\XzCrc64Opt.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\XzDec.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\XzEnc.c">
-      <Filter>Source Files\lzma</Filter>
-    </ClCompile>
-    <ClCompile Include="..\depends\lzma\XzIn.c">
-      <Filter>Source Files\lzma</Filter>
+    <ClCompile Include="adl.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

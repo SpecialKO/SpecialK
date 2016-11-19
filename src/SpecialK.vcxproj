@@ -673,6 +673,7 @@
       <PreventDllBinding>true</PreventDllBinding>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>DllMain</EntryPointSymbol>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -970,7 +971,7 @@
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>DllMain</EntryPointSymbol>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lzma\x64\libzma.lib;DirectXTex\x64\DirectXTex.lib;MinHook\x64\libMinHook64.lib;;nvapi\x64\nvapi64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <PerUserRedirection>true</PerUserRedirection>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
@@ -1075,66 +1076,6 @@
     <ClInclude Include="DLL_VERSION.H" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\depends\DirectXTex\BC.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\BC4BC5.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\BC6HBC7.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\BCDirectCompute.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompress.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexCompressGPU.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexConvert.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexD3D11.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexDDS.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexFlipRotate.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexImage.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexMipmaps.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexMisc.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexNormalMaps.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexPMAlpha.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexResize.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexTGA.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexUtil.cpp" />
-    <ClCompile Include="..\depends\DirectXTex\DirectXTexWIC.cpp" />
-    <ClCompile Include="..\depends\lzma\7zAlloc.c" />
-    <ClCompile Include="..\depends\lzma\7zArcIn.c" />
-    <ClCompile Include="..\depends\lzma\7zBuf.c" />
-    <ClCompile Include="..\depends\lzma\7zBuf2.c" />
-    <ClCompile Include="..\depends\lzma\7zCrc.c" />
-    <ClCompile Include="..\depends\lzma\7zCrcOpt.c" />
-    <ClCompile Include="..\depends\lzma\7zDec.c" />
-    <ClCompile Include="..\depends\lzma\7zFile.c" />
-    <ClCompile Include="..\depends\lzma\7zStream.c" />
-    <ClCompile Include="..\depends\lzma\Aes.c" />
-    <ClCompile Include="..\depends\lzma\AesOpt.c" />
-    <ClCompile Include="..\depends\lzma\Alloc.c" />
-    <ClCompile Include="..\depends\lzma\Bcj2.c" />
-    <ClCompile Include="..\depends\lzma\Bcj2Enc.c" />
-    <ClCompile Include="..\depends\lzma\Bra.c" />
-    <ClCompile Include="..\depends\lzma\Bra86.c" />
-    <ClCompile Include="..\depends\lzma\BraIA64.c" />
-    <ClCompile Include="..\depends\lzma\CpuArch.c" />
-    <ClCompile Include="..\depends\lzma\Delta.c" />
-    <ClCompile Include="..\depends\lzma\LzFind.c" />
-    <ClCompile Include="..\depends\lzma\LzFindMt.c" />
-    <ClCompile Include="..\depends\lzma\Lzma2Dec.c" />
-    <ClCompile Include="..\depends\lzma\Lzma2Enc.c" />
-    <ClCompile Include="..\depends\lzma\Lzma86Dec.c" />
-    <ClCompile Include="..\depends\lzma\Lzma86Enc.c" />
-    <ClCompile Include="..\depends\lzma\LzmaDec.c" />
-    <ClCompile Include="..\depends\lzma\LzmaEnc.c" />
-    <ClCompile Include="..\depends\lzma\LzmaLib.c" />
-    <ClCompile Include="..\depends\lzma\MtCoder.c" />
-    <ClCompile Include="..\depends\lzma\Ppmd7.c" />
-    <ClCompile Include="..\depends\lzma\Ppmd7Dec.c" />
-    <ClCompile Include="..\depends\lzma\Ppmd7Enc.c" />
-    <ClCompile Include="..\depends\lzma\Sha256.c" />
-    <ClCompile Include="..\depends\lzma\Sort.c" />
-    <ClCompile Include="..\depends\lzma\Threads.c" />
-    <ClCompile Include="..\depends\lzma\Xz.c" />
-    <ClCompile Include="..\depends\lzma\XzCrc64.c" />
-    <ClCompile Include="..\depends\lzma\XzCrc64Opt.c" />
-    <ClCompile Include="..\depends\lzma\XzDec.c" />
-    <ClCompile Include="..\depends\lzma\XzEnc.c" />
-    <ClCompile Include="..\depends\lzma\XzIn.c" />
     <ClCompile Include="adl.cpp" />
     <ClCompile Include="d3d11.cpp" />
     <ClCompile Include="d3d12.cpp" />

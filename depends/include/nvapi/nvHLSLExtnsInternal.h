@@ -63,9 +63,18 @@ struct NvShaderExtnStruct
 // uses nvidia shader extensions. E.g before including this file in shader define it as:
 // #define NV_SHADER_EXTN_SLOT u7
 
+// For SM5.1, application needs to define NV_SHADER_EXTN_REGISTER_SPACE as register space
+// E.g. before including this file in shader define it as:
+// #define NV_SHADER_EXTN_REGISTER_SPACE space2
+
 // Note that other operations to this UAV will be ignored so application
 // should bind a null resource
+
+#ifdef NV_SHADER_EXTN_REGISTER_SPACE
+RWStructuredBuffer<NvShaderExtnStruct> g_NvidiaExt : register( NV_SHADER_EXTN_SLOT, NV_SHADER_EXTN_REGISTER_SPACE );
+#else
 RWStructuredBuffer<NvShaderExtnStruct> g_NvidiaExt : register( NV_SHADER_EXTN_SLOT );
+#endif
 
 
 //----------------------------------------------------------------------------//

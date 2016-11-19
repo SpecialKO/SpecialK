@@ -45,12 +45,6 @@ NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo;
 NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID;
 NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU;
 
-#ifdef _WIN64
-#pragma comment (lib, "nvapi/amd64/nvapi64.lib")
-#else
-#pragma comment (lib, "nvapi/x86/nvapi.lib")
-#endif
-
 using namespace sk;
 using namespace sk::NVAPI;
 

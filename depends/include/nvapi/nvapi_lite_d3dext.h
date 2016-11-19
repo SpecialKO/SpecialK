@@ -52,6 +52,7 @@ typedef enum
 
 #endif  //defined(__cplusplus) && (defined(__d3d10_h__) || defined(__d3d10_1_h__) || defined(__d3d11_h__))
 #if defined(__cplusplus) && defined(__d3d11_h__)
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_D3D11_CreateDevice
@@ -102,6 +103,7 @@ NVAPI_INTERFACE NvAPI_D3D11_CreateDevice(IDXGIAdapter* pAdapter,
 
 #endif //defined(__cplusplus) && defined(__d3d11_h__)
 #if defined(__cplusplus) && defined(__d3d11_h__)
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_D3D11_CreateDeviceAndSwapChain
@@ -154,6 +156,7 @@ NVAPI_INTERFACE NvAPI_D3D11_CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter,
 
 #endif //defined(__cplusplus) && defined(__d3d11_h__)
 #if defined(__cplusplus) && defined(__d3d11_h__)
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_D3D11_SetDepthBoundsTest

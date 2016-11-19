@@ -39,6 +39,16 @@
 #include "log.h"
 #include "utility.h"
 
+extern void SK_SetWindowResX (LONG x);
+extern void SK_SetWindowResY (LONG y);
+
+extern LPRECT
+SK_GetGameRect (void);
+
+extern int
+WINAPI
+SK_GetSystemMetrics (_In_ int nIndex);
+
 volatile LONG                        __d3d9_ready = FALSE;
 SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
 
@@ -257,6 +267,9 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     if (new_sb) {
       pDev->CreateStateBlock (D3DSBT_ALL, &cegD3D9_SB);
 
+      D3DCAPS9 caps;
+      pDev->GetDeviceCaps (&caps);
+
       pDev->SetVertexShader (nullptr);
       pDev->SetPixelShader  (nullptr);
 
@@ -264,23 +277,48 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       pDev->SetRenderState (D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
       pDev->SetRenderState (D3DRS_CULLMODE,  D3DCULL_NONE);
 
-      pDev->SetRenderState (D3DRS_ALPHABLENDENABLE, TRUE);
-      pDev->SetRenderState (D3DRS_SRCBLEND,         D3DBLEND_ONE);
-      pDev->SetRenderState (D3DRS_DESTBLEND,        D3DBLEND_INVSRCALPHA);
+      pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
+      pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+      pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_SRCALPHA);
+      pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_INVSRCALPHA);
 
       pDev->SetRenderState (D3DRS_ALPHATESTENABLE, TRUE);
-      pDev->SetRenderState (D3DRS_ALPHAFUNC,       D3DCMP_GREATER);
+      pDev->SetRenderState (D3DRS_ALPHAFUNC,       D3DCMP_GREATEREQUAL);
+      pDev->SetRenderState (D3DRS_ALPHAREF, (DWORD)0x00000001);
 
-      pDev->SetRenderState (D3DRS_ZENABLE,      FALSE);
-      pDev->SetRenderState (D3DRS_ZWRITEENABLE, FALSE);
-      pDev->SetRenderState (D3DRS_ZFUNC,        D3DCMP_ALWAYS);
-      pDev->SetRenderState (D3DRS_COLORVERTEX,  FALSE);
+      pDev->SetRenderState (D3DRS_ZENABLE,       FALSE);
+      pDev->SetRenderState (D3DRS_STENCILENABLE, FALSE);
+      pDev->SetRenderState (D3DRS_ZWRITEENABLE,  FALSE);
+      pDev->SetRenderState (D3DRS_ZFUNC,         D3DCMP_ALWAYS);
+      pDev->SetRenderState (D3DRS_COLORVERTEX,   FALSE);
 
-      pDev->SetTextureStageState (0, D3DTSS_ALPHAOP,   D3DTOP_MODULATE);
-      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+      pDev->SetSamplerState (0, D3DSAMP_SRGBTEXTURE, FALSE);
 
-      pDev->SetRenderState       (D3DRS_LIGHTING, FALSE);
+      pDev->SetTextureStageState (0, D3DTSS_TEXCOORDINDEX, 0);
+      pDev->SetTextureStageState (0, D3DTSS_COLOROP,       D3DTOP_SELECTARG1);
+      pDev->SetTextureStageState (0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
+
+      pDev->SetTextureStageState (0, D3DTSS_ALPHAOP,       D3DTOP_MODULATE);
+      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG1,     D3DTA_TEXTURE);
+      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG2,     D3DTA_DIFFUSE);
+
+      for (int i = 1; i < caps.MaxSimultaneousTextures; i++) {
+        pDev->SetTexture (i, 0);
+      }
+
+      for (int i = 1; i < caps.MaxTextureBlendStages; i++) {
+        pDev->SetTextureStageState (i, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
+        pDev->SetTextureStageState (i, D3DTSS_COLOROP, D3DTOP_DISABLE);
+      }
+
+      pDev->SetRenderState (D3DRS_FOGENABLE,      FALSE);
+      pDev->SetRenderState (D3DRS_RANGEFOGENABLE, FALSE);
+      pDev->SetRenderState (D3DRS_CLIPPING,       FALSE);
+
+      pDev->SetRenderState (D3DRS_LIGHTING,       FALSE);
+      pDev->SetRenderState (D3DRS_SPECULARENABLE, FALSE);
+      pDev->SetRenderState (D3DRS_VERTEXBLEND,    FALSE);
+      pDev->SetRenderState (D3DRS_DITHERENABLE,   FALSE);
 
       cegD3D9_SB->Capture ();
     } else {
@@ -1916,6 +1954,22 @@ D3D9SetCursorPosition_Override (      IDirect3DDevice9 *This,
                                                 Flags );
 }
 
+//
+// Returns true if x1 != x2, but x1 is within (tolerance)-many units of x2
+//
+bool
+SK_DiscontEpsilon (int x1, int x2, int tolerance)
+{
+  if (x1 == x2)
+    return false;
+
+  if ( x1 <= (x2 + tolerance) &&
+       x1 >= (x2 - tolerance) )
+    return true;
+
+  return false;
+}
+
 __declspec (noinline)
 D3DPRESENT_PARAMETERS*
 WINAPI
@@ -1923,6 +1977,26 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 {
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     if (pparams != nullptr) {
+      if (config.window.borderless) {
+        RECT wnd_rect = *SK_GetGameRect ();
+
+        int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
+        int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
+        int title = SK_GetSystemMetrics (SM_CYCAPTION);
+
+        if ( SK_DiscontEpsilon (pparams->BackBufferWidth,  wnd_rect.right  - wnd_rect.left, 2 * x_dlg + 1) ||
+             SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) ) {
+          pparams->BackBufferWidth  = wnd_rect.right  - wnd_rect.left;
+          pparams->BackBufferHeight = wnd_rect.bottom - wnd_rect.top;
+
+          dll_log.Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
+                          pparams->BackBufferWidth, pparams->BackBufferHeight );
+        }
+      }
+
+      SK_SetWindowResX (pparams->BackBufferWidth);
+      SK_SetWindowResY (pparams->BackBufferHeight);
+
       if (config.render.d3d9.force_fullscreen)
         pparams->Windowed = FALSE;
 

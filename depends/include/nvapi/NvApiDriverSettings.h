@@ -58,8 +58,8 @@
 #define OGL_SINGLE_BACKDEPTH_BUFFER_STRING         L"Unified back/depth buffer"
 #define OGL_SLI_MULTICAST_STRING                   L"Enable NV_gpu_multicast extension"
 #define OGL_THREAD_CONTROL_STRING                  L"Threaded optimization"
+#define OGL_TMON_LEVEL_STRING                      L"Event Log Tmon Severity Threshold"
 #define OGL_TRIPLE_BUFFER_STRING                   L"Triple buffering"
-#define OGL_VIDEO_EDITING_MODE_STRING              L"OpenGL video-editing mode"
 #define AA_BEHAVIOR_FLAGS_STRING                   L"Antialiasing - Behavior Flags"
 #define AA_MODE_ALPHATOCOVERAGE_STRING             L"Antialiasing - Transparency Multisampling"
 #define AA_MODE_GAMMACORRECTION_STRING             L"Antialiasing - Gamma correction"
@@ -69,8 +69,12 @@
 #define AA_MODE_SELECTOR_SLIAA_STRING              L"Antialiasing - SLI AA"
 #define ANISO_MODE_LEVEL_STRING                    L"Anisotropic filtering setting"
 #define ANISO_MODE_SELECTOR_STRING                 L"Anisotropic filtering mode"
+#define ANSEL_ALLOW_STRING                         L"NVIDIA Predefined Ansel Usage"
+#define ANSEL_ENABLE_STRING                        L"Enable Ansel"
+#define ANSEL_WHITELISTED_STRING                   L"Ansel flags for enabled applications"
 #define APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_STRING L"Application Profile Notification Popup Timeout"
 #define APPLICATION_STEAM_ID_STRING                L"Steam Application ID"
+#define BATTERY_BOOST_STRING                       L"Battery Boost"
 #define CPL_HIDDEN_PROFILE_STRING                  L"Do not display this profile in the Control Panel"
 #define CUDA_EXCLUDED_GPUS_STRING                  L"List of Universal GPU ids"
 #define D3DOGL_GPU_MAX_POWER_STRING                L"Maximum GPU Power"
@@ -117,6 +121,7 @@
 #define AO_MODE_STRING                             L"Ambient Occlusion"
 #define AO_MODE_ACTIVE_STRING                      L"NVIDIA Predefined Ambient Occlusion Usage"
 #define AUTO_LODBIASADJUST_STRING                  L"Texture filtering - Driver Controlled LOD Bias"
+#define EXPORT_PERF_COUNTERS_DX9_ONLY_STRING       L"Export Performance Counters for DX9 only"
 #define ICAFE_LOGO_CONFIG_STRING                   L"ICafe Settings"
 #define LODBIASADJUST_STRING                       L"Texture filtering - LOD Bias"
 #define MAXWELL_B_SAMPLE_INTERLEAVE_STRING         L"Enable sample interleaving (MFAA)"
@@ -154,8 +159,8 @@ enum ESetting {
     OGL_SINGLE_BACKDEPTH_BUFFER_ID                = 0x20A29055,
     OGL_SLI_MULTICAST_ID                          = 0x2092D3BE,
     OGL_THREAD_CONTROL_ID                         = 0x20C1221E,
+    OGL_TMON_LEVEL_ID                             = 0x202888C1,
     OGL_TRIPLE_BUFFER_ID                          = 0x20FDD1F9,
-    OGL_VIDEO_EDITING_MODE_ID                     = 0x20EE02B4,
     AA_BEHAVIOR_FLAGS_ID                          = 0x10ECDB82,
     AA_MODE_ALPHATOCOVERAGE_ID                    = 0x10FC2D9C,
     AA_MODE_GAMMACORRECTION_ID                    = 0x107D639D,
@@ -165,8 +170,12 @@ enum ESetting {
     AA_MODE_SELECTOR_SLIAA_ID                     = 0x107AFC5B,
     ANISO_MODE_LEVEL_ID                           = 0x101E61A9,
     ANISO_MODE_SELECTOR_ID                        = 0x10D2BB16,
+    ANSEL_ALLOW_ID                                = 0x1035DB89,
+    ANSEL_ENABLE_ID                               = 0x1075D972,
+    ANSEL_WHITELISTED_ID                          = 0x1085DA8A,
     APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_ID   = 0x104554B6,
     APPLICATION_STEAM_ID_ID                       = 0x107CDDBC,
+    BATTERY_BOOST_ID                              = 0x10115C89,
     CPL_HIDDEN_PROFILE_ID                         = 0x106D5CFF,
     CUDA_EXCLUDED_GPUS_ID                         = 0x10354FF8,
     D3DOGL_GPU_MAX_POWER_ID                       = 0x10D1EF29,
@@ -213,6 +222,7 @@ enum ESetting {
     AO_MODE_ID                                    = 0x00667329,
     AO_MODE_ACTIVE_ID                             = 0x00664339,
     AUTO_LODBIASADJUST_ID                         = 0x00638E8F,
+    EXPORT_PERF_COUNTERS_DX9_ONLY_ID              = 0x00B65E72,
     ICAFE_LOGO_CONFIG_ID                          = 0x00DB1337,
     LODBIASADJUST_ID                              = 0x00738E8F,
     MAXWELL_B_SAMPLE_INTERLEAVE_ID                = 0x0098C1AC,
@@ -230,9 +240,9 @@ enum ESetting {
     SET_VAB_DATA_ID                               = 0x00AB8687,
     VSYNCMODE_ID                                  = 0x00A879CF,
     VSYNCTEARCONTROL_ID                           = 0x005A375C,
-    TOTAL_DWORD_SETTING_NUM = 90,
+    TOTAL_DWORD_SETTING_NUM = 95,
     TOTAL_WSTRING_SETTING_NUM = 4,
-    TOTAL_SETTING_NUM = 94,
+    TOTAL_SETTING_NUM = 99,
     INVALID_SETTING_ID = 0xFFFFFFFF
 };
 
@@ -371,18 +381,22 @@ enum EValues_OGL_THREAD_CONTROL {
     OGL_THREAD_CONTROL_DEFAULT = 0
 };
 
+enum EValues_OGL_TMON_LEVEL {
+    OGL_TMON_LEVEL_DISABLE                               = 0,
+    OGL_TMON_LEVEL_CRITICAL                              = 1,
+    OGL_TMON_LEVEL_WARNING                               = 2,
+    OGL_TMON_LEVEL_INFORMATION                           = 3,
+    OGL_TMON_LEVEL_MOST                                  = 4,
+    OGL_TMON_LEVEL_VERBOSE                               = 5,
+    OGL_TMON_LEVEL_NUM_VALUES = 6,
+    OGL_TMON_LEVEL_DEFAULT = OGL_TMON_LEVEL_MOST
+};
+
 enum EValues_OGL_TRIPLE_BUFFER {
     OGL_TRIPLE_BUFFER_DISABLED                           = 0x00000000,
     OGL_TRIPLE_BUFFER_ENABLED                            = 0x00000001,
     OGL_TRIPLE_BUFFER_NUM_VALUES = 2,
     OGL_TRIPLE_BUFFER_DEFAULT = OGL_TRIPLE_BUFFER_DISABLED
-};
-
-enum EValues_OGL_VIDEO_EDITING_MODE {
-    OGL_VIDEO_EDITING_MODE_DISABLE                       = 0x00000000,
-    OGL_VIDEO_EDITING_MODE_ENABLE                        = 0x00000001,
-    OGL_VIDEO_EDITING_MODE_NUM_VALUES = 2,
-    OGL_VIDEO_EDITING_MODE_DEFAULT = OGL_VIDEO_EDITING_MODE_DISABLE
 };
 
 enum EValues_AA_BEHAVIOR_FLAGS {
@@ -544,6 +558,27 @@ enum EValues_ANISO_MODE_SELECTOR {
     ANISO_MODE_SELECTOR_NUM_VALUES = 6,
 };
 
+enum EValues_ANSEL_ALLOW {
+    ANSEL_ALLOW_DISALLOWED                               = 0,
+    ANSEL_ALLOW_ALLOWED                                  = 1,
+    ANSEL_ALLOW_NUM_VALUES = 2,
+    ANSEL_ALLOW_DEFAULT = ANSEL_ALLOW_ALLOWED
+};
+
+enum EValues_ANSEL_ENABLE {
+    ANSEL_ENABLE_OFF                                     = 0,
+    ANSEL_ENABLE_ON                                      = 1,
+    ANSEL_ENABLE_NUM_VALUES = 2,
+    ANSEL_ENABLE_DEFAULT = ANSEL_ENABLE_ON
+};
+
+enum EValues_ANSEL_WHITELISTED {
+    ANSEL_WHITELISTED_DISALLOWED                         = 0,
+    ANSEL_WHITELISTED_ALLOWED                            = 1,
+    ANSEL_WHITELISTED_NUM_VALUES = 2,
+    ANSEL_WHITELISTED_DEFAULT = ANSEL_WHITELISTED_DISALLOWED
+};
+
 enum EValues_APPLICATION_PROFILE_NOTIFICATION_TIMEOUT {
     APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_DISABLED    = 0,
     APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_NINE_SECONDS = 9,
@@ -553,6 +588,15 @@ enum EValues_APPLICATION_PROFILE_NOTIFICATION_TIMEOUT {
     APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_TWO_MINUTES = 120,
     APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_NUM_VALUES = 6,
     APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_DEFAULT = APPLICATION_PROFILE_NOTIFICATION_TIMEOUT_DISABLED
+};
+
+enum EValues_BATTERY_BOOST {
+    BATTERY_BOOST_MIN                                    = 0x00000001,
+    BATTERY_BOOST_MAX                                    = 0x000000ff,
+    BATTERY_BOOST_ENABLED                                = 0x10000000,
+    BATTERY_BOOST_DISABLED                               = 0x00000000,
+    BATTERY_BOOST_NUM_VALUES = 4,
+    BATTERY_BOOST_DEFAULT = BATTERY_BOOST_DISABLED
 };
 
 enum EValues_CPL_HIDDEN_PROFILE {
@@ -632,10 +676,11 @@ enum EValues_PREFERRED_PSTATE {
     PREFERRED_PSTATE_DRIVER_CONTROLLED                   = 0x00000002,
     PREFERRED_PSTATE_PREFER_CONSISTENT_PERFORMANCE       = 0x00000003,
     PREFERRED_PSTATE_PREFER_MIN                          = 0x00000004,
+    PREFERRED_PSTATE_OPTIMAL_POWER                       = 0x00000005,
     PREFERRED_PSTATE_MIN                                 = 0x00000000,
-    PREFERRED_PSTATE_MAX                                 = 0x00000004,
-    PREFERRED_PSTATE_NUM_VALUES = 7,
-    PREFERRED_PSTATE_DEFAULT = PREFERRED_PSTATE_ADAPTIVE
+    PREFERRED_PSTATE_MAX                                 = 0x00000005,
+    PREFERRED_PSTATE_NUM_VALUES = 8,
+    PREFERRED_PSTATE_DEFAULT = PREFERRED_PSTATE_OPTIMAL_POWER
 };
 
 enum EValues_PREVENT_UI_AF_OVERRIDE {
@@ -652,6 +697,7 @@ enum EValues_PS_FRAMERATE_LIMITER {
     PS_FRAMERATE_LIMITER_FPS_40                          = 0x00000028,
     PS_FRAMERATE_LIMITER_FPSMASK                         = 0x000000ff,
     PS_FRAMERATE_LIMITER_FRL2                            = 0x00010000,
+    PS_FRAMERATE_LIMITER_LOWER_FPS_TO_ALIGN              = 0x00020000,
     PS_FRAMERATE_LIMITER_FORCE_VSYNC_OFF                 = 0x00040000,
     PS_FRAMERATE_LIMITER_GPS_WEB                         = 0x00080000,
     PS_FRAMERATE_LIMITER_FORCE_OPTIMUS_POLICY            = 0x00100000,
@@ -667,7 +713,7 @@ enum EValues_PS_FRAMERATE_LIMITER {
     PS_FRAMERATE_LIMITER_ENABLED                         = 0x80000000,
     PS_FRAMERATE_LIMITER_OPENGL_REMOTE_DESKTOP           = 0xe010003c,
     PS_FRAMERATE_LIMITER_MASK                            = 0xff7C00ff,
-    PS_FRAMERATE_LIMITER_NUM_VALUES = 21,
+    PS_FRAMERATE_LIMITER_NUM_VALUES = 22,
     PS_FRAMERATE_LIMITER_DEFAULT = PS_FRAMERATE_LIMITER_DISABLED
 };
 
@@ -675,12 +721,14 @@ enum EValues_PS_FRAMERATE_LIMITER_2_CONTROL {
     PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_CE              = 0x00000000,
     PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_3D              = 0x00000001,
     PS_FRAMERATE_LIMITER_2_CONTROL_AVOID_NOOP            = 0x00000002,
+    PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_FLIP_BY_FLIPMETERING = 0x00000004,
+    PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_CE_PRESENT_3D   = 0x00000008,
     PS_FRAMERATE_LIMITER_2_CONTROL_ALLOW_ALL_MAXWELL     = 0x00000010,
     PS_FRAMERATE_LIMITER_2_CONTROL_ALLOW_ALL             = 0x00000020,
     PS_FRAMERATE_LIMITER_2_CONTROL_FORCE_OFF             = 0x00000040,
     PS_FRAMERATE_LIMITER_2_CONTROL_DEFAULT_FOR_GM10X     = 0x00000011,
-    PS_FRAMERATE_LIMITER_2_CONTROL_NUM_VALUES = 7,
-    PS_FRAMERATE_LIMITER_2_CONTROL_DEFAULT = PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_CE
+    PS_FRAMERATE_LIMITER_2_CONTROL_NUM_VALUES = 9,
+    PS_FRAMERATE_LIMITER_2_CONTROL_DEFAULT = PS_FRAMERATE_LIMITER_2_CONTROL_DELAY_CE_PRESENT_3D
 };
 
 enum EValues_PS_FRAMERATE_LIMITER_GPS_CTRL {
@@ -704,6 +752,7 @@ enum EValues_PS_FRAMERATE_MONITOR_CTRL {
     PS_FRAMERATE_MONITOR_CTRL_THRESHOLD_PCT_MASK         = 0x000000FF,
     PS_FRAMERATE_MONITOR_CTRL_MOVING_AVG_X_MASK          = 0x00000F00,
     PS_FRAMERATE_MONITOR_CTRL_MOVING_AVG_X_SHIFT         = 8,
+    PS_FRAMERATE_MONITOR_CTRL_ENABLE_FINE_GRAINED        = 0x00400000,
     PS_FRAMERATE_MONITOR_CTRL_ENABLE_ON_VSYNC            = 0x00800000,
     PS_FRAMERATE_MONITOR_CTRL_VSYNC_OFFSET_MASK          = 0x0000F000,
     PS_FRAMERATE_MONITOR_CTRL_VSYNC_OFFSET_SHIFT         = 12,
@@ -714,7 +763,7 @@ enum EValues_PS_FRAMERATE_MONITOR_CTRL {
     PS_FRAMERATE_MONITOR_CTRL_FPS_SHIFT                  = 24,
     PS_FRAMERATE_MONITOR_CTRL_OPTIMAL_SETTING            = 0x00000364,
     PS_FRAMERATE_MONITOR_CTRL_VSYNC_OPTIMAL_SETTING      = 0x0080f364,
-    PS_FRAMERATE_MONITOR_CTRL_NUM_VALUES = 14,
+    PS_FRAMERATE_MONITOR_CTRL_NUM_VALUES = 15,
     PS_FRAMERATE_MONITOR_CTRL_DEFAULT = PS_FRAMERATE_MONITOR_CTRL_DISABLED
 };
 
@@ -1007,6 +1056,14 @@ enum EValues_AUTO_LODBIASADJUST {
     AUTO_LODBIASADJUST_DEFAULT = AUTO_LODBIASADJUST_ON
 };
 
+
+enum EValues_EXPORT_PERF_COUNTERS_DX9_ONLY {
+    EXPORT_PERF_COUNTERS_DX9_ONLY_OFF                    = 0x00000000,
+    EXPORT_PERF_COUNTERS_DX9_ONLY_ON                     = 0x00000001,
+    EXPORT_PERF_COUNTERS_DX9_ONLY_NUM_VALUES = 2,
+    EXPORT_PERF_COUNTERS_DX9_ONLY_DEFAULT = EXPORT_PERF_COUNTERS_DX9_ONLY_OFF
+};
+
 enum EValues_LODBIASADJUST {
     LODBIASADJUST_MIN                                    = 0xffffff80,
     LODBIASADJUST_MAX                                    = 128,
@@ -1120,7 +1177,8 @@ enum EValues_VSYNCMODE {
     VSYNCMODE_FLIPINTERVAL2                              = 0x32610244,
     VSYNCMODE_FLIPINTERVAL3                              = 0x71271021,
     VSYNCMODE_FLIPINTERVAL4                              = 0x13245256,
-    VSYNCMODE_NUM_VALUES = 6,
+    VSYNCMODE_VIRTUAL                                    = 0x18888888,
+    VSYNCMODE_NUM_VALUES = 7,
     VSYNCMODE_DEFAULT = VSYNCMODE_PASSIVE
 };
 

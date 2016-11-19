@@ -269,11 +269,12 @@ SK_FO4_RealizeFullscreenBorderless (LPVOID user)
 }
 
 typedef BOOL (WINAPI *GetWindowRect_pfn)(HWND, LPRECT);
-GetWindowRect_pfn GetWindowRect_Original = nullptr;
+static GetWindowRect_pfn GetWindowRect_Original = nullptr;
 
 typedef BOOL (WINAPI *GetClientRect_pfn)(HWND, LPRECT);
-GetClientRect_pfn GetClientRect_Original = nullptr;
+static GetClientRect_pfn GetClientRect_Original = nullptr;
 
+static 
 BOOL
 WINAPI
 GetClientRect_Detour (
@@ -284,7 +285,7 @@ GetClientRect_Detour (
   return TRUE;
 }
 
-BOOL
+static BOOL
 WINAPI
 GetWindowRect_Detour (
     _In_   HWND  hWnd,

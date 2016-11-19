@@ -59,6 +59,9 @@ namespace SK {
   };
 };
 
+extern void
+SK_DXGI_BorderCompensation (UINT& x, UINT& y);
+
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _In_opt_                            IDXGIAdapter         *pAdapter,
                                       D3D_DRIVER_TYPE       DriverType,
@@ -482,6 +485,11 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       swap_chain_desc->BufferDesc.Scaling =
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
     }
+
+    SK_DXGI_BorderCompensation (
+      swap_chain_desc->BufferDesc.Width,
+        swap_chain_desc->BufferDesc.Height
+    );
   }
 
   HRESULT res;
@@ -1931,7 +1939,7 @@ SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum)
   injectable_textures.insert (top_crc32);
 }
 
-#include "../depends/DirectXTex/DirectXTex.h"
+#include <DirectXTex/DirectXTex.h>
 
 HRESULT
 __stdcall

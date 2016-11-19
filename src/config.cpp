@@ -211,6 +211,7 @@ struct {
   sk::ParameterInt*       y_off;
   sk::ParameterBool*      background_render;
   sk::ParameterBool*      confine_cursor;
+  sk::ParameterBool*      fullscreen;
 } window;
 
 struct {
@@ -470,6 +471,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Window.System",
         L"ConfineCursor" );
+
+  window.fullscreen =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Make the Game Window Fill the Screen (scale to fit)")
+      );
+  window.fullscreen->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"Fullscreen" );
 
 
 
@@ -1475,6 +1486,8 @@ SK_LoadConfig (std::wstring name) {
     config.window.y_offset = window.y_off->get_value ();
   if (window.confine_cursor->load ())
     config.window.confine_cursor = window.confine_cursor->get_value ();
+  if (window.fullscreen->load ())
+    config.window.fullscreen = window.fullscreen->get_value ();
 
   if (steam.achievements.nosound->load ())
     config.steam.nosound = steam.achievements.nosound->get_value ();
@@ -1607,6 +1620,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.x_off->set_value                     (config.window.x_offset);
   window.y_off->set_value                     (config.window.y_offset);
   window.confine_cursor->set_value            (config.window.confine_cursor);
+  window.fullscreen->set_value                (config.window.fullscreen);
 
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
@@ -1744,6 +1758,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.x_off->store                     ();
   window.y_off->store                     ();
   window.confine_cursor->store            ();
+  window.fullscreen->store                ();
 
   nvidia.api.disable->store               ();
 
