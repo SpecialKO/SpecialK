@@ -1113,6 +1113,28 @@
     <ClCompile Include="vulkan.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp" />
+    <None Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp" />
+    <None Include="..\depends\lib\DirectXTex\Win32\DirectXTex.pdb" />
+    <None Include="..\depends\lib\DirectXTex\x64\DirectXTex.pdb" />
+    <None Include="..\depends\lib\lzma\Win32\libzma.pdb" />
+    <None Include="..\depends\lib\lzma\x64\libzma.pdb" />
     <None Include="..\installer.dll" />
     <None Include="..\installer64.dll" />
     <None Include="..\version.ini" />
@@ -1127,6 +1149,36 @@
     <Media Include="..\depends\crash.wav" />
     <Media Include="..\depends\psn_trophy.wav" />
     <Media Include="..\depends\xbox.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib" />
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib" />
+    <Library Include="..\depends\lib\DirectXTex\Win32\DirectXTex.lib" />
+    <Library Include="..\depends\lib\DirectXTex\x64\DirectXTex.lib" />
+    <Library Include="..\depends\lib\lzma\Win32\libzma.lib" />
+    <Library Include="..\depends\lib\lzma\x64\libzma.lib" />
+    <Library Include="..\depends\lib\MinHook\Win32\libMinHook.lib" />
+    <Library Include="..\depends\lib\MinHook\x64\libMinHook64.lib" />
+    <Library Include="..\depends\lib\nvapi\Win32\nvapi.lib" />
+    <Library Include="..\depends\lib\nvapi\x64\nvapi64.lib" />
+    <Library Include="..\depends\lib\steamapi\Win32\steam_api.lib" />
+    <Library Include="..\depends\lib\steamapi\x64\steam_api64.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
