@@ -1167,7 +1167,6 @@
     <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib" />
     <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib" />
     <Library Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib" />
     <Library Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib" />
     <Library Include="..\depends\lib\DirectXTex\Win32\DirectXTex.lib" />
     <Library Include="..\depends\lib\DirectXTex\x64\DirectXTex.lib" />

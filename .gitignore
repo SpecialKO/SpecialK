@@ -15,8 +15,6 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-x64/
-x86/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -51,7 +49,6 @@ artifacts/
 *.meta
 *.obj
 *.pch
-*.pdb
 *.pgc
 *.pgd
 *.rsp
@@ -362,3 +359,4 @@ paket-files/
 /src/TSFix/7zArcIn.cod
 /src/TSFix/7zAlloc.cod
 /src/TSFix/SpecialK.tlog/unsuccessfulbuild
+/src/TSFix/vc140.pdb
