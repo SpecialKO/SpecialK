@@ -284,6 +284,13 @@ struct sk_config_t
     bool    background_render   = false;
     bool    confine_cursor      = false;
     bool    fullscreen          = false;
+    struct {
+      struct {
+        unsigned int x        =  0;
+        unsigned int y        =  0;
+        bool isZero (void) { return x == 0 && y == 0; };
+      } override;
+    } res;
   } window;
 
   struct {

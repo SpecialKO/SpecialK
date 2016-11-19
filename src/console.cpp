@@ -928,6 +928,11 @@ SK_AdjustWindow (void)
       render_height = game_window.render_y;
     }
 
+    if (! config.window.res.override.isZero ()) {
+      render_width  = config.window.res.override.x;
+      render_height = config.window.res.override.y;
+    }
+
     // No adjustment if the window is full-width
     if (render_width == real_width) {
       mon_width       = real_width;

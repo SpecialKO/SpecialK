@@ -212,6 +212,7 @@ struct {
   sk::ParameterBool*      background_render;
   sk::ParameterBool*      confine_cursor;
   sk::ParameterBool*      fullscreen;
+  sk::ParameterStringW*   override;
 } window;
 
 struct {
@@ -481,6 +482,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Window.System",
         L"Fullscreen" );
+
+  window.override =
+    static_cast <sk::ParameterStringW *>
+      (g_ParameterFactory.create_parameter <std::wstring> (
+        L"Force the Client Region to this Size in Windowed Mode")
+      );
+  window.override->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"OverrideRes" );
 
 
 
@@ -1488,6 +1499,12 @@ SK_LoadConfig (std::wstring name) {
     config.window.confine_cursor = window.confine_cursor->get_value ();
   if (window.fullscreen->load ())
     config.window.fullscreen = window.fullscreen->get_value ();
+  if (window.override->load ()) {
+    swscanf ( window.override->get_value_str ().c_str (),
+                L"%lux%lu",
+                &config.window.res.override.x,
+                  &config.window.res.override.y );
+  }
 
   if (steam.achievements.nosound->load ())
     config.steam.nosound = steam.achievements.nosound->get_value ();
@@ -1622,6 +1639,14 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.confine_cursor->set_value            (config.window.confine_cursor);
   window.fullscreen->set_value                (config.window.fullscreen);
 
+  wchar_t wszFormattedRes [64] = { L'\0' };
+
+  wsprintf ( wszFormattedRes, L"%lux%lu",
+               config.window.res.override.x,
+                 config.window.res.override.y );
+
+  window.override->set_value (wszFormattedRes);
+
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
     render.framerate.target_fps->set_value       (config.render.framerate.target_fps);
@@ -1654,8 +1679,6 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       texture.cache.min_size->set_value    (config.textures.cache.min_size);
 
       texture.cache.ignore_non_mipped->set_value (config.textures.cache.ignore_nonmipped);
-
-      wchar_t wszFormattedRes [64] = { L'\0' };
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,
@@ -1759,6 +1782,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.y_off->store                     ();
   window.confine_cursor->store            ();
   window.fullscreen->store                ();
+  window.override->store                  ();
 
   nvidia.api.disable->store               ();
 

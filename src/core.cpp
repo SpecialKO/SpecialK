@@ -1921,7 +1921,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        (! SK_Path_wcsicmp (SK_GetHostApp (), L"GameOverlayUI.exe"))      ||
        (! SK_Path_wcsicmp (SK_GetHostApp (), L"streaming_client.exe"))   ||
        (! SK_Path_wcsicmp (SK_GetHostApp (), L"steamerrorreporter.exe")) ||
-       (! SK_Path_wcsicmp (SK_GetHostApp (), L"notepad.exe")) )
+       (! SK_Path_wcsicmp (SK_GetHostApp (), L"notepad.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp (), L"Bethesda.net_Launcher.exe")) )
     return false;
 
   // This is a fatal combination

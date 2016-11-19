@@ -310,43 +310,19 @@
     <None Include="..\version.ini" />
     <None Include="..\installer.dll" />
     <None Include="..\installer64.dll" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.exp">
-      <Filter>Libraries</Filter>
+    <None Include="..\depends\lib\DirectXTex\Win32\DirectXTex.pdb">
+      <Filter>Libraries\32-bit</Filter>
     </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp">
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
       <Filter>Libraries\32-bit</Filter>
     </None>
     <None Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp">
       <Filter>Libraries\32-bit</Filter>
     </None>
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp">
+      <Filter>Libraries\32-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp">
       <Filter>Libraries\32-bit</Filter>
     </None>
     <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp">
@@ -364,16 +340,37 @@
     <None Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp">
       <Filter>Libraries\32-bit</Filter>
     </None>
-    <None Include="..\depends\lib\DirectXTex\x64\DirectXTex.pdb">
-      <Filter>Libraries\32-bit</Filter>
-    </None>
-    <None Include="..\depends\lib\lzma\x64\libzma.pdb">
-      <Filter>Libraries\32-bit</Filter>
-    </None>
-    <None Include="..\depends\lib\lzma\Win32\libzma.pdb">
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.exp">
       <Filter>Libraries\64-bit</Filter>
     </None>
-    <None Include="..\depends\lib\DirectXTex\Win32\DirectXTex.pdb">
+    <None Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\DirectXTex\x64\DirectXTex.pdb">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="..\depends\lib\lzma\x64\libzma.pdb">
       <Filter>Libraries\64-bit</Filter>
     </None>
   </ItemGroup>
@@ -400,58 +397,34 @@
     </Media>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\depends\lib\lzma\x64\libzma.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
-    <Library Include="..\depends\lib\MinHook\x64\libMinHook64.lib">
-      <Filter>Libraries\64-bit</Filter>
-    </Library>
-    <Library Include="..\depends\lib\steamapi\x64\steam_api64.lib">
-      <Filter>Libraries\64-bit</Filter>
-    </Library>
-    <Library Include="..\depends\lib\nvapi\x64\nvapi64.lib">
-      <Filter>Libraries\64-bit</Filter>
-    </Library>
-    <Library Include="..\depends\lib\MinHook\Win32\libMinHook.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
     <Library Include="..\depends\lib\steamapi\Win32\steam_api.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
     <Library Include="..\depends\lib\nvapi\Win32\nvapi.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib">
+    <Library Include="..\depends\lib\MinHook\Win32\libMinHook.lib">
+      <Filter>Libraries\32-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\lzma\Win32\libzma.lib">
+      <Filter>Libraries\32-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\DirectXTex\Win32\DirectXTex.lib">
+      <Filter>Libraries\32-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
     <Library Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.lib">
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib">
+      <Filter>Libraries\32-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib">
+      <Filter>Libraries\32-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
     <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib">
@@ -463,22 +436,49 @@
     <Library Include="..\depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib">
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
-    <Library Include="..\depends\lib\DirectXTex\x64\DirectXTex.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
-    <Library Include="..\depends\lib\lzma\Win32\libzma.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
-    <Library Include="..\depends\lib\DirectXTex\Win32\DirectXTex.lib">
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.lib">
       <Filter>Libraries\64-bit</Filter>
     </Library>
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib">
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\DirectXTex\x64\DirectXTex.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\lzma\x64\libzma.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\MinHook\x64\libMinHook64.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\nvapi\x64\nvapi64.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="..\depends\lib\steamapi\x64\steam_api64.lib">
       <Filter>Libraries\64-bit</Filter>
     </Library>
   </ItemGroup>

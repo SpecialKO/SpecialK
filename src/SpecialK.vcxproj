@@ -662,8 +662,8 @@
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapExports>true</MapExports>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
       <AllowIsolation>true</AllowIsolation>
       <LargeAddressAware>true</LargeAddressAware>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
@@ -674,6 +674,7 @@
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>DllMain</EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImportLibrary />
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -956,8 +957,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>C:\Users\Andon\Documents\MyMods~1\SpecialK\SpecialK64.dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapExports>true</MapExports>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
@@ -975,6 +976,7 @@
       <PerUserRedirection>true</PerUserRedirection>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
+      <ImportLibrary />
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -1113,28 +1115,69 @@
     <ClCompile Include="vulkan.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp" />
-    <None Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp" />
-    <None Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp" />
-    <None Include="..\depends\lib\DirectXTex\Win32\DirectXTex.pdb" />
-    <None Include="..\depends\lib\DirectXTex\x64\DirectXTex.pdb" />
-    <None Include="..\depends\lib\lzma\Win32\libzma.pdb" />
-    <None Include="..\depends\lib\lzma\x64\libzma.pdb" />
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\DirectXTex\Win32\DirectXTex.pdb">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\DirectXTex\x64\DirectXTex.pdb">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\depends\lib\lzma\x64\libzma.pdb">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="..\installer.dll" />
     <None Include="..\installer64.dll" />
     <None Include="..\version.ini" />
@@ -1151,33 +1194,90 @@
     <Media Include="..\depends\xbox.wav" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib" />
-    <Library Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib" />
-    <Library Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib" />
-    <Library Include="..\depends\lib\DirectXTex\Win32\DirectXTex.lib" />
-    <Library Include="..\depends\lib\DirectXTex\x64\DirectXTex.lib" />
-    <Library Include="..\depends\lib\lzma\Win32\libzma.lib" />
-    <Library Include="..\depends\lib\lzma\x64\libzma.lib" />
-    <Library Include="..\depends\lib\MinHook\Win32\libMinHook.lib" />
-    <Library Include="..\depends\lib\MinHook\x64\libMinHook64.lib" />
-    <Library Include="..\depends\lib\nvapi\Win32\nvapi.lib" />
-    <Library Include="..\depends\lib\nvapi\x64\nvapi64.lib" />
-    <Library Include="..\depends\lib\steamapi\Win32\steam_api.lib" />
-    <Library Include="..\depends\lib\steamapi\x64\steam_api64.lib" />
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIBase-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIBase-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\DirectXTex\Win32\DirectXTex.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\DirectXTex\x64\DirectXTex.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\lzma\Win32\libzma.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\lzma\x64\libzma.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\MinHook\Win32\libMinHook.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\MinHook\x64\libMinHook64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\nvapi\Win32\nvapi.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\nvapi\x64\nvapi64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\steamapi\Win32\steam_api.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="..\depends\lib\steamapi\x64\steam_api64.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+    </Library>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

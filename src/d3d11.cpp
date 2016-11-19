@@ -486,10 +486,17 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
     }
 
-    SK_DXGI_BorderCompensation (
-      swap_chain_desc->BufferDesc.Width,
-        swap_chain_desc->BufferDesc.Height
-    );
+    if (config.window.borderless && (! config.window.res.override.isZero ())) {
+      swap_chain_desc->BufferDesc.Width  = config.window.res.override.x;
+      swap_chain_desc->BufferDesc.Height = config.window.res.override.y;
+    }
+
+    else {
+      SK_DXGI_BorderCompensation (
+        swap_chain_desc->BufferDesc.Width,
+          swap_chain_desc->BufferDesc.Height
+      );
+    }
   }
 
   HRESULT res;

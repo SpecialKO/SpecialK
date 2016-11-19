@@ -1873,7 +1873,12 @@ __declspec (noinline)
     //if (bWait)
       //return S_OK;
 
-    SK_DXGI_BorderCompensation (Width, Height);
+    if (config.window.borderless && (! config.window.res.override.isZero ())) {
+      Width  = config.window.res.override.x;
+      Height = config.window.res.override.y;
+    } else {
+      SK_DXGI_BorderCompensation (Width, Height);
+    }
 
     HRESULT ret;
     DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
@@ -1935,7 +1940,12 @@ __declspec (noinline)
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
       }
 
-      SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
+      if (config.window.borderless && (! config.window.res.override.isZero ())) {
+        new_new_params.Width  = config.window.res.override.x;
+        new_new_params.Height = config.window.res.override.y;
+      } else {
+        SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
+      }
 
       DXGI_MODE_DESC* pNewNewTargetParameters =
         &new_new_params;
@@ -1990,10 +2000,17 @@ __declspec (noinline)
 
     if (pDesc != nullptr) {
       if (! fake) {
-        SK_DXGI_BorderCompensation (
-          pDesc->BufferDesc.Width,
-            pDesc->BufferDesc.Height
-        );
+        if (config.window.borderless && (! config.window.res.override.isZero ())) {
+          pDesc->BufferDesc.Width  = config.window.res.override.x;
+          pDesc->BufferDesc.Height = config.window.res.override.y;
+        }
+
+        else {
+          SK_DXGI_BorderCompensation (
+            pDesc->BufferDesc.Width,
+              pDesc->BufferDesc.Height
+          );
+        }
 
       dll_log.LogEx ( true,
         L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s) - {%s}"
