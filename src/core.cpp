@@ -1032,19 +1032,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
-
-  game_debug.init (L"logs/game_output.log", L"w");
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
-
-  extern void SK_TestSteamImports (HMODULE hMod);
-  SK_TestSteamImports (SK_GetDLL ());
-
-
   SK::Framerate::Init ();
 
   // Load user-defined DLLs (Early)
@@ -2086,9 +2073,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   extern void __stdcall SK_InitCompatBlacklist (void);
   SK_InitCompatBlacklist ();
 
-  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
-  SK::Diagnostics::Debugger::Allow ();
-
   // Hard-code the AppID for ToZ
   if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
     config.steam.appid = 351970;
@@ -2155,6 +2139,32 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     LeaveCriticalSection (&init_mutex);
     return true;
   }
+
+  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
+  SK::Diagnostics::Debugger::Allow ();
+
+  game_debug.init (L"logs/game_output.log", L"w");
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+  extern void SK_TestSteamImports (HMODULE hMod);
+  SK_TestSteamImports (SK_GetDLL ());
+
+    if (GetModuleHandle (L"CSteamworks.dll")) {
+      extern void SK_HookCSteamworks (void);
+      SK_HookCSteamworks ();
+    }
+
+    else if ( GetModuleHandle (L"steam_api.dll")   ||
+              GetModuleHandle (L"steam_api64.dll") ||
+              GetModuleHandle (L"SteamNative.dll") ) {
+      extern void SK_HookSteamAPI (void);
+      SK_HookSteamAPI ();
+    }
 
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();

@@ -88,9 +88,9 @@ CrashHandler::Init (void)
   if (! crash_log.initialized)
     crash_log.init (L"logs/crash.log", L"w");
 
-  //SK_CreateDLLHook ( L"kernel32.dll", "SetUnhandledExceptionFilter",
-                     //SetUnhandledExceptionFilter_Detour,
-          //(LPVOID *)&SetUnhandledExceptionFilter_Original );
+  SK_CreateDLLHook ( L"kernel32.dll", "SetUnhandledExceptionFilter",
+                     SetUnhandledExceptionFilter_Detour,
+          (LPVOID *)&SetUnhandledExceptionFilter_Original );
 
   SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
                   SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
@@ -121,6 +121,8 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
+  bool scaleform = false;
+
   SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
                   SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
                   SYMOPT_DEFERRED_LOADS );
@@ -477,6 +479,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         sip.si.Name );
     }
 
+    if (strstr (sip.si.Name, "Scaleform"))
+      scaleform = true;
+
     if (top_func == "")
       top_func = sip.si.Name;
 
@@ -521,7 +526,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                   (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
   bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if (repeated || non_continue) {
+  if ((repeated || non_continue) && (! scaleform)) {
     SK_AutoClose_Log (crash_log);
 
     last_chance = true;
