@@ -237,12 +237,10 @@ private:
 };
 
 
-__declspec (dllexport)
 SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void);
 
-__declspec (dllexport)
 SK_IVariable*
 __stdcall
 SK_CreateVar ( SK_IVariable::VariableType type,

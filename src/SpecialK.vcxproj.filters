@@ -81,9 +81,6 @@
     <ClInclude Include="nvapi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RTSSSharedMemory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -195,6 +192,9 @@
     <ClInclude Include="DLL_VERSION.H">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\depends\include\RTSSSharedMemory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -304,9 +304,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="d3d9.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="..\version.ini" />
     <None Include="..\installer.dll" />
     <None Include="..\installer64.dll" />
@@ -372,6 +369,9 @@
     </None>
     <None Include="..\depends\lib\lzma\x64\libzma.pdb">
       <Filter>Libraries\64-bit</Filter>
+    </None>
+    <None Include="SpecialK.def">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

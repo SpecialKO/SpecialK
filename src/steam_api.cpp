@@ -1826,6 +1826,17 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
+  // Throttle to 1000 Hz for STUPID games like Akiba's Trip
+  static DWORD dwLastTick = 0;
+         DWORD dwNow      = timeGetTime ();
+
+  if (dwLastTick < dwNow) {
+    dwLastTick = dwNow;
+  } else {
+    // Skip the callbacks, one call every 1 ms is enough!!
+    return;
+  }
+
   InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
 
   if (steam_achievements != nullptr)

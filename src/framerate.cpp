@@ -114,7 +114,6 @@ Sleep_Detour (DWORD dwMilliseconds)
 #endif
 }
 
-__declspec (dllexport)
 BOOL
 WINAPI
 QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)

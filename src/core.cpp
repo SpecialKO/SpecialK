@@ -1917,12 +1917,77 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   SK_PathRemoveExtension (wszBlacklistFile);
 
-  if ( (! SK_Path_wcsicmp (SK_GetHostApp (), L"steam.exe"))              ||
-       (! SK_Path_wcsicmp (SK_GetHostApp (), L"GameOverlayUI.exe"))      ||
-       (! SK_Path_wcsicmp (SK_GetHostApp (), L"streaming_client.exe"))   ||
-       (! SK_Path_wcsicmp (SK_GetHostApp (), L"steamerrorreporter.exe")) ||
-       (! SK_Path_wcsicmp (SK_GetHostApp (), L"notepad.exe"))            ||
-       (! SK_Path_wcsicmp (SK_GetHostApp (), L"Bethesda.net_Launcher.exe")) )
+  // Holy Rusted Metal Batman !!!
+  //---------------------------------------------------------------------------
+  //
+  //  * <Black Lists Matter> *
+  //
+  //   Replace this with something faster such as a trie ... we cannot use
+  //     STL at this point, that would bring in dependencies on other MSVCRT
+  //       DLLs.
+  //
+  //   *** (A static trie or hashmap should be doable though.) ***
+  //___________________________________________________________________________
+       // Steam-Specific Stuff
+  if ( (! SK_Path_wcsicmp (SK_GetHostApp(),L"steam.exe"))                    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"GameOverlayUI.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"streaming_client.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamerrorreporter.exe"))       ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamerrorreporter64.exe"))     ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamservice.exe"))             ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steam_monitor.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamwebhelper.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"html5app_steam.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"wow_helper.exe"))               ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"uninstall.exe"))                ||
+        
+
+       // Crash Helpers
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"WriteMiniDump.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashReporter.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SupportTool.exe"))              ||
+
+       // Runtime Installers
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"DXSETUP.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"setup.exe"))                    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc_redist.x64.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc_redist.x86.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc2010redist_x64.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc2010redist_x86.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcredist_x64.exe"))             ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcredist_x86.exe"))             ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),
+                       L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotnetfx35.exe"))               ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"DotNetFx35Client.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Full_x86_x64.exe"))  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Client_x86_x64.exe"))||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"oalinst.exe"))                  ||
+
+       // Launchers
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"x64launcher.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"x86launcher.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Launcher.exe"))                 ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"FFX&X-2_LAUNCHER.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Fallout4Launcher.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SkyrimSELauncher.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"ModLauncher.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"AkibaUU_Config.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Obduction.exe"))                ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Bethesda.net_Launcher.exe"))    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher.exe"))      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher64.exe"))    ||
+
+       // Other Stuff
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"zosSteamStarter.exe"))          ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"notepad.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"7zFM.exe"))                     ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"WinRar.exe"))                   ||
+
+       // Misc. Tools
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SleepOnLan.exe"))               ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"ds3t.exe"))                     ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"tzt.exe")) )
     return false;
 
   // This is a fatal combination

@@ -564,7 +564,6 @@ SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
   }
 }
 
-__declspec (dllexport)
 SK_IVariable*
 __stdcall
 SK_CreateVar ( SK_IVariable::VariableType type,
