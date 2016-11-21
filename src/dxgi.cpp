@@ -68,6 +68,8 @@
 #include "CEGUI/FontManager.h"
 #include "CEGUI/RendererModules/Direct3D11/Renderer.h"
 
+#include "osd.h"
+
 #ifdef _WIN64
 
 #pragma comment (lib, "CEGUI/x64/CEGUIDirect3D11Renderer-0.lib")
@@ -232,6 +234,8 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     }
 
     SK_CEGUI_InitBase ();
+
+    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
   }
 }
 
@@ -1212,7 +1216,13 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   CComPtr <ID3D11Device> pDev = nullptr;
 
+  // Make sure resolution changes propogate to the text overlays
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
+    if (cegD3D11 != nullptr)
+      SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
+  }
+
+  /*if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
     if (pCEG_DevCtx != nullptr) {
       pCEG_DevCtx->Release ();
       pCEG_DevCtx = nullptr;
@@ -1225,7 +1235,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     }
   }
 
-  else if (cegD3D11 == nullptr) {
+  else*/ if (cegD3D11 == nullptr) {
     ResetCEGUI_D3D11 (This);
   }
 
@@ -1285,7 +1295,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       pCEG_DevCtx->DSSetShader (0, 0, 0);
       pCEG_DevCtx->HSSetShader (0, 0, 0);
 
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+      cegD3D11->beginRendering ();
+      {
+        SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+      }
+      cegD3D11->endRendering ();
 
       ApplyStateblock (pCEG_DevCtx, &sb);
     }

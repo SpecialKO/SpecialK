@@ -103,7 +103,7 @@ struct {
   } text;
 
   struct {
-    sk::ParameterInt*     scale;
+    sk::ParameterFloat*   scale;
     sk::ParameterInt*     pos_x;
     sk::ParameterInt*     pos_y;
   } viewport;
@@ -1064,8 +1064,8 @@ SK_LoadConfig (std::wstring name) {
         L"PositionY" );
 
   osd.viewport.scale =
-    static_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
+    static_cast <sk::ParameterFloat *>
+      (g_ParameterFactory.create_parameter <float> (
         L"OSD Scale")
       );
   osd.viewport.scale->register_to_ini (

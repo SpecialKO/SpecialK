@@ -31,7 +31,8 @@
 
 class SK_Console
 {
-private:
+public:
+//private:
   HANDLE               hMsgPump;
   struct hooks_t {
     HHOOK              keyboard;
@@ -39,18 +40,18 @@ private:
 
   static SK_Console*   pConsole;
 
-  static char          text  [4096];
+  char          text  [4096];
 
-  static BYTE          keys_ [256];
-  static bool          visible;
+  BYTE          keys_ [256];
+  bool          visible;
 
-  static bool          command_issued;
-  static std::string   result_str;
+  bool          command_issued;
+  std::string   result_str;
 
   struct command_history_t {
     std::vector <std::string> history;
     size_t                    idx     = -1;
-  } static commands;
+  } commands;
 
 protected:
   SK_Console (void);
@@ -62,6 +63,9 @@ public:
 
   void Start       (void);
   void End         (void);
+
+  int KeyUp       (BYTE vkCode, LPARAM lParam);
+  int KeyDown     (BYTE vkCode, LPARAM lParam);
 
   HANDLE GetThread (void);
 

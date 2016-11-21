@@ -228,6 +228,8 @@ SK_FreeRealD3D9 (void)
 #include "CEGUI/FontManager.h"
 #include "CEGUI/RendererModules/Direct3D9/Renderer.h"
 
+#include "osd.h"
+
 #pragma comment (lib, "d3dx9.lib")
 
 #ifdef _WIN64
@@ -242,6 +244,78 @@ IDirect3DStateBlock9*     cegD3D9_SB = nullptr;
 static volatile ULONG __gui_reset = TRUE;
 
 void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
+
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/Rect.h>
+#include <CEGUI/RendererModules/Direct3D9/Renderer.h>
+
+CEGUI::GeometryBuffer* pCEGUI_OSDGeom = nullptr;
+CEGUI::Font*           pCEGUI_OSDFont = nullptr;
+
+void
+SK_CEGUI_ResetOSD (CEGUI::Renderer* pRenderer)
+{
+  pCEGUI_OSDFont = nullptr;
+
+  try {
+    pCEGUI_OSDFont =
+      &CEGUI::FontManager::getDllSingleton ().createFromFile ("Consolas-12.font");
+  } catch (...) {
+  }
+
+  const CEGUI::Rectf scrn (
+    CEGUI::Vector2f (0.0f, 0.0f),
+      pRenderer->getDisplaySize ()
+  );
+
+  // setup for FPS value
+  pCEGUI_OSDGeom = &pRenderer->createGeometryBuffer (    );
+  pCEGUI_OSDGeom->setClippingRegion                 (scrn);
+}
+
+void
+SK_CEGUI_DrawOSD (void)
+{
+  extern char szOSD [32768];
+
+  if (pCEGUI_OSDFont && pCEGUI_OSDGeom) {
+    pCEGUI_OSDGeom->reset ();
+
+    char* line = strtok (szOSD, "\n");
+
+    float baseline = 0.0f;
+    float spacing  = pCEGUI_OSDFont->getLineSpacing ();
+
+    float red   = config.osd.red   / 255.0f;
+    float green = config.osd.green / 255.0f;
+    float blue  = config.osd.blue  / 255.0f;
+
+    if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1) {
+      //red = 238.0f; green = 250.0f; blue = 5.0f;
+      blue = 238.0f; green = 250.0f; red = 5.0f;
+    }
+
+    while (line != nullptr) {
+      pCEGUI_OSDFont->drawText (
+        *pCEGUI_OSDGeom,
+          line,
+            CEGUI::Vector2f (0.0f, baseline),
+              nullptr,
+                CEGUI::Colour ( red,
+                                  green,
+                                    blue ) );
+
+      baseline += spacing;
+
+      line = strtok (nullptr, "\n");
+    }
+  }
+
+  CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+
+  if (pCEGUI_OSDGeom)
+    pCEGUI_OSDGeom->draw ();
+}
 
 void
 SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
@@ -346,7 +420,19 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       }
     }
 
-    CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+    cegD3D9->beginRendering ();
+    {
+      //SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
+      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+
+      extern char szOSD [32768];
+      SK_UpdateOSD (szOSD);
+
+      SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
+
+      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+    }
+    cegD3D9->endRendering ();
 
     pDev->SetViewport (&vp_orig);
 
@@ -359,6 +445,8 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
   if (! config.cegui.enable)
     return;
+
+  bool reset = false;
 
   if (cegD3D9 == nullptr)
   {
@@ -375,8 +463,10 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       SK_CEGUI_RelocateLog (void);
 
       SK_CEGUI_RelocateLog ();
+
+      reset = true;
     } catch (...) {
-      cegD3D9 = nullptr;
+      cegD3D9       = nullptr;
       return;
     }
 
@@ -384,6 +474,8 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     SK_CEGUI_InitBase (void);
 
     SK_CEGUI_InitBase ();
+
+    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D9);
   }
 }
 

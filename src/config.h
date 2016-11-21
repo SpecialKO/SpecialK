@@ -89,7 +89,7 @@ struct sk_config_t
     DWORD  red            = -1;
     DWORD  green          = -1;
     DWORD  blue           = -1;
-    DWORD  scale          =  1;
+    float  scale          =  1.0f;
     DWORD  pos_x          =  0;
     DWORD  pos_y          =  0;
 

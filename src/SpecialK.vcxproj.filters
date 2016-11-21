@@ -67,6 +67,12 @@
     <Filter Include="Libraries\64-bit">
       <UniqueIdentifier>{f24af793-8b2e-4853-96dc-0d0fb7754f2f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Stats">
+      <UniqueIdentifier>{3875728f-4125-4054-8f97-91f239a011e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Plugins">
+      <UniqueIdentifier>{a28dbd7c-faa6-49fb-a3f1-1f61813370e6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -212,22 +218,13 @@
     <ClCompile Include="parameter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="io_monitor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="osd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gpu_monitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="import.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="memory_monitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="core.cpp">
@@ -239,12 +236,6 @@
     <ClCompile Include="steam_api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nvapi.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="plugin_fo4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="framerate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -254,17 +245,11 @@
     <ClCompile Include="command.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="plugin_ds3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dxgi.cpp">
       <Filter>Source Files\Backends\DXGI</Filter>
     </ClCompile>
     <ClCompile Include="diagnostics\crash_handler.cpp">
       <Filter>Source Files\Diagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="plugin_tw3.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="diagnostics\debug_utils.cpp">
       <Filter>Source Files\Diagnostics</Filter>
@@ -300,7 +285,28 @@
       <Filter>Source Files\Update</Filter>
     </ClCompile>
     <ClCompile Include="adl.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="memory_monitor.cpp">
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="io_monitor.cpp">
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="gpu_monitor.cpp">
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="nvapi.cpp">
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin_ds3.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin_fo4.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin_tw3.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

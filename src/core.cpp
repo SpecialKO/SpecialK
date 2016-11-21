@@ -122,6 +122,7 @@ SK_GetFramesDrawn (void)
 }
 
 #include <d3d9.h>
+#include <d3d11.h>
 
 const wchar_t*
 __stdcall
@@ -2457,6 +2458,12 @@ SK_BeginBufferSwap (void)
       first = false;
     }
   }
+
+  extern void SK_DrawConsole     (void);
+  extern void SK_DrawTexMgrStats (void);
+  SK_DrawTexMgrStats ();
+  SK_DrawOSD         ();
+  SK_DrawConsole     ();
 }
 
 extern void SK_UnlockSteamAchievement (uint32_t idx);
@@ -2678,7 +2685,7 @@ DoKeyboard (void)
         HIWORD (GetAsyncKeyState (config.osd.keys.expand [2])))
     {
       last_osd_scale = ullNow.QuadPart;
-      SK_ResizeOSD (+1);
+      SK_ResizeOSD (+0.1f);
     }
 
     if (HIWORD (GetAsyncKeyState (config.osd.keys.shrink [0])) &&
@@ -2686,7 +2693,7 @@ DoKeyboard (void)
         HIWORD (GetAsyncKeyState (config.osd.keys.shrink [2])))
     {
       last_osd_scale = ullNow.QuadPart;
-      SK_ResizeOSD (-1);
+      SK_ResizeOSD (-0.1f);
     }
   }
 
@@ -2870,12 +2877,30 @@ DoKeyboard (void)
 }
 #endif
 
+std::wstring SK_RenderAPI;
+
 __declspec (noinline)
 COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE
 SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 {
+  if (device != nullptr) {
+    CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
+    CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
+    CComPtr <ID3D11Device>       pDev11  = nullptr;
+
+    if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9Ex)))) {
+      SK_RenderAPI = L"D3D9Ex";
+    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9)))) {
+      SK_RenderAPI = L"D3D9  ";
+    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11)))) {
+      SK_RenderAPI = L"D3D11 ";
+    } else {
+      SK_RenderAPI = L"UNKNOWN";
+    }
+  }
+
   // Draw after present, this may make stuff 1 frame late, but... it
   //   helps with VSYNC performance.
 
@@ -2918,12 +2943,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
   InterlockedIncrement (&frames_drawn);
-
-  extern void SK_DrawConsole     (void);
-  extern void SK_DrawTexMgrStats (void);
-  SK_DrawTexMgrStats ();
-  SK_DrawConsole     ();
-  SK_DrawOSD         ();
 
   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
@@ -2973,6 +2992,7 @@ SK_GetHostApp (void)
 
 // NOT the working directory, this is the directory that
 //   the executable is located in.
+
 const wchar_t*
 SK_GetHostPath (void)
 {

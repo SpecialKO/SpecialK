@@ -186,6 +186,12 @@ void
 S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
+  // Don't care about OUR OWN callbacks ;)
+  if (SK_GetCallingDLL () == SK_GetDLL ()) {
+    SteamAPI_RegisterCallback_Original (pCallback, iCallback);
+    return;
+  }
+
   // Sometimes a game will have initialized SteamAPI before this DLL was loaded,
   //   we will usually catch wind of this because callbacks will be registered
   //     seemingly before initialization.
@@ -307,6 +313,12 @@ void
 S_CALLTYPE
 SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 {
+  // Skip this if we're uninstalling our own callback
+  if (SK_GetCallingDLL () == SK_GetDLL ()) {
+    SteamAPI_UnregisterCallback_Original (pCallback);
+    return;
+  }
+
   std::wstring caller = 
     SK_GetCallerName ();
 

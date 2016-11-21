@@ -82,7 +82,13 @@ SK_FindRootWindow (DWORD proc_id)
   return win.root;
 }
 
-SK_Console::SK_Console (void) { }
+SK_Console::SK_Console (void) {
+  visible        = false;
+  command_issued = false;
+  result_str     = "";
+
+  ZeroMemory (keys_, 256);
+}
 
 SK_Console*
 SK_Console::getInstance (void)
@@ -107,7 +113,7 @@ SK_Console::Draw (void)
   static LARGE_INTEGER last_time = { 0 };
 
   static std::string last_output = "";
-         std::string output;
+         std::string output = "";
 
   if (visible) {
     output += text;
@@ -135,15 +141,17 @@ SK_Console::Draw (void)
       output += "\n";
       output += result_str;
     }
+  } else {
+    output = "";
   }
 
-  if (last_output != output) {
+  //if (last_output != output) {
     last_output = output;
     extern BOOL
     __stdcall
     SK_DrawExternalOSD (std::string app_name, std::string text);
     SK_DrawExternalOSD ("SpecialK Console", output);
-  }
+  //}
 }
 
 typedef BOOL
@@ -1156,8 +1164,7 @@ SK_Console::End (void)
     return;
   }
 
-  TerminateThread     (hMsgPump, 0);
-  UnhookWindowsHookEx (hooks.keyboard);
+  TerminateThread (hMsgPump, 0);
 }
 
 HANDLE
@@ -1506,8 +1513,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
   if (config.window.background_render && (uMsg == WM_KILLFOCUS || uMsg == WM_SETFOCUS)) {
-    //DefWindowProc (hWnd, uMsg, wParam, lParam);
-    return 0;
+    DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
   // Allow the game to run in the background
@@ -1583,11 +1589,20 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   bool background_render =
     config.window.background_render && (! game_window.active);
 
+  if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) && (! background_render)) {
+    if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam))
+      return CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
+  }
+
+  if ((uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP) && (! background_render)) {
+    if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam))
+      return CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
+  }
+
   // Block keyboard input to the game while the console is visible
   if (console_visible || (background_render && uMsg != WM_SYSKEYDOWN)) {
-    // Only prevent the mouse from working while the window is in the bg
-    if (config.window.background_render && uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
-      return 0;//DefWindowProc (hWnd, uMsg, wParam, lParam);
+    if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
+      return DefWindowProc (hWnd, uMsg, wParam, lParam);
 
     if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
       return DefWindowProc (hWnd, uMsg, wParam, lParam);
@@ -1633,6 +1648,11 @@ SK_InstallWindowHook (HWND hWnd)
            (LPVOID*)&GetAsyncKeyState_Original );
 
   MH_ApplyQueued ();
+
+  if (GetCursorPos_Original == nullptr)
+    GetCursorPos_Original = (GetCursorPos_pfn)GetProcAddress (GetModuleHandle (L"user32.dll"),"GetCursorPos");
+  if (GetCursorInfo_Original == nullptr)
+    GetCursorInfo_Original = (GetCursorInfo_pfn)GetProcAddress (GetModuleHandle (L"user32.dll"),"GetCursorInfo");
 
   game_window.hWnd = hWnd;
 
@@ -1687,11 +1707,15 @@ ULONG
 __stdcall
 SK_GetFramesDrawn (void);
 
+// Pending removal, because we now hook the window's message procedure
+//
 unsigned int
 __stdcall
 SK_Console::MessagePump (LPVOID hook_ptr)
 {
   hooks_t* pHooks = (hooks_t *)hook_ptr;
+
+  char* text = SK_Console::getInstance ()->text;
 
   ZeroMemory (text, 4096);
 
@@ -1735,45 +1759,16 @@ SK_Console::MessagePump (LPVOID hook_ptr)
     if (SK_GetFramesDrawn () > 1)
       break;
   }
+
+  DWORD dwNow = timeGetTime ();
+
   dll_log.Log ( L"[CmdConsole]  # Found window in %03.01f seconds, "
-                L"installing keyboard hook...",
-                  (float)(timeGetTime () - dwTime) / 1000.0f );
+                L"installing window hook...",
+                  (float)(dwNow - dwTime) / 1000.0f );
 
   SK_InstallWindowHook (hWndForeground);
 
-  dwTime = timeGetTime ();
-  hits   = 1;
-
-  while (! (pHooks->keyboard = SetWindowsHookEx ( WH_KEYBOARD,
-              KeyboardProc,
-                SK_GetDLL (),
-                  dwThreadId ))) {
-    _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
-
-    dll_log.Log ( L"[CmdConsole]  @ SetWindowsHookEx failed: 0x%04X (%s)",
-      err.WCode (), err.ErrorMessage () );
-
-    ++hits;
-
-    if (hits >= 5) {
-      dll_log.Log ( L"[CmdConsole]  * Failed to install keyboard hook after %lu tries... "
-        L"bailing out!",
-        hits );
-      return 0;
-    }
-
-    Sleep (1);
-  }
-
-  dll_log.Log ( L"[CmdConsole]  * Installed keyboard hook for command console... "
-                L"%lu %s (%lu ms!)",
-                  hits,
-                    hits > 1 ? L"tries" : L"try",
-                      timeGetTime () - dwTime );
-
-  // This may look strange, but this thread is a dummy that must be kept alive
-  //   in order for the input hook to work.
-  Sleep (INFINITE);
+  CloseHandle (GetCurrentThread ());
 
   return 0;
 }
@@ -1788,15 +1783,21 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   keys [vkCode & 0xFF] = ! keys [vkCode & 0xFF];
 }
 
-LRESULT
-CALLBACK
-SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
+int
+SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 {
-  if (nCode >= 0) {
-    BYTE    vkCode   = LOWORD (wParam) & 0xFF;
+  bool&                          visible        = SK_Console::getInstance ()->visible;
+  char*                          text           = SK_Console::getInstance ()->text;
+  BYTE*                          keys_          = SK_Console::getInstance ()->keys_;
+  SK_Console::command_history_t& commands       = SK_Console::getInstance ()->commands;
+  bool&                          command_issued = SK_Console::getInstance ()->command_issued;
+  std::string&                   result_str     = SK_Console::getInstance ()->result_str;
+
+  if ((! SK_IsSteamOverlayActive ())) {
+    //BYTE    vkCode   = LOWORD (wParam) & 0xFF;
     BYTE    scanCode = HIWORD (lParam) & 0x7F;
     SHORT   repeated = LOWORD (lParam);
-    bool    keyDown  = ! (lParam & 0x80000000);
+    bool    keyDown  = ! (lParam & 0x80000000UL);
 
     if (visible && vkCode == VK_BACK) {
       if (keyDown) {
@@ -1811,19 +1812,25 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
     }
 
     else if (vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT) {
-      if (keyDown) keys_ [VK_SHIFT] = 0x81; else keys_ [VK_SHIFT] = 0x00;
+      vkCode = VK_SHIFT;
+
+      if (keyDown) keys_ [vkCode] = 0x81; else keys_ [vkCode] = 0x00;
     }
 
     else if (vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU) {
-      if (keyDown) keys_ [VK_MENU] = 0x81; else keys_ [VK_MENU] = 0x00;
+      vkCode = VK_MENU;
+
+      if (keyDown) keys_ [vkCode] = 0x81; else keys_ [vkCode] = 0x00;
     }
 
-    else if ((! repeated) && vkCode == VK_CAPITAL) {
-      if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x82; else keys_ [VK_CAPITAL] = 0x00;
-    }
+    //else if ((! repeated) && vkCode == VK_CAPITAL) {
+      //if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x81; else keys_ [VK_CAPITAL] = 0x00;
+    //}
 
     else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL) {
-      if (keyDown) keys_ [VK_CONTROL] = 0x81; else keys_ [VK_CONTROL] = 0x00;
+      vkCode = VK_CONTROL;
+
+      if (keyDown) keys_ [vkCode] = 0x81; else keys_ [vkCode] = 0x00;
     }
 
     else if ((vkCode == VK_UP) || (vkCode == VK_DOWN)) {
@@ -1883,20 +1890,23 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
 
       keys_ [vkCode] = 0x81;
 
-      if (new_press && (! SK_IsSteamOverlayActive ()))
+      if (new_press) {
         SK_PluginKeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
 
-      if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && keys_ [VK_TAB] && vkCode == VK_TAB && new_press) {
-        visible = ! visible;
+        if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && keys_ [VK_TAB] && vkCode == VK_TAB) {
+          visible = ! visible;
 
-        // This will pause/unpause the game
-        SK::SteamAPI::SetOverlayState (visible);
+          // This will pause/unpause the game
+          SK::SteamAPI::SetOverlayState (visible);
 
-        return -1;
+          return 0;
+        }
       }
 
       // Don't print the tab character, it's pretty useless.
       if (visible && vkCode != VK_TAB) {
+        keys_ [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+
         char key_str [2];
         key_str [1] = '\0';
 
@@ -1917,11 +1927,23 @@ SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
       keys_ [vkCode] = 0x00;
   }
 
-  if (nCode >= 0 && visible)
-    return -1;
+  if (visible)
+    return 0;
 
-  return CallNextHookEx (SK_Console::getInstance ()->hooks.keyboard, nCode, wParam, lParam);
-};
+  return 1;
+}
+
+int
+SK_Console::KeyUp (BYTE vkCode, LPARAM lParam)
+{
+  return SK_HandleConsoleKey (false, vkCode, lParam);
+}
+
+int
+SK_Console::KeyDown (BYTE vkCode, LPARAM lParam)
+{
+  return SK_HandleConsoleKey (true, vkCode, lParam);
+}
 
 void
 SK_DrawConsole (void)
@@ -1929,12 +1951,8 @@ SK_DrawConsole (void)
   if (bNoConsole)
     return;
 
-  // Drop the first few frames so that the console shows up below
-  //   the main OSD.
-  if (SK_GetFramesDrawn () > 15) {
-    SK_Console* pConsole = SK_Console::getInstance ();
-    pConsole->Draw ();
-  }
+  SK_Console* pConsole = SK_Console::getInstance ();
+  pConsole->Draw ();
 }
 
 BOOL
@@ -1945,13 +1963,3 @@ SK_IsConsoleVisible (void)
 }
 
 SK_Console* SK_Console::pConsole      = nullptr;
-char        SK_Console::text [4096];
-
-BYTE        SK_Console::keys_ [256]    = { 0 };
-bool        SK_Console::visible        = false;
-
-bool        SK_Console::command_issued = false;
-std::string SK_Console::result_str;
-
-SK_Console::command_history_t
-             SK_Console::commands;

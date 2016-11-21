@@ -1026,7 +1026,6 @@ SK_GetDLLConfig (void)
 }
 
 
-extern HMODULE __stdcall SK_GetDLL (void);
 extern BOOL APIENTRY DllMain (HMODULE hModule,
                               DWORD   ul_reason_for_call,
                               LPVOID  /* lpReserved */);

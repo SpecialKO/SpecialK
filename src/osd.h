@@ -39,7 +39,42 @@ void __stdcall SK_SetOSDPos        (int x,   int y,                           LP
 // Any value out of range: [0,255] means IGNORE that color
 void __stdcall SK_SetOSDColor      (int red, int green, int blue,             LPCSTR lpAppName = nullptr);
 
-void __stdcall SK_SetOSDScale      (DWORD dwScale, bool relative = false,     LPCSTR lpAppName = nullptr);
-void __stdcall SK_ResizeOSD        (int scale_incr,                           LPCSTR lpAppName = nullptr);
+void __stdcall SK_SetOSDScale      (float fScale, bool relative = false,      LPCSTR lpAppName = nullptr);
+void __stdcall SK_ResizeOSD        (float scale_incr,                         LPCSTR lpAppName = nullptr);
+
+#ifndef OSD_IMP
+namespace CEGUI {
+  class Renderer;
+}
+
+class SK_TextOverlay {
+public:
+  float update (const char* szText);
+  float draw   (float x = 0.0f, float y = 0.0f);
+  void  reset  (CEGUI::Renderer* renderer);
+
+  void  resize   (float incr);
+  void  setScale (float scale);
+  float getScale (void);
+
+protected:
+private:
+};
+
+class SK_TextOverlayFactory {
+public:
+  static SK_TextOverlayFactory* getInstance (void);
+
+  SK_TextOverlay* createTextOverlay (const char* szAppName);
+  bool            removeTextOverlay (const char* szAppName);
+  SK_TextOverlay* getTextOverlay    (const char* szAppName);
+
+  void            resetAllOverlays  (CEGUI::Renderer* renderer);
+  float           drawAllOverlays   (float x = 0.0f, float y = 0.0f);
+
+protected:
+  SK_TextOverlayFactory (void);
+};
+#endif
 
 #endif /* __SK__OSD_H__ */
