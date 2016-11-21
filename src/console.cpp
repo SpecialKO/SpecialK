@@ -87,6 +87,7 @@ SK_Console::SK_Console (void) {
   command_issued = false;
   result_str     = "";
 
+  ZeroMemory (text, 4096);
   ZeroMemory (keys_, 256);
 }
 
@@ -137,7 +138,7 @@ SK_Console::Draw (void)
       output += "-";
 
     // Show Command Results
-      if (command_issued) {
+    if (command_issued) {
       output += "\n";
       output += result_str;
     }

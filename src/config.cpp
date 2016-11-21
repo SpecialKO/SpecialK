@@ -34,6 +34,7 @@
 const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
 
 iSK_INI*             dll_ini    = nullptr;
+iSK_INI*             osd_ini    = nullptr;
 sk_config_t          config;
 sk::ParameterFactory g_ParameterFactory;
 
@@ -233,6 +234,7 @@ bool
 SK_LoadConfig (std::wstring name) {
   // Load INI File
   std::wstring full_name;
+  std::wstring osd_config;
 
   full_name = SK_GetConfigPath () +
                 name              +
@@ -245,23 +247,33 @@ SK_LoadConfig (std::wstring name) {
 
   bool empty = dll_ini->get_sections ().empty ();
 
+  osd_config =
+    SK_EvalEnvironmentVars (
+      L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\osd.ini"
+    );
+
+  SK_CreateDirectories (osd_config.c_str ());
+
+  osd_ini =
+    new iSK_INI (osd_config.c_str ());
+
   //
   // Create Parameters
   //
   monitoring.io.show =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show IO Monitoring"));
-  monitoring.io.show->register_to_ini (dll_ini, L"Monitor.IO", L"Show");
+  monitoring.io.show->register_to_ini (osd_ini, L"Monitor.IO", L"Show");
 
   monitoring.io.interval =
     static_cast <sk::ParameterFloat *>
      (g_ParameterFactory.create_parameter <float> (L"IO Monitoring Interval"));
-  monitoring.io.interval->register_to_ini(dll_ini, L"Monitor.IO", L"Interval");
+  monitoring.io.interval->register_to_ini(osd_ini, L"Monitor.IO", L"Interval");
 
   monitoring.disk.show =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show Disk Monitoring"));
-  monitoring.disk.show->register_to_ini(dll_ini, L"Monitor.Disk", L"Show");
+  monitoring.disk.show->register_to_ini(osd_ini, L"Monitor.Disk", L"Show");
 
   monitoring.disk.interval =
     static_cast <sk::ParameterFloat *>
@@ -269,7 +281,7 @@ SK_LoadConfig (std::wstring name) {
        L"Disk Monitoring Interval")
      );
   monitoring.disk.interval->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.Disk",
         L"Interval" );
 
@@ -279,7 +291,7 @@ SK_LoadConfig (std::wstring name) {
        L"Disk Monitoring Type (0 = Physical, 1 = Logical)")
      );
   monitoring.disk.type->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.Disk",
         L"Type" );
 
@@ -287,7 +299,7 @@ SK_LoadConfig (std::wstring name) {
   monitoring.cpu.show =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show CPU Monitoring"));
-  monitoring.cpu.show->register_to_ini (dll_ini, L"Monitor.CPU", L"Show");
+  monitoring.cpu.show->register_to_ini (osd_ini, L"Monitor.CPU", L"Show");
 
   monitoring.cpu.interval =
     static_cast <sk::ParameterFloat *>
@@ -295,25 +307,25 @@ SK_LoadConfig (std::wstring name) {
        L"CPU Monitoring Interval (seconds)")
      );
   monitoring.cpu.interval->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.CPU",
         L"Interval" );
 
   monitoring.cpu.simple =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Minimal CPU info"));
-  monitoring.cpu.simple->register_to_ini (dll_ini, L"Monitor.CPU", L"Simple");
+  monitoring.cpu.simple->register_to_ini (osd_ini, L"Monitor.CPU", L"Simple");
 
   monitoring.gpu.show =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show GPU Monitoring"));
-  monitoring.gpu.show->register_to_ini (dll_ini, L"Monitor.GPU", L"Show");
+  monitoring.gpu.show->register_to_ini (osd_ini, L"Monitor.GPU", L"Show");
 
   monitoring.gpu.print_slowdown =
     static_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool>(L"Print GPU Slowdown Reason"));
   monitoring.gpu.print_slowdown->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.GPU",
         L"PrintSlowdown" );
 
@@ -323,7 +335,7 @@ SK_LoadConfig (std::wstring name) {
        L"GPU Monitoring Interval (seconds)")
      );
   monitoring.gpu.interval->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.GPU",
         L"Interval" );
 
@@ -334,7 +346,7 @@ SK_LoadConfig (std::wstring name) {
         L"Show Pagefile Monitoring")
       );
   monitoring.pagefile.show->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.Pagefile",
         L"Show" );
 
@@ -344,7 +356,7 @@ SK_LoadConfig (std::wstring name) {
        L"Pagefile Monitoring Interval (seconds)")
      );
   monitoring.pagefile.interval->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.Pagefile",
         L"Interval" );
 
@@ -355,7 +367,7 @@ SK_LoadConfig (std::wstring name) {
         L"Show Memory Monitoring")
       );
   monitoring.memory.show->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.Memory",
         L"Show" );
 
@@ -366,7 +378,7 @@ SK_LoadConfig (std::wstring name) {
         L"Show Framerate Monitoring")
       );
   monitoring.fps.show->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.FPS",
         L"Show" );
 
@@ -377,7 +389,7 @@ SK_LoadConfig (std::wstring name) {
       L"Show Time")
     );
   monitoring.time.show->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.Time",
         L"Show" );
 
@@ -563,8 +575,8 @@ SK_LoadConfig (std::wstring name) {
       L"Prefer Fahrenheit Units")
       );
   prefer_fahrenheit->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
+    osd_ini,
+      L"SpecialK.OSD",
         L"PreferFahrenheit" );
 
   handle_crashes =
@@ -989,7 +1001,7 @@ SK_LoadConfig (std::wstring name) {
         L"OSD Visibility")
       );
   osd.show->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"Show" );
 
@@ -999,7 +1011,7 @@ SK_LoadConfig (std::wstring name) {
         L"Refresh the OSD irrespective of frame completion")
       );
   osd.update_method.pump->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"AutoPump" );
 
@@ -1009,7 +1021,7 @@ SK_LoadConfig (std::wstring name) {
       L"Time in seconds between OSD updates")
     );
   osd.update_method.pump_interval->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"PumpInterval" );
 
@@ -1019,7 +1031,7 @@ SK_LoadConfig (std::wstring name) {
         L"OSD Color (Red)")
       );
   osd.text.red->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"TextColorRed" );
 
@@ -1029,7 +1041,7 @@ SK_LoadConfig (std::wstring name) {
         L"OSD Color (Green)")
       );
   osd.text.green->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"TextColorGreen" );
 
@@ -1039,7 +1051,7 @@ SK_LoadConfig (std::wstring name) {
         L"OSD Color (Blue)")
       );
   osd.text.blue->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"TextColorBlue" );
 
@@ -1049,7 +1061,7 @@ SK_LoadConfig (std::wstring name) {
         L"OSD Position (X)")
       );
   osd.viewport.pos_x->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"PositionX" );
 
@@ -1059,7 +1071,7 @@ SK_LoadConfig (std::wstring name) {
         L"OSD Position (Y)")
       );
   osd.viewport.pos_y->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"PositionY" );
 
@@ -1069,7 +1081,7 @@ SK_LoadConfig (std::wstring name) {
         L"OSD Scale")
       );
   osd.viewport.scale->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"SpecialK.OSD",
         L"Scale" );
 
@@ -1080,7 +1092,7 @@ SK_LoadConfig (std::wstring name) {
         L"Show SLI Monitoring")
       );
   monitoring.SLI.show->register_to_ini (
-    dll_ini,
+    osd_ini,
       L"Monitor.SLI",
         L"Show" );
 
@@ -1880,7 +1892,11 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   lstrcatW (wszFullName,       name.c_str ());
   lstrcatW (wszFullName,             L".ini");
 
-  dll_ini->write (wszFullName);
+  dll_ini->write ( wszFullName );
+  osd_ini->write ( SK_EvalEnvironmentVars (
+                     L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\"
+                     L"Global\\osd.ini"
+                   ).c_str () );
 
   if (close_config) {
     if (dll_ini != nullptr) {

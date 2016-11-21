@@ -57,6 +57,10 @@ public:
   void  setScale (float scale);
   float getScale (void);
 
+  void  move     (float  x_off, float  y_off);
+  void  setPos   (float  x,     float  y);
+  void  getPos   (float& x,     float& y);
+
 protected:
 private:
 };

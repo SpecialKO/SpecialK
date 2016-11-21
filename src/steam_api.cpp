@@ -947,7 +947,7 @@ public:
     if (! wcslen (wszUnlockSound)) {
       iSK_INI achievement_ini (
         SK_EvalEnvironmentVars (
-          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\default_achievements.ini"
+          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
         ).c_str ());
 
       achievement_ini.parse ();
@@ -959,7 +959,7 @@ public:
                                  L"NoSound=false\n"
                                  L"TakeScreenshot=false\n" );
         achievement_ini.write (        SK_EvalEnvironmentVars (
-          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\default_achievements.ini"
+          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
         ).c_str ());
       }
 
