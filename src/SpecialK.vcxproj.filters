@@ -73,71 +73,50 @@
     <Filter Include="Source Files\Plugins">
       <UniqueIdentifier>{a28dbd7c-faa6-49fb-a3f1-1f61813370e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\OSD">
+      <UniqueIdentifier>{71d75f35-e2d8-4f4e-bd93-ce5bd9c9edf9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Stats">
+      <UniqueIdentifier>{46b35bbb-43dd-4ec7-83ea-39ec6981e286}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{62e65d77-0345-4c92-8a5c-8d7f951b04fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{b251c702-f9f1-46fa-b52e-ce0f44f96563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Config">
+      <UniqueIdentifier>{437ec84a-fe34-4fbe-8205-38c72400b648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OSD">
+      <UniqueIdentifier>{8fbcdce6-8e2c-4712-9b40-d4085ce8ac67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{ffa43eba-e15f-42a6-94db-48550860d406}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Steam">
+      <UniqueIdentifier>{c3098b41-772c-44ec-a241-c1d2809830e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core">
+      <UniqueIdentifier>{a98c3961-e34c-4dee-bd96-cdaca60362c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Config">
+      <UniqueIdentifier>{7d5f7846-2431-4902-b97b-a08873bbf392}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Steam">
+      <UniqueIdentifier>{102f0d86-c8ed-40c2-9302-187b733bc17b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DLL Export Definitions">
+      <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Install Components">
+      <UniqueIdentifier>{2ee2bf9c-5aa5-4a03-84d9-3b3062390142}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Update Server">
+      <UniqueIdentifier>{69190189-2515-42b6-a6e6-9814f2bb651a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nvapi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ini.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="parameter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="io_monitor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="osd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gpu_monitor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="import.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="memory_monitor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="adl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="core.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="steam_api.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="command.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="framerate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dxgi_backend.h">
       <Filter>Header Files\Backends\DXGI</Filter>
     </ClInclude>
@@ -183,9 +162,6 @@
     <ClInclude Include="diagnostics\compatibility.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="tls.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="opengl_backend.h">
       <Filter>Header Files\Backends\OpenGL</Filter>
     </ClInclude>
@@ -195,56 +171,74 @@
     <ClInclude Include="update\archive.h">
       <Filter>Header Files\Update</Filter>
     </ClInclude>
-    <ClInclude Include="DLL_VERSION.H">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="gpu_monitor.h">
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
-    <ClInclude Include="..\depends\include\RTSSSharedMemory.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="io_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="memory_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="nvapi.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="adl.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="framerate.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="console.h">
+      <Filter>Header Files\OSD</Filter>
+    </ClInclude>
+    <ClInclude Include="command.h">
+      <Filter>Header Files\OSD</Filter>
+    </ClInclude>
+    <ClInclude Include="DLL_VERSION.H">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="import.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="tls.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>Header Files\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ini.h">
+      <Filter>Header Files\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="parameter.h">
+      <Filter>Header Files\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="steam_api.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="text.h">
+      <Filter>Header Files\OSD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SpecialK.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ini.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="config.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="parameter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="osd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="import.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="core.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="steam_api.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="framerate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="command.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dxgi.cpp">
       <Filter>Source Files\Backends\DXGI</Filter>
     </ClCompile>
@@ -308,11 +302,50 @@
     <ClCompile Include="plugin_tw3.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="utility.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="framerate.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="config.cpp">
+      <Filter>Source Files\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="ini.cpp">
+      <Filter>Source Files\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="log.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="console.cpp">
+      <Filter>Source Files\OSD</Filter>
+    </ClCompile>
+    <ClCompile Include="command.cpp">
+      <Filter>Source Files\OSD</Filter>
+    </ClCompile>
+    <ClCompile Include="parameter.cpp">
+      <Filter>Source Files\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="core.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="import.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="SpecialK.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="steam_api.cpp">
+      <Filter>Source Files\Steam</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="text.cpp">
+      <Filter>Source Files\OSD</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\version.ini" />
-    <None Include="..\installer.dll" />
-    <None Include="..\installer64.dll" />
     <None Include="..\depends\lib\DirectXTex\Win32\DirectXTex.pdb">
       <Filter>Libraries\32-bit</Filter>
     </None>
@@ -377,7 +410,16 @@
       <Filter>Libraries\64-bit</Filter>
     </None>
     <None Include="SpecialK.def">
-      <Filter>Source Files</Filter>
+      <Filter>DLL Export Definitions</Filter>
+    </None>
+    <None Include="..\installer.dll">
+      <Filter>Install Components</Filter>
+    </None>
+    <None Include="..\installer64.dll">
+      <Filter>Install Components</Filter>
+    </None>
+    <None Include="..\version.ini">
+      <Filter>Update Server</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -487,5 +529,8 @@
     <Library Include="..\depends\lib\steamapi\x64\steam_api64.lib">
       <Filter>Libraries\64-bit</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt" />
   </ItemGroup>
 </Project>
