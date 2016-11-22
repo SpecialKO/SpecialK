@@ -1236,7 +1236,14 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   }
 
   else*/ if (cegD3D11 == nullptr) {
-    ResetCEGUI_D3D11 (This);
+    extern
+    ULONG
+    __stdcall
+    SK_GetFramesDrawn (void);
+
+    if (SK_GetFramesDrawn () > 1) {
+      ResetCEGUI_D3D11 (This);
+    }
   }
 
   else if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) ) {

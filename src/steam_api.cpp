@@ -218,9 +218,6 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
                           SK_GetCallerName ().c_str () );
         steam_log.Log (L"----------(Implicit)-----------\n");
 
-        // TODO: Scoped UnHook / ReHook
-        SK_DisableHook (SteamAPI_RegisterCallback);
-
         InterlockedExchange (&__SK_Steam_init, TRUE);
 
 #ifdef _WIN64
@@ -237,11 +234,9 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
         steam_log.Log ( L"--- Initialization Finished ([AppId: %lu]) ---\n\n",
                           SK::SteamAPI::AppID () );
 
-        extern void StartSteamPump (void);
+        extern void StartSteamPump (bool force = false);
 
         StartSteamPump ();
-
-        SK_EnableHook (SteamAPI_RegisterCallback);
       }
 
       CloseHandle (GetCurrentThread ());
@@ -799,6 +794,9 @@ public:
       SteamAPI_Shutdown ();
     }
 #endif
+
+    extern void SK_SteamAPI_DestroyManagers (void);
+    SK_SteamAPI_DestroyManagers ();
   }
 
   ISteamUser*        User        (void) { return user_;        }
@@ -1895,7 +1893,8 @@ SK_SteamAPI_UpdateGlobalAchievements (void)
   SK_SteamAPI_LogAllAchievements ();
 }
 
-volatile LONGLONG SK_SteamAPI_CallbackRunCount = 0LL;
+volatile LONGLONG SK_SteamAPI_CallbackRunCount    = 0LL;
+volatile LONG     SK_SteamAPI_ManagersInitialized = 0L;
 
 SteamAPI_RunCallbacks_t SteamAPI_RunCallbacks_Original = nullptr;
 
@@ -1914,10 +1913,11 @@ SteamAPI_RunCallbacks_Detour (void)
     return;
   }
 
-  InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
-
+  // Init the managers after the first callback run
   void SK_SteamAPI_InitManagers (void);
   SK_SteamAPI_InitManagers ();
+
+  InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
 
   if (steam_achievements != nullptr)
     steam_achievements->DrawPopups ();
@@ -1964,6 +1964,8 @@ void SK::SteamAPI::Pump (void)
   }
 }
 
+volatile HANDLE hSteamPump = 0;
+
 DWORD
 WINAPI
 SteamAPI_PumpThread (LPVOID user)
@@ -1993,32 +1995,56 @@ SteamAPI_PumpThread (LPVOID user)
   // If the timing period failed, then start auto-pumping.
   //
   if (callback_freq < 3.0) {
-    steam_log.Log ( L" >> Installing a callback auto-pump at 4 Hz.\n\n");
+    if (SteamAPI_InitSafe_Original ()) {
+      steam_log.Log ( L" >> Installing a callback auto-pump at 4 Hz.\n\n");
 
-    while (true) {
-      Sleep (250);
+      while (true) {
+        Sleep (250);
 
-      SK::SteamAPI::Pump ();
+        SK::SteamAPI::Pump ();
+      }
+    } else {
+      steam_log.Log ( L" >> Tried to install a callback auto-pump, but "
+                      L"could not initialize SteamAPI.\n\n" );
     }
   }
 
-  CloseHandle (GetCurrentThread ());
+  HANDLE hOriginal =
+    InterlockedExchangePointer (&hSteamPump, 0);
+
+  CloseHandle (hOriginal);
 
   return 0;
 }
 
 void
-StartSteamPump (void)
+StartSteamPump (bool force = false)
 {
-  static bool pump_started = false;
-
-  if (pump_started)
+  if (InterlockedCompareExchangePointer (&hSteamPump, 0, 0) != 0)
     return;
 
-  if (config.steam.auto_pump_callbacks)
-    CreateThread (nullptr, 0, SteamAPI_PumpThread, nullptr, 0x00, nullptr);
+  if (config.steam.auto_pump_callbacks || force) {
+    InterlockedExchangePointer ( &hSteamPump,
+                                   CreateThread ( nullptr,
+                                                    0,
+                                                      SteamAPI_PumpThread,
+                                                        nullptr,
+                                                          0x00,
+                                                            nullptr )
+                               );
+  }
+}
 
-  pump_started = true;
+void
+KillSteamPump (void)
+{
+  HANDLE hOriginal =
+    InterlockedExchangePointer (&hSteamPump, 0);
+
+  if (hOriginal != 0) {
+    TerminateThread (hOriginal, 0x00);
+    CloseHandle     (hOriginal);
+  }
 }
 
 
@@ -2106,9 +2132,6 @@ SteamAPI_InitSafe_Detour (void)
     steam_log.Log (L"----------(InitSafe)-----------\n");
   }
 
-  // TODO: Scoped UnHook / ReHook
-  SK_DisableHook (SteamAPI_RegisterCallback);
-
   if (SteamAPI_InitSafe_Original ()) {
     InterlockedExchange (&__SK_Steam_init, TRUE);
 
@@ -2130,13 +2153,9 @@ SteamAPI_InitSafe_Detour (void)
 
     StartSteamPump ();
 
-    SK_EnableHook (SteamAPI_RegisterCallback);
-
     LeaveCriticalSection (&init_cs);
     return true;
   }
-
-  SK_EnableHook (SteamAPI_RegisterCallback);
 
   LeaveCriticalSection (&init_cs);
   return false;
@@ -2148,8 +2167,10 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
-  //steam_ctx.Shutdown         ();
-  //SteamAPI_Shutdown_Original ();
+  KillSteamPump ();
+
+  steam_ctx.Shutdown         ();
+  SteamAPI_Shutdown_Original ();
 
   InterlockedExchange (&__SK_Steam_init, 0);
 
@@ -2159,7 +2180,12 @@ SteamAPI_Shutdown_Detour (void)
     Sleep (1000UL);
 
     if (SteamAPI_InitSafe ()) {
-      StartSteamPump ();
+      extern void
+      SK_SteamAPI_InitManagers (void);
+
+      SK_SteamAPI_InitManagers ();
+
+      StartSteamPump (true);
     }
 
     CloseHandle (GetCurrentThread ());
@@ -2187,8 +2213,6 @@ SteamAPI_Init_Detour (void)
     steam_log.Log (L"-------------------------------\n");
   }
 
-  SK_DisableHook (SteamAPI_RegisterCallback);
-
   if (SteamAPI_Init_Original ()) {
     InterlockedExchange (&__SK_Steam_init, TRUE);
 
@@ -2209,13 +2233,9 @@ SteamAPI_Init_Detour (void)
 
     StartSteamPump ();
 
-    SK_EnableHook (SteamAPI_RegisterCallback);
-
     LeaveCriticalSection (&init_cs);
     return true;
   }
-
-  SK_EnableHook (SteamAPI_RegisterCallback);
 
   LeaveCriticalSection (&init_cs);
   return false;
@@ -2260,8 +2280,6 @@ InitSafe_Detour (void)
     steam_log.Log (L"-----------(InitSafe)-----------\n");
   }
 
-  SK_DisableHook (SteamAPI_RegisterCallback);
-
   if (InitSafe_Original ()) {
     InterlockedExchange (&__SK_Steam_init, TRUE);
 
@@ -2277,13 +2295,9 @@ InitSafe_Detour (void)
 
     StartSteamPump ();
 
-    SK_EnableHook (SteamAPI_RegisterCallback);
-
     LeaveCriticalSection (&init_cs);
     return true;
   }
-
-  SK_EnableHook (SteamAPI_RegisterCallback);
 
   LeaveCriticalSection (&init_cs);
   return false;
@@ -2467,33 +2481,42 @@ SK_SteamAPI_ContextInit (HMODULE hSteamAPI)
     steam_ctx.InitSteamAPI (hSteamAPI);
 }
 
-//
-// Not thread safe
-//
 void
 SK_SteamAPI_InitManagers (void)
 {
-  static bool init = false;
+  if (! InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 1, 0))
+  {
+    ISteamUserStats* stats =
+      steam_ctx.UserStats ();
 
-  if (! init)
-    init = true;
-  else
-    return;
+    steam_log.Log (L" Creating Achievement Manager...");
 
-  ISteamUserStats* stats =
-    steam_ctx.UserStats ();
-
-  steam_log.Log (L" Creating Achievement Manager...");
-
-  steam_achievements = new SK_Steam_AchievementManager (
+    steam_achievements = new SK_Steam_AchievementManager (
       config.steam.achievement_sound.c_str ()
     );
-  overlay_manager    = new SK_Steam_OverlayManager ();
+    overlay_manager    = new SK_Steam_OverlayManager ();
 
-  steam_log.LogEx (false, L"\n");
+    steam_log.LogEx (false, L"\n");
 
-  steam_achievements->requestStats ();
+    steam_achievements->requestStats ();
 
-  SteamAPICall_t call =
-    stats->RequestGlobalAchievementPercentages ();
+    SteamAPICall_t call =
+      stats->RequestGlobalAchievementPercentages ();
+  }
+}
+
+void
+SK_SteamAPI_DestroyManagers (void)
+{
+  if (InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 0, 1)) {
+    if (steam_achievements != nullptr) {
+      delete steam_achievements;
+      steam_achievements = nullptr;
+    }
+
+    if (overlay_manager != nullptr) {
+      delete overlay_manager;
+      overlay_manager = nullptr;
+    }
+  }
 }

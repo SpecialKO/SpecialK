@@ -1330,27 +1330,29 @@ void
 SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
 {
   font_.cegui = nullptr;
+  geometry_   = nullptr;
   renderer_   = pRenderer;
 
-  try {
-    font_.cegui =
-      &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
-    font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
-  } catch (...) {
+  if (pRenderer != nullptr) {
+    try {
+      font_.cegui =
+        &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
+
+      if (font_.cegui != nullptr)
+        font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
+
+      const CEGUI::Rectf scrn (
+        CEGUI::Vector2f (0.0f, 0.0f),
+          pRenderer->getDisplaySize ()
+      );
+
+      geometry_ = &pRenderer->createGeometryBuffer (    );
+
+      if (geometry_)
+        geometry_->setClippingRegion               (scrn);
+    } catch (...) {
+    }
   }
-
-  const CEGUI::Rectf scrn (
-    CEGUI::Vector2f (0.0f, 0.0f),
-      pRenderer->getDisplaySize ()
-  );
-
-  if (geometry_ != nullptr)
-    pRenderer->destroyGeometryBuffer (*geometry_);
-
-  geometry_ = &pRenderer->createGeometryBuffer (    );
-
-  if (geometry_)
-    geometry_->setClippingRegion               (scrn);
 }
 
 // Not re-entrant, but that should not matter.

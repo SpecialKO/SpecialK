@@ -35,7 +35,7 @@ public:
 //private:
   HANDLE               hMsgPump;
   struct hooks_t {
-    HHOOK              keyboard;
+    HHOOK              keyboard_ll;
   } hooks;
 
   static SK_Console*   pConsole;

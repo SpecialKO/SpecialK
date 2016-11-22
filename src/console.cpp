@@ -33,6 +33,7 @@
 #include "config.h"
 #include "command.h"
 #include "utility.h"
+#include "osd.h"
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -220,6 +221,7 @@ typedef int
 struct sk_window_s {
   HWND      hWnd             = 0x00;
   WNDPROC   WndProc_Original = nullptr;
+  WNDPROC   RawProc_Original = nullptr;
 
   bool      active           = true;
 
@@ -1618,6 +1620,49 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 #include "core.h"
 
+typedef BOOL (WINAPI *RegisterRawInputDevices_pfn)(
+  _In_ PCRAWINPUTDEVICE pRawInputDevices,
+  _In_ UINT             uiNumDevices,
+  _In_ UINT             cbSize
+);
+
+RegisterRawInputDevices_pfn RegisterRawInputDevices_Original = nullptr;
+
+BOOL WINAPI RegisterRawInputDevices_Detour (
+  _In_ PCRAWINPUTDEVICE pRawInputDevices,
+  _In_ UINT             uiNumDevices,
+  _In_ UINT             cbSize
+)
+{
+  if (cbSize != sizeof RAWINPUTDEVICE) {
+    dll_log.Log ( L"[ RawInput ] RegisterRawInputDevices has wrong "
+                  L"structure size (%lu bytes), expected: %lu",
+                    cbSize,
+                      sizeof RAWINPUTDEVICE );
+
+    return
+      RegisterRawInputDevices_Original ( pRawInputDevices,
+                                           uiNumDevices,
+                                             cbSize );
+  }
+
+  RAWINPUTDEVICE* pDevices = new RAWINPUTDEVICE [uiNumDevices];
+
+  // We need to continue receiving window messages for the console to work
+  for (int i = 0; i < uiNumDevices; i++) {
+    pDevices [i] = pRawInputDevices [i];
+    pDevices [i].dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
+    pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+  }
+
+  BOOL bRet =
+    RegisterRawInputDevices_Original (pDevices, uiNumDevices, cbSize);
+
+  delete [] pDevices;
+
+  return bRet;
+}
+
 void
 SK_InstallWindowHook (HWND hWnd)
 {
@@ -1647,6 +1692,10 @@ SK_InstallWindowHook (HWND hWnd)
   SK_CreateDLLHook2 ( L"user32.dll", "GetAsyncKeyState",
                      GetAsyncKeyState_Detour,
            (LPVOID*)&GetAsyncKeyState_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "RegisterRawInputDevices",
+                     RegisterRawInputDevices_Detour,
+           (LPVOID*)&RegisterRawInputDevices_Original );
 
   MH_ApplyQueued ();
 
@@ -1741,7 +1790,9 @@ SK_Console::MessagePump (LPVOID hook_ptr)
     if (hWndRender != 0) {
       hWndForeground = hWndRender;
     } else {
-      hWndForeground = GetForegroundWindow ();
+      Sleep (333);
+      //hWndForeground = GetForegroundWindow ();
+      continue;
     }
 
     DWORD dwProc;
@@ -1757,8 +1808,10 @@ SK_Console::MessagePump (LPVOID hook_ptr)
       continue;
     }
 
-    if (SK_GetFramesDrawn () > 1)
+    if (SK_GetFramesDrawn () > 1) {
+      hWndRender = hWndForeground;
       break;
+    }
   }
 
   DWORD dwNow = timeGetTime ();
@@ -1768,6 +1821,35 @@ SK_Console::MessagePump (LPVOID hook_ptr)
                   (float)(dwNow - dwTime) / 1000.0f );
 
   SK_InstallWindowHook (hWndForeground);
+
+#if 0
+  while (! (pHooks->keyboard_ll = SetWindowsHookEx ( WH_KEYBOARD_LL,
+              KeyboardProc,
+                SK_GetDLL (),
+                  dwThreadId ))) {
+    _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+
+    dll_log.Log ( L"[CmdConsole]  @ SetWindowsHookEx failed: 0x%04X (%s)",
+      err.WCode (), err.ErrorMessage () );
+
+    ++hits;
+
+    if (hits >= 5) {
+      dll_log.Log ( L"[CmdConsole]  * Failed to install keyboard hook after %lu tries... "
+        L"bailing out!",
+        hits );
+      return 0;
+    }
+
+    Sleep (1);
+  }
+
+  dll_log.Log ( L"[CmdConsole]  * Installed keyboard hook for command console... "
+                L"%lu %s (%lu ms!)",
+                  hits,
+                    hits > 1 ? L"tries" : L"try",
+                      timeGetTime () - dwTime );
+#endif
 
   CloseHandle (GetCurrentThread ());
 
@@ -1944,6 +2026,44 @@ int
 SK_Console::KeyDown (BYTE vkCode, LPARAM lParam)
 {
   return SK_HandleConsoleKey (true, vkCode, lParam);
+}
+
+LRESULT
+CALLBACK
+SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
+{
+#if 0
+  if (nCode >= 0)
+  {
+    switch (wParam) {
+      case WM_KEYDOWN:
+      case WM_SYSKEYDOWN:
+      {
+        LPKBDLLHOOKSTRUCT lpKbdLL = (LPKBDLLHOOKSTRUCT)lParam;
+        if (! (lpKbdLL->flags & 0x40)) {
+            BYTE    scanCode = HIWORD (lParam) & 0x7F;
+            SHORT   repeated = LOWORD (lParam);
+            bool    keyDown  = ! (lParam & 0x80000000UL);
+          return SK_Console::getInstance ()->KeyDown (lpKbdLL->vkCode, (1 << 30) | (1 << 29));
+        }
+      } break;
+
+      case WM_KEYUP:
+      case WM_SYSKEYUP:
+      {
+        LPKBDLLHOOKSTRUCT lpKbdLL = (LPKBDLLHOOKSTRUCT)lParam;
+        if ((lpKbdLL->flags & 0x40)) {
+            BYTE    scanCode = HIWORD (lParam) & 0x7F;
+            SHORT   repeated = LOWORD (lParam);
+            bool    keyDown  = ! (lParam & 0x80000000UL);
+          return SK_Console::getInstance ()->KeyUp (lpKbdLL->vkCode, 0x4000 | (1 << 29) | (1 << 30));
+        }
+      } break;
+    }
+  }
+#endif
+
+  return CallNextHookEx (SK_Console::getInstance ()->hooks.keyboard_ll, nCode, wParam, lParam);
 }
 
 void

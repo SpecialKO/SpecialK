@@ -324,7 +324,14 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     return;
 
   if (cegD3D9 == nullptr) {
-    ResetCEGUI_D3D9 (pDev);
+    extern
+    ULONG
+    __stdcall
+    SK_GetFramesDrawn (void);
+
+    if (SK_GetFramesDrawn () > 1) {
+      ResetCEGUI_D3D9 (pDev);
+    }
   }
 
   else {
@@ -425,12 +432,12 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       //SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
-      extern char szOSD [32768];
-      SK_UpdateOSD (szOSD);
-
       SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
 
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+
+      extern char szOSD [32768];
+      SK_UpdateOSD (szOSD);
     }
     cegD3D9->endRendering ();
 
@@ -658,14 +665,12 @@ void
 WINAPI
 SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
-#if 0
   if (BehaviorFlags & D3DCREATE_SOFTWARE_VERTEXPROCESSING) {
     dll_log.Log (L"[CompatHack] D3D9 Fixup: "
                  L"Software Vertex Processing Replaced with Mixed-Mode.");
     BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
     BehaviorFlags |=  D3DCREATE_MIXED_VERTEXPROCESSING;
   }
-#endif
 }
 
 void
@@ -783,6 +788,7 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
   if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
     SK_CEGUI_DrawD3D9 (This, pSwapChain);
+    pSwapChain.Release ();
   }
 
   // Hack for GeDoSaTo
@@ -799,24 +805,6 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
                                     pDestRect,
                                       hDestWindowOverride,
                                         pDirtyRegion );
-
-  extern HWND hWndRender;
-
-  if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-    // Only alter this HWND after the first frame is rendered, this
-    //   filters out software that creates swapchains for the sole purpose of
-    //     hooking the COM interface.
-    D3DPRESENT_PARAMETERS pparams;
-
-    IDirect3DSwapChain9* pSwapChain = nullptr;
-
-    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
-      if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
-        hWndRender = pparams.hDeviceWindow;
-
-      pSwapChain->Release ();
-    }
-  }
 
   if (! config.osd.pump)
     return SK_EndBufferSwap ( hr,
@@ -866,6 +854,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
     SK_CEGUI_DrawD3D9 (This, pSwapChain);
+    pSwapChain.Release ();
   }
 
   HRESULT hr = D3D9Present_Original (This,
@@ -873,24 +862,6 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                                      pDestRect,
                                      hDestWindowOverride,
                                      pDirtyRegion);
-
-  extern HWND hWndRender;
-
-  if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-    // Only alter this HWND after the first frame is rendered, this
-    //   filters out software that creates swapchains for the sole purpose of
-    //     hooking the COM interface.
-    D3DPRESENT_PARAMETERS pparams;
-
-    IDirect3DSwapChain9* pSwapChain = nullptr;
-
-    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
-      if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
-        hWndRender = pparams.hDeviceWindow;
-
-      pSwapChain->Release ();
-    }
-  }
 
   if (! config.osd.pump)
     return SK_EndBufferSwap ( hr,
@@ -1094,18 +1065,6 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
                                            hDestWindowOverride,
                                            pDirtyRegion,
                                            dwFlags);
-
-    extern HWND hWndRender;
-
-    if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-      // Only alter this HWND after the first frame is rendered, this
-      //   filters out software that creates swapchains for the sole purpose of
-      //     hooking the COM interface.
-      D3DPRESENT_PARAMETERS pparams;
-
-      if (SUCCEEDED (This->GetPresentParameters (&pparams)))
-        hWndRender = pparams.hDeviceWindow;
-    }
 
     // We are manually pumping OSD updates, do not do them on buffer swaps.
     if (config.osd.pump) {
@@ -1439,13 +1398,20 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
 
   if (cegD3D9 != nullptr) {
-    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
 
-    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-        cegD3D9_SB  = nullptr;
+    if (cegD3D9->getDevice () != This)
+      dll_log.Log ( L"[  CE GUI  ] >> Resetting a different device than CEGUI is "
+                    L" setup to render on?!" );
+    else {
+      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
 
-    cegD3D9->destroySystem ();
-    cegD3D9 = nullptr;
+      if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+          cegD3D9_SB  = nullptr;
+
+      cegD3D9->destroySystem ();
+      cegD3D9 = nullptr;
+    }
   }
 
 
@@ -1453,7 +1419,12 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                                       pPresentationParameters));
 
 
-  ResetCEGUI_D3D9 (This);
+  if (SUCCEEDED (hr)) {
+    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+
+    //if (cegD3D9 == nullptr)
+      //ResetCEGUI_D3D9       (This);
+  }
 
 
   return hr;
@@ -1502,13 +1473,20 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
 
   if (cegD3D9 != nullptr) {
-    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
 
-    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-        cegD3D9_SB  = nullptr;
+    if (cegD3D9->getDevice () != This)
+      dll_log.Log ( L"[  CE GUI  ] >> Resetting a different device than CEGUI is "
+                    L" setup to render on?!" );
+    else {
+      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
 
-    cegD3D9->destroySystem ();
-    cegD3D9 = nullptr;
+      if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+          cegD3D9_SB  = nullptr;
+
+      cegD3D9->destroySystem ();
+      cegD3D9 = nullptr;
+    }
   }
 
 
@@ -1517,7 +1495,12 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                                             pFullscreenDisplayMode ));
 
 
-  ResetCEGUI_D3D9 (This);
+  if (SUCCEEDED (hr)) {
+    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+
+    //if (cegD3D9 == nullptr)
+      //ResetCEGUI_D3D9       (This);
+  }
 
 
   return hr;
@@ -2086,13 +2069,15 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
                             pparams->BackBufferWidth, pparams->BackBufferHeight );
           }
         }
+
+        else {
+          pparams->BackBufferWidth  = config.window.res.override.x;
+          pparams->BackBufferHeight = config.window.res.override.y;
+        }
       }
 
-      else {
-        pparams->BackBufferWidth  = config.window.res.override.x;
-        pparams->BackBufferHeight = config.window.res.override.y;
-      }
-
+      // If this is zero, we need to actually create the render device / swapchain and
+      //   then get the value Windows assigned us...
       SK_SetWindowResX (pparams->BackBufferWidth);
       SK_SetWindowResY (pparams->BackBufferHeight);
 
@@ -2100,6 +2085,12 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         pparams->Windowed = FALSE;
 
       memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
+    }
+
+    extern HWND hWndRender;
+
+    if (hWndRender == 0 || (! IsWindow (hWndRender))) {
+      hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : GetFocus ();
     }
   }
 
@@ -2148,6 +2139,18 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
 
   if (! SUCCEEDED (ret))
     return ret;
+
+  if (cegD3D9 != nullptr) {
+    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
+
+    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+
+    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+        cegD3D9_SB  = nullptr;
+
+    cegD3D9->destroySystem ();
+    cegD3D9 = nullptr;
+  }
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
@@ -2394,6 +2397,18 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     }
 
     return ret;
+  }
+
+  if (cegD3D9 != nullptr) {
+    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
+
+    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+
+    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+        cegD3D9_SB  = nullptr;
+
+    cegD3D9->destroySystem ();
+    cegD3D9 = nullptr;
   }
 
   if (true) {//if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {

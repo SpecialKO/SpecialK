@@ -739,6 +739,9 @@ unsigned int
 __stdcall
 osd_pump (LPVOID lpThreadParam)
 { 
+  // TODO: This actually increases the number of frames rendered, which
+  //         may interfere with other mod logic... the entire feature is
+  //           a hack, but that behavior is not intended.
   while (true) {
     Sleep            ((DWORD)(config.osd.pump_interval * 1000.0f));
     SK_EndBufferSwap (S_OK, nullptr);
@@ -2221,12 +2224,6 @@ SK_ShutdownCore (const wchar_t* backend)
 
     dll_log.LogEx   (false, L"done!\n");
   }
-
-  dll_log.LogEx  (true,
-    L"[   RTSS   ] Closing RivaTuner Statistics Server connection... ");
-  // Shutdown the OSD as early as possible to avoid complications
-  SK_ReleaseOSD ();
-  dll_log.LogEx  (false, L"done!\n");
 
   if (budget_thread.handle != INVALID_HANDLE_VALUE) {
     config.load_balance.use = false; // Turn this off while shutting down
