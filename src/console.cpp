@@ -33,7 +33,7 @@
 #include "config.h"
 #include "command.h"
 #include "utility.h"
-#include "osd.h"
+#include "osd/text.h"
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")

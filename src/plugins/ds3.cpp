@@ -3,13 +3,13 @@
 #include <string>
 
 #include <Windows.h>
-#include "ini.h"
-#include "parameter.h"
-#include "utility.h"
+#include "../ini.h"
+#include "../parameter.h"
+#include "../utility.h"
 
-#include "log.h"
-#include "config.h"
-#include "core.h"
+#include "../log.h"
+#include "../config.h"
+#include "../core.h"
 
 #include <process.h>
 
@@ -365,7 +365,7 @@ struct {
 } ds3_cfg;
 
 
-#include "core.h"
+#include "../core.h"
 
 extern void
 __stdcall

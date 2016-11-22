@@ -228,7 +228,8 @@ SK_FreeRealD3D9 (void)
 #include "CEGUI/FontManager.h"
 #include "CEGUI/RendererModules/Direct3D9/Renderer.h"
 
-#include "osd.h"
+#include "osd/text.h"
+#include "osd/popup.h"
 
 #pragma comment (lib, "d3dx9.lib")
 
@@ -453,8 +454,6 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
   if (! config.cegui.enable)
     return;
 
-  bool reset = false;
-
   if (cegD3D9 == nullptr)
   {
     if (cegD3D9_SB != nullptr) {
@@ -470,8 +469,6 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       SK_CEGUI_RelocateLog (void);
 
       SK_CEGUI_RelocateLog ();
-
-      reset = true;
     } catch (...) {
       cegD3D9       = nullptr;
       return;
@@ -482,6 +479,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 
     SK_CEGUI_InitBase ();
 
+    SK_PopupManager::getInstance ()->destroyAllPopups ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D9);
   }
 }
@@ -1398,6 +1396,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
 
   if (cegD3D9 != nullptr) {
+    SK_PopupManager::getInstance ()->destroyAllPopups ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
 
     if (cegD3D9->getDevice () != This)
@@ -1473,6 +1472,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
 
   if (cegD3D9 != nullptr) {
+    SK_PopupManager::getInstance ()->destroyAllPopups ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
 
     if (cegD3D9->getDevice () != This)
@@ -2141,6 +2141,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
     return ret;
 
   if (cegD3D9 != nullptr) {
+    SK_PopupManager::getInstance ()->destroyAllPopups ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
 
     CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
@@ -2400,6 +2401,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   }
 
   if (cegD3D9 != nullptr) {
+    SK_PopupManager::getInstance ()->destroyAllPopups ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
 
     CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();

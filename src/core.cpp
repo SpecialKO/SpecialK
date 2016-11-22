@@ -43,7 +43,7 @@ extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lp
 #pragma warning   (pop)
 
 #include "config.h"
-#include "osd.h"
+#include "osd/text.h"
 #include "io_monitor.h"
 #include "import.h"
 #include "console.h"

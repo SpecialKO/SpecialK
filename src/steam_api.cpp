@@ -29,6 +29,8 @@
 #include "ini.h"
 #include "log.h"
 
+#include "osd/popup.h"
+
 // PlaySound
 #pragma comment (lib, "winmm.lib")
 
@@ -1491,8 +1493,8 @@ public:
 
       try {
 
-      CEGUI::WindowManager& window_mgr = CEGUI::WindowManager::getDllSingleton ();
-      CEGUI::Window*        achv_popup = window_mgr.loadLayoutFromFile      ("Achievements.layout");
+      SK_PopupWindow* achv_popup =
+        SK_PopupManager::getInstance ()->createPopup ("Achievements.layout");
 
       CEGUI::Window* achv_title = achv_popup->getChild ("Achievement/Title");
       achv_title->setText (achievement->human_name_);
@@ -1612,7 +1614,10 @@ public:
       popup.time        = timeGetTime ();
       popup.achievement = achievement;
 
-      pSys->getDefaultGUIContext ().setRootWindow (popup.window);
+      CEGUI::Window* win =
+        *popup.window;
+
+      pSys->getDefaultGUIContext ().setRootWindow (win);
 
       char    szAppName [256] = { '\0' };
       bool    avail           = false;
@@ -1626,11 +1631,11 @@ public:
               szAppName, 255
         );
 
-      popup.window->getChild ("Achievement")->setText (
+      achv_popup->getChild ("Achievement")->setText (
         has_app ? szAppName :
                   ""
       );
-      popup.window->show    ();
+      win->show    ();
 
       popups.push_back (popup);
 
@@ -1656,9 +1661,20 @@ public:
 
       while (it != popups.end ()) {
         if (timeGetTime () < (*it).time + POPUP_DURATION_MS) {
-          (*it++).window->show ();
-        } else {
-          (*it).window->hide ();
+          if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+            CEGUI::Window* win = *(*it++).window;
+            win->show ();
+          } else {
+            it = popups.erase (it);
+          }
+        }
+
+        else {
+          if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+            CEGUI::Window* win = *(*it).window;
+            win->hide ();
+            SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
+          }
 
           it = popups.erase (it);
         }
@@ -1747,9 +1763,9 @@ private:
   > friend_stats;
 
   struct SK_AchievementPopup {
-    CEGUI::Window* window;
-    DWORD          time;
-    Achievement*   achievement;
+    SK_PopupWindow* window;
+    DWORD           time;
+    Achievement*    achievement;
   };
 
   std::vector <SK_AchievementPopup> popups;

@@ -68,7 +68,8 @@
 #include "CEGUI/FontManager.h"
 #include "CEGUI/RendererModules/Direct3D11/Renderer.h"
 
-#include "osd.h"
+#include "osd/text.h"
+#include "osd/popup.h"
 
 #ifdef _WIN64
 
@@ -235,6 +236,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
     SK_CEGUI_InitBase ();
 
+    SK_PopupManager::getInstance ()->destroyAllPopups ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
   }
 }

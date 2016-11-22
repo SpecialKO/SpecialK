@@ -350,6 +350,7 @@ Exit 0</Command>
     <ClInclude Include="memory_monitor.h" />
     <ClInclude Include="nvapi.h" />
     <ClInclude Include="opengl_backend.h" />
+    <ClInclude Include="osd\popup.h" />
     <ClInclude Include="osd\text.h" />
     <ClInclude Include="parameter.h" />
     <ClInclude Include="resource.h" />
@@ -370,6 +371,7 @@ Exit 0</Command>
     <ClCompile Include="diagnostics\compatibility.cpp" />
     <ClCompile Include="diagnostics\crash_handler.cpp" />
     <ClCompile Include="diagnostics\debug_utils.cpp" />
+    <ClCompile Include="osd\popup.cpp" />
     <ClCompile Include="plugins\tw3.cpp" />
     <ClCompile Include="SpecialK.cpp" />
     <ClCompile Include="command.cpp" />

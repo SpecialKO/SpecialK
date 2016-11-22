@@ -1,14 +1,14 @@
 #include <string>
 
-#include "config.h"
+#include "../config.h"
 
-#include "ini.h"
-#include "parameter.h"
-#include "utility.h"
+#include "../ini.h"
+#include "../parameter.h"
+#include "../utility.h"
 
-#include "log.h"
+#include "../log.h"
 
-#include "core.h"
+#include "../core.h"
 
 #include <process.h>
 
@@ -103,7 +103,7 @@ SK_FO4_IsBorderlessWindow (void)
 }
 #endif
 
-#include "config.h"
+#include "../config.h"
 
 static RECT window;
 

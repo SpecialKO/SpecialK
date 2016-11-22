@@ -234,7 +234,10 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="text.h">
+    <ClInclude Include="osd\text.h">
+      <Filter>Header Files\OSD</Filter>
+    </ClInclude>
+    <ClInclude Include="osd\popup.h">
       <Filter>Header Files\OSD</Filter>
     </ClInclude>
   </ItemGroup>
@@ -293,15 +296,6 @@
     <ClCompile Include="nvapi.cpp">
       <Filter>Source Files\Stats</Filter>
     </ClCompile>
-    <ClCompile Include="plugin_ds3.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
-    <ClCompile Include="plugin_fo4.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
-    <ClCompile Include="plugin_tw3.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="utility.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
@@ -341,7 +335,19 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="text.cpp">
+    <ClCompile Include="osd\text.cpp">
+      <Filter>Source Files\OSD</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\ds3.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\fo4.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins\tw3.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="osd\popup.cpp">
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
   </ItemGroup>

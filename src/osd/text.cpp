@@ -21,7 +21,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define OSD_IMP
-#include "osd.h"
+#include "text.h"
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>
@@ -184,19 +184,19 @@ SK_TextOverlay::~SK_TextOverlay (void)
 #include <io.h>
 #include <tchar.h>
 
-#include "config.h"
-#include "io_monitor.h"
-#include "gpu_monitor.h"
-#include "memory_monitor.h"
+#include "../config.h"
+#include "../io_monitor.h"
+#include "../gpu_monitor.h"
+#include "../memory_monitor.h"
 
-#include "core.h"
-#include "framerate.h"
+#include "../core.h"
+#include "../framerate.h"
 
-#include "log.h"
+#include "../log.h"
 
-#include "dxgi_backend.h"
-#include "d3d9_backend.h"
-#include "opengl_backend.h"
+#include "../dxgi_backend.h"
+#include "../d3d9_backend.h"
+#include "../opengl_backend.h"
 
 #define OSD_PRINTF   if (config.osd.show)     { pszOSD += sprintf (pszOSD,
 #define OSD_R_PRINTF if (config.osd.show &&\
@@ -224,7 +224,7 @@ SK_TextOverlay::~SK_TextOverlay (void)
 
 char szOSD [32768] = { '\0' };
 
-#include "nvapi.h"
+#include "../nvapi.h"
 extern NV_GET_CURRENT_SLI_STATE sli_state;
 extern BOOL nvapi_init;
 
@@ -256,7 +256,7 @@ SK_GetSharedMemory (void)
   return SK_GetSharedMemory (GetCurrentProcessId ());
 }
 
-#include "log.h"
+#include "../log.h"
 #include <d3d9.h>
 
 bool
@@ -469,9 +469,9 @@ SK_InstallOSD (void)
 SK::Framerate::Stats frame_history;
 SK::Framerate::Stats frame_history2;
 
-#include "command.h"
+#include "../command.h"
 
-#include "diagnostics/debug_utils.h"
+#include "../diagnostics/debug_utils.h"
 
 BOOL
 __stdcall
