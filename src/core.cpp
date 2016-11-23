@@ -1029,6 +1029,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
       __HrLoadAllImportsForDll ("CEGUIBase-0.dll");
 
+      __HrLoadAllImportsForDll ("CEGUIOpenGLRenderer-0.dll");
       __HrLoadAllImportsForDll ("CEGUIDirect3D9Renderer-0.dll");
       __HrLoadAllImportsForDll ("CEGUIDirect3D11Renderer-0.dll");
 

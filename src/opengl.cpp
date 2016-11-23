@@ -71,6 +71,11 @@ void
 WINAPI
 SK_HookGL (void);
 
+extern
+ULONG
+__stdcall
+SK_GetFramesDrawn (void);
+
 unsigned int
 WINAPI
 DXGI_Thread (LPVOID user)
@@ -114,6 +119,86 @@ DXGI_Thread (LPVOID user)
   }
 
   return 0;
+}
+
+#include "osd/text.h"
+#include "osd/popup.h"
+
+#include <CEGUI/RendererModules/OpenGL/GL3Renderer.h>
+
+CEGUI::OpenGL3Renderer* cegGL = nullptr;
+
+extern void
+SK_CEGUI_RelocateLog (void);
+
+extern void
+SK_CEGUI_InitBase (void);
+
+void ResetCEGUI_GL (void)
+{
+  if (! config.cegui.enable)
+    return;
+
+  if (cegGL == nullptr)
+  {
+    try {
+      cegGL = (CEGUI::OpenGL3Renderer *)
+        &CEGUI::OpenGL3Renderer::bootstrapSystem ();
+
+      cegGL->enableExtraStateSettings (true);
+
+      SK_CEGUI_RelocateLog ();
+    } catch (...) {
+      cegGL = nullptr;
+      return;
+    }
+
+    SK_CEGUI_InitBase ();
+
+    SK_PopupManager::getInstance ()->destroyAllPopups       ();
+    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegGL);
+  }
+}
+
+void
+SK_CEGUI_DrawGL (void)
+{
+  if (! config.cegui.enable)
+    return;
+
+  // TODO: Create a secondary context that shares "display lists" so that
+  //         we have a pure state machine all to ourselves.
+  if (cegGL == nullptr) {
+    if (SK_GetFramesDrawn () > 0) {
+      ResetCEGUI_GL ();
+    }
+  }
+
+  if (cegGL != nullptr) {
+    SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f, true);
+
+    glPushAttrib (GL_ALL_ATTRIB_BITS);
+
+    cegGL->beginRendering ();
+    {
+      glBindFramebuffer  (GL_FRAMEBUFFER, 0);
+      glActiveTexture    (GL_TEXTURE0);
+      glBindTexture      (GL_TEXTURE_2D, 0);
+      glUseProgram       (0);
+
+      glDisable          (GL_STENCIL_TEST);
+
+      // Flickering is preferable to waiting and unhinging the framerate!
+      if (SK_PopupManager::getInstance ()->tryLockPopups ())
+      {
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+        SK_PopupManager::getInstance   ()->unlockPopups ();
+      }
+    }
+    cegGL->endRendering ();
+
+    glPopAttrib ();
+  }
 }
 
 extern "C"
@@ -1190,7 +1275,16 @@ SwapBuffers (HDC hDC)
       (SwapBuffers_pfn)GetProcAddress (backend_dll, "SwapBuffers");
   }
 
-  SK_GL_UpdateRenderStats ();
+  //SK_GL_UpdateRenderStats ();
+
+  //int drawn = SK_GetFramesDrawn ();
+
+  //if (drawn <= 1) {
+    //glewExperimental = GL_TRUE;
+    //glewInit ();
+  //} else if (drawn > 1) {
+    //SK_CEGUI_DrawGL         ();
+  //}
 
   BOOL status = FALSE;
 
@@ -1220,7 +1314,6 @@ wglSwapBuffers (HDC hDC)
   if (hWndRender == 0 || (! IsWindow (hWndRender)))
     hWndRender = WindowFromDC (hDC);
 
-
   SK_BeginBufferSwap ();
 
   if (wgl_swap_buffers == nullptr) {
@@ -1228,7 +1321,16 @@ wglSwapBuffers (HDC hDC)
       (wglSwapBuffers_pfn)GetProcAddress (backend_dll, "wglSwapBuffers");
   }
 
-  SK_GL_UpdateRenderStats ();
+  //SK_GL_UpdateRenderStats ();
+
+  int drawn = SK_GetFramesDrawn ();
+
+  if (drawn < 1) {
+    glewExperimental = GL_TRUE;
+    glewInit ();
+  }
+
+  SK_CEGUI_DrawGL         ();
 
   BOOL status = FALSE;
 
@@ -1300,6 +1402,7 @@ typedef GLvoid    (WINAPI *glGetQueryObjectiv_pfn)   (GLuint id, GLenum pname, G
 typedef GLvoid    (WINAPI *glGetQueryObjecti64v_pfn) (GLuint id, GLenum pname, GLint64  *params);
 typedef GLvoid    (WINAPI *glGetQueryObjectui64v_pfn)(GLuint id, GLenum pname, GLuint64 *params);
 
+#if 0
 glGenQueries_pfn          glGenQueries;
 glDeleteQueries_pfn       glDeleteQueries;
 
@@ -1312,6 +1415,7 @@ glQueryCounter_pfn        glQueryCounter;
 glGetQueryObjectiv_pfn    glGetQueryObjectiv;
 glGetQueryObjecti64v_pfn  glGetQueryObjecti64v;
 glGetQueryObjectui64v_pfn glGetQueryObjectui64v;
+#endif
 
 namespace GLPerf
 {

@@ -37,7 +37,7 @@ public:
 
   float update (const char* szText);
 
-  float draw   (float x = 0.0f, float y = 0.0f);
+  float draw   (float x = 0.0f, float y = 0.0f, bool full = false);
   void  reset  (CEGUI::Renderer* renderer);
 
   void  resize   (float incr);
@@ -131,13 +131,15 @@ public:
   }
 
   void            resetAllOverlays (CEGUI::Renderer* renderer);
-  float           drawAllOverlays  (float x, float y);
+  float           drawAllOverlays  (float x, float y, bool full);
 
 protected:
   SK_TextOverlayFactory (void) {
+    gui_ctx_ = nullptr;
   }
 
 private:
+  CEGUI::GUIContext*                       gui_ctx_;
   std::map <std::string, SK_TextOverlay *> overlays_;
 };
 
@@ -1346,6 +1348,8 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
           pRenderer->getDisplaySize ()
       );
 
+      //dll_log.Log (L"%fx%f", pRenderer->getDisplaySize ().d_width, pRenderer->getDisplaySize ().d_height);
+
       geometry_ = &pRenderer->createGeometryBuffer (    );
 
       if (geometry_)
@@ -1529,6 +1533,9 @@ SK_TextOverlay::update (const char* szText)
         line = nullptr;
     }
 
+    CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
+    CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
+
     data_.extent = baseline;
     return data_.extent;
   }
@@ -1538,11 +1545,17 @@ SK_TextOverlay::update (const char* szText)
 }
 
 float
-SK_TextOverlay::draw (float x, float y)
+SK_TextOverlay::draw (float x, float y, bool full)
 {
   if (geometry_) {
     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
-    geometry_->draw           ();
+
+    if (full) {
+      //CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
+      //CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
+    }
+
+    //geometry_->draw           ();
 
     return data_.extent;
   }
@@ -1598,15 +1611,35 @@ SK_TextOverlay::getPos (float& x, float& y)
 void
 SK_TextOverlayFactory::resetAllOverlays (CEGUI::Renderer* renderer)
 {
+  //if (gui_ctx_ != nullptr)
+    //CEGUI::System::getDllSingleton ().destroyGUIContext (*gui_ctx_);
+
+  if (renderer != nullptr) {
+    gui_ctx_ =
+      &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
+      //&CEGUI::System::getDllSingleton ().createGUIContext (
+        //renderer->getDefaultRenderTarget ()
+      //);
+  }
+
   auto it =
     overlays_.begin ();
 
-  while (it != overlays_.end ())
-    (it++)->second->reset (renderer);
+  while (it != overlays_.end ()) {
+    if (it->second->geometry_ != nullptr)
+      gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+
+    it->second->reset (renderer);
+
+    if (it->second->geometry_ != nullptr)
+      gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+
+    ++it;
+  }
 }
 
 float
-SK_TextOverlayFactory::drawAllOverlays (float x, float y)
+SK_TextOverlayFactory::drawAllOverlays (float x, float y, bool full)
 {
   auto it =
     overlays_.begin ();
@@ -1614,7 +1647,12 @@ SK_TextOverlayFactory::drawAllOverlays (float x, float y)
   float base_y = y;
 
   while (it != overlays_.end ())
-    y += (it++)->second->draw (x, y);
+    y += (it++)->second->draw (x, y, full);
+
+  if (y != base_y && gui_ctx_ != nullptr) {
+    //gui_ctx_->markAsDirty ();
+    //gui_ctx_->invalidate  ();
+  }
 
   // Height of all rendered overlays
   return (y - base_y);

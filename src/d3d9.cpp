@@ -336,6 +336,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
   }
 
   else {
+    SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f, true);
+
     CComPtr <IDirect3DStateBlock9> pStateBlock = nullptr;
     pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock);
 
@@ -430,19 +432,12 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     cegD3D9->beginRendering ();
     {
-      SK_PopupManager::getInstance ()->lockPopups ();
+      // Flickering is preferable to waiting and unhinging the framerate!
+      if (SK_PopupManager::getInstance ()->tryLockPopups ())
       {
-        //SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-
-        SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
-
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+        SK_PopupManager::getInstance   ()->unlockPopups ();
       }
-      SK_PopupManager::getInstance ()->unlockPopups ();
-
-      extern char szOSD [32768];
-      SK_UpdateOSD (szOSD);
     }
     cegD3D9->endRendering ();
 

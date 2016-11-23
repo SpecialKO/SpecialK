@@ -45,12 +45,13 @@ void __stdcall SK_ResizeOSD        (float scale_incr,                         LP
 #ifndef OSD_IMP
 namespace CEGUI {
   class Renderer;
+  class GUIContext;
 }
 
 class SK_TextOverlay {
 public:
   float update (const char* szText);
-  float draw   (float x = 0.0f, float y = 0.0f);
+  float draw   (float x = 0.0f, float y = 0.0f, bool full = false);
   void  reset  (CEGUI::Renderer* renderer);
 
   void  resize   (float incr);
@@ -74,7 +75,7 @@ public:
   SK_TextOverlay* getTextOverlay    (const char* szAppName);
 
   void            resetAllOverlays  (CEGUI::Renderer* renderer);
-  float           drawAllOverlays   (float x = 0.0f, float y = 0.0f);
+  float           drawAllOverlays   (float x = 0.0f, float y = 0.0f, bool full = false);
 
 protected:
   SK_TextOverlayFactory (void);

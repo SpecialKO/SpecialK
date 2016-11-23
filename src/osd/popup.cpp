@@ -86,6 +86,7 @@ public:
   void            destroyPopup     (SK_PopupWindow* popup);
   void            destroyAllPopups (void);
 
+  bool            tryLockPopups    (void);
   void            lockPopups       (void);
   void            unlockPopups     (void);
 
@@ -103,6 +104,8 @@ private:
 
   std::map <SK_PopupWindow *, CEGUI::Window  *> popups_;
   std::map <CEGUI::Window  *, SK_PopupWindow *> popups_rev_;
+
+  CEGUI::GUIContext*                            gui_ctx_;
 };
 
 
@@ -115,7 +118,7 @@ SK_PopupManager*
 SK_PopupManager::getInstance (void)
 {
   if (__manager__ == nullptr) {
-    InitializeCriticalSectionAndSpinCount (&cs, 1048576UL);
+    InitializeCriticalSectionAndSpinCount (&cs, 4000UL);
     __manager__ = new SK_PopupManager ();
   }
 
@@ -124,6 +127,7 @@ SK_PopupManager::getInstance (void)
 
 SK_PopupManager::SK_PopupManager (void)
 {
+  gui_ctx_ = nullptr;
 }
 
 bool
@@ -141,15 +145,24 @@ SK_PopupManager::isPopup (SK_PopupWindow* popup)
   return false;
 }
 
+#include "text.h"
+
 SK_PopupWindow*
 SK_PopupManager::createPopup (const char* szLayout)
 {
-  lockPopups ();
+  if (gui_ctx_ == nullptr) {
+    gui_ctx_ =
+      &CEGUI::System::getDllSingleton ().createGUIContext (
+        CEGUI::System::getDllSingleton ().getRenderer ()->getDefaultRenderTarget ()
+    );
+  }
 
   SK_PopupWindow* popup =
     new SK_PopupWindow (szLayout);
 
   if (popup->window_ != nullptr) {
+    lockPopups ();
+
     popups_.insert     (std::make_pair (popup, popup->window_));
     popups_rev_.insert (std::make_pair (popup->window_, popup));
 
@@ -160,14 +173,15 @@ SK_PopupManager::createPopup (const char* szLayout)
                                  )
     );
 
+    gui_ctx_->setRootWindow (popup->window_);
+    popup->window_->setAlwaysOnTop (true);
+
     unlockPopups ();
 
     return popup;
   }
 
   delete popup;
-
-  unlockPopups ();
 
   return nullptr;
 }
@@ -179,12 +193,10 @@ SK_PopupManager::destroyPopup (SK_PopupWindow* popup)
 
   if (isPopup (popup)) {
     CEGUI::WindowManager& window_mgr =
-      CEGUI::WindowManager::getDllSingleton ();
 
-    if (popups_rev_.count (popup->window_)) {
-      popups_.erase     (popups_rev_ [popup->window_]);
-      popups_rev_.erase (popup->window_);
-    }
+    CEGUI::WindowManager::getDllSingleton ();
+    popups_.erase     (popups_rev_ [popup->window_]);
+    popups_rev_.erase (popup->window_);
 
     window_mgr.destroyWindow (popup->window_);
 
@@ -200,6 +212,11 @@ void
 SK_PopupManager::destroyAllPopups (void)
 {
   lockPopups ();
+
+  if (gui_ctx_ != nullptr)
+    CEGUI::System::getDllSingleton ().destroyGUIContext (*gui_ctx_);
+
+  gui_ctx_ = nullptr;
 
   auto it = popups_.begin ();
 
@@ -228,10 +245,10 @@ SK_PopupManager::destroyAllPopups (void)
 bool
 SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
 {
-  lockPopups ();
-
   CEGUI::WindowEventArgs& win_event =
     (CEGUI::WindowEventArgs &)e;
+
+  lockPopups ();
 
   if (popups_rev_.count (win_event.window)) {
     popups_.erase     (popups_rev_ [win_event.window]);
@@ -254,4 +271,10 @@ void
 SK_PopupManager::unlockPopups (void)
 {
   LeaveCriticalSection (&cs);
+}
+
+bool
+SK_PopupManager::tryLockPopups (void)
+{
+  return TryEnterCriticalSection (&cs);
 }

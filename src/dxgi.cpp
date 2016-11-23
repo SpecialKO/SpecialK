@@ -1264,6 +1264,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
 
     if (SUCCEEDED (hr)) {
+      SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+
       D3DX11_STATE_BLOCK sb;
       CreateStateblock (pCEG_DevCtx, &sb);
 
@@ -1306,12 +1308,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       cegD3D11->beginRendering ();
       {
-        SK_PopupManager::getInstance ()->lockPopups ();
+        // Flickering is preferable to waiting and unhinging the framerate!
+        if (SK_PopupManager::getInstance ()->tryLockPopups ())
         {
-          SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
           CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+          SK_PopupManager::getInstance   ()->unlockPopups ();
         }
-        SK_PopupManager::getInstance ()->unlockPopups ();
       }
       cegD3D11->endRendering ();
 

@@ -1627,8 +1627,6 @@ public:
       CEGUI::Window* win =
         *popup.window;
 
-      pSys->getDefaultGUIContext ().setRootWindow (win);
-
       char    szAppName [256] = { '\0' };
       bool    avail           = false;
       AppId_t app             = 0;
@@ -1662,36 +1660,37 @@ public:
     if (! popups.size ())
       return;
 
-    EnterCriticalSection (&popup_cs);
+    if (SK_PopupManager::getInstance ()->tryLockPopups ())
+    {
+      try {
+        #define POPUP_DURATION_MS config.steam.achievements.popup_duration
 
-    try {
-      #define POPUP_DURATION_MS config.steam.achievements.popup_duration
+        std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
 
-      std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
+        while (it != popups.end ()) {
+          if (timeGetTime () < (*it).time + POPUP_DURATION_MS) {
+            if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+              CEGUI::Window* win = *(*it++).window;
+              win->show ();
+            } else {
+              it = popups.erase (it);
+            }
+          }
 
-      while (it != popups.end ()) {
-        if (timeGetTime () < (*it).time + POPUP_DURATION_MS) {
-          if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-            CEGUI::Window* win = *(*it++).window;
-            win->show ();
-          } else {
+          else {
+            if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+              CEGUI::Window* win = *(*it).window;
+              win->hide ();
+              SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
+            }
+
             it = popups.erase (it);
           }
         }
+      } catch (...) {}
 
-        else {
-          if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-            CEGUI::Window* win = *(*it).window;
-            win->hide ();
-            SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
-          }
-
-          it = popups.erase (it);
-        }
-      }
-    } catch (...) {}
-
-    LeaveCriticalSection (&popup_cs);
+      SK_PopupManager::getInstance ()->unlockPopups ();
+    }
   }
 
   Achievement* getAchievement (const char* szName)
@@ -2364,6 +2363,9 @@ volatile ULONG __SteamAPI_hook    = FALSE;
 void
 SK_HookCSteamworks (void)
 {
+  if (config.steam.silent)
+    return;
+
   bool has_steamapi = false;
 
   if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE)) {
@@ -2507,6 +2509,9 @@ SteamAPI_Delay_Init (LPVOID user)
 void
 SK_HookSteamAPI (void)
 {
+  if (config.steam.silent)
+    return;
+
   if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE)) {
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;

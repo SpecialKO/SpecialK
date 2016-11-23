@@ -244,31 +244,28 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  else if (hCallingMod != SK_GetDLL ()) {
-    bool         self_load    = (hCallingMod == SK_GetDLL ());
-    std::wstring calling_name = SK_GetModuleName (hCallingMod);
-
+  if (hCallingMod != SK_GetDLL ()) {
          if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
-              ( StrStrIA (lpFileName,             "d3d9.dll")    ||
-                StrStrIW (calling_name.c_str (), L"d3d9.dll")    ||
-
-                StrStrIA (lpFileName,             "d3dx9.dll")   ||
-                StrStrIW (calling_name.c_str (), L"d3dx9.dll")   ||
+              ( StrStrIA (lpFileName,  "d3d9.dll")    ||
+                StrStrIW (wszModName, L"d3d9.dll")    ||
+                                                      
+                StrStrIA (lpFileName,  "d3dx9_")      ||
+                StrStrIW (wszModName, L"d3dx9_")      ||
 
                 // NVIDIA's User-Mode D3D Frontend
-                StrStrIA (lpFileName,             "nvd3dum.dll") ||
-                StrStrIW (calling_name.c_str (), L"nvd3dum.dll")  ) )
+                StrStrIA (lpFileName,  "nvd3dum.dll") ||
+                StrStrIW (wszModName, L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
-              ( StrStrIA (lpFileName,             "dxgi.dll") ||
-                StrStrIW (calling_name.c_str (), L"dxgi.dll") ))
+              ( StrStrIA (lpFileName,  "dxgi.dll") ||
+                StrStrIW (wszModName, L"dxgi.dll") ))
       SK_BootDXGI   ();
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) &&
-              ( StrStrIA (lpFileName,             "OpenGL32.dll") ||
-                StrStrIW (calling_name.c_str (), L"OpenGL32.dll") ))
+              ( StrStrIA (lpFileName,  "OpenGL32.dll") ||
+                StrStrIW (wszModName, L"OpenGL32.dll") ))
       SK_BootOpenGL ();
-    else if (   StrStrIA (lpFileName,             "vulkan-1.dll") ||
-                StrStrIW (calling_name.c_str (), L"vulkan-1.dll")  )
+    else if (   StrStrIA (lpFileName,  "vulkan-1.dll") ||
+                StrStrIW (wszModName, L"vulkan-1.dll")  )
       SK_BootVulkan ();
 
 
@@ -283,16 +280,16 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       extern void SK_HookCSteamworks (void);
       SK_HookCSteamworks ();
     }
-  }
 
-  // Some software repeatedly loads and unloads this, which can
-  //   cause TLS-related problems if left unchecked... just leave
-  //     the damn thing loaded permanently!
-  if (StrStrIA (lpFileName, "d3dcompiler_")) {
-    HMODULE hModDontCare;
-    GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_PIN,
-                           lpFileName,
-                             &hModDontCare );
+    // Some software repeatedly loads and unloads this, which can
+    //   cause TLS-related problems if left unchecked... just leave
+    //     the damn thing loaded permanently!
+    if (StrStrIA (lpFileName, "d3dcompiler_")) {
+      HMODULE hModDontCare;
+      GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_PIN,
+                             lpFileName,
+                               &hModDontCare );
+    }
   }
 }
 
@@ -320,33 +317,30 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  else {
-    bool         self_load    = (hCallingMod == SK_GetDLL ());
-    std::wstring calling_name = SK_GetModuleName (hCallingMod);
+  if (hCallingMod != SK_GetDLL ()) {
+       if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
+            ( StrStrIW (lpFileName, L"d3d9.dll")    ||
+              StrStrIW (wszModName, L"d3d9.dll")    ||
 
-         if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
-              ( StrStrIW (lpFileName,            L"d3d9.dll")    ||
-                StrStrIW (calling_name.c_str (), L"d3d9.dll")    ||
+              StrStrIW (lpFileName, L"d3dx9_")      ||
+              StrStrIW (wszModName, L"d3dx9_")      ||
 
-                StrStrIW (lpFileName,            L"d3dx9.dll")   ||
-                StrStrIW (calling_name.c_str (), L"d3dx9.dll")   ||
-
-                // NVIDIA's User-Mode D3D Frontend
-                StrStrIW (lpFileName,            L"nvd3dum.dll") ||
-                StrStrIW (calling_name.c_str (), L"nvd3dum.dll")  ) )
+              // NVIDIA's User-Mode D3D Frontend
+              StrStrIW (lpFileName, L"nvd3dum.dll") ||
+              StrStrIW (wszModName, L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
-              ( StrStrIW (lpFileName,            L"dxgi.dll") ||
-                StrStrIW (calling_name.c_str (), L"dxgi.dll") ))
+              ( StrStrIW (lpFileName, L"dxgi.dll") ||
+                StrStrIW (wszModName, L"dxgi.dll") ))
       SK_BootDXGI   ();
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) &&
-              ( StrStrIW (lpFileName,            L"OpenGL32.dll") ||
-                StrStrIW (calling_name.c_str (), L"OpenGL32.dll") ))
+              ( StrStrIW (lpFileName, L"OpenGL32.dll") ||
+                StrStrIW (wszModName, L"OpenGL32.dll") ))
       SK_BootOpenGL ();
-    else if ( StrStrIW (lpFileName,            L"vulkan-1.dll") ||
-              StrStrIW (calling_name.c_str (), L"vulkan-1.dll")  )
+    else if ( StrStrIW (lpFileName, L"vulkan-1.dll") ||
+              StrStrIW (wszModName, L"vulkan-1.dll")  )
       SK_BootVulkan ();
-
+    
     if (StrStrIW (lpFileName, L"CSteamworks.dll")) {
       extern void SK_HookCSteamworks (void);
       SK_HookCSteamworks ();
@@ -356,16 +350,16 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       extern void SK_HookSteamAPI (void);
       SK_HookSteamAPI ();
     }
-  }
-
-  // Some software repeatedly loads and unloads this, which can
-  //   cause TLS-related problems if left unchecked... just leave
-  //     the damn thing loaded permanently!
-  if (StrStrIW (lpFileName, L"d3dcompiler_")) {
-    HMODULE hModDontCare;
-    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
-                           lpFileName,
-                             &hModDontCare );
+    
+    // Some software repeatedly loads and unloads this, which can
+    //   cause TLS-related problems if left unchecked... just leave
+    //     the damn thing loaded permanently!
+    if (StrStrIW (lpFileName, L"d3dcompiler_")) {
+      HMODULE hModDontCare;
+      GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
+                             lpFileName,
+                               &hModDontCare );
+    }
   }
 }
 

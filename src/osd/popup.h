@@ -44,6 +44,7 @@ public:
   void            destroyPopup     (SK_PopupWindow* popup);
   void            destroyAllPopups (void);
 
+  bool            tryLockPopups    (void);
   void            lockPopups       (void);
   void            unlockPopups     (void);
 
