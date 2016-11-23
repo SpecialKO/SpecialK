@@ -28,7 +28,7 @@ Third-Party Copyright Summary
   SteamAPI     |  1996 - 2008   Valve Corporation
   ADL          |  2008 - 2013   Advanced Micro Devices, Inc.
   NvAPI        |  2005 - 2010   NVIDIA Corporation.
-  MinHook      |  2009 - 2015   Tsuda Kageyu
+  MinHook      |  2009 - 2016   Tsuda Kageyu
   FreeType2    |  2000,
                |  2001 - 2002   Francesco Zappa Nardelli
   FreeType2    |  2000          Computing Research Labs,
