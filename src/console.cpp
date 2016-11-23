@@ -1699,11 +1699,6 @@ SK_InstallWindowHook (HWND hWnd)
 
   MH_ApplyQueued ();
 
-  if (GetCursorPos_Original == nullptr)
-    GetCursorPos_Original = (GetCursorPos_pfn)GetProcAddress (GetModuleHandle (L"user32.dll"),"GetCursorPos");
-  if (GetCursorInfo_Original == nullptr)
-    GetCursorInfo_Original = (GetCursorInfo_pfn)GetProcAddress (GetModuleHandle (L"user32.dll"),"GetCursorInfo");
-
   game_window.hWnd = hWnd;
 
   game_window.WndProc_Original =

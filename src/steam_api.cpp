@@ -21,6 +21,16 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#include <Windows.h>
+#include <process.h>
+#include <Shlwapi.h>
+
+#define ISOLATION_AWARE_ENABLED 1
+#define PSAPI_VERSION           1
+
+#include <psapi.h>
+#pragma comment (lib, "psapi.lib")
+
 #include "resource.h"
 
 #include "core.h"
@@ -2344,12 +2354,18 @@ CSteamworks_Delay_Init (LPVOID user)
   return 0;
 }
 
+void SK_HookSteamAPI (void);
+
 volatile ULONG __hooked           = FALSE;
 volatile ULONG __CSteamworks_hook = FALSE;
+volatile ULONG __SteamAPI_hook    = FALSE;
+
 
 void
 SK_HookCSteamworks (void)
 {
+  bool has_steamapi = false;
+
   if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE)) {
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
@@ -2359,17 +2375,89 @@ SK_HookCSteamworks (void)
   }
 
   EnterCriticalSection (&init_cs);
-  if (InterlockedCompareExchange (&__CSteamworks_hook, TRUE, FALSE)) {
+  if ( InterlockedCompareExchange (&__CSteamworks_hook, TRUE, FALSE) ||
+       InterlockedCompareExchange (&__SteamAPI_hook,    FALSE, FALSE) ) {
     LeaveCriticalSection (&init_cs);
     return;
   }
 
   steam_log.Log (L"CSteamworks.dll was loaded, hooking...");
 
-  SK_CreateDLLHook ( L"CSteamworks.dll",
-                      "InitSafe",
-                      InitSafe_Detour,
-           (LPVOID *)&InitSafe_Original );
+  // Get the full path to the module's file.
+  HANDLE  hProc = GetCurrentProcess ();
+  HMODULE hMod  = GetModuleHandle (L"CSteamworks.dll");
+
+  wchar_t wszModName [MAX_PATH] = { L'\0' };
+
+  if ( GetModuleFileNameExW ( hProc,
+                                hMod,
+                                  wszModName,
+                                    sizeof (wszModName) /
+                                      sizeof (wchar_t) ) ) {
+    wchar_t* dll_path =
+      StrStrIW (wszModName, L"CSteamworks.dll");
+
+    if (dll_path != nullptr)
+      *dll_path = L'\0';
+
+#ifdef _WIN64
+    lstrcatW (wszModName, L"steam_api64.dll");
+#else
+    lstrcatW (wszModName, L"steam_api.dll");
+#endif
+
+    if (LoadLibraryW (wszModName)) {
+      steam_log.Log ( L" >>> Located a real steam_api DLL: '%s'...",
+                      wszModName );
+
+      has_steamapi = true;
+
+      SK_CreateDLLHook3 ( wszModName,
+                         "SteamAPI_InitSafe",
+                         SteamAPI_InitSafe_Detour,
+              (LPVOID *)&SteamAPI_InitSafe_Original );
+
+      SK_CreateDLLHook3 ( wszModName,
+                         "SteamAPI_Init",
+                        SteamAPI_Init_Detour,
+              (LPVOID *)&SteamAPI_Init_Original );
+
+      SK_CreateDLLHook3 ( wszModName,
+                          "SteamAPI_Shutdown",
+                          SteamAPI_Shutdown_Detour,
+               (LPVOID *)&SteamAPI_Shutdown_Original );
+
+      SK_CreateDLLHook3 ( wszModName,
+                         "SteamAPI_RegisterCallback",
+                         SteamAPI_RegisterCallback_Detour,
+              (LPVOID *)&SteamAPI_RegisterCallback_Original,
+              (LPVOID *)&SteamAPI_RegisterCallback );
+
+      SK_CreateDLLHook3 ( wszModName,
+                         "SteamAPI_UnregisterCallback",
+                         SteamAPI_UnregisterCallback_Detour,
+              (LPVOID *)&SteamAPI_UnregisterCallback_Original,
+              (LPVOID *)&SteamAPI_UnregisterCallback );
+
+      SK_CreateDLLHook3 ( wszModName,
+                         "SteamAPI_RunCallbacks",
+                         SteamAPI_RunCallbacks_Detour,
+              (LPVOID *)&SteamAPI_RunCallbacks_Original,
+              (LPVOID *)&SteamAPI_RunCallbacks );
+
+      SK_ApplyQueuedHooks ();
+
+      SteamAPI_InitSafe_Detour ();
+    }
+
+    else {
+      SK_CreateDLLHook ( L"CSteamworks.dll",
+                         "InitSafe",
+                         InitSafe_Detour,
+              (LPVOID *)&InitSafe_Original );
+    }
+  }
+
 
 #if 0
   SK_CreateDLLHook ( L"CSteamworks.dll", "RegisterCallback",
@@ -2385,7 +2473,7 @@ SK_HookCSteamworks (void)
   SK_EnableHook (SteamAPI_UnregisterCallback);
 #endif
 
-  if (config.steam.init_delay > 0)
+  if ((! has_steamapi) && config.steam.init_delay > 0)
     CreateThread (nullptr, 0, CSteamworks_Delay_Init, nullptr, 0x00, nullptr);
 
   LeaveCriticalSection (&init_cs);
@@ -2416,8 +2504,6 @@ SteamAPI_Delay_Init (LPVOID user)
   return 0;
 }
 
-volatile ULONG __SteamAPI_hook = FALSE;
-
 void
 SK_HookSteamAPI (void)
 {
@@ -2443,35 +2529,35 @@ SK_HookSteamAPI (void)
 
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                     "SteamAPI_InitSafe",
+  SK_CreateDLLHook3 ( wszSteamAPI,
+                      "SteamAPI_InitSafe",
                      SteamAPI_InitSafe_Detour,
           (LPVOID *)&SteamAPI_InitSafe_Original );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                     "SteamAPI_Init",
+  SK_CreateDLLHook3 ( wszSteamAPI,
+                      "SteamAPI_Init",
                      SteamAPI_Init_Detour,
           (LPVOID *)&SteamAPI_Init_Original );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook3 ( wszSteamAPI,
                       "SteamAPI_Shutdown",
                       SteamAPI_Shutdown_Detour,
            (LPVOID *)&SteamAPI_Shutdown_Original );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                     "SteamAPI_RegisterCallback",
+  SK_CreateDLLHook3 ( wszSteamAPI,
+                      "SteamAPI_RegisterCallback",
                      SteamAPI_RegisterCallback_Detour,
           (LPVOID *)&SteamAPI_RegisterCallback_Original,
           (LPVOID *)&SteamAPI_RegisterCallback );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                     "SteamAPI_UnregisterCallback",
+  SK_CreateDLLHook3 ( wszSteamAPI,
+                      "SteamAPI_UnregisterCallback",
                      SteamAPI_UnregisterCallback_Detour,
           (LPVOID *)&SteamAPI_UnregisterCallback_Original,
           (LPVOID *)&SteamAPI_UnregisterCallback );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                     "SteamAPI_RunCallbacks",
+  SK_CreateDLLHook3 ( wszSteamAPI,
+                      "SteamAPI_RunCallbacks",
                      SteamAPI_RunCallbacks_Detour,
           (LPVOID *)&SteamAPI_RunCallbacks_Original,
           (LPVOID *)&SteamAPI_RunCallbacks );

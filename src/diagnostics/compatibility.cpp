@@ -249,8 +249,15 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     std::wstring calling_name = SK_GetModuleName (hCallingMod);
 
          if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
-              ( StrStrIA (lpFileName,             "d3d9.dll") ||
-                StrStrIW (calling_name.c_str (), L"d3d9.dll") )  )
+              ( StrStrIA (lpFileName,             "d3d9.dll")    ||
+                StrStrIW (calling_name.c_str (), L"d3d9.dll")    ||
+
+                StrStrIA (lpFileName,             "d3dx9.dll")   ||
+                StrStrIW (calling_name.c_str (), L"d3dx9.dll")   ||
+
+                // NVIDIA's User-Mode D3D Frontend
+                StrStrIA (lpFileName,             "nvd3dum.dll") ||
+                StrStrIW (calling_name.c_str (), L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
               ( StrStrIA (lpFileName,             "dxgi.dll") ||
@@ -265,14 +272,16 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       SK_BootVulkan ();
 
 
-    if (StrStrIA (lpFileName, "CSteamworks.dll")) {
-      extern void SK_HookCSteamworks (void);
-      SK_HookCSteamworks ();
-    } else if (StrStrIA (lpFileName, "steam_api.dll")   ||
-               StrStrIA (lpFileName, "steam_api64.dll") ||
-               StrStrIA (lpFileName, "SteamNative.dll") ) {
+    if ( StrStrIA (lpFileName, "steam_api.dll")   ||
+         StrStrIA (lpFileName, "steam_api64.dll") ||
+         StrStrIA (lpFileName, "SteamNative.dll") ) {
       extern void SK_HookSteamAPI (void);
       SK_HookSteamAPI ();
+    }
+
+    else if (StrStrIA (lpFileName, "CSteamworks.dll")) {
+      extern void SK_HookCSteamworks (void);
+      SK_HookCSteamworks ();
     }
   }
 
@@ -316,8 +325,15 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     std::wstring calling_name = SK_GetModuleName (hCallingMod);
 
          if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
-              ( StrStrIW (lpFileName,            L"d3d9.dll") ||
-                StrStrIW (calling_name.c_str (), L"d3d9.dll") )  )
+              ( StrStrIW (lpFileName,            L"d3d9.dll")    ||
+                StrStrIW (calling_name.c_str (), L"d3d9.dll")    ||
+
+                StrStrIW (lpFileName,            L"d3dx9.dll")   ||
+                StrStrIW (calling_name.c_str (), L"d3dx9.dll")   ||
+
+                // NVIDIA's User-Mode D3D Frontend
+                StrStrIW (lpFileName,            L"nvd3dum.dll") ||
+                StrStrIW (calling_name.c_str (), L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
               ( StrStrIW (lpFileName,            L"dxgi.dll") ||

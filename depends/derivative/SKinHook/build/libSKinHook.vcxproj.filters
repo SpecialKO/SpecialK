@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\SKinHook\buffer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\SKinHook\hook.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\SKinHook\trampoline.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\SKinHook\hde\hde64.c">
+      <Filter>HDE\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\SKinHook\hde\hde32.c">
+      <Filter>HDE\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\SKinHook\hde\hde32.h">
+      <Filter>HDE\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SKinHook\hde\hde64.h">
+      <Filter>HDE\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SKinHook\hde\pstdint.h">
+      <Filter>HDE\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SKinHook\hde\table32.h">
+      <Filter>HDE\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SKinHook\hde\table64.h">
+      <Filter>HDE\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SKinHook\buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SKinHook\trampoline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\MinHook\MinHook.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{9d24b740-be2e-4cfd-b9a4-340a50946ee9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{76381bc7-2863-4cc5-aede-926ec2c506e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HDE">
+      <UniqueIdentifier>{56ddb326-6179-430d-ae19-e13bfd767bfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HDE\Source Files">
+      <UniqueIdentifier>{5bce661c-e990-40cf-8178-33778f3c0fa9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HDE\Header Files">
+      <UniqueIdentifier>{49f306ae-dbcd-4506-a96a-f3e9154daf1d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

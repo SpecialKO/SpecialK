@@ -1,6 +1,6 @@
 /*
  *  MinHook - The Minimalistic API Hooking Library for x64/x86
- *  Copyright (C) 2009-2015 Tsuda Kageyu.
+ *  Copyright (C) 2009-2016 Tsuda Kageyu.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -124,6 +124,23 @@ extern "C" {
     MH_STATUS WINAPI MH_CreateHookApi(
         LPCWSTR pszModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID *ppOriginal);
 
+    // Creates a Hook for the specified API function, in disabled state.
+    // Parameters:
+    //   pszModule  [in]  A pointer to the loaded module name which contains the
+    //                    target function.
+    //   pszTarget  [in]  A pointer to the target function name, which will be
+    //                    overridden by the detour function.
+    //   pDetour    [in]  A pointer to the detour function, which will override
+    //                    the target function.
+    //   ppOriginal [out] A pointer to the trampoline function, which will be
+    //                    used to call the original target function.
+    //                    This parameter can be NULL.
+    //   ppTarget   [out] A pointer to the target function, which will be used
+    //                    with other functions.
+    //                    This parameter can be NULL.
+    MH_STATUS WINAPI MH_CreateHookApiEx(
+        LPCWSTR pszModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID *ppOriginal, LPVOID *ppTarget);
+
     // Removes an already created hook.
     // Parameters:
     //   pTarget [in] A pointer to the target function.
@@ -162,6 +179,34 @@ extern "C" {
 
     // Translates the MH_STATUS to its name as a string.
     const char * WINAPI MH_StatusToString(MH_STATUS status);
+
+
+    // SKinHook Introspectable States
+    typedef enum SH_INTROSPECT_ID
+    {
+      // The trampoline function
+      SH_TRAMPOLINE     = 0x01,
+
+      // The detour function
+      SH_DETOUR         = 0x02,
+
+      // Is the target hotpatched?
+      SH_HOTPATCH       = 0x04,
+
+      // Is the hook enabled?
+      SH_ENABLED        = 0x08,
+
+      // Is the hook queued to be enabled?
+      SH_QUEUED_ENABLE  = 0x10,
+
+      SH_NUM_IPS        = 0x20,
+      SH_OLD_IPS        = 0x40,
+      SH_NEW_IPS        = 0x80
+    } SH_INTROSPECT_ID;
+
+    MH_STATUS WINAPI SH_Introspect (LPVOID pTarget, SH_INTROSPECT_ID type, LPVOID *ppResult);
+    MH_STATUS WINAPI SH_HookCount  (PUINT  pHookCount);
+    MH_STATUS WINAPI SH_HookTarget (UINT   hook_idx,                       LPVOID *ppTarget);
 
 #ifdef __cplusplus
 }

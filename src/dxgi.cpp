@@ -1306,8 +1306,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       cegD3D11->beginRendering ();
       {
-        SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+        SK_PopupManager::getInstance ()->lockPopups ();
+        {
+          SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
+          CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+        }
+        SK_PopupManager::getInstance ()->unlockPopups ();
       }
       cegD3D11->endRendering ();
 

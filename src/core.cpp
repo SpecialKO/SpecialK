@@ -1568,7 +1568,6 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                    LPVOID  pDetour,    LPVOID *ppOriginal,
                    LPVOID *ppFuncAddr )
 {
-#if 1
   HMODULE hMod = nullptr;
 
   // First try to get (and permanently hold) a reference to the hooked module
@@ -1604,15 +1603,26 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                         pDetour,
                           ppOriginal );
   }
-#else
-  MH_STATUS status =
-    MH_CreateHookApi ( pwszModule,
-                         pszProcName,
-                           pDetour,
-                             ppOriginal );
-#endif
 
-  if (status != MH_OK) {
+  if (status != MH_OK)
+  {
+    if (status == MH_ERROR_ALREADY_CREATED)
+    {
+      if (ppOriginal == nullptr) {
+        SH_Introspect ( pFuncAddr,
+                          SH_TRAMPOLINE,
+                            ppOriginal );
+
+        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
+                      L"(Status: \"%hs\")",
+                        pszProcName,
+                          pwszModule,
+                            MH_StatusToString (status) );
+
+        return status;
+      }
+    }
+
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
                     pszProcName,
@@ -1633,7 +1643,6 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                     LPVOID  pDetour,    LPVOID *ppOriginal,
                     LPVOID *ppFuncAddr )
 {
-#if 1
   HMODULE hMod = nullptr;
 
   // First try to get (and permanently hold) a reference to the hooked module
@@ -1669,15 +1678,107 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                         pDetour,
                           ppOriginal );
   }
-#else
-  MH_STATUS status =
-    MH_CreateHookApi ( pwszModule,
-                         pszProcName,
-                           pDetour,
-                             ppOriginal );
-#endif
+
+  if (status != MH_OK)
+  {
+    if (status == MH_ERROR_ALREADY_CREATED)
+    {
+      if (ppOriginal == nullptr) {
+        SH_Introspect ( pFuncAddr,
+                          SH_TRAMPOLINE,
+                            ppOriginal );
+
+        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
+                      L"(Status: \"%hs\")",
+                        pszProcName,
+                          pwszModule,
+                            MH_StatusToString (status) );
+
+        return status;
+      }
+    }
+
+    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
+                  L"(Status: \"%hs\")",
+                    pszProcName,
+                      pwszModule,
+                        MH_StatusToString (status) );
+  }
+
+  else {
+    if (ppFuncAddr != nullptr)
+      *ppFuncAddr = pFuncAddr;
+
+    MH_QueueEnableHook (ppFuncAddr);
+  }
+
+  return status;
+}
+
+MH_STATUS
+WINAPI
+SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
+                    LPVOID  pDetour,    LPVOID *ppOriginal,
+                    LPVOID *ppFuncAddr )
+{
+  HMODULE hMod = nullptr;
+
+  // First try to get (and permanently hold) a reference to the hooked module
+  if (! GetModuleHandleEx (
+          GET_MODULE_HANDLE_EX_FLAG_PIN,
+            pwszModule,
+              &hMod ) ) {
+    //
+    // If that fails, partially load the module into memory to establish our
+    //   function hook.
+    //
+    //  Defer the standard DllMain (...) entry-point until the
+    //    software actually loads the library on its own.
+    //
+    hMod = LoadLibraryEx (
+             pwszModule,
+               nullptr,
+                 /*DONT_RESOLVE_DLL_REFERENCES*/0 );
+  }
+
+  LPVOID    pFuncAddr = nullptr;
+  MH_STATUS status    = MH_OK;
+
+  if (hMod == 0)
+    status = MH_ERROR_MODULE_NOT_FOUND;
+
+  else {
+    pFuncAddr =
+      GetProcAddress (hMod, pszProcName);
+
+    status =
+      MH_CreateHook ( pFuncAddr,
+                        pDetour,
+                          ppOriginal );
+  }
 
   if (status != MH_OK) {
+    // Silently ignore this problem
+    if (status == MH_ERROR_ALREADY_CREATED && ppOriginal != nullptr)
+      return MH_OK;
+
+    if (status == MH_ERROR_ALREADY_CREATED)
+    {
+      if (ppOriginal == nullptr) {
+        SH_Introspect ( pFuncAddr,
+                          SH_TRAMPOLINE,
+                            ppOriginal );
+
+        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
+                      L"(Status: \"%hs\")",
+                        pszProcName,
+                          pwszModule,
+                            MH_StatusToString (status) );
+
+        return status;
+      }
+    }
+
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
                     pszProcName,
@@ -1723,11 +1824,6 @@ SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
                         LPVOID *ppOriginal )
 {
   MH_STATUS ret =
-
- 
-
-
-
     SK_CreateFuncHook (
       pwszFuncName,
         ppVFTable [dwOffset],
@@ -1763,7 +1859,7 @@ SK_EnableHook (LPVOID pTarget)
   MH_STATUS status =
     MH_EnableHook (pTarget);
 
-  if (status != MH_OK) {
+  if (status != MH_OK && status != MH_ERROR_ENABLED) {
     if (pTarget != MH_ALL_HOOKS) {
       dll_log.Log(L"[ Min Hook ] Failed to Enable Hook with Address: %04ph!"
                   L" (Status: \"%hs\")",
@@ -1786,7 +1882,7 @@ SK_DisableHook (LPVOID pTarget)
   MH_STATUS status =
     MH_DisableHook (pTarget);
 
-  if (status != MH_OK) {
+  if (status != MH_OK && status != MH_ERROR_DISABLED) {
     if (pTarget != MH_ALL_HOOKS) {
       dll_log.Log(L"[ Min Hook ] Failed to Disable Hook with Address: %04Xh!"
                   L" (Status: \"%hs\")",
@@ -2158,17 +2254,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   extern void SK_TestSteamImports (HMODULE hMod);
   SK_TestSteamImports (SK_GetDLL ());
 
-    if (GetModuleHandle (L"CSteamworks.dll")) {
-      extern void SK_HookCSteamworks (void);
-      SK_HookCSteamworks ();
-    }
+  if (GetModuleHandle (L"CSteamworks.dll")) {
+    extern void SK_HookCSteamworks (void);
+    SK_HookCSteamworks ();
+  }
 
-    else if ( GetModuleHandle (L"steam_api.dll")   ||
-              GetModuleHandle (L"steam_api64.dll") ||
-              GetModuleHandle (L"SteamNative.dll") ) {
-      extern void SK_HookSteamAPI (void);
-      SK_HookSteamAPI ();
-    }
+  if ( GetModuleHandle (L"steam_api.dll")   ||
+       GetModuleHandle (L"steam_api64.dll") ||
+       GetModuleHandle (L"SteamNative.dll") ) {
+    extern void SK_HookSteamAPI (void);
+    SK_HookSteamAPI ();
+  }
 
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
@@ -2431,9 +2527,9 @@ SK_BeginBufferSwap (void)
       SK_HookCSteamworks ();
     }
 
-    else if ( GetModuleHandle (L"steam_api.dll")   ||
-              GetModuleHandle (L"steam_api64.dll") ||
-              GetModuleHandle (L"SteamNative.dll") ) {
+    if ( GetModuleHandle (L"steam_api.dll")   ||
+         GetModuleHandle (L"steam_api64.dll") ||
+         GetModuleHandle (L"SteamNative.dll") ) {
       extern void SK_HookSteamAPI (void);
       SK_HookSteamAPI ();
     }

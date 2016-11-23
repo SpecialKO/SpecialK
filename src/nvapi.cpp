@@ -99,7 +99,7 @@ NVAPI::ErrorMessage (_NvAPI_Status err,
   wchar_t wszFormattedError [1024] = { L'\0' };
 
   swprintf ( wszFormattedError, 1024,
-              L"Line %u of %s (in %hs (...)):\n"
+              L"Line %u of %hs (in %hs (...)):\n"
               L"------------------------\n\n"
               L"NvAPI_%hs\n\n\t>> %hs <<",
                line_no,

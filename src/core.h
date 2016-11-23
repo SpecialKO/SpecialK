@@ -123,6 +123,13 @@ extern "C" {
                           LPVOID  pDetour,    LPVOID *ppOriginal,
                           LPVOID *ppFuncAddr = nullptr );
 
+  // Queues a hook rather than enabling it immediately.
+  //   (If already hooked, fails silently)
+  MH_STATUS WINAPI
+      SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
+                          LPVOID  pDetour,    LPVOID *ppOriginal,
+                          LPVOID *ppFuncAddr = nullptr );
+
   MH_STATUS WINAPI
     SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
                            LPVOID *ppVFTable,

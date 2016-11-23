@@ -44,6 +44,9 @@ public:
   void            destroyPopup     (SK_PopupWindow* popup);
   void            destroyAllPopups (void);
 
+  void            lockPopups       (void);
+  void            unlockPopups     (void);
+
   void            drawAllPopups    (void);
   bool            isPopup          (SK_PopupWindow* popup);
 

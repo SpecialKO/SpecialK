@@ -430,12 +430,16 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     cegD3D9->beginRendering ();
     {
-      //SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+      SK_PopupManager::getInstance ()->lockPopups ();
+      {
+        //SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
-      SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
+        SK_TextOverlayFactory::getInstance ()->drawAllOverlays ();
 
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+      }
+      SK_PopupManager::getInstance ()->unlockPopups ();
 
       extern char szOSD [32768];
       SK_UpdateOSD (szOSD);
@@ -786,7 +790,6 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
   if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
     SK_CEGUI_DrawD3D9 (This, pSwapChain);
-    pSwapChain.Release ();
   }
 
   // Hack for GeDoSaTo
@@ -852,7 +855,6 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
     SK_CEGUI_DrawD3D9 (This, pSwapChain);
-    pSwapChain.Release ();
   }
 
   HRESULT hr = D3D9Present_Original (This,
