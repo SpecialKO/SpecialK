@@ -250,74 +250,6 @@ void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
 #include <CEGUI/Rect.h>
 #include <CEGUI/RendererModules/Direct3D9/Renderer.h>
 
-CEGUI::GeometryBuffer* pCEGUI_OSDGeom = nullptr;
-CEGUI::Font*           pCEGUI_OSDFont = nullptr;
-
-void
-SK_CEGUI_ResetOSD (CEGUI::Renderer* pRenderer)
-{
-  pCEGUI_OSDFont = nullptr;
-
-  try {
-    pCEGUI_OSDFont =
-      &CEGUI::FontManager::getDllSingleton ().createFromFile ("Consolas-12.font");
-  } catch (...) {
-  }
-
-  const CEGUI::Rectf scrn (
-    CEGUI::Vector2f (0.0f, 0.0f),
-      pRenderer->getDisplaySize ()
-  );
-
-  // setup for FPS value
-  pCEGUI_OSDGeom = &pRenderer->createGeometryBuffer (    );
-  pCEGUI_OSDGeom->setClippingRegion                 (scrn);
-}
-
-void
-SK_CEGUI_DrawOSD (void)
-{
-  extern char szOSD [32768];
-
-  if (pCEGUI_OSDFont && pCEGUI_OSDGeom) {
-    pCEGUI_OSDGeom->reset ();
-
-    char* line = strtok (szOSD, "\n");
-
-    float baseline = 0.0f;
-    float spacing  = pCEGUI_OSDFont->getLineSpacing ();
-
-    float red   = config.osd.red   / 255.0f;
-    float green = config.osd.green / 255.0f;
-    float blue  = config.osd.blue  / 255.0f;
-
-    if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1) {
-      //red = 238.0f; green = 250.0f; blue = 5.0f;
-      blue = 238.0f; green = 250.0f; red = 5.0f;
-    }
-
-    while (line != nullptr) {
-      pCEGUI_OSDFont->drawText (
-        *pCEGUI_OSDGeom,
-          line,
-            CEGUI::Vector2f (0.0f, baseline),
-              nullptr,
-                CEGUI::Colour ( red,
-                                  green,
-                                    blue ) );
-
-      baseline += spacing;
-
-      line = strtok (nullptr, "\n");
-    }
-  }
-
-  CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-
-  if (pCEGUI_OSDGeom)
-    pCEGUI_OSDGeom->draw ();
-}
-
 void
 SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 {
@@ -336,8 +268,6 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
   }
 
   else {
-    SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f, true);
-
     CComPtr <IDirect3DStateBlock9> pStateBlock = nullptr;
     pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock);
 
@@ -432,12 +362,12 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     cegD3D9->beginRendering ();
     {
-      // Flickering is preferable to waiting and unhinging the framerate!
-      if (SK_PopupManager::getInstance ()->tryLockPopups ())
-      {
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-        SK_PopupManager::getInstance   ()->unlockPopups ();
-      }
+      SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+
+      extern void SK_Steam_DrawOSD (void);
+      SK_Steam_DrawOSD ();
+
+      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
     }
     cegD3D9->endRendering ();
 
@@ -453,12 +383,33 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
   if (! config.cegui.enable)
     return;
 
-  if (cegD3D9 == nullptr)
-  {
-    if (cegD3D9_SB != nullptr) {
-      cegD3D9_SB->Release ();
-      cegD3D9_SB = nullptr;
+  if (cegD3D9 != nullptr || (pDev == nullptr)) {
+    extern void
+    SK_Steam_ClearPopups ();
+    SK_Steam_ClearPopups ();
+
+    //if (cegD3D9->getDevice () != pDev)
+      //dll_log.Log ( L"[  CE GUI  ] >> Resetting a different device than CEGUI is "
+                    //L" setup to render on?!" );
+
+    if (cegD3D9 != nullptr) {
+      SK_TextOverlayFactory::getInstance ()->destroyAllOverlays ();
+      SK_PopupManager::getInstance ()->destroyAllPopups         ();
+
+      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
     }
+
+    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+        cegD3D9_SB  = nullptr;
+
+    if (cegD3D9 != nullptr) cegD3D9->destroySystem ();
+        cegD3D9  = nullptr;
+  }
+
+  else if (cegD3D9 == nullptr)
+  {
+    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+        cegD3D9_SB  = nullptr;
 
     try {
       cegD3D9 = (CEGUI::Direct3D9Renderer *)
@@ -478,8 +429,12 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 
     SK_CEGUI_InitBase ();
 
-    SK_PopupManager::getInstance ()->destroyAllPopups ();
+    SK_PopupManager::getInstance ()->destroyAllPopups       ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D9);
+
+    extern void
+    SK_Steam_ClearPopups ();
+    SK_Steam_ClearPopups ();
   }
 }
 
@@ -1391,37 +1346,15 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   MH_ApplyQueued ();
 
-
-  if (cegD3D9 != nullptr) {
-    SK_PopupManager::getInstance ()->destroyAllPopups ();
-    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
-
-    if (cegD3D9->getDevice () != This)
-      dll_log.Log ( L"[  CE GUI  ] >> Resetting a different device than CEGUI is "
-                    L" setup to render on?!" );
-    else {
-      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-
-      if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-          cegD3D9_SB  = nullptr;
-
-      cegD3D9->destroySystem ();
-      cegD3D9 = nullptr;
-    }
-  }
-
+  // Release
+  ResetCEGUI_D3D9 (nullptr);
 
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
 
-
   if (SUCCEEDED (hr)) {
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-
-    //if (cegD3D9 == nullptr)
-      //ResetCEGUI_D3D9       (This);
   }
-
 
   return hr;
 }
@@ -1467,38 +1400,16 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   pDev.Release ();
 
-
-  if (cegD3D9 != nullptr) {
-    SK_PopupManager::getInstance ()->destroyAllPopups ();
-    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
-
-    if (cegD3D9->getDevice () != This)
-      dll_log.Log ( L"[  CE GUI  ] >> Resetting a different device than CEGUI is "
-                    L" setup to render on?!" );
-    else {
-      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-
-      if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-          cegD3D9_SB  = nullptr;
-
-      cegD3D9->destroySystem ();
-      cegD3D9 = nullptr;
-    }
-  }
-
+  // Release
+  ResetCEGUI_D3D9 (nullptr);
 
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
                                             pFullscreenDisplayMode ));
 
-
   if (SUCCEEDED (hr)) {
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-
-    //if (cegD3D9 == nullptr)
-      //ResetCEGUI_D3D9       (This);
   }
-
 
   return hr;
 }
@@ -2137,19 +2048,6 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (! SUCCEEDED (ret))
     return ret;
 
-  if (cegD3D9 != nullptr) {
-    SK_PopupManager::getInstance ()->destroyAllPopups ();
-    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
-
-    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-
-    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-        cegD3D9_SB  = nullptr;
-
-    cegD3D9->destroySystem ();
-    cegD3D9 = nullptr;
-  }
-
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                       "IDirect3DDevice9::SetCursorPosition",
@@ -2325,6 +2223,9 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
     //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
   }
 
+  ResetCEGUI_D3D9 (nullptr);
+  //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+
   return ret;
 }
 
@@ -2395,19 +2296,6 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     }
 
     return ret;
-  }
-
-  if (cegD3D9 != nullptr) {
-    SK_PopupManager::getInstance ()->destroyAllPopups ();
-    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (nullptr);
-
-    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-
-    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-        cegD3D9_SB  = nullptr;
-
-    cegD3D9->destroySystem ();
-    cegD3D9 = nullptr;
   }
 
   if (true) {//if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
@@ -2584,6 +2472,9 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
 
     MH_ApplyQueued          ();
   }
+
+  ResetCEGUI_D3D9 (nullptr);
+  //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
 
   return ret;
 }

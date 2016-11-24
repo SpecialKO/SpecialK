@@ -39,6 +39,9 @@
 #include "ini.h"
 #include "log.h"
 
+#undef min
+#undef max
+
 #include "osd/popup.h"
 
 // PlaySound
@@ -46,7 +49,7 @@
 
 iSK_Logger steam_log;
 
-static volatile ULONG __SK_Steam_init = FALSE;
+volatile ULONG __SK_Steam_init = FALSE;
 
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
@@ -62,12 +65,17 @@ static volatile ULONG __SK_Steam_init = FALSE;
 
 std::multiset <class CCallbackBase *> overlay_activation_callbacks;
 
+void SK_HookSteamAPI (void);
+
+volatile ULONG __hooked           = FALSE;
+volatile ULONG __CSteamworks_hook = FALSE;
+volatile ULONG __SteamAPI_hook    = FALSE;
+
+
 CRITICAL_SECTION callback_cs = { 0 };
 CRITICAL_SECTION init_cs     = { 0 };
 CRITICAL_SECTION popup_cs    = { 0 };
 
-#undef min
-#undef max
 
 #include "CEGUI/CEGUI.h"
 #include "CEGUI/System.h"
@@ -78,53 +86,55 @@ bool S_CALLTYPE SteamAPI_Init_Detour     (void);
 
 void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
 
-S_API typedef bool (S_CALLTYPE *SteamAPI_Init_t    )(void);
-S_API typedef bool (S_CALLTYPE *SteamAPI_InitSafe_t)(void);
+S_API typedef void (S_CALLTYPE *SteamAPI_UseBreakpadCrashHandler_pfn)(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, PFNPreMinidumpCallback m_pfnPreMinidumpCallback);
 
-S_API typedef bool (S_CALLTYPE *SteamAPI_RestartAppIfNecessary_t)( uint32 unOwnAppID );
-S_API typedef bool (S_CALLTYPE *SteamAPI_IsSteamRunning_t)(void);
+S_API typedef bool (S_CALLTYPE *SteamAPI_Init_pfn    )(void);
+S_API typedef bool (S_CALLTYPE *SteamAPI_InitSafe_pfn)(void);
 
-S_API typedef void (S_CALLTYPE *SteamAPI_Shutdown_t)(void);
+S_API typedef bool (S_CALLTYPE *SteamAPI_RestartAppIfNecessary_pfn)( uint32 unOwnAppID );
+S_API typedef bool (S_CALLTYPE *SteamAPI_IsSteamRunning_pfn)(void);
 
-S_API typedef void (S_CALLTYPE *SteamAPI_RegisterCallback_t)
+S_API typedef void (S_CALLTYPE *SteamAPI_Shutdown_pfn)(void);
+
+S_API typedef void (S_CALLTYPE *SteamAPI_RegisterCallback_pfn)
           (class CCallbackBase *pCallback, int iCallback);
-S_API typedef void (S_CALLTYPE *SteamAPI_UnregisterCallback_t)
+S_API typedef void (S_CALLTYPE *SteamAPI_UnregisterCallback_pfn)
           (class CCallbackBase *pCallback);
 
-S_API typedef void (S_CALLTYPE *SteamAPI_RegisterCallResult_t)
+S_API typedef void (S_CALLTYPE *SteamAPI_RegisterCallResult_pfn)
           (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
-S_API typedef void (S_CALLTYPE *SteamAPI_UnregisterCallResult_t)
+S_API typedef void (S_CALLTYPE *SteamAPI_UnregisterCallResult_pfn)
           (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
 
-S_API typedef void (S_CALLTYPE *SteamAPI_RunCallbacks_t)(void);
+S_API typedef void (S_CALLTYPE *SteamAPI_RunCallbacks_pfn)(void);
 
-S_API typedef HSteamUser (*SteamAPI_GetHSteamUser_t)(void);
-S_API typedef HSteamPipe (*SteamAPI_GetHSteamPipe_t)(void);
+S_API typedef HSteamUser (*SteamAPI_GetHSteamUser_pfn)(void);
+S_API typedef HSteamPipe (*SteamAPI_GetHSteamPipe_pfn)(void);
 
-S_API typedef ISteamClient*    (S_CALLTYPE *SteamClient_t   )(void);
+S_API typedef ISteamClient*    (S_CALLTYPE *SteamClient_pfn   )(void);
 
-S_API SteamAPI_RunCallbacks_t         SteamAPI_RunCallbacks         = nullptr;
-S_API SteamAPI_RegisterCallback_t     SteamAPI_RegisterCallback     = nullptr;
-S_API SteamAPI_UnregisterCallback_t   SteamAPI_UnregisterCallback   = nullptr;
-S_API SteamAPI_RegisterCallResult_t   SteamAPI_RegisterCallResult   = nullptr;
-S_API SteamAPI_UnregisterCallResult_t SteamAPI_UnregisterCallResult = nullptr;
+S_API SteamAPI_RunCallbacks_pfn         SteamAPI_RunCallbacks         = nullptr;
+S_API SteamAPI_RegisterCallback_pfn     SteamAPI_RegisterCallback     = nullptr;
+S_API SteamAPI_UnregisterCallback_pfn   SteamAPI_UnregisterCallback   = nullptr;
+S_API SteamAPI_RegisterCallResult_pfn   SteamAPI_RegisterCallResult   = nullptr;
+S_API SteamAPI_UnregisterCallResult_pfn SteamAPI_UnregisterCallResult = nullptr;
 
-S_API SteamAPI_Init_t               SteamAPI_Init               = nullptr;
-S_API SteamAPI_InitSafe_t           SteamAPI_InitSafe           = nullptr;
-S_API SteamAPI_Shutdown_t           SteamAPI_Shutdown           = nullptr;
+S_API SteamAPI_Init_pfn               SteamAPI_Init               = nullptr;
+S_API SteamAPI_InitSafe_pfn           SteamAPI_InitSafe           = nullptr;
+S_API SteamAPI_Shutdown_pfn           SteamAPI_Shutdown           = nullptr;
 
-S_API SteamAPI_RestartAppIfNecessary_t SteamAPI_RestartAppIfNecessary=nullptr;
-S_API SteamAPI_IsSteamRunning_t        SteamAPI_IsSteamRunning       =nullptr;
+S_API SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary=nullptr;
+S_API SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning       =nullptr;
 
-S_API SteamAPI_GetHSteamUser_t      SteamAPI_GetHSteamUser      = nullptr;
-S_API SteamAPI_GetHSteamPipe_t      SteamAPI_GetHSteamPipe      = nullptr;
+S_API SteamAPI_GetHSteamUser_pfn      SteamAPI_GetHSteamUser      = nullptr;
+S_API SteamAPI_GetHSteamPipe_pfn      SteamAPI_GetHSteamPipe      = nullptr;
 
-S_API SteamClient_t                 SteamClient                 = nullptr;
+S_API SteamClient_pfn                 SteamClient                 = nullptr;
 
-S_API SteamAPI_RegisterCallback_t   SteamAPI_RegisterCallback_Original   = nullptr;
-S_API SteamAPI_UnregisterCallback_t SteamAPI_UnregisterCallback_Original = nullptr;
+S_API SteamAPI_RegisterCallback_pfn   SteamAPI_RegisterCallback_Original   = nullptr;
+S_API SteamAPI_UnregisterCallback_pfn SteamAPI_UnregisterCallback_Original = nullptr;
 
-S_API SteamAPI_Shutdown_t           SteamAPI_Shutdown_Original = nullptr;
+S_API SteamAPI_Shutdown_pfn           SteamAPI_Shutdown_Original = nullptr;
 
 class SK_Steam_OverlayManager {
 public:
@@ -393,12 +403,14 @@ class SK_SteamAPIContext {
 public:
   bool InitCSteamworks (HMODULE hSteamDLL)
   {
+    return false;
+
     if (config.steam.silent)
       return false;
 
     if (SteamAPI_InitSafe == nullptr) {
       SteamAPI_InitSafe =
-        (SteamAPI_InitSafe_t)GetProcAddress (
+        (SteamAPI_InitSafe_pfn)GetProcAddress (
           hSteamDLL,
             "InitSafe"
         );
@@ -406,7 +418,7 @@ public:
 
     if (SteamAPI_GetHSteamUser == nullptr) {
       SteamAPI_GetHSteamUser =
-        (SteamAPI_GetHSteamUser_t)GetProcAddress (
+        (SteamAPI_GetHSteamUser_pfn)GetProcAddress (
            hSteamDLL,
              "GetHSteamUser_"
         );
@@ -414,21 +426,21 @@ public:
 
     if (SteamAPI_GetHSteamPipe == nullptr) {
       SteamAPI_GetHSteamPipe =
-        (SteamAPI_GetHSteamPipe_t)GetProcAddress (
+        (SteamAPI_GetHSteamPipe_pfn)GetProcAddress (
            hSteamDLL,
              "GetHSteamPipe_"
         );
     }
 
     SteamAPI_IsSteamRunning =
-      (SteamAPI_IsSteamRunning_t)GetProcAddress (
+      (SteamAPI_IsSteamRunning_pfn)GetProcAddress (
          hSteamDLL,
            "IsSteamRunning"
       );
 
     if (SteamClient == nullptr) {
       SteamClient =
-        (SteamClient_t)GetProcAddress (
+        (SteamClient_pfn)GetProcAddress (
            hSteamDLL,
              "SteamClient_"
         );
@@ -436,7 +448,7 @@ public:
 
     if (SteamAPI_Shutdown == nullptr) {
       SteamAPI_Shutdown =
-        (SteamAPI_Shutdown_t)GetProcAddress (
+        (SteamAPI_Shutdown_pfn)GetProcAddress (
           hSteamDLL,
             "Shutdown"
         );
@@ -584,7 +596,7 @@ public:
 
     if (SteamAPI_InitSafe == nullptr) {
       SteamAPI_InitSafe =
-        (SteamAPI_InitSafe_t)GetProcAddress (
+        (SteamAPI_InitSafe_pfn)GetProcAddress (
           hSteamDLL,
             "SteamAPI_InitSafe"
         );
@@ -592,7 +604,7 @@ public:
 
     if (SteamAPI_GetHSteamUser == nullptr) {
       SteamAPI_GetHSteamUser =
-        (SteamAPI_GetHSteamUser_t)GetProcAddress (
+        (SteamAPI_GetHSteamUser_pfn)GetProcAddress (
            hSteamDLL,
              "SteamAPI_GetHSteamUser"
         );
@@ -600,21 +612,21 @@ public:
 
     if (SteamAPI_GetHSteamPipe == nullptr) {
       SteamAPI_GetHSteamPipe =
-        (SteamAPI_GetHSteamPipe_t)GetProcAddress (
+        (SteamAPI_GetHSteamPipe_pfn)GetProcAddress (
            hSteamDLL,
              "SteamAPI_GetHSteamPipe"
         );
     }
 
     SteamAPI_IsSteamRunning =
-      (SteamAPI_IsSteamRunning_t)GetProcAddress (
+      (SteamAPI_IsSteamRunning_pfn)GetProcAddress (
          hSteamDLL,
            "SteamAPI_IsSteamRunning"
       );
 
     if (SteamClient == nullptr) {
       SteamClient =
-        (SteamClient_t)GetProcAddress (
+        (SteamClient_pfn)GetProcAddress (
            hSteamDLL,
              "SteamClient"
         );
@@ -622,7 +634,7 @@ public:
 
     if (SteamAPI_RegisterCallResult == nullptr) {
       SteamAPI_RegisterCallResult =
-        (SteamAPI_RegisterCallResult_t)GetProcAddress (
+        (SteamAPI_RegisterCallResult_pfn)GetProcAddress (
           hSteamDLL,
             "SteamAPI_RegisterCallResult"
         );
@@ -630,7 +642,7 @@ public:
 
     if (SteamAPI_UnregisterCallResult == nullptr) {
       SteamAPI_UnregisterCallResult =
-        (SteamAPI_UnregisterCallResult_t)GetProcAddress (
+        (SteamAPI_UnregisterCallResult_pfn)GetProcAddress (
           hSteamDLL,
             "SteamAPI_UnregisterCallResult"
         );
@@ -638,7 +650,7 @@ public:
 
     if (SteamAPI_Shutdown == nullptr) {
       SteamAPI_Shutdown =
-        (SteamAPI_Shutdown_t)GetProcAddress (
+        (SteamAPI_Shutdown_pfn)GetProcAddress (
           hSteamDLL,
             "SteamAPI_Shutdown"
         );
@@ -679,15 +691,26 @@ public:
     if (! success)
       return false;
 
-    SteamAPI_InitSafe_Original ();
+    if (! SteamAPI_InitSafe ())  {
+      steam_log.Log (L" SteamAPI_InitSafe (...) Failed?!");
+      return false;
+    }
 
     client_ = SteamClient ();
 
-    HSteamUser hSteamUser = SteamAPI_GetHSteamUser ();
-    HSteamPipe hSteamPipe = SteamAPI_GetHSteamPipe ();
-
-    if (! client_)
+    if (! client_) {
+      steam_log.Log (L" SteamClient (...) Failed?!");
       return false;
+    }
+
+#if 0
+    hSteamPipe = client_->CreateSteamPipe     ();
+    hSteamUser = client_->ConnectToGlobalUser (hSteamPipe);
+#else
+    hSteamPipe = SteamAPI_GetHSteamPipe ();
+    //hSteamUser = client_->ConnectToGlobalUser (hSteamPipe);
+    hSteamUser = SteamAPI_GetHSteamUser ();
+#endif
 
     user_ =
       client_->GetISteamUser (
@@ -790,7 +813,21 @@ public:
     return true;
   }
 
-  void Shutdown (void) {
+  void Shutdown (void)
+  {
+#if 0
+    if (client_ != nullptr) {
+      if (hSteamUser != 0)
+        client_->ReleaseUser       (hSteamPipe, hSteamUser);
+
+      if (hSteamPipe != 0)
+        client_->BReleaseSteamPipe (hSteamPipe);
+    }
+#endif
+
+    hSteamPipe   = 0;
+    hSteamUser   = 0;
+
     client_      = nullptr;
     user_        = nullptr;
     user_stats_  = nullptr;
@@ -820,7 +857,8 @@ public:
 
 protected:
 private:
-  // TODO: We have an obvious lack of thread-safety here...
+  HSteamPipe         hSteamPipe   = 0;
+  HSteamUser         hSteamUser   = 0;
 
   ISteamClient*      client_      = nullptr;
   ISteamUser*        user_        = nullptr;
@@ -943,6 +981,122 @@ int  next_friend      = 0;
 
 class SK_Steam_AchievementManager {
 public:
+  class Achievement {
+  public:
+    Achievement (const char* szName, ISteamUserStats* stats) {
+      global_percent_ = 0.0f;
+      unlocked_       = false;
+      time_           = 0;
+
+      friends_.possible = 0;
+      friends_.unlocked = 0;
+
+      icons_.achieved   = nullptr;
+      icons_.unachieved = nullptr;
+
+      progress_.max     = 0;
+      progress_.current = 0;
+
+      name_ =
+        _strdup (szName);
+
+      const char* human =
+        stats->GetAchievementDisplayAttribute (szName, "name");
+
+      const char* desc =
+        stats->GetAchievementDisplayAttribute (szName, "desc");
+
+      human_name_ =
+        _strdup (human != nullptr ? human : "<INVALID>");
+      desc_ =
+        _strdup (desc != nullptr ? desc : "<INVALID>");
+    }
+
+    Achievement (Achievement& copy) = delete;
+
+    ~Achievement (void)
+    {
+      if (name_ != nullptr) {
+        free ((void *)name_);
+        name_ = nullptr;
+      }
+
+      if (human_name_ != nullptr) {
+        free ((void *)human_name_);
+        human_name_ = nullptr;
+      }
+
+      if (desc_ != nullptr) {
+        free ((void *)desc_);
+        desc_ = nullptr;
+      }
+
+      if (icons_.unachieved != nullptr) {
+        free ((void *)icons_.unachieved);
+        icons_.unachieved = nullptr;
+      }
+
+      if (icons_.achieved != nullptr) {
+        free ((void *)icons_.achieved);
+        icons_.achieved = nullptr;
+      }
+    }
+
+    void update (ISteamUserStats* stats)
+    {
+      stats->GetAchievementAndUnlockTime ( name_,
+                                             &unlocked_,
+                                               (uint32_t *)&time_ );
+    }
+
+    void update_global (ISteamUserStats* stats)
+    {
+      // Reset to 0.0 on read failure
+      if (! stats->GetAchievementAchievedPercent (
+              name_,
+                &global_percent_ ) ) {
+        steam_log.Log (L" Global Achievement Read Failure For '%hs'", name_);
+        global_percent_ = 0.0f;
+      }
+    }
+
+    const char* name_;
+    const char* human_name_;
+    const char* desc_;
+
+    float       global_percent_;
+
+    struct {
+      int unlocked; // Number of friends who have unlocked
+      int possible; // Number of friends who may be able to unlock
+    } friends_;
+
+    struct {
+      uint8_t*  achieved;
+      uint8_t*  unachieved;
+    } icons_;
+
+    struct {
+      int current;
+      int max;
+
+      float getPercent (void) {
+        return 100.0f * (float)current / (float)max;
+      }
+    } progress_;
+
+    bool        unlocked_;
+    __time32_t  time_;
+  };
+
+private:
+  struct SK_AchievementPopup {
+    CEGUI::Window* window;
+    DWORD          time;
+    Achievement*   achievement;
+  };
+
+public:
   SK_Steam_AchievementManager (const wchar_t* wszUnlockSound) :
        unlock_listener ( this, &SK_Steam_AchievementManager::OnUnlock                ),
        stat_receipt    ( this, &SK_Steam_AchievementManager::AckStoreStats           ),
@@ -1054,102 +1208,6 @@ public:
     }
   }
 
-  class Achievement {
-  public:
-    Achievement (const char* szName, ISteamUserStats* stats) {
-      global_percent_ = 0.0f;
-      unlocked_       = false;
-      time_           = 0;
-
-      friends_.possible = 0;
-      friends_.unlocked = 0;
-
-      icons_.achieved   = nullptr;
-      icons_.unachieved = nullptr;
-
-      name_ =
-        _strdup (szName);
-
-      const char* human =
-        stats->GetAchievementDisplayAttribute (szName, "name");
-
-      const char* desc =
-        stats->GetAchievementDisplayAttribute (szName, "desc");
-
-      human_name_ =
-        _strdup (human != nullptr ? human : "<INVALID>");
-      desc_ =
-        _strdup (desc != nullptr ? desc : "<INVALID>");
-    }
-
-    Achievement (Achievement& copy) = delete;
-
-    ~Achievement (void)
-    {
-      if (name_ != nullptr) {
-        free ((void *)name_);
-        name_ = nullptr;
-      }
-
-      if (human_name_ != nullptr) {
-        free ((void *)human_name_);
-        human_name_ = nullptr;
-      }
-
-      if (desc_ != nullptr) {
-        free ((void *)desc_);
-        desc_ = nullptr;
-      }
-
-      if (icons_.unachieved != nullptr) {
-        free ((void *)icons_.unachieved);
-        icons_.unachieved = nullptr;
-      }
-
-      if (icons_.achieved != nullptr) {
-        free ((void *)icons_.achieved);
-        icons_.achieved = nullptr;
-      }
-    }
-
-    void update (ISteamUserStats* stats)
-    {
-      stats->GetAchievementAndUnlockTime ( name_,
-                                             &unlocked_,
-                                               (uint32_t *)&time_ );
-    }
-
-    void update_global (ISteamUserStats* stats)
-    {
-      // Reset to 0.0 on read failure
-      if (! stats->GetAchievementAchievedPercent (
-              name_,
-                &global_percent_ ) ) {
-        steam_log.Log (L" Global Achievement Read Failure For '%hs'", name_);
-        global_percent_ = 0.0f;
-      }
-    }
-
-    const char* name_;
-    const char* human_name_;
-    const char* desc_;
-
-    float       global_percent_;
-
-    struct {
-      int unlocked; // Number of friends who have unlocked
-      int possible; // Number of friends who may be able to unlock
-    } friends_;
-
-    struct {
-      uint8_t*  achieved;
-      uint8_t*  unachieved;
-    } icons_;
-
-    bool        unlocked_;
-    __time32_t  time_;
-  };
-
   void log_all_achievements (void)
   {
     ISteamUserStats* stats = steam_ctx.UserStats ();
@@ -1237,7 +1295,8 @@ public:
         //   we can display friend achievement stats.
         if ( next_friend == 0 && config.steam.achievements.pull_friend_stats )
         {
-          int friend_count = friends->GetFriendCount (k_EFriendFlagImmediate);
+          int friend_count =
+            friends->GetFriendCount (k_EFriendFlagImmediate);
 
           if (friend_count > 0) {
             SteamAPICall_t hCall =
@@ -1373,9 +1432,13 @@ public:
                    SteamAPICallCompleted_t,
                    async_complete )
   {
-    bool failed = true;
+    bool                 failed    = true;
+    ESteamAPICallFailure eCallFail = k_ESteamAPICallFailureNone;
 
     steam_ctx.Utils ()->IsAPICallCompleted (pParam->m_hAsyncCall, &failed);
+
+    if (failed)
+      eCallFail = steam_ctx.Utils ()->GetAPICallFailureReason (pParam->m_hAsyncCall);
 
     if (pParam->m_hAsyncCall == global_request)
     {
@@ -1387,11 +1450,19 @@ public:
       }
 
       else {
-        steam_log.Log ( L" Non-Zero Result for GlobalAchievementPercentagesReady_t"
-                           );
+        steam_log.Log ( L" Non-Zero Result (%lu) for GlobalAchievementPercentagesReady_t",
+                          eCallFail );
 
         has_global_data = false;
         return;
+      }
+    }
+
+    else {
+      if (failed) {
+        //steam_log.Log ( L" Asynchronous SteamAPI Call _NOT ISSUED BY Special K_ Failed: "
+                        //L"(reason=%lu)",
+                          //eCallFail );
       }
     }
   }
@@ -1443,21 +1514,21 @@ public:
         pParam->m_rgchAchievementName
       );
 
-    if (achievement != nullptr)
+    if (achievement != nullptr) {
       achievement->update (steam_ctx.UserStats ());
 
-    int idx =
-      steam_ctx.UserStats ()->GetAchievementIcon (pParam->m_rgchAchievementName);
+      achievement->progress_.current = pParam->m_nCurProgress;
+      achievement->progress_.max     = pParam->m_nMaxProgress;
+    }
 
-    // If this is != 1.0, the achievement has not been unlocked, the update
-    //   is for progress reporting purposes only.
-    float progress = 0.0f;
+    // Pre-Fetch
+    steam_ctx.UserStats ()->GetAchievementIcon (pParam->m_rgchAchievementName);
 
     if ( pParam->m_nMaxProgress == pParam->m_nCurProgress )
     {
-            //->m_nMaxProgress == 0 &&
-      //pParam->m_nCurProgress == 0) {
-      progress = 1.0f;
+      // Do this so that 0/0 does not come back as NaN
+      achievement->progress_.current = 1;
+      achievement->progress_.max     = 1;
 
       if (! config.steam.nosound)
         PlaySound ( (LPCWSTR)unlock_sound, NULL, SND_ASYNC | SND_MEMORY );
@@ -1474,7 +1545,7 @@ public:
 
     else if (achievement != nullptr)
     {
-      progress = 
+      float progress = 
         (float)pParam->m_nCurProgress /
         (float)pParam->m_nMaxProgress;
 
@@ -1496,201 +1567,133 @@ public:
     if (config.cegui.enable && config.steam.achievements.show_popup && achievement != nullptr) {
       CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
 
-    if ( pSys                 != nullptr &&
-         pSys->getRenderer () != nullptr )
-    {
-      EnterCriticalSection (&popup_cs);
+      if ( pSys                 != nullptr &&
+           pSys->getRenderer () != nullptr )
+      {
+        EnterCriticalSection (&popup_cs);
 
-      try {
+        try {
+          SK_AchievementPopup popup;
 
-      SK_PopupWindow* achv_popup =
-        SK_PopupManager::getInstance ()->createPopup ("Achievements.layout");
+          popup.window      = nullptr;
+          popup.time        = timeGetTime ();
+          popup.achievement = achievement;
 
-      CEGUI::Window* achv_title = achv_popup->getChild ("Achievement/Title");
-      achv_title->setText (achievement->human_name_);
-
-      CEGUI::Window* achv_desc = achv_popup->getChild ("Achievement/Description");
-      achv_desc->setText (achievement->desc_);
-
-      CEGUI::Window* achv_rank = achv_popup->getChild ("Achievement/Rank");
-      achv_rank->setProperty ( "NormalTextColour",
-                                 SK_Steam_RarityToColor (achievement->global_percent_)
-                             );
-      achv_rank->setText ( SK_Steam_RarityToName (achievement->global_percent_) );
-
-      CEGUI::Window* achv_global = achv_popup->getChild ("Achievement/GlobalRarity");
-      char szGlobal [32] = { '\0' };
-      snprintf ( szGlobal, 32,
-                   "Global: %6.2f%%",
-                     achievement->global_percent_ );
-      achv_global->setText (szGlobal);
-
-      CEGUI::Window* achv_friend = achv_popup->getChild ("Achievement/FriendRarity");
-      char szFriend [32] = { '\0' };
-      snprintf ( szFriend, 32,
-                   "Friends: %6.2f%%",
-          100.0 * ((double)          achievement->friends_.unlocked /
-                   (double)std::max (achievement->friends_.possible, 1)) );
-      achv_friend->setText (szFriend);
-
-
-      // If the server hasn't updated the unlock time, just use the curren time
-      if (achievement != nullptr && achievement->time_ == 0)
-        _time32 (&achievement->time_);
-
-
-      CEGUI::Window* achv_unlock  = achv_popup->getChild ("Achievement/UnlockTime");
-      CEGUI::Window* achv_percent = achv_popup->getChild ("Achievement/ProgressBar");
-
-      char szUnlockTime [128] = { '\0' };
-      if (progress == 1.0f) {
-        snprintf ( szUnlockTime, 128,
-                     "Unlocked: %s", _ctime32 (&achievement->time_)
-                 );
-
-        achv_percent->setProperty ( "CurrentProgress", "1.0" );
-      }
-
-      else {
-        snprintf ( szUnlockTime, 16,
-                     "%5.4f",
-                       progress
-                 );
-
-        achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
-
-        snprintf ( szUnlockTime, 128,
-                     "Current Progress: %lu/%lu (%6.2f%%)",
-                     pParam->m_nCurProgress, pParam->m_nMaxProgress,
-                     100.0f * progress
-                 );
-      }
-      achv_unlock->setText (szUnlockTime);
-
-
-      // Icon width and height
-      uint32 w, h;
-
-      if (idx != 0) {
-        steam_ctx.Utils ()->GetImageSize (idx, &w, &h);
-
-        if (achievement->icons_.achieved == nullptr) {
-          achievement->icons_.achieved =
-            (uint8_t *)malloc (4 * w * h);
-
-          steam_ctx.Utils ()->GetImageRGBA (
-            idx,
-              achievement->icons_.achieved,
-                4 * w * h
-          );
-        }
-      }
-
-      steam_log.Log ( L" * Fetched RGBA Icon (idx=%lu) for Achievement: '%hs'  (%lux%lu)",
-                        idx, achievement->name_, w, h );
-
-      if (achievement->icons_.achieved != nullptr) {
-        bool exists = CEGUI::ImageManager::getDllSingleton ().isDefined (achievement->name_);
-
-        const CEGUI::Image& img =
-           exists ?
-            CEGUI::ImageManager::getDllSingleton ().get    (              achievement->name_) :
-            CEGUI::ImageManager::getDllSingleton ().create ("BasicImage", achievement->name_);
-
-        if (! exists) {
-          /* StaticImage */
-          CEGUI::Texture& Tex =
-            pSys->getRenderer ()->createTexture (achievement->name_);
-
-          Tex.loadFromMemory ( achievement->icons_.achieved,
-                                 CEGUI::Sizef ((float)w, (float)h),
-                                   CEGUI::Texture::PF_RGBA );
-
-          ((CEGUI::BasicImage &)img).setTexture (&Tex);
-
-          const CEGUI::Rectf rect (CEGUI::Vector2f (0.0f, 0.0f), Tex.getOriginalDataSize ());
-          ((CEGUI::BasicImage &)img).setArea       (rect);
-          ((CEGUI::BasicImage &)img).setAutoScaled (CEGUI::ASM_Both);
+          popups.push_back (popup);
+        } catch (...) {
         }
 
-        CEGUI::Window* staticImage = achv_popup->getChild ("Achievement/Icon");
-        staticImage->setProperty ( "Image",
-                                     achievement->name_ );
+        LeaveCriticalSection (&popup_cs);
       }
-
-      SK_AchievementPopup popup;
-
-      popup.window      = achv_popup;
-      popup.time        = timeGetTime ();
-      popup.achievement = achievement;
-
-      CEGUI::Window* win =
-        *popup.window;
-
-      char    szAppName [256] = { '\0' };
-      bool    avail           = false;
-      AppId_t app             = 0;
-
-      bool has_app =
-        steam_ctx.Apps ()->BGetDLCDataByIndex
-        (
-          0, &app,
-            &avail,
-              szAppName, 255
-        );
-
-      achv_popup->getChild ("Achievement")->setText (
-        has_app ? szAppName :
-                  ""
-      );
-      win->show    ();
-
-      popups.push_back (popup);
-
-      } catch (...) {
-      }
-
-      LeaveCriticalSection (&popup_cs);
-    }
     }
   }
 
-  void DrawPopups (void)
+  void clearPopups (void)
   {
     if (! popups.size ())
       return;
 
-    if (SK_PopupManager::getInstance ()->tryLockPopups ())
+    popups.clear ();
+  }
+
+  void drawPopups (void)
+  {
+    if (! popups.size ())
+      return;
+
+    //
+    // We don't need this, we always do this from the render thread.
+    //
+    //if (SK_PopupManager::getInstance ()->tryLockPopups ())
     {
       try {
         #define POPUP_DURATION_MS config.steam.achievements.popup_duration
 
         std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
 
+        const float inset = 0.025f;
+
+        const float full_ht =
+          CEGUI::System::getDllSingleton ().getRenderer ()->
+            getDisplaySize ().d_height * (1.0f - inset);
+
+        const float full_wd =
+          CEGUI::System::getDllSingleton ().getRenderer ()->
+            getDisplaySize ().d_width * (1.0f - inset);
+
+        CEGUI::UDim x_pos (inset, 0.0f);
+        CEGUI::UDim y_pos (inset, 0.0f);
+
         while (it != popups.end ()) {
           if (timeGetTime () < (*it).time + POPUP_DURATION_MS) {
-            if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-              CEGUI::Window* win = *(*it++).window;
-              win->show ();
-            } else {
-              it = popups.erase (it);
-            }
+            //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+              CEGUI::Window* win = (*it).window;
+
+              if (win == nullptr)
+                win = createPopupWindow (&*it);
+
+              const float win_ht =
+                win->getPixelSize ().d_height;
+
+              const float win_wd =
+                win->getPixelSize ().d_width;
+
+              CEGUI::UVector2 win_pos (x_pos, y_pos);
+
+              float bottom_y = win_pos.d_y.d_scale * full_ht + 
+                                 win_pos.d_y.d_offset        +
+                                   win_ht;
+ 
+              // The bottom of the window would be off-screen, so
+              //   move it to the top and offset by the width of
+              //     each popup.
+              if ( bottom_y >= full_ht ) {
+                y_pos = CEGUI::UDim (inset, 0.0f);
+                x_pos += win->getSize ().d_width;
+
+                win_pos = (CEGUI::UVector2 (x_pos, y_pos));
+              }
+
+              float right_x = win_pos.d_x.d_scale * full_wd + 
+                                 win_pos.d_x.d_offset       +
+                                   win_wd;
+
+              // Window is off-screen horizontally AND vertically
+              if ( right_x >= full_wd ) {
+                // Since we're not going to draw this, treat it as a new
+                //   popup until it first becomes visible.
+                (*it).time =
+                     timeGetTime ();
+                win->hide        ();
+              } else {
+                win->show        ();
+                win->setPosition (win_pos);
+              }
+
+              y_pos += win->getSize ().d_height;
+
+              ++it;
+            //} else {
+              //it = popups.erase (it);
+            //}
           }
 
           else {
-            if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-              CEGUI::Window* win = *(*it).window;
-              win->hide ();
-              SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
-            }
+            //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+              CEGUI::Window* win = (*it).window;
+
+              CEGUI::WindowManager::getDllSingleton ().destroyWindow (win);
+              //SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
+            //}
 
             it = popups.erase (it);
           }
         }
-      } catch (...) {}
+      }
 
-      SK_PopupManager::getInstance ()->unlockPopups ();
+      catch (...) {}
     }
+    //SK_PopupManager::getInstance ()->unlockPopups ();
   }
 
   Achievement* getAchievement (const char* szName)
@@ -1760,6 +1763,162 @@ public:
   }
 
 protected:
+  CEGUI::Window* createPopupWindow (SK_AchievementPopup* popup)
+  {
+    CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
+
+    extern CEGUI::Window* SK_achv_popup;
+
+    char szPopupName [16];
+    sprintf (szPopupName, "Achievement_%lu", lifetime_popups++);
+
+    popup->window              = SK_achv_popup->clone (true);
+    Achievement*   achievement = popup->achievement;
+    CEGUI::Window* achv_popup  = popup->window;
+
+    achv_popup->setName (szPopupName);
+
+    CEGUI::Window* achv_title  = achv_popup->getChild ("Title");
+    achv_title->setText (achievement->human_name_);
+
+    CEGUI::Window* achv_desc = achv_popup->getChild ("Description");
+    achv_desc->setText (achievement->desc_);
+
+    CEGUI::Window* achv_rank = achv_popup->getChild ("Rank");
+    achv_rank->setProperty ( "NormalTextColour",
+                               SK_Steam_RarityToColor (achievement->global_percent_)
+                           );
+    achv_rank->setText ( SK_Steam_RarityToName (achievement->global_percent_) );
+
+    CEGUI::Window* achv_global = achv_popup->getChild ("GlobalRarity");
+    char szGlobal [32] = { '\0' };
+    snprintf ( szGlobal, 32,
+                 "Global: %6.2f%%",
+                   achievement->global_percent_ );
+    achv_global->setText (szGlobal);
+    
+    CEGUI::Window* achv_friend = achv_popup->getChild ("FriendRarity");
+    char szFriend [32] = { '\0' };
+    snprintf ( szFriend, 32,
+                 "Friends: %6.2f%%",
+        100.0 * ((double)          achievement->friends_.unlocked /
+                 (double)std::max (achievement->friends_.possible, 1)) );
+    achv_friend->setText (szFriend);
+
+
+    // If the server hasn't updated the unlock time, just use the curren time
+    if (achievement != nullptr && achievement->time_ == 0)
+      _time32 (&achievement->time_);
+
+    CEGUI::Window* achv_unlock  = achv_popup->getChild ("UnlockTime");
+    CEGUI::Window* achv_percent = achv_popup->getChild ("ProgressBar");
+
+    float progress = achievement->progress_.getPercent ();
+    
+    char szUnlockTime [128] = { '\0' };
+    if (progress == 100.0f) {
+      snprintf ( szUnlockTime, 128,
+                   "Unlocked: %s", _ctime32 (&achievement->time_)
+               );
+
+      achv_percent->setProperty ( "CurrentProgress", "1.0" );
+    }
+    
+    else {
+      snprintf ( szUnlockTime, 16,
+                   "%5.4f",
+                     progress / 100.0f
+               );
+
+      achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
+    
+      snprintf ( szUnlockTime, 128,
+                   "Current Progress: %lu/%lu (%6.2f%%)",
+                     achievement->progress_.current,
+                       achievement->progress_.max,
+                         progress
+               );
+    }
+    achv_unlock->setText (szUnlockTime);
+
+    int icon_idx =
+      steam_ctx.UserStats ()->GetAchievementIcon (achievement->name_);
+
+    // Icon width and height
+    uint32 w, h;
+
+    if (icon_idx != 0) {
+      steam_ctx.Utils ()->GetImageSize (icon_idx, &w, &h);
+    
+      if (achievement->icons_.achieved == nullptr) {
+        achievement->icons_.achieved =
+          (uint8_t *)malloc (4 * w * h);
+    
+        steam_ctx.Utils ()->GetImageRGBA (
+          icon_idx,
+            achievement->icons_.achieved,
+              4 * w * h
+        );
+      }
+    }
+
+    steam_log.Log ( L" * Fetched RGBA Icon (idx=%lu) for Achievement: '%hs'  (%lux%lu)",
+                      icon_idx, achievement->name_, w, h );
+
+    if (achievement->icons_.achieved != nullptr) {
+      bool exists = CEGUI::ImageManager::getDllSingleton ().isDefined (achievement->name_);
+
+      const CEGUI::Image& img =
+         exists ?
+          CEGUI::ImageManager::getDllSingleton ().get    (              achievement->name_) :
+          CEGUI::ImageManager::getDllSingleton ().create ("BasicImage", achievement->name_);
+
+      if (! exists) {
+        /* StaticImage */
+        CEGUI::Texture& Tex =
+          pSys->getRenderer ()->createTexture (achievement->name_);
+
+        Tex.loadFromMemory ( achievement->icons_.achieved,
+                               CEGUI::Sizef ((float)w, (float)h),
+                                 CEGUI::Texture::PF_RGBA );
+
+        ((CEGUI::BasicImage &)img).setTexture (&Tex);
+
+        const CEGUI::Rectf rect (CEGUI::Vector2f (0.0f, 0.0f), Tex.getOriginalDataSize ());
+        ((CEGUI::BasicImage &)img).setArea       (rect);
+        ((CEGUI::BasicImage &)img).setAutoScaled (CEGUI::ASM_Both);
+      }
+
+      CEGUI::Window* staticImage = achv_popup->getChild ("Icon");
+      staticImage->setProperty ( "Image",
+                                   achievement->name_ );
+    }
+
+    char    szAppName [256] = { '\0' };
+    bool    avail           = false;
+    AppId_t app             = 0;
+
+    bool has_app =
+      steam_ctx.Apps ()->BGetDLCDataByIndex
+      (
+        0, &app,
+          &avail,
+            szAppName, 255
+      );
+
+    achv_popup->setText (
+      has_app ? szAppName :
+                ""
+    );
+
+    CEGUI::System::getDllSingleton ().
+      getDefaultGUIContext ().
+        getRootWindow ()->
+          addChild (popup->window);
+
+    return achv_popup;
+  }
+
 private:
   struct SK_AchievementData {
     std::vector        <             Achievement*> list;
@@ -1771,13 +1930,8 @@ private:
       std::unordered_map < uint32_t, bool >
   > friend_stats;
 
-  struct SK_AchievementPopup {
-    SK_PopupWindow* window;
-    DWORD           time;
-    Achievement*    achievement;
-  };
-
   std::vector <SK_AchievementPopup> popups;
+  int                               lifetime_popups;
 
   SteamAPICall_t global_request;
   SteamAPICall_t stats_request;
@@ -1918,10 +2072,24 @@ SK_SteamAPI_UpdateGlobalAchievements (void)
   SK_SteamAPI_LogAllAchievements ();
 }
 
+void
+SK_Steam_ClearPopups (void)
+{
+  if (steam_achievements != nullptr)
+    steam_achievements->clearPopups ();
+}
+
+void
+SK_Steam_DrawOSD (void)
+{
+  if (steam_achievements != nullptr)
+    steam_achievements->drawPopups ();
+}
+
 volatile LONGLONG SK_SteamAPI_CallbackRunCount    = 0LL;
 volatile LONG     SK_SteamAPI_ManagersInitialized = 0L;
 
-SteamAPI_RunCallbacks_t SteamAPI_RunCallbacks_Original = nullptr;
+SteamAPI_RunCallbacks_pfn SteamAPI_RunCallbacks_Original = nullptr;
 
 void
 S_CALLTYPE
@@ -1943,9 +2111,6 @@ SteamAPI_RunCallbacks_Detour (void)
   SK_SteamAPI_InitManagers ();
 
   InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
-
-  if (steam_achievements != nullptr)
-    steam_achievements->DrawPopups ();
 
   SteamAPI_RunCallbacks_Original ();
 }
@@ -2096,6 +2261,11 @@ __stdcall
 SK::SteamAPI::SetOverlayState (bool active)
 {
   if (config.steam.silent)
+    return;
+
+  // The critical section below requires Steam API hooks to be setup,
+  //   obviously if we haven't hooked it yet, we better bail the heck out!
+  if (! InterlockedCompareExchange (&__hooked, FALSE, FALSE))
     return;
 
   EnterCriticalSection (&callback_cs);
@@ -2353,13 +2523,6 @@ CSteamworks_Delay_Init (LPVOID user)
   return 0;
 }
 
-void SK_HookSteamAPI (void);
-
-volatile ULONG __hooked           = FALSE;
-volatile ULONG __CSteamworks_hook = FALSE;
-volatile ULONG __SteamAPI_hook    = FALSE;
-
-
 void
 SK_HookCSteamworks (void)
 {
@@ -2372,8 +2535,8 @@ SK_HookCSteamworks (void)
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
-    InitializeCriticalSectionAndSpinCount (&popup_cs,    16384UL);
-    InitializeCriticalSectionAndSpinCount (&init_cs,     1048576UL);
+    InitializeCriticalSectionAndSpinCount (&popup_cs,    4096UL);
+    InitializeCriticalSectionAndSpinCount (&init_cs,     1024UL);
   }
 
   EnterCriticalSection (&init_cs);
@@ -2506,6 +2669,20 @@ SteamAPI_Delay_Init (LPVOID user)
   return 0;
 }
 
+SteamAPI_UseBreakpadCrashHandler_pfn SteamAPI_UseBrakepadCrashHandler_NEVER = nullptr;
+
+void
+S_CALLTYPE
+SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
+                                          char const *pchDate,
+                                          char const *pchTime,
+                                          bool        bFullMemoryDumps,
+                                          void       *pvContext,
+                               PFNPreMinidumpCallback m_pfnPreMinidumpCallback )
+{
+  return;
+}
+
 void
 SK_HookSteamAPI (void)
 {
@@ -2516,8 +2693,8 @@ SK_HookSteamAPI (void)
     steam_log.init (L"logs/steam_api.log", L"w");
     steam_log.silent = config.steam.silent;
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
-    InitializeCriticalSectionAndSpinCount (&popup_cs,    16384UL);
-    InitializeCriticalSectionAndSpinCount (&init_cs,     1048576UL);
+    InitializeCriticalSectionAndSpinCount (&popup_cs,    4096UL);
+    InitializeCriticalSectionAndSpinCount (&init_cs,     8192L);
   }
 
   EnterCriticalSection (&init_cs);
@@ -2550,6 +2727,11 @@ SK_HookSteamAPI (void)
            (LPVOID *)&SteamAPI_Shutdown_Original );
 
   SK_CreateDLLHook3 ( wszSteamAPI,
+                      "SteamAPI_UseBreakpadCrashHandler",
+                     SteamAPI_UseBreakpadCrashHandler_Detour,
+          (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
+
+  SK_CreateDLLHook3 ( wszSteamAPI,
                       "SteamAPI_RegisterCallback",
                      SteamAPI_RegisterCallback_Detour,
           (LPVOID *)&SteamAPI_RegisterCallback_Original,
@@ -2569,8 +2751,9 @@ SK_HookSteamAPI (void)
 
   SK_ApplyQueuedHooks ();
 
-  if (config.steam.init_delay > 0)
+  if (config.steam.init_delay > 0) {
     CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
+  }
 
   LeaveCriticalSection (&init_cs);
 }

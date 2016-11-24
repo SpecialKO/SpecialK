@@ -268,7 +268,6 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                 StrStrIW (wszModName, L"vulkan-1.dll")  )
       SK_BootVulkan ();
 
-
     if ( StrStrIA (lpFileName, "steam_api.dll")   ||
          StrStrIA (lpFileName, "steam_api64.dll") ||
          StrStrIA (lpFileName, "SteamNative.dll") ) {
@@ -375,9 +374,6 @@ FreeLibrary_Detour (HMODULE hLibModule)
 //    return FreeLibrary_Original (hLibModule);
 
   std::wstring free_name = SK_GetModuleName (hLibModule);
-
-  if (! SK_Path_wcsicmp (free_name.c_str (), L"dbghelp.dll"))
-    return false;
 
 #if 0
   // BLACKLIST FreeLibrary for VERY important DLLs

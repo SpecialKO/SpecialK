@@ -163,8 +163,47 @@ extern "C" CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
 extern "C" CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 
 struct sk_window_s {
-  HWND    hWnd;
-  WNDPROC WndProc_Original;
+  HWND      hWnd             = 0x00;
+  WNDPROC   WndProc_Original = nullptr;
+  WNDPROC   RawProc_Original = nullptr;
+
+  bool      active           = true;
+
+  LONG      style            = 0x00;
+  LONG      style_ex         = 0x00;
+
+  RECT      rect        { 0, 0,
+                          0, 0 };
+  RECT      game_rect   { 0, 0,
+                          0, 0 };
+
+  struct {
+    // Will be false if remapping is necessary
+    bool    identical        = true;
+
+    struct {
+      float x                = 1.0f;
+      float y                = 1.0f;
+    } scale;
+
+    struct {
+      float x                = 0.0f;
+      float y                = 0.0f;
+    } offset;
+  } coord_remap;
+
+  LONG      render_x         = 0;
+  LONG      render_y         = 0;
+
+  RECT      cursor_clip { LONG_MIN, LONG_MIN,
+                          LONG_MAX, LONG_MAX };
+
+  // Cursor position when window activation changed
+  POINT     cursor_pos  { 0, 0 };
+
+  // State to restore the cursor to
+  //  (TODO: Should probably be a reference count to return to)
+  bool      cursor_visible   = true;
 };
 
 extern DWORD dwRenderThread;

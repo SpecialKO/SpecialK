@@ -27,9 +27,10 @@
 #include <Shlwapi.h>
 //#include <Windows.h>
 
+#include "render_backend.h"
 #include "opengl_backend.h"
-#include "log.h"
 
+#include "log.h"
 #include "utility.h"
 
 #include <process.h>
@@ -157,6 +158,9 @@ void ResetCEGUI_GL (void)
 
     SK_PopupManager::getInstance ()->destroyAllPopups       ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegGL);
+
+    extern void SK_Steam_ClearPopups (void);
+    SK_Steam_ClearPopups ();
   }
 }
 
@@ -175,27 +179,36 @@ SK_CEGUI_DrawGL (void)
   }
 
   if (cegGL != nullptr) {
-    SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f, true);
+    SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+
+    static RECT rect;
+           RECT rect_now;
+
+    GetClientRect (hWndRender, &rect_now);
+
+    if (memcmp (&rect, &rect_now, sizeof RECT)) {
+      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
+          CEGUI::Sizef (
+            rect_now.right - rect_now.left,
+              rect_now.bottom - rect_now.top
+          )
+      );
+
+      SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegGL);
+
+      rect = rect_now;
+    }
 
     glPushAttrib (GL_ALL_ATTRIB_BITS);
 
-    cegGL->beginRendering ();
+    cegGL->beginRendering   ();
     {
-      glBindFramebuffer  (GL_FRAMEBUFFER, 0);
-      glActiveTexture    (GL_TEXTURE0);
-      glBindTexture      (GL_TEXTURE_2D, 0);
-      glUseProgram       (0);
+      extern void SK_Steam_DrawOSD (void);
+      SK_Steam_DrawOSD ();
 
-      glDisable          (GL_STENCIL_TEST);
-
-      // Flickering is preferable to waiting and unhinging the framerate!
-      if (SK_PopupManager::getInstance ()->tryLockPopups ())
-      {
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-        SK_PopupManager::getInstance   ()->unlockPopups ();
-      }
+      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
     }
-    cegGL->endRendering ();
+    cegGL->endRendering     ();
 
     glPopAttrib ();
   }
@@ -1253,14 +1266,6 @@ BOOL
 WINAPI
 SwapBuffers (HDC hDC)
 {
-#if 0
-  // Disassembling the actual GDI library suggests this is routed through the
-  //   ICD differently somehow... but proxying it through SwapBuffers seems to
-  //     work fine.
-  return wglSwapBuffers (hDC);
-#endif
-
-
   // Setup our window message hook for the command console
   if (hWndRender == 0 || (! IsWindow (hWndRender)))
     hWndRender = WindowFromDC (hDC);
@@ -1277,15 +1282,6 @@ SwapBuffers (HDC hDC)
 
   //SK_GL_UpdateRenderStats ();
 
-  //int drawn = SK_GetFramesDrawn ();
-
-  //if (drawn <= 1) {
-    //glewExperimental = GL_TRUE;
-    //glewInit ();
-  //} else if (drawn > 1) {
-    //SK_CEGUI_DrawGL         ();
-  //}
-
   BOOL status = FALSE;
 
   if (gdi_swap_buffers != nullptr)
@@ -1294,7 +1290,6 @@ SwapBuffers (HDC hDC)
   SK_EndBufferSwap (S_OK);
 
   return status;
-  //WaitForInit ();
 }
 
 __declspec (noinline)
@@ -1302,14 +1297,6 @@ BOOL
 WINAPI
 wglSwapBuffers (HDC hDC)
 {
- #if 0
-  // Disassembling the actual GDI library suggests this is routed through the
-  //   ICD differently somehow... but proxying it through SwapBuffers seems to
-  //     work fine.
-  return SwapBuffers (hDC);
-#endif
-
-
   // Setup our window message hook for the command console
   if (hWndRender == 0 || (! IsWindow (hWndRender)))
     hWndRender = WindowFromDC (hDC);
@@ -1321,15 +1308,12 @@ wglSwapBuffers (HDC hDC)
       (wglSwapBuffers_pfn)GetProcAddress (backend_dll, "wglSwapBuffers");
   }
 
-  //SK_GL_UpdateRenderStats ();
-
-  int drawn = SK_GetFramesDrawn ();
-
-  if (drawn < 1) {
+  if (SK_GetFramesDrawn () < 1) {
     glewExperimental = GL_TRUE;
     glewInit ();
   }
 
+  SK_GL_UpdateRenderStats ();
   SK_CEGUI_DrawGL         ();
 
   BOOL status = FALSE;
@@ -1376,8 +1360,8 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
 
 
 
-#define GL_TRUE  TRUE
-#define GL_FALSE FALSE
+//#define GL_TRUE  TRUE
+//#define GL_FALSE FALSE
 
 #define GL_QUERY_RESULT           0x8866
 #define GL_QUERY_RESULT_AVAILABLE 0x8867

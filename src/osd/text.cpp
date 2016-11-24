@@ -23,6 +23,11 @@
 #define OSD_IMP
 #include "text.h"
 
+#include "../render_backend.h"
+
+#undef min
+#undef max
+
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>
 #include <CEGUI/Renderer.h>
@@ -86,6 +91,7 @@ class SK_TextOverlayFactory
 {
 private: // Singleton
   static SK_TextOverlayFactory* pSelf;
+  static CRITICAL_SECTION       cs_;
 
 public:
   static SK_TextOverlayFactory* getInstance (void) {
@@ -97,7 +103,10 @@ public:
   {
     std::string app_name (szAppName);
 
+    EnterCriticalSection (&cs_);
+
     if (overlays_.count (app_name)) {
+      LeaveCriticalSection (&cs_);
       return overlays_ [app_name];
     }
 
@@ -105,16 +114,23 @@ public:
 
     overlays_ [app_name] = overlay;
 
+    LeaveCriticalSection (&cs_);
+
     return overlay;
   }
 
   bool removeTextOverlay (const char* szAppName) {
     std::string app_name (szAppName);
 
+    EnterCriticalSection (&cs_);
+
     if (overlays_.count (app_name)) {
       overlays_.erase (app_name);
+      LeaveCriticalSection (&cs_);
       return true;
     }
+
+    LeaveCriticalSection (&cs_);
 
     return false;
   }
@@ -123,27 +139,43 @@ public:
   {
     std::string app_name (szAppName);
 
+    EnterCriticalSection (&cs_);
+
     if (overlays_.count (app_name)) {
-      return overlays_ [app_name];
+      SK_TextOverlay* overlay = overlays_ [app_name];
+
+      LeaveCriticalSection (&cs_);
+
+      return overlay;
     }
+
+    LeaveCriticalSection (&cs_);
 
     return nullptr;
   }
 
-  void            resetAllOverlays (CEGUI::Renderer* renderer);
-  float           drawAllOverlays  (float x, float y, bool full);
+  void            queueReset         (CEGUI::Renderer* renderer);
+
+  void            resetAllOverlays   (CEGUI::Renderer* renderer);
+  float           drawAllOverlays    (float x, float y, bool full);
+  void            destroyAllOverlays (void);
 
 protected:
   SK_TextOverlayFactory (void) {
-    gui_ctx_ = nullptr;
+    InitializeCriticalSectionAndSpinCount (&cs_, 4000);
+
+    gui_ctx_         = nullptr;
+    need_full_reset_ = false;
   }
 
 private:
+  bool                                     need_full_reset_;
   CEGUI::GUIContext*                       gui_ctx_;
   std::map <std::string, SK_TextOverlay *> overlays_;
 };
 
 SK_TextOverlayFactory* SK_TextOverlayFactory::pSelf = nullptr;
+CRITICAL_SECTION       SK_TextOverlayFactory::cs_;
 
 SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 {
@@ -263,36 +295,28 @@ SK_GetSharedMemory (void)
 
 bool
 __stdcall
-SK_IsD3D9 (DWORD dwFlags = 0x00)
+SK_IsD3D9 (void)
 {
-  return false;
+  return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0x0;
 }
 
 bool
 __stdcall
-SK_IsD3D11 (DWORD dwFlags = 0x00)
+SK_IsD3D11 (void)
 {
-  // Uing a string comparison is stupid, please stop this :)
-  extern std::wstring SK_RenderAPI;
-  return SK_RenderAPI == L"D3D11 ";
+  return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11);
 }
 
 bool
-SK_IsD3D12 (DWORD dwFlags = 0x00)
+SK_IsD3D12 (void)
 {
-  return false;
+  return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12);
 }
 
 bool
-SK_IsOpenGL (DWORD dwFlags = 0x00)
+SK_IsOpenGL (void)
 {
-  return false;
-}
-
-std::wstring
-SK_GetAPINameFromOSDFlags (DWORD dwFlags)
-{
-  return L"UNKNOWN";
+  return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL);
 }
 
 enum SK_UNITS {
@@ -599,14 +623,10 @@ SK_DrawOSD (void)
       last_fps_time = timeGetTime ();
     }
 
-    extern std::wstring SK_RenderAPI;
-
-    std::wstring api_name = SK_RenderAPI;
-
     if (mean != INFINITY) {
       if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0) {
         OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>",
-          api_name.c_str (),
+          SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
             fps,
               mean,
@@ -668,7 +688,7 @@ SK_DrawOSD (void)
         // No Effective Frametime History
         else {
           OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)",
-            api_name.c_str (),
+            SK_GetCurrentRenderBackend ().name,
               // Cast to FP to avoid integer division by zero.
               fps,
                 mean,
@@ -683,7 +703,7 @@ SK_DrawOSD (void)
       // No Frametime History
       else {
         OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms",
-          api_name.c_str (),
+          SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
             1000.0f * 0.0f / 1.0f, 0.0f
         OSD_END
@@ -1220,20 +1240,23 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  SK_TextOverlay* pOverlay =
-    SK_TextOverlayFactory::getInstance ()->getTextOverlay (lpAppName);
+  try {
+    SK_TextOverlay* pOverlay =
+      SK_TextOverlayFactory::getInstance ()->getTextOverlay (lpAppName);
 
 #define IMPLICIT_CREATION
 #ifdef IMPLICIT_CREATION
-  if (pOverlay == nullptr) {
-    pOverlay =
-      SK_TextOverlayFactory::getInstance ()->createTextOverlay (lpAppName);
-  }
+    if (pOverlay == nullptr) {
+      pOverlay =
+        SK_TextOverlayFactory::getInstance ()->createTextOverlay (lpAppName);
+    }
 #endif
 
-  if (pOverlay != nullptr) {
-    pOverlay->update (lpText);
-    return TRUE;
+    if (pOverlay != nullptr) {
+      pOverlay->update (lpText);
+      return TRUE;
+    }
+  } catch (...) {
   }
 
   return FALSE;
@@ -1340,7 +1363,7 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
       font_.cegui =
         &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
 
-      if (font_.cegui != nullptr)
+      if (font_.cegui != nullptr && pRenderer->getDisplaySize () != CEGUI::Sizef (0.0f, 0.0f))
         font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
 
       const CEGUI::Rectf scrn (
@@ -1426,24 +1449,23 @@ SK_TextOverlay::update (const char* szText)
 
   if (font_.cegui && geometry_)
   {
-    geometry_->reset ();
-
     float baseline = 0.0f;
     float spacing  = font_.cegui->getLineSpacing () * font_.scale;
 
-    float red   = config.osd.red   / 255.0f;
-    float green = config.osd.green / 255.0f;
-    float blue  = config.osd.blue  / 255.0f;
+    float red   = (float)config.osd.red   / 255.0f;
+    float green = (float)config.osd.green / 255.0f;
+    float blue  = (float)config.osd.blue  / 255.0f;
 
     if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1) {
-      //red = 238.0f; green = 250.0f; blue = 5.0f;
-      blue = 238.0f; green = 250.0f; red = 5.0f;
+      red   = (238.0f / 255.0f);
+      green = (250.0f / 255.0f);
+      blue  = (  5.0f / 255.0f);
     }
 
     float x,y;
     getPos (x, y);
 
-    static char text [32768];
+    char* text = new char [32768];
     strncpy (text, data_.text, 32767);
 
     int   num_lines    = SK_CountLines (text);
@@ -1488,6 +1510,19 @@ SK_TextOverlay::update (const char* szText)
         line = strtok_ex (text, "\n");
     }
 
+    CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
+    geometry_->reset ();
+
+    CEGUI::ColourRect foreground (
+      CEGUI::Colour ( red,
+                        green,
+                          blue )
+    );
+
+    CEGUI::ColourRect shadow (
+      CEGUI::Colour ( 0.0f, 0.0f, 0.0f )
+    );
+
     if (y < 0.0f)
       y = renderer_->getDisplaySize ().d_height + y - (num_lines * spacing) + 1.0f;
 
@@ -1496,16 +1531,17 @@ SK_TextOverlay::update (const char* szText)
       // Fast-path: Skip blank lines
       if (*line != '\0')
       {
+        CEGUI::String cegui_line (line);
+
+        try {
         // First the shadow
         //
         font_.cegui->drawText (
           *geometry_,
-            line,
+            cegui_line,
               CEGUI::Vector2f (x + 1.0f, y + baseline + 1.0f),
                 nullptr,
-                  CEGUI::Colour ( 0,
-                                    0,
-                                      0 ),
+                  shadow,
                     0.0f,
                       font_.scale,
                       font_.scale );
@@ -1514,15 +1550,14 @@ SK_TextOverlay::update (const char* szText)
         //
         font_.cegui->drawText (
           *geometry_,
-            line,
+            cegui_line,
               CEGUI::Vector2f (x, y + baseline),
                 nullptr,
-                  CEGUI::Colour ( red,
-                                    green,
-                                      blue ),
+                  foreground,
                     0.0f,
                       font_.scale,
                       font_.scale );
+        } catch (...) { };
       }
 
       baseline += spacing;
@@ -1533,7 +1568,8 @@ SK_TextOverlay::update (const char* szText)
         line = nullptr;
     }
 
-    CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
+    delete [] text;
+
     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
 
     data_.extent = baseline;
@@ -1551,12 +1587,9 @@ SK_TextOverlay::draw (float x, float y, bool full)
     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
 
     if (full) {
-      //CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
-      //CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
+      update          (nullptr);
+      geometry_->draw ();
     }
-
-    //geometry_->draw           ();
-
     return data_.extent;
   }
 
@@ -1609,17 +1642,17 @@ SK_TextOverlay::getPos (float& x, float& y)
 
 
 void
+SK_TextOverlayFactory::queueReset (CEGUI::Renderer* renderer)
+{
+  need_full_reset_ = true;
+}
+
+void
 SK_TextOverlayFactory::resetAllOverlays (CEGUI::Renderer* renderer)
 {
-  //if (gui_ctx_ != nullptr)
-    //CEGUI::System::getDllSingleton ().destroyGUIContext (*gui_ctx_);
-
   if (renderer != nullptr) {
     gui_ctx_ =
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
-      //&CEGUI::System::getDllSingleton ().createGUIContext (
-        //renderer->getDefaultRenderTarget ()
-      //);
   }
 
   auto it =
@@ -1646,14 +1679,33 @@ SK_TextOverlayFactory::drawAllOverlays (float x, float y, bool full)
 
   float base_y = y;
 
-  while (it != overlays_.end ())
+  while (it != overlays_.end ()) {
+    (it)->second->update (nullptr);
     y += (it++)->second->draw (x, y, full);
+  }
 
   if (y != base_y && gui_ctx_ != nullptr) {
     //gui_ctx_->markAsDirty ();
-    //gui_ctx_->invalidate  ();
+    gui_ctx_->invalidate  ();
   }
 
   // Height of all rendered overlays
   return (y - base_y);
+}
+
+void
+SK_TextOverlayFactory::destroyAllOverlays (void)
+{
+  EnterCriticalSection (&cs_);
+
+  auto it =
+    overlays_.begin ();
+
+  while (it != overlays_.end ()) {
+    delete (it++)->second;
+  }
+
+  overlays_.clear ();
+
+  LeaveCriticalSection (&cs_);
 }

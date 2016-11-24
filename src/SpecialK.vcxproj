@@ -353,6 +353,7 @@ Exit 0</Command>
     <ClInclude Include="osd\popup.h" />
     <ClInclude Include="osd\text.h" />
     <ClInclude Include="parameter.h" />
+    <ClInclude Include="render_backend.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="steam_api.h" />
@@ -373,6 +374,7 @@ Exit 0</Command>
     <ClCompile Include="diagnostics\debug_utils.cpp" />
     <ClCompile Include="osd\popup.cpp" />
     <ClCompile Include="plugins\tw3.cpp" />
+    <ClCompile Include="render_backend.cpp" />
     <ClCompile Include="SpecialK.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="config.cpp" />

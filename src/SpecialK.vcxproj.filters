@@ -240,6 +240,9 @@
     <ClInclude Include="osd\popup.h">
       <Filter>Header Files\OSD</Filter>
     </ClInclude>
+    <ClInclude Include="render_backend.h">
+      <Filter>Header Files\Backends</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dxgi.cpp">
@@ -349,6 +352,9 @@
     </ClCompile>
     <ClCompile Include="osd\popup.cpp">
       <Filter>Source Files\OSD</Filter>
+    </ClCompile>
+    <ClCompile Include="render_backend.cpp">
+      <Filter>Source Files\Backends</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

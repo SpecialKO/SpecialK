@@ -97,6 +97,7 @@ CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 
 static volatile ULONG __gui_reset = TRUE;
 
+ID3D11Device*        pGUIDev     = nullptr;
 ID3D11DeviceContext* pCEG_DevCtx = nullptr;
 
 void
@@ -129,6 +130,8 @@ SK_CEGUI_RelocateLog (void)
     DeleteFileW (L"CEGUI.log");
   }
 }
+
+CEGUI::Window* SK_achv_popup = nullptr;
 
 void
 SK_CEGUI_InitBase (void)
@@ -202,8 +205,47 @@ SK_CEGUI_InitBase (void)
 
     if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
       parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
+
+    // Set a default window size if CEGUI cannot figure it out...
+    if ( CEGUI::System::getDllSingleton ().getRenderer ()->getDisplaySize () ==
+           CEGUI::Sizef (0.0f, 0.0f) )
+    {
+      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
+          CEGUI::Sizef (
+            game_window.render_x,
+              game_window.render_y
+          )
+      );
+    }
+
+    if ( config.window.res.override.x && config.window.res.override.y )
+    {
+      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
+          CEGUI::Sizef (
+            config.window.res.override.x,
+              config.window.res.override.y
+          )
+      );
+    }
+
+    CEGUI::WindowManager& window_mgr =
+      CEGUI::WindowManager::getDllSingleton ();
+
+    CEGUI::Window* root =
+      window_mgr.createWindow ("DefaultWindow", "root");
+
+    CEGUI::System::getDllSingleton ().getDefaultGUIContext ().setRootWindow (root);
+
+    // This window is never used, it is the prototype from which all
+    //   achievement popup dialogs will be cloned. This makes the whole
+    //     process of instantiating popups quicker.
+    SK_achv_popup =
+      window_mgr.loadLayoutFromFile ("Achievements.layout");
  } catch (...) {
  }
+
+  extern void SK_Steam_ClearPopups (void);
+  SK_Steam_ClearPopups ();
 }
 
 void ResetCEGUI_D3D11 (IDXGISwapChain* This)
@@ -211,17 +253,35 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
   if (! config.cegui.enable)
     return;
 
-  if (cegD3D11 == nullptr)
+  if (cegD3D11 != nullptr) {
+    SK_TextOverlayFactory::getInstance ()->destroyAllOverlays ();
+    SK_PopupManager::getInstance ()->destroyAllPopups         ();
+
+    if (pGUIDev != nullptr) {
+      pGUIDev = nullptr;
+    }
+
+    if (pCEG_DevCtx != nullptr) {
+      pCEG_DevCtx->Release ();
+      pCEG_DevCtx = nullptr;
+    }
+
+    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+    cegD3D11->destroySystem ();
+    cegD3D11 = nullptr;
+  }
+
+  else if (cegD3D11 == nullptr)
   {
-    // The process of bootstrapping this through CEGUI does not add a reference, so
-    //   don't bother decrementing the reference count by releasing it.
-    ID3D11Device* pGUIDev = nullptr;
+    pGUIDev = nullptr;
 
     This->GetDevice (IID_PPV_ARGS (&pGUIDev));
 
     if (pGUIDev == nullptr)
       return;
 
+    // The process of bootstrapping this through CEGUI does not add a reference, so
+    //   don't bother decrementing the reference count by releasing it.
     pGUIDev->GetImmediateContext (&pCEG_DevCtx);
 
     try {
@@ -230,14 +290,20 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
       SK_CEGUI_RelocateLog ();
     } catch (...) {
+      pGUIDev->Release     ();
       cegD3D11 = nullptr;
       return;
     }
 
     SK_CEGUI_InitBase ();
 
-    SK_PopupManager::getInstance ()->destroyAllPopups ();
+    SK_PopupManager::getInstance ()->destroyAllPopups       ();
     SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
+
+    extern void SK_Steam_ClearPopups (void);
+    SK_Steam_ClearPopups ();
+
+    pGUIDev->Release     ();
   }
 }
 
@@ -375,7 +441,7 @@ extern "C++" HRESULT STDMETHODCALLTYPE
                   SK_TW3_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 
 
-// TODO: Get this stuff out of here, it's breaking what _DSlittle design work there is.
+// TODO: Get this stuff out of here, it's breaking what little design work there is.
 extern "C++" void SK_DS3_InitPlugin         (void);
 extern "C++" bool SK_DS3_UseFlipMode        (void);
 extern "C++" bool SK_DS3_IsBorderless       (void);
@@ -1219,12 +1285,19 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   CComPtr <ID3D11Device> pDev = nullptr;
 
   // Make sure resolution changes propogate to the text overlays
-  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
-    if (cegD3D11 != nullptr)
-      SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
-  }
+  //if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
+    //if (cegD3D11 != nullptr)
+      //SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
+  //}
 
-  /*if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
+  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
+    SK_TextOverlayFactory::getInstance ()->destroyAllOverlays ();
+
+    if (pGUIDev != nullptr) {
+      //pGUIDev->Release ();
+      pGUIDev = nullptr;
+    }
+
     if (pCEG_DevCtx != nullptr) {
       pCEG_DevCtx->Release ();
       pCEG_DevCtx = nullptr;
@@ -1237,7 +1310,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     }
   }
 
-  else*/ if (cegD3D11 == nullptr) {
+  else if (cegD3D11 == nullptr) {
     extern
     ULONG
     __stdcall
@@ -1249,6 +1322,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   }
 
   else if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) ) {
+    CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
+
+    if (pGUIDev != pDev) {
+      ResetCEGUI_D3D11 (This);
+    }
+
     HRESULT hr;
 
     CComPtr <ID3D11Texture2D>        pBackBuffer       = nullptr;
@@ -1264,60 +1343,64 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
 
     if (SUCCEEDED (hr)) {
-      SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-
+#define USE_SB
+#ifdef USE_SB
       D3DX11_STATE_BLOCK sb;
       CreateStateblock (pCEG_DevCtx, &sb);
+#endif
+        D3D11_TEXTURE2D_DESC backbuffer_desc;
+        pBackBuffer->GetDesc (&backbuffer_desc);
 
-      D3D11_TEXTURE2D_DESC backbuffer_desc;
-      pBackBuffer->GetDesc (&backbuffer_desc);
+        D3D11_BLEND_DESC blend;
+        ZeroMemory     (&blend, sizeof (blend));
 
-      D3D11_BLEND_DESC blend;
-      ZeroMemory     (&blend, sizeof (blend));
+        pCEG_DevCtx->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
 
-      pCEG_DevCtx->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
+        blend.RenderTarget [0].BlendEnable           = TRUE;
+        blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+        blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+        blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+        blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+        blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
+        blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+        blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-      blend.RenderTarget [0].BlendEnable           = TRUE;
-      blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-      blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
-      blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-      blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-      blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
-      blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-      blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        if (SUCCEEDED (pDev->CreateBlendState   (&blend, &pBlendState)))
+          pCEG_DevCtx->OMSetBlendState (pBlendState, NULL, 0xffffffff);
 
-      if (SUCCEEDED (pDev->CreateBlendState   (&blend, &pBlendState)))
-        pCEG_DevCtx->OMSetBlendState (pBlendState, NULL, 0xffffffff);
+        D3D11_VIEWPORT vp;
+        ZeroMemory   (&vp, sizeof (vp));
 
-      D3D11_VIEWPORT vp;
-      ZeroMemory   (&vp, sizeof (vp));
+        vp.Width    = (float)backbuffer_desc.Width;
+        vp.Height   = (float)backbuffer_desc.Height;
+        vp.MinDepth = 0;
+        vp.MaxDepth = 1;
+        vp.TopLeftX = 0;
+        vp.TopLeftY = 0;
 
-      vp.Width    = (float)backbuffer_desc.Width;
-      vp.Height   = (float)backbuffer_desc.Height;
-      vp.MinDepth = 0;
-      vp.MaxDepth = 1;
-      vp.TopLeftX = 0;
-      vp.TopLeftY = 0;
+        pCEG_DevCtx->RSSetViewports (1, &vp);
 
-      pCEG_DevCtx->RSSetViewports (1, &vp);
-
-      pCEG_DevCtx->GSSetShader (0, 0, 0);
-      pCEG_DevCtx->CSSetShader (0, 0, 0);
-      pCEG_DevCtx->DSSetShader (0, 0, 0);
-      pCEG_DevCtx->HSSetShader (0, 0, 0);
+#ifdef USE_SB
+        pCEG_DevCtx->GSSetShader (0, 0, 0);
+        pCEG_DevCtx->CSSetShader (0, 0, 0);
+        pCEG_DevCtx->DSSetShader (0, 0, 0);
+        pCEG_DevCtx->HSSetShader (0, 0, 0);
+#endif
 
       cegD3D11->beginRendering ();
       {
-        // Flickering is preferable to waiting and unhinging the framerate!
-        if (SK_PopupManager::getInstance ()->tryLockPopups ())
-        {
-          CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-          SK_PopupManager::getInstance   ()->unlockPopups ();
-        }
+        SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+
+        extern void SK_Steam_DrawOSD (void);
+        SK_Steam_DrawOSD ();
+
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
       cegD3D11->endRendering ();
 
+#ifdef USE_SB
       ApplyStateblock (pCEG_DevCtx, &sb);
+#endif
     }
   }
 }
@@ -3482,7 +3565,7 @@ HookDXGI (LPVOID user)
                              EnumAdapters_pfn );
       }
 
-      //  0 QueryInterface 
+      //  0 QueryInterface
       //  1 AddRef
       //  2 Release
       //  3 SetPrivateData

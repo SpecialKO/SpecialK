@@ -121,8 +121,11 @@ SK_GetFramesDrawn (void)
   return InterlockedExchangeAdd (&frames_drawn, 0);
 }
 
+#define D3D12_IGNORE_SDK_LAYERS
+
 #include <d3d9.h>
 #include <d3d11.h>
+#include "d3d12_interfaces.h"
 
 const wchar_t*
 __stdcall
@@ -2971,7 +2974,7 @@ DoKeyboard (void)
 }
 #endif
 
-std::wstring SK_RenderAPI;
+#include "render_backend.h"
 
 __declspec (noinline)
 COM_DECLSPEC_NOTHROW
@@ -2979,19 +2982,37 @@ HRESULT
 STDMETHODCALLTYPE
 SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 {
+  extern SK_RenderBackend __SK_RBkEnd;
+
   if (device != nullptr) {
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     CComPtr <ID3D11Device>       pDev11  = nullptr;
+    CComPtr <ID3D12Device>       pDev12  = nullptr;
 
     if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9Ex)))) {
-      SK_RenderAPI = L"D3D9Ex";
+         (int&)__SK_RBkEnd.api  = ( (int)SK_RenderAPI::D3D9 |
+                                    (int)SK_RenderAPI::D3D9Ex );
+      wcsncpy (__SK_RBkEnd.name, L"D3D9Ex", 8);
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9)))) {
-      SK_RenderAPI = L"D3D9  ";
+               __SK_RBkEnd.api  = SK_RenderAPI::D3D9;
+      wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11)))) {
-      SK_RenderAPI = L"D3D11 ";
+               __SK_RBkEnd.api  = SK_RenderAPI::D3D11;
+      wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
+    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12)))) {
+               __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
+      wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);
     } else {
-      SK_RenderAPI = L"UNKNOWN";
+               __SK_RBkEnd.api  = SK_RenderAPI::Reserved;
+      wcsncpy (__SK_RBkEnd.name, L"UNKNOWN", 8);
+    }
+  }
+
+  else {
+    if (wglGetCurrentContext () != 0) {
+               __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
+      wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }
   }
 

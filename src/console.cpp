@@ -1353,6 +1353,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
+  if (uMsg == WM_SIZE) {
+    //if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL ) {
+      SK_SetWindowResX (LOWORD (lParam));
+      SK_SetWindowResY (HIWORD (lParam));
+    //}
+  }
+
 #if 0
   if (config.window.borderless) {
     if (uMsg == WM_WINDOWPOSCHANGED || uMsg == WM_WINDOWPOSCHANGING)
@@ -1515,10 +1522,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     return MA_ACTIVATE;
   }
 
-  if (config.window.background_render && (uMsg == WM_KILLFOCUS || uMsg == WM_SETFOCUS)) {
-    DefWindowProc (hWnd, uMsg, wParam, lParam);
-  }
-
   // Allow the game to run in the background
   if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE || uMsg == WM_NCACTIVATE /*|| uMsg == WM_MOUSEACTIVATE*/)
   {
@@ -1593,12 +1596,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     config.window.background_render && (! game_window.active);
 
   if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) && (! background_render)) {
-    if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam))
+    if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
       return CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
   }
 
   if ((uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP) && (! background_render)) {
-    if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam))
+    if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
       return CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
   }
 

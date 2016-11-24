@@ -43,6 +43,9 @@ void __stdcall SK_SetOSDScale      (float fScale, bool relative = false,      LP
 void __stdcall SK_ResizeOSD        (float scale_incr,                         LPCSTR lpAppName = nullptr);
 
 #ifndef OSD_IMP
+#undef min
+#undef max
+
 namespace CEGUI {
   class Renderer;
   class GUIContext;
@@ -70,12 +73,15 @@ class SK_TextOverlayFactory {
 public:
   static SK_TextOverlayFactory* getInstance (void);
 
-  SK_TextOverlay* createTextOverlay (const char* szAppName);
-  bool            removeTextOverlay (const char* szAppName);
-  SK_TextOverlay* getTextOverlay    (const char* szAppName);
+  SK_TextOverlay* createTextOverlay  (const char* szAppName);
+  bool            removeTextOverlay  (const char* szAppName);
+  SK_TextOverlay* getTextOverlay     (const char* szAppName);
 
-  void            resetAllOverlays  (CEGUI::Renderer* renderer);
-  float           drawAllOverlays   (float x = 0.0f, float y = 0.0f, bool full = false);
+  void            queueReset         (CEGUI::Renderer* renderer);
+
+  void            resetAllOverlays   (CEGUI::Renderer* renderer);
+  float           drawAllOverlays    (float x = 0.0f, float y = 0.0f, bool full = false);
+  void            destroyAllOverlays (void);
 
 protected:
   SK_TextOverlayFactory (void);
