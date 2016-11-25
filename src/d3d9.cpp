@@ -284,9 +284,6 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       D3DCAPS9 caps;
       pDev->GetDeviceCaps (&caps);
 
-      pDev->SetVertexShader (nullptr);
-      pDev->SetPixelShader  (nullptr);
-
       pDev->SetRenderState (D3DRS_FILLMODE,  D3DFILL_SOLID);
       pDev->SetRenderState (D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
       pDev->SetRenderState (D3DRS_CULLMODE,  D3DCULL_NONE);
@@ -297,14 +294,11 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_INVSRCALPHA);
 
       pDev->SetRenderState (D3DRS_ALPHATESTENABLE, TRUE);
-      pDev->SetRenderState (D3DRS_ALPHAFUNC,       D3DCMP_GREATEREQUAL);
-      pDev->SetRenderState (D3DRS_ALPHAREF, (DWORD)0x00000001);
+      pDev->SetRenderState (D3DRS_ALPHAFUNC,       D3DCMP_GREATER);
+      pDev->SetRenderState (D3DRS_ALPHAREF, (DWORD)0x00000000);
 
-      pDev->SetRenderState (D3DRS_ZENABLE,       FALSE);
       pDev->SetRenderState (D3DRS_STENCILENABLE, FALSE);
-      pDev->SetRenderState (D3DRS_ZWRITEENABLE,  FALSE);
       pDev->SetRenderState (D3DRS_ZFUNC,         D3DCMP_ALWAYS);
-      pDev->SetRenderState (D3DRS_COLORVERTEX,   FALSE);
 
       pDev->SetSamplerState (0, D3DSAMP_SRGBTEXTURE, FALSE);
 
@@ -324,15 +318,6 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
         pDev->SetTextureStageState (i, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
         pDev->SetTextureStageState (i, D3DTSS_COLOROP, D3DTOP_DISABLE);
       }
-
-      pDev->SetRenderState (D3DRS_FOGENABLE,      FALSE);
-      pDev->SetRenderState (D3DRS_RANGEFOGENABLE, FALSE);
-      pDev->SetRenderState (D3DRS_CLIPPING,       FALSE);
-
-      pDev->SetRenderState (D3DRS_LIGHTING,       FALSE);
-      pDev->SetRenderState (D3DRS_SPECULARENABLE, FALSE);
-      pDev->SetRenderState (D3DRS_VERTEXBLEND,    FALSE);
-      pDev->SetRenderState (D3DRS_DITHERENABLE,   FALSE);
 
       cegD3D9_SB->Capture ();
     } else {

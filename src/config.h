@@ -168,12 +168,13 @@ struct sk_config_t
       bool  show_popup          = true;
       int   popup_duration      = 5000UL;
       int   popup_corner        = 1; // XXX: Use actual coordinates
+      bool  popup_animate       = true;
     } achievements;
 
     std::wstring
             achievement_sound   = L"";
     bool    achievement_sshot   = false;
-    int     notify_corner       = 4; // 0=Top-Left,
+    int     notify_corner       = 0; // 0=Top-Left,
                                      // 1=Top-Right,
                                      // 2=Bottom-Left,
                                      // 3=Bottom-Right,
@@ -181,7 +182,7 @@ struct sk_config_t
     int     inset_x             = 0;
     int     inset_y             = 0;
 
-    bool    nosound             = false;
+    bool    playsound           = true;
     bool    silent              = false;
 
     int     init_delay          = 0UL; // Disable to prevent crashing in many games

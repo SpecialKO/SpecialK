@@ -43,6 +43,8 @@
 #undef max
 
 #include "osd/popup.h"
+#include "osd/text.h"
+#include "render_backend.h"
 
 // PlaySound
 #pragma comment (lib, "winmm.lib")
@@ -1121,8 +1123,10 @@ public:
       if (achievement_ini.get_sections ().size () == 0) {
         achievement_ini.import ( L"[Steam.Achievements]\n"
                                  L"SoundFile=psn\n"
-                                 L"NoSound=false\n"
-                                 L"TakeScreenshot=false\n" );
+                                 L"PlaySound=true\n"
+                                 L"TakeScreenshot=false\n"
+                                 L"AnimatePopup=true\n"
+                                 L"NotifyCorner=0\n" );
         achievement_ini.write (        SK_EvalEnvironmentVars (
           L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
         ).c_str ());
@@ -1533,7 +1537,7 @@ public:
       achievement->progress_.current = 1;
       achievement->progress_.max     = 1;
 
-      if (! config.steam.nosound)
+      if (config.steam.playsound)
         PlaySound ( (LPCWSTR)unlock_sound, NULL, SND_ASYNC | SND_MEMORY );
 
       if (achievement != nullptr) {
@@ -1620,7 +1624,11 @@ public:
     //if (SK_PopupManager::getInstance ()->tryLockPopups ())
     {
       try {
-        #define POPUP_DURATION_MS config.steam.achievements.popup_duration
+        // If true, we need to redraw all text overlays to prevent flickering
+        bool removed = false;
+        bool created = false;
+
+        #define POPUP_DURATION_MS 3600/*config.steam.achievements.popup_duration*/
 
         std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
 
@@ -1634,16 +1642,69 @@ public:
           CEGUI::System::getDllSingleton ().getRenderer ()->
             getDisplaySize ().d_width * (1.0f - inset);
 
-        CEGUI::UDim x_pos (inset, 0.0f);
-        CEGUI::UDim y_pos (inset, 0.0f);
+        float x_origin, y_origin,
+              x_dir,    y_dir;
+
+        CEGUI::Window* first = popups.begin ()->window;
+
+        const float win_ht0 = first != nullptr ?
+                                (popups.begin ()->window->getPixelSize ().d_height) :
+                                  0.0f;
+        const float win_wd0 = first != nullptr ?
+                                (popups.begin ()->window->getPixelSize ().d_width) :
+                                  0.0f;
+
+        const float title_wd =
+          CEGUI::System::getDllSingleton ().getRenderer ()->
+            getDisplaySize ().d_width * (1.0f - 2.0f * inset);
+
+        const float title_ht =
+          CEGUI::System::getDllSingleton ().getRenderer ()->
+            getDisplaySize ().d_height * (1.0f - 2.0f * inset);
+
+        float fract_x, fract_y;
+
+        modf (title_wd / win_wd0, &fract_x);
+        modf (title_ht / win_ht0, &fract_y);
+
+        float x_off = full_wd / (4.0f * fract_x);
+        float y_off = full_ht / (4.0f * fract_y);
+
+        switch (config.steam.notify_corner) {
+          default:
+          case 0:
+            x_origin =        inset;                          x_dir = 1.0f;
+            y_origin =        inset;                          y_dir = 1.0f;
+            break;
+          case 1:
+            x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
+            y_origin =        inset;                          y_dir =  1.0f;
+            break;
+          case 2:
+            x_origin =        inset;                          x_dir =  1.0f;
+            y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
+            break;
+          case 3:
+            x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
+            y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
+            break;
+        }
+
+        CEGUI::UDim x_pos (x_origin, x_off * x_dir);
+        CEGUI::UDim y_pos (y_origin, y_off * y_dir);
 
         while (it != popups.end ()) {
           if (timeGetTime () < (*it).time + POPUP_DURATION_MS) {
+            float percent_of_lifetime = ((float)((*it).time + POPUP_DURATION_MS - timeGetTime ()) / 
+                                                (float)POPUP_DURATION_MS);
+
             //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
               CEGUI::Window* win = (*it).window;
 
-              if (win == nullptr)
+              if (win == nullptr) {
                 win = createPopupWindow (&*it);
+                created = true;
+              }
 
               const float win_ht =
                 win->getPixelSize ().d_height;
@@ -1660,11 +1721,11 @@ public:
               // The bottom of the window would be off-screen, so
               //   move it to the top and offset by the width of
               //     each popup.
-              if ( bottom_y >= full_ht ) {
-                y_pos = CEGUI::UDim (inset, 0.0f);
-                x_pos += win->getSize ().d_width;
+              if ( bottom_y >= full_ht || bottom_y < win_ht0 ) {
+                y_pos  = CEGUI::UDim (y_origin, y_off * y_dir);
+                x_pos += x_dir * win->getSize ().d_width;
 
-                win_pos = (CEGUI::UVector2 (x_pos, y_pos));
+                win_pos   = (CEGUI::UVector2 (x_pos, y_pos));
               }
 
               float right_x = win_pos.d_x.d_scale * full_wd + 
@@ -1672,18 +1733,37 @@ public:
                                    win_wd;
 
               // Window is off-screen horizontally AND vertically
-              if ( right_x >= full_wd ) {
+              if ( right_x >= full_wd || right_x < win_wd0  ) {
                 // Since we're not going to draw this, treat it as a new
                 //   popup until it first becomes visible.
                 (*it).time =
                      timeGetTime ();
                 win->hide        ();
               } else {
+
+                if (config.steam.achievements.popup_animate) {
+                  CEGUI::UDim percent (
+                    CEGUI::UDim (y_origin, y_off).percent ()
+                  );
+
+                  if (percent_of_lifetime <= 0.1f) {
+                    win_pos.d_y /= percent * 100.0f *
+                          CEGUI::UDim (percent_of_lifetime / 0.1f, 0.0f);
+                  }
+
+                  else if (percent_of_lifetime >= 0.9f) {
+                    win_pos.d_y /= percent * 100.0f *
+                          CEGUI::UDim ( (1.0f - 
+                              (percent_of_lifetime - 0.9) / 0.1f),
+                                          0.0f );
+                  }
+                }
+
                 win->show        ();
                 win->setPosition (win_pos);
               }
 
-              y_pos += win->getSize ().d_height;
+              y_pos += y_dir * win->getSize ().d_height;
 
               ++it;
             //} else {
@@ -1696,10 +1776,22 @@ public:
               CEGUI::Window* win = (*it).window;
 
               CEGUI::WindowManager::getDllSingleton ().destroyWindow (win);
+
+              removed = true;
               //SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
             //}
 
             it = popups.erase (it);
+          }
+        }
+
+        // Invalidate text overlays any time a window is removed,
+        //   this prevents flicker.
+        if (removed || created) {
+          SK_TextOverlayFactory::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
+
+          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9) {
+            CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
           }
         }
       }

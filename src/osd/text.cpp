@@ -1587,8 +1587,8 @@ SK_TextOverlay::draw (float x, float y, bool full)
     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
 
     if (full) {
-      update          (nullptr);
       geometry_->draw ();
+      update          (nullptr);
     }
     return data_.extent;
   }
@@ -1664,8 +1664,10 @@ SK_TextOverlayFactory::resetAllOverlays (CEGUI::Renderer* renderer)
 
     it->second->reset (renderer);
 
-    if (it->second->geometry_ != nullptr)
+    if (it->second->geometry_ != nullptr) {
+        it->second->update        (nullptr);
       gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+    }
 
     ++it;
   }
@@ -1680,13 +1682,14 @@ SK_TextOverlayFactory::drawAllOverlays (float x, float y, bool full)
   float base_y = y;
 
   while (it != overlays_.end ()) {
-    (it)->second->update (nullptr);
-    y += (it++)->second->draw (x, y, full);
+    y += it->second->draw (x, y, full);
+
+    ++it;
   }
 
   if (y != base_y && gui_ctx_ != nullptr) {
     //gui_ctx_->markAsDirty ();
-    gui_ctx_->invalidate  ();
+    //gui_ctx_->invalidate  ();
   }
 
   // Height of all rendered overlays

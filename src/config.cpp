@@ -33,8 +33,9 @@
 
 const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
 
-iSK_INI*             dll_ini    = nullptr;
-iSK_INI*             osd_ini    = nullptr;
+iSK_INI*             dll_ini         = nullptr;
+iSK_INI*             osd_ini         = nullptr;
+iSK_INI*             achievement_ini = nullptr;
 sk_config_t          config;
 sk::ParameterFactory g_ParameterFactory;
 
@@ -113,8 +114,9 @@ struct {
 struct {
   struct {
     sk::ParameterStringW* sound_file;
-    sk::ParameterBool*    nosound;
+    sk::ParameterBool*    playsound;
     sk::ParameterBool*    screenshot;
+    sk::ParameterBool*    animate;
     sk::ParameterInt*     notify_corner;
     sk::ParameterInt*     notify_insetX;
     sk::ParameterInt*     notify_insetY;
@@ -235,6 +237,7 @@ SK_LoadConfig (std::wstring name) {
   // Load INI File
   std::wstring full_name;
   std::wstring osd_config;
+  std::wstring achievement_config;
 
   full_name = SK_GetConfigPath () +
                 name              +
@@ -252,10 +255,18 @@ SK_LoadConfig (std::wstring name) {
       L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\osd.ini"
     );
 
+  achievement_config =
+    SK_EvalEnvironmentVars (
+      L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
+    );
+
   SK_CreateDirectories (osd_config.c_str ());
 
   osd_ini =
     new iSK_INI (osd_config.c_str ());
+
+  achievement_ini =
+    new iSK_INI (achievement_config.c_str ());
 
   //
   // Create Parameters
@@ -1107,15 +1118,15 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.Achievements",
         L"SoundFile" );
 
-  steam.achievements.nosound =
+  steam.achievements.playsound =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Silence is Bliss?")
       );
-  steam.achievements.nosound->register_to_ini(
-    dll_ini,
+  steam.achievements.playsound->register_to_ini(
+    achievement_ini,
       L"Steam.Achievements",
-        L"NoSound" );
+        L"PlaySound" );
 
   steam.achievements.screenshot =
     static_cast <sk::ParameterBool *>
@@ -1123,7 +1134,7 @@ SK_LoadConfig (std::wstring name) {
         L"Precious Memories")
       );
   steam.achievements.screenshot->register_to_ini(
-    dll_ini,
+    achievement_ini,
       L"Steam.Achievements",
         L"TakeScreenshot" );
 
@@ -1133,9 +1144,19 @@ SK_LoadConfig (std::wstring name) {
         L"Achievement Notification Position")
       );
   steam.achievements.notify_corner->register_to_ini (
-    dll_ini,
+    achievement_ini,
       L"Steam.Achievements",
         L"NotifyCorner" );
+
+  steam.achievements.animate =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Achievement Notification Animation")
+      );
+  steam.achievements.animate->register_to_ini (
+    achievement_ini,
+      L"Steam.Achievements",
+        L"AnimatePopup" );
 
   steam.achievements.notify_insetX =
     static_cast <sk::ParameterInt *>
@@ -1518,8 +1539,8 @@ SK_LoadConfig (std::wstring name) {
                   &config.window.res.override.y );
   }
 
-  if (steam.achievements.nosound->load ())
-    config.steam.nosound = steam.achievements.nosound->get_value ();
+  if (steam.achievements.playsound->load ())
+    config.steam.playsound = steam.achievements.playsound->get_value ();
   if (steam.achievements.sound_file->load ())
     config.steam.achievement_sound =
       steam.achievements.sound_file->get_value ();
@@ -1529,6 +1550,9 @@ SK_LoadConfig (std::wstring name) {
   if (steam.achievements.notify_corner->load ())
     config.steam.notify_corner =
       steam.achievements.notify_corner->get_value ();
+  if (steam.achievements.animate->load ())
+    config.steam.achievements.popup_animate =
+      steam.achievements.animate->get_value ();
   if (steam.achievements.notify_insetX->get_value ())
     config.steam.inset_x = steam.achievements.notify_insetX->get_value ();
   if (steam.achievements.notify_insetY->get_value ())
@@ -1731,9 +1755,10 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   }
 
   steam.achievements.sound_file->set_value    (config.steam.achievement_sound);
-  steam.achievements.nosound->set_value       (config.steam.nosound);
+  steam.achievements.playsound->set_value     (config.steam.playsound);
   steam.achievements.screenshot->set_value    (config.steam.achievement_sshot);
   steam.achievements.notify_corner->set_value (config.steam.notify_corner);
+  steam.achievements.animate->set_value       (config.steam.achievements.popup_animate);
   steam.achievements.notify_insetX->set_value (config.steam.inset_x);
   steam.achievements.notify_insetY->set_value (config.steam.inset_y);
 
@@ -1860,8 +1885,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   osd.viewport.scale->store              ();
 
   steam.achievements.sound_file->store    ();
-  steam.achievements.nosound->store       ();
+  steam.achievements.playsound->store     ();
   steam.achievements.screenshot->store    ();
+  steam.achievements.animate->store       ();
   steam.achievements.notify_corner->store ();
   steam.achievements.notify_insetX->store ();
   steam.achievements.notify_insetY->store ();
@@ -1897,11 +1923,25 @@ SK_SaveConfig (std::wstring name, bool close_config) {
                      L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\"
                      L"Global\\osd.ini"
                    ).c_str () );
+  achievement_ini->write ( SK_EvalEnvironmentVars (
+                     L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\"
+                     L"Global\\achievements.ini"
+                   ).c_str () );
 
   if (close_config) {
     if (dll_ini != nullptr) {
       delete dll_ini;
       dll_ini = nullptr;
+    }
+
+    if (osd_ini != nullptr) {
+      delete osd_ini;
+      osd_ini = nullptr;
+    }
+
+    if (achievement_ini != nullptr) {
+      delete achievement_ini;
+      achievement_ini = nullptr;
     }
   }
 }
