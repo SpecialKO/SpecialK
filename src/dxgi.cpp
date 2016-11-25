@@ -285,6 +285,28 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     pGUIDev->GetImmediateContext (&pCEG_DevCtx);
 
     try {
+      // For CEGUI to work correctly, it is necessary to set the viewport dimensions
+      //   to the backbuffer size prior to bootstrap.
+      CComPtr <ID3D11Texture2D> pBackBuffer = nullptr;
+
+      if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer)))) {
+
+        D3D11_TEXTURE2D_DESC backbuffer_desc;
+        pBackBuffer->GetDesc (&backbuffer_desc);
+
+        D3D11_VIEWPORT vp;
+        ZeroMemory   (&vp, sizeof (vp));
+
+        vp.Width    = (float)backbuffer_desc.Width;
+        vp.Height   = (float)backbuffer_desc.Height;
+        vp.MinDepth = 0;
+        vp.MaxDepth = 1;
+        vp.TopLeftX = 0;
+        vp.TopLeftY = 0;
+
+        pCEG_DevCtx->RSSetViewports (1, &vp);
+      }
+
       cegD3D11 = (CEGUI::Direct3D11Renderer *)
         &CEGUI::Direct3D11Renderer::bootstrapSystem (pGUIDev, pCEG_DevCtx);
 
@@ -1245,7 +1267,7 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   UINT CSConstantBufferCount = calc_count(sb->CSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
   if (CSConstantBufferCount)
       dc->CSSetConstantBuffers(0, CSConstantBufferCount, sb->CSConstantBuffers);
-  //dc->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
+  dc->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
 
   UINT IAVertexBufferCount = calc_count(sb->IAVertexBuffers, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
   if (IAVertexBufferCount)
@@ -1254,7 +1276,7 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->IASetInputLayout(sb->IAInputLayout);
   dc->IASetPrimitiveTopology(sb->IAPrimitiveTopology);
 
-  //dc->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews, minus_one);
+  dc->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews, minus_one);
   UINT OMRenderTargetCount = calc_count(sb->OMRenderTargets, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
   if (OMRenderTargetCount)
       dc->OMSetRenderTargets(OMRenderTargetCount, sb->OMRenderTargets, sb->OMRenderTargetStencilView);
@@ -1326,6 +1348,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (pGUIDev != pDev) {
       ResetCEGUI_D3D11 (This);
+      return;
     }
 
     HRESULT hr;
@@ -1343,48 +1366,49 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
 
     if (SUCCEEDED (hr)) {
-#define USE_SB
+//#define USE_SB
 #ifdef USE_SB
       D3DX11_STATE_BLOCK sb;
       CreateStateblock (pCEG_DevCtx, &sb);
 #endif
-        D3D11_TEXTURE2D_DESC backbuffer_desc;
-        pBackBuffer->GetDesc (&backbuffer_desc);
 
-        D3D11_BLEND_DESC blend;
-        ZeroMemory     (&blend, sizeof (blend));
+      pCEG_DevCtx->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
 
-        pCEG_DevCtx->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
+      D3D11_TEXTURE2D_DESC backbuffer_desc;
+      pBackBuffer->GetDesc (&backbuffer_desc);
 
-        blend.RenderTarget [0].BlendEnable           = TRUE;
-        blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-        blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
-        blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-        blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-        blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
-        blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-        blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+      D3D11_BLEND_DESC blend;
+      ZeroMemory     (&blend, sizeof (blend));
 
-        if (SUCCEEDED (pDev->CreateBlendState   (&blend, &pBlendState)))
-          pCEG_DevCtx->OMSetBlendState (pBlendState, NULL, 0xffffffff);
+      blend.RenderTarget [0].BlendEnable           = TRUE;
+      blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+      blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+      blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+      blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+      blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
+      blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+      blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-        D3D11_VIEWPORT vp;
-        ZeroMemory   (&vp, sizeof (vp));
+      if (SUCCEEDED (pDev->CreateBlendState   (&blend, &pBlendState)))
+        pCEG_DevCtx->OMSetBlendState (pBlendState, NULL, 0xffffffff);
 
-        vp.Width    = (float)backbuffer_desc.Width;
-        vp.Height   = (float)backbuffer_desc.Height;
-        vp.MinDepth = 0;
-        vp.MaxDepth = 1;
-        vp.TopLeftX = 0;
-        vp.TopLeftY = 0;
+      D3D11_VIEWPORT vp;
+      ZeroMemory   (&vp, sizeof (vp));
 
-        pCEG_DevCtx->RSSetViewports (1, &vp);
+      vp.Width    = (float)backbuffer_desc.Width;
+      vp.Height   = (float)backbuffer_desc.Height;
+      vp.MinDepth = 0;
+      vp.MaxDepth = 1;
+      vp.TopLeftX = 0;
+      vp.TopLeftY = 0;
+
+      pCEG_DevCtx->RSSetViewports (1, &vp);
 
 #ifdef USE_SB
-        pCEG_DevCtx->GSSetShader (0, 0, 0);
-        pCEG_DevCtx->CSSetShader (0, 0, 0);
-        pCEG_DevCtx->DSSetShader (0, 0, 0);
-        pCEG_DevCtx->HSSetShader (0, 0, 0);
+      pCEG_DevCtx->GSSetShader (0, 0, 0);
+      pCEG_DevCtx->CSSetShader (0, 0, 0);
+      pCEG_DevCtx->DSSetShader (0, 0, 0);
+      pCEG_DevCtx->HSSetShader (0, 0, 0);
 #endif
 
       cegD3D11->beginRendering ();
@@ -1397,7 +1421,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
       cegD3D11->endRendering ();
-
 #ifdef USE_SB
       ApplyStateblock (pCEG_DevCtx, &sb);
 #endif
@@ -1652,10 +1675,11 @@ extern "C" {
     if (! bFlipMode) {
       hr = S_OK;
 
-      SK_CEGUI_DrawD3D11 (This);
+      hr = Present_Original (This, SyncInterval, Flags | DXGI_PRESENT_TEST);
 
       // Test first, then do
       if (SUCCEEDED (hr)) {
+        SK_CEGUI_DrawD3D11 (This);
         hr = Present_Original (This, interval, flags);
       }
 

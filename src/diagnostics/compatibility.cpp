@@ -651,10 +651,56 @@ SK_UnhookLoadLibrary (void)
   }
 }
 
+
+typedef void (__cdecl *SteamAPI_SetBreakpadAppID_pfn)( uint32_t unAppID );
+typedef void (__cdecl *SteamAPI_UseBreakpadCrashHandler_pfn)(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, LPVOID m_pfnPreMinidumpCallback);
+
+SteamAPI_SetBreakpadAppID_pfn        SteamAPI_SetBreakpadAppID_NEVER        = nullptr;
+SteamAPI_UseBreakpadCrashHandler_pfn SteamAPI_UseBrakepadCrashHandler_NEVER = nullptr;
+
+void
+__cdecl
+SteamAPI_SetBreakpadAppID_Detour ( uint32_t unAppId )
+{
+  return;
+}
+
+void
+__cdecl
+SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
+                                          char const *pchDate,
+                                          char const *pchTime,
+                                          bool        bFullMemoryDumps,
+                                          void       *pvContext,
+                                               LPVOID m_pfnPreMinidumpCallback )
+{
+  return;
+}
+
 void
 __stdcall
 SK_InitCompatBlacklist (void)
 {
+#ifdef _WIN64
+  const wchar_t* wszSteamDLL = L"steam_api64.dll";
+#else
+  const wchar_t* wszSteamDLL = L"steam_api.dll";
+#endif
+
+  if (LoadLibraryW (wszSteamDLL)) {
+    SK_CreateDLLHook3 ( wszSteamDLL,
+                        "SteamAPI_UseBreakpadCrashHandler",
+                       SteamAPI_UseBreakpadCrashHandler_Detour,
+            (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
+
+    SK_CreateDLLHook3 ( wszSteamDLL,
+                        "SteamAPI_SetBreakpadAppID",
+                       SteamAPI_SetBreakpadAppID_Detour,
+            (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
+
+    MH_ApplyQueued ();
+  }
+
 #if 0
   rehook_loadlib.insert (L"gameoverlayrenderer.dll");
   rehook_loadlib.insert (L"gameoverlayrenderer64.dll");

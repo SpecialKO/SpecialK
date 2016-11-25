@@ -86,8 +86,6 @@ bool S_CALLTYPE SteamAPI_Init_Detour     (void);
 
 void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
 
-S_API typedef void (S_CALLTYPE *SteamAPI_UseBreakpadCrashHandler_pfn)(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, PFNPreMinidumpCallback m_pfnPreMinidumpCallback);
-
 S_API typedef bool (S_CALLTYPE *SteamAPI_Init_pfn    )(void);
 S_API typedef bool (S_CALLTYPE *SteamAPI_InitSafe_pfn)(void);
 
@@ -1103,6 +1101,9 @@ public:
        icon_listener   ( this, &SK_Steam_AchievementManager::OnRecvIcon              ),
        async_complete  ( this, &SK_Steam_AchievementManager::OnAsyncComplete         )
   {
+    lifetime_popups = 0;
+    
+
     bool xbox = false,
          psn  = false;
 
@@ -1194,7 +1195,9 @@ public:
     uint32_t reserve =
       std::max (steam_ctx.UserStats ()->GetNumAchievements (), (uint32_t)128UL);
 
-    achievements.list.resize (reserve);
+    achievements.list.resize        (reserve);
+    achievements.string_map.reserve (reserve);
+    friend_stats.reserve            (128);
 
     for (uint32_t i = 0; i < reserve; i++) {
       achievements.list [i] = nullptr;
@@ -1590,16 +1593,26 @@ public:
 
   void clearPopups (void)
   {
-    if (! popups.size ())
+    EnterCriticalSection (&popup_cs);
+
+    if (! popups.size ()) {
+      LeaveCriticalSection (&popup_cs);
       return;
+    }
 
     popups.clear ();
+
+    LeaveCriticalSection (&popup_cs);
   }
 
   void drawPopups (void)
   {
-    if (! popups.size ())
+    EnterCriticalSection (&popup_cs);
+
+    if (! popups.size ()) {
+      LeaveCriticalSection (&popup_cs);
       return;
+    }
 
     //
     // We don't need this, we always do this from the render thread.
@@ -1694,6 +1707,7 @@ public:
       catch (...) {}
     }
     //SK_PopupManager::getInstance ()->unlockPopups ();
+    LeaveCriticalSection (&popup_cs);
   }
 
   Achievement* getAchievement (const char* szName)
@@ -1830,7 +1844,7 @@ protected:
                      progress / 100.0f
                );
 
-      achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
+      //achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
     
       snprintf ( szUnlockTime, 128,
                    "Current Progress: %lu/%lu (%6.2f%%)",
@@ -2075,15 +2089,19 @@ SK_SteamAPI_UpdateGlobalAchievements (void)
 void
 SK_Steam_ClearPopups (void)
 {
-  if (steam_achievements != nullptr)
+  if (steam_achievements != nullptr) {
     steam_achievements->clearPopups ();
+    SteamAPI_RunCallbacks           ();
+  }
 }
 
 void
 SK_Steam_DrawOSD (void)
 {
-  if (steam_achievements != nullptr)
+  if (steam_achievements != nullptr) {
+    SteamAPI_RunCallbacks          ();
     steam_achievements->drawPopups ();
+  }
 }
 
 volatile LONGLONG SK_SteamAPI_CallbackRunCount    = 0LL;
@@ -2112,7 +2130,11 @@ SteamAPI_RunCallbacks_Detour (void)
 
   InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
 
-  SteamAPI_RunCallbacks_Original ();
+  __try {
+    SteamAPI_RunCallbacks_Original ();
+  } __except ( EXCEPTION_EXECUTE_HANDLER ) {
+    steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+  }
 }
 
 #define STEAMAPI_CALL1(x,y,z) ((x) = SteamAPI_##y z)
@@ -2362,6 +2384,8 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
+  EnterCriticalSection (&init_cs);
+
   KillSteamPump ();
 
   steam_ctx.Shutdown         ();
@@ -2386,6 +2410,8 @@ SteamAPI_Shutdown_Detour (void)
     CloseHandle (GetCurrentThread ());
     return 0;
   }, nullptr, 0x00, nullptr );
+
+  LeaveCriticalSection (&init_cs);
 }
 
 bool
@@ -2669,20 +2695,6 @@ SteamAPI_Delay_Init (LPVOID user)
   return 0;
 }
 
-SteamAPI_UseBreakpadCrashHandler_pfn SteamAPI_UseBrakepadCrashHandler_NEVER = nullptr;
-
-void
-S_CALLTYPE
-SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
-                                          char const *pchDate,
-                                          char const *pchTime,
-                                          bool        bFullMemoryDumps,
-                                          void       *pvContext,
-                               PFNPreMinidumpCallback m_pfnPreMinidumpCallback )
-{
-  return;
-}
-
 void
 SK_HookSteamAPI (void)
 {
@@ -2725,11 +2737,6 @@ SK_HookSteamAPI (void)
                       "SteamAPI_Shutdown",
                       SteamAPI_Shutdown_Detour,
            (LPVOID *)&SteamAPI_Shutdown_Original );
-
-  SK_CreateDLLHook3 ( wszSteamAPI,
-                      "SteamAPI_UseBreakpadCrashHandler",
-                     SteamAPI_UseBreakpadCrashHandler_Detour,
-          (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
 
   SK_CreateDLLHook3 ( wszSteamAPI,
                       "SteamAPI_RegisterCallback",
@@ -2776,6 +2783,9 @@ SK_SteamAPI_InitManagers (void)
 {
   if (! InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 1, 0))
   {
+    has_global_data = false;
+    next_friend     = 0;
+
     ISteamUserStats* stats =
       steam_ctx.UserStats ();
 
