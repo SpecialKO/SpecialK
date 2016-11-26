@@ -163,26 +163,29 @@ struct sk_config_t
 
   struct {
     struct {
-      bool  pull_friend_stats   = true;
-      bool  pull_global_stats   = true;
-      bool  show_popup          = true;
-      int   popup_duration      = 5000UL;
-      int   popup_corner        = 1; // XXX: Use actual coordinates
-      bool  popup_animate       = true;
+      bool    pull_friend_stats  = true;
+      bool    pull_global_stats  = true;
+
+      struct {
+        bool  show               = true;
+        int   origin             = 0;
+        bool  animate            = true;
+        int   duration           = 5000UL;
+        float inset              = 0.025f;
+      } popup;
+
+      std::wstring
+              sound_file         = L"";
+      bool    take_screenshot    = false;
+      bool    play_sound         = true;
     } achievements;
 
-    std::wstring
-            achievement_sound   = L"";
-    bool    achievement_sshot   = false;
     int     notify_corner       = 0; // 0=Top-Left,
                                      // 1=Top-Right,
                                      // 2=Bottom-Left,
                                      // 3=Bottom-Right,
                                      // 4=Don't Care
-    int     inset_x             = 0;
-    int     inset_y             = 0;
 
-    bool    playsound           = true;
     bool    silent              = false;
 
     int     init_delay          = 0UL; // Disable to prevent crashing in many games

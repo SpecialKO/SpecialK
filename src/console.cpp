@@ -1666,6 +1666,8 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   return bRet;
 }
 
+#include "command.h"
+
 void
 SK_InstallWindowHook (HWND hWnd)
 {
@@ -1740,6 +1742,23 @@ SK_InstallWindowHook (HWND hWnd)
 
     SK_RealizeForegroundWindow (game_window.hWnd);
   }
+
+  SK_ICommandProcessor* cmd =
+    SK_GetCommandProcessor ();
+
+  cmd->AddVariable ("Cursor.Manage",       SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
+  cmd->AddVariable ("Cursor.Timeout",      SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
+  cmd->AddVariable ("Cursor.KeysActivate", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
+
+  cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
+  cmd->AddVariable ("Window.Borderless",       SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.borderless));
+  cmd->AddVariable ("Window.Center",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.center));
+  cmd->AddVariable ("Window.ConfineCursor",    SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.confine_cursor));
+  cmd->AddVariable ("Window.Fullscreen",       SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.fullscreen));
+  cmd->AddVariable ("Window.OverrideX",        SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.res.override.x));
+  cmd->AddVariable ("Window.OverrideY",        SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.res.override.y));
+  cmd->AddVariable ("Window.XOffset",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.x_offset));
+  cmd->AddVariable ("Window.YOffset",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.y_offset));
 }
 
 HWND

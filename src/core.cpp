@@ -1272,6 +1272,33 @@ protected:
 private:
 };
 
+class skUpdateCmd : public SK_ICommand {
+public:
+  SK_ICommandResult execute (const char* szArgs);
+
+  int         getNumArgs         (void) { return 1; }
+  int         getNumOptionalArgs (void) { return 1; }
+  int         getNumRequiredArgs (void) {
+    return getNumArgs () - getNumOptionalArgs ();
+  }
+
+protected:
+private:
+};
+
+SK_ICommandResult
+skUpdateCmd::execute (const char* szArgs)
+{
+
+  extern HRESULT
+  __stdcall
+  SK_UpdateSoftware (const wchar_t* wszProduct);
+
+  SK_UpdateSoftware (L"SpecialK");
+
+  return SK_ICommandResult ("Manual update initiated...", szArgs);
+}
+
 SK_ICommandResult
 skMemCmd::execute (const char* szArgs)
 {
@@ -1345,6 +1372,20 @@ skMemCmd::execute (const char* szArgs)
       }
 
       sprintf (result, "%u", *(uint32_t *)addr);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'l':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
+          uint64_t out;
+          sscanf (val, "%llx", &out);
+          *(uint64_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%llu", *(uint64_t *)addr);
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'd':
@@ -1441,9 +1482,11 @@ DllThread_CRT (LPVOID user)
       )
   );
 
-  skMemCmd* mem = new skMemCmd ();
+  skMemCmd*    mem    = new skMemCmd    ();
+  skUpdateCmd* update = new skUpdateCmd ();
 
-  SK_GetCommandProcessor ()->AddCommand ("mem", mem);
+  SK_GetCommandProcessor ()->AddCommand ("mem",       mem);
+  SK_GetCommandProcessor ()->AddCommand ("GetUpdate", update);
 
   //
   // Game-Specific Stuff that I am not proud of

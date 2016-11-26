@@ -124,6 +124,7 @@ template <typename T>
 interface SK_IVarStub : public SK_IVariable
 {
   friend interface SK_IVariableListener;
+  friend interface SK_ICommandProcessor;
 
   SK_IVarStub (void) : type_     (Unknown),
                        var_      (NULL),

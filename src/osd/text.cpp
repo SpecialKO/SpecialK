@@ -24,6 +24,8 @@
 #include "text.h"
 
 #include "../render_backend.h"
+#include "../command.h"
+#include "../config.h"
 
 #undef min
 #undef max
@@ -166,6 +168,13 @@ protected:
 
     gui_ctx_         = nullptr;
     need_full_reset_ = false;
+
+    SK_ICommandProcessor* cmd =
+      SK_GetCommandProcessor ();
+
+    cmd->AddVariable ("OSD.Red",   SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.red));
+    cmd->AddVariable ("OSD.Green", SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.green));
+    cmd->AddVariable ("OSD.Blue",  SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.blue));
   }
 
 private:
@@ -218,7 +227,6 @@ SK_TextOverlay::~SK_TextOverlay (void)
 #include <io.h>
 #include <tchar.h>
 
-#include "../config.h"
 #include "../io_monitor.h"
 #include "../gpu_monitor.h"
 #include "../memory_monitor.h"

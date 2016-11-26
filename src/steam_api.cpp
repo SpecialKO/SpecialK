@@ -46,6 +46,8 @@
 #include "osd/text.h"
 #include "render_backend.h"
 
+#include "command.h"
+
 // PlaySound
 #pragma comment (lib, "winmm.lib")
 
@@ -399,8 +401,83 @@ bool S_CALLTYPE SteamAPI_Init_Detour (void);
 
 extern "C" void __cdecl SteamAPIDebugTextHook (int nSeverity, const char *pchDebugText);
 
-class SK_SteamAPIContext {
+
+const char*
+SK_Steam_PopupOriginToStr (int origin)
+{
+  switch (origin) {
+    case 0:
+      return "TopLeft";
+    case 1:
+      return "TopRight";
+    case 2:
+      return "BottomLeft";
+    case 3:
+    default:
+      return "BottomRight";
+    case 4:
+      return "DontCare";
+  }
+}
+
+const wchar_t*
+SK_Steam_PopupOriginToWStr (int origin)
+{
+  switch (origin) {
+    case 0:
+      return L"TopLeft";
+    case 1:
+      return L"TopRight";
+    case 2:
+      return L"BottomLeft";
+    case 3:
+    default:
+      return L"BottomRight";
+    case 4:
+      return L"DontCare";
+  }
+}
+
+int
+SK_Steam_PopupOriginWStrToEnum (const wchar_t* str)
+{
+  std::wstring name (str);
+
+  if (name == L"TopLeft")
+    return 0;
+  else if (name == L"TopRight")
+    return 1;
+  else if (name == L"BottomLeft")
+    return 2;
+  else if (name == L"DontCare")
+    return 4;
+  else /*if (name == L"TopLeft")*/
+    return 3;
+
+  // TODO: TopCenter, BottomCenter, CenterLeft, CenterRight
+}
+
+int
+SK_Steam_PopupOriginStrToEnum (const char* str)
+{
+  std::string name (str);
+
+  if (name == "TopLeft")
+    return 0;
+  else if (name == "TopRight")
+    return 1;
+  else if (name == "BottomLeft")
+    return 2;
+  else if (name == "DontCare")
+    return 4;
+  else /*if (name == L"TopLeft")*/
+    return 3;
+}
+
+class SK_SteamAPIContext : public SK_IVariableListener {
 public:
+  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
+
   bool InitCSteamworks (HMODULE hSteamDLL)
   {
     return false;
@@ -573,18 +650,6 @@ public:
     steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
     SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
     steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
-
-    // 4 == Don't Care
-    if (config.steam.notify_corner != 4)
-      utils_->SetOverlayNotificationPosition (
-        (ENotificationPosition)config.steam.notify_corner
-      );
-
-    if (config.steam.inset_x != 0 ||
-        config.steam.inset_y != 0) {
-      utils_->SetOverlayNotificationInset (config.steam.inset_x,
-                                           config.steam.inset_y);
-    }
 
     return true;
   }
@@ -804,12 +869,6 @@ public:
         (ENotificationPosition)config.steam.notify_corner
       );
 
-    if (config.steam.inset_x != 0 ||
-        config.steam.inset_y != 0) {
-      utils_->SetOverlayNotificationInset (config.steam.inset_x,
-                                           config.steam.inset_y);
-    }
-
     return true;
   }
 
@@ -855,19 +914,78 @@ public:
   ISteamUtils*       Utils       (void) { return utils_;       }
   ISteamScreenshots* Screenshots (void) { return screenshots_; }
 
+  SK_IVariable*      popup_origin   = nullptr;
+  SK_IVariable*      notify_corner  = nullptr;
+
+  // Backing storage for the human readable variable names,
+  //   the actual system uses an integer value but we need
+  //     storage for the cvars.
+  struct {
+    char popup_origin  [16] = { "DontCare" };
+    char notify_corner [16] = { "DontCare" };
+  } var_strings;
+
 protected:
 private:
-  HSteamPipe         hSteamPipe   = 0;
-  HSteamUser         hSteamUser   = 0;
+  HSteamPipe         hSteamPipe     = 0;
+  HSteamUser         hSteamUser     = 0;
 
-  ISteamClient*      client_      = nullptr;
-  ISteamUser*        user_        = nullptr;
-  ISteamUserStats*   user_stats_  = nullptr;
-  ISteamApps*        apps_        = nullptr;
-  ISteamFriends*     friends_     = nullptr;
-  ISteamUtils*       utils_       = nullptr;
-  ISteamScreenshots* screenshots_ = nullptr;
+  ISteamClient*      client_        = nullptr;
+  ISteamUser*        user_          = nullptr;
+  ISteamUserStats*   user_stats_    = nullptr;
+  ISteamApps*        apps_          = nullptr;
+  ISteamFriends*     friends_       = nullptr;
+  ISteamUtils*       utils_         = nullptr;
+  ISteamScreenshots* screenshots_   = nullptr;
 } steam_ctx;
+
+bool
+SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
+{
+  SK_ICommandProcessor*
+    pCommandProc = SK_GetCommandProcessor ();
+
+  bool known = false;
+
+  if (var == notify_corner) {
+    known = true;
+
+    config.steam.notify_corner =
+      SK_Steam_PopupOriginStrToEnum (*(char **)val);
+
+    strcpy (var_strings.notify_corner,
+      SK_Steam_PopupOriginToStr (config.steam.notify_corner)
+    );
+
+    if (config.steam.notify_corner != 4)
+      steam_ctx.Utils ()->SetOverlayNotificationPosition (
+        (ENotificationPosition)config.steam.notify_corner
+    );
+
+    return true;
+  }
+
+  else if (var == popup_origin) {
+    known = true;
+
+    config.steam.achievements.popup.origin =
+      SK_Steam_PopupOriginStrToEnum (*(char **)val);
+
+    strcpy (var_strings.popup_origin,
+      SK_Steam_PopupOriginToStr (config.steam.achievements.popup.origin)
+    );
+
+    return true;
+  }
+
+  if (! known) {
+    dll_log.Log ( L"[SteammAPI] UNKNOWN Variable Changed (%p --> %p)",
+                     var,
+                       val );
+  }
+
+  return false;
+}
 
 #if 0
 struct BaseStats_t
@@ -1093,6 +1211,7 @@ private:
   struct SK_AchievementPopup {
     CEGUI::Window* window;
     DWORD          time;
+    bool           final_pos; // When the animation is finished, this will be set.
     Achievement*   achievement;
   };
 
@@ -1537,7 +1656,7 @@ public:
       achievement->progress_.current = 1;
       achievement->progress_.max     = 1;
 
-      if (config.steam.playsound)
+      if (config.steam.achievements.play_sound)
         PlaySound ( (LPCWSTR)unlock_sound, NULL, SND_ASYNC | SND_MEMORY );
 
       if (achievement != nullptr) {
@@ -1545,7 +1664,10 @@ public:
           achievement->human_name_, achievement->desc_);
       }
 
-      if (config.steam.achievement_sshot) {
+      // If the user wants a screenshot, but no popups (why?!), this is when
+      //   the screenshot needs to be taken.
+      if ( config.steam.achievements.take_screenshot &&
+        (! config.steam.achievements.popup.show) ) {
         SK::SteamAPI::TakeScreenshot ();
       }
     }
@@ -1571,7 +1693,9 @@ public:
                         pParam->m_rgchAchievementName );
     }
 
-    if (config.cegui.enable && config.steam.achievements.show_popup && achievement != nullptr) {
+    if ( config.cegui.enable && config.steam.achievements.popup.show &&
+         achievement != nullptr )
+    {
       CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
 
       if ( pSys                 != nullptr &&
@@ -1583,6 +1707,7 @@ public:
           SK_AchievementPopup popup;
 
           popup.window      = nullptr;
+          popup.final_pos   = false;
           popup.time        = timeGetTime ();
           popup.achievement = achievement;
 
@@ -1628,7 +1753,7 @@ public:
         bool removed = false;
         bool created = false;
 
-        #define POPUP_DURATION_MS 3600/*config.steam.achievements.popup_duration*/
+        #define POPUP_DURATION_MS config.steam.achievements.popup.duration
 
         std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
 
@@ -1670,7 +1795,7 @@ public:
         float x_off = full_wd / (4.0f * fract_x);
         float y_off = full_ht / (4.0f * fract_y);
 
-        switch (config.steam.notify_corner) {
+        switch (config.steam.achievements.popup.origin) {
           default:
           case 0:
             x_origin =        inset;                          x_dir = 1.0f;
@@ -1739,9 +1864,12 @@ public:
                 (*it).time =
                      timeGetTime ();
                 win->hide        ();
-              } else {
+              }
 
-                if (config.steam.achievements.popup_animate) {
+              else {
+                bool take_screenshot = false;
+
+                if (config.steam.achievements.popup.animate) {
                   CEGUI::UDim percent (
                     CEGUI::UDim (y_origin, y_off).percent ()
                   );
@@ -1754,10 +1882,24 @@ public:
                   else if (percent_of_lifetime >= 0.9f) {
                     win_pos.d_y /= percent * 100.0f *
                           CEGUI::UDim ( (1.0f - 
-                              (percent_of_lifetime - 0.9) / 0.1f),
+                              (percent_of_lifetime - 0.9f) / 0.1f),
                                           0.0f );
                   }
+                  else if (! it->final_pos) {
+                    it->final_pos   = true;
+                    take_screenshot = true;
+                  }
                 }
+
+                else if (! it->final_pos) {
+                  take_screenshot = true;
+                  it->final_pos   = true;
+                }
+
+                // Popup is in the final location, so now is when screenshots
+                //   need to be taken.
+                if (config.steam.achievements.take_screenshot && take_screenshot)
+                  SK::SteamAPI::TakeScreenshot ();
 
                 win->show        ();
                 win->setPosition (win_pos);
@@ -2220,6 +2362,25 @@ SteamAPI_RunCallbacks_Detour (void)
   void SK_SteamAPI_InitManagers (void);
   SK_SteamAPI_InitManagers ();
 
+  if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0) {
+    // 4 == Don't Care
+    if (config.steam.notify_corner != 4)
+      steam_ctx.Utils ()->SetOverlayNotificationPosition (
+        (ENotificationPosition)config.steam.notify_corner
+      );
+
+    strcpy ( steam_ctx.var_strings.popup_origin,
+               SK_Steam_PopupOriginToStr (
+                      config.steam.achievements.popup.origin
+               )
+           );
+
+    strcpy ( steam_ctx.var_strings.notify_corner,
+               SK_Steam_PopupOriginToStr (
+                      config.steam.notify_corner
+               )
+           );
+  }
   InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
 
   __try {
@@ -2642,6 +2803,26 @@ CSteamworks_Delay_Init (LPVOID user)
 }
 
 void
+SK_Steam_InitCommandConsoleVariables (void)
+{
+  SK_ICommandProcessor* cmd =
+    SK_GetCommandProcessor ();
+
+  cmd->AddVariable ("Steam.TakeScreenshot", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.take_screenshot));
+  cmd->AddVariable ("Steam.ShowPopup",      SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.popup.show));
+  cmd->AddVariable ("Steam.PopupDuration",  SK_CreateVar (SK_IVariable::Int,     (int  *)&config.steam.achievements.popup.duration));
+  cmd->AddVariable ("Steam.PopuInset",      SK_CreateVar (SK_IVariable::Float,   (float*)&config.steam.achievements.popup.inset));
+  cmd->AddVariable ("Steam.PopupAnimate",   SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.popup.animate));
+  cmd->AddVariable ("Steam.PlaySound",      SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.play_sound));
+
+  steam_ctx.popup_origin = SK_CreateVar (SK_IVariable::String, steam_ctx.var_strings.popup_origin, &steam_ctx);
+  cmd->AddVariable ("Steam.PopupOrigin",    steam_ctx.popup_origin);
+
+  steam_ctx.notify_corner = SK_CreateVar (SK_IVariable::String, steam_ctx.var_strings.notify_corner, &steam_ctx);
+  cmd->AddVariable ("Steam.NotifyCorner",   steam_ctx.notify_corner);
+}
+
+void
 SK_HookCSteamworks (void)
 {
   if (config.steam.silent)
@@ -2655,6 +2836,7 @@ SK_HookCSteamworks (void)
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
     InitializeCriticalSectionAndSpinCount (&popup_cs,    4096UL);
     InitializeCriticalSectionAndSpinCount (&init_cs,     1024UL);
+    SK_Steam_InitCommandConsoleVariables  ();
   }
 
   EnterCriticalSection (&init_cs);
@@ -2799,6 +2981,7 @@ SK_HookSteamAPI (void)
     InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
     InitializeCriticalSectionAndSpinCount (&popup_cs,    4096UL);
     InitializeCriticalSectionAndSpinCount (&init_cs,     8192L);
+    SK_Steam_InitCommandConsoleVariables  ();
   }
 
   EnterCriticalSection (&init_cs);
@@ -2884,7 +3067,7 @@ SK_SteamAPI_InitManagers (void)
     steam_log.Log (L" Creating Achievement Manager...");
 
     steam_achievements = new SK_Steam_AchievementManager (
-      config.steam.achievement_sound.c_str ()
+      config.steam.achievements.sound_file.c_str ()
     );
     overlay_manager    = new SK_Steam_OverlayManager ();
 

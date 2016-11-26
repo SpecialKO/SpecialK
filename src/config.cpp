@@ -113,19 +113,24 @@ struct {
 
 struct {
   struct {
-    sk::ParameterStringW* sound_file;
-    sk::ParameterBool*    playsound;
-    sk::ParameterBool*    screenshot;
-    sk::ParameterBool*    animate;
-    sk::ParameterInt*     notify_corner;
-    sk::ParameterInt*     notify_insetX;
-    sk::ParameterInt*     notify_insetY;
+    sk::ParameterStringW*   sound_file;
+    sk::ParameterBool*      play_sound;
+    sk::ParameterBool*      take_screenshot;
+
+    struct {
+      sk::ParameterBool*    show;
+      sk::ParameterBool*    animate;
+      sk::ParameterStringW* origin;
+      sk::ParameterFloat*   inset;
+      sk::ParameterInt*     duration;
+    } popup;
   } achievements;
 
   struct {
     sk::ParameterInt*     appid;
     sk::ParameterInt*     init_delay;
     sk::ParameterBool*    auto_pump;
+    sk::ParameterStringW* notify_corner;
   } system;
 
   struct {
@@ -231,6 +236,11 @@ struct {
   } d3d9;
 } compatibility;
 
+
+extern const wchar_t*
+SK_Steam_PopupOriginToWStr (int origin);
+extern int
+SK_Steam_PopupOriginWStrToEnum (const wchar_t* str);
 
 bool
 SK_LoadConfig (std::wstring name) {
@@ -1118,65 +1128,75 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.Achievements",
         L"SoundFile" );
 
-  steam.achievements.playsound =
+  steam.achievements.play_sound =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Silence is Bliss?")
       );
-  steam.achievements.playsound->register_to_ini(
+  steam.achievements.play_sound->register_to_ini(
     achievement_ini,
       L"Steam.Achievements",
         L"PlaySound" );
 
-  steam.achievements.screenshot =
+  steam.achievements.take_screenshot =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Precious Memories")
       );
-  steam.achievements.screenshot->register_to_ini(
+  steam.achievements.take_screenshot->register_to_ini(
     achievement_ini,
       L"Steam.Achievements",
         L"TakeScreenshot" );
 
-  steam.achievements.notify_corner =
-    static_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"Achievement Notification Position")
+  steam.system.notify_corner =
+    static_cast <sk::ParameterStringW *>
+      (g_ParameterFactory.create_parameter <std::wstring> (
+        L"Overlay Notification Position")
       );
-  steam.achievements.notify_corner->register_to_ini (
+  steam.system.notify_corner->register_to_ini (
     achievement_ini,
-      L"Steam.Achievements",
+      L"Steam.System",
         L"NotifyCorner" );
 
-  steam.achievements.animate =
+  steam.achievements.popup.origin =
+    static_cast <sk::ParameterStringW *>
+      (g_ParameterFactory.create_parameter <std::wstring> (
+        L"Achievement Popup Position")
+      );
+  steam.achievements.popup.origin->register_to_ini (
+    achievement_ini,
+      L"Steam.Achievements",
+        L"PopupOrigin" );
+
+  steam.achievements.popup.animate =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Achievement Notification Animation")
       );
-  steam.achievements.animate->register_to_ini (
+  steam.achievements.popup.animate->register_to_ini (
     achievement_ini,
       L"Steam.Achievements",
         L"AnimatePopup" );
 
-  steam.achievements.notify_insetX =
-    static_cast <sk::ParameterInt *>
-    (g_ParameterFactory.create_parameter <int> (
+  steam.achievements.popup.inset =
+    static_cast <sk::ParameterFloat *>
+    (g_ParameterFactory.create_parameter <float> (
       L"Achievement Notification Inset X")
     );
-  steam.achievements.notify_insetX->register_to_ini (
-    dll_ini,
+  steam.achievements.popup.inset->register_to_ini (
+    achievement_ini,
       L"Steam.Achievements",
-        L"NotifyInsetX" );
+        L"PopupInset" );
 
-  steam.achievements.notify_insetY =
+  steam.achievements.popup.duration =
     static_cast <sk::ParameterInt *>
     (g_ParameterFactory.create_parameter <int> (
-      L"Achievement Notification Inset Y")
+      L"Achievement Popup Duration (in ms)")
     );
-  steam.achievements.notify_insetY->register_to_ini (
-    dll_ini,
+  steam.achievements.popup.duration->register_to_ini (
+    achievement_ini,
       L"Steam.Achievements",
-        L"NotifyInsetY" );
+        L"PopupDuration" );
 
   steam.system.appid = 
     static_cast <sk::ParameterInt *>
@@ -1539,24 +1559,32 @@ SK_LoadConfig (std::wstring name) {
                   &config.window.res.override.y );
   }
 
-  if (steam.achievements.playsound->load ())
-    config.steam.playsound = steam.achievements.playsound->get_value ();
+  if (steam.achievements.play_sound->load ())
+    config.steam.achievements.play_sound =
+    steam.achievements.play_sound->get_value ();
   if (steam.achievements.sound_file->load ())
-    config.steam.achievement_sound =
+    config.steam.achievements.sound_file =
       steam.achievements.sound_file->get_value ();
-  if (steam.achievements.screenshot->load ())
-    config.steam.achievement_sshot =
-      steam.achievements.screenshot->get_value ();
-  if (steam.achievements.notify_corner->load ())
-    config.steam.notify_corner =
-      steam.achievements.notify_corner->get_value ();
-  if (steam.achievements.animate->load ())
-    config.steam.achievements.popup_animate =
-      steam.achievements.animate->get_value ();
-  if (steam.achievements.notify_insetX->get_value ())
-    config.steam.inset_x = steam.achievements.notify_insetX->get_value ();
-  if (steam.achievements.notify_insetY->get_value ())
-    config.steam.inset_y = steam.achievements.notify_insetY->get_value ();
+  if (steam.achievements.take_screenshot->load ())
+    config.steam.achievements.take_screenshot =
+      steam.achievements.take_screenshot->get_value ();
+  if (steam.achievements.popup.animate->load ())
+    config.steam.achievements.popup.animate =
+      steam.achievements.popup.animate->get_value ();
+  if (steam.achievements.popup.origin->load ()) {
+    config.steam.achievements.popup.origin =
+      SK_Steam_PopupOriginWStrToEnum (
+        steam.achievements.popup.origin->get_value ().c_str ()
+      );
+  } else {
+    config.steam.achievements.popup.origin = 3;
+  }
+  if (steam.achievements.popup.inset->load ())
+    config.steam.achievements.popup.inset =
+      steam.achievements.popup.inset->get_value ();
+  if (steam.achievements.popup.duration->load ())
+    config.steam.achievements.popup.duration =
+      steam.achievements.popup.duration->get_value ();
 
   if (steam.log.silent->load ())
     config.steam.silent = steam.log.silent->get_value ();
@@ -1567,6 +1595,11 @@ SK_LoadConfig (std::wstring name) {
     config.steam.init_delay = steam.system.init_delay->get_value ();
   if (steam.system.auto_pump->load ())
     config.steam.auto_pump_callbacks = steam.system.auto_pump->get_value ();
+  if (steam.system.notify_corner->load ())
+    config.steam.notify_corner =
+      SK_Steam_PopupOriginWStrToEnum (
+        steam.system.notify_corner->get_value ().c_str ()
+    );
 
 
   if (osd.show->load ())
@@ -1754,13 +1787,15 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     }
   }
 
-  steam.achievements.sound_file->set_value    (config.steam.achievement_sound);
-  steam.achievements.playsound->set_value     (config.steam.playsound);
-  steam.achievements.screenshot->set_value    (config.steam.achievement_sshot);
-  steam.achievements.notify_corner->set_value (config.steam.notify_corner);
-  steam.achievements.animate->set_value       (config.steam.achievements.popup_animate);
-  steam.achievements.notify_insetX->set_value (config.steam.inset_x);
-  steam.achievements.notify_insetY->set_value (config.steam.inset_y);
+  steam.achievements.sound_file->set_value      (config.steam.achievements.sound_file);
+  steam.achievements.play_sound->set_value      (config.steam.achievements.play_sound);
+  steam.achievements.take_screenshot->set_value (config.steam.achievements.take_screenshot);
+  steam.achievements.popup.origin->set_value    (
+    SK_Steam_PopupOriginToWStr (config.steam.achievements.popup.origin)
+  );
+  steam.achievements.popup.inset->set_value     (config.steam.achievements.popup.inset);
+  steam.achievements.popup.duration->set_value  (config.steam.achievements.popup.duration);
+  steam.achievements.popup.animate->set_value   (config.steam.achievements.popup.animate);
 
   if (config.steam.appid == 0) {
     if (SK::SteamAPI::AppID () != 0 &&
@@ -1771,6 +1806,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   steam.system.appid->set_value              (config.steam.appid);
   steam.system.init_delay->set_value         (config.steam.init_delay);
   steam.system.auto_pump->set_value          (config.steam.auto_pump_callbacks);
+  steam.system.notify_corner->set_value      (
+    SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
+  );
 
   steam.log.silent->set_value                (config.steam.silent);
 
@@ -1884,17 +1922,18 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   osd.viewport.pos_y->store              ();
   osd.viewport.scale->store              ();
 
-  steam.achievements.sound_file->store    ();
-  steam.achievements.playsound->store     ();
-  steam.achievements.screenshot->store    ();
-  steam.achievements.animate->store       ();
-  steam.achievements.notify_corner->store ();
-  steam.achievements.notify_insetX->store ();
-  steam.achievements.notify_insetY->store ();
-  steam.system.appid->store               ();
-  steam.system.init_delay->store          ();
-  steam.system.auto_pump->store           ();
-  steam.log.silent->store                 ();
+  steam.achievements.sound_file->store      ();
+  steam.achievements.play_sound->store      ();
+  steam.achievements.take_screenshot->store ();
+  steam.achievements.popup.animate->store   ();
+  steam.achievements.popup.duration->store  ();
+  steam.achievements.popup.inset->store     ();
+  steam.achievements.popup.origin->store    ();
+  steam.system.notify_corner->store         ();
+  steam.system.appid->store                 ();
+  steam.system.init_delay->store            ();
+  steam.system.auto_pump->store             ();
+  steam.log.silent->store                   ();
 
   init_delay->store                      ();
   silent->store                          ();

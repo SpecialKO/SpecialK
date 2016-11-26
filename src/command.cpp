@@ -389,6 +389,21 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         }
       }
 
+      else if (var->getType () == SK_IVariable::String)
+      {
+        if (command_args_len > 0) {
+          const char* args = cmd_args.c_str ();
+
+          SK_IVarStub <char *>* var_stub =
+            (SK_IVarStub <char *>*) var;
+
+          if (var_stub->listener_ != NULL)
+            var_stub->listener_->OnVarChange (var_stub, &args);
+          else
+            strcpy ((char *)*var_stub->var_, args);
+        }
+      }
+
       uint32_t len = 256;
       var->getValueString (nullptr, &len);
 
@@ -400,7 +415,9 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       var->getValueString (pszNew.get (), &len);
 
       return SK_ICommandResult (cmd_word.c_str (), cmd_args.c_str (), pszNew.get (), true, var, NULL);
-    } else {
+    }
+
+    else {
       /* Default args --> failure... */
       return SK_ICommandResult (cmd_word.c_str (), cmd_args.c_str ());
     }
@@ -480,12 +497,23 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
 }
 
 template <>
-SK_IVarStub <const char*>::SK_IVarStub ( const char**          var,
-                                         SK_IVariableListener* pListener ) :
+SK_IVarStub <char*>::SK_IVarStub ( char**                var,
+                                   SK_IVariableListener* pListener ) :
   var_ (var)
 {
   listener_ = pListener;
   type_     = String;
+}
+
+template <>
+void
+SK_IVarStub <char*>::getValueString ( _Out_opt_     char* szOut,
+                                      _Inout_   uint32_t* dwLen ) const
+{
+  if (szOut != nullptr)
+    strncpy (szOut, (char *)var_, *dwLen);
+
+  *dwLen = std::min (*dwLen, (uint32_t)strlen ((char *)var_));
 }
 
 template <>
@@ -586,7 +614,7 @@ SK_CreateVar ( SK_IVariable::VariableType type,
     case SK_IVariable::LongInt:
       return nullptr;
     case SK_IVariable::String:
-      return new SK_IVarStub <const char *> ((const char **)var, pListener);
+      return new SK_IVarStub <char *> ((char **)var, pListener);
   }
 
   return nullptr;

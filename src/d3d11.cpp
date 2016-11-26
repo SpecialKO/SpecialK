@@ -2707,6 +2707,26 @@ unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
 {
+  // Wait for DXGI to be hooked
+  if (CreateDXGIFactory_Import == nullptr) {
+    extern unsigned int
+    __stdcall
+    HookDXGI (LPVOID user);
+
+    static volatile ULONG implicit_init = FALSE;
+
+    // If something called a D3D11 function before DXGI was initialized,
+    //   begin the process, but ... only do this once.
+    if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
+      HookDXGI (user);
+    }
+
+    while (CreateDXGIFactory_Import == nullptr)
+      Sleep (33);
+
+    // TODO: Handle situation where CreateDXGIFactory is unloadable
+  }
+
   // This only needs to be done once
   if (InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE)) {
     return 0;
