@@ -1757,7 +1757,7 @@ public:
 
         std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
 
-        const float inset = 0.025f;
+        const float inset = config.steam.achievements.popup.inset;
 
         const float full_ht =
           CEGUI::System::getDllSingleton ().getRenderer ()->
@@ -2142,22 +2142,15 @@ protected:
                                    achievement->name_ );
     }
 
-    char    szAppName [256] = { '\0' };
-    bool    avail           = false;
-    AppId_t app             = 0;
-
-    bool has_app =
-      steam_ctx.Apps ()->BGetDLCDataByIndex
-      (
-        0, &app,
-          &avail,
-            szAppName, 255
-      );
-
-    achv_popup->setText (
-      has_app ? szAppName :
-                ""
-    );
+    if (config.steam.achievements.popup.show_title) {
+      std::string app_name = SK::SteamAPI::AppName ();
+    
+      if (strlen (app_name.c_str ())) {
+        achv_popup->setText (
+          app_name.c_str ()
+        );
+      }
+    }
 
     CEGUI::System::getDllSingleton ().
       getDefaultGUIContext ().
@@ -2531,6 +2524,262 @@ SK::SteamAPI::AppID (void)
   return 0;
 }
 
+const wchar_t*
+SK_GetSteamDir (void)
+{
+         DWORD   len         = MAX_PATH;
+  static wchar_t wszSteamPath [MAX_PATH];
+
+  LSTATUS status =
+    RegGetValueW ( HKEY_CURRENT_USER,
+                     L"SOFTWARE\\Valve\\Steam\\",
+                       L"SteamPath",
+                         RRF_RT_REG_SZ,
+                           NULL,
+                             wszSteamPath,
+                               (LPDWORD)&len );
+
+  if (status == ERROR_SUCCESS)
+    return wszSteamPath;
+  else
+    return nullptr;
+}
+
+std::string
+SK_UseManifestToGetAppName (uint32_t appid)
+{
+  typedef char* steam_library_t [MAX_PATH];
+  static bool   scanned_libs = false;
+
+#define MAX_STEAM_LIBRARIES 16
+  static int             steam_libs = 0;
+  static steam_library_t steam_lib_paths [MAX_STEAM_LIBRARIES] = { 0 };
+
+  static const wchar_t* wszSteamPath;
+
+  if (! scanned_libs) {
+    wszSteamPath =
+      SK_GetSteamDir ();
+
+      if (wszSteamPath != nullptr) {
+        wchar_t wszLibraryFolders [MAX_PATH];
+
+        lstrcpyW (wszLibraryFolders, wszSteamPath);
+        lstrcatW (wszLibraryFolders, L"\\steamapps\\libraryfolders.vdf");
+
+      if (GetFileAttributesW (wszLibraryFolders) != INVALID_FILE_ATTRIBUTES) {
+        HANDLE hLibFolders =
+          CreateFileW ( wszLibraryFolders,
+                          GENERIC_READ,
+                            FILE_SHARE_READ,
+                              nullptr,
+                                OPEN_EXISTING,
+                                  GetFileAttributesW (wszLibraryFolders),
+                                    nullptr );
+
+        if (hLibFolders != INVALID_HANDLE_VALUE) {
+          DWORD  dwSize,
+                 dwSizeHigh,
+                 dwRead;
+
+          // This isn't a 4+ GiB file... so who the heck cares about the high-bits?
+          dwSize = GetFileSize (hLibFolders, &dwSizeHigh);
+
+          void* data =
+            new uint8_t [dwSize];
+
+          if (data == nullptr) {
+            CloseHandle (hLibFolders);
+            return nullptr;
+          }
+
+          dwRead = dwSize;
+
+          if (ReadFile (hLibFolders, data, dwSize, &dwRead, nullptr)) {
+            for (DWORD i = 0; i < dwSize; i++) {
+
+              if (((const char *)data) [i] == '"' && i < dwSize - 3) {
+
+                if (((const char *)data) [i + 2] == '"')
+                  i += 2;
+                else if (((const char *)data) [i + 3] == '"')
+                  i += 3;
+                else
+                  continue;
+
+                char* lib_start = nullptr;
+
+                for (DWORD j = i; j < dwSize; j++,i++) {
+                  if (((char *)data) [j] == '"' && lib_start == nullptr && j < dwSize - 1) {
+                    lib_start = &((char *)data) [j+1];
+                  }
+                  else if (((char *)data) [j] == '"') {
+                    ((char *)data) [j] = '\0';
+                    lstrcpyA ((char *)steam_lib_paths [steam_libs++], lib_start);
+                    lib_start = nullptr;
+                  }
+                }
+              }
+            }
+          }
+
+          delete [] data;
+
+          CloseHandle (hLibFolders);
+        }
+      }
+    }
+
+    scanned_libs = true;
+  }
+
+  // Search custom library paths first
+  if (steam_libs != 0) {
+    for (int i = 0; i < steam_libs; i++) {
+      char szManifest [MAX_PATH] = { '\0' };
+
+      sprintf ( szManifest,
+                  "%s\\steamapps\\appmanifest_%d.acf",
+                    (char *)steam_lib_paths [i],
+                      appid );
+
+      if (GetFileAttributesA (szManifest) != INVALID_FILE_ATTRIBUTES) {
+        HANDLE hManifest =
+          CreateFileA ( szManifest,
+                        GENERIC_READ,
+                          FILE_SHARE_READ,
+                            nullptr,
+                              OPEN_EXISTING,
+                                GetFileAttributesA (szManifest),
+                                  nullptr );
+
+        if (hManifest != INVALID_HANDLE_VALUE) {
+          DWORD  dwSize,
+                 dwSizeHigh,
+                 dwRead;
+
+          dwSize = GetFileSize (hManifest, &dwSizeHigh);
+
+          char* szManifestData =
+            new char [dwSize + 1];
+
+          szManifestData [dwSize] = '\0';
+
+          ReadFile ( hManifest,
+                       szManifestData,
+                         dwSize,
+                           &dwRead,
+                             nullptr );
+
+          CloseHandle (hManifest);
+
+          if (! dwRead) {
+            delete [] szManifestData;
+            continue;
+          }
+
+          char* szAppName =
+            StrStrIA (szManifestData, "\"name\"");
+
+          char szGameName [MAX_PATH] = { '\0' };
+
+          if (szAppName != nullptr) {
+            // Make sure everything is lowercase
+            strncpy (szAppName, "\"name\"", strlen ("\"name\""));
+
+            sscanf ( szAppName,
+                       "\"name\" \"%259[^\"]\"",
+                         szGameName );
+
+            return szGameName;
+          }
+
+          delete [] szManifestData;
+        }
+      }
+    }
+  }
+
+  char szManifest [MAX_PATH] = { '\0' };
+
+  sprintf ( szManifest,
+              "%ls\\steamapps\\appmanifest_%d.acf",
+                wszSteamPath,
+                  appid );
+
+  if (GetFileAttributesA (szManifest) != INVALID_FILE_ATTRIBUTES) {
+    HANDLE hManifest =
+      CreateFileA ( szManifest,
+                    GENERIC_READ,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr,
+                          OPEN_EXISTING,
+                            GetFileAttributesA (szManifest),
+                              nullptr );
+
+    if (hManifest != INVALID_HANDLE_VALUE) {
+      DWORD  dwSize,
+             dwSizeHigh,
+             dwRead;
+
+      dwSize = GetFileSize (hManifest, &dwSizeHigh);
+
+      char* szManifestData =
+        new char [dwSize + 1];
+
+      szManifestData [dwSize] = '\0';
+
+      if (szManifestData == nullptr) {
+        CloseHandle (hManifest);
+        return nullptr;
+      }
+
+      ReadFile ( hManifest,
+                   szManifestData,
+                     dwSize,
+                       &dwRead,
+                         nullptr );
+
+      CloseHandle (hManifest);
+
+      if (! dwRead) {
+        delete [] szManifestData;
+        return nullptr;
+      }
+
+      char* szAppName =
+        StrStrIA (szManifestData, "\"name\"");
+
+      char szGameName [MAX_PATH] = { '\0' };
+
+      if (szAppName != nullptr) {
+        // Make sure everything is lowercase
+        strncpy (szAppName, "\"name\"", strlen ("\"name\""));
+
+        sscanf ( szAppName,
+                   "\"name\" \"%259[^\"]\"",
+                     szGameName );
+
+        return szGameName;
+      }
+
+      delete [] szManifestData;
+    }
+  }
+
+  return "";
+}
+
+std::string
+SK::SteamAPI::AppName (void)
+{
+  // Only do this once, the AppID never changes =P
+  static std::string app_name =
+    SK_UseManifestToGetAppName (AppID ());
+
+  return app_name;
+}
+
 void
 __stdcall
 SK::SteamAPI::SetOverlayState (bool active)
@@ -2811,7 +3060,8 @@ SK_Steam_InitCommandConsoleVariables (void)
   cmd->AddVariable ("Steam.TakeScreenshot", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.take_screenshot));
   cmd->AddVariable ("Steam.ShowPopup",      SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.popup.show));
   cmd->AddVariable ("Steam.PopupDuration",  SK_CreateVar (SK_IVariable::Int,     (int  *)&config.steam.achievements.popup.duration));
-  cmd->AddVariable ("Steam.PopuInset",      SK_CreateVar (SK_IVariable::Float,   (float*)&config.steam.achievements.popup.inset));
+  cmd->AddVariable ("Steam.PopupInset",     SK_CreateVar (SK_IVariable::Float,   (float*)&config.steam.achievements.popup.inset));
+  cmd->AddVariable ("Steam.ShowPopupTitle", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.popup.show_title));
   cmd->AddVariable ("Steam.PopupAnimate",   SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.popup.animate));
   cmd->AddVariable ("Steam.PlaySound",      SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.steam.achievements.play_sound));
 

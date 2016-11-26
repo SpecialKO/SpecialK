@@ -168,6 +168,7 @@ struct sk_config_t
 
       struct {
         bool  show               = true;
+        bool  show_title         = true;
         int   origin             = 0;
         bool  animate            = true;
         int   duration           = 5000UL;

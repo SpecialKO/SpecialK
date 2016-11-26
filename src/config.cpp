@@ -119,6 +119,7 @@ struct {
 
     struct {
       sk::ParameterBool*    show;
+      sk::ParameterBool*    show_title;
       sk::ParameterBool*    animate;
       sk::ParameterStringW* origin;
       sk::ParameterFloat*   inset;
@@ -1178,6 +1179,16 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.Achievements",
         L"AnimatePopup" );
 
+  steam.achievements.popup.show_title =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Achievement Popup Includes Game Title?")
+      );
+  steam.achievements.popup.show_title->register_to_ini (
+    achievement_ini,
+      L"Steam.Achievements",
+        L"ShowPopupTitle" );
+
   steam.achievements.popup.inset =
     static_cast <sk::ParameterFloat *>
     (g_ParameterFactory.create_parameter <float> (
@@ -1571,6 +1582,9 @@ SK_LoadConfig (std::wstring name) {
   if (steam.achievements.popup.animate->load ())
     config.steam.achievements.popup.animate =
       steam.achievements.popup.animate->get_value ();
+  if (steam.achievements.popup.show_title->load ())
+    config.steam.achievements.popup.show_title =
+      steam.achievements.popup.show_title->get_value ();
   if (steam.achievements.popup.origin->load ()) {
     config.steam.achievements.popup.origin =
       SK_Steam_PopupOriginWStrToEnum (
@@ -1793,9 +1807,10 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   steam.achievements.popup.origin->set_value    (
     SK_Steam_PopupOriginToWStr (config.steam.achievements.popup.origin)
   );
-  steam.achievements.popup.inset->set_value     (config.steam.achievements.popup.inset);
-  steam.achievements.popup.duration->set_value  (config.steam.achievements.popup.duration);
-  steam.achievements.popup.animate->set_value   (config.steam.achievements.popup.animate);
+  steam.achievements.popup.inset->set_value      (config.steam.achievements.popup.inset);
+  steam.achievements.popup.duration->set_value   (config.steam.achievements.popup.duration);
+  steam.achievements.popup.animate->set_value    (config.steam.achievements.popup.animate);
+  steam.achievements.popup.show_title->set_value (config.steam.achievements.popup.show_title);
 
   if (config.steam.appid == 0) {
     if (SK::SteamAPI::AppID () != 0 &&
@@ -1922,18 +1937,19 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   osd.viewport.pos_y->store              ();
   osd.viewport.scale->store              ();
 
-  steam.achievements.sound_file->store      ();
-  steam.achievements.play_sound->store      ();
-  steam.achievements.take_screenshot->store ();
-  steam.achievements.popup.animate->store   ();
-  steam.achievements.popup.duration->store  ();
-  steam.achievements.popup.inset->store     ();
-  steam.achievements.popup.origin->store    ();
-  steam.system.notify_corner->store         ();
-  steam.system.appid->store                 ();
-  steam.system.init_delay->store            ();
-  steam.system.auto_pump->store             ();
-  steam.log.silent->store                   ();
+  steam.achievements.sound_file->store       ();
+  steam.achievements.play_sound->store       ();
+  steam.achievements.take_screenshot->store  ();
+  steam.achievements.popup.show_title->store ();
+  steam.achievements.popup.animate->store    ();
+  steam.achievements.popup.duration->store   ();
+  steam.achievements.popup.inset->store      ();
+  steam.achievements.popup.origin->store     ();
+  steam.system.notify_corner->store          ();
+  steam.system.appid->store                  ();
+  steam.system.init_delay->store             ();
+  steam.system.auto_pump->store              ();
+  steam.log.silent->store                    ();
 
   init_delay->store                      ();
   silent->store                          ();

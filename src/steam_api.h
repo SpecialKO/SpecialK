@@ -25,6 +25,7 @@
 #include <steamapi/steam_api.h>
 
 #include <stdint.h>
+#include <string>
 
 namespace SK
 {
@@ -37,7 +38,8 @@ namespace SK
     void __stdcall SetOverlayState (bool active);
     bool __stdcall TakeScreenshot  (void);
 
-    uint32_t AppID (void);
+    uint32_t    AppID   (void);
+    std::string AppName (void);
   }
 }
 
