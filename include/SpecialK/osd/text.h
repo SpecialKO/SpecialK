@@ -26,6 +26,8 @@
 #include <Windows.h>
 #include <stdint.h>
 
+#include "command.h"
+
 LPVOID __stdcall SK_GetSharedMemory     (void);
 BOOL   __stdcall SK_ReleaseSharedMemory (LPVOID pMemory);
 

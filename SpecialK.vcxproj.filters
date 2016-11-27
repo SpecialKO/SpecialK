@@ -100,9 +100,6 @@
     <Filter Include="Header Files\Core">
       <UniqueIdentifier>{a98c3961-e34c-4dee-bd96-cdaca60362c3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Config">
-      <UniqueIdentifier>{7d5f7846-2431-4902-b97b-a08873bbf392}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Steam">
       <UniqueIdentifier>{102f0d86-c8ed-40c2-9302-187b733bc17b}</UniqueIdentifier>
     </Filter>
@@ -115,32 +112,11 @@
     <Filter Include="Update Server">
       <UniqueIdentifier>{69190189-2515-42b6-a6e6-9814f2bb651a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Config">
+      <UniqueIdentifier>{7d5f7846-2431-4902-b97b-a08873bbf392}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\update\archive.h">
-      <Filter>Header Files\Update</Filter>
-    </ClInclude>
-    <ClInclude Include="include\steam_api.h">
-      <Filter>Header Files\Steam</Filter>
-    </ClInclude>
-    <ClInclude Include="include\config.h">
-      <Filter>Header Files\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="include\core.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\command.h">
-      <Filter>Header Files\OSD</Filter>
-    </ClInclude>
-    <ClInclude Include="include\console.h">
-      <Filter>Header Files\OSD</Filter>
-    </ClInclude>
-    <ClInclude Include="include\osd\popup.h">
-      <Filter>Header Files\OSD</Filter>
-    </ClInclude>
-    <ClInclude Include="include\osd\text.h">
-      <Filter>Header Files\OSD</Filter>
-    </ClInclude>
     <ClInclude Include="depends\DirectXTex\DDS.h">
       <Filter>Header Files\DirectXTex</Filter>
     </ClInclude>
@@ -156,92 +132,116 @@
     <ClInclude Include="depends\DirectXTex\scoped.h">
       <Filter>Header Files\DirectXTex</Filter>
     </ClInclude>
-    <ClInclude Include="include\nvapi.h">
-      <Filter>Header Files\Stats</Filter>
-    </ClInclude>
-    <ClInclude Include="include\adl.h">
-      <Filter>Header Files\Stats</Filter>
-    </ClInclude>
     <ClInclude Include="depends\DirectXTex\BC.h">
       <Filter>Header Files\DirectXTex</Filter>
     </ClInclude>
     <ClInclude Include="depends\DirectXTex\BCDirectCompute.h">
       <Filter>Header Files\DirectXTex</Filter>
     </ClInclude>
-    <ClInclude Include="include\utility.h">
+    <ClInclude Include="include\SpecialK\adl.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\gpu_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\memory_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\nvapi.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\io_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\framerate.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\diagnostics\compatibility.h">
+    <ClInclude Include="include\SpecialK\utility.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\core.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\log.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\resource.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\stdafx.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\targetver.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\tls.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\command.h">
+      <Filter>Header Files\OSD</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\console.h">
+      <Filter>Header Files\OSD</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\osd\popup.h">
+      <Filter>Header Files\OSD</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\osd\text.h">
+      <Filter>Header Files\OSD</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\compatibility.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="include\diagnostics\crash_handler.h">
+    <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="include\diagnostics\debug_utils.h">
+    <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="include\ini.h">
-      <Filter>Header Files\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="include\import.h">
-      <Filter>Header Files\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="include\parameter.h">
-      <Filter>Header Files\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="include\d3d9_backend.h">
-      <Filter>Header Files\Backends\D3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="include\d3d9\texmgr.h">
-      <Filter>Header Files\Backends\D3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="include\dxgi_backend.h">
-      <Filter>Header Files\Backends\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\dxgi_interfaces.h">
-      <Filter>Header Files\Backends\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\d3d12_interfaces.h">
-      <Filter>Header Files\Backends\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\render_backend.h">
-      <Filter>Header Files\Backends</Filter>
-    </ClInclude>
-    <ClInclude Include="include\opengl_backend.h">
-      <Filter>Header Files\Backends\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vulkan_backend.h">
+    <ClInclude Include="include\SpecialK\vulkan_backend.h">
       <Filter>Header Files\Backends\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="include\framerate.h">
-      <Filter>Header Files\Utility</Filter>
+    <ClInclude Include="include\SpecialK\opengl_backend.h">
+      <Filter>Header Files\Backends\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="include\tls.h">
+    <ClInclude Include="include\SpecialK\DLL_VERSION.H">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\log.h">
-      <Filter>Header Files\Core</Filter>
+    <ClInclude Include="include\SpecialK\config.h">
+      <Filter>Header Files\Config</Filter>
     </ClInclude>
-    <ClInclude Include="include\memory_monitor.h">
-      <Filter>Header Files\Stats</Filter>
+    <ClInclude Include="include\SpecialK\import.h">
+      <Filter>Header Files\Config</Filter>
     </ClInclude>
-    <ClInclude Include="include\io_monitor.h">
-      <Filter>Header Files\Stats</Filter>
+    <ClInclude Include="include\SpecialK\parameter.h">
+      <Filter>Header Files\Config</Filter>
     </ClInclude>
-    <ClInclude Include="include\gpu_monitor.h">
-      <Filter>Header Files\Stats</Filter>
+    <ClInclude Include="include\SpecialK\ini.h">
+      <Filter>Header Files\Config</Filter>
     </ClInclude>
-    <ClInclude Include="include\DLL_VERSION.H">
-      <Filter>Header Files\Core</Filter>
+    <ClInclude Include="include\SpecialK\update\archive.h">
+      <Filter>Header Files\Update</Filter>
     </ClInclude>
-    <ClInclude Include="include\targetver.h">
-      <Filter>Header Files\Core</Filter>
+    <ClInclude Include="include\SpecialK\steam_api.h">
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
-    <ClInclude Include="include\stdafx.h">
-      <Filter>Header Files\Core</Filter>
+    <ClInclude Include="include\SpecialK\d3d9_backend.h">
+      <Filter>Header Files\Backends\D3D9</Filter>
     </ClInclude>
-    <ClInclude Include="include\resource.h">
-      <Filter>Header Files\Core</Filter>
+    <ClInclude Include="include\SpecialK\d3d12_interfaces.h">
+      <Filter>Header Files\Backends\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\dxgi_backend.h">
+      <Filter>Header Files\Backends\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\dxgi_interfaces.h">
+      <Filter>Header Files\Backends\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render_backend.h">
+      <Filter>Header Files\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\d3d9\texmgr.h">
+      <Filter>Header Files\Backends\D3D9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -361,7 +361,6 @@
     <None Include="SpecialK.def">
       <Filter>DLL Export Definitions</Filter>
     </None>
-    <None Include="version.ini" />
     <None Include="depends\lib\CEGUI\x64\CEGUIBase-0.exp">
       <Filter>Libraries</Filter>
     </None>
@@ -430,6 +429,9 @@
     </None>
     <None Include="depends\lib\lzma\x64\libzma.pdb">
       <Filter>Libraries</Filter>
+    </None>
+    <None Include="version.ini">
+      <Filter>Update Server</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

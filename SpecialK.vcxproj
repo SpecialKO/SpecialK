@@ -90,7 +90,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TargetName>SpecialK32</TargetName>
-    <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include</IncludePath>
+    <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
   </PropertyGroup>
@@ -99,7 +99,7 @@
     <TargetName>SpecialK64</TargetName>
     <OutDir>C:\Users\Andon\Documents\My Mods\SpecialK\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
-    <IncludePath>$(ProjectDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include</IncludePath>
+    <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
   </PropertyGroup>
@@ -328,41 +328,41 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\DirectXTexP.h" />
     <ClInclude Include="depends\DirectXTex\Filters.h" />
     <ClInclude Include="depends\DirectXTex\scoped.h" />
-    <ClInclude Include="include\adl.h" />
-    <ClInclude Include="include\command.h" />
-    <ClInclude Include="include\config.h" />
-    <ClInclude Include="include\console.h" />
-    <ClInclude Include="include\core.h" />
-    <ClInclude Include="include\d3d12_interfaces.h" />
-    <ClInclude Include="include\d3d9\texmgr.h" />
-    <ClInclude Include="include\d3d9_backend.h" />
-    <ClInclude Include="include\diagnostics\compatibility.h" />
-    <ClInclude Include="include\diagnostics\crash_handler.h" />
-    <ClInclude Include="include\diagnostics\debug_utils.h" />
-    <ClInclude Include="include\dxgi_backend.h" />
-    <ClInclude Include="include\dxgi_interfaces.h" />
-    <ClInclude Include="include\framerate.h" />
-    <ClInclude Include="include\gpu_monitor.h" />
-    <ClInclude Include="include\import.h" />
-    <ClInclude Include="include\ini.h" />
-    <ClInclude Include="include\io_monitor.h" />
-    <ClInclude Include="include\log.h" />
-    <ClInclude Include="include\memory_monitor.h" />
-    <ClInclude Include="include\nvapi.h" />
-    <ClInclude Include="include\opengl_backend.h" />
-    <ClInclude Include="include\osd\popup.h" />
-    <ClInclude Include="include\osd\text.h" />
-    <ClInclude Include="include\parameter.h" />
-    <ClInclude Include="include\render_backend.h" />
-    <ClInclude Include="include\resource.h" />
-    <ClInclude Include="include\stdafx.h" />
-    <ClInclude Include="include\steam_api.h" />
-    <ClInclude Include="include\targetver.h" />
-    <ClInclude Include="include\tls.h" />
-    <ClInclude Include="include\update\archive.h" />
-    <ClInclude Include="include\utility.h" />
-    <ClInclude Include="include\vulkan_backend.h" />
-    <ClInclude Include="include\DLL_VERSION.H" />
+    <ClInclude Include="include\SpecialK\adl.h" />
+    <ClInclude Include="include\SpecialK\command.h" />
+    <ClInclude Include="include\SpecialK\config.h" />
+    <ClInclude Include="include\SpecialK\console.h" />
+    <ClInclude Include="include\SpecialK\core.h" />
+    <ClInclude Include="include\SpecialK\d3d12_interfaces.h" />
+    <ClInclude Include="include\SpecialK\d3d9\texmgr.h" />
+    <ClInclude Include="include\SpecialK\d3d9_backend.h" />
+    <ClInclude Include="include\SpecialK\diagnostics\compatibility.h" />
+    <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h" />
+    <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h" />
+    <ClInclude Include="include\SpecialK\dxgi_backend.h" />
+    <ClInclude Include="include\SpecialK\dxgi_interfaces.h" />
+    <ClInclude Include="include\SpecialK\framerate.h" />
+    <ClInclude Include="include\SpecialK\gpu_monitor.h" />
+    <ClInclude Include="include\SpecialK\import.h" />
+    <ClInclude Include="include\SpecialK\ini.h" />
+    <ClInclude Include="include\SpecialK\io_monitor.h" />
+    <ClInclude Include="include\SpecialK\log.h" />
+    <ClInclude Include="include\SpecialK\memory_monitor.h" />
+    <ClInclude Include="include\SpecialK\nvapi.h" />
+    <ClInclude Include="include\SpecialK\opengl_backend.h" />
+    <ClInclude Include="include\SpecialK\osd\popup.h" />
+    <ClInclude Include="include\SpecialK\osd\text.h" />
+    <ClInclude Include="include\SpecialK\parameter.h" />
+    <ClInclude Include="include\SpecialK\render_backend.h" />
+    <ClInclude Include="include\SpecialK\resource.h" />
+    <ClInclude Include="include\SpecialK\stdafx.h" />
+    <ClInclude Include="include\SpecialK\steam_api.h" />
+    <ClInclude Include="include\SpecialK\targetver.h" />
+    <ClInclude Include="include\SpecialK\tls.h" />
+    <ClInclude Include="include\SpecialK\update\archive.h" />
+    <ClInclude Include="include\SpecialK\utility.h" />
+    <ClInclude Include="include\SpecialK\vulkan_backend.h" />
+    <ClInclude Include="include\SpecialK\DLL_VERSION.H" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\adl.cpp" />

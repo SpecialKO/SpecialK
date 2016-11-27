@@ -21,11 +21,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define OSD_IMP
-#include "osd/text.h"
+#include <SpecialK/osd/text.h>
 
-#include "render_backend.h"
-#include "command.h"
-#include "config.h"
+#include <SpecialK/render_backend.h>
+#include <SpecialK/command.h>
+#include <SpecialK/config.h>
 
 #undef min
 #undef max
@@ -42,18 +42,18 @@ friend class SK_TextOverlayFactory;
 public:
   ~SK_TextOverlay (void);
 
-  float update (const char* szText);
+  float update    (const char* szText);
 
-  float draw   (float x = 0.0f, float y = 0.0f, bool full = false);
-  void  reset  (CEGUI::Renderer* renderer);
+  float draw      (float x = 0.0f, float y = 0.0f, bool full = false);
+  void  reset     (CEGUI::Renderer* renderer);
 
-  void  resize   (float incr);
-  void  setScale (float scale);
-  float getScale (void);
+  void  resize    (float incr);
+  void  setScale  (float scale);
+  float getScale  (void);
 
-  void  move     (float  x_off, float  y_off);
-  void  setPos   (float  x,     float  y);
-  void  getPos   (float& x,     float& y);
+  void  move      (float  x_off, float  y_off);
+  void  setPos    (float  x,     float  y);
+  void  getPos    (float& x,     float& y);
 
 protected:
    SK_TextOverlay (const char* szAppName);
@@ -227,18 +227,18 @@ SK_TextOverlay::~SK_TextOverlay (void)
 #include <io.h>
 #include <tchar.h>
 
-#include "io_monitor.h"
-#include "gpu_monitor.h"
-#include "memory_monitor.h"
+#include <SpecialK/io_monitor.h>
+#include <SpecialK/gpu_monitor.h>
+#include <SpecialK/memory_monitor.h>
 
-#include "core.h"
-#include "framerate.h"
+#include <SpecialK/core.h>
+#include <SpecialK/framerate.h>
 
-#include "log.h"
+#include <SpecialK/log.h>
 
-#include "dxgi_backend.h"
-#include "d3d9_backend.h"
-#include "opengl_backend.h"
+#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/opengl_backend.h>
 
 #define OSD_PRINTF   if (config.osd.show)     { pszOSD += sprintf (pszOSD,
 #define OSD_R_PRINTF if (config.osd.show &&\
@@ -266,7 +266,7 @@ SK_TextOverlay::~SK_TextOverlay (void)
 
 char szOSD [32768] = { '\0' };
 
-#include "nvapi.h"
+#include <SpecialK/nvapi.h>
 extern NV_GET_CURRENT_SLI_STATE sli_state;
 extern BOOL nvapi_init;
 
@@ -298,7 +298,7 @@ SK_GetSharedMemory (void)
   return SK_GetSharedMemory (GetCurrentProcessId ());
 }
 
-#include "log.h"
+#include <SpecialK/log.h>
 #include <d3d9.h>
 
 bool
@@ -503,9 +503,9 @@ SK_InstallOSD (void)
 SK::Framerate::Stats frame_history;
 SK::Framerate::Stats frame_history2;
 
-#include "command.h"
+#include <SpecialK/command.h>
 
-#include "diagnostics/debug_utils.h"
+#include <SpecialK/diagnostics/debug_utils.h>
 
 BOOL
 __stdcall
@@ -1667,6 +1667,20 @@ SK_TextOverlayFactory::resetAllOverlays (CEGUI::Renderer* renderer)
     overlays_.begin ();
 
   while (it != overlays_.end ()) {
+    if (renderer == nullptr) {
+      it->second->pos_.x = config.osd.pos_x;
+      it->second->pos_.y = config.osd.pos_y;
+
+      it->second->font_.scale = config.osd.scale;
+
+      it->second->font_.primary_color =
+       ( ( (config.osd.red   << 16) & 0xff0000 ) | 
+         ( (config.osd.green << 8)  & 0xff00   ) |
+           (config.osd.blue         & 0xff     ) );
+
+      it->second->font_.shadow_color = 0xff000000;
+    }
+
     if (it->second->geometry_ != nullptr)
       gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
 
@@ -1678,6 +1692,25 @@ SK_TextOverlayFactory::resetAllOverlays (CEGUI::Renderer* renderer)
     }
 
     ++it;
+  }
+
+  if (renderer == nullptr) {
+    auto it =
+      overlays_.begin ();
+
+    while (it != overlays_.end ()) {
+      if (it->second->geometry_ != nullptr)
+        gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+
+      it->second->reset (renderer);
+
+      if (it->second->geometry_ != nullptr) {
+          it->second->update        (nullptr);
+        gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+      }
+
+      ++it;
+    }
   }
 }
 
