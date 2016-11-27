@@ -139,7 +139,7 @@ SK_PopupManager::isPopup (SK_PopupWindow* popup)
   return false;
 }
 
-#include "text.h"
+#include "osd/text.h"
 
 SK_PopupWindow*
 SK_PopupManager::createPopup (const char* szLayout)
@@ -222,7 +222,7 @@ SK_PopupManager::destroyAllPopups (void)
   popups_rev_.clear ();
 }
 
-#include "../log.h"
+#include "log.h"
 
 bool
 SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)

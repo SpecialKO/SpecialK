@@ -37,11 +37,11 @@
                          "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
                          " language='*'\"")
 
-#include "../config.h"
+#include "config.h"
 
-#include "../core.h"
-#include "../log.h"
-#include "../utility.h"
+#include "core.h"
+#include "log.h"
+#include "utility.h"
 
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
@@ -969,8 +969,8 @@ TaskDialogCallback (
   return S_OK;
 }
 
-#include "../config.h"
-#include "../ini.h"
+#include "config.h"
+#include "ini.h"
 
 BOOL
 __stdcall

@@ -22,9 +22,9 @@
 
 #include <Windows.h>
 
-#include "../log.h"
-#include "../utility.h"
-#include "../core.h"
+#include "log.h"
+#include "utility.h"
+#include "core.h"
 
 #include <cstdlib>
 #include <cstdint>
@@ -36,7 +36,7 @@
 #include <lzma/7zFile.h>
 #include <lzma/7zVersion.h>
 
-#include "archive.h"
+#include "update/archive.h"
 
 extern const wchar_t*
 __stdcall

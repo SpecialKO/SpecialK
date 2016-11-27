@@ -18,13 +18,13 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#include "crash_handler.h"
+#include "diagnostics/crash_handler.h"
 
-#include "../config.h"
-#include "../core.h"
-#include "../log.h"
-#include "../resource.h"
-#include "../utility.h"
+#include "config.h"
+#include "core.h"
+#include "log.h"
+#include "resource.h"
+#include "utility.h"
 
 #include <Windows.h>
 

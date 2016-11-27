@@ -21,11 +21,11 @@
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "../ini.h"
-#include "../parameter.h"
+#include "ini.h"
+#include "parameter.h"
 
-#include "../utility.h"
-#include "../log.h"
+#include "utility.h"
+#include "log.h"
 
 #include <Windows.h>
 #include <Wininet.h>

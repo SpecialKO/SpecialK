@@ -22,14 +22,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define ISOLATION_AWARE_ENABLED 1
 
-#include "../ini.h"
-#include "../parameter.h"
-#include "../utility.h"
+#include "ini.h"
+#include "parameter.h"
+#include "utility.h"
 
-#include "../core.h"
-#include "../resource.h"
+#include "core.h"
+#include "resource.h"
 
-#include "archive.h"
+#include "update/archive.h"
 
 #include <Windows.h>
 #include <windowsx.h>

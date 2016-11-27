@@ -3,17 +3,17 @@
 
 #include <d3d9.h>
 
-#include "texmgr.h"
-#include "../config.h"
-#include "../framerate.h"
-#include "../core.h"
-#include "../log.h"
+#include "d3d9/texmgr.h"
+#include "config.h"
+#include "framerate.h"
+#include "core.h"
+#include "log.h"
 #include <process.h>
 
 #include <cstdint>
 #include <algorithm>
 
-#include "../command.h"
+#include "command.h"
 
 #define SK_TEXTURE_DIR L"SK_Res"
 #define SK_TEXTURE_EXT L".dds"
