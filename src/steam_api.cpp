@@ -31,22 +31,22 @@
 #include <psapi.h>
 #pragma comment (lib, "psapi.lib")
 
-#include "resource.h"
+#include <SpecialK/resource.h>
 
-#include "core.h"
+#include <SpecialK/core.h>
 
-#include "config.h"
-#include "ini.h"
-#include "log.h"
+#include <SpecialK/config.h>
+#include <SpecialK/ini.h>
+#include <SpecialK/log.h>
 
 #undef min
 #undef max
 
-#include "osd/popup.h"
-#include "osd/text.h"
-#include "render_backend.h"
+#include <SpecialK/osd/popup.h>
+#include <SpecialK/osd/text.h>
+#include <SpecialK/render_backend.h>
 
-#include "command.h"
+#include <SpecialK/command.h>
 
 // PlaySound
 #pragma comment (lib, "winmm.lib")
@@ -58,7 +58,7 @@ volatile ULONG __SK_Steam_init = FALSE;
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
 #define STEAM_API_NODLL
-#include "steam_api.h"
+#include <SpecialK/steam_api.h>
 
 
 #include <time.h>
@@ -81,8 +81,8 @@ CRITICAL_SECTION init_cs     = { 0 };
 CRITICAL_SECTION popup_cs    = { 0 };
 
 
-#include "CEGUI/CEGUI.h"
-#include "CEGUI/System.h"
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/System.h>
 
 
 bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
@@ -200,7 +200,7 @@ SK_IsSteamOverlayActive (void)
 }
 
 
-#include "utility.h"
+#include <SpecialK/utility.h>
 
 ISteamUserStats* SK_SteamAPI_UserStats   (void);
 void             SK_SteamAPI_ContextInit (HMODULE hSteamAPI);
@@ -1930,7 +1930,7 @@ public:
         // Invalidate text overlays any time a window is removed,
         //   this prevents flicker.
         if (removed || created) {
-          SK_TextOverlayFactory::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
+          SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
 
           if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9) {
             CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();

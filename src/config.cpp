@@ -20,16 +20,16 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
-#include "config.h"
-#include "core.h"
-#include "parameter.h"
-#include "import.h"
-#include "utility.h"
-#include "ini.h"
-#include "log.h"
-#include "steam_api.h"
+#include <SpecialK/config.h>
+#include <SpecialK/core.h>
+#include <SpecialK/parameter.h>
+#include <SpecialK/import.h>
+#include <SpecialK/utility.h>
+#include <SpecialK/ini.h>
+#include <SpecialK/log.h>
+#include <SpecialK/steam_api.h>
 
-#include "DLL_VERSION.H"
+#include <SpecialK/DLL_VERSION.H>
 
 const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
 
@@ -219,6 +219,7 @@ struct {
   sk::ParameterInt*       x_off;
   sk::ParameterInt*       y_off;
   sk::ParameterBool*      background_render;
+  sk::ParameterBool*      background_mute;
   sk::ParameterBool*      confine_cursor;
   sk::ParameterBool*      fullscreen;
   sk::ParameterStringW*   override;
@@ -476,6 +477,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Window.System",
         L"RenderInBackground" );
+
+  window.background_mute =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Mute While Window is in Background")
+      );
+  window.background_mute->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"MuteInBackground" );
 
   window.x_off =
     static_cast <sk::ParameterInt *>
@@ -1555,6 +1566,8 @@ SK_LoadConfig (std::wstring name) {
     config.window.center = window.center->get_value ();
   if (window.background_render->load ())
     config.window.background_render = window.background_render->get_value ();
+  if (window.background_mute->load ())
+    config.window.background_mute = window.background_mute->get_value ();
   if (window.x_off->load ())
     config.window.x_offset = window.x_off->get_value ();
   if (window.y_off->load ())
@@ -1717,6 +1730,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
   window.background_render->set_value         (config.window.background_render);
+  window.background_mute->set_value           (config.window.background_mute);
   window.x_off->set_value                     (config.window.x_offset);
   window.y_off->set_value                     (config.window.y_offset);
   window.confine_cursor->set_value            (config.window.confine_cursor);
@@ -1868,6 +1882,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.borderless->store                ();
   window.center->store                    ();
   window.background_render->store         ();
+  window.background_mute->store           ();
   window.x_off->store                     ();
   window.y_off->store                     ();
   window.confine_cursor->store            ();

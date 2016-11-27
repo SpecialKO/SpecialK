@@ -375,6 +375,7 @@ Exit 0</Command>
     <ClCompile Include="src\osd\popup.cpp" />
     <ClCompile Include="src\plugins\tw3.cpp" />
     <ClCompile Include="src\render_backend.cpp" />
+    <ClCompile Include="src\sound.cpp" />
     <ClCompile Include="src\SpecialK.cpp" />
     <ClCompile Include="src\command.cpp" />
     <ClCompile Include="src\config.cpp" />

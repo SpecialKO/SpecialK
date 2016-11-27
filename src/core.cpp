@@ -22,16 +22,16 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NON_CONFORMING_SWPRINTFS
 
-#include "core.h"
-#include "stdafx.h"
+#include <SpecialK/core.h>
+#include <SpecialK/stdafx.h>
 
-#include "diagnostics/crash_handler.h"
-#include "diagnostics/debug_utils.h"
+#include <SpecialK/diagnostics/crash_handler.h>
+#include <SpecialK/diagnostics/debug_utils.h>
 
-#include "log.h"
-#include "utility.h"
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
-#include "tls.h"
+#include <SpecialK/tls.h>
 
 extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
@@ -42,24 +42,24 @@ extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lp
 #  pragma comment (lib, "dbghelp.lib")
 #pragma warning   (pop)
 
-#include "config.h"
-#include "osd/text.h"
-#include "io_monitor.h"
-#include "import.h"
-#include "console.h"
-#include "command.h"
-#include "framerate.h"
+#include <SpecialK/config.h>
+#include <SpecialK/osd/text.h>
+#include <SpecialK/io_monitor.h>
+#include <SpecialK/import.h>
+#include <SpecialK/console.h>
+#include <SpecialK/command.h>
+#include <SpecialK/framerate.h>
 
-#include "steam_api.h"
+#include <SpecialK/steam_api.h>
 
 #include <atlbase.h>
 #include <comdef.h>
 
 #include <delayimp.h>
 
-#include "CEGUI/CEGUI.h"
-#include "CEGUI/System.h"
-#include "CEGUI/Logger.h"
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/System.h>
+#include <CEGUI/Logger.h>
 
 memory_stats_t mem_stats [MAX_GPU_NODES];
 mem_info_t     mem_info  [NumBuffers];
@@ -125,7 +125,7 @@ SK_GetFramesDrawn (void)
 
 #include <d3d9.h>
 #include <d3d11.h>
-#include "d3d12_interfaces.h"
+#include <SpecialK/d3d12_interfaces.h>
 
 const wchar_t*
 __stdcall
@@ -3017,7 +3017,7 @@ DoKeyboard (void)
 }
 #endif
 
-#include "render_backend.h"
+#include <SpecialK/render_backend.h>
 
 __declspec (noinline)
 COM_DECLSPEC_NOTHROW

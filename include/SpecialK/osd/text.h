@@ -26,7 +26,7 @@
 #include <Windows.h>
 #include <stdint.h>
 
-#include "command.h"
+#include <SpecialK/command.h>
 
 LPVOID __stdcall SK_GetSharedMemory     (void);
 BOOL   __stdcall SK_ReleaseSharedMemory (LPVOID pMemory);
@@ -71,9 +71,9 @@ protected:
 private:
 };
 
-class SK_TextOverlayFactory {
+class SK_TextOverlayManager : public SK_IVariableListener {
 public:
-  static SK_TextOverlayFactory* getInstance (void);
+  static SK_TextOverlayManager* getInstance (void);
 
   SK_TextOverlay* createTextOverlay  (const char* szAppName);
   bool            removeTextOverlay  (const char* szAppName);
@@ -86,7 +86,10 @@ public:
   void            destroyAllOverlays (void);
 
 protected:
-  SK_TextOverlayFactory (void);
+  SK_TextOverlayManager (void);
+
+public:
+  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
 };
 #endif
 

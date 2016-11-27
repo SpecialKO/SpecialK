@@ -21,14 +21,14 @@
 
  #define _CRT_SECURE_NO_WARNINGS
 
-#include "core.h"
-#include "command.h"
-#include "config.h"
-#include "dxgi_backend.h"
-#include "log.h"
+#include <SpecialK/core.h>
+#include <SpecialK/command.h>
+#include <SpecialK/config.h>
+#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/log.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
-#include "framerate.h"
+#include <SpecialK/framerate.h>
 
 #include <Windows.h>
 #include <atlbase.h>
@@ -179,7 +179,7 @@ HMODULE                          hModD3DX11_43                = nullptr;
 std::set <DWORD> texinject_tids;
 CRITICAL_SECTION cs_texinject;
 #else
-#include "tls.h"
+#include <SpecialK/tls.h>
 #endif
 
 bool SK_D3D11_IsTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
@@ -866,7 +866,7 @@ SK_D3D11_SummarizeTexCache (void)
   return szOut;
 }
 
-#include "utility.h"
+#include <SpecialK/utility.h>
 
 extern uint32_t __cdecl crc32 (uint32_t crc, const void *buf, size_t size);
 
@@ -2707,18 +2707,15 @@ unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
 {
-  // Wait for DXGI to be hooked
+  // Wait for DXGI to boot
   if (CreateDXGIFactory_Import == nullptr) {
-    extern unsigned int
-    __stdcall
-    HookDXGI (LPVOID user);
-
     static volatile ULONG implicit_init = FALSE;
 
     // If something called a D3D11 function before DXGI was initialized,
     //   begin the process, but ... only do this once.
     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
-      HookDXGI (user);
+      extern void SK_BootDXGI (void);
+      SK_BootDXGI ();
     }
 
     while (CreateDXGIFactory_Import == nullptr)

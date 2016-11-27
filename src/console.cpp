@@ -20,20 +20,20 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "console.h"
-#include "core.h"
+#include <SpecialK/console.h>
+#include <SpecialK/core.h>
 
 #include <cstdint>
 
 #include <string>
 #include <algorithm>
-#include "steam_api.h"
+#include <SpecialK/steam_api.h>
 
-#include "log.h"
-#include "config.h"
-#include "command.h"
-#include "utility.h"
-#include "osd/text.h"
+#include <SpecialK/log.h>
+#include <SpecialK/config.h>
+#include <SpecialK/command.h>
+#include <SpecialK/utility.h>
+#include <SpecialK/osd/text.h>
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -101,7 +101,7 @@ SK_Console::getInstance (void)
   return pConsole;
 }
 
-#include "framerate.h"
+#include <SpecialK/framerate.h>
 bool bNoConsole = false;
 
 void
@@ -217,7 +217,6 @@ typedef int
   _In_ int nIndex
 );
 
-
 struct sk_window_s {
   HWND      hWnd             = 0x00;
   WNDPROC   WndProc_Original = nullptr;
@@ -268,6 +267,9 @@ struct sk_window_s {
 
   bool    needsCoordTransform (void)
   {
+    if (! config.window.res.override.fix_mouse)
+      return false;
+
     bool dynamic_window =
       (config.window.borderless /*&& config.window.fullscreen*/);
 
@@ -338,6 +340,279 @@ struct sk_window_s {
     }
   }
 } game_window;
+
+void SK_AdjustWindow (void);
+
+// TODO: Refactor that structure above into this class ;)
+//
+//  Also, combine a few of the input manager settings with window manager
+class SK_WindowManager : public SK_IVariableListener
+{
+public:
+  virtual bool OnVarChange (SK_IVariable* var, void* val)
+  {
+    if (var == confine_cursor_)
+    {
+      if (val != nullptr)
+      {
+        config.window.confine_cursor = *(bool *)val;
+
+        if (! config.window.confine_cursor)
+          ClipCursor (nullptr);
+        else
+          game_window.updateDims ();
+      }
+
+      return true;
+    }
+
+    else if ( var == center_window_ || var == x_offset_   || var == y_offset_   ||
+              var == borderless_    || var == x_override_ || var == y_override_ ||
+              var == fullscreen_ )
+    {
+      if (val != nullptr)
+      {
+        if (var == center_window_)
+          config.window.center = *(bool *)val;
+
+        else if (var == x_offset_)
+          config.window.x_offset = *(signed int *)val;
+
+        else if (var == y_offset_)
+          config.window.y_offset = *(signed int *)val;
+
+        else if (var == borderless_)
+          config.window.borderless = *(bool *)val;
+
+        else if (var == fullscreen_)
+          config.window.fullscreen = *(bool *)val;
+
+        else if (var == x_override_ || var == y_override_) {
+          if (var == x_override_) {
+            config.window.res.override.x = *(unsigned int *)val;
+
+            // We cannot allow one variable ot remain 0 while the other becomes
+            //   non-zero, so just make the window a square temporarily.
+            if (config.window.res.override.y == 0)
+              config.window.res.override.y = config.window.res.override.x;
+          }
+
+          else if (var == y_override_) {
+            config.window.res.override.y = *(unsigned int *)val;
+
+            // We cannot allow one variable ot remain 0 while the other becomes
+            //   non-zero, so just make the window a square temporarily.
+            if (config.window.res.override.x == 0)
+              config.window.res.override.x = config.window.res.override.y;
+          }
+
+          // We have to override BOTH variables to 0 at the same time, or the window
+          //   will poof! :P
+          if (*(unsigned int *)val == 0) {
+            config.window.res.override.x = 0;
+            config.window.res.override.y = 0;
+          }
+        }
+
+        snprintf ( override_res, 32, "%lux%lu",
+                     config.window.res.override.x,
+                       config.window.res.override.y );
+
+        SK_AdjustWindow ();
+      }
+
+      return true;
+    }
+
+    else if ( var == background_mute_ )
+    {
+      if (val != nullptr)
+      {
+        config.window.background_mute = *(bool *)val;
+
+        if (config.window.background_mute && (! game_window.active)) {
+          muteGame (true);
+        } else if (! config.window.background_mute) {
+          muteGame (false);
+        }
+
+        return true;
+      }
+    }
+
+    else if (var == res_override_)
+    {
+      unsigned int x = 65535;
+      unsigned int y = 65535;
+
+      char szTemp [32] = { '\0' };
+      strncpy (szTemp, *(char **)val, 32);
+
+      if (val != nullptr)
+        sscanf (szTemp, "%lux%lu", &x, &y);
+
+      SK_ICommandProcessor* cmd =
+        SK_GetCommandProcessor ();
+
+      if ((x > 320 && x < 16384 && y > 240 && y < 16384) || (x == 0 && y == 0)) {
+        config.window.res.override.x = x;
+        config.window.res.override.y = y;
+
+        SK_AdjustWindow ();
+
+        char *pszRes = (char *)((SK_IVarStub <char *>*)var)->getValuePtr ();
+        snprintf (pszRes, 32, "%lux%lu", x, y);
+
+        return true;
+      }
+
+      else {
+        char *pszRes = (char *)((SK_IVarStub <char *>*)var)->getValuePtr ();
+        snprintf (pszRes, 32, "INVALID");
+
+        return false;
+      }
+    }
+
+    return false;
+  }
+
+  SK_WindowManager (void)
+  {
+    SK_ICommandProcessor* cmd =
+      SK_GetCommandProcessor ();
+
+    confine_cursor_ =
+      SK_CreateVar (SK_IVariable::Boolean,&config.window.confine_cursor,this);
+
+    cmd->AddVariable (
+      "Window.ConfineCursor",
+        confine_cursor_
+    );
+
+    borderless_ =
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.borderless, this);
+
+    background_mute_ =
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.background_mute, this);
+
+    center_window_ =
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.center, this);
+
+    fullscreen_ =
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.fullscreen, this);
+
+    x_override_ =
+      SK_CreateVar (SK_IVariable::Int,     &config.window.res.override.x, this);
+
+    y_override_ =
+      SK_CreateVar (SK_IVariable::Int,     &config.window.res.override.y, this);
+
+    res_override_ =
+      SK_CreateVar (SK_IVariable::String,  override_res, this);
+
+    // Don't need to listen for this event, actually.
+    fix_mouse_ =
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.res.override.fix_mouse);
+
+    x_offset_ =
+      SK_CreateVar (SK_IVariable::Int,     &config.window.x_offset, this);
+
+    y_offset_ =
+      SK_CreateVar (SK_IVariable::Int,     &config.window.y_offset, this);
+
+    cmd->AddVariable (
+      "Window.Borderless",
+        borderless_
+    );
+
+    cmd->AddVariable (
+      "Window.BackgroundMute",
+        background_mute_
+    );
+
+    cmd->AddVariable (
+      "Window.Center",
+        center_window_
+    );
+
+    cmd->AddVariable (
+      "Window.Fullscreen",
+        fullscreen_
+    );
+
+    cmd->AddVariable (
+      "Window.OverrideX",
+        x_override_
+    );
+
+    cmd->AddVariable (
+      "Window.OverrideY",
+        y_override_
+    );
+
+    cmd->AddVariable (
+      "Window.OverrideRes",
+        res_override_
+    );
+
+    snprintf ( override_res, 32, "%lux%lu",
+                 config.window.res.override.x,
+                   config.window.res.override.y );
+
+    cmd->AddVariable (
+      "Window.OverrideMouse",
+        fix_mouse_
+    );
+
+    cmd->AddVariable (
+      "Window.XOffset",
+        x_offset_
+    );
+
+    cmd->AddVariable (
+      "Window.YOffset",
+        y_offset_
+    );
+  };
+
+  static SK_WindowManager* getInstance (void)
+  {
+    if (pWindowManager == nullptr)
+      pWindowManager = new SK_WindowManager ();
+
+    return pWindowManager;
+  }
+
+  void muteGame (bool bMute)
+  {
+    extern void
+    SK_SetGameMute (BOOL bMute);
+
+    SK_SetGameMute (bMute);
+  }
+
+protected:
+  SK_IVariable* borderless_;
+  SK_IVariable* background_mute_;
+  SK_IVariable* confine_cursor_;
+  SK_IVariable* center_window_;
+  SK_IVariable* fullscreen_;
+  SK_IVariable* x_override_;
+  SK_IVariable* y_override_;
+  SK_IVariable* res_override_; // Set X and Y at the same time
+  SK_IVariable* fix_mouse_;
+  SK_IVariable* x_offset_;
+  SK_IVariable* y_offset_;
+
+  char override_res [32];
+
+private:
+  static SK_WindowManager* pWindowManager;
+};
+
+SK_WindowManager* SK_WindowManager::pWindowManager = nullptr;
+
 
 void
 SK_SetWindowResX (LONG x)
@@ -448,8 +723,6 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
   return ret;
 }
-
-void SK_AdjustWindow (void);
 
 
 BOOL
@@ -1086,6 +1359,9 @@ SK_HookWinAPI (void)
 
   hooked = true;
 
+  // Initialize the Window Manager
+  SK_WindowManager::getInstance ();
+
   SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
                         SetWindowPos_Detour,
              (LPVOID *)&SetWindowPos_Original );
@@ -1467,6 +1743,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       game_window.active = active;
 
       if (active && (! was_active)) {
+        if (config.window.background_mute)
+          SK_WindowManager::getInstance ()->muteGame (false);
+
         GetCursorPos_Original (&game_window.cursor_pos);
 
         if (config.window.background_render) {
@@ -1486,6 +1765,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
 
       else if ((! active) && was_active) {
+        if (config.window.background_mute)
+          SK_WindowManager::getInstance ()->muteGame (true);
+
         if (config.window.background_render) {
           game_window.cursor_visible =
             ShowCursor (TRUE) >= 1;
@@ -1621,7 +1903,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   return CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
 }
 
-#include "core.h"
+#include <SpecialK/core.h>
 
 typedef BOOL (WINAPI *RegisterRawInputDevices_pfn)(
   _In_ PCRAWINPUTDEVICE pRawInputDevices,
@@ -1666,7 +1948,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   return bRet;
 }
 
-#include "command.h"
+#include <SpecialK/command.h>
 
 void
 SK_InstallWindowHook (HWND hWnd)
@@ -1751,14 +2033,6 @@ SK_InstallWindowHook (HWND hWnd)
   cmd->AddVariable ("Cursor.KeysActivate", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
 
   cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
-  cmd->AddVariable ("Window.Borderless",       SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.borderless));
-  cmd->AddVariable ("Window.Center",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.center));
-  cmd->AddVariable ("Window.ConfineCursor",    SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.confine_cursor));
-  cmd->AddVariable ("Window.Fullscreen",       SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.fullscreen));
-  cmd->AddVariable ("Window.OverrideX",        SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.res.override.x));
-  cmd->AddVariable ("Window.OverrideY",        SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.res.override.y));
-  cmd->AddVariable ("Window.XOffset",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.x_offset));
-  cmd->AddVariable ("Window.YOffset",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.window.y_offset));
 }
 
 HWND

@@ -23,53 +23,53 @@
 
 #include <Windows.h>
 
-#include "dxgi_interfaces.h"
-#include "dxgi_backend.h"
+#include <SpecialK/dxgi_interfaces.h>
+#include <SpecialK/dxgi_backend.h>
 
 #include <atlbase.h>
 
-#include "nvapi.h"
-#include "config.h"
+#include <SpecialK/nvapi.h>
+#include <SpecialK/config.h>
 
 #include <cstdio>
 #include <cstdlib>
 #include <string>
 
-#include "log.h"
-#include "utility.h"
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
-#include "core.h"
-#include "command.h"
-#include "console.h"
-#include "framerate.h"
+#include <SpecialK/core.h>
+#include <SpecialK/command.h>
+#include <SpecialK/console.h>
+#include <SpecialK/framerate.h>
 
-#include "diagnostics/crash_handler.h"
+#include <SpecialK/diagnostics/crash_handler.h>
 
 #pragma comment (lib, "delayimp.lib")
 
 #undef min
 #undef max
 
-#include "CEGUI/CEGUI.h"
-#include "CEGUI/System.h"
-#include "CEGUI/DefaultResourceProvider.h"
-#include "CEGUI/ImageManager.h"
-#include "CEGUI/Image.h"
-#include "CEGUI/Font.h"
-#include "CEGUI/Scheme.h"
-#include "CEGUI/WindowManager.h"
-#include "CEGUI/falagard/WidgetLookManager.h"
-#include "CEGUI/ScriptModule.h"
-#include "CEGUI/XMLParser.h"
-#include "CEGUI/GeometryBuffer.h"
-#include "CEGUI/GUIContext.h"
-#include "CEGUI/RenderTarget.h"
-#include "CEGUI/AnimationManager.h"
-#include "CEGUI/FontManager.h"
-#include "CEGUI/RendererModules/Direct3D11/Renderer.h"
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/System.h>
+#include <CEGUI/DefaultResourceProvider.h>
+#include <CEGUI/ImageManager.h>
+#include <CEGUI/Image.h>
+#include <CEGUI/Font.h>
+#include <CEGUI/Scheme.h>
+#include <CEGUI/WindowManager.h>
+#include <CEGUI/falagard/WidgetLookManager.h>
+#include <CEGUI/ScriptModule.h>
+#include <CEGUI/XMLParser.h>
+#include <CEGUI/GeometryBuffer.h>
+#include <CEGUI/GUIContext.h>
+#include <CEGUI/RenderTarget.h>
+#include <CEGUI/AnimationManager.h>
+#include <CEGUI/FontManager.h>
+#include <CEGUI/RendererModules/Direct3D11/Renderer.h>
 
-#include "osd/text.h"
-#include "osd/popup.h"
+#include <SpecialK/osd/text.h>
+#include <SpecialK/osd/popup.h>
 
 #ifdef _WIN64
 
@@ -254,7 +254,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     return;
 
   if (cegD3D11 != nullptr) {
-    SK_TextOverlayFactory::getInstance ()->destroyAllOverlays ();
+    SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
     SK_PopupManager::getInstance ()->destroyAllPopups         ();
 
     if (pGUIDev != nullptr) {
@@ -320,7 +320,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     SK_CEGUI_InitBase ();
 
     SK_PopupManager::getInstance ()->destroyAllPopups       ();
-    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
+    SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
 
     extern void SK_Steam_ClearPopups (void);
     SK_Steam_ClearPopups ();
@@ -1309,11 +1309,11 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   // Make sure resolution changes propogate to the text overlays
   //if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
     //if (cegD3D11 != nullptr)
-      //SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D11);
+      //SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
   //}
 
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
-    SK_TextOverlayFactory::getInstance ()->destroyAllOverlays ();
+    SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
 
     if (pGUIDev != nullptr) {
       //pGUIDev->Release ();
@@ -1413,7 +1413,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       cegD3D11->beginRendering ();
       {
-        SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+        SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
         extern void SK_Steam_DrawOSD (void);
         SK_Steam_DrawOSD ();
@@ -3526,6 +3526,23 @@ unsigned int
 __stdcall
 HookDXGI (LPVOID user)
 {
+  // Wait for DXGI to boot
+  if (CreateDXGIFactory_Import == nullptr) {
+    static volatile ULONG implicit_init = FALSE;
+
+    // If something called a D3D11 function before DXGI was initialized,
+    //   begin the process, but ... only do this once.
+    if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
+      extern void SK_BootDXGI (void);
+      SK_BootDXGI ();
+    }
+
+    while (CreateDXGIFactory_Import == nullptr)
+      Sleep (33);
+
+    // TODO: Handle situation where CreateDXGIFactory is unloadable
+  }
+
   if (InterlockedCompareExchange (&__dxgi_ready, TRUE, TRUE)) {
     CloseHandle (GetCurrentThread ());
     return 0;

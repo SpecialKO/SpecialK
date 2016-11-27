@@ -23,22 +23,22 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 
-#include "stdafx.h"
+#include <SpecialK/stdafx.h>
 #include <Shlwapi.h>
 //#include <Windows.h>
 
-#include "render_backend.h"
-#include "opengl_backend.h"
+#include <SpecialK/render_backend.h>
+#include <SpecialK/opengl_backend.h>
 
-#include "log.h"
-#include "utility.h"
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
 #include <process.h>
 
 extern HMODULE WINAPI SK_GetDLL (void);
 
-#include "core.h"
-#include "config.h"
+#include <SpecialK/core.h>
+#include <SpecialK/config.h>
 
 volatile ULONG __gl_ready = FALSE;
 
@@ -122,8 +122,8 @@ DXGI_Thread (LPVOID user)
   return 0;
 }
 
-#include "osd/text.h"
-#include "osd/popup.h"
+#include <SpecialK/osd/text.h>
+#include <SpecialK/osd/popup.h>
 
 #include <CEGUI/RendererModules/OpenGL/GL3Renderer.h>
 
@@ -157,7 +157,7 @@ void ResetCEGUI_GL (void)
     SK_CEGUI_InitBase ();
 
     SK_PopupManager::getInstance ()->destroyAllPopups       ();
-    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegGL);
+    SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
 
     extern void SK_Steam_ClearPopups (void);
     SK_Steam_ClearPopups ();
@@ -179,7 +179,7 @@ SK_CEGUI_DrawGL (void)
   }
 
   if (cegGL != nullptr) {
-    SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+    SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
     static RECT rect;
            RECT rect_now;
@@ -194,7 +194,7 @@ SK_CEGUI_DrawGL (void)
           )
       );
 
-      SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegGL);
+      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
 
       rect = rect_now;
     }
@@ -1589,7 +1589,7 @@ GLPerf::Init (void)
   return false;
 }
 
-#include "config.h"
+#include <SpecialK/config.h>
 
 #include <d3d11.h>
 

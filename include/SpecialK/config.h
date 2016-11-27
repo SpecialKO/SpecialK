@@ -90,8 +90,8 @@ struct sk_config_t
     DWORD  green          = -1;
     DWORD  blue           = -1;
     float  scale          =  1.0f;
-    DWORD  pos_x          =  0;
-    DWORD  pos_y          =  0;
+    int    pos_x          =  0;
+    int    pos_y          =  0;
 
     struct {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'O',          0 };
@@ -287,12 +287,14 @@ struct sk_config_t
     int     x_offset            = 0;
     int     y_offset            = 0;
     bool    background_render   = false;
+    bool    background_mute     = false;
     bool    confine_cursor      = false;
     bool    fullscreen          = false;
     struct {
       struct {
-        unsigned int x        =  0;
-        unsigned int y        =  0;
+        unsigned int x          = 0;
+        unsigned int y          = 0;
+        bool         fix_mouse  = false;
         bool isZero (void) { return x == 0 && y == 0; };
       } override;
     } res;

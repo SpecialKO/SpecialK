@@ -21,14 +21,14 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "d3d9_backend.h"
-#include "D3D9/texmgr.h"
+#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/D3D9/texmgr.h>
 
-#include "log.h"
+#include <SpecialK/log.h>
 
-#include "stdafx.h"
-#include "nvapi.h"
-#include "config.h"
+#include <SpecialK/stdafx.h>
+#include <SpecialK/nvapi.h>
+#include <SpecialK/config.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -36,8 +36,8 @@
 
 #include <atlbase.h>
 
-#include "log.h"
-#include "utility.h"
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
 extern void SK_SetWindowResX (LONG x);
 extern void SK_SetWindowResY (LONG y);
@@ -210,26 +210,26 @@ SK_FreeRealD3D9 (void)
 #undef min
 #undef max
 
-#include "CEGUI/CEGUI.h"
-#include "CEGUI/System.h"
-#include "CEGUI/DefaultResourceProvider.h"
-#include "CEGUI/ImageManager.h"
-#include "CEGUI/Image.h"
-#include "CEGUI/Font.h"
-#include "CEGUI/Scheme.h"
-#include "CEGUI/WindowManager.h"
-#include "CEGUI/falagard/WidgetLookManager.h"
-#include "CEGUI/ScriptModule.h"
-#include "CEGUI/XMLParser.h"
-#include "CEGUI/GeometryBuffer.h"
-#include "CEGUI/GUIContext.h"
-#include "CEGUI/RenderTarget.h"
-#include "CEGUI/AnimationManager.h"
-#include "CEGUI/FontManager.h"
-#include "CEGUI/RendererModules/Direct3D9/Renderer.h"
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/System.h>
+#include <CEGUI/DefaultResourceProvider.h>
+#include <CEGUI/ImageManager.h>
+#include <CEGUI/Image.h>
+#include <CEGUI/Font.h>
+#include <CEGUI/Scheme.h>
+#include <CEGUI/WindowManager.h>
+#include <CEGUI/falagard/WidgetLookManager.h>
+#include <CEGUI/ScriptModule.h>
+#include <CEGUI/XMLParser.h>
+#include <CEGUI/GeometryBuffer.h>
+#include <CEGUI/GUIContext.h>
+#include <CEGUI/RenderTarget.h>
+#include <CEGUI/AnimationManager.h>
+#include <CEGUI/FontManager.h>
+#include <CEGUI/RendererModules/Direct3D9/Renderer.h>
 
-#include "osd/text.h"
-#include "osd/popup.h"
+#include <SpecialK/osd/text.h>
+#include <SpecialK/osd/popup.h>
 
 #pragma comment (lib, "d3dx9.lib")
 
@@ -347,7 +347,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     cegD3D9->beginRendering ();
     {
-      SK_TextOverlayFactory::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+      SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
       extern void SK_Steam_DrawOSD (void);
       SK_Steam_DrawOSD ();
@@ -378,7 +378,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
                     //L" setup to render on?!" );
 
     if (cegD3D9 != nullptr) {
-      SK_TextOverlayFactory::getInstance ()->destroyAllOverlays ();
+      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
       SK_PopupManager::getInstance ()->destroyAllPopups         ();
 
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
@@ -415,7 +415,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     SK_CEGUI_InitBase ();
 
     SK_PopupManager::getInstance ()->destroyAllPopups       ();
-    SK_TextOverlayFactory::getInstance ()->resetAllOverlays (cegD3D9);
+    SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
 
     extern void
     SK_Steam_ClearPopups ();

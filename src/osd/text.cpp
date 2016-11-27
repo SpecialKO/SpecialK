@@ -37,7 +37,7 @@
 #include <map>
 
 class SK_TextOverlay {
-friend class SK_TextOverlayFactory;
+friend class SK_TextOverlayManager;
 
 public:
   ~SK_TextOverlay (void);
@@ -89,15 +89,15 @@ private:
   } pos_;
 };
 
-class SK_TextOverlayFactory
+class SK_TextOverlayManager : public SK_IVariableListener
 {
 private: // Singleton
-  static SK_TextOverlayFactory* pSelf;
+  static SK_TextOverlayManager* pSelf;
   static CRITICAL_SECTION       cs_;
 
 public:
-  static SK_TextOverlayFactory* getInstance (void) {
-    return ( pSelf == nullptr ? (pSelf = new SK_TextOverlayFactory ()) :
+  static SK_TextOverlayManager* getInstance (void) {
+    return ( pSelf == nullptr ? (pSelf = new SK_TextOverlayManager ()) :
                                  pSelf );
   }
 
@@ -113,6 +113,9 @@ public:
     }
 
     SK_TextOverlay* overlay = new SK_TextOverlay (szAppName);
+
+    overlay->setPos   (config.osd.pos_x, config.osd.pos_y);
+    overlay->setScale (config.osd.scale);
 
     overlays_ [app_name] = overlay;
 
@@ -163,7 +166,7 @@ public:
   void            destroyAllOverlays (void);
 
 protected:
-  SK_TextOverlayFactory (void) {
+  SK_TextOverlayManager (void) {
     InitializeCriticalSectionAndSpinCount (&cs_, 4000);
 
     gui_ctx_         = nullptr;
@@ -175,16 +178,34 @@ protected:
     cmd->AddVariable ("OSD.Red",   SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.red));
     cmd->AddVariable ("OSD.Green", SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.green));
     cmd->AddVariable ("OSD.Blue",  SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.blue));
+
+    pos_.x = SK_CreateVar (SK_IVariable::Int,   (int   *)&config.osd.pos_x, this);
+    pos_.y = SK_CreateVar (SK_IVariable::Int,   (int   *)&config.osd.pos_y, this);
+    scale_ = SK_CreateVar (SK_IVariable::Float, (float *)&config.osd.scale, this);
+
+    cmd->AddVariable ("OSD.PosX",  pos_.x);
+    cmd->AddVariable ("OSD.PosY",  pos_.y);
+    cmd->AddVariable ("OSD.Scale", scale_);
   }
 
 private:
   bool                                     need_full_reset_;
   CEGUI::GUIContext*                       gui_ctx_;
   std::map <std::string, SK_TextOverlay *> overlays_;
+
+  struct {
+    SK_IVariable*                          x;
+    SK_IVariable*                          y;
+  } pos_;
+
+  SK_IVariable*                            scale_;
+
+public:
+  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
 };
 
-SK_TextOverlayFactory* SK_TextOverlayFactory::pSelf = nullptr;
-CRITICAL_SECTION       SK_TextOverlayFactory::cs_;
+SK_TextOverlayManager* SK_TextOverlayManager::pSelf = nullptr;
+CRITICAL_SECTION       SK_TextOverlayManager::cs_;
 
 SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 {
@@ -203,7 +224,7 @@ SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 
 SK_TextOverlay::~SK_TextOverlay (void)
 {
-  SK_TextOverlayFactory::getInstance ()->removeTextOverlay (data_.name);
+  SK_TextOverlayManager::getInstance ()->removeTextOverlay (data_.name);
 
   if (data_.text != nullptr) {
     free ((void *)data_.text);
@@ -491,7 +512,7 @@ SK_InstallOSD (void)
   if (! osd_init) {
     osd_init = true;
 
-    SK_TextOverlayFactory::getInstance ()->createTextOverlay ("Special K");
+    SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
 
     SK_SetOSDScale (config.osd.scale);
     SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
@@ -1250,13 +1271,13 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 
   try {
     SK_TextOverlay* pOverlay =
-      SK_TextOverlayFactory::getInstance ()->getTextOverlay (lpAppName);
+      SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
 #define IMPLICIT_CREATION
 #ifdef IMPLICIT_CREATION
     if (pOverlay == nullptr) {
       pOverlay =
-        SK_TextOverlayFactory::getInstance ()->createTextOverlay (lpAppName);
+        SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
     }
 #endif
 
@@ -1291,7 +1312,7 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
     return;
 
   SK_TextOverlay* overlay =
-    SK_TextOverlayFactory::getInstance ()->getTextOverlay (lpAppName);
+    SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
   if (overlay != nullptr) {
     overlay->setPos (x, y);
@@ -1338,8 +1359,11 @@ SK_SetOSDScale (float fScale, bool relative, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
+  SK_TextOverlayManager* overlay_mgr =
+    SK_TextOverlayManager::getInstance ();
+
   SK_TextOverlay* overlay =
-    SK_TextOverlayFactory::getInstance ()->getTextOverlay (lpAppName);
+    overlay_mgr->getTextOverlay (lpAppName);
 
   if (overlay != nullptr) {
     if (relative)
@@ -1347,6 +1371,16 @@ SK_SetOSDScale (float fScale, bool relative, LPCSTR lpAppName)
     else
       overlay->setScale (fScale);
   }
+
+  // TEMP HACK
+  // ---------
+  //
+  // If the primary overlay is rescaled, rescale everything else with it...
+  if (overlay == overlay_mgr->getTextOverlay ("Special K"))
+    SK_GetCommandProcessor ()->ProcessCommandFormatted (
+      "OSD.Scale %f",
+        overlay->getScale ()
+    );
 }
 
 void
@@ -1637,6 +1671,12 @@ SK_TextOverlay::move (float  x_off, float  y_off)
 void
 SK_TextOverlay::setPos (float x,float y)
 {
+  // We cannot anchor the command console to the left or bottom...
+  if (! strcmp (data_.name, "SpecialK Console")) {
+    x = std::min (0.0f, x);
+    y = std::min (0.0f, y);
+  }
+
   pos_.x = x;
   pos_.y = y;
 }
@@ -1650,13 +1690,13 @@ SK_TextOverlay::getPos (float& x, float& y)
 
 
 void
-SK_TextOverlayFactory::queueReset (CEGUI::Renderer* renderer)
+SK_TextOverlayManager::queueReset (CEGUI::Renderer* renderer)
 {
   need_full_reset_ = true;
 }
 
 void
-SK_TextOverlayFactory::resetAllOverlays (CEGUI::Renderer* renderer)
+SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 {
   if (renderer != nullptr) {
     gui_ctx_ =
@@ -1715,7 +1755,7 @@ SK_TextOverlayFactory::resetAllOverlays (CEGUI::Renderer* renderer)
 }
 
 float
-SK_TextOverlayFactory::drawAllOverlays (float x, float y, bool full)
+SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 {
   auto it =
     overlays_.begin ();
@@ -1738,7 +1778,7 @@ SK_TextOverlayFactory::drawAllOverlays (float x, float y, bool full)
 }
 
 void
-SK_TextOverlayFactory::destroyAllOverlays (void)
+SK_TextOverlayManager::destroyAllOverlays (void)
 {
   EnterCriticalSection (&cs_);
 
@@ -1752,4 +1792,42 @@ SK_TextOverlayFactory::destroyAllOverlays (void)
   overlays_.clear ();
 
   LeaveCriticalSection (&cs_);
+}
+
+bool
+SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
+{
+  if (var == pos_.x || var == pos_.y || var == scale_)
+  {
+    if (var == pos_.x)
+      config.osd.pos_x = *(signed int *)val;
+
+    else if (var == pos_.y)
+      config.osd.pos_y = *(signed int *)val;
+
+    else if (var == scale_)
+      config.osd.scale = *(float *)val;
+
+
+    auto it = overlays_.begin ();
+
+
+    while (it != overlays_.end ())
+    {
+      float pos_x = (float)config.osd.pos_x;
+      float pos_y = (float)config.osd.pos_y;
+
+      if (var == pos_.x || var == pos_.y)
+        it->second->setPos (pos_x, pos_y);
+
+      else if (var == scale_)
+        it->second->setScale (config.osd.scale);
+
+      ++it;
+    }
+
+    return true;
+  }
+
+  return false;
 }
