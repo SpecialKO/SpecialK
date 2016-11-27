@@ -172,7 +172,7 @@ struct sk_config_t
         int   origin             = 0;
         bool  animate            = true;
         int   duration           = 5000UL;
-        float inset              = 0.025f;
+        float inset              = 0.005f;
       } popup;
 
       std::wstring
@@ -294,7 +294,7 @@ struct sk_config_t
       struct {
         unsigned int x          = 0;
         unsigned int y          = 0;
-        bool         fix_mouse  = false;
+        bool         fix_mouse  = true;
         bool isZero (void) { return x == 0 && y == 0; };
       } override;
     } res;

@@ -1491,6 +1491,15 @@ SK_TextOverlay::update (const char* szText)
 
   if (font_.cegui && geometry_)
   {
+    // Empty the gometry buffer and bail-out.
+    if (! strlen (data_.text)) {
+
+      geometry_->reset ();
+
+      data_.extent = 0.0f;
+      return data_.extent;
+    }
+
     float baseline = 0.0f;
     float spacing  = font_.cegui->getLineSpacing () * font_.scale;
 
@@ -1632,6 +1641,7 @@ SK_TextOverlay::draw (float x, float y, bool full)
       geometry_->draw ();
       update          (nullptr);
     }
+
     return data_.extent;
   }
 
@@ -1757,24 +1767,37 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 float
 SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 {
-  auto it =
-    overlays_.begin ();
-
   float base_y = y;
 
-  while (it != overlays_.end ()) {
-    y += it->second->draw (x, y, full);
+  // Draw top-down
+  if (config.osd.pos_y >= 0) {
+    auto it =
+      overlays_.begin ();
 
-    ++it;
+    while (it != overlays_.end ()) {
+      y += it->second->draw (x, y, full);
+
+      ++it;
+    }
   }
 
-  if (y != base_y && gui_ctx_ != nullptr) {
-    //gui_ctx_->markAsDirty ();
-    //gui_ctx_->invalidate  ();
+  // Draw from the bottom up
+  else {
+    auto it =
+      overlays_.rbegin ();
+
+    // Push the starting position up one whole line
+    y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
+
+    while (it != overlays_.rend ()) {
+      y -= it->second->draw (x, y, full);
+
+      ++it;
+    }
   }
 
   // Height of all rendered overlays
-  return (y - base_y);
+  return fabs (y - base_y);
 }
 
 void

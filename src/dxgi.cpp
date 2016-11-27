@@ -457,12 +457,6 @@ extern "C++" HRESULT STDMETHODCALLTYPE
                   SK_FO4_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 
 
-extern "C++" bool SK_TW3_UseFlipMode         (void);
-
-extern "C++" HRESULT STDMETHODCALLTYPE
-                  SK_TW3_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
-
-
 // TODO: Get this stuff out of here, it's breaking what little design work there is.
 extern "C++" void SK_DS3_InitPlugin         (void);
 extern "C++" bool SK_DS3_UseFlipMode        (void);
@@ -1524,10 +1518,6 @@ extern "C" {
         SK_DS3_PresentFirstFrame (This, SyncInterval, flags);
       }
 
-      else if (sk::NVAPI::app_name == L"witcher3.exe") {
-        SK_TW3_PresentFirstFrame (This, SyncInterval, flags);
-      }
-
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
       {
@@ -1626,11 +1616,6 @@ extern "C" {
       else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe") {
         SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
       }
-
-      else if (sk::NVAPI::app_name == L"witcher3.exe") {
-        SK_TW3_PresentFirstFrame (This, SyncInterval, Flags);
-      }
-
 
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
@@ -2010,7 +1995,7 @@ __declspec (noinline)
     //if (bWait)
       //return S_OK;
 
-    if (config.window.borderless && (! config.window.res.override.isZero ())) {
+    if (! config.window.res.override.isZero ()) {
       Width  = config.window.res.override.x;
       Height = config.window.res.override.y;
     } else {
@@ -2077,7 +2062,7 @@ __declspec (noinline)
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
       }
 
-      if (config.window.borderless && (! config.window.res.override.isZero ())) {
+      if (! config.window.res.override.isZero ()) {
         new_new_params.Width  = config.window.res.override.x;
         new_new_params.Height = config.window.res.override.y;
       } else {
@@ -2137,7 +2122,7 @@ __declspec (noinline)
 
     if (pDesc != nullptr) {
       if (! fake) {
-        if (config.window.borderless && (! config.window.res.override.isZero ())) {
+        if (! config.window.res.override.isZero ()) {
           pDesc->BufferDesc.Width  = config.window.res.override.x;
           pDesc->BufferDesc.Height = config.window.res.override.y;
         }
@@ -2191,8 +2176,7 @@ __declspec (noinline)
         bFlipMode =
           ( dxgi_caps.present.flip_sequential && (
             ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-              SK_DS3_UseFlipMode ()        ||
-              SK_TW3_UseFlipMode () ) );
+              SK_DS3_UseFlipMode ()        ) );
 
       if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) {
         if (bFlipMode) {
@@ -2407,8 +2391,7 @@ __declspec (noinline)
         bFlipMode =
           ( dxgi_caps.present.flip_sequential && (
             ( (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-              SK_DS3_UseFlipMode ()                            ||
-              SK_TW3_UseFlipMode () ) ) );
+              SK_DS3_UseFlipMode () ) ) );
 
       if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) {
         if (bFlipMode) {
@@ -2597,8 +2580,7 @@ __declspec (noinline)
         bFlipMode =
           ( dxgi_caps.present.flip_sequential && (
             ( (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-              SK_DS3_UseFlipMode ()                            ||
-              SK_TW3_UseFlipMode () ) ) );
+              SK_DS3_UseFlipMode () ) ) );
 
       if (config.render.framerate.flip_discard)
         bFlipMode = dxgi_caps.present.flip_sequential;

@@ -486,7 +486,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
     }
 
-    if (config.window.borderless && (! config.window.res.override.isZero ())) {
+    if (! config.window.res.override.isZero ()) {
       swap_chain_desc->BufferDesc.Width  = config.window.res.override.x;
       swap_chain_desc->BufferDesc.Height = config.window.res.override.y;
     }

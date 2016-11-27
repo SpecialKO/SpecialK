@@ -43,6 +43,79 @@
 
 #include <windowsx.h>
 
+typedef BOOL
+(WINAPI *MoveWindow_pfn)(
+    _In_ HWND hWnd,
+    _In_ int  X,
+    _In_ int  Y,
+    _In_ int  nWidth,
+    _In_ int  nHeight,
+    _In_ BOOL bRedraw );
+
+typedef BOOL
+(WINAPI *SetWindowPos_pfn)(
+    _In_     HWND hWnd,
+    _In_opt_ HWND hWndInsertAfter,
+    _In_     int  X,
+    _In_     int  Y,
+    _In_     int  cx,
+    _In_     int  cy,
+    _In_     UINT uFlags );
+
+typedef LONG
+(WINAPI *SetWindowLongA_pfn)(
+    _In_ HWND hWnd,
+    _In_ int nIndex,
+    _In_ LONG dwNewLong);
+
+typedef LONG
+(WINAPI *SetWindowLongW_pfn)(
+    _In_ HWND hWnd,
+    _In_ int nIndex,
+    _In_ LONG dwNewLong);
+
+typedef BOOL
+(WINAPI *AdjustWindowRect_pfn)(
+    _Inout_ LPRECT lpRect,
+    _In_    DWORD  dwStyle,
+    _In_    BOOL   bMenu );
+
+typedef BOOL
+(WINAPI *AdjustWindowRectEx_pfn)(
+    _Inout_ LPRECT lpRect,
+    _In_    DWORD  dwStyle,
+    _In_    BOOL   bMenu,
+    _In_    DWORD  dwExStyle );
+
+typedef BOOL
+(WINAPI *ClipCursor_pfn)(
+    _In_opt_ const RECT *lpRect );
+
+typedef BOOL
+(WINAPI *GetCursorPos_pfn)(
+  _Out_ LPPOINT lpPoint );
+
+typedef BOOL
+(WINAPI *GetCursorInfo_pfn)(
+  _Inout_ PCURSORINFO pci );
+
+typedef int
+(WINAPI *GetSystemMetrics_pfn)(
+  _In_ int nIndex
+);
+
+ClipCursor_pfn         ClipCursor_Original         = nullptr;
+SetWindowPos_pfn       SetWindowPos_Original       = nullptr;
+MoveWindow_pfn         MoveWindow_Original         = nullptr;
+SetWindowLongW_pfn     SetWindowLongW_Original     = nullptr;
+SetWindowLongA_pfn     SetWindowLongA_Original     = nullptr;
+AdjustWindowRect_pfn   AdjustWindowRect_Original   = nullptr;
+AdjustWindowRectEx_pfn AdjustWindowRectEx_Original = nullptr;
+
+static GetSystemMetrics_pfn GetSystemMetrics_Original = nullptr;
+static GetCursorPos_pfn     GetCursorPos_Original     = nullptr;
+static GetCursorInfo_pfn    GetCursorInfo_Original    = nullptr;
+
 struct window_t {
   DWORD proc_id;
   HWND  root;
@@ -156,67 +229,6 @@ SK_Console::Draw (void)
   //}
 }
 
-typedef BOOL
-(WINAPI *MoveWindow_pfn)(
-    _In_ HWND hWnd,
-    _In_ int  X,
-    _In_ int  Y,
-    _In_ int  nWidth,
-    _In_ int  nHeight,
-    _In_ BOOL bRedraw );
-
-typedef BOOL
-(WINAPI *SetWindowPos_pfn)(
-    _In_     HWND hWnd,
-    _In_opt_ HWND hWndInsertAfter,
-    _In_     int  X,
-    _In_     int  Y,
-    _In_     int  cx,
-    _In_     int  cy,
-    _In_     UINT uFlags );
-
-typedef LONG
-(WINAPI *SetWindowLongA_pfn)(
-    _In_ HWND hWnd,
-    _In_ int nIndex,
-    _In_ LONG dwNewLong);
-
-typedef LONG
-(WINAPI *SetWindowLongW_pfn)(
-    _In_ HWND hWnd,
-    _In_ int nIndex,
-    _In_ LONG dwNewLong);
-
-typedef BOOL
-(WINAPI *AdjustWindowRect_pfn)(
-    _Inout_ LPRECT lpRect,
-    _In_    DWORD  dwStyle,
-    _In_    BOOL   bMenu );
-
-typedef BOOL
-(WINAPI *AdjustWindowRectEx_pfn)(
-    _Inout_ LPRECT lpRect,
-    _In_    DWORD  dwStyle,
-    _In_    BOOL   bMenu,
-    _In_    DWORD  dwExStyle );
-
-typedef BOOL
-(WINAPI *ClipCursor_pfn)(
-    _In_opt_ const RECT *lpRect );
-
-typedef BOOL
-(WINAPI *GetCursorPos_pfn)(
-  _Out_ LPPOINT lpPoint );
-
-typedef BOOL
-(WINAPI *GetCursorInfo_pfn)(
-  _Inout_ PCURSORINFO pci );
-
-typedef int
-(WINAPI *GetSystemMetrics_pfn)(
-  _In_ int nIndex
-);
-
 struct sk_window_s {
   HWND      hWnd             = 0x00;
   WNDPROC   WndProc_Original = nullptr;
@@ -271,7 +283,7 @@ struct sk_window_s {
       return false;
 
     bool dynamic_window =
-      (config.window.borderless /*&& config.window.fullscreen*/);
+      true;//(config.window.borderless /*&& config.window.fullscreen*/);
 
     if (! dynamic_window)
       return false;
@@ -335,8 +347,8 @@ struct sk_window_s {
     // If we are confining the mouse cursor, update the clip
     //   rectangle immediately...
     if ( config.window.confine_cursor && rect.right  - rect.left > 0 &&
-                                         rect.bottom - rect.top > 0 ) {
-      ClipCursor (&rect);
+                                         rect.bottom - rect.top  > 0 ) {
+      ClipCursor_Original (&rect);
     }
   }
 } game_window;
@@ -359,8 +371,10 @@ public:
 
         if (! config.window.confine_cursor)
           ClipCursor (nullptr);
-        else
+        else {
           game_window.updateDims ();
+          ClipCursor             (&game_window.game_rect);
+        }
       }
 
       return true;
@@ -632,18 +646,6 @@ SK_GetGameRect (void)
   return &game_window.game_rect;
 }
 
-ClipCursor_pfn         ClipCursor_Original         = nullptr;
-SetWindowPos_pfn       SetWindowPos_Original       = nullptr;
-MoveWindow_pfn         MoveWindow_Original         = nullptr;
-SetWindowLongW_pfn     SetWindowLongW_Original     = nullptr;
-SetWindowLongA_pfn     SetWindowLongA_Original     = nullptr;
-AdjustWindowRect_pfn   AdjustWindowRect_Original   = nullptr;
-AdjustWindowRectEx_pfn AdjustWindowRectEx_Original = nullptr;
-
-static GetSystemMetrics_pfn GetSystemMetrics_Original = nullptr;
-static GetCursorPos_pfn     GetCursorPos_Original     = nullptr;
-static GetCursorInfo_pfn    GetCursorInfo_Original    = nullptr;
-
 //
 // Given raw coordinates directly from Windows, transform them into a coordinate space
 //   that looks familiar to the game ;)
@@ -654,16 +656,28 @@ SK_CalcCursorPos (LPPOINT lpPoint)
   if (! game_window.needsCoordTransform ())
     return;
 
-  lpPoint->x -= (LONG)game_window.coord_remap.offset.x;
-  lpPoint->y -= (LONG)game_window.coord_remap.offset.y;
+  struct {
+    float width,
+          height;
+  } in, out;
 
-  lpPoint->x = (LONG)((float)lpPoint->x / game_window.coord_remap.scale.x);
-  lpPoint->y = (LONG)((float)lpPoint->y / game_window.coord_remap.scale.y);
+  lpPoint->x -= ( (LONG)game_window.rect.left );
+  lpPoint->y -= ( (LONG)game_window.rect.top  );
 
-  if (game_window.coord_remap.offset.x != 0.0f)
-    lpPoint->x += (LONG)(game_window.coord_remap.offset.x / game_window.coord_remap.scale.x);
-  if (game_window.coord_remap.offset.y != 0.0f)
-    lpPoint->y += (LONG)(game_window.coord_remap.offset.y / game_window.coord_remap.scale.y);
+  in.width   = game_window.rect.right       - game_window.rect.left;
+  in.height  = game_window.rect.bottom      - game_window.rect.top;
+
+  out.width  = game_window.game_rect.right  - game_window.game_rect.left;
+  out.height = game_window.game_rect.bottom - game_window.game_rect.top;
+
+  float x = 2.0f * ((float)lpPoint->x / in.width ) - 1.0f;
+  float y = 2.0f * ((float)lpPoint->y / in.height) - 1.0f;
+
+  lpPoint->x = (LONG)( ( x * out.width  + out.width ) / 2.0f +
+                       game_window.coord_remap.offset.x );
+
+  lpPoint->y = (LONG)( (y * out.height + out.height) / 2.0f +
+                       game_window.coord_remap.offset.y );
 }
 
 //
@@ -676,16 +690,30 @@ SK_ReverseCursorPos (LPPOINT lpPoint)
   if (! game_window.needsCoordTransform ())
     return;
 
-  lpPoint->x += (LONG)game_window.coord_remap.offset.x;
-  lpPoint->y += (LONG)game_window.coord_remap.offset.y;
+  struct {
+    float width,
+          height;
+  } in, out;
 
-  lpPoint->x = (LONG)((float)lpPoint->x * game_window.coord_remap.scale.x);
-  lpPoint->y = (LONG)((float)lpPoint->y * game_window.coord_remap.scale.y);
+  lpPoint->x -= ( (LONG)game_window.coord_remap.offset.x +
+                        game_window.game_rect.left );
+  lpPoint->y -= ( (LONG)game_window.coord_remap.offset.y +
+                        game_window.game_rect.top  );
 
-  if (game_window.coord_remap.offset.x != 0.0f)
-    lpPoint->x -= (LONG)(game_window.coord_remap.offset.x * game_window.coord_remap.scale.x);
-  if (game_window.coord_remap.offset.y != 0.0f)
-    lpPoint->y -= (LONG)(game_window.coord_remap.offset.y * game_window.coord_remap.scale.y);
+  in.width   = game_window.game_rect.right  - game_window.game_rect.left;
+  in.height  = game_window.game_rect.bottom - game_window.game_rect.top;
+
+  out.width  = game_window.rect.right       - game_window.rect.left;
+  out.height = game_window.rect.bottom      - game_window.rect.top;
+
+  float x = 2.0f * ((float)lpPoint->x / in.width ) - 1.0f;
+  float y = 2.0f * ((float)lpPoint->y / in.height) - 1.0f;
+
+  lpPoint->x = (LONG)( ( x * out.width  + out.width ) / 2.0f + 
+                       game_window.coord_remap.offset.x );
+
+  lpPoint->y = (LONG)( (y * out.height + out.height) / 2.0f +
+                       game_window.coord_remap.offset.y );
 }
 
 BOOL
@@ -818,7 +846,7 @@ SetWindowPos_Detour(
   //if (game_window.hWnd == 0)
     //game_window.hWnd = hWnd;
 
-  if ((! config.window.borderless) || hWnd != game_window.hWnd) {
+  if (hWnd != game_window.hWnd) {
     return SetWindowPos_Original ( hWnd, hWndInsertAfter,
                                      X, Y,
                                        cx, cy,
@@ -1079,7 +1107,7 @@ SetWindowLongA_Detour (
   //if (game_window.hWnd == 0)
     //game_window.hWnd = hWnd;
 
-  if ((! config.window.borderless) || hWnd != game_window.hWnd) {
+  if (hWnd != game_window.hWnd) {
     return SetWindowLongA_Original ( hWnd,
                                        nIndex,
                                          dwNewLong );
@@ -1119,7 +1147,7 @@ SetWindowLongW_Detour (
   //if (game_window.hWnd == 0)
     //game_window.hWnd = hWnd;
 
-  if ((! config.window.borderless) || hWnd != game_window.hWnd) {
+  if (hWnd != game_window.hWnd) {
     return SetWindowLongW_Original ( hWnd,
                                        nIndex,
                                          dwNewLong );
@@ -1151,9 +1179,6 @@ SetWindowLongW_Detour (
 void
 SK_AdjustWindow (void)
 {
-  if ((! config.window.borderless))
-    return;
-
   HMONITOR hMonitor =
     MonitorFromWindow ( game_window.hWnd,
                           MONITOR_DEFAULTTONEAREST );
@@ -1236,6 +1261,16 @@ SK_AdjustWindow (void)
     LONG win_width  = std::min (mon_width,  render_width);
     LONG win_height = std::min (mon_height, render_height);
 
+
+    // We will offset coordinates later; move the window to the top-left
+    //   origin first.
+    if (config.window.center) {
+      game_window.rect.left   = 0;
+      game_window.rect.top    = 0;
+      game_window.rect.right  = win_width;
+      game_window.rect.bottom = win_height;
+    }
+
     if (config.window.x_offset >= 0)
       game_window.rect.left  = mi.rcWork.left  + config.window.x_offset;
     else
@@ -1248,13 +1283,23 @@ SK_AdjustWindow (void)
       game_window.rect.bottom = mi.rcWork.bottom + config.window.y_offset + 1;
 
 
-    if (config.window.center && config.window.x_offset == 0 && config.window.y_offset == 0) {
+    if (config.window.center) {
       //dll_log->Log ( L"[Window Mgr] Center --> (%li,%li)",
       //                 mi.rcWork.right - mi.rcWork.left,
       //                   mi.rcWork.bottom - mi.rcWork.top );
 
-      game_window.rect.left = std::max (0L, (mon_width  - win_width)  / 2);
-      game_window.rect.top  = std::max (0L, (mon_height - win_height) / 2);
+      if (config.window.x_offset < 0) {
+        game_window.rect.left  -= (win_width / 2);
+        game_window.rect.right -= (win_width / 2);
+      }
+
+      if (config.window.y_offset < 0) {
+        game_window.rect.top    -= (win_height / 2);
+        game_window.rect.bottom -= (win_height / 2);
+      }
+
+      game_window.rect.left += std::max (0L, (mon_width  - win_width)  / 2);
+      game_window.rect.top  += std::max (0L, (mon_height - win_height) / 2);
     }
 
 
@@ -1268,7 +1313,6 @@ SK_AdjustWindow (void)
       game_window.rect.bottom = game_window.rect.top    + win_height;
     else
       game_window.rect.top    = game_window.rect.bottom - win_height;
-
 
     //AdjustWindowRect_Original ( &game_window.rect,
                                   //game_window.style,
@@ -1417,12 +1461,7 @@ SK_Console::Start (void)
     return;
   }
 
-  if ( config.window.borderless ||
-       config.window.center     ||
-       config.window.x_offset   ||
-       config.window.y_offset ) {
-    SK_HookWinAPI ();
-  }
+  SK_HookWinAPI ();
 
   hMsgPump =
     (HANDLE)
@@ -2000,14 +2039,7 @@ SK_InstallWindowHook (HWND hWnd)
   else
     game_window.style = WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX;
 
-  // In the future, we'll want to do this stuff regardless ... for now,
-  //   we have to contend with some game-specific plugins that manage
-  //     window positioning internally.
-  if ( config.window.borderless ||
-       config.window.center     ||
-       config.window.x_offset   ||
-       config.window.y_offset )
-  {
+
     GetCursorPos_Original  (&game_window.cursor_pos);
 
     if (config.window.borderless) {
@@ -2023,7 +2055,6 @@ SK_InstallWindowHook (HWND hWnd)
     SK_AdjustWindow ();
 
     SK_RealizeForegroundWindow (game_window.hWnd);
-  }
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();

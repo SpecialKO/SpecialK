@@ -1757,7 +1757,9 @@ public:
 
         std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
 
-        const float inset = config.steam.achievements.popup.inset;
+        float inset = config.steam.achievements.popup.inset;
+
+        if (inset < 0.0001f)  inset = 0.0f;
 
         const float full_ht =
           CEGUI::System::getDllSingleton ().getRenderer ()->
@@ -1794,6 +1796,12 @@ public:
 
         float x_off = full_wd / (4.0f * fract_x);
         float y_off = full_ht / (4.0f * fract_y);
+
+        // 0.0 == Special Case: Flush With Anchor Point
+        if (inset == 0.0f) {
+          x_off = 0.000001f;
+          y_off = 0.000001f;
+        }
 
         switch (config.steam.achievements.popup.origin) {
           default:
@@ -1846,7 +1854,7 @@ public:
               // The bottom of the window would be off-screen, so
               //   move it to the top and offset by the width of
               //     each popup.
-              if ( bottom_y >= full_ht || bottom_y < win_ht0 ) {
+              if ( bottom_y > full_ht || bottom_y < win_ht0 ) {
                 y_pos  = CEGUI::UDim (y_origin, y_off * y_dir);
                 x_pos += x_dir * win->getSize ().d_width;
 
@@ -1858,7 +1866,7 @@ public:
                                    win_wd;
 
               // Window is off-screen horizontally AND vertically
-              if ( right_x >= full_wd || right_x < win_wd0  ) {
+              if ( inset != 0.0f && (right_x > full_wd || right_x < win_wd0)  ) {
                 // Since we're not going to draw this, treat it as a new
                 //   popup until it first becomes visible.
                 (*it).time =
@@ -1875,15 +1883,15 @@ public:
                   );
 
                   if (percent_of_lifetime <= 0.1f) {
-                    win_pos.d_y /= percent * 100.0f *
-                          CEGUI::UDim (percent_of_lifetime / 0.1f, 0.0f);
+                      win_pos.d_y /= (percent * 100.0f *
+                          CEGUI::UDim (percent_of_lifetime / 0.1f, 0.0f));
                   }
 
                   else if (percent_of_lifetime >= 0.9f) {
-                    win_pos.d_y /= percent * 100.0f *
-                          CEGUI::UDim ( (1.0f - 
-                              (percent_of_lifetime - 0.9f) / 0.1f),
-                                          0.0f );
+                      win_pos.d_y /= (percent * 100.0f *
+                            CEGUI::UDim ( (1.0f - 
+                                (percent_of_lifetime - 0.9f) / 0.1f),
+                                            0.0f ));
                   }
                   else if (! it->final_pos) {
                     it->final_pos   = true;
@@ -2886,6 +2894,7 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
+#if 0
   EnterCriticalSection (&init_cs);
 
   KillSteamPump ();
@@ -2894,13 +2903,17 @@ SteamAPI_Shutdown_Detour (void)
   SteamAPI_Shutdown_Original ();
 
   InterlockedExchange (&__SK_Steam_init, 0);
+#else
+  return;
+#endif
 
   CreateThread ( nullptr, 0,
        [](LPVOID user) ->
   DWORD {
-    Sleep (1000UL);
+    while (SteamAPI_InitSafe_Original == nullptr)
+      Sleep (1000UL);
 
-    if (SteamAPI_InitSafe ()) {
+    if (SteamAPI_InitSafe_Original ()) {
       extern void
       SK_SteamAPI_InitManagers (void);
 

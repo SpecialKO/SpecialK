@@ -223,6 +223,7 @@ struct {
   sk::ParameterBool*      confine_cursor;
   sk::ParameterBool*      fullscreen;
   sk::ParameterStringW*   override;
+  sk::ParameterBool*      fix_mouse_coords;
 } window;
 
 struct {
@@ -537,6 +538,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Window.System",
         L"OverrideRes" );
+
+  window.fix_mouse_coords =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Re-Compute Mouse Coordinates for Resized Windows")
+      );
+  window.fix_mouse_coords->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"FixMouseCoords" );
 
 
 
@@ -1576,6 +1587,9 @@ SK_LoadConfig (std::wstring name) {
     config.window.confine_cursor = window.confine_cursor->get_value ();
   if (window.fullscreen->load ())
     config.window.fullscreen = window.fullscreen->get_value ();
+  if (window.fix_mouse_coords->load ())
+    config.window.res.override.fix_mouse =
+      window.fix_mouse_coords->get_value ();
   if (window.override->load ()) {
     swscanf ( window.override->get_value_str ().c_str (),
                 L"%lux%lu",
@@ -1735,6 +1749,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.y_off->set_value                     (config.window.y_offset);
   window.confine_cursor->set_value            (config.window.confine_cursor);
   window.fullscreen->set_value                (config.window.fullscreen);
+  window.fix_mouse_coords->set_value          (config.window.res.override.fix_mouse);
 
   wchar_t wszFormattedRes [64] = { L'\0' };
 
@@ -1887,6 +1902,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.y_off->store                     ();
   window.confine_cursor->store            ();
   window.fullscreen->store                ();
+  window.fix_mouse_coords->store          ();
   window.override->store                  ();
 
   nvidia.api.disable->store               ();

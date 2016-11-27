@@ -1945,30 +1945,28 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 {
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     if (pparams != nullptr) {
-      if (config.window.borderless) {
-        if (config.window.res.override.isZero ()) {
-          RECT wnd_rect = *SK_GetGameRect ();
+      if (config.window.res.override.isZero ()) {
+        RECT wnd_rect = *SK_GetGameRect ();
 
-          int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
-          int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
-          int title = SK_GetSystemMetrics (SM_CYCAPTION);
+        int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
+        int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
+        int title = SK_GetSystemMetrics (SM_CYCAPTION);
 
-          if ( SK_DiscontEpsilon (pparams->BackBufferWidth,  wnd_rect.right  - wnd_rect.left, 2 * x_dlg + 1) ||
-               SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) ) {
-            pparams->BackBufferWidth  = wnd_rect.right  - wnd_rect.left;
-            pparams->BackBufferHeight = wnd_rect.bottom - wnd_rect.top;
+        if ( SK_DiscontEpsilon (pparams->BackBufferWidth,  wnd_rect.right  - wnd_rect.left, 2 * x_dlg + 1) ||
+             SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) ) {
+          pparams->BackBufferWidth  = wnd_rect.right  - wnd_rect.left;
+          pparams->BackBufferHeight = wnd_rect.bottom - wnd_rect.top;
 
-            dll_log.Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
-                            pparams->BackBufferWidth, pparams->BackBufferHeight );
-          }
-        }
-
-        else {
-          pparams->BackBufferWidth  = config.window.res.override.x;
-          pparams->BackBufferHeight = config.window.res.override.y;
+          dll_log.Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
+                          pparams->BackBufferWidth, pparams->BackBufferHeight );
         }
       }
 
+      else {
+        pparams->BackBufferWidth  = config.window.res.override.x;
+        pparams->BackBufferHeight = config.window.res.override.y;
+      }
+      
       // If this is zero, we need to actually create the render device / swapchain and
       //   then get the value Windows assigned us...
       SK_SetWindowResX (pparams->BackBufferWidth);
