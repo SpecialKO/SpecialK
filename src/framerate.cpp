@@ -22,12 +22,13 @@
 
 #include <Windows.h>
 
-#include "framerate.h"
+#include <SpecialK/framerate.h>
 
-#include "log.h"
-#include "config.h"
-#include "command.h"
-#include "core.h" // Hooking
+#include <SpecialK/log.h>
+#include <SpecialK/config.h>
+#include <SpecialK/command.h>
+#include <SpecialK/core.h>
+#include <SpecialK/hooks.h>
 
 #include <d3d9.h>
 #include <d3d11.h>

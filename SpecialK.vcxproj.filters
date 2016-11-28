@@ -243,6 +243,9 @@
     <ClInclude Include="include\SpecialK\d3d9\texmgr.h">
       <Filter>Header Files\Backends\D3D9</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\hooks.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -357,6 +360,9 @@
       <Filter>Source Files\Backends</Filter>
     </ClCompile>
     <ClCompile Include="src\sound.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hooks.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
   </ItemGroup>

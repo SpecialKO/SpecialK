@@ -1,12 +1,12 @@
 #include <string>
 
-#include "config.h"
+#include <SpecialK/config.h>
 
-#include "ini.h"
-#include "parameter.h"
-#include "utility.h"
+#include <SpecialK/ini.h>
+#include <SpecialK/parameter.h>
+#include <SpecialK/utility.h>
 
-#include "log.h"
+#include <SpecialK/log.h>
 
 #include <process.h>
 
@@ -25,8 +25,9 @@ sk::ParameterBool*   fo4w_center      = nullptr;
 #define __NvAPI_GPU_GetMemoryInfo 0x07F9B368
 
 HMODULE nvapi64_dll;
-#include "core.h"
-#include "nvapi.h"
+#include <SpecialK/hooks.h>
+#include <SpecialK/core.h>
+#include <SpecialK/nvapi.h>
 
 #if 0
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetMemoryInfo_t)(NvPhysicalGpuHandle hPhysicalGpu, NV_DISPLAY_DRIVER_MEMORY_INFO *pMemoryInfo);

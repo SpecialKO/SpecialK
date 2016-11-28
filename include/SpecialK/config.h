@@ -212,6 +212,7 @@ struct sk_config_t
       bool    force_fullscreen  = false;
       int     hook_type         = 0;
       int     refresh_rate      = -1;
+      bool    osd_in_vidcap     = false;
     } d3d9;
     struct {
       int     adapter_override  = -1;

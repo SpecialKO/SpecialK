@@ -25,10 +25,8 @@
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
 
-#include <MinHook/MinHook.h>
-
-#include "memory_monitor.h"
-#include "nvapi.h"
+#include <SpecialK/memory_monitor.h>
+#include <SpecialK/nvapi.h>
 
 const int MAX_GPU_NODES = 4;
 
@@ -57,7 +55,7 @@ enum buffer_t {
   NumBuffers
 };
 
-#include "dxgi_interfaces.h"
+#include <SpecialK/dxgi_interfaces.h>
 
 #if 0
 typedef  enum DXGI_MEMORY_SEGMENT_GROUP
@@ -105,58 +103,6 @@ extern "C" {
   void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
   bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
   bool WINAPI    SK_ShutdownCore (const wchar_t* backend);
-
-  MH_STATUS WINAPI
-      SK_CreateFuncHook ( LPCWSTR pwszFuncName,
-                          LPVOID  pTarget,
-                          LPVOID  pDetour,
-                          LPVOID *ppOriginal );
-
-  MH_STATUS WINAPI
-      SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                         LPVOID  pDetour,    LPVOID *ppOriginal,
-                         LPVOID *ppFuncAddr = nullptr );
-
-  // Queues a hook rather than enabling it immediately.
-  MH_STATUS WINAPI
-      SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                          LPVOID  pDetour,    LPVOID *ppOriginal,
-                          LPVOID *ppFuncAddr = nullptr );
-
-  // Queues a hook rather than enabling it immediately.
-  //   (If already hooked, fails silently)
-  MH_STATUS WINAPI
-      SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                          LPVOID  pDetour,    LPVOID *ppOriginal,
-                          LPVOID *ppFuncAddr = nullptr );
-
-  MH_STATUS WINAPI
-    SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
-                           LPVOID *ppVFTable,
-                           DWORD   dwOffset,
-                           LPVOID  pDetour,
-                           LPVOID *ppOriginal );
-
-  // Queues a hook rather than enabling it immediately.
-  MH_STATUS WINAPI
-    SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
-                            LPVOID *ppVFTable,
-                            DWORD   dwOffset,
-                            LPVOID  pDetour,
-                            LPVOID *ppOriginal );
-
-
-  MH_STATUS WINAPI
-    SK_ApplyQueuedHooks (void);
-
-  MH_STATUS WINAPI
-       SK_EnableHook   (LPVOID pTarget);
-
-  MH_STATUS WINAPI
-       SK_DisableHook  (LPVOID pTarget);
-
-  MH_STATUS WINAPI
-       SK_RemoveHook   (LPVOID pTarget);
 
   struct IDXGISwapChain;
 

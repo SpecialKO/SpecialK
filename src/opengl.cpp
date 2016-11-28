@@ -37,6 +37,7 @@
 
 extern HMODULE WINAPI SK_GetDLL (void);
 
+#include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 

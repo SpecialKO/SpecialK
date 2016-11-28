@@ -21,6 +21,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <SpecialK/console.h>
+#include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 
 #include <cstdint>
@@ -262,6 +263,9 @@ struct sk_window_s {
   LONG      render_x         = 0;
   LONG      render_y         = 0;
 
+  LONG      game_x           = 0; // Resolution game thinks it's running at
+  LONG      game_y           = 0; // Resolution game thinks it's running at
+
   RECT      cursor_clip { LONG_MIN, LONG_MIN,
                           LONG_MAX, LONG_MAX };
 
@@ -402,6 +406,9 @@ public:
           config.window.fullscreen = *(bool *)val;
 
         else if (var == x_override_ || var == y_override_) {
+          if ((! config.window.borderless) || config.window.fullscreen)
+            return false;
+
           if (var == x_override_) {
             config.window.res.override.x = *(unsigned int *)val;
 
@@ -456,6 +463,9 @@ public:
 
     else if (var == res_override_)
     {
+      if ((! config.window.borderless) || config.window.fullscreen)
+        return false;
+
       unsigned int x = 65535;
       unsigned int y = 65535;
 
@@ -1038,6 +1048,14 @@ SK_GetWindowRect (HWND hWnd, LPRECT rect)
 
 BOOL
 WINAPI
+SK_IsRectZero (_In_ LPRECT lpRect)
+{
+  return ( lpRect->left   == lpRect->right &&
+           lpRect->bottom == lpRect->top );
+}
+
+BOOL
+WINAPI
 AdjustWindowRect_Detour (
     _Inout_ LPRECT lpRect,
     _In_    DWORD  dwStyle,
@@ -1046,7 +1064,7 @@ AdjustWindowRect_Detour (
   if (! config.window.borderless) {
     BOOL bRet = AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
 
-    if (bRet) {
+    if (bRet && (! SK_IsRectZero (lpRect))) {
       game_window.game_rect = *lpRect;
       game_window.updateDims ();
     }
@@ -1059,8 +1077,10 @@ AdjustWindowRect_Detour (
                     lpRect->right, lpRect->bottom,
                       dwStyle, bMenu );
 
-  game_window.game_rect = *lpRect;
-  game_window.updateDims ();
+  if (! SK_IsRectZero (lpRect)) {
+    game_window.game_rect = *lpRect;
+    game_window.updateDims ();
+  }
 
   return TRUE;//AdjustWindowRect_Original (lpRect, WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX, FALSE);
 }
@@ -1076,7 +1096,7 @@ AdjustWindowRectEx_Detour (
   if (! config.window.borderless) {
     BOOL bRet = AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
 
-    if (bRet) {
+    if (bRet && (! SK_IsRectZero (lpRect))) {
       game_window.game_rect = *lpRect;
       game_window.updateDims ();
     }
@@ -1090,8 +1110,10 @@ AdjustWindowRectEx_Detour (
                       dwStyle, bMenu,
                         dwExStyle );
 
-  game_window.game_rect = *lpRect;
-  game_window.updateDims ();
+  if (! SK_IsRectZero (lpRect)) {
+    game_window.game_rect = *lpRect;
+    game_window.updateDims ();
+  }
 
   return TRUE;//AdjustWindowRect_Original (lpRect, WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX, FALSE);
 }
@@ -1113,24 +1135,19 @@ SetWindowLongA_Detour (
                                          dwNewLong );
   }
 
-  if (nIndex == GWL_EXSTYLE || nIndex == GWL_STYLE) {
-    //dll_log->Log ( L"[Window Mgr] SetWindowLongA (0x%06X, %s, 0x%06X)",
-                     //hWnd,
-               //nIndex == GWL_EXSTYLE ? L"GWL_EXSTYLE" :
-                                       //L" GWL_STYLE ",
-                       //dwNewLong );
-  }
-
   // Override window styles
   if (nIndex == GWL_STYLE || nIndex == GWL_EXSTYLE) {
     // For proper return behavior
     DWORD dwOldStyle = GetWindowLong (hWnd, nIndex);
 
     // Allow the game to change its frame
-    if (! config.window.borderless)
-      return SetWindowLongA_Original (hWnd, nIndex, dwNewLong);
-
-    return dwOldStyle;
+    if (nIndex == GWL_STYLE) {
+      if (config.window.borderless) {
+        return SetWindowLongA_Original ( hWnd, nIndex,
+                                           WS_VISIBLE | WS_POPUP |
+                                           WS_MINIMIZEBOX );
+      }
+    }
   }
 
   return SetWindowLongA_Original (hWnd, nIndex, dwNewLong);
@@ -1153,24 +1170,19 @@ SetWindowLongW_Detour (
                                          dwNewLong );
   }
 
-  if (nIndex == GWL_EXSTYLE || nIndex == GWL_STYLE) {
-    //dll_log->Log ( L"[Window Mgr] SetWindowLongA (0x%06X, %s, 0x%06X)",
-                     //hWnd,
-               //nIndex == GWL_EXSTYLE ? L"GWL_EXSTYLE" :
-                                       //L" GWL_STYLE ",
-                       //dwNewLong );
-  }
-
   // Override window styles
   if (nIndex == GWL_STYLE || nIndex == GWL_EXSTYLE) {
     // For proper return behavior
     DWORD dwOldStyle = GetWindowLong (hWnd, nIndex);
 
     // Allow the game to change its frame
-    if (! config.window.borderless)
-      return SetWindowLongW_Original (hWnd, nIndex, dwNewLong);
-
-    return dwOldStyle;
+    if (nIndex == GWL_STYLE) {
+      if (config.window.borderless) {
+        return SetWindowLongW_Original ( hWnd, nIndex,
+                                           WS_VISIBLE | WS_POPUP |
+                                           WS_MINIMIZEBOX );
+      }
+    }
   }
 
   return SetWindowLongW_Original (hWnd, nIndex, dwNewLong);
@@ -1188,7 +1200,34 @@ SK_AdjustWindow (void)
 
   GetMonitorInfo (hMonitor, &mi);
 
-  if (config.window.fullscreen) {
+  // Restore the game's original dimensions when this changes
+  static bool was_fullscreen = false;
+  static bool was_override   = false;
+  static bool was_borderless = false;
+
+  bool border_changed = false;
+
+  if (config.window.borderless && (! was_borderless)) {
+    game_window.style = GetWindowLongW (game_window.hWnd, GWL_STYLE);
+    SetWindowLongW_Original (game_window.hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX);
+    was_borderless = true;  border_changed = true;
+  }
+
+  else if ((! config.window.borderless) && was_borderless) {
+    SetWindowLongW_Original (game_window.hWnd, GWL_STYLE, game_window.style);
+    was_borderless = false; border_changed = true;
+  }
+
+  if (border_changed) {
+    SetWindowPos_Original   ( game_window.hWnd,
+                                HWND_TOP,
+                                  0, 0,
+                                    0, 0,
+                                      SWP_NOMOVE   | SWP_NOSIZE |
+                                      SWP_NOZORDER | SWP_FRAMECHANGED );
+  }
+
+  if (config.window.borderless && config.window.fullscreen) {
     //dll_log->Log (L"BorderManager::AdjustWindow - Fullscreen");
 
     SetWindowPos_Original ( game_window.hWnd,
@@ -1204,10 +1243,33 @@ SK_AdjustWindow (void)
                       mi.rcMonitor.right - mi.rcMonitor.left,
                         mi.rcMonitor.bottom - mi.rcMonitor.top );
 
+    if (! was_fullscreen) {
+      if (game_window.render_x == 0 || game_window.render_y == 0) {
+        game_window.render_x = mi.rcMonitor.right  - mi.rcMonitor.left;
+        game_window.render_y = mi.rcMonitor.bottom - mi.rcMonitor.top;
+      }
+
+      game_window.game_x = game_window.render_x;
+      game_window.game_y = game_window.render_y;
+
+      was_fullscreen     = true;
+    }
+
     game_window.rect = mi.rcMonitor;
     game_window.updateDims ();
-  } else
+  }
+
+  else
   {
+    if (was_fullscreen) {
+      if (game_window.game_x != 0 && game_window.game_y != 0) {
+        game_window.render_x = game_window.game_x;
+        game_window.render_y = game_window.game_y;
+      }
+
+      was_fullscreen         = false;
+    }
+
     //dll_log->Log (L"BorderManager::AdjustWindow - Windowed");
 
     if (! config.window.borderless) {
@@ -1217,7 +1279,6 @@ SK_AdjustWindow (void)
             FALSE
       );
     }
-
 
     LONG mon_width   = mi.rcWork.right     - mi.rcWork.left;
     LONG mon_height  = mi.rcWork.bottom    - mi.rcWork.top;
@@ -1232,12 +1293,45 @@ SK_AdjustWindow (void)
 
     game_window.getRenderDims (render_width, render_height);
 
+    static int no_override_x = 0, no_override_y = 0;
+
+    if ( (! was_override) && config.window.res.override.x &&
+                             config.window.res.override.y )
+    {
+      no_override_x = game_window.render_x;
+      no_override_y = game_window.render_y;
+
+      was_override  = true;
+    }
+
+    else if ( was_override && ( config.window.res.override.x == 0 &&
+                                config.window.res.override.y == 0 ) )
+    {
+      if (no_override_x != 0 && no_override_y != 0) {
+        game_window.render_x    = no_override_x;
+        game_window.render_y    = no_override_y;
+
+        game_window.game_x      = no_override_x;
+        game_window.game_y      = no_override_y;
+
+        render_width            = no_override_x;
+        render_height           = no_override_y;
+
+        game_window.rect.right  = game_window.rect.left + render_width;
+        game_window.rect.bottom = game_window.rect.top  + render_height;
+      }
+
+      was_override              = false;
+    }
+
     if (render_width < game_window.render_x || render_height < game_window.render_y) {
       render_width  = game_window.render_x;
       render_height = game_window.render_y;
     }
 
-    if (! config.window.res.override.isZero ()) {
+    if ( (config.window.borderless && (! config.window.fullscreen) ) && 
+       (! config.window.res.override.isZero ()) )
+    {
       render_width  = config.window.res.override.x;
       render_height = config.window.res.override.y;
     }
@@ -1340,7 +1434,14 @@ SK_AdjustWindow (void)
                                 game_window.rect.left, game_window.rect.top,
                                   game_window.rect.right  - game_window.rect.left,
                                   game_window.rect.bottom - game_window.rect.top,
-                                      SWP_NOCOPYBITS | SWP_ASYNCWINDOWPOS | SWP_NOSENDCHANGING );
+                                      SWP_NOCOPYBITS | SWP_ASYNCWINDOWPOS |
+                                      SWP_NOSENDCHANGING );
+
+    DWORD
+    WINAPI
+    SK_RealizeForegroundWindow (HWND hWndForeground);
+
+    SK_RealizeForegroundWindow ( game_window.hWnd );
 
     dll_log.Log ( L"[Border Mgr] WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li)",
                     game_window.rect.left, game_window.rect.top,
@@ -1446,9 +1547,6 @@ SK_HookWinAPI (void)
                       "GetSystemMetrics",
                        GetSystemMetrics_Detour,
             (LPVOID *)&GetSystemMetrics_Original );
-
-  if (config.window.borderless)
-    game_window.style = WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX;
 
   SK_ApplyQueuedHooks ();
 }
@@ -2034,27 +2132,17 @@ SK_InstallWindowHook (HWND hWnd)
                      GWLP_WNDPROC,
                        (LONG_PTR)SK_DetourWindowProc );
 
-  if (! config.window.borderless)
-    game_window.style = GetWindowLongA (game_window.hWnd, GWL_STYLE);//0x90CA0000;
-  else
-    game_window.style = WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX;
+  game_window.style = GetWindowLongA (game_window.hWnd, GWL_STYLE);//0x90CA0000;
 
+  if (! (game_window.style & WS_VISIBLE)) {
+    game_window.style |= (WS_VISIBLE | WS_MINIMIZEBOX);
+    //game_window.style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+  }
 
-    GetCursorPos_Original  (&game_window.cursor_pos);
+  GetCursorPos_Original  (&game_window.cursor_pos);
 
-    if (config.window.borderless) {
-      SetWindowLongA_Original (game_window.hWnd, GWL_STYLE, game_window.style);
-      SetWindowPos_Original   ( game_window.hWnd,
-                                  HWND_TOP,
-                                    0, 0,
-                                      0, 0,
-                                        SWP_NOMOVE   | SWP_NOSIZE |
-                                        SWP_NOZORDER | SWP_FRAMECHANGED );
-    }
-
-    SK_AdjustWindow ();
-
-    SK_RealizeForegroundWindow (game_window.hWnd);
+  SK_AdjustWindow            ();
+  SK_RealizeForegroundWindow (game_window.hWnd);
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();

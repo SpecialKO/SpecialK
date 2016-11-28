@@ -38,6 +38,8 @@
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/command.h>
+#include <SpecialK/hooks.h>
 
 extern void SK_SetWindowResX (LONG x);
 extern void SK_SetWindowResY (LONG y);
@@ -150,21 +152,154 @@ _In_       UINT                   iSwapChain,
 _In_       DWORD                  Flags,
 _In_ const D3DGAMMARAMP          *pRamp );
 
-D3D9PresentDevice_pfn    D3D9Present_Original        = nullptr;
-D3D9PresentDeviceEx_pfn  D3D9PresentEx_Original      = nullptr;
-D3D9PresentSwapChain_pfn D3D9PresentSwap_Original    = nullptr;
-D3D9CreateDevice_pfn     D3D9CreateDevice_Original   = nullptr;
-D3D9CreateDeviceEx_pfn   D3D9CreateDeviceEx_Original = nullptr;
-D3D9Reset_pfn            D3D9Reset_Original          = nullptr;
-D3D9ResetEx_pfn          D3D9ResetEx_Original        = nullptr;
 
-SetGammaRamp_pfn      D3D9SetGammaRamp_Original      = nullptr;
+D3D9PresentDevice_pfn    D3D9Present_Original_Pre     = nullptr;
+D3D9PresentDevice_pfn    D3D9Present_Original         = nullptr;
 
-Direct3DCreate9PROC   Direct3DCreate9_Import   = nullptr;
-Direct3DCreate9ExPROC Direct3DCreate9Ex_Import = nullptr;
+D3D9PresentDeviceEx_pfn  D3D9PresentEx_Original_Pre   = nullptr;
+D3D9PresentDeviceEx_pfn  D3D9PresentEx_Original       = nullptr;
 
-IDirect3DDevice9*     g_pD3D9Dev = nullptr;
-D3DPRESENT_PARAMETERS g_D3D9PresentParams  = { 0 };
+D3D9PresentSwapChain_pfn D3D9PresentSwap_Original_Pre = nullptr;
+D3D9PresentSwapChain_pfn D3D9PresentSwap_Original     = nullptr;
+
+D3D9CreateDevice_pfn     D3D9CreateDevice_Original    = nullptr;
+D3D9CreateDeviceEx_pfn   D3D9CreateDeviceEx_Original  = nullptr;
+D3D9Reset_pfn            D3D9Reset_Original           = nullptr;
+D3D9ResetEx_pfn          D3D9ResetEx_Original         = nullptr;
+
+SetGammaRamp_pfn         D3D9SetGammaRamp_Original    = nullptr;
+
+Direct3DCreate9PROC      Direct3DCreate9_Import       = nullptr;
+Direct3DCreate9ExPROC    Direct3DCreate9Ex_Import     = nullptr;
+
+IDirect3DDevice9*        g_pD3D9Dev                   = nullptr;
+D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  0  };
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
+                      _In_ const RECT             *pSourceRect,
+                      _In_ const RECT             *pDestRect,
+                      _In_       HWND              hDestWindowOverride,
+                      _In_ const RGNDATA          *pDirtyRegion );
+
+extern MH_STATUS
+WINAPI
+SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
+                        LPVOID *ppVFTable,
+                        DWORD   dwOffset,
+                        LPVOID  pDetour,
+                        LPVOID *ppOriginal );
+
+#define D3D9_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {     \
+  void** _vftable = *(void***)*(_Base);                                       \
+                                                                              \
+  if ((_Original) == nullptr) {                                               \
+    SK_CreateVFTableHook2 ( L##_Name,                                         \
+                              _vftable,                                       \
+                                (_Index),                                     \
+                                  (_Override),                                \
+                                    (LPVOID *)&(_Original));                  \
+  }                                                                           \
+}
+
+#define D3D9_VIRTUAL_HOOK_EX(_Base,_Index,_Name,_Override,_Original,_Type) {  \
+  void** _vftable = *(void***)*(_Base);                                       \
+                                                                              \
+  if ((_Original) == nullptr) {                                               \
+    SK_CreateVFTableHookEx( L##_Name,                                         \
+                              _vftable,                                       \
+                                (_Index),                                     \
+                                  (_Override),                                \
+                                    (LPVOID *)&(_Original));                  \
+  }                                                                           \
+}
+
+#define D3D9_INTERCEPT_EX(_Base,_Index,_Name,_Override,_Original,_Type)\
+    D3D9_VIRTUAL_HOOK_EX (   _Base,   _Index, _Name, _Override,        \
+                        _Original, _Type );                            \
+
+class SK_D3D9RenderBackend : public SK_IVariableListener
+{
+  virtual bool OnVarChange (SK_IVariable* var, void* val)
+  {
+    if (val != nullptr) {
+      if (var == osd_vidcap_) {
+        if (*(bool *)val == true) {
+          static volatile ULONG __installed_second_hook = FALSE;
+
+          if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE)) {
+                  D3D9_INTERCEPT_EX ( &g_pD3D9Dev, 17,
+                                        "IDirect3DDevice9::Present",
+                                        D3D9PresentCallback_Pre,
+                                        D3D9Present_Original_Pre,
+                                        D3D9PresentDevice_pfn );
+
+                    dll_log.Log (L"[ MinHook ]  Nifty, it didn't crash?!?!?!\n");
+
+                    InterlockedExchange (
+                      &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
+                        TRUE
+                    );
+          }
+
+          dll_log.Log ( L"[  D3D9  ]  First Present Hook: %p, "
+                                   L"Second Present Hook: %p",
+                        D3D9Present_Original,
+                        D3D9Present_Original_Pre );
+
+          if (D3D9Present_Original_Pre != nullptr) {
+            config.render.d3d9.osd_in_vidcap = true;
+          }
+        } else {
+          config.render.d3d9.osd_in_vidcap = false;
+        }
+
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+public:
+  volatile ULONG __D3D9Present_PreHooked      = FALSE;
+  volatile ULONG __D3D9PresentEx_PreHooked    = FALSE;
+  volatile ULONG __D3D9PresentChain_PreHooked = FALSE;
+
+  static SK_D3D9RenderBackend* getInstance (void) {
+    if (pBackend == nullptr)
+      pBackend = new SK_D3D9RenderBackend ();
+
+    return pBackend;
+  }
+
+protected:
+  SK_IVariable* osd_vidcap_;
+
+private:
+  SK_D3D9RenderBackend (void)
+  {
+    config.render.d3d9.osd_in_vidcap = true;
+
+    SK_ICommandProcessor* cmd =
+        SK_GetCommandProcessor ();
+
+    osd_vidcap_ =
+      SK_CreateVar (
+        SK_IVariable::Boolean,
+          (bool *)&config.render.d3d9.osd_in_vidcap,
+            this
+      );
+
+    cmd->AddVariable ("d3d9.OSDInVidcap", osd_vidcap_);
+  }
+
+  static SK_D3D9RenderBackend* pBackend;
+};
+
+SK_D3D9RenderBackend* SK_D3D9RenderBackend::pBackend = nullptr;
 
 
 HMODULE local_d3d9 = 0;
@@ -530,26 +665,6 @@ SK::D3D9::Shutdown (void)
 }
 
 
-extern MH_STATUS
-WINAPI
-SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
-                        LPVOID *ppVFTable,
-                        DWORD   dwOffset,
-                        LPVOID  pDetour,
-                        LPVOID *ppOriginal );
-
-#define D3D9_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {     \
-  void** _vftable = *(void***)*(_Base);                                       \
-                                                                              \
-  if ((_Original) == nullptr) {                                               \
-    SK_CreateVFTableHook2 ( L##_Name,                                         \
-                              _vftable,                                       \
-                                (_Index),                                     \
-                                  (_Override),                                \
-                                    (LPVOID *)&(_Original));                  \
-  }                                                                           \
-}
-
 extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
 
 #define __PTR_SIZE   sizeof LPCVOID
@@ -591,6 +706,10 @@ extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
                         _Original, _Type );                            \
   }                                                                    \
 }
+
+#define D3D9_INTERCEPT_EX(_Base,_Index,_Name,_Override,_Original,_Type)\
+    D3D9_VIRTUAL_HOOK_EX (   _Base,   _Index, _Name, _Override,        \
+                        _Original, _Type );                            \
 
 #define D3D9_CALL(_Ret, _Call) {                                      \
   (_Ret) = (_Call);                                                   \
@@ -752,6 +871,35 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
+WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
+                      _In_ const RECT             *pSourceRect,
+                      _In_ const RECT             *pDestRect,
+                      _In_       HWND              hDestWindowOverride,
+                      _In_ const RGNDATA          *pDirtyRegion )
+{
+  if ( config.render.d3d9.osd_in_vidcap && InterlockedExchangeAdd (
+         &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
+           0 )
+     )
+  {
+    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+      SK_CEGUI_DrawD3D9 (This, pSwapChain);
+    }
+  }
+
+  return
+    D3D9Present_Original_Pre ( This,
+                                 pSourceRect, 
+                                   pDestRect,
+                                     hDestWindowOverride,
+                                       pDirtyRegion );
+}
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
 WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                  _In_ const RECT             *pSourceRect,
                  _In_ const RECT             *pDestRect,
@@ -786,10 +934,17 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   SK_BeginBufferSwap ();
 
-  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+  if (! ( config.render.d3d9.osd_in_vidcap && InterlockedExchangeAdd (
+            &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
+              0 )
+        )
+     )
+  {
+    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-  if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
-    SK_CEGUI_DrawD3D9 (This, pSwapChain);
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+      SK_CEGUI_DrawD3D9 (This, pSwapChain);
+    }
   }
 
   HRESULT hr = D3D9Present_Original (This,
@@ -1945,35 +2100,39 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 {
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     if (pparams != nullptr) {
-      if (config.window.res.override.isZero ()) {
-        RECT wnd_rect = *SK_GetGameRect ();
+      if (config.render.d3d9.force_fullscreen)
+        pparams->Windowed = FALSE;
 
-        int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
-        int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
-        int title = SK_GetSystemMetrics (SM_CYCAPTION);
+      if (pparams->Windowed && config.window.borderless && (! config.window.fullscreen))
+      {
+        if (config.window.res.override.isZero ()) {
+          RECT wnd_rect = *SK_GetGameRect ();
 
-        if ( SK_DiscontEpsilon (pparams->BackBufferWidth,  wnd_rect.right  - wnd_rect.left, 2 * x_dlg + 1) ||
-             SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) ) {
-          pparams->BackBufferWidth  = wnd_rect.right  - wnd_rect.left;
-          pparams->BackBufferHeight = wnd_rect.bottom - wnd_rect.top;
+          int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
+          int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
+          int title = SK_GetSystemMetrics (SM_CYCAPTION);
 
-          dll_log.Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
-                          pparams->BackBufferWidth, pparams->BackBufferHeight );
+          if ( SK_DiscontEpsilon (pparams->BackBufferWidth,  wnd_rect.right  - wnd_rect.left, 2 * x_dlg + 1) ||
+               SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) ) {
+            pparams->BackBufferWidth  = wnd_rect.right  - wnd_rect.left;
+            pparams->BackBufferHeight = wnd_rect.bottom - wnd_rect.top;
+
+            dll_log.Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
+                            pparams->BackBufferWidth, pparams->BackBufferHeight );
+          }
+        }
+
+        else
+        {
+          pparams->BackBufferWidth  = config.window.res.override.x;
+          pparams->BackBufferHeight = config.window.res.override.y;
         }
       }
 
-      else {
-        pparams->BackBufferWidth  = config.window.res.override.x;
-        pparams->BackBufferHeight = config.window.res.override.y;
-      }
-      
       // If this is zero, we need to actually create the render device / swapchain and
       //   then get the value Windows assigned us...
       SK_SetWindowResX (pparams->BackBufferWidth);
       SK_SetWindowResY (pparams->BackBufferHeight);
-
-      if (config.render.d3d9.force_fullscreen)
-        pparams->Windowed = FALSE;
 
       memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
     }
@@ -2810,6 +2969,9 @@ HookD3D9 (LPVOID user)
         SK_D3D9_HookPresent (pD3D9Dev);
 
         dll_log.Log (L"[   D3D9   ]   * Success");
+
+        // Initialize stuff...
+        SK_D3D9RenderBackend::getInstance ();
       } else {
         dll_log.Log (L"[   D3D9   ]   * Failure");
       }

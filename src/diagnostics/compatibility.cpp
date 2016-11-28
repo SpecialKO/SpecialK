@@ -37,11 +37,11 @@
                          "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
                          " language='*'\"")
 
-#include "config.h"
-
-#include "core.h"
-#include "log.h"
-#include "utility.h"
+#include <SpecialK/config.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/core.h>
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
@@ -88,7 +88,7 @@ extern bool __stdcall SK_IsInjected (void);
 #if 0
 #include <unordered_set>
 #include <string>
-#include "../command.h" // str_hash_compare
+#include <SpecialK/command.h> // str_hash_compare
 typedef std::unordered_set < std::wstring, str_hash_compare <std::wstring> > SK_StringSetW;
 SK_StringSetW rehook_loadlib;
 #endif
@@ -969,8 +969,8 @@ TaskDialogCallback (
   return S_OK;
 }
 
-#include "config.h"
-#include "ini.h"
+#include <SpecialK/config.h>
+#include <SpecialK/ini.h>
 
 BOOL
 __stdcall

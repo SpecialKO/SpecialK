@@ -18,13 +18,14 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#include "diagnostics/crash_handler.h"
+#include <diagnostics/crash_handler.h>
 
-#include "config.h"
-#include "core.h"
-#include "log.h"
-#include "resource.h"
-#include "utility.h"
+#include <SpecialK/config.h>
+#include <SpecialK/core.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/log.h>
+#include <SpecialK/resource.h>
+#include <SpecialK/utility.h>
 
 #include <Windows.h>
 

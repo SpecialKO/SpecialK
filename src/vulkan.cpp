@@ -23,19 +23,19 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 
-#include "stdafx.h"
+#include <SpecialK/stdafx.h>
 #include <Shlwapi.h>
 
-#include "vulkan_backend.h"
+#include <SpecialK/vulkan_backend.h>
 
-#include "log.h"
+#include <SpecialK/log.h>
 
-#include "utility.h"
+#include <SpecialK/utility.h>
 
 #include <process.h>
 
-#include "core.h"
-#include "config.h"
+#include <SpecialK/config.h>
+#include <SpecialK/hooks.h>
 
 volatile ULONG __vk_ready = FALSE;
 

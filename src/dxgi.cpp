@@ -38,6 +38,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 
+#include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 #include <SpecialK/command.h>
 #include <SpecialK/console.h>
@@ -218,7 +219,10 @@ SK_CEGUI_InitBase (void)
       );
     }
 
-    if ( config.window.res.override.x && config.window.res.override.y )
+#if 0
+    if ( config.window.borderless     &&
+         config.window.res.override.x &&
+         config.window.res.override.y )
     {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
@@ -227,6 +231,7 @@ SK_CEGUI_InitBase (void)
           )
       );
     }
+#endif
 
     CEGUI::WindowManager& window_mgr =
       CEGUI::WindowManager::getDllSingleton ();
@@ -1995,11 +2000,19 @@ __declspec (noinline)
     //if (bWait)
       //return S_OK;
 
-    if (! config.window.res.override.isZero ()) {
-      Width  = config.window.res.override.x;
-      Height = config.window.res.override.y;
-    } else {
-      SK_DXGI_BorderCompensation (Width, Height);
+    // TODO: Something if FUllscreen
+    if (config.window.borderless && (! config.window.fullscreen)) {
+      if (! config.window.res.override.isZero ()) {
+        Width  = config.window.res.override.x;
+        Height = config.window.res.override.y;
+      }
+
+      else {
+        SK_DXGI_BorderCompensation (
+          Width,
+            Height
+        );
+      }
     }
 
     HRESULT ret;
@@ -2062,11 +2075,15 @@ __declspec (noinline)
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
       }
 
-      if (! config.window.res.override.isZero ()) {
-        new_new_params.Width  = config.window.res.override.x;
-        new_new_params.Height = config.window.res.override.y;
-      } else {
-        SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
+      if ( (! config.window.fullscreen) &&
+              config.window.borderless ) {
+        if (! config.window.res.override.isZero ())
+        {
+          new_new_params.Width  = config.window.res.override.x;
+          new_new_params.Height = config.window.res.override.y;
+        } else {
+          SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
+        }
       }
 
       DXGI_MODE_DESC* pNewNewTargetParameters =
@@ -2122,16 +2139,19 @@ __declspec (noinline)
 
     if (pDesc != nullptr) {
       if (! fake) {
-        if (! config.window.res.override.isZero ()) {
-          pDesc->BufferDesc.Width  = config.window.res.override.x;
-          pDesc->BufferDesc.Height = config.window.res.override.y;
-        }
+        if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+        {
+          if (! config.window.res.override.isZero ()) {
+            pDesc->BufferDesc.Width  = config.window.res.override.x;
+            pDesc->BufferDesc.Height = config.window.res.override.y;
+          }
 
-        else {
-          SK_DXGI_BorderCompensation (
-            pDesc->BufferDesc.Width,
-              pDesc->BufferDesc.Height
-          );
+          else {
+            SK_DXGI_BorderCompensation (
+              pDesc->BufferDesc.Width,
+                pDesc->BufferDesc.Height
+            );
+          }
         }
 
       dll_log.LogEx ( true,

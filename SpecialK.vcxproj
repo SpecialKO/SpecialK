@@ -219,6 +219,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -343,6 +344,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\dxgi_interfaces.h" />
     <ClInclude Include="include\SpecialK\framerate.h" />
     <ClInclude Include="include\SpecialK\gpu_monitor.h" />
+    <ClInclude Include="include\SpecialK\hooks.h" />
     <ClInclude Include="include\SpecialK\import.h" />
     <ClInclude Include="include\SpecialK\ini.h" />
     <ClInclude Include="include\SpecialK\io_monitor.h" />
@@ -372,6 +374,7 @@ Exit 0</Command>
     <ClCompile Include="src\diagnostics\compatibility.cpp" />
     <ClCompile Include="src\diagnostics\crash_handler.cpp" />
     <ClCompile Include="src\diagnostics\debug_utils.cpp" />
+    <ClCompile Include="src\hooks.cpp" />
     <ClCompile Include="src\osd\popup.cpp" />
     <ClCompile Include="src\plugins\tw3.cpp" />
     <ClCompile Include="src\render_backend.cpp" />

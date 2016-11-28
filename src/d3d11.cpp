@@ -19,9 +19,12 @@
  *
 **/
 
- #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <Windows.h>
 
 #include <SpecialK/core.h>
+#include <SpecialK/hooks.h>
 #include <SpecialK/command.h>
 #include <SpecialK/config.h>
 #include <SpecialK/dxgi_backend.h>
@@ -30,7 +33,6 @@
 extern LARGE_INTEGER SK_QueryPerf (void);
 #include <SpecialK/framerate.h>
 
-#include <Windows.h>
 #include <atlbase.h>
 
 #include <d3d11.h>

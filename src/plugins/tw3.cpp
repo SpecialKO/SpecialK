@@ -1,14 +1,15 @@
 #include <string>
 
-#include "config.h"
+#include <SpecialK/config.h>
 
-#include "ini.h"
-#include "parameter.h"
-#include "utility.h"
+#include <SpecialK/ini.h>
+#include <SpecialK/parameter.h>
+#include <SpecialK/utility.h>
 
-#include "log.h"
+#include <SpecialK/log.h>
 
-#include "core.h"
+#include <SpecialK/hooks.h>
+#include <SpecialK/core.h>
 
 #include <process.h>
 

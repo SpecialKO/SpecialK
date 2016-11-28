@@ -19,20 +19,21 @@
  *
 **/
 
-#include "core.h"
-#include "command.h"
-#include "config.h"
-#include "dxgi_backend.h"
-#include "log.h"
+#include <SpecialK/core.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/command.h>
+#include <SpecialK/config.h>
+#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/log.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
-#include "framerate.h"
+#include <SpecialK/framerate.h>
 
 #include <Windows.h>
 #include <atlbase.h>
 
 #define D3D12_IGNORE_SDK_LAYERS
-#include "d3d12_interfaces.h"
+#include <SpecialK/d3d12_interfaces.h>
 
 #undef min
 #undef max

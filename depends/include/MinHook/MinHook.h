@@ -26,13 +26,14 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#ifndef __MIN_HOOK_H__
+#define __MIN_HOOK_H__
 
 #if !(defined _M_IX86) && !(defined _M_X64)
     #error MinHook supports only x86 and x64 systems.
 #endif
 
-#include <windows.h>
+#include <WinDef.h>
 
 // MinHook Error Codes.
 typedef enum MH_STATUS
@@ -80,8 +81,7 @@ typedef enum MH_STATUS
 
     // The specified function is not found.
     MH_ERROR_FUNCTION_NOT_FOUND
-}
-MH_STATUS;
+} MH_STATUS;
 
 // Can be passed as a parameter to MH_EnableHook, MH_DisableHook,
 // MH_QueueEnableHook or MH_QueueDisableHook.
@@ -109,6 +109,7 @@ extern "C" {
     //                    used to call the original target function.
     //                    This parameter can be NULL.
     MH_STATUS WINAPI MH_CreateHook(LPVOID pTarget, LPVOID pDetour, LPVOID *ppOriginal);
+    MH_STATUS WINAPI MH_CreateHookEx(LPVOID pTarget, LPVOID pDetour, LPVOID *ppOriginal, UINT idx);
 
     // Creates a Hook for the specified API function, in disabled state.
     // Parameters:
@@ -123,6 +124,8 @@ extern "C" {
     //                    This parameter can be NULL.
     MH_STATUS WINAPI MH_CreateHookApi(
         LPCWSTR pszModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID *ppOriginal);
+    MH_STATUS WINAPI MH_CreateHookApi2(
+        LPCWSTR pszModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID *ppOriginal, UINT idx);
 
     // Creates a Hook for the specified API function, in disabled state.
     // Parameters:
@@ -140,42 +143,50 @@ extern "C" {
     //                    This parameter can be NULL.
     MH_STATUS WINAPI MH_CreateHookApiEx(
         LPCWSTR pszModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID *ppOriginal, LPVOID *ppTarget);
+    MH_STATUS WINAPI MH_CreateHookApiEx2(
+        LPCWSTR pszModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID *ppOriginal, LPVOID *ppTarget, UINT idx);
 
     // Removes an already created hook.
     // Parameters:
     //   pTarget [in] A pointer to the target function.
-    MH_STATUS WINAPI MH_RemoveHook(LPVOID pTarget);
+    MH_STATUS WINAPI MH_RemoveHook   (LPVOID pTarget);
+    MH_STATUS WINAPI MH_RemoveHookEx (LPVOID pTarget, UINT idx);
 
     // Enables an already created hook.
     // Parameters:
     //   pTarget [in] A pointer to the target function.
     //                If this parameter is MH_ALL_HOOKS, all created hooks are
     //                enabled in one go.
-    MH_STATUS WINAPI MH_EnableHook(LPVOID pTarget);
+    MH_STATUS WINAPI MH_EnableHook   (LPVOID pTarget);
+    MH_STATUS WINAPI MH_EnableHookEx (LPVOID pTarget, UINT idx);
 
     // Disables an already created hook.
     // Parameters:
     //   pTarget [in] A pointer to the target function.
     //                If this parameter is MH_ALL_HOOKS, all created hooks are
     //                disabled in one go.
-    MH_STATUS WINAPI MH_DisableHook(LPVOID pTarget);
+    MH_STATUS WINAPI MH_DisableHook   (LPVOID pTarget);
+    MH_STATUS WINAPI MH_DisableHookEx (LPVOID pTarget, UINT idx);
 
     // Queues to enable an already created hook.
     // Parameters:
     //   pTarget [in] A pointer to the target function.
     //                If this parameter is MH_ALL_HOOKS, all created hooks are
     //                queued to be enabled.
-    MH_STATUS WINAPI MH_QueueEnableHook(LPVOID pTarget);
+    MH_STATUS WINAPI MH_QueueEnableHook   (LPVOID pTarget);
+    MH_STATUS WINAPI MH_QueueEnableHookEx (LPVOID pTarget, UINT idx);
 
     // Queues to disable an already created hook.
     // Parameters:
     //   pTarget [in] A pointer to the target function.
     //                If this parameter is MH_ALL_HOOKS, all created hooks are
     //                queued to be disabled.
-    MH_STATUS WINAPI MH_QueueDisableHook(LPVOID pTarget);
+    MH_STATUS WINAPI MH_QueueDisableHook   (LPVOID pTarget);
+    MH_STATUS WINAPI MH_QueueDisableHookEx (LPVOID pTarget, UINT idx);
 
     // Applies all queued changes in one go.
-    MH_STATUS WINAPI MH_ApplyQueued(VOID);
+    MH_STATUS WINAPI MH_ApplyQueued   (VOID);
+    MH_STATUS WINAPI MH_ApplyQueuedEx (UINT idx);
 
     // Translates the MH_STATUS to its name as a string.
     const char * WINAPI MH_StatusToString(MH_STATUS status);
@@ -208,7 +219,14 @@ extern "C" {
     MH_STATUS WINAPI SH_HookCount  (PUINT  pHookCount);
     MH_STATUS WINAPI SH_HookTarget (UINT   hook_idx,                       LPVOID *ppTarget);
 
+    MH_STATUS WINAPI SH_IntrospectEx ( LPVOID  pTarget,    SH_INTROSPECT_ID type,
+                                       LPVOID *ppResult,   UINT             idx      );
+    MH_STATUS WINAPI SH_HookCountEx  ( PUINT   pHookCount, UINT             Idx      );
+    MH_STATUS WINAPI SH_HookTargetEx ( UINT    hook_idx,   LPVOID          *ppTarget,
+                                       UINT    idx                                   );
+
 #ifdef __cplusplus
 }
 #endif
 
+#endif /* __MIN_HOOK_H__ */

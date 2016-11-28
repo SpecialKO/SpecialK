@@ -20,13 +20,14 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "diagnostics/debug_utils.h"
+#include <SpecialK/diagnostics/debug_utils.h>
 
-#include "config.h"
-#include "core.h"
-#include "log.h"
-#include "resource.h"
-#include "utility.h"
+#include <SpecialK/config.h>
+#include <SpecialK/core.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/log.h>
+#include <SpecialK/resource.h>
+#include <SpecialK/utility.h>
 
 #include <Windows.h>
 
