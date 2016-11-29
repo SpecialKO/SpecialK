@@ -2396,6 +2396,7 @@ DoKeyboard (void)
 {
   static ULONGLONG last_osd_scale { 0ULL };
   static ULONGLONG last_poll      { 0ULL };
+  static ULONGLONG last_drag      { 0ULL };
 
   SYSTEMTIME    stNow;
   FILETIME      ftNow;
@@ -2406,6 +2407,27 @@ DoKeyboard (void)
 
   ullNow.HighPart = ftNow.dwHighDateTime;
   ullNow.LowPart  = ftNow.dwLowDateTime;
+
+  static bool drag_lock   = false;
+  static bool toggle_drag = false;
+
+  if (HIWORD (GetAsyncKeyState (VK_CONTROL)) && HIWORD (GetAsyncKeyState (VK_SHIFT)) && HIWORD (GetAsyncKeyState (VK_SCROLL)))
+  {
+    if (! toggle_drag)
+      drag_lock = (! drag_lock);
+    toggle_drag = true;
+
+    if (drag_lock)
+      ClipCursor (nullptr); 
+  } else {
+    toggle_drag = false;
+  }
+
+  extern void SK_CenterWindowAtMouse (BOOL remember_pos);
+
+  if (drag_lock)
+    SK_CenterWindowAtMouse (FALSE);
+
 
   if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval) {
     if (HIWORD (GetAsyncKeyState (config.osd.keys.expand [0])) &&

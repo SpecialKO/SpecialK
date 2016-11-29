@@ -216,8 +216,10 @@ struct {
 struct {
   sk::ParameterBool*      borderless;
   sk::ParameterBool*      center;
-  sk::ParameterInt*       x_off;
-  sk::ParameterInt*       y_off;
+  struct {
+    sk::ParameterStringW* x;
+    sk::ParameterStringW* y;
+  } offset;
   sk::ParameterBool*      background_render;
   sk::ParameterBool*      background_mute;
   sk::ParameterBool*      confine_cursor;
@@ -489,22 +491,22 @@ SK_LoadConfig (std::wstring name) {
       L"Window.System",
         L"MuteInBackground" );
 
-  window.x_off =
-    static_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"X Offset")
+  window.offset.x =
+    static_cast <sk::ParameterStringW *>
+      (g_ParameterFactory.create_parameter <std::wstring> (
+        L"X Offset (Percent or Absolute)")
       );
-  window.x_off->register_to_ini (
+  window.offset.x->register_to_ini (
     dll_ini,
       L"Window.System",
         L"XOffset" );
 
-  window.y_off =
-    static_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
+  window.offset.y =
+    static_cast <sk::ParameterStringW *>
+      (g_ParameterFactory.create_parameter <std::wstring> (
         L"Y Offset")
       );
-  window.y_off->register_to_ini (
+  window.offset.y->register_to_ini (
     dll_ini,
       L"Window.System",
         L"YOffset" );
@@ -1579,10 +1581,30 @@ SK_LoadConfig (std::wstring name) {
     config.window.background_render = window.background_render->get_value ();
   if (window.background_mute->load ())
     config.window.background_mute = window.background_mute->get_value ();
-  if (window.x_off->load ())
-    config.window.x_offset = window.x_off->get_value ();
-  if (window.y_off->load ())
-    config.window.y_offset = window.y_off->get_value ();
+  if (window.offset.x->load ()) {
+    std::wstring offset = window.offset.x->get_value ();
+
+    if (wcsstr (offset.c_str (), L"%")) {
+      config.window.offset.x.absolute = 0;
+      swscanf (offset.c_str (), L"%f%%", &config.window.offset.x.percent);
+      config.window.offset.x.percent /= 100.0f;
+    } else {
+      config.window.offset.x.percent = 0.0f;
+      swscanf (offset.c_str (), L"%lu", &config.window.offset.x.absolute);
+    }
+  }
+  if (window.offset.y->load ()) {
+    std::wstring offset = window.offset.y->get_value ();
+
+    if (wcsstr (offset.c_str (), L"%")) {
+      config.window.offset.y.absolute = 0;
+      swscanf (offset.c_str (), L"%f%%", &config.window.offset.y.percent);
+      config.window.offset.y.percent /= 100.0f;
+    } else {
+      config.window.offset.y.percent = 0.0f;
+      swscanf (offset.c_str (), L"%lu", &config.window.offset.y.absolute);
+    }
+  }
   if (window.confine_cursor->load ())
     config.window.confine_cursor = window.confine_cursor->get_value ();
   if (window.fullscreen->load ())
@@ -1745,8 +1767,24 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.center->set_value                    (config.window.center);
   window.background_render->set_value         (config.window.background_render);
   window.background_mute->set_value           (config.window.background_mute);
-  window.x_off->set_value                     (config.window.x_offset);
-  window.y_off->set_value                     (config.window.y_offset);
+  if (config.window.offset.x.absolute != 0) {
+    wchar_t wszAbsolute [16];
+    _swprintf (wszAbsolute, L"%lu", config.window.offset.x.absolute);
+    window.offset.x->set_value (wszAbsolute);
+  } else {
+    wchar_t wszPercent [16];
+    _swprintf (wszPercent, L"%8.4f%%", 100.0f * config.window.offset.x.percent);
+    window.offset.x->set_value (wszPercent);
+  }
+  if (config.window.offset.y.absolute != 0) {
+    wchar_t wszAbsolute [16];
+    _swprintf (wszAbsolute, L"%lu", config.window.offset.y.absolute);
+    window.offset.y->set_value (wszAbsolute);
+  } else {
+    wchar_t wszPercent [16];
+    _swprintf (wszPercent, L"%f8.4%%", 100.0f * config.window.offset.y.percent);
+    window.offset.y->set_value (wszPercent);
+  }
   window.confine_cursor->set_value            (config.window.confine_cursor);
   window.fullscreen->set_value                (config.window.fullscreen);
   window.fix_mouse_coords->set_value          (config.window.res.override.fix_mouse);
@@ -1898,8 +1936,8 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   window.center->store                    ();
   window.background_render->store         ();
   window.background_mute->store           ();
-  window.x_off->store                     ();
-  window.y_off->store                     ();
+  window.offset.x->store                  ();
+  window.offset.y->store                  ();
   window.confine_cursor->store            ();
   window.fullscreen->store                ();
   window.fix_mouse_coords->store          ();

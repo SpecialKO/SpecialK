@@ -285,8 +285,12 @@ struct sk_config_t
   struct {
     bool    borderless          = false;
     bool    center              = false;
-    int     x_offset            = 0;
-    int     y_offset            = 0;
+    struct {
+      struct {
+      int   absolute            = 0;
+      float percent             = 0.0f;
+      } x, y;
+    } offset;
     bool    background_render   = false;
     bool    background_mute     = false;
     bool    confine_cursor      = false;

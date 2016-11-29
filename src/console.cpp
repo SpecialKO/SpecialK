@@ -386,18 +386,40 @@ public:
 
     else if ( var == center_window_ || var == x_offset_   || var == y_offset_   ||
               var == borderless_    || var == x_override_ || var == y_override_ ||
-              var == fullscreen_ )
+              var == fullscreen_    || var == x_off_pct_  || var == y_off_pct_ )
     {
       if (val != nullptr)
       {
         if (var == center_window_)
           config.window.center = *(bool *)val;
 
-        else if (var == x_offset_)
-          config.window.x_offset = *(signed int *)val;
+        else if (var == x_offset_) {
+          if (*(int *)val >= -4096 && *(int *)val <= 4096) {
+            config.window.offset.x.absolute = *(signed int *)val;
+            config.window.offset.x.percent  = 0.0f;
+          }
+        }
 
-        else if (var == y_offset_)
-          config.window.y_offset = *(signed int *)val;
+        else if (var == y_offset_) {
+          if (*(int *)val >= -4096 && *(int *)val <= 4096) {
+            config.window.offset.y.absolute = *(signed int *)val;
+            config.window.offset.y.percent  = 0.0f;
+          }
+        }
+
+        else if (var == x_off_pct_) {
+          if (*(float *)val > -1.0f && *(float *)val < 1.0f) {
+            config.window.offset.x.absolute = 0;
+            config.window.offset.x.percent = *(float *)val;
+          }
+        }
+
+        else if (var == y_off_pct_) {
+          if (*(float *)val > -1.0f && *(float *)val < 1.0f) {
+            config.window.offset.y.absolute = 0;
+            config.window.offset.y.percent  = *(float *)val;
+          }
+        }
 
         else if (var == borderless_)
           config.window.borderless = *(bool *)val;
@@ -540,10 +562,16 @@ public:
       SK_CreateVar (SK_IVariable::Boolean, &config.window.res.override.fix_mouse);
 
     x_offset_ =
-      SK_CreateVar (SK_IVariable::Int,     &config.window.x_offset, this);
+      SK_CreateVar (SK_IVariable::Int,     &config.window.offset.x.absolute, this);
 
     y_offset_ =
-      SK_CreateVar (SK_IVariable::Int,     &config.window.y_offset, this);
+      SK_CreateVar (SK_IVariable::Int,     &config.window.offset.y.absolute, this);
+
+    x_off_pct_ =
+      SK_CreateVar (SK_IVariable::Float,   &config.window.offset.x.percent, this);
+
+    y_off_pct_ =
+      SK_CreateVar (SK_IVariable::Float,   &config.window.offset.y.percent, this);
 
     cmd->AddVariable (
       "Window.Borderless",
@@ -598,6 +626,16 @@ public:
       "Window.YOffset",
         y_offset_
     );
+
+    cmd->AddVariable (
+      "Window.ScaledXOffset",
+        x_off_pct_
+    );
+
+    cmd->AddVariable (
+      "Window.ScaledYOffset",
+        y_off_pct_
+    );
   };
 
   static SK_WindowManager* getInstance (void)
@@ -626,8 +664,8 @@ protected:
   SK_IVariable* y_override_;
   SK_IVariable* res_override_; // Set X and Y at the same time
   SK_IVariable* fix_mouse_;
-  SK_IVariable* x_offset_;
-  SK_IVariable* y_offset_;
+  SK_IVariable* x_offset_;    SK_IVariable* x_off_pct_;
+  SK_IVariable* y_offset_;    SK_IVariable* y_off_pct_;
 
   char override_res [32];
 
@@ -799,6 +837,55 @@ ClipCursor_Detour (const RECT *lpRect)
     return ClipCursor_Original (&game_window.cursor_clip);
   } else {
     return ClipCursor_Original (nullptr);
+  }
+}
+
+void
+SK_CenterWindowAtMouse (BOOL remember_pos)
+{
+  POINT mouse;
+
+  if (GetCursorPos_Original != nullptr)
+    GetCursorPos_Original (&mouse);
+
+  struct {
+    struct {
+      float percent;
+      int   absolute;
+    } x,y;
+  } offsets;
+
+  if (! remember_pos) {
+    offsets.x.absolute = config.window.offset.x.absolute;
+    offsets.y.absolute = config.window.offset.y.absolute;
+
+    offsets.x.percent = config.window.offset.x.percent;
+    offsets.y.percent = config.window.offset.y.percent;
+  }
+
+  config.window.offset.x.absolute = mouse.x;
+  config.window.offset.y.absolute = mouse.y;
+
+  config.window.offset.x.absolute -= (game_window.rect.right  - game_window.rect.left) / 2;
+  config.window.offset.y.absolute -= (game_window.rect.bottom - game_window.rect.top)  / 2;
+
+  if (config.window.offset.x.absolute <= 0)
+    config.window.offset.x.absolute = 1;  // 1 = Flush with Left
+
+  if (config.window.offset.y.absolute <= 0)
+    config.window.offset.y.absolute = 1;  // 1 = Flush with Top
+
+  config.window.offset.x.percent = 0.0f;
+  config.window.offset.y.percent = 0.0f;
+
+  SK_AdjustWindow ();
+
+  if (! remember_pos) {
+    config.window.offset.x.absolute = offsets.x.absolute;
+    config.window.offset.y.absolute = offsets.y.absolute;
+
+    config.window.offset.x.percent  = offsets.x.percent;
+    config.window.offset.y.percent  = offsets.y.percent;
   }
 }
 
@@ -1365,16 +1452,24 @@ SK_AdjustWindow (void)
       game_window.rect.bottom = win_height;
     }
 
-    if (config.window.x_offset >= 0)
-      game_window.rect.left  = mi.rcWork.left  + config.window.x_offset;
-    else
-      game_window.rect.right = mi.rcWork.right + config.window.x_offset + 1;
+    int x_offset = ( config.window.offset.x.percent != 0.0f ? 
+                       config.window.offset.x.percent * (mi.rcWork.right - mi.rcWork.left) :
+                       config.window.offset.x.absolute );
+
+    int y_offset = ( config.window.offset.y.percent != 0.0f ? 
+                       config.window.offset.y.percent * (mi.rcWork.bottom - mi.rcWork.top) :
+                       config.window.offset.y.absolute );
+
+    if (x_offset > 0)
+      game_window.rect.left  = mi.rcWork.left  + x_offset - 1;
+    else if (x_offset < 0)
+      game_window.rect.right = mi.rcWork.right + x_offset + 1;
 
 
-    if (config.window.y_offset >= 0)
-      game_window.rect.top    = mi.rcWork.top    + config.window.y_offset;
-    else
-      game_window.rect.bottom = mi.rcWork.bottom + config.window.y_offset + 1;
+    if (y_offset > 0)
+      game_window.rect.top    = mi.rcWork.top    + y_offset - 1;
+    else if (y_offset < 0)
+      game_window.rect.bottom = mi.rcWork.bottom + y_offset + 1;
 
 
     if (config.window.center) {
@@ -1382,12 +1477,12 @@ SK_AdjustWindow (void)
       //                 mi.rcWork.right - mi.rcWork.left,
       //                   mi.rcWork.bottom - mi.rcWork.top );
 
-      if (config.window.x_offset < 0) {
+      if (x_offset < 0) {
         game_window.rect.left  -= (win_width / 2);
         game_window.rect.right -= (win_width / 2);
       }
 
-      if (config.window.y_offset < 0) {
+      if (y_offset < 0) {
         game_window.rect.top    -= (win_height / 2);
         game_window.rect.bottom -= (win_height / 2);
       }
@@ -1397,13 +1492,13 @@ SK_AdjustWindow (void)
     }
 
 
-    if (config.window.x_offset >= 0)
+    if (x_offset >= 0)
       game_window.rect.right = game_window.rect.left  + win_width;
     else
       game_window.rect.left  = game_window.rect.right - win_width;
 
 
-    if (config.window.y_offset >= 0)
+    if (y_offset >= 0)
       game_window.rect.bottom = game_window.rect.top    + win_height;
     else
       game_window.rect.top    = game_window.rect.bottom - win_height;
