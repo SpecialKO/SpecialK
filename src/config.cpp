@@ -1649,6 +1649,12 @@ SK_LoadConfig (std::wstring name) {
     config.steam.achievements.popup.duration =
       steam.achievements.popup.duration->get_value ();
 
+  if (config.steam.achievements.popup.duration == 0)  {
+    config.steam.achievements.popup.show        = false;
+    config.steam.achievements.pull_friend_stats = false;
+    config.steam.achievements.pull_global_stats = false;
+  }
+
   if (steam.log.silent->load ())
     config.steam.silent = steam.log.silent->get_value ();
 
@@ -1773,7 +1779,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     window.offset.x->set_value (wszAbsolute);
   } else {
     wchar_t wszPercent [16];
-    _swprintf (wszPercent, L"%8.4f%%", 100.0f * config.window.offset.x.percent);
+    _swprintf (wszPercent, L"%08.4f%%", 100.0f * config.window.offset.x.percent);
     window.offset.x->set_value (wszPercent);
   }
   if (config.window.offset.y.absolute != 0) {
@@ -1782,7 +1788,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     window.offset.y->set_value (wszAbsolute);
   } else {
     wchar_t wszPercent [16];
-    _swprintf (wszPercent, L"%f8.4%%", 100.0f * config.window.offset.y.percent);
+    _swprintf (wszPercent, L"%08.4f%%", 100.0f * config.window.offset.y.percent);
     window.offset.y->set_value (wszPercent);
   }
   window.confine_cursor->set_value            (config.window.confine_cursor);

@@ -2140,7 +2140,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
     extern HWND hWndRender;
 
     if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-      hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : GetFocus ();
+      hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : 0;//GetFocus ();
     }
   }
 

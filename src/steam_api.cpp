@@ -2001,16 +2001,16 @@ public:
 
         // Start pre-loading images so we do not hitch on achievement unlock...
 
-        if (! achievements.list [i]->unlocked_)
-          stats->SetAchievement   (szName);
+        //if (! achievements.list [i]->unlocked_)
+          //stats->SetAchievement   (szName);
 
         // After setting the achievement, fetch the icon -- this is
         //   necessary so that the unlock dialog does not display
         //     the locked icon.
         stats->GetAchievementIcon (szName);
 
-        if (! achievements.list [i]->unlocked_)
-          stats->ClearAchievement (szName);
+        //if (! achievements.list [i]->unlocked_)
+          //stats->ClearAchievement (szName);
 
         free ((void *)szName);
       } else {
