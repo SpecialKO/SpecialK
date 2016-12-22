@@ -42,6 +42,9 @@
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/steam_api.h>
+#include <SpecialK/window.h>
+#include <SpecialK/render_backend.h>
 
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
@@ -73,17 +76,8 @@ typedef HMODULE (WINAPI *LoadLibraryExW_pfn)
 LoadLibraryExA_pfn LoadLibraryExA_Original = nullptr;
 LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;
 
-extern HMODULE __stdcall SK_GetDLL (void);
-
-extern void WINAPI SK_HookGL     (void);
-extern void WINAPI SK_HookVulkan (void);
-extern void WINAPI SK_HookD3D9   (void);
-extern void WINAPI SK_HookDXGI   (void);
-
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
-
-extern bool __stdcall SK_IsInjected (void);
 
 #if 0
 #include <unordered_set>
@@ -166,58 +160,6 @@ BlacklistLibraryA (LPCSTR lpFileName)
   return BlacklistLibraryW (wszWideLibName);
 }
 
-void
-SK_BootD3D9 (void)
-{
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
-
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
-
-  SK_HookD3D9 ();
-}
-
-void
-SK_BootDXGI (void)
-{
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
-
-  dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
-
-  SK_HookDXGI ();
-}
-
-void
-SK_BootOpenGL (void)
-{
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
-
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
-
-  SK_HookGL ();
-}
-
-void
-SK_BootVulkan (void)
-{
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
-
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
-
-  SK_HookVulkan ();
-}
-
 
 void
 __stdcall
@@ -271,12 +213,10 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     if ( StrStrIA (lpFileName, "steam_api.dll")   ||
          StrStrIA (lpFileName, "steam_api64.dll") ||
          StrStrIA (lpFileName, "SteamNative.dll") ) {
-      extern void SK_HookSteamAPI (void);
       SK_HookSteamAPI ();
     }
 
     else if (StrStrIA (lpFileName, "CSteamworks.dll")) {
-      extern void SK_HookCSteamworks (void);
       SK_HookCSteamworks ();
     }
 
@@ -341,12 +281,10 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       SK_BootVulkan ();
     
     if (StrStrIW (lpFileName, L"CSteamworks.dll")) {
-      extern void SK_HookCSteamworks (void);
       SK_HookCSteamworks ();
     } else if (StrStrIW (lpFileName, L"steam_api.dll")   ||
                StrStrIW (lpFileName, L"steam_api64.dll") ||
                StrStrIW (lpFileName, L"SteamNative.dll") ) {
-      extern void SK_HookSteamAPI (void);
       SK_HookSteamAPI ();
     }
     
@@ -755,14 +693,13 @@ EnumLoadedModules (void)
   {
     for ( i = 0; i < (cbNeeded / sizeof (HMODULE)); i++ )
     {
-      wchar_t wszModName [MAX_PATH + 2];
+      wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
 
       // Get the full path to the module's file.
       if ( GetModuleFileNameExW ( hProc,
                                     hMods [i],
                                       wszModName,
-                                        sizeof (wszModName) /
-                                        sizeof (wchar_t) ) )
+                                        MAX_PATH ) )
       {
         if ( (! third_party_dlls.overlays.rtss_hooks) &&
               StrStrIW (wszModName, L"RTSSHooks") ) {
@@ -841,14 +778,12 @@ EnumLoadedModules (void)
         }
 
         else if (StrStrIW (wszModName, L"CSteamworks.dll")) {
-          extern void SK_HookCSteamworks (void);
           SK_HookCSteamworks ();
         }
 
         else if ( StrStrIW (wszModName, L"steam_api.dll")   ||
                   StrStrIW (wszModName, L"steam_api64.dll") ||
                   StrStrIW (wszModName, L"SteamNative.dll") ) {
-          extern void SK_HookSteamAPI (void);
           SK_HookSteamAPI ();
         }
 
@@ -935,7 +870,6 @@ TaskDialogCallback (
       //GetWindowThreadProcessId (GetForegroundWindow (), &dwProcId);
 
     //if (dwProcId == GetCurrentProcessId ()) {
-      extern DWORD WINAPI SK_RealizeForegroundWindow (HWND);
       SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
     //}
   }
@@ -957,7 +891,6 @@ TaskDialogCallback (
   if (uNotification == TDN_CREATED) {
     SK_bypass_dialog_hwnd = hWnd;
 
-    extern DWORD WINAPI SK_RealizeForegroundWindow (HWND);
     SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
   }
 

@@ -27,14 +27,14 @@
 
 extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
-#include "core.h"
-#include "dxgi_backend.h"
-#include "d3d9_backend.h"
-#include "opengl_backend.h"
-#include "log.h"
-#include "utility.h"
+#include <SpecialK/core.h>
+#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/opengl_backend.h>
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
-#include "tls.h"
+#include <SpecialK/tls.h>
 
 // We need this to load embedded resources correctly...
 volatile HMODULE hModSelf          = 0;

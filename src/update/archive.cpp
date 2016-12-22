@@ -22,9 +22,9 @@
 
 #include <Windows.h>
 
-#include "log.h"
-#include "utility.h"
-#include "core.h"
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
+#include <SpecialK/core.h>
 
 #include <cstdlib>
 #include <cstdint>
@@ -36,11 +36,7 @@
 #include <lzma/7zFile.h>
 #include <lzma/7zVersion.h>
 
-#include "update/archive.h"
-
-extern const wchar_t*
-__stdcall
-SK_GetRootPath (void);
+#include <SpecialK/update/archive.h>
 
 bool config_files_changed = false;
 

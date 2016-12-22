@@ -28,7 +28,9 @@
 #include <SpecialK/command.h>
 #include <SpecialK/config.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/render_backend.h>
 #include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
 #include <SpecialK/framerate.h>
@@ -60,9 +62,6 @@ namespace SK {
     } pipeline_stats_d3d11;
   };
 };
-
-extern void
-SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _In_opt_                            IDXGIAdapter         *pAdapter,
@@ -869,8 +868,6 @@ SK_D3D11_SummarizeTexCache (void)
 }
 
 #include <SpecialK/utility.h>
-
-extern uint32_t __cdecl crc32 (uint32_t crc, const void *buf, size_t size);
 
 bool         SK_D3D11_need_tex_reset      = false;
 int32_t      SK_D3D11_amount_to_purge     = 0L;
@@ -2716,7 +2713,6 @@ HookD3D11 (LPVOID user)
     // If something called a D3D11 function before DXGI was initialized,
     //   begin the process, but ... only do this once.
     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
-      extern void SK_BootDXGI (void);
       SK_BootDXGI ();
     }
 

@@ -70,7 +70,12 @@ volatile ULONG __SK_Steam_init = FALSE;
 
 std::multiset <class CCallbackBase *> overlay_activation_callbacks;
 
-void SK_HookSteamAPI (void);
+void SK_HookSteamAPI                      (void);
+void SK_SteamAPI_InitManagers             (void);
+void SK_SteamAPI_DestroyManagers          (void);
+void SK_SteamAPI_UpdateGlobalAchievements (void);
+
+void StartSteamPump (bool force = false);
 
 volatile ULONG __hooked           = FALSE;
 volatile ULONG __CSteamworks_hook = FALSE;
@@ -91,53 +96,54 @@ bool S_CALLTYPE SteamAPI_Init_Detour     (void);
 
 void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
 
-S_API typedef bool (S_CALLTYPE *SteamAPI_Init_pfn    )(void);
-S_API typedef bool (S_CALLTYPE *SteamAPI_InitSafe_pfn)(void);
+typedef bool (S_CALLTYPE *SteamAPI_Init_pfn    )(void);
+typedef bool (S_CALLTYPE *SteamAPI_InitSafe_pfn)(void);
 
-S_API typedef bool (S_CALLTYPE *SteamAPI_RestartAppIfNecessary_pfn)( uint32 unOwnAppID );
-S_API typedef bool (S_CALLTYPE *SteamAPI_IsSteamRunning_pfn)(void);
+typedef bool (S_CALLTYPE *SteamAPI_RestartAppIfNecessary_pfn)
+    (uint32 unOwnAppID);
+typedef bool (S_CALLTYPE *SteamAPI_IsSteamRunning_pfn)(void);
 
-S_API typedef void (S_CALLTYPE *SteamAPI_Shutdown_pfn)(void);
+typedef void (S_CALLTYPE *SteamAPI_Shutdown_pfn)(void);
 
-S_API typedef void (S_CALLTYPE *SteamAPI_RegisterCallback_pfn)
-          (class CCallbackBase *pCallback, int iCallback);
-S_API typedef void (S_CALLTYPE *SteamAPI_UnregisterCallback_pfn)
-          (class CCallbackBase *pCallback);
+typedef void (S_CALLTYPE *SteamAPI_RegisterCallback_pfn)
+    (class CCallbackBase *pCallback, int iCallback);
+typedef void (S_CALLTYPE *SteamAPI_UnregisterCallback_pfn)
+    (class CCallbackBase *pCallback);
 
-S_API typedef void (S_CALLTYPE *SteamAPI_RegisterCallResult_pfn)
-          (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
-S_API typedef void (S_CALLTYPE *SteamAPI_UnregisterCallResult_pfn)
-          (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
+typedef void (S_CALLTYPE *SteamAPI_RegisterCallResult_pfn)
+    (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
+typedef void (S_CALLTYPE *SteamAPI_UnregisterCallResult_pfn)
+    (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
 
-S_API typedef void (S_CALLTYPE *SteamAPI_RunCallbacks_pfn)(void);
+typedef void (S_CALLTYPE *SteamAPI_RunCallbacks_pfn)(void);
 
-S_API typedef HSteamUser (*SteamAPI_GetHSteamUser_pfn)(void);
-S_API typedef HSteamPipe (*SteamAPI_GetHSteamPipe_pfn)(void);
+typedef HSteamUser (*SteamAPI_GetHSteamUser_pfn)(void);
+typedef HSteamPipe (*SteamAPI_GetHSteamPipe_pfn)(void);
 
-S_API typedef ISteamClient*    (S_CALLTYPE *SteamClient_pfn   )(void);
+typedef ISteamClient* (S_CALLTYPE *SteamClient_pfn)(void);
 
-S_API SteamAPI_RunCallbacks_pfn         SteamAPI_RunCallbacks         = nullptr;
-S_API SteamAPI_RegisterCallback_pfn     SteamAPI_RegisterCallback     = nullptr;
-S_API SteamAPI_UnregisterCallback_pfn   SteamAPI_UnregisterCallback   = nullptr;
-S_API SteamAPI_RegisterCallResult_pfn   SteamAPI_RegisterCallResult   = nullptr;
-S_API SteamAPI_UnregisterCallResult_pfn SteamAPI_UnregisterCallResult = nullptr;
+SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                = nullptr;
+SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback            = nullptr;
+SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback          = nullptr;
+SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult          = nullptr;
+SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult        = nullptr;
 
-S_API SteamAPI_Init_pfn               SteamAPI_Init               = nullptr;
-S_API SteamAPI_InitSafe_pfn           SteamAPI_InitSafe           = nullptr;
-S_API SteamAPI_Shutdown_pfn           SteamAPI_Shutdown           = nullptr;
+SteamAPI_Init_pfn                  SteamAPI_Init                        = nullptr;
+SteamAPI_InitSafe_pfn              SteamAPI_InitSafe                    = nullptr;
+SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                    = nullptr;
 
-S_API SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary=nullptr;
-S_API SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning       =nullptr;
+SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary       = nullptr;
+SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning              = nullptr;
 
-S_API SteamAPI_GetHSteamUser_pfn      SteamAPI_GetHSteamUser      = nullptr;
-S_API SteamAPI_GetHSteamPipe_pfn      SteamAPI_GetHSteamPipe      = nullptr;
+SteamAPI_GetHSteamUser_pfn         SteamAPI_GetHSteamUser               = nullptr;
+SteamAPI_GetHSteamPipe_pfn         SteamAPI_GetHSteamPipe               = nullptr;
 
-S_API SteamClient_pfn                 SteamClient                 = nullptr;
+SteamClient_pfn                    SteamClient                          = nullptr;
 
-S_API SteamAPI_RegisterCallback_pfn   SteamAPI_RegisterCallback_Original   = nullptr;
-S_API SteamAPI_UnregisterCallback_pfn SteamAPI_UnregisterCallback_Original = nullptr;
+SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original   = nullptr;
+SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original = nullptr;
 
-S_API SteamAPI_Shutdown_pfn           SteamAPI_Shutdown_Original = nullptr;
+SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original           = nullptr;
 
 class SK_Steam_OverlayManager {
 public:
@@ -258,8 +264,6 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 
         steam_log.Log ( L"--- Initialization Finished ([AppId: %lu]) ---\n\n",
                           SK::SteamAPI::AppID () );
-
-        extern void StartSteamPump (bool force = false);
 
         StartSteamPump ();
       }
@@ -904,7 +908,6 @@ public:
     }
 #endif
 
-    extern void SK_SteamAPI_DestroyManagers (void);
     SK_SteamAPI_DestroyManagers ();
   }
 
@@ -1295,7 +1298,6 @@ public:
       steam_log.Log (L"  * Loading Built-In Achievement Unlock Sound: '%s'",
                        wszFileName);
 
-      extern HMODULE __stdcall SK_GetDLL (void);
       HRSRC   default_sound;
 
       if (psn)
@@ -1572,7 +1574,6 @@ public:
       if (! failed) {
         has_global_data = true;
 
-        extern void SK_SteamAPI_UpdateGlobalAchievements (void);
         SK_SteamAPI_UpdateGlobalAchievements ();
       }
 
@@ -2485,7 +2486,7 @@ SteamAPI_PumpThread (LPVOID user)
 }
 
 void
-StartSteamPump (bool force = false)
+StartSteamPump (bool force)
 {
   if (InterlockedCompareExchangePointer (&hSteamPump, 0, 0) != 0)
     return;
@@ -2915,9 +2916,6 @@ SteamAPI_Shutdown_Detour (void)
       Sleep (1000UL);
 
     if (SteamAPI_InitSafe_Original ()) {
-      extern void
-      SK_SteamAPI_InitManagers (void);
-
       SK_SteamAPI_InitManagers ();
 
       StartSteamPump (true);
@@ -3356,6 +3354,57 @@ SK_SteamAPI_DestroyManagers (void)
     if (overlay_manager != nullptr) {
       delete overlay_manager;
       overlay_manager = nullptr;
+    }
+  }
+}
+
+
+
+
+bool steam_imported = false;
+
+bool
+SK_SteamImported (void)
+{
+  static int tries = 0;
+
+  return steam_imported || GetModuleHandle (L"steam_api64.dll") ||
+                           GetModuleHandle (L"steam_api.dll")   ||
+                           GetModuleHandle (L"CSteamworks.dll") ||
+                           GetModuleHandle (L"SteamNative.dll");
+}
+
+void
+SK_TestSteamImports (HMODULE hMod)
+{
+  sk_import_test_s steamworks [] = { { "CSteamworks.dll", false } };
+
+  SK_TestImports (hMod, steamworks, sizeof (steamworks) / sizeof sk_import_test_s);
+
+  if (steamworks [0].used) {
+    SK_HookCSteamworks ();
+    steam_imported = true;
+  } else {
+    sk_import_test_s steam_api [] = { { "steam_api.dll",   false },
+                                      { "steam_api64.dll", false } };
+
+    SK_TestImports (hMod, steam_api, sizeof (steam_api) / sizeof sk_import_test_s);
+
+    if (steam_api [0].used | steam_api [1].used) {
+      SK_HookSteamAPI ();
+      steam_imported = true;
+    } else {
+      if (GetModuleHandle (L"CSteamworks.dll")) {
+        SK_HookCSteamworks ();
+        steam_imported = true;
+      }
+
+      if( LoadLibrary (L"steam_api.dll")   ||
+          LoadLibrary (L"steam_api64.dll") ||
+          GetModuleHandle (L"SteamNative.dll") ) {
+        SK_HookSteamAPI ();
+        steam_imported = true;
+      }
     }
   }
 }

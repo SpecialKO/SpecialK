@@ -19,10 +19,9 @@
  *
 **/
 
-#ifndef __SK__COMPATIBILITY_H__
-#define __SK__COMPATIBILITY_H__
+#ifndef __SK__SOUND_H__
+#define __SK__SOUND_H__
 
-void __stdcall EnumLoadedModules      (void);
-void __stdcall SK_InitCompatBlacklist (void);
+void __stdcall SK_SetGameMute (bool bMute);
 
-#endif /* __SK_COMPATIBILITY_H__ */
+#endif /* __SK__SOUND_H__ */

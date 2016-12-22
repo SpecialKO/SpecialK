@@ -82,7 +82,8 @@ SK_GetVolumeControl (void)
 }
 
 void
-SK_SetGameMute (BOOL bMute)
+__stdcall
+SK_SetGameMute (bool bMute)
 {
   ISimpleAudioVolume* pVolume =
     SK_GetVolumeControl ();

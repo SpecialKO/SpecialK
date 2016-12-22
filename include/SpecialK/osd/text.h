@@ -33,6 +33,7 @@ BOOL   __stdcall SK_ReleaseSharedMemory (LPVOID pMemory);
 
 void __stdcall SK_InstallOSD       (void);
 BOOL __stdcall SK_DrawOSD          (void);
+BOOL __stdcall SK_DrawExternalOSD  (std::string app_name, std::string text);
 BOOL __stdcall SK_UpdateOSD        (LPCSTR lpText, LPVOID pMapAddr = nullptr, LPCSTR lpAppName = nullptr);
 void __stdcall SK_ReleaseOSD       (void);
 

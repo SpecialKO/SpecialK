@@ -22,14 +22,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define ISOLATION_AWARE_ENABLED 1
 
-#include "ini.h"
-#include "parameter.h"
-#include "utility.h"
+#include <SpecialK/ini.h>
+#include <SpecialK/parameter.h>
+#include <SpecialK/utility.h>
 
-#include "core.h"
-#include "resource.h"
+#include <SpecialK/core.h>
+#include <SpecialK/resource.h>
 
-#include "update/archive.h"
+#include <SpecialK/update/archive.h>
 
 #include <Windows.h>
 #include <windowsx.h>
@@ -49,9 +49,6 @@
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
 
-extern const wchar_t* __stdcall SK_GetRootPath (void);
-extern HMODULE        __stdcall SK_GetDLL      (void);
-
 enum {
   STATUS_UPDATED   = 1,
   STATUS_REMINDER  = 2,
@@ -66,7 +63,6 @@ struct sk_internet_get_t {
   HWND    hTaskDlg;
   int     status;
 };
-
 
 bool    update_dlg_backup = false;
 bool    update_dlg_keep   = false;

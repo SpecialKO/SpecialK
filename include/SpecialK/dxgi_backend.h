@@ -296,4 +296,6 @@ extern void SK_D3D12_Init        (void);
 extern void SK_D3D12_Shutdown    (void);
 extern void SK_D3D12_EnableHooks (void);
 
+void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
+
 #endif /* __SK__DXGI_BACKEND_H__ */

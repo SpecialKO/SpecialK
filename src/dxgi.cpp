@@ -25,6 +25,8 @@
 
 #include <SpecialK/dxgi_interfaces.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/render_backend.h>
+#include <SpecialK/window.h>
 
 #include <atlbase.h>
 
@@ -43,6 +45,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/console.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/steam_api.h>
 
 #include <SpecialK/diagnostics/crash_handler.h>
 
@@ -104,10 +107,6 @@ ID3D11DeviceContext* pCEG_DevCtx = nullptr;
 void
 SK_CEGUI_RelocateLog (void)
 {
-  extern const wchar_t*
-  __stdcall
-  SK_GetConfigPath (void);
-
   // Move the log file that this darn thing just created...
   if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES) {
     char     szNewLogPath [MAX_PATH * 4] = {  '\0' };
@@ -137,10 +136,6 @@ CEGUI::Window* SK_achv_popup = nullptr;
 void
 SK_CEGUI_InitBase (void)
 {
-  extern const wchar_t*
-  __stdcall
-  SK_GetRootPath (void);
-
   try {
     // initialise the required dirs for the DefaultResourceProvider
     CEGUI::DefaultResourceProvider* rp =
@@ -249,7 +244,6 @@ SK_CEGUI_InitBase (void)
  } catch (...) {
  }
 
-  extern void SK_Steam_ClearPopups (void);
   SK_Steam_ClearPopups ();
 }
 
@@ -327,26 +321,11 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     SK_PopupManager::getInstance ()->destroyAllPopups       ();
     SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
 
-    extern void SK_Steam_ClearPopups (void);
     SK_Steam_ClearPopups ();
 
     pGUIDev->Release     ();
   }
 }
-
-extern void SK_SetWindowResX (LONG x);
-extern void SK_SetWindowResY (LONG y);
-
-extern int
-WINAPI
-SK_GetSystemMetrics (_In_ int nIndex);
-
-extern LPRECT
-SK_GetGameRect (void);
-
-extern bool
-SK_DiscontEpsilon (int x1, int x2, int tolerance);
-
 
 #undef min
 #undef max
@@ -377,7 +356,6 @@ volatile LONG  __dxgi_ready  = FALSE;
 void WaitForInitDXGI (void)
 {
   if (CreateDXGIFactory_Import == nullptr) {
-    extern void SK_BootDXGI (void);
     SK_BootDXGI ();
   }
 
@@ -1332,11 +1310,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   }
 
   else if (cegD3D11 == nullptr) {
-    extern
-    ULONG
-    __stdcall
-    SK_GetFramesDrawn (void);
-
     if (SK_GetFramesDrawn () > 1) {
       ResetCEGUI_D3D11 (This);
     }
@@ -1414,7 +1387,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       {
         SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
-        extern void SK_Steam_DrawOSD (void);
         SK_Steam_DrawOSD ();
 
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
@@ -3302,8 +3274,6 @@ SK_HookDXGI (void)
   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
     return;
 
-extern HMODULE __stdcall SK_GetDLL (void);
-
   SK_D3D11_Init ();
   SK_D3D12_Init ();
 
@@ -3388,7 +3358,6 @@ void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
 {
-  extern void SK_BootDXGI (void);
   SK_BootDXGI ();
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
@@ -3535,7 +3504,6 @@ HookDXGI (LPVOID user)
     // If something called a D3D11 function before DXGI was initialized,
     //   begin the process, but ... only do this once.
     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
-      extern void SK_BootDXGI (void);
       SK_BootDXGI ();
     }
 

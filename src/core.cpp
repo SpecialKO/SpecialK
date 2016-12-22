@@ -25,7 +25,9 @@
 #include <SpecialK/core.h>
 #include <SpecialK/stdafx.h>
 #include <SpecialK/hooks.h>
+#include <SpecialK/window.h>
 
+#include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/diagnostics/crash_handler.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 
@@ -50,6 +52,8 @@ extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lp
 #include <SpecialK/console.h>
 #include <SpecialK/command.h>
 #include <SpecialK/framerate.h>
+
+#include <SpecialK/adl.h>
 
 #include <SpecialK/steam_api.h>
 
@@ -92,25 +96,42 @@ int                      gpu_prio;
 
 HMODULE                  backend_dll  = 0;
 
-// NOT the working directory, this is the directory that
-//   the executable is located in.
-const wchar_t*
-SK_GetHostPath (void);
+// Brutal hack that assumes the executable has a .exe extension...
+//   FIXME
+void
+SK_PathRemoveExtension (wchar_t* wszInOut)
+{
+  wszInOut [lstrlenW (wszInOut) - 3] = L'\0';
+}
 
-extern
-bool
-__stdcall
-SK_IsInjected (void);
+wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
+wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
 
-extern
-HMODULE
-__stdcall
-SK_GetDLL (void);
-
-extern
 const wchar_t*
 __stdcall
-SK_GetRootPath (void);
+SK_GetRootPath (void)
+{
+  return SK_RootPath;
+}
+
+//
+// To be used internally only, by the time any plug-in has
+//   been activated, Special K will have already established
+//     this path and loaded its config.
+//
+void
+__stdcall
+SK_SetConfigPath (const wchar_t* path)
+{
+  lstrcpyW (SK_ConfigPath, path);
+}
+
+const wchar_t*
+__stdcall
+SK_GetConfigPath (void)
+{
+  return SK_ConfigPath;
+}
 
 volatile
 ULONG frames_drawn = 0UL;
@@ -1033,7 +1054,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"----------------------------------------------------------------------"
     L"---------------------\n");
 
-  extern void __crc32_init (void);
   __crc32_init ();
 
 
@@ -1174,15 +1194,11 @@ SK_InitCore (const wchar_t* backend, void* callback)
   } else {
     dll_log.LogEx (true, L"[DisplayLib] Initializing AMD Display Library (ADL):   ");
 
-    extern BOOL SK_InitADL (void);
     BOOL adl_init = SK_InitADL ();
 
     dll_log.LogEx (false, L" %s\n", adl_init ? L"Success" : L"Failed");
 
     if (adl_init) {
-      extern int SK_ADL_CountPhysicalGPUs (void);
-      extern int SK_ADL_CountActiveGPUs   (void);
-
       dll_log.Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
                       SK_ADL_CountPhysicalGPUs (),
                         SK_ADL_CountActiveGPUs () );
@@ -1218,7 +1234,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
-  extern void __stdcall EnumLoadedModules (void);
   EnumLoadedModules ();
 
   typedef void (WINAPI *finish_pfn)  (_Releases_exclusive_lock_ (init_mutex) void);
@@ -1365,10 +1380,10 @@ skMemCmd::execute (const char* szArgs)
   if (base_addr == nullptr) {
     base_addr = (uint8_t *)GetModuleHandle (nullptr);
 
-    MEMORY_BASIC_INFORMATION mem_info;
-    VirtualQuery (base_addr, &mem_info, sizeof mem_info);
+    MEMORY_BASIC_INFORMATION basic_mem_info;
+    VirtualQuery (base_addr, &basic_mem_info, sizeof basic_mem_info);
 
-    base_addr = (uint8_t *)mem_info.BaseAddress;
+    base_addr = (uint8_t *)basic_mem_info.BaseAddress;
   }
 
   addr += (uintptr_t)base_addr;
@@ -1583,50 +1598,7 @@ DllThread (LPVOID user)
 #include <wingdi.h>
 #include <gl/gl.h>
 
-
-extern
-HMODULE
-__stdcall
-SK_GetDLL (void);
-
 extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
-
-// Brutal hack that assumes the executable has a .exe extension...
-//   FIXME
-void
-SK_PathRemoveExtension (wchar_t* wszInOut)
-{
-  wszInOut [lstrlenW (wszInOut) - 3] = L'\0';
-}
-
-wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
-wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
-
-const wchar_t*
-__stdcall
-SK_GetRootPath (void)
-{
-  return SK_RootPath;
-}
-
-//
-// To be used internally only, by the time any plug-in has
-//   been activated, Special K will have already established
-//     this path and loaded its config.
-//
-void
-__stdcall
-SK_SetConfigPath (const wchar_t* path)
-{
-  lstrcpyW (SK_ConfigPath, path);
-}
-
-const wchar_t*
-__stdcall
-SK_GetConfigPath (void)
-{
-  return SK_ConfigPath;
-}
 
 bool
 __stdcall
@@ -1803,9 +1775,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   // Do this from the startup thread
-  SK_Init_MinHook ();
-
-  extern void __stdcall SK_InitCompatBlacklist (void);
+  SK_Init_MinHook        ();
   SK_InitCompatBlacklist ();
 
   // Hard-code the AppID for ToZ
@@ -1825,8 +1795,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
 
   EnterCriticalSection (&init_mutex);
-
-  extern HMODULE __stdcall SK_GetDLL ();
 
   HANDLE hProc = GetCurrentProcess ();
 
@@ -1868,7 +1836,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       dll_log.LogEx (false, L"done!\n");
     }
   } else {
-    extern void __crc32_init (void);
     __crc32_init ();
 
     LeaveCriticalSection (&init_mutex);
@@ -1886,18 +1853,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
-  extern void SK_TestSteamImports (HMODULE hMod);
   SK_TestSteamImports (SK_GetDLL ());
 
   if (GetModuleHandle (L"CSteamworks.dll")) {
-    extern void SK_HookCSteamworks (void);
     SK_HookCSteamworks ();
   }
 
   if ( GetModuleHandle (L"steam_api.dll")   ||
        GetModuleHandle (L"steam_api64.dll") ||
        GetModuleHandle (L"SteamNative.dll") ) {
-    extern void SK_HookSteamAPI (void);
     SK_HookSteamAPI ();
   }
 
@@ -1919,9 +1883,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   return true;
 }
-
-// Post-shutdown achievement statistics for things like friend unlock rate
-extern void SK_SteamAPI_LogAllAchievements (void);
 
 extern "C" {
 bool
@@ -2158,23 +2119,18 @@ SK_BeginBufferSwap (void)
     // Steam Init: Better late than never
 
     if (GetModuleHandle (L"CSteamworks.dll")) {
-      extern void SK_HookCSteamworks (void);
       SK_HookCSteamworks ();
     }
 
     if ( GetModuleHandle (L"steam_api.dll")   ||
          GetModuleHandle (L"steam_api64.dll") ||
          GetModuleHandle (L"SteamNative.dll") ) {
-      extern void SK_HookSteamAPI (void);
       SK_HookSteamAPI ();
     }
 
     if (config.system.handle_crashes)
       SK::Diagnostics::CrashHandler::Reinstall ();
   }
-
-  extern void SK_AdjustWindow (void);
-  extern void SK_HookWinAPI   (void);
 
   static bool first = true;
 
@@ -2187,14 +2143,11 @@ SK_BeginBufferSwap (void)
     }
   }
 
-  extern void SK_DrawConsole     (void);
   extern void SK_DrawTexMgrStats (void);
   SK_DrawTexMgrStats ();
   SK_DrawOSD         ();
   SK_DrawConsole     ();
 }
-
-extern void SK_UnlockSteamAchievement (uint32_t idx);
 
 ULONGLONG poll_interval = 0;
 
@@ -2389,8 +2342,6 @@ return 0;
 }
 #else
 
-extern bool com_init;
-
 void
 DoKeyboard (void)
 {
@@ -2422,8 +2373,6 @@ DoKeyboard (void)
   } else {
     toggle_drag = false;
   }
-
-  extern void SK_CenterWindowAtMouse (BOOL remember_pos);
 
   if (drag_lock)
     SK_CenterWindowAtMouse (FALSE);

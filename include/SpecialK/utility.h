@@ -158,6 +158,7 @@ private:
 };
 
 
+uint32_t __cdecl crc32 (uint32_t crc, const void *buf, size_t size);
 
 /*
     Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.
@@ -172,6 +173,8 @@ crc32c (
     const uint8_t *input,       // Data to be put through the CRC algorithm.
     size_t length);             // Length of the data in the input buffer.
 
+
+void __crc32_init (void);
 
 /*
 	Software fallback version of CRC-32C (Castagnoli) checksum.

@@ -19,7 +19,7 @@
  *
 **/
 
-#include "render_backend.h"
+#include <SpecialK/render_backend.h>
 
 SK_RenderBackend __SK_RBkEnd;
 
@@ -28,4 +28,63 @@ __stdcall
 SK_GetCurrentRenderBackend (void)
 {
   return __SK_RBkEnd;
+}
+
+#include <SpecialK/log.h>
+
+extern void WINAPI SK_HookGL     (void);
+extern void WINAPI SK_HookVulkan (void);
+extern void WINAPI SK_HookD3D9   (void);
+extern void WINAPI SK_HookDXGI   (void);
+
+void
+SK_BootD3D9 (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+
+  SK_HookD3D9 ();
+}
+
+void
+SK_BootDXGI (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+
+  SK_HookDXGI ();
+}
+
+void
+SK_BootOpenGL (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
+
+  SK_HookGL ();
+}
+
+void
+SK_BootVulkan (void)
+{
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
+
+  SK_HookVulkan ();
 }

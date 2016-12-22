@@ -123,6 +123,19 @@ const wchar_t*
 __stdcall
 SK_GetConfigPath (void);
 
+// NOT the working directory, this is the directory that
+//   the executable is located in.
+const wchar_t*
+SK_GetHostPath (void);
+
+const wchar_t*
+__stdcall
+SK_GetRootPath (void);
+
+HMODULE
+__stdcall
+SK_GetDLL (void);
+
 DLL_ROLE
 __stdcall
 SK_GetDLLRole (void);
@@ -134,6 +147,14 @@ SK_SetDLLRole (DLL_ROLE role);
 bool
 __cdecl
 SK_IsHostAppSKIM (void);
+
+bool
+__stdcall
+SK_IsInjected (void);
+
+ULONG
+__stdcall
+SK_GetFramesDrawn (void);
 
 enum DLL_ROLE {
   // Graphics APIs

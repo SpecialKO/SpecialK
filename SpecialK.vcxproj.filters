@@ -246,6 +246,12 @@
     <ClInclude Include="include\SpecialK\hooks.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\window.h">
+      <Filter>Header Files\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\sound.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -317,9 +323,6 @@
     <ClCompile Include="src\opengl.cpp">
       <Filter>Source Files\Backends\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\tw3.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\fo4.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
@@ -364,6 +367,9 @@
     </ClCompile>
     <ClCompile Include="src\hooks.cpp">
       <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window.cpp">
+      <Filter>Source Files\Backends</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

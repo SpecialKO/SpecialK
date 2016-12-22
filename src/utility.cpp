@@ -20,7 +20,7 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "utility.h"
+#include <SpecialK/utility.h>
 
 #include <UserEnv.h>
 #pragma comment (lib, "userenv.lib")
@@ -899,7 +899,7 @@ calculate_table_hw (void)
 
 uint32_t (*append_func)(uint32_t, buffer, size_t);
 
-#include "log.h"
+#include <SpecialK/log.h>
 
 void
 __crc32_init (void)
@@ -958,8 +958,6 @@ SK_GetModuleFullName (HMODULE hDll)
   return wszDllFullName;
 }
 
-#include <tlhelp32.h>
-
 PROCESSENTRY32
 FindProcessByName (const wchar_t* wszName)
 {
@@ -1016,7 +1014,7 @@ SK_GetRTSSInstallDir (void)
   return wszPath;
 }
 
-#include "ini.h"
+#include <SpecialK/ini.h>
 
 iSK_INI*
 SK_GetDLLConfig (void)
@@ -1056,7 +1054,6 @@ SK_GetCallerName (LPVOID pReturn)
 }
 
 
-#include <tlhelp32.h>
 #include <queue>
 
 std::queue <DWORD>
@@ -1202,57 +1199,6 @@ SK_TestRenderImports (HMODULE hMod, bool* gl, bool* vulkan, bool* d3d9, bool* dx
   *vulkan = tests [1].used;
   *d3d9   = tests [2].used;
   *dxgi   = tests [3].used;
-}
-
-bool steam_imported = false;
-
-bool
-SK_SteamImported (void)
-{
-  static int tries = 0;
-
-  return steam_imported || GetModuleHandle (L"steam_api64.dll") ||
-                           GetModuleHandle (L"steam_api.dll")   ||
-                           GetModuleHandle (L"CSteamworks.dll") ||
-                           GetModuleHandle (L"SteamNative.dll");
-}
-
-void
-SK_TestSteamImports (HMODULE hMod)
-{
-  extern void SK_HookCSteamworks (void);
-  extern void SK_HookSteamAPI    (void);
-
-  sk_import_test_s steamworks [] = { { "CSteamworks.dll", false } };
-
-  SK_TestImports (hMod, steamworks, sizeof (steamworks) / sizeof sk_import_test_s);
-
-  if (steamworks [0].used) {
-    SK_HookCSteamworks ();
-    steam_imported = true;
-  } else {
-    sk_import_test_s steam_api [] = { { "steam_api.dll",   false },
-                                      { "steam_api64.dll", false } };
-
-    SK_TestImports (hMod, steam_api, sizeof (steam_api) / sizeof sk_import_test_s);
-
-    if (steam_api [0].used | steam_api [1].used) {
-      SK_HookSteamAPI ();
-      steam_imported = true;
-    } else {
-      if (GetModuleHandle (L"CSteamworks.dll")) {
-        SK_HookCSteamworks ();
-        steam_imported = true;
-      }
-
-      if( LoadLibrary (L"steam_api.dll")   ||
-          LoadLibrary (L"steam_api64.dll") ||
-          GetModuleHandle (L"SteamNative.dll") ) {
-        SK_HookSteamAPI ();
-        steam_imported = true;
-      }
-    }
-  }
 }
 
 int

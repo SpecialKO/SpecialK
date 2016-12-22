@@ -357,6 +357,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\parameter.h" />
     <ClInclude Include="include\SpecialK\render_backend.h" />
     <ClInclude Include="include\SpecialK\resource.h" />
+    <ClInclude Include="include\SpecialK\sound.h" />
     <ClInclude Include="include\SpecialK\stdafx.h" />
     <ClInclude Include="include\SpecialK\steam_api.h" />
     <ClInclude Include="include\SpecialK\targetver.h" />
@@ -365,6 +366,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\utility.h" />
     <ClInclude Include="include\SpecialK\vulkan_backend.h" />
     <ClInclude Include="include\SpecialK\DLL_VERSION.H" />
+    <ClInclude Include="include\SpecialK\window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\adl.cpp" />
@@ -376,7 +378,6 @@ Exit 0</Command>
     <ClCompile Include="src\diagnostics\debug_utils.cpp" />
     <ClCompile Include="src\hooks.cpp" />
     <ClCompile Include="src\osd\popup.cpp" />
-    <ClCompile Include="src\plugins\tw3.cpp" />
     <ClCompile Include="src\render_backend.cpp" />
     <ClCompile Include="src\sound.cpp" />
     <ClCompile Include="src\SpecialK.cpp" />
@@ -406,6 +407,7 @@ Exit 0</Command>
     <ClCompile Include="src\update\version.cpp" />
     <ClCompile Include="src\utility.cpp" />
     <ClCompile Include="src\vulkan.cpp" />
+    <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">

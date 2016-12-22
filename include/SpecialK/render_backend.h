@@ -22,6 +22,8 @@
 #ifndef __SK__RENDER_BACKEND_H__
 #define __SK__RENDER_BACKEND_H__
 
+#include <Windows.h>
+
 enum class SK_RenderAPI {
   Reserved = 0x01,
   OpenGL   = 0x02,
@@ -43,5 +45,10 @@ typedef SK_RenderBackend_V1 SK_RenderBackend;
 SK_RenderBackend
 __stdcall
 SK_GetCurrentRenderBackend (void);
+
+void SK_BootD3D9   (void);
+void SK_BootDXGI   (void);
+void SK_BootOpenGL (void);
+void SK_BootVulkan (void);
 
 #endif /* __SK__RENDER_BACKEND__H__ */

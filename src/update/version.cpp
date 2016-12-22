@@ -21,19 +21,15 @@
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "ini.h"
-#include "parameter.h"
+#include <SpecialK/ini.h>
+#include <SpecialK/parameter.h>
 
-#include "utility.h"
-#include "log.h"
+#include <SpecialK/utility.h>
+#include <SpecialK/log.h>
 
 #include <Windows.h>
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
-
-extern const wchar_t*
-__stdcall
-SK_GetRootPath (void);
 
 #include <cstdint>
 
@@ -46,8 +42,10 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   FILETIME                  ftNow;
   GetSystemTimeAsFileTime (&ftNow);
 
-  LARGE_INTEGER
-    liNow { ftNow.dwLowDateTime, ftNow.dwHighDateTime };
+  ULARGE_INTEGER uliNow;
+
+  uliNow.LowPart  = ftNow.dwLowDateTime;
+  uliNow.HighPart = ftNow.dwHighDateTime;
 
 
   wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
@@ -102,7 +100,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   bool should_fetch = true;
 
   // Update frequency (measured in 100ns)
-  LONGLONG update_freq = 0LL;
+  ULONGLONG update_freq = 0ULL;
 
   if (GetFileAttributes (wszInstallFile) != INVALID_FILE_ATTRIBUTES) {
     iSK_INI install_ini (wszInstallFile);
@@ -163,7 +161,7 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 
         remind_time->load ();
 
-        if (liNow.QuadPart >= remind_time->get_value ()) {
+        if (uliNow.QuadPart >= (uint64_t)remind_time->get_value ()) {
           need_remind = true;
 
           user_prefs.remove_key (L"Reminder");
@@ -194,11 +192,13 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
 
       if (GetFileTime (hVersionConfig, nullptr, nullptr, &ftModify))
       {
-        LARGE_INTEGER
-          liModify { ftModify.dwLowDateTime, ftModify.dwHighDateTime };
+        ULARGE_INTEGER uliModify;
+
+        uliModify.LowPart  = ftModify.dwLowDateTime;
+        uliModify.HighPart = ftModify.dwHighDateTime;
 
         // Check Version:  User Preference (default=6h)
-        if ((liNow.QuadPart - liModify.QuadPart) < update_freq) {
+        if ((uliNow.QuadPart - uliModify.QuadPart) < update_freq) {
           should_fetch = false;
         }
       }

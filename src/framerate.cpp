@@ -266,8 +266,8 @@ SK::Framerate::Limiter::init (double target)
   time.QuadPart = 0ULL;
   last.QuadPart = 0ULL;
 
-  last.QuadPart = start.QuadPart - (ms / 1000.0) * freq.QuadPart;
-  next.QuadPart = start.QuadPart + (ms / 1000.0) * freq.QuadPart;
+  last.QuadPart = (LONGLONG)(start.QuadPart - (ms / 1000.0) * freq.QuadPart);
+  next.QuadPart = (LONGLONG)(start.QuadPart + (ms / 1000.0) * freq.QuadPart);
 }
 
 bool
@@ -320,7 +320,7 @@ SK::Framerate::Limiter::wait (void)
     //return;
   }
 
-  next.QuadPart = (start.QuadPart + (double)frames * (ms / 1000.0) * (double)freq.QuadPart);
+  next.QuadPart = (LONGLONG)((start.QuadPart + (double)frames * (ms / 1000.0) * (double)freq.QuadPart));
 
   if (next.QuadPart > 0ULL) {
     // If available (Windows 7+), wait on the swapchain
