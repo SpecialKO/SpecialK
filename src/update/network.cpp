@@ -1114,8 +1114,8 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
 
                                    L"[Update.User]\n"
                                    L"Frequency=6h\n"
-                                   L"BackupFiles=true\n"
-                                   L"KeepDownloads=false\n\n" );
+                                   L"BackupFiles=false\n"
+                                   L"KeepDownloads=true\n\n" );
             }
 
             keep_pref->set_value (update_dlg_keep);

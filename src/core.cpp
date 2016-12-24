@@ -1097,9 +1097,23 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
       __HrLoadAllImportsForDll ("CEGUIBase-0.dll");
 
-      __HrLoadAllImportsForDll ("CEGUIOpenGLRenderer-0.dll");
-      __HrLoadAllImportsForDll ("CEGUIDirect3D9Renderer-0.dll");
-      __HrLoadAllImportsForDll ("CEGUIDirect3D11Renderer-0.dll");
+      // This tests for the existence of the DLL before attempting to load it...
+      auto DelayLoadDLL = [&](const char* szDLL)->
+        bool
+          {
+               wchar_t wszFullName [MAX_PATH] = { L'\0' };
+            _swprintf (wszFullName, L"%s\\%hs", wszCEGUIModPath, szDLL);
+
+            if (GetFileAttributesW (wszFullName) != INVALID_FILE_ATTRIBUTES) {
+              return SUCCEEDED (__HrLoadAllImportsForDll (szDLL));
+            }
+
+            return false;
+          };
+
+      DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
+      DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
+      DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
 
       SetDllDirectoryW         (nullptr);
     }

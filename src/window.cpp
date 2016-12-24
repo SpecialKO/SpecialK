@@ -2030,30 +2030,27 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
    };
 
   // Ignore this event
-  if (uMsg == WM_MOUSEACTIVATE && config.window.background_render) {
+  if (uMsg == WM_MOUSEACTIVATE/* && config.window.background_render*/) {
     if ((HWND)wParam == game_window.hWnd) {
       dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
 
       ActivateWindow (true);
 
-      return MA_ACTIVATEANDEAT;
+      if (config.window.background_render)
+        return MA_ACTIVATEANDEAT;
     }
 
     ActivateWindow (false);
 
     dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate");
 
-    return MA_ACTIVATE;
+    if (config.window.background_render)
+      return MA_ACTIVATE;
   }
 
   // Allow the game to run in the background
   if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE || uMsg == WM_NCACTIVATE /*|| uMsg == WM_MOUSEACTIVATE*/)
   {
-    if (! hooked)
-      game_window.CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, TRUE, (LPARAM)hWnd);
-    else
-      game_window.WndProc_Original (hWnd, uMsg, TRUE, (LPARAM)hWnd);
-
     if (uMsg == WM_NCACTIVATE) {
       if (wParam == TRUE && last_active == false) {
         //dll_log->Log (L"[Window Mgr] Application Activated (Non-Client)");
@@ -2068,6 +2065,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         //   when the game loses focus, so do not simply pass this through to the
         //     default window procedure.
         if (config.window.background_render) {
+          if (! hooked)
+            game_window.CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, TRUE, (LPARAM)hWnd);
+          else
+            game_window.WndProc_Original (hWnd, uMsg, TRUE, (LPARAM)hWnd);
+
           return 0;
         }
       }
@@ -2128,10 +2130,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
   }
 
-  if (config.window.background_render) {
-    if ((! game_window.active) && uMsg == WM_MOUSEMOVE) {
-      GetCursorPos_Original (&game_window.cursor_pos);
-    }
+  if ((! game_window.active) && uMsg == WM_MOUSEMOVE) {
+    GetCursorPos_Original (&game_window.cursor_pos);
   }
 
   bool background_render =

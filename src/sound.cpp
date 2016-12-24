@@ -30,10 +30,17 @@ SK_GetVolumeControl (void)
   if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
     return nullptr;
 
+  // Most game audio a user will not want to hear while a game is in the
+  //   background will pass through eConsole.
+  //
+  //   eCommunication will be headset stuff and that's something a user is not
+  //     going to appreciate having muted :) Consider overloading this function
+  //       to allow independent control.
+  //
   CComPtr <IMMDevice> pDevice;
   if ( FAILED (
-         pDevEnum->GetDefaultAudioEndpoint ( eRender,
-                                               eCommunications,
+         pDevEnum->GetDefaultAudioEndpoint ( eAll,
+                                               eConsole,
                                                  &pDevice )
               )
      ) return nullptr;
