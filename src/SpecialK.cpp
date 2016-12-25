@@ -217,7 +217,14 @@ SK_Attach (DLL_ROLE role)
         // If this is the global injector and there is a wrapper version
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
+        {
+          // Must increment this counter so that we can cleanly detach this DLL
+          InterlockedExchangeAddRelease (
+            &__SK_DLL_Attached,
+              1
+          );
           return FALSE;
+        }
 
         InterlockedCompareExchange (
           &__SK_DLL_Attached,
@@ -228,7 +235,7 @@ SK_Attach (DLL_ROLE role)
         return
           InterlockedExchangeAddRelease (
             &__SK_DLL_Attached,
-              0
+              1
           );
       }
 
@@ -237,7 +244,14 @@ SK_Attach (DLL_ROLE role)
         // If this is the global injector and there is a wrapper version
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
+        {
+          // Must increment this counter so that we can cleanly detach this DLL
+          InterlockedExchangeAddRelease (
+            &__SK_DLL_Attached,
+              1
+          );
           return FALSE;
+        }
 
         InterlockedCompareExchange (
           &__SK_DLL_Attached,
@@ -248,7 +262,7 @@ SK_Attach (DLL_ROLE role)
         return
           InterlockedExchangeAddRelease (
             &__SK_DLL_Attached,
-              0
+              1
           );
       }
 
@@ -257,7 +271,14 @@ SK_Attach (DLL_ROLE role)
         // If this is the global injector and there is a wrapper version
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
+        {
+          // Must increment this counter so that we can cleanly detach this DLL
+          InterlockedExchangeAddRelease (
+            &__SK_DLL_Attached,
+              1
+          );
           return FALSE;
+        }
 
         InterlockedCompareExchange (
           &__SK_DLL_Attached,
@@ -268,7 +289,7 @@ SK_Attach (DLL_ROLE role)
         return
           InterlockedExchangeAddRelease (
             &__SK_DLL_Attached,
-              0
+              1
           );
 
       case DLL_ROLE::Vulkan:

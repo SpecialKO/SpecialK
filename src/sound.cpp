@@ -39,7 +39,7 @@ SK_GetVolumeControl (void)
   //
   CComPtr <IMMDevice> pDevice;
   if ( FAILED (
-         pDevEnum->GetDefaultAudioEndpoint ( eAll,
+         pDevEnum->GetDefaultAudioEndpoint ( eRender,
                                                eConsole,
                                                  &pDevice )
               )
