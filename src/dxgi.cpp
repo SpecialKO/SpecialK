@@ -3358,10 +3358,12 @@ void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
 {
-  SK_BootDXGI ();
+  if (! SK_IsHostAppSKIM ()) {
+    SK_BootDXGI ();
 
-  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
-    Sleep (100UL);
+    while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+      Sleep (100UL);
+  }
 
   finish ();
 }

@@ -601,10 +601,12 @@ void
 WINAPI
 d3d9_init_callback (finish_pfn finish)
 {
-  SK_BootD3D9 ();
+  if (! SK_IsHostAppSKIM ()) {
+    SK_BootD3D9 ();
 
-  while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
-    Sleep (100UL);
+    while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
+      Sleep (100UL);
+  }
 
   finish ();
 }
