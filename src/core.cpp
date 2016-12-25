@@ -1023,15 +1023,17 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   bool load_proxy = false;
 
-  if (! SK_IsInjected ()) {
-    extern import_t imports [SK_MAX_IMPORTS];
+  if (! SK_IsHostAppSKIM ()) {
+    if (! SK_IsInjected ()) {
+      extern import_t imports [SK_MAX_IMPORTS];
 
-    for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-      if (imports [i].role != nullptr && imports [i].role->get_value () == backend) {
-        dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
-        dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
-        load_proxy = true;
-        break;
+      for (int i = 0; i < SK_MAX_IMPORTS; i++) {
+        if (imports [i].role != nullptr && imports [i].role->get_value () == backend) {
+          dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
+          dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
+          load_proxy = true;
+          break;
+        }
       }
     }
   }
@@ -1056,9 +1058,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   __crc32_init ();
 
-
-
-  if (config.cegui.enable)
+  if ((! SK_IsHostAppSKIM ()) && config.cegui.enable)
   {
     // Disable until we validate CEGUI's state
     config.cegui.enable = false;
@@ -1119,14 +1119,16 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
-  SK::Framerate::Init ();
+  if (! SK_IsHostAppSKIM ()) {
+    SK::Framerate::Init ();
 
-  // Load user-defined DLLs (Early)
+    // Load user-defined DLLs (Early)
 #ifdef _WIN64
-  SK_LoadEarlyImports64 ();
+    SK_LoadEarlyImports64 ();
 #else
-  SK_LoadEarlyImports32 ();
+    SK_LoadEarlyImports32 ();
 #endif
+  }
 
   if (config.system.silent) {
     dll_log.silent = true;
@@ -1145,6 +1147,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     dll_log.silent = false;
   }
 
+  if (! SK_IsHostAppSKIM ()) {
   dll_log.LogEx (true, L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI): ");
 
   nvapi_init = sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
@@ -1249,18 +1252,21 @@ SK_InitCore (const wchar_t* backend, void* callback)
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
   EnumLoadedModules ();
+  }
 
   typedef void (WINAPI *finish_pfn)  (_Releases_exclusive_lock_ (init_mutex) void);
   typedef void (WINAPI *callback_pfn)(finish_pfn);
   callback_pfn callback_fn = (callback_pfn)callback;
   callback_fn (SK_InitFinishCallback);
 
-  // Load user-defined DLLs (Plug-In)
+  if (! SK_IsHostAppSKIM ()) {
+    // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
-  SK_LoadPlugIns64 ();
+    SK_LoadPlugIns64 ();
 #else
-  SK_LoadPlugIns32 ();
+    SK_LoadPlugIns32 ();
 #endif
+  }
 }
 
 
@@ -1602,6 +1608,9 @@ DllThread (LPVOID user)
 {
   EnterCriticalSection (&init_mutex);
   {
+    SK_Console* pConsole = SK_Console::getInstance ();
+    pConsole->Start ();
+
     DllThread_CRT (&init_);
   }
   LeaveCriticalSection (&init_mutex);
@@ -1618,6 +1627,15 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
+
+  // Allow users to centralize all files if they want
+  if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
+    config.system.central_repository = true;
+
+  if (SK_IsInjected ())
+    config.system.central_repository = true;
+
   wchar_t wszBlacklistFile [MAX_PATH] = { L'\0' };
 
   lstrcatW (wszBlacklistFile, L"SpecialK.deny.");
@@ -1732,16 +1750,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return false;
     }
   }
-
-  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
-
-  // Allow users to centralize all files if they want
-  if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
-    config.system.central_repository = true;
-
-  if (SK_IsInjected ())
-    config.system.central_repository = true;
-
 
   // Don't start SteamAPI if we're running the installer...
   if (SK_IsHostAppSKIM ())
@@ -1862,20 +1870,19 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
-  SK_TestSteamImports (SK_GetDLL ());
+  if (! SK_IsHostAppSKIM ()) {
+    SK_TestSteamImports (SK_GetDLL ());
 
-  if (GetModuleHandle (L"CSteamworks.dll")) {
-    SK_HookCSteamworks ();
+    if (GetModuleHandle (L"CSteamworks.dll")) {
+      SK_HookCSteamworks ();
+    }
+
+    if ( GetModuleHandle (L"steam_api.dll")   ||
+         GetModuleHandle (L"steam_api64.dll") ||
+         GetModuleHandle (L"SteamNative.dll") ) {
+      SK_HookSteamAPI ();
+    }
   }
-
-  if ( GetModuleHandle (L"steam_api.dll")   ||
-       GetModuleHandle (L"steam_api64.dll") ||
-       GetModuleHandle (L"SteamNative.dll") ) {
-    SK_HookSteamAPI ();
-  }
-
-  SK_Console* pConsole = SK_Console::getInstance ();
-  pConsole->Start ();
 
   LeaveCriticalSection (&init_mutex);
 
