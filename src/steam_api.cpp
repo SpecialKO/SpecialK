@@ -2108,30 +2108,40 @@ protected:
     if (icon_idx != 0) {
       steam_ctx.Utils ()->GetImageSize (icon_idx, &w, &h);
     
-      if (achievement->icons_.achieved == nullptr) {
+      int tries = 1;
+
+      while (achievement->icons_.achieved == nullptr && tries < 8)
+      {
         achievement->icons_.achieved =
           (uint8_t *)malloc (4 * w * h);
-    
-        steam_ctx.Utils ()->GetImageRGBA (
-          icon_idx,
-            achievement->icons_.achieved,
-              4 * w * h
-        );
+
+        if ( ! steam_ctx.Utils ()->GetImageRGBA (
+                 icon_idx,
+                   achievement->icons_.achieved,
+                     4 * w * h 
+               )
+           )
+        {
+          free (achievement->icons_.achieved);
+          achievement->icons_.achieved = nullptr;
+          ++tries;
+        } else {
+          steam_log.Log ( L" * Fetched RGBA Icon (idx=%lu) for Achievement: '%hs'  (%lux%lu) "
+                            L"{ Took %lu try(s) }",
+                            icon_idx, achievement->name_, w, h, tries );
+        }
       }
     }
-
-    steam_log.Log ( L" * Fetched RGBA Icon (idx=%lu) for Achievement: '%hs'  (%lux%lu)",
-                      icon_idx, achievement->name_, w, h );
 
     if (achievement->icons_.achieved != nullptr) {
       bool exists = CEGUI::ImageManager::getDllSingleton ().isDefined (achievement->name_);
 
-      const CEGUI::Image& img =
+      CEGUI::Image& img =
          exists ?
           CEGUI::ImageManager::getDllSingleton ().get    (              achievement->name_) :
           CEGUI::ImageManager::getDllSingleton ().create ("BasicImage", achievement->name_);
 
-      if (! exists) {
+      if (! exists) try {
         /* StaticImage */
         CEGUI::Texture& Tex =
           pSys->getRenderer ()->createTexture (achievement->name_);
@@ -2145,11 +2155,15 @@ protected:
         const CEGUI::Rectf rect (CEGUI::Vector2f (0.0f, 0.0f), Tex.getOriginalDataSize ());
         ((CEGUI::BasicImage &)img).setArea       (rect);
         ((CEGUI::BasicImage &)img).setAutoScaled (CEGUI::ASM_Both);
+      } catch (...) {
       }
 
-      CEGUI::Window* staticImage = achv_popup->getChild ("Icon");
-      staticImage->setProperty ( "Image",
-                                   achievement->name_ );
+      try {
+        CEGUI::Window* staticImage = achv_popup->getChild ("Icon");
+        staticImage->setProperty ( "Image",
+                                     achievement->name_ );
+      } catch (...) {
+      }
     }
 
     if (config.steam.achievements.popup.show_title) {
@@ -2896,7 +2910,7 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
-#if 0
+#if 1
   EnterCriticalSection (&init_cs);
 
   KillSteamPump ();
@@ -2909,23 +2923,24 @@ SteamAPI_Shutdown_Detour (void)
   return;
 #endif
 
+  LeaveCriticalSection (&init_cs);
+
+#if 0
   CreateThread ( nullptr, 0,
        [](LPVOID user) ->
   DWORD {
+    Sleep (20000UL);
+
     while (SteamAPI_InitSafe_Original == nullptr)
-      Sleep (1000UL);
+      Sleep (10000UL);
 
-    if (SteamAPI_InitSafe_Original ()) {
-      SK_SteamAPI_InitManagers ();
-
+    if (SteamAPI_InitSafe ())
       StartSteamPump (true);
-    }
 
     CloseHandle (GetCurrentThread ());
     return 0;
   }, nullptr, 0x00, nullptr );
-
-  LeaveCriticalSection (&init_cs);
+#endif
 }
 
 bool

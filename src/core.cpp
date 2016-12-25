@@ -1608,12 +1608,12 @@ DllThread (LPVOID user)
 {
   EnterCriticalSection (&init_mutex);
   {
-    SK_Console* pConsole = SK_Console::getInstance ();
-    pConsole->Start ();
-
     DllThread_CRT (&init_);
   }
   LeaveCriticalSection (&init_mutex);
+
+  SK_Console* pConsole = SK_Console::getInstance ();
+  pConsole->Start ();
 
   return 0;
 }

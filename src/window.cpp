@@ -1331,6 +1331,8 @@ SK_AdjustBorder (void)
   if (game_window.GetWindowLongPtr == nullptr)
     return;
 
+  UINT async = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
+
   game_window.actual.style =
     config.window.borderless ?
       SK_BORDERLESS :
@@ -1344,8 +1346,8 @@ SK_AdjustBorder (void)
                   HWND_TOP,
                     0, 0,
                       0, 0,
-                        SWP_NOMOVE   | SWP_NOSIZE         | 
-                        SWP_NOZORDER | SWP_FRAMECHANGED );
+                        SWP_NOMOVE   | SWP_NOSIZE       | 
+                        SWP_NOZORDER | SWP_FRAMECHANGED | async );
 
 
   RECT new_window = game_window.game.client;
@@ -1372,6 +1374,8 @@ SK_AdjustWindow (void)
   if (game_window.GetWindowLongPtr == nullptr)
     return;
 
+  UINT async = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
+
   HMONITOR hMonitor =
     MonitorFromWindow ( game_window.hWnd,
                           MONITOR_DEFAULTTONEAREST );
@@ -1390,7 +1394,7 @@ SK_AdjustWindow (void)
                                 mi.rcMonitor.top,
                                   mi.rcMonitor.right  - mi.rcMonitor.left,
                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                    SWP_NOSENDCHANGING );
+                                    SWP_NOSENDCHANGING | SWP_NOREPOSITION | async );
 
     dll_log.Log ( L"[Border Mgr] FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
                     mi.rcMonitor.left, mi.rcMonitor.top,
@@ -1545,7 +1549,7 @@ SK_AdjustWindow (void)
                                 game_window.actual.window.top,
                                   game_window.actual.window.right  - game_window.actual.window.left,
                                   game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_NOSENDCHANGING );
+                                      SWP_NOSENDCHANGING | SWP_NOREPOSITION | async );
 
     wchar_t wszBorderDesc [128] = { L'\0' };
 
