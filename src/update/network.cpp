@@ -152,8 +152,9 @@ DownloadThread (LPVOID user)
                             L"HTTP/1.1",
                               nullptr,
                                 rgpszAcceptTypes,
-                                  INTERNET_FLAG_NO_UI          | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
-                                  INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_IGNORE_CERT_CN_INVALID,
+                                                                    INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
+                                  INTERNET_FLAG_CACHE_IF_NET_FAIL | INTERNET_FLAG_IGNORE_CERT_CN_INVALID   |
+                                  INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC,
                                     (DWORD_PTR)&dwInetCtx );
 
   if (! hInetHTTPGetReq) {

@@ -256,8 +256,10 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
                             L"HTTP/1.1",
                               nullptr,
                                 rgpszAcceptTypes,
-                                  INTERNET_FLAG_NO_UI          | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
-                                  INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_IGNORE_CERT_CN_INVALID,
+                                  INTERNET_FLAG_MAKE_PERSISTENT   | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
+                                  INTERNET_FLAG_CACHE_IF_NET_FAIL | INTERNET_FLAG_IGNORE_CERT_CN_INVALID   |
+                                  INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC              |
+                                  INTERNET_FLAG_NEED_FILE,
                                     (DWORD_PTR)&dwInetCtx );
 
   if (! hInetGitHubOpen) {
