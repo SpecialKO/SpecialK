@@ -28,6 +28,7 @@
 #include <SpecialK/render_backend.h>
 #include <SpecialK/window.h>
 
+#include <comdef.h>
 #include <atlbase.h>
 
 #include <SpecialK/nvapi.h>
@@ -2091,40 +2092,26 @@ __declspec (noinline)
   {
     std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
-    bool fake = false;
-
-    // Avoid logging for swapchains we created for the purpose of hooking...
-    if ( pDesc->BufferCount                        == 1                        &&
-         pDesc->SwapEffect                         == DXGI_SWAP_EFFECT_DISCARD &&
-         pDesc->BufferDesc.Width                   == 800                      &&
-         pDesc->BufferDesc.Height                  == 600                      &&
-         pDesc->BufferDesc.RefreshRate.Denominator == 1                        &&
-         pDesc->BufferDesc.RefreshRate.Numerator   == 60 )
-      fake = true;
-
-    if (! fake) {
-      DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChain", L"%08Xh, %08Xh, %08Xh",
-                      pDevice, pDesc, ppSwapChain);
-    }
+    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChain", L"%08Xh, %08Xh, %08Xh",
+                    pDevice, pDesc, ppSwapChain);
 
     HRESULT ret;
 
     if (pDesc != nullptr) {
-      if (! fake) {
-        if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
-        {
-          if (! config.window.res.override.isZero ()) {
-            pDesc->BufferDesc.Width  = config.window.res.override.x;
-            pDesc->BufferDesc.Height = config.window.res.override.y;
-          }
-
-          else {
-            SK_DXGI_BorderCompensation (
-              pDesc->BufferDesc.Width,
-                pDesc->BufferDesc.Height
-            );
-          }
+      if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+      {
+        if (! config.window.res.override.isZero ()) {
+          pDesc->BufferDesc.Width  = config.window.res.override.x;
+          pDesc->BufferDesc.Height = config.window.res.override.y;
         }
+
+        else {
+          SK_DXGI_BorderCompensation (
+            pDesc->BufferDesc.Width,
+              pDesc->BufferDesc.Height
+          );
+        }
+      }
 
       dll_log.LogEx ( true,
         L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s) - {%s}"
@@ -2154,7 +2141,6 @@ __declspec (noinline)
                 pDesc->SwapEffect == 4 ?
                   L"Flip Discard" :
                   L"<Unknown>" );
-      }
 
       // Set things up to make the swap chain Alt+Enter friendly
       if (bAlwaysAllowFullscreen) {
@@ -2237,30 +2223,12 @@ __declspec (noinline)
         pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
-
-      if (! fake) {
-        dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
-                       bFlipMode ? L"Flip" : L"Traditional",
-                         bWait ? L"Yes" : L"No",
-                           bWait ? config.render.framerate.swapchain_wait : 0 );
-      }
     }
 
-
-    if (fake) {
-      HRESULT hr = 
-        CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain);
-
-      if ( SUCCEEDED (hr)         &&
-           ppSwapChain != nullptr &&
-        (*ppSwapChain) != nullptr )
-      {
-        SK_DXGI_HookPresent (*ppSwapChain);
-        MH_ApplyQueued      ();
-      }
-
-      return hr;
-    }
+    dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
+                   bFlipMode ? L"Flip" : L"Traditional",
+                     bWait ? L"Yes" : L"No",
+                       bWait ? config.render.framerate.swapchain_wait : 0 );
 
     DXGI_CALL(ret, CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain));
 
@@ -3125,8 +3093,6 @@ __declspec (noinline)
 
     SK_DXGI_factory_init = true;
 
-    WaitForInit ();
-
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
@@ -3150,8 +3116,6 @@ __declspec (noinline)
 
     SK_DXGI_use_factory1 = true;
     SK_DXGI_factory_init = true;
-
-    WaitForInit ();
 
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
@@ -3179,8 +3143,6 @@ __declspec (noinline)
   {
     SK_DXGI_use_factory1 = true;
     SK_DXGI_factory_init = true;
-
-    WaitForInit ();
 
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
@@ -3274,9 +3236,6 @@ SK_HookDXGI (void)
   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
     return;
 
-  SK_D3D11_Init ();
-  SK_D3D12_Init ();
-
   HMODULE hBackend = 
     (SK_GetDLLRole () & DLL_ROLE::DXGI) ? backend_dll :
                                             GetModuleHandle (L"dxgi.dll");
@@ -3333,6 +3292,9 @@ SK_HookDXGI (void)
     SK_DXGI_factory_init = true;
   }
 
+  SK_D3D11_Init ();
+  SK_D3D12_Init ();
+
   SK_ICommandProcessor* pCommandProc =
     SK_GetCommandProcessor ();
 
@@ -3349,9 +3311,6 @@ SK_HookDXGI (void)
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
     Sleep (100UL);
-
-  SK_D3D11_EnableHooks ();
-  SK_D3D12_EnableHooks ();
 }
 
 void
@@ -3415,11 +3374,9 @@ SK_FreeRealDXGI (void)
 bool
 SK::DXGI::Startup (void)
 {
-  std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
+  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
 
   bool ret = SK_StartupCore (L"dxgi", dxgi_init_callback);
-
-  SK_ResumeThreads (tids);
 
   return ret;
 }
@@ -3484,8 +3441,8 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
     vftable_22 = vftable [22];
   }
 
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Reinstall ();
+  //if (config.system.handle_crashes)
+    //SK::Diagnostics::CrashHandler::Reinstall ();
 }
 
 std::wstring
@@ -3493,6 +3450,168 @@ SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 {
 
 }
+
+void
+SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
+{
+  static volatile ULONG init = FALSE;
+
+  if (InterlockedCompareExchange (&init, TRUE, FALSE))
+    return;
+
+  DXGI_VIRTUAL_HOOK ( &pSwapChain, 10, "IDXGISwapChain::SetFullscreenState",
+                            DXGISwap_SetFullscreenState_Override,
+                                     SetFullscreenState_Original,
+                                       SetFullscreenState_pfn );
+
+  DXGI_VIRTUAL_HOOK ( &pSwapChain, 11, "IDXGISwapChain::GetFullscreenState",
+                            DXGISwap_GetFullscreenState_Override,
+                                     GetFullscreenState_Original,
+                                       GetFullscreenState_pfn );
+
+  DXGI_VIRTUAL_HOOK ( &pSwapChain, 13, "IDXGISwapChain::ResizeBuffers",
+                           DXGISwap_ResizeBuffers_Override,
+                                    ResizeBuffers_Original,
+                                      ResizeBuffers_pfn );
+
+  DXGI_VIRTUAL_HOOK ( &pSwapChain, 14, "IDXGISwapChain::ResizeTarget",
+                           DXGISwap_ResizeTarget_Override,
+                                    ResizeTarget_Original,
+                                      ResizeTarget_pfn );
+
+  CComPtr <IDXGIOutput> pOutput = nullptr;
+
+  if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput))) {
+    if (pOutput != nullptr) {
+      DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
+                                DXGIOutput_GetDisplayModeList_Override,
+                                           GetDisplayModeList_Original,
+                                           GetDisplayModeList_pfn );
+
+      DXGI_VIRTUAL_HOOK ( &pOutput, 9, "IDXGIOutput::FindClosestMatchingMode",
+                                DXGIOutput_FindClosestMatchingMode_Override,
+                                           FindClosestMatchingMode_Original,
+                                           FindClosestMatchingMode_pfn );
+
+      DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
+                               DXGIOutput_WaitForVBlank_Override,
+                                          WaitForVBlank_Original,
+                                          WaitForVBlank_pfn );
+    }
+  }
+
+  SK_DXGI_HookPresent (pSwapChain);
+
+  MH_ApplyQueued ();
+}
+
+void
+SK_DXGI_HookFactory (IDXGIFactory* pFactory)
+{
+  static volatile ULONG init = FALSE;
+
+  if (InterlockedCompareExchange (&init, TRUE, FALSE))
+    return;
+
+  void** vftable = *(void***)*&pFactory;
+
+  int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+
+  DXGI_VIRTUAL_HOOK ( &pFactory,     10,
+                      "IDXGIFactory::CreateSwapChain",
+                       DXGIFactory_CreateSwapChain_Override,
+                                   CreateSwapChain_Original,
+                                   CreateSwapChain_pfn );
+
+  // DXGI 1.1+
+  if (iver > 0) {
+    CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+
+    if (SUCCEEDED (pFactory->QueryInterface (IID_PPV_ARGS (&pFactory1)))) {
+      vftable = *(void***)*&pFactory1;
+
+      DXGI_VIRTUAL_HOOK ( &pFactory1,   12,
+                          "IDXGIFactory1::EnumAdapters1",
+                           EnumAdapters1_Override,
+                           EnumAdapters1_Original,
+                           EnumAdapters1_pfn );
+
+      //if (EnumAdapters_Original == nullptr)
+        //EnumAdapters_Original = (EnumAdapters_pfn)(vftable [7]);
+    } else {
+      //SK_DXGI_use_factory1 = false;
+    }
+  }
+
+  //if (EnumAdapters_Original == nullptr) {
+    //
+    // EnumAdapters actually calls EnumAdapters1 if the interface
+    //   implements IDXGIFactory1...
+    //
+    //  >> Avoid some nasty recursion and only hook EnumAdapters if the
+    //       interface version is DXGI 1.0.
+    //
+    DXGI_VIRTUAL_HOOK ( &pFactory,     7,
+                        "IDXGIFactory::EnumAdapters",
+                         EnumAdapters_Override,
+                         EnumAdapters_Original,
+                         EnumAdapters_pfn );
+  //}
+
+  //  0 QueryInterface
+  //  1 AddRef
+  //  2 Release
+  //  3 SetPrivateData
+  //  4 SetPrivateDataInterface
+  //  5 GetPrivateData
+  //  6 GetParent
+  //  7 EnumAdapters
+  //  8 MakeWindowAssociation
+  //  9 GetWindowAssociation
+  // 10 CreateSwapChain
+  // 11 CreateSoftwareAdapter
+  // 12 EnumAdapters1
+  // 13 IsCurrent
+  // 14 IsWindowedStereoEnabled
+  // 15 CreateSwapChainForHwnd
+  // 16 CreateSwapChainForCoreWindow
+  // 17 GetSharedResourceAdapterLuid
+  // 18 RegisterStereoStatusWindow
+  // 19 RegisterStereoStatusEvent
+  // 20 UnregisterStereoStatus
+  // 21 RegisterOcclusionStatusWindow
+  // 22 RegisterOcclusionStatusEvent
+  // 23 UnregisterOcclusionStatus
+  // 24 CreateSwapChainForComposition
+  
+  // DXGI 1.2+
+  if (iver > 1) {
+    CComPtr <IDXGIFactory2> pFactory2 = nullptr;
+
+    if (SUCCEEDED (pFactory->QueryInterface (IID_PPV_ARGS (&pFactory2)))) {
+      DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
+                          "IDXGIFactory2::CreateSwapChainForHwnd",
+                           DXGIFactory_CreateSwapChainForHwnd_Override,
+                                       CreateSwapChainForHwnd_Original,
+                                       CreateSwapChainForHwnd_pfn );
+
+      DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
+                          "IDXGIFactory2::CreateSwapChainForCoreWindow",
+                           DXGIFactory_CreateSwapChainForCoreWindow_Override,
+                                       CreateSwapChainForCoreWindow_Original,
+                                       CreateSwapChainForCoreWindow_pfn );
+    }
+  }
+
+  MH_ApplyQueued ();
+}
+
+struct sk_hook_d3d11_t {
+ ID3D11Device**        ppDevice;
+ ID3D11DeviceContext** ppImmediateContext;
+} d3d11_hook_ctx;
+
+volatile DWORD SK_D3D11_init_tid = 0;
 
 __declspec (nothrow)
 unsigned int
@@ -3506,6 +3625,7 @@ HookDXGI (LPVOID user)
     // If something called a D3D11 function before DXGI was initialized,
     //   begin the process, but ... only do this once.
     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
+      dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
       SK_BootDXGI ();
     }
 
@@ -3521,216 +3641,102 @@ HookDXGI (LPVOID user)
   }
 
   CoInitializeEx (nullptr, COINIT_MULTITHREADED);
-  {
+
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
-  CComPtr <IDXGIFactory>  pFactory  = nullptr;
-  CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
-  CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+  CComPtr <IDXGIFactory> pFactory  = nullptr;
+
+  DXGI_SWAP_CHAIN_DESC desc;
+  ZeroMemory (&desc, sizeof desc);
+
+  desc.BufferDesc.Width                   = 800;
+  desc.BufferDesc.Height                  = 600;
+
+  desc.BufferDesc.RefreshRate.Numerator   = 60;
+  desc.BufferDesc.RefreshRate.Denominator = 1;
+  desc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
+  desc.BufferDesc.ScanlineOrdering        = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+  desc.BufferDesc.Scaling                 = config.render.dxgi.scaling_mode == -1 ?
+                                              DXGI_MODE_SCALING_UNSPECIFIED :
+                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+
+  desc.SampleDesc.Count                   = 1;
+  desc.SampleDesc.Quality                 = 0;
+
+  desc.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  desc.BufferCount                        = 1;
+
+  HWND hwnd =
+    CreateWindowW ( L"STATIC", L"Dummy DXGI Window",
+                      WS_POPUP | WS_MINIMIZEBOX,
+                        CW_USEDEFAULT, CW_USEDEFAULT,
+                          800, 600, 0,
+                            nullptr, nullptr, 0x00 );
+
+  desc.OutputWindow = hwnd;
+  desc.Windowed     = TRUE;
+
+  desc.SwapEffect   = DXGI_SWAP_EFFECT_DISCARD;
+
+  CComPtr <ID3D11Device>        pDevice           = nullptr;
+  D3D_FEATURE_LEVEL             featureLevel;
+  CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
+  CComPtr <IDXGISwapChain>      pSwapChain        = nullptr;
+
+  // DXI stuff is ready at this point, we'll hook the swapchain stuff
+  //   after this call.
+
+  InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
   HRESULT hr =
-    CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
+    D3D11CreateDevice_Import (
+      0,
+        D3D_DRIVER_TYPE_HARDWARE,
+          nullptr,
+            0,
+              nullptr,
+                0,
+                  D3D11_SDK_VERSION,
+                    &pDevice,
+                      &featureLevel,
+                        &pImmediateContext );
 
-  if (SUCCEEDED (hr)) {
-    pFactory->EnumAdapters (0, &pAdapter);
+  InterlockedExchange (&SK_D3D11_init_tid, 0);
 
-    if (pFactory) {
-      void** vftable = *(void***)*&pFactory;
+  if (SUCCEEDED (hr))
+  {
+    CComPtr <IDXGIDevice>  pDevDXGI;
+    CComPtr <IDXGIAdapter> pAdapter;
+    CComPtr <IDXGIFactory> pFactory;
 
-      int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+    if ( SUCCEEDED (pDevice->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
+         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter))  &&
+         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+    {
+      if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
+        SK_DXGI_HookSwapChain (pSwapChain);
 
-      CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+      SK_DXGI_HookFactory (pFactory);
 
-      if (iver > 0) {
-        if (SUCCEEDED (CreateDXGIFactory1_Import ( IID_PPV_ARGS (&pFactory1) ))) {
-          pFactory1->EnumAdapters1 (0, &pAdapter1);
-        }
-      }
+      d3d11_hook_ctx.ppDevice           = &pDevice;
+      d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
-      DXGI_VIRTUAL_HOOK ( &pFactory,     10,
-                          "IDXGIFactory::CreateSwapChain",
-                           DXGIFactory_CreateSwapChain_Override,
-                                       CreateSwapChain_Original,
-                                       CreateSwapChain_pfn );
-
-      // DXGI 1.1+
-      if (iver > 0) {
-        DXGI_VIRTUAL_HOOK ( &pFactory,   12,
-                            "IDXGIFactory1::EnumAdapters1",
-                             EnumAdapters1_Override,
-                             EnumAdapters1_Original,
-                             EnumAdapters1_pfn );
-
-        if (EnumAdapters_Original == nullptr)
-          EnumAdapters_Original = (EnumAdapters_pfn)(vftable [7]);
-      } else {
-        //
-        // EnumAdapters actually calls EnumAdapters1 if the interface
-        //   implements IDXGIFactory1...
-        //
-        //  >> Avoid some nasty recursion and only hook EnumAdapters if the
-        //       interface version is DXGI 1.0.
-        //
-        DXGI_VIRTUAL_HOOK ( &pFactory,     7,
-                            "IDXGIFactory::EnumAdapters",
-                             EnumAdapters_Override,
-                             EnumAdapters_Original,
-                             EnumAdapters_pfn );
-      }
-
-      //  0 QueryInterface
-      //  1 AddRef
-      //  2 Release
-      //  3 SetPrivateData
-      //  4 SetPrivateDataInterface
-      //  5 GetPrivateData
-      //  6 GetParent
-      //  7 EnumAdapters
-      //  8 MakeWindowAssociation
-      //  9 GetWindowAssociation
-      // 10 CreateSwapChain
-      // 11 CreateSoftwareAdapter
-      // 12 EnumAdapters1
-      // 13 IsCurrent
-      // 14 IsWindowedStereoEnabled
-      // 15 CreateSwapChainForHwnd
-      // 16 CreateSwapChainForCoreWindow
-      // 17 GetSharedResourceAdapterLuid
-      // 18 RegisterStereoStatusWindow
-      // 19 RegisterStereoStatusEvent
-      // 20 UnregisterStereoStatus
-      // 21 RegisterOcclusionStatusWindow
-      // 22 RegisterOcclusionStatusEvent
-      // 23 UnregisterOcclusionStatus
-      // 24 CreateSwapChainForComposition
-
-      // DXGI 1.2+
-      if (iver > 1) {
-        DXGI_VIRTUAL_HOOK ( &pFactory,   15,
-                            "IDXGIFactory2::CreateSwapChainForHwnd",
-                             DXGIFactory_CreateSwapChainForHwnd_Override,
-                                         CreateSwapChainForHwnd_Original,
-                                         CreateSwapChainForHwnd_pfn );
-
-        DXGI_VIRTUAL_HOOK ( &pFactory,   16,
-                            "IDXGIFactory2::CreateSwapChainForCoreWindow",
-                             DXGIFactory_CreateSwapChainForCoreWindow_Override,
-                                         CreateSwapChainForCoreWindow_Original,
-                                         CreateSwapChainForCoreWindow_pfn );
-      }
+      HookD3D11 (&d3d11_hook_ctx);
     }
+  } else {
+    _com_error err (hr);
 
-    DXGI_SWAP_CHAIN_DESC desc;
-    ZeroMemory (&desc, sizeof desc);
-
-    desc.BufferDesc.Width                   = 800;
-    desc.BufferDesc.Height                  = 600;
-
-    desc.BufferDesc.RefreshRate.Numerator   = 60;
-    desc.BufferDesc.RefreshRate.Denominator = 1;
-    desc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.BufferDesc.ScanlineOrdering        = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    desc.BufferDesc.Scaling                 = config.render.dxgi.scaling_mode == -1 ?
-                                                DXGI_MODE_SCALING_UNSPECIFIED :
-                             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-
-    desc.SampleDesc.Count                   = 1;
-    desc.SampleDesc.Quality                 = 0;
-
-    desc.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    desc.BufferCount                        = 1;
-
-    HWND hwnd =
-      CreateWindowW ( L"STATIC", L"Dummy DXGI Window",
-                        WS_OVERLAPPEDWINDOW,
-                          CW_USEDEFAULT, CW_USEDEFAULT,
-                            800, 600, 0,
-                              nullptr, nullptr, 0x00 );
-
-    desc.OutputWindow = hwnd;
-    desc.Windowed     = TRUE;
-
-    desc.SwapEffect   = DXGI_SWAP_EFFECT_DISCARD;
-
-    CComPtr <ID3D11Device>        pDevice           = nullptr;
-    D3D_FEATURE_LEVEL             featureLevel;
-    CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
-    CComPtr <IDXGISwapChain>      pSwapChain        = nullptr;
-
-    InterlockedExchange (&__dxgi_ready, TRUE);
-
-    // DXI stuff is ready at this point, we'll hook the swapchain stuff
-    //   after this call.
-
-    HRESULT hrx =
-      D3D11CreateDeviceAndSwapChain_Import (
-        pAdapter,
-          D3D_DRIVER_TYPE_UNKNOWN,
-            nullptr,
-              0,
-                nullptr,
-                  0,
-                    D3D11_SDK_VERSION,
-                      &desc, &pSwapChain,
-                        &pDevice,
-                          &featureLevel,
-                            &pImmediateContext );
-
-    if ( SUCCEEDED (hrx) &&
-         pSwapChain != nullptr) {
-      DXGI_VIRTUAL_HOOK ( &pSwapChain, 10, "IDXGISwapChain::SetFullscreenState",
-                                DXGISwap_SetFullscreenState_Override,
-                                         SetFullscreenState_Original,
-                                           SetFullscreenState_pfn );
-
-      DXGI_VIRTUAL_HOOK ( &pSwapChain, 11, "IDXGISwapChain::GetFullscreenState",
-                                DXGISwap_GetFullscreenState_Override,
-                                         GetFullscreenState_Original,
-                                           GetFullscreenState_pfn );
-
-      DXGI_VIRTUAL_HOOK ( &pSwapChain, 13, "IDXGISwapChain::ResizeBuffers",
-                               DXGISwap_ResizeBuffers_Override,
-                                        ResizeBuffers_Original,
-                                          ResizeBuffers_pfn );
-
-      DXGI_VIRTUAL_HOOK ( &pSwapChain, 14, "IDXGISwapChain::ResizeTarget",
-                               DXGISwap_ResizeTarget_Override,
-                                        ResizeTarget_Original,
-                                          ResizeTarget_pfn );
-
-      CComPtr <IDXGIOutput> pOutput = nullptr;
-      if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput))) {
-        if (pOutput != nullptr) {
-          DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
-                                    DXGIOutput_GetDisplayModeList_Override,
-                                               GetDisplayModeList_Original,
-                                               GetDisplayModeList_pfn );
-
-          DXGI_VIRTUAL_HOOK ( &pOutput, 9, "IDXGIOutput::FindClosestMatchingMode",
-                                    DXGIOutput_FindClosestMatchingMode_Override,
-                                               FindClosestMatchingMode_Original,
-                                               FindClosestMatchingMode_pfn );
-
-          DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
-                                   DXGIOutput_WaitForVBlank_Override,
-                                              WaitForVBlank_Original,
-                                              WaitForVBlank_pfn );
-        }
-      }
-
-      SK_DXGI_HookPresent (pSwapChain);
-
-      MH_ApplyQueued ();
-    }
-
-    DestroyWindow (hwnd);
+    dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+                             err.WCode (), err.ErrorMessage () );
   }
-
-    HookD3D11 (nullptr);
-  }
-  CoUninitialize ();
 
   InterlockedExchange (&__dxgi_ready, TRUE);
+
+  DestroyWindow (hwnd);
+
+  // These don't do anything (anymore)
+  SK_D3D11_EnableHooks ();
+  SK_D3D12_EnableHooks ();
 
   CloseHandle (GetCurrentThread ());
 

@@ -282,8 +282,6 @@ SK_LoadRealGL (void)
 {
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
 
-  extern bool __stdcall SK_IsInjected (void);
-
   if (! SK_IsInjected ()) {
 #ifdef _WIN64
     GetSystemDirectory (wszBackendDLL, MAX_PATH);
@@ -332,6 +330,8 @@ SK::OpenGL::Startup (void)
   //
   std::wstring   dll_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszDllName = dll_name.c_str   ();
+
+  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
 
   if (! wcsstr (wszDllName, L"SpecialK") ) {
     SK_LoadRealGL ();

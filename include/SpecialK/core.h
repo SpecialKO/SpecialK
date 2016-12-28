@@ -150,11 +150,13 @@ SK_IsHostAppSKIM (void);
 
 bool
 __stdcall
-SK_IsInjected (void);
+SK_IsInjected (bool set = false);
 
 ULONG
 __stdcall
 SK_GetFramesDrawn (void);
+
+extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
 enum DLL_ROLE {
   // Graphics APIs

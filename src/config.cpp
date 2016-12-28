@@ -39,11 +39,6 @@ iSK_INI*             achievement_ini = nullptr;
 sk_config_t          config;
 sk::ParameterFactory g_ParameterFactory;
 
-extern
-bool
-__stdcall
-SK_IsInjected (void);
-
 struct {
   struct {
     sk::ParameterBool*    show;

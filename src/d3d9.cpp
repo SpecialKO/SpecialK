@@ -615,11 +615,9 @@ d3d9_init_callback (finish_pfn finish)
 bool
 SK::D3D9::Startup (void)
 {
-  std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
+  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
 
   bool ret = SK_StartupCore (L"d3d9", d3d9_init_callback);
-
-  SK_ResumeThreads (tids);
 
   return ret;
 }
@@ -2855,7 +2853,7 @@ HookD3D9 (LPVOID user)
     if (pD3D9 != nullptr) {
       hwnd =
         CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
-                          WS_OVERLAPPEDWINDOW,
+                          WS_POPUP | WS_MINIMIZEBOX,
                             CW_USEDEFAULT, CW_USEDEFAULT,
                               800, 600, 0,
                                 nullptr, nullptr, 0x00 );
@@ -3032,7 +3030,7 @@ HookD3D9 (LPVOID user)
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
         hwnd =
           CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
-                            WS_OVERLAPPEDWINDOW,
+                            WS_POPUP | WS_MINIMIZEBOX,
                               CW_USEDEFAULT, CW_USEDEFAULT,
                                 800, 600, 0,
                                   nullptr, nullptr, 0x00 );

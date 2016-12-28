@@ -66,15 +66,21 @@ SK_GetTLS (void)
   return (SK_TLS *)lpvData;
 }
 
-// Indicates that the DLL is injected purely as a hooker, rather than
-//   as a wrapper DLL.
-bool __injected = false;
-
 bool
 __stdcall
-SK_IsInjected (void)
+SK_IsInjected (bool set)
 {
-  return __injected;
+// Indicates that the DLL is injected purely as a hooker, rather than
+//   as a wrapper DLL.
+  static volatile LONG __injected = 0L;
+
+  if (InterlockedExchangeAdd (&__injected, 0L) > 0L)
+    return true;
+
+  if (set)
+    InterlockedExchange (&__injected, 1L);
+
+  return set;
 }
 
 HMODULE
@@ -186,7 +192,7 @@ SK_EstablishDllRole (HMODULE hModule)
       }
     }
 
-    __injected = true;
+    SK_IsInjected (true);
   }
 
 
@@ -218,11 +224,6 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
         {
-          // Must increment this counter so that we can cleanly detach this DLL
-          InterlockedExchangeAddRelease (
-            &__SK_DLL_Attached,
-              1
-          );
           return FALSE;
         }
 
@@ -245,11 +246,6 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
         {
-          // Must increment this counter so that we can cleanly detach this DLL
-          InterlockedExchangeAddRelease (
-            &__SK_DLL_Attached,
-              1
-          );
           return FALSE;
         }
 
@@ -272,11 +268,6 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
         {
-          // Must increment this counter so that we can cleanly detach this DLL
-          InterlockedExchangeAddRelease (
-            &__SK_DLL_Attached,
-              1
-          );
           return FALSE;
         }
 
@@ -429,8 +420,8 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_ATTACH:
     {
-      //if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
-      //{
+      if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
+      {
         _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
 
         LPVOID lpvData =
@@ -440,14 +431,14 @@ DllMain ( HMODULE hModule,
           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
             LocalFree (lpvData);
         }
-      //}
+      }
     } break;
 
 
     case DLL_THREAD_DETACH:
     {
-      //if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
-      //{
+      if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
+      {
         LPVOID lpvData =
           (LPVOID)TlsGetValue (__SK_TLS_INDEX);
 
@@ -457,7 +448,7 @@ DllMain ( HMODULE hModule,
         }
 
         _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
-      //}
+      }
     } break;
   }
 

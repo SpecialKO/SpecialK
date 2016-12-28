@@ -90,6 +90,8 @@ typedef HRESULT (WINAPI *D3D11CreateDeviceAndSwapChain_pfn)(
   _Out_opt_                            ID3D11DeviceContext**);
 
 
+extern void WaitForInitDXGI (void);
+
 HMODULE SK::DXGI::hModD3D11 = 0;
 
 volatile LONG  __d3d11_ready  = FALSE;
@@ -293,6 +295,51 @@ struct d3d11_caps_t {
 volatile D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import = nullptr;
 volatile D3D11CreateDevice_pfn             D3D11CreateDevice_Import             = nullptr;
 
+void
+SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
+                     D3D_FEATURE_LEVEL        FeatureLevel )
+{
+  if (ppDevice != nullptr)
+  {
+    if (*ppDevice != g_pD3D11Dev)
+    {
+      dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
+                      *ppDevice,
+                        SK_DXGI_FeatureLevelsToStr ( 1,
+                                                      (DWORD *)&FeatureLevel
+                                                   ).c_str ()
+                  );
+      g_pD3D11Dev = *ppDevice;
+    }
+
+    CComPtr <IDXGIDevice>  pDXGIDev = nullptr;
+    CComPtr <IDXGIAdapter> pAdapter = nullptr;
+
+    HRESULT hr =
+      (*ppDevice)->QueryInterface (__uuidof (IDXGIDevice), (void **)&pDXGIDev);
+
+    if (SUCCEEDED (hr))
+    {
+      hr = pDXGIDev->GetParent (__uuidof (IDXGIAdapter), (void **)&pAdapter);
+
+      if (SUCCEEDED (hr))
+      {
+        if (pAdapter == nullptr)
+          return;
+
+        int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
+
+        // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
+        if (iver >= 3) {
+          SK_StartDXGI_1_4_BudgetThread (&pAdapter);
+        }
+      }
+    }
+  }
+}
+
+extern volatile DWORD SK_D3D11_init_tid;
+
 HRESULT
 WINAPI
 D3D11CreateDevice_Detour (
@@ -307,12 +354,15 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
-  HookD3D11 (nullptr);
-
   DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
+
+  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
+  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
+    WaitForInitDXGI ();
 
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level;
+  ID3D11Device*     ret_device;
 
   dll_log.LogEx ( true,
                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
@@ -329,15 +379,6 @@ D3D11CreateDevice_Detour (
 
   SK_DXGI_AdapterOverride ( &pAdapter, &DriverType );
 
-  if (pAdapter != nullptr) {
-    int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
-
-    // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
-    if (iver >= 3) {
-      SK_StartDXGI_1_4_BudgetThread (&pAdapter);
-    }
-  }
-
   HRESULT res;
 
   DXGI_CALL(res, 
@@ -348,25 +389,18 @@ D3D11CreateDevice_Detour (
                               pFeatureLevels,
                               FeatureLevels,
                               SDKVersion,
-                              ppDevice,
+                              &ret_device,
                               &ret_level,
                               ppImmediateContext));
 
   if (SUCCEEDED (res)) {
     dwRenderThread = GetCurrentThreadId ();
 
-    if (ppDevice != nullptr) {
-      if (*ppDevice != g_pD3D11Dev) {
-        dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
-                        *ppDevice,
-                          SK_DXGI_FeatureLevelsToStr ( 1,
-                                                        (DWORD *)&ret_level
-                                                     ).c_str ()
-                    );
-        g_pD3D11Dev = *ppDevice;
-      }
-    }
+    SK_D3D11_SetDevice ( &ret_device, ret_level );
   }
+
+  if (ppDevice != nullptr)
+    *ppDevice = ret_device;
 
   if (pFeatureLevel != nullptr)
     *pFeatureLevel = ret_level;
@@ -389,39 +423,28 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
-  HookD3D11 (nullptr);
-
-  // Detect devices that were only created for the purpose of creating hooks....
-  bool bFake = false;
-
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level;
+  ID3D11Device*     ret_device;
 
   // Allow override of swapchain parameters
   DXGI_SWAP_CHAIN_DESC* swap_chain_desc     = (DXGI_SWAP_CHAIN_DESC *)pSwapChainDesc;
   DXGI_SWAP_CHAIN_DESC  swap_chain_override = { 0 };
 
-  if ( swap_chain_desc != nullptr &&
-       swap_chain_desc->BufferCount                        == 1                        &&
-       swap_chain_desc->SwapEffect                         == DXGI_SWAP_EFFECT_DISCARD &&
-       swap_chain_desc->BufferDesc.Width                   == 800                      &&
-       swap_chain_desc->BufferDesc.Height                  == 600                      &&
-       swap_chain_desc->BufferDesc.RefreshRate.Denominator == 1                        &&
-       swap_chain_desc->BufferDesc.RefreshRate.Numerator   == 60 )
-    bFake = true;
+  DXGI_LOG_CALL_0 (L"D3D11CreateDeviceAndSwapChain");
 
-  if (! bFake) {
-    DXGI_LOG_CALL_0 (L"D3D11CreateDeviceAndSwapChain");
+  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
+  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
+    WaitForInitDXGI ();
 
-    dll_log.LogEx ( true,
-                      L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
-                        FeatureLevels,
-                          SK_DXGI_FeatureLevelsToStr (
-                            FeatureLevels,
-                              (DWORD *)pFeatureLevels
-                          ).c_str ()
-                  );
-  }
+  dll_log.LogEx ( true,
+                    L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
+                      FeatureLevels,
+                        SK_DXGI_FeatureLevelsToStr (
+                          FeatureLevels,
+                            (DWORD *)pFeatureLevels
+                        ).c_str ()
+                );
 
   //
   // DXGI Adapter Override (for performance)
@@ -429,16 +452,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   SK_DXGI_AdapterOverride ( &pAdapter, &DriverType );
 
-  if (pAdapter != nullptr) {
-    int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
-
-    // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
-    if (iver >= 3) {
-      SK_StartDXGI_1_4_BudgetThread (&pAdapter);
-    }
-  }
-
-  if (swap_chain_desc != nullptr && (! bFake)) {
+  if (swap_chain_desc != nullptr) {
     dll_log.LogEx ( true,
                       L"[   DXGI   ]  SwapChain: (%lux%lu@%4.1f Hz - Scaling: %s) - "
                       L"[%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
@@ -512,20 +526,15 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                           SDKVersion,
                                           swap_chain_desc,
                                           ppSwapChain,
-                                          ppDevice,
+                                          &ret_device,
                                           &ret_level,
                                           ppImmediateContext));
 
   if (SUCCEEDED (res))
   {
     if (swap_chain_desc != nullptr) {
-      // Fake, created by (UNKNOWN)
-      if ( swap_chain_desc->BufferDesc.Width  == 256 &&
-           swap_chain_desc->BufferDesc.Height == 256 )
-        bFake = true;
-
-      if ((! bFake) && ( dwRenderThread == 0x00 ||
-                         dwRenderThread == GetCurrentThreadId () )) {
+      if ( dwRenderThread == 0x00 ||
+           dwRenderThread == GetCurrentThreadId () ) {
         if ( hWndRender                   != 0 &&
              swap_chain_desc->OutputWindow != 0 &&
              swap_chain_desc->OutputWindow != hWndRender )
@@ -541,23 +550,16 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     // Assume the first thing to create a D3D11 render device is
     //   the game and that devices never migrate threads; for most games
     //     this assumption holds.
-    if ((! bFake) && ( dwRenderThread == 0x00 ||
-                       dwRenderThread == GetCurrentThreadId ()) ) {
+    if ( dwRenderThread == 0x00 ||
+         dwRenderThread == GetCurrentThreadId () ) {
       dwRenderThread = GetCurrentThreadId ();
-
-      if (ppDevice != nullptr) {
-        if (*ppDevice != g_pD3D11Dev) {
-          dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
-                          *ppDevice,
-                            SK_DXGI_FeatureLevelsToStr ( 1,
-                                                          (DWORD *)&ret_level
-                                                       ).c_str ()
-                      );
-          g_pD3D11Dev = *ppDevice;
-        }
-      }
     }
+
+    SK_D3D11_SetDevice ( &ret_device, ret_level );
   }
+
+  if (ppDevice != nullptr)
+    *ppDevice = ret_device;
 
   if (pFeatureLevel != nullptr)
     *pFeatureLevel = ret_level;
@@ -2327,8 +2329,9 @@ D3D11Dev_CreateTexture2D_Override (
     D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
   if (ppTexture2D != nullptr) {
-    static bool init = false;
-    if (! init) {
+    static volatile ULONG init = FALSE;
+
+    if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
       DXGI_VIRTUAL_HOOK ( ppTexture2D, 2, "IUnknown::Release",
                           IUnknown_Release,
                           IUnknown_Release_Original,
@@ -2340,7 +2343,8 @@ D3D11Dev_CreateTexture2D_Override (
 
       MH_ApplyQueued ();
 
-      init = true;
+      IUnknown_AddRef           (*ppTexture2D);
+      IUnknown_Release_Original (*ppTexture2D);
     }
   }
 
@@ -2573,15 +2577,18 @@ SK_D3D11_Init (void)
   if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE)) {
     SK::DXGI::hModD3D11 = LoadLibrary (L"d3d11.dll");
 
-    SK_CreateDLLHook2 ( L"d3d11.dll", "D3D11CreateDevice",
-                         D3D11CreateDevice_Detour,
-              (LPVOID *)&D3D11CreateDevice_Import,
-                        &pfnD3D11CreateDevice );
+    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDevice",
+                        D3D11CreateDevice_Detour,
+             (LPVOID *)&D3D11CreateDevice_Import,
+                       &pfnD3D11CreateDevice );
 
-    SK_CreateDLLHook2 ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
-                         D3D11CreateDeviceAndSwapChain_Detour,
-              (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
-                        &pfnD3D11CreateDeviceAndSwapChain );
+    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
+                        D3D11CreateDeviceAndSwapChain_Detour,
+             (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
+                       &pfnD3D11CreateDeviceAndSwapChain );
+
+    SK_EnableHook (pfnD3D11CreateDevice);
+    SK_EnableHook (pfnD3D11CreateDeviceAndSwapChain);
 
 #ifdef NO_TLS
     InitializeCriticalSectionAndSpinCount (&cs_texinject, 0x4000);
@@ -2691,8 +2698,7 @@ SK_D3D11_Shutdown (void)
 void
 SK_D3D11_EnableHooks (void)
 {
-  SK_EnableHook (pfnD3D11CreateDevice);
-  SK_EnableHook (pfnD3D11CreateDeviceAndSwapChain);
+  InterlockedExchange (&__d3d11_ready, TRUE);
 }
 
 
@@ -2700,6 +2706,11 @@ extern
 unsigned int __stdcall HookD3D12                   (LPVOID user);
 
 volatile ULONG __d3d11_hooked = FALSE;
+
+struct sk_hook_d3d11_t {
+ ID3D11Device**        ppDevice;
+ ID3D11DeviceContext** ppImmediateContext;
+};
 
 __declspec (nothrow)
 unsigned int
@@ -2713,6 +2724,7 @@ HookD3D11 (LPVOID user)
     // If something called a D3D11 function before DXGI was initialized,
     //   begin the process, but ... only do this once.
     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
+      dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
       SK_BootDXGI ();
     }
 
@@ -2731,112 +2743,45 @@ HookD3D11 (LPVOID user)
 
   dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
 
-  CComPtr <IDXGIFactory>  pFactory  = nullptr;
-  CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
-  CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+  sk_hook_d3d11_t* pHooks = 
+    (sk_hook_d3d11_t *)user;
 
-  HRESULT hr =
-    CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
-
-  if (SUCCEEDED (hr)) {
-    pFactory->EnumAdapters (0, &pAdapter);
-
-    if (pFactory) {
-      int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
-
-      CComPtr <IDXGIFactory1> pFactory1 = nullptr;
-
-      if (iver > 0) {
-        if (SUCCEEDED (CreateDXGIFactory1_Import ( IID_PPV_ARGS (&pFactory1) ))) {
-          pFactory1->EnumAdapters1 (0, &pAdapter1);
-        }
-      }
-    }
-  }
-
-  CComPtr <ID3D11Device>        pDevice           = nullptr;
-  D3D_FEATURE_LEVEL             featureLevel;
-  CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
-
-  HRESULT hrx = E_FAIL;
-  {
-    if (pAdapter1 != nullptr) {
-      D3D_FEATURE_LEVEL test_11_1 = D3D_FEATURE_LEVEL_11_1;
-
-      hrx =
-        D3D11CreateDevice_Import (
-          pAdapter1,
-            D3D_DRIVER_TYPE_UNKNOWN,
-              nullptr,
-                0,
-                  &test_11_1,
-                    1,
-                      D3D11_SDK_VERSION,
-                        &pDevice,
-                          &featureLevel,
-                            &pImmediateContext );
-
-      if (SUCCEEDED (hrx)) {
-        d3d11_caps.feature_level.d3d11_1 = true;
-      }
+  if (pHooks->ppDevice && pHooks->ppImmediateContext) {
+    if (pHooks->ppDevice != nullptr) {
+      DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 5, "ID3D11Device::CreateTexture2D",
+                             D3D11Dev_CreateTexture2D_Override, D3D11Dev_CreateTexture2D_Original,
+                             D3D11Dev_CreateTexture2D_pfn);
     }
 
-    if (! SUCCEEDED (hrx)) {
-      hrx =
-        D3D11CreateDevice_Import (
-          pAdapter,
-            D3D_DRIVER_TYPE_UNKNOWN,
-              nullptr,
-                0,
-                  nullptr,
-                    0,
-                      D3D11_SDK_VERSION,
-                        &pDevice,
-                          &featureLevel,
-                            &pImmediateContext );
-    }
-  }
+    if (pHooks->ppImmediateContext != nullptr) {
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
+                             D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
+                             D3D11_VSSetConstantBuffers_pfn);
 
-  if (SUCCEEDED (hrx)) {
-    if (pDevice && pImmediateContext) {
-      if (pDevice != nullptr) {
-        DXGI_VIRTUAL_HOOK (&pDevice, 5, "ID3D11Device::CreateTexture2D",
-                               D3D11Dev_CreateTexture2D_Override, D3D11Dev_CreateTexture2D_Original,
-                               D3D11Dev_CreateTexture2D_pfn);
-      }
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
+                           D3D11_Map_Override, D3D11_Map_Original,
+                           D3D11_Map_pfn);
 
-      if (pImmediateContext != nullptr) {
-        DXGI_VIRTUAL_HOOK (&pImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
-                               D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
-                               D3D11_VSSetConstantBuffers_pfn);
-
-        DXGI_VIRTUAL_HOOK (&pImmediateContext, 14, "ID3D11DeviceContext::Map",
-                             D3D11_Map_Override, D3D11_Map_Original,
-                             D3D11_Map_pfn);
-
-        DXGI_VIRTUAL_HOOK (&pImmediateContext, 44, "ID3D11DeviceContext::RSSetViewports",
-                             D3D11_RSSetViewports_Override, D3D11_RSSetViewports_Original,
-                             D3D11_RSSetViewports_pfn);
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 44, "ID3D11DeviceContext::RSSetViewports",
+                           D3D11_RSSetViewports_Override, D3D11_RSSetViewports_Original,
+                           D3D11_RSSetViewports_pfn);
 
 #if 0
-        DXGI_VIRTUAL_HOOK (&pImmediateContext, 45, "ID3D11DeviceContext::RSSetScissorRects",
-                             D3D11_RSSetScissorRects_Override, D3D11_RSSetScissorRects_Original,
-                             D3D11_RSSetScissorRects_pfn);
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 45, "ID3D11DeviceContext::RSSetScissorRects",
+                           D3D11_RSSetScissorRects_Override, D3D11_RSSetScissorRects_Original,
+                           D3D11_RSSetScissorRects_pfn);
 #endif
 
-        DXGI_VIRTUAL_HOOK (&pImmediateContext, 47, "ID3D11DeviceContext::CopyResource",
-                             D3D11_CopyResource_Override, D3D11_CopyResource_Original,
-                             D3D11_CopyResource_pfn);
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 47, "ID3D11DeviceContext::CopyResource",
+                           D3D11_CopyResource_Override, D3D11_CopyResource_Original,
+                           D3D11_CopyResource_pfn);
 
-        DXGI_VIRTUAL_HOOK (&pImmediateContext, 48, "ID3D11DeviceContext::UpdateSubresource",
-                             D3D11_UpdateSubresource_Override, D3D11_UpdateSubresource_Original,
-                             D3D11_UpdateSubresource_pfn);
-      }
-
-      MH_ApplyQueued ();
-
-      InterlockedExchange (&__d3d11_ready, TRUE);
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 48, "ID3D11DeviceContext::UpdateSubresource",
+                           D3D11_UpdateSubresource_Override, D3D11_UpdateSubresource_Original,
+                           D3D11_UpdateSubresource_pfn);
     }
+
+    MH_ApplyQueued ();
   }
 
   HookD3D12 (nullptr);

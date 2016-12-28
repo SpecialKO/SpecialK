@@ -1627,8 +1627,6 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
-
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;

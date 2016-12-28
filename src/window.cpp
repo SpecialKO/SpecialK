@@ -1347,7 +1347,8 @@ SK_AdjustBorder (void)
                     0, 0,
                       0, 0,
                         SWP_NOMOVE   | SWP_NOSIZE       | 
-                        SWP_NOZORDER | SWP_FRAMECHANGED | async );
+                        SWP_NOZORDER | SWP_FRAMECHANGED |
+                        SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
 
 
   RECT new_window = game_window.game.client;
@@ -1362,7 +1363,7 @@ SK_AdjustBorder (void)
                     new_window.left, new_window.top,
                       new_window.right  - new_window.left,
                       new_window.bottom - new_window.top,
-                        SWP_NOZORDER | SWP_NOSENDCHANGING );
+                        SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
 
   GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
   GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
@@ -1394,7 +1395,7 @@ SK_AdjustWindow (void)
                                 mi.rcMonitor.top,
                                   mi.rcMonitor.right  - mi.rcMonitor.left,
                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                    SWP_NOSENDCHANGING | SWP_NOREPOSITION | async );
+                                    SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
 
     dll_log.Log ( L"[Border Mgr] FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
                     mi.rcMonitor.left, mi.rcMonitor.top,
@@ -1549,9 +1550,11 @@ SK_AdjustWindow (void)
                                 game_window.actual.window.top,
                                   game_window.actual.window.right  - game_window.actual.window.left,
                                   game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_NOSENDCHANGING | SWP_NOREPOSITION | async );
+                                    SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
 
     wchar_t wszBorderDesc [128] = { L'\0' };
+
+    bool has_border = SK_WindowManager::StyleHasBorder (game_window.actual.style);
 
     // Summarize the border
     if (SK_WindowManager::StyleHasBorder (game_window.actual.style)) {
@@ -1566,7 +1569,7 @@ SK_AdjustWindow (void)
                     game_window.actual.window.left, game_window.actual.window.top,
                        game_window.actual.window.right - game_window.actual.window.left,
                          game_window.actual.window.bottom - game_window.actual.window.top,
-                    config.window.borderless ? L"None" : wszBorderDesc );
+                    (! has_border) ? L"None" : wszBorderDesc );
   }
 
   GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
@@ -1618,6 +1621,9 @@ int
 WINAPI
 SK_GetSystemMetrics (_In_ int nIndex)
 {
+  if (! GetSystemMetrics_Original)
+    SK_HookWinAPI ();
+
   return GetSystemMetrics_Original (nIndex);
 }
 
