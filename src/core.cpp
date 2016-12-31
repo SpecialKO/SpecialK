@@ -2530,7 +2530,7 @@ bool
 __cdecl
 SK_IsHostAppSKIM (void)
 {
-  return (wcsstr (SK_GetHostApp (), L"SKIM") != nullptr);
+  return (StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
 }
 
 const wchar_t*
