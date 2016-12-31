@@ -1747,6 +1747,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   monitoring.pagefile.show->set_value         (config.pagefile.show);
   monitoring.pagefile.interval->set_value     (config.pagefile.interval);
 
+  if (! (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1))
+    config.sli.show = false;
+
   monitoring.SLI.show->set_value              (config.sli.show);
   monitoring.time.show->set_value             (config.time.show);
 
@@ -2036,6 +2039,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   version->set_value                     (SK_VER_STR);
   version->store                         ();
+
+  if (! (nvapi_init && sk::NVAPI::nv_hardware))
+    dll_ini->remove_section (L"NVIDIA.SLI");
 
   wchar_t wszFullName [ MAX_PATH + 2 ] = { L'\0' };
 

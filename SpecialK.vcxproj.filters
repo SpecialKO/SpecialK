@@ -326,9 +326,6 @@
     <ClCompile Include="src\plugins\fo4.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\ds3.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\d3d9.cpp">
       <Filter>Source Files\Backends\D3D9</Filter>
     </ClCompile>
@@ -370,6 +367,9 @@
     </ClCompile>
     <ClCompile Include="src\window.cpp">
       <Filter>Source Files\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\ds3.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

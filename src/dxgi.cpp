@@ -3313,6 +3313,8 @@ SK_HookDXGI (void)
     Sleep (100UL);
 }
 
+static std::queue <DWORD> old_threads;
+
 void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
@@ -3325,6 +3327,8 @@ dxgi_init_callback (finish_pfn finish)
   }
 
   finish ();
+
+  SK_ResumeThreads (old_threads);
 }
 
 
@@ -3375,6 +3379,9 @@ bool
 SK::DXGI::Startup (void)
 {
   _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
+
+  old_threads =
+    SK_SuspendAllOtherThreads ();
 
   bool ret = SK_StartupCore (L"dxgi", dxgi_init_callback);
 

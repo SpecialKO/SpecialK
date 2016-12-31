@@ -33,11 +33,9 @@
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/sound.h>
 
 #include <SpecialK/tls.h>
-
-extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
-
 
 #pragma warning   (push)
 #pragma warning   (disable: 4091)
@@ -96,12 +94,25 @@ int                      gpu_prio;
 
 HMODULE                  backend_dll  = 0;
 
-// Brutal hack that assumes the executable has a .exe extension...
-//   FIXME
 void
 SK_PathRemoveExtension (wchar_t* wszInOut)
 {
-  wszInOut [lstrlenW (wszInOut) - 3] = L'\0';
+  wchar_t *wszEnd = wszInOut,
+          *wszPrev;
+
+  while (*CharNextW (wszEnd) != L'\0')
+    wszEnd = CharNextW (wszEnd);
+
+  wszPrev = wszEnd;
+
+  while (  CharPrevW (wszInOut, wszPrev) > wszInOut &&
+          *CharPrevW (wszInOut, wszPrev) != L'.' )
+    wszPrev = CharPrevW (wszInOut, wszPrev);
+
+  if (CharPrevW (wszInOut, wszPrev) > wszInOut) {
+    if (*CharPrevW (wszInOut, wszPrev) == L'.')
+      *CharPrevW (wszInOut, wszPrev) = L'\0';
+  }
 }
 
 wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
@@ -1634,9 +1645,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config.system.central_repository = true;
 
-  wchar_t wszBlacklistFile [MAX_PATH] = { L'\0' };
+  wchar_t
+    wszBlacklistFile [ MAX_PATH * 2 ] =
+      { L"SpecialK.deny." };
 
-  lstrcatW (wszBlacklistFile, L"SpecialK.deny.");
   lstrcatW (wszBlacklistFile, SK_GetHostApp ());
 
   SK_PathRemoveExtension (wszBlacklistFile);
@@ -1753,7 +1765,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsHostAppSKIM ())
     config.steam.init_delay = 0;
 
-
   wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
           wszConfigPath [  MAX_PATH  ] = L'\0';
 
@@ -1857,6 +1868,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
   }
 
+  // Start unmuted
+  if (config.window.background_mute)
+    SK_SetGameMute (FALSE);
+
   // Don't let Steam prevent me from attaching a debugger at startup, damnit!
   SK::Diagnostics::Debugger::Allow ();
 
@@ -1903,6 +1918,9 @@ bool
 WINAPI
 SK_ShutdownCore (const wchar_t* backend)
 {
+  if (config.window.background_mute)
+    SK_SetGameMute (FALSE);
+
   // These games do not handle resolution correctly
   if ( (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) ||
        (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))     ||
@@ -2155,6 +2173,9 @@ SK_BeginBufferSwap (void)
       SK_AdjustWindow ();
       first = false;
     }
+
+    if (config.window.background_mute)
+      SK_SetGameMute (FALSE);
   }
 
   extern void SK_DrawTexMgrStats (void);
@@ -2164,197 +2185,6 @@ SK_BeginBufferSwap (void)
 }
 
 ULONGLONG poll_interval = 0;
-
-#if 0
-#define MT_KEYBOARD
-#define USE_MT_KEYS
-#endif
-
-#ifdef MT_KEYBOARD
-unsigned int
-__stdcall
-KeyboardThread (void* user)
-{
-  ULONGLONG last_osd_scale { 0ULL };
-  ULONGLONG last_poll      { 0ULL };
-
-  SYSTEMTIME    stNow;
-  FILETIME      ftNow;
-  LARGE_INTEGER ullNow;
-
-while (true)
-{
-  GetSystemTime        (&stNow);
-  SystemTimeToFileTime (&stNow, &ftNow);
-
-  ullNow.HighPart = ftNow.dwHighDateTime;
-  ullNow.LowPart  = ftNow.dwLowDateTime;
-
-  if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval) {
-    if (HIWORD (GetAsyncKeyState (config.osd.keys.expand [0])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.expand [1])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.expand [2])))
-    {
-      last_osd_scale = ullNow.QuadPart;
-      SK_ResizeOSD (+1);
-    }
-
-    if (HIWORD (GetAsyncKeyState (config.osd.keys.shrink [0])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.shrink [1])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.shrink [2])))
-    {
-      last_osd_scale = ullNow.QuadPart;
-      SK_ResizeOSD (-1);
-    }
-  }
-
-  if (ullNow.QuadPart < last_poll + poll_interval) {
-    Sleep (10);
-    last_poll = ullNow.QuadPart;
-  }
-
-  static bool toggle_time = false;
-  if (HIWORD (GetAsyncKeyState (config.time.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.time.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.time.keys.toggle [2])))
-  {
-    if (! toggle_time) {
-      SK_UnlockSteamAchievement (0);
-
-      config.time.show = (! config.time.show);
-    }
-    toggle_time = true;
-  } else {
-    toggle_time = false;
-  }
-
-  static bool toggle_mem = false;
-  if (HIWORD (GetAsyncKeyState (config.mem.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.mem.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.mem.keys.toggle [2])))
-  {
-    if (! toggle_mem)
-      config.mem.show = (! config.mem.show);
-    toggle_mem = true;
-  } else {
-    toggle_mem = false;
-  }
-
-  static bool toggle_balance = false;
-  if (HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [2])))
-  {
-    if (! toggle_balance)
-      config.load_balance.use = (! config.load_balance.use);
-    toggle_balance = true;
-  } else {
-    toggle_balance = false;
-  }
-
-  static bool toggle_sli = false;
-  if (HIWORD (GetAsyncKeyState (config.sli.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.sli.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.sli.keys.toggle [2])))
-  {
-    if (! toggle_sli)
-      config.sli.show = (! config.sli.show);
-    toggle_sli = true;
-  } else {
-    toggle_sli = false;
-  }
-
-  static bool toggle_io = false;
-  if (HIWORD (GetAsyncKeyState (config.io.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.io.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.io.keys.toggle [2])))
-  {
-    if (! toggle_io)
-      config.io.show = (! config.io.show);
-    toggle_io = true;
-  } else {
-    toggle_io = false;
-  }
-
-  static bool toggle_cpu = false;
-  if (HIWORD (GetAsyncKeyState (config.cpu.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.cpu.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.cpu.keys.toggle [2])))
-  {
-    if (! toggle_cpu)
-      config.cpu.show = (! config.cpu.show);
-    toggle_cpu = true;
-  } else {
-    toggle_cpu = false;
-  }
-
-  static bool toggle_gpu = false;
-  if (HIWORD (GetAsyncKeyState (config.gpu.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.gpu.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.gpu.keys.toggle [2])))
-  {
-    if (! toggle_gpu)
-      config.gpu.show = (! config.gpu.show);
-    toggle_gpu = true;
-  } else {
-    toggle_gpu = false;
-  }
-
-  static bool toggle_fps = false;
-  if (HIWORD (GetAsyncKeyState (config.fps.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.fps.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.fps.keys.toggle [2])))
-  {
-    if (! toggle_fps)
-      config.fps.show = (! config.fps.show);
-    toggle_fps = true;
-  } else {
-    toggle_fps = false;
-  }
-
-  static bool toggle_disk = false;
-  if (HIWORD (GetAsyncKeyState (config.disk.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [2])))
-  {
-    if (! toggle_disk)
-      config.disk.show = (! config.disk.show);
-    toggle_disk = true;
-  } else {
-    toggle_disk = false;
-  }
-
-  static bool toggle_pagefile = false;
-  if (HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [2])))
-  {
-    if (! toggle_pagefile)
-      config.pagefile.show = (! config.pagefile.show);
-    toggle_pagefile = true;
-  } else {
-    toggle_pagefile = false;
-  }
-
-  static bool toggle_osd = false;
-  if (HIWORD (GetAsyncKeyState (config.osd.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.osd.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.osd.keys.toggle [2])))
-  {
-    if (! toggle_osd) {
-      config.osd.show = (! config.osd.show);
-      if (config.osd.show)
-        SK_InstallOSD ();
-    }
-    toggle_osd = true;
-  } else {
-    toggle_osd = false;
-  }
-}
-
-return 0;
-}
-#else
 
 void
 DoKeyboard (void)
@@ -2449,6 +2279,7 @@ DoKeyboard (void)
     toggle_mem = false;
   }
 
+#if 0
   static bool toggle_balance = false;
   if (HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [0])) &&
       HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [1])) &&
@@ -2460,17 +2291,21 @@ DoKeyboard (void)
   } else {
     toggle_balance = false;
   }
+#endif
 
-  static bool toggle_sli = false;
-  if (HIWORD (GetAsyncKeyState (config.sli.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.sli.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.sli.keys.toggle [2])))
+  if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1)
   {
-    if (! toggle_sli)
-      config.sli.show = (! config.sli.show);
-    toggle_sli = true;
-  } else {
-    toggle_sli = false;
+    static bool toggle_sli = false;
+    if (HIWORD (GetAsyncKeyState (config.sli.keys.toggle [0])) &&
+        HIWORD (GetAsyncKeyState (config.sli.keys.toggle [1])) &&
+        HIWORD (GetAsyncKeyState (config.sli.keys.toggle [2])))
+    {
+      if (! toggle_sli)
+        config.sli.show = (! config.sli.show);
+      toggle_sli = true;
+    } else {
+      toggle_sli = false;
+    }
   }
 
   static bool toggle_io = false;
@@ -2588,7 +2423,6 @@ DoKeyboard (void)
   }
 
 }
-#endif
 
 #include <SpecialK/render_backend.h>
 
@@ -2687,7 +2521,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   return hr;
 }
 
-wchar_t host_app [ MAX_PATH + 2 ] = { L'\0' };
+struct sk_host_process_s {
+  wchar_t wszApp  [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszPath [ MAX_PATH * 2 ] = { L'\0' };
+} host_proc;
 
 bool
 __cdecl
@@ -2699,26 +2536,49 @@ SK_IsHostAppSKIM (void)
 const wchar_t*
 SK_GetHostApp (void)
 {
-  static volatile ULONG init = FALSE;
+  static volatile
+    ULONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
-    DWORD   dwProcessSize = MAX_PATH;
-    wchar_t wszProcessName [MAX_PATH] = { L'\0' };
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    DWORD   dwProcessSize =  MAX_PATH * 2;
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
 
-    HANDLE hProc = GetCurrentProcess ();
+    HANDLE hProc =
+      GetCurrentProcess ();
 
-    QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+    QueryFullProcessImageName (
+      hProc,
+        0,
+          wszProcessName,
+            &dwProcessSize );
 
-    wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
+    int      len           = lstrlenW (wszProcessName);
+    wchar_t* pwszShortName =           wszProcessName;
 
-    while (  pwszShortName      >  wszProcessName &&
-           *(pwszShortName - 1) != L'\\')
-      --pwszShortName;
+    for (int i = 0; i < len; i++)
+      pwszShortName = CharNextW (pwszShortName);
 
-    lstrcpynW (host_app, pwszShortName, MAX_PATH);
+    while (  pwszShortName > wszProcessName ) {
+      wchar_t* wszPrev =
+        CharPrevW (wszProcessName, pwszShortName);
+
+      if (*wszPrev != L'\\' && *wszPrev != L'/') {
+        pwszShortName = wszPrev;
+        continue;
+      }
+
+      break;
+    }
+
+    lstrcpynW (
+      host_proc.wszApp,
+        pwszShortName,
+          MAX_PATH * 2
+    );
   }
 
-  return host_app;
+  return host_proc.wszApp;
 }
 
 // NOT the working directory, this is the directory that
@@ -2727,20 +2587,55 @@ SK_GetHostApp (void)
 const wchar_t*
 SK_GetHostPath (void)
 {
-  static volatile ULONG init                = FALSE;
-  static wchar_t  wszProcessName [MAX_PATH] = { L'\0' };
+  static volatile
+    ULONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
-           DWORD   dwProcessSize = MAX_PATH;
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    DWORD   dwProcessSize =  MAX_PATH * 2;
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
 
-    HANDLE hProc = GetCurrentProcess ();
+    HANDLE hProc =
+      GetCurrentProcess ();
 
-    QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+    QueryFullProcessImageName (
+      hProc,
+        0,
+          wszProcessName,
+            &dwProcessSize );
 
-    *(wcsrchr (wszProcessName, L'\\')) = L'\0';
+    int      len           = lstrlenW (wszProcessName);
+    wchar_t* pwszShortName =           wszProcessName;
+
+    for (int i = 0; i < len; i++)
+      pwszShortName = CharNextW (pwszShortName);
+
+    wchar_t* wszFirstSep = nullptr;
+
+    while (  pwszShortName > wszProcessName ) {
+      wchar_t* wszPrev =
+        CharPrevW (wszProcessName, pwszShortName);
+
+      if (*wszPrev == L'\\' || *wszPrev == L'/')
+      {                              // Leave the trailing separator
+        wszFirstSep = wszPrev; 
+        break;
+      }
+
+      pwszShortName = wszPrev;
+    }
+
+    if (wszFirstSep != nullptr)
+      *wszFirstSep = L'\0';
+
+    lstrcpynW (
+      host_proc.wszPath,
+        wszProcessName,
+          MAX_PATH * 2
+    );
   }
 
-  return wszProcessName;
+  return host_proc.wszPath;
 }
 
 DLL_ROLE dll_role;

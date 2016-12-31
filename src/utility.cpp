@@ -1086,8 +1086,9 @@ SK_SuspendAllOtherThreads (void)
             {
               threads.push (tent.th32ThreadID);
               SuspendThread (hThread);
-              CloseHandle   (hThread);
             }
+
+            CloseHandle (hThread);
           }
         }
 
@@ -1115,9 +1116,9 @@ SK_ResumeThreads (std::queue <DWORD> threads)
     {
       while (ResumeThread (hThread))
         ;
-
-      CloseHandle (hThread);
     }
+
+    CloseHandle (hThread);
 
     threads.pop ();
   }

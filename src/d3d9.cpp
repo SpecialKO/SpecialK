@@ -597,6 +597,8 @@ SK_HookD3D9 (void)
   CloseHandle (hThread);
 }
 
+static std::queue <DWORD> old_threads;
+
 void
 WINAPI
 d3d9_init_callback (finish_pfn finish)
@@ -609,6 +611,8 @@ d3d9_init_callback (finish_pfn finish)
   }
 
   finish ();
+
+  SK_ResumeThreads (old_threads);
 }
 
 
@@ -616,6 +620,9 @@ bool
 SK::D3D9::Startup (void)
 {
   _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
+
+  old_threads =
+    SK_SuspendAllOtherThreads ();
 
   bool ret = SK_StartupCore (L"d3d9", d3d9_init_callback);
 

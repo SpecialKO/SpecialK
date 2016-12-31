@@ -47,7 +47,7 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 
 // For texture caching to work correctly ...
 //   DarkSouls3 seems to underflow references on occasion!!!
-#define DS3_REF_TWEAK
+//#define DS3_REF_TWEAK
 
 namespace SK {
   namespace DXGI {
@@ -990,6 +990,8 @@ SK_D3D11_TexMgr::reset (void)
 
       if (refs <= 2 && desc.texture->Release () <= 2) {
 #else
+      int refs = IUnknown_AddRef_Original (desc.texture) - 1;
+
       if (refs == 1 && desc.texture->Release () <= 1) {
 #endif
         for (int i = 0; i < refs; i++) {
@@ -2342,9 +2344,6 @@ D3D11Dev_CreateTexture2D_Override (
                           IUnknown_AddRef_pfn );
 
       MH_ApplyQueued ();
-
-      IUnknown_AddRef           (*ppTexture2D);
-      IUnknown_Release_Original (*ppTexture2D);
     }
   }
 
@@ -2677,10 +2676,11 @@ SK_D3D11_Shutdown (void)
                         SK_D3D11_Textures.RedundantLoads_2D );
   }
 
-  SK_D3D11_Textures.reset ();
-
+#if 0
   // Stop caching while we shutdown
   SK_D3D11_cache_textures = false;
+
+  SK_D3D11_Textures.reset ();
 
   if (FreeLibrary (SK::DXGI::hModD3D11)) {
     DeleteCriticalSection (&tex_cs);
@@ -2693,6 +2693,7 @@ SK_D3D11_Shutdown (void)
     DeleteCriticalSection (&cs_texinject);
 #endif
   }
+#endif
 }
 
 void

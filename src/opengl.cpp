@@ -263,6 +263,8 @@ wglSwapBuffers (HDC hDC);
 
 extern "C++" void SK_BootOpenGL (void);
 
+static std::queue <DWORD> old_threads;
+
 void
 WINAPI
 opengl_init_callback (finish_pfn finish)
@@ -270,6 +272,8 @@ opengl_init_callback (finish_pfn finish)
   SK_BootOpenGL ();
 
   finish ();
+
+  SK_ResumeThreads (old_threads);
 }
 
 }
@@ -320,6 +324,8 @@ SK_FreeRealGL (void)
 bool
 SK::OpenGL::Startup (void)
 {
+  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
+
   //
   // For Thread Local Storage to work correctly, this is the only option.
   //
@@ -331,7 +337,8 @@ SK::OpenGL::Startup (void)
   std::wstring   dll_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszDllName = dll_name.c_str   ();
 
-  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
+  old_threads =
+    SK_SuspendAllOtherThreads ();
 
   if (! wcsstr (wszDllName, L"SpecialK") ) {
     SK_LoadRealGL ();

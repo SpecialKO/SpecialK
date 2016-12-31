@@ -21,11 +21,6 @@ typedef bool (WINAPI *ShutdownPlugin_pfn)(const wchar_t *);
 static ShutdownPlugin_pfn SK_ShutdownCore_Original = nullptr;
 extern "C" bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t *);
 
-extern
-bool
-__stdcall
-SK_IsInjected (void);
-
 ///////////////////////////////////////////
 // WinAPI Hooks
 ///////////////////////////////////////////
@@ -93,63 +88,7 @@ typedef HRESULT (STDMETHODCALLTYPE *DXGISwap_SetFullscreenState_pfn)(
     _Out_ IDXGIOutput    *pTarget
 );
 
-typedef enum D3DX11_IMAGE_FILE_FORMAT { 
-  D3DX11_IFF_BMP          = 0,
-  D3DX11_IFF_JPG          = 1,
-  D3DX11_IFF_PNG          = 3,
-  D3DX11_IFF_DDS          = 4,
-  D3DX11_IFF_TIFF         = 10,
-  D3DX11_IFF_GIF          = 11,
-  D3DX11_IFF_WMP          = 12,
-  D3DX11_IFF_FORCE_DWORD  = 0x7fffffff
-} D3DX11_IMAGE_FILE_FORMAT, *LPD3DX11_IMAGE_FILE_FORMAT;
-
-typedef HRESULT (WINAPI *D3DX11SaveTextureToFileW_pfn)(
-       ID3D11DeviceContext      *pContext,
-  _In_ ID3D11Resource           *pSrcTexture,
-  _In_ D3DX11_IMAGE_FILE_FORMAT DestFormat,
-  _In_ LPCWSTR                  pDestFile
-);
-
-typedef struct D3DX11_IMAGE_INFO {
-  UINT                     Width;
-  UINT                     Height;
-  UINT                     Depth;
-  UINT                     ArraySize;
-  UINT                     MipLevels;
-  UINT                     MiscFlags;
-  DXGI_FORMAT              Format;
-  D3D11_RESOURCE_DIMENSION ResourceDimension;
-  D3DX11_IMAGE_FILE_FORMAT ImageFileFormat;
-} D3DX11_IMAGE_INFO, *LPD3DX11_IMAGE_INFO;
-
-typedef struct D3DX11_IMAGE_LOAD_INFO {
-  UINT              Width;
-  UINT              Height;
-  UINT              Depth;
-  UINT              FirstMipLevel;
-  UINT              MipLevels;
-  D3D11_USAGE       Usage;
-  UINT              BindFlags;
-  UINT              CpuAccessFlags;
-  UINT              MiscFlags;
-  DXGI_FORMAT       Format;
-  UINT              Filter;
-  UINT              MipFilter;
-  D3DX11_IMAGE_INFO *pSrcInfo;
-} D3DX11_IMAGE_LOAD_INFO, *LPD3DX11_IMAGE_LOAD_INFO;
-
 interface ID3DX11ThreadPump;
-
-typedef HRESULT (WINAPI *D3DX11CreateTextureFromMemory_pfn)(
-  _In_  ID3D11Device           *pDevice,
-  _In_  LPCVOID                pSrcData,
-  _In_  SIZE_T                 SrcDataSize,
-  _In_  D3DX11_IMAGE_LOAD_INFO *pLoadInfo,
-  _In_  ID3DX11ThreadPump      *pPump,
-  _Out_ ID3D11Resource         **ppTexture,
-  _Out_ HRESULT                *pHResult
-);
 
 static D3D11_RSSetViewports_pfn   D3D11_RSSetViewports_Original          = nullptr;
 
@@ -158,21 +97,9 @@ DXGISwap_ResizeBuffers_pfn        DXGISwap_ResizeBuffers_Original        = nullp
 DXGISwap_GetFullscreenState_pfn   DXGISwap_GetFullscreenState_Original   = nullptr;
 DXGISwap_SetFullscreenState_pfn   DXGISwap_SetFullscreenState_Original   = nullptr;
 
-static
-D3DX11CreateTextureFromMemory_pfn D3DX11CreateTextureFromMemory_Original = nullptr;
-
-static
-D3DX11SaveTextureToFileW_pfn      D3DX11SaveTextureToFileW_Original = nullptr;
-
-
-
 extern     void    WINAPI D3D11_RSSetViewports_Override     ( ID3D11DeviceContext*,
                                                               UINT,
                                                         const D3D11_VIEWPORT* );
-extern     HRESULT WINAPI D3D11Dev_CreateTexture2D_Override ( ID3D11Device*,
-                                                        const D3D11_TEXTURE2D_DESC*,
-                                                        const D3D11_SUBRESOURCE_DATA*,
-                                                              ID3D11Texture2D** );
 
 extern "C" HRESULT STDMETHODCALLTYPE
   DXGISwap_ResizeTarget_Override ( IDXGISwapChain *,
@@ -207,15 +134,6 @@ WINAPI
 SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
                         UINT                 NumViewports,
                   const D3D11_VIEWPORT*      pViewports );
-
-HRESULT
-WINAPI
-SK_DS3_CreateTexture2D (
-    _In_            ID3D11Device           *This,
-    _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-    _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-    _Out_opt_       ID3D11Texture2D        **ppTexture2D );
-
 
 HRESULT
 STDMETHODCALLTYPE
@@ -255,28 +173,6 @@ SK_DS3_PluginKeyPress ( BOOL Control,
                         BOOL Shift,
                         BOOL Alt,
                         BYTE vkCode );
-
-
-HRESULT
-WINAPI
-SK_DS3_D3DX11CreateTextureFromMemory (
-  _In_  ID3D11Device           *pDevice,
-  _In_  LPCVOID                pSrcData,
-  _In_  SIZE_T                 SrcDataSize,
-  _In_  D3DX11_IMAGE_LOAD_INFO *pLoadInfo,
-  _In_  ID3DX11ThreadPump      *pPump,
-  _Out_ ID3D11Resource         **ppTexture,
-  _Out_ HRESULT                *pHResult
-);
-
-HRESULT
-WINAPI
-SK_DS3_D3DX11SaveTextureToFileW (
-       ID3D11DeviceContext      *pContext,
-  _In_ ID3D11Resource           *pSrcTexture,
-  _In_ D3DX11_IMAGE_FILE_FORMAT DestFormat,
-  _In_ LPCTSTR                  pDestFile
-);
 
 
 
@@ -366,7 +262,7 @@ struct {
 } ds3_cfg;
 
 
-#include <SpecialK/core.h>
+#include "core.h"
 
 extern void
 __stdcall
@@ -608,6 +504,195 @@ SK_DS3_GetMonitorDims (void)
 
   return dims;
 }
+
+unsigned int
+__stdcall
+SK_DS3_CenterWindow_Thread (LPVOID user)
+{
+  SK_DS3_GetMonitorDims ();
+
+  if (! sus_state.Center)
+    return 0;
+
+  dll_log.Log ( L"[SUS PlugIn] [!] SK_DS3_CenterWindow (void) -- [Calling Thread: 0x%04x]",
+                  GetCurrentThreadId () );
+  dll_log.Log ( L"[SUS PlugIn] \tMonitor: [%lux%lu] <-> Window: [%lux%lu] :: { %s }, <HWND: 0x%04X>",
+                  ds3_state.monitor.Width, ds3_state.monitor.Height,
+                    ds3_state.Width, ds3_state.Height,
+                      ds3_state.Fullscreen ? L"Fullscreen" : L"Windowed",
+                        ds3_state.Window );
+
+  if ((! ds3_state.Fullscreen) || ds3_cfg.window.borderless) {
+    int x_off = 0;
+    int y_off = 0;
+
+    if ( ds3_state.monitor.Width  > ds3_state.Width &&
+         ds3_state.monitor.Height > ds3_state.Height ) {
+      x_off = (ds3_state.monitor.Width  - ds3_state.Width)  / 2;
+      y_off = (ds3_state.monitor.Height - ds3_state.Height) / 2;
+    }
+
+    DWORD dwFlags = SWP_NOSIZE | SWP_NOZORDER;
+
+    BringWindowToTop         (ds3_state.Window);
+    SetForegroundWindow      (ds3_state.Window);
+
+    SetWindowPos (
+      ds3_state.Window, HWND_TOP,
+        0 + x_off, 0 + y_off,
+          ds3_state.Width, ds3_state.Height,
+            dwFlags
+    );
+  }
+
+  return 0;
+}
+
+unsigned int
+__stdcall
+SK_DS3_FinishResize_Thread (LPVOID user)
+{
+  DWORD dwFlags = SWP_NOMOVE | SWP_NOSENDCHANGING;
+
+  if (ds3_cfg.window.borderless) {
+    SetWindowLongW (ds3_state.Window, GWL_STYLE, WS_POPUP | WS_MINIMIZEBOX | WS_VISIBLE);
+    dwFlags |= SWP_FRAMECHANGED;
+  }
+
+  BringWindowToTop    (ds3_state.Window);
+  SetForegroundWindow (ds3_state.Window);
+
+  dwFlags |= SWP_NOZORDER;
+
+  SetWindowPos (
+    ds3_state.Window, HWND_TOP,
+      0, 0,
+        ds3_state.Width, ds3_state.Height,
+          dwFlags
+  );
+
+  //SK_DS3_CenterWindow ();
+
+  return 0;
+}
+
+void
+SK_DS3_FinishResize (void)
+{
+  // It is not safe to do this stuff from the render or message pump thread,
+  //   so always spawn a worker thread to do it. This prevents deadlocks.
+  _beginthreadex ( nullptr,
+                    0,
+                      SK_DS3_FinishResize_Thread,
+                        nullptr,
+                          0x00,
+                            nullptr );
+}
+
+void
+SK_DS3_CenterWindow (void)
+{
+  // It is not safe to do this stuff from the render or message pump thread,
+  //   so always spawn a worker thread to do it. This prevents deadlocks.
+  _beginthreadex ( nullptr,
+                    0,
+                      SK_DS3_CenterWindow_Thread,
+                        nullptr,
+                          0x00,
+                            nullptr );
+}
+
+
+#if 0
+int
+WINAPI
+GetSystemMetrics_Detour (_In_ int nIndex)
+{
+  int nRet = GetSystemMetrics_Original (nIndex);
+
+#if 0
+  if (config.display.width > 0 && nIndex == SM_CXSCREEN)
+    return config.display.width;
+
+  if (config.display.height > 0 && nIndex == SM_CYSCREEN)
+    return config.display.height;
+
+  if (config.display.width > 0 && nIndex == SM_CXFULLSCREEN) {
+    return config.display.width;
+  }
+
+  if (config.display.height > 0 && nIndex == SM_CYFULLSCREEN) {
+    return config.display.height;
+  }
+
+  if (config.window.borderless) {
+    if (nIndex == SM_CYCAPTION)
+      return 0;
+    if (nIndex == SM_CXBORDER)
+      return 0;
+    if (nIndex == SM_CYBORDER)
+      return 0;
+    if (nIndex == SM_CXDLGFRAME)
+      return 0;
+    if (nIndex == SM_CYDLGFRAME)
+      return 0;
+  }
+#else
+  dll_log.Log ( L"[Resolution] GetSystemMetrics (%lu) : %lu",
+                  nIndex, nRet );
+#endif
+
+  return nRet;
+}
+#endif
+
+BOOL
+WINAPI
+SK_DS3_SetWindowPos (
+  _In_     HWND hWnd,
+  _In_opt_ HWND hWndInsertAfter,
+  _In_     int  X,
+  _In_     int  Y,
+  _In_     int  cx,
+  _In_     int  cy,
+  _In_     UINT uFlags )
+{
+  if (hWnd == ds3_state.Window)
+    return TRUE;
+  else
+    return SetWindowPos_Original (
+      hWnd,
+        hWndInsertAfter,
+          X, Y,
+            cx, cy,
+              uFlags );
+}
+
+HWND
+WINAPI
+SK_DS3_SetActiveWindow (
+  HWND hWnd )
+{
+  HWND hWndRet = hWnd;
+
+  if (hWnd == ds3_state.Window) {
+    if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen)) {
+      SK_DS3_FinishResize ();
+      SK_DS3_CenterWindow ();
+    }
+  }
+
+  hWndRet =
+    SetActiveWindow_Original (hWnd);
+
+  //if (ds3_state.Fullscreen)
+    //DXGISwap_SetFullscreenState_Original (ds3_state.SwapChain, TRUE, nullptr);
+
+
+  return hWndRet;
+}
+
+
 
 void
 SK_DisableDPIScaling (void)
@@ -920,6 +1005,20 @@ SK_DS3_InitPlugin (void)
                   *(uint32_t *)res_sig, *((uint32_t *)res_sig+1) );
   }
 
+#if 0
+  SK_CreateDLLHook2 ( L"user32.dll",
+                      "GetSystemMetrics",
+                       GetSystemMetrics_Detour,
+            (LPVOID *)&GetSystemMetrics_Original );
+#endif
+
+
+
+  SK_CreateDLLHook2 ( L"user32.dll",
+                      "SetActiveWindow",
+                       SK_DS3_SetActiveWindow,
+            (LPVOID *)&SetActiveWindow_Original );
+
   SK_CreateFuncHook ( L"ID3D11DeviceContext::RSSetViewports",
                         D3D11_RSSetViewports_Override,
                           SK_DS3_RSSetViewports,
@@ -961,53 +1060,16 @@ SK_DS3_InitPlugin (void)
   MH_QueueEnableHook (SK_PluginKeyPress);
 
 
-  SK_CreateDLLHook2 ( L"D3DX11_43.DLL",
-                     "D3DX11CreateTextureFromMemory",
-                     SK_DS3_D3DX11CreateTextureFromMemory,
-          (LPVOID *)&D3DX11CreateTextureFromMemory_Original );
 
-  SK_CreateDLLHook2 ( L"D3DX11_43.DLL",
-                     "D3DX11SaveTextureToFileW",
-                     SK_DS3_D3DX11SaveTextureToFileW,
-          (LPVOID *)&D3DX11SaveTextureToFileW_Original );
+#if 0
+  SK_CreateFuncHook ( L"SK_ShutdownCore",
+                         SK_ShutdownCore,
+                           SK_DS3_ShutdownPlugin,
+                             (LPVOID *)&SK_ShutdownCore_Original );
+  MH_QueueEnableHook (SK_ShutdownCore);
+#endif
 
   MH_ApplyQueued ();
-}
-
-
-HRESULT
-WINAPI
-SK_DS3_CreateTexture2D (
-    _In_            ID3D11Device           *This,
-    _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-    _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-    _Out_opt_       ID3D11Texture2D        **ppTexture2D )
-{
-  HRESULT hr;
-
-  D3D11_TEXTURE2D_DESC *pDescNew = new D3D11_TEXTURE2D_DESC (*pDesc);
-
-  BOOL rt           = pDescNew->BindFlags & D3D11_BIND_RENDER_TARGET;
-  BOOL depthstencil = pDescNew->BindFlags & D3D11_BIND_DEPTH_STENCIL;
-
-  if ( (rt || depthstencil ) &&
-        pDescNew->Width      == 1280 && pDescNew->Height      == 720 && (
-      ds3_cfg.hud.res_x != 1280 || ds3_cfg.hud.res_y != 720 ) ) {
-    dll_log.Log (L"[SUS PlugIn] >> Rescaling rendertarget from (%lux%lu) to (%lux%lu)",
-                    pDescNew->Width, pDescNew->Height,
-                    ds3_cfg.hud.res_x, ds3_cfg.hud.res_y);
-    hr = 
-      D3D11Dev_CreateTexture2D_Override (This, pDescNew, pInitialData, ppTexture2D);
-  }
-  else 
-  {
-    hr =
-      D3D11Dev_CreateTexture2D_Override (This, pDesc, pInitialData, ppTexture2D);
-  }
-
-  delete pDescNew;
-
-  return hr;
 }
 
 HRESULT
@@ -1025,6 +1087,7 @@ SK_DS3_GetFullscreenState (
     hr =
       DXGISwap_GetFullscreenState_Original (This, &bFullscreen, ppTarget);
 
+    //if (SUCCEEDED (hr))
     ds3_state.Fullscreen = (bFullscreen != FALSE);
   } else {
     DXGISwap_GetFullscreenState_Original (This, nullptr, ppTarget);
@@ -1033,7 +1096,8 @@ SK_DS3_GetFullscreenState (
   if (pFullscreen != nullptr)
     *pFullscreen = ds3_state.Fullscreen;
 
-  return S_OK;
+  return S_OK;// hr;
+  //return DXGISwap_GetFullscreenState_Original (This, nullptr, nullptr);
 }
 
 HRESULT
@@ -1102,6 +1166,9 @@ SK_DS3_SetFullscreenState (
   }
 
   if (ds3_cfg.window.borderless) {
+    SK_DS3_FinishResize ();
+    SK_DS3_CenterWindow ();
+
     HRESULT ret = S_OK;
     //DXGI_CALL (ret, (S_OK))
     return ret;
@@ -1115,6 +1182,7 @@ SK_DS3_SetFullscreenState (
 
   if (! SUCCEEDED (ret))
     ds3_state.Fullscreen = original_state;
+//  SK_DS3_CenterWindow   ();
 
   return ret;
 }
@@ -1143,6 +1211,8 @@ SK_DS3_ResizeBuffers (IDXGISwapChain *This,
 
     if (Height != 0)
       ds3_state.Height = Height;
+
+    SK_DS3_CenterWindow ();
   }
 
   return hr;
@@ -1166,6 +1236,13 @@ SK_DS3_ResizeTarget ( IDXGISwapChain *This,
       if (pNewTargetParameters->Height > 0)
         ds3_state.Height = pNewTargetParameters->Height;
     }
+
+    if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen))
+      SK_DS3_FinishResize ();
+
+    SK_DS3_CenterWindow ();
+
+    //DXGISwap_ResizeBuffers_Override (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, 0x02);
   }
 
   return ret;
@@ -1182,8 +1259,22 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
   for (UINT i = 0; i < NumViewports; i++) {
     pNewViewports [i] = pViewports [i];
 
+    //bool is_16by9 = false;
+
+    //dll_log.Log (L"[!] BEFORE { %i <%f,%f::%f,%f [%f,%f]> }",
+                    //i, pNewViewports [i].Width,    pNewViewports [i].Height,
+                      //pNewViewports [i].TopLeftX, pNewViewports [i].TopLeftY,
+                      //pNewViewports [i].MinDepth, pNewViewports [i].MaxDepth );
+
+    //if (pNewViewports [i].Width >= 16.0f * (pNewViewports [i].Height / 9.0f) - 0.001f &&
+        //pNewViewports [i].Width <= 16.0f * (pNewViewports [i].Height / 9.0f) + 0.001f)
+    //is_16by9 = true;
+
     // The game may do this to the UI for certain resolutions, we need to be proactive.
     bool incorrectly_centered = false;
+      //( (pViewports [i].TopLeftY != 0.0f && pViewports [i].Height == (float)__DS3_HEIGHT + (-2.0f * pViewports [i].TopLeftY)) ||
+        //(pViewports [i].TopLeftX != 0.0f && pViewports [i].Width  == (float)__DS3_WIDTH  + (-2.0f * pViewports [i].TopLeftX)) );
+
 
     float aspect0 = pViewports [i].Width   / pViewports [i].Height;
     float aspect1 = (float)ds3_state.Width / (float)ds3_state.Height;
@@ -1319,6 +1410,11 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
   ds3_state.SwapChain = This;
   ds3_state.Window    = desc.OutputWindow;
 
+  if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen)) {
+    SK_DS3_FinishResize ();
+    SK_DS3_CenterWindow ();
+  }
+
   if (first) {
     first = false;
 
@@ -1370,50 +1466,4 @@ SK_DS3_ShutdownPlugin (const wchar_t* backend)
 
   return true;
 }
-}
-
-
-HRESULT
-WINAPI
-SK_DS3_D3DX11CreateTextureFromMemory (
-  _In_  ID3D11Device           *pDevice,
-  _In_  LPCVOID                pSrcData,
-  _In_  SIZE_T                 SrcDataSize,
-  _In_  D3DX11_IMAGE_LOAD_INFO *pLoadInfo,
-  _In_  ID3DX11ThreadPump      *pPump,
-  _Out_ ID3D11Resource         **ppTexture,
-  _Out_ HRESULT                *pHResult
-)
-{
-  dll_log.Log (L"[ ... ] D3DX11CreateTextureFromMemory (...)");
-
-  return
-    D3DX11CreateTextureFromMemory_Original (
-      pDevice,
-        pSrcData,
-          SrcDataSize,
-            pLoadInfo,
-              pPump,
-                ppTexture,
-                  pHResult );
-}
-
-HRESULT
-WINAPI
-SK_DS3_D3DX11SaveTextureToFileW (
-       ID3D11DeviceContext      *pContext,
-  _In_ ID3D11Resource           *pSrcTexture,
-  _In_ D3DX11_IMAGE_FILE_FORMAT DestFormat,
-  _In_ LPCWSTR                  pDestFile
-)
-{
-  dll_log.Log ( L"[ ... ] D3DX11SaveTextureToFileW (..., %s)",
-                 pDestFile );
-
-  return
-    D3DX11SaveTextureToFileW_Original (
-      pContext,
-        pSrcTexture,
-          DestFormat,
-            pDestFile );
 }

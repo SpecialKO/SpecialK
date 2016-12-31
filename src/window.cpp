@@ -294,6 +294,26 @@ struct sk_window_s {
   GetWindowLongPtr_pfn GetWindowLongPtr = nullptr;
   DefWindowProc_pfn    DefWindowProc    = nullptr;
   CallWindowProc_pfn   CallWindowProc   = nullptr;
+
+  LRESULT DefProc (
+    _In_ UINT   Msg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam
+  ) { return DefWindowProc (hWnd, Msg, wParam, lParam); }
+
+  LRESULT CallProc      (
+    _In_ HWND    hWnd,
+    _In_ UINT    Msg,
+    _In_ WPARAM  wParam,
+    _In_ LPARAM  lParam )
+  {
+    if (! hooked)
+      return CallWindowProc (WndProc_Original, hWnd, Msg, wParam, lParam);
+    else
+      return WndProc_Original (hWnd, Msg, wParam, lParam);
+  }
+
+  bool hooked = false;
 } game_window;
 
 bool override_window_rects = false;
@@ -1331,7 +1351,8 @@ SK_AdjustBorder (void)
   if (game_window.GetWindowLongPtr == nullptr)
     return;
 
-  UINT async = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
+  DWORD async       = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
+  DWORD send_change = IsGUIThread (FALSE) ? 0x0 : 0x0; //SWP_NOSENDCHANGING : SWP_NOSENDCHANGING;
 
   game_window.actual.style =
     config.window.borderless ?
@@ -1346,9 +1367,9 @@ SK_AdjustBorder (void)
                   HWND_TOP,
                     0, 0,
                       0, 0,
-                        SWP_NOMOVE   | SWP_NOSIZE       | 
-                        SWP_NOZORDER | SWP_FRAMECHANGED |
-                        SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
+                        SWP_NOMOVE      | SWP_NOSIZE       |
+                        SWP_NOZORDER    | SWP_NOREPOSITION |
+                        SWP_FRAMECHANGED );
 
 
   RECT new_window = game_window.game.client;
@@ -1363,7 +1384,7 @@ SK_AdjustBorder (void)
                     new_window.left, new_window.top,
                       new_window.right  - new_window.left,
                       new_window.bottom - new_window.top,
-                        SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
+                        SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
 
   GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
   GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
@@ -1372,10 +1393,11 @@ SK_AdjustBorder (void)
 void
 SK_AdjustWindow (void)
 {
+  DWORD async       = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
+  DWORD send_change = IsGUIThread (FALSE) ? 0x0 : 0x0;//SWP_NOSENDCHANGING : SWP_NOSENDCHANGING;
+
   if (game_window.GetWindowLongPtr == nullptr)
     return;
-
-  UINT async = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
 
   HMONITOR hMonitor =
     MonitorFromWindow ( game_window.hWnd,
@@ -1395,7 +1417,7 @@ SK_AdjustWindow (void)
                                 mi.rcMonitor.top,
                                   mi.rcMonitor.right  - mi.rcMonitor.left,
                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                    SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
+                                    SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
 
     dll_log.Log ( L"[Border Mgr] FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
                     mi.rcMonitor.left, mi.rcMonitor.top,
@@ -1550,7 +1572,7 @@ SK_AdjustWindow (void)
                                 game_window.actual.window.top,
                                   game_window.actual.window.right  - game_window.actual.window.left,
                                   game_window.actual.window.bottom - game_window.actual.window.top,
-                                    SWP_NOSENDCHANGING | SWP_NOREPOSITION | SWP_NOACTIVATE | async );
+                                    SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
 
     wchar_t wszBorderDesc [128] = { L'\0' };
 
@@ -1837,8 +1859,6 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   return 0UL;
 }
 
-bool hooked = false;
-
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -2075,10 +2095,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         //   when the game loses focus, so do not simply pass this through to the
         //     default window procedure.
         if (config.window.background_render) {
-          if (! hooked)
-            game_window.CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, TRUE, (LPARAM)hWnd);
-          else
-            game_window.WndProc_Original (hWnd, uMsg, TRUE, (LPARAM)hWnd);
+            game_window.CallProc (hWnd, uMsg, TRUE, (LPARAM)hWnd);
 
           return 0;
         }
@@ -2114,11 +2131,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
   if (uMsg == WM_NCCALCSIZE) {
-    return game_window.DefWindowProc (game_window.hWnd, uMsg, wParam, lParam);
+    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
   if (uMsg == WM_WINDOWPOSCHANGING) {
     LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
+    //SK_AdjustWindow ();
   }
 
   if (uMsg == WM_WINDOWPOSCHANGED) {
@@ -2149,19 +2167,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) && (! background_render)) {
     if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN)) {
-      if (! hooked)
-        return game_window.CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
-      else
-        return game_window.WndProc_Original (hWnd, uMsg, wParam, lParam);
+      return game_window.CallProc (hWnd, uMsg, wParam, lParam);
     }
   }
 
   if ((uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP) && (! background_render)) {
     if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP)) {
-      if (! hooked)
-        return game_window.CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
-      else
-        return game_window.WndProc_Original (hWnd, uMsg, wParam, lParam);
+      return game_window.CallProc (hWnd, uMsg, wParam, lParam);
     }
   }
 
@@ -2178,10 +2190,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
-  if (! hooked)
-    return game_window.CallWindowProc (game_window.WndProc_Original, hWnd, uMsg, wParam, lParam);
-  else
-    return game_window.WndProc_Original (hWnd, uMsg, wParam, lParam);
+  return game_window.CallProc (hWnd, uMsg, wParam, lParam);
 }
 
 #include <SpecialK/core.h>
@@ -2325,20 +2334,29 @@ SK_InstallWindowHook (HWND hWnd)
                         wnd_proc );
 
 #if 0
-  if (MH_OK == MH_CreateHook ( (LPVOID)class_proc,
-                        SK_DetourWindowProc,
-             (LPVOID *)&game_window.WndProc_Original )) {
+  if ( MH_OK ==
+         MH_CreateHook ( (LPVOID)class_proc,
+                                 SK_DetourWindowProc,
+                      (LPVOID *)&game_window.WndProc_Original )
+    )
+  {
     MH_EnableHook ((LPVOID)class_proc);
-    dll_log.Log ( L"[Window Mgr]  >> Hooked ClassProc.");
-    hooked = true;
+
+    dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
+
+    game_window.hooked = true;
   }
 
-  else if (MH_OK == MH_CreateHook ( (LPVOID)wnd_proc,
-                        SK_DetourWindowProc,
-             (LPVOID *)&game_window.WndProc_Original )) {
+  else if ( MH_OK == MH_CreateHook ( (LPVOID)wnd_proc,
+                                             SK_DetourWindowProc,
+                                  (LPVOID *)&game_window.WndProc_Original )
+          )
+  {
     MH_EnableHook ((LPVOID)wnd_proc);
-    dll_log.Log ( L"[Window Mgr]  >> Hooked WndProc.");
-    hooked = true;
+
+    dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
+
+    game_window.hooked = true;
   }
 
   else
@@ -2347,7 +2365,9 @@ SK_InstallWindowHook (HWND hWnd)
     dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
                   L"window procedure instead (this may be undone "
                   L"by other software)." );
-    game_window.WndProc_Original = (WNDPROC)wnd_proc;
+
+    game_window.WndProc_Original =
+      (WNDPROC)wnd_proc;
 
     game_window.SetWindowLongPtr ( game_window.hWnd, GWLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
@@ -2356,7 +2376,7 @@ SK_InstallWindowHook (HWND hWnd)
     else
       SetClassLongPtrA ( game_window.hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
-    hooked = false;
+    game_window.hooked = false;
   }
 
   game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE) | WS_VISIBLE;//0x90CA0000;
@@ -2368,18 +2388,13 @@ SK_InstallWindowHook (HWND hWnd)
   GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
   GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
-  //if (! (game_window.style & WS_VISIBLE)) {
-    //game_window.style |= (WS_VISIBLE | WS_MINIMIZEBOX);
-    //game_window.style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-  //}
-
   GetCursorPos_Original  (&game_window.cursor_pos);
 
   SK_AdjustBorder ();
   SK_AdjustWindow ();
 
-  //if (game_window.style & WS_VISIBLE)
-    //SK_RealizeForegroundWindow (game_window.hWnd);
+  if (game_window.actual.style & WS_VISIBLE)
+    SK_RealizeForegroundWindow (game_window.hWnd);
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();
