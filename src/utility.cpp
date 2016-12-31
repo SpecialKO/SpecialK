@@ -1082,13 +1082,12 @@ SK_SuspendAllOtherThreads (void)
             HANDLE hThread =
               OpenThread (THREAD_ALL_ACCESS, FALSE, tent.th32ThreadID);
 
-            if (hThread != GetCurrentThread ())
-            {
-              threads.push (tent.th32ThreadID);
-              SuspendThread (hThread);
-            }
+            if (hThread != NULL) {
+              threads.push  (tent.th32ThreadID);
 
-            CloseHandle (hThread);
+              SuspendThread (hThread);
+              CloseHandle   (hThread);
+            }
           }
         }
 
@@ -1112,13 +1111,11 @@ SK_ResumeThreads (std::queue <DWORD> threads)
     HANDLE hThread =
       OpenThread (THREAD_ALL_ACCESS, FALSE, tid);
 
-    if (hThread != GetCurrentThread ())
+    if (hThread != NULL)
     {
-      while (ResumeThread (hThread))
-        ;
+      ResumeThread (hThread);
+      CloseHandle (hThread);
     }
-
-    CloseHandle (hThread);
 
     threads.pop ();
   }
