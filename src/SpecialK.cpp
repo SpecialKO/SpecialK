@@ -193,15 +193,14 @@ SK_EstablishDllRole (HMODULE hModule)
     }
 
     SK_IsInjected (true);
+
+    return true;
   }
 
-
-  //
-  // Fallback to d3d9
-  //
-  else
-    SK_SetDLLRole (DLL_ROLE::D3D9);
-
+  else {
+    SK_SetDLLRole (DLL_ROLE::INVALID);
+    return false;
+  }
 
   return true;
 }
@@ -224,6 +223,7 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
         {
+          SK_SetDLLRole (DLL_ROLE::INVALID);
           return FALSE;
         }
 
@@ -246,6 +246,7 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
         {
+          SK_SetDLLRole (DLL_ROLE::INVALID);
           return FALSE;
         }
 
@@ -268,6 +269,7 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
         {
+          SK_SetDLLRole (DLL_ROLE::INVALID);
           return FALSE;
         }
 
@@ -284,10 +286,13 @@ SK_Attach (DLL_ROLE role)
           );
 
       case DLL_ROLE::Vulkan:
+        SK_SetDLLRole (DLL_ROLE::INVALID);
+        return FALSE;
         break;
     }
   }
 
+  SK_SetDLLRole (DLL_ROLE::INVALID);
   return FALSE;
 }
 

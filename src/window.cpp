@@ -1379,15 +1379,29 @@ SK_AdjustBorder (void)
 
   AdjustWindowRect_Original (&new_window, game_window.actual.style, FALSE);
 
-  SetWindowPos_Original ( game_window.hWnd,
-                  HWND_TOP,
-                    new_window.left, new_window.top,
-                      new_window.right  - new_window.left,
-                      new_window.bottom - new_window.top,
-                        SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
+  if ( new_window.right  - new_window.left > 0 && 
+       new_window.bottom - new_window.top  > 0 ) {
+    SetWindowPos_Original ( game_window.hWnd,
+                    HWND_TOP,
+                      new_window.left, new_window.top,
+                        new_window.right  - new_window.left,
+                        new_window.bottom - new_window.top,
+                          SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
+  }
 
   GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
   GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+}
+
+void
+SK_ResetWindow (void)
+{
+  if (GetClientRect_Original != nullptr) {
+    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+    GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+    GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+  }
 }
 
 void
@@ -1456,6 +1470,14 @@ SK_AdjustWindow (void)
     if ((! config.window.res.override.isZero ())) {
       render_width  = config.window.res.override.x;
       render_height = config.window.res.override.y;
+    }
+
+    if (render_width <= 32 || render_height <= 32) {
+      GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+      GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+
+      render_width  = game_window.game.client.right  - game_window.game.client.left;
+      render_height = game_window.game.client.bottom - game_window.game.client.top;
     }
 
     // No adjustment if the window is full-width
@@ -1566,13 +1588,19 @@ SK_AdjustWindow (void)
     game_window.actual.window.top    += push_down;
     game_window.actual.window.bottom += push_down;
 
-    SetWindowPos_Original ( game_window.hWnd,
-                              HWND_TOP,
-                                game_window.actual.window.left,
-                                game_window.actual.window.top,
-                                  game_window.actual.window.right  - game_window.actual.window.left,
-                                  game_window.actual.window.bottom - game_window.actual.window.top,
-                                    SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
+    if (game_window.actual.window.right  - game_window.actual.window.left > 0 &&
+        game_window.actual.window.bottom - game_window.actual.window.top  > 0 ) {
+      SetWindowPos_Original ( game_window.hWnd,
+                                HWND_TOP,
+                                  game_window.actual.window.left,
+                                  game_window.actual.window.top,
+                                    game_window.actual.window.right  - game_window.actual.window.left,
+                                    game_window.actual.window.bottom - game_window.actual.window.top,
+                                      SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
+    } else {
+      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+    }
 
     wchar_t wszBorderDesc [128] = { L'\0' };
 
@@ -1884,8 +1912,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
-    SK_AdjustBorder        ();
-    SK_AdjustWindow        ();
+    //SK_AdjustBorder        ();
+    //SK_AdjustWindow        ();
   }
 
   //return DefWindowProc (hWnd, uMsg, wParam, lParam);
@@ -2154,6 +2182,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
 
     if (! (wnd_pos->flags & SWP_NOMOVE || wnd_pos->flags & SWP_NOSIZE)) {
+      //SK_AdjustBorder ();
       SK_AdjustWindow ();
     }
   }
@@ -2389,9 +2418,6 @@ SK_InstallWindowHook (HWND hWnd)
   GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
   GetCursorPos_Original  (&game_window.cursor_pos);
-
-  SK_AdjustBorder ();
-  SK_AdjustWindow ();
 
   if (game_window.actual.style & WS_VISIBLE)
     SK_RealizeForegroundWindow (game_window.hWnd);

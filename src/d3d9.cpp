@@ -1465,6 +1465,10 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   if (This == nullptr || pPresentationParameters == nullptr)
     return E_NOINTERFACE;
 
+  extern void
+  SK_ResetWindow (void);
+  SK_ResetWindow ();
+
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh) - "
                 L"[%s, tid=0x%04x]",
                 L"IDirect3DDevice9::Reset", This, pPresentationParameters,
@@ -1523,6 +1527,10 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 {
   if (This == nullptr || pPresentationParameters == nullptr)
     return E_NOINTERFACE;
+
+  extern void
+  SK_ResetWindow (void);
+  SK_ResetWindow ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
                 L"[%s, tid=0x%04x]",
@@ -2160,11 +2168,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
                                     //0, 0,
                                       //pparams->BackBufferWidth, pparams->BackBufferHeight,
                                         //SWP_NOZORDER | SWP_NOSENDCHANGING );
-
-        extern void SK_AdjustBorder (void);
-
-        SK_AdjustBorder ();
-        SK_AdjustWindow ();
       }
 
       memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);

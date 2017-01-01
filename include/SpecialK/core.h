@@ -159,6 +159,8 @@ SK_GetFramesDrawn (void);
 extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
 enum DLL_ROLE {
+  INVALID    = 0x00,
+
   // Graphics APIs
   DXGI       = 0x01, // D3D 10-12
   D3D9       = 0x02,

@@ -70,6 +70,7 @@ mem_info_t     mem_info  [NumBuffers];
 CRITICAL_SECTION budget_mutex  = { 0 };
 CRITICAL_SECTION init_mutex    = { 0 };
 volatile HANDLE  hInitThread   = { 0 };
+volatile DWORD   dwInitThread  = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
 struct budget_thread_params_t {
@@ -954,6 +955,8 @@ SK_InitFinishCallback (_Releases_exclusive_lock_ (init_mutex) void)
 
   SK_StartPerfMonThreads ();
 
+  InterlockedExchange (&dwInitThread, 0x00);
+
   LeaveCriticalSection (&init_mutex);
 }
 
@@ -962,6 +965,10 @@ __stdcall
 SK_InitCore (const wchar_t* backend, void* callback)
 {
   EnterCriticalSection (&init_mutex);
+
+  typedef void (WINAPI *finish_pfn)  (_Releases_exclusive_lock_ (init_mutex) void);
+  typedef void (WINAPI *callback_pfn)(finish_pfn);
+  callback_pfn callback_fn = (callback_pfn)callback;
 
   if (backend_dll != NULL) {
     LeaveCriticalSection (&init_mutex);
@@ -1069,7 +1076,12 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   __crc32_init ();
 
-  if ((! SK_IsHostAppSKIM ()) && config.cegui.enable)
+  if (SK_IsHostAppSKIM ()) {
+    callback_fn (SK_InitFinishCallback);
+    return;
+  }
+
+  if (config.cegui.enable)
   {
     // Disable until we validate CEGUI's state
     config.cegui.enable = false;
@@ -1130,16 +1142,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
-  if (! SK_IsHostAppSKIM ()) {
-    SK::Framerate::Init ();
-
-    // Load user-defined DLLs (Early)
-#ifdef _WIN64
-    SK_LoadEarlyImports64 ();
-#else
-    SK_LoadEarlyImports32 ();
-#endif
-  }
+  SK::Framerate::Init ();
 
   if (config.system.silent) {
     dll_log.silent = true;
@@ -1158,7 +1161,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     dll_log.silent = false;
   }
 
-  if (! SK_IsHostAppSKIM ()) {
   dll_log.LogEx (true, L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI): ");
 
   nvapi_init = sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
@@ -1260,24 +1262,25 @@ SK_InitCore (const wchar_t* backend, void* callback)
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
 
+  // Load user-defined DLLs (Early)
+#ifdef _WIN64
+  SK_LoadEarlyImports64 ();
+#else
+  SK_LoadEarlyImports32 ();
+#endif
+
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
   EnumLoadedModules ();
-  }
 
-  typedef void (WINAPI *finish_pfn)  (_Releases_exclusive_lock_ (init_mutex) void);
-  typedef void (WINAPI *callback_pfn)(finish_pfn);
-  callback_pfn callback_fn = (callback_pfn)callback;
   callback_fn (SK_InitFinishCallback);
 
-  if (! SK_IsHostAppSKIM ()) {
-    // Load user-defined DLLs (Plug-In)
+  // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
-    SK_LoadPlugIns64 ();
+  SK_LoadPlugIns64 ();
 #else
-    SK_LoadPlugIns32 ();
+  SK_LoadPlugIns32 ();
 #endif
-  }
 }
 
 
@@ -1293,24 +1296,14 @@ WaitForInit (void)
     return;
   }
 
-  // Prevent a race condition caused by undefined behavior in RTSS
-  if (! InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr)) {
-    dll_log.Log ( L"[ MultiThr ] Race condition detected during startup (tid=%x)",
-                    GetCurrentThreadId () );
-#if 0
-    while (! InterlockedCompareExchange (&init, FALSE, FALSE)) {
-      dll_log.Log ( L"[ MultiThr ] Race condition avoided (tid=%x)",
-                      GetCurrentThreadId () );
-      Sleep (150);
-    }
-#endif
-  }
-
   while (InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr)) {
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
       InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
         150 ) )
       break;
+
+    if (InterlockedCompareExchange (&dwInitThread, 0, 0) == GetCurrentThreadId ())
+      return;
   }
 
   while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
@@ -1560,6 +1553,8 @@ DllThread_CRT (LPVOID user)
   init_params_t* params =
     &init_;
 
+  InterlockedExchange (&dwInitThread, GetCurrentThreadId ());
+
   SK_InitCore (params->backend, params->callback);
 
   if (SK_IsHostAppSKIM ())
@@ -1619,12 +1614,13 @@ DllThread (LPVOID user)
 {
   EnterCriticalSection (&init_mutex);
   {
+    SK_Console* pConsole = SK_Console::getInstance ();
+
     DllThread_CRT (&init_);
+
+    pConsole->Start ();
   }
   LeaveCriticalSection (&init_mutex);
-
-  SK_Console* pConsole = SK_Console::getInstance ();
-  pConsole->Start ();
 
   return 0;
 }
@@ -1808,6 +1804,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   // Do this from the startup thread
   SK_Init_MinHook        ();
   SK_InitCompatBlacklist ();
+
 
   // Hard-code the AppID for ToZ
   if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
@@ -2164,14 +2161,35 @@ SK_BeginBufferSwap (void)
       SK::Diagnostics::CrashHandler::Reinstall ();
   }
 
-  static bool first = true;
+  static volatile ULONG first = TRUE;
 
-  if (first) {
+  if (InterlockedCompareExchange (&first, 0, 0)) {
     SK_HookWinAPI ();
 
     if (SK_GetGameWindow () != 0) {
-      SK_AdjustWindow ();
-      first = false;
+      extern void SK_AdjustBorder (void);
+
+      InterlockedExchange (&first, 0);
+
+      CreateThread (
+        nullptr,
+          0,
+            [](LPVOID user)->
+
+            DWORD
+            {
+              SK_AdjustBorder ();
+              SK_AdjustWindow ();
+
+              CloseHandle (GetCurrentThread ());
+
+              return 0;
+            },
+
+            nullptr,
+          0x00,
+        nullptr
+      );
     }
 
     if (config.window.background_mute)
