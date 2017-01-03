@@ -625,7 +625,7 @@ SK_InitCompatBlacklist (void)
   const wchar_t* wszSteamDLL = L"steam_api.dll";
 #endif
 
-  if (LoadLibraryW (wszSteamDLL)) {
+  if (GetModuleHandleW (wszSteamDLL)) {
     SK_CreateDLLHook3 ( wszSteamDLL,
                         "SteamAPI_UseBreakpadCrashHandler",
                        SteamAPI_UseBreakpadCrashHandler_Detour,

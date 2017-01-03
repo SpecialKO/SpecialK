@@ -47,7 +47,7 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 
 // For texture caching to work correctly ...
 //   DarkSouls3 seems to underflow references on occasion!!!
-//#define DS3_REF_TWEAK
+#define DS3_REF_TWEAK
 
 namespace SK {
   namespace DXGI {
@@ -94,7 +94,8 @@ extern void WaitForInitDXGI (void);
 
 HMODULE SK::DXGI::hModD3D11 = 0;
 
-volatile LONG  __d3d11_ready  = FALSE;
+volatile LONG SK_D3D11_tex_init = FALSE;
+volatile LONG  __d3d11_ready    = FALSE;
 
 void WaitForInitD3D11 (void)
 {
@@ -988,7 +989,7 @@ SK_D3D11_TexMgr::reset (void)
 #ifdef DS3_REF_TWEAK
       int refs = IUnknown_AddRef_Original (desc.texture) - 1;
 
-      if (refs <= 2 && desc.texture->Release () <= 2) {
+      if (refs <= 3 && desc.texture->Release () <= 3) {
 #else
       int refs = IUnknown_AddRef_Original (desc.texture) - 1;
 
@@ -1207,6 +1208,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   // Hold a reference ourselves so that the game cannot free it
   pTex->AddRef ();
 #ifdef DS3_REF_TWEAK
+  pTex->AddRef ();
   pTex->AddRef ();
 #endif
 }
@@ -1490,6 +1492,8 @@ bool
 WINAPI
 SK_D3D11_IsTexHashed (uint32_t top_crc32, uint32_t hash)
 {
+  SK_D3D11_InitTextures ();
+
   SK_AutoCriticalSection critical (&hash_cs);
 
   if (tex_hashes_ex.count (crc32c (top_crc32, (const uint8_t *)&hash, 4)) != 0)
@@ -1507,7 +1511,7 @@ WINAPI
 SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
 {
   // Allow UnX to call this before a device has been created.
-  SK_D3D11_Init ();
+  SK_D3D11_InitTextures ();
 
   if (hash != 0x00) {
     if (! SK_D3D11_IsTexHashed (top_crc32, hash)) {
@@ -1535,7 +1539,7 @@ WINAPI
 SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
 {
   // Allow UnX to call this before a device has been created.
-  SK_D3D11_Init ();
+  SK_D3D11_InitTextures ();
 
   if (hash != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash)) {
     SK_AutoCriticalSection critical (&hash_cs);
@@ -1553,7 +1557,7 @@ __stdcall
 SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
 {
   // Allow UnX to call this before a device has been created.
-  SK_D3D11_Init ();
+  SK_D3D11_InitTextures ();
 
   std::wstring ret = L"";
 
@@ -2135,6 +2139,13 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
+  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
+  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
+    WaitForInitDXGI ();
+
+  if (InterlockedExchangeAdd (&SK_D3D11_tex_init, 0) == FALSE)
+    SK_D3D11_InitTextures ();
+
   bool early_out = false;
 
   if ((! (SK_D3D11_cache_textures || SK_D3D11_dump_textures || SK_D3D11_inject_textures)) ||
@@ -2566,28 +2577,14 @@ SK::DXGI::getPipelineStatsDesc (void)
 }
 
 
-
-
-volatile LONG SK_D3D11_initialized = FALSE;
-
 void
-SK_D3D11_Init (void)
+SK_D3D11_InitTextures (void)
 {
-  if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE)) {
-    SK::DXGI::hModD3D11 = LoadLibrary (L"d3d11.dll");
-
-    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDevice",
-                        D3D11CreateDevice_Detour,
-             (LPVOID *)&D3D11CreateDevice_Import,
-                       &pfnD3D11CreateDevice );
-
-    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
-                        D3D11CreateDeviceAndSwapChain_Detour,
-             (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
-                       &pfnD3D11CreateDeviceAndSwapChain );
-
-    SK_EnableHook (pfnD3D11CreateDevice);
-    SK_EnableHook (pfnD3D11CreateDeviceAndSwapChain);
+  if (! InterlockedCompareExchange (&SK_D3D11_tex_init, TRUE, FALSE)) {
+    if ( StrStrIW (SK_GetHostApp (), L"ffx.exe")   ||
+         StrStrIW (SK_GetHostApp (), L"ffx-2.exe") ||
+         StrStrIW (SK_GetHostApp (), L"FFX&X-2_Will.exe") )
+      SK_D3D11_inject_textures_ffx = true;
 
 #ifdef NO_TLS
     InitializeCriticalSectionAndSpinCount (&cs_texinject, 0x4000);
@@ -2635,7 +2632,8 @@ SK_D3D11_Init (void)
     SK_GetCommandProcessor ()->AddVariable ("TexCache.IgnoreNonMipped",
          new SK_IVarStub <bool> ((bool *)&cache_opts.ignore_non_mipped));
 
-    SK_D3D11_PopulateResourceList ();
+    if (! SK_D3D11_inject_textures_ffx)
+      SK_D3D11_PopulateResourceList ();
 
     if (hModD3DX11_43 == nullptr) {
       hModD3DX11_43 =
@@ -2661,6 +2659,29 @@ SK_D3D11_Init (void)
   }
 }
 
+volatile LONG SK_D3D11_initialized = FALSE;
+
+void
+SK_D3D11_Init (void)
+{
+  if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE)) {
+    SK::DXGI::hModD3D11 = LoadLibrary (L"d3d11.dll");
+
+    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDevice",
+                        D3D11CreateDevice_Detour,
+             (LPVOID *)&D3D11CreateDevice_Import,
+                       &pfnD3D11CreateDevice );
+
+    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
+                        D3D11CreateDeviceAndSwapChain_Detour,
+             (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
+                       &pfnD3D11CreateDeviceAndSwapChain );
+
+    SK_EnableHook (pfnD3D11CreateDevice);
+    SK_EnableHook (pfnD3D11CreateDeviceAndSwapChain);
+  }
+}
+
 void
 SK_D3D11_Shutdown (void)
 {
@@ -2677,10 +2698,10 @@ SK_D3D11_Shutdown (void)
   }
 
 #if 0
+  SK_D3D11_Textures.reset ();
+
   // Stop caching while we shutdown
   SK_D3D11_cache_textures = false;
-
-  SK_D3D11_Textures.reset ();
 
   if (FreeLibrary (SK::DXGI::hModD3D11)) {
     DeleteCriticalSection (&tex_cs);

@@ -50,6 +50,8 @@ SK_BootD3D9 (void)
   SK_HookD3D9 ();
 }
 
+extern HMODULE backend_dll;
+
 void
 SK_BootDXGI (void)
 {
@@ -57,6 +59,11 @@ SK_BootDXGI (void)
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
+
+  while (backend_dll == 0) {
+    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) ***");
+    Sleep (100UL);
+  }
 
   dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 

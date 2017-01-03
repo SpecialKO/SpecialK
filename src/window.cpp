@@ -396,6 +396,7 @@ public:
           if ( state_.borderless.set (config.window.borderless) !=
                config.window.borderless ) {
             SK_AdjustBorder ();
+            SK_AdjustWindow ();
           }
 
           return true;
@@ -1367,9 +1368,9 @@ SK_AdjustBorder (void)
                   HWND_TOP,
                     0, 0,
                       0, 0,
-                        SWP_NOMOVE      | SWP_NOSIZE       |
-                        SWP_NOZORDER    | SWP_NOREPOSITION |
-                        SWP_FRAMECHANGED );
+                        SWP_NOMOVE       | SWP_NOSIZE       |
+                        SWP_NOZORDER     | SWP_NOREPOSITION |
+                        SWP_FRAMECHANGED | SWP_NOCOPYBITS   | SWP_ASYNCWINDOWPOS );
 
 
   RECT new_window = game_window.game.client;
@@ -1386,7 +1387,8 @@ SK_AdjustBorder (void)
                       new_window.left, new_window.top,
                         new_window.right  - new_window.left,
                         new_window.bottom - new_window.top,
-                          SWP_NOZORDER | SWP_NOREPOSITION | async | send_change );
+                          SWP_NOZORDER   | SWP_NOREPOSITION | async | send_change |
+                          SWP_NOCOPYBITS | SWP_ASYNCWINDOWPOS );
   }
 
   GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
@@ -1408,7 +1410,7 @@ void
 SK_AdjustWindow (void)
 {
   DWORD async       = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
-  DWORD send_change = IsGUIThread (FALSE) ? 0x0 : 0x0;//SWP_NOSENDCHANGING : SWP_NOSENDCHANGING;
+  DWORD send_change = IsGUIThread (FALSE) ? SWP_NOSENDCHANGING : SWP_NOSENDCHANGING;
 
   if (game_window.GetWindowLongPtr == nullptr)
     return;
@@ -2182,8 +2184,26 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
 
     if (! (wnd_pos->flags & SWP_NOMOVE || wnd_pos->flags & SWP_NOSIZE)) {
-      //SK_AdjustBorder ();
-      SK_AdjustWindow ();
+      if (config.window.borderless || config.window.center) {
+        CreateThread (
+          nullptr,
+            0,
+              [](LPVOID user)->
+
+              DWORD
+              {
+                SK_AdjustWindow ();
+
+                CloseHandle (GetCurrentThread ());
+
+                return 0;
+              },
+
+              nullptr,
+            0x00,
+          nullptr
+        );
+      }
     }
   }
 

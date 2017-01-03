@@ -361,11 +361,6 @@ void WaitForInitDXGI (void)
   }
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE)) {
-    extern volatile DWORD dwInitThread;
-
-    if (InterlockedCompareExchange (&dwInitThread, 0, 0) == GetCurrentThreadId ())
-      return;
-
     Sleep (config.system.init_delay);
   }
 }
@@ -3109,7 +3104,7 @@ __declspec (noinline)
     DXGI_LOG_CALL_2 (L"CreateDXGIFactory", L"%s, %08Xh",
       iname.c_str (), ppFactory);
 
-    WaitForInitDXGI ();
+    SK_BootDXGI ();
 
     HRESULT ret;
     DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
@@ -3135,7 +3130,7 @@ __declspec (noinline)
     DXGI_LOG_CALL_2 (L"CreateDXGIFactory1", L"%s, %08Xh",
       iname.c_str (), ppFactory);
 
-    WaitForInitDXGI ();
+    SK_BootDXGI ();
 
     // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
     if (CreateDXGIFactory1_Import == nullptr) {
@@ -3164,7 +3159,7 @@ __declspec (noinline)
     DXGI_LOG_CALL_3 (L"CreateDXGIFactory2", L"0x%04X, %s, %08Xh",
       Flags, iname.c_str (), ppFactory);
 
-    WaitForInitDXGI ();
+    SK_BootDXGI ();
 
     // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1
     if (CreateDXGIFactory2_Import == nullptr) {
@@ -3308,8 +3303,9 @@ SK_HookDXGI (void)
     SK_DXGI_factory_init = true;
   }
 
-  SK_D3D11_Init ();
-  SK_D3D12_Init ();
+  SK_D3D11_Init         ();
+  SK_D3D11_InitTextures ();
+  SK_D3D12_Init         ();
 
   SK_ICommandProcessor* pCommandProc =
     SK_GetCommandProcessor ();
@@ -3662,9 +3658,6 @@ HookDXGI (LPVOID user)
     CloseHandle (GetCurrentThread ());
     return 0;
   }
-
-  extern volatile DWORD dwInitThread;
-  InterlockedExchange (&dwInitThread, GetCurrentThreadId ());
 
   CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 

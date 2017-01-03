@@ -70,7 +70,6 @@ mem_info_t     mem_info  [NumBuffers];
 CRITICAL_SECTION budget_mutex  = { 0 };
 CRITICAL_SECTION init_mutex    = { 0 };
 volatile HANDLE  hInitThread   = { 0 };
-volatile DWORD   dwInitThread  = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
 struct budget_thread_params_t {
@@ -81,6 +80,10 @@ struct budget_thread_params_t {
   HANDLE           event    = INVALID_HANDLE_VALUE;
   volatile ULONG   ready    = FALSE;
 } budget_thread;
+
+
+extern void
+SK_D3D11_Init (void);
 
 // Disable SLI memory in Batman Arkham Knight
 bool USE_SLI = true;
@@ -923,13 +926,14 @@ SK_StartPerfMonThreads (void)
   }
 }
 
-std::queue <DWORD> suspended_tids;
-
 void
 __stdcall
 SK_InitFinishCallback (_Releases_exclusive_lock_ (init_mutex) void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
+
+  SK_Console* pConsole = SK_Console::getInstance ();
+  pConsole->Start ();
 
   extern BOOL SK_UsingVulkan (void);
 
@@ -954,8 +958,6 @@ SK_InitFinishCallback (_Releases_exclusive_lock_ (init_mutex) void)
   }
 
   SK_StartPerfMonThreads ();
-
-  InterlockedExchange (&dwInitThread, 0x00);
 
   LeaveCriticalSection (&init_mutex);
 }
@@ -1144,6 +1146,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   SK::Framerate::Init ();
 
+  // Load user-defined DLLs (Early)
+#ifdef _WIN64
+  SK_LoadEarlyImports64 ();
+#else
+  SK_LoadEarlyImports32 ();
+#endif
+
   if (config.system.silent) {
     dll_log.silent = true;
 
@@ -1262,13 +1271,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
 
-  // Load user-defined DLLs (Early)
-#ifdef _WIN64
-  SK_LoadEarlyImports64 ();
-#else
-  SK_LoadEarlyImports32 ();
-#endif
-
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
   EnumLoadedModules ();
@@ -1301,9 +1303,6 @@ WaitForInit (void)
       InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
         150 ) )
       break;
-
-    if (InterlockedCompareExchange (&dwInitThread, 0, 0) == GetCurrentThreadId ())
-      return;
   }
 
   while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
@@ -1553,8 +1552,6 @@ DllThread_CRT (LPVOID user)
   init_params_t* params =
     &init_;
 
-  InterlockedExchange (&dwInitThread, GetCurrentThreadId ());
-
   SK_InitCore (params->backend, params->callback);
 
   if (SK_IsHostAppSKIM ())
@@ -1614,11 +1611,7 @@ DllThread (LPVOID user)
 {
   EnterCriticalSection (&init_mutex);
   {
-    SK_Console* pConsole = SK_Console::getInstance ();
-
     DllThread_CRT (&init_);
-
-    pConsole->Start ();
   }
   LeaveCriticalSection (&init_mutex);
 
@@ -1757,6 +1750,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
   }
 
+  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
+  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
+
+  EnterCriticalSection (&init_mutex);
+
   // Don't start SteamAPI if we're running the installer...
   if (SK_IsHostAppSKIM ())
     config.steam.init_delay = 0;
@@ -1803,6 +1801,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   // Do this from the startup thread
   SK_Init_MinHook        ();
+
+  if (! lstrcmpW (backend, L"dxgi") || GetModuleHandle (L"d3d11.dll"))
+    SK_D3D11_Init ();
+
   SK_InitCompatBlacklist ();
 
 
@@ -1818,11 +1820,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   init_.backend  = backend;
   init_.callback = callback;
-
-  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
-  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
-
-  EnterCriticalSection (&init_mutex);
 
   HANDLE hProc = GetCurrentProcess ();
 
@@ -1877,22 +1874,24 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init ();
 
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
-
   if (! SK_IsHostAppSKIM ()) {
-    SK_TestSteamImports (SK_GetDLL ());
+    if (! config.steam.silent) {
+      SK_TestSteamImports (GetModuleHandle (nullptr));
 
-    if (GetModuleHandle (L"CSteamworks.dll")) {
-      SK_HookCSteamworks ();
-    }
+      if (GetModuleHandle (L"CSteamworks.dll")) {
+        SK_HookCSteamworks ();
+      }
 
-    if ( GetModuleHandle (L"steam_api.dll")   ||
-         GetModuleHandle (L"steam_api64.dll") ||
-         GetModuleHandle (L"SteamNative.dll") ) {
-      SK_HookSteamAPI ();
+      if ( GetModuleHandle (L"steam_api.dll")   ||
+           GetModuleHandle (L"steam_api64.dll") ||
+           GetModuleHandle (L"SteamNative.dll") ) {
+        SK_HookSteamAPI ();
+      }
     }
   }
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
 
   LeaveCriticalSection (&init_mutex);
 
@@ -2157,8 +2156,8 @@ SK_BeginBufferSwap (void)
       SK_HookSteamAPI ();
     }
 
-    if (config.system.handle_crashes)
-      SK::Diagnostics::CrashHandler::Reinstall ();
+    //if (config.system.handle_crashes)
+      //SK::Diagnostics::CrashHandler::Reinstall ();
   }
 
   static volatile ULONG first = TRUE;
@@ -2171,25 +2170,27 @@ SK_BeginBufferSwap (void)
 
       InterlockedExchange (&first, 0);
 
-      CreateThread (
-        nullptr,
-          0,
-            [](LPVOID user)->
+      if (config.window.borderless || config.window.center) {
+        CreateThread (
+          nullptr,
+            0,
+              [](LPVOID user)->
 
-            DWORD
-            {
-              SK_AdjustBorder ();
-              SK_AdjustWindow ();
+              DWORD
+              {
+                SK_AdjustBorder ();
+                SK_AdjustWindow ();
 
-              CloseHandle (GetCurrentThread ());
+                CloseHandle (GetCurrentThread ());
 
-              return 0;
-            },
+                return 0;
+              },
 
-            nullptr,
-          0x00,
-        nullptr
-      );
+              nullptr,
+            0x00,
+          nullptr
+        );
+      }
     }
 
     if (config.window.background_mute)
