@@ -25,8 +25,6 @@
 #include <Shlwapi.h>
 #include <process.h>
 
-extern "C" BOOL WINAPI _CRT_INIT (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
-
 #include <SpecialK/core.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/d3d9_backend.h>
@@ -410,7 +408,6 @@ DllMain ( HMODULE hModule,
         ret =
           SK_Detach (SK_GetDLLRole ());
         TlsFree     (__SK_TLS_INDEX);
-        _CRT_INIT   ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
       }
 
       else {
@@ -427,8 +424,6 @@ DllMain ( HMODULE hModule,
     {
       if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
       {
-        _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
-
         LPVOID lpvData =
           (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
 
@@ -451,8 +446,6 @@ DllMain ( HMODULE hModule,
           LocalFree   (lpvData);
           TlsSetValue (__SK_TLS_INDEX, nullptr);
         }
-
-        _CRT_INIT ((HINSTANCE)hModule,ul_reason_for_call, lpReserved);
       }
     } break;
   }

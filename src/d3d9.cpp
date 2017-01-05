@@ -619,8 +619,6 @@ d3d9_init_callback (finish_pfn finish)
 bool
 SK::D3D9::Startup (void)
 {
-  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
-
   old_threads =
     SK_SuspendAllOtherThreads ();
 

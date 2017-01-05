@@ -296,7 +296,7 @@ extern BOOL nvapi_init;
 bool osd_shutting_down = false;
 
 // Initialize some things (like color, position and scale) on first use
-bool osd_init          = false;
+volatile LONG osd_init = FALSE;
 
 BOOL
 __stdcall
@@ -509,9 +509,7 @@ void
 __stdcall
 SK_InstallOSD (void)
 {
-  if (! osd_init) {
-    osd_init = true;
-
+  if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE)) {
     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
 
     SK_SetOSDScale (config.osd.scale);
@@ -544,6 +542,10 @@ SK_DrawOSD (void)
 
   static bool cleared = false;
 
+  if (! InterlockedExchangeAdd (&osd_init, 0)) {
+    SK_InstallOSD ();
+  }
+
 #if 0
   // Automatically free VRAM cache when it is a bit on the excessive side
   if ((process_stats.memory.page_file_bytes >> 30ULL) > 28) {
@@ -558,11 +560,7 @@ SK_DrawOSD (void)
   if ((! config.osd.show) && cleared)
     return TRUE;
 
-  if (! osd_init) {
-    SK_InstallOSD ();
-  }
-
-  if (! osd_init)
+  if (! InterlockedExchangeAdd (&osd_init, 0))
     return FALSE;
 
   char* pszOSD = szOSD;
@@ -1713,6 +1711,8 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
   }
 
+  EnterCriticalSection (&cs_);
+
   auto it =
     overlays_.begin ();
 
@@ -1762,11 +1762,15 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
       ++it;
     }
   }
+
+  LeaveCriticalSection (&cs_);
 }
 
 float
 SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 {
+  EnterCriticalSection (&cs_);
+
   float base_y = y;
 
   // Draw top-down
@@ -1795,6 +1799,8 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
       ++it;
     }
   }
+
+  LeaveCriticalSection (&cs_);
 
   // Height of all rendered overlays
   return fabs (y - base_y);

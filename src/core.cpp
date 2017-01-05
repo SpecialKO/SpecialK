@@ -122,6 +122,7 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
 wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
 wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
 
+__declspec (noinline)
 const wchar_t*
 __stdcall
 SK_GetRootPath (void)
@@ -141,6 +142,7 @@ SK_SetConfigPath (const wchar_t* path)
   lstrcpyW (SK_ConfigPath, path);
 }
 
+__declspec (noinline)
 const wchar_t*
 __stdcall
 SK_GetConfigPath (void)
@@ -151,6 +153,7 @@ SK_GetConfigPath (void)
 volatile
 ULONG frames_drawn = 0UL;
 
+__declspec (noinline)
 ULONG
 __stdcall
 SK_GetFramesDrawn (void)
@@ -1144,8 +1147,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
-  SK::Framerate::Init ();
-
   // Load user-defined DLLs (Early)
 #ifdef _WIN64
   SK_LoadEarlyImports64 ();
@@ -1801,6 +1802,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   // Do this from the startup thread
   SK_Init_MinHook        ();
+  SK::Framerate::Init    ();
 
   if (! lstrcmpW (backend, L"dxgi") || GetModuleHandle (L"d3d11.dll"))
     SK_D3D11_Init ();

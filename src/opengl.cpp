@@ -324,8 +324,6 @@ SK_FreeRealGL (void)
 bool
 SK::OpenGL::Startup (void)
 {
-  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
-
   //
   // For Thread Local Storage to work correctly, this is the only option.
   //

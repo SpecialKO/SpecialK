@@ -926,7 +926,7 @@ MH_STATUS
 WINAPI
 MH_DisableHookEx (LPVOID pTarget, UINT idx)
 {
-  return EnableHook (pTarget, FALSE, idx);
+  return EnableHookEx (pTarget, FALSE, idx);
 }
 
 MH_STATUS

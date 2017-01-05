@@ -88,6 +88,8 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 
     return true;
   }
+
+  return false;
 }
 
 bool

@@ -3390,8 +3390,6 @@ SK_FreeRealDXGI (void)
 bool
 SK::DXGI::Startup (void)
 {
-  _CRT_INIT (SK_GetDLL (), DLL_PROCESS_ATTACH, nullptr);
-
   old_threads =
     SK_SuspendAllOtherThreads ();
 
@@ -3414,6 +3412,7 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
   if (Present_Original != nullptr) {
     //dll_log.Log (L"Rehooking IDXGISwapChain::Present (...)");
 
+#if 0
     if (MH_OK == SK_RemoveHook (vftable [8]))
       Present_Original = nullptr;
     else {
@@ -3422,7 +3421,8 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
       if (MH_OK == SK_RemoveHook (vftable_8))
         Present_Original = nullptr;
     }
-  }
+#endif
+  } else {
 
   DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
                       "IDXGISwapChain::Present",
@@ -3431,6 +3431,7 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
                        PresentSwapChain_pfn );
 
   vftable_8 = vftable [8];
+  }
 
 
   CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
@@ -3439,6 +3440,7 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
     vftable = *(void***)*&pSwapChain1;
 
     if (Present1_Original != nullptr) {
+#if 0
       //dll_log.Log (L"Rehooking IDXGISwapChain::Present1 (...)");
 
       if (MH_OK == SK_RemoveHook (vftable [22]))
@@ -3449,7 +3451,8 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
         if (MH_OK == SK_RemoveHook (vftable_22))
           Present1_Original = nullptr;
       }
-    }
+#endif
+    } else {
 
     DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
                         "IDXGISwapChain1::Present1",
@@ -3458,6 +3461,7 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
                          Present1SwapChain1_pfn );
 
     vftable_22 = vftable [22];
+    }
   }
 
   //if (config.system.handle_crashes)
@@ -3467,7 +3471,7 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
 std::wstring
 SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 {
-
+  return L"<NOT IMPLEMENTED>";
 }
 
 void
