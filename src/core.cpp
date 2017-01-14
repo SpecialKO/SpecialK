@@ -2125,7 +2125,6 @@ SK_ShutdownCore (const wchar_t* backend)
 }
 
 
-
 __declspec (noinline)
 COM_DECLSPEC_NOTHROW
 void
@@ -2199,10 +2198,10 @@ SK_BeginBufferSwap (void)
       SK_SetGameMute (FALSE);
   }
 
-  extern void SK_DrawTexMgrStats (void);
-  SK_DrawTexMgrStats ();
   SK_DrawOSD         ();
   SK_DrawConsole     ();
+  extern void SK_DrawTexMgrStats (void);
+  SK_DrawTexMgrStats ();
 }
 
 ULONGLONG poll_interval = 0;

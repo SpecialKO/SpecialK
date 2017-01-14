@@ -134,6 +134,12 @@ SK_CEGUI_RelocateLog (void)
 
 CEGUI::Window* SK_achv_popup = nullptr;
 
+CEGUI::System*
+SK_CEGUI_GetSystem (void)
+{
+  return CEGUI::System::getDllSingletonPtr ();
+}
+
 void
 SK_CEGUI_InitBase (void)
 {
@@ -1308,11 +1314,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       cegD3D11->destroySystem ();
       cegD3D11 = nullptr;
     }
-
-    extern void
-    __stdcall
-    SK_D3D11_TexCacheCheckpoint (void);
-    SK_D3D11_TexCacheCheckpoint ();
   }
 
   else if (cegD3D11 == nullptr) {

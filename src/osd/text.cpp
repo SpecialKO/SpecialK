@@ -103,13 +103,16 @@ public:
 
   SK_TextOverlay* createTextOverlay (const char* szAppName)
   {
-    std::string app_name (szAppName);
-
     EnterCriticalSection (&cs_);
 
+    std::string app_name (szAppName);
+
     if (overlays_.count (app_name)) {
+      SK_TextOverlay* overlay = overlays_ [app_name];
+
       LeaveCriticalSection (&cs_);
-      return overlays_ [app_name];
+
+      return overlay;
     }
 
     SK_TextOverlay* overlay = new SK_TextOverlay (szAppName);
@@ -125,9 +128,9 @@ public:
   }
 
   bool removeTextOverlay (const char* szAppName) {
-    std::string app_name (szAppName);
-
     EnterCriticalSection (&cs_);
+
+    std::string app_name (szAppName);
 
     if (overlays_.count (app_name)) {
       overlays_.erase (app_name);
@@ -142,9 +145,9 @@ public:
 
   SK_TextOverlay* getTextOverlay (const char* szAppName)
   {
-    std::string app_name (szAppName);
-
     EnterCriticalSection (&cs_);
+
+    std::string app_name (szAppName);
 
     if (overlays_.count (app_name)) {
       SK_TextOverlay* overlay = overlays_ [app_name];
@@ -509,7 +512,8 @@ void
 __stdcall
 SK_InstallOSD (void)
 {
-  if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE)) {
+  if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
+  {
     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
 
     SK_SetOSDScale (config.osd.scale);
@@ -542,9 +546,8 @@ SK_DrawOSD (void)
 
   static bool cleared = false;
 
-  if (! InterlockedExchangeAdd (&osd_init, 0)) {
+  if ((! InterlockedExchangeAdd (&osd_init, 0)) && SK_GetFramesDrawn () > 0)
     SK_InstallOSD ();
-  }
 
 #if 0
   // Automatically free VRAM cache when it is a bit on the excessive side
@@ -574,17 +577,24 @@ SK_DrawOSD (void)
 
   if (config.time.show)
   {
-    SYSTEMTIME st;
+    SYSTEMTIME     st;
     GetLocalTime (&st);
 
-    wchar_t time [64];
-    GetTimeFormat (config.time.format,0L,&st,NULL,time,64);
+    wchar_t time [128] = { L'\0' };
+
+    GetTimeFormat ( config.time.format,
+                      0L,
+                        &st,
+                          nullptr,
+                            time,
+                              128 );
 
     static HMODULE hModGame = GetModuleHandle (nullptr);
     static wchar_t wszGameName [MAX_PATH] = { L'\0' };
 
     if (wszGameName [0] == L'\0') {
       GetModuleFileName (hModGame, wszGameName, MAX_PATH);
+
       if (StrStrIW (wszGameName, L"BatmanAK.exe"))
         isArkhamKnight = true;
       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
@@ -597,7 +607,7 @@ SK_DrawOSD (void)
         isDivinityOrigSin = true;
     }
 
-    else if (isFallout4) {
+    if (isFallout4) {
       OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
                  time
       OSD_END
@@ -1264,6 +1274,9 @@ BOOL
 __stdcall
 SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 {
+  if (! InterlockedExchangeAdd (&osd_init, 0))
+    return FALSE;
+
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
@@ -1838,8 +1851,9 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
       config.osd.scale = *(float *)val;
 
 
-    auto it = overlays_.begin ();
+    EnterCriticalSection (&cs_);
 
+    auto it = overlays_.begin ();
 
     while (it != overlays_.end ())
     {
@@ -1854,6 +1868,8 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
 
       ++it;
     }
+
+    LeaveCriticalSection (&cs_);
 
     return true;
   }

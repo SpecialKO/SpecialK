@@ -1297,10 +1297,12 @@ std::string texmgr_stats = "";
 void
 SK_DrawTexMgrStats (void)
 {
-  extern BOOL
-  __stdcall
-  SK_DrawExternalOSD (std::string app_name, std::string text);
-  SK_DrawExternalOSD ("SpecialK TexMgr", texmgr_stats);
+  if (texmgr_stats.length ()) {
+    extern BOOL
+    __stdcall
+    SK_DrawExternalOSD (std::string app_name, std::string text);
+    SK_DrawExternalOSD ("SpecialK TexMgr", texmgr_stats);
+  }
 }
 
 void

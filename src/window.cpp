@@ -1682,12 +1682,15 @@ SK_GetSystemMetrics (_In_ int nIndex)
 void
 SK_HookWinAPI (void)
 {
-  static bool hooked = false;
+  static volatile ULONG hooked = FALSE;
 
-  if (hooked)
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
+    while (SetWindowPos_Original == nullptr)
+      Sleep (100);
+
     return;
-
-  hooked = true;
+  }
 
   // Initialize the Window Manager
   SK_WindowManager::getInstance ();
@@ -2439,8 +2442,8 @@ SK_InstallWindowHook (HWND hWnd)
 
   GetCursorPos_Original  (&game_window.cursor_pos);
 
-  if (game_window.actual.style & WS_VISIBLE)
-    SK_RealizeForegroundWindow (game_window.hWnd);
+  //if (game_window.actual.style & WS_VISIBLE)
+    //SK_RealizeForegroundWindow (game_window.hWnd);
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();

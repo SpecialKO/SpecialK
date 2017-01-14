@@ -77,8 +77,7 @@ SK_Console::Draw (void)
   static bool          carret    = false;
   static LARGE_INTEGER last_time = { 0 };
 
-  static std::string last_output = "";
-         std::string output = "";
+           std::string output    = "";
 
   if (visible) {
     output += text;
@@ -110,10 +109,7 @@ SK_Console::Draw (void)
     output = "";
   }
 
-  //if (last_output != output) {
-    last_output = output;
-    SK_DrawExternalOSD ("SpecialK Console", output);
-  //}
+  SK_DrawExternalOSD ("SpecialK Console", output);
 }
 
 void

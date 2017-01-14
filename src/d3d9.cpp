@@ -1473,13 +1473,9 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                   SK_GetCallerName ().c_str (), GetCurrentThreadId ()
   );
 
-  //
-  // RTSS will deadlock us if we use this condition, unfortunately
-  //
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
-    SK_D3D9_SetFPSTarget    (      pPresentationParameters);
-    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-  }
+
+  SK_D3D9_SetFPSTarget    (      pPresentationParameters);
+  SK_SetPresentParamsD3D9 (This, pPresentationParameters);
 
 #if 0
   // The texture manager built-in to SK is derived from these ...
@@ -1536,13 +1532,8 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                     This, pPresentationParameters, pFullscreenDisplayMode,
                       SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
-  //
-  // RTSS will deadlock us if we use this condition, unfortunately
-  //
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
-    SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
-    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-  }
+  SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
+  SK_SetPresentParamsD3D9 (This, pPresentationParameters);
 
   HRESULT hr;
 
@@ -2201,11 +2192,6 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
 
   HRESULT ret;
 
-  // Don't do this for the dummy context we create during init.
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
-    SK_SetPresentParamsD3D9 ( nullptr,
-                                pPresentationParameters );
-
   D3D9_CALL (ret, D3D9CreateDeviceEx_Original (This,
                                                Adapter,
                                                DeviceType,
@@ -2218,7 +2204,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (! SUCCEEDED (ret))
     return ret;
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (true) {//InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     // For games that present frames using the actual Swapchain...
@@ -2396,16 +2382,20 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       D3D9SetPixelShaderConstantF_Original,
                       SetPixelShaderConstantF_pfn );
 
-    SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
-    SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+      SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
+    SK_D3D9_HookPresent       (*ppReturnedDeviceInterface);
 
     MH_ApplyQueued          ();
 
-    //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
+    //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+      //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
   }
 
-  ResetCEGUI_D3D9 (nullptr);
-  //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    ResetCEGUI_D3D9 (nullptr);
+    //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+  }
 
   return ret;
 }
@@ -2432,11 +2422,6 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
 
   HRESULT ret;
-
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
-    SK_SetPresentParamsD3D9 ( nullptr,
-                                 pPresentationParameters );
-  }
 
   D3D9_CALL (ret, D3D9CreateDevice_Original ( This, Adapter,
                                           DeviceType,
@@ -2480,7 +2465,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     return ret;
   }
 
-  if (true) {//if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (true) {//InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED ((*ppReturnedDeviceInterface)->GetSwapChain (0, &pSwapChain))) {
@@ -2656,16 +2641,21 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     D3D9SetPixelShaderConstantF_Original,
                     SetPixelShaderConstantF_pfn );
 
-    SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+      SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
+
     SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
 
-    //(*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
-
     MH_ApplyQueued          ();
+
+    //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+      //(*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
   }
 
-  ResetCEGUI_D3D9 (nullptr);
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    ResetCEGUI_D3D9 (nullptr);
   //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+  }
 
   return ret;
 }
@@ -2678,8 +2668,8 @@ IDirect3D9*
 STDMETHODCALLTYPE
 Direct3DCreate9 (UINT SDKVersion)
 {
-  WaitForInit      ();
   WaitForInit_D3D9 ();
+  WaitForInit      ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
                 L"[%s, tid=0x%04x]",
@@ -2687,7 +2677,7 @@ Direct3DCreate9 (UINT SDKVersion)
                     SDKVersion,
                       SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
-  bool force_d3d9ex = config.render.d3d9.force_d3d9ex;
+  bool force_d3d9ex = config.render.d3d9.force_d3d9ex && Direct3DCreate9Ex_Import != nullptr;
 
   // Disable D3D9EX whenever GeDoSaTo is present
   if (force_d3d9ex) {
@@ -2700,17 +2690,17 @@ Direct3DCreate9 (UINT SDKVersion)
   IDirect3D9*   d3d9  = nullptr;
   IDirect3D9Ex* pD3D9 = nullptr;
 
-  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (SDKVersion, &pD3D9))) {
+  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex_Import (SDKVersion, &pD3D9))) {
     if (Direct3DCreate9_Import) {
-      dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
-        L"[%s, tid=0x%04x]",
-        L"Direct3DCreate9", SDKVersion,
-          SK_GetCallerName ().c_str (), GetCurrentThreadId () );
-
       d3d9 = Direct3DCreate9_Import (SDKVersion);
     }
-  } else if (force_d3d9ex) {
-    return pD3D9;
+  }
+
+  else if (force_d3d9ex) {
+    IDirect3D9* pD3D9Sub = nullptr;
+    if (SUCCEEDED (pD3D9->QueryInterface (IID_PPV_ARGS (&pD3D9Sub)))) {
+      return pD3D9Sub;
+    }
   }
 
   if (d3d9 != nullptr) {
@@ -2725,8 +2715,8 @@ __declspec (noinline)
 STDMETHODCALLTYPE
 Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
 {
-  WaitForInit      ();
   WaitForInit_D3D9 ();
+  WaitForInit      ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %08Xh) - "
                 L"[%s, tid=0x%04x]",
