@@ -178,16 +178,16 @@ WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
                       _In_       HWND              hDestWindowOverride,
                       _In_ const RGNDATA          *pDirtyRegion );
 
-#define D3D9_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {     \
-  void** _vftable = *(void***)*(_Base);                                       \
-                                                                              \
-  if ((_Original) == nullptr) {                                               \
-    SK_CreateVFTableHook2 ( L##_Name,                                         \
-                              _vftable,                                       \
-                                (_Index),                                     \
-                                  (_Override),                                \
-                                    (LPVOID *)&(_Original));                  \
-  }                                                                           \
+#define D3D9_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {    \
+  void** _vftable = *(void***)*(_Base);                                      \
+                                                                             \
+  if ((_Original) == nullptr) {                                              \
+    SK_CreateVFTableHook ( L##_Name,                                         \
+                             _vftable,                                       \
+                               (_Index),                                     \
+                                 (_Override),                                \
+                                   (LPVOID *)&(_Original));                  \
+  }                                                                          \
 }
 
 #define D3D9_VIRTUAL_HOOK_EX(_Base,_Index,_Name,_Override,_Original,_Type) {  \
@@ -564,15 +564,15 @@ SK_HookD3D9 (void)
       (Direct3DCreate9Ex_Import) =  \
         (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
   } else {
-    SK_CreateDLLHook2 ( L"d3d9.dll",
-                        "Direct3DCreate9",
-                        Direct3DCreate9,
-             (LPVOID *)&Direct3DCreate9_Import );
+    SK_CreateDLLHook ( L"d3d9.dll",
+                       "Direct3DCreate9",
+                       Direct3DCreate9,
+            (LPVOID *)&Direct3DCreate9_Import );
 
-    SK_CreateDLLHook2 ( L"d3d9.dll",
-                        "Direct3DCreate9Ex",
-                        Direct3DCreate9Ex,
-             (LPVOID *)&Direct3DCreate9Ex_Import );
+    SK_CreateDLLHook ( L"d3d9.dll",
+                       "Direct3DCreate9Ex",
+                       Direct3DCreate9Ex,
+            (LPVOID *)&Direct3DCreate9Ex_Import );
 
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh  { Hooked }",
       (Direct3DCreate9_Import) );
@@ -588,8 +588,6 @@ SK_HookD3D9 (void)
                              nullptr,
                                0x00,
                                  nullptr );
-
-  MH_ApplyQueued ();
 
   while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
     WaitForSingleObject (hThread, 100UL);
@@ -737,7 +735,7 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
     BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
     BehaviorFlags |=  D3DCREATE_MIXED_VERTEXPROCESSING;
 
-    SK_D3D9_PlaysTV_Hook ();
+    //SK_D3D9_PlaysTV_Hook ();
   }
 }
 
@@ -1216,8 +1214,6 @@ D3D9CreateAdditionalSwapChain_Override (
                      "IDirect3DSwapChain9::Present",
                      D3D9PresentSwapCallback, D3D9PresentSwap_Original,
                      D3D9PresentSwapChain_pfn );
-
-    MH_ApplyQueued ();
   }
 
   return hr;
@@ -1473,9 +1469,10 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                   SK_GetCallerName ().c_str (), GetCurrentThreadId ()
   );
 
-
-  SK_D3D9_SetFPSTarget    (      pPresentationParameters);
-  SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    SK_D3D9_SetFPSTarget    (      pPresentationParameters);
+    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  }
 
 #if 0
   // The texture manager built-in to SK is derived from these ...
@@ -1496,16 +1493,18 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
        D3D9Present_Original == nullptr )
     SK_D3D9_HookPresent (This);
 
-  MH_ApplyQueued ();
-
-  // Release
-  ResetCEGUI_D3D9 (nullptr);
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    // Release
+    ResetCEGUI_D3D9 (nullptr);
+  }
 
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
 
   if (SUCCEEDED (hr)) {
-    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+      SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+    }
   }
 
   return hr;
@@ -1532,34 +1531,38 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                     This, pPresentationParameters, pFullscreenDisplayMode,
                       SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
-  SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
-  SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
+    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  }
 
   HRESULT hr;
 
   CComPtr <IDirect3DDevice9> pDev = nullptr;
 
   if (SUCCEEDED (This->QueryInterface ( IID_PPV_ARGS (&pDev) ))) {
-  if (config.compatibility.d3d9.rehook_reset)
-    SK_D3D9_HookReset   (pDev);
+    if (config.compatibility.d3d9.rehook_reset)
+      SK_D3D9_HookReset   (pDev);
 
-  if (config.compatibility.d3d9.rehook_present)
-    SK_D3D9_HookPresent (pDev);
+    if (config.compatibility.d3d9.rehook_present)
+      SK_D3D9_HookPresent (pDev);
 
-    MH_ApplyQueued      ();
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+      // Release
+      ResetCEGUI_D3D9 (nullptr);
+    }
+
+    pDev.Release ();
   }
-
-  pDev.Release ();
-
-  // Release
-  ResetCEGUI_D3D9 (nullptr);
 
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
                                             pFullscreenDisplayMode ));
 
-  if (SUCCEEDED (hr)) {
-    SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    if (SUCCEEDED (hr)) {
+      SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+    }
   }
 
   return hr;
@@ -2166,6 +2169,21 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
   return pparams;
 }
 
+class SK_AutoSuspendResume {
+public:
+  SK_AutoSuspendResume (void) {
+    tids_ = SK_SuspendAllOtherThreads ();
+  }
+
+  ~SK_AutoSuspendResume (void) {
+    SK_ResumeThreads (tids_);
+  }
+
+protected:
+private:
+  std::queue <DWORD> tids_;
+};
+
 COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
@@ -2187,10 +2205,19 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       pFullscreenDisplayMode, ppReturnedDeviceInterface,
                         SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
-  SK_D3D9_SetFPSTarget       (pPresentationParameters, pFullscreenDisplayMode);
-  SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
-
   HRESULT ret;
+
+  {
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+      SK_D3D9_SetFPSTarget       (pPresentationParameters, pFullscreenDisplayMode);
+      SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
+    }
+
+    // Don't do this for the dummy context we create during init.
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+      SK_SetPresentParamsD3D9 ( nullptr,
+                                  pPresentationParameters );
+  }
 
   D3D9_CALL (ret, D3D9CreateDeviceEx_Original (This,
                                                Adapter,
@@ -2204,7 +2231,9 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (! SUCCEEDED (ret))
     return ret;
 
-  if (true) {//InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (true) {
+    //SK_AutoSuspendResume auto_suspend;
+
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     // For games that present frames using the actual Swapchain...
@@ -2381,16 +2410,13 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       D3D9SetPixelShaderConstantF_Override,
                       D3D9SetPixelShaderConstantF_Original,
                       SetPixelShaderConstantF_pfn );
-
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
-      SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
-    SK_D3D9_HookPresent       (*ppReturnedDeviceInterface);
-
-    MH_ApplyQueued          ();
-
-    //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
-      //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
   }
+
+  SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
+  SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
+
+  //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     ResetCEGUI_D3D9 (nullptr);
@@ -2418,10 +2444,19 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                       ppReturnedDeviceInterface,
                         SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
-  SK_D3D9_SetFPSTarget       (pPresentationParameters);
-  SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
-
   HRESULT ret;
+
+  {
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+      SK_D3D9_SetFPSTarget       (pPresentationParameters);
+      SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
+    }
+
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+      SK_SetPresentParamsD3D9 ( nullptr,
+                                  pPresentationParameters );
+    }
+  }
 
   D3D9_CALL (ret, D3D9CreateDevice_Original ( This, Adapter,
                                           DeviceType,
@@ -2465,7 +2500,9 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     return ret;
   }
 
-  if (true) {//InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (true) {
+    //SK_AutoSuspendResume auto_suspend;
+
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED ((*ppReturnedDeviceInterface)->GetSwapChain (0, &pSwapChain))) {
@@ -2640,21 +2677,17 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     D3D9SetPixelShaderConstantF_Override,
                     D3D9SetPixelShaderConstantF_Original,
                     SetPixelShaderConstantF_pfn );
-
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
-      SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
-
-    SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
-
-    MH_ApplyQueued          ();
-
-    //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
-      //(*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
   }
+
+  SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
+  SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
+
+  //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    //(*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     ResetCEGUI_D3D9 (nullptr);
-  //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+    //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
   }
 
   return ret;
@@ -2668,8 +2701,8 @@ IDirect3D9*
 STDMETHODCALLTYPE
 Direct3DCreate9 (UINT SDKVersion)
 {
-  WaitForInit_D3D9 ();
   WaitForInit      ();
+  WaitForInit_D3D9 ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
                 L"[%s, tid=0x%04x]",
@@ -2677,7 +2710,7 @@ Direct3DCreate9 (UINT SDKVersion)
                     SDKVersion,
                       SK_GetCallerName ().c_str (), GetCurrentThreadId () );
 
-  bool force_d3d9ex = config.render.d3d9.force_d3d9ex && Direct3DCreate9Ex_Import != nullptr;
+  bool force_d3d9ex = config.render.d3d9.force_d3d9ex;
 
   // Disable D3D9EX whenever GeDoSaTo is present
   if (force_d3d9ex) {
@@ -2687,20 +2720,23 @@ Direct3DCreate9 (UINT SDKVersion)
     }
   }
 
-  IDirect3D9*   d3d9  = nullptr;
-  IDirect3D9Ex* pD3D9 = nullptr;
+  IDirect3D9*   d3d9    = nullptr;
+  IDirect3D9Ex* pD3D9Ex = nullptr;
 
-  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex_Import (SDKVersion, &pD3D9))) {
+  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (SDKVersion, &pD3D9Ex))) {
     if (Direct3DCreate9_Import) {
+      if (force_d3d9ex) {
+        dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
+          L"[%s, tid=0x%04x]",
+          L"Direct3DCreate9", SDKVersion,
+            SK_GetCallerName ().c_str (), GetCurrentThreadId () );
+      }
+
       d3d9 = Direct3DCreate9_Import (SDKVersion);
     }
   }
 
   else if (force_d3d9ex) {
-    IDirect3D9* pD3D9Sub = nullptr;
-    if (SUCCEEDED (pD3D9->QueryInterface (IID_PPV_ARGS (&pD3D9Sub)))) {
-      return pD3D9Sub;
-    }
   }
 
   if (d3d9 != nullptr) {
@@ -2715,8 +2751,8 @@ __declspec (noinline)
 STDMETHODCALLTYPE
 Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
 {
-  WaitForInit_D3D9 ();
   WaitForInit      ();
+  WaitForInit_D3D9 ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %08Xh) - "
                 L"[%s, tid=0x%04x]",
@@ -3070,8 +3106,6 @@ HookD3D9 (LPVOID user)
 
         DestroyWindow (hwnd);
       }
-
-      MH_ApplyQueued ();
 
       InterlockedExchange (&__d3d9_ready, TRUE);
 

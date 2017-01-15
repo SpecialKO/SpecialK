@@ -116,6 +116,73 @@ CrashHandler::Shutdown (void)
 
 
 
+std::string
+SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
+{
+  std::string ret = "";
+
+  HANDLE hProc =
+    GetCurrentProcess ();
+
+#ifdef _WIN64
+  DWORD64  ip = addr;
+#else
+  DWORD    ip = addr;
+#endif
+
+#ifdef _WIN64
+  DWORD64 BaseAddr =
+    SymGetModuleBase64 ( hProc, ip );
+#else
+  DWORD BaseAddr =
+    SymGetModuleBase   ( hProc, ip );
+#endif
+
+  char    szModName [ MAX_PATH + 2 ] = { '\0' };
+
+  GetModuleFileNameA   ( hMod, szModName, MAX_PATH );
+
+  char* szDupName    = _strdup (szModName);
+  char* pszShortName = szDupName + lstrlenA (szDupName);
+
+  while (  pszShortName      >  szDupName &&
+         *(pszShortName - 1) != '\\')
+    --pszShortName;
+
+#ifdef _WIN64
+  SymLoadModule64 ( hProc,
+                      nullptr,
+                        pszShortName,
+                          nullptr,
+                            BaseAddr,
+                              0 );
+#else
+  SymLoadModule ( hProc,
+                    nullptr,
+                      pszShortName,
+                        nullptr,
+                          BaseAddr,
+                            0 );
+#endif
+
+  SYMBOL_INFO_PACKAGE sip;
+  sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+  sip.si.MaxNameLen   = sizeof sip.name;
+
+  DWORD64 Displacement = 0;
+
+  if ( SymFromAddr ( hProc,
+                       (DWORD64)ip,
+                         &Displacement,
+                           &sip.si ) ) {
+    ret = sip.si.Name;
+  } else {
+    ret = "UNKNOWN";
+  }
+
+  return ret;
+}
+
 iSK_Logger crash_log;
 
 LONG

@@ -653,6 +653,10 @@ SK_InitCompatBlacklist (void)
   SK_ReHookLoadLibrary ();
 }
 
+extern std::wstring
+__stdcall
+SK_GetDLLVersionStr (const wchar_t* wszName);
+
 void
 __stdcall
 EnumLoadedModules (void)
@@ -691,6 +695,90 @@ EnumLoadedModules (void)
                                 sizeof (hMods),
                                   &cbNeeded) )
   {
+    struct enum_working_set_s {
+      HMODULE     modules [1024];
+      int         count;
+      iSK_Logger* logger;
+      HANDLE      proc;
+    } *working_set = new enum_working_set_s ();
+
+            working_set->proc   = hProc;
+            working_set->logger = pLogger;
+            working_set->count  = cbNeeded / sizeof HMODULE;
+    memcpy (working_set->modules, hMods, cbNeeded);
+
+    CreateThread (
+      nullptr,
+        0,
+          [](LPVOID user)->
+          DWORD
+          {
+            enum_working_set_s* pWorkingSet = (enum_working_set_s *)user;
+            iSK_Logger*         pLogger     = pWorkingSet->logger;
+
+            for (int i = 0; i < pWorkingSet->count; i++ )
+            {
+              wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
+
+              // Get the full path to the module's file.
+              if ( GetModuleFileNameExW ( pWorkingSet->proc,
+                                            pWorkingSet->modules [i],
+                                              wszModName,
+                                                MAX_PATH ) )
+              {
+                MODULEINFO mi = { 0 };
+
+                uintptr_t entry_pt  = 0;
+                uintptr_t base_addr = 0;
+                uint32_t  mod_size  = 0UL;
+
+                if (GetModuleInformation (pWorkingSet->proc, pWorkingSet->modules [i], &mi, sizeof (MODULEINFO))) {
+                  entry_pt  = (uintptr_t)mi.EntryPoint;
+                  base_addr = (uintptr_t)mi.lpBaseOfDll;
+                  mod_size  =            mi.SizeOfImage;
+                }
+
+#define VERBOSE_AND_SLOW
+#ifdef VERBOSE_AND_SLOW
+                extern std::string
+                SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
+
+                pLogger->Log ( L"[ Module ]  ( %ph + %08lu )   -:< %-64hs >:-   %s",
+                                  base_addr, mod_size,
+                                    SK_GetSymbolNameFromModuleAddr (pWorkingSet->modules [i], entry_pt).c_str (),
+                                      wszModName );
+#else
+                pLogger->Log ( L"[ Module ]  ( %ph + %08lu )  -:-  %s",
+                                  base_addr, mod_size, wszModName );
+#endif
+
+                std::wstring ver_str = SK_GetDLLVersionStr (wszModName);
+
+                if (ver_str != L"  ") {
+                  pLogger->LogEx ( false,
+                    L" ----------------------  [File Ver]    %s\n",
+                      ver_str.c_str () );
+                }
+              }
+            }
+
+            // Release the handle to the process.
+            CloseHandle (pWorkingSet->proc);
+
+            pLogger->close ();
+            delete pLogger;
+            delete pWorkingSet;
+
+            CloseHandle (GetCurrentThread ());
+
+            return 0;
+          },
+
+          (LPVOID)working_set,
+        0x00,
+      nullptr
+    );
+
     for ( i = 0; i < (cbNeeded / sizeof (HMODULE)); i++ )
     {
       wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
@@ -786,19 +874,9 @@ EnumLoadedModules (void)
                   StrStrIW (wszModName, L"SteamNative.dll") ) {
           SK_HookSteamAPI ();
         }
-
-        pLogger->Log ( L"[ Module ]  ( %ph )   -:-   * File: %s ",
-                        (uintptr_t)hMods [i],
-                          wszModName );
       }
     }
   }
-
-  // Release the handle to the process.
-  CloseHandle (hProc);
-
-  pLogger->close ();
-  delete pLogger;
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr) {
     SK_ValidateGlobalRTSSProfile ();

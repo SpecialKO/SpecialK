@@ -37,6 +37,8 @@
 
 #include <SpecialK/tls.h>
 
+#include <LibLoaderAPI.h>
+
 #pragma warning   (push)
 #pragma warning   (disable: 4091)
 #  include <DbgHelp.h>
@@ -1097,53 +1099,91 @@ SK_InitCore (const wchar_t* backend, void* callback)
 #ifdef _WIN64
     _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
 #else
-    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32", SK_GetRootPath ());
+    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
 #endif
 
     lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
     lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
 
-    if (GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES) {
+    // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
+    //   do support it if a certain Windows Update (KB2533623) is installed.
+    typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
+    typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
+    typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
+
+    static AddDllDirectory_pfn k32_AddDllDirectory =
+      (AddDllDirectory_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "AddDllDirectory" );
+
+    static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
+      (RemoveDllDirectory_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "RemoveDllDirectory" );
+
+    static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
+      (SetDefaultDllDirectories_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "SetDefaultDllDirectories" );
+
+    if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
+         k32_SetDefaultDllDirectories &&
+
+           GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
+    {
       dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
 
-      config.cegui.enable = true;
-
-      SetDllDirectoryW         (wszCEGUIModPath);
-
-      wchar_t wszEnvVar     [MAX_PATH] = { L'\0' };
-      wchar_t wszWorkingDir [MAX_PATH] = { L'\0' };
+      wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
 
       _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
       _wputenv  (wszEnvVar);
-
-      GetCurrentDirectoryW (MAX_PATH, wszWorkingDir);
-
-      // Some games will rebase themselves, it is important to know the
-      //   game's working directory at the time CEGUI was initialized.
-      _swprintf (wszEnvVar, L"CEGUI_WORKING_DIR=%s", wszWorkingDir);
-      _wputenv  (wszEnvVar);
-
-      __HrLoadAllImportsForDll ("CEGUIBase-0.dll");
 
       // This tests for the existence of the DLL before attempting to load it...
       auto DelayLoadDLL = [&](const char* szDLL)->
         bool
           {
-               wchar_t wszFullName [MAX_PATH] = { L'\0' };
-            _swprintf (wszFullName, L"%s\\%hs", wszCEGUIModPath, szDLL);
+            // Compat Hack for Torchlight 2
+            bool has_base = GetModuleHandle (L"CEGUIBase.dll");
 
-            if (GetFileAttributesW (wszFullName) != INVALID_FILE_ATTRIBUTES) {
-              return SUCCEEDED (__HrLoadAllImportsForDll (szDLL));
+            if (! has_base) {
+              k32_SetDefaultDllDirectories (
+                LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS );
+            } else {
+              SetDllDirectoryW (wszCEGUIModPath);
             }
 
-            return false;
+            DLL_DIRECTORY_COOKIE cookie = 0;
+            bool                 ret    = false;
+
+            __try {
+                  char szFullDLL [MAX_PATH] = { '\0' };
+              sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
+
+              if (! has_base)
+                cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
+
+              ret      = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
+            }
+
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+            }
+
+            if (! has_base)
+              k32_RemoveDllDirectory (cookie);
+            else
+              SetDllDirectoryW       (nullptr);
+
+            return ret;
           };
 
-      DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
-      DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
-      DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
+      if (DelayLoadDLL ("CEGUIBase-0.dll")) {
+        config.cegui.enable = true;
 
-      SetDllDirectoryW         (nullptr);
+        DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
+        DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
+        DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
+      }
     }
   }
 

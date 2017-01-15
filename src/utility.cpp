@@ -1292,15 +1292,15 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT     cbTranslatedBytes = 0,
            cbProductBytes    = 0;
 
-  uint8_t  cbData      [4096];
-  wchar_t  wszPropName [50];
+  uint8_t  cbData      [4096] = {     0 };
+  wchar_t  wszPropName [64]   = { L'\0' };
 
-  wchar_t* wszProduct; // Will point somewhere in cbData
+  wchar_t* wszProduct = nullptr; // Will point somewhere in cbData
 
   struct LANGANDCODEPAGE {
     WORD wLanguage;
     WORD wCodePage;
-  } *lpTranslate;
+  } *lpTranslate = nullptr;
 
   if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
     return false;
@@ -1311,22 +1311,95 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                4096,
                                  cbData );
 
-  VerQueryValue ( cbData,
-                    TEXT ("\\VarFileInfo\\Translation"),
-                      (LPVOID *)&lpTranslate,
-                                &cbTranslatedBytes );
+  if (VerQueryValue ( cbData,
+                      TEXT ("\\VarFileInfo\\Translation"),
+                        (LPVOID *)&lpTranslate,
+                                  &cbTranslatedBytes ) && cbTranslatedBytes)
+  {
+    wsprintfW ( wszPropName,
+                  L"\\StringFileInfo\\%04x%04x\\ProductName",
+                    lpTranslate [0].wLanguage,
+                      lpTranslate [0].wCodePage );
 
-  wsprintfW ( wszPropName,
-                L"\\StringFileInfo\\%04x%04x\\ProductName",
-                  lpTranslate [0].wLanguage,
-                    lpTranslate [0].wCodePage );
+    VerQueryValue ( cbData,
+                      wszPropName,
+                        (LPVOID *)&wszProduct,
+                                  &cbProductBytes );
 
-  VerQueryValue ( cbData,
-                    wszPropName,
-                      (LPVOID *)&wszProduct,
-                                &cbProductBytes );
+    return (cbProductBytes && (! SK_Path_wcsicmp (wszProduct, L"Special K")));
+  }
 
-  return (! SK_Path_wcsicmp (wszProduct, L"Special K"));
+  return false;
+}
+
+std::wstring
+__stdcall
+SK_GetDLLVersionStr (const wchar_t* wszName)
+{
+  UINT     cbTranslatedBytes = 0,
+           cbProductBytes    = 0,
+           cbVersionBytes    = 0;
+
+  uint8_t  cbData      [4096] = {     0 };
+  wchar_t  wszPropName [64]   = { L'\0' };
+
+  wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
+  wchar_t* wszFileVersion = nullptr; // "
+
+  struct LANGANDCODEPAGE {
+    WORD wLanguage;
+    WORD wCodePage;
+  } *lpTranslate = nullptr;
+
+  if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
+    return L"N/A";
+
+  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
+                           wszName,
+                             0x00,
+                               4096,
+                                 cbData );
+
+  if ( VerQueryValue ( cbData,
+                         TEXT ("\\VarFileInfo\\Translation"),
+                           (LPVOID *)&lpTranslate,
+                                     &cbTranslatedBytes ) && cbTranslatedBytes ) {
+
+    wsprintfW ( wszPropName,
+                  L"\\StringFileInfo\\%04x%04x\\FileDescription",
+                    lpTranslate [0].wLanguage,
+                      lpTranslate [0].wCodePage );
+
+    VerQueryValue ( cbData,
+                      wszPropName,
+                        (LPVOID *)&wszFileDescrip,
+                                  &cbProductBytes );
+
+    wsprintfW ( wszPropName,
+                  L"\\StringFileInfo\\%04x%04x\\FileVersion",
+                    lpTranslate [0].wLanguage,
+                      lpTranslate [0].wCodePage );
+
+    VerQueryValue ( cbData,
+                      wszPropName,
+                        (LPVOID *)&wszFileVersion,
+                                  &cbVersionBytes );
+  }
+
+  if (cbTranslatedBytes == 0 || (cbProductBytes == 0 && cbVersionBytes == 0))
+    return L"  ";
+
+  std::wstring ret = L"";
+
+  if (cbProductBytes)
+    ret += wszFileDescrip;
+
+  ret += L"  ";
+
+  if (cbVersionBytes)
+    ret += wszFileVersion;
+
+  return ret;
 }
 
 

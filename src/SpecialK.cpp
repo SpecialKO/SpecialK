@@ -183,8 +183,9 @@ SK_EstablishDllRole (HMODULE hModule)
         //else if (vulkan)
           //SK_SetDLLRole (DLL_ROLE::Vulkan);
 
-        else
+        else {
           SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
+        }
       } else {
         return false;
       }

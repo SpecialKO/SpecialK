@@ -1090,11 +1090,12 @@ AdjustWindowRect_Detour (
     _In_    DWORD  dwStyle,
     _In_    BOOL   bMenu )
 {
+#if 0
   dll_log.Log ( L"[Window Mgr] AdjustWindowRect ( {%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu )",
                   lpRect->left, lpRect->top,
                     lpRect->right, lpRect->bottom,
                       dwStyle, bMenu );
-
+#endif
   return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
 }
 
@@ -1106,12 +1107,13 @@ AdjustWindowRectEx_Detour (
     _In_    BOOL   bMenu,
     _In_    DWORD  dwExStyle )
 {
+#if 0
   dll_log.Log ( L"[Window Mgr] AdjustWindowRectEx ( {%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu, 0x%04X )",
                   lpRect->left, lpRect->top,
                     lpRect->right, lpRect->bottom,
                       dwStyle, bMenu,
                         dwExStyle );
-
+#endif
   return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
 }
 
@@ -2431,8 +2433,8 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.hooked = false;
   }
 
-  game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE) | WS_VISIBLE;//0x90CA0000;
-  game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE) | WS_VISIBLE;//0x90CA0000;
+  game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);// | WS_VISIBLE;//0x90CA0000;
+  game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);// | WS_VISIBLE;//0x90CA0000;
 
   GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
   GetClientRect_Original (game_window.hWnd, &game_window.game.client);
@@ -2442,8 +2444,8 @@ SK_InstallWindowHook (HWND hWnd)
 
   GetCursorPos_Original  (&game_window.cursor_pos);
 
-  //if (game_window.actual.style & WS_VISIBLE)
-    //SK_RealizeForegroundWindow (game_window.hWnd);
+  if (game_window.actual.style & WS_VISIBLE)
+    SK_RealizeForegroundWindow (game_window.hWnd);
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();
