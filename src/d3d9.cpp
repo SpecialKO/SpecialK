@@ -1088,7 +1088,7 @@ D3D9_STUB_VOIDP   (void*, Direct3DShaderValidatorCreate, (void),
 
 D3D9_STUB_INT     (int,   D3DPERF_BeginEvent, (D3DCOLOR color, LPCWSTR name),
                                                        (color,         name))
-//D3D9_STUB_INT     (int,   D3DPERF_EndEvent,   (void),          ( ))
+D3D9_STUB_INT     (int,   D3DPERF_EndEvent,   (void),          ( ))
 
 D3D9_STUB_INT     (DWORD, D3DPERF_GetStatus,  (void),          ( ))
 D3D9_STUB_VOID    (void,  D3DPERF_SetOptions, (DWORD options), (options))
@@ -1098,33 +1098,6 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetMarker, (D3DCOLOR color, LPCWSTR name),
                                                       (color,         name))
 D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                                       (color,         name))
-
-COM_DECLSPEC_NOTHROW
-__declspec (noinline)
-int
-STDMETHODCALLTYPE
-D3DPERF_EndEvent (void)
-{
-  WaitForInit ();
-
-  typedef int (STDMETHODCALLTYPE *passthrough_pfn) (void);
-
-  static passthrough_pfn _default_impl = nullptr;
-
-  if (_default_impl == nullptr) {
-    static const char* szName = "D3DPERF_EndEvent";
-    _default_impl = (passthrough_pfn)GetProcAddress (backend_dll, szName);
-
-    if (_default_impl == nullptr) {
-      dll_log.Log (
-          L"[   D3D9   ] Unable to locate symbol '%s' in d3d9.dll",
-          L"D3DPERF_EndEvent");
-      return 0;
-    }
-  }
-
-  return _default_impl ();
-}
 
 typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)(REFIID,IDXGIFactory**);
 typedef HRESULT (STDMETHODCALLTYPE *GetSwapChain_pfn)
@@ -2876,6 +2849,10 @@ unsigned int
 __stdcall
 HookD3D9 (LPVOID user)
 {
+  if (! config.apis.d3d9.hook) {
+    return 0;
+  }
+
   CoInitializeEx (nullptr, COINIT_MULTITHREADED);
   {
     CComPtr <IDirect3D9> pD3D9 = nullptr;
@@ -3055,8 +3032,10 @@ HookD3D9 (LPVOID user)
 
       CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
-      HRESULT hr =
-        Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex);
+      HRESULT hr = (config.apis.d3d9ex.hook) ?
+        Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
+                         :
+                    E_NOINTERFACE;
 
       hwnd = 0;
 

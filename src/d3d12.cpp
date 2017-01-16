@@ -176,81 +176,90 @@ HookD3D12 (LPVOID user)
     return 0;
   }
 
+  if (! config.apis.dxgi.d3d12.hook)
+    return 0;
+
   if (SK::DXGI::hModD3D12 != nullptr) {
     CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 
     dll_log.Log (L"[  D3D 12  ]   Hooking D3D12");
 
 #if 0
-  CComPtr <IDXGIFactory>  pFactory  = nullptr;
-  CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
-  CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+    CComPtr <IDXGIFactory>  pFactory  = nullptr;
+    CComPtr <IDXGIAdapter>  pAdapter  = nullptr;
+    CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
 
-  HRESULT hr =
-    CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
+    HRESULT hr =
+      CreateDXGIFactory_Import ( IID_PPV_ARGS (&pFactory) );
 
-  if (SUCCEEDED (hr)) {
-    pFactory->EnumAdapters (0, &pAdapter);
+    if (SUCCEEDED (hr)) {
+      pFactory->EnumAdapters (0, &pAdapter);
 
-    if (pFactory) {
-      int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+      if (pFactory) {
+        int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
-      CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+        CComPtr <IDXGIFactory1> pFactory1 = nullptr;
 
-      if (iver > 0) {
-        if (SUCCEEDED (CreateDXGIFactory1_Import ( IID_PPV_ARGS (&pFactory1) ))) {
-          pFactory1->EnumAdapters1 (0, &pAdapter1);
+        if (iver > 0) {
+          if (SUCCEEDED (CreateDXGIFactory1_Import ( IID_PPV_ARGS (&pFactory1) ))) {
+            pFactory1->EnumAdapters1 (0, &pAdapter1);
+          }
         }
       }
     }
-  }
 
-  CComPtr <ID3D11Device>        pDevice           = nullptr;
-  D3D_FEATURE_LEVEL             featureLevel;
-  CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
+    CComPtr <ID3D11Device>        pDevice           = nullptr;
+    D3D_FEATURE_LEVEL             featureLevel;
+    CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
-  HRESULT hrx = E_FAIL;
-  {
-    if (pAdapter1 != nullptr) {
-      D3D_FEATURE_LEVEL test_11_1 = D3D_FEATURE_LEVEL_11_1;
+    HRESULT hrx = E_FAIL;
+    {
+      if (pAdapter1 != nullptr) {
+        D3D_FEATURE_LEVEL test_11_1 = D3D_FEATURE_LEVEL_11_1;
 
-      hrx =
-        D3D11CreateDevice_Import (
-          pAdapter1,
-            D3D_DRIVER_TYPE_UNKNOWN,
-              nullptr,
-                0,
-                  &test_11_1,
-                    1,
-                      D3D11_SDK_VERSION,
-                        &pDevice,
-                          &featureLevel,
-                            &pImmediateContext );
+        hrx =
+          D3D11CreateDevice_Import (
+            pAdapter1,
+              D3D_DRIVER_TYPE_UNKNOWN,
+                nullptr,
+                  0,
+                    &test_11_1,
+                      1,
+                        D3D11_SDK_VERSION,
+                          &pDevice,
+                            &featureLevel,
+                              &pImmediateContext );
 
-      if (SUCCEEDED (hrx)) {
-        d3d11_caps.feature_level.d3d11_1 = true;
+        if (SUCCEEDED (hrx)) {
+          d3d11_caps.feature_level.d3d11_1 = true;
+        }
+      }
+
+      if (! SUCCEEDED (hrx)) {
+        hrx =
+          D3D11CreateDevice_Import (
+            pAdapter,
+              D3D_DRIVER_TYPE_UNKNOWN,
+                nullptr,
+                  0,
+                    nullptr,
+                      0,
+                        D3D11_SDK_VERSION,
+                          &pDevice,
+                            &featureLevel,
+                              &pImmediateContext );
       }
     }
 
-    if (! SUCCEEDED (hrx)) {
-      hrx =
-        D3D11CreateDevice_Import (
-          pAdapter,
-            D3D_DRIVER_TYPE_UNKNOWN,
-              nullptr,
-                0,
-                  nullptr,
-                    0,
-                      D3D11_SDK_VERSION,
-                        &pDevice,
-                          &featureLevel,
-                            &pImmediateContext );
+    if (SUCCEEDED (hrx)) {
     }
-  }
-
-  if (SUCCEEDED (hrx)) {
 #endif
     InterlockedExchange (&__d3d12_ready, TRUE);
+  }
+
+  else {
+    // Disable this on future runs, because the DLL is not present
+    config.apis.dxgi.d3d12.hook = false;
   }
 
   return 0;

@@ -1066,7 +1066,14 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if (! load_proxy)
     dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
 
-  backend_dll = LoadLibrary (dll_name);
+  // Pre-Load the original DLL into memory
+  if (dll_name != wszBackendDLL) {
+    backend_dll = LoadLibrary (wszBackendDLL);
+                  LoadLibrary (dll_name);
+  }
+
+  else
+    backend_dll = LoadLibrary (dll_name);
 
   if (backend_dll != NULL)
     dll_log.LogEx (false, L" (%s)\n", dll_name);
@@ -1675,14 +1682,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config.system.central_repository = true;
 
-  wchar_t
-    wszBlacklistFile [ MAX_PATH * 2 ] =
-      { L"SpecialK.deny." };
-
-  lstrcatW (wszBlacklistFile, SK_GetHostApp ());
-
-  SK_PathRemoveExtension (wszBlacklistFile);
-
   // Holy Rusted Metal Batman !!!
   //---------------------------------------------------------------------------
   //
@@ -1712,6 +1711,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"WriteMiniDump.exe"))            ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashReporter.exe"))            ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"SupportTool.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashSender1400.exe"))          ||
 
        // Runtime Installers
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"DXSETUP.exe"))                  ||
@@ -1729,6 +1729,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Full_x86_x64.exe"))  ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Client_x86_x64.exe"))||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"oalinst.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"EasyAntiCheat_Setup.exe"))      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UplayInstaller.exe"))           ||
 
        // Launchers
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"x64launcher.exe"))              ||
@@ -1740,15 +1742,20 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"ModLauncher.exe"))              ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"AkibaUU_Config.exe"))           ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"Obduction.exe"))                ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Grandia2Launcher.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"FFXiii2Launcher.exe"))          ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"Bethesda.net_Launcher.exe"))    ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher.exe"))      ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher64.exe"))    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SplashScreen.exe"))             ||
 
        // Other Stuff
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"zosSteamStarter.exe"))          ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"notepad.exe"))                  ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"7zFM.exe"))                     ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"WinRar.exe"))                   ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"EAC.exe"))                      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcpkgsrv.exe"))                 ||
 
        // Misc. Tools
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"SleepOnLan.exe"))               ||
@@ -1769,18 +1776,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     std::pair <std::queue <DWORD>, BOOL> retval =
       SK_BypassInject ();
 
-    if (retval.second) {
-      SK_ResumeThreads (retval.first);
-      return false;
-    }
-
     SK_ResumeThreads (retval.first);
+
+    return true;
   }
 
   else {
     bool blacklist =
       SK_IsInjected () &&
-      (GetFileAttributesW (wszBlacklistFile) != INVALID_FILE_ATTRIBUTES);
+      (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
 
     //
     // Internal blacklist, the user will have the ability to setup their
@@ -2582,8 +2586,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 }
 
 struct sk_host_process_s {
-  wchar_t wszApp  [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszPath [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszApp       [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
 } host_proc;
 
 bool
@@ -2696,6 +2701,24 @@ SK_GetHostPath (void)
   }
 
   return host_proc.wszPath;
+}
+
+const wchar_t*
+SK_GetBlacklistFilename (void)
+{
+  static volatile
+    ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
+    lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
+    lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
+
+    SK_PathRemoveExtension (host_proc.wszBlacklist);
+  }
+
+  return host_proc.wszBlacklist;
 }
 
 DLL_ROLE dll_role;

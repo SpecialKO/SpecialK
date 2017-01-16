@@ -990,7 +990,7 @@ SetWindowPos_Detour(
   bool game_changed = false;
 
   if (hWnd == game_window.hWnd) {
-    dll_log.Log ( L"[Window Mgr][!] SetWindowPos (...)");
+    ////dll_log.Log ( L"[Window Mgr][!] SetWindowPos (...)");
 
     if (! ((uFlags & SWP_NOMOVE) || (uFlags & SWP_NOSIZE))) {
       game_changed = true;
@@ -2097,7 +2097,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   // Ignore this event
   if (uMsg == WM_MOUSEACTIVATE/* && config.window.background_render*/) {
     if ((HWND)wParam == game_window.hWnd) {
-      dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
+      //dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
 
       ActivateWindow (true);
 
@@ -2107,7 +2107,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     ActivateWindow (false);
 
-    dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate");
+    //dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate");
 
     if (config.window.background_render)
       return MA_ACTIVATE;

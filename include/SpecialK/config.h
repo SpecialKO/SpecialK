@@ -268,10 +268,6 @@ struct sk_config_t
               num_gpus          = L"Auto";
       bool    override          = false;
     } sli;
-
-    struct {
-      bool    disable           = false;
-    } api;
   } nvidia;
 
   struct {
@@ -306,17 +302,41 @@ struct sk_config_t
   } window;
 
   struct {
-    bool    ignore_raptr        = false;
-    bool    disable_raptr       = false;
-    bool    rehook_loadlibrary  = false;
+    bool    ignore_raptr       = false;
+    bool    disable_raptr      = false;
+    bool    rehook_loadlibrary = false;
 
     struct {
-      bool  rehook_reset        = false;
-      bool  rehook_present      = false;
-      bool  hook_reset_vftbl    = false;
-      bool  hook_present_vftbl  = false;
+      bool  rehook_reset       = false;
+      bool  rehook_present     = false;
+      bool  hook_reset_vftbl   = false;
+      bool  hook_present_vftbl = false;
     } d3d9;
   } compatibility;
+
+  struct {
+    struct {
+      bool   hook              = true;
+    } d3d9, d3d9ex;
+
+    struct {
+      struct {
+        bool hook              = true;
+      } d3d11, d3d12;
+    } dxgi;
+
+    struct {
+      bool   hook              = true;
+    } OpenGL, Vulkan;
+
+    struct {
+      bool   enable            = true;
+    } NvAPI;
+
+    struct {
+      bool   enable            = true;
+    } ADL;
+  } apis;
 
   struct {
     int     init_delay          = 250;

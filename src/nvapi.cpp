@@ -380,7 +380,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
   NvAPI_Status ret;
 
-  if (config.nvidia.api.disable) {
+  if (! config.apis.NvAPI.enable) {
     nv_hardware = false;
     bLibInit    = TRUE + 1; // Clearly this isn't a boolean; just for looks
     return FALSE;

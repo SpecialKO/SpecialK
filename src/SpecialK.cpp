@@ -121,17 +121,30 @@ SK_EstablishDllRole (HMODULE hModule)
   {
     bool explicit_inject = false;
 
-    if      ( GetFileAttributesW (L"SpecialK.d3d9") != INVALID_FILE_ATTRIBUTES ) {
+    wchar_t wszD3D9 [MAX_PATH] = { L'\0' };
+    wchar_t wszDXGI [MAX_PATH] = { L'\0' };
+    wchar_t wszGL   [MAX_PATH] = { L'\0' };
+
+    lstrcatW (wszD3D9, SK_GetHostPath ());
+    lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
+
+    lstrcatW (wszDXGI, SK_GetHostPath ());
+    lstrcatW (wszDXGI, L"\\SpecialK.dxgi");
+
+    lstrcatW (wszGL,   SK_GetHostPath ());
+    lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
+
+    if      ( GetFileAttributesW (wszD3D9) != INVALID_FILE_ATTRIBUTES ) {
       SK_SetDLLRole (DLL_ROLE::D3D9);
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (L"SpecialK.dxgi") != INVALID_FILE_ATTRIBUTES ) {
+    else if ( GetFileAttributesW (wszDXGI) != INVALID_FILE_ATTRIBUTES ) {
       SK_SetDLLRole (DLL_ROLE::DXGI);
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (L"SpecialK.OpenGL32") != INVALID_FILE_ATTRIBUTES ) {
+    else if ( GetFileAttributesW (wszGL) != INVALID_FILE_ATTRIBUTES ) {
       SK_SetDLLRole (DLL_ROLE::OpenGL);
       explicit_inject = true;
     }

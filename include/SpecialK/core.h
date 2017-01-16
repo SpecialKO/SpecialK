@@ -123,10 +123,16 @@ const wchar_t*
 __stdcall
 SK_GetConfigPath (void);
 
+const wchar_t*
+SK_GetHostApp (void);
+
 // NOT the working directory, this is the directory that
 //   the executable is located in.
 const wchar_t*
 SK_GetHostPath (void);
+
+const wchar_t*
+SK_GetBlacklistFilename (void);
 
 const wchar_t*
 __stdcall

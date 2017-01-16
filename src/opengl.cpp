@@ -1766,6 +1766,9 @@ SK_HookGL (void)
   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
     return;
 
+  if (! config.apis.OpenGL.hook)
+    return;
+
   dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
   dll_log.Log (L"[ OpenGL32 ] ================================");
 

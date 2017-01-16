@@ -2761,6 +2761,9 @@ HookD3D11 (LPVOID user)
     return 0;
   }
 
+  if (! config.apis.dxgi.d3d11.hook)
+    return 0;
+
   CoInitializeEx (nullptr, COINIT_MULTITHREADED);
 
   dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
@@ -2806,7 +2809,8 @@ HookD3D11 (LPVOID user)
     MH_ApplyQueued ();
   }
 
-  HookD3D12 (nullptr);
+  if (config.apis.dxgi.d3d12.hook)
+    HookD3D12 (nullptr);
 
   return 0;
 }

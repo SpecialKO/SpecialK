@@ -958,7 +958,7 @@ TaskDialogCallback (
   }
 
   if (uNotification == TDN_DIALOG_CONSTRUCTED) {
-    while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+    while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0) > 1)
       Sleep (10);
 
     SK_bypass_dialog_hwnd = hWnd;
@@ -969,7 +969,7 @@ TaskDialogCallback (
   if (uNotification == TDN_CREATED) {
     SK_bypass_dialog_hwnd = hWnd;
 
-    SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
+    //SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
   }
 
   if (uNotification == TDN_DESTROYED) {
@@ -1233,21 +1233,6 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   if (timer)
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
 
-  extern HWND SK_bypass_dialog_hwnd;
-  while (SK_bypass_dialog_hwnd != 0 && IsWindow (SK_bypass_dialog_hwnd)) {
-    MSG  msg;
-    BOOL bRet;
-
-    if ((bRet = GetMessage (&msg, 0, 0, 0)) != 0)
-    {
-      if (bRet == -1)
-        break;
-
-      TranslateMessage (&msg);
-      DispatchMessage  (&msg);
-    }
-  }
-
   HRESULT hr =
     TaskDialogIndirect ( &task_config,
                           &nButtonPressed,
@@ -1381,12 +1366,12 @@ struct sk_bypass_s {
   wchar_t wszBlacklist [MAX_PATH];
 } __bypass;
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK_Bypass_CRT (LPVOID user)
 {
-  BOOL     disable      = __bypass.disable;
-  wchar_t* wszBlacklist = __bypass.wszBlacklist;
+  static BOOL     disable      = __bypass.disable;
+         wchar_t* wszBlacklist = __bypass.wszBlacklist;
 
   HRESULT hr =
   SK_TaskBoxWithConfirm ( L"Special K Injection Compatibility Options",
@@ -1422,7 +1407,7 @@ SK_Bypass_CRT (LPVOID user)
     }
   }
 
-  InterlockedExchange (&SK_bypass_dialog_active, 0);
+  InterlockedDecrement (&SK_bypass_dialog_active);
 
   if (disable != __bypass.disable)
   {
@@ -1452,6 +1437,8 @@ SK_Bypass_CRT (LPVOID user)
 
   CloseHandle (GetCurrentThread ());
 
+  ExitProcess (0);
+
   return 0;
 }
 
@@ -1463,34 +1450,20 @@ SK_BypassInject (void)
 {
   std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
 
-  lstrcatW (__bypass.wszBlacklist, L"SpecialK.deny.");
-  lstrcatW (__bypass.wszBlacklist, SK_GetHostApp ());
-
-  wchar_t* pwszDot = wcsrchr (__bypass.wszBlacklist, L'.');
-
-  if (pwszDot != nullptr)
-    *pwszDot = L'\0';
+  lstrcpyW (__bypass.wszBlacklist, SK_GetBlacklistFilename ());
 
   __bypass.disable = 
     (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
 
-  HANDLE hThread =
-    (HANDLE)
-      _beginthreadex ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
-
   MSG  msg;
   BOOL bRet;
 
-  while (InterlockedCompareExchangeAcquire (&SK_bypass_dialog_active, 0, 0)) {
-    if ((bRet = GetMessage (&msg, 0, 0, 0)) != 0)
-    {
-      if (bRet == -1)
-        break;
+  BOOL gui = IsGUIThread (TRUE);
 
-      TranslateMessage (&msg);
-      DispatchMessage  (&msg);
-    }
-  }
+  InterlockedIncrement (&SK_bypass_dialog_active);
+
+  HANDLE hThread =
+      CreateThread ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
 
   return std::make_pair (tids, __bypass.disable);
 }

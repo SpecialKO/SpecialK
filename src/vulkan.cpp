@@ -256,11 +256,14 @@ SK_HookVulkan (void)
   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
     return;
 
-  dll_log.Log (L"[  Vulkan  ] Additional Vulkan Initialization");
-  dll_log.Log (L"[  Vulkan  ] ================================");
+  if (! config.apis.Vulkan.hook)
+    return;
 
   if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
                    L"Vulkan-1.dll" ) ) {
+    dll_log.Log (L"[  Vulkan  ] Additional Vulkan Initialization");
+    dll_log.Log (L"[  Vulkan  ] ================================");
+
     dll_log.Log (L"[  Vulkan  ] Hooking Vk (1.x)");
 
     SK_CreateDLLHook2 ( L"vulkan-1.dll",
@@ -301,6 +304,11 @@ SK_HookVulkan (void)
 #endif
 
     MH_ApplyQueued ();
+  }
+
+  else {
+    config.apis.Vulkan.hook = false;
+    return;
   }
 
   InterlockedExchange (&__vk_ready, TRUE);

@@ -3248,6 +3248,12 @@ SK_HookDXGI (void)
   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
     return;
 
+  if (! config.apis.dxgi.d3d11.hook)
+    config.apis.dxgi.d3d12.hook = false;
+
+  if (! config.apis.dxgi.d3d11.hook)
+    return;
+
   HMODULE hBackend = 
     (SK_GetDLLRole () & DLL_ROLE::DXGI) ? backend_dll :
                                             GetModuleHandle (L"dxgi.dll");
@@ -3642,6 +3648,11 @@ unsigned int
 __stdcall
 HookDXGI (LPVOID user)
 {
+  if (! config.apis.dxgi.d3d11.hook) {
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }
+
   // Wait for DXGI to boot
   if (CreateDXGIFactory_Import == nullptr) {
     static volatile ULONG implicit_init = FALSE;
@@ -3759,8 +3770,8 @@ HookDXGI (LPVOID user)
   DestroyWindow (hwnd);
 
   // These don't do anything (anymore)
-  SK_D3D11_EnableHooks ();
-  SK_D3D12_EnableHooks ();
+  if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+  if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 
   CloseHandle (GetCurrentThread ());
 
@@ -3775,8 +3786,8 @@ SK::DXGI::Shutdown (void)
     SK_DS3_ShutdownPlugin (L"dxgi");
   }
 
-  SK_D3D11_Shutdown ();
-  SK_D3D12_Shutdown ();
+  if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
+  if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
 
   return SK_ShutdownCore (L"dxgi");
 }

@@ -147,6 +147,7 @@ struct {
   } api;
 } nvidia;
 
+sk::ParameterBool*        enable_cegui;
 sk::ParameterFloat*       mem_reserve;
 sk::ParameterBool*        debug_output;
 sk::ParameterBool*        game_output;
@@ -235,6 +236,15 @@ struct {
     sk::ParameterBool*    hook_present_vtable;
   } d3d9;
 } compatibility;
+
+struct {
+  struct {
+    sk::ParameterBool*    hook;
+  }   d3d9,  d3d9ex,
+      d3d11, d3d12,
+      OpenGL,
+      Vulkan;
+} apis;
 
 
 extern const wchar_t*
@@ -579,6 +589,67 @@ SK_LoadConfig (std::wstring name) {
         L"RehookLoadLibrary" );
 
 
+  apis.d3d9.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable D3D9 Hooking")
+      );
+  apis.d3d9.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"d3d9" );
+
+  apis.d3d9ex.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable D3D9Ex Hooking")
+      );
+  apis.d3d9ex.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"d3d9ex" );
+
+  apis.d3d11.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable D3D11 Hooking")
+      );
+  apis.d3d11.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"d3d11" );
+
+  apis.d3d12.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable D3D11 Hooking")
+      );
+  apis.d3d12.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"d3d12" );
+
+  apis.OpenGL.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable OpenGL Hooking")
+      );
+  apis.OpenGL.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"OpenGL" );
+
+  apis.Vulkan.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable Vulkan Hooking")
+      );
+  apis.Vulkan.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"Vulkan" );
+
+
   mem_reserve =
     static_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
@@ -660,6 +731,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"SpecialK.System",
         L"IgnoreRTSSHookDelay" );
+
+  enable_cegui =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable CEGUI")
+      );
+  enable_cegui->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"EnableCEGUI" );
 
   version =
     static_cast <sk::ParameterStringW *>
@@ -1401,8 +1482,28 @@ SK_LoadConfig (std::wstring name) {
   if (monitoring.SLI.show->load ())
     config.sli.show = monitoring.SLI.show->get_value ();
 
+
+  if (apis.d3d9.hook->load ())
+    config.apis.d3d9.hook = apis.d3d9.hook->get_value ();
+
+  if (apis.d3d9ex.hook->load ())
+    config.apis.d3d9ex.hook = apis.d3d9ex.hook->get_value ();
+
+  if (apis.d3d11.hook->load ())
+    config.apis.dxgi.d3d11.hook = apis.d3d11.hook->get_value ();
+
+  if (apis.d3d12.hook->load ())
+    config.apis.dxgi.d3d12.hook = apis.d3d12.hook->get_value ();
+
+  if (apis.OpenGL.hook->load ())
+    config.apis.OpenGL.hook = apis.OpenGL.hook->get_value ();
+
+  if (apis.Vulkan.hook->load ())
+    config.apis.Vulkan.hook = apis.Vulkan.hook->get_value ();
+
   if (nvidia.api.disable->load ())
-    config.nvidia.api.disable = nvidia.api.disable->get_value ();
+    config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
+
 
   if ( SK_IsInjected () ||
          ( SK_GetDLLRole () & DLL_ROLE::D3D9 ||
@@ -1709,6 +1810,9 @@ SK_LoadConfig (std::wstring name) {
   if (game_output->load ())
     config.system.game_output = game_output->get_value ();
 
+  if (enable_cegui->load ())
+    config.cegui.enable = enable_cegui->get_value ();
+
   if (version->load ())
     config.system.version = version->get_value ();
 
@@ -1762,6 +1866,13 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   osd.viewport.pos_x->set_value               (config.osd.pos_x);
   osd.viewport.pos_y->set_value               (config.osd.pos_y);
   osd.viewport.scale->set_value               (config.osd.scale);
+
+  apis.d3d9.hook->set_value                   (config.apis.d3d9.hook);
+  apis.d3d9ex.hook->set_value                 (config.apis.d3d9ex.hook);
+  apis.d3d11.hook->set_value                  (config.apis.dxgi.d3d11.hook);
+  apis.d3d12.hook->set_value                  (config.apis.dxgi.d3d12.hook);
+  apis.OpenGL.hook->set_value                 (config.apis.OpenGL.hook);
+  apis.Vulkan.hook->set_value                 (config.apis.Vulkan.hook);
 
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
@@ -1902,6 +2013,13 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   silent->set_value                          (config.system.silent);
   prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
 
+  apis.d3d9.hook->store                   ();
+  apis.d3d9ex.hook->store                 ();
+  apis.d3d11.hook->store                  ();
+  apis.d3d12.hook->store                  ();
+  apis.OpenGL.hook->store                 ();
+  apis.Vulkan.hook->store                 ();
+
   compatibility.ignore_raptr->store       ();
   compatibility.disable_raptr->store      ();
   compatibility.rehook_loadlibrary->store ();
@@ -2036,6 +2154,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   game_output->set_value                 (config.system.game_output);
   game_output->store                     ();
+
+  enable_cegui->set_value                (config.cegui.enable);
+  enable_cegui->store                    ();
 
   version->set_value                     (SK_VER_STR);
   version->store                         ();

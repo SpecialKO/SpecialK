@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/render_backend.h>
+#include <SpecialK/config.h>
 
 SK_RenderBackend __SK_RBkEnd;
 
@@ -45,6 +46,9 @@ SK_BootD3D9 (void)
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
 
+  if (! config.apis.d3d9.hook)
+    return;
+
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
   SK_HookD3D9 ();
@@ -58,6 +62,9 @@ SK_BootDXGI (void)
   static volatile ULONG __booted = FALSE;
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  if (! (config.apis.dxgi.d3d11.hook && config.apis.dxgi.d3d12.hook))
     return;
 
   while (backend_dll == 0) {
@@ -78,6 +85,9 @@ SK_BootOpenGL (void)
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
 
+  if (! config.apis.OpenGL.hook)
+    return;
+
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
   SK_HookGL ();
@@ -89,6 +99,9 @@ SK_BootVulkan (void)
   static volatile ULONG __booted = FALSE;
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  if (! config.apis.Vulkan.hook)
     return;
 
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
