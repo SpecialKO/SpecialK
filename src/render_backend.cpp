@@ -21,6 +21,7 @@
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/config.h>
+#include <SpecialK/core.h>
 
 SK_RenderBackend __SK_RBkEnd;
 
@@ -46,8 +47,18 @@ SK_BootD3D9 (void)
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
 
-  if (! config.apis.d3d9.hook)
+  // Establish the minimal set of APIs necessary to work as d3d9.dll
+  if (SK_GetDLLRole () == DLL_ROLE::D3D9)
+    config.apis.d3d9.hook = true;
+
+  if (! (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
     return;
+
+  //
+  // SANITY CHECK: D3D9 must be enabled to hook D3D9Ex...
+  //
+  if (config.apis.d3d9ex.hook && (! config.apis.d3d9.hook))
+    config.apis.d3d9.hook = true;
 
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
@@ -64,8 +75,18 @@ SK_BootDXGI (void)
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
 
-  if (! (config.apis.dxgi.d3d11.hook && config.apis.dxgi.d3d12.hook))
+  // Establish the minimal set of APIs necessary to work as dxgi.dll
+  if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    config.apis.dxgi.d3d11.hook = true;
+
+  if (! (config.apis.dxgi.d3d11.hook || config.apis.dxgi.d3d12.hook))
     return;
+
+  //
+  // TEMP HACK: D3D11 must be enabled to hook D3D12...
+  //
+  if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
+    config.apis.dxgi.d3d11.hook = true;
 
   while (backend_dll == 0) {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) ***");
@@ -85,6 +106,10 @@ SK_BootOpenGL (void)
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
 
+  // Establish the minimal set of APIs necessary to work as OpenGL32.dll
+  if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
+    config.apis.OpenGL.hook = true;
+
   if (! config.apis.OpenGL.hook)
     return;
 
@@ -100,6 +125,10 @@ SK_BootVulkan (void)
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
+
+  // Establish the minimal set of APIs necessary to work as vulkan-1.dll
+  if (SK_GetDLLRole () == DLL_ROLE::Vulkan)
+    config.apis.Vulkan.hook = true;
 
   if (! config.apis.Vulkan.hook)
     return;
