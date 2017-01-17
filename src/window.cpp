@@ -51,6 +51,25 @@
 
 #define SK_BORDERLESS (WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX)
 
+#define SK_LOG_LEVEL_UNTESTED
+
+#define SK_LOG0 if (config.system.log_level >= 1) dll_log.Log
+#define SK_LOG1 if (config.system.log_level >= 2) dll_log.Log
+#define SK_LOG2 if (config.system.log_level >= 3) dll_log.Log
+#define SK_LOG3 if (config.system.log_level >= 4) dll_log.Log
+
+#define SK_WINDOW_LOG_CALL0() if (config.system.log_level >= 1) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL1() if (config.system.log_level >= 2) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL2() if (config.system.log_level >= 3) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL3() if (config.system.log_level >= 4) SK_LOG_CALL ("Window Mgr")
+
+#ifdef SK_LOG_LEVEL_UNTESTED
+# define SK_WINDOW_LOG_CALL_UNTESTED() SK_LOG_CALL ("Window Mgr")
+#else
+# define SK_WINDOW_LOG_CALL_UNTESTED() { }
+#endif
+
+
 #undef GetWindowLong
 #undef GetWindowLongPtr
 #undef SetWindowLong
@@ -948,7 +967,7 @@ MoveWindow_Detour(
                                        bRedraw );
   }
 
-  dll_log.Log (L"[Window Mgr][!] MoveWindow (...)");
+  SK_WINDOW_LOG_CALL_UNTESTED ();
 
   game_window.game.window.left = X;
   game_window.game.window.top  = Y;
@@ -971,9 +990,82 @@ SetWindowPlacement_Detour(
   _In_       HWND             hWnd,
   _In_ const WINDOWPLACEMENT *lpwndpl)
 {
-  dll_log.Log (L"[Window Mgr][!] SetWindowPlacement (...)");
+  SK_WINDOW_LOG_CALL_UNTESTED ();
 
-  return TRUE;
+  BOOL  bRet    = SetWindowPlacement_Original ( hWnd, lpwndpl );
+  UINT  flags   = lpwndpl->flags;
+  UINT  showCmd = lpwndpl->showCmd;
+
+  if (hWnd == game_window.hWnd || game_window.hWnd == 0) {
+#if 0
+    if ( bRet && ( (showCmd == SW_MAXIMIZE)      | (showCmd == SW_MINIMIZE)        |
+                   (showCmd == SW_RESTORE)       | (showCmd == SW_SHOWMAXIMIZED)   |
+                   (showCmd == SW_SHOWMINIMIZED) | (showCmd == SW_SHOWMINNOACTIVE) |
+                   (showCmd == SW_SHOWNORMAL)    | (showCmd == SW_SHOWNOACTIVATE) ) /*&&
+           (! (flags & WPF_ASYNCWINDOWPLACEMENT))*/
+        )
+#endif
+    {
+      if (flags & WPF_ASYNCWINDOWPLACEMENT) {
+        CreateThread (
+          nullptr,
+            0,
+              [](LPVOID user)->
+
+              DWORD
+              {
+                HWND hWnd = (HWND)user;
+
+                while (game_window.hWnd == 0) {
+                  Sleep (0);
+                }
+
+                GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+                GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+
+                GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+                GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+                game_window.updateDims ();
+
+                if (config.window.confine_cursor) {
+                  ClipCursor_Original (&game_window.actual.window);
+                }
+
+                SK_AdjustBorder ();
+                SK_AdjustWindow ();
+
+                CloseHandle (GetCurrentThread ());
+
+                return 0;
+              },
+
+              (LPVOID)hWnd,
+            0x00,
+          nullptr
+        );
+      }
+
+      else {
+        GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+        GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+        
+        GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+        GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+        
+        game_window.updateDims ();
+        
+        if (config.window.confine_cursor) {
+          ClipCursor_Original (&game_window.actual.window);
+        }
+        
+        SK_AdjustBorder ();
+        SK_AdjustWindow ();
+      }
+    }
+  }
+
+  return bRet;
 }
 
 BOOL
@@ -990,7 +1082,7 @@ SetWindowPos_Detour(
   bool game_changed = false;
 
   if (hWnd == game_window.hWnd) {
-    ////dll_log.Log ( L"[Window Mgr][!] SetWindowPos (...)");
+    SK_WINDOW_LOG_CALL0 ();
 
     if (! ((uFlags & SWP_NOMOVE) || (uFlags & SWP_NOSIZE))) {
       game_changed = true;
@@ -1004,19 +1096,58 @@ SetWindowPos_Detour(
                                   uFlags );
 
   if (bRet && game_changed) {
-    if (uFlags & SWP_ASYNCWINDOWPOS)
+    if (uFlags & SWP_ASYNCWINDOWPOS) {
+#ifdef SK_LOG_LEVEL_UNTESTED
       dll_log.Log (L"[Window Mgr] OH NO! (Async Window Pos)");
+#endif
 
-    GetWindowRect_Original (hWnd, &game_window.game.window);
-    GetClientRect_Original (hWnd, &game_window.game.client);
+      CreateThread (
+        nullptr,
+          0,
+            [](LPVOID user)->
 
-    GetWindowRect_Original (hWnd, &game_window.actual.window);
-    GetClientRect_Original (hWnd, &game_window.actual.client);
+            DWORD
+            {
+              HWND hWnd = (HWND)user;
 
-    game_window.updateDims ();
+              GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+              GetClientRect_Original (game_window.hWnd, &game_window.game.client);
 
-    if (config.window.confine_cursor) {
-      ClipCursor_Original (&game_window.actual.window);
+              GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+              GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+              game_window.updateDims ();
+
+              if (config.window.confine_cursor) {
+                ClipCursor_Original (&game_window.actual.window);
+              }
+
+              //SK_AdjustBorder ();
+              SK_AdjustWindow ();
+
+              CloseHandle (GetCurrentThread ());
+
+              return 0;
+            },
+
+            (LPVOID)hWnd,
+          0x00,
+        nullptr
+      );
+    }
+
+    else {
+      GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+      GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+
+      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+      game_window.updateDims ();
+
+      if (config.window.confine_cursor) {
+        ClipCursor_Original (&game_window.actual.window);
+      }
     }
   }
 
@@ -1090,12 +1221,13 @@ AdjustWindowRect_Detour (
     _In_    DWORD  dwStyle,
     _In_    BOOL   bMenu )
 {
-#if 0
-  dll_log.Log ( L"[Window Mgr] AdjustWindowRect ( {%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu )",
-                  lpRect->left, lpRect->top,
-                    lpRect->right, lpRect->bottom,
-                      dwStyle, bMenu );
-#endif
+  SK_LOG0 ( L"[Window Mgr] AdjustWindowRect ( "
+                  L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu ) - %s",
+              lpRect->left, lpRect->top,
+                lpRect->right, lpRect->bottom,
+                  dwStyle, bMenu,
+                    SK_SummarizeCaller ().c_str () );
+
   return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
 }
 
@@ -1107,13 +1239,14 @@ AdjustWindowRectEx_Detour (
     _In_    BOOL   bMenu,
     _In_    DWORD  dwExStyle )
 {
-#if 0
-  dll_log.Log ( L"[Window Mgr] AdjustWindowRectEx ( {%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu, 0x%04X )",
-                  lpRect->left, lpRect->top,
-                    lpRect->right, lpRect->bottom,
-                      dwStyle, bMenu,
-                        dwExStyle );
-#endif
+  SK_LOG0 ( L"[Window Mgr] AdjustWindowRectEx ( "
+                  L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu, 0x%04X ) - %s",
+              lpRect->left, lpRect->top,
+                lpRect->right, lpRect->bottom,
+                  dwStyle, bMenu,
+                    dwExStyle,
+                      SK_SummarizeCaller ().c_str () );
+
   return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
 }
 
@@ -1351,6 +1484,8 @@ GetWindowLongPtrW_Detour (
 void
 SK_AdjustBorder (void)
 {
+  SK_WINDOW_LOG_CALL3 ();
+
   if (game_window.GetWindowLongPtr == nullptr)
     return;
 
@@ -1411,6 +1546,8 @@ SK_ResetWindow (void)
 void
 SK_AdjustWindow (void)
 {
+  SK_WINDOW_LOG_CALL3 ();
+
   DWORD async       = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : 0x00;
   DWORD send_change = IsGUIThread (FALSE) ? SWP_NOSENDCHANGING : SWP_NOSENDCHANGING;
 
@@ -1428,7 +1565,8 @@ SK_AdjustWindow (void)
   GetMonitorInfo (hMonitor, &mi);
 
   if (config.window.borderless && config.window.fullscreen) {
-    //dll_log->Log (L"BorderManager::AdjustWindow - Fullscreen");
+    SK_LOG3 (L"[Window Mgr]  > SK_AdjustWindow (Fullscreen)");
+
     SetWindowPos_Original ( game_window.hWnd,
                               HWND_TOP,
                                 mi.rcMonitor.left,
@@ -1450,7 +1588,7 @@ SK_AdjustWindow (void)
 
   else
   {
-    //dll_log->Log (L"BorderManager::AdjustWindow - Windowed");
+    SK_LOG3 (L"[Window Mgr]  > SK_AdjustWindow (Windowed)");
 
     // Adjust the desktop resolution to make room for window decorations
     //   if the game window were maximized.
@@ -1536,9 +1674,9 @@ SK_AdjustWindow (void)
 
 
     if (config.window.center) {
-      //dll_log->Log ( L"[Window Mgr] Center --> (%li,%li)",
-      //                 mi.rcWork.right - mi.rcWork.left,
-      //                   mi.rcWork.bottom - mi.rcWork.top );
+      SK_LOG3 ( L"[Window Mgr] Center --> (%li,%li)",
+                  mi.rcWork.right - mi.rcWork.left,
+                    mi.rcWork.bottom - mi.rcWork.top );
 
       if (x_offset < 0) {
         game_window.actual.window.left  -= (win_width / 2);
@@ -1641,8 +1779,9 @@ GetSystemMetrics_Detour (_In_ int nIndex)
 {
   int nRet = GetSystemMetrics_Original (nIndex);
 
-  //dll_log.Log ( L"[Resolution] GetSystemMetrics (%lu) : %lu",
-                  //nIndex, nRet );
+  SK_LOG3 ( L"[Resolution] GetSystemMetrics (%4lu) : %-5lu - %s",
+              nIndex, nRet,
+                SK_SummarizeCaller ().c_str () );
 
   if (config.window.borderless) {
     if (nIndex == SM_CYCAPTION)
@@ -2063,7 +2202,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
 
         if (config.window.confine_cursor) {
-          //dll_log.Log (L"[Window Mgr] Confining Mouse Cursor");
+          SK_LOG3 (L"[Window Mgr] Confining Mouse Cursor");
+
           ////// XXX: Is this really necessary? State should be consistent unless we missed
           //////        an event --- Write unit test?
           GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
@@ -2088,7 +2228,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
 
         if (config.window.confine_cursor) {
-          //dll_log.Log (L"[Window Mgr] Unconfining Mouse Cursor");
+          SK_LOG3 (L"[Window Mgr] Unconfining Mouse Cursor");
+
           ClipCursor_Original (nullptr);
         }
       }
@@ -2097,7 +2238,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   // Ignore this event
   if (uMsg == WM_MOUSEACTIVATE/* && config.window.background_render*/) {
     if ((HWND)wParam == game_window.hWnd) {
-      //dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
+      SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
 
       ActivateWindow (true);
 
@@ -2107,7 +2248,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     ActivateWindow (false);
 
-    //dll_log.Log (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate");
+    SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate");
 
     if (config.window.background_render)
       return MA_ACTIVATE;
@@ -2118,12 +2259,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   {
     if (uMsg == WM_NCACTIVATE) {
       if (wParam == TRUE && last_active == false) {
-        //dll_log->Log (L"[Window Mgr] Application Activated (Non-Client)");
+        SK_LOG2 (L"[Window Mgr] Application Activated (Non-Client)");
+
         ActivateWindow (true);
       }
 
       else if (wParam == FALSE && last_active == true) {
-        //dll_log->Log (L"[Window Mgr] Application Deactivated (Non-Client)");
+        SK_LOG2 (L"[Window Mgr] Application Deactivated (Non-Client)");
+
         ActivateWindow (false);
 
         // We must fully consume one of these messages or audio will stop playing
@@ -2145,7 +2288,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         default: // Unknown
         {
           if (last_active == false) {
-            //dll_log->Log (L"[Window Mgr] Application Activated (WM_ACTIVATEAPP)");
+            SK_LOG1 (L"[Window Mgr] Application Activated (WM_ACTIVATEAPP)");
+
             ActivateWindow (true);
           }
         } break;
@@ -2153,7 +2297,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         case 0: // WA_INACTIVE / FALSE
         {
           if (last_active == true) {
-            //dll_log->Log (L"[Window Mgr] Application Deactivated (WM_ACTIVATEAPP)");
+            SK_LOG1 (L"[Window Mgr] Application Deactivated (WM_ACTIVATEAPP)");
+
             ActivateWindow (false);
 
             if (config.window.background_render) {
@@ -2461,5 +2606,7 @@ HWND
 __stdcall
 SK_GetGameWindow (void)
 {
+  SK_WINDOW_LOG_CALL3 ();
+
   return game_window.hWnd;
 }

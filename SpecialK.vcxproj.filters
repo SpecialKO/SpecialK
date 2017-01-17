@@ -252,6 +252,12 @@
     <ClInclude Include="include\SpecialK\sound.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\update\version.h">
+      <Filter>Header Files\Update</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\update\network.h">
+      <Filter>Header Files\Update</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">

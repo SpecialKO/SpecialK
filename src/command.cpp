@@ -23,7 +23,8 @@
 
 #include <memory>
 
-#include "command.h"
+#include <SpecialK/command.h>
+#include <SpecialK/utility.h>
 
 SK_ICommandProcessor*
 __stdcall
@@ -576,17 +577,7 @@ SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
     *dwLen = snprintf (szOut, *dwLen, "%f", getValue ());
 
     // Remove trailing 0's after the .
-    size_t len = *dwLen;
-
-    for (size_t i = (len - 1); i > 1; i--) {
-      if (szOut [i] == '0' && szOut [i - 1] != '.')
-        len--;
-      if (szOut [i] != '0' && szOut [i] != '\0')
-        break;
-    }
-
-    szOut [len] = '\0';
-    *dwLen = (uint32_t)len;
+    *dwLen = SK_RemoveTrailingDecimalZeros (szOut, *dwLen);
   } else {
     *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%f", getValue ()));
   }

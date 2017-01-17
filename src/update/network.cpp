@@ -30,6 +30,7 @@
 #include <SpecialK/resource.h>
 
 #include <SpecialK/update/archive.h>
+#include <SpecialK/update/network.h>
 
 #include <Windows.h>
 #include <windowsx.h>
@@ -854,7 +855,7 @@ UpdateDlg_Thread (LPVOID user)
 
 HRESULT
 __stdcall
-SK_UpdateSoftware (const wchar_t* wszProduct)
+SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 {
   int               nButtonPressed =   0;
   TASKDIALOGCONFIG  task_config    = { 0 };
@@ -988,7 +989,7 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   wcscpy ( update_dlg_relnotes,
             latest_ver.get_value (L"ReleaseNotes").c_str () );
 
-  if (build.latest.in_branch > build.installed) {
+  if (build.latest.in_branch > build.installed || force) {
     iSK_INISection& archive =
       repo_ini.get_section_f ( L"Archive.%s",
                                  build.latest.package );
@@ -1155,4 +1156,11 @@ SK_UpdateSoftware (const wchar_t* wszProduct)
   }
 
   return S_FALSE;
+}
+
+HRESULT
+__stdcall
+SK_UpdateSoftware (const wchar_t* wszProduct)
+{
+  return SK_UpdateSoftware1 (wszProduct);
 }

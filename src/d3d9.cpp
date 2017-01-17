@@ -560,24 +560,33 @@ SK_HookD3D9 (void)
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh",
       (Direct3DCreate9_Import) =  \
         (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9"));
-    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh",
-      (Direct3DCreate9Ex_Import) =  \
-        (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
-  } else {
+
+    if (config.apis.d3d9ex.hook) {
+      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh",
+        (Direct3DCreate9Ex_Import) =  \
+          (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
+    }
+  }
+
+  else {
     SK_CreateDLLHook ( L"d3d9.dll",
                        "Direct3DCreate9",
                        Direct3DCreate9,
             (LPVOID *)&Direct3DCreate9_Import );
 
-    SK_CreateDLLHook ( L"d3d9.dll",
-                       "Direct3DCreate9Ex",
-                       Direct3DCreate9Ex,
-            (LPVOID *)&Direct3DCreate9Ex_Import );
-
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh  { Hooked }",
       (Direct3DCreate9_Import) );
-    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh  { Hooked }",
-      (Direct3DCreate9Ex_Import) );
+
+
+    if (config.apis.d3d9ex.hook) {
+      SK_CreateDLLHook ( L"d3d9.dll",
+                         "Direct3DCreate9Ex",
+                         Direct3DCreate9Ex,
+              (LPVOID *)&Direct3DCreate9Ex_Import );
+
+      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh  { Hooked }",
+        (Direct3DCreate9Ex_Import) );
+    }
   }
 
   HANDLE hThread =
@@ -1170,10 +1179,10 @@ D3D9CreateAdditionalSwapChain_Override (
   )
 {
   dll_log.Log (L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
-    L"[%s, tid=0x%04x]",
+    L"%s",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
       pPresentationParameters, pSwapChain,
-        SK_GetCallerName ().c_str (), GetCurrentThreadId ()
+        SK_SummarizeCaller ().c_str ()
   );
 
   HRESULT hr;
@@ -1292,6 +1301,10 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
 
   config.render.d3d9.hook_type = hook_type;
 
+
+  if (! config.apis.d3d9ex.hook)
+    return;
+
   //
   // D3D9Ex Specific Stuff
   //
@@ -1379,6 +1392,10 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 
   config.render.d3d9.hook_type = hook_type;
 
+
+  if (! config.apis.d3d9ex.hook)
+    return;
+
   CComPtr <IDirect3DDevice9Ex> pDevEx;
 
   if (SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevEx))))
@@ -1437,9 +1454,9 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   SK_ResetWindow ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh) - "
-                L"[%s, tid=0x%04x]",
+                L"%s",
                 L"IDirect3DDevice9::Reset", This, pPresentationParameters,
-                  SK_GetCallerName ().c_str (), GetCurrentThreadId ()
+                  SK_SummarizeCaller ().c_str ()
   );
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
@@ -1499,10 +1516,10 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   SK_ResetWindow ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
-                L"[%s, tid=0x%04x]",
+                L"%s",
                   L"IDirect3DDevice9Ex::ResetEx",
                     This, pPresentationParameters, pFullscreenDisplayMode,
-                      SK_GetCallerName ().c_str (), GetCurrentThreadId () );
+                      SK_SummarizeCaller ().c_str () );
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
@@ -2171,12 +2188,12 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                              IDirect3DDevice9Ex    **ppReturnedDeviceInterface)
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %lu, %lu, %08Xh, 0x%04X, %08Xh, %08Xh, %08Xh) - "
-                L"[%s, tid=0x%04x]",
+                L"%s",
                 L"IDirect3D9Ex::CreateDeviceEx",
                   This, Adapter, (DWORD)DeviceType,
                     hFocusWindow, BehaviorFlags, pPresentationParameters,
                       pFullscreenDisplayMode, ppReturnedDeviceInterface,
-                        SK_GetCallerName ().c_str (), GetCurrentThreadId () );
+                        SK_SummarizeCaller ().c_str () );
 
   HRESULT ret;
 
@@ -2411,11 +2428,11 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                            IDirect3DDevice9**     ppReturnedDeviceInterface)
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %lu, %lu, %08Xh, 0x%04X, %08Xh, %08Xh) - "
-                L"[%s, tid=0x%04x]",
+                L"%s",
                   L"IDirect3D9::CreateDevice", This, Adapter, (DWORD)DeviceType,
                     hFocusWindow, BehaviorFlags, pPresentationParameters,
                       ppReturnedDeviceInterface,
-                        SK_GetCallerName ().c_str (), GetCurrentThreadId () );
+                        SK_SummarizeCaller ().c_str () );
 
   HRESULT ret;
 
@@ -2678,10 +2695,10 @@ Direct3DCreate9 (UINT SDKVersion)
   WaitForInit_D3D9 ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
-                L"[%s, tid=0x%04x]",
+                L"%s",
                   L"Direct3DCreate9",
                     SDKVersion,
-                      SK_GetCallerName ().c_str (), GetCurrentThreadId () );
+                      SK_SummarizeCaller ().c_str () );
 
   bool force_d3d9ex = config.render.d3d9.force_d3d9ex;
 
@@ -2700,9 +2717,9 @@ Direct3DCreate9 (UINT SDKVersion)
     if (Direct3DCreate9_Import) {
       if (force_d3d9ex) {
         dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
-          L"[%s, tid=0x%04x]",
+          L"%s",
           L"Direct3DCreate9", SDKVersion,
-            SK_GetCallerName ().c_str (), GetCurrentThreadId () );
+            SK_SummarizeCaller ().c_str () );
       }
 
       d3d9 = Direct3DCreate9_Import (SDKVersion);
@@ -2728,11 +2745,11 @@ Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
   WaitForInit_D3D9 ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %08Xh) - "
-                L"[%s, tid=0x%04x]",
+                L"%s",
                   L"Direct3DCreate9Ex",
                     SDKVersion,
                       ppD3D,
-                        SK_GetCallerName ().c_str (), GetCurrentThreadId () );
+                        SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_FAIL;
 

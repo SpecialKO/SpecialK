@@ -23,7 +23,8 @@
 #define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <Windows.h>
-#include "parameter.h"
+#include <SpecialK/parameter.h>
+#include <SpecialK/utility.h>
 
 std::wstring
 sk::ParameterInt::get_value_str (void)
@@ -86,10 +87,17 @@ sk::ParameterInt64::set_value_str (std::wstring str)
 std::wstring
 sk::ParameterBool::get_value_str (void)
 {
-  if (value == true)
-    return L"true";
-
-  return L"false";
+  switch (type) {
+    case ZeroNonZero:
+      return value  ?  L"1"    : L"0";
+    case YesNo:
+      return value  ?  L"Yes"  : L"No";
+    case OnOff:
+      return value  ?  L"On"   : L"Off";
+    case TrueFalse:
+    default:
+      return value  ?  L"True" : L"False";
+  }
 }
 
 bool
@@ -108,19 +116,57 @@ sk::ParameterBool::set_value (bool val)
 void
 sk::ParameterBool::set_value_str (std::wstring str)
 {
-  if (str.length () == 1 &&
-      str [0] == L'1')
-    value = true;
+  size_t len = str.length ();
 
-  else if (str.length () == 4 &&
-      towlower (str [0]) == L't' &&
-      towlower (str [1]) == L'r' &&
-      towlower (str [2]) == L'u' &&
-      towlower (str [3]) == L'e')
-    value = true;
+  type = TrueFalse;
 
-  else
-    value = false;
+  switch (len)
+  {
+    case 1:
+      type = ZeroNonZero;
+
+      if (str [0] == L'1')
+        value = true;
+      break;
+
+    case 2:
+      if ( towlower (str [0]) == L'o' &&
+           towlower (str [1]) == L'n' ) {
+        type  = OnOff;
+        value = true;
+      } else if ( towlower (str [0]) == L'n' &&
+                  towlower (str [1]) == L'o' ) {
+        type  = YesNo;
+        value = false;
+      }
+      break;
+
+    case 3:
+      if ( towlower (str [0]) == L'y' &&
+           towlower (str [1]) == L'e' &&
+           towlower (str [2]) == L's' ) {
+        type  = YesNo;
+        value = true;
+      } else if ( towlower (str [0]) == L'o' &&
+                  towlower (str [1]) == L'f' &&
+                  towlower (str [2]) == L'f' ) {
+        type  = OnOff;
+        value = false;
+      }
+      break;
+
+    case 4:
+      if ( towlower (str [0]) == L't' &&
+           towlower (str [1]) == L'r' &&
+           towlower (str [2]) == L'u' &&
+           towlower (str [3]) == L'e' )
+        value = true;
+      break;
+
+    default:
+      value = false;
+      break;
+  }
 }
 
 
@@ -130,16 +176,7 @@ sk::ParameterFloat::get_value_str (void)
   wchar_t val_str [16];
   swprintf (val_str, L"%f", value);
 
-  // Remove trailing 0's after the .
-  size_t len = wcslen (val_str);
-  for (size_t i = (len - 1); i > 1; i--) {
-    if (val_str [i] == L'0' && val_str [i - 1] != L'.')
-      len--;
-    if (val_str [i] != L'0' && val_str [i] != L'\0')
-      break;
-  }
-
-  val_str [len] = L'\0';
+  SK_RemoveTrailingDecimalZeros (val_str);
 
   return std::wstring (val_str);
 }

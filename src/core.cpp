@@ -1068,8 +1068,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   // Pre-Load the original DLL into memory
   if (dll_name != wszBackendDLL) {
-    backend_dll = LoadLibrary (wszBackendDLL);
-                  LoadLibrary (dll_name);
+                  LoadLibrary (wszBackendDLL);
+    backend_dll = LoadLibrary (dll_name);
   }
 
   else
@@ -1417,15 +1417,25 @@ protected:
 private:
 };
 
+#include <SpecialK/update/version.h>
+#include <SpecialK/update/network.h>
+
 SK_ICommandResult
 skUpdateCmd::execute (const char* szArgs)
 {
+  if (! strlen (szArgs)) {
+    SK_FetchVersionInfo1 (L"SpecialK", true);
+    SK_UpdateSoftware1   (L"SpecialK", true);
+  }
 
-  extern HRESULT
-  __stdcall
-  SK_UpdateSoftware (const wchar_t* wszProduct);
+  else {
+    wchar_t wszProduct [128] = { L'\0' };
+    
+    mbtowc (wszProduct, szArgs, strlen (szArgs));
 
-  SK_UpdateSoftware (L"SpecialK");
+    SK_FetchVersionInfo1 (wszProduct, true);
+    SK_UpdateSoftware1   (wszProduct, true);
+  }
 
   return SK_ICommandResult ("Manual update initiated...", szArgs);
 }
@@ -1848,8 +1858,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_Init_MinHook        ();
   SK::Framerate::Init    ();
 
-  if (! lstrcmpW (backend, L"dxgi") || GetModuleHandle (L"d3d11.dll"))
-    SK_D3D11_Init ();
+  //if (config.apis.dxgi.d3d11.hook) {
+    if (! lstrcmpW (backend, L"dxgi") || GetModuleHandle (L"d3d11.dll"))
+      SK_D3D11_Init ();
+  //}
 
   SK_InitCompatBlacklist ();
 

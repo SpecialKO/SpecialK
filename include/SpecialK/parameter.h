@@ -143,8 +143,16 @@ public:
   void         set_value     (bool val);
   void         set_value_str (std::wstring str);
 
+  enum boolean_term_t {
+    TrueFalse   = 0,
+    OnOff       = 1,
+    YesNo       = 2,
+    ZeroNonZero = 3
+  };
+
 protected:
-  bool value;
+  bool           value;
+  boolean_term_t type = TrueFalse;
 };
 
 class ParameterFloat : public Parameter <float>

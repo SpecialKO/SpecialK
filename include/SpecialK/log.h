@@ -216,4 +216,25 @@ SK_CreateLog (const wchar_t* const wszName);
 
 #endif
 
+std::wstring
+__stdcall
+SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
+
+extern std::string
+SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
+
+#define SK_LOG_CALL(source) {                       \
+  std::string __SYMBOL__ =                          \
+    SK_GetSymbolNameFromModuleAddr (                \
+          SK_GetCallingDLL            (),           \
+            (uintptr_t)_ReturnAddress ()            \
+  );                                                \
+                                                    \
+  dll_log.Log ( L"[%hs][!] %32hs - %s",             \
+                 (source),                          \
+                   __FUNCTION__,                    \
+                     SK_SummarizeCaller ().c_str () \
+             );                                     \
+}
+
 #endif /* __SK__LOG_H__ */

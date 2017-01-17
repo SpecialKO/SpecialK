@@ -1731,3 +1731,43 @@ SK_wcsrep ( const wchar_t*   wszIn,
   *pwszOut = wszTemp;
 }
 #endif
+
+size_t
+SK_RemoveTrailingDecimalZeros (wchar_t* wszNum, size_t bufLen)
+{
+  // Remove trailing 0's after the .
+  size_t len = bufLen == 0 ?
+                  wcslen (wszNum) :
+        std::min (wcslen (wszNum), bufLen);
+
+  for (size_t i = (len - 1); i > 1; i--) {
+    if (wszNum [i] == L'0' && wszNum [i - 1] != L'.')
+      len--;
+    if (wszNum [i] != L'0' && wszNum [i] != L'\0')
+      break;
+  }
+
+  wszNum [len] = L'\0';
+
+  return len;
+}
+
+size_t
+SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
+{
+  // Remove trailing 0's after the .
+  size_t len = bufLen == 0 ?
+                  strlen (szNum) :
+        std::min (strlen (szNum), bufLen);
+
+  for (size_t i = (len - 1); i > 1; i--) {
+    if (szNum [i] == '0' && szNum [i - 1] != '.')
+      len--;
+    if (szNum [i] != '0' && szNum [i] != '\0')
+      break;
+  }
+
+  szNum [len] = '\0';
+
+  return len;
+}

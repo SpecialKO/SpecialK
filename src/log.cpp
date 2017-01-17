@@ -258,3 +258,37 @@ SK_CreateLog (const wchar_t* const wszName)
 
   return pLog;
 }
+
+std::wstring
+__stdcall
+SK_SummarizeCaller (LPVOID lpReturnAddr)
+{
+  wchar_t wszSummary [256] = { L'\0' };
+
+  std::string __SYMBOL__ =
+    SK_GetSymbolNameFromModuleAddr (
+          SK_GetCallingDLL          (),
+            (uintptr_t)lpReturnAddr
+  );
+
+  if (__SYMBOL__ != "UNKNOWN") {
+    _snwprintf ( wszSummary, 255,
+                   L"[ %s <%hs>, tid=0x%04x ]",
+
+           SK_GetCallerName (lpReturnAddr).c_str (),
+             __SYMBOL__.c_str                    (),
+               GetCurrentThreadId                ()
+    );
+  }
+
+  else {
+    _snwprintf ( wszSummary, 255,
+                   L"[ %s, tid=0x%04x ]",
+
+           SK_GetCallerName (lpReturnAddr).c_str (),
+               GetCurrentThreadId                ()
+    );
+  }
+
+  return wszSummary;
+}

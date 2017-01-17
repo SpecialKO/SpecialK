@@ -371,6 +371,8 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\targetver.h" />
     <ClInclude Include="include\SpecialK\tls.h" />
     <ClInclude Include="include\SpecialK\update\archive.h" />
+    <ClInclude Include="include\SpecialK\update\network.h" />
+    <ClInclude Include="include\SpecialK\update\version.h" />
     <ClInclude Include="include\SpecialK\utility.h" />
     <ClInclude Include="include\SpecialK\vulkan_backend.h" />
     <ClInclude Include="include\SpecialK\DLL_VERSION.H" />

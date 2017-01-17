@@ -85,8 +85,8 @@
   dll_log.LogEx (true, L"[   DXGI   ] [!] %s (", _Name);                    \
   dll_log.LogEx (false, _Format
 #define DXGI_LOG_CALL_END                                                   \
-  dll_log.LogEx (false, L") -- [%s, tid=0x%04x]\n",                         \
-    SK_GetCallerName ().c_str (), GetCurrentThreadId ());
+  dll_log.LogEx (false, L") -- %s\n",                                       \
+    SK_SummarizeCaller ().c_str () );
 
 #define DXGI_LOG_CALL_I0(_Interface,_Name) {                                 \
   DXGI_LOG_CALL_I   (_Interface,_Name, L"void"));                            \

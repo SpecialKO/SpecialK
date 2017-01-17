@@ -155,6 +155,7 @@ sk::ParameterBool*        handle_crashes;
 sk::ParameterBool*        prefer_fahrenheit;
 sk::ParameterBool*        ignore_rtss_delay;
 sk::ParameterInt*         init_delay;
+sk::ParameterInt*         log_level;
 sk::ParameterBool*        silent;
 sk::ParameterStringW*     version;
 
@@ -680,6 +681,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"SpecialK.System",
         L"Silent" );
+
+  log_level =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"Log Verbosity")
+      );
+  log_level->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"LogLevel" );
 
   prefer_fahrenheit =
     static_cast <sk::ParameterBool *>
@@ -1795,6 +1806,8 @@ SK_LoadConfig (std::wstring name) {
     config.system.init_delay = init_delay->get_value ();
   if (silent->load ())
     config.system.silent = silent->get_value ();
+  if (log_level->load ())
+    config.system.log_level = log_level->get_value ();
   if (prefer_fahrenheit->load ())
     config.system.prefer_fahrenheit = prefer_fahrenheit->get_value ();
 
@@ -1888,7 +1901,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     window.offset.x->set_value (wszAbsolute);
   } else {
     wchar_t wszPercent [16];
-    _swprintf (wszPercent, L"%08.4f%%", 100.0f * config.window.offset.x.percent);
+    _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.x.percent);
+    SK_RemoveTrailingDecimalZeros (wszPercent);
+    lstrcatW (wszPercent, L"%");
     window.offset.x->set_value (wszPercent);
   }
   if (config.window.offset.y.absolute != 0) {
@@ -1897,7 +1912,9 @@ SK_SaveConfig (std::wstring name, bool close_config) {
     window.offset.y->set_value (wszAbsolute);
   } else {
     wchar_t wszPercent [16];
-    _swprintf (wszPercent, L"%08.4f%%", 100.0f * config.window.offset.y.percent);
+    _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.y.percent);
+    SK_RemoveTrailingDecimalZeros (wszPercent);
+    lstrcatW (wszPercent, L"%");
     window.offset.y->set_value (wszPercent);
   }
   window.confine_cursor->set_value            (config.window.confine_cursor);
@@ -2011,6 +2028,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   init_delay->set_value                      (config.system.init_delay);
   silent->set_value                          (config.system.silent);
+  log_level->set_value                       (config.system.log_level);
   prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
 
   apis.d3d9.hook->store                   ();
@@ -2144,6 +2162,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
 
   init_delay->store                      ();
   silent->store                          ();
+  log_level->store                       ();
   prefer_fahrenheit->store               ();
 
   ignore_rtss_delay->set_value           (config.system.ignore_rtss_delay);

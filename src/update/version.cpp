@@ -27,6 +27,8 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/log.h>
 
+#include <SpecialK/update/version.h>
+
 #include <Windows.h>
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
@@ -37,7 +39,7 @@ DWORD dwInetCtx;
 
 bool
 __stdcall
-SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
+SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 {
   FILETIME                  ftNow;
   GetSystemTimeAsFileTime (&ftNow);
@@ -213,8 +215,10 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   //
   //   So that, for example, a 6h frequency can be delayed up to 1 week.
   //
-  if (! (( should_fetch && (! has_remind)) || need_remind))
-    return false;
+  if (! force) {
+    if (! (( should_fetch && (! has_remind)) || need_remind))
+      return false;
+  }
 
   HINTERNET hInetRoot =
     InternetOpen (
@@ -337,4 +341,11 @@ SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK")
   InternetCloseHandle (hInetRoot);
 
   return true;
+}
+
+bool
+__stdcall
+SK_FetchVersionInfo (const wchar_t* wszProduct)
+{
+  return SK_FetchVersionInfo1 (wszProduct);
 }

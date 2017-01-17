@@ -295,7 +295,7 @@ struct sk_config_t
       struct {
         unsigned int x          = 0;
         unsigned int y          = 0;
-        bool         fix_mouse  = true;
+        bool         fix_mouse  = false;
         bool isZero (void) { return x == 0 && y == 0; };
       } override;
     } res;
@@ -341,6 +341,7 @@ struct sk_config_t
   struct {
     int     init_delay          = 250;
     bool    silent              = false;
+    int     log_level           = 0;
     bool    handle_crashes      = true;
     bool    prefer_fahrenheit   = true;
     bool    display_debug_out   = false;

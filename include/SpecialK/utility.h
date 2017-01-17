@@ -101,6 +101,12 @@ SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr);
 int
 SK_Path_wcsicmp (const wchar_t* wszStr1, const wchar_t* wszStr2);
 
+size_t
+SK_RemoveTrailingDecimalZeros (wchar_t* wszNum, size_t bufSize = 0);
+
+size_t
+SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufSize = 0);
+
 
 void*
 __stdcall
