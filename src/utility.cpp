@@ -1182,6 +1182,12 @@ SK_TestImports (HMODULE hMod, sk_import_test_s* pTests, int nCount)
                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
     dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
                   L"Walk Import Table." );
+
+    // Resort to checking for DLL residency instead
+    for (int i = 0; i < nCount; i++) {
+      if (GetModuleHandleA (pTests [i].szModuleName))
+        pTests [i].used = true;
+    }
   }
 }
 

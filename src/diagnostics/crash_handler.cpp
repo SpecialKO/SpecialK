@@ -18,7 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#include <diagnostics/crash_handler.h>
+#include <SpecialK/diagnostics/crash_handler.h>
 
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>

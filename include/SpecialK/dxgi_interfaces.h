@@ -56,6 +56,19 @@
 #ifndef __dxgi_h__
 #define __dxgi_h__
 
+#ifndef D3DCOLORVALUE_DEFINED
+typedef struct _D3DCOLORVALUE {
+    float r;
+    float g;
+    float b;
+    float a;
+} D3DCOLORVALUE;
+
+#define D3DCOLORVALUE_DEFINED
+#endif
+
+typedef D3DCOLORVALUE DXGI_RGBA;
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
 #endif

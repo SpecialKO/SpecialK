@@ -23,10 +23,19 @@
 #define __SK__WINDOW_H__
 
 #include <Windows.h>
+#include <SpecialK/config.h>
+
+#undef GetWindowLong
+#undef GetWindowLongPtr
+#undef SetWindowLong
+#undef SetWindowLongPtr
+#undef CallWindowProc
+#undef DefWindowProc
 
 void SK_HookWinAPI        (void);
 void SK_InstallWindowHook (HWND hWnd);
 void SK_AdjustWindow      (void);
+void SK_AdjustBorder      (void);
 
 void SK_CenterWindowAtMouse (BOOL remember_pos);
 
@@ -194,5 +203,175 @@ extern GetKeyState_pfn             GetKeyState_Original;
 extern GetAsyncKeyState_pfn        GetAsyncKeyState_Original;
 extern GetRawInputData_pfn         GetRawInputData_Original;
 extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
+
+struct sk_window_s {
+  bool       unicode          = false;
+
+  HWND       hWnd             = 0x00;
+  WNDPROC    WndProc_Original = nullptr;
+  WNDPROC    RawProc_Original = nullptr;
+
+  bool       active           = true;
+
+  struct {
+    struct {
+      LONG   width            = 640;
+      LONG   height           = 480;
+    } framebuffer;
+
+    struct {
+      RECT   client { 0, 0, 640, 480 };
+      RECT   window { 0, 0, 640, 480 };
+    };
+
+    LONG_PTR style            = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    LONG_PTR style_ex         = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
+  } game, actual;
+
+  LONG_PTR   border_style     = WS_CLIPSIBLINGS     | WS_CLIPCHILDREN |
+                                WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+  LONG_PTR   border_style_ex  = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
+
+//  RECT      rect        { 0, 0,
+//                          0, 0 };
+//  RECT      game_rect   { 0, 0,
+//                          0, 0 };
+
+  struct {
+    // Will be false if remapping is necessary
+    bool     identical        = true;
+
+    struct {
+      float  x                = 1.0f;
+      float  y                = 1.0f;
+    } scale;
+
+    struct {
+      float  x                = 0.0f;
+      float  y                = 0.0f;
+    } offset;
+  } coord_remap;
+
+  LONG      render_x         = 640;
+  LONG      render_y         = 480;
+
+  LONG      game_x           = 640; // Resolution game thinks it's running at
+  LONG      game_y           = 480; // Resolution game thinks it's running at
+
+  RECT      cursor_clip { LONG_MIN, LONG_MIN,
+                          LONG_MAX, LONG_MAX };
+
+  // Cursor position when window activation changed
+  POINT     cursor_pos  { 0, 0 };
+
+  // State to restore the cursor to
+  //  (TODO: Should probably be a reference count to return to)
+  bool      cursor_visible   = true;
+
+  void    getRenderDims (long& x, long& y) {
+    x = (actual.client.right  - actual.client.left);
+    y = (actual.client.bottom - actual.client.top);
+  }
+
+  bool    needsCoordTransform (void)
+  {
+    if (! config.window.res.override.fix_mouse)
+      return false;
+
+    bool dynamic_window =
+      (config.window.borderless /*&& config.window.fullscreen*/);
+
+    if (! dynamic_window)
+      return false;
+
+    return (! coord_remap.identical);
+  }
+
+  void updateDims (void)
+  {
+    if (config.window.borderless && config.window.fullscreen)
+    {
+      HMONITOR hMonitor =
+      MonitorFromWindow ( hWnd,
+                            MONITOR_DEFAULTTONEAREST );
+
+      MONITORINFO mi = { 0 };
+      mi.cbSize      = sizeof (mi);
+
+      GetMonitorInfo (hMonitor, &mi);
+
+      actual.window = mi.rcMonitor;
+
+      actual.client.left   = 0;
+      actual.client.right  = actual.window.right - actual.window.left;
+      actual.client.top    = 0;
+      actual.client.bottom = actual.window.bottom - actual.window.top;
+    }
+
+    long game_width   = (game.client.right   - game.client.left);
+    long window_width = (actual.client.right - actual.client.left);
+
+    long game_height   = (game.client.bottom   - game.client.top);
+    long window_height = (actual.client.bottom - actual.client.top);
+
+    bool resized =
+      (game_width != window_width || game_height != window_height);
+
+    bool moved =
+      ( game.window.left != actual.window.left ||
+        game.window.top  != actual.window.top );
+
+    if (resized || moved) {
+      coord_remap.identical = false;
+
+      coord_remap.scale.x =
+        (float)window_width  / (float)game_width;
+      coord_remap.scale.y =
+        (float)window_height / (float)game_height;
+
+      coord_remap.offset.x =
+        (float)(actual.window.left + actual.client.left) -
+        (float)(game.window.left   + game.client.left);
+      coord_remap.offset.y =
+        (float)(actual.window.top + actual.client.top) -
+        (float)(game.window.top   + game.client.top);
+    }
+
+    else {
+      coord_remap.identical = true;
+
+      coord_remap.offset.x  = 0.0f;
+      coord_remap.offset.y  = 0.0f;
+
+      coord_remap.scale.x   = 0.0f;
+      coord_remap.scale.y   = 0.0f;
+    }
+  }
+
+  SetWindowLongPtr_pfn SetWindowLongPtr = nullptr;
+  GetWindowLongPtr_pfn GetWindowLongPtr = nullptr;
+  DefWindowProc_pfn    DefWindowProc    = nullptr;
+  CallWindowProc_pfn   CallWindowProc   = nullptr;
+
+  LRESULT DefProc (
+    _In_ UINT   Msg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam
+  ) { return DefWindowProc (hWnd, Msg, wParam, lParam); }
+
+  LRESULT CallProc      (
+    _In_ HWND    hWnd_,
+    _In_ UINT    Msg,
+    _In_ WPARAM  wParam,
+    _In_ LPARAM  lParam )
+  {
+    if (! hooked)
+      return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
+    else
+      return WndProc_Original (hWnd_, Msg, wParam, lParam);
+  }
+
+  bool hooked = false;
+} extern game_window;
 
 #endif /* __SK__WINDOW_H__ */

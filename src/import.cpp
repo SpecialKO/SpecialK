@@ -20,14 +20,12 @@
 **/
 
 #include <Windows.h>
-
-#include "import.h"
-#include "log.h"
-#include "utility.h"
-
 #include <comdef.h>
-
 #include <shlwapi.h>
+
+#include <SpecialK/import.h>
+#include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
 const std::wstring SK_IMPORT_EARLY  = L"Early";
 const std::wstring SK_IMPORT_PLUGIN = L"PlugIn";
@@ -50,8 +48,13 @@ import_t imports [SK_MAX_IMPORTS];
 extern HMODULE __stdcall SK_GetDLL (void);
 typedef BOOL (WINAPI *SKPlugIn_Init_pfn)(HMODULE hSpecialK);
 
+// Fix warnings in dbghelp.h
+#pragma warning (disable : 4091)
+
 #define _NO_CVCONST_H
 #include <dbghelp.h>
+
+#pragma comment( lib, "dbghelp.lib" )
 
 HMODULE
 SK_InitPlugIn64 (HMODULE hLibrary)

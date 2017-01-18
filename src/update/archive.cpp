@@ -200,8 +200,6 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
   for (unsigned int i = 0; i < files.size (); i++)
   {
-    int fileno = files [i].fileno;
-
     Byte*    out           = nullptr;
     size_t   out_len       = 0;
     size_t   offset        = 0;
@@ -330,8 +328,6 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
   for (unsigned int i = 0; i < config_files.size (); i++)
   {
-    int fileno = config_files [i].fileno;
-
     Byte*    out           = nullptr;
     size_t   out_len       = 0;
     size_t   offset        = 0;

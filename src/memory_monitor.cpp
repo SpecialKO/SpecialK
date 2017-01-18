@@ -20,11 +20,11 @@
 **/
 
 
-#include "config.h"
-#include "io_monitor.h"
-#include "memory_monitor.h"
+#include <SpecialK/config.h>
+#include <SpecialK/io_monitor.h>
+#include <SpecialK/memory_monitor.h>
 
-#include "log.h"
+#include <SpecialK/log.h>
 
 #pragma comment (lib, "wbemuuid.lib")
 

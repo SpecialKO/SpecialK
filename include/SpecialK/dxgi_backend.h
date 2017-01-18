@@ -22,10 +22,11 @@
 #ifndef __SK__DXGI_BACKEND_H__
 #define __SK__DXGI_BACKEND_H__
 
+#include <SpecialK/dxgi_interfaces.h>
+#include <SpecialK/utility.h>
+
 #include <string>
 #include <d3d11.h>
-
-#include "utility.h"
 
 #define __PTR_SIZE   sizeof LPCVOID
 #define __PAGE_PRIVS PAGE_EXECUTE_READWRITE
@@ -135,6 +136,41 @@
   DXGI_LOG_CALL_END                                            \
 }
 
+extern CRITICAL_SECTION budget_mutex;
+       const int        MAX_GPU_NODES = 4;
+
+struct memory_stats_t {
+  uint64_t min_reserve       = UINT64_MAX;
+  uint64_t max_reserve       = 0;
+
+  uint64_t min_avail_reserve = UINT64_MAX;
+  uint64_t max_avail_reserve = 0;
+
+  uint64_t min_budget        = UINT64_MAX;
+  uint64_t max_budget        = 0;
+
+  uint64_t min_usage         = UINT64_MAX;
+  uint64_t max_usage         = 0;
+
+  uint64_t min_over_budget   = UINT64_MAX;
+  uint64_t max_over_budget   = 0;
+
+  uint64_t budget_changes    = 0;
+} extern mem_stats [MAX_GPU_NODES];
+
+enum buffer_t {
+  Front = 0,
+  Back  = 1,
+  NumBuffers
+};
+
+struct mem_info_t {
+  DXGI_QUERY_VIDEO_MEMORY_INFO local    [MAX_GPU_NODES];
+  DXGI_QUERY_VIDEO_MEMORY_INFO nonlocal [MAX_GPU_NODES];
+  SYSTEMTIME                   time;
+  buffer_t                     buffer = Front;
+  int                          nodes  = 0;//MAX_GPU_NODES;
+} extern mem_info [NumBuffers];
 
 namespace SK
 {
@@ -148,6 +184,15 @@ namespace SK
     //extern HMODULE hModD3D10;
     extern HMODULE hModD3D11;
     extern HMODULE hModD3D12;
+
+    HRESULT StartBudgetThread           (IDXGIAdapter** ppAdapter);
+    HRESULT StartBudgetThread_NoAdapter (void);
+
+    void    ShutdownBudgetThread        (void);
+
+    unsigned int
+    __stdcall
+    BudgetThread (LPVOID user_data);
   }
 }
 
@@ -162,54 +207,8 @@ extern "C" CreateDXGIFactory_pfn  CreateDXGIFactory_Import;
 extern "C" CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
 extern "C" CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 
-struct sk_window_s {
-  HWND      hWnd             = 0x00;
-  WNDPROC   WndProc_Original = nullptr;
-  WNDPROC   RawProc_Original = nullptr;
-
-  bool      active           = true;
-
-  LONG      style            = 0x00;
-  LONG      style_ex         = 0x00;
-
-  RECT      rect        { 0, 0,
-                          0, 0 };
-  RECT      game_rect   { 0, 0,
-                          0, 0 };
-
-  struct {
-    // Will be false if remapping is necessary
-    bool    identical        = true;
-
-    struct {
-      float x                = 1.0f;
-      float y                = 1.0f;
-    } scale;
-
-    struct {
-      float x                = 0.0f;
-      float y                = 0.0f;
-    } offset;
-  } coord_remap;
-
-  LONG      render_x         = 0;
-  LONG      render_y         = 0;
-
-  RECT      cursor_clip { LONG_MIN, LONG_MIN,
-                          LONG_MAX, LONG_MAX };
-
-  // Cursor position when window activation changed
-  POINT     cursor_pos  { 0, 0 };
-
-  // State to restore the cursor to
-  //  (TODO: Should probably be a reference count to return to)
-  bool      cursor_visible   = true;
-};
-
 extern DWORD dwRenderThread;
 extern HWND  hWndRender;
-
-extern sk_window_s game_window;
 
 const wchar_t*
 SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode);

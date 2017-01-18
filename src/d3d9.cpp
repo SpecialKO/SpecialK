@@ -24,6 +24,7 @@
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/D3D9/texmgr.h>
 #include <SpecialK/render_backend.h>
+#include <SpecialK/dxgi_backend.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
@@ -598,10 +599,12 @@ SK_HookD3D9 (void)
                                0x00,
                                  nullptr );
 
-  while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
-    WaitForSingleObject (hThread, 100UL);
+  if (hThread != nullptr) {
+    while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
+      WaitForSingleObject (hThread, 100UL);
 
-  CloseHandle (hThread);
+    CloseHandle (hThread);
+  }
 }
 
 static std::queue <DWORD> old_threads;
@@ -657,25 +660,25 @@ extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
 #define __PAGE_PRIVS PAGE_EXECUTE_READWRITE
 
 #define D3D9_VIRTUAL_OVERRIDE(_Base,_Index,_Name,_Override,_Original,_Type) { \
-  void** vftable = *(void***)*_Base;                                          \
+  void** _vftable = *(void***)*_Base;                                         \
                                                                               \
-  if (vftable [_Index] != _Override) {                                        \
+  if (_vftable [_Index] != _Override) {                                       \
     DWORD dwProtect;                                                          \
                                                                               \
-    VirtualProtect (&vftable [_Index], __PTR_SIZE, __PAGE_PRIVS, &dwProtect); \
+    VirtualProtect (&_vftable [_Index], __PTR_SIZE, __PAGE_PRIVS, &dwProtect);\
                                                                               \
     /*dll_log.Log (L" Old VFTable entry for %s: %08Xh  (Memory Policy: %s)",*/\
                  /*L##_Name, vftable [_Index],                              */\
                  /*SK_DescribeVirtualProtectFlags (dwProtect));             */\
                                                                               \
     if (_Original == NULL)                                                    \
-      _Original = (##_Type)vftable [_Index];                                  \
+      _Original = (##_Type)_vftable [_Index];                                 \
                                                                               \
     /*dll_log.Log (L"  + %s: %08Xh", L#_Original, _Original);*/               \
                                                                               \
-    vftable [_Index] = _Override;                                             \
+    _vftable [_Index] = _Override;                                            \
                                                                               \
-    VirtualProtect (&vftable [_Index], __PTR_SIZE, dwProtect, &dwProtect);    \
+    VirtualProtect (&_vftable [_Index], __PTR_SIZE, dwProtect, &dwProtect);   \
                                                                               \
     /*dll_log.Log(L" New VFTable entry for %s: %08Xh  (Memory Policy: %s)\n"*/\
                   /*,L##_Name, vftable [_Index],                            */\
@@ -1108,7 +1111,6 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetMarker, (D3DCOLOR color, LPCWSTR name),
 D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                                       (color,         name))
 
-typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)(REFIID,IDXGIFactory**);
 typedef HRESULT (STDMETHODCALLTYPE *GetSwapChain_pfn)
   (IDirect3DDevice9* This, UINT iSwapChain, IDirect3DSwapChain9** pSwapChain);
 
@@ -2141,8 +2143,8 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
       // If this is zero, we need to actually create the render device / swapchain and
       //   then get the value Windows assigned us...
-      SK_SetWindowResX (pparams->BackBufferWidth);
-      SK_SetWindowResY (pparams->BackBufferHeight);
+      ///SK_SetWindowResX (pparams->BackBufferWidth);
+      ///SK_SetWindowResY (pparams->BackBufferHeight);
 
       if (pparams->Windowed) {
         //SetWindowPos_Original ( hWndRender,
@@ -2158,21 +2160,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
   return pparams;
 }
-
-class SK_AutoSuspendResume {
-public:
-  SK_AutoSuspendResume (void) {
-    tids_ = SK_SuspendAllOtherThreads ();
-  }
-
-  ~SK_AutoSuspendResume (void) {
-    SK_ResumeThreads (tids_);
-  }
-
-protected:
-private:
-  std::queue <DWORD> tids_;
-};
 
 COM_DECLSPEC_NOTHROW
 __declspec (noinline)
@@ -2222,8 +2209,6 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
     return ret;
 
   if (true) {
-    //SK_AutoSuspendResume auto_suspend;
-
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     // For games that present frames using the actual Swapchain...
@@ -2491,8 +2476,6 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   }
 
   if (true) {
-    //SK_AutoSuspendResume auto_suspend;
-
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED ((*ppReturnedDeviceInterface)->GetSwapChain (0, &pSwapChain))) {
@@ -3032,8 +3015,6 @@ HookD3D9 (LPVOID user)
         // 117 DeletePatch
         // 118 CreateQuery
 
-        IDirect3DDevice9**ppReturnedDeviceInterface = &pD3D9Dev;
-
         SK_D3D9_HookReset   (pD3D9Dev);
         SK_D3D9_HookPresent (pD3D9Dev);
 
@@ -3090,7 +3071,7 @@ HookD3D9 (LPVOID user)
                             D3D9CreateDeviceEx_Original,
                             D3D9CreateDeviceEx_pfn );
 
-          IDirect3DDevice9Ex**ppReturnedDeviceInterface = &pD3D9DevEx;
+          //IDirect3DDevice9Ex **ppReturnedDeviceInterface = &pD3D9DevEx;
 
           SK_D3D9_HookReset   (pD3D9DevEx);
           SK_D3D9_HookPresent (pD3D9DevEx);
@@ -3105,26 +3086,8 @@ HookD3D9 (LPVOID user)
 
       InterlockedExchange (&__d3d9_ready, TRUE);
 
-      if (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) {
-        static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
-        static CreateDXGIFactory_pfn CreateDXGIFactory =
-          (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
-
-        IDXGIFactory* factory = nullptr;
-
-        // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
-        if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory))) {
-          IDXGIAdapter* adapter = nullptr;
-
-          if (SUCCEEDED (factory->EnumAdapters (0, &adapter))) {
-            SK_StartDXGI_1_4_BudgetThread (&adapter);
-
-            adapter->Release ();
-          }
-
-          factory->Release ();
-        }
-      }
+      if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
+        SK::DXGI::StartBudgetThread_NoAdapter ();
     }
   }
   CoUninitialize ();

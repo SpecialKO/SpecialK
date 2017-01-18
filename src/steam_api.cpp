@@ -324,11 +324,10 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 void
 SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
 {
-  __try {
+  try {
     if (overlay_activation_callbacks.find (pCallback) != overlay_activation_callbacks.end ())
       overlay_activation_callbacks.erase (pCallback);
-  } __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
-           EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
+  } catch (...) {
   }
 }
 
@@ -487,6 +486,7 @@ public:
   {
     return false;
 
+#if 0
     if (config.steam.silent)
       return false;
 
@@ -573,8 +573,8 @@ public:
 
     client_ = SteamClient ();
 
-    HSteamUser hSteamUser = SteamAPI_GetHSteamUser ();
-    HSteamPipe hSteamPipe = SteamAPI_GetHSteamPipe ();
+    hSteamUser = SteamAPI_GetHSteamUser ();
+    hSteamPipe = SteamAPI_GetHSteamPipe ();
 
     if (! client_)
       return false;
@@ -657,6 +657,7 @@ public:
     steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
 
     return true;
+#endif
   }
 
   bool InitSteamAPI (HMODULE hSteamDLL)
@@ -948,6 +949,8 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
 {
   SK_ICommandProcessor*
     pCommandProc = SK_GetCommandProcessor ();
+
+  UNREFERENCED_PARAMETER (pCommandProc);
 
   bool known = false;
 
@@ -1647,46 +1650,45 @@ public:
 
       achievement->progress_.current = pParam->m_nCurProgress;
       achievement->progress_.max     = pParam->m_nMaxProgress;
-    }
 
-    // Pre-Fetch
-    steam_ctx.UserStats ()->GetAchievementIcon (pParam->m_rgchAchievementName);
+      // Pre-Fetch
+      steam_ctx.UserStats ()->GetAchievementIcon (pParam->m_rgchAchievementName);
 
-    if ( pParam->m_nMaxProgress == pParam->m_nCurProgress )
-    {
-      // Do this so that 0/0 does not come back as NaN
-      achievement->progress_.current = 1;
-      achievement->progress_.max     = 1;
+      if ( pParam->m_nMaxProgress == pParam->m_nCurProgress )
+      {
+        // Do this so that 0/0 does not come back as NaN
+        achievement->progress_.current = 1;
+        achievement->progress_.max     = 1;
 
-      if (config.steam.achievements.play_sound)
-        PlaySound ( (LPCWSTR)unlock_sound, NULL, SND_ASYNC | SND_MEMORY );
+        if (config.steam.achievements.play_sound)
+          PlaySound ( (LPCWSTR)unlock_sound, NULL, SND_ASYNC | SND_MEMORY );
 
-      if (achievement != nullptr) {
-        steam_log.Log (L" Achievement: '%hs' (%hs) - Unlocked!",
-          achievement->human_name_, achievement->desc_);
+        if (achievement != nullptr) {
+          steam_log.Log (L" Achievement: '%hs' (%hs) - Unlocked!",
+            achievement->human_name_, achievement->desc_);
+        }
+
+        // If the user wants a screenshot, but no popups (why?!), this is when
+        //   the screenshot needs to be taken.
+        if ( config.steam.achievements.take_screenshot &&
+          (! config.steam.achievements.popup.show) ) {
+          SK::SteamAPI::TakeScreenshot ();
+        }
       }
 
-      // If the user wants a screenshot, but no popups (why?!), this is when
-      //   the screenshot needs to be taken.
-      if ( config.steam.achievements.take_screenshot &&
-        (! config.steam.achievements.popup.show) ) {
-        SK::SteamAPI::TakeScreenshot ();
+      else {
+        float progress = 
+          (float)pParam->m_nCurProgress /
+          (float)pParam->m_nMaxProgress;
+
+        steam_log.Log (L" Achievement: '%hs' (%hs) - "
+                       L"Progress %lu / %lu (%04.01f%%)",
+                  achievement->human_name_,
+                  achievement->desc_,
+                        pParam->m_nCurProgress,
+                        pParam->m_nMaxProgress,
+                          100.0f * progress );
       }
-    }
-
-    else if (achievement != nullptr)
-    {
-      float progress = 
-        (float)pParam->m_nCurProgress /
-        (float)pParam->m_nMaxProgress;
-
-      steam_log.Log (L" Achievement: '%hs' (%hs) - "
-                     L"Progress %lu / %lu (%04.01f%%)",
-                achievement->human_name_,
-                achievement->desc_,
-                      pParam->m_nCurProgress,
-                      pParam->m_nMaxProgress,
-                        100.0f * progress );
     }
 
     else
@@ -2023,6 +2025,9 @@ public:
 protected:
   CEGUI::Window* createPopupWindow (SK_AchievementPopup* popup)
   {
+    if (popup->achievement == nullptr)
+      return nullptr;
+
     CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
 
     extern CEGUI::Window* SK_achv_popup;
@@ -2103,7 +2108,8 @@ protected:
       steam_ctx.UserStats ()->GetAchievementIcon (achievement->name_);
 
     // Icon width and height
-    uint32 w, h;
+    uint32 w = 0,
+           h = 0;
 
     if (icon_idx != 0) {
       steam_ctx.Utils ()->GetImageSize (icon_idx, &w, &h);
@@ -2257,13 +2263,15 @@ SK_UnlockSteamAchievement (uint32_t idx)
       UserAchievementStored_t store;
       store.m_nCurProgress = 0;
       store.m_nMaxProgress = 0;
-      store.m_nGameID = SK::SteamAPI::AppID ();
+      store.m_nGameID      = SK::SteamAPI::AppID ();
       strncpy (store.m_rgchAchievementName, szName, 128);
 
       SK_Steam_AchievementManager::Achievement* achievement =
         steam_achievements->getAchievement (
           store.m_rgchAchievementName
         );
+
+      UNREFERENCED_PARAMETER (achievement);
 
       steam_achievements->OnUnlock (&store);
 
@@ -2295,12 +2303,11 @@ SK_UnlockSteamAchievement (uint32_t idx)
 #endif
       free ((void *)szName);
     }
-    else {
+    else
       steam_log.LogEx (false, L" (None Found)\n");
-    }
-  } else {
-    steam_log.LogEx (false, L" (ISteamUserStats is NULL?!)\n");
   }
+  else
+    steam_log.LogEx   (false, L" (ISteamUserStats is NULL?!)\n");
 
   SK_SteamAPI_LogAllAchievements ();
 }
@@ -2824,12 +2831,11 @@ SK::SteamAPI::SetOverlayState (bool active)
   std::set <CCallbackBase *>::iterator it =
     overlay_activation_callbacks.begin ();
 
-  __try {
+  try {
     while (it != overlay_activation_callbacks.end ()) {
       (*it++)->Run (&state);
     }
-  } __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
-               EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
+  } catch (...) {
   }
 
   LeaveCriticalSection (&callback_cs);
@@ -3354,6 +3360,8 @@ SK_SteamAPI_InitManagers (void)
 
     SteamAPICall_t call =
       stats->RequestGlobalAchievementPercentages ();
+
+    UNREFERENCED_PARAMETER (call);
   }
 }
 
@@ -3363,12 +3371,12 @@ SK_SteamAPI_DestroyManagers (void)
   if (InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 0, 1)) {
     if (steam_achievements != nullptr) {
       delete steam_achievements;
-      steam_achievements = nullptr;
+             steam_achievements = nullptr;
     }
 
     if (overlay_manager != nullptr) {
       delete overlay_manager;
-      overlay_manager = nullptr;
+             overlay_manager = nullptr;
     }
   }
 }

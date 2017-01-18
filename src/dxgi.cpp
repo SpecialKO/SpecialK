@@ -21,6 +21,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define PSAPI_VERSION 1
 
+#include <SpecialK/stdafx.h>
+
 #include <Windows.h>
 
 #include <SpecialK/dxgi_interfaces.h>
@@ -215,8 +217,8 @@ SK_CEGUI_InitBase (void)
     {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
-            game_window.render_x,
-              game_window.render_y
+            (float)(game_window.render_x),
+              (float)(game_window.render_y)
           )
       );
     }
@@ -1345,7 +1347,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
 
     if (SUCCEEDED (hr)) {
-//#define USE_SB
+#define USE_SB
 #ifdef USE_SB
       D3DX11_STATE_BLOCK sb;
       CreateStateblock (pCEG_DevCtx, &sb);
@@ -1524,7 +1526,9 @@ extern "C" {
 
           if (hWndRender == 0 || (! IsWindow (hWndRender))) {
             hWndRender       = desc.OutputWindow;
-            game_window.hWnd = hWndRender;
+
+            SK_InstallWindowHook (hWndRender);
+            game_window.hWnd =    hWndRender;
           }
         }
       }
@@ -1618,7 +1622,9 @@ extern "C" {
             pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
 
           hWndRender       = desc.OutputWindow;
-          game_window.hWnd = hWndRender;
+
+          SK_InstallWindowHook (hWndRender);
+          game_window.hWnd =    hWndRender;
 
           SK_DXGI_BringRenderWindowToTop ();
         }
@@ -2724,14 +2730,17 @@ __declspec (noinline)
         res = CreateDXGIFactory_Import  (__uuidof (IDXGIFactory),  (void **)&pFactory);
     }
 
-    if (SUCCEEDED (res)) {
-      if (pFactory != nullptr) {
+    if (SUCCEEDED (res))
+    {
+      if (pFactory != nullptr)
+      {
         if ((*ppAdapter) == nullptr)
           EnumAdapters_Original (pFactory, 0, &pGameAdapter);
 
-        DXGI_ADAPTER_DESC game_desc;
+        DXGI_ADAPTER_DESC game_desc { 0 };
 
-        if (pGameAdapter != nullptr) {
+        if (pGameAdapter != nullptr)
+        {
           *ppAdapter  = pGameAdapter;
           *DriverType = D3D_DRIVER_TYPE_UNKNOWN;
 
@@ -2859,7 +2868,9 @@ __declspec (noinline)
         dll_log.LogEx (false, L"Failure! (No Match Found)\n");
     }
 
-    if (SK_GetHostApp () == L"Fallout4.exe" && SK_GetCallerName () == L"Fallout4.exe") {
+    if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
+                   SK_GetCallerName () == L"Fallout4.exe"  )
+    {
       dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu, Dedicated System: %zu, Shared System: %zu",
                       pDesc->DedicatedVideoMemory,
                         pDesc->DedicatedSystemMemory,
@@ -2885,7 +2896,7 @@ __declspec (noinline)
       // Don't log this call
       (*ppAdapter)->GetDesc (&desc);
     }
-    dll_log.silent = false;
+    dll_log.silent = silent;
 
     int iver = SK_GetDXGIAdapterInterfaceVer (*ppAdapter);
 
@@ -3679,8 +3690,6 @@ HookDXGI (LPVOID user)
 
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
-  CComPtr <IDXGIFactory> pFactory  = nullptr;
-
   DXGI_SWAP_CHAIN_DESC desc;
   ZeroMemory (&desc, sizeof desc);
 
@@ -3773,7 +3782,8 @@ HookDXGI (LPVOID user)
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
   if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 
-  CloseHandle (GetCurrentThread ());
+  CoUninitialize (                     );
+  CloseHandle    ( GetCurrentThread () );
 
   return 0;
 }
@@ -3797,4 +3807,651 @@ WINAPI
 SK_DXGI_SetPreferredAdapter (int override_id)
 {
   SK_DXGI_preferred_adapter = override_id;
+}
+
+extern bool SK_D3D11_need_tex_reset;
+
+memory_stats_t   mem_stats [MAX_GPU_NODES];
+mem_info_t       mem_info  [NumBuffers];
+
+CRITICAL_SECTION budget_mutex  = { 0 };
+
+struct budget_thread_params_t
+{
+           IDXGIAdapter3 *pAdapter = nullptr;
+           DWORD          tid      = 0UL;
+           HANDLE         handle   = INVALID_HANDLE_VALUE;
+           DWORD          cookie   = 0UL;
+           HANDLE         event    = INVALID_HANDLE_VALUE;
+  volatile ULONG          ready    = FALSE;
+} budget_thread;
+
+
+HRESULT
+SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
+{
+  static volatile ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+    InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
+
+  //
+  // If the adapter implements DXGI 1.4, then create a budget monitoring
+  //  thread...
+  //
+  IDXGIAdapter3* pAdapter3 = nullptr;
+  HRESULT        hr        = E_NOTIMPL;
+
+  if ( SUCCEEDED ( (*ppAdapter)->QueryInterface (
+                                     IID_PPV_ARGS ( &pAdapter3 ) 
+                   )
+                 )
+     )
+  {
+    // We darn sure better not spawn multiple threads!
+    EnterCriticalSection ( &budget_mutex );
+
+    if ( budget_thread.handle == INVALID_HANDLE_VALUE )
+    {
+      // We're going to Release this interface after thread spawnning, but
+      //   the running thread still needs a reference counted.
+      pAdapter3->AddRef ();
+
+      ZeroMemory ( &budget_thread,
+                     sizeof budget_thread_params_t );
+
+      dll_log.LogEx ( true,
+                        L"[ DXGI 1.4 ]   "
+                        L"$ Spawning Memory Budget Change Thread..: " );
+
+      InterlockedExchange ( &budget_thread.ready,
+                              FALSE );
+
+      budget_thread.pAdapter = pAdapter3;
+      budget_thread.tid      = 0;
+      budget_thread.event    = 0;
+      budget_log.silent      = true;
+
+
+      budget_thread.handle =
+        (HANDLE)
+          _beginthreadex ( nullptr,
+                             0,
+                               BudgetThread,
+                                 (LPVOID)&budget_thread,
+                                   0x00,
+                                     nullptr );
+
+
+      while ( ! InterlockedCompareExchange ( &budget_thread.ready,
+                                               FALSE,
+                                                 FALSE )
+            ) ;
+
+
+      if ( budget_thread.tid != 0 )
+      {
+        dll_log.LogEx ( false,
+                          L"tid=0x%04x\n",
+                            budget_thread.tid );
+
+        dll_log.LogEx ( true,
+                          L"[ DXGI 1.4 ]   "
+                            L"%% Setting up Budget Change Notification.: " );
+
+        HRESULT result =
+          pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
+                            budget_thread.event,
+                           &budget_thread.cookie
+          );
+
+        if ( SUCCEEDED ( result ) )
+        {
+          dll_log.LogEx ( false,
+                            L"eid=0x%x, cookie=%u\n",
+                              budget_thread.event,
+                                        budget_thread.cookie );
+
+          hr = S_OK;
+        }
+
+        else
+        {
+          dll_log.LogEx ( false,
+                            L"Failed! (%s)\n",
+                              SK_DescribeHRESULT ( result ) );
+
+          hr = result;
+        }
+      }
+
+      else
+      {
+        dll_log.LogEx (false, L"failed!\n");
+
+        hr = E_FAIL;
+      }
+    }
+
+    LeaveCriticalSection ( &budget_mutex );
+
+    dll_log.LogEx ( true,
+                      L"[ DXGI 1.2 ] GPU Scheduling...:"
+                                   L" Pre-Emptive" );
+
+    DXGI_QUERY_VIDEO_MEMORY_INFO
+            _mem_info;
+    DXGI_ADAPTER_DESC2
+            desc2;
+
+    int     i      = 0;
+    bool    silent = dll_log.silent;
+    dll_log.silent = true;
+    {
+      // Don't log this call, because that would be silly...
+      pAdapter3->GetDesc2 ( &desc2 );
+    }
+    dll_log.silent = silent;
+
+
+    switch ( desc2.GraphicsPreemptionGranularity )
+    {
+      case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
+        dll_log.LogEx ( false, L" (DMA Buffer)\n"         );
+        break;
+
+      case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
+        dll_log.LogEx ( false, L" (Graphics Primitive)\n" );
+        break;
+
+      case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
+        dll_log.LogEx ( false, L" (Triangle)\n"           );
+        break;
+
+      case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
+        dll_log.LogEx ( false, L" (Fragment)\n"           );
+        break;
+
+      case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
+        dll_log.LogEx ( false, L" (Instruction)\n"        );
+        break;
+
+      default:
+        dll_log.LogEx (false, L"UNDEFINED\n");
+        break;
+    }
+
+    dll_log.LogEx ( true,
+                      L"[ DXGI 1.4 ] Local Memory.....:" );
+
+    while ( SUCCEEDED (
+              pAdapter3->QueryVideoMemoryInfo (
+                i,
+                  DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                    &_mem_info
+              )
+            )
+          )
+    {
+      if ( i > 0 )
+      {
+        dll_log.LogEx ( false, L"\n"                              );
+        dll_log.LogEx ( true,  L"                               " );
+      }
+
+      dll_log.LogEx ( false,
+                        L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+                                  L"Budget: %#5llu / %#5llu MiB)",
+                          i++,
+                            _mem_info.CurrentReservation      >> 20ULL,
+                            _mem_info.AvailableForReservation >> 20ULL,
+                            _mem_info.CurrentUsage            >> 20ULL,
+                            _mem_info.Budget                  >> 20ULL
+                    );
+
+      pAdapter3->SetVideoMemoryReservation (
+            ( i - 1 ),
+              DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                ( i == 1 || USE_SLI ) ?
+                  uint64_t ( _mem_info.AvailableForReservation *
+                               config.mem.reserve * 0.01f ) 
+                         :
+                         0
+      );
+    }
+
+    i = 0;
+
+    dll_log.LogEx ( false, L"\n"                              );
+    dll_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
+
+    while ( SUCCEEDED (
+              pAdapter3->QueryVideoMemoryInfo (
+                i,
+                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+                    &_mem_info
+              )
+            )
+          )
+    {
+      if ( i > 0 )
+      {
+        dll_log.LogEx ( false, L"\n"                              );
+        dll_log.LogEx ( true,  L"                               " );
+      }
+
+      dll_log.LogEx ( false,
+                        L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+                                  L"Budget: %#5llu / %#5llu MiB)",
+                          i++,
+                            _mem_info.CurrentReservation      >> 20ULL,
+                            _mem_info.AvailableForReservation >> 20ULL,
+                            _mem_info.CurrentUsage            >> 20ULL,
+                            _mem_info.Budget                  >> 20ULL
+                    );
+
+      pAdapter3->SetVideoMemoryReservation (
+            ( i - 1 ),
+              DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+                ( i == 1 || USE_SLI ) ?
+                  uint64_t ( _mem_info.AvailableForReservation *
+                               config.mem.reserve * 0.01f )
+                         :
+                         0
+      );
+    }
+
+    ::mem_info [0].nodes = ( i - 1 );
+    ::mem_info [1].nodes = ( i - 1 );
+
+    dll_log.LogEx ( false, L"\n" );
+  }
+
+  return hr;
+}
+
+#include <ctime>
+#define min_max(ref,min,max) if ((ref) > (max)) (max) = (ref); \
+                             if ((ref) < (min)) (min) = (ref);
+
+const uint32_t
+  BUDGET_POLL_INTERVAL = 66UL; // How often to sample the budget
+                               //  in msecs
+
+unsigned int
+__stdcall
+SK::DXGI::BudgetThread ( LPVOID user_data )
+{
+  budget_thread_params_t* params =
+    (budget_thread_params_t *)user_data;
+
+  if ( budget_log.init ( L"logs\\dxgi_budget.log", L"w" ) )
+  {
+    budget_log.silent = true;
+    params->tid       = GetCurrentThreadId ();
+    params->event     =
+      CreateEvent ( nullptr,
+                      FALSE,
+                        FALSE,
+                          L"DXGIMemoryBudget"
+                  );
+
+    InterlockedExchange ( &params->ready, TRUE );
+  }
+
+  else
+  {
+    params->tid = 0;
+
+    //
+    // The thread is not ready (we cannot write tracking info),
+    //   but signal it as such anyway...
+    //
+    InterlockedExchange ( &params->ready, TRUE );
+
+    return -1;
+  }
+
+
+  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+
+
+  while ( InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
+  {
+    if ( params->event == 0 )
+      break;
+
+    DWORD dwWaitStatus =
+      WaitForSingleObject ( params->event,
+                              BUDGET_POLL_INTERVAL );
+
+    if (! InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
+    {
+      ResetEvent ( params->event );
+      break;
+    }
+
+    int         node = 0;
+
+    buffer_t buffer  =
+      mem_info [node].buffer;
+
+
+    // Double-Buffer Updates
+    if ( buffer == Front )
+      buffer = Back;
+    else
+      buffer = Front;
+
+
+    GetLocalTime ( &mem_info [buffer].time );
+
+    //
+    // Sample Fast nUMA (On-GPU / Dedicated) Memory
+    //
+    for ( node = 0; node < MAX_GPU_NODES; )
+    {
+      if ( FAILED (
+             params->pAdapter->QueryVideoMemoryInfo (
+               node,
+                 DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                   &mem_info [buffer].local [node++]
+             )
+           )
+         )
+      {
+        break;
+      }
+    }
+
+
+    // Fix for AMD drivers, that don't allow querying non-local memory
+    int nodes =
+      std::max (0, node - 1);
+
+    //
+    // Sample Slow nUMA (Off-GPU / Shared) Memory
+    //
+    for ( node = 0; node < MAX_GPU_NODES; )
+    {
+      if ( FAILED (
+             params->pAdapter->QueryVideoMemoryInfo (
+               node,
+                 DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+                   &mem_info [buffer].nonlocal [node++]
+             )
+           )
+         )
+      {
+        break;
+      }
+    }
+
+
+    // Set the number of SLI/CFX Nodes
+    mem_info [buffer].nodes = nodes;
+
+    static uint64_t
+      last_budget = mem_info [buffer].local [0].Budget;
+
+
+    if ( config.load_balance.use )
+    {
+      if ( dwWaitStatus == WAIT_OBJECT_0 )
+      {
+        INT prio        = 0;
+            last_budget = mem_info [buffer].local [0].Budget;
+      }
+    }
+
+
+    if ( nodes > 0 )
+    {
+      int i;
+
+      budget_log.LogEx ( true,
+                           L"[ DXGI 1.4 ] Local Memory.....:" );
+
+      for ( i = 0; i < nodes; i++ )
+      {
+        if ( dwWaitStatus == WAIT_OBJECT_0 )
+        {
+          static UINT64
+            LastBudget = 0ULL;
+
+          mem_stats [i].budget_changes++;
+
+          int64_t over_budget =
+            ( mem_info [buffer].local [i].CurrentUsage -
+              mem_info [buffer].local [i].Budget );
+
+            //LastBudget -
+            //mem_info [buffer].local [i].Budget;
+
+          SK_D3D11_need_tex_reset = ( over_budget > 0 );
+
+          LastBudget =
+            mem_info [buffer].local [i].Budget;
+        }
+
+        if ( i > 0 )
+        {
+          budget_log.LogEx ( false, L"\n"                                );
+          budget_log.LogEx ( true,  L"                                 " );
+        }
+
+        budget_log.LogEx (
+          false,
+            L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+                      L"Budget: %#5llu / %#5llu MiB)",
+          i,
+            mem_info       [buffer].local [i].CurrentReservation      >> 20ULL,
+              mem_info     [buffer].local [i].AvailableForReservation >> 20ULL,
+                mem_info   [buffer].local [i].CurrentUsage            >> 20ULL,
+                  mem_info [buffer].local [i].Budget                  >> 20ULL
+        );
+
+        min_max ( mem_info [buffer].local [i].AvailableForReservation,
+                                mem_stats [i].min_avail_reserve,
+                                mem_stats [i].max_avail_reserve );
+
+        min_max ( mem_info [buffer].local [i].CurrentReservation,
+                                mem_stats [i].min_reserve,
+                                mem_stats [i].max_reserve );
+
+        min_max ( mem_info [buffer].local [i].CurrentUsage,
+                                mem_stats [i].min_usage,
+                                mem_stats [i].max_usage );
+
+        min_max ( mem_info [buffer].local [i].Budget,
+                                mem_stats [i].min_budget,
+                                mem_stats [i].max_budget );
+
+        if ( mem_info [buffer].local [i].CurrentUsage >
+             mem_info [buffer].local [i].Budget)
+        {
+          uint64_t over_budget =
+             ( mem_info [buffer].local [i].CurrentUsage -
+               mem_info [buffer].local [i].Budget );
+
+          min_max ( over_budget,
+                           mem_stats [i].min_over_budget,
+                           mem_stats [i].max_over_budget );
+        }
+      }
+
+      budget_log.LogEx ( false, L"\n"                              );
+      budget_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
+
+      for ( i = 0; i < nodes; i++ )
+      {
+        if ( i > 0 )
+        {
+          budget_log.LogEx ( false, L"\n"                                );
+          budget_log.LogEx ( true,  L"                                 " );
+        }
+
+        budget_log.LogEx (
+          false,
+            L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+                      L"Budget: %#5llu / %#5llu MiB)",    i,
+         mem_info    [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
+          mem_info   [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
+           mem_info  [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
+            mem_info [buffer].nonlocal [i].Budget                  >> 20ULL );
+      }
+
+      budget_log.LogEx ( false, L"\n" );
+    }
+
+               ( params->event != 0 ) ?
+    ResetEvent ( params->event )      :
+                         (void)0;
+
+    mem_info [0].buffer =
+                 buffer;
+  }
+
+  CoUninitialize ();
+
+  return 0;
+}
+
+HRESULT
+SK::DXGI::StartBudgetThread_NoAdapter (void)
+{
+  HRESULT hr = E_NOTIMPL;
+
+  CoInitializeEx ( nullptr, COINIT_MULTITHREADED );
+
+  static HMODULE
+    hDXGI = LoadLibrary ( L"dxgi.dll" );
+
+  static CreateDXGIFactory_pfn
+    CreateDXGIFactory =
+      (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
+                                                 "CreateDXGIFactory" );
+  CComPtr <IDXGIFactory> factory = nullptr;
+  CComPtr <IDXGIAdapter> adapter = nullptr;
+
+  // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
+  if ( SUCCEEDED (
+         CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
+       )
+     )
+  {
+    if ( SUCCEEDED (
+           factory->EnumAdapters ( 0,
+                                     &adapter )
+         )
+       )
+    {
+      hr = StartBudgetThread ( &adapter );
+    }
+  }
+
+  CoUninitialize ();
+
+  return hr;
+}
+
+void
+SK::DXGI::ShutdownBudgetThread ( void )
+{
+  SK_AutoClose_Log (
+    budget_log
+  );
+
+
+  if ( budget_thread.handle != INVALID_HANDLE_VALUE )
+  {
+    // Turn this off while shutting down
+    config.load_balance.use = false;
+
+    dll_log.LogEx (
+      true,
+        L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
+    );
+
+    InterlockedExchange ( &budget_thread.ready, FALSE );
+
+    DWORD dwWaitState =
+      SignalObjectAndWait ( budget_thread.event,
+                              budget_thread.handle, // Give 1 second, and
+                                1000UL,             // then we're killing
+                                  TRUE );           // the thing!
+
+    if ( dwWaitState == WAIT_OBJECT_0 )
+    {
+      dll_log.LogEx   ( false, L"done!\n"                         );
+    }
+
+    else
+    {
+      dll_log.LogEx   ( false, L"timed out (killing manually)!\n" );
+      TerminateThread ( budget_thread.handle,                   0 );
+    }
+
+    CloseHandle ( budget_thread.handle );
+                  budget_thread.handle = INVALID_HANDLE_VALUE;
+
+    // Record the final statistics always
+    budget_log.silent    = false;
+
+    budget_log.Log   ( L"--------------------"   );
+    budget_log.Log   ( L"Shutdown Statistics:"   );
+    budget_log.Log   ( L"--------------------\n" );
+
+    // in %10u seconds\n",
+    budget_log.Log ( L" Memory Budget Changed %llu times\n",
+                       mem_stats [0].budget_changes );
+
+    for ( int i = 0; i < 4; i++ )
+    {
+      if ( mem_stats [i].max_usage > 0 )
+      {
+        if ( mem_stats [i].min_reserve == UINT64_MAX )
+             mem_stats [i].min_reserve =  0ULL;
+
+        if ( mem_stats [i].min_over_budget == UINT64_MAX )
+             mem_stats [i].min_over_budget =  0ULL;
+
+        budget_log.LogEx ( true,
+                             L" GPU%i: Min Budget:        %05llu MiB\n",
+                                          i,
+                               mem_stats [i].min_budget >> 20ULL );
+        budget_log.LogEx ( true,
+                             L"       Max Budget:        %05llu MiB\n",
+                               mem_stats [i].max_budget >> 20ULL );
+
+        budget_log.LogEx ( true,
+                             L"       Min Usage:         %05llu MiB\n",
+                               mem_stats [i].min_usage  >> 20ULL );
+        budget_log.LogEx ( true,
+                             L"       Max Usage:         %05llu MiB\n",
+                               mem_stats [i].max_usage  >> 20ULL );
+
+        /*
+        SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
+        mem_stats [i].min_reserve >> 20ULL);
+        SK_BLogEx (params, true, L"       Max Reserve:       %05u MiB\n",
+        mem_stats [i].max_reserve >> 20ULL);
+        SK_BLogEx (params, true, L"       Min Avail Reserve: %05u MiB\n",
+        mem_stats [i].min_avail_reserve >> 20ULL);
+        SK_BLogEx (params, true, L"       Max Avail Reserve: %05u MiB\n",
+        mem_stats [i].max_avail_reserve >> 20ULL);
+        */
+
+        budget_log.LogEx ( true,  L"------------------------------------\n" );
+        budget_log.LogEx ( true,  L" Minimum Over Budget:     %05llu MiB\n",
+                                    mem_stats [i].min_over_budget >> 20ULL  );
+        budget_log.LogEx ( true,  L" Maximum Over Budget:     %05llu MiB\n",
+                                    mem_stats [i].max_over_budget >> 20ULL  );
+        budget_log.LogEx ( true,  L"------------------------------------\n" );
+        budget_log.LogEx ( false, L"\n"                                     );
+      }
+    }
+  }
+
+  DeleteCriticalSection (&budget_mutex);
 }

@@ -988,7 +988,7 @@ protected:
 
   sk_tex_load_s* getNextJob   (void) {
     sk_tex_load_s* job       = nullptr;
-    DWORD          dwResults = 0;
+    //DWORD        dwResults = 0;
 
     //while (dwResults != WAIT_OBJECT_0) {
       //dwResults = WaitForSingleObject (events_.jobs_added, INFINITE);
@@ -1065,15 +1065,16 @@ LONG  resampling      = 0L;
 bool
 pending_loads (void)
 {
-  bool ret = false;
+//bool ret = false;
 
-  return resample_pool != nullptr && resample_pool->working ();
+  return ( resample_pool != nullptr &&
+           resample_pool->working () );
 
 //  EnterCriticalSection (&cs_tex_inject);
 //  ret = (! finished_loads.empty ());
 //  LeaveCriticalSection (&cs_tex_inject);
 
-  return ret;
+//return ret;
 }
 
 void
@@ -1701,7 +1702,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
           }
         }
 
-        ////sk::d3d9::tex_mgr.removeTexture (pTexOrig);
+        sk::d3d9::tex_mgr.removeTexture (pTexOrig);
       }
 
       else {
@@ -1826,7 +1827,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 
     D3DFORMAT fmt_real = info.Format;
 
-    bool compressed = (fmt_real >= D3DFMT_DXT1 && fmt_real <= D3DFMT_DXT5);
+    //bool compressed = (fmt_real >= D3DFMT_DXT1 && fmt_real <= D3DFMT_DXT5);
 
     wchar_t wszPath [MAX_PATH];
     _swprintf ( wszPath, L"%s\\dump\\textures\\%s",
@@ -2537,8 +2538,6 @@ sk::d3d9::TextureManager::purge (void)
 void
 sk::d3d9::TextureManager::reset (void)
 {
-  int underflows       = 0;
-
   int ext_refs         = 0;
   int ext_textures     = 0;
 

@@ -300,9 +300,9 @@ void
 SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
                      D3D_FEATURE_LEVEL        FeatureLevel )
 {
-  if (ppDevice != nullptr)
+  if ( ppDevice != nullptr )
   {
-    if (*ppDevice != g_pD3D11Dev)
+    if ( *ppDevice != g_pD3D11Dev )
     {
       dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
                       *ppDevice,
@@ -317,22 +317,25 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
     CComPtr <IDXGIAdapter> pAdapter = nullptr;
 
     HRESULT hr =
-      (*ppDevice)->QueryInterface (__uuidof (IDXGIDevice), (void **)&pDXGIDev);
+      (*ppDevice)->QueryInterface ( IID_PPV_ARGS (&pDXGIDev) );
 
-    if (SUCCEEDED (hr))
+    if ( SUCCEEDED ( hr ) )
     {
-      hr = pDXGIDev->GetParent (__uuidof (IDXGIAdapter), (void **)&pAdapter);
+      hr =
+        pDXGIDev->GetParent ( IID_PPV_ARGS (&pAdapter) );
 
-      if (SUCCEEDED (hr))
+      if ( SUCCEEDED ( hr ) )
       {
-        if (pAdapter == nullptr)
+        if ( pAdapter == nullptr )
           return;
 
-        int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
+        int iver =
+          SK_GetDXGIAdapterInterfaceVer ( pAdapter );
 
         // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
-        if (iver >= 3) {
-          SK_StartDXGI_1_4_BudgetThread (&pAdapter);
+        if ( iver >= 3 )
+        {
+          SK::DXGI::StartBudgetThread ( &pAdapter );
         }
       }
     }
@@ -945,8 +948,10 @@ SK_D3D11_TexCacheCheckpoint (void)
     //dll_log.Log (L"[DX11TexMgr] DXGI 1.4 Budget Change: Triggered a texture manager purge...");
 
     SK_D3D11_amount_to_purge =
-      (pmc.PagefileUsage >> 10UL) - (float)(ullMemoryTotal_KiB >> 10ULL) *
-                         (config.mem.reserve / 100.0f);
+      static_cast <int32_t> (
+        (pmc.PagefileUsage >> 10UL) - (float)(ullMemoryTotal_KiB >> 10ULL) *
+                       (config.mem.reserve / 100.0f)
+      );
 
     SK_D3D11_need_tex_reset = false;
     SK_D3D11_Textures.reset ();
@@ -1864,7 +1869,7 @@ crc32_ffx (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
 
   int block_size = pDesc->Format == DXGI_FORMAT_BC1_UNORM ? 8 : 16;
 
-  int width      = pDesc->Width;
+//int width      = pDesc->Width;
   int height     = pDesc->Height;
 
   size_t size = 0;
@@ -2285,7 +2290,7 @@ D3D11Dev_CreateTexture2D_Override (
       {
         SK_AutoCriticalSection inject_critical (&inject_cs);
 
-        ID3D11Resource* pRes = nullptr;
+      //ID3D11Resource* pRes = nullptr;
 
 #define D3DX11_DEFAULT -1
 

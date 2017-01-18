@@ -87,6 +87,7 @@ sk::ParameterInt64::set_value_str (std::wstring str)
 std::wstring
 sk::ParameterBool::get_value_str (void)
 {
+#ifdef CAP_FIRST_LETTER
   switch (type) {
     case ZeroNonZero:
       return value  ?  L"1"    : L"0";
@@ -98,6 +99,20 @@ sk::ParameterBool::get_value_str (void)
     default:
       return value  ?  L"True" : L"False";
   }
+#else
+  // Traditional behavior, more soothing ont he eyes ;)
+  switch (type) {
+    case ZeroNonZero:
+      return value  ?  L"1"    : L"0";
+    case YesNo:
+      return value  ?  L"yes"  : L"no";
+    case OnOff:
+      return value  ?  L"on"   : L"off";
+    case TrueFalse:
+    default:
+      return value  ?  L"true" : L"false";
+  }
+#endif
 }
 
 bool

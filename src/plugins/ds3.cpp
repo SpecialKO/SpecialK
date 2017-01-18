@@ -262,7 +262,7 @@ struct {
 } ds3_cfg;
 
 
-#include "core.h"
+#include <SpecialK/core.h>
 
 extern void
 __stdcall

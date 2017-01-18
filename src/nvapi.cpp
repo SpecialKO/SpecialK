@@ -24,11 +24,13 @@
 
 #include <d3d11.h>
 
-#include "nvapi.h"
+#include <SpecialK/nvapi.h>
 #include <nvapi/NvApiDriverSettings.h>
 #include <nvapi/nvapi_lite_sli.h>
 
-#include "core.h"
+#include <SpecialK/core.h>
+#include <SpecialK/config.h>
+#include <SpecialK/log.h>
 
 #include <Windows.h>
 #include <dxgi.h>
@@ -358,9 +360,6 @@ NVAPI::UnloadLibrary (void)
   return bLibShutdown;
 }
 
-#include "log.h"
-#include "config.h"
-
 BOOL
 NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 {
@@ -482,9 +481,6 @@ NVAPI::GetSLIState (IUnknown* pDev)
   return state;
 }
 
-
-#include "config.h"
-
 // Easier to DLL export this way
 BOOL
 __stdcall
@@ -492,7 +488,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 {
   return TRUE;
 
-
+#if 0
   // Allow the end-user to override this using the INI file
   if (config.render.framerate.target_fps != 0)
     limit = (uint32_t)config.render.framerate.target_fps;
@@ -630,6 +626,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
   }
 
   return already_set;
+#endif
 }
 
 BOOL

@@ -174,8 +174,6 @@ DownloadThread (LPVOID user)
     DWORD dwContentLength_Len = sizeof DWORD;
     DWORD dwSize;
 
-    DWORD dwIdx = 0;
-
     HttpQueryInfo ( hInetHTTPGetReq,
                       HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER,
                         &dwContentLength,
@@ -579,8 +577,8 @@ Update_DlgProc (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam )
 {
-  HWND hWndNextCheck =
-    GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
+  //HWND hWndNextCheck =
+  //  GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
 
   switch (uMsg) {
     case WM_INITDIALOG:
@@ -680,7 +678,7 @@ Update_DlgProc (
       {
         InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
-        bool update_dlg_backup =
+        update_dlg_backup =
           Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_BACKUP_FILES)) != 0;
 
         if ( SUCCEEDED ( SK_Decompress7z (
@@ -857,14 +855,11 @@ HRESULT
 __stdcall
 SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 {
-  int               nButtonPressed =   0;
-  TASKDIALOGCONFIG  task_config    = { 0 };
+  TASKDIALOGCONFIG  task_config  = { 0 };
 
-  int idx = 0;
-
-  task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = GetModuleHandle (nullptr);
-  task_config.hwndParent         = GetActiveWindow ();
+  task_config.cbSize             = sizeof          ( task_config );
+  task_config.hInstance          = GetModuleHandle (  nullptr    );
+  task_config.hwndParent         = GetActiveWindow (             );
 
   if (! SK_IsHostAppSKIM ())
     task_config.pszWindowTitle   = L"Special K Auto-Update";
@@ -950,7 +945,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
     // ^^^^ Add a key/value pair so that the section isn't purged on write
   }
 
-  wchar_t wszCurrentBuild [128];
+  wchar_t wszCurrentBuild [128]; ZeroMemory (wszCurrentBuild, sizeof (wchar_t) * 128);
 
   if (empty) {
     *wszCurrentBuild = L'\0';

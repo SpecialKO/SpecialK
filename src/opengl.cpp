@@ -29,6 +29,9 @@
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/opengl_backend.h>
+#include <SpecialK/dxgi_backend.h>
+
+#include <SpecialK/window.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
@@ -82,43 +85,11 @@ unsigned int
 WINAPI
 DXGI_Thread (LPVOID user)
 {
-  if (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) {
-    CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+  CoInitializeEx ( nullptr, COINIT_MULTITHREADED );
 
-    typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)(REFIID,IDXGIFactory**);
+  SK::DXGI::StartBudgetThread_NoAdapter ();
 
-    static HMODULE hDXGI = LoadLibrary (L"dxgi.dll");
-    static CreateDXGIFactory_pfn CreateDXGIFactory =
-      (CreateDXGIFactory_pfn)GetProcAddress (hDXGI, "CreateDXGIFactory");
-
-    IDXGIFactory* factory = nullptr;
-
-    // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
-    if (SUCCEEDED (CreateDXGIFactory (__uuidof (IDXGIFactory4), &factory)) && factory != nullptr) {
-      IDXGIAdapter* adapter = nullptr;
-
-      if  (SUCCEEDED (factory->EnumAdapters (0, &adapter)) && adapter != nullptr) {
-        DXGI_ADAPTER_DESC desc;
-
-        IDXGIAdapter* adapter_original = adapter;
-
-        if (SUCCEEDED (adapter->GetDesc (&desc))) {
-          if (desc.VendorId == 0x8086) {
-            dll_log.Log (L"[ DXGI 1.0 ] Game appears to be running on an Intel GPU?!");
-          }
-        }
-
-        if (adapter != nullptr) {
-          SK_StartDXGI_1_4_BudgetThread (&adapter);
-          adapter->Release ();
-        }
-      }
-
-      factory->Release ();
-    }
-
-    CoUninitialize ();
-  }
+  CoUninitialize ();
 
   return 0;
 }
@@ -171,6 +142,20 @@ SK_CEGUI_DrawGL (void)
   if (! config.cegui.enable)
     return;
 
+  static HWND last_hwnd = game_window.hWnd;
+
+  if (last_hwnd != game_window.hWnd)
+  {
+    if (cegGL != nullptr)
+    {
+      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+      cegGL->destroySystem ();
+      cegGL = nullptr;
+
+      last_hwnd = game_window.hWnd;
+    }
+  }
+
   // TODO: Create a secondary context that shares "display lists" so that
   //         we have a pure state machine all to ourselves.
   if (cegGL == nullptr) {
@@ -190,8 +175,8 @@ SK_CEGUI_DrawGL (void)
     if (memcmp (&rect, &rect_now, sizeof RECT)) {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
-            rect_now.right - rect_now.left,
-              rect_now.bottom - rect_now.top
+            (float)(rect_now.right - rect_now.left),
+              (float)(rect_now.bottom - rect_now.top)
           )
       );
 

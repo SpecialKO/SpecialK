@@ -57,6 +57,8 @@
 
 #include <SpecialK/steam_api.h>
 
+#include <SpecialK/dxgi_backend.h>
+
 #include <atlbase.h>
 #include <comdef.h>
 
@@ -66,22 +68,9 @@
 #include <CEGUI/System.h>
 #include <CEGUI/Logger.h>
 
-memory_stats_t mem_stats [MAX_GPU_NODES];
-mem_info_t     mem_info  [NumBuffers];
-
-CRITICAL_SECTION budget_mutex  = { 0 };
 CRITICAL_SECTION init_mutex    = { 0 };
 volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
-
-struct budget_thread_params_t {
-  IDXGIAdapter3   *pAdapter = nullptr;
-  DWORD            tid      = 0UL;
-  HANDLE           handle   = INVALID_HANDLE_VALUE;
-  DWORD            cookie   = 0UL;
-  HANDLE           event    = INVALID_HANDLE_VALUE;
-  volatile ULONG   ready    = FALSE;
-} budget_thread;
 
 
 extern void
@@ -433,394 +422,6 @@ SK_DescribeHRESULT (HRESULT result)
     return L"UNKNOWN";
   }
 }
-
-void
-__stdcall
-SK_StartDXGI_1_4_BudgetThread (IDXGIAdapter** ppAdapter)
-{
-  //
-  // If the adapter implements DXGI 1.4, then create a budget monitoring
-  //  thread...
-  //
-  IDXGIAdapter3* pAdapter3 = nullptr;
-
-  if (SUCCEEDED ((*ppAdapter)->QueryInterface (
-       IID_PPV_ARGS (&pAdapter3) )))
-  {
-    // We darn sure better not spawn multiple threads!
-    EnterCriticalSection (&budget_mutex);
-
-    if (budget_thread.handle == INVALID_HANDLE_VALUE) {
-      // We're going to Release this interface after thread spawnning, but
-      //   the running thread still needs a reference counted.
-      pAdapter3->AddRef ();
-
-      unsigned int __stdcall BudgetThread (LPVOID user_data);
-
-      ZeroMemory (&budget_thread, sizeof budget_thread_params_t);
-
-      dll_log.LogEx (true,
-        L"[ DXGI 1.4 ]   $ Spawning Memory Budget Change Thread..: ");
-
-      budget_thread.pAdapter = pAdapter3;
-      budget_thread.tid      = 0;
-      budget_thread.event    = 0;
-      InterlockedExchange (&budget_thread.ready, FALSE);
-      budget_log.silent      = true;
-
-      budget_thread.handle =
-        (HANDLE)
-          _beginthreadex ( nullptr,
-                             0,
-                               BudgetThread,
-                                 (LPVOID)&budget_thread,
-                                   0x00,
-                                     nullptr );
-
-      while (! InterlockedCompareExchange (&budget_thread.ready, FALSE, FALSE))
-        ;
-
-      if (budget_thread.tid != 0) {
-        dll_log.LogEx (false, L"tid=0x%04x\n", budget_thread.tid);
-
-        dll_log.LogEx (true,
-          L"[ DXGI 1.4 ]   %% Setting up Budget Change Notification.: ");
-
-        HRESULT result =
-          pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
-            budget_thread.event, &budget_thread.cookie
-            );
-
-        if (SUCCEEDED (result)) {
-          dll_log.LogEx (false, L"eid=0x%x, cookie=%u\n",
-            budget_thread.event, budget_thread.cookie);
-        } else {
-          dll_log.LogEx (false, L"Failed! (%s)\n",
-            SK_DescribeHRESULT (result));
-        }
-      } else {
-        dll_log.LogEx (false, L"failed!\n");
-      }
-    }
-
-    LeaveCriticalSection (&budget_mutex);
-
-    dll_log.LogEx (true,  L"[ DXGI 1.2 ] GPU Scheduling...:"
-      L" Pre-Emptive");
-
-    DXGI_ADAPTER_DESC2 desc2;
-
-    bool silent    = dll_log.silent;
-    dll_log.silent = true;
-    {
-      // Don't log this call, because that would be silly...
-      pAdapter3->GetDesc2 (&desc2);
-    }
-    dll_log.silent = silent;
-
-    switch (desc2.GraphicsPreemptionGranularity)
-    {
-    case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
-      dll_log.LogEx (false, L" (DMA Buffer)\n");
-      break;
-    case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
-      dll_log.LogEx (false, L" (Graphics Primitive)\n");
-      break;
-    case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
-      dll_log.LogEx (false, L" (Triangle)\n");
-      break;
-    case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
-      dll_log.LogEx (false, L" (Fragment)\n");
-      break;
-    case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
-      dll_log.LogEx (false, L" (Instruction)\n");
-      break;
-    default:
-      dll_log.LogEx (false, L"UNDEFINED\n");
-      break;
-    }
-
-    int i = 0;
-
-    dll_log.LogEx (true,
-      L"[ DXGI 1.4 ] Local Memory.....:");
-
-    DXGI_QUERY_VIDEO_MEMORY_INFO mem_info;
-    while (SUCCEEDED (pAdapter3->QueryVideoMemoryInfo (
-      i,
-      DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-      &mem_info)
-      )
-      )
-    {
-      if (i > 0) {
-        dll_log.LogEx (false, L"\n");
-        dll_log.LogEx (true,  L"                               ");
-      }
-
-      dll_log.LogEx (false,
-        L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-        L"Budget: %#5llu / %#5llu MiB)",
-        i++,
-        mem_info.CurrentReservation      >> 20ULL,
-        mem_info.AvailableForReservation >> 20ULL,
-        mem_info.CurrentUsage            >> 20ULL,
-        mem_info.Budget                  >> 20ULL);
-
-      pAdapter3->SetVideoMemoryReservation (
-        (i - 1),
-        DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-        (i == 1 || USE_SLI) ?
-        uint64_t (mem_info.AvailableForReservation *
-          config.mem.reserve * 0.01f) :
-        0
-        );
-    }
-    dll_log.LogEx (false, L"\n");
-
-    i = 0;
-
-    dll_log.LogEx (true,
-      L"[ DXGI 1.4 ] Non-Local Memory.:");
-
-    while (SUCCEEDED (pAdapter3->QueryVideoMemoryInfo (
-      i,
-      DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-      &mem_info )
-      )
-      )
-    {
-      if (i > 0) {
-        dll_log.LogEx (false, L"\n");
-        dll_log.LogEx (true,  L"                               ");
-      }
-      dll_log.LogEx (false,
-        L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-        L"Budget: %#5llu / %#5llu MiB)",
-        i++,
-        mem_info.CurrentReservation      >> 20ULL,
-        mem_info.AvailableForReservation >> 20ULL,
-        mem_info.CurrentUsage            >> 20ULL,
-        mem_info.Budget                  >> 20ULL );
-
-      pAdapter3->SetVideoMemoryReservation (
-        (i - 1),
-        DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-        (i == 1 || USE_SLI) ?
-        uint64_t (mem_info.AvailableForReservation *
-          config.mem.reserve * 0.01f) :
-        0
-        );
-    }
-
-    ::mem_info [0].nodes = i-1;
-    ::mem_info [1].nodes = i-1;
-
-    dll_log.LogEx (false, L"\n");
-  }
-}
-
-#include <ctime>
-#define min_max(ref,min,max) if ((ref) > (max)) (max) = (ref); \
-                             if ((ref) < (min)) (min) = (ref);
-
-const uint32_t BUDGET_POLL_INTERVAL = 66UL; // How often to sample the budget
-                                            //  in msecs
-
-unsigned int
-__stdcall
-BudgetThread (LPVOID user_data)
-{
-  budget_thread_params_t* params =
-    (budget_thread_params_t *)user_data;
-
-  if (budget_log.init (L"logs/dxgi_budget.log", L"w")) {
-    params->tid       = GetCurrentThreadId ();
-    params->event     = CreateEvent (NULL, FALSE, FALSE, L"DXGIMemoryBudget");
-    budget_log.silent = true;
-
-    InterlockedExchange (&params->ready, TRUE);
-  } else {
-    params->tid    = 0;
-
-    InterlockedExchange (&params->ready, TRUE); // Not really :P
-    return -1;
-  }
-
-  while (InterlockedCompareExchange (&params->ready, FALSE, FALSE)) {
-    if (params->event == 0)
-      break;
-
-    DWORD dwWaitStatus = WaitForSingleObject (params->event,
-      BUDGET_POLL_INTERVAL);
-
-    if (! InterlockedCompareExchange (&params->ready, FALSE, FALSE)) {
-      ResetEvent (params->event);
-      break;
-    }
-
-    buffer_t buffer = mem_info [0].buffer;
-
-    if (buffer == Front)
-      buffer = Back;
-    else
-      buffer = Front;
-
-    GetLocalTime (&mem_info [buffer].time);
-
-    int node = 0;
-
-    while (node < MAX_GPU_NODES &&
-      SUCCEEDED (params->pAdapter->QueryVideoMemoryInfo (
-        node,
-        DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-        &mem_info [buffer].local [node++] )
-        )
-      ) ;
-
-    // Fix for AMD drivers, that don't allow querying non-local memory
-    int nodes = std::max (0, node - 1);
-
-    node = 0;
-
-    while (node < MAX_GPU_NODES &&
-      SUCCEEDED (params->pAdapter->QueryVideoMemoryInfo (
-        node,
-        DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-        &mem_info [buffer].nonlocal [node++] )
-        )
-      ) ;
-
-    //int nodes = max (0, node - 1);
-
-    // Set the number of SLI/CFX Nodes
-    mem_info [buffer].nodes = nodes;
-
-    static uint64_t last_budget =
-      mem_info [buffer].local [0].Budget;
-
-    if (dwWaitStatus == WAIT_OBJECT_0 && config.load_balance.use)
-    {
-      INT prio = 0;
-
-      last_budget = mem_info [buffer].local [0].Budget;
-    }
-
-    if (nodes > 0) {
-      int i = 0;
-
-      budget_log.LogEx (true, L"[ DXGI 1.4 ] Local Memory.....:");
-
-      while (i < nodes) {
-        if (dwWaitStatus == WAIT_OBJECT_0) {
-          static UINT64 LastBudget = 0ULL;
-
-          mem_stats [i].budget_changes++;
-
-          int64_t over_budget =
-            mem_info [buffer].local [i].CurrentUsage -
-            mem_info [buffer].local [i].Budget;
-
-            //LastBudget -
-            //mem_info [buffer].local [i].Budget;
-
-          extern bool SK_D3D11_need_tex_reset;
-
-          SK_D3D11_need_tex_reset = (over_budget > 0);
-
-          //extern uint32_t SK_D3D11_amount_to_purge;
-          //SK_D3D11_amount_to_purge += max (0, over_budget);
-
-/*
-          if (LastBudget > (mem_info [buffer].local [i].Budget + 1024 * 1024 * 128)) {
-            extern bool   SK_D3D11_need_tex_reset;
-            extern UINT64 SK_D3D11_amount_to_purge;
-            SK_D3D11_need_tex_reset  = true;
-            SK_D3D11_amount_to_purge = LastBudget - mem_info [buffer].local [i].Budget;
-          }
-*/
-
-          LastBudget = mem_info [buffer].local [i].Budget;
-        }
-
-        if (i > 0) {
-          budget_log.LogEx (false, L"\n");
-          budget_log.LogEx (true,  L"                                 ");
-        }
-
-        budget_log.LogEx (false,
-          L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-          L"Budget: %#5llu / %#5llu MiB)",
-          i,
-          mem_info [buffer].local [i].CurrentReservation      >> 20ULL,
-          mem_info [buffer].local [i].AvailableForReservation >> 20ULL,
-          mem_info [buffer].local [i].CurrentUsage            >> 20ULL,
-          mem_info [buffer].local [i].Budget                  >> 20ULL);
-
-        min_max (mem_info [buffer].local [i].AvailableForReservation,
-          mem_stats [i].min_avail_reserve,
-          mem_stats [i].max_avail_reserve);
-
-        min_max (mem_info [buffer].local [i].CurrentReservation,
-          mem_stats [i].min_reserve,
-          mem_stats [i].max_reserve);
-
-        min_max (mem_info [buffer].local [i].CurrentUsage,
-          mem_stats [i].min_usage,
-          mem_stats [i].max_usage);
-
-        min_max (mem_info [buffer].local [i].Budget,
-          mem_stats [i].min_budget,
-          mem_stats [i].max_budget);
-
-        if (mem_info [buffer].local [i].CurrentUsage >
-          mem_info [buffer].local [i].Budget) {
-          uint64_t over_budget =
-            mem_info [buffer].local [i].CurrentUsage -
-            mem_info [buffer].local [i].Budget;
-
-          min_max (over_budget, mem_stats [i].min_over_budget,
-            mem_stats [i].max_over_budget);
-        }
-
-        i++;
-      }
-      budget_log.LogEx (false, L"\n");
-
-      i = 0;
-
-      budget_log.LogEx (true,
-        L"[ DXGI 1.4 ] Non-Local Memory.:");
-
-      while (i < nodes) {
-        if (i > 0) {
-          budget_log.LogEx (false, L"\n");
-          budget_log.LogEx (true,  L"                                 ");
-        }
-
-        budget_log.LogEx (false,
-          L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-          L"Budget: %#5llu / %#5llu MiB)",
-          i,
-          mem_info [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
-          mem_info [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
-          mem_info [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
-          mem_info [buffer].nonlocal [i].Budget                  >> 20ULL);
-        i++;
-      }
-
-      budget_log.LogEx (false, L"\n");
-    }
-
-    if (params->event != 0)
-      ResetEvent (params->event);
-
-    mem_info [0].buffer = buffer;
-  }
-
-  return 0;
-}
-
 
 // Stupid solution for games that inexplicibly draw to the screen
 //   without ever swapping buffers.
@@ -1335,20 +936,19 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
 
 volatile  LONG SK_bypass_dialog_active = FALSE;
-volatile  LONG init                    = FALSE; // Do not use static storage,
-                                                //   the C Runtime may not be
-                                                //     init yet.
 
 void
 WaitForInit (void)
 {
+  static volatile ULONG init = FALSE;
+
   if (InterlockedCompareExchange (&init, FALSE, FALSE)) {
     return;
   }
 
-  while (InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr)) {
+  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr)) {
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
-      InterlockedCompareExchangePointer ((volatile LPVOID *)&hInitThread, nullptr, nullptr),
+      InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr),
         150 ) )
       break;
   }
@@ -1371,7 +971,7 @@ WaitForInit (void)
   //       for each attached thread to finish its DllMain (...) function.
   //
   if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
-    CloseHandle (InterlockedExchangePointer ((void **)&hInitThread, nullptr));
+    CloseHandle (InterlockedExchangePointer ((LPVOID *)&hInitThread, nullptr));
 
     // Load user-defined DLLs (Lazy)
 #ifdef _WIN64
@@ -1805,7 +1405,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
   }
 
-  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
   InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
 
   EnterCriticalSection (&init_mutex);
@@ -1821,8 +1420,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           SK_RootPath   [ MAX_PATH ]   = L'\0';
 
   if (config.system.central_repository) {
-    uint32_t dwLen = MAX_PATH;
-
     if (! SK_IsHostAppSKIM ()) {
       ExpandEnvironmentStringsW (
         L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
@@ -1879,10 +1476,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init_.backend  = backend;
   init_.callback = callback;
 
-  HANDLE hProc = GetCurrentProcess ();
-
   wchar_t log_fname [MAX_PATH];
-  log_fname [MAX_PATH - 1] = L'\0';
+          log_fname [MAX_PATH - 1] = L'\0';
 
   swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
@@ -1984,7 +1579,6 @@ SK_ShutdownCore (const wchar_t* backend)
     ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);
-  SK_AutoClose_Log (budget_log);
   SK_AutoClose_Log ( crash_log);
   SK_AutoClose_Log (   dll_log);
 
@@ -2003,84 +1597,7 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx   (false, L"done!\n");
   }
 
-  if (budget_thread.handle != INVALID_HANDLE_VALUE) {
-    config.load_balance.use = false; // Turn this off while shutting down
-
-    dll_log.LogEx (
-      true,
-        L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
-    );
-
-    InterlockedExchange (&budget_thread.ready, FALSE);
-
-    DWORD dwWaitState =
-      SignalObjectAndWait (budget_thread.event, budget_thread.handle,
-                           1000UL, TRUE); // Give 1 second, and
-                                          // then we're killing
-                                          // the thing!
-
-    if (dwWaitState == WAIT_OBJECT_0)
-      dll_log.LogEx (false, L"done!\n");
-    else {
-      dll_log.LogEx (false, L"timed out (killing manually)!\n");
-      TerminateThread (budget_thread.handle, 0);
-    }
-
-    budget_thread.handle = INVALID_HANDLE_VALUE;
-
-    // Record the final statistics always
-    budget_log.silent = false;
-
-    budget_log.Log   (L"--------------------");
-    budget_log.Log   (L"Shutdown Statistics:");
-    budget_log.Log   (L"--------------------\n");
-
-    // in %10u seconds\n",
-    budget_log.Log (L" Memory Budget Changed %llu times\n",
-      mem_stats [0].budget_changes);
-
-    for (int i = 0; i < 4; i++) {
-      if (mem_stats [i].max_usage > 0) {
-        if (mem_stats [i].min_reserve == UINT64_MAX)
-          mem_stats [i].min_reserve = 0ULL;
-
-        if (mem_stats [i].min_over_budget == UINT64_MAX)
-          mem_stats [i].min_over_budget = 0ULL;
-
-        budget_log.LogEx (true, L" GPU%i: Min Budget:        %05llu MiB\n", i,
-          mem_stats [i].min_budget >> 20ULL);
-        budget_log.LogEx (true, L"       Max Budget:        %05llu MiB\n",
-          mem_stats [i].max_budget >> 20ULL);
-
-        budget_log.LogEx (true, L"       Min Usage:         %05llu MiB\n",
-          mem_stats [i].min_usage >> 20ULL);
-        budget_log.LogEx (true, L"       Max Usage:         %05llu MiB\n",
-          mem_stats [i].max_usage >> 20ULL);
-
-        /*
-        SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
-        mem_stats [i].min_reserve >> 20ULL);
-        SK_BLogEx (params, true, L"       Max Reserve:       %05u MiB\n",
-        mem_stats [i].max_reserve >> 20ULL);
-        SK_BLogEx (params, true, L"       Min Avail Reserve: %05u MiB\n",
-        mem_stats [i].min_avail_reserve >> 20ULL);
-        SK_BLogEx (params, true, L"       Max Avail Reserve: %05u MiB\n",
-        mem_stats [i].max_avail_reserve >> 20ULL);
-        */
-
-        budget_log.LogEx (true, L"------------------------------------\n");
-        budget_log.LogEx (true, L" Minimum Over Budget:     %05llu MiB\n",
-          mem_stats [i].min_over_budget >> 20ULL);
-        budget_log.LogEx (true, L" Maximum Over Budget:     %05llu MiB\n",
-          mem_stats [i].max_over_budget >> 20ULL);
-        budget_log.LogEx (true, L"------------------------------------\n");
-
-        budget_log.LogEx (false, L"\n");
-      }
-    }
-
-    budget_thread.handle = INVALID_HANDLE_VALUE;
-  }
+  SK::DXGI::ShutdownBudgetThread ();
 
   if (process_stats.hThread != 0) {
     dll_log.LogEx (true,L"[ WMI Perf ] Shutting down Process Monitor... ");
@@ -2162,7 +1679,6 @@ SK_ShutdownCore (const wchar_t* backend)
 
   // Hopefully these things are done by now...
   DeleteCriticalSection (&init_mutex);
-  DeleteCriticalSection (&budget_mutex);
 
   ////////SK_UnInit_MinHook ();
 
@@ -2180,6 +1696,8 @@ SK_ShutdownCore (const wchar_t* backend)
 }
 }
 
+
+extern void SK_InitWindow (HWND hWnd);
 
 __declspec (noinline)
 COM_DECLSPEC_NOTHROW
@@ -2223,11 +1741,14 @@ SK_BeginBufferSwap (void)
     SK_HookWinAPI ();
 
     if (SK_GetGameWindow () != 0) {
-      extern void SK_AdjustBorder (void);
+      extern void SK_AdjustBorder ();
 
       InterlockedExchange (&first, 0);
 
-      if (config.window.borderless || config.window.center) {
+      SK_InitWindow (SK_GetGameWindow ());
+
+      if (config.window.borderless || config.window.center)
+      {
         CreateThread (
           nullptr,
             0,
@@ -2540,6 +2061,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }
+  }
+
+  static volatile ULONG budget_init = FALSE;
+
+  if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE)) {
+    SK::DXGI::StartBudgetThread_NoAdapter ();
   }
 
   // Draw after present, this may make stuff 1 frame late, but... it

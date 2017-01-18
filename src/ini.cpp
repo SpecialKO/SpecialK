@@ -22,10 +22,10 @@
 #define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <windows.h>
-
-#include "ini.h"
-#include "log.h"
 #include <string>
+
+#include <SpecialK/ini.h>
+#include <SpecialK/log.h>
 
 std::wstring
 ErrorMessage (errno_t        err,
@@ -81,11 +81,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     wszData = new wchar_t [size + 1];
     alloc   = wszData;
 
-    ZeroMemory (wszData, sizeof (wchar_t) * size + 1);
+    ZeroMemory (wszData, sizeof (wchar_t) * ((unsigned long)size + 1UL));
 
     fread (wszData, size, 1, fINI);
-
-    bool unicode = true;
 
     // First, consider Unicode
     // UTF16-LE  (All is well in the world)
@@ -376,8 +374,7 @@ iSK_INI::parse (void)
     wchar_t* begin = nullptr;
     wchar_t* end   = nullptr;
 
-    wchar_t* wszDataCur  = &wszData [0];
-    wchar_t* wszDataNext = CharNextW (wszDataCur);
+    wchar_t* wszDataCur = &wszData [0];
 
     for (wchar_t* i = wszDataCur; i < wszDataEnd; i = CharNextW (i))
     {
@@ -504,8 +501,7 @@ iSK_INI::import (const wchar_t* import_data)
     wchar_t* begin = nullptr;
     wchar_t* end   = nullptr;
 
-    wchar_t* wszImportCur  = &wszImport [0];
-    wchar_t* wszImportNext = CharNextW (wszImportCur);
+    wchar_t* wszImportCur = &wszImport [0];
 
     for (wchar_t* i = wszImportCur; i < wszImportEnd; i = CharNextW (i))
     {
@@ -675,7 +671,7 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
 }
 
 
-#include "utility.h"
+#include <SpecialK/utility.h>
 
 void
 __stdcall

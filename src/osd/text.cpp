@@ -115,10 +115,12 @@ public:
       return overlay;
     }
 
-    SK_TextOverlay* overlay = new SK_TextOverlay (szAppName);
+    SK_TextOverlay* overlay =
+      new SK_TextOverlay (szAppName);
 
-    overlay->setPos   (config.osd.pos_x, config.osd.pos_y);
-    overlay->setScale (config.osd.scale);
+    overlay->setPos   ( static_cast <float> (config.osd.pos_x),
+                          static_cast <float> (config.osd.pos_y) );
+    overlay->setScale ( config.osd.scale );
 
     overlays_ [app_name] = overlay;
 
@@ -133,8 +135,10 @@ public:
     std::string app_name (szAppName);
 
     if (overlays_.count (app_name)) {
-      overlays_.erase (app_name);
+      overlays_.erase   (app_name);
+
       LeaveCriticalSection (&cs_);
+
       return true;
     }
 
@@ -217,7 +221,11 @@ SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 
   data_.text_len = 32768;
   data_.text     = (char *)malloc (data_.text_len);
-  *data_.text    = '\0';
+
+  if (data_.text != nullptr)
+    *data_.text  = '\0';
+  else
+    data_.text_len = 0; // Failed to allocate memory
 
   geometry_   = nullptr;
   renderer_   = nullptr;
@@ -1326,7 +1334,9 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
     SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
   if (overlay != nullptr) {
-    overlay->setPos (x, y);
+    float fX = static_cast <float> (x);
+    float fY = static_cast <float> (y);
+    overlay->setPos (fX, fY);
   }
 }
 
@@ -1336,6 +1346,7 @@ SK_SetOSDColor (int red, int green, int blue, LPCSTR lpAppName)
 {
   return;
 
+#if 0
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
@@ -1360,6 +1371,7 @@ SK_SetOSDColor (int red, int green, int blue, LPCSTR lpAppName)
             }
 
             pApp->dwOSDColor = ((red_ << 16) & 0xff0000) | ((green_ << 8) & 0xff00) | (blue_ & 0xff);
+#endif
 #endif
 }
 
@@ -1731,8 +1743,8 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 
   while (it != overlays_.end ()) {
     if (renderer == nullptr) {
-      it->second->pos_.x = config.osd.pos_x;
-      it->second->pos_.y = config.osd.pos_y;
+      it->second->pos_.x = static_cast <float> (config.osd.pos_x);
+      it->second->pos_.y = static_cast <float> (config.osd.pos_y);
 
       it->second->font_.scale = config.osd.scale;
 
@@ -1758,7 +1770,7 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
   }
 
   if (renderer == nullptr) {
-    auto it =
+    it =
       overlays_.begin ();
 
     while (it != overlays_.end ()) {

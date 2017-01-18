@@ -1,5 +1,5 @@
-#include "adl.h"
-#include "log.h"
+#include <SpecialK/adl.h>
+#include <SpecialK/log.h>
 
 BOOL ADL_init = ADL_FALSE;
 

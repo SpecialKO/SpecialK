@@ -22,6 +22,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
+#include <SpecialK/dxgi_interfaces.h>
 #include <SpecialK/parameter.h>
 #include <SpecialK/import.h>
 #include <SpecialK/utility.h>

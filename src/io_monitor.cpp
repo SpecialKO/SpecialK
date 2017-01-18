@@ -21,10 +21,10 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "io_monitor.h"
-#include "log.h"
+#include <SpecialK/io_monitor.h>
+#include <SpecialK/log.h>
 
-#include "framerate.h"
+#include <SpecialK/framerate.h>
 
 #include <process.h>
 
@@ -480,7 +480,7 @@ SK_ShutdownCOM (void)
 
 cpu_perf_t cpu_stats;
 
-#include "config.h"
+#include <SpecialK/config.h>
 
 unsigned int
 __stdcall

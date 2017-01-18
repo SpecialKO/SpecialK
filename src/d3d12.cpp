@@ -85,7 +85,7 @@ D3D12CreateDevice_Detour (
 {
   WaitForInitD3D12 ();
 
-  DXGI_LOG_CALL_0 (L"D3D12CreateDevice");
+  DXGI_LOG_CALL_0 ( L"D3D12CreateDevice" );
 
   dll_log.LogEx ( true,
                     L"[  D3D 12  ]  <~> Minimum Feature Level - %s\n",
@@ -95,12 +95,15 @@ D3D12CreateDevice_Detour (
                         ).c_str ()
                 );
 
-  if (pAdapter != nullptr) {
-    int iver = SK_GetDXGIAdapterInterfaceVer (pAdapter);
+  if ( pAdapter != nullptr )
+  {
+    int iver =
+      SK_GetDXGIAdapterInterfaceVer ( pAdapter );
 
     // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
-    if (iver >= 3) {
-      SK_StartDXGI_1_4_BudgetThread ((IDXGIAdapter **)&pAdapter);
+    if ( iver >= 3 )
+    {
+      SK::DXGI::StartBudgetThread ( (IDXGIAdapter **)&pAdapter );
     }
   }
 
@@ -113,11 +116,15 @@ D3D12CreateDevice_Detour (
                                      ppDevice )
   );
 
-  if (SUCCEEDED (res)) {
-    dwRenderThread = GetCurrentThreadId ();
+  if ( SUCCEEDED ( res ) )
+  {
+    dwRenderThread =
+      GetCurrentThreadId ();
 
-    if (ppDevice != nullptr) {
-      if (*ppDevice != g_pD3D12Dev) {
+    if ( ppDevice != nullptr )
+    {
+      if ( *ppDevice != g_pD3D12Dev )
+      {
         // TODO: This isn't the right way to get the feature level
         dll_log.Log ( L"[  D3D 12  ] >> Device = 0x%08Xh (Feature Level:%s)",
                         *ppDevice,
@@ -125,7 +132,9 @@ D3D12CreateDevice_Detour (
                                                         (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
                                                      ).c_str ()
                     );
-        g_pD3D12Dev = (IUnknown *)*ppDevice;
+
+        g_pD3D12Dev =
+          (IUnknown *)*ppDevice;
       }
     }
   }
@@ -278,6 +287,7 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
   // Need more debug time with D3D12
   return;
 
+#if 0
   CComPtr <ID3D12Device> dev = nullptr;
 
   if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&dev)))) {
@@ -386,4 +396,5 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
       }
     }
   }
+#endif
 }

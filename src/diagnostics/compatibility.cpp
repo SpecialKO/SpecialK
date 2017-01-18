@@ -1074,23 +1074,20 @@ SK_ValidateGlobalRTSSProfile (void)
   if (warned)
     return TRUE;
 
-  int               nButtonPressed = 0;
-  TASKDIALOGCONFIG  task_config    = {0};
+  TASKDIALOGCONFIG task_config    = {0};
 
-  int idx = 0;
+  task_config.cbSize              = sizeof (task_config);
+  task_config.hInstance           = SK_GetDLL ();
+  task_config.hwndParent          = GetActiveWindow ();
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
+  task_config.pButtons            = nullptr;
+  task_config.cButtons            = 0;
+  task_config.dwFlags             = TDF_ENABLE_HYPERLINKS;
+  task_config.pfCallback          = TaskDialogCallback;
+  task_config.lpCallbackData      = 0;
 
-  task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = SK_GetDLL ();
-  task_config.hwndParent         = GetActiveWindow ();
-  task_config.pszWindowTitle     = L"Special K Compatibility Layer";
-  task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
-  task_config.pButtons           = nullptr;
-  task_config.cButtons           = 0;
-  task_config.dwFlags            = TDF_ENABLE_HYPERLINKS;
-  task_config.pfCallback         = TaskDialogCallback;
-  task_config.lpCallbackData     = 0;
-
-  task_config.pszMainInstruction = L"RivaTuner Statistics Server Incompatibility";
+  task_config.pszMainInstruction  = L"RivaTuner Statistics Server Incompatibility";
 
   wchar_t wszFooter [1024];
 
@@ -1199,31 +1196,27 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
 {
   bool timer = true;
 
-  int               nButtonPressed = 0;
-  TASKDIALOGCONFIG  task_config    = {0};
+  int              nButtonPressed = 0;
+  TASKDIALOGCONFIG task_config    = {0};
 
-  int idx = 0;
+  task_config.cbSize              = sizeof (task_config);
+  task_config.hInstance           = SK_GetDLL ();
+  task_config.hwndParent          = GetActiveWindow ();
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
+  task_config.pButtons            = nullptr;
+  task_config.cButtons            = 0;
+  task_config.dwFlags             = 0x00;
+  task_config.pfCallback          = TaskDialogCallback;
+  task_config.lpCallbackData      = 0;
 
-  HWND hWndForeground = GetForegroundWindow ();
+  task_config.pszMainInstruction  = wszMainInstruction;
 
-  task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = SK_GetDLL ();
-  task_config.hwndParent         = GetActiveWindow ();
-  task_config.pszWindowTitle     = L"Special K Compatibility Layer";
-  task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
-  task_config.pButtons           = nullptr;
-  task_config.cButtons           = 0;
-  task_config.dwFlags            = 0x00;
-  task_config.pfCallback         = TaskDialogCallback;
-  task_config.lpCallbackData     = 0;
+  task_config.pszMainIcon         = wszMainIcon;
+  task_config.pszContent          = wszContent;
 
-  task_config.pszMainInstruction = wszMainInstruction;
-
-  task_config.pszMainIcon        = wszMainIcon;
-  task_config.pszContent         = wszContent;
-
-  task_config.pszFooterIcon      = wszFooterIcon;
-  task_config.pszFooter          = wszFooter;
+  task_config.pszFooterIcon       = wszFooterIcon;
+  task_config.pszFooter           = wszFooter;
 
   task_config.pszVerificationText = wszVerifyText;
 
@@ -1256,21 +1249,17 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
 {
   bool timer = true;
 
-  int               nButtonPressed = 0;
-  TASKDIALOGCONFIG  task_config    = {0};
+  int              nButtonPressed =   0;
+  TASKDIALOGCONFIG task_config    = { 0 };
 
-  int idx = 0;
-
-  HWND hWndForeground = GetForegroundWindow ();
-
-  task_config.cbSize             = sizeof (task_config);
-  task_config.hInstance          = SK_GetDLL ();
-  task_config.pszWindowTitle     = L"Special K Compatibility Layer";
-  task_config.dwCommonButtons    = TDCBF_OK_BUTTON;
+  task_config.cbSize              = sizeof    (task_config);
+  task_config.hInstance           = SK_GetDLL ();
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
 
   TASKDIALOG_BUTTON button;
-  button.nButtonID     = 0xdead01ae;
-  button.pszButtonText = wszCommand;
+  button.nButtonID               = 0xdead01ae;
+  button.pszButtonText           = wszCommand;
 
   task_config.pButtons           = &button;
   task_config.cButtons           = 1;
@@ -1436,10 +1425,9 @@ SK_Bypass_CRT (LPVOID user)
   }
 
   CloseHandle (GetCurrentThread ());
-
   ExitProcess (0);
 
-  return 0;
+//return 0;
 }
 
 #include <process.h>
@@ -1455,15 +1443,15 @@ SK_BypassInject (void)
   __bypass.disable = 
     (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
 
-  MSG  msg;
-  BOOL bRet;
-
-  BOOL gui = IsGUIThread (TRUE);
+  IsGUIThread (TRUE);
 
   InterlockedIncrement (&SK_bypass_dialog_active);
 
-  HANDLE hThread =
-      CreateThread ( nullptr, 0, SK_Bypass_CRT, nullptr, 0x00, nullptr );
+  CreateThread ( nullptr,
+                   0,
+                     SK_Bypass_CRT, nullptr,
+                       0x00,
+                         nullptr );
 
   return std::make_pair (tids, __bypass.disable);
 }

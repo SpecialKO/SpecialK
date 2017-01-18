@@ -19,22 +19,22 @@
  *
 **/
 
-#include "gpu_monitor.h"
-#include "config.h"
+#include <SpecialK/gpu_monitor.h>
+#include <SpecialK/config.h>
 
-#include "log.h"
+#include <SpecialK/log.h>
 
 #include <algorithm>
 #include <vector>
 
 gpu_sensors_t gpu_stats;
 
-#include "nvapi.h"
+#include <SpecialK/nvapi.h>
 extern BOOL nvapi_init;
 
 //#define PCIE_WORKS
 
-#include "adl.h"
+#include <SpecialK/adl.h>
 extern BOOL ADL_init;
 
 #define NVAPI_GPU_UTILIZATION_DOMAIN_GPU 0

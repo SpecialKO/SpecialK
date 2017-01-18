@@ -577,7 +577,7 @@ SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
     *dwLen = snprintf (szOut, *dwLen, "%f", getValue ());
 
     // Remove trailing 0's after the .
-    *dwLen = SK_RemoveTrailingDecimalZeros (szOut, *dwLen);
+    *dwLen = (uint32_t)SK_RemoveTrailingDecimalZeros (szOut, *dwLen);
   } else {
     *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%f", getValue ()));
   }

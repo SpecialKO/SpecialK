@@ -39,7 +39,7 @@ volatile HMODULE hModSelf          = 0;
 
 volatile ULONG   __SK_DLL_Attached = FALSE;
 volatile ULONG   __SK_DLL_Refs     = 0;
-volatile DWORD   __SK_TLS_INDEX    = -1;
+volatile DWORD   __SK_TLS_INDEX    = MAXDWORD;
 
 SK_TLS*
 __stdcall
@@ -359,7 +359,9 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
-      ULONG local_refs = InterlockedIncrement (&__SK_DLL_Refs);
+      ULONG                     local_refs =
+          InterlockedIncrement (&__SK_DLL_Refs);
+      _Unreferenced_parameter_ (local_refs);
 
       // Sanity Check:
       // -------------

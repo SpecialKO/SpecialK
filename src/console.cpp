@@ -161,8 +161,6 @@ unsigned int
 __stdcall
 SK_Console::MessagePump (LPVOID hook_ptr)
 {
-  hooks_t* pHooks = (hooks_t *)hook_ptr;
-
   char* text = SK_Console::getInstance ()->text;
 
   ZeroMemory (text, 4096);
@@ -171,9 +169,6 @@ SK_Console::MessagePump (LPVOID hook_ptr)
 
   HWND  hWndForeground;
   DWORD dwThreadId;
-
-  unsigned int hits = 0;
-
   DWORD dwTime = timeGetTime ();
 
   while (true) {
@@ -244,10 +239,10 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
   std::string&                   result_str     = SK_Console::getInstance ()->result_str;
 
   if ((! SK_IsSteamOverlayActive ())) {
-    //BYTE    vkCode   = LOWORD (wParam) & 0xFF;
-    BYTE    scanCode = HIWORD (lParam) & 0x7F;
-    SHORT   repeated = LOWORD (lParam);
-    bool    keyDown  = ! (lParam & 0x80000000UL);
+    //BYTE   vkCode   = LOWORD (wParam) & 0xFF;
+    BYTE     scanCode = HIWORD (lParam) & 0x7F;
+    ///SHORT repeated = LOWORD (lParam);
+    //bool   keyDown  = ! (lParam & 0x80000000UL);
 
     if (visible && vkCode == VK_BACK) {
       if (keyDown) {
@@ -304,7 +299,14 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     }
 
     else if (visible && vkCode == VK_RETURN) {
-      if (keyDown && LOWORD (lParam) < 2) {
+      bool new_press = keys_ [vkCode] != 0x81;
+
+      if (keyDown)
+        keys_ [vkCode] = 0x81;
+      else
+        keys_ [vkCode] = 0x0;
+
+      if (keyDown && LOWORD (lParam) < 2 && new_press) {
         size_t len = strlen (text+1);
         // Don't process empty or pure whitespace command lines
         if (len > 0 && strspn (text+1, " ") != len) {
