@@ -115,6 +115,15 @@
     <Filter Include="Header Files\Config">
       <UniqueIdentifier>{7d5f7846-2431-4902-b97b-a08873bbf392}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ImGui">
+      <UniqueIdentifier>{cf214024-b450-4bab-88b6-9b0f9bf7aee2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ImGui">
+      <UniqueIdentifier>{6709c4e5-71e0-44ab-bfb0-4a9bfb68a346}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\stb">
+      <UniqueIdentifier>{fe26823d-cc7b-4371-99fc-33ea554633c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -258,6 +267,27 @@
     <ClInclude Include="include\SpecialK\update\network.h">
       <Filter>Header Files\Update</Filter>
     </ClInclude>
+    <ClInclude Include="include\imgui\backends\imgui_d3d9.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imconfig.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui_internal.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stb\rect_pack.h">
+      <Filter>Header Files\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stb\textedit.h">
+      <Filter>Header Files\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stb\truetype.h">
+      <Filter>Header Files\stb</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -376,6 +406,21 @@
     </ClCompile>
     <ClCompile Include="src\plugins\ds3.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_demo.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_draw.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\control_panel.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
+      <Filter>Source Files\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

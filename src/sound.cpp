@@ -92,11 +92,17 @@ void
 __stdcall
 SK_SetGameMute (bool bMute)
 {
-  ISimpleAudioVolume* pVolume =
+  static ISimpleAudioVolume* pVolume =
     SK_GetVolumeControl ();
 
+  //
+  // Just keep a single instance of this for the entire application runtime,
+  //   there are weird issues with third-party software if we should happen
+  //     to grab a new one repeatedly.
+  //
+
   if (pVolume != nullptr) {
-    pVolume->SetMute (bMute, nullptr);
-    pVolume->Release ();
+      pVolume->SetMute (bMute, nullptr);
+    //pVolume->Release ();
   }
 }

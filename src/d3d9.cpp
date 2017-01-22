@@ -46,6 +46,8 @@
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
 
+#include <imgui/backends/imgui_d3d9.h>
+
 volatile LONG                        __d3d9_ready = FALSE;
 SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
 
@@ -1441,6 +1443,45 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   }
 }
 
+static volatile ULONG ImGui_Init = FALSE;
+
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D9Reset_Pre ( IDirect3DDevice9      *This,
+                D3DPRESENT_PARAMETERS *pPresentationParameters,
+                D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
+{
+  if (InterlockedCompareExchange (&ImGui_Init, 0, 0))
+    ImGui_ImplDX9_InvalidateDeviceObjects ();
+
+  return;
+}
+
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D9Reset_Post ( IDirect3DDevice9      *This,
+                 D3DPRESENT_PARAMETERS *pPresentationParameters,
+                 D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
+{
+  if (ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
+                             This) )
+  {
+    HWND  hWnd    =
+      pPresentationParameters->hDeviceWindow;
+
+    DWORD dwStyle =
+      GetClassLong ( hWnd, GCL_STYLE );
+
+    dwStyle &= ~(CS_DBLCLKS);
+
+    SetClassLong        ( hWnd,        GCL_STYLE, dwStyle );
+    InterlockedExchange ( &ImGui_Init, TRUE );
+  }
+}
+
+
 COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
@@ -1451,15 +1492,15 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   if (This == nullptr || pPresentationParameters == nullptr)
     return E_NOINTERFACE;
 
-  extern void
-  SK_ResetWindow (void);
-  SK_ResetWindow ();
-
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh) - "
                 L"%s",
                 L"IDirect3DDevice9::Reset", This, pPresentationParameters,
                   SK_SummarizeCaller ().c_str ()
   );
+
+  SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
+               (! pPresentationParameters->Windowed) );
+
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters);
@@ -1490,13 +1531,16 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
     ResetCEGUI_D3D9 (nullptr);
   }
 
+  D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
+
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
 
   if (SUCCEEDED (hr)) {
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-    }
+
+    D3D9Reset_Post (This, pPresentationParameters, nullptr);
   }
 
   return hr;
@@ -1513,15 +1557,14 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   if (This == nullptr || pPresentationParameters == nullptr)
     return E_NOINTERFACE;
 
-  extern void
-  SK_ResetWindow (void);
-  SK_ResetWindow ();
-
   dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
                 L"%s",
                   L"IDirect3DDevice9Ex::ResetEx",
                     This, pPresentationParameters, pFullscreenDisplayMode,
                       SK_SummarizeCaller ().c_str () );
+
+  SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
+               (! pPresentationParameters->Windowed) );
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);

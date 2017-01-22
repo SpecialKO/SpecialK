@@ -1681,8 +1681,12 @@ SK_LoadConfig (std::wstring name) {
   if (input.cursor.timeout->load ())
     config.input.cursor.timeout = (int)(1000.0 * input.cursor.timeout->get_value ());
 
-  if (window.borderless->load ())
+  if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
+  }
+
+  config.window.border_override = true;
+
   if (window.center->load ())
     config.window.center = window.center->get_value ();
   if (window.background_render->load ())

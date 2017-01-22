@@ -121,8 +121,6 @@ SK_Console::Start (void)
     return;
   }
 
-  SK_HookWinAPI ();
-
   hMsgPump =
     (HANDLE)
       _beginthreadex ( nullptr,

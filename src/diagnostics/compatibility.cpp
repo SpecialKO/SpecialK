@@ -102,6 +102,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     //CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
   }
 
+#if 0
   else {
     const wchar_t* wszNahimic = StrStrIW (lpFileName, L"Nahimic");
 
@@ -145,6 +146,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
   }
 #endif
   }
+#endif
 
   return FALSE;
 }

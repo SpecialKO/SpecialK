@@ -70,6 +70,11 @@ extern HMODULE backend_dll;
 void
 SK_BootDXGI (void)
 {
+  while (backend_dll == 0) {
+    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) ***");
+    Sleep (100UL);
+  }
+
   static volatile ULONG __booted = FALSE;
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
@@ -87,11 +92,6 @@ SK_BootDXGI (void)
   //
   if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
     config.apis.dxgi.d3d11.hook = true;
-
-  while (backend_dll == 0) {
-    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) ***");
-    Sleep (100UL);
-  }
 
   dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 

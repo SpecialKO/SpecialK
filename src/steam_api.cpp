@@ -2371,6 +2371,14 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
+  // Handle situations where Steam was initialized earlier than
+  //   expected...
+  if (! InterlockedCompareExchange (&__SK_Steam_init, 0, 0)) {
+    SteamAPI_RunCallbacks_Original ();
+    SteamAPI_InitSafe_Detour       ();
+    return;
+  }
+
   // Throttle to 1000 Hz for STUPID games like Akiba's Trip
   static DWORD dwLastTick = 0;
          DWORD dwNow      = timeGetTime ();
@@ -2378,13 +2386,16 @@ SteamAPI_RunCallbacks_Detour (void)
   if (dwLastTick < dwNow) {
     dwLastTick = dwNow;
   } else {
-    // Skip the callbacks, one call every 1 ms is enough!!
-    return;
+    if (InterlockedCompareExchange (&__SK_Steam_init, 0, 0))
+    {
+      // Skip the callbacks, one call every 1 ms is enough!!
+      return;
+    }
   }
 
   // Init the managers after the first callback run
   void SK_SteamAPI_InitManagers (void);
-  SK_SteamAPI_InitManagers ();
+       SK_SteamAPI_InitManagers ();
 
   if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0) {
     // 4 == Don't Care

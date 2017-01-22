@@ -280,6 +280,7 @@ struct sk_config_t
 
   struct {
     bool    borderless          = false;
+    bool    border_override     = false;
     bool    center              = false;
     struct {
       struct {

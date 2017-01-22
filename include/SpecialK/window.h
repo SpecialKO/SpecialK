@@ -34,6 +34,7 @@
 
 void SK_HookWinAPI        (void);
 void SK_InstallWindowHook (HWND hWnd);
+void SK_InitWindow        (HWND hWnd, bool fullscreen_exclusive = false);
 void SK_AdjustWindow      (void);
 void SK_AdjustBorder      (void);
 

@@ -475,6 +475,7 @@ SK_SetPluginName               = SK_SetPluginName                  PRIVATE
 SK_GetCommandProcessor         = SK_GetCommandProcessor            PRIVATE
 SK_GetFramesDrawn              = SK_GetFramesDrawn                 PRIVATE
 SK_DetourWindowProc            = SK_DetourWindowProc               PRIVATE
+SK_DetourWindowProc2           = SK_DetourWindowProc2              PRIVATE
 SK_GetGameWindow               = SK_GetGameWindow                  PRIVATE
 SK_PluginKeyPress              = SK_PluginKeyPress                 PRIVATE
 SK_GetConfigPath               = SK_GetConfigPath                  PRIVATE

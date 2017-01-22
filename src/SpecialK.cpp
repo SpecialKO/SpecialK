@@ -396,19 +396,24 @@ DllMain ( HMODULE hModule,
              *(pwszShortName - 1) != L'\\')
         --pwszShortName;
 
-      BOOL ret = SK_Attach (SK_GetDLLRole ());
+      BOOL ret = TRUE;
+
+      __SK_TLS_INDEX = TlsAlloc ();
+
+      if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES) {
+        ret = FALSE;
+
+        MessageBox ( NULL,
+                       L"Out of TLS Indexes",
+                         L"Cannot Init. Special K",
+                           MB_ICONERROR | MB_OK | MB_APPLMODAL );
+      }
 
       if (ret) {
-        __SK_TLS_INDEX = TlsAlloc ();
+        ret = SK_Attach (SK_GetDLLRole ());
 
-        if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES) {
-          ret = FALSE;
-
-          MessageBox ( NULL,
-                         L"Out of TLS Indexes",
-                           L"Cannot Init. Special K",
-                             MB_ICONERROR | MB_OK | MB_APPLMODAL );
-        }
+        if (! ret)
+         TlsFree (__SK_TLS_INDEX);
       }
 
       return ret;

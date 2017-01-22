@@ -1267,10 +1267,148 @@ DWORD
 __stdcall
 DllThread (LPVOID user)
 {
+  InitializeCriticalSectionAndSpinCount (&init_mutex, 50000);
+
   EnterCriticalSection (&init_mutex);
-  {
-    DllThread_CRT (&init_);
+
+  const wchar_t* backend  = ((init_params_t *)user)->backend;
+        void*    callback = ((init_params_t *)user)->callback;
+
+  // Don't start SteamAPI if we're running the installer...
+  if (SK_IsHostAppSKIM ())
+    config.steam.init_delay = 0;
+
+  wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
+          wszConfigPath [  MAX_PATH  ] = L'\0';
+
+          SK_RootPath   [    0     ]   = L'\0';
+          SK_RootPath   [ MAX_PATH ]   = L'\0';
+
+  if (config.system.central_repository) {
+    if (! SK_IsHostAppSKIM ()) {
+      ExpandEnvironmentStringsW (
+        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
+          SK_RootPath,
+            MAX_PATH - 1
+      );
+    } else {
+      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+    }
+
+    lstrcatW (wszConfigPath, SK_GetRootPath ());
+    lstrcatW (wszConfigPath, L"\\Profiles\\");
+    lstrcatW (wszConfigPath, SK_GetHostApp  ());
   }
+
+  else {
+    if (! SK_IsHostAppSKIM ()) {
+      lstrcatW (SK_RootPath,   SK_GetHostPath ());
+    } else {
+      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+    }
+    lstrcatW (wszConfigPath, SK_GetHostPath ());
+  }
+
+  lstrcatW (SK_RootPath,   L"\\");
+  lstrcatW (wszConfigPath, L"\\");
+
+  SK_CreateDirectories (wszConfigPath);
+  SK_SetConfigPath     (wszConfigPath);
+
+
+  // Do this from the startup thread
+  SK_Init_MinHook     ();
+  SK_HookWinAPI       ();
+  SK::Framerate::Init ();
+
+  //if (config.apis.dxgi.d3d11.hook) {
+    if (! lstrcmpW (backend, L"dxgi") || GetModuleHandle (L"d3d11.dll"))
+      SK_D3D11_Init ();
+  //}
+
+  SK_InitCompatBlacklist ();
+
+
+  // Hard-code the AppID for ToZ
+  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+    config.steam.appid = 351970;
+
+  // Game won't start from the commandline without this...
+  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
+    config.steam.appid = 405900;
+
+  wchar_t log_fname [MAX_PATH];
+          log_fname [MAX_PATH - 1] = L'\0';
+
+  swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+
+  dll_log.init (log_fname, L"w");
+  dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
+
+  dll_log.LogEx (false,
+    L"------------------------------------------------------------------------"
+    L"-------------------\n");
+
+  std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
+  const wchar_t* wszModuleName = module_name.c_str ();
+
+  dll_log.Log   (      L">> (%s) [%s] <<",
+                         SK_GetHostApp (),
+                           wszModuleName );
+
+  const wchar_t* config_name = backend;
+
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
+
+  if (! SK_IsHostAppSKIM ()) {
+    dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+
+    if (SK_LoadConfig (config_name)) {
+      dll_log.LogEx (false, L"done!\n");
+    } else {
+      dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+      dll_log.LogEx (false, L"failed!\n");
+      // If no INI file exists, write one immediately.
+      dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
+      SK_SaveConfig (config_name);
+      dll_log.LogEx (false, L"done!\n");
+    }
+  }
+
+  // Start unmuted
+  if (config.window.background_mute)
+    SK_SetGameMute (FALSE);
+
+  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
+  SK::Diagnostics::Debugger::Allow ();
+
+  game_debug.init (L"logs/game_output.log", L"w");
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
+
+  if (! SK_IsHostAppSKIM ()) {
+    if (! config.steam.silent) {
+      SK_TestSteamImports (GetModuleHandle (nullptr));
+
+      if (GetModuleHandle (L"CSteamworks.dll")) {
+        SK_HookCSteamworks ();
+      }
+
+      if ( GetModuleHandle (L"steam_api.dll")   ||
+           GetModuleHandle (L"steam_api64.dll") ||
+           GetModuleHandle (L"SteamNative.dll") ) {
+        SK_HookSteamAPI ();
+      }
+    }
+  }
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+  DllThread_CRT (&init_);
+
   LeaveCriticalSection (&init_mutex);
 
   return 0;
@@ -1405,148 +1543,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
   }
 
-  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
-
-  EnterCriticalSection (&init_mutex);
-
-  // Don't start SteamAPI if we're running the installer...
-  if (SK_IsHostAppSKIM ())
-    config.steam.init_delay = 0;
-
-  wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
-          wszConfigPath [  MAX_PATH  ] = L'\0';
-
-          SK_RootPath   [    0     ]   = L'\0';
-          SK_RootPath   [ MAX_PATH ]   = L'\0';
-
-  if (config.system.central_repository) {
-    if (! SK_IsHostAppSKIM ()) {
-      ExpandEnvironmentStringsW (
-        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
-          SK_RootPath,
-            MAX_PATH - 1
-      );
-    } else {
-      GetCurrentDirectory (MAX_PATH, SK_RootPath);
-    }
-
-    lstrcatW (wszConfigPath, SK_GetRootPath ());
-    lstrcatW (wszConfigPath, L"\\Profiles\\");
-    lstrcatW (wszConfigPath, SK_GetHostApp  ());
-  }
-
-  else {
-    if (! SK_IsHostAppSKIM ()) {
-      lstrcatW (SK_RootPath,   SK_GetHostPath ());
-    } else {
-      GetCurrentDirectory (MAX_PATH, SK_RootPath);
-    }
-    lstrcatW (wszConfigPath, SK_GetHostPath ());
-  }
-
-  lstrcatW (SK_RootPath,   L"\\");
-  lstrcatW (wszConfigPath, L"\\");
-
-  SK_CreateDirectories (wszConfigPath);
-  SK_SetConfigPath     (wszConfigPath);
-
-
-  // Do this from the startup thread
-  SK_Init_MinHook        ();
-  SK::Framerate::Init    ();
-
-  //if (config.apis.dxgi.d3d11.hook) {
-    if (! lstrcmpW (backend, L"dxgi") || GetModuleHandle (L"d3d11.dll"))
-      SK_D3D11_Init ();
-  //}
-
-  SK_InitCompatBlacklist ();
-
-
-  // Hard-code the AppID for ToZ
-  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
-    config.steam.appid = 351970;
-
-  // Game won't start from the commandline without this...
-  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
-    config.steam.appid = 405900;
-
   ZeroMemory (&init_, sizeof init_params_t);
 
-  init_.backend  = backend;
-  init_.callback = callback;
-
-  wchar_t log_fname [MAX_PATH];
-          log_fname [MAX_PATH - 1] = L'\0';
-
-  swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
-
-  dll_log.init (log_fname, L"w");
-  dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
-
-  dll_log.LogEx (false,
-    L"------------------------------------------------------------------------"
-    L"-------------------\n");
-
-  std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
-  const wchar_t* wszModuleName = module_name.c_str ();
-
-  dll_log.Log   (      L">> (%s) [%s] <<",
-                         SK_GetHostApp (),
-                           wszModuleName );
-
-  const wchar_t* config_name = backend;
-
-  if (SK_IsInjected ())
-    config_name = L"SpecialK";
-
-  if (! SK_IsHostAppSKIM ()) {
-    dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
-
-    if (SK_LoadConfig (config_name)) {
-      dll_log.LogEx (false, L"done!\n");
-    } else {
-      dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
-      dll_log.LogEx (false, L"failed!\n");
-      // If no INI file exists, write one immediately.
-      dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
-      SK_SaveConfig (config_name);
-      dll_log.LogEx (false, L"done!\n");
-    }
-  }
-
-  // Start unmuted
-  if (config.window.background_mute)
-    SK_SetGameMute (FALSE);
-
-  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
-  SK::Diagnostics::Debugger::Allow ();
-
-  game_debug.init (L"logs/game_output.log", L"w");
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
-  if (! SK_IsHostAppSKIM ()) {
-    if (! config.steam.silent) {
-      SK_TestSteamImports (GetModuleHandle (nullptr));
-
-      if (GetModuleHandle (L"CSteamworks.dll")) {
-        SK_HookCSteamworks ();
-      }
-
-      if ( GetModuleHandle (L"steam_api.dll")   ||
-           GetModuleHandle (L"steam_api64.dll") ||
-           GetModuleHandle (L"SteamNative.dll") ) {
-        SK_HookSteamAPI ();
-      }
-    }
-  }
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
-
-  LeaveCriticalSection (&init_mutex);
+  init_.backend  = _wcsdup (backend);
+  init_.callback =          callback;
 
   InterlockedExchangePointer (
     (void **)&hInitThread,
@@ -1737,42 +1737,16 @@ SK_BeginBufferSwap (void)
 
   static volatile ULONG first = TRUE;
 
-  if (InterlockedCompareExchange (&first, 0, 0)) {
-    SK_HookWinAPI ();
-
-    if (SK_GetGameWindow () != 0) {
-      extern void SK_AdjustBorder ();
+  if (InterlockedCompareExchange (&first, 0, 0))
+  {
+    if (SK_GetGameWindow () != 0)
+    {
+      extern void SK_ResetWindow ();
 
       InterlockedExchange (&first, 0);
 
-      SK_InitWindow (SK_GetGameWindow ());
-
-      if (config.window.borderless || config.window.center)
-      {
-        CreateThread (
-          nullptr,
-            0,
-              [](LPVOID user)->
-
-              DWORD
-              {
-                SK_AdjustBorder ();
-                SK_AdjustWindow ();
-
-                CloseHandle (GetCurrentThread ());
-
-                return 0;
-              },
-
-              nullptr,
-            0x00,
-          nullptr
-        );
-      }
+      SK_ResetWindow ();
     }
-
-    if (config.window.background_mute)
-      SK_SetGameMute (FALSE);
   }
 
   SK_DrawOSD         ();
