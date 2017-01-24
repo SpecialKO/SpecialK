@@ -2138,6 +2138,9 @@ LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+extern void    ImGui_ImplDX11_InvalidateDeviceObjects (void);
+extern bool    ImGui_ImplDX11_CreateDeviceObjects     (void);
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -2169,11 +2172,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     //SK_AdjustWindow        ();
 
     SK_InitWindow (hWnd, false);
-
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
-  //return DefWindowProc (hWnd, uMsg, wParam, lParam);
 
   static bool last_active = game_window.active;
 
@@ -2458,8 +2458,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
   }
 
+  if (uMsg == WM_SIZE) {
+    ImGui_ImplDX11_InvalidateDeviceObjects ();
+  }
+
   if (uMsg == WM_NCCALCSIZE) {
-    //return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
   if (uMsg == WM_WINDOWPOSCHANGING) {
@@ -2468,14 +2471,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
   if (uMsg == WM_WINDOWPOSCHANGED) {
+    ImGui_ImplDX11_InvalidateDeviceObjects ();
     LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
 
     if (config.window.borderless) {
       // This fixes problems in Dragon Ball Xenoverse
       //
-      GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+      //GetClientRect_Original (game_window.hWnd, &game_window.game.client);
 
-      return 0;
+      //return 0;
     }
   }
 
@@ -2794,6 +2798,7 @@ SK_HookWinAPI (void)
                      RegisterRawInputDevices_Detour,
            (LPVOID*)&RegisterRawInputDevices_Original );
 
+#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
                         SetWindowPos_Detour,
              (LPVOID *)&SetWindowPos_Original );
@@ -2809,6 +2814,27 @@ SK_HookWinAPI (void)
   SK_CreateDLLHook2 ( L"user32.dll", "MoveWindow",
                         MoveWindow_Detour,
              (LPVOID *)&MoveWindow_Original );
+#else
+    SetWindowPos_Original =
+      (SetWindowPos_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "SetWindowPos" );
+
+    MoveWindow_Original =
+      (MoveWindow_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "MoveWindow" );
+
+    SetWindowPlacement_Original =
+      (SetWindowPlacement_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "SetWindowPlacement" );
+
+    ClipCursor_Original =
+      (ClipCursor_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "ClipCursor" );
+#endif
 
 // These functions are dispatched through the Ptr version, so
 //   hooking them in the 64-bit version would be a bad idea.
@@ -2848,6 +2874,7 @@ SK_HookWinAPI (void)
              (LPVOID *)&GetWindowLongPtrW_Original );
 #endif
 
+#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "GetWindowRect",
                       GetWindowRect_Detour,
             (LPVOID*)&GetWindowRect_Original );
@@ -2855,7 +2882,17 @@ SK_HookWinAPI (void)
   SK_CreateDLLHook2 ( L"user32.dll", "GetClientRect",
                       GetClientRect_Detour,
             (LPVOID*)&GetClientRect_Original );
+#else
+    GetWindowRect_Original =
+      (GetWindowRect_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "GetWindowRect" );
 
+    GetClientRect_Original =
+      (GetClientRect_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "GetClientRect" );
+#endif
   SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRect",
                         AdjustWindowRect_Detour,
              (LPVOID *)&AdjustWindowRect_Original );

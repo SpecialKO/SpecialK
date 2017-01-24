@@ -409,31 +409,34 @@ ImGui_ImplDX9_NewFrame (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  for (int i = 0; i < 256; i++)
+  if (GetForegroundWindow () == g_hWnd)
   {
-    if (i <= 0x06)
+    for (int i = 0; i < 256; i++)
     {
-      switch (i)
+      if (i <= 0x06)
       {
-        case VK_LBUTTON:
-          io.MouseDown [0] = (GetAsyncKeyState (i) & 0x8000) != 0;
-          break;
+        switch (i)
+        {
+          case VK_LBUTTON:
+            io.MouseDown [0] = (GetAsyncKeyState (i) & 0x8000) != 0;
+            break;
 
-        case VK_RBUTTON:
-          io.MouseDown [1] = (GetAsyncKeyState (i) & 0x8000) != 0;
-          break;
+          case VK_RBUTTON:
+            io.MouseDown [1] = (GetAsyncKeyState (i) & 0x8000) != 0;
+            break;
 
-        case VK_MBUTTON:
-          io.MouseDown [2] = (GetAsyncKeyState (i) & 0x8000) != 0;
-          break;
+          case VK_MBUTTON:
+            io.MouseDown [2] = (GetAsyncKeyState (i) & 0x8000) != 0;
+            break;
 
-        default:
-          break;
+          default:
+            break;
+        }
       }
-    }
 
-    else {
-      io.KeysDown  [i] = (GetAsyncKeyState (i) & 0x8000) != 0;
+      else {
+        io.KeysDown  [i] = (GetAsyncKeyState (i) & 0x8000) != 0;
+      }
     }
   }
 

@@ -288,6 +288,9 @@
     <ClInclude Include="include\stb\truetype.h">
       <Filter>Header Files\stb</Filter>
     </ClInclude>
+    <ClInclude Include="include\imgui\backends\imgui_d3d11.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -420,6 +423,9 @@
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d11.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2865,6 +2865,7 @@ SK::SteamAPI::SetOverlayState (bool active)
 
   GameOverlayActivated_t state;
   state.m_bActive = active;
+  overlay_state   = active;
 
   std::set <CCallbackBase *>::iterator it =
     overlay_activation_callbacks.begin ();
@@ -2877,6 +2878,14 @@ SK::SteamAPI::SetOverlayState (bool active)
   }
 
   LeaveCriticalSection (&callback_cs);
+}
+
+bool
+__stdcall
+SK::SteamAPI::GetOverlayState (bool real)
+{
+  return real ? SK_IsSteamOverlayActive () :
+                  overlay_state;
 }
 
 bool
@@ -3045,6 +3054,13 @@ __stdcall
 SK_SteamAPI_SetOverlayState (bool active)
 {
   SK::SteamAPI::SetOverlayState (active);
+}
+
+bool
+__stdcall
+SK_SteamAPI_GetOverlayState (bool real)
+{
+  return SK::SteamAPI::GetOverlayState (real);
 }
 
 bool
@@ -3475,3 +3491,5 @@ SK_TestSteamImports (HMODULE hMod)
     }
   }
 }
+
+bool SK::SteamAPI::overlay_state = false;

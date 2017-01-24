@@ -36,10 +36,16 @@ namespace SK
     void Pump     (void);
 
     void __stdcall SetOverlayState (bool active);
+    bool __stdcall GetOverlayState (bool real);
+
     bool __stdcall TakeScreenshot  (void);
 
     uint32_t    AppID   (void);
     std::string AppName (void);
+
+    // The state that we are explicitly telling the game
+    //   about, not the state of the actual overlay...
+    extern bool overlay_state;
   }
 }
 

@@ -58,6 +58,7 @@
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/render_backend.h>
 
 #include <atlbase.h>
 #include <comdef.h>
@@ -1774,7 +1775,7 @@ SK_BeginBufferSwap (void)
 
   extern bool SK_ImGui_Visible;
 
-  if (SK_ImGui_Visible) {
+  if (SK_ImGui_Visible && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D11) {
     extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                  SK_ImGui_DrawFrame (       0x00,          nullptr );
   }

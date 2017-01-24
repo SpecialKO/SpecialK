@@ -57,6 +57,8 @@
 #undef min
 #undef max
 
+#include <imgui/backends/imgui_d3d11.h>
+
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 #include <CEGUI/DefaultResourceProvider.h>
@@ -268,7 +270,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     SK_PopupManager::getInstance ()->destroyAllPopups         ();
 
     if (pGUIDev != nullptr) {
-      pGUIDev = nullptr;
+        pGUIDev  = nullptr;
     }
 
     if (pCEG_DevCtx != nullptr) {
@@ -279,6 +281,8 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
     cegD3D11->destroySystem ();
     cegD3D11 = nullptr;
+
+    //ImGui_ImplDX11_Shutdown ();
   }
 
   else if (cegD3D11 == nullptr)
@@ -319,6 +323,11 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
       cegD3D11 = (CEGUI::Direct3D11Renderer *)
         &CEGUI::Direct3D11Renderer::bootstrapSystem (pGUIDev, pCEG_DevCtx);
+
+      DXGI_SWAP_CHAIN_DESC swap_desc;
+      This->GetDesc (&swap_desc);
+
+      ImGui_ImplDX11_Init (swap_desc.OutputWindow, pGUIDev, pCEG_DevCtx);
 
       SK_CEGUI_RelocateLog ();
     } catch (...) {
@@ -1409,6 +1418,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
       cegD3D11->endRendering ();
+
+      extern bool SK_ImGui_Visible;
+      if (SK_ImGui_Visible) {
+        extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
+                     SK_ImGui_DrawFrame (       0x00,          nullptr );
+      }
 #ifdef USE_SB
       ApplyStateblock (pCEG_DevCtx, &sb);
 #endif
