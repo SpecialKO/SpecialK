@@ -366,7 +366,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log (L"-----------------------------------------------------------");
   crash_log.Log (L"[ FaultMod ]  # File.....: '%hs'",  szModName);
 #ifndef _WIN64
-  crash_log.Log (L"[ FaultMod ]  * EIP Addr.: %hs+%ph", pszShortName, ip-BaseAddr);
+  crash_log.Log (L"[ FaultMod ]  * EIP Addr.: %hs+%ph", pszShortName, (void *)(ip-BaseAddr));
 
   crash_log.Log ( L"[StackFrame] <-> Eip=%08xh, Esp=%08xh, Ebp=%08xh",
                   ip,
@@ -387,7 +387,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
                   ExceptionInfo->ContextRecord->EFlags );
 #else
-  crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, ip-BaseAddr);
+  crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, (void *)(ip-BaseAddr));
 
   crash_log.Log ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh",
                   ip,

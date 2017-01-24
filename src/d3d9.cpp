@@ -560,12 +560,12 @@ SK_HookD3D9 (void)
   dll_log.Log (L"[   D3D9   ] ================================");
 
   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll")) {
-    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh",
+    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %ph",
       (Direct3DCreate9_Import) =  \
         (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9"));
 
     if (config.apis.d3d9ex.hook) {
-      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh",
+      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %ph",
         (Direct3DCreate9Ex_Import) =  \
           (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
     }
@@ -577,7 +577,7 @@ SK_HookD3D9 (void)
                        Direct3DCreate9,
             (LPVOID *)&Direct3DCreate9_Import );
 
-    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %08Xh  { Hooked }",
+    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %p  { Hooked }",
       (Direct3DCreate9_Import) );
 
 
@@ -587,7 +587,7 @@ SK_HookD3D9 (void)
                          Direct3DCreate9Ex,
               (LPVOID *)&Direct3DCreate9Ex_Import );
 
-      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %08Xh  { Hooked }",
+      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %p  { Hooked }",
         (Direct3DCreate9Ex_Import) );
     }
   }
@@ -669,20 +669,20 @@ extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
                                                                               \
     VirtualProtect (&_vftable [_Index], __PTR_SIZE, __PAGE_PRIVS, &dwProtect);\
                                                                               \
-    /*dll_log.Log (L" Old VFTable entry for %s: %08Xh  (Memory Policy: %s)",*/\
+    /*dll_log.Log (L" Old VFTable entry for %s: %ph  (Memory Policy: %s)",*/  \
                  /*L##_Name, vftable [_Index],                              */\
                  /*SK_DescribeVirtualProtectFlags (dwProtect));             */\
                                                                               \
     if (_Original == NULL)                                                    \
       _Original = (##_Type)_vftable [_Index];                                 \
                                                                               \
-    /*dll_log.Log (L"  + %s: %08Xh", L#_Original, _Original);*/               \
+    /*dll_log.Log (L"  + %s: %ph", L#_Original, _Original);*/                 \
                                                                               \
     _vftable [_Index] = _Override;                                            \
                                                                               \
     VirtualProtect (&_vftable [_Index], __PTR_SIZE, dwProtect, &dwProtect);   \
                                                                               \
-    /*dll_log.Log(L" New VFTable entry for %s: %08Xh  (Memory Policy: %s)\n"*/\
+    /*dll_log.Log(L" New VFTable entry for %s: %ph  (Memory Policy: %s)\n"*/  \
                   /*,L##_Name, vftable [_Index],                            */\
                   /*SK_DescribeVirtualProtectFlags (dwProtect));            */\
   }                                                                           \
@@ -1182,7 +1182,7 @@ D3D9CreateAdditionalSwapChain_Override (
     IDirect3DSwapChain9   **pSwapChain
   )
 {
-  dll_log.Log (L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
+  dll_log.Log (L"[   D3D9   ] [!] %s (%ph, %ph, %ph) - "
     L"%s",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
       pPresentationParameters, pSwapChain,
@@ -1236,7 +1236,7 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9EndScene_Override (IDirect3DDevice9* This)
 {
-  //dll_log.Log (L"[   D3D9   ] [!] %s (%08Xh) - "
+  //dll_log.Log (L"[   D3D9   ] [!] %s (%ph) - "
     //L"[Calling Thread: 0x%04x]",
     //L"IDirect3DDevice9::EndScene", This,
     //GetCurrentThreadId ()
@@ -1492,7 +1492,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   if (This == nullptr || pPresentationParameters == nullptr)
     return E_NOINTERFACE;
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %ph) - "
                 L"%s",
                 L"IDirect3DDevice9::Reset", This, pPresentationParameters,
                   SK_SummarizeCaller ().c_str ()
@@ -1557,7 +1557,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   if (This == nullptr || pPresentationParameters == nullptr)
     return E_NOINTERFACE;
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %08Xh, %08Xh) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %ph, %ph) - "
                 L"%s",
                   L"IDirect3DDevice9Ex::ResetEx",
                     This, pPresentationParameters, pFullscreenDisplayMode,
@@ -2147,9 +2147,24 @@ D3DPRESENT_PARAMETERS*
 WINAPI
 SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pparams)
 {
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  {
     if (pparams != nullptr) {
       extern HWND hWndRender;
+
+      //
+      // Initialize ImGui for D3D9 games
+      //
+      if ( ImGui_ImplDX9_Init ( (void *)pparams->hDeviceWindow,
+                                  pDevice )
+         )
+      {
+        HWND  hWnd    =
+          pparams->hDeviceWindow;
+
+        InterlockedExchange ( &ImGui_Init, TRUE );
+      }
+
 
       if (hWndRender == 0 || (! IsWindow (hWndRender))) {
         hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : GetFocus ();
@@ -2217,7 +2232,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                              D3DDISPLAYMODEEX       *pFullscreenDisplayMode,
                              IDirect3DDevice9Ex    **ppReturnedDeviceInterface)
 {
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %lu, %lu, %08Xh, 0x%04X, %08Xh, %08Xh, %08Xh) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %lu, %lu, %ph, 0x%04X, %ph, %ph, %ph) - "
                 L"%s",
                 L"IDirect3D9Ex::CreateDeviceEx",
                   This, Adapter, (DWORD)DeviceType,
@@ -2455,7 +2470,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                            D3DPRESENT_PARAMETERS* pPresentationParameters,
                            IDirect3DDevice9**     ppReturnedDeviceInterface)
 {
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%08Xh, %lu, %lu, %08Xh, 0x%04X, %08Xh, %08Xh) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %lu, %lu, %ph, 0x%04X, %ph, %ph) - "
                 L"%s",
                   L"IDirect3D9::CreateDevice", This, Adapter, (DWORD)DeviceType,
                     hFocusWindow, BehaviorFlags, pPresentationParameters,
@@ -2770,7 +2785,7 @@ Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
   WaitForInit      ();
   WaitForInit_D3D9 ();
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %08Xh) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %ph) - "
                 L"%s",
                   L"Direct3DCreate9Ex",
                     SDKVersion,
@@ -2835,7 +2850,7 @@ std::wstring
 WINAPI
 SK::D3D9::getPipelineStatsDesc (void)
 {
-  wchar_t wszDesc [1024];
+  wchar_t wszDesc [1024] = { L'\0' };
 
   D3DDEVINFO_D3D9PIPELINETIMINGS& stats =
     pipeline_stats_d3d9.last_results;

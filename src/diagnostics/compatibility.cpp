@@ -155,7 +155,8 @@ BOOL
 __stdcall
 BlacklistLibraryA (LPCSTR lpFileName)
 {
-  wchar_t wszWideLibName [MAX_PATH];
+  wchar_t wszWideLibName [MAX_PATH + 2];
+  memset (wszWideLibName, 9, sizeof (wchar_t) * (MAX_PATH + 2));
 
   MultiByteToWideChar (CP_OEMCP, 0x00, lpFileName, -1, wszWideLibName, MAX_PATH);
 
@@ -182,8 +183,10 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
   // This is silly, this many string comparions per-load is
   //   not good. Hash the string and compare it in the future.
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-       StrStrIW (wszModName, L"RTSSHooks") ||
-       StrStrIW (wszModName, L"GeDoSaTo") ) {
+       StrStrIW (wszModName, L"RTSSHooks")           ||
+       StrStrIW (wszModName, L"GeDoSaTo")            ||
+       StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
+  {
     if (config.compatibility.rehook_loadlibrary)
       SK_ReHookLoadLibrary ();
   }
@@ -222,6 +225,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       SK_HookCSteamworks ();
     }
 
+#if 0
     // Some software repeatedly loads and unloads this, which can
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
@@ -231,6 +235,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                              lpFileName,
                                &hModDontCare );
     }
+#endif
   }
 }
 
@@ -250,10 +255,12 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
   }
 
   // This is silly, this many string comparions per-load is
-  //   not good. Hash the string and compare it in the future.
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-       StrStrIW (wszModName, L"RTSSHooks") ||
-       StrStrIW (wszModName, L"GeDoSaTo") ) {
+  //   not good. Hash the string and compare it in the future.
+       StrStrIW (wszModName, L"RTSSHooks")           ||
+       StrStrIW (wszModName, L"GeDoSaTo")            ||
+       StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
+  {
     if (config.compatibility.rehook_loadlibrary)
       SK_ReHookLoadLibrary ();
   }
@@ -289,7 +296,8 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                StrStrIW (lpFileName, L"SteamNative.dll") ) {
       SK_HookSteamAPI ();
     }
-    
+
+#if 0    
     // Some software repeatedly loads and unloads this, which can
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
@@ -299,6 +307,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                              lpFileName,
                                &hModDontCare );
     }
+#endif
   }
 }
 
@@ -353,9 +362,22 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
   if (lpFileName == nullptr)
     return NULL;
 
-  HMODULE hModEarly = GetModuleHandleA (lpFileName);
+  HMODULE hModEarly = nullptr;
 
-  if (hModEarly == NULL && BlacklistLibraryA (lpFileName))
+  __try {
+    GetModuleHandleExA ( 0x00, (LPCSTR)lpFileName, &hModEarly );
+  } 
+
+  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
+                           EXCEPTION_EXECUTE_HANDLER :
+                           EXCEPTION_CONTINUE_SEARCH  )
+  {
+           SetLastError          (0);
+    return LoadLibraryA_Original (lpFileName);
+    // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
+  }
+
+  if (hModEarly == nullptr && BlacklistLibraryA (lpFileName))
     return NULL;
 
   HMODULE hMod = LoadLibraryA_Original (lpFileName);
@@ -376,9 +398,21 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
   if (lpFileName == nullptr)
     return NULL;
 
-  HMODULE hModEarly = GetModuleHandleW (lpFileName);
+  HMODULE hModEarly = nullptr;
 
-  if (hModEarly == NULL && BlacklistLibraryW (lpFileName))
+  __try {
+    GetModuleHandleExW ( 0x00, lpFileName, &hModEarly );
+  }
+  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
+                           EXCEPTION_EXECUTE_HANDLER :
+                           EXCEPTION_CONTINUE_SEARCH )
+  {
+           SetLastError          (0);
+    return LoadLibraryW_Original (lpFileName);
+    // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
+  }
+
+  if (hModEarly == nullptr&& BlacklistLibraryW (lpFileName))
     return NULL;
 
   HMODULE hMod = LoadLibraryW_Original (lpFileName);
@@ -401,6 +435,9 @@ LoadLibraryExA_Detour (
 {
   if (lpFileName == nullptr)
     return NULL;
+
+  if (dwFlags & LOAD_LIBRARY_AS_DATAFILE)
+    return LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
 
   HMODULE hModEarly = GetModuleHandleA (lpFileName);
 
@@ -428,6 +465,9 @@ LoadLibraryExW_Detour (
 {
   if (lpFileName == nullptr)
     return NULL;
+
+  if (dwFlags & LOAD_LIBRARY_AS_DATAFILE)
+    return LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
 
   HMODULE hModEarly = GetModuleHandleW (lpFileName);
 
@@ -659,132 +699,86 @@ extern std::wstring
 __stdcall
 SK_GetDLLVersionStr (const wchar_t* wszName);
 
+
+static bool loaded_gl     = false;
+static bool loaded_vulkan = false;
+static bool loaded_d3d9   = false;
+static bool loaded_dxgi   = false;
+
+struct enum_working_set_s {
+  HMODULE     modules [1024];
+  int         count;
+  iSK_Logger* logger;
+  HANDLE      proc;
+};
+
 void
-__stdcall
-EnumLoadedModules (void)
+SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
-  static bool loaded_gl     = false;
-  static bool loaded_vulkan = false;
-  static bool loaded_d3d9   = false;
-  static bool loaded_dxgi   = false;
+  iSK_Logger* pLogger = pWorkingSet->logger;
 
-  // Begin logging new loads after this
-  SK_LoadLibrary_SILENCE = false;
-
-  iSK_Logger* pLogger = SK_CreateLog (L"logs/preloads.log");
-
-  DWORD        dwProcID = GetCurrentProcessId ();
-
-  HMODULE      hMods [1024];
-  HANDLE       hProc = nullptr;
-  DWORD        cbNeeded;
-  unsigned int i;
-
-  // Get a handle to the process.
-  hProc = OpenProcess ( PROCESS_QUERY_INFORMATION |
-                        PROCESS_VM_READ,
-                          FALSE,
-                            dwProcID );
-
-  if (hProc == nullptr) {
-    pLogger->close ();
-    delete pLogger;
-    return;
-  }
-
-  if ( EnumProcessModules ( hProc,
-                              hMods,
-                                sizeof (hMods),
-                                  &cbNeeded) )
+  for (int i = 0; i < pWorkingSet->count; i++ )
   {
-    struct enum_working_set_s {
-      HMODULE     modules [1024];
-      int         count;
-      iSK_Logger* logger;
-      HANDLE      proc;
-    } *working_set = new enum_working_set_s ();
+        wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
+    ZeroMemory (wszModName, sizeof (wchar_t) * (MAX_PATH + 2));
 
-            working_set->proc   = hProc;
-            working_set->logger = pLogger;
-            working_set->count  = cbNeeded / sizeof HMODULE;
-    memcpy (working_set->modules, hMods, cbNeeded);
+    try {
+      // Get the full path to the module's file.
+      if ( GetModuleFileNameExW ( pWorkingSet->proc,
+                                    pWorkingSet->modules [i],
+                                      wszModName,
+                                        MAX_PATH ) )
+      {
+        MODULEINFO mi = { 0 };
 
-    CreateThread (
-      nullptr,
-        0,
-          [](LPVOID user)->
-          DWORD
-          {
-            enum_working_set_s* pWorkingSet = (enum_working_set_s *)user;
-            iSK_Logger*         pLogger     = pWorkingSet->logger;
+        uintptr_t entry_pt  = 0;
+        uintptr_t base_addr = 0;
+        uint32_t  mod_size  = 0UL;
 
-            for (int i = 0; i < pWorkingSet->count; i++ )
-            {
-              wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
-
-              // Get the full path to the module's file.
-              if ( GetModuleFileNameExW ( pWorkingSet->proc,
-                                            pWorkingSet->modules [i],
-                                              wszModName,
-                                                MAX_PATH ) )
-              {
-                MODULEINFO mi = { 0 };
-
-                uintptr_t entry_pt  = 0;
-                uintptr_t base_addr = 0;
-                uint32_t  mod_size  = 0UL;
-
-                if (GetModuleInformation (pWorkingSet->proc, pWorkingSet->modules [i], &mi, sizeof (MODULEINFO))) {
-                  entry_pt  = (uintptr_t)mi.EntryPoint;
-                  base_addr = (uintptr_t)mi.lpBaseOfDll;
-                  mod_size  =            mi.SizeOfImage;
-                }
+        if (GetModuleInformation (pWorkingSet->proc, pWorkingSet->modules [i], &mi, sizeof (MODULEINFO))) {
+          entry_pt  = (uintptr_t)mi.EntryPoint;
+          base_addr = (uintptr_t)mi.lpBaseOfDll;
+          mod_size  =            mi.SizeOfImage;
+        }
 
 #define VERBOSE_AND_SLOW
 #ifdef VERBOSE_AND_SLOW
-                extern std::string
-                SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
+        extern std::string
+        SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
 
-                pLogger->Log ( L"[ Module ]  ( %ph + %08lu )   -:< %-64hs >:-   %s",
-                                  base_addr, mod_size,
-                                    SK_GetSymbolNameFromModuleAddr (pWorkingSet->modules [i], entry_pt).c_str (),
-                                      wszModName );
+        pLogger->Log ( L"[ Module ]  ( %ph + %08lu )   -:< %-64hs >:-   %s",
+                          (void *)base_addr, mod_size,
+                            SK_GetSymbolNameFromModuleAddr (pWorkingSet->modules [i], entry_pt).c_str (),
+                              wszModName );
 #else
-                pLogger->Log ( L"[ Module ]  ( %ph + %08lu )  -:-  %s",
-                                  base_addr, mod_size, wszModName );
+        pLogger->Log ( L"[ Module ]  ( %ph + %08lu )  -:-  %s",
+                          base_addr, mod_size, wszModName );
 #endif
 
-                std::wstring ver_str = SK_GetDLLVersionStr (wszModName);
+        std::wstring ver_str = SK_GetDLLVersionStr (wszModName);
 
-                if (ver_str != L"  ") {
-                  pLogger->LogEx ( false,
-                    L" ----------------------  [File Ver]    %s\n",
-                      ver_str.c_str () );
-                }
-              }
-            }
+        if (ver_str != L"  ") {
+          pLogger->LogEx ( false,
+            L" ----------------------  [File Ver]    %s\n",
+              ver_str.c_str () );
+        }
+      }
+    }
 
-            // Release the handle to the process.
-            CloseHandle (pWorkingSet->proc);
+    catch (...) {
+    }
+  }
+}
 
-            pLogger->close ();
-            delete pLogger;
-            delete pWorkingSet;
+void
+SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods)
+{
+  for ( int i = 0; i < (int)(cbNeeded / sizeof (HMODULE)); i++ )
+  {
+    wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
+            ZeroMemory (wszModName, sizeof (wchar_t) * (MAX_PATH + 2));
 
-            CloseHandle (GetCurrentThread ());
-
-            return 0;
-          },
-
-          (LPVOID)working_set,
-        0x00,
-      nullptr
-    );
-
-    for ( i = 0; i < (cbNeeded / sizeof (HMODULE)); i++ )
-    {
-      wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
-
+    __try {
       // Get the full path to the module's file.
       if ( GetModuleFileNameExW ( hProc,
                                     hMods [i],
@@ -878,6 +872,85 @@ EnumLoadedModules (void)
         }
       }
     }
+
+    __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
+                           EXCEPTION_EXECUTE_HANDLER :
+                           EXCEPTION_CONTINUE_SEARCH  )
+    {
+      // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
+    }
+  }
+}
+
+void
+__stdcall
+EnumLoadedModules (void)
+{
+  // Begin logging new loads after this
+  SK_LoadLibrary_SILENCE = false;
+
+  iSK_Logger*  pLogger  = SK_CreateLog (L"logs/preloads.log");
+  DWORD        dwProcID = GetCurrentProcessId ();
+
+  static
+  HMODULE      hMods [16384];
+  HANDLE       hProc    = nullptr;
+  DWORD        cbNeeded = 0;
+
+  // Get a handle to the process.
+  hProc = OpenProcess ( PROCESS_QUERY_INFORMATION |
+                        PROCESS_VM_READ,
+                          FALSE,
+                            dwProcID );
+
+  if (hProc == nullptr) {
+    pLogger->close ();
+    delete pLogger;
+    return;
+  }
+
+  if ( EnumProcessModules ( hProc,
+                              hMods,
+                                sizeof (hMods),
+                                  &cbNeeded) )
+  {
+    enum_working_set_s* working_set =
+      new enum_working_set_s ();
+
+            working_set->proc   = hProc;
+            working_set->logger = pLogger;
+            working_set->count  = cbNeeded / sizeof HMODULE;
+    memcpy (working_set->modules, hMods, cbNeeded);
+
+    CreateThread (
+      nullptr,
+        0,
+          [](LPVOID user)->
+          DWORD
+          {
+            enum_working_set_s* pWorkingSet = (enum_working_set_s *)user;
+            iSK_Logger*         pLogger     = pWorkingSet->logger;
+
+            SK_ThreadWalkModules (pWorkingSet);
+
+            //// Release the handle to the process.
+            //// CloseHandle (pWorkingSet->proc);
+
+            pLogger->close ();
+            delete pLogger;
+            delete pWorkingSet;
+
+            CloseHandle (GetCurrentThread ());
+
+            return 0;
+          },
+
+          (LPVOID)working_set,
+        0x00,
+      nullptr
+    );
+
+    SK_WalkModules (cbNeeded, hProc, hMods);
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr) {

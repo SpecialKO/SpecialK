@@ -21,6 +21,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <SpecialK/utility.h>
+#include <SpecialK/core.h>
 
 #include <UserEnv.h>
 #pragma comment (lib, "userenv.lib")
@@ -69,7 +70,14 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
   HANDLE hToken;
 
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken))
+  {
+    if (buf != nullptr && pdwLen != nullptr && *pdwLen > 0) {
+      *pdwLen = 0;
+      *buf    = L'\0';
+    }
+
     return false;
+  }
 
   wchar_t* str;
 
@@ -1034,7 +1042,9 @@ void
 __stdcall
 SK_SelfDestruct (void)
 {
-  DllMain (SK_GetDLL (), DLL_PROCESS_DETACH, nullptr);
+  DllMain ( SK_GetDLL (),
+              DLL_PROCESS_DETACH,
+                nullptr );
 }
 
 HMODULE
@@ -1534,35 +1544,18 @@ uint64_t
 __stdcall
 SK_GetFileSize (const wchar_t* wszFile)
 {
-  uint64_t size = 0;
+  WIN32_FILE_ATTRIBUTE_DATA
+    file_attrib_data = { 0 };
 
-  DWORD dwFileAttribs =
-    GetFileAttributes (wszFile);
+  if ( GetFileAttributesEx ( wszFile,
+                               GetFileExInfoStandard,
+                                 &file_attrib_data ) )
+  {
+    return ULARGE_INTEGER { file_attrib_data.nFileSizeLow,
+                            file_attrib_data.nFileSizeHigh }.QuadPart;
+  }
 
-  if (dwFileAttribs == INVALID_FILE_ATTRIBUTES)
-    return size;
-
-  HANDLE hFile =
-    CreateFile ( wszFile,
-                   GENERIC_READ,
-                     FILE_SHARE_READ |
-                     FILE_SHARE_WRITE,
-                       nullptr,
-                         OPEN_EXISTING,
-                          dwFileAttribs,
-                            nullptr );
-
-  DWORD dwSizeHigh,
-        dwSizeLow =
-          GetFileSize (hFile, &dwSizeHigh);
-
-  ULARGE_INTEGER uli {
-    dwSizeLow, dwSizeHigh
-  };
-
-  CloseHandle (hFile);
-
-  return uli.QuadPart;
+  return 0ULL;
 }
 
 typedef void (__stdcall *SK_HashProgressCallback_pfn)(uint64_t current, uint64_t total);

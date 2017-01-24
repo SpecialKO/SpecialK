@@ -304,7 +304,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   {
     if ( *ppDevice != g_pD3D11Dev )
     {
-      dll_log.Log ( L"[  D3D 11  ] >> Device = 0x%08Xh (Feature Level:%s)",
+      dll_log.Log ( L"[  D3D 11  ] >> Device = %ph (Feature Level:%s)",
                       *ppDevice,
                         SK_DXGI_FeatureLevelsToStr ( 1,
                                                       (DWORD *)&FeatureLevel

@@ -361,7 +361,6 @@ DllMain ( HMODULE hModule,
     {
       ULONG                     local_refs =
           InterlockedIncrement (&__SK_DLL_Refs);
-      _Unreferenced_parameter_ (local_refs);
 
       // Sanity Check:
       // -------------
@@ -384,7 +383,7 @@ DllMain ( HMODULE hModule,
         return FALSE;
 
       DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH];
+      wchar_t wszProcessName [MAX_PATH] = { L'\0' };
 
       HANDLE hProc = GetCurrentProcess ();
 

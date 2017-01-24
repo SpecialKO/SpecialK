@@ -459,10 +459,13 @@ wglUseFontOutlinesW        = wglUseFontOutlinesW         PRIVATE
 SwapBuffers                = SwapBuffers                 PRIVATE
 
 
-SK_BeginBufferSwap             = SK_BeginBufferSwap                PRIVATE
-SK_EndBufferSwap               = SK_EndBufferSwap                  PRIVATE
-SK_DrawExternalOSD             = SK_DrawExternalOSD                PRIVATE
-SK_SetPresentParamsD3D9        = SK_SetPresentParamsD3D9           PRIVATE
+SK_BeginBufferSwap             = SK_BeginBufferSwap               PRIVATE
+SK_EndBufferSwap               = SK_EndBufferSwap                 PRIVATE
+SK_DrawExternalOSD             = SK_DrawExternalOSD               PRIVATE
+SK_SetPresentParamsD3D9        = SK_SetPresentParamsD3D9          PRIVATE
+
+SK_ImGui_DrawFrame             = SK_ImGui_DrawFrame               PRIVATE
+SK_ImGui_Toggle                = SK_ImGui_Toggle                  PRIVATE
 
 ; Deprecated stuff
 BMF_BeginBufferSwap            = SK_BeginBufferSwap               PRIVATE
@@ -476,6 +479,8 @@ SK_GetCommandProcessor         = SK_GetCommandProcessor            PRIVATE
 SK_GetFramesDrawn              = SK_GetFramesDrawn                 PRIVATE
 SK_DetourWindowProc            = SK_DetourWindowProc               PRIVATE
 SK_DetourWindowProc2           = SK_DetourWindowProc2              PRIVATE
+SK_GetCursorPos                = GetCursorPos_Detour               PRIVATE
+SK_GetCursorInfo               = GetCursorInfo_Detour              PRIVATE
 SK_GetGameWindow               = SK_GetGameWindow                  PRIVATE
 SK_PluginKeyPress              = SK_PluginKeyPress                 PRIVATE
 SK_GetConfigPath               = SK_GetConfigPath                  PRIVATE

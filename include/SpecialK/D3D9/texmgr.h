@@ -193,7 +193,7 @@ public:
       return pTex->GetDevice (ppDevice);
     }
     STDMETHOD(SetPrivateData)(THIS_ REFGUID refguid,CONST void* pData,DWORD SizeOfData,DWORD Flags) {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPrivateData (%x, %ph, %lu, %x)",
+      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPrivateData (%p, %ph, %lu, %x)",
                       refguid,
                         pData,
                           SizeOfData,
@@ -201,7 +201,7 @@ public:
       return pTex->SetPrivateData (refguid, pData, SizeOfData, Flags);
     }
     STDMETHOD(GetPrivateData)(THIS_ REFGUID refguid,void* pData,DWORD* pSizeOfData) {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPrivateData (%x, %ph, %lu)",
+      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPrivateData (%p, %ph, %lu)",
                       refguid,
                         pData,
                           *pSizeOfData );
@@ -209,7 +209,7 @@ public:
       return pTex->GetPrivateData (refguid, pData, pSizeOfData);
     }
     STDMETHOD(FreePrivateData)(THIS_ REFGUID refguid) {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::FreePrivateData (%x)",
+      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::FreePrivateData (%p)",
                       refguid );
 
       return pTex->FreePrivateData (refguid);

@@ -49,6 +49,9 @@
 
 #include <windowsx.h>
 
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#include <imgui/imgui.h>
+
 #define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX )
 #define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )
 
@@ -325,8 +328,10 @@ public:
       unsigned int x = 65535;
       unsigned int y = 65535;
 
-      char szTemp [32] = { '\0' };
-      strncpy (szTemp, *(char **)val, 32);
+         char szTemp    [32];
+      memset (szTemp, 0, 32);
+
+      strncpy (szTemp, *(char **)val, 31);
 
       if (val != nullptr)
         sscanf (szTemp, "%lux%lu", &x, &y);
@@ -657,22 +662,42 @@ typedef BOOL (WINAPI *SetCursorPos_pfn)
 
 SetCursorPos_pfn  SetCursorPos_Original  = nullptr;
 
-int game_x, game_y;
+ULONG game_mouselook = 0;
+int   game_x, game_y;
+
+bool
+ImGui_WantMouseCapture (void)
+{
+  bool imgui_capture = false;
+
+  if (SK_ImGui_Visible)
+  {
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
+    if (io.WantCaptureMouse || (game_mouselook >= SK_GetFramesDrawn () - 1))
+      imgui_capture = true;
+  }
+
+  return imgui_capture;
+}
 
 BOOL
 WINAPI
 GetCursorInfo_Detour (PCURSORINFO pci)
 {
+
   BOOL ret = GetCursorInfo_Original (pci);
 
-  static CURSORINFO last_ci;
+  if (ImGui_WantMouseCapture ()) {
+    POINT tmp_pt = pci->ptScreenPos;
 
-  if (! SK_ImGui_Visible) {
-    last_ci = *pci;
-  } else {
-    *pci = last_ci;
     pci->ptScreenPos.x = game_x;
-    pci->ptScreenPos.x = game_y;
+    pci->ptScreenPos.y = game_y;
+
+    game_x = tmp_pt.x;
+    game_y = tmp_pt.y;
+
     return TRUE;
   }
 
@@ -685,17 +710,16 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 {
   BOOL ret = GetCursorPos_Original (lpPoint);
 
-  static POINT last_pt;
+  if (ImGui_WantMouseCapture ()) {
+    POINT tmp_pt = *lpPoint;
 
-  if (! SK_ImGui_Visible) {
-    last_pt = *lpPoint;
-  }
-  else {
     lpPoint->x = game_x;
     lpPoint->y = game_y;
-    //*lpPoint = last_pt;
 
-    return true;
+    game_x = tmp_pt.x;
+    game_y = tmp_pt.y;
+
+    return TRUE;
   }
 
   return ret;
@@ -705,9 +729,12 @@ BOOL
 WINAPI
 SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
-  game_x = x; game_y = y;
+  if (SK_ImGui_Visible)
+  {
+    game_mouselook = SK_GetFramesDrawn ();
+  }
 
-  if (! SK_ImGui_Visible) {
+  else {
     return SetCursorPos_Original (x, y);
   }
 
@@ -1983,96 +2010,6 @@ SK_GetSystemMetrics (_In_ int nIndex)
   return GetSystemMetrics_Original (nIndex);
 }
 
-void
-SK_HookWinAPI (void)
-{
-  // Initialize the Window Manager
-  SK_WindowManager::getInstance ();
-
-  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
-                        SetWindowPos_Detour,
-             (LPVOID *)&SetWindowPos_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPlacement",
-                        SetWindowPlacement_Detour,
-             (LPVOID *)&SetWindowPlacement_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "ClipCursor",
-                        ClipCursor_Detour,
-             (LPVOID *)&ClipCursor_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "MoveWindow",
-                        MoveWindow_Detour,
-             (LPVOID *)&MoveWindow_Original );
-
-// These functions are dispatched through the Ptr version, so
-//   hooking them in the 64-bit version would be a bad idea.
-#ifndef _WIN64
-  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongA",
-                        SetWindowLongA_Detour,
-             (LPVOID *)&SetWindowLongA_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongW",
-                        SetWindowLongW_Detour,
-             (LPVOID *)&SetWindowLongW_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongA",
-                        GetWindowLongA_Detour,
-             (LPVOID *)&GetWindowLongA_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongW",
-                        GetWindowLongW_Detour,
-             (LPVOID *)&GetWindowLongW_Original );
-#endif
-
-#ifdef _WIN64
-  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongPtrA",
-                        SetWindowLongPtrA_Detour,
-             (LPVOID *)&SetWindowLongPtrA_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongPtrW",
-                        SetWindowLongPtrW_Detour,
-             (LPVOID *)&SetWindowLongPtrW_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongPtrA",
-                        GetWindowLongPtrA_Detour,
-             (LPVOID *)&GetWindowLongPtrA_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongPtrW",
-                        GetWindowLongPtrW_Detour,
-             (LPVOID *)&GetWindowLongPtrW_Original );
-#endif
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowRect",
-                      GetWindowRect_Detour,
-            (LPVOID*)&GetWindowRect_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetClientRect",
-                      GetClientRect_Detour,
-            (LPVOID*)&GetClientRect_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRect",
-                        AdjustWindowRect_Detour,
-             (LPVOID *)&AdjustWindowRect_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRectEx",
-                        AdjustWindowRectEx_Detour,
-             (LPVOID *)&AdjustWindowRectEx_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll",
-                      "GetSystemMetrics",
-                       GetSystemMetrics_Detour,
-            (LPVOID *)&GetSystemMetrics_Original );
-
-  SK_ApplyQueuedHooks ();
-
-#ifndef _WIN64
-  SetWindowLongPtrA_Original = SetWindowLongA_Original;
-  SetWindowLongPtrW_Original = SetWindowLongW_Original;
-#else
-#endif
-}
-
 
 GetKeyState_pfn             GetKeyState_Original             = nullptr;
 GetAsyncKeyState_pfn        GetAsyncKeyState_Original        = nullptr;
@@ -2210,9 +2147,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  LPARAM lParam )
 {
   if (hWnd != game_window.hWnd) {
-    dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
-                  L" for rendering... (Old=%p, New=%p)",
-                    game_window.hWnd, hWnd );
+    if (game_window.hWnd != 0) {
+      dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
+                    L" for rendering... (Old=%p, New=%p)",
+                      game_window.hWnd, hWnd );
+    }
 
     game_window.hWnd = hWnd;
 
@@ -2228,6 +2167,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     //SK_AdjustBorder        ();
     //SK_AdjustWindow        ();
+
+    SK_InitWindow (hWnd, false);
+
+    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
   }
 
   //return DefWindowProc (hWnd, uMsg, wParam, lParam);
@@ -2243,25 +2186,33 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
-  if (SK_ImGui_Visible) {
-    if ( (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) ||
-         (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)   ||
-         (uMsg == WM_INPUT) )
+  if (SK_ImGui_Visible && GetForegroundWindow () == GetActiveWindow ())
+  {
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
+    bool keyboard_capture =
+      ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)   &&
+          io.WantCaptureKeyboard );
+    bool mouse_capture =
+      ( (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) &&
+          ImGui_WantMouseCapture () );
+    bool rawinput_capture =
+      ( uMsg == WM_INPUT && ( io.WantCaptureKeyboard ||
+                              io.WantCaptureMouse ) );
+
+    if ( keyboard_capture || mouse_capture || rawinput_capture )
     {
-      extern void
-      CALLBACK
-      SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+      if (! keyboard_capture)
+      {
+        if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
+          SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam);
 
-      if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)) {
-        bool ctrl  = GetKeyState (VK_CONTROL) & 0x8000;
-        bool shift = GetKeyState (VK_SHIFT)   & 0x8000;
-        bool alt   = GetKeyState (VK_MENU)    & 0x8000;
-
-        //if (game_window.active)
-          SK_PluginKeyPress (ctrl, shift, alt, wParam);
+        if (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP)
+          SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam);
       }
 
-      return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      return 0;
     }
   }
 
@@ -2528,21 +2479,23 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
   }
 
-  if ((! game_window.active) && uMsg == WM_MOUSEMOVE)
+  bool active = ( GetForegroundWindow () == GetActiveWindow () );
+
+  if ((! active) && uMsg == WM_MOUSEMOVE)
   {
-    GetCursorPos_Original (&game_window.cursor_pos);
+    //GetCursorPos_Original (&game_window.cursor_pos);
   }
 
   bool background_render =
-    config.window.background_render && (! game_window.active);
+    config.window.background_render && (! active);
 
-  if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) && (! background_render)) {
+  if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) && active) {
     if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN)) {
       return game_window.CallProc (hWnd, uMsg, wParam, lParam);
     }
   }
 
-  if ((uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP) && (! background_render)) {
+  if ((uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP) && active) {
     if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP)) {
       return game_window.CallProc (hWnd, uMsg, wParam, lParam);
     }
@@ -2553,7 +2506,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam)) {
     // Block keyboard input to the game while the console is visible
-    if (console_visible || (background_render && uMsg != WM_SYSKEYDOWN)) {
+    if (console_visible /*|| ((! active) && uMsg != WM_SYSKEYDOWN)*/) {
       if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
@@ -2581,6 +2534,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   _In_ UINT             cbSize
 )
 {
+#if 0
   if (cbSize != sizeof RAWINPUTDEVICE) {
     dll_log.Log ( L"[ RawInput ] RegisterRawInputDevices has wrong "
                   L"structure size (%lu bytes), expected: %lu",
@@ -2592,6 +2546,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
                                            uiNumDevices,
                                              cbSize );
   }
+#endif
 
   RAWINPUTDEVICE* pDevices = new RAWINPUTDEVICE [uiNumDevices];
 
@@ -2613,9 +2568,9 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
 void
 SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 {
-
-  if (! GetCursorPos_Original)
+  if (game_window.GetWindowLongPtr == nullptr) {
     SK_InstallWindowHook (hWnd);
+  }
 
   GetWindowRect_Original (hWnd, &game_window.game.window);
   GetClientRect_Original (hWnd, &game_window.game.client);
@@ -2625,11 +2580,14 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 
   GetCursorPos_Original  (&game_window.cursor_pos);
 
+
   game_window.actual.style =
     game_window.GetWindowLongPtr ( hWnd, GWL_STYLE );
 
   game_window.actual.style_ex =
     game_window.GetWindowLongPtr ( hWnd, GWL_EXSTYLE );
+
+
 
   bool has_border  = SK_WindowManager::StyleHasBorder (
                        game_window.actual.style
@@ -2644,6 +2602,7 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   game_window.game.style_ex = game_window.actual.style_ex;
 
   game_window.hWnd = hWnd;
+
 
   if (! fullscreen_exclusive)
   {
@@ -2680,60 +2639,6 @@ SK_InstallWindowHook (HWND hWnd)
 
   if (InterlockedCompareExchange (&installed, TRUE, FALSE))
     return;
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetRawInputData",
-                     GetRawInputData_Detour,
-           (LPVOID*)&GetRawInputData_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetKeyState",
-                     GetKeyState_Detour,
-           (LPVOID*)&GetKeyState_Original );
-
-  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
-
-  //
-  // TZFix has its own limiter
-  //
-  if (! (hModTZFix )) {
-    SK_CreateDLLHook2 ( L"user32.dll", "SetCursorPos",
-                       SetCursorPos_Detour,
-             (LPVOID*)&SetCursorPos_Original );
-
-    SK_CreateDLLHook2 ( L"user32.dll", "GetCursorPos",
-                       GetCursorPos_Detour,
-             (LPVOID*)&GetCursorPos_Original );
-
-    SK_CreateDLLHook2 ( L"user32.dll", "GetCursorInfo",
-                       GetCursorInfo_Detour,
-            (LPVOID*)&GetCursorInfo_Original );
-  } else {
-    SetCursorPos_Original =
-      (SetCursorPos_pfn)GetProcAddress (
-        GetModuleHandle (L"user32.dll"),
-          "SetCursorPos"
-      );
-
-    GetCursorPos_Original =
-      (GetCursorPos_pfn)GetProcAddress (
-        GetModuleHandle (L"user32.dll"),
-          "GetCursorPos"
-      );
-    GetCursorInfo_Original =
-      (GetCursorInfo_pfn)GetProcAddress (
-        GetModuleHandle (L"user32.dll"),
-          "GetCursorInfo"
-      );
-  }
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetAsyncKeyState",
-                     GetAsyncKeyState_Detour,
-           (LPVOID*)&GetAsyncKeyState_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "RegisterRawInputDevices",
-                     RegisterRawInputDevices_Detour,
-           (LPVOID*)&RegisterRawInputDevices_Original );
-
-  MH_ApplyQueued ();
 
   game_window.unicode = IsWindowUnicode (hWnd) != FALSE;
 
@@ -2852,4 +2757,123 @@ SK_GetGameWindow (void)
   SK_WINDOW_LOG_CALL3 ();
 
   return game_window.hWnd;
+}
+
+
+void
+SK_HookWinAPI (void)
+{
+  // Initialize the Window Manager
+  SK_WindowManager::getInstance ();
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetRawInputData",
+                     GetRawInputData_Detour,
+           (LPVOID*)&GetRawInputData_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetKeyState",
+                     GetKeyState_Detour,
+           (LPVOID*)&GetKeyState_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetCursorPos",
+                     GetCursorPos_Detour,
+           (LPVOID*)&GetCursorPos_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetCursorInfo",
+                     GetCursorInfo_Detour,
+          (LPVOID*)&GetCursorInfo_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "SetCursorPos",
+                     SetCursorPos_Detour,
+           (LPVOID*)&SetCursorPos_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetAsyncKeyState",
+                     GetAsyncKeyState_Detour,
+           (LPVOID*)&GetAsyncKeyState_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "RegisterRawInputDevices",
+                     RegisterRawInputDevices_Detour,
+           (LPVOID*)&RegisterRawInputDevices_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
+                        SetWindowPos_Detour,
+             (LPVOID *)&SetWindowPos_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPlacement",
+                        SetWindowPlacement_Detour,
+             (LPVOID *)&SetWindowPlacement_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "ClipCursor",
+                        ClipCursor_Detour,
+             (LPVOID *)&ClipCursor_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "MoveWindow",
+                        MoveWindow_Detour,
+             (LPVOID *)&MoveWindow_Original );
+
+// These functions are dispatched through the Ptr version, so
+//   hooking them in the 64-bit version would be a bad idea.
+#ifndef _WIN64
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongA",
+                        SetWindowLongA_Detour,
+             (LPVOID *)&SetWindowLongA_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongW",
+                        SetWindowLongW_Detour,
+             (LPVOID *)&SetWindowLongW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongA",
+                        GetWindowLongA_Detour,
+             (LPVOID *)&GetWindowLongA_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongW",
+                        GetWindowLongW_Detour,
+             (LPVOID *)&GetWindowLongW_Original );
+#endif
+
+#ifdef _WIN64
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongPtrA",
+                        SetWindowLongPtrA_Detour,
+             (LPVOID *)&SetWindowLongPtrA_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongPtrW",
+                        SetWindowLongPtrW_Detour,
+             (LPVOID *)&SetWindowLongPtrW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongPtrA",
+                        GetWindowLongPtrA_Detour,
+             (LPVOID *)&GetWindowLongPtrA_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongPtrW",
+                        GetWindowLongPtrW_Detour,
+             (LPVOID *)&GetWindowLongPtrW_Original );
+#endif
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowRect",
+                      GetWindowRect_Detour,
+            (LPVOID*)&GetWindowRect_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetClientRect",
+                      GetClientRect_Detour,
+            (LPVOID*)&GetClientRect_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRect",
+                        AdjustWindowRect_Detour,
+             (LPVOID *)&AdjustWindowRect_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "AdjustWindowRectEx",
+                        AdjustWindowRectEx_Detour,
+             (LPVOID *)&AdjustWindowRectEx_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll",+
+                      "GetSystemMetrics",
+                       GetSystemMetrics_Detour,
+            (LPVOID *)&GetSystemMetrics_Original );
+
+  SK_ApplyQueuedHooks ();
+
+#ifndef _WIN64
+  SetWindowLongPtrA_Original = SetWindowLongA_Original;
+  SetWindowLongPtrW_Original = SetWindowLongW_Original;
+#else
+#endif
 }

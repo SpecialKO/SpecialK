@@ -5,6 +5,100 @@
 #include <imgui/backends/imgui_d3d9.h>
 #include <d3d9.h>
 
+#include <SpecialK/config.h>
+#include <SpecialK/DLL_VERSION.H>
+#include <SpecialK/command.h>
+#include <SpecialK/console.h>
+
+
+extern bool SK_ImGui_Visible;
+
+
+__declspec (dllexport)
+bool
+SK_ImGui_ControlPanel (void)
+{
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 50), ImGui::GetIO ().DisplaySize);
+
+  const char* szTitle = "Special K (v " SK_VERSION_STR_A ") Control Panel";
+  bool        open    = true;
+
+  ImGui::Begin (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+    //ImGui::CollapsingHeader ("On-Screen Display");
+    //ImGui::CollapsingHeader ("Render Features");
+
+    if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
+                                                        ImGuiTreeNodeFlags_DefaultOpen ) )
+    {
+      ImGui::Checkbox ("Play Achievement Unlock Sound",      &config.steam.achievements.play_sound);
+
+      if (config.steam.achievements.play_sound) {
+        ImGui::SameLine ();
+
+        int i = 0;
+
+        if (! wcsicmp (config.steam.achievements.sound_file.c_str (), L"xbox"))
+          i = 1;
+        else
+          i = 0;
+
+        if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0\0", 2))
+        {
+          if (i == 0) config.steam.achievements.sound_file = L"psn";
+                 else config.steam.achievements.sound_file = L"xbox";
+
+          extern void
+          SK_SteamAPI_LoadUnlockSound (const wchar_t* wszUnlockSound);
+
+          SK_SteamAPI_LoadUnlockSound (config.steam.achievements.sound_file.c_str ());
+        }
+      }
+
+      ImGui::Checkbox ("Take Screenshot on Achievement Unlock", &config.steam.achievements.take_screenshot);
+
+      if (ImGui::TreeNode  ("Achievement Popup"))
+      {
+        ImGui::Checkbox  ("Draw Popup on Achievement Unlock", &config.steam.achievements.popup.show);
+        ImGui::SliderInt ("Popup Duration (msecs)", &config.steam.achievements.popup.duration, 1000UL, 30000UL);
+        ImGui::Combo     ( "Popup Corner",          &config.steam.achievements.popup.origin,
+                                      "Top-Left\0"
+                                      "Top-Right\0"
+                                      "Bottom-Left\0"
+                                      "Bottom-Right\0\0" );
+        ImGui::Checkbox  ("Animate Popup",          &config.steam.achievements.popup.animate);
+        //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
+        ImGui::TreePop   ();
+      }
+
+      extern void
+      SK_UnlockSteamAchievement (uint32_t idx);
+
+      if (ImGui::Button ("Test Achievement Unlock"))
+        SK_UnlockSteamAchievement (0);
+
+      ImGui::Combo ( "Steam Notification Corner", &config.steam.notify_corner,
+                                     "Top-Left\0"
+                                     "Top-Right\0"
+                                     "Bottom-Left\0"
+                                     "Bottom-Right\0"
+                                     "Don't Care (use game's default)\0\0" );
+
+      extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
+
+      ImGui::Text ( "  * SteamAPI Frame: %llu", InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) );
+    }
+
+    //ImGui::CollapsingHeader ("Window Management");
+    //ImGui::CollapsingHeader ("Version Control");
+  ImGui::End   ();
+
+  return open;
+}
+
 #if 0
 #include "config.h"
 
@@ -547,3 +641,101 @@ tbt_main (HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
   UnregisterClass (L"Tales of Berseria Tweak", wc.hInstance);
 }
 #endif
+
+#include <SpecialK/render_backend.h>
+
+__declspec (dllexport)
+void
+SK_ImGui_Toggle (void);
+
+//
+// Hook this to override Special K's GUI
+//
+__declspec (dllexport)
+DWORD
+SK_ImGui_DrawFrame (DWORD dwFlags, void* user)
+{
+  bool d3d9 = false;
+
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) {
+    d3d9 = true;
+
+    ImGui_ImplDX9_NewFrame ();
+  }
+
+  // Default action is to draw the Special K Control panel,
+  //   but if you hook this function you can do anything you
+  //     want...
+  //
+  //    To use the Special K Control Panel from a plug-in,
+  //      import SK_ImGui_ControlPanel and call that somewhere
+  //        from your hook.
+  bool keep_open = SK_ImGui_ControlPanel ();
+
+  if (d3d9) {
+    extern LPDIRECT3DDEVICE9 g_pd3dDevice;
+
+    if ( SUCCEEDED (
+           g_pd3dDevice->BeginScene ()
+         )
+       )
+    {
+      ImGui::Render          ();
+      g_pd3dDevice->EndScene ();
+    }
+  }
+
+  if (! keep_open)
+    SK_ImGui_Toggle ();
+
+  return 0;
+}
+
+__declspec (dllexport)
+void
+SK_ImGui_Toggle (void)
+{
+  bool d3d9 = false;
+
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) {
+    d3d9 = true;
+
+  static int cursor_refs = 0;
+
+  if (SK_ImGui_Visible) {
+    while (ShowCursor (FALSE) > cursor_refs)
+      ;
+    while (ShowCursor (TRUE)  < cursor_refs)
+      ;
+  }
+  else {
+    cursor_refs = (ShowCursor (FALSE) + 1);
+
+    if (cursor_refs > 0) {
+      while (ShowCursor (FALSE) > 0)
+        ;
+    }
+  }
+
+  SK_ImGui_Visible = (! SK_ImGui_Visible);
+
+  if (SK_ImGui_Visible)
+    SK_Console::getInstance ()->visible = false;
+
+
+  extern const wchar_t*
+  __stdcall
+  SK_GetBackend (void);
+
+  const wchar_t* config_name = SK_GetBackend ();
+
+  extern bool
+  __stdcall
+  SK_IsInjected (bool set = false);
+
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
+
+  SK_SaveConfig (config_name);
+  }
+}

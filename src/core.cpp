@@ -112,6 +112,15 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
 
 wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
 wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
+wchar_t SK_Backend    [128];
+
+__declspec (noinline)
+const wchar_t*
+__stdcall
+SK_GetBackend (void)
+{
+  return SK_Backend;
+}
 
 __declspec (noinline)
 const wchar_t*
@@ -534,7 +543,7 @@ SK_StartPerfMonThreads (void)
 
 void
 __stdcall
-SK_InitFinishCallback (_Releases_exclusive_lock_ (init_mutex) void)
+SK_InitFinishCallback (_Releases_lock_ (init_mutex) void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
@@ -557,8 +566,9 @@ SK_InitFinishCallback (_Releases_exclusive_lock_ (init_mutex) void)
                                    nullptr );
 
     if (hPumpThread != nullptr)
-      dll_log.LogEx (false, L"tid=0x%04x, interval=%04.01f ms\n",
-                       hPumpThread, config.osd.pump_interval * 1000.0f);
+      dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
+                        GetThreadId (hPumpThread),
+                          config.osd.pump_interval * 1000.0f );
     else
       dll_log.LogEx (false, L"failed!\n");
   }
@@ -574,8 +584,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
 {
   EnterCriticalSection (&init_mutex);
 
-  typedef void (WINAPI *finish_pfn)  (_Releases_exclusive_lock_ (init_mutex) void);
-  typedef void (WINAPI *callback_pfn)(finish_pfn);
+  wcscpy (SK_Backend, backend);
+
+  typedef void (WINAPI *finish_pfn)  (void);
+  typedef void (WINAPI *callback_pfn)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
   callback_pfn callback_fn = (callback_pfn)callback;
 
   if (backend_dll != NULL) {
@@ -751,12 +763,14 @@ SK_InitCore (const wchar_t* backend, void* callback)
         bool
           {
             // Compat Hack for Torchlight 2
-            bool has_base = GetModuleHandle (L"CEGUIBase.dll");
+            bool has_base = (GetModuleHandle (L"CEGUIBase.dll") != nullptr);
 
-            if (! has_base) {
+            if (! has_base)
+            {
               k32_SetDefaultDllDirectories (
                 LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS );
+                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+              );
             } else {
               SetDllDirectoryW (wszCEGUIModPath);
             }
@@ -1046,8 +1060,8 @@ skMemCmd::execute (const char* szArgs)
   if (szArgs == nullptr)
     return SK_ICommandResult ("mem", szArgs);
 
-  uintptr_t addr;
-  char      type;
+  uintptr_t addr      =   NULL;
+  char      type      =     0;
   char      val [256] = { '\0' };
 
 #ifdef _WIN64
@@ -1069,7 +1083,7 @@ skMemCmd::execute (const char* szArgs)
 
   addr += (uintptr_t)base_addr;
 
-  char result [512];
+  char result [512] = { '\0' };
 
   switch (type) {
     case 'b':
@@ -1267,12 +1281,148 @@ DWORD
 __stdcall
 DllThread (LPVOID user)
 {
+  DllThread_CRT (&init_);
+
+  return 0;
+}
+
+#include <wingdi.h>
+#include <gl/gl.h>
+
+extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
+
+bool
+__stdcall
+SK_StartupCore (const wchar_t* backend, void* callback)
+{
   InitializeCriticalSectionAndSpinCount (&init_mutex, 50000);
 
-  EnterCriticalSection (&init_mutex);
+  // Allow users to centralize all files if they want
+  if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
+    config.system.central_repository = true;
 
-  const wchar_t* backend  = ((init_params_t *)user)->backend;
-        void*    callback = ((init_params_t *)user)->callback;
+  if (SK_IsInjected ())
+    config.system.central_repository = true;
+
+  // Holy Rusted Metal Batman !!!
+  //---------------------------------------------------------------------------
+  //
+  //  * <Black Lists Matter> *
+  //
+  //   Replace this with something faster such as a trie ... we cannot use
+  //     STL at this point, that would bring in dependencies on other MSVCRT
+  //       DLLs.
+  //
+  //   *** (A static trie or hashmap should be doable though.) ***
+  //___________________________________________________________________________
+       // Steam-Specific Stuff
+  if ( (! SK_Path_wcsicmp (SK_GetHostApp(),L"steam.exe"))                    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"GameOverlayUI.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"streaming_client.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamerrorreporter.exe"))       ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamerrorreporter64.exe"))     ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamservice.exe"))             ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steam_monitor.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamwebhelper.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"html5app_steam.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"wow_helper.exe"))               ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"uninstall.exe"))                ||
+        
+
+       // Crash Helpers
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"WriteMiniDump.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashReporter.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SupportTool.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashSender1400.exe"))          ||
+
+       // Runtime Installers
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"DXSETUP.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"setup.exe"))                    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc_redist.x64.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc_redist.x86.exe"))            ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc2010redist_x64.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc2010redist_x86.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcredist_x64.exe"))             ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcredist_x86.exe"))             ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),
+                       L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotnetfx35.exe"))               ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"DotNetFx35Client.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Full_x86_x64.exe"))  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Client_x86_x64.exe"))||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"oalinst.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"EasyAntiCheat_Setup.exe"))      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UplayInstaller.exe"))           ||
+
+       // Launchers
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"x64launcher.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"x86launcher.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Launcher.exe"))                 ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"FFX&X-2_LAUNCHER.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Fallout4Launcher.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SkyrimSELauncher.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"ModLauncher.exe"))              ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"AkibaUU_Config.exe"))           ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Obduction.exe"))                ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Grandia2Launcher.exe"))         ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"FFXiii2Launcher.exe"))          ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Bethesda.net_Launcher.exe"))    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher.exe"))      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher64.exe"))    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SplashScreen.exe"))             ||
+
+       // Other Stuff
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"zosSteamStarter.exe"))          ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"notepad.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"7zFM.exe"))                     ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"WinRar.exe"))                   ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"EAC.exe"))                      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcpkgsrv.exe"))                 ||
+
+       // Misc. Tools
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SleepOnLan.exe"))               ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"ds3t.exe"))                     ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"tzt.exe")) )
+    return false;
+
+  // This is a fatal combination
+  if (SK_IsInjected () && SK_IsHostAppSKIM ())
+    return false;
+
+  // Only the injector version can be bypassed, the wrapper version
+  //   must fully initialize or the game will not be able to use the
+  //     DLL it is wrapping.
+  if ( SK_IsInjected    ()         &&
+       GetAsyncKeyState (VK_SHIFT) &&
+       GetAsyncKeyState (VK_CONTROL) ) {
+    std::pair <std::queue <DWORD>, BOOL> retval =
+      SK_BypassInject ();
+
+    SK_ResumeThreads (retval.first);
+
+    return true;
+  }
+
+  else {
+    bool blacklist =
+      SK_IsInjected () &&
+      (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
+
+    //
+    // Internal blacklist, the user will have the ability to setup their
+    //   own later...
+    //
+    if ( blacklist ) {
+      return false;
+    }
+  }
+
+  ZeroMemory (&init_, sizeof init_params_t);
+
+  init_.backend  = _wcsdup (backend);
+  init_.callback =          callback;
+
+  EnterCriticalSection (&init_mutex);
 
   // Don't start SteamAPI if we're running the installer...
   if (SK_IsHostAppSKIM ())
@@ -1407,146 +1557,7 @@ DllThread (LPVOID user)
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
-  DllThread_CRT (&init_);
-
   LeaveCriticalSection (&init_mutex);
-
-  return 0;
-}
-
-#include <wingdi.h>
-#include <gl/gl.h>
-
-extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
-
-bool
-__stdcall
-SK_StartupCore (const wchar_t* backend, void* callback)
-{
-  // Allow users to centralize all files if they want
-  if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
-    config.system.central_repository = true;
-
-  if (SK_IsInjected ())
-    config.system.central_repository = true;
-
-  // Holy Rusted Metal Batman !!!
-  //---------------------------------------------------------------------------
-  //
-  //  * <Black Lists Matter> *
-  //
-  //   Replace this with something faster such as a trie ... we cannot use
-  //     STL at this point, that would bring in dependencies on other MSVCRT
-  //       DLLs.
-  //
-  //   *** (A static trie or hashmap should be doable though.) ***
-  //___________________________________________________________________________
-       // Steam-Specific Stuff
-  if ( (! SK_Path_wcsicmp (SK_GetHostApp(),L"steam.exe"))                    ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"GameOverlayUI.exe"))            ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"streaming_client.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamerrorreporter.exe"))       ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamerrorreporter64.exe"))     ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamservice.exe"))             ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steam_monitor.exe"))            ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"steamwebhelper.exe"))           ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"html5app_steam.exe"))           ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"wow_helper.exe"))               ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"uninstall.exe"))                ||
-        
-
-       // Crash Helpers
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"WriteMiniDump.exe"))            ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashReporter.exe"))            ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SupportTool.exe"))              ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashSender1400.exe"))          ||
-
-       // Runtime Installers
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"DXSETUP.exe"))                  ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"setup.exe"))                    ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc_redist.x64.exe"))            ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc_redist.x86.exe"))            ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc2010redist_x64.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vc2010redist_x86.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcredist_x64.exe"))             ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcredist_x86.exe"))             ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),
-                       L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe"))           ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotnetfx35.exe"))               ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"DotNetFx35Client.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Full_x86_x64.exe"))  ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dotNetFx40_Client_x86_x64.exe"))||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"oalinst.exe"))                  ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"EasyAntiCheat_Setup.exe"))      ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UplayInstaller.exe"))           ||
-
-       // Launchers
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"x64launcher.exe"))              ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"x86launcher.exe"))              ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Launcher.exe"))                 ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"FFX&X-2_LAUNCHER.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Fallout4Launcher.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SkyrimSELauncher.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"ModLauncher.exe"))              ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"AkibaUU_Config.exe"))           ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Obduction.exe"))                ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Grandia2Launcher.exe"))         ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"FFXiii2Launcher.exe"))          ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"Bethesda.net_Launcher.exe"))    ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher.exe"))      ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"UbisoftGameLauncher64.exe"))    ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SplashScreen.exe"))             ||
-
-       // Other Stuff
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"zosSteamStarter.exe"))          ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"notepad.exe"))                  ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"7zFM.exe"))                     ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"WinRar.exe"))                   ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"EAC.exe"))                      ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcpkgsrv.exe"))                 ||
-
-       // Misc. Tools
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"SleepOnLan.exe"))               ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"ds3t.exe"))                     ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"tzt.exe")) )
-    return false;
-
-  // This is a fatal combination
-  if (SK_IsInjected () && SK_IsHostAppSKIM ())
-    return false;
-
-  // Only the injector version can be bypassed, the wrapper version
-  //   must fully initialize or the game will not be able to use the
-  //     DLL it is wrapping.
-  if ( SK_IsInjected    ()         &&
-       GetAsyncKeyState (VK_SHIFT) &&
-       GetAsyncKeyState (VK_CONTROL) ) {
-    std::pair <std::queue <DWORD>, BOOL> retval =
-      SK_BypassInject ();
-
-    SK_ResumeThreads (retval.first);
-
-    return true;
-  }
-
-  else {
-    bool blacklist =
-      SK_IsInjected () &&
-      (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
-
-    //
-    // Internal blacklist, the user will have the ability to setup their
-    //   own later...
-    //
-    if ( blacklist ) {
-      return false;
-    }
-  }
-
-  ZeroMemory (&init_, sizeof init_params_t);
-
-  init_.backend  = _wcsdup (backend);
-  init_.callback =          callback;
 
   InterlockedExchangePointer (
     (void **)&hInitThread,
@@ -1749,10 +1760,24 @@ SK_BeginBufferSwap (void)
     }
   }
 
+
   SK_DrawOSD         ();
   SK_DrawConsole     ();
   extern void SK_DrawTexMgrStats (void);
   SK_DrawTexMgrStats ();
+
+  static HMODULE hModTBFix = GetModuleHandle( L"tbfix.dll");
+
+  if (hModTBFix) {
+    SK::Framerate::GetLimiter ()->wait ();
+  }
+
+  extern bool SK_ImGui_Visible;
+
+  if (SK_ImGui_Visible) {
+    extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
+                 SK_ImGui_DrawFrame (       0x00,          nullptr );
+  }
 }
 
 ULONGLONG poll_interval = 0;
@@ -1760,6 +1785,20 @@ ULONGLONG poll_interval = 0;
 void
 DoKeyboard (void)
 {
+  //
+  // Do not pol the keyboard while the game window is inactive
+  //
+  bool skip = true;
+
+  if ( SK_GetGameWindow () == GetForegroundWindow () )
+    skip = false;
+
+  if (skip)
+    return;
+
+
+
+
   static ULONGLONG last_osd_scale { 0ULL };
   static ULONGLONG last_poll      { 0ULL };
   static ULONGLONG last_drag      { 0ULL };
@@ -2087,11 +2126,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   InterlockedIncrement (&frames_drawn);
 
   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
+  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
   //
   // TZFix has its own limiter
   //
-  if (! hModTZFix) {
+  if (! (hModTZFix || hModTBFix)) {
     SK::Framerate::GetLimiter ()->wait ();
   }
 

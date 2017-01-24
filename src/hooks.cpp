@@ -483,7 +483,8 @@ SK_EnableHookEx (LPVOID pTarget, UINT idx)
     } else {
       dll_log.Log ( L"[ Min Hook ] Failed to Enable All (Idx=%lu) Hooks! "
                     L"(Status: \"%hs\")",
-                      MH_StatusToString (status) );
+                      idx,
+                        MH_StatusToString (status) );
     }
   }
 

@@ -148,10 +148,12 @@ SK_CEGUI_InitBase (void)
   try {
     // initialise the required dirs for the DefaultResourceProvider
     CEGUI::DefaultResourceProvider* rp =
-        static_cast<CEGUI::DefaultResourceProvider *>
+        dynamic_cast <CEGUI::DefaultResourceProvider *>
             (CEGUI::System::getDllSingleton ().getResourceProvider ());
 
-    char szRootPath [MAX_PATH];
+           char szRootPath [MAX_PATH];
+    ZeroMemory (szRootPath, MAX_PATH);
+
     snprintf (szRootPath, MAX_PATH, "%ws", SK_GetRootPath ());
 
     CEGUI::String dataPathPrefix ( ( std::string (szRootPath) +
@@ -868,12 +870,12 @@ SK_GetDXGIFactoryInterfaceEx (const IID& riid)
   else if (riid == __uuidof (IDXGIFactory4))
     interface_name = L"IDXGIFactory4";
   else {
-    wchar_t *pwszIID;
+    wchar_t *pwszIID = nullptr;
 
     if (SUCCEEDED (StringFromIID (riid, (LPOLESTR *)&pwszIID)))
     {
       interface_name = pwszIID;
-      CoTaskMemFree (pwszIID);
+      CoTaskMemFree   (pwszIID);
     }
   }
 
@@ -984,12 +986,12 @@ SK_GetDXGIAdapterInterfaceEx (const IID& riid)
   else if (riid == __uuidof (IDXGIAdapter3))
     interface_name = L"IDXGIAdapter3";
   else {
-    wchar_t* pwszIID;
+    wchar_t *pwszIID = nullptr;
 
     if (SUCCEEDED (StringFromIID (riid, (LPOLESTR *)&pwszIID)))
     {
       interface_name = pwszIID;
-      CoTaskMemFree (pwszIID);
+      CoTaskMemFree   (pwszIID);
     }
   }
 
@@ -1176,14 +1178,20 @@ void CreateStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->GetPredication(&sb->Predication, &sb->PredicationValue);
 }
 
-template<class T>
-UINT calc_count(T** arr, UINT max_count)
+template <class _T>
+UINT
+calc_count (_T** arr, UINT max_count)
 {
-  for (size_t i = 0; i < max_count; ++i)
-      if (arr[i] == 0)
-          return i;
+  for ( UINT i = 0         ;
+             i < max_count ;
+           ++i )           {
+    if (arr [i] == 0)
+      return i;
+  }
+
   return max_count;
 }
+
 void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 {
   UINT minus_one[D3D11_PS_CS_UAV_REGISTER_COUNT];
@@ -1349,7 +1357,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     if (SUCCEEDED (hr)) {
 #define USE_SB
 #ifdef USE_SB
-      D3DX11_STATE_BLOCK sb;
+      static D3DX11_STATE_BLOCK sb;
       CreateStateblock (pCEG_DevCtx, &sb);
 #endif
 
@@ -1709,8 +1717,6 @@ extern "C" {
         if (pSwapChain2 != nullptr) {
           HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
 
-          pSwapChain2.Release ();
-
           WaitForSingleObjectEx ( hWait,
                                     500,//config.render.framerate.swapchain_wait,
                                       TRUE );
@@ -1913,7 +1919,7 @@ __declspec (noinline)
                                          BOOL            Fullscreen,
                                          IDXGIOutput    *pTarget )
   {
-    DXGI_LOG_CALL_I2 (L"IDXGISwapChain", L"SetFullscreenState", L"%lu, %08Xh",
+    DXGI_LOG_CALL_I2 (L"IDXGISwapChain", L"SetFullscreenState", L"%lu, %ph",
                       Fullscreen, pTarget);
 
     InterlockedExchange (&__gui_reset, TRUE);
@@ -2104,7 +2110,7 @@ __declspec (noinline)
   {
     std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
-    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChain", L"%08Xh, %08Xh, %08Xh",
+    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChain", L"%ph, %ph, %ph",
                     pDevice, pDesc, ppSwapChain);
 
     HRESULT ret;
@@ -2271,8 +2277,6 @@ __declspec (noinline)
 
         HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
 
-        pSwapChain2.Release ();
-
         WaitForSingleObjectEx ( hWait,
                                   500,//config.render.framerate.swapchain_wait,
                                     TRUE );
@@ -2320,7 +2324,7 @@ __declspec (noinline)
     std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
     // Wrong prototype, but who cares right now? :P
-    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChainForCoreWindow", L"%08Xh, %08Xh, %08Xh",
+    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChainForCoreWindow", L"%ph, %ph, %ph",
                       pDevice, pDesc, ppSwapChain);
 
     HRESULT ret;
@@ -2456,8 +2460,6 @@ __declspec (noinline)
 
         HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
 
-        pSwapChain2.Release ();
-
         WaitForSingleObjectEx ( hWait,
                                   config.render.framerate.swapchain_wait,
                                     TRUE );
@@ -2506,7 +2508,7 @@ __declspec (noinline)
     std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
     // Wrong prototype, but who cares right now? :P
-    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChainForHwnd", L"%08Xh, %08Xh, %08Xh",
+    DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChainForHwnd", L"%ph, %ph, %ph",
                       pDevice, pDesc, ppSwapChain);
 
     HRESULT ret;
@@ -2625,8 +2627,6 @@ __declspec (noinline)
         }
 
         HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
-
-        pSwapChain2.Release ();
 
         WaitForSingleObjectEx ( hWait,
                                   config.render.framerate.swapchain_wait,
@@ -2784,7 +2784,7 @@ __declspec (noinline)
   {
     std::wstring iname = SK_GetDXGIAdapterInterface (This);
 
-    DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc2", L"%08Xh, %08Xh", This, pDesc);
+    DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc2", L"%ph, %ph", This, pDesc);
 
     HRESULT ret;
     DXGI_CALL (ret, GetDesc2_Original (This, pDesc));
@@ -2815,7 +2815,7 @@ __declspec (noinline)
   {
     std::wstring iname = SK_GetDXGIAdapterInterface (This);
 
-    DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc1", L"%08Xh, %08Xh", This, pDesc);
+    DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc1", L"%ph, %ph", This, pDesc);
 
     HRESULT ret;
     DXGI_CALL (ret, GetDesc1_Original (This, pDesc));
@@ -2846,7 +2846,7 @@ __declspec (noinline)
   {
     std::wstring iname = SK_GetDXGIAdapterInterface (This);
 
-    DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc",L"%08Xh, %08Xh", This, pDesc);
+    DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc",L"%ph, %ph", This, pDesc);
 
     HRESULT ret;
     DXGI_CALL (ret, GetDesc_Original (This, pDesc));
@@ -3020,7 +3020,7 @@ __declspec (noinline)
   {
     std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
-    DXGI_LOG_CALL_I3 (iname.c_str (), L"EnumAdapters1", L"%08Xh, %u, %08Xh",
+    DXGI_LOG_CALL_I3 (iname.c_str (), L"EnumAdapters1", L"%ph, %u, %ph",
       This, Adapter, ppAdapter);
 
     HRESULT ret;
@@ -3063,7 +3063,7 @@ __declspec (noinline)
   {
     std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
-    DXGI_LOG_CALL_I3 (iname.c_str (), L"EnumAdapters", L"%08Xh, %u, %08Xh",
+    DXGI_LOG_CALL_I3 (iname.c_str (), L"EnumAdapters", L"%ph, %u, %ph",
       This, Adapter, ppAdapter);
 
     HRESULT ret;
@@ -3113,7 +3113,7 @@ __declspec (noinline)
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
-    DXGI_LOG_CALL_2 (L"CreateDXGIFactory", L"%s, %08Xh",
+    DXGI_LOG_CALL_2 (L"CreateDXGIFactory", L"%s, %ph",
       iname.c_str (), ppFactory);
 
     SK_BootDXGI ();
@@ -3139,7 +3139,7 @@ __declspec (noinline)
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
-    DXGI_LOG_CALL_2 (L"CreateDXGIFactory1", L"%s, %08Xh",
+    DXGI_LOG_CALL_2 (L"CreateDXGIFactory1", L"%s, %ph",
       iname.c_str (), ppFactory);
 
     SK_BootDXGI ();
@@ -3168,7 +3168,7 @@ __declspec (noinline)
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
-    DXGI_LOG_CALL_3 (L"CreateDXGIFactory2", L"0x%04X, %s, %08Xh",
+    DXGI_LOG_CALL_3 (L"CreateDXGIFactory2", L"0x%04X, %s, %ph",
       Flags, iname.c_str (), ppFactory);
 
     SK_BootDXGI ();
@@ -3217,17 +3217,18 @@ __declspec (noinline)
 
 LPVOID pfnChangeDisplaySettingsA        = nullptr;
 
+// SAL notation in Win32 API docs is wrong
 typedef LONG (WINAPI *ChangeDisplaySettingsA_pfn)(
-  _In_ DEVMODEA *lpDevMode,
-  _In_ DWORD    dwFlags
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags
 );
 ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original = nullptr;
 
 LONG
 WINAPI
 ChangeDisplaySettingsA_Detour (
-  _In_ DEVMODEA *lpDevMode,
-  _In_ DWORD     dwFlags )
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags )
 {
   static bool called = false;
 
@@ -3275,13 +3276,13 @@ SK_HookDXGI (void)
 
 
   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")) {
-    dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh",
+    dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph",
       (CreateDXGIFactory_Import =  \
         (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
-    dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %08Xh",
+    dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph",
       (CreateDXGIFactory1_Import = \
         (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1")));
-    dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %08Xh",
+    dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph",
       (CreateDXGIFactory2_Import = \
         (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
   } else {
@@ -3303,13 +3304,13 @@ SK_HookDXGI (void)
                           CreateDXGIFactory2,
                (LPVOID *)&CreateDXGIFactory2_Import );
 
-    dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %08Xh  %s",
+    dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph  %s",
       (CreateDXGIFactory_Import),
         (CreateDXGIFactory_Import ? L"{ Hooked }" : L"" ) );
-    dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %08Xh  %s",
+    dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph  %s",
       (CreateDXGIFactory1_Import),
         (CreateDXGIFactory1_Import ? L"{ Hooked }" : L"" ) );
-    dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %08Xh  %s",
+    dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph  %s",
       (CreateDXGIFactory2_Import),
         (CreateDXGIFactory2_Import ? L"{ Hooked }" : L"" ) );
 
@@ -3774,9 +3775,9 @@ HookDXGI (LPVOID user)
                              err.WCode (), err.ErrorMessage () );
   }
 
-  InterlockedExchange (&__dxgi_ready, TRUE);
-
   DestroyWindow (hwnd);
+
+  InterlockedExchange (&__dxgi_ready, TRUE);
 
   // These don't do anything (anymore)
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();

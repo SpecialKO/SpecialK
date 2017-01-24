@@ -158,7 +158,8 @@ public:
                    GameOverlayActivated_t,
                    activation )
   {
-    if (active_ != pParam->m_bActive) {
+    if (active_ != (pParam->m_bActive != 0))
+    {
       if (pParam->m_bActive) {
         static bool first = true;
 
@@ -186,7 +187,7 @@ public:
       }
     }
 
-    active_ = pParam->m_bActive;
+    active_ = (pParam->m_bActive != 0);
   }
 
   bool isActive (void) { return active_; }
@@ -264,6 +265,8 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 
         steam_log.Log ( L"--- Initialization Finished ([AppId: %lu]) ---\n\n",
                           SK::SteamAPI::AppID () );
+
+        //SteamAPI_RunCallbacks_Detour ();
 
         StartSteamPump ();
       }
@@ -1230,96 +1233,8 @@ public:
        async_complete  ( this, &SK_Steam_AchievementManager::OnAsyncComplete         )
   {
     lifetime_popups = 0;
-    
 
-    bool xbox = false,
-         psn  = false;
-
-    wchar_t wszFileName [MAX_PATH + 2] = { L'\0' };
-
-    if (! wcslen (wszUnlockSound)) {
-      iSK_INI achievement_ini (
-        SK_EvalEnvironmentVars (
-          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
-        ).c_str ());
-
-      achievement_ini.parse ();
-
-      // If the config file is empty, establish defaults and then write it.
-      if (achievement_ini.get_sections ().size () == 0) {
-        achievement_ini.import ( L"[Steam.Achievements]\n"
-                                 L"SoundFile=psn\n"
-                                 L"PlaySound=true\n"
-                                 L"TakeScreenshot=false\n"
-                                 L"AnimatePopup=true\n"
-                                 L"NotifyCorner=0\n" );
-        achievement_ini.write (        SK_EvalEnvironmentVars (
-          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
-        ).c_str ());
-      }
-
-      if (achievement_ini.contains_section (L"Steam.Achievements")) {
-        iSK_INISection& sec = achievement_ini.get_section (L"Steam.Achievements");
-        if (sec.contains_key (L"SoundFile"))
-          wcscpy (wszFileName, sec.get_value (L"SoundFile").c_str ());
-      }
-    } else {
-      wcscpy (wszFileName, wszUnlockSound);
-    }
-
-    if ((! _wcsicmp (wszFileName, L"psn")))
-      psn = true;
-    else if (! _wcsicmp (wszFileName, L"xbox"))
-      xbox = true;
-
-    FILE* fWAV = _wfopen (wszFileName, L"rb");
-
-    if ((! psn) && (! xbox) && fWAV != nullptr)
-    {
-      steam_log.LogEx (true, L"  >> Loading Achievement Unlock Sound: '%s'...",
-                       wszFileName);
-
-                  fseek  (fWAV, 0, SEEK_END);
-      long size = ftell  (fWAV);
-                  rewind (fWAV);
-
-      unlock_sound = (uint8_t *)new uint8_t [size];
-
-      if (unlock_sound != nullptr)
-        fread  (unlock_sound, size, 1, fWAV);
-
-      fclose (fWAV);
-
-      steam_log.LogEx (false, L" %d bytes\n", size);
-
-      default_loaded = false;
-    } else {
-      // Default to PSN if not specified
-      if ((! psn) && (! xbox))
-        psn = true;
-
-      steam_log.Log (L"  * Loading Built-In Achievement Unlock Sound: '%s'",
-                       wszFileName);
-
-      HRSRC   default_sound;
-
-      if (psn)
-        default_sound =
-          FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_TROPHY), L"WAVE");
-      else
-        default_sound =
-          FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_XBOX), L"WAVE");
-
-      if (default_sound != nullptr) {
-        HGLOBAL sound_ref     =
-          LoadResource (SK_GetDLL (), default_sound);
-        if (sound_ref != 0) {
-          unlock_sound        = (uint8_t *)LockResource (sound_ref);
-
-          default_loaded = true;
-        }
-      }
-    }
+    loadSound (wszUnlockSound);
 
     uint32_t reserve =
       std::max (steam_ctx.UserStats ()->GetNumAchievements (), (uint32_t)128UL);
@@ -1396,9 +1311,13 @@ public:
   {
     self_listener.Cancel ();
 
-    if (pParam->m_nGameID != SK::SteamAPI::AppID ()) {
+    uint32 app_id =
+      CGameID (pParam->m_nGameID).AppID ();
+
+    if (app_id != SK::SteamAPI::AppID ())
+    {
       steam_log.Log ( L" Got User Achievement Stats for Wrong Game (%lu)",
-                        pParam->m_nGameID );
+                        app_id );
       return;
     }
 
@@ -1455,9 +1374,12 @@ public:
   {
     friend_listener.Cancel ();
 
-    if (pParam->m_nGameID != SK::SteamAPI::AppID ()) {
+    uint32 app_id =
+      CGameID (pParam->m_nGameID).AppID ();
+
+    if (app_id != SK::SteamAPI::AppID ()) {
       steam_log.Log ( L" Got User Achievement Stats for Wrong Game (%lu)",
-                        pParam->m_nGameID );
+                        app_id );
       return;
     }
 
@@ -1603,13 +1525,16 @@ public:
                    UserStatsStored_t,
                    stat_receipt )
   {
+    uint32 app_id =
+      CGameID (pParam->m_nGameID).AppID ();
+
     // Sometimes we receive event callbacks for games that aren't this one...
     //   ignore those!
-    if (pParam->m_nGameID != SK::SteamAPI::AppID ())
+    if (app_id != SK::SteamAPI::AppID ())
       return;
 
-    steam_log.Log ( L" >> Stats Stored for AppID: %llu",
-                      pParam->m_nGameID );
+    steam_log.Log ( L" >> Stats Stored for AppID: %lu",
+                      app_id );
   }
 
   STEAM_CALLBACK ( SK_Steam_AchievementManager,
@@ -1632,11 +1557,15 @@ public:
                    UserAchievementStored_t,
                    unlock_listener )
   {
+    uint32 app_id =
+      CGameID (pParam->m_nGameID).AppID ();
+
     // Sometimes we receive event callbacks for games that aren't this one...
     //   ignore those!
-    if (pParam->m_nGameID != SK::SteamAPI::AppID ()) {
+    if (app_id != SK::SteamAPI::AppID ())
+    {
       steam_log.Log ( L" >>> Received achievement unlock for unrelated game (AppId=%lu) <<<",
-                        pParam->m_nGameID );
+                        app_id );
       return;
     }
 
@@ -2022,6 +1951,99 @@ public:
     }
   }
 
+  void
+  loadSound (const wchar_t* wszUnlockSound)
+  {
+    bool xbox = false,
+         psn  = false;
+
+    wchar_t wszFileName [MAX_PATH + 2] = { L'\0' };
+
+    if (! wcslen (wszUnlockSound)) {
+      iSK_INI achievement_ini (
+        SK_EvalEnvironmentVars (
+          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
+        ).c_str ());
+
+      achievement_ini.parse ();
+
+      // If the config file is empty, establish defaults and then write it.
+      if (achievement_ini.get_sections ().size () == 0) {
+        achievement_ini.import ( L"[Steam.Achievements]\n"
+                                 L"SoundFile=psn\n"
+                                 L"PlaySound=true\n"
+                                 L"TakeScreenshot=false\n"
+                                 L"AnimatePopup=true\n"
+                                 L"NotifyCorner=0\n" );
+        achievement_ini.write (        SK_EvalEnvironmentVars (
+          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
+        ).c_str ());
+      }
+
+      if (achievement_ini.contains_section (L"Steam.Achievements")) {
+        iSK_INISection& sec = achievement_ini.get_section (L"Steam.Achievements");
+        if (sec.contains_key (L"SoundFile"))
+          wcscpy (wszFileName, sec.get_value (L"SoundFile").c_str ());
+      }
+    } else {
+      wcscpy (wszFileName, wszUnlockSound);
+    }
+
+    if ((! _wcsicmp (wszFileName, L"psn")))
+      psn = true;
+    else if (! _wcsicmp (wszFileName, L"xbox"))
+      xbox = true;
+
+    FILE* fWAV = _wfopen (wszFileName, L"rb");
+
+    if ((! psn) && (! xbox) && fWAV != nullptr)
+    {
+      steam_log.LogEx (true, L"  >> Loading Achievement Unlock Sound: '%s'...",
+                       wszFileName);
+
+                  fseek  (fWAV, 0, SEEK_END);
+      long size = ftell  (fWAV);
+                  rewind (fWAV);
+
+      unlock_sound = (uint8_t *)new uint8_t [size];
+
+      if (unlock_sound != nullptr)
+        fread  (unlock_sound, size, 1, fWAV);
+
+      fclose (fWAV);
+
+      steam_log.LogEx (false, L" %d bytes\n", size);
+
+      default_loaded = false;
+    } else {
+      // Default to PSN if not specified
+      if ((! psn) && (! xbox))
+        psn = true;
+
+      steam_log.Log (L"  * Loading Built-In Achievement Unlock Sound: '%s'",
+                       wszFileName);
+
+      HRSRC   default_sound;
+
+      if (psn)
+        default_sound =
+          FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_TROPHY), L"WAVE");
+      else
+        default_sound =
+          FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_XBOX), L"WAVE");
+
+      if (default_sound != nullptr) {
+       HGLOBAL sound_ref     =
+          LoadResource (SK_GetDLL (), default_sound);
+        if (sound_ref != 0) {
+          unlock_sound        = (uint8_t *)LockResource (sound_ref);
+
+          default_loaded = true;
+        }
+      }
+    }
+  }
+
 protected:
   CEGUI::Window* createPopupWindow (SK_AchievementPopup* popup)
   {
@@ -2211,6 +2233,14 @@ private:
   uint8_t*       unlock_sound;   // A .WAV (PCM) file
 } *steam_achievements = nullptr;
 
+void
+SK_SteamAPI_LoadUnlockSound (const wchar_t* wszUnlockSound)
+{
+  if (steam_achievements != nullptr) {
+    steam_achievements->loadSound (wszUnlockSound);
+  }
+}
+
 #if 0
 S_API typedef void (S_CALLTYPE *steam_unregister_callback_t)
                        (class CCallbackBase *pCallback);
@@ -2263,7 +2293,7 @@ SK_UnlockSteamAchievement (uint32_t idx)
       UserAchievementStored_t store;
       store.m_nCurProgress = 0;
       store.m_nMaxProgress = 0;
-      store.m_nGameID      = SK::SteamAPI::AppID ();
+      store.m_nGameID      = CGameID (SK::SteamAPI::AppID ()).ToUint64 ();
       strncpy (store.m_rgchAchievementName, szName, 128);
 
       SK_Steam_AchievementManager::Achievement* achievement =
@@ -2371,14 +2401,6 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
-  // Handle situations where Steam was initialized earlier than
-  //   expected...
-  if (! InterlockedCompareExchange (&__SK_Steam_init, 0, 0)) {
-    SteamAPI_RunCallbacks_Original ();
-    SteamAPI_InitSafe_Detour       ();
-    return;
-  }
-
   // Throttle to 1000 Hz for STUPID games like Akiba's Trip
   static DWORD dwLastTick = 0;
          DWORD dwNow      = timeGetTime ();
@@ -2388,14 +2410,19 @@ SteamAPI_RunCallbacks_Detour (void)
   } else {
     if (InterlockedCompareExchange (&__SK_Steam_init, 0, 0))
     {
+      InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
       // Skip the callbacks, one call every 1 ms is enough!!
       return;
     }
   }
 
-  // Init the managers after the first callback run
-  void SK_SteamAPI_InitManagers (void);
-       SK_SteamAPI_InitManagers ();
+  // Handle situations where Steam was initialized earlier than
+  //   expected...
+  if (InterlockedCompareExchange (&__SK_Steam_init, 0, 0)) {
+    // Init the managers after the first callback run
+    void SK_SteamAPI_InitManagers (void);
+         SK_SteamAPI_InitManagers ();
+  }
 
   if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0) {
     // 4 == Don't Care
@@ -2911,6 +2938,8 @@ SteamAPI_InitSafe_Detour (void)
                       init_tries + 1,
                         SK::SteamAPI::AppID () );
 
+    SteamAPI_RunCallbacks_Detour ();
+
     StartSteamPump ();
 
     LeaveCriticalSection (&init_cs);
@@ -2998,6 +3027,8 @@ SteamAPI_Init_Detour (void)
                       init_tries + 1,
                         SK::SteamAPI::AppID () );
 
+    SteamAPI_RunCallbacks_Detour ();
+
     StartSteamPump ();
 
     LeaveCriticalSection (&init_cs);
@@ -3059,6 +3090,8 @@ InitSafe_Detour (void)
     steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
                       init_tries + 1,
                         SK::SteamAPI::AppID () );
+
+    SteamAPI_RunCallbacks_Detour ();
 
     StartSteamPump ();
 
@@ -3206,7 +3239,7 @@ SK_HookCSteamworks (void)
 
       SK_ApplyQueuedHooks ();
 
-      SteamAPI_InitSafe_Detour ();
+      ////SteamAPI_InitSafe_Detour ();
     }
 
     else {

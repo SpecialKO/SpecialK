@@ -126,7 +126,7 @@ D3D12CreateDevice_Detour (
       if ( *ppDevice != g_pD3D12Dev )
       {
         // TODO: This isn't the right way to get the feature level
-        dll_log.Log ( L"[  D3D 12  ] >> Device = 0x%08Xh (Feature Level:%s)",
+        dll_log.Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%s)",
                         *ppDevice,
                           SK_DXGI_FeatureLevelsToStr ( 1,
                                                         (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level

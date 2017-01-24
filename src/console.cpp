@@ -197,7 +197,7 @@ SK_Console::MessagePump (LPVOID hook_ptr)
       continue;
     }
 
-    if (SK_GetFramesDrawn () > 1) {
+    if (SK_GetFramesDrawn ()) {
       hWndRender = hWndForeground;
       break;
     }
@@ -241,6 +241,11 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     BYTE     scanCode = HIWORD (lParam) & 0x7F;
     ///SHORT repeated = LOWORD (lParam);
     //bool   keyDown  = ! (lParam & 0x80000000UL);
+
+    extern bool SK_ImGui_Visible;
+
+    if (SK_ImGui_Visible)
+      visible = false;
 
     if (visible && vkCode == VK_BACK) {
       if (keyDown) {
@@ -341,6 +346,19 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       keys_ [vkCode] = 0x81;
 
       if (new_press) {
+        //
+        // Temp Hack:
+        // ----------
+        //             Hardcode ImGui Toggle Binding (Ctrl + Shift + Backspace)
+        //
+        if ( vkCode == VK_BACK && keys_ [VK_CONTROL] && keys_ [VK_SHIFT] )
+        {
+          extern void SK_ImGui_Toggle (void);
+          SK_ImGui_Toggle ();
+
+          return 0;
+        }
+
         SK_PluginKeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
 
         if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && keys_ [VK_TAB] && vkCode == VK_TAB) {
@@ -357,8 +375,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       if (visible && vkCode != VK_TAB) {
         keys_ [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
 
-        char key_str [2];
-        key_str [1] = '\0';
+        unsigned char key_str [2];
+                      key_str [1] = '\0';
 
         if (1 == ToAsciiEx ( vkCode,
                               scanCode,
@@ -367,7 +385,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
                               0,
                               GetKeyboardLayout (0) ) &&
              isprint ( *key_str ) ) {
-          strncat (text, key_str, 1);
+          strncat (text, (char *)key_str, 1);
           command_issued = false;
         }
       }

@@ -93,12 +93,14 @@ DownloadThread (LPVOID user)
       };
 
   auto SetProgress = 
-    [=](auto cur, auto max) ->
+    [=](double cur, double max) ->
       void
       {
         TaskMsg ( TDM_SET_PROGRESS_BAR_POS,
-                    (INT16)(MAXINT16 * ((double)cur / (double)max)),
-                      0L );
+                    static_cast <INT16> (
+                      static_cast <double> (MAXINT16) *
+                               ( cur / max )
+                    ), 0L );
       };
 
   auto SetErrorState =
@@ -949,7 +951,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
   if (empty) {
     *wszCurrentBuild = L'\0';
-    build.installed = -1;
+    build.installed  = -1;
     wcscpy (build.branch, L"Latest");
   } else {
     swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
@@ -1005,10 +1007,12 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
     urlcomps.lpszUrlPath      = get->wszHostPath;
     urlcomps.dwUrlPathLength  = INTERNET_MAX_PATH_LENGTH;
 
-    if ( InternetCrackUrl ( archive.get_value (L"URL").c_str (),
-                              archive.get_value (L"URL").length (),
-                                0x00,
-                                  &urlcomps ) )
+    if ( InternetCrackUrl (        archive.get_value (L"URL").c_str  (),
+                            (DWORD)archive.get_value (L"URL").length (),
+                                     0x00,
+                                       &urlcomps
+                          )
+       )
     {
       task_config.lpCallbackData = (LONG_PTR)get;
 
@@ -1080,8 +1084,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
           else
             update_dlg_keep = false;
 
-          wcscpy (update_dlg_file,  wszUpdateTempFile);
-          wcscpy (update_dlg_build, wszCurrentBuild);
+          wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH );
+          wcsncpy ( update_dlg_build, wszCurrentBuild,   127      );
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 

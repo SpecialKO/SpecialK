@@ -23,9 +23,11 @@
 
 #include <windows.h>
 #include <string>
+#include <sys/stat.h>
 
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
 std::wstring
 ErrorMessage (errno_t        err,
@@ -66,17 +68,16 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   // We skip a few bytes (Unicode BOM) in crertain cirumstances, so this is the
   //   actual pointer we need to free...
-  wchar_t* alloc;
+  wchar_t* alloc = nullptr;
 
   wszName = _wcsdup (filename);
 
   errno_t ret = 0;
   TRY_FILE_IO (_wfsopen (filename, L"rb", _SH_DENYNO), filename, fINI);
 
-  if (ret == 0 && fINI != 0) {
-                fseek  (fINI, 0, SEEK_END);
-    long size = ftell  (fINI);
-                rewind (fINI);
+  if (ret == 0 && fINI != 0)
+  {
+    long size = (long)SK_GetFileSize (filename);
 
     wszData = new wchar_t [size + 1];
     alloc   = wszData;

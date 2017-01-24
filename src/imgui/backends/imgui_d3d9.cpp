@@ -17,12 +17,11 @@
 //#include "config.h"
 //#include "render.h"
 
-
 // Data
 static HWND                    g_hWnd             = 0;
 static INT64                   g_Time             = 0;
 static INT64                   g_TicksPerSecond   = 0;
-static LPDIRECT3DDEVICE9       g_pd3dDevice       = nullptr;
+       LPDIRECT3DDEVICE9       g_pd3dDevice       = nullptr;
 static LPDIRECT3DVERTEXBUFFER9 g_pVB              = nullptr;
 static LPDIRECT3DINDEXBUFFER9  g_pIB              = nullptr;
 static LPDIRECT3DTEXTURE9      g_FontTexture      = nullptr;
@@ -410,23 +409,31 @@ ImGui_ImplDX9_NewFrame (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  for (int i = 0; i < 512; i++) {
-    if (i <= 0x06) {
-      switch (i) {
+  for (int i = 0; i < 256; i++)
+  {
+    if (i <= 0x06)
+    {
+      switch (i)
+      {
         case VK_LBUTTON:
-          io.MouseDown [0] = GetKeyState (i) & 0x8000;
+          io.MouseDown [0] = (GetAsyncKeyState (i) & 0x8000) != 0;
           break;
+
         case VK_RBUTTON:
-          io.MouseDown [1] = GetKeyState (i) & 0x8000;
+          io.MouseDown [1] = (GetAsyncKeyState (i) & 0x8000) != 0;
           break;
+
         case VK_MBUTTON:
-          io.MouseDown [2] = GetKeyState (i) & 0x8000;
+          io.MouseDown [2] = (GetAsyncKeyState (i) & 0x8000) != 0;
           break;
+
         default:
           break;
       }
-    } else {
-      io.KeysDown  [i] = GetKeyState (i) & 0x8000;
+    }
+
+    else {
+      io.KeysDown  [i] = (GetAsyncKeyState (i) & 0x8000) != 0;
     }
   }
 
@@ -453,9 +460,9 @@ ImGui_ImplDX9_NewFrame (void)
   g_Time       =         current_time;
 
   // Read keyboard modifiers inputs
-  io.KeyCtrl   = (GetKeyState (VK_CONTROL) & 0x8000) != 0;
-  io.KeyShift  = (GetKeyState (VK_SHIFT)   & 0x8000) != 0;
-  io.KeyAlt    = (GetKeyState (VK_MENU)    & 0x8000) != 0;
+  io.KeyCtrl   = (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0;
+  io.KeyShift  = (GetAsyncKeyState (VK_SHIFT)   & 0x8000) != 0;
+  io.KeyAlt    = (GetAsyncKeyState (VK_MENU)    & 0x8000) != 0;
 
   io.KeySuper  = false;
 

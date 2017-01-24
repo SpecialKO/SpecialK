@@ -464,7 +464,8 @@ D3D9SetTexture_Detour (
 
   void* dontcare;
   if ( pTexture != nullptr &&
-       pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK ) {
+       pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK )
+  {
     ISKTextureD3D9* pSKTex =
       (ISKTextureD3D9 *)pTexture;
 
@@ -2523,7 +2524,7 @@ sk::d3d9::TextureManager::purge (void)
 
   tex_log.Log ( L"[ Tex. Mgr ]   %4d textures (%4d remain)",
                   released,
-                    textures.size () );
+                    (long)textures.size () );
 
   tex_log.Log ( L"[ Tex. Mgr ]   >> Reclaimed %6.2f MiB of memory (%6.2f MiB from %lu inject)",
                   (double)reclaimed        / (1024.0 * 1024.0),
@@ -2883,7 +2884,7 @@ SK_TextureWorkerThread::ThreadProc (LPVOID user)
       size_t now    =  streaming_memory::data_len [GetCurrentThreadId ()];
       if (before != now) {
         tex_log.Log ( L"[ Mem. Mgr ]  Trimmed %9lu bytes of temporary memory for tid=%x",
-                        before - now,
+                        (long)(before - now),
                           GetCurrentThreadId () );
       }
     }

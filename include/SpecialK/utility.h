@@ -63,9 +63,6 @@ void
 
 bool __stdcall SK_IsDLLSpecialK        (const wchar_t* wszName);
 void __stdcall SK_SelfDestruct         (void);
-HMODULE
-     __stdcall
-               SK_GetDLL               (void);
 
 
 struct sk_import_test_s {

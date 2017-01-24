@@ -2125,6 +2125,10 @@ int ImGui::GetFrameCount()
     return GImGui->FrameCount;
 }
 
+#include <SpecialK/console.h>
+#include <SpecialK/window.h>
+extern bool SK_ImGui_Visible;
+
 void ImGui::NewFrame()
 {
     ImGuiContext& g = *GImGui;
@@ -2146,6 +2150,23 @@ void ImGui::NewFrame()
         //LoadIniSettingsFromDisk(g.IO.IniFilename);
         g.Initialized = true;
     }
+
+
+    //
+    // STUPID HACK: This should be in response to window messages, but there has been
+    //                 a bit of trouble reliably receciving those messages in some games.
+    if (GetForegroundWindow () != game_window.hWnd) {
+        g.IO.WantTextInput                 = false;
+        g.IO.WantCaptureKeyboard           = false;
+        g.IO.WantCaptureMouse              = false;
+        FocusWindow                        (nullptr);
+        SK_Console::getInstance()->visible = false;
+    }
+          
+    if (g.IO.WantCaptureKeyboard) {
+        SK_Console::getInstance ()->visible = false;
+    }
+
 
     SetCurrentFont(GetDefaultFont());
     IM_ASSERT(g.Font->IsLoaded());
@@ -9895,7 +9916,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   {
     if (msg == WM_NCACTIVATE)
     {
-      ActivateWindow ((bool)wParam);
+      ActivateWindow (wParam != 0x00);
     }
 
     else if (msg == WM_ACTIVATEAPP || msg == WM_ACTIVATE)
