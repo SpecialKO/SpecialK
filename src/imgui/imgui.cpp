@@ -9900,8 +9900,13 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     };
 
   if (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST) {
-    io.MousePos.x = (signed short)(lParam);
-    io.MousePos.y = (signed short)(lParam >> 16);
+    DWORD dwPos = GetMessagePos ();
+    POINT    pt { (signed short)dwPos, (signed short)(dwPos >> 16) };
+
+    if (ScreenToClient (hWnd, &pt)) {
+      io.MousePos.x = static_cast <float> (pt.x);
+      io.MousePos.y = static_cast <float> (pt.y);
+    }
   }
 
   switch (msg)
@@ -9968,11 +9973,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   case WM_MOUSEWHEEL:
     io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? +1.0f : -1.0f;
     return true;
-
-  case WM_MOUSEMOVE:
-    io.MousePos.x = (signed short)(lParam);
-    io.MousePos.y = (signed short)(lParam >> 16);
-    return false;
 
   case WM_KEYDOWN:
     if (wParam < 256) {

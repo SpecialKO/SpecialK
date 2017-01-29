@@ -37,6 +37,7 @@
                          "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
                          " language='*'\"")
 
+#include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
@@ -48,30 +49,28 @@
 
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
+void           SK_UnhookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = true;
 
-typedef BOOL (WINAPI *FreeLibrary_pfn)(HMODULE hLibModule);
-
-FreeLibrary_pfn FreeLibrary_Original = nullptr;
-
-typedef HMODULE (WINAPI *LoadLibraryA_pfn)(LPCSTR  lpFileName);
-typedef HMODULE (WINAPI *LoadLibraryW_pfn)(LPCWSTR lpFileName);
-
-LoadLibraryA_pfn LoadLibraryA_Original = nullptr;
-LoadLibraryW_pfn LoadLibraryW_Original = nullptr;
-
+typedef BOOL    (WINAPI *FreeLibrary_pfn)  (HMODULE hLibModule);
+typedef HMODULE (WINAPI *LoadLibraryA_pfn) (LPCSTR  lpFileName);
+typedef HMODULE (WINAPI *LoadLibraryW_pfn) (LPCWSTR lpFileName);
 typedef HMODULE (WINAPI *LoadLibraryExA_pfn)
 ( _In_       LPCSTR  lpFileName,
   _Reserved_ HANDLE  hFile,
   _In_       DWORD   dwFlags
 );
-
 typedef HMODULE (WINAPI *LoadLibraryExW_pfn)
 ( _In_       LPCWSTR lpFileName,
   _Reserved_ HANDLE  hFile,
   _In_       DWORD   dwFlags
 );
+
+FreeLibrary_pfn    FreeLibrary_Original    = nullptr;
+
+LoadLibraryA_pfn   LoadLibraryA_Original   = nullptr;
+LoadLibraryW_pfn   LoadLibraryW_Original   = nullptr;
 
 LoadLibraryExA_pfn LoadLibraryExA_Original = nullptr;
 LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;
@@ -86,6 +85,22 @@ LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;
 typedef std::unordered_set < std::wstring, str_hash_compare <std::wstring> > SK_StringSetW;
 SK_StringSetW rehook_loadlib;
 #endif
+
+extern CRITICAL_SECTION loader_lock;
+
+void
+__stdcall
+SK_LockDllLoader (void)
+{
+  EnterCriticalSection (&loader_lock);
+}
+
+void
+__stdcall
+SK_UnlockDllLoader (void)
+{
+  LeaveCriticalSection (&loader_lock);
+}
 
 BOOL
 __stdcall
@@ -168,16 +183,19 @@ void
 __stdcall
 SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                        LPCSTR  lpFileName,
-                       LPCSTR  lpFunction )
+                       LPCSTR  lpFunction,
+                       LPVOID  lpCallerFunc )
 {
   wchar_t wszModName [MAX_PATH] = { L'\0' };
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
   if (! SK_LoadLibrary_SILENCE) {
-    dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64s' <%s>",
+    dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64s' <%s> { '%hs' }",
                     wszModName,
                       lpFileName,
-                        lpFunction );
+                        lpFunction,
+                          SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (lpCallerFunc),
+                                                             (uintptr_t)lpCallerFunc ).c_str () );
   }
 
   // This is silly, this many string comparions per-load is
@@ -215,14 +233,14 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                 StrStrIW (wszModName, L"vulkan-1.dll")  )
       SK_BootVulkan ();
 
-    if ( StrStrIA (lpFileName, "steam_api.dll")   ||
-         StrStrIA (lpFileName, "steam_api64.dll") ||
-         StrStrIA (lpFileName, "SteamNative.dll") ) {
-      SK_HookSteamAPI ();
-    }
-
-    else if (StrStrIA (lpFileName, "CSteamworks.dll")) {
-      SK_HookCSteamworks ();
+    if (! config.steam.silent) {
+      if (StrStrIA (lpFileName, "CSteamworks.dll")) {
+        SK_HookCSteamworks ();
+      } else if (StrStrIA (lpFileName, "steam_api.dll")   ||
+                 StrStrIA (lpFileName, "steam_api64.dll") ||
+                 StrStrIA (lpFileName, "SteamNative.dll") ) {
+        SK_HookSteamAPI ();
+      }
     }
 
 #if 0
@@ -242,16 +260,20 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
 void
 SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                        LPCWSTR lpFileName,
-                       LPCWSTR lpFunction )
+                       LPCWSTR lpFunction,
+                       LPVOID  lpCallerFunc )
 {
   wchar_t wszModName [MAX_PATH] = { L'\0' };
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
   if (! SK_LoadLibrary_SILENCE) {
-    dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s>",
+    dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s> { '%hs' } ",
                     wszModName,
                       lpFileName,
-                        lpFunction );
+                        lpFunction,
+                          SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (lpCallerFunc),
+                                                             (uintptr_t)lpCallerFunc
+                                                         ).c_str () );
   }
 
   // This is silly, this many string comparions per-load is
@@ -289,12 +311,14 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
               StrStrIW (wszModName, L"vulkan-1.dll")  )
       SK_BootVulkan ();
     
-    if (StrStrIW (lpFileName, L"CSteamworks.dll")) {
-      SK_HookCSteamworks ();
-    } else if (StrStrIW (lpFileName, L"steam_api.dll")   ||
-               StrStrIW (lpFileName, L"steam_api64.dll") ||
-               StrStrIW (lpFileName, L"SteamNative.dll") ) {
-      SK_HookSteamAPI ();
+    if (! config.steam.silent) {
+      if (StrStrIW (lpFileName, L"CSteamworks.dll")) {
+        SK_HookCSteamworks ();
+      } else if (StrStrIW (lpFileName, L"steam_api.dll")   ||
+                 StrStrIW (lpFileName, L"steam_api64.dll") ||
+                 StrStrIW (lpFileName, L"SteamNative.dll") ) {
+        SK_HookSteamAPI ();
+      }
     }
 
 #if 0    
@@ -312,45 +336,37 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
 }
 
 
+extern volatile ULONG __SK_DLL_Ending;
 
 BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
-//  bool specialk_free = (SK_GetCallingDLL () == SK_GetDLL ());
-
-//  if (specialk_free)
-//    return FreeLibrary_Original (hLibModule);
-
-  std::wstring free_name = SK_GetModuleName (hLibModule);
-
-#if 0
-  // BLACKLIST FreeLibrary for VERY important DLLs
-  if (
-#ifdef _WIN32
-       (! lstrcmpiW (free_name.c_str (), L"steam_api.dll"))   ||
-       (! lstrcmpiW (free_name.c_str (), L"nvapi.dll"))       ||
-       (! lstrcmpiW (free_name.c_str (), L"SpecialK32.dll"))  ||
-#else
-       (! lstrcmpiW (free_name.c_str (), L"steam_api64.dll")) ||
-       (! lstrcmpiW (free_name.c_str (), L"SpecialK64.dll"))  ||
-       (! lstrcmpiW (free_name.c_str (), L"nvapi64.dll"))     ||
-#endif
-       (! lstrcmpiW (free_name.c_str (), L"d3d11.dll"))       ||
-       (! lstrcmpiW (free_name.c_str (), L"d3d9.dll"))        ||
-       (! lstrcmpiW (free_name.c_str (), L"dxgi.dll"))        ||
-       (! lstrcmpiW (free_name.c_str (), L"OpenGL32.dll"))
-    )
-    return FALSE;
-#endif
-
-  BOOL bRet = FreeLibrary_Original (hLibModule);
-
-  if (bRet && GetModuleHandle (free_name.c_str ()) == nullptr) {
-    dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls'",
-                    SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
-                      free_name.c_str () );
+  if (InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0) != 0)
+  {
+    return FreeLibrary_Original (hLibModule);
   }
+
+  EnterCriticalSection (&loader_lock);
+
+  std::wstring name = SK_GetModuleName     (hLibModule);
+  BOOL         bRet = FreeLibrary_Original (hLibModule);
+
+  if ( (! (SK_LoadLibrary_SILENCE)) ||
+           SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos )
+  {
+    if ( SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos || 
+        (bRet && GetModuleHandle (name.c_str ()) == nullptr ) )
+    {
+      dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls' from { '%hs' }",
+                      SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
+                        name.c_str (),
+                          SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (), (uintptr_t)_ReturnAddress () ).c_str ()
+                  );
+    }
+  }
+
+  LeaveCriticalSection (&loader_lock);
 
   return bRet;
 }
@@ -359,13 +375,17 @@ HMODULE
 WINAPI
 LoadLibraryA_Detour (LPCSTR lpFileName)
 {
-  if (lpFileName == nullptr)
+  EnterCriticalSection (&loader_lock);
+
+  if (lpFileName == nullptr) {
+    LeaveCriticalSection (&loader_lock);
     return NULL;
+  }
 
   HMODULE hModEarly = nullptr;
 
   __try {
-    GetModuleHandleExA ( 0x00, (LPCSTR)lpFileName, &hModEarly );
+    GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)lpFileName, &hModEarly );
   } 
 
   __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
@@ -373,21 +393,25 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
                            EXCEPTION_CONTINUE_SEARCH  )
   {
            SetLastError          (0);
+           LeaveCriticalSection  (&loader_lock);
     return LoadLibraryA_Original (lpFileName);
     // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
   }
 
-  if (hModEarly == nullptr && BlacklistLibraryA (lpFileName))
+  if (hModEarly == nullptr && BlacklistLibraryA (lpFileName)) {
+    LeaveCriticalSection (&loader_lock);
     return NULL;
+  }
 
   HMODULE hMod = LoadLibraryA_Original (lpFileName);
 
   if (hModEarly != hMod) {
     SK_TraceLoadLibraryA ( SK_GetCallingDLL (),
                              lpFileName,
-                               "LoadLibraryA" );
+                               "LoadLibraryA", _ReturnAddress () );
   }
 
+  LeaveCriticalSection (&loader_lock);
   return hMod;
 }
 
@@ -395,34 +419,42 @@ HMODULE
 WINAPI
 LoadLibraryW_Detour (LPCWSTR lpFileName)
 {
-  if (lpFileName == nullptr)
+  EnterCriticalSection (&loader_lock);
+
+  if (lpFileName == nullptr) {
+    LeaveCriticalSection (&loader_lock);
     return NULL;
+  }
 
   HMODULE hModEarly = nullptr;
 
   __try {
-    GetModuleHandleExW ( 0x00, lpFileName, &hModEarly );
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpFileName, &hModEarly );
   }
   __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
                            EXCEPTION_EXECUTE_HANDLER :
                            EXCEPTION_CONTINUE_SEARCH )
   {
            SetLastError          (0);
+           LeaveCriticalSection  (&loader_lock);
     return LoadLibraryW_Original (lpFileName);
     // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
   }
 
-  if (hModEarly == nullptr&& BlacklistLibraryW (lpFileName))
+  if (hModEarly == nullptr&& BlacklistLibraryW (lpFileName)) {
+    LeaveCriticalSection (&loader_lock);
     return NULL;
+  }
 
   HMODULE hMod = LoadLibraryW_Original (lpFileName);
 
   if (hModEarly != hMod) {
     SK_TraceLoadLibraryW ( SK_GetCallingDLL (),
                              lpFileName,
-                               L"LoadLibraryW" );
+                               L"LoadLibraryW", _ReturnAddress () );
   }
 
+  LeaveCriticalSection (&loader_lock);
   return hMod;
 }
 
@@ -433,16 +465,24 @@ LoadLibraryExA_Detour (
   _Reserved_ HANDLE hFile,
   _In_       DWORD  dwFlags )
 {
-  if (lpFileName == nullptr)
-    return NULL;
+  EnterCriticalSection (&loader_lock);
 
-  if (dwFlags & LOAD_LIBRARY_AS_DATAFILE)
+  if (lpFileName == nullptr) {
+    LeaveCriticalSection (&loader_lock);
+    return NULL;
+  }
+
+  if (dwFlags & LOAD_LIBRARY_AS_DATAFILE) {
+    LeaveCriticalSection (&loader_lock);
     return LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
+  }
 
   HMODULE hModEarly = GetModuleHandleA (lpFileName);
 
-  if (hModEarly == NULL && BlacklistLibraryA (lpFileName))
+  if (hModEarly == NULL && BlacklistLibraryA (lpFileName)) {
+    LeaveCriticalSection (&loader_lock);
     return NULL;
+  }
 
   HMODULE hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
 
@@ -450,9 +490,10 @@ LoadLibraryExA_Detour (
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) ) {
     SK_TraceLoadLibraryA ( SK_GetCallingDLL (),
                              lpFileName,
-                               "LoadLibraryExA" );
+                               "LoadLibraryExA", _ReturnAddress () );
   }
 
+  LeaveCriticalSection (&loader_lock);
   return hMod;
 }
 
@@ -463,16 +504,24 @@ LoadLibraryExW_Detour (
   _Reserved_ HANDLE  hFile,
   _In_       DWORD   dwFlags )
 {
-  if (lpFileName == nullptr)
-    return NULL;
+  EnterCriticalSection (&loader_lock);
 
-  if (dwFlags & LOAD_LIBRARY_AS_DATAFILE)
+  if (lpFileName == nullptr) {
+    LeaveCriticalSection (&loader_lock);
+    return NULL;
+  }
+
+  if (dwFlags & LOAD_LIBRARY_AS_DATAFILE)  {
+    LeaveCriticalSection (&loader_lock);
     return LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
+  }
 
   HMODULE hModEarly = GetModuleHandleW (lpFileName);
 
-  if (hModEarly == NULL && BlacklistLibraryW (lpFileName))
+  if (hModEarly == NULL && BlacklistLibraryW (lpFileName)) {
+    LeaveCriticalSection (&loader_lock);
     return NULL;
+  }
 
   HMODULE hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
 
@@ -480,9 +529,10 @@ LoadLibraryExW_Detour (
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) ) {
     SK_TraceLoadLibraryW ( SK_GetCallingDLL (),
                              lpFileName,
-                               L"LoadLibraryExW" );
+                               L"LoadLibraryExW", _ReturnAddress () );
   }
 
+  LeaveCriticalSection (&loader_lock);
   return hMod;
 }
 
@@ -536,12 +586,14 @@ SK_ReHookLoadLibrary (void)
   if (_loader_hooks.unhooked)
     return;
 
+  SK_LockDllLoader ();
+
   if (_loader_hooks.LoadLibraryA_target != nullptr) {
     SK_RemoveHook (_loader_hooks.LoadLibraryA_target);
     _loader_hooks.LoadLibraryA_target = nullptr;
   }
 
-  SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryA",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryA",
                      LoadLibraryA_Detour,
            (LPVOID*)&LoadLibraryA_Original,
                     &_loader_hooks.LoadLibraryA_target );
@@ -554,7 +606,7 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryW_target = nullptr;
   }
 
-  SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryW",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryW",
                      LoadLibraryW_Detour,
            (LPVOID*)&LoadLibraryW_Original,
                     &_loader_hooks.LoadLibraryW_target );
@@ -567,7 +619,7 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryExA_target = nullptr;
   }
 
-  SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryExA",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryExA",
                      LoadLibraryExA_Detour,
            (LPVOID*)&LoadLibraryExA_Original,
                     &_loader_hooks.LoadLibraryExA_target );
@@ -580,7 +632,7 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryExW_target = nullptr;
   }
 
-  SK_CreateDLLHook ( L"kernel32.dll", "LoadLibraryExW",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryExW",
                      LoadLibraryExW_Detour,
            (LPVOID*)&LoadLibraryExW_Original,
                     &_loader_hooks.LoadLibraryExW_target );
@@ -588,99 +640,69 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.LoadLibraryExW_target);
 
 
-#if 0
   if (_loader_hooks.FreeLibrary_target != nullptr) {
     SK_RemoveHook (_loader_hooks.FreeLibrary_target);
     _loader_hooks.FreeLibrary_target = nullptr;
   }
 
-  SK_CreateDLLHook ( L"kernel32.dll", "FreeLibrary",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "FreeLibrary",
                      FreeLibrary_Detour,
            (LPVOID*)&FreeLibrary_Original,
                     &_loader_hooks.FreeLibrary_target );
 
   MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
-#endif
 
   MH_ApplyQueued ();
+
+  SK_UnlockDllLoader ();
 }
 
 void
 SK_UnhookLoadLibrary (void)
 {
+  SK_LockDllLoader ();
+
   _loader_hooks.unhooked = true;
 
-  if (_loader_hooks.LoadLibraryA_target != nullptr) {
-    SK_RemoveHook (_loader_hooks.LoadLibraryA_target);
-    _loader_hooks.LoadLibraryA_target = nullptr;
-  }
+  if (_loader_hooks.LoadLibraryA_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks.LoadLibraryA_target);
+  if (_loader_hooks.LoadLibraryW_target != nullptr)
+    MH_QueueDisableHook(_loader_hooks.LoadLibraryA_target);
+  if (_loader_hooks.LoadLibraryExA_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks.LoadLibraryExA_target);
+  if (_loader_hooks.LoadLibraryExW_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks.LoadLibraryExW_target);
+  if (_loader_hooks.FreeLibrary_target != nullptr)
+    MH_QueueDisableHook (_loader_hooks.FreeLibrary_target);
 
-  if (_loader_hooks.LoadLibraryW_target != nullptr) {
-    SK_RemoveHook (_loader_hooks.LoadLibraryW_target);
-    _loader_hooks.LoadLibraryW_target = nullptr;
-  }
+  MH_ApplyQueued ();
 
-  if (_loader_hooks.LoadLibraryExA_target != nullptr) {
-    SK_RemoveHook (_loader_hooks.LoadLibraryExA_target);
-    _loader_hooks.LoadLibraryExA_target = nullptr;
-  }
+  if (_loader_hooks.LoadLibraryA_target != nullptr)
+    MH_RemoveHook (_loader_hooks.LoadLibraryA_target);
+  if (_loader_hooks.LoadLibraryW_target != nullptr)
+    MH_RemoveHook (_loader_hooks.LoadLibraryW_target);
+  if (_loader_hooks.LoadLibraryExA_target != nullptr)
+    MH_RemoveHook (_loader_hooks.LoadLibraryExA_target);
+  if (_loader_hooks.LoadLibraryExW_target != nullptr)
+    MH_RemoveHook (_loader_hooks.LoadLibraryExW_target);
+  if (_loader_hooks.FreeLibrary_target != nullptr)
+    MH_RemoveHook (_loader_hooks.FreeLibrary_target);
 
-  if (_loader_hooks.LoadLibraryExW_target != nullptr) {
-    SK_RemoveHook (_loader_hooks.LoadLibraryExW_target);
-    _loader_hooks.LoadLibraryExW_target = nullptr;
-  }
+  _loader_hooks.LoadLibraryW_target   = nullptr;
+  _loader_hooks.LoadLibraryExA_target = nullptr;
+  _loader_hooks.LoadLibraryA_target   = nullptr;
+  _loader_hooks.LoadLibraryExW_target = nullptr;
+  _loader_hooks.FreeLibrary_target    = nullptr;
+
+  SK_UnlockDllLoader ();
 }
 
 
-typedef void (__cdecl *SteamAPI_SetBreakpadAppID_pfn)( uint32_t unAppID );
-typedef void (__cdecl *SteamAPI_UseBreakpadCrashHandler_pfn)(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, LPVOID m_pfnPreMinidumpCallback);
-
-SteamAPI_SetBreakpadAppID_pfn        SteamAPI_SetBreakpadAppID_NEVER        = nullptr;
-SteamAPI_UseBreakpadCrashHandler_pfn SteamAPI_UseBrakepadCrashHandler_NEVER = nullptr;
-
-void
-__cdecl
-SteamAPI_SetBreakpadAppID_Detour ( uint32_t unAppId )
-{
-  return;
-}
-
-void
-__cdecl
-SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
-                                          char const *pchDate,
-                                          char const *pchTime,
-                                          bool        bFullMemoryDumps,
-                                          void       *pvContext,
-                                               LPVOID m_pfnPreMinidumpCallback )
-{
-  return;
-}
 
 void
 __stdcall
 SK_InitCompatBlacklist (void)
 {
-#ifdef _WIN64
-  const wchar_t* wszSteamDLL = L"steam_api64.dll";
-#else
-  const wchar_t* wszSteamDLL = L"steam_api.dll";
-#endif
-
-  if (GetModuleHandleW (wszSteamDLL)) {
-    SK_CreateDLLHook3 ( wszSteamDLL,
-                        "SteamAPI_UseBreakpadCrashHandler",
-                       SteamAPI_UseBreakpadCrashHandler_Detour,
-            (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
-
-    SK_CreateDLLHook3 ( wszSteamDLL,
-                        "SteamAPI_SetBreakpadAppID",
-                       SteamAPI_SetBreakpadAppID_Detour,
-            (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
-
-    MH_ApplyQueued ();
-  }
-
 #if 0
   rehook_loadlib.insert (L"gameoverlayrenderer.dll");
   rehook_loadlib.insert (L"gameoverlayrenderer64.dll");
@@ -712,9 +734,14 @@ struct enum_working_set_s {
   HANDLE      proc;
 };
 
+#include <unordered_set>
+std::unordered_set <HMODULE> logged_modules;
+
 void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
+  EnterCriticalSection (&loader_lock);
+
   iSK_Logger* pLogger = pWorkingSet->logger;
 
   for (int i = 0; i < pWorkingSet->count; i++ )
@@ -724,10 +751,11 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
     try {
       // Get the full path to the module's file.
-      if ( GetModuleFileNameExW ( pWorkingSet->proc,
-                                    pWorkingSet->modules [i],
-                                      wszModName,
-                                        MAX_PATH ) )
+      if ( (! logged_modules.count (pWorkingSet->modules [i])) &&
+              GetModuleFileNameExW ( pWorkingSet->proc,
+                                       pWorkingSet->modules [i],
+                                         wszModName,
+                                           MAX_PATH ) )
       {
         MODULEINFO mi = { 0 };
 
@@ -762,17 +790,23 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
             L" ----------------------  [File Ver]    %s\n",
               ver_str.c_str () );
         }
+
+        logged_modules.insert (pWorkingSet->modules [i]);
       }
     }
 
     catch (...) {
     }
   }
+
+  LeaveCriticalSection (&loader_lock);
 }
 
 void
-SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods)
+SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 {
+  EnterCriticalSection (&loader_lock);
+
   for ( int i = 0; i < (int)(cbNeeded / sizeof (HMODULE)); i++ )
   {
     wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
@@ -788,7 +822,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods)
         if ( (! third_party_dlls.overlays.rtss_hooks) &&
               StrStrIW (wszModName, L"RTSSHooks") ) {
           // Hold a reference to this DLL so it is not unloaded prematurely
-          GetModuleHandleEx ( 0x00,
+          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                 wszModName,
                                   &third_party_dlls.overlays.rtss_hooks );
 
@@ -801,7 +835,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods)
         else if ( (! third_party_dlls.overlays.steam_overlay) &&
                    StrStrIW (wszModName, L"gameoverlayrenderer") ) {
           // Hold a reference to this DLL so it is not unloaded prematurely
-          GetModuleHandleEx ( 0x00,
+          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                 wszModName,
                                   &third_party_dlls.overlays.steam_overlay );
 
@@ -814,7 +848,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods)
         else if ( (! third_party_dlls.misc.gedosato) &&
                    StrStrIW (wszModName, L"GeDoSaTo") ) {
           // Hold a reference to this DLL so it is not unloaded prematurely
-          GetModuleHandleEx ( 0x00,
+          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                 wszModName,
                                   &third_party_dlls.misc.gedosato );
 
@@ -837,38 +871,41 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods)
           }
         }
 
-        else if ( StrStrIW (wszModName, L"\\opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
-          SK_BootOpenGL ();
+        if (when == SK_ModuleEnum::PostLoad) {
+          if ( StrStrIW (wszModName, L"\\opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
+            SK_BootOpenGL ();
 
-          loaded_gl = true;
+            loaded_gl = true;
+          }
+
+          else if ( StrStrIW (wszModName, L"\\vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
+            SK_BootVulkan ();
+          
+            loaded_vulkan = true;
+          }
+          
+          else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+            SK_BootDXGI ();
+          
+            loaded_dxgi = true;
+          }
+          
+          else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
+            SK_BootD3D9 ();
+          
+            loaded_d3d9 = true;
+          }
         }
 
-        else if ( StrStrIW (wszModName, L"\\vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
-          SK_BootVulkan ();
-
-          loaded_vulkan = true;
-        }
-
-        else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
-          SK_BootDXGI ();
-
-          loaded_dxgi = true;
-        }
-
-        else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
-          SK_BootD3D9 ();
-
-          loaded_d3d9 = true;
-        }
-
-        else if (StrStrIW (wszModName, L"CSteamworks.dll")) {
-          SK_HookCSteamworks ();
-        }
-
-        else if ( StrStrIW (wszModName, L"steam_api.dll")   ||
-                  StrStrIW (wszModName, L"steam_api64.dll") ||
-                  StrStrIW (wszModName, L"SteamNative.dll") ) {
-          SK_HookSteamAPI ();
+        if (! config.steam.silent)
+        {
+          if (StrStrIW (wszModName, L"CSteamworks.dll")) {
+            SK_HookCSteamworks ();
+          } else if (StrStrIW (wszModName, L"steam_api.dll")   ||
+                 StrStrIW     (wszModName, L"steam_api64.dll") ||
+                 StrStrIW     (wszModName, L"SteamNative.dll") ) {
+              SK_HookSteamAPI ();
+          }
         }
       }
     }
@@ -880,16 +917,19 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods)
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
   }
+
+  LeaveCriticalSection (&loader_lock);
 }
 
 void
 __stdcall
-EnumLoadedModules (void)
+SK_EnumLoadedModules (SK_ModuleEnum when)
 {
   // Begin logging new loads after this
   SK_LoadLibrary_SILENCE = false;
 
-  iSK_Logger*  pLogger  = SK_CreateLog (L"logs/preloads.log");
+  static iSK_Logger*
+               pLogger  = SK_CreateLog (L"logs/modules.log");
   DWORD        dwProcID = GetCurrentProcessId ();
 
   static
@@ -903,11 +943,24 @@ EnumLoadedModules (void)
                           FALSE,
                             dwProcID );
 
-  if (hProc == nullptr) {
+  if (hProc == nullptr && (when != SK_ModuleEnum::PreLoad))
+  {
     pLogger->close ();
     delete pLogger;
     return;
   }
+
+  if ( when   == SK_ModuleEnum::PostLoad &&
+      pLogger != nullptr )
+  {
+    pLogger->LogEx (
+      false,
+        L"================================================================== "
+        L"(End Preloads) "
+        L"==================================================================\n"
+    );
+  }
+
 
   if ( EnumProcessModules ( hProc,
                               hMods,
@@ -936,8 +989,8 @@ EnumLoadedModules (void)
             //// Release the handle to the process.
             //// CloseHandle (pWorkingSet->proc);
 
-            pLogger->close ();
-            delete pLogger;
+            //pLogger->close ();
+            //delete pLogger;
             delete pWorkingSet;
 
             CloseHandle (GetCurrentThread ());
@@ -950,7 +1003,7 @@ EnumLoadedModules (void)
       nullptr
     );
 
-    SK_WalkModules (cbNeeded, hProc, hMods);
+    SK_WalkModules (cbNeeded, hProc, hMods, when);
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr) {
@@ -970,33 +1023,6 @@ EnumLoadedModules (void)
     //   The software is probably going to crash.
     dll_log.Log ( L"[RTSSCompat] RTSS appears to be in High App Detection or Stealth mode, "
                   L"your game is probably going to crash." );
-  }
-
-  bool imports_gl     = false,
-       imports_vulkan = false,
-       imports_d3d9   = false,
-       imports_dxgi   = false;
-
-  SK_TestRenderImports ( GetModuleHandle (nullptr),
-                           &imports_gl,
-                             &imports_vulkan,
-                               &imports_d3d9,
-                                 &imports_dxgi );
-
-  if ( (! loaded_gl) && imports_gl && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
-    SK_BootOpenGL ();
-  }
-
-  if ( (! loaded_vulkan) && imports_vulkan && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
-    SK_BootVulkan ();
-  }
-
-  if ( (! loaded_dxgi) && imports_dxgi && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
-    SK_BootDXGI ();
-  }
-
-  if ( (! loaded_d3d9) && imports_d3d9 && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
-    SK_BootD3D9 ();
   }
 }
 

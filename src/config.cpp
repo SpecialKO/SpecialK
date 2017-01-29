@@ -208,6 +208,7 @@ struct {
     sk::ParameterBool*    manage;
     sk::ParameterBool*    keys_activate;
     sk::ParameterFloat*   timeout;
+    sk::ParameterBool*    ui_capture;
   } cursor;
 } input;
 
@@ -456,6 +457,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Input.Cursor",
         L"Timeout" );
+
+  input.cursor.ui_capture =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Forcefully Capture Mouse Cursor in UI Mode")
+      );
+  input.cursor.ui_capture->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"ForceCaptureInUI" );
 
 
   window.borderless =
@@ -1680,6 +1691,8 @@ SK_LoadConfig (std::wstring name) {
     config.input.cursor.keys_activate = input.cursor.keys_activate->get_value ();
   if (input.cursor.timeout->load ())
     config.input.cursor.timeout = (int)(1000.0 * input.cursor.timeout->get_value ());
+  if (input.cursor.ui_capture->load ())
+    config.input.ui_capture = input.cursor.ui_capture->get_value ();
 
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
@@ -1895,6 +1908,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
   input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
+  input.cursor.ui_capture->set_value          (config.input.ui_capture);
 
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
@@ -2076,6 +2090,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   input.cursor.manage->store              ();
   input.cursor.keys_activate->store       ();
   input.cursor.timeout->store             ();
+  input.cursor.ui_capture->store          ();
 
   window.borderless->store                ();
   window.center->store                    ();

@@ -140,7 +140,10 @@ SK_Console::End (void)
     return;
   }
 
-  TerminateThread (hMsgPump, 0);
+  if (hMsgPump != 0) {
+    TerminateThread (hMsgPump, 0);
+    hMsgPump = 0;
+  }
 }
 
 HANDLE
@@ -210,6 +213,8 @@ SK_Console::MessagePump (LPVOID hook_ptr)
                   (float)(dwNow - dwTime) / 1000.0f );
 
   SK_InstallWindowHook (hWndForeground);
+
+  SK_Console::getInstance ()->hMsgPump = 0;
 
   CloseHandle (GetCurrentThread ());
 

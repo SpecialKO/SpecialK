@@ -277,7 +277,11 @@ SK::Framerate::Limiter::try_wait (void)
     return false;
 
   LARGE_INTEGER next_;
-  next_.QuadPart = (start.QuadPart + (double)(frames+1) * (ms / 1000.0) * (double)freq.QuadPart);
+
+  next_.QuadPart =
+    static_cast <LONGLONG> (
+      ( start.QuadPart + (double)(frames+1) * (ms / 1000.0) * (double)freq.QuadPart )
+    );
 
   QueryPerformanceCounter_Original (&time);
 
@@ -314,13 +318,16 @@ SK::Framerate::Limiter::wait (void)
 
   if (restart) {
     frames         = 0;
-    start.QuadPart = time.QuadPart + (ms / 1000.0) * (double)freq.QuadPart;
+    start.QuadPart = static_cast <LONGLONG> ((double)time.QuadPart + (ms / 1000.0) * (double)freq.QuadPart);
     restart        = false;
     //init (target_fps);
     //return;
   }
 
-  next.QuadPart = (LONGLONG)((start.QuadPart + (double)frames * (ms / 1000.0) * (double)freq.QuadPart));
+  next.QuadPart =
+    static_cast <LONGLONG> (
+      ( ((double)start.QuadPart + (double)frames * (ms / 1000.0) * (double)freq.QuadPart) )
+    );
 
   if (next.QuadPart > 0ULL) {
     // If available (Windows 7+), wait on the swapchain

@@ -39,6 +39,8 @@ namespace SK
   }
 }
 
-BOOL WINAPI SK_IsDebuggerPresent (void);
+
+void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
+BOOL WINAPI SK_IsDebuggerPresent    (void);
 
 #endif /* __SK__DEBUG_UTILS_H__ */

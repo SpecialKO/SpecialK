@@ -400,39 +400,56 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       D3DCAPS9 caps;
       pDev->GetDeviceCaps (&caps);
 
-      pDev->SetRenderState (D3DRS_FILLMODE,  D3DFILL_SOLID);
-      pDev->SetRenderState (D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
-      pDev->SetRenderState (D3DRS_CULLMODE,  D3DCULL_NONE);
+      pDev->SetRenderState (D3DRS_FILLMODE,                 D3DFILL_SOLID);
+      pDev->SetRenderState (D3DRS_SHADEMODE,                D3DSHADE_FLAT);
+      pDev->SetRenderState (D3DRS_CULLMODE,                 D3DCULL_NONE);
+
+      pDev->SetRenderState (D3DRS_LIGHTING,                 FALSE);
+      pDev->SetRenderState (D3DRS_SPECULARENABLE,           FALSE);
+      pDev->SetRenderState (D3DRS_FOGENABLE,                FALSE);
+      pDev->SetRenderState (D3DRS_AMBIENT,                  0);
 
       pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
-      pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
-      pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_SRCALPHA);
-      pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_INVSRCALPHA);
+      pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
+      pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
+      pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
 
-      pDev->SetRenderState (D3DRS_ALPHATESTENABLE, TRUE);
-      pDev->SetRenderState (D3DRS_ALPHAFUNC,       D3DCMP_GREATER);
-      pDev->SetRenderState (D3DRS_ALPHAREF, (DWORD)0x00000000);
+      pDev->SetRenderState (D3DRS_SRCBLENDALPHA,            D3DBLEND_ZERO);
+      pDev->SetRenderState (D3DRS_DESTBLENDALPHA,           D3DBLEND_ZERO);
 
-      pDev->SetRenderState (D3DRS_STENCILENABLE, FALSE);
-      pDev->SetRenderState (D3DRS_ZFUNC,         D3DCMP_ALWAYS);
+      pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
+      pDev->SetRenderState (D3DRS_STENCILENABLE,            FALSE);
 
-      pDev->SetSamplerState (0, D3DSAMP_SRGBTEXTURE, FALSE);
+      pDev->SetRenderState (D3DRS_ZENABLE,                  FALSE);
+      pDev->SetRenderState (D3DRS_ZWRITEENABLE,             FALSE);
 
-      pDev->SetTextureStageState (0, D3DTSS_TEXCOORDINDEX, 0);
-      pDev->SetTextureStageState (0, D3DTSS_COLOROP,       D3DTOP_SELECTARG1);
-      pDev->SetTextureStageState (0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
+      pDev->SetRenderState (D3DRS_COLORWRITEENABLE,         D3DCOLORWRITEENABLE_RED   | 
+                                                            D3DCOLORWRITEENABLE_GREEN | 
+                                                            D3DCOLORWRITEENABLE_BLUE  |
+                                                            D3DCOLORWRITEENABLE_ALPHA );
 
-      pDev->SetTextureStageState (0, D3DTSS_ALPHAOP,       D3DTOP_MODULATE);
-      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG1,     D3DTA_TEXTURE);
-      pDev->SetTextureStageState (0, D3DTSS_ALPHAARG2,     D3DTA_DIFFUSE);
+      pDev->SetSamplerState        (0, D3DSAMP_SRGBTEXTURE, FALSE);
 
-      for (unsigned int i = 1; i < caps.MaxSimultaneousTextures; i++) {
-        pDev->SetTexture (i, 0);
-      }
+      pDev->SetTextureStageState   (0, D3DTSS_COLOROP,      D3DTOP_MODULATE);
+      pDev->SetTextureStageState   (0, D3DTSS_COLORARG0,    D3DTA_CURRENT);
+      pDev->SetTextureStageState   (0, D3DTSS_COLORARG1,    D3DTA_TEXTURE);
+      pDev->SetTextureStageState   (0, D3DTSS_COLORARG2,    D3DTA_DIFFUSE);
 
-      for (unsigned int i = 1; i < caps.MaxTextureBlendStages; i++) {
-        pDev->SetTextureStageState (i, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-        pDev->SetTextureStageState (i, D3DTSS_COLOROP, D3DTOP_DISABLE);
+      pDev->SetTextureStageState   (0, D3DTSS_ALPHAOP,      D3DTOP_MODULATE);
+      pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG0,    D3DTA_CURRENT);
+      pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG1,    D3DTA_TEXTURE);
+      pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG2,    D3DTA_DIFFUSE);
+
+      pDev->SetTextureStageState   (0, D3DTSS_RESULTARG,    D3DTA_CURRENT);
+
+      pDev->SetSamplerState        (0, D3DSAMP_MINFILTER,   D3DTEXF_POINT);
+      pDev->SetSamplerState        (0, D3DSAMP_MAGFILTER,   D3DTEXF_POINT);
+
+
+
+      for (int i = 1; i < caps.MaxTextureBlendStages; i++) {
+        pDev->SetTextureStageState (i, D3DTSS_COLOROP,      D3DTOP_DISABLE);
+        pDev->SetTextureStageState (i, D3DTSS_ALPHAOP,      D3DTOP_DISABLE);
       }
 
       cegD3D9_SB->Capture ();
@@ -458,8 +475,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
         vp_new.Width  = pp.BackBufferWidth;
         vp_new.Height = pp.BackBufferHeight;
 
-        vp_new.MinZ = 0.0f;
-        vp_new.MaxZ = 1.0f;
+        vp_new.MinZ =  0.0f;
+        vp_new.MaxZ =  1.0f;
 
         pDev->SetViewport (&vp_new);
       }
@@ -469,7 +486,17 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     {
       SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
+      D3DCAPS9 caps;
+      pDev->GetDeviceCaps (&caps);
+
       SK_Steam_DrawOSD ();
+
+      pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
+      pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+      pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
+      pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
+
+      pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
 
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
     }
@@ -1453,7 +1480,7 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
                 D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
 {
   if (InterlockedCompareExchange (&ImGui_Init, 0, 0))
-    ImGui_ImplDX9_InvalidateDeviceObjects ();
+    ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
 
   return;
 }
@@ -1466,17 +1493,12 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
                  D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
 {
   if (ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
-                             This) )
+                             This,
+                               pPresentationParameters) )
   {
     HWND  hWnd    =
       pPresentationParameters->hDeviceWindow;
 
-    DWORD dwStyle =
-      GetClassLong ( hWnd, GCL_STYLE );
-
-    dwStyle &= ~(CS_DBLCLKS);
-
-    SetClassLong        ( hWnd,        GCL_STYLE, dwStyle );
     InterlockedExchange ( &ImGui_Init, TRUE );
   }
 }
@@ -2156,7 +2178,8 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       // Initialize ImGui for D3D9 games
       //
       if ( ImGui_ImplDX9_Init ( (void *)pparams->hDeviceWindow,
-                                  pDevice )
+                                  pDevice,
+                                    pparams )
          )
       {
         HWND  hWnd    =
@@ -2732,8 +2755,8 @@ IDirect3D9*
 STDMETHODCALLTYPE
 Direct3DCreate9 (UINT SDKVersion)
 {
-  WaitForInit      ();
   WaitForInit_D3D9 ();
+  WaitForInit      ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
                 L"%s",
@@ -2782,8 +2805,8 @@ __declspec (noinline)
 STDMETHODCALLTYPE
 Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
 {
-  WaitForInit      ();
   WaitForInit_D3D9 ();
+  WaitForInit      ();
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %ph) - "
                 L"%s",
@@ -2911,7 +2934,9 @@ HookD3D9 (LPVOID user)
     return 0;
   }
 
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+  bool success = SUCCEEDED (
+    CoInitializeEx (nullptr, COINIT_MULTITHREADED)
+  );
   {
     CComPtr <IDirect3D9> pD3D9 = nullptr;
 
@@ -3148,7 +3173,8 @@ HookD3D9 (LPVOID user)
         SK::DXGI::StartBudgetThread_NoAdapter ();
     }
   }
-  CoUninitialize ();
+  if (success)
+    CoUninitialize();
 
   return 0;
 }

@@ -327,8 +327,11 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
   if (status != MH_OK) {
     // Silently ignore this problem
-    if (status == MH_ERROR_ALREADY_CREATED && ppOriginal != nullptr)
+    if (status == MH_ERROR_ALREADY_CREATED && ppOriginal != nullptr) {
+    if (ppFuncAddr != nullptr)
+      *ppFuncAddr = pFuncAddr;
       return MH_OK;
+    }
 
     if (status == MH_ERROR_ALREADY_CREATED)
     {

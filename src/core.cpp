@@ -58,7 +58,6 @@
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/dxgi_backend.h>
-#include <SpecialK/render_backend.h>
 
 #include <atlbase.h>
 #include <comdef.h>
@@ -70,6 +69,8 @@
 #include <CEGUI/Logger.h>
 
 CRITICAL_SECTION init_mutex    = { 0 };
+CRITICAL_SECTION budget_mutex  = { 0 };
+CRITICAL_SECTION loader_lock   = { 0 };
 volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
@@ -474,6 +475,8 @@ SK_StartPerfMonThreads (void)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (process_stats.hThread));
       else
         dll_log.LogEx (false, L"Failed!\n");
+
+      Sleep         (0);
     }
   }
 
@@ -497,6 +500,8 @@ SK_StartPerfMonThreads (void)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (cpu_stats.hThread));
       else
         dll_log.LogEx (false, L"Failed!\n");
+
+      Sleep         (0);
     }
   }
 
@@ -517,6 +522,8 @@ SK_StartPerfMonThreads (void)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (disk_stats.hThread));
       else
         dll_log.LogEx (false, L"failed!\n");
+
+      Sleep         (0);
     }
   }
 
@@ -538,14 +545,112 @@ SK_StartPerfMonThreads (void)
                           GetThreadId (pagefile_stats.hThread) );
       else
         dll_log.LogEx (false, L"failed!\n");
+
+      Sleep         (0);
     }
   }
 }
 
 void
 __stdcall
-SK_InitFinishCallback (_Releases_lock_ (init_mutex) void)
+SK_InitFinishCallback (void)
 {
+  if (config.cegui.enable)
+  {
+    SK_LockDllLoader ();
+
+    // Disable until we validate CEGUI's state
+    config.cegui.enable = false;
+
+    wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
+    wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
+
+#ifdef _WIN64
+    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
+#else
+    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
+#endif
+
+    lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
+    lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+
+    // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
+    //   do support it if a certain Windows Update (KB2533623) is installed.
+    typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
+    typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
+    typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
+
+    static AddDllDirectory_pfn k32_AddDllDirectory =
+      (AddDllDirectory_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "AddDllDirectory" );
+
+    static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
+      (RemoveDllDirectory_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "RemoveDllDirectory" );
+
+    static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
+      (SetDefaultDllDirectories_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "SetDefaultDllDirectories" );
+
+    if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
+         k32_SetDefaultDllDirectories &&
+
+           GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
+    {
+      dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
+
+      wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
+
+      _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+      _wputenv  (wszEnvVar);
+
+      // This tests for the existence of the DLL before attempting to load it...
+      auto DelayLoadDLL = [&](const char* szDLL)->
+        bool
+          {
+            k32_SetDefaultDllDirectories (
+              LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+              LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+            );
+
+            DLL_DIRECTORY_COOKIE cookie = 0;
+            bool                 ret    = false;
+
+            __try {
+                  char szFullDLL [MAX_PATH] = { '\0' };
+              sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
+
+              cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
+              ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
+            }
+
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+            }
+
+            k32_RemoveDllDirectory (cookie);
+
+            return ret;
+          };
+
+      if (DelayLoadDLL ("CEGUIBase-0.dll"))
+      {
+        config.cegui.enable = true;
+
+        if (config.apis.OpenGL.hook)
+          DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
+        if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
+          DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
+        if (config.apis.dxgi.d3d11.hook)
+          DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
+      }
+    }
+
+    SK_UnlockDllLoader ();
+  }
+
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
   SK_Console* pConsole = SK_Console::getInstance ();
@@ -556,7 +661,6 @@ SK_InitFinishCallback (_Releases_lock_ (init_mutex) void)
     // Create a thread that pumps the OSD
   if (config.osd.pump || SK_UsingVulkan ()) {
     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
-
     hPumpThread =
       (HANDLE)
         _beginthreadex ( nullptr,
@@ -709,107 +813,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     return;
   }
 
-  if (config.cegui.enable)
-  {
-    // Disable until we validate CEGUI's state
-    config.cegui.enable = false;
-
-    wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
-    wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
-
-#ifdef _WIN64
-    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
-#else
-    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
-#endif
-
-    lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
-    lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
-
-    // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
-    //   do support it if a certain Windows Update (KB2533623) is installed.
-    typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
-    typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
-    typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
-
-    static AddDllDirectory_pfn k32_AddDllDirectory =
-      (AddDllDirectory_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                           "AddDllDirectory" );
-
-    static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
-      (RemoveDllDirectory_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                           "RemoveDllDirectory" );
-
-    static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
-      (SetDefaultDllDirectories_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                           "SetDefaultDllDirectories" );
-
-    if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
-         k32_SetDefaultDllDirectories &&
-
-           GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
-    {
-      dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
-
-      wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
-
-      _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
-      _wputenv  (wszEnvVar);
-
-      // This tests for the existence of the DLL before attempting to load it...
-      auto DelayLoadDLL = [&](const char* szDLL)->
-        bool
-          {
-            // Compat Hack for Torchlight 2
-            bool has_base = (GetModuleHandle (L"CEGUIBase.dll") != nullptr);
-
-            if (! has_base)
-            {
-              k32_SetDefaultDllDirectories (
-                LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
-              );
-            } else {
-              SetDllDirectoryW (wszCEGUIModPath);
-            }
-
-            DLL_DIRECTORY_COOKIE cookie = 0;
-            bool                 ret    = false;
-
-            __try {
-                  char szFullDLL [MAX_PATH] = { '\0' };
-              sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
-
-              if (! has_base)
-                cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
-
-              ret      = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
-            }
-
-            __except (EXCEPTION_EXECUTE_HANDLER) {
-            }
-
-            if (! has_base)
-              k32_RemoveDllDirectory (cookie);
-            else
-              SetDllDirectoryW       (nullptr);
-
-            return ret;
-          };
-
-      if (DelayLoadDLL ("CEGUIBase-0.dll")) {
-        config.cegui.enable = true;
-
-        DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
-        DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
-        DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
-      }
-    }
-  }
-
   // Load user-defined DLLs (Early)
 #ifdef _WIN64
   SK_LoadEarlyImports64 ();
@@ -935,11 +938,11 @@ SK_InitCore (const wchar_t* backend, void* callback)
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
 
+  callback_fn (SK_InitFinishCallback);
+
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
-  EnumLoadedModules ();
-
-  callback_fn (SK_InitFinishCallback);
+  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
   // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
@@ -961,7 +964,8 @@ WaitForInit (void)
     return;
   }
 
-  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr)) {
+  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr))
+  {
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
       InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr),
         150 ) )
@@ -1061,8 +1065,8 @@ skMemCmd::execute (const char* szArgs)
   if (szArgs == nullptr)
     return SK_ICommandResult ("mem", szArgs);
 
-  uintptr_t addr      =   NULL;
-  char      type      =     0;
+  uintptr_t addr;
+  char      type;
   char      val [256] = { '\0' };
 
 #ifdef _WIN64
@@ -1084,7 +1088,7 @@ skMemCmd::execute (const char* szArgs)
 
   addr += (uintptr_t)base_addr;
 
-  char result [512] = { '\0' };
+  char result [512];
 
   switch (type) {
     case 'b':
@@ -1230,11 +1234,20 @@ DllThread_CRT (LPVOID user)
   if (SK_IsHostAppSKIM ())
     return 0;
 
+  SK_InitCompatBlacklist ();
+
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
     "VRAM.Purge",
       new SK_IVarStub <int32_t> (
         (int32_t *)&SK_D3D11_amount_to_purge
+      )
+  );
+
+  SK_GetCommandProcessor()->AddVariable(
+    "GPU.StatPollFreq",
+      new SK_IVarStub <float> (
+        &config.gpu.interval
       )
   );
 
@@ -1296,7 +1309,9 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  InitializeCriticalSectionAndSpinCount (&init_mutex, 50000);
+  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
+  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
+  InitializeCriticalSectionAndSpinCount (&loader_lock,  65536);
 
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
@@ -1383,12 +1398,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        // Misc. Tools
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"SleepOnLan.exe"))               ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"ds3t.exe"))                     ||
-       (! SK_Path_wcsicmp (SK_GetHostApp(),L"tzt.exe")) )
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"tzt.exe")) ) {
+    //FreeLibrary (SK_GetDLL ());
     return false;
+  }
 
   // This is a fatal combination
-  if (SK_IsInjected () && SK_IsHostAppSKIM ())
+  if (SK_IsInjected () && SK_IsHostAppSKIM ()) {
+    //FreeLibrary (SK_GetDLL ());
     return false;
+  }
 
   // Only the injector version can be bypassed, the wrapper version
   //   must fully initialize or the game will not be able to use the
@@ -1401,7 +1420,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     SK_ResumeThreads (retval.first);
 
-    return true;
+    //FreeLibrary (SK_GetDLL ());
+    return false;
   }
 
   else {
@@ -1414,6 +1434,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //   own later...
     //
     if ( blacklist ) {
+      //FreeLibrary (SK_GetDLL ());
       return false;
     }
   }
@@ -1424,6 +1445,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init_.callback =          callback;
 
   EnterCriticalSection (&init_mutex);
+
+  SK::Diagnostics::CrashHandler::InitSyms ();
 
   // Don't start SteamAPI if we're running the installer...
   if (SK_IsHostAppSKIM ())
@@ -1467,27 +1490,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_SetConfigPath     (wszConfigPath);
 
 
-  // Do this from the startup thread
-  SK_Init_MinHook     ();
-  SK_HookWinAPI       ();
-  SK::Framerate::Init ();
-
-  //if (config.apis.dxgi.d3d11.hook) {
-    if (! lstrcmpW (backend, L"dxgi") || GetModuleHandle (L"d3d11.dll"))
-      SK_D3D11_Init ();
-  //}
-
-  SK_InitCompatBlacklist ();
-
-
-  // Hard-code the AppID for ToZ
-  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
-    config.steam.appid = 351970;
-
-  // Game won't start from the commandline without this...
-  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
-    config.steam.appid = 405900;
-
   wchar_t log_fname [MAX_PATH];
           log_fname [MAX_PATH - 1] = L'\0';
 
@@ -1527,38 +1529,51 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
   }
 
-  // Start unmuted
-  if (config.window.background_mute)
-    SK_SetGameMute (FALSE);
+
+  SK_Init_MinHook                       ();
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
+
 
   // Don't let Steam prevent me from attaching a debugger at startup, damnit!
   SK::Diagnostics::Debugger::Allow ();
 
   game_debug.init (L"logs/game_output.log", L"w");
 
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
   if (! SK_IsHostAppSKIM ()) {
-    if (! config.steam.silent) {
-      SK_TestSteamImports (GetModuleHandle (nullptr));
-
-      if (GetModuleHandle (L"CSteamworks.dll")) {
-        SK_HookCSteamworks ();
-      }
-
-      if ( GetModuleHandle (L"steam_api.dll")   ||
-           GetModuleHandle (L"steam_api64.dll") ||
-           GetModuleHandle (L"SteamNative.dll") ) {
-        SK_HookSteamAPI ();
-      }
-    }
+    SK_Steam_InitCommandConsoleVariables ();
+    SK_TestSteamImports                  (GetModuleHandle (nullptr));
   }
+
+
+  // Do this from the startup thread
+  SK_HookWinAPI       ();
+  SK::Framerate::Init ();
+
+
+
+  // Hard-code the AppID for ToZ
+  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+    config.steam.appid = 351970;
+
+  // Game won't start from the commandline without this...
+  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
+    config.steam.appid = 405900;
+
+
+  // Start unmuted
+  if (config.window.background_mute)
+    SK_SetGameMute (FALSE);
+
 
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
+  SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+
   LeaveCriticalSection (&init_mutex);
+
 
   InterlockedExchangePointer (
     (void **)&hInitThread,
@@ -1591,10 +1606,7 @@ SK_ShutdownCore (const wchar_t* backend)
     ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);
-  SK_AutoClose_Log ( crash_log);
   SK_AutoClose_Log (   dll_log);
-
-  SK_UnloadImports ();
 
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->End ();
@@ -1687,12 +1699,12 @@ SK_ShutdownCore (const wchar_t* backend)
   }
 #endif
 
+  // Don't care about crashes after this :)
+  config.system.handle_crashes = false;
+
   SK::Framerate::Shutdown ();
 
-  // Hopefully these things are done by now...
-  DeleteCriticalSection (&init_mutex);
-
-  ////////SK_UnInit_MinHook ();
+  SK_UnloadImports  ();
 
   if (nvapi_init)
     sk::NVAPI::UnloadLibrary ();
@@ -1702,7 +1714,18 @@ SK_ShutdownCore (const wchar_t* backend)
 
   SymCleanup (GetCurrentProcess ());
 
+  // Hopefully these things are done by now...
+  DeleteCriticalSection (&budget_mutex);
+  DeleteCriticalSection (&loader_lock);
+  DeleteCriticalSection (&init_mutex);
+
   FreeLibrary (backend_dll);
+
+  if (config.system.handle_crashes)
+    SK_AutoClose_Log ( crash_log);
+
+  SK_UnInit_MinHook ();
+  FreeLibrary       (SK_GetDLL ());
 
   return true;
 }
@@ -1710,6 +1733,7 @@ SK_ShutdownCore (const wchar_t* backend)
 
 
 extern void SK_InitWindow (HWND hWnd);
+#include <SpecialK/render_backend.h>
 
 __declspec (noinline)
 COM_DECLSPEC_NOTHROW
@@ -1723,7 +1747,8 @@ SK_BeginBufferSwap (void)
 
   static int import_tries = 0;
 
-  if (import_tries++ == 0) {
+  if (import_tries++ == 0)
+  {
   // Load user-defined DLLs (Late)
 #ifdef _WIN64
     SK_LoadLateImports64 ();
@@ -1731,20 +1756,29 @@ SK_BeginBufferSwap (void)
     SK_LoadLateImports32 ();
 #endif
 
-    // Steam Init: Better late than never
+    extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
-    if (GetModuleHandle (L"CSteamworks.dll")) {
-      SK_HookCSteamworks ();
+    if (InterlockedCompareExchange64 (&SK_SteamAPI_CallbackRunCount, 0, 0) == 0)
+    {
+      // Steam Init: Better late than never
+
+      SK_TestSteamImports(nullptr);
+
+      extern bool
+      S_CALLTYPE
+      SteamAPI_InitSafe_Detour (void);
+
+      extern void
+      S_CALLTYPE
+      SteamAPI_RunCallbacks_Detour (void);
+
+      SteamAPI_InitSafe_Detour     ();
+      SteamAPI_RunCallbacks_Detour ();
     }
 
-    if ( GetModuleHandle (L"steam_api.dll")   ||
-         GetModuleHandle (L"steam_api64.dll") ||
-         GetModuleHandle (L"SteamNative.dll") ) {
-      SK_HookSteamAPI ();
-    }
 
-    //if (config.system.handle_crashes)
-      //SK::Diagnostics::CrashHandler::Reinstall ();
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Reinstall ();
   }
 
   static volatile ULONG first = TRUE;
@@ -1775,9 +1809,15 @@ SK_BeginBufferSwap (void)
 
   extern bool SK_ImGui_Visible;
 
-  if (SK_ImGui_Visible && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D11) {
-    extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
-                 SK_ImGui_DrawFrame (       0x00,          nullptr );
+  if (SK_ImGui_Visible)
+  {
+    //
+    // TEMP HACK: There is only one opportune time to do this in DXGI-based APIs
+    //     
+    if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D11) {
+      extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
+                   SK_ImGui_DrawFrame (       0x00,          nullptr );
+    }
   }
 }
 

@@ -28,6 +28,7 @@
 #include <SpecialK/utility.h>
 
 #include <Windows.h>
+#include <intsafe.h>
 
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
@@ -40,6 +41,22 @@
 extern HMODULE __stdcall SK_GetDLL (void);
 
 using namespace SK::Diagnostics;
+
+
+CRITICAL_SECTION cs_dbghelp = { 0 };
+
+
+void
+WINAPI
+SK_SymRefreshModuleList ( HANDLE hProc = GetCurrentProcess () )
+{
+  EnterCriticalSection (&cs_dbghelp);
+
+  SymRefreshModuleList (hProc);
+
+  LeaveCriticalSection (&cs_dbghelp);
+}
+
 
 LONG
 WINAPI
@@ -61,8 +78,11 @@ SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopL
 void
 CrashHandler::Reinstall (void)
 {
-  SetErrorMode                (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
-  SetUnhandledExceptionFilter (SK_TopLevelExceptionFilter);
+  if (config.system.handle_crashes)
+  {
+    SetErrorMode                         (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+    SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
+  }
 }
 
 
@@ -71,6 +91,96 @@ struct {
   uint8_t* buf = nullptr;
 } static crash_sound;
 
+
+
+
+typedef void (__cdecl *SteamAPI_SetBreakpadAppID_pfn)( uint32_t unAppID );
+typedef void (__cdecl *SteamAPI_UseBreakpadCrashHandler_pfn)(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, LPVOID m_pfnPreMinidumpCallback);
+
+SteamAPI_SetBreakpadAppID_pfn        SteamAPI_SetBreakpadAppID_NEVER        = nullptr;
+SteamAPI_UseBreakpadCrashHandler_pfn SteamAPI_UseBrakepadCrashHandler_NEVER = nullptr;
+
+void
+__cdecl
+SteamAPI_SetBreakpadAppID_Detour ( uint32_t unAppId )
+{
+  return;
+}
+
+void
+__cdecl
+SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
+                                          char const *pchDate,
+                                          char const *pchTime,
+                                          bool        bFullMemoryDumps,
+                                          void       *pvContext,
+                                               LPVOID m_pfnPreMinidumpCallback )
+{
+  return;
+}
+
+
+void
+SK_BypassSteamCrashHandler (void)
+{
+  if (false) {//! config.steam.silent) {
+#ifdef _WIN64
+    const wchar_t* wszSteamDLL = L"steam_api64.dll";
+#else
+    const wchar_t* wszSteamDLL = L"steam_api.dll";
+#endif
+
+    HMODULE hMod = LoadLibraryW (wszSteamDLL);
+
+    if (hMod)
+    {
+      crash_log.Log (L"Disabling Steaa Breakpad...");
+
+      SK_CreateDLLHook3 ( wszSteamDLL,
+                          "SteamAPI_UseBreakpadCrashHandler",
+                         SteamAPI_UseBreakpadCrashHandler_Detour,
+              (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
+    
+      SK_CreateDLLHook3 ( wszSteamDLL,
+                          "SteamAPI_SetBreakpadAppID",
+                         SteamAPI_SetBreakpadAppID_Detour,
+              (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
+    
+      MH_ApplyQueued ();
+
+      FreeLibrary (hMod);
+    }
+  }
+}
+
+
+void
+CrashHandler::InitSyms (void)
+{
+  static volatile ULONG init = 0UL;
+
+  if (! InterlockedExchange (&init, 1))
+  {
+    InitializeCriticalSectionAndSpinCount (&cs_dbghelp, 1048576);
+
+    EnterCriticalSection (&cs_dbghelp);
+
+    SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
+                    SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
+                    SYMOPT_DEFERRED_LOADS );
+
+    SymInitialize (
+      GetCurrentProcess (),
+        NULL,
+          TRUE );
+  }
+
+  else { EnterCriticalSection (&cs_dbghelp); }
+
+  SK_SymRefreshModuleList ();
+
+  LeaveCriticalSection (&cs_dbghelp);
+}
 
 void
 CrashHandler::Init (void)
@@ -89,21 +199,11 @@ CrashHandler::Init (void)
   if (! crash_log.initialized)
     crash_log.init (L"logs/crash.log", L"w");
 
+  SK_BypassSteamCrashHandler ();
+
   SK_CreateDLLHook ( L"kernel32.dll", "SetUnhandledExceptionFilter",
                      SetUnhandledExceptionFilter_Detour,
           (LPVOID *)&SetUnhandledExceptionFilter_Original );
-
-  SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
-                  SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
-                  SYMOPT_DEFERRED_LOADS );
-
-
-  SymInitialize (
-    GetCurrentProcess (),
-      NULL,
-        TRUE );
-
-  SymRefreshModuleList (GetCurrentProcess ());
 
   Reinstall ();
 }
@@ -111,7 +211,8 @@ CrashHandler::Init (void)
 void
 CrashHandler::Shutdown (void)
 {
-  crash_log.close ();
+  crash_log.close       ();
+  DeleteCriticalSection (&cs_dbghelp);
 }
 
 
@@ -124,23 +225,19 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   HANDLE hProc =
     GetCurrentProcess ();
 
-#ifdef _WIN64
-  DWORD64  ip = addr;
-#else
-  DWORD    ip = addr;
-#endif
 
-#ifdef _WIN64
+  EnterCriticalSection (&cs_dbghelp);
+
+
+  DWORD64                           ip;
+  UIntPtrToInt64 (addr, (int64_t *)&ip);
+
   DWORD64 BaseAddr =
     SymGetModuleBase64 ( hProc, ip );
-#else
-  DWORD BaseAddr =
-    SymGetModuleBase   ( hProc, ip );
-#endif
 
   char    szModName [ MAX_PATH + 2 ] = { '\0' };
 
-  GetModuleFileNameA   ( hMod, szModName, MAX_PATH );
+  GetModuleFileNameA  ( hMod, szModName, MAX_PATH );
 
   char* szDupName    = _strdup (szModName);
   char* pszShortName = szDupName + lstrlenA (szDupName);
@@ -149,21 +246,12 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
          *(pszShortName - 1) != '\\')
     --pszShortName;
 
-#ifdef _WIN64
   SymLoadModule64 ( hProc,
                       nullptr,
                         pszShortName,
                           nullptr,
                             BaseAddr,
                               0 );
-#else
-  SymLoadModule ( hProc,
-                    nullptr,
-                      pszShortName,
-                        nullptr,
-                          BaseAddr,
-                            0 );
-#endif
 
   SYMBOL_INFO_PACKAGE sip;
   sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
@@ -172,13 +260,17 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   DWORD64 Displacement = 0;
 
   if ( SymFromAddr ( hProc,
-                       (DWORD64)ip,
+                       ip,
                          &Displacement,
                            &sip.si ) ) {
     ret = sip.si.Name;
   } else {
     ret = "UNKNOWN";
   }
+
+
+  LeaveCriticalSection (&cs_dbghelp);
+
 
   return ret;
 }
@@ -189,19 +281,15 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
-  bool scaleform = false;
+  if (! config.system.handle_crashes)
+    return EXCEPTION_EXECUTE_HANDLER;
+
+  EnterCriticalSection (&cs_dbghelp);
+
 
   SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
                   SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
                   SYMOPT_DEFERRED_LOADS );
-
-
-  SymInitialize (
-    GetCurrentProcess (),
-      NULL,
-        TRUE );
-
-  SymRefreshModuleList (GetCurrentProcess ());
 
   static bool             last_chance = false;
 
@@ -332,13 +420,15 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   char    szModName [MAX_PATH] = { '\0' };
   HANDLE  hProc                = GetCurrentProcess ();
 
-  SymRefreshModuleList ( hProc );
+
+  SK_SymRefreshModuleList ();
 
 #ifdef _WIN64
   DWORD64  ip = ExceptionInfo->ContextRecord->Rip;
 #else
-  DWORD    ip = ExceptionInfo->ContextRecord->Eip;
+  DWORD64  ip;    UIntPtrToInt64 (ExceptionInfo->ContextRecord->Eip, (int64_t *)&ip);
 #endif
+
 
   if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                             (LPCWSTR)ip,
@@ -346,13 +436,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     GetModuleFileNameA (hModSource, szModName, MAX_PATH);
   }
 
-#ifdef _WIN64
   DWORD64 BaseAddr =
     SymGetModuleBase64 ( hProc, ip );
-#else
-  DWORD BaseAddr =
-    SymGetModuleBase   ( hProc, ip );
-#endif
 
   char* szDupName    = _strdup (szModName);
   char* pszShortName = szDupName + lstrlenA (szDupName);
@@ -424,165 +509,120 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log (
     L"-----------------------------------------------------------");
 
-#ifdef _WIN64
   SymUnloadModule64 (hProc, BaseAddr);
-#else
-  SymUnloadModule   (hProc, BaseAddr);
-#endif
 
   free (szDupName);
 
   CONTEXT ctx = *ExceptionInfo->ContextRecord;
 
-#ifdef _WIN64
   STACKFRAME64 stackframe;
-#else
-  STACKFRAME   stackframe;
-#endif
 
-  stackframe.AddrPC.Mode   = AddrModeFlat;
-  stackframe.AddrPC.Offset = ip;
+  stackframe.AddrPC.Mode      = AddrModeFlat;
+  stackframe.AddrPC.Offset    = ip;
 
-  stackframe.AddrStack.Mode = AddrModeFlat;
+  stackframe.AddrStack.Mode   = AddrModeFlat;
+
+
 #ifdef _WIN64
   stackframe.AddrStack.Offset = ctx.Rsp;
 #else
   stackframe.AddrStack.Offset = ctx.Esp;
 #endif
 
-  stackframe.AddrFrame.Mode = AddrModeFlat;
+
+  stackframe.AddrFrame.Mode   = AddrModeFlat;
+
+
 #ifdef _WIN64
   stackframe.AddrFrame.Offset = ctx.Rbp;
 #else
   stackframe.AddrFrame.Offset = ctx.Ebp;
 #endif
 
+
   std::string top_func = "";
 
   BOOL ret = TRUE;
 
-  do {
-  SymRefreshModuleList ( hProc );
+  do
+  {
+    ip = stackframe.AddrPC.Offset;
 
-  ip = stackframe.AddrPC.Offset;
-
-  if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                            (LPCWSTR)ip,
-                              &hModSource )) {
-    GetModuleFileNameA (hModSource, szModName, MAX_PATH);
-  }
-
-#ifdef _WIN64
-  BaseAddr =
-    SymGetModuleBase64 ( hProc, ip );
-#else
-  BaseAddr =
-    SymGetModuleBase   ( hProc, ip );
-#endif
-
-  szDupName    = _strdup (szModName);
-  pszShortName = szDupName + lstrlenA (szDupName);
-
-  while (  pszShortName      >  szDupName &&
-    *(pszShortName - 1) != '\\')
-    --pszShortName;
-
-#ifdef _WIN64
-  SymLoadModule64 ( hProc,
-                      nullptr,
-                        pszShortName,
-                          nullptr,
-                            BaseAddr,
-                              0 );
-#else
-  SymLoadModule ( hProc,
-                    nullptr,
-                      pszShortName,
-                        nullptr,
-                          BaseAddr,
-                            0 );
-#endif
-
-  SYMBOL_INFO_PACKAGE sip;
-  sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-  sip.si.MaxNameLen   = sizeof sip.name;
-
-  DWORD64 Displacement = 0;
-
-  if ( SymFromAddr ( hProc,
-                       (DWORD64)ip,
-                         &Displacement,
-                           &sip.si ) ) {
-    DWORD Disp;
-#ifdef _WIN64
-    IMAGEHLP_LINE64 ihl64;
-    ihl64.SizeOfStruct = sizeof IMAGEHLP_LINE64;
-
-    BOOL  bFileAndLine =
-      SymGetLineFromAddr64 ( hProc, ip, &Disp, &ihl64 );
-
-    if (bFileAndLine) {
-      crash_log.Log ( L"[-(Source)-] [!] {%hs} %hs  <%hs:%lu> ",
-                      pszShortName,
-                        sip.si.Name,
-                          ihl64.FileName,
-                            ihl64.LineNumber );
-#else
-    IMAGEHLP_LINE ihl;
-    ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
-
-    BOOL  bFileAndLine =
-      SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
-
-    if (bFileAndLine) {
-      crash_log.Log ( L"[-(Source)-] [!] {%24hs}  %64hs  <%hs:%lu>",
-                      pszShortName,
-                        sip.si.Name,
-                          ihl.FileName,
-                            ihl.LineNumber );
-#endif
-    } else {
-      crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %64hs",
-                      pszShortName,
-                        sip.si.Name );
+    if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                              (LPCWSTR)ip,
+                                &hModSource )) {
+      GetModuleFileNameA (hModSource, szModName, MAX_PATH);
     }
 
-    if (strstr (sip.si.Name, "Scaleform"))
-      scaleform = true;
+    BaseAddr =
+      SymGetModuleBase64 ( hProc, ip );
 
-    if (top_func == "")
-      top_func = sip.si.Name;
+    szDupName    = _strdup (szModName);
+    pszShortName = szDupName + lstrlenA (szDupName);
 
+    while (  pszShortName      >  szDupName &&
+      *(pszShortName - 1) != '\\')
+      --pszShortName;
 
-    free (szDupName);
-  }
+    SymLoadModule64 ( hProc,
+                        nullptr,
+                          pszShortName,
+                            nullptr,
+                              BaseAddr,
+                                0 );
 
-#ifdef _WIN64
-  SymUnloadModule64 (hProc, BaseAddr);
-#else
-  SymUnloadModule   (hProc, BaseAddr);
-#endif
-
-#ifdef _WIN64
-  ret =
-  StackWalk64 ( IMAGE_FILE_MACHINE_AMD64,
-                  hProc,
-                    GetCurrentThread (),
-                      &stackframe,
-                        &ctx,
-                          nullptr, nullptr,
-                            nullptr, nullptr );
-#else
-  ret =
-  StackWalk ( IMAGE_FILE_MACHINE_I386,
-                hProc,
-                  GetCurrentThread (),
-                    &stackframe,
-                      &ctx,
-                        nullptr, nullptr,
-                          nullptr, nullptr );
-
-#endif
+    SYMBOL_INFO_PACKAGE sip;
+    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+    sip.si.MaxNameLen   = sizeof sip.name;
+  
+    DWORD64 Displacement = 0;
+  
+    if ( SymFromAddr ( hProc,
+                         (DWORD64)ip,
+                           &Displacement,
+                             &sip.si ) )
+    {
+      DWORD Disp;
+  
+      IMAGEHLP_LINE64 ihl64;
+      ihl64.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+  
+      BOOL  bFileAndLine =
+        SymGetLineFromAddr64 ( hProc, ip, &Disp, &ihl64 );
+  
+      if (bFileAndLine)
+      {
+        crash_log.Log ( L"[-(Source)-] [!] {%hs} %hs  <%hs:%lu> ",
+                        pszShortName,
+                          sip.si.Name,
+                            ihl64.FileName,
+                              ihl64.LineNumber );
+      }
+  
+      else
+      {
+        crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %64hs",
+                        pszShortName,
+                          sip.si.Name );
+      }
+  
+      if (top_func == "")
+        top_func = sip.si.Name;
+  
+  
+      free (szDupName);
+    }
+  
+    SymUnloadModule64 (hProc, BaseAddr);
+  
+    ret =
+    StackWalk64 ( IMAGE_FILE_MACHINE_AMD64,
+                    hProc,
+                      GetCurrentThread (),
+                        &stackframe,
+                          &ctx,
+                            nullptr, nullptr,
+                              nullptr, nullptr );
   } while (ret == TRUE);
 
   crash_log.Log (L"-----------------------------------------------------------");
@@ -594,7 +634,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                   (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
   bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if ((repeated || non_continue) && (! scaleform)) {
+  if ((repeated || non_continue))
+  {
     SK_AutoClose_Log (crash_log);
 
     last_chance = true;
@@ -604,6 +645,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                     SND_SYNC |
                     SND_MEMORY );
 
+    LeaveCriticalSection (&cs_dbghelp);
+
     // Shutdown the module gracefully
     SK_SelfDestruct ();
 
@@ -612,6 +655,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   last_ctx = *ExceptionInfo->ContextRecord;
   last_exc = *ExceptionInfo->ExceptionRecord;
+
+
+  LeaveCriticalSection(&cs_dbghelp);
 
 
   if (ExceptionInfo->ExceptionRecord->ExceptionFlags == 0)

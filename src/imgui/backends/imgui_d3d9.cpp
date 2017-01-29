@@ -17,6 +17,8 @@
 //#include "config.h"
 //#include "render.h"
 
+#include <atlbase.h>
+
 // Data
 static HWND                    g_hWnd             = 0;
 static INT64                   g_Time             = 0;
@@ -162,24 +164,38 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   g_pd3dDevice->SetPixelShader       (NULL);
   g_pd3dDevice->SetVertexShader      (NULL);
 
+  D3DCAPS9                      caps;
+  g_pd3dDevice->GetDeviceCaps (&caps);
+
   g_pd3dDevice->SetRenderState       (D3DRS_CULLMODE,          D3DCULL_NONE);
-  g_pd3dDevice->SetRenderState       (D3DRS_LIGHTING,          false);
-  g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           false);
-  g_pd3dDevice->SetRenderState       (D3DRS_ALPHABLENDENABLE,  true);
-  g_pd3dDevice->SetRenderState       (D3DRS_ALPHATESTENABLE,   false);
+  g_pd3dDevice->SetRenderState       (D3DRS_LIGHTING,          FALSE);
+  g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           TRUE);
+  g_pd3dDevice->SetRenderState       (D3DRS_ALPHABLENDENABLE,  TRUE);
+  g_pd3dDevice->SetRenderState       (D3DRS_ALPHATESTENABLE,   FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_BLENDOP,           D3DBLENDOP_ADD);
   g_pd3dDevice->SetRenderState       (D3DRS_SRCBLEND,          D3DBLEND_SRCALPHA);
   g_pd3dDevice->SetRenderState       (D3DRS_DESTBLEND,         D3DBLEND_INVSRCALPHA);
-  g_pd3dDevice->SetRenderState       (D3DRS_SCISSORTESTENABLE, true);
+  g_pd3dDevice->SetRenderState       (D3DRS_SCISSORTESTENABLE, TRUE);
+  g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           FALSE);
 
-  g_pd3dDevice->SetTextureStageState (0, D3DTSS_COLOROP,    D3DTOP_MODULATE);
-  g_pd3dDevice->SetTextureStageState (0, D3DTSS_COLORARG1,  D3DTA_TEXTURE);
-  g_pd3dDevice->SetTextureStageState (0, D3DTSS_COLORARG2,  D3DTA_DIFFUSE);
-  g_pd3dDevice->SetTextureStageState (0, D3DTSS_ALPHAOP,    D3DTOP_MODULATE);
-  g_pd3dDevice->SetTextureStageState (0, D3DTSS_ALPHAARG1,  D3DTA_TEXTURE);
-  g_pd3dDevice->SetTextureStageState (0, D3DTSS_ALPHAARG2,  D3DTA_DIFFUSE);
-  g_pd3dDevice->SetSamplerState      (0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-  g_pd3dDevice->SetSamplerState      (0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+  g_pd3dDevice->SetRenderState       (D3DRS_COLORWRITEENABLE,  D3DCOLORWRITEENABLE_RED   | 
+                                                               D3DCOLORWRITEENABLE_GREEN | 
+                                                               D3DCOLORWRITEENABLE_BLUE  |
+                                                               D3DCOLORWRITEENABLE_ALPHA );
+
+  g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLOROP,     D3DTOP_MODULATE);
+  g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLORARG1,   D3DTA_TEXTURE);
+  g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLORARG2,   D3DTA_DIFFUSE);
+  g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAOP,     D3DTOP_MODULATE);
+  g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAARG1,   D3DTA_TEXTURE);
+  g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAARG2,   D3DTA_DIFFUSE);
+  g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MINFILTER,  D3DTEXF_LINEAR);
+  g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MAGFILTER,  D3DTEXF_LINEAR);
+
+  for (int i = 1; i < caps.MaxTextureBlendStages; i++) {
+    g_pd3dDevice->SetTextureStageState (i, D3DTSS_COLOROP,     D3DTOP_DISABLE);
+    g_pd3dDevice->SetTextureStageState (i, D3DTSS_ALPHAOP,     D3DTOP_DISABLE);
+  }
 
   // Setup orthographic projection matrix
   // Being agnostic of whether <d3dx9.h> or <DirectXMath.h> can be used, we aren't relying on D3DXMatrixIdentity()/D3DXMatrixOrthoOffCenterLH() or DirectX::XMMatrixIdentity()/DirectX::XMMatrixOrthographicOffCenterLH()
@@ -259,7 +275,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
 IMGUI_API
 bool
-ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device)
+ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* pparams)
 {
   g_hWnd       = (HWND)hwnd;
   g_pd3dDevice = device;
@@ -299,6 +315,19 @@ ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device)
   io.RenderDrawListsFn = ImGui_ImplDX9_RenderDrawLists;
   io.ImeWindowHandle   = g_hWnd;
 
+
+  float width = 0.0f, height = 0.0f;
+
+  if ( pparams != nullptr )
+  {
+    width  = (float)pparams->BackBufferWidth;
+    height = (float)pparams->BackBufferHeight;
+  }
+
+  ImGui::GetIO ().DisplayFramebufferScale = ImVec2 ( width, height );
+  ImGui::GetIO ().DisplaySize             = ImVec2 ( width, height );
+
+
   return true;
 }
 
@@ -306,8 +335,8 @@ IMGUI_API
 void
 ImGui_ImplDX9_Shutdown (void)
 {
-  ImGui_ImplDX9_InvalidateDeviceObjects ();
-  ImGui::Shutdown                       ();
+  ImGui_ImplDX9_InvalidateDeviceObjects ( nullptr );
+  ImGui::Shutdown                       (         );
 
   g_pd3dDevice = nullptr;
   g_hWnd       = 0;
@@ -375,7 +404,7 @@ ImGui_ImplDX9_CreateDeviceObjects (void)
 }
 
 void
-ImGui_ImplDX9_InvalidateDeviceObjects (void)
+ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
 {
   if (! g_pd3dDevice)
     return;
@@ -399,6 +428,18 @@ ImGui_ImplDX9_InvalidateDeviceObjects (void)
   }
 
   g_FontTexture = NULL;
+
+
+  float width = 0.0f, height = 0.0f;
+
+  if ( pparams != nullptr )
+  {
+    width  = (float)pparams->BackBufferWidth;
+    height = (float)pparams->BackBufferHeight;
+  }
+
+  ImGui::GetIO ().DisplayFramebufferScale = ImVec2 ( width, height );
+  ImGui::GetIO ().DisplaySize             = ImVec2 ( width, height );
 }
 
 
@@ -446,6 +487,7 @@ ImGui_ImplDX9_NewFrame (void)
 
   io.MouseDrawCursor = true;
 
+
   // Setup display size (every frame to accommodate for window resizing)
   RECT rect;
   GetClientRect (g_hWnd, &rect);
@@ -453,6 +495,22 @@ ImGui_ImplDX9_NewFrame (void)
   io.DisplaySize =
     ImVec2 ( (float)(rect.right - rect.left),
                (float)(rect.bottom - rect.top) );
+
+  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+
+  if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain )))
+  {
+    D3DPRESENT_PARAMETERS pp;
+
+    if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp)))
+    {
+      if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0)
+      {
+        io.DisplayFramebufferScale.x = (float)pp.BackBufferWidth;
+        io.DisplayFramebufferScale.y = (float)pp.BackBufferHeight;
+      }
+    }
+  }
 
   // Setup time step
   INT64 current_time;

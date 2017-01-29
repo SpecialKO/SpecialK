@@ -357,7 +357,7 @@ SK_InitCOM (void)
     static ULONG __init_local_threads = FALSE;
 
     if (! InterlockedCompareExchange (&__init_local_threads, TRUE, FALSE))
-      InitializeCriticalSectionAndSpinCount (&COM::local_cs, 500000000);
+      InitializeCriticalSectionAndSpinCount (&COM::local_cs, 500000);
   }
 
   if (FAILED (hr = COM::base.InitThread ())) {

@@ -37,9 +37,11 @@
 // We need this to load embedded resources correctly...
 volatile HMODULE hModSelf          = 0;
 
-volatile ULONG   __SK_DLL_Attached = FALSE;
-volatile ULONG   __SK_DLL_Refs     = 0;
-volatile DWORD   __SK_TLS_INDEX    = MAXDWORD;
+volatile ULONG   __SK_DLL_Attached     = FALSE;
+volatile ULONG   __SK_Threads_Attached = 0;
+volatile ULONG   __SK_DLL_Refs         = 0;
+volatile DWORD   __SK_TLS_INDEX        = MAXDWORD;
+volatile ULONG   __SK_DLL_Ending       = FALSE;
 
 SK_TLS*
 __stdcall
@@ -191,13 +193,14 @@ SK_EstablishDllRole (HMODULE hModule)
         else if (d3d9)
           SK_SetDLLRole (DLL_ROLE::D3D9);
 
-        else if (gl)
-          SK_SetDLLRole (DLL_ROLE::OpenGL);
+        //else if (gl)
+          //SK_SetDLLRole (DLL_ROLE::OpenGL);
         //else if (vulkan)
           //SK_SetDLLRole (DLL_ROLE::Vulkan);
 
         else {
-          SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
+          SK_SetDLLRole (DLL_ROLE::D3D9);
+          //SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
         }
       } else {
         return false;
@@ -323,6 +326,7 @@ SK_Detach (DLL_ROLE role)
          )
      )
   {
+    
     switch (role)
     {
       case DLL_ROLE::DXGI:
@@ -425,9 +429,13 @@ DllMain ( HMODULE hModule,
 
       if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
       {
-        ret =
-          SK_Detach (SK_GetDLLRole ());
-        TlsFree     (__SK_TLS_INDEX);
+        if (! InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0)) {
+          InterlockedExchange (&__SK_DLL_Ending, TRUE);
+
+          ret =
+            SK_Detach (SK_GetDLLRole ());
+          TlsFree     (__SK_TLS_INDEX);
+        }
       }
 
       else {
@@ -444,6 +452,8 @@ DllMain ( HMODULE hModule,
     {
       if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
       {
+        InterlockedIncrement (&__SK_Threads_Attached);
+
         LPVOID lpvData =
           (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
 
@@ -465,6 +475,13 @@ DllMain ( HMODULE hModule,
         if (lpvData != nullptr) {
           LocalFree   (lpvData);
           TlsSetValue (__SK_TLS_INDEX, nullptr);
+        }
+
+        if (InterlockedDecrement (&__SK_Threads_Attached) == 1)
+        {
+          InterlockedExchange (&__SK_DLL_Ending, TRUE);
+          SK_Detach (SK_GetDLLRole ());
+          TlsFree   (__SK_TLS_INDEX);
         }
       }
     } break;

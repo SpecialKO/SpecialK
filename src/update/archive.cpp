@@ -273,12 +273,13 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                               FILE_FLAG_SEQUENTIAL_SCAN,
                                 nullptr );
 
-    if (hOutFile != INVALID_HANDLE_VALUE) {
+    if (hOutFile != INVALID_HANDLE_VALUE)
+    {
       DWORD dwWritten;
 
       WriteFile ( hOutFile,
                     out,
-                      out_len,
+                      PtrToUint ((void *)out_len),
                         &dwWritten,
                             nullptr );
 
@@ -303,7 +304,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     }
 
     if (callback != nullptr) {
-      callback (i + 1, files.size ());
+      callback (i + 1, PtrToUint ((void *)files.size ()));
     }
   }
 
@@ -396,7 +397,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
       WriteFile ( hOutFile,
                     out,
-                      out_len,
+                      PtrToUint ((void *)out_len),
                         &dwWritten,
                             nullptr );
 
@@ -437,8 +438,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    if (callback != nullptr) {
-      callback (i + 1, config_files.size ());
+    if (callback != nullptr)
+    {
+      callback (i + 1, PtrToUint ((void *)config_files.size ()));
     }
   }
 

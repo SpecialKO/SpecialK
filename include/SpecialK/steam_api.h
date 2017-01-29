@@ -49,20 +49,22 @@ namespace SK
   }
 }
 
-bool __stdcall SK_SteamAPI_TakeScreenshot     (void);
-bool __stdcall SK_IsSteamOverlayActive        (void);
+bool __stdcall SK_SteamAPI_TakeScreenshot           (void);
+bool __stdcall SK_IsSteamOverlayActive              (void);
+                                                    
+void           SK_SteamAPI_LogAllAchievements       (void);
+void           SK_UnlockSteamAchievement            (uint32_t idx);
+                                                    
+bool           SK_SteamImported                     (void);
+void           SK_TestSteamImports                  (HMODULE hMod);
+                                                    
+void           SK_HookCSteamworks                   (void);
+void           SK_HookSteamAPI                      (void);
+                                                    
+void           SK_Steam_ClearPopups                 (void);
+void           SK_Steam_DrawOSD                     (void);
 
-void           SK_SteamAPI_LogAllAchievements (void);
-void           SK_UnlockSteamAchievement      (uint32_t idx);
-
-bool           SK_SteamImported               (void);
-void           SK_TestSteamImports            (HMODULE hMod);
-
-void           SK_HookCSteamworks             (void);
-void           SK_HookSteamAPI                (void);
-
-void           SK_Steam_ClearPopups           (void);
-void           SK_Steam_DrawOSD               (void);
+void           SK_Steam_InitCommandConsoleVariables (void);
 
 
 #endif /* __SK__STEAM_API_H__ */

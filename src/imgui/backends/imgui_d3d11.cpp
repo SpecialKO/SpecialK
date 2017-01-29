@@ -11,9 +11,13 @@
 
 // DirectX
 #include <d3d11.h>
+#ifndef TBFIX
 #include <d3dcompiler.h>
+#endif
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
+
+#include <atlbase.h>
 
 // Data
 static INT64                    g_Time                  = 0;
@@ -35,6 +39,12 @@ static ID3D11ShaderResourceView*g_pFontTextureView      = nullptr;
 static ID3D11RasterizerState*   g_pRasterizerState      = nullptr;
 static ID3D11BlendState*        g_pBlendState           = nullptr;
 static ID3D11DepthStencilState* g_pDepthStencilState    = nullptr;
+
+static IDXGISwapChain*          g_pSwapChain            = nullptr;
+
+static UINT                     g_frameBufferWidth      = 0UL;
+static UINT                     g_frameBufferHeight     = 0UL;
+
 static int                      g_VertexBufferSize      = 5000,
                                 g_IndexBufferSize       = 10000;
 
@@ -49,7 +59,29 @@ struct VERTEX_CONSTANT_BUFFER
 void
 ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 {
+#ifndef TBFIX
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+
   ID3D11DeviceContext* ctx = g_pd3dDeviceContext;
+
+
+  if (! g_pSwapChain)
+    return;
+
+  CComPtr <ID3D11Texture2D>        pBackBuffer       = nullptr;
+  g_pSwapChain->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
+
+  D3D11_TEXTURE2D_DESC backbuffer_desc;
+  pBackBuffer->GetDesc (&backbuffer_desc);
+
+  ImGui::GetIO ().DisplaySize.x = backbuffer_desc.Width;
+  ImGui::GetIO ().DisplaySize.y = backbuffer_desc.Height;
+
+  ImGui::GetIO ().DisplayFramebufferScale.x = backbuffer_desc.Width;
+  ImGui::GetIO ().DisplayFramebufferScale.y = backbuffer_desc.Height;
+
 
   // Create and grow vertex/index buffers if needed
   if (!g_pVB || g_VertexBufferSize < draw_data->TotalVtxCount)
@@ -162,14 +194,25 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   ctx->IAGetVertexBuffers(0, 1, &old.VertexBuffer, &old.VertexBufferStride, &old.VertexBufferOffset);
   ctx->IAGetInputLayout(&old.InputLayout);
 
+  CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
+
+  g_pd3dDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+
+  ctx->OMSetRenderTargets ( 1,
+                              &pRenderTargetView,
+                                nullptr );
+
   // Setup viewport
   D3D11_VIEWPORT vp;
-  memset(&vp, 0, sizeof(D3D11_VIEWPORT));
-  vp.Width = ImGui::GetIO().DisplaySize.x;
-  vp.Height = ImGui::GetIO().DisplaySize.y;
+
+  memset (&vp, 0, sizeof (D3D11_VIEWPORT));
+
+  vp.Height   = ImGui::GetIO ().DisplaySize.y;
+  vp.Width    = ImGui::GetIO ().DisplaySize.x;
   vp.MinDepth = 0.0f;
   vp.MaxDepth = 1.0f;
   vp.TopLeftX = vp.TopLeftY = 0.0f;
+
   ctx->RSSetViewports(1, &vp);
 
   // Bind shader and vertex buffers
@@ -186,9 +229,9 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
   // Setup render state
   const float blend_factor[4] = { 0.f, 0.f, 0.f, 0.f };
-  ctx->OMSetBlendState(g_pBlendState, blend_factor, 0xffffffff);
-  ctx->OMSetDepthStencilState(g_pDepthStencilState, 0);
-  ctx->RSSetState(g_pRasterizerState);
+  ctx->OMSetBlendState        (g_pBlendState, blend_factor, 0xffffffff);
+  ctx->OMSetDepthStencilState (g_pDepthStencilState,        0);
+  ctx->RSSetState             (g_pRasterizerState);
 
   // Render command lists
   int vtx_offset = 0;
@@ -292,15 +335,24 @@ ImGui_ImplDX11_CreateFontsTexture (void)
         desc.MaxLOD = 0.f;
         g_pd3dDevice->CreateSamplerState(&desc, &g_pFontSampler);
     }
+#endif
 }
 
 bool
 ImGui_ImplDX11_CreateDeviceObjects (void)
 {
-  if (!g_pd3dDevice)
-      return false;
+#ifndef TBFIX
   if (g_pFontSampler)
-      ImGui_ImplDX11_InvalidateDeviceObjects();
+    ImGui_ImplDX11_InvalidateDeviceObjects ();
+
+  if (! g_pd3dDevice)
+    return false;
+
+  if (! g_pd3dDeviceContext)
+    return false;
+
+  if (! g_pSwapChain)
+    return false;
 
   // By using D3DCompile() from <d3dcompiler.h> / d3dcompiler.lib, we introduce a dependency to a given version of d3dcompiler_XX.dll (see D3DCOMPILER_DLL_A)
   // If you would like to use this DX11 sample code but remove this dependency you can: 
@@ -431,7 +483,8 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
       g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState);
   }
 
-  ImGui_ImplDX11_CreateFontsTexture();
+  ImGui_ImplDX11_CreateFontsTexture ();
+#endif
 
   return true;
 }
@@ -439,37 +492,53 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 void
 ImGui_ImplDX11_InvalidateDeviceObjects (void)
 {
-    if (!g_pd3dDevice)
-        return;
+  if (! g_pd3dDevice)
+    return;
 
-    if (g_pFontSampler) { g_pFontSampler->Release(); g_pFontSampler = NULL; }
-    if (g_pFontTextureView) { g_pFontTextureView->Release(); g_pFontTextureView = NULL; ImGui::GetIO().Fonts->TexID = 0; }
-    if (g_pIB) { g_pIB->Release(); g_pIB = NULL; }
-    if (g_pVB) { g_pVB->Release(); g_pVB = NULL; }
+  if (g_pFontSampler) { g_pFontSampler->Release(); g_pFontSampler = NULL; }
+  if (g_pFontTextureView) { g_pFontTextureView->Release(); g_pFontTextureView = NULL; ImGui::GetIO().Fonts->TexID = 0; }
+  if (g_pIB) { g_pIB->Release(); g_pIB = NULL; }
+  if (g_pVB) { g_pVB->Release(); g_pVB = NULL; }
 
-    if (g_pBlendState) { g_pBlendState->Release(); g_pBlendState = NULL; }
-    if (g_pDepthStencilState) { g_pDepthStencilState->Release(); g_pDepthStencilState = NULL; }
-    if (g_pRasterizerState) { g_pRasterizerState->Release(); g_pRasterizerState = NULL; }
-    if (g_pPixelShader) { g_pPixelShader->Release(); g_pPixelShader = NULL; }
-    if (g_pPixelShaderBlob) { g_pPixelShaderBlob->Release(); g_pPixelShaderBlob = NULL; }
-    if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release(); g_pVertexConstantBuffer = NULL; }
-    if (g_pInputLayout) { g_pInputLayout->Release(); g_pInputLayout = NULL; }
-    if (g_pVertexShader) { g_pVertexShader->Release(); g_pVertexShader = NULL; }
-    if (g_pVertexShaderBlob) { g_pVertexShaderBlob->Release(); g_pVertexShaderBlob = NULL; }
+  if (g_pBlendState) { g_pBlendState->Release(); g_pBlendState = NULL; }
+  if (g_pDepthStencilState) { g_pDepthStencilState->Release(); g_pDepthStencilState = NULL; }
+  if (g_pRasterizerState) { g_pRasterizerState->Release(); g_pRasterizerState = NULL; }
+  if (g_pPixelShader) { g_pPixelShader->Release(); g_pPixelShader = NULL; }
+  if (g_pPixelShaderBlob) { g_pPixelShaderBlob->Release(); g_pPixelShaderBlob = NULL; }
+  if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release(); g_pVertexConstantBuffer = NULL; }
+  if (g_pInputLayout) { g_pInputLayout->Release(); g_pInputLayout = NULL; }
+  if (g_pVertexShader) { g_pVertexShader->Release(); g_pVertexShader = NULL; }
+  if (g_pVertexShaderBlob) { g_pVertexShaderBlob->Release(); g_pVertexShaderBlob = NULL; }
+
+  g_pSwapChain = nullptr;
 }
 
 bool
-ImGui_ImplDX11_Init (void* hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context)
+ImGui_ImplDX11_Init (IDXGISwapChain* pSwapChain, ID3D11Device* device, ID3D11DeviceContext* device_context)
 {
-  g_hWnd              = (HWND)hwnd;
+  static bool first = true;
+
+  if (first) {
+    if (! QueryPerformanceFrequency ((LARGE_INTEGER *)&g_TicksPerSecond))
+      return false;
+
+    if (! QueryPerformanceCounter   ((LARGE_INTEGER *)&g_Time))
+      return false;
+
+    first = false;
+  }
+
+  DXGI_SWAP_CHAIN_DESC  swap_desc;
+  pSwapChain->GetDesc (&swap_desc);
+
+  g_hWnd              = swap_desc.OutputWindow;
+  g_pSwapChain        = pSwapChain;
   g_pd3dDevice        = device;
   g_pd3dDeviceContext = device_context;
 
-  if (! QueryPerformanceFrequency ((LARGE_INTEGER *)&g_TicksPerSecond))
-    return false;
 
-  if (! QueryPerformanceCounter   ((LARGE_INTEGER *)&g_Time))
-    return false;
+  g_frameBufferWidth  = swap_desc.BufferDesc.Width;
+  g_frameBufferHeight = swap_desc.BufferDesc.Height;
 
   ImGuiIO& io =
     ImGui::GetIO ();
@@ -504,19 +573,33 @@ ImGui_ImplDX11_Init (void* hwnd, ID3D11Device* device, ID3D11DeviceContext* devi
 void
 ImGui_ImplDX11_Shutdown (void)
 {
-    ImGui_ImplDX11_InvalidateDeviceObjects ();
-    ImGui::Shutdown                        ();
-    g_pd3dDevice        = nullptr;
+  ImGui_ImplDX11_InvalidateDeviceObjects ();
+  ImGui::Shutdown                        ();
+
+  if (g_pd3dDeviceContext) {
     g_pd3dDeviceContext = nullptr;
-    g_hWnd              = (HWND)0;
+  }
+
+  if (g_pd3dDevice) {
+    g_pd3dDevice = nullptr;
+  }
+
+  if (g_pSwapChain) {
+    g_pSwapChain = nullptr;
+  }
+
+  g_hWnd              = (HWND)0;
 }
 
 void
 ImGui_ImplDX11_NewFrame (void)
 {
+  if (! g_pd3dDevice)
+    return;
+
   if (! g_pFontSampler)
     ImGui_ImplDX11_CreateDeviceObjects ();
-
+  
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -554,12 +637,9 @@ ImGui_ImplDX11_NewFrame (void)
   io.MouseDrawCursor = true;
 
   // Setup display size (every frame to accommodate for window resizing)
-  RECT rect;
-  GetClientRect (g_hWnd, &rect);
-
-  io.DisplaySize =
-    ImVec2 ( (float)(rect.right - rect.left),
-               (float)(rect.bottom - rect.top) );
+  //io.DisplaySize =
+    //ImVec2 ( g_frameBufferWidth,
+               //g_frameBufferHeight );
 
   // Setup time step
   INT64 current_time;
@@ -583,4 +663,31 @@ ImGui_ImplDX11_NewFrame (void)
 
   // Start the frame
   ImGui::NewFrame ();
+}
+
+#include <atlbase.h>
+
+void
+ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
+                        UINT            BufferCount,
+                        UINT            Width,
+                        UINT            Height,
+                        DXGI_FORMAT     NewFormat,
+                        UINT            SwapChainFlags )
+{
+  g_pd3dDevice = nullptr;
+
+  This->GetDevice (IID_PPV_ARGS (&g_pd3dDevice));
+
+  if (g_pd3dDevice == nullptr)
+    return;
+
+  g_pd3dDevice->GetImmediateContext (&g_pd3dDeviceContext);
+
+  DXGI_SWAP_CHAIN_DESC swap_desc;
+  This->GetDesc (&swap_desc);
+
+  //////ImGui_ImplDX11_Init (This, g_pd3dDevice, g_pd3dDeviceContext);
+  ImGui_ImplDX11_InvalidateDeviceObjects ();
+
 }

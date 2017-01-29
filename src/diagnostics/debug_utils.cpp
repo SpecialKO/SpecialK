@@ -42,6 +42,9 @@ iSK_Logger game_debug;
 typedef BOOL (WINAPI *TerminateProcess_pfn)(HANDLE hProcess, UINT uExitCode);
 TerminateProcess_pfn TerminateProcess_Original = nullptr;
 
+typedef BOOL (WINAPI *ExitProcess_pfn)(UINT uExitCode);
+ExitProcess_pfn ExitProcess_Original = nullptr;
+
 BOOL
 __stdcall
 SK_TerminateParentProcess (UINT uExitCode)
@@ -61,6 +64,21 @@ TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
   OutputDebugString ( SK_GetCallerName ().c_str () );
 
   return FALSE;
+}
+
+extern void
+SK_UnhookLoadLibrary (void);
+
+BOOL
+WINAPI
+ExitProcess_Detour (UINT uExitCode)
+{
+  // Since many, many games don't shutdown cleanly, let's unload ourself.
+
+  SK_UnhookLoadLibrary ();
+  SK_SelfDestruct      ();
+
+  return TRUE;
 }
 
 typedef void (WINAPI *OutputDebugStringA_pfn)(LPCSTR lpOutputString);
@@ -109,20 +127,26 @@ IsDebuggerPresent_Detour (void)
 bool
 SK::Diagnostics::Debugger::Allow (bool bAllow)
 {
-  SK_CreateDLLHook ( L"Kernel32.dll",
+  SK_CreateDLLHook2 ( L"Kernel32.dll",
                       "IsDebuggerPresent",
                      IsDebuggerPresent_Detour,
           (LPVOID *)&IsDebuggerPresent_Original );
 
   spoof_debugger = bAllow;
 
-  SK_CreateDLLHook ( L"kernel32.dll", "OutputDebugStringA",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "OutputDebugStringA",
                      OutputDebugStringA_Detour,
            (LPVOID*)&OutputDebugStringA_Original );
 
-  SK_CreateDLLHook ( L"kernel32.dll", "OutputDebugStringW",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "OutputDebugStringW",
                      OutputDebugStringW_Detour,
            (LPVOID*)&OutputDebugStringW_Original );
+
+  SK_CreateDLLHook2 ( L"kernel32.dll", "ExitProcess",
+                     ExitProcess_Detour,
+           (LPVOID*)&ExitProcess_Original );
+
+  MH_ApplyQueued ();
 
   return bAllow;
 }
@@ -136,9 +160,11 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
   freopen ("CONOUT$", "w", stdout);
   freopen ("CONOUT$", "w", stderr);
 
-  SK_CreateDLLHook ( L"kernel32.dll", "TerminateProcess",
+  SK_CreateDLLHook2 ( L"kernel32.dll", "TerminateProcess",
                      TerminateProcess_Detour,
            (LPVOID*)&TerminateProcess_Original );
+
+  MH_ApplyQueued ();
 }
 
 BOOL

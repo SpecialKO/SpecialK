@@ -29,6 +29,7 @@ namespace SK
     namespace CrashHandler
     {
       void Init     (void);
+      void InitSyms (void);
       void Shutdown (void);
 
       void Reinstall (void);

@@ -907,7 +907,7 @@ calculate_table_hw (void)
   }
 }
 
-uint32_t (*append_func)(uint32_t, buffer, size_t);
+uint32_t (*append_func)(uint32_t, buffer, size_t) = nullptr;
 
 #include <SpecialK/log.h>
 
@@ -1038,13 +1038,33 @@ extern BOOL APIENTRY DllMain (HMODULE hModule,
                               DWORD   ul_reason_for_call,
                               LPVOID  /* lpReserved */);
 
+#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/opengl_backend.h>
+
+extern
+const wchar_t*
+__stdcall
+SK_GetBackend (void);
+
+extern volatile ULONG __SK_DLL_Ending;
+
 void
 __stdcall
 SK_SelfDestruct (void)
 {
-  DllMain ( SK_GetDLL (),
-              DLL_PROCESS_DETACH,
-                nullptr );
+  if (InterlockedIncrement (&__SK_DLL_Ending) == 1)
+  {
+    //FreeLibrary (SK_GetDLL ());
+    const wchar_t* wszBackend = SK_GetBackend ();
+
+    if (! wcsicmp (wszBackend, L"d3d9"))
+      SK::D3D9::Shutdown ();
+    else if (! wcsicmp (wszBackend, L"dxgi"))
+      SK::DXGI::Shutdown ();
+    else if (! wcsicmp (wszBackend, L"OpenGL32"))
+      SK::OpenGL::Shutdown ();
+  }
 }
 
 HMODULE

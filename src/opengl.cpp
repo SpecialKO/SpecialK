@@ -2141,12 +2141,14 @@ SK_HookGL (void)
     InterlockedExchange (&__gl_ready, TRUE);
   }
 
+#if 0
   _beginthreadex ( nullptr,
                      0,
                        DXGI_Thread,
                          nullptr,
                            0x00,
                              nullptr );
+#endif
 
   GL_HOOKED = TRUE;
 }

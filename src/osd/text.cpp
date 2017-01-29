@@ -174,7 +174,7 @@ public:
 
 protected:
   SK_TextOverlayManager (void) {
-    InitializeCriticalSectionAndSpinCount (&cs_, 4000);
+    InitializeCriticalSectionAndSpinCount (&cs_, MAXDWORD);
 
     gui_ctx_         = nullptr;
     need_full_reset_ = false;
@@ -663,9 +663,11 @@ SK_DrawOSD (void)
     static double fps           = 0.0;
     static DWORD  last_fps_time = timeGetTime ();
 
-    if (timeGetTime () - last_fps_time > 666) {
+    const DWORD dwTime = timeGetTime ();
+
+    if (dwTime - last_fps_time > 666) {
       fps           = 1000.0 / mean;
-      last_fps_time = timeGetTime ();
+      last_fps_time = dwTime;
     }
 
     if (mean != INFINITY) {
@@ -773,7 +775,8 @@ SK_DrawOSD (void)
   }
 
   // Poll GPU stats...
-  SK_PollGPU ();
+  if (config.gpu.show)
+    SK_PollGPU();
 
   int afr_idx  = sli_state.currentAFRIndex,
       afr_last = sli_state.previousFrameAFRIndex,
@@ -1515,8 +1518,8 @@ SK_TextOverlay::update (const char* szText)
   if (font_.cegui && geometry_)
   {
     // Empty the gometry buffer and bail-out.
-    if (! strlen (data_.text)) {
-
+    if (szText == nullptr || (! strlen (data_.text)))
+    {
       geometry_->reset ();
 
       data_.extent = 0.0f;
@@ -1536,11 +1539,14 @@ SK_TextOverlay::update (const char* szText)
       blue  = (  5.0f / 255.0f);
     }
 
-    float x,y;
+    float   x, y;
     getPos (x, y);
 
-    char* text = new char [32768];
-    strncpy (text, data_.text, 32767);
+    char text [32768];
+    memset (text, 9, 32768);
+    //char*    text = char stack_array [32768];
+
+    strncpy (text, data_.text, 32766);
 
     int   num_lines    = SK_CountLines (text);
     char* line         = strtok_ex     (text, "\n");
@@ -1575,7 +1581,7 @@ SK_TextOverlay::update (const char* szText)
       // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
       x = renderer_->getDisplaySize ().d_width + x - longest_line + 1.0f;
 
-      strncpy (text, data_.text, 32767);
+      strncpy (text, data_.text, 32766);
 
       // Restart tokenizing
       if (! has_tokens)
@@ -1641,8 +1647,6 @@ SK_TextOverlay::update (const char* szText)
       else
         line = nullptr;
     }
-
-    delete [] text;
 
     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
 

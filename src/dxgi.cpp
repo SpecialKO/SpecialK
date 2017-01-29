@@ -59,6 +59,16 @@
 
 #include <imgui/backends/imgui_d3d11.h>
 
+extern volatile ULONG __SK_DLL_Ending;
+
+extern void
+ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
+                        UINT            BufferCount,
+                        UINT            Width,
+                        UINT            Height,
+                        DXGI_FORMAT     NewFormat,
+                        UINT            SwapChainFlags );
+
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 #include <CEGUI/DefaultResourceProvider.h>
@@ -101,6 +111,32 @@
 #pragma comment (lib, "CEGUI/Win32/CEGUISTBImageCodec.lib")
 
 #endif
+
+static IDXGISwapChain* imgui_swap = nullptr;
+
+void
+ImGui_DX11Shutdown ( void )
+{
+  ImGui_ImplDX11_Shutdown ();
+  imgui_swap = nullptr;
+}
+
+void
+ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
+{
+  CComPtr <ID3D11Device> pD3D11Dev = nullptr;
+  
+  if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev))) )
+  {
+    CComPtr <ID3D11DeviceContext>    pImmediateContext = nullptr;
+    pD3D11Dev->GetImmediateContext (&pImmediateContext);
+  
+    if (pImmediateContext != nullptr) {
+      imgui_swap = pSwapChain;
+      ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
+    }
+  }
+}
 
 CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 
@@ -282,7 +318,8 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     cegD3D11->destroySystem ();
     cegD3D11 = nullptr;
 
-    //ImGui_ImplDX11_Shutdown ();
+    // XXX: TODO (Full shutdown isn't necessary, just invalidate)
+    ImGui_DX11Shutdown ();
   }
 
   else if (cegD3D11 == nullptr)
@@ -324,10 +361,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
       cegD3D11 = (CEGUI::Direct3D11Renderer *)
         &CEGUI::Direct3D11Renderer::bootstrapSystem (pGUIDev, pCEG_DevCtx);
 
-      DXGI_SWAP_CHAIN_DESC swap_desc;
-      This->GetDesc (&swap_desc);
-
-      ImGui_ImplDX11_Init (swap_desc.OutputWindow, pGUIDev, pCEG_DevCtx);
+      ImGui_DX11Startup    (This);
 
       SK_CEGUI_RelocateLog ();
     } catch (...) {
@@ -1307,6 +1341,9 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   if (! config.cegui.enable)
     return;
 
+  if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+    return;
+
   CComPtr <ID3D11Device> pDev = nullptr;
 
   // Make sure resolution changes propogate to the text overlays
@@ -1420,10 +1457,14 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       cegD3D11->endRendering ();
 
       extern bool SK_ImGui_Visible;
+
       if (SK_ImGui_Visible) {
+        // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
+        ImGui_DX11Startup               ( This                         );
         extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                      SK_ImGui_DrawFrame (       0x00,          nullptr );
       }
+
 #ifdef USE_SB
       ApplyStateblock (pCEG_DevCtx, &sb);
 #endif
@@ -1961,6 +2002,8 @@ __declspec (noinline)
 
     //UINT BufferCount = max (1, min (6, config.render.framerate.buffer_count));
 
+    //ImGui_DX11Shutdown ();
+    //ImGui_ImplDX11_InvalidateDeviceObjects ();
 
     HRESULT ret;
     DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
@@ -1973,7 +2016,13 @@ __declspec (noinline)
       //ResizeTarget_Original (This, &mode_desc);
 
       //if (bFlipMode)
-        ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+        //ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+
+      DXGI_SWAP_CHAIN_DESC desc;
+      if (SUCCEEDED (This->GetDesc (&desc))) {
+        SK_SetWindowResX (desc.BufferDesc.Width);
+        SK_SetWindowResY (desc.BufferDesc.Height);
+      }
     }
 
     return ret;
@@ -2002,6 +2051,7 @@ __declspec (noinline)
 
     InterlockedExchange (&__gui_reset, TRUE);
 
+
     // Fake it
     //if (bWait)
       //return S_OK;
@@ -2021,10 +2071,14 @@ __declspec (noinline)
       }
     }
 
+    //ImGui_DX11Shutdown ();
+    //ImGui_ImplDX11_InvalidateDeviceObjects ();
+
     HRESULT ret;
     DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
 
-    if (SUCCEEDED (ret)) {
+    if (SUCCEEDED (ret))
+    {
       if (Width != 0 && Height != 0) {
         SK_SetWindowResX (Width);
         SK_SetWindowResY (Height);
@@ -2056,6 +2110,9 @@ __declspec (noinline)
     InterlockedExchange (&__gui_reset, TRUE);
 
     HRESULT ret;
+
+    //ImGui_DX11Shutdown ();
+    //ImGui_ImplDX11_InvalidateDeviceObjects ();
 
     if ( config.window.borderless ||
          ( config.render.dxgi.scaling_mode != -1 &&
@@ -2098,15 +2155,19 @@ __declspec (noinline)
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
 
       if (SUCCEEDED (ret)) {
-        SK_SetWindowResX (pNewNewTargetParameters->Width);
-        SK_SetWindowResY (pNewNewTargetParameters->Height);
+        if (pNewNewTargetParameters->Width != 0 && pNewNewTargetParameters->Height != 0) {
+          SK_SetWindowResX (pNewNewTargetParameters->Width);
+          SK_SetWindowResY (pNewNewTargetParameters->Height);
+        }
       }
     } else {
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
 
       if (SUCCEEDED (ret)) {
-        SK_SetWindowResX (pNewTargetParameters->Width);
-        SK_SetWindowResY (pNewTargetParameters->Height);
+        if (pNewTargetParameters->Width != 0 && pNewTargetParameters->Height != 0) {
+          SK_SetWindowResX (pNewTargetParameters->Width);
+          SK_SetWindowResY (pNewTargetParameters->Height);
+        }
       }
     }
 
@@ -2127,6 +2188,8 @@ __declspec (noinline)
 
     DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChain", L"%ph, %ph, %ph",
                     pDevice, pDesc, ppSwapChain);
+
+    //ImGui_DX11Shutdown ();
 
     HRESULT ret;
 
@@ -3580,6 +3643,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                    CreateSwapChain_Original,
                                    CreateSwapChain_pfn );
 
+#if 0
   // DXGI 1.1+
   if (iver > 0) {
     CComPtr <IDXGIFactory1> pFactory1 = nullptr;
@@ -3599,6 +3663,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
       //SK_DXGI_use_factory1 = false;
     }
   }
+#endif
 
   //if (EnumAdapters_Original == nullptr) {
     //
@@ -3702,7 +3767,8 @@ HookDXGI (LPVOID user)
     return 0;
   }
 
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+  bool success =
+    SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
 
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
@@ -3798,8 +3864,10 @@ HookDXGI (LPVOID user)
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
   if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 
-  CoUninitialize (                     );
-  CloseHandle    ( GetCurrentThread () );
+  if (success)  CoUninitialize ();
+
+
+  CloseHandle ( GetCurrentThread () );
 
   return 0;
 }
@@ -3830,8 +3898,6 @@ extern bool SK_D3D11_need_tex_reset;
 memory_stats_t   mem_stats [MAX_GPU_NODES];
 mem_info_t       mem_info  [NumBuffers];
 
-CRITICAL_SECTION budget_mutex  = { 0 };
-
 struct budget_thread_params_t
 {
            IDXGIAdapter3 *pAdapter = nullptr;
@@ -3846,11 +3912,6 @@ struct budget_thread_params_t
 HRESULT
 SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 {
-  static volatile ULONG init = FALSE;
-
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
-    InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
-
   //
   // If the adapter implements DXGI 1.4, then create a budget monitoring
   //  thread...
@@ -4129,11 +4190,15 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   }
 
 
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+  bool success =
+    SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
 
 
   while ( InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
   {
+    if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+      break;
+
     if ( params->event == 0 )
       break;
 
@@ -4328,7 +4393,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
                  buffer;
   }
 
-  CoUninitialize ();
+  if (success)
+    CoUninitialize ();
 
   return 0;
 }
@@ -4338,7 +4404,9 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
 {
   HRESULT hr = E_NOTIMPL;
 
-  CoInitializeEx ( nullptr, COINIT_MULTITHREADED );
+  bool success =
+    SUCCEEDED ( CoInitializeEx ( nullptr, COINIT_MULTITHREADED ) );
+
 
   static HMODULE
     hDXGI = LoadLibrary ( L"dxgi.dll" );
@@ -4366,7 +4434,8 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
     }
   }
 
-  CoUninitialize ();
+  if (success)
+    CoUninitialize ();
 
   return hr;
 }

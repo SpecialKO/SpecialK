@@ -54,6 +54,8 @@ typedef BOOL (WINAPI *SKPlugIn_Init_pfn)(HMODULE hSpecialK);
 #define _NO_CVCONST_H
 #include <dbghelp.h>
 
+#include <diagnostics/debug_utils.h>
+
 #pragma comment( lib, "dbghelp.lib" )
 
 HMODULE
@@ -150,7 +152,7 @@ SK_LoadEarlyImports64 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 void
@@ -213,7 +215,7 @@ SK_LoadPlugIns64 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 void
@@ -269,7 +271,7 @@ SK_LoadLateImports64 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 void
@@ -325,7 +327,7 @@ SK_LoadLazyImports64 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 
@@ -360,7 +362,7 @@ SK_InitPlugIn32 (HMODULE hLibrary)
     hLibrary = NULL;
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 
   return hLibrary;
 }
@@ -425,7 +427,7 @@ SK_LoadEarlyImports32 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 void
@@ -487,7 +489,7 @@ SK_LoadPlugIns32 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 void
@@ -543,7 +545,7 @@ SK_LoadLateImports32 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 void
@@ -600,7 +602,7 @@ SK_LoadLazyImports32 (void)
     }
   }
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SK_SymRefreshModuleList ();
 }
 
 void

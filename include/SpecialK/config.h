@@ -276,6 +276,9 @@ struct sk_config_t
       bool    manage            = false;
       bool    keys_activate     = true;
     } cursor;
+    struct {
+      bool    ui_capture        = false;
+    };
   } input;
 
   struct {
