@@ -60,10 +60,17 @@ BOOL
 WINAPI
 TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
 {
-  OutputDebugString ( L" *** BLOCKED TerminateProcess (...) ***\n\t" );
-  OutputDebugString ( SK_GetCallerName ().c_str () );
+  UNREFERENCED_PARAMETER (uExitCode);
 
-  return FALSE;
+  if (hProcess == GetCurrentProcess ())
+  {
+    OutputDebugString ( L" *** BLOCKED TerminateProcess (...) ***\n\t" );
+    OutputDebugString ( SK_GetCallerName ().c_str () );
+
+    return FALSE;
+  }
+
+  return TerminateProcess_Original (hProcess, uExitCode);
 }
 
 extern void
@@ -78,7 +85,7 @@ ExitProcess_Detour (UINT uExitCode)
   SK_UnhookLoadLibrary ();
   SK_SelfDestruct      ();
 
-  return TRUE;
+  return ExitProcess_Original (uExitCode);
 }
 
 typedef void (WINAPI *OutputDebugStringA_pfn)(LPCSTR lpOutputString);

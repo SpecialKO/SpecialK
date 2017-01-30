@@ -85,11 +85,14 @@ unsigned int
 WINAPI
 DXGI_Thread (LPVOID user)
 {
-  CoInitializeEx ( nullptr, COINIT_MULTITHREADED );
+  UNREFERENCED_PARAMETER (user);
 
-  SK::DXGI::StartBudgetThread_NoAdapter ();
+  if (SUCCEEDED (CoInitializeEx ( nullptr, COINIT_MULTITHREADED )))
+  {
+    SK::DXGI::StartBudgetThread_NoAdapter ();
 
-  CoUninitialize ();
+    CoUninitialize ();
+  }
 
   return 0;
 }
@@ -107,9 +110,16 @@ SK_CEGUI_RelocateLog (void);
 extern void
 SK_CEGUI_InitBase (void);
 
+static volatile ULONG __cegui_frames_drawn = 0UL;
+
 void ResetCEGUI_GL (void)
 {
   if (! config.cegui.enable)
+    return;
+
+  // TOOD: Eliminate the stupid magic number, make this an option if it's something
+  //         that is really going to stay here long-term.
+  if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
     return;
 
   if (cegGL == nullptr)
@@ -141,6 +151,8 @@ SK_CEGUI_DrawGL (void)
 {
   if (! config.cegui.enable)
     return;
+
+  InterlockedIncrement (&__cegui_frames_drawn);
 
   static HWND last_hwnd = game_window.hWnd;
 

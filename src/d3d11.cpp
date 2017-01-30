@@ -197,6 +197,8 @@ bool SK_D3D11_IsTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
 
   return bRet;
 #else
+  UNREFERENCED_PARAMETER (dwThreadId);
+
   SK_TLS* pTLS = SK_GetTLS ();
 
   if (pTLS != nullptr)
@@ -215,6 +217,8 @@ void SK_D3D11_ClearTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
   texinject_tids.erase (dwThreadId);
   LeaveCriticalSection (&cs_texinject);
 #else
+  UNREFERENCED_PARAMETER (dwThreadId);
+
   SK_TLS* pTLS = SK_GetTLS ();
 
   if (pTLS != nullptr)
@@ -231,6 +235,8 @@ void SK_D3D11_SetTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
   texinject_tids.insert (dwThreadId);
   LeaveCriticalSection (&cs_texinject);
 #else
+  UNREFERENCED_PARAMETER (dwThreadId);
+
   SK_TLS* pTLS = SK_GetTLS ();
 
   if (pTLS != nullptr)
@@ -662,6 +668,7 @@ D3D11_RSSetScissorRects_Override (
         UINT                 NumRects,
   const D3D11_RECT          *pRects )
 {
+  return D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
 }
 
 void
@@ -938,9 +945,9 @@ SK_D3D11_TexCacheCheckpoint (void)
 
   GetProcessMemoryInfo (hProc, &pmc, sizeof pmc);
 
-  if ( (SK_D3D11_Textures.AggregateSize_2D >> 20ULL) > cache_opts.max_size    ||
-        SK_D3D11_Textures.TexRefs_2D.size ()         > cache_opts.max_entries ||
-        SK_D3D11_need_tex_reset                                               ||
+  if ( (SK_D3D11_Textures.AggregateSize_2D >> 20ULL) > (uint32_t)cache_opts.max_size    ||
+        SK_D3D11_Textures.TexRefs_2D.size ()         >           cache_opts.max_entries ||
+        SK_D3D11_need_tex_reset                                                         ||
        (config.mem.reserve / 100.0f) * ullMemoryTotal_KiB 
                                                      < 
                           (pmc.PagefileUsage >> 10UL) )
@@ -1010,11 +1017,11 @@ SK_D3D11_TexMgr::reset (void)
 
         AggregateSize_2D = std::max ((size_t)0, AggregateSize_2D);
 
-        if ( ( (AggregateSize_2D >> 20ULL) <= cache_opts.min_size &&
-                                     count >= cache_opts.min_evict ) ||
-             (SK_D3D11_amount_to_purge     <= purged              &&
-                                     count >= cache_opts.min_evict ) ||
-                                     count >= max_count )
+        if ( ( (AggregateSize_2D >> 20ULL) <= (uint32_t)cache_opts.min_size &&
+                                     count >=           cache_opts.min_evict ) ||
+             (SK_D3D11_amount_to_purge     <=           purged              &&
+                                     count >=           cache_opts.min_evict ) ||
+                                     count >=           max_count )
         {
           SK_D3D11_amount_to_purge = std::max (0, SK_D3D11_amount_to_purge);
           //dll_log.Log ( L"[DX11TexMgr] Purged %llu MiB of texture "
@@ -1489,6 +1496,10 @@ void
 WINAPI
 SKX_D3D11_MarkTextures (bool x, bool y, bool z)
 {
+  UNREFERENCED_PARAMETER (x);
+  UNREFERENCED_PARAMETER (y);
+  UNREFERENCED_PARAMETER (z);
+
   return;
 }
 
@@ -1731,7 +1742,8 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
              _Out_opt_       uint32_t               *pLOD0_CRC32 )
 {
   // Ignore Cubemaps for Now
-  if (pDesc->MiscFlags == 0x04) {
+  if (pDesc->MiscFlags == 0x04)
+  {
 //    dll_log.Log (L"[ Tex Hash ] >> Will not hash cubemap");
     if (pLOD0_CRC32)
       *pLOD0_CRC32 = 0x0000;
@@ -1742,7 +1754,8 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
     return 0;
   }
 
-  if (pDesc->MiscFlags != 0x00) {
+  if (pDesc->MiscFlags != 0x00)
+  {
     dll_log.Log ( L"[ Tex Hash ] >> Hashing texture with unexpected MiscFlags: "
                    L"0x%04X",
                      pDesc->MiscFlags );
@@ -1766,18 +1779,21 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   unsigned int width  = pDesc->Width;
   unsigned int height = pDesc->Height;
 
-        size_t size   = 0;
+        size_t size   = 0UL;
 
-  if (compressed) {
-    for (unsigned int i = 0; i < pDesc->MipLevels; i++) {
+  if (compressed)
+  {
+    for (unsigned int i = 0; i < pDesc->MipLevels; i++)
+    {
       char* pData    = (char *)pInitialData [i].pSysMem;
-      int stride = bpp == 0 ?
-          std::max (1UL, ((width + 3) / 4UL) ) * 8UL :
-          std::max (1UL, ((width + 3) / 4UL) ) * 16UL;
+      UINT stride = bpp == 0 ?
+             std::max (1UL, ((width + 3UL) / 4UL) ) * 8UL :
+             std::max (1UL, ((width + 3UL) / 4UL) ) * 16UL;
 
       // Fast path:  Data is tightly packed and alignment agrees with
       //               convention...
-      if (stride == pInitialData [i].SysMemPitch) {
+      if (stride == pInitialData [i].SysMemPitch)
+      {
         unsigned int lod_size = stride * (height / 4 +
                                           height % 4);
 
@@ -1785,10 +1801,12 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
         size    += lod_size;
       }
 
-      else {
+      else
+      {
         // We are running through the compressed image block-by-block,
         //  the lines we are "scanning" actually represent 4 rows of image data.
-        for (unsigned int j = 0; j < height; j += 4) {
+        for (unsigned int j = 0; j < height; j += 4)
+        {
           checksum =
             crc32c (checksum, (const uint8_t *)pData, stride);
 
@@ -1804,27 +1822,32 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
       if (i == 0 && pLOD0_CRC32 != nullptr)
         *pLOD0_CRC32 = checksum;
 
-      if (width  > 1) width  >>= 1;
-      if (height > 1) height >>= 1;
+      if (width  > 1) width  >>= 1UL;
+      if (height > 1) height >>= 1UL;
     }
   }
 
-  else {
-    for (unsigned int i = 0; i < pDesc->MipLevels; i++) {
+  else
+  {
+    for (unsigned int i = 0; i < pDesc->MipLevels; i++)
+    {
       char* pData      = (char *)pInitialData [i].pSysMem;
-      int   scanlength = SK_D3D11_BytesPerPixel (pDesc->Format) * width;
+      UINT  scanlength = SK_D3D11_BytesPerPixel (pDesc->Format) * width;
 
       // Fast path:  Data is tightly packed and alignment agrees with
       //               convention...
-      if (scanlength == pInitialData [i].SysMemPitch) {
+      if (scanlength == pInitialData [i].SysMemPitch) 
+      {
         unsigned int lod_size = (scanlength * height);
 
         checksum = crc32c (checksum, (const uint8_t *)pData, lod_size);
         size    += lod_size;
       }
 
-      else {
-        for (unsigned int j = 0; j < height; j++) {
+      else
+      {
+        for (unsigned int j = 0; j < height; j++)
+        {
           checksum =
             crc32c (checksum, (const uint8_t *)pData, scanlength);
 
@@ -1836,8 +1859,8 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
       if (i == 0 && pLOD0_CRC32 != nullptr)
         *pLOD0_CRC32 = checksum;
 
-      if (width  > 1) width  >>= 1;
-      if (height > 1) height >>= 1;
+      if (width  > 1) width  >>= 1UL;
+      if (height > 1) height >>= 1UL;
     }
   }
 
@@ -2294,20 +2317,19 @@ D3D11Dev_CreateTexture2D_Override (
 
 #define D3DX11_DEFAULT -1
 
-        D3DX11_IMAGE_INFO img_info;
+        D3DX11_IMAGE_INFO      img_info   = { };
+        D3DX11_IMAGE_LOAD_INFO load_info  = { };
 
         D3DX11GetImageInfoFromFileW (wszTex, nullptr, &img_info, nullptr);
-
-        D3DX11_IMAGE_LOAD_INFO load_info;
 
         load_info.BindFlags      = pDesc->BindFlags;
         load_info.CpuAccessFlags = pDesc->CPUAccessFlags;
         load_info.Depth          = img_info.Depth;//D3DX11_DEFAULT;
-        load_info.Filter         = D3DX11_DEFAULT;
+        load_info.Filter         = (UINT)D3DX11_DEFAULT;
         load_info.FirstMipLevel  = 0;
         load_info.Format         = pDesc->Format;
         load_info.Height         = img_info.Height;//D3DX11_DEFAULT;
-        load_info.MipFilter      = D3DX11_DEFAULT;
+        load_info.MipFilter      = (UINT)D3DX11_DEFAULT;
         load_info.MipLevels      = img_info.MipLevels;//D3DX11_DEFAULT;
         load_info.MiscFlags      = img_info.MiscFlags;//pDesc->MiscFlags;
         load_info.pSrcInfo       = &img_info;

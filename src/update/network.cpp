@@ -290,6 +290,8 @@ RemindMeLater_DlgProc (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam )
 {
+  UNREFERENCED_PARAMETER (lParam);
+
   HWND hWndNextCheck =
     GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
 
@@ -370,7 +372,7 @@ RemindMeLater_DlgProc (
             break;
 
           case 5:
-            next  = -1;
+            next  = MAXULONGLONG;
             never = true;
             break;
         }
@@ -579,6 +581,8 @@ Update_DlgProc (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam )
 {
+  UNREFERENCED_PARAMETER (lParam);
+
   //HWND hWndNextCheck =
   //  GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
 
@@ -738,6 +742,11 @@ Update_DlgProc (
                 LONG_PTR dwRefData ) ->
             HRESULT
             {
+              UNREFERENCED_PARAMETER (hWnd);
+              UNREFERENCED_PARAMETER (wParam);
+              UNREFERENCED_PARAMETER (lParam);
+              UNREFERENCED_PARAMETER (dwRefData);
+               
               switch (uNotification)
               {
                 case TDN_HYPERLINK_CLICKED:
@@ -832,6 +841,8 @@ unsigned int
 __stdcall
 UpdateDlg_Thread (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   CreateDialog ( SK_GetDLL (),
                    MAKEINTRESOURCE (IDD_UPDATE),
                     GetDesktopWindow (),
@@ -857,6 +868,8 @@ HRESULT
 __stdcall
 SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 {
+  UNREFERENCED_PARAMETER (wszProduct);
+
   TASKDIALOGCONFIG  task_config  = { 0 };
 
   task_config.cbSize             = sizeof          ( task_config );

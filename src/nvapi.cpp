@@ -56,7 +56,7 @@ static bool nvapi_silent = false;
 #define NVAPI_VERBOSE() { nvapi_silent = false; }
 
 #if 0
-#define NVAPI_CALL(x) { NvAPI_Status ret = NvAPI_##x;        \
+#define NVAPI_CALL(x) { ret = NvAPI_##x;                     \
                         if (nvapi_silent != true &&          \
                                      ret != NVAPI_OK)        \
                           MessageBox (                       \
@@ -67,7 +67,7 @@ static bool nvapi_silent = false;
                             MB_OK | MB_ICONASTERISK );       \
                       }
 #else
-#define NVAPI_CALL(x) { NvAPI_Status ret = NvAPI_##x; if (nvapi_silent !=    \
+#define NVAPI_CALL(x) { ret = NvAPI_##x; if (nvapi_silent !=                 \
  true && ret != NVAPI_OK) MessageBox (NULL, ErrorMessage (ret, #x, __LINE__, \
 __FUNCTION__, __FILE__).c_str (), L"Error Calling NVAPI Function", MB_OK     \
  | MB_ICONASTERISK | MB_SETFOREGROUND | MB_TOPMOST ); }
@@ -118,18 +118,21 @@ NVAPI::CountPhysicalGPUs (void)
 {
   static int nv_gpu_count = -1;
 
-  if (nv_gpu_count == -1) {
-    if (nv_hardware) {
-      NvPhysicalGpuHandle gpus [64];
-      NvU32               gpu_count = 0;
+  if (nv_gpu_count == -1)
+  {
+    if (nv_hardware)
+    {
+      NvAPI_Status        ret       = NVAPI_ERROR;
+      NvPhysicalGpuHandle gpus [64] = {         };
+      NvU32               gpu_count =      0;
 
       NVAPI_CALL (EnumPhysicalGPUs (gpus, &gpu_count));
 
       nv_gpu_count = gpu_count;
     }
-    else {
+
+    else
       nv_gpu_count = 0;
-    }
   }
 
   return nv_gpu_count;
@@ -220,11 +223,13 @@ sk::NVAPI::EnumGPUs_DXGI (void)
     return _nv_dxgi_adapters;
   }
 
-  NvU32 gpu_count     = 0;
+  NvAPI_Status ret       = NVAPI_ERROR;
+  NvU32        gpu_count = 0;
 
   NVAPI_CALL (EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count));
 
-  for (int i = 0; i < CountPhysicalGPUs (); i++) {
+  for (int i = 0; i < CountPhysicalGPUs (); i++)
+  {
     DXGI_ADAPTER_DESC adapterDesc;
 
     NvAPI_ShortString name;
@@ -486,6 +491,8 @@ BOOL
 __stdcall
 SK_NvAPI_SetFramerateLimit (uint32_t limit)
 {
+  UNREFERENCED_PARAMETER (limit);
+
   return TRUE;
 
 #if 0
@@ -649,7 +656,9 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   if (role != DXGI && role != D3D9)
     return TRUE;
 
-  NvDRSSessionHandle hSession;
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
   NVAPI_CALL (DRS_CreateSession (&hSession));
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
@@ -720,8 +729,8 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   NVAPI_SILENT ();
 
   app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
 
-  NvAPI_Status ret;
   NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
                                               (NvU16 *)app_name.c_str (),
                                                 &hProfile,
@@ -730,7 +739,8 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
 
   // If no executable exists anywhere by this name, create a profile for it
   //   and then add the executable to it.
-  if (ret == NVAPI_EXECUTABLE_NOT_FOUND) {
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
     NVDRS_PROFILE custom_profile = { 0 };
 
     custom_profile.isPredefined = false;
@@ -752,11 +762,13 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
                                                 &hProfile),
                       ret );
 
-    if (ret == NVAPI_OK) {
-      memset (&app, 0, sizeof (NVDRS_APPLICATION));
+    if (ret == NVAPI_OK)
+    {
+      app = { };
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
       app.version      = NVDRS_APPLICATION_VER;
       app.isPredefined = false;
       app.isMetro      = false;
@@ -766,14 +778,14 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
     }
   }
 
-  NVDRS_SETTING mode_val = { 0 };
-  mode_val.version = NVDRS_SETTING_VER;
+  NVDRS_SETTING mode_val                = {               };
+                mode_val.version        = NVDRS_SETTING_VER;
 
-  NVDRS_SETTING gpu_count_val = { 0 };
-  gpu_count_val.version = NVDRS_SETTING_VER;
+  NVDRS_SETTING gpu_count_val           = {               };
+                gpu_count_val.version   = NVDRS_SETTING_VER;
 
-  NVDRS_SETTING compat_bits_val = { 0 };
-  compat_bits_val.version = NVDRS_SETTING_VER;
+  NVDRS_SETTING compat_bits_val         = {               };
+                compat_bits_val.version = NVDRS_SETTING_VER;
 
   // These settings may not exist, and getting back a value of 0 is okay...
   NVAPI_SILENT ();
@@ -785,11 +797,12 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   BOOL already_set = TRUE;
 
   // Do this first so we don't touch other settings if this fails
-  if (compat_bits_val.u32CurrentValue != compat_bits) {
-    ZeroMemory (&compat_bits_val, sizeof NVDRS_SETTING);
+  if (compat_bits_val.u32CurrentValue != compat_bits)
+  {
+    compat_bits_val         = {               };
     compat_bits_val.version = NVDRS_SETTING_VER;
 
-    NvAPI_Status ret;
+    ret = NVAPI_ERROR;
 
     // This requires admin privs, and we will handle that gracefully...
     NVAPI_SILENT ();
@@ -798,7 +811,8 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
     NVAPI_VERBOSE ();
 
     // Not running as admin, don't do the override!
-    if (ret == NVAPI_INVALID_USER_PRIVILEGE) {
+    if (ret == NVAPI_INVALID_USER_PRIVILEGE)
+    {
       int result = 
         MessageBox ( NULL,
                        L"Please run this game as Administrator to install SLI "
@@ -819,8 +833,9 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
     already_set = FALSE;
   }
 
-  if (mode_val.u32CurrentValue != render_mode) {
-    ZeroMemory (&mode_val, sizeof NVDRS_SETTING);
+  if (mode_val.u32CurrentValue != render_mode)
+  {
+    mode_val         = { };
     mode_val.version = NVDRS_SETTING_VER;
 
     NVAPI_SET_DWORD (mode_val, render_mode_enum, render_mode);
@@ -829,8 +844,9 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
     already_set = FALSE;
   }
 
-  if (gpu_count_val.u32CurrentValue != gpu_count) {
-    ZeroMemory (&gpu_count_val, sizeof NVDRS_SETTING);
+  if (gpu_count_val.u32CurrentValue != gpu_count)
+  {
+    gpu_count_val         = {               };
     gpu_count_val.version = NVDRS_SETTING_VER;
 
     NVAPI_SET_DWORD (gpu_count_val, gpu_count_enum, gpu_count);
@@ -888,19 +904,21 @@ SK_NvAPI_AddLauncherToProf (void)
   if (! nv_hardware)
     return FALSE;
 
-  NvDRSSessionHandle hSession;
+  NvAPI_Status       ret      = NVAPI_ERROR;
+  NvDRSSessionHandle hSession = {         };
+
   NVAPI_CALL (DRS_CreateSession (&hSession));
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
-  NvDRSProfileHandle hProfile;
+  NvDRSProfileHandle hProfile  = {   };
   static NVDRS_APPLICATION app = { 0 };
 
   //SK_NvAPI_GetAppProfile (hSession, &hProfile, &app);
   NVAPI_SILENT ();
 
   app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
 
-  NvAPI_Status ret;
   NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
                                               (NvU16 *)app_name.c_str (),
                                                 &hProfile,
@@ -931,10 +949,11 @@ SK_NvAPI_AddLauncherToProf (void)
                                                 &hProfile),
                       ret );
 
-    if (ret == NVAPI_OK) {
-      memset (&app, 0, sizeof (NVDRS_APPLICATION));
-
+    if (ret == NVAPI_OK)
+    {
+       app         = {   };
       *app.appName = L'\0';
+
       //lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
       lstrcpyW ((wchar_t *)app.launcher,         launcher_name.c_str ());
@@ -946,9 +965,9 @@ SK_NvAPI_AddLauncherToProf (void)
       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
     }
   } else {
-    memset (&app, 0, sizeof (NVDRS_APPLICATION));
-
+     app         = {   };
     *app.appName = L'\0';
+
     //lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
     lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
     lstrcpyW ((wchar_t *)app.launcher,         launcher_name.c_str ());

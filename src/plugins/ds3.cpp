@@ -14,6 +14,9 @@
 
 #include <process.h>
 
+#undef max
+#undef min
+
 //
 // Hook Special K's shutdown function
 //
@@ -275,6 +278,8 @@ unsigned int
 __stdcall
 SK_DS3_CheckVersionThread (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   extern bool
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
@@ -509,6 +514,8 @@ unsigned int
 __stdcall
 SK_DS3_CenterWindow_Thread (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   SK_DS3_GetMonitorDims ();
 
   if (! sus_state.Center)
@@ -552,6 +559,8 @@ unsigned int
 __stdcall
 SK_DS3_FinishResize_Thread (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   DWORD dwFlags = SWP_NOMOVE | SWP_NOSENDCHANGING;
 
   if (ds3_cfg.window.borderless) {
@@ -1139,8 +1148,8 @@ SK_DS3_SetFullscreenState (
       //
       //  XXX: Later on, we can restore the game's usual viewport hackery.
       if (ds3_state.Fullscreen) {
-        bool multi_mon_match = ( swap_desc.BufferDesc.Width  == virtual_x &&
-                                 swap_desc.BufferDesc.Height == virtual_y );
+        bool multi_mon_match = ( (int)swap_desc.BufferDesc.Width  == virtual_x &&
+                                 (int)swap_desc.BufferDesc.Height == virtual_y );
 
         //
         // This logic really only works correctly on single-monitor setups,
@@ -1356,10 +1365,12 @@ unsigned int
 __stdcall
 SK_DS3_FullscreenToggle_Thread (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   // Don't do any of this stuff if we cannot bring the window into foucs
   if ( ! (BringWindowToTop    (ds3_state.Window) &&
           SetForegroundWindow (ds3_state.Window)) )
-    return -1;
+    return std::numeric_limits <unsigned int>::max ();
 
   Sleep (66);
 
@@ -1402,6 +1413,9 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
                            UINT            SyncInterval,
                            UINT            Flags )
 {
+  UNREFERENCED_PARAMETER (Flags);
+  UNREFERENCED_PARAMETER (SyncInterval);
+
   static bool first = true;
 
   DXGI_SWAP_CHAIN_DESC desc;
@@ -1448,9 +1462,12 @@ bool
 WINAPI
 SK_DS3_ShutdownPlugin (const wchar_t* backend)
 {
+  UNREFERENCED_PARAMETER (backend);
+
+
   // Allow the graphics config file to be written again at shutdown...
   DWORD    dwConfigAttribs;
-  uint32_t dwLen = MAX_PATH;
+  uint32_t dwLen =                MAX_PATH;
   wchar_t  wszGraphicsConfigPath [MAX_PATH];
 
   SK_GetUserProfileDir (wszGraphicsConfigPath, &dwLen);

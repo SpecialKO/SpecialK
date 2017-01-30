@@ -1376,15 +1376,15 @@ SK_D3D9_LoadQueuedTextures (void)
   //
   // If the size changes, check to see if we need a purge - if so, schedule one.
   //
-  static uint64_t last_size = 0ULL;
+  static int64_t last_size = 0ULL;
 
   if (last_size != sk::d3d9::tex_mgr.cacheSizeTotal () ) {
     last_size = sk::d3d9::tex_mgr.cacheSizeTotal ();
 
 
     // TODO HOOKUP TO CONFIG
-    if ( last_size >
-           (1024ULL * 1024ULL) * (uint64_t)/*config.textures.*/___max_cache_in_mib )
+    if ( (uint64_t)last_size >
+           (1024ULL * 1024ULL) * /*config.textures.*/(uint64_t)___max_cache_in_mib )
       __need_purge = true;
   }
 

@@ -9885,6 +9885,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
                                   WPARAM wParam,
                                   LPARAM lParam )
 {
+  UNREFERENCED_PARAMETER (lParam);
+
   static bool window_active = true;
 
   ImGuiIO& io =

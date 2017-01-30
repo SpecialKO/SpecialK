@@ -1058,11 +1058,11 @@ SK_SelfDestruct (void)
     //FreeLibrary (SK_GetDLL ());
     const wchar_t* wszBackend = SK_GetBackend ();
 
-    if (! wcsicmp (wszBackend, L"d3d9"))
+    if (! _wcsicmp (wszBackend, L"d3d9"))
       SK::D3D9::Shutdown ();
-    else if (! wcsicmp (wszBackend, L"dxgi"))
+    else if (! _wcsicmp (wszBackend, L"dxgi"))
       SK::DXGI::Shutdown ();
-    else if (! wcsicmp (wszBackend, L"OpenGL32"))
+    else if (! _wcsicmp (wszBackend, L"OpenGL32"))
       SK::OpenGL::Shutdown ();
   }
 }
@@ -1155,17 +1155,22 @@ SK_ResumeThreads (std::queue <DWORD> threads)
 
 void
 __stdcall
-SK_TestImports (HMODULE hMod, sk_import_test_s* pTests, int nCount)
+SK_TestImports (          HMODULE  hMod,
+                 sk_import_test_s *pTests,
+                              int  nCount )
 {
+  DBG_UNREFERENCED_PARAMETER (hMod);
+
   __try
   {
     uintptr_t                pImgBase =
       (uintptr_t)GetModuleHandle (nullptr);
 
-    MEMORY_BASIC_INFORMATION mem_info;
-    VirtualQuery ((LPCVOID)pImgBase, &mem_info, sizeof mem_info);
+             MEMORY_BASIC_INFORMATION minfo;
+    VirtualQuery ((LPCVOID)pImgBase, &minfo, sizeof minfo);
 
-    pImgBase = (uintptr_t)mem_info.BaseAddress;
+    pImgBase =
+      (uintptr_t)minfo.BaseAddress;
 
     PIMAGE_NT_HEADERS        pNtHdr   =
       PIMAGE_NT_HEADERS ( pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew );
@@ -1185,20 +1190,25 @@ SK_TestImports (HMODULE hMod, sk_import_test_s* pTests, int nCount)
 
       uintptr_t end = (uintptr_t)pImpDesc + pImgDir->Size;
 
-      while ((uintptr_t)pImpDesc < end) {
-        if (pImpDesc->Name == NULL) {
+      while ((uintptr_t)pImpDesc < end)
+      {
+        if (pImpDesc->Name == 0x00)
+        {
           ++pImpDesc;
           continue;
         }
 
-        const char* szImport = (const char *)(pImgBase + (pImpDesc++)->Name);
+        const char* szImport =
+          (const char *)(pImgBase + (pImpDesc++)->Name);
 
         //dll_log.Log (L"%hs", szImport);
 
-        for (int i = 0; i < nCount; i++) {
-          if ((! pTests [i].used) && StrStrIA (szImport, pTests [i].szModuleName)) {
+        for (int i = 0; i < nCount; i++)
+        {
+          if ((! pTests [i].used) && StrStrIA (szImport, pTests [i].szModuleName))
+          {
             pTests [i].used = true;
-            ++hits;
+                     ++hits;
           }
         }
 
@@ -1222,7 +1232,11 @@ SK_TestImports (HMODULE hMod, sk_import_test_s* pTests, int nCount)
 }
 
 void
-SK_TestRenderImports (HMODULE hMod, bool* gl, bool* vulkan, bool* d3d9, bool* dxgi)
+SK_TestRenderImports ( HMODULE hMod,
+                       bool*   gl,
+                       bool*   vulkan,
+                       bool*   d3d9,
+                       bool*   dxgi )
 {
   static sk_import_test_s tests [] = { { "OpenGL32.dll", false },
                                        { "vulkan-1.dll", false },
@@ -1259,14 +1273,16 @@ SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr)
              int len     = 0;
   const wchar_t* pwszStr = wszStr;
 
-  for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr)) {
+  for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
+  {
     if (*pwszStr == L'\0')
       break;
   }
 
   const wchar_t* wszSearch = pwszStr;
 
-  while (wszSearch >= wszStr) {
+  while (wszSearch >= wszStr)
+  {
     if (*wszSearch == wchr)
       break;
 
@@ -1449,11 +1465,11 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
 {
   uint8_t* base_addr = (uint8_t *)GetModuleHandle (nullptr);
 
-  MEMORY_BASIC_INFORMATION mem_info;
-  VirtualQuery (base_addr, &mem_info, sizeof mem_info);
+   MEMORY_BASIC_INFORMATION minfo;
+  VirtualQuery (base_addr, &minfo, sizeof minfo);
 
-           base_addr = (uint8_t *)mem_info.BaseAddress;
-  uint8_t* end_addr  = (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
+           base_addr = (uint8_t *)minfo.BaseAddress;
+  uint8_t* end_addr  = (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
 
 #if 0
   if (base_addr != (uint8_t *)0x400000) {
@@ -1471,13 +1487,14 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
   // For practical purposes, let's just assume that all valid games have less than 32 MiB of
   //   committed executable image data.
   //
-  while (VirtualQuery (end_addr, &mem_info, sizeof mem_info) && end_addr < PAGE_WALK_LIMIT) {
-    if (mem_info.Protect & PAGE_NOACCESS || (! (mem_info.Type & MEM_IMAGE)))
+  while (VirtualQuery (end_addr, &minfo, sizeof minfo) && end_addr < PAGE_WALK_LIMIT)
+  {
+    if (minfo.Protect & PAGE_NOACCESS || (! (minfo.Type & MEM_IMAGE)))
       break;
 
-    pages += VirtualQuery (end_addr, &mem_info, sizeof mem_info);
+    pages += VirtualQuery (end_addr, &minfo, sizeof minfo);
 
-    end_addr = (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
+    end_addr = (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
   } 
 
   if (end_addr > PAGE_WALK_LIMIT) {
@@ -1506,19 +1523,19 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
 
   while (it < end_addr)
   {
-    VirtualQuery (it, &mem_info, sizeof mem_info);
+    VirtualQuery (it, &minfo, sizeof minfo);
 
     // Bail-out once we walk into an address range that is not resident, because
     //   it does not belong to the original executable.
-    if (mem_info.RegionSize == 0)
+    if (minfo.RegionSize == 0)
       break;
 
     uint8_t* next_rgn =
-     (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
+     (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
 
-    if ( (! (mem_info.Type    & MEM_IMAGE))  ||
-         (! (mem_info.State   & MEM_COMMIT)) ||
-             mem_info.Protect & PAGE_NOACCESS ) {
+    if ( (! (minfo.Type    & MEM_IMAGE))  ||
+         (! (minfo.State   & MEM_COMMIT)) ||
+             minfo.Protect & PAGE_NOACCESS ) {
       it    = next_rgn;
       idx   = 0;
       begin = it;

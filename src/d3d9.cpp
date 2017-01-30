@@ -363,7 +363,8 @@ SK_FreeRealD3D9 (void)
 CEGUI::Direct3D9Renderer* cegD3D9    = nullptr;
 IDirect3DStateBlock9*     cegD3D9_SB = nullptr;
 
-static volatile ULONG __gui_reset = TRUE;
+static volatile ULONG __gui_reset          = TRUE;
+static volatile ULONG __cegui_frames_drawn = 0;
 
 void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
 
@@ -377,10 +378,10 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
   if (! config.cegui.enable)
     return;
 
+  InterlockedIncrement (&__cegui_frames_drawn);
+
   if (cegD3D9 == nullptr) {
-    if (SK_GetFramesDrawn () > 1) {
-      ResetCEGUI_D3D9 (pDev);
-    }
+    ResetCEGUI_D3D9 (pDev);
   }
 
   else {
@@ -447,7 +448,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
 
 
-      for (int i = 1; i < caps.MaxTextureBlendStages; i++) {
+      for (DWORD i = 1; i < caps.MaxTextureBlendStages; i++) {
         pDev->SetTextureStageState (i, D3DTSS_COLOROP,      D3DTOP_DISABLE);
         pDev->SetTextureStageState (i, D3DTSS_ALPHAOP,      D3DTOP_DISABLE);
       }
@@ -512,6 +513,9 @@ void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
   if (! config.cegui.enable)
+    return;
+
+  if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
     return;
 
   if (cegD3D9 != nullptr || (pDev == nullptr)) {
@@ -628,7 +632,8 @@ SK_HookD3D9 (void)
                                0x00,
                                  nullptr );
 
-  if (hThread != nullptr) {
+  if (hThread != nullptr)
+  {
     while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
       WaitForSingleObject (hThread, 100UL);
 
@@ -845,8 +850,8 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
   }
 
   if (pPresentationParameters != nullptr) {
-    if ( config.render.framerate.buffer_count != -1 &&
-         config.render.framerate.buffer_count != 
+    if (       config.render.framerate.buffer_count != -1 &&
+         (UINT)config.render.framerate.buffer_count != 
            pPresentationParameters->BackBufferCount ) {
       dll_log.Log ( L"[   D3D9   ]  >> Backbuffer Override: (Requested=%lu, Override=%li)",
                       pPresentationParameters->BackBufferCount,
@@ -855,8 +860,8 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
         config.render.framerate.buffer_count;
     }
 
-    if ( config.render.framerate.present_interval != -1 &&
-         config.render.framerate.present_interval !=
+    if (       config.render.framerate.present_interval != -1 &&
+         (UINT)config.render.framerate.present_interval !=
             pPresentationParameters->PresentationInterval &&
          pPresentationParameters                  != nullptr ) {
       dll_log.Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%li)",
@@ -1479,6 +1484,9 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
                 D3DPRESENT_PARAMETERS *pPresentationParameters,
                 D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
 {
+  UNREFERENCED_PARAMETER (This);
+  UNREFERENCED_PARAMETER (pFullscreenDisplayMode);
+
   if (InterlockedCompareExchange (&ImGui_Init, 0, 0))
     ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
 
@@ -1492,13 +1500,12 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
                  D3DPRESENT_PARAMETERS *pPresentationParameters,
                  D3DDISPLAYMODEEX      *pFullscreenDisplayMode )
 {
+  UNREFERENCED_PARAMETER (pFullscreenDisplayMode);
+
   if (ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
                              This,
                                pPresentationParameters) )
   {
-    HWND  hWnd    =
-      pPresentationParameters->hDeviceWindow;
-
     InterlockedExchange ( &ImGui_Init, TRUE );
   }
 }
@@ -2182,9 +2189,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
                                     pparams )
          )
       {
-        HWND  hWnd    =
-          pparams->hDeviceWindow;
-
         InterlockedExchange ( &ImGui_Init, TRUE );
       }
 
@@ -2930,6 +2934,8 @@ unsigned int
 __stdcall
 HookD3D9 (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   if (! config.apis.d3d9.hook) {
     return 0;
   }
@@ -3183,6 +3189,8 @@ unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   return 0;
 }
 

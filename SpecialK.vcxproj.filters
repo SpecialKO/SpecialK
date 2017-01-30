@@ -613,5 +613,62 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />
+    <Text Include="resource\licenses\7zip.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\ADL.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\CEGUI.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\DirectXTex.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\FreeType2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\GLEW.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\GLFW_2_2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\GLM_0_9_4_5.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\ImGui.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\Mesa_7_0.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\MinHook.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\nvapi.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\Overview.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\pcre.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\pcre_cpp.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\SpecialK.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\stb.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\Vulkan.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\zlib.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

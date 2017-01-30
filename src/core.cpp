@@ -440,6 +440,8 @@ unsigned int
 __stdcall
 osd_pump (LPVOID lpThreadParam)
 { 
+  UNREFERENCED_PARAMETER (lpThreadParam);
+
   // TODO: This actually increases the number of frames rendered, which
   //         may interfere with other mod logic... the entire feature is
   //           a hack, but that behavior is not intended.
@@ -555,102 +557,6 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
-  if (config.cegui.enable)
-  {
-    SK_LockDllLoader ();
-
-    // Disable until we validate CEGUI's state
-    config.cegui.enable = false;
-
-    wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
-    wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
-
-#ifdef _WIN64
-    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
-#else
-    _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
-#endif
-
-    lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
-    lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
-
-    // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
-    //   do support it if a certain Windows Update (KB2533623) is installed.
-    typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
-    typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
-    typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
-
-    static AddDllDirectory_pfn k32_AddDllDirectory =
-      (AddDllDirectory_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                           "AddDllDirectory" );
-
-    static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
-      (RemoveDllDirectory_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                           "RemoveDllDirectory" );
-
-    static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
-      (SetDefaultDllDirectories_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                           "SetDefaultDllDirectories" );
-
-    if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
-         k32_SetDefaultDllDirectories &&
-
-           GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
-    {
-      dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
-
-      wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
-
-      _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
-      _wputenv  (wszEnvVar);
-
-      // This tests for the existence of the DLL before attempting to load it...
-      auto DelayLoadDLL = [&](const char* szDLL)->
-        bool
-          {
-            k32_SetDefaultDllDirectories (
-              LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-              LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
-            );
-
-            DLL_DIRECTORY_COOKIE cookie = 0;
-            bool                 ret    = false;
-
-            __try {
-                  char szFullDLL [MAX_PATH] = { '\0' };
-              sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
-
-              cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
-              ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
-            }
-
-            __except (EXCEPTION_EXECUTE_HANDLER) {
-            }
-
-            k32_RemoveDllDirectory (cookie);
-
-            return ret;
-          };
-
-      if (DelayLoadDLL ("CEGUIBase-0.dll"))
-      {
-        config.cegui.enable = true;
-
-        if (config.apis.OpenGL.hook)
-          DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
-        if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-          DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
-        if (config.apis.dxgi.d3d11.hook)
-          DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
-      }
-    }
-
-    SK_UnlockDllLoader ();
-  }
-
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
   SK_Console* pConsole = SK_Console::getInstance ();
@@ -720,8 +626,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if (! lstrcmpW (SK_GetHostApp (), L"BatmanAK.exe"))
     USE_SLI = false;
 
-  HANDLE hProc = GetCurrentProcess ();
-
   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszModuleName = module_name.c_str ();
 
@@ -737,7 +641,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
 #ifdef _WIN64
   GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #else
-  BOOL bWOW64;
+  HANDLE hProc = GetCurrentProcess ();
+
+  BOOL   bWOW64;
   ::IsWow64Process (hProc, &bWOW64);
 
   if (bWOW64)
@@ -1202,6 +1108,8 @@ unsigned int
 __stdcall
 CheckVersionThread (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   extern bool
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
@@ -1227,7 +1135,7 @@ DllThread_CRT (LPVOID user)
   SK_GetTLS ();
 
   init_params_t* params =
-    &init_;
+    (init_params_t *)user;
 
   SK_InitCore (params->backend, params->callback);
 
@@ -1295,7 +1203,7 @@ DWORD
 __stdcall
 DllThread (LPVOID user)
 {
-  DllThread_CRT (&init_);
+  DllThread_CRT (user);
 
   return 0;
 }
@@ -1543,7 +1451,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! SK_IsHostAppSKIM ()) {
     SK_Steam_InitCommandConsoleVariables ();
-    SK_TestSteamImports                  (GetModuleHandle (nullptr));
+    //SK_TestSteamImports                  (GetModuleHandle (nullptr));
   }
 
 
@@ -1721,11 +1629,14 @@ SK_ShutdownCore (const wchar_t* backend)
 
   FreeLibrary (backend_dll);
 
-  if (config.system.handle_crashes)
-    SK_AutoClose_Log ( crash_log);
+  // Breakbad Disable Disclaimer; pretend the log was empty :)
+  if (crash_log.lines == 1) 
+    crash_log.lines = 0;
+
+  SK_AutoClose_Log ( crash_log);
 
   SK_UnInit_MinHook ();
-  FreeLibrary       (SK_GetDLL ());
+  //FreeLibrary       (SK_GetDLL ());
 
   return true;
 }
@@ -1762,7 +1673,7 @@ SK_BeginBufferSwap (void)
     {
       // Steam Init: Better late than never
 
-      SK_TestSteamImports(nullptr);
+      SK_TestSteamImports (nullptr);
 
       extern bool
       S_CALLTYPE
@@ -1792,6 +1703,115 @@ SK_BeginBufferSwap (void)
       InterlockedExchange (&first, 0);
 
       SK_ResetWindow ();
+    }
+  }
+
+  static volatile LONG cegui_init = FALSE;
+
+  if (InterlockedCompareExchange (&frames_drawn, 0, 0) > 2 && (! InterlockedCompareExchange (&cegui_init, 1, 0)))
+  {
+    if (config.cegui.enable)
+    {
+      SK_LockDllLoader ();
+  
+      // Disable until we validate CEGUI's state
+      config.cegui.enable = false;
+  
+      wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
+      wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
+  
+  #ifdef _WIN64
+      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
+  #else
+      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
+  #endif
+  
+      lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
+      lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+  
+      // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
+      //   do support it if a certain Windows Update (KB2533623) is installed.
+      typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
+      typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
+      typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
+  
+      static AddDllDirectory_pfn k32_AddDllDirectory =
+        (AddDllDirectory_pfn)
+          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                             "AddDllDirectory" );
+  
+      static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
+        (RemoveDllDirectory_pfn)
+          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                             "RemoveDllDirectory" );
+  
+      static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
+        (SetDefaultDllDirectories_pfn)
+          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                             "SetDefaultDllDirectories" );
+  
+      if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
+           k32_SetDefaultDllDirectories &&
+  
+             GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
+      {
+        dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
+  
+        wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
+  
+        _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+        _wputenv  (wszEnvVar);
+  
+        // This tests for the existence of the DLL before attempting to load it...
+        auto DelayLoadDLL = [&](const char* szDLL)->
+          bool
+            {
+              k32_SetDefaultDllDirectories (
+                LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+              );
+  
+              DLL_DIRECTORY_COOKIE cookie = 0;
+              bool                 ret    = false;
+  
+              __try {
+                    char szFullDLL [MAX_PATH] = { '\0' };
+                sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
+  
+                cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
+                ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
+              }
+  
+              __except (EXCEPTION_EXECUTE_HANDLER) {
+              }
+  
+              k32_RemoveDllDirectory (cookie);
+  
+              return ret;
+            };
+  
+        if (DelayLoadDLL ("CEGUIBase-0.dll"))
+        {
+          config.cegui.enable = true;
+  
+          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL) {
+            if (config.apis.OpenGL.hook)
+              DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
+          }
+
+          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
+               SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ) {
+            if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
+              DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
+          }
+
+          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 ) {
+            DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
+          }
+        }
+      }
+  
+      SK_UnlockDllLoader ();
     }
   }
 

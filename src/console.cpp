@@ -141,7 +141,7 @@ SK_Console::End (void)
   }
 
   if (hMsgPump != 0) {
-    TerminateThread (hMsgPump, 0);
+    TerminateThread (hMsgPump, 0);;
     hMsgPump = 0;
   }
 }
@@ -162,6 +162,9 @@ unsigned int
 __stdcall
 SK_Console::MessagePump (LPVOID hook_ptr)
 {
+  // Old interface, no longer valid -- legacy remains.
+  UNREFERENCED_PARAMETER (hook_ptr);
+
   char* text = SK_Console::getInstance ()->text;
 
   ZeroMemory (text, 4096);
@@ -227,6 +230,10 @@ void
 CALLBACK
 SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
+  UNREFERENCED_PARAMETER (Control);
+  UNREFERENCED_PARAMETER (Shift);
+  UNREFERENCED_PARAMETER (Alt);
+
   static bool keys [256];
   keys [vkCode & 0xFF] = ! keys [vkCode & 0xFF];
 }

@@ -26,6 +26,9 @@
 
 #include <SpecialK/log.h>
 
+#undef min
+#undef max
+
 #pragma comment (lib, "wbemuuid.lib")
 
 namespace COM {
@@ -68,8 +71,10 @@ unsigned int
 __stdcall
 SK_MonitorProcess (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   if (! SK_InitWMI ())
-    return -1;
+    return std::numeric_limits <unsigned int>::max ();
 
   Sleep (100);
 

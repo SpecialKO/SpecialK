@@ -192,7 +192,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MINFILTER,  D3DTEXF_LINEAR);
   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MAGFILTER,  D3DTEXF_LINEAR);
 
-  for (int i = 1; i < caps.MaxTextureBlendStages; i++) {
+  for (UINT i = 1; i < caps.MaxTextureBlendStages; i++) {
     g_pd3dDevice->SetTextureStageState (i, D3DTSS_COLOROP,     D3DTOP_DISABLE);
     g_pd3dDevice->SetTextureStageState (i, D3DTSS_ALPHAOP,     D3DTOP_DISABLE);
   }

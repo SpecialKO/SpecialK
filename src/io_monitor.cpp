@@ -28,6 +28,11 @@
 
 #include <process.h>
 
+#undef min
+#undef max
+
+#include <algorithm>
+
 void
 SK_CountIO (io_perf_t& ioc, const double update)
 {
@@ -229,6 +234,8 @@ unsigned int
 __stdcall
 SK_WMI_ServerThread (LPVOID lpUser)
 {
+  UNREFERENCED_PARAMETER (lpUser);
+
   HRESULT hr;
 
   COM::base.wmi.InitLocks ();
@@ -486,8 +493,10 @@ unsigned int
 __stdcall
 SK_MonitorCPU (LPVOID user_param)
 {
+  UNREFERENCED_PARAMETER (user_param);
+
   if (! SK_InitWMI ())
-    return -1;
+    return std::numeric_limits <unsigned int>::max ();
 
   Sleep (100);
 
@@ -607,7 +616,7 @@ SK_MonitorCPU (LPVOID user_param)
         goto CPU_CLEANUP;
       }
 
-      cpu.dwNumReturned = min (cpu.dwNumObjects, cpu.dwNumReturned);
+      cpu.dwNumReturned = std::min (cpu.dwNumObjects, cpu.dwNumReturned);
     }
     else
     {
@@ -821,8 +830,10 @@ unsigned int
 __stdcall
 SK_MonitorDisk (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   if (! SK_InitWMI ())
-    return -1;
+    return std::numeric_limits <unsigned int>::max ();
 
   Sleep (100);
 
@@ -935,7 +946,7 @@ SK_MonitorDisk (LPVOID user)
         goto DISK_CLEANUP;
       }
 
-      disk.dwNumReturned = min (disk.dwNumObjects, disk.dwNumReturned);
+      disk.dwNumReturned = std::min (disk.dwNumObjects, disk.dwNumReturned);
     }
     else
     {
@@ -1222,8 +1233,10 @@ unsigned int
 __stdcall
 SK_MonitorPagefile (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   if (! SK_InitWMI ())
-    return -1;
+    return std::numeric_limits <unsigned int>::max ();
 
   Sleep (100);
 
@@ -1329,7 +1342,7 @@ SK_MonitorPagefile (LPVOID user)
         goto PAGEFILE_CLEANUP;
       }
 
-      pagefile.dwNumReturned = min (pagefile.dwNumObjects, pagefile.dwNumReturned);
+      pagefile.dwNumReturned = std::min (pagefile.dwNumObjects, pagefile.dwNumReturned);
     }
     else
     {

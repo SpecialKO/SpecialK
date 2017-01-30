@@ -180,6 +180,8 @@ unsigned int
 __stdcall
 HookD3D12 (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   // This only needs to be done once...
   if (InterlockedCompareExchange (&__d3d12_hooked, TRUE, FALSE)) {
     return 0;

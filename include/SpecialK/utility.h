@@ -22,6 +22,7 @@
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
+#include <intrin.h>
 #include <Windows.h>
 
 #include <cstdint>

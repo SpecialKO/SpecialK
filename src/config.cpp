@@ -128,6 +128,7 @@ struct {
     sk::ParameterInt*     init_delay;
     sk::ParameterBool*    auto_pump;
     sk::ParameterStringW* notify_corner;
+    sk::ParameterBool*    block_stat_callback;
   } system;
 
   struct {
@@ -1362,6 +1363,16 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.System",
         L"AutoPumpCallbacks" );
 
+  steam.system.block_stat_callback =
+    static_cast <sk::ParameterBool *>
+    (g_ParameterFactory.create_parameter <bool> (
+      L"Block the User Stats Receipt Callback?")
+    );
+  steam.system.block_stat_callback->register_to_ini (
+    dll_ini,
+      L"Steam.System",
+        L"BlockUserStatsCallback" );
+
   steam.log.silent =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -1692,7 +1703,7 @@ SK_LoadConfig (std::wstring name) {
   if (input.cursor.timeout->load ())
     config.input.cursor.timeout = (int)(1000.0 * input.cursor.timeout->get_value ());
   if (input.cursor.ui_capture->load ())
-    config.input.ui_capture = input.cursor.ui_capture->get_value ();
+    config.input.ui.capture = input.cursor.ui_capture->get_value ();
 
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
@@ -1789,6 +1800,8 @@ SK_LoadConfig (std::wstring name) {
     config.steam.init_delay = steam.system.init_delay->get_value ();
   if (steam.system.auto_pump->load ())
     config.steam.auto_pump_callbacks = steam.system.auto_pump->get_value ();
+  if (steam.system.block_stat_callback->load ())
+    config.steam.block_stat_callback = steam.system.block_stat_callback->get_value ();
   if (steam.system.notify_corner->load ())
     config.steam.notify_corner =
       SK_Steam_PopupOriginWStrToEnum (
@@ -1854,7 +1867,15 @@ SK_LoadConfig (std::wstring name) {
 }
 
 void
-SK_SaveConfig (std::wstring name, bool close_config) {
+SK_SaveConfig ( std::wstring name,
+                bool         close_config )
+{
+  //
+  // Shuttind down before initializaiton would be damn near fatal if we didn't catch this! :)
+  //
+  if (dll_ini == nullptr)
+    return;
+
   compatibility.ignore_raptr->set_value       (config.compatibility.ignore_raptr);
   compatibility.disable_raptr->set_value      (config.compatibility.disable_raptr);
   compatibility.rehook_loadlibrary->set_value (config.compatibility.rehook_loadlibrary);
@@ -1908,7 +1929,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
   input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
-  input.cursor.ui_capture->set_value          (config.input.ui_capture);
+  input.cursor.ui_capture->set_value          (config.input.ui.capture);
 
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
@@ -2036,10 +2057,11 @@ SK_SaveConfig (std::wstring name, bool close_config) {
       config.steam.appid = SK::SteamAPI::AppID ();
   }
 
-  steam.system.appid->set_value              (config.steam.appid);
-  steam.system.init_delay->set_value         (config.steam.init_delay);
-  steam.system.auto_pump->set_value          (config.steam.auto_pump_callbacks);
-  steam.system.notify_corner->set_value      (
+  steam.system.appid->set_value               (config.steam.appid);
+  steam.system.init_delay->set_value          (config.steam.init_delay);
+  steam.system.auto_pump->set_value           (config.steam.auto_pump_callbacks);
+  steam.system.block_stat_callback->set_value (config.steam.block_stat_callback);
+  steam.system.notify_corner->set_value       (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
 
@@ -2178,6 +2200,7 @@ SK_SaveConfig (std::wstring name, bool close_config) {
   steam.system.appid->store                  ();
   steam.system.init_delay->store             ();
   steam.system.auto_pump->store              ();
+  steam.system.block_stat_callback->store    ();
   steam.log.silent->store                    ();
 
   init_delay->store                      ();

@@ -21,6 +21,8 @@
 #ifndef __SK__LOG_H__
 #define __SK__LOG_H__
 
+#include <intrin.h>
+
 #include <combaseapi.h>
 
 #if 0

@@ -1,0 +1,6 @@
+7-Zip
+
+LzmaLib.h -- LZMA library interface
+2013-01-18 : Igor Pavlov : Public domain
+7z.h -- 7z interface
+2015-11-18 : Igor Pavlov : Public domain

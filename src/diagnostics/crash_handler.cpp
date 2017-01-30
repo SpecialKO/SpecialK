@@ -72,6 +72,8 @@ LPTOP_LEVEL_EXCEPTION_FILTER
 WINAPI
 SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter)
 {
+  UNREFERENCED_PARAMETER (lpTopLevelExceptionFilter);
+
   return SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
 }
 
@@ -104,6 +106,8 @@ void
 __cdecl
 SteamAPI_SetBreakpadAppID_Detour ( uint32_t unAppId )
 {
+  UNREFERENCED_PARAMETER (unAppId);
+
   return;
 }
 
@@ -116,6 +120,13 @@ SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
                                           void       *pvContext,
                                                LPVOID m_pfnPreMinidumpCallback )
 {
+  UNREFERENCED_PARAMETER (pchVersion);
+  UNREFERENCED_PARAMETER (pchDate);
+  UNREFERENCED_PARAMETER (pchTime);
+  UNREFERENCED_PARAMETER (bFullMemoryDumps);
+  UNREFERENCED_PARAMETER (pvContext);
+  UNREFERENCED_PARAMETER (m_pfnPreMinidumpCallback);
+
   return;
 }
 
@@ -123,7 +134,8 @@ SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
 void
 SK_BypassSteamCrashHandler (void)
 {
-  if (false) {//! config.steam.silent) {
+  if (! config.steam.silent)
+  {
 #ifdef _WIN64
     const wchar_t* wszSteamDLL = L"steam_api64.dll";
 #else
@@ -134,7 +146,7 @@ SK_BypassSteamCrashHandler (void)
 
     if (hMod)
     {
-      crash_log.Log (L"Disabling Steaa Breakpad...");
+      crash_log.Log (L"Disabling Steam Breakpad...");
 
       SK_CreateDLLHook3 ( wszSteamDLL,
                           "SteamAPI_UseBreakpadCrashHandler",
@@ -147,8 +159,6 @@ SK_BypassSteamCrashHandler (void)
               (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
     
       MH_ApplyQueued ();
-
-      FreeLibrary (hMod);
     }
   }
 }

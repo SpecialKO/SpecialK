@@ -1,0 +1,15 @@
+// stb_textedit.h - v1.9  - public domain - Sean Barrett
+// Development of this library was sponsored by RAD Game Tools
+//
+// This C header file implements the guts of a multi-line text-editing
+// widget; you implement display, word-wrapping, and low-level string
+// insertion/deletion, and stb_textedit will map user inputs into
+// insertions & deletions, plus updates to the cursor position,
+// selection state, and undo state.
+//
+// It is intended for use in games and other systems that need to build
+// their own custom widgets and which do not have heavy text-editing
+// requirements (this library is not recommended for use for editing large
+// texts, as its performance does not scale and it has limited undo).
+//
+// Non-trivial behaviors are modelled after Windows text controls.

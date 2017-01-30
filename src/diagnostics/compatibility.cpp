@@ -358,11 +358,14 @@ FreeLibrary_Detour (HMODULE hLibModule)
     if ( SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos || 
         (bRet && GetModuleHandle (name.c_str ()) == nullptr ) )
     {
-      dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls' from { '%hs' }",
-                      SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
-                        name.c_str (),
-                          SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (), (uintptr_t)_ReturnAddress () ).c_str ()
-                  );
+      if (config.system.log_level > 2)
+      {
+        dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls' from { '%hs' }",
+                        SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
+                          name.c_str (),
+                            SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (), (uintptr_t)_ReturnAddress () ).c_str ()
+                    );
+      }
     }
   }
 
@@ -982,7 +985,6 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
           DWORD
           {
             enum_working_set_s* pWorkingSet = (enum_working_set_s *)user;
-            iSK_Logger*         pLogger     = pWorkingSet->logger;
 
             SK_ThreadWalkModules (pWorkingSet);
 
@@ -1043,6 +1045,9 @@ TaskDialogCallback (
   _In_ LONG_PTR dwRefData
 )
 {
+  UNREFERENCED_PARAMETER (dwRefData);
+  UNREFERENCED_PARAMETER (wParam);
+
   if (uNotification == TDN_TIMER) {
     //DWORD dwProcId;
     //DWORD dwThreadId =
@@ -1415,6 +1420,8 @@ DWORD
 WINAPI
 SK_RaptrWarn (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   // Don't check for Raptr while installing something...
   if (SK_IsHostAppSKIM ()) {
     CloseHandle (GetCurrentThread ());
@@ -1460,6 +1467,8 @@ DWORD
 WINAPI
 SK_Bypass_CRT (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   static BOOL     disable      = __bypass.disable;
          wchar_t* wszBlacklist = __bypass.wszBlacklist;
 

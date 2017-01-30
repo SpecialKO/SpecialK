@@ -50,7 +50,7 @@ public:
 
   struct command_history_t {
     std::vector <std::string> history;
-    size_t                    idx     = -1;
+    size_t                    idx     = MAXSIZE_T;
   } commands;
 
 protected:

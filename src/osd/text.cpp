@@ -96,7 +96,8 @@ private: // Singleton
   static CRITICAL_SECTION       cs_;
 
 public:
-  static SK_TextOverlayManager* getInstance (void) {
+  static SK_TextOverlayManager* getInstance (void)
+  {
     return ( pSelf == nullptr ? (pSelf = new SK_TextOverlayManager ()) :
                                  pSelf );
   }
@@ -107,7 +108,8 @@ public:
 
     std::string app_name (szAppName);
 
-    if (overlays_.count (app_name)) {
+    if (overlays_.count (app_name))
+    {
       SK_TextOverlay* overlay = overlays_ [app_name];
 
       LeaveCriticalSection (&cs_);
@@ -129,12 +131,14 @@ public:
     return overlay;
   }
 
-  bool removeTextOverlay (const char* szAppName) {
+  bool removeTextOverlay (const char* szAppName)
+  {
     EnterCriticalSection (&cs_);
 
     std::string app_name (szAppName);
 
-    if (overlays_.count (app_name)) {
+    if (overlays_.count (app_name))
+    {
       overlays_.erase   (app_name);
 
       LeaveCriticalSection (&cs_);
@@ -153,7 +157,8 @@ public:
 
     std::string app_name (szAppName);
 
-    if (overlays_.count (app_name)) {
+    if (overlays_.count (app_name))
+    {
       SK_TextOverlay* overlay = overlays_ [app_name];
 
       LeaveCriticalSection (&cs_);
@@ -173,7 +178,8 @@ public:
   void            destroyAllOverlays (void);
 
 protected:
-  SK_TextOverlayManager (void) {
+  SK_TextOverlayManager (void)
+  {
     InitializeCriticalSectionAndSpinCount (&cs_, MAXDWORD);
 
     gui_ctx_         = nullptr;
@@ -237,13 +243,16 @@ SK_TextOverlay::~SK_TextOverlay (void)
 {
   SK_TextOverlayManager::getInstance ()->removeTextOverlay (data_.name);
 
-  if (data_.text != nullptr) {
+  if (data_.text != nullptr)
+  {
     free ((void *)data_.text);
     data_.text_len = 0;
   }
 
-  if (geometry_ != nullptr) {
-    if (renderer_ != nullptr) {
+  if (geometry_ != nullptr)
+  {
+    if (renderer_ != nullptr)
+    {
       renderer_->destroyGeometryBuffer (*geometry_);
       geometry_ = nullptr;
     }
@@ -313,6 +322,8 @@ BOOL
 __stdcall
 SK_ReleaseSharedMemory (LPVOID lpMemory)
 {
+  UNREFERENCED_PARAMETER (lpMemory);
+
   return FALSE;
 }
 
@@ -320,6 +331,8 @@ LPVOID
 __stdcall
 SK_GetSharedMemory (DWORD dwProcID)
 {
+  UNREFERENCED_PARAMETER (dwProcID);
+
   return nullptr;
 }
 
@@ -372,9 +385,10 @@ enum SK_UNITS {
 std::wstring
 SK_SizeToString (uint64_t size, SK_UNITS unit = Auto)
 {
-  wchar_t str [64];
+  wchar_t str [64] = { };
 
-  if (unit == Auto) {
+  if (unit == Auto)
+  {
     if      (size > (1ULL << 32ULL)) unit = GiB;
     else if (size > (1ULL << 22ULL)) unit = MiB;
     else if (size > (1ULL << 12ULL)) unit = KiB;
@@ -404,9 +418,10 @@ SK_SizeToString (uint64_t size, SK_UNITS unit = Auto)
 std::wstring
 SK_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit = Auto)
 {
-  wchar_t str [64];
+  wchar_t str [64] = { };
 
-  if (unit == Auto) {
+  if (unit == Auto)
+  {
     if      (size > (1ULL << 32ULL)) unit = GiB;
     else if (size > (1ULL << 22ULL)) unit = MiB;
     else if (size > (1ULL << 12ULL)) unit = KiB;
@@ -439,16 +454,23 @@ std::wstring
 SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
 {
   int32_t converted;
-  wchar_t wszOut [16];
+  wchar_t wszOut [16] = { };
 
-  if (in_unit == Celsius && out_unit == Fahrenheit) {
+  if (in_unit == Celsius && out_unit == Fahrenheit)
+  {
     //converted = in_temp * 2 + 30;
     converted = (int32_t)((float)(in_temp) * 9.0f/5.0f + 32.0f);
     _swprintf (wszOut, L"%#3li°F", converted);
-  } else if (in_unit == Fahrenheit && out_unit == Celsius) {
+  }
+
+  else if (in_unit == Fahrenheit && out_unit == Celsius)
+  {
     converted = (int32_t)(((float)in_temp - 32.0f) * (5.0f/9.0f));
-    _swprintf (wszOut, L"%#2li°C", converted);
-  } else {
+    _swprintf (wszOut, L"%#2li°C", converted);\
+  }
+
+  else
+  {
     _swprintf (wszOut, L"%#2li°C", in_temp);
   }
 
@@ -615,27 +637,43 @@ SK_DrawOSD (void)
         isDivinityOrigSin = true;
     }
 
-    if (isFallout4) {
+    if (isFallout4)
+    {
       OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
                  time
       OSD_END
-    } else if (isDivinityOrigSin) {
+    }
+
+    else if (isDivinityOrigSin)
+    {
       OSD_PRINTF "Divinity: Original Sin \"Works\" v 0.0.1   %ws\n\n",
                  time
       OSD_END
-    } else if (isArkhamKnight) {
+    }
+
+    else if (isArkhamKnight)
+    {
       OSD_PRINTF "Batman \"Fix\" v 0.20   %ws\n\n",
                  time
       OSD_END
-    } else if (isDarkSouls3) {
+    }
+
+    else if (isDarkSouls3)
+    {
       OSD_PRINTF "%ws   %ws\n\n",
                  plugin_name.c_str (), time
       OSD_END
-    } else if (isPlugin) {
+    }
+
+    else if (isPlugin)
+    {
       OSD_PRINTF "%ws   %ws\n\n",
                  plugin_name.c_str (), time
       OSD_END
-    } else {
+    }
+
+    else
+    {
       OSD_PRINTF "Special K v %ws   %ws\n\n",
                  SK_GetVersionStr (), time
       OSD_END
@@ -665,12 +703,14 @@ SK_DrawOSD (void)
 
     const DWORD dwTime = timeGetTime ();
 
-    if (dwTime - last_fps_time > 666) {
+    if (dwTime - last_fps_time > 666)
+    {
       fps           = 1000.0 / mean;
       last_fps_time = dwTime;
     }
 
-    if (mean != INFINITY) {
+    if (mean != INFINITY)
+    {
       if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0) {
         OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>",
           SK_GetCurrentRenderBackend ().name,
@@ -748,7 +788,8 @@ SK_DrawOSD (void)
       }
 
       // No Frametime History
-      else {
+      else
+      {
         OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms",
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
@@ -759,7 +800,8 @@ SK_DrawOSD (void)
       OSD_PRINTF "\n" OSD_END
 
 #ifdef DUMP_SWAPCHAIN_INFO
-      if (g_pSwapChain9 != nullptr) {
+      if (g_pSwapChain9 != nullptr)
+      {
         D3DDISPLAYMODE        dmode;
         D3DPRESENT_PARAMETERS pparams;
 
@@ -776,18 +818,20 @@ SK_DrawOSD (void)
 
   // Poll GPU stats...
   if (config.gpu.show)
-    SK_PollGPU();
+    SK_PollGPU ();
 
   int afr_idx  = sli_state.currentAFRIndex,
       afr_last = sli_state.previousFrameAFRIndex,
       afr_next = sli_state.nextFrameAFRIndex;
 
-  for (int i = 0; i < gpu_stats.num_gpus; i++) {
+  for (int i = 0; i < gpu_stats.num_gpus; i++)
+  {
     OSD_G_PRINTF "  GPU%i   :            %#3lu%%",
       i, gpu_stats.gpus [i].loads_percent.gpu
     OSD_END
 
-    if (nvapi_init && gpu_stats.gpus [i].loads_percent.vid > 0) {
+    if (nvapi_init && gpu_stats.gpus [i].loads_percent.vid > 0)
+    {
       // Vector 3D (subtract 1 space)
       //OSD_G_PRINTF ",  VID%i %#3lu%% ,",
 
@@ -815,12 +859,18 @@ SK_DrawOSD (void)
         OSD_G_PRINTF ", %#6.1fmV (%+#6.1fmV)",
           gpu_stats.gpus [i].volts_mV.core, gpu_stats.gpus [i].volts_mV.ov
         OSD_END
-      } else {
+      }
+
+      else
+      {
         OSD_G_PRINTF ", %#6.1fmV",
           gpu_stats.gpus [i].volts_mV.core
         OSD_END
       }
-    } else {
+    }
+
+    else
+    {
       // Padding because no voltage reading is available
       OSD_G_PRINTF ",         "
       OSD_END
@@ -831,7 +881,10 @@ SK_DrawOSD (void)
       OSD_G_PRINTF ", %#4lu RPM",
         gpu_stats.gpus [i].fans_rpm.gpu
       OSD_END
-    } else {
+    }
+
+    else
+    {
       // Padding because no RPM reading is available
       OSD_G_PRINTF ",         "
       OSD_END
@@ -847,7 +900,8 @@ SK_DrawOSD (void)
       temp.c_str ()
     OSD_END
 
-    if (config.sli.show) {
+    if (config.sli.show)
+    {
       if (afr_last == i)
         OSD_G_PRINTF "@" OSD_END
 
@@ -881,12 +935,15 @@ SK_DrawOSD (void)
   //
   // DXGI 1.4 Memory Info (VERY accurate)
   ///
-  if (nodes > 0 && nodes < 4) {
+  if (nodes > 0 && nodes < 4)
+  {
     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
     //     on that in the future.
-    for (int i = 0; i < nodes; i++) {
-      if (nvapi_init) {
+    for (int i = 0; i < nodes; i++)
+    {
+      if (nvapi_init)
+      {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
           mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
@@ -896,7 +953,10 @@ SK_DrawOSD (void)
                      (1024.0 * 1024.0 * 1024.0) *
                     ((double)gpu_stats.gpus [i].loads_percent.fb / 100.0)
         OSD_END
-      } else {
+      }
+
+      else
+      {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
           i, mem_info [buffer].local [i].CurrentUsage >> 20ULL
         OSD_END
@@ -907,7 +967,8 @@ SK_DrawOSD (void)
       OSD_END
 
       // Add memory temperature if it exists
-      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0) {
+      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
+      {
         std::wstring temp = 
           SK_FormatTemperature (
             gpu_stats.gpus [i].temps_c.gpu,
@@ -922,11 +983,13 @@ SK_DrawOSD (void)
       OSD_G_PRINTF "\n" OSD_END
     }
 
-    for (int i = 0; i < nodes; i++) {
+    for (int i = 0; i < nodes; i++)
+    {
       // Figure out the generation from the transfer rate...
       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
 
-      if (nvapi_init) {
+      if (nvapi_init)
+      {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
           i,
            mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
@@ -937,7 +1000,10 @@ SK_DrawOSD (void)
                        gpu_stats.gpus [i].hwinfo.pcie_lanes
                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
         OSD_END
-      } else {
+      }
+
+      else
+      {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %li.0x%lu\n",
           i,
           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
@@ -951,12 +1017,15 @@ SK_DrawOSD (void)
   //
   // NvAPI or ADL Memory Info (Reasonably Accurate on Windows 8.1 and older)
   //
-  else {
+  else
+  {
     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
     //     on that in the future.
-    for (int i = 0; i < gpu_stats.num_gpus; i++) {
-      if (nvapi_init) {
+    for (int i = 0; i < gpu_stats.num_gpus; i++)
+    {
+      if (nvapi_init)
+      {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
                       gpu_stats.gpus [i].memory_B.local >> 20ULL,
@@ -966,7 +1035,10 @@ SK_DrawOSD (void)
                      (1024.0 * 1024.0 * 1024.0) *
                     ((double)gpu_stats.gpus [i].loads_percent.fb / 100.0)
         OSD_END
-      } else {
+      }
+
+      else
+      {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
           i, gpu_stats.gpus [i].memory_B.local >> 20ULL
         OSD_END
@@ -979,11 +1051,13 @@ SK_DrawOSD (void)
       OSD_G_PRINTF "\n" OSD_END
     }
 
-    for (int i = 0; i < gpu_stats.num_gpus; i++) {
+    for (int i = 0; i < gpu_stats.num_gpus; i++)
+    {
       // Figure out the generation from the transfer rate...
       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
 
-      if (nvapi_init) {
+      if (nvapi_init)
+      {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
           i,
                        gpu_stats.gpus [i].memory_B.nonlocal >> 20ULL,
@@ -994,7 +1068,10 @@ SK_DrawOSD (void)
                        gpu_stats.gpus [i].hwinfo.pcie_lanes
                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
         OSD_END
-      } else {
+      }
+
+      else
+      {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %li.0x%lu\n",
           i,
           gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL,
@@ -1004,7 +1081,8 @@ SK_DrawOSD (void)
       }
 
       // Add memory temperature if it exists
-      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0) {
+      if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
+      {
         std::wstring temp = 
           SK_FormatTemperature (
             gpu_stats.gpus [i].temps_c.gpu,
@@ -1020,16 +1098,24 @@ SK_DrawOSD (void)
 
   //OSD_G_PRINTF "\n" OSD_END
 
-  if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ())) {
-    if (SK_IsD3D11 ()) {
+  if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ()))
+  {
+    if (SK_IsD3D11 ())
+    {
       OSD_R_PRINTF "\n%ws",
         SK::DXGI::getPipelineStatsDesc ().c_str ()
       OSD_END
-    } else if (SK_IsD3D9 ()) {
+    }
+
+    else if (SK_IsD3D9 ())
+    {
       OSD_R_PRINTF "\n%ws",
         SK::D3D9::getPipelineStatsDesc ().c_str ()
       OSD_END
-    } else if (SK_IsOpenGL ()) {
+    } 
+
+    else if (SK_IsOpenGL ())
+    {
       OSD_R_PRINTF "\n%ws",
         SK::OpenGL::getPipelineStatsDesc ().c_str ()
       OSD_END
@@ -1044,8 +1130,10 @@ SK_DrawOSD (void)
               cpu_stats.cpus [0].percent_interrupt
   OSD_END
 
-  for (DWORD i = 1; i < cpu_stats.num_cpus; i++) {
-    if (! config.cpu.simple) {
+  for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
+  {
+    if (! config.cpu.simple)
+    {
       OSD_C_PRINTF "  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   "
                    "User: %#3llu%%   Interrupt: %#3llu%%)\n",
         i-1,
@@ -1054,7 +1142,10 @@ SK_DrawOSD (void)
               cpu_stats.cpus [i].percent_user, 
                 cpu_stats.cpus [i].percent_interrupt
       OSD_END
-    } else {
+    }
+
+    else
+    {
       OSD_C_PRINTF "  CPU%lu   : %#3llu%%\n",
         i-1,
           cpu_stats.cpus [i].percent_load
@@ -1074,7 +1165,8 @@ SK_DrawOSD (void)
                io_counter.other_mb_sec, io_counter.other_iop_sec
   OSD_END
 
-  if (nodes > 0 && nodes < 4) {
+  if (nodes > 0 && nodes < 4)
+  {
     int i = 0;
 
     OSD_M_PRINTF "\n"
@@ -1082,7 +1174,8 @@ SK_DrawOSD (void)
                    "--------------------------------------\n"
     OSD_END
 
-    while (i < nodes) {
+    while (i < nodes)
+    {
       OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  - "
                    " Budget:  %#5llu / %#5llu MiB)",
                   nodes > 1 ? (nvapi_init ? "SLI Node" : "CFX Node") : "GPU",
@@ -1116,8 +1209,10 @@ SK_DrawOSD (void)
                  "--------------------------------------\n"
     OSD_END
 
-    while (i < nodes) {
-      if ((mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL) > 0) {
+    while (i < nodes)
+    {
+      if ((mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL) > 0)
+      {
         OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  "
                      "Budget:  %#5llu / %#5llu MiB)\n",
                          nodes > 1 ? "SLI Node" : "GPU",
@@ -1182,7 +1277,8 @@ SK_DrawOSD (void)
   extern uint32_t SK_D3D11_amount_to_purge;
   extern bool     SK_D3D11_cache_textures;
 
-  if (SK_D3D11_cache_textures) {
+  if (SK_D3D11_cache_textures)
+  {
     extern std::string SK_D3D11_SummarizeTexCache (void);
 
     OSD_M_PRINTF "\n%s",
@@ -1202,14 +1298,16 @@ SK_DrawOSD (void)
 
   if (use_mib_sec) {
 #endif
-    for (DWORD i = 0; i < disk_stats.num_disks; i++) {
+    for (DWORD i = 0; i < disk_stats.num_disks; i++)
+    {
       std::wstring read_bytes_sec =
         SK_SizeToStringF (disk_stats.disks [i].read_bytes_sec, 6, 1);
 
       std::wstring write_bytes_sec =
         SK_SizeToStringF (disk_stats.disks [i].write_bytes_sec, 6, 1);
 
-      if (i == 0) {
+      if (i == 0)
+      {
         OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
                                                  "Write %#3llu%%: %ws/s)\n",
           disk_stats.disks [i].name,
@@ -1220,7 +1318,9 @@ SK_DrawOSD (void)
                     write_bytes_sec.c_str ()
         OSD_END
       }
-      else {
+
+      else
+      {
         OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
                                                 "Write %#3llu%%: %ws/s)\n",
           disk_stats.disks [i].name,
@@ -1253,20 +1353,21 @@ SK_DrawOSD (void)
   }
 #endif
 
-  for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++) {
-      std::wstring usage =
-        SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
-      std::wstring size = 
-        SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
-      std::wstring peak =
-        SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
+  for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
+  {
+    std::wstring usage =
+      SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
+    std::wstring size = 
+      SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
+    std::wstring peak =
+      SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
 
-      OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
-        pagefile_stats.pagefiles [i].name,
-          usage.c_str    (),
-            size.c_str   (),
-              peak.c_str ()
-      OSD_END
+    OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
+      pagefile_stats.pagefiles [i].name,
+        usage.c_str    (),
+          size.c_str   (),
+            peak.c_str ()
+    OSD_END
   }
 
   OSD_P_PRINTF "\n" OSD_END
@@ -1285,29 +1386,37 @@ BOOL
 __stdcall
 SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 {
+  UNREFERENCED_PARAMETER (pMapAddr);
+
   if (! InterlockedExchangeAdd (&osd_init, 0))
     return FALSE;
 
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  try {
+  try
+  {
     SK_TextOverlay* pOverlay =
       SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
 #define IMPLICIT_CREATION
 #ifdef IMPLICIT_CREATION
-    if (pOverlay == nullptr) {
+    if (pOverlay == nullptr) 
+    {
       pOverlay =
         SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
     }
 #endif
 
-    if (pOverlay != nullptr) {
+    if (pOverlay != nullptr)
+    {
       pOverlay->update (lpText);
       return TRUE;
     }
-  } catch (...) {
+  }
+
+  catch (...)
+  {
   }
 
   return FALSE;
@@ -1345,42 +1454,27 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
 
 void
 __stdcall
-SK_SetOSDColor (int red, int green, int blue, LPCSTR lpAppName)
+SK_SetOSDColor ( int    red,
+                 int    green,
+                 int    blue,
+                 LPCSTR lpAppName )
 {
-  return;
-
 #if 0
   if (lpAppName == nullptr)
     lpAppName = "Special K";
-
-#if 0
-            int red_   = (pApp->dwOSDColor >> 16) & 0xFF;
-            int green_ = (pApp->dwOSDColor >>  8) & 0xFF;
-            int blue_  = (pApp->dwOSDColor      ) & 0xFF;
-
-            if (red >= 0 && red <= 255) {
-              config.osd.red = red;
-              red_ = red;
-            }
-
-            if (green >= 0 && green <= 255) {
-              config.osd.green = green;
-              green_ = green;
-            }
-
-            if (blue >= 0 && blue <= 255) {c
-              config.osd.blue = blue;
-              blue_ = blue;
-            }
-
-            pApp->dwOSDColor = ((red_ << 16) & 0xff0000) | ((green_ << 8) & 0xff00) | (blue_ & 0xff);
 #endif
-#endif
+
+  UNREFERENCED_PARAMETER (red);
+  UNREFERENCED_PARAMETER (green);
+  UNREFERENCED_PARAMETER (blue);
+  UNREFERENCED_PARAMETER (lpAppName);
 }
 
 void
 __stdcall 
-SK_SetOSDScale (float fScale, bool relative, LPCSTR lpAppName)
+SK_SetOSDScale ( float  fScale,
+                 bool   relative,
+                 LPCSTR lpAppName )
 {
   if (lpAppName == nullptr)
     lpAppName = "Special K";
@@ -1391,7 +1485,8 @@ SK_SetOSDScale (float fScale, bool relative, LPCSTR lpAppName)
   SK_TextOverlay* overlay =
     overlay_mgr->getTextOverlay (lpAppName);
 
-  if (overlay != nullptr) {
+  if (overlay != nullptr)
+  {
     if (relative)
       overlay->resize (fScale);
     else
@@ -1426,8 +1521,10 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
   geometry_   = nullptr;
   renderer_   = pRenderer;
 
-  if (pRenderer != nullptr) {
-    try {
+  if (pRenderer != nullptr)
+  {
+    try
+    {
       font_.cegui =
         &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
 
@@ -1445,7 +1542,10 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
 
       if (geometry_)
         geometry_->setClippingRegion               (scrn);
-    } catch (...) {
+    }
+
+    catch (...)
+    {
     }
   }
 }
@@ -1461,12 +1561,14 @@ strtok_ex (char* str, char* seps)
               *pos = nullptr;
   static char savech;
 
-  if (str != nullptr) {
+  if (str != nullptr)
+  {
     pos    = str;
     savech = 'x';
   }
 
-  else {
+  else
+  {
     if (pos == nullptr)
       return nullptr;
 
@@ -1481,7 +1583,8 @@ strtok_ex (char* str, char* seps)
 
   tpos = pos;
 
-  while (*tpos != '\0') {
+  while (*tpos != '\0')
+  {
     tkn = strchr (seps, *tpos);
 
     if (tkn != nullptr)
@@ -1533,7 +1636,8 @@ SK_TextOverlay::update (const char* szText)
     float green = (float)config.osd.green / 255.0f;
     float blue  = (float)config.osd.blue  / 255.0f;
 
-    if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1) {
+    if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1)
+    {
       red   = (238.0f / 255.0f);
       green = (250.0f / 255.0f);
       blue  = (  5.0f / 255.0f);
@@ -1709,7 +1813,8 @@ void
 SK_TextOverlay::setPos (float x,float y)
 {
   // We cannot anchor the command console to the left or bottom...
-  if (! strcmp (data_.name, "SpecialK Console")) {
+  if (! strcmp (data_.name, "SpecialK Console"))
+  {
     x = std::min (0.0f, x);
     y = std::min (0.0f, y);
   }
@@ -1729,13 +1834,16 @@ SK_TextOverlay::getPos (float& x, float& y)
 void
 SK_TextOverlayManager::queueReset (CEGUI::Renderer* renderer)
 {
+  UNREFERENCED_PARAMETER (renderer);
+
   need_full_reset_ = true;
 }
 
 void
 SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 {
-  if (renderer != nullptr) {
+  if (renderer != nullptr)
+  {
     gui_ctx_ =
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
   }
@@ -1745,8 +1853,10 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
   auto it =
     overlays_.begin ();
 
-  while (it != overlays_.end ()) {
-    if (renderer == nullptr) {
+  while (it != overlays_.end ())
+  {
+    if (renderer == nullptr)
+    {
       it->second->pos_.x = static_cast <float> (config.osd.pos_x);
       it->second->pos_.y = static_cast <float> (config.osd.pos_y);
 
@@ -1765,7 +1875,8 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 
     it->second->reset (renderer);
 
-    if (it->second->geometry_ != nullptr) {
+    if (it->second->geometry_ != nullptr)
+    {
         it->second->update        (nullptr);
       gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
     }
@@ -1773,17 +1884,20 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
     ++it;
   }
 
-  if (renderer == nullptr) {
+  if (renderer == nullptr)
+  {
     it =
       overlays_.begin ();
 
-    while (it != overlays_.end ()) {
+    while (it != overlays_.end ())
+    {
       if (it->second->geometry_ != nullptr)
         gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
 
       it->second->reset (renderer);
 
-      if (it->second->geometry_ != nullptr) {
+      if (it->second->geometry_ != nullptr)
+      {
           it->second->update        (nullptr);
         gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
       }
@@ -1803,11 +1917,13 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
   float base_y = y;
 
   // Draw top-down
-  if (config.osd.pos_y >= 0) {
+  if (config.osd.pos_y >= 0)
+  {
     auto it =
       overlays_.begin ();
 
-    while (it != overlays_.end ()) {
+    while (it != overlays_.end ())
+    {
       y += it->second->draw (x, y, full);
 
       ++it;
@@ -1815,14 +1931,16 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
   }
 
   // Draw from the bottom up
-  else {
+  else
+  {
     auto it =
       overlays_.rbegin ();
 
     // Push the starting position up one whole line
     y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
 
-    while (it != overlays_.rend ()) {
+    while (it != overlays_.rend ())
+    {
       y -= it->second->draw (x, y, full);
 
       ++it;
@@ -1843,7 +1961,8 @@ SK_TextOverlayManager::destroyAllOverlays (void)
   auto it =
     overlays_.begin ();
 
-  while (it != overlays_.end ()) {
+  while (it != overlays_.end ())
+  {
     delete (it++)->second;
   }
 
@@ -1869,9 +1988,8 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
 
     EnterCriticalSection (&cs_);
 
-    auto it = overlays_.begin ();
-
-    while (it != overlays_.end ())
+      auto  it =  overlays_.begin ();
+    while ( it != overlays_.end   () )
     {
       float pos_x = (float)config.osd.pos_x;
       float pos_y = (float)config.osd.pos_y;

@@ -246,16 +246,31 @@ template <>
 sk::iParameter*
 sk::ParameterFactory::create_parameter <int> (const wchar_t* name)
 {
+  UNREFERENCED_PARAMETER (name);
+
   iParameter* param = new ParameterInt ();
   params.push_back (param);
 
   return param;
 }
 
+#if 0
+template<>
+sk::iParameter*
+sk::ParameterFactory::create_parameter (const wchar_t* name)
+{
+  UNREFERENCED_PARAMETER (name);
+
+  return nullptr;
+}
+#endif
+
 template <>
 sk::iParameter*
 sk::ParameterFactory::create_parameter <int64_t> (const wchar_t* name)
 {
+  UNREFERENCED_PARAMETER (name);
+
   iParameter* param = new ParameterInt64 ();
   params.push_back (param);
 
@@ -266,6 +281,8 @@ template <>
 sk::iParameter*
 sk::ParameterFactory::create_parameter <bool> (const wchar_t* name)
 {
+  UNREFERENCED_PARAMETER (name);
+
   iParameter* param = new ParameterBool ();
   params.push_back (param);
 
@@ -276,6 +293,8 @@ template <>
 sk::iParameter*
 sk::ParameterFactory::create_parameter <float> (const wchar_t* name)
 {
+  UNREFERENCED_PARAMETER (name);
+
   iParameter* param = new ParameterFloat ();
   params.push_back (param);
 
@@ -286,6 +305,8 @@ template <>
 sk::iParameter*
 sk::ParameterFactory::create_parameter <std::wstring> (const wchar_t* name)
 {
+  UNREFERENCED_PARAMETER (name);
+
   iParameter* param = new ParameterStringW ();
   params.push_back (param);
 

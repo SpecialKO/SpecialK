@@ -140,7 +140,8 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
 CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 
-static volatile ULONG __gui_reset = TRUE;
+static volatile ULONG __gui_reset          = TRUE;
+static volatile ULONG __cegui_frames_drawn = 0;
 
 ID3D11Device*        pGUIDev     = nullptr;
 ID3D11DeviceContext* pCEG_DevCtx = nullptr;
@@ -299,6 +300,9 @@ SK_CEGUI_InitBase (void)
 void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 {
   if (! config.cegui.enable)
+    return;
+
+  if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
     return;
 
   if (cegD3D11 != nullptr) {
@@ -565,6 +569,8 @@ auto SK_DXGI_RestrictResMax = []( SK_DXGI_ResType dim,
                                   DXGI_MODE_DESC* pDesc )->
 bool
  {
+   UNREFERENCED_PARAMETER (last);
+
    auto& val = dim == WIDTH ? pDesc [idx].Width :
                               pDesc [idx].Height;
 
@@ -606,6 +612,8 @@ auto SK_DXGI_RestrictResMin = []( SK_DXGI_ResType dim,
                                   DXGI_MODE_DESC* pDesc )->
 bool
  {
+   UNREFERENCED_PARAMETER (first);
+
    auto& val = dim == WIDTH ? pDesc [idx].Width :
                               pDesc [idx].Height;
 
@@ -808,6 +816,7 @@ SK_DXGI_BeginHooking (void)
   volatile static ULONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE)) {
+#if 0
     HANDLE hHookInitDXGI =
       (HANDLE)
         _beginthreadex ( nullptr,
@@ -816,6 +825,9 @@ SK_DXGI_BeginHooking (void)
                                nullptr,
                                  0x00,
                                    nullptr );
+#else
+    HookDXGI (nullptr);
+#endif
   }
 }
 
@@ -1343,6 +1355,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
     return;
+
+  InterlockedIncrement (&__cegui_frames_drawn);
 
   CComPtr <ID3D11Device> pDev = nullptr;
 
@@ -2042,8 +2056,8 @@ __declspec (noinline)
     DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeBuffers", L"%lu,%lu,%lu,...,0x%08X,0x%08X",
                         BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
-    if ( config.render.framerate.buffer_count != -1           &&
-         config.render.framerate.buffer_count !=  BufferCount &&
+    if (       config.render.framerate.buffer_count != -1           &&
+         (UINT)config.render.framerate.buffer_count !=  BufferCount &&
          BufferCount                          !=  0 ) {
       BufferCount = config.render.framerate.buffer_count;
       dll_log.Log (L"[   DXGI   ] >> Buffer Count Override: %lu buffers", BufferCount);
@@ -2763,6 +2777,8 @@ __declspec (noinline)
   __stdcall
   SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID user)
   {
+    UNREFERENCED_PARAMETER (user);
+
     if (hWndRender != 0) {
       SetActiveWindow     (hWndRender);
       SetForegroundWindow (hWndRender);
@@ -2978,6 +2994,8 @@ __declspec (noinline)
 
     int iver = SK_GetDXGIAdapterInterfaceVer (*ppAdapter);
 
+    UNREFERENCED_PARAMETER (iver);
+
     // Only do this for NVIDIA SLI GPUs on Windows 10 (DXGI 1.4)
     if (false) {//nvapi_init && sk::NVAPI::CountSLIGPUs () > 0 && iver >= 3) {
       if (! GetDesc_Original) {
@@ -3191,6 +3209,8 @@ __declspec (noinline)
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
+    UNREFERENCED_PARAMETER (iver);
+
     DXGI_LOG_CALL_2 (L"CreateDXGIFactory", L"%s, %ph",
       iname.c_str (), ppFactory);
 
@@ -3216,6 +3236,8 @@ __declspec (noinline)
 
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+
+    UNREFERENCED_PARAMETER (iver);
 
     DXGI_LOG_CALL_2 (L"CreateDXGIFactory1", L"%s, %ph",
       iname.c_str (), ppFactory);
@@ -3245,6 +3267,8 @@ __declspec (noinline)
 
     std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
     int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+
+    UNREFERENCED_PARAMETER (iver);
 
     DXGI_LOG_CALL_3 (L"CreateDXGIFactory2", L"0x%04X, %s, %ph",
       Flags, iname.c_str (), ppFactory);
@@ -3487,8 +3511,8 @@ SK_FreeRealDXGI (void)
 bool
 SK::DXGI::Startup (void)
 {
-  old_threads =
-    SK_SuspendAllOtherThreads ();
+  //old_threads =
+    //SK_SuspendAllOtherThreads ();
 
   bool ret = SK_StartupCore (L"dxgi", dxgi_init_callback);
 
@@ -3568,6 +3592,7 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
 std::wstring
 SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 {
+  UNREFERENCED_PARAMETER (fmt);
   return L"<NOT IMPLEMENTED>";
 }
 
@@ -3633,8 +3658,6 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
     return;
 
-  void** vftable = *(void***)*&pFactory;
-
   int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
   DXGI_VIRTUAL_HOOK ( &pFactory,     10,
@@ -3642,28 +3665,6 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                        DXGIFactory_CreateSwapChain_Override,
                                    CreateSwapChain_Original,
                                    CreateSwapChain_pfn );
-
-#if 0
-  // DXGI 1.1+
-  if (iver > 0) {
-    CComPtr <IDXGIFactory1> pFactory1 = nullptr;
-
-    if (SUCCEEDED (pFactory->QueryInterface (IID_PPV_ARGS (&pFactory1)))) {
-      vftable = *(void***)*&pFactory1;
-
-      DXGI_VIRTUAL_HOOK ( &pFactory1,   12,
-                          "IDXGIFactory1::EnumAdapters1",
-                           EnumAdapters1_Override,
-                           EnumAdapters1_Original,
-                           EnumAdapters1_pfn );
-
-      //if (EnumAdapters_Original == nullptr)
-        //EnumAdapters_Original = (EnumAdapters_pfn)(vftable [7]);
-    } else {
-      //SK_DXGI_use_factory1 = false;
-    }
-  }
-#endif
 
   //if (EnumAdapters_Original == nullptr) {
     //
@@ -3740,6 +3741,8 @@ unsigned int
 __stdcall
 HookDXGI (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   if (! config.apis.dxgi.d3d11.hook) {
     CloseHandle (GetCurrentThread ());
     return 0;
@@ -4186,7 +4189,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     //
     InterlockedExchange ( &params->ready, TRUE );
 
-    return -1;
+    return 0;
   }
 
 
@@ -4276,6 +4279,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       last_budget = mem_info [buffer].local [0].Budget;
 
 
+#if 0
     if ( config.load_balance.use )
     {
       if ( dwWaitStatus == WAIT_OBJECT_0 )
@@ -4284,6 +4288,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
             last_budget = mem_info [buffer].local [0].Budget;
       }
     }
+#endif
 
 
     if ( nodes > 0 )

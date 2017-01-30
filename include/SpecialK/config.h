@@ -86,9 +86,9 @@ struct sk_config_t
     bool   pump           = false;
     float  pump_interval  = 0.0166666666f;
 
-    DWORD  red            = -1;
-    DWORD  green          = -1;
-    DWORD  blue           = -1;
+    DWORD  red            = MAXDWORD32;
+    DWORD  green          = MAXDWORD32;
+    DWORD  blue           = MAXDWORD32;
     float  scale          =  1.0f;
     int    pos_x          =  0;
     int    pos_y          =  0;
@@ -191,6 +191,7 @@ struct sk_config_t
 
     int     init_delay          = 0UL; // Disable to prevent crashing in many games
     bool    auto_pump_callbacks = true;
+    bool    block_stat_callback = false;
 
     int     appid               = 0;
   } steam;
@@ -276,9 +277,10 @@ struct sk_config_t
       bool    manage            = false;
       bool    keys_activate     = true;
     } cursor;
+
     struct {
-      bool    ui_capture        = false;
-    };
+      bool    capture           = false;
+    } ui;
   } input;
 
   struct {

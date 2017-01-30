@@ -76,11 +76,11 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   D3D11_TEXTURE2D_DESC backbuffer_desc;
   pBackBuffer->GetDesc (&backbuffer_desc);
 
-  ImGui::GetIO ().DisplaySize.x = backbuffer_desc.Width;
-  ImGui::GetIO ().DisplaySize.y = backbuffer_desc.Height;
+  io.DisplaySize.x = (float)backbuffer_desc.Width;
+  io.DisplaySize.y = (float)backbuffer_desc.Height;
 
-  ImGui::GetIO ().DisplayFramebufferScale.x = backbuffer_desc.Width;
-  ImGui::GetIO ().DisplayFramebufferScale.y = backbuffer_desc.Height;
+  io.DisplayFramebufferScale.x = (float)backbuffer_desc.Width;
+  io.DisplayFramebufferScale.y = (float)backbuffer_desc.Height;
 
 
   // Create and grow vertex/index buffers if needed
@@ -675,6 +675,12 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
                         DXGI_FORMAT     NewFormat,
                         UINT            SwapChainFlags )
 {
+  UNREFERENCED_PARAMETER (BufferCount);
+  UNREFERENCED_PARAMETER (NewFormat);
+  UNREFERENCED_PARAMETER (SwapChainFlags);
+  UNREFERENCED_PARAMETER (Width);
+  UNREFERENCED_PARAMETER (Height);
+
   g_pd3dDevice = nullptr;
 
   This->GetDevice (IID_PPV_ARGS (&g_pd3dDevice));

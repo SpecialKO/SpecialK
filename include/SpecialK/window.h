@@ -220,10 +220,10 @@ struct sk_window_s {
       LONG   height           = 480;
     } framebuffer;
 
-    struct {
-      RECT   client { 0, 0, 640, 480 };
-      RECT   window { 0, 0, 640, 480 };
-    };
+    //struct {
+    RECT   client { 0, 0, 640, 480 };
+    RECT   window { 0, 0, 640, 480 };
+    //};
 
     LONG_PTR style            = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
     LONG_PTR style_ex         = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;

@@ -1,0 +1,30 @@
+-----------------------------
+Third-Party Copyright Summary
+===============================================================================
+  CEGUI        |  2004 - 2014   Paul D Turner &
+               |                  The CEGUI Development Team
+  SILLY        |  2004 - 2006   Paul D Turner &
+               |                  The CEGUI Development Team
+  dear ImGui   |  2014 - 2015   Omar Cornut and 
+               |                  ImGui contributors
+  SteamAPI     |  1996 - 2008   Valve Corporation
+  ADL          |  2008 - 2013   Advanced Micro Devices, Inc.
+  NvAPI        |  2005 - 2010   NVIDIA Corporation.
+  MinHook      |  2009 - 2016   Tsuda Kageyu
+  FreeType2    |  2000,
+               |  2001 - 2002   Francesco Zappa Nardelli
+  FreeType2    |  2000          Computing Research Labs,
+               |                  New Mexico State University
+  libpcre      |  1997 - 2010   University of Cambridge
+               |  2007 - 2010   Google Inc.
+  zlib         |  1995 - 2010   Jean-loup Gailly and Mark Adler
+  GLEW         |  2002 - 2007   Milan Ikits         <milan ikits[]ieee org>
+               |                Marcelo E. Magallon <mmagallo[]debian org>
+  GLFW 2.7.2   |  2002 - 2006   Marcus Geelnard
+               |  2006 - 2010   Camilla Berglund    <elmindreda@elmindreda.org>
+               |  2002          Lev Povalahev
+  GLM          |  2005 - 2013   G-Truc Creation
+  Mesa 3-D 7   |  1999 - 2007   Brian Paul
+               |  2007          The Khronos Group Inc.
+  Vulkan       |  2015 - 2016   The Khronos Group Inc.
+-------------------------------------------------------------------------------

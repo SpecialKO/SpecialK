@@ -732,7 +732,7 @@ ImGui_WantMouseCapture (void)
     ImGuiIO& io =
       ImGui::GetIO ();
 
-    if (config.input.ui_capture || io.WantCaptureMouse || (game_mouselook >= SK_GetFramesDrawn () - 1))
+    if (config.input.ui.capture || io.WantCaptureMouse || (game_mouselook >= SK_GetFramesDrawn () - 1))
       imgui_capture = true;
   }
 
@@ -1712,7 +1712,6 @@ SK_AdjustWindow (void)
   SK_WINDOW_LOG_CALL3 ();
 
   DWORD async       = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : SWP_ASYNCWINDOWPOS;
-  DWORD send_change = IsGUIThread (FALSE) ? SWP_NOSENDCHANGING : SWP_NOSENDCHANGING;
 
   if (game_window.GetWindowLongPtr == nullptr)
     return;
@@ -2035,7 +2034,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
     bool filter = false;
 
     // Unconditional
-    if (config.input.ui_capture)
+    if (config.input.ui.capture)
       filter = true;
 
     // Only specific types
@@ -2078,7 +2077,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
               break;
           }
 
-          if (config.input.ui_capture)
+          if (config.input.ui.capture)
             remove = true;
 
           if (! remove) {
@@ -2225,6 +2224,11 @@ SK_DetourWindowProc2 ( _In_  HWND   hWnd,
                        _In_  WPARAM wParam,
                        _In_  LPARAM lParam )
 {
+  UNREFERENCED_PARAMETER (hWnd);
+  UNREFERENCED_PARAMETER (uMsg);
+  UNREFERENCED_PARAMETER (wParam);
+  UNREFERENCED_PARAMETER (lParam);
+
   return 1;
 }
 
@@ -2301,7 +2305,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       ( uMsg == WM_INPUT && ( io.WantCaptureKeyboard ||
                               io.WantCaptureMouse ) );
 
-    if (config.input.ui_capture) {
+    if (config.input.ui.capture) {
       //keyboard_capture = (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST);
       mouse_capture    = (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST);
       rawinput_capture = (uMsg == WM_INPUT);
@@ -2323,7 +2327,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (uMsg == WM_INPUT)
       {
                         // Unconditional if true, conditional otherwise.
-        filter        = config.input.ui_capture;
+        filter        = config.input.ui.capture;
 
         RAWINPUT data;
         UINT     size = sizeof RAWINPUT;
@@ -2638,7 +2642,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (uMsg == WM_WINDOWPOSCHANGED)
   {
     ImGui_ImplDX11_InvalidateDeviceObjects ();
-    LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
+    //LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
 
     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
@@ -2666,8 +2670,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     GetCursorPos_Original (&game_window.cursor_pos);
   }
 
-  bool background_render =
-    config.window.background_render && (! active);
+////////  bool background_render =
+////////    config.window.background_render && (! active);
 
   if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) && active) {
     if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN)) {
@@ -2794,9 +2798,10 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
       nullptr,
         0,
           [](LPVOID user)->
-
           DWORD
           {
+            UNREFERENCED_PARAMETER (user);
+
             SK_ResetWindow ();
 
             CloseHandle (GetCurrentThread ());

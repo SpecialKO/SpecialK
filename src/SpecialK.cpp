@@ -192,7 +192,6 @@ SK_EstablishDllRole (HMODULE hModule)
           SK_SetDLLRole (DLL_ROLE::DXGI);
         else if (d3d9)
           SK_SetDLLRole (DLL_ROLE::D3D9);
-
         //else if (gl)
           //SK_SetDLLRole (DLL_ROLE::OpenGL);
         //else if (vulkan)
@@ -359,6 +358,8 @@ DllMain ( HMODULE hModule,
           DWORD   ul_reason_for_call,
           LPVOID  lpReserved )
 {
+  UNREFERENCED_PARAMETER (lpReserved);
+
   switch (ul_reason_for_call)
   {
     case DLL_PROCESS_ATTACH:

@@ -248,8 +248,6 @@ SK_FO4_RealizeFullscreenBorderless (LPVOID user)
     LONG win_width  = min (mon_width,  (LONG)desc.BufferDesc.Width);
     LONG win_height = min (mon_height, (LONG)desc.BufferDesc.Height);
 
-    RECT window;
-
     window.left = max (0, (mon_width  - win_width)  / 2);
     window.top  = max (0, (mon_height - win_height) / 2);
 
@@ -281,6 +279,8 @@ GetClientRect_Detour (
     _In_  HWND   hWnd,
     _Out_ LPRECT lpRect )
 {
+  UNREFERENCED_PARAMETER (hWnd);
+
   *lpRect = window;
   return TRUE;
 }
@@ -291,6 +291,8 @@ GetWindowRect_Detour (
     _In_   HWND  hWnd,
     _Out_ LPRECT lpRect )
 {
+  UNREFERENCED_PARAMETER (hWnd);
+
   *lpRect = window;
   return TRUE;
 }
@@ -328,6 +330,9 @@ SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
                            UINT            SyncInterval,
                            UINT            Flags )
 {
+  UNREFERENCED_PARAMETER (SyncInterval);
+  UNREFERENCED_PARAMETER (Flags);
+
   DXGI_SWAP_CHAIN_DESC desc;
   This->GetDesc (&desc);
 

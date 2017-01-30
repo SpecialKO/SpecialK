@@ -14,6 +14,36 @@
 #include <SpecialK/render_backend.h>
 
 
+#include <windows.h>
+#include <cstdio>
+#include "resource.h"
+
+void
+LoadFileInResource ( int          name,
+                     int          type,
+                     DWORD&       size,
+                     const char*& data )
+{
+  HMODULE handle =
+    GetModuleHandle (nullptr);
+
+  HRSRC rc =
+   FindResource ( handle,
+                    MAKEINTRESOURCE (name),
+                    MAKEINTRESOURCE (type) );
+
+  HGLOBAL rcData = 
+    LoadResource (handle, rc);
+
+  size =
+    SizeofResource (handle, rc);
+
+  data =
+    static_cast <const char *>(
+      LockResource (rcData)
+    );
+}
+
 extern void SK_Steam_SetNotifyCorner (void);
 
 
@@ -104,6 +134,7 @@ SK_ImGui_ControlPanel (void)
   const char* szTitle = "Special K (v " SK_VERSION_STR_A ") Control Panel";
   bool        open    = true;
 
+
   ImGui::Begin (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
                char szName [32] = { '\0' };
     snprintf ( szName, 32, "%ws    "
@@ -179,7 +210,9 @@ SK_ImGui_ControlPanel (void)
                                     ( 1000.0f / 60.0f ) :
                                       ( 1000.0f / config.render.framerate.target_fps );
       
-        sprintf ( szAvg,
+        sprintf_s
+              ( szAvg,
+                  512,
                     "Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
                     "    Extreme frametimes:      %6.3f min, %6.3f max\n\n\n\n"
                     "Variation:  %8.5f ms  ==>  %.1f FPS  +/-  %3.1f frames",
@@ -412,13 +445,13 @@ SK_ImGui_ControlPanel (void)
         if ( ImGui::SliderFloat ( "Seconds Before Hiding",
                                     &seconds, 0.0f, 30.0f ) )
         {
-          config.input.cursor.timeout = ( seconds * 1000UL );
+          config.input.cursor.timeout = static_cast <LONG> (( seconds * 1000.0f ));
         }
 
         ImGui::TreePop  ();
       }
 
-      ImGui::Checkbox ("Block Input to Game While UI is Open", &config.input.ui_capture);
+      ImGui::Checkbox ("Block Input to Game While UI is Open", &config.input.ui.capture);
 
       if (ImGui::IsItemHovered ()) {
         ImGui::BeginTooltip ();
@@ -501,7 +534,7 @@ SK_ImGui_ControlPanel (void)
           
           int i = 0;
           
-          if (! wcsicmp (config.steam.achievements.sound_file.c_str (), L"xbox"))
+          if (! _wcsicmp (config.steam.achievements.sound_file.c_str (), L"xbox"))
             i = 1;
           else
             i = 0;
@@ -537,7 +570,7 @@ SK_ImGui_ControlPanel (void)
 
           if ( ImGui::SliderFloat ( "Duration (seconds)",            &duration, 1.0f, 30.0f ) )
           {
-            config.steam.achievements.popup.duration = ( duration * 1000UL );
+            config.steam.achievements.popup.duration = static_cast <LONG> ( duration * 1000.0f );
           }
 
           ImGui::Combo     ( "Location",                      &config.steam.achievements.popup.origin,
@@ -556,6 +589,16 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::Button ("Test Unlock"))
           SK_UnlockSteamAchievement (0);
 
+        ImGui::TreePop     ();
+      }
+
+      if (ImGui::TreeNode ("Steam Compatibility Modes"))
+      {
+        ImGui::Checkbox ("Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("For games that freak out if they are flooded with achievement information, turn this on\n\n"
+                             "You can tell if a game has this problem by a stuck SteamAPI Frame counter.");
         ImGui::TreePop     ();
       }
 
@@ -631,8 +674,12 @@ SK_ImGui_Toggle (void);
 //
 __declspec (dllexport)
 DWORD
-SK_ImGui_DrawFrame (DWORD dwFlags, void* user)
+SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags, 
+                                              LPVOID lpUser )
 {
+  UNREFERENCED_PARAMETER (dwFlags);
+  UNREFERENCED_PARAMETER (lpUser);
+
   bool d3d9  = false;
   bool d3d11 = false;
 
