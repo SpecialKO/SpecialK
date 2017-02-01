@@ -68,6 +68,13 @@
 #include <CEGUI/System.h>
 #include <CEGUI/Logger.h>
 
+
+static const GUID IID_ID3D11Device1 = { 0xa04bfb29, 0x08ef, 0x43d6, { 0xa4, 0x9c, 0xa9, 0xbd, 0xbd, 0xcb, 0xe6, 0x86 } };
+static const GUID IID_ID3D11Device2 = { 0x9d06dffa, 0xd1e5, 0x4d07, { 0x83, 0xa8, 0x1b, 0xb1, 0x23, 0xf2, 0xf8, 0x41 } };
+static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0, 0x9c, 0xe0, 0xb0, 0xdc, 0x9a, 0xe6 } };
+static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
+
+
 CRITICAL_SECTION init_mutex    = { 0 };
 CRITICAL_SECTION budget_mutex  = { 0 };
 CRITICAL_SECTION loader_lock   = { 0 };
@@ -1588,6 +1595,8 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
+  SK_UnloadImports  ();
+
   const wchar_t* config_name = backend;
 
   if (SK_IsInjected ())
@@ -1611,8 +1620,6 @@ SK_ShutdownCore (const wchar_t* backend)
   config.system.handle_crashes = false;
 
   SK::Framerate::Shutdown ();
-
-  SK_UnloadImports  ();
 
   if (nvapi_init)
     sk::NVAPI::UnloadLibrary ();
@@ -1792,21 +1799,29 @@ SK_BeginBufferSwap (void)
   
         if (DelayLoadDLL ("CEGUIBase-0.dll"))
         {
-          config.cegui.enable = true;
-  
-          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL) {
+          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+          {
             if (config.apis.OpenGL.hook)
-              DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
+            {
+              if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
+                config.cegui.enable = true;
+            }
           }
 
           if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
-               SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ) {
+               SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
+          {
             if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-              DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
+            {
+              if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
+                config.cegui.enable = true;
+            }
           }
 
-          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 ) {
-            DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
+          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 )
+          {
+            if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
+              config.cegui.enable = true;
           }
         }
       }
@@ -2120,7 +2135,24 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11)))) {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D11;
-      wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
+
+      IUnknown* pTest = nullptr;
+
+      if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4,        (void **)&pTest))) {
+        wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
+        pTest->Release ();
+      } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
+        wcsncpy (__SK_RBkEnd.name, L"D3D11.3", 8);
+        pTest->Release ();
+      } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
+        wcsncpy (__SK_RBkEnd.name, L"D3D11.2", 8);
+        pTest->Release ();
+      } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
+        wcsncpy (__SK_RBkEnd.name, L"D3D11.1", 8);
+        pTest->Release ();
+      } else {
+        wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
+      }
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12)))) {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
       wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);

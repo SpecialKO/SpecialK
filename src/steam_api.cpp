@@ -832,17 +832,12 @@ public:
       return false;
     }
 
-#if 0
-    hSteamPipe = client_->CreateSteamPipe     ();
-    hSteamUser = client_->ConnectToGlobalUser (hSteamPipe);
-#else
     hSteamPipe = SteamAPI_GetHSteamPipe ();
-    //hSteamUser = client_->ConnectToGlobalUser (hSteamPipe);
     hSteamUser = SteamAPI_GetHSteamUser ();
-#endif
 
-    SK_EnableHook (SteamAPI_Shutdown);
-    SK_EnableHook (SteamAPI_RunCallbacks);
+    MH_QueueEnableHook (SteamAPI_Shutdown);
+    MH_QueueEnableHook (SteamAPI_RunCallbacks);
+    MH_ApplyQueued     ();
 
     user_ =
       client_->GetISteamUser (
@@ -937,16 +932,13 @@ public:
     //SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
     //steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
 
-    // 4 == Don't Care
-    SK_Steam_SetNotifyCorner ();
-
     return true;
   }
 
   void Shutdown (void)
   {
-    if (InterlockedExchange         (&__SK_Steam_init, 0))
-    { 
+    //if (InterlockedExchange         (&__SK_Steam_init, 0))
+    //{ 
       if (client_)
       {
 #if 0
@@ -982,7 +974,7 @@ public:
         //  game will do this at a more opportune time for sure.
         SteamAPI_Shutdown ();
       }
-    }
+    //}
   }
 
   ISteamUser*        User        (void) { return user_;        }
@@ -3623,46 +3615,43 @@ SK_HookSteamAPI (void)
 
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                       "SteamAPI_InitSafe",
                      SteamAPI_InitSafe_Detour,
           (LPVOID *)&SteamAPI_InitSafe_Original,
           (LPVOID *)&SteamAPI_InitSafe );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                       "SteamAPI_Init",
                      SteamAPI_Init_Detour,
           (LPVOID *)&SteamAPI_Init_Original,
           (LPVOID *)&SteamAPI_Init );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                       "SteamAPI_RegisterCallback",
                       SteamAPI_RegisterCallback_Detour,
            (LPVOID *)&SteamAPI_RegisterCallback_Original,
            (LPVOID *)&SteamAPI_RegisterCallback );
 
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                       "SteamAPI_UnregisterCallback",
                       SteamAPI_UnregisterCallback_Detour,
             (LPVOID *)&SteamAPI_UnregisterCallback_Original,
             (LPVOID *)&SteamAPI_UnregisterCallback );
 
   SK_CreateDLLHook ( wszSteamAPI,
-                      "SteamAPI_RunCallbacks",
-                       SteamAPI_RunCallbacks_Detour,
-            (LPVOID *)&SteamAPI_RunCallbacks_Original,
-            (LPVOID *)&SteamAPI_RunCallbacks );
+                     "SteamAPI_RunCallbacks",
+                      SteamAPI_RunCallbacks_Detour,
+           (LPVOID *)&SteamAPI_RunCallbacks_Original,
+           (LPVOID *)&SteamAPI_RunCallbacks );
 
   SK_CreateDLLHook ( wszSteamAPI,
-                      "SteamAPI_Shutdown",
-                       SteamAPI_Shutdown_Detour,
-            (LPVOID *)&SteamAPI_Shutdown_Original,
-            (LPVOID *)&SteamAPI_Shutdown );
+                     "SteamAPI_Shutdown",
+                      SteamAPI_Shutdown_Detour,
+           (LPVOID *)&SteamAPI_Shutdown_Original,
+           (LPVOID *)&SteamAPI_Shutdown );
 
-  SK_EnableHook (SteamAPI_InitSafe);
-  SK_EnableHook (SteamAPI_Init);
-  SK_EnableHook (SteamAPI_RegisterCallback);
-  SK_EnableHook (SteamAPI_UnregisterCallback);
+  SK_ApplyQueuedHooks ();
 
   if (config.steam.init_delay > 0) {
     CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);

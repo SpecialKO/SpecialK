@@ -50,6 +50,8 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/steam_api.h>
 
+#include <d3d11_1.h>
+
 #include <SpecialK/diagnostics/crash_handler.h>
 
 #pragma comment (lib, "delayimp.lib")
@@ -184,15 +186,14 @@ SK_CEGUI_GetSystem (void)
 void
 SK_CEGUI_InitBase (void)
 {
-  try {
+  try
+  {
     // initialise the required dirs for the DefaultResourceProvider
     CEGUI::DefaultResourceProvider* rp =
         dynamic_cast <CEGUI::DefaultResourceProvider *>
             (CEGUI::System::getDllSingleton ().getResourceProvider ());
 
-           char szRootPath [MAX_PATH];
-    ZeroMemory (szRootPath, MAX_PATH);
-
+         char szRootPath [MAX_PATH] = { 0 };
     snprintf (szRootPath, MAX_PATH, "%ws", SK_GetRootPath ());
 
     CEGUI::String dataPathPrefix ( ( std::string (szRootPath) +
@@ -291,7 +292,10 @@ SK_CEGUI_InitBase (void)
     //     process of instantiating popups quicker.
     SK_achv_popup =
       window_mgr.loadLayoutFromFile ("Achievements.layout");
- } catch (...) {
+ }
+
+ catch (...)
+ {
  }
 
   SK_Steam_ClearPopups ();
@@ -305,15 +309,16 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
   if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
     return;
 
-  if (cegD3D11 != nullptr) {
+  if (cegD3D11 != nullptr)
+  {
     SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
     SK_PopupManager::getInstance ()->destroyAllPopups         ();
 
-    if (pGUIDev != nullptr) {
+    if (pGUIDev != nullptr)
         pGUIDev  = nullptr;
-    }
 
-    if (pCEG_DevCtx != nullptr) {
+    if (pCEG_DevCtx != nullptr)
+    {
       pCEG_DevCtx->Release ();
       pCEG_DevCtx = nullptr;
     }
@@ -339,13 +344,14 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     //   don't bother decrementing the reference count by releasing it.
     pGUIDev->GetImmediateContext (&pCEG_DevCtx);
 
-    try {
+    try
+    {
       // For CEGUI to work correctly, it is necessary to set the viewport dimensions
       //   to the backbuffer size prior to bootstrap.
       CComPtr <ID3D11Texture2D> pBackBuffer = nullptr;
 
-      if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer)))) {
-
+      if ( SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer))) )
+      {
         D3D11_TEXTURE2D_DESC backbuffer_desc;
         pBackBuffer->GetDesc (&backbuffer_desc);
 
@@ -368,19 +374,21 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
       ImGui_DX11Startup    (This);
 
       SK_CEGUI_RelocateLog ();
-    } catch (...) {
+    }
+
+    catch (...)
+    {
       pGUIDev->Release     ();
       cegD3D11 = nullptr;
       return;
     }
 
-    SK_CEGUI_InitBase ();
+    SK_CEGUI_InitBase    ();
 
-    SK_PopupManager::getInstance ()->destroyAllPopups       ();
+    SK_PopupManager::getInstance       ()->destroyAllPopups (        );
     SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
 
     SK_Steam_ClearPopups ();
-
     pGUIDev->Release     ();
   }
 }
@@ -536,10 +544,8 @@ bool
 WINAPI
 SK_DXGI_EnableFlipMode (bool bFlip)
 {
-  bool before = bFlipMode;
-
-  bFlipMode = bFlip;
-
+    bool before = bFlipMode;
+                  bFlipMode = bFlip;
   return before;
 }
 
@@ -580,11 +586,14 @@ bool
    bool covered_already = covered.count (idx) > 0;
 
    if ( (max > 0 &&
-         val > max) || covered_already ) {
-     for ( int i = idx ; i > 0 ; --i ) {
+         val > max) || covered_already )
+   {
+     for ( int i = idx ; i > 0 ; --i )
+     {
        if ( config.render.dxgi.res.max.x >= pDesc [i].Width  &&
             config.render.dxgi.res.max.y >= pDesc [i].Height &&
-            covered.count (i) == 0 ) {
+            covered.count (i) == 0 )
+       {
          pDesc [idx] = pDesc [i];
          covered.insert (idx);
          covered.insert (i);
@@ -623,11 +632,14 @@ bool
    bool covered_already = covered.count (idx) > 0;
 
    if ( (min > 0 &&
-         val < min) || covered_already ) {
-     for ( int i = 0 ; i < idx ; ++i ) {
+         val < min) || covered_already )
+   {
+     for ( int i = 0 ; i < idx ; ++i )
+     {
        if ( config.render.dxgi.res.min.x <= pDesc [i].Width  &&
             config.render.dxgi.res.min.y <= pDesc [i].Height &&
-            covered.count (i) == 0 ) {
+            covered.count (i) == 0 )
+       {
          pDesc [idx] = pDesc [i];
          covered.insert (idx);
          covered.insert (i);
@@ -815,7 +827,8 @@ SK_DXGI_BeginHooking (void)
 {
   volatile static ULONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE)) {
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
 #if 0
     HANDLE hHookInitDXGI =
       (HANDLE)
@@ -924,7 +937,8 @@ SK_GetDXGIFactoryInterfaceEx (const IID& riid)
     interface_name = L"IDXGIFactory3";
   else if (riid == __uuidof (IDXGIFactory4))
     interface_name = L"IDXGIFactory4";
-  else {
+  else
+  {
     wchar_t *pwszIID = nullptr;
 
     if (SUCCEEDED (StringFromIID (riid, (LPOLESTR *)&pwszIID)))
@@ -952,6 +966,7 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
     dxgi_caps.present.flip_discard    = true;
     return 4;
   }
+
   if (SUCCEEDED (
     pFactory->QueryInterface (__uuidof (IDXGIFactory3), (void **)&pTemp)))
   {
@@ -1040,7 +1055,8 @@ SK_GetDXGIAdapterInterfaceEx (const IID& riid)
     interface_name = L"IDXGIAdapter2";
   else if (riid == __uuidof (IDXGIAdapter3))
     interface_name = L"IDXGIAdapter3";
-  else {
+  else
+  {
     wchar_t *pwszIID = nullptr;
 
     if (SUCCEEDED (StringFromIID (riid, (LPOLESTR *)&pwszIID)))
@@ -1106,247 +1122,6 @@ SK_GetDXGIAdapterInterface (IUnknown *pAdapter)
   return L"{Invalid-Adapter-UUID}";
 }
 
-struct D3DX11_STATE_BLOCK
-{
-  ID3D11VertexShader*       VS;
-  ID3D11SamplerState*       VSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView* VSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*             VSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*      VSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-  UINT                      VSInterfaceCount;
-
-  ID3D11GeometryShader*     GS;
-  ID3D11SamplerState*       GSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView* GSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*             GSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*      GSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-  UINT                      GSInterfaceCount;
-
-  ID3D11HullShader*         HS;
-  ID3D11SamplerState*       HSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView* HSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*             HSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*      HSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-  UINT                      HSInterfaceCount;
-
-  ID3D11DomainShader*       DS;
-  ID3D11SamplerState*       DSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView* DSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*             DSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*      DSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-  UINT                      DSInterfaceCount;
-
-  ID3D11PixelShader*        PS;
-  ID3D11SamplerState*       PSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView* PSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*             PSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*      PSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-  UINT                      PSInterfaceCount;
-
-  ID3D11ComputeShader*      CS;
-  ID3D11SamplerState*       CSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView* CSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*             CSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*      CSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-  UINT                      CSInterfaceCount;
-  ID3D11UnorderedAccessView*CSUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT];
-
-  ID3D11Buffer*             IAVertexBuffers[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-  UINT                      IAVertexBuffersStrides[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-  UINT                      IAVertexBuffersOffsets[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*             IAIndexBuffer;
-  DXGI_FORMAT               IAIndexBufferFormat;
-  UINT                      IAIndexBufferOffset;
-  ID3D11InputLayout*        IAInputLayout;
-  D3D11_PRIMITIVE_TOPOLOGY  IAPrimitiveTopology;
-
-  ID3D11RenderTargetView*   OMRenderTargets[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
-  ID3D11DepthStencilView*   OMRenderTargetStencilView;
-  ID3D11UnorderedAccessView*OMUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT];
-  ID3D11DepthStencilState*  OMDepthStencilState;
-  UINT                      OMDepthStencilRef;
-  ID3D11BlendState*         OMBlendState;
-  FLOAT                     OMBlendFactor[4];
-  UINT                      OMSampleMask;
-
-  UINT                      RSViewportCount;
-  D3D11_VIEWPORT            RSViewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-  UINT                      RSScissorRectCount;
-  D3D11_RECT                RSScissorRects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-  ID3D11RasterizerState*    RSRasterizerState;
-  ID3D11Buffer*             SOBuffers[4];
-  ID3D11Predicate*          Predication;
-  BOOL                      PredicationValue;
-};
-
-void CreateStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
-{
-  memset(sb, 0, sizeof(D3DX11_STATE_BLOCK));
-
-  dc->VSGetShader(&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
-  dc->VSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->VSSamplers);
-  dc->VSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->VSShaderResources);
-  dc->VSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->VSConstantBuffers);
-
-  dc->GSGetShader(&sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
-  dc->GSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->GSSamplers);
-  dc->GSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->GSShaderResources);
-  dc->GSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->GSConstantBuffers);
-
-  dc->HSGetShader(&sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
-  dc->HSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->HSSamplers);
-  dc->HSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->HSShaderResources);
-  dc->HSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
-
-  dc->DSGetShader(&sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
-  dc->DSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->DSSamplers);
-  dc->DSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->DSShaderResources);
-  dc->DSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
-
-  dc->PSGetShader(&sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
-  dc->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->PSSamplers);
-  dc->PSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->PSShaderResources);
-  dc->PSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->PSConstantBuffers);
-
-  dc->CSGetShader(&sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
-  dc->CSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->CSSamplers);
-  dc->CSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->CSShaderResources);
-  dc->CSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->CSConstantBuffers);
-  dc->CSGetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews);
-
-  dc->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
-  dc->IAGetIndexBuffer(&sb->IAIndexBuffer, &sb->IAIndexBufferFormat, &sb->IAIndexBufferOffset);
-  dc->IAGetInputLayout(&sb->IAInputLayout);
-  dc->IAGetPrimitiveTopology(&sb->IAPrimitiveTopology);
-
-  dc->OMGetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews);
-  dc->OMGetDepthStencilState(&sb->OMDepthStencilState, &sb->OMDepthStencilRef);
-  dc->OMGetBlendState(&sb->OMBlendState, sb->OMBlendFactor, &sb->OMSampleMask);
-
-  sb->RSViewportCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-  dc->RSGetViewports(&sb->RSViewportCount, sb->RSViewports);
-  sb->RSScissorRectCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-  dc->RSGetScissorRects(&sb->RSScissorRectCount, sb->RSScissorRects);
-  dc->RSGetState(&sb->RSRasterizerState);
-
-  dc->SOGetTargets(4, sb->SOBuffers);
-  dc->GetPredication(&sb->Predication, &sb->PredicationValue);
-}
-
-template <class _T>
-UINT
-calc_count (_T** arr, UINT max_count)
-{
-  for ( UINT i = 0         ;
-             i < max_count ;
-           ++i )           {
-    if (arr [i] == 0)
-      return i;
-  }
-
-  return max_count;
-}
-
-void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
-{
-  UINT minus_one[D3D11_PS_CS_UAV_REGISTER_COUNT];
-  memset(minus_one, -1, sizeof(minus_one));
-  dc->VSSetShader(sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
-  UINT VSSamplerCount = calc_count(sb->VSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-  if (VSSamplerCount)
-      dc->VSSetSamplers(0, VSSamplerCount, sb->VSSamplers);
-  UINT VSShaderResourceCount = calc_count(sb->VSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  if (VSShaderResourceCount)
-      dc->VSSetShaderResources(0, VSShaderResourceCount, sb->VSShaderResources);
-  UINT VSConstantBufferCount = calc_count(sb->VSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-  if (VSConstantBufferCount)
-      dc->VSSetConstantBuffers(0, VSConstantBufferCount, sb->VSConstantBuffers);
-
-  dc->GSSetShader(sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
-  UINT GSSamplerCount = calc_count(sb->GSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-  if (GSSamplerCount)
-      dc->GSSetSamplers(0, GSSamplerCount, sb->GSSamplers);
-  UINT GSShaderResourceCount = calc_count(sb->GSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  if (GSShaderResourceCount)
-      dc->GSSetShaderResources(0, GSShaderResourceCount, sb->GSShaderResources);
-  UINT GSConstantBufferCount = calc_count(sb->GSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-  if (GSConstantBufferCount)
-      dc->GSSetConstantBuffers(0, GSConstantBufferCount, sb->GSConstantBuffers);
-
-  dc->HSSetShader(sb->HS, sb->HSInterfaces, sb->HSInterfaceCount);
-  UINT HSSamplerCount = calc_count(sb->HSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-  if (HSSamplerCount)
-      dc->HSSetSamplers(0, HSSamplerCount, sb->HSSamplers);
-  UINT HSShaderResourceCount = calc_count(sb->HSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  if (HSShaderResourceCount)
-      dc->HSSetShaderResources(0, HSShaderResourceCount, sb->HSShaderResources);
-  UINT HSConstantBufferCount = calc_count(sb->HSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-  if (HSConstantBufferCount)
-      dc->HSSetConstantBuffers(0, HSConstantBufferCount, sb->HSConstantBuffers);
-
-  dc->DSSetShader(sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
-  UINT DSSamplerCount = calc_count(sb->DSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-  if (DSSamplerCount)
-      dc->DSSetSamplers(0, DSSamplerCount, sb->DSSamplers);
-  UINT DSShaderResourceCount = calc_count(sb->DSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  if (DSShaderResourceCount)
-      dc->DSSetShaderResources(0, DSShaderResourceCount, sb->DSShaderResources);
-  UINT DSConstantBufferCount = calc_count(sb->DSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-  if (DSConstantBufferCount)
-      dc->DSSetConstantBuffers(0, DSConstantBufferCount, sb->DSConstantBuffers);
-
-  dc->PSSetShader(sb->PS, sb->PSInterfaces, sb->PSInterfaceCount);
-  UINT PSSamplerCount = calc_count(sb->PSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-  if (PSSamplerCount)
-      dc->PSSetSamplers(0, PSSamplerCount, sb->PSSamplers);
-  UINT PSShaderResourceCount = calc_count(sb->PSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  if (PSShaderResourceCount)
-      dc->PSSetShaderResources(0, PSShaderResourceCount, sb->PSShaderResources);
-  UINT PSConstantBufferCount = calc_count(sb->PSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-  if (PSConstantBufferCount)
-      dc->PSSetConstantBuffers(0, PSConstantBufferCount, sb->PSConstantBuffers);
-
-  dc->CSSetShader(sb->CS, sb->CSInterfaces, sb->CSInterfaceCount);
-  UINT CSSamplerCount = calc_count(sb->CSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-  if (CSSamplerCount)
-      dc->CSSetSamplers(0, CSSamplerCount, sb->CSSamplers);
-  UINT CSShaderResourceCount = calc_count(sb->CSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-  if (CSShaderResourceCount)
-      dc->CSSetShaderResources(0, CSShaderResourceCount, sb->CSShaderResources);
-  UINT CSConstantBufferCount = calc_count(sb->CSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-  if (CSConstantBufferCount)
-      dc->CSSetConstantBuffers(0, CSConstantBufferCount, sb->CSConstantBuffers);
-  dc->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
-
-  UINT IAVertexBufferCount = calc_count(sb->IAVertexBuffers, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
-  if (IAVertexBufferCount)
-      dc->IASetVertexBuffers(0, IAVertexBufferCount, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
-  dc->IASetIndexBuffer(sb->IAIndexBuffer, sb->IAIndexBufferFormat, sb->IAIndexBufferOffset);
-  dc->IASetInputLayout(sb->IAInputLayout);
-  dc->IASetPrimitiveTopology(sb->IAPrimitiveTopology);
-
-  dc->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews, minus_one);
-  UINT OMRenderTargetCount = calc_count(sb->OMRenderTargets, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
-  if (OMRenderTargetCount)
-      dc->OMSetRenderTargets(OMRenderTargetCount, sb->OMRenderTargets, sb->OMRenderTargetStencilView);
-  dc->OMSetDepthStencilState(sb->OMDepthStencilState, sb->OMDepthStencilRef);
-  dc->OMSetBlendState(sb->OMBlendState, sb->OMBlendFactor, sb->OMSampleMask);
-
-  dc->RSSetViewports(sb->RSViewportCount, sb->RSViewports);
-  dc->RSSetScissorRects(sb->RSScissorRectCount, sb->RSScissorRects);
-  dc->RSSetState(sb->RSRasterizerState);
-
-  UINT SOBuffersOffsets[4] = { 0 }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
-                               (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1, 
-                               (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2, 
-                               (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 3 };*/
-
-  UINT SOBufferCount = calc_count(sb->SOBuffers, 4);
-  if (SOBufferCount)
-      dc->SOSetTargets(SOBufferCount, sb->SOBuffers, SOBuffersOffsets);
-  dc->SetPredication(sb->Predication, sb->PredicationValue);
-}
-
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
@@ -1366,36 +1141,42 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       //SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
   //}
 
-  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
+  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
+  {
     SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
 
-    if (pGUIDev != nullptr) {
+    if (pGUIDev != nullptr)
+    {
       //pGUIDev->Release ();
       pGUIDev = nullptr;
     }
 
-    if (pCEG_DevCtx != nullptr) {
+    if (pCEG_DevCtx != nullptr)
+    {
       pCEG_DevCtx->Release ();
       pCEG_DevCtx = nullptr;
     }
 
-    if (cegD3D11 != nullptr) {
+    if (cegD3D11 != nullptr)
+    {
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
       cegD3D11->destroySystem ();
       cegD3D11 = nullptr;
     }
   }
 
-  else if (cegD3D11 == nullptr) {
-    if (SK_GetFramesDrawn () > 1) {
+  else if (cegD3D11 == nullptr)
+  {
+    if (SK_GetFramesDrawn () > 1)
+    {
       ResetCEGUI_D3D11 (This);
     }
   }
 
-  else if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) ) {
-    CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
-
-    if (pGUIDev != pDev) {
+  else if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
+  {
+    if (pGUIDev != pDev)
+    {
       ResetCEGUI_D3D11 (This);
       return;
     }
@@ -1406,21 +1187,55 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
     CComPtr <ID3D11BlendState>       pBlendState       = nullptr;
 
+    CComPtr <ID3D11Device1>          pDevice1          = nullptr;
+    CComPtr <ID3DDeviceContextState> pCtxState         = nullptr;
+    CComPtr <ID3DDeviceContextState> pCtxStateOrig     = nullptr;
+
     hr = This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
 
-    if (FAILED (hr)) {
+    if (FAILED (hr))
       return;
-    }
+
+    CComPtr <ID3D11DeviceContext>  pImmediateContext  = nullptr;
+    CComPtr <ID3D11DeviceContext1> pImmediateContext1 = nullptr;
+
+                          pDev->GetImmediateContext (&pImmediateContext);
+    hr =
+    pImmediateContext->QueryInterface (IID_PPV_ARGS (&pImmediateContext1));
+                 pDev->QueryInterface (IID_PPV_ARGS (&pDevice1));
+
+    if (FAILED (hr))
+      return;
+
+
+    D3D_FEATURE_LEVEL ft_lvl =
+      pDev->GetFeatureLevel ();
+
+    GUID              dev_lvl = (ft_lvl == D3D_FEATURE_LEVEL_11_1) ?
+                                   __uuidof (ID3D11Device1) :
+                                   __uuidof (ID3D11Device);
+                  
+
+    //
+    // DXGI state blocks the (fun?) way :)  -- Performance implications are unknown, as
+    //                                           is compatibility wiht other injectors that
+    //                                             may try to cache state.
+    //
+    if (FAILED (pDevice1->CreateDeviceContextState ( 0x00,
+                                                       &ft_lvl,
+                                                         1,
+                                                           D3D11_SDK_VERSION,
+                                                             dev_lvl,
+                                                               nullptr,
+                                                                 &pCtxState )))
+      return;
+
+    pImmediateContext1->SwapDeviceContextState (pCtxState, &pCtxStateOrig);
 
     hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
 
-    if (SUCCEEDED (hr)) {
-#define USE_SB
-#ifdef USE_SB
-      static D3DX11_STATE_BLOCK sb;
-      CreateStateblock (pCEG_DevCtx, &sb);
-#endif
-
+    if (SUCCEEDED (hr))
+    {
       pCEG_DevCtx->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
 
       D3D11_TEXTURE2D_DESC backbuffer_desc;
@@ -1453,13 +1268,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       pCEG_DevCtx->RSSetViewports (1, &vp);
 
-#ifdef USE_SB
-      pCEG_DevCtx->GSSetShader (0, 0, 0);
-      pCEG_DevCtx->CSSetShader (0, 0, 0);
-      pCEG_DevCtx->DSSetShader (0, 0, 0);
-      pCEG_DevCtx->HSSetShader (0, 0, 0);
-#endif
-
       cegD3D11->beginRendering ();
       {
         SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
@@ -1478,11 +1286,9 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                      SK_ImGui_DrawFrame (       0x00,          nullptr );
       }
-
-#ifdef USE_SB
-      ApplyStateblock (pCEG_DevCtx, &sb);
-#endif
     }
+
+    pImmediateContext1->SwapDeviceContextState (pCtxStateOrig, nullptr);
   }
 }
 
@@ -1539,7 +1345,8 @@ extern "C" {
     //
     // Early-out for games that use testing to minimize blocking
     //
-    if (PresentFlags & DXGI_PRESENT_TEST) {
+    if (PresentFlags & DXGI_PRESENT_TEST)
+    {
       return Present1_Original (
                This,
                  SyncInterval,
@@ -1564,7 +1371,8 @@ extern "C" {
     if (interval == -1)
       interval = SyncInterval;
 
-    if (bFlipMode) {
+    if (bFlipMode)
+    {
       flags = PresentFlags | DXGI_PRESENT_RESTART;
 
       if (bWait)
@@ -1573,14 +1381,13 @@ extern "C" {
 
     static bool first_frame = true;
 
-    if (first_frame) {
-      if (sk::NVAPI::app_name == L"Fallout4.exe") {
+    if (first_frame)
+    {
+      if (sk::NVAPI::app_name == L"Fallout4.exe")
         SK_FO4_PresentFirstFrame (This, SyncInterval, flags);
-      }
 
-      else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe") {
+      else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe")
         SK_DS3_PresentFirstFrame (This, SyncInterval, flags);
-      }
 
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
@@ -1591,18 +1398,21 @@ extern "C" {
 
         if ( SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
              SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter))  &&
-             SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) ) {
+             SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
+        {
           DXGI_SWAP_CHAIN_DESC desc;
           This->GetDesc (&desc);
 
-          if (bAlwaysAllowFullscreen) {
+          if (bAlwaysAllowFullscreen)
+          {
             pFactory->MakeWindowAssociation (
               desc.OutputWindow,
                 DXGI_MWA_NO_WINDOW_CHANGES
             );
           }
 
-          if (hWndRender == 0 || (! IsWindow (hWndRender))) {
+          if (hWndRender == 0 || (! IsWindow (hWndRender)))
+          {
             hWndRender       = desc.OutputWindow;
 
             SK_InstallWindowHook (hWndRender);
@@ -1612,9 +1422,8 @@ extern "C" {
       }
     }
 
-    else {
+    else
       SK_CEGUI_DrawD3D11 (This);
-    }
 
     hr = Present1_Original (This, interval, flags, pPresentParameters);
 
@@ -1653,9 +1462,11 @@ extern "C" {
 
 
 #ifdef DARK_SOULS
-    if (__DS3_HEIGHT != nullptr) {
+    if (__DS3_HEIGHT != nullptr)
+    {
       DXGI_SWAP_CHAIN_DESC swap_desc;
-      if (SUCCEEDED (This->GetDesc (&swap_desc))) {
+      if (SUCCEEDED (This->GetDesc (&swap_desc)))
+      {
         *__DS3_WIDTH  = swap_desc.BufferDesc.Width;
         *__DS3_HEIGHT = swap_desc.BufferDesc.Height;
       }
@@ -1674,14 +1485,13 @@ extern "C" {
 
     static bool first_frame = true;
 
-    if (first_frame) {
-      if (sk::NVAPI::app_name == L"Fallout4.exe") {
+    if (first_frame)
+    {
+      if (sk::NVAPI::app_name == L"Fallout4.exe")
         SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
-      }
 
-      else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe") {
+      else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe")
         SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
-      }
 
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
@@ -1692,9 +1502,10 @@ extern "C" {
 
         if ( SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
              SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter))  &&
-             SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) ) {
+             SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
+        {
           DXGI_SWAP_CHAIN_DESC desc;
-          This->GetDesc (&desc);
+          This->GetDesc      (&desc);
 
           if (bAlwaysAllowFullscreen)
             pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
@@ -1718,25 +1529,27 @@ extern "C" {
     if (interval == -1)
       interval = SyncInterval;
 
-    if (bFlipMode) {
+    if (bFlipMode)
+    {
       flags = Flags | DXGI_PRESENT_RESTART;
 
       if (bWait)
         flags |= DXGI_PRESENT_DO_NOT_WAIT;
     }
 
-    if (! bFlipMode) {
-      hr = S_OK;
-
+    if (! bFlipMode)
+    {
       hr = Present_Original (This, SyncInterval, Flags | DXGI_PRESENT_TEST);
 
       // Test first, then do
-      if (SUCCEEDED (hr)) {
-        SK_CEGUI_DrawD3D11 (This);
-        hr = Present_Original (This, interval, flags);
+      if (SUCCEEDED (hr))
+      {
+             SK_CEGUI_DrawD3D11 (This);
+        hr = Present_Original   (This, interval, flags);
       }
 
-      if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED) {
+      if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED)
+      {
           dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
                         L"returned non-S_OK (%s :: %s)",
                           SK_DescribeHRESULT (hr),
@@ -1745,7 +1558,8 @@ extern "C" {
       }
     }
 
-    else {
+    else
+    {
       DXGI_PRESENT_PARAMETERS pparams;
       pparams.DirtyRectsCount = 0;
       pparams.pDirtyRects     = nullptr;
@@ -1757,7 +1571,8 @@ extern "C" {
       {
         bool can_present = true;//SUCCEEDED (hr);
 
-        if (can_present) {
+        if (can_present)
+        {
           // Draw here to include in Steam screenshots
           SK_CEGUI_DrawD3D11 (This);
 
@@ -1779,12 +1594,14 @@ extern "C" {
       }
     }
 
-    if (bWait) {
+    if (bWait)
+    {
       CComPtr <IDXGISwapChain2> pSwapChain2;
 
       if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain2))))
       {
-        if (pSwapChain2 != nullptr) {
+        if (pSwapChain2 != nullptr)
+        {
           HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
 
           WaitForSingleObjectEx ( hWait,
@@ -1850,7 +1667,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
     DXGI_MODE_DESC* pDescLocal = nullptr;
 
-    if (pDesc == nullptr && SUCCEEDED (hr)) {
+    if (pDesc == nullptr && SUCCEEDED (hr))
+    {
       pDescLocal = 
         (DXGI_MODE_DESC *)
           malloc (sizeof DXGI_MODE_DESC * *pNumModes);
@@ -1865,30 +1683,36 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
                   pDesc );
     }
 
-    if (SUCCEEDED (hr)) {
+    if (SUCCEEDED (hr))
+    {
       int removed_count = 0;
 
       if ( ! ( config.render.dxgi.res.min.isZero ()   &&
                config.render.dxgi.res.max.isZero () ) &&
-           *pNumModes != 0 ) {
+           *pNumModes != 0 )
+      {
         int last  = *pNumModes;
         int first = 0;
 
         std::set <int> coverage_min;
         std::set <int> coverage_max;
 
-        if (! config.render.dxgi.res.min.isZero ()) {
+        if (! config.render.dxgi.res.min.isZero ())
+        {
           // Restrict MIN (Sequential Scan: Last->First)
-          for ( int i = *pNumModes - 1 ; i >= 0 ; --i ) {
+          for ( int i = *pNumModes - 1 ; i >= 0 ; --i )
+          {
             if (SK_DXGI_RestrictResMin (WIDTH,  first, i,  coverage_min, pDesc) |
                 SK_DXGI_RestrictResMin (HEIGHT, first, i,  coverage_min, pDesc))
               ++removed_count;
           }
         }
 
-        if (! config.render.dxgi.res.max.isZero ()) {
+        if (! config.render.dxgi.res.max.isZero ())
+        {
           // Restrict MAX (Sequential Scan: First->Last)
-          for ( UINT i = 0 ; i < *pNumModes ; ++i ) {
+          for ( UINT i = 0 ; i < *pNumModes ; ++i )
+          {
             if (SK_DXGI_RestrictResMax (WIDTH,  last, i, coverage_max, pDesc) |
                 SK_DXGI_RestrictResMax (HEIGHT, last, i, coverage_max, pDesc))
               ++removed_count;
@@ -1896,11 +1720,15 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         }
       }
 
-      if (config.render.dxgi.scaling_mode != -1) {
-        if (config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED) {
-          for ( INT i = (INT)*pNumModes - 1 ; i >= 0 ; --i ) {
+      if (config.render.dxgi.scaling_mode != -1)
+      {
+        if (config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED)
+        {
+          for ( INT i = (INT)*pNumModes - 1 ; i >= 0 ; --i )
+          {
             if ( pDesc [i].Scaling != DXGI_MODE_SCALING_UNSPECIFIED &&
-                 pDesc [i].Scaling != config.render.dxgi.scaling_mode ) {
+                 pDesc [i].Scaling != config.render.dxgi.scaling_mode )
+            {
               pDesc [i] = pDesc [i + 1];
               ++removed_count;
             }
@@ -1908,14 +1736,16 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         }
       }
 
-      if (pDesc != nullptr && pDescLocal == nullptr) {
+      if (pDesc != nullptr && pDescLocal == nullptr)
+      {
         dll_log.Log ( L"[   DXGI   ]      >> %lu modes (%lu removed)",
                         *pNumModes,
                           removed_count );
       }
     }
 
-    if (pDescLocal != nullptr) {
+    if (pDescLocal != nullptr)
+    {
       free (pDescLocal);
       pDescLocal = nullptr;
       pDesc      = nullptr;
@@ -2025,7 +1855,8 @@ __declspec (noinline)
     //
     // Necessary provisions for Fullscreen Flip Mode
     //
-    if (/*Fullscreen &&*/SUCCEEDED (ret)) {
+    if (/*Fullscreen &&*/SUCCEEDED (ret))
+    {
       //mode_desc.RefreshRate = { 0 };
       //ResizeTarget_Original (This, &mode_desc);
 
@@ -2033,7 +1864,8 @@ __declspec (noinline)
         //ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 
       DXGI_SWAP_CHAIN_DESC desc;
-      if (SUCCEEDED (This->GetDesc (&desc))) {
+      if (SUCCEEDED (This->GetDesc (&desc)))
+      {
         SK_SetWindowResX (desc.BufferDesc.Width);
         SK_SetWindowResY (desc.BufferDesc.Height);
       }
@@ -2058,7 +1890,8 @@ __declspec (noinline)
 
     if (       config.render.framerate.buffer_count != -1           &&
          (UINT)config.render.framerate.buffer_count !=  BufferCount &&
-         BufferCount                          !=  0 ) {
+         BufferCount                          !=  0 )
+    {
       BufferCount = config.render.framerate.buffer_count;
       dll_log.Log (L"[   DXGI   ] >> Buffer Count Override: %lu buffers", BufferCount);
     }
@@ -2071,13 +1904,16 @@ __declspec (noinline)
       //return S_OK;
 
     // TODO: Something if FUllscreen
-    if (config.window.borderless && (! config.window.fullscreen)) {
-      if (! config.window.res.override.isZero ()) {
+    if (config.window.borderless && (! config.window.fullscreen))
+    {
+      if (! config.window.res.override.isZero ())
+      {
         Width  = config.window.res.override.x;
         Height = config.window.res.override.y;
       }
 
-      else {
+      else
+      {
         SK_DXGI_BorderCompensation (
           Width,
             Height
@@ -2093,7 +1929,8 @@ __declspec (noinline)
 
     if (SUCCEEDED (ret))
     {
-      if (Width != 0 && Height != 0) {
+      if (Width != 0 && Height != 0)
+      {
         SK_SetWindowResX (Width);
         SK_SetWindowResY (Height);
       }
@@ -2131,13 +1968,15 @@ __declspec (noinline)
     if ( config.window.borderless ||
          ( config.render.dxgi.scaling_mode != -1 &&
             pNewTargetParameters->Scaling  != 
-              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode ) ) {
+              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode ) )
+    {
       DXGI_MODE_DESC new_new_params =
         *pNewTargetParameters;
 
       if ( config.render.dxgi.scaling_mode != -1 &&
             pNewTargetParameters->Scaling  != 
-              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode ) {
+              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+      {
         dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
                       L"(Requested: %s, Using: %s)",
                         SK_DXGI_DescribeScalingMode (
@@ -2153,7 +1992,8 @@ __declspec (noinline)
       }
 
       if ( (! config.window.fullscreen) &&
-              config.window.borderless ) {
+              config.window.borderless )
+      {
         if (! config.window.res.override.isZero ())
         {
           new_new_params.Width  = config.window.res.override.x;
@@ -2168,17 +2008,24 @@ __declspec (noinline)
 
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
 
-      if (SUCCEEDED (ret)) {
-        if (pNewNewTargetParameters->Width != 0 && pNewNewTargetParameters->Height != 0) {
+      if (SUCCEEDED (ret))
+      {
+        if (pNewNewTargetParameters->Width != 0 && pNewNewTargetParameters->Height != 0)
+        {
           SK_SetWindowResX (pNewNewTargetParameters->Width);
           SK_SetWindowResY (pNewNewTargetParameters->Height);
         }
       }
-    } else {
+    }
+
+    else
+    {
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
 
-      if (SUCCEEDED (ret)) {
-        if (pNewTargetParameters->Width != 0 && pNewTargetParameters->Height != 0) {
+      if (SUCCEEDED (ret))
+      {
+        if (pNewTargetParameters->Width != 0 && pNewTargetParameters->Height != 0)
+        {
           SK_SetWindowResX (pNewTargetParameters->Width);
           SK_SetWindowResY (pNewTargetParameters->Height);
         }
@@ -2207,15 +2054,18 @@ __declspec (noinline)
 
     HRESULT ret;
 
-    if (pDesc != nullptr) {
+    if (pDesc != nullptr)
+    {
       if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
       {
-        if (! config.window.res.override.isZero ()) {
+        if (! config.window.res.override.isZero ())
+        {
           pDesc->BufferDesc.Width  = config.window.res.override.x;
           pDesc->BufferDesc.Height = config.window.res.override.y;
         }
 
-        else {
+        else
+        {
           SK_DXGI_BorderCompensation (
             pDesc->BufferDesc.Width,
               pDesc->BufferDesc.Height
@@ -2253,7 +2103,8 @@ __declspec (noinline)
                   L"<Unknown>" );
 
       // Set things up to make the swap chain Alt+Enter friendly
-      if (bAlwaysAllowFullscreen) {
+      if (bAlwaysAllowFullscreen)
+      {
         pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
         pDesc->Windowed                           = true;
         pDesc->BufferDesc.RefreshRate.Denominator = 0;
@@ -2266,18 +2117,22 @@ __declspec (noinline)
             ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
               SK_DS3_UseFlipMode ()        ) );
 
-      if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) {
-        if (bFlipMode) {
-          bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-        }
-      } else {
+      if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+      {
+        if (bFlipMode)
+            bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+      }
+
+      else
+      {
         if (config.render.framerate.flip_discard)
           bFlipMode = dxgi_caps.present.flip_sequential;
       }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
             pDesc->BufferDesc.Scaling      !=
-              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode ) {
+              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+      {
         dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
                       L"(Requested: %s, Using: %s)",
                         SK_DXGI_DescribeScalingMode (
@@ -2297,12 +2152,14 @@ __declspec (noinline)
       // We cannot change the swapchain parameters if this is used...
       bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-      if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) {
+      if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+      {
         if (SK_DS3_IsBorderless ())
           pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
 
-      if (bFlipMode) {
+      if (bFlipMode)
+      {
         if (bWait)
           pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
@@ -2329,7 +2186,8 @@ __declspec (noinline)
         pDesc->BufferCount = config.render.framerate.buffer_count;
 
       // We cannot switch modes on a waitable swapchain
-      if (bFlipMode && bWait) {
+      if (bFlipMode && bWait)
+      {
         pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
@@ -2362,7 +2220,8 @@ __declspec (noinline)
            SUCCEEDED ( (*ppSwapChain)->QueryInterface (IID_PPV_ARGS (&pSwapChain2)) )
           )
       {
-        if (max_latency < 16) {
+        if (max_latency < 16)
+        {
           dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
           pSwapChain2->SetMaximumFrameLatency (max_latency);
         }
@@ -2375,7 +2234,8 @@ __declspec (noinline)
       }
       //else
       {
-        if (max_latency != -1) {
+        if (max_latency != -1)
+        {
           CComPtr <IDXGIDevice1> pDevice1;
 
           if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
@@ -2461,15 +2321,18 @@ __declspec (noinline)
             ( (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
               SK_DS3_UseFlipMode () ) ) );
 
-      if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) {
-        if (bFlipMode) {
-          bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-        }
+      if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+      {
+        if (bFlipMode)
+            bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
 
         bFlipMode = bFlipMode && pDesc->Scaling == 0;
-      } else {
+      }
+
+      else
+      {
         if (config.render.framerate.flip_discard)
-         bFlipMode = dxgi_caps.present.flip_sequential;
+          bFlipMode = dxgi_caps.present.flip_sequential;
       }
 
       bWait = bFlipMode && dxgi_caps.present.waitable;
@@ -2477,12 +2340,14 @@ __declspec (noinline)
       // We cannot change the swapchain parameters if this is used...
       bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-      if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) {
+      if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+      {
         if (SK_DS3_IsBorderless ())
           pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
 
-      if (bFlipMode) {
+      if (bFlipMode)
+      {
         if (bWait)
           pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
@@ -2497,7 +2362,8 @@ __declspec (noinline)
           pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
       }
 
-      else {
+      else
+      {
         // Resort to triple-buffering if flip mode is not available
         if (config.render.framerate.buffer_count > 2)
           config.render.framerate.buffer_count = 2;
@@ -2509,7 +2375,8 @@ __declspec (noinline)
         pDesc->BufferCount = config.render.framerate.buffer_count;
 
       // We cannot switch modes on a waitable swapchain
-      if (bFlipMode && bWait) {
+      if (bFlipMode && bWait)
+      {
         pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
@@ -2656,7 +2523,8 @@ __declspec (noinline)
       // We cannot change the swapchain parameters if this is used...
       bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-      if (bFlipMode) {
+      if (bFlipMode)
+      {
         if (bWait)
           pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
@@ -2671,7 +2539,8 @@ __declspec (noinline)
           pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
       }
 
-      else {
+      else
+      {
         // Resort to triple-buffering if flip mode is not available
         if (config.render.framerate.buffer_count > 2)
           config.render.framerate.buffer_count = 2;
@@ -2683,7 +2552,8 @@ __declspec (noinline)
         pDesc->BufferCount = config.render.framerate.buffer_count;
 
       // We cannot switch modes on a waitable swapchain
-      if (bFlipMode && bWait) {
+      if (bFlipMode && bWait)
+      {
         pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
@@ -2713,7 +2583,8 @@ __declspec (noinline)
            SUCCEEDED ( (*ppSwapChain)->QueryInterface (IID_PPV_ARGS (&pSwapChain2)) )
           )
       {
-        if (max_latency < 16) {
+        if (max_latency < 16)
+        {
           dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
           pSwapChain2->SetMaximumFrameLatency (max_latency);
         }
@@ -2798,7 +2669,8 @@ __declspec (noinline)
     if (SK_DXGI_preferred_adapter == -1)
       return;
 
-    if (EnumAdapters_Original == nullptr) {
+    if (EnumAdapters_Original == nullptr)
+    {
       WaitForInitDXGI ();
 
       if (EnumAdapters_Original == nullptr)
@@ -2807,8 +2679,7 @@ __declspec (noinline)
 
     IDXGIAdapter* pGameAdapter     = (*ppAdapter);
     IDXGIAdapter* pOverrideAdapter = nullptr;
-
-    IDXGIFactory* pFactory = nullptr;
+    IDXGIFactory* pFactory         = nullptr;
 
     HRESULT res;
 
@@ -2817,7 +2688,8 @@ __declspec (noinline)
     else
       res = (*ppAdapter)->GetParent (IID_PPV_ARGS (&pFactory));
 
-    if (FAILED (res)) {
+    if (FAILED (res))
+    {
       if (SK_DXGI_use_factory1)
         res = CreateDXGIFactory1_Import (__uuidof (IDXGIFactory1), (void **)&pFactory);
       else
@@ -2856,13 +2728,19 @@ __declspec (noinline)
 
             *ppAdapter = pOverrideAdapter;
             pGameAdapter->Release ();
-          } else {
+          }
+
+          else
+          {
             dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Tried '%s' instead of '%s') !!!",
                           override_desc.Description, game_desc.Description );
             //SK_DXGI_preferred_adapter = -1;
             pOverrideAdapter->Release ();
           }
-        } else {
+        }
+
+        else
+        {
           dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override Failed, returning '%s' !!!",
                           game_desc.Description );
         }
@@ -2880,11 +2758,12 @@ __declspec (noinline)
 
     DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc2", L"%ph, %ph", This, pDesc);
 
-    HRESULT ret;
+    HRESULT    ret;
     DXGI_CALL (ret, GetDesc2_Original (This, pDesc));
 
     //// OVERRIDE VRAM NUMBER
-    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0) {
+    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+    {
       dll_log.LogEx ( true,
         L" <> GetDesc2_Override: Looking for matching NVAPI GPU for %s...: ",
         pDesc->Description );
@@ -2892,7 +2771,8 @@ __declspec (noinline)
       DXGI_ADAPTER_DESC* match =
         sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
-      if (match != NULL) {
+      if (match != NULL)
+      {
         dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
         pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
       }
@@ -2911,11 +2791,12 @@ __declspec (noinline)
 
     DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc1", L"%ph, %ph", This, pDesc);
 
-    HRESULT ret;
+    HRESULT    ret;
     DXGI_CALL (ret, GetDesc1_Original (This, pDesc));
 
     //// OVERRIDE VRAM NUMBER
-    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0) {
+    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+    {
       dll_log.LogEx ( true,
         L" <> GetDesc1_Override: Looking for matching NVAPI GPU for %s...: ",
         pDesc->Description );
@@ -2942,11 +2823,12 @@ __declspec (noinline)
 
     DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc",L"%ph, %ph", This, pDesc);
 
-    HRESULT ret;
+    HRESULT    ret;
     DXGI_CALL (ret, GetDesc_Original (This, pDesc));
 
     //// OVERRIDE VRAM NUMBER
-    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0) {
+    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+    {
       dll_log.LogEx ( true,
         L" <> GetDesc_Override: Looking for matching NVAPI GPU for %s...: ",
         pDesc->Description );
@@ -3024,14 +2906,16 @@ __declspec (noinline)
 
     // Logic to skip Intel and Microsoft adapters and return only AMD / NV
     //if (lstrlenW (pDesc->Description)) {
-    if (true) {
+    if (true)
+    {
       if (! lstrlenW (desc.Description))
         dll_log.LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
 
 #ifdef SKIP_INTEL
       if ((desc.VendorId == Microsoft || desc.VendorId == Intel) && Adapter == 0) {
 #else
-      if (false) {
+      if (false)
+      {
 #endif
         // We need to release the reference we were just handed before
         //   skipping it.
@@ -3043,14 +2927,17 @@ __declspec (noinline)
 
         return (pFunc (This, Adapter + 1, ppAdapter));
       }
-      else {
+
+      else
+      {
         // Only do this for NVIDIA SLI GPUs on Windows 10 (DXGI 1.4)
         if (false) { //nvapi_init && sk::NVAPI::CountSLIGPUs () > 0 && iver >= 3) {
           DXGI_ADAPTER_DESC* match =
             sk::NVAPI::FindGPUByDXGIName (desc.Description);
 
           if (match != NULL &&
-            desc.DedicatedVideoMemory > match->DedicatedVideoMemory) {
+            desc.DedicatedVideoMemory > match->DedicatedVideoMemory)
+          {
 // This creates problems in 32-bit environments...
 #ifdef _WIN64
             if (sk::NVAPI::app_name != L"Fallout4.exe") {
@@ -3059,7 +2946,9 @@ __declspec (noinline)
                 L"Original: %llu MiB)",
                 match->DedicatedVideoMemory >> 20ULL,
                 desc.DedicatedVideoMemory   >> 20ULL);
-            } else {
+            }
+
+            else {
               match->DedicatedVideoMemory = desc.DedicatedVideoMemory;
             }
 #endif
@@ -3080,13 +2969,15 @@ __declspec (noinline)
       HRESULT hr =
         (*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1));
 
-      if (SUCCEEDED (hr)) {
+      if (SUCCEEDED (hr))
+      {
         bool silence = dll_log.silent;
         dll_log.silent = true; // Temporarily disable logging
 
         DXGI_ADAPTER_DESC1 desc1;
 
-        if (SUCCEEDED (pAdapter1->GetDesc1 (&desc1))) {
+        if (SUCCEEDED (pAdapter1->GetDesc1 (&desc1)))
+        {
           dll_log.silent = silence; // Restore logging
 #define DXGI_ADAPTER_FLAG_REMOTE   0x1
 #define DXGI_ADAPTER_FLAG_SOFTWARE 0x2
@@ -3187,7 +3078,8 @@ __declspec (noinline)
     }
 #endif
 
-    if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr) {
+    if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr)
+    {
       return EnumAdapters_Common (This, Adapter, ppAdapter,
                                   (EnumAdapters_pfn)EnumAdapters_Override);
     }
@@ -3250,10 +3142,9 @@ __declspec (noinline)
       return CreateDXGIFactory (riid, ppFactory);
     }
 
-    HRESULT ret;
+    HRESULT    ret;
     DXGI_CALL (ret, CreateDXGIFactory1_Import (riid, ppFactory));
-
-    return ret;
+    return     ret;
   }
 
   __declspec (nothrow)
@@ -3281,10 +3172,9 @@ __declspec (noinline)
       return CreateDXGIFactory1 (riid, ppFactory);
     }
 
-    HRESULT ret;
+    HRESULT    ret;
     DXGI_CALL (ret, CreateDXGIFactory2_Import (Flags, riid, ppFactory));
-
-    return ret;
+    return     ret;
   }
 
   DXGI_STUB (HRESULT, DXGID3D10CreateDevice,
@@ -3339,16 +3229,18 @@ ChangeDisplaySettingsA_Detour (
 
   EnumDisplaySettings (nullptr, 0, &dev_mode);
 
-  if (dwFlags != CDS_TEST) {
+  if (dwFlags != CDS_TEST)
+  {
     if (called)
       ChangeDisplaySettingsA_Original (NULL, CDS_RESET);
 
     called = true;
 
     return ChangeDisplaySettingsA_Original (lpDevMode, CDS_FULLSCREEN);
-  } else {
-    return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
   }
+
+  else
+    return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
 }
 
 typedef void (WINAPI *finish_pfn)(void);
@@ -3377,7 +3269,8 @@ SK_HookDXGI (void)
   dll_log.Log (L"[   DXGI   ] ================================");
 
 
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")) {
+  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
+  {
     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph",
       (CreateDXGIFactory_Import =  \
         (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
@@ -3387,7 +3280,10 @@ SK_HookDXGI (void)
     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph",
       (CreateDXGIFactory2_Import = \
         (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
-  } else {
+  }
+
+  else
+  {
     if (GetProcAddress (hBackend, "CreateDXGIFactory"))
       SK_CreateDLLHook2 ( L"dxgi.dll",
                           "CreateDXGIFactory",
@@ -3419,7 +3315,8 @@ SK_HookDXGI (void)
     MH_ApplyQueued ();
   }
 
-  if (CreateDXGIFactory1_Import != nullptr) {
+  if (CreateDXGIFactory1_Import != nullptr)
+  {
     SK_DXGI_use_factory1 = true;
     SK_DXGI_factory_init = true;
   }
@@ -3452,7 +3349,8 @@ void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
 {
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsHostAppSKIM ())
+  {
     SK_BootDXGI ();
 
     while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
@@ -3530,7 +3428,8 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
 
   void** vftable = *(void***)*&pSwapChain;
 
-  if (Present_Original != nullptr) {
+  if (Present_Original != nullptr)
+  {
     //dll_log.Log (L"Rehooking IDXGISwapChain::Present (...)");
 
 #if 0
@@ -3543,24 +3442,28 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
         Present_Original = nullptr;
     }
 #endif
-  } else {
+  }
 
-  DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
-                      "IDXGISwapChain::Present",
-                       PresentCallback,
-                       Present_Original,
-                       PresentSwapChain_pfn );
+  else
+  {
+    DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
+                        "IDXGISwapChain::Present",
+                         PresentCallback,
+                         Present_Original,
+                         PresentSwapChain_pfn );
 
-  vftable_8 = vftable [8];
+    vftable_8 = vftable [8];
   }
 
 
   CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
 
-  if (SUCCEEDED (pSwapChain->QueryInterface (IID_PPV_ARGS (&pSwapChain1)))) {
+  if (SUCCEEDED (pSwapChain->QueryInterface (IID_PPV_ARGS (&pSwapChain1))))
+  {
     vftable = *(void***)*&pSwapChain1;
 
-    if (Present1_Original != nullptr) {
+    if (Present1_Original != nullptr)
+    {
 #if 0
       //dll_log.Log (L"Rehooking IDXGISwapChain::Present1 (...)");
 
@@ -3573,15 +3476,17 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
           Present1_Original = nullptr;
       }
 #endif
-    } else {
+    }
 
-    DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
-                        "IDXGISwapChain1::Present1",
-                         Present1Callback,
-                         Present1_Original,
-                         Present1SwapChain1_pfn );
+    else
+    {
+      DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
+                          "IDXGISwapChain1::Present1",
+                           Present1Callback,
+                           Present1_Original,
+                           Present1SwapChain1_pfn );
 
-    vftable_22 = vftable [22];
+      vftable_22 = vftable [22];
     }
   }
 
@@ -3626,8 +3531,10 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
   CComPtr <IDXGIOutput> pOutput = nullptr;
 
-  if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput))) {
-    if (pOutput != nullptr) {
+  if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
+  {
+    if (pOutput != nullptr)
+    {
       DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
                                 DXGIOutput_GetDisplayModeList_Override,
                                            GetDisplayModeList_Original,
@@ -3646,8 +3553,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
   }
 
   SK_DXGI_HookPresent (pSwapChain);
-
-  MH_ApplyQueued ();
+  MH_ApplyQueued      (          );
 }
 
 void
@@ -3708,10 +3614,12 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   // 24 CreateSwapChainForComposition
   
   // DXGI 1.2+
-  if (iver > 1) {
+  if (iver > 1)
+  {
     CComPtr <IDXGIFactory2> pFactory2 = nullptr;
 
-    if (SUCCEEDED (pFactory->QueryInterface (IID_PPV_ARGS (&pFactory2)))) {
+    if (SUCCEEDED (pFactory->QueryInterface (IID_PPV_ARGS (&pFactory2))))
+    {
       DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
                           "IDXGIFactory2::CreateSwapChainForHwnd",
                            DXGIFactory_CreateSwapChainForHwnd_Override,
@@ -3743,18 +3651,21 @@ HookDXGI (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (! config.apis.dxgi.d3d11.hook) {
+  if (! config.apis.dxgi.d3d11.hook)
+  {
     CloseHandle (GetCurrentThread ());
     return 0;
   }
 
   // Wait for DXGI to boot
-  if (CreateDXGIFactory_Import == nullptr) {
+  if (CreateDXGIFactory_Import == nullptr)
+  {
     static volatile ULONG implicit_init = FALSE;
 
     // If something called a D3D11 function before DXGI was initialized,
     //   begin the process, but ... only do this once.
-    if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
+    if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE))
+    {
       dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
       SK_BootDXGI ();
     }
@@ -3765,7 +3676,8 @@ HookDXGI (LPVOID user)
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
 
-  if (InterlockedCompareExchange (&__dxgi_ready, TRUE, TRUE)) {
+  if (InterlockedCompareExchange (&__dxgi_ready, TRUE, TRUE))
+  {
     CloseHandle (GetCurrentThread ());
     return 0;
   }
@@ -3852,7 +3764,10 @@ HookDXGI (LPVOID user)
 
       HookD3D11 (&d3d11_hook_ctx);
     }
-  } else {
+  }
+
+  else
+  {
     _com_error err (hr);
 
     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
@@ -3879,7 +3794,8 @@ HookDXGI (LPVOID user)
 bool
 SK::DXGI::Shutdown (void)
 {
-  if (sk::NVAPI::app_name == L"DarkSoulsIII.exe") {
+  if (sk::NVAPI::app_name == L"DarkSoulsIII.exe")
+  {
     SK_DS3_ShutdownPlugin (L"dxgi");
   }
 
@@ -4500,8 +4416,8 @@ SK::DXGI::ShutdownBudgetThread ( void )
     {
       if ( mem_stats [i].max_usage > 0 )
       {
-        if ( mem_stats [i].min_reserve == UINT64_MAX )
-             mem_stats [i].min_reserve =  0ULL;
+        if ( mem_stats [i].min_reserve     == UINT64_MAX )
+             mem_stats [i].min_reserve     =  0ULL;
 
         if ( mem_stats [i].min_over_budget == UINT64_MAX )
              mem_stats [i].min_over_budget =  0ULL;

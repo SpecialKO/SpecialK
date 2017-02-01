@@ -496,6 +496,11 @@ ImGui_ImplDX9_NewFrame (void)
     ImVec2 ( (float)(rect.right - rect.left),
                (float)(rect.bottom - rect.top) );
 
+
+  if (! g_pd3dDevice)
+    return;
+
+
   CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
   if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain )))

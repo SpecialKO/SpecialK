@@ -359,8 +359,7 @@ public:
       unsigned int x = 65535;
       unsigned int y = 65535;
 
-         char szTemp    [32];
-      memset (szTemp, 0, 32);
+         char szTemp    [32] = { 0 };
 
       strncpy (szTemp, *(char **)val, 31);
 
@@ -2766,6 +2765,8 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 
   GetCursorPos_Original  (&game_window.cursor_pos);
 
+  if (game_window.GetWindowLongPtr == nullptr)
+    return;
 
   game_window.actual.style =
     game_window.GetWindowLongPtr ( hWnd, GWL_STYLE );

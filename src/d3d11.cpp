@@ -210,7 +210,8 @@ bool SK_D3D11_IsTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
 #endif
 }
 
-void SK_D3D11_ClearTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
+void
+SK_D3D11_ClearTexInjectThread ( DWORD dwThreadId = GetCurrentThreadId () )
 {
 #ifdef NO_TLS
   EnterCriticalSection (&cs_texinject);
@@ -228,7 +229,8 @@ void SK_D3D11_ClearTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
 #endif
 }
 
-void SK_D3D11_SetTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
+void
+SK_D3D11_SetTexInjectThread ( DWORD dwThreadId = GetCurrentThreadId () )
 {
 #ifdef NO_TLS
   EnterCriticalSection (&cs_texinject);
@@ -246,43 +248,44 @@ void SK_D3D11_SetTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
 #endif
 }
 
-typedef ULONG (WINAPI *IUnknown_Release_pfn)(IUnknown* This);
+typedef ULONG (WINAPI *IUnknown_Release_pfn) (IUnknown* This);
+typedef ULONG (WINAPI *IUnknown_AddRef_pfn)  (IUnknown* This);
+
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
+IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 
 ULONG
 WINAPI
 IUnknown_Release (IUnknown* This)
 {
-  if (! SK_D3D11_IsTexInjectThread ()) {
+  if (! SK_D3D11_IsTexInjectThread ())
+  {
     ID3D11Texture2D* pTex = nullptr;
-    if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex)))) {
+    if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex))))
+    {
       ULONG count = IUnknown_Release_Original (pTex);
 
       // If count is == 0, something's screwy
-      if (pTex != nullptr && count <= 1) {
+      if (pTex != nullptr && count <= 1)
         SK_D3D11_RemoveTexFromCache (pTex);
-      }
     }
   }
 
   return IUnknown_Release_Original (This);
 }
 
-typedef ULONG (WINAPI *IUnknown_AddRef_pfn)(IUnknown* This);
-IUnknown_AddRef_pfn IUnknown_AddRef_Original = nullptr;
-
 ULONG
 WINAPI
 IUnknown_AddRef (IUnknown* This)
 {
-  if (! SK_D3D11_IsTexInjectThread ()) {
+  if (! SK_D3D11_IsTexInjectThread ())
+  {
     ID3D11Texture2D* pTex = (ID3D11Texture2D *)This;//nullptr;
 
     // This would cause the damn thing to recurse infinitely...
     //if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex)))) {
-      if (pTex != nullptr && SK_D3D11_TextureIsCached (pTex)) {
+      if (pTex != nullptr && SK_D3D11_TextureIsCached (pTex))
         SK_D3D11_UseTexture (pTex);
-      }
     //}
   }
 
@@ -403,7 +406,8 @@ D3D11CreateDevice_Detour (
                               &ret_level,
                               ppImmediateContext));
 
-  if (SUCCEEDED (res)) {
+  if (SUCCEEDED (res))
+  {
     dwRenderThread = GetCurrentThreadId ();
 
     SK_D3D11_SetDevice ( &ret_device, ret_level );
@@ -462,7 +466,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   SK_DXGI_AdapterOverride ( &pAdapter, &DriverType );
 
-  if (swap_chain_desc != nullptr) {
+  if (swap_chain_desc != nullptr)
+  {
     dll_log.LogEx ( true,
                       L"[   DXGI   ]  SwapChain: (%lux%lu@%4.1f Hz - Scaling: %s) - "
                       L"[%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
@@ -496,7 +501,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
     if ( config.render.dxgi.scaling_mode      != -1 &&
           swap_chain_desc->BufferDesc.Scaling !=
-            (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode ) {
+            (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+    {
       dll_log.Log ( L"[  D3D 11  ]  >> Scaling Override "
                     L"(Requested: %s, Using: %s)",
                       SK_DXGI_DescribeScalingMode (
@@ -511,12 +517,14 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
     }
 
-    if (! config.window.res.override.isZero ()) {
+    if (! config.window.res.override.isZero ())
+    {
       swap_chain_desc->BufferDesc.Width  = config.window.res.override.x;
       swap_chain_desc->BufferDesc.Height = config.window.res.override.y;
     }
 
-    else {
+    else
+    {
       SK_DXGI_BorderCompensation (
         swap_chain_desc->BufferDesc.Width,
           swap_chain_desc->BufferDesc.Height
@@ -542,9 +550,11 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (SUCCEEDED (res))
   {
-    if (swap_chain_desc != nullptr) {
+    if (swap_chain_desc != nullptr)
+    {
       if ( dwRenderThread == 0x00 ||
-           dwRenderThread == GetCurrentThreadId () ) {
+           dwRenderThread == GetCurrentThreadId () )
+      {
         if ( hWndRender                   != 0 &&
              swap_chain_desc->OutputWindow != 0 &&
              swap_chain_desc->OutputWindow != hWndRender )
@@ -697,11 +707,16 @@ D3D11_UpdateSubresource_Override (
   //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)", pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 
   CComPtr <ID3D11Texture2D> pTex;
-  if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
-    if (SK_D3D11_TextureIsCached (pTex)) {
+  if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex))))
+  {
+    if (SK_D3D11_TextureIsCached (pTex))
+    {
       dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
       SK_D3D11_RemoveTexFromCache (pTex);
-    } else {
+    }
+
+    else
+    {
       D3D11_UpdateSubresource_Original (This, pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
       //dll_log.Log (L"[DX11TexMgr] Updated 2D texture...");
       return;
@@ -722,11 +737,16 @@ D3D11_Map_Override (
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
   CComPtr <ID3D11Texture2D> pTex;
-  if (SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex)))) {
-    if (SK_D3D11_TextureIsCached (pTex)) {
+  if (SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex))))
+  {
+    if (SK_D3D11_TextureIsCached (pTex))
+    {
       dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
       SK_D3D11_RemoveTexFromCache (pTex);
-    } else {
+    }
+
+    else
+    {
       //dll_log.Log (L"[DX11TexMgr] Mapped 2D texture...");
     }
   }
@@ -2317,8 +2337,8 @@ D3D11Dev_CreateTexture2D_Override (
 
 #define D3DX11_DEFAULT -1
 
-        D3DX11_IMAGE_INFO      img_info   = { };
-        D3DX11_IMAGE_LOAD_INFO load_info  = { };
+        D3DX11_IMAGE_INFO      img_info   = { 0 };
+        D3DX11_IMAGE_LOAD_INFO load_info  = { 0 };
 
         D3DX11GetImageInfoFromFileW (wszTex, nullptr, &img_info, nullptr);
 
@@ -2521,7 +2541,10 @@ SK::DXGI::getPipelineStatsDesc (void)
                     SK_CountToString (stats.VSInvocations).c_str (),
                       SK_CountToString (stats.IAVertices).c_str (),
                         SK_CountToString (stats.IAPrimitives).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"  VERTEX : <Unused>\n" );
   }
@@ -2529,13 +2552,17 @@ SK::DXGI::getPipelineStatsDesc (void)
   //
   // GEOMETRY SHADING
   //
-  if (stats.GSInvocations > 0) {
+  if (stats.GSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  GEOM   : %s   (%s Prims)\n",
                     wszDesc,
                       SK_CountToString (stats.GSInvocations).c_str (),
                         SK_CountToString (stats.GSPrimitives).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  GEOM   : <Unused>\n",
                     wszDesc );
@@ -2544,13 +2571,17 @@ SK::DXGI::getPipelineStatsDesc (void)
   //
   // TESSELLATION
   //
-  if (stats.HSInvocations > 0 || stats.DSInvocations > 0) {
+  if (stats.HSInvocations > 0 || stats.DSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  TESS   : %s Hull ==> %s Domain\n",
                     wszDesc,
                       SK_CountToString (stats.HSInvocations).c_str (),
                         SK_CountToString (stats.DSInvocations).c_str () ) ;
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  TESS   : <Unused>\n",
                     wszDesc );
@@ -2559,14 +2590,18 @@ SK::DXGI::getPipelineStatsDesc (void)
   //
   // RASTERIZATION
   //
-  if (stats.CInvocations > 0) {
+  if (stats.CInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
                     wszDesc, 100.0f *
                         ( (float)stats.CPrimitives /
                           (float)stats.CInvocations ),
                       SK_CountToString (stats.CInvocations).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  RASTER : <Unused>\n",
                     wszDesc );
@@ -2575,13 +2610,17 @@ SK::DXGI::getPipelineStatsDesc (void)
   //
   // PIXEL SHADING
   //
-  if (stats.PSInvocations > 0) {
+  if (stats.PSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  PIXEL  : %s   (%s Triangles OUT)\n",
                     wszDesc,
                       SK_CountToString (stats.PSInvocations).c_str (),
                         SK_CountToString (stats.CPrimitives).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  PIXEL  : <Unused>\n",
                     wszDesc );
@@ -2607,7 +2646,8 @@ SK::DXGI::getPipelineStatsDesc (void)
 void
 SK_D3D11_InitTextures (void)
 {
-  if (! InterlockedCompareExchange (&SK_D3D11_tex_init, TRUE, FALSE)) {
+  if (! InterlockedCompareExchange (&SK_D3D11_tex_init, TRUE, FALSE))
+  {
     if ( StrStrIW (SK_GetHostApp (), L"ffx.exe")   ||
          StrStrIW (SK_GetHostApp (), L"ffx-2.exe") ||
          StrStrIW (SK_GetHostApp (), L"FFX&X-2_Will.exe") )
@@ -2635,7 +2675,8 @@ SK_D3D11_InitTextures (void)
     // Legacy Hack for Untitled Project X (FFX/FFX-2)
     //
     extern bool SK_D3D11_inject_textures_ffx;
-    if (! SK_D3D11_inject_textures_ffx) {
+    if (! SK_D3D11_inject_textures_ffx)
+    {
       SK_D3D11_EnableTexCache  (config.textures.d3d11.cache);
       SK_D3D11_EnableTexDump   (config.textures.d3d11.dump);
       SK_D3D11_EnableTexInject (config.textures.d3d11.inject);
@@ -2662,7 +2703,8 @@ SK_D3D11_InitTextures (void)
     if (! SK_D3D11_inject_textures_ffx)
       SK_D3D11_PopulateResourceList ();
 
-    if (hModD3DX11_43 == nullptr) {
+    if (hModD3DX11_43 == nullptr)
+    {
       hModD3DX11_43 =
         LoadLibrary (L"d3dx11_43.dll");
 
@@ -2715,7 +2757,8 @@ SK_D3D11_Shutdown (void)
   if (! InterlockedCompareExchange (&SK_D3D11_initialized, FALSE, TRUE))
     return;
 
-  if (SK_D3D11_Textures.RedundantLoads_2D > 0) {
+  if (SK_D3D11_Textures.RedundantLoads_2D > 0)
+  {
     dll_log.Log ( L"[Perf Stats] At shutdown: %7.2f seconds and %7.2f MiB of"
                   L" CPU->GPU I/O avoided by %lu texture cache hits.",
                     SK_D3D11_Textures.RedundantTime_2D / 1000.0f,
@@ -2730,7 +2773,8 @@ SK_D3D11_Shutdown (void)
   // Stop caching while we shutdown
   SK_D3D11_cache_textures = false;
 
-  if (FreeLibrary (SK::DXGI::hModD3D11)) {
+  if (FreeLibrary (SK::DXGI::hModD3D11))
+  {
     DeleteCriticalSection (&tex_cs);
     DeleteCriticalSection (&hash_cs);
     DeleteCriticalSection (&dump_cs);
@@ -2767,12 +2811,14 @@ __stdcall
 HookD3D11 (LPVOID user)
 {
   // Wait for DXGI to boot
-  if (CreateDXGIFactory_Import == nullptr) {
+  if (CreateDXGIFactory_Import == nullptr)
+  {
     static volatile ULONG implicit_init = FALSE;
 
     // If something called a D3D11 function before DXGI was initialized,
     //   begin the process, but ... only do this once.
-    if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE)) {
+    if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE))
+    {
       dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
       SK_BootDXGI ();
     }
@@ -2784,28 +2830,30 @@ HookD3D11 (LPVOID user)
   }
 
   // This only needs to be done once
-  if (InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE)) {
+  if (InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE))
     return 0;
-  }
 
   if (! config.apis.dxgi.d3d11.hook)
     return 0;
 
-  CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+  bool success = SUCCEEDED (CoInitializeEx (nullptr, COINIT_MULTITHREADED));
 
   dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
 
   sk_hook_d3d11_t* pHooks = 
     (sk_hook_d3d11_t *)user;
 
-  if (pHooks->ppDevice && pHooks->ppImmediateContext) {
-    if (pHooks->ppDevice != nullptr) {
+  if (pHooks->ppDevice && pHooks->ppImmediateContext)
+  {
+    if (pHooks->ppDevice != nullptr)
+    {
       DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 5, "ID3D11Device::CreateTexture2D",
                              D3D11Dev_CreateTexture2D_Override, D3D11Dev_CreateTexture2D_Original,
                              D3D11Dev_CreateTexture2D_pfn);
     }
 
-    if (pHooks->ppImmediateContext != nullptr) {
+    if (pHooks->ppImmediateContext != nullptr)
+    {
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                              D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                              D3D11_VSSetConstantBuffers_pfn);
@@ -2838,6 +2886,9 @@ HookD3D11 (LPVOID user)
 
   if (config.apis.dxgi.d3d12.hook)
     HookD3D12 (nullptr);
+
+  if (success)
+    CoUninitialize ();
 
   return 0;
 }

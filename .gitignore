@@ -378,3 +378,5 @@ paket-files/
 *.tlog
 *.idb
 *.pdb
+*.xml
+/build/TZFix/Win32

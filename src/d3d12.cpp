@@ -190,8 +190,9 @@ HookD3D12 (LPVOID user)
   if (! config.apis.dxgi.d3d12.hook)
     return 0;
 
-  if (SK::DXGI::hModD3D12 != nullptr) {
-    CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+  if (SK::DXGI::hModD3D12 != nullptr)
+  {
+    //bool success = SUCCEEDED (CoInitializeEx (nullptr, COINIT_MULTITHREADED))
 
     dll_log.Log (L"[  D3D 12  ]   Hooking D3D12");
 

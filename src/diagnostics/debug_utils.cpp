@@ -42,8 +42,10 @@ iSK_Logger game_debug;
 typedef BOOL (WINAPI *TerminateProcess_pfn)(HANDLE hProcess, UINT uExitCode);
 TerminateProcess_pfn TerminateProcess_Original = nullptr;
 
-typedef BOOL (WINAPI *ExitProcess_pfn)(UINT uExitCode);
+typedef void (WINAPI *ExitProcess_pfn)(UINT uExitCode);
+
 ExitProcess_pfn ExitProcess_Original = nullptr;
+ExitProcess_pfn ExitProcess_Hook     = nullptr;
 
 BOOL
 __stdcall
@@ -76,16 +78,16 @@ TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
 extern void
 SK_UnhookLoadLibrary (void);
 
-BOOL
+void
 WINAPI
 ExitProcess_Detour (UINT uExitCode)
 {
   // Since many, many games don't shutdown cleanly, let's unload ourself.
 
+  SK_DisableHook       (ExitProcess_Hook);
   SK_UnhookLoadLibrary ();
   SK_SelfDestruct      ();
-
-  return ExitProcess_Original (uExitCode);
+  ExitProcess          (uExitCode);
 }
 
 typedef void (WINAPI *OutputDebugStringA_pfn)(LPCSTR lpOutputString);

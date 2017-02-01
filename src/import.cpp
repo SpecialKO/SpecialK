@@ -27,11 +27,11 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 
-const std::wstring SK_IMPORT_EARLY  = L"Early";
-const std::wstring SK_IMPORT_PLUGIN = L"PlugIn";
-const std::wstring SK_IMPORT_LATE   = L"Late";
-const std::wstring SK_IMPORT_LAZY   = L"Lazy";
-const std::wstring SK_IMPORT_PROXY  = L"Proxy";
+const std::wstring SK_IMPORT_EARLY         = L"Early";
+const std::wstring SK_IMPORT_PLUGIN        = L"PlugIn";
+const std::wstring SK_IMPORT_LATE          = L"Late";
+const std::wstring SK_IMPORT_LAZY          = L"Lazy";
+const std::wstring SK_IMPORT_PROXY         = L"Proxy";
 
 const std::wstring SK_IMPORT_ROLE_DXGI     = L"dxgi";
 const std::wstring SK_IMPORT_ROLE_D3D11    = L"d3d11";
@@ -40,13 +40,18 @@ const std::wstring SK_IMPORT_ROLE_OPENGL   = L"OpenGL32";
 const std::wstring SK_IMPORT_ROLE_PLUGIN   = L"PlugIn";
 const std::wstring SK_IMPORT_ROLE_3RDPARTY = L"ThirdParty";
 
-const std::wstring SK_IMPORT_ARCH_X64   = L"x64";
-const std::wstring SK_IMPORT_ARCH_WIN32 = L"Win32";
+const std::wstring SK_IMPORT_ARCH_X64      = L"x64";
+const std::wstring SK_IMPORT_ARCH_WIN32    = L"Win32";
 
-import_t imports [SK_MAX_IMPORTS];
+import_t imports [SK_MAX_IMPORTS] = { 0 };
 
-extern HMODULE __stdcall SK_GetDLL (void);
-typedef BOOL (WINAPI *SKPlugIn_Init_pfn)(HMODULE hSpecialK);
+extern
+HMODULE
+__stdcall
+SK_GetDLL (void);
+
+typedef BOOL (WINAPI *SKPlugIn_Init_pfn)     (HMODULE hSpecialK);
+typedef BOOL (WINAPI *SKPlugIn_Shutdown_pfn) (LPVOID  user);
 
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
@@ -609,18 +614,38 @@ void
 SK_UnloadImports (void)
 {
   // Unload in reverse order, because that's safer :)
-  for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--) {
-    if (imports [i].hLibrary > 0) {
+  for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
+  {
+    if (imports [i].hLibrary > 0)
+    {
+      if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+      {
+        SKPlugIn_Shutdown_pfn SKPlugIn_Shutdown =
+          (SKPlugIn_Shutdown_pfn)
+            GetProcAddress ( imports [i].hLibrary,
+                               "SKPlugIn_Shutdown" );
+
+        if (SKPlugIn_Shutdown != nullptr)
+          SKPlugIn_Shutdown (nullptr);
+      }
+
       dll_log.LogEx ( true,
                         L"[ SpecialK ] Unloading Custom Import %s... ",
-                          imports [i].filename->get_value_str ().c_str () );
-      if (FreeLibrary (imports [i].hLibrary)) {
+                          imports [i].filename->get_value_str ().c_str ()
+      );
+
+      if (FreeLibrary (imports [i].hLibrary))
         dll_log.LogEx (false, L"success!\n");
-      } else {
+
+      else
+      {
         _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
-        dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
-          err.WCode (), err.ErrorMessage () );
+        dll_log.LogEx ( false,
+                          L"failed: 0x%04X (%s)!\n",
+                            err.WCode (),
+                              err.ErrorMessage ()
+                      );
       }
     }
   }
