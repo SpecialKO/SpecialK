@@ -565,35 +565,32 @@ SK_InitFinishCallback (void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
-  if (! SK_IsHostAppSKIM ())
-  { 
-    SK_Console* pConsole = SK_Console::getInstance ();
-    pConsole->Start ();
+  SK_Console* pConsole = SK_Console::getInstance ();
+  pConsole->Start ();
 
-    extern BOOL SK_UsingVulkan (void);
+  extern BOOL SK_UsingVulkan (void);
 
-      // Create a thread that pumps the OSD
-    if (config.osd.pump || SK_UsingVulkan ()) {
-      dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
-      hPumpThread =
-        (HANDLE)
-          _beginthreadex ( nullptr,
-                             0,
-                               osd_pump,
-                                 nullptr,
-                                   0,
-                                     nullptr );
+    // Create a thread that pumps the OSD
+  if (config.osd.pump || SK_UsingVulkan ()) {
+    dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
+    hPumpThread =
+      (HANDLE)
+        _beginthreadex ( nullptr,
+                           0,
+                             osd_pump,
+                               nullptr,
+                                 0,
+                                   nullptr );
 
-      if (hPumpThread != nullptr)
-        dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
-                          GetThreadId (hPumpThread),
-                            config.osd.pump_interval * 1000.0f );
-      else
-        dll_log.LogEx (false, L"failed!\n");
-    }
-
-    SK_StartPerfMonThreads ();
+    if (hPumpThread != nullptr)
+      dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
+                        GetThreadId (hPumpThread),
+                          config.osd.pump_interval * 1000.0f );
+    else
+      dll_log.LogEx (false, L"failed!\n");
   }
+
+  SK_StartPerfMonThreads ();
 
   LeaveCriticalSection (&init_mutex);
 }
@@ -721,13 +718,12 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"----------------------------------------------------------------------"
     L"---------------------\n");
 
+  __crc32_init ();
+
   if (SK_IsHostAppSKIM ()) {
     callback_fn (SK_InitFinishCallback);
     return;
   }
-
-  __crc32_init ();
-
 
   // Load user-defined DLLs (Early)
 #ifdef _WIN64
@@ -1469,54 +1465,49 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     config.system.handle_crashes = false;
     config.system.game_output    = false;
     config.steam.silent          = true;
-    SK_InitCore (backend, callback);
-    return 0;
   }
 
-  else
-{
-    SK_Init_MinHook                       ();
+  SK_Init_MinHook                       ();
 
-    if (config.system.handle_crashes)
-      SK::Diagnostics::CrashHandler::Init ();
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
 
 
-    // Don't let Steam prevent me from attaching a debugger at startup, damnit!
-    SK::Diagnostics::Debugger::Allow ();
+  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
+  SK::Diagnostics::Debugger::Allow ();
 
-    game_debug.init (L"logs/game_output.log", L"w");
+  game_debug.init (L"logs/game_output.log", L"w");
 
-    if (! SK_IsHostAppSKIM ()) {
-      SK_Steam_InitCommandConsoleVariables ();
-      //SK_TestSteamImports                  (GetModuleHandle (nullptr));
-    }
-
-
-    // Do this from the startup thread
-    SK_HookWinAPI       ();
-    SK::Framerate::Init ();
-
-
-
-    // Hard-code the AppID for ToZ
-    if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
-      config.steam.appid = 351970;
-
-    // Game won't start from the commandline without this...
-    if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
-      config.steam.appid = 405900;
-
-
-    // Start unmuted
-    if (config.window.background_mute)
-      SK_SetGameMute (FALSE);
-
-
-    if (config.system.display_debug_out)
-      SK::Diagnostics::Debugger::SpawnConsole ();
-
-    SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+  if (! SK_IsHostAppSKIM ()) {
+    SK_Steam_InitCommandConsoleVariables ();
+    //SK_TestSteamImports                  (GetModuleHandle (nullptr));
   }
+
+
+  // Do this from the startup thread
+  SK_HookWinAPI       ();
+  SK::Framerate::Init ();
+
+
+
+  // Hard-code the AppID for ToZ
+  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+    config.steam.appid = 351970;
+
+  // Game won't start from the commandline without this...
+  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
+    config.steam.appid = 405900;
+
+
+  // Start unmuted
+  if (config.window.background_mute)
+    SK_SetGameMute (FALSE);
+
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+  SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
   LeaveCriticalSection (&init_mutex);
 
