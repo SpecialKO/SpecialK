@@ -721,12 +721,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"----------------------------------------------------------------------"
     L"---------------------\n");
 
-  __crc32_init ();
-
   if (SK_IsHostAppSKIM ()) {
     callback_fn (SK_InitFinishCallback);
     return;
   }
+
+  __crc32_init ();
+
 
   // Load user-defined DLLs (Early)
 #ifdef _WIN64
