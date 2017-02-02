@@ -1,8 +1,9 @@
 #include <SpecialK/adl.h>
 #include <SpecialK/log.h>
 
-BOOL ADL_init = ADL_FALSE;
+#include <SpecialK/diagnostics/compatibility.h>
 
+BOOL      ADL_init = ADL_FALSE;
 HINSTANCE hADL_DLL;
 
 ADL_ADAPTER_NUMBEROFADAPTERS_GET   ADL_Adapter_NumberOfAdapters_Get;
@@ -34,8 +35,8 @@ void __stdcall ADL_Main_Memory_Free ( void** lpBuffer )
   }
 }
 
-AdapterInfo adl_adapters [ADL_MAX_ADAPTERS];
-AdapterInfo adl_active   [ADL_MAX_ADAPTERS];
+AdapterInfo adl_adapters [ADL_MAX_ADAPTERS] = { };
+AdapterInfo adl_active   [ADL_MAX_ADAPTERS] = { };
 
 BOOL
 SK_InitADL (void)
@@ -44,19 +45,17 @@ SK_InitADL (void)
     return ADL_init;
   }
 
-  ZeroMemory (adl_adapters, sizeof (AdapterInfo) * ADL_MAX_ADAPTERS);
-  ZeroMemory (adl_active,   sizeof (AdapterInfo) * ADL_MAX_ADAPTERS);
-
-  for (int i = 0; i < ADL_MAX_ADAPTERS; i++) {
+  for (int i = 0; i < ADL_MAX_ADAPTERS; i++)
+  {
     adl_adapters [i].iSize = sizeof (AdapterInfo);
     adl_active   [i].iSize = sizeof (AdapterInfo);
   }
 
-  hADL_DLL = LoadLibrary (L"atiadlxx.dll");
+  hADL_DLL = LoadLibraryW_Original (L"atiadlxx.dll");
   if (hADL_DLL == nullptr) {
     // A 32 bit calling application on 64 bit OS will fail to LoadLibrary.
     // Try to load the 32 bit library (atiadlxy.dll) instead
-    hADL_DLL = LoadLibrary (L"atiadlxy.dll");
+    hADL_DLL = LoadLibraryW_Original (L"atiadlxy.dll");
   }
 
   if (hADL_DLL == nullptr) {

@@ -20,6 +20,7 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 #define PSAPI_VERSION 1
+#define NOMINMAX
 
 #include <SpecialK/stdafx.h>
 
@@ -52,12 +53,10 @@
 
 #include <d3d11_1.h>
 
+#include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/diagnostics/crash_handler.h>
 
 #pragma comment (lib, "delayimp.lib")
-
-#undef min
-#undef max
 
 #include <imgui/backends/imgui_d3d11.h>
 
@@ -3388,7 +3387,7 @@ SK_LoadRealDXGI (void)
   lstrcatW (wszBackendDLL, L"\\dxgi.dll");
 
   if (local_dxgi == 0)
-    local_dxgi = LoadLibraryW (wszBackendDLL);
+    local_dxgi = LoadLibraryW_Original (wszBackendDLL);
   else {
     HMODULE hMod;
     GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
@@ -3401,16 +3400,14 @@ SK_LoadRealDXGI (void)
 void
 SK_FreeRealDXGI (void)
 {
-#ifndef DXMD
-  FreeLibrary (local_dxgi);
-#endif
+  FreeLibrary_Original (local_dxgi);
 }
 
 bool
 SK::DXGI::Startup (void)
 {
-  //old_threads =
-    //SK_SuspendAllOtherThreads ();
+  old_threads =
+    SK_SuspendAllOtherThreads ();
 
   bool ret = SK_StartupCore (L"dxgi", dxgi_init_callback);
 
@@ -3904,7 +3901,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
         if ( SUCCEEDED ( result ) )
         {
           dll_log.LogEx ( false,
-                            L"eid=0x%x, cookie=%u\n",
+                            L"eid=0x%p, cookie=%u\n",
                               budget_thread.event,
                                         budget_thread.cookie );
 
@@ -4330,7 +4327,7 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
 
 
   static HMODULE
-    hDXGI = LoadLibrary ( L"dxgi.dll" );
+    hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
 
   static CreateDXGIFactory_pfn
     CreateDXGIFactory =

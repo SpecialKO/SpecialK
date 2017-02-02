@@ -19,6 +19,8 @@
  *
 **/
 
+#define NOMINMAX
+
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/command.h>
@@ -35,8 +37,7 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 #define D3D12_IGNORE_SDK_LAYERS
 #include <SpecialK/d3d12_interfaces.h>
 
-#undef min
-#undef max
+#include <SpecialK/diagnostics/compatibility.h>
 
 #include <algorithm>
 
@@ -44,7 +45,7 @@ LPVOID                pfnD3D12CreateDevice     = nullptr;
 volatile
 D3D12CreateDevice_pfn D3D12CreateDevice_Import = nullptr;
 
-HMODULE               SK::DXGI::hModD3D12      = 0;
+HMODULE               SK::DXGI::hModD3D12      = nullptr;
 
 IUnknown*             g_pD3D12Dev              = nullptr;
 
@@ -144,28 +145,39 @@ D3D12CreateDevice_Detour (
 
 volatile LONG SK_D3D12_initialized = FALSE;
 
-void
+bool
 SK_D3D12_Init (void)
 {
-  if (SK::DXGI::hModD3D12 == nullptr) {
-    SK::DXGI::hModD3D12 = LoadLibrary (L"d3d12.dll");
+  if (SK::DXGI::hModD3D12 == nullptr)
+  {
+    SK::DXGI::hModD3D12 =
+      LoadLibraryW_Original (L"d3d12.dll");
+  }
 
-    if (SK::DXGI::hModD3D12 != nullptr) {
-      SK_CreateDLLHook ( L"d3d12.dll", "D3D12CreateDevice",
-                          D3D12CreateDevice_Detour,
-                (LPVOID *)&D3D12CreateDevice_Import,
-                          &pfnD3D12CreateDevice );
+  if (SK::DXGI::hModD3D12 != nullptr)
+  {
+    if ( MH_OK == 
+           SK_CreateDLLHook ( L"d3d12.dll",
+                               "D3D12CreateDevice",
+                                D3D12CreateDevice_Detour,
+                     (LPVOID *)&D3D12CreateDevice_Import,
+                            &pfnD3D12CreateDevice )
+       )
+    {
+      return true;
     }
   }
+
+  return false;
 }
 
 void
 SK_D3D12_Shutdown (void)
 {
-  if (false) //InterlockedCompareExchange (&SK_D3D12_initialized, FALSE, TRUE))
+  if (! InterlockedCompareExchange (&SK_D3D12_initialized, FALSE, TRUE))
     return;
 
-  FreeLibrary (SK::DXGI::hModD3D12);
+  FreeLibrary_Original (SK::DXGI::hModD3D12);
 }
 
 void
@@ -182,13 +194,13 @@ HookD3D12 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
+  if (! config.apis.dxgi.d3d12.hook)
+    return 0;
+
   // This only needs to be done once...
   if (InterlockedCompareExchange (&__d3d12_hooked, TRUE, FALSE)) {
     return 0;
   }
-
-  if (! config.apis.dxgi.d3d12.hook)
-    return 0;
 
   if (SK::DXGI::hModD3D12 != nullptr)
   {

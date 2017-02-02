@@ -147,15 +147,15 @@ SK_ImGui_ControlPanel (void)
 
     ImGui::MenuItem ("Active Render API        ", szName);
 
-    char szResolution [32] = { '\0' };
-    snprintf ( szResolution, 64, "   %lux%lu", 
+    char szResolution [64] = { '\0' };
+    snprintf ( szResolution, 63, "   %lux%lu", 
                                    (UINT)io.DisplayFramebufferScale.x, (UINT)io.DisplayFramebufferScale.y );
 
     ImGui::MenuItem (" Framebuffer Resolution", szResolution);
     
     RECT client;
     GetClientRect ((HWND)io.ImeWindowHandle, &client);
-    snprintf ( szResolution, 64, "   %lux%lu", 
+    snprintf ( szResolution, 63, "   %lux%lu", 
                                    client.right - client.left,
                                      client.bottom - client.top );
 

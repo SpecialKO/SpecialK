@@ -3055,29 +3055,29 @@ SK_HookWinAPI (void)
              (LPVOID *)&GetWindowLongW_Original );
 
 #ifdef _WIN64
-  SK_CreateDLLHook ( L"user32.dll", "SetWindowLongPtrA",
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongPtrA",
                         SetWindowLongPtrA_Detour,
              (LPVOID *)&SetWindowLongPtrA_Original );
 
-  SK_CreateDLLHook ( L"user32.dll", "SetWindowLongPtrW",
+  SK_CreateDLLHook2 ( L"user32.dll", "SetWindowLongPtrW",
                         SetWindowLongPtrW_Detour,
              (LPVOID *)&SetWindowLongPtrW_Original );
 
-  SK_CreateDLLHook ( L"user32.dll", "GetWindowLongPtrA",
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongPtrA",
                         GetWindowLongPtrA_Detour,
              (LPVOID *)&GetWindowLongPtrA_Original );
 
-  SK_CreateDLLHook ( L"user32.dll", "GetWindowLongPtrW",
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowLongPtrW",
                         GetWindowLongPtrW_Detour,
              (LPVOID *)&GetWindowLongPtrW_Original );
 #endif
 
 #if 0
-  SK_CreateDLLHook ( L"user32.dll", "GetWindowRect",
+  SK_CreateDLLHook2 ( L"user32.dll", "GetWindowRect",
                       GetWindowRect_Detour,
             (LPVOID*)&GetWindowRect_Original );
 
-  SK_CreateDLLHook ( L"user32.dll", "GetClientRect",
+  SK_CreateDLLHook2 ( L"user32.dll", "GetClientRect",
                       GetClientRect_Detour,
             (LPVOID*)&GetClientRect_Original );
 #else

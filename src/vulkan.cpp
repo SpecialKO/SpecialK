@@ -31,6 +31,8 @@
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 
+#include <SpecialK/diagnostics/compatibility.h>
+
 #include <Shlwapi.h>
 #include <process.h>
 
@@ -264,37 +266,37 @@ SK_HookVulkan (void)
     dll_log.Log (L"[  Vulkan  ] Hooking Vk (1.x)");
 
     SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                        "vkCreateWin32SurfaceKHR",
-                        vkCreateWin32SurfaceKHR_Detour,
+                         "vkCreateWin32SurfaceKHR",
+                          vkCreateWin32SurfaceKHR_Detour,
              (LPVOID *)&SK::Vulkan::funcs.
                           vkCreateWin32SurfaceKHR
                       );
 
     SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                        "vkQueuePresentKHR",
-                        vkQueuePresentKHR_Detour,
+                         "vkQueuePresentKHR",
+                          vkQueuePresentKHR_Detour,
              (LPVOID *)&SK::Vulkan::funcs.
                           vkQueuePresentKHR
                       );
 
     SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                        "vkAcquireNextImageKHR",
-                        vkAcquireNextImageKHR_Detour,
+                         "vkAcquireNextImageKHR",
+                          vkAcquireNextImageKHR_Detour,
              (LPVOID *)&SK::Vulkan::funcs.
                           vkAcquireNextImageKHR
                       );
 
     SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                        "vkCreateSwapchainKHR",
-                        vkCreateSwapchainKHR_Detour,
+                         "vkCreateSwapchainKHR",
+                          vkCreateSwapchainKHR_Detour,
              (LPVOID *)&SK::Vulkan::funcs.
                           vkCreateSwapchainKHR
                       );
 
 #if 0
     SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                        "vkDestroySwapchainKHR",
-                        vkDestroySwapchainKHR_Detour,
+                         "vkDestroySwapchainKHR",
+                          vkDestroySwapchainKHR_Detour,
              (LPVOID *)&SK::Vulkan::funcs.
                           vkDestroySwapchainKHR
                       );
@@ -320,9 +322,9 @@ SK::Vulkan::Startup (void)
 bool
 SK::Vulkan::Shutdown (void)
 {
-  if (hModVk != nullptr) {
-
-    FreeLibrary (hModVk);
+  if (hModVk != nullptr)
+  {
+    FreeLibrary_Original (hModVk);
     hModVk = nullptr;
   }
 

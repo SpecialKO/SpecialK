@@ -98,9 +98,11 @@ SK_BootDXGI (void)
   SK_HookDXGI ();
 }
 
+
 void
 SK_BootOpenGL (void)
 {
+#ifndef SK_BUILD__INSTALLER
   static volatile ULONG __booted = FALSE;
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
@@ -116,7 +118,9 @@ SK_BootOpenGL (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
   SK_HookGL ();
+#endif
 }
+
 
 void
 SK_BootVulkan (void)

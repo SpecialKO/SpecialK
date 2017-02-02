@@ -1062,8 +1062,10 @@ SK_SelfDestruct (void)
       SK::D3D9::Shutdown ();
     else if (! _wcsicmp (wszBackend, L"dxgi"))
       SK::DXGI::Shutdown ();
+#ifndef SK_BUILD__INSTALLER
     else if (! _wcsicmp (wszBackend, L"OpenGL32"))
       SK::OpenGL::Shutdown ();
+#endif
   }
 }
 

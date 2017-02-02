@@ -20,10 +20,8 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 
-#define ISOLATION_AWARE_ENABLED 1
-#define PSAPI_VERSION           1
-
 #include <Windows.h>
+#include <SpecialK/diagnostics/compatibility.h>
 #include <process.h>
 
 #include <psapi.h>
@@ -37,7 +35,6 @@
                          "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
                          " language='*'\"")
 
-#include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
@@ -53,38 +50,8 @@ void           SK_UnhookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = true;
 
-typedef BOOL    (WINAPI *FreeLibrary_pfn)  (HMODULE hLibModule);
-typedef HMODULE (WINAPI *LoadLibraryA_pfn) (LPCSTR  lpFileName);
-typedef HMODULE (WINAPI *LoadLibraryW_pfn) (LPCWSTR lpFileName);
-typedef HMODULE (WINAPI *LoadLibraryExA_pfn)
-( _In_       LPCSTR  lpFileName,
-  _Reserved_ HANDLE  hFile,
-  _In_       DWORD   dwFlags
-);
-typedef HMODULE (WINAPI *LoadLibraryExW_pfn)
-( _In_       LPCWSTR lpFileName,
-  _Reserved_ HANDLE  hFile,
-  _In_       DWORD   dwFlags
-);
-
-FreeLibrary_pfn    FreeLibrary_Original    = nullptr;
-
-LoadLibraryA_pfn   LoadLibraryA_Original   = nullptr;
-LoadLibraryW_pfn   LoadLibraryW_Original   = nullptr;
-
-LoadLibraryExA_pfn LoadLibraryExA_Original = nullptr;
-LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;
-
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
-
-#if 0
-#include <unordered_set>
-#include <string>
-#include <SpecialK/command.h> // str_hash_compare
-typedef std::unordered_set < std::wstring, str_hash_compare <std::wstring> > SK_StringSetW;
-SK_StringSetW rehook_loadlib;
-#endif
 
 extern CRITICAL_SECTION loader_lock;
 
@@ -116,52 +83,6 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     //dll_log.Log (L"[PlaysTVFix] Delaying Raptr overlay until window is in foreground...");
     //CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
   }
-
-#if 0
-  else {
-    const wchar_t* wszNahimic = StrStrIW (lpFileName, L"Nahimic");
-
-    if ( wszNahimic != nullptr && StrStrIW (wszNahimic, L"DevProps") ) {
-      //if (! (SK_LoadLibrary_SILENCE))
-        dll_log.Log (L"[Black List] Disabling MSI Nahimic Support DLL(s)!");
-      return TRUE;
-    }
-
-    else if ( StrStrIW (lpFileName, L"0Kraken71ChromaDevProps") ) {
-      //if (! (SK_LoadLibrary_SILENCE))
-        dll_log.Log (L"[Black List] Disabling Razer Kraken 7.1 Chroma Support DLL.");
-      return TRUE;
-    }
-
-    else if ( StrStrIW (lpFileName, L"k_fps") ) {
-      //if (! (SK_LoadLibrary_SILENCE))
-        dll_log.Log (L"[Black List] Disabling Razer Cortex to preserve sanity.");
-      return TRUE;
-    }
-
-    //if (! (SK_LoadLibrary_SILENCE)) {
-      //dll_log.Log ( L"[Black List] Miscellaneous Blacklisted DLL '%s' disabled.",
-                      //lpFileName );
-    //}
-
-    //return TRUE;
-  //}
-
-#if 0
-  if (StrStrIW (lpFileName, L"igdusc32")) {
-    dll_log->Log (L"[Black List] Intel D3D11 Driver Bypassed");
-    return TRUE;
-  }
-#endif
-
-#if 0
-  if (StrStrIW (lpFileName, L"ig75icd32")) {
-    dll_log->Log (L"[Black List] Preventing Intel Integrated OpenGL driver from activating...");
-    return TRUE;
-  }
-#endif
-  }
-#endif
 
   return FALSE;
 }
@@ -697,6 +618,9 @@ SK_UnhookLoadLibrary (void)
   _loader_hooks.LoadLibraryExW_target = nullptr;
   _loader_hooks.FreeLibrary_target    = nullptr;
 
+  // Re-establish the non-hooked functions
+  SK_PreInitLoadLibrary ();
+
   SK_UnlockDllLoader ();
 }
 
@@ -706,16 +630,6 @@ void
 __stdcall
 SK_InitCompatBlacklist (void)
 {
-#if 0
-  rehook_loadlib.insert (L"gameoverlayrenderer.dll");
-  rehook_loadlib.insert (L"gameoverlayrenderer64.dll");
-
-  rehook_loadlib.insert (L"GeDoSaTo.dll");
-
-  rehook_loadlib.insert (L"RTSSHooks.dll");
-  rehook_loadlib.insert (L"RTSSHooks64.dll");
-#endif
-
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
   SK_ReHookLoadLibrary ();
 }
@@ -1565,3 +1479,33 @@ SK_BypassInject (void)
 
   return std::make_pair (tids, __bypass.disable);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+void
+__stdcall
+SK_PreInitLoadLibrary (void)
+{
+  FreeLibrary_Original    = &FreeLibrary;
+  LoadLibraryA_Original   = &LoadLibraryA;
+  LoadLibraryW_Original   = &LoadLibraryW;
+  LoadLibraryExA_Original = &LoadLibraryExA;
+  LoadLibraryExW_Original = &LoadLibraryExW;
+}
+
+FreeLibrary_pfn    FreeLibrary_Original    = nullptr;
+
+LoadLibraryA_pfn   LoadLibraryA_Original   = nullptr;
+LoadLibraryW_pfn   LoadLibraryW_Original   = nullptr;
+
+LoadLibraryExA_pfn LoadLibraryExA_Original = nullptr;
+LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;

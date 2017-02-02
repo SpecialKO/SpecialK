@@ -36,6 +36,8 @@
 #include <dxgi.h>
 #include <string>
 
+#include <SpecialK/diagnostics/compatibility.h>
+
 //
 // Undocumented Functions
 //
@@ -202,9 +204,9 @@ NVAPI::EnumSLIGPUs (void)
  *
  *  ... but, it very likely has caused thread safety issues.
  **/
-static DXGI_ADAPTER_DESC   _nv_dxgi_adapters [64];
-static NvPhysicalGpuHandle _nv_dxgi_gpus     [64];
-static NvPhysicalGpuHandle phys [64];
+static DXGI_ADAPTER_DESC   _nv_dxgi_adapters [64] = { 0 };
+static NvPhysicalGpuHandle _nv_dxgi_gpus     [64] = { 0 };
+static NvPhysicalGpuHandle              phys [64] = { 0 };
 
 // This function does much more than it's supposed to -- consider fixing that!
 DXGI_ADAPTER_DESC*
@@ -342,7 +344,7 @@ NVAPI::GetDriverVersion (NvU32* pVer)
 
 
 BOOL bLibShutdown = FALSE;
-BOOL bLibInit = FALSE;
+BOOL bLibInit     = FALSE;
 
 BOOL
 NVAPI::UnloadLibrary (void)
@@ -617,9 +619,9 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 
   if (! already_set) {
 #ifdef WIN32
-    HMODULE hLib = LoadLibrary (L"nvapi.dll");
+    HMODULE hLib = LoadLibraryW_Original (L"nvapi.dll");
 #else
-    HMODULE hLib = LoadLibrary (L"nvapi64.dll");
+    HMODULE hLib = LoadLibraryW_Original (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
@@ -985,9 +987,9 @@ SK_NvAPI_AddLauncherToProf (void)
 #if 0
   if (! already_set) {
 #ifdef WIN32
-    HMODULE hLib = LoadLibrary (L"nvapi.dll");
+    HMODULE hLib = LoadLibraryW_Original (L"nvapi.dll");
 #else
-    HMODULE hLib = LoadLibrary (L"nvapi64.dll");
+    HMODULE hLib = LoadLibraryW_Original (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);

@@ -287,12 +287,12 @@ extern volatile D3D12CreateDevice_pfn             D3D12CreateDevice_Import;
   extern          ID3D11Device*         g_pD3D11Dev;
   extern          IUnknown*             g_pD3D12Dev;
 
-extern void SK_D3D11_Init         (void);
+extern bool SK_D3D11_Init         (void);
 extern void SK_D3D11_InitTextures (void);
 extern void SK_D3D11_Shutdown     (void);
 extern void SK_D3D11_EnableHooks  (void);
 
-extern void SK_D3D12_Init         (void);
+extern bool SK_D3D12_Init         (void);
 extern void SK_D3D12_Shutdown     (void);
 extern void SK_D3D12_EnableHooks  (void);
 

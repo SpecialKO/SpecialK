@@ -301,7 +301,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   IUnknown* pUnk = nullptr;
 
-  COM::base.wmi.pNameSpace->QueryInterface (IID_IUnknown, (void **)&pUnk);
+  if (FAILED (COM::base.wmi.pNameSpace->QueryInterface (IID_IUnknown, (void **)&pUnk)))
+    goto WMI_CLEANUP;
 
   // Set the proxy so that impersonation of the client occurs.
   if (FAILED (hr = CoSetProxyBlanket (

@@ -23,6 +23,8 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 
+#ifndef SK_BUILD__INSTALLER
+
 #include <SpecialK/stdafx.h>
 #include <Shlwapi.h>
 //#include <Windows.h>
@@ -35,6 +37,7 @@
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/diagnostics/compatibility.h>
 
 #include <process.h>
 
@@ -100,9 +103,11 @@ DXGI_Thread (LPVOID user)
 #include <SpecialK/osd/text.h>
 #include <SpecialK/osd/popup.h>
 
+#ifndef SK_BUILD__INSTALLER
 #include <CEGUI/RendererModules/OpenGL/GL3Renderer.h>
 
 CEGUI::OpenGL3Renderer* cegGL = nullptr;
+#endif
 
 extern void
 SK_CEGUI_RelocateLog (void);
@@ -114,6 +119,7 @@ static volatile ULONG __cegui_frames_drawn = 0UL;
 
 void ResetCEGUI_GL (void)
 {
+#ifndef SK_BUILD__INSTALLER
   if (! config.cegui.enable)
     return;
 
@@ -144,11 +150,13 @@ void ResetCEGUI_GL (void)
     extern void SK_Steam_ClearPopups (void);
     SK_Steam_ClearPopups ();
   }
+#endif
 }
 
 void
 SK_CEGUI_DrawGL (void)
 {
+#ifndef SK_BUILD__INSTALLER
   if (! config.cegui.enable)
     return;
 
@@ -176,7 +184,8 @@ SK_CEGUI_DrawGL (void)
     }
   }
 
-  if (cegGL != nullptr) {
+  if (cegGL != nullptr)
+  {
     SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
     static RECT rect;
@@ -210,6 +219,7 @@ SK_CEGUI_DrawGL (void)
 
     glPopAttrib ();
   }
+#endif
 }
 
 extern "C"
@@ -302,7 +312,7 @@ SK_LoadRealGL (void)
   lstrcatW (wszBackendDLL, L"OpenGL32.dll");
 
   if (local_gl == 0)
-    local_gl = LoadLibraryW (wszBackendDLL);
+    local_gl = LoadLibraryW_Original (wszBackendDLL);
   else {
     HMODULE hMod;
     GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
@@ -314,7 +324,7 @@ SK_LoadRealGL (void)
 void
 SK_FreeRealGL (void)
 {
-  FreeLibrary (local_gl);
+  FreeLibrary_Original (local_gl);
 }
 
 
@@ -338,7 +348,7 @@ SK::OpenGL::Startup (void)
   if (! wcsstr (wszDllName, L"SpecialK") ) {
     SK_LoadRealGL ();
   } else {
-    LoadLibrary (L"OpenGL32.dll");
+    LoadLibraryW_Original (L"OpenGL32.dll");
   }
 
   return SK_StartupCore (L"OpenGL32", opengl_init_callback);
@@ -1277,7 +1287,7 @@ SwapBuffers (HDC hDC)
   SK_BeginBufferSwap ();
 
   if (gdi_swap_buffers == nullptr) {
-    //HMODULE hModGDI32 = LoadLibrary (L"OpenGL32.dll");
+    //HMODULE hModGDI32 = LoadLibraryW_Original (L"OpenGL32.dll");
 
     gdi_swap_buffers =
       (SwapBuffers_pfn)GetProcAddress (backend_dll, "SwapBuffers");
@@ -1311,10 +1321,12 @@ wglSwapBuffers (HDC hDC)
       (wglSwapBuffers_pfn)GetProcAddress (backend_dll, "wglSwapBuffers");
   }
 
+#ifndef SK_BUILD__INSTALLER
   if (SK_GetFramesDrawn () < 1) {
     glewExperimental = GL_TRUE;
     glewInit ();
   }
+#endif
 
   SK_GL_UpdateRenderStats ();
   SK_CEGUI_DrawGL         ();
@@ -2164,3 +2176,4 @@ SK_HookGL (void)
 
   GL_HOOKED = TRUE;
 }
+#endif

@@ -45,53 +45,108 @@ void __stdcall SK_SetOSDColor      (int red, int green, int blue,             LP
 void __stdcall SK_SetOSDScale      (float fScale, bool relative = false,      LPCSTR lpAppName = nullptr);
 void __stdcall SK_ResizeOSD        (float scale_incr,                         LPCSTR lpAppName = nullptr);
 
-#ifndef OSD_IMP
-#undef min
-#undef max
+#include <map>
 
 namespace CEGUI {
   class Renderer;
   class GUIContext;
+  class Font;
+  class GeometryBuffer;
 }
 
-class SK_TextOverlay {
+class SK_TextOverlay
+{
+friend class SK_TextOverlayManager;
+
 public:
-  float update (const char* szText);
-  float draw   (float x = 0.0f, float y = 0.0f, bool full = false);
-  void  reset  (CEGUI::Renderer* renderer);
+  ~SK_TextOverlay (void);
 
-  void  resize   (float incr);
-  void  setScale (float scale);
-  float getScale (void);
+  float update    (const char* szText);
 
-  void  move     (float  x_off, float  y_off);
-  void  setPos   (float  x,     float  y);
-  void  getPos   (float& x,     float& y);
+  float draw      (float x = 0.0f, float y = 0.0f, bool full = false);
+  void  reset     (CEGUI::Renderer* renderer);
+
+  void  resize    (float incr);
+  void  setScale  (float scale);
+  float getScale  (void);
+
+  void  move      (float  x_off, float  y_off);
+  void  setPos    (float  x,     float  y);
+  void  getPos    (float& x,     float& y);
 
 protected:
+   SK_TextOverlay (const char* szAppName);
+
 private:
+  struct 
+  {
+    char   name [64] = { };
+
+    char*  text      = nullptr; // UTF-8
+    size_t text_len  = 0;
+
+    float  extent; // Rendered height, in pixels
+  } data_;
+
+  struct
+  {
+    CEGUI::Font*
+           cegui     = nullptr;
+
+    char   name [64] = { };
+    float  scale     = 1.0f;;
+    DWORD  primary_color; // For text that doesn't use its own
+    DWORD  shadow_color;
+  } font_;
+
+  CEGUI::GeometryBuffer*
+           geometry_    = nullptr;
+  CEGUI::Renderer*
+           renderer_    = nullptr;;
+
+  struct {
+    float  x = 0.0f,
+           y = 0.0f;
+  } pos_;
 };
 
-class SK_TextOverlayManager : public SK_IVariableListener {
+class SK_TextOverlayManager : public SK_IVariableListener
+{
+private: // Singleton
+  static SK_TextOverlayManager* pSelf;
+  static CRITICAL_SECTION       cs_;
+
 public:
   static SK_TextOverlayManager* getInstance (void);
 
-  SK_TextOverlay* createTextOverlay  (const char* szAppName);
-  bool            removeTextOverlay  (const char* szAppName);
-  SK_TextOverlay* getTextOverlay     (const char* szAppName);
+  SK_TextOverlay* createTextOverlay (const char* szAppName);
+  bool            removeTextOverlay (const char* szAppName);
+  SK_TextOverlay* getTextOverlay    (const char* szAppName);
+
 
   void            queueReset         (CEGUI::Renderer* renderer);
 
   void            resetAllOverlays   (CEGUI::Renderer* renderer);
-  float           drawAllOverlays    (float x = 0.0f, float y = 0.0f, bool full = false);
+  float           drawAllOverlays    (float x, float y, bool full = false);
   void            destroyAllOverlays (void);
 
 protected:
   SK_TextOverlayManager (void);
 
+private:
+  bool                                     need_full_reset_ = true;
+  CEGUI::GUIContext*                       gui_ctx_         = nullptr;
+  std::map <std::string, SK_TextOverlay *> overlays_;
+
+  struct {
+    SK_IVariable*                          x      = nullptr;
+    SK_IVariable*                          y      = nullptr;
+  } pos_;
+
+  SK_IVariable*                            scale_ = nullptr;
+
 public:
   virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
 };
-#endif
 
 #endif /* __SK__OSD_TEXT_H__ */

@@ -30,6 +30,8 @@
 #include <Windows.h>
 #include <intsafe.h>
 
+#include <SpecialK/diagnostics/compatibility.h>
+
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
 
@@ -142,18 +144,18 @@ SK_BypassSteamCrashHandler (void)
     const wchar_t* wszSteamDLL = L"steam_api.dll";
 #endif
 
-    HMODULE hMod = LoadLibraryW (wszSteamDLL);
+    HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
 
     if (hMod)
     {
       crash_log.Log (L"Disabling Steam Breakpad...");
 
-      SK_CreateDLLHook3 ( wszSteamDLL,
+      SK_CreateDLLHook2 ( wszSteamDLL,
                           "SteamAPI_UseBreakpadCrashHandler",
                          SteamAPI_UseBreakpadCrashHandler_Detour,
               (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
     
-      SK_CreateDLLHook3 ( wszSteamDLL,
+      SK_CreateDLLHook2 ( wszSteamDLL,
                           "SteamAPI_SetBreakpadAppID",
                          SteamAPI_SetBreakpadAppID_Detour,
               (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );

@@ -21,12 +21,13 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#define NOMINMAX
+#define ISOLATION_AWARE_ENABLED 1
+#define PSAPI_VERSION           1
+
 #include <Windows.h>
 #include <process.h>
 #include <Shlwapi.h>
-
-#define ISOLATION_AWARE_ENABLED 1
-#define PSAPI_VERSION           1
 
 #include <psapi.h>
 #pragma comment (lib, "psapi.lib")
@@ -40,9 +41,6 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
 #include <SpecialK/diagnostics/compatibility.h>
-
-#undef min
-#undef max
 
 #include <SpecialK/osd/popup.h>
 #include <SpecialK/osd/text.h>
@@ -937,8 +935,8 @@ public:
 
   void Shutdown (void)
   {
-    //if (InterlockedExchange         (&__SK_Steam_init, 0))
-    //{ 
+    if (InterlockedExchange         (&__SK_Steam_init, 0))
+    { 
       if (client_)
       {
 #if 0
@@ -967,14 +965,12 @@ public:
       {
         SteamAPI_Shutdown_Original = nullptr;
 
-        SK_DisableHook (SteamAPI_Shutdown);
         SK_DisableHook (SteamAPI_RunCallbacks);
+        SK_DisableHook (SteamAPI_Shutdown);
 
-        // We probably should not shutdown Steam API; the underlying
-        //  game will do this at a more opportune time for sure.
         SteamAPI_Shutdown ();
       }
-    //}
+    }
   }
 
   ISteamUser*        User        (void) { return user_;        }
@@ -1351,6 +1347,11 @@ public:
       delete [] unlock_sound;
                 unlock_sound = nullptr;
     }
+
+    unlock_listener.Unregister ();
+    stat_receipt.Unregister    ();
+    icon_listener.Unregister   ();
+    async_complete.Unregister  ();
   }
 
   void log_all_achievements (void)
@@ -3213,7 +3214,7 @@ SteamAPI_InitSafe_Detour (void)
   const wchar_t* steam_dll_str = L"steam_api.dll";
 #endif
 
-    HMODULE hSteamAPI = LoadLibraryW (steam_dll_str);
+    HMODULE hSteamAPI = LoadLibraryW_Original (steam_dll_str);
 
     if (! steam_ctx.UserStats ())
       steam_ctx.InitSteamAPI (hSteamAPI);
@@ -3368,7 +3369,7 @@ InitSafe_Detour (void)
     InterlockedExchange (&__SK_Steam_init, TRUE);
 
     HMODULE hSteamAPI =
-      LoadLibraryW (L"CSteamworks.dll");
+      LoadLibraryW_Original (L"CSteamworks.dll");
 
     if (! steam_ctx.UserStats ())
       steam_ctx.InitCSteamworks (hSteamAPI);
@@ -3484,7 +3485,7 @@ SK_HookCSteamworks (void)
     lstrcatW (wszModName, L"steam_api.dll");
 #endif
 
-    if (LoadLibraryW (wszModName))
+    if (LoadLibraryW_Original (wszModName))
     {
       steam_log.Log ( L" >>> Located a real steam_api DLL: '%s'...",
                       wszModName );
@@ -3560,7 +3561,6 @@ SK_HookCSteamworks (void)
       SK_ApplyQueuedHooks ();
 
       SteamAPI_InitSafe ();
-     
     }
   }
 
@@ -3639,6 +3639,11 @@ SK_HookSteamAPI (void)
             (LPVOID *)&SteamAPI_UnregisterCallback_Original,
             (LPVOID *)&SteamAPI_UnregisterCallback );
 
+  //
+  // Do not queue these up (by calling CreateDLLHook2),
+  //   they will be installed only upon the game successfully
+  //     calling one of hte SteamAPI initialization functions.
+  //
   SK_CreateDLLHook ( wszSteamAPI,
                      "SteamAPI_RunCallbacks",
                       SteamAPI_RunCallbacks_Detour,
@@ -3769,9 +3774,9 @@ SK_TestSteamImports (HMODULE hMod)
 
       else if (! SK_IsInjected ())
       {
-        if ( LoadLibrary     (L"steam_api.dll")   ||
-             LoadLibrary     (L"steam_api64.dll") ||
-             GetModuleHandle (L"SteamNative.dll") )
+        if ( LoadLibraryW_Original (L"steam_api.dll")   ||
+             LoadLibraryW_Original (L"steam_api64.dll") ||
+             GetModuleHandle       (L"SteamNative.dll") )
         {
            SK_HookSteamAPI ();
            steam_imported = true;
@@ -3780,9 +3785,9 @@ SK_TestSteamImports (HMODULE hMod)
     }
   }
 
-  if ( LoadLibrary     (L"steam_api.dll")   ||
-       LoadLibrary     (L"steam_api64.dll") ||
-       GetModuleHandle (L"SteamNative.dll") )
+  if ( LoadLibraryW_Original (L"steam_api.dll")   ||
+       LoadLibraryW_Original (L"steam_api64.dll") ||
+       GetModuleHandle       (L"SteamNative.dll") )
   {
      SK_HookSteamAPI ();
      steam_imported = true;

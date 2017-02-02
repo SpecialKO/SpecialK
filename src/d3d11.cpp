@@ -20,8 +20,11 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 
 #include <Windows.h>
+
+#include <SpecialK/diagnostics/compatibility.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
@@ -40,25 +43,26 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 #include <d3d11.h>
 #include <d3d11_1.h>
 
-#undef min
-#undef max
-
 #include <algorithm>
 
 // For texture caching to work correctly ...
 //   DarkSouls3 seems to underflow references on occasion!!!
 #define DS3_REF_TWEAK
 
-namespace SK {
-  namespace DXGI {
-    struct PipelineStatsD3D11 {
-      struct StatQueryD3D11 {
+namespace SK
+{
+  namespace DXGI
+  {
+    struct PipelineStatsD3D11
+    {
+      struct StatQueryD3D11  
+      {
         ID3D11Query* async  = nullptr;
         bool         active = false;
       } query;
 
       D3D11_QUERY_DATA_PIPELINE_STATISTICS
-                 last_results;
+                 last_results = { 0 };
     } pipeline_stats_d3d11;
   };
 };
@@ -2706,7 +2710,7 @@ SK_D3D11_InitTextures (void)
     if (hModD3DX11_43 == nullptr)
     {
       hModD3DX11_43 =
-        LoadLibrary (L"d3dx11_43.dll");
+        LoadLibraryW_Original (L"d3dx11_43.dll");
 
       if (hModD3DX11_43 == nullptr)
         hModD3DX11_43 = (HMODULE)1;
@@ -2730,25 +2734,42 @@ SK_D3D11_InitTextures (void)
 
 volatile LONG SK_D3D11_initialized = FALSE;
 
-void
+bool
 SK_D3D11_Init (void)
 {
-  if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE)) {
-    SK::DXGI::hModD3D11 = LoadLibrary (L"d3d11.dll");
+  BOOL success = FALSE;
 
-    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDevice",
-                        D3D11CreateDevice_Detour,
-             (LPVOID *)&D3D11CreateDevice_Import,
-                       &pfnD3D11CreateDevice );
+  if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE))
+  {
+    SK::DXGI::hModD3D11 =
+      LoadLibraryW_Original (L"d3d11.dll");
 
-    SK_CreateDLLHook ( L"d3d11.dll", "D3D11CreateDeviceAndSwapChain",
-                        D3D11CreateDeviceAndSwapChain_Detour,
-             (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
-                       &pfnD3D11CreateDeviceAndSwapChain );
-
-    SK_EnableHook (pfnD3D11CreateDevice);
-    SK_EnableHook (pfnD3D11CreateDeviceAndSwapChain);
+    if ( MH_OK ==
+           SK_CreateDLLHook2 ( L"d3d11.dll",
+                                "D3D11CreateDevice",
+                                 D3D11CreateDevice_Detour,
+                      (LPVOID *)&D3D11CreateDevice_Import,
+                             &pfnD3D11CreateDevice )
+       )
+    {
+      if ( MH_OK ==
+             SK_CreateDLLHook2 ( L"d3d11.dll",
+                                  "D3D11CreateDeviceAndSwapChain",
+                                   D3D11CreateDeviceAndSwapChain_Detour,
+                        (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
+                               &pfnD3D11CreateDeviceAndSwapChain )
+         )
+      {
+        if ( MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice) &&
+             MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) )
+        {
+          success = (MH_OK == SK_ApplyQueuedHooks ());
+        }
+      }
+    }
   }
+
+  return success;
 }
 
 void
@@ -2773,7 +2794,7 @@ SK_D3D11_Shutdown (void)
   // Stop caching while we shutdown
   SK_D3D11_cache_textures = false;
 
-  if (FreeLibrary (SK::DXGI::hModD3D11))
+  if (FreeLibrary_Original (SK::DXGI::hModD3D11))
   {
     DeleteCriticalSection (&tex_cs);
     DeleteCriticalSection (&hash_cs);

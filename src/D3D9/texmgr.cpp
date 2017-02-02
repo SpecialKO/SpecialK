@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include <SpecialK/command.h>
+#include <SpecialK/diagnostics/compatibility.h>
 
 #define SK_TEXTURE_DIR L"SK_Res"
 #define SK_TEXTURE_EXT L".dds"
@@ -2014,7 +2015,7 @@ sk::d3d9::TextureManager::Init (void)
     d3dx9_ver = L"D3DX9_43.DLL";
 
   if (d3dx9_ver.length ())
-    d3dx9_dll = LoadLibrary (d3dx9_ver.c_str ());
+    d3dx9_dll = LoadLibraryW_Original (d3dx9_ver.c_str ());
 
   //
   // Walk injectable textures so we don't have to query the filesystem on every
@@ -2418,7 +2419,7 @@ sk::d3d9::TextureManager::Shutdown (void)
                     time_saved / frame_time );
   tex_log.close ();
 
-  FreeLibrary (d3dx9_dll);
+  FreeLibrary_Original (d3dx9_dll);
 }
 
 void

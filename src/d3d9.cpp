@@ -20,6 +20,7 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/D3D9/texmgr.h>
@@ -47,6 +48,8 @@
 #include <SpecialK/steam_api.h>
 
 #include <imgui/backends/imgui_d3d9.h>
+
+#include <SpecialK/diagnostics/compatibility.h>
 
 volatile LONG                        __d3d9_ready = FALSE;
 SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
@@ -311,7 +314,7 @@ SK_LoadRealD3D9 (void)
   lstrcatW (wszBackendDLL, L"\\d3d9.dll");
 
   if (local_d3d9 == 0)
-    local_d3d9 = LoadLibraryW (wszBackendDLL);
+    local_d3d9 = LoadLibraryW_Original (wszBackendDLL);
   else {
     HMODULE hMod;
     GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
@@ -325,11 +328,8 @@ WINAPI
 SK_FreeRealD3D9 (void)
 {
   // Decrease the reference count
-  FreeLibrary (local_d3d9);
+  FreeLibrary_Original (local_d3d9);
 }
-
-#undef min
-#undef max
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
@@ -352,12 +352,14 @@ SK_FreeRealD3D9 (void)
 #include <SpecialK/osd/text.h>
 #include <SpecialK/osd/popup.h>
 
+#ifndef SK_BUILD__INSTALLER
 #pragma comment (lib, "d3dx9.lib")
 
 #ifdef _WIN64
 #pragma comment (lib, "CEGUI/x64/CEGUIDirect3D9Renderer-0.lib")
 #else
 #pragma comment (lib, "CEGUI/Win32/CEGUIDirect3D9Renderer-0.lib")
+#endif
 #endif
 
 CEGUI::Direct3D9Renderer* cegD3D9    = nullptr;
@@ -602,25 +604,33 @@ SK_HookD3D9 (void)
     }
   }
 
-  else {
-    SK_CreateDLLHook ( L"d3d9.dll",
-                       "Direct3DCreate9",
-                       Direct3DCreate9,
-            (LPVOID *)&Direct3DCreate9_Import );
-
-    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %p  { Hooked }",
-      (Direct3DCreate9_Import) );
-
-
-    if (config.apis.d3d9ex.hook) {
-      SK_CreateDLLHook ( L"d3d9.dll",
-                         "Direct3DCreate9Ex",
-                         Direct3DCreate9Ex,
-              (LPVOID *)&Direct3DCreate9Ex_Import );
-
-      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %p  { Hooked }",
-        (Direct3DCreate9Ex_Import) );
+  else
+  {
+    if ( MH_OK ==
+           SK_CreateDLLHook2 ( L"d3d9.dll",
+                                "Direct3DCreate9",
+                                 Direct3DCreate9,
+                      (LPVOID *)&Direct3DCreate9_Import )
+       )
+    {
+      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %p  { Hooked }",
+        (Direct3DCreate9_Import) );
+      
+      
+      if ( config.apis.d3d9ex.hook &&
+             MH_OK ==
+               SK_CreateDLLHook2 ( L"d3d9.dll",
+                                    "Direct3DCreate9Ex",
+                                     Direct3DCreate9Ex,
+                          (LPVOID *)&Direct3DCreate9Ex_Import )
+         )
+      {
+        dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %p  { Hooked }",
+          (Direct3DCreate9Ex_Import) );
+      }
     }
+
+    MH_ApplyQueued ();
   }
 
   HANDLE hThread =

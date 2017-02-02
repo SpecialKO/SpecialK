@@ -82,9 +82,6 @@ volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
 
-extern void
-SK_D3D11_Init (void);
-
 // Disable SLI memory in Batman Arkham Knight
 bool USE_SLI = true;
 
@@ -191,6 +188,7 @@ SK_DescribeHRESULT (HRESULT result)
     return L"S_FALSE";
 
 
+#ifndef SK_BUILD__INSTALLER
     /* DXGI */
 
   case DXGI_ERROR_DEVICE_HUNG:
@@ -400,6 +398,7 @@ SK_DescribeHRESULT (HRESULT result)
 
     //case D3D12_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS:
     //return L"D3D12_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS";
+#endif
 
 
     /* Generic (FAILED) */
@@ -699,12 +698,12 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   // Pre-Load the original DLL into memory
   if (dll_name != wszBackendDLL) {
-                  LoadLibrary (wszBackendDLL);
-    backend_dll = LoadLibrary (dll_name);
+                  LoadLibraryW_Original (wszBackendDLL);
+    backend_dll = LoadLibraryW_Original (dll_name);
   }
 
   else
-    backend_dll = LoadLibrary (dll_name);
+    backend_dll = LoadLibraryW_Original (dll_name);
 
   if (backend_dll != NULL)
     dll_log.LogEx (false, L" (%s)\n", dll_name);
@@ -1349,7 +1348,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //   own later...
     //
     if ( blacklist ) {
-      //FreeLibrary (SK_GetDLL ());
+      //FreeLibrary_Original (SK_GetDLL ());
       return false;
     }
   }
@@ -1429,14 +1428,31 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsHostAppSKIM ())
+  {
     dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
-    if (SK_LoadConfig (config_name)) {
+    if (SK_LoadConfig (config_name))
       dll_log.LogEx (false, L"done!\n");
-    } else {
+
+    else
+    {
       dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
       dll_log.LogEx (false, L"failed!\n");
+
+      std::wstring default_name (L"default_");
+                   default_name += config_name;
+
+      std::wstring default_ini (default_name + L".ini");
+
+      if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
+      {
+        dll_log.LogEx (true, L"Loading default preferences from %s.ini... ", default_name);
+
+        if (! SK_LoadConfig (default_name))
+          dll_log.LogEx (false, L"failed!\n");
+      }
+
       // If no INI file exists, write one immediately.
       dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
       SK_SaveConfig (config_name);
@@ -1595,7 +1611,11 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
-  SK_UnloadImports  ();
+  // Breakbad Disable Disclaimer; pretend the log was empty :)
+  if (crash_log.lines == 1)
+    crash_log.lines = 0;
+
+  crash_log.close ();
 
   const wchar_t* config_name = backend;
 
@@ -1619,6 +1639,7 @@ SK_ShutdownCore (const wchar_t* backend)
   // Don't care about crashes after this :)
   config.system.handle_crashes = false;
 
+  SK_UnloadImports        ();
   SK::Framerate::Shutdown ();
 
   if (nvapi_init)
@@ -1634,16 +1655,10 @@ SK_ShutdownCore (const wchar_t* backend)
   DeleteCriticalSection (&loader_lock);
   DeleteCriticalSection (&init_mutex);
 
-  FreeLibrary (backend_dll);
+  FreeLibrary_Original (backend_dll);
 
-  // Breakbad Disable Disclaimer; pretend the log was empty :)
-  if (crash_log.lines == 1) 
-    crash_log.lines = 0;
-
-  SK_AutoClose_Log ( crash_log);
-
-  SK_UnInit_MinHook ();
-  //FreeLibrary       (SK_GetDLL ());
+  SK_UnInit_MinHook      ();
+  //FreeLibrary_Original (SK_GetDLL ());
 
   return true;
 }
@@ -2162,12 +2177,14 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
+#ifndef SK_BUILD__INSTALLER
   else {
     if (wglGetCurrentContext () != 0) {
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }
   }
+#endif
 
   static volatile ULONG budget_init = FALSE;
 

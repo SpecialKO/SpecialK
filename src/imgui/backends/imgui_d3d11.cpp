@@ -9,6 +9,10 @@
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
 
+#if defined SK_BUILD__INSTALLER
+#define TBFIX 1
+#endif
+
 // DirectX
 #include <d3d11.h>
 #ifndef TBFIX

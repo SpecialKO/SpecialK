@@ -26,10 +26,12 @@
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
+#include <SpecialK/diagnostics/compatibility.h>
 
 #include <vector>
 
-class SK_HookedFunction {
+class SK_HookedFunction
+{
 public:
   enum Type {
     DLL,
@@ -93,7 +95,8 @@ SK_CreateFuncHook ( LPCWSTR pwszFuncName,
                       pDetour,
                         ppOriginal );
 
-  if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED) {
+  if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
+  {
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
                   L"[Address: %04ph]!  (Status: \"%hs\")",
                     pwszFuncName,
@@ -118,7 +121,8 @@ SK_CreateFuncHookEx ( LPCWSTR pwszFuncName,
                           ppOriginal,
                             idx );
 
-  if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED) {
+  if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
+  {
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook (idx=%lu) "
                   L"for '%s' [Address: %04ph]!  (Status: \"%hs\")",
                     idx,
@@ -142,7 +146,8 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   if (! GetModuleHandleEx (
           GET_MODULE_HANDLE_EX_FLAG_PIN,
             pwszModule,
-              &hMod ) ) {
+              &hMod ) )
+  {
     //
     // If that fails, partially load the module into memory to establish our
     //   function hook.
@@ -150,7 +155,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //  Defer the standard DllMain (...) entry-point until the
     //    software actually loads the library on its own.
     //
-    hMod = LoadLibraryEx (
+    hMod = LoadLibraryExW_Original (
              pwszModule,
                nullptr,
                  /*DONT_RESOLVE_DLL_REFERENCES*/0 );
@@ -217,7 +222,8 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   if (! GetModuleHandleEx (
           GET_MODULE_HANDLE_EX_FLAG_PIN,
             pwszModule,
-              &hMod ) ) {
+              &hMod ) )
+  {
     //
     // If that fails, partially load the module into memory to establish our
     //   function hook.
@@ -225,7 +231,7 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //  Defer the standard DllMain (...) entry-point until the
     //    software actually loads the library on its own.
     //
-    hMod = LoadLibraryEx (
+    hMod = LoadLibraryExW_Original (
              pwszModule,
                nullptr,
                  /*DONT_RESOLVE_DLL_REFERENCES*/0 );
@@ -237,7 +243,8 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   if (hMod == 0)
     status = MH_ERROR_MODULE_NOT_FOUND;
 
-  else {
+  else
+  {
     pFuncAddr =
       GetProcAddress (hMod, pszProcName);
 
@@ -295,7 +302,8 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   if (! GetModuleHandleEx (
           GET_MODULE_HANDLE_EX_FLAG_PIN,
             pwszModule,
-              &hMod ) ) {
+              &hMod ) )
+  {
     //
     // If that fails, partially load the module into memory to establish our
     //   function hook.
@@ -303,7 +311,7 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //  Defer the standard DllMain (...) entry-point until the
     //    software actually loads the library on its own.
     //
-    hMod = LoadLibraryEx (
+    hMod = LoadLibraryExW_Original (
              pwszModule,
                nullptr,
                  /*DONT_RESOLVE_DLL_REFERENCES*/0 );
@@ -325,17 +333,20 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                           ppOriginal );
   }
 
-  if (status != MH_OK) {
+  if (status != MH_OK)
+  {
     // Silently ignore this problem
-    if (status == MH_ERROR_ALREADY_CREATED && ppOriginal != nullptr) {
-    if (ppFuncAddr != nullptr)
-      *ppFuncAddr = pFuncAddr;
+    if (status == MH_ERROR_ALREADY_CREATED && ppOriginal != nullptr)
+    {
+      if (ppFuncAddr != nullptr)
+        *ppFuncAddr = pFuncAddr;
       return MH_OK;
     }
 
     if (status == MH_ERROR_ALREADY_CREATED)
     {
-      if (ppOriginal == nullptr) {
+      if (ppOriginal == nullptr)
+      {
         SH_Introspect ( pFuncAddr,
                           SH_TRAMPOLINE,
                             ppOriginal );
@@ -355,7 +366,10 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                     pszProcName,
                       pwszModule,
                         MH_StatusToString (status) );
-  } else {
+  }
+
+  else
+  {
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
 
@@ -453,13 +467,18 @@ SK_EnableHook (LPVOID pTarget)
   MH_STATUS status =
     MH_EnableHook (pTarget);
 
-  if (status != MH_OK && status != MH_ERROR_ENABLED) {
-    if (pTarget != MH_ALL_HOOKS) {
+  if (status != MH_OK && status != MH_ERROR_ENABLED)
+  {
+    if (pTarget != MH_ALL_HOOKS)
+    {
       dll_log.Log(L"[ Min Hook ] Failed to Enable Hook with Address: %04ph!"
                   L" (Status: \"%hs\")",
                     pTarget,
                       MH_StatusToString (status) );
-    } else {
+    }
+
+    else
+    {
       dll_log.Log ( L"[ Min Hook ] Failed to Enable All Hooks! "
                     L"(Status: \"%hs\")",
                       MH_StatusToString (status) );
@@ -476,14 +495,19 @@ SK_EnableHookEx (LPVOID pTarget, UINT idx)
   MH_STATUS status =
     MH_EnableHookEx (pTarget, idx);
 
-  if (status != MH_OK && status != MH_ERROR_ENABLED) {
-    if (pTarget != MH_ALL_HOOKS) {
+  if (status != MH_OK && status != MH_ERROR_ENABLED)
+  {
+    if (pTarget != MH_ALL_HOOKS)
+    {
       dll_log.Log ( L"[ Min Hook ] Failed to Enable Hook (Idx=%lu) with "
                     L"Address: %04ph! (Status: \"%hs\")",
                     idx,
                       pTarget,
                         MH_StatusToString (status) );
-    } else {
+    }
+
+    else
+    {
       dll_log.Log ( L"[ Min Hook ] Failed to Enable All (Idx=%lu) Hooks! "
                     L"(Status: \"%hs\")",
                       idx,
@@ -501,13 +525,18 @@ SK_DisableHook (LPVOID pTarget)
   MH_STATUS status =
     MH_DisableHook (pTarget);
 
-  if (status != MH_OK && status != MH_ERROR_DISABLED) {
-    if (pTarget != MH_ALL_HOOKS) {
-      dll_log.Log(L"[ Min Hook ] Failed to Disable Hook with Address: %04Xh!"
-                  L" (Status: \"%hs\")",
-                    pTarget,
-                      MH_StatusToString (status));
-    } else {
+  if (status != MH_OK && status != MH_ERROR_DISABLED)
+  {
+    if (pTarget != MH_ALL_HOOKS)
+    {
+      dll_log.Log ( L"[ Min Hook ] Failed to Disable Hook with Address: %04Xh!"
+                    L" (Status: \"%hs\")",
+                      pTarget,
+                        MH_StatusToString (status) );
+    }
+
+    else
+    {
       dll_log.Log ( L"[ Min Hook ] Failed to Disable All Hooks! "
                     L"(Status: \"%hs\")",
                       MH_StatusToString (status) );
@@ -524,7 +553,8 @@ SK_RemoveHook (LPVOID pTarget)
   MH_STATUS status =
     MH_RemoveHook (pTarget);
 
-  if (status != MH_OK) {
+  if (status != MH_OK)
+  {
     dll_log.Log ( L"[ Min Hook ] Failed to Remove Hook with Address: %04Xh! "
                   L"(Status: \"%hs\")",
                     pTarget,
@@ -540,7 +570,8 @@ SK_Init_MinHook (void)
 {
   MH_STATUS status;
 
-  if ((status = MH_Initialize ()) != MH_OK) {
+  if ((status = MH_Initialize ()) != MH_OK)
+  {
 #if 0
     dll_log.Log ( L"[ Min Hook ] Failed to Initialize MinHook Library! "
                   L"(Status: \"%hs\")",
@@ -557,7 +588,8 @@ SK_UnInit_MinHook (void)
 {
   MH_STATUS status;
 
-  if ((status = MH_Uninitialize ()) != MH_OK) {
+  if ((status = MH_Uninitialize ()) != MH_OK)
+  {
     dll_log.Log ( L"[ Min Hook ] Failed to Uninitialize MinHook Library! "
                   L"(Status: \"%hs\")",
                     MH_StatusToString (status) );

@@ -19,6 +19,7 @@
  *
 **/
 #define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 
 #define OSD_IMP
 #include <SpecialK/osd/text.h>
@@ -27,198 +28,119 @@
 #include <SpecialK/command.h>
 #include <SpecialK/config.h>
 
-#undef min
-#undef max
-
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>
 #include <CEGUI/Renderer.h>
 
 #include <map>
 
-class SK_TextOverlay {
-friend class SK_TextOverlayManager;
 
-public:
-  ~SK_TextOverlay (void);
-
-  float update    (const char* szText);
-
-  float draw      (float x = 0.0f, float y = 0.0f, bool full = false);
-  void  reset     (CEGUI::Renderer* renderer);
-
-  void  resize    (float incr);
-  void  setScale  (float scale);
-  float getScale  (void);
-
-  void  move      (float  x_off, float  y_off);
-  void  setPos    (float  x,     float  y);
-  void  getPos    (float& x,     float& y);
-
-protected:
-   SK_TextOverlay (const char* szAppName);
-
-private:
-  struct {
-    char   name [32];
-
-    char*  text; // UTF-8
-    size_t text_len;
-
-    float  extent; // Rendered height, in pixels
-  } data_;
-
-  struct {
-    CEGUI::Font*
-           cegui;
-
-    char   name [64];
-    float  scale;
-    DWORD  primary_color; // For text that doesn't use its own
-    DWORD  shadow_color;
-  } font_;
-
-  CEGUI::GeometryBuffer*
-           geometry_;
-  CEGUI::Renderer*
-           renderer_;
-
-  struct {
-    float  x,
-           y;
-  } pos_;
-};
-
-class SK_TextOverlayManager : public SK_IVariableListener
+SK_TextOverlayManager*
+SK_TextOverlayManager::getInstance (void)
 {
-private: // Singleton
-  static SK_TextOverlayManager* pSelf;
-  static CRITICAL_SECTION       cs_;
+  return ( pSelf == nullptr ? (pSelf = new SK_TextOverlayManager ()) :
+                               pSelf );
+}
 
-public:
-  static SK_TextOverlayManager* getInstance (void)
+SK_TextOverlayManager* SK_TextOverlayManager::pSelf = nullptr;
+CRITICAL_SECTION       SK_TextOverlayManager::cs_   = {     };
+
+SK_TextOverlayManager::SK_TextOverlayManager (void)
+{
+  InitializeCriticalSectionAndSpinCount (&cs_, MAXDWORD);
+
+  gui_ctx_         = nullptr;
+  need_full_reset_ = false;
+
+  SK_ICommandProcessor* cmd =
+    SK_GetCommandProcessor ();
+
+  cmd->AddVariable ("OSD.Red",   SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.red));
+  cmd->AddVariable ("OSD.Green", SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.green));
+  cmd->AddVariable ("OSD.Blue",  SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.blue));
+
+  pos_.x = SK_CreateVar (SK_IVariable::Int,   (int   *)&config.osd.pos_x, this);
+  pos_.y = SK_CreateVar (SK_IVariable::Int,   (int   *)&config.osd.pos_y, this);
+  scale_ = SK_CreateVar (SK_IVariable::Float, (float *)&config.osd.scale, this);
+
+  cmd->AddVariable ("OSD.PosX",  pos_.x);
+  cmd->AddVariable ("OSD.PosY",  pos_.y);
+  cmd->AddVariable ("OSD.Scale", scale_);
+}
+
+
+SK_TextOverlay* 
+SK_TextOverlayManager::createTextOverlay (const char *szAppName)
+{
+  
+  EnterCriticalSection (&cs_);
+
+  std::string app_name (szAppName);
+
+  if (overlays_.count (app_name))
   {
-    return ( pSelf == nullptr ? (pSelf = new SK_TextOverlayManager ()) :
-                                 pSelf );
-  }
-
-  SK_TextOverlay* createTextOverlay (const char* szAppName)
-  {
-    EnterCriticalSection (&cs_);
-
-    std::string app_name (szAppName);
-
-    if (overlays_.count (app_name))
-    {
-      SK_TextOverlay* overlay = overlays_ [app_name];
-
-      LeaveCriticalSection (&cs_);
-
-      return overlay;
-    }
-
-    SK_TextOverlay* overlay =
-      new SK_TextOverlay (szAppName);
-
-    overlay->setPos   ( static_cast <float> (config.osd.pos_x),
-                          static_cast <float> (config.osd.pos_y) );
-    overlay->setScale ( config.osd.scale );
-
-    overlays_ [app_name] = overlay;
+    SK_TextOverlay* overlay = overlays_ [app_name];
 
     LeaveCriticalSection (&cs_);
 
     return overlay;
   }
 
-  bool removeTextOverlay (const char* szAppName)
+  SK_TextOverlay* overlay =
+    new SK_TextOverlay (szAppName);
+
+  overlay->setPos   ( static_cast <float> (config.osd.pos_x),
+                        static_cast <float> (config.osd.pos_y) );
+  overlay->setScale ( config.osd.scale );
+
+  overlays_ [app_name] = overlay;
+
+  LeaveCriticalSection (&cs_);
+
+  return overlay;
+}
+
+bool
+SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
+{
+  EnterCriticalSection (&cs_);
+
+  std::string app_name (szAppName);
+
+  if (overlays_.count (app_name))
   {
-    EnterCriticalSection (&cs_);
-
-    std::string app_name (szAppName);
-
-    if (overlays_.count (app_name))
-    {
-      overlays_.erase   (app_name);
-
-      LeaveCriticalSection (&cs_);
-
-      return true;
-    }
+    overlays_.erase   (app_name);
 
     LeaveCriticalSection (&cs_);
 
-    return false;
+    return true;
   }
 
-  SK_TextOverlay* getTextOverlay (const char* szAppName)
+  LeaveCriticalSection (&cs_);
+
+  return false;
+}
+
+SK_TextOverlay*
+SK_TextOverlayManager::getTextOverlay (const char* szAppName)
+{
+  EnterCriticalSection (&cs_);
+
+  std::string app_name (szAppName);
+
+  if (overlays_.count (app_name))
   {
-    EnterCriticalSection (&cs_);
-
-    std::string app_name (szAppName);
-
-    if (overlays_.count (app_name))
-    {
-      SK_TextOverlay* overlay = overlays_ [app_name];
-
-      LeaveCriticalSection (&cs_);
-
-      return overlay;
-    }
+    SK_TextOverlay* overlay = overlays_ [app_name];
 
     LeaveCriticalSection (&cs_);
 
-    return nullptr;
+    return overlay;
   }
 
-  void            queueReset         (CEGUI::Renderer* renderer);
+  LeaveCriticalSection (&cs_);
 
-  void            resetAllOverlays   (CEGUI::Renderer* renderer);
-  float           drawAllOverlays    (float x, float y, bool full);
-  void            destroyAllOverlays (void);
-
-protected:
-  SK_TextOverlayManager (void)
-  {
-    InitializeCriticalSectionAndSpinCount (&cs_, MAXDWORD);
-
-    gui_ctx_         = nullptr;
-    need_full_reset_ = false;
-
-    SK_ICommandProcessor* cmd =
-      SK_GetCommandProcessor ();
-
-    cmd->AddVariable ("OSD.Red",   SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.red));
-    cmd->AddVariable ("OSD.Green", SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.green));
-    cmd->AddVariable ("OSD.Blue",  SK_CreateVar (SK_IVariable::Int, (int *)&config.osd.blue));
-
-    pos_.x = SK_CreateVar (SK_IVariable::Int,   (int   *)&config.osd.pos_x, this);
-    pos_.y = SK_CreateVar (SK_IVariable::Int,   (int   *)&config.osd.pos_y, this);
-    scale_ = SK_CreateVar (SK_IVariable::Float, (float *)&config.osd.scale, this);
-
-    cmd->AddVariable ("OSD.PosX",  pos_.x);
-    cmd->AddVariable ("OSD.PosY",  pos_.y);
-    cmd->AddVariable ("OSD.Scale", scale_);
-  }
-
-private:
-  bool                                     need_full_reset_;
-  CEGUI::GUIContext*                       gui_ctx_;
-  std::map <std::string, SK_TextOverlay *> overlays_;
-
-  struct {
-    SK_IVariable*                          x;
-    SK_IVariable*                          y;
-  } pos_;
-
-  SK_IVariable*                            scale_;
-
-public:
-  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
-};
-
-SK_TextOverlayManager* SK_TextOverlayManager::pSelf = nullptr;
-CRITICAL_SECTION       SK_TextOverlayManager::cs_;
+  return nullptr;
+}
 
 SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 {
@@ -226,7 +148,7 @@ SK_TextOverlay::SK_TextOverlay (const char* szAppName)
   strncpy (font_.name, "Consolas-12.font", 64);
 
   data_.text_len = 32768;
-  data_.text     = (char *)malloc (data_.text_len);
+  data_.text     = (char *)calloc (1, data_.text_len);
 
   if (data_.text != nullptr)
     *data_.text  = '\0';
@@ -247,6 +169,7 @@ SK_TextOverlay::~SK_TextOverlay (void)
   {
     free ((void *)data_.text);
     data_.text_len = 0;
+    data_.text     = nullptr;
   }
 
   if (geometry_ != nullptr)
@@ -477,10 +400,6 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   return wszOut;
 }
 
-#define CINTERFACE
-#include <d3d9.h>
-extern IDirect3DSwapChain9* g_pSwapChain9;
-
 std::string external_osd_name;
 
 BOOL
@@ -548,7 +467,7 @@ SK_InstallOSD (void)
 
     SK_SetOSDScale (config.osd.scale);
     SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
-    SK_SetOSDColor (config.osd.red, config.osd.green, config.osd.blue);
+    SK_SetOSDColor (config.osd.red,   config.osd.green, config.osd.blue);
   }
 }
 
@@ -1100,6 +1019,7 @@ SK_DrawOSD (void)
 
   if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ()))
   {
+#ifndef SK_BUILD__INSTALLER
     if (SK_IsD3D11 ())
     {
       OSD_R_PRINTF "\n%ws",
@@ -1120,6 +1040,7 @@ SK_DrawOSD (void)
         SK::OpenGL::getPipelineStatsDesc ().c_str ()
       OSD_END
     }
+#endif
   }
 
   OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
@@ -1615,8 +1536,10 @@ auto SK_CountLines = [](const char* line)->
 float
 SK_TextOverlay::update (const char* szText)
 {
+  size_t len = szText != nullptr ? strlen (szText) : 0;
+
   if (szText != nullptr)
-    strncpy (data_.text, szText, data_.text_len);
+    strncpy (data_.text, szText, std::min (len + 1, data_.text_len));
 
   if (font_.cegui && geometry_)
   {
@@ -1765,10 +1688,12 @@ SK_TextOverlay::update (const char* szText)
 float
 SK_TextOverlay::draw (float x, float y, bool full)
 {
-  if (geometry_) {
+  if (geometry_)
+  {
     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
 
-    if (full) {
+    if (full)
+    {
       geometry_->draw ();
       update          (nullptr);
     }

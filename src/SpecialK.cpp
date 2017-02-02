@@ -20,6 +20,8 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 
+#include <SpecialK/diagnostics/compatibility.h>
+
 #include <Windows.h>
 
 #include <Shlwapi.h>
@@ -33,6 +35,12 @@
 #include <SpecialK/utility.h>
 
 #include <SpecialK/tls.h>
+
+#undef LoadLibrary
+
+// Don't EVER make these function calls from this code unit.
+#define LoadLibrary int x = __stdcall;
+#define FreeLibrary int x = __stdcall;
 
 // We need this to load embedded resources correctly...
 volatile HMODULE hModSelf          = 0;
@@ -278,6 +286,7 @@ SK_Attach (DLL_ROLE role)
       }
 
 
+#ifndef SK_BUILD__INSTALLER
       case DLL_ROLE::OpenGL:
         // If this is the global injector and there is a wrapper version
         //   of Special K in the DLL search path, then bail-out!
@@ -298,6 +307,7 @@ SK_Attach (DLL_ROLE role)
             &__SK_DLL_Attached,
               1
           );
+#endif
 
       case DLL_ROLE::Vulkan:
         SK_SetDLLRole (DLL_ROLE::INVALID);
@@ -336,9 +346,11 @@ SK_Detach (DLL_ROLE role)
         ret = SK::D3D9::Shutdown ();
         break;
 
+#ifndef SK_BUILD__INSTALLER
       case DLL_ROLE::OpenGL:
         ret = SK::OpenGL::Shutdown ();
         break;
+#endif
 
       case DLL_ROLE::Vulkan:
         break;
@@ -381,6 +393,8 @@ DllMain ( HMODULE hModule,
       //
       if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
         return FALSE;
+
+      SK_PreInitLoadLibrary ();
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.

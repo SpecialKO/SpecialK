@@ -26,6 +26,7 @@
 #include <SpecialK/import.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/diagnostics/compatibility.h>
 
 const std::wstring SK_IMPORT_EARLY         = L"Early";
 const std::wstring SK_IMPORT_PLUGIN        = L"PlugIn";
@@ -84,13 +85,13 @@ SK_InitPlugIn64 (HMODULE hLibrary)
     else {
       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-      FreeLibrary (hLibrary);
+      FreeLibrary_Original (hLibrary);
       hLibrary = NULL;
     }
   } else {
     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-    FreeLibrary (hLibrary);
+    FreeLibrary_Original (hLibrary);
     hLibrary = NULL;
   }
 
@@ -127,7 +128,7 @@ SK_LoadEarlyImports64 (void)
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
 
@@ -190,7 +191,7 @@ SK_LoadPlugIns64 (void)
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
 
@@ -253,7 +254,7 @@ SK_LoadLateImports64 (void)
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
 
@@ -309,7 +310,7 @@ SK_LoadLazyImports64 (void)
                 imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
 
@@ -357,13 +358,13 @@ SK_InitPlugIn32 (HMODULE hLibrary)
     else {
       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-      FreeLibrary (hLibrary);
+      FreeLibrary_Original (hLibrary);
       hLibrary = NULL;
     }
   } else {
     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-    FreeLibrary (hLibrary);
+    FreeLibrary_Original (hLibrary);
     hLibrary = NULL;
   }
 
@@ -402,7 +403,7 @@ SK_LoadEarlyImports32 (void)
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
 
@@ -465,7 +466,7 @@ SK_LoadPlugIns32 (void)
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
 
@@ -527,7 +528,7 @@ SK_LoadLateImports32 (void)
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
                 );
 
@@ -583,7 +584,7 @@ SK_LoadLazyImports32 (void)
                 imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
-              imports [i].hLibrary = LoadLibrary (
+              imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
                 );
 
@@ -634,7 +635,7 @@ SK_UnloadImports (void)
                           imports [i].filename->get_value_str ().c_str ()
       );
 
-      if (FreeLibrary (imports [i].hLibrary))
+      if (FreeLibrary_Original (imports [i].hLibrary))
         dll_log.LogEx (false, L"success!\n");
 
       else
