@@ -1447,7 +1447,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
       {
-        dll_log.LogEx (true, L"Loading default preferences from %s.ini... ", default_name);
+        dll_log.LogEx (true, L"Loading default preferences from %s.ini... ", default_name.c_str ());
 
         if (! SK_LoadConfig (default_name))
           dll_log.LogEx (false, L"failed!\n");
@@ -1461,47 +1461,58 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
-  SK_Init_MinHook                       ();
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
-
-  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
-  SK::Diagnostics::Debugger::Allow ();
-
-  game_debug.init (L"logs/game_output.log", L"w");
-
-  if (! SK_IsHostAppSKIM ()) {
-    SK_Steam_InitCommandConsoleVariables ();
-    //SK_TestSteamImports                  (GetModuleHandle (nullptr));
+  if (SK_IsHostAppSKIM ()) {
+    config.system.handle_crashes = false;
+    config.system.game_output    = false;
+    config.steam.silent          = true;
+    SK_InitCore (backend, callback);
+    return 0;
   }
 
+  else
+{
+    SK_Init_MinHook                       ();
 
-  // Do this from the startup thread
-  SK_HookWinAPI       ();
-  SK::Framerate::Init ();
-
-
-
-  // Hard-code the AppID for ToZ
-  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
-    config.steam.appid = 351970;
-
-  // Game won't start from the commandline without this...
-  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
-    config.steam.appid = 405900;
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Init ();
 
 
-  // Start unmuted
-  if (config.window.background_mute)
-    SK_SetGameMute (FALSE);
+    // Don't let Steam prevent me from attaching a debugger at startup, damnit!
+    SK::Diagnostics::Debugger::Allow ();
+
+    game_debug.init (L"logs/game_output.log", L"w");
+
+    if (! SK_IsHostAppSKIM ()) {
+      SK_Steam_InitCommandConsoleVariables ();
+      //SK_TestSteamImports                  (GetModuleHandle (nullptr));
+    }
 
 
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
+    // Do this from the startup thread
+    SK_HookWinAPI       ();
+    SK::Framerate::Init ();
 
-  SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+
+
+    // Hard-code the AppID for ToZ
+    if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+      config.steam.appid = 351970;
+
+    // Game won't start from the commandline without this...
+    if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
+      config.steam.appid = 405900;
+
+
+    // Start unmuted
+    if (config.window.background_mute)
+      SK_SetGameMute (FALSE);
+
+
+    if (config.system.display_debug_out)
+      SK::Diagnostics::Debugger::SpawnConsole ();
+
+    SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+  }
 
   LeaveCriticalSection (&init_mutex);
 

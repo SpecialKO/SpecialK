@@ -58,9 +58,6 @@
     <Filter Include="Source Files\Update">
       <UniqueIdentifier>{e6ec08a7-8e65-4d10-90c4-450c13e4a46e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Update">
-      <UniqueIdentifier>{6c9ee774-936a-4832-8a8a-c4cbf5b9a6f4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Libraries\32-bit">
       <UniqueIdentifier>{1e45d49a-394f-4a90-9e05-01d4e9eb122b}</UniqueIdentifier>
     </Filter>
@@ -123,6 +120,9 @@
     </Filter>
     <Filter Include="Header Files\stb">
       <UniqueIdentifier>{fe26823d-cc7b-4371-99fc-33ea554633c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Update">
+      <UniqueIdentifier>{6c9ee774-936a-4832-8a8a-c4cbf5b9a6f4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -229,7 +229,7 @@
       <Filter>Header Files\Config</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\archive.h">
-      <Filter>Header Files\Update</Filter>
+      <Filter>Source Files\Backends\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\steam_api.h">
       <Filter>Header Files\Steam</Filter>
@@ -262,10 +262,10 @@
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\version.h">
-      <Filter>Header Files\Update</Filter>
+      <Filter>Source Files\Backends\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\network.h">
-      <Filter>Header Files\Update</Filter>
+      <Filter>Source Files\Backends\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_d3d9.h">
       <Filter>Header Files\ImGui</Filter>
