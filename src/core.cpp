@@ -565,32 +565,35 @@ SK_InitFinishCallback (void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
-  SK_Console* pConsole = SK_Console::getInstance ();
-  pConsole->Start ();
+  if (! SK_IsHostAppSKIM ())
+  { 
+    SK_Console* pConsole = SK_Console::getInstance ();
+    pConsole->Start ();
 
-  extern BOOL SK_UsingVulkan (void);
+    extern BOOL SK_UsingVulkan (void);
 
-    // Create a thread that pumps the OSD
-  if (config.osd.pump || SK_UsingVulkan ()) {
-    dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
-    hPumpThread =
-      (HANDLE)
-        _beginthreadex ( nullptr,
-                           0,
-                             osd_pump,
-                               nullptr,
-                                 0,
-                                   nullptr );
+      // Create a thread that pumps the OSD
+    if (config.osd.pump || SK_UsingVulkan ()) {
+      dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
+      hPumpThread =
+        (HANDLE)
+          _beginthreadex ( nullptr,
+                             0,
+                               osd_pump,
+                                 nullptr,
+                                   0,
+                                     nullptr );
 
-    if (hPumpThread != nullptr)
-      dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
-                        GetThreadId (hPumpThread),
-                          config.osd.pump_interval * 1000.0f );
-    else
-      dll_log.LogEx (false, L"failed!\n");
+      if (hPumpThread != nullptr)
+        dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
+                          GetThreadId (hPumpThread),
+                            config.osd.pump_interval * 1000.0f );
+      else
+        dll_log.LogEx (false, L"failed!\n");
+    }
+
+    SK_StartPerfMonThreads ();
   }
-
-  SK_StartPerfMonThreads ();
 
   LeaveCriticalSection (&init_mutex);
 }
