@@ -521,6 +521,9 @@ DownloadDialogCallback (
 
     else if (wParam == IDYES)
     {
+      // Disable the button
+      SendMessage (hWnd, TDM_ENABLE_BUTTON, wParam, 0);
+
       get->hTaskDlg = hWnd;
 
       _beginthreadex ( nullptr,
