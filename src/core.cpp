@@ -78,6 +78,8 @@ static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48
 CRITICAL_SECTION init_mutex    = { 0 };
 CRITICAL_SECTION budget_mutex  = { 0 };
 CRITICAL_SECTION loader_lock   = { 0 };
+CRITICAL_SECTION wmi_cs        = { 0 };
+CRITICAL_SECTION cs_dbghelp    = { 0 };
 volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
@@ -459,6 +461,8 @@ osd_pump (LPVOID lpThreadParam)
   return 0;
 }
 
+extern void SK_ShutdownWMI (void);
+
 void
 __stdcall
 SK_StartPerfMonThreads (void)
@@ -483,8 +487,6 @@ SK_StartPerfMonThreads (void)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (process_stats.hThread));
       else
         dll_log.LogEx (false, L"Failed!\n");
-
-      Sleep         (0);
     }
   }
 
@@ -508,8 +510,6 @@ SK_StartPerfMonThreads (void)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (cpu_stats.hThread));
       else
         dll_log.LogEx (false, L"Failed!\n");
-
-      Sleep         (0);
     }
   }
 
@@ -530,8 +530,6 @@ SK_StartPerfMonThreads (void)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (disk_stats.hThread));
       else
         dll_log.LogEx (false, L"failed!\n");
-
-      Sleep         (0);
     }
   }
 
@@ -553,8 +551,6 @@ SK_StartPerfMonThreads (void)
                           GetThreadId (pagefile_stats.hThread) );
       else
         dll_log.LogEx (false, L"failed!\n");
-
-      Sleep         (0);
     }
   }
 }
@@ -1137,9 +1133,6 @@ unsigned int
 __stdcall
 DllThread_CRT (LPVOID user)
 {
-  // Initialize TLS for this thread
-  SK_GetTLS ();
-
   init_params_t* params =
     (init_params_t *)user;
 
@@ -1226,6 +1219,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
   InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
   InitializeCriticalSectionAndSpinCount (&loader_lock,  65536);
+  InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
+  InitializeCriticalSectionAndSpinCount (&cs_dbghelp, 1048576);
 
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
@@ -1478,9 +1473,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   game_debug.init (L"logs/game_output.log", L"w");
 
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+
   if (! SK_IsHostAppSKIM ()) {
     SK_Steam_InitCommandConsoleVariables ();
-    //SK_TestSteamImports                  (GetModuleHandle (nullptr));
+    SK_TestSteamImports                  (GetModuleHandle (nullptr));
   }
 
 
@@ -1503,9 +1502,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.window.background_mute)
     SK_SetGameMute (FALSE);
 
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
@@ -1660,6 +1656,10 @@ SK_ShutdownCore (const wchar_t* backend)
   DeleteCriticalSection (&budget_mutex);
   DeleteCriticalSection (&loader_lock);
   DeleteCriticalSection (&init_mutex);
+  DeleteCriticalSection (&cs_dbghelp);
+
+  SK_ShutdownWMI ();
+  
 
   FreeLibrary_Original (backend_dll);
 
@@ -1702,17 +1702,6 @@ SK_BeginBufferSwap (void)
       // Steam Init: Better late than never
 
       SK_TestSteamImports (nullptr);
-
-      extern bool
-      S_CALLTYPE
-      SteamAPI_InitSafe_Detour (void);
-
-      extern void
-      S_CALLTYPE
-      SteamAPI_RunCallbacks_Detour (void);
-
-      SteamAPI_InitSafe_Detour     ();
-      SteamAPI_RunCallbacks_Detour ();
     }
 
 

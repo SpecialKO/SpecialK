@@ -920,13 +920,13 @@ __crc32_init (void)
     calculate_table ();
 
     if (crc32c_hw_available ()) {
-      dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
+      //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
       calculate_table_hw ();
       append_func = crc32c_append_hw;
     }
 
     else {
-      dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
+      //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
       append_func = crc32c_append_sw;
     }
   }

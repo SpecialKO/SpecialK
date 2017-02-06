@@ -232,74 +232,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   {
     SteamAPI_RegisterCallback_Original (pCallback, iCallback);
     return;
-  }
-
-  // Sometimes a game will have initialized SteamAPI before this DLL was loaded,
-  //   we will usually catch wind of this because callbacks will be registered
-  //     seemingly before initialization.
-  //
-  //  Take this opportunity to finish SteamAPI initialization for SpecialK.
-  if (! InterlockedExchangeAdd (&__SK_Steam_init, 0))
-  {
-    CreateThread
-    (
-      nullptr,
-        0,
-          [](LPVOID user) ->
-            DWORD 
-            {
-              UNREFERENCED_PARAMETER (user);
-
-              static bool spawned_init = false;
-              
-              // Already started a late init. thread
-              if (spawned_init)
-              {
-                CloseHandle (GetCurrentThread ());
-                return 0;
-              }
-              
-              spawned_init = true;
-              
-              Sleep (5000UL);
-              
-              if (! InterlockedExchangeAdd (&__SK_Steam_init, 0))
-              {
-                steam_log.Log ( L"Initializing SteamWorks Backend  << %s >>",
-                                  SK_GetCallerName ().c_str () );
-                steam_log.Log (L"----------(Implicit)-----------\n");
-              
-                InterlockedExchange (&__SK_Steam_init, TRUE);
-              
-#ifdef         _WIN64
-                const wchar_t* steam_dll_str = L"steam_api64.dll";
-#else           
-                const wchar_t* steam_dll_str = L"steam_api.dll";
-#endif          
-              
-                HMODULE hSteamAPI;
-                GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-                                    GET_MODULE_HANDLE_EX_FLAG_PIN, steam_dll_str, &hSteamAPI);
-              
-                SK_SteamAPI_ContextInit (hSteamAPI);
-              
-                steam_log.Log ( L"--- Initialization Finished ([AppId: %lu]) ---\n\n",
-                                  SK::SteamAPI::AppID () );
-              
-                //SteamAPI_RunCallbacks_Detour ();
-              
-                StartSteamPump ();
-              }
-              
-              CloseHandle (GetCurrentThread ());
-              return 0;
-            },
-          nullptr,
-        0x00,
-      nullptr
-    );
-  }
-
+  }\
   std::wstring caller = 
     SK_GetCallerName ();
 

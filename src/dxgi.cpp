@@ -828,7 +828,7 @@ SK_DXGI_BeginHooking (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-#if 0
+#if 1
     HANDLE hHookInitDXGI =
       (HANDLE)
         _beginthreadex ( nullptr,

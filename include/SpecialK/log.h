@@ -214,25 +214,25 @@ extern iSK_Logger dll_log;
 extern iSK_Logger crash_log;
 extern iSK_Logger budget_log;
 
-iSK_Logger*
+interface iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName);
 
-#endif
+#include <SpecialK/diagnostics/crash_handler.h>
 
 std::wstring
 __stdcall
 SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 
-extern std::string
-SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
-
 #define SK_LOG_CALL(source) {                       \
-  std::string __SYMBOL__ =                          \
-    SK_GetSymbolNameFromModuleAddr (                \
-          SK_GetCallingDLL            (),           \
-            (uintptr_t)_ReturnAddress ()            \
-  );                                                \
+    char  szSymbol [1024] = { };                    \
+    ULONG ulLen  =  1024;                           \
+                                                    \
+    ulLen = SK_GetSymbolNameFromModuleAddr (        \
+              SK_GetCallingDLL (),                  \
+                (uintptr_t)_ReturnAddress (),       \
+                  szSymbol,                         \
+                    ulLen );                        \
                                                     \
   dll_log.Log ( L"[%hs][!] %32hs - %s",             \
                  (source),                          \
@@ -240,5 +240,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
                      SK_SummarizeCaller ().c_str () \
              );                                     \
 }
+
+#endif
 
 #endif /* __SK__LOG_H__ */

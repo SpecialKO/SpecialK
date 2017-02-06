@@ -1,3 +1,4 @@
+
 /**
  * This file is part of Special K.
  *
@@ -20,6 +21,7 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 
 #include <SpecialK/io_monitor.h>
 #include <SpecialK/log.h>
@@ -27,9 +29,6 @@
 #include <SpecialK/framerate.h>
 
 #include <process.h>
-
-#undef min
-#undef max
 
 #include <algorithm>
 
@@ -123,12 +122,14 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
 #include <unordered_map>
 
+extern CRITICAL_SECTION wmi_cs;
+
 namespace COM {
   struct Base {
     volatile ULONG     init          = FALSE;
 
     struct WMI {
-      volatile LONG    init          = -1;
+      volatile LONG    init          = 0;
 
       IWbemServices*   pNameSpace    = nullptr;
       IWbemLocator*    pWbemLocator  = nullptr;
@@ -136,109 +137,33 @@ namespace COM {
 
       HANDLE           hServerThread = 0;
 
-      CRITICAL_SECTION cs            = { 0 };
-
-      bool InitLocks    (void);
-
       void Lock         (void);
       void Unlock       (void);
     } wmi;
-
-    LONG               threads         = 0;
-
-    HRESULT InitThread   (void);
-    bool    UninitThread (void);
   } base;
-
-  struct thread_local_t {
-    bool init = false;
-  };
-
-  std::unordered_map <DWORD, thread_local_t> local;
-  CRITICAL_SECTION                           local_cs = { 0 };
-}
-
-bool
-COM::Base::WMI::InitLocks (void)
-{
-  static volatile ULONG __init = FALSE;
-
-  if (! InterlockedCompareExchange (&__init, TRUE, FALSE))
-    InitializeCriticalSectionAndSpinCount (&cs, 50000);
-
-  return true;
 }
 
 void
 COM::Base::WMI::Lock (void)
 {
-  if (InterlockedExchangeAdd (&init, 0))
-    EnterCriticalSection (&cs);
+  EnterCriticalSection (&wmi_cs);
 }
 
 void
 COM::Base::WMI::Unlock (void)
 {
-  if (InterlockedExchangeAdd (&init, 0))
-    LeaveCriticalSection (&cs);
-}
-
-HRESULT
-COM::Base::InitThread (void)
-{
-  HRESULT hr = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-
-  if (SUCCEEDED (hr)) {
-    InterlockedIncrement (&threads);
-
-    EnterCriticalSection (&local_cs);
-    local [GetCurrentThreadId ()].init = true;
-    LeaveCriticalSection (&local_cs);
-
-    return hr;
-  }
-
-  else {
-    CoUninitialize ();
-
-    EnterCriticalSection (&local_cs);
-    local [GetCurrentThreadId ()].init = false;
-    LeaveCriticalSection (&local_cs);
-
-    return hr;
-  }
-}
-
-bool
-COM::Base::UninitThread (void)
-{
-  EnterCriticalSection (&local_cs);
-  if (local [GetCurrentThreadId ()].init) {
-  LeaveCriticalSection (&local_cs);
-    CoUninitialize ();
-
-    EnterCriticalSection (&local_cs);
-    local [GetCurrentThreadId ()].init = false;
-    LeaveCriticalSection (&local_cs);
-
-    InterlockedDecrement (&threads);
-
-    return true;
-  }
-  LeaveCriticalSection (&local_cs);
-
-  return false;
+  LeaveCriticalSection (&wmi_cs);
 }
 
 unsigned int
 __stdcall
 SK_WMI_ServerThread (LPVOID lpUser)
 {
+  SK_AutoCOMInit auto_com;
+
   UNREFERENCED_PARAMETER (lpUser);
 
   HRESULT hr;
-
-  COM::base.wmi.InitLocks ();
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemLocator, 
@@ -350,7 +275,6 @@ WMI_CLEANUP:
     COM::base.wmi.pNameSpace = nullptr;
   }
 
-  COM::base.wmi.Unlock ();
   InterlockedExchange (&COM::base.wmi.init, 0);
 
   return 0;
@@ -360,24 +284,6 @@ bool
 SK_InitCOM (void)
 {
   HRESULT hr;
-
-  if (! InterlockedCompareExchange (&COM::base.init, 0, 0)) {
-    static ULONG __init_local_threads = FALSE;
-
-    if (! InterlockedCompareExchange (&__init_local_threads, TRUE, FALSE))
-      InitializeCriticalSectionAndSpinCount (&COM::local_cs, 500000);
-  }
-
-  if (FAILED (hr = COM::base.InitThread ())) {
-    dll_log.Log (L"[COM Thread] Failure to initialize COM for the calling thread "
-                 L"(%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
-
-    return false;
-  }
-
-  if (InterlockedCompareExchange (&COM::base.init, 0, 0))
-    return true;
 
   if (FAILED (hr = CoInitializeSecurity (
                      NULL,
@@ -393,35 +299,31 @@ SK_InitCOM (void)
     // It's possible that the application already did this, in which case
     //   it is immutable and we should try to deal with whatever the app
     //     initialized it to.
-    if (hr != RPC_E_TOO_LATE) {
+    if (hr != RPC_E_TOO_LATE)
+    {
       dll_log.Log (L"[COM Secure] Failure to initialize COM Security (%s:%d) -- 0x%X",
         __FILEW__, __LINE__, hr);
-      goto COM_CLEANUP;
+      return false;
     }
   }
 
-  Sleep (100);
-
-  InterlockedExchange (&COM::base.init, TRUE);
-
   return true;
-
-COM_CLEANUP:
-  COM::base.UninitThread ();
-
-  InterlockedExchange (&COM::base.init, FALSE);
-
-  return false;
 }
 
 bool
 SK_InitWMI (void)
 {
+  SK_AutoCOMInit auto_com;
+
   if (! SK_InitCOM ())
     return false;
 
-  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0)
+  COM::base.wmi.Lock ();
+
+  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0) {
+    COM::base.wmi.Unlock ();
     return true;
+  }
 
   InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread,
       (HANDLE)
@@ -432,58 +334,47 @@ SK_InitWMI (void)
                                  0x00,
                                    nullptr ), 0);
 
-  while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) < 0)
-    Sleep (10);
+  while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) == 0)
+    Sleep (100);
 
-  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) == 0)
-    InterlockedExchangePointer (&COM::base.wmi.hServerThread, 0);
+  COM::base.wmi.Unlock ();
 
-  return InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0;
+  return true;
 }
 
-//
-// TODO - Use reference counting for the number of times init was called...
-//
 void
-SK_ShutdownCOM (void)
+SK_ShutdownWMI (void)
 {
-  if (InterlockedCompareExchange (&COM::base.init, 0, 0))
+  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
   {
-    if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+    if (COM::base.wmi.pWbemLocator != nullptr)
     {
-      if (COM::base.wmi.pWbemLocator != nullptr)
-      {
-        COM::base.wmi.pWbemLocator->Release ();
-        COM::base.wmi.pWbemLocator = nullptr;
-      }
-
-      if (COM::base.wmi.bstrNameSpace != nullptr)
-      {
-        SysFreeString (COM::base.wmi.bstrNameSpace);
-        COM::base.wmi.bstrNameSpace = nullptr;
-      }
-
-      if (COM::base.wmi.pNameSpace != nullptr)
-      {
-        COM::base.wmi.pNameSpace->Release ();
-        COM::base.wmi.pNameSpace = nullptr;
-      }
-
-      InterlockedExchange (&COM::base.wmi.init, FALSE);
-
-      DeleteCriticalSection (&COM::base.wmi.cs);
-
-      if (COM::base.wmi.hServerThread != 0) {
-        TerminateThread (COM::base.wmi.hServerThread, 0);
-        COM::base.wmi.hServerThread = 0;
-      }
+      COM::base.wmi.pWbemLocator->Release ();
+      COM::base.wmi.pWbemLocator = nullptr;
     }
 
-    COM::base.UninitThread ();
-    InterlockedExchange (&COM::base.init, FALSE);
+    if (COM::base.wmi.bstrNameSpace != nullptr)
+    {
+      SysFreeString (COM::base.wmi.bstrNameSpace);
+                     COM::base.wmi.bstrNameSpace = nullptr;
+    }
 
-    DeleteCriticalSection (&COM::local_cs);
+    if (COM::base.wmi.pNameSpace != nullptr)
+    {
+      COM::base.wmi.pNameSpace->Release ();
+      COM::base.wmi.pNameSpace = nullptr;
+    }
+
+    InterlockedExchange (&COM::base.wmi.init, FALSE);
+
+    if (COM::base.wmi.hServerThread != 0)
+    {
+      TerminateThread (COM::base.wmi.hServerThread, 0);
+                       COM::base.wmi.hServerThread = 0;
+    }
   }
+
+  DeleteCriticalSection (&wmi_cs);
 }
 
 cpu_perf_t cpu_stats;
@@ -494,12 +385,12 @@ unsigned int
 __stdcall
 SK_MonitorCPU (LPVOID user_param)
 {
+  SK_AutoCOMInit auto_com;
+
   UNREFERENCED_PARAMETER (user_param);
 
   if (! SK_InitWMI ())
     return std::numeric_limits <unsigned int>::max ();
-
-  Sleep (100);
 
   COM::base.wmi.Lock ();
 
@@ -820,7 +711,6 @@ CPU_CLEANUP:
   }
 
   COM::base.wmi.Unlock   ();
-  COM::base.UninitThread ();
 
   return 0;
 }
@@ -831,12 +721,12 @@ unsigned int
 __stdcall
 SK_MonitorDisk (LPVOID user)
 {
+  SK_AutoCOMInit auto_com;
+
   UNREFERENCED_PARAMETER (user);
 
   if (! SK_InitWMI ())
     return std::numeric_limits <unsigned int>::max ();
-
-  Sleep (100);
 
   COM::base.wmi.Lock ();
 
@@ -1223,7 +1113,6 @@ DISK_CLEANUP:
   }
 
   COM::base.wmi.Unlock   ();
-  COM::base.UninitThread ();
 
   return 0;
 }
@@ -1234,12 +1123,12 @@ unsigned int
 __stdcall
 SK_MonitorPagefile (LPVOID user)
 {
+  SK_AutoCOMInit auto_com;
+
   UNREFERENCED_PARAMETER (user);
 
   if (! SK_InitWMI ())
     return std::numeric_limits <unsigned int>::max ();
-
-  Sleep (100);
 
   COM::base.wmi.Lock ();
 
@@ -1515,7 +1404,6 @@ PAGEFILE_CLEANUP:
   }
 
   COM::base.wmi.Unlock   ();
-  COM::base.UninitThread ();
 
   return 0;
 }

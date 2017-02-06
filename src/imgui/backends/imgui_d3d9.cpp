@@ -485,7 +485,10 @@ ImGui_ImplDX9_NewFrame (void)
     ImGui_ImplDX9_CreateDeviceObjects ();
   }
 
-  io.MouseDrawCursor = true;
+  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+
+  if (! hModTBFix)
+    io.MouseDrawCursor = true;
 
 
   // Setup display size (every frame to accommodate for window resizing)

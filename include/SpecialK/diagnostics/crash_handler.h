@@ -37,4 +37,9 @@ namespace SK
   }
 }
 
+#include <Windows.h>
+
+ULONG
+SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen);
+
 #endif /* __SK__CRASH_HANDLER_H__ */

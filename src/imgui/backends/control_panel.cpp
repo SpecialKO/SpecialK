@@ -564,9 +564,16 @@ SK_ImGui_ControlPanel (void)
                                           "Animated\0\0" ) ) {
             config.steam.achievements.popup.show    = (mode > 0);
             config.steam.achievements.popup.animate = (mode > 1);
+
+            // Make sure the duration gets set non-zero when this changes
+            if (config.steam.achievements.popup.show)
+            {
+              if ( config.steam.achievements.popup.duration == 0 )
+                config.steam.achievements.popup.duration = 6666UL;
+            }
           }
 
-          float duration = ( (float)config.steam.achievements.popup.duration / 1000.0f );
+          float duration = std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
 
           if ( ImGui::SliderFloat ( "Duration (seconds)",            &duration, 1.0f, 30.0f ) )
           {
@@ -740,21 +747,30 @@ SK_ImGui_Toggle (void)
   if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  d3d9  = true;
   if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::D3D11) d3d11 = true;
 
-  if (d3d9 || d3d11) {
-    static int cursor_refs = 0;
-    
-    if (SK_ImGui_Visible) {
-      while (ShowCursor (FALSE) > cursor_refs)
-        ;
-      while (ShowCursor (TRUE)  < cursor_refs)
-        ;
-    }
-    else {
-      cursor_refs = (ShowCursor (FALSE) + 1);
-    
-      if (cursor_refs > 0) {
-        while (ShowCursor (FALSE) > 0)
+  if (d3d9 || d3d11)
+  {    
+    static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+
+    if (hModTBFix == nullptr) 
+    {
+      static int cursor_refs = 0;
+
+      if (SK_ImGui_Visible)
+      {
+        while (ShowCursor (FALSE) > cursor_refs)
           ;
+        while (ShowCursor (TRUE)  < cursor_refs)
+          ;
+      }
+
+      else
+      {
+        cursor_refs = (ShowCursor (FALSE) + 1);
+    
+        if (cursor_refs > 0) {
+          while (ShowCursor (FALSE) > 0)
+            ;
+        }
       }
     }
     

@@ -2047,6 +2047,10 @@ SK_SaveConfig ( std::wstring name,
     SK_Steam_PopupOriginToWStr (config.steam.achievements.popup.origin)
   );
   steam.achievements.popup.inset->set_value      (config.steam.achievements.popup.inset);
+
+  if (! config.steam.achievements.popup.show)
+    config.steam.achievements.popup.duration = 0;
+
   steam.achievements.popup.duration->set_value   (config.steam.achievements.popup.duration);
   steam.achievements.popup.animate->set_value    (config.steam.achievements.popup.animate);
   steam.achievements.popup.show_title->set_value (config.steam.achievements.popup.show_title);

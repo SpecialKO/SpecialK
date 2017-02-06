@@ -24,6 +24,26 @@
 
 #include <Windows.h>
 
+class SK_AutoCOMInit
+{
+public:
+  SK_AutoCOMInit (void) {
+    HRESULT hr = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+
+    if (SUCCEEDED (hr))
+      success = true;
+  }
+
+  ~SK_AutoCOMInit (void) {
+    if (success)
+      CoUninitialize ();
+  }
+
+private:
+  bool success = false;
+};
+
+
 struct io_perf_t {
   bool           init          = false;
 

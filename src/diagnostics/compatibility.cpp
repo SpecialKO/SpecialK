@@ -44,6 +44,7 @@
 #include <SpecialK/window.h>
 #include <SpecialK/render_backend.h>
 
+
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
 void           SK_UnhookLoadLibrary         (void);
@@ -110,13 +111,18 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
   wchar_t wszModName [MAX_PATH] = { L'\0' };
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
-  if (! SK_LoadLibrary_SILENCE) {
+  if (! SK_LoadLibrary_SILENCE)
+  {    
+    char  szSymbol [1024] = { };
+    ULONG ulLen  =  1024;
+    
+    ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (lpCallerFunc), (uintptr_t)lpCallerFunc, szSymbol, ulLen);
+
     dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64s' <%s> { '%hs' }",
                     wszModName,
                       lpFileName,
                         lpFunction,
-                          SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (lpCallerFunc),
-                                                             (uintptr_t)lpCallerFunc ).c_str () );
+                          szSymbol );
   }
 
   // This is silly, this many string comparions per-load is
@@ -187,14 +193,18 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
   wchar_t wszModName [MAX_PATH] = { L'\0' };
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
-  if (! SK_LoadLibrary_SILENCE) {
-    dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s> { '%hs' } ",
+  if (! SK_LoadLibrary_SILENCE)
+  {
+    char  szSymbol [1024] = { };
+    ULONG ulLen  =  1024;
+    
+    ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (lpCallerFunc), (uintptr_t)lpCallerFunc, szSymbol, ulLen);
+
+    dll_log.Log ( L"[DLL Loader]   ( %-28s ) loaded '%#64s' <%s> { '%hs' }",
                     wszModName,
                       lpFileName,
                         lpFunction,
-                          SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (lpCallerFunc),
-                                                             (uintptr_t)lpCallerFunc
-                                                         ).c_str () );
+                          szSymbol );
   }
 
   // This is silly, this many string comparions per-load is
@@ -281,10 +291,15 @@ FreeLibrary_Detour (HMODULE hLibModule)
     {
       if (config.system.log_level > 2)
       {
+        char  szSymbol [1024] = { };
+        ULONG ulLen  =  1024;
+    
+        ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (), (uintptr_t)_ReturnAddress (), szSymbol, ulLen);
+
         dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls' from { '%hs' }",
                         SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
                           name.c_str (),
-                            SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (), (uintptr_t)_ReturnAddress () ).c_str ()
+                            szSymbol
                     );
       }
     }
@@ -631,7 +646,7 @@ __stdcall
 SK_InitCompatBlacklist (void)
 {
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
-  SK_ReHookLoadLibrary ();
+  //SK_ReHookLoadLibrary ();
 }
 
 extern std::wstring
@@ -655,6 +670,38 @@ struct enum_working_set_s {
 std::unordered_set <HMODULE> logged_modules;
 
 void
+_SK_SummarizeModule ( LPVOID   base_addr,  ptrdiff_t   mod_size,
+                      HMODULE  hMod,       uintptr_t   addr,
+                      wchar_t* wszModName, iSK_Logger* pLogger )
+{
+  extern
+  ULONG
+  SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen);
+
+  char  szSymbol [1024] = { };
+  ULONG ulLen  =  1024;
+
+  ulLen = SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
+  
+  if (ulLen != 0) {
+    pLogger->Log ( L"[ Module ]  ( %ph + %08lu )   -:< %-64hs >:-   %s",
+                      (void *)base_addr, (uint32_t)mod_size,
+                        szSymbol, wszModName );
+  } else {
+    pLogger->Log ( L"[ Module ]  ( %ph + %08lu )       %-64hs       %s",
+                      base_addr, mod_size, "", wszModName );
+  }
+
+  std::wstring ver_str = SK_GetDLLVersionStr (wszModName);
+
+  if (ver_str != L"  ") {
+    pLogger->LogEx ( false,
+      L" ----------------------  [File Ver]    %s\n",
+        ver_str.c_str () );
+  }
+}
+
+void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
   EnterCriticalSection (&loader_lock);
@@ -663,10 +710,10 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
   for (int i = 0; i < pWorkingSet->count; i++ )
   {
-        wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
-    ZeroMemory (wszModName, sizeof (wchar_t) * (MAX_PATH + 2));
+        wchar_t wszModName [MAX_PATH + 2] = { };
 
-    try {
+    __try
+    {
       // Get the full path to the module's file.
       if ( (! logged_modules.count (pWorkingSet->modules [i])) &&
               GetModuleFileNameExW ( pWorkingSet->proc,
@@ -685,34 +732,19 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
           base_addr = (uintptr_t)mi.lpBaseOfDll;
           mod_size  =            mi.SizeOfImage;
         }
-
-#define VERBOSE_AND_SLOW
-#ifdef VERBOSE_AND_SLOW
-        extern std::string
-        SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
-
-        pLogger->Log ( L"[ Module ]  ( %ph + %08lu )   -:< %-64hs >:-   %s",
-                          (void *)base_addr, mod_size,
-                            SK_GetSymbolNameFromModuleAddr (pWorkingSet->modules [i], entry_pt).c_str (),
-                              wszModName );
-#else
-        pLogger->Log ( L"[ Module ]  ( %ph + %08lu )  -:-  %s",
-                          base_addr, mod_size, wszModName );
-#endif
-
-        std::wstring ver_str = SK_GetDLLVersionStr (wszModName);
-
-        if (ver_str != L"  ") {
-          pLogger->LogEx ( false,
-            L" ----------------------  [File Ver]    %s\n",
-              ver_str.c_str () );
+        else {
+          break;
         }
+
+        _SK_SummarizeModule ((void *)base_addr, mod_size, pWorkingSet->modules [i], entry_pt, wszModName, pLogger);
 
         logged_modules.insert (pWorkingSet->modules [i]);
       }
     }
 
-    catch (...) {
+    __except ( EXCEPTION_EXECUTE_HANDLER )
+    {
+      // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
   }
 
@@ -884,40 +916,18 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                                 sizeof (hMods),
                                   &cbNeeded) )
   {
-    enum_working_set_s* working_set =
-      new enum_working_set_s ();
+    enum_working_set_s working_set;
 
-            working_set->proc   = hProc;
-            working_set->logger = pLogger;
-            working_set->count  = cbNeeded / sizeof HMODULE;
-    memcpy (working_set->modules, hMods, cbNeeded);
+            working_set.proc   = hProc;
+            working_set.logger = pLogger;
+            working_set.count  = cbNeeded / sizeof HMODULE;
+    memcpy (working_set.modules, hMods, cbNeeded);
 
-    CreateThread (
-      nullptr,
-        0,
-          [](LPVOID user)->
-          DWORD
-          {
-            enum_working_set_s* pWorkingSet = (enum_working_set_s *)user;
+    enum_working_set_s* pWorkingSet = (enum_working_set_s *)&working_set;
+    SK_ThreadWalkModules (pWorkingSet);
 
-            SK_ThreadWalkModules (pWorkingSet);
-
-            //// Release the handle to the process.
-            //// CloseHandle (pWorkingSet->proc);
-
-            //pLogger->close ();
-            //delete pLogger;
-            delete pWorkingSet;
-
-            CloseHandle (GetCurrentThread ());
-
-            return 0;
-          },
-
-          (LPVOID)working_set,
-        0x00,
-      nullptr
-    );
+    //pLogger->close ();
+    //delete pLogger;
 
     SK_WalkModules (cbNeeded, hProc, hMods, when);
   }

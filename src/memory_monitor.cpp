@@ -33,34 +33,21 @@
 
 namespace COM {
   struct Base {
-    volatile ULONG     init          = FALSE;
+    volatile ULONG     init;
 
     struct WMI {
-      volatile LONG    init          = -1;
+      volatile LONG    init;
 
-      IWbemServices*   pNameSpace    = nullptr;
-      IWbemLocator*    pWbemLocator  = nullptr;
-      BSTR             bstrNameSpace = nullptr;
+      IWbemServices*   pNameSpace;
+      IWbemLocator*    pWbemLocator;
+      BSTR             bstrNameSpace;
 
-      HANDLE           hServerThread = 0;
-
-      CRITICAL_SECTION cs            = { 0 };
-
-      bool InitLocks    (void);
+      HANDLE           hServerThread;
 
       void Lock         (void);
       void Unlock       (void);
     } wmi;
-
-    LONG               threads         = 0;
-
-    HRESULT InitThread   (void);
-    bool    UninitThread (void);
   } extern base;
-
-  struct thread_local_t {
-    bool init = false;
-  };
 }
 
 extern bool SK_InitWMI     (void);
@@ -71,12 +58,12 @@ unsigned int
 __stdcall
 SK_MonitorProcess (LPVOID user)
 {
+  SK_AutoCOMInit auto_com;
+
   UNREFERENCED_PARAMETER (user);
 
   if (! SK_InitWMI ())
     return std::numeric_limits <unsigned int>::max ();
-
-  Sleep (100);
 
   COM::base.wmi.Lock ();
 
@@ -286,8 +273,6 @@ SK_MonitorProcess (LPVOID user)
     COM::base.wmi.Unlock ();
   }
 
-  COM::base.wmi.Lock ();
-
 PROC_CLEANUP:
   // dll_log.Log (L" >> PROC_CLEANUP");
 
@@ -310,7 +295,6 @@ PROC_CLEANUP:
   }
 
   COM::base.wmi.Unlock   ();
-  COM::base.UninitThread ();
 
   return 0;
 }

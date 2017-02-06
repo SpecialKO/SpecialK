@@ -2419,7 +2419,7 @@ sk::d3d9::TextureManager::Shutdown (void)
                     time_saved / frame_time );
   tex_log.close ();
 
-  FreeLibrary_Original (d3dx9_dll);
+  FreeLibrary (d3dx9_dll);
 }
 
 void

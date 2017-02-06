@@ -27,6 +27,10 @@
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 
+extern
+ULONG
+SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen);
+
 WORD
 SK_Timestamp (wchar_t* const out)
 {
@@ -265,18 +269,21 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
 {
   wchar_t wszSummary [256] = { L'\0' };
 
-  std::string __SYMBOL__ =
-    SK_GetSymbolNameFromModuleAddr (
-          SK_GetCallingDLL          (),
-            (uintptr_t)lpReturnAddr
-  );
+  char  szSymbol [1024] = { };
+  ULONG ulLen  =  1024;
+    
+  ulLen = SK_GetSymbolNameFromModuleAddr (
+            SK_GetCallingDLL (),
+              (uintptr_t)lpReturnAddr,
+                szSymbol,
+                  ulLen );
 
-  if (__SYMBOL__ != "UNKNOWN") {
+  if (ulLen > 0) {
     _snwprintf ( wszSummary, 255,
                    L"[ %s <%hs>, tid=0x%04x ]",
 
            SK_GetCallerName (lpReturnAddr).c_str (),
-             __SYMBOL__.c_str                    (),
+             szSymbol,
                GetCurrentThreadId                ()
     );
   }

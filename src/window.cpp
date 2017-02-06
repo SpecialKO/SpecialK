@@ -20,6 +20,7 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 
 #include <Windows.h>
 #include <SpecialK/window.h>
@@ -40,6 +41,8 @@
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/osd/text.h>
+
+#define SK_LOG_FIRST_CALL
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -70,7 +73,7 @@ extern volatile ULONG __SK_DLL_Ending;
 #define SK_WINDOW_LOG_CALL3() if (config.system.log_level >= 4) SK_LOG_CALL ("Window Mgr")
 
 #ifdef SK_LOG_LEVEL_UNTESTED
-# define SK_WINDOW_LOG_CALL_UNTESTED() SK_LOG_CALL ("Window Mgr")
+# define SK_WINDOW_LOG_CALL_UNTESTED() SK_LOG_CALL ("Window Mgr");
 #else
 # define SK_WINDOW_LOG_CALL_UNTESTED() { }
 #endif
@@ -127,8 +130,6 @@ struct window_t {
   DWORD proc_id;
   HWND  root;
 };
-
-#define SK_LOG_FIRST_CALL /*{ static bool first = true; if (first) { first = false; SK_LOG_CALL ("Hook Usage") } }*/
 
 sk_window_s game_window;
 
@@ -2717,7 +2718,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   _In_ UINT             cbSize
 )
 {
-  SK_LOG_FIRST_CALL
+  //SK_LOG_FIRST_CALL
 
 #if 0
   if (cbSize != sizeof RAWINPUTDEVICE) {

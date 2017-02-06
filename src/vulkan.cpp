@@ -324,7 +324,7 @@ SK::Vulkan::Shutdown (void)
 {
   if (hModVk != nullptr)
   {
-    FreeLibrary_Original (hModVk);
+    FreeLibrary (hModVk);
     hModVk = nullptr;
   }
 
