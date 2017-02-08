@@ -116,7 +116,7 @@ struct gpu_sensors_t {
   ULARGE_INTEGER last_update = { 0ULL };
 };
 
-extern gpu_sensors_t gpu_stats;
+extern gpu_sensors_t& gpu_stats;
 
 void SK_PollGPU (void);
 
