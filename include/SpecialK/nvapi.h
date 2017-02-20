@@ -119,6 +119,8 @@ namespace NVAPI {
 
   BOOL SetFramerateLimit (uint32_t       limit);
 
+  BOOL SetAntiAliasingOverride ( const wchar_t** pwszPropertyList );
+
   BOOL SetSLIOverride    (      DLL_ROLE role,
                           const wchar_t* wszModeName,
                           const wchar_t* wszGPUCount,

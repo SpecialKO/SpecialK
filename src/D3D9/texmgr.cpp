@@ -629,8 +629,9 @@ static uint32_t crc32_tab[] = {
    0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d 
  };
 
-extern 
+extern "C"
 uint32_t
+__cdecl
 crc32 (uint32_t crc, const void *buf, size_t size);
 
 typedef HRESULT (WINAPI *D3DXGetImageInfoFromFileInMemory_pfn)

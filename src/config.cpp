@@ -158,6 +158,8 @@ sk::ParameterBool*        prefer_fahrenheit;
 sk::ParameterBool*        ignore_rtss_delay;
 sk::ParameterInt*         init_delay;
 sk::ParameterInt*         log_level;
+sk::ParameterBool*        trace_libraries;
+sk::ParameterBool*        strict_compliance;
 sk::ParameterBool*        silent;
 sk::ParameterStringW*     version;
 
@@ -169,6 +171,7 @@ struct {
     sk::ParameterInt*     buffer_count;
     sk::ParameterInt*     max_delta_time;
     sk::ParameterBool*    flip_discard;
+    sk::ParameterBool*    wait_for_vblank;
   } framerate;
   struct {
     sk::ParameterInt*     adapter_override;
@@ -695,6 +698,26 @@ SK_LoadConfig (std::wstring name) {
       L"SpecialK.System",
         L"Silent" );
 
+  strict_compliance =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Strict DLL Loader Compliance")
+      );
+  strict_compliance->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"StrictCompliant" );
+
+  trace_libraries =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Trace DLL Loading")
+      );
+  trace_libraries->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"TraceLoadLibrary" );
+
   log_level =
     static_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
@@ -786,6 +809,16 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Render.FrameRate",
         L"TargetFPS" );
+
+  render.framerate.wait_for_vblank =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Limiter Waits for VBLANK?")
+      );
+  render.framerate.wait_for_vblank->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"WaitForVBLANK" );
 
   render.framerate.buffer_count =
     static_cast <sk::ParameterInt *>
@@ -1559,6 +1592,9 @@ SK_LoadConfig (std::wstring name) {
     if (render.framerate.target_fps->load ())
       config.render.framerate.target_fps =
         render.framerate.target_fps->get_value ();
+    if (render.framerate.wait_for_vblank->load ())
+      config.render.framerate.wait_for_vblank =
+        render.framerate.wait_for_vblank->get_value ();
     if (render.framerate.buffer_count->load ())
       config.render.framerate.buffer_count =
         render.framerate.buffer_count->get_value ();
@@ -1837,6 +1873,10 @@ SK_LoadConfig (std::wstring name) {
     config.system.init_delay = init_delay->get_value ();
   if (silent->load ())
     config.system.silent = silent->get_value ();
+  if (trace_libraries->load ())
+    config.system.trace_load_library = trace_libraries->get_value();
+  if (strict_compliance->load ())
+    config.system.strict_compliance = strict_compliance->get_value ();
   if (log_level->load ())
     config.system.log_level = log_level->get_value ();
   if (prefer_fahrenheit->load ())
@@ -1971,7 +2011,9 @@ SK_SaveConfig ( std::wstring name,
 
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
+
     render.framerate.target_fps->set_value       (config.render.framerate.target_fps);
+    render.framerate.wait_for_vblank->set_value  (config.render.framerate.wait_for_vblank);
     render.framerate.prerender_limit->set_value  (config.render.framerate.pre_render_limit);
     render.framerate.buffer_count->set_value     (config.render.framerate.buffer_count);
     render.framerate.present_interval->set_value (config.render.framerate.present_interval);
@@ -2135,6 +2177,7 @@ SK_SaveConfig ( std::wstring name,
       ( SK_GetDLLRole () & DLL_ROLE::DXGI ||
         SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
     render.framerate.target_fps->store       ();
+    render.framerate.wait_for_vblank->store  ();
     render.framerate.buffer_count->store     ();
     render.framerate.prerender_limit->store  ();
     render.framerate.present_interval->store ();
@@ -2223,6 +2266,12 @@ SK_SaveConfig ( std::wstring name,
 
   enable_cegui->set_value                (config.cegui.enable);
   enable_cegui->store                    ();
+
+  trace_libraries->set_value             (config.system.trace_load_library);
+  trace_libraries->store                 ();
+
+  strict_compliance->set_value           (config.system.strict_compliance);
+  strict_compliance->store               ();
 
   version->set_value                     (SK_VER_STR);
   version->store                         ();

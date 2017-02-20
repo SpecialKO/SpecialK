@@ -1274,6 +1274,7 @@ void ImGui::ShowTestWindow(bool* p_open)
             ImGui::ColorButton(color);
             if (ImGui::BeginPopupContextItem("color context menu"))
             {
+
                 ImGui::Text("Edit color");
                 ImGui::ColorEdit3("##edit", (float*)&color);
                 if (ImGui::Button("Close"))

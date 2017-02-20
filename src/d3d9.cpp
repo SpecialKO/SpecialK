@@ -1247,6 +1247,22 @@ D3D9CreateAdditionalSwapChain_Override (
   return hr;
 }
 
+typedef HRESULT (STDMETHODCALLTYPE *TestCooperativeLevel_pfn)(IDirect3DDevice9* This);
+TestCooperativeLevel_pfn D3D9TestCooperativeLevel_Original = nullptr;
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9TestCooperativeLevel_Override (IDirect3DDevice9* This)
+{
+  HRESULT hr;
+
+  hr = D3D9TestCooperativeLevel_Original (This);
+
+  return hr;
+}
+
 typedef HRESULT (STDMETHODCALLTYPE *BeginScene_pfn)
   (IDirect3DDevice9* This);
 
@@ -1991,6 +2007,133 @@ D3D9CreateTexture_Override (IDirect3DDevice9   *This,
 
 struct IDirect3DSurface9;
 
+typedef HRESULT (STDMETHODCALLTYPE *CreateVertexBuffer_pfn)
+(
+  _In_  IDirect3DDevice9        *This,
+  _In_  UINT                     Length,
+  _In_  DWORD                    Usage,
+  _In_  DWORD                    FVF,
+  _In_  D3DPOOL                  Pool,
+  _Out_ IDirect3DVertexBuffer9 **ppVertexBuffer,
+  _In_  HANDLE                  *pSharedHandle
+);
+
+CreateVertexBuffer_pfn D3D9CreateVertexBuffer_Original = nullptr;
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9CreateVertexBuffer_Override
+(
+  _In_  IDirect3DDevice9        *This,
+  _In_  UINT                     Length,
+  _In_  DWORD                    Usage,
+  _In_  DWORD                    FVF,
+  _In_  D3DPOOL                  Pool,
+  _Out_ IDirect3DVertexBuffer9 **ppVertexBuffer,
+  _In_  HANDLE                  *pSharedHandle )
+{
+  return
+    D3D9CreateVertexBuffer_Original ( This,
+                                        Length, Usage,
+                                        FVF,    Pool,
+                                          ppVertexBuffer,
+                                           pSharedHandle );
+}
+
+typedef HRESULT (STDMETHODCALLTYPE *SetStreamSource_pfn)
+(
+  IDirect3DDevice9       *This,
+  UINT                    StreamNumber,
+  IDirect3DVertexBuffer9 *pStreamData,
+  UINT                    OffsetInBytes,
+  UINT                    Stride
+);
+
+SetStreamSource_pfn D3D9SetStreamSource_Original = nullptr;
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9SetStreamSource_Override
+(
+  IDirect3DDevice9       *This,
+  UINT                    StreamNumber,
+  IDirect3DVertexBuffer9 *pStreamData,
+  UINT                    OffsetInBytes,
+  UINT                    Stride )
+{
+  return
+    D3D9SetStreamSource_Original ( This,
+                                     StreamNumber,
+                                       pStreamData,
+                                         OffsetInBytes,
+                                           Stride );
+}
+
+typedef HRESULT (STDMETHODCALLTYPE *SetFVF_pfn)
+(
+  IDirect3DDevice9 *This,
+  DWORD             FVF
+);
+
+SetFVF_pfn D3D9SetFVF_Original = nullptr;
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9SetFVF_Override
+(
+  IDirect3DDevice9 *This,
+  DWORD             FVF )
+{
+  return D3D9SetFVF_Original ( This, FVF );
+}
+
+typedef HRESULT (STDMETHODCALLTYPE *SetVertexDeclaration_pfn)
+(
+  IDirect3DDevice9            *This,
+  IDirect3DVertexDeclaration9 *pDecl
+);
+
+SetVertexDeclaration_pfn D3D9SetVertexDeclaration_Original = nullptr;
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9SetVertexDeclaration_Override
+( IDirect3DDevice9            *This,
+  IDirect3DVertexDeclaration9 *pDecl )
+{
+  return D3D9SetVertexDeclaration_Original ( This, pDecl );
+}
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateVertexDeclaration_pfn)
+(
+        IDirect3DDevice9             *This,
+  CONST D3DVERTEXELEMENT9            *pVertexElements,
+        IDirect3DVertexDeclaration9 **ppDecl
+);
+
+CreateVertexDeclaration_pfn D3D9CreateVertexDeclaration_Original = nullptr;
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9CreateVertexDeclaration_Override
+(
+        IDirect3DDevice9             *This,
+  CONST D3DVERTEXELEMENT9            *pVertexElements,
+        IDirect3DVertexDeclaration9 **ppDecl )
+{
+  return D3D9CreateVertexDeclaration_Original ( This, pVertexElements, ppDecl );
+}
+
 typedef HRESULT (STDMETHODCALLTYPE *CreateRenderTarget_pfn)
   (IDirect3DDevice9     *This,
    UINT                  Width,
@@ -2315,6 +2458,12 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                        D3D9PresentSwapChain_pfn );
     }
 
+    D3D9_INTERCEPT ( ppReturnedDeviceInterface, 3,
+                        "IDirect3DDevice9::TestCooperativeLevel",
+                        D3D9TestCooperativeLevel_Override,
+                        D3D9TestCooperativeLevel_Original,
+                        TestCooperativeLevel_pfn );
+
     D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                         "IDirect3DDevice9::SetCursorPosition",
                         D3D9SetCursorPosition_Override,
@@ -2338,6 +2487,12 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                         D3D9CreateTexture_Override,
                         D3D9CreateTexture_Original,
                         CreateTexture_pfn );
+
+    D3D9_INTERCEPT ( ppReturnedDeviceInterface, 26,
+                        "IDirect3DDevice9::CreateVertexBuffer",
+                        D3D9CreateVertexBuffer_Override,
+                        D3D9CreateVertexBuffer_Original,
+                        CreateVertexBuffer_pfn );
 
     D3D9_INTERCEPT ( ppReturnedDeviceInterface, 28,
                         "IDirect3DDevice9::CreateRenderTarget",
@@ -2443,7 +2598,12 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       D3D9DrawIndexedPrimitiveUP_Original,
                       DrawIndexedPrimitiveUP_pfn );
 
-#if 0
+    D3D9_INTERCEPT ( ppReturnedDeviceInterface, 86,
+                     "IDirect3DDevice9::CreateVertexDeclaration",
+                      D3D9CreateVertexDeclaration_Override,
+                      D3D9CreateVertexDeclaration_Original,
+                      CreateVertexDeclaration_pfn );
+
     D3D9_INTERCEPT ( ppReturnedDeviceInterface, 87,
                      "IDirect3DDevice9::SetVertexDeclaration",
                       D3D9SetVertexDeclaration_Override,
@@ -2451,11 +2611,10 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       SetVertexDeclaration_pfn );
 
     D3D9_INTERCEPT ( ppReturnedDeviceInterface, 89,
-                     "IDirect3DDevice9::DrawIndexedPrimitive",
+                     "IDirect3DDevice9::SetFVF",
                       D3D9SetFVF_Override,
                       D3D9SetFVF_Original,
                       SetFVF_pfn );
-#endif
 
     D3D9_INTERCEPT ( ppReturnedDeviceInterface, 92,
                      "IDirect3DDevice9::SetVertexShader",
@@ -2468,6 +2627,12 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       D3D9SetVertexShaderConstantF_Override,
                       D3D9SetVertexShaderConstantF_Original,
                       SetVertexShaderConstantF_pfn );
+
+    D3D9_INTERCEPT ( ppReturnedDeviceInterface, 100,
+                     "IDirect3DDevice9::SetStreamSource",
+                      D3D9SetStreamSource_Override,
+                      D3D9SetStreamSource_Original,
+                      SetStreamSource_pfn );
 
     D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
                      "IDirect3DDevice9::SetPixelShader",
@@ -2580,6 +2745,12 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                        D3D9PresentSwapChain_pfn );
     }
 
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 3,
+                      "IDirect3DDevice9::TestCooperativeLevel",
+                      D3D9TestCooperativeLevel_Override,
+                      D3D9TestCooperativeLevel_Original,
+                      TestCooperativeLevel_pfn );
+
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
                       "IDirect3DDevice9::SetCursorPosition",
                       D3D9SetCursorPosition_Override,
@@ -2604,7 +2775,13 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                       D3D9CreateTexture_Original,
                       CreateTexture_pfn );
 
-  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 2*8,
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 26,
+                      "IDirect3DDevice9::CreateVertexBuffer",
+                      D3D9CreateVertexBuffer_Override,
+                      D3D9CreateVertexBuffer_Original,
+                      CreateVertexBuffer_pfn );
+
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 28,
                       "IDirect3DDevice9::CreateRenderTarget",
                       D3D9CreateRenderTarget_Override,
                       D3D9CreateRenderTarget_Original,
@@ -2708,7 +2885,12 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     D3D9DrawIndexedPrimitiveUP_Original,
                     DrawIndexedPrimitiveUP_pfn );
 
-#if 0
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 86,
+                   "IDirect3DDevice9::CreateVertexDeclaration",
+                    D3D9CreateVertexDeclaration_Override,
+                    D3D9CreateVertexDeclaration_Original,
+                    CreateVertexDeclaration_pfn );
+
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 87,
                    "IDirect3DDevice9::SetVertexDeclaration",
                     D3D9SetVertexDeclaration_Override,
@@ -2716,11 +2898,10 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     SetVertexDeclaration_pfn );
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 89,
-                   "IDirect3DDevice9::DrawIndexedPrimitive",
+                   "IDirect3DDevice9::SetFVF",
                     D3D9SetFVF_Override,
                     D3D9SetFVF_Original,
                     SetFVF_pfn );
-#endif
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 92,
                    "IDirect3DDevice9::SetVertexShader",
@@ -2733,6 +2914,12 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     D3D9SetVertexShaderConstantF_Override,
                     D3D9SetVertexShaderConstantF_Original,
                     SetVertexShaderConstantF_pfn );
+
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 100,
+                   "IDirect3DDevice9::SetStreamSource",
+                    D3D9SetStreamSource_Override,
+                    D3D9SetStreamSource_Original,
+                    SetStreamSource_pfn );
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
                    "IDirect3DDevice9::SetPixelShader",

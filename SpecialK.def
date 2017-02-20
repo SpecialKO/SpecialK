@@ -20,6 +20,7 @@ EXPORTS
   Direct3DCreate9          = Direct3DCreate9           PRIVATE
   Direct3DCreate9Ex        = Direct3DCreate9Ex         PRIVATE
 
+  D3D9TestCooperativeLevel_Override      = D3D9TestCooperativeLevel_Override       PRIVATE
   D3D9SetSamplerState_Override           = D3D9SetSamplerState_Override            PRIVATE
   D3D9SetVertexShaderConstantF_Override  = D3D9SetVertexShaderConstantF_Override   PRIVATE
   D3D9SetVertexShader_Override           = D3D9SetVertexShader_Override            PRIVATE
@@ -45,6 +46,12 @@ EXPORTS
   D3D9DrawPrimitiveUP_Override           = D3D9DrawPrimitiveUP_Override            PRIVATE
   D3D9DrawIndexedPrimitiveUP_Override    = D3D9DrawIndexedPrimitiveUP_Override     PRIVATE
   D3D9SetCursorPosition_Override         = D3D9SetCursorPosition_Override          PRIVATE
+  D3D9CreateVertexBuffer_Override        = D3D9CreateVertexBuffer_Override         PRIVATE
+  D3D9SetStreamSource_Override           = D3D9SetStreamSource_Override            PRIVATE
+  D3D9SetFVF_Override                    = D3D9SetFVF_Override                     PRIVATE
+  D3D9SetVertexDeclaration_Override      = D3D9SetVertexDeclaration_Override       PRIVATE
+  D3D9CreateVertexDeclaration_Override   = D3D9CreateVertexDeclaration_Override    PRIVATE
+
 
 ;LIBRARY "dxgi"
 
@@ -466,6 +473,7 @@ SK_SetPresentParamsD3D9        = SK_SetPresentParamsD3D9          PRIVATE
 
 SK_ImGui_DrawFrame             = SK_ImGui_DrawFrame               PRIVATE
 SK_ImGui_Toggle                = SK_ImGui_Toggle                  PRIVATE
+SK_ImGui_DrawEULA              = SK_ImGui_DrawEULA                PRIVATE
 
 ; Deprecated stuff
 BMF_BeginBufferSwap            = SK_BeginBufferSwap               PRIVATE
@@ -474,47 +482,48 @@ BMF_DrawExternalOSD            = SK_DrawExternalOSD               PRIVATE
 BMF_SetPresentParamsD3D9       = SK_SetPresentParamsD3D9          PRIVATE
 
 ; First new symbol to use the new name for this project
-SK_SetPluginName               = SK_SetPluginName                  PRIVATE
-SK_GetCommandProcessor         = SK_GetCommandProcessor            PRIVATE
-SK_GetFramesDrawn              = SK_GetFramesDrawn                 PRIVATE
-SK_DetourWindowProc            = SK_DetourWindowProc               PRIVATE
-SK_DetourWindowProc2           = SK_DetourWindowProc2              PRIVATE
-SK_GetCursorPos                = GetCursorPos_Detour               PRIVATE
-SK_GetCursorInfo               = GetCursorInfo_Detour              PRIVATE
-SK_GetGameWindow               = SK_GetGameWindow                  PRIVATE
-SK_PluginKeyPress              = SK_PluginKeyPress                 PRIVATE
-SK_GetConfigPath               = SK_GetConfigPath                  PRIVATE
-SK_CreateLog                   = SK_CreateLog                      PRIVATE
-SK_CreateINI                   = SK_CreateINI                      PRIVATE
-SK_CreateVar                   = SK_CreateVar                      PRIVATE
-SK_IsConsoleVisible            = SK_IsConsoleVisible               PRIVATE
-SK_SelfDestruct                = SK_SelfDestruct                   PRIVATE
-
-SK_FetchVersionInfo            = SK_FetchVersionInfo               PRIVATE
-SK_UpdateSoftware              = SK_UpdateSoftware                 PRIVATE
-
-SK_GetFileCRC32                = SK_GetFileCRC32                   PRIVATE
-SK_GetFileCRC32C               = SK_GetFileCRC32C                  PRIVATE
-SK_GetFileHash_32              = SK_GetFileHash_32                 PRIVATE
-
-QueryPerformanceCounter_Detour = QueryPerformanceCounter_Detour    PRIVATE
-Sleep_Detour                   = Sleep_Detour                      PRIVATE
-GetAsyncKeyState_Detour        = GetAsyncKeyState_Detour           PRIVATE
-GetRawInputData_Detour         = GetRawInputData_Detour            PRIVATE
-
-SK_NvAPI_IsInit                = SK_NvAPI_IsInit                   PRIVATE
-SK_NvAPI_SetFramerateLimit     = SK_NvAPI_SetFramerateLimit        PRIVATE
-SK_NvAPI_SetAppFriendlyName    = SK_NvAPI_SetAppFriendlyName       PRIVATE
-SK_NvAPI_SetAppName            = SK_NvAPI_SetAppName               PRIVATE
-SK_NvAPI_SetLauncher           = SK_NvAPI_SetLauncher              PRIVATE
-SK_NvAPI_AddLauncherToProf     = SK_NvAPI_AddLauncherToProf        PRIVATE
-
-BMF_NvAPI_IsInit               = SK_NvAPI_IsInit                  PRIVATE
-BMF_NvAPI_SetFramerateLimit    = SK_NvAPI_SetFramerateLimit       PRIVATE
-BMF_NvAPI_SetAppFriendlyName   = SK_NvAPI_SetAppFriendlyName      PRIVATE
-BMF_NvAPI_SetAppName           = SK_NvAPI_SetAppName              PRIVATE
-BMF_NvAPI_SetLauncher          = SK_NvAPI_SetLauncher             PRIVATE
-BMF_NvAPI_AddLauncherToProf    = SK_NvAPI_AddLauncherToProf       PRIVATE
+SK_SetPluginName                 = SK_SetPluginName                  PRIVATE
+SK_GetCommandProcessor           = SK_GetCommandProcessor            PRIVATE
+SK_GetFramesDrawn                = SK_GetFramesDrawn                 PRIVATE
+SK_DetourWindowProc              = SK_DetourWindowProc               PRIVATE
+SK_DetourWindowProc2             = SK_DetourWindowProc2              PRIVATE
+SK_GetCursorPos                  = GetCursorPos_Detour               PRIVATE
+SK_GetCursorInfo                 = GetCursorInfo_Detour              PRIVATE
+SK_GetGameWindow                 = SK_GetGameWindow                  PRIVATE
+SK_PluginKeyPress                = SK_PluginKeyPress                 PRIVATE
+SK_GetConfigPath                 = SK_GetConfigPath                  PRIVATE
+SK_CreateLog                     = SK_CreateLog                      PRIVATE
+SK_CreateINI                     = SK_CreateINI                      PRIVATE
+SK_CreateVar                     = SK_CreateVar                      PRIVATE
+SK_IsConsoleVisible              = SK_IsConsoleVisible               PRIVATE
+SK_SelfDestruct                  = SK_SelfDestruct                   PRIVATE
+                                 
+SK_FetchVersionInfo              = SK_FetchVersionInfo               PRIVATE
+SK_UpdateSoftware                = SK_UpdateSoftware                 PRIVATE
+                                 
+SK_GetFileCRC32                  = SK_GetFileCRC32                   PRIVATE
+SK_GetFileCRC32C                 = SK_GetFileCRC32C                  PRIVATE
+SK_GetFileHash_32                = SK_GetFileHash_32                 PRIVATE
+                                 
+QueryPerformanceCounter_Detour   = QueryPerformanceCounter_Detour    PRIVATE
+Sleep_Detour                     = Sleep_Detour                      PRIVATE
+GetAsyncKeyState_Detour          = GetAsyncKeyState_Detour           PRIVATE
+GetRawInputData_Detour           = GetRawInputData_Detour            PRIVATE
+                                 
+SK_NvAPI_IsInit                  = SK_NvAPI_IsInit                   PRIVATE
+SK_NvAPI_SetAntiAliasingOverride = SK_NvAPI_SetAntiAliasingOverride  PRIVATE
+SK_NvAPI_SetFramerateLimit       = SK_NvAPI_SetFramerateLimit        PRIVATE
+SK_NvAPI_SetAppFriendlyName      = SK_NvAPI_SetAppFriendlyName       PRIVATE
+SK_NvAPI_SetAppName              = SK_NvAPI_SetAppName               PRIVATE
+SK_NvAPI_SetLauncher             = SK_NvAPI_SetLauncher              PRIVATE
+SK_NvAPI_AddLauncherToProf       = SK_NvAPI_AddLauncherToProf        PRIVATE
+                                 
+BMF_NvAPI_IsInit                 = SK_NvAPI_IsInit                  PRIVATE
+BMF_NvAPI_SetFramerateLimit      = SK_NvAPI_SetFramerateLimit       PRIVATE
+BMF_NvAPI_SetAppFriendlyName     = SK_NvAPI_SetAppFriendlyName      PRIVATE
+BMF_NvAPI_SetAppName             = SK_NvAPI_SetAppName              PRIVATE
+BMF_NvAPI_SetLauncher            = SK_NvAPI_SetLauncher             PRIVATE
+BMF_NvAPI_AddLauncherToProf      = SK_NvAPI_AddLauncherToProf       PRIVATE
 
 
 SK_CreateFuncHook              = SK_CreateFuncHook                 PRIVATE
@@ -533,8 +542,21 @@ BMF_EnableHook                 = SK_EnableHook                    PRIVATE
 BMF_DisableHook                = SK_DisableHook                   PRIVATE
 BMF_RemoveHook                 = SK_RemoveHook                    PRIVATE
 
+SK_GPU_GetClockRateInkHz       = SK_GPU_GetClockRateInkHz         PRIVATE
+SK_GPU_GetMemClockRateInkHz    = SK_GPU_GetMemClockRateInkHz      PRIVATE
+SK_GPU_GetMemoryBandwidth      = SK_GPU_GetMemoryBandwidth        PRIVATE
+SK_GPU_GetMemoryLoad           = SK_GPU_GetMemoryLoad             PRIVATE
+SK_GPU_GetGPULoad              = SK_GPU_GetGPULoad                PRIVATE
+SK_GPU_GetTempInC              = SK_GPU_GetTempInC                PRIVATE
+SK_GPU_GetFanSpeedRPM          = SK_GPU_GetFanSpeedRPM            PRIVATE
+SK_GPU_GetVRAMUsed             = SK_GPU_GetVRAMUsed               PRIVATE
+SK_GPU_GetVRAMShared           = SK_GPU_GetVRAMShared             PRIVATE
+SK_GPU_GetVRAMBudget           = SK_GPU_GetVRAMBudget             PRIVATE
 
-SK_SteamAPI_TakeScreenshot     = SK_SteamAPI_TakeScreenshot        PRIVATE
+
+SK_SteamAPI_TakeScreenshot         = SK_SteamAPI_TakeScreenshot         PRIVATE
+SK_SteamAPI_WriteScreenshot        = SK_SteamAPI_WriteScreenshot        PRIVATE
+SK_SteamAPI_AddScreenshotToLibrary = SK_SteamAPI_AddScreenshotToLibrary PRIVATE
 
 
 ;
@@ -549,3 +571,5 @@ SKX_DrawExternalOSD          = SKX_DrawExternalOSD            PRIVATE ; No more 
 SKX_SetPluginName            = SKX_SetPluginName              PRIVATE ; No more C++ string across DLL boundaries
 
 BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState    PRIVATE
+
+RunDLL_ElevateMe             = RunDLL_ElevateMe               PRIVATE

@@ -224,6 +224,12 @@ SK_Console::MessagePump (LPVOID hook_ptr)
   return 0;
 }
 
+void
+SK_Console::reset (void)
+{
+  memset (keys_, 0, 256);
+}
+
 // Plugins can hook this if they do not have their own input handler
 __declspec (noinline)
 void

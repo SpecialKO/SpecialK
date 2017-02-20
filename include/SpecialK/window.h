@@ -212,6 +212,8 @@ struct sk_window_s {
   WNDPROC    WndProc_Original = nullptr;
   WNDPROC    RawProc_Original = nullptr;
 
+  bool       exclusive_full   = false; //D3D only
+
   bool       active           = true;
 
   struct {

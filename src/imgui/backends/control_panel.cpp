@@ -128,8 +128,17 @@ SK_ImGui_ControlPanel (void)
   values_offset = (values_offset + 1) % IM_ARRAYSIZE (values);
 
 
-  ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 50), ImGui::GetIO ().DisplaySize);
+  static float last_width  = -1;
+  static float last_height = -1;
+
+  if (last_width != io.DisplaySize.x || last_height != io.DisplaySize.y) {
+    ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+    last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
+  }
+
+
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 50), ImVec2 ( 0.9 * io.DisplaySize.x,
+                                                                  0.9 * io.DisplaySize.y ) );
 
   const char* szTitle = "Special K (v " SK_VERSION_STR_A ") Control Panel";
   bool        open    = true;
@@ -164,9 +173,22 @@ SK_ImGui_ControlPanel (void)
     ImGui::Columns   ( 1 );
     ImGui::Separator (   );
 
-
     static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+    static bool has_own_scale = (hModTZFix || hModTBFix);
+
+    if ((! has_own_scale) && ImGui::CollapsingHeader ("UI Scale"))
+    {
+      ImGui::TreePush    ("");
+
+      if (ImGui::SliderFloat ("Scale (only 1.0 is officially supported)", &config.imgui.scale, 1.0f, 3.0f))
+        ImGui::GetIO ().FontGlobalScale = config.imgui.scale;
+
+      ImGui::TreePop     ();
+    }
+
+    const  float font_size           =              ImGui::GetFont ()->FontSize                        * io.FontGlobalScale;
+    const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
     static bool has_own_limiter = (hModTZFix || hModTBFix);
 
@@ -228,7 +250,7 @@ SK_ImGui_ControlPanel (void)
                                      0.0f,
                                        2.0f * target_frametime,
                                          ImVec2 (
-                                           std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), 80) );
+                                           std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 7) );
       
 #if 0
         bool changed = ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.framerate.tolerance, 0.005f, 0.5);
@@ -364,8 +386,8 @@ SK_ImGui_ControlPanel (void)
         };
 
         ImGui::TreePop    (  );
-        ImGui::PushStyleVar                                (ImGuiStyleVar_ChildWindowRounding, 10.0f);
-        ImGui::BeginChild ("", ImVec2 (0.0f, 85.0f), true, ImGuiWindowFlags_ChildWindowAutoFitY);
+        ImGui::PushStyleVar                                                           (ImGuiStyleVar_ChildWindowRounding, 10.0f);
+        ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * 4), true, ImGuiWindowFlags_ChildWindowAutoFitY);
 
         ImGui::Columns    ( 2 );
 
@@ -794,5 +816,14 @@ SK_ImGui_Toggle (void)
       config_name = L"SpecialK";
     
     SK_SaveConfig (config_name);
+
+    // Immediately stop capturing keyboard/mouse events,
+    //   this is the only way to preserve cursor visibility
+    //     in some games (i.e. Tales of Berseria)
+    if (SK_ImGui_Visible)
+    {
+      ImGui::GetIO ().WantCaptureKeyboard = false;
+      ImGui::GetIO ().WantCaptureMouse    = false;
+    }
   }
 }

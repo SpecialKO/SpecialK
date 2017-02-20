@@ -911,6 +911,11 @@ ClipCursor_Detour (const RECT *lpRect)
   if (lpRect != nullptr)
     game_window.cursor_clip = *lpRect;
 
+  // Don't let the game unclip the cursor, but DO remember the
+  //   coordinates that it wants.
+  if (config.window.confine_cursor && lpRect != &game_window.cursor_clip)
+    return TRUE;
+
   //
   // If the game uses mouse clipping and we are running in borderless,
   //   we need to re-adjust the window coordinates.
@@ -946,12 +951,21 @@ ClipCursor_Detour (const RECT *lpRect)
 void
 SK_CenterWindowAtMouse (BOOL remember_pos)
 {
+  static CRITICAL_SECTION cs_center;
+  static bool             init = false;
+
+  if (! init) {
+    InitializeCriticalSection (&cs_center);
+    init = true;
+  }
+
   CreateThread ( nullptr, 0,
     [](LPVOID user) ->
       DWORD {
-  BOOL remember_pos = *(BOOL *)user;
+  EnterCriticalSection (&cs_center);
 
-  POINT mouse = { 0, 0 };
+  BOOL  remember_pos = (BOOL)(user != nullptr);
+  POINT mouse        = { 0, 0 };
 
   if (GetCursorPos_Original != nullptr)
     GetCursorPos_Original (&mouse);
@@ -996,10 +1010,13 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
     config.window.offset.y.percent  = offsets.y.percent;
   }
 
+  LeaveCriticalSection (&cs_center);
+
   CloseHandle (GetCurrentThread ());
 
   return 0;
-    }, &remember_pos, 0x0, nullptr );
+       // Don't dereference this, it's actually a boolean
+    }, (LPVOID)(uintptr_t)remember_pos, 0x0, nullptr );
 }
 
 BOOL
@@ -1696,14 +1713,36 @@ SK_AdjustBorder (void)
 void
 SK_ResetWindow (void)
 {
-  GetWindowRect (game_window.hWnd, &game_window.game.window);
-  GetClientRect (game_window.hWnd, &game_window.game.client);
+  static CRITICAL_SECTION cs_reset;
+  static bool             init = false;
 
-  if (config.window.borderless)
-    SK_AdjustBorder ();
+  if (! init) {
+    InitializeCriticalSection (&cs_reset);
+    init = true;
+  }
 
-  if (config.window.center)
-    SK_AdjustWindow ();
+  CreateThread (nullptr, 0,
+    [](LPVOID user) ->
+    DWORD
+    {
+      EnterCriticalSection (&cs_reset);
+
+      GetWindowRect (game_window.hWnd, &game_window.actual.window);
+      GetClientRect (game_window.hWnd, &game_window.actual.client);
+      
+      if (config.window.borderless)
+        SK_AdjustBorder ();
+      
+      if (config.window.center)
+        SK_AdjustWindow ();
+
+      LeaveCriticalSection (&cs_reset);
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, nullptr, 0x00, nullptr);
+
 }
 
 void
@@ -2250,6 +2289,19 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
+
+  static bool first_run = true;
+
+  if (first_run)
+  {
+    // Start unmuted (in case the game crashed in the background)
+    if (config.window.background_mute)
+      SK_SetGameMute (FALSE);
+
+    first_run = false;
+  }
+
+
   if (hWnd != game_window.hWnd) {
     if (game_window.hWnd != 0) {
       dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
@@ -2287,7 +2339,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
-  if (SK_ImGui_Visible && GetForegroundWindow () == hWnd)// GetActiveWindow ())
+  if (SK_ImGui_Visible && game_window.active)
   {
     ImGuiIO& io =
       ImGui::GetIO ();
@@ -2359,6 +2411,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
+#if 0
   // HACK: Fallout 4 terminates abnormally at shutdown, meaning DllMain will
   //         never be called.
   //
@@ -2369,13 +2422,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        ////(! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ) {
     //dll_log.Log ( L"[ SpecialK ] --- Invoking DllMain shutdown in response to "
                   //L"WM_DESTROY ---" );
-    //SK_SelfDestruct ();
-    //ExitProcess (0);
-    //return 0;
+    SK_SelfDestruct ();
+    ExitProcess (0);
+    return 0;
   }
+#endif
 
 
-  if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ()) {
+  if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
+  {
     POINT pt;
 
     pt.x = GET_X_LPARAM (lParam);
@@ -2428,7 +2483,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        return (last_mouse.cursor != was_active);
      };
 
-    if (! last_mouse.init) {
+    if (! last_mouse.init)
+    {
       if (config.input.cursor.timeout != 0)
         SetTimer (hWnd, last_mouse.timer_id, config.input.cursor.timeout / 2, nullptr);
       else
@@ -2441,7 +2497,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
 
     // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
-    if (activation_event) {
+    if (activation_event)
+    {
       const short threshold = 2;
 
       // Filter out small movements
@@ -2461,7 +2518,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (activation_event && config.input.cursor.timeout != 0)
       ActivateCursor (true);
 
-    else if (uMsg == WM_TIMER && wParam == last_mouse.timer_id && (! SK_IsSteamOverlayActive ()) && game_window.active) {
+    else if ( uMsg   == WM_TIMER            &&
+              wParam == last_mouse.timer_id &&
+             (! SK_IsSteamOverlayActive ()) &&
+              game_window.active )
+    {
       if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
         DeactivateCursor ();
 
@@ -2470,21 +2531,28 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
   }
 
-  last_active = game_window.active;
 
   auto ActivateWindow = [](bool active = false)->
   void
     {
-      bool was_active = last_active;
       game_window.active = active;
 
-      if (active && (! was_active)) {
-        if (config.window.background_mute)
-          SK_WindowManager::getInstance ()->muteGame (false);
+      bool state_changed =
+        (last_active != active);
 
+
+      SK_Console::getInstance ()->reset ();
+
+      if (config.window.background_mute)
+        SK_WindowManager::getInstance ()->muteGame ((! active));
+
+
+      if (active && state_changed)
+      {
         GetCursorPos_Original (&game_window.cursor_pos);
 
-        if (config.window.background_render) {
+        if (config.window.background_render)
+        {
           if (! game_window.cursor_visible) {
             while (ShowCursor (FALSE) >= 0)
               ;
@@ -2492,22 +2560,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
           ClipCursor (&game_window.cursor_clip);
         }
-
-        if (config.window.confine_cursor) {
-          SK_LOG3 (L"[Window Mgr] Confining Mouse Cursor");
-
-          ////// XXX: Is this really necessary? State should be consistent unless we missed
-          //////        an event --- Write unit test?
-          GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-          ClipCursor_Original    (&game_window.actual.window);
-        }
       }
 
-      else if ((! active) && was_active) {
-        if (config.window.background_mute)
-          SK_WindowManager::getInstance ()->muteGame (true);
-
-        if (config.window.background_render) {
+      else if ((! active) && state_changed)
+      {
+        if (config.window.background_render)
+        {
           game_window.cursor_visible =
             ShowCursor (TRUE) >= 1;
 
@@ -2518,8 +2576,23 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           SetCursorPos_Original ( game_window.cursor_pos.x,
                                     game_window.cursor_pos.y );
         }
+      }
 
-        if (config.window.confine_cursor) {
+
+      if (config.window.confine_cursor && state_changed)
+      {
+        if (active)
+        {
+          SK_LOG3 (L"[Window Mgr] Confining Mouse Cursor");
+
+          ////// XXX: Is this really necessary? State should be consistent unless we missed
+          //////        an event --- Write unit test?
+          GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+          ClipCursor_Original    (&game_window.actual.window);
+        }
+
+        else
+        {
           SK_LOG3 (L"[Window Mgr] Unconfining Mouse Cursor");
 
           ClipCursor_Original (nullptr);
@@ -2527,163 +2600,213 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
    };
 
-  // Ignore this event
-  if (uMsg == WM_MOUSEACTIVATE/* && config.window.background_render*/) {
-    if ((HWND)wParam == game_window.hWnd) {
-      SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
 
-      ActivateWindow (true);
-
-      if (config.window.background_render)
-        return MA_ACTIVATEANDEAT;
-    }
-
-    ActivateWindow (false);
-
-    SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate");
-
-    if (config.window.background_render)
-      return MA_ACTIVATE;
-  }
-
-  // Allow the game to run in the background
-  if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE || uMsg == WM_NCACTIVATE /*|| uMsg == WM_MOUSEACTIVATE*/)
+  switch (uMsg)
   {
-    if (uMsg == WM_NCACTIVATE) {
-      if (wParam == TRUE && last_active == false) {
-        SK_LOG2 (L"[Window Mgr] Application Activated (Non-Client)");
+    case WM_SYSCOMMAND:
+      if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+        return 0;
+      break;
 
+    // Ignore (and physically remove) this event from the message queue if background_render = true
+    case WM_MOUSEACTIVATE:
+    {
+      if ((HWND)wParam == game_window.hWnd)
+      {
         ActivateWindow (true);
-      }
 
-      else if (wParam == FALSE && last_active == true) {
-        SK_LOG2 (L"[Window Mgr] Application Deactivated (Non-Client)");
-
-        ActivateWindow (false);
-
-        // We must fully consume one of these messages or audio will stop playing
-        //   when the game loses focus, so do not simply pass this through to the
-        //     default window procedure.
-        if (config.window.background_render) {
-            game_window.CallProc (hWnd, uMsg, TRUE, (LPARAM)hWnd);
-
-          return 0;
+        if (config.window.background_render)
+        {
+          SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
+          return MA_ACTIVATEANDEAT;
         }
       }
-    }
 
-    else if (uMsg == WM_ACTIVATEAPP || uMsg == WM_ACTIVATE) {
-      switch (wParam)
+      else
       {
-        case 1:  // WA_ACTIVE / TRUE
-        case 2:  // WA_CLICKACTIVE
-        default: // Unknown
+        ActivateWindow (false);
+
+        // Game window was deactivated, but the game doesn't need to know this!
+        //   in fact, it needs to be told the opposite.
+        if (config.window.background_render)
         {
-          if (last_active == false) {
-            SK_LOG1 (L"[Window Mgr] Application Activated (WM_ACTIVATEAPP)");
-
-            ActivateWindow (true);
-          }
-        } break;
-
-        case 0: // WA_INACTIVE / FALSE
-        {
-          if (last_active == true) {
-            SK_LOG1 (L"[Window Mgr] Application Deactivated (WM_ACTIVATEAPP)");
-
-            ActivateWindow (false);
-
-            if (config.window.background_render) {
-              return 1;
-            }
-          }
-        } break;
+          SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE (Other Window) ==> Activate");
+          return MA_ACTIVATE;
+        }
       }
-    }
+    } break;
+
+    // Allow the game to run in the background
+    case WM_ACTIVATEAPP:
+    case WM_ACTIVATE:
+    case WM_NCACTIVATE:
+    {
+      if (uMsg == WM_NCACTIVATE || WM_ACTIVATEAPP)
+      {
+        if (wParam == TRUE)
+        {
+          if (last_active == false)
+            SK_LOG2 (L"[Window Mgr] Application Activated (Non-Client)");
+
+          ActivateWindow (true);
+        }
+
+        else if (wParam == FALSE)
+        {
+          if (last_active == true)
+            SK_LOG2 (L"[Window Mgr] Application Deactivated (Non-Client)");
+
+          ActivateWindow (false);
+
+          // We must fully consume one of these messages or audio will stop playing
+          //   when the game loses focus, so do not simply pass this through to the
+          //     default window procedure.
+          if (config.window.background_render)
+          {
+            game_window.CallProc (hWnd, uMsg, TRUE, (LPARAM)hWnd);
+
+            return 0;
+          }
+        }
+      }
+
+      else if (uMsg == WM_ACTIVATE)
+      {
+        switch (LOWORD (wParam))
+        {
+          case 1:  // WA_ACTIVE / TRUE
+          case 2:  // WA_CLICKACTIVE
+          default: // Unknown
+          {
+            if ((HWND)lParam != game_window.hWnd)
+            {
+              if (last_active == false) {
+                SK_LOG1 (L"[Window Mgr] Application Activated (WM_ACTIVATEAPP)");
+              }
+
+              ActivateWindow (true);
+            }
+          } break;
+
+          case 0: // WA_INACTIVE / FALSE
+          {
+            if ((HWND)lParam == game_window.hWnd)
+            {
+              if (last_active == true)
+              {
+                SK_LOG1 (L"[Window Mgr] Application Deactivated (WM_ACTIVATEAPP)");
+              }
+
+              ActivateWindow (false);
+
+              if (config.window.background_render)
+              {
+                return 1;
+              }
+            }
+          } break;
+        }
+      }
+    } break;
+
+    case WM_NCCALCSIZE:
+      break;
+
+    case WM_WINDOWPOSCHANGING:
+    {
+      LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
+      //ImGui_ImplDX11_InvalidateDeviceObjects ();
+
+      if (! (wnd_pos->flags & SWP_NOMOVE))
+      {
+        int width  = game_window.game.window.right  - game_window.game.window.left;
+        int height = game_window.game.window.bottom - game_window.game.window.top;
+
+        game_window.game.window.left = wnd_pos->x;
+        game_window.game.window.top  = wnd_pos->y;
+
+        game_window.game.window.right  = wnd_pos->x + width;
+        game_window.game.window.bottom = wnd_pos->y + height;
+      }
+
+      if (! (wnd_pos->flags & SWP_NOSIZE)) {
+        game_window.game.window.right  = game_window.game.window.left + wnd_pos->cx;
+        game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
+      }
+
+      //game_window.game.client = game_window.game.window;
+
+      if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
+        SK_AdjustBorder ();
+
+      if (config.window.center || (! config.window.res.override.isZero ()))
+        SK_AdjustWindow ();
+    } break;
+
+    
+    case WM_WINDOWPOSCHANGED:
+      ImGui_ImplDX11_InvalidateDeviceObjects ();
+      //LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
+
+      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+      //game_window.game.client = game_window.actual.client;
+      //game_window.game.window = game_window.actual.window;
+
+      if (config.window.confine_cursor)
+        ClipCursor_Original (&game_window.actual.window);
+
+      //if (config.window.borderless) {
+        //SK_AdjustBorder ();
+        // This fixes problems in Dragon Ball Xenoverse
+        //
+        //GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+
+        //return 0;
+      //}
+      break;
+
+
+    case WM_SIZE:
+      ImGui_ImplDX11_InvalidateDeviceObjects (); 
+      // Fallthrough to WM_MOVE
+
+    case WM_MOVE:
+      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+      if (config.window.confine_cursor)
+        ClipCursor_Original (&game_window.actual.window);
+      break;
+
+
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+      if (game_window.active)
+      {
+        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN)) {
+          return game_window.CallProc (hWnd, uMsg, wParam, lParam);
+        }
+      }
+      break;
+
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+      if (game_window.active)
+      {
+        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP)) {
+          return game_window.CallProc (hWnd, uMsg, wParam, lParam);
+        }
+      }
+      break;
+
+    case WM_MOUSEMOVE:
+      if (! game_window.active)
+        GetCursorPos_Original (&game_window.cursor_pos);
+      break;
   }
 
-  if (uMsg == WM_SIZE) {
-    ImGui_ImplDX11_InvalidateDeviceObjects ();
-  }
-
-  if (uMsg == WM_NCCALCSIZE) {
-  }
-
-  if (uMsg == WM_WINDOWPOSCHANGING)
-  {
-    LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
-    //ImGui_ImplDX11_InvalidateDeviceObjects ();
-
-    if (! (wnd_pos->flags & SWP_NOMOVE)) {
-      int width  = game_window.game.window.right  - game_window.game.window.left;
-      int height = game_window.game.window.bottom - game_window.game.window.top;
-
-      game_window.game.window.left = wnd_pos->x;
-      game_window.game.window.top  = wnd_pos->y;
-
-      game_window.game.window.right  = wnd_pos->x + width;
-      game_window.game.window.bottom = wnd_pos->y + height;
-    }
-
-    if (! (wnd_pos->flags & SWP_NOSIZE)) {
-      game_window.game.window.right  = game_window.game.window.left + wnd_pos->cx;
-      game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
-    }
-
-    //game_window.game.client = game_window.game.window;
-
-    if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
-      SK_AdjustBorder ();
-
-    if (config.window.center || (! config.window.res.override.isZero ()))
-      SK_AdjustWindow ();
-  }
-
-  if (uMsg == WM_WINDOWPOSCHANGED)
-  {
-    ImGui_ImplDX11_InvalidateDeviceObjects ();
-    //LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
-
-    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-
-    //game_window.game.client = game_window.actual.client;
-    //game_window.game.window = game_window.actual.window;
-
-    if (config.window.confine_cursor)
-      ClipCursor_Original (&game_window.actual.window);
-
-    //if (config.window.borderless) {
-      //SK_AdjustBorder ();
-      // This fixes problems in Dragon Ball Xenoverse
-      //
-      //GetClientRect_Original (game_window.hWnd, &game_window.game.client);
-
-      //return 0;
-    //}
-  }
-
-  bool active = ( GetForegroundWindow () == GetActiveWindow () );
-
-  if ((! active) && uMsg == WM_MOUSEMOVE)
-  {
-    GetCursorPos_Original (&game_window.cursor_pos);
-  }
-
-////////  bool background_render =
-////////    config.window.background_render && (! active);
-
-  if ((uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) && active) {
-    if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN)) {
-      return game_window.CallProc (hWnd, uMsg, wParam, lParam);
-    }
-  }
-
-  if ((uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP) && active) {
-    if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP)) {
-      return game_window.CallProc (hWnd, uMsg, wParam, lParam);
-    }
-  }
 
   //
   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
@@ -2706,6 +2829,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   else {
     return 0;
   }
+
 
   return game_window.CallProc (hWnd, uMsg, wParam, lParam);
 }
@@ -2793,28 +2917,10 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 
 
   if (! fullscreen_exclusive)
-  {
+  {      
     // Next, adjust the border and/or window location if the user
     //   wants an override
-    CreateThread (
-      nullptr,
-        0,
-          [](LPVOID user)->
-          DWORD
-          {
-            UNREFERENCED_PARAMETER (user);
-
-            SK_ResetWindow ();
-
-            CloseHandle (GetCurrentThread ());
-
-            return 0;
-          },
-
-          nullptr,
-        0x00,
-      nullptr
-    );
+    SK_ResetWindow ();
 
     if (game_window.actual.style & WS_VISIBLE)
       SK_RealizeForegroundWindow (hWnd);
@@ -3014,28 +3120,6 @@ SK_HookWinAPI (void)
   SK_CreateDLLHook2 ( L"user32.dll", "MoveWindow",
                         MoveWindow_Detour,
              (LPVOID *)&MoveWindow_Original );
-
-#if 0
-    SetWindowPos_Original =
-      (SetWindowPos_pfn)
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-                         "SetWindowPos" );
-
-    MoveWindow_Original =
-      (MoveWindow_pfn)
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-                         "MoveWindow" );
-
-    SetWindowPlacement_Original =
-      (SetWindowPlacement_pfn)
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-                         "SetWindowPlacement" );
-
-    ClipCursor_Original =
-      (ClipCursor_pfn)
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-                         "ClipCursor" );
-#endif
 
 // These functions are dispatched through the Ptr version, so
 //   hooking them in the 64-bit version would be a bad idea.

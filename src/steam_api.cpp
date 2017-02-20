@@ -2655,7 +2655,7 @@ SK::SteamAPI::Init (bool pre_load)
 void
 SK::SteamAPI::Shutdown (void)
 {
-  SK_AutoClose_Log (steam_log);
+  //SK_AutoClose_Log (steam_log);
 
   steam_ctx.Shutdown ();
 }
@@ -3725,6 +3725,22 @@ SK_TestSteamImports (HMODULE hMod)
      SK_HookSteamAPI ();
      steam_imported = true;
   }
+}
+
+void
+WINAPI
+SK_SteamAPI_AddScreenshotToLibrary (const char *pchFilename, const char *pchThumbnailFilename, int nWidth, int nHeight)
+{
+  if (steam_ctx.Screenshots ())
+    steam_ctx.Screenshots ()->AddScreenshotToLibrary (pchFilename, pchThumbnailFilename, nWidth, nHeight);
+}
+
+void
+WINAPI
+SK_SteamAPI_WriteScreenshot (void *pubRGB, uint32 cubRGB, int nWidth, int nHeight)
+{
+  if (steam_ctx.Screenshots ())
+    steam_ctx.Screenshots ()->WriteScreenshot (pubRGB, cubRGB, nWidth, nHeight);
 }
 
 bool SK::SteamAPI::overlay_state = false;

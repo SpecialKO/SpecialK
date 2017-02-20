@@ -118,6 +118,17 @@ struct gpu_sensors_t {
 
 extern gpu_sensors_t& gpu_stats;
 
+uint32_t __stdcall SK_GPU_GetClockRateInkHz    (int gpu);
+uint32_t __stdcall SK_GPU_GetMemClockRateInkHz (int gpu);
+uint64_t __stdcall SK_GPU_GetMemoryBandwidth   (int GPU);
+float    __stdcall SK_GPU_GetMemoryLoad        (int GPU);
+float    __stdcall SK_GPU_GetGPULoad           (int GPU);
+float    __stdcall SK_GPU_GetTempInC           (int gpu);
+uint32_t __stdcall SK_GPU_GetFanSpeedRPM       (int gpu);
+uint64_t __stdcall SK_GPU_GetVRAMUsed          (int gpu);
+uint64_t __stdcall SK_GPU_GetVRAMShared        (int gpu);
+uint64_t __stdcall SK_GPU_GetVRAMBudget        (int gpu);
+
 void SK_PollGPU (void);
 
 #endif /* __SK__GPU_MONITOR_H__ */

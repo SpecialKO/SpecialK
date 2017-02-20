@@ -24,6 +24,18 @@
 
 #include <Windows.h>
 
+struct thread_events
+{
+  struct telemetry
+  {
+    HANDLE start;
+    HANDLE stop;
+    HANDLE poll;
+    HANDLE shutdown;
+  } gpu, cpu,     IO,
+    disk, memory, pagefile;
+} extern perfmon;
+
 class SK_AutoCOMInit
 {
 public:

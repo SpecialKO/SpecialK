@@ -32,6 +32,8 @@
 
 #include <algorithm>
 
+thread_events perfmon;
+
 void
 SK_CountIO (io_perf_t& ioc, const double update)
 {
@@ -337,6 +339,36 @@ SK_InitWMI (void)
   while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) == 0)
     Sleep (100);
 
+  perfmon.cpu.start         = CreateEvent (nullptr, FALSE, FALSE, L"CPU Startup");
+  perfmon.cpu.stop          = CreateEvent (nullptr, FALSE, FALSE, L"CPU Stop");
+  perfmon.cpu.poll          = CreateEvent (nullptr, FALSE, FALSE, L"CPU Poll");
+  perfmon.cpu.shutdown      = CreateEvent (nullptr, FALSE, FALSE, L"CPU Shutdown");
+
+  perfmon.gpu.start         = CreateEvent (nullptr, FALSE, FALSE, L"GPU Startup");
+  perfmon.gpu.stop          = CreateEvent (nullptr, FALSE, FALSE, L"GPU Stop");
+  perfmon.gpu.poll          = CreateEvent (nullptr, FALSE, FALSE, L"GPU Poll");
+  perfmon.gpu.shutdown      = CreateEvent (nullptr, FALSE, FALSE, L"GPU Shutdown");
+
+  perfmon.IO.start          = CreateEvent (nullptr, FALSE, FALSE, L"IO Startup");
+  perfmon.IO.stop           = CreateEvent (nullptr, FALSE, FALSE, L"IO Stop");
+  perfmon.IO.poll           = CreateEvent (nullptr, FALSE, FALSE, L"IO Poll");
+  perfmon.IO.shutdown       = CreateEvent (nullptr, FALSE, FALSE, L"IO Shutdown");
+
+  perfmon.disk.start        = CreateEvent (nullptr, FALSE, FALSE, L"Disk Startup");
+  perfmon.disk.stop         = CreateEvent (nullptr, FALSE, FALSE, L"Disk Stop");
+  perfmon.disk.poll         = CreateEvent (nullptr, FALSE, FALSE, L"Disk Poll");
+  perfmon.disk.shutdown     = CreateEvent (nullptr, FALSE, FALSE, L"Disk Shutdown");
+
+  perfmon.memory.start      = CreateEvent (nullptr, FALSE, FALSE, L"Memory Startup");
+  perfmon.memory.stop       = CreateEvent (nullptr, FALSE, FALSE, L"Memory Stop");
+  perfmon.memory.poll       = CreateEvent (nullptr, FALSE, FALSE, L"Memory Poll");
+  perfmon.memory.shutdown   = CreateEvent (nullptr, FALSE, FALSE, L"Memory Shutdown");
+
+  perfmon.pagefile.start    = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Startup");
+  perfmon.pagefile.stop     = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Stop");
+  perfmon.pagefile.poll     = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Poll");
+  perfmon.pagefile.shutdown = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Shutdown");
+
   COM::base.wmi.Unlock ();
 
   return true;
@@ -373,6 +405,36 @@ SK_ShutdownWMI (void)
                        COM::base.wmi.hServerThread = 0;
     }
   }
+
+  CloseHandle (perfmon.cpu.start);
+  CloseHandle (perfmon.cpu.stop);       
+  CloseHandle (perfmon.cpu.poll);   
+  CloseHandle (perfmon.cpu.shutdown);
+
+  CloseHandle (perfmon.gpu.start);       
+  CloseHandle (perfmon.gpu.stop);       
+  CloseHandle (perfmon.gpu.poll);   
+  CloseHandle (perfmon.gpu.shutdown);
+
+  CloseHandle (perfmon.IO.start);        
+  CloseHandle (perfmon.IO.stop);        
+  CloseHandle (perfmon.IO.poll);    
+  CloseHandle (perfmon.IO.shutdown);     
+
+  CloseHandle (perfmon.disk.start);      
+  CloseHandle (perfmon.disk.stop);      
+  CloseHandle (perfmon.disk.poll);  
+  CloseHandle (perfmon.disk.shutdown);   
+
+  CloseHandle (perfmon.memory.start);    
+  CloseHandle (perfmon.memory.stop);    
+  CloseHandle (perfmon.memory.poll);
+  CloseHandle (perfmon.memory.shutdown); 
+
+  CloseHandle (perfmon.pagefile.start);  
+  CloseHandle (perfmon.pagefile.stop);  
+  CloseHandle (perfmon.pagefile.poll);
+  CloseHandle (perfmon.pagefile.shutdown);
 
   DeleteCriticalSection (&wmi_cs);
 }

@@ -17,6 +17,8 @@
 //#include "config.h"
 //#include "render.h"
 
+#include <SpecialK/window.h>
+
 #include <atlbase.h>
 
 // Data
@@ -325,7 +327,7 @@ ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS*
   }
 
   ImGui::GetIO ().DisplayFramebufferScale = ImVec2 ( width, height );
-  ImGui::GetIO ().DisplaySize             = ImVec2 ( width, height );
+  //ImGui::GetIO ().DisplaySize             = ImVec2 ( width, height );
 
 
   return true;
@@ -450,11 +452,12 @@ ImGui_ImplDX9_NewFrame (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (GetForegroundWindow () == g_hWnd)
+  if (game_window.active)
   {
     for (int i = 0; i < 256; i++)
     {
-      if (i <= 0x06)
+  
+    if (i <= 0x06)
       {
         switch (i)
         {
@@ -495,7 +498,7 @@ ImGui_ImplDX9_NewFrame (void)
   RECT rect;
   GetClientRect (g_hWnd, &rect);
 
-  io.DisplaySize =
+  io.DisplayFramebufferScale =
     ImVec2 ( (float)(rect.right - rect.left),
                (float)(rect.bottom - rect.top) );
 
@@ -514,8 +517,10 @@ ImGui_ImplDX9_NewFrame (void)
     {
       if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0)
       {
-        io.DisplayFramebufferScale.x = (float)pp.BackBufferWidth;
-        io.DisplayFramebufferScale.y = (float)pp.BackBufferHeight;
+        io.DisplaySize.x = (float)pp.BackBufferWidth;
+        io.DisplaySize.y = (float)pp.BackBufferHeight;
+
+        io.DisplayFramebufferScale = ImVec2 ( (float)pp.BackBufferWidth, (float)pp.BackBufferHeight );
       }
     }
   }

@@ -412,3 +412,92 @@ SK_PollGPU (void)
     SetEvent (hPollEvent);
   }
 }
+
+
+
+uint32_t
+__stdcall
+SK_GPU_GetClockRateInkHz (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+           gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
+           0;
+}
+
+uint32_t
+__stdcall
+SK_GPU_GetMemClockRateInkHz (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+           gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
+           0;
+};
+
+uint64_t
+__stdcall
+SK_GPU_GetMemoryBandwidth (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+      ((uint64_t)gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram * 2ULL * 1000ULL *
+       (uint64_t)gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width) / 8 :
+        0;
+}
+
+float
+__stdcall
+SK_GPU_GetMemoryLoad (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+    (float)gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb :
+    0.0f;
+}
+
+float
+__stdcall SK_GPU_GetGPULoad (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+    (float)gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu :
+    0.0f;
+}
+
+float
+__stdcall
+SK_GPU_GetTempInC           (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+    (float)gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu :
+    0.0f;
+}
+
+uint32_t
+__stdcall
+SK_GPU_GetFanSpeedRPM       (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+    gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.supported ?
+      gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
+}
+
+uint64_t
+__stdcall
+SK_GPU_GetVRAMUsed          (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+    gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local : 0;
+}
+
+uint64_t
+__stdcall
+SK_GPU_GetVRAMShared        (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+    gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal : 0;
+}
+
+uint64_t
+__stdcall
+SK_GPU_GetVRAMBudget        (int gpu)
+{
+  // TODO
+  return 0;
+}

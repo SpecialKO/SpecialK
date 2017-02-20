@@ -3684,8 +3684,7 @@ HookDXGI (LPVOID user)
 
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
-  DXGI_SWAP_CHAIN_DESC desc;
-  ZeroMemory (&desc, sizeof desc);
+  DXGI_SWAP_CHAIN_DESC desc = { };
 
   desc.BufferDesc.Width                   = 800;
   desc.BufferDesc.Height                  = 600;
@@ -3726,8 +3725,22 @@ HookDXGI (LPVOID user)
 
   InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
+  typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
+    _In_opt_                            IDXGIAdapter         *pAdapter,
+                                        D3D_DRIVER_TYPE       DriverType,
+                                        HMODULE               Software,
+                                        UINT                  Flags,
+    _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
+                                        UINT                  FeatureLevels,
+                                        UINT                  SDKVersion,
+    _Out_opt_                           ID3D11Device        **ppDevice,
+    _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
+    _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
+
+  extern LPVOID pfnD3D11CreateDevice;
+
   HRESULT hr =
-    D3D11CreateDevice_Import (
+    ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
       0,
         D3D_DRIVER_TYPE_HARDWARE,
           nullptr,
@@ -4078,7 +4091,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   budget_thread_params_t* params =
     (budget_thread_params_t *)user_data;
 
-  if ( budget_log.init ( L"logs\\dxgi_budget.log", L"w" ) )
+  if (true)
   {
     budget_log.silent = true;
     params->tid       = GetCurrentThreadId ();
@@ -4455,6 +4468,4 @@ SK::DXGI::ShutdownBudgetThread ( void )
       }
     }
   }
-
-  DeleteCriticalSection (&budget_mutex);
 }

@@ -67,6 +67,8 @@ public:
   int KeyUp       (BYTE vkCode, LPARAM lParam);
   int KeyDown     (BYTE vkCode, LPARAM lParam);
 
+  void reset       (void); // Call when window activation changes
+
   HANDLE GetThread (void);
 
   bool isVisible (void) { return visible; }

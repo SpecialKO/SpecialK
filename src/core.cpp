@@ -52,6 +52,7 @@
 #include <SpecialK/console.h>
 #include <SpecialK/command.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/render_backend.h>
 
 #include <SpecialK/adl.h>
 
@@ -75,11 +76,12 @@ static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 
 
-CRITICAL_SECTION init_mutex    = { 0 };
-CRITICAL_SECTION budget_mutex  = { 0 };
-CRITICAL_SECTION loader_lock   = { 0 };
-CRITICAL_SECTION wmi_cs        = { 0 };
-CRITICAL_SECTION cs_dbghelp    = { 0 };
+extern CRITICAL_SECTION init_mutex;
+extern CRITICAL_SECTION budget_mutex;
+extern CRITICAL_SECTION loader_lock;
+extern CRITICAL_SECTION wmi_cs;
+extern CRITICAL_SECTION cs_dbghelp;
+
 volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
@@ -96,6 +98,11 @@ BOOL                     nvapi_init = FALSE;
 int                      gpu_prio;
 
 HMODULE                  backend_dll  = 0;
+
+// LOL -- This tests for RunDLL32 / SKIM
+bool
+__cdecl
+SK_IsSuperSpecialK (void);
 
 void
 SK_PathRemoveExtension (wchar_t* wszInOut)
@@ -561,6 +568,8 @@ SK_InitFinishCallback (void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
+  LeaveCriticalSection (&init_mutex);
+
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
 
@@ -587,8 +596,6 @@ SK_InitFinishCallback (void)
   }
 
   SK_StartPerfMonThreads ();
-
-  LeaveCriticalSection (&init_mutex);
 }
 
 void
@@ -674,7 +681,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   bool load_proxy = false;
 
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsSuperSpecialK ()) {
     if (! SK_IsInjected ()) {
       extern import_t imports [SK_MAX_IMPORTS];
 
@@ -714,19 +721,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"----------------------------------------------------------------------"
     L"---------------------\n");
 
-  __crc32_init ();
-
-  if (SK_IsHostAppSKIM ()) {
+  if (SK_IsSuperSpecialK ()) {
     callback_fn (SK_InitFinishCallback);
     return;
   }
-
-  // Load user-defined DLLs (Early)
-#ifdef _WIN64
-  SK_LoadEarlyImports64 ();
-#else
-  SK_LoadEarlyImports32 ();
-#endif
 
   if (config.system.silent) {
     dll_log.silent = true;
@@ -845,6 +843,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
+
+  // Load user-defined DLLs (Early)
+#ifdef _WIN64
+  SK_LoadEarlyImports64 ();
+#else
+  SK_LoadEarlyImports32 ();
+#endif
 
   callback_fn (SK_InitFinishCallback);
 
@@ -1138,7 +1143,7 @@ DllThread_CRT (LPVOID user)
 
   SK_InitCore (params->backend, params->callback);
 
-  if (SK_IsHostAppSKIM ())
+  if (SK_IsSuperSpecialK ())
     return 0;
 
   SK_InitCompatBlacklist ();
@@ -1157,6 +1162,15 @@ DllThread_CRT (LPVOID user)
         &config.gpu.interval
       )
   );
+
+  SK_GetCommandProcessor ()->AddVariable (
+    "ImGui.FontScale",
+      new SK_IVarStub <float> (
+        &config.imgui.scale
+      )      
+  );
+
+  SK_InitRenderBackends ();
 
   skMemCmd*    mem    = new skMemCmd    ();
   skUpdateCmd* update = new skUpdateCmd ();
@@ -1188,11 +1202,11 @@ DllThread_CRT (LPVOID user)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  if (! SK_IsHostAppSKIM ())
+  if (! SK_IsSuperSpecialK ())
     SK_SaveConfig (config_name);
 
   // For the global injector, when not started by SKIM, check its version
-  if (SK_IsInjected () && (! SK_IsHostAppSKIM ()))
+  if (SK_IsInjected () && (! SK_IsSuperSpecialK ()))
     _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
   return 0;
@@ -1216,12 +1230,6 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
-  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
-  InitializeCriticalSectionAndSpinCount (&loader_lock,  65536);
-  InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
-  InitializeCriticalSectionAndSpinCount (&cs_dbghelp, 1048576);
-
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
@@ -1313,7 +1321,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   // This is a fatal combination
-  if (SK_IsInjected () && SK_IsHostAppSKIM ()) {
+  if (SK_IsInjected () && SK_IsSuperSpecialK ()) {
     //FreeLibrary (SK_GetDLL ());
     return false;
   }
@@ -1358,7 +1366,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK::Diagnostics::CrashHandler::InitSyms ();
 
   // Don't start SteamAPI if we're running the installer...
-  if (SK_IsHostAppSKIM ())
+  if (SK_IsSuperSpecialK ())
     config.steam.init_delay = 0;
 
   wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
@@ -1368,7 +1376,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           SK_RootPath   [ MAX_PATH ]   = L'\0';
 
   if (config.system.central_repository) {
-    if (! SK_IsHostAppSKIM ()) {
+    if (! SK_IsSuperSpecialK ()) {
       ExpandEnvironmentStringsW (
         L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
           SK_RootPath,
@@ -1384,7 +1392,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   else {
-    if (! SK_IsHostAppSKIM ()) {
+    if (! SK_IsSuperSpecialK ()) {
       lstrcatW (SK_RootPath,   SK_GetHostPath ());
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
@@ -1407,6 +1415,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   dll_log.init (log_fname, L"w");
   dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
 
+  budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
+
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
     L"-------------------\n");
@@ -1423,7 +1433,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  if (! SK_IsHostAppSKIM ())
+  if (! SK_IsSuperSpecialK ())
   {
     dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
@@ -1456,7 +1466,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
-  if (SK_IsHostAppSKIM ()) {
+  if (SK_IsSuperSpecialK ()) {
     config.system.handle_crashes = false;
     config.system.game_output    = false;
     config.steam.silent          = true;
@@ -1477,7 +1487,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
 
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsSuperSpecialK ()) {
     SK_Steam_InitCommandConsoleVariables ();
     SK_TestSteamImports                  (GetModuleHandle (nullptr));
   }
@@ -1496,11 +1506,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   // Game won't start from the commandline without this...
   if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
     config.steam.appid = 405900;
-
-
-  // Start unmuted
-  if (config.window.background_mute)
-    SK_SetGameMute (FALSE);
 
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
@@ -1651,12 +1656,6 @@ SK_ShutdownCore (const wchar_t* backend)
     backend, GetCurrentProcessId ());
 
   SymCleanup (GetCurrentProcess ());
-
-  // Hopefully these things are done by now...
-  DeleteCriticalSection (&budget_mutex);
-  DeleteCriticalSection (&loader_lock);
-  DeleteCriticalSection (&init_mutex);
-  DeleteCriticalSection (&cs_dbghelp);
 
   SK_ShutdownWMI ();
   
@@ -2246,6 +2245,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 struct sk_host_process_s {
   wchar_t wszApp       [ MAX_PATH * 2 ] = { L'\0' };
   wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L'\0' };
   wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
 } host_proc;
 
@@ -2255,6 +2255,21 @@ SK_IsHostAppSKIM (void)
 {
   return (StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
 }
+
+bool
+__cdecl
+SK_IsRunDLLInvocation (void)
+{
+  return (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+}
+
+bool
+__cdecl
+SK_IsSuperSpecialK (void)
+{
+  return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
+}
+
 
 const wchar_t*
 SK_GetHostApp (void)
@@ -2286,6 +2301,9 @@ SK_GetHostApp (void)
       wchar_t* wszPrev =
         CharPrevW (wszProcessName, pwszShortName);
 
+      if (wszPrev < wszProcessName)
+        break;
+
       if (*wszPrev != L'\\' && *wszPrev != L'/') {
         pwszShortName = wszPrev;
         continue;
@@ -2297,11 +2315,41 @@ SK_GetHostApp (void)
     lstrcpynW (
       host_proc.wszApp,
         pwszShortName,
-          MAX_PATH * 2
+          MAX_PATH * 2 - 1
     );
   }
 
   return host_proc.wszApp;
+}
+
+const wchar_t*
+SK_GetFullyQualifiedApp (void)
+{
+  static volatile
+    ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    DWORD   dwProcessSize =  MAX_PATH * 2;
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
+
+    HANDLE hProc =
+      GetCurrentProcess ();
+
+    QueryFullProcessImageName (
+      hProc,
+        0,
+          wszProcessName,
+            &dwProcessSize );
+
+    lstrcpynW (
+      host_proc.wszFullName,
+        wszProcessName,
+          MAX_PATH * 2 - 1
+    );
+  }
+
+  return host_proc.wszFullName;
 }
 
 // NOT the working directory, this is the directory that
@@ -2335,9 +2383,13 @@ SK_GetHostPath (void)
 
     wchar_t* wszFirstSep = nullptr;
 
-    while (  pwszShortName > wszProcessName ) {
+    while (  pwszShortName > wszProcessName )
+    {
       wchar_t* wszPrev =
         CharPrevW (wszProcessName, pwszShortName);
+
+      if (wszPrev < wszProcessName)
+        break;
 
       if (*wszPrev == L'\\' || *wszPrev == L'/')
       {                              // Leave the trailing separator
@@ -2354,7 +2406,7 @@ SK_GetHostPath (void)
     lstrcpynW (
       host_proc.wszPath,
         wszProcessName,
-          MAX_PATH * 2
+          MAX_PATH * 2 - 1
     );
   }
 
@@ -2393,4 +2445,15 @@ __cdecl
 SK_SetDLLRole (DLL_ROLE role)
 {
   dll_role = role;
+}
+
+
+// Stupid solution, but very effective way of re-launching a game as admin without
+//   the Steam client throwing a tempur tantrum.
+void
+CALLBACK
+RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
+                   LPSTR lpszCmdLine, int       nCmdShow )
+{
+  ShellExecuteA ( nullptr, "runas", lpszCmdLine, nullptr, nullptr, SW_SHOWNORMAL );
 }

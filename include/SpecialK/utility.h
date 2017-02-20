@@ -40,6 +40,7 @@ std::wstring   SK_EvalEnvironmentVars  (const wchar_t* wszEvaluateMe);
 bool           SK_GetUserProfileDir    (wchar_t* buf, uint32_t* pdwLen);
 bool           SK_IsTrue               (const wchar_t* string);
 bool           SK_IsAdmin              (void);
+void           SK_ElevateToAdmin       (void); // Needs DOS 8.3 filename support
 int            SK_MessageBox           (std::wstring caption,
                                         std::wstring title,
                                         uint32_t     flags);
@@ -162,7 +163,7 @@ private:
 };
 
 
-uint32_t __cdecl crc32 (uint32_t crc, const void *buf, size_t size);
+extern "C" uint32_t __cdecl crc32 (uint32_t crc, const void *buf, size_t size);
 
 /*
     Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.
@@ -170,6 +171,7 @@ uint32_t __cdecl crc32 (uint32_t crc, const void *buf, size_t size);
 */
 extern "C"
 uint32_t
+__cdecl
 crc32c (
     uint32_t crc,               // Initial CRC value. Typically it's 0.
                                 // You can supply non-trivial initial value here.
@@ -178,13 +180,14 @@ crc32c (
     size_t length);             // Length of the data in the input buffer.
 
 
-void __crc32_init (void);
+extern "C" void __cdecl __crc32_init (void);
 
 /*
 	Software fallback version of CRC-32C (Castagnoli) checksum.
 */
 extern "C"
 uint32_t
+__cdecl
 crc32c_append_sw (uint32_t crc, const uint8_t *input, size_t length);
 
 /*
@@ -192,6 +195,7 @@ crc32c_append_sw (uint32_t crc, const uint8_t *input, size_t length);
 */
 extern "C"
 uint32_t
+__cdecl
 crc32c_append_hw (uint32_t crc, const uint8_t *input, size_t length);
 
 /*
@@ -199,6 +203,7 @@ crc32c_append_hw (uint32_t crc, const uint8_t *input, size_t length);
 */
 extern "C"
 int
+__cdecl
 crc32c_hw_available (void);
 
 

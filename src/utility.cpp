@@ -538,6 +538,7 @@ private:
 // Initialize static member data
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 
+extern "C"
 uint32_t
 __cdecl
 crc32 (uint32_t crc, const void *buf, size_t size)
@@ -596,15 +597,16 @@ static uint32_t table        [16][256];
 static uint32_t long_shifts  [ 4][256];
 static uint32_t short_shifts [ 4][256];
 
-static bool _tableInitialized;
+static bool _tableInitialized = false;
 
-void calculate_table (void);
+extern "C" void __cdecl calculate_table (void);
 
 /* Table-driven software version as a fall-back.  This is about 15 times slower
    than using the hardware instructions.  This assumes little-endian integers,
    as is the case on Intel processors that the assembler code here is for. */
 extern "C"
 uint32_t
+__cdecl
 crc32c_append_sw (uint32_t crci, buffer input, size_t length)
 {
   buffer next = input;
@@ -698,6 +700,7 @@ shift_crc (uint32_t shift_table[][256], uint32_t crc)
 /* Compute CRC-32C using the Intel hardware instruction. */
 extern "C"
 uint32_t
+__cdecl
 crc32c_append_hw (uint32_t crc, buffer buf, size_t len)
 {
   buffer next = buf;
@@ -851,6 +854,7 @@ crc32c_append_hw (uint32_t crc, buffer buf, size_t len)
 
 extern "C"
 int
+__cdecl
 crc32c_hw_available (void)
 {
   int info [4];
@@ -859,7 +863,9 @@ crc32c_hw_available (void)
 
 }
 
+extern "C"
 void
+__cdecl
 calculate_table (void)
 {
   for (int i = 0; i < 256; i++)
@@ -876,7 +882,9 @@ calculate_table (void)
   _tableInitialized = true;
 }
 
+extern "C"
 void
+__cdecl
 calculate_table_hw (void)
 {
   for (int i = 0; i < 256; i++) 
@@ -907,15 +915,30 @@ calculate_table_hw (void)
   }
 }
 
-uint32_t (*append_func)(uint32_t, buffer, size_t) = nullptr;
+static uint32_t (*append_func)(uint32_t, buffer, size_t) = nullptr;
 
 #include <SpecialK/log.h>
 
+extern "C"
 void
+__cdecl
 __crc32_init (void)
 {
-  if (append_func == NULL)
+  static bool             init = false;
+  static CRITICAL_SECTION cs_init;
+
+  if (! init) {
+    InitializeCriticalSection (&cs_init);
+    init = true;
+  }
+
+  if (append_func == nullptr)
   {
+    EnterCriticalSection (&cs_init);
+
+    if (append_func != nullptr)
+      return;
+
     // somebody can call sw version directly, so, precalculate table for this version
     calculate_table ();
 
@@ -929,13 +952,18 @@ __crc32_init (void)
       //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
       append_func = crc32c_append_sw;
     }
+
+    LeaveCriticalSection (&cs_init);
   }
 }
 
 extern "C"
 uint32_t
+__cdecl
 crc32c (uint32_t crc, buffer input, size_t length)
 {
+  __crc32_init ();
+
   return append_func (crc, input, length);
 }
 
@@ -1808,4 +1836,50 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
   szNum [len] = '\0';
 
   return len;
+}
+
+
+void
+SK_ElevateToAdmin (void)
+{
+  extern const wchar_t*
+  SK_GetFullyQualifiedApp (void);
+
+  extern const wchar_t*
+  SK_GetHostPath (void);
+
+  extern std::wstring
+  SK_GetModuleFullName (HMODULE hDll);
+
+  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { L'\0' };
+  wchar_t wszShortPath [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszFullname  [MAX_PATH + 2] = { L'\0' };
+
+  wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH - 1);
+ 
+  if ((! GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1)) ||
+         GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES  ||
+         StrStrIW           (wszShortPath, L" "))
+  {
+    SK_MessageBox ( L"Your computer is broken; please enable DOS 8.3 filename generation.",
+                      L"Cannot Elevate To Admin Because of Bad Filesystem Policy.",
+                        MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
+    ExitProcess   (0x00);
+  }
+
+  _swprintf ( wszRunDLLCmd,
+               L"RunDll32.exe %s,RunDLL_ElevateMe %s",
+                 wszShortPath,
+                   SK_GetFullyQualifiedApp () );
+
+  STARTUPINFOW        sinfo = { 0 };
+  PROCESS_INFORMATION pinfo = { 0 };
+
+  sinfo.cb = sizeof STARTUPINFOW;
+
+  CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
+                  FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
+                  &sinfo,  &pinfo );
+
+  TerminateProcess    (GetCurrentProcess (), 0x00);
 }

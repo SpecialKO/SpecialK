@@ -22,6 +22,7 @@
 #include <SpecialK/render_backend.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
+#include <SpecialK/command.h>
 
 SK_RenderBackend __SK_RBkEnd;
 
@@ -38,6 +39,27 @@ extern void WINAPI SK_HookGL     (void);
 extern void WINAPI SK_HookVulkan (void);
 extern void WINAPI SK_HookD3D9   (void);
 extern void WINAPI SK_HookDXGI   (void);
+
+void
+__stdcall
+SK_InitRenderBackends (void)
+{
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D9Ex",
+                                           new SK_IVarStub <bool> (&config.apis.d3d9ex.hook ) );
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D9",
+                                           new SK_IVarStub <bool> (&config.apis.d3d9.hook ) );
+
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D11",
+                                           new SK_IVarStub <bool> (&config.apis.dxgi.d3d11.hook ) );
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D12",
+                                           new SK_IVarStub <bool> (&config.apis.dxgi.d3d12.hook ) );
+
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.OpenGL",
+                                           new SK_IVarStub <bool> (&config.apis.OpenGL.hook ) );
+
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.Vulkan",
+                                           new SK_IVarStub <bool> (&config.apis.Vulkan.hook ) );
+}
 
 void
 SK_BootD3D9 (void)

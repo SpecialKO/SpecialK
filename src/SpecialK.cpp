@@ -51,6 +51,12 @@ volatile ULONG   __SK_DLL_Refs         = 0;
 volatile DWORD   __SK_TLS_INDEX        = MAXDWORD;
 volatile ULONG   __SK_DLL_Ending       = FALSE;
 
+CRITICAL_SECTION init_mutex    = { 0 };
+CRITICAL_SECTION budget_mutex  = { 0 };
+CRITICAL_SECTION loader_lock   = { 0 };
+CRITICAL_SECTION wmi_cs        = { 0 };
+CRITICAL_SECTION cs_dbghelp    = { 0 };
+
 SK_TLS*
 __stdcall
 SK_GetTLS (void)
@@ -231,6 +237,12 @@ BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
+  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
+  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
+  InitializeCriticalSectionAndSpinCount (&loader_lock,  65536);
+  InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
+  InitializeCriticalSectionAndSpinCount (&cs_dbghelp, 1048576);
+
   if (! InterlockedCompareExchangeAcquire (
           &__SK_DLL_Attached,
             FALSE,
@@ -360,6 +372,11 @@ SK_Detach (DLL_ROLE role)
   else {
     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
   }
+
+  DeleteCriticalSection (&budget_mutex);
+  DeleteCriticalSection (&loader_lock);
+  DeleteCriticalSection (&init_mutex);
+  DeleteCriticalSection (&cs_dbghelp);
 
   return ret;
 }

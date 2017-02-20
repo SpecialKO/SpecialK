@@ -60,14 +60,16 @@ void
 __stdcall
 SK_LockDllLoader (void)
 {
-  EnterCriticalSection (&loader_lock);
+  if (config.system.strict_compliance)
+    EnterCriticalSection (&loader_lock);
 }
 
 void
 __stdcall
 SK_UnlockDllLoader (void)
 {
-  LeaveCriticalSection (&loader_lock);
+  if (config.system.strict_compliance)
+    LeaveCriticalSection (&loader_lock);
 }
 
 BOOL
@@ -278,7 +280,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
     return FreeLibrary_Original (hLibModule);
   }
 
-  EnterCriticalSection (&loader_lock);
+  SK_LockDllLoader ();
 
   std::wstring name = SK_GetModuleName     (hLibModule);
   BOOL         bRet = FreeLibrary_Original (hLibModule);
@@ -305,7 +307,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
     }
   }
 
-  LeaveCriticalSection (&loader_lock);
+  SK_UnlockDllLoader ();
 
   return bRet;
 }
@@ -314,10 +316,10 @@ HMODULE
 WINAPI
 LoadLibraryA_Detour (LPCSTR lpFileName)
 {
-  EnterCriticalSection (&loader_lock);
+  SK_LockDllLoader ();
 
   if (lpFileName == nullptr) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
@@ -332,13 +334,13 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
                            EXCEPTION_CONTINUE_SEARCH  )
   {
            SetLastError          (0);
-           LeaveCriticalSection  (&loader_lock);
+           SK_UnlockDllLoader    ();
     return LoadLibraryA_Original (lpFileName);
     // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
   }
 
   if (hModEarly == nullptr && BlacklistLibraryA (lpFileName)) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
@@ -350,7 +352,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
                                "LoadLibraryA", _ReturnAddress () );
   }
 
-  LeaveCriticalSection (&loader_lock);
+  SK_UnlockDllLoader ();
   return hMod;
 }
 
@@ -358,10 +360,10 @@ HMODULE
 WINAPI
 LoadLibraryW_Detour (LPCWSTR lpFileName)
 {
-  EnterCriticalSection (&loader_lock);
+  SK_LockDllLoader ();
 
   if (lpFileName == nullptr) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
@@ -375,13 +377,13 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
                            EXCEPTION_CONTINUE_SEARCH )
   {
            SetLastError          (0);
-           LeaveCriticalSection  (&loader_lock);
+           SK_UnlockDllLoader    ();
     return LoadLibraryW_Original (lpFileName);
     // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
   }
 
   if (hModEarly == nullptr&& BlacklistLibraryW (lpFileName)) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
@@ -393,7 +395,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
                                L"LoadLibraryW", _ReturnAddress () );
   }
 
-  LeaveCriticalSection (&loader_lock);
+  SK_UnlockDllLoader ();
   return hMod;
 }
 
@@ -404,22 +406,22 @@ LoadLibraryExA_Detour (
   _Reserved_ HANDLE hFile,
   _In_       DWORD  dwFlags )
 {
-  EnterCriticalSection (&loader_lock);
+  SK_LockDllLoader ();
 
   if (lpFileName == nullptr) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
   if (dwFlags & LOAD_LIBRARY_AS_DATAFILE) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
   }
 
   HMODULE hModEarly = GetModuleHandleA (lpFileName);
 
   if (hModEarly == NULL && BlacklistLibraryA (lpFileName)) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
@@ -432,7 +434,7 @@ LoadLibraryExA_Detour (
                                "LoadLibraryExA", _ReturnAddress () );
   }
 
-  LeaveCriticalSection (&loader_lock);
+  SK_UnlockDllLoader ();
   return hMod;
 }
 
@@ -443,22 +445,22 @@ LoadLibraryExW_Detour (
   _Reserved_ HANDLE  hFile,
   _In_       DWORD   dwFlags )
 {
-  EnterCriticalSection (&loader_lock);
+  SK_LockDllLoader ();
 
   if (lpFileName == nullptr) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
   if (dwFlags & LOAD_LIBRARY_AS_DATAFILE)  {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
   }
 
   HMODULE hModEarly = GetModuleHandleW (lpFileName);
 
   if (hModEarly == NULL && BlacklistLibraryW (lpFileName)) {
-    LeaveCriticalSection (&loader_lock);
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
@@ -471,7 +473,7 @@ LoadLibraryExW_Detour (
                                L"LoadLibraryExW", _ReturnAddress () );
   }
 
-  LeaveCriticalSection (&loader_lock);
+  SK_UnlockDllLoader ();
   return hMod;
 }
 
@@ -522,6 +524,9 @@ void
 __stdcall
 SK_ReHookLoadLibrary (void)
 {
+  if (! config.system.trace_load_library)
+    return;
+
   if (_loader_hooks.unhooked)
     return;
 
@@ -646,7 +651,7 @@ __stdcall
 SK_InitCompatBlacklist (void)
 {
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
-  //SK_ReHookLoadLibrary ();
+  SK_ReHookLoadLibrary ();
 }
 
 extern std::wstring
@@ -704,7 +709,7 @@ _SK_SummarizeModule ( LPVOID   base_addr,  ptrdiff_t   mod_size,
 void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
-  EnterCriticalSection (&loader_lock);
+  SK_LockDllLoader ();
 
   iSK_Logger* pLogger = pWorkingSet->logger;
 
@@ -748,13 +753,13 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
     }
   }
 
-  LeaveCriticalSection (&loader_lock);
+  SK_UnlockDllLoader ();
 }
 
 void
 SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 {
-  EnterCriticalSection (&loader_lock);
+  SK_LockDllLoader ();
 
   for ( int i = 0; i < (int)(cbNeeded / sizeof (HMODULE)); i++ )
   {
@@ -867,7 +872,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
     }
   }
 
-  LeaveCriticalSection (&loader_lock);
+  SK_UnlockDllLoader ();
 }
 
 void
@@ -881,8 +886,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                pLogger  = SK_CreateLog (L"logs/modules.log");
   DWORD        dwProcID = GetCurrentProcessId ();
 
-  static
-  HMODULE      hMods [16384];
+  HMODULE      hMods [1024];
   HANDLE       hProc    = nullptr;
   DWORD        cbNeeded = 0;
 

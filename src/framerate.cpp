@@ -168,6 +168,8 @@ SK::Framerate::Init (void)
   if (GetModuleHandle (L"tsfix.dll"))
     config.render.framerate.max_delta_time = 0;
 
+  pCommandProc->AddVariable ( "WaitForVBLANK",
+          new SK_IVarStub <bool> (&config.render.framerate.wait_for_vblank));
   pCommandProc->AddVariable ( "MaxDeltaTime",
           new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
 
@@ -220,6 +222,74 @@ SK::Framerate::Limiter::Limiter (double target)
   init (target);
 }
 
+IDirect3DDevice9Ex*
+SK_D3D9_GetTimingDevice (void)
+{
+  if (! config.render.framerate.wait_for_vblank)
+    return nullptr;
+
+  static IDirect3DDevice9Ex* pTimingDevice = (IDirect3DDevice9Ex*)-1;
+
+  if (pTimingDevice == (IDirect3DDevice9Ex*)-1)
+  {
+    CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+
+    typedef HRESULT
+      (STDMETHODCALLTYPE *Direct3DCreate9ExPROC)(UINT           SDKVersion,
+                                                 IDirect3D9Ex** d3d9ex);
+
+    extern Direct3DCreate9ExPROC Direct3DCreate9Ex_Import;
+
+    HRESULT hr = (config.apis.d3d9ex.hook) ?
+      Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
+                                    :
+                               E_NOINTERFACE;
+
+    HWND hwnd = 0;
+
+    IDirect3DDevice9Ex* pDev9Ex = nullptr;
+
+    if (SUCCEEDED (hr))
+    {
+      hwnd = 
+      CreateWindowW (L"STATIC", L"Dummy D3D9 Window",
+                       WS_POPUP | WS_MINIMIZEBOX,
+                         CW_USEDEFAULT, CW_USEDEFAULT,
+                           800, 600, 0,
+                             nullptr, nullptr, 0x00 );
+
+      D3DPRESENT_PARAMETERS pparams = { };
+      
+      pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
+      pparams.BackBufferFormat = D3DFMT_UNKNOWN;
+      pparams.hDeviceWindow    = hwnd;
+      pparams.Windowed         = TRUE;
+      
+      if ( FAILED ( pD3D9Ex->CreateDeviceEx (
+                      D3DADAPTER_DEFAULT,
+                        D3DDEVTYPE_HAL,
+                          hwnd,
+                            D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                              &pparams,
+                                nullptr,
+                                  &pDev9Ex )
+                  )
+          )
+      {
+        pTimingDevice = nullptr;
+      } else {
+        pDev9Ex->AddRef ();
+        pTimingDevice = pDev9Ex;
+      }
+    }
+    else {
+      pTimingDevice = nullptr;
+    }
+  }
+
+  return pTimingDevice;
+}
+
 void
 SK::Framerate::Limiter::init (double target)
 {
@@ -237,7 +307,8 @@ SK::Framerate::Limiter::init (double target)
     g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
 
     // Align the start to VBlank for minimum input latency
-    if (d3d9ex != nullptr) {
+    if (d3d9ex != nullptr || (d3d9ex = SK_D3D9_GetTimingDevice ()))
+    {
       d3d9ex->SetMaximumFrameLatency (1);
       d3d9ex->WaitForVBlank          (0);
       d3d9ex->SetMaximumFrameLatency (
@@ -294,7 +365,8 @@ SK::Framerate::Limiter::try_wait (void)
 void
 SK::Framerate::Limiter::wait (void)
 {
-  static bool restart = false;
+  static bool restart      = false;
+  static bool full_restart = false;
 
   if (fps != target_fps)
     init (target_fps);
@@ -314,13 +386,30 @@ SK::Framerate::Limiter::wait (void)
                   //L" limiter...",
             //(double)(time.QuadPart - next.QuadPart) / (double)freq.QuadPart / (ms / 1000.0) / fps );
     restart = true;
+
+#if 0
+    extern SK::Framerate::Stats frame_history;
+    extern SK::Framerate::Stats frame_history2;
+
+    double mean    = frame_history.calcMean     ();
+    double sd      = frame_history.calcSqStdDev (mean);
+
+    if (sd > 5.0f)
+      full_restart = true;
+#endif
   }
 
-  if (restart) {
+  if (restart || full_restart)
+  {
     frames         = 0;
     start.QuadPart = static_cast <LONGLONG> ((double)time.QuadPart + (ms / 1000.0) * (double)freq.QuadPart);
     restart        = false;
-    //init (target_fps);
+
+    if (full_restart)
+    {
+      init (target_fps);
+      full_restart = false;
+    }
     //return;
   }
 
@@ -334,8 +423,14 @@ SK::Framerate::Limiter::wait (void)
     CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
 
     // D3D9Ex
-    if (g_pD3D9Dev != nullptr) {
-      g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
+    if (g_pD3D9Dev != nullptr)
+    {
+      static IDirect3DDevice9Ex* pDev9Ex = (IDirect3DDevice9Ex *)-1;
+
+      if (FAILED (g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
+      {
+        d3d9ex = SK_D3D9_GetTimingDevice ();
+      }
     }
 
     CComPtr <IDXGISwapChain> dxgi_swap   = nullptr;
@@ -348,13 +443,16 @@ SK::Framerate::Limiter::wait (void)
       }
     }
 
+    const float target_ms = target_fps / 1000.0f;
 
     while (time.QuadPart < next.QuadPart) {
 #if 0
       if ((double)(next.QuadPart - time.QuadPart) > (0.0166667 * (double)freq.QuadPart))
         Sleep (10);
 #else
-      if (true/*wait_for_vblank*/ && (double)(next.QuadPart - time.QuadPart) > (0.016666666667 * (double)freq.QuadPart)) {
+      if (config.render.framerate.wait_for_vblank && (double)(next.QuadPart - time.QuadPart) > (0.001 * (1000.0 / target_fps) * (double)freq.QuadPart) * 0.555
+)
+      {
         if (d3d9ex != nullptr) {
           d3d9ex->WaitForVBlank (0);
         } else if (dxgi_output != nullptr) {

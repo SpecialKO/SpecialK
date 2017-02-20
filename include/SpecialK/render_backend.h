@@ -46,6 +46,10 @@ SK_RenderBackend
 __stdcall
 SK_GetCurrentRenderBackend (void);
 
+void
+__stdcall
+SK_InitRenderBackends (void);
+
 void SK_BootD3D9   (void);
 void SK_BootDXGI   (void);
 void SK_BootOpenGL (void);

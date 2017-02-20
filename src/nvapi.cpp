@@ -37,6 +37,7 @@
 #include <string>
 
 #include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/utility.h>
 
 //
 // Undocumented Functions
@@ -488,6 +489,385 @@ NVAPI::GetSLIState (IUnknown* pDev)
   return state;
 }
 
+// From the NDA version of NvAPI
+#define AA_COMPAT_BITS_DX9_ID   0x00D55F7D
+#define AA_COMPAT_BITS_DXGI_ID  0x00E32F8A
+#define AA_FIX_ID               0x000858F7
+
+BOOL
+__stdcall
+SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
+{
+  // This stuff only works in DirectX.
+  if (SK_GetDLLRole () != DXGI && SK_GetDLLRole () != D3D9)
+    return FALSE;
+
+  if (! nv_hardware)
+    return FALSE;
+
+  static bool             init           = false;
+  static CRITICAL_SECTION cs_aa_override = { };
+
+  if (! init)
+  {
+    InitializeCriticalSection (&cs_aa_override);
+    init = true;
+  }
+
+  EnterCriticalSection (&cs_aa_override);
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  (hSession));
+
+  NvDRSProfileHandle hProfile;
+  NVDRS_APPLICATION  app = { 0 };
+
+  NvU32 compat_bits_enum = 
+    (SK_GetDLLRole () == DXGI ? AA_COMPAT_BITS_DXGI_ID :
+                                AA_COMPAT_BITS_DX9_ID);
+
+  NvU32 compat_bits = 0xFFFFFFFF;
+
+  struct property_pair_s {
+    const wchar_t* wszName;
+    const wchar_t* wszValue;
+  } prop;
+
+  const wchar_t** pwszPropertyListEntry = pwszPropertyList;
+
+  prop.wszName  = *(pwszPropertyListEntry++);
+  prop.wszValue = *(pwszPropertyListEntry++);
+
+
+  int method      = -1;
+  int replay_mode = -1;
+  int aa_fix      = -1;
+  int override    = -1;
+  int auto_bias   = -1;
+
+  while (! ( prop.wszName  == nullptr && 
+             prop.wszValue == nullptr ) )
+  {
+    // ...
+
+    if (! _wcsicmp (prop.wszName, L"Override"))
+    {
+      if ( (! _wcsicmp (prop.wszValue, L"Yes")) ||
+           (! _wcsicmp (prop.wszValue, L"On")) )
+        override = AA_MODE_SELECTOR_OVERRIDE;
+
+      else if ( (! _wcsicmp (prop.wszValue, L"No")) ||
+                (! _wcsicmp (prop.wszValue, L"Off")) )
+        override = AA_MODE_SELECTOR_APP_CONTROL;
+
+      else if ( (! _wcsicmp (prop.wszValue, L"Enhance")) )
+        override = AA_MODE_SELECTOR_ENHANCE;
+    }
+
+    if (! _wcsicmp (prop.wszName, L"Method"))
+    {
+      if (! _wcsicmp (prop.wszValue, L"2xMSAA"))
+        method = AA_MODE_METHOD_MULTISAMPLE_2X_DIAGONAL;
+
+      else if (! _wcsicmp (prop.wszValue, L"4xMSAA"))
+        method = AA_MODE_METHOD_MULTISAMPLE_4X;
+
+      else if (! _wcsicmp (prop.wszValue, L"8xMSAA"))
+        method = AA_MODE_METHOD_MULTISAMPLE_8X;
+
+      else if (! _wcsicmp (prop.wszValue, L"16xMSAA"))
+        method = AA_MODE_METHOD_MULTISAMPLE_16X;
+
+      //else if (! wcsicmp (prop.wszValue, L"32xMSAA"))
+        //method = AA_MODE_METHOD_MULTISAMPLE_32;
+
+      // Allow an arbitrary value to be set if it is expressed as a
+      //   hexadecimal number.
+      else if (wcsstr (prop.wszValue, L"0x") == prop.wszValue)
+        method = wcstoul (prop.wszValue, nullptr, 16);
+    }
+
+    else if (! _wcsicmp (prop.wszName, L"ReplayMode"))
+    {
+      if (! _wcsicmp (prop.wszValue, L"2xSGSSAA"))
+        replay_mode= AA_MODE_REPLAY_SAMPLES_TWO | AA_MODE_REPLAY_MODE_ALL;
+
+      else if (! _wcsicmp (prop.wszValue, L"4xSGSSAA"))
+        replay_mode = AA_MODE_REPLAY_SAMPLES_FOUR| AA_MODE_REPLAY_MODE_ALL;
+
+      else if (! _wcsicmp (prop.wszValue, L"8xSGSSAA"))
+        replay_mode = AA_MODE_REPLAY_SAMPLES_EIGHT | AA_MODE_REPLAY_MODE_ALL;
+
+      // Allow an arbitrary value to be set if it is expressed as a
+      //   hexadecimal number.
+      else if (wcsstr (prop.wszValue, L"0x") == prop.wszValue)
+        replay_mode = wcstoul (prop.wszValue, nullptr, 16);
+    }
+
+    else if (! _wcsicmp (prop.wszName, L"AntiAliasFix"))
+    {
+      if ( (! _wcsicmp (prop.wszValue, L"On")) ||
+           (! _wcsicmp (prop.wszValue, L"Yes")) )
+        aa_fix = 0x00;
+
+      else
+        aa_fix = 0x01;
+    }
+
+    else if (! _wcsicmp (prop.wszName, L"AutoBiasAdjust"))
+    {
+      if ( (! _wcsicmp (prop.wszValue, L"On")) ||
+           (! _wcsicmp (prop.wszValue, L"Yes")) )
+        auto_bias = AUTO_LODBIASADJUST_ON;
+      else
+        auto_bias = AUTO_LODBIASADJUST_OFF;
+    }
+
+    else if (! _wcsicmp (prop.wszName, L"CompatibilityBits"))
+    {
+      compat_bits = wcstoul (prop.wszValue, nullptr, 16);
+    }
+
+    prop.wszName  = *(pwszPropertyListEntry++);
+    prop.wszValue = *(pwszPropertyListEntry++);
+  }
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = { 0 };
+
+    custom_profile.isPredefined = false;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)friendly_name.c_str (),
+                                                &hProfile),
+                      ret );
+
+    if (ret == NVAPI_OK)
+    {
+      app = { };
+
+      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = false;
+      app.isMetro      = false;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
+    }
+
+    // Driver's not being cooperative, we have no choice but to bail-out
+    else {
+      dll_log.Log ( L"[  NvAPI   ] Could not find or create application profile for '%s' (%s)",
+                      friendly_name.c_str (), app_name.c_str () );
+
+      NVAPI_CALL (DRS_DestroySession (hSession));
+
+      LeaveCriticalSection (&cs_aa_override);
+
+      return FALSE;
+    }
+  }
+
+  NvU32         method_enum             = AA_MODE_METHOD_ID;
+  NVDRS_SETTING method_val              = {               };
+                method_val.version      = NVDRS_SETTING_VER;
+
+  NvU32         replay_mode_enum        = AA_MODE_REPLAY_ID;
+  NVDRS_SETTING replay_mode_val         = {               };
+                replay_mode_val.version = NVDRS_SETTING_VER;
+
+  NvU32         aa_fix_enum             = 0x000858F7;
+  NVDRS_SETTING aa_fix_val              = {               };
+                aa_fix_val.version      = NVDRS_SETTING_VER;
+
+  NvU32         override_enum           = AA_MODE_SELECTOR_ID;
+  NVDRS_SETTING override_val            = {               };
+                override_val.version    = NVDRS_SETTING_VER;
+
+  NvU32         autobias_enum           = AUTO_LODBIASADJUST_ID;
+  NVDRS_SETTING autobias_val            = {               };
+                autobias_val.version    = NVDRS_SETTING_VER;
+
+  NVDRS_SETTING compat_bits_val         = {               };
+                compat_bits_val.version = NVDRS_SETTING_VER;
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT ();
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, method_enum,      &method_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, replay_mode_enum, &replay_mode_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, aa_fix_enum,      &aa_fix_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, override_enum,    &override_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, autobias_enum,    &autobias_val));
+  NVAPI_CALL (DRS_GetSetting (hSession, hProfile, compat_bits_enum, &compat_bits_val));
+  NVAPI_VERBOSE ();
+
+  BOOL already_set = TRUE;
+
+  // Do this first so we don't touch other settings if this fails
+  if (compat_bits_val.u32CurrentValue != compat_bits && compat_bits != 0xffffffff)
+  {
+    compat_bits_val         = {               };
+    compat_bits_val.version = NVDRS_SETTING_VER;
+
+    ret = NVAPI_ERROR;
+
+    // This requires admin privs, and we will handle that gracefully...
+    NVAPI_SILENT ();
+    NVAPI_SET_DWORD (compat_bits_val, compat_bits_enum, compat_bits);
+    NVAPI_CALL2     (DRS_SetSetting (hSession, hProfile, &compat_bits_val), ret);
+    NVAPI_VERBOSE ();
+
+    // Not running as admin, don't do the override!
+    if (ret == NVAPI_INVALID_USER_PRIVILEGE)
+    {
+      int result = 
+        MessageBox ( NULL,
+                       L"Please run this game as Administrator to install Anti-Aliasing "
+                       L"compatibility bits\r\n\r\n"
+                       L"\t>> Pressing Cancel will disable AA Override",
+                         L"Insufficient User Privileges",
+                           MB_OKCANCEL | MB_ICONASTERISK | MB_SETFOREGROUND |
+                           MB_TOPMOST );
+
+      if (result == IDCANCEL)
+      {
+        //config.nvidia.aa.override = false;
+        NVAPI_CALL (DRS_DestroySession (hSession));
+
+        LeaveCriticalSection (&cs_aa_override);
+
+        return FALSE;
+      }
+
+      NVAPI_CALL (DRS_DestroySession (hSession));
+
+      SK_ElevateToAdmin ();
+
+      // Formality, ElevateToAdmin actually kills the process...
+      return FALSE;
+    }
+
+    already_set = FALSE;
+  }
+
+  if (method_val.u32CurrentValue != method && method != -1)
+  {
+    method_val         = { };
+    method_val.version = NVDRS_SETTING_VER;
+
+    NVAPI_SET_DWORD (method_val, method_enum, method);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &method_val));
+
+    already_set = FALSE;
+  }
+
+  if (replay_mode_val.u32CurrentValue != replay_mode && replay_mode != -1)
+  {
+    replay_mode_val         = { };
+    replay_mode_val.version = NVDRS_SETTING_VER;
+
+    NVAPI_SET_DWORD (replay_mode_val, replay_mode_enum, replay_mode);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &replay_mode_val));
+
+    already_set = FALSE;
+  }
+
+  if (aa_fix_val.u32CurrentValue != aa_fix && aa_fix != -1)
+  {
+    aa_fix_val         = { };
+    aa_fix_val.version = NVDRS_SETTING_VER;
+
+    NVAPI_SET_DWORD (aa_fix_val, aa_fix_enum, aa_fix);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &aa_fix_val));
+
+    already_set = FALSE;
+  }
+
+  if (autobias_val.u32CurrentValue != auto_bias && auto_bias != -1)
+  {
+    autobias_val         = { };
+    autobias_val.version = NVDRS_SETTING_VER;
+
+    // NVIDIA drivers are stupid, some think this is an invalid enumerant
+    NVAPI_SILENT    ();
+    NVAPI_SET_DWORD (autobias_val, autobias_enum, auto_bias);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &autobias_val));
+    NVAPI_VERBOSE   ();
+
+    already_set = FALSE;    
+  }
+
+  if (override_val.u32CurrentValue != override && override != -1)
+  {
+    override_val         = { };
+    override_val.version = NVDRS_SETTING_VER;
+
+    NVAPI_SET_DWORD (override_val, override_enum, override);
+    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &override_val));
+
+    already_set = FALSE;
+  }
+
+  if (! already_set)
+  {
+#if 0
+#ifndef _WIN64
+    HMODULE hLib = LoadLibraryW_Original (L"nvapi.dll");
+#else
+    HMODULE hLib = LoadLibraryW_Original (L"nvapi64.dll");
+#endif
+#define __NvAPI_RestartDisplayDriver                      0xB4B26B65
+    typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
+    typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
+    NvAPI_QueryInterface_pfn       NvAPI_QueryInterface       =
+      (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+    NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
+      (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
+
+    NvAPI_RestartDisplayDriver ();
+#endif
+
+    NVAPI_CALL (DRS_SaveSettings (hSession));
+  }
+
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  LeaveCriticalSection (&cs_aa_override);
+
+  return already_set;
+}
+
 // Easier to DLL export this way
 BOOL
 __stdcall
@@ -621,7 +1001,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 #ifdef WIN32
     HMODULE hLib = LoadLibraryW_Original (L"nvapi.dll");
 #else
-    HMODULE hLib = LoadLibraryW_Original (L"nvapi64.dll");
+    HMODULE hLib = LoadLibraryW+_Original (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
@@ -636,6 +1016,14 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 
   return already_set;
 #endif
+}
+
+// 0x00000003 AA Behavior (Override App)
+
+BOOL
+sk::NVAPI::SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
+{
+  return SK_NvAPI_SetAntiAliasingOverride ( pwszPropertyList );
 }
 
 BOOL
@@ -657,6 +1045,9 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   // SLI only works in DirectX.
   if (role != DXGI && role != D3D9)
     return TRUE;
+
+  if (! nv_hardware)
+    return FALSE;
 
   NvAPI_Status       ret       = NVAPI_ERROR;
   NvDRSSessionHandle hSession  = { };
@@ -744,6 +1135,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = { 0 };
+
 
     custom_profile.isPredefined = false;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());

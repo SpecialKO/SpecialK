@@ -157,8 +157,12 @@ struct sk_config_t
 
 
   struct {
-    bool    enable              = true;
+    bool    enable             = true;
   } cegui;
+
+  struct {
+    float   scale              = 1.0f;
+  } imgui;
 
 
   struct {
@@ -207,6 +211,7 @@ struct sk_config_t
       bool    flip_discard      = false;
       int     swapchain_wait    =  0;
       int     pin_render_thread = -1;
+      bool    wait_for_vblank   = false;
     } framerate;
     struct {
       bool    force_d3d9ex      = false;
@@ -356,6 +361,8 @@ struct sk_config_t
     bool    ignore_rtss_delay   = false;
     std::wstring
             version             = SK_VER_STR;
+    bool    trace_load_library  = true;
+    bool    strict_compliance   = true;
   } system;
 };
 
