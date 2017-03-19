@@ -34,6 +34,8 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 
+#include <SpecialK/hooks.h>
+
 #include <SpecialK/tls.h>
 
 #undef LoadLibrary
@@ -194,15 +196,15 @@ SK_EstablishDllRole (HMODULE hModule)
            SK_Path_wcsstr (wszProcessName, L"steamapps");
 
       if (is_steamworks_game) {
-        bool gl = false, vulkan = false, d3d9 = false, dxgi = false;
+        bool gl = false, vulkan = false, d3d9 = false, d3d11 = false, dxgi = false;
 
         SK_TestRenderImports (
           GetModuleHandle (nullptr),
             &gl, &vulkan,
-              &d3d9, &dxgi
+              &d3d9, &dxgi, &d3d11
         );
 
-        if (dxgi)
+        if (dxgi || d3d11)
           SK_SetDLLRole (DLL_ROLE::DXGI);
         else if (d3d9)
           SK_SetDLLRole (DLL_ROLE::D3D9);
@@ -411,6 +413,7 @@ DllMain ( HMODULE hModule,
       if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
         return FALSE;
 
+      SK_Init_MinHook       ();
       SK_PreInitLoadLibrary ();
 
       // We reserve the right to deny attaching the DLL, this will generally
@@ -509,12 +512,15 @@ DllMain ( HMODULE hModule,
           TlsSetValue (__SK_TLS_INDEX, nullptr);
         }
 
+// So, yeah... this is a very bad idea - DON'T DO THAT!
+#if 0
         if (InterlockedDecrement (&__SK_Threads_Attached) == 1)
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
           SK_Detach (SK_GetDLLRole ());
           TlsFree   (__SK_TLS_INDEX);
         }
+#endif
       }
     } break;
   }

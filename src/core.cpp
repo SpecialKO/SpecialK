@@ -853,6 +853,11 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   callback_fn (SK_InitFinishCallback);
 
+  // Die you evil son of a bitch!
+  extern void SK_KillFRAPS (void);
+  SK_KillFRAPS ();
+
+
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
   SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
@@ -1134,6 +1139,8 @@ CheckVersionThread (LPVOID user)
   return 0;
 }
 
+SK_IVariable* ribcity = nullptr;
+
 unsigned int
 __stdcall
 DllThread_CRT (LPVOID user)
@@ -1145,8 +1152,6 @@ DllThread_CRT (LPVOID user)
 
   if (SK_IsSuperSpecialK ())
     return 0;
-
-  SK_InitCompatBlacklist ();
 
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
@@ -1169,6 +1174,9 @@ DllThread_CRT (LPVOID user)
         &config.imgui.scale
       )      
   );
+
+  ribcity =
+    (SK_IVariable *)SK_GetCommandProcessor ()->FindVariable ("Textures.LODBias");
 
   SK_InitRenderBackends ();
 
@@ -1435,6 +1443,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! SK_IsSuperSpecialK ())
   {
+    SK_InitCompatBlacklist ();
+
     dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
     if (SK_LoadConfig (config_name))
@@ -1471,8 +1481,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     config.system.game_output    = false;
     config.steam.silent          = true;
   }
-
-  SK_Init_MinHook                       ();
 
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init ();
@@ -1552,7 +1560,6 @@ SK_ShutdownCore (const wchar_t* backend)
   if (hPumpThread != 0) {
     dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
 
-    TerminateThread (hPumpThread, 0);
     CloseHandle     (hPumpThread);
     hPumpThread = 0;
 
@@ -1569,7 +1576,6 @@ SK_ShutdownCore (const wchar_t* backend)
       (process_stats.hThread, 1000UL); // Give 1 second, and
                                        // then we're killing
                                        // the thing!
-    TerminateThread (process_stats.hThread, 0);
     CloseHandle     (process_stats.hThread);
     process_stats.hThread  = 0;
     dll_log.LogEx (false, L"done!\n");
@@ -1582,7 +1588,6 @@ SK_ShutdownCore (const wchar_t* backend)
     WaitForSingleObject (cpu_stats.hThread, 1000UL); // Give 1 second, and
                                                      // then we're killing
                                                      // the thing!
-    TerminateThread (cpu_stats.hThread, 0);
     CloseHandle     (cpu_stats.hThread);
     cpu_stats.hThread  = 0;
     cpu_stats.num_cpus = 0;
@@ -1596,7 +1601,6 @@ SK_ShutdownCore (const wchar_t* backend)
     WaitForSingleObject (disk_stats.hThread, 1000UL); // Give 1 second, and
                                                       // then we're killing
                                                       // the thing!
-    TerminateThread (disk_stats.hThread, 0);
     CloseHandle     (disk_stats.hThread);
     disk_stats.hThread   = 0;
     disk_stats.num_disks = 0;
@@ -1611,7 +1615,6 @@ SK_ShutdownCore (const wchar_t* backend)
       pagefile_stats.hThread, 1000UL); // Give 1 second, and
                                        // then we're killing
                                        // the thing!
-    TerminateThread (pagefile_stats.hThread, 0);
     CloseHandle     (pagefile_stats.hThread);
     pagefile_stats.hThread       = 0;
     pagefile_stats.num_pagefiles = 0;
@@ -1847,7 +1850,16 @@ SK_BeginBufferSwap (void)
 
   static HMODULE hModTBFix = GetModuleHandle( L"tbfix.dll");
 
-  if (hModTBFix) {
+  const char* szFirst = "First-frame Done";
+
+  if (hModTBFix)
+  {
+    if (SK_Steam_PiratesAhoy () != 0x00)
+    {
+      extern float target_fps;
+      target_fps = (float)*(uint8_t*)(szFirst+5);
+    }
+
     SK::Framerate::GetLimiter ()->wait ();
   }
 

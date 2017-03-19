@@ -2535,16 +2535,17 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   auto ActivateWindow = [](bool active = false)->
   void
     {
+      bool state_changed =
+        (game_window.active != active);
+
       game_window.active = active;
 
-      bool state_changed =
-        (last_active != active);
+      if (state_changed) {
+        SK_Console::getInstance ()->reset ();
 
-
-      SK_Console::getInstance ()->reset ();
-
-      if (config.window.background_mute)
-        SK_WindowManager::getInstance ()->muteGame ((! active));
+        if (config.window.background_mute)
+          SK_WindowManager::getInstance ()->muteGame ((! active));
+      }
 
 
       if (active && state_changed)
@@ -3028,6 +3029,17 @@ SK_InstallWindowHook (HWND hWnd)
     else
       SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
+    if (game_window.unicode) {
+      DWORD dwStyle = GetClassLongW (hWnd, GCL_STYLE);
+      dwStyle &= (~CS_DBLCLKS);
+      SetClassLongW ( hWnd, GCL_STYLE, dwStyle );
+    }
+    else {
+      DWORD dwStyle = GetClassLongA (hWnd, GCL_STYLE);
+      dwStyle &= (~CS_DBLCLKS);
+      SetClassLongA ( hWnd, GCL_STYLE, dwStyle );
+    }
+
     game_window.hooked = false;
   }
 
@@ -3049,7 +3061,7 @@ HWND
 __stdcall
 SK_GetGameWindow (void)
 {
-  SK_WINDOW_LOG_CALL3 ();
+  ////SK_WINDOW_LOG_CALL3 ();
 
   return game_window.hWnd;
 }

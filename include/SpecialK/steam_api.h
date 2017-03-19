@@ -66,5 +66,7 @@ void           SK_Steam_DrawOSD                     (void);
 
 void           SK_Steam_InitCommandConsoleVariables (void);
 
+uint32_t __stdcall SK_Steam_PiratesAhoy                 (void);
+
 
 #endif /* __SK__STEAM_API_H__ */

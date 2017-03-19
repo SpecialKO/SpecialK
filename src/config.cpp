@@ -129,6 +129,7 @@ struct {
     sk::ParameterBool*    auto_pump;
     sk::ParameterStringW* notify_corner;
     sk::ParameterBool*    block_stat_callback;
+    sk::ParameterBool*    load_early;
   } system;
 
   struct {
@@ -166,11 +167,13 @@ sk::ParameterStringW*     version;
 struct {
   struct {
     sk::ParameterFloat*   target_fps;
+    sk::ParameterFloat*   limiter_tolerance;
     sk::ParameterInt*     prerender_limit;
     sk::ParameterInt*     present_interval;
     sk::ParameterInt*     buffer_count;
     sk::ParameterInt*     max_delta_time;
     sk::ParameterBool*    flip_discard;
+    sk::ParameterInt*     refresh_rate;
     sk::ParameterBool*    wait_for_vblank;
   } framerate;
   struct {
@@ -184,7 +187,7 @@ struct {
     sk::ParameterBool*    force_d3d9ex;
     sk::ParameterBool*    force_fullscreen;
     sk::ParameterInt*     hook_type;
-    sk::ParameterInt*     refresh_rate;
+    sk::ParameterBool*    impure;
   } d3d9;
 } render;
 
@@ -235,6 +238,7 @@ struct {
   sk::ParameterBool*      ignore_raptr;
   sk::ParameterBool*      disable_raptr;
   sk::ParameterBool*      rehook_loadlibrary;
+  sk::ParameterBool*      disable_nv_bloat;
 
   struct {
     sk::ParameterBool*    rehook_reset;
@@ -595,6 +599,16 @@ SK_LoadConfig (std::wstring name) {
       L"Compatibility.General",
         L"DisableRaptr" );
 
+  compatibility.disable_nv_bloat =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Disable All NVIDIA BloatWare (GeForce Experience)")
+      );
+  compatibility.disable_nv_bloat->register_to_ini (
+    dll_ini,
+      L"Compatibility.General",
+        L"DisableBloatWare_NVIDIA" );
+
   compatibility.rehook_loadlibrary =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -810,6 +824,16 @@ SK_LoadConfig (std::wstring name) {
       L"Render.FrameRate",
         L"TargetFPS" );
 
+  render.framerate.limiter_tolerance =
+    static_cast <sk::ParameterFloat *>
+      (g_ParameterFactory.create_parameter <float> (
+        L"Limiter Tolerance")
+      );
+  render.framerate.limiter_tolerance->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"LimiterTolerance" );
+
   render.framerate.wait_for_vblank =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -850,6 +874,18 @@ SK_LoadConfig (std::wstring name) {
       L"Render.FrameRate",
         L"PreRenderLimit" );
 
+  if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9) ||
+                           (SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
+    render.framerate.refresh_rate =
+      static_cast <sk::ParameterInt *>
+        (g_ParameterFactory.create_parameter <int> (
+          L"Fullscreen Refresh Rate")
+        );
+    render.framerate.refresh_rate->register_to_ini (
+      dll_ini,
+        L"Render.FrameRate",
+          L"RefreshRate" );
+  }
 
   if (SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9)) {
     compatibility.d3d9.rehook_present =
@@ -899,6 +935,15 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.D3D9",
           L"ForceD3D9Ex" );
+    render.d3d9.impure =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Force PURE device off")
+        );
+    render.d3d9.impure->register_to_ini (
+      dll_ini,
+        L"Render.D3D9",
+          L"ForceImpure" );
     render.d3d9.hook_type =
       static_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
@@ -917,15 +962,6 @@ SK_LoadConfig (std::wstring name) {
       dll_ini,
         L"Render.D3D9",
           L"ForceFullscreen" );
-    render.d3d9.refresh_rate =
-      static_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Fullscreen Refresh Rate")
-        );
-    render.d3d9.refresh_rate->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"RefreshRate" );
   }
 
   if (SK_IsInjected () || (SK_GetDLLRole () & (DLL_ROLE::DXGI))) {
@@ -1406,6 +1442,16 @@ SK_LoadConfig (std::wstring name) {
       L"Steam.System",
         L"BlockUserStatsCallback" );
 
+  steam.system.load_early =
+    static_cast <sk::ParameterBool *>
+    (g_ParameterFactory.create_parameter <bool> (
+      L"Load the Steam Client DLL Early?")
+    );
+  steam.system.load_early->register_to_ini (
+    dll_ini,
+      L"Steam.System",
+        L"PreLoadSteamClient" );
+
   steam.log.silent =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -1500,6 +1546,8 @@ SK_LoadConfig (std::wstring name) {
     config.compatibility.ignore_raptr = compatibility.ignore_raptr->get_value ();
   if (compatibility.disable_raptr->load ())
     config.compatibility.disable_raptr = compatibility.disable_raptr->get_value ();
+  if (compatibility.disable_nv_bloat->load ())
+    config.compatibility.disable_nv_bloat = compatibility.disable_nv_bloat->get_value ();
   if (compatibility.rehook_loadlibrary->load ())
     config.compatibility.rehook_loadlibrary = compatibility.rehook_loadlibrary->get_value ();
 
@@ -1592,6 +1640,9 @@ SK_LoadConfig (std::wstring name) {
     if (render.framerate.target_fps->load ())
       config.render.framerate.target_fps =
         render.framerate.target_fps->get_value ();
+    if (render.framerate.limiter_tolerance->load ())
+      config.render.framerate.limiter_tolerance =
+        render.framerate.limiter_tolerance->get_value ();
     if (render.framerate.wait_for_vblank->load ())
       config.render.framerate.wait_for_vblank =
         render.framerate.wait_for_vblank->get_value ();
@@ -1604,6 +1655,9 @@ SK_LoadConfig (std::wstring name) {
     if (render.framerate.present_interval->load ())
       config.render.framerate.present_interval =
         render.framerate.present_interval->get_value ();
+    if (render.framerate.refresh_rate->load ())
+      config.render.framerate.refresh_rate =
+        render.framerate.refresh_rate->get_value ();
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
       if (compatibility.d3d9.rehook_present->load ())
@@ -1623,15 +1677,15 @@ SK_LoadConfig (std::wstring name) {
       if (render.d3d9.force_d3d9ex->load ())
         config.render.d3d9.force_d3d9ex =
           render.d3d9.force_d3d9ex->get_value ();
+      if (render.d3d9.impure->load ())
+        config.render.d3d9.force_impure =
+          render.d3d9.impure->get_value ();
       if (render.d3d9.force_fullscreen->load ())
         config.render.d3d9.force_fullscreen =
           render.d3d9.force_fullscreen->get_value ();
       if (render.d3d9.hook_type->load ())
         config.render.d3d9.hook_type =
           render.d3d9.hook_type->get_value ();
-      if (render.d3d9.refresh_rate->load ())
-        config.render.d3d9.refresh_rate =
-          render.d3d9.refresh_rate->get_value ();
     }
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::DXGI) {
@@ -1838,6 +1892,8 @@ SK_LoadConfig (std::wstring name) {
     config.steam.auto_pump_callbacks = steam.system.auto_pump->get_value ();
   if (steam.system.block_stat_callback->load ())
     config.steam.block_stat_callback = steam.system.block_stat_callback->get_value ();
+  if (steam.system.load_early->load ())
+    config.steam.preload_client = steam.system.load_early->get_value ();
   if (steam.system.notify_corner->load ())
     config.steam.notify_corner =
       SK_Steam_PopupOriginWStrToEnum (
@@ -1918,6 +1974,7 @@ SK_SaveConfig ( std::wstring name,
 
   compatibility.ignore_raptr->set_value       (config.compatibility.ignore_raptr);
   compatibility.disable_raptr->set_value      (config.compatibility.disable_raptr);
+  compatibility.disable_nv_bloat->set_value   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->set_value (config.compatibility.rehook_loadlibrary);
 
   monitoring.memory.show->set_value           (config.mem.show);
@@ -2012,11 +2069,17 @@ SK_SaveConfig ( std::wstring name,
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
 
-    render.framerate.target_fps->set_value       (config.render.framerate.target_fps);
-    render.framerate.wait_for_vblank->set_value  (config.render.framerate.wait_for_vblank);
-    render.framerate.prerender_limit->set_value  (config.render.framerate.pre_render_limit);
-    render.framerate.buffer_count->set_value     (config.render.framerate.buffer_count);
-    render.framerate.present_interval->set_value (config.render.framerate.present_interval);
+    extern float target_fps;
+
+    render.framerate.target_fps->set_value        (target_fps);
+    render.framerate.limiter_tolerance->set_value (config.render.framerate.limiter_tolerance);
+    render.framerate.wait_for_vblank->set_value   (config.render.framerate.wait_for_vblank);
+    render.framerate.prerender_limit->set_value   (config.render.framerate.pre_render_limit);
+    render.framerate.buffer_count->set_value      (config.render.framerate.buffer_count);
+    render.framerate.present_interval->set_value  (config.render.framerate.present_interval);
+
+    if (render.framerate.refresh_rate != nullptr)
+      render.framerate.refresh_rate->set_value (config.render.framerate.refresh_rate);
 
     // SLI only works in Direct3D
     nvidia.sli.compatibility->set_value          (config.nvidia.sli.compatibility);
@@ -2078,7 +2141,6 @@ SK_SaveConfig ( std::wstring name,
       render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
       render.d3d9.force_fullscreen->set_value (config.render.d3d9.force_fullscreen);
       render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
-      render.d3d9.refresh_rate->set_value     (config.render.d3d9.refresh_rate);
     }
   }
 
@@ -2107,6 +2169,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.init_delay->set_value          (config.steam.init_delay);
   steam.system.auto_pump->set_value           (config.steam.auto_pump_callbacks);
   steam.system.block_stat_callback->set_value (config.steam.block_stat_callback);
+  steam.system.load_early->set_value          (config.steam.preload_client);
   steam.system.notify_corner->set_value       (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
@@ -2127,6 +2190,7 @@ SK_SaveConfig ( std::wstring name,
 
   compatibility.ignore_raptr->store       ();
   compatibility.disable_raptr->store      ();
+  compatibility.disable_nv_bloat->store   ();
   compatibility.rehook_loadlibrary->store ();
 
   monitoring.memory.show->store           ();
@@ -2176,11 +2240,12 @@ SK_SaveConfig ( std::wstring name,
   if (  SK_IsInjected ()                  || 
       ( SK_GetDLLRole () & DLL_ROLE::DXGI ||
         SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
-    render.framerate.target_fps->store       ();
-    render.framerate.wait_for_vblank->store  ();
-    render.framerate.buffer_count->store     ();
-    render.framerate.prerender_limit->store  ();
-    render.framerate.present_interval->store ();
+    render.framerate.target_fps->store        ();
+    render.framerate.limiter_tolerance->store ();
+    render.framerate.wait_for_vblank->store   ();
+    render.framerate.buffer_count->store      ();
+    render.framerate.prerender_limit->store   ();
+    render.framerate.present_interval->store  ();
 
     if (sk::NVAPI::nv_hardware) {
       nvidia.sli.compatibility->store        ();
@@ -2218,12 +2283,14 @@ SK_SaveConfig ( std::wstring name,
 
     if (  SK_IsInjected () ||
         ( SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
-      render.d3d9.force_d3d9ex->store     ();
-      render.d3d9.force_fullscreen->store ();
-      render.d3d9.hook_type->store        ();
-      render.d3d9.refresh_rate->store     ();
+      render.d3d9.force_d3d9ex->store      ();
+      render.d3d9.force_fullscreen->store  ();
+      render.d3d9.hook_type->store         ();
     }
   }
+
+  if (render.framerate.refresh_rate != nullptr)
+    render.framerate.refresh_rate->store ();
 
   osd.show->store                        ();
   osd.update_method.pump->store          ();
@@ -2248,6 +2315,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.init_delay->store             ();
   steam.system.auto_pump->store              ();
   steam.system.block_stat_callback->store    ();
+  steam.system.load_early->store             ();
   steam.log.silent->store                    ();
 
   init_delay->store                      ();

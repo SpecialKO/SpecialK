@@ -1115,6 +1115,23 @@ SK_GetCallerName (LPVOID pReturn)
   return SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
 
+void
+SK_KillFRAPS (void)
+{
+#ifdef _WIN64
+  if (GetModuleHandle (L"fraps64.dll")) {
+#else
+  if (GetModuleHandle (L"fraps32.dll")) {
+#endif
+    MessageBox ( NULL,
+                   L"FRAPS is installed, remove it immediately!",
+                     L"Pure Evil Software Detected",
+                       MB_OK          | MB_ICONSTOP |
+                       MB_SYSTEMMODAL | MB_SETFOREGROUND );
+
+    ExitProcess (0x00);
+  }
+}
 
 #include <queue>
 
@@ -1242,8 +1259,8 @@ SK_TestImports (          HMODULE  hMod,
           }
         }
 
-        if (hits == nCount)
-          break;
+        //if (hits == nCount)
+          //break;
       }
     }
   }
@@ -1252,12 +1269,13 @@ SK_TestImports (          HMODULE  hMod,
                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
     dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
                   L"Walk Import Table." );
+  }
 
-    // Resort to checking for DLL residency instead
-    for (int i = 0; i < nCount; i++) {
-      if (GetModuleHandleA (pTests [i].szModuleName))
-        pTests [i].used = true;
-    }
+  // Resort to checking for DLL residency instead
+  for (int i = 0; i < nCount; i++) {
+    HMODULE hMod;
+    if (GetModuleHandleExA (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, pTests [i].szModuleName, &hMod))
+      pTests [i].used = true;
   }
 }
 
@@ -1266,12 +1284,14 @@ SK_TestRenderImports ( HMODULE hMod,
                        bool*   gl,
                        bool*   vulkan,
                        bool*   d3d9,
-                       bool*   dxgi )
+                       bool*   dxgi,
+                       bool*   d3d11 )
 {
   static sk_import_test_s tests [] = { { "OpenGL32.dll", false },
                                        { "vulkan-1.dll", false },
                                        { "d3d9.dll",     false },
-                                       { "dxgi.dll",     false } };
+                                       { "dxgi.dll",     false },
+                                       { "d3d11.dll",    false } };
 
   SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);
 
@@ -1279,6 +1299,7 @@ SK_TestRenderImports ( HMODULE hMod,
   *vulkan = tests [1].used;
   *d3d9   = tests [2].used;
   *dxgi   = tests [3].used;
+  *d3d11  = tests [4].used;
 }
 
 int

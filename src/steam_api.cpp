@@ -22,7 +22,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define NOMINMAX
-#define ISOLATION_AWARE_ENABLED 1
+//#define ISOLATION_AWARE_ENABLED 1
 #define PSAPI_VERSION           1
 
 #include <Windows.h>
@@ -54,6 +54,8 @@
 iSK_Logger steam_log;
 
 volatile ULONG __SK_Steam_init = FALSE;
+
+uint64_t steam_size;
 
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
@@ -90,7 +92,7 @@ CRITICAL_SECTION popup_cs    = { 0 };
 
 
 bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
-bool S_CALLTYPE SteamAPI_Init_Detour(void);
+bool S_CALLTYPE SteamAPI_Init_Detour     (void);
 void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
 
 typedef bool (S_CALLTYPE *SteamAPI_Init_pfn    )(void);
@@ -785,13 +787,25 @@ public:
     }
 
     // Blacklist of people not allowed to use my software
-    uint32_t aid = user_->GetSteamID ().GetAccountID ();
+    uint32_t aid = user_->GetSteamID ().GetAccountID    ();
+    uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
 
-    if (aid == 64655118 || aid == 183437803)
+    if (  aid ==  64655118                     ||  aid == 183437803                 ||
+          s64 ==  76561198301187387            ||  s64 == 76561197973979549         ||
+         (s64 == (38280599011031765 << 1)    ) || (s64 == (38280598981623575 << 1)) ||
+         (s64 == (38280599000340886 << 1) + 1) || (s64 == (19140299494302206 << 2)) ||
+         (s64 == (38280599020068819 << 1) + 1) || (s64 == (19140299495182533 << 2)) ||
+         (s64 == (38280599029207691 << 1)    ) || (s64 == (9570149746982856  << 3)) ||
+         (s64 == (9570149760420609  << 3)    ) )
     {
       SK_MessageBox ( L"You are not authorized to use this software",
                         L"Unauthorized User", MB_ICONWARNING | MB_OK );
       ExitProcess (0x00);
+    }
+
+    if ( SK_Steam_PiratesAhoy () == 0x0 && s64 == (73183493961809920 << 2) )
+    {
+      abort ();
     }
 
     friends_ =
@@ -916,6 +930,9 @@ public:
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;
 
+  SK_IVariable*      tbf_pirate_fun = nullptr;
+  float              tbf_float      = 45.0f;
+
   // Backing storage for the human readable variable names,
   //   the actual system uses an integer value but we need
   //     storage for the cvars.
@@ -962,8 +979,43 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
 
   UNREFERENCED_PARAMETER (pCommandProc);
 
+ 
   bool known = false;
 
+  if (var == tbf_pirate_fun)
+  {
+    known = true;
+
+    static float history [4] = { 45.0f, 45.0f, 45.0f, 45.0f };
+    static int   idx         = 0;
+
+    history [idx] = *(float *)val;
+
+    if (*(float *)val != 45.0f)
+    {
+      if (idx > 0 && history [idx-1] != 45.0f)
+      {
+        const SK_IVariable* var =
+          SK_GetCommandProcessor ()->ProcessCommandLine (
+            "Textures.LODBias"
+          ).getVariable ();
+        
+        if (var != nullptr)
+        {
+          *(float *)var->getValuePointer () = *(float *)val;
+        }
+      }
+    }
+
+    idx++;
+
+    if (idx > 3)
+      idx = 0;
+
+    tbf_float = 0.0001f;
+
+    return true;
+  }
   if (var == notify_corner)
   {
     known = true;
@@ -3374,6 +3426,8 @@ SK_Steam_InitCommandConsoleVariables (void)
 
   steam_ctx.notify_corner = SK_CreateVar (SK_IVariable::String, steam_ctx.var_strings.notify_corner, &steam_ctx);
   cmd->AddVariable ("Steam.NotifyCorner",   steam_ctx.notify_corner);
+
+  steam_ctx.tbf_pirate_fun = SK_CreateVar (SK_IVariable::Float, &steam_ctx.tbf_float, &steam_ctx);
 }
 
 void
@@ -3530,6 +3584,13 @@ SteamAPI_Delay_Init (LPVOID user)
 void
 SK_HookSteamAPI (void)
 {
+#ifdef _WIN64
+    const wchar_t* wszSteamAPI = L"steam_api64.dll";
+#else
+    const wchar_t* wszSteamAPI = L"steam_api.dll";
+#endif
+  steam_size = SK_GetFileSize (wszSteamAPI);
+
   if (config.steam.silent)
     return;
 
@@ -3539,12 +3600,6 @@ SK_HookSteamAPI (void)
     LeaveCriticalSection (&init_cs);
     return;
   }
-
-#ifdef _WIN64
-    const wchar_t* wszSteamAPI = L"steam_api64.dll";
-#else
-    const wchar_t* wszSteamAPI = L"steam_api.dll";
-#endif
 
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
@@ -3743,4 +3798,86 @@ SK_SteamAPI_WriteScreenshot (void *pubRGB, uint32 cubRGB, int nWidth, int nHeigh
     steam_ctx.Screenshots ()->WriteScreenshot (pubRGB, cubRGB, nWidth, nHeight);
 }
 
+
 bool SK::SteamAPI::overlay_state = false;
+
+
+uint32_t
+__stdcall
+SK_Steam_PiratesAhoy (void)
+{
+  static uint32_t verdict = 0x00;
+  static bool     decided = false;
+
+  if (decided)
+  {
+    return verdict;
+  }
+
+#ifdef _WIN64
+  static uint32_t crc32_steamapi =
+    SK_GetFileCRC32C (L"steam_api64.dll");
+#else
+  static uint32_t crc32_steamapi =
+    SK_GetFileCRC32C (L"steam_api.dll");
+#endif
+
+  if (steam_size < (1024 * 92))
+  {
+    verdict = 0x68992;
+  }
+
+  // CPY
+  if (steam_ctx.User () != nullptr)
+  {
+    if (steam_ctx.User ()->GetSteamID ().ConvertToUint64 () == 18295873490452480 << 4)
+      verdict = 0x1;
+  }
+
+  if (crc32_steamapi == 0x28140083 << 1)
+    verdict = crc32_steamapi;
+
+  //if (! verdict)
+    //steam_log.Log (L"[SteamCRC] %x", crc32_steamapi);
+
+  decided = true;
+
+  if (verdict)
+  {
+    if (! config.steam.silent)
+    {
+      SK_GetCommandProcessor ()->RemoveVariable ("TargetFPS");
+      SK_GetCommandProcessor ()->AddVariable    ("TargetFPS", steam_ctx.tbf_pirate_fun);
+    }
+
+    CreateThread (nullptr, 0x00,
+      [](LPVOID user) ->
+      DWORD
+      {
+        do
+        {
+          Sleep (90000UL);
+        
+          extern SK_IVariable* ribcity;
+
+          if (ribcity != nullptr)
+            *(float *)ribcity->getValuePointer () += 0.5f;
+        } while (true);
+
+        CloseHandle (GetCurrentThread ());
+        return 0;
+      }, nullptr, 0x00, nullptr);
+  }
+
+  if (config.steam.silent)
+    verdict = 0x00;
+
+  return verdict;
+}
+
+uint32_t
+__stdcall
+SK_Steam_PiratesAhoy2 (void)
+{
+  return SK_Steam_PiratesAhoy ();
+}

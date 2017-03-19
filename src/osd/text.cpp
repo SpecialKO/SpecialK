@@ -631,7 +631,7 @@ SK_DrawOSD (void)
     if (mean != INFINITY)
     {
       if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0) {
-        OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>",
+        OSD_PRINTF "  %-6ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>",
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
             fps,
@@ -693,7 +693,7 @@ SK_DrawOSD (void)
 
         // No Effective Frametime History
         else {
-          OSD_PRINTF "  %-6ws :  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)",
+          OSD_PRINTF "  %-6ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)",
             SK_GetCurrentRenderBackend ().name,
               // Cast to FP to avoid integer division by zero.
               fps,

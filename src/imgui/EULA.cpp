@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #pragma once
 
 #include <Windows.h>
@@ -40,6 +42,8 @@ void
 __stdcall
 SK_ImGui_DrawEULA (LPVOID reserved)
 {
+  extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
+
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -51,8 +55,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
   }
 
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (768, 256), ImVec2 ( 0.666 * io.DisplaySize.x,
-                                                                   0.666 * io.DisplaySize.y ) );
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (768.0f, 256.0f), ImVec2 ( 0.666f * io.DisplaySize.x,
+                                                                   0.666f * io.DisplaySize.y ) );
 
   const char* szTitle = "Special K (and Plug-In) Software License Agreement";
   static bool open    = true;
@@ -62,7 +66,25 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   ImGui::Begin (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
 
-  if (ImGui::CollapsingHeader ("Overview of Products Licensed"))
+  bool pirate = (SK_Steam_PiratesAhoy() != 0x0);
+  if (pirate) {
+    ImGui::TextColored ( ImVec4 (1.0f, 0.5f, 0.0f, 1.0f),
+         "The following is a list of parties you believe should be violated; familiarize yourself - you will be quizzed repeatedly." );
+  }
+  else
+  {
+    ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.9f, 0.9f, 0.1f, 1.0f));
+    ImGui::Bullet   ();
+    ImGui::SameLine ();
+    ImGui::TextWrapped (
+         "Use of this software is granted on the condition that any products being modified have been licensed to you under the "
+         "terms and conditions set forth by their respective copyright holders.\n"
+    );
+    ImGui::PopStyleColor ();
+  }
+
+  if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
+                                        "Overview of Products Licensed"))
   {
     ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_OVERVIEW).c_str ());
   }
@@ -164,7 +186,13 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   ImGui::SameLine ();
 
-  ImGui::Checkbox ("Fascinating ... never show me this again!", &((show_eula_s *)reserved)->never_show_again);
+  if (SK_Steam_PiratesAhoy () == 0x0)
+    ImGui::Checkbox ("Fascinating ... never show me this again!", &((show_eula_s *)reserved)->never_show_again);
+  else {
+    ((show_eula_s *)reserved)->never_show_again = true;
+    ImGui::Checkbox ("Always show me this, I am a glutton for punishment!", &((show_eula_s *)reserved)->never_show_again);
+    ((show_eula_s *)reserved)->never_show_again = true;
+  }
 
   ImGui::End ();
 }

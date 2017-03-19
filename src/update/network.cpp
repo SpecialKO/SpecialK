@@ -20,7 +20,7 @@
 **/
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_SECURE_NO_WARNINGS
-#define ISOLATION_AWARE_ENABLED 1
+//#define ISOLATION_AWARE_ENABLED 1
 
 #include <SpecialK/ini.h>
 #include <SpecialK/parameter.h>
@@ -963,7 +963,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
     // ^^^^ Add a key/value pair so that the section isn't purged on write
   }
 
-  wchar_t wszCurrentBuild [128]; ZeroMemory (wszCurrentBuild, sizeof (wchar_t) * 128);
+  wchar_t wszCurrentBuild [128] = { L'\0' };
 
   if (empty) {
     *wszCurrentBuild = L'\0';

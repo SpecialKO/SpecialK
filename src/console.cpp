@@ -141,9 +141,11 @@ SK_Console::End (void)
   }
 
   if (hMsgPump != 0) {
-    TerminateThread (hMsgPump, 0);;
     hMsgPump = 0;
   }
+
+  CloseHandle (GetCurrentThread ());
+  return;
 }
 
 HANDLE

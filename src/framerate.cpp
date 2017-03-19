@@ -152,7 +152,6 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
   return QueryPerformanceCounter_Original (lpPerformanceCount);
 }
 
-float limiter_tolerance = 0.25f;
 float target_fps        = 0.0;
 
 void
@@ -174,7 +173,7 @@ SK::Framerate::Init (void)
           new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
 
   pCommandProc->AddVariable ( "LimiterTolerance",
-          new SK_IVarStub <float> (&limiter_tolerance));
+          new SK_IVarStub <float> (&config.render.framerate.limiter_tolerance));
   pCommandProc->AddVariable ( "TargetFPS",
           new SK_IVarStub <float> (&target_fps));
 
@@ -381,7 +380,7 @@ SK::Framerate::Limiter::wait (void)
   // Actual frametime before we forced a delay
   effective_ms = 1000.0 * ((double)(time.QuadPart - last.QuadPart) / (double)freq.QuadPart);
 
-  if ((double)(time.QuadPart - next.QuadPart) / (double)freq.QuadPart / (ms / 1000.0) > (limiter_tolerance * fps)) {
+  if ((double)(time.QuadPart - next.QuadPart) / (double)freq.QuadPart / (ms / 1000.0) > (config.render.framerate.limiter_tolerance * fps)) {
     //dll_log.Log ( L" * Frame ran long (%3.01fx expected) - restarting"
                   //L" limiter...",
             //(double)(time.QuadPart - next.QuadPart) / (double)freq.QuadPart / (ms / 1000.0) / fps );

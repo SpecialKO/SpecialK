@@ -18,6 +18,8 @@
 #include <cstdio>
 #include "resource.h"
 
+extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
+
 void
 LoadFileInResource ( int          name,
                      int          type,
@@ -35,13 +37,16 @@ LoadFileInResource ( int          name,
   HGLOBAL rcData = 
     LoadResource (handle, rc);
 
-  size =
-    SizeofResource (handle, rc);
+  if (rcData != nullptr) {
 
-  data =
-    static_cast <const char *>(
-      LockResource (rcData)
-    );
+    size =
+      SizeofResource (handle, rc);
+
+    data =
+      static_cast <const char *>(
+        LockResource (rcData)
+      );
+   }
 }
 
 extern void SK_Steam_SetNotifyCorner (void);
@@ -137,8 +142,8 @@ SK_ImGui_ControlPanel (void)
   }
 
 
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 50), ImVec2 ( 0.9 * io.DisplaySize.x,
-                                                                  0.9 * io.DisplaySize.y ) );
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 50), ImVec2 ( 0.9f * io.DisplaySize.x,
+                                                                  0.9f * io.DisplaySize.y ) );
 
   const char* szTitle = "Special K (v " SK_VERSION_STR_A ") Control Panel";
   bool        open    = true;
@@ -227,10 +232,12 @@ SK_ImGui_ControlPanel (void)
         }
       
         static char szAvg [512];
+
+        extern float target_fps;
       
-        float target_frametime = ( config.render.framerate.target_fps == 0.0f ) ?
+        float target_frametime = ( target_fps == 0.0f ) ?
                                     ( 1000.0f / 60.0f ) :
-                                      ( 1000.0f / config.render.framerate.target_fps );
+                                      ( 1000.0f / target_fps );
       
         sprintf_s
               ( szAvg,
@@ -251,9 +258,8 @@ SK_ImGui_ControlPanel (void)
                                        2.0f * target_frametime,
                                          ImVec2 (
                                            std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 7) );
-      
-#if 0
-        bool changed = ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.framerate.tolerance, 0.005f, 0.5);
+
+        bool changed = ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.005f, 0.75);
         
         if (ImGui::IsItemHovered ()) {
           ImGui::BeginTooltip ();
@@ -270,13 +276,6 @@ SK_ImGui_ControlPanel (void)
           ImGui::PopStyleColor  (4);
           ImGui::EndTooltip     ();
         }
-        
-        if (changed) {
-          //tbf::FrameRateFix::DisengageLimiter ();
-          SK_GetCommandProcessor ()->ProcessCommandFormatted ( "LimiterTolerance %f", config.framerate.tolerance );
-          //tbf::FrameRateFix::BlipFramerate    ();
-        }
-#endif
       }
 
       ImGui::PopItemWidth ();
@@ -356,6 +355,12 @@ SK_ImGui_ControlPanel (void)
 
     if ( ImGui::CollapsingHeader ("Compatibility Settings") )
     {
+      if (ImGui::TreeNodeEx ("Third-Party Software"))
+      {
+        ImGui::Checkbox ("Disable GeForce Experience and NVIDIA Shield BloatWare", &config.compatibility.disable_nv_bloat);
+        ImGui::TreePop  ();
+      }
+
       if (ImGui::TreeNodeEx ("Render API Hooks", ImGuiTreeNodeFlags_DefaultOpen))
       {
         auto EnableActiveAPI = [](SK_RenderAPI api) ->
@@ -544,6 +549,19 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+    if (ImGui::CollapsingHeader ("Debug Features"))
+    {
+      ImGui::TreePush  ("");
+      ImGui::Checkbox  ("Enable Crash Handler",           &config.system.handle_crashes);
+      ImGui::Checkbox  ("Rehook Load Library",            &config.compatibility.rehook_loadlibrary);
+      ImGui::SliderInt ("Log Level",                      &config.system.log_level, 0, 5);
+      ImGui::Checkbox  ("Log Game Output",                &config.system.game_output);
+      ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out);
+      ImGui::Checkbox  ("Trace LoadLibrary",              &config.system.trace_load_library);
+      ImGui::Checkbox  ("Strict DLL Loader Compliance",   &config.system.strict_compliance);
+      ImGui::TreePop   ();
+    }
+
     if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
                                                         ImGuiTreeNodeFlags_DefaultOpen ) )
     {
@@ -628,6 +646,9 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("For games that freak out if they are flooded with achievement information, turn this on\n\n"
                              "You can tell if a game has this problem by a stuck SteamAPI Frame counter.");
+
+        ImGui::Checkbox ("Load Steam Client DLL Early", &config.steam.preload_client);
+
         ImGui::TreePop     ();
       }
 
@@ -647,10 +668,24 @@ SK_ImGui_ControlPanel (void)
       }
 
       bool valid = (! config.steam.silent);
+
+      valid = valid && (! SK_Steam_PiratesAhoy ());
+
       if (valid)
         ImGui::MenuItem ("I am not a pirate", "", &valid, false);
-      else
-        ImGui::MenuItem ("I am a filthy pirate!");
+      else {
+        if (ImGui::MenuItem ("I am a filthy pirate!"))
+        {
+          if (GetFileAttributes (L"CPY.ini") != INVALID_FILE_ATTRIBUTES)
+          {
+            DeleteFileW (L"CPY.ini");
+            
+            MoveFileW   (L"steam_api64.dll",   L"CPY.ini");
+            MoveFileW   (L"steamclient64.dll", L"steam_api64.dll");
+            MoveFileW   (L"CPY.ini",           L"steamclient64.dll");
+          }
+        }
+      }
     }
 
     //ImGui::CollapsingHeader ("Window Management");
@@ -759,10 +794,17 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   return 0;
 }
 
+struct show_eula_s {
+  bool show;
+  bool never_show_again;
+} extern eula;
+
 __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
 {
+  static DWORD dwLastTime = 0x00;
+
   bool d3d11 = false;
   bool d3d9  = false;
 
@@ -792,6 +834,20 @@ SK_ImGui_Toggle (void)
         if (cursor_refs > 0) {
           while (ShowCursor (FALSE) > 0)
             ;
+        }
+      }
+    }
+
+    else
+    {
+      if (SK_Steam_PiratesAhoy () != 0x0)
+      {
+        if (dwLastTime == 0)
+        {
+          dwLastTime = timeGetTime ();
+
+          eula.show             = true;
+          eula.never_show_again = false;
         }
       }
     }

@@ -2129,6 +2129,12 @@ int ImGui::GetFrameCount()
 #include <SpecialK/window.h>
 extern bool SK_ImGui_Visible;
 
+extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
+struct show_eula_s {
+  bool show             = false;
+  bool never_show_again = false;
+} eula;
+
 void ImGui::NewFrame()
 {
     ImGuiContext& g = *GImGui;
@@ -2384,6 +2390,9 @@ void ImGui::NewFrame()
     // Create implicit window - we will only render it if the user has added something to it.
     ImGui::SetNextWindowSize(ImVec2(400,400), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Debug");
+
+    if (eula.show)
+      SK_ImGui_DrawEULA (&eula);
 }
 
 // NB: behavior of ImGui after Shutdown() is not tested/guaranteed at the moment. This function is merely here to free heap allocations.

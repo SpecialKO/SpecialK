@@ -22,7 +22,7 @@
 #ifndef __SK__COMPATIBILITY_H__
 #define __SK__COMPATIBILITY_H__
 
-#define ISOLATION_AWARE_ENABLED 1
+//#define ISOLATION_AWARE_ENABLED 1
 #define PSAPI_VERSION           1
 
 enum class SK_ModuleEnum {

@@ -284,6 +284,7 @@ private:
       );
 
     cmd->AddVariable ("d3d9.OSDInVidcap", osd_vidcap_);
+    cmd->AddVariable ("d3d9.HasBrokenMipmapLODBias", SK_CreateVar (SK_IVariable::Boolean, &config.steam.silent));
   }
 
   static SK_D3D9RenderBackend* pBackend;
@@ -793,6 +794,16 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 
     //SK_D3D9_PlaysTV_Hook ();
   }
+
+  if (config.render.d3d9.force_impure)
+    BehaviorFlags &= ~D3DCREATE_PUREDEVICE;
+
+  if ( GetModuleHandle (L"tbfix.dll") ||
+       GetModuleHandle (L"tzfix.dll") ||
+       GetModuleHandle (L"tsfix.dll") )
+  {
+    BehaviorFlags |= D3DCREATE_MULTITHREADED;
+  }
 }
 
 void
@@ -816,13 +827,13 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
       Refresh = 0;
   }
 
-  if (config.render.d3d9.refresh_rate != -1) {
+  if (config.render.framerate.refresh_rate != -1) {
     if ( pPresentationParameters           != nullptr &&
          pPresentationParameters->Windowed == FALSE) {
       dll_log.Log ( L"[  D3D9  ]  >> Refresh Rate Override: %li",
-                      config.render.d3d9.refresh_rate );
+                      config.render.framerate.refresh_rate );
 
-      Refresh = config.render.d3d9.refresh_rate;
+      Refresh = config.render.framerate.refresh_rate;
 
       if ( pFullscreenMode != nullptr )
         pFullscreenMode->RefreshRate = Refresh;
@@ -2073,6 +2084,31 @@ D3D9SetStreamSource_Override
                                            Stride );
 }
 
+
+typedef HRESULT (STDMETHODCALLTYPE *SetStreamSourceFreq_pfn)
+( _In_ IDirect3DDevice9 *This,
+  _In_ UINT              StreamNumber,
+  _In_ UINT              FrequencyParameter
+);
+
+SetStreamSourceFreq_pfn D3D9SetStreamSourceFreq_Original = nullptr;
+
+COM_DECLSPEC_NOTHROW
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9SetStreamSourceFreq_Override
+(
+  IDirect3DDevice9 *This,
+  UINT              StreamNumber,
+  UINT              FrequencyParameter )
+{
+  return 
+    D3D9SetStreamSourceFreq_Original ( This,
+                                         StreamNumber,
+                                           FrequencyParameter );
+}
+
 typedef HRESULT (STDMETHODCALLTYPE *SetFVF_pfn)
 (
   IDirect3DDevice9 *This,
@@ -2634,6 +2670,12 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       D3D9SetStreamSource_Original,
                       SetStreamSource_pfn );
 
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 102,
+                   "IDirect3DDevice9::SetStreamSourceFreq",
+                    D3D9SetStreamSourceFreq_Override,
+                    D3D9SetStreamSourceFreq_Original,
+                    SetStreamSourceFreq_pfn );
+
     D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
                      "IDirect3DDevice9::SetPixelShader",
                       D3D9SetPixelShader_Override,
@@ -2920,6 +2962,12 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                     D3D9SetStreamSource_Override,
                     D3D9SetStreamSource_Original,
                     SetStreamSource_pfn );
+
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 102,
+                   "IDirect3DDevice9::SetStreamSourceFreq",
+                    D3D9SetStreamSourceFreq_Override,
+                    D3D9SetStreamSourceFreq_Original,
+                    SetStreamSourceFreq_pfn );
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 107,
                    "IDirect3DDevice9::SetPixelShader",

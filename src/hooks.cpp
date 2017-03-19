@@ -471,7 +471,7 @@ SK_EnableHook (LPVOID pTarget)
   {
     if (pTarget != MH_ALL_HOOKS)
     {
-      dll_log.Log(L"[ Min Hook ] Failed to Enable Hook with Address: %04ph!"
+      dll_log.Log(L"[ Min Hook ] Failed to Enable Hook with Address: %ph!"
                   L" (Status: \"%hs\")",
                     pTarget,
                       MH_StatusToString (status) );
@@ -529,7 +529,7 @@ SK_DisableHook (LPVOID pTarget)
   {
     if (pTarget != MH_ALL_HOOKS)
     {
-      dll_log.Log ( L"[ Min Hook ] Failed to Disable Hook with Address: %04Xh!"
+      dll_log.Log ( L"[ Min Hook ] Failed to Disable Hook with Address: %ph!"
                     L" (Status: \"%hs\")",
                       pTarget,
                         MH_StatusToString (status) );
@@ -555,7 +555,7 @@ SK_RemoveHook (LPVOID pTarget)
 
   if (status != MH_OK)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Remove Hook with Address: %04Xh! "
+    dll_log.Log ( L"[ Min Hook ] Failed to Remove Hook with Address: %ph! "
                   L"(Status: \"%hs\")",
                     pTarget,
                       MH_StatusToString (status) );

@@ -141,7 +141,7 @@ interface SK_IVarStub : public SK_IVariable
   virtual void          getValueString  ( _Out_opt_ char*     szOut,
                                           _Inout_   uint32_t* dwLen ) const {
     if (szOut != nullptr)
-      strncpy (szOut, "(null)", *dwLen);
+      strncpy_s (szOut, 7, "(null)", *dwLen);
 
     *dwLen = std::min (*dwLen, (uint32_t)strlen ("(null)"));
   }

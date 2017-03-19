@@ -803,15 +803,24 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
     already_set = FALSE;
   }
 
-  if (aa_fix_val.u32CurrentValue != aa_fix && aa_fix != -1)
+  if (SK_IsAdmin ())
   {
-    aa_fix_val         = { };
-    aa_fix_val.version = NVDRS_SETTING_VER;
+    if (aa_fix_val.u32CurrentValue != aa_fix && aa_fix != -1)
+    {
+      aa_fix_val         = { };
+      aa_fix_val.version = NVDRS_SETTING_VER;
 
-    NVAPI_SET_DWORD (aa_fix_val, aa_fix_enum, aa_fix);
-    NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &aa_fix_val));
+      NVAPI_SET_DWORD (aa_fix_val, aa_fix_enum, aa_fix);
+      NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &aa_fix_val));
 
-    already_set = FALSE;
+      already_set = FALSE;
+    }
+  }
+
+  else
+  {
+    dll_log.Log ( L"[  NvAPI   ] *** Cannot set NvDRS Profile Setting '%x' as a normal user, skipping...",
+                    aa_fix_enum );
   }
 
   if (autobias_val.u32CurrentValue != auto_bias && auto_bias != -1)

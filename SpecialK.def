@@ -48,6 +48,7 @@ EXPORTS
   D3D9SetCursorPosition_Override         = D3D9SetCursorPosition_Override          PRIVATE
   D3D9CreateVertexBuffer_Override        = D3D9CreateVertexBuffer_Override         PRIVATE
   D3D9SetStreamSource_Override           = D3D9SetStreamSource_Override            PRIVATE
+  D3D9SetStreamSourceFreq_Override       = D3D9SetStreamSourceFreq_Override        PRIVATE
   D3D9SetFVF_Override                    = D3D9SetFVF_Override                     PRIVATE
   D3D9SetVertexDeclaration_Override      = D3D9SetVertexDeclaration_Override       PRIVATE
   D3D9CreateVertexDeclaration_Override   = D3D9CreateVertexDeclaration_Override    PRIVATE
@@ -483,6 +484,10 @@ BMF_SetPresentParamsD3D9       = SK_SetPresentParamsD3D9          PRIVATE
 
 ; First new symbol to use the new name for this project
 SK_SetPluginName                 = SK_SetPluginName                  PRIVATE
+SK_SetOSDColor                   = SK_SetOSDColor                    PRIVATE
+SK_SetOSDPos                     = SK_SetOSDPos                      PRIVATE
+SK_SetOSDScale                   = SK_SetOSDScale                    PRIVATE
+SK_ResizeOSD                     = SK_ResizeOSD                      PRIVATE
 SK_GetCommandProcessor           = SK_GetCommandProcessor            PRIVATE
 SK_GetFramesDrawn                = SK_GetFramesDrawn                 PRIVATE
 SK_DetourWindowProc              = SK_DetourWindowProc               PRIVATE
@@ -557,6 +562,7 @@ SK_GPU_GetVRAMBudget           = SK_GPU_GetVRAMBudget             PRIVATE
 SK_SteamAPI_TakeScreenshot         = SK_SteamAPI_TakeScreenshot         PRIVATE
 SK_SteamAPI_WriteScreenshot        = SK_SteamAPI_WriteScreenshot        PRIVATE
 SK_SteamAPI_AddScreenshotToLibrary = SK_SteamAPI_AddScreenshotToLibrary PRIVATE
+SK_Steam_PiratesAhoy               = SK_Steam_PiratesAhoy2              PRIVATE
 
 
 ;

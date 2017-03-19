@@ -198,26 +198,29 @@ struct sk_config_t
     bool    block_stat_callback = false;
 
     int     appid               = 0;
+    bool    preload_client      = false;
   } steam;
 
 
   struct {
     struct {
       float   target_fps        =  0.0f;
+      float   limiter_tolerance = 0.25f;
       int     pre_render_limit  = -1;
       int     present_interval  = -1;
       int     buffer_count      = -1;
       int     max_delta_time    =  0; // Bad old setting; needs to be phased out
       bool    flip_discard      = false;
       int     swapchain_wait    =  0;
+      int     refresh_rate      = -1;
       int     pin_render_thread = -1;
       bool    wait_for_vblank   = false;
     } framerate;
     struct {
       bool    force_d3d9ex      = false;
+      bool    force_impure      = false;
       bool    force_fullscreen  = false;
       int     hook_type         = 0;
-      int     refresh_rate      = -1;
       bool    osd_in_vidcap     = false;
     } d3d9;
     struct {
@@ -313,15 +316,20 @@ struct sk_config_t
   } window;
 
   struct {
-    bool    ignore_raptr       = false;
-    bool    disable_raptr      = false;
-    bool    rehook_loadlibrary = false;
+    bool    ignore_raptr         = false;
+    bool    disable_raptr        = false;
+    bool    rehook_loadlibrary   = false;
+    bool    disable_nv_bloat     = false;
+    bool    disable_msi_deadlock = true;
+    bool    disable_FRAPS_evil   = true;
+    bool    disable_razer_crash  = true;
+    bool    disable_discord      = true;
 
     struct {
-      bool  rehook_reset       = false;
-      bool  rehook_present     = false;
-      bool  hook_reset_vftbl   = false;
-      bool  hook_present_vftbl = false;
+      bool  rehook_reset         = false;
+      bool  rehook_present       = false;
+      bool  hook_reset_vftbl     = false;
+      bool  hook_present_vftbl   = false;
     } d3d9;
   } compatibility;
 

@@ -1769,6 +1769,20 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
     DXGI_MODE_DESC mode_to_match = *pModeToMatch;
 
+    if ( config.render.framerate.refresh_rate != -1 &&
+         mode_to_match.RefreshRate.Numerator  != config.render.framerate.refresh_rate )
+    {
+      dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+                    L"(Requested: %f, Using: %lu)",
+                      mode_to_match.RefreshRate.Numerator /
+                      mode_to_match.RefreshRate.Denominator,
+                        config.render.framerate.refresh_rate
+                  );
+
+      mode_to_match.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+      mode_to_match.RefreshRate.Denominator = 1;
+    }
+
     if ( config.render.dxgi.scaling_mode != -1 &&
          mode_to_match.Scaling           != config.render.dxgi.scaling_mode )
     {
@@ -1967,10 +1981,29 @@ __declspec (noinline)
     if ( config.window.borderless ||
          ( config.render.dxgi.scaling_mode != -1 &&
             pNewTargetParameters->Scaling  != 
-              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode ) )
+              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+                                  ||
+         ( config.render.framerate.refresh_rate != -1 &&
+             pNewTargetParameters->RefreshRate.Numerator !=
+               config.render.framerate.refresh_rate )
+      )
     {
       DXGI_MODE_DESC new_new_params =
         *pNewTargetParameters;
+
+      if ( config.render.framerate.refresh_rate != -1 &&
+           new_new_params.RefreshRate.Numerator != config.render.framerate.refresh_rate )
+      {
+        dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+                      L"(Requested: %f, Using: %lu)",
+                        new_new_params.RefreshRate.Numerator /
+                        new_new_params.RefreshRate.Denominator,
+                          config.render.framerate.refresh_rate
+                    );
+
+        new_new_params.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+        new_new_params.RefreshRate.Denominator = 1;
+      }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
             pNewTargetParameters->Scaling  != 
@@ -2144,6 +2177,20 @@ __declspec (noinline)
 
         pDesc->BufferDesc.Scaling =
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+      }
+
+      if ( config.render.framerate.refresh_rate != -1 &&
+           pDesc->BufferDesc.RefreshRate.Numerator != config.render.framerate.refresh_rate )
+      {
+        dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+                      L"(Requested: %f, Using: %lu)",
+                        pDesc->BufferDesc.RefreshRate.Numerator /
+                        pDesc->BufferDesc.RefreshRate.Denominator,
+                          config.render.framerate.refresh_rate
+                    );
+
+        pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+        pDesc->BufferDesc.RefreshRate.Denominator = 1;
       }
 
       bWait = bFlipMode && dxgi_caps.present.waitable;

@@ -18,6 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#define _CRT_SECURE_NO_WARNINGS
 #define NOMINMAX
 #include <SpecialK/diagnostics/crash_handler.h>
 
@@ -647,6 +648,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
     GetCurrentProcess ();
 
   DWORD64                           ip;
+
   UIntPtrToInt64 (addr, (int64_t *)&ip);
 
   DWORD64 BaseAddr =
