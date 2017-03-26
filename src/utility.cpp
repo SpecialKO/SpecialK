@@ -1115,6 +1115,11 @@ SK_GetCallerName (LPVOID pReturn)
   return SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
 
+extern
+std::wstring
+__stdcall
+SK_GetPluginName (void);
+
 void
 SK_KillFRAPS (void)
 {
@@ -1123,9 +1128,15 @@ SK_KillFRAPS (void)
 #else
   if (GetModuleHandle (L"fraps32.dll")) {
 #endif
+    std::wstring warning;
+
+    warning += L"FRAPS is running, it must be disabled for ";
+    warning += SK_GetPluginName ();
+    warning += L" to work!";
+
     MessageBox ( NULL,
-                   L"FRAPS is installed, remove it immediately!",
-                     L"Pure Evil Software Detected",
+                   warning.c_str (),
+                     L"Please Close FRAPS",
                        MB_OK          | MB_ICONSTOP |
                        MB_SYSTEMMODAL | MB_SETFOREGROUND );
 

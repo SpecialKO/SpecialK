@@ -429,6 +429,7 @@ SKX_DrawExternalOSD (const char* szAppName, const char* szText)
 static bool isArkhamKnight    = false;
 static bool isTalesOfZestiria = false;
 static bool isFallout4        = false;
+static bool isNieRAutomata    = false;
 static bool isDarkSouls3      = false;
 static bool isDivinityOrigSin = false;
 
@@ -457,10 +458,26 @@ SKX_SetPluginName (const wchar_t* wszName)
   isPlugin    = true;
 }
 
+std::wstring
+__stdcall
+SK_GetPluginName (void)
+{
+  if (isPlugin)
+    return plugin_name;
+
+  return L"Special K";
+}
+
+// This is a terrible design, but I don't care.
+extern void
+SK_CEGUI_QueueResetD3D11 (void);
+
 void
 __stdcall
 SK_InstallOSD (void)
 {
+  SK_CEGUI_QueueResetD3D11 ();
+
   if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
   {
     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
@@ -495,7 +512,7 @@ SK_DrawOSD (void)
 
   static bool cleared = false;
 
-  if ((! InterlockedExchangeAdd (&osd_init, 0)) && SK_GetFramesDrawn () > 0)
+  if ((! InterlockedExchangeAdd (&osd_init, 0)))
     SK_InstallOSD ();
 
 #if 0
@@ -550,6 +567,8 @@ SK_DrawOSD (void)
         isTalesOfZestiria = true;
       else if (StrStrIW (wszGameName, L"Fallout4.exe"))
         isFallout4 = true;
+      else if (StrStrIW (wszGameName, L"NieRAutomata"))
+        isNieRAutomata = true;
       else if (StrStrIW (wszGameName, L"DarkSoulsIII.exe"))
         isDarkSouls3 = true;
       else if (StrStrIW (wszGameName, L"EoCApp.exe"))
@@ -560,6 +579,13 @@ SK_DrawOSD (void)
     {
       OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
                  time
+      OSD_END
+    }
+
+    else if (isNieRAutomata)
+    {
+      OSD_PRINTF "%ws   %ws\n\n",
+                 plugin_name.c_str (), time
       OSD_END
     }
 

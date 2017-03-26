@@ -171,6 +171,72 @@ typedef HRESULT (WINAPI *D3DX11GetImageInfoFromFileW_pfn)(
   _In_  D3DX11_IMAGE_INFO *pSrcInfo,
   _Out_ HRESULT           *pHResult
 );
+typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
+  _In_            ID3D11Device           *This,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D
+);
+typedef void (WINAPI *D3D11_RSSetScissorRects_pfn)(
+  _In_           ID3D11DeviceContext *This,
+  _In_           UINT                 NumRects,
+  _In_opt_ const D3D11_RECT          *pRects
+);
+typedef void (WINAPI *D3D11_RSSetViewports_pfn)(
+  _In_           ID3D11DeviceContext* This,
+  _In_           UINT                 NumViewports,
+  _In_opt_ const D3D11_VIEWPORT     * pViewports
+);
+typedef void (WINAPI *D3D11_VSSetConstantBuffers_pfn)(
+  _In_     ID3D11DeviceContext* This,
+  _In_     UINT                 StartSlot,
+  _In_     UINT                 NumBuffers,
+  _In_opt_ ID3D11Buffer *const *ppConstantBuffers
+);
+typedef void (WINAPI *D3D11_UpdateSubresource_pfn)(
+  _In_           ID3D11DeviceContext *This,
+  _In_           ID3D11Resource      *pDstResource,
+  _In_           UINT                 DstSubresource,
+  _In_opt_ const D3D11_BOX           *pDstBox,
+  _In_     const void                *pSrcData,
+  _In_           UINT                 SrcRowPitch,
+  _In_           UINT                 SrcDepthPitch
+);
+typedef HRESULT (WINAPI *D3D11_Map_pfn)(
+  _In_      ID3D11DeviceContext      *This,
+  _In_      ID3D11Resource           *pResource,
+  _In_      UINT                      Subresource,
+  _In_      D3D11_MAP                 MapType,
+  _In_      UINT                      MapFlags,
+  _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
+);
+typedef void (WINAPI *D3D11_CopyResource_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Resource      *pDstResource,
+  _In_ ID3D11Resource      *pSrcResource
+);
+typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
+  _In_           ID3D11DeviceContext1 *This,
+  _In_           ID3D11Resource       *pDstResource,
+  _In_           UINT                  DstSubresource,
+  _In_opt_ const D3D11_BOX            *pDstBox,
+  _In_     const void                 *pSrcData,
+  _In_           UINT                  SrcRowPitch,
+  _In_           UINT                  SrcDepthPitch,
+  _In_           UINT                  CopyFlags
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
+  _In_           ID3D11Device            *This,
+  _In_     const D3D11_BUFFER_DESC       *pDesc,
+  _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
+  _Out_opt_      ID3D11Buffer           **ppBuffer
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
+  _In_           ID3D11Device                     *This,
+  _In_           ID3D11Resource                   *pResource,
+  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView
+);
 
 
 void  __stdcall SK_D3D11_TexCacheCheckpoint    ( void);
@@ -606,80 +672,18 @@ _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
 _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
 _Out_opt_       ID3D11Texture2D        **ppTexture2D );
 
-typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
-  _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D
-);
-D3D11Dev_CreateTexture2D_pfn D3D11Dev_CreateTexture2D_Original = nullptr;
+D3D11Dev_CreateBuffer_pfn             D3D11Dev_CreateBuffer_Original             = nullptr;
+D3D11Dev_CreateTexture2D_pfn          D3D11Dev_CreateTexture2D_Original          = nullptr;
+D3D11Dev_CreateShaderResourceView_pfn D3D11Dev_CreateShaderResourceView_Original = nullptr;
 
-typedef void (WINAPI *D3D11_RSSetScissorRects_pfn)(
-  _In_           ID3D11DeviceContext *This,
-  _In_           UINT                 NumRects,
-  _In_opt_ const D3D11_RECT          *pRects
-);
-D3D11_RSSetScissorRects_pfn D3D11_RSSetScissorRects_Original = nullptr;
+D3D11_RSSetScissorRects_pfn     D3D11_RSSetScissorRects_Original    = nullptr;
+D3D11_RSSetViewports_pfn        D3D11_RSSetViewports_Original       = nullptr;
+D3D11_VSSetConstantBuffers_pfn  D3D11_VSSetConstantBuffers_Original = nullptr;
+D3D11_UpdateSubresource_pfn     D3D11_UpdateSubresource_Original    = nullptr;
+D3D11_Map_pfn                   D3D11_Map_Original                  = nullptr;
 
-
-typedef void (WINAPI *D3D11_RSSetViewports_pfn)(
-_In_           ID3D11DeviceContext* This,
-_In_           UINT                 NumViewports,
-_In_opt_ const D3D11_VIEWPORT     * pViewports
-);
-D3D11_RSSetViewports_pfn D3D11_RSSetViewports_Original = nullptr;
-
-typedef void (WINAPI *D3D11_VSSetConstantBuffers_pfn)(
-_In_     ID3D11DeviceContext* This,
-_In_     UINT                 StartSlot,
-_In_     UINT                 NumBuffers,
-_In_opt_ ID3D11Buffer *const *ppConstantBuffers
-);
-D3D11_VSSetConstantBuffers_pfn D3D11_VSSetConstantBuffers_Original = nullptr;
-
-typedef void (WINAPI *D3D11_UpdateSubresource_pfn)(
-  _In_           ID3D11DeviceContext *This,
-  _In_           ID3D11Resource      *pDstResource,
-  _In_           UINT                 DstSubresource,
-  _In_opt_ const D3D11_BOX           *pDstBox,
-  _In_     const void                *pSrcData,
-  _In_           UINT                 SrcRowPitch,
-  _In_           UINT                 SrcDepthPitch
-);
-D3D11_UpdateSubresource_pfn D3D11_UpdateSubresource_Original = nullptr;
-
-
-typedef HRESULT (WINAPI *D3D11_Map_pfn)(
-     _In_ ID3D11DeviceContext      *This,
-     _In_ ID3D11Resource           *pResource,
-     _In_ UINT                      Subresource,
-     _In_ D3D11_MAP                 MapType,
-     _In_ UINT                      MapFlags,
-_Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
-);
-
-D3D11_Map_pfn D3D11_Map_Original = nullptr;
-
-typedef void (WINAPI *D3D11_CopyResource_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Resource      *pDstResource,
-  _In_ ID3D11Resource      *pSrcResource
-);
-
-D3D11_CopyResource_pfn D3D11_CopyResource_Original = nullptr;
-
-
-typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
-  _In_           ID3D11DeviceContext1 *This,
-  _In_           ID3D11Resource       *pDstResource,
-  _In_           UINT                  DstSubresource,
-  _In_opt_ const D3D11_BOX            *pDstBox,
-  _In_     const void                 *pSrcData,
-  _In_           UINT                  SrcRowPitch,
-  _In_           UINT                  SrcDepthPitch,
-  _In_           UINT                  CopyFlags
-);
-D3D11_UpdateSubresource1_pfn D3D11_UpdateSubresource1_Original = nullptr;
+D3D11_CopyResource_pfn          D3D11_CopyResource_Original       = nullptr;
+D3D11_UpdateSubresource1_pfn    D3D11_UpdateSubresource1_Original = nullptr;
 
 void
 WINAPI
@@ -1490,7 +1494,16 @@ void
 WINAPI
 SK_D3D11_SetResourceRoot (const wchar_t* root)
 {
-  SK_D3D11_res_root = root;
+  // Non-absolute path (e.g. NOT C:\...\...")
+  if (! wcsstr (root, L":"))
+  {
+    SK_D3D11_res_root = SK_GetRootPath ();
+    SK_D3D11_res_root += L"\\";
+    SK_D3D11_res_root += root;
+  }
+
+  else
+    SK_D3D11_res_root = root;
 }
 
 void
@@ -2191,6 +2204,29 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 
 HRESULT
 WINAPI
+D3D11Dev_CreateBuffer_Override (
+  _In_           ID3D11Device            *This,
+  _In_     const D3D11_BUFFER_DESC       *pDesc,
+  _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
+  _Out_opt_      ID3D11Buffer           **ppBuffer )
+{
+  return D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
+}
+
+HRESULT
+WINAPI
+D3D11Dev_CreateShaderResourceView_Override (
+  _In_           ID3D11Device                     *This,
+  _In_           ID3D11Resource                   *pResource,
+  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
+{
+  return D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
+}
+
+
+HRESULT
+WINAPI
 D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
   _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
@@ -2879,9 +2915,17 @@ HookD3D11 (LPVOID user)
   {
     if (pHooks->ppDevice != nullptr)
     {
+      DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 3, "ID3D11Device::CreateBuffer",
+                             D3D11Dev_CreateBuffer_Override, D3D11Dev_CreateBuffer_Original,
+                             D3D11Dev_CreateBuffer_pfn);
+
       DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 5, "ID3D11Device::CreateTexture2D",
                              D3D11Dev_CreateTexture2D_Override, D3D11Dev_CreateTexture2D_Original,
                              D3D11Dev_CreateTexture2D_pfn);
+
+      DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 7, "ID3D11Device::CreateShaderResourceView",
+                             D3D11Dev_CreateShaderResourceView_Override, D3D11Dev_CreateShaderResourceView_Original,
+                             D3D11Dev_CreateShaderResourceView_pfn);
     }
 
     if (pHooks->ppImmediateContext != nullptr)

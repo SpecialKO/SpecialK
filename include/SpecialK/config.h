@@ -98,6 +98,8 @@ struct sk_config_t
       BYTE shrink [4]     = { VK_CONTROL, VK_SHIFT, VK_OEM_MINUS, 0 };
       BYTE expand [4]     = { VK_CONTROL, VK_SHIFT, VK_OEM_PLUS,  0 };
     } keys;
+
+    bool   remember_state = false;
   } osd;
 
 
@@ -141,7 +143,7 @@ struct sk_config_t
                                 // Logical  = 1
 
     struct {
-      BYTE toggle [4]      = { VK_CONTROL, VK_SHIFT, 'D', 0 };
+      BYTE toggle [4]      = { VK_CONTROL, VK_MENU, VK_SHIFT, 'D' };
     } keys;
   } disk;
 
@@ -151,7 +153,7 @@ struct sk_config_t
     float  interval        = 2.5f;
 
     struct {
-      BYTE toggle [4]      = { VK_CONTROL, VK_SHIFT, 'P', 0 };
+      BYTE toggle [4]      = { VK_CONTROL, VK_MENU, VK_SHIFT, 'P' };
     } keys;
   } pagefile;
 
@@ -237,7 +239,8 @@ struct sk_config_t
           bool isZero (void) { return x == 0 && y == 0; };
         } max;
       } res;
-      int     scaling_mode      =  -1; // -1 = Don't Care
+      int     scaling_mode      =    -1; // -1 = Don't Care
+      bool    test_present      = false;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
@@ -362,7 +365,7 @@ struct sk_config_t
     bool    silent              = false;
     int     log_level           = 0;
     bool    handle_crashes      = true;
-    bool    prefer_fahrenheit   = true;
+    bool    prefer_fahrenheit   = false;
     bool    display_debug_out   = false;
     bool    game_output         = true;
     bool    central_repository  = false;

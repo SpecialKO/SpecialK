@@ -303,9 +303,15 @@ SK_CEGUI_InitBase (void)
 void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 {
   if (! config.cegui.enable)
-    return;
+  {
+    // XXX: TODO (Full shutdown isn't necessary, just invalidate)
+    ImGui_DX11Shutdown ();
+    ImGui_DX11Startup  (This);
 
-  if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
+    return;
+  }
+
+  if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 2)
     return;
 
   if (cegD3D11 != nullptr)
@@ -1122,10 +1128,127 @@ SK_GetDXGIAdapterInterface (IUnknown *pAdapter)
 }
 
 void
+SK_CEGUI_QueueResetD3D11 (void)
+{
+  InterlockedExchange (&__gui_reset, TRUE);
+}
+
+void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
   if (! config.cegui.enable)
+  {
+    extern bool SK_ImGui_Visible;
+
+    if (SK_GetFramesDrawn () > 1 && SK_ImGui_Visible)
+    {
+      // XXX: TODO (Full shutdown isn't necessary, just invalidate)
+      ImGui_DX11Shutdown ();
+      ImGui_DX11Startup  (This);
+
+      CComPtr <ID3D11Device> pDev = nullptr;
+      if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
+      {
+
+        HRESULT hr;
+
+        CComPtr <ID3D11Texture2D>        pBackBuffer       = nullptr;
+        CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
+        CComPtr <ID3D11BlendState>       pBlendState       = nullptr;
+
+        CComPtr <ID3D11Device1>          pDevice1          = nullptr;
+        CComPtr <ID3DDeviceContextState> pCtxState         = nullptr;
+        CComPtr <ID3DDeviceContextState> pCtxStateOrig     = nullptr;
+
+        hr = This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
+
+        if (FAILED (hr))
+          return;
+
+        CComPtr <ID3D11DeviceContext>  pImmediateContext  = nullptr;
+        CComPtr <ID3D11DeviceContext1> pImmediateContext1 = nullptr;
+
+                              pDev->GetImmediateContext (&pImmediateContext);
+        hr =
+        pImmediateContext->QueryInterface (IID_PPV_ARGS (&pImmediateContext1));
+                     pDev->QueryInterface (IID_PPV_ARGS (&pDevice1));
+
+        if (FAILED (hr))
+          return;
+
+
+        D3D_FEATURE_LEVEL ft_lvl =
+          pDev->GetFeatureLevel ();
+
+        GUID              dev_lvl = (ft_lvl == D3D_FEATURE_LEVEL_11_1) ?
+                                       __uuidof (ID3D11Device1) :
+                                       __uuidof (ID3D11Device);
+                      
+
+        //
+        // DXGI state blocks the (fun?) way :)  -- Performance implications are unknown, as
+        //                                           is compatibility with other injectors that
+        //                                             may try to cache state.
+        //
+        if (FAILED (pDevice1->CreateDeviceContextState ( 0x00,
+                                                           &ft_lvl,
+                                                             1,
+                                                               D3D11_SDK_VERSION,
+                                                                 dev_lvl,
+                                                                   nullptr,
+                                                                     &pCtxState )))
+          return;
+
+        pImmediateContext1->SwapDeviceContextState (pCtxState, &pCtxStateOrig);
+
+        hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+
+        if (SUCCEEDED (hr))
+        {
+          pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
+
+          D3D11_TEXTURE2D_DESC backbuffer_desc;
+          pBackBuffer->GetDesc (&backbuffer_desc);
+
+          D3D11_BLEND_DESC blend;
+          ZeroMemory     (&blend, sizeof (blend));
+
+          blend.RenderTarget [0].BlendEnable           = TRUE;
+          blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+          blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+          blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+          blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+          blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
+          blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+          blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+          if (SUCCEEDED (pDev->CreateBlendState   (&blend, &pBlendState)))
+            pImmediateContext->OMSetBlendState (pBlendState, NULL, 0xffffffff);
+
+          D3D11_VIEWPORT vp;
+          ZeroMemory   (&vp, sizeof (vp));
+
+          vp.Width    = (float)backbuffer_desc.Width;
+          vp.Height   = (float)backbuffer_desc.Height;
+          vp.MinDepth = 0;
+          vp.MaxDepth = 1;
+          vp.TopLeftX = 0;
+          vp.TopLeftY = 0;
+
+          pImmediateContext->RSSetViewports (1, &vp);
+
+          // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
+          ImGui_DX11Startup               ( This                         );
+          extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
+                       SK_ImGui_DrawFrame (       0x00,          nullptr );
+        }
+
+        pImmediateContext1->SwapDeviceContextState (pCtxStateOrig, nullptr);
+      }
+    }
+
     return;
+  }
 
   if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
     return;
@@ -1166,10 +1289,10 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   else if (cegD3D11 == nullptr)
   {
-    if (SK_GetFramesDrawn () > 1)
-    {
+    //if (SK_GetFramesDrawn () > 1)
+    //{
       ResetCEGUI_D3D11 (This);
-    }
+    //}
   }
 
   else if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
@@ -1217,7 +1340,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     //
     // DXGI state blocks the (fun?) way :)  -- Performance implications are unknown, as
-    //                                           is compatibility wiht other injectors that
+    //                                           is compatibility with other injectors that
     //                                             may try to cache state.
     //
     if (FAILED (pDevice1->CreateDeviceContextState ( 0x00,
@@ -1339,6 +1462,8 @@ extern "C" {
                                         UINT                     PresentFlags,
                                   const DXGI_PRESENT_PARAMETERS *pPresentParameters)
   {
+    dll_log.Log (L"Present1");
+
     g_pDXGISwap = This;
 
     //
@@ -1538,10 +1663,12 @@ extern "C" {
 
     if (! bFlipMode)
     {
-      hr = Present_Original (This, SyncInterval, Flags | DXGI_PRESENT_TEST);
+      // Test first, then do (if test_present is true)
+      hr = config.render.dxgi.test_present ? 
+             Present_Original (This, 0, Flags | DXGI_PRESENT_TEST) :
+             S_OK;
 
-      // Test first, then do
-      if (SUCCEEDED (hr))
+      if (SUCCEEDED (hr) || hr == DXGI_STATUS_OCCLUDED)
       {
              SK_CEGUI_DrawD3D11 (This);
         hr = Present_Original   (This, interval, flags);
@@ -1549,11 +1676,25 @@ extern "C" {
 
       if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED)
       {
-          dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
-                        L"returned non-S_OK (%s :: %s)",
-                          SK_DescribeHRESULT (hr),
-                            SUCCEEDED (hr) ? L"Success" :
-                                             L"Fail" );
+        dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
+                      L"returned non-S_OK (%s :: %s)",
+                        SK_DescribeHRESULT (hr),
+                          SUCCEEDED (hr) ? L"Success" :
+                                           L"Fail" );
+
+        if (FAILED (hr) && hr == DXGI_ERROR_DEVICE_REMOVED)
+        {
+          CComPtr <ID3D11Device> pDev;
+
+          if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))))
+          {
+            // D3D11 Device Removed, let's find out why...
+            HRESULT hr_removed = pDev->GetDeviceRemovedReason ();
+
+            dll_log.Log ( L"[   DXGI   ] (*) >> Reason For Removal: %s",
+                           SK_DescribeHRESULT (hr_removed) );
+          }
+        }
       }
     }
 
@@ -1906,7 +2047,7 @@ __declspec (noinline)
          BufferCount                          !=  0 )
     {
       BufferCount = config.render.framerate.buffer_count;
-      dll_log.Log (L"[   DXGI   ] >> Buffer Count Override: %lu buffers", BufferCount);
+      dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", BufferCount);
     }
 
     InterlockedExchange (&__gui_reset, TRUE);
@@ -2159,6 +2300,14 @@ __declspec (noinline)
       {
         if (config.render.framerate.flip_discard)
           bFlipMode = dxgi_caps.present.flip_sequential;
+      }
+
+      if (       config.render.framerate.buffer_count != -1                  &&
+           (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
+           pDesc->BufferCount                         !=  0 )
+      {
+        pDesc->BufferCount = config.render.framerate.buffer_count;
+        dll_log.Log (L"[   DXGI   ] >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
       }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
@@ -3508,9 +3657,9 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
 
     if (Present1_Original != nullptr)
     {
-#if 0
       //dll_log.Log (L"Rehooking IDXGISwapChain::Present1 (...)");
 
+#if 0
       if (MH_OK == SK_RemoveHook (vftable [22]))
         Present1_Original = nullptr;
       else {

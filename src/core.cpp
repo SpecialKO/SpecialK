@@ -37,6 +37,7 @@
 
 #include <SpecialK/tls.h>
 
+#include <ShlObj.h>
 #include <LibLoaderAPI.h>
 
 #pragma warning   (push)
@@ -91,6 +92,8 @@ bool USE_SLI = true;
 
 
 extern "C++" void SK_DS3_InitPlugin (void);
+extern "C++" void SK_FAR_InitPlugin (void);
+extern "C++" void SK_FAR_FirstFrame (void);
 
 
 NV_GET_CURRENT_SLI_STATE sli_state;
@@ -853,9 +856,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   callback_fn (SK_InitFinishCallback);
 
-  // Die you evil son of a bitch!
+  // Malware needs to be disabled, but cannot be...
+  //   so notify the end-user.
   extern void SK_KillFRAPS (void);
-  SK_KillFRAPS ();
+              SK_KillFRAPS ();
 
 
   // Setup the compatibility backend, which monitors loaded libraries,
@@ -1192,6 +1196,9 @@ DllThread_CRT (LPVOID user)
   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
     SK_DS3_InitPlugin ();
 
+  else if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
+    SK_FAR_InitPlugin ();
+
   if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe")) {
     SK_GetCommandProcessor ()->ProcessCommandFormatted (
       "TargetFPS %f",
@@ -1334,6 +1341,34 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     return false;
   }
 
+
+  // True if the user has rebased their %UserProfile% directory the wrong way
+  bool    altered_user_profile     = false;
+  wchar_t wszProfile    [MAX_PATH] = { L'\0' };
+  wchar_t wszDocs       [MAX_PATH] = { L'\0' };
+  wchar_t wszEnvProfile [MAX_PATH] = { L'\0' };
+  wchar_t wszEnvDocs    [MAX_PATH] = { L'\0' };
+
+  // Make expansion of %UserProfile% agree with the actual directory, for people
+  //   who rebase their documents directory without fixing this env. variable.
+  if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_PROFILE, nullptr, 0, wszProfile ) ) )
+  {
+    ExpandEnvironmentStringsW (L"%USERPROFILE%", wszEnvProfile, MAX_PATH);
+    SetEnvironmentVariableW   (L"USERPROFILE",   wszProfile);
+
+    if (_wcsicmp (wszEnvProfile, wszProfile))
+      altered_user_profile = true;
+
+    ExpandEnvironmentStringsW (L"%USERPROFILE%\\Documents", wszEnvDocs, MAX_PATH);
+
+    if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_MYDOCUMENTS, nullptr, 0, wszDocs ) ) )
+    {
+      if (_wcsicmp (wszEnvDocs, wszDocs))
+        altered_user_profile = true;
+    }
+  }
+
+
   // Only the injector version can be bypassed, the wrapper version
   //   must fully initialize or the game will not be able to use the
   //     DLL it is wrapping.
@@ -1428,6 +1463,21 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
     L"-------------------\n");
+
+
+  if (altered_user_profile) {
+    dll_log.Log ( L"*** WARNING: User has altered their user profile directory the wrong way. ***");
+    dll_log.Log ( L"  >> %%UserProfile%%       = '%ws'",
+                    wszEnvProfile );
+    dll_log.Log ( L"  >> Profile Directory   = '%ws'",
+                    wszProfile );
+    dll_log.Log ( L"  >> Documents Directory = '%ws'",
+                    wszDocs );
+    dll_log.LogEx ( false,
+      L"------------------------------------------------------------------------"
+      L"-------------------\n" );
+  }
+
 
   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszModuleName = module_name.c_str ();
@@ -1722,12 +1772,16 @@ SK_BeginBufferSwap (void)
       InterlockedExchange (&first, 0);
 
       SK_ResetWindow ();
+
+      // Do Plug-In Version Check during the first frame
+      if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
+        SK_FAR_FirstFrame ();
     }
   }
 
   static volatile LONG cegui_init = FALSE;
 
-  if (InterlockedCompareExchange (&frames_drawn, 0, 0) > 2 && (! InterlockedCompareExchange (&cegui_init, 1, 0)))
+  if ((! InterlockedCompareExchange (&cegui_init, 1, 0)))
   {
     if (config.cegui.enable)
     {
@@ -1830,7 +1884,7 @@ SK_BeginBufferSwap (void)
             }
           }
 
-          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 )
+          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 || (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe")) )
           {
             if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
               config.cegui.enable = true;
@@ -2071,7 +2125,8 @@ DoKeyboard (void)
   static bool toggle_disk = false;
   if (HIWORD (GetAsyncKeyState (config.disk.keys.toggle [0])) &&
       HIWORD (GetAsyncKeyState (config.disk.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [2])))
+      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [2])) &&
+      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [3])))
   {
     if (! toggle_disk) {
       config.disk.show = (! config.disk.show);
@@ -2088,7 +2143,8 @@ DoKeyboard (void)
   static bool toggle_pagefile = false;
   if (HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [0])) &&
       HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [2])))
+      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [2])) &&
+      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [3])))
   {
     if (! toggle_pagefile) {
       config.pagefile.show = (! config.pagefile.show);
@@ -2238,8 +2294,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       sli_state = sk::NVAPI::GetSLIState (device);
     }
   }
-
-  InterlockedIncrement (&frames_drawn);
 
   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");

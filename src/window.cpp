@@ -719,8 +719,9 @@ typedef VOID(WINAPI *mouse_event_pfn)(
 
 mouse_event_pfn mouse_event_Original = nullptr;
 
-ULONG game_mouselook = 0;
-int   game_x, game_y;
+ULONG   game_mouselook = 0;
+int     game_x, game_y;
+HCURSOR game_cursor;
 
 bool
 ImGui_WantMouseCapture (void)
@@ -739,6 +740,34 @@ ImGui_WantMouseCapture (void)
   return imgui_capture;
 }
 
+typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
+SetCursor_pfn SetCursor_Original = nullptr;
+
+void
+ImGui_ToggleCursor (void)
+{
+  static bool imgui_cursor = false;
+
+  if (! imgui_cursor)
+    SetCursor_Original (nullptr);
+  else
+    SetCursor_Original (game_cursor);
+
+  imgui_cursor = (! imgui_cursor);
+}
+
+HCURSOR
+WINAPI
+SetCursor_Detour (
+  _In_opt_ HCURSOR hCursor )
+{
+  SK_LOG_FIRST_CALL
+
+  game_cursor = SetCursor_Original (hCursor);
+
+  return game_cursor;
+}
+
 BOOL
 WINAPI
 GetCursorInfo_Detour (PCURSORINFO pci)
@@ -747,7 +776,10 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
   BOOL ret = GetCursorInfo_Original (pci);
 
-  if (ImGui_WantMouseCapture ()) {
+  pci->hCursor = game_cursor;
+
+  if (ImGui_WantMouseCapture ())
+  {
     POINT tmp_pt = pci->ptScreenPos;
 
     pci->ptScreenPos.x = game_x;
@@ -2111,7 +2143,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
               break;
 
             case RIM_TYPEMOUSE:
-              if (io.WantCaptureMouse)
+              if (io.WantCaptureMouse || config.input.ui.capture)
                 remove = true;
               break;
           }
@@ -2165,6 +2197,31 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
     {
       *pcbSize = 0;
       return     0;
+    }
+
+    if (SK_ImGui_Visible && pData != nullptr)
+    {
+      bool filter = false;
+
+      switch (((RAWINPUT *)pData)->header.dwType)
+      {
+        case RIM_TYPEMOUSE:
+          if (config.input.ui.capture || ImGui_WantMouseCapture ())
+            filter = true;
+          break;
+        case RIM_TYPEKEYBOARD:
+          if (ImGui::GetIO ().WantCaptureKeyboard)
+            filter = true;
+          break;
+        default:
+          break;
+      }
+
+      if (filter)
+      {
+        *pcbSize = 0;
+        return     0;
+      }
     }
   }
 
@@ -2392,7 +2449,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           switch (data.header.dwType)
           {
             case RIM_TYPEMOUSE:
-              filter = io.WantCaptureMouse;
+              filter = io.WantCaptureMouse || config.input.ui.capture;
               break;
 
             case RIM_TYPEKEYBOARD:
@@ -3091,7 +3148,11 @@ SK_HookWinAPI (void)
 
   SK_CreateDLLHook2 ( L"user32.dll", "GetCursorInfo",
                      GetCursorInfo_Detour,
-          (LPVOID*)&GetCursorInfo_Original );
+           (LPVOID*)&GetCursorInfo_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "SetCursor",
+                     SetCursor_Detour,
+           (LPVOID*)&SetCursor_Original );
 
   SK_CreateDLLHook2 ( L"user32.dll", "SetCursorPos",
                      SetCursorPos_Detour,

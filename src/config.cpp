@@ -105,6 +105,10 @@ struct {
     sk::ParameterInt*     pos_x;
     sk::ParameterInt*     pos_y;
   } viewport;
+
+  struct {
+    sk::ParameterBool*    remember;
+  } state;
 } osd;
 
 struct {
@@ -182,6 +186,7 @@ struct {
     sk::ParameterStringW* min_res;
     sk::ParameterInt*     swapchain_wait;
     sk::ParameterStringW* scaling_mode;
+    sk::ParameterBool*    test_present;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -1028,12 +1033,22 @@ SK_LoadConfig (std::wstring name) {
     render.dxgi.scaling_mode =
       static_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Scaling Preference (DontCare | Centered | Stretched)")
+          L"Scaling Preference (DontCare | Centered | Stretched | Unspecified)")
         );
     render.dxgi.scaling_mode->register_to_ini (
       dll_ini,
         L"Render.DXGI",
           L"Scaling" );
+
+    render.dxgi.test_present =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Test SwapChain Presentation Before Actually Presenting")
+        );
+    render.dxgi.test_present->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"TestSwapChainPresent" );
 
 
     texture.d3d11.cache =
@@ -1300,6 +1315,16 @@ SK_LoadConfig (std::wstring name) {
       L"SpecialK.OSD",
         L"Scale" );
 
+  osd.state.remember =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Remember status monitoring state")
+      );
+  osd.state.remember->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"RememberMonitoringState" );
+
 
   monitoring.SLI.show =
     static_cast <sk::ParameterBool *>
@@ -1552,7 +1577,7 @@ SK_LoadConfig (std::wstring name) {
     config.compatibility.rehook_loadlibrary = compatibility.rehook_loadlibrary->get_value ();
 
 
-  if (monitoring.io.show->load ())
+  if (monitoring.io.show->load () && config.osd.remember_state)
     config.io.show = monitoring.io.show->get_value ();
   if (monitoring.io.interval->load ())
     config.io.interval = monitoring.io.interval->get_value ();
@@ -1560,12 +1585,12 @@ SK_LoadConfig (std::wstring name) {
   if (monitoring.fps.show->load ())
     config.fps.show = monitoring.fps.show->get_value ();
 
-  if (monitoring.memory.show->load ())
+  if (monitoring.memory.show->load () && config.osd.remember_state)
     config.mem.show = monitoring.memory.show->get_value ();
   if (mem_reserve->load ())
     config.mem.reserve = mem_reserve->get_value ();
 
-  if (monitoring.cpu.show->load ())
+  if (monitoring.cpu.show->load () && config.osd.remember_state)
     config.cpu.show = monitoring.cpu.show->get_value ();
   if (monitoring.cpu.interval->load ())
     config.cpu.interval = monitoring.cpu.interval->get_value ();
@@ -1579,15 +1604,15 @@ SK_LoadConfig (std::wstring name) {
   if (monitoring.gpu.interval->load ())
     config.gpu.interval = monitoring.gpu.interval->get_value ();
 
-  if (monitoring.disk.show->load ())
+  if (monitoring.disk.show->load () && config.osd.remember_state)
     config.disk.show = monitoring.disk.show->get_value ();
   if (monitoring.disk.interval->load ())
     config.disk.interval = monitoring.disk.interval->get_value ();
   if (monitoring.disk.type->load ())
     config.disk.type = monitoring.disk.type->get_value ();
 
-  if (monitoring.pagefile.show->load ())
-    config.pagefile.show = monitoring.pagefile.show->get_value ();
+  //if (monitoring.pagefile.show->load () && config.osd.remember_state)
+    //config.pagefile.show = monitoring.pagefile.show->get_value ();
   if (monitoring.pagefile.interval->load ())
     config.pagefile.interval = monitoring.pagefile.interval->get_value ();
 
@@ -1749,6 +1774,9 @@ SK_LoadConfig (std::wstring name) {
           config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_STRETCHED;
         }
       }
+
+      if (render.dxgi.test_present->load ())
+        config.render.dxgi.test_present = render.dxgi.test_present->get_value ();
 
       if (render.dxgi.swapchain_wait->load ())
         config.render.framerate.swapchain_wait = render.dxgi.swapchain_wait->get_value ();
@@ -1924,6 +1952,9 @@ SK_LoadConfig (std::wstring name) {
   if (osd.viewport.scale->load ())
     config.osd.scale = osd.viewport.scale->get_value ();
 
+  if (osd.state.remember->load ())
+    config.osd.remember_state = osd.state.remember->get_value ();
+
 
   if (init_delay->load ())
     config.system.init_delay = init_delay->get_value ();
@@ -2015,6 +2046,7 @@ SK_SaveConfig ( std::wstring name,
   osd.viewport.pos_x->set_value               (config.osd.pos_x);
   osd.viewport.pos_y->set_value               (config.osd.pos_y);
   osd.viewport.scale->set_value               (config.osd.scale);
+  osd.state.remember->set_value               (config.osd.remember_state);
 
   apis.d3d9.hook->set_value                   (config.apis.d3d9.hook);
   apis.d3d9ex.hook->set_value                 (config.apis.d3d9ex.hook);
@@ -2192,6 +2224,8 @@ SK_SaveConfig ( std::wstring name,
   compatibility.disable_raptr->store      ();
   compatibility.disable_nv_bloat->store   ();
   compatibility.rehook_loadlibrary->store ();
+
+  osd.state.remember->store               ();
 
   monitoring.memory.show->store           ();
   mem_reserve->store                      ();

@@ -283,8 +283,11 @@ private:
             this
       );
 
-    cmd->AddVariable ("d3d9.OSDInVidcap", osd_vidcap_);
-    cmd->AddVariable ("d3d9.HasBrokenMipmapLODBias", SK_CreateVar (SK_IVariable::Boolean, &config.steam.silent));
+    // Tales of Berseria "Fix" uses this
+    static bool broken_lod_bias = false;
+
+    cmd->AddVariable ("d3d9.OSDInVidcap",            osd_vidcap_);
+    cmd->AddVariable ("d3d9.HasBrokenMipmapLODBias", SK_CreateVar (SK_IVariable::Boolean, &broken_lod_bias));
   }
 
   static SK_D3D9RenderBackend* pBackend;

@@ -11,6 +11,8 @@
 #include <SpecialK/command.h>
 #include <SpecialK/console.h>
 
+#include <SpecialK/window.h>
+
 #include <SpecialK/render_backend.h>
 
 
@@ -19,6 +21,12 @@
 #include "resource.h"
 
 extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
+
+extern bool     __stdcall SK_FAR_IsPlugIn      (void);
+extern void     __stdcall SK_FAR_ControlPanel  (void);
+
+extern GetCursorInfo_pfn GetCursorInfo_Original;
+       bool              cursor_vis      = false;
 
 void
 LoadFileInResource ( int          name,
@@ -192,6 +200,13 @@ SK_ImGui_ControlPanel (void)
       ImGui::TreePop     ();
     }
 
+
+    // STUPID DESIGN
+    if (SK_FAR_IsPlugIn ())
+    {
+      SK_FAR_ControlPanel ();
+    }
+
     const  float font_size           =              ImGui::GetFont ()->FontSize                        * io.FontGlobalScale;
     const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
@@ -217,28 +232,28 @@ SK_ImGui_ControlPanel (void)
 #endif
   
         float sum = 0.0f;
-      
+
         float min = FLT_MAX;
         float max = 0.0f;
-      
+
         for (float val : values) {
           sum += val;
-      
+
           if (val > max)
             max = val;
-      
+
           if (val < min)
             min = val;
         }
-      
+
         static char szAvg [512];
 
         extern float target_fps;
-      
+
         float target_frametime = ( target_fps == 0.0f ) ?
                                     ( 1000.0f / 60.0f ) :
                                       ( 1000.0f / target_fps );
-      
+
         sprintf_s
               ( szAvg,
                   512,
@@ -276,6 +291,20 @@ SK_ImGui_ControlPanel (void)
           ImGui::PopStyleColor  (4);
           ImGui::EndTooltip     ();
         }
+
+        // Don't apply this number if it's < 10, that does very undesirable things
+        float target_orig = target_fps;
+
+        if (ImGui::InputFloat ("Framerate Limit", &target_fps))
+        {
+          if (target_fps > 9 || target_fps == 0)
+            SK_GetCommandProcessor ()->ProcessCommandFormatted ("TargetFPS %f", target_fps);
+          else
+            target_fps = target_orig;
+        }
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("0.0 will disable Special K's framerate limiter");
       }
 
       ImGui::PopItemWidth ();
@@ -286,7 +315,7 @@ SK_ImGui_ControlPanel (void)
     if ( api == SK_RenderAPI::D3D11 &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings" ) )
     {
-      if (ImGui::TreeNode("Texture Management"))
+      if (ImGui::TreeNode ("Texture Management"))
       {
         ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache); 
 
@@ -475,6 +504,27 @@ SK_ImGui_ControlPanel (void)
           config.input.cursor.timeout = static_cast <LONG> (( seconds * 1000.0f ));
         }
 
+        if (! cursor_vis)
+        {
+          if (ImGui::Button ("Force Mouse Cursor Visible")) {
+            while (ShowCursor (TRUE) < 0)
+              ;
+
+            cursor_vis = true;
+          }
+        }
+
+        else
+        {
+          if (ImGui::Button ("Force Mouse Cursor Hidden"))
+          {
+            while (ShowCursor (FALSE) >= -1)
+              ;
+
+            cursor_vis = false;
+          }
+        }
+
         ImGui::TreePop  ();
       }
 
@@ -486,6 +536,8 @@ SK_ImGui_ControlPanel (void)
           ImGui::BulletText ("If mouselook is causing problems, use this setting to force input capture unconditionally.");
         ImGui::EndTooltip   ();
       }
+
+      
     }
 
     if ( ImGui::CollapsingHeader ("Window Management") )
@@ -812,29 +864,33 @@ SK_ImGui_Toggle (void)
   if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::D3D11) d3d11 = true;
 
   if (d3d9 || d3d11)
-  {    
+  {
+    CURSORINFO cursor_info;
+    cursor_info.cbSize = sizeof (CURSORINFO);
+
+    GetCursorInfo_Original (&cursor_info);
+
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
     if (hModTBFix == nullptr) 
     {
-      static int cursor_refs = 0;
+      // Turns the hardware cursor on/off as needed
+      extern void ImGui_ToggleCursor (void);
+                  ImGui_ToggleCursor ();
 
+      // Transition: (Visible -> Invisible)
       if (SK_ImGui_Visible)
       {
-        while (ShowCursor (FALSE) > cursor_refs)
-          ;
-        while (ShowCursor (TRUE)  < cursor_refs)
-          ;
+        //SetCursor (hCursorOriginal);
       }
 
       else
       {
-        cursor_refs = (ShowCursor (FALSE) + 1);
-    
-        if (cursor_refs > 0) {
-          while (ShowCursor (FALSE) > 0)
-            ;
-        }
+        //hCursorOriginal = cursor_info.hCursor;
+        cursor_vis      = (cursor_info.flags & CURSOR_SHOWING);
+
+        //if (cursor_vis)
+          //SetCursor (nullptr);
       }
     }
 
@@ -851,26 +907,26 @@ SK_ImGui_Toggle (void)
         }
       }
     }
-    
+
     SK_ImGui_Visible = (! SK_ImGui_Visible);
     
     if (SK_ImGui_Visible)
       SK_Console::getInstance ()->visible = false;
-    
-    
+
+
     extern const wchar_t*
     __stdcall
     SK_GetBackend (void);
-    
+
     const wchar_t* config_name = SK_GetBackend ();
-    
+
     extern bool
     __stdcall
     SK_IsInjected (bool set = false);
-    
+
     if (SK_IsInjected ())
       config_name = L"SpecialK";
-    
+
     SK_SaveConfig (config_name);
 
     // Immediately stop capturing keyboard/mouse events,

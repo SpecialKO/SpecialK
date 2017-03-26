@@ -524,6 +524,9 @@ DownloadDialogCallback (
       // Disable the button
       SendMessage (hWnd, TDM_ENABLE_BUTTON, wParam, 0);
 
+      // Also disable the remind me later button
+      SendMessage (hWnd, TDM_ENABLE_BUTTON, 0,      0);
+
       get->hTaskDlg = hWnd;
 
       _beginthreadex ( nullptr,
@@ -840,8 +843,8 @@ Update_DlgProc (
   return 0;
 }
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 UpdateDlg_Thread (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
@@ -857,6 +860,7 @@ UpdateDlg_Thread (LPVOID user)
   while ((bRet = GetMessage (&msg, NULL, 0, 0)) != 0)
   {
     if (bRet == -1) {
+      CloseHandle (GetCurrentThread ());
       return 0;
     }
 
@@ -864,6 +868,7 @@ UpdateDlg_Thread (LPVOID user)
     DispatchMessage  (&msg);
   }
 
+  CloseHandle (GetCurrentThread ());
   return 0;
 }
 
@@ -896,7 +901,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
   task_config.pButtons           = buttons;
   task_config.cButtons           = 2;
   task_config.dwCommonButtons    = 0x00;
-  task_config.nDefaultButton     = 0;
+  task_config.nDefaultButton     = IDYES;
 
   task_config.dwFlags            = TDF_ENABLE_HYPERLINKS | TDF_SHOW_PROGRESS_BAR   | TDF_SIZE_TO_CONTENT |
                                    TDF_CALLBACK_TIMER    | TDF_EXPANDED_BY_DEFAULT | TDF_EXPAND_FOOTER_AREA |
@@ -1093,19 +1098,20 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
           if (backup_pref->load ())
             update_dlg_backup = backup_pref->get_value ();
           else
-            update_dlg_backup = true;
+            update_dlg_backup = false;
 
           if (keep_pref->load ())
             update_dlg_keep = keep_pref->get_value ();
           else
-            update_dlg_keep = false;
+            update_dlg_keep = true;
 
           wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH );
           wcsncpy ( update_dlg_build, wszCurrentBuild,   127      );
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
-          _beginthreadex ( nullptr,
+          HANDLE hThread =
+            CreateThread ( nullptr,
                              0,
                                UpdateDlg_Thread,
                                  nullptr,

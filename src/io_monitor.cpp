@@ -661,6 +661,12 @@ SK_MonitorCPU (LPVOID user_param)
       uint64_t load;
       uint64_t idle;
 
+      if (cpu.apEnumAccess [0] == nullptr)
+      {
+        dll_log.Log (L"[ WMI Wbem ] CPU apEnumAccess [0] = nullptr");
+        goto CPU_CLEANUP;
+      }
+
       if (FAILED (hr = cpu.apEnumAccess [i]->ReadQWORD (
                              cpu.lPercentInterruptTimeHandle,
                              &interrupt )
@@ -923,6 +929,12 @@ SK_MonitorDisk (LPVOID user)
       CIMTYPE PercentDiskReadTimeType;
       CIMTYPE PercentDiskWriteTimeType;
       CIMTYPE PercentIdleTimeType;
+
+      if (disk.apEnumAccess [0] == nullptr)
+      {
+        dll_log.Log (L"[ WMI Wbem ] Disk apEnumAccess [0] = nullptr");
+        goto DISK_CLEANUP;
+      }
 
       if (FAILED (hr = disk.apEnumAccess [0]->GetPropertyHandle (
                             L"Name",
@@ -1195,6 +1207,10 @@ SK_MonitorPagefile (LPVOID user)
   COM::base.wmi.Lock ();
 
   pagefile_perf_t&  pagefile = pagefile_stats;
+
+                    pagefile.dwNumReturned = 0;
+                    pagefile.dwNumObjects  = 0;
+
   const double update = config.pagefile.interval;
 
   HRESULT hr;
@@ -1208,6 +1224,7 @@ SK_MonitorPagefile (LPVOID user)
              )
      )
   {
+    config.pagefile.show = false;
     goto PAGEFILE_CLEANUP;
   }
 
@@ -1217,6 +1234,7 @@ SK_MonitorPagefile (LPVOID user)
              )
      )
   {
+    config.pagefile.show = false;
     goto PAGEFILE_CLEANUP;
   }
 
@@ -1231,6 +1249,7 @@ SK_MonitorPagefile (LPVOID user)
              )
      )
   {
+    config.pagefile.show = false;
     goto PAGEFILE_CLEANUP;
   }
 
@@ -1238,9 +1257,6 @@ SK_MonitorPagefile (LPVOID user)
   pagefile.pConfig = nullptr;
 
   int iter = 0;
-
-  pagefile.dwNumReturned = 0;
-  pagefile.dwNumObjects  = 0;
 
   COM::base.wmi.Unlock ();
 
@@ -1259,6 +1275,7 @@ SK_MonitorPagefile (LPVOID user)
 
     if (FAILED (hr = pagefile.pRefresher->Refresh (0L)))
     {
+      config.pagefile.show = false;
       goto PAGEFILE_CLEANUP;
     }
 
@@ -1291,6 +1308,7 @@ SK_MonitorPagefile (LPVOID user)
                  )
          )
       {
+        config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
 
@@ -1301,6 +1319,7 @@ SK_MonitorPagefile (LPVOID user)
       if (hr != WBEM_S_NO_ERROR)
       {
         hr = WBEM_E_NOT_FOUND;
+        config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
     }
@@ -1308,6 +1327,20 @@ SK_MonitorPagefile (LPVOID user)
     // First time through, get the handles.
     if (iter == 0)
     {
+      if (pagefile.dwNumReturned <= 0)
+      {
+        dll_log.Log (L"[ WMI Wbem ] No pagefile exists");
+        config.pagefile.show = false;
+        goto PAGEFILE_CLEANUP;
+      }
+
+      if (pagefile.apEnumAccess [0] == nullptr)
+      {
+        dll_log.Log (L"[ WMI Wbem ] Pagefile apEnumAccess [0] = nullptr");
+        config.pagefile.show = false;
+        goto PAGEFILE_CLEANUP;
+      }
+
       CIMTYPE NameType;
 
       CIMTYPE PercentUsageType;
@@ -1321,6 +1354,7 @@ SK_MonitorPagefile (LPVOID user)
                  )
          )
       {
+        config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
 
@@ -1331,6 +1365,7 @@ SK_MonitorPagefile (LPVOID user)
                  )
          )
       {
+        config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
 
@@ -1341,6 +1376,7 @@ SK_MonitorPagefile (LPVOID user)
                  )
          )
       {
+        config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
 
@@ -1351,6 +1387,7 @@ SK_MonitorPagefile (LPVOID user)
                  )
          )
       {
+        config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
     }
@@ -1399,6 +1436,7 @@ SK_MonitorPagefile (LPVOID user)
                  )
          )
       {
+        config.pagefile.show = false;
         goto PAGEFILE_CLEANUP;
       }
 

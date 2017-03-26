@@ -166,6 +166,7 @@ public:
                    GameOverlayActivated_t,
                    activation )
   {
+#if 0
     if (active_ != (pParam->m_bActive != 0))
     {
       if (pParam->m_bActive)
@@ -197,6 +198,7 @@ public:
         }
       }
     }
+#endif
 
     active_ = (pParam->m_bActive != 0);
   }
@@ -786,26 +788,15 @@ public:
       return false;
     }
 
-    // Blacklist of people not allowed to use my software
+    // Blacklist of people not allowed to use my software (for being disruptive to other users)
     uint32_t aid = user_->GetSteamID ().GetAccountID    ();
     uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
 
-    if (  aid ==  64655118                     ||  aid == 183437803                 ||
-          s64 ==  76561198301187387            ||  s64 == 76561197973979549         ||
-         (s64 == (38280599011031765 << 1)    ) || (s64 == (38280598981623575 << 1)) ||
-         (s64 == (38280599000340886 << 1) + 1) || (s64 == (19140299494302206 << 2)) ||
-         (s64 == (38280599020068819 << 1) + 1) || (s64 == (19140299495182533 << 2)) ||
-         (s64 == (38280599029207691 << 1)    ) || (s64 == (9570149746982856  << 3)) ||
-         (s64 == (9570149760420609  << 3)    ) )
+    if ( aid ==  64655118 || aid == 183437803 )
     {
       SK_MessageBox ( L"You are not authorized to use this software",
                         L"Unauthorized User", MB_ICONWARNING | MB_OK );
       ExitProcess (0x00);
-    }
-
-    if ( SK_Steam_PiratesAhoy () == 0x0 && s64 == (73183493961809920 << 2) )
-    {
-      abort ();
     }
 
     friends_ =
@@ -3837,38 +3828,9 @@ SK_Steam_PiratesAhoy (void)
   if (crc32_steamapi == 0x28140083 << 1)
     verdict = crc32_steamapi;
 
-  //if (! verdict)
-    //steam_log.Log (L"[SteamCRC] %x", crc32_steamapi);
-
   decided = true;
 
-  if (verdict)
-  {
-    if (! config.steam.silent)
-    {
-      SK_GetCommandProcessor ()->RemoveVariable ("TargetFPS");
-      SK_GetCommandProcessor ()->AddVariable    ("TargetFPS", steam_ctx.tbf_pirate_fun);
-    }
-
-    CreateThread (nullptr, 0x00,
-      [](LPVOID user) ->
-      DWORD
-      {
-        do
-        {
-          Sleep (90000UL);
-        
-          extern SK_IVariable* ribcity;
-
-          if (ribcity != nullptr)
-            *(float *)ribcity->getValuePointer () += 0.5f;
-        } while (true);
-
-        CloseHandle (GetCurrentThread ());
-        return 0;
-      }, nullptr, 0x00, nullptr);
-  }
-
+  // User opted out of Steam enhancement, no further action necessary
   if (config.steam.silent)
     verdict = 0x00;
 

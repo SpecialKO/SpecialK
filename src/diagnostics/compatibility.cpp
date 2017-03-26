@@ -269,6 +269,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       }
     }
 
+#if 0
     // Some software repeatedly loads and unloads this, which can
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
@@ -278,6 +279,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                              lpFileName,
                                &hModDontCare );
     }
+#endif
   }
 }
 
@@ -377,6 +379,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       }
     }
     
+#if 0
     // Some software repeatedly loads and unloads this, which can
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
@@ -386,6 +389,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                              lpFileName,
                                &hModDontCare );
     }
+#endif
   }
 }
 
@@ -648,9 +652,6 @@ typedef HHOOK (WINAPI *SetWindowsHookEx_pfn)(
 SetWindowsHookEx_pfn SetWindowsHookExA_Original = nullptr;
 SetWindowsHookEx_pfn SetWindowsHookExW_Original = nullptr;
 
-extern void
-SK_KillFRAPS (void);
-
 HHOOK
 WINAPI
 SetWindowsHookExA_Detour (
@@ -660,8 +661,6 @@ SetWindowsHookExA_Detour (
   _In_ DWORD     dwThreadId
 )
 {
-  HMODULE hModFRAPS = nullptr;
-
   //MessageBox (NULL, SK_GetModuleName (hMod).c_str (), L"Module", MB_OK);
   //dll_log.Log (L"[WindowsHook] Module: '%s'", SK_GetModuleName (hMod).c_str ());
 
@@ -678,8 +677,6 @@ SetWindowsHookExW_Detour (
   _In_ DWORD     dwThreadId
 )
 {
-  HMODULE hModFRAPS = nullptr;
-
   //MessageBox (NULL, SK_GetModuleName (hMod).c_str (), L"Module", MB_OK);
   //dll_log.Log (L"[WindowsHook] Module: '%s'", SK_GetModuleName (hMod).c_str ());
 
@@ -1151,7 +1148,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
   }
 
   else if ( GetModuleHandle (L"RTSSHooks.dll") ||
-            GetModuleHandle (L"RTSSHooks64.dll") ) {
+            GetModuleHandle (L"RTSSHooks64.dll") )
+  {
     SK_ValidateGlobalRTSSProfile ();
     // RTSS is in High App Detection or Stealth Mode
     //

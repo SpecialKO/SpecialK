@@ -9,15 +9,9 @@
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
 
-#if defined SK_BUILD__INSTALLER
-#define TBFIX 1
-#endif
-
 // DirectX
 #include <d3d11.h>
-#ifndef TBFIX
 #include <d3dcompiler.h>
-#endif
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
@@ -63,7 +57,6 @@ struct VERTEX_CONSTANT_BUFFER
 void
 ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 {
-#ifndef TBFIX
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -73,6 +66,10 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
   if (! g_pSwapChain)
     return;
+
+  if (! g_pVertexConstantBuffer)
+    return;
+
 
   CComPtr <ID3D11Texture2D>        pBackBuffer       = nullptr;
   g_pSwapChain->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
@@ -339,13 +336,11 @@ ImGui_ImplDX11_CreateFontsTexture (void)
         desc.MaxLOD = 0.f;
         g_pd3dDevice->CreateSamplerState(&desc, &g_pFontSampler);
     }
-#endif
 }
 
 bool
 ImGui_ImplDX11_CreateDeviceObjects (void)
 {
-#ifndef TBFIX
   if (g_pFontSampler)
     ImGui_ImplDX11_InvalidateDeviceObjects ();
 
@@ -358,137 +353,136 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   if (! g_pSwapChain)
     return false;
 
-  // By using D3DCompile() from <d3dcompiler.h> / d3dcompiler.lib, we introduce a dependency to a given version of d3dcompiler_XX.dll (see D3DCOMPILER_DLL_A)
-  // If you would like to use this DX11 sample code but remove this dependency you can: 
-  //  1) compile once, save the compiled shader blobs into a file or source code and pass them to CreateVertexShader()/CreatePixelShader() [preferred solution]
-  //  2) use code to detect any version of the DLL and grab a pointer to D3DCompile from the DLL. 
-  // See https://github.com/ocornut/imgui/pull/638 for sources and details.
-
   // Create the vertex shader
   {
-      static const char* vertexShader =
-          "cbuffer vertexBuffer : register(b0) \
-          {\
-          float4x4 ProjectionMatrix; \
-          };\
-          struct VS_INPUT\
-          {\
-          float2 pos : POSITION;\
-          float4 col : COLOR0;\
-          float2 uv  : TEXCOORD0;\
-          };\
-          \
-          struct PS_INPUT\
-          {\
-          float4 pos : SV_POSITION;\
-          float4 col : COLOR0;\
-          float2 uv  : TEXCOORD0;\
-          };\
-          \
-          PS_INPUT main(VS_INPUT input)\
-          {\
-          PS_INPUT output;\
-          output.pos = mul( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));\
-          output.col = input.col;\
-          output.uv  = input.uv;\
-          return output;\
-          }";
+    static const char* vertexShader =
+      "cbuffer vertexBuffer : register(b0) \
+      {\
+      float4x4 ProjectionMatrix; \
+      };\
+      struct VS_INPUT\
+      {\
+      float2 pos : POSITION;\
+      float4 col : COLOR0;\
+      float2 uv  : TEXCOORD0;\
+      };\
+      \
+      struct PS_INPUT\
+      {\
+      float4 pos : SV_POSITION;\
+      float4 col : COLOR0;\
+      float2 uv  : TEXCOORD0;\
+      };\
+      \
+      PS_INPUT main(VS_INPUT input)\
+      {\
+      PS_INPUT output;\
+      output.pos = mul( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));\
+      output.col = input.col;\
+      output.uv  = input.uv;\
+      return output;\
+      }";
 
-      D3DCompile(vertexShader, strlen(vertexShader), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, NULL);
-      if (g_pVertexShaderBlob == NULL) // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-          return false;
-      if (g_pd3dDevice->CreateVertexShader((DWORD*)g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), NULL, &g_pVertexShader) != S_OK)
-          return false;
+    D3DCompile (vertexShader, strlen(vertexShader), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, NULL);
+    if (g_pVertexShaderBlob == NULL) // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+      return false;
+    if (g_pd3dDevice->CreateVertexShader((DWORD*)g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), NULL, &g_pVertexShader) != S_OK)
+      return false;
 
-      // Create the input layout
-      D3D11_INPUT_ELEMENT_DESC local_layout[] = {
-          { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-          { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-          { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      };
-      if (g_pd3dDevice->CreateInputLayout(local_layout, 3, g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), &g_pInputLayout) != S_OK)
-          return false;
+    // Create the input layout
+    D3D11_INPUT_ELEMENT_DESC local_layout[] = {
+      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    if (g_pd3dDevice->CreateInputLayout(local_layout, 3, g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), &g_pInputLayout) != S_OK)
+        return false;
 
-      // Create the constant buffer
-      {
-          D3D11_BUFFER_DESC desc;
-          desc.ByteWidth = sizeof(VERTEX_CONSTANT_BUFFER);
-          desc.Usage = D3D11_USAGE_DYNAMIC;
-          desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-          desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-          desc.MiscFlags = 0;
-          g_pd3dDevice->CreateBuffer(&desc, NULL, &g_pVertexConstantBuffer);
-      }
+    // Create the constant buffer
+    {
+      D3D11_BUFFER_DESC desc;
+      desc.ByteWidth      = sizeof (VERTEX_CONSTANT_BUFFER);
+      desc.Usage          = D3D11_USAGE_DYNAMIC;
+      desc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+      desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+      desc.MiscFlags      = 0;
+
+      g_pd3dDevice->CreateBuffer (&desc, NULL, &g_pVertexConstantBuffer);
+    }
   }
 
   // Create the pixel shader
   {
-      static const char* pixelShader =
-          "struct PS_INPUT\
-          {\
-          float4 pos : SV_POSITION;\
-          float4 col : COLOR0;\
-          float2 uv  : TEXCOORD0;\
-          };\
-          sampler sampler0;\
-          Texture2D texture0;\
-          \
-          float4 main(PS_INPUT input) : SV_Target\
-          {\
-          float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
-          return out_col; \
-          }";
+    static const char* pixelShader =
+      "struct PS_INPUT\
+      {\
+      float4 pos : SV_POSITION;\
+      float4 col : COLOR0;\
+      float2 uv  : TEXCOORD0;\
+      };\
+      sampler sampler0;\
+      Texture2D texture0;\
+      \
+      float4 main(PS_INPUT input) : SV_Target\
+      {\
+      float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
+      return out_col; \
+      }";
 
-      D3DCompile(pixelShader, strlen(pixelShader), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, NULL);
-      if (g_pPixelShaderBlob == NULL)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-          return false;
-      if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK)
-          return false;
+    D3DCompile (pixelShader, strlen(pixelShader), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, NULL);
+    if (g_pPixelShaderBlob == NULL)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+      return false;
+    if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK)
+      return false;
   }
 
   // Create the blending setup
   {
-      D3D11_BLEND_DESC desc;
-      ZeroMemory(&desc, sizeof(desc));
-      desc.AlphaToCoverageEnable = false;
-      desc.RenderTarget[0].BlendEnable = true;
-      desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-      desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-      desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-      desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-      desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-      desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-      g_pd3dDevice->CreateBlendState(&desc, &g_pBlendState);
+    D3D11_BLEND_DESC desc;
+    ZeroMemory (&desc, sizeof (desc));
+    desc.AlphaToCoverageEnable                  = false;
+    desc.RenderTarget [0].BlendEnable           = true;
+    desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_SRC_ALPHA;
+    desc.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+    desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+    desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_INV_SRC_ALPHA;
+    desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+    desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+    desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    g_pd3dDevice->CreateBlendState (&desc, &g_pBlendState);
   }
 
   // Create the rasterizer state
   {
-      D3D11_RASTERIZER_DESC desc;
-      ZeroMemory(&desc, sizeof(desc));
-      desc.FillMode = D3D11_FILL_SOLID;
-      desc.CullMode = D3D11_CULL_NONE;
-      desc.ScissorEnable = true;
-      desc.DepthClipEnable = true;
-      g_pd3dDevice->CreateRasterizerState(&desc, &g_pRasterizerState);
+    D3D11_RASTERIZER_DESC desc;
+    ZeroMemory (&desc, sizeof(desc));
+
+    desc.FillMode        = D3D11_FILL_SOLID;
+    desc.CullMode        = D3D11_CULL_NONE;
+    desc.ScissorEnable   = true;
+    desc.DepthClipEnable = true;
+
+    g_pd3dDevice->CreateRasterizerState (&desc, &g_pRasterizerState);
   }
 
   // Create depth-stencil State
   {
-      D3D11_DEPTH_STENCIL_DESC desc;
-      ZeroMemory(&desc, sizeof(desc));
-      desc.DepthEnable = false;
-      desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-      desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-      desc.StencilEnable = false;
-      desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-      desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-      desc.BackFace = desc.FrontFace;
-      g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState);
+    D3D11_DEPTH_STENCIL_DESC desc;
+    ZeroMemory (&desc, sizeof (desc));
+
+    desc.DepthEnable             = false;
+    desc.DepthWriteMask          = D3D11_DEPTH_WRITE_MASK_ALL;
+    desc.DepthFunc               = D3D11_COMPARISON_ALWAYS;
+    desc.StencilEnable           = false;
+    desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    desc.FrontFace.StencilFunc   = D3D11_COMPARISON_ALWAYS;
+    desc.BackFace                = desc.FrontFace;
+
+    g_pd3dDevice->CreateDepthStencilState (&desc, &g_pDepthStencilState);
   }
 
   ImGui_ImplDX11_CreateFontsTexture ();
-#endif
 
   return true;
 }
@@ -499,20 +493,20 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   if (! g_pd3dDevice)
     return;
 
-  if (g_pFontSampler) { g_pFontSampler->Release(); g_pFontSampler = NULL; }
-  if (g_pFontTextureView) { g_pFontTextureView->Release(); g_pFontTextureView = NULL; ImGui::GetIO().Fonts->TexID = 0; }
-  if (g_pIB) { g_pIB->Release(); g_pIB = NULL; }
-  if (g_pVB) { g_pVB->Release(); g_pVB = NULL; }
+  if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = NULL; }
+  if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = NULL; ImGui::GetIO().Fonts->TexID = 0; }
+  if (g_pIB)                   { g_pIB->Release              ();              g_pIB = NULL; }
+  if (g_pVB)                   { g_pVB->Release              ();              g_pVB = NULL; }
 
-  if (g_pBlendState) { g_pBlendState->Release(); g_pBlendState = NULL; }
-  if (g_pDepthStencilState) { g_pDepthStencilState->Release(); g_pDepthStencilState = NULL; }
-  if (g_pRasterizerState) { g_pRasterizerState->Release(); g_pRasterizerState = NULL; }
-  if (g_pPixelShader) { g_pPixelShader->Release(); g_pPixelShader = NULL; }
-  if (g_pPixelShaderBlob) { g_pPixelShaderBlob->Release(); g_pPixelShaderBlob = NULL; }
-  if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release(); g_pVertexConstantBuffer = NULL; }
-  if (g_pInputLayout) { g_pInputLayout->Release(); g_pInputLayout = NULL; }
-  if (g_pVertexShader) { g_pVertexShader->Release(); g_pVertexShader = NULL; }
-  if (g_pVertexShaderBlob) { g_pVertexShaderBlob->Release(); g_pVertexShaderBlob = NULL; }
+  if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = NULL; }
+  if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = NULL; }
+  if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = NULL; }
+  if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = NULL; }
+  if (g_pPixelShaderBlob)      { g_pPixelShaderBlob->Release      ();      g_pPixelShaderBlob = NULL; }
+  if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release (); g_pVertexConstantBuffer = NULL; }
+  if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = NULL; }
+  if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = NULL; }
+  if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = NULL; }
 
   g_pSwapChain = nullptr;
 }
