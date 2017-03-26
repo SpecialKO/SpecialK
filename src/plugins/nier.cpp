@@ -18,10 +18,17 @@
 #include <atlbase.h>
 
 
+#define SK_LOG0 if (config.system.log_level >= 1) dll_log.Log
+#define SK_LOG1 if (config.system.log_level >= 2) dll_log.Log
+#define SK_LOG2 if (config.system.log_level >= 3) dll_log.Log
+#define SK_LOG3 if (config.system.log_level >= 4) dll_log.Log
+
+
 sk::ParameterFactory  far_factory;
 iSK_INI*              far_prefs                 = nullptr;
 wchar_t               far_prefs_file [MAX_PATH] = { L'\0' };
 sk::ParameterInt*     far_gi_workgroups         = nullptr;
+sk::ParameterInt*     far_bloom_width           = nullptr;
 sk::ParameterBool*    far_limiter_busy          = nullptr;
 sk::ParameterBool*    far_rtss_warned           = nullptr;
 sk::ParameterBool*    far_osd_disclaimer        = nullptr;
@@ -29,12 +36,13 @@ sk::ParameterBool*    far_osd_disclaimer        = nullptr;
 
 // (Presumable) Size of compute shader workgroup
 int __FAR_GlobalIllumWorkGroupSize = 128;
+int __FAR_BloomWidth               =  -1; // Set at startup from user prefs, never changed
 
 extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define FAR_VERSION_NUM L"0.2.0.2"
+#define FAR_VERSION_NUM L"0.3.0"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 
@@ -308,6 +316,265 @@ SK_FAR_FirstFrame (void)
 }
 
 
+
+typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
+  _In_            ID3D11Device           *This,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D
+);
+typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation
+);
+typedef void (WINAPI *D3D11_Draw_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCount,
+  _In_ UINT                 StartVertexLocation
+);
+
+
+static D3D11Dev_CreateTexture2D_pfn  D3D11Dev_CreateTexture2D_Original = nullptr;
+static D3D11_DrawIndexed_pfn         D3D11_DrawIndexed_Original        = nullptr;
+static D3D11_Draw_pfn                D3D11_Draw_Original               = nullptr;
+
+
+extern HRESULT
+WINAPI
+D3D11Dev_CreateTexture2D_Override (
+  _In_            ID3D11Device           *This,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D );
+
+extern void
+WINAPI
+D3D11_DrawIndexed_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation );
+
+extern void
+WINAPI
+D3D11_Draw_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCount,
+  _In_ UINT                 StartVertexLocation );
+
+
+// Overview:
+//  The bloom pyramid in Nier:A is built up of 5 buffers, which are sized
+//  800x450, 400x225, 200x112, 100x56 and 50x28, regardless of resolution
+//  the mismatch between the largest buffer size and the screen resolution (in e.g. 2560x1440 or even 1920x1080)
+//  leads to some really ugly artifacts.
+//
+//  To change this, we need to
+//    1) Replace the rendertarget textures in question at their creation point
+//    2) Adjust the viewport and some constant shader parameter each time they are rendered to
+//
+//  Examples here:
+//    http://abload.de/img/bloom_defaultjhuq9.jpg 
+//    http://abload.de/img/bloom_fixedp7uef.jpg
+//
+//  Note that there are more low-res 800x450 buffers not yet handled by this, 
+//  but which could probably be handled similarly. Primarily, SSAO.
+
+HRESULT
+WINAPI
+SK_FAR_CreateTexture2D (
+  _In_            ID3D11Device           *This,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D )
+{
+  if (ppTexture2D == nullptr)
+    return D3D11Dev_CreateTexture2D_Original ( This, pDesc, pInitialData, nullptr );
+
+  static UINT  resW      = __FAR_BloomWidth; // horizontal resolution, must be set at application start
+  static float resFactor = resW / 1600.0f;   // the factor required to scale to the largest part of the pyramid
+
+  // R11G11B10 float textures of these sizes are part of the BLOOM PYRAMID
+  // Note: we do not manipulate the 50x28 buffer
+  //    -- it's read by a compute shader and the whole screen white level can be off if it is the wrong size
+  if (pDesc->Format == DXGI_FORMAT_R11G11B10_FLOAT)
+  {
+    if (   (pDesc->Width == 800 && pDesc->Height == 450)
+        || (pDesc->Width == 400 && pDesc->Height == 225)
+        || (pDesc->Width == 200 && pDesc->Height == 112)
+        || (pDesc->Width == 100 && pDesc->Height == 56) 
+        /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/ )
+    {
+      SK_LOG1 (L"Bloom Tex (%lux%lu)", pDesc->Width, pDesc->Height);
+
+      D3D11_TEXTURE2D_DESC copy = *pDesc;
+
+      // Scale the upper parts of the pyramid fully
+      // and lower levels progressively less
+      float pyramidLevelFactor  = (pDesc->Width - 50) / 750.0f;
+      float scalingFactor       = 1.0f + (resFactor - 1.0f) * pyramidLevelFactor;
+
+      copy.Width  = (UINT)(copy.Width  * scalingFactor);
+      copy.Height = (UINT)(copy.Height * scalingFactor);
+
+      pDesc       = &copy;
+    }
+  }
+
+  return D3D11Dev_CreateTexture2D_Original ( This,
+                                               pDesc, pInitialData,
+                                                 ppTexture2D );
+}
+
+
+// High level description:
+//  IF we have 
+//   - 1 viewport
+//   - with the size of one of the 4 elements of the pyramid we changed
+//   - and a primary rendertarget of type R11G11B10
+//   - which is associated with a texture of a size different from the viewport
+//  THEN
+//   - set the viewport to the texture size
+//   - adjust the pixel shader constant buffer in slot #12 to this format (4 floats):
+//     [ 0.5f / W, 0.5f / H, W, H ] (half-pixel size and total dimensions)
+void
+SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
+{
+  UINT numViewports = 0;
+
+  pDevCtx->RSGetViewports (&numViewports, nullptr);
+
+  if (numViewports == 1)
+  {
+    D3D11_VIEWPORT vp;
+
+    pDevCtx->RSGetViewports (&numViewports, &vp);
+
+    if (   (vp.Width == 800 && vp.Height == 450)
+        || (vp.Width == 400 && vp.Height == 225)
+        || (vp.Width == 200 && vp.Height == 112)
+        || (vp.Width == 100 && vp.Height == 56) )
+    {
+      CComPtr <ID3D11RenderTargetView> rtView = nullptr;
+
+      pDevCtx->OMGetRenderTargets (1, &rtView, nullptr);
+
+      if (rtView)
+      {
+        D3D11_RENDER_TARGET_VIEW_DESC desc;
+
+        rtView->GetDesc (&desc);
+
+        if (desc.Format == DXGI_FORMAT_R11G11B10_FLOAT)
+        {
+          CComPtr <ID3D11Resource> rt = nullptr;
+
+          rtView->GetResource (&rt);
+
+          if (rt != nullptr)
+          {
+            CComPtr <ID3D11Texture2D> rttex = nullptr;
+
+            rt->QueryInterface <ID3D11Texture2D> (&rttex);
+
+            if (rttex != nullptr)
+            {
+              D3D11_TEXTURE2D_DESC texdesc;
+              rttex->GetDesc (&texdesc);
+
+              if (texdesc.Width != vp.Width)
+              {
+                // Here we go!
+                // Viewport is the easy part
+
+                vp.Width  = (float)texdesc.Width;
+                vp.Height = (float)texdesc.Height;
+
+                pDevCtx->RSSetViewports (1, &vp);
+
+                // The constant buffer is a bit more difficult
+
+                // We don't want to create a new buffer every frame,
+                // but we also can't use the game's because they are read-only
+                // this just-in-time initialized map is a rather ugly solution,
+                // but it works as long as the game only renders from 1 thread (which it does)
+                // NOTE: rather than storing them statically here (basically a global) the lifetime should probably be managed
+
+                static std::map <UINT, ID3D11Buffer*> buffers;
+
+                auto iter = buffers.find (texdesc.Width);
+                if (iter == buffers.cend ())
+                {
+                  float constants [4] = {
+                    0.5f / vp.Width, 0.5f / vp.Height,
+                    (float)vp.Width, (float)vp.Height
+                  };
+
+                  CComPtr <ID3D11Device> dev;
+                  pDevCtx->GetDevice (&dev);
+
+                  D3D11_BUFFER_DESC buffdesc;
+                  buffdesc.ByteWidth           = 16;
+                  buffdesc.Usage               = D3D11_USAGE_IMMUTABLE;
+                  buffdesc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
+                  buffdesc.CPUAccessFlags      = 0;
+                  buffdesc.MiscFlags           = 0;
+                  buffdesc.StructureByteStride = 16;
+
+                  D3D11_SUBRESOURCE_DATA initialdata;
+                  initialdata.pSysMem = constants;
+
+                  ID3D11Buffer                                *replacementbuffer = nullptr;
+                  dev->CreateBuffer (&buffdesc, &initialdata, &replacementbuffer);
+
+                  buffers [texdesc.Width] = replacementbuffer;
+                }
+
+                pDevCtx->PSSetConstantBuffers (12, 1, &buffers [texdesc.Width]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+void
+WINAPI
+SK_FAR_DrawIndexed (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation )
+{
+  if (IndexCount == 4 && StartIndexLocation == 0 && BaseVertexLocation == 0)
+    SK_FAR_PreDraw (This);
+
+  return D3D11_DrawIndexed_Original ( This, IndexCount,
+                                        StartIndexLocation, BaseVertexLocation );
+}
+
+void
+WINAPI
+SK_FAR_Draw (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCount,
+  _In_ UINT                 StartVertexLocation )
+{
+  if (VertexCount == 4 && StartVertexLocation == 0)
+    SK_FAR_PreDraw (This);
+
+  return D3D11_Draw_Original ( This, VertexCount,
+                                 StartVertexLocation );
+}
+
+
+
+
 void
 SK_FAR_InitPlugin (void)
 {
@@ -324,8 +591,6 @@ SK_FAR_InitPlugin (void)
                           SK_FAR_CreateShaderResourceView,
                             (LPVOID *)&D3D11Dev_CreateShaderResourceView_Original );
   MH_QueueEnableHook (D3D11Dev_CreateShaderResourceView_Override);
-
-  MH_ApplyQueued ();
 
 
   if (far_prefs == nullptr)
@@ -395,8 +660,52 @@ SK_FAR_InitPlugin (void)
       far_osd_disclaimer->store     ();
     }
 
+
+    far_bloom_width =
+      static_cast <sk::ParameterInt *>
+        (far_factory.create_parameter <int> (L"Width of Bloom Post-Process"));
+
+    far_bloom_width->register_to_ini ( far_prefs,
+                                         L"FAR.Lighting",
+                                           L"BloomWidth" );
+
+    if (! far_bloom_width->load ())
+    {
+      far_bloom_width->set_value (-1);
+      far_bloom_width->store     (  );
+    }
+
+    __FAR_BloomWidth = far_bloom_width->get_value ();
+
+
     far_prefs->write (far_prefs_file);
 
+
+    // If overriding bloom resolution, add these additional hooks
+    //
+    if (__FAR_BloomWidth != -1)
+    {
+      SK_CreateFuncHook ( L"ID3D11Device::CreateTexture2D",
+                            D3D11Dev_CreateTexture2D_Override,
+                              SK_FAR_CreateTexture2D,
+                                (LPVOID *)&D3D11Dev_CreateTexture2D_Original );
+      MH_QueueEnableHook (D3D11Dev_CreateTexture2D_Override);
+
+      SK_CreateFuncHook ( L"ID3D11DeviceContext::Draw",
+                            D3D11_Draw_Override,
+                              SK_FAR_Draw,
+                                (LPVOID *)&D3D11_Draw_Original );
+      MH_QueueEnableHook (D3D11_Draw_Override);
+
+      SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexed",
+                            D3D11_DrawIndexed_Override,
+                              SK_FAR_DrawIndexed,
+                                (LPVOID *)&D3D11_DrawIndexed_Original );
+      MH_QueueEnableHook (D3D11_DrawIndexed_Override);
+    }
+
+
+    MH_ApplyQueued ();
 
     SK_GetCommandProcessor ()->AddVariable ("FAR.GIWorkgroups", SK_CreateVar (SK_IVariable::Int,     &__FAR_GlobalIllumWorkGroupSize));
     //SK_GetCommandProcessor ()->AddVariable ("FAR.BusyWait",     SK_CreateVar (SK_IVariable::Boolean, &__FAR_BusyWait));
@@ -470,35 +779,79 @@ SK_FAR_ControlPanel (void)
 
     far_gi_workgroups->set_value (__FAR_GlobalIllumWorkGroupSize);
     far_gi_workgroups->store     ();
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip ();
+      ImGui::Text         ("Global Illumination is indirect lighting bouncing off of surfaces");
+      ImGui::Separator    ();
+      ImGui::BulletText   ("Lower the quality for better performance but less natural looking lighting in shadows");
+      ImGui::BulletText   ("Please direct thanks for this feature to DrDaxxy ;)");
+      ImGui::EndTooltip   ();
+    }
+
+    bool busy_wait = (wait_behavior == SK_FAR_WaitBehavior::Busy);
+
+    if (ImGui::Checkbox ("Use Busy-Wait Framerate Limiter", &busy_wait))
+    {
+      changed = true;
+
+      if (busy_wait)
+        SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
+      else
+        SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
+
+      far_limiter_busy->set_value (busy_wait);
+      far_limiter_busy->store     ();
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Increase CPU load on render thread in exchange for less hitching");
+
+    bool expanded_bloom = ImGui::TreeNode ("Bloom");
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Changes to this setting require a full application restart");
+
+    if (expanded_bloom)
+    {
+      int bloom_behavior = (far_bloom_width->get_value () != -1);
+
+      if (ImGui::RadioButton ("Default Resolution (800x450)", &bloom_behavior, 0))
+      {
+        changed = true;
+
+        far_bloom_width->set_value (-1);
+        far_bloom_width->store     ();
+      }
+
+      ImGui::SameLine ();
+
+      if (ImGui::RadioButton ("Custom Resolution",        &bloom_behavior, 1))
+      {
+        far_bloom_width->set_value ((int)ImGui::GetIO ().DisplaySize.x);
+        far_bloom_width->store     ();
+
+        changed = true;
+      }
+
+      int width = far_bloom_width->get_value ();
+
+      if (bloom_behavior == 1)
+      {
+        ImGui::SameLine ();
+
+        if (ImGui::InputInt ("Width", &width))
+        {
+          far_bloom_width->set_value (width);
+          far_bloom_width->store     ();
+
+          changed = true;
+        }
+      }
+      ImGui::TreePop ();
+    }
   }
-
-  if (ImGui::IsItemHovered())
-  {
-    ImGui::BeginTooltip ();
-    ImGui::Text         ("Global Illumination is indirect lighting bouncing off of surfaces");
-    ImGui::Separator    ();
-    ImGui::BulletText   ("Lower the quality for better performance but less natural looking lighting in shadows");
-    ImGui::BulletText   ("Please direct thanks for this feature to DrDaxxy ;)");
-    ImGui::EndTooltip   ();
-  }
-
-  bool busy_wait = (wait_behavior == SK_FAR_WaitBehavior::Busy);
-
-  if (ImGui::Checkbox ("Use Busy-Wait Framerate Limiter", &busy_wait))
-  {
-    changed = true;
-
-    if (busy_wait)
-      SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
-    else
-      SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
-
-    far_limiter_busy->set_value (busy_wait);
-    far_limiter_busy->store     ();
-  }
-
-  if (ImGui::IsItemHovered ())
-    ImGui::SetTooltip ("Increase CPU load on render thread in exchange for less hitching");
 
   if (changed)
     far_prefs->write (far_prefs_file);

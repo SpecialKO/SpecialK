@@ -177,6 +177,12 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D
 );
+typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView_pfn)(
+  _In_            ID3D11Device                   *This,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
+  _Out_opt_       ID3D11RenderTargetView        **ppRTView
+);
 typedef void (WINAPI *D3D11_RSSetScissorRects_pfn)(
   _In_           ID3D11DeviceContext *This,
   _In_           UINT                 NumRects,
@@ -236,6 +242,17 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView
+);
+typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation
+);
+typedef void (WINAPI *D3D11_Draw_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCount,
+  _In_ UINT                 StartVertexLocation
 );
 
 
@@ -674,16 +691,32 @@ _Out_opt_       ID3D11Texture2D        **ppTexture2D );
 
 D3D11Dev_CreateBuffer_pfn             D3D11Dev_CreateBuffer_Original             = nullptr;
 D3D11Dev_CreateTexture2D_pfn          D3D11Dev_CreateTexture2D_Original          = nullptr;
+D3D11Dev_CreateRenderTargetView_pfn   D3D11Dev_CreateRenderTargetView_Original   = nullptr;
 D3D11Dev_CreateShaderResourceView_pfn D3D11Dev_CreateShaderResourceView_Original = nullptr;
 
 D3D11_RSSetScissorRects_pfn     D3D11_RSSetScissorRects_Original    = nullptr;
 D3D11_RSSetViewports_pfn        D3D11_RSSetViewports_Original       = nullptr;
 D3D11_VSSetConstantBuffers_pfn  D3D11_VSSetConstantBuffers_Original = nullptr;
 D3D11_UpdateSubresource_pfn     D3D11_UpdateSubresource_Original    = nullptr;
+D3D11_DrawIndexed_pfn           D3D11_DrawIndexed_Original          = nullptr;
+D3D11_Draw_pfn                  D3D11_Draw_Original                 = nullptr;
 D3D11_Map_pfn                   D3D11_Map_Original                  = nullptr;
 
 D3D11_CopyResource_pfn          D3D11_CopyResource_Original       = nullptr;
 D3D11_UpdateSubresource1_pfn    D3D11_UpdateSubresource1_Original = nullptr;
+
+HRESULT
+WINAPI
+D3D11Dev_CreateRenderTargetView_Override (
+  _In_            ID3D11Device                   *This,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
+  _Out_opt_       ID3D11RenderTargetView        **ppRTView )
+{
+  return D3D11Dev_CreateRenderTargetView_Original (
+           This, pResource,
+             pDesc, ppRTView );
+}
 
 void
 WINAPI
@@ -788,6 +821,31 @@ D3D11_CopyResource_Override (
   D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
 }
 
+
+__declspec (noinline)
+void
+WINAPI
+D3D11_DrawIndexed_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation )
+{
+  return D3D11_DrawIndexed_Original ( This, IndexCount,
+                                              StartIndexLocation,
+                                                BaseVertexLocation );
+}
+
+__declspec (noinline)
+void
+WINAPI
+D3D11_Draw_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCount,
+  _In_ UINT                 StartVertexLocation )
+{
+  return D3D11_Draw_Original ( This, VertexCount, StartVertexLocation );
+}
 
 
 
@@ -2926,6 +2984,13 @@ HookD3D11 (LPVOID user)
       DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 7, "ID3D11Device::CreateShaderResourceView",
                              D3D11Dev_CreateShaderResourceView_Override, D3D11Dev_CreateShaderResourceView_Original,
                              D3D11Dev_CreateShaderResourceView_pfn);
+
+// Don't need it, so don't hook it.
+#if 0
+      DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 9, "ID3D11Device::CreateRenderTargetView",
+                             D3D11Dev_CreateRenderTargetView_Override, D3D11Dev_CreateRenderTargetView_Original,
+                             D3D11Dev_CreateRenderTargetView_pfn);
+#endif
     }
 
     if (pHooks->ppImmediateContext != nullptr)
@@ -2933,6 +2998,14 @@ HookD3D11 (LPVOID user)
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                              D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                              D3D11_VSSetConstantBuffers_pfn);
+
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 12, "ID3D11DeviceContext::DrawIndexed",
+                           D3D11_DrawIndexed_Override, D3D11_DrawIndexed_Original,
+                           D3D11_DrawIndexed_pfn);
+
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 13, "ID3D11DeviceContext::Draw",
+                           D3D11_Draw_Override, D3D11_Draw_Original,
+                           D3D11_Draw_pfn);
 
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
                            D3D11_Map_Override, D3D11_Map_Original,
