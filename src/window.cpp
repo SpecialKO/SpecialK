@@ -749,9 +749,15 @@ ImGui_ToggleCursor (void)
   static bool imgui_cursor = false;
 
   if (! imgui_cursor)
+  {
+    ShowCursor         (FALSE);
     SetCursor_Original (nullptr);
-  else
+    SetCursorPos       ( ImGui::GetIO ().DisplaySize.x / 2, 
+                         ImGui::GetIO ().DisplaySize.y / 2 );
+  } else {
+    ShowCursor         (TRUE);
     SetCursor_Original (game_cursor);
+  }
 
   imgui_cursor = (! imgui_cursor);
 }

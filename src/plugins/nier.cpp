@@ -42,7 +42,7 @@ extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define FAR_VERSION_NUM L"0.3.0"
+#define FAR_VERSION_NUM L"0.3.0.1"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 
@@ -278,6 +278,14 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
 void
 SK_FAR_FirstFrame (void)
 {
+  if (! SK_IsInjected ())
+  {
+    bool busy_wait = far_limiter_busy->get_value ();
+
+    SK_FAR_SetLimiterWait ( busy_wait ? SK_FAR_WaitBehavior::Busy :
+                                        SK_FAR_WaitBehavior::Sleep );
+  }
+
   if (GetModuleHandle (L"RTSSHooks64.dll"))
   {
     bool warned = far_rtss_warned->get_value ();
@@ -568,17 +576,8 @@ SK_FAR_Draw (
 void
 SK_FAR_InitPlugin (void)
 {
-  // Originally tried to wait until the first frame,
-  //   that won't work because of process fork behavior (Denuvo?)
   if (! SK_IsInjected ())
-  {
-    SK_FAR_CheckVersion   (nullptr);
-
-    bool busy_wait = far_limiter_busy->get_value ();
-
-    SK_FAR_SetLimiterWait ( busy_wait ? SK_FAR_WaitBehavior::Busy :
-                                        SK_FAR_WaitBehavior::Sleep );
-  }
+    SK_FAR_CheckVersion (nullptr);
 
   SK_SetPluginName (FAR_VERSION_STR);
 
@@ -678,6 +677,14 @@ SK_FAR_InitPlugin (void)
     }
 
     __FAR_BloomWidth = far_bloom_width->get_value ();
+
+    // Bloom Width must be > 0 or -1, never 0!
+    if (__FAR_BloomWidth <= 0) {
+      __FAR_BloomWidth =                -1;
+      far_bloom_width->set_value (__FAR_BloomWidth);
+      far_bloom_width->store     (                );
+    }
+
 
 
     far_prefs->write (far_prefs_file);
@@ -845,6 +852,10 @@ SK_FAR_ControlPanel (void)
 
         if (ImGui::InputInt ("Width", &width))
         {
+          // Clamp values, 0 will crash!
+          if (width <= 0)
+            width = -1;
+
           far_bloom_width->set_value (width);
           far_bloom_width->store     ();
 
