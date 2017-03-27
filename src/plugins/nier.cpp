@@ -278,16 +278,6 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
 void
 SK_FAR_FirstFrame (void)
 {
-  if (! SK_IsInjected ())
-  {
-    SK_FAR_CheckVersion   (nullptr);
-
-    bool busy_wait = far_limiter_busy->get_value ();
-
-    SK_FAR_SetLimiterWait ( busy_wait ? SK_FAR_WaitBehavior::Busy :
-                                        SK_FAR_WaitBehavior::Sleep );
-  }
-
   if (GetModuleHandle (L"RTSSHooks64.dll"))
   {
     bool warned = far_rtss_warned->get_value ();
@@ -578,6 +568,18 @@ SK_FAR_Draw (
 void
 SK_FAR_InitPlugin (void)
 {
+  // Originally tried to wait until the first frame,
+  //   that won't work because of process fork behavior (Denuvo?)
+  if (! SK_IsInjected ())
+  {
+    SK_FAR_CheckVersion   (nullptr);
+
+    bool busy_wait = far_limiter_busy->get_value ();
+
+    SK_FAR_SetLimiterWait ( busy_wait ? SK_FAR_WaitBehavior::Busy :
+                                        SK_FAR_WaitBehavior::Sleep );
+  }
+
   SK_SetPluginName (FAR_VERSION_STR);
 
   SK_CreateFuncHook ( L"ID3D11Device::CreateBuffer",

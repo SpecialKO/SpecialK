@@ -681,15 +681,13 @@ Update_DlgProc (
                               nullptr, nullptr,
                                 SW_SHOWMAXIMIZED );
 
-        InterlockedExchange ( &__SK_UpdateStatus, 1 );
         EndDialog           (  hWndUpdateDlg,     0 );
         hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+        InterlockedExchange ( &__SK_UpdateStatus, 1 );
       }
 
       if (LOWORD (wParam) == IDC_AUTO_CMD)
       {
-        InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
-
         update_dlg_backup =
           Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_BACKUP_FILES)) != 0;
 
@@ -817,16 +815,16 @@ Update_DlgProc (
             DeleteFileW (update_dlg_file);
 
           // SUCCESS:
-          InterlockedExchange ( &__SK_UpdateStatus, 1 );
           EndDialog           (  hWndUpdateDlg,     0 );
           hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+          InterlockedExchange ( &__SK_UpdateStatus, 1 );
         }
 
         else {
           // FAILURE:
-          InterlockedExchange ( &__SK_UpdateStatus, -1 );
           EndDialog           (  hWndUpdateDlg,      0 );
           hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+          InterlockedExchange ( &__SK_UpdateStatus, -1 );
         }
       }
 
