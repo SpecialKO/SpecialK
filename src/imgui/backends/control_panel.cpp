@@ -25,6 +25,8 @@ extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
 
+       bool               SK_DXGI_SlowStateCache = false;
+
 extern GetCursorInfo_pfn GetCursorInfo_Original;
        bool              cursor_vis      = false;
 
@@ -315,6 +317,8 @@ SK_ImGui_ControlPanel (void)
     if ( api == SK_RenderAPI::D3D11 &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings" ) )
     {
+      ImGui::Checkbox ("Slow State Cache", &SK_DXGI_SlowStateCache);
+
       if (ImGui::TreeNode ("Texture Management"))
       {
         ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache); 

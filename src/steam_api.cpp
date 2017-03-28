@@ -2858,12 +2858,12 @@ SK_UseManifestToGetAppName (uint32_t appid)
     wszSteamPath =
       SK_GetSteamDir ();
 
-      if (wszSteamPath != nullptr)
-      {
-        wchar_t wszLibraryFolders [MAX_PATH];
+    if (wszSteamPath != nullptr)
+    {
+      wchar_t wszLibraryFolders [MAX_PATH];
 
-        lstrcpyW (wszLibraryFolders, wszSteamPath);
-        lstrcatW (wszLibraryFolders, L"\\steamapps\\libraryfolders.vdf");
+      lstrcpyW (wszLibraryFolders, wszSteamPath);
+      lstrcatW (wszLibraryFolders, L"\\steamapps\\libraryfolders.vdf");
 
       if (GetFileAttributesW (wszLibraryFolders) != INVALID_FILE_ATTRIBUTES)
       {
@@ -3621,7 +3621,7 @@ SK_HookSteamAPI (void)
   //
   // Do not queue these up (by calling CreateDLLHook2),
   //   they will be installed only upon the game successfully
-  //     calling one of hte SteamAPI initialization functions.
+  //     calling one of the SteamAPI initialization functions.
   //
   SK_CreateDLLHook ( wszSteamAPI,
                      "SteamAPI_RunCallbacks",

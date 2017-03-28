@@ -241,6 +241,7 @@ struct sk_config_t
       } res;
       int     scaling_mode      =    -1; // -1 = Don't Care
       bool    test_present      = false;
+      bool    slow_state_cache  = false;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)

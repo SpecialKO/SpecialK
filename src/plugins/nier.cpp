@@ -18,6 +18,22 @@
 #include <atlbase.h>
 
 
+struct game_state_s {
+  DWORD* pMenu    = (DWORD *)0x1418F39C4;
+  DWORD* pLoading = (DWORD *)0x141975520;
+
+  bool   capped   = true;
+
+  bool needFPSCap (void) {
+    return (*pMenu != 0) || (*pLoading != 0);
+  }
+
+  void capFPS   (void);
+  void uncapFPS (void);
+} game_state;
+
+
+
 #define SK_LOG0 if (config.system.log_level >= 1) dll_log.Log
 #define SK_LOG1 if (config.system.log_level >= 2) dll_log.Log
 #define SK_LOG2 if (config.system.log_level >= 3) dll_log.Log
@@ -30,6 +46,7 @@ wchar_t               far_prefs_file [MAX_PATH] = { L'\0' };
 sk::ParameterInt*     far_gi_workgroups         = nullptr;
 sk::ParameterInt*     far_bloom_width           = nullptr;
 sk::ParameterBool*    far_limiter_busy          = nullptr;
+sk::ParameterBool*    far_slow_state_cache      = nullptr;
 sk::ParameterBool*    far_rtss_warned           = nullptr;
 sk::ParameterBool*    far_osd_disclaimer        = nullptr;
 
@@ -42,7 +59,7 @@ extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define FAR_VERSION_NUM L"0.3.0.1"
+#define FAR_VERSION_NUM L"0.4.0"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 
@@ -205,7 +222,8 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
   DWORD dwProtect;
   VirtualProtect (wait_addr, 6, PAGE_EXECUTE_READWRITE, &dwProtect);
 
-  // Hard coded for now, 
+  // Hard coded for now; safe to do this without pausing threads and flushing caches
+  //   because the config UI runs from the only thread that the game framerate limits.
   switch (behavior)
   {
     case SK_FAR_WaitBehavior::Busy:
@@ -238,9 +256,40 @@ SK_FAR_BeginFrame (void)
 {
   SK_BeginFrame_Original ();
 
-  SK_DrawExternalOSD ( "FAR", "  Press Ctrl + Shift + O         to toggle In-Game OSD\n"
-                              "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n\n"
-                              "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
+  if (far_osd_disclaimer->get_value ())
+    SK_DrawExternalOSD ( "FAR", "  Press Ctrl + Shift + O         to toggle In-Game OSD\n"
+                                "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n\n"
+                                "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
+  else if (config.system.log_level > 0)
+  {
+    std::string state = "";
+
+    if (game_state.needFPSCap ()) {
+      state += "< Needs Cap :";
+      if (*game_state.pLoading) state += " loading ";
+      if (*game_state.pMenu)    state += " menu ";
+      state += ">";
+    }
+
+    if (game_state.capped)
+      state += " { Capped }";
+    else
+      state += " { Uncapped }";
+
+    SK_DrawExternalOSD ( "FAR", state);
+  }
+
+  if (game_state.needFPSCap () && (! game_state.capped))
+  {
+    game_state.capFPS ();
+    game_state.capped = true;
+  }
+
+  if ((! game_state.needFPSCap ()) && game_state.capped)
+  {
+    game_state.uncapFPS ();
+    game_state.capped = false;
+  }
 }
 
 
@@ -250,17 +299,8 @@ DWORD
 WINAPI
 SK_FAR_OSD_Disclaimer (LPVOID user)
 {
-  SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
-                                             SK_FAR_BeginFrame,
-                                  (LPVOID *)&SK_BeginFrame_Original );
-
-  SK_EnableHook (SK_BeginBufferSwap);
-
   while (config.osd.show)
     Sleep (66);
-
-  SK_DisableHook (SK_BeginBufferSwap);
-  SK_RemoveHook  (SK_BeginBufferSwap);
 
   SK_DrawExternalOSD ( "FAR", "" );
 
@@ -647,6 +687,23 @@ SK_FAR_InitPlugin (void)
       far_rtss_warned->store     ();
     }
 
+    far_slow_state_cache =
+      static_cast <sk::ParameterBool *>
+        (far_factory.create_parameter <bool> (L"Disable D3D11.1 Interop Stateblocks"));
+
+    extern bool SK_DXGI_SlowStateCache;
+
+    if (! far_slow_state_cache->load ())
+      SK_DXGI_SlowStateCache = true;
+    else
+      SK_DXGI_SlowStateCache = far_slow_state_cache->get_value ();
+
+    config.render.dxgi.slow_state_cache = SK_DXGI_SlowStateCache;
+
+    far_slow_state_cache->set_value (SK_DXGI_SlowStateCache);
+    far_slow_state_cache->store     ();
+
+
     far_osd_disclaimer = 
         static_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"OSD Disclaimer Dismissed"));
@@ -685,6 +742,11 @@ SK_FAR_InitPlugin (void)
       far_bloom_width->store     (                );
     }
 
+
+    SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
+                                               SK_FAR_BeginFrame,
+                                    (LPVOID *)&SK_BeginFrame_Original );
+    MH_QueueEnableHook (SK_BeginBufferSwap);
 
 
     far_prefs->write (far_prefs_file);
@@ -799,6 +861,7 @@ SK_FAR_ControlPanel (void)
       ImGui::EndTooltip   ();
     }
 
+#if 0
     bool busy_wait = (wait_behavior == SK_FAR_WaitBehavior::Busy);
 
     if (ImGui::Checkbox ("Use Busy-Wait Framerate Limiter", &busy_wait))
@@ -816,6 +879,7 @@ SK_FAR_ControlPanel (void)
 
     if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("Increase CPU load on render thread in exchange for less hitching");
+#endif
 
     bool expanded_bloom = ImGui::TreeNode ("Bloom");
 
@@ -876,3 +940,76 @@ SK_FAR_IsPlugIn (void)
 {
   return far_prefs != nullptr;
 }
+
+
+#define mbegin(addr, len)   \
+  VirtualProtect (          \
+    addr,                   \
+    len,                    \
+    PAGE_EXECUTE_READWRITE, \
+    &old_protect_mask       \
+);
+
+#define mend(addr, len)  \
+  VirtualProtect (       \
+    addr,                \
+    len,                 \
+    old_protect_mask,    \
+    &old_protect_mask    \
+);
+
+
+
+uint8_t* psleep     = (uint8_t *)0x14092E887;
+uint8_t* pspinlock  = (uint8_t *)0x14092E8CF;
+uint8_t* pmin_tstep = (uint8_t *)0x140805DEC;
+uint8_t* pmax_tstep = (uint8_t *)0x140805E18;
+
+void
+game_state_s::uncapFPS (void)
+{
+  DWORD old_protect_mask;
+
+  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
+
+  mbegin (pspinlock, 2)
+  memset (pspinlock, 0x90, 2);
+  mend   (pspinlock, 2)
+
+  mbegin (pmin_tstep, 1)
+  *pmin_tstep = 0xEB;
+  mend   (pmin_tstep, 1)
+
+  mbegin (pmax_tstep, 2)
+  pmax_tstep [0] = 0x90;
+  pmax_tstep [1] = 0xE9;
+  mend   (pmax_tstep, 2)
+}
+
+
+
+void
+game_state_s::capFPS (void)
+{
+  DWORD  old_protect_mask;
+
+  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
+
+  mbegin (pspinlock, 2)
+  pspinlock [0] = 0x77;
+  pspinlock [1] = 0x9F;
+  mend   (pspinlock, 2)
+
+  mbegin (pmin_tstep, 1)
+  *pmin_tstep = 0x73;
+  mend   (pmin_tstep, 1)
+
+  mbegin (pmax_tstep, 2)
+  pmax_tstep [0] = 0x0F;
+  pmax_tstep [1] = 0x86;
+  mend   (pmax_tstep, 2)
+}
+
+
+#undef mbegin
+#undef mend

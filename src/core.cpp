@@ -571,6 +571,123 @@ SK_InitFinishCallback (void)
 {
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
+  static volatile LONG cegui_init = FALSE;
+
+  if ((! InterlockedCompareExchange (&cegui_init, 1, 0)))
+  {
+    if (config.cegui.enable)
+    {
+      SK_LockDllLoader ();
+  
+      // Disable until we validate CEGUI's state
+      config.cegui.enable = false;
+  
+      wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
+      wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
+  
+  #ifdef _WIN64
+      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
+  #else
+      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
+  #endif
+  
+      lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
+      lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+  
+      // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
+      //   do support it if a certain Windows Update (KB2533623) is installed.
+      typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
+      typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
+      typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
+  
+      static AddDllDirectory_pfn k32_AddDllDirectory =
+        (AddDllDirectory_pfn)
+          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                             "AddDllDirectory" );
+  
+      static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
+        (RemoveDllDirectory_pfn)
+          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                             "RemoveDllDirectory" );
+  
+      static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
+        (SetDefaultDllDirectories_pfn)
+          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                             "SetDefaultDllDirectories" );
+  
+      if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
+           k32_SetDefaultDllDirectories &&
+  
+             GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
+      {
+        dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
+  
+        wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
+  
+        _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+        _wputenv  (wszEnvVar);
+  
+        // This tests for the existence of the DLL before attempting to load it...
+        auto DelayLoadDLL = [&](const char* szDLL)->
+          bool
+            {
+              k32_SetDefaultDllDirectories (
+                LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+              );
+  
+              DLL_DIRECTORY_COOKIE cookie = 0;
+              bool                 ret    = false;
+  
+              __try {
+                    char szFullDLL [MAX_PATH] = { '\0' };
+                sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
+  
+                cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
+                ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
+              }
+  
+              __except (EXCEPTION_EXECUTE_HANDLER) {
+              }
+  
+              k32_RemoveDllDirectory (cookie);
+  
+              return ret;
+            };
+  
+        if (DelayLoadDLL ("CEGUIBase-0.dll"))
+        {
+          //if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+          //{
+            if (config.apis.OpenGL.hook)
+            {
+              if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
+                config.cegui.enable = true;
+            }
+          //}
+
+          //if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
+            //   SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
+          //{
+            if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
+            {
+              if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
+                config.cegui.enable = true;
+            }
+          //}
+
+          //if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 || (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe")) )
+          //{
+            if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
+              config.cegui.enable = true;
+          //}
+        }
+      }
+  
+      SK_UnlockDllLoader ();
+    }
+  }
+
   LeaveCriticalSection (&init_mutex);
 
   SK_Console* pConsole = SK_Console::getInstance ();
@@ -1778,124 +1895,6 @@ SK_BeginBufferSwap (void)
         SK_FAR_FirstFrame ();
     }
   }
-
-  static volatile LONG cegui_init = FALSE;
-
-  if ((! InterlockedCompareExchange (&cegui_init, 1, 0)))
-  {
-    if (config.cegui.enable)
-    {
-      SK_LockDllLoader ();
-  
-      // Disable until we validate CEGUI's state
-      config.cegui.enable = false;
-  
-      wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
-      wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
-  
-  #ifdef _WIN64
-      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
-  #else
-      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
-  #endif
-  
-      lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
-      lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
-  
-      // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
-      //   do support it if a certain Windows Update (KB2533623) is installed.
-      typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
-      typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
-      typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
-  
-      static AddDllDirectory_pfn k32_AddDllDirectory =
-        (AddDllDirectory_pfn)
-          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                             "AddDllDirectory" );
-  
-      static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
-        (RemoveDllDirectory_pfn)
-          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                             "RemoveDllDirectory" );
-  
-      static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
-        (SetDefaultDllDirectories_pfn)
-          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                             "SetDefaultDllDirectories" );
-  
-      if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
-           k32_SetDefaultDllDirectories &&
-  
-             GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
-      {
-        dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
-  
-        wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
-  
-        _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
-        _wputenv  (wszEnvVar);
-  
-        // This tests for the existence of the DLL before attempting to load it...
-        auto DelayLoadDLL = [&](const char* szDLL)->
-          bool
-            {
-              k32_SetDefaultDllDirectories (
-                LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
-              );
-  
-              DLL_DIRECTORY_COOKIE cookie = 0;
-              bool                 ret    = false;
-  
-              __try {
-                    char szFullDLL [MAX_PATH] = { '\0' };
-                sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
-  
-                cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
-                ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
-              }
-  
-              __except (EXCEPTION_EXECUTE_HANDLER) {
-              }
-  
-              k32_RemoveDllDirectory (cookie);
-  
-              return ret;
-            };
-  
-        if (DelayLoadDLL ("CEGUIBase-0.dll"))
-        {
-          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
-          {
-            if (config.apis.OpenGL.hook)
-            {
-              if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
-                config.cegui.enable = true;
-            }
-          }
-
-          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
-               SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
-          {
-            if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-            {
-              if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
-                config.cegui.enable = true;
-            }
-          }
-
-          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 || (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe")) )
-          {
-            if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
-              config.cegui.enable = true;
-          }
-        }
-      }
-  
-      SK_UnlockDllLoader ();
-    }
-  }
-
 
   SK_DrawOSD         ();
   SK_DrawConsole     ();
