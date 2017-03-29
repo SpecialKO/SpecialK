@@ -521,6 +521,9 @@ extern "C++" bool SK_DS3_IsBorderless       (void);
 extern "C++" HRESULT STDMETHODCALLTYPE
                   SK_DS3_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 
+extern "C++" HRESULT STDMETHODCALLTYPE
+                  SK_FAR_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
+
 extern "C" unsigned int __stdcall SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID);
 
 void
@@ -1896,6 +1899,9 @@ extern "C" {
 
       else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe")
         SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
+
+      else if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
+        SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
 
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )

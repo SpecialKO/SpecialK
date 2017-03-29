@@ -631,6 +631,37 @@ SK_InitFinishCallback (void)
         auto DelayLoadDLL = [&](const char* szDLL)->
           bool
             {
+              // Prevent race condition
+              SK_LockDllLoader ();
+
+              // Brutally stupid hack for brutally stupid OS (Windows 7)
+              //
+              //   1. Lock the DLL loader + Suspend all Threads
+              //   2. Change Working Dir  + Delay-Load CEGUI DLLs
+              //   3. Restore Working Dir
+              //   4. Resume all Threads  + Unlock DLL Loader
+              //
+              //     >> Not necessary if the kernel supports altered DLL serarch
+              //          paths <<
+              //
+#if 1
+              wchar_t wszWorkingDir [MAX_PATH + 2] = { L'\0' };
+
+              std::queue <DWORD> tids = 
+                SK_SuspendAllOtherThreads ();
+
+              GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
+              SetCurrentDirectory    (        wszCEGUIModPath);
+
+              bool ret = SUCCEEDED   ( __HrLoadAllImportsForDll (szDLL)           );
+
+              SetCurrentDirectory    (wszWorkingDir);
+
+              SK_ResumeThreads       (tids);
+              SK_UnlockDllLoader     ();
+
+              return ret;
+#else
               k32_SetDefaultDllDirectories (
                 LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
                 LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
@@ -651,8 +682,10 @@ SK_InitFinishCallback (void)
               }
   
               k32_RemoveDllDirectory (cookie);
+              SK_UnlockDllLoader     ();
   
               return ret;
+#endif
             };
   
         if (DelayLoadDLL ("CEGUIBase-0.dll"))
@@ -1889,10 +1922,6 @@ SK_BeginBufferSwap (void)
       InterlockedExchange (&first, 0);
 
       SK_ResetWindow ();
-
-      // Do Plug-In Version Check during the first frame
-      if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
-        SK_FAR_FirstFrame ();
     }
   }
 

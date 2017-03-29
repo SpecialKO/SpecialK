@@ -317,7 +317,10 @@ SK_ImGui_ControlPanel (void)
     if ( api == SK_RenderAPI::D3D11 &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings" ) )
     {
-      ImGui::Checkbox ("Slow State Cache", &SK_DXGI_SlowStateCache);
+      ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Increased compatibility with video capture software");
 
       if (ImGui::TreeNode ("Texture Management"))
       {
@@ -327,7 +330,6 @@ SK_ImGui_ControlPanel (void)
           ImGui::SetTooltip ("Reduce driver memory management overhead in games that stream textures.");
 
         ImGui::SameLine (); ImGui::BulletText ("Requires restart");
-
 
         if (config.textures.d3d11.cache) {
           ImGui::Checkbox ("Ignore textures with no mipmaps", &config.textures.cache.ignore_nonmipped);
@@ -373,8 +375,13 @@ SK_ImGui_ControlPanel (void)
       bool res_limits =
         ImGui::TreeNodeEx ("Resolution Limiting", enable_resolution_limits ? ImGuiTreeNodeFlags_DefaultOpen : 0x00);
 
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Restrict the lowest/highest available resolution a game knows about; this may be useful for games that compute aspect ratio based on the highest reported resolution.");
+      if (ImGui::IsItemHovered ()) {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Restrict the lowest/highest resolutions reported to a game");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Useful for games that compute aspect ratio based on the highest reported resolution.");
+        ImGui::EndTooltip   ();
+      }
 
       if (res_limits) {
         ImGui::InputInt2 ("Minimum Resolution", (int *)&config.render.dxgi.res.min.x);
@@ -476,7 +483,7 @@ SK_ImGui_ControlPanel (void)
         EnableActiveAPI   (api);
       }
 
-      if (ImGui::TreeNode("Hardware Monitoring APIs"))
+      if (ImGui::TreeNode ("Hardware Monitoring APIs"))
       {
         ImGui::Checkbox ("NvAPI  ", &config.apis.NvAPI.enable);
         if (ImGui::IsItemHovered ())
@@ -487,6 +494,19 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("AMD's hardware monitoring API, needed for the GPU stats on the OSD. Turn off only if your driver is buggy.");
         ImGui::TreePop();
+      }
+
+      if (ImGui::CollapsingHeader ("Debugging"))
+      {
+        ImGui::TreePush  ("");
+        ImGui::Checkbox  ("Enable Crash Handler",           &config.system.handle_crashes);
+        ImGui::Checkbox  ("Rehook Load Library",            &config.compatibility.rehook_loadlibrary);
+        ImGui::SliderInt ("Log Level",                      &config.system.log_level, 0, 5);
+        ImGui::Checkbox  ("Log Game Output",                &config.system.game_output);
+        ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out);
+        ImGui::Checkbox  ("Trace LoadLibrary",              &config.system.trace_load_library);
+        ImGui::Checkbox  ("Strict DLL Loader Compliance",   &config.system.strict_compliance);
+        ImGui::TreePop   ();
       }
     }
 
@@ -540,8 +560,6 @@ SK_ImGui_ControlPanel (void)
           ImGui::BulletText ("If mouselook is causing problems, use this setting to force input capture unconditionally.");
         ImGui::EndTooltip   ();
       }
-
-      
     }
 
     if ( ImGui::CollapsingHeader ("Window Management") )
@@ -603,19 +621,6 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePop  ();
       }
-    }
-
-    if (ImGui::CollapsingHeader ("Debug Features"))
-    {
-      ImGui::TreePush  ("");
-      ImGui::Checkbox  ("Enable Crash Handler",           &config.system.handle_crashes);
-      ImGui::Checkbox  ("Rehook Load Library",            &config.compatibility.rehook_loadlibrary);
-      ImGui::SliderInt ("Log Level",                      &config.system.log_level, 0, 5);
-      ImGui::Checkbox  ("Log Game Output",                &config.system.game_output);
-      ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out);
-      ImGui::Checkbox  ("Trace LoadLibrary",              &config.system.trace_load_library);
-      ImGui::Checkbox  ("Strict DLL Loader Compliance",   &config.system.strict_compliance);
-      ImGui::TreePop   ();
     }
 
     if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
@@ -941,5 +946,80 @@ SK_ImGui_Toggle (void)
       ImGui::GetIO ().WantCaptureKeyboard = false;
       ImGui::GetIO ().WantCaptureMouse    = false;
     }
+  }
+
+
+  // Send the game key release notifications when activating / deactivating menu
+  //   otherwise some may consider a key stuck and behave strangely (ReShade has this problem).
+
+  bool control   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
+  bool shift     = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
+  bool backspace = (GetAsyncKeyState_Original (VK_BACK)    & 0x8000) != 0;
+
+  INPUT keys [2];
+
+  keys [0].type           = INPUT_KEYBOARD;
+  keys [0].ki.wVk         = VK_CONTROL;
+  keys [0].ki.wScan       = 0x0;
+  keys [0].ki.dwFlags     = 0x0;
+  keys [0].ki.time        = 0;
+  keys [0].ki.dwExtraInfo = 0;
+
+  SendInput (1, &keys [0], sizeof INPUT);
+
+  if (! control)
+  {
+    keys [1].type           = INPUT_KEYBOARD;
+    keys [1].ki.wVk         = VK_CONTROL;
+    keys [1].ki.wScan       = 0x0;
+    keys [1].ki.dwFlags     = KEYEVENTF_KEYUP;
+    keys [1].ki.time        = 0;
+    keys [1].ki.dwExtraInfo = 0;
+
+    SendInput (1, &keys [1], sizeof INPUT);
+  }
+
+
+  keys [0].type           = INPUT_KEYBOARD;
+  keys [0].ki.wVk         = VK_SHIFT;
+  keys [0].ki.wScan       = 0x0;
+  keys [0].ki.dwFlags     = 0x0;
+  keys [0].ki.time        = 0;
+  keys [0].ki.dwExtraInfo = 0;
+
+  SendInput (1, &keys [0], sizeof INPUT);
+
+  if (! shift)
+  {
+    keys [1].type           = INPUT_KEYBOARD;
+    keys [1].ki.wVk         = VK_SHIFT;
+    keys [1].ki.wScan       = 0x0;
+    keys [1].ki.dwFlags     = KEYEVENTF_KEYUP;
+    keys [1].ki.time        = 0;
+    keys [1].ki.dwExtraInfo = 0;
+
+    SendInput (1, &keys [1], sizeof INPUT);
+  }
+
+
+  keys [0].type           = INPUT_KEYBOARD;
+  keys [0].ki.wVk         = VK_BACK;
+  keys [0].ki.wScan       = 0x0;
+  keys [0].ki.dwFlags     = 0x0;
+  keys [0].ki.time        = 0;
+  keys [0].ki.dwExtraInfo = 0;
+
+  SendInput (1, &keys [0], sizeof INPUT);
+
+  if (! backspace)
+  {
+    keys [1].type           = INPUT_KEYBOARD;
+    keys [1].ki.wVk         = VK_BACK;
+    keys [1].ki.wScan       = 0x0;
+    keys [1].ki.dwFlags     = KEYEVENTF_KEYUP;
+    keys [1].ki.time        = 0;
+    keys [1].ki.dwExtraInfo = 0;
+
+    SendInput (1, &keys [1], sizeof INPUT);
   }
 }

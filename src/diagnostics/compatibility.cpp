@@ -61,7 +61,15 @@ __stdcall
 SK_LockDllLoader (void)
 {
   if (config.system.strict_compliance)
-    EnterCriticalSection (&loader_lock);
+  {
+    bool unlocked = TryEnterCriticalSection (&loader_lock);
+                       EnterCriticalSection (&loader_lock);
+     if (unlocked)
+                       LeaveCriticalSection (&loader_lock);
+
+    if (! unlocked)
+      dll_log.Log (L"[DLL Loader]  *** DLL Loader Lock Contention ***");
+  }
 }
 
 void

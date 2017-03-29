@@ -721,7 +721,7 @@ Update_DlgProc (
           if (! SK_IsHostAppSKIM ()) {
             buttons [0].pszButtonText = L"Finish Update\nThe game will automatically exit.";
           } else {
-            buttons [0].pszButtonText = L"Finish Install\nSKIM will automatically exit.";
+            buttons [0].pszButtonText = L"Finish Install";
           }
 
           buttons [1].nButtonID       = 0;
