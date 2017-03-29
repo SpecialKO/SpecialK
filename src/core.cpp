@@ -573,7 +573,7 @@ SK_InitFinishCallback (void)
 
   static volatile LONG cegui_init = FALSE;
 
-  if ((! InterlockedCompareExchange (&cegui_init, 1, 0)))
+  if ((! SK_IsHostAppSKIM ()) && (! InterlockedCompareExchange (&cegui_init, 1, 0)))
   {
     if (config.cegui.enable)
     {
@@ -722,6 +722,9 @@ SK_InitFinishCallback (void)
   }
 
   LeaveCriticalSection (&init_mutex);
+
+  if (SK_IsHostAppSKIM ())
+    return;
 
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
