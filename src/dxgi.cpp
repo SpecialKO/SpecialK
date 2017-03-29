@@ -3405,6 +3405,10 @@ __declspec (noinline)
 
       else
       {
+        //
+        // TODO: This was for Windows 10 + Batman: Arkham Knight,it is no longer needed.
+        //
+
         // Only do this for NVIDIA SLI GPUs on Windows 10 (DXGI 1.4)
         if (false) { //nvapi_init && sk::NVAPI::CountSLIGPUs () > 0 && iver >= 3) {
           DXGI_ADAPTER_DESC* match =
