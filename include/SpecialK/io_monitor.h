@@ -90,6 +90,9 @@ struct WMI_refresh_thread_t
 
   DWORD                    dwNumObjects                 = 0;
   DWORD                    dwNumReturned                = 0;
+
+  // Set to false after the first refresh iteration
+  bool                     booting                      = true;
 };
 
 #include <stdint.h>

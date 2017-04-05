@@ -208,6 +208,12 @@ interface iSK_Logger : public IUnknown
   int              lines       =   0;
   CRITICAL_SECTION log_mutex   = { 0 };
   ULONG            refs        =   0UL;
+
+public:
+  // Temporary augmentation for log issues during thread suspension
+  bool             lock   (void) { if (! lockless) { EnterCriticalSection (&log_mutex); return true; } return false; }
+  bool             unlock (void) { if (! lockless) { LeaveCriticalSection (&log_mutex); return true; } return false; }
+  bool             lockless    = true;
 };
 
 extern iSK_Logger dll_log;

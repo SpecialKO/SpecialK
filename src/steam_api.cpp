@@ -2206,10 +2206,10 @@ protected:
     achv_popup->setName (szPopupName);
 
     CEGUI::Window* achv_title  = achv_popup->getChild ("Title");
-    achv_title->setText (achievement->human_name_);
+    achv_title->setText ((const CEGUI::utf8 *)achievement->human_name_);
 
     CEGUI::Window* achv_desc = achv_popup->getChild ("Description");
-    achv_desc->setText (achievement->desc_);
+    achv_desc->setText ((const CEGUI::utf8 *)achievement->desc_);
 
     CEGUI::Window* achv_rank = achv_popup->getChild ("Rank");
     achv_rank->setProperty ( "NormalTextColour",
@@ -2364,7 +2364,7 @@ protected:
       if (strlen (app_name.c_str ()))
       {
         achv_popup->setText (
-          app_name.c_str ()
+          (const CEGUI::utf8 *)app_name.c_str ()
         );
       }
     }

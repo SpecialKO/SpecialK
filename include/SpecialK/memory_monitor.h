@@ -36,6 +36,9 @@ struct WMI_refresh_instance_thread_t
   IWbemConfigureRefresher *pConfig                      = nullptr;
   IWbemObjectAccess       *pAccess                      = nullptr;
   long                     lID                          = 0;
+
+  // Set to false after the first refresh iteration
+  bool                     booting                      = true;
 };
 
 struct process_stats_t : WMI_refresh_instance_thread_t

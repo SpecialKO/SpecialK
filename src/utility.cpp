@@ -1161,6 +1161,9 @@ SK_SuspendAllOtherThreads (void)
 
     if (Thread32First (hSnap, &tent))
     {
+      bool locked = 
+        dll_log.lock ();
+
       do
       {
         if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
@@ -1183,6 +1186,9 @@ SK_SuspendAllOtherThreads (void)
 
         tent.dwSize = sizeof (tent);
       } while (Thread32Next (hSnap, &tent));
+
+      if (locked)
+        dll_log.unlock ();
     }
 
     CloseHandle (hSnap);

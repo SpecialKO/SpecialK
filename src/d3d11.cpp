@@ -231,6 +231,12 @@ typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
   _In_           UINT                  SrcDepthPitch,
   _In_           UINT                  CopyFlags
 );
+typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
 typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
   _In_           ID3D11Device            *This,
   _In_     const D3D11_BUFFER_DESC       *pDesc,
@@ -415,7 +421,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
       g_pD3D11Dev = *ppDevice;
     }
 
-    g_pD3D11Dev->SetExceptionMode (D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR);
+    ////g_pD3D11Dev->SetExceptionMode (D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR);
 
     CComPtr <IDXGIDevice>  pDXGIDev = nullptr;
     CComPtr <IDXGIAdapter> pAdapter = nullptr;
@@ -699,6 +705,7 @@ D3D11Dev_CreateShaderResourceView_pfn D3D11Dev_CreateShaderResourceView_Original
 D3D11_RSSetScissorRects_pfn     D3D11_RSSetScissorRects_Original    = nullptr;
 D3D11_RSSetViewports_pfn        D3D11_RSSetViewports_Original       = nullptr;
 D3D11_VSSetConstantBuffers_pfn  D3D11_VSSetConstantBuffers_Original = nullptr;
+D3D11_PSSetShaderResources_pfn  D3D11_PSSetShaderResources_Original = nullptr;
 D3D11_UpdateSubresource_pfn     D3D11_UpdateSubresource_Original    = nullptr;
 D3D11_DrawIndexed_pfn           D3D11_DrawIndexed_Original          = nullptr;
 D3D11_Draw_pfn                  D3D11_Draw_Original                 = nullptr;
@@ -707,6 +714,7 @@ D3D11_Map_pfn                   D3D11_Map_Original                  = nullptr;
 D3D11_CopyResource_pfn          D3D11_CopyResource_Original       = nullptr;
 D3D11_UpdateSubresource1_pfn    D3D11_UpdateSubresource1_Original = nullptr;
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateRenderTargetView_Override (
@@ -720,6 +728,7 @@ D3D11Dev_CreateRenderTargetView_Override (
              pDesc, ppRTView );
 }
 
+__declspec (noinline)
 void
 WINAPI
 D3D11_RSSetScissorRects_Override (
@@ -730,6 +739,7 @@ D3D11_RSSetScissorRects_Override (
   return D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
 }
 
+__declspec (noinline)
 void
 WINAPI
 D3D11_VSSetConstantBuffers_Override (
@@ -740,6 +750,19 @@ D3D11_VSSetConstantBuffers_Override (
 {
   //dll_log.Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   D3D11_VSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
+}
+
+__declspec (noinline)
+void
+WINAPI
+D3D11_PSSetShaderResources_Override (
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+)
+{
+  D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 }
 
 void
@@ -3000,6 +3023,10 @@ HookD3D11 (LPVOID user)
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                              D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                              D3D11_VSSetConstantBuffers_pfn);
+
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 8, "ID3D11DeviceContext::PSSetShaderResources",
+                             D3D11_PSSetShaderResources_Override, D3D11_PSSetShaderResources_Original,
+                             D3D11_PSSetShaderResources_pfn);
 
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 12, "ID3D11DeviceContext::DrawIndexed",
                            D3D11_DrawIndexed_Override, D3D11_DrawIndexed_Original,

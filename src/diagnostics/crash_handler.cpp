@@ -92,8 +92,10 @@ CrashHandler::Init (void)
       crash_sound.buf = (uint8_t *)LockResource (crash_sound.ref);
   }
 
-  if (! crash_log.initialized)
+  if (! crash_log.initialized) {
+    crash_log.lockless = true;
     crash_log.init (L"logs/crash.log", L"w");
+  }
 
   SK_CreateDLLHook ( L"kernel32.dll", "SetUnhandledExceptionFilter",
                      SetUnhandledExceptionFilter_Detour,

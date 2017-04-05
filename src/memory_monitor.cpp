@@ -268,6 +268,8 @@ SK_MonitorProcess (LPVOID user)
     proc.pAccess->ReadQWORD ( proc.hPageFileBytesPeak,
                                 &proc.memory.page_file_bytes_peak );
 
+    proc.booting = false;
+
     ++iter;
 
     COM::base.wmi.Unlock ();

@@ -1069,34 +1069,42 @@ SK_DrawOSD (void)
 #endif
   }
 
-  OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
-                 "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-        cpu_stats.cpus [0].percent_load, 
-          cpu_stats.cpus [0].percent_kernel, 
-            cpu_stats.cpus [0].percent_user, 
-              cpu_stats.cpus [0].percent_interrupt
-  OSD_END
-
-  for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
+  if (cpu_stats.booting)
   {
-    if (! config.cpu.simple)
-    {
-      OSD_C_PRINTF "  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   "
-                   "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-        i-1,
-          cpu_stats.cpus [i].percent_load, 
-            cpu_stats.cpus [i].percent_kernel, 
-              cpu_stats.cpus [i].percent_user, 
-                cpu_stats.cpus [i].percent_interrupt
-      OSD_END
-    }
+    OSD_C_PRINTF "\n  Starting CPU Monitor...\n" OSD_END
+  }
 
-    else
+  else
+  {
+    OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
+                   "User: %#3llu%%   Interrupt: %#3llu%%)\n",
+          cpu_stats.cpus [0].percent_load, 
+            cpu_stats.cpus [0].percent_kernel, 
+              cpu_stats.cpus [0].percent_user, 
+                cpu_stats.cpus [0].percent_interrupt
+    OSD_END
+
+    for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
     {
-      OSD_C_PRINTF "  CPU%lu   : %#3llu%%\n",
-        i-1,
-          cpu_stats.cpus [i].percent_load
-      OSD_END
+      if (! config.cpu.simple)
+      {
+        OSD_C_PRINTF "  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   "
+                     "User: %#3llu%%   Interrupt: %#3llu%%)\n",
+          i-1,
+            cpu_stats.cpus [i].percent_load, 
+              cpu_stats.cpus [i].percent_kernel, 
+                cpu_stats.cpus [i].percent_user, 
+                  cpu_stats.cpus [i].percent_interrupt
+        OSD_END
+      }
+
+      else
+      {
+        OSD_C_PRINTF "  CPU%lu   : %#3llu%%\n",
+          i-1,
+            cpu_stats.cpus [i].percent_load
+        OSD_END
+      }
     }
   }
 
@@ -1194,31 +1202,39 @@ SK_DrawOSD (void)
 
   OSD_M_PRINTF "\n" OSD_END
 
-  std::wstring working_set =
-    SK_SizeToString (process_stats.memory.working_set,   MiB);
-  std::wstring commit =
-    SK_SizeToString (process_stats.memory.private_bytes, MiB);
-  std::wstring virtual_size = 
-    SK_SizeToString (process_stats.memory.virtual_bytes, MiB);
+  if (process_stats.booting)
+  {
+    OSD_M_PRINTF "  Starting Memory Monitor...\n" OSD_END
+  }
 
-  OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
-    working_set.c_str  (),
-    commit.c_str       (),
-    virtual_size.c_str ()
-  OSD_END
+  else
+  {
+    std::wstring working_set =
+      SK_SizeToString (process_stats.memory.working_set,   MiB);
+    std::wstring commit =
+      SK_SizeToString (process_stats.memory.private_bytes, MiB);
+    std::wstring virtual_size = 
+      SK_SizeToString (process_stats.memory.virtual_bytes, MiB);
 
-  std::wstring working_set_peak =
-    SK_SizeToString (process_stats.memory.working_set_peak,     MiB);
-  std::wstring commit_peak =
-    SK_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
-  std::wstring virtual_peak = 
-    SK_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
+    OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
+      working_set.c_str  (),
+      commit.c_str       (),
+      virtual_size.c_str ()
+    OSD_END
 
-  OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
-    working_set_peak.c_str (),
-    commit_peak.c_str      (),
-    virtual_peak.c_str     ()
-  OSD_END
+    std::wstring working_set_peak =
+      SK_SizeToString (process_stats.memory.working_set_peak,     MiB);
+    std::wstring commit_peak =
+      SK_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
+    std::wstring virtual_peak = 
+      SK_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
+
+    OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
+      working_set_peak.c_str (),
+      commit_peak.c_str      (),
+      virtual_peak.c_str     ()
+    OSD_END
+  }
 
   extern bool     SK_D3D11_need_tex_reset;
   extern uint32_t SK_D3D11_amount_to_purge;
@@ -1228,7 +1244,7 @@ SK_DrawOSD (void)
   {
     extern std::string SK_D3D11_SummarizeTexCache (void);
 
-    OSD_M_PRINTF "\n%s",
+    OSD_M_PRINTF "\n%s\n",
       SK_D3D11_SummarizeTexCache ().c_str ()
     OSD_END
   }
@@ -1239,11 +1255,19 @@ SK_DrawOSD (void)
     gpu_prio
   OSD_END
 
-#if 0
-  bool use_mib_sec = disk_stats.num_disks > 0 ?
-                       (disk_stats.disks [0].bytes_sec > (1024 * 1024 * 2)) : false;
 
-  if (use_mib_sec) {
+  if (disk_stats.booting)
+  {
+    OSD_D_PRINTF "\n  Starting Disk Monitor...\n" OSD_END
+  }
+
+  else
+  {
+#if 0
+    bool use_mib_sec = disk_stats.num_disks > 0 ?
+                         (disk_stats.disks [0].bytes_sec > (1024 * 1024 * 2)) : false;
+
+    if (use_mib_sec) {
 #endif
     for (DWORD i = 0; i < disk_stats.num_disks; i++)
     {
@@ -1279,6 +1303,7 @@ SK_DrawOSD (void)
         OSD_END
       }
     }
+  }
 #if 0
   }
   else
@@ -1300,24 +1325,32 @@ SK_DrawOSD (void)
   }
 #endif
 
-  for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
+  if (pagefile_stats.booting)
   {
-    std::wstring usage =
-      SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
-    std::wstring size = 
-      SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
-    std::wstring peak =
-      SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
-
-    OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
-      pagefile_stats.pagefiles [i].name,
-        usage.c_str    (),
-          size.c_str   (),
-            peak.c_str ()
-    OSD_END
+    OSD_P_PRINTF "\n  Starting Pagefile Monitor...\n" OSD_END
   }
 
-  OSD_P_PRINTF "\n" OSD_END
+  else
+  {
+    for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
+    {
+      std::wstring usage =
+        SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
+      std::wstring size = 
+        SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
+      std::wstring peak =
+        SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
+
+      OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
+        pagefile_stats.pagefiles [i].name,
+          usage.c_str    (),
+            size.c_str   (),
+              peak.c_str ()
+      OSD_END
+    }
+
+    OSD_P_PRINTF "\n" OSD_END
+  }
 
   // Avoid unnecessary MMIO when the user has the OSD turned off
   cleared = (! config.osd.show);

@@ -19,6 +19,15 @@
 #include <atlbase.h>
 
 
+#define FAR_VERSION_NUM L"0.5.0.5"
+#define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
+
+// Block until update finishes, otherwise the update dialog
+//   will be dismissed as the game crashes when it tries to
+//     draw the first frame.
+volatile LONG __FAR_init = FALSE;
+
+
 struct far_game_state_s {
   // Game state addresses courtesy of Francesco149
   DWORD* pMenu      = (DWORD *)0x1418F39C4;
@@ -52,6 +61,8 @@ iSK_INI*              far_prefs                 = nullptr;
 wchar_t               far_prefs_file [MAX_PATH] = { L'\0' };
 sk::ParameterInt*     far_gi_workgroups         = nullptr;
 sk::ParameterInt*     far_bloom_width           = nullptr;
+sk::ParameterInt*     far_ao_width              = nullptr;
+sk::ParameterInt*     far_ao_height             = nullptr;
 sk::ParameterBool*    far_limiter_busy          = nullptr;
 sk::ParameterBool*    far_uncap_fps             = nullptr;
 sk::ParameterBool*    far_slow_state_cache      = nullptr;
@@ -59,18 +70,23 @@ sk::ParameterBool*    far_rtss_warned           = nullptr;
 sk::ParameterBool*    far_osd_disclaimer        = nullptr;
 
 
+#include <unordered_set>
+static std::unordered_set <ID3D11Texture2D          *> far_title_textures;
+static std::unordered_set <ID3D11ShaderResourceView *> far_title_views;
+
+
 // (Presumable) Size of compute shader workgroup
-int    __FAR_GlobalIllumWorkGroupSize =  128;
-bool   __FAR_GlobalIllumCompatMode    = true;
+int    __FAR_GlobalIllumWorkGroupSize =   128;
+bool   __FAR_GlobalIllumCompatMode    =  true;
 int    __FAR_BloomWidth               =    -1; // Set at startup from user prefs, never changed
+int    __FAR_AOHeight                 =    -1;
+int    __FAR_AOWidth                  =    -1;
 double __FAR_TargetFPS                = 59.94;
+
 
 extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
-
-#define FAR_VERSION_NUM L"0.4.1"
-#define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 
 typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
@@ -120,13 +136,12 @@ SK_FAR_CheckVersion (LPVOID user)
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
 
-  if (SK_FetchVersionInfo (L"FAR")) {
-    extern HRESULT
-      __stdcall
-      SK_UpdateSoftware (const wchar_t* wszProduct);
+  extern HRESULT
+  __stdcall
+  SK_UpdateSoftware   (const wchar_t* wszProduct);
 
+  if (SK_FetchVersionInfo (L"FAR"))
     SK_UpdateSoftware (L"FAR");
-  }
 
   return 0;
 }
@@ -161,13 +176,13 @@ SK_FAR_CreateShaderResourceView (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  if (! __FAR_GlobalIllumCompatMode)
-    return D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
-
   // Global Illumination (DrDaxxy)
   if ( pDesc != nullptr && pDesc->ViewDimension        == D3D_SRV_DIMENSION_BUFFEREX &&
                            pDesc->BufferEx.NumElements == 128 )
   {
+    if (! __FAR_GlobalIllumCompatMode)
+      return D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
+
     CComPtr <ID3D11Buffer> pBuf;
 
     if ( SUCCEEDED (
@@ -187,7 +202,17 @@ SK_FAR_CreateShaderResourceView (
     }
   }
 
-  return D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
+
+  HRESULT hr =
+    D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
+
+
+  // Title Screen
+  if (pDesc != nullptr && ppSRView != nullptr && far_title_textures.count ((ID3D11Texture2D *)pResource))
+    far_title_views.emplace (*ppSRView);
+
+
+  return hr;
 }
 
 
@@ -362,8 +387,33 @@ void
 CALLBACK
 SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
-  if (Control && Shift && vkCode == VK_OEM_PERIOD)
-    SK_FAR_SetFramerateCap (game_state.enforce_cap);
+  if (Control && Shift)
+  { 
+    if (vkCode == VK_OEM_PERIOD)
+      SK_FAR_SetFramerateCap (game_state.enforce_cap);
+
+    else if (vkCode == VK_OEM_6) // ']'
+    {
+      if (__FAR_GlobalIllumWorkGroupSize < 8)
+        __FAR_GlobalIllumWorkGroupSize = 8;
+
+      __FAR_GlobalIllumWorkGroupSize <<= 1ULL;
+
+      if (__FAR_GlobalIllumWorkGroupSize > 128)
+        __FAR_GlobalIllumWorkGroupSize = 128;
+    }
+
+    else if (vkCode == VK_OEM_4) // '['
+    {
+      if (__FAR_GlobalIllumWorkGroupSize > 128)
+        __FAR_GlobalIllumWorkGroupSize = 128;
+
+      __FAR_GlobalIllumWorkGroupSize >>= 1UL;
+
+      if (__FAR_GlobalIllumWorkGroupSize < 16)
+        __FAR_GlobalIllumWorkGroupSize = 0;
+    }
+  }
 
   SK_PluginKeyPress_Original (Control, Shift, Alt, vkCode);
 }
@@ -373,6 +423,9 @@ HRESULT
 STDMETHODCALLTYPE
 SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
 {
+  // Wait for the mod to init, it may be held up during version check
+  while (! InterlockedAdd (&__FAR_init, 0)) ;
+
   // This actually determines whether the DLL is dxgi.dll or SpecialK64.dll.
   //
   //   If it is the latter, disable this feature -- this prevents nasty
@@ -446,11 +499,18 @@ typedef void (WINAPI *D3D11_Draw_pfn)(
   _In_ UINT                 VertexCount,
   _In_ UINT                 StartVertexLocation
 );
+typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
 
 
-static D3D11Dev_CreateTexture2D_pfn  D3D11Dev_CreateTexture2D_Original = nullptr;
-static D3D11_DrawIndexed_pfn         D3D11_DrawIndexed_Original        = nullptr;
-static D3D11_Draw_pfn                D3D11_Draw_Original               = nullptr;
+static D3D11Dev_CreateTexture2D_pfn   D3D11Dev_CreateTexture2D_Original   = nullptr;
+static D3D11_DrawIndexed_pfn          D3D11_DrawIndexed_Original          = nullptr;
+static D3D11_Draw_pfn                 D3D11_Draw_Original                 = nullptr;
+static D3D11_PSSetShaderResources_pfn D3D11_PSSetShaderResources_Original = nullptr;
 
 
 extern HRESULT
@@ -475,6 +535,14 @@ D3D11_Draw_Override (
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCount,
   _In_ UINT                 StartVertexLocation );
+
+extern void
+WINAPI
+D3D11_PSSetShaderResources_Override (
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews );
 
 
 // Overview (Durante):
@@ -509,36 +577,99 @@ SK_FAR_CreateTexture2D (
   static UINT  resW      = __FAR_BloomWidth; // horizontal resolution, must be set at application start
   static float resFactor = resW / 1600.0f;   // the factor required to scale to the largest part of the pyramid
 
-  // R11G11B10 float textures of these sizes are part of the BLOOM PYRAMID
-  // Note: we do not manipulate the 50x28 buffer
-  //    -- it's read by a compute shader and the whole screen white level can be off if it is the wrong size
-  if (pDesc->Format == DXGI_FORMAT_R11G11B10_FLOAT)
+  switch (pDesc->Format)
   {
-    if (   (pDesc->Width == 800 && pDesc->Height == 450)
-        || (pDesc->Width == 400 && pDesc->Height == 225)
-        || (pDesc->Width == 200 && pDesc->Height == 112)
-        || (pDesc->Width == 100 && pDesc->Height == 56) 
-        /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/ )
+    // R11G11B10 float textures of these sizes are part of the BLOOM PYRAMID
+    // Note: we do not manipulate the 50x28 buffer
+    //    -- it's read by a compute shader and the whole screen white level can be off if it is the wrong size
+    case DXGI_FORMAT_R11G11B10_FLOAT:
     {
-      SK_LOG1 (L"Bloom Tex (%lux%lu)", pDesc->Width, pDesc->Height);
+      if ( __FAR_BloomWidth != -1 && (
+               (pDesc->Width == 800 && pDesc->Height == 450)
+            || (pDesc->Width == 400 && pDesc->Height == 225)
+            || (pDesc->Width == 200 && pDesc->Height == 112)
+            || (pDesc->Width == 100 && pDesc->Height == 56) 
+            /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/ )
+         )
+      {
+        SK_LOG1 (L"Bloom Tex (%lux%lu)", pDesc->Width, pDesc->Height);
 
-      D3D11_TEXTURE2D_DESC copy = *pDesc;
+        D3D11_TEXTURE2D_DESC copy = *pDesc;
 
-      // Scale the upper parts of the pyramid fully
-      // and lower levels progressively less
-      float pyramidLevelFactor  = (pDesc->Width - 50) / 750.0f;
-      float scalingFactor       = 1.0f + (resFactor - 1.0f) * pyramidLevelFactor;
+        // Scale the upper parts of the pyramid fully
+        // and lower levels progressively less
+        float pyramidLevelFactor  = (pDesc->Width - 50) / 750.0f;
+        float scalingFactor       = 1.0f + (resFactor - 1.0f) * pyramidLevelFactor;
 
-      copy.Width  = (UINT)(copy.Width  * scalingFactor);
-      copy.Height = (UINT)(copy.Height * scalingFactor);
+        copy.Width  = (UINT)(copy.Width  * scalingFactor);
+        copy.Height = (UINT)(copy.Height * scalingFactor);
 
-      pDesc       = &copy;
-    }
+        pDesc       = &copy;
+      }
+    } break;
+
+    // 800x450 R8G8B8A8_UNORM is the buffer used to store the AO result and subsequently blur it
+    // 800x450 R32_FLOAT is used to store hierarchical Z information (individual mipmap levels are rendered to)
+    //                   and serves as input to the main AO pass
+    // 800x450 D24_UNORM_S8_UINT depth/stencil used together with R8G8B8A8_UNORM buffer for something (unclear) later on
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R32_FLOAT:
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    {
+      if (__FAR_AOWidth != -1 && pDesc->Width == 800 && pDesc->Height == 450)
+      {
+        SK_LOG0 ( "AO Buffer (%lux%lu - Fmt: %x",
+                    pDesc->Width, pDesc->Height,
+                    pDesc->Format );
+
+        // set to our display resolution instead
+        D3D11_TEXTURE2D_DESC copy = *pDesc;
+
+        copy.Width  = __FAR_AOWidth;
+        copy.Height = __FAR_AOHeight;
+
+        pDesc = &copy;
+      }
+    } break;
   }
 
-  return D3D11Dev_CreateTexture2D_Original ( This,
-                                               pDesc, pInitialData,
-                                                 ppTexture2D );
+
+  HRESULT hr = D3D11Dev_CreateTexture2D_Original ( This,
+                                                     pDesc, pInitialData,
+                                                       ppTexture2D );
+
+#if 0
+  //
+  // Hash textures so we can track the title texture
+  //
+  if (SUCCEEDED (hr) && pInitialData != nullptr && ppTexture2D != nullptr)
+  {
+    extern uint32_t
+    __cdecl // Meaningless in x64
+    crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+                 _In_      const D3D11_SUBRESOURCE_DATA *pInitialData,
+                 _Out_opt_       size_t                 *pSize,
+                 _Out_opt_       uint32_t               *pLOD0_CRC32 );
+
+    uint32_t checksum  = 0;
+    uint32_t cache_tag = 0;
+    size_t   size      = 0;
+    uint32_t top_crc32 = 0x00;
+
+    checksum = crc32_tex (pDesc, pInitialData, &size, &top_crc32);
+
+    if ( checksum == 0x713B879E ||
+         checksum == 0x013F2718 )
+    {
+      SK_LOG1 ( "Title Texture (%x) : ID3D11Texture2D (%ph)",
+                  checksum, *ppTexture2D );
+
+      far_title_textures.emplace (*ppTexture2D);
+    }
+  }
+#endif
+
+  return hr;
 }
 
 
@@ -560,7 +691,7 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
 
   pDevCtx->RSGetViewports (&numViewports, nullptr);
 
-  if (numViewports == 1)
+  if (numViewports == 1 && (__FAR_BloomWidth != -1 || __FAR_AOWidth != -1))
   {
     D3D11_VIEWPORT vp;
 
@@ -569,7 +700,9 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
     if (   (vp.Width == 800 && vp.Height == 450)
         || (vp.Width == 400 && vp.Height == 225)
         || (vp.Width == 200 && vp.Height == 112)
-        || (vp.Width == 100 && vp.Height == 56) )
+        || (vp.Width == 100 && vp.Height == 56 )
+        || (vp.Width == 50  && vp.Height == 28 )
+        || (vp.Width == 25  && vp.Height == 14 ) )
     {
       CComPtr <ID3D11RenderTargetView> rtView = nullptr;
 
@@ -581,7 +714,9 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
 
         rtView->GetDesc (&desc);
 
-        if (desc.Format == DXGI_FORMAT_R11G11B10_FLOAT)
+        if ( desc.Format == DXGI_FORMAT_R11G11B10_FLOAT || // Bloom
+             desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM  || // AO
+             desc.Format == DXGI_FORMAT_R32_FLOAT )        // AO
         {
           CComPtr <ID3D11Resource> rt = nullptr;
 
@@ -606,6 +741,14 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 vp.Width  = (float)texdesc.Width;
                 vp.Height = (float)texdesc.Height;
 
+                // AO
+                //   If we are at mip slice N, divide by 2^N
+                if (desc.Texture2D.MipSlice > 0)
+                {
+                  vp.Width  = (float)(texdesc.Width  >> desc.Texture2D.MipSlice);
+                  vp.Height = (float)(texdesc.Height >> desc.Texture2D.MipSlice);
+                }
+
                 pDevCtx->RSSetViewports (1, &vp);
 
                 // The constant buffer is a bit more difficult
@@ -616,37 +759,75 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 // but it works as long as the game only renders from 1 thread (which it does)
                 // NOTE: rather than storing them statically here (basically a global) the lifetime should probably be managed
 
-                static std::map <UINT, ID3D11Buffer*> buffers;
+                CComPtr <ID3D11Device> dev;
+                pDevCtx->GetDevice (&dev);
 
-                auto iter = buffers.find (texdesc.Width);
-                if (iter == buffers.cend ())
+                D3D11_BUFFER_DESC buffdesc;
+                buffdesc.ByteWidth           = 16;
+                buffdesc.Usage               = D3D11_USAGE_IMMUTABLE;
+                buffdesc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
+                buffdesc.CPUAccessFlags      = 0;
+                buffdesc.MiscFlags           = 0;
+                buffdesc.StructureByteStride = 16;
+
+                D3D11_SUBRESOURCE_DATA initialdata;
+
+                // Bloom
+                //   If we are not rendering to a mip map for hierarchical Z, the format is 
+                //   [ 0.5f / W, 0.5f / H, W, H ] (half-pixel size and total dimensions)
+                if (desc.Texture2D.MipSlice == 0 && __FAR_BloomWidth != -1)
                 {
-                  float constants [4] = {
-                    0.5f / vp.Width, 0.5f / vp.Height,
-                    (float)vp.Width, (float)vp.Height
-                  };
+                  static std::map <UINT, ID3D11Buffer*> buffers;
 
-                  CComPtr <ID3D11Device> dev;
-                  pDevCtx->GetDevice (&dev);
+                  auto iter = buffers.find (texdesc.Width);
+                  if (iter == buffers.cend ())
+                  {
+                    SK_LOG3 ("Create Bloom Buffer (%lu)", texdesc.Width);
 
-                  D3D11_BUFFER_DESC buffdesc;
-                  buffdesc.ByteWidth           = 16;
-                  buffdesc.Usage               = D3D11_USAGE_IMMUTABLE;
-                  buffdesc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
-                  buffdesc.CPUAccessFlags      = 0;
-                  buffdesc.MiscFlags           = 0;
-                  buffdesc.StructureByteStride = 16;
+                    float constants [4] = {
+                      0.5f / vp.Width, 0.5f / vp.Height,
+                      (float)vp.Width, (float)vp.Height
+                    };
 
-                  D3D11_SUBRESOURCE_DATA initialdata;
-                  initialdata.pSysMem = constants;
+                    initialdata.pSysMem = constants;
 
-                  ID3D11Buffer                                *replacementbuffer = nullptr;
-                  dev->CreateBuffer (&buffdesc, &initialdata, &replacementbuffer);
+                    ID3D11Buffer                                *replacementbuffer = nullptr;
+                    dev->CreateBuffer (&buffdesc, &initialdata, &replacementbuffer);
 
-                  buffers [texdesc.Width] = replacementbuffer;
+                    buffers [texdesc.Width] = replacementbuffer;
+                  }
+
+                  pDevCtx->PSSetConstantBuffers (12, 1, &buffers [texdesc.Width]);
                 }
 
-                pDevCtx->PSSetConstantBuffers (12, 1, &buffers [texdesc.Width]);
+                // AO
+                //
+                //   For hierarchical Z mips, the format is
+                //   [ W, H, LOD (Mip-1), 0.0f ]
+                else if (__FAR_AOWidth != -1)
+                {
+                  static std::map <UINT, ID3D11Buffer*> mipBuffers;
+
+                  auto iter = mipBuffers.find (desc.Texture2D.MipSlice);
+                  if (iter == mipBuffers.cend ())
+                  {
+                    SK_LOG3 ("Create AO Buffer (%lu)", desc.Texture2D.MipSlice);
+
+                    float constants [4] = {
+                                         vp.Width,   vp.Height,
+                      (float)desc.Texture2D.MipSlice - 1, 0.0f
+                    };
+
+                    initialdata.pSysMem = constants;
+
+                    ID3D11Buffer                                *replacementbuffer = nullptr;
+                    dev->CreateBuffer (&buffdesc, &initialdata, &replacementbuffer);
+
+                    mipBuffers [desc.Texture2D.MipSlice] = replacementbuffer;
+                  }
+
+                  pDevCtx->PSSetConstantBuffers (8, 1, &mipBuffers [desc.Texture2D.MipSlice]);
+                }
               }
             }
           }
@@ -687,6 +868,57 @@ SK_FAR_Draw (
 }
 
 
+void
+WINAPI
+SK_FAR_PSSetShaderResources (
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
+{
+#if 0
+  for (int i = 0; i < NumViews; i++)
+  {
+    if (far_title_views.count (ppShaderResourceViews [i]))
+    {
+      CComPtr <ID3D11SamplerState> pSamplerState [8] = { nullptr };
+
+      This->PSGetSamplers (0, 8, &pSamplerState [0]);
+
+
+      static ID3D11SamplerState *nearest_sampler = nullptr;
+
+      if (nearest_sampler == nullptr)
+      {
+        D3D11_SAMPLER_DESC       sample_desc;
+        pSamplerState [0]->GetDesc (&sample_desc);
+
+        sample_desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        sample_desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        sample_desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+        sample_desc.Filter   = D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+        CComPtr <ID3D11Device> pDev = nullptr;
+
+        This->GetDevice (&pDev);
+
+        pDev->CreateSamplerState (&sample_desc, &nearest_sampler);
+      }
+
+
+      for (int i = 0; i < 8; i++)
+      {
+        if (pSamplerState [i] != nullptr)
+          This->PSSetSamplers (i, 1, &nearest_sampler);
+      }
+    }
+  }
+#endif
+
+  D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+}
+
+
 
 
 void
@@ -708,6 +940,12 @@ SK_FAR_InitPlugin (void)
                           SK_FAR_CreateShaderResourceView,
                             (LPVOID *)&D3D11Dev_CreateShaderResourceView_Original );
   MH_QueueEnableHook (D3D11Dev_CreateShaderResourceView_Override);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::PSSetShaderResources",
+                        D3D11_PSSetShaderResources_Override,
+                          SK_FAR_PSSetShaderResources,
+                            (LPVOID *)&D3D11_PSSetShaderResources_Original );
+  MH_QueueEnableHook (D3D11_PSSetShaderResources_Override);
 
 
   if (far_prefs == nullptr)
@@ -839,6 +1077,53 @@ SK_FAR_InitPlugin (void)
     }
 
 
+    far_ao_width =
+      static_cast <sk::ParameterInt *>
+        (far_factory.create_parameter <int> (L"Width of AO Post-Process"));
+
+    far_ao_width->register_to_ini ( far_prefs,
+                                         L"FAR.Lighting",
+                                           L"AOWidth" );
+
+    if (! far_ao_width->load ())
+    {
+      far_ao_width->set_value (-1);
+      far_ao_width->store     (  );
+    }
+
+    __FAR_AOWidth = far_ao_width->get_value ();
+
+    // AO Width must be > 0 or -1, never 0!
+    if (__FAR_AOWidth <= 0) {
+      __FAR_AOWidth =                -1;
+      far_ao_width->set_value (__FAR_AOWidth);
+      far_ao_width->store     (             );
+    }
+
+    far_ao_height =
+      static_cast <sk::ParameterInt *>
+        (far_factory.create_parameter <int> (L"Height of AO Post-Process"));
+
+    far_ao_height->register_to_ini ( far_prefs,
+                                       L"FAR.Lighting",
+                                         L"AOHeight" );
+
+    if (! far_ao_height->load ())
+    {
+      far_ao_height->set_value (-1);
+      far_ao_height->store     (  );
+    }
+
+    __FAR_AOHeight = far_ao_height->get_value ();
+
+    // AO Height must be > 0 or -1, never 0!
+    if (__FAR_AOHeight <= 0) {
+      __FAR_AOHeight =                -1;
+      far_ao_height->set_value (__FAR_AOHeight);
+      far_ao_height->store     (              );
+    }
+
+
     SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
                                                SK_FAR_BeginFrame,
                                     (LPVOID *)&SK_BeginFrame_Original );
@@ -848,9 +1133,11 @@ SK_FAR_InitPlugin (void)
     far_prefs->write (far_prefs_file);
 
 
-    // If overriding bloom resolution, add these additional hooks
+    // If overriding bloom/AO resolution, add these additional hooks
     //
-    if (__FAR_BloomWidth != -1)
+    if (   __FAR_BloomWidth != -1 ||
+         ( __FAR_AOWidth    != -1 && 
+           __FAR_AOHeight   != -1 ) )
     {
       SK_CreateFuncHook ( L"ID3D11Device::CreateTexture2D",
                             D3D11Dev_CreateTexture2D_Override,
@@ -877,6 +1164,8 @@ SK_FAR_InitPlugin (void)
     SK_GetCommandProcessor ()->AddVariable ("FAR.GIWorkgroups", SK_CreateVar (SK_IVariable::Int,     &__FAR_GlobalIllumWorkGroupSize));
     //SK_GetCommandProcessor ()->AddVariable ("FAR.BusyWait",     SK_CreateVar (SK_IVariable::Boolean, &__FAR_BusyWait));
   }
+
+  InterlockedExchange (&__FAR_init, 1);
 }
 
 // Not currently used
@@ -898,11 +1187,15 @@ SK_FAR_ControlPanel (void)
 
   if (ImGui::CollapsingHeader("NieR: Automata", ImGuiTreeNodeFlags_DefaultOpen))
   {
-    if (ImGui::TreeNodeEx ("Bloom", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::TreeNodeEx ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      int bloom_behavior = (far_bloom_width->get_value () != -1);
+      ImGui::Text ("Bloom"); ImGui::TreePush ("");
 
-      if (ImGui::RadioButton ("Default Resolution (800x450)", &bloom_behavior, 0))
+      int bloom_behavior = (far_bloom_width->get_value () != -1) ? 1 : 0;
+
+      ImGui::BeginGroup ();
+
+      if (ImGui::RadioButton ("Default Bloom Res. (800x450)", &bloom_behavior, 0))
       {
         changed = true;
 
@@ -913,7 +1206,7 @@ SK_FAR_ControlPanel (void)
       ImGui::SameLine ();
 
       // 1/4 resolution actually, but this is easier to describe to the end-user
-      if (ImGui::RadioButton ("Native Resolution",            &bloom_behavior, 1))
+      if (ImGui::RadioButton ("Native Bloom Res.",            &bloom_behavior, 1))
       {
         far_bloom_width->set_value ((int)ImGui::GetIO ().DisplaySize.x);
         far_bloom_width->store     ();
@@ -930,7 +1223,52 @@ SK_FAR_ControlPanel (void)
         ImGui::EndTooltip  ();
       }
 
-      ImGui::TreePop ();
+      ImGui::EndGroup ();
+      ImGui::TreePop  ();
+
+      ImGui::Text     ("Ambient Occlusion");
+      ImGui::TreePush ("");
+
+      int ao_behavior = (far_ao_width->get_value () != -1) ? 3 : 2;
+
+      ImGui::BeginGroup      ();
+      if (ImGui::RadioButton ("Default AO Res.    (800x450)", &ao_behavior, 2))
+      {
+        changed = true;
+
+        far_ao_width->set_value (-1);
+        far_ao_width->store     ();
+
+        far_ao_height->set_value (-1);
+        far_ao_height->store     ();
+      }
+
+      ImGui::SameLine ();
+
+      // 1/4 resolution actually, but this is easier to describe to the end-user
+      if (ImGui::RadioButton ("Native AO Res.   ",            &ao_behavior, 3))
+      {
+        far_ao_width->set_value  ((int)(ImGui::GetIO ().DisplaySize.x));
+        far_ao_width->store      ();
+
+        far_ao_height->set_value ((int)(ImGui::GetIO ().DisplaySize.y));
+        far_ao_height->store     ();
+
+        changed = true;
+      }
+
+      if (ImGui::IsItemHovered ()) {
+        ImGui::BeginTooltip ();
+        ImGui::Text        ("Improve AO Quality");
+        ImGui::Separator   ();
+        ImGui::BulletText  ("Performance Cost is Negligible");
+        ImGui::BulletText  ("Changing this setting requires a full application restart");
+        ImGui::EndTooltip  ();
+      }
+
+      ImGui::EndGroup ();
+      ImGui::TreePop  ();
+      ImGui::TreePop  ();
     }
 
     if (ImGui::TreeNodeEx ("Lighting", ImGuiTreeNodeFlags_DefaultOpen))

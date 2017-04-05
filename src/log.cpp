@@ -119,6 +119,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   fLog = _wfopen (full_name.c_str (), wszMode);
 
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
+   lockless = false;
 
   if ((! bRet) || (fLog == NULL)) {
     silent = true;
@@ -145,10 +146,10 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
 
     WORD ms = SK_Timestamp (wszLogTime);
 
-    EnterCriticalSection (&log_mutex);
+    lock ();
     fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
   } else {
-    EnterCriticalSection (&log_mutex);
+    lock ();
   }
 
   va_list   _ArgList;
@@ -158,7 +159,7 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   }
   va_end   (_ArgList);
 
-  LeaveCriticalSection (&log_mutex);
+  unlock ();
 
   fflush   (fLog);
 }
@@ -175,7 +176,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   WORD ms = SK_Timestamp (wszLogTime);
 
-  EnterCriticalSection (&log_mutex);
+  lock ();
 
   ++lines;
 
@@ -190,7 +191,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   fwprintf (fLog, L"\n");
 
-  LeaveCriticalSection (&log_mutex);
+  unlock   ();
 
   fflush   (fLog);
 }
@@ -207,7 +208,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   WORD ms = SK_Timestamp (wszLogTime);
 
-  EnterCriticalSection (&log_mutex);
+  lock ();
 
   ++lines;
 
@@ -222,7 +223,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   fwprintf (fLog, L"\n");
 
-  LeaveCriticalSection (&log_mutex);
+  unlock   ();
 
   fflush   (fLog);
 }

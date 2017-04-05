@@ -474,7 +474,7 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    SK_RealizeForegroundWindow (hWnd);
+    //SK_RealizeForegroundWindow (hWnd);
 
     if ( get->status == STATUS_UPDATED   ||
          get->status == STATUS_CANCELLED ||
@@ -494,8 +494,6 @@ DownloadDialogCallback (
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, 1));
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_POS,   1,           0L);
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
-
-    SK_RealizeForegroundWindow (hWnd);
 
     return S_OK;
   }

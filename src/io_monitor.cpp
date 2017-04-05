@@ -661,9 +661,9 @@ SK_MonitorCPU (LPVOID user_param)
       uint64_t load;
       uint64_t idle;
 
-      if (cpu.apEnumAccess [0] == nullptr)
+      if (cpu.apEnumAccess [i] == nullptr)
       {
-        dll_log.Log (L"[ WMI Wbem ] CPU apEnumAccess [0] = nullptr");
+        dll_log.Log (L"[ WMI Wbem ] CPU apEnumAccess [%lu] = nullptr",  i);
         goto CPU_CLEANUP;
       }
 
@@ -736,6 +736,7 @@ SK_MonitorCPU (LPVOID user_param)
     }
 
     cpu.num_cpus = cpu.dwNumReturned;
+    cpu.booting  = false;
 
     ++iter;
 
@@ -1144,6 +1145,7 @@ SK_MonitorDisk (LPVOID user)
     }
 
     disk.num_disks = disk.dwNumReturned;
+    disk.booting   = false;
 
     ++iter;
 
@@ -1461,6 +1463,7 @@ SK_MonitorPagefile (LPVOID user)
     }
 
     pagefile.num_pagefiles = pagefile.dwNumReturned;
+    pagefile.booting       = false;
 
     COM::base.wmi.Unlock ();
 
