@@ -386,7 +386,16 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
   InterlockedIncrement (&__cegui_frames_drawn);
 
-  if (cegD3D9 == nullptr) {
+  if (cegD3D9 == nullptr)
+  {
+    extern void
+    SK_InstallWindowHook (HWND hWnd);
+
+    D3DPRESENT_PARAMETERS pparams;
+    pSwapChain->GetPresentParameters (&pparams);
+
+    SK_InstallWindowHook (pparams.hDeviceWindow);
+
     ResetCEGUI_D3D9 (pDev);
   }
 
@@ -637,6 +646,7 @@ SK_HookD3D9 (void)
     MH_ApplyQueued ();
   }
 
+#if 0
   HANDLE hThread =
     (HANDLE)
       _beginthreadex ( nullptr,
@@ -653,6 +663,9 @@ SK_HookD3D9 (void)
 
     CloseHandle (hThread);
   }
+#else
+  HookD3D9 (nullptr);
+#endif
 }
 
 static std::queue <DWORD> old_threads;

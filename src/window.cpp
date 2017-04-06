@@ -3049,34 +3049,40 @@ SK_InstallWindowHook (HWND hWnd)
                       class_proc,
                         wnd_proc );
 
-#if 0
-  if ( MH_OK ==
-         MH_CreateHook ( (LPVOID)class_proc,
-                                 SK_DetourWindowProc,
-                      (LPVOID *)&game_window.WndProc_Original )
-    )
+  bool hook_classfunc = false;
+
+  //if (wcsstr (L"LoX.exe", SK_GetHostApp ()))
+    //hook_classfunc = true;
+
+  if (hook_classfunc)
   {
-    MH_EnableHook ((LPVOID)class_proc);
+    if ( MH_OK ==
+           MH_CreateHook ( (LPVOID)class_proc,
+                                   SK_DetourWindowProc,
+                        (LPVOID *)&game_window.WndProc_Original )
+      )
+    {
+      MH_EnableHook ((LPVOID)class_proc);
 
-    dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
+      dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
 
-    game_window.hooked = true;
-  }
+      game_window.hooked = true;
+    }
 
-  else if ( MH_OK == MH_CreateHook ( (LPVOID)wnd_proc,
-                                             SK_DetourWindowProc,
-                                  (LPVOID *)&game_window.WndProc_Original )
-          )
-  {
-    MH_EnableHook ((LPVOID)wnd_proc);
+    else if ( MH_OK == MH_CreateHook ( (LPVOID)wnd_proc,
+                                               SK_DetourWindowProc,
+                                    (LPVOID *)&game_window.WndProc_Original )
+            )
+    {
+      MH_EnableHook ((LPVOID)wnd_proc);
 
-    dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
+      dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
 
-    game_window.hooked = true;
+      game_window.hooked = true;
+    }
   }
 
   else
-#endif
   {
     dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
                   L"window procedure instead (this may be undone "

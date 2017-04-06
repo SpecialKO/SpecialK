@@ -51,6 +51,19 @@ void           SK_UnhookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = false;
 
+
+struct sk_loader_hooks_t {
+  // Manually unhooked for compatibility, DO NOT rehook!
+  bool   unhooked              = false;
+
+  LPVOID LoadLibraryA_target   = nullptr;
+  LPVOID LoadLibraryExA_target = nullptr;
+  LPVOID LoadLibraryW_target   = nullptr;
+  LPVOID LoadLibraryExW_target = nullptr;
+
+  LPVOID FreeLibrary_target    = nullptr;
+} _loader_hooks;
+
 #include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
 
@@ -310,13 +323,16 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       lstrcatW(wszSteamPath, L"\\steamclient.dll");
 #endif
 
-      LoadLibraryW (wszSteamPath);
+      if (_loader_hooks.LoadLibraryW_target != nullptr)
+        ((LoadLibraryW_pfn)_loader_hooks.LoadLibraryW_target)(wszSteamPath);
+      else
+        LoadLibraryW (wszSteamPath);
 
       HMODULE hModClient;
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT | GET_MODULE_HANDLE_EX_FLAG_PIN,
                           wszSteamPath, &hModClient );
 
-      SK_ReHookLoadLibrary ();
+      //SK_ReHookLoadLibrary ();
     }
   }
 
@@ -415,6 +431,10 @@ FreeLibrary_Detour (HMODULE hLibModule)
   SK_LockDllLoader ();
 
   std::wstring name = SK_GetModuleName     (hLibModule);
+
+  if (name == L"NvCamera64.dll")
+    return FALSE;
+
   BOOL         bRet = FreeLibrary_Original (hLibModule);
 
   if ( (! (SK_LoadLibrary_SILENCE)) ||
@@ -617,18 +637,6 @@ LoadLibraryExW_Detour (
   return hMod;
 }
 
-struct sk_loader_hooks_t {
-  // Manually unhooked for compatibility, DO NOT rehook!
-  bool   unhooked              = false;
-
-  LPVOID LoadLibraryA_target   = nullptr;
-  LPVOID LoadLibraryExA_target = nullptr;
-  LPVOID LoadLibraryW_target   = nullptr;
-  LPVOID LoadLibraryExW_target = nullptr;
-
-  LPVOID FreeLibrary_target    = nullptr;
-} _loader_hooks;
-
 struct SK_ThirdPartyDLLs {
   struct {
     HMODULE rtss_hooks    = nullptr;
@@ -726,8 +734,12 @@ void
 __stdcall
 SK_ReHookLoadLibrary (void)
 {
-  //if (! config.system.trace_load_library)
-    //return;
+  // App Compat Section
+  if (wcsstr (SK_GetHostApp (), L"witcher3.exe"))
+    return;
+
+  if (! config.system.trace_load_library)
+    return;
 
   if (_loader_hooks.unhooked)
     return;

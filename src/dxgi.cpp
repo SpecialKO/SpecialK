@@ -195,7 +195,7 @@ SK_CEGUI_InitBase (void)
             (CEGUI::System::getDllSingleton ().getResourceProvider ());
 
          char szRootPath [MAX_PATH] = { 0 };
-    snprintf (szRootPath, MAX_PATH, "%ws", SK_GetRootPath ());
+    snprintf (szRootPath, MAX_PATH, "%ws", _wgetenv (L"CEGUI_PARENT_DIR"));
 
     CEGUI::String dataPathPrefix ( ( std::string (szRootPath) +
                                      std::string ("CEGUI/datafiles") ).c_str () );
@@ -1546,10 +1546,15 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   else if (cegD3D11 == nullptr)
   {
-    //if (SK_GetFramesDrawn () > 1)
-    //{
-      ResetCEGUI_D3D11 (This);
-    //}
+    extern void
+    SK_InstallWindowHook (HWND hWnd);
+
+    DXGI_SWAP_CHAIN_DESC desc;
+    This->GetDesc (&desc);
+
+    SK_InstallWindowHook (desc.OutputWindow);
+
+    ResetCEGUI_D3D11 (This);
   }
 
   else if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )

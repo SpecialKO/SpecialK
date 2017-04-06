@@ -65,6 +65,8 @@ extern HWND hWndRender;
 void __stdcall
 SK_GL_UpdateRenderStats (void);
 
+extern "C++" void SK_Steam_DrawOSD (void);
+
 typedef BOOL (WINAPI *SwapBuffers_pfn)(HDC);
 typedef BOOL (WINAPI *wglSwapBuffers_pfn)(HDC);
 
@@ -149,75 +151,6 @@ void ResetCEGUI_GL (void)
 
     extern void SK_Steam_ClearPopups (void);
     SK_Steam_ClearPopups ();
-  }
-#endif
-}
-
-void
-SK_CEGUI_DrawGL (void)
-{
-#ifndef SK_BUILD__INSTALLER
-  if (! config.cegui.enable)
-    return;
-
-  InterlockedIncrement (&__cegui_frames_drawn);
-
-  static HWND last_hwnd = game_window.hWnd;
-
-  if (last_hwnd != game_window.hWnd)
-  {
-    if (cegGL != nullptr)
-    {
-      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-      cegGL->destroySystem ();
-      cegGL = nullptr;
-
-      last_hwnd = game_window.hWnd;
-    }
-  }
-
-  // TODO: Create a secondary context that shares "display lists" so that
-  //         we have a pure state machine all to ourselves.
-  if (cegGL == nullptr) {
-    if (SK_GetFramesDrawn () > 0) {
-      ResetCEGUI_GL ();
-    }
-  }
-
-  if (cegGL != nullptr)
-  {
-    SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-
-    static RECT rect;
-           RECT rect_now;
-
-    GetClientRect (hWndRender, &rect_now);
-
-    if (memcmp (&rect, &rect_now, sizeof RECT)) {
-      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
-          CEGUI::Sizef (
-            (float)(rect_now.right - rect_now.left),
-              (float)(rect_now.bottom - rect_now.top)
-          )
-      );
-
-      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
-
-      rect = rect_now;
-    }
-
-    glPushAttrib (GL_ALL_ATTRIB_BITS);
-
-    cegGL->beginRendering   ();
-    {
-      extern void SK_Steam_DrawOSD (void);
-      SK_Steam_DrawOSD ();
-
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-    }
-    cegGL->endRendering     ();
-
-    glPopAttrib ();
   }
 #endif
 }
@@ -1271,6 +1204,75 @@ OPENGL_STUB(BOOL, wglSetPixelFormat, (HDC hDC, DWORD PixelFormat, CONST PIXELFOR
                                      (    hDC,       PixelFormat,                              pdf));
 
 
+void
+SK_CEGUI_DrawGL (void)
+{
+#ifndef SK_BUILD__INSTALLER
+  if (! config.cegui.enable)
+    return;
+
+  InterlockedIncrement (&__cegui_frames_drawn);
+
+  static HWND last_hwnd = game_window.hWnd;
+
+  if (last_hwnd != game_window.hWnd)
+  {
+    if (cegGL != nullptr)
+    {
+      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+      cegGL->destroySystem ();
+      cegGL = nullptr;
+
+      last_hwnd = game_window.hWnd;
+    }
+  }
+
+  // TODO: Create a secondary context that shares "display lists" so that
+  //         we have a pure state machine all to ourselves.
+  if (cegGL == nullptr) {
+    extern void
+    SK_InstallWindowHook (HWND hWnd);
+    SK_InstallWindowHook (WindowFromDC (wglGetCurrentDC ()));
+
+    ResetCEGUI_GL ();
+  }
+
+  else
+  {
+    SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+
+    static RECT rect;
+           RECT rect_now;
+
+    GetClientRect (hWndRender, &rect_now);
+
+    if (memcmp (&rect, &rect_now, sizeof RECT)) {
+      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
+          CEGUI::Sizef (
+            (float)(rect_now.right - rect_now.left),
+              (float)(rect_now.bottom - rect_now.top)
+          )
+      );
+
+      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
+
+      rect = rect_now;
+    }
+
+    glPushAttrib (GL_ALL_ATTRIB_BITS);
+
+    cegGL->beginRendering   ();
+    {
+      SK_Steam_DrawOSD ();
+
+      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+    }
+    cegGL->endRendering     ();
+
+    glPopAttrib ();
+  }
+#endif
+}
 
 #if 1
 // THIS IS THE ONLY THING WE CARE ABOUT, GOOD GRIEF!!!

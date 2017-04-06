@@ -112,6 +112,10 @@ struct {
 } osd;
 
 struct {
+  sk::ParameterFloat*     scale;
+} imgui;
+
+struct {
   struct {
     sk::ParameterStringW*   sound_file;
     sk::ParameterBool*      play_sound;
@@ -1225,6 +1229,16 @@ SK_LoadConfig (std::wstring name) {
         L"Override" );
 
 
+  imgui.scale =
+    static_cast <sk::ParameterFloat *>
+      (g_ParameterFactory.create_parameter <float> (
+        L"ImGui Scale")
+      );
+  imgui.scale->register_to_ini (
+    osd_ini,
+      L"ImGui.Global",
+        L"FontScale" );
+
   osd.show =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -1575,6 +1589,13 @@ SK_LoadConfig (std::wstring name) {
     config.compatibility.disable_nv_bloat = compatibility.disable_nv_bloat->get_value ();
   if (compatibility.rehook_loadlibrary->load ())
     config.compatibility.rehook_loadlibrary = compatibility.rehook_loadlibrary->get_value ();
+
+
+  if (osd.state.remember->load ())
+    config.osd.remember_state = osd.state.remember->get_value ();
+
+  if (imgui.scale->load ())
+    config.imgui.scale = imgui.scale->get_value ();
 
 
   if (monitoring.io.show->load () && config.osd.remember_state)
@@ -1952,16 +1973,13 @@ SK_LoadConfig (std::wstring name) {
   if (osd.viewport.scale->load ())
     config.osd.scale = osd.viewport.scale->get_value ();
 
-  if (osd.state.remember->load ())
-    config.osd.remember_state = osd.state.remember->get_value ();
-
 
   if (init_delay->load ())
     config.system.init_delay = init_delay->get_value ();
   if (silent->load ())
     config.system.silent = silent->get_value ();
   if (trace_libraries->load ())
-    config.system.trace_load_library = trace_libraries->get_value();
+    config.system.trace_load_library = trace_libraries->get_value ();
   if (strict_compliance->load ())
     config.system.strict_compliance = strict_compliance->get_value ();
   if (log_level->load ())
@@ -2047,6 +2065,8 @@ SK_SaveConfig ( std::wstring name,
   osd.viewport.pos_y->set_value               (config.osd.pos_y);
   osd.viewport.scale->set_value               (config.osd.scale);
   osd.state.remember->set_value               (config.osd.remember_state);
+
+  imgui.scale->set_value                      (config.imgui.scale);
 
   apis.d3d9.hook->set_value                   (config.apis.d3d9.hook);
   apis.d3d9ex.hook->set_value                 (config.apis.d3d9ex.hook);
@@ -2335,6 +2355,8 @@ SK_SaveConfig ( std::wstring name,
   osd.viewport.pos_x->store              ();
   osd.viewport.pos_y->store              ();
   osd.viewport.scale->store              ();
+
+  imgui.scale->store                     ();
 
   steam.achievements.sound_file->store       ();
   steam.achievements.play_sound->store       ();

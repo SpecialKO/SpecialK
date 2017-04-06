@@ -373,7 +373,7 @@ struct sk_config_t
     bool    ignore_rtss_delay   = false;
     std::wstring
             version             = SK_VER_STR;
-    bool    trace_load_library  = true;
+    bool    trace_load_library  = false;
     bool    strict_compliance   = true;
   } system;
 };

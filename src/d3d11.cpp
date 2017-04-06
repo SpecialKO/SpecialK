@@ -260,6 +260,31 @@ typedef void (WINAPI *D3D11_Draw_pfn)(
   _In_ UINT                 VertexCount,
   _In_ UINT                 StartVertexLocation
 );
+typedef void (WINAPI *D3D11_DrawIndexedInstanced_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation,
+  _In_ UINT                 StartInstanceLocation
+);
+typedef void (WINAPI *D3D11_DrawIndexedInstancedIndirect_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs
+);
+typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartVertexLocation,
+  _In_ UINT                 StartInstanceLocation
+);
+typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs
+);
 
 
 void  __stdcall SK_D3D11_TexCacheCheckpoint    ( void);
@@ -472,7 +497,8 @@ D3D11CreateDevice_Detour (
 
   // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
   if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
-    WaitForInitDXGI ();
+    if (SK_GetCallerName () != L"NvCamera64.dll")
+      WaitForInitDXGI ();
 
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level;
@@ -702,14 +728,18 @@ D3D11Dev_CreateTexture2D_pfn          D3D11Dev_CreateTexture2D_Original         
 D3D11Dev_CreateRenderTargetView_pfn   D3D11Dev_CreateRenderTargetView_Original   = nullptr;
 D3D11Dev_CreateShaderResourceView_pfn D3D11Dev_CreateShaderResourceView_Original = nullptr;
 
-D3D11_RSSetScissorRects_pfn     D3D11_RSSetScissorRects_Original    = nullptr;
-D3D11_RSSetViewports_pfn        D3D11_RSSetViewports_Original       = nullptr;
-D3D11_VSSetConstantBuffers_pfn  D3D11_VSSetConstantBuffers_Original = nullptr;
-D3D11_PSSetShaderResources_pfn  D3D11_PSSetShaderResources_Original = nullptr;
-D3D11_UpdateSubresource_pfn     D3D11_UpdateSubresource_Original    = nullptr;
-D3D11_DrawIndexed_pfn           D3D11_DrawIndexed_Original          = nullptr;
-D3D11_Draw_pfn                  D3D11_Draw_Original                 = nullptr;
-D3D11_Map_pfn                   D3D11_Map_Original                  = nullptr;
+D3D11_RSSetScissorRects_pfn            D3D11_RSSetScissorRects_Original            = nullptr;
+D3D11_RSSetViewports_pfn               D3D11_RSSetViewports_Original               = nullptr;
+D3D11_VSSetConstantBuffers_pfn         D3D11_VSSetConstantBuffers_Original         = nullptr;
+D3D11_PSSetShaderResources_pfn         D3D11_PSSetShaderResources_Original         = nullptr;
+D3D11_UpdateSubresource_pfn            D3D11_UpdateSubresource_Original            = nullptr;
+D3D11_DrawIndexed_pfn                  D3D11_DrawIndexed_Original                  = nullptr;
+D3D11_Draw_pfn                         D3D11_Draw_Original                         = nullptr;
+D3D11_DrawIndexedInstanced_pfn         D3D11_DrawIndexedInstanced_Original         = nullptr;
+D3D11_DrawIndexedInstancedIndirect_pfn D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
+D3D11_DrawInstanced_pfn                D3D11_DrawInstanced_Original                = nullptr;
+D3D11_DrawInstancedIndirect_pfn        D3D11_DrawInstancedIndirect_Original        = nullptr;
+D3D11_Map_pfn                          D3D11_Map_Original                          = nullptr;
 
 D3D11_CopyResource_pfn          D3D11_CopyResource_Original       = nullptr;
 D3D11_UpdateSubresource1_pfn    D3D11_UpdateSubresource1_Original = nullptr;
@@ -870,6 +900,55 @@ D3D11_Draw_Override (
   _In_ UINT                 StartVertexLocation )
 {
   return D3D11_Draw_Original ( This, VertexCount, StartVertexLocation );
+}
+
+__declspec (noinline)
+void
+WINAPI
+D3D11_DrawIndexedInstanced_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation,
+  _In_ UINT                 StartInstanceLocation )
+{
+  return D3D11_DrawIndexedInstanced_Original (This, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+}
+
+__declspec (noinline)
+void
+WINAPI
+D3D11_DrawIndexedInstancedIndirect_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs )
+{
+  return D3D11_DrawIndexedInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
+}
+
+__declspec (noinline)
+void
+WINAPI
+D3D11_DrawInstanced_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartVertexLocation,
+  _In_ UINT                 StartInstanceLocation )
+{
+  return D3D11_DrawInstanced_Original (This, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+}
+
+__declspec (noinline)
+void
+WINAPI
+D3D11_DrawInstancedIndirect_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs )
+{
+  return D3D11_DrawInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
 }
 
 
@@ -3040,15 +3119,29 @@ HookD3D11 (LPVOID user)
                            D3D11_Map_Override, D3D11_Map_Original,
                            D3D11_Map_pfn);
 
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 20, "ID3D11DeviceContext::DrawIndexedInstanced",
+                           D3D11_DrawIndexedInstanced_Override, D3D11_DrawIndexedInstanced_Original,
+                           D3D11_DrawIndexedInstanced_pfn);
+
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 21, "ID3D11DeviceContext::DrawInstanced",
+                           D3D11_DrawInstanced_Override, D3D11_DrawInstanced_Original,
+                           D3D11_DrawInstanced_pfn);
+
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 39, "ID3D11DeviceContext::DrawIndexedInstancedIndirect",
+                           D3D11_DrawIndexedInstancedIndirect_Override, D3D11_DrawIndexedInstancedIndirect_Original,
+                           D3D11_DrawIndexedInstancedIndirect_pfn);
+
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 40, "ID3D11DeviceContext::DrawInstancedIndirect",
+                           D3D11_DrawInstancedIndirect_Override, D3D11_DrawInstancedIndirect_Original,
+                           D3D11_DrawInstancedIndirect_pfn);
+
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 44, "ID3D11DeviceContext::RSSetViewports",
                            D3D11_RSSetViewports_Override, D3D11_RSSetViewports_Original,
                            D3D11_RSSetViewports_pfn);
 
-#if 0
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 45, "ID3D11DeviceContext::RSSetScissorRects",
                            D3D11_RSSetScissorRects_Override, D3D11_RSSetScissorRects_Original,
                            D3D11_RSSetScissorRects_pfn);
-#endif
 
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 47, "ID3D11DeviceContext::CopyResource",
                            D3D11_CopyResource_Override, D3D11_CopyResource_Original,

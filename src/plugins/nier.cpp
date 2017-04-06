@@ -19,7 +19,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.0.5"
+#define FAR_VERSION_NUM L"0.5.1"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -61,8 +61,11 @@ iSK_INI*              far_prefs                 = nullptr;
 wchar_t               far_prefs_file [MAX_PATH] = { L'\0' };
 sk::ParameterInt*     far_gi_workgroups         = nullptr;
 sk::ParameterInt*     far_bloom_width           = nullptr;
+sk::ParameterBool*    far_bloom_disable         = nullptr;
+sk::ParameterBool*    far_fix_motion_blur       = nullptr;
 sk::ParameterInt*     far_ao_width              = nullptr;
 sk::ParameterInt*     far_ao_height             = nullptr;
+sk::ParameterBool*    far_ao_disable            = nullptr;
 sk::ParameterBool*    far_limiter_busy          = nullptr;
 sk::ParameterBool*    far_uncap_fps             = nullptr;
 sk::ParameterBool*    far_slow_state_cache      = nullptr;
@@ -78,9 +81,30 @@ static std::unordered_set <ID3D11ShaderResourceView *> far_title_views;
 // (Presumable) Size of compute shader workgroup
 int    __FAR_GlobalIllumWorkGroupSize =   128;
 bool   __FAR_GlobalIllumCompatMode    =  true;
-int    __FAR_BloomWidth               =    -1; // Set at startup from user prefs, never changed
-int    __FAR_AOHeight                 =    -1;
-int    __FAR_AOWidth                  =    -1;
+
+struct {
+  int  width   =    -1; // Set at startup from user prefs, never changed
+  bool disable = false;
+
+  bool active  = false;
+
+  std::unordered_set <ID3D11Texture2D          *> textures;
+  std::unordered_set <ID3D11ShaderResourceView *> views;
+} far_bloom;
+
+struct {
+  int  width           =    -1; // Set at startup from user prefs, never changed
+  int  height          =    -1; // Set at startup from user prefs, never changed
+
+  bool active          = false;
+
+  bool disable         = false;
+  bool fix_motion_blur = true;
+
+  std::unordered_set <ID3D11Texture2D          *> textures;
+  std::unordered_set <ID3D11ShaderResourceView *> views;
+} far_ao;
+ 
 double __FAR_TargetFPS                = 59.94;
 
 
@@ -122,6 +146,43 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView );
+
+extern
+void
+WINAPI
+D3D11_DrawIndexedInstanced_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation,
+  _In_ UINT                 StartInstanceLocation );
+
+extern
+void
+WINAPI
+D3D11_DrawIndexedInstancedIndirect_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs );
+
+extern
+void
+WINAPI
+D3D11_DrawInstanced_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartVertexLocation,
+  _In_ UINT                 StartInstanceLocation );
+
+extern
+void
+WINAPI
+D3D11_DrawInstancedIndirect_Override (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs );
 
 
 // Was threaded originally, but it is important to block until
@@ -207,9 +268,21 @@ SK_FAR_CreateShaderResourceView (
     D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
 
 
-  // Title Screen
-  if (pDesc != nullptr && ppSRView != nullptr && far_title_textures.count ((ID3D11Texture2D *)pResource))
-    far_title_views.emplace (*ppSRView);
+  
+  if (SUCCEEDED (hr) && pDesc != nullptr && ppSRView != nullptr)
+  {
+    // Bloom
+    if (far_bloom.textures.count ((ID3D11Texture2D *)pResource))
+      far_bloom.views.emplace (*ppSRView);
+
+    // AO
+    else if (far_ao.textures.count ((ID3D11Texture2D *)pResource))
+      far_ao.views.emplace (*ppSRView);
+
+    // Title Screen
+    else if (far_title_textures.count ((ID3D11Texture2D *)pResource))
+      far_title_views.emplace (*ppSRView);
+  }
 
 
   return hr;
@@ -443,7 +516,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
     //
     // Hook keyboard input, only necessary for the FPS cap toggle right now
     //
-    extern void SK_PluginKeyPress (BOOL,BOOL,BOOL,BYTE);
+    extern void WINAPI SK_PluginKeyPress (BOOL,BOOL,BOOL,BYTE);
     SK_CreateFuncHook ( L"SK_PluginKeyPress",
                           SK_PluginKeyPress,
                           SK_FAR_PluginKeyPress,
@@ -499,6 +572,32 @@ typedef void (WINAPI *D3D11_Draw_pfn)(
   _In_ UINT                 VertexCount,
   _In_ UINT                 StartVertexLocation
 );
+typedef void (WINAPI *D3D11_DrawIndexedInstanced_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation,
+  _In_ UINT                 StartInstanceLocation
+);
+typedef void (WINAPI *D3D11_DrawIndexedInstancedIndirect_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs
+);
+typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartVertexLocation,
+  _In_ UINT                 StartInstanceLocation
+);
+typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs
+);
+
 typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
   _In_     ID3D11DeviceContext             *This,
   _In_     UINT                             StartSlot,
@@ -507,10 +606,14 @@ typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
 );
 
 
-static D3D11Dev_CreateTexture2D_pfn   D3D11Dev_CreateTexture2D_Original   = nullptr;
-static D3D11_DrawIndexed_pfn          D3D11_DrawIndexed_Original          = nullptr;
-static D3D11_Draw_pfn                 D3D11_Draw_Original                 = nullptr;
-static D3D11_PSSetShaderResources_pfn D3D11_PSSetShaderResources_Original = nullptr;
+static D3D11Dev_CreateTexture2D_pfn           D3D11Dev_CreateTexture2D_Original           = nullptr;
+static D3D11_DrawIndexed_pfn                  D3D11_DrawIndexed_Original                  = nullptr;
+static D3D11_Draw_pfn                         D3D11_Draw_Original                         = nullptr;
+static D3D11_DrawIndexedInstanced_pfn         D3D11_DrawIndexedInstanced_Original         = nullptr;
+static D3D11_DrawIndexedInstancedIndirect_pfn D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
+static D3D11_DrawInstanced_pfn                D3D11_DrawInstanced_Original                = nullptr;
+static D3D11_DrawInstancedIndirect_pfn        D3D11_DrawInstancedIndirect_Original        = nullptr;
+static D3D11_PSSetShaderResources_pfn         D3D11_PSSetShaderResources_Original         = nullptr;
 
 
 extern HRESULT
@@ -574,8 +677,11 @@ SK_FAR_CreateTexture2D (
   if (ppTexture2D == nullptr)
     return D3D11Dev_CreateTexture2D_Original ( This, pDesc, pInitialData, nullptr );
 
-  static UINT  resW      = __FAR_BloomWidth; // horizontal resolution, must be set at application start
-  static float resFactor = resW / 1600.0f;   // the factor required to scale to the largest part of the pyramid
+  static UINT  resW      = far_bloom.width; // horizontal resolution, must be set at application start
+  static float resFactor = resW / 1600.0f;  // the factor required to scale to the largest part of the pyramid
+
+  bool bloom = false;
+  bool ao    = false;
 
   switch (pDesc->Format)
   {
@@ -584,27 +690,40 @@ SK_FAR_CreateTexture2D (
     //    -- it's read by a compute shader and the whole screen white level can be off if it is the wrong size
     case DXGI_FORMAT_R11G11B10_FLOAT:
     {
-      if ( __FAR_BloomWidth != -1 && (
-               (pDesc->Width == 800 && pDesc->Height == 450)
-            || (pDesc->Width == 400 && pDesc->Height == 225)
-            || (pDesc->Width == 200 && pDesc->Height == 112)
-            || (pDesc->Width == 100 && pDesc->Height == 56) 
-            /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/ )
+      if (
+              (pDesc->Width == 800 && pDesc->Height == 450)
+           || (pDesc->Width == 400 && pDesc->Height == 225)
+           || (pDesc->Width == 200 && pDesc->Height == 112)
+           || (pDesc->Width == 100 && pDesc->Height == 56) 
+           /*|| (pDesc->Width == 50 && pDesc->Height == 28)*/
          )
       {
-        SK_LOG1 (L"Bloom Tex (%lux%lu)", pDesc->Width, pDesc->Height);
+        static int num_r11g11b10_textures = 0;
 
-        D3D11_TEXTURE2D_DESC copy = *pDesc;
+        num_r11g11b10_textures++; // First three R11G11B10 textures are not for bloom
+                                  // Last two are also not for bloom
 
-        // Scale the upper parts of the pyramid fully
-        // and lower levels progressively less
-        float pyramidLevelFactor  = (pDesc->Width - 50) / 750.0f;
-        float scalingFactor       = 1.0f + (resFactor - 1.0f) * pyramidLevelFactor;
+        if (num_r11g11b10_textures > 2 && num_r11g11b10_textures < 8)
+        {
+            bloom = true;
 
-        copy.Width  = (UINT)(copy.Width  * scalingFactor);
-        copy.Height = (UINT)(copy.Height * scalingFactor);
+          SK_LOG1 (L"Bloom Tex (%lux%lu : %lu)", pDesc->Width, pDesc->Height, pDesc->MipLevels);
 
-        pDesc       = &copy;
+          if (far_bloom.width != -1 && (pDesc->Width != 50 && pDesc->Height != 28))
+          {
+            D3D11_TEXTURE2D_DESC copy = *pDesc;
+
+            // Scale the upper parts of the pyramid fully
+            // and lower levels progressively less
+            float pyramidLevelFactor  = (pDesc->Width - 50) / 750.0f;
+            float scalingFactor       = 1.0f + (resFactor - 1.0f) * pyramidLevelFactor;
+
+            copy.Width  = (UINT)(copy.Width  * scalingFactor);
+            copy.Height = (UINT)(copy.Height * scalingFactor);
+
+            pDesc       = &copy;
+          }
+        }
       }
     } break;
 
@@ -616,19 +735,39 @@ SK_FAR_CreateTexture2D (
     case DXGI_FORMAT_R32_FLOAT:
     case DXGI_FORMAT_D24_UNORM_S8_UINT:
     {
-      if (__FAR_AOWidth != -1 && pDesc->Width == 800 && pDesc->Height == 450)
+      if (pDesc->Width == 800 && pDesc->Height == 450)
       {
-        SK_LOG0 ( "AO Buffer (%lux%lu - Fmt: %x",
-                    pDesc->Width, pDesc->Height,
-                    pDesc->Format );
+        // Skip the first two textures that match this pattern, they are
+        //   not related to AO.
+        static int num_r32_textures = 0;
 
-        // set to our display resolution instead
-        D3D11_TEXTURE2D_DESC copy = *pDesc;
+        if (pDesc->Format == DXGI_FORMAT_R32_FLOAT)
+          num_r32_textures++;
 
-        copy.Width  = __FAR_AOWidth;
-        copy.Height = __FAR_AOHeight;
+        if ((! far_ao.fix_motion_blur) || (num_r32_textures > 0))
+        {
+          ao = true;
 
-        pDesc = &copy;
+          if (far_ao.width != -1)
+          {
+            SK_LOG0 ( L"Mip Levels: %lu, Format: %x, (%x:%x:%x)",
+                            pDesc->MipLevels,      pDesc->Format,
+                            pDesc->CPUAccessFlags, pDesc->Usage,
+                            pDesc->MiscFlags );
+
+            SK_LOG0 ( "AO Buffer (%lux%lu - Fmt: %x",
+                        pDesc->Width, pDesc->Height,
+                        pDesc->Format );
+
+            // set to our display resolution instead
+            D3D11_TEXTURE2D_DESC copy = *pDesc;
+
+            copy.Width  = far_ao.width;
+            copy.Height = far_ao.height;
+
+            pDesc = &copy;
+          }
+        }
       }
     } break;
   }
@@ -669,6 +808,14 @@ SK_FAR_CreateTexture2D (
   }
 #endif
 
+  if (SUCCEEDED (hr))
+  {
+    if (bloom)
+      far_bloom.textures.emplace (*ppTexture2D);
+    if (ao)
+      far_ao.textures.emplace (*ppTexture2D);
+  }
+
   return hr;
 }
 
@@ -684,25 +831,42 @@ SK_FAR_CreateTexture2D (
 //   - set the viewport to the texture size
 //   - adjust the pixel shader constant buffer in slot #12 to this format (4 floats):
 //     [ 0.5f / W, 0.5f / H, W, H ] (half-pixel size and total dimensions)
-void
+bool
 SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
 {
+  if (far_bloom.active)
+  {
+    far_bloom.active = false;
+
+    //if (far_bloom.disable)
+      //return true;
+  }
+
+  if (far_ao.active)
+  {
+    far_ao.active = false;
+
+    //if (far_ao.disable)
+      //return true;
+  }
+
   UINT numViewports = 0;
 
   pDevCtx->RSGetViewports (&numViewports, nullptr);
 
-  if (numViewports == 1 && (__FAR_BloomWidth != -1 || __FAR_AOWidth != -1))
+  if (numViewports == 1 && (far_bloom.width != -1 || far_ao.width != -1))
   {
     D3D11_VIEWPORT vp;
 
     pDevCtx->RSGetViewports (&numViewports, &vp);
 
-    if (   (vp.Width == 800 && vp.Height == 450)
-        || (vp.Width == 400 && vp.Height == 225)
-        || (vp.Width == 200 && vp.Height == 112)
-        || (vp.Width == 100 && vp.Height == 56 )
-        || (vp.Width == 50  && vp.Height == 28 )
-        || (vp.Width == 25  && vp.Height == 14 ) )
+    if (  (vp.Width == 800 && vp.Height == 450)
+       || (vp.Width == 400 && vp.Height == 225)
+       || (vp.Width == 200 && vp.Height == 112)
+       || (vp.Width == 100 && vp.Height == 56 )
+       || (vp.Width == 50  && vp.Height == 28 )
+       || (vp.Width == 25  && vp.Height == 14 )
+       )
     {
       CComPtr <ID3D11RenderTargetView> rtView = nullptr;
 
@@ -775,7 +939,7 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 // Bloom
                 //   If we are not rendering to a mip map for hierarchical Z, the format is 
                 //   [ 0.5f / W, 0.5f / H, W, H ] (half-pixel size and total dimensions)
-                if (desc.Texture2D.MipSlice == 0 && __FAR_BloomWidth != -1)
+                if (desc.Texture2D.MipSlice == 0 && far_bloom.width != -1)
                 {
                   static std::map <UINT, ID3D11Buffer*> buffers;
 
@@ -798,13 +962,16 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                   }
 
                   pDevCtx->PSSetConstantBuffers (12, 1, &buffers [texdesc.Width]);
+
+                  if (far_bloom.disable)
+                    return true;
                 }
 
                 // AO
                 //
                 //   For hierarchical Z mips, the format is
                 //   [ W, H, LOD (Mip-1), 0.0f ]
-                else if (__FAR_AOWidth != -1)
+                else if (far_ao.width != -1)
                 {
                   static std::map <UINT, ID3D11Buffer*> mipBuffers;
 
@@ -827,6 +994,9 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                   }
 
                   pDevCtx->PSSetConstantBuffers (8, 1, &mipBuffers [desc.Texture2D.MipSlice]);
+
+                  if (far_ao.disable)
+                    return true;
                 }
               }
             }
@@ -835,6 +1005,65 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
       }
     }
   }
+
+  return false;
+}
+
+D3D11_VIEWPORT backup_vp;
+
+void
+SK_FAR_RestoreAspectRatio (ID3D11DeviceContext *pDevCtx)
+{
+  pDevCtx->RSSetViewports (1, &backup_vp);
+}
+
+bool
+SK_FAR_CorrectAspectRatio (ID3D11DeviceContext *pDevCtx)
+{
+  return false;
+
+  UINT numViewports = 0;
+
+  pDevCtx->RSGetViewports (&numViewports, nullptr);
+
+  if (numViewports <= 2 && (*game_state.pMenu || *game_state.pLoading))
+  {
+    D3D11_VIEWPORT vp;
+
+    pDevCtx->RSGetViewports (&numViewports, &vp);
+
+    backup_vp = vp;
+
+    extern HWND SK_GetGameWindow (void);
+
+    RECT rect;
+    GetClientRect (SK_GetGameWindow (), &rect);
+
+    if ( (INT)vp.Width  == (INT)(rect.right  - rect.left) &&
+         (INT)vp.Height == (INT)(rect.bottom - rect.top)  &&
+         vp.TopLeftX == 0 && vp.TopLeftY == 0 )
+    {
+      if (vp.Width / vp.Height < (16.0f / 9.0f - 0.01f))
+      {
+        float orig  = vp.Height;
+        vp.Height   = (9.0f * vp.Width)  / 16.0f;
+        vp.TopLeftY = (orig - vp.Height) / 2.0f;
+      }
+
+      else if (vp.Width / vp.Height > (16.0f / 9.0f + 0.01f))
+      {
+        float orig  = vp.Width;
+        vp.Width    = (16.0f * vp.Height) / 9.0f;
+        vp.TopLeftX = (orig  - vp.Width)  / 2.0f;
+      }
+
+      pDevCtx->RSSetViewports (1, &vp);
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 
@@ -846,11 +1075,20 @@ SK_FAR_DrawIndexed (
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation )
 {
+  bool cull   = false;
+  bool aspect = false;
+ 
   if (IndexCount == 4 && StartIndexLocation == 0 && BaseVertexLocation == 0)
-    SK_FAR_PreDraw (This);
+    cull = SK_FAR_PreDraw (This);
+  else
+    aspect = SK_FAR_CorrectAspectRatio (This);
 
-  return D3D11_DrawIndexed_Original ( This, IndexCount,
-                                        StartIndexLocation, BaseVertexLocation );
+  if (! cull)
+    D3D11_DrawIndexed_Original ( This, IndexCount,
+                                   StartIndexLocation, BaseVertexLocation );
+
+  if (aspect)
+    SK_FAR_RestoreAspectRatio (This);
 }
 
 void
@@ -860,11 +1098,86 @@ SK_FAR_Draw (
   _In_ UINT                 VertexCount,
   _In_ UINT                 StartVertexLocation )
 {
-  if (VertexCount == 4 && StartVertexLocation == 0)
-    SK_FAR_PreDraw (This);
+  bool cull   = false;
+  bool aspect = false;
 
-  return D3D11_Draw_Original ( This, VertexCount,
-                                 StartVertexLocation );
+  if (VertexCount == 4 && StartVertexLocation == 0)
+    cull = SK_FAR_PreDraw (This);
+  else
+    aspect = SK_FAR_CorrectAspectRatio (This);
+
+  if (! cull)
+    D3D11_Draw_Original ( This, VertexCount,
+                            StartVertexLocation );
+
+  if (aspect)
+    SK_FAR_RestoreAspectRatio (This);
+}
+
+
+void
+WINAPI
+SK_FAR_DrawIndexedInstanced (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation,
+  _In_ UINT                 StartInstanceLocation )
+{
+  bool aspect = SK_FAR_CorrectAspectRatio (This);
+
+  D3D11_DrawIndexedInstanced_Original (This, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+
+  if (aspect)
+    SK_FAR_RestoreAspectRatio (This);
+}
+
+void
+WINAPI
+SK_FAR_DrawIndexedInstancedIndirect (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs )
+{
+  bool aspect = SK_FAR_CorrectAspectRatio (This);
+
+  D3D11_DrawIndexedInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
+
+  if (aspect)
+    SK_FAR_RestoreAspectRatio (This);
+}
+
+void
+WINAPI
+SK_FAR_DrawInstanced (
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartVertexLocation,
+  _In_ UINT                 StartInstanceLocation )
+{
+  bool aspect = SK_FAR_CorrectAspectRatio (This);
+
+  D3D11_DrawInstanced_Original (This, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+
+  if (aspect)
+    SK_FAR_RestoreAspectRatio (This);
+}
+
+void
+WINAPI
+SK_FAR_DrawInstancedIndirect (
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs )
+{
+  bool aspect = SK_FAR_CorrectAspectRatio (This);
+
+  D3D11_DrawInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
+
+  if (aspect)
+    SK_FAR_RestoreAspectRatio (This);
 }
 
 
@@ -876,6 +1189,25 @@ SK_FAR_PSSetShaderResources (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  static ID3D11ShaderResourceView* views [256];
+
+  for (UINT i = 0; i < NumViews; i++)
+  {
+    views [i] = ppShaderResourceViews [i];
+
+    if (far_ao.views.count (ppShaderResourceViews [i]) && far_ao.disable) {
+      views [i] = nullptr;
+      far_ao.active = true;
+    }
+
+    else if (far_bloom.views.count (ppShaderResourceViews [i]) && far_bloom.disable) {
+      views [i] = nullptr;
+      far_bloom.active = true;
+    }
+  }
+
+  ppShaderResourceViews = views;
+
 #if 0
   for (int i = 0; i < NumViews; i++)
   {
@@ -929,6 +1261,7 @@ SK_FAR_InitPlugin (void)
 
   SK_SetPluginName (FAR_VERSION_STR);
 
+
   SK_CreateFuncHook ( L"ID3D11Device::CreateBuffer",
                         D3D11Dev_CreateBuffer_Override,
                           SK_FAR_CreateBuffer,
@@ -946,6 +1279,61 @@ SK_FAR_InitPlugin (void)
                           SK_FAR_PSSetShaderResources,
                             (LPVOID *)&D3D11_PSSetShaderResources_Original );
   MH_QueueEnableHook (D3D11_PSSetShaderResources_Override);
+
+  SK_CreateFuncHook ( L"ID3D11Device::CreateTexture2D",
+                        D3D11Dev_CreateTexture2D_Override,
+                          SK_FAR_CreateTexture2D,
+                            (LPVOID *)&D3D11Dev_CreateTexture2D_Original );
+  MH_QueueEnableHook (D3D11Dev_CreateTexture2D_Override);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::Draw",
+                        D3D11_Draw_Override,
+                          SK_FAR_Draw,
+                            (LPVOID *)&D3D11_Draw_Original );
+  MH_QueueEnableHook (D3D11_Draw_Override);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexed",
+                        D3D11_DrawIndexed_Override,
+                          SK_FAR_DrawIndexed,
+                            (LPVOID *)&D3D11_DrawIndexed_Original );
+  MH_QueueEnableHook (D3D11_DrawIndexed_Override);
+
+typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartVertexLocation,
+  _In_ UINT                 StartInstanceLocation
+);
+typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs
+);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexedInstanced",
+                        D3D11_DrawIndexedInstanced_Override,
+                          SK_FAR_DrawIndexedInstanced,
+                            (LPVOID *)&D3D11_DrawIndexedInstanced_Original );
+  MH_QueueEnableHook (D3D11_DrawIndexedInstanced_Override);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexedInstancedIndirect",
+                        D3D11_DrawIndexedInstancedIndirect_Override,
+                          SK_FAR_DrawIndexedInstancedIndirect,
+                            (LPVOID *)&D3D11_DrawIndexedInstancedIndirect_Original );
+  MH_QueueEnableHook (D3D11_DrawIndexedInstancedIndirect_Override);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawInstanced",
+                        D3D11_DrawInstanced_Override,
+                          SK_FAR_DrawInstanced,
+                            (LPVOID *)&D3D11_DrawInstanced_Original );
+  MH_QueueEnableHook (D3D11_DrawInstanced_Override);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawInstancedIndirect",
+                        D3D11_DrawInstancedIndirect_Override,
+                          SK_FAR_DrawInstancedIndirect,
+                            (LPVOID *)&D3D11_DrawInstancedIndirect_Original );
+  MH_QueueEnableHook (D3D11_DrawInstancedIndirect_Override);
 
 
   if (far_prefs == nullptr)
@@ -1067,14 +1455,65 @@ SK_FAR_InitPlugin (void)
       far_bloom_width->store     (  );
     }
 
-    __FAR_BloomWidth = far_bloom_width->get_value ();
+    far_bloom.width = far_bloom_width->get_value ();
 
     // Bloom Width must be > 0 or -1, never 0!
-    if (__FAR_BloomWidth <= 0) {
-      __FAR_BloomWidth =                -1;
-      far_bloom_width->set_value (__FAR_BloomWidth);
-      far_bloom_width->store     (                );
+    if (far_bloom.width <= 0) {
+      far_bloom.width =                -1;
+      far_bloom_width->set_value (far_bloom.width);
+      far_bloom_width->store     (               );
     }
+
+
+    far_bloom_disable =
+      static_cast <sk::ParameterBool *>
+        (far_factory.create_parameter <bool> (L"Disable Bloom"));
+
+    far_bloom_disable->register_to_ini ( far_prefs,
+                                           L"FAR.Lighting",
+                                             L"DisableBloom" );
+
+    if (! far_bloom_disable->load ())
+    {
+      far_bloom_disable->set_value (false);
+      far_bloom_disable->store     ();
+    }
+
+    far_bloom.disable = far_bloom_disable->get_value ();
+
+
+    far_fix_motion_blur =
+      static_cast <sk::ParameterBool *>
+        (far_factory.create_parameter <bool> (L"Test Fix for Motion Blur"));
+
+    far_fix_motion_blur->register_to_ini ( far_prefs,
+                                             L"FAR.Temporary",
+                                               L"FixMotionBlur" );
+
+    if (! far_fix_motion_blur->load ())
+    {
+      far_fix_motion_blur->set_value (true);
+      far_fix_motion_blur->store     ();
+    }
+
+    far_ao.fix_motion_blur = far_fix_motion_blur->get_value ();
+
+
+    far_ao_disable =
+      static_cast <sk::ParameterBool *>
+        (far_factory.create_parameter <bool> (L"Disable AO"));
+
+    far_ao_disable->register_to_ini ( far_prefs,
+                                        L"FAR.Lighting",
+                                          L"DisableAO" );
+
+    if (! far_ao_disable->load ())
+    {
+      far_ao_disable->set_value (false);
+      far_ao_disable->store     ();
+    }
+
+    far_ao.disable = far_ao_disable->get_value ();
 
 
     far_ao_width =
@@ -1091,13 +1530,13 @@ SK_FAR_InitPlugin (void)
       far_ao_width->store     (  );
     }
 
-    __FAR_AOWidth = far_ao_width->get_value ();
+    far_ao.width = far_ao_width->get_value ();
 
     // AO Width must be > 0 or -1, never 0!
-    if (__FAR_AOWidth <= 0) {
-      __FAR_AOWidth =                -1;
-      far_ao_width->set_value (__FAR_AOWidth);
-      far_ao_width->store     (             );
+    if (far_ao.width <= 0) {
+      far_ao.width =               -1;
+      far_ao_width->set_value (far_ao.width);
+      far_ao_width->store     (            );
     }
 
     far_ao_height =
@@ -1114,13 +1553,13 @@ SK_FAR_InitPlugin (void)
       far_ao_height->store     (  );
     }
 
-    __FAR_AOHeight = far_ao_height->get_value ();
+    far_ao.height = far_ao_height->get_value ();
 
     // AO Height must be > 0 or -1, never 0!
-    if (__FAR_AOHeight <= 0) {
-      __FAR_AOHeight =                -1;
-      far_ao_height->set_value (__FAR_AOHeight);
-      far_ao_height->store     (              );
+    if (far_ao.height <= 0) {
+      far_ao.height =               -1;
+      far_ao_height->set_value (far_ao.height);
+      far_ao_height->store     (             );
     }
 
 
@@ -1131,32 +1570,6 @@ SK_FAR_InitPlugin (void)
 
 
     far_prefs->write (far_prefs_file);
-
-
-    // If overriding bloom/AO resolution, add these additional hooks
-    //
-    if (   __FAR_BloomWidth != -1 ||
-         ( __FAR_AOWidth    != -1 && 
-           __FAR_AOHeight   != -1 ) )
-    {
-      SK_CreateFuncHook ( L"ID3D11Device::CreateTexture2D",
-                            D3D11Dev_CreateTexture2D_Override,
-                              SK_FAR_CreateTexture2D,
-                                (LPVOID *)&D3D11Dev_CreateTexture2D_Original );
-      MH_QueueEnableHook (D3D11Dev_CreateTexture2D_Override);
-
-      SK_CreateFuncHook ( L"ID3D11DeviceContext::Draw",
-                            D3D11_Draw_Override,
-                              SK_FAR_Draw,
-                                (LPVOID *)&D3D11_Draw_Original );
-      MH_QueueEnableHook (D3D11_Draw_Override);
-
-      SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexed",
-                            D3D11_DrawIndexed_Override,
-                              SK_FAR_DrawIndexed,
-                                (LPVOID *)&D3D11_DrawIndexed_Original );
-      MH_QueueEnableHook (D3D11_DrawIndexed_Override);
-    }
 
 
     MH_ApplyQueued ();
@@ -1189,85 +1602,123 @@ SK_FAR_ControlPanel (void)
   {
     if (ImGui::TreeNodeEx ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      ImGui::Text ("Bloom"); ImGui::TreePush ("");
+      bool bloom = (! far_bloom.disable);
 
-      int bloom_behavior = (far_bloom_width->get_value () != -1) ? 1 : 0;
-
-      ImGui::BeginGroup ();
-
-      if (ImGui::RadioButton ("Default Bloom Res. (800x450)", &bloom_behavior, 0))
+      if (ImGui::Checkbox ("Bloom", &bloom))
       {
-        changed = true;
-
-        far_bloom_width->set_value (-1);
-        far_bloom_width->store     ();
-      }
-
-      ImGui::SameLine ();
-
-      // 1/4 resolution actually, but this is easier to describe to the end-user
-      if (ImGui::RadioButton ("Native Bloom Res.",            &bloom_behavior, 1))
-      {
-        far_bloom_width->set_value ((int)ImGui::GetIO ().DisplaySize.x);
-        far_bloom_width->store     ();
+        far_bloom.disable = (! bloom);
+        far_bloom_disable->set_value (far_bloom.disable);
+        far_bloom_disable->store     ();
 
         changed = true;
       }
 
-      if (ImGui::IsItemHovered ()) {
-        ImGui::BeginTooltip ();
-        ImGui::Text        ("Improve Bloom Quality");
-        ImGui::Separator   ();
-        ImGui::BulletText  ("Performance Cost is Negligible");
-        ImGui::BulletText  ("Changing this setting requires a full application restart");
-        ImGui::EndTooltip  ();
-      }
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("For Debug Purposes ONLY, please leave enabled ;)");
 
-      ImGui::EndGroup ();
-      ImGui::TreePop  ();
 
-      ImGui::Text     ("Ambient Occlusion");
-      ImGui::TreePush ("");
-
-      int ao_behavior = (far_ao_width->get_value () != -1) ? 3 : 2;
-
-      ImGui::BeginGroup      ();
-      if (ImGui::RadioButton ("Default AO Res.    (800x450)", &ao_behavior, 2))
+      if (! far_bloom.disable)
       {
-        changed = true;
+        ImGui::TreePush ("");
 
-        far_ao_width->set_value (-1);
-        far_ao_width->store     ();
+        int bloom_behavior = (far_bloom_width->get_value () != -1) ? 1 : 0;
 
-        far_ao_height->set_value (-1);
-        far_ao_height->store     ();
+        ImGui::BeginGroup ();
+
+        if (ImGui::RadioButton ("Default Bloom Res. (800x450)", &bloom_behavior, 0))
+        {
+          changed = true;
+
+          far_bloom_width->set_value (-1);
+          far_bloom_width->store     ();
+        }
+
+        ImGui::SameLine ();
+
+        // 1/4 resolution actually, but this is easier to describe to the end-user
+        if (ImGui::RadioButton ("Native Bloom Res.",            &bloom_behavior, 1))
+        {
+          far_bloom_width->set_value ((int)ImGui::GetIO ().DisplaySize.x);
+          far_bloom_width->store     ();
+
+          changed = true;
+        }
+
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text        ("Improve Bloom Quality");
+          ImGui::Separator   ();
+          ImGui::BulletText  ("Performance Cost is Negligible");
+          ImGui::BulletText  ("Changing this setting requires a full application restart");
+          ImGui::EndTooltip  ();
+        }
+
+        ImGui::EndGroup ();
+        ImGui::TreePop  ();
       }
 
-      ImGui::SameLine ();
 
-      // 1/4 resolution actually, but this is easier to describe to the end-user
-      if (ImGui::RadioButton ("Native AO Res.   ",            &ao_behavior, 3))
+      bool ao = (! far_ao.disable);
+
+      if (ImGui::Checkbox ("Ambient Occlusion", &ao))
       {
-        far_ao_width->set_value  ((int)(ImGui::GetIO ().DisplaySize.x));
-        far_ao_width->store      ();
+        far_ao.disable = (! ao);
 
-        far_ao_height->set_value ((int)(ImGui::GetIO ().DisplaySize.y));
-        far_ao_height->store     ();
+        far_ao_disable->set_value (far_ao.disable);
+        far_ao_disable->store     ();
 
         changed = true;
       }
 
-      if (ImGui::IsItemHovered ()) {
-        ImGui::BeginTooltip ();
-        ImGui::Text        ("Improve AO Quality");
-        ImGui::Separator   ();
-        ImGui::BulletText  ("Performance Cost is Negligible");
-        ImGui::BulletText  ("Changing this setting requires a full application restart");
-        ImGui::EndTooltip  ();
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("For Debug Purposes ONLY, please leave enabled ;)");
+
+
+      if (! far_ao.disable)
+      {
+        ImGui::TreePush ("");
+
+        int ao_behavior = (far_ao_width->get_value () != -1) ? 3 : 2;
+
+        ImGui::BeginGroup      ();
+        if (ImGui::RadioButton ("Default AO Res.    (800x450)", &ao_behavior, 2))
+        {
+          changed = true;
+
+          far_ao_width->set_value (-1);
+          far_ao_width->store     ();
+
+          far_ao_height->set_value (-1);
+          far_ao_height->store     ();
+        }
+
+        ImGui::SameLine ();
+
+        // 1/4 resolution actually, but this is easier to describe to the end-user
+        if (ImGui::RadioButton ("Native AO Res.   ",            &ao_behavior, 3))
+        {
+          far_ao_width->set_value  ((int)(ImGui::GetIO ().DisplaySize.x));
+          far_ao_width->store      ();
+
+          far_ao_height->set_value ((int)(ImGui::GetIO ().DisplaySize.y));
+          far_ao_height->store     ();
+
+          changed = true;
+        }
+
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text        ("Improve AO Quality");
+          ImGui::Separator   ();
+          ImGui::BulletText  ("Performance Cost is Negligible");
+          ImGui::BulletText  ("Changing this setting requires a full application restart");
+          ImGui::EndTooltip  ();
+        }
+
+        ImGui::EndGroup ();
+        ImGui::TreePop  ();
       }
 
-      ImGui::EndGroup ();
-      ImGui::TreePop  ();
       ImGui::TreePop  ();
     }
 
@@ -1358,10 +1809,10 @@ SK_FAR_ControlPanel (void)
       if (ImGui::IsItemHovered ()) {
         ImGui::BeginTooltip ();
         ImGui::Text        ("Can be toggled with "); ImGui::SameLine ();
-        ImGui::TextColored (ImVec4 (1.0, 0.8, 0.1, 1.0), "Ctrl + Shift + .");
+        ImGui::TextColored (ImVec4 (1.0f, 0.8f, 0.1f, 1.0f), "Ctrl + Shift + .");
         ImGui::Separator   ();
         ImGui::TreePush    ("");
-        ImGui::TextColored (ImVec4 (0.9, 0.9, 0.9, 1.0), "Two things to consider when enabling this");
+        ImGui::TextColored (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f), "Two things to consider when enabling this");
         ImGui::TreePush    ("");
         ImGui::BulletText  ("The game has no refresh rate setting, edit dxgi.ini to establish fullscreen refresh rate.");
         ImGui::BulletText  ("The mod is pre-configured with a 59.94 FPS framerate limit, adjust accordingly.");

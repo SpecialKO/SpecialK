@@ -572,6 +572,193 @@ SK_StartPerfMonThreads (void)
   }
 }
 
+//
+// TODO : Move me somewhere more sensible...
+//
+class skMemCmd : public SK_ICommand {
+public:
+  SK_ICommandResult execute (const char* szArgs);
+
+  int         getNumArgs         (void) { return 2; }
+  int         getNumOptionalArgs (void) { return 1; }
+  int         getNumRequiredArgs (void) {
+    return getNumArgs () - getNumOptionalArgs ();
+  }
+
+protected:
+private:
+};
+
+class skUpdateCmd : public SK_ICommand {
+public:
+  SK_ICommandResult execute (const char* szArgs);
+
+  int         getNumArgs         (void) { return 1; }
+  int         getNumOptionalArgs (void) { return 1; }
+  int         getNumRequiredArgs (void) {
+    return getNumArgs () - getNumOptionalArgs ();
+  }
+
+protected:
+private:
+};
+
+#include <SpecialK/update/version.h>
+#include <SpecialK/update/network.h>
+
+SK_ICommandResult
+skUpdateCmd::execute (const char* szArgs)
+{
+  if (! strlen (szArgs)) {
+    SK_FetchVersionInfo1 (L"SpecialK", true);
+    SK_UpdateSoftware1   (L"SpecialK", true);
+  }
+
+  else {
+    wchar_t wszProduct [128] = { L'\0' };
+    
+    mbtowc (wszProduct, szArgs, strlen (szArgs));
+
+    SK_FetchVersionInfo1 (wszProduct, true);
+    SK_UpdateSoftware1   (wszProduct, true);
+  }
+
+  return SK_ICommandResult ("Manual update initiated...", szArgs);
+}
+
+SK_ICommandResult
+skMemCmd::execute (const char* szArgs)
+{
+  if (szArgs == nullptr)
+    return SK_ICommandResult ("mem", szArgs);
+
+  uintptr_t addr;
+  char      type;
+  char      val [256] = { '\0' };
+
+#ifdef _WIN64
+  sscanf (szArgs, "%c %llx %s", &type, &addr, val);
+#else
+  sscanf (szArgs, "%c %lx %s", &type, &addr, val);
+#endif
+
+  static uint8_t* base_addr = nullptr;
+
+  if (base_addr == nullptr) {
+    base_addr = (uint8_t *)GetModuleHandle (nullptr);
+
+    MEMORY_BASIC_INFORMATION basic_mem_info;
+    VirtualQuery (base_addr, &basic_mem_info, sizeof basic_mem_info);
+
+    base_addr = (uint8_t *)basic_mem_info.BaseAddress;
+  }
+
+  addr += (uintptr_t)base_addr;
+
+  char result [512];
+
+  switch (type) {
+    case 'b':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 1, PAGE_READWRITE, &dwOld);
+          uint8_t out;
+          sscanf (val, "%hhux", &out);
+          *(uint8_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 1, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%u", *(uint8_t *)addr);
+
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+    case 's':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 2, PAGE_READWRITE, &dwOld);
+          uint16_t out;
+          sscanf (val, "%hx", &out);
+          *(uint16_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 2, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%u", *(uint16_t *)addr);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'i':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
+          uint32_t out;
+          sscanf (val, "%x", &out);
+          *(uint32_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%u", *(uint32_t *)addr);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'l':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
+          uint64_t out;
+          sscanf (val, "%llx", &out);
+          *(uint64_t *)addr = out;
+        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%llu", *(uint64_t *)addr);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'd':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
+          double out;
+          sscanf (val, "%lf", &out);
+          *(double *)addr = out;
+        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%f", *(double *)addr);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+    case 'f':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
+          float out;
+          sscanf (val, "%f", &out);
+          *(float *)addr = out;
+        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
+      }
+
+      sprintf (result, "%f", *(float *)addr);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+    case 't':
+      if (strlen (val)) {
+        DWORD dwOld;
+
+        VirtualProtect ((LPVOID)addr, 256, PAGE_READWRITE, &dwOld);
+          strcpy ((char *)addr, val);
+        VirtualProtect ((LPVOID)addr, 256, dwOld, &dwOld);
+      }
+      sprintf (result, "%s", (char *)addr);
+      return SK_ICommandResult ("mem", szArgs, result, 1);
+      break;
+  }
+
+  return SK_ICommandResult ("mem", szArgs);
+}
+
 unsigned int
 __stdcall
 CheckVersionThread (LPVOID user);
@@ -609,11 +796,11 @@ SK_InitFinishCallback (void)
 
   SK_InitRenderBackends ();
 
-  //skMemCmd*    mem    = new skMemCmd    ();
-  //skUpdateCmd* update = new skUpdateCmd ();
+  skMemCmd*    mem    = new skMemCmd    ();
+  skUpdateCmd* update = new skUpdateCmd ();
 
-  //SK_GetCommandProcessor ()->AddCommand ("mem",       mem);
-  //SK_GetCommandProcessor ()->AddCommand ("GetUpdate", update);
+  SK_GetCommandProcessor ()->AddCommand ("mem",       mem);
+  SK_GetCommandProcessor ()->AddCommand ("GetUpdate", update);
 
   //
   // Game-Specific Stuff that I am not proud of
@@ -650,11 +837,6 @@ SK_InitFinishCallback (void)
     _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
 
-  LeaveCriticalSection (&init_mutex);
-
-  if (SK_IsHostAppSKIM ())
-    return;
-
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
 
@@ -681,6 +863,12 @@ SK_InitFinishCallback (void)
   }
 
   SK_StartPerfMonThreads ();
+
+
+  LeaveCriticalSection (&init_mutex);
+
+  if (SK_IsHostAppSKIM ())
+    return;
 }
 
 void
@@ -1008,195 +1196,6 @@ WaitForInit (void)
   }
 }
 
-
-//
-// TODO : Move me somewhere more sensible...
-//
-class skMemCmd : public SK_ICommand {
-public:
-  SK_ICommandResult execute (const char* szArgs);
-
-  int         getNumArgs         (void) { return 2; }
-  int         getNumOptionalArgs (void) { return 1; }
-  int         getNumRequiredArgs (void) {
-    return getNumArgs () - getNumOptionalArgs ();
-  }
-
-protected:
-private:
-};
-
-class skUpdateCmd : public SK_ICommand {
-public:
-  SK_ICommandResult execute (const char* szArgs);
-
-  int         getNumArgs         (void) { return 1; }
-  int         getNumOptionalArgs (void) { return 1; }
-  int         getNumRequiredArgs (void) {
-    return getNumArgs () - getNumOptionalArgs ();
-  }
-
-protected:
-private:
-};
-
-#include <SpecialK/update/version.h>
-#include <SpecialK/update/network.h>
-
-SK_ICommandResult
-skUpdateCmd::execute (const char* szArgs)
-{
-  if (! strlen (szArgs)) {
-    SK_FetchVersionInfo1 (L"SpecialK", true);
-    SK_UpdateSoftware1   (L"SpecialK", true);
-  }
-
-  else {
-    wchar_t wszProduct [128] = { L'\0' };
-    
-    mbtowc (wszProduct, szArgs, strlen (szArgs));
-
-    SK_FetchVersionInfo1 (wszProduct, true);
-    SK_UpdateSoftware1   (wszProduct, true);
-  }
-
-  return SK_ICommandResult ("Manual update initiated...", szArgs);
-}
-
-SK_ICommandResult
-skMemCmd::execute (const char* szArgs)
-{
-  if (szArgs == nullptr)
-    return SK_ICommandResult ("mem", szArgs);
-
-  uintptr_t addr;
-  char      type;
-  char      val [256] = { '\0' };
-
-#ifdef _WIN64
-  sscanf (szArgs, "%c %llx %s", &type, &addr, val);
-#else
-  sscanf (szArgs, "%c %lx %s", &type, &addr, val);
-#endif
-
-  static uint8_t* base_addr = nullptr;
-
-  if (base_addr == nullptr) {
-    base_addr = (uint8_t *)GetModuleHandle (nullptr);
-
-    MEMORY_BASIC_INFORMATION basic_mem_info;
-    VirtualQuery (base_addr, &basic_mem_info, sizeof basic_mem_info);
-
-    base_addr = (uint8_t *)basic_mem_info.BaseAddress;
-  }
-
-  addr += (uintptr_t)base_addr;
-
-  char result [512];
-
-  switch (type) {
-    case 'b':
-      if (strlen (val)) {
-        DWORD dwOld;
-
-        VirtualProtect ((LPVOID)addr, 1, PAGE_READWRITE, &dwOld);
-          uint8_t out;
-          sscanf (val, "%hhux", &out);
-          *(uint8_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 1, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%u", *(uint8_t *)addr);
-
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 's':
-      if (strlen (val)) {
-        DWORD dwOld;
-
-        VirtualProtect ((LPVOID)addr, 2, PAGE_READWRITE, &dwOld);
-          uint16_t out;
-          sscanf (val, "%hx", &out);
-          *(uint16_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 2, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%u", *(uint16_t *)addr);
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'i':
-      if (strlen (val)) {
-        DWORD dwOld;
-
-        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
-          uint32_t out;
-          sscanf (val, "%x", &out);
-          *(uint32_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%u", *(uint32_t *)addr);
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'l':
-      if (strlen (val)) {
-        DWORD dwOld;
-
-        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
-          uint64_t out;
-          sscanf (val, "%llx", &out);
-          *(uint64_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%llu", *(uint64_t *)addr);
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'd':
-      if (strlen (val)) {
-        DWORD dwOld;
-
-        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
-          double out;
-          sscanf (val, "%lf", &out);
-          *(double *)addr = out;
-        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%f", *(double *)addr);
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'f':
-      if (strlen (val)) {
-        DWORD dwOld;
-
-        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
-          float out;
-          sscanf (val, "%f", &out);
-          *(float *)addr = out;
-        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%f", *(float *)addr);
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 't':
-      if (strlen (val)) {
-        DWORD dwOld;
-
-        VirtualProtect ((LPVOID)addr, 256, PAGE_READWRITE, &dwOld);
-          strcpy ((char *)addr, val);
-        VirtualProtect ((LPVOID)addr, 256, dwOld, &dwOld);
-      }
-      sprintf (result, "%s", (char *)addr);
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-  }
-
-  return SK_ICommandResult ("mem", szArgs);
-}
-
-
 unsigned int
 __stdcall
 CheckVersionThread (LPVOID user)
@@ -1250,6 +1249,9 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  // Don't trace until the config file is loaded
+  config.system.trace_load_library = false;
+
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
@@ -1498,8 +1500,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! SK_IsSuperSpecialK ())
   {
-    SK_InitCompatBlacklist ();
-
     dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
     if (SK_LoadConfig (config_name))
@@ -1528,6 +1528,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_SaveConfig (config_name);
       dll_log.LogEx (false, L"done!\n");
     }
+
+    SK_InitCompatBlacklist ();
   }
 
 
@@ -1783,7 +1785,8 @@ SK_BeginBufferSwap (void)
 
   static volatile LONG cegui_init = FALSE;
 
-  if ((! InterlockedCompareExchange (&cegui_init, 1, 0)))
+  if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
+       (! InterlockedCompareExchange (&cegui_init, 1, 0)) )
   {
     if (config.cegui.enable)
     {
@@ -1805,14 +1808,36 @@ SK_BeginBufferSwap (void)
       // Disable until we validate CEGUI's state
       config.cegui.enable = false;
   
-      wchar_t wszCEGUIModPath [MAX_PATH] = { L'\0' };
-      wchar_t wszCEGUITestDLL [MAX_PATH] = { L'\0' };
+      wchar_t wszCEGUIModPath [MAX_PATH]        = { L'\0' };
+      wchar_t wszCEGUITestDLL [MAX_PATH]        = { L'\0' };
+      wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { L'\0' };
+
   
   #ifdef _WIN64
       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
+
+      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES) {
+        _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\x64",
+                      SK_GetDocumentsDir ().c_str () );
+  
+        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+      }
+      else
+        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
   #else
       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
+
+      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES) {
+        _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\Win32",
+                      SK_GetDocumentsDir ().c_str () );
+
+        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+      }
+      else
+        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
   #endif
+
+      _wputenv  (wszEnvPath);
   
       lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
       lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
@@ -1916,10 +1941,10 @@ SK_BeginBufferSwap (void)
 
           if (config.apis.dxgi.d3d11.hook)
           {
-            //if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 )
+            if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 )
             {
-                if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
-                  config.cegui.enable = true;
+              if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
+                config.cegui.enable = true;
             }
           }
         }

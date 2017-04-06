@@ -1,5 +1,25 @@
-﻿// ImGui - standalone example application for DirectX 9
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
+﻿/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
@@ -193,12 +213,21 @@ SK_ImGui_ControlPanel (void)
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
     static bool has_own_scale = (hModTZFix || hModTBFix);
 
+    static bool first_frame = true;
+
+    // Initialize the dialog using the user's scale preference
+    if (first_frame)
+    {
+      io.FontGlobalScale = config.imgui.scale;
+      first_frame        = false;
+    }
+
     if ((! has_own_scale) && ImGui::CollapsingHeader ("UI Scale"))
     {
       ImGui::TreePush    ("");
 
       if (ImGui::SliderFloat ("Scale (only 1.0 is officially supported)", &config.imgui.scale, 1.0f, 3.0f))
-        ImGui::GetIO ().FontGlobalScale = config.imgui.scale;
+        io.FontGlobalScale = config.imgui.scale;
 
       ImGui::TreePop     ();
     }
@@ -621,6 +650,148 @@ SK_ImGui_ControlPanel (void)
           DeferCommand ("Window.ConfineCursor toggle");
 
         ImGui::TreePop  ();
+      }
+    }
+
+    if (ImGui::CollapsingHeader ("OSD (On Screen Display)"))
+    {
+      if (ImGui::TreeNodeEx ("Basic Monitoring", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        ImGui::Checkbox ("Title/Clock",   &config.time.show);
+        ImGui::Checkbox ("Framerate",     &config.fps.show);
+        ImGui::Checkbox ("GPU Stats",     &config.gpu.show);
+
+        if (config.gpu.show)
+        {
+          ImGui::TreePush ("");
+
+          ImGui::RadioButton (" Celsius ",    (int*)&config.system.prefer_fahrenheit, 0); ImGui::SameLine ();
+          ImGui::RadioButton (" Fahrenheit ", (int*)&config.system.prefer_fahrenheit, 1); ImGui::SameLine ();
+          ImGui::Checkbox    (" Print Slowdown", &config.gpu.print_slowdown);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("On NVIDIA GPUs, this will print driver throttling details (e.g. power saving)");
+
+          ImGui::TreePop  ();
+        }
+        ImGui::TreePop ();
+      }
+
+      if (ImGui::TreeNode ("Extended Monitoring"))
+      {
+        ImGui::BeginChild ("WMI Monitors", ImVec2 (0,font_size_multiline * 11.1313), true);
+
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.785f, 0.0784f, 1.0f));
+        ImGui::TextWrapped ("These functions spawn a WMI monitoring service and may take several seconds to start.\n\n");
+        ImGui::PopStyleColor  ();
+
+        extern void
+        __stdcall
+        SK_StartPerfMonThreads (void);
+
+        bool spawn = false;
+
+        spawn |= ImGui::Checkbox ("CPU Stats",         &config.cpu.show);
+
+        if (config.cpu.show)
+        {
+          ImGui::TreePush ("");
+          ImGui::Checkbox (" Simplified View", &config.cpu.simple);
+          ImGui::TreePop  ();
+        }
+
+        spawn |= ImGui::Checkbox ("Memory Stats", &config.mem.show);
+
+        spawn |- ImGui::Checkbox ("Disk Stats",         &config.disk.show);
+
+        if (config.disk.show)
+        {
+          ImGui::TreePush ("");
+          bool hovered = false;
+
+          ImGui::RadioButton (" Logical Disks",  &config.disk.type, 1); ImGui::SameLine ();
+          hovered = ImGui::IsItemHovered ();
+          ImGui::RadioButton (" Physical Disks", &config.disk.type, 0);
+          hovered |= ImGui::IsItemHovered ();
+          ImGui::TreePop  ();
+
+          if (hovered)
+            ImGui::SetTooltip ("Requires an application restart.");
+        }
+        
+        spawn |= ImGui::Checkbox ("Pagefile Stats",    &config.pagefile.show);
+        spawn |= ImGui::Checkbox ("General I/O Stats", &config.io.show);
+
+        if (spawn)
+          SK_StartPerfMonThreads ();
+
+        ImGui::Separator ();
+
+        ImGui::Checkbox ("Remember These Settings", &config.osd.remember_state);
+        ImGui::EndChild ();
+        ImGui::TreePop  ();
+      }
+
+      if (ImGui::TreeNodeEx ("Appearance", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        float color [3] = { (float)config.osd.red   / 255.0f,
+                            (float)config.osd.green / 255.0f,
+                            (float)config.osd.blue  / 255.0f };
+
+        if (ImGui::ColorEdit3 ("OSD Color", color)) {
+          color [0] = std::max (std::min (color [0], 1.0f), 0.0f);
+          color [1] = std::max (std::min (color [1], 1.0f), 0.0f);
+          color [2] = std::max (std::min (color [2], 1.0f), 0.0f);
+
+          config.osd.red   = (int)(color [0] * 255);
+          config.osd.green = (int)(color [1] * 255);
+          config.osd.blue  = (int)(color [2] * 255);
+        }
+
+        if (ImGui::SliderFloat ("OSD Scale", &config.osd.scale, 0.5f, 10.0f))
+        {
+          extern
+          void
+          __stdcall
+          SK_SetOSDScale ( float  fScale,
+                           bool   relative,
+                           LPCSTR lpAppName );
+
+          SK_SetOSDScale (config.osd.scale, false, nullptr);
+        }
+
+        bool moved = false;
+
+        int x_pos = std::abs (config.osd.pos_x);
+        int y_pos = std::abs (config.osd.pos_y);
+
+        bool right_align  = config.osd.pos_x < 0;
+        bool bottom_align = config.osd.pos_y < 0;
+
+        moved  = ImGui::SliderInt ("X Origin", &x_pos, 0, io.DisplaySize.x); ImGui::SameLine ();
+        moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
+        moved |= ImGui::SliderInt ("Y Origin", &y_pos, 0, io.DisplaySize.y); ImGui::SameLine ();
+        moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
+
+        if (moved)
+        {
+          extern void
+            __stdcall
+          SK_SetOSDPos (int x, int y, LPCSTR lpAppName);
+
+          config.osd.pos_x = x_pos * (right_align  ? -1 : 1);
+          config.osd.pos_y = y_pos * (bottom_align ? -1 : 1);
+
+          if (right_align && config.osd.pos_x >= 0)
+            config.osd.pos_x = -1;
+
+          if (bottom_align && config.osd.pos_y >= 0)
+            config.osd.pos_y = -1;
+
+          SK_SetOSDPos (config.osd.pos_x, config.osd.pos_y, nullptr);
+        }
+
+        ImGui::TreePop ();
       }
     }
 
