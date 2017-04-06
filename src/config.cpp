@@ -1578,6 +1578,73 @@ SK_LoadConfig (std::wstring name) {
     ++sec;
   }
 
+
+
+  //
+  // Application Compatibility Overrides
+  // ===================================
+  //
+  if (wcsstr (SK_GetHostApp (), L"Tyranny.exe"))
+  {
+    config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
+                                              //   data it didn't ask for
+  }
+
+  else if (wcsstr (SK_GetHostApp (), L"witness"))
+  {
+    config.system.trace_load_library = false;
+  }
+
+  else if (wcsstr (SK_GetHostApp (), L"Obduction-Win64-Shipping.exe"))
+  {
+    config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
+    config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
+                                              //   (uses an incorrectly written DLL)
+  }
+
+  else if (wcsstr (SK_GetHostApp (), L"witcher3.exe"))
+  {
+    config.system.trace_load_library = false;
+    config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
+                                              //   data it didn't ask for
+
+    config.apis.dxgi.d3d12.hook      = false;
+    config.apis.d3d9.hook            = false;
+    config.apis.d3d9ex.hook          = false;
+    config.apis.OpenGL.hook          = false;
+    config.apis.Vulkan.hook          = false;
+
+    config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
+  }
+
+  else if (wcsstr (SK_GetHostApp (), L"re7.exe"))
+  {
+    config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
+    config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
+                                              //   (uses an incorrectly written DLL)
+  }
+
+  // BROKEN
+  else if (wcsstr (SK_GetHostApp (), L"DDDA.exe"))
+  {
+    config.steam.silent = true;
+
+    config.system.trace_load_library = false; // Need to catch SteamAPI DLL load
+    config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
+                                              //   (uses an incorrectly written DLL)
+
+    config.steam.auto_pump_callbacks = false;
+    config.steam.preload_client      = true;
+
+    config.apis.dxgi.d3d11.hook      = false;
+    config.apis.dxgi.d3d12.hook      = false;
+    config.apis.d3d9ex.hook          = false;
+    config.apis.OpenGL.hook          = false;
+    config.apis.Vulkan.hook          = false;
+  }
+
+
+
   //
   // Load Parameters
   //

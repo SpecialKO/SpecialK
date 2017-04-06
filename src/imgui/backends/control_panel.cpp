@@ -702,7 +702,7 @@ SK_ImGui_ControlPanel (void)
 
         spawn |= ImGui::Checkbox ("Memory Stats", &config.mem.show);
 
-        spawn |- ImGui::Checkbox ("Disk Stats",         &config.disk.show);
+        spawn |= ImGui::Checkbox ("Disk Stats",         &config.disk.show);
 
         if (config.disk.show)
         {

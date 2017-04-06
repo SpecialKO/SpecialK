@@ -2696,20 +2696,6 @@ SteamAPIDebugTextHook (int nSeverity, const char *pchDebugText)
 void
 SK::SteamAPI::Init (bool pre_load)
 {
-  // App Compat Section
-  if (wcsstr (SK_GetHostApp (), L"witcher3.exe"))
-  {
-    config.steam.block_stat_callback = true;
-  }
-
-  else if (wcsstr (SK_GetHostApp (), L"DDDA.exe"))
-  {
-    config.steam.auto_pump_callbacks = false;
-    config.steam.preload_client      = true;
-    config.apis.d3d9ex.hook          = false;
-  }
-
-
   if (config.steam.silent)
     return;
 }
@@ -3832,7 +3818,7 @@ SK_Steam_PiratesAhoy (void)
     SK_GetFileCRC32C (L"steam_api.dll");
 #endif
 
-  if (steam_size < (1024 * 92))
+  if (steam_size > 0 && steam_size < (1024 * 92))
   {
     verdict = 0x68992;
   }
