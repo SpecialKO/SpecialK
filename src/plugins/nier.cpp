@@ -19,7 +19,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.1"
+#define FAR_VERSION_NUM L"0.5.1.1"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -47,13 +47,6 @@ struct far_game_state_s {
   void capFPS   (void);
   void uncapFPS (void);
 } static game_state;
-
-
-
-#define SK_LOG0 if (config.system.log_level >= 1) dll_log.Log
-#define SK_LOG1 if (config.system.log_level >= 2) dll_log.Log
-#define SK_LOG2 if (config.system.log_level >= 3) dll_log.Log
-#define SK_LOG3 if (config.system.log_level >= 4) dll_log.Log
 
 
 sk::ParameterFactory  far_factory;
@@ -707,7 +700,9 @@ SK_FAR_CreateTexture2D (
         {
             bloom = true;
 
-          SK_LOG1 (L"Bloom Tex (%lux%lu : %lu)", pDesc->Width, pDesc->Height, pDesc->MipLevels);
+          SK_LOG2 ( ( L"Bloom Tex (%lux%lu : %lu)",
+                        pDesc->Width, pDesc->Height, pDesc->MipLevels ),
+                      L"FAR PlugIn" );
 
           if (far_bloom.width != -1 && (pDesc->Width != 50 && pDesc->Height != 28))
           {
@@ -750,14 +745,16 @@ SK_FAR_CreateTexture2D (
 
           if (far_ao.width != -1)
           {
-            SK_LOG0 ( L"Mip Levels: %lu, Format: %x, (%x:%x:%x)",
-                            pDesc->MipLevels,      pDesc->Format,
-                            pDesc->CPUAccessFlags, pDesc->Usage,
-                            pDesc->MiscFlags );
+            SK_LOG1 ( ( L"Mip Levels: %lu, Format: %x, (%x:%x:%x)",
+                          pDesc->MipLevels,      pDesc->Format,
+                          pDesc->CPUAccessFlags, pDesc->Usage,
+                          pDesc->MiscFlags ),
+                        L"FAR PlugIn" );
 
-            SK_LOG0 ( "AO Buffer (%lux%lu - Fmt: %x",
-                        pDesc->Width, pDesc->Height,
-                        pDesc->Format );
+            SK_LOG1 ( ( L"AO Buffer (%lux%lu - Fmt: %x",
+                          pDesc->Width, pDesc->Height,
+                          pDesc->Format ),
+                        L"FAR PlugIn" );
 
             // set to our display resolution instead
             D3D11_TEXTURE2D_DESC copy = *pDesc;
@@ -800,8 +797,9 @@ SK_FAR_CreateTexture2D (
     if ( checksum == 0x713B879E ||
          checksum == 0x013F2718 )
     {
-      SK_LOG1 ( "Title Texture (%x) : ID3D11Texture2D (%ph)",
-                  checksum, *ppTexture2D );
+      SK_LOG2 ( ( L"Title Texture (%x) : ID3D11Texture2D (%ph)",
+                    checksum, *ppTexture2D ),
+                  L"FAR PlugIn" );
 
       far_title_textures.emplace (*ppTexture2D);
     }
@@ -946,7 +944,8 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                   auto iter = buffers.find (texdesc.Width);
                   if (iter == buffers.cend ())
                   {
-                    SK_LOG3 ("Create Bloom Buffer (%lu)", texdesc.Width);
+                    SK_LOG3 ( ( L"Create Bloom Buffer (%lu)", texdesc.Width ),
+                                L"FAR PlugIn" );
 
                     float constants [4] = {
                       0.5f / vp.Width, 0.5f / vp.Height,
@@ -978,7 +977,8 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                   auto iter = mipBuffers.find (desc.Texture2D.MipSlice);
                   if (iter == mipBuffers.cend ())
                   {
-                    SK_LOG3 ("Create AO Buffer (%lu)", desc.Texture2D.MipSlice);
+                    SK_LOG3 ( ( L"Create AO Buffer (%lu)", desc.Texture2D.MipSlice ),
+                                L"FAR PlugIn" );
 
                     float constants [4] = {
                                          vp.Width,   vp.Height,

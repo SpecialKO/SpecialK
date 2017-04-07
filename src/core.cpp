@@ -2043,7 +2043,7 @@ DoKeyboard (void)
   }
 
   if (drag_lock)
-    SK_CenterWindowAtMouse (FALSE);
+    SK_CenterWindowAtMouse (config.window.persistent_drag);
 
 
   if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval) {

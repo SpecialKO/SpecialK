@@ -62,15 +62,11 @@ extern volatile ULONG __SK_DLL_Ending;
 
 #define SK_LOG_LEVEL_UNTESTED
 
-#define SK_LOG0 if (config.system.log_level >= 1) dll_log.Log
-#define SK_LOG1 if (config.system.log_level >= 2) dll_log.Log
-#define SK_LOG2 if (config.system.log_level >= 3) dll_log.Log
-#define SK_LOG3 if (config.system.log_level >= 4) dll_log.Log
-
-#define SK_WINDOW_LOG_CALL0() if (config.system.log_level >= 1) SK_LOG_CALL ("Window Mgr")
-#define SK_WINDOW_LOG_CALL1() if (config.system.log_level >= 2) SK_LOG_CALL ("Window Mgr")
-#define SK_WINDOW_LOG_CALL2() if (config.system.log_level >= 3) SK_LOG_CALL ("Window Mgr")
-#define SK_WINDOW_LOG_CALL3() if (config.system.log_level >= 4) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL0() if (config.system.log_level >= 0) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL1() if (config.system.log_level >= 1) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL2() if (config.system.log_level >= 2) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL3() if (config.system.log_level >= 3) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL4() if (config.system.log_level >= 3) SK_LOG_CALL ("Window Mgr")
 
 #ifdef SK_LOG_LEVEL_UNTESTED
 # define SK_WINDOW_LOG_CALL_UNTESTED() SK_LOG_CALL ("Window Mgr");
@@ -173,6 +169,32 @@ bool override_window_rects = false;
 void SK_AdjustBorder (void);
 void SK_AdjustWindow (void);
 
+//
+// If we did this from the render thread, we would deadlock most games
+//
+auto DeferCommand = [=] (const char* szCommand) ->
+  void
+    {
+      CreateThread ( nullptr,
+                       0x00,
+                    [ ](LPVOID user) ->
+        DWORD
+          {
+            SK_GetCommandProcessor ()->ProcessCommandLine (
+               (const char*)user
+            );
+
+            CloseHandle (GetCurrentThread ());
+
+            return 0;
+          },
+
+        (LPVOID)szCommand,
+      0x00,
+    nullptr
+  );
+};
+
 // TODO: Refactor that structure above into this class ;)
 //
 //  Also, combine a few of the input manager settings with window manager
@@ -201,6 +223,26 @@ public:
           GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
           ClipCursor_Original    (&game_window.actual.window);
         }
+      }
+
+      return true;
+    }
+
+    if (var == unconfine_cursor_)
+    {
+      if (val != nullptr)
+      {
+        config.window.unconfine_cursor = *(bool *)val;
+
+        if (config.window.unconfine_cursor)
+          ClipCursor_Original (nullptr);
+        else if (config.window.confine_cursor)
+        {
+          GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+          ClipCursor_Original    (&game_window.actual.window);
+        }
+        else
+          ClipCursor_Original    (&game_window.cursor_clip);
       }
 
       return true;
@@ -249,9 +291,6 @@ public:
           config.window.borderless = *(bool *)val;
 
           SK_AdjustBorder ();
-          //SK_AdjustWindow ();
-
-          return true;
         }
 
         else if (var == fullscreen_) 
@@ -259,7 +298,8 @@ public:
           static int x = config.window.res.override.x;
           static int y = config.window.res.override.y;
 
-          if (config.window.borderless && (config.window.fullscreen != *(bool *)val))
+          if ( config.window.fullscreen != *(bool *)val && ( config.window.borderless ||
+                                                            (config.window.fullscreen) ) )
           {
             config.window.fullscreen = *(bool *)val;
 
@@ -278,25 +318,56 @@ public:
             mi.cbSize       = sizeof (mi);
             GetMonitorInfo (hMonitor, &mi);
 
-            if ( (client.right  - client.left != mi.rcMonitor.right - mi.rcMonitor.left ) &&
-                 (client.bottom - client.top  != mi.rcMonitor.bottom - mi.rcMonitor.top ) )
+            if ( (client.right  - client.left != mi.rcMonitor.right  - mi.rcMonitor.left ) &&
+                 (client.bottom - client.top  != mi.rcMonitor.bottom - mi.rcMonitor.top  ) )
             {
               GetClientRect_Original (game_window.hWnd, &last_known_client);
               GetWindowRect_Original (game_window.hWnd, &last_known_window);
             }
 
-            if (! config.window.fullscreen)  {
-              //SK_GetCommandProcessor ()->ProcessCommandFormatted ("Window.OverrideRes %lux%lu", last_known_client.right - last_known_client.left,
-                                                                                                  //last_known_client.bottom - last_known_client.top);
-              //SK_GetCommandProcessor ()->ProcessCommandFormatted ("Window.OverrideRes %lux%lu", x, y);
-            } else {
-              //SK_GetCommandProcessor()->ProcessCommandFormatted ("Window.OverrideRes %lux%lu", mi.rcMonitor.right - mi.rcMonitor.left,
-                                                                                                 //mi.rcMonitor.bottom - mi.rcMonitor.top );
-              //SK_AdjustWindow ();
-            }
-          }
+#if 1
+            unsigned int orig_x = config.window.res.override.x,
+                         orig_y = config.window.res.override.y;
 
-          return true;
+            static unsigned int persist_x = orig_x, persist_y = orig_y;
+
+            // Restore Window Dimensions
+            if (! config.window.fullscreen) 
+            {
+              config.window.res.override.x = last_known_client.right  - last_known_client.left;
+              config.window.res.override.y = last_known_client.bottom - last_known_client.top;
+            }
+
+            // Go Fullscreen (Stetch Window to Fill)
+            else
+            {
+              config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
+              config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
+            }
+
+            SK_AdjustWindow ();
+
+            if (! config.window.fullscreen)
+            {
+              // XXX: This is being clobbered by another thread, needs redesign...
+              config.window.res.override.x = persist_x;
+              config.window.res.override.y = persist_y;
+            }
+
+            else
+            {
+              persist_x = orig_x;
+              persist_y = orig_y;
+
+              config.window.res.override.x = 0;
+              config.window.res.override.y = 0;
+            }
+#else
+            SK_AdjustWindow ();
+#endif
+
+            return true;
+          }
         }
 
         else if (var == x_override_ || var == y_override_) {
@@ -333,10 +404,39 @@ public:
                      config.window.res.override.x,
                        config.window.res.override.y );
 
-        SK_AdjustWindow ();
-      }
+        if (var == borderless_ && (! config.window.borderless))
+        {
+          if (config.window.fullscreen)
+          {
+            // Bring the game OUT of fullscreen mode, that's only for borderless
+            SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 0");
+          } else {
+            SK_AdjustWindow ();
+            return true;
+          }
+        }
 
-      return true;
+#if 1
+        SK_AdjustWindow ();
+#else
+        if (var != center_window_)
+        {
+          static char szCmd [64] = { '\0' };
+          snprintf (szCmd, 63, "Window.Center %d", config.window.center);
+
+          DeferCommand (szCmd);
+        }
+
+        if (var != borderless_) {
+          static char szCmd [64] = { '\0' };
+          snprintf (szCmd, 63, "Window.Borderless %d", config.window.borderless);
+
+          DeferCommand (szCmd);
+        }
+#endif
+
+        return true;
+      }
     }
 
     else if ( var == background_mute_ )
@@ -394,6 +494,14 @@ public:
   {
     SK_ICommandProcessor* cmd =
       SK_GetCommandProcessor ();
+
+    unconfine_cursor_ =
+      SK_CreateVar (SK_IVariable::Boolean,&config.window.unconfine_cursor,this);
+
+    cmd->AddVariable (
+      "Window.UnconfineCursor",
+        unconfine_cursor_
+    );
 
     confine_cursor_ =
       SK_CreateVar (SK_IVariable::Boolean,&config.window.confine_cursor,this);
@@ -567,6 +675,7 @@ protected:
   SK_IVariable* borderless_;
   SK_IVariable* background_mute_;
   SK_IVariable* confine_cursor_;
+  SK_IVariable* unconfine_cursor_;
   SK_IVariable* center_window_;
   SK_IVariable* fullscreen_;
   SK_IVariable* x_override_;
@@ -954,6 +1063,10 @@ ClipCursor_Detour (const RECT *lpRect)
   if (config.window.confine_cursor && lpRect != &game_window.cursor_clip)
     return TRUE;
 
+  // Prevent the game from clipping the cursor
+  if (config.window.unconfine_cursor)
+    return TRUE;
+
   //
   // If the game uses mouse clipping and we are running in borderless,
   //   we need to re-adjust the window coordinates.
@@ -1183,12 +1296,13 @@ AdjustWindowRect_Detour (
     _In_    DWORD  dwStyle,
     _In_    BOOL   bMenu )
 {
-  SK_LOG0 ( L"[Window Mgr] AdjustWindowRect ( "
-                  L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu ) - %s",
-              lpRect->left, lpRect->top,
-                lpRect->right, lpRect->bottom,
-                  dwStyle, bMenu,
-                    SK_SummarizeCaller ().c_str () );
+  SK_LOG1 ( ( L"AdjustWindowRect ( "
+              L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu ) - %s",
+                lpRect->left, lpRect->top,
+                  lpRect->right, lpRect->bottom,
+                    dwStyle, bMenu,
+                      SK_SummarizeCaller ().c_str () ),
+                L"Window Mgr" );
 
   return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
 }
@@ -1201,13 +1315,14 @@ AdjustWindowRectEx_Detour (
     _In_    BOOL   bMenu,
     _In_    DWORD  dwExStyle )
 {
-  SK_LOG0 ( L"[Window Mgr] AdjustWindowRectEx ( "
-                  L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu, 0x%04X ) - %s",
-              lpRect->left, lpRect->top,
-                lpRect->right, lpRect->bottom,
-                  dwStyle, bMenu,
-                    dwExStyle,
-                      SK_SummarizeCaller ().c_str () );
+  SK_LOG1 ( ( L"AdjustWindowRectEx ( "
+              L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu, 0x%04X ) - %s",
+                lpRect->left, lpRect->top,
+                  lpRect->right, lpRect->bottom,
+                    dwStyle, bMenu,
+                      dwExStyle,
+                        SK_SummarizeCaller ().c_str () ),
+               L"Window Mgr" );
 
   return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
 }
@@ -1698,18 +1813,19 @@ SK_AdjustBorder (void)
   ////if (has_border != config.window.borderless)
     ////return;
 
-  if (! has_border)
-    return;
+  //if (! has_border)
+    //return;
 
   game_window.actual.style =
     config.window.borderless ?
       SK_BORDERLESS :
-        game_window.actual.style;
+        game_window.border_style;//game_window.actual.style;
 
   game_window.actual.style_ex =
     config.window.borderless ?
       SK_BORDERLESS_EX :
-        game_window.actual.style_ex;
+        game_window.border_style_ex;
+        //game_window.actual.style_ex;
 
   //
   // TODO: Consider function to add border back
@@ -1763,6 +1879,8 @@ SK_ResetWindow (void)
     [](LPVOID user) ->
     DWORD
     {
+      Sleep (100);
+
       EnterCriticalSection (&cs_reset);
 
       GetWindowRect (game_window.hWnd, &game_window.actual.window);
@@ -1773,6 +1891,9 @@ SK_ResetWindow (void)
       
       if (config.window.center)
         SK_AdjustWindow ();
+
+      if (config.window.fullscreen && config.window.borderless)
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 1");
 
       LeaveCriticalSection (&cs_reset);
 
@@ -1803,7 +1924,8 @@ SK_AdjustWindow (void)
 
   if (config.window.borderless && config.window.fullscreen)
   {
-    SK_LOG3 (L"[Window Mgr]  > SK_AdjustWindow (Fullscreen)");
+    SK_LOG4 ( (L" > SK_AdjustWindow (Fullscreen)"),
+              L"Window Mgr" );
 
     SetWindowPos_Original ( game_window.hWnd,
                               HWND_TOP,
@@ -1822,7 +1944,8 @@ SK_AdjustWindow (void)
 
   else
   {
-    SK_LOG3 (L"[Window Mgr]  > SK_AdjustWindow (Windowed)");
+    SK_LOG4 ( (L" > SK_AdjustWindow (Windowed)"),
+               L"Window Mgr" );
 
     // Adjust the desktop resolution to make room for window decorations
     //   if the game window were maximized.
@@ -1834,15 +1957,19 @@ SK_AdjustWindow (void)
       );
     }
 
+    // Monitor Workspace
     LONG mon_width     = mi.rcWork.right     - mi.rcWork.left;
     LONG mon_height    = mi.rcWork.bottom    - mi.rcWork.top;
 
+    // Monitor's ENTIRE coordinate space (includes taskbar)
     LONG real_width    = mi.rcMonitor.right  - mi.rcMonitor.left;
     LONG real_height   = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
+    // The Game's _Requested_ Client Rectangle
     LONG render_width  = game_window.game.client.right  - game_window.game.client.left;
     LONG render_height = game_window.game.client.bottom - game_window.game.client.top;
 
+    // The Game's _Requested_ Window Rectangle (including borders)
     LONG full_width     = game_window.game.window.right  - game_window.game.window.left;
     LONG full_height    = game_window.game.window.bottom - game_window.game.window.top;
 
@@ -1851,12 +1978,24 @@ SK_AdjustWindow (void)
       render_height = config.window.res.override.y;
     }
 
-    if (render_width <= 32 || render_height <= 32) {
+    else {
+      int  render_width_before  = game_window.game.client.right  - game_window.game.client.left;
+      int  render_height_before = game_window.game.client.bottom - game_window.game.client.top;
+
+      RECT client_before = game_window.game.client;
+
       GetClientRect_Original (game_window.hWnd, &game_window.game.client);
       GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
 
       render_width  = game_window.game.client.right  - game_window.game.client.left;
       render_height = game_window.game.client.bottom - game_window.game.client.top;
+
+      if ( render_width                 != render_width_before  ||
+           render_height                != render_height_before )
+      {
+        SK_AdjustWindow ();
+        return;
+      }
     }
 
     // No adjustment if the window is full-width
@@ -1911,9 +2050,10 @@ SK_AdjustWindow (void)
 
 
     if (config.window.center) {
-      SK_LOG3 ( L"[Window Mgr] Center --> (%li,%li)",
-                  mi.rcWork.right - mi.rcWork.left,
-                    mi.rcWork.bottom - mi.rcWork.top );
+      SK_LOG4 ( ( L"Center --> (%li,%li)",
+                    mi.rcWork.right - mi.rcWork.left,
+                      mi.rcWork.bottom - mi.rcWork.top ),
+                    L"Window Mgr" );
 
       if (x_offset < 0) {
         game_window.actual.window.left  -= (win_width / 2);
@@ -2034,6 +2174,59 @@ SK_AdjustWindow (void)
                          game_window.actual.window.bottom - game_window.actual.window.top,
                     (! has_border) ? L"None" : wszBorderDesc );
   }
+
+
+  // Post-Process Results:
+  //
+  //  If window is moved as a result of this function, we need to:
+  //  ------------------------------------------------------------
+  //   Re-compute certain game-defined metrics (which may differ):
+  //   ===========================================================
+  //    1. Client Rectangle
+  //    2. Clip Rectangle (mouse confinement)
+  //    3. Which monitor the game is on (XXX: that whole thing needs consideration)
+  //
+  //   Decide how to translate mouse events so that if the game does not know the
+  //     window was moved, it still processes mouse input in a sane way.
+  //
+
+  auto DescribeRect = [=](RECT* lpRect) ->
+  void {
+    SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
+                            lpRect->left, lpRect->top,
+                              lpRect->right - lpRect->left,
+                                lpRect->bottom - lpRect->top ) );
+  };
+
+  // 1. Client Rectangle
+  ////RECT client;
+  ////GetClientRect_Original (game_window.hWnd, &client);
+
+
+  // 2. Re-Compute Clip Rectangle
+  RECT clip;
+  GetClipCursor (&clip);
+
+  auto DescribeClipRect = [=](const wchar_t* wszName, RECT* lpRect) ->
+  void {
+    SK_LOG2_EX ( true, ( L"[Cursor Mgr] Clip Rect (%s)", wszName ) );
+    DescribeRect (lpRect);
+  };
+
+  if (! SK_IsRectZero (&clip))
+  {
+    DescribeClipRect (L"Game", &game_window.cursor_clip);
+    DescribeClipRect (L" IN ", &clip);
+
+    clip.left   = game_window.actual.window.left + game_window.actual.client.left;
+    clip.top    = game_window.actual.window.top  + game_window.actual.client.top;
+    clip.right  = game_window.actual.window.left + game_window.actual.client.right;
+    clip.bottom = game_window.actual.window.top  + game_window.actual.client.bottom;
+
+    DescribeClipRect (L"OUT ", &clip);
+
+    ClipCursor_Original (&clip);
+  }
 }
 
 static int
@@ -2044,9 +2237,10 @@ GetSystemMetrics_Detour (_In_ int nIndex)
 
   int nRet = GetSystemMetrics_Original (nIndex);
 
-  SK_LOG3 ( L"[Resolution] GetSystemMetrics (%4lu) : %-5lu - %s",
-              nIndex, nRet,
-                SK_SummarizeCaller ().c_str () );
+  SK_LOG4 ( ( L"GetSystemMetrics (%4lu) : %-5lu - %s",
+                nIndex, nRet,
+                  SK_SummarizeCaller ().c_str () ),
+              L"Resolution" );
 
   if (config.window.borderless) {
     if (nIndex == SM_CYCAPTION)
@@ -2647,7 +2841,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         if (active)
         {
-          SK_LOG3 (L"[Window Mgr] Confining Mouse Cursor");
+          SK_LOG4 ( ( L"Confining Mouse Cursor" ),
+                      L"Window Mgr" );
 
           ////// XXX: Is this really necessary? State should be consistent unless we missed
           //////        an event --- Write unit test?
@@ -2657,10 +2852,19 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         else
         {
-          SK_LOG3 (L"[Window Mgr] Unconfining Mouse Cursor");
+          SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
+                      L"Window Mgr" );
 
           ClipCursor_Original (nullptr);
         }
+      }
+
+      if (config.window.unconfine_cursor && state_changed)
+      {
+        SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
+                    L"Window Mgr" );
+        
+        ClipCursor_Original (nullptr);
       }
    };
 
@@ -2681,7 +2885,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         if (config.window.background_render)
         {
-          SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE ==> Activate and Eat");
+          SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
+                      L"Window Mgr" );
           return MA_ACTIVATEANDEAT;
         }
       }
@@ -2694,7 +2899,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         //   in fact, it needs to be told the opposite.
         if (config.window.background_render)
         {
-          SK_LOG1 (L"[Window Mgr] WM_MOUSEACTIVATE (Other Window) ==> Activate");
+          SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
+                      L"Window Mgr" );
           return MA_ACTIVATE;
         }
       }
@@ -2710,7 +2916,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         if (wParam == TRUE)
         {
           if (last_active == false)
-            SK_LOG2 (L"[Window Mgr] Application Activated (Non-Client)");
+            SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
+                        L"Window Mgr" );
 
           ActivateWindow (true);
         }
@@ -2718,7 +2925,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         else if (wParam == FALSE)
         {
           if (last_active == true)
-            SK_LOG2 (L"[Window Mgr] Application Deactivated (Non-Client)");
+            SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+                        L"Window Mgr" );
 
           ActivateWindow (false);
 
@@ -2745,7 +2953,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             if ((HWND)lParam != game_window.hWnd)
             {
               if (last_active == false) {
-                SK_LOG1 (L"[Window Mgr] Application Activated (WM_ACTIVATEAPP)");
+                SK_LOG2 ( ( L"Application Activated (WM_ACTIVATEAPP)" ),
+                            L"Window Mgr" );
               }
 
               ActivateWindow (true);
@@ -2758,7 +2967,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             {
               if (last_active == true)
               {
-                SK_LOG1 (L"[Window Mgr] Application Deactivated (WM_ACTIVATEAPP)");
+                SK_LOG2 ( ( L"Application Deactivated (WM_ACTIVATEAPP)" ),
+                            L"Window Mgr" );
               }
 
               ActivateWindow (false);
@@ -2798,19 +3008,17 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
       }
 
-      //game_window.game.client = game_window.game.window;
-
       if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
         SK_AdjustBorder ();
 
-      if (config.window.center || (! config.window.res.override.isZero ()))
-        SK_AdjustWindow ();
+      //game_window.game.client = game_window.game.window;
     } break;
 
     
     case WM_WINDOWPOSCHANGED:
+    {
       ImGui_ImplDX11_InvalidateDeviceObjects ();
-      //LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
+      LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
 
       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
@@ -2821,6 +3029,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (config.window.confine_cursor)
         ClipCursor_Original (&game_window.actual.window);
 
+      if (config.window.unconfine_cursor)
+        ClipCursor_Original (nullptr);
+
       //if (config.window.borderless) {
         //SK_AdjustBorder ();
         // This fixes problems in Dragon Ball Xenoverse
@@ -2829,7 +3040,21 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         //return 0;
       //}
-      break;
+
+      bool offset = false;
+
+      if ( config.window.offset.x.absolute                 || config.window.offset.y.absolute ||
+           ( config.window.offset.x.percent != 0.0f &&
+             config.window.offset.x.percent != 0.000001f ) ||
+           ( config.window.offset.y.percent != 0.0f &&
+             config.window.offset.y.percent != 0.000001f )
+         )
+        offset = true;
+
+      if (! ((wnd_pos->flags & SWP_NOMOVE) && (wnd_pos->flags & SWP_NOSIZE)))
+        if (offset || config.window.center || (! config.window.res.override.isZero ()))
+          SK_AdjustWindow ();
+    } break;
 
 
     case WM_SIZE:
@@ -2842,6 +3067,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       if (config.window.confine_cursor)
         ClipCursor_Original (&game_window.actual.window);
+      if (config.window.unconfine_cursor)
+        ClipCursor_Original (nullptr);
       break;
 
 

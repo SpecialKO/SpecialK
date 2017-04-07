@@ -2566,7 +2566,7 @@ SK_Steam_DrawOSD (void)
 {
   if (steam_achievements != nullptr)
   {
-    SteamAPI_RunCallbacks_Original ();
+    //SteamAPI_RunCallbacks_Original ();
     steam_achievements->drawPopups ();
   }
 }

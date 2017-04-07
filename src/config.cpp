@@ -238,6 +238,8 @@ struct {
   sk::ParameterBool*      background_render;
   sk::ParameterBool*      background_mute;
   sk::ParameterBool*      confine_cursor;
+  sk::ParameterBool*      unconfine_cursor;
+  sk::ParameterBool*      persistent_drag;
   sk::ParameterBool*      fullscreen;
   sk::ParameterStringW*   override;
   sk::ParameterBool*      fix_mouse_coords;
@@ -555,6 +557,26 @@ SK_LoadConfig (std::wstring name) {
     dll_ini,
       L"Window.System",
         L"ConfineCursor" );
+
+  window.unconfine_cursor =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Unconfine the Mouse Cursor from the Game Window.")
+      );
+  window.unconfine_cursor->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"UnconfineCursor" );
+
+  window.persistent_drag =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Remember where the window is dragged to.")
+      );
+  window.persistent_drag->register_to_ini (
+    dll_ini,
+      L"Window.System",
+        L"PersistentDragPos" );
 
   window.fullscreen =
     static_cast <sk::ParameterBool *>
@@ -1949,6 +1971,10 @@ SK_LoadConfig (std::wstring name) {
   }
   if (window.confine_cursor->load ())
     config.window.confine_cursor = window.confine_cursor->get_value ();
+  if (window.unconfine_cursor->load ())
+    config.window.unconfine_cursor = window.unconfine_cursor->get_value ();
+  if (window.persistent_drag->load ())
+    config.window.persistent_drag = window.persistent_drag->get_value ();
   if (window.fullscreen->load ())
     config.window.fullscreen = window.fullscreen->get_value ();
   if (window.fix_mouse_coords->load ())
@@ -2174,6 +2200,8 @@ SK_SaveConfig ( std::wstring name,
     window.offset.y->set_value (wszPercent);
   }
   window.confine_cursor->set_value            (config.window.confine_cursor);
+  window.unconfine_cursor->set_value          (config.window.unconfine_cursor);
+  window.persistent_drag->set_value           (config.window.persistent_drag);
   window.fullscreen->set_value                (config.window.fullscreen);
   window.fix_mouse_coords->set_value          (config.window.res.override.fix_mouse);
 
@@ -2352,6 +2380,8 @@ SK_SaveConfig ( std::wstring name,
   window.offset.x->store                  ();
   window.offset.y->store                  ();
   window.confine_cursor->store            ();
+  window.unconfine_cursor->store          ();
+  window.persistent_drag->store           ();
   window.fullscreen->store                ();
   window.fix_mouse_coords->store          ();
   window.override->store                  ();

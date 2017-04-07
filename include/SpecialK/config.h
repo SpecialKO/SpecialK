@@ -308,6 +308,8 @@ struct sk_config_t
     bool    background_render   = false;
     bool    background_mute     = false;
     bool    confine_cursor      = false;
+    bool    unconfine_cursor    = false;
+    bool    persistent_drag     = false;
     bool    fullscreen          = false;
     struct {
       struct {

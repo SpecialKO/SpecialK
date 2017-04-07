@@ -2313,6 +2313,14 @@ __declspec (noinline)
       {
         SK_SetWindowResX (desc.BufferDesc.Width);
         SK_SetWindowResY (desc.BufferDesc.Height);
+
+        // Fix a bug in NieR: Automata
+        SetWindowPos ( desc.OutputWindow, HWND_TOP,
+                         0, 0,
+                           desc.BufferDesc.Width, desc.BufferDesc.Height,
+                             SWP_NOZORDER       | SWP_ASYNCWINDOWPOS |
+                             SWP_NOSENDCHANGING | SWP_NOREPOSITION   |
+                             SWP_NOMOVE );
       }
     }
 

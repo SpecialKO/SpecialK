@@ -45,11 +45,6 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 
 #include <algorithm>
 
-#define SK_LOG0 if (config.system.log_level >= 1) dll_log.Log
-#define SK_LOG1 if (config.system.log_level >= 2) dll_log.Log
-#define SK_LOG2 if (config.system.log_level >= 3) dll_log.Log
-#define SK_LOG3 if (config.system.log_level >= 4) dll_log.Log
-
 
 // For texture caching to work correctly ...
 //   DarkSouls3 seems to underflow references on occasion!!!
@@ -2488,7 +2483,8 @@ D3D11Dev_CreateTexture2D_Override (
                 SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
 
       if (SK_D3D11_IsTexHashed (ffx_crc32, 0x00)) {
-        SK_LOG3 (L"[ Tex Hash ] Caching texture with crc32: %x", ffx_crc32);
+        SK_LOG4 ( ( L"Caching texture with crc32: %x", ffx_crc32 ),
+                    L" Tex Hash " );
         _swprintf ( wszTex, L"%s\\%s",
                       wszTex,
                         SK_D3D11_TexHashToName (ffx_crc32, 0x00).c_str ()
@@ -2496,7 +2492,8 @@ D3D11Dev_CreateTexture2D_Override (
       }
 
       else if (SK_D3D11_IsTexHashed (top_crc32, checksum)) {
-        SK_LOG3 (L"[ Tex Hash ] Caching texture with crc32c: %x", top_crc32);
+        SK_LOG4 ( ( L"Caching texture with crc32c: %x", top_crc32 ),
+                    L"Tex Hash " );
         _swprintf ( wszTex, L"%s\\%s",
                       wszTex,
                         SK_D3D11_TexHashToName (top_crc32,checksum).c_str ()
@@ -2504,7 +2501,8 @@ D3D11Dev_CreateTexture2D_Override (
       }
 
       else if (SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
-        SK_LOG3 (L"[ Tex Hash ] Caching texture with crc32c: %x", top_crc32);
+        SK_LOG4 ( ( L"Caching texture with crc32c: %x", top_crc32 ),
+                    L" Tex Hash " );
         _swprintf ( wszTex, L"%s\\%s",
                       wszTex,
                         SK_D3D11_TexHashToName (top_crc32, 0x00).c_str ()
@@ -2522,7 +2520,8 @@ D3D11Dev_CreateTexture2D_Override (
 
       else if ( SK_D3D11_inject_textures &&
                 SK_D3D11_IsInjectable (top_crc32, 0x00) ) {
-        SK_LOG3 (L"[ Tex Hash ] Caching texture with crc32c: %08X", top_crc32);
+        SK_LOG4 ( ( L"Caching texture with crc32c: %08X", top_crc32 ),
+                    L" Tex Hash " );
         _swprintf ( wszTex,
                       L"%s\\inject\\textures\\%08X.dds",
                         wszTex,
@@ -2531,7 +2530,8 @@ D3D11Dev_CreateTexture2D_Override (
 
       else if ( SK_D3D11_inject_textures           &&
                 SK_D3D11_IsInjectable_FFX (ffx_crc32) ) {
-        SK_LOG3 (L"[ Tex Hash ] Caching texture with crc32: %08X", ffx_crc32);
+        SK_LOG4 ( ( L"Caching texture with crc32: %08X", ffx_crc32 ),
+                    L" Tex Hash " );
         _swprintf ( wszTex,
                       L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
                         wszTex,

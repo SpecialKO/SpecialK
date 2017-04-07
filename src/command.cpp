@@ -26,6 +26,10 @@
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
 
+
+static CRITICAL_SECTION cs_process_cmd = { 0 };
+
+
 SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void)
@@ -34,6 +38,7 @@ SK_GetCommandProcessor (void)
 
   if (command == nullptr) {
     command = new SK_ICommandProcessor ();
+    InitializeCriticalSectionAndSpinCount (&cs_process_cmd, MAXDWORD);
   }
 
   return command;
@@ -249,11 +254,11 @@ SK_ICommandProcessor::FindVariable (const char* szVariable) const
   return NULL;
 }
 
-
-
 SK_ICommandResult
 SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 {
+  SK_AutoCriticalSection auto_cs (&cs_process_cmd);
+
   if (szCommandLine != NULL && strlen (szCommandLine))
   {
     char*  command_word     = _strdup (szCommandLine);

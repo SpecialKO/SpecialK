@@ -200,9 +200,10 @@ SK_ImGui_ControlPanel (void)
     
     RECT client;
     GetClientRect ((HWND)io.ImeWindowHandle, &client);
+
     snprintf ( szResolution, 63, "   %lux%lu", 
-                                   client.right - client.left,
-                                     client.bottom - client.top );
+                                   game_window.render_x,//client.right - client.left,
+                                     game_window.render_y );//client.bottom - client.top );
 
     ImGui::MenuItem (" Window Resolution     ", szResolution);
 
@@ -594,60 +595,270 @@ SK_ImGui_ControlPanel (void)
 
     if ( ImGui::CollapsingHeader ("Window Management") )
     {
-      if (ImGui::TreeNode ("Overrides"))
+      //
+      // If we did this from the render thread, we would deadlock most games
+      //
+      auto DeferCommand = [=] (const char* szCommand) ->
+        void
+          {
+            CreateThread ( nullptr,
+                             0x00,
+                          [ ](LPVOID user) ->
+              DWORD
+                {
+                  SK_GetCommandProcessor ()->ProcessCommandLine (
+                     (const char*)user
+                  );
+
+                  CloseHandle (GetCurrentThread ());
+
+                  return 0;
+                },
+
+              (LPVOID)szCommand,
+            0x00,
+          nullptr
+        );
+      };
+
+      if (ImGui::TreeNodeEx ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
       {
         bool borderless        = config.window.borderless;
         bool center            = config.window.center;
         bool fullscreen        = config.window.fullscreen;
-        bool confine           = config.window.confine_cursor;
-        bool background_render = config.window.background_render;
-        bool background_mute   = config.window.background_mute;
-
-        //
-        // If we did this from the render thread, we would deadlock most games
-        //
-        auto DeferCommand = [=] (const char* szCommand) ->
-          void
-            {
-              CreateThread ( nullptr,
-                               0x00,
-                            [ ](LPVOID user) ->
-                DWORD
-                  {
-                    SK_GetCommandProcessor ()->ProcessCommandLine (
-                       (const char*)user
-                    );
-
-                    CloseHandle (GetCurrentThread ());
-
-                    return 0;
-                  },
-
-                (LPVOID)szCommand,
-              0x00,
-            nullptr
-          );
-        };
 
         if ( ImGui::Checkbox ( "Borderless", &borderless ) )
           DeferCommand ("Window.Borderless toggle");
 
-        if (borderless) {
-          if ( ImGui::Checkbox ( "Fullscreen (Borderless)", &fullscreen ) )
+        if (ImGui::IsItemHovered ())
+        {
+          if (borderless)
+            ImGui::SetTooltip ("Add/Restore Window Borders");
+          else
+            ImGui::SetTooltip ("Remove Window Borders");
+        }
+
+        if (borderless)
+        {
+          if ( ImGui::Checkbox ( "Fullscreen (Borderless Upscale)", &fullscreen ) )
             DeferCommand ("Window.Fullscreen toggle");
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Stretch Borderless Window to Fill Monitor");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("Framebuffer Resolution Unchanged (GPU-Side Upscaling)");
+            ImGui::BulletText   ("Upscaling to Match Desktop Resolution Adds AT LEAST 1 Frame of Input Latency!");
+            ImGui::EndTooltip   ();
+          }
         }
 
         if ( ImGui::Checkbox ( "Center", &center ) )
           DeferCommand ("Window.Center toggle");
 
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Keep the Render Window Centered at All Times");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("At Least, that is how it is SUPPOSED to Work");
+          ImGui::BulletText   ("This Feature is Buggy:  Scaling Problems");
+          ImGui::EndTooltip   ();
+        }
+
+        ImGui::TreePush    ("");
+        ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "\nPress Ctrl + Shift + ScrollLock to Toggle Drag-Lock Mode");
+        ImGui::BulletText  ("Useful for Positioning Borderless Windows.");
+        ImGui::Text        ("");
+        ImGui::TreePop     ();
+
+        bool pixel_perfect = ( config.window.offset.x.percent == 0.0 &&
+                               config.window.offset.y.percent == 0.0 );
+
+        if (ImGui::Checkbox ("Pixel-Perfect Placement", &pixel_perfect))
+        {
+          if (pixel_perfect) {
+            config.window.offset.x.absolute = 0;
+            config.window.offset.y.absolute = 0;
+            config.window.offset.x.percent  = 0.0f;
+            config.window.offset.y.percent  = 0.0f;
+          }
+
+          else {
+            config.window.offset.x.percent  = 0.000001f;
+            config.window.offset.y.percent  = 0.000001f;
+            config.window.offset.x.absolute = 0;
+            config.window.offset.y.absolute = 0;
+          }
+        }
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Pixel-Perfect Placement Will Behave Inconsistently If Desktop Resolution Changes");
+
+        ImGui::SameLine ();
+
+        ImGui::Checkbox     ("Remember Dragged Position", &config.window.persistent_drag);
+
+        bool moved = false;
+
+        HMONITOR hMonitor =
+          MonitorFromWindow ( game_window.hWnd,
+                                MONITOR_DEFAULTTONEAREST );
+
+        MONITORINFO mi  = { 0 };
+        mi.cbSize       = sizeof (mi);
+        GetMonitorInfo (hMonitor, &mi);
+
+        if (pixel_perfect)
+        {
+          int x_pos = std::abs (config.window.offset.x.absolute);
+          int y_pos = std::abs (config.window.offset.y.absolute);
+
+          bool right_align  = config.window.offset.x.absolute < 0;
+          bool bottom_align = config.window.offset.y.absolute < 0;
+
+          int extent_x = (mi.rcMonitor.right  - mi.rcMonitor.left) / 2 + 1;
+          int extent_y = (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2 + 1;
+
+          if (config.window.center) {
+            extent_x /= 2;
+            extent_y /= 2;
+          }
+
+          // Do NOT Apply Immediately or the Window Will Oscillate While
+          //   Adjusting the Slider
+          static bool queue_move = false;
+
+          moved  = ImGui::SliderInt ("X Offset", &x_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
+          moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
+          moved |= ImGui::SliderInt ("Y Offset", &y_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
+          moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
+
+          if (moved)
+            queue_move = true;
+
+          if (moved)
+          {
+            config.window.offset.x.absolute = x_pos * (right_align  ? -1 : 1);
+            config.window.offset.y.absolute = y_pos * (bottom_align ? -1 : 1);
+
+            if (right_align && config.window.offset.x.absolute >= 0)
+              config.window.offset.x.absolute = -1;
+
+            if (bottom_align && config.window.offset.y.absolute >= 0)
+              config.window.offset.y.absolute = -1;
+          }
+
+          if (queue_move && (! ImGui::IsMouseDown (0)))
+          {
+            queue_move = false;
+
+            SK_AdjustWindow ();
+          }
+        }
+
+        else
+        {
+          float x_pos = std::abs (config.window.offset.x.percent);
+          float y_pos = std::abs (config.window.offset.y.percent);
+
+          x_pos *= 100.0f;
+          y_pos *= 100.0f;
+
+          bool right_align  = config.window.offset.x.percent < 0.0f;
+          bool bottom_align = config.window.offset.y.percent < 0.0f;
+
+          float extent_x = 50.05f;
+          float extent_y = 50.05f;
+
+          if (config.window.center) {
+            extent_x /= 2.0f;
+            extent_y /= 2.0f;
+          }
+
+          // Do NOT Apply Immediately or the Window Will Oscillate While
+          //   Adjusting the Slider
+          static bool queue_move = false;
+
+          moved  = ImGui::SliderFloat ("X Offset", &x_pos, 0, extent_x, "%.3f %%"); ImGui::SameLine ();
+          moved |= ImGui::Checkbox    ("Right-aligned", &right_align);
+          moved |= ImGui::SliderFloat ("Y Offset", &y_pos, 0, extent_y, "%.3f %%"); ImGui::SameLine ();
+          moved |= ImGui::Checkbox    ("Bottom-aligned", &bottom_align);
+
+          if (moved)
+            queue_move = true;
+
+          if (moved)
+          {
+            x_pos /= 100.0f;
+            y_pos /= 100.0f;
+
+            config.window.offset.x.percent = x_pos * (right_align  ? -1.0f : 1.0f);
+            config.window.offset.y.percent = y_pos * (bottom_align ? -1.0f : 1.0f);
+
+            if (right_align && config.window.offset.x.percent >= 0.0f)
+              config.window.offset.x.absolute = -0.01f;
+
+            if (bottom_align && config.window.offset.y.percent >= 0.0f)
+              config.window.offset.y.absolute = -0.01f;
+          }
+
+          if (queue_move && (! ImGui::IsMouseDown (0)))
+          {
+            queue_move = false;
+
+            SK_AdjustWindow ();
+          }
+        }
+
+        ImGui::TreePop ();
+      }
+
+      if (ImGui::TreeNodeEx ("Input/Output Behavior", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        bool confine           = config.window.confine_cursor;
+        bool unconfine         = config.window.unconfine_cursor;
+        bool background_render = config.window.background_render;
+        bool background_mute   = config.window.background_mute;
+
         if ( ImGui::Checkbox ( "Mute Game in Background", &background_mute ) )
           DeferCommand ("Window.BackgroundMute toggle");
+        
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Mute the Game when Another Window has Input Focus");
 
         if ( ImGui::Checkbox ( "Continue Rendering in Background", &background_render ) )
           DeferCommand ("Window.BackgroundRender toggle");
 
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Block Application Switch Notifications to the Game");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Most Games will Continue Rendering");
+          ImGui::BulletText   ("Disables a Game's Built-in Mute-on-Alt+Tab Functionality");
+          ImGui::BulletText   ("Special K will Block Keyboard/Mouse Input, but Continue Sending Gamepad Input");
+          ImGui::EndTooltip   ();
+        }
+
         if ( ImGui::Checkbox ( "Restrict Cursor to Window", &confine ) )
           DeferCommand ("Window.ConfineCursor toggle");
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Prevents Mouse Cursor from Leaving the Game Window");
+          ImGui::Separator    ();
+          ImGui::Text         ("This Option may be Required when Forcing Fullscreen Borderless.");
+          ImGui::BulletText   ("Otherwise, the Mouse may become Stuck in the Wrong Region of the Screen.");
+          ImGui::EndTooltip   ();
+        }
+
+        if ( ImGui::Checkbox ( "Allow Cursor to Leave Window", &unconfine ) )
+          DeferCommand ("Window.UnconfineCursor toggle");
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Forcefully Prevent Game from Restricting Cursor to Window");
 
         ImGui::TreePop  ();
       }
@@ -665,9 +876,13 @@ SK_ImGui_ControlPanel (void)
         {
           ImGui::TreePush ("");
 
-          ImGui::RadioButton (" Celsius ",    (int*)&config.system.prefer_fahrenheit, 0); ImGui::SameLine ();
-          ImGui::RadioButton (" Fahrenheit ", (int*)&config.system.prefer_fahrenheit, 1); ImGui::SameLine ();
+          int temp_unit = config.system.prefer_fahrenheit ? 1 : 0;
+
+          ImGui::RadioButton (" Celsius ",    (int*)&temp_unit, 0); ImGui::SameLine ();
+          ImGui::RadioButton (" Fahrenheit ", (int*)&temp_unit, 1);  ImGui::SameLine ();
           ImGui::Checkbox    (" Print Slowdown", &config.gpu.print_slowdown);
+
+          config.system.prefer_fahrenheit = temp_unit == 1 ? true : false;
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("On NVIDIA GPUs, this will print driver throttling details (e.g. power saving)");
@@ -679,7 +894,7 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::TreeNode ("Extended Monitoring"))
       {
-        ImGui::BeginChild ("WMI Monitors", ImVec2 (0,font_size_multiline * 11.1313), true);
+        ImGui::BeginChild ("WMI Monitors", ImVec2 (0,font_size_multiline * 11.1313f), true);
 
         ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.785f, 0.0784f, 1.0f));
         ImGui::TextWrapped ("These functions spawn a WMI monitoring service and may take several seconds to start.\n\n");
@@ -768,9 +983,9 @@ SK_ImGui_ControlPanel (void)
         bool right_align  = config.osd.pos_x < 0;
         bool bottom_align = config.osd.pos_y < 0;
 
-        moved  = ImGui::SliderInt ("X Origin", &x_pos, 0, io.DisplaySize.x); ImGui::SameLine ();
+        moved  = ImGui::SliderInt ("X Origin", &x_pos, 0, (int)io.DisplaySize.x); ImGui::SameLine ();
         moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
-        moved |= ImGui::SliderInt ("Y Origin", &y_pos, 0, io.DisplaySize.y); ImGui::SameLine ();
+        moved |= ImGui::SliderInt ("Y Origin", &y_pos, 0, (int)io.DisplaySize.y); ImGui::SameLine ();
         moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
 
         if (moved)
