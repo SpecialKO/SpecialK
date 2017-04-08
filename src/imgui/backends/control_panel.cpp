@@ -199,7 +199,7 @@ SK_ImGui_ControlPanel (void)
     ImGui::MenuItem (" Framebuffer Resolution", szResolution);
     
     RECT client;
-    GetClientRect ((HWND)io.ImeWindowHandle, &client);
+    GetClientRect (game_window.hWnd, &client);
 
     snprintf ( szResolution, 63, "   %lux%lu", 
                                    game_window.render_x,//client.right - client.left,
@@ -348,30 +348,40 @@ SK_ImGui_ControlPanel (void)
     if ( api == SK_RenderAPI::D3D11 &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings" ) )
     {
-      ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+      ImGui::TreePush       ("");
 
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Increased compatibility with video capture software");
+      ////ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
 
-      if (ImGui::TreeNode ("Texture Management"))
+      ////if (ImGui::IsItemHovered ())
+        ////ImGui::SetTooltip ("Increased compatibility with video capture software");
+
+      if (ImGui::CollapsingHeader ("Texture Management"))
       {
+        ImGui::TreePush ("");
         ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache); 
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Reduce driver memory management overhead in games that stream textures.");
 
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.85f, 0.1f, 0.9f));
         ImGui::SameLine (); ImGui::BulletText ("Requires restart");
+        ImGui::PopStyleColor  ();
 
-        if (config.textures.d3d11.cache) {
-          ImGui::Checkbox ("Ignore textures with no mipmaps", &config.textures.cache.ignore_nonmipped);
+        if (config.textures.d3d11.cache)
+        {
+          ImGui::Checkbox ("Ignore Textures Without Mipmaps", &config.textures.cache.ignore_nonmipped);
 
           if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Important compatibility setting for some games (e.g. The Witcher 3) that improperly modify immutable textures.");
+            ImGui::SetTooltip ("Important Compatibility Setting for Some Games (e.g. The Witcher 3)");
         }
 
         ImGui::TreePop  ();
 
-        if (config.textures.d3d11.cache) {
+        if (config.textures.d3d11.cache)
+        {
           ImGui::Separator (   );
           ImGui::Columns   ( 3 );
             ImGui::Text    ( "Size" );                                                                     ImGui::NextColumn ();
@@ -397,6 +407,14 @@ SK_ImGui_ControlPanel (void)
           ImGui::Columns   ( 1 );
 
           ImGui::Separator (   );
+
+          int size = config.textures.cache.max_size;
+
+          ImGui::TreePush  ( "" );
+          if (ImGui::SliderInt ( "Cache Size (GPU-shared memory)", &size, 256, 8192, "%.0f MiB"))
+            config.textures.cache.max_size = size;
+            SK_GetCommandProcessor ()->ProcessCommandFormatted ("TexCache.MaxSize %d ", config.textures.cache.max_size);
+          ImGui::TreePop   (    );
         }
       }
 
@@ -404,9 +422,10 @@ SK_ImGui_ControlPanel (void)
                                                  config.render.dxgi.res.max.isZero () );
 
       bool res_limits =
-        ImGui::TreeNodeEx ("Resolution Limiting", enable_resolution_limits ? ImGuiTreeNodeFlags_DefaultOpen : 0x00);
+        ImGui::CollapsingHeader ("Resolution Limiting", enable_resolution_limits ? ImGuiTreeNodeFlags_DefaultOpen : 0x00);
 
-      if (ImGui::IsItemHovered ()) {
+      if (ImGui::IsItemHovered ())
+      {
         ImGui::BeginTooltip ();
         ImGui::Text         ("Restrict the lowest/highest resolutions reported to a game");
         ImGui::Separator    ();
@@ -414,26 +433,33 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndTooltip   ();
       }
 
-      if (res_limits) {
+      if (res_limits)
+      {
+        ImGui::TreePush  ("");
         ImGui::InputInt2 ("Minimum Resolution", (int *)&config.render.dxgi.res.min.x);
         ImGui::InputInt2 ("Maximum Resolution", (int *)&config.render.dxgi.res.max.x);
         ImGui::TreePop   ();
        }
-    }
 
-    //ImGui::CollapsingHeader ("On-Screen Display");
-    //ImGui::CollapsingHeader ("Render Features");
+      ImGui::TreePop       ( );
+      ImGui::PopStyleColor (3);
+    }
 
     if ( ImGui::CollapsingHeader ("Compatibility Settings") )
     {
-      if (ImGui::TreeNodeEx ("Third-Party Software"))
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
+      ImGui::TreePush       ("");
+
+      if (ImGui::CollapsingHeader ("Third-Party Software"))
       {
         ImGui::Checkbox ("Disable GeForce Experience and NVIDIA Shield BloatWare", &config.compatibility.disable_nv_bloat);
-        ImGui::TreePop  ();
       }
 
-      if (ImGui::TreeNodeEx ("Render API Hooks", ImGuiTreeNodeFlags_DefaultOpen))
+      if (ImGui::CollapsingHeader ("Render Backends", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        ImGui::TreePush ("");
         auto EnableActiveAPI = [](SK_RenderAPI api) ->
         void
         {
@@ -461,7 +487,6 @@ SK_ImGui_ControlPanel (void)
           }
         };
 
-        ImGui::TreePop    (  );
         ImGui::PushStyleVar                                                           (ImGuiStyleVar_ChildWindowRounding, 10.0f);
         ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * 4), true, ImGuiWindowFlags_ChildWindowAutoFitY);
 
@@ -512,10 +537,12 @@ SK_ImGui_ControlPanel (void)
         ImGui::PopStyleVar ( );
 
         EnableActiveAPI   (api);
+        ImGui::TreePop    ();
       }
 
-      if (ImGui::TreeNode ("Hardware Monitoring APIs"))
+      if (ImGui::CollapsingHeader ("Hardware Monitoring"))
       {
+        ImGui::TreePush ("");
         ImGui::Checkbox ("NvAPI  ", &config.apis.NvAPI.enable);
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("NVIDIA's hardware monitoring API, needed for the GPU stats on the OSD. Turn off only if your driver is buggy.");
@@ -524,14 +551,18 @@ SK_ImGui_ControlPanel (void)
         ImGui::Checkbox ("ADL   ",   &config.apis.ADL.enable);
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("AMD's hardware monitoring API, needed for the GPU stats on the OSD. Turn off only if your driver is buggy.");
-        ImGui::TreePop();
+        ImGui::TreePop  ();
       }
+
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
       if (ImGui::CollapsingHeader ("Debugging"))
       {
         ImGui::TreePush  ("");
         ImGui::Checkbox  ("Enable Crash Handler",           &config.system.handle_crashes);
-        ImGui::Checkbox  ("Rehook Load Library",            &config.compatibility.rehook_loadlibrary);
+        ImGui::Checkbox  ("ReHook LoadLibrary",             &config.compatibility.rehook_loadlibrary);
         ImGui::SliderInt ("Log Level",                      &config.system.log_level, 0, 5);
         ImGui::Checkbox  ("Log Game Output",                &config.system.game_output);
         ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out);
@@ -539,16 +570,26 @@ SK_ImGui_ControlPanel (void)
         ImGui::Checkbox  ("Strict DLL Loader Compliance",   &config.system.strict_compliance);
         ImGui::TreePop   ();
       }
+
+      ImGui::PopStyleColor (3);
+
+      ImGui::TreePop       ( );
+      ImGui::PopStyleColor (3);
     }
 
     if ( ImGui::CollapsingHeader ("Input Management") )
     {
-      if (ImGui::TreeNode ("Mouse Cursor"))
-      {
-        ImGui::Checkbox ( "Auto-Hide When Not Moved", &config.input.cursor.manage        );
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+      ImGui::TreePush       ("");
 
+      if (ImGui::CollapsingHeader ("Mouse Cursor"))
+      {
+        ImGui::TreePush ("");
+        ImGui::Checkbox ( "Auto-Hide When Not Moved", &config.input.cursor.manage        );
         ImGui::Checkbox ( "Keyboard Input Activates Cursor",
-                                       &config.input.cursor.keys_activate );
+                                                      &config.input.cursor.keys_activate );
 
         float seconds = 
           (float)config.input.cursor.timeout  / 1000.0f;
@@ -561,7 +602,7 @@ SK_ImGui_ControlPanel (void)
 
         if (! cursor_vis)
         {
-          if (ImGui::Button ("Force Mouse Cursor Visible")) {
+          if (ImGui::Button (" Force Mouse Cursor Visible ")) {
             while (ShowCursor (TRUE) < 0)
               ;
 
@@ -571,7 +612,7 @@ SK_ImGui_ControlPanel (void)
 
         else
         {
-          if (ImGui::Button ("Force Mouse Cursor Hidden"))
+          if (ImGui::Button (" Force Mouse Cursor Hidden "))
           {
             while (ShowCursor (FALSE) >= -1)
               ;
@@ -580,7 +621,7 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        ImGui::TreePop  ();
+        ImGui::TreePop ();
       }
 
       ImGui::Checkbox ("Block Input to Game While UI is Open", &config.input.ui.capture);
@@ -591,10 +632,18 @@ SK_ImGui_ControlPanel (void)
           ImGui::BulletText ("If mouselook is causing problems, use this setting to force input capture unconditionally.");
         ImGui::EndTooltip   ();
       }
+
+      ImGui::TreePop       ( );
+      ImGui::PopStyleColor (3);
     }
 
     if ( ImGui::CollapsingHeader ("Window Management") )
     {
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
+      ImGui::TreePush       ("");
+
       //
       // If we did this from the render thread, we would deadlock most games
       //
@@ -621,13 +670,15 @@ SK_ImGui_ControlPanel (void)
         );
       };
 
-      if (ImGui::TreeNodeEx ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
+      if (ImGui::CollapsingHeader ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        ImGui::TreePush ("");
+
         bool borderless        = config.window.borderless;
         bool center            = config.window.center;
         bool fullscreen        = config.window.fullscreen;
 
-        if ( ImGui::Checkbox ( "Borderless", &borderless ) )
+        if ( ImGui::Checkbox ( "Borderless  ", &borderless ) )
           DeferCommand ("Window.Borderless toggle");
 
         if (ImGui::IsItemHovered ())
@@ -640,6 +691,8 @@ SK_ImGui_ControlPanel (void)
 
         if (borderless)
         {
+          ImGui::SameLine ();
+
           if ( ImGui::Checkbox ( "Fullscreen (Borderless Upscale)", &fullscreen ) )
             DeferCommand ("Window.Fullscreen toggle");
 
@@ -654,180 +707,196 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        if ( ImGui::Checkbox ( "Center", &center ) )
-          DeferCommand ("Window.Center toggle");
-
-        if (ImGui::IsItemHovered ()) {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Keep the Render Window Centered at All Times");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("At Least, that is how it is SUPPOSED to Work");
-          ImGui::BulletText   ("This Feature is Buggy:  Scaling Problems");
-          ImGui::EndTooltip   ();
-        }
-
-        ImGui::TreePush    ("");
-        ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "\nPress Ctrl + Shift + ScrollLock to Toggle Drag-Lock Mode");
-        ImGui::BulletText  ("Useful for Positioning Borderless Windows.");
-        ImGui::Text        ("");
-        ImGui::TreePop     ();
-
-        bool pixel_perfect = ( config.window.offset.x.percent == 0.0 &&
-                               config.window.offset.y.percent == 0.0 );
-
-        if (ImGui::Checkbox ("Pixel-Perfect Placement", &pixel_perfect))
+        if (! (config.window.borderless && config.window.fullscreen))
         {
-          if (pixel_perfect) {
-            config.window.offset.x.absolute = 0;
-            config.window.offset.y.absolute = 0;
-            config.window.offset.x.percent  = 0.0f;
-            config.window.offset.y.percent  = 0.0f;
+          if ( ImGui::Checkbox ( "Center", &center ) )
+            DeferCommand ("Window.Center toggle");
+
+          if (ImGui::IsItemHovered ()) {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Keep the Render Window Centered at All Times");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("At Least, that is how it is SUPPOSED to Work");
+            ImGui::BulletText   ("This Feature is Buggy:  Scaling Problems");
+            ImGui::EndTooltip   ();
           }
 
-          else {
-            config.window.offset.x.percent  = 0.000001f;
-            config.window.offset.y.percent  = 0.000001f;
-            config.window.offset.x.absolute = 0;
-            config.window.offset.y.absolute = 0;
-          }
-        }
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Pixel-Perfect Placement Will Behave Inconsistently If Desktop Resolution Changes");
-
-        ImGui::SameLine ();
-
-        ImGui::Checkbox     ("Remember Dragged Position", &config.window.persistent_drag);
-
-        bool moved = false;
-
-        HMONITOR hMonitor =
-          MonitorFromWindow ( game_window.hWnd,
-                                MONITOR_DEFAULTTONEAREST );
-
-        MONITORINFO mi  = { 0 };
-        mi.cbSize       = sizeof (mi);
-        GetMonitorInfo (hMonitor, &mi);
-
-        if (pixel_perfect)
-        {
-          int x_pos = std::abs (config.window.offset.x.absolute);
-          int y_pos = std::abs (config.window.offset.y.absolute);
-
-          bool right_align  = config.window.offset.x.absolute < 0;
-          bool bottom_align = config.window.offset.y.absolute < 0;
-
-          int extent_x = (mi.rcMonitor.right  - mi.rcMonitor.left) / 2 + 1;
-          int extent_y = (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2 + 1;
-
-          if (config.window.center) {
-            extent_x /= 2;
-            extent_y /= 2;
-          }
-
-          // Do NOT Apply Immediately or the Window Will Oscillate While
-          //   Adjusting the Slider
-          static bool queue_move = false;
-
-          moved  = ImGui::SliderInt ("X Offset", &x_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
-          moved |= ImGui::SliderInt ("Y Offset", &y_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
-
-          if (moved)
-            queue_move = true;
-
-          if (moved)
+          if (! config.window.center)
           {
-            config.window.offset.x.absolute = x_pos * (right_align  ? -1 : 1);
-            config.window.offset.y.absolute = y_pos * (bottom_align ? -1 : 1);
-
-            if (right_align && config.window.offset.x.absolute >= 0)
-              config.window.offset.x.absolute = -1;
-
-            if (bottom_align && config.window.offset.y.absolute >= 0)
-              config.window.offset.y.absolute = -1;
+            ImGui::TreePush    ("");
+            ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "\nPress Ctrl + Shift + ScrollLock to Toggle Drag-Lock Mode");
+            ImGui::BulletText  ("Useful for Positioning Borderless Windows.");
+            ImGui::Text        ("");
+            ImGui::TreePop     ();
           }
 
-          if (queue_move && (! ImGui::IsMouseDown (0)))
+          bool pixel_perfect = ( config.window.offset.x.percent == 0.0 &&
+                                 config.window.offset.y.percent == 0.0 );
+
+          if (ImGui::Checkbox ("Pixel-Perfect Placement", &pixel_perfect))
           {
-            queue_move = false;
+            if (pixel_perfect) {
+              config.window.offset.x.absolute = 0;
+              config.window.offset.y.absolute = 0;
+              config.window.offset.x.percent  = 0.0f;
+              config.window.offset.y.percent  = 0.0f;
+            }
 
-            SK_AdjustWindow ();
-          }
-        }
-
-        else
-        {
-          float x_pos = std::abs (config.window.offset.x.percent);
-          float y_pos = std::abs (config.window.offset.y.percent);
-
-          x_pos *= 100.0f;
-          y_pos *= 100.0f;
-
-          bool right_align  = config.window.offset.x.percent < 0.0f;
-          bool bottom_align = config.window.offset.y.percent < 0.0f;
-
-          float extent_x = 50.05f;
-          float extent_y = 50.05f;
-
-          if (config.window.center) {
-            extent_x /= 2.0f;
-            extent_y /= 2.0f;
+            else {
+              config.window.offset.x.percent  = 0.000001f;
+              config.window.offset.y.percent  = 0.000001f;
+              config.window.offset.x.absolute = 0;
+              config.window.offset.y.absolute = 0;
+            }
           }
 
-          // Do NOT Apply Immediately or the Window Will Oscillate While
-          //   Adjusting the Slider
-          static bool queue_move = false;
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Pixel-Perfect Placement Will Behave Inconsistently If Desktop Resolution Changes");
 
-          moved  = ImGui::SliderFloat ("X Offset", &x_pos, 0, extent_x, "%.3f %%"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox    ("Right-aligned", &right_align);
-          moved |= ImGui::SliderFloat ("Y Offset", &y_pos, 0, extent_y, "%.3f %%"); ImGui::SameLine ();
-          moved |= ImGui::Checkbox    ("Bottom-aligned", &bottom_align);
-
-          if (moved)
-            queue_move = true;
-
-          if (moved)
+          if (! config.window.center)
           {
-            x_pos /= 100.0f;
-            y_pos /= 100.0f;
+            ImGui::SameLine ();
 
-            config.window.offset.x.percent = x_pos * (right_align  ? -1.0f : 1.0f);
-            config.window.offset.y.percent = y_pos * (bottom_align ? -1.0f : 1.0f);
-
-            if (right_align && config.window.offset.x.percent >= 0.0f)
-              config.window.offset.x.absolute = -0.01f;
-
-            if (bottom_align && config.window.offset.y.percent >= 0.0f)
-              config.window.offset.y.absolute = -0.01f;
+            ImGui::Checkbox     ("Remember Dragged Position", &config.window.persistent_drag);
           }
 
-          if (queue_move && (! ImGui::IsMouseDown (0)))
-          {
-            queue_move = false;
+          bool moved = false;
 
-            SK_AdjustWindow ();
+          HMONITOR hMonitor =
+            MonitorFromWindow ( game_window.hWnd,
+                                  MONITOR_DEFAULTTONEAREST );
+
+          MONITORINFO mi  = { 0 };
+          mi.cbSize       = sizeof (mi);
+          GetMonitorInfo (hMonitor, &mi);
+
+          if (pixel_perfect)
+          {
+            int x_pos = std::abs (config.window.offset.x.absolute);
+            int y_pos = std::abs (config.window.offset.y.absolute);
+
+            bool right_align  = config.window.offset.x.absolute < 0;
+            bool bottom_align = config.window.offset.y.absolute < 0;
+
+            int extent_x = (mi.rcMonitor.right  - mi.rcMonitor.left) / 2 + 1;
+            int extent_y = (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2 + 1;
+
+            if (config.window.center) {
+              extent_x /= 2;
+              extent_y /= 2;
+            }
+
+            // Do NOT Apply Immediately or the Window Will Oscillate While
+            //   Adjusting the Slider
+            static bool queue_move = false;
+
+            moved  = ImGui::SliderInt ("X Offset", &x_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
+            moved |= ImGui::SliderInt ("Y Offset", &y_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
+
+            if (moved)
+              queue_move = true;
+
+            if (moved)
+            {
+              config.window.offset.x.absolute = x_pos * (right_align  ? -1 : 1);
+              config.window.offset.y.absolute = y_pos * (bottom_align ? -1 : 1);
+
+              if (right_align && config.window.offset.x.absolute >= 0)
+                config.window.offset.x.absolute = -1;
+
+              if (bottom_align && config.window.offset.y.absolute >= 0)
+                config.window.offset.y.absolute = -1;
+            }
+
+            if (queue_move && (! ImGui::IsMouseDown (0)))
+            {
+              queue_move = false;
+
+              SK_AdjustWindow ();
+            }
+          }
+
+          else
+          {
+            float x_pos = std::abs (config.window.offset.x.percent);
+            float y_pos = std::abs (config.window.offset.y.percent);
+
+            x_pos *= 100.0f;
+            y_pos *= 100.0f;
+
+            bool right_align  = config.window.offset.x.percent < 0.0f;
+            bool bottom_align = config.window.offset.y.percent < 0.0f;
+
+            float extent_x = 50.05f;
+            float extent_y = 50.05f;
+
+            if (config.window.center) {
+              extent_x /= 2.0f;
+              extent_y /= 2.0f;
+            }
+
+            // Do NOT Apply Immediately or the Window Will Oscillate While
+            //   Adjusting the Slider
+            static bool queue_move = false;
+
+            moved  = ImGui::SliderFloat ("X Offset", &x_pos, 0, extent_x, "%.3f %%"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Right-aligned", &right_align);
+            moved |= ImGui::SliderFloat ("Y Offset", &y_pos, 0, extent_y, "%.3f %%"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Bottom-aligned", &bottom_align);
+
+            if (moved)
+              queue_move = true;
+
+            if (moved)
+            {
+              x_pos /= 100.0f;
+              y_pos /= 100.0f;
+
+              config.window.offset.x.percent = x_pos * (right_align  ? -1.0f : 1.0f);
+              config.window.offset.y.percent = y_pos * (bottom_align ? -1.0f : 1.0f);
+
+              if (right_align && config.window.offset.x.percent >= 0.0f)
+                config.window.offset.x.absolute = -0.01f;
+
+              if (bottom_align && config.window.offset.y.percent >= 0.0f)
+                config.window.offset.y.absolute = -0.01f;
+            }
+
+            if (queue_move && (! ImGui::IsMouseDown (0)))
+            {
+              queue_move = false;
+
+              SK_AdjustWindow ();
+            }
           }
         }
 
         ImGui::TreePop ();
       }
 
-      if (ImGui::TreeNodeEx ("Input/Output Behavior", ImGuiTreeNodeFlags_DefaultOpen))
+      if (ImGui::CollapsingHeader ("Input/Output Behavior", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        ImGui::TreePush ("");
+
         bool confine           = config.window.confine_cursor;
         bool unconfine         = config.window.unconfine_cursor;
         bool background_render = config.window.background_render;
         bool background_mute   = config.window.background_mute;
 
-        if ( ImGui::Checkbox ( "Mute Game in Background", &background_mute ) )
+        ImGui::Text     ("Background Behavior");
+        ImGui::TreePush ("");
+
+        if ( ImGui::Checkbox ( "Mute Game ", &background_mute ) )
           DeferCommand ("Window.BackgroundMute toggle");
         
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Mute the Game when Another Window has Input Focus");
 
-        if ( ImGui::Checkbox ( "Continue Rendering in Background", &background_render ) )
+        ImGui::SameLine ();
+
+        if ( ImGui::Checkbox ( "Continue Rendering", &background_render ) )
           DeferCommand ("Window.BackgroundRender toggle");
 
         if (ImGui::IsItemHovered ())
@@ -841,8 +910,21 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndTooltip   ();
         }
 
-        if ( ImGui::Checkbox ( "Restrict Cursor to Window", &confine ) )
-          DeferCommand ("Window.ConfineCursor toggle");
+        ImGui::TreePop ();
+
+        ImGui::Text     ("Cursor Boundaries");
+        ImGui::TreePush ("");
+        
+        int  ovr     = 0;
+        bool changed = false;
+
+        if (config.window.confine_cursor)
+          ovr = 1;
+        if (config.window.unconfine_cursor)
+          ovr = 2;
+
+        changed |= ImGui::RadioButton ("Normal Game Behavior", &ovr, 0); ImGui::SameLine ();
+        changed |= ImGui::RadioButton ("Keep Inside Window",   &ovr, 1); ImGui::SameLine ();
 
         if (ImGui::IsItemHovered ())
         {
@@ -854,23 +936,53 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndTooltip   ();
         }
 
-        if ( ImGui::Checkbox ( "Allow Cursor to Leave Window", &unconfine ) )
-          DeferCommand ("Window.UnconfineCursor toggle");
+        changed |= ImGui::RadioButton ("Unrestrict Cursor",    &ovr, 2);
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Forcefully Prevent Game from Restricting Cursor to Window");
+          ImGui::SetTooltip ("Prevent Game from Restricting Cursor to Window");
 
-        ImGui::TreePop  ();
+        if (changed)
+        {
+          switch (ovr)
+          {
+            case 0:
+              DeferCommand ("Window.ConfineCursor 0");
+              DeferCommand ("Window.UnconfineCursor 0");
+              break;
+            case 1:
+              DeferCommand ("Window.UnconfineCursor 0");
+              DeferCommand ("Window.ConfineCursor 1");
+              break;
+            case 2:
+              DeferCommand ("Window.ConfineCursor 0");
+              DeferCommand ("Window.UnconfineCursor 1");
+              break;
+          }
+        }
+
+        ImGui::TreePop ();
+        ImGui::TreePop ();
       }
+
+      ImGui::TreePop       ( );
+      ImGui::PopStyleColor (3);
     }
 
-    if (ImGui::CollapsingHeader ("OSD (On Screen Display)"))
+    if (ImGui::CollapsingHeader ("On Screen Display (OSD)"))
     {
-      if (ImGui::TreeNodeEx ("Basic Monitoring", ImGuiTreeNodeFlags_DefaultOpen))
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+      ImGui::TreePush       ("");
+
+      if (ImGui::CollapsingHeader ("Basic Monitoring", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        ImGui::Checkbox ("Title/Clock",   &config.time.show);
-        ImGui::Checkbox ("Framerate",     &config.fps.show);
-        ImGui::Checkbox ("GPU Stats",     &config.gpu.show);
+        ImGui::TreePush ("");
+
+        ImGui::Checkbox ("Title/Clock ",   &config.time.show); ImGui::SameLine ();
+        ImGui::Checkbox ("Framerate",      &config.fps.show);
+
+        ImGui::Checkbox ("GPU Stats",      &config.gpu.show);
 
         if (config.gpu.show)
         {
@@ -889,15 +1001,19 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::TreePop  ();
         }
+
         ImGui::TreePop ();
       }
 
-      if (ImGui::TreeNode ("Extended Monitoring"))
+      if (ImGui::CollapsingHeader ("Extended Monitoring"))
       {
-        ImGui::BeginChild ("WMI Monitors", ImVec2 (0,font_size_multiline * 11.1313f), true);
+        ImGui::TreePush     ("");
+
+        ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 16.0f);
+        ImGui::BeginChild   ("WMI Monitors", ImVec2 (font_size * 50.0f,font_size_multiline * 6.05f), true);
 
         ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.785f, 0.0784f, 1.0f));
-        ImGui::TextWrapped ("These functions spawn a WMI monitoring service and may take several seconds to start.\n\n");
+        ImGui::TextWrapped    ("These functions spawn a WMI monitoring service and may take several seconds to start.");
         ImGui::PopStyleColor  ();
 
         extern void
@@ -906,49 +1022,68 @@ SK_ImGui_ControlPanel (void)
 
         bool spawn = false;
 
+        ImGui::Separator ( );
+        ImGui::Columns   (3);
+
         spawn |= ImGui::Checkbox ("CPU Stats",         &config.cpu.show);
 
         if (config.cpu.show)
         {
           ImGui::TreePush ("");
-          ImGui::Checkbox (" Simplified View", &config.cpu.simple);
+          ImGui::Checkbox (" Simplified View",         &config.cpu.simple);
           ImGui::TreePop  ();
         }
 
-        spawn |= ImGui::Checkbox ("Memory Stats", &config.mem.show);
+        spawn |= ImGui::Checkbox ("Memory Stats",      &config.mem.show);
 
-        spawn |= ImGui::Checkbox ("Disk Stats",         &config.disk.show);
+        ImGui::NextColumn ();
+
+        spawn |= ImGui::Checkbox ("General I/O Stats", &config.io.show);
+        spawn |= ImGui::Checkbox ("Pagefile Stats",    &config.pagefile.show);
+
+        ImGui::NextColumn ();
+
+        spawn |= ImGui::Checkbox ("Disk Stats",        &config.disk.show);
 
         if (config.disk.show)
         {
           ImGui::TreePush ("");
           bool hovered = false;
 
-          ImGui::RadioButton (" Logical Disks",  &config.disk.type, 1); ImGui::SameLine ();
+          ImGui::RadioButton (" Logical Disks",  &config.disk.type, 1);
           hovered = ImGui::IsItemHovered ();
           ImGui::RadioButton (" Physical Disks", &config.disk.type, 0);
           hovered |= ImGui::IsItemHovered ();
           ImGui::TreePop  ();
 
           if (hovered)
-            ImGui::SetTooltip ("Requires an application restart.");
+            ImGui::SetTooltip ("Requires Application Restart");
         }
-        
-        spawn |= ImGui::Checkbox ("Pagefile Stats",    &config.pagefile.show);
-        spawn |= ImGui::Checkbox ("General I/O Stats", &config.io.show);
+
+        else { ImGui::NewLine (); ImGui::NewLine (); }
 
         if (spawn)
           SK_StartPerfMonThreads ();
 
-        ImGui::Separator ();
+        ImGui::Columns     (1);
+        ImGui::Separator   ( );
 
-        ImGui::Checkbox ("Remember These Settings", &config.osd.remember_state);
-        ImGui::EndChild ();
-        ImGui::TreePop  ();
+        ImGui::Columns     (3, "", false);
+        ImGui::NextColumn  ();
+        ImGui::NextColumn  ();
+        ImGui::Checkbox    ("Remember These Settings", &config.osd.remember_state);
+        ImGui::Columns     (1);
+
+        ImGui::EndChild    ();
+        ImGui::PopStyleVar ();
+
+        ImGui::TreePop     ();
       }
 
-      if (ImGui::TreeNodeEx ("Appearance", ImGuiTreeNodeFlags_DefaultOpen))
+      if (ImGui::CollapsingHeader ("Appearance", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        ImGui::TreePush ("");
+
         float color [3] = { (float)config.osd.red   / 255.0f,
                             (float)config.osd.green / 255.0f,
                             (float)config.osd.blue  / 255.0f };
@@ -1008,6 +1143,9 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePop ();
       }
+
+      ImGui::TreePop       ( );
+      ImGui::PopStyleColor (3);
     }
 
     if (SK::SteamAPI::AppID () != 0)
@@ -1015,8 +1153,15 @@ SK_ImGui_ControlPanel (void)
       if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
                                                           ImGuiTreeNodeFlags_DefaultOpen ) )
       {
-        if (ImGui::TreeNode ("Achievements"))
+        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
+        ImGui::TreePush       ("");
+
+        if (ImGui::CollapsingHeader ("Achievements"))
         {
+          ImGui::TreePush ("");
+
           ImGui::Checkbox ("Play Sound on Unlock ", &config.steam.achievements.play_sound);
 
           if (config.steam.achievements.play_sound) {
@@ -1043,15 +1188,22 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::Checkbox ("Take Screenshot on Unlock", &config.steam.achievements.take_screenshot);
 
-          if (ImGui::TreeNode  ("Enhanced Popup"))
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+
+          if (ImGui::CollapsingHeader ("Enhanced Popup"))
           {
+            ImGui::TreePush ("");
+
             int mode = (config.steam.achievements.popup.show + config.steam.achievements.popup.animate);
 
-            if ( ImGui::Combo     ( "Draw Mode",
-                                          &mode,
-                                            "Disabled\0"
-                                            "Stationary\0"
-                                            "Animated\0\0" ) ) {
+            if ( ImGui::Combo ( "Draw Mode",
+                                      &mode,
+                                        "Disabled\0"
+                                        "Stationary\0"
+                                        "Animated\0\0" ) )
+            {
               config.steam.achievements.popup.show    = (mode > 0);
               config.steam.achievements.popup.animate = (mode > 1);
 
@@ -1077,8 +1229,10 @@ SK_ImGui_ControlPanel (void)
                                         "Bottom-Right\0\0" );
             
             //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
-            ImGui::TreePop   ();
+            ImGui::TreePop     ( );
           }
+
+          ImGui::PopStyleColor (3);
 
           extern void
           SK_UnlockSteamAchievement (uint32_t idx);
@@ -1089,8 +1243,9 @@ SK_ImGui_ControlPanel (void)
           ImGui::TreePop     ();
         }
 
-        if (ImGui::TreeNode ("Steam Compatibility Modes"))
+        if (ImGui::CollapsingHeader ("Compatibility"))
         {
+          ImGui::TreePush ("");
           ImGui::Checkbox ("Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
 
           if (ImGui::IsItemHovered ())
@@ -1099,11 +1254,13 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::Checkbox ("Load Steam Client DLL Early", &config.steam.preload_client);
 
-          ImGui::TreePop     ();
+          ImGui::TreePop  ();
         }
 
-        if (ImGui::TreeNode  ("Steam Overlay Notifications"))
+        if (ImGui::CollapsingHeader ("Overlay Notifications"))
         {
+          ImGui::TreePush  ("");
+
           if (ImGui::Combo ( " ", &config.steam.notify_corner,
                                     "Top-Left\0"
                                     "Top-Right\0"
@@ -1113,6 +1270,9 @@ SK_ImGui_ControlPanel (void)
           {
             SK_Steam_SetNotifyCorner ();
           }
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Applies Only to Traditional Overlay (not Big Picture)");
 
           ImGui::TreePop ();
         }
@@ -1137,6 +1297,9 @@ SK_ImGui_ControlPanel (void)
             }
           }
         }
+
+        ImGui::TreePop       ( );
+        ImGui::PopStyleColor (3);
       }
 
       //ImGui::CollapsingHeader ("Window Management");

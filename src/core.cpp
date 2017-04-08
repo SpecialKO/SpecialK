@@ -1245,13 +1245,80 @@ DllThread (LPVOID user)
 
 extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
 
+
+// True if the user has rebased their %UserProfile% directory the wrong way
+static bool    altered_user_profile     = false;
+static wchar_t wszProfile    [MAX_PATH] = { L'\0' };
+static wchar_t wszDocs       [MAX_PATH] = { L'\0' };
+static wchar_t wszEnvProfile [MAX_PATH] = { L'\0' };
+static wchar_t wszEnvDocs    [MAX_PATH] = { L'\0' };
+
+void
+__stdcall
+SK_EstablishRootPath (void)
+{
+  wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
+          wszConfigPath [  MAX_PATH  ] = L'\0';
+
+          SK_RootPath   [    0     ]   = L'\0';
+
+          SK_RootPath   [ MAX_PATH ]   = L'\0';
+
+  // Make expansion of %UserProfile% agree with the actual directory, for people
+  //   who rebase their documents directory without fixing this env. variable.
+  if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_PROFILE, nullptr, 0, wszProfile ) ) )
+  {
+    ExpandEnvironmentStringsW (L"%USERPROFILE%", wszEnvProfile, MAX_PATH);
+    SetEnvironmentVariableW   (L"USERPROFILE",   wszProfile);
+
+    if (_wcsicmp (wszEnvProfile, wszProfile))
+      altered_user_profile = true;
+
+    ExpandEnvironmentStringsW (L"%USERPROFILE%\\Documents", wszEnvDocs, MAX_PATH);
+
+    if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_MYDOCUMENTS, nullptr, 0, wszDocs ) ) )
+    {
+      if (_wcsicmp (wszEnvDocs, wszDocs))
+        altered_user_profile = true;
+    }
+  }
+
+
+  if (config.system.central_repository) {
+    if (! SK_IsSuperSpecialK ()) {
+      ExpandEnvironmentStringsW (
+        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
+          SK_RootPath,
+            MAX_PATH - 1
+      );
+    } else {
+      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+    }
+
+    lstrcatW (wszConfigPath, SK_GetRootPath ());
+    lstrcatW (wszConfigPath, L"\\Profiles\\");
+    lstrcatW (wszConfigPath, SK_GetHostApp  ());
+  }
+
+  else {
+    if (! SK_IsSuperSpecialK ()) {
+      lstrcatW (SK_RootPath,   SK_GetHostPath ());
+    } else {
+      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+    }
+    lstrcatW (wszConfigPath, SK_GetHostPath ());
+  }
+
+  lstrcatW (SK_RootPath,   L"\\");
+  lstrcatW (wszConfigPath, L"\\");
+
+  SK_SetConfigPath     (wszConfigPath);
+}
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  // Don't trace until the config file is loaded
-  config.system.trace_load_library = false;
-
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
@@ -1289,6 +1356,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashReporter.exe"))            ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"SupportTool.exe"))              ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"CrashSender1400.exe"))          ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"WerFault.exe"))                 ||
 
        // Runtime Installers
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"DXSETUP.exe"))                  ||
@@ -1333,6 +1401,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"WinRar.exe"))                   ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"EAC.exe"))                      ||
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"vcpkgsrv.exe"))                 ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"dllhost.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"git.exe"))                      ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"link.exe"))                     ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"cl.exe"))                       ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"rc.exe"))                       ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"conhost.exe"))                  ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"GameBarPresenceWriter.exe"))    ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"OAWrapper.exe"))                ||
+       (! SK_Path_wcsicmp (SK_GetHostApp(),L"NvOAWrapperCache.exe"))         ||
 
        // Misc. Tools
        (! SK_Path_wcsicmp (SK_GetHostApp(),L"SleepOnLan.exe"))               ||
@@ -1348,32 +1425,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     return false;
   }
 
-
-  // True if the user has rebased their %UserProfile% directory the wrong way
-  bool    altered_user_profile     = false;
-  wchar_t wszProfile    [MAX_PATH] = { L'\0' };
-  wchar_t wszDocs       [MAX_PATH] = { L'\0' };
-  wchar_t wszEnvProfile [MAX_PATH] = { L'\0' };
-  wchar_t wszEnvDocs    [MAX_PATH] = { L'\0' };
-
-  // Make expansion of %UserProfile% agree with the actual directory, for people
-  //   who rebase their documents directory without fixing this env. variable.
-  if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_PROFILE, nullptr, 0, wszProfile ) ) )
-  {
-    ExpandEnvironmentStringsW (L"%USERPROFILE%", wszEnvProfile, MAX_PATH);
-    SetEnvironmentVariableW   (L"USERPROFILE",   wszProfile);
-
-    if (_wcsicmp (wszEnvProfile, wszProfile))
-      altered_user_profile = true;
-
-    ExpandEnvironmentStringsW (L"%USERPROFILE%\\Documents", wszEnvDocs, MAX_PATH);
-
-    if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_MYDOCUMENTS, nullptr, 0, wszDocs ) ) )
-    {
-      if (_wcsicmp (wszEnvDocs, wszDocs))
-        altered_user_profile = true;
-    }
-  }
+  SK_EstablishRootPath ();
+  SK_CreateDirectories (SK_GetConfigPath ());
 
 
   // Only the injector version can be bypassed, the wrapper version
@@ -1418,44 +1471,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   // Don't start SteamAPI if we're running the installer...
   if (SK_IsSuperSpecialK ())
     config.steam.init_delay = 0;
-
-  wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
-          wszConfigPath [  MAX_PATH  ] = L'\0';
-
-          SK_RootPath   [    0     ]   = L'\0';
-          SK_RootPath   [ MAX_PATH ]   = L'\0';
-
-  if (config.system.central_repository) {
-    if (! SK_IsSuperSpecialK ()) {
-      ExpandEnvironmentStringsW (
-        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
-          SK_RootPath,
-            MAX_PATH - 1
-      );
-    } else {
-      GetCurrentDirectory (MAX_PATH, SK_RootPath);
-    }
-
-    lstrcatW (wszConfigPath, SK_GetRootPath ());
-    lstrcatW (wszConfigPath, L"\\Profiles\\");
-    lstrcatW (wszConfigPath, SK_GetHostApp  ());
-  }
-
-  else {
-    if (! SK_IsSuperSpecialK ()) {
-      lstrcatW (SK_RootPath,   SK_GetHostPath ());
-    } else {
-      GetCurrentDirectory (MAX_PATH, SK_RootPath);
-    }
-    lstrcatW (wszConfigPath, SK_GetHostPath ());
-  }
-
-  lstrcatW (SK_RootPath,   L"\\");
-  lstrcatW (wszConfigPath, L"\\");
-
-  SK_CreateDirectories (wszConfigPath);
-  SK_SetConfigPath     (wszConfigPath);
-
 
   wchar_t log_fname [MAX_PATH];
           log_fname [MAX_PATH - 1] = L'\0';
@@ -1507,7 +1522,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     else
     {
-      dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
       dll_log.LogEx (false, L"failed!\n");
 
       std::wstring default_name (L"default_");
@@ -1521,6 +1535,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
         if (! SK_LoadConfig (default_name))
           dll_log.LogEx (false, L"failed!\n");
+        else
+          dll_log.LogEx (false, L"done!\n");
       }
 
       // If no INI file exists, write one immediately.

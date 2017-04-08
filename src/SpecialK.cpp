@@ -28,6 +28,7 @@
 #include <process.h>
 
 #include <SpecialK/core.h>
+#include <SpecialK/config.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/opengl_backend.h>
@@ -137,6 +138,10 @@ SK_EstablishDllRole (HMODULE hModule)
   //
   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
   {
+    SK_IsInjected (true);
+
+    config.system.central_repository = true;
+
     bool explicit_inject = false;
 
     wchar_t wszD3D9 [MAX_PATH] = { L'\0' };
@@ -168,7 +173,14 @@ SK_EstablishDllRole (HMODULE hModule)
     }
 
     // Opted out of explicit injection, now try automatic
-    if (! explicit_inject) {
+    if (! explicit_inject)
+    {
+      extern void
+      __stdcall
+      SK_EstablishRootPath (void);
+      SK_EstablishRootPath ();
+
+      SK_LoadConfigEx (L"SpecialK", false);
 
 #ifdef _WIN64
       sk_import_test_s steam_tests [] = { { "steam_api64.dll", false },
@@ -204,25 +216,46 @@ SK_EstablishDllRole (HMODULE hModule)
               &d3d9, &dxgi, &d3d11
         );
 
-        if (dxgi || d3d11)
-          SK_SetDLLRole (DLL_ROLE::DXGI);
-        else if (d3d9)
-          SK_SetDLLRole (DLL_ROLE::D3D9);
-        //else if (gl)
-          //SK_SetDLLRole (DLL_ROLE::OpenGL);
-        //else if (vulkan)
-          //SK_SetDLLRole (DLL_ROLE::Vulkan);
 
-        else {
+        gl     |= (GetModuleHandle (L"OpenGL32.dll") != nullptr);
+        d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
+        dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr);
+        d3d11  |= (GetModuleHandle (L"d3d11.dll")    != nullptr);
+
+
+        if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11))
+          SK_SetDLLRole (DLL_ROLE::DXGI);
+        else if (config.apis.d3d9.hook && d3d9)
           SK_SetDLLRole (DLL_ROLE::D3D9);
-          //SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
+        else if (config.apis.OpenGL.hook && gl)
+          SK_SetDLLRole (DLL_ROLE::OpenGL);
+        else if (config.apis.Vulkan.hook && vulkan)
+          SK_SetDLLRole (DLL_ROLE::Vulkan);
+
+        // No Freaking Clue What API This is, Let's use the config file to
+        //   filter out any APIs the user knows are not valid.
+        else
+        {
+          if (config.apis.dxgi.d3d11.hook || config.apis.dxgi.d3d12.hook)
+            SK_SetDLLRole (DLL_ROLE::DXGI);
+          else if (config.apis.d3d9.hook  || config.apis.d3d9ex.hook)
+            SK_SetDLLRole (DLL_ROLE::D3D9);
+          else if (config.apis.OpenGL.hook)
+            SK_SetDLLRole (DLL_ROLE::OpenGL);
+          else if (config.apis.Vulkan.hook)
+            SK_SetDLLRole (DLL_ROLE::Vulkan);
         }
-      } else {
+          //SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
+
+        // This time, save the config file
+        SK_LoadConfig (L"SpecialK");
+      }
+
+      else
+      {
         return false;
       }
     }
-
-    SK_IsInjected (true);
 
     return true;
   }
@@ -444,7 +477,8 @@ DllMain ( HMODULE hModule,
         MessageBox ( NULL,
                        L"Out of TLS Indexes",
                          L"Cannot Init. Special K",
-                           MB_ICONERROR | MB_OK | MB_APPLMODAL );
+                           MB_ICONERROR | MB_OK |
+                           MB_APPLMODAL | MB_SETFOREGROUND );
       }
 
       if (ret) {
@@ -464,7 +498,8 @@ DllMain ( HMODULE hModule,
 
       if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
       {
-        if (! InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0)) {
+        if (! InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0))
+        {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
           ret =

@@ -2433,8 +2433,8 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
       // If this is zero, we need to actually create the render device / swapchain and
       //   then get the value Windows assigned us...
-      ///SK_SetWindowResX (pparams->BackBufferWidth);
-      ///SK_SetWindowResY (pparams->BackBufferHeight);
+      SK_SetWindowResX (pparams->BackBufferWidth);
+      SK_SetWindowResY (pparams->BackBufferHeight);
 
       if (pparams->Windowed) {
         //SetWindowPos_Original ( hWndRender,

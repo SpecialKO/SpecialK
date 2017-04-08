@@ -441,7 +441,8 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
       g_pD3D11Dev = *ppDevice;
     }
 
-    ////g_pD3D11Dev->SetExceptionMode (D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR);
+    if (config.render.dxgi.exception_mode != -1)
+      g_pD3D11Dev->SetExceptionMode (config.render.dxgi.exception_mode);
 
     CComPtr <IDXGIDevice>  pDXGIDev = nullptr;
     CComPtr <IDXGIAdapter> pAdapter = nullptr;

@@ -1605,24 +1605,21 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                                      __uuidof (ID3D11Device);
                   
 
-      if (! config.render.dxgi.slow_state_cache)
+      //
+      // DXGI state blocks the (fun?) way :)  -- Performance implications are unknown, as
+      //                                           is compatibility with other injectors that
+      //                                             may try to cache state.
+      //
+      if (FAILED (pDevice1->CreateDeviceContextState ( 0x00,
+                                                         &ft_lvl,
+                                                           1,
+                                                             D3D11_SDK_VERSION,
+                                                               dev_lvl,
+                                                                 nullptr,
+                                                                   &pCtxState )))
       {
-        //
-        // DXGI state blocks the (fun?) way :)  -- Performance implications are unknown, as
-        //                                           is compatibility with other injectors that
-        //                                             may try to cache state.
-        //
-        if (FAILED (pDevice1->CreateDeviceContextState ( 0x00,
-                                                           &ft_lvl,
-                                                             1,
-                                                               D3D11_SDK_VERSION,
-                                                                 dev_lvl,
-                                                                   nullptr,
-                                                                     &pCtxState )))
-        {
-          SK_LOG_ONCE (L"[   DXGI   ]  *** CreateDeviceContextState (...) failed! ***");
-          return;
-        }
+        SK_LOG_ONCE (L"[   DXGI   ]  *** CreateDeviceContextState (...) failed! ***");
+        return;
       }
     }
 

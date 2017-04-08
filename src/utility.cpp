@@ -1396,7 +1396,7 @@ SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr)
   return (it <= (wszStr + MAX_PATH - len)) ?
            wszBegin : nullptr;
 #else
-  return wcsstr (wszStr, wszSubStr);
+  return StrStrIW (wszStr, wszSubStr);
 #endif
 }
 

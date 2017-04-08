@@ -32,6 +32,8 @@
 
 #include <SpecialK/DLL_VERSION.H>
 
+#define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
+
 const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
 
 iSK_INI*             dll_ini         = nullptr;
@@ -190,6 +192,7 @@ struct {
     sk::ParameterStringW* min_res;
     sk::ParameterInt*     swapchain_wait;
     sk::ParameterStringW* scaling_mode;
+    sk::ParameterStringW* exception_mode;
     sk::ParameterBool*    test_present;
   } dxgi;
   struct {
@@ -276,6 +279,12 @@ SK_Steam_PopupOriginWStrToEnum (const wchar_t* str);
 
 bool
 SK_LoadConfig (std::wstring name) {
+  return SK_LoadConfigEx (name);
+}
+
+bool
+SK_LoadConfigEx (std::wstring name, bool create)
+{
   // Load INI File
   std::wstring full_name;
   std::wstring osd_config;
@@ -285,12 +294,19 @@ SK_LoadConfig (std::wstring name) {
                 name              +
                   L".ini";
 
-  SK_CreateDirectories (full_name.c_str ());
+  if (create)
+    SK_CreateDirectories (full_name.c_str ());
 
-  dll_ini =
-    new iSK_INI (full_name.c_str ());
+  static bool         init     = false;
+  static bool         empty    = true;
+  static std::wstring last_try = name;
 
-  bool empty = dll_ini->get_sections ().empty ();
+  // Allow a second load attempt using a different name
+  if (last_try != name)
+  {
+    init     = false;
+    last_try = name;
+  }
 
   osd_config =
     SK_EvalEnvironmentVars (
@@ -301,6 +317,14 @@ SK_LoadConfig (std::wstring name) {
     SK_EvalEnvironmentVars (
       L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
     );
+
+  
+  if (! init)
+  {
+   dll_ini =
+    new iSK_INI (full_name.c_str ());
+
+  empty    = dll_ini->get_sections ().empty ();
 
   SK_CreateDirectories (osd_config.c_str ());
 
@@ -321,12 +345,12 @@ SK_LoadConfig (std::wstring name) {
   monitoring.io.interval =
     static_cast <sk::ParameterFloat *>
      (g_ParameterFactory.create_parameter <float> (L"IO Monitoring Interval"));
-  monitoring.io.interval->register_to_ini(osd_ini, L"Monitor.IO", L"Interval");
+  monitoring.io.interval->register_to_ini (osd_ini, L"Monitor.IO", L"Interval");
 
   monitoring.disk.show =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show Disk Monitoring"));
-  monitoring.disk.show->register_to_ini(osd_ini, L"Monitor.Disk", L"Show");
+  monitoring.disk.show->register_to_ini (osd_ini, L"Monitor.Disk", L"Show");
 
   monitoring.disk.interval =
     static_cast <sk::ParameterFloat *>
@@ -1066,6 +1090,16 @@ SK_LoadConfig (std::wstring name) {
         L"Render.DXGI",
           L"Scaling" );
 
+    render.dxgi.exception_mode =
+      static_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"D3D11 Exception Handling (DontCare | Raise | Ignore)")
+        );
+    render.dxgi.exception_mode->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"ExceptionMode" );
+
     render.dxgi.test_present =
       static_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
@@ -1531,7 +1565,8 @@ SK_LoadConfig (std::wstring name) {
 
   int import = 0;
 
-  while (sec != sections.end ()) {
+  while (sec != sections.end ())
+  {
     if (wcsstr ((*sec).first.c_str (), L"Import.")) {
       imports [import].filename = 
          static_cast <sk::ParameterStringW *>
@@ -1600,6 +1635,30 @@ SK_LoadConfig (std::wstring name) {
     ++sec;
   }
 
+  config.window.border_override    = true;
+
+
+                                            //
+  config.system.trace_load_library = true;  // Generally safe even with the 
+                                            //   worst third-party software;
+                                            //
+                                            //  NEEDED for injector API detect
+
+
+  config.system.strict_compliance  = false; // Will deadlock in DLLs that call
+                                            //   LoadLibrary from DllMain
+                                            //
+                                            //  * NVIDIA Ansel, MSI Nahimic,
+                                            //      Razer *, RTSS (Sometimes)
+                                            //
+
+  extern bool SK_DXGI_SlowStateCache;
+              SK_DXGI_SlowStateCache = config.render.dxgi.slow_state_cache;
+
+
+  // Default = Don't Care
+  config.render.dxgi.exception_mode = -1;
+  config.render.dxgi.scaling_mode   = -1;
 
 
   //
@@ -1608,13 +1667,72 @@ SK_LoadConfig (std::wstring name) {
   //
   if (wcsstr (SK_GetHostApp (), L"Tyranny.exe"))
   {
+    // Cannot auto-detect API?!
+    config.apis.dxgi.d3d11.hook      = false;
+    config.apis.dxgi.d3d12.hook      = false;
+    config.apis.OpenGL.hook          = false;
     config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
                                               //   data it didn't ask for
   }
 
+  else if (wcsstr (SK_GetHostApp (), L"MassEffectAndromeda.exe"))
+  {
+    // Disab Exception Handling Instead of Crashing at Shutdown
+    config.render.dxgi.exception_mode      = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
+
+    // Not a Steam game :(
+    config.steam.silent                    = true;
+
+    config.system.strict_compliance        = false; // Uses NVIDIA Ansel, so this won't work!
+
+    config.apis.d3d9.hook                  = false;
+    config.apis.d3d9ex.hook                = false;
+    config.apis.dxgi.d3d12.hook            = false;
+    config.apis.OpenGL.hook                = false;
+    config.apis.Vulkan.hook                = false;
+
+    config.textures.d3d11.cache            = true;
+    config.textures.cache.ignore_nonmipped = true;
+    config.textures.cache.max_size         = 4096;
+
+    config.render.dxgi.slow_state_cache    = true;
+  }
+
+  else if (wcsstr (SK_GetHostApp (), L"MadMax.exe"))
+  {
+    // Misnomer: This uses D3D11 interop to backup D3D11.1+ states,
+    //   only MadMax needs this AS FAR AS I KNOW.
+    config.render.dxgi.slow_state_cache = false;
+    SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
+  }
+
+  else if (wcsstr (SK_GetHostApp (), L"Dreamfall Chapters.exe"))
+  {
+    // One of only a handful of games where the interop hack does not work
+    config.render.dxgi.slow_state_cache = true;
+    SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
+
+    config.system.trace_load_library    = true;
+    config.system.strict_compliance     = false;
+
+    // Chances are good that we will not catch SteamAPI early enough to hook callbacks, so
+    //   auto-pump.
+    config.steam.auto_pump_callbacks    = true;
+    config.steam.preload_client         = true;
+    config.steam.block_stat_callback    = true;
+
+    config.apis.dxgi.d3d12.hook         = false;
+    config.apis.dxgi.d3d11.hook         = true;
+    config.apis.d3d9.hook               = true;
+    config.apis.d3d9ex.hook             = true;
+    config.apis.OpenGL.hook             = false;
+    config.apis.Vulkan.hook             = false;
+  }
+
   else if (wcsstr (SK_GetHostApp (), L"witness"))
   {
-    config.system.trace_load_library = false;
+    config.system.trace_load_library    = true;
+    config.system.strict_compliance     = false;
   }
 
   else if (wcsstr (SK_GetHostApp (), L"Obduction-Win64-Shipping.exe"))
@@ -1626,7 +1744,7 @@ SK_LoadConfig (std::wstring name) {
 
   else if (wcsstr (SK_GetHostApp (), L"witcher3.exe"))
   {
-    config.system.trace_load_library = false;
+    config.system.strict_compliance  = false; // Uses NVIDIA Ansel, so this won't work!
     config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
                                               //   data it didn't ask for
 
@@ -1646,24 +1764,30 @@ SK_LoadConfig (std::wstring name) {
                                               //   (uses an incorrectly written DLL)
   }
 
-  // BROKEN
+  // BROKEN (by GeForce Experience)
   else if (wcsstr (SK_GetHostApp (), L"DDDA.exe"))
   {
-    config.steam.silent = true;
+    //
+    // TODO: Debug the EXACT cause of NVIDIA's Deadlock
+    //
+    config.compatibility.disable_nv_bloat = true;  // PREVENT DEADLOCK CAUSED BY NVIDIA!
 
-    config.system.trace_load_library = false; // Need to catch SteamAPI DLL load
-    config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
-                                              //   (uses an incorrectly written DLL)
+    config.system.trace_load_library      = true;  // Need to catch NVIDIA Bloat DLLs
+    config.system.strict_compliance       = false; // Cannot block threads while loading DLLs
+                                                   //   (uses an incorrectly written DLL)
 
     config.steam.auto_pump_callbacks = false;
     config.steam.preload_client      = true;
 
+    config.apis.d3d9.hook            = true;
     config.apis.dxgi.d3d11.hook      = false;
     config.apis.dxgi.d3d12.hook      = false;
     config.apis.d3d9ex.hook          = false;
     config.apis.OpenGL.hook          = false;
     config.apis.Vulkan.hook          = false;
   }
+
+  init = true; }
 
 
 
@@ -1790,9 +1914,12 @@ SK_LoadConfig (std::wstring name) {
     if (render.framerate.present_interval->load ())
       config.render.framerate.present_interval =
         render.framerate.present_interval->get_value ();
-    if (render.framerate.refresh_rate->load ())
-      config.render.framerate.refresh_rate =
-        render.framerate.refresh_rate->get_value ();
+
+    if (render.framerate.refresh_rate) {
+      if (render.framerate.refresh_rate->load ())
+        config.render.framerate.refresh_rate =
+          render.framerate.refresh_rate->get_value ();
+    }
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
       if (compatibility.d3d9.rehook_present->load ())
@@ -1853,10 +1980,8 @@ SK_LoadConfig (std::wstring name) {
                       &config.render.dxgi.res.min.y );
       }
 
-      // Default = Don't Care
-      config.render.dxgi.scaling_mode = -1;
-
-      if (render.dxgi.scaling_mode->load ()) {
+      if (render.dxgi.scaling_mode->load ())
+      {
         if (! _wcsicmp (
                 render.dxgi.scaling_mode->get_value_str ().c_str (),
                 L"Unspecified"
@@ -1883,6 +2008,30 @@ SK_LoadConfig (std::wstring name) {
         {
           config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_STRETCHED;
         }
+      }
+
+      if (render.dxgi.exception_mode->load ())
+      {
+        if (! _wcsicmp (
+                render.dxgi.exception_mode->get_value_str ().c_str (),
+                L"Raise"
+              )
+           )
+        {
+          #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
+          config.render.dxgi.exception_mode = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
+        }
+
+        else if (! _wcsicmp (
+                     render.dxgi.exception_mode->get_value_str ().c_str (),
+                     L"Ignore"
+                   )
+                )
+        {
+          config.render.dxgi.exception_mode = 0;
+        }
+        else
+          config.render.dxgi.exception_mode = -1;
       }
 
       if (render.dxgi.test_present->load ())
@@ -1936,8 +2085,6 @@ SK_LoadConfig (std::wstring name) {
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
   }
-
-  config.window.border_override = true;
 
   if (window.center->load ())
     config.window.center = window.center->get_value ();
@@ -2214,8 +2361,8 @@ SK_SaveConfig ( std::wstring name,
   window.override->set_value (wszFormattedRes);
 
   if ( SK_IsInjected () ||
-      (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
-
+      (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
+  {
     extern float target_fps;
 
     render.framerate.target_fps->set_value        (target_fps);
@@ -2235,7 +2382,8 @@ SK_SaveConfig ( std::wstring name,
     nvidia.sli.override->set_value               (config.nvidia.sli.override);
 
     if (  SK_IsInjected () ||
-        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
+        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) )
+    {
       render.framerate.max_delta_time->set_value (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->set_value   (config.render.framerate.flip_discard);
 
@@ -2268,7 +2416,8 @@ SK_SaveConfig ( std::wstring name,
 
       render.dxgi.swapchain_wait->set_value (config.render.framerate.swapchain_wait);
 
-      switch (config.render.dxgi.scaling_mode) {
+      switch (config.render.dxgi.scaling_mode)
+      {
         case DXGI_MODE_SCALING_UNSPECIFIED:
           render.dxgi.scaling_mode->set_value (L"Unspecified");
           break;
@@ -2282,9 +2431,23 @@ SK_SaveConfig ( std::wstring name,
           render.dxgi.scaling_mode->set_value (L"DontCare");
           break;
       }
+
+      switch (config.render.dxgi.exception_mode)
+      {
+        case D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR:
+          render.dxgi.exception_mode->set_value (L"Raise");
+          break;
+        case 0:
+          render.dxgi.exception_mode->set_value (L"Ignore");
+          break;
+        default:
+          render.dxgi.exception_mode->set_value (L"DontCare");
+          break;
+      }
     }
 
-    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
+    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9)
+    {
       render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
       render.d3d9.force_fullscreen->set_value (config.render.d3d9.force_fullscreen);
       render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
@@ -2425,9 +2588,10 @@ SK_SaveConfig ( std::wstring name,
 
       texture.cache.ignore_non_mipped->store ();
 
-      render.dxgi.max_res->store      ();
-      render.dxgi.min_res->store      ();
-      render.dxgi.scaling_mode->store ();
+      render.dxgi.max_res->store        ();
+      render.dxgi.min_res->store        ();
+      render.dxgi.scaling_mode->store   ();
+      render.dxgi.exception_mode->store ();
 
       render.dxgi.swapchain_wait->store ();
     }

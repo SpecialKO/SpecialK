@@ -243,6 +243,8 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
   // This is silly, this many string comparions per-load is
   //   not good. Hash the string and compare it in the future.
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+       StrStrIW (wszModName, L"Activation")          ||
+       StrStrIW (wszModName, L"rxcore")              ||
        StrStrIW (wszModName, L"RTSSHooks")           ||
        StrStrIW (wszModName, L"GeDoSaTo")            ||
        StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
@@ -251,9 +253,8 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  if (hCallingMod != SK_GetDLL ()) {
-#if 0
-         if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
+  if (hCallingMod != SK_GetDLL () && SK_IsInjected ()) {
+         if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
               ( StrStrIA (lpFileName,  "d3d9.dll")    ||
                 StrStrIW (wszModName, L"d3d9.dll")    ||
                                                       
@@ -264,14 +265,11 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                 StrStrIA (lpFileName,  "nvd3dum.dll") ||
                 StrStrIW (wszModName, L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
-#endif
-#if 0
-    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrIA (lpFileName,  "dxgi.dll") ||
                 StrStrIW (wszModName, L"dxgi.dll") ))
       SK_BootDXGI   ();
-#endif
-        if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) &&
+    else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrIA (lpFileName,  "OpenGL32.dll") ||
                 StrStrIW (wszModName, L"OpenGL32.dll") ))
       SK_BootOpenGL ();
@@ -355,6 +353,8 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
 
   // This is silly, this many string comparions per-load is
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+       StrStrIW (wszModName, L"Activation")          ||
+       StrStrIW (wszModName, L"rxcore")              ||
   //   not good. Hash the string and compare it in the future.
        StrStrIW (wszModName, L"RTSSHooks")           ||
        StrStrIW (wszModName, L"GeDoSaTo")            ||
@@ -364,9 +364,8 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       SK_ReHookLoadLibrary ();
   }
 
-  if (hCallingMod != SK_GetDLL ()) {
-#if 0
-       if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) &&
+  if (hCallingMod != SK_GetDLL () && SK_IsInjected ()) {
+       if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
             ( StrStrIW (lpFileName, L"d3d9.dll")    ||
               StrStrIW (wszModName, L"d3d9.dll")    ||
 
@@ -377,14 +376,11 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
               StrStrIW (lpFileName, L"nvd3dum.dll") ||
               StrStrIW (wszModName, L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
-#endif
-#if 0
-    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) &&
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrIW (lpFileName, L"dxgi.dll") ||
                 StrStrIW (wszModName, L"dxgi.dll") ))
       SK_BootDXGI   ();
-#endif
-        if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) &&
+    else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrIW (lpFileName, L"OpenGL32.dll") ||
                 StrStrIW (wszModName, L"OpenGL32.dll") ))
       SK_BootOpenGL ();
@@ -1039,34 +1035,34 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
           }
         }
 
-        if (when == SK_ModuleEnum::PostLoad) {
-          if ( StrStrIW (wszModName, L"\\opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
-            SK_BootOpenGL ();
+        if (when == SK_ModuleEnum::PostLoad)
+        {
+          if (SK_IsInjected ())
+          {
+            if ( config.apis.OpenGL.hook && StrStrIW (wszModName, L"\\opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
+              SK_BootOpenGL ();
 
-            loaded_gl = true;
-          }
+              loaded_gl = true;
+            }
 
-          else if ( StrStrIW (wszModName, L"\\vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
-            SK_BootVulkan ();
-          
-            loaded_vulkan = true;
-          }
-          
-#if 0
-          else if ( StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
-            SK_BootDXGI ();
-          
-            loaded_dxgi = true;
-          }
-#endif
+            else if ( config.apis.Vulkan.hook && StrStrIW (wszModName, L"\\vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
+              SK_BootVulkan ();
+            
+              loaded_vulkan = true;
+            }
+            
+            else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+              SK_BootDXGI ();
+            
+              loaded_dxgi = true;
+            }
 
-#if 0 
-          else if ( StrStrIW (wszModName, L"\\d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
-            SK_BootD3D9 ();
-          
-            loaded_d3d9 = true;
+            else if ( config.apis.d3d9.hook && StrStrIW (wszModName, L"\\d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
+              SK_BootD3D9 ();
+            
+              loaded_d3d9 = true;
+            }
           }
-#endif
         }
 
         if (! config.steam.silent)

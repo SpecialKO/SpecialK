@@ -239,9 +239,10 @@ struct sk_config_t
           bool isZero (void) { return x == 0 && y == 0; };
         } max;
       } res;
+      int     exception_mode    =    -1; // -1 = Don't Care
       int     scaling_mode      =    -1; // -1 = Don't Care
       bool    test_present      = false;
-      bool    slow_state_cache  = false;
+      bool    slow_state_cache  = true;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
@@ -375,16 +376,15 @@ struct sk_config_t
     bool    ignore_rtss_delay   = false;
     std::wstring
             version             = SK_VER_STR;
-    bool    trace_load_library  = false;
-    bool    strict_compliance   = true;
+    bool    trace_load_library  = true;
+    bool    strict_compliance   = false;
   } system;
-};
+} extern config;
 
-extern sk_config_t config;
-
-bool SK_LoadConfig (std::wstring name         = L"dxgi");
-void SK_SaveConfig (std::wstring name         = L"dxgi",
-                    bool         close_config = false);
+bool SK_LoadConfigEx (std::wstring name, bool create = true);
+bool SK_LoadConfig   (std::wstring name         = L"dxgi");
+void SK_SaveConfig   (std::wstring name         = L"dxgi",
+                      bool         close_config = false);
 
 //
 // Sort of a nasty hack until I come up with a way for plug-ins to

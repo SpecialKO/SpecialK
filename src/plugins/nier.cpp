@@ -19,7 +19,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.1.1"
+#define FAR_VERSION_NUM L"0.5.2"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -56,6 +56,7 @@ sk::ParameterInt*     far_gi_workgroups         = nullptr;
 sk::ParameterInt*     far_bloom_width           = nullptr;
 sk::ParameterBool*    far_bloom_disable         = nullptr;
 sk::ParameterBool*    far_fix_motion_blur       = nullptr;
+sk::ParameterInt*     far_bloom_skip            = nullptr;
 sk::ParameterInt*     far_ao_width              = nullptr;
 sk::ParameterInt*     far_ao_height             = nullptr;
 sk::ParameterBool*    far_ao_disable            = nullptr;
@@ -78,6 +79,7 @@ bool   __FAR_GlobalIllumCompatMode    =  true;
 struct {
   int  width   =    -1; // Set at startup from user prefs, never changed
   bool disable = false;
+  int  skip    =     0;
 
   bool active  = false;
 
@@ -375,22 +377,54 @@ void
 STDMETHODCALLTYPE
 SK_FAR_BeginFrame (void)
 {
+  static LONGLONG frames_drawn = 0;
+
   SK_BeginFrame_Original ();
 
   if (far_osd_disclaimer->get_value ())
     SK_DrawExternalOSD ( "FAR", "  Press Ctrl + Shift + O         to toggle In-Game OSD\n"
                                 "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n\n"
                                 "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
-  else if (config.system.log_level > 0)
+  else if (config.system.log_level == 1)
+  {
+    std::string validation = "";
+
+    if (game_state.needFPSCap () && frames_drawn >= 0)
+    {
+      validation += "FRAME: ";
+
+      static char szFrameNum [32] = { '\0' };
+      snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' + (int)(frames_drawn++ % 26LL) );
+
+      validation += szFrameNum;
+    }
+
+    else //if ((! game_state.needFPSCap ()) || frames_drawn < 0)
+    {
+      // First offense is last offense
+      frames_drawn = -1;
+
+      validation += "*** CHEATER ***";
+    }
+
+    SK_DrawExternalOSD ( "FAR", validation );
+  }
+
+  else if (config.system.log_level > 1)
   {
     std::string state = "";
 
     if (game_state.needFPSCap ()) {
       state += "< Needs Cap :";
-      if (*game_state.pLoading)   state += " loading ";
-      if (*game_state.pMenu)      state += " menu ";
-      if (*game_state.pHacking)   state += " hacking ";
-      if (*game_state.pShortcuts) state += " shortcuts ";
+
+      std::string reasons = "";
+
+      if (*game_state.pLoading)   reasons += " loading ";
+      if (*game_state.pMenu)      reasons += " menu ";
+      if (*game_state.pHacking)   reasons += " hacking ";
+      if (*game_state.pShortcuts) reasons += " shortcuts ";
+
+      state += reasons;
       state += ">";
     }
 
@@ -400,10 +434,17 @@ SK_FAR_BeginFrame (void)
       state += " { Uncapped }";
 
     SK_DrawExternalOSD ( "FAR", state);
+
+    if (frames_drawn > 0)
+      frames_drawn = -1;
   }
 
-  else
+  else {
     SK_DrawExternalOSD            ( "FAR", "" );
+
+    if (frames_drawn > 0)
+      frames_drawn = -1;
+  }
 
   // Prevent patching an altered executable
   if (game_state.patchable)
@@ -693,12 +734,11 @@ SK_FAR_CreateTexture2D (
       {
         static int num_r11g11b10_textures = 0;
 
-        num_r11g11b10_textures++; // First three R11G11B10 textures are not for bloom
-                                  // Last two are also not for bloom
+        num_r11g11b10_textures++; // First two R11G11B10 textures are not for bloom
 
-        if (num_r11g11b10_textures > 2 && num_r11g11b10_textures < 8)
+        if (num_r11g11b10_textures > 1)
         {
-            bloom = true;
+          bloom = true;
 
           SK_LOG2 ( ( L"Bloom Tex (%lux%lu : %lu)",
                         pDesc->Width, pDesc->Height, pDesc->MipLevels ),
@@ -1482,6 +1522,23 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     far_bloom.disable = far_bloom_disable->get_value ();
 
 
+    far_bloom_skip =
+      static_cast <sk::ParameterInt *>
+        (far_factory.create_parameter <int> (L"Test Texture Skip Factor"));
+
+    far_bloom_skip->register_to_ini ( far_prefs,
+                                        L"FAR.Temporary",
+                                          L"BloomSkipLevels" );
+
+    if (! far_bloom_skip->load ())
+    {
+      far_bloom_skip->set_value (0);
+      far_bloom_skip->store     ();
+    }
+
+    far_bloom.skip = far_bloom_skip->get_value ();
+
+
     far_fix_motion_blur =
       static_cast <sk::ParameterBool *>
         (far_factory.create_parameter <bool> (L"Test Fix for Motion Blur"));
@@ -1600,8 +1657,15 @@ SK_FAR_ControlPanel (void)
 
   if (ImGui::CollapsingHeader("NieR: Automata", ImGuiTreeNodeFlags_DefaultOpen))
   {
-    if (ImGui::TreeNodeEx ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
+    ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+    ImGui::TreePush       ("");
+
+    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
+      ImGui::TreePush ("");
+
       bool bloom = (! far_bloom.disable);
 
       if (ImGui::Checkbox ("Bloom", &bloom))
@@ -1722,8 +1786,10 @@ SK_FAR_ControlPanel (void)
       ImGui::TreePop  ();
     }
 
-    if (ImGui::TreeNodeEx ("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader ("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
     {
+      ImGui::TreePush ("");
+
       int quality = 0;
 
       if (__FAR_GlobalIllumWorkGroupSize < 16)
@@ -1793,8 +1859,10 @@ SK_FAR_ControlPanel (void)
       ImGui::TreePop ();
     }
 
-    if (ImGui::TreeNodeEx ("Framerate", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader ("Framerate", ImGuiTreeNodeFlags_DefaultOpen))
     {
+      ImGui::TreePush ("");
+
       bool remove_cap = far_uncap_fps->get_value ();
       bool busy_wait  = (wait_behavior == SK_FAR_WaitBehavior::Busy);
 
@@ -1841,6 +1909,9 @@ SK_FAR_ControlPanel (void)
 
       ImGui::TreePop ();
     }
+
+    ImGui::TreePop       ( );
+    ImGui::PopStyleColor (3);
   }
 
   if (changed)
