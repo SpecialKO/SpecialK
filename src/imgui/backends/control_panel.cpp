@@ -572,12 +572,61 @@ SK_ImGui_ControlPanel (void)
       {
         ImGui::TreePush  ("");
         ImGui::Checkbox  ("Enable Crash Handler",           &config.system.handle_crashes);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Play Metal Gear Solid Alert Sound and Log Crashes in logs/crash.log");
+
         ImGui::Checkbox  ("ReHook LoadLibrary",             &config.compatibility.rehook_loadlibrary);
+
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Keep LoadLibrary Hook at Front of Hook Chain");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Improves Debug Log Accuracy");
+          ImGui::BulletText   ("Third-Party Software May Deadlock Game at Startup if Enabled");
+          ImGui::EndTooltip   ();
+        }
+
         ImGui::SliderInt ("Log Level",                      &config.system.log_level, 0, 5);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Controls Debug Log Verbosity; Higher = Bigger/Slower Logs");
+
         ImGui::Checkbox  ("Log Game Output",                &config.system.game_output);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Log any Game Text Output to logs/game_output.log");
+
         ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Spawns Debug Console at Startup for Debug Text from Third-Party Software");
+
         ImGui::Checkbox  ("Trace LoadLibrary",              &config.system.trace_load_library);
+
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Monitor DLL Load Activity");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Required for Render API Auto-Detection in Global Injector");
+          ImGui::EndTooltip   ();
+        }
+
         ImGui::Checkbox  ("Strict DLL Loader Compliance",   &config.system.strict_compliance);
+
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip (  );
+          ImGui::Text         ("Prevent Loading DLLs Simultaneousely Across Multiple Threads");
+          ImGui::Separator    (  );
+          ImGui::BulletText   ("Eliminates Race Conditions During DLL Startup");
+          ImGui::BulletText   ("Unsafe for a LOT of Improperly Designed Third-Party Software");
+          ImGui::TreePush     ("");
+          ImGui::Text         ("\nPROPER DLL DESIGN:  Never Call LoadLibrary (...) from DllMain (...)'s Thread !!!");
+          ImGui::Text         (  "                    Never Wait on a Synchronization Object from DllMain (...) !!");
+          ImGui::TreePop      (  );
+          ImGui::EndTooltip   (  );
+        }
+
         ImGui::TreePop   ();
       }
 

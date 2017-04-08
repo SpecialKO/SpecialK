@@ -2666,6 +2666,13 @@ SK_SaveConfig ( std::wstring name,
   game_output->set_value                 (config.system.game_output);
   game_output->store                     ();
 
+  // Only add this to the INI file if it differs from default
+  if (config.system.display_debug_out != debug_output->get_value ())
+  {
+    debug_output->set_value              (config.system.display_debug_out);
+    debug_output->store                  ();
+  }
+
   enable_cegui->set_value                (config.cegui.enable);
   enable_cegui->store                    ();
 
