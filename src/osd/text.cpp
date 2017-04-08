@@ -468,6 +468,13 @@ SK_GetPluginName (void)
   return L"Special K";
 }
 
+bool
+__stdcall
+SK_HasPlugin (void)
+{
+  return isPlugin;
+}
+
 // This is a terrible design, but I don't care.
 extern void
 SK_CEGUI_QueueResetD3D11 (void);

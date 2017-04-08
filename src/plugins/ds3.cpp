@@ -27,10 +27,6 @@ extern "C" bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t *);
 ///////////////////////////////////////////
 // WinAPI Hooks
 ///////////////////////////////////////////
-//typedef int (WINAPI *GetSystemMetrics_pfn)(
-//  _In_ int nIndex
-//);
-
 typedef BOOL (WINAPI *EnumDisplaySettingsA_pfn)(
   _In_  LPCSTR    lpszDeviceName,
   _In_  DWORD     iModeNum,
@@ -51,10 +47,18 @@ typedef HWND (WINAPI *SetActiveWindow_pfn)(
 );
 
 
-//GetSystemMetrics_pfn     GetSystemMetrics_Original     = nullptr;
 static EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
 static SetWindowPos_pfn         SetWindowPos_Original         = nullptr;
 static SetActiveWindow_pfn      SetActiveWindow_Original      = nullptr;
+
+
+typedef void (STDMETHODCALLTYPE *SK_EndFrame_pfn)(void);
+static SK_EndFrame_pfn          SK_EndFrame_Original          = nullptr;
+
+extern BOOL
+__stdcall
+SK_DrawExternalOSD (std::string app_name, std::string text);
+
 
 #include <d3d11.h>
 
@@ -177,32 +181,39 @@ SK_DS3_PluginKeyPress ( BOOL Control,
                         BOOL Alt,
                         BYTE vkCode );
 
+void
+STDMETHODCALLTYPE
+SK_DS3_EndFrame (void);
+
 
 
 sk::ParameterFactory  ds3_factory;
 
-iSK_INI*              ds3_prefs            = nullptr;
+iSK_INI*              ds3_prefs                 =  nullptr;
+wchar_t               ds3_prefs_file [MAX_PATH] = { L'\0' };
 
-sk::ParameterInt*     ds3_hud_res_x        = nullptr;
-sk::ParameterInt*     ds3_hud_res_y        = nullptr;
-sk::ParameterInt*     ds3_hud_offset_x     = nullptr;
-sk::ParameterInt*     ds3_hud_offset_y     = nullptr;
-sk::ParameterBool*    ds3_hud_stretch      = nullptr;
+sk::ParameterInt*     ds3_hud_res_x             =  nullptr;
+sk::ParameterInt*     ds3_hud_res_y             =  nullptr;
+sk::ParameterInt*     ds3_hud_offset_x          =  nullptr;
+sk::ParameterInt*     ds3_hud_offset_y          =  nullptr;
+sk::ParameterBool*    ds3_hud_stretch           =  nullptr;
 
-sk::ParameterInt*     ds3_default_res_x    = nullptr;
-sk::ParameterInt*     ds3_default_res_y    = nullptr;
-sk::ParameterInt*     ds3_sacrificial_x    = nullptr;
-sk::ParameterInt*     ds3_sacrificial_y    = nullptr;
+sk::ParameterInt*     ds3_default_res_x         =  nullptr;
+sk::ParameterInt*     ds3_default_res_y         =  nullptr;
+sk::ParameterInt*     ds3_sacrificial_x         =  nullptr;
+sk::ParameterInt*     ds3_sacrificial_y         =  nullptr;
 
-sk::ParameterBool*    ds3_fullscreen       = nullptr;
-sk::ParameterBool*    ds3_borderless       = nullptr;
-sk::ParameterBool*    ds3_center           = nullptr;
+sk::ParameterBool*    ds3_fullscreen            =  nullptr;
+sk::ParameterBool*    ds3_borderless            =  nullptr;
+sk::ParameterBool*    ds3_center                =  nullptr;
 
-sk::ParameterBool*    ds3_start_fullscreen = nullptr;
+sk::ParameterBool*    ds3_start_fullscreen      =  nullptr;
 
-sk::ParameterBool*    ds3_flip_mode        = nullptr;
+sk::ParameterBool*    ds3_flip_mode             =  nullptr;
 
-sk::ParameterInt64*   ds3_last_addr        = nullptr;
+sk::ParameterBool*    ds3_osd_disclaimer        =  nullptr;
+
+sk::ParameterInt64*   ds3_last_addr             =  nullptr;
 
 extern HWND hWndRender;
 
@@ -262,6 +273,10 @@ struct {
     bool fullscreen  = false;
     bool center      = true;
   } window;
+
+  struct {
+    bool disclaimer  = true;
+  } osd;
 } ds3_cfg;
 
 
@@ -274,35 +289,38 @@ SK_SetPluginName (std::wstring name);
 #define SUS_VERSION_NUM L"0.5.0"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
 
+// Block until update finishes, otherwise the update dialog
+//   will be dismissed as the game crashes when it tries to
+//     draw the first frame.
+volatile LONG __SUS_init = FALSE;
+
 unsigned int
 __stdcall
-SK_DS3_CheckVersionThread (LPVOID user)
+SK_DS3_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
   extern bool
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
+  
+  extern HRESULT
+  __stdcall
+  SK_UpdateSoftware (const wchar_t* wszProduct);
 
-  if (SK_FetchVersionInfo (L"SoulsUnsqueezed")) {
-    extern HRESULT
-      __stdcall
-      SK_UpdateSoftware (const wchar_t* wszProduct);
 
+  if (SK_FetchVersionInfo (L"SoulsUnsqueezed"))
     SK_UpdateSoftware (L"SoulsUnsqueezed");
-  }
-
-  CloseHandle (GetCurrentThread ());
 
   return 0;
 }
 
-static LPVOID __SK_base_img_addr = nullptr;
-static LPVOID __SK_end_img_addr  = nullptr;
+static LPVOID __SK_DS3_base_img_addr = nullptr;
+static LPVOID __SK_DS3_end_img_addr  = nullptr;
 
 static
 void*
-SK_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
+SK_DS3_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
 {
   uint8_t* base_addr = (uint8_t *)GetModuleHandle (nullptr);
 
@@ -367,8 +385,8 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
                       end_addr );
 #endif
 
-  __SK_base_img_addr = base_addr;
-  __SK_end_img_addr  = end_addr;
+  __SK_DS3_base_img_addr = base_addr;
+  __SK_DS3_end_img_addr  = end_addr;
 
   uint8_t*  begin = (uint8_t *)base_addr;
   uint8_t*  it    = begin;
@@ -611,50 +629,6 @@ SK_DS3_CenterWindow (void)
                             nullptr );
 }
 
-
-#if 0
-int
-WINAPI
-GetSystemMetrics_Detour (_In_ int nIndex)
-{
-  int nRet = GetSystemMetrics_Original (nIndex);
-
-#if 0
-  if (config.display.width > 0 && nIndex == SM_CXSCREEN)
-    return config.display.width;
-
-  if (config.display.height > 0 && nIndex == SM_CYSCREEN)
-    return config.display.height;
-
-  if (config.display.width > 0 && nIndex == SM_CXFULLSCREEN) {
-    return config.display.width;
-  }
-
-  if (config.display.height > 0 && nIndex == SM_CYFULLSCREEN) {
-    return config.display.height;
-  }
-
-  if (config.window.borderless) {
-    if (nIndex == SM_CYCAPTION)
-      return 0;
-    if (nIndex == SM_CXBORDER)
-      return 0;
-    if (nIndex == SM_CYBORDER)
-      return 0;
-    if (nIndex == SM_CXDLGFRAME)
-      return 0;
-    if (nIndex == SM_CYDLGFRAME)
-      return 0;
-  }
-#else
-  dll_log.Log ( L"[Resolution] GetSystemMetrics (%lu) : %lu",
-                  nIndex, nRet );
-#endif
-
-  return nRet;
-}
-#endif
-
 BOOL
 WINAPI
 SK_DS3_SetWindowPos (
@@ -741,12 +715,7 @@ void
 SK_DS3_InitPlugin (void)
 {
   if (! SK_IsInjected ())
-    _beginthreadex ( nullptr,
-                       0,
-                         SK_DS3_CheckVersionThread,
-                           nullptr,
-                             0x00,
-                               nullptr );
+    SK_DS3_CheckVersion (nullptr);
 
   SK_DisableDPIScaling ();
 
@@ -756,7 +725,8 @@ SK_DS3_InitPlugin (void)
   ds3_state.Width  = ds3_cfg.render.res_x;
   ds3_state.Height = ds3_cfg.render.res_y;
 
-  if (ds3_prefs == nullptr) {
+  if (ds3_prefs == nullptr)
+  {
     // Make the graphics config file read-only while running
     DWORD    dwConfigAttribs;
     uint32_t dwLen = MAX_PATH;
@@ -773,8 +743,6 @@ SK_DS3_InitPlugin (void)
                                              FILE_ATTRIBUTE_READONLY );
 
     SK_SetPluginName (SUS_VERSION_STR);
-
-    wchar_t ds3_prefs_file [MAX_PATH] = { L'\0' };
 
     lstrcatW (ds3_prefs_file, SK_GetConfigPath ());
     lstrcatW (ds3_prefs_file, L"SoulsUnsqueezed.ini");
@@ -902,6 +870,26 @@ SK_DS3_InitPlugin (void)
                                      L"SUS.System",
                                        L"LastKnownAddr" );
 
+
+  ds3_osd_disclaimer =
+    static_cast <sk::ParameterBool *>
+      (ds3_factory.create_parameter <bool> (L"Show OSD Disclaimer"));
+  ds3_osd_disclaimer->register_to_ini ( ds3_prefs,
+                                          L"SUS.System",
+                                            L"ShowOSDDisclaimer" );
+
+  if (ds3_osd_disclaimer->load ())
+    ds3_cfg.osd.disclaimer = ds3_osd_disclaimer->get_value ();
+  else
+  {
+    ds3_cfg.osd.disclaimer = true;
+
+    ds3_osd_disclaimer->set_value (true);
+    ds3_osd_disclaimer->store     ();
+
+    ds3_prefs->write (ds3_prefs_file);
+  }
+
 #if 0
   sk::ParameterStringW ini_ver =
     static_cast <sk::ParameterStringW *>
@@ -983,18 +971,13 @@ SK_DS3_InitPlugin (void)
   }
 
   if (res_addr == nullptr)
-    res_addr = SK_Scan (res_sig, 8, nullptr);
+    res_addr = SK_DS3_Scan (res_sig, 8, nullptr);
 
   if (res_addr != nullptr) {
     ds3_last_addr->set_value ((int64_t)res_addr);
     ds3_last_addr->store     ();
 
-    wchar_t config_file [MAX_PATH] = { L'\0' };
-
-    lstrcatW (config_file, SK_GetConfigPath ());
-    lstrcatW (config_file, L"SoulsUnsqueezed.ini");
-
-    ds3_prefs->write (config_file);
+    ds3_prefs->write (ds3_prefs_file);
   }
 
   void* res_addr_x = res_addr;
@@ -1013,14 +996,6 @@ SK_DS3_InitPlugin (void)
     dll_log.Log ( L"[Asp. Ratio] >> ERROR: Unable to locate memory address for %lux%lu... <<",
                   *(uint32_t *)res_sig, *((uint32_t *)res_sig+1) );
   }
-
-#if 0
-  SK_CreateDLLHook2 ( L"user32.dll",
-                      "GetSystemMetrics",
-                       GetSystemMetrics_Detour,
-            (LPVOID *)&GetSystemMetrics_Original );
-#endif
-
 
 
   SK_CreateDLLHook2 ( L"user32.dll",
@@ -1078,7 +1053,14 @@ SK_DS3_InitPlugin (void)
   MH_QueueEnableHook (SK_ShutdownCore);
 #endif
 
+  SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
+                                             SK_DS3_EndFrame,
+                                  (LPVOID *)&SK_EndFrame_Original );
+  MH_QueueEnableHook (SK_BeginBufferSwap);
+
   MH_ApplyQueued ();
+
+  InterlockedExchange (&__SUS_init, 1);
 }
 
 HRESULT
@@ -1407,6 +1389,39 @@ SK_DS3_FullscreenToggle_Thread (LPVOID user)
   return 0;
 }
 
+// Sit and spin until the user figures out what an OSD is
+//
+DWORD
+WINAPI
+SK_DS3_OSD_Disclaimer (LPVOID user)
+{
+  while ((volatile bool&)config.osd.show)
+    Sleep (66);
+
+  ds3_osd_disclaimer->set_value (false);
+  ds3_osd_disclaimer->store     ();
+
+  ds3_prefs->write              (ds3_prefs_file);
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+void
+STDMETHODCALLTYPE
+SK_DS3_EndFrame (void)
+{
+  SK_EndFrame_Original ();
+
+  if (ds3_osd_disclaimer->get_value ())
+    SK_DrawExternalOSD ( "SUS", "  Press Ctrl + Shift + O         to toggle In-Game OSD\n"
+                                "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n\n"
+                                "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
+  else
+    SK_DrawExternalOSD ( "SUS", "" );
+}
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
@@ -1415,6 +1430,9 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
 {
   UNREFERENCED_PARAMETER (Flags);
   UNREFERENCED_PARAMETER (SyncInterval);
+
+  // Wait for the mod to init, it may be held up during version check
+  while (! InterlockedAdd (&__SUS_init, 0)) Sleep (16);
 
   static bool first = true;
 
@@ -1429,7 +1447,8 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
     SK_DS3_CenterWindow ();
   }
 
-  if (first) {
+  if (first)
+  {
     first = false;
 
     //
@@ -1442,6 +1461,14 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
                              nullptr,
                                0x00,
                                  nullptr );
+    }
+
+    // Since people don't read guides, nag them to death...
+    if (ds3_cfg.osd.disclaimer)
+    {
+      CreateThread ( nullptr,                 0,
+                       SK_DS3_OSD_Disclaimer, nullptr,
+                         0x00,                nullptr );
     }
   }
 

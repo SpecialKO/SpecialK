@@ -164,6 +164,7 @@ struct sk_config_t
 
   struct {
     float   scale              = 1.0f;
+    bool    show_eula          = true;
   } imgui;
 
 

@@ -42,6 +42,10 @@
 #include "resource.h"
 
 extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
+extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
+
+extern const wchar_t* __stdcall SK_GetBackend (void);
+extern       bool     __stdcall SK_IsInjected (bool set = false);
 
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
@@ -83,7 +87,13 @@ LoadFileInResource ( int          name,
 extern void SK_Steam_SetNotifyCorner (void);
 
 
-extern bool SK_ImGui_Visible;
+struct show_eula_s {
+  bool show;
+  bool never_show_again;
+} extern eula;
+
+extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
+extern bool           SK_ImGui_Visible;
 
 extern void
 __stdcall
@@ -154,6 +164,9 @@ SK_ImGui_ControlPanel (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
+  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
+
   //
   // Framerate history
   //
@@ -210,11 +223,8 @@ SK_ImGui_ControlPanel (void)
     ImGui::Columns   ( 1 );
     ImGui::Separator (   );
 
-    static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
-    static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
     static bool has_own_scale = (hModTZFix || hModTBFix);
-
-    static bool first_frame = true;
+    static bool first_frame   = true;
 
     // Initialize the dialog using the user's scale preference
     if (first_frame)
@@ -1410,11 +1420,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   return 0;
 }
 
-struct show_eula_s {
-  bool show;
-  bool never_show_again;
-} extern eula;
-
 __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
@@ -1426,6 +1431,27 @@ SK_ImGui_Toggle (void)
 
   if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  d3d9  = true;
   if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::D3D11) d3d11 = true;
+
+  auto EnableEULAIfPirate = [](void) ->
+    bool
+    {
+      bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
+                      SK_Steam_PiratesAhoy () != 0x0 );
+      if (pirate)
+      {
+        if (dwLastTime == 0)
+        {
+          dwLastTime             = timeGetTime ();
+
+          eula.show              = true;
+          eula.never_show_again  = false;
+
+          return true;
+        }
+      }
+
+      return false;
+    };
 
   if (d3d9 || d3d11)
   {
@@ -1455,21 +1481,23 @@ SK_ImGui_Toggle (void)
 
         //if (cursor_vis)
           //SetCursor (nullptr);
+
+        if (EnableEULAIfPirate ())
+          config.imgui.show_eula = true;
+
+        static bool first = true;
+
+        if (first) {
+          eula.never_show_again = true;
+          eula.show             = config.imgui.show_eula;
+          first                 = false;
+        }
       }
     }
 
     else
     {
-      if (SK_Steam_PiratesAhoy () != 0x0)
-      {
-        if (dwLastTime == 0)
-        {
-          dwLastTime = timeGetTime ();
-
-          eula.show             = true;
-          eula.never_show_again = false;
-        }
-      }
+      EnableEULAIfPirate ();
     }
 
     SK_ImGui_Visible = (! SK_ImGui_Visible);
@@ -1478,20 +1506,15 @@ SK_ImGui_Toggle (void)
       SK_Console::getInstance ()->visible = false;
 
 
-    extern const wchar_t*
-    __stdcall
-    SK_GetBackend (void);
+
 
     const wchar_t* config_name = SK_GetBackend ();
-
-    extern bool
-    __stdcall
-    SK_IsInjected (bool set = false);
 
     if (SK_IsInjected ())
       config_name = L"SpecialK";
 
     SK_SaveConfig (config_name);
+
 
     // Immediately stop capturing keyboard/mouse events,
     //   this is the only way to preserve cursor visibility

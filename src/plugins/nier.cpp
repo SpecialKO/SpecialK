@@ -19,7 +19,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.2"
+#define FAR_VERSION_NUM L"0.5.2.1"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -370,16 +370,16 @@ extern BOOL
 __stdcall
 SK_DrawExternalOSD (std::string app_name, std::string text);
 
-typedef void (STDMETHODCALLTYPE *SK_BeginFrame_pfn)(void);
-SK_BeginFrame_pfn SK_BeginFrame_Original = nullptr;
+typedef void (STDMETHODCALLTYPE *SK_EndFrame_pfn)(void);
+static SK_EndFrame_pfn SK_EndFrame_Original = nullptr;
 
 void
 STDMETHODCALLTYPE
-SK_FAR_BeginFrame (void)
+SK_FAR_EndFrame (void)
 {
   static LONGLONG frames_drawn = 0;
 
-  SK_BeginFrame_Original ();
+  SK_EndFrame_Original ();
 
   if (far_osd_disclaimer->get_value ())
     SK_DrawExternalOSD ( "FAR", "  Press Ctrl + Shift + O         to toggle In-Game OSD\n"
@@ -470,7 +470,7 @@ DWORD
 WINAPI
 SK_FAR_OSD_Disclaimer (LPVOID user)
 {
-  while (config.osd.show)
+  while ((volatile bool&)config.osd.show)
     Sleep (66);
 
   far_osd_disclaimer->set_value (false);
@@ -531,7 +531,7 @@ STDMETHODCALLTYPE
 SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
 {
   // Wait for the mod to init, it may be held up during version check
-  while (! InterlockedAdd (&__FAR_init, 0)) ;
+  while (! InterlockedAdd (&__FAR_init, 0)) Sleep (16);
 
   // This actually determines whether the DLL is dxgi.dll or SpecialK64.dll.
   //
@@ -734,9 +734,9 @@ SK_FAR_CreateTexture2D (
       {
         static int num_r11g11b10_textures = 0;
 
-        num_r11g11b10_textures++; // First two R11G11B10 textures are not for bloom
+        num_r11g11b10_textures++;
 
-        if (num_r11g11b10_textures > 1)
+        if (num_r11g11b10_textures > far_bloom.skip)
         {
           bloom = true;
 
@@ -1621,8 +1621,8 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
-                                               SK_FAR_BeginFrame,
-                                    (LPVOID *)&SK_BeginFrame_Original );
+                                               SK_FAR_EndFrame,
+                                    (LPVOID *)&SK_EndFrame_Original );
     MH_QueueEnableHook (SK_BeginBufferSwap);
 
 

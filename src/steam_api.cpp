@@ -2825,6 +2825,14 @@ SK::SteamAPI::AppID (void)
   return 0;
 }
 
+// Easier to DLL export a flat interface
+uint32_t
+__stdcall
+SK_SteamAPI_AppID (void)
+{
+  return SK::SteamAPI::AppID ();
+}
+
 const wchar_t*
 SK_GetSteamDir (void)
 {
