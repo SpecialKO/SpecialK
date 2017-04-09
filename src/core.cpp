@@ -1950,22 +1950,21 @@ DoKeyboard (void)
   ullNow.HighPart = ftNow.dwHighDateTime;
   ullNow.LowPart  = ftNow.dwLowDateTime;
 
-  static bool drag_lock   = false;
   static bool toggle_drag = false;
 
   if (HIWORD (GetAsyncKeyState (VK_CONTROL)) && HIWORD (GetAsyncKeyState (VK_SHIFT)) && HIWORD (GetAsyncKeyState (VK_SCROLL)))
   {
     if (! toggle_drag)
-      drag_lock = (! drag_lock);
+      config.window.drag_lock = (! config.window.drag_lock);
     toggle_drag = true;
 
-    if (drag_lock)
+    if (config.window.drag_lock)
       ClipCursor (nullptr); 
   } else {
     toggle_drag = false;
   }
 
-  if (drag_lock)
+  if (config.window.drag_lock)
     SK_CenterWindowAtMouse (config.window.persistent_drag);
 
 

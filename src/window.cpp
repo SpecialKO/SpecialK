@@ -893,8 +893,8 @@ ImGui_ToggleCursor (void)
   {
     ShowCursor         (FALSE);
     SetCursor_Original (nullptr);
-    SetCursorPos       ( ImGui::GetIO ().DisplaySize.x / 2, 
-                         ImGui::GetIO ().DisplaySize.y / 2 );
+    SetCursorPos       ( (int)ImGui::GetIO ().DisplaySize.x / 2, 
+                         (int)ImGui::GetIO ().DisplaySize.y / 2 );
   } else {
     ShowCursor         (TRUE);
     SetCursor_Original (game_cursor);
@@ -969,6 +969,15 @@ WINAPI
 SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
+
+  // Don't let the game continue moving the cursor while
+  //   Alt+Tabbed out
+  if (config.window.background_render && (! game_window.active))
+    return TRUE;
+
+  // Prevent Mouse Look while Drag Locked
+  if (config.window.drag_lock)
+    return TRUE;
 
   if (SK_ImGui_Visible)
   {
@@ -2002,10 +2011,11 @@ SK_AdjustWindow (void)
                                     SWP_NOZORDER       | SWP_NOREPOSITION   |
                                     SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED );
 
-    dll_log.Log ( L"[Border Mgr] FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
-                    mi.rcMonitor.left, mi.rcMonitor.top,
-                      mi.rcMonitor.right - mi.rcMonitor.left,
-                        mi.rcMonitor.bottom - mi.rcMonitor.top );
+    SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
+                  mi.rcMonitor.left, mi.rcMonitor.top,
+                    mi.rcMonitor.right - mi.rcMonitor.left,
+                      mi.rcMonitor.bottom - mi.rcMonitor.top ),
+                L"Border Mgr" );
 
     // Must set this or the mouse cursor clip rect will be wrong
     game_window.actual.window = mi.rcMonitor;
@@ -2047,7 +2057,6 @@ SK_AdjustWindow (void)
     {
       render_width  = config.window.res.override.x;
       render_height = config.window.res.override.y;
-      dll_log.Log ("%lux%lu", render_width, render_height);
     }
 
     else {
@@ -2239,11 +2248,12 @@ SK_AdjustWindow (void)
                          SK_GetSystemMetrics (SM_CYCAPTION) );
     }
 
-    dll_log.Log ( L"[Border Mgr] WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li) - { Border: %s }",
-                    game_window.actual.window.left, game_window.actual.window.top,
-                       game_window.actual.window.right - game_window.actual.window.left,
-                         game_window.actual.window.bottom - game_window.actual.window.top,
-                    (! has_border) ? L"None" : wszBorderDesc );
+    SK_LOG1 ( ( L"WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li) - { Border: %s }",
+                  game_window.actual.window.left, game_window.actual.window.top,
+                    game_window.actual.window.right - game_window.actual.window.left,
+                      game_window.actual.window.bottom - game_window.actual.window.top,
+                        (! has_border) ? L"None" : wszBorderDesc ),
+                L"Border Mgr" );
   }
 
 

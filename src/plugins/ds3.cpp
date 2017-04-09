@@ -286,7 +286,7 @@ extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define SUS_VERSION_NUM L"0.5.0"
+#define SUS_VERSION_NUM L"0.5.0.1"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog

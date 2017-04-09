@@ -953,10 +953,10 @@ SK_ImGui_ControlPanel (void)
               config.window.offset.y.percent = y_pos * (bottom_align ? -1.0f : 1.0f);
 
               if (right_align && config.window.offset.x.percent >= 0.0f)
-                config.window.offset.x.absolute = -0.01f;
+                config.window.offset.x.percent = -0.01f;
 
               if (bottom_align && config.window.offset.y.percent >= 0.0f)
-                config.window.offset.y.absolute = -0.01f;
+                config.window.offset.y.percent = -0.01f;
             }
 
             if (queue_move && (! ImGui::IsMouseDown (0)))
