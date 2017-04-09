@@ -458,6 +458,24 @@ SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode)
   }
 }
 
+const wchar_t*
+SK_DXGI_DescribeScanlineOrder (DXGI_MODE_SCANLINE_ORDER order)
+{
+  switch (order)
+  {
+  case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
+    return L"DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED";
+  case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
+    return L"DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE";
+  case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
+    return L"DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST";
+  case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
+    return L"DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST";
+  default:
+    return L"UNKNOWN";
+  }
+}
+
 
 std::wstring
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
@@ -2385,14 +2403,15 @@ __declspec (noinline)
   DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                         _In_ const DXGI_MODE_DESC *pNewTargetParameters )
   {
-    DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeTarget", L"{ (%lux%lu@%3.1fHz), fmt=%lu, scaling=0x%02x }",
+    DXGI_LOG_CALL_I6 (L"IDXGISwapChain", L"ResizeTarget", L"{ (%lux%lu@%3.1fHz), fmt=%lu, scaling=0x%02x, scanlines=0x%02x }",
                         pNewTargetParameters->Width, pNewTargetParameters->Height,
                         pNewTargetParameters->RefreshRate.Denominator != 0 ?
                           (float)pNewTargetParameters->RefreshRate.Numerator /
                           (float)pNewTargetParameters->RefreshRate.Denominator :
                             0.0f,
                         pNewTargetParameters->Format,
-                        pNewTargetParameters->Scaling );
+                        pNewTargetParameters->Scaling,
+                        pNewTargetParameters->ScanlineOrdering );
 
     InterlockedExchange (&__gui_reset, TRUE);
 
@@ -2426,6 +2445,24 @@ __declspec (noinline)
 
         new_new_params.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
         new_new_params.RefreshRate.Denominator = 1;
+      }
+
+      if ( config.render.dxgi.scanline_order != -1 &&
+            pNewTargetParameters->ScanlineOrdering  != 
+              (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+      {
+        dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+                      L"(Requested: %s, Using: %s)",
+                        SK_DXGI_DescribeScanlineOrder (
+                          pNewTargetParameters->ScanlineOrdering
+                        ),
+                          SK_DXGI_DescribeScanlineOrder (
+                            (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+                          )
+                    );
+
+        new_new_params.ScanlineOrdering =
+          (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
       }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
@@ -2529,7 +2566,7 @@ __declspec (noinline)
       }
 
       dll_log.LogEx ( true,
-        L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s) - {%s}"
+        L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
         L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
         pDesc->BufferDesc.Width,
         pDesc->BufferDesc.Height,
@@ -2542,6 +2579,13 @@ __declspec (noinline)
           pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
             L"Centered" :
             L"Stretched",
+        pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+          L"Unspecified" :
+          pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+            L"Progressive" :
+            pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+              L"Interlaced Even" :
+              L"Interlaced Odd",
         pDesc->Windowed ? L"Windowed" : L"Fullscreen",
         pDesc->BufferCount,
         pDesc->Flags,
@@ -2589,7 +2633,7 @@ __declspec (noinline)
            pDesc->BufferCount                         !=  0 )
       {
         pDesc->BufferCount = config.render.framerate.buffer_count;
-        dll_log.Log (L"[   DXGI   ] >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+        dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
       }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
@@ -2608,6 +2652,24 @@ __declspec (noinline)
 
         pDesc->BufferDesc.Scaling =
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+      }
+
+      if ( config.render.dxgi.scanline_order != -1 &&
+            pDesc->BufferDesc.ScanlineOrdering      !=
+              (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+      {
+        dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+                      L"(Requested: %s, Using: %s)",
+                        SK_DXGI_DescribeScanlineOrder (
+                          pDesc->BufferDesc.ScanlineOrdering
+                        ),
+                          SK_DXGI_DescribeScanlineOrder (
+                            (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+                          )
+                    );
+
+        pDesc->BufferDesc.ScanlineOrdering =
+          (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
       }
 
       if ( config.render.framerate.refresh_rate != -1 &&

@@ -107,6 +107,7 @@ extern bool
 __stdcall
 SK_SteamAPI_GetOverlayState (bool real);
 
+#include <map>
 #include <unordered_set>
 #include <d3d11.h>
 
@@ -117,7 +118,7 @@ public:
     QueryPerformanceFrequency (&PerfFreq);
   }
 
-  bool             isTexture2D  (uint32_t crc32);
+  bool             isTexture2D  (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc);
 
   ID3D11Texture2D* getTexture2D ( uint32_t              crc32,
                             const D3D11_TEXTURE2D_DESC *pDesc,
@@ -145,8 +146,9 @@ public:
 
   std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
 
-  std::unordered_map < uint32_t,
-                       ID3D11Texture2D *  >   HashMap_2D;
+  std::map < DWORD, std::unordered_map < uint32_t,
+                                         ID3D11Texture2D *  > >
+                                              HashMap_2D;
   std::unordered_map < ID3D11Texture2D *,
                        tex2D_descriptor_s  >  Textures_2D;
 

@@ -988,6 +988,8 @@ void WINAPI SK_D3D11_EnableTexCache       (bool enable);
 void WINAPI SK_D3D11_PopulateResourceList (void);
 
 #include <unordered_set>
+#include <unordered_map>
+#include <map>
 
 std::unordered_map <uint32_t, std::wstring> tex_hashes;
 std::unordered_map <uint32_t, std::wstring> tex_hashes_ex;
@@ -1009,7 +1011,7 @@ public:
     QueryPerformanceFrequency (&PerfFreq);
   }
 
-  bool             isTexture2D  (uint32_t crc32);
+  bool             isTexture2D  (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc);
 
   ID3D11Texture2D* getTexture2D ( uint32_t              crc32,
                             const D3D11_TEXTURE2D_DESC *pDesc,
@@ -1037,8 +1039,9 @@ public:
 
   std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
 
-  std::unordered_map < uint32_t,
-                       ID3D11Texture2D *  >   HashMap_2D;
+  std::map < DWORD, std::unordered_map < uint32_t,
+                                         ID3D11Texture2D *  > >
+                                              HashMap_2D;
   std::unordered_map < ID3D11Texture2D *,
                        tex2D_descriptor_s  >  Textures_2D;
 
@@ -1085,17 +1088,16 @@ bool         SK_D3D11_mark_textures       = false;
 std::wstring SK_D3D11_res_root            = L"";
 
 bool
-SK_D3D11_TexMgr::isTexture2D (uint32_t crc32)
+SK_D3D11_TexMgr::isTexture2D (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc)
 {
   if (! SK_D3D11_cache_textures)
     return false;
 
   SK_AutoCriticalSection critical (&tex_cs);
 
-  if (crc32 != 0x00 && HashMap_2D.count (crc32)) {
+  if (crc32 != 0x00 && HashMap_2D [pDesc->MipLevels].count (crc32))
     return true;
 
-  }
   return false;
 }
 
@@ -1240,12 +1242,15 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
 
   ID3D11Texture2D* pTex2D = nullptr;
 
-  if (isTexture2D (crc32)) {
+  if (isTexture2D (crc32, pDesc))
+  {
     std::unordered_map <uint32_t, ID3D11Texture2D *>::iterator it =
-      HashMap_2D.begin ();
+      HashMap_2D [pDesc->MipLevels].begin ();
 
-    while (it != HashMap_2D.end ()) {
-      if (! SK_D3D11_TextureIsCached (it->second)) {
+    while (it != HashMap_2D [pDesc->MipLevels].end ())
+    {
+      if (! SK_D3D11_TextureIsCached (it->second))
+      {
         ++it;
         continue;
       }
@@ -1265,10 +1270,10 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
            desc.Format         == pDesc->Format         &&
            desc.Width          == pDesc->Width          &&
            desc.Height         == pDesc->Height         &&
-           desc.MipLevels      >= pDesc->MipLevels      &&
            desc.BindFlags      == pDesc->BindFlags      &&
            desc.CPUAccessFlags == pDesc->CPUAccessFlags &&
-           desc.Usage          == pDesc->Usage ) {
+           desc.Usage          == pDesc->Usage )
+      {
         pTex2D = desc2d.texture;
 
         size_t   size = desc2d.mem_size;
@@ -1294,7 +1299,8 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
         return pTex2D;
       }
 
-      else if (desc2d.crc32 == crc32) {
+      else if (desc2d.crc32 == crc32)
+      {
         dll_log.Log ( L"[DX11TexMgr] ## Hash Collision for Texture: "
                           L"'%08X'!! ## ",
                             crc32 );
@@ -1351,9 +1357,12 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex)
 
     SK_D3D11_Textures.Evicted_2D++;
 
-    SK_D3D11_Textures.Textures_2D.erase (pTex);
-    SK_D3D11_Textures.HashMap_2D.erase  (crc32);
-    SK_D3D11_Textures.TexRefs_2D.erase  (pTex);
+    D3D11_TEXTURE2D_DESC desc;
+    pTex->GetDesc (&desc);
+
+    SK_D3D11_Textures.Textures_2D.erase                 (pTex);
+    SK_D3D11_Textures.HashMap_2D [desc.MipLevels].erase (crc32);
+    SK_D3D11_Textures.TexRefs_2D.erase                  (pTex);
   }
 }
 
@@ -1405,9 +1414,9 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
   SK_AutoCriticalSection critical (&cache_cs);
 
-  TexRefs_2D.insert  (pTex);
-  HashMap_2D.insert  (std::make_pair (crc32, pTex));
-  Textures_2D.insert (std::make_pair (pTex, desc2d));
+  TexRefs_2D.insert                    (                       pTex);
+  HashMap_2D [pDesc->MipLevels].insert (std::make_pair (crc32, pTex));
+  Textures_2D.insert                   (std::make_pair (       pTex, desc2d));
 
   // Hold a reference ourselves so that the game cannot free it
   pTex->AddRef ();
@@ -2871,10 +2880,10 @@ SK_D3D11_InitTextures (void)
     InitializeCriticalSectionAndSpinCount (&cs_texinject, 0x4000);
 #endif
 
-    InitializeCriticalSectionAndSpinCount (&tex_cs,    0x2000);
+    InitializeCriticalSectionAndSpinCount (&tex_cs,    MAXDWORD);
     InitializeCriticalSectionAndSpinCount (&hash_cs,   0x4000);
     InitializeCriticalSectionAndSpinCount (&dump_cs,   0x0200);
-    InitializeCriticalSectionAndSpinCount (&cache_cs,  0x4000);
+    InitializeCriticalSectionAndSpinCount (&cache_cs,  MAXDWORD);
     InitializeCriticalSectionAndSpinCount (&inject_cs, 0x1000);
 
     cache_opts.max_entries       = config.textures.cache.max_entries;

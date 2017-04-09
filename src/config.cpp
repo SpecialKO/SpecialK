@@ -196,6 +196,8 @@ struct {
     sk::ParameterInt*     swapchain_wait;
     sk::ParameterStringW* scaling_mode;
     sk::ParameterStringW* exception_mode;
+    sk::ParameterStringW* scanline_order;
+    sk::ParameterStringW* rotation;
     sk::ParameterBool*    test_present;
   } dxgi;
   struct {
@@ -1102,6 +1104,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.DXGI",
           L"ExceptionMode" );
+
+    render.dxgi.scanline_order =
+      static_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"Scanline Order (DontCare | Progressive | LowerFieldFirst | UpperFieldFirst )")
+        );
+    render.dxgi.scanline_order->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"ScanlineOrder" );
+
+    render.dxgi.rotation =
+      static_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"Screen Rotation (DontCare | Identity | 90 | 180 | 270 )")
+        );
+    render.dxgi.rotation->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"Rotation" );
 
     render.dxgi.test_present =
       static_cast <sk::ParameterBool *>
@@ -2079,6 +2101,55 @@ SK_LoadConfigEx (std::wstring name, bool create)
         }
       }
 
+      if (render.dxgi.scanline_order->load ())
+      {
+        if (! _wcsicmp (
+                render.dxgi.scanline_order->get_value_str ().c_str (),
+                L"Unspecified"
+              )
+           )
+        {
+          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+        }
+
+        else if (! _wcsicmp (
+                     render.dxgi.scanline_order->get_value_str ().c_str (),
+                     L"Progressive"
+                   )
+                )
+        {
+          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
+        }
+
+        else if (! _wcsicmp (
+                     render.dxgi.scanline_order->get_value_str ().c_str (),
+                     L"LowerFieldFirst"
+                   )
+                )
+        {
+          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
+        }
+
+        else if (! _wcsicmp (
+                     render.dxgi.scanline_order->get_value_str ().c_str (),
+                     L"UpperFieldFirst"
+                   )
+                )
+        {
+          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST;
+        }
+
+        // If a user specifies Interlaced, default to Lower Field First
+        else if (! _wcsicmp (
+                     render.dxgi.scanline_order->get_value_str ().c_str (),
+                     L"Interlaced"
+                   )
+                )
+        {
+          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
+        }
+      }
+
       if (render.dxgi.exception_mode->load ())
       {
         if (! _wcsicmp (
@@ -2502,6 +2573,25 @@ SK_SaveConfig ( std::wstring name,
           break;
       }
 
+      switch (config.render.dxgi.scanline_order)
+      {
+        case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
+          render.dxgi.scanline_order->set_value (L"Unspecified");
+          break;
+        case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
+          render.dxgi.scanline_order->set_value (L"Progressive");
+          break;
+        case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
+          render.dxgi.scanline_order->set_value (L"LowerFieldFirst");
+          break;
+        case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
+          render.dxgi.scanline_order->set_value (L"UpperFieldFirst");
+          break;
+        default:
+          render.dxgi.scanline_order->set_value (L"DontCare");
+          break;
+      }
+
       switch (config.render.dxgi.exception_mode)
       {
         case D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR:
@@ -2661,6 +2751,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.max_res->store        ();
       render.dxgi.min_res->store        ();
       render.dxgi.scaling_mode->store   ();
+      render.dxgi.scanline_order->store ();
       render.dxgi.exception_mode->store ();
 
       render.dxgi.swapchain_wait->store ();

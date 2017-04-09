@@ -114,6 +114,12 @@
                                                  _Args3, _Args4);            \
   DXGI_LOG_CALL_END                                                          \
 }
+#define DXGI_LOG_CALL_I6(_Interface,_Name,_Format,_Args0,_Args1,_Args2,      \
+                         _Args3,_Args4,_Args5) {                             \
+  DXGI_LOG_CALL_I   (_Interface,_Name, _Format), _Args0, _Args1, _Args2,     \
+                                                 _Args3, _Args4, _Args5);    \
+  DXGI_LOG_CALL_END                                                          \
+}
 
 
 #define DXGI_LOG_CALL_0(_Name) {                               \
