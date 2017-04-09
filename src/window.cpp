@@ -416,32 +416,17 @@ public:
 
             SK_AdjustWindow ();
 
-            // Center the Mouse Cursor on Fullscreen ==> Windowed
             if (! config.window.fullscreen)
             {
-              int center_x =
-                game_window.actual.window.left     + game_window.actual.client.left + 
-                  (game_window.actual.client.right - game_window.actual.client.left) / 2;
-
-              int center_y =
-                game_window.actual.window.top       + game_window.actual.client.top  +
-                  (game_window.actual.client.bottom - game_window.actual.client.top) / 2;
-
-              SetCursorPos_Original ( center_x, center_y );
-
               // XXX: This is being clobbered by another thread, needs redesign...
               config.window.res.override.x = persist_x;
               config.window.res.override.y = persist_y;
             }
 
-            // Windowed ==> Fullscreen
             else
             {
               persist_x = orig_x;
               persist_y = orig_y;
-
-              SetCursorPos_Original ( orig_x + (game_window.game.client.right  - game_window.game.client.left) / 2, 
-                                      orig_y + (game_window.game.client.bottom - game_window.game.client.top)  / 2 );
 
               config.window.res.override.x = 0;
               config.window.res.override.y = 0;
@@ -1904,6 +1889,9 @@ SK_AdjustBorder (void)
       SK_BORDERLESS_EX :
         game_window.border_style_ex;
 
+  RECT orig_client;
+  GetClientRect_Original (game_window.hWnd, &orig_client);
+
   RECT new_client =
     SK_ComputeClientSize ();
 
@@ -1922,19 +1910,24 @@ SK_AdjustBorder (void)
                                    )
      )
   {
-    long dX = SK_GetSystemMetrics (SM_CXDLGFRAME);
-    long dY = SK_GetSystemMetrics (SM_CYDLGFRAME) + SK_GetSystemMetrics (SM_CYCAPTION);
+    bool had_border = has_border;
+
+    int origin_x = had_border ? origin.x + orig_client.left : origin.x;
+    int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
 
     SetWindowPos_Original ( game_window.hWnd,
                     HWND_TOP,
-                      origin.x + dX, origin.y + dY,
+                      origin_x, origin_y,
                         new_window.right - new_window.left,
                         new_window.bottom - new_window.top,
-                          SWP_NOZORDER       | SWP_NOREPOSITION   |
-                          SWP_FRAMECHANGED   | SWP_ASYNCWINDOWPOS | SWP_NOSENDCHANGING );
+                          SWP_NOZORDER | SWP_NOREPOSITION | SWP_FRAMECHANGED |
+                          SWP_NOSENDCHANGING );
+
+    GetWindowRect (game_window.hWnd, &game_window.actual.window);
+    GetClientRect (game_window.hWnd, &game_window.actual.client);
   }
 
-  game_window.game.window = new_window;
+  game_window.game.window = game_window.actual.window;
 }
 
 void
@@ -1982,7 +1975,7 @@ SK_AdjustWindow (void)
 {
   SK_WINDOW_LOG_CALL3 ();
 
-  DWORD async       = IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : SWP_ASYNCWINDOWPOS;
+  DWORD async       = 0x00;//IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : SWP_ASYNCWINDOWPOS;
 
   if (game_window.GetWindowLongPtr == nullptr)
     return;
@@ -2006,8 +1999,8 @@ SK_AdjustWindow (void)
                                 mi.rcMonitor.top,
                                   mi.rcMonitor.right  - mi.rcMonitor.left,
                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                    SWP_NOZORDER       | SWP_NOREPOSITION |
-                                    SWP_ASYNCWINDOWPOS | SWP_NOSENDCHANGING | SWP_FRAMECHANGED );
+                                    SWP_NOZORDER       | SWP_NOREPOSITION   |
+                                    SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED );
 
     dll_log.Log ( L"[Border Mgr] FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
                     mi.rcMonitor.left, mi.rcMonitor.top,
@@ -2050,9 +2043,11 @@ SK_AdjustWindow (void)
     LONG full_width     = game_window.game.window.right  - game_window.game.window.left;
     LONG full_height    = game_window.game.window.bottom - game_window.game.window.top;
 
-    if ((! config.window.res.override.isZero ())) {
+    if ((! config.window.res.override.isZero ()))
+    {
       render_width  = config.window.res.override.x;
       render_height = config.window.res.override.y;
+      dll_log.Log ("%lux%lu", render_width, render_height);
     }
 
     else {
@@ -2221,15 +2216,14 @@ SK_AdjustWindow (void)
                                   game_window.actual.window.top,
                                     game_window.actual.window.right  - game_window.actual.window.left,
                                     game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_NOZORDER     | SWP_FRAMECHANGED |
-                                      SWP_NOREPOSITION | SWP_NOSENDCHANGING | async );
+                                      SWP_NOZORDER | SWP_NOREPOSITION );
     }
 
-    else
-    {
-      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-    }
+    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+    GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+    GetClientRect_Original (game_window.hWnd, &game_window.game.client);
 
 
     wchar_t wszBorderDesc [128] = { L'\0' };
@@ -3150,14 +3144,34 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
            )
           offset = true;
 
+        bool temp_override = false;
+
+        // Prevent all of this craziness from resizing the window accidentally
+        if (config.window.res.override.isZero ())
+        {
+          temp_override = true;
+
+          RECT client;
+          GetClientRect_Original (game_window.hWnd, &client);
+
+          config.window.res.override.x = client.right  - client.left;
+          config.window.res.override.y = client.bottom - client.top;
+        }
+
         if (config.window.center)
           SK_AdjustWindow ();
 
-        else if (offset                                   && (wnd_pos->flags ^ SWP_NOMOVE))
+        else if (offset                                                      && (wnd_pos->flags ^ SWP_NOMOVE))
           SK_AdjustWindow ();
 
-        else if ((! config.window.res.override.isZero ()) && (wnd_pos->flags ^ SWP_NOSIZE))
+        else if ((! (config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
           SK_AdjustWindow ();
+
+        if (temp_override)
+        {
+          config.window.res.override.x = 0;
+          config.window.res.override.y = 0;
+        }
 
         if (config.window.unconfine_cursor)
           ClipCursor_Original (nullptr);

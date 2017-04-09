@@ -1514,12 +1514,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   CComPtr <ID3D11Device> pDev = nullptr;
 
-  // Make sure resolution changes propogate to the text overlays
-  //if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE)) {
-    //if (cegD3D11 != nullptr)
-      //SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
-  //}
-
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
   {
     SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
@@ -2310,14 +2304,6 @@ __declspec (noinline)
       {
         SK_SetWindowResX (desc.BufferDesc.Width);
         SK_SetWindowResY (desc.BufferDesc.Height);
-
-        // Fix a bug in NieR: Automata
-        SetWindowPos ( desc.OutputWindow, HWND_TOP,
-                         0, 0,
-                           desc.BufferDesc.Width, desc.BufferDesc.Height,
-                             SWP_NOZORDER       | SWP_ASYNCWINDOWPOS |
-                             SWP_NOSENDCHANGING | SWP_NOREPOSITION   |
-                             SWP_NOMOVE );
       }
     }
 

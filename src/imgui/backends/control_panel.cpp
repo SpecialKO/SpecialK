@@ -41,6 +41,10 @@
 #include <cstdio>
 #include "resource.h"
 
+__declspec (dllexport)
+void
+SK_ImGui_Toggle (void);
+
 extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
 extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
@@ -215,8 +219,8 @@ SK_ImGui_ControlPanel (void)
     GetClientRect (game_window.hWnd, &client);
 
     snprintf ( szResolution, 63, "   %lux%lu", 
-                                   game_window.render_x,//client.right - client.left,
-                                     game_window.render_y );//client.bottom - client.top );
+                                   client.right - client.left,
+                                     client.bottom - client.top );
 
     ImGui::MenuItem (" Window Resolution     ", szResolution);
 
@@ -738,22 +742,37 @@ SK_ImGui_ControlPanel (void)
         bool fullscreen        = config.window.fullscreen;
 
         if ( ImGui::Checkbox ( "Borderless  ", &borderless ) )
-          DeferCommand ("Window.Borderless toggle");
+        {
+            //config.window.fullscreen = false;
+
+          if (! config.window.fullscreen)
+            DeferCommand ("Window.Borderless toggle");
+        }
 
         if (ImGui::IsItemHovered ())
         {
-          if (borderless)
-            ImGui::SetTooltip ("Add/Restore Window Borders");
+          if (! config.window.fullscreen)
+          {
+            if (borderless)
+              ImGui::SetTooltip ("Add/Restore Window Borders");
+            else
+              ImGui::SetTooltip ("Remove Window Borders");
+          }
+
           else
-            ImGui::SetTooltip ("Remove Window Borders");
+            ImGui::SetTooltip ("Cannot be Changed while Fullscreen is Checked");
         }
 
         if (borderless)
         {
           ImGui::SameLine ();
 
-          if ( ImGui::Checkbox ( "Fullscreen (Borderless Upscale)", &fullscreen ) )
-            DeferCommand ("Window.Fullscreen toggle");
+          if ( ImGui::Checkbox ( "Fullscreen (Borderless Upscale)", &fullscreen ) ) {
+            DeferCommand    ("Window.Fullscreen toggle");
+            Sleep           (100);
+            SK_ImGui_Toggle ();
+            SK_ImGui_Toggle ();
+          }
 
           if (ImGui::IsItemHovered ())
           {
@@ -763,6 +782,21 @@ SK_ImGui_ControlPanel (void)
             ImGui::BulletText   ("Framebuffer Resolution Unchanged (GPU-Side Upscaling)");
             ImGui::BulletText   ("Upscaling to Match Desktop Resolution Adds AT LEAST 1 Frame of Input Latency!");
             ImGui::EndTooltip   ();
+          }
+        }
+
+        if (! config.window.fullscreen)
+        {
+          ImGui::InputInt2 ("Override Resolution", (int *)&config.window.res.override.x);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text ("Set if Game's Window Resolution is Reported Wrong");
+            ImGui::Separator ();
+            ImGui::BulletText ("0x0 = Disable");
+            ImGui::BulletText ("Applied the Next Time a Style/Position Setting is Changed");
+            ImGui::EndTooltip ();
           }
         }
 
@@ -1403,10 +1437,6 @@ SK_ImGui_ControlPanel (void)
 #include <vector>
 
 #include <SpecialK/render_backend.h>
-
-__declspec (dllexport)
-void
-SK_ImGui_Toggle (void);
 
 //
 // Hook this to override Special K's GUI

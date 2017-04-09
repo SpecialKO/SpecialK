@@ -32,6 +32,8 @@
 
 #include <SpecialK/DLL_VERSION.H>
 
+#include <unordered_map>
+
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
 const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
@@ -1673,130 +1675,182 @@ SK_LoadConfigEx (std::wstring name, bool create)
   config.render.dxgi.scaling_mode   = -1;
 
 
+  enum class SK_GAME_ID {
+    Tyranny,              // Tyranny.exe
+    Shadowrun_HongKong,   // SRHK.exe
+    TidesOfNumenera,      // TidesOfNumenera.exe
+    MassEffect_Andromeda, // MassEffectAndromeda.exe
+    MadMax,               // MadMax.exe
+    Dreamfall_Chapters,   // Dreamfall Chapters.exe
+    TheWitness,           // witness_d3d11.exe, witness64_d3d11.exe
+    Obduction,            // Obduction-Win64-Shipping.exe
+    TheWitcher3,          // witcher3.exe
+    ResidentEvil7,        // re7.exe
+    DragonsDogma          // DDDA.exe
+  };
+
+  std::unordered_map <std::wstring, SK_GAME_ID> games;
+
+  games.emplace ( L"Tyranny.exe",                  SK_GAME_ID::Tyranny              );
+  games.emplace ( L"SRHK.exe",                     SK_GAME_ID::Shadowrun_HongKong   );
+  games.emplace ( L"TidesOfNumenera.exe",          SK_GAME_ID::TidesOfNumenera      );
+  games.emplace ( L"MassEffectAndromeda.exe",      SK_GAME_ID::MassEffect_Andromeda );
+  games.emplace ( L"MadMax.exe",                   SK_GAME_ID::MadMax               );
+  games.emplace ( L"Dreamfall Chapters.exe",       SK_GAME_ID::Dreamfall_Chapters   );
+  games.emplace ( L"TheWitness.exe",               SK_GAME_ID::TheWitness           );
+  games.emplace ( L"Obduction-Win64-Shipping.exe", SK_GAME_ID::Obduction            );
+  games.emplace ( L"witcher3.exe",                 SK_GAME_ID::TheWitcher3          );
+  games.emplace ( L"re7.exe",                      SK_GAME_ID::ResidentEvil7        );
+  games.emplace ( L"DDDA.exe",                     SK_GAME_ID::DragonsDogma         );
+
   //
   // Application Compatibility Overrides
   // ===================================
   //
-  if (wcsstr (SK_GetHostApp (), L"Tyranny.exe"))
+  if (games.count (std::wstring (SK_GetHostApp ())))
   {
-    // Cannot auto-detect API?!
-    config.apis.dxgi.d3d11.hook      = false;
-    config.apis.dxgi.d3d12.hook      = false;
-    config.apis.OpenGL.hook          = false;
-    config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
-                                              //   data it didn't ask for
-  }
+    switch (games [std::wstring (SK_GetHostApp ())])
+    {
+      case SK_GAME_ID::Tyranny:
+        // Cannot auto-detect API?!
+        config.apis.dxgi.d3d11.hook      = false;
+        config.apis.dxgi.d3d12.hook      = false;
+        config.apis.OpenGL.hook          = false;
+        config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
+                                                  //   data it didn't ask for
+        break;
 
-  else if (wcsstr (SK_GetHostApp (), L"MassEffectAndromeda.exe"))
-  {
-    // Disab Exception Handling Instead of Crashing at Shutdown
-    config.render.dxgi.exception_mode      = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
 
-    // Not a Steam game :(
-    config.steam.silent                    = true;
+      case SK_GAME_ID::Shadowrun_HongKong:
+        config.compatibility.d3d9.rehook_reset = true;
+        break;
 
-    config.system.strict_compliance        = false; // Uses NVIDIA Ansel, so this won't work!
 
-    config.apis.d3d9.hook                  = false;
-    config.apis.d3d9ex.hook                = false;
-    config.apis.dxgi.d3d12.hook            = false;
-    config.apis.OpenGL.hook                = false;
-    config.apis.Vulkan.hook                = false;
+      case SK_GAME_ID::TidesOfNumenera:
+        // API Auto-Detect Broken (0.7.43)
+        //
+        //   => Auto-Detection Thinks Game is OpenGL
+        //
+        config.apis.d3d9.hook       = true;
+        config.apis.d3d9ex.hook     = false;
+        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d12.hook = false;
+        config.apis.OpenGL.hook     = false;
+        config.apis.Vulkan.hook     = false;
+        break;
 
-    config.textures.d3d11.cache            = true;
-    config.textures.cache.ignore_nonmipped = true;
-    config.textures.cache.max_size         = 4096;
 
-    config.render.dxgi.slow_state_cache    = true;
-  }
+      case SK_GAME_ID::MassEffect_Andromeda:
+        // Disable Exception Handling Instead of Crashing at Shutdown
+        config.render.dxgi.exception_mode      = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
 
-  else if (wcsstr (SK_GetHostApp (), L"MadMax.exe"))
-  {
-    // Misnomer: This uses D3D11 interop to backup D3D11.1+ states,
-    //   only MadMax needs this AS FAR AS I KNOW.
-    config.render.dxgi.slow_state_cache = false;
-    SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
-  }
+        // Not a Steam game :(
+        config.steam.silent                    = true;
 
-  else if (wcsstr (SK_GetHostApp (), L"Dreamfall Chapters.exe"))
-  {
-    // One of only a handful of games where the interop hack does not work
-    config.render.dxgi.slow_state_cache = true;
-    SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
+        config.system.strict_compliance        = false; // Uses NVIDIA Ansel, so this won't work!
 
-    config.system.trace_load_library    = true;
-    config.system.strict_compliance     = false;
+        config.apis.d3d9.hook                  = false;
+        config.apis.d3d9ex.hook                = false;
+        config.apis.dxgi.d3d12.hook            = false;
+        config.apis.OpenGL.hook                = false;
+        config.apis.Vulkan.hook                = false;
 
-    // Chances are good that we will not catch SteamAPI early enough to hook callbacks, so
-    //   auto-pump.
-    config.steam.auto_pump_callbacks    = true;
-    config.steam.preload_client         = true;
-    config.steam.block_stat_callback    = true;
+        config.textures.d3d11.cache            = true;
+        config.textures.cache.ignore_nonmipped = true;
+        config.textures.cache.max_size         = 4096;
 
-    config.apis.dxgi.d3d12.hook         = false;
-    config.apis.dxgi.d3d11.hook         = true;
-    config.apis.d3d9.hook               = true;
-    config.apis.d3d9ex.hook             = true;
-    config.apis.OpenGL.hook             = false;
-    config.apis.Vulkan.hook             = false;
-  }
+        config.render.dxgi.slow_state_cache    = true;
+        break;
 
-  else if (wcsstr (SK_GetHostApp (), L"witness"))
-  {
-    config.system.trace_load_library    = true;
-    config.system.strict_compliance     = false;
-  }
 
-  else if (wcsstr (SK_GetHostApp (), L"Obduction-Win64-Shipping.exe"))
-  {
-    config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
-    config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
-                                              //   (uses an incorrectly written DLL)
-  }
+      case SK_GAME_ID::MadMax:
+        // Misnomer: This uses D3D11 interop to backup D3D11.1+ states,
+        //   only MadMax needs this AS FAR AS I KNOW.
+        config.render.dxgi.slow_state_cache = false;
+        SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
+        break;
 
-  else if (wcsstr (SK_GetHostApp (), L"witcher3.exe"))
-  {
-    config.system.strict_compliance  = false; // Uses NVIDIA Ansel, so this won't work!
-    config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
-                                              //   data it didn't ask for
 
-    config.apis.dxgi.d3d12.hook      = false;
-    config.apis.d3d9.hook            = false;
-    config.apis.d3d9ex.hook          = false;
-    config.apis.OpenGL.hook          = false;
-    config.apis.Vulkan.hook          = false;
+      case SK_GAME_ID::Dreamfall_Chapters:
+        // One of only a handful of games where the interop hack does not work
+        config.render.dxgi.slow_state_cache = true;
+        SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
 
-    config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
-  }
+        config.system.trace_load_library    = true;
+        config.system.strict_compliance     = false;
 
-  else if (wcsstr (SK_GetHostApp (), L"re7.exe"))
-  {
-    config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
-    config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
-                                              //   (uses an incorrectly written DLL)
-  }
+        // Chances are good that we will not catch SteamAPI early enough to hook callbacks, so
+        //   auto-pump.
+        config.steam.auto_pump_callbacks    = true;
+        config.steam.preload_client         = true;
+        config.steam.block_stat_callback    = true;
 
-  // BROKEN (by GeForce Experience)
-  else if (wcsstr (SK_GetHostApp (), L"DDDA.exe"))
-  {
-    //
-    // TODO: Debug the EXACT cause of NVIDIA's Deadlock
-    //
-    config.compatibility.disable_nv_bloat = true;  // PREVENT DEADLOCK CAUSED BY NVIDIA!
+        config.apis.dxgi.d3d12.hook         = false;
+        config.apis.dxgi.d3d11.hook         = true;
+        config.apis.d3d9.hook               = true;
+        config.apis.d3d9ex.hook             = true;
+        config.apis.OpenGL.hook             = false;
+        config.apis.Vulkan.hook             = false;
+        break;
 
-    config.system.trace_load_library      = true;  // Need to catch NVIDIA Bloat DLLs
-    config.system.strict_compliance       = false; // Cannot block threads while loading DLLs
-                                                   //   (uses an incorrectly written DLL)
 
-    config.steam.auto_pump_callbacks = false;
-    config.steam.preload_client      = true;
+      case SK_GAME_ID::TheWitness:
+        config.system.trace_load_library    = true;
+        config.system.strict_compliance     = false; // Uses Ansel
+        break;
 
-    config.apis.d3d9.hook            = true;
-    config.apis.dxgi.d3d11.hook      = false;
-    config.apis.dxgi.d3d12.hook      = false;
-    config.apis.d3d9ex.hook          = false;
-    config.apis.OpenGL.hook          = false;
-    config.apis.Vulkan.hook          = false;
+
+      case SK_GAME_ID::Obduction:
+        config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
+        config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
+                                                  //   (uses an incorrectly written DLL)
+        break;
+
+
+      case SK_GAME_ID::TheWitcher3:
+        config.system.strict_compliance        = false; // Uses NVIDIA Ansel, so this won't work!
+        config.steam.block_stat_callback       = true;  // Will stop running SteamAPI when it receives
+                                                        //   data it didn't ask for
+
+        config.apis.dxgi.d3d12.hook            = false;
+        config.apis.d3d9.hook                  = false;
+        config.apis.d3d9ex.hook                = false;
+        config.apis.OpenGL.hook                = false;
+        config.apis.Vulkan.hook                = false;
+
+        config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
+        break;
+
+
+      case SK_GAME_ID::ResidentEvil7:
+        config.system.trace_load_library = true;  // Need to catch SteamAPI DLL load
+        config.system.strict_compliance  = false; // Cannot block threads while loading DLLs
+                                                  //   (uses an incorrectly written DLL)
+        break;
+
+
+      case SK_GAME_ID::DragonsDogma:
+        // BROKEN (by GeForce Experience)
+        //
+        // TODO: Debug the EXACT cause of NVIDIA's Deadlock
+        //
+        config.compatibility.disable_nv_bloat = true;  // PREVENT DEADLOCK CAUSED BY NVIDIA!
+
+        config.system.trace_load_library      = true;  // Need to catch NVIDIA Bloat DLLs
+        config.system.strict_compliance       = false; // Cannot block threads while loading DLLs
+                                                       //   (uses an incorrectly written DLL)
+
+        config.steam.auto_pump_callbacks      = false;
+        config.steam.preload_client           = true;
+
+        config.apis.d3d9.hook                 = true;
+        config.apis.dxgi.d3d11.hook           = false;
+        config.apis.dxgi.d3d12.hook           = false;
+        config.apis.d3d9ex.hook               = false;
+        config.apis.OpenGL.hook               = false;
+        config.apis.Vulkan.hook               = false;
+        break;
+    }
   }
 
   init = true; }

@@ -386,7 +386,23 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
   InterlockedIncrement (&__cegui_frames_drawn);
 
-  if (cegD3D9 == nullptr)
+  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
+  {
+    if (cegD3D9 != nullptr) {
+      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
+      SK_PopupManager::getInstance ()->destroyAllPopups         ();
+
+      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
+    }
+
+    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
+        cegD3D9_SB  = nullptr;
+
+    if (cegD3D9 != nullptr) cegD3D9->destroySystem ();
+        cegD3D9  = nullptr;
+  }
+
+  else if (cegD3D9 == nullptr)
   {
     extern void
     SK_InstallWindowHook (HWND hWnd);
@@ -399,7 +415,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     ResetCEGUI_D3D9 (pDev);
   }
 
-  else {
+  else if (pDev != nullptr) {
     CComPtr <IDirect3DStateBlock9> pStateBlock = nullptr;
     pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock);
 
@@ -525,6 +541,12 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 }
 
 void
+SK_CEGUI_QueueResetD3D9 (void)
+{
+  InterlockedExchange (&__gui_reset, TRUE);
+}
+
+void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
   if (! config.cegui.enable)
@@ -533,12 +555,9 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
   if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
     return;
 
-  if (cegD3D9 != nullptr || (pDev == nullptr)) {
+  if (cegD3D9 != nullptr || (pDev == nullptr))
+  {
     SK_Steam_ClearPopups ();
-
-    //if (cegD3D9->getDevice () != pDev)
-      //dll_log.Log ( L"[  CE GUI  ] >> Resetting a different device than CEGUI is "
-                    //L" setup to render on?!" );
 
     if (cegD3D9 != nullptr) {
       SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
@@ -1608,7 +1627,8 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
        D3D9Present_Original == nullptr )
     SK_D3D9_HookPresent (This);
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  {
     // Release
     ResetCEGUI_D3D9 (nullptr);
   }
@@ -1618,7 +1638,8 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
 
-  if (SUCCEEDED (hr)) {
+  if (SUCCEEDED (hr))
+  {
     if (InterlockedExchangeAdd (&__d3d9_ready, 0))
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
 
@@ -1648,7 +1669,8 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
                (! pPresentationParameters->Windowed) );
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
   }
@@ -1657,14 +1679,16 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   CComPtr <IDirect3DDevice9> pDev = nullptr;
 
-  if (SUCCEEDED (This->QueryInterface ( IID_PPV_ARGS (&pDev) ))) {
+  if (SUCCEEDED (This->QueryInterface ( IID_PPV_ARGS (&pDev) )))
+  {
     if (config.compatibility.d3d9.rehook_reset)
       SK_D3D9_HookReset   (pDev);
 
     if (config.compatibility.d3d9.rehook_present)
       SK_D3D9_HookPresent (pDev);
 
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    {
       // Release
       ResetCEGUI_D3D9 (nullptr);
     }
@@ -1672,14 +1696,18 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     pDev.Release ();
   }
 
+  D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
+
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
                                             pFullscreenDisplayMode ));
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
-    if (SUCCEEDED (hr)) {
+  if (SUCCEEDED (hr))
+  {
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))  
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-    }
+
+    D3D9Reset_Post (This, pPresentationParameters, pFullscreenDisplayMode);
   }
 
   return hr;

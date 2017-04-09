@@ -479,10 +479,14 @@ SK_HasPlugin (void)
 extern void
 SK_CEGUI_QueueResetD3D11 (void);
 
+extern void
+SK_CEGUI_QueueResetD3D9  (void);
+
 void
 __stdcall
 SK_InstallOSD (void)
 {
+  SK_CEGUI_QueueResetD3D9  ();
   SK_CEGUI_QueueResetD3D11 ();
 
   if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
