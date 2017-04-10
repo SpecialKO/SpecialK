@@ -27,6 +27,7 @@
 #include <SpecialK/render_backend.h>
 #include <SpecialK/command.h>
 #include <SpecialK/config.h>
+#include <SpecialK/utility.h>
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>
@@ -72,16 +73,13 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
 SK_TextOverlay* 
 SK_TextOverlayManager::createTextOverlay (const char *szAppName)
 {
-  
-  EnterCriticalSection (&cs_);
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   std::string app_name (szAppName);
 
   if (overlays_.count (app_name))
   {
     SK_TextOverlay* overlay = overlays_ [app_name];
-
-    LeaveCriticalSection (&cs_);
 
     return overlay;
   }
@@ -95,15 +93,13 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
 
   overlays_ [app_name] = overlay;
 
-  LeaveCriticalSection (&cs_);
-
   return overlay;
 }
 
 bool
 SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
 {
-  EnterCriticalSection (&cs_);
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   std::string app_name (szAppName);
 
@@ -111,12 +107,8 @@ SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
   {
     overlays_.erase   (app_name);
 
-    LeaveCriticalSection (&cs_);
-
     return true;
   }
-
-  LeaveCriticalSection (&cs_);
 
   return false;
 }
@@ -124,7 +116,7 @@ SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
 SK_TextOverlay*
 SK_TextOverlayManager::getTextOverlay (const char* szAppName)
 {
-  EnterCriticalSection (&cs_);
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   std::string app_name (szAppName);
 
@@ -132,12 +124,8 @@ SK_TextOverlayManager::getTextOverlay (const char* szAppName)
   {
     SK_TextOverlay* overlay = overlays_ [app_name];
 
-    LeaveCriticalSection (&cs_);
-
     return overlay;
   }
-
-  LeaveCriticalSection (&cs_);
 
   return nullptr;
 }
@@ -1843,7 +1831,7 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
   }
 
-  EnterCriticalSection (&cs_);
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   auto it =
     overlays_.begin ();
@@ -1900,14 +1888,19 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
       ++it;
     }
   }
-
-  LeaveCriticalSection (&cs_);
 }
 
 float
 SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 {
-  EnterCriticalSection (&cs_);
+  // This is a terrible design, but I don't care.
+  extern void
+  SK_CEGUI_QueueResetD3D11 (void);
+
+  extern void
+  SK_CEGUI_QueueResetD3D9  (void);
+
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   float base_y = y;
 
@@ -1916,6 +1909,16 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
   {
     auto it =
       overlays_.begin ();
+
+    // Handle situations where the OSD font is not yet loaded
+    if ( it                      == overlays_.end () ||
+         it->second              == nullptr          ||
+         it->second->font_.cegui == nullptr )
+    {
+      SK_CEGUI_QueueResetD3D11 ();
+      SK_CEGUI_QueueResetD3D9  ();
+      return fabs (y - base_y);
+    }
 
     while (it != overlays_.end ())
     {
@@ -1931,6 +1934,16 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
     auto it =
       overlays_.rbegin ();
 
+    // Handle situations where the OSD font is not yet loaded
+    if ( it                      == overlays_.rend () ||
+         it->second              == nullptr           ||
+         it->second->font_.cegui == nullptr )
+    {
+      SK_CEGUI_QueueResetD3D11 ();
+      SK_CEGUI_QueueResetD3D9  ();
+      return fabs (y - base_y);
+    }
+
     // Push the starting position up one whole line
     y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
 
@@ -1942,8 +1955,6 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
     }
   }
 
-  LeaveCriticalSection (&cs_);
-
   // Height of all rendered overlays
   return fabs (y - base_y);
 }
@@ -1951,7 +1962,7 @@ SK_TextOverlayManager::drawAllOverlays (float x, float y, bool full)
 void
 SK_TextOverlayManager::destroyAllOverlays (void)
 {
-  EnterCriticalSection (&cs_);
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   auto it =
     overlays_.begin ();
@@ -1962,8 +1973,6 @@ SK_TextOverlayManager::destroyAllOverlays (void)
   }
 
   overlays_.clear ();
-
-  LeaveCriticalSection (&cs_);
 }
 
 bool
@@ -1981,7 +1990,7 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
       config.osd.scale = *(float *)val;
 
 
-    EnterCriticalSection (&cs_);
+    SK_AutoCriticalSection auto_crit (&cs_);
 
       auto  it =  overlays_.begin ();
     while ( it != overlays_.end   () )
@@ -1997,8 +2006,6 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
 
       ++it;
     }
-
-    LeaveCriticalSection (&cs_);
 
     return true;
   }

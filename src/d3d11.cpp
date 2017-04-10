@@ -509,6 +509,17 @@ D3D11CreateDevice_Detour (
                         ).c_str ()
                 );
 
+  // Optionally Enable Debug Layer
+  if (InterlockedAdd (&__d3d11_ready, 0))
+  {
+    if (config.render.dxgi.debug_layer && (! (Flags & D3D11_CREATE_DEVICE_DEBUG)))
+    {
+      SK_LOG0 ( ( L" ==> Enabling D3D11 Debug layer" ),
+                  L"  D3D 11  " );
+      Flags |= D3D11_CREATE_DEVICE_DEBUG;
+    }
+  }
+
   //
   // DXGI Adapter Override (for performance)
   //
@@ -582,6 +593,17 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                             (DWORD *)pFeatureLevels
                         ).c_str ()
                 );
+
+  // Optionally Enable Debug Layer
+  if (InterlockedAdd (&__d3d11_ready, 0))
+  {
+    if (config.render.dxgi.debug_layer && (! (Flags & D3D11_CREATE_DEVICE_DEBUG)))
+    {
+      SK_LOG0 ( ( L" ==> Enabling D3D11 Debug layer" ),
+                  L"  D3D 11  " );
+      Flags |= D3D11_CREATE_DEVICE_DEBUG;
+    }
+  }
 
   //
   // DXGI Adapter Override (for performance)

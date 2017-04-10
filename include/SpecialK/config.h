@@ -247,6 +247,7 @@ struct sk_config_t
       int     rotation          =    -1; // -1 = Don't Care
       bool    test_present      = false;
       bool    slow_state_cache  = true;
+      bool    debug_layer       = false;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
@@ -266,13 +267,17 @@ struct sk_config_t
               res_root          = L"SK_Res";
     } d3d11;
     struct {
-      int     min_evict         = 32;
+      int     min_evict         = 64;
       int     max_evict         = 1024;
-      int     min_entries       = 256;
-      int     max_entries       = 8192;
+      int     min_entries       = 512;
+      int     max_entries       = 16384; // Bump max up from 8192 since the hashmap
+                                         //   is now segmented by number of mipmap LODs;
+                                         //
+                                         //  Overhead of managing a large hashmap is
+                                         //    much lower.
       int     min_size          = 384L;
       int     max_size          = 2048L;
-      bool    ignore_nonmipped  = false;
+      bool    ignore_nonmipped  = true;  // Too many collisions without this
     } cache;
   } textures;
 

@@ -1284,13 +1284,12 @@ SK_EstablishRootPath (void)
   }
 
 
-  if (config.system.central_repository) {
+  if (config.system.central_repository)
+  {
     if (! SK_IsSuperSpecialK ()) {
-      ExpandEnvironmentStringsW (
-        L"%USERPROFILE%\\Documents\\My Mods\\SpecialK",
-          SK_RootPath,
-            MAX_PATH - 1
-      );
+      wcsncpy ( SK_RootPath,
+                  std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
+                    MAX_PATH - 1 );
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
     }
@@ -1300,7 +1299,8 @@ SK_EstablishRootPath (void)
     lstrcatW (wszConfigPath, SK_GetHostApp  ());
   }
 
-  else {
+  else
+  {
     if (! SK_IsSuperSpecialK ()) {
       lstrcatW (SK_RootPath,   SK_GetHostPath ());
     } else {
@@ -1462,18 +1462,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     config.steam.silent          = true;
   }
 
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
-
-  // Don't let Steam prevent me from attaching a debugger at startup, damnit!
-  SK::Diagnostics::Debugger::Allow ();
-
-  game_debug.init (L"logs/game_output.log", L"w");
-
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
 
   if (! SK_IsSuperSpecialK ()) {
     SK_Steam_InitCommandConsoleVariables ();

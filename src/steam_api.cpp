@@ -2094,9 +2094,9 @@ public:
     if (! wcslen (wszUnlockSound))
     {
       iSK_INI achievement_ini (
-        SK_EvalEnvironmentVars (
-          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
-        ).c_str ());
+        std::wstring (
+          SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini"
+        ).c_str () );
 
       achievement_ini.parse ();
 
@@ -2109,9 +2109,10 @@ public:
                                  L"TakeScreenshot=false\n"
                                  L"AnimatePopup=true\n"
                                  L"NotifyCorner=0\n" );
-        achievement_ini.write (        SK_EvalEnvironmentVars (
-          L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
-        ).c_str ());
+        achievement_ini.write (
+          std::wstring (
+            SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini"
+          ).c_str () );
       }
 
       if (achievement_ini.contains_section (L"Steam.Achievements"))

@@ -29,6 +29,7 @@
 
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
+#include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/opengl_backend.h>
@@ -178,6 +179,7 @@ SK_EstablishDllRole (HMODULE hModule)
   blacklist.emplace (L"SplashScreen.exe");
 
   // Other Stuff
+  blacklist.emplace (L"ActivationUI.exe");
   blacklist.emplace (L"zosSteamStarter.exe");
   blacklist.emplace (L"notepad.exe");
   blacklist.emplace (L"7zFM.exe");
@@ -196,8 +198,8 @@ SK_EstablishDllRole (HMODULE hModule)
 
   // Misc. Tools
   blacklist.emplace (L"SleepOnLan.exe");
-  blacklist.emplace (L"ds3t.exe");
-  blacklist.emplace (L"tzt.exe");
+  //blacklist.emplace (L"ds3t.exe");
+  //blacklist.emplace (L"tzt.exe");
 
   // If Blacklisted, Bail-Out
   if (blacklist.count (std::wstring (SK_GetHostApp ())))
@@ -547,6 +549,10 @@ DllMain ( HMODULE hModule,
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
         return FALSE;
+
+      // Don't let Steam prevent me from attaching a debugger at startup
+      game_debug.init                  (L"logs/game_output.log", L"w");
+      SK::Diagnostics::Debugger::Allow ();
 
       DWORD   dwProcessSize = MAX_PATH;
       wchar_t wszProcessName [MAX_PATH] = { L'\0' };

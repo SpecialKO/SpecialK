@@ -199,6 +199,7 @@ struct {
     sk::ParameterStringW* scanline_order;
     sk::ParameterStringW* rotation;
     sk::ParameterBool*    test_present;
+    sk::ParameterBool*    debug_layer;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -314,14 +315,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
   }
 
   osd_config =
-    SK_EvalEnvironmentVars (
-      L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\osd.ini"
-    );
+    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\osd.ini";
 
   achievement_config =
-    SK_EvalEnvironmentVars (
-      L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\Global\\achievements.ini"
-    );
+    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini";
 
   
   if (! init)
@@ -1104,6 +1101,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.DXGI",
           L"ExceptionMode" );
+
+    render.dxgi.debug_layer =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"DXGI Debug Layer Support")
+        );
+    render.dxgi.debug_layer->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"EnableDebugLayer" );
 
     render.dxgi.scanline_order =
       static_cast <sk::ParameterStringW *>
@@ -2150,6 +2157,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
         }
       }
 
+      if (render.dxgi.debug_layer->load ())
+        config.render.dxgi.debug_layer = render.dxgi.debug_layer->get_value ();
+
       if (render.dxgi.exception_mode->load ())
       {
         if (! _wcsicmp (
@@ -2604,6 +2614,8 @@ SK_SaveConfig ( std::wstring name,
           render.dxgi.exception_mode->set_value (L"DontCare");
           break;
       }
+
+      render.dxgi.debug_layer->set_value (config.render.dxgi.debug_layer);
     }
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9)
@@ -2753,6 +2765,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.scaling_mode->store   ();
       render.dxgi.scanline_order->store ();
       render.dxgi.exception_mode->store ();
+      render.dxgi.debug_layer->store    ();
 
       render.dxgi.swapchain_wait->store ();
     }
@@ -2840,13 +2853,11 @@ SK_SaveConfig ( std::wstring name,
   lstrcatW (wszFullName,             L".ini");
 
   dll_ini->write ( wszFullName );
-  osd_ini->write ( SK_EvalEnvironmentVars (
-                     L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\"
-                     L"Global\\osd.ini"
+  osd_ini->write ( std::wstring ( SK_GetDocumentsDir () +
+                     L"\\My Mods\\SpecialK\\Global\\osd.ini"
                    ).c_str () );
-  achievement_ini->write ( SK_EvalEnvironmentVars (
-                     L"%USERPROFILE%\\Documents\\My Mods\\SpecialK\\"
-                     L"Global\\achievements.ini"
+  achievement_ini->write ( std::wstring ( SK_GetDocumentsDir () +
+                     L"\\My Mods\\SpecialK\\Global\\achievements.ini"
                    ).c_str () );
 
   if (close_config) {
