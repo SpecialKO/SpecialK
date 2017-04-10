@@ -35,6 +35,7 @@
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/render_backend.h>
+#include <SpecialK/sound.h>
 
 
 #include <windows.h>
@@ -163,6 +164,82 @@ public:
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
+#include <ImGui/imgui_internal.h>
+
+// Special K Extensions to ImGui
+namespace SK_ImGui
+{
+  bool
+  VerticalToggleButton (const char *text, bool *v)
+  {
+    using namespace ImGui;
+
+          ImFont        *font      = GImGui->Font;
+    const ImFont::Glyph *glyph;
+          char           c;
+          bool           ret;
+          ImGuiContext&  g         = *GImGui;
+    const ImGuiStyle&    style     = g.Style;
+          float          pad       = style.FramePadding.x;
+          ImVec4         color;
+    const char*          hash_mark = strstr (text, "##");
+          ImVec2         text_size = CalcTextSize     (text, hash_mark);
+          ImGuiWindow*   window    = GetCurrentWindow ();
+          ImVec2         pos       = ImVec2 ( window->DC.CursorPos.x + pad,
+                                              window->DC.CursorPos.y + text_size.x + pad );
+    
+    const ImU32 text_color =
+      ImGui::ColorConvertFloat4ToU32 (style.Colors [ImGuiCol_Text]);
+
+    color = style.Colors [ImGuiCol_Button];
+
+    if (*v)
+      color = style.Colors [ImGuiCol_ButtonActive];
+
+    ImGui::PushStyleColor (ImGuiCol_Button, color);
+    ImGui::PushID         (text);
+
+    ret = ImGui::Button ( "", ImVec2 (text_size.y + pad * 2,
+                                      text_size.x + pad * 2) );
+    ImGui::PopStyleColor ();
+
+    while ((c = *text++))
+    {
+      glyph = font->FindGlyph (c);
+
+      if (! glyph)
+        continue;
+    
+      window->DrawList->PrimReserve (6, 4);
+      window->DrawList->PrimQuadUV  (
+              ImVec2   ( pos.x + glyph->Y0 , pos.y - glyph->X0 ),
+              ImVec2   ( pos.x + glyph->Y0 , pos.y - glyph->X1 ),
+              ImVec2   ( pos.x + glyph->Y1 , pos.y - glyph->X1 ),
+              ImVec2   ( pos.x + glyph->Y1 , pos.y - glyph->X0 ),
+    
+                ImVec2 (         glyph->U0,         glyph->V0 ),
+                ImVec2 (         glyph->U1,         glyph->V0 ),
+                ImVec2 (         glyph->U1,         glyph->V1 ),
+                ImVec2 (         glyph->U0,         glyph->V1 ),
+
+                  text_color );
+
+      pos.y -= glyph->XAdvance;
+
+      // Do not print embedded hash codes
+      if (hash_mark != nullptr && text >= hash_mark)
+        break;
+    }
+
+    ImGui::PopID ();
+
+    if (ret)
+      *v ^= 1;
+
+    return ret;
+  }
+} // namespace SK_ImGui
+
 const char*
 SK_ImGui_ControlPanelTitle (void)
 {
@@ -246,8 +323,8 @@ SK_ImGui_ControlPanel (void)
 
 
   ImGui::Begin (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
-               char szName [32] = { '\0' };
-    snprintf ( szName, 32, "%ws    "
+          char szAPIName [32] = { '\0' };
+    snprintf ( szAPIName, 32, "%ws    "
 #ifndef _WIN64
                                    "[ 32-bit ]",
 #else
@@ -255,7 +332,7 @@ SK_ImGui_ControlPanel (void)
 #endif
                              SK_GetCurrentRenderBackend ().name );
 
-    ImGui::MenuItem ("Active Render API        ", szName);
+    ImGui::MenuItem ("Active Render API        ", szAPIName);
 
     char szResolution [64] = { '\0' };
     snprintf ( szResolution, 63, "   %lux%lu", 
@@ -1174,6 +1251,272 @@ SK_ImGui_ControlPanel (void)
       ImGui::PopStyleColor (3);
     }
 
+    if (ImGui::CollapsingHeader ("Volume Management"))
+    {
+      ImGui::TreePush ("");
+
+#ifndef REACQUIRE_WASAPI_INTERFACES
+      // Keep a single instance around, this isn't cheap to query
+      static
+#endif
+      IChannelAudioVolume    *pChannelVolume =
+        SK_WASAPI_GetChannelVolumeControl ();
+
+#ifndef REACQUIRE_WASAPI_INTERFACES
+      static
+#endif
+      IAudioMeterInformation *pMeterInfo =
+        SK_WASAPI_GetAudioMeterInfo ();
+
+#ifndef REACQUIRE_WASAPI_INTERFACES
+      static
+#endif
+      ISimpleAudioVolume* pVolume =
+        SK_WASAPI_GetVolumeControl ();
+
+      if (pMeterInfo != nullptr)
+      {
+        UINT channels = 0;
+
+        if (SUCCEEDED (pMeterInfo->GetMeteringChannelCount (&channels)))
+        {
+          static float channel_peaks_ [32];
+
+          struct
+          {
+            struct {
+              float inst_min = FLT_MAX;  DWORD dwMinSample = 0;  float disp_min = FLT_MAX;
+              float inst_max = FLT_MIN;  DWORD dwMaxSample = 0;  float disp_max = FLT_MIN;
+            } vu_peaks;
+
+            float peaks [120];
+            int   current_idx;
+          } static history [32];
+
+          #define VUMETER_TIME 300
+
+          static float master_vol  = -1.0f; // Master Volume
+          static BOOL  master_mute =  FALSE;
+
+          struct volume_s
+          {
+            float volume           =  1.0f; // Current Volume (0.0 when muted)
+            float normalized       =  1.0f; // Unmuted Volume (stores volume before muting)
+
+            bool  muted            = false;
+
+            // Will fill-in with unique names for ImGui
+            //   (all buttons say the same thing =P)
+            //
+            char mute_button  [14] = { '\0' };
+            char slider_label [8 ] = { '\0' };
+          };
+
+          static std::map <int, volume_s> channel_volumes;
+
+          pVolume->GetMasterVolume (&master_vol);
+          pVolume->GetMute         (&master_mute);
+
+          const char* szMuteButtonTitle = ( master_mute ? "  Unmute  ##Master" :
+                                                          "   Mute   ##Master" );
+
+          if (ImGui::Button (szMuteButtonTitle))
+          {
+            master_mute ^= TRUE;
+
+            pVolume->SetMute (master_mute, nullptr);
+          }
+
+          ImGui::SameLine ();
+
+          float val = master_mute ? 0.0f : 1.0f;
+
+          ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f,  val));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f,  val));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f,  val));
+          ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor ( 1.0f,  1.0f,  1.0f, 1.0f));
+          ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (0.95f, 0.79f, 0.18f, 1.0f));
+
+          static char szMasterSliderTitle [64] = { '\0' };
+          snprintf (  szMasterSliderTitle, 63,
+                        "      Master Volume Control  (%03.1f%%)###MasterVol",
+                          master_vol * 100.0f );
+
+          if (ImGui::SliderFloat (szMasterSliderTitle, &master_vol, 0.0, 1.0, ""))
+          {
+            if (master_mute)
+            {
+                                master_mute = FALSE;
+              pVolume->SetMute (master_mute, nullptr);
+            }
+
+            pVolume->SetMasterVolume (master_vol, nullptr);
+          }
+
+          ImGui::PopStyleColor (5);
+          ImGui::Separator     ( );
+          ImGui::Columns       (2);
+
+          for (UINT i = 0 ; i < channels; i++)
+          {
+            if (SUCCEEDED (pMeterInfo->GetChannelsPeakValues (channels, channel_peaks_)))
+            {
+              history [i].vu_peaks.inst_min = std::min (history [i].vu_peaks.inst_min, channel_peaks_ [i]);
+              history [i].vu_peaks.inst_max = std::max (history [i].vu_peaks.inst_max, channel_peaks_ [i]);
+
+              history [i].vu_peaks.disp_min    = history [i].vu_peaks.inst_min;
+
+              if (history [i].vu_peaks.dwMinSample < timeGetTime () - VUMETER_TIME * 3) {
+                history [i].vu_peaks.inst_min    = channel_peaks_ [i];
+                history [i].vu_peaks.dwMinSample = timeGetTime ();
+              }
+
+              history [i].vu_peaks.disp_max    = history [i].vu_peaks.inst_max;
+
+              if (history [i].vu_peaks.dwMaxSample < timeGetTime () - VUMETER_TIME * 3) {
+                history [i].vu_peaks.inst_max    = channel_peaks_ [i];
+                history [i].vu_peaks.dwMaxSample = timeGetTime ();
+              }
+
+              history [i].peaks [history [i].current_idx] = channel_peaks_ [i];
+              history [i].current_idx = (history [i].current_idx + 1) % IM_ARRAYSIZE (history [i].peaks);
+
+              ImGui::BeginGroup ();
+
+              const float ht = font_size * 6;
+
+              if (channel_volumes.count (i) == 0)
+              {
+                snprintf (channel_volumes [i].mute_button, 13, "  Mute  ##%lu", i);
+                snprintf (channel_volumes [i].slider_label, 7, "##vol%lu",      i);
+              }
+
+              if (pChannelVolume && SUCCEEDED (pChannelVolume->GetChannelVolume (i, &channel_volumes [i].volume)))
+              {
+                volume_s& ch_vol =
+                  channel_volumes [i];
+
+                bool  changed     = false;
+                float volume_orig = ch_vol.normalized;
+
+                ImGui::BeginGroup  ();
+                ImGui::TextColored (ImVec4 (0.80f, 0.90f, 1.0f,  1.0f), "%-22s", SK_WASAPI_GetChannelName (i));
+                                                                                          ImGui::SameLine ( );
+                ImGui::TextColored (ImVec4 (0.7f,  0.7f,  0.7f,  1.0f), "      Volume:"); ImGui::SameLine ( );
+                ImGui::TextColored (ImColor::HSV (
+                                            0.25f, 0.9f,
+                                              0.5f + ch_vol.volume * 0.5f),
+                                                                        "%03.1f%%   ", 100.0f * ch_vol.volume);
+                ImGui::EndGroup    ();
+
+                ImGui::BeginGroup  ();
+
+                       val        = ch_vol.muted ? 0.1f : 0.5f;
+                float *pSliderVal = ch_vol.muted ? &ch_vol.normalized : &ch_vol.volume;
+
+                ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( ( i + 1 ) / (float)channels, 0.5f, val));
+                ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor::HSV ( ( i + 1 ) / (float)channels, 0.6f, val));
+                ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor::HSV ( ( i + 1 ) / (float)channels, 0.7f, val));
+                ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor::HSV ( ( i + 1 ) / (float)channels, 0.9f, 0.9f));
+
+                changed =
+                  ImGui::VSliderFloat ( ch_vol.slider_label,
+                                          ImVec2 (font_size * 1.5f, ht),
+                                            pSliderVal,
+                                              0.0f, 1.0f,
+                                                "" );
+
+                ImGui::PopStyleColor  (4);
+
+                if (changed)
+                {
+                   ch_vol.volume =
+                     ch_vol.muted  ? ch_vol.normalized :
+                                     ch_vol.volume;
+
+                  if ( SUCCEEDED ( pChannelVolume->SetChannelVolume ( i,
+                                                                        ch_vol.volume,
+                                                                          nullptr )
+                                 )
+                     )
+                  {
+                    ch_vol.muted      = false;
+                    ch_vol.normalized = ch_vol.volume;
+                  }
+
+                  else
+                    ch_vol.normalized = volume_orig;
+                }
+
+                if ( SK_ImGui::VerticalToggleButton (  ch_vol.mute_button,
+                                                      &ch_vol.muted )
+                   )
+                {
+                  if (ch_vol.muted)
+                  {
+                    ch_vol.normalized = ch_vol.volume;
+                    pChannelVolume->SetChannelVolume (i, 0.0f,              nullptr);
+                  }
+                  else
+                    pChannelVolume->SetChannelVolume (i, ch_vol.normalized, nullptr);
+                }
+
+                ImGui::EndGroup ();
+                ImGui::SameLine ();
+              }
+
+              ImGui::BeginGroup ();
+              ImGui::PlotLines ( "",
+                                  history [i].peaks,
+                                    IM_ARRAYSIZE (history [i].peaks),
+                                      history [i].current_idx,
+                                        "",
+                                             history [i].vu_peaks.disp_min,
+                                             1.0f,
+                                              ImVec2 (ImGui::GetContentRegionAvailWidth (), ht) );
+
+              //char szName [64];
+              //sprintf (szName, "Channel: %lu", i);
+
+              ImGui::PushStyleColor (ImGuiCol_PlotHistogram,     ImVec4 (0.9f, 0.1f, 0.1f, 0.15f));
+              ImGui::ProgressBar    (history [i].vu_peaks.disp_max, ImVec2 (-1.0f, 0.0f));
+              ImGui::PopStyleColor  ();
+
+              ImGui::ProgressBar    (channel_peaks_ [i],          ImVec2 (-1.0f, 0.0f));
+
+              ImGui::PushStyleColor (ImGuiCol_PlotHistogram,     ImVec4 (0.1f, 0.1f, 0.9f, 0.15f));
+              ImGui::ProgressBar    (history [i].vu_peaks.disp_min, ImVec2 (-1.0f, 0.0f));
+              ImGui::PopStyleColor  ();
+              ImGui::EndGroup       ();
+              ImGui::EndGroup       ();
+
+              if (! (i % 2))
+              {
+                ImGui::SameLine (); ImGui::NextColumn ();
+              } else {
+                ImGui::Columns   ( 1 );
+                ImGui::Separator (   );
+                ImGui::Columns   ( 2 );
+              }
+            }
+          }
+
+          ImGui::Columns (1);
+        }
+
+#ifdef REACQUIRE_WASAPI_INTERFACES
+        if (pChannelVolume != nullptr)
+          pChannelVolume->Release ();
+
+        pMeterInfo->Release ();
+
+        pVolume->Release ();
+#endif
+      }
+
+      ImGui::TreePop ();
+    }
+
     if (ImGui::CollapsingHeader ("On Screen Display (OSD)"))
     {
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
@@ -1461,9 +1804,60 @@ SK_ImGui_ControlPanel (void)
                        ratio * 100.0f, (uint32_t)(ratio * (float)num_achievements),
                                        (uint32_t)                num_achievements );
 
-          ImGui::ProgressBar ( ratio,
-                                 ImVec2 (-1, 0),
-                                   szProgress );
+          ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
+          ImGui::ProgressBar    ( ratio,
+                                    ImVec2 (-1, 0),
+                                      szProgress );
+          ImGui::PopStyleColor  ();
+
+          if (ImGui::IsItemHovered ())
+          {
+            int friends = SK_SteamAPI_GetNumFriends ();
+
+            ImGui::BeginTooltip ( );
+
+            static int num_records = 0;
+
+            int max_lines = (int)((io.DisplaySize.y * 0.725f) / (font_size_multiline * 0.9f));
+            int cur_line  = 0;
+              num_records = 0;
+
+            ImGui::BeginGroup     ();
+            ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
+
+            for (int i = 0; i < friends; i++)
+            {
+              size_t count = 
+                SK_SteamAPI_GetUnlockedAchievementsForFriend (i, nullptr);
+
+              if (count > 0)
+              {
+                if (cur_line >= max_lines)
+                {
+                  ImGui::EndGroup   ();
+                  ImGui::SameLine   ();
+                  ImGui::BeginGroup ();
+                  cur_line = 0;
+                }
+
+                else
+                  ++cur_line;
+
+                size_t      len    = 0;
+                const char* szName = SK_SteamAPI_GetFriendName (i, &len);
+
+                ImGui::ProgressBar ( (float)count / (float)num_achievements, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
+                ImGui::SameLine    ();
+                ImGui::Text        ("%s", szName);
+
+                ++num_records;
+              }
+            }
+
+            ImGui::PopStyleColor  ();
+            ImGui::EndGroup       ();
+            ImGui::EndTooltip     ();
+          }
 
           ImGui::TreePop     ();
         }
@@ -1583,7 +1977,32 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::SameLine ();
       ImGui::Text     ( ": %10llu  ", InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) );
-      ImGui::Columns  (1, nullptr, false);
+      ImGui::Columns(1, nullptr, false);
+
+      // If fetching stats and online...
+      if ((! SK_SteamAPI_FriendStatsFinished ()) && SK_SteamAPI_GetNumPlayers () > 1)
+      {
+        float ratio   = SK_SteamAPI_FriendStatPercentage ();
+        int   friends = SK_SteamAPI_GetNumFriends        ();
+
+        static char szLabel [512] = { '\0' };
+
+        snprintf ( szLabel, 511,
+                     "Fetching Achievements... %.2f%% (%lu/%lu) : %s",
+                       100.0f * ratio,
+                      (int32_t)(ratio * (float)friends),
+                                               friends,
+                      SK_SteamAPI_GetFriendName (
+                        (int32_t)(ratio * (float)friends)
+                      )
+                 );
+        
+        ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
+        ImGui::ProgressBar (
+          SK_SteamAPI_FriendStatPercentage (),
+            ImVec2 (-1, 0), szLabel );
+        ImGui::PopStyleColor  ();
+      }
     }
 
   ImGui::End   ();

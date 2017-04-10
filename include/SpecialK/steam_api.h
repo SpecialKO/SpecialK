@@ -114,13 +114,15 @@ size_t SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* 
 size_t SK_SteamAPI_GetLockedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
 size_t SK_SteamAPI_GetSharedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
 
+
 // Returns true if all friend stats have been pulled from the server
-bool  SK_SteamAPI_FriendStatsFinished  (void);
+      bool  __stdcall SK_SteamAPI_FriendStatsFinished  (void);
 
 // Percent (0.0 - 1.0) of friend achievement info fetched
-float SK_SteamAPI_FriendStatPercentage (void);
+     float  __stdcall SK_SteamAPI_FriendStatPercentage (void);
 
-int   SK_SteamAPI_GetNumFriends        (void);
+       int  __stdcall SK_SteamAPI_GetNumFriends        (void);
+const char* __stdcall SK_SteamAPI_GetFriendName        (uint32_t friend_idx, size_t* pLen = nullptr);
 
 
 bool __stdcall SK_SteamAPI_TakeScreenshot           (void);

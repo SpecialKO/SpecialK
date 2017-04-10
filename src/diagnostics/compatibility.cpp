@@ -146,6 +146,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     }
   }
 
+#if 0
   if (config.compatibility.disable_msi_deadlock)
   {
     static bool init = false;
@@ -175,6 +176,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
       }
     }
   }
+#endif
 
   return FALSE;
 }

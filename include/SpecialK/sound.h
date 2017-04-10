@@ -22,6 +22,15 @@
 #ifndef __SK__SOUND_H__
 #define __SK__SOUND_H__
 
-void __stdcall SK_SetGameMute (bool bMute);
+#include <Mmdeviceapi.h>
+#include <audiopolicy.h>
+#include <endpointvolume.h>
+
+void                    __stdcall SK_SetGameMute                    (bool bMute);
+IAudioMeterInformation* __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
+
+ISimpleAudioVolume*     __stdcall SK_WASAPI_GetVolumeControl        (void);
+IChannelAudioVolume*    __stdcall SK_WASAPI_GetChannelVolumeControl (void);
+const char*             __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
 #endif /* __SK__SOUND_H__ */

@@ -1414,12 +1414,18 @@ public:
 
           if (friend_count > 0)
           {
+            int idx = next_friend;
+
+            CSteamID sid = friends->GetFriendByIndex ( next_friend++,
+                                                         k_EFriendFlagImmediate
+                                                     );
+
             SteamAPICall_t hCall =
-              stats->RequestUserStats (
-                friends->GetFriendByIndex ( next_friend++,
-                                              k_EFriendFlagImmediate
-                                          )
-                                      );
+              stats->RequestUserStats (sid);
+
+            friend_idx_to_aid [idx] = sid.GetAccountID ();
+            friend_stats      [sid.GetAccountID ()].name =
+              steam_ctx.Friends ()->GetFriendPersonaName (sid);
 
             friend_listener.Set (
               hCall,
@@ -1473,23 +1479,23 @@ public:
           stats->GetUserAchievement (
             pParam->m_steamIDUser,
               szName,
-                &friend_stats [pParam->m_steamIDUser.GetAccountID ()][i]
+                &friend_stats [pParam->m_steamIDUser.GetAccountID ()].unlocked [i]
           );
 
-          if (friend_stats [pParam->m_steamIDUser.GetAccountID ()][i])
+          if (friend_stats [pParam->m_steamIDUser.GetAccountID ()].unlocked [i])
           {
             // On the first unlocked achievement, make a note...
             if (! can_unlock)
             {
-              steam_log.Log ( L"Received Achievement Stats for Friend: '%hs'",
-                                friends->GetFriendPersonaName (pParam->m_steamIDUser) );
+              ////steam_log.Log ( L"Received Achievement Stats for Friend: '%hs'",
+                                ////friends->GetFriendPersonaName (pParam->m_steamIDUser) );
             }
 
             can_unlock = true;
 
             ++achievements.list [i]->friends_.unlocked;
 
-            steam_log.Log (L" >> Has unlocked '%24hs'", szName);
+            ////steam_log.Log (L" >> Has unlocked '%24hs'", szName);
           }
 
           free ((void *)szName);
@@ -1505,12 +1511,18 @@ public:
 
         if (friend_count > 0 && next_friend < friend_count)
         {
+          int idx = next_friend;
+
+          CSteamID sid = friends->GetFriendByIndex ( next_friend++,
+                                                       k_EFriendFlagImmediate
+                                                   );
+
           SteamAPICall_t hCall =
-            stats->RequestUserStats (
-              friends->GetFriendByIndex ( next_friend++,
-                                            k_EFriendFlagImmediate
-                                        )
-                                    );
+            stats->RequestUserStats (sid);
+
+          friend_idx_to_aid [idx] = sid.GetAccountID ();
+          friend_stats      [sid.GetAccountID ()].name =
+            steam_ctx.Friends ()->GetFriendPersonaName (sid);
 
           friend_listener.Set (
             hCall,
@@ -2217,9 +2229,47 @@ public:
     }
   }
 
+  const std::string& getFriendName (uint32_t friend_idx)
+  {
+    if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)))
+    {
+      if (friend_idx_to_aid.count (friend_idx) == 0)
+      {
+        ISteamFriends* friends = steam_ctx.Friends ();
+
+        if (! friends)
+          return "";
+
+        CSteamID sid = friends->GetFriendByIndex ( friend_idx,
+                                                     k_EFriendFlagImmediate
+                                                 );
+
+        friend_idx_to_aid [friend_idx] = sid.GetAccountID ();
+        friend_stats      [sid.GetAccountID ()].name =
+          friends->GetFriendPersonaName (sid);
+      }
+
+      else
+        return "";
+    }
+
+    return friend_stats [friend_idx_to_aid [friend_idx]].name;
+  }
+
+  float getFriendUnlockPercentage (uint32_t friend_idx)
+  {
+    if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)))
+      return 0.0f;
+
+    return friend_stats [friend_idx_to_aid [friend_idx]].percent_unlocked;
+  }
+
   bool hasFriendUnlockedAchievement (uint32_t friend_idx, uint32_t achv_idx)
   {
-    return friend_stats [friend_idx][achv_idx];
+    if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)))
+      return false;
+
+    return friend_stats [friend_idx_to_aid [friend_idx]].unlocked [achv_idx];
   }
 
 protected:
@@ -2420,10 +2470,19 @@ private:
     std::unordered_map <std::string, Achievement*> string_map;
   } achievements; // SELF
 
+  struct friend_s {
+    std::string                           name;
+    float                                 percent_unlocked;
+    std::unordered_map < uint32_t, bool > unlocked;
+  };
+
   std::unordered_map <
-    uint32_t,
-      std::unordered_map < uint32_t, bool >
+    uint32_t, friend_s
   > friend_stats;
+
+  std::unordered_map <
+    uint32_t, AccountID_t
+  > friend_idx_to_aid;
 
   float                             percent_unlocked;
 
@@ -2639,10 +2698,8 @@ protected:
   {
     current_players_call.Cancel ();
 
-    if (pParam->m_bSuccess) {
+    if (pParam->m_bSuccess)
       InterlockedExchange (&num_players_, pParam->m_cPlayers);
-      steam_log.Log (L"%lu Players", pParam->m_cPlayers);
-    }
 
     num_players_call_ = 0;
   }
@@ -3902,7 +3959,7 @@ SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
       unlocked++;
     }
 
-    else
+    else if (pStats != nullptr)
       pStats [i] = FALSE;
   }
 
@@ -3925,7 +3982,7 @@ SK_SteamAPI_GetLockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
       locked++;
     }
 
-    else
+    else if (pStats != nullptr)
       pStats [i] = FALSE;
   }
 
@@ -3935,6 +3992,7 @@ SK_SteamAPI_GetLockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
 size_t
 SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
 {
+
   std::vector <BOOL> friend_stats;
   friend_stats.resize (SK_SteamAPI_GetNumPossibleAchievements ());
 
@@ -3966,6 +4024,7 @@ SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
 
 // Returns true if all friend stats have been pulled from the server
 bool
+__stdcall
 SK_SteamAPI_FriendStatsFinished (void)
 {
   return (next_friend >= friend_count);
@@ -3973,6 +4032,7 @@ SK_SteamAPI_FriendStatsFinished (void)
 
 // Percent (0.0 - 1.0) of friend achievement info fetched
 float
+__stdcall
 SK_SteamAPI_FriendStatPercentage (void)
 {
   if (SK_SteamAPI_FriendStatsFinished ())
@@ -3982,33 +4042,24 @@ SK_SteamAPI_FriendStatPercentage (void)
 }
 
 const char*
-SK_SteamAPI_GetFriendName (uint32_t idx)
+__stdcall
+SK_SteamAPI_GetFriendName (uint32_t idx, size_t* pLen)
 {
-  const char* invalid = "INVALID";
+  const std::string& name = steam_achievements->getFriendName (idx);
 
-  ISteamFriends* friends =
-    steam_ctx.Friends ();
+  if (pLen != nullptr)
+    *pLen = name.length ();
 
-  if (! friends)
-    return invalid;
-
-  if (idx >= friend_count)
-    return invalid;
-
-  CSteamID friend_id = friends->GetFriendByIndex (
-                         idx,
-                           k_EFriendFlagImmediate
-                       );
-
-  return friends->GetFriendPersonaName (friend_id);
+  // Not the most sensible place to implement this, but ... whatever
+  return name.c_str ();
 }
 
 int
+__stdcall
 SK_SteamAPI_GetNumFriends (void)
 {
   return friend_count;
 }
-
 
 
 bool steam_imported = false;
