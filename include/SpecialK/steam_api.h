@@ -38,6 +38,11 @@ namespace SK
     void __stdcall SetOverlayState (bool active);
     bool __stdcall GetOverlayState (bool real);
 
+    void __stdcall UpdateNumPlayers (void);
+    int  __stdcall GetNumPlayers    (void);
+
+    float __stdcall PercentOfAchievementsUnlocked (void);
+
     bool __stdcall TakeScreenshot  (void);
 
     uint32_t    AppID   (void);
@@ -49,8 +54,82 @@ namespace SK
   }
 }
 
+//
+// Internal data stored in the Achievement Manager, this is
+//   the publicly visible data...
+//
+//   I do not want to expose the poorly designed interface
+//     of the full achievement manager outside the DLL,
+//       so there exist a few flattened API functions
+//         that can communicate with it and these are
+//           the data they provide.
+//
+struct SK_SteamAchievement
+{
+  // If we were to call ISteamStats::GetAchievementName (...),
+  //   this is the index we could use.
+  int         idx_;
+
+  const char* name_;          // UTF-8 (I think?)
+  const char* human_name_;    // UTF-8
+  const char* desc_;          // UTF-8
+  
+  float       global_percent_;
+  
+  struct
+  {
+    int unlocked; // Number of friends who have unlocked
+    int possible; // Number of friends who may be able to unlock
+  } friends_;
+  
+  struct
+  {
+    uint8_t*  achieved;
+    uint8_t*  unachieved;
+  } icons_;
+  
+  struct
+  {
+    int current;
+    int max;
+  
+    __forceinline float getPercent (void)
+    {
+      return 100.0f * (float)current / (float)max;
+    }
+  } progress_;
+  
+  bool        unlocked_;
+  __time32_t  time_;
+};
+
+
+size_t SK_SteamAPI_GetNumPossibleAchievements (void);
+
+std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetUnlockedAchievements (void);
+std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetLockedAchievements   (void);
+std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetAllAchievements      (void);
+
+size_t SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats);
+size_t SK_SteamAPI_GetLockedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
+size_t SK_SteamAPI_GetSharedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
+
+// Returns true if all friend stats have been pulled from the server
+bool  SK_SteamAPI_FriendStatsFinished  (void);
+
+// Percent (0.0 - 1.0) of friend achievement info fetched
+float SK_SteamAPI_FriendStatPercentage (void);
+
+int   SK_SteamAPI_GetNumFriends        (void);
+
+
 bool __stdcall SK_SteamAPI_TakeScreenshot           (void);
 bool __stdcall SK_IsSteamOverlayActive              (void);
+
+void    __stdcall SK_SteamAPI_UpdateNumPlayers      (void);
+int32_t __stdcall SK_SteamAPI_GetNumPlayers         (void);
+
+float __stdcall SK_SteamAPI_PercentOfAchievementsUnlocked (void);
                                                     
 void           SK_SteamAPI_LogAllAchievements       (void);
 void           SK_UnlockSteamAchievement            (uint32_t idx);

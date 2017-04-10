@@ -163,6 +163,51 @@ public:
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
+const char*
+SK_ImGui_ControlPanelTitle (void)
+{
+  static char szTitle [512] = { '\0' };
+
+  static bool init          =    false,
+              steam         =   (SK::SteamAPI::AppID () != 0x0);
+
+  if (! init)
+  {
+    // TEMP HACK
+    static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+
+    std::wstring title = L"";
+
+    extern std::wstring __stdcall SK_GetPluginName (void);
+    extern bool         __stdcall SK_HasPlugin     (void);
+
+    if (SK_HasPlugin () && hModTBFix == nullptr)
+      title += SK_GetPluginName ();
+    else
+      title += L"Special K (v " SK_VERSION_STR_W L")";
+
+    title += L" Control Panel";
+
+    if (steam)
+    {
+                               // Disable until I fix ImGui UTF-8 processing
+      std::string appname = "";//SK::SteamAPI::AppName ();
+
+      if (appname.length ())
+        title += L"  -  ";
+
+      snprintf (szTitle, 511, "%ws%s", title.c_str (), appname.c_str ());
+    }
+
+    else
+      snprintf (szTitle, 511, "%ws", title.c_str ());
+
+    init = true;
+  }
+
+  return szTitle;
+}
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -195,7 +240,8 @@ SK_ImGui_ControlPanel (void)
   ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 50), ImVec2 ( 0.9f * io.DisplaySize.x,
                                                                   0.9f * io.DisplaySize.y ) );
 
-  const char* szTitle = "Special K (v " SK_VERSION_STR_A ") Control Panel";
+  
+  const char* szTitle = SK_ImGui_ControlPanelTitle ();
   bool        open    = true;
 
 
@@ -388,6 +434,10 @@ SK_ImGui_ControlPanel (void)
 
         if (config.textures.d3d11.cache)
         {
+          ImGui::SameLine ();
+          ImGui::Spacing  ();
+          ImGui::SameLine ();
+
           ImGui::Checkbox ("Ignore Textures Without Mipmaps", &config.textures.cache.ignore_nonmipped);
 
           if (ImGui::IsItemHovered ())
@@ -470,10 +520,14 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::CollapsingHeader ("Third-Party Software"))
       {
-        ImGui::Checkbox ("Disable GeForce Experience and NVIDIA Shield BloatWare", &config.compatibility.disable_nv_bloat);
+        ImGui::TreePush ("");
+        ImGui::Checkbox ("Disable GeForce Experience and NVIDIA Shield", &config.compatibility.disable_nv_bloat);
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("May improve software compatibility, but disables ShadowPlay, couch co-op and various Shield-related functionality.");
+        ImGui::TreePop  ();
       }
 
-      if (ImGui::CollapsingHeader ("Render Backends", ImGuiTreeNodeFlags_DefaultOpen))
+      if (ImGui::CollapsingHeader ("Render Backends", SK_IsInjected () ? ImGuiTreeNodeFlags_DefaultOpen : 0))
       {
         ImGui::TreePush ("");
         auto EnableActiveAPI = [](SK_RenderAPI api) ->
@@ -893,6 +947,12 @@ SK_ImGui_ControlPanel (void)
             if (moved)
               queue_move = true;
 
+            // We need to set pixel offset to 1 to do what the user expects
+            //   these values to do... 0 = NO OFFSET, but the slider may move
+            //     from right-to-left skipping 1.
+            static bool reset_x_to_zero = false;
+            static bool reset_y_to_zero = false;
+
             if (moved)
             {
               config.window.offset.x.absolute = x_pos * (right_align  ? -1 : 1);
@@ -903,6 +963,16 @@ SK_ImGui_ControlPanel (void)
 
               if (bottom_align && config.window.offset.y.absolute >= 0)
                 config.window.offset.y.absolute = -1;
+
+              if (config.window.offset.x.absolute == 0) {
+                config.window.offset.x.absolute = 1;
+                reset_x_to_zero = true;
+              } else { reset_x_to_zero = false; }
+
+              if (config.window.offset.y.absolute == 0) {
+                config.window.offset.y.absolute = 1;
+                reset_y_to_zero = true;
+              } else { reset_y_to_zero = false; }
             }
 
             if (queue_move && (! ImGui::IsMouseDown (0)))
@@ -910,6 +980,14 @@ SK_ImGui_ControlPanel (void)
               queue_move = false;
 
               SK_AdjustWindow ();
+
+              if (reset_x_to_zero) config.window.offset.x.absolute = 0;
+              if (reset_y_to_zero) config.window.offset.y.absolute = 0;
+
+              if (reset_x_to_zero || reset_y_to_zero)
+                SK_AdjustWindow ();
+
+              reset_x_to_zero = false; reset_y_to_zero = false;
             }
           }
 
@@ -941,6 +1019,12 @@ SK_ImGui_ControlPanel (void)
             moved |= ImGui::SliderFloat ("Y Offset", &y_pos, 0, extent_y, "%.3f %%"); ImGui::SameLine ();
             moved |= ImGui::Checkbox    ("Bottom-aligned", &bottom_align);
 
+            // We need to set pixel offset to 1 to do what the user expects
+            //   these values to do... 0 = NO OFFSET, but the slider may move
+            //     from right-to-left skipping 1.
+            static bool reset_x_to_zero = false;
+            static bool reset_y_to_zero = false;
+
             if (moved)
               queue_move = true;
 
@@ -957,6 +1041,20 @@ SK_ImGui_ControlPanel (void)
 
               if (bottom_align && config.window.offset.y.percent >= 0.0f)
                 config.window.offset.y.percent = -0.01f;
+
+              if ( config.window.offset.x.percent <  0.000001f &&
+                   config.window.offset.x.percent > -0.000001f )
+              {
+                config.window.offset.x.absolute = 1;
+                reset_x_to_zero = true;
+              } else { reset_x_to_zero = false; }
+
+              if ( config.window.offset.y.percent <  0.000001f &&
+                   config.window.offset.y.percent > -0.000001f )
+              {
+                config.window.offset.y.absolute = 1;
+                reset_y_to_zero = true;
+              } else { reset_y_to_zero = false; }
             }
 
             if (queue_move && (! ImGui::IsMouseDown (0)))
@@ -964,6 +1062,14 @@ SK_ImGui_ControlPanel (void)
               queue_move = false;
 
               SK_AdjustWindow ();
+
+              if (reset_x_to_zero) config.window.offset.x.absolute = 0;
+              if (reset_y_to_zero) config.window.offset.y.absolute = 0;
+
+              if (reset_x_to_zero || reset_y_to_zero)
+                SK_AdjustWindow ();
+
+              reset_x_to_zero = false; reset_y_to_zero = false;
             }
           }
         }
@@ -1001,7 +1107,12 @@ SK_ImGui_ControlPanel (void)
           ImGui::Separator    ();
           ImGui::BulletText   ("Most Games will Continue Rendering");
           ImGui::BulletText   ("Disables a Game's Built-in Mute-on-Alt+Tab Functionality");
-          ImGui::BulletText   ("Special K will Block Keyboard/Mouse Input, but Continue Sending Gamepad Input");
+          ImGui::BulletText   ("Keyboard/Mouse Input is Blocked, but not Gamepad Input");
+          ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.8f, 0.1f, 1.0f));
+          ImGui::BulletText   ("DO NOT USE THIS IN FULLSCREEN EXCLUSIVE MODE");
+          ImGui::PopStyleColor ();
+          ImGui::SameLine     ();
+          ImGui::Text         (", Alt + Tab will not work.");
           ImGui::EndTooltip   ();
         }
 
@@ -1213,9 +1324,9 @@ SK_ImGui_ControlPanel (void)
         bool right_align  = config.osd.pos_x < 0;
         bool bottom_align = config.osd.pos_y < 0;
 
-        moved  = ImGui::SliderInt ("X Origin", &x_pos, 0, (int)io.DisplaySize.x); ImGui::SameLine ();
+        moved  = ImGui::SliderInt ("X Origin", &x_pos, 1, (int)io.DisplaySize.x); ImGui::SameLine ();
         moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
-        moved |= ImGui::SliderInt ("Y Origin", &y_pos, 0, (int)io.DisplaySize.y); ImGui::SameLine ();
+        moved |= ImGui::SliderInt ("Y Origin", &y_pos, 1, (int)io.DisplaySize.y); ImGui::SameLine ();
         moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
 
         if (moved)
@@ -1253,7 +1364,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
         ImGui::TreePush       ("");
 
-        if (ImGui::CollapsingHeader ("Achievements"))
+        if ( SK_SteamAPI_GetNumPossibleAchievements () > 0 &&
+             ImGui::CollapsingHeader ("Achievements") )
         {
           ImGui::TreePush ("");
 
@@ -1335,19 +1447,42 @@ SK_ImGui_ControlPanel (void)
           if (ImGui::Button ("Test Unlock"))
             SK_UnlockSteamAchievement (0);
 
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Perform a FAKE unlock so that you can tune your preferences.");
+
+          ImGui::SameLine ();
+
+          static char szProgress [128] = { '\0' };
+
+          float ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
+          int   num_achievements = SK_SteamAPI_GetNumPossibleAchievements ();
+
+          snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%lu/%lu)",
+                       ratio * 100.0f, (uint32_t)(ratio * (float)num_achievements),
+                                       (uint32_t)                num_achievements );
+
+          ImGui::ProgressBar ( ratio,
+                                 ImVec2 (-1, 0),
+                                   szProgress );
+
           ImGui::TreePop     ();
         }
 
         if (ImGui::CollapsingHeader ("Compatibility"))
         {
           ImGui::TreePush ("");
+          ImGui::Checkbox ("Load Steam Client DLL Early", &config.steam.preload_client);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
+
+          ImGui::SameLine ();
+
           ImGui::Checkbox ("Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("For games that freak out if they are flooded with achievement information, turn this on\n\n"
                                "You can tell if a game has this problem by a stuck SteamAPI Frame counter.");
-
-          ImGui::Checkbox ("Load Steam Client DLL Early", &config.steam.preload_client);
 
           ImGui::TreePop  ();
         }
@@ -1402,8 +1537,28 @@ SK_ImGui_ControlPanel (void)
         //config.
       //}
 
-      ImGui::Columns   ( 1 );
-      ImGui::Separator (   );
+      ImGui::Columns    ( 1 );
+      ImGui::Separator  (   );
+
+      if (SK::SteamAPI::GetNumPlayers () > 1)
+      {
+        ImGui::Columns    ( 2, "SteamSep", true );
+
+        static char szNumber       [16] = { '\0' };
+        static char szPrettyNumber [32] = { '\0' };
+
+        const NUMBERFMTA fmt = { 0, 0, 3, ".", ",", 0 };
+
+        snprintf (szNumber, 15, "%li", SK::SteamAPI::GetNumPlayers ());
+
+        GetNumberFormatA ( MAKELCID (LOCALE_USER_DEFAULT, SORT_DEFAULT),
+                             0x00,
+                               szNumber, &fmt,
+                                 szPrettyNumber, 32 );
+
+        ImGui::Text       (" %s Players in-Game on Steam  ", szPrettyNumber);
+        ImGui::NextColumn (   );
+      }
 
       extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
@@ -1412,22 +1567,23 @@ SK_ImGui_ControlPanel (void)
       bool pause =
         SK_SteamAPI_GetOverlayState (false);
 
-      if (ImGui::Selectable ( "Current SteamAPI Frame", &pause ))
+      if (ImGui::Selectable ( "SteamAPI Frame", &pause ))
         SK_SteamAPI_SetOverlayState (pause);
 
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip   (       );
-        ImGui::Text           ( "In " );                   ImGui::SameLine ();
+        ImGui::Text           ( "In"  );                 ImGui::SameLine ();
         ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f) ); 
-        ImGui::Text           ( " Steam Overlay Aware ");  ImGui::SameLine ();
+        ImGui::Text           ( "Steam Overlay Aware");  ImGui::SameLine ();
         ImGui::PopStyleColor  (       );
-        ImGui::Text           ( "software, this will trigger the game's overlay pause mode." );
+        ImGui::Text           ( "software, click to toggle the game's overlay pause mode." );
         ImGui::EndTooltip     (       );
       }
 
       ImGui::SameLine ();
-      ImGui::Text     ( ": %10llu", InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) );
+      ImGui::Text     ( ": %10llu  ", InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) );
+      ImGui::Columns  (1, nullptr, false);
     }
 
   ImGui::End   ();
@@ -1585,6 +1741,12 @@ SK_ImGui_Toggle (void)
     
     if (SK_ImGui_Visible)
       SK_Console::getInstance ()->visible = false;
+
+
+    // Request the number of players in-game whenever the
+    //   config UI is toggled ON.
+    if (SK::SteamAPI::AppID () != 0 && SK_ImGui_Visible)
+      SK::SteamAPI::UpdateNumPlayers ();
 
 
 

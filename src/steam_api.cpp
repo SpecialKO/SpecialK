@@ -1152,19 +1152,22 @@ SK_Steam_RarityToName (float percent)
   return "Common";
 }
 
-bool has_global_data  = false;
-int  next_friend      = 0;
+bool     has_global_data  = false;
+uint32_t next_friend      = 0;
+uint32_t friend_count     = 0;
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
 class SK_Steam_AchievementManager
 {
 public:
-  class Achievement
+  class Achievement : public SK_SteamAchievement
   {
   public:
-    Achievement (const char* szName, ISteamUserStats* stats)
+    Achievement (int idx, const char* szName, ISteamUserStats* stats)
     {
+      idx_            = idx;
+
       global_percent_ = 0.0f;
       unlocked_       = false;
       time_           = 0;
@@ -1246,38 +1249,6 @@ public:
         global_percent_ = 0.0f;
       }
     }
-
-    const char* name_;
-    const char* human_name_;
-    const char* desc_;
-
-    float       global_percent_;
-
-    struct
-    {
-      int unlocked; // Number of friends who have unlocked
-      int possible; // Number of friends who may be able to unlock
-    } friends_;
-
-    struct
-    {
-      uint8_t*  achieved;
-      uint8_t*  unachieved;
-    } icons_;
-
-    struct
-    {
-      int current;
-      int max;
-
-      float getPercent (void)
-      {
-        return 100.0f * (float)current / (float)max;
-      }
-    } progress_;
-
-    bool        unlocked_;
-    __time32_t  time_;
   };
 
 private:
@@ -1296,24 +1267,39 @@ public:
        icon_listener   ( this, &SK_Steam_AchievementManager::OnRecvIcon              ),
        async_complete  ( this, &SK_Steam_AchievementManager::OnAsyncComplete         )
   {
-    lifetime_popups = 0;
+    percent_unlocked = 0.0f;
+    lifetime_popups  = 0;
+
+    ISteamUserStats* user_stats = nullptr;
+    ISteamFriends*   friends    = nullptr;
+
+    if (! (user_stats = steam_ctx.UserStats ()))
+    {
+      steam_log.Log ( L" *** Cannot get ISteamUserStats interface, bailing-out of"
+                      L" Achievement Manager Init. ***" );
+      return;
+    }
+
+    if (! (friends = steam_ctx.Friends ()))
+    {
+      steam_log.Log ( L" *** Cannot get ISteamFriends interface, bailing-out of"
+                      L" Achievement Manager Init. ***" );
+      return;
+    }
 
     loadSound (wszUnlockSound);
 
-    if (! steam_ctx.UserStats ())
-      return;
+    uint32_t achv_reserve =
+      std::max (user_stats->GetNumAchievements (), (uint32_t)128UL);
+    friend_count =
+      friends->GetFriendCount (k_EFriendFlagImmediate);
 
-    uint32_t reserve =
-      std::max (steam_ctx.UserStats ()->GetNumAchievements (), (uint32_t)128UL);
+    achievements.list.resize        (achv_reserve);
+    achievements.string_map.reserve (achv_reserve);
+    friend_stats.reserve            (friend_count);
 
-    achievements.list.resize        (reserve);
-    achievements.string_map.reserve (reserve);
-    friend_stats.reserve            (128);
-
-    for (uint32_t i = 0; i < reserve; i++)
-    {
+    for (uint32_t i = 0; i < achv_reserve; i++)
       achievements.list [i] = nullptr;
-    }
   }
 
   ~SK_Steam_AchievementManager (void)
@@ -1517,7 +1503,6 @@ public:
             ++achievements.list [i]->friends_.possible;
         }
 
-        int friend_count = friends->GetFriendCount (k_EFriendFlagImmediate);
         if (friend_count > 0 && next_friend < friend_count)
         {
           SteamAPICall_t hCall =
@@ -1532,6 +1517,11 @@ public:
               this,
                 &SK_Steam_AchievementManager::OnRecvFriendStats );
         }
+
+        else
+        {
+
+        }
       }
     }
 
@@ -1541,8 +1531,6 @@ public:
       // Friend doesn't own the game, so just skip them...
       if (pParam->m_eResult == k_EResultFail)
       {
-        int friend_count = friends->GetFriendCount (k_EFriendFlagImmediate);
-
         if (friend_count > 0 && next_friend < friend_count)
         {
           SteamAPICall_t hCall =
@@ -1698,6 +1686,9 @@ public:
         {
           SK::SteamAPI::TakeScreenshot ();
         }
+
+        // Re-calculate percentage unlocked
+        pullStats ();
       }
 
       else
@@ -2004,12 +1995,43 @@ public:
     LeaveCriticalSection (&popup_cs);
   }
 
+  float getPercentOfAchievementsUnlocked (void)
+  {
+    return percent_unlocked;
+  }
+
   Achievement* getAchievement (const char* szName)
   {
     if (achievements.string_map.count (szName))
       return achievements.string_map [szName];
 
     return nullptr;
+  }
+
+  SK_SteamAchievement** getAchievements (size_t* pnAchievements = nullptr)
+  {
+    ISteamUserStats* stats = steam_ctx.UserStats       ();
+    size_t           count = stats->GetNumAchievements ();
+
+    if (pnAchievements != nullptr)
+      *pnAchievements = count;
+
+    static std::set    <SK_SteamAchievement *> achievement_set;
+    static std::vector <SK_SteamAchievement *> achievement_data;
+
+    if (achievement_set.size () != count)
+    {
+      for (size_t i = 0; i < count; i++)
+      {
+        if (! achievement_set.count (achievements.list [i]))
+        {
+          achievement_set.emplace    (achievements.list [i]);
+          achievement_data.push_back (achievements.list [i]);
+        }
+      }
+    }
+
+    return achievement_data.data ();
   }
 
   void requestStats (void)
@@ -2037,6 +2059,8 @@ public:
 
     if (stats)
     {
+      int unlocked = 0;
+
       for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
       {
         //steam_log.Log (L"  >> %hs", stats->GetAchievementName (i));
@@ -2047,6 +2071,7 @@ public:
 
           achievements.list [i] =
             new Achievement (
+                  i,
                   szName,
                   stats
                 );
@@ -2079,7 +2104,12 @@ public:
         {
           achievements.list [i]->update (stats);
         }
+
+        if (achievements.list [i]->unlocked_)
+          unlocked++;
       }
+
+      percent_unlocked = (float)unlocked / (float)stats->GetNumAchievements ();
     }
   }
 
@@ -2185,6 +2215,11 @@ public:
         }
       }
     }
+  }
+
+  bool hasFriendUnlockedAchievement (uint32_t friend_idx, uint32_t achv_idx)
+  {
+    return friend_stats [friend_idx][achv_idx];
   }
 
 protected:
@@ -2379,7 +2414,7 @@ protected:
   }
 
 private:
-  struct SK_AchievementData
+  struct SK_AchievementStorage
   {
     std::vector        <             Achievement*> list;
     std::unordered_map <std::string, Achievement*> string_map;
@@ -2389,6 +2424,8 @@ private:
     uint32_t,
       std::unordered_map < uint32_t, bool >
   > friend_stats;
+
+  float                             percent_unlocked;
 
   std::vector <SK_AchievementPopup> popups;
   int                               lifetime_popups;
@@ -2561,6 +2598,61 @@ SK_Steam_ClearPopups (void)
     SteamAPI_RunCallbacks_Original  ();
   }
 }
+
+class SK_Steam_UserManager
+{
+public:
+  SK_Steam_UserManager (void)
+  {
+  }
+
+  ~SK_Steam_UserManager (void) {
+  }
+
+  int32_t  GetNumPlayers    (void) { return InterlockedAdd (&num_players_, 0L); }
+  void     UpdateNumPlayers (void)
+  {
+    // Service Only One Update
+    if (num_players_call_ == 0)
+    {
+      ISteamUserStats* user_stats =
+        steam_ctx.UserStats ();
+
+      if (user_stats != nullptr)
+      {
+        num_players_call_ =
+          user_stats->GetNumberOfCurrentPlayers ();
+
+        current_players_call.Set (
+          num_players_call_,
+            this,
+              &SK_Steam_UserManager::OnRecvNumCurrentPlayers );
+      }
+    }
+  }
+
+protected:
+  STEAM_CALLRESULT ( SK_Steam_UserManager,
+                     OnRecvNumCurrentPlayers,
+                     NumberOfCurrentPlayers_t,
+                     current_players_call )
+  {
+    current_players_call.Cancel ();
+
+    if (pParam->m_bSuccess) {
+      InterlockedExchange (&num_players_, pParam->m_cPlayers);
+      steam_log.Log (L"%lu Players", pParam->m_cPlayers);
+    }
+
+    num_players_call_ = 0;
+  }
+
+private:
+  // Can be updated on-request
+  volatile LONG           num_players_      = 1;
+           SteamAPICall_t num_players_call_ = 0;
+} static *user_manager = nullptr;
+
 
 void
 SK_Steam_DrawOSD (void)
@@ -3691,6 +3783,8 @@ SK_SteamAPI_InitManagers (void)
       );
       overlay_manager    = new SK_Steam_OverlayManager ();
 
+      user_manager       = new SK_Steam_UserManager ();
+
       steam_log.LogEx (false, L"\n");
     }
   }
@@ -3712,9 +3806,208 @@ SK_SteamAPI_DestroyManagers (void)
       delete overlay_manager;
              overlay_manager = nullptr;
     }
+
+    if (user_manager != nullptr)
+    {
+      delete user_manager;
+             user_manager = nullptr;
+    }
   }
 }
 
+
+size_t
+SK_SteamAPI_GetNumPossibleAchievements (void)
+{
+  size_t possible = 0;
+
+  if (steam_achievements != nullptr)
+    steam_achievements->getAchievements (&possible);
+
+  return possible;
+}
+
+std::vector <SK_SteamAchievement *>&
+SK_SteamAPI_GetAllAchievements (void)
+{
+  static std::vector <SK_SteamAchievement *> achievements;
+
+  size_t num;
+
+  SK_SteamAchievement** ppAchv =
+    steam_achievements->getAchievements (&num);
+
+  if (achievements.size () != num)
+  {
+    achievements.clear ();
+
+    for (size_t i = 0; i < num; i++)
+      achievements.push_back (ppAchv [i]);
+  }
+
+  return achievements;
+}
+
+std::vector <SK_SteamAchievement *>&
+SK_SteamAPI_GetUnlockedAchievements (void)
+{
+  static std::vector <SK_SteamAchievement *> unlocked_achievements;
+
+  unlocked_achievements.clear ();
+
+  std::vector <SK_SteamAchievement *>& achievements =
+    SK_SteamAPI_GetAllAchievements ();
+
+  for ( auto it : achievements )
+  {
+    if (it->unlocked_)
+      unlocked_achievements.push_back (it);
+  }
+
+  return unlocked_achievements;
+}
+
+std::vector <SK_SteamAchievement *>&
+SK_SteamAPI_GetLockedAchievements (void)
+{
+  static std::vector <SK_SteamAchievement *> locked_achievements;
+
+  locked_achievements.clear ();
+
+  std::vector <SK_SteamAchievement *>& achievements =
+    SK_SteamAPI_GetAllAchievements ();
+
+  for ( auto it : achievements )
+  {
+    if (! it->unlocked_)
+      locked_achievements.push_back (it);
+  }
+
+  return locked_achievements;
+}
+
+size_t
+SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
+{
+  size_t num_achvs = SK_SteamAPI_GetNumPossibleAchievements ();
+  size_t unlocked  = 0;
+
+  for (size_t i = 0; i < num_achvs; i++)
+  {
+    if (steam_achievements->hasFriendUnlockedAchievement (friend_idx, (uint32_t)i))
+    {
+      if (pStats != nullptr)
+        pStats [i] = TRUE;
+
+      unlocked++;
+    }
+
+    else
+      pStats [i] = FALSE;
+  }
+
+  return unlocked;
+}
+
+size_t
+SK_SteamAPI_GetLockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
+{
+  size_t num_achvs = SK_SteamAPI_GetNumPossibleAchievements ();
+  size_t locked  = 0;
+
+  for (size_t i = 0; i < num_achvs; i++)
+  {
+    if (! steam_achievements->hasFriendUnlockedAchievement (friend_idx, (uint32_t)i))
+    {
+      if (pStats != nullptr)
+        pStats [i] = TRUE;
+
+      locked++;
+    }
+
+    else
+      pStats [i] = FALSE;
+  }
+
+  return locked;
+}
+
+size_t
+SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
+{
+  std::vector <BOOL> friend_stats;
+  friend_stats.resize (SK_SteamAPI_GetNumPossibleAchievements ());
+
+  size_t unlocked =
+    SK_SteamAPI_GetUnlockedAchievementsForFriend (friend_idx, friend_stats.data ());
+
+  size_t shared = 0;
+
+  std::vector <SK_SteamAchievement *>&
+    unlocked_achvs = SK_SteamAPI_GetUnlockedAchievements ();
+
+  if (pStats != nullptr)
+    ZeroMemory (pStats, SK_SteamAPI_GetNumPossibleAchievements ());
+
+  for ( auto it : unlocked_achvs )
+  {
+    if (friend_stats [it->idx_])
+    {
+      if (pStats != nullptr)
+        pStats [it->idx_] = TRUE;
+
+      shared++;
+    }
+  }
+
+  return shared;
+}
+
+
+// Returns true if all friend stats have been pulled from the server
+bool
+SK_SteamAPI_FriendStatsFinished (void)
+{
+  return (next_friend >= friend_count);
+}
+
+// Percent (0.0 - 1.0) of friend achievement info fetched
+float
+SK_SteamAPI_FriendStatPercentage (void)
+{
+  if (SK_SteamAPI_FriendStatsFinished ())
+    return 1.0f;
+
+  return (float)next_friend / (float)friend_count;
+}
+
+const char*
+SK_SteamAPI_GetFriendName (uint32_t idx)
+{
+  const char* invalid = "INVALID";
+
+  ISteamFriends* friends =
+    steam_ctx.Friends ();
+
+  if (! friends)
+    return invalid;
+
+  if (idx >= friend_count)
+    return invalid;
+
+  CSteamID friend_id = friends->GetFriendByIndex (
+                         idx,
+                           k_EFriendFlagImmediate
+                       );
+
+  return friends->GetFriendPersonaName (friend_id);
+}
+
+int
+SK_SteamAPI_GetNumFriends (void)
+{
+  return friend_count;
+}
 
 
 
@@ -3805,6 +4098,56 @@ SK_SteamAPI_WriteScreenshot (void *pubRGB, uint32 cubRGB, int nWidth, int nHeigh
 
 
 bool SK::SteamAPI::overlay_state = false;
+
+
+void
+__stdcall
+SK_SteamAPI_UpdateNumPlayers (void)
+{
+  if (user_manager != nullptr)
+    user_manager->UpdateNumPlayers ();
+}
+
+int32_t
+__stdcall
+SK_SteamAPI_GetNumPlayers (void)
+{
+  if (user_manager != nullptr)
+    return user_manager->GetNumPlayers ();
+
+  return 1; // You, and only you, apparently ;)
+}
+
+void
+__stdcall
+SK::SteamAPI::UpdateNumPlayers (void)
+{
+  SK_SteamAPI_UpdateNumPlayers ();
+}
+
+int32_t
+__stdcall
+SK::SteamAPI::GetNumPlayers (void)
+{
+  return SK_SteamAPI_GetNumPlayers ();
+}
+
+float
+__stdcall
+SK_SteamAPI_PercentOfAchievementsUnlocked (void)
+{
+  if (steam_achievements != nullptr)
+    return steam_achievements->getPercentOfAchievementsUnlocked ();
+
+  return 0.0f;
+}
+
+float
+__stdcall
+SK::SteamAPI::PercentOfAchievementsUnlocked (void)
+{
+  return SK_SteamAPI_PercentOfAchievementsUnlocked ();
+}
 
 
 uint32_t
