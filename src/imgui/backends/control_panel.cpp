@@ -1454,8 +1454,8 @@ SK_ImGui_ControlPanel (void)
 
           static char szProgress [128] = { '\0' };
 
-          float ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
-          int   num_achievements = SK_SteamAPI_GetNumPossibleAchievements ();
+          float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
+          size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
 
           snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%lu/%lu)",
                        ratio * 100.0f, (uint32_t)(ratio * (float)num_achievements),
