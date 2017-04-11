@@ -26,7 +26,9 @@
 
 #include <SpecialK/config.h>
 #include <SpecialK/log.h>
+
 #include <unordered_map>
+#include <set>
 
 IAudioMeterInformation*
 __stdcall
@@ -66,9 +68,96 @@ SK_GetAudioMeterInfo (void)
   return SK_WASAPI_GetAudioMeterInfo ();
 }
 
+void
+__stdcall
+SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
+{
+  std::set <DWORD> unique_procs;
+
+  size_t max_count = 0;
+
+  if (count != nullptr)
+  {
+    max_count = *count;
+    *count    = 0;
+  }
+
+  CComPtr <IMMDeviceEnumerator> pDevEnum;
+  if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+    return;
+
+  // Most game audio a user will not want to hear while a game is in the
+  //   background will pass through eConsole.
+  //
+  //   eCommunication will be headset stuff and that's something a user is not
+  //     going to appreciate having muted :) Consider overloading this function
+  //       to allow independent control.
+  //
+  CComPtr <IMMDevice> pDevice;
+  if ( FAILED (
+         pDevEnum->GetDefaultAudioEndpoint ( eRender,
+                                               eConsole,
+                                                 &pDevice )
+              )
+     ) return;
+
+  CComPtr <IAudioSessionManager2> pSessionMgr2;
+  if (FAILED (pDevice->Activate (
+                __uuidof (IAudioSessionManager2),
+                  CLSCTX_ALL,
+                    nullptr,
+                      reinterpret_cast <void **>(&pSessionMgr2)
+             )
+         )
+     ) return;
+
+  CComPtr <IAudioSessionEnumerator> pSessionEnum;
+  if (FAILED (pSessionMgr2->GetSessionEnumerator (&pSessionEnum)))
+    return;
+
+  int num_sessions;
+
+  if (FAILED (pSessionEnum->GetCount (&num_sessions)))
+    return;
+
+  for (int i = 0; i < num_sessions; i++)
+  {
+    CComPtr <IAudioSessionControl> pSessionCtl;
+    if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
+      return;
+
+    CComPtr <IAudioSessionControl2> pSessionCtl2;
+    if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
+      return;
+
+    DWORD dwProcess = 0;
+    if (FAILED (pSessionCtl2->GetProcessId (&dwProcess)))
+      return;
+
+    if ( unique_procs.count (dwProcess) == 0 && ( max_count == 0 || *count < max_count ) )
+    {
+      extern HWND SK_FindRootWindow (DWORD proc_id);
+
+      if (SK_FindRootWindow (dwProcess) != 0)
+      {
+        if (procs != nullptr)
+          procs [unique_procs.size ()] = dwProcess;
+
+        unique_procs.insert (dwProcess);
+
+        if (count != nullptr)
+          (*count)++;
+
+        SK_LOG4 ( ( L" Audio Session (pid=%lu)", dwProcess ),
+                    L"  WASAPI  " );
+      }
+    }
+  }
+}
+
 IAudioSessionControl*
 __stdcall
-SK_WASAPI_GetAudioSessionControl (void)
+SK_WASAPI_GetAudioSessionControl (DWORD proc_id = GetCurrentProcessId ())
 {
   CComPtr <IMMDeviceEnumerator> pDevEnum;
   if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
@@ -126,7 +215,7 @@ SK_WASAPI_GetAudioSessionControl (void)
       return nullptr;
     }
 
-    if (dwProcess == GetCurrentProcessId ())
+    if (dwProcess == proc_id)
       return pSessionCtl;
 
     else
@@ -138,10 +227,10 @@ SK_WASAPI_GetAudioSessionControl (void)
 
 IChannelAudioVolume*
 __stdcall
-SK_WASAPI_GetChannelVolumeControl (void)
+SK_WASAPI_GetChannelVolumeControl (DWORD proc_id)
 {
   CComPtr <IAudioSessionControl> pSessionCtl =
-    SK_WASAPI_GetAudioSessionControl ();
+    SK_WASAPI_GetAudioSessionControl (proc_id);
 
   if (pSessionCtl != nullptr) {
     IChannelAudioVolume *pChannelAudioVolume = nullptr;
@@ -155,10 +244,10 @@ SK_WASAPI_GetChannelVolumeControl (void)
 
 ISimpleAudioVolume*
 __stdcall
-SK_WASAPI_GetVolumeControl (void)
+SK_WASAPI_GetVolumeControl (DWORD proc_id)
 {
   CComPtr <IAudioSessionControl> pSessionCtl =
-    SK_WASAPI_GetAudioSessionControl ();
+    SK_WASAPI_GetAudioSessionControl (proc_id);
 
   if (pSessionCtl != nullptr) {
     ISimpleAudioVolume *pSimpleAudioVolume = nullptr;
@@ -234,30 +323,40 @@ SK_WASAPI_GetChannelName (int channel_idx)
 
     switch (DSSPEAKER_CONFIG (dwConfig))
     {
-      case KSAUDIO_SPEAKER_MONO:
+      case DSSPEAKER_HEADPHONE:
+        channel_names.emplace (0, "Headphone Left");
+        channel_names.emplace (1, "Headphone Right");
+        break;
+
+      case DSSPEAKER_MONO:
+      //case KSAUDIO_SPEAKER_MONO:
         channel_names.emplace (0, "Center");
         break;
 
-      case KSAUDIO_SPEAKER_STEREO:
+      case DSSPEAKER_STEREO:
+      //case KSAUDIO_SPEAKER_STEREO:
         channel_names.emplace (0, "Front Left");
         channel_names.emplace (1, "Front Right");
         break;
 
-      case KSAUDIO_SPEAKER_QUAD:
+       case DSSPEAKER_QUAD:
+      //case KSAUDIO_SPEAKER_QUAD:
         channel_names.emplace (0, "Front Left");
         channel_names.emplace (1, "Front Right");
         channel_names.emplace (2, "Back Left");
         channel_names.emplace (3, "Back Right");
         break;
 
-      case KSAUDIO_SPEAKER_SURROUND:
+      case DSSPEAKER_SURROUND:
+      //case KSAUDIO_SPEAKER_SURROUND:
         channel_names.emplace (0, "Front Left");
         channel_names.emplace (1, "Front Right");
         channel_names.emplace (2, "Front Center");
         channel_names.emplace (3, "Back Center");
         break;
 
-      case KSAUDIO_SPEAKER_5POINT1:
+      case DSSPEAKER_5POINT1:
+      //case KSAUDIO_SPEAKER_5POINT1:
         channel_names.emplace (0, "Front Left");
         channel_names.emplace (1, "Front Right");
         channel_names.emplace (2, "Center");
@@ -266,7 +365,8 @@ SK_WASAPI_GetChannelName (int channel_idx)
         channel_names.emplace (5, "Back Right");
         break;
 
-      case KSAUDIO_SPEAKER_5POINT1_SURROUND:
+      case DSSPEAKER_5POINT1_SURROUND:
+      //case KSAUDIO_SPEAKER_5POINT1_SURROUND:
         channel_names.emplace (0, "Front Left");
         channel_names.emplace (1, "Front Right");
         channel_names.emplace (2, "Center");
@@ -275,7 +375,8 @@ SK_WASAPI_GetChannelName (int channel_idx)
         channel_names.emplace (5, "Side Right");
         break;
 
-      case KSAUDIO_SPEAKER_7POINT1:
+      case DSSPEAKER_7POINT1:
+      //case KSAUDIO_SPEAKER_7POINT1:
         channel_names.emplace (0, "Front Left");
         channel_names.emplace (1, "Front Right");
         channel_names.emplace (2, "Center");
@@ -286,8 +387,8 @@ SK_WASAPI_GetChannelName (int channel_idx)
         channel_names.emplace (7, "Front Right of Center");
         break;
 
-      case 8: // Goes against the spec., but this is a well-known problem.
-      case KSAUDIO_SPEAKER_7POINT1_SURROUND:
+      case DSSPEAKER_7POINT1_SURROUND:
+      //case KSAUDIO_SPEAKER_7POINT1_SURROUND:
         channel_names.emplace (0, "Front Left");
         channel_names.emplace (1, "Front Right");
         channel_names.emplace (2, "Center");
@@ -314,8 +415,8 @@ SK_WASAPI_GetChannelName (int channel_idx)
   //   the ordinal instead and add that fallback name to the hashmap
   else
   {
-    char szChannelOrdinal [16] = { '\0' };
-    snprintf (szChannelOrdinal, 15, "Unknown Channel (%02lu)", channel_idx);
+    char szChannelOrdinal [32] = { '\0' };
+    snprintf (szChannelOrdinal, 31, "Unknown Channel (%02lu)", channel_idx);
 
     channel_names.emplace (channel_idx, szChannelOrdinal);
 
@@ -328,7 +429,7 @@ __stdcall
 SK_SetGameMute (bool bMute)
 {
   ISimpleAudioVolume* pVolume =
-    SK_WASAPI_GetVolumeControl ();
+    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
   if (pVolume != nullptr) {
       pVolume->SetMute (bMute, nullptr);

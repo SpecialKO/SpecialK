@@ -173,16 +173,16 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
 
   GetWindowThreadProcessId (hWnd, &proc_id);
 
-  if (win.proc_id != proc_id) {
-    if (GetWindow (hWnd, GW_OWNER) != (HWND)nullptr ||
-        ////GetWindowTextLength (hWnd) < 30           ||
-          // I forget what the purpose of this is :P
-        (! IsWindowVisible  (hWnd)))
-      return TRUE;
+  if (win.proc_id == proc_id)
+  {
+    if ( GetWindow (hWnd, GW_OWNER) == (HWND)nullptr )
+    {
+      win.root = hWnd;
+      return FALSE;
+    }
   }
 
-  win.root = hWnd;
-  return FALSE;
+  return TRUE;
 }
 
 HWND

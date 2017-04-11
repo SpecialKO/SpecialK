@@ -33,6 +33,7 @@
 
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
+#include <SpecialK/log.h>
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/sound.h>
@@ -59,6 +60,8 @@ extern void     __stdcall SK_FAR_ControlPanel  (void);
 
 extern GetCursorInfo_pfn GetCursorInfo_Original;
        bool              cursor_vis      = false;
+
+extern HWND              SK_FindRootWindow (DWORD proc_id);
 
 void
 LoadFileInResource ( int          name,
@@ -283,6 +286,283 @@ SK_ImGui_ControlPanelTitle (void)
   }
 
   return szTitle;
+}
+
+struct SK_WASAPI_AudioSession
+{
+  ~SK_WASAPI_AudioSession (void)
+  {
+    if (pChannelVolume != nullptr) { 
+      pChannelVolume->Release ();
+      pChannelVolume = nullptr;
+    }
+
+    if (pVolume != nullptr) {
+      pVolume->Release ();
+      pVolume = nullptr;
+    }
+  }
+  IChannelAudioVolume *pChannelVolume = nullptr;
+  ISimpleAudioVolume  *pVolume        = nullptr;
+
+  bool                 async_complete = false;
+  std::string          window_name    = "";
+  std::string          async_result   = "";
+
+  void selectSessionFromProcId (DWORD dwProcId, std::string name = "")
+  {
+    if (pChannelVolume != nullptr)
+      pChannelVolume->Release ();
+
+    pChannelVolume = 
+      SK_WASAPI_GetChannelVolumeControl (dwProcId);
+
+    if (pChannelVolume == nullptr)
+    {
+      dwProcId = GetCurrentProcessId ();
+
+      pChannelVolume =
+        SK_WASAPI_GetChannelVolumeControl (dwProcId);
+    }
+
+    if (pVolume != nullptr)
+      pVolume->Release ();
+
+    pVolume =
+      SK_WASAPI_GetVolumeControl (dwProcId);
+
+    if (pVolume == nullptr)
+    {
+      dwProcId = GetCurrentProcessId ();
+
+      pVolume =
+        SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+    }
+
+    if (! name.length ())
+    {
+      // Do this from a thread, so we don't deadlock.
+      CreateThread ( nullptr, 0,
+                    [](LPVOID user) ->
+        DWORD
+        {
+             char  szTitle [512] = {  '\0' };
+          wchar_t wszTitle [512] = { L'\0' };
+          HWND    hWndRoot       = SK_FindRootWindow (PtrToUint (user));
+
+          if (PtrToUint (user) == GetCurrentProcessId ())
+            GetWindowTextW (hWndRoot, wszTitle, 511);
+          else
+            SendMessageW (hWndRoot, WM_GETTEXT, 511, (LPARAM)wszTitle);
+
+          WideCharToMultiByte ( CP_UTF8, 0x00, wszTitle, wcslen (wszTitle), szTitle, 511, nullptr, FALSE );
+
+          audio_session.async_result   = szTitle;
+          audio_session.async_complete = true;
+
+          CloseHandle (GetCurrentThread ());
+
+          return 0;
+        }, UintToPtr (dwProcId),
+             0x00, nullptr
+      );
+    }
+
+    else {
+      window_name = name;
+    }
+  }
+} audio_session;
+
+#include <TlHelp32.h>
+
+bool
+SK_ImGui_SelectAudioSessionDlg (void)
+{
+         bool  changed   = false;
+  const  float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  static bool  was_open  = false;
+
+  struct data_set_s
+  {
+    data_set_s (void)
+    {
+    }
+
+    ~data_set_s (void)
+    {
+      clear ();
+    }
+
+    void clear (void)
+    {
+      for ( auto it : names ) free ((void *)it++);
+
+      names.clear     ();
+      processes.clear ();
+
+      sel = -1;
+    }
+
+    void populate (DWORD* dwProcs, size_t count)
+    {
+      struct populate_thread_s {
+        std::vector <DWORD>*        processes;
+        std::vector <const char *>* names;
+
+        int*                        sel;
+      };
+
+      populate_thread_s* pThreadData =
+        new populate_thread_s ();
+
+      clear ();
+
+      for (unsigned int i = 0; i < count; i++)
+        processes.push_back (dwProcs [i]);
+
+      pThreadData->processes = &processes;
+      pThreadData->names     = &names;
+
+      populate_thread =
+        CreateThread ( nullptr, 0,
+                         [](LPVOID user)->
+        DWORD
+        {
+          populate_thread_s *thread_data =
+            (populate_thread_s *)user;
+
+         for ( auto it : *thread_data->processes )
+         {
+           char     szTitle [512] = {  '\0' };
+           wchar_t wszTitle [512] = { L'\0' };
+
+           DWORD   proc_id        = it;
+           HWND    hWndRoot       = SK_FindRootWindow (proc_id);
+
+           if (proc_id == GetCurrentProcessId ())
+             GetWindowTextW (hWndRoot, wszTitle, 511);
+           else
+             SendMessageW (hWndRoot, WM_GETTEXT, 511, (LPARAM)wszTitle);
+
+           WideCharToMultiByte ( CP_UTF8, 0x00, wszTitle, wcslen (wszTitle), szTitle, 511, nullptr, FALSE );
+
+// Use the ANSI versions
+#undef PROCESSENTRY32
+#undef Process32First
+#undef Process32Next
+
+           // Use the exeuctable name if there is no window name
+           if (! strlen (szTitle))
+           {
+             HANDLE hSnap =
+               CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+
+             if (hSnap)
+             {
+               PROCESSENTRY32 pent;
+               pent.dwSize = sizeof (PROCESSENTRY32);
+
+               if (Process32First (hSnap, &pent))
+               {
+                 do
+                 {
+                   if (pent.th32ProcessID == proc_id)
+                   {
+                     strncpy (szTitle, pent.szExeFile, 511);
+                     break;
+                   }
+
+                 } while (Process32Next (hSnap, &pent));
+               }
+
+               CloseHandle (hSnap);
+             }
+           }
+
+           char* szCopy =
+             (char *)calloc (512, 1);
+
+           // Don't use strcpy, this is UTF-8 and it will freak out
+           memcpy (szCopy, szTitle, 512);
+
+           thread_data->processes->push_back (proc_id);
+           thread_data->names->push_back     (szCopy);
+         }
+
+         delete thread_data;
+
+         return 0;
+       }, pThreadData,
+        0x00, nullptr
+      );
+    }
+
+    std::vector <DWORD>       processes;
+    std::vector <const char*> names;
+
+    int                       sel;
+
+    // We need to spawn a worker thread so we don't deadlock
+    //   our own message pump... read the results after this
+    //     is signaled.
+    HANDLE                    populate_thread = 0;
+  } static data;
+
+  if (ImGui::BeginPopupModal ("Audio Session Selector", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
+  {
+    if (! was_open)
+    {
+      data.clear ();
+
+      size_t              proc_count = 128;
+      std::vector <DWORD> procs;
+
+      procs.resize (128);
+
+      SK_WASAPI_GetAudioSessionProcs (&proc_count, procs.data ());
+
+      data.populate (procs.data (), proc_count);
+
+      was_open = true;
+
+      ImGui::EndPopup ();
+      return false;
+    }
+
+    if ( (data.populate_thread != 0) )
+    {
+      switch (WaitForSingleObject (data.populate_thread, 0))
+      {
+        case WAIT_OBJECT_0:
+          CloseHandle (data.populate_thread);
+
+        case WAIT_ABANDONED:
+          data.populate_thread = 0;
+          break;
+
+        case WAIT_TIMEOUT:
+        case WAIT_FAILED:
+          ImGui::EndPopup ();
+          return false;
+      }
+    }
+
+    if (ImGui::ListBox ("Audio\nSessions", &data.sel, data.names.data (), (int)data.names.size (), std::min (data.names.size (), (size_t)10)))
+    {
+                                       DWORD dwProcId = data.processes [data.sel];
+      audio_session.selectSessionFromProcId (dwProcId,      data.names [data.sel]);
+
+      was_open = false;
+      changed  = true;
+
+      ImGui::CloseCurrentPopup ();
+    }
+
+    ImGui::EndPopup ();
+  }
+
+  return changed;
 }
 
 __declspec (dllexport)
@@ -1253,26 +1533,36 @@ SK_ImGui_ControlPanel (void)
 
     if (ImGui::CollapsingHeader ("Volume Management"))
     {
+      if (audio_session.async_complete)
+      {
+        audio_session.window_name    = audio_session.async_result;
+        audio_session.async_complete = false;
+      }
+
+      std::string app_name = audio_session.window_name + "###AudioSessionAppName";
+
+      bool selected = true;
+      if (ImGui::Selectable (app_name.c_str (), &selected))
+        ImGui::OpenPopup ("Audio Session Selector");
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Click Here to Manage Another Application.");
+
+      bool session_changed = SK_ImGui_SelectAudioSessionDlg ();
+
       ImGui::TreePush ("");
 
-#ifndef REACQUIRE_WASAPI_INTERFACES
-      // Keep a single instance around, this isn't cheap to query
-      static
-#endif
-      IChannelAudioVolume    *pChannelVolume =
-        SK_WASAPI_GetChannelVolumeControl ();
+      if ( audio_session.pChannelVolume == nullptr ||
+           audio_session.pVolume        == nullptr )
+        audio_session.selectSessionFromProcId (GetCurrentProcessId ());
 
-#ifndef REACQUIRE_WASAPI_INTERFACES
-      static
-#endif
+      IChannelAudioVolume    *pChannelVolume =
+        audio_session.pChannelVolume;
+      ISimpleAudioVolume     *pVolume        =
+        audio_session.pVolume;
+
       IAudioMeterInformation *pMeterInfo =
         SK_WASAPI_GetAudioMeterInfo ();
-
-#ifndef REACQUIRE_WASAPI_INTERFACES
-      static
-#endif
-      ISimpleAudioVolume* pVolume =
-        SK_WASAPI_GetVolumeControl ();
 
       if (pMeterInfo != nullptr)
       {
@@ -1335,14 +1625,10 @@ SK_ImGui_ControlPanel (void)
           ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f,  val));
           ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f,  val));
           ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor ( 1.0f,  1.0f,  1.0f, 1.0f));
-          ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (0.95f, 0.79f, 0.18f, 1.0f));
+          ImGui::PushStyleColor (ImGuiCol_Text,           ImColor::HSV ( 0.15f, 0.0f,
+                                                                           0.5f + master_vol * 0.5f) );
 
-          static char szMasterSliderTitle [64] = { '\0' };
-          snprintf (  szMasterSliderTitle, 63,
-                        "      Master Volume Control  (%03.1f%%)###MasterVol",
-                          master_vol * 100.0f );
-
-          if (ImGui::SliderFloat (szMasterSliderTitle, &master_vol, 0.0, 1.0, ""))
+          if (ImGui::SliderFloat ("      Master Volume Control  ", &master_vol, 0.0, 1.0, ""))
           {
             if (master_mute)
             {
@@ -1352,6 +1638,13 @@ SK_ImGui_ControlPanel (void)
 
             pVolume->SetMasterVolume (master_vol, nullptr);
           }
+
+          ImGui::SameLine ();
+
+          ImGui::TextColored ( ImColor::HSV ( 0.15f, 0.9f,
+                                                0.5f + master_vol * 0.5f),
+                                 "(%03.1f%%)",
+                                   master_vol * 100.0f );
 
           ImGui::PopStyleColor (5);
           ImGui::Separator     ( );
@@ -1387,6 +1680,8 @@ SK_ImGui_ControlPanel (void)
 
               if (channel_volumes.count (i) == 0)
               {
+                session_changed = true;
+
                 snprintf (channel_volumes [i].mute_button, 13, "  Mute  ##%lu", i);
                 snprintf (channel_volumes [i].slider_label, 7, "##vol%lu",      i);
               }
@@ -1395,6 +1690,13 @@ SK_ImGui_ControlPanel (void)
               {
                 volume_s& ch_vol =
                   channel_volumes [i];
+
+                if (session_changed)
+                {
+                  channel_volumes [i].muted      = (channel_volumes [i].volume <= 0.001f);
+                  channel_volumes [i].normalized = (channel_volumes [i].volume  > 0.001f ?
+                                                    channel_volumes [i].volume : 1.0f);
+                }
 
                 bool  changed     = false;
                 float volume_orig = ch_vol.normalized;
@@ -1504,14 +1806,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::Columns (1);
         }
 
-#ifdef REACQUIRE_WASAPI_INTERFACES
-        if (pChannelVolume != nullptr)
-          pChannelVolume->Release ();
-
         pMeterInfo->Release ();
-
-        pVolume->Release ();
-#endif
       }
 
       ImGui::TreePop ();

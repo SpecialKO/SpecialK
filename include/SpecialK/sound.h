@@ -27,10 +27,12 @@
 #include <endpointvolume.h>
 
 void                    __stdcall SK_SetGameMute                    (bool bMute);
-IAudioMeterInformation* __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
 
-ISimpleAudioVolume*     __stdcall SK_WASAPI_GetVolumeControl        (void);
-IChannelAudioVolume*    __stdcall SK_WASAPI_GetChannelVolumeControl (void);
+IAudioMeterInformation* __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
+ISimpleAudioVolume*     __stdcall SK_WASAPI_GetVolumeControl        (DWORD   proc_id = GetCurrentProcessId ());
+IChannelAudioVolume*    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD   proc_id = GetCurrentProcessId ());
+void                    __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* count, DWORD* procs = nullptr);
+
 const char*             __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
 #endif /* __SK__SOUND_H__ */

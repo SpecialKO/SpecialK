@@ -121,6 +121,7 @@ SK_Console::Start (void)
     return;
   }
 
+#if 0
   hMsgPump =
     (HANDLE)
       _beginthreadex ( nullptr,
@@ -129,6 +130,7 @@ SK_Console::Start (void)
                              &hooks,
                                0,
                                  nullptr );
+#endif
 }
 
 void
@@ -141,6 +143,7 @@ SK_Console::End (void)
   }
 
   if (hMsgPump != 0) {
+    TerminateThread (hMsgPump, 0x00);
     hMsgPump = 0;
   }
 
