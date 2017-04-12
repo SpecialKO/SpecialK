@@ -307,6 +307,7 @@ struct sk_config_t
       };
       bool    capture_keyboard  = false;
       bool    capture_gamepad   = false;
+      bool    use_raw_input     =  true;
     } ui;
   } input;
 

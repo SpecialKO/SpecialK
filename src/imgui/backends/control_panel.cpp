@@ -359,7 +359,7 @@ struct SK_WASAPI_AudioSession
           else
             SendMessageW (hWndRoot, WM_GETTEXT, 511, (LPARAM)wszTitle);
 
-          WideCharToMultiByte ( CP_UTF8, 0x00, wszTitle, wcslen (wszTitle), szTitle, 511, nullptr, FALSE );
+          WideCharToMultiByte ( CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE );
 
           audio_session.async_result   = szTitle;
           audio_session.async_complete = true;
@@ -449,7 +449,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
            else
              SendMessageW (hWndRoot, WM_GETTEXT, 511, (LPARAM)wszTitle);
 
-           WideCharToMultiByte ( CP_UTF8, 0x00, wszTitle, wcslen (wszTitle), szTitle, 511, nullptr, FALSE );
+           WideCharToMultiByte ( CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE );
 
 // Use the ANSI versions
 #undef PROCESSENTRY32
@@ -552,7 +552,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
       }
     }
 
-    if (ImGui::ListBox ("Audio\nSessions", &data.sel, data.names.data (), (int)data.names.size (), std::min (data.names.size (), (size_t)10)))
+    if (ImGui::ListBox ("Audio\nSessions", &data.sel, data.names.data (), (int)data.names.size (), (int)std::min (data.names.size (), (size_t)10)))
     {
                                        DWORD dwProcId = data.processes [data.sel];
       audio_session.selectSessionFromProcId (dwProcId,      data.names [data.sel]);
@@ -2626,15 +2626,22 @@ SK_ImGui_Toggle (void)
 #endif
 }
 
-#define IMGUI_USE_RAW_INPUT
-
 extern LONG SK_RawInput_MouseX;
 extern LONG SK_RawInput_MouseY;
+
+typedef BOOL (WINAPI *SetCursorPos_pfn)
+(
+  _In_ int X,
+  _In_ int Y
+);
+
+extern SetCursorPos_pfn  SetCursorPos_Original;
 
 void
 SK_ImGui_CenterCursorOnWindow (void)
 {
-#ifdef IMGUI_USE_RAW_INPUT
+  if (config.input.ui.use_raw_input)
+  {
     if ( SK_ImGui_LastWindowCenter.x < 0.0f ||
          SK_ImGui_LastWindowCenter.y < 0.0f )
     {
@@ -2653,8 +2660,10 @@ SK_ImGui_CenterCursorOnWindow (void)
       ImGui::GetIO ().MousePos.x = SK_ImGui_LastWindowCenter.x;
       ImGui::GetIO ().MousePos.y = SK_ImGui_LastWindowCenter.y;
     }
-#else
+  }
+  else
+  {
     SetCursorPos_Original ( (int)ImGui::GetIO ().DisplaySize.x / 2, 
                             (int)ImGui::GetIO ().DisplaySize.y / 2 );
-#endif
+  }
 }

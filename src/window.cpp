@@ -43,7 +43,6 @@
 #include <SpecialK/osd/text.h>
 
 #define SK_LOG_FIRST_CALL
-#define IMGUI_USE_RAW_INPUT
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -163,6 +162,8 @@ typedef VOID(WINAPI *mouse_event_pfn)(
 );
 
 mouse_event_pfn mouse_event_Original = nullptr;
+
+extern bool SK_ImGui_Visible;
 
 BOOL
 CALLBACK
@@ -397,7 +398,7 @@ public:
               game_window.actual.client = RECT { last_known_client.left,last_known_client.top,last_known_client.right,last_known_client.bottom };
               game_window.actual.window = RECT { last_known_window.left,last_known_window.top,last_known_window.right,last_known_window.bottom };
 
-              if (! config.window.unconfine_cursor)
+              if (! config.window.unconfine_cursor || (SK_ImGui_Visible && config.input.ui.use_raw_input))
               {
                 RECT clip = game_window.actual.window;
 
@@ -862,8 +863,6 @@ SK_ReverseCursorPos (LPPOINT lpPoint)
                        game_window.coord_remap.offset.y );
 }
 
-extern bool SK_ImGui_Visible;
-
 ULONG   game_mouselook = 0;
 int     game_x, game_y;
 HCURSOR game_cursor    = 0;
@@ -1176,7 +1175,7 @@ ClipCursor_Detour (const RECT *lpRect)
   // While ImGui is visible, we will be clipping the cursor so that
   //   nothing can move it. Raw Input will catch delta movement even
   //     if the physical cursor never moves.
-  if (config.input.ui.capture && SK_ImGui_Visible)
+  if ((config.input.ui.capture || config.input.ui.use_raw_input) && SK_ImGui_Visible)
     return TRUE;
 
   // Don't let the game unclip the cursor, but DO remember the
@@ -1211,7 +1210,7 @@ ClipCursor_Detour (const RECT *lpRect)
 
 
   // Prevent the game from clipping the cursor
-  if (config.window.unconfine_cursor)
+  if (config.window.unconfine_cursor && ! (SK_ImGui_Visible && config.input.ui.use_raw_input))
     return ClipCursor_Original (nullptr);
 
 
@@ -2579,6 +2578,7 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
   {
     static HRAWINPUT last_input        = 0;
            bool      already_processed = (hRawInput == last_input);
+
            // Since we filter out WM_INPUT messages to the game on occasion, this means
            //   we have to call GetRawInputData (...) ourselves. Sometimes this would
            //     result in a message being processed twice, and that would be BAD!
@@ -2594,60 +2594,63 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
       {
         case RIM_TYPEMOUSE:
         {
-#ifdef IMGUI_USE_RAW_INPUT
-          if (! already_processed)
+          if (config.input.ui.use_raw_input)
           {
-            SK_RawInput_MouseX += ((RAWINPUT *)pData)->data.mouse.lLastX;
-            SK_RawInput_MouseY += ((RAWINPUT *)pData)->data.mouse.lLastY;
-
-            // Clamp the (virtual) mouse so it doesn't leave the window
-            SK_RawInput_MouseX =
-              std::min (
-                std::max ( 0L,
-                             SK_RawInput_MouseX
-                         ),
-                  (LONG)ImGui::GetIO ().DisplaySize.x
-              );
-
-            SK_RawInput_MouseY =
-              std::min (
-                std::max ( 0L,
-                             SK_RawInput_MouseY
-                         ),
-                  (LONG)ImGui::GetIO ().DisplaySize.y
-              );
-
-            if (SK_ImGui_Visible)
+            if (! already_processed)
             {
-              ImGui::GetIO ().MousePos.x = (float)SK_RawInput_MouseX;
-              ImGui::GetIO ().MousePos.y = (float)SK_RawInput_MouseY;
+              SK_RawInput_MouseX += ((RAWINPUT *)pData)->data.mouse.lLastX;
+              SK_RawInput_MouseY += ((RAWINPUT *)pData)->data.mouse.lLastY;
 
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
-                ImGui::GetIO ().MouseDown [0] = true;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
-                ImGui::GetIO ().MouseDown [1] = true;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
-                ImGui::GetIO ().MouseDown [2] = true;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
-                ImGui::GetIO ().MouseDown [3] = true;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
-                ImGui::GetIO ().MouseDown [4] = true;
+              // Clamp the (virtual) mouse so it doesn't leave the window
+              SK_RawInput_MouseX =
+                std::min (
+                  std::max ( 0L,
+                               SK_RawInput_MouseX
+                           ),
+                    (LONG)ImGui::GetIO ().DisplaySize.x
+                );
 
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
-                ImGui::GetIO ().MouseDown [0] = false;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
-                ImGui::GetIO ().MouseDown [1] = false;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP )
-                ImGui::GetIO ().MouseDown [2] = false;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP      )
-                ImGui::GetIO ().MouseDown [3] = false;
-              if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
-                ImGui::GetIO ().MouseDown [4] = false;
+              SK_RawInput_MouseY =
+                std::min (
+                  std::max ( 0L,
+                               SK_RawInput_MouseY
+                           ),
+                    (LONG)ImGui::GetIO ().DisplaySize.y
+                );
+
+              if (SK_ImGui_Visible && config.input.ui.use_raw_input)
+              {
+                ImGui::GetIO ().MousePos.x = (float)SK_RawInput_MouseX;
+                ImGui::GetIO ().MousePos.y = (float)SK_RawInput_MouseY;
+
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
+                  ImGui::GetIO ().MouseDown [0] = true;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
+                  ImGui::GetIO ().MouseDown [1] = true;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
+                  ImGui::GetIO ().MouseDown [2] = true;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
+                  ImGui::GetIO ().MouseDown [3] = true;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
+                  ImGui::GetIO ().MouseDown [4] = true;
+
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
+                  ImGui::GetIO ().MouseDown [0] = false;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
+                  ImGui::GetIO ().MouseDown [1] = false;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP )
+                  ImGui::GetIO ().MouseDown [2] = false;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP      )
+                  ImGui::GetIO ().MouseDown [3] = false;
+                if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
+                  ImGui::GetIO ().MouseDown [4] = false;
+                //if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL        )
+                  //ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData) / WHEEL_DELTA;
+              }
             }
-          }
 
-          last_input = hRawInput;
-#endif
+            last_input = hRawInput;
+          }
 
           if (SK_ImGui_Visible)
           {
@@ -2740,6 +2743,10 @@ GetAsyncKeyState_Detour (_In_ int vKey)
   if (config.window.background_render && (! game_window.active))
     SK_ConsumeVKey (vKey);
 
+  // Some games use this API for mouse buttons, for reasons that are beyond me...
+  if (ImGui_WantMouseCapture () && vKey < 5)
+    SK_ConsumeVKey (vKey);
+
   return GetAsyncKeyState_Original (vKey);
 }
 
@@ -2756,6 +2763,10 @@ GetKeyState_Detour (_In_ int nVirtKey)
 
   // Block keyboard input to the game while it's in the background
   if (config.window.background_render && (! game_window.active))
+    return 0;
+
+  // Some games use this API for mouse buttons, for reasons that are beyond me...
+  if (ImGui_WantMouseCapture () && nVirtKey < 5)
     return 0;
 
   return GetKeyState_Original (nVirtKey);
@@ -2915,9 +2926,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       rawinput_capture = (uMsg == WM_INPUT);
     }
 
-#ifdef IMGUI_USE_RAW_INPUT
-    rawinput_capture = (uMsg == WM_INPUT);
-#endif
+    if (config.input.ui.use_raw_input)
+      rawinput_capture = (uMsg == WM_INPUT);
 
     bool filter = true;
 
@@ -2949,28 +2959,40 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           {
             case RIM_TYPEMOUSE:
               filter = io.WantCaptureMouse || config.input.ui.capture;
-#ifdef IMGUI_USE_RAW_INPUT
-              data = { 0 };
-              size = sizeof RAWINPUT;
-              
-              GetRawInputData ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header));
-#endif
+
+              if (config.input.ui.use_raw_input)
+              {
+                data = { 0 };
+                size = sizeof RAWINPUT;
+                
+                GetRawInputData ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header));
+              }
               break;
 
             case RIM_TYPEKEYBOARD:
               filter = io.WantCaptureKeyboard;
-#ifdef IMGUI_USE_RAW_INPUT
-              data = { 0 };
-              size = sizeof RAWINPUT;
-              
-              GetRawInputData ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header));
-#endif
+
+              if (config.input.ui.use_raw_input)
+              {
+                data = { 0 };
+                size = sizeof RAWINPUT;
+                
+                GetRawInputData ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header));
+              }
               break;
           }
         }
 
         if (filter)
           return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      }
+
+      if ( ( ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
+           ( ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
+      {
+        // Block Mouse Input
+        if ((wParam & 0xFF) < 5)
+          return 0;
       }
 
       else
@@ -3148,7 +3170,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
 
 
-      if (config.window.confine_cursor && state_changed)
+      if ((config.window.confine_cursor || (SK_ImGui_Visible && config.input.ui.use_raw_input)) && state_changed)
       {
         if (active)
         {
@@ -3170,7 +3192,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
       }
 
-      if (config.window.unconfine_cursor && state_changed)
+      if (config.window.unconfine_cursor && ! (SK_ImGui_Visible && config.input.ui.use_raw_input) && state_changed)
       {
         SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
                     L"Window Mgr" );
@@ -3395,11 +3417,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           config.window.res.override.y = 0;
         }
 
-        if (config.window.unconfine_cursor)
-          ClipCursor_Original (nullptr);
-
-        else if (config.window.confine_cursor)
+       if (config.window.confine_cursor || (SK_ImGui_Visible && config.input.ui.use_raw_input))
           ClipCursor_Original (&game_window.actual.window);
+
+        else if (config.window.unconfine_cursor)
+          ClipCursor_Original (nullptr);
       }
 
       // Filter this message
@@ -3416,10 +3438,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
-      if (config.window.unconfine_cursor)
-        ClipCursor_Original (nullptr);
-      else if (config.window.confine_cursor)
+      if (config.window.confine_cursor || (SK_ImGui_Visible && config.input.ui.use_raw_input))
         ClipCursor_Original (&game_window.actual.window);
+      else if (config.window.unconfine_cursor)
+        ClipCursor_Original (nullptr);
 
 
       // Filter this message
@@ -3430,7 +3452,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       case WM_SIZING:
       case WM_MOVING:
-        if (config.window.unconfine_cursor)
+        if ((! (SK_ImGui_Visible && config.input.ui.use_raw_input)) && config.window.unconfine_cursor)
           ClipCursor_Original (nullptr);
 
         // Filter this message
@@ -3720,7 +3742,7 @@ SK_InstallWindowHook (HWND hWnd)
   {
     RAWINPUTDEVICE* pDevs = new RAWINPUTDEVICE [count];
 
-    for (int i = 0 ; i < count ; i++)
+    for (UINT i = 0 ; i < count ; i++)
     {
       if (pDevs [i].usUsage == 2 && pDevs [i].usUsagePage == 1)
       {

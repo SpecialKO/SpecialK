@@ -9908,19 +9908,24 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
       if (! active)
       {
-          for (int i = 0; i < 5;   i++)  io.MouseDown [i] = false;
-          for (int i = 0; i < 512; i++)  io.KeysDown  [i] = false;
+        for (int i = 0; i < 5;   i++) io.MouseDown [i] = false;
+        for (int i = 5; i < 512; i++) io.KeysDown  [i] = false;
       }
     };
 
-  if (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST) {
+  if (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST)
+  {
     DWORD dwPos = GetMessagePos ();
     POINT    pt { (signed short)dwPos, (signed short)(dwPos >> 16) };
 
-    //if (ScreenToClient (hWnd, &pt)) {
-//      io.MousePos.x = static_cast <float> (pt.x);
-//      io.MousePos.y = static_cast <float> (pt.y);
-    //}
+    if (! config.input.ui.use_raw_input) 
+    {
+      if (ScreenToClient (hWnd, &pt))
+      {
+        io.MousePos.x = static_cast <float> (pt.x);
+        io.MousePos.y = static_cast <float> (pt.y);
+      }
+    }
   }
 
   switch (msg)
@@ -9957,51 +9962,52 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     }
   } break;
 
+
   case WM_LBUTTONDOWN:
   //case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
-    //io.MouseDown [0] = true;
+    if (! config.input.ui.use_raw_input) io.MouseDown [0] = true;
     return true;
 
   case WM_LBUTTONUP:
-    //io.MouseDown [0] = false;
+    if (! config.input.ui.use_raw_input) io.MouseDown [0] = false;
     return true;
 
   case WM_RBUTTONDOWN:
   //case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
-    //io.MouseDown [1] = true;
+    if (! config.input.ui.use_raw_input) io.MouseDown [1] = true;
     return true;
 
   case WM_RBUTTONUP:
-    //io.MouseDown [1] = false;
+    if (! config.input.ui.use_raw_input) io.MouseDown [1] = false;
     return true;
 
   case WM_MBUTTONDOWN:
   //case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
-    //io.MouseDown [2] = true;
+    if (! config.input.ui.use_raw_input) io.MouseDown [2] = true;
     return true;
 
   case WM_MBUTTONUP:
-    //io.MouseDown [2] = false;
+    if (! config.input.ui.use_raw_input) io.MouseDown [2] = false;
     return true;
 
   case WM_MOUSEWHEEL:
-    io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? +1.0f : -1.0f;
+    /*if (! config.input.ui.use_raw_input)*/ io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? +1.0f : -1.0f;
     return true;
 
   case WM_KEYDOWN:
-    if (wParam < 256) {
+    if (wParam > 5 && wParam < 256) {
       io.KeysDown [wParam] = 1;
     }
     return true;
 
   case WM_KEYUP:
-    if (wParam < 256)
+    if (wParam > 5 && wParam < 256)
       io.KeysDown [wParam] = 0;
     return true;
 
   case WM_CHAR:
     // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-    if (wParam > 0 && wParam < 0x10000)
+    if (wParam > 5 && wParam < 0x10000)
       io.AddInputCharacter((unsigned short)wParam);
     return true;
   }
