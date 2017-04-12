@@ -243,6 +243,44 @@ namespace SK_ImGui
 
     return ret;
   }
+
+  // Should return true when clicked, this is not consistent with
+  //   the rest of the ImGui API.
+  bool BatteryMeter (void)
+  {
+    ISteamUtils* utils =
+      SK_SteamAPI_Utils ();
+
+    if (utils)
+    {
+      uint8_t battery_level =
+        utils->GetCurrentBatteryPower ();
+      
+      if (battery_level != 255) // 255 = Running on AC
+      {
+        float battery_ratio = (float)battery_level/100.0f;
+
+        static char szBatteryLevel [128] = { '\0' };
+        snprintf (szBatteryLevel, 127, "%lu%% Battery Charge Remaining", battery_level);
+
+        ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, 0.666f));
+        ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255));
+        ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
+        ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+
+        ImGui::ProgressBar ( battery_ratio,
+                               ImVec2 (-1, 0),
+                                 szBatteryLevel );
+
+        ImGui::PopStyleColor  (5);
+
+        return true;
+      }
+    }
+
+    return false;
+  }
 } // namespace SK_ImGui
 
 ImVec2 SK_ImGui_LastWindowCenter (-1.0f, -1.0f);
@@ -737,7 +775,13 @@ SK_ImGui_ControlPanel (void)
                       sum / 120.0f, target_frametime,
                         min, max, max - min,
                           1000.0f / (sum / 120.0f), (max - min) / (1000.0f / (sum / 120.0f)) );
-      
+
+        ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+                                  ImColor::HSV ( 0.31f - 0.31 *
+                           std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
+                                                   0.73f,
+                                                     0.93f ) );
+
         ImGui::PlotLines ( "",
                              values,
                                IM_ARRAYSIZE (values),
@@ -747,6 +791,8 @@ SK_ImGui_ControlPanel (void)
                                        2.0f * target_frametime,
                                          ImVec2 (
                                            std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 7) );
+
+        ImGui::PopStyleColor ();
 
         bool changed = ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.005f, 0.75);
         
@@ -799,7 +845,7 @@ SK_ImGui_ControlPanel (void)
       ////if (ImGui::IsItemHovered ())
         ////ImGui::SetTooltip ("Increased compatibility with video capture software");
 
-      if (ImGui::CollapsingHeader ("Texture Management"))
+      if (false)//ImGui::CollapsingHeader ("Texture Management"))
       {
         ImGui::TreePush ("");
         ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache); 
@@ -2079,98 +2125,12 @@ SK_ImGui_ControlPanel (void)
       if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
                                                           ImGuiTreeNodeFlags_DefaultOpen ) )
       {
-        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
-        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
-        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
-        ImGui::TreePush       ("");
-
-        if ( SK_SteamAPI_GetNumPossibleAchievements () > 0 &&
-             ImGui::CollapsingHeader ("Achievements") )
+        if (SK_SteamAPI_GetNumPossibleAchievements () > 0)
         {
-          ImGui::TreePush ("");
-
-          ImGui::Checkbox ("Play Sound on Unlock ", &config.steam.achievements.play_sound);
-
-          if (config.steam.achievements.play_sound) {
-            ImGui::SameLine ();
-            
-            int i = 0;
-            
-            if (! _wcsicmp (config.steam.achievements.sound_file.c_str (), L"xbox"))
-              i = 1;
-            else
-              i = 0;
-            
-            if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0\0", 2))
-            {
-              if (i == 0) config.steam.achievements.sound_file = L"psn";
-                     else config.steam.achievements.sound_file = L"xbox";
-            
-              extern void
-              SK_SteamAPI_LoadUnlockSound (const wchar_t* wszUnlockSound);
-            
-              SK_SteamAPI_LoadUnlockSound (config.steam.achievements.sound_file.c_str ());
-            }
-          }
-
-          ImGui::Checkbox ("Take Screenshot on Unlock", &config.steam.achievements.take_screenshot);
-
-          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
-
-          if (ImGui::CollapsingHeader ("Enhanced Popup"))
-          {
-            ImGui::TreePush ("");
-
-            int mode = (config.steam.achievements.popup.show + config.steam.achievements.popup.animate);
-
-            if ( ImGui::Combo ( "Draw Mode",
-                                      &mode,
-                                        "Disabled\0"
-                                        "Stationary\0"
-                                        "Animated\0\0" ) )
-            {
-              config.steam.achievements.popup.show    = (mode > 0);
-              config.steam.achievements.popup.animate = (mode > 1);
-
-              // Make sure the duration gets set non-zero when this changes
-              if (config.steam.achievements.popup.show)
-              {
-                if ( config.steam.achievements.popup.duration == 0 )
-                  config.steam.achievements.popup.duration = 6666UL;
-              }
-            }
-
-            float duration = std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
-
-            if ( ImGui::SliderFloat ( "Duration (seconds)",            &duration, 1.0f, 30.0f ) )
-            {
-              config.steam.achievements.popup.duration = static_cast <LONG> ( duration * 1000.0f );
-            }
-
-            ImGui::Combo     ( "Location",                      &config.steam.achievements.popup.origin,
-                                        "Top-Left\0"
-                                        "Top-Right\0"
-                                        "Bottom-Left\0"
-                                        "Bottom-Right\0\0" );
-            
-            //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
-            ImGui::TreePop     ( );
-          }
-
-          ImGui::PopStyleColor (3);
-
-          extern void
-          SK_UnlockSteamAchievement (uint32_t idx);
-
-          if (ImGui::Button ("Test Unlock"))
-            SK_UnlockSteamAchievement (0);
-
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Perform a FAKE unlock so that you can tune your preferences.");
-
-          ImGui::SameLine ();
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
+          ImGui::TreePush       ("");
 
           static char szProgress [128] = { '\0' };
 
@@ -2187,10 +2147,10 @@ SK_ImGui_ControlPanel (void)
                                       szProgress );
           ImGui::PopStyleColor  ();
 
-          if (ImGui::IsItemHovered ())
-          {
-            int friends = SK_SteamAPI_GetNumFriends ();
+          int friends = SK_SteamAPI_GetNumFriends ();
 
+          if (friends && ImGui::IsItemHovered ())
+          {
             ImGui::BeginTooltip ( );
 
             static int num_records = 0;
@@ -2200,6 +2160,8 @@ SK_ImGui_ControlPanel (void)
               num_records = 0;
 
             ImGui::BeginGroup     ();
+
+            ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              ); 
             ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
 
             for (int i = 0; i < friends; i++)
@@ -2223,39 +2185,130 @@ SK_ImGui_ControlPanel (void)
                 size_t      len    = 0;
                 const char* szName = SK_SteamAPI_GetFriendName (i, &len);
 
-                ImGui::ProgressBar ( (float)count / (float)num_achievements, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
-                ImGui::SameLine    ();
-                ImGui::Text        ("%s", szName);
+                ImGui::ProgressBar    ( (float)count / (float)num_achievements, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
+                ImGui::SameLine       ();
+                ImGui::PushStyleColor (ImGuiCol_Text, ImColor (.81f, 0.81f, 0.81f));
+                ImGui::Text           ("%s", szName);
+                ImGui::PopStyleColor  (1);
 
                 ++num_records;
               }
             }
 
-            ImGui::PopStyleColor  ();
-            ImGui::EndGroup       ();
-            ImGui::EndTooltip     ();
+            ImGui::PopStyleColor  (2);
+            ImGui::EndGroup       ( );
+            ImGui::EndTooltip     ( );
           }
 
-          ImGui::TreePop     ();
-        }
+          if (ImGui::CollapsingHeader ("Achievements") )
+          {
+            ImGui::TreePush ("");
+            ImGui::BeginGroup ();
+            extern void
+            SK_UnlockSteamAchievement (uint32_t idx);
 
-        if (ImGui::CollapsingHeader ("Compatibility"))
-        {
-          ImGui::TreePush ("");
-          ImGui::Checkbox ("Load Steam Client DLL Early", &config.steam.preload_client);
+            if (ImGui::Button (" Test Unlock "))
+              SK_UnlockSteamAchievement (0);
 
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Perform a FAKE unlock so that you can tune your preferences.");
 
-          ImGui::SameLine ();
+            ImGui::SameLine ();
 
-          ImGui::Checkbox ("Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
+            ImGui::Checkbox ("Play Sound ", &config.steam.achievements.play_sound);
 
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("For games that freak out if they are flooded with achievement information, turn this on\n\n"
-                               "You can tell if a game has this problem by a stuck SteamAPI Frame counter.");
+            if (config.steam.achievements.play_sound) {
+              ImGui::SameLine ();
+              
+              int i = 0;
+              
+              if (! _wcsicmp (config.steam.achievements.sound_file.c_str (), L"xbox"))
+                i = 1;
+              else
+                i = 0;
+              
+              if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0\0", 2))
+              {
+                if (i == 0) config.steam.achievements.sound_file = L"psn";
+                       else config.steam.achievements.sound_file = L"xbox";
+              
+                extern void
+                SK_SteamAPI_LoadUnlockSound (const wchar_t* wszUnlockSound);
+              
+                SK_SteamAPI_LoadUnlockSound (config.steam.achievements.sound_file.c_str ());
+              }
+            }
 
-          ImGui::TreePop  ();
+            ImGui::EndGroup ();
+            ImGui::SameLine ();
+
+            ImGui::Checkbox ("Take Screenshot", &config.steam.achievements.take_screenshot);
+
+            ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+            ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+            ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+
+            if (ImGui::CollapsingHeader ("Enhanced Popup"))
+            {
+              ImGui::TreePush ("");
+
+              int  mode    = (config.steam.achievements.popup.show + config.steam.achievements.popup.animate);
+              bool changed = false;
+
+              ImGui::Text          ("Draw Mode:");                              ImGui::SameLine ();
+
+              changed |=
+                ImGui::RadioButton ("Disabled ##AchievementPopup",   &mode, 0); ImGui::SameLine ();
+              changed |=
+                ImGui::RadioButton ("Stationary ##AchievementPopup", &mode, 1); ImGui::SameLine ();
+              ImGui::BeginGroup    ( );
+              changed |=
+                ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
+
+                ImGui::SameLine   ( );
+                ImGui::Combo      ( "##PopupLoc",         &config.steam.achievements.popup.origin,
+                                            "Top-Left\0"
+                                            "Top-Right\0"
+                                            "Bottom-Left\0"
+                                            "Bottom-Right\0\0" );
+
+              if ( changed )
+              {
+                config.steam.achievements.popup.show    = (mode > 0);
+                config.steam.achievements.popup.animate = (mode > 1);
+
+                // Make sure the duration gets set non-zero when this changes
+                if (config.steam.achievements.popup.show)
+                {
+                  if ( config.steam.achievements.popup.duration == 0 )
+                    config.steam.achievements.popup.duration = 6666UL;
+                }
+              }
+
+              if (config.steam.achievements.popup.show)
+              {
+                ImGui::BeginGroup ( );
+                ImGui::TreePush   ("");
+                ImGui::Text       ("Duration:"); ImGui::SameLine ();
+
+                float duration = std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
+
+                if ( ImGui::SliderFloat ( "##PopupDuration", &duration, 1.0f, 30.0f, "%.2f Seconds" ) )
+                {
+                  config.steam.achievements.popup.duration = static_cast <LONG> ( duration * 1000.0f );
+                }
+                ImGui::TreePop   ( );
+                ImGui::EndGroup  ( );
+              }
+              ImGui::EndGroup    ( );
+              
+              //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
+              ImGui::TreePop     ( );
+            }
+
+            ImGui::TreePop       ( );
+            ImGui::PopStyleColor (3);
+          }
         }
 
         if (ImGui::CollapsingHeader ("Overlay Notifications"))
@@ -2277,6 +2330,36 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::TreePop ();
         }
+
+        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+
+        if (ImGui::CollapsingHeader ("Compatibility"))
+        {
+          ImGui::TreePush ("");
+          ImGui::Checkbox (" Load Steam Client DLL Early  ", &config.steam.preload_client);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
+
+          ImGui::SameLine ();
+
+          ImGui::Checkbox (" Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
+
+          if (ImGui::IsItemHovered ()) {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Fix for Games that Panic when Flooded with Achievement Data");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("These Games may shutdown SteamAPI when Special K fetches Friend Achievements");
+            ImGui::BulletText   ("If SteamAPI Frame Counter is STUCK, turn this option ON and restart the Game");
+            ImGui::EndTooltip   ();
+          }
+
+          ImGui::TreePop  ();
+        }
+
+        ImGui::PopStyleColor (3);
 
         bool valid = (! config.steam.silent);
 
@@ -2302,6 +2385,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePop       ( );
         ImGui::PopStyleColor (3);
       }
+
+      SK_ImGui::BatteryMeter ();
 
       //ImGui::CollapsingHeader ("Window Management");
       //if (ImGui::CollapsingHeader ("Software Updates")) {
@@ -2375,10 +2460,11 @@ SK_ImGui_ControlPanel (void)
                  );
         
         ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
+        ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              ); 
         ImGui::ProgressBar (
           SK_SteamAPI_FriendStatPercentage (),
             ImVec2 (-1, 0), szLabel );
-        ImGui::PopStyleColor  ();
+        ImGui::PopStyleColor  (2);
       }
     }
 

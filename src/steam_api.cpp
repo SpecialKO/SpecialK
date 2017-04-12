@@ -4202,6 +4202,12 @@ SK::SteamAPI::PercentOfAchievementsUnlocked (void)
   return SK_SteamAPI_PercentOfAchievementsUnlocked ();
 }
 
+ISteamUtils*
+SK_SteamAPI_Utils (void)
+{
+  return steam_ctx.Utils ();
+}
+
 
 uint32_t
 __stdcall

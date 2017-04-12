@@ -2401,6 +2401,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (version->load ())
     config.system.version = version->get_value ();
 
+
+  //
+  // EMERGENCY OVERRIDES
+  //
+  config.textures.d3d11.cache = false; // Has new performance problems.
+
   if (empty)
     return false;
 
