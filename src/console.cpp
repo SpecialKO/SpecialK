@@ -121,6 +121,12 @@ SK_Console::Start (void)
     return;
   }
 
+  char* text = SK_Console::getInstance ()->text;
+
+  ZeroMemory (text, 4096);
+
+  text [0] = '>';
+
 #if 0
   hMsgPump =
     (HANDLE)
@@ -169,12 +175,6 @@ SK_Console::MessagePump (LPVOID hook_ptr)
 {
   // Old interface, no longer valid -- legacy remains.
   UNREFERENCED_PARAMETER (hook_ptr);
-
-  char* text = SK_Console::getInstance ()->text;
-
-  ZeroMemory (text, 4096);
-
-  text [0] = '>';
 
   HWND  hWndForeground;
   DWORD dwThreadId;

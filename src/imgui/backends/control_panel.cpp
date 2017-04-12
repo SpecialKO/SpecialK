@@ -111,6 +111,8 @@ extern bool
 __stdcall
 SK_SteamAPI_GetOverlayState (bool real);
 
+extern void ImGui_ToggleCursor (void);
+
 #include <map>
 #include <unordered_set>
 #include <d3d11.h>
@@ -242,6 +244,8 @@ namespace SK_ImGui
     return ret;
   }
 } // namespace SK_ImGui
+
+ImVec2 SK_ImGui_LastWindowCenter (-1.0f, -1.0f);
 
 const char*
 SK_ImGui_ControlPanelTitle (void)
@@ -565,6 +569,24 @@ SK_ImGui_SelectAudioSessionDlg (void)
   return changed;
 }
 
+void
+SK_ImGui_AdjustCursor (void)
+{
+  CreateThread ( nullptr, 0,
+    [](LPVOID user)->
+    DWORD
+    {
+      ImGui_ToggleCursor  ();        // Unclip / record original clip rect
+      ClipCursor_Original (nullptr);
+        SK_AdjustWindow   ();        // Restore game's clip cursor behavior
+      ImGui_ToggleCursor  ();        // Clip   / restore
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, nullptr, 0x00, nullptr );
+}
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -853,6 +875,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::Text         ("Restrict the lowest/highest resolutions reported to a game");
         ImGui::Separator    ();
         ImGui::BulletText   ("Useful for games that compute aspect ratio based on the highest reported resolution.");
+        ImGui::BulletText   ("ONLY WORKS when the Config UI is CLOSED");
         ImGui::EndTooltip   ();
       }
 
@@ -1063,18 +1086,37 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::CollapsingHeader ("Mouse Cursor"))
       {
         ImGui::TreePush ("");
-        ImGui::Checkbox ( "Auto-Hide When Not Moved", &config.input.cursor.manage        );
-        ImGui::Checkbox ( "Keyboard Input Activates Cursor",
-                                                      &config.input.cursor.keys_activate );
+        ImGui::BeginGroup ();
+        ImGui::Checkbox   ( "Hide When Not Moved", &config.input.cursor.manage        );
+
+        if (config.input.cursor.manage) {
+          ImGui::TreePush ("");
+          ImGui::Checkbox ( "or Key Pressed",
+                                                   &config.input.cursor.keys_activate );
+          ImGui::TreePop  ();
+        }
+ 
+        ImGui::EndGroup   ();
+
+        ImGui::SameLine ();
 
         float seconds = 
           (float)config.input.cursor.timeout  / 1000.0f;
+
+        float val = config.input.cursor.manage ? 1.0f : 0.0f;
+
+        ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f,  val));
+        ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f,  val));
+        ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f,  val));
+        ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor ( 1.0f,  1.0f,  1.0f, 1.0f));
 
         if ( ImGui::SliderFloat ( "Seconds Before Hiding",
                                     &seconds, 0.0f, 30.0f ) )
         {
           config.input.cursor.timeout = static_cast <LONG> (( seconds * 1000.0f ));
         }
+
+        ImGui::PopStyleColor (4);
 
         if (! cursor_vis)
         {
@@ -1100,13 +1142,50 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePop ();
       }
 
-      ImGui::Checkbox ("Block Input to Game While UI is Open", &config.input.ui.capture);
+      if (ImGui::CollapsingHeader ("Input Backend", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        ImGui::TreePush      ("");
 
-      if (ImGui::IsItemHovered ()) {
-        ImGui::BeginTooltip ();
-          ImGui::Text       ("Special K tries to be cooperative with games and only captures input if the UI has focus...");
-          ImGui::BulletText ("If mouselook is causing problems, use this setting to force input capture unconditionally.");
-        ImGui::EndTooltip   ();
+        ImGui::BeginGroup    ();
+        ImGui::Text          ("Mouse Input API");
+        ImGui::TreePush      ("");
+        int  input_backend = 1;
+        bool changed       = false;
+
+        changed |=
+          ImGui::RadioButton ("Win32",     &input_backend, 0); ImGui::SameLine ();
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Win32 Mouse Processing is Temporarily Disabled");
+        changed |=
+          ImGui::RadioButton ("Raw Input", &input_backend, 1);
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Mouse will be restricted to game window while UI is open");
+
+        ImGui::TreePop       ();
+        ImGui::EndGroup      ();
+
+        ImGui::SameLine ();
+
+        ImGui::BeginGroup    ();
+        ImGui::Text          ("Input Capture (while UI is open)");
+        ImGui::TreePush      ("");
+
+        if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture))
+        {
+          SK_ImGui_AdjustCursor ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Movement");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("May help with mouselook in some games");
+          ImGui::EndTooltip    ();
+        }
+        ImGui::TreePop        ();
+        ImGui::EndGroup       ();
+        ImGui::TreePop        ();
       }
 
       ImGui::TreePop       ( );
@@ -1232,6 +1311,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::TreePush    ("");
             ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "\nPress Ctrl + Shift + ScrollLock to Toggle Drag-Lock Mode");
             ImGui::BulletText  ("Useful for Positioning Borderless Windows.");
+            ImGui::BulletText  ("Only Works with the Config UI CLOSED.");
             ImGui::Text        ("");
             ImGui::TreePop     ();
           }
@@ -1509,18 +1589,20 @@ SK_ImGui_ControlPanel (void)
           switch (ovr)
           {
             case 0:
-              DeferCommand ("Window.ConfineCursor 0");
-              DeferCommand ("Window.UnconfineCursor 0");
+              config.window.confine_cursor   = 0;
+              config.window.unconfine_cursor = 0;
               break;
             case 1:
-              DeferCommand ("Window.UnconfineCursor 0");
-              DeferCommand ("Window.ConfineCursor 1");
+              config.window.confine_cursor   = 1;
+              config.window.unconfine_cursor = 0;
               break;
             case 2:
-              DeferCommand ("Window.ConfineCursor 0");
-              DeferCommand ("Window.UnconfineCursor 1");
+              config.window.confine_cursor   = 0;
+              config.window.unconfine_cursor = 1;
               break;
           }
+
+          SK_ImGui_AdjustCursor ();
         }
 
         ImGui::TreePop ();
@@ -2300,6 +2382,12 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+  ImVec2 pos  = ImGui::GetWindowPos  ();
+  ImVec2 size = ImGui::GetWindowSize ();
+
+  SK_ImGui_LastWindowCenter.x = pos.x + size.x / 2.0f;
+  SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
+
   ImGui::End   ();
 
   return open;
@@ -2409,6 +2497,8 @@ SK_ImGui_Toggle (void)
     CURSORINFO cursor_info;
     cursor_info.cbSize = sizeof (CURSORINFO);
 
+    static HCURSOR hCursorOriginal = 0;
+
     GetCursorInfo_Original (&cursor_info);
 
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
@@ -2416,22 +2506,21 @@ SK_ImGui_Toggle (void)
     if (hModTBFix == nullptr) 
     {
       // Turns the hardware cursor on/off as needed
-      extern void ImGui_ToggleCursor (void);
-                  ImGui_ToggleCursor ();
+      ImGui_ToggleCursor ();
 
       // Transition: (Visible -> Invisible)
       if (SK_ImGui_Visible)
       {
-        //SetCursor (hCursorOriginal);
+        SetCursor (hCursorOriginal);
       }
 
       else
       {
-        //hCursorOriginal = cursor_info.hCursor;
+        hCursorOriginal = cursor_info.hCursor;
         cursor_vis      = (cursor_info.flags & CURSOR_SHOWING);
 
-        //if (cursor_vis)
-          //SetCursor (nullptr);
+        if (cursor_vis)
+          SetCursor (nullptr);
 
         if (EnableEULAIfPirate ())
           config.imgui.show_eula = true;
@@ -2443,6 +2532,11 @@ SK_ImGui_Toggle (void)
           eula.show             = config.imgui.show_eula;
           first                 = false;
         }
+
+        //
+        // If RawInput
+        //
+        ClipCursor_Original (&game_window.actual.window);
       }
     }
 
@@ -2487,6 +2581,7 @@ SK_ImGui_Toggle (void)
   // Send the game key release notifications when activating / deactivating menu
   //   otherwise some may consider a key stuck and behave strangely (ReShade has this problem).
 
+#if 0
   bool control   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
   bool shift     = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
   bool backspace = (GetAsyncKeyState_Original (VK_BACK)    & 0x8000) != 0;
@@ -2528,4 +2623,38 @@ SK_ImGui_Toggle (void)
 
     SendInput (1, &keys [1], sizeof INPUT);
   }
+#endif
+}
+
+#define IMGUI_USE_RAW_INPUT
+
+extern LONG SK_RawInput_MouseX;
+extern LONG SK_RawInput_MouseY;
+
+void
+SK_ImGui_CenterCursorOnWindow (void)
+{
+#ifdef IMGUI_USE_RAW_INPUT
+    if ( SK_ImGui_LastWindowCenter.x < 0.0f ||
+         SK_ImGui_LastWindowCenter.y < 0.0f )
+    {
+      SK_RawInput_MouseX = (LONG)(ImGui::GetIO ().DisplaySize.x / 2.0f);
+      SK_RawInput_MouseY = (LONG)(ImGui::GetIO ().DisplaySize.y / 2.0f);
+
+      ImGui::GetIO ().MousePos.x = ImGui::GetIO ().DisplaySize.x / 2.0f;
+      ImGui::GetIO ().MousePos.y = ImGui::GetIO ().DisplaySize.y / 2.0f;
+    }
+
+    else
+    {
+      SK_RawInput_MouseX = (LONG)(SK_ImGui_LastWindowCenter.x);
+      SK_RawInput_MouseY = (LONG)(SK_ImGui_LastWindowCenter.y);
+
+      ImGui::GetIO ().MousePos.x = SK_ImGui_LastWindowCenter.x;
+      ImGui::GetIO ().MousePos.y = SK_ImGui_LastWindowCenter.y;
+    }
+#else
+    SetCursorPos_Original ( (int)ImGui::GetIO ().DisplaySize.x / 2, 
+                            (int)ImGui::GetIO ().DisplaySize.y / 2 );
+#endif
 }

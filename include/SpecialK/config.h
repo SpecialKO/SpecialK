@@ -301,7 +301,12 @@ struct sk_config_t
     } cursor;
 
     struct {
-      bool    capture           = false;
+      union {
+        bool  capture           = false;
+        bool  capture_mouse;
+      };
+      bool    capture_keyboard  = false;
+      bool    capture_gamepad   = false;
     } ui;
   } input;
 

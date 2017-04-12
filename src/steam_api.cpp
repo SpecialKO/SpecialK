@@ -2231,6 +2231,8 @@ public:
 
   const std::string& getFriendName (uint32_t friend_idx)
   {
+    static std::string empty = "";
+
     if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)))
     {
       if (friend_idx_to_aid.count (friend_idx) == 0)
@@ -2238,7 +2240,7 @@ public:
         ISteamFriends* friends = steam_ctx.Friends ();
 
         if (! friends)
-          return "";
+          return empty;
 
         CSteamID sid = friends->GetFriendByIndex ( friend_idx,
                                                      k_EFriendFlagImmediate
@@ -2250,7 +2252,7 @@ public:
       }
 
       else
-        return "";
+        return empty;
     }
 
     return friend_stats [friend_idx_to_aid [friend_idx]].name;

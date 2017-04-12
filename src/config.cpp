@@ -1808,6 +1808,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.system.trace_load_library    = true;
         config.system.strict_compliance     = false;
 
+        // Game has mouselook problems without this
+        config.input.ui.capture_mouse       = true;
+
         // Chances are good that we will not catch SteamAPI early enough to hook callbacks, so
         //   auto-pump.
         config.steam.auto_pump_callbacks    = true;
@@ -1826,6 +1829,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
       case SK_GAME_ID::TheWitness:
         config.system.trace_load_library    = true;
         config.system.strict_compliance     = false; // Uses Ansel
+
+        // Game has mouselook problems without this
+        config.input.ui.capture_mouse       = true;
         break;
 
 
