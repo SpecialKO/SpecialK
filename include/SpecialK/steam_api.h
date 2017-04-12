@@ -110,6 +110,7 @@ std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetUnlockedAchievements (void);
 std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetLockedAchievements   (void);
 std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetAllAchievements      (void);
 
+float  SK_SteamAPI_GetUnlockedPercentForFriend      (uint32_t friend_idx);
 size_t SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats);
 size_t SK_SteamAPI_GetLockedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
 size_t SK_SteamAPI_GetSharedAchievementsForFriend   (uint32_t friend_idx, BOOL* pStats);
@@ -144,6 +145,8 @@ void           SK_HookSteamAPI                      (void);
                                                     
 void           SK_Steam_ClearPopups                 (void);
 void           SK_Steam_DrawOSD                     (void);
+
+bool           SK_Steam_LoadOverlayEarly            (void);
 
 void           SK_Steam_InitCommandConsoleVariables (void);
 

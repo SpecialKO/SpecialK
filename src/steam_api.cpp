@@ -1423,7 +1423,8 @@ public:
             SteamAPICall_t hCall =
               stats->RequestUserStats (sid);
 
-            friend_idx_to_aid [idx] = sid.GetAccountID ();
+            friend_idx_to_aid.emplace (idx, sid.GetAccountID ());
+
             friend_stats      [sid.GetAccountID ()].name =
               steam_ctx.Friends ()->GetFriendPersonaName (sid);
 
@@ -1471,6 +1472,7 @@ public:
              friends->GetFriendRelationship (pParam->m_steamIDUser) )
       {
         bool can_unlock = false;
+        int  unlocked   = 0;
 
         for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
         {
@@ -1484,22 +1486,27 @@ public:
 
           if (friend_stats [pParam->m_steamIDUser.GetAccountID ()].unlocked [i])
           {
+            unlocked++;
+
             // On the first unlocked achievement, make a note...
             if (! can_unlock)
             {
-              ////steam_log.Log ( L"Received Achievement Stats for Friend: '%hs'",
-                                ////friends->GetFriendPersonaName (pParam->m_steamIDUser) );
+              ///steam_log.Log ( L"Received Achievement Stats for Friend: '%hs'",
+                                ///friends->GetFriendPersonaName (pParam->m_steamIDUser) );
             }
 
             can_unlock = true;
 
             ++achievements.list [i]->friends_.unlocked;
 
-            ////steam_log.Log (L" >> Has unlocked '%24hs'", szName);
+            ///steam_log.Log (L" >> Has unlocked '%24hs'", szName);
           }
 
           free ((void *)szName);
         }
+
+        friend_stats [pParam->m_steamIDUser.GetAccountID ()].percent_unlocked =
+          (float)unlocked / (float)stats->GetNumAchievements ();
 
         // Second pass over all achievements, incrementing the number of friends who
         //   can potentially unlock them.
@@ -1520,7 +1527,8 @@ public:
           SteamAPICall_t hCall =
             stats->RequestUserStats (sid);
 
-          friend_idx_to_aid [idx] = sid.GetAccountID ();
+          friend_idx_to_aid.emplace (idx, sid.GetAccountID ());
+
           friend_stats      [sid.GetAccountID ()].name =
             steam_ctx.Friends ()->GetFriendPersonaName (sid);
 
@@ -2246,7 +2254,7 @@ public:
                                                      k_EFriendFlagImmediate
                                                  );
 
-        friend_idx_to_aid [friend_idx] = sid.GetAccountID ();
+        friend_idx_to_aid.emplace (friend_idx, sid.GetAccountID ());
         friend_stats      [sid.GetAccountID ()].name =
           friends->GetFriendPersonaName (sid);
       }
@@ -2260,7 +2268,7 @@ public:
 
   float getFriendUnlockPercentage (uint32_t friend_idx)
   {
-    if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)))
+    if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)) || (! friend_stats.count (friend_idx_to_aid [friend_idx])))
       return 0.0f;
 
     return friend_stats [friend_idx_to_aid [friend_idx]].percent_unlocked;
@@ -2268,7 +2276,7 @@ public:
 
   bool hasFriendUnlockedAchievement (uint32_t friend_idx, uint32_t achv_idx)
   {
-    if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)))
+    if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)) || (! friend_stats.count (friend_idx_to_aid [friend_idx])))
       return false;
 
     return friend_stats [friend_idx_to_aid [friend_idx]].unlocked [achv_idx];
@@ -3945,6 +3953,12 @@ SK_SteamAPI_GetLockedAchievements (void)
   return locked_achievements;
 }
 
+float
+SK_SteamAPI_GetUnlockedPercentForFriend (uint32_t friend_idx)
+{
+  return steam_achievements->getFriendUnlockPercentage (friend_idx);
+}
+
 size_t
 SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
 {
@@ -4040,7 +4054,7 @@ SK_SteamAPI_FriendStatPercentage (void)
   if (SK_SteamAPI_FriendStatsFinished ())
     return 1.0f;
 
-  return (float)next_friend / (float)friend_count;
+  return (float)(next_friend-1) / (float)friend_count;
 }
 
 const char*
@@ -4147,6 +4161,29 @@ SK_SteamAPI_WriteScreenshot (void *pubRGB, uint32 cubRGB, int nWidth, int nHeigh
 {
   if (steam_ctx.Screenshots ())
     steam_ctx.Screenshots ()->WriteScreenshot (pubRGB, cubRGB, nWidth, nHeight);
+}
+
+
+bool
+SK_Steam_LoadOverlayEarly (void)
+{
+  const wchar_t* wszSteamPath =
+      SK_GetSteamDir ();
+
+  wchar_t wszOverlayDLL [MAX_PATH + 2] = { L'\0' };
+
+  lstrcatW (wszOverlayDLL, wszSteamPath);
+
+#ifdef _WIN64
+  lstrcatW (wszOverlayDLL, L"\\GameOverlayRenderer64.dll");
+#else
+  lstrcatW (wszOverlayDLL, L"\\GameOverlayRenderer.dll");
+#endif
+
+  HMODULE hModOverlay =
+    LoadLibraryW (wszOverlayDLL);
+
+  return hModOverlay != NULL;
 }
 
 

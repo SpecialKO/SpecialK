@@ -1452,6 +1452,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       dll_log.LogEx (false, L"done!\n");
     }
 
+    if (config.steam.preload_overlay)
+      SK_Steam_LoadOverlayEarly ();
+
     SK_InitCompatBlacklist ();
   }
 

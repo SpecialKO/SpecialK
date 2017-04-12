@@ -129,6 +129,11 @@ struct window_t {
 
 sk_window_s game_window;
 
+struct {
+  RECT  clip_rect;
+  POINT orig_pos;
+} SK_ImGui_Cursor;
+
 typedef BOOL (WINAPI *SetCursorPos_pfn)
 (
   _In_ int X,
@@ -896,20 +901,15 @@ ImGui_ToggleCursor (void)
 {
   static bool  imgui_cursor = false;
 
-  // For use with Input Capture option
-  //
-  static RECT  clip_rect;  // Original Clip Rect
-  static POINT cursor_pos; // Original Cursor Pos
-
   if (! imgui_cursor)
   {
     SK_ImGui_CenterCursorOnWindow ();
 
-    ShowCursor    (FALSE);
-    GetClipCursor (&clip_rect);
+    ShowCursor            (FALSE);
+    GetClipCursor         (&SK_ImGui_Cursor.clip_rect);
 
     // Save original cursor position
-    GetCursorPos_Original (&cursor_pos);
+    GetCursorPos_Original (&SK_ImGui_Cursor.orig_pos);
 
     // First, make sure the cursor is inside the window...
     union {
@@ -922,8 +922,6 @@ ImGui_ToggleCursor (void)
 
     ClientToScreen (game_window.hWnd, &client_top_left);
     ClientToScreen (game_window.hWnd, &client_bottom_right);
-
-    RECT imgui_clip = client_in_screen;
 
     // We need to keep the cursor off the taskbar
     HMONITOR hMonitor =
@@ -951,24 +949,20 @@ ImGui_ToggleCursor (void)
     ClipCursor_Original (&client_in_screen);
 
     // Clip the cursor while capturing
-    if (config.input.ui.capture)
+    if (config.input.ui.capture || config.input.ui.use_raw_input)
     {
       // Don't let the Windows cursor move, Raw Input will still continue
       //   to give us delta movement.
       ClipCursor_Original (&client_in_screen);
     }
-
-    // If not capturing, clip to the window rect
-    else
-      ClipCursor_Original (&imgui_clip);
   }
 
   else
   {
-    //if (config.input.ui.capture) {
-    ClipCursor_Original   (&clip_rect);
-    SetCursorPos_Original (cursor_pos.x, cursor_pos.y);
-    //}
+    if (config.input.ui.capture || config.input.ui.use_raw_input) {
+      ClipCursor_Original   (&SK_ImGui_Cursor.clip_rect);
+      SetCursorPos_Original (SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y);
+    }
 
     ShowCursor (TRUE);
   }
@@ -998,6 +992,15 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
   pci->hCursor = game_cursor;
 
+
+  if (SK_ImGui_Visible && config.input.ui.use_raw_input)
+  {
+    pci->ptScreenPos.x = SK_ImGui_Cursor.orig_pos.x;
+    pci->ptScreenPos.y = SK_ImGui_Cursor.orig_pos.y;
+    return TRUE;
+  }
+
+
   if (ImGui_WantMouseCapture ())
   {
     POINT tmp_pt = pci->ptScreenPos;
@@ -1022,6 +1025,13 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
   BOOL ret = GetCursorPos_Original (lpPoint);
 
+  if (SK_ImGui_Visible && config.input.ui.use_raw_input)
+  {
+    lpPoint->x = SK_ImGui_Cursor.orig_pos.x;
+    lpPoint->y = SK_ImGui_Cursor.orig_pos.y;
+    return TRUE;
+  }
+
   if (ImGui_WantMouseCapture ()) {
     POINT tmp_pt = *lpPoint;
 
@@ -1042,6 +1052,10 @@ WINAPI
 SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
+
+  // Game WANTED to change its position, so remember that.
+  SK_ImGui_Cursor.orig_pos.x = x;
+  SK_ImGui_Cursor.orig_pos.y = y;
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
@@ -2914,6 +2928,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       ( (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) &&
           ImGui_WantMouseCapture () );
 
+    // Some games use Virtual Key Codes 0-4 (mouse button 0-4)
+    //   instead of WM_LBUTTONDOWN, etc.
+    if ( ( ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
+         ( ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
+    {
+      // Block Mouse Input
+      if ((wParam & 0xFF) < 5)
+        mouse_capture = true;
+    }
+
     // Capturing WM_INPUT messages would discard every type of input,
     //   not what we want generally.
     bool rawinput_capture =
@@ -2958,7 +2982,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           switch (data.header.dwType)
           {
             case RIM_TYPEMOUSE:
-              filter = io.WantCaptureMouse || config.input.ui.capture;
+              filter = io.WantCaptureMouse || config.input.ui.capture || config.input.ui.use_raw_input;
 
               if (config.input.ui.use_raw_input)
               {
@@ -2985,14 +3009,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         if (filter)
           return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-      }
-
-      if ( ( ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
-           ( ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
-      {
-        // Block Mouse Input
-        if ((wParam & 0xFF) < 5)
-          return 0;
       }
 
       else
@@ -3030,6 +3046,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
   }
+
 
   if (config.input.cursor.manage)
   {
@@ -3200,13 +3217,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         ClipCursor_Original (nullptr);
       }
 
-      // On re-entering the window, lock the cursor again.
-      if (config.input.ui.capture && SK_ImGui_Visible && active && state_changed)
+      // On leaving/re-entering the window, toggle ImGui's cursor
+      if (SK_ImGui_Visible && state_changed)
       {
-        SK_LOG4 ( ( L"Caging Cursor for ImGui" ),
-                    L"Cursor Mgr" );
+        if (! active)
+          GetCursorPos_Original (&SK_ImGui_Cursor.orig_pos);
 
-        ImGui_ToggleCursor ();
         ImGui_ToggleCursor ();
       }
    };

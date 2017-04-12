@@ -143,6 +143,7 @@ struct {
     sk::ParameterStringW* notify_corner;
     sk::ParameterBool*    block_stat_callback;
     sk::ParameterBool*    load_early;
+    sk::ParameterBool*    early_overlay;
   } system;
 
   struct {
@@ -1590,6 +1591,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Steam.System",
         L"PreLoadSteamClient" );
 
+  steam.system.early_overlay =
+    static_cast <sk::ParameterBool *>
+    (g_ParameterFactory.create_parameter <bool> (
+      L"Load the Steam Overlay Early")
+    );
+  steam.system.early_overlay->register_to_ini (
+    dll_ini,
+      L"Steam.System",
+        L"PreLoadSteamOverlay" );
+
   steam.log.silent =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -2339,6 +2350,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.steam.block_stat_callback = steam.system.block_stat_callback->get_value ();
   if (steam.system.load_early->load ())
     config.steam.preload_client = steam.system.load_early->get_value ();
+  if (steam.system.early_overlay->load ())
+    config.steam.preload_overlay = steam.system.early_overlay->get_value ();
   if (steam.system.notify_corner->load ())
     config.steam.notify_corner =
       SK_Steam_PopupOriginWStrToEnum (
@@ -2664,6 +2677,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.auto_pump->set_value           (config.steam.auto_pump_callbacks);
   steam.system.block_stat_callback->set_value (config.steam.block_stat_callback);
   steam.system.load_early->set_value          (config.steam.preload_client);
+  steam.system.early_overlay->set_value       (config.steam.preload_overlay);
   steam.system.notify_corner->set_value       (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
@@ -2820,6 +2834,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.auto_pump->store              ();
   steam.system.block_stat_callback->store    ();
   steam.system.load_early->store             ();
+  steam.system.early_overlay->store          ();
   steam.log.silent->store                    ();
 
   init_delay->store                      ();

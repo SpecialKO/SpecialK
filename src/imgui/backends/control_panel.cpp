@@ -248,6 +248,9 @@ namespace SK_ImGui
   //   the rest of the ImGui API.
   bool BatteryMeter (void)
   {
+    if (! SK::SteamAPI::AppID ())
+      return false;
+
     ISteamUtils* utils =
       SK_SteamAPI_Utils ();
 
@@ -777,7 +780,7 @@ SK_ImGui_ControlPanel (void)
                           1000.0f / (sum / 120.0f), (max - min) / (1000.0f / (sum / 120.0f)) );
 
         ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
-                                  ImColor::HSV ( 0.31f - 0.31 *
+                                  ImColor::HSV ( 0.31f - 0.31f *
                            std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
                                                    0.73f,
                                                      0.93f ) );
@@ -2164,12 +2167,12 @@ SK_ImGui_ControlPanel (void)
             ImGui::PushStyleColor ( ImGuiCol_Text,          ImColor (255, 255, 255)              ); 
             ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
 
-            for (int i = 0; i < friends; i++)
+            for (int i = 0; i < (int)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
             {
-              size_t count = 
-                SK_SteamAPI_GetUnlockedAchievementsForFriend (i, nullptr);
+              float percent =
+                SK_SteamAPI_GetUnlockedPercentForFriend (i);
 
-              if (count > 0)
+              if (percent > 0.0f)
               {
                 if (cur_line >= max_lines)
                 {
@@ -2185,10 +2188,10 @@ SK_ImGui_ControlPanel (void)
                 size_t      len    = 0;
                 const char* szName = SK_SteamAPI_GetFriendName (i, &len);
 
-                ImGui::ProgressBar    ( (float)count / (float)num_achievements, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
+                ImGui::ProgressBar    ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
                 ImGui::SameLine       ();
                 ImGui::PushStyleColor (ImGuiCol_Text, ImColor (.81f, 0.81f, 0.81f));
-                ImGui::Text           ("%s", szName);
+                ImGui::Text           (szName);
                 ImGui::PopStyleColor  (1);
 
                 ++num_records;
@@ -2311,7 +2314,10 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        if (ImGui::CollapsingHeader ("Overlay Notifications"))
+        ISteamUtils* utils =
+          SK_SteamAPI_Utils ();
+
+        if (utils != nullptr && utils->IsOverlayEnabled () && ImGui::CollapsingHeader ("Overlay Notifications"))
         {
           ImGui::TreePush  ("");
 
@@ -2338,6 +2344,11 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::CollapsingHeader ("Compatibility"))
         {
           ImGui::TreePush ("");
+          ImGui::Checkbox (" Load Steam Overlay Early  ", &config.steam.preload_overlay);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
+
           ImGui::Checkbox (" Load Steam Client DLL Early  ", &config.steam.preload_client);
 
           if (ImGui::IsItemHovered ())
@@ -2455,7 +2466,7 @@ SK_ImGui_ControlPanel (void)
                       (int32_t)(ratio * (float)friends),
                                                friends,
                       SK_SteamAPI_GetFriendName (
-                        (int32_t)(ratio * (float)friends)
+                        (int32_t)(ratio * (float)friends) - 1
                       )
                  );
         
