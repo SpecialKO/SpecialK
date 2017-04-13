@@ -1726,7 +1726,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     Obduction,            // Obduction-Win64-Shipping.exe
     TheWitcher3,          // witcher3.exe
     ResidentEvil7,        // re7.exe
-    DragonsDogma          // DDDA.exe
+    DragonsDogma,         // DDDA.exe
+    EverQuest             // eqgame.exe
   };
 
   std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -1742,6 +1743,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"witcher3.exe",                 SK_GAME_ID::TheWitcher3          );
   games.emplace ( L"re7.exe",                      SK_GAME_ID::ResidentEvil7        );
   games.emplace ( L"DDDA.exe",                     SK_GAME_ID::DragonsDogma         );
+  games.emplace ( L"eqgame.exe",                   SK_GAME_ID::EverQuest            );
 
   //
   // Application Compatibility Overrides
@@ -1895,6 +1897,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.d3d9ex.hook               = false;
         config.apis.OpenGL.hook               = false;
         config.apis.Vulkan.hook               = false;
+        break;
+
+
+      case SK_GAME_ID::EverQuest:
+        // Fix-up rare issues during Server Select -> Game
+        config.compatibility.d3d9.rehook_reset = true;
         break;
     }
   }
@@ -2418,7 +2426,27 @@ SK_LoadConfigEx (std::wstring name, bool create)
   //
   // EMERGENCY OVERRIDES
   //
-  config.textures.d3d11.cache = false; // Has new performance problems.
+  config.textures.d3d11.cache   = false; // Has new performance problems.
+  config.input.ui.use_raw_input = false;
+
+
+
+  config.imgui.font.default.file = "arial.ttf";
+  config.imgui.font.default.size = 16.0f;
+
+  config.imgui.font.japanese.file = "msgothic.ttc";
+  config.imgui.font.japanese.size = 16.0f;
+
+  config.imgui.font.cyrillic.file = "arial.ttf";
+  config.imgui.font.cyrillic.size = 16.0f;
+
+  config.imgui.font.korean.file  = "malgun.ttf";
+  config.imgui.font.korean.size  = 16.0f;
+
+  config.imgui.font.chinese.file = "msyh.ttc";
+  config.imgui.font.chinese.size = 16.0f;
+
+
 
   if (empty)
     return false;

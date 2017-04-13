@@ -2320,6 +2320,18 @@ __declspec (noinline)
       DXGI_SWAP_CHAIN_DESC desc;
       if (SUCCEEDED (This->GetDesc (&desc)))
       {
+#if 0
+        if (! desc.Windowed)
+        {
+          SetWindowPos_Original ( game_window.hWnd,
+                                    HWND_TOP,
+                                      0, 0,
+                                        desc.BufferDesc.Width, desc.BufferDesc.Height,
+                                          SWP_ASYNCWINDOWPOS /*| SWP_NOSENDCHANGING
+                                          SWP_FRAMECHANGED | SWP_NOOWNERZORDER  | SWP_NOREPOSITION*/ );
+        }
+#endif
+
         SK_SetWindowResX (desc.BufferDesc.Width);
         SK_SetWindowResY (desc.BufferDesc.Height);
       }

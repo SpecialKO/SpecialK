@@ -34,6 +34,7 @@ typedef void *HANDLE;
 
 bool           SK_GetDocumentsDir      (_Out_opt_ wchar_t* buf, _Inout_ uint32_t* pdwLen);
 std::wstring   SK_GetDocumentsDir      (void);
+std::wstring   SK_GetFontsDir          (void);
 std::wstring   SK_GetRTSSInstallDir    (void);
 bool           SK_CreateDirectories    (const wchar_t* wszPath);
 std::wstring   SK_EvalEnvironmentVars  (const wchar_t* wszEvaluateMe);
@@ -44,6 +45,8 @@ void           SK_ElevateToAdmin       (void); // Needs DOS 8.3 filename support
 int            SK_MessageBox           (std::wstring caption,
                                         std::wstring title,
                                         uint32_t     flags);
+
+std::string    SK_WideCharToUTF8       (std::wstring in);
 
 void           SK_SetNormalFileAttribs (std::wstring file);
 

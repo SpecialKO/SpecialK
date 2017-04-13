@@ -287,6 +287,7 @@ namespace SK_ImGui
 } // namespace SK_ImGui
 
 ImVec2 SK_ImGui_LastWindowCenter (-1.0f, -1.0f);
+void   SK_ImGui_CenterCursorOnWindow (void);
 
 const char*
 SK_ImGui_ControlPanelTitle (void)
@@ -441,10 +442,12 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
     void clear (void)
     {
-      for ( auto it : names ) free ((void *)it++);
+      for ( auto it : names   )      free ((void *)it);
+      for ( auto it : volumes ) if (it != nullptr) it->Release ();
 
       names.clear     ();
       processes.clear ();
+      volumes.clear   ();
 
       sel = -1;
     }
@@ -452,10 +455,11 @@ SK_ImGui_SelectAudioSessionDlg (void)
     void populate (DWORD* dwProcs, size_t count)
     {
       struct populate_thread_s {
-        std::vector <DWORD>*        processes;
-        std::vector <const char *>* names;
+        std::vector <DWORD>*                processes;
+        std::vector <const char *>*         names;
+        std::vector <ISimpleAudioVolume *>* volumes;
 
-        int*                        sel;
+        int*                                sel;
       };
 
       populate_thread_s* pThreadData =
@@ -468,6 +472,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       pThreadData->processes = &processes;
       pThreadData->names     = &names;
+      pThreadData->volumes   = &volumes;
 
       populate_thread =
         CreateThread ( nullptr, 0,
@@ -485,12 +490,10 @@ SK_ImGui_SelectAudioSessionDlg (void)
            DWORD   proc_id        = it;
            HWND    hWndRoot       = SK_FindRootWindow (proc_id);
 
-           if (proc_id == GetCurrentProcessId ())
-             GetWindowTextW (hWndRoot, wszTitle, 511);
-           else
-             SendMessageW (hWndRoot, WM_GETTEXT, 511, (LPARAM)wszTitle);
-
-           WideCharToMultiByte ( CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE );
+           // This is all happening from the application's message pump in most games,
+           //   so this specialized function avoids deadlocking the pump.
+           InternalGetWindowText (hWndRoot, wszTitle, 511);
+           WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE);
 
 // Use the ANSI versions
 #undef PROCESSENTRY32
@@ -528,11 +531,14 @@ SK_ImGui_SelectAudioSessionDlg (void)
            char* szCopy =
              (char *)calloc (512, 1);
 
-           // Don't use strcpy, this is UTF-8 and it will freak out
-           memcpy (szCopy, szTitle, 512);
+           snprintf (szCopy, 511, "[0x%04x]  %s", proc_id, szTitle);
+
+           ISimpleAudioVolume* pVolume =
+             SK_WASAPI_GetVolumeControl (proc_id);
 
            thread_data->processes->push_back (proc_id);
            thread_data->names->push_back     (szCopy);
+           thread_data->volumes->push_back   (pVolume);
          }
 
          delete thread_data;
@@ -543,10 +549,11 @@ SK_ImGui_SelectAudioSessionDlg (void)
       );
     }
 
-    std::vector <DWORD>       processes;
-    std::vector <const char*> names;
+    std::vector <DWORD>                processes;
+    std::vector <const char*>          names;
+    std::vector <ISimpleAudioVolume *> volumes;
 
-    int                       sel;
+    int                                sel;
 
     // We need to spawn a worker thread so we don't deadlock
     //   our own message pump... read the results after this
@@ -577,7 +584,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
     if ( (data.populate_thread != 0) )
     {
-      switch (WaitForSingleObject (data.populate_thread, 0))
+      switch (WaitForSingleObject (data.populate_thread, 50))
       {
         case WAIT_OBJECT_0:
           CloseHandle (data.populate_thread);
@@ -593,16 +600,118 @@ SK_ImGui_SelectAudioSessionDlg (void)
       }
     }
 
-    if (ImGui::ListBox ("Audio\nSessions", &data.sel, data.names.data (), (int)data.names.size (), (int)std::min (data.names.size (), (size_t)10)))
+    float max_width = ImGui::CalcTextSize ("Audio Session Selector").x;
+
+    for ( auto it : data.names )
     {
-                                       DWORD dwProcId = data.processes [data.sel];
-      audio_session.selectSessionFromProcId (dwProcId,      data.names [data.sel]);
+      ImVec2 size = ImGui::CalcTextSize (it);
 
-      was_open = false;
-      changed  = true;
-
-      ImGui::CloseCurrentPopup ();
+      if (size.x > max_width) max_width = size.x;
     }
+
+    ImGui::PushItemWidth (max_width * 2.5);
+
+    if (ImGui::ListBoxHeader ("##empty", data.names.size (), std::min ((DWORD)data.names.size () + 3, 10UL)))
+    {
+      data.sel = -1;
+      int  idx =  0;
+
+      ImGui::PushStyleColor (ImGuiCol_ChildWindowBg, ImColor (0, 0, 0, 0));
+      ImGui::BeginChild ("SessionSelectHeader");
+      ImGui::Columns    (2);
+      ImGui::Text       ("Task");
+      ImGui::NextColumn ();
+      ImGui::Text       ("Volume / Mute");
+      ImGui::NextColumn ();
+      ImGui::Columns    (1);
+
+      ImGui::Separator  ();
+
+      ImGui::BeginChild ("SessionSelectData");
+      ImGui::Columns    (2);
+
+      for ( auto it : data.names )
+      {
+        bool selected = false;
+
+        bool drawing_self = (data.processes [idx] == GetCurrentProcessId ());
+
+        if (drawing_self)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+        }
+        if (ImGui::Selectable (it, drawing_self || data.volumes [idx] == audio_session.pVolume))
+          data.sel = idx;
+
+        if (drawing_self)
+          ImGui::PopStyleColor (3);
+
+        ImGui::NextColumn ();
+
+        if (data.volumes [idx] != nullptr)
+        {
+          float volume = 0.0f;
+          BOOL  mute   = FALSE;
+          data.volumes [idx]->GetMasterVolume (&volume);
+          data.volumes [idx]->GetMute         (&mute);
+
+          char szLabel [32] = { '\0' };
+          snprintf (szLabel, 31, "###VoumeSlider%lu", idx);
+
+          ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImColor (0.5f, 0.5f, 0.5f) : ImColor (1.0f, 1.0f, 1.0f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor::HSV ( 0.4f * volume, 0.7f, mute ? 0.2f : 0.4f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor::HSV ( 0.4f * volume, 0.8f, mute ? 0.2f : 0.4f));
+          ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor::HSV ( 0.4f * volume, 0.9f,        0.6f * (mute ? 0.5f : 1.0f)));
+
+          volume *= 100.0f;
+
+          if (ImGui::SliderFloat (szLabel, &volume, 0.0f, 100.0f, "Volume: %03.1f%%")) {
+            volume /= 100.0f;
+            data.volumes [idx]->SetMasterVolume (volume, nullptr);
+          }
+
+          ImGui::PopStyleColor (5);
+
+          ImGui::SameLine ();
+
+          snprintf (szLabel, 31, "###VoumeCheckbox%lu", idx);
+          ImGui::PushItemWidth (10.0f);
+          if (ImGui::Checkbox (szLabel, (bool *)&mute))
+            data.volumes [idx]->SetMute (mute, nullptr);
+          ImGui::PopItemWidth  ();
+        }
+
+        ImGui::NextColumn ();
+
+        ++idx;
+      }
+
+      ImGui::Columns  (1);
+      ImGui::EndChild ( );
+      ImGui::EndChild ( );
+      ImGui::PopStyleColor ();
+
+
+      ImGui::ListBoxFooter ();
+
+      if (data.sel != -1)
+      {
+                                         DWORD dwProcId = data.processes [data.sel];
+        audio_session.selectSessionFromProcId (dwProcId,      data.names [data.sel]);
+
+        was_open = false;
+        changed  = true;
+
+        data.clear ();
+
+        ImGui::CloseCurrentPopup ();
+      }
+    }
+
+    ImGui::PopItemWidth ();
 
     ImGui::EndPopup ();
   }
@@ -617,10 +726,8 @@ SK_ImGui_AdjustCursor (void)
     [](LPVOID user)->
     DWORD
     {
-      ImGui_ToggleCursor  ();        // Unclip / record original clip rect
       ClipCursor_Original (nullptr);
         SK_AdjustWindow   ();        // Restore game's clip cursor behavior
-      ImGui_ToggleCursor  ();        // Clip   / restore
 
       CloseHandle (GetCurrentThread ());
 
@@ -651,7 +758,14 @@ SK_ImGui_ControlPanel (void)
   static float last_width  = -1;
   static float last_height = -1;
 
-  if (last_width != io.DisplaySize.x || last_height != io.DisplaySize.y) {
+  bool recenter = ( last_width  != io.DisplaySize.x ||
+                    last_height != io.DisplaySize.y );
+
+  if (recenter)
+  {
+    SK_ImGui_LastWindowCenter.x = -1.0f;
+    SK_ImGui_LastWindowCenter.y = -1.0f;
+
     ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
     last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
   }
@@ -677,12 +791,22 @@ SK_ImGui_ControlPanel (void)
 
     ImGui::MenuItem ("Active Render API        ", szAPIName);
 
+    ImGui::Separator ();
+
     char szResolution [64] = { '\0' };
     snprintf ( szResolution, 63, "   %lux%lu", 
                                    (UINT)io.DisplayFramebufferScale.x, (UINT)io.DisplayFramebufferScale.y );
 
-    ImGui::MenuItem (" Framebuffer Resolution", szResolution);
-    
+    bool override = false;
+
+    if (ImGui::MenuItem (" Framebuffer Resolution", szResolution))
+    {
+      config.window.res.override.x = (UINT)io.DisplayFramebufferScale.x;
+      config.window.res.override.y = (UINT)io.DisplayFramebufferScale.y;
+
+      override = true;
+    }
+
     RECT client;
     GetClientRect (game_window.hWnd, &client);
 
@@ -690,7 +814,72 @@ SK_ImGui_ControlPanel (void)
                                    client.right - client.left,
                                      client.bottom - client.top );
 
-    ImGui::MenuItem (" Window Resolution     ", szResolution);
+    if (ImGui::MenuItem (" Window Resolution     ", szResolution))
+    {
+      config.window.res.override.x = client.right  - client.left;
+      config.window.res.override.y = client.bottom - client.top;
+
+      override = true;
+    }
+
+    HDC hDC = GetWindowDC (game_window.hWnd);
+
+    int res_x = GetDeviceCaps (hDC, HORZRES);
+    int res_y = GetDeviceCaps (hDC, VERTRES);
+
+    ReleaseDC (game_window.hWnd, hDC);
+
+    if ( client.right - client.left   != res_x || client.bottom - client.top   != res_y ||
+         io.DisplayFramebufferScale.x != res_x || io.DisplayFramebufferScale.y != res_y )
+    {
+      snprintf ( szResolution, 63, "   %lux%lu", 
+                                     res_x,
+                                       res_y );
+    
+      if (ImGui::MenuItem (" Device Resolution    ", szResolution))
+      {
+        config.window.res.override.x = res_x;
+        config.window.res.override.y = res_y;
+
+        override = true;
+      }
+    }
+
+    if ((int)io.DisplaySize.x != client.right - client.left ||
+        (int)io.DisplaySize.y != client.bottom - client.top)
+    {
+      snprintf ( szResolution, 63, "   %lux%lu", 
+                                     (int)io.DisplaySize.x,
+                                       (int)io.DisplaySize.y );
+      
+      if (ImGui::MenuItem (" ImGui Resolution     ", szResolution))
+      {
+        config.window.res.override.x = io.DisplaySize.x;
+        config.window.res.override.y = io.DisplaySize.y;
+
+        override = true;
+      }
+    }
+
+    if (! config.window.res.override.isZero ())
+    {
+      snprintf ( szResolution, 63, "   %lux%lu", 
+                                     config.window.res.override.x,
+                                       config.window.res.override.y );
+
+      bool selected = true;
+      if (ImGui::MenuItem (" Override Resolution   ", szResolution, &selected))
+      {
+        config.window.res.override.x = 0;
+        config.window.res.override.y = 0;
+
+        override = true;
+      }
+    }
+
+    if (override)
+      SK_ImGui_AdjustCursor ();
+
 
     ImGui::Columns   ( 1 );
     ImGui::Separator (   );
@@ -1219,9 +1408,9 @@ SK_ImGui_ControlPanel (void)
         ImGui::Text          ("Input Capture (while UI is open)");
         ImGui::TreePush      ("");
 
-        if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture))
+        if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture_mouse))
         {
-          SK_ImGui_AdjustCursor ();
+          //SK_ImGui_AdjustCursor ();
         }
 
         if (ImGui::IsItemHovered ())
@@ -1290,7 +1479,7 @@ SK_ImGui_ControlPanel (void)
             DeferCommand ("Window.Borderless toggle");
         }
 
-        if (ImGui::IsItemHovered ())
+        if (ImGui::IsItemHovered ()) 
         {
           if (! config.window.fullscreen)
           {
@@ -1425,10 +1614,10 @@ SK_ImGui_ControlPanel (void)
             //   Adjusting the Slider
             static bool queue_move = false;
 
-            moved  = ImGui::SliderInt ("X Offset", &x_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
-            moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
-            moved |= ImGui::SliderInt ("Y Offset", &y_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
-            moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
+            moved  = ImGui::SliderInt ("X Offset##WindowPix",       &x_pos, 0, extent_x, "%.0f pixels"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox  ("Right-aligned##WindowPix",  &right_align);
+            moved |= ImGui::SliderInt ("Y Offset##WindowPix",       &y_pos, 0, extent_y, "%.0f pixels"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox  ("Bottom-aligned##WindowPix", &bottom_align);
 
             if (moved)
               queue_move = true;
@@ -1453,25 +1642,25 @@ SK_ImGui_ControlPanel (void)
               if (config.window.offset.x.absolute == 0) {
                 config.window.offset.x.absolute = 1;
                 reset_x_to_zero = true;
-              } else { reset_x_to_zero = false; }
+              }
 
               if (config.window.offset.y.absolute == 0) {
                 config.window.offset.y.absolute = 1;
                 reset_y_to_zero = true;
-              } else { reset_y_to_zero = false; }
+              }
             }
 
             if (queue_move && (! ImGui::IsMouseDown (0)))
             {
               queue_move = false;
 
-              SK_AdjustWindow ();
+              SK_ImGui_AdjustCursor ();
 
               if (reset_x_to_zero) config.window.offset.x.absolute = 0;
               if (reset_y_to_zero) config.window.offset.y.absolute = 0;
 
               if (reset_x_to_zero || reset_y_to_zero)
-                SK_AdjustWindow ();
+                SK_ImGui_AdjustCursor ();
 
               reset_x_to_zero = false; reset_y_to_zero = false;
             }
@@ -1500,10 +1689,10 @@ SK_ImGui_ControlPanel (void)
             //   Adjusting the Slider
             static bool queue_move = false;
 
-            moved  = ImGui::SliderFloat ("X Offset", &x_pos, 0, extent_x, "%.3f %%"); ImGui::SameLine ();
-            moved |= ImGui::Checkbox    ("Right-aligned", &right_align);
-            moved |= ImGui::SliderFloat ("Y Offset", &y_pos, 0, extent_y, "%.3f %%"); ImGui::SameLine ();
-            moved |= ImGui::Checkbox    ("Bottom-aligned", &bottom_align);
+            moved  = ImGui::SliderFloat ("X Offset##WindowRel",       &x_pos, 0, extent_x, "%.3f %%"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Right-aligned##WindowRel",  &right_align);
+            moved |= ImGui::SliderFloat ("Y Offset##WindowRel",       &y_pos, 0, extent_y, "%.3f %%"); ImGui::SameLine ();
+            moved |= ImGui::Checkbox    ("Bottom-aligned##WindowRel", &bottom_align);
 
             // We need to set pixel offset to 1 to do what the user expects
             //   these values to do... 0 = NO OFFSET, but the slider may move
@@ -1533,27 +1722,27 @@ SK_ImGui_ControlPanel (void)
               {
                 config.window.offset.x.absolute = 1;
                 reset_x_to_zero = true;
-              } else { reset_x_to_zero = false; }
+              }
 
               if ( config.window.offset.y.percent <  0.000001f &&
                    config.window.offset.y.percent > -0.000001f )
               {
                 config.window.offset.y.absolute = 1;
                 reset_y_to_zero = true;
-              } else { reset_y_to_zero = false; }
+              }
             }
 
             if (queue_move && (! ImGui::IsMouseDown (0)))
             {
               queue_move = false;
 
-              SK_AdjustWindow ();
+              SK_ImGui_AdjustCursor ();
 
               if (reset_x_to_zero) config.window.offset.x.absolute = 0;
               if (reset_y_to_zero) config.window.offset.y.absolute = 0;
 
               if (reset_x_to_zero || reset_y_to_zero)
-                SK_AdjustWindow ();
+                SK_ImGui_AdjustCursor ();
 
               reset_x_to_zero = false; reset_y_to_zero = false;
             }
@@ -1672,9 +1861,15 @@ SK_ImGui_ControlPanel (void)
 
       std::string app_name = audio_session.window_name + "###AudioSessionAppName";
 
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.90f, 0.68f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.90f, 0.72f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.87f, 0.78f, 0.80f));
+
       bool selected = true;
       if (ImGui::Selectable (app_name.c_str (), &selected))
         ImGui::OpenPopup ("Audio Session Selector");
+
+      ImGui::PopStyleColor (3);
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Click Here to Manage Another Application.");
@@ -2093,10 +2288,10 @@ SK_ImGui_ControlPanel (void)
         bool right_align  = config.osd.pos_x < 0;
         bool bottom_align = config.osd.pos_y < 0;
 
-        moved  = ImGui::SliderInt ("X Origin", &x_pos, 1, (int)io.DisplaySize.x); ImGui::SameLine ();
-        moved |= ImGui::Checkbox  ("Right-aligned", &right_align);
-        moved |= ImGui::SliderInt ("Y Origin", &y_pos, 1, (int)io.DisplaySize.y); ImGui::SameLine ();
-        moved |= ImGui::Checkbox  ("Bottom-aligned", &bottom_align);
+        moved  = ImGui::SliderInt ("X Origin##OSD",       &x_pos, 1, (int)io.DisplaySize.x); ImGui::SameLine ();
+        moved |= ImGui::Checkbox  ("Right-aligned##OSD",  &right_align);
+        moved |= ImGui::SliderInt ("Y Origin##OSD",       &y_pos, 1, (int)io.DisplaySize.y); ImGui::SameLine ();
+        moved |= ImGui::Checkbox  ("Bottom-aligned##OSD", &bottom_align);
 
         if (moved)
         {
@@ -2128,13 +2323,13 @@ SK_ImGui_ControlPanel (void)
       if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
                                                           ImGuiTreeNodeFlags_DefaultOpen ) )
       {
+        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
+        ImGui::TreePush       ("");
+
         if (SK_SteamAPI_GetNumPossibleAchievements () > 0)
         {
-          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
-          ImGui::TreePush       ("");
-
           static char szProgress [128] = { '\0' };
 
           float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
@@ -2393,8 +2588,8 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        ImGui::TreePop       ( );
         ImGui::PopStyleColor (3);
+        ImGui::TreePop       ( );
       }
 
       SK_ImGui::BatteryMeter ();
@@ -2484,6 +2679,9 @@ SK_ImGui_ControlPanel (void)
 
   SK_ImGui_LastWindowCenter.x = pos.x + size.x / 2.0f;
   SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
+
+  if (recenter)
+    SK_ImGui_CenterCursorOnWindow ();
 
   ImGui::End   ();
 
@@ -2591,13 +2789,6 @@ SK_ImGui_Toggle (void)
 
   if (d3d9 || d3d11)
   {
-    CURSORINFO cursor_info;
-    cursor_info.cbSize = sizeof (CURSORINFO);
-
-    static HCURSOR hCursorOriginal = 0;
-
-    GetCursorInfo_Original (&cursor_info);
-
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
     if (hModTBFix == nullptr) 
@@ -2608,16 +2799,12 @@ SK_ImGui_Toggle (void)
       // Transition: (Visible -> Invisible)
       if (SK_ImGui_Visible)
       {
-        SetCursor (hCursorOriginal);
+        SK_ImGui_Cursor.showSystemCursor ();
       }
 
       else
       {
-        hCursorOriginal = cursor_info.hCursor;
-        cursor_vis      = (cursor_info.flags & CURSOR_SHOWING);
-
-        if (cursor_vis)
-          SetCursor (nullptr);
+        SK_ImGui_Cursor.showImGuiCursor ();
 
         if (EnableEULAIfPirate ())
           config.imgui.show_eula = true;
@@ -2629,11 +2816,6 @@ SK_ImGui_Toggle (void)
           eula.show             = config.imgui.show_eula;
           first                 = false;
         }
-
-        //
-        // If RawInput
-        //
-        ClipCursor_Original (&game_window.actual.window);
       }
     }
 
@@ -2725,6 +2907,7 @@ SK_ImGui_Toggle (void)
 
 extern LONG SK_RawInput_MouseX;
 extern LONG SK_RawInput_MouseY;
+extern POINT SK_RawInput_Mouse;
 
 typedef BOOL (WINAPI *SetCursorPos_pfn)
 (
@@ -2737,30 +2920,390 @@ extern SetCursorPos_pfn  SetCursorPos_Original;
 void
 SK_ImGui_CenterCursorOnWindow (void)
 {
-  if (config.input.ui.use_raw_input)
-  {
-    if ( SK_ImGui_LastWindowCenter.x < 0.0f ||
-         SK_ImGui_LastWindowCenter.y < 0.0f )
-    {
-      SK_RawInput_MouseX = (LONG)(ImGui::GetIO ().DisplaySize.x / 2.0f);
-      SK_RawInput_MouseY = (LONG)(ImGui::GetIO ().DisplaySize.y / 2.0f);
+  ImGuiIO& io =
+    ImGui::GetIO ();
 
-      ImGui::GetIO ().MousePos.x = ImGui::GetIO ().DisplaySize.x / 2.0f;
-      ImGui::GetIO ().MousePos.y = ImGui::GetIO ().DisplaySize.y / 2.0f;
-    }
+  SK_ImGui_Cursor.pos.x      = (LONG)(SK_ImGui_LastWindowCenter.x);
+  SK_ImGui_Cursor.pos.y      = (LONG)(SK_ImGui_LastWindowCenter.y);
+  
+  io.MousePos.x = SK_ImGui_LastWindowCenter.x;
+  io.MousePos.y = SK_ImGui_LastWindowCenter.y;
 
-    else
-    {
-      SK_RawInput_MouseX = (LONG)(SK_ImGui_LastWindowCenter.x);
-      SK_RawInput_MouseY = (LONG)(SK_ImGui_LastWindowCenter.y);
+  POINT screen_pos = SK_ImGui_Cursor.pos;
+  ClientToScreen (game_window.hWnd, &screen_pos);
 
-      ImGui::GetIO ().MousePos.x = SK_ImGui_LastWindowCenter.x;
-      ImGui::GetIO ().MousePos.y = SK_ImGui_LastWindowCenter.y;
-    }
-  }
-  else
-  {
-    SetCursorPos_Original ( (int)ImGui::GetIO ().DisplaySize.x / 2, 
-                            (int)ImGui::GetIO ().DisplaySize.y / 2 );
-  }
+  SetCursorPos_Original ( screen_pos.x,
+                          screen_pos.y );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
+bool
+SK_D3D11_TextureModDlg (void)
+{
+  const float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+
+  bool show_dlg = true;
+
+  ImGui::Begin ( "D3D11 Texture Mod Toolkit (v " SK_VERSION_STR_A ")",
+                   &show_dlg,
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders );
+
+  ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.666f);
+
+  if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    static float last_ht    = 256.0f;
+    static float last_width = 256.0f;
+
+    static std::vector <std::string> list_contents;
+    static bool                      list_dirty     = false;
+    static int                       sel            =     0;
+
+    extern std::vector <uint32_t> textures_used_last_dump;
+    extern              uint32_t  tex_dbg_idx;
+    extern              uint32_t  debug_tex_id;
+
+    ImGui::BeginChild ("ToolHeadings", ImVec2 (font_size * 66.0f, font_size * 2.5f), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
+    if (ImGui::Button ("  Refresh Textures  "))
+    {
+      SK_ICommandProcessor& command =
+        *SK_GetCommandProcessor ();
+
+      command.ProcessCommandLine ("Textures.Trace true");
+
+      tbf::RenderFix::tex_mgr.updateOSD ();
+
+      list_dirty = true;
+    }
+
+    if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Refreshes the set of texture checksums used in the last frame drawn.");
+
+    ImGui::SameLine ();
+
+    if (ImGui::Button (" Clear Debug "))
+    {
+      sel                         = -1;
+      debug_tex_id                =  0;
+      textures_used_last_dump.clear ();
+      last_ht                     =  0;
+      last_width                  =  0;
+    }
+
+    if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Exits texture debug mode.");
+
+    ImGui::SameLine ();
+
+    //ImGui::Checkbox ("Highlight Selected Texture in Game",    &config.textures.highlight_debug_tex);
+
+    ImGui::Separator ();
+    ImGui::EndChild  ();
+
+    if (list_dirty)
+    {
+           list_contents.clear ();
+                sel = tex_dbg_idx;
+
+      if (debug_tex_id == 0)
+        last_ht = 0;
+
+
+      // The underlying list is unsorted for speed, but that's not at all
+      //   intuitive to humans, so sort the thing when we have the RT view open.
+      std::sort ( textures_used_last_dump.begin (),
+                  textures_used_last_dump.end   () );
+
+
+      for ( auto it : textures_used_last_dump )
+      {
+        char szDesc [16] = { };
+
+        sprintf (szDesc, "%08x", it);
+
+        list_contents.push_back (szDesc);
+      }
+    }
+
+    ImGui::BeginGroup ();
+
+    ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
+    ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
+
+    ImGui::BeginChild ( "Item List",
+                        ImVec2 ( font_size * 6.0f, std::max (font_size * 15.0f, last_ht)),
+                          true, ImGuiWindowFlags_AlwaysAutoResize );
+
+    if (ImGui::IsWindowHovered ())
+      can_scroll = false;
+
+   if (textures_used_last_dump.size ())
+   {
+     static      int last_sel = 0;
+     static bool sel_changed  = false;
+
+     if (sel != last_sel)
+       sel_changed = true;
+
+     last_sel = sel;
+
+     for ( int line = 0; line < textures_used_last_dump.size (); line++)
+     {
+       if (line == sel)
+       {
+         bool selected = true;
+         ImGui::Selectable (list_contents [line].c_str (), &selected);
+
+         if (sel_changed)
+         {
+           ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+           sel_changed = false;
+         }
+       }
+
+       else
+       {
+         bool selected = false;
+
+         if (ImGui::Selectable (list_contents[line].c_str (), &selected))
+         {
+           sel_changed = true;
+           tex_dbg_idx                 =  line;
+           sel                         =  line;
+           debug_tex_id                =  textures_used_last_dump [line];
+         }
+       }
+     }
+   }
+
+   ImGui::EndChild ();
+
+   if (ImGui::IsItemHovered ())
+   {
+     ImGui::BeginTooltip ();
+     ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "The \"debug\" texture will appear black to make identifying textures to modify easier.");
+     ImGui::Separator    ();
+     ImGui::BulletText   ("Press Ctrl + Shift + [ to select the previous texture from this list");
+     ImGui::BulletText   ("Press Ctrl + Shift + ] to select the next texture from this list");
+     ImGui::EndTooltip   ();
+   }
+
+   ImGui::SameLine     ();
+   ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 20.0f);
+
+   last_ht    = std::max (last_ht,    16.0f);
+   last_width = std::max (last_width, 16.0f);
+
+   if (debug_tex_id != 0x00)
+   {
+     tbf::RenderFix::Texture* pTex =
+       tbf::RenderFix::tex_mgr.getTexture (debug_tex_id);
+
+     extern bool __remap_textures;
+            bool has_alternate = (pTex != nullptr && pTex->d3d9_tex->pTexOverride != nullptr);
+
+     if (pTex != nullptr)
+     {
+        D3DSURFACE_DESC desc;
+
+        if (SUCCEEDED (pTex->d3d9_tex->pTex->GetLevelDesc (0, &desc)))
+        {
+          ImVec4 border_color = config.textures.highlight_debug_tex ? 
+                                  ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
+                                    (__remap_textures && has_alternate) ? ImVec4 (0.5f,  0.5f,  0.5f, 1.0f) :
+                                                                          ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
+
+          ImGui::PushStyleColor (ImGuiCol_Border, border_color);
+
+          ImGui::BeginGroup     ();
+          ImGui::BeginChild     ( "Item Selection",
+                                  ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width + 24.0f),
+                                (float)desc.Height + font_size * 10.0f),
+                                    true,
+                                      ImGuiWindowFlags_AlwaysAutoResize );
+
+          if ((! config.textures.highlight_debug_tex) && has_alternate)
+          {
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Click me to make this texture the visible version.");
+            
+            // Allow the user to toggle texture override by clicking the frame
+            if (ImGui::IsItemClicked ())
+              __remap_textures = false;
+          }
+
+          last_width  = (float)desc.Width;
+          last_ht     = (float)desc.Height + font_size * 10.0f;
+
+
+          int num_lods = pTex->d3d9_tex->pTex->GetLevelCount ();
+
+          ImGui::Text ( "Dimensions:   %lux%lu (%lu %s)",
+                          desc.Width, desc.Height,
+                            num_lods, num_lods > 1 ? "LODs" : "LOD" );
+          ImGui::Text ( "Format:       %ws",
+                          SK_D3D9_FormatToStr (desc.Format).c_str () );
+          ImGui::Text ( "Data Size:    %.2f MiB",
+                          (double)pTex->d3d9_tex->tex_size / (1024.0f * 1024.0f) );
+          ImGui::Text ( "Load Time:    %.6f Seconds",
+                          pTex->load_time / 1000.0f );
+
+          ImGui::Separator     ();
+
+          if (! TBF_IsTextureDumped (debug_tex_id))
+          {
+            if ( ImGui::Button ("  Dump Texture to Disk  ") )
+            {
+              if (! config.textures.quick_load)
+                TBF_DumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
+            }
+
+            if (config.textures.quick_load && ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Turn off Texture QuickLoad to use this feature.");
+          }
+
+          else
+          {
+            if ( ImGui::Button ("  Delete Dumped Texture from Disk  ") )
+            {
+              TBF_DeleteDumpedTexture (desc.Format, debug_tex_id);
+            }
+          }
+
+          ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
+          ImGui::BeginChildFrame (0, ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
+          ImGui::Image           ( pTex->d3d9_tex->pTex,
+                                     ImVec2 ((float)desc.Width, (float)desc.Height),
+                                       ImVec2  (0,0),             ImVec2  (1,1),
+                                       ImColor (255,255,255,255), ImColor (255,255,255,128)
+                                 );
+          ImGui::EndChildFrame   ();
+          ImGui::EndChild        ();
+          ImGui::EndGroup        ();
+          ImGui::PopStyleColor   (2);
+        }
+     }
+
+     if (has_alternate)
+     {
+       ImGui::SameLine ();
+
+        D3DSURFACE_DESC desc;
+
+        if (SUCCEEDED (pTex->d3d9_tex->pTexOverride->GetLevelDesc (0, &desc)))
+        {
+          ImVec4 border_color = config.textures.highlight_debug_tex ? 
+                                  ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
+                                    (__remap_textures) ? ImVec4 (0.3f,  1.0f,  0.3f, 1.0f) :
+                                                         ImVec4 (0.5f,  0.5f,  0.5f, 1.0f);
+
+          ImGui::PushStyleColor  (ImGuiCol_Border, border_color);
+
+          ImGui::BeginGroup ();
+          ImGui::BeginChild ( "Item Selection2",
+                              ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width  + 24.0f),
+                                                                    (float)desc.Height + font_size * 10.0f),
+                                true,
+                                  ImGuiWindowFlags_AlwaysAutoResize );
+
+          if (! config.textures.highlight_debug_tex)
+          {
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Click me to make this texture the visible version.");
+
+            // Allow the user to toggle texture override by clicking the frame
+            if (ImGui::IsItemClicked ())
+              __remap_textures = true;
+          }
+
+
+          last_width  = std::max (last_width, (float)desc.Width);
+          last_ht     = std::max (last_ht,    (float)desc.Height + font_size * 10.0f);
+
+
+          extern std::wstring
+          SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
+
+
+          bool injected  =
+            (TBF_GetInjectableTexture (debug_tex_id) != nullptr),
+               reloading = false;;
+
+          int num_lods = pTex->d3d9_tex->pTexOverride->GetLevelCount ();
+
+          ImGui::Text ( "Dimensions:   %lux%lu  (%lu %s)",
+                          desc.Width, desc.Height,
+                             num_lods, num_lods > 1 ? "LODs" : "LOD" );
+          ImGui::Text ( "Format:       %ws",
+                          SK_D3D9_FormatToStr (desc.Format).c_str () );
+          ImGui::Text ( "Data Size:    %.2f MiB",
+                          (double)pTex->d3d9_tex->override_size / (1024.0f * 1024.0f) );
+          ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), injected ? "Injected Texture" : "Resampled Texture" );
+
+          ImGui::Separator     ();
+
+
+          if (injected)
+          {
+            if ( ImGui::Button ("  Reload This Texture  ") && tbf::RenderFix::tex_mgr.reloadTexture (debug_tex_id) )
+            {
+              reloading    = true;
+
+              tbf::RenderFix::tex_mgr.updateOSD ();
+            }
+          }
+
+          else {
+            ImGui::Button ("  Resample This Texture  "); // NO-OP, but preserves alignment :P
+          }
+
+          if (! reloading)
+          {
+            ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
+            ImGui::BeginChildFrame (0, ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
+            ImGui::Image           ( pTex->d3d9_tex->pTexOverride,
+                                       ImVec2 ((float)desc.Width, (float)desc.Height),
+                                         ImVec2  (0,0),             ImVec2  (1,1),
+                                         ImColor (255,255,255,255), ImColor (255,255,255,128)
+                                   );
+            ImGui::EndChildFrame   ();
+            ImGui::PopStyleColor   (1);
+          }
+
+          ImGui::EndChild        ();
+          ImGui::EndGroup        ();
+          ImGui::PopStyleColor   (1);
+        }
+      }
+    }
+    ImGui::EndGroup      ();
+    ImGui::PopStyleColor (1);
+    ImGui::PopStyleVar   (2);
+  }
+
+  ImGui::PopItemWidth ();
+
+  //if (can_scroll)
+    //ImGui::SetScrollY (ImGui::GetScrollY () + 5.0f * ImGui::GetFont ()->FontSize * -ImGui::GetIO ().MouseWheel);
+
+  ImGui::End          ();
+
+  return show_dlg;
+}
+#endif

@@ -350,11 +350,18 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   ctx->IASetInputLayout       (old.InputLayout);                                                           if (old.InputLayout)  old.InputLayout->Release  ();
 }
 
+#include <SpecialK/config.h>
+
 static void
 ImGui_ImplDX11_CreateFontsTexture (void)
 {
   // Build texture atlas
   ImGuiIO& io = ImGui::GetIO ();
+
+  extern void
+  SK_ImGui_LoadFonts (void);
+
+  SK_ImGui_LoadFonts ();
 
   unsigned char* pixels;
   int            width, height;
@@ -683,7 +690,8 @@ ImGui_ImplDX11_NewFrame (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  io.MouseDrawCursor = true;
+  //if (io.WantCaptureMouse)
+    //io.MouseDrawCursor = true;
 
   // Setup display size (every frame to accommodate for window resizing)
   //io.DisplaySize =

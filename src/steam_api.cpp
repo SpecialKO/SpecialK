@@ -641,7 +641,17 @@ public:
     {
       steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
                         STEAMSCREENSHOTS_INTERFACE_VERSION );
-      return false;
+
+      screenshots_ =
+        client_->GetISteamScreenshots ( hSteamUser,
+                                          hSteamPipe,
+                                            "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+
+      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
+                        "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+
+
+      //return false;
     }
 
     steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
@@ -857,16 +867,27 @@ public:
                                         hSteamPipe,
                                           STEAMSCREENSHOTS_INTERFACE_VERSION );
 
+    // We can live without this...
     if (screenshots_ == nullptr)
     {
       steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
                         STEAMSCREENSHOTS_INTERFACE_VERSION );
-      return false;
+
+      screenshots_ =
+        client_->GetISteamScreenshots ( hSteamUser,
+                                          hSteamPipe,
+                                            "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+
+      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
+                        "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+
+
+      //return false;
     }
 
-    //steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
-    //SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
-    //steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
+    steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
+    SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
+    steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
 
     return true;
   }
@@ -2766,7 +2787,8 @@ SteamAPI_RunCallbacks_Detour (void)
            SK_SteamAPI_InitManagers ();
     }
 
-    steam_achievements->requestStats ();
+    if (steam_achievements != nullptr)
+      steam_achievements->requestStats ();
 
     __try
     {
@@ -3843,17 +3865,22 @@ SK_SteamAPI_InitManagers (void)
 
     if (stats != nullptr)
     {
-      steam_log.Log (L" Creating Achievement Manager...");
+      if (stats->GetNumAchievements ())
+      {
+        steam_log.Log (L" Creating Achievement Manager...");
 
-      steam_achievements = new SK_Steam_AchievementManager (
-        config.steam.achievements.sound_file.c_str ()
-      );
-      overlay_manager    = new SK_Steam_OverlayManager ();
-
-      user_manager       = new SK_Steam_UserManager ();
+        steam_achievements = new SK_Steam_AchievementManager (
+          config.steam.achievements.sound_file.c_str     ()
+        );
+      }
 
       steam_log.LogEx (false, L"\n");
+
+      user_manager         = new SK_Steam_UserManager    ();
     }
+
+    if (steam_ctx.Utils ())
+      overlay_manager      = new SK_Steam_OverlayManager ();
   }
 }
 

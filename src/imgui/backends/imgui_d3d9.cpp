@@ -352,6 +352,11 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
+  extern void
+  SK_ImGui_LoadFonts (void);
+
+  SK_ImGui_LoadFonts ();
+
   unsigned char* pixels;
   int            width,
                  height,
@@ -457,9 +462,6 @@ ImGui_ImplDX9_NewFrame (void)
   }
 
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
-
-  if (! hModTBFix)
-    io.MouseDrawCursor = true;
 
 
   // Setup display size (every frame to accommodate for window resizing)

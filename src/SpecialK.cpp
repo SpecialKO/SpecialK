@@ -177,6 +177,9 @@ SK_EstablishDllRole (HMODULE hModule)
   blacklist.emplace (L"UbisoftGameLauncher.exe");
   blacklist.emplace (L"UbisoftGameLauncher64.exe");
   blacklist.emplace (L"SplashScreen.exe");
+  blacklist.emplace (L"GameLauncherCefChildProcess.exe");
+  blacklist.emplace (L"LaunchPad.exe");
+  blacklist.emplace (L"CNNLauncher.exe");
 
   // Other Stuff
   blacklist.emplace (L"ActivationUI.exe");

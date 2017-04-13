@@ -33,6 +33,7 @@
 #include <tlhelp32.h>
 
 #include <Shlwapi.h>
+#include <atlbase.h>
 
 #undef min
 #undef max
@@ -45,6 +46,19 @@ SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
                 flags | MB_SYSTEMMODAL | MB_TOPMOST | MB_SETFOREGROUND);
 }
 
+std::string
+SK_WideCharToUTF8 (std::wstring in)
+{
+  int len = WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
+
+  std::string out;
+              out.resize (len);
+
+  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), -1, (char *)out.data (), len, nullptr, FALSE );
+
+  return out;
+}
+
 std::wstring
 SK_GetDocumentsDir (void)
 {
@@ -53,15 +67,26 @@ SK_GetDocumentsDir (void)
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken))
     return NULL;
 
-  wchar_t* str;
+  CComHeapPtr <wchar_t> str;
 
   SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
 
-  std::wstring ret = str;
+  return std::wstring (str);
+}
 
-  CoTaskMemFree (str);
+std::wstring
+SK_GetFontsDir (void)
+{
+  HANDLE hToken;
 
-  return ret;
+  if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken))
+    return NULL;
+
+  CComHeapPtr <wchar_t> str;
+
+  SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
+
+  return std::wstring (str);
 }
 
 bool

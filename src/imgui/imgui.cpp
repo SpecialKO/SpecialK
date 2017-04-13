@@ -9887,6 +9887,73 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 
 bool SK_ImGui_Visible = false;
 
+#include <SpecialK/utility.h>
+
+const ImWchar*
+SK_ImGui_GetGlyphRangesDefaultEx (void)
+{
+  static const ImWchar ranges [] =
+  {
+    0x0020, 0x00FF, // Basic Latin + Latin Supplement
+    0x0100, 0x03FF, // Latin, IPA, Greek
+    0x2100, 0x2145, // Letterlike Symbols
+    0,
+  };
+  return &ranges[0];
+}
+
+void
+SK_ImGui_LoadFonts (void)
+{
+  static bool init = false;
+
+  if (! init)
+  {
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
+    ImFontConfig font_cfg;
+    font_cfg.MergeMode = true;
+
+    auto LoadFont = [](std::string filename, float point_size, const ImWchar* glyph_range, ImFontConfig* cfg = nullptr)
+    {
+      char szFullPath [ MAX_PATH * 2 + 1 ] = { '\0' };
+
+      if (GetFileAttributesA (filename.c_str ()) != INVALID_FILE_ATTRIBUTES)
+        strncpy (szFullPath, filename.c_str (), MAX_PATH * 2);
+
+      else
+      {
+        snprintf (szFullPath, MAX_PATH * 2, "%ws\\%s", SK_GetFontsDir ().c_str (), filename.c_str ());
+
+
+        if (GetFileAttributesA (szFullPath) == INVALID_FILE_ATTRIBUTES)
+          *szFullPath = '\0';
+      }
+
+      if (*szFullPath != '\0')
+      {
+        ImGuiIO& io =
+          ImGui::GetIO ();
+
+        io.Fonts->AddFontFromFileTTF ( szFullPath, 
+                                         point_size,
+                                           cfg,
+                                             glyph_range );
+      }
+    };
+
+    LoadFont (config.imgui.font.default.file,   config.imgui.font.default.size,  /*io.Fonts->GetGlyphRangesDefault  ()*/SK_ImGui_GetGlyphRangesDefaultEx ());
+    LoadFont (config.imgui.font.japanese.file,  config.imgui.font.japanese.size, io.Fonts->GetGlyphRangesJapanese (), &font_cfg);
+    LoadFont (config.imgui.font.chinese.file,   config.imgui.font.chinese.size,  io.Fonts->GetGlyphRangesChinese  (), &font_cfg);
+    LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean   (), &font_cfg);
+    LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic (), &font_cfg);
+
+    init = true;
+  }
+}
+
+#include <windowsx.h>
 IMGUI_API
 LRESULT
 WINAPI
@@ -9913,6 +9980,9 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       }
     };
 
+// Not Needed Anymore, since we Center the Mouse on UI Open
+//   and then use delta movement from Raw Input
+#if 0
   if (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST)
   {
     DWORD dwPos = GetMessagePos ();
@@ -9926,6 +9996,12 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
         io.MousePos.y = static_cast <float> (pt.y);
       }
     }
+  }
+#endif
+
+  if (msg == WM_MOUSEMOVE)
+  {
+
   }
 
   switch (msg)
@@ -9995,20 +10071,32 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     return true;
 
   case WM_KEYDOWN:
-    if (wParam > 5 && wParam < 256) {
-      io.KeysDown [wParam] = 1;
+    if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256) {
+      io.KeysDown [(wParam & 0xff)] = 1;
     }
     return true;
 
   case WM_KEYUP:
-    if (wParam > 5 && wParam < 256)
-      io.KeysDown [wParam] = 0;
+    if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
+      io.KeysDown [(wParam & 0xff)] = 0;
     return true;
+
+  case WM_MOUSEMOVE:
+  {
+    SHORT xPos = GET_X_LPARAM (lParam);
+    SHORT yPos = GET_Y_LPARAM (lParam);
+
+    SK_ImGui_Cursor.pos.x = xPos;
+    SK_ImGui_Cursor.pos.y = yPos;
+
+    io.MousePos.x = xPos;
+    io.MousePos.y = yPos;
+  } break;
 
   case WM_CHAR:
     // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-    if (wParam > 5 && wParam < 0x10000)
-      io.AddInputCharacter((unsigned short)wParam);
+    if ((wParam & 0xff) >= 5 && wParam < 0x10000)
+      io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
     return true;
   }
 

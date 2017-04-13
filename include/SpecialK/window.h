@@ -205,6 +205,24 @@ extern GetAsyncKeyState_pfn        GetAsyncKeyState_Original;
 extern GetRawInputData_pfn         GetRawInputData_Original;
 extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 
+struct sk_imgui_cursor_s
+{
+  RECT    clip_rect  =  { 0, 0,
+                          0, 0 };
+  HCURSOR orig_img   =      NULL;
+  POINT   orig_pos   =  { 0, 0 };
+  POINT   hide_pos   =  { 0, 0 }; // Position to move the cursor to when
+                                  //   it is being captured by ImGui
+                       
+  HCURSOR img        =      NULL;
+  POINT   pos        =  { 0, 0 };
+                       
+  bool    visible    =     false;
+
+  void    showSystemCursor (bool system = true);
+  void    showImGuiCursor  (void);
+} extern SK_ImGui_Cursor;
+
 struct sk_window_s {
   bool       unicode          = false;
 

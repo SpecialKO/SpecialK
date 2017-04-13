@@ -165,6 +165,14 @@ struct sk_config_t
   struct {
     float   scale              = 1.0f;
     bool    show_eula          = true;
+
+    struct {
+      struct {
+        std::string file   = "";
+        float       size   = 13.0f;
+      } chinese,  cyrillic, default,
+        japanese, korean;
+    } font;
   } imgui;
 
 
