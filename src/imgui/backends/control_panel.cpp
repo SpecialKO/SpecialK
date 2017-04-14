@@ -316,11 +316,10 @@ SK_ImGui_ControlPanelTitle (void)
 
     if (steam)
     {
-                               // Disable until I fix ImGui UTF-8 processing
-      std::string appname = "";//SK::SteamAPI::AppName ();
+      std::string appname = SK::SteamAPI::AppName ();
 
       if (appname.length ())
-        title += L"  -  ";
+        title += L"      -      ";
 
       snprintf (szTitle, 511, "%ws%s", title.c_str (), appname.c_str ());
     }
@@ -609,7 +608,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
       if (size.x > max_width) max_width = size.x;
     }
 
-    ImGui::PushItemWidth (max_width * 2.5);
+    ImGui::PushItemWidth (max_width * 2.5f);
 
     if (ImGui::ListBoxHeader ("##empty", data.names.size (), std::min ((DWORD)data.names.size () + 3, 10UL)))
     {
@@ -779,7 +778,14 @@ SK_ImGui_ControlPanel (void)
   bool        open    = true;
 
 
-  ImGui::Begin (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+  ImGuiStyle& style =
+    ImGui::GetStyle ();
+
+  style.WindowTitleAlign = ImVec2 (0.5f, 0.5f);
+
+  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
+  ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+  ImGui::PopStyleColor  ();
           char szAPIName [32] = { '\0' };
     snprintf ( szAPIName, 32, "%ws    "
 #ifndef _WIN64
@@ -854,8 +860,8 @@ SK_ImGui_ControlPanel (void)
       
       if (ImGui::MenuItem (" ImGui Resolution     ", szResolution))
       {
-        config.window.res.override.x = io.DisplaySize.x;
-        config.window.res.override.y = io.DisplaySize.y;
+        config.window.res.override.x = (int)io.DisplaySize.x;
+        config.window.res.override.y = (int)io.DisplaySize.y;
 
         override = true;
       }
@@ -1249,6 +1255,7 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::CollapsingHeader ("Debugging"))
       {
         ImGui::TreePush  ("");
+        ImGui::BeginGroup ( );
         ImGui::Checkbox  ("Enable Crash Handler",           &config.system.handle_crashes);
 
         if (ImGui::IsItemHovered ())
@@ -1305,7 +1312,49 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndTooltip   (  );
         }
 
-        ImGui::TreePop   ();
+        ImGui::EndGroup    ( );
+        ImGui::SameLine    ( );
+        ImGui::BeginGroup  ( );
+        auto DescribeRect = [](LPRECT rect, const char* szType, const char* szName) ->
+          void
+          {
+            ImGui::Text (szType);
+            ImGui::NextColumn ();
+            ImGui::Text (szName);
+            ImGui::NextColumn ();
+            ImGui::Text ( "| (%4li,%4li) / %4lix%li |  ",
+                              rect->left, rect->top,
+                                rect->right-rect->left, rect->bottom - rect->top );
+            ImGui::NextColumn ();
+          };
+
+        ImGui::Columns (3);
+
+        DescribeRect (&game_window.actual.window, "Window", "Actual" );
+        DescribeRect (&game_window.actual.client, "Client", "Actual" );
+
+        ImGui::Columns   (1);
+        ImGui::Separator ( );
+        ImGui::Columns   (3);
+
+        DescribeRect (&game_window.game.window,   "Window", "Game"   );
+        DescribeRect (&game_window.game.client,   "Client", "Game"   );
+
+        ImGui::Columns   (1);
+        ImGui::Separator ( );
+        ImGui::Columns   (3);
+
+        RECT client,window;
+        GetClientRect (game_window.hWnd, &client);
+        GetWindowRect (game_window.hWnd, &window);
+
+        DescribeRect (&window,   "Window", "GetWindowRect"   );
+        DescribeRect (&client,   "Client", "GetClientRect"   );
+                           
+        ImGui::Columns     (1);
+        ImGui::Separator   ( );
+        ImGui::EndGroup    ( );
+        ImGui::TreePop     ( );
       }
 
       ImGui::PopStyleColor (3);
@@ -1497,11 +1546,14 @@ SK_ImGui_ControlPanel (void)
         {
           ImGui::SameLine ();
 
-          if ( ImGui::Checkbox ( "Fullscreen (Borderless Upscale)", &fullscreen ) ) {
-            DeferCommand    ("Window.Fullscreen toggle");
-            Sleep           (100);
-            SK_ImGui_Toggle ();
-            SK_ImGui_Toggle ();
+          if ( ImGui::Checkbox ( "Fullscreen (Borderless Upscale)", &fullscreen ) )
+          {
+            config.window.fullscreen = fullscreen;
+            SK_ImGui_AdjustCursor ();
+            //DeferCommand    ("Window.Fullscreen toggle");
+            //Sleep           (100);
+            //SK_ImGui_Toggle ();
+            //SK_ImGui_Toggle ();
           }
 
           if (ImGui::IsItemHovered ())
@@ -1532,8 +1584,11 @@ SK_ImGui_ControlPanel (void)
 
         if (! (config.window.borderless && config.window.fullscreen))
         {
-          if ( ImGui::Checkbox ( "Center", &center ) )
-            DeferCommand ("Window.Center toggle");
+          if ( ImGui::Checkbox ( "Center", &center ) ) {
+            config.window.center = center;
+            SK_ImGui_AdjustCursor ();
+            //DeferCommand ("Window.Center toggle");
+          }
 
           if (ImGui::IsItemHovered ()) {
             ImGui::BeginTooltip ();
@@ -2680,8 +2735,10 @@ SK_ImGui_ControlPanel (void)
   SK_ImGui_LastWindowCenter.x = pos.x + size.x / 2.0f;
   SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
 
-  if (recenter)
+  if (recenter) {
     SK_ImGui_CenterCursorOnWindow ();
+    SK_ImGui_AdjustCursor         ();
+  }
 
   ImGui::End   ();
 

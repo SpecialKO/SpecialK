@@ -2041,6 +2041,7 @@ SK_AdjustBorder (void)
   }
 
   game_window.game.window = game_window.actual.window;
+  game_window.game.client = game_window.actual.client;
 }
 
 void
@@ -2066,13 +2067,16 @@ SK_ResetWindow (void)
       GetClientRect (game_window.hWnd, &game_window.actual.client);
       
       if (config.window.borderless)
+      {
         SK_AdjustBorder ();
-      
-      if (config.window.center)
-        SK_AdjustWindow ();
 
-      if (config.window.fullscreen && config.window.borderless)
-        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 1");
+        // XXX: Why can't the call to SK_AdjustWindow (...) suffice?
+        if (config.window.fullscreen)
+          SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 1");
+      }
+
+      else if (config.window.center)
+        SK_AdjustWindow ();
 
       LeaveCriticalSection (&cs_reset);
 
@@ -2332,7 +2336,8 @@ SK_AdjustWindow (void)
                                   game_window.actual.window.top,
                                     game_window.actual.window.right  - game_window.actual.window.left,
                                     game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_NOZORDER | SWP_NOREPOSITION );
+                                      SWP_FRAMECHANGED | SWP_NOREPOSITION | SWP_NOREDRAW | SWP_DEFERERASE |
+                                      SWP_NOCOPYBITS   | SWP_NOZORDER     | SWP_NOSENDCHANGING );
     }
 
     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
@@ -2340,6 +2345,7 @@ SK_AdjustWindow (void)
 
     GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
     GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+
 
 
     wchar_t wszBorderDesc [128] = { L'\0' };
@@ -2838,22 +2844,21 @@ GetKeyState_Detour (_In_ int nVirtKey)
 {
   SK_LOG_FIRST_CALL
 
+#define SK_ConsumeVirtKey(nVirtKey) { GetKeyState_Original(nVirtKey); return 0; }
+
   // Block keyboard input to the game while the console is active
   if (SK_Console::getInstance ()->isVisible ()) {
-    GetKeyState_Original (nVirtKey);
-    return 0;
+    SK_ConsumeVirtKey (nVirtKey);
   }
 
   // Block keyboard input to the game while it's in the background
   if (config.window.background_render && (! game_window.active)) {
-    GetKeyState_Original (nVirtKey);
-    return 0;
+    SK_ConsumeVirtKey (nVirtKey);
   }
 
   // Some games use this API for mouse buttons, for reasons that are beyond me...
   if (ImGui_WantMouseCapture () && nVirtKey < 5) {
-    GetKeyState_Original (nVirtKey);
-    return 0;
+    SK_ConsumeVirtKey (nVirtKey);
   }
 
   return GetKeyState_Original (nVirtKey);
@@ -2952,6 +2957,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
+
   if (hWnd != game_window.hWnd) {
     if (game_window.hWnd != 0) {
       dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
@@ -2976,6 +2982,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     SK_InitWindow (hWnd, false);
   }
+
 
 
   static bool last_active = game_window.active;
@@ -3017,7 +3024,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       ( uMsg == WM_INPUT && ( io.WantCaptureKeyboard ||
                               io.WantCaptureMouse ) );
 
-    if (config.input.ui.capture) {
+    if (config.input.ui.capture_mouse) {
       //keyboard_capture = (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST);
       mouse_capture    = (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST);
       rawinput_capture = (uMsg == WM_INPUT);
@@ -3031,7 +3038,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (uMsg == WM_INPUT)
     {
                          // Unconditional if true, conditional otherwise.
-      filter_raw_input = config.input.ui.capture;
+      filter_raw_input = config.input.ui.capture_mouse;
 
       RAWINPUT data = { 0 };
       UINT     size = sizeof RAWINPUT;
@@ -3044,7 +3051,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         switch (data.header.dwType)
         {
           case RIM_TYPEMOUSE:
-            filter_raw_input = io.WantCaptureMouse || config.input.ui.capture || config.input.ui.use_raw_input;
+            filter_raw_input = io.WantCaptureMouse || config.input.ui.capture_mouse || config.input.ui.use_raw_input;
 
             data = { 0 };
             size = sizeof RAWINPUT;
@@ -3428,7 +3435,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       LPWINDOWPOS wnd_pos = (LPWINDOWPOS)lParam;
 
-      if (wnd_pos->flags ^ SWP_NOMOVE)
+      bool no_move = (wnd_pos->flags & SWP_NOMOVE);
+      bool no_size = (wnd_pos->flags & SWP_NOSIZE);
+
+      if (! no_move)
       {
         int width  = game_window.game.window.right  - game_window.game.window.left;
         int height = game_window.game.window.bottom - game_window.game.window.top;
@@ -3440,7 +3450,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         game_window.game.window.bottom = wnd_pos->y + height;
       }
 
-      if (wnd_pos->flags ^ SWP_NOSIZE) {
+      if (! no_size) {
         game_window.game.window.right  = game_window.game.window.left + wnd_pos->cx;
         game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
       }
@@ -3466,10 +3476,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
+      bool no_move = (wnd_pos->flags & SWP_NOMOVE);
+      bool no_size = (wnd_pos->flags & SWP_NOSIZE);
+
       //game_window.game.client = game_window.actual.client;
       //game_window.game.window = game_window.actual.window;
 
-      if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
+      if (! (no_move && no_size))
       {
         bool offset = false;
 
@@ -3497,13 +3510,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           config.window.res.override.y = client.bottom - client.top;
         }
 
+
+
         if (config.window.center)
           SK_AdjustWindow ();
 
-        else if (offset                                                      && (wnd_pos->flags ^ SWP_NOMOVE))
+        else if (offset                                                      && (! no_move))
           SK_AdjustWindow ();
 
-        else if ((! (config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
+        else if ((! (config.window.res.override.isZero () || temp_override)) && (! no_size))
           SK_AdjustWindow ();
 
         if (temp_override)

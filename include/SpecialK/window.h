@@ -235,6 +235,11 @@ struct sk_window_s {
   bool       active           = true;
 
   struct {
+    int width  = 0;
+    int height = 0;
+  } border;
+
+  struct {
     struct {
       LONG   width            = 640;
       LONG   height           = 480;

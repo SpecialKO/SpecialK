@@ -1715,6 +1715,8 @@ SK_DXGI_BorderCompensation (UINT& x, UINT& y)
   if (! config.window.borderless)
     return;
 
+  return;
+
   RECT game_rect = *SK_GetGameRect ();
 
   int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);

@@ -1174,8 +1174,8 @@ SK_Steam_RarityToName (float percent)
 }
 
 bool     has_global_data  = false;
-uint32_t next_friend      = 0;
-uint32_t friend_count     = 0;
+uint32_t next_friend      =  0;
+ int32_t friend_count     = -1;
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
@@ -1317,7 +1317,9 @@ public:
 
     achievements.list.resize        (achv_reserve);
     achievements.string_map.reserve (achv_reserve);
-    friend_stats.reserve            (friend_count);
+
+    if (friend_count > 0)
+      friend_stats.reserve          (friend_count);
 
     for (uint32_t i = 0; i < achv_reserve; i++)
       achievements.list [i] = nullptr;
@@ -1430,7 +1432,7 @@ public:
         //   we can display friend achievement stats.
         if ( next_friend == 0 && config.steam.achievements.pull_friend_stats )
         {
-          int friend_count =
+          friend_count =
             friends->GetFriendCount (k_EFriendFlagImmediate);
 
           if (friend_count > 0)
