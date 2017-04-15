@@ -1026,54 +1026,7 @@ std::unordered_set <uint32_t>               injected_collisions;
 std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
 
 
-// Actually more of a cache manager at the moment...
-class SK_D3D11_TexMgr {
-public:
-  SK_D3D11_TexMgr (void) {
-    QueryPerformanceFrequency (&PerfFreq);
-  }
-
-  bool             isTexture2D  (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc);
-
-  ID3D11Texture2D* getTexture2D ( uint32_t              crc32,
-                            const D3D11_TEXTURE2D_DESC *pDesc,
-                                  size_t               *pMemSize   = nullptr,
-                                  float                *pTimeSaved = nullptr );
-
-  void             refTexture2D ( ID3D11Texture2D      *pTex,
-                            const D3D11_TEXTURE2D_DESC *pDesc,
-                                  uint32_t              crc32,
-                                  size_t                mem_size,
-                                  uint64_t              load_time );
-
-  void             reset         (void);
-  bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
-
-  struct tex2D_descriptor_s {
-    ID3D11Texture2D      *texture    = nullptr;
-    D3D11_TEXTURE2D_DESC  desc       = { 0 };
-    size_t                mem_size   = 0L;
-    uint64_t              load_time  = 0ULL;
-    uint32_t              crc32      = 0x00;
-    uint32_t              hits       = 0;
-    uint64_t              last_used  = 0ULL;
-  };
-
-  std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
-
-  std::map < DWORD, std::unordered_map < uint32_t,
-                                         ID3D11Texture2D *  > >
-                                              HashMap_2D;
-  std::unordered_map < ID3D11Texture2D *,
-                       tex2D_descriptor_s  >  Textures_2D;
-
-  size_t                                      AggregateSize_2D  = 0ULL;
-  size_t                                      RedundantData_2D  = 0ULL;
-  uint32_t                                    RedundantLoads_2D = 0UL;
-  uint32_t                                    Evicted_2D        = 0UL;
-  float                                       RedundantTime_2D  = 0.0f;
-  LARGE_INTEGER                               PerfFreq;
-} SK_D3D11_Textures;
+SK_D3D11_TexMgr SK_D3D11_Textures;
 
 class SK_D3D11_TexCacheMgr {
 public:
@@ -1266,6 +1219,7 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
 
   if (isTexture2D (crc32, pDesc))
   {
+#ifdef TEST_COLLISIONS
     std::unordered_map <uint32_t, ID3D11Texture2D *>::iterator it =
       HashMap_2D [pDesc->MipLevels].begin ();
 
@@ -1276,14 +1230,21 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
         ++it;
         continue;
       }
-
+#else
+    auto it = HashMap_2D [pDesc->MipLevels][crc32];
+#endif
       tex2D_descriptor_s desc2d;
 
       {
         SK_AutoCriticalSection critical (&tex_cs);
 
+#ifdef TEST_COLISIONS
         desc2d =
           Textures_2D [it->second];
+#else
+        desc2d =
+          Textures_2D [it];
+#endif
       }
 
       D3D11_TEXTURE2D_DESC desc = desc2d.desc;
@@ -1321,6 +1282,7 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
         return pTex2D;
       }
 
+#ifdef TEST_COLLISIONS
       else if (desc2d.crc32 == crc32)
       {
         dll_log.Log ( L"[DX11TexMgr] ## Hash Collision for Texture: "
@@ -1330,6 +1292,7 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
 
       ++it;
     }
+#endif
   }
 
   return pTex2D;
@@ -2505,6 +2468,8 @@ D3D11Dev_CreateTexture2D_Override (
     *ppTexture2D = pCachedTex;
     return S_OK;
   }
+
+  SK_D3D11_Textures.CacheMisses_2D++;
 
   if (cacheable) {
     if (D3DX11CreateTextureFromFileW != nullptr && SK_D3D11_res_root.length ()) {

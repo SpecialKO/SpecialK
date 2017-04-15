@@ -220,10 +220,17 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].fans_rpm.supported = true;
       }
 
-      NvU32 perf_decrease_info = 0;
-      NvAPI_GPU_GetPerfDecreaseInfo (gpu, &perf_decrease_info);
+      static int iter = 0;
+      
+      // This is an expensive operation for very little gain,
+      //   it rarely changes, but it eats CPU time.
+      if (iter++ % 6 == 0 && config.gpu.print_slowdown)
+      {
+        NvU32 perf_decrease_info = 0;
+        NvAPI_GPU_GetPerfDecreaseInfo (gpu, &perf_decrease_info);
 
-      stats.gpus [i].nv_perf_state = perf_decrease_info;
+        stats.gpus [i].nv_perf_state = perf_decrease_info;
+      }
 
       NV_GPU_PERF_PSTATES20_INFO ps20info;
       ps20info.version = NV_GPU_PERF_PSTATES20_INFO_VER;

@@ -19,6 +19,8 @@
  *
 **/
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <Mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <endpointvolume.h>
@@ -120,36 +122,50 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
   if (FAILED (pSessionEnum->GetCount (&num_sessions)))
     return;
 
+  for (int pass = 0; pass < 2; pass++) // First Pass:  Top-level windows
+                                       // Second Pass:  Everything else
   for (int i = 0; i < num_sessions; i++)
   {
     CComPtr <IAudioSessionControl> pSessionCtl;
     if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
-      return;
+      continue;
 
     CComPtr <IAudioSessionControl2> pSessionCtl2;
     if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
-      return;
+      continue;
 
     DWORD dwProcess = 0;
     if (FAILED (pSessionCtl2->GetProcessId (&dwProcess)))
-      return;
+      continue;
 
-    if ( unique_procs.count (dwProcess) == 0 && ( max_count == 0 || *count < max_count ) )
+    AudioSessionState state;
+
+    if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateActive)
     {
-      extern HWND SK_FindRootWindow (DWORD proc_id);
-
-      if (SK_FindRootWindow (dwProcess) != 0)
+      if ( unique_procs.count (dwProcess) == 0 && ( max_count == 0 || *count < max_count ) )
       {
-        if (procs != nullptr)
-          procs [unique_procs.size ()] = dwProcess;
+        extern HWND SK_FindRootWindow (DWORD proc_id);
 
-        unique_procs.insert (dwProcess);
+        if ((pass == 1 || SK_FindRootWindow (dwProcess) != 0) || dwProcess == 0)
+        {
+          if (procs != nullptr)
+            procs [unique_procs.size ()] = dwProcess;
 
-        if (count != nullptr)
-          (*count)++;
+          unique_procs.insert (dwProcess);
 
-        SK_LOG4 ( ( L" Audio Session (pid=%lu)", dwProcess ),
-                    L"  WASAPI  " );
+          if (count != nullptr)
+            (*count)++;
+
+          wchar_t* wszDisplayName = nullptr;
+          if (SUCCEEDED (pSessionCtl2->GetSessionIdentifier (&wszDisplayName)))
+          {
+            dll_log.Log (L"Name: %ws", wszDisplayName);
+            CoTaskMemFree (wszDisplayName);
+          }
+
+          SK_LOG4 ( ( L" Audio Session (pid=%lu)", dwProcess ),
+                      L"  WASAPI  " );
+        }
       }
     }
   }
@@ -201,18 +217,27 @@ SK_WASAPI_GetAudioSessionControl (DWORD proc_id = GetCurrentProcessId ())
   {
     IAudioSessionControl *pSessionCtl;
     if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
-      return nullptr;
+      continue;
+
+    AudioSessionState state;
+    if (FAILED (pSessionCtl->GetState (&state)) || state != AudioSessionStateActive)
+    {
+      pSessionCtl->Release ();
+      continue;
+    }
 
     CComPtr <IAudioSessionControl2> pSessionCtl2;
-    if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2)))) {
+    if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
+    {
       pSessionCtl->Release ();
-      return nullptr;
+      continue;
     }
 
     DWORD dwProcess = 0;
-    if (FAILED (pSessionCtl2->GetProcessId (&dwProcess))) {
+    if (FAILED (pSessionCtl2->GetProcessId (&dwProcess)))
+    {
       pSessionCtl->Release ();
-      return nullptr;
+      continue;
     }
 
     if (dwProcess == proc_id)
@@ -435,4 +460,24 @@ SK_SetGameMute (bool bMute)
       pVolume->SetMute (bMute, nullptr);
       pVolume->Release ();
   }
+}
+
+
+
+#include <SpecialK/sound.h>
+
+HRESULT
+SK_WASAPI_AudioSession::OnStateChanged (AudioSessionState NewState)
+{
+  parent_->SetSessionState (this, NewState);
+
+  return S_OK;
+}
+        
+HRESULT
+SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason)
+{
+  parent_->RemoveSession (this);
+
+  return S_OK;
 }

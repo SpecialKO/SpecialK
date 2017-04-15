@@ -555,6 +555,7 @@ DllMain ( HMODULE hModule,
 
       // Don't let Steam prevent me from attaching a debugger at startup
       game_debug.init                  (L"logs/game_output.log", L"w");
+      game_debug.lockless = true;
       SK::Diagnostics::Debugger::Allow ();
 
       DWORD   dwProcessSize = MAX_PATH;

@@ -253,6 +253,15 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
 
+  DWORD dwFlags = INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_CACHE_IF_NET_FAIL |
+                  INTERNET_FLAG_IGNORE_CERT_CN_INVALID   | INTERNET_FLAG_NEED_FILE         |
+                  INTERNET_FLAG_PRAGMA_NOCACHE           | INTERNET_FLAG_RESYNCHRONIZE;
+
+  extern bool SK_IsSuperSpecialK (void);
+
+  if (SK_IsSuperSpecialK ())
+    dwFlags |= INTERNET_FLAG_RELOAD;
+
   HINTERNET hInetGitHubOpen =
     HttpOpenRequest ( hInetGitHub,
                         nullptr,
@@ -260,10 +269,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                             L"HTTP/1.1",
                               nullptr,
                                 rgpszAcceptTypes,
-                                  INTERNET_FLAG_MAKE_PERSISTENT   | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
-                                  INTERNET_FLAG_CACHE_IF_NET_FAIL | INTERNET_FLAG_IGNORE_CERT_CN_INVALID   |
-                                  INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC              |
-                                  INTERNET_FLAG_NEED_FILE,
+                                  dwFlags,
                                     (DWORD_PTR)&dwInetCtx );
 
   if (! hInetGitHubOpen) {

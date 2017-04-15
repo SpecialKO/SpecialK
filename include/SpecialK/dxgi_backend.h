@@ -304,4 +304,64 @@ extern void SK_D3D12_EnableHooks  (void);
 
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
+
+#include <unordered_set>
+#include <unordered_map>
+#include <set>
+#include <map>
+
+// Actually more of a cache manager at the moment...
+class SK_D3D11_TexMgr {
+public:
+  SK_D3D11_TexMgr (void) {
+    QueryPerformanceFrequency (&PerfFreq);
+    HashMap_2D.resize (32);
+  }
+
+  bool             isTexture2D  (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc);
+
+  ID3D11Texture2D* getTexture2D ( uint32_t              crc32,
+                            const D3D11_TEXTURE2D_DESC *pDesc,
+                                  size_t               *pMemSize   = nullptr,
+                                  float                *pTimeSaved = nullptr );
+
+  void             refTexture2D ( ID3D11Texture2D      *pTex,
+                            const D3D11_TEXTURE2D_DESC *pDesc,
+                                  uint32_t              crc32,
+                                  size_t                mem_size,
+                                  uint64_t              load_time );
+
+  void             reset         (void);
+  bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
+
+  struct tex2D_descriptor_s {
+    ID3D11Texture2D      *texture    = nullptr;
+    D3D11_TEXTURE2D_DESC  desc       = { 0 };
+    size_t                mem_size   = 0L;
+    uint64_t              load_time  = 0ULL;
+    uint32_t              crc32      = 0x00;
+    uint32_t              hits       = 0;
+    uint64_t              last_used  = 0ULL;
+  };
+
+  std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
+
+  std::vector        < std::unordered_map < 
+                        uint32_t,
+                        ID3D11Texture2D * >
+                     >                        HashMap_2D;
+
+  std::unordered_map < ID3D11Texture2D *,
+                       tex2D_descriptor_s  >  Textures_2D;
+
+  size_t                                      AggregateSize_2D  = 0ULL;
+  size_t                                      RedundantData_2D  = 0ULL;
+  uint32_t                                    RedundantLoads_2D = 0UL;
+  uint32_t                                    CacheMisses_2D    = 0ULL;
+  uint32_t                                    Evicted_2D        = 0UL;
+  volatile LONG64                             Budget            = 0ULL;
+  float                                       RedundantTime_2D  = 0.0f;
+  LARGE_INTEGER                               PerfFreq;
+} extern SK_D3D11_Textures;
+
 #endif /* __SK__DXGI_BACKEND_H__ */

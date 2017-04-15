@@ -2426,7 +2426,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
   //
   // EMERGENCY OVERRIDES
   //
-  config.textures.d3d11.cache   = false; // Has new performance problems.
   config.input.ui.use_raw_input = false;
 
 

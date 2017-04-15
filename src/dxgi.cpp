@@ -4247,8 +4247,8 @@ HookDXGI (LPVOID user)
   desc.BufferDesc.Width                   = 800;
   desc.BufferDesc.Height                  = 600;
 
-  desc.BufferDesc.RefreshRate.Numerator   = 60;
-  desc.BufferDesc.RefreshRate.Denominator = 1;
+  desc.BufferDesc.RefreshRate.Numerator   = 0;
+  desc.BufferDesc.RefreshRate.Denominator = 0;
   desc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
   desc.BufferDesc.ScanlineOrdering        = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
   desc.BufferDesc.Scaling                 = config.render.dxgi.scaling_mode == -1 ?
@@ -4297,6 +4297,7 @@ HookDXGI (LPVOID user)
 
   extern LPVOID pfnD3D11CreateDevice;
 
+#if 1
   HRESULT hr =
     ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
       0,
@@ -4309,6 +4310,20 @@ HookDXGI (LPVOID user)
                     &pDevice,
                       &featureLevel,
                         &pImmediateContext );
+#else
+  HRESULT hr = 
+    D3D11CreateDevice_Import (
+      0,
+        D3D_DRIVER_TYPE_HARDWARE,
+          nullptr,
+            0,
+              nullptr,
+                0,
+                  D3D11_SDK_VERSION,
+                    &pDevice,
+                      &featureLevel,
+                        &pImmediateContext );
+#endif
 
   InterlockedExchange (&SK_D3D11_init_tid, 0);
 
@@ -4450,7 +4465,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
       while ( ! InterlockedCompareExchange ( &budget_thread.ready,
                                                FALSE,
                                                  FALSE )
-            ) ;
+            ) Sleep (100);
 
 
       if ( budget_thread.tid != 0 )
@@ -4691,7 +4706,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
     DWORD dwWaitStatus =
       WaitForSingleObject ( params->event,
-                              BUDGET_POLL_INTERVAL );
+                              BUDGET_POLL_INTERVAL * 2 );
 
     if (! InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
     {
@@ -4703,6 +4718,10 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
     buffer_t buffer  =
       mem_info [node].buffer;
+
+
+    InterlockedExchange64 (&SK_D3D11_Textures.Budget, mem_info [buffer].local [0].Budget -
+                                                      mem_info [buffer].local [0].CurrentUsage );
 
 
     // Double-Buffer Updates
