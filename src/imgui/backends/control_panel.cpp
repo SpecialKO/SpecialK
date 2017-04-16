@@ -854,7 +854,6 @@ SK_ImGui_ControlPanel (void)
         ImGui::Text         ("Restrict the lowest/highest resolutions reported to a game");
         ImGui::Separator    ();
         ImGui::BulletText   ("Useful for games that compute aspect ratio based on the highest reported resolution.");
-        ImGui::BulletText   ("ONLY WORKS when the Config UI is CLOSED");
         ImGui::EndTooltip   ();
       }
 
@@ -1089,6 +1088,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::Columns     (1);
         ImGui::Separator   ( );
         ImGui::EndGroup    ( );
+
+        ImGui::Text ("ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }", SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x, SK_ImGui_Cursor.pos.y, SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
         ImGui::TreePop     ( );
       }
 
@@ -1203,6 +1204,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Movement");
             ImGui::Separator   ();
             ImGui::BulletText  ("May help with mouselook in some games");
+            ImGui::BulletText  ("Set to ON if running at a non-native Fullscreen resolution");
           ImGui::EndTooltip    ();
         }
         ImGui::TreePop        ();
@@ -1339,7 +1341,6 @@ SK_ImGui_ControlPanel (void)
             ImGui::TreePush    ("");
             ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "\nPress Ctrl + Shift + ScrollLock to Toggle Drag-Lock Mode");
             ImGui::BulletText  ("Useful for Positioning Borderless Windows.");
-            ImGui::BulletText  ("Only Works with the Config UI CLOSED.");
             ImGui::Text        ("");
             ImGui::TreePop     ();
           }
@@ -1770,7 +1771,7 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::TextColored ( ImColor::HSV ( 0.15f, 0.9f,
                                                 0.5f + master_vol * 0.5f),
-                                 "(%03.1f%%)",
+                                 "(%03.1f%%)  ",
                                    master_vol * 100.0f );
 
           ImGui::PopStyleColor (5);
@@ -2484,10 +2485,8 @@ SK_ImGui_ControlPanel (void)
   SK_ImGui_LastWindowCenter.x = pos.x + size.x / 2.0f;
   SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
 
-  if (recenter) {
+  if (recenter)
     SK_ImGui_CenterCursorOnWindow ();
-    SK_ImGui_AdjustCursor         ();
-  }
 
   ImGui::End   ();
 
@@ -2595,6 +2594,8 @@ SK_ImGui_Toggle (void)
 
   if (d3d9 || d3d11)
   {
+    SK_ImGui_Visible = (! SK_ImGui_Visible);
+
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
     if (hModTBFix == nullptr) 
@@ -2603,14 +2604,14 @@ SK_ImGui_Toggle (void)
       ImGui_ToggleCursor ();
 
       // Transition: (Visible -> Invisible)
-      if (SK_ImGui_Visible)
+      if (! SK_ImGui_Visible)
       {
-        SK_ImGui_Cursor.showSystemCursor ();
+        //SK_ImGui_Cursor.showSystemCursor ();
       }
 
       else
       {
-        SK_ImGui_Cursor.showImGuiCursor ();
+        //SK_ImGui_Cursor.showImGuiCursor ();
 
         if (EnableEULAIfPirate ())
           config.imgui.show_eula = true;
@@ -2629,8 +2630,6 @@ SK_ImGui_Toggle (void)
     {
       EnableEULAIfPirate ();
     }
-
-    SK_ImGui_Visible = (! SK_ImGui_Visible);
     
     if (SK_ImGui_Visible)
       SK_Console::getInstance ()->visible = false;

@@ -9949,6 +9949,8 @@ SK_ImGui_LoadFonts (void)
     LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean   (), &font_cfg);
     LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic (), &font_cfg);
 
+    io.Fonts->AddFontDefault ();
+
     init = true;
   }
 }
@@ -9998,11 +10000,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     }
   }
 #endif
-
-  if (msg == WM_MOUSEMOVE)
-  {
-
-  }
 
   switch (msg)
   {
@@ -10083,14 +10080,34 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   case WM_MOUSEMOVE:
   {
-    SHORT xPos = GET_X_LPARAM (lParam);
-    SHORT yPos = GET_Y_LPARAM (lParam);
+    if (SK_ImGui_Visible)
+    {
+      SHORT xPos = GET_X_LPARAM (lParam);
+      SHORT yPos = GET_Y_LPARAM (lParam);
 
-    SK_ImGui_Cursor.pos.x = xPos;
-    SK_ImGui_Cursor.pos.y = yPos;
+      const short threshold = 1;
 
-    io.MousePos.x = xPos;
-    io.MousePos.y = yPos;
+      static POINT last_mouse = { 0,0 };
+
+      // Filter out small movements (Raw Input will catch those)
+      if ( abs (last_mouse.x - GET_X_LPARAM (lParam)) >= threshold &&
+           abs (last_mouse.y - GET_Y_LPARAM (lParam)) >= threshold )
+      {
+        SK_ImGui_Cursor.pos.x = xPos;
+        SK_ImGui_Cursor.pos.y = yPos;
+
+        io.MousePos.x = xPos;
+        io.MousePos.y = yPos;
+
+        last_mouse.x = GET_X_LPARAM (lParam);
+        last_mouse.y = GET_Y_LPARAM (lParam);
+
+        if (! (io.WantCaptureMouse || config.input.ui.capture_mouse))
+          SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
+      }
+
+      SK_ImGui_Cursor.update ();
+    }
   } break;
 
   case WM_CHAR:

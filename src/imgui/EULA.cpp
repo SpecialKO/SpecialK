@@ -133,7 +133,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
                                         "Overview of Products Licensed"))
   {
+    ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
     ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_OVERVIEW).c_str ());
+    ImGui::PopFont  ();
   }
 
   ImGui::Separator ();
@@ -197,7 +199,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   if (config.apis.NvAPI.enable && ImGui::CollapsingHeader ("NvAPI"))
   {
+    ImGui::PushFont    (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
     ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NVAPI).c_str ());
+    ImGui::PopFont     ();
   }
 
   if (config.cegui.enable && ImGui::CollapsingHeader ("PCRE"))
