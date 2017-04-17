@@ -449,6 +449,7 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
   ImGui::GetIO ().DisplaySize             = ImVec2 ( width, height );
 }
 
+#include <SpecialK/window.h>
 
 IMGUI_API
 void

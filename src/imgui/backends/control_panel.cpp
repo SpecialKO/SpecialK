@@ -48,6 +48,14 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void);
 
+typedef BOOL (WINAPI *SetCursorPos_pfn)
+(
+  _In_ int X,
+  _In_ int Y
+);
+
+extern SetCursorPos_pfn  SetCursorPos_Original;
+
 extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
 extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
@@ -236,6 +244,20 @@ namespace SK_ImGui
     return false;
   }
 } // namespace SK_ImGui
+
+void
+SK_ImGui_UpdateCursor (void)
+{
+  ImGui::GetIO ().MouseDownDuration [0] = 0.0f;
+  
+  POINT orig_pos;
+  GetCursorPos_Original (&orig_pos);
+  SetCursorPos_Original (0, 0);
+  
+  SK_ImGui_Cursor.update ();
+  
+  SetCursorPos_Original (orig_pos.x, orig_pos.y);
+}
 
 ImVec2 SK_ImGui_LastWindowCenter (-1.0f, -1.0f);
 void   SK_ImGui_CenterCursorOnWindow (void);
@@ -475,18 +497,22 @@ SK_ImGui_ControlPanel (void)
   }
 
 
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 50), ImVec2 ( 0.9f * io.DisplaySize.x,
-                                                                  0.9f * io.DisplaySize.y ) );
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 200), ImVec2 ( 0.9f * io.DisplaySize.x,
+                                                                   0.9f * io.DisplaySize.y ) );
 
   
-  const char* szTitle = SK_ImGui_ControlPanelTitle ();
-  bool        open    = true;
+  const char* szTitle   = SK_ImGui_ControlPanelTitle ();
+  static int  title_len = int ((float)ImGui::CalcTextSize (szTitle).x * 1.075f);
+  bool        open      = true;
 
 
   ImGuiStyle& style =
     ImGui::GetStyle ();
 
   style.WindowTitleAlign = ImVec2 (0.5f, 0.5f);
+
+  style.WindowMinSize.x = title_len * 1.075f;
+  style.WindowMinSize.y = 200;
 
   ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
   ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
@@ -556,22 +582,6 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-    if ((int)io.DisplaySize.x != client.right - client.left ||
-        (int)io.DisplaySize.y != client.bottom - client.top)
-    {
-      snprintf ( szResolution, 63, "   %lux%lu", 
-                                     (int)io.DisplaySize.x,
-                                       (int)io.DisplaySize.y );
-      
-      if (ImGui::MenuItem (" ImGui Resolution     ", szResolution))
-      {
-        config.window.res.override.x = (int)io.DisplaySize.x;
-        config.window.res.override.y = (int)io.DisplaySize.y;
-
-        override = true;
-      }
-    }
-
     if (! config.window.res.override.isZero ())
     {
       snprintf ( szResolution, 63, "   %lux%lu", 
@@ -601,6 +611,9 @@ SK_ImGui_ControlPanel (void)
     // Initialize the dialog using the user's scale preference
     if (first_frame)
     {
+      // Range-restrict for sanity!
+      config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
+
       io.FontGlobalScale = config.imgui.scale;
       first_frame        = false;
     }
@@ -610,7 +623,11 @@ SK_ImGui_ControlPanel (void)
       ImGui::TreePush    ("");
 
       if (ImGui::SliderFloat ("Scale (only 1.0 is officially supported)", &config.imgui.scale, 1.0f, 3.0f))
+      {
+        // ImGui does not perform strict parameter validation, and values out of range for this can be catastrophic.
+        config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
         io.FontGlobalScale = config.imgui.scale;
+      }
 
       ImGui::TreePop     ();
     }
@@ -1120,8 +1137,7 @@ SK_ImGui_ControlPanel (void)
         }
  
         ImGui::EndGroup   ();
-
-        ImGui::SameLine ();
+        ImGui::SameLine   ();
 
         float seconds = 
           (float)config.input.cursor.timeout  / 1000.0f;
@@ -1178,11 +1194,11 @@ SK_ImGui_ControlPanel (void)
         changed |=
           ImGui::RadioButton ("Win32",     &input_backend, 0); ImGui::SameLine ();
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Win32 Mouse Processing is Temporarily Disabled");
+          ImGui::SetTooltip ("Temporarily Disabled (intended for compatibility only)");
         changed |=
           ImGui::RadioButton ("Raw Input", &input_backend, 1);
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Mouse will be restricted to game window while UI is open");
+          ImGui::SetTooltip ("More Reliable (currently the only supported input API)");
 
         ImGui::TreePop       ();
         ImGui::EndGroup      ();
@@ -1190,23 +1206,43 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine ();
 
         ImGui::BeginGroup    ();
-        ImGui::Text          ("Input Capture (while UI is open)");
+        ImGui::Text          ("Input Capture");
         ImGui::TreePush      ("");
 
         if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture_mouse))
         {
+          SK_ImGui_UpdateCursor ();
           //SK_ImGui_AdjustCursor ();
         }
 
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip  ();
-            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Movement");
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Movement while this UI is Visible");
             ImGui::Separator   ();
             ImGui::BulletText  ("May help with mouselook in some games");
-            ImGui::BulletText  ("Set to ON if running at a non-native Fullscreen resolution");
+            //ImGui::BulletText  ("Implicitly enabled if running at a non-native Fullscreen resolution");
           ImGui::EndTooltip    ();
         }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Checkbox ("Use Hardware Cursor", &config.input.ui.use_hw_cursor))
+        {
+          SK_ImGui_UpdateCursor ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Redistribute Input Latency -- (Trade Cursor Lag for UI Lag)");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("You will experience several frames of lag while dragging UI windows around.");
+            ImGui::BulletText  ("Most Games use Hardware Cursors; turning this on will reduce visible cursor trails.");
+            ImGui::BulletText  ("Automatically switches to Software when the game is not using Hardware.");
+          ImGui::EndTooltip    ();
+        }
+
         ImGui::TreePop        ();
         ImGui::EndGroup       ();
         ImGui::TreePop        ();
@@ -1287,10 +1323,6 @@ SK_ImGui_ControlPanel (void)
           {
             config.window.fullscreen = fullscreen;
             SK_ImGui_AdjustCursor ();
-            //DeferCommand    ("Window.Fullscreen toggle");
-            //Sleep           (100);
-            //SK_ImGui_Toggle ();
-            //SK_ImGui_Toggle ();
           }
 
           if (ImGui::IsItemHovered ())
@@ -1331,8 +1363,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::BeginTooltip ();
             ImGui::Text         ("Keep the Render Window Centered at All Times");
             ImGui::Separator    ();
-            ImGui::BulletText   ("At Least, that is how it is SUPPOSED to Work");
-            ImGui::BulletText   ("This Feature is Buggy:  Scaling Problems");
+            ImGui::BulletText   ("The Drag-Lock feature cannot be used while Window Centering is turned on.");
             ImGui::EndTooltip   ();
           }
 
@@ -1372,7 +1403,10 @@ SK_ImGui_ControlPanel (void)
           {
             ImGui::SameLine ();
 
-            ImGui::Checkbox     ("Remember Dragged Position", &config.window.persistent_drag);
+            ImGui::Checkbox   ("Remember Dragged Position", &config.window.persistent_drag);
+
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Store the location of windows moved using Drag-Lock and apply at game startup");
           }
 
           bool moved = false;
@@ -1603,8 +1637,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::BeginTooltip ();
           ImGui::Text         ("Prevents Mouse Cursor from Leaving the Game Window");
           ImGui::Separator    ();
-          ImGui::Text         ("This Option may be Required when Forcing Fullscreen Borderless.");
-          ImGui::BulletText   ("Otherwise, the Mouse may become Stuck in the Wrong Region of the Screen.");
+          ImGui::BulletText   ("This window-lock will be disengaged when you press Alt + Tab");
           ImGui::EndTooltip   ();
         }
 
@@ -1683,15 +1716,22 @@ SK_ImGui_ControlPanel (void)
         SK_WASAPI_AudioSession** ppSessions =
           sessions.getActive (&count);
 
-        if (count > 0)
-          audio_session = ppSessions [0];
+        // Find the session for the current game and select that first...
+        for (int i = 0; i < count; i++)
+        {
+          if (ppSessions [i]->getProcessId () == GetCurrentProcessId ())
+          {
+            audio_session = ppSessions [i];
+            break;
+          }
+        }
       }
 
       else
       {
         CComPtr <IChannelAudioVolume> pChannelVolume =
           audio_session->getChannelAudioVolume ();
-        CComPtr <ISimpleAudioVolume>  pVolume       =
+        CComPtr <ISimpleAudioVolume>  pVolume        =
           audio_session->getSimpleAudioVolume ();
 
         UINT channels = 0;
@@ -1905,9 +1945,6 @@ SK_ImGui_ControlPanel (void)
                                              1.0f,
                                               ImVec2 (ImGui::GetContentRegionAvailWidth (), ht) );
 
-              //char szName [64];
-              //sprintf (szName, "Channel: %lu", i);
-
               ImGui::PushStyleColor (ImGuiCol_PlotHistogram,     ImVec4 (0.9f, 0.1f, 0.1f, 0.15f));
               ImGui::ProgressBar    (history [i].vu_peaks.disp_max, ImVec2 (-1.0f, 0.0f));
               ImGui::PopStyleColor  ();
@@ -1934,7 +1971,10 @@ SK_ImGui_ControlPanel (void)
           ImGui::Columns (1);
         }
 
-        else {
+        // Upon failure, deactivate and try to get a new session manager on the next
+        //   frame.
+        else
+        {
           audio_session = nullptr;
           sessions.Deactivate ();
         }
@@ -2534,27 +2574,36 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   //    To use the Special K Control Panel from a plug-in,
   //      import SK_ImGui_ControlPanel and call that somewhere
   //        from your hook.
+
   bool keep_open = SK_ImGui_ControlPanel ();
 
-  if (d3d9) {
-    extern LPDIRECT3DDEVICE9 g_pd3dDevice;
+  if (keep_open)
+  {
+    if (d3d9) {
+      extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 
-    if ( SUCCEEDED (
-           g_pd3dDevice->BeginScene ()
+      if ( SUCCEEDED (
+             g_pd3dDevice->BeginScene ()
+           )
          )
-       )
-    {
-      ImGui::Render          ();
-      g_pd3dDevice->EndScene ();
+      {
+        ImGui::Render          ();
+        g_pd3dDevice->EndScene ();
+      }
+    }
+
+    else if (d3d11) {
+      ImGui::Render ();
     }
   }
 
-  else if (d3d11) {
-    ImGui::Render ();
-  }
-
-  if (! keep_open)
+  else
     SK_ImGui_Toggle ();
+
+  POINT orig_pos;
+  GetCursorPos_Original  (&orig_pos);
+  SK_ImGui_Cursor.update ();  
+  SetCursorPos_Original  (orig_pos.x, orig_pos.y);
 
   return 0;
 }
@@ -2714,31 +2763,30 @@ extern LONG SK_RawInput_MouseX;
 extern LONG SK_RawInput_MouseY;
 extern POINT SK_RawInput_Mouse;
 
-typedef BOOL (WINAPI *SetCursorPos_pfn)
-(
-  _In_ int X,
-  _In_ int Y
-);
-
-extern SetCursorPos_pfn  SetCursorPos_Original;
-
 void
 SK_ImGui_CenterCursorOnWindow (void)
 {
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  SK_ImGui_Cursor.pos.x      = (LONG)(SK_ImGui_LastWindowCenter.x);
-  SK_ImGui_Cursor.pos.y      = (LONG)(SK_ImGui_LastWindowCenter.y);
+  SK_ImGui_Cursor.pos.x = (LONG)(SK_ImGui_LastWindowCenter.x);
+  SK_ImGui_Cursor.pos.y = (LONG)(SK_ImGui_LastWindowCenter.y);
   
   io.MousePos.x = SK_ImGui_LastWindowCenter.x;
   io.MousePos.y = SK_ImGui_LastWindowCenter.y;
 
   POINT screen_pos = SK_ImGui_Cursor.pos;
-  ClientToScreen (game_window.hWnd, &screen_pos);
 
+  if (GetCursor () != nullptr)
+    SK_ImGui_Cursor.orig_img = GetCursor ();
+
+  SK_ImGui_Cursor.LocalToScreen (&screen_pos);
   SetCursorPos_Original ( screen_pos.x,
                           screen_pos.y );
+
+  io.WantCaptureMouse = true;
+
+  SK_ImGui_UpdateCursor ();
 }
 
 

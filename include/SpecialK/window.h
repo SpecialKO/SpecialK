@@ -207,8 +207,10 @@ extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 
 struct sk_imgui_cursor_s
 {
+  float   ndc_pos [2]=  { .0f, .0f };
   HCURSOR orig_img   =      NULL;
   POINT   orig_pos   =  { 0, 0 };
+  bool    orig_vis   =     false;
                        
   HCURSOR img        =      NULL;
   POINT   pos        =  { 0, 0 };
@@ -219,6 +221,11 @@ struct sk_imgui_cursor_s
   void    showImGuiCursor  (void);
 
   void    update           (void);
+
+  void   LocalToScreen    (LPPOINT lpPoint);
+  void   LocalToClient    (LPPOINT lpPoint);
+  void   ClientToLocal    (LPPOINT lpPoint);
+  void   ScreenToLocal    (LPPOINT lpPoint);
 } extern SK_ImGui_Cursor;
 
 struct sk_window_s {

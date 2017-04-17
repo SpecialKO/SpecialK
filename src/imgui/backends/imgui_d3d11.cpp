@@ -678,6 +678,8 @@ ImGui_ImplDX11_Shutdown (void)
   g_hWnd              = (HWND)0;
 }
 
+#include <SpecialK/window.h>
+
 void
 ImGui_ImplDX11_NewFrame (void)
 {
@@ -689,9 +691,6 @@ ImGui_ImplDX11_NewFrame (void)
   
   ImGuiIO& io =
     ImGui::GetIO ();
-
-  //if (io.WantCaptureMouse)
-    //io.MouseDrawCursor = true;
 
   // Setup display size (every frame to accommodate for window resizing)
   //io.DisplaySize =
@@ -752,5 +751,4 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 
   //////ImGui_ImplDX11_Init (This, g_pd3dDevice, g_pd3dDeviceContext);
   ImGui_ImplDX11_InvalidateDeviceObjects ();
-
 }

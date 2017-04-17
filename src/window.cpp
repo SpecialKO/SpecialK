@@ -130,28 +130,168 @@ struct window_t {
 sk_window_s       game_window;
 sk_imgui_cursor_s SK_ImGui_Cursor;
 
+typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
+extern SetCursor_pfn SetCursor_Original;
+
+HCURSOR GetGameCursor (void);
+
+
 void
 sk_imgui_cursor_s::update (void)
 {
   extern bool SK_ImGui_Visible;
 
+  if (GetGameCursor () != nullptr)
+    SK_ImGui_Cursor.orig_img = GetGameCursor ();
+
   if (SK_ImGui_Visible)
   {
-    if (ImGui::GetIO ().WantCaptureMouse || config.input.ui.capture_mouse)
+    if (ImGui::GetIO ().WantCaptureMouse || SK_ImGui_Cursor.orig_img == nullptr)
       SK_ImGui_Cursor.showSystemCursor (false);
     else
       SK_ImGui_Cursor.showSystemCursor (true);
   }
 
   else
-  {
     SK_ImGui_Cursor.showSystemCursor ();
-  }
 }
+
 void
 sk_imgui_cursor_s::showImGuiCursor (void)
 {
   showSystemCursor (false);
+}
+
+void
+sk_imgui_cursor_s::LocalToScreen (LPPOINT lpPoint)
+{
+  LocalToClient  (lpPoint);
+  ClientToScreen (game_window.hWnd, lpPoint);
+}
+
+void
+sk_imgui_cursor_s::LocalToClient    (LPPOINT lpPoint)
+{
+  RECT real_client;
+  GetClientRect (game_window.hWnd, &real_client);
+
+  ImVec2 local_dims =
+    ImGui::GetIO ().DisplayFramebufferScale;
+
+  struct {
+    float width,
+          height;
+  } in, out;
+
+  in.width   = local_dims.x;
+  in.height  = local_dims.y;
+
+  out.width  = (float)(real_client.right  - real_client.left);
+  out.height = (float)(real_client.bottom - real_client.top);
+
+  float x = 2.0f * ((float)lpPoint->x / in.width ) - 1.0f;
+  float y = 2.0f * ((float)lpPoint->y / in.height) - 1.0f;
+
+  lpPoint->x = (LONG)( ( x * out.width  + out.width  ) / 2.0f );
+  lpPoint->y = (LONG)( ( y * out.height + out.height ) / 2.0f );
+}
+
+void
+sk_imgui_cursor_s::ClientToLocal    (LPPOINT lpPoint)
+{
+  RECT real_client;
+  GetClientRect (game_window.hWnd, &real_client);
+
+  ImVec2 local_dims =
+    ImGui::GetIO ().DisplayFramebufferScale;
+
+  struct {
+    float width,
+          height;
+  } in, out;
+
+  out.width  = local_dims.x;
+  out.height = local_dims.y;
+
+  in.width   = (float)(real_client.right  - real_client.left);
+  in.height  = (float)(real_client.bottom - real_client.top);
+
+  float x = 2.0f * ((float)lpPoint->x / in.width ) - 1.0f;
+  float y = 2.0f * ((float)lpPoint->y / in.height) - 1.0f;
+
+  lpPoint->x = (LONG)( ( x * out.width  + out.width  ) / 2.0f );
+  lpPoint->y = (LONG)( ( y * out.height + out.height ) / 2.0f );
+}
+
+void
+sk_imgui_cursor_s::ScreenToLocal    (LPPOINT lpPoint)
+{
+  ScreenToClient (game_window.hWnd, lpPoint);
+  ClientToLocal  (lpPoint);
+}
+
+
+#include <resource.h>
+
+HCURSOR
+ImGui_DesiredCursor (void)
+{
+  static HCURSOR last_cursor = 0;
+
+  if (ImGui::GetIO ().MouseDownDuration [0] <= 0.0f || last_cursor == 0)
+  {
+    switch (ImGui::GetMouseCursor ())
+    {
+      case ImGuiMouseCursor_Arrow:
+        //SetCursor_Original ((last_cursor = LoadCursor (nullptr, IDC_ARROW)));
+        return ((last_cursor = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_POINTER)));
+        break;                          
+      case ImGuiMouseCursor_TextInput:  
+        return ((last_cursor = LoadCursor (nullptr, IDC_IBEAM)));
+        break;                          
+      case ImGuiMouseCursor_ResizeEW:
+        //SetCursor_Original ((last_cursor = LoadCursor (nullptr, IDC_SIZEWE)));
+        return ((last_cursor = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_HORZ)));
+        break;                          
+      case ImGuiMouseCursor_ResizeNWSE: 
+        return ((last_cursor = LoadCursor (nullptr, IDC_SIZENWSE)));
+        break;
+    }
+  }
+
+  else
+    return (last_cursor);
+
+  return GetCursor ();
+}
+
+void
+ImGuiCursor_Impl (void)
+{
+  CURSORINFO ci;
+  ci.cbSize = sizeof CURSORINFO;
+
+  GetCursorInfo_Original (&ci);
+
+  //
+  // Hardware Cursor
+  //
+  if (config.input.ui.use_hw_cursor)
+    SetCursor_Original (ImGui_DesiredCursor ());
+
+  if ( config.input.ui.use_hw_cursor && (ci.flags & CURSOR_SHOWING) )
+  {
+    ImGui::GetIO ().MouseDrawCursor = false;
+  }
+  
+  //
+  // Software
+  //
+  else
+  {
+    SetCursor_Original (nullptr);
+    ImGui::GetIO ().MouseDrawCursor = true;
+  }
 }
 
 void
@@ -160,34 +300,28 @@ sk_imgui_cursor_s::showSystemCursor (bool system)
   CURSORINFO cursor_info;
   cursor_info.cbSize = sizeof (CURSORINFO);
 
-  GetCursorInfo_Original (&cursor_info);
+  extern bool    SK_ImGui_Visible;
+  static HCURSOR wait_cursor = LoadCursor (nullptr, IDC_WAIT);
 
-  typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
-  extern SetCursor_pfn SetCursor_Original;
-
-  if (cursor_info.flags & CURSOR_SHOWING && cursor_info.hCursor)
-    SK_ImGui_Cursor.orig_img = cursor_info.hCursor;
+  if (SK_ImGui_Cursor.orig_img == wait_cursor)
+    SK_ImGui_Cursor.orig_img = LoadCursor (nullptr, IDC_ARROW);
 
   if (system)
   {
-    if (! (cursor_info.flags & CURSOR_SHOWING))
-      ShowCursor (TRUE);
+    SetCursor_Original     (SK_ImGui_Cursor.orig_img);
+    GetCursorInfo_Original (&cursor_info);
 
-    SetCursor_Original (SK_ImGui_Cursor.orig_img);
+    if ((! SK_ImGui_Visible) || (cursor_info.flags & CURSOR_SHOWING))
+      ImGui::GetIO ().MouseDrawCursor = false;
 
-    ImGui::GetIO ().MouseDrawCursor = false;
+    else
+      ImGuiCursor_Impl ();
   }
 
   else
-  {
-    if (cursor_info.flags & CURSOR_SHOWING)
-      ShowCursor (FALSE);
-
-    SetCursor_Original (nullptr);
-
-    ImGui::GetIO ().MouseDrawCursor = true;
-  }
+    ImGuiCursor_Impl ();
 }
+
 
 typedef BOOL (WINAPI *SetCursorPos_pfn)
 (
@@ -237,10 +371,29 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
 
   if (win.proc_id == proc_id)
   {
-    if ( GetWindow (hWnd, GW_OWNER) == (HWND)nullptr )
+    //if ( GetWindow (hWnd, GW_OWNER) == (HWND)nullptr )
     {
-      win.root = hWnd;
-      return FALSE;
+      DWORD dwStyle, dwStyleEx;
+
+      switch (IsWindowUnicode (hWnd))
+      {
+        case TRUE:
+          dwStyle   = GetWindowLongW_Original (hWnd, GWL_STYLE);
+          dwStyleEx = GetWindowLongW_Original (hWnd, GWL_EXSTYLE);
+          break;
+
+        default:
+        case FALSE:
+          dwStyle   = GetWindowLongA_Original (hWnd, GWL_STYLE);
+          dwStyleEx = GetWindowLongA_Original (hWnd, GWL_EXSTYLE);
+          break;
+      }
+
+      if ( (dwStyle & (WS_VISIBLE | WS_MINIMIZEBOX)) )
+      {
+        win.root = hWnd;
+        return FALSE;
+      }
     }
   }
 
@@ -948,21 +1101,39 @@ extern
 void
 SK_ImGui_CenterCursorOnWindow (void);
 
+HCURSOR GetGameCursor (void)
+{
+  static HCURSOR sk_imgui_arrow = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_POINTER);
+  static HCURSOR sk_imgui_horz  = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_HORZ);
+  static HCURSOR sk_imgui_ibeam = LoadCursor (nullptr, IDC_IBEAM);
+  static HCURSOR sys_arrow      = LoadCursor (nullptr, IDC_ARROW);
+  static HCURSOR sys_wait       = LoadCursor (nullptr, IDC_WAIT);
+
+  static HCURSOR hCurLast = 0;
+         HCURSOR hCur     = GetCursor ();
+
+  if ( hCur != sk_imgui_horz && hCur != sk_imgui_arrow && hCur != sk_imgui_ibeam &&
+       hCur != sys_arrow     && hCur != sys_wait )
+    hCurLast = hCur;
+
+  return hCurLast;
+}
+
 void
 ImGui_ToggleCursor (void)
 {
   if (! SK_ImGui_Cursor.visible)
   {
     if (SK_ImGui_Cursor.orig_img == nullptr)
-      SK_ImGui_Cursor.orig_img = GetCursor ();
+      SK_ImGui_Cursor.orig_img = GetGameCursor ();
 
     //GetClipCursor         (&SK_ImGui_Cursor.clip_rect);
 
     SK_ImGui_CenterCursorOnWindow ();
 
     // Save original cursor position
-    GetCursorPos_Original (&SK_ImGui_Cursor.orig_pos);
-    ScreenToClient        (game_window.hWnd, &SK_ImGui_Cursor.orig_pos);
+    GetCursorPos_Original         (&SK_ImGui_Cursor.orig_pos);
+    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
 
     SK_ImGui_Cursor.pos              = SK_ImGui_Cursor.orig_pos;
     ImGui::GetIO ().WantCaptureMouse = true;
@@ -970,13 +1141,15 @@ ImGui_ToggleCursor (void)
 
   else
   {
-    if (config.input.ui.capture)
+    if (SK_ImGui_Cursor.orig_img == nullptr)
+      SK_ImGui_Cursor.orig_img = GetGameCursor ();
+
+    if (ImGui_WantMouseCapture ())
     {
       //ClipCursor_Original   (&SK_ImGui_Cursor.clip_rect);
 
       POINT screen = SK_ImGui_Cursor.orig_pos;
-
-      ClientToScreen (game_window.hWnd, &screen);
+      SK_ImGui_Cursor.LocalToScreen (&screen);
       SetCursorPos_Original ( screen.x,
                               screen.y );
     }
@@ -985,7 +1158,6 @@ ImGui_ToggleCursor (void)
   }
 
   SK_ImGui_Cursor.visible = (! SK_ImGui_Cursor.visible);
-
   SK_ImGui_Cursor.update ();
 }
 
@@ -998,18 +1170,12 @@ SetCursor_Detour (
 
   SK_ImGui_Cursor.orig_img = hCursor;
 
-  //if (GetActiveWindow () == game_window.hWnd)
-  //{
-    //if ( SK_ImGui_Visible /*ImGui_WantMouseCapture ()*/ )
-      //SK_ImGui_Cursor.orig_img = hCursor;
-    //else
-      //SK_ImGui_Cursor.orig_img = SetCursor_Original (hCursor);
-
-    //return SK_ImGui_Cursor.orig_img;
-  //}
-
-  //else
+  if (! SK_ImGui_Visible)
     return SetCursor_Original (hCursor);
+  else if (! (ImGui::GetIO ().WantCaptureMouse || hCursor == nullptr))
+    return SetCursor_Original (hCursor);
+
+  return GetGameCursor ();
 }
 
 BOOL
@@ -1029,7 +1195,7 @@ GetCursorInfo_Detour (PCURSORINFO pci)
     {
       POINT client = SK_ImGui_Cursor.orig_pos;
 
-      ClientToScreen (game_window.hWnd, &client);
+      SK_ImGui_Cursor.LocalToScreen (&client);
       pci->ptScreenPos.x = client.x;
       pci->ptScreenPos.y = client.y;
     }
@@ -1037,11 +1203,11 @@ GetCursorInfo_Detour (PCURSORINFO pci)
     else {
       POINT client = SK_ImGui_Cursor.pos;
 
-      ClientToScreen (game_window.hWnd, &client);
+      SK_ImGui_Cursor.LocalToScreen (&client);
       pci->ptScreenPos.x = client.x;
       pci->ptScreenPos.y = client.y;
 
-      ScreenToClient (game_window.hWnd, &client);
+      SK_ImGui_Cursor.ScreenToLocal (&client);
       SK_ImGui_Cursor.orig_pos = client;
     }
 
@@ -1067,7 +1233,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     {
       POINT client = SK_ImGui_Cursor.orig_pos;
 
-      ClientToScreen (game_window.hWnd, &client);
+      SK_ImGui_Cursor.LocalToScreen (&client);
       lpPoint->x = client.x;
       lpPoint->y = client.y;
     }
@@ -1075,11 +1241,11 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     else {
       POINT client = SK_ImGui_Cursor.pos;
 
-      ClientToScreen (game_window.hWnd, &client);
+      SK_ImGui_Cursor.LocalToScreen (&client);
       lpPoint->x = client.x;
       lpPoint->y = client.y;
 
-      ScreenToClient (game_window.hWnd, &client);
+      SK_ImGui_Cursor.ScreenToLocal (&client);
       SK_ImGui_Cursor.orig_pos = client;
     }
 
@@ -1099,6 +1265,8 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   // Game WANTED to change its position, so remember that.
   SK_ImGui_Cursor.orig_pos.x = x;
   SK_ImGui_Cursor.orig_pos.y = y;
+
+  SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
@@ -2059,8 +2227,8 @@ SK_AdjustBorder (void)
                       origin_x, origin_y,
                         new_window.right - new_window.left,
                         new_window.bottom - new_window.top,
-                          SWP_NOZORDER | SWP_NOREPOSITION | SWP_FRAMECHANGED |
-                          SWP_NOSENDCHANGING );
+                          SWP_NOACTIVATE   | SWP_NOZORDER       | SWP_NOREPOSITION |
+                          SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_SHOWWINDOW  );
 
     GetWindowRect (game_window.hWnd, &game_window.actual.window);
     GetClientRect (game_window.hWnd, &game_window.actual.client);
@@ -2145,9 +2313,8 @@ SK_AdjustWindow (void)
                                 mi.rcMonitor.top,
                                   mi.rcMonitor.right  - mi.rcMonitor.left,
                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                    SWP_NOSENDCHANGING | SWP_NOZORDER |
-                                    SWP_NOREPOSITION   | SWP_ASYNCWINDOWPOS |
-                                    SWP_FRAMECHANGED );
+                                    SWP_NOACTIVATE   | SWP_NOSENDCHANGING | SWP_NOZORDER |
+                                    SWP_NOREPOSITION | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
 
     SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
                   mi.rcMonitor.left, mi.rcMonitor.top,
@@ -2363,7 +2530,8 @@ SK_AdjustWindow (void)
                                   game_window.actual.window.top,
                                     game_window.actual.window.right  - game_window.actual.window.left,
                                     game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS | SWP_NOZORDER | SWP_NOREPOSITION );
+                                      SWP_NOACTIVATE   | SWP_NOSENDCHANGING | SWP_NOZORDER |
+                                      SWP_NOREPOSITION | SWP_SHOWWINDOW );
     }
 
     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
@@ -2593,7 +2761,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
               break;
 
             case RIM_TYPEMOUSE:
-              if (io.WantCaptureMouse || config.input.ui.capture)
+              if (ImGui_WantMouseCapture ())
                 remove = true;
               break;
           }
@@ -2644,22 +2812,30 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
       {
         case RIM_TYPEMOUSE:
         {
-          SK_ImGui_Cursor.pos.x += ((RAWINPUT *)pData)->data.mouse.lLastX;
-          SK_ImGui_Cursor.pos.y += ((RAWINPUT *)pData)->data.mouse.lLastY;
+          POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
+
+          SK_ImGui_Cursor.ClientToLocal (&client);
+
+          SK_ImGui_Cursor.pos.x += client.x;
+          SK_ImGui_Cursor.pos.y += client.y;
           
           ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
           ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
 
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
-            ImGui::GetIO ().MouseDown [0] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
-            ImGui::GetIO ().MouseDown [1] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
-            ImGui::GetIO ().MouseDown [2] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
-            ImGui::GetIO ().MouseDown [3] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
-            ImGui::GetIO ().MouseDown [4] = true;
+          // Don't take mouse button presses while in the background
+          if (GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT)
+          {
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
+              ImGui::GetIO ().MouseDown [0] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
+              ImGui::GetIO ().MouseDown [1] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
+              ImGui::GetIO ().MouseDown [2] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
+              ImGui::GetIO ().MouseDown [3] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
+              ImGui::GetIO ().MouseDown [4] = true;
+          }
           
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
             ImGui::GetIO ().MouseDown [0] = false;
@@ -2681,20 +2857,31 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
         {
           USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
 
+          bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+
+         
           if ( ! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) )
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-          else
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false
-;
+          {
+            if (foreground)
+              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+          } else
+            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
+
 
           if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+          {
+            if (foreground)
+              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+          }
 
           if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP   && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
             ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
 
-          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
-            ImGui::GetIO ().AddInputCharacter (VKey);
+          if (foreground)
+          {
+            if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
+              ImGui::GetIO ().AddInputCharacter (VKey);
+          }
         } break;
       }
     }
@@ -2759,9 +2946,14 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 
             if (ImGui::GetIO ().WantCaptureMouse)
             {
+              bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+
               // That's actually a mouse button...
-              if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) < 5)
-                filter = true;
+              if (foreground)
+              {
+                if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) < 5)
+                  filter = true;
+              }
 
               if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP && (VKey & 0xff) < 5)
                 filter = true;
@@ -2795,7 +2987,6 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
           ((RAWINPUT *)pData)->data.mouse.usFlags            = 0;
           ((RAWINPUT *)pData)->data.mouse.ulRawButtons       = 0;
 
-          //*pcbSize = size;
           return size;
         }
 
@@ -2807,7 +2998,6 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
           ((RAWINPUT *)pData)->data.keyboard.Flags            = 0;
           ((RAWINPUT *)pData)->data.keyboard.ExtraInformation = 0;
 
-          //*pcbSize = 0;
           return size;
         }
       }
@@ -3014,7 +3204,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       switch (data.header.dwType)
       {
         case RIM_TYPEMOUSE:
-          filter_raw_input = io.WantCaptureMouse || config.input.ui.capture_mouse;
+          filter_raw_input = ImGui_WantMouseCapture ();
 
           data = { 0 };
           size = sizeof RAWINPUT;
@@ -3032,6 +3222,23 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           break;
       }
     }
+  }
+
+  if (SK_ImGui_Visible && uMsg == WM_SETCURSOR)
+  {
+    SK_LOG_CALL ("WM_SETCURSOR")
+
+    typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
+    extern SetCursor_pfn SetCursor_Original;
+
+    if ((HWND)wParam == game_window.hWnd)
+    {
+      SK_ImGui_Cursor.update ();
+      return 1;
+    }
+    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  } else if (uMsg == WM_SETCURSOR)
+  {
   }
 
 
@@ -3296,17 +3503,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         GetCursorInfo_Original (&ci);
 
-        if (! active)
-          if (ci.flags & CURSOR_SHOWING)
-            SK_ImGui_Cursor.orig_img = ci.hCursor;
+        if (active)
+        {
+          if (SK_ImGui_Visible)
+          {
+            if (ImGui_WantMouseCapture ())
+            {
 
-        if (active && SK_ImGui_Cursor.orig_img)
-          SetCursor_Original (SK_ImGui_Cursor.orig_img);
-      }
-
-      if (SK_ImGui_Visible && state_changed)
-      {
-        if (! active) {
+            } else if (SK_ImGui_Cursor.orig_img)
+              SetCursor_Original (SK_ImGui_Cursor.orig_img);
+          }
         }
       }
    };
@@ -3356,7 +3562,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if (uMsg == WM_NCACTIVATE || uMsg == WM_ACTIVATEAPP)
       {
-        if (wParam == TRUE)
+        if (wParam != FALSE)
         {
           if (last_active == false)
             SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
@@ -3867,7 +4073,8 @@ SK_InstallWindowHook (HWND hWnd)
     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
   }
 
-  SK_InitWindow (hWnd);
+  SK_InitWindow    (hWnd);
+  //SetClassLongPtrW (hWnd, GCLP_HCURSOR, (LONG_PTR)nullptr);
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();

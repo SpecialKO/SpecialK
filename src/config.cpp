@@ -235,6 +235,7 @@ struct {
     sk::ParameterBool*    keys_activate;
     sk::ParameterFloat*   timeout;
     sk::ParameterBool*    ui_capture;
+    sk::ParameterBool*    hw_cursor;
   } cursor;
 } input;
 
@@ -513,6 +514,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Cursor",
         L"ForceCaptureInUI" );
+
+  input.cursor.hw_cursor =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Use a Hardware Cursor for Special K's UI Features")
+      );
+  input.cursor.hw_cursor->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"UseHardwareCursor" );
 
 
   window.borderless =
@@ -1902,7 +1913,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       case SK_GAME_ID::EverQuest:
         // Fix-up rare issues during Server Select -> Game
-        config.compatibility.d3d9.rehook_reset = true;
+        //config.compatibility.d3d9.rehook_reset = true;
         break;
     }
   }
@@ -2256,6 +2267,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.input.cursor.timeout = (int)(1000.0 * input.cursor.timeout->get_value ());
   if (input.cursor.ui_capture->load ())
     config.input.ui.capture = input.cursor.ui_capture->get_value ();
+  if (input.cursor.hw_cursor->load ())
+    config.input.ui.use_hw_cursor = input.cursor.hw_cursor->get_value ();
 
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
@@ -2522,6 +2535,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
   input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
   input.cursor.ui_capture->set_value          (config.input.ui.capture);
+  input.cursor.hw_cursor->set_value           (config.input.ui.use_hw_cursor);
 
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
@@ -2760,6 +2774,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.keys_activate->store       ();
   input.cursor.timeout->store             ();
   input.cursor.ui_capture->store          ();
+  input.cursor.hw_cursor->store           ();
 
   window.borderless->store                ();
   window.center->store                    ();

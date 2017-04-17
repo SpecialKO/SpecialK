@@ -291,6 +291,9 @@
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -511,9 +514,42 @@
     <None Include="version.ini">
       <Filter>Update Server</Filter>
     </None>
+    <None Include="resource\cursors\ovr_diag1.ani">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_diag2.ani">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_horz.ani">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_move.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_ptr.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_text.ani">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_vert.ani">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="cursors\ovr_move.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="cursors\ovr_ptr.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\cursors\cursor3.cur">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="SpecialK.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

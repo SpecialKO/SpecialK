@@ -10085,26 +10085,17 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       SHORT xPos = GET_X_LPARAM (lParam);
       SHORT yPos = GET_Y_LPARAM (lParam);
 
-      const short threshold = 1;
+      SK_ImGui_Cursor.pos.x = xPos;
+      SK_ImGui_Cursor.pos.y = yPos;
 
-      static POINT last_mouse = { 0,0 };
+      SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
 
-      // Filter out small movements (Raw Input will catch those)
-      if ( abs (last_mouse.x - GET_X_LPARAM (lParam)) >= threshold &&
-           abs (last_mouse.y - GET_Y_LPARAM (lParam)) >= threshold )
-      {
-        SK_ImGui_Cursor.pos.x = xPos;
-        SK_ImGui_Cursor.pos.y = yPos;
+      io.MousePos.x = SK_ImGui_Cursor.pos.x;
+      io.MousePos.y = SK_ImGui_Cursor.pos.y;
 
-        io.MousePos.x = xPos;
-        io.MousePos.y = yPos;
-
-        last_mouse.x = GET_X_LPARAM (lParam);
-        last_mouse.y = GET_Y_LPARAM (lParam);
-
-        if (! (io.WantCaptureMouse || config.input.ui.capture_mouse))
-          SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
-      }
+      extern bool ImGui_WantMouseCapture (void);
+      if (! ImGui_WantMouseCapture ())
+        SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
 
       SK_ImGui_Cursor.update ();
     }

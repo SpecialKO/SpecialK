@@ -1160,6 +1160,7 @@ Exit 0</Command>
     <ClInclude Include="include\stb\rect_pack.h" />
     <ClInclude Include="include\stb\textedit.h" />
     <ClInclude Include="include\stb\truetype.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\adl.cpp">
@@ -1758,6 +1759,8 @@ Exit 0</Command>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="cursors\ovr_move.cur" />
+    <None Include="cursors\ovr_ptr.cur" />
     <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">true</ExcludedFromBuild>
@@ -1907,6 +1910,14 @@ Exit 0</Command>
     </None>
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
+    <None Include="resource\cursors\cursor3.cur" />
+    <None Include="resource\cursors\ovr_diag1.ani" />
+    <None Include="resource\cursors\ovr_diag2.ani" />
+    <None Include="resource\cursors\ovr_horz.ani" />
+    <None Include="resource\cursors\ovr_move.cur" />
+    <None Include="resource\cursors\ovr_ptr.cur" />
+    <None Include="resource\cursors\ovr_text.ani" />
+    <None Include="resource\cursors\ovr_vert.ani" />
     <None Include="version.ini" />
     <None Include="SpecialK.def" />
   </ItemGroup>
@@ -1915,6 +1926,7 @@ Exit 0</Command>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</DeploymentContent>
     </ResourceCompile>
+    <ResourceCompile Include="SpecialK.rc" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="resource\annoying.wav" />

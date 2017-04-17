@@ -62,7 +62,6 @@ public:
     char     szTitle [512] = {  '\0' };
     wchar_t wszTitle [512] = { L'\0' };
     
-#if 0
     HWND hWndRoot = SK_FindRootWindow (proc_id);
     if (hWndRoot != 0)
     { 
@@ -74,7 +73,6 @@ public:
       //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
                   //L"  WASAPI  " );
     }
-#endif
 
 // Use the ANSI versions
 #undef PROCESSENTRY32
