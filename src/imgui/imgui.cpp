@@ -9982,25 +9982,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       }
     };
 
-// Not Needed Anymore, since we Center the Mouse on UI Open
-//   and then use delta movement from Raw Input
-#if 0
-  if (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST)
-  {
-    DWORD dwPos = GetMessagePos ();
-    POINT    pt { (signed short)dwPos, (signed short)(dwPos >> 16) };
-
-    if (! config.input.ui.use_raw_input) 
-    {
-      if (ScreenToClient (hWnd, &pt))
-      {
-        io.MousePos.x = static_cast <float> (pt.x);
-        io.MousePos.y = static_cast <float> (pt.y);
-      }
-    }
-  }
-#endif
-
   switch (msg)
   {
   case WM_MOUSEACTIVATE:

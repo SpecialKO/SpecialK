@@ -1906,7 +1906,7 @@ SK_BeginBufferSwap (void)
     //
     // TEMP HACK: There is only one opportune time to do this in DXGI-based APIs
     //     
-    if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D11) {
+    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) {
       extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
                    SK_ImGui_DrawFrame (       0x00,          nullptr );
     }

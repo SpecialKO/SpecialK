@@ -47,6 +47,8 @@ extern HMODULE WINAPI SK_GetDLL (void);
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 
+#include <imgui/backends/imgui_gl3.h>
+
 volatile ULONG __gl_ready = FALSE;
 
 void
@@ -85,6 +87,9 @@ extern
 ULONG
 __stdcall
 SK_GetFramesDrawn (void);
+
+extern bool  SK_ImGui_Visible;
+extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
 
 unsigned int
 WINAPI
@@ -1266,6 +1271,9 @@ SK_CEGUI_DrawGL (void)
       SK_Steam_DrawOSD ();
 
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+
+      if (SK_ImGui_Visible)
+        SK_ImGui_DrawFrame (0x00, nullptr);
     }
     cegGL->endRendering     ();
 
@@ -1332,6 +1340,12 @@ wglSwapBuffers (HDC hDC)
 
   SK_GL_UpdateRenderStats ();
   SK_CEGUI_DrawGL         ();
+
+  static bool first = true;
+  if (first) {
+    ImGui_ImplGL3_Init ();
+    first = false;
+  }
 
   BOOL status = FALSE;
 

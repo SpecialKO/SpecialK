@@ -1627,9 +1627,7 @@ SK_TextOverlay::update (const char* szText)
     float   x, y;
     getPos (x, y);
 
-    char text [32768];
-    memset (text, 9, 32768);
-    //char*    text = char stack_array [32768];
+    static __declspec (thread) char text [32768] = { '\0' };
 
     strncpy (text, data_.text, 32766);
 
@@ -1694,7 +1692,7 @@ SK_TextOverlay::update (const char* szText)
     while (line != nullptr)
     {
       // Fast-path: Skip blank lines
-      if (*line != '\0')
+      if (*line != '\0' && strlen (line) > 1)
       {
         CEGUI::String cegui_line (line);
 

@@ -1114,6 +1114,8 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\scoped.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d9.h" />
+    <ClInclude Include="include\imgui\backends\imgui_gl3.h" />
+    <ClInclude Include="include\imgui\backends\imgui_vk.h" />
     <ClInclude Include="include\imgui\imconfig.h" />
     <ClInclude Include="include\imgui\imgui.h" />
     <ClInclude Include="include\imgui\imgui_internal.h" />
@@ -1309,6 +1311,8 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_gl3.cpp" />
+    <ClCompile Include="src\imgui\backends\imgui_vk.cpp" />
     <ClCompile Include="src\ImGui\EULA.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>

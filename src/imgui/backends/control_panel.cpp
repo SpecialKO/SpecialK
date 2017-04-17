@@ -22,6 +22,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <imgui/imgui.h>
+#include <imgui/backends/imgui_gl3.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_d3d11.h>
 #include <d3d9.h>
@@ -2551,8 +2552,15 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   bool d3d9  = false;
   bool d3d11 = false;
+  bool gl    = false;
 
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) {
+  if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL) {
+    gl = true;
+
+    ImGui_ImplGL3_NewFrame ();
+  }
+
+  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) {
     d3d9 = true;
 
     ImGui_ImplDX9_NewFrame ();
@@ -2592,9 +2600,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
       }
     }
 
-    else if (d3d11) {
+    else if (d3d11)
       ImGui::Render ();
-    }
+
+    else if (gl)
+      ImGui::Render ();
   }
 
   else
@@ -2616,9 +2626,11 @@ SK_ImGui_Toggle (void)
 
   bool d3d11 = false;
   bool d3d9  = false;
+  bool gl    = false;
 
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)  d3d9  = true;
-  if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::D3D11) d3d11 = true;
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)   d3d9  = true;
+  if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::D3D11)  d3d11 = true;
+  if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::OpenGL) gl    = true;
 
   auto EnableEULAIfPirate = [](void) ->
     bool
@@ -2641,7 +2653,7 @@ SK_ImGui_Toggle (void)
       return false;
     };
 
-  if (d3d9 || d3d11)
+  if (d3d9 || d3d11 || gl)
   {
     SK_ImGui_Visible = (! SK_ImGui_Visible);
 
