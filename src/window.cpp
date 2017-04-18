@@ -1557,9 +1557,8 @@ SetWindowPos_Detour(
 {
   SK_LOG_FIRST_CALL
 
-  if (hWnd == game_window.hWnd) {
-    SK_WINDOW_LOG_CALL0 ();
-  }
+  if (hWnd == game_window.hWnd)
+    SK_WINDOW_LOG_CALL1 ();
 
   BOOL bRet = 
     SetWindowPos_Original ( hWnd, hWndInsertAfter,
@@ -3226,7 +3225,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   if (SK_ImGui_Visible && uMsg == WM_SETCURSOR)
   {
-    SK_LOG_CALL ("WM_SETCURSOR")
+    //SK_LOG_CALL ("WM_SETCURSOR")
 
     typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
     extern SetCursor_pfn SetCursor_Original;

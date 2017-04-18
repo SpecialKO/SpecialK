@@ -12,7 +12,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <imgui/imgui.h>>
+#include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_PLACEMENT_NEW
 #include <imgui/imgui_internal.h>
@@ -439,7 +439,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
         PrimReserve(idx_count, vtx_count);
 
         // Temporary buffer
-        ImVec2* temp_normals = (ImVec2*)alloca(points_count * (thick_line ? 5 : 3) * sizeof(ImVec2));
+        ImVec2* temp_normals = (ImVec2*)_malloca(points_count * (thick_line ? 5 : 3) * sizeof(ImVec2));
         ImVec2* temp_points = temp_normals + points_count;
 
         for (int i1 = 0; i1 < count; i1++)
@@ -620,7 +620,7 @@ void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_coun
         }
 
         // Compute normals
-        ImVec2* temp_normals = (ImVec2*)alloca(points_count * sizeof(ImVec2));
+        ImVec2* temp_normals = (ImVec2*)_malloca(points_count * sizeof(ImVec2));
         for (int i0 = points_count-1, i1 = 0; i1 < points_count; i0 = i1++)
         {
             const ImVec2& p0 = points[i0];
@@ -1386,7 +1386,7 @@ bool    ImFontAtlas::Build()
     {
         ImFontConfig& cfg = ConfigData[input_i];
         ImFontTempBuildData& tmp = tmp_array[input_i];
-        ImFont* dst_font = cfg.DstFont; // We can have multiple input fonts writing into a same destination font (when using MergeMode=true)
+        ImFont* dst_font = cfg.DstFont;
 
         float font_scale = stbtt_ScaleForPixelHeight(&tmp.FontInfo, cfg.SizePixels);
         int unscaled_ascent, unscaled_descent, unscaled_line_gap;
@@ -1403,7 +1403,6 @@ bool    ImFontAtlas::Build()
             dst_font->Ascent = ascent;
             dst_font->Descent = descent;
             dst_font->Glyphs.resize(0);
-            dst_font->MetricsTotalSurface = 0;
         }
         dst_font->ConfigDataCount++;
         float off_y = (cfg.MergeMode && cfg.MergeGlyphCenterV) ? (ascent - dst_font->Ascent) * 0.5f : 0.0f;
@@ -1436,7 +1435,6 @@ bool    ImFontAtlas::Build()
                 glyph.XAdvance = (pc.xadvance + cfg.GlyphExtraSpacing.x);  // Bake spacing into XAdvance
                 if (cfg.PixelSnapH)
                     glyph.XAdvance = (float)(int)(glyph.XAdvance + 0.5f);
-                dst_font->MetricsTotalSurface += (int)(glyph.X1 - glyph.X0 + 1.99f) * (int)(glyph.Y1 - glyph.Y0 + 1.99f); // +1 to account for average padding, +0.99 to round
             }
         }
         cfg.DstFont->BuildLookupTable();
@@ -1696,16 +1694,15 @@ void    ImFont::Clear()
 {
     FontSize = 0.0f;
     DisplayOffset = ImVec2(0.0f, 1.0f);
+    ConfigData = NULL;
+    ConfigDataCount = 0;
+    Ascent = Descent = 0.0f;
+    ContainerAtlas = NULL;
     Glyphs.clear();
-    IndexXAdvance.clear();
-    IndexLookup.clear();
     FallbackGlyph = NULL;
     FallbackXAdvance = 0.0f;
-    ConfigDataCount = 0;
-    ConfigData = NULL;
-    ContainerAtlas = NULL;
-    Ascent = Descent = 0.0f;
-    MetricsTotalSurface = 0;
+    IndexXAdvance.clear();
+    IndexLookup.clear();
 }
 
 void ImFont::BuildLookupTable()

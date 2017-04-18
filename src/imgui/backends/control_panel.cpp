@@ -934,7 +934,7 @@ SK_ImGui_ControlPanel (void)
         };
 
         ImGui::PushStyleVar                                                           (ImGuiStyleVar_ChildWindowRounding, 10.0f);
-        ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * 4), true, ImGuiWindowFlags_ChildWindowAutoFitY);
+        ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * 4), true/*, ImGuiWindowFlags_ChildWindowAutoFitY*/);
 
         ImGui::Columns    ( 2 );
 
@@ -1697,6 +1697,8 @@ SK_ImGui_ControlPanel (void)
       ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.90f, 0.72f, 0.80f));
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.87f, 0.78f, 0.80f));
 
+      ImGui::Columns (2, "Amazon Sep", false);
+
       bool selected = true;
       if (ImGui::Selectable (app_name.c_str (), &selected))
         ImGui::OpenPopup ("Audio Session Selector");
@@ -1705,6 +1707,36 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Click Here to Manage Another Application.");
+
+      ImGui::SetColumnOffset (1, 450);
+      ImGui::NextColumn      (      );
+
+      ImGui::BeginGroup ();
+      {
+        ImGui::PushItemWidth (-1);
+        if (ImGui::Button (" << ")) {
+          keybd_event (VK_MEDIA_PREV_TRACK, 0x22, 1, 0);
+          keybd_event (VK_MEDIA_PREV_TRACK, 0x22, 3, 0);
+        }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Button (" Play / Pause ")) {
+          keybd_event (VK_MEDIA_PLAY_PAUSE, 0x22, 1, 0);
+          keybd_event (VK_MEDIA_PLAY_PAUSE, 0x22, 3, 0); 
+        }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Button (" >> ")) {
+          keybd_event (VK_MEDIA_NEXT_TRACK, 0x22, 1, 0);
+          keybd_event (VK_MEDIA_NEXT_TRACK, 0x22, 3, 0);
+        }
+        ImGui::PopItemWidth ();
+      }
+      ImGui::EndGroup   ();
+      ImGui::Columns    (1);
+
 
       bool session_changed = SK_ImGui_SelectAudioSessionDlg ();
 
@@ -2658,8 +2690,9 @@ SK_ImGui_Toggle (void)
     SK_ImGui_Visible = (! SK_ImGui_Visible);
 
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+    static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
-    if (hModTBFix == nullptr) 
+    if (hModTBFix == nullptr && hModTZFix == nullptr) 
     {
       // Turns the hardware cursor on/off as needed
       ImGui_ToggleCursor ();

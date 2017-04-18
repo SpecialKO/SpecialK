@@ -105,7 +105,10 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   game_debug.LogEx (true,   L"%hs", lpOutputString);
   fprintf          (stdout,  "%s",  lpOutputString);
 
-  OutputDebugStringA_Original (lpOutputString);
+  // NVIDIA's drivers do something weird, we cannot call the trampoline and
+  //   must bail-out, or the NVIDIA streaming service will crash the game!~
+  //
+  //OutputDebugStringA_Original (lpOutputString);
 }
 
 void
@@ -115,7 +118,10 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
   game_debug.LogEx (true,   L"%s",  lpOutputString);
   fprintf          (stdout,  "%ws", lpOutputString);
 
-  OutputDebugStringW_Original (lpOutputString);
+  // NVIDIA's drivers do something weird, we cannot call the trampoline and
+  //   must bail-out, or the NVIDIA streaming service will crash the game!~
+  //
+  //OutputDebugStringW_Original (lpOutputString);
 }
 
 bool spoof_debugger = false;

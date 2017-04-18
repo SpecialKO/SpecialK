@@ -19,7 +19,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.2.16"
+#define FAR_VERSION_NUM L"0.5.3.1"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -65,6 +65,7 @@ sk::ParameterBool*    far_uncap_fps             = nullptr;
 sk::ParameterBool*    far_slow_state_cache      = nullptr;
 sk::ParameterBool*    far_rtss_warned           = nullptr;
 sk::ParameterBool*    far_osd_disclaimer        = nullptr;
+sk::ParameterBool*    far_accepted_license      = nullptr;
 
 
 #include <unordered_set>
@@ -383,7 +384,8 @@ SK_FAR_EndFrame (void)
 
   if (far_osd_disclaimer->get_value ())
     SK_DrawExternalOSD ( "FAR", "  Press Ctrl + Shift + O         to toggle In-Game OSD\n"
-                                "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n\n"
+                                "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n"
+                                "    ( Select + Start )\n\n"
                                 "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
   else if (config.system.log_level == 1)
   {
@@ -1074,7 +1076,7 @@ SK_FAR_CorrectAspectRatio (ID3D11DeviceContext *pDevCtx)
 
     backup_vp = vp;
 
-    extern HWND SK_GetGameWindow (void);
+    extern HWND __stdcall SK_GetGameWindow (void);
 
     RECT rect;
     GetClientRect (SK_GetGameWindow (), &rect);
@@ -1481,6 +1483,24 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     }
 
 
+    far_accepted_license = 
+        static_cast <sk::ParameterBool *>
+          (far_factory.create_parameter <bool> (L"Has accepted the license terms"));
+
+    far_accepted_license->register_to_ini ( far_prefs,
+                                              L"FAR.System",
+                                                L"AcceptedLicense" );
+
+    if (! far_accepted_license->load ())
+    {
+      far_accepted_license->set_value (false);
+      far_accepted_license->store     ();
+    }
+
+    else
+      config.imgui.show_eula = (! far_accepted_license->get_value ());
+
+
     far_bloom_width =
       static_cast <sk::ParameterInt *>
         (far_factory.create_parameter <int> (L"Width of Bloom Post-Process"));
@@ -1653,6 +1673,15 @@ void
 __stdcall
 SK_FAR_ControlPanel (void)
 {
+  // Push this to FAR.ini so that mod updates don't repeatedly present the user with a license agreement.
+  if ((! config.imgui.show_eula) && (! far_accepted_license->get_value ()))
+  {
+    far_accepted_license->set_value (true);
+    far_accepted_license->store     ();
+    far_prefs->write                (far_prefs_file);
+  }
+
+
   bool changed = false;
 
   if (ImGui::CollapsingHeader("NieR: Automata", ImGuiTreeNodeFlags_DefaultOpen))

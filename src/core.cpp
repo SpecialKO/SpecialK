@@ -2288,6 +2288,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
+  extern void SK_ImGui_PollGamepad (void);
+  SK_ImGui_PollGamepad ();
+
   return hr;
 }
 

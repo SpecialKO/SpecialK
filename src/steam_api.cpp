@@ -121,6 +121,9 @@ typedef HSteamPipe (*SteamAPI_GetHSteamPipe_pfn)(void);
 
 typedef ISteamClient* (S_CALLTYPE *SteamClient_pfn)(void);
 
+typedef bool (*GetControllerState_pfn)
+    (ISteamController* This, uint32 unControllerIndex, SteamControllerState_t *pState);
+
 SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                = nullptr;
 SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original       = nullptr;
 
@@ -150,6 +153,8 @@ SteamClient_pfn                    SteamClient                          = nullpt
 
 SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                    = nullptr;
 SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original           = nullptr;
+
+GetControllerState_pfn             GetControllerState_Original          = nullptr;
 
 class SK_Steam_OverlayManager
 {
@@ -464,6 +469,13 @@ SK_Steam_PopupOriginStrToEnum (const char* str)
 void SK_Steam_SetNotifyCorner (void);
 
 
+extern bool
+ISteamController_GetControllerState_Detour (
+  ISteamController*       This,
+  uint32                  unControllerIndex,
+  SteamControllerState_t *pState );
+
+
 class SK_SteamAPIContext : public SK_IVariableListener
 {
 public:
@@ -653,6 +665,19 @@ public:
 
       //return false;
     }
+
+    controller_ =
+      client_->GetISteamController (
+        hSteamUser,
+          hSteamPipe,
+            STEAMCONTROLLER_INTERFACE_VERSION );
+
+    //void** vftable = *(void***)*&controller_;
+    //SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
+                             //vftable, 3,
+              //ISteamController_GetControllerState_Detour,
+                    //(LPVOID *)&GetControllerState_Original );
+
 
     steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
     SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
@@ -885,6 +910,20 @@ public:
       //return false;
     }
 
+#if 0
+    controller_ =
+      client_->GetISteamController (
+        hSteamUser,
+          hSteamPipe,
+            STEAMCONTROLLER_INTERFACE_VERSION );
+
+    void** vftable = *(void***)*(&controller_);
+    SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
+                             vftable, 3,
+              ISteamController_GetControllerState_Detour,
+                    (LPVOID *)&GetControllerState_Original );
+#endif
+
     steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
     SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
     steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
@@ -919,6 +958,7 @@ public:
       friends_     = nullptr;
       utils_       = nullptr;
       screenshots_ = nullptr;
+      controller_  = nullptr;
       
       if (SteamAPI_Shutdown_Original != nullptr)
       {
@@ -938,6 +978,7 @@ public:
   ISteamFriends*     Friends     (void) { return friends_;     }
   ISteamUtils*       Utils       (void) { return utils_;       }
   ISteamScreenshots* Screenshots (void) { return screenshots_; }
+  ISteamController*  Controller  (void) { return controller_;  }
 
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;
@@ -965,6 +1006,7 @@ private:
   ISteamFriends*     friends_       = nullptr;
   ISteamUtils*       utils_         = nullptr;
   ISteamScreenshots* screenshots_   = nullptr;
+  ISteamController*  controller_    = nullptr;
 } steam_ctx;
 
 
