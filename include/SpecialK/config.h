@@ -407,6 +407,24 @@ struct sk_config_t
   } system;
 } extern config;
 
+
+struct SK_Keybind
+{
+  const char*  bind_name;
+  std::wstring human_readable;
+
+  struct {
+    bool ctrl,
+         shift,
+         alt;
+  };
+
+  BYTE vKey;
+
+  void parse  (void);
+  void update (void);
+};
+
 bool SK_LoadConfigEx (std::wstring name, bool create = true);
 bool SK_LoadConfig   (std::wstring name         = L"dxgi");
 void SK_SaveConfig   (std::wstring name         = L"dxgi",

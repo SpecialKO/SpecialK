@@ -54,7 +54,7 @@ SK_WideCharToUTF8 (std::wstring in)
   std::string out;
               out.resize (len);
 
-  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), -1, (char *)out.data (), len, nullptr, FALSE );
+  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), in.length (), (char *)out.data (), len, nullptr, FALSE );
 
   return out;
 }

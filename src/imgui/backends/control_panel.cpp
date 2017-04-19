@@ -3223,3 +3223,71 @@ SK_D3D11_TextureModDlg (void)
   return show_dlg;
 }
 #endif
+
+
+void
+SK_ImGui_KeybindDialog (SK_Keybind* keybind)
+{
+  const  float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  static bool  was_open  = false;
+
+  static BYTE bind_keys [256] = { 0 };
+
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (font_size * 9, font_size * 3), ImVec2 (font_size * 30, font_size * 6));
+
+  if (ImGui::BeginPopupModal (keybind->bind_name, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
+  {
+    ImGui::GetIO ().WantCaptureKeyboard = false;
+
+    int keys = 256;
+
+    if (! was_open)
+    {
+      //keybind->vKey = 0;
+
+      for (int i = 0 ; i < keys ; i++ ) bind_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
+
+      was_open = true;
+    }
+
+    BYTE active_keys [256];
+
+    for (int i = 0 ; i < keys ; i++ ) active_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
+
+    if (memcmp (active_keys, bind_keys, keys))
+    {
+      int i = 0;
+
+      for (i = (VK_MENU + 1); i < keys; i++)
+      {
+        if ( i == VK_LCONTROL || i == VK_RCONTROL ||
+             i == VK_LSHIFT   || i == VK_RSHIFT   ||
+             i == VK_LMENU    || i == VK_RMENU )
+          continue;
+
+        if ( active_keys [i] != bind_keys [i] )
+          break;
+      }
+
+      if (i != keys)
+      {
+        keybind->vKey = i;
+        was_open      = false;
+        ImGui::CloseCurrentPopup ();
+        ImGui::GetIO ().WantCaptureKeyboard = true;
+      }
+
+      //memcpy (bind_keys, active_keys, keys);
+    }
+
+    keybind->ctrl  = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0; 
+    keybind->shift = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
+    keybind->alt   = (GetAsyncKeyState_Original (VK_MENU)    & 0x8000) != 0;
+
+    keybind->update ();
+
+    ImGui::Text ("Binding:  %ws", keybind->human_readable.c_str ());
+
+    ImGui::EndPopup ();
+  }
+}

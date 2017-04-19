@@ -8,6 +8,7 @@
 #include <SpecialK/parameter.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/log.h>
+#include <SpecialK/steam_api.h>
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
@@ -19,7 +20,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.3.2"
+#define FAR_VERSION_NUM L"0.5.4"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -30,10 +31,12 @@ volatile LONG __FAR_init = FALSE;
 
 struct far_game_state_s {
   // Game state addresses courtesy of Francesco149
-  DWORD* pMenu      = (DWORD *)0x1418F39C4;
-  DWORD* pLoading   = (DWORD *)0x141975520;
-  DWORD* pHacking   = (DWORD *)0x1410E0AB4;
-  DWORD* pShortcuts = (DWORD *)0x1413FC35C;
+  DWORD* pMenu       = (DWORD *)0x1418F39C4;
+  DWORD* pLoading    = (DWORD *)0x141975520;
+  DWORD* pHacking    = (DWORD *)0x1410E0AB4;
+  DWORD* pShortcuts  = (DWORD *)0x1413FC35C;
+
+  float* pHUDOpacity = (float *)0x14196C63C;
 
   bool   capped      = true;  // Actual state of limiter
   bool   enforce_cap = true;  // User's current preference
@@ -66,6 +69,50 @@ sk::ParameterBool*    far_slow_state_cache      = nullptr;
 sk::ParameterBool*    far_rtss_warned           = nullptr;
 sk::ParameterBool*    far_osd_disclaimer        = nullptr;
 sk::ParameterBool*    far_accepted_license      = nullptr;
+sk::ParameterStringW* far_hudless_binding       = nullptr;
+sk::ParameterStringW* far_center_lock           = nullptr;
+sk::ParameterStringW* far_focus_lock            = nullptr;
+
+struct {
+  bool        enqueue = false; // Trigger a Steam screenshot
+  int         clear   = 4;     // Reset enqueue after 3 frames
+  float       opacity = 1.0f;  // Original HUD opacity
+
+  SK_Keybind  keybind = {
+    "HUD Free Screenshot", L"Num -",
+     false, false, false, VK_OEM_MINUS
+  };
+} static __FAR_HUDLESS;
+
+
+struct far_cam_state_s {
+  bool center_lock = false,
+       focus_lock  = false;
+
+  SK_Keybind center_binding {
+     "Camera Center Lock Toggle", L"Ctrl+Shift+F10",
+     true, true, false, VK_F10
+  };
+
+  SK_Keybind focus_binding {
+     "Camera Focus Lock Toggle", L"Ctrl+Shift+F11",
+     true, true, false, VK_F11
+  };
+
+  bool toggleCenterLock (void) {
+    if (center_lock) SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdc89 F0111DCC00D290F");
+    else             SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdc89 F90909090909090");
+
+    return (center_lock = (! center_lock));
+  }
+
+  bool toggleFocusLock (void) {
+    if (focus_lock) SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdbc8 850111DD910D290F");
+    else            SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdbc8 8590909090909090");
+
+    return (focus_lock = (! focus_lock));
+  }
+} static far_cam;
 
 
 #include <unordered_set>
@@ -462,6 +509,30 @@ SK_FAR_EndFrame (void)
       game_state.uncapFPS ();
       game_state.capped = false;
     }
+
+
+    if (__FAR_HUDLESS.enqueue)
+    {
+      if (__FAR_HUDLESS.clear == 4-1)
+      {
+        // In all truth, I should capture the screenshot myself, but I don't
+        //   want to bother with that right now ;)
+        SK_SteamAPI_TakeScreenshot ();
+        __FAR_HUDLESS.clear--;
+      }
+
+      else if (__FAR_HUDLESS.clear <= 0)
+      {
+        (*game_state.pHUDOpacity) = 
+          __FAR_HUDLESS.opacity;
+
+        __FAR_HUDLESS.clear   = 4;
+        __FAR_HUDLESS.enqueue = false;
+      }
+
+      else
+        __FAR_HUDLESS.clear--;
+    }
   }
 }
 
@@ -492,16 +563,39 @@ typedef void (CALLBACK *SK_PluginKeyPress_pfn)(
 );
 SK_PluginKeyPress_pfn SK_PluginKeyPress_Original;
 
+#define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
+  (UINT)((vKey) | ((ctrl) != 0) << 9)  |    \
+                  ((shift != 0) << 10) |    \
+                  ((alt   != 0) << 11)
+
+#define SK_ControlShiftKey(vKey) SK_MakeKeyMask ((vKey), true, true, false)
+
 void
 CALLBACK
 SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
-  if (Control && Shift)
-  { 
-    if (vkCode == VK_OEM_PERIOD)
-      SK_FAR_SetFramerateCap (game_state.enforce_cap);
+  UINT uiMaskedKeyCode =
+    SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-    else if (vkCode == VK_OEM_6) // ']'
+  const UINT uiHudlessMask =
+    SK_MakeKeyMask ( __FAR_HUDLESS.keybind.vKey,  __FAR_HUDLESS.keybind.ctrl,
+                     __FAR_HUDLESS.keybind.shift, __FAR_HUDLESS.keybind.alt );
+
+  const UINT uiLockCenterMask =
+    SK_MakeKeyMask ( far_cam.center_binding.vKey,  far_cam.center_binding.ctrl,
+                     far_cam.center_binding.shift, far_cam.center_binding.alt );
+
+  const UINT uiLockFocusMask =
+    SK_MakeKeyMask ( far_cam.focus_binding.vKey,  far_cam.focus_binding.ctrl,
+                     far_cam.focus_binding.shift, far_cam.focus_binding.alt );
+
+  switch (uiMaskedKeyCode)
+  {
+    case SK_ControlShiftKey (VK_OEM_PERIOD):
+      SK_FAR_SetFramerateCap (game_state.enforce_cap);
+      break;
+
+    case SK_ControlShiftKey (VK_OEM_6): // ']'
     {
       if (__FAR_GlobalIllumWorkGroupSize < 8)
         __FAR_GlobalIllumWorkGroupSize = 8;
@@ -510,9 +604,9 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
       if (__FAR_GlobalIllumWorkGroupSize > 128)
         __FAR_GlobalIllumWorkGroupSize = 128;
-    }
+    } break;
 
-    else if (vkCode == VK_OEM_4) // '['
+    case SK_ControlShiftKey (VK_OEM_4): // '['
     {
       if (__FAR_GlobalIllumWorkGroupSize > 128)
         __FAR_GlobalIllumWorkGroupSize = 128;
@@ -521,7 +615,31 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
       if (__FAR_GlobalIllumWorkGroupSize < 16)
         __FAR_GlobalIllumWorkGroupSize = 0;
-    }
+    } break;
+
+    default:
+    {
+      if (uiMaskedKeyCode == uiHudlessMask)
+      {
+        if (__FAR_HUDLESS.enqueue == false)
+        {
+          __FAR_HUDLESS.clear     = 4;
+          __FAR_HUDLESS.enqueue   = true;
+          __FAR_HUDLESS.opacity   = (*game_state.pHUDOpacity);
+          *game_state.pHUDOpacity = 0.0f;
+        }
+      }
+
+      else if (uiMaskedKeyCode == uiLockCenterMask)
+      {
+        far_cam.toggleCenterLock ();
+      }
+
+      else if (uiMaskedKeyCode == uiLockFocusMask)
+      {
+        far_cam.toggleFocusLock ();
+      }
+    } break;
   }
 
   SK_PluginKeyPress_Original (Control, Shift, Alt, vkCode);
@@ -1640,6 +1758,36 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     }
 
 
+
+    auto LoadKeybind =
+      [](SK_Keybind* binding, wchar_t* ini_name) ->
+        auto
+        {
+          sk::ParameterStringW* ret =
+           static_cast <sk::ParameterStringW *>
+            (far_factory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+
+          ret->register_to_ini ( far_prefs, L"FAR.Keybinds", ini_name );
+
+          if (! ret->load ())
+          {
+            binding->parse ();
+            ret->set_value (binding->human_readable);
+            ret->store     ();
+          }
+
+          binding->human_readable = ret->get_value ();
+          binding->parse ();
+
+          return ret;
+        };
+
+    far_hudless_binding = LoadKeybind (&__FAR_HUDLESS.keybind,  L"HUDFreeScreenshot");
+    far_center_lock     = LoadKeybind (&far_cam.center_binding, L"ToggleCameraCenterLock");
+    far_focus_lock      = LoadKeybind (&far_cam.focus_binding,  L"ToggleCameraFocusLock");
+
+
+
     SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
                                                SK_FAR_EndFrame,
                                     (LPVOID *)&SK_EndFrame_Original );
@@ -1937,6 +2085,62 @@ SK_FAR_ControlPanel (void)
         ImGui::SetTooltip ("Fixes video stuttering, but may cause it during gameplay.");
 
       ImGui::TreePop ();
+    }
+
+    if (ImGui::CollapsingHeader ("Camera and HUD"))
+    {
+      auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
+        auto
+        {
+          if (ImGui::Selectable (SK_WideCharToUTF8 (binding->human_readable).c_str(), false))
+          {
+            ImGui::OpenPopup (binding->bind_name);
+          }
+
+          std::wstring original_binding = binding->human_readable;
+
+          extern void SK_ImGui_KeybindDialog (SK_Keybind* keybind);
+          SK_ImGui_KeybindDialog (binding);
+
+          if (original_binding != binding->human_readable)
+          {
+            param->set_value (binding->human_readable);
+            param->store     ();
+
+            return true;
+          }
+
+          return false;
+        };
+
+      ImGui::TreePush    ("");
+      ImGui::SliderFloat ("HUD Opacity", game_state.pHUDOpacity, 0.0f, 2.0f);
+
+      ImGui::Text        ("HUD Free Screenshot Keybinding:  "); ImGui::SameLine ();
+
+      Keybinding (&__FAR_HUDLESS.keybind, far_hudless_binding);
+
+      ImGui::Separator ();
+
+      if (ImGui::Checkbox ("Lock Camera Origin", &far_cam.center_lock))
+      {
+        far_cam.center_lock = (! far_cam.center_lock);
+        far_cam.toggleCenterLock ();
+      }
+
+      ImGui::SameLine ();
+      Keybinding      (&far_cam.center_binding, far_center_lock);
+
+      if (ImGui::Checkbox ("Lock Camera Focus", &far_cam.focus_lock))
+      {
+        far_cam.focus_lock = (! far_cam.focus_lock);
+        far_cam.toggleFocusLock ();
+      }
+
+      ImGui::SameLine ();
+      Keybinding      (&far_cam.focus_binding, far_focus_lock);
+
+      ImGui::TreePop  ();
     }
 
     ImGui::TreePop       ( );

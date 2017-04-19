@@ -111,7 +111,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
   {
     static bool init = false;
     static std::vector <std::wstring> nv_blacklist;
-    
+
     if (! init)
     {
       nv_blacklist.emplace_back (L"rxgamepadinput.dll");
@@ -127,7 +127,7 @@ BlacklistLibraryW (LPCWSTR lpFileName)
 #endif
       init = true;
     }
-    
+
     for ( auto&& it : nv_blacklist )
     {
       if (StrStrIW (lpFileName, it.c_str ()))
