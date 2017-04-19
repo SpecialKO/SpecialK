@@ -1078,6 +1078,59 @@ int     game_x, game_y;
 HCURSOR game_cursor    = 0;
 
 bool
+ImGui_WantKeyboardCapture (void)
+{
+  bool imgui_capture = false;
+
+  if (SK_ImGui_Visible)
+  {
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
+    extern bool nav_usable;
+    if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
+      imgui_capture = true;
+  }
+
+  return imgui_capture;
+}
+
+bool
+ImGui_WantTextCapture (void)
+{
+  bool imgui_capture = false;
+
+  if (SK_ImGui_Visible)
+  {
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
+    if (io.WantTextInput)
+      imgui_capture = true;
+  }
+
+  return imgui_capture;
+}
+
+bool
+ImGui_WantGamepadCapture (void)
+{
+  bool imgui_capture = false;
+
+  if (SK_ImGui_Visible)
+  {
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
+    extern bool nav_usable;
+    if (nav_usable)
+      imgui_capture = true;
+  }
+
+  return imgui_capture;
+}
+
+bool
 ImGui_WantMouseCapture (void)
 {
   bool imgui_capture = false;
@@ -1087,7 +1140,7 @@ ImGui_WantMouseCapture (void)
     ImGuiIO& io =
       ImGui::GetIO ();
 
-    if (config.input.ui.capture || io.WantCaptureMouse)
+    if (config.input.ui.capture || io.WantCaptureMouse || io.WantTextInput)
       imgui_capture = true;
   }
 
@@ -2699,9 +2752,11 @@ typedef UINT (WINAPI *GetRawInputBuffer_pfn)(
                                _Out_opt_ PRAWINPUT pData,
                                _Inout_   PUINT     pcbSize,
                                _In_      UINT      cbSizeHeader);
+typedef BOOL (WINAPI *GetKeyboardState_pfn)(PBYTE lpKeyState);
 
 GetKeyState_pfn             GetKeyState_Original             = nullptr;
 GetAsyncKeyState_pfn        GetAsyncKeyState_Original        = nullptr;
+GetKeyboardState_pfn        GetKeyboardState_Original        = nullptr;
 GetRawInputData_pfn         GetRawInputData_Original         = nullptr;
 RegisterRawInputDevices_pfn RegisterRawInputDevices_Original = nullptr;
 GetRawInputBuffer_pfn       GetRawInputBuffer_Original       = nullptr;
@@ -2755,12 +2810,17 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
           switch (pItem->header.dwType)
           {
             case RIM_TYPEKEYBOARD:
-              if (io.WantCaptureKeyboard)
+              if (ImGui_WantKeyboardCapture ())
                 remove = true;
               break;
 
             case RIM_TYPEMOUSE:
               if (ImGui_WantMouseCapture ())
+                remove = true;
+              break;
+
+            default:
+              if (ImGui_WantGamepadCapture ())
                 remove = true;
               break;
           }
@@ -2788,108 +2848,227 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
   return GetRawInputBuffer_Original (pData, pcbSize, cbSizeHeader);
 }
 
+extern bool nav_usable;
+
+LRESULT
+WINAPI
+ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+bool
+SK_ImGui_HandlesMessage (LPMSG lpMsg)
+{
+  bool handled = false;
+
+  switch (lpMsg->message)
+  {
+    //case WM_INPUT_DEVICE_CHANGE:
+    case WM_INPUT:
+    {
+      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+      if (ImGui_WantGamepadCapture ())
+        return true;
+  	}
+  	break;
+
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+      if (nav_usable)
+      {
+        if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+          if (ImGui_WantKeyboardCapture () && (! ImGui_WantTextCapture ()))
+          {
+            // Don't capture release notifications, or games may think the key
+            //   is stuck down indefinitely
+            if (lpMsg->message != WM_KEYUP && lpMsg->message != WM_SYSKEYUP)
+              return true;
+          }
+      } break;
+
+    case WM_CHAR:
+    case WM_UNICHAR:
+    case WM_SYSDEADCHAR:
+    case WM_DEADCHAR:
+      if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+        if (ImGui_WantKeyboardCapture ())
+          return true;
+      break;
+
+
+    case WM_CAPTURECHANGED:
+    case WM_MOUSEHOVER:
+    case WM_MOUSELEAVE:
+    case WM_MOUSEMOVE:
+    case WM_NCMOUSEHOVER:
+    case WM_NCMOUSEMOVE:
+    case WM_NCMOUSELEAVE:
+      if (nav_usable)
+      {
+        if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+          if (ImGui_WantMouseCapture ())
+            return true;
+      } break;
+
+    case WM_LBUTTONDBLCLK:
+    case WM_LBUTTONDOWN:
+    case WM_MBUTTONDBLCLK:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MOUSEACTIVATE:
+    case WM_MOUSEHWHEEL:
+    case WM_MOUSEWHEEL:
+    case WM_NCHITTEST:
+    case WM_NCLBUTTONDBLCLK:
+    case WM_NCLBUTTONDOWN:
+    case WM_NCLBUTTONUP:
+    case WM_NCMBUTTONDBLCLK:
+    case WM_NCMBUTTONDOWN:
+    case WM_NCMBUTTONUP:
+    case WM_NCRBUTTONDBLCLK:
+    case WM_NCRBUTTONDOWN:
+    case WM_NCRBUTTONUP:
+    case WM_NCXBUTTONDBLCLK:
+    case WM_NCXBUTTONDOWN:
+    case WM_NCXBUTTONUP:
+    case WM_RBUTTONDBLCLK:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_XBUTTONDBLCLK:
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+    case WM_LBUTTONUP:
+      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      if (ImGui_WantMouseCapture ())
+          return true;
+      break;
+  }
+
+  return handled;
+}
+
+bool
+SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove)
+{
+  if ( SK_ImGui_HandlesMessage (lpMsg) )
+  {
+    lpMsg->message = WM_NULL;
+    return true;
+  }
+
+  return false;
+}
+
+typedef BOOL (WINAPI *PeekMessageW_pfn)(
+  _Out_    LPMSG lpMsg,
+  _In_opt_ HWND  hWnd,
+  _In_     UINT  wMsgFilterMin,
+  _In_     UINT  wMsgFilterMax,
+  _In_     UINT  wRemoveMsg
+);
+
+PeekMessageW_pfn PeekMessageW_Original = nullptr;
+
+BOOL
+WINAPI
+PeekMessageW_Detour (
+  _Out_    LPMSG lpMsg,
+  _In_opt_ HWND  hWnd,
+  _In_     UINT  wMsgFilterMin,
+  _In_     UINT  wMsgFilterMax,
+  _In_     UINT  wRemoveMsg )
+{
+  BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+
+  if (bRet)
+  {
+    SK_EarlyDispatchMessage (lpMsg, true);
+  }
+
+  return bRet;
+}
+
+typedef BOOL (WINAPI *PeekMessageA_pfn)(
+  _Out_    LPMSG lpMsg,
+  _In_opt_ HWND  hWnd,
+  _In_     UINT  wMsgFilterMin,
+  _In_     UINT  wMsgFilterMax,
+  _In_     UINT  wRemoveMsg
+);
+
+PeekMessageW_pfn PeekMessageA_Original = nullptr;
+
+BOOL
+WINAPI
+PeekMessageA_Detour (
+  _Out_    LPMSG lpMsg,
+  _In_opt_ HWND  hWnd,
+  _In_     UINT  wMsgFilterMin,
+  _In_     UINT  wMsgFilterMax,
+  _In_     UINT  wRemoveMsg )
+{
+  BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+
+  if (bRet)
+  {
+    SK_EarlyDispatchMessage (lpMsg, true);
+  }
+
+  return bRet;
+}
+
+typedef BOOL (WINAPI *GetMessageA_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
+typedef BOOL (WINAPI *GetMessageW_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
+
+GetMessageA_pfn GetMessageA_Original;
+GetMessageW_pfn GetMessageW_Original;
+
+BOOL
+WINAPI
+GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+{
+  if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
+    return FALSE;
+
+  SK_EarlyDispatchMessage (lpMsg, true);
+  return TRUE;
+}
+
+BOOL
+WINAPI
+GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+{
+  if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
+    return FALSE;
+
+  SK_EarlyDispatchMessage (lpMsg, true);
+  return TRUE;
+}
+
+typedef LRESULT (WINAPI *DispatchMessageW_pfn)(
+  _In_ const MSG *lpmsg
+);
+
+DispatchMessageW_pfn DispatchMessageW_Original = nullptr;
+
+LRESULT
+WINAPI
+DispatchMessageW_Detour (_In_ const MSG *lpMsg)
+{
+  SK_EarlyDispatchMessage ((MSG *)lpMsg, true);
+    //return 0;
+
+  return DispatchMessageW_Original (lpMsg);
+}
+
 UINT
 WINAPI
 SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
                           _In_      UINT      uiCommand,
                           _Out_opt_ LPVOID    pData,
                           _Inout_   PUINT     pcbSize,
-                          _In_      UINT      cbSizeHeader)
-{
-  static HRAWINPUT last_call = 0;
-
-  if (last_call == hRawInput)
-    return -1;
-
-  int size = GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-
-  if (uiCommand == RID_INPUT)
-  {
-    if (pData != nullptr && size > 0)
-    {
-      switch (((RAWINPUT *)pData)->header.dwType)
-      {
-        case RIM_TYPEMOUSE:
-        {
-          POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
-
-          SK_ImGui_Cursor.ClientToLocal (&client);
-
-          SK_ImGui_Cursor.pos.x += client.x;
-          SK_ImGui_Cursor.pos.y += client.y;
-          
-          ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-          ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-
-          // Don't take mouse button presses while in the background
-          if (GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT)
-          {
-            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
-              ImGui::GetIO ().MouseDown [0] = true;
-            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
-              ImGui::GetIO ().MouseDown [1] = true;
-            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
-              ImGui::GetIO ().MouseDown [2] = true;
-            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
-              ImGui::GetIO ().MouseDown [3] = true;
-            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
-              ImGui::GetIO ().MouseDown [4] = true;
-          }
-          
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
-            ImGui::GetIO ().MouseDown [0] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
-            ImGui::GetIO ().MouseDown [1] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP )
-            ImGui::GetIO ().MouseDown [2] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP      )
-            ImGui::GetIO ().MouseDown [3] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
-            ImGui::GetIO ().MouseDown [4] = false;
-          //if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL        )
-            //ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData) / WHEEL_DELTA;
-
-          SK_ImGui_Cursor.update ();
-        } break;
-
-        case RIM_TYPEKEYBOARD:
-        {
-          USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
-
-          bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
-         
-          if ( ! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) )
-          {
-            if (foreground)
-              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-          } else
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
-
-
-          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
-          {
-            if (foreground)
-              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-          }
-
-          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP   && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
-
-          if (foreground)
-          {
-            if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
-              ImGui::GetIO ().AddInputCharacter (VKey);
-          }
-        } break;
-      }
-    }
-  }
-
-  last_call = hRawInput;
-
-  return 0;
-}
+                          _In_      UINT      cbSizeHeader);
 
 UINT
 WINAPI
@@ -2901,109 +3080,9 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 {
   SK_LOG_FIRST_CALL
 
-  int size = GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+  return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
-  if (uiCommand == RID_INPUT)
-  {
-    if (pData != nullptr)
-    {
-      bool filter   = false;
-
-      bool mouse    = false;
-      bool keyboard = false;
-
-      switch (((RAWINPUT *)pData)->header.dwType)
-      {
-        case RIM_TYPEMOUSE:
-        {
-          SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-
-          if (SK_ImGui_Visible)
-          {
-            if ( ImGui_WantMouseCapture () )
-              filter = true;
-          }
-
-          // Block mouse input to the game while it's in the background
-          if (config.window.background_render && (! game_window.active))
-            filter = true;
-
-          mouse = true;
-        } break;
-
-        case RIM_TYPEKEYBOARD:
-        {
-          SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-
-          USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
-
-
-          if (SK_ImGui_Visible)
-          {
-            if (ImGui::GetIO ().WantCaptureKeyboard)
-              filter = true;
-
-            if (ImGui::GetIO ().WantCaptureMouse)
-            {
-              bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
-              // That's actually a mouse button...
-              if (foreground)
-              {
-                if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) < 5)
-                  filter = true;
-              }
-
-              if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP && (VKey & 0xff) < 5)
-                filter = true;
-            }
-          }
-
-          // Block keyboard input to the game while the console is active
-          if (SK_Console::getInstance ()->isVisible ())
-            filter = true;
-
-          // Block keyboard input to the game while it's in the background
-          if (config.window.background_render && (! game_window.active))
-            filter = true;
-
-          keyboard = true;
-
-          //last_input = hRawInput;
-        } break;
-        default:
-          break;
-      }
-
-      if (filter)
-      {
-        if (mouse)
-        {
-          ((RAWINPUT *)pData)->data.mouse.lLastX             = 0;
-          ((RAWINPUT *)pData)->data.mouse.lLastY             = 0;
-          ((RAWINPUT *)pData)->data.mouse.ulButtons          = 0;
-          ((RAWINPUT *)pData)->data.mouse.ulExtraInformation = 0;
-          ((RAWINPUT *)pData)->data.mouse.usFlags            = 0;
-          ((RAWINPUT *)pData)->data.mouse.ulRawButtons       = 0;
-
-          return size;
-        }
-
-        if (keyboard)
-        {
-          ((RAWINPUT *)pData)->data.keyboard.VKey             = 0;
-          ((RAWINPUT *)pData)->data.keyboard.Message          = 0;
-          ((RAWINPUT *)pData)->data.keyboard.MakeCode         = 0;
-          ((RAWINPUT *)pData)->data.keyboard.Flags            = 0;
-          ((RAWINPUT *)pData)->data.keyboard.ExtraInformation = 0;
-
-          return size;
-        }
-      }
-    }
-  }
-
-  return size;
+  //return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 }
 
 SHORT
@@ -3015,17 +3094,25 @@ GetAsyncKeyState_Detour (_In_ int vKey)
 #define SK_ConsumeVKey(vKey) { GetAsyncKeyState_Original(vKey); return 0; }
 
   // Block keyboard input to the game while the console is active
-  if (SK_Console::getInstance ()->isVisible ()) {
+  if (SK_Console::getInstance ()->isVisible ())
     SK_ConsumeVKey (vKey);
-  }
 
   // Block keyboard input to the game while it's in the background
   if (config.window.background_render && (! game_window.active))
     SK_ConsumeVKey (vKey);
 
-  // Some games use this API for mouse buttons, for reasons that are beyond me...
-  if (ImGui_WantMouseCapture () && vKey < 5)
-    SK_ConsumeVKey (vKey);
+  if (vKey >= 5)
+  {
+    if (ImGui_WantKeyboardCapture () || ImGui_WantTextCapture ())
+      SK_ConsumeVKey (vKey);
+  }
+
+  else
+  {
+    // Some games use this API for mouse buttons, for reasons that are beyond me...
+    if (ImGui_WantMouseCapture ())
+      SK_ConsumeVKey (vKey);
+  }
 
   return GetAsyncKeyState_Original (vKey);
 }
@@ -3039,21 +3126,76 @@ GetKeyState_Detour (_In_ int nVirtKey)
 #define SK_ConsumeVirtKey(nVirtKey) { GetKeyState_Original(nVirtKey); return 0; }
 
   // Block keyboard input to the game while the console is active
-  if (SK_Console::getInstance ()->isVisible ()) {
+  if (SK_Console::getInstance ()->isVisible ())
     SK_ConsumeVirtKey (nVirtKey);
-  }
 
   // Block keyboard input to the game while it's in the background
-  if (config.window.background_render && (! game_window.active)) {
+  if (config.window.background_render && (! game_window.active))
     SK_ConsumeVirtKey (nVirtKey);
+
+  if (nVirtKey >= 5)
+  {
+    if (ImGui_WantKeyboardCapture () || ImGui_WantTextCapture ())
+      SK_ConsumeVirtKey (nVirtKey);
   }
 
-  // Some games use this API for mouse buttons, for reasons that are beyond me...
-  if (ImGui_WantMouseCapture () && nVirtKey < 5) {
-    SK_ConsumeVirtKey (nVirtKey);
+  else
+  {
+    // Some games use this API for mouse buttons, for reasons that are beyond me...
+    if (ImGui_WantMouseCapture ())
+      SK_ConsumeVirtKey (nVirtKey);
   }
 
   return GetKeyState_Original (nVirtKey);
+}
+
+//typedef BOOL (WINAPI *SetKeyboardState_pfn)(PBYTE lpKeyState); // TODO
+
+BOOL
+WINAPI
+GetKeyboardState_Detour (PBYTE lpKeyState)
+{
+  SK_LOG_FIRST_CALL
+
+  static BYTE last_keys [256] = { 0 };
+         BYTE      keys [256] = { 0 };
+
+  BOOL bRet = GetKeyboardState_Original (keys);
+
+  if (bRet)
+  {
+    // Some games use this API for mouse buttons, for reasons that are beyond me...
+    if (ImGui_WantMouseCapture ()) {
+      last_keys [0] = 0; last_keys [1] = 0;
+      last_keys [2] = 0; last_keys [3] = 0;
+      last_keys [4] = 0;
+    }
+
+    memcpy (lpKeyState, last_keys, 256);
+
+    // Some games use this API for mouse buttons, for reasons that are beyond me...
+    if (ImGui_WantMouseCapture ()) {
+      keys [0] = 0; keys [1] = 0;
+      keys [2] = 0; keys [3] = 0;
+      keys [4] = 0;
+    }
+
+    // Block keyboard input to the game while the console is active
+    if (SK_Console::getInstance ()->isVisible ())
+      return bRet;
+
+    // Block keyboard input to the game while it's in the background
+    if (config.window.background_render && (! game_window.active))
+      return bRet;
+    
+    if (ImGui_WantKeyboardCapture () || ImGui_WantTextCapture ())
+      return bRet;
+  }
+
+  memcpy (lpKeyState, keys, 256);
+  memcpy (last_keys,  keys, 256);
+
+  return bRet;
 }
 
 // Avoid static storage in the callback function
@@ -3187,41 +3329,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (uMsg == WM_INPUT && GET_RAWINPUT_CODE_WPARAM (wParam) == RIM_INPUT)
-  {
-                       // Unconditional if true, conditional otherwise.
-    filter_raw_input = config.input.ui.capture_mouse;
-
-    RAWINPUT data = { 0 };
-    UINT     size = sizeof RAWINPUT;
-
-    int      ret  =
-      GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
-
-    if (ret)
-    {
-      switch (data.header.dwType)
-      {
-        case RIM_TYPEMOUSE:
-          filter_raw_input = ImGui_WantMouseCapture ();
-
-          data = { 0 };
-          size = sizeof RAWINPUT;
-          
-          SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header));
-          break;
-
-        case RIM_TYPEKEYBOARD:
-          filter_raw_input  = io.WantCaptureKeyboard;
-
-          data = { 0 };
-          size = sizeof RAWINPUT;
-          
-          SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header));
-          break;
-      }
-    }
-  }
 
   if (SK_ImGui_Visible && uMsg == WM_SETCURSOR)
   {
@@ -3236,8 +3343,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       return 1;
     }
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-  } else if (uMsg == WM_SETCURSOR)
-  {
   }
 
 
@@ -3249,35 +3354,41 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (SK_ImGui_Visible)
   {
     bool keyboard_capture =
-      ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)   &&
-          io.WantCaptureKeyboard );
+      ( ( (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST) || uMsg == WM_MENUCHAR ) &&
+          ImGui_WantKeyboardCapture () );
     bool mouse_capture =
-      ( (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) &&
-          ImGui_WantMouseCapture () );
+      ( ( uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST       ) || uMsg == WM_CAPTURECHANGED ||
+        ( uMsg >= WM_NCMOUSEMOVE && uMsg <= WM_NCXBUTTONDBLCLK ) ) && ImGui_WantMouseCapture ();
 
-    // Some games use Virtual Key Codes 0-4 (mouse button 0-4)
-    //   instead of WM_LBUTTONDOWN, etc.
-    if ( ( ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
-         ( ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
+    if ((wParam & 0xFF) < 5)
     {
-      // Block Mouse Input
-      if ((wParam & 0xFF) < 5)
-        mouse_capture = true;
+      // Some games use Virtual Key Codes 0-4 (mouse button 0-4)
+      //   instead of WM_LBUTTONDOWN, etc.
+      if ( ( ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
+           ( ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
+      {
+        // Block Mouse Input
+        mouse_capture    = true;
+        keyboard_capture = false;
+      }
     }
 
     // Capturing WM_INPUT messages would discard every type of input,
     //   not what we want generally.
     bool rawinput_capture =
-      ( uMsg == WM_INPUT && ( io.WantCaptureKeyboard ||
-                              io.WantCaptureMouse ) );
+      ( (uMsg == WM_INPUT ) && 
+                            ( ImGui_WantKeyboardCapture () ||
+                              ImGui_WantMouseCapture    () ||
+                              ImGui_WantGamepadCapture  () ) );
 
-    if (config.input.ui.capture_mouse) {
+    if (config.input.ui.capture_mouse)
+    {
       //keyboard_capture = (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST);
-      mouse_capture    = (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST);
+      mouse_capture    = (uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST)       ||
+                         (uMsg >= WM_NCMOUSEMOVE && uMsg <= WM_NCXBUTTONDBLCLK) ||
+                          uMsg == WM_CAPTURECHANGED;
       rawinput_capture = (uMsg == WM_INPUT);
     }
-
-
 
     if ( keyboard_capture || mouse_capture || filter_raw_input )
     {
@@ -3286,15 +3397,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
           SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam);
 
-        if (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP)
+        if (uMsg == WM_KEYUP   || uMsg == WM_SYSKEYUP)
           SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam);
-      }
+      } 
 
       if (filter_raw_input)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
-      else if (uMsg != WM_INPUT)
-        return 0;
+      else if (uMsg != WM_INPUT && uMsg != WM_KEYUP &&uMsg != WM_SYSKEYUP)
+        return 1;
     }
   }
 
@@ -3829,7 +3940,6 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
 {
   //SK_LOG_FIRST_CALL
 
-#if 0
   if (cbSize != sizeof RAWINPUTDEVICE) {
     dll_log.Log ( L"[ RawInput ] RegisterRawInputDevices has wrong "
                   L"structure size (%lu bytes), expected: %lu",
@@ -3841,21 +3951,28 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
                                            uiNumDevices,
                                              cbSize );
   }
-#endif
 
-  RAWINPUTDEVICE* pDevices = new RAWINPUTDEVICE [uiNumDevices];
+  RAWINPUTDEVICE* pDevices = nullptr;
 
-  // We need to continue receiving window messages for the console to work
-  for (unsigned int i = 0; i < uiNumDevices; i++) {
-    pDevices [i] = pRawInputDevices [i];
-    pDevices [i].dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
-    pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+  if (pRawInputDevices && uiNumDevices > 0)
+    pDevices = new RAWINPUTDEVICE [uiNumDevices];
+
+  if (pDevices != nullptr)
+  {
+    // We need to continue receiving window messages for the console to work
+    for (unsigned int i = 0; i < uiNumDevices; i++)
+    {
+      pDevices [i] = pRawInputDevices [i];
+      pDevices [i].dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
+      pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+    }
   }
 
   BOOL bRet =
     RegisterRawInputDevices_Original (pDevices, uiNumDevices, cbSize);
 
-  delete [] pDevices;
+  if (pDevices)
+    delete [] pDevices;
 
   return bRet;
 }
@@ -4095,7 +4212,88 @@ SK_GetGameWindow (void)
 
   return game_window.hWnd;
 }
+#pragma comment (lib, "hid.lib")
 
+#include <hidusage.h>
+#include <Hidpi.h>
+
+typedef NTSTATUS (__stdcall *HidP_GetData_pfn)(
+  _In_    HIDP_REPORT_TYPE     ReportType,
+  _Out_   PHIDP_DATA           DataList,
+  _Inout_ PULONG               DataLength,
+  _In_    PHIDP_PREPARSED_DATA PreparsedData,
+  _In_    PCHAR                Report,
+  _In_    ULONG                ReportLength
+);
+
+HidP_GetData_pfn HidP_GetData_Original = nullptr;
+
+NTSTATUS
+__stdcall
+HidP_GetData_Detour (
+  _In_    HIDP_REPORT_TYPE     ReportType,
+  _Out_   PHIDP_DATA           DataList,
+  _Inout_ PULONG               DataLength,
+  _In_    PHIDP_PREPARSED_DATA PreparsedData,
+  _In_    PCHAR                Report,
+  _In_    ULONG                ReportLength )
+{
+  SK_LOG_FIRST_CALL
+
+  NTSTATUS ret =
+    HidP_GetData_Original ( ReportType, DataList,
+                              DataLength, PreparsedData,
+                                Report, ReportLength );
+
+
+  // De we want block this I/O?
+  bool filter = false;
+
+  if ( ret == HIDP_STATUS_SUCCESS && ( ReportType == HidP_Input || ReportType == HidP_Output ))
+  {
+
+    HIDP_CAPS caps;
+    NTSTATUS  stat =
+      HidP_GetCaps (PreparsedData, &caps);
+
+    if ( stat           == HIDP_STATUS_SUCCESS && 
+         caps.UsagePage == HID_USAGE_PAGE_GENERIC )
+    {
+      switch (caps.Usage)
+      {
+        case HID_USAGE_GENERIC_GAMEPAD:
+        case HID_USAGE_GENERIC_JOYSTICK:
+        {
+          if (nav_usable)
+            filter = true;
+        } break;
+
+        case HID_USAGE_GENERIC_MOUSE:
+        {
+          if (ImGui_WantMouseCapture ())
+            filter = true;
+        } break;
+
+        case HID_USAGE_GENERIC_KEYBOARD:
+        {
+          if (ImGui_WantKeyboardCapture ())
+            filter = true;
+        } break;
+      }
+    }
+  }
+
+
+  if (! filter)
+    return ret;
+
+  else {
+    memset (DataList, *DataLength, 0);
+           *DataLength           = 0;
+  }
+
+  return ret;
+}
 
 void
 SK_HookWinAPI (void)
@@ -4103,17 +4301,51 @@ SK_HookWinAPI (void)
   // Initialize the Window Manager
   SK_WindowManager::getInstance ();
 
+  SK_CreateDLLHook2 ( L"HID.DLL", "HidP_GetData",
+                        HidP_GetData_Detour,
+              (LPVOID*)&HidP_GetData_Original );
+
+  //SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
+                     //DispatchMessageW_Detour,
+           //(LPVOID*)&DispatchMessageW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
+                     PeekMessageW_Detour,
+           (LPVOID*)&PeekMessageW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
+                     PeekMessageA_Detour,
+           (LPVOID*)&PeekMessageA_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
+                     GetMessageW_Detour,
+           (LPVOID*)&GetMessageW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
+                     GetMessageA_Detour,
+           (LPVOID*)&GetMessageA_Original );
+
   SK_CreateDLLHook2 ( L"user32.dll", "GetRawInputData",
                      GetRawInputData_Detour,
            (LPVOID*)&GetRawInputData_Original );
 
+#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "GetRawInputBuffer",
                      GetRawInputBuffer_Detour,
            (LPVOID*)&GetRawInputBuffer_Original );
+#endif
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetAsyncKeyState",
+                     GetAsyncKeyState_Detour,
+           (LPVOID*)&GetAsyncKeyState_Original );
 
   SK_CreateDLLHook2 ( L"user32.dll", "GetKeyState",
                      GetKeyState_Detour,
            (LPVOID*)&GetKeyState_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetKeyboardState",
+                     GetKeyboardState_Detour,
+           (LPVOID*)&GetKeyboardState_Original );
 
   SK_CreateDLLHook2 ( L"user32.dll", "GetCursorPos",
                      GetCursorPos_Detour,
@@ -4142,10 +4374,6 @@ SK_HookWinAPI (void)
   SK_CreateDLLHook2 ( L"user32.dll", "mouse_event",
                      mouse_event_Detour,
            (LPVOID*)&mouse_event_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetAsyncKeyState",
-                     GetAsyncKeyState_Detour,
-           (LPVOID*)&GetAsyncKeyState_Original );
 
   SK_CreateDLLHook2 ( L"user32.dll", "RegisterRawInputDevices",
                      RegisterRawInputDevices_Detour,
@@ -4230,7 +4458,7 @@ SK_HookWinAPI (void)
                         AdjustWindowRectEx_Detour,
              (LPVOID *)&AdjustWindowRectEx_Original );
 
-  SK_CreateDLLHook2 ( L"user32.dll",+
+  SK_CreateDLLHook2 ( L"user32.dll",
                       "GetSystemMetrics",
                        GetSystemMetrics_Detour,
             (LPVOID *)&GetSystemMetrics_Original );

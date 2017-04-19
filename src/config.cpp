@@ -2443,20 +2443,20 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 
-  config.imgui.font.default.file = "arial.ttf";
-  config.imgui.font.default.size = 16.0f;
+  config.imgui.font.default.file  = "arial.ttf";
+  config.imgui.font.default.size  = 18.0f;
 
   config.imgui.font.japanese.file = "msgothic.ttc";
-  config.imgui.font.japanese.size = 16.0f;
+  config.imgui.font.japanese.size = 18.0f;
 
   config.imgui.font.cyrillic.file = "arial.ttf";
-  config.imgui.font.cyrillic.size = 16.0f;
+  config.imgui.font.cyrillic.size = 18.0f;
 
-  config.imgui.font.korean.file  = "malgun.ttf";
-  config.imgui.font.korean.size  = 16.0f;
-
-  config.imgui.font.chinese.file = "msyh.ttc";
-  config.imgui.font.chinese.size = 16.0f;
+  config.imgui.font.korean.file   = "malgun.ttf";
+  config.imgui.font.korean.size   = 18.0f;
+                                  
+  config.imgui.font.chinese.file  = "msyh.ttc";
+  config.imgui.font.chinese.size  = 18.0f;
 
 
 

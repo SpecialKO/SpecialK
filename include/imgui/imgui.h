@@ -20,7 +20,11 @@
 
 // Define attributes of all API symbols declarations, e.g. for DLL under Windows.
 #ifndef IMGUI_API
-#define IMGUI_API
+#ifdef SK_EXPORTS
+# define IMGUI_API __declspec (dllexport)
+#else
+# define IMGUI_API __declspec (dllimport)
+#endif
 #endif
 
 // Define assertion handler.

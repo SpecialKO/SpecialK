@@ -449,6 +449,9 @@
     <ClCompile Include="src\imgui\backends\imgui_vk.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\imgui\addons\tinyfiledialogs.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">

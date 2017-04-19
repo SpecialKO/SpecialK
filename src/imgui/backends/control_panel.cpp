@@ -515,7 +515,12 @@ SK_ImGui_ControlPanel (void)
   style.WindowMinSize.x = title_len * 1.075f;
   style.WindowMinSize.y = 200;
 
-  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
+  extern bool nav_usable;
+
+  if (nav_usable)
+    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV ((float)(timeGetTime () % 2800) / 2800.0f,  (0.5f + (sin ((float)(timeGetTime () % 500) / 500.0f)) * 0.5f) / 2.0f, 1.0f));
+  else
+    ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
   ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
   ImGui::PopStyleColor  ();
           char szAPIName [32] = { '\0' };
@@ -690,9 +695,9 @@ SK_ImGui_ControlPanel (void)
         sprintf_s
               ( szAvg,
                   512,
-                    "Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-                    "    Extreme frametimes:      %6.3f min, %6.3f max\n\n\n\n"
-                    "Variation:  %8.5f ms  ==>  %.1f FPS  +/-  %3.1f frames",
+                    u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+                    u8"    Extreme frametimes:      %6.3f min, %6.3f max\n\n\n\n"
+                    u8"Variation:  %8.5f ms  ==>  %.1f FPS  ±  %3.1f frames",
                       sum / 120.0f, target_frametime,
                         min, max, max - min,
                           1000.0f / (sum / 120.0f), (max - min) / (1000.0f / (sum / 120.0f)) );
@@ -1714,21 +1719,21 @@ SK_ImGui_ControlPanel (void)
       ImGui::BeginGroup ();
       {
         ImGui::PushItemWidth (-1);
-        if (ImGui::Button (" << ")) {
+        if (ImGui::Button (u8"  <<  ")) {
           keybd_event (VK_MEDIA_PREV_TRACK, 0x22, 1, 0);
           keybd_event (VK_MEDIA_PREV_TRACK, 0x22, 3, 0);
         }
 
         ImGui::SameLine ();
 
-        if (ImGui::Button (" Play / Pause ")) {
+        if (ImGui::Button (u8"  Play / Pause  ")) {
           keybd_event (VK_MEDIA_PLAY_PAUSE, 0x22, 1, 0);
           keybd_event (VK_MEDIA_PLAY_PAUSE, 0x22, 3, 0); 
         }
 
         ImGui::SameLine ();
 
-        if (ImGui::Button (" >> ")) {
+        if (ImGui::Button (u8"  >>  ")) {
           keybd_event (VK_MEDIA_NEXT_TRACK, 0x22, 1, 0);
           keybd_event (VK_MEDIA_NEXT_TRACK, 0x22, 3, 0);
         }
@@ -2650,6 +2655,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   return 0;
 }
 
+BYTE __imgui_keybd_state [512] = { 0 };
+
 __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
@@ -2687,6 +2694,9 @@ SK_ImGui_Toggle (void)
 
   if (d3d9 || d3d11 || gl)
   {
+    if (SK_ImGui_Visible)
+      GetKeyboardState (__imgui_keybd_state);
+
     SK_ImGui_Visible = (! SK_ImGui_Visible);
 
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
@@ -2748,11 +2758,17 @@ SK_ImGui_Toggle (void)
     // Immediately stop capturing keyboard/mouse events,
     //   this is the only way to preserve cursor visibility
     //     in some games (i.e. Tales of Berseria)
-    if (SK_ImGui_Visible)
-    {
-      ImGui::GetIO ().WantCaptureKeyboard = false;
-      ImGui::GetIO ().WantCaptureMouse    = false;
+    ImGui::GetIO ().WantCaptureKeyboard = (! SK_ImGui_Visible);
+    ImGui::GetIO ().WantCaptureMouse    = (! SK_ImGui_Visible);
+
+
+    // Clear navigation focus on window close
+    if (! SK_ImGui_Visible) {
+      extern bool nav_usable;
+      nav_usable = false;
     }
+
+    ImGui::SetNextWindowFocus ();
   }
 
 

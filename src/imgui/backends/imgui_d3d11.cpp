@@ -681,6 +681,9 @@ ImGui_ImplDX11_Shutdown (void)
 #include <SpecialK/window.h>
 
 void
+SK_ImGui_PollGamepad (void);
+
+void
 ImGui_ImplDX11_NewFrame (void)
 {
   if (! g_pd3dDevice)
@@ -706,9 +709,9 @@ ImGui_ImplDX11_NewFrame (void)
   g_Time       =         current_time;
 
   // Read keyboard modifiers inputs
-  io.KeyCtrl   = (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0;
-  io.KeyShift  = (GetAsyncKeyState (VK_SHIFT)   & 0x8000) != 0;
-  io.KeyAlt    = (GetAsyncKeyState (VK_MENU)    & 0x8000) != 0;
+  io.KeyCtrl   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
+  io.KeyShift  = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
+  io.KeyAlt    = (GetAsyncKeyState_Original (VK_MENU)    & 0x8000) != 0;
 
   io.KeySuper  = false;
 
@@ -716,6 +719,8 @@ ImGui_ImplDX11_NewFrame (void)
   // io.MousePos : filled by WM_MOUSEMOVE events
   // io.MouseDown : filled by WM_*BUTTON* events
   // io.MouseWheel : filled by WM_MOUSEWHEEL events
+
+  SK_ImGui_PollGamepad ();
 
   // Start the frame
   ImGui::NewFrame ();

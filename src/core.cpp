@@ -1477,6 +1477,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
+  extern void
+  SK_ImGui_InitDirectInput (void);
+  SK_ImGui_InitDirectInput ();
+
   // Do this from the startup thread
   SK_HookWinAPI       ();
   SK::Framerate::Init ();
@@ -1899,6 +1903,9 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
+  extern void SK_ImGui_PollGamepad1 (void);
+  SK_ImGui_PollGamepad1 ();
+
   extern bool SK_ImGui_Visible;
 
   if (SK_ImGui_Visible)
@@ -2287,9 +2294,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   if (! (hModTZFix || hModTBFix)) {
     SK::Framerate::GetLimiter ()->wait ();
   }
-
-  extern void SK_ImGui_PollGamepad (void);
-  SK_ImGui_PollGamepad ();
 
   return hr;
 }
