@@ -217,8 +217,6 @@ opengl_init_callback (finish_pfn finish)
   SK_BootOpenGL ();
 
   finish ();
-
-  SK_ResumeThreads (old_threads);
 }
 
 }
@@ -279,9 +277,6 @@ SK::OpenGL::Startup (void)
   //
   std::wstring   dll_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszDllName = dll_name.c_str   ();
-
-  old_threads =
-    SK_SuspendAllOtherThreads ();
 
   if (! wcsstr (wszDllName, L"SpecialK") ) {
     SK_LoadRealGL ();

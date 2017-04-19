@@ -1137,6 +1137,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\hooks.h" />
     <ClInclude Include="include\SpecialK\import.h" />
     <ClInclude Include="include\SpecialK\ini.h" />
+    <ClInclude Include="include\SpecialK\input\input.h" />
     <ClInclude Include="include\SpecialK\io_monitor.h" />
     <ClInclude Include="include\SpecialK\log.h" />
     <ClInclude Include="include\SpecialK\memory_monitor.h" />
@@ -1358,6 +1359,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\osd\popup.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>

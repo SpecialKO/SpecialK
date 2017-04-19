@@ -701,17 +701,12 @@ d3d9_init_callback (finish_pfn finish)
   }
 
   finish ();
-
-  SK_ResumeThreads (old_threads);
 }
 
 
 bool
 SK::D3D9::Startup (void)
 {
-  old_threads =
-    SK_SuspendAllOtherThreads ();
-
   bool ret = SK_StartupCore (L"d3d9", d3d9_init_callback);
 
   return ret;

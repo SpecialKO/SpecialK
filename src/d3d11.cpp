@@ -492,9 +492,8 @@ D3D11CreateDevice_Detour (
   DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
 
   // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
-  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
-    if (SK_GetCallerName () != L"NvCamera64.dll")
-      WaitForInitDXGI ();
+  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"NvCamera64.dll")
+    WaitForInitDXGI ();
 
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level;
@@ -582,7 +581,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   DXGI_LOG_CALL_0 (L"D3D11CreateDeviceAndSwapChain");
 
   // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
-  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
+  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"d3d11.dll")
     WaitForInitDXGI ();
 
   dll_log.LogEx ( true,

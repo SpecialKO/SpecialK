@@ -697,7 +697,7 @@ SK_ImGui_ControlPanel (void)
                   512,
                     u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
                     u8"    Extreme frametimes:      %6.3f min, %6.3f max\n\n\n\n"
-                    u8"Variation:  %8.5f ms  ==>  %.1f FPS  ±  %3.1f frames",
+                    u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
                       sum / 120.0f, target_frametime,
                         min, max, max - min,
                           1000.0f / (sum / 120.0f), (max - min) / (1000.0f / (sum / 120.0f)) );
@@ -1113,6 +1113,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndGroup    ( );
 
         ImGui::Text ("ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }", SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x, SK_ImGui_Cursor.pos.y, SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
+        ImGui::SameLine ();
+        ImGui::Text (" {%s :: Last Update: %lu}", SK_ImGui_Cursor.idle ? "Idle" : "Not Idle", SK_ImGui_Cursor.last_move);
         ImGui::TreePop     ( );
       }
 

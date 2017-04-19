@@ -3915,8 +3915,6 @@ dxgi_init_callback (finish_pfn finish)
   }
 
   finish ();
-
-  SK_ResumeThreads (old_threads);
 }
 
 
@@ -3964,9 +3962,6 @@ SK_FreeRealDXGI (void)
 bool
 SK::DXGI::Startup (void)
 {
-  old_threads =
-    SK_SuspendAllOtherThreads ();
-
   bool ret = SK_StartupCore (L"dxgi", dxgi_init_callback);
 
   return ret;

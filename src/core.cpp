@@ -772,6 +772,9 @@ SK_InitFinishCallback (void)
   if (SK_IsSuperSpecialK ())
     return;
 
+  extern void SK_Input_Init (void);
+  SK_Input_Init ();
+
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
     "VRAM.Purge",
@@ -1345,10 +1348,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     std::pair <std::queue <DWORD>, BOOL> retval =
       SK_BypassInject ();
 
-    SK_ResumeThreads (retval.first);
+    //SK_ResumeThreads (retval.first);
 
     //FreeLibrary (SK_GetDLL ());
-    return false;
+    return true;
   }
 
   else {
@@ -1477,9 +1480,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
-  extern void
-  SK_ImGui_InitDirectInput (void);
-  SK_ImGui_InitDirectInput ();
 
   // Do this from the startup thread
   SK_HookWinAPI       ();
@@ -1903,8 +1903,8 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  extern void SK_ImGui_PollGamepad1 (void);
-  SK_ImGui_PollGamepad1 ();
+  extern void SK_ImGui_PollGamepad_EndFrame (void);
+  SK_ImGui_PollGamepad_EndFrame ();
 
   extern bool SK_ImGui_Visible;
 
@@ -1955,7 +1955,7 @@ DoKeyboard (void)
 
   static bool toggle_drag = false;
 
-  if (HIWORD (GetAsyncKeyState (VK_CONTROL)) && HIWORD (GetAsyncKeyState (VK_SHIFT)) && HIWORD (GetAsyncKeyState (VK_SCROLL)))
+  if (HIWORD (GetAsyncKeyState_Original (VK_CONTROL)) && HIWORD (GetAsyncKeyState_Original (VK_SHIFT)) && HIWORD (GetAsyncKeyState_Original (VK_SCROLL)))
   {
     if (! toggle_drag)
       config.window.drag_lock = (! config.window.drag_lock);
@@ -1972,17 +1972,17 @@ DoKeyboard (void)
 
 
   if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval) {
-    if (HIWORD (GetAsyncKeyState (config.osd.keys.expand [0])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.expand [1])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.expand [2])))
+    if (HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [0])) &&
+        HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [1])) &&
+        HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [2])))
     {
       last_osd_scale = ullNow.QuadPart;
       SK_ResizeOSD (+0.1f);
     }
 
-    if (HIWORD (GetAsyncKeyState (config.osd.keys.shrink [0])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.shrink [1])) &&
-        HIWORD (GetAsyncKeyState (config.osd.keys.shrink [2])))
+    if (HIWORD (GetAsyncKeyState_Original (config.osd.keys.shrink [0])) &&
+        HIWORD (GetAsyncKeyState_Original (config.osd.keys.shrink [1])) &&
+        HIWORD (GetAsyncKeyState_Original (config.osd.keys.shrink [2])))
     {
       last_osd_scale = ullNow.QuadPart;
       SK_ResizeOSD (-0.1f);
@@ -1997,9 +1997,9 @@ DoKeyboard (void)
 #endif
 
   static bool toggle_time = false;
-  if (HIWORD (GetAsyncKeyState (config.time.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.time.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.time.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.time.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.time.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.time.keys.toggle [2])))
   {
     if (! toggle_time) {
       SK_UnlockSteamAchievement (0);
@@ -2012,9 +2012,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_mem = false;
-  if (HIWORD (GetAsyncKeyState (config.mem.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.mem.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.mem.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.mem.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.mem.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.mem.keys.toggle [2])))
   {
     if (! toggle_mem) {
       config.mem.show = (! config.mem.show);
@@ -2030,9 +2030,9 @@ DoKeyboard (void)
 
 #if 0
   static bool toggle_balance = false;
-  if (HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.load_balance.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.load_balance.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.load_balance.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.load_balance.keys.toggle [2])))
   {
     if (! toggle_balance)
       config.load_balance.use = (! config.load_balance.use);
@@ -2045,9 +2045,9 @@ DoKeyboard (void)
   if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1)
   {
     static bool toggle_sli = false;
-    if (HIWORD (GetAsyncKeyState (config.sli.keys.toggle [0])) &&
-        HIWORD (GetAsyncKeyState (config.sli.keys.toggle [1])) &&
-        HIWORD (GetAsyncKeyState (config.sli.keys.toggle [2])))
+    if (HIWORD (GetAsyncKeyState_Original (config.sli.keys.toggle [0])) &&
+        HIWORD (GetAsyncKeyState_Original (config.sli.keys.toggle [1])) &&
+        HIWORD (GetAsyncKeyState_Original (config.sli.keys.toggle [2])))
     {
       if (! toggle_sli)
         config.sli.show = (! config.sli.show);
@@ -2058,9 +2058,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_io = false;
-  if (HIWORD (GetAsyncKeyState (config.io.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.io.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.io.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.io.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.io.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.io.keys.toggle [2])))
   {
     if (! toggle_io)
       config.io.show = (! config.io.show);
@@ -2070,9 +2070,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_cpu = false;
-  if (HIWORD (GetAsyncKeyState (config.cpu.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.cpu.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.cpu.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [2])))
   {
     if (! toggle_cpu) {
       config.cpu.show = (! config.cpu.show);
@@ -2087,9 +2087,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_gpu = false;
-  if (HIWORD (GetAsyncKeyState (config.gpu.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.gpu.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.gpu.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.gpu.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.gpu.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.gpu.keys.toggle [2])))
   {
     if (! toggle_gpu)
       config.gpu.show = (! config.gpu.show);
@@ -2099,9 +2099,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_fps = false;
-  if (HIWORD (GetAsyncKeyState (config.fps.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.fps.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.fps.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.fps.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.fps.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.fps.keys.toggle [2])))
   {
     if (! toggle_fps)
       config.fps.show = (! config.fps.show);
@@ -2111,10 +2111,10 @@ DoKeyboard (void)
   }
 
   static bool toggle_disk = false;
-  if (HIWORD (GetAsyncKeyState (config.disk.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [2])) &&
-      HIWORD (GetAsyncKeyState (config.disk.keys.toggle [3])))
+  if (HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [2])) &&
+      HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [3])))
   {
     if (! toggle_disk) {
       config.disk.show = (! config.disk.show);
@@ -2129,10 +2129,10 @@ DoKeyboard (void)
   }
 
   static bool toggle_pagefile = false;
-  if (HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [2])) &&
-      HIWORD (GetAsyncKeyState (config.pagefile.keys.toggle [3])))
+  if (HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [2])) &&
+      HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [3])))
   {
     if (! toggle_pagefile) {
       config.pagefile.show = (! config.pagefile.show);
@@ -2147,9 +2147,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_osd = false;
-  if (HIWORD (GetAsyncKeyState (config.osd.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.osd.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.osd.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.osd.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.osd.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.osd.keys.toggle [2])))
   {
     if (! toggle_osd)
     {
@@ -2164,9 +2164,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_render = false;
-  if (HIWORD (GetAsyncKeyState (config.render.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState (config.render.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState (config.render.keys.toggle [2])))
+  if (HIWORD (GetAsyncKeyState_Original (config.render.keys.toggle [0])) &&
+      HIWORD (GetAsyncKeyState_Original (config.render.keys.toggle [1])) &&
+      HIWORD (GetAsyncKeyState_Original (config.render.keys.toggle [2])))
   {
     if (! toggle_render)
       config.render.show = (! config.render.show);
@@ -2254,7 +2254,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
 #ifdef USE_MT_KEYS
   //
-  // Do this in a different thread for the handful of game that use GetAsyncKeyState
+  // Do this in a different thread for the handful of game that use GetAsyncKeyState_Original
   //   from the rendering thread to handle keyboard input.
   //
   if (poll_interval == 0ULL) {

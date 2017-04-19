@@ -278,6 +278,16 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     else if (   StrStrIA (lpFileName,  "vulkan-1.dll") ||
                 StrStrIW (wszModName, L"vulkan-1.dll")  )
       SK_BootVulkan ();
+    else if (   StrStrIA (lpFileName, "xinput1_3.dll") )
+      SK_Input_HookXInput1_3 ();
+    else if (   StrStrIA (lpFileName, "xinput1_4.dll") )
+      SK_Input_HookXInput1_4 ();
+    else if (   StrStrIA (lpFileName, "xinput9_1_0.dll") )
+      SK_Input_HookXInput9_1_0 ();
+    else if (   StrStrIA (lpFileName, "dinput8.dll") )
+      SK_Input_HookDI8 ();
+    else if (   StrStrIA (lpFileName, "hid.dll") )
+      SK_Input_HookHID ();
 
     if (! config.steam.silent) {
       if (StrStrIA (lpFileName, "CSteamworks.dll")) {
@@ -389,6 +399,16 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     else if ( StrStrIW (lpFileName, L"vulkan-1.dll") ||
               StrStrIW (wszModName, L"vulkan-1.dll")  )
       SK_BootVulkan ();
+    else if (   StrStrIW (lpFileName, L"xinput1_3.dll") )
+      SK_Input_HookXInput1_3 ();
+    else if (   StrStrIW (lpFileName, L"xinput1_4.dll") )
+      SK_Input_HookXInput1_4 ();
+    else if (   StrStrIW (lpFileName, L"xinput9_1_0.dll") )
+      SK_Input_HookXInput9_1_0 ();
+    else if (   StrStrIW (lpFileName, L"dinput8.dll") )
+      SK_Input_HookDI8 ();
+    else if (   StrStrIW (lpFileName, L"hid.dll") )
+      SK_Input_HookHID ();
     
     if (! config.steam.silent) {
       if (StrStrIW (lpFileName, L"CSteamworks.dll")) {

@@ -300,6 +300,9 @@
     <ClInclude Include="include\imgui\backends\imgui_vk.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\input\input.h">
+      <Filter>Header Files\Backends</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -451,6 +454,9 @@
     </ClCompile>
     <ClCompile Include="src\imgui\addons\tinyfiledialogs.cpp">
       <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\input.cpp">
+      <Filter>Source Files\Backends</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

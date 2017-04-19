@@ -182,6 +182,39 @@ typedef UINT (WINAPI *GetRawInputData_pfn)(
   _In_      UINT      cbSizeHeader
 );
 
+typedef UINT (WINAPI *GetRawInputBuffer_pfn)(
+                               _Out_opt_ PRAWINPUT pData,
+                               _Inout_   PUINT     pcbSize,
+                               _In_      UINT      cbSizeHeader);
+typedef BOOL (WINAPI *GetKeyboardState_pfn)(PBYTE lpKeyState);
+
+
+typedef BOOL (WINAPI *SetCursorPos_pfn)
+(
+  _In_ int X,
+  _In_ int Y
+);
+
+typedef BOOL (WINAPI *SetPhysicalCursorPos_pfn)
+(
+  _In_ int X,
+  _In_ int Y
+);
+
+typedef UINT (WINAPI *SendInput_pfn)(
+  _In_ UINT    nInputs,
+  _In_ LPINPUT pInputs,
+  _In_ int     cbSize
+);
+
+typedef VOID(WINAPI *mouse_event_pfn)(
+  _In_ DWORD     dwFlags,
+  _In_ DWORD     dx,
+  _In_ DWORD     dy,
+  _In_ DWORD     dwData,
+  _In_ ULONG_PTR dwExtraInfo
+);
+
 extern ClipCursor_pfn         ClipCursor_Original;
 extern SetWindowPos_pfn       SetWindowPos_Original;
 extern MoveWindow_pfn         MoveWindow_Original;
@@ -198,35 +231,21 @@ extern AdjustWindowRectEx_pfn AdjustWindowRectEx_Original;
 
 extern GetSystemMetrics_pfn   GetSystemMetrics_Original;
 extern GetCursorPos_pfn       GetCursorPos_Original;
+extern SetCursorPos_pfn       SetCursorPos_Original;
 extern GetCursorInfo_pfn      GetCursorInfo_Original;
+//extern SetCursorPos_pfn  SetPhysicalCursorPos_Original  = nullptr;
+
+extern SendInput_pfn           SendInput_Original;
+extern mouse_event_pfn         mouse_event_Original;
 
 extern GetKeyState_pfn             GetKeyState_Original;
 extern GetAsyncKeyState_pfn        GetAsyncKeyState_Original;
+extern GetKeyboardState_pfn        GetKeyboardState_Original;
 extern GetRawInputData_pfn         GetRawInputData_Original;
+extern GetRawInputBuffer_pfn       GetRawInputBuffer_Original;
 extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 
-struct sk_imgui_cursor_s
-{
-  float   ndc_pos [2]=  { .0f, .0f };
-  HCURSOR orig_img   =      NULL;
-  POINT   orig_pos   =  { 0, 0 };
-  bool    orig_vis   =     false;
-                       
-  HCURSOR img        =      NULL;
-  POINT   pos        =  { 0, 0 };
-                       
-  bool    visible    =     false;
-
-  void    showSystemCursor (bool system = true);
-  void    showImGuiCursor  (void);
-
-  void    update           (void);
-
-  void   LocalToScreen    (LPPOINT lpPoint);
-  void   LocalToClient    (LPPOINT lpPoint);
-  void   ClientToLocal    (LPPOINT lpPoint);
-  void   ScreenToLocal    (LPPOINT lpPoint);
-} extern SK_ImGui_Cursor;
+#include <SpecialK/input/input.h>
 
 struct sk_window_s {
   bool       unicode          = false;
