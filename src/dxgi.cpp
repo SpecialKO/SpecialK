@@ -124,7 +124,7 @@ ImGui_DX11Shutdown ( void )
   imgui_swap = nullptr;
 }
 
-void
+bool
 ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 {
   CComPtr <ID3D11Device> pD3D11Dev = nullptr;
@@ -136,9 +136,11 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
   
     if (pImmediateContext != nullptr) {
       imgui_swap = pSwapChain;
-      ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
+      return ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
     }
   }
+
+  return false;
 }
 
 CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
@@ -1690,11 +1692,14 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       extern bool SK_ImGui_Visible;
 
-      if (SK_ImGui_Visible) {
+      if (SK_ImGui_Visible)
+      {
         // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
-        ImGui_DX11Startup               ( This                         );
-        extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
-                     SK_ImGui_DrawFrame (       0x00,          nullptr );
+        if (ImGui_DX11Startup             ( This                         ))
+        {
+          extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
+                       SK_ImGui_DrawFrame (       0x00,          nullptr );
+        }
       }
 
       if (config.render.dxgi.slow_state_cache)

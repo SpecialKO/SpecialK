@@ -466,6 +466,19 @@ wglUseFontOutlinesA        = wglUseFontOutlinesA         PRIVATE
 wglUseFontOutlinesW        = wglUseFontOutlinesW         PRIVATE
 SwapBuffers                = SwapBuffers                 PRIVATE
 
+DI8_GetDeviceState_Override      = IDirectInputDevice8_GetDeviceState_Detour PRIVATE
+XInputGetState9_1_0_Override     = XInputGetState9_1_0_Detour                PRIVATE
+XInputGetState1_3_Override       = XInputGetState1_3_Detour                  PRIVATE
+XInputGetState1_4_Override       = XInputGetState1_4_Detour                  PRIVATE
+RegisterRawInputDevices_Override = RegisterRawInputDevices_Detour            PRIVATE
+GetRawInputData_Override         = GetRawInputData_Detour                    PRIVATE
+HidP_GetData_Override            = HidP_GetData_Detour                       PRIVATE
+
+SK_Input_GetDI8Keyboard          = SK_Input_GetDI8Keyboard                   PRIVATE
+SK_Input_GetDI8Mouse             = SK_Input_GetDI8Mouse                      PRIVATE
+SK_XInput_PollController         = SK_XInput_PollController                  PRIVATE
+SK_ImGui_ToggleEx                = SK_ImGui_ToggleEx                         PRIVATE
+
 
 SK_BeginBufferSwap             = SK_BeginBufferSwap               PRIVATE
 SK_EndBufferSwap               = SK_EndBufferSwap                 PRIVATE

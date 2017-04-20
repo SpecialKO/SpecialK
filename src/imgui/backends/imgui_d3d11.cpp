@@ -654,7 +654,7 @@ ImGui_ImplDX11_Init (IDXGISwapChain* pSwapChain, ID3D11Device* device, ID3D11Dev
   io.RenderDrawListsFn = ImGui_ImplDX11_RenderDrawLists;  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
   io.ImeWindowHandle   = g_hWnd;
 
-  return true;
+  return g_pd3dDevice != nullptr;
 }
 
 void
@@ -754,6 +754,6 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   DXGI_SWAP_CHAIN_DESC swap_desc;
   This->GetDesc (&swap_desc);
 
-  //////ImGui_ImplDX11_Init (This, g_pd3dDevice, g_pd3dDeviceContext);
-  ImGui_ImplDX11_InvalidateDeviceObjects ();
+  if (ImGui_ImplDX11_Init (This, g_pd3dDevice, g_pd3dDeviceContext))
+    ImGui_ImplDX11_InvalidateDeviceObjects ();
 }

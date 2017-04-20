@@ -10905,9 +10905,9 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
 void
 SK_ImGui_LoadFonts (void)
 {
-  static bool init = false;
+  static volatile ULONG init = FALSE;
 
-  if (! init)
+  if (! InterlockedCompareExchange (&init, 1, 0))
   {
     ImGuiIO& io =
       ImGui::GetIO ();
@@ -10957,12 +10957,10 @@ SK_ImGui_LoadFonts (void)
 
     LoadFont (config.imgui.font.japanese.file,  config.imgui.font.japanese.size, io.Fonts->GetGlyphRangesJapanese (), &font_cfg);
     LoadFont (config.imgui.font.chinese.file,   config.imgui.font.chinese.size,  io.Fonts->GetGlyphRangesChinese  (), &font_cfg);
-    LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean   (), &font_cfg);
+    //LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean   (), &font_cfg);
     LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic (), &font_cfg);
 
     io.Fonts->AddFontDefault ();
-
-    init = true;
   }
 }
 
@@ -11457,15 +11455,33 @@ SK_ImGui_FilterXInput (
   return false;
 }
 
+extern void
+SK_ImGui_Toggle (void);
+
+bool
+WINAPI
+SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
+{
+  if (toggle_ui)
+    SK_ImGui_Toggle ();
+  
+  if (toggle_nav && SK_ImGui_Visible)
+    nav_usable = (! nav_usable);
+  
+  //if (nav_usable)
+    ImGui::SetNextWindowFocus ();
+
+  toggle_ui  = SK_ImGui_Visible;
+  toggle_nav = nav_usable;
+
+  return SK_ImGui_Visible;
+}
 
 void
 SK_ImGui_PollGamepad_EndFrame (void)
 {
   XINPUT_STATE state;
     static XINPUT_STATE last_state = { 0 };
-
-  extern void
-  SK_ImGui_Toggle (void);
 
   if (SK_XInput_PollController (0, &state))
   { 
@@ -11475,38 +11491,35 @@ SK_ImGui_PollGamepad_EndFrame (void)
       if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
               last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START ) )
       {
-        SK_ImGui_Toggle ();
-    
-        nav_usable = SK_ImGui_Visible;
-    
-        if (nav_usable)
-          ImGui::SetNextWindowFocus ();
+        bool toggle = true,
+             nav    = (! nav_usable);
+
+        SK_ImGui_ToggleEx (toggle, nav);
       }
     }
 
-    //if (SK_ImGui_Visible)
-    //{||
-       const DWORD LONG_PRESS  = 400UL;
-      static DWORD dwLastPress = MAXDWORD;
+     const DWORD LONG_PRESS  = 400UL;
+    static DWORD dwLastPress = MAXDWORD;
 
-      if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
-           (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
+    if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
+         (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
+    {
+      if (dwLastPress < timeGetTime () - LONG_PRESS)
       {
-        if (dwLastPress < timeGetTime () - LONG_PRESS)
-        {
-          if (! SK_ImGui_Visible)
-            SK_ImGui_Toggle ();
+        bool toggle_vis = (! SK_ImGui_Visible);
+        bool toggle_nav =    true;
 
-          nav_usable  = (! nav_usable);
-          dwLastPress = MAXDWORD;
-        }
-      }
+        SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
 
-      else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
-        dwLastPress = timeGetTime ();
-
-      else
         dwLastPress = MAXDWORD;
+      }
+    }
+
+    else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
+      dwLastPress = timeGetTime ();
+
+    else
+      dwLastPress = MAXDWORD;
   }
 
   else

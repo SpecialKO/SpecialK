@@ -2758,18 +2758,18 @@ public:
   void     UpdateNumPlayers (void)
   {
     // Service Only One Update
-    if (num_players_call_ == 0)
+    if (! InterlockedCompareExchange (&num_players_call_, 1, 0))
     {
       ISteamUserStats* user_stats =
         steam_ctx.UserStats ();
 
       if (user_stats != nullptr)
       {
-        num_players_call_ =
-          user_stats->GetNumberOfCurrentPlayers ();
+        InterlockedExchange (&num_players_call_,
+          user_stats->GetNumberOfCurrentPlayers ());
 
         current_players_call.Set (
-          num_players_call_,
+          InterlockedAdd64 ((LONG64 *)&num_players_call_, 0LL),
             this,
               &SK_Steam_UserManager::OnRecvNumCurrentPlayers );
       }
@@ -2787,13 +2787,13 @@ protected:
     if (pParam->m_bSuccess)
       InterlockedExchange (&num_players_, pParam->m_cPlayers);
 
-    num_players_call_ = 0;
+    InterlockedExchange (&num_players_call_, 0);
   }
 
 private:
   // Can be updated on-request
   volatile LONG           num_players_      = 1;
-           SteamAPICall_t num_players_call_ = 0;
+  volatile SteamAPICall_t num_players_call_ = 0;
 } static *user_manager = nullptr;
 
 
@@ -4289,7 +4289,14 @@ __stdcall
 SK_SteamAPI_GetNumPlayers (void)
 {
   if (user_manager != nullptr)
-    return user_manager->GetNumPlayers ();
+  {
+    int32 num = user_manager->GetNumPlayers ();
+
+    if (num <= 1)
+      user_manager->UpdateNumPlayers ();
+
+    return std::max (1, user_manager->GetNumPlayers ());
+  }
 
   return 1; // You, and only you, apparently ;)
 }

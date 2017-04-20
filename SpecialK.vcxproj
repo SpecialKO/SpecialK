@@ -49,6 +49,14 @@
       <Configuration>TZFix</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="UnX|Win32">
+      <Configuration>UnX</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="UnX|x64">
+      <Configuration>UnX</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6E61C1C4-82B1-43E8-BB58-BFE41AC6D9B3}</ProjectGuid>
@@ -106,6 +114,13 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -141,6 +156,13 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -167,6 +189,9 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -180,6 +205,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='FAR|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='UnX|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -247,6 +275,16 @@
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>F:\SteamLibrary\steamapps\common\FINAL FANTASY FFX&amp;FFX-2 HD Remaster</OutDir>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <TargetName>dxgi</TargetName>
+    <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
+    <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>SpecialK64</TargetName>
@@ -287,6 +325,15 @@
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>dxgi</TargetName>
+    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\NieRAutomata\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
+    <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
+    <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>dxgi</TargetName>
     <OutDir>C:\Program Files (x86)\Steam\steamapps\common\NieRAutomata\</OutDir>
@@ -755,6 +802,80 @@ Exit 0</Command>
       <Message>Deleting useless import library...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <CallingConvention>Cdecl</CallingConvention>
+      <EnablePREfast>false</EnablePREfast>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <UseFullPaths>false</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <StringPooling>true</StringPooling>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <BrowseInformation>true</BrowseInformation>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <AssemblerOutput>All</AssemblerOutput>
+      <PreprocessKeepComments>true</PreprocessKeepComments>
+      <MinimalRebuild>true</MinimalRebuild>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
+      <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <AllowIsolation>true</AllowIsolation>
+      <LargeAddressAware>true</LargeAddressAware>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
+      <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
+      <PreventDllBinding>true</PreventDllBinding>
+      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;glew\Win32\glew.lib;%(AdditionalDependencies);C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\d3dcompiler.lib</AdditionalDependencies>
+      <ImportLibrary>
+      </ImportLibrary>
+      <AssemblyDebug>true</AssemblyDebug>
+    </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <PostBuildEvent>
+      <Command>del "$(OutDir)$(TargetName).lib" 2&gt;nul 1&gt;nul del "$(OutDir)$(TargetName).exp" 2&gt;nul 1&gt;nul 
+Exit 0</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Deleting useless import library...</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -1082,6 +1203,74 @@ Exit 0</Command>
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PreprocessorDefinitions>_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <OmitFramePointers>false</OmitFramePointers>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <StringPooling>false</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
+      <AssemblyDebug>false</AssemblyDebug>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <SupportUnloadOfDelayLoadedDLL>false</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
+      <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <LargeAddressAware>true</LargeAddressAware>
+      <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
+      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lzma\x64\libzma.lib;DirectXTex\x64\DirectXTex.lib;MinHook\x64\libMinHook64.lib;;nvapi\x64\nvapi64.lib;glew\x64\glew.lib;%(AdditionalDependencies);C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\d3dcompiler.lib</AdditionalDependencies>
+      <PerUserRedirection>true</PerUserRedirection>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <ImportLibrary>
+      </ImportLibrary>
+    </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <ResourceCompile>
+      <NullTerminateStrings>true</NullTerminateStrings>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />
     <Text Include="resource\licenses\7zip.txt" />
@@ -1170,11 +1359,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1183,11 +1374,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1196,11 +1389,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1209,11 +1404,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1222,11 +1419,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1235,11 +1434,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1249,11 +1450,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1262,11 +1465,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1276,11 +1481,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1290,11 +1497,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1304,11 +1513,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1318,17 +1529,20 @@ Exit 0</Command>
     <ClCompile Include="src\ImGui\EULA.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</ExcludedFromBuild>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1337,11 +1551,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1350,11 +1566,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1364,11 +1582,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1378,11 +1598,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1391,11 +1613,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1404,11 +1628,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1417,11 +1643,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1430,11 +1658,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1443,11 +1673,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1456,11 +1688,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1469,11 +1703,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1482,11 +1718,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1495,11 +1733,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1508,11 +1748,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1521,11 +1763,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1534,11 +1778,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1547,11 +1793,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1560,11 +1808,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1573,11 +1823,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1586,11 +1838,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1599,11 +1853,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1612,11 +1868,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1625,11 +1883,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1638,11 +1898,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1651,11 +1913,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1664,11 +1928,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1677,11 +1943,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1690,11 +1958,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1703,11 +1973,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1716,11 +1988,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1729,11 +2003,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1742,11 +2018,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1755,11 +2033,13 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
@@ -1774,6 +2054,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1781,6 +2062,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1788,6 +2070,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1795,6 +2078,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1802,6 +2086,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1809,6 +2094,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1816,6 +2102,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1823,6 +2110,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1830,6 +2118,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUIBase-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1837,6 +2126,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1844,6 +2134,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1851,6 +2142,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1858,6 +2150,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1865,6 +2158,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1872,6 +2166,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1879,6 +2174,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1886,6 +2182,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1893,6 +2190,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\DirectXTex\Win32\DirectXTex.pdb">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1900,6 +2198,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\DirectXTex\x64\DirectXTex.pdb">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1907,6 +2206,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="depends\lib\lzma\x64\libzma.pdb">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1914,6 +2214,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
@@ -1932,6 +2233,7 @@ Exit 0</Command>
     <ResourceCompile Include="resource\Resource.rc">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</DeploymentContent>
     </ResourceCompile>
     <ResourceCompile Include="SpecialK.rc" />
   </ItemGroup>
@@ -1948,6 +2250,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1955,6 +2258,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1962,6 +2266,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1969,6 +2274,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1976,6 +2282,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1983,6 +2290,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1990,6 +2298,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1997,6 +2306,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -2004,6 +2314,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUIBase-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2011,6 +2322,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2018,6 +2330,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2025,6 +2338,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2032,6 +2346,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2039,6 +2354,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2046,6 +2362,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2053,6 +2370,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2060,6 +2378,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2067,6 +2386,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -2074,6 +2394,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\DirectXTex\x64\DirectXTex.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2081,6 +2402,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\lzma\Win32\libzma.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -2088,6 +2410,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\lzma\x64\libzma.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2095,6 +2418,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\MinHook\Win32\libMinHook.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -2102,6 +2426,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\MinHook\x64\libMinHook64.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2109,6 +2434,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\nvapi\Win32\nvapi.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -2116,6 +2442,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\nvapi\x64\nvapi64.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2123,6 +2450,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\steamapi\Win32\steam_api.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -2130,6 +2458,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
     </Library>
     <Library Include="depends\lib\steamapi\x64\steam_api64.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2137,6 +2466,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

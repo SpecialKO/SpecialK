@@ -373,15 +373,33 @@ IDirectInputDevice8_GetDeviceState_pfn
 IDirectInputDevice8_SetCooperativeLevel_pfn
         IDirectInputDevice8_SetCooperativeLevel_Original = nullptr;
 
-struct di8_keyboard_s {
+
+struct SK_DI8_Keyboard {
   LPDIRECTINPUTDEVICE pDev = nullptr;
   uint8_t             state [512];
 } _dik;
 
-struct di8_mouse_s {
+struct SK_DI8_Mouse {
   LPDIRECTINPUTDEVICE pDev = nullptr;
   DIMOUSESTATE2       state;
 } _dim;
+
+
+__declspec (noinline)
+SK_DI8_Keyboard*
+WINAPI
+SK_Input_GetDI8Keyboard (void) {
+  return &_dik;
+}
+
+__declspec (noinline)
+SK_DI8_Mouse*
+WINAPI
+SK_Input_GetDI8Mouse (void) {
+  return &_dim;
+}
+
+
 
 HRESULT
 WINAPI
@@ -393,6 +411,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
   hr = IDirectInputDevice8_GetDeviceState_Original ( This,
                                                        cbData,
                                                          lpvData );
+
+
 
   if (SUCCEEDED (hr) && lpvData != nullptr)
   {
@@ -474,6 +494,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       }
     }
   }
+
+
 
   return hr;
 }
@@ -1638,14 +1660,16 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 
     case WM_CAPTURECHANGED:
 
-    case WM_MOUSEHOVER:
-    case WM_MOUSELEAVE:
     case WM_NCMOUSEHOVER:
     case WM_NCMOUSELEAVE:
+    case WM_NCMOUSEMOVE:
+    case WM_NCHITTEST:
+
+    case WM_MOUSEHOVER:
+    case WM_MOUSELEAVE:
       return false;
 
     case WM_MOUSEMOVE:
-    case WM_NCMOUSEMOVE:
       if (SK_ImGui_Visible)
       {
         bool filter = false;
@@ -1661,17 +1685,32 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
         if ( abs (last_pos.x - GET_X_LPARAM (lpMsg->lParam)) < threshold &&
              abs (last_pos.y - GET_Y_LPARAM (lpMsg->lParam)) < threshold )
           filter = true;
+        else
+          last_pos = MAKEPOINTS (lpMsg->lParam);
 
-        last_pos = MAKEPOINTS (lpMsg->lParam);
 
+        POINT local { GET_X_LPARAM (lpMsg->lParam),
+                      GET_Y_LPARAM (lpMsg->lParam) };
+        SK_ImGui_Cursor.ClientToLocal (&local);
+
+        SK_ImGui_Cursor.orig_pos.x = local.x;
+        SK_ImGui_Cursor.orig_pos.x = local.y;
+
+
+        // Dispose Without Processing
         if (filter)
           return true;
 
         ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
+        // Consume After Processing
         if (SK_ImGui_WantMouseCapture ())
           return true;
-      } break;
+      }
+
+      // Passthrough
+      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      break;
 
     case WM_LBUTTONDBLCLK:
     case WM_LBUTTONDOWN:
@@ -1681,19 +1720,18 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
     case WM_MOUSEACTIVATE:
     case WM_MOUSEHWHEEL:
     case WM_MOUSEWHEEL:
-    case WM_NCHITTEST:
-    case WM_NCLBUTTONDBLCLK:
-    case WM_NCLBUTTONDOWN:
-    case WM_NCLBUTTONUP:
-    case WM_NCMBUTTONDBLCLK:
-    case WM_NCMBUTTONDOWN:
-    case WM_NCMBUTTONUP:
-    case WM_NCRBUTTONDBLCLK:
-    case WM_NCRBUTTONDOWN:
-    case WM_NCRBUTTONUP:
-    case WM_NCXBUTTONDBLCLK:
-    case WM_NCXBUTTONDOWN:
-    case WM_NCXBUTTONUP:
+    //case WM_NCLBUTTONDBLCLK:
+    //case WM_NCLBUTTONDOWN:
+    //case WM_NCLBUTTONUP:
+    //case WM_NCMBUTTONDBLCLK:
+    //case WM_NCMBUTTONDOWN:
+    //case WM_NCMBUTTONUP:
+    //case WM_NCRBUTTONDBLCLK:
+    //case WM_NCRBUTTONDOWN:
+    //case WM_NCRBUTTONUP:
+    //case WM_NCXBUTTONDBLCLK:
+    //case WM_NCXBUTTONDOWN:
+    //case WM_NCXBUTTONUP:
     case WM_RBUTTONDBLCLK:
     case WM_RBUTTONDOWN:
     case WM_RBUTTONUP:
