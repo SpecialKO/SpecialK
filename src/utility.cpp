@@ -1250,6 +1250,8 @@ SK_TestImports (          HMODULE  hMod,
 {
   DBG_UNREFERENCED_PARAMETER (hMod);
 
+  int hits = 0;
+
   __try
   {
     uintptr_t                pImgBase =
@@ -1274,9 +1276,8 @@ SK_TestImports (          HMODULE  hMod,
 
     //dll_log.Log (L"[Import Tbl] Size=%lu", pImgDir->Size);
 
-    if (pImgDir->Size < (1024 * 2048)) {
-      int hits = 0;
-
+    if (pImgDir->Size < (1024 * 8192))
+    {
       uintptr_t end = (uintptr_t)pImpDesc + pImgDir->Size;
 
       while ((uintptr_t)pImpDesc < end)
@@ -1311,7 +1312,10 @@ SK_TestImports (          HMODULE  hMod,
                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
     dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
                   L"Walk Import Table." );
+  }
 
+  if (hits == 0)
+  {
     // Resort to checking for DLL residency instead
     for (int i = 0; i < nCount; i++)
     {
@@ -1335,7 +1339,7 @@ SK_TestRenderImports ( HMODULE hMod,
   static sk_import_test_s tests [] = { { "OpenGL32.dll", false },
                                        { "vulkan-1.dll", false },
                                        { "d3d9.dll",     false },
-                                       { "dxgi.dll",     false },
+                                       //{ "dxgi.dll",     false },
                                        { "d3d11.dll",    false } };
 
   SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);

@@ -114,6 +114,9 @@ struct init_params_t {
 } init_;
 
 
+std::queue <DWORD> __SK_Init_Suspended_tids;
+
+
 void
 SK_PathRemoveExtension (wchar_t* wszInOut)
 {
@@ -888,6 +891,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   if (backend_dll != NULL) {
     LeaveCriticalSection (&init_mutex);
+    SK_ResumeThreads (__SK_Init_Suspended_tids);
     return;
   }
 
@@ -1128,6 +1132,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
 #endif
 
   callback_fn (SK_InitFinishCallback);
+
+  SK_ResumeThreads (__SK_Init_Suspended_tids);
 
   // Malware needs to be disabled, but cannot be...
   //   so notify the end-user.
@@ -1453,6 +1459,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
       SK_SaveConfig (config_name);
       dll_log.LogEx (false, L"done!\n");
+    }
+
+    if (config.compatibility.init_while_suspended)
+    {
+      __SK_Init_Suspended_tids =
+        SK_SuspendAllOtherThreads ();
     }
 
     if (config.steam.preload_overlay)
@@ -2487,7 +2499,7 @@ SK_GetBlacklistFilename (void)
   return host_proc.wszBlacklist;
 }
 
-DLL_ROLE dll_role;
+DLL_ROLE dll_role = DLL_ROLE::INVALID;
 
 DLL_ROLE
 __stdcall

@@ -364,6 +364,8 @@ struct sk_config_t
       bool  hook_reset_vftbl     = false;
       bool  hook_present_vftbl   = false;
     } d3d9;
+
+    bool   init_while_suspended  = true;
   } compatibility;
 
   struct {

@@ -1217,7 +1217,7 @@ SK_Steam_RarityToName (float percent)
 
 bool     has_global_data  = false;
 uint32_t next_friend      =  0;
- int32_t friend_count     = -1;
+uint32_t friend_count     =  0;
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
@@ -1357,10 +1357,14 @@ public:
     friend_count =
       friends->GetFriendCount (k_EFriendFlagImmediate);
 
+    // OFFLINE MODE
+    if (friend_count == UINT32_MAX || friend_count > 8192 /* Sanity Check */)
+      friend_count = 0;
+
     achievements.list.resize        (achv_reserve);
     achievements.string_map.reserve (achv_reserve);
 
-    if (friend_count > 0)
+    if (friend_count != UINT32_MAX)
       friend_stats.reserve          (friend_count);
 
     for (uint32_t i = 0; i < achv_reserve; i++)
@@ -1636,6 +1640,10 @@ public:
       {
         steam_log.Log ( L" >>> User stat receipt unsuccessful! (m_eResult = 0x%04X)",
                         pParam->m_eResult );
+
+        // Stop enumerating friends
+        friend_count = (uint32_t)std::max (0i32, (int32_t)(next_friend - 1));
+        //next_friend = friend_count;
       }
     }
   }
@@ -2306,6 +2314,9 @@ public:
   {
     static std::string empty = "";
 
+    if (friend_count < 0)
+      return empty;
+
     if (friend_idx >= friend_count || (! friend_idx_to_aid.count (friend_idx)))
     {
       if (friend_idx_to_aid.count (friend_idx) == 0)
@@ -2820,7 +2831,7 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
-  if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0)
+  if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr)
   {
     // Handle situations where Steam was initialized earlier than
     //   expected...
@@ -3925,6 +3936,10 @@ SK_SteamAPI_InitManagers (void)
 
     if (steam_ctx.Utils ())
       overlay_manager      = new SK_Steam_OverlayManager ();
+
+    // Failed, try again later...
+    if (overlay_manager == nullptr && steam_achievements == nullptr)
+      InterlockedExchange (&SK_SteamAPI_ManagersInitialized, 0);
   }
 }
 

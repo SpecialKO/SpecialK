@@ -118,6 +118,6 @@ struct sk_imgui_cursor_s
 
 
 bool
-SK_ImGui_HandlesMessage (LPMSG lpMsg);
+SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove);
 
 #endif /* __SK__INPUT_H__ */

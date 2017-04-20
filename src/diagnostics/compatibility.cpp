@@ -263,6 +263,9 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                 StrStrIA (lpFileName,  "d3dx9_")      ||
                 StrStrIW (wszModName, L"d3dx9_")      ||
 
+                StrStrIA (lpFileName,  "Direct3D9")   ||
+                StrStrIW (wszModName, L"Direct3D9")   ||
+
                 // NVIDIA's User-Mode D3D Frontend
                 StrStrIA (lpFileName,  "nvd3dum.dll") ||
                 StrStrIW (wszModName, L"nvd3dum.dll")  ) )
@@ -383,6 +386,9 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
 
               StrStrIW (lpFileName, L"d3dx9_")      ||
               StrStrIW (wszModName, L"d3dx9_")      ||
+
+              StrStrIW (lpFileName, L"Direct3D9")   || // Reliably catches Torchlight 2
+              StrStrIW (wszModName, L"Direct3D9")   ||
 
               // NVIDIA's User-Mode D3D Frontend
               StrStrIW (lpFileName, L"nvd3dum.dll") ||

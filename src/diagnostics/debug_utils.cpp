@@ -84,8 +84,8 @@ ExitProcess_Detour (UINT uExitCode)
 {
   // Since many, many games don't shutdown cleanly, let's unload ourself.
 
-  SK_DisableHook       (ExitProcess_Hook);
-  SK_UnhookLoadLibrary ();
+  //SK_DisableHook       (ExitProcess_Hook);
+  //SK_UnhookLoadLibrary ();
   SK_SelfDestruct      ();
   ExitProcess          (uExitCode);
 }

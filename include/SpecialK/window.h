@@ -195,12 +195,6 @@ typedef BOOL (WINAPI *SetCursorPos_pfn)
   _In_ int Y
 );
 
-typedef BOOL (WINAPI *SetPhysicalCursorPos_pfn)
-(
-  _In_ int X,
-  _In_ int Y
-);
-
 typedef UINT (WINAPI *SendInput_pfn)(
   _In_ UINT    nInputs,
   _In_ LPINPUT pInputs,
@@ -233,7 +227,6 @@ extern GetSystemMetrics_pfn   GetSystemMetrics_Original;
 extern GetCursorPos_pfn       GetCursorPos_Original;
 extern SetCursorPos_pfn       SetCursorPos_Original;
 extern GetCursorInfo_pfn      GetCursorInfo_Original;
-//extern SetCursorPos_pfn  SetPhysicalCursorPos_Original  = nullptr;
 
 extern SendInput_pfn           SendInput_Original;
 extern mouse_event_pfn         mouse_event_Original;

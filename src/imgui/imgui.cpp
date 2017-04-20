@@ -11413,14 +11413,14 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
     if ( keyboard_capture || mouse_capture || filter_raw_input )
     {
-      if (! keyboard_capture)
-      {
+      //if (! keyboard_capture)
+      //{
         if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
           SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam);
 
         if (uMsg == WM_KEYUP   || uMsg == WM_SYSKEYUP)
           SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam);
-      } 
+      //} 
 
       if (filter_raw_input)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
@@ -11586,7 +11586,7 @@ SK_ImGui_PollGamepad (void)
     io.NavInputs [ImGuiNavInput_PadScrollLeft]  += (1.0f / analog_sensitivity) * (io.KeysDown ['A'] ? 1.0f : 0.0f);
     io.NavInputs [ImGuiNavInput_PadScrollRight] += (1.0f / analog_sensitivity) * (io.KeysDown ['D'] ? 1.0f : 0.0f);
 
-    io.NavInputs [ImGuiNavInput_PadMenu]       += io.KeyAlt ? 1.0f : 0.0f;   // access menu, focus, move, resize             // e.g. Square button
+    io.NavInputs [ImGuiNavInput_PadMenu]       += (io.KeyAlt || io.KeyCtrl) ? 1.0f : 0.0f;   // access menu, focus, move, resize             // e.g. Square button
 
     if (! io.WantTextInput)
     {

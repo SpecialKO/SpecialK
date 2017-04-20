@@ -1692,7 +1692,7 @@ SK_TextOverlay::update (const char* szText)
     while (line != nullptr)
     {
       // Fast-path: Skip blank lines
-      if (*line != '\0' && strlen (line) > 1)
+      if (*line != '\0')
       {
         CEGUI::String cegui_line (line);
 

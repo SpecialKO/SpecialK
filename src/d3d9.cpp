@@ -1274,9 +1274,9 @@ D3D9CreateAdditionalSwapChain_Override (
 
   HRESULT hr;
 
-  D3D9_CALL (hr,D3D9CreateAdditionalSwapChain_Original(This,
-                                                       pPresentationParameters,
-                                                       pSwapChain));
+  D3D9_CALL (hr,D3D9CreateAdditionalSwapChain_Original ( This,
+                                                           pPresentationParameters,
+                                                             pSwapChain ) );
 
   if (SUCCEEDED (hr)) {
     D3D9_INTERCEPT ( pSwapChain, 3,

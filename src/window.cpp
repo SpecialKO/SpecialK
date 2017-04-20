@@ -130,7 +130,6 @@ struct window_t {
 sk_window_s       game_window;
 
 SetCursorPos_pfn  SetCursorPos_Original          = nullptr;
-SetCursorPos_pfn  SetPhysicalCursorPos_Original  = nullptr;
 SendInput_pfn     SendInput_Original             = nullptr;
 mouse_event_pfn   mouse_event_Original           = nullptr;
 
@@ -2203,9 +2202,11 @@ SK_GetSystemMetrics (_In_ int nIndex)
 bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove)
 {
-  if ( SK_ImGui_HandlesMessage (lpMsg) )
+  if ( SK_ImGui_HandlesMessage (lpMsg, remove) )
   {
-    lpMsg->message = WM_NULL;
+    if (remove)
+      lpMsg->message = WM_NULL;
+
     return true;
   }
 
@@ -2233,7 +2234,7 @@ PeekMessageW_Detour (
 {
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet)
+  if (bRet && ( hWnd == game_window.hWnd || hWnd == NULL ) )
   {
     SK_EarlyDispatchMessage (lpMsg, true);
   }
@@ -2262,7 +2263,7 @@ PeekMessageA_Detour (
 {
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet)
+  if (bRet && ( hWnd == game_window.hWnd || hWnd == NULL ) )
   {
     SK_EarlyDispatchMessage (lpMsg, true);
   }
@@ -2283,7 +2284,8 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  SK_EarlyDispatchMessage (lpMsg, true);
+  if (hWnd == game_window.hWnd || hWnd == NULL)
+    SK_EarlyDispatchMessage (lpMsg, true);
   return TRUE;
 }
 
@@ -2294,7 +2296,8 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  SK_EarlyDispatchMessage (lpMsg, true);
+  if (hWnd == game_window.hWnd || hWnd == NULL)
+    SK_EarlyDispatchMessage (lpMsg, true);
   return TRUE;
 }
 
@@ -2308,7 +2311,8 @@ LRESULT
 WINAPI
 DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
-  SK_EarlyDispatchMessage ((MSG *)lpMsg, true);
+  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+  SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
     //return 0;
 
   return DispatchMessageW_Original (lpMsg);
@@ -3084,7 +3088,7 @@ SK_InstallWindowHook (HWND hWnd)
   //
   //   Input will be processed in-game, but not during server select.
   //
-  if (wcsstr (L"eqgame.exe", SK_GetHostApp ()))
+  if (wcsstr (SK_GetHostApp (), L"eqgame.exe"))
     hook_classfunc = true;
 
   if (hook_classfunc)
@@ -3126,10 +3130,10 @@ SK_InstallWindowHook (HWND hWnd)
 
     game_window.SetWindowLongPtr ( hWnd, GWLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
-    if (game_window.unicode)
-      SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-    else
-      SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+    //if (game_window.unicode)
+      //SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+    //else
+      //SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
     if (game_window.unicode) {
       DWORD dwStyle = GetClassLongW (hWnd, GCL_STYLE);

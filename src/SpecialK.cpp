@@ -306,7 +306,8 @@ SK_EstablishDllRole (HMODULE hModule)
           steam_tests [2].used )                        ||
            SK_Path_wcsstr (wszProcessName, L"steamapps");
 
-      if (is_steamworks_game) {
+      if (is_steamworks_game)
+      {
         bool gl = false, vulkan = false, d3d9 = false, d3d11 = false, dxgi = false;
 
         SK_TestRenderImports (
@@ -318,7 +319,7 @@ SK_EstablishDllRole (HMODULE hModule)
 
         gl     |= (GetModuleHandle (L"OpenGL32.dll") != nullptr);
         d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
-        dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr);
+        //dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr);
         d3d11  |= (GetModuleHandle (L"d3d11.dll")    != nullptr);
 
 
@@ -344,7 +345,9 @@ SK_EstablishDllRole (HMODULE hModule)
           else if (config.apis.Vulkan.hook)
             SK_SetDLLRole (DLL_ROLE::Vulkan);
         }
-          //SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
+
+        if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+          SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
 
         // This time, save the config file
         SK_LoadConfig (L"SpecialK");

@@ -1,3 +1,26 @@
+/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+#define _CRT_SECURE_NO_WARNINGS
+#define DIRECTINPUT_VERSION 0x0800
+
 #include <SpecialK/input/input.h>
 #include <SpecialK/window.h>
 #include <SpecialK/console.h>
@@ -417,6 +440,12 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
         out->rgdwPOV [2] = -1;
         out->rgdwPOV [3] = -1;
       }
+    }
+
+    else if (This == _dik.pDev || cbData == 256)
+    {
+      if (SK_ImGui_WantKeyboardCapture () && lpvData != nullptr)
+        memset (lpvData, 0, cbData);
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -1367,26 +1396,6 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   return TRUE;
 }
 
-#if 0
-BOOL
-WINAPI
-SetPhysicalCursorPos_Detour (_In_ int x, _In_ int y)
-{
-  SK_LOG_FIRST_CALL
-
-  if (SK_ImGui_Visible)
-  {
-    game_mouselook = SK_GetFramesDrawn ();
-  }
-
-  else {
-    return SetPhysicalCursorPos_Original (x, y);
-  }
-
-  return TRUE;
-}
-#endif
-
 UINT
 WINAPI
 SendInput_Detour (
@@ -1547,13 +1556,15 @@ GetKeyboardState_Detour (PBYTE lpKeyState)
   return bRet;
 }
 
+#include <Windowsx.h>
+
 
 LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool
-SK_ImGui_HandlesMessage (LPMSG lpMsg)
+SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 {
   bool handled = false;
 
@@ -1562,12 +1573,39 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg)
     //case WM_INPUT_DEVICE_CHANGE:
     case WM_INPUT:
     {
-      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      RAWINPUT data = { 0 };
+      UINT     size = sizeof RAWINPUT;
 
-      if (SK_ImGui_WantGamepadCapture ())
-        return true;
-  	}
-  	break;
+      int      ret  =
+        GetRawInputData_Original ((HRAWINPUT)lpMsg->lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
+
+      if (ret)
+      {
+        uint8_t *pData = new uint8_t [size];
+
+        if (! pData)
+          return 0;
+
+        bool cap = SK_ImGui_ProcessRawInput ((HRAWINPUT)lpMsg->lParam, RID_INPUT, &data, &size, sizeof (data.header));
+
+        switch (data.header.dwType)
+        {
+          case RIM_TYPEMOUSE:            
+            //cap = SK_ImGui_WantMouseCapture ();
+            break;
+
+          case RIM_TYPEKEYBOARD:
+            if (SK_ImGui_WantKeyboardCapture ())
+              return true;
+            break;
+
+          default:
+            if (nav_usable)
+              return true;
+        }
+      }
+    }
+    break;
 
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
@@ -1578,10 +1616,10 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg)
         if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
           if (SK_ImGui_WantKeyboardCapture () && (! SK_ImGui_WantTextCapture ()))
           {
-            // Don't capture release notifications, or games may think the key
-            //   is stuck down indefinitely
-            if (lpMsg->message != WM_KEYUP && lpMsg->message != WM_SYSKEYUP)
-              return true;
+          // Don't capture release notifications, or games may think the key
+          //   is stuck down indefinitely
+          if (lpMsg->message != WM_KEYUP && lpMsg->message != WM_SYSKEYUP)
+            return true;
           }
       } break;
 
@@ -1589,24 +1627,50 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg)
     case WM_UNICHAR:
     case WM_SYSDEADCHAR:
     case WM_DEADCHAR:
-      if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-        if (SK_ImGui_WantKeyboardCapture ())
-          return true;
+      if (nav_usable)
+      {
+        if (ImGui_WndProcHandler(lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+          if (SK_ImGui_WantTextCapture ())
+            return true;
+      }
       break;
 
 
     case WM_CAPTURECHANGED:
+
     case WM_MOUSEHOVER:
     case WM_MOUSELEAVE:
-    case WM_MOUSEMOVE:
     case WM_NCMOUSEHOVER:
-    case WM_NCMOUSEMOVE:
     case WM_NCMOUSELEAVE:
-      if (nav_usable)
+      return false;
+
+    case WM_MOUSEMOVE:
+    case WM_NCMOUSEMOVE:
+      if (SK_ImGui_Visible)
       {
-        if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-          if (SK_ImGui_WantMouseCapture ())
-            return true;
+        bool filter = false;
+
+        static POINTS last_pos;
+        const short   threshold = 2;
+
+        // Filter out small movements / mouselook warps
+        //
+        //   This does create a weird deadzone in the center of the screen,
+        //     but most people will not notice ;)
+        //
+        if ( abs (last_pos.x - GET_X_LPARAM (lpMsg->lParam)) < threshold &&
+             abs (last_pos.y - GET_Y_LPARAM (lpMsg->lParam)) < threshold )
+          filter = true;
+
+        last_pos = MAKEPOINTS (lpMsg->lParam);
+
+        if (filter)
+          return true;
+
+        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+        if (SK_ImGui_WantMouseCapture ())
+          return true;
       } break;
 
     case WM_LBUTTONDBLCLK:
@@ -1697,10 +1761,6 @@ SK_Input_Init (void)
   SK_CreateDLLHook2 ( L"user32.dll", "SetCursorPos",
                      SetCursorPos_Detour,
            (LPVOID*)&SetCursorPos_Original );
-
-  //SK_CreateDLLHook2 ( L"user32.dll", "SetPhysicalCursorPos",
-                     //SetPhysicalCursorPos_Detour,
-           //(LPVOID*)&SetPhysicalCursorPos_Original );
 
   SK_CreateDLLHook2 ( L"user32.dll", "SendInput",
                      SendInput_Detour,

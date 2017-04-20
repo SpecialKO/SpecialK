@@ -21,7 +21,7 @@ static VkDescriptorPool       g_DescriptorPool = VK_NULL_HANDLE;
 static void (*g_CheckVkResult)(VkResult err)   = NULL;
 
 static VkCommandBuffer        g_CommandBuffer         = VK_NULL_HANDLE;
-static size_t                 g_BufferMemoryAlignment = 256;
+static VkDeviceSize           g_BufferMemoryAlignment = 256ULL;
 static VkPipelineCreateFlags  g_PipelineCreateFlags   = 0;
 static int                    g_FrameIndex            = 0;
 
@@ -37,8 +37,8 @@ static VkImageView            g_FontView    = VK_NULL_HANDLE;
 
 static VkDeviceMemory         g_VertexBufferMemory [IMGUI_VK_QUEUED_FRAMES] = { };
 static VkDeviceMemory         g_IndexBufferMemory  [IMGUI_VK_QUEUED_FRAMES] = { };
-static size_t                 g_VertexBufferSize   [IMGUI_VK_QUEUED_FRAMES] = { };
-static size_t                 g_IndexBufferSize    [IMGUI_VK_QUEUED_FRAMES] = { };
+static VkDeviceSize           g_VertexBufferSize   [IMGUI_VK_QUEUED_FRAMES] = { };
+static VkDeviceSize           g_IndexBufferSize    [IMGUI_VK_QUEUED_FRAMES] = { };
 static VkBuffer               g_VertexBuffer       [IMGUI_VK_QUEUED_FRAMES] = { };
 static VkBuffer               g_IndexBuffer        [IMGUI_VK_QUEUED_FRAMES] = { };
 
@@ -191,7 +191,7 @@ ImGui_ImplVulkan_RenderDrawLists (ImDrawData* draw_data)
     ImGui::GetIO ();
 
   // Create the Vertex Buffer:
-  size_t vertex_size =
+  VkDeviceSize vertex_size =
     draw_data->TotalVtxCount * sizeof (ImDrawVert);
 
   if (! g_VertexBuffer [g_FrameIndex] || g_VertexBufferSize[g_FrameIndex] < vertex_size)
@@ -202,7 +202,7 @@ ImGui_ImplVulkan_RenderDrawLists (ImDrawData* draw_data)
     if (g_VertexBufferMemory [g_FrameIndex])
       vkFreeMemory (g_Device, g_VertexBufferMemory [g_FrameIndex], g_Allocator);
 
-    size_t vertex_buffer_size =
+    VkDeviceSize vertex_buffer_size =
       ((vertex_size - 1) / g_BufferMemoryAlignment + 1) * g_BufferMemoryAlignment;
 
     VkBufferCreateInfo buffer_info = { };
@@ -244,7 +244,7 @@ ImGui_ImplVulkan_RenderDrawLists (ImDrawData* draw_data)
   }
 
   // Create the Index Buffer:
-  size_t index_size = draw_data->TotalIdxCount * sizeof (ImDrawIdx);
+  VkDeviceSize index_size = draw_data->TotalIdxCount * sizeof (ImDrawIdx);
 
   if (! g_IndexBuffer [g_FrameIndex] || g_IndexBufferSize [g_FrameIndex] < index_size)
   {
@@ -254,7 +254,7 @@ ImGui_ImplVulkan_RenderDrawLists (ImDrawData* draw_data)
     if (g_IndexBufferMemory [g_FrameIndex])
       vkFreeMemory (g_Device, g_IndexBufferMemory [g_FrameIndex], g_Allocator);
 
-    size_t index_buffer_size =
+    VkDeviceSize index_buffer_size =
       ((index_size - 1) / g_BufferMemoryAlignment + 1) * g_BufferMemoryAlignment;
 
     VkBufferCreateInfo buffer_info = { };
