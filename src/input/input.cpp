@@ -37,6 +37,19 @@
 
 #include <imgui/imgui.h>
 
+
+bool
+SK_InputUtil_IsHWCursorVisible (void)
+{
+  CURSORINFO cursor_info;
+             cursor_info.cbSize = sizeof (CURSORINFO);
+  
+  GetCursorInfo_Original (&cursor_info);
+ 
+  return (cursor_info.flags & CURSOR_SHOWING);
+}
+
+
 #define SK_LOG_FIRST_CALL
 
 extern bool SK_ImGui_Visible;
@@ -1406,7 +1419,8 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   if (config.window.drag_lock)
     return TRUE;
 
-  if (SK_ImGui_Visible)
+  if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible                  ) ||
+       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
   {
     //game_mouselook = SK_GetFramesDrawn ();
   }
@@ -1580,7 +1594,6 @@ GetKeyboardState_Detour (PBYTE lpKeyState)
 
 #include <Windowsx.h>
 
-
 LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -1669,13 +1682,26 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
     case WM_MOUSELEAVE:
       return false;
 
+
+
     case WM_MOUSEMOVE:
-      if (SK_ImGui_Visible)
+    {
+
+      bool filter_warps = false;
+
+      if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) ||
+           ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
+        filter_warps = true;
+
+
+      if (filter_warps)
       {
         bool filter = false;
 
         static POINTS last_pos;
-        const short   threshold = 2;
+        const short   threshold    = 3;
+        const float   smooth_range = 0.0f;
+              bool    smooth       = false;
 
         // Filter out small movements / mouselook warps
         //
@@ -1710,7 +1736,10 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 
       // Passthrough
       ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-      break;
+    } break;
+
+
+
 
     case WM_LBUTTONDBLCLK:
     case WM_LBUTTONDOWN:

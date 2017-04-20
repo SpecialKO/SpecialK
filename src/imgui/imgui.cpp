@@ -11341,6 +11341,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   bool filter_raw_input = (msg == WM_INPUT && handled);
 
 
+
   //
   // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
   //
@@ -11363,6 +11364,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   if (was_idle != SK_ImGui_Cursor.idle)
     SK_ImGui_Cursor.update ();
+
 
 
   UINT uMsg = msg;

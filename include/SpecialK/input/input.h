@@ -114,6 +114,14 @@ struct sk_imgui_cursor_s
   void   ScreenToLocal    (LPPOINT lpPoint);
 
   void   activateWindow   (bool active);
+
+  struct {
+    struct {
+      bool visible = true;
+      bool gamepad = false; // TODO - Disable warping ifgamepad is plugged in
+      bool ui_open = true;
+    } no_warp;
+  } prefs;
 } extern SK_ImGui_Cursor;
 
 

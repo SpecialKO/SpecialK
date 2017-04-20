@@ -1251,6 +1251,9 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndTooltip    ();
         }
 
+        ImGui::Checkbox ("No Warp (cursor visible)", &SK_ImGui_Cursor.prefs.no_warp.visible); ImGui::SameLine ();
+        ImGui::Checkbox ("No Warp (UI open)",        &SK_ImGui_Cursor.prefs.no_warp.ui_open);
+
         ImGui::TreePop        ();
         ImGui::EndGroup       ();
         ImGui::TreePop        ();
