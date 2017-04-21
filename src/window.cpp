@@ -2234,7 +2234,7 @@ PeekMessageW_Detour (
 {
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet && ( hWnd == game_window.hWnd || hWnd == NULL ) )
+  if (bRet /*&& ( hWnd == game_window.hWnd )*/ )
   {
     SK_EarlyDispatchMessage (lpMsg, true);
   }
@@ -2263,7 +2263,7 @@ PeekMessageA_Detour (
 {
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet && ( hWnd == game_window.hWnd || hWnd == NULL ) )
+  if (bRet /*&& */ )
   {
     SK_EarlyDispatchMessage (lpMsg, true);
   }
@@ -2284,8 +2284,8 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (hWnd == game_window.hWnd || hWnd == NULL)
-    SK_EarlyDispatchMessage (lpMsg, true);
+  SK_EarlyDispatchMessage (lpMsg, hWnd == game_window.hWnd);
+
   return TRUE;
 }
 
@@ -2296,8 +2296,8 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (hWnd == game_window.hWnd || hWnd == NULL)
-    SK_EarlyDispatchMessage (lpMsg, true);
+  SK_EarlyDispatchMessage (lpMsg, hWnd == game_window.hWnd);
+
   return TRUE;
 }
 
@@ -2312,10 +2312,25 @@ WINAPI
 DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
   if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
-  SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
-    //return 0;
+    SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
 
   return DispatchMessageW_Original (lpMsg);
+}
+
+typedef LRESULT (WINAPI *DispatchMessageA_pfn)(
+  _In_ const MSG *lpmsg
+);
+
+DispatchMessageA_pfn DispatchMessageA_Original = nullptr;
+
+LRESULT
+WINAPI
+DispatchMessageA_Detour (_In_ const MSG *lpMsg)
+{
+  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+    SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
+
+  return DispatchMessageA_Original (lpMsg);
 }
 
 // Avoid static storage in the callback function
@@ -3208,6 +3223,28 @@ SK_GetGameWindow (void)
   return game_window.hWnd;
 }
 
+#if 0
+bool
+SK_TestAndHook ( const wchar_t* wszModule,
+                 const char*     szFunc,
+                 LPVOID         pDetour,
+                 LPVOID*       ppTarget )
+{
+  HMODULE hMod =
+    GetModuleHandle (wszModule);
+
+  sk_import_test_s test { szFunc, false };
+
+  SK_TestImports (hMod, &test, 1);
+
+  if (test.used) {
+    SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
+                       PeekMessageW_Detour,
+             (LPVOID*)&PeekMessageW_Original );
+  }
+}
+#endif
+
 void
 SK_HookWinAPI (void)
 {
@@ -3215,9 +3252,30 @@ SK_HookWinAPI (void)
   SK_WindowManager::getInstance ();
 
 
-  //SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
-                     //DispatchMessageW_Detour,
-           //(LPVOID*)&DispatchMessageW_Original );
+  //int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
+  //int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
+  //int phys_off_x     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETX);
+  //int phys_off_y     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETY);
+  //int scale_factor_x = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORX);
+  //int scale_factor_y = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORY);
+
+  //SK_LOG0 ( ( L" Physical Coordinates  ::  { %lux%lu) + <%lu,%lu> * {%lu:%lu}",
+                //phys_w, phys_h,
+                //phys_off_x, phys_off_y,
+                //scale_factor_x, scale_factor_y ),
+              //L"Window Sys" );
+
+
+#if 0
+  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
+                     DispatchMessageW_Detour,
+           (LPVOID*)&DispatchMessageW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
+                     DispatchMessageA_Detour,
+           (LPVOID*)&DispatchMessageA_Original );
+#endif
+
 
   SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
                      PeekMessageW_Detour,
@@ -3235,6 +3293,8 @@ SK_HookWinAPI (void)
                      GetMessageA_Detour,
            (LPVOID*)&GetMessageA_Original );
 
+
+#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
                         SetWindowPos_Detour,
              (LPVOID *)&SetWindowPos_Original );
@@ -3243,13 +3303,29 @@ SK_HookWinAPI (void)
                         SetWindowPlacement_Detour,
              (LPVOID *)&SetWindowPlacement_Original );
 
-  SK_CreateDLLHook2 ( L"user32.dll", "ClipCursor",
-                        ClipCursor_Detour,
-             (LPVOID *)&ClipCursor_Original );
-
   SK_CreateDLLHook2 ( L"user32.dll", "MoveWindow",
                         MoveWindow_Detour,
              (LPVOID *)&MoveWindow_Original );
+#else
+    SetWindowPos_Original =
+      (SetWindowPos_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "SetWindowPos" );
+    SetWindowPlacement_Original =
+      (SetWindowPlacement_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "SetWindowPlacement" );
+
+    MoveWindow_Original =
+      (MoveWindow_pfn)
+        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                         "MoveWindow" );
+#endif
+
+
+  SK_CreateDLLHook2 ( L"user32.dll", "ClipCursor",
+                        ClipCursor_Detour,
+             (LPVOID *)&ClipCursor_Original );
 
 // These functions are dispatched through the Ptr version, so
 //   hooking them in the 64-bit version would be a bad idea.

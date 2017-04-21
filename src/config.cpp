@@ -142,6 +142,7 @@ struct {
     sk::ParameterBool*    auto_pump;
     sk::ParameterStringW* notify_corner;
     sk::ParameterBool*    block_stat_callback;
+    sk::ParameterBool*    filter_stat_callbacks;
     sk::ParameterBool*    load_early;
     sk::ParameterBool*    early_overlay;
   } system;
@@ -1592,6 +1593,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Steam.System",
         L"BlockUserStatsCallback" );
 
+  steam.system.filter_stat_callbacks =
+    static_cast <sk::ParameterBool *>
+    (g_ParameterFactory.create_parameter <bool> (
+      L"Filter Unrelated Data from the User Stats Receipt Callback?")
+    );
+  steam.system.filter_stat_callbacks->register_to_ini (
+    dll_ini,
+      L"Steam.System",
+        L"FilterExternalDataFromCallbacks" );
+
   steam.system.load_early =
     static_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
@@ -1766,11 +1777,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
     {
       case SK_GAME_ID::Tyranny:
         // Cannot auto-detect API?!
-        config.apis.dxgi.d3d11.hook      = false;
-        config.apis.dxgi.d3d12.hook      = false;
-        config.apis.OpenGL.hook          = false;
-        config.steam.block_stat_callback = true;  // Will stop running SteamAPI when it receives
+        config.apis.dxgi.d3d11.hook       = false;
+        config.apis.dxgi.d3d12.hook       = false;
+        config.apis.OpenGL.hook           = false;
+        config.steam.filter_stat_callback = true; // Will stop running SteamAPI when it receives
                                                   //   data it didn't ask for
+                                                  
         break;
 
 
@@ -1839,7 +1851,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
         //   auto-pump.
         config.steam.auto_pump_callbacks    = true;
         config.steam.preload_client         = true;
-        config.steam.block_stat_callback    = true;
+        config.steam.filter_stat_callback   = true; // Will stop running SteamAPI when it receives
+                                                    //   data it didn't ask for
 
         config.apis.dxgi.d3d12.hook         = false;
         config.apis.dxgi.d3d11.hook         = true;
@@ -1867,15 +1880,15 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
       case SK_GAME_ID::TheWitcher3:
-        config.system.strict_compliance        = false; // Uses NVIDIA Ansel, so this won't work!
-        config.steam.block_stat_callback       = true;  // Will stop running SteamAPI when it receives
-                                                        //   data it didn't ask for
+        config.system.strict_compliance   = false; // Uses NVIDIA Ansel, so this won't work!
+        config.steam.filter_stat_callback = true;  // Will stop running SteamAPI when it receives
+                                                   //   data it didn't ask for
 
-        config.apis.dxgi.d3d12.hook            = false;
-        config.apis.d3d9.hook                  = false;
-        config.apis.d3d9ex.hook                = false;
-        config.apis.OpenGL.hook                = false;
-        config.apis.Vulkan.hook                = false;
+        config.apis.dxgi.d3d12.hook       = false;
+        config.apis.d3d9.hook             = false;
+        config.apis.d3d9ex.hook           = false;
+        config.apis.OpenGL.hook           = false;
+        config.apis.Vulkan.hook           = false;
 
         config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
         break;
@@ -2369,6 +2382,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.steam.auto_pump_callbacks = steam.system.auto_pump->get_value ();
   if (steam.system.block_stat_callback->load ())
     config.steam.block_stat_callback = steam.system.block_stat_callback->get_value ();
+  if (steam.system.filter_stat_callbacks->load ())
+    config.steam.filter_stat_callback = steam.system.filter_stat_callbacks->get_value ();
   if (steam.system.load_early->load ())
     config.steam.preload_client = steam.system.load_early->get_value ();
   if (steam.system.early_overlay->load ())
@@ -2713,13 +2728,14 @@ SK_SaveConfig ( std::wstring name,
       config.steam.appid = SK::SteamAPI::AppID ();
   }
 
-  steam.system.appid->set_value               (config.steam.appid);
-  steam.system.init_delay->set_value          (config.steam.init_delay);
-  steam.system.auto_pump->set_value           (config.steam.auto_pump_callbacks);
-  steam.system.block_stat_callback->set_value (config.steam.block_stat_callback);
-  steam.system.load_early->set_value          (config.steam.preload_client);
-  steam.system.early_overlay->set_value       (config.steam.preload_overlay);
-  steam.system.notify_corner->set_value       (
+  steam.system.appid->set_value                 (config.steam.appid);
+  steam.system.init_delay->set_value            (config.steam.init_delay);
+  steam.system.auto_pump->set_value             (config.steam.auto_pump_callbacks);
+  steam.system.block_stat_callback->set_value   (config.steam.block_stat_callback);
+  steam.system.filter_stat_callbacks->set_value (config.steam.filter_stat_callback);
+  steam.system.load_early->set_value            (config.steam.preload_client);
+  steam.system.early_overlay->set_value         (config.steam.preload_overlay);
+  steam.system.notify_corner->set_value         (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
 
@@ -2875,6 +2891,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.init_delay->store             ();
   steam.system.auto_pump->store              ();
   steam.system.block_stat_callback->store    ();
+  steam.system.filter_stat_callbacks->store  ();
   steam.system.load_early->store             ();
   steam.system.early_overlay->store          ();
   steam.log.silent->store                    ();

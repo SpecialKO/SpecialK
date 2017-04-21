@@ -267,6 +267,7 @@ template< class T, class P, bool bGameServer >
 class CCallback : protected CCallbackBase
 {
 public:
+
 	typedef void (T::*func_t)( P* );
 
 	// If you can't support constructing a callback with the correct parameters

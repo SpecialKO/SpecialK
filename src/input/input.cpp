@@ -50,7 +50,7 @@ SK_InputUtil_IsHWCursorVisible (void)
 }
 
 
-#define SK_LOG_FIRST_CALL
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { dll_log.Log (__FUNCTION__); called = true; } }
 
 extern bool SK_ImGui_Visible;
 extern bool nav_usable;
@@ -337,7 +337,10 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 {
   SK_LOG_FIRST_CALL
 
-  return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+  //if (SK_ImGui_WantGamepadCapture ())
+    return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
+ //return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 }
 
 
@@ -477,8 +480,15 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
     else if (This == _dik.pDev || cbData == 256)
     {
+      static uint8_t last_keys [256] = { '\0' };
+
       if (SK_ImGui_WantKeyboardCapture () && lpvData != nullptr)
+      {
         memset (lpvData, 0, cbData);
+      }
+
+      else 
+        memcpy (lpvData, last_keys, 256);
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -1497,7 +1507,7 @@ GetAsyncKeyState_Detour (_In_ int vKey)
 
   if (vKey >= 5)
   {
-    if (SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantTextCapture ())
+    if (SK_ImGui_WantKeyboardCapture ())
       SK_ConsumeVKey (vKey);
   }
 
@@ -1529,7 +1539,7 @@ GetKeyState_Detour (_In_ int nVirtKey)
 
   if (nVirtKey >= 5)
   {
-    if (SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantTextCapture ())
+    if (SK_ImGui_WantKeyboardCapture ())
       SK_ConsumeVirtKey (nVirtKey);
   }
 
@@ -1551,43 +1561,19 @@ GetKeyboardState_Detour (PBYTE lpKeyState)
 {
   SK_LOG_FIRST_CALL
 
-  static BYTE last_keys [256] = { 0 };
-         BYTE      keys [256] = { 0 };
+  if (SK_ImGui_WantKeyboardCapture ()) {
+    memset (lpKeyState, 0, 256);
+    return TRUE;
+  }
 
-  BOOL bRet = GetKeyboardState_Original (keys);
+  BOOL bRet = GetKeyboardState_Original (lpKeyState);
 
   if (bRet)
   {
     // Some games use this API for mouse buttons, for reasons that are beyond me...
-    if (SK_ImGui_WantMouseCapture ()) {
-      last_keys [0] = 0; last_keys [1] = 0;
-      last_keys [2] = 0; last_keys [3] = 0;
-      last_keys [4] = 0;
-    }
-
-    memcpy (lpKeyState, last_keys, 256);
-
-    // Some games use this API for mouse buttons, for reasons that are beyond me...
-    if (SK_ImGui_WantMouseCapture ()) {
-      keys [0] = 0; keys [1] = 0;
-      keys [2] = 0; keys [3] = 0;
-      keys [4] = 0;
-    }
-
-    // Block keyboard input to the game while the console is active
-    if (SK_Console::getInstance ()->isVisible ())
-      return bRet;
-
-    // Block keyboard input to the game while it's in the background
-    if (config.window.background_render && (! game_window.active))
-      return bRet;
-    
-    if (SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantTextCapture ())
-      return bRet;
+    if (SK_ImGui_WantMouseCapture ())
+      memset (lpKeyState, 0, 5);
   }
-
-  memcpy (lpKeyState, keys, 256);
-  memcpy (last_keys,  keys, 256);
 
   return bRet;
 }
@@ -1603,74 +1589,23 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 {
   bool handled = false;
 
+  if (lpMsg->message == WM_INPUT && SK_ImGui_WantGamepadCapture ()) {
+    return ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+  }
+
+
+  if ( ( lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST ) ||
+         lpMsg->message == WM_MENUCHAR || lpMsg->message == WM_HOTKEY ) 
+    if (SK_ImGui_WantKeyboardCapture ())
+    {
+      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+      if (lpMsg->message != WM_SYSKEYUP && lpMsg->message != WM_KEYUP)
+        return true;
+    }
+
   switch (lpMsg->message)
   {
-    //case WM_INPUT_DEVICE_CHANGE:
-    case WM_INPUT:
-    {
-      RAWINPUT data = { 0 };
-      UINT     size = sizeof RAWINPUT;
-
-      int      ret  =
-        GetRawInputData_Original ((HRAWINPUT)lpMsg->lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
-
-      if (ret)
-      {
-        uint8_t *pData = new uint8_t [size];
-
-        if (! pData)
-          return 0;
-
-        bool cap = SK_ImGui_ProcessRawInput ((HRAWINPUT)lpMsg->lParam, RID_INPUT, &data, &size, sizeof (data.header));
-
-        switch (data.header.dwType)
-        {
-          case RIM_TYPEMOUSE:            
-            //cap = SK_ImGui_WantMouseCapture ();
-            break;
-
-          case RIM_TYPEKEYBOARD:
-            if (SK_ImGui_WantKeyboardCapture ())
-              return true;
-            break;
-
-          default:
-            if (nav_usable)
-              return true;
-        }
-      }
-    }
-    break;
-
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-      if (nav_usable)
-      {
-        if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-          if (SK_ImGui_WantKeyboardCapture () && (! SK_ImGui_WantTextCapture ()))
-          {
-          // Don't capture release notifications, or games may think the key
-          //   is stuck down indefinitely
-          if (lpMsg->message != WM_KEYUP && lpMsg->message != WM_SYSKEYUP)
-            return true;
-          }
-      } break;
-
-    case WM_CHAR:
-    case WM_UNICHAR:
-    case WM_SYSDEADCHAR:
-    case WM_DEADCHAR:
-      if (nav_usable)
-      {
-        if (ImGui_WndProcHandler(lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-          if (SK_ImGui_WantTextCapture ())
-            return true;
-      }
-      break;
-
-
     case WM_CAPTURECHANGED:
 
     case WM_NCMOUSEHOVER:
@@ -1683,10 +1618,8 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       return false;
 
 
-
     case WM_MOUSEMOVE:
     {
-
       bool filter_warps = false;
 
       if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) ||
@@ -1720,7 +1653,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
         SK_ImGui_Cursor.ClientToLocal (&local);
 
         SK_ImGui_Cursor.orig_pos.x = local.x;
-        SK_ImGui_Cursor.orig_pos.x = local.y;
+        SK_ImGui_Cursor.orig_pos.y = local.y;
 
 
         // Dispose Without Processing
@@ -1734,9 +1667,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
           return true;
       }
 
-      // Passthrough
-      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      //else
+      //{
+        // Passthrough
+        //ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+        //return true;
+      //}
     } break;
+
 
 
 
@@ -1768,9 +1706,11 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
     case WM_XBUTTONDOWN:
     case WM_XBUTTONUP:
     case WM_LBUTTONUP:
-      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
       if (SK_ImGui_WantMouseCapture ())
-          return true;
+      {
+        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+        return true;
+      }
       break;
   }
 
@@ -1846,6 +1786,5 @@ SK_Input_Init (void)
                      GetRawInputBuffer_Detour,
            (LPVOID*)&GetRawInputBuffer_Original );
 #endif
-
   MH_ApplyQueued ();
 }

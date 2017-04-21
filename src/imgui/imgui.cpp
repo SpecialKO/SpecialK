@@ -11051,6 +11051,7 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
         bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
        
+#if 0
         if ( ! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) )
         {
           if (foreground)
@@ -11073,6 +11074,7 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
           if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
             ImGui::GetIO ().AddInputCharacter (VKey);
         }
+#endif
 
 
         if (SK_ImGui_Visible)
@@ -11131,14 +11133,12 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
     
     else if (keyboard)
     {
-      //((RAWINPUT *)pData)->data.keyboard.VKey             = 0;
-      //((RAWINPUT *)pData)->data.keyboard.Message          = 0;
-      ((RAWINPUT *)pData)->data.keyboard.MakeCode         = 0x1;
+      ((RAWINPUT *)pData)->data.keyboard.VKey             = 0;
+      ((RAWINPUT *)pData)->data.keyboard.Message          = 0;
+      ((RAWINPUT *)pData)->data.keyboard.MakeCode         = 0x0;
       ((RAWINPUT *)pData)->data.keyboard.Flags            = 0;
       ((RAWINPUT *)pData)->data.keyboard.ExtraInformation = 0;
-    
-      *pcbSize = 0;
-       size = 0;
+
       return size;
     }
     
@@ -11187,6 +11187,10 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   switch (msg)
   {
+  case WM_HOTKEY:
+    if (SK_ImGui_WantKeyboardCapture ())
+      return 1;
+
   case WM_MOUSEACTIVATE:
       ActivateWindow (((HWND)wParam == hWnd));
       break;
@@ -11253,7 +11257,42 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   case WM_KEYDOWN:
   case WM_SYSKEYDOWN:
-    if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256) {
+    if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
+    {
+      if (msg == WM_KEYDOWN)
+      {
+        struct {
+          DWORD dwTime = 0;
+          BYTE  vkCode = 0;
+        } static last_input;
+
+        BYTE   vkCode   = LOWORD (wParam) & 0xFF;
+        BYTE   scanCode = HIWORD (lParam) & 0x7F;
+
+        unsigned char key_str [2];
+                      key_str [1] = '\0';
+
+        // Avoid screwed up message pumps repeating the
+        //   same key event over and over.
+        if ( last_input.vkCode != vkCode ||
+             last_input.dwTime <  timeGetTime () - 1 )
+        {
+          if (1 == ToAsciiEx (  vkCode,
+                                scanCode,
+                        (BYTE* )io.KeysDown,
+                        (LPWORD)key_str,
+                                0x00,
+                                GetKeyboardLayout (0) ) &&
+               isprint ( *key_str ) )
+          {
+            io.AddInputCharactersUTF8 ((const char *)key_str);
+          }
+
+          last_input.vkCode = vkCode;
+          last_input.dwTime = timeGetTime ();
+        }
+      }
+
       io.KeysDown [(wParam & 0xff)] = 1;
     }
     return true;
@@ -11375,7 +11414,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       ImGui::GetIO ();
 
     bool keyboard_capture =
-      ( ( (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST) || uMsg == WM_MENUCHAR ) &&
+      ( ( (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST) || uMsg == WM_MENUCHAR || uMsg == WM_HOTKEY || uMsg == WM_APPCOMMAND ) &&
           SK_ImGui_WantKeyboardCapture () );
     bool mouse_capture =
       ( ( uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST       ) || uMsg == WM_CAPTURECHANGED ||
@@ -11394,6 +11433,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       }
     }
 
+#if 0
     // Capturing WM_INPUT messages would discard every type of input,
     //   not what we want generally.
     bool rawinput_capture =
@@ -11401,6 +11441,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
                             ( SK_ImGui_WantKeyboardCapture () ||
                               SK_ImGui_WantMouseCapture    () ||
                               SK_ImGui_WantGamepadCapture  () ) );
+#endif
 
     if (config.input.ui.capture_mouse)
     {
@@ -11408,7 +11449,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       mouse_capture    = (uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST)       ||
                          (uMsg >= WM_NCMOUSEMOVE && uMsg <= WM_NCXBUTTONDBLCLK) ||
                           uMsg == WM_CAPTURECHANGED;
-      rawinput_capture = (uMsg == WM_INPUT);
+      //rawinput_capture = (uMsg == WM_INPUT);
     }
 
     if ( keyboard_capture || mouse_capture || filter_raw_input )
@@ -11422,8 +11463,9 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam);
       //} 
 
-      if (filter_raw_input)
+      if (filter_raw_input) {
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      }
 
       else if (uMsg != WM_INPUT && uMsg != WM_KEYUP &&uMsg != WM_SYSKEYUP)
         return 1;

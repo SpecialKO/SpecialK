@@ -22,7 +22,6 @@
 #ifndef __SK__INPUT_H__
 #define __SK__INPUT_H__
 
-
 bool SK_ImGui_WantGamepadCapture  (void);
 bool SK_ImGui_WantMouseCapture    (void);
 bool SK_ImGui_WantKeyboardCapture (void);
