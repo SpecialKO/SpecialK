@@ -42,7 +42,7 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/osd/text.h>
 
-#define SK_LOG_FIRST_CALL
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { dll_log.Log (__FUNCTION__); called = true; } }
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -2199,6 +2199,85 @@ SK_GetSystemMetrics (_In_ int nIndex)
 }
 
 
+
+typedef BOOL (WINAPI *TranslateMessage_pfn)(_In_ const MSG *lpMsg);
+TranslateMessage_pfn TranslateMessage_Original = nullptr;
+
+BOOL
+WINAPI
+TranslateMessage_Detour (_In_ const MSG *lpMsg)
+{
+  if (SK_ImGui_WantTextCapture ())
+  {
+    IMGUI_API
+    LRESULT
+    WINAPI
+    ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
+                                      WPARAM wParam,
+                                      LPARAM lParam );
+
+    switch (lpMsg->message)
+    {
+      case WM_KEYDOWN:
+      case WM_SYSKEYDOWN:
+      case WM_IME_KEYDOWN:
+      {
+        BYTE  vkCode   = LOWORD (lpMsg->wParam) & 0xFF;
+        BYTE  scanCode = HIWORD (lpMsg->lParam) & 0x7F;
+        SHORT repeated = LOWORD (lpMsg->lParam);
+
+        bool  keyDown  = ! (lpMsg->lParam & 0x80000000UL);
+
+        BYTE                       keyState [256];
+        GetKeyboardState_Original (keyState);
+
+        if (vkCode != VK_TAB)
+        {
+          keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+
+          wchar_t key_str;
+
+          if ( ToUnicodeEx ( vkCode,
+                             scanCode,
+                             keyState,
+                            &key_str,
+                             1,
+                             0x00,
+                             GetKeyboardLayout (0) )
+                   &&
+                iswprint ( key_str )
+             )
+          {
+            MSG new_msg;
+            new_msg.message = WM_CHAR;
+            new_msg.wParam  = key_str;
+            new_msg.lParam |= lpMsg->lParam;
+            new_msg.hwnd    = lpMsg->hwnd;
+            new_msg.pt      = lpMsg->pt;
+            new_msg.time    = lpMsg->time;
+
+            ImGui_WndProcHandler (
+              new_msg.hwnd,   new_msg.message,
+              new_msg.wParam, new_msg.lParam
+            );
+
+            return TRUE;
+          }
+        return TRUE;
+      }
+    } break;
+
+    default:
+      return TRUE;
+      break;
+    }
+  }
+
+  return TranslateMessage_Original (lpMsg);
+}
+
+LPMSG last_message = nullptr;
+
 bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove)
 {
@@ -2232,11 +2311,22 @@ PeekMessageW_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
+  SK_LOG_FIRST_CALL
+
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet /*&& ( hWnd == game_window.hWnd )*/ )
+  if (bRet)
   {
-    SK_EarlyDispatchMessage (lpMsg, true);
+    if (lpMsg->hwnd == game_window.hWnd)
+    {
+      if (SK_EarlyDispatchMessage (lpMsg, true))
+      {
+        if (! (wRemoveMsg & PM_REMOVE))
+          PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
+
+        return TRUE;
+      }
+    }
   }
 
   return bRet;
@@ -2261,11 +2351,22 @@ PeekMessageA_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
+  SK_LOG_FIRST_CALL
+
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet /*&& */ )
+  if (bRet)
   {
-    SK_EarlyDispatchMessage (lpMsg, true);
+    if (lpMsg->hwnd == game_window.hWnd)
+    {
+      if (SK_EarlyDispatchMessage (lpMsg, true))
+      {
+        if (! (wRemoveMsg & PM_REMOVE))
+          PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
+
+        return TRUE;
+      }
+    }
   }
 
   return bRet;
@@ -2281,10 +2382,13 @@ BOOL
 WINAPI
 GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
+  SK_LOG_FIRST_CALL
+
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  SK_EarlyDispatchMessage (lpMsg, hWnd == game_window.hWnd);
+  if (lpMsg->hwnd == game_window.hWnd)
+    SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
 }
@@ -2293,10 +2397,13 @@ BOOL
 WINAPI
 GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
+  SK_LOG_FIRST_CALL
+
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  SK_EarlyDispatchMessage (lpMsg, hWnd == game_window.hWnd);
+  if (lpMsg->hwnd == game_window.hWnd)
+    SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
 }
@@ -2311,7 +2418,9 @@ LRESULT
 WINAPI
 DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
-  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+  SK_LOG_FIRST_CALL
+
+  if (lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
 
   return DispatchMessageW_Original (lpMsg);
@@ -2327,8 +2436,11 @@ LRESULT
 WINAPI
 DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 {
-  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+  SK_LOG_FIRST_CALL
+
+  if (lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
+      //return 1;
 
   return DispatchMessageA_Original (lpMsg);
 }
@@ -2479,7 +2591,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   LRESULT result = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
   if (result != 0)
+  {
+    if (uMsg == WM_INPUT)
+      return game_window.DefProc (uMsg, wParam, lParam);
+
     return result;
+  }
 
 
 #if 0
@@ -3150,6 +3267,7 @@ SK_InstallWindowHook (HWND hWnd)
     //else
       //SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
+#if 0
     if (game_window.unicode) {
       DWORD dwStyle = GetClassLongW (hWnd, GCL_STYLE);
       dwStyle &= (~CS_DBLCLKS);
@@ -3160,6 +3278,7 @@ SK_InstallWindowHook (HWND hWnd)
       dwStyle &= (~CS_DBLCLKS);
       SetClassLongA ( hWnd, GCL_STYLE, dwStyle );
     }
+#endif
 
     game_window.hooked = false;
   }
@@ -3198,6 +3317,38 @@ SK_InstallWindowHook (HWND hWnd)
 
     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
   }
+
+
+  SK_CreateDLLHook2 ( L"user32.dll", "TranslateMessage",
+                     TranslateMessage_Detour,
+           (LPVOID*)&TranslateMessage_Original );
+
+    //SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
+                       //DispatchMessageW_Detour,
+             //(LPVOID*)&DispatchMessageW_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
+                       PeekMessageW_Detour,
+             (LPVOID*)&PeekMessageW_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
+                       GetMessageW_Detour,
+             (LPVOID*)&GetMessageW_Original );
+
+    //SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
+                       //DispatchMessageA_Detour,
+             //(LPVOID*)&DispatchMessageA_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
+                       PeekMessageA_Detour,
+             (LPVOID*)&PeekMessageA_Original );
+
+    SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
+                       GetMessageA_Detour,
+             (LPVOID*)&GetMessageA_Original );
+
+  MH_ApplyQueued ();
+
 
   SK_InitWindow    (hWnd);
   //SetClassLongPtrW (hWnd, GCLP_HCURSOR, (LONG_PTR)nullptr);
@@ -3264,34 +3415,6 @@ SK_HookWinAPI (void)
                 //phys_off_x, phys_off_y,
                 //scale_factor_x, scale_factor_y ),
               //L"Window Sys" );
-
-
-#if 0
-  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
-                     DispatchMessageW_Detour,
-           (LPVOID*)&DispatchMessageW_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
-                     DispatchMessageA_Detour,
-           (LPVOID*)&DispatchMessageA_Original );
-#endif
-
-
-  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
-                     PeekMessageW_Detour,
-           (LPVOID*)&PeekMessageW_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
-                     PeekMessageA_Detour,
-           (LPVOID*)&PeekMessageA_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
-                     GetMessageW_Detour,
-           (LPVOID*)&GetMessageW_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
-                     GetMessageA_Detour,
-           (LPVOID*)&GetMessageA_Original );
 
 
 #if 0

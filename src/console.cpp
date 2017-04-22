@@ -304,23 +304,22 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       if (keyDown) keys_ [vkCode] = 0x81; else keys_ [vkCode] = 0x00;
     }
 
-    else if ((vkCode == VK_UP) || (vkCode == VK_DOWN)) {
-      if (keyDown && visible) {
-        if (vkCode == VK_UP)
-          commands.idx--;
-        else
-          commands.idx++;
+    else if (keyDown && visible && ((vkCode == VK_UP) || (vkCode == VK_DOWN)))
+    {
+      if (vkCode == VK_UP)
+        commands.idx--;
+      else
+        commands.idx++;
 
-        // Clamp the index
-        if (commands.idx < 0)
-          commands.idx = 0;
-        else if (commands.idx >= commands.history.size ())
-          commands.idx = commands.history.size () - 1;
+      // Clamp the index
+      if (commands.idx < 0)
+        commands.idx = 0;
+      else if (commands.idx >= commands.history.size ())
+        commands.idx = commands.history.size () - 1;
 
-        if (commands.history.size ()) {
-          strcpy (&text [1], commands.history [commands.idx].c_str ());
-          command_issued = false;
-        }
+      if (commands.history.size ()) {
+        strcpy (&text [1], commands.history [commands.idx].c_str ());
+        command_issued = false;
       }
     }
 

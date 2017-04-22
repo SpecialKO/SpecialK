@@ -35,6 +35,7 @@ namespace SK
     {
       bool Allow        (bool bAllow = true);
       void SpawnConsole (void);
+      BOOL CloseConsole (void);
     }
   }
 }

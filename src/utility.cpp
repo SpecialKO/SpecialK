@@ -54,7 +54,7 @@ SK_WideCharToUTF8 (std::wstring in)
   std::string out;
               out.resize (len);
 
-  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), in.length (), (char *)out.data (), len, nullptr, FALSE );
+  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), (int)in.length (), (char *)out.data (), len, nullptr, FALSE );
 
   return out;
 }
@@ -1347,7 +1347,7 @@ SK_TestRenderImports ( HMODULE hMod,
   *gl     = tests [0].used;
   *vulkan = tests [1].used;
   *d3d9   = tests [2].used;
-  *dxgi   = tests [3].used;
+//*dxgi   = tests [3].used;
   *d3d11  = tests [4].used;
 }
 

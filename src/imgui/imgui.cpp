@@ -11157,6 +11157,8 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
   return size;
 }
 
+#include <windowsx.h>
+
 IMGUI_API
 LRESULT
 WINAPI
@@ -11258,55 +11260,117 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   case WM_KEYDOWN:
   case WM_SYSKEYDOWN:
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
-    {
-      if (msg == WM_KEYDOWN)
-      {
-        struct {
-          DWORD dwTime = 0;
-          BYTE  vkCode = 0;
-        } static last_input;
-
-        BYTE   vkCode   = LOWORD (wParam) & 0xFF;
-        BYTE   scanCode = HIWORD (lParam) & 0x7F;
-
-        unsigned char key_str [2];
-                      key_str [1] = '\0';
-
-        // Avoid screwed up message pumps repeating the
-        //   same key event over and over.
-        if ( last_input.vkCode != vkCode ||
-             last_input.dwTime <  timeGetTime () - 1 )
-        {
-          if (1 == ToAsciiEx (  vkCode,
-                                scanCode,
-                        (BYTE* )io.KeysDown,
-                        (LPWORD)key_str,
-                                0x00,
-                                GetKeyboardLayout (0) ) &&
-               isprint ( *key_str ) )
-          {
-            io.AddInputCharactersUTF8 ((const char *)key_str);
-          }
-
-          last_input.vkCode = vkCode;
-          last_input.dwTime = timeGetTime ();
-        }
-      }
-
       io.KeysDown [(wParam & 0xff)] = 1;
-    }
     return true;
 
   case WM_KEYUP:
   case WM_SYSKEYUP:
+  case WM_IME_KEYDOWN:
+  {
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
       io.KeysDown [(wParam & 0xff)] = 0;
+
+        BYTE  vkCode   = LOWORD (wParam) & 0xFF;
+        BYTE  scanCode = HIWORD (lParam) & 0x7F;
+        SHORT repeated = LOWORD (lParam);
+
+        bool  keyDown  = ! (lParam & 0x80000000UL);
+
+        BYTE                       keyState [256];
+        GetKeyboardState_Original (keyState);
+
+        if (vkCode != VK_TAB)
+        {
+          keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+
+          wchar_t key_str;
+
+          if ( ToUnicodeEx ( vkCode,
+                             scanCode,
+                             keyState,
+                            &key_str,
+                             1,
+                             0x00,
+                             GetKeyboardLayout (0) )
+                   &&
+                iswprint ( key_str )
+             )
+          {
+            MSG new_msg;
+            new_msg.message = WM_CHAR;
+            new_msg.wParam  = key_str;
+            new_msg.lParam |= lParam;
+
+            ImGui_WndProcHandler (
+              new_msg.hwnd,   new_msg.message,
+              new_msg.wParam, new_msg.lParam
+            );
+
+            return TRUE;
+          }
+        return TRUE;
+      }
     return true;
+  }
 
   case WM_MOUSEMOVE:
   {
     if (SK_ImGui_Visible)
     {
+
+        bool filter_warps = false;
+
+        if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) /*||
+             ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )*/ )
+          filter_warps = true;
+
+
+        if (filter_warps)
+        {
+          bool filter = false;
+
+          static POINTS last_pos;
+          const short   threshold    = 3;
+          const float   smooth_range = 0.0f;
+                bool    smooth       = false;
+
+          // Filter out small movements / mouselook warps
+          //
+          //   This does create a weird deadzone in the center of the screen,
+          //     but most people will not notice ;)
+          //
+          if ( abs (last_pos.x - GET_X_LPARAM (lParam)) < threshold &&
+               abs (last_pos.y - GET_Y_LPARAM (lParam)) < threshold )
+            filter = true;
+
+          last_pos.x = GET_X_LPARAM (lParam);
+          last_pos.y = GET_Y_LPARAM (lParam);
+
+          POINT local { GET_X_LPARAM (lParam),
+                        GET_Y_LPARAM (lParam) };
+          SK_ImGui_Cursor.ClientToLocal (&local);
+
+          SK_ImGui_Cursor.orig_pos.x = local.x;
+          SK_ImGui_Cursor.orig_pos.y = local.y;
+
+
+          // Dispose Without Processing
+          if (filter) {
+            //lpMsg->message = WM_NULL;
+            return true;
+          }
+
+          if (SK_ImGui_WantMouseCapture ())
+          {
+            //ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+            //DispatchMessage (lpMsg);
+            //lpMsg->message = WM_NULL;
+
+            return true;
+          }
+        }
+
+
       SHORT xPos = GET_X_LPARAM (lParam);
       SHORT yPos = GET_Y_LPARAM (lParam);
 
@@ -11325,14 +11389,13 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     }
   } break;
 
-  case WM_DEADCHAR:
-  case WM_SYSDEADCHAR:
-  case WM_UNICHAR:
+
   case WM_CHAR:
     // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
     if ((wParam & 0xff) >= 5 && wParam < 0x10000)
       io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
     return true;
+
 
   //case WM_INPUT_DEVICE_CHANGE:
   case WM_INPUT:
@@ -11491,7 +11554,7 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  if (nav_usable) {
+  if (SK_ImGui_WantGamepadCapture ()) {
     ZeroMemory (pState, sizeof XINPUT_STATE);
     return true;
   }

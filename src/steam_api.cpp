@@ -63,6 +63,10 @@ uint64_t steam_size;
 #include <SpecialK/steam_api.h>
 
 
+// Must be global for x86 ABI problems
+CSteamID player;
+
+
 #include <time.h>
 
 // To spoof Overlay Activation (pause the game)
@@ -244,13 +248,12 @@ void             SK_SteamAPI_ContextInit (HMODULE hSteamAPI);
   }                                                                          \
 }
 
-typedef void (__cdecl* callback_func_t)     ( LPVOID );
-typedef void (__cdecl* callback_func_fail_t)( LPVOID, LPVOID, bool bIOFailure, SteamAPICall_t hSteamAPICall );
+typedef void (__fastcall *callback_func_t)     ( CCallbackBase*, LPVOID );
+typedef void (__fastcall *callback_func_fail_t)( CCallbackBase*, LPVOID, bool bIOFailure, SteamAPICall_t hSteamAPICall );
 
-callback_func_t      SteamAPI_UserStatsReceived_Original       = nullptr;
-//callback_func_fail_t SteamAPI_UserStatsReceivedIOFail_Original = nullptr;
+callback_func_t SteamAPI_UserStatsReceived_Original = nullptr;
 
-extern "C" void __stdcall SteamAPI_UserStatsReceived_Detour       (UserStatsReceived_t* pParam);
+extern "C" void __fastcall SteamAPI_UserStatsReceived_Detour       (CCallbackBase* This, UserStatsReceived_t* pParam);
 //extern "C" void __cdecl SteamAPI_UserStatsReceivedIOFail_Detour (CCallbackBase* This, UserStatsReceived_t* pParam, bool bIOFailure, SteamAPICall_t hSteamAPICall);
 
 
@@ -313,16 +316,21 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
                               SteamAPI_UserStatsReceived_Detour, 
                    (LPVOID *)&SteamAPI_UserStatsReceived_Original );
         SK_EnableHook (vftable [3]);
+
+        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remvove "
+                             L"Third-Party CSteamID / AppID Achievements) ###" );
 #else
+        /*
         SK_CreateFuncHook ( L"Callback Redirect",
                               vftable [4],
                               SteamAPI_UserStatsReceived_Detour, 
                    (LPVOID *)&SteamAPI_UserStatsReceived_Original );
         SK_EnableHook (vftable [4]);
-#endif
 
         steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remvove "
                              L"Third-Party CSteamID / AppID Achievements) ###" );
+        */
+#endif
       }
       break;
     case UserStatsStored_t::k_iCallback:
@@ -964,6 +972,8 @@ public:
 
       //return false;
     }
+
+    player = user_->GetSteamID ();
 
 #if 0
     controller_ =
@@ -2849,37 +2859,6 @@ SteamAPI_RunCallbacks_Detour (void)
            SK_SteamAPI_InitManagers ();
     }
 
-    if (steam_achievements != nullptr)
-      steam_achievements->requestStats ();
-
-    __try
-    {
-      SteamAPI_RunCallbacks_Original ();
-    }
-
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    {
-      steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-    }
-
-    if (! steam_ctx.UserStats ()) {
-      SteamAPI_InitSafe ();
-      return;
-    }
-
-    SteamAPICall_t call =
-      steam_ctx.UserStats ()->RequestGlobalAchievementPercentages ();
-
-    __try
-    {
-      SteamAPI_RunCallbacks_Original ();
-    }
-
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    {
-      steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-    }
-
     CreateThread ( nullptr, 0,
       [](LPVOID user) ->
         DWORD
@@ -2899,6 +2878,43 @@ SteamAPI_RunCallbacks_Detour (void)
             Sleep (1500UL);
 
             SK_Steam_SetNotifyCorner ();
+
+            if (! steam_ctx.UserStats ())
+            {
+              SteamAPI_InitSafe ();
+
+              if (! steam_ctx.UserStats ())
+              {
+                CloseHandle (GetCurrentThread ());
+                return -1;
+              }
+            }
+
+            if (steam_achievements != nullptr)
+              steam_achievements->requestStats ();
+
+            __try
+            {
+              SteamAPI_RunCallbacks_Original ();
+            }
+
+            __except (EXCEPTION_EXECUTE_HANDLER)
+            {
+              steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+            }
+
+            SteamAPICall_t call =
+              steam_ctx.UserStats ()->RequestGlobalAchievementPercentages ();
+
+            __try
+            {
+              SteamAPI_RunCallbacks_Original ();
+            }
+
+            __except (EXCEPTION_EXECUTE_HANDLER)
+            {
+              steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+            }
 
             CloseHandle (GetCurrentThread ());
 
@@ -4403,14 +4419,38 @@ SK_Steam_PiratesAhoy2 (void)
 
 extern "C"
 void
-__stdcall
-SteamAPI_UserStatsReceived_Detour ( UserStatsReceived_t* pParam )
+__fastcall
+SteamAPI_UserStatsReceived_Detour ( CCallbackBase* This, UserStatsReceived_t* pParam )
 {
-  if (pParam->m_steamIDUser != steam_ctx.User ()->GetSteamID ())
-    return;
+  if (config.system.log_level > 2)
+  {
+    dll_log.Log (L"Result: %lu - User: %llx, Game: %llu  [Callback: %lu]", pParam->m_eResult,
+      pParam->m_steamIDUser.ConvertToUint64 (), pParam->m_nGameID, pParam->k_iCallback );
+  }
 
-  if (CGameID (pParam->m_nGameID).AppID () != steam_ctx.Utils ()->GetAppID ())
+#ifdef _WIN64
+  if (          pParam->m_steamIDUser       != steam_ctx.User  ()->GetSteamID () ||
+       CGameID (pParam->m_nGameID).AppID () != steam_ctx.Utils ()->GetAppID   () )
+  {
+    // Default Filter:  Remove Everything not This Game or This User
+    //
+    //                    If a game ever queries data for other users, this policy must change
     return;
+  }
+#else
+  static CSteamID last_user;
 
-  SteamAPI_UserStatsReceived_Original ( pParam );
+  // This message only means that data has been received, not
+  //   what that data is... so we can spoof the receipt of the player's
+  //     data over and over if need be.
+  if (pParam->m_steamIDUser != player)
+  {
+    pParam->m_nGameID     = 0;
+    pParam->m_steamIDUser = last_user;
+  }
+  else
+    last_user = pParam->m_steamIDUser;
+#endif
+
+  SteamAPI_UserStatsReceived_Original (This, pParam);
 }

@@ -3024,12 +3024,65 @@ SK_Keybind::parse (void)
     for (int i = 0; i < 0xFF; i++)
     {
       wchar_t name [32] = { L'\0' };
+
+      switch (i)
+      {
+        case VK_F1:     wcscat (name, L"F1");           break;
+        case VK_F2:     wcscat (name, L"F2");           break;
+        case VK_F3:     wcscat (name, L"F3");           break;
+        case VK_F4:     wcscat (name, L"F4");           break;
+        case VK_F5:     wcscat (name, L"F5");           break;
+        case VK_F6:     wcscat (name, L"F6");           break;
+        case VK_F7:     wcscat (name, L"F7");           break;
+        case VK_F8:     wcscat (name, L"F8");           break;
+        case VK_F9:     wcscat (name, L"F9");           break;
+        case VK_F10:    wcscat (name, L"F10");          break;
+        case VK_F11:    wcscat (name, L"F11");          break;
+        case VK_F12:    wcscat (name, L"F12");          break;
+        case VK_F13:    wcscat (name, L"F13");          break;
+        case VK_F14:    wcscat (name, L"F14");          break;
+        case VK_F15:    wcscat (name, L"F15");          break;
+        case VK_F16:    wcscat (name, L"F16");          break;
+        case VK_F17:    wcscat (name, L"F17");          break;
+        case VK_F18:    wcscat (name, L"F18");          break;
+        case VK_F19:    wcscat (name, L"F19");          break;
+        case VK_F20:    wcscat (name, L"F20");          break;
+        case VK_F21:    wcscat (name, L"F21");          break;
+        case VK_F22:    wcscat (name, L"F22");          break;
+        case VK_F23:    wcscat (name, L"F23");          break;
+        case VK_F24:    wcscat (name, L"F24");          break;
+        case VK_PRINT:  wcscat (name, L"Print Screen"); break;
+        case VK_SCROLL: wcscat (name, L"Scroll Lock");  break;
+        case VK_PAUSE:  wcscat (name, L"Pause Break");  break;
+
+        default:
+        {
+          unsigned int scanCode =
+            ( MapVirtualKey (i, 0) & 0xFF );
+
+          BYTE buf [256] = { 0 };
+          unsigned short int temp;
+          
+          bool asc = (i <= 32);
+
+          if (! asc && i != VK_DIVIDE)
+             asc = ToAscii ( i, scanCode, buf, &temp, 1 );
+
+          scanCode            <<= 16;
+          scanCode   |= ( 0x1 <<  25  );
+
+          if (! asc)
+            scanCode |= ( 0x1 << 24   );
     
-      GetKeyNameText ( (MapVirtualKey (i, MAPVK_VK_TO_VSC) & 0xFF) << 16,
-                         name,
-                           32 );
+          GetKeyNameText ( scanCode,
+                             name,
+                               32 );
+        } break;
+      }
+
     
-      if (i != VK_CONTROL && i != VK_MENU && i != VK_SHIFT && i != VK_OEM_PLUS && i != VK_OEM_MINUS)
+      if ( i != VK_CONTROL && i != VK_MENU     &&
+           i != VK_SHIFT   && i != VK_OEM_PLUS && i != VK_OEM_MINUS )
       {
         humanKeyNameToVirtKeyCode [   name] = (BYTE)i;
         virtKeyCodeToHumanKeyName [(BYTE)i] =    name;

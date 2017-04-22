@@ -480,15 +480,15 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
     else if (This == _dik.pDev || cbData == 256)
     {
-      static uint8_t last_keys [256] = { '\0' };
+      //static uint8_t last_keys [256] = { '\0' };
 
       if (SK_ImGui_WantKeyboardCapture () && lpvData != nullptr)
       {
         memset (lpvData, 0, cbData);
       }
 
-      else 
-        memcpy (lpvData, last_keys, 256);
+      //else 
+        //memcpy (last_keys, lpvData, 256);
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -878,7 +878,15 @@ SK_XInput_PollController ( INT           iJoyID,
 
     // No XInput?! User shouldn't be playing games :P
     if (XInputGetState_Original == nullptr)
-      return false;
+    {
+      SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
+                  L" input-related features may not work as intended." ),
+                  L"Input Mgr" );
+      XInputGetState_Original =
+        (XInputGetState_pfn)
+          GetProcAddress ( LoadLibrary (L"XInput1_3.dll"),
+                           "XInputGetState" );
+    }
   }
 
   if (iJoyID == -1)
@@ -1222,6 +1230,10 @@ SK_ImGui_WantGamepadCapture (void)
     if (nav_usable)
       imgui_capture = true;
   }
+
+  extern bool __FAR_Freelook;
+  if (__FAR_Freelook)
+    imgui_capture = true;
 
   return imgui_capture;
 }
@@ -1589,129 +1601,86 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 {
   bool handled = false;
 
-  if (lpMsg->message == WM_INPUT && SK_ImGui_WantGamepadCapture ()) {
-    return ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-  }
-
-
   if ( ( lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST ) ||
-         lpMsg->message == WM_MENUCHAR || lpMsg->message == WM_HOTKEY ) 
-    if (SK_ImGui_WantKeyboardCapture ())
+         lpMsg->message == WM_HOTKEY )
+  {
+    switch (lpMsg->message)
     {
-      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-
-      if (lpMsg->message != WM_SYSKEYUP && lpMsg->message != WM_KEYUP)
-        return true;
+      case WM_CHAR:
+      case WM_SYSCHAR:
+      case WM_MENUCHAR:
+      case WM_DEADCHAR:
+      case WM_SYSDEADCHAR:
+      case WM_IME_CHAR:
+        return false;
     }
 
-  switch (lpMsg->message)
-  {
-    case WM_CAPTURECHANGED:
-
-    case WM_NCMOUSEHOVER:
-    case WM_NCMOUSELEAVE:
-    case WM_NCMOUSEMOVE:
-    case WM_NCHITTEST:
-
-    case WM_MOUSEHOVER:
-    case WM_MOUSELEAVE:
-      return false;
-
-
-    case WM_MOUSEMOVE:
+    if (SK_ImGui_WantKeyboardCapture ())
     {
-      bool filter_warps = false;
-
-      if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) ||
-           ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
-        filter_warps = true;
-
-
-      if (filter_warps)
-      {
-        bool filter = false;
-
-        static POINTS last_pos;
-        const short   threshold    = 3;
-        const float   smooth_range = 0.0f;
-              bool    smooth       = false;
-
-        // Filter out small movements / mouselook warps
-        //
-        //   This does create a weird deadzone in the center of the screen,
-        //     but most people will not notice ;)
-        //
-        if ( abs (last_pos.x - GET_X_LPARAM (lpMsg->lParam)) < threshold &&
-             abs (last_pos.y - GET_Y_LPARAM (lpMsg->lParam)) < threshold )
-          filter = true;
-        else
-          last_pos = MAKEPOINTS (lpMsg->lParam);
-
-
-        POINT local { GET_X_LPARAM (lpMsg->lParam),
-                      GET_Y_LPARAM (lpMsg->lParam) };
-        SK_ImGui_Cursor.ClientToLocal (&local);
-
-        SK_ImGui_Cursor.orig_pos.x = local.x;
-        SK_ImGui_Cursor.orig_pos.y = local.y;
-
-
-        // Dispose Without Processing
-        if (filter)
-          return true;
-
-        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-
-        // Consume After Processing
-        if (SK_ImGui_WantMouseCapture ())
-          return true;
+      // TODO: Give the user a preference to control this behavior
+      if (lpMsg->message == WM_SYSKEYDOWN && lpMsg->wParam == VK_F4) {
+        game_window.CallProc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+        return false;
       }
 
-      //else
-      //{
-        // Passthrough
-        //ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-        //return true;
-      //}
-    } break;
+      DispatchMessage (lpMsg);
 
-
-
-
-
-    case WM_LBUTTONDBLCLK:
-    case WM_LBUTTONDOWN:
-    case WM_MBUTTONDBLCLK:
-    case WM_MBUTTONDOWN:
-    case WM_MBUTTONUP:
-    case WM_MOUSEACTIVATE:
-    case WM_MOUSEHWHEEL:
-    case WM_MOUSEWHEEL:
-    //case WM_NCLBUTTONDBLCLK:
-    //case WM_NCLBUTTONDOWN:
-    //case WM_NCLBUTTONUP:
-    //case WM_NCMBUTTONDBLCLK:
-    //case WM_NCMBUTTONDOWN:
-    //case WM_NCMBUTTONUP:
-    //case WM_NCRBUTTONDBLCLK:
-    //case WM_NCRBUTTONDOWN:
-    //case WM_NCRBUTTONUP:
-    //case WM_NCXBUTTONDBLCLK:
-    //case WM_NCXBUTTONDOWN:
-    //case WM_NCXBUTTONUP:
-    case WM_RBUTTONDBLCLK:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
-    case WM_XBUTTONDBLCLK:
-    case WM_XBUTTONDOWN:
-    case WM_XBUTTONUP:
-    case WM_LBUTTONUP:
-      if (SK_ImGui_WantMouseCapture ())
+      if (lpMsg->message == WM_SYSKEYUP || lpMsg->message == WM_KEYUP)
       {
-        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+        game_window.CallProc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+        lpMsg->message = WM_NULL;
         return true;
       }
-      break;
+
+      lpMsg->message = WM_NULL;
+
+      return true;
+    }
+  }
+
+  if (lpMsg->message >= WM_MOUSEFIRST && lpMsg->message <= WM_MOUSELAST)
+  {
+    switch (lpMsg->message)
+    {
+      case WM_CAPTURECHANGED:
+
+      case WM_NCMOUSEHOVER:
+      case WM_NCMOUSELEAVE:
+      case WM_NCMOUSEMOVE:
+      case WM_NCHITTEST:
+
+      case WM_MOUSEHOVER:
+      case WM_MOUSELEAVE:
+        return false;
+
+
+
+
+      case WM_LBUTTONDBLCLK:
+      case WM_LBUTTONDOWN:
+      case WM_MBUTTONDBLCLK:
+      case WM_MBUTTONDOWN:
+      case WM_MBUTTONUP:
+      case WM_MOUSEACTIVATE:
+      case WM_MOUSEHWHEEL:
+      case WM_MOUSEWHEEL:
+      case WM_RBUTTONDBLCLK:
+      case WM_RBUTTONDOWN:
+      case WM_RBUTTONUP:
+      case WM_XBUTTONDBLCLK:
+      case WM_XBUTTONDOWN:
+      case WM_XBUTTONUP:
+      case WM_LBUTTONUP:
+        if (SK_ImGui_WantMouseCapture ())
+        {
+          //ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+          DispatchMessage (lpMsg);
+          lpMsg->message = WM_NULL;
+
+          return true;
+        }
+        break;
+    }
   }
 
   return handled;
@@ -1730,13 +1699,8 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 
 
 
-void
-SK_Input_Init (void)
+void SK_Input_PreInit (void)
 {
-  SK_Input_PreeHookHID   ();
-  SK_Input_PreHookDI8    ();
-  SK_Input_PreHookXInput ();
-
   SK_CreateDLLHook2 ( L"user32.dll", "GetRawInputData",
                      GetRawInputData_Detour,
            (LPVOID*)&GetRawInputData_Original );
@@ -1787,4 +1751,13 @@ SK_Input_Init (void)
            (LPVOID*)&GetRawInputBuffer_Original );
 #endif
   MH_ApplyQueued ();
+}
+
+
+void
+SK_Input_Init (void)
+{
+  SK_Input_PreeHookHID   ();
+  SK_Input_PreHookDI8    ();
+  SK_Input_PreHookXInput ();
 }

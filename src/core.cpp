@@ -478,6 +478,10 @@ osd_pump (LPVOID lpThreadParam)
     SK_EndBufferSwap (S_OK, nullptr);
   }
 
+
+
+
+
   return 0;
 }
 
@@ -1494,6 +1498,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   // Do this from the startup thread
+  extern void SK_Input_PreInit (void); 
+  SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
   SK_HookWinAPI       ();
   SK::Framerate::Init ();
 
@@ -1915,9 +1921,6 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  extern void SK_ImGui_PollGamepad_EndFrame (void);
-  SK_ImGui_PollGamepad_EndFrame ();
-
   extern bool SK_ImGui_Visible;
 
   if (SK_ImGui_Visible)
@@ -2306,6 +2309,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   if (! (hModTZFix || hModTBFix)) {
     SK::Framerate::GetLimiter ()->wait ();
   }
+
+
+  extern void SK_ImGui_PollGamepad_EndFrame (void);
+  SK_ImGui_PollGamepad_EndFrame ();
+
 
   return hr;
 }

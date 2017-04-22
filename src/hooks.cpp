@@ -311,10 +311,10 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //  Defer the standard DllMain (...) entry-point until the
     //    software actually loads the library on its own.
     //
-    hMod = LoadLibraryW_Original (
-             pwszModule );//
-               //nullptr,
-                 ///*DONT_RESOLVE_DLL_REFERENCES*/0 );
+    hMod = LoadLibraryExW_Original (
+             pwszModule,
+               nullptr,
+                 DONT_RESOLVE_DLL_REFERENCES );
   }
 
   LPVOID    pFuncAddr = nullptr;

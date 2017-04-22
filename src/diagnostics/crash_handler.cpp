@@ -111,8 +111,6 @@ CrashHandler::Init (void)
       NULL,
         TRUE );
 
-  SymRefreshModuleList (GetCurrentProcess ());
-
   Reinstall ();
 }
 
@@ -197,8 +195,6 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
-  bool scaleform = false;
-
 #if 1
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
                   SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
@@ -214,8 +210,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     GetCurrentProcess (),
       NULL,
         TRUE );
-
-  SymRefreshModuleList (GetCurrentProcess ());
 
   static bool             last_chance = false;
 
@@ -561,9 +555,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         sip.si.Name );
     }
 
-    if (strstr (sip.si.Name, "Scaleform"))
-      scaleform = true;
-
     if (top_func == "")
       top_func = sip.si.Name;
 
@@ -608,15 +599,16 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                   (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
   bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if ((repeated || non_continue) && (! scaleform)) {
+  if ((repeated || non_continue)) {
     SK_AutoClose_Log (crash_log);
 
     last_chance = true;
 
-    PlaySound ( (LPCWSTR)crash_sound.buf,
-                  nullptr,
-                    SND_SYNC |
-                    SND_MEMORY );
+    if (crash_log.fLog)
+      PlaySound ( (LPCWSTR)crash_sound.buf,
+                    nullptr,
+                      SND_SYNC |
+                      SND_MEMORY );
 
     // Shutdown the module gracefully
     SK_SelfDestruct ();
@@ -810,8 +802,6 @@ CrashHandler::InitSyms (void)
       GetCurrentProcess (),
         NULL,
           TRUE );
-
-    SK_SymRefreshModuleList ();
 
     SK_BypassSteamCrashHandler ();
   }

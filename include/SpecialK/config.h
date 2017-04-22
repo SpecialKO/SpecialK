@@ -422,7 +422,7 @@ struct SK_Keybind
          alt;
   };
 
-  BYTE vKey;
+  SHORT vKey;
 
   void parse  (void);
   void update (void);

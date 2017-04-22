@@ -183,6 +183,12 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
 }
 
 BOOL
+SK::Diagnostics::Debugger::CloseConsole (void)
+{
+  return FreeConsole ();
+}
+
+BOOL
 WINAPI
 SK_IsDebuggerPresent (void) {
   if (IsDebuggerPresent_Original == nullptr) {

@@ -40,6 +40,8 @@
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/sound.h>
 
+#include <SpecialK/diagnostics/debug_utils.h>
+
 
 #include <windows.h>
 #include <cstdio>
@@ -1039,7 +1041,15 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Log any Game Text Output to logs/game_output.log");
 
-        ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out);
+        if (ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out))
+        {
+          if (config.system.display_debug_out) {
+            if (! SK::Diagnostics::Debugger::CloseConsole ()) config.system.display_debug_out = true;
+          }
+          else {
+            SK::Diagnostics::Debugger::SpawnConsole ();
+          }
+        }
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Spawns Debug Console at Startup for Debug Text from Third-Party Software");
@@ -1818,8 +1828,8 @@ SK_ImGui_ControlPanel (void)
           pVolume->GetMasterVolume (&master_vol);
           pVolume->GetMute         (&master_mute);
 
-          const char* szMuteButtonTitle = ( master_mute ? "  Unmute  ##Master" :
-                                                          "   Mute   ##Master" );
+          const char* szMuteButtonTitle = ( master_mute ? "  Unmute  ###MasterMute" :
+                                                          "   Mute   ###MasterMute" );
 
           if (ImGui::Button (szMuteButtonTitle))
           {
@@ -3248,24 +3258,27 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
     {
       //keybind->vKey = 0;
 
-      for (int i = 0 ; i < keys ; i++ ) bind_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
+      GetKeyboardState_Original (bind_keys);
+
+      //for (int i = 0 ; i < keys ; i++ ) bind_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
 
       was_open = true;
     }
 
     BYTE active_keys [256];
+    GetKeyboardState_Original (active_keys);
 
-    for (int i = 0 ; i < keys ; i++ ) active_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
+    //for (int i = 0 ; i < keys ; i++ ) active_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
 
     if (memcmp (active_keys, bind_keys, keys))
     {
       int i = 0;
 
-      for (i = (VK_MENU + 1); i < keys; i++)
+      for (i = 0x08; i < keys; i++)
       {
-        if ( i == VK_LCONTROL || i == VK_RCONTROL ||
-             i == VK_LSHIFT   || i == VK_RSHIFT   ||
-             i == VK_LMENU    || i == VK_RMENU )
+        if ( i == VK_LCONTROL || i == VK_RCONTROL || i == VK_CONTROL ||
+             i == VK_LSHIFT   || i == VK_RSHIFT   || i == VK_SHIFT   ||
+             i == VK_LMENU    || i == VK_RMENU    || i == VK_MENU )
           continue;
 
         if ( active_keys [i] != bind_keys [i] )
