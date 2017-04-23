@@ -950,7 +950,13 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
   CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
   if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+    extern IUnknown* g_iRenderDevice;
+    extern IUnknown* g_iSwapChain;
+
     SK_CEGUI_DrawD3D9 (This, pSwapChain);
+
+    g_iRenderDevice = This;
+    g_iSwapChain    = pSwapChain;
   }
 
   // Hack for GeDoSaTo
@@ -1050,7 +1056,13 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+      extern IUnknown* g_iRenderDevice;
+      extern IUnknown* g_iSwapChain;
+
       SK_CEGUI_DrawD3D9 (This, pSwapChain);
+
+      g_iRenderDevice = This;
+      g_iSwapChain    = pSwapChain;
     }
   }
 
@@ -1225,7 +1237,13 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
     CComPtr <IDirect3DDevice9> pDev = nullptr;
 
     if (SUCCEEDED (This->GetDevice (&pDev))) {
+      extern IUnknown* g_iRenderDevice;
+      extern IUnknown* g_iSwapChain;
+
       SK_CEGUI_DrawD3D9 (pDev, This);
+
+      g_iRenderDevice = pDev;
+      g_iSwapChain    = This;
     }
 
     HRESULT hr = D3D9PresentSwap_Original (This,

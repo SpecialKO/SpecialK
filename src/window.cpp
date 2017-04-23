@@ -2209,67 +2209,14 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
 {
   if (SK_ImGui_WantTextCapture ())
   {
-    IMGUI_API
-    LRESULT
-    WINAPI
-    ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
-                                      WPARAM wParam,
-                                      LPARAM lParam );
-
     switch (lpMsg->message)
     {
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       case WM_IME_KEYDOWN:
       {
-        BYTE  vkCode   = LOWORD (lpMsg->wParam) & 0xFF;
-        BYTE  scanCode = HIWORD (lpMsg->lParam) & 0x7F;
-        SHORT repeated = LOWORD (lpMsg->lParam);
-
-        bool  keyDown  = ! (lpMsg->lParam & 0x80000000UL);
-
-        BYTE                       keyState [256];
-        GetKeyboardState_Original (keyState);
-
-        if (vkCode != VK_TAB)
-        {
-          keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
-
-          wchar_t key_str;
-
-          if ( ToUnicodeEx ( vkCode,
-                             scanCode,
-                             keyState,
-                            &key_str,
-                             1,
-                             0x00,
-                             GetKeyboardLayout (0) )
-                   &&
-                iswprint ( key_str )
-             )
-          {
-            MSG new_msg;
-            new_msg.message = WM_CHAR;
-            new_msg.wParam  = key_str;
-            new_msg.lParam |= lpMsg->lParam;
-            new_msg.hwnd    = lpMsg->hwnd;
-            new_msg.pt      = lpMsg->pt;
-            new_msg.time    = lpMsg->time;
-
-            ImGui_WndProcHandler (
-              new_msg.hwnd,   new_msg.message,
-              new_msg.wParam, new_msg.lParam
-            );
-
-            return TRUE;
-          }
         return TRUE;
-      }
-    } break;
-
-    default:
-      return TRUE;
-      break;
+      } break;
     }
   }
 
@@ -2315,18 +2262,9 @@ PeekMessageW_Detour (
 
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet)
+  if (bRet /*&& ( hWnd == game_window.hWnd )*/ )
   {
-    if (lpMsg->hwnd == game_window.hWnd)
-    {
-      if (SK_EarlyDispatchMessage (lpMsg, true))
-      {
-        if (! (wRemoveMsg & PM_REMOVE))
-          PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
-
-        return TRUE;
-      }
-    }
+    SK_EarlyDispatchMessage (lpMsg, true);
   }
 
   return bRet;
@@ -2355,18 +2293,9 @@ PeekMessageA_Detour (
 
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet)
+  if (bRet /*&& */ )
   {
-    if (lpMsg->hwnd == game_window.hWnd)
-    {
-      if (SK_EarlyDispatchMessage (lpMsg, true))
-      {
-        if (! (wRemoveMsg & PM_REMOVE))
-          PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
-
-        return TRUE;
-      }
-    }
+    SK_EarlyDispatchMessage (lpMsg, true);
   }
 
   return bRet;
@@ -2387,8 +2316,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (lpMsg->hwnd == game_window.hWnd)
-    SK_EarlyDispatchMessage (lpMsg, true);
+  SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
 }
@@ -2402,8 +2330,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (lpMsg->hwnd == game_window.hWnd)
-    SK_EarlyDispatchMessage (lpMsg, true);
+  SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
 }
@@ -2420,8 +2347,9 @@ DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  if (lpMsg->hwnd == game_window.hWnd)
-    SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
+  //if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+    //if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
+      //return 0;
 
   return DispatchMessageW_Original (lpMsg);
 }
@@ -2438,9 +2366,9 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  if (lpMsg->hwnd == game_window.hWnd)
-    SK_EarlyDispatchMessage ((MSG *)lpMsg, false);
-      //return 1;
+  //if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+    //if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
+      //return 0;
 
   return DispatchMessageA_Original (lpMsg);
 }
@@ -3319,9 +3247,9 @@ SK_InstallWindowHook (HWND hWnd)
   }
 
 
-  SK_CreateDLLHook2 ( L"user32.dll", "TranslateMessage",
-                     TranslateMessage_Detour,
-           (LPVOID*)&TranslateMessage_Original );
+    SK_CreateDLLHook2 ( L"user32.dll", "TranslateMessage",
+                       TranslateMessage_Detour,
+             (LPVOID*)&TranslateMessage_Original );
 
     //SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
                        //DispatchMessageW_Detour,

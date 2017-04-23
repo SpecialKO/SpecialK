@@ -34,7 +34,6 @@ struct DXGI_ADAPTER_DESC;
 extern "C" {
 #endif
 
-
 typedef struct _NV_PCIE_INFO_UNKNOWN
 {
   NvU32 unknown0;
@@ -74,6 +73,8 @@ typedef NV_GPU_PCIE_INFO_V2 NV_GPU_PCIE_INFO;
 #define NV_GPU_PCIE_INFO_VER    NV_GPU_PCIE_INFO_VER_2
 #endif
 
+#include <combaseapi.h>
+
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetPCIEInfo_pfn)
     (NvPhysicalGpuHandle handle, NV_PCIE_INFO* info);
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetRamType_pfn)
@@ -85,13 +86,11 @@ typedef NvAPI_Status (__cdecl *NvAPI_GetPhysicalGPUFromGPUID_pfn)
 typedef NvAPI_Status (__cdecl *NvAPI_GetGPUIDFromPhysicalGPU_pfn)
     (NvPhysicalGpuHandle gpu, NvU32* gpuid);
 
-
-
-extern NvAPI_GPU_GetRamType_pfn            NvAPI_GPU_GetRamType;
-extern NvAPI_GPU_GetFBWidthAndLocation_pfn NvAPI_GPU_GetFBWidthAndLocation;
-extern NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo;
-extern NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID;
-extern NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU;
+extern NvAPI_GPU_GetRamType_pfn                 NvAPI_GPU_GetRamType;
+extern NvAPI_GPU_GetFBWidthAndLocation_pfn      NvAPI_GPU_GetFBWidthAndLocation;
+extern NvAPI_GPU_GetPCIEInfo_pfn                NvAPI_GPU_GetPCIEInfo;
+extern NvAPI_GetPhysicalGPUFromGPUID_pfn        NvAPI_GetPhysicalGPUFromGPUID;
+extern NvAPI_GetGPUIDFromPhysicalGPU_pfn        NvAPI_GetGPUIDFromPhysicalGPU;
 
 #ifdef __cplusplus
 }

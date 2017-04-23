@@ -42,6 +42,8 @@
 
 #include <SpecialK/diagnostics/debug_utils.h>
 
+#include <SpecialK/nvapi.h>
+
 
 #include <windows.h>
 #include <cstdio>
@@ -605,6 +607,39 @@ SK_ImGui_ControlPanel (void)
         override = true;
       }
     }
+
+#if 0
+    if (sk::NVAPI::nv_hardware)
+    {
+      extern IUnknown* g_iRenderDevice;
+      extern IUnknown* g_iSwapChain;
+
+      NVDX_ObjectHandle handle;
+
+      static BOOL  GSYNC_Capable = FALSE;
+      static BOOL  GSYNC_Active  = FALSE;
+      static DWORD last_check    = 0x00;
+
+      if (last_check < timeGetTime () - 500UL)
+      {
+        if (NVAPI_OK == NvAPI_D3D_GetObjectHandleForResource (g_iRenderDevice, g_iSwapChain, &handle))
+        {
+          NvAPI_D3D_IsGSyncCapable (g_iRenderDevice, handle, &GSYNC_Capable);
+
+          if (GSYNC_Capable)
+          {
+            NvAPI_D3D_IsGSyncActive (g_iRenderDevice, handle, &GSYNC_Active);
+          }
+        }
+
+        last_check = timeGetTime ();
+      }
+
+      ImGui::Text ( "GSYNC: '%s' - '%s'",
+                      GSYNC_Capable ? "Supported" : "Not Supported",
+                      GSYNC_Active  ? "Active"    : "Inactive" );
+    }
+#endif
 
     if (override)
       SK_ImGui_AdjustCursor ();

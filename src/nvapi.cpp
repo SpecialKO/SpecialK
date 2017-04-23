@@ -462,6 +462,17 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         dll_log.LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
         nv_hardware = false;
       }
+
+#if 0
+      NvAPI_D3D_IsGSyncCapable =
+        (NvAPI_D3D_IsGSyncCapable_pfn)NvAPI_QueryInterface (_NvAPI_D3D_IsGSyncCapable);
+
+      NvAPI_D3D_IsGSyncActive =
+        (NvAPI_D3D_IsGSyncActive_pfn)NvAPI_QueryInterface (_NvAPI_D3D_IsGSyncActive);
+
+      NvAPI_D3D_GetObjectHandleForResource =
+        (NvAPI_D3D_GetObjectHandleForResource_pfn)NvAPI_QueryInterface (_NvAPI_D3D_GetObjectHandleForResource);
+#endif
     }
 
     else {

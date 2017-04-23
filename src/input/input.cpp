@@ -1632,8 +1632,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
         return true;
       }
 
-      lpMsg->message = WM_NULL;
-
       return true;
     }
   }
@@ -1653,9 +1651,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_MOUSELEAVE:
         return false;
 
-
-
-
       case WM_LBUTTONDBLCLK:
       case WM_LBUTTONDOWN:
       case WM_MBUTTONDBLCLK:
@@ -1673,7 +1668,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_LBUTTONUP:
         if (SK_ImGui_WantMouseCapture ())
         {
-          //ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
           DispatchMessage (lpMsg);
           lpMsg->message = WM_NULL;
 

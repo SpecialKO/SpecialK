@@ -2192,6 +2192,9 @@ DoKeyboard (void)
 
 }
 
+IUnknown* g_iRenderDevice = nullptr;
+IUnknown* g_iSwapChain    = nullptr;
+
 #include <SpecialK/render_backend.h>
 
 __declspec (noinline)
