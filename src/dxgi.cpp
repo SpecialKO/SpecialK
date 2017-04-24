@@ -1408,6 +1408,19 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
+  CComPtr <ID3D11Device> pDev;
+  
+  if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
+  {
+    SK_GetCurrentRenderBackend ().device    = pDev;
+    SK_GetCurrentRenderBackend ().swapchain = This;
+    CComPtr <IDXGISurface> pSurf = nullptr;
+
+    This->GetBuffer (0, IID_PPV_ARGS (&pSurf));
+
+    NvAPI_D3D_GetObjectHandleForResource (pDev, pSurf, &SK_GetCurrentRenderBackend ().surface);
+  }
+
 #if 0
   if (! config.cegui.enable)
   {
@@ -1531,8 +1544,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     return;
 
   InterlockedIncrement (&__cegui_frames_drawn);
-
-  CComPtr <ID3D11Device> pDev = nullptr;
 
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
   {
@@ -1937,6 +1948,10 @@ extern "C" {
         {
           DXGI_SWAP_CHAIN_DESC desc;
           This->GetDesc      (&desc);
+
+          SK_GetCurrentRenderBackend ().device    = pDev;
+          SK_GetCurrentRenderBackend ().swapchain = This;
+          NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
 
           if (bAlwaysAllowFullscreen)
             pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);

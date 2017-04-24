@@ -1250,6 +1250,9 @@ SK_ImGui_WantMouseCapture (void)
 
     if (config.input.ui.capture_mouse || io.WantCaptureMouse/* || io.WantTextInput*/)
       imgui_capture = true;
+
+    if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
+      imgui_capture = true;
   }
 
   return imgui_capture;
@@ -1601,56 +1604,11 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 {
   bool handled = false;
 
-  if ( ( lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST ) ||
-         lpMsg->message == WM_HOTKEY )
-  {
-    switch (lpMsg->message)
-    {
-      case WM_CHAR:
-      case WM_SYSCHAR:
-      case WM_MENUCHAR:
-      case WM_DEADCHAR:
-      case WM_SYSDEADCHAR:
-      case WM_IME_CHAR:
-        return false;
-    }
-
-    if (SK_ImGui_WantKeyboardCapture ())
-    {
-      // TODO: Give the user a preference to control this behavior
-      if (lpMsg->message == WM_SYSKEYDOWN && lpMsg->wParam == VK_F4) {
-        game_window.CallProc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-        return false;
-      }
-
-      DispatchMessage (lpMsg);
-
-      if (lpMsg->message == WM_SYSKEYUP || lpMsg->message == WM_KEYUP)
-      {
-        game_window.CallProc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-        lpMsg->message = WM_NULL;
-        return true;
-      }
-
-      return true;
-    }
-  }
-
   if (lpMsg->message >= WM_MOUSEFIRST && lpMsg->message <= WM_MOUSELAST)
   {
     switch (lpMsg->message)
     {
-      case WM_CAPTURECHANGED:
-
-      case WM_NCMOUSEHOVER:
-      case WM_NCMOUSELEAVE:
-      case WM_NCMOUSEMOVE:
-      case WM_NCHITTEST:
-
-      case WM_MOUSEHOVER:
-      case WM_MOUSELEAVE:
-        return false;
-
+      // Pre-Dispose These Mesages (fixes The Witness)
       case WM_LBUTTONDBLCLK:
       case WM_LBUTTONDOWN:
       case WM_MBUTTONDBLCLK:
@@ -1679,16 +1637,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 
   return handled;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

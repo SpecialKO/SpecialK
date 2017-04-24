@@ -608,38 +608,26 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-#if 0
+
     if (sk::NVAPI::nv_hardware)
     {
-      extern IUnknown* g_iRenderDevice;
-      extern IUnknown* g_iSwapChain;
+      SK_GetCurrentRenderBackend ().gsync_state.update ();
 
-      NVDX_ObjectHandle handle;
-
-      static BOOL  GSYNC_Capable = FALSE;
-      static BOOL  GSYNC_Active  = FALSE;
-      static DWORD last_check    = 0x00;
-
-      if (last_check < timeGetTime () - 500UL)
+      char szGSyncStatus [128] = { '\0' };
+      if (SK_GetCurrentRenderBackend ().gsync_state.capable)
       {
-        if (NVAPI_OK == NvAPI_D3D_GetObjectHandleForResource (g_iRenderDevice, g_iSwapChain, &handle))
-        {
-          NvAPI_D3D_IsGSyncCapable (g_iRenderDevice, handle, &GSYNC_Capable);
-
-          if (GSYNC_Capable)
-          {
-            NvAPI_D3D_IsGSyncActive (g_iRenderDevice, handle, &GSYNC_Active);
-          }
-        }
-
-        last_check = timeGetTime ();
+        strcat (szGSyncStatus, "Supported + ");
+        if (SK_GetCurrentRenderBackend ().gsync_state.active)
+          strcat (szGSyncStatus, "Active");
+        else
+          strcat (szGSyncStatus, "Inactive");
       }
+      else
+        strcat (szGSyncStatus, "Unsupported");
 
-      ImGui::Text ( "GSYNC: '%s' - '%s'",
-                      GSYNC_Capable ? "Supported" : "Not Supported",
-                      GSYNC_Active  ? "Active"    : "Inactive" );
+      ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus);
     }
-#endif
+
 
     if (override)
       SK_ImGui_AdjustCursor ();
@@ -1259,7 +1247,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine ();
 
         ImGui::BeginGroup    ();
-        ImGui::Text          ("Input Capture");
+        ImGui::Text          ("Mouse Input Capture");
         ImGui::TreePush      ("");
 
         if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture_mouse))
@@ -1271,7 +1259,7 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip  ();
-            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Movement while this UI is Visible");
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Input while this UI is Visible");
             ImGui::Separator   ();
             ImGui::BulletText  ("May help with mouselook in some games");
             //ImGui::BulletText  ("Implicitly enabled if running at a non-native Fullscreen resolution");
@@ -1296,8 +1284,36 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndTooltip    ();
         }
 
-        ImGui::Checkbox ("No Warp (cursor visible)", &SK_ImGui_Cursor.prefs.no_warp.visible); ImGui::SameLine ();
-        ImGui::Checkbox ("No Warp (UI open)",        &SK_ImGui_Cursor.prefs.no_warp.ui_open);
+        ImGui::SameLine ();
+
+        ImGui::Checkbox ("No Warp (cursor visible)",              &SK_ImGui_Cursor.prefs.no_warp.visible);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Do Not Alllow Game to Move Cursor to Center of Screen");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("Any time the cursor is visible");
+            ImGui::BulletText  ("Fixes buggy games like Mass Effect Andromeda");
+          ImGui::EndTooltip    ();
+        }
+
+        ImGui::Checkbox ("Block Input When No Cursor is Visible", &config.input.ui.capture_hidden);  ImGui::SameLine ();
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Fixes buggy games like Mass Effect Andromeda");
+
+        ImGui::Checkbox ("No Warp (UI open)",                     &SK_ImGui_Cursor.prefs.no_warp.ui_open);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Do Not Alllow Game to Move Cursor to Center of Screen");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("Any time the UI is visible");
+            ImGui::BulletText  ("May be needed if Mouselook is fighting you tooth and nail.");
+          ImGui::EndTooltip    ();
+        }
 
         ImGui::TreePop        ();
         ImGui::EndGroup       ();

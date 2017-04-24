@@ -50,6 +50,9 @@ NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo;
 NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID;
 NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU;
 
+NvAPI_D3D_IsGSyncActive_pfn         _NvAPI_D3D_IsGsyncActive;
+NvAPI_D3D_IsGSyncCapable_pfn        _NvAPI_D3D_IsGsyncSupported;
+
 using namespace sk;
 using namespace sk::NVAPI;
 
@@ -463,16 +466,14 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         nv_hardware = false;
       }
 
-#if 0
-      NvAPI_D3D_IsGSyncCapable =
-        (NvAPI_D3D_IsGSyncCapable_pfn)NvAPI_QueryInterface (_NvAPI_D3D_IsGSyncCapable);
+      //_NvAPI_D3D_IsGSyncCapable =
+        //(NvAPI_D3D_IsGSyncCapable_pfn)NvAPI_QueryInterface (__NvAPI_D3D_IsGSyncCapable);
 
-      NvAPI_D3D_IsGSyncActive =
-        (NvAPI_D3D_IsGSyncActive_pfn)NvAPI_QueryInterface (_NvAPI_D3D_IsGSyncActive);
+      //_NvAPI_D3D_IsGSyncActive =
+        //(NvAPI_D3D_IsGSyncActive_pfn)NvAPI_QueryInterface (__NvAPI_D3D_IsGSyncActive);
 
-      NvAPI_D3D_GetObjectHandleForResource =
-        (NvAPI_D3D_GetObjectHandleForResource_pfn)NvAPI_QueryInterface (_NvAPI_D3D_GetObjectHandleForResource);
-#endif
+      //_NvAPI_D3D_GetObjectHandleForResource =
+        //(NvAPI_D3D_GetObjectHandleForResource_pfn)NvAPI_QueryInterface (__NvAPI_D3D_GetObjectHandleForResource);
     }
 
     else {

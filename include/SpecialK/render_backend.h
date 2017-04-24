@@ -23,6 +23,7 @@
 #define __SK__RENDER_BACKEND_H__
 
 #include <Windows.h>
+#include <nvapi.h>
 
 enum class SK_RenderAPI {
   Reserved = 0x01,
@@ -40,9 +41,24 @@ struct SK_RenderBackend_V1 {
              wchar_t      name [16] = { L'\0' };
 };
 
-typedef SK_RenderBackend_V1 SK_RenderBackend;
+struct SK_RenderBackend_V2 : SK_RenderBackend_V1 {
+  IUnknown*               device    = nullptr;
+  IUnknown*               swapchain = nullptr;
+  NVDX_ObjectHandle       surface   = 0;
+  bool                    fullscreen_exclusive;
 
-SK_RenderBackend
+  struct gsync_s {
+    void update (void);
+
+    BOOL                  capable      = FALSE;
+    BOOL                  active       = FALSE;
+    DWORD                 last_checked = 0;
+  } gsync_state;
+};
+
+typedef SK_RenderBackend_V2 SK_RenderBackend;
+
+SK_RenderBackend&
 __stdcall
 SK_GetCurrentRenderBackend (void);
 

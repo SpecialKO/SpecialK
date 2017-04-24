@@ -86,11 +86,25 @@ typedef NvAPI_Status (__cdecl *NvAPI_GetPhysicalGPUFromGPUID_pfn)
 typedef NvAPI_Status (__cdecl *NvAPI_GetGPUIDFromPhysicalGPU_pfn)
     (NvPhysicalGpuHandle gpu, NvU32* gpuid);
 
+typedef NvAPI_Status (__cdecl *NvAPI_D3D_IsGSyncCapable_pfn)
+    (IUnknown *pDeviceOrContext, NVDX_ObjectHandle primarySurface, BOOL *pIsGsyncCapable);
+typedef NvAPI_Status (__cdecl *NvAPI_D3D_IsGSyncActive_pfn)
+    (IUnknown *pDeviceOrContext, NVDX_ObjectHandle primarySurface, BOOL *pIsGsyncActive);
+typedef NvAPI_Status (__cdecl *NvAPI_D3D_GetObjectHandleForResource_pfn)
+    (IUnknown *pDevice, IUnknown *pResource, NVDX_ObjectHandle *pHandle);
+
+#define __NvAPI_D3D_IsGSyncCapable             0x9C1EED78
+#define __NvAPI_D3D_IsGSyncActive              0x0E942B0F
+#define __NvAPI_D3D_GetObjectHandleForResource 0xFCEAC864
+
 extern NvAPI_GPU_GetRamType_pfn                 NvAPI_GPU_GetRamType;
 extern NvAPI_GPU_GetFBWidthAndLocation_pfn      NvAPI_GPU_GetFBWidthAndLocation;
 extern NvAPI_GPU_GetPCIEInfo_pfn                NvAPI_GPU_GetPCIEInfo;
 extern NvAPI_GetPhysicalGPUFromGPUID_pfn        NvAPI_GetPhysicalGPUFromGPUID;
 extern NvAPI_GetGPUIDFromPhysicalGPU_pfn        NvAPI_GetGPUIDFromPhysicalGPU;
+extern NvAPI_D3D_IsGSyncCapable_pfn             _NvAPI_D3D_IsGSyncCapable;
+extern NvAPI_D3D_IsGSyncActive_pfn              _NvAPI_D3D_IsGSyncActive;
+extern NvAPI_D3D_GetObjectHandleForResource_pfn _NvAPI_D3D_GetObjectHandleForResource;
 
 #ifdef __cplusplus
 }

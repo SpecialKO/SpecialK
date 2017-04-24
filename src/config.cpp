@@ -31,6 +31,7 @@
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/DLL_VERSION.H>
+#include <SpecialK/input/input.h>
 
 #include <unordered_map>
 
@@ -237,6 +238,9 @@ struct {
     sk::ParameterFloat*   timeout;
     sk::ParameterBool*    ui_capture;
     sk::ParameterBool*    hw_cursor;
+    sk::ParameterBool*    no_warp_ui;
+    sk::ParameterBool*    no_warp_visible;
+    sk::ParameterBool*    block_invisible;
   } cursor;
 } input;
 
@@ -525,6 +529,39 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Cursor",
         L"UseHardwareCursor" );
+
+  input.cursor.block_invisible =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Block Mouse Input if Hardware Cursor is Invisible")
+      );
+  input.cursor.block_invisible->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"BlockInvisibleCursorInput"
+  );
+
+  input.cursor.no_warp_ui =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Prevent Games from Warping Cursor while Config UI is Open")
+      );
+  input.cursor.no_warp_ui->register_to_ini(
+    dll_ini,
+      L"Input.Cursor",
+        L"NoWarpUI"
+  );
+
+  input.cursor.no_warp_visible =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Prevent Games from Warping Cursor while Mouse Cursor is Visible.")
+      );
+  input.cursor.no_warp_visible->register_to_ini(
+    dll_ini,
+      L"Input.Cursor",
+        L"NoWarpVisibleGameCursor"
+  );
 
 
   window.borderless =
@@ -2282,6 +2319,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.input.ui.capture = input.cursor.ui_capture->get_value ();
   if (input.cursor.hw_cursor->load ())
     config.input.ui.use_hw_cursor = input.cursor.hw_cursor->get_value ();
+  if (input.cursor.no_warp_ui->load ())
+    SK_ImGui_Cursor.prefs.no_warp.ui_open = input.cursor.no_warp_ui->get_value ();
+  if (input.cursor.no_warp_visible->load ())
+    SK_ImGui_Cursor.prefs.no_warp.visible = input.cursor.no_warp_visible->get_value ();
+  if (input.cursor.block_invisible->load ())
+    config.input.ui.capture_hidden = input.cursor.block_invisible->get_value ();
 
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
@@ -2551,6 +2594,9 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
   input.cursor.ui_capture->set_value          (config.input.ui.capture);
   input.cursor.hw_cursor->set_value           (config.input.ui.use_hw_cursor);
+  input.cursor.block_invisible->set_value     (config.input.ui.capture_hidden);
+  input.cursor.no_warp_ui->set_value          (SK_ImGui_Cursor.prefs.no_warp.ui_open);
+  input.cursor.no_warp_visible->set_value     (SK_ImGui_Cursor.prefs.no_warp.visible);
 
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
@@ -2791,6 +2837,9 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.timeout->store             ();
   input.cursor.ui_capture->store          ();
   input.cursor.hw_cursor->store           ();
+  input.cursor.block_invisible->store     ();
+  input.cursor.no_warp_ui->store          ();
+  input.cursor.no_warp_visible->store     ();
 
   window.borderless->store                ();
   window.center->store                    ();

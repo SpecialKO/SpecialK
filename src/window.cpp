@@ -2214,6 +2214,10 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       case WM_IME_KEYDOWN:
+
+      // This shouldn't happen considering this function is supposed
+      //   to generate this message, but better to be on the safe side.
+      case WM_CHAR:
       {
         return TRUE;
       } break;
@@ -2262,10 +2266,8 @@ PeekMessageW_Detour (
 
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet /*&& ( hWnd == game_window.hWnd )*/ )
-  {
+  if (bRet)
     SK_EarlyDispatchMessage (lpMsg, true);
-  }
 
   return bRet;
 }
@@ -2293,10 +2295,8 @@ PeekMessageA_Detour (
 
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet /*&& */ )
-  {
+  if (bRet)
     SK_EarlyDispatchMessage (lpMsg, true);
-  }
 
   return bRet;
 }

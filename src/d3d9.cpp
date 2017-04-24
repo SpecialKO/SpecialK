@@ -950,13 +950,16 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
   CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
   if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
-    extern IUnknown* g_iRenderDevice;
-    extern IUnknown* g_iSwapChain;
-
     SK_CEGUI_DrawD3D9 (This, pSwapChain);
 
-    g_iRenderDevice = This;
-    g_iSwapChain    = pSwapChain;
+    CComPtr <IDirect3DSurface9> pSurf = nullptr;
+
+    if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
+    {
+      SK_GetCurrentRenderBackend ().device    = This;
+      SK_GetCurrentRenderBackend ().swapchain = pSwapChain;
+      NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+    }
   }
 
   // Hack for GeDoSaTo
@@ -1056,13 +1059,16 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
     if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
-      extern IUnknown* g_iRenderDevice;
-      extern IUnknown* g_iSwapChain;
-
       SK_CEGUI_DrawD3D9 (This, pSwapChain);
 
-      g_iRenderDevice = This;
-      g_iSwapChain    = pSwapChain;
+      CComPtr <IDirect3DSurface9> pSurf = nullptr;
+
+      if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
+      {
+        SK_GetCurrentRenderBackend ().device    = This;
+        SK_GetCurrentRenderBackend ().swapchain = pSwapChain;
+        NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+      }
     }
   }
 
@@ -1237,13 +1243,16 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
     CComPtr <IDirect3DDevice9> pDev = nullptr;
 
     if (SUCCEEDED (This->GetDevice (&pDev))) {
-      extern IUnknown* g_iRenderDevice;
-      extern IUnknown* g_iSwapChain;
-
       SK_CEGUI_DrawD3D9 (pDev, This);
 
-      g_iRenderDevice = pDev;
-      g_iSwapChain    = This;
+      CComPtr <IDirect3DSurface9> pSurf = nullptr;
+
+      if (SUCCEEDED (This->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, &pSurf)))
+      {
+        SK_GetCurrentRenderBackend ().device    = pDev;
+        SK_GetCurrentRenderBackend ().swapchain = This;
+        NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+      }
     }
 
     HRESULT hr = D3D9PresentSwap_Original (This,

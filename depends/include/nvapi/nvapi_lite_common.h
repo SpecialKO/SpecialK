@@ -53,6 +53,11 @@ extern "C" {
 #endif
 #endif
 
+#ifdef _D3D9_H_
+#define _D3D9_H_EX_
+#endif
+
+#define _D3D9_H_
 
 /* 64-bit types for compilers that support them, plus some obsolete variants */
 #if defined(__GNUC__) || defined(__arm) || defined(__IAR_SYSTEMS_ICC__) || defined(__ghs__) || defined(_WIN64)
@@ -544,3 +549,7 @@ NVAPI_INTERFACE NvAPI_D3D_GetObjectHandleForResource(
 }
 #endif
 #pragma pack(pop)
+
+#ifndef _D3D9_H_EX_
+#undef _D3D9_H_
+#endif

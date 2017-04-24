@@ -19,6 +19,8 @@
  *
 **/
 
+#include <d3d9.h>
+
 #include <SpecialK/render_backend.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
@@ -26,7 +28,7 @@
 
 SK_RenderBackend __SK_RBkEnd;
 
-SK_RenderBackend
+SK_RenderBackend&
 __stdcall
 SK_GetCurrentRenderBackend (void)
 {
@@ -162,4 +164,42 @@ SK_BootVulkan (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
 
   SK_HookVulkan ();
+}
+
+
+void
+SK_RenderBackend_V2::gsync_s::update (void)
+{
+  if (last_checked < timeGetTime() - 500UL)
+  {
+    bool success = false;
+
+    if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &capable))
+    {
+      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &active)) {
+        last_checked = timeGetTime ();
+        success      = true;
+      }
+
+      else
+      {
+        // On failure, postpone the next check
+        last_checked = timeGetTime () + 3000UL;
+        active       = FALSE;
+      }
+    }
+
+    else
+      capable = FALSE;
+
+    if (! success)
+    {
+      // On failure, postpone the next check
+      last_checked = timeGetTime () + 3000UL;
+      active       = FALSE;
+    }
+
+    else
+      last_checked = timeGetTime ();
+  }
 }
