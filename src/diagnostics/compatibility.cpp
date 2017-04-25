@@ -1646,24 +1646,135 @@ SK_Bypass_CRT (LPVOID user)
   static BOOL     disable      = __bypass.disable;
          wchar_t* wszBlacklist = __bypass.wszBlacklist;
 
-  HRESULT hr =
-  SK_TaskBoxWithConfirm ( L"Special K Injection Compatibility Options",
-                          TD_SHIELD_ICON,
-                          L"By pressing Ctrl + Shift at application start, you"
+  bool timer = true;
+
+  int              nButtonPressed = 0;
+  TASKDIALOGCONFIG task_config    = {0};
+
+  const TASKDIALOG_BUTTON buttons [] = {  { 0, L"Auto-Detect"   },
+                                          { 1, L"Direct3D9{Ex}" },
+                                          { 2, L"Direct3D11"    },
+                                          { 3, L"Direct3D12"    },
+                                          { 4, L"OpenGL"        },
+                                          { 5, L"Vulkan"        }
+                                       };
+
+  task_config.cbSize              = sizeof (task_config);
+  task_config.hInstance           = SK_GetDLL ();
+  task_config.hwndParent          = GetActiveWindow ();
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
+  task_config.pRadioButtons       = buttons;
+  task_config.cRadioButtons       = ARRAYSIZE (buttons);
+  task_config.pButtons            = nullptr;
+  task_config.cButtons            = 0;
+  task_config.dwFlags             = 0x00;
+  task_config.pfCallback          = TaskDialogCallback;
+  task_config.lpCallbackData      = 0;
+
+  task_config.pszMainInstruction  = L"Special K Injection Compatibility Options";
+
+  task_config.pszMainIcon         = TD_SHIELD_ICON;
+  task_config.pszContent          = L"By pressing Ctrl + Shift at application start, you"
                           L" have opted into compatibility mode.\n\nUse the"
                           L" menu options provided to troubleshoot problems"
-                          L" that may be caused by the mod.",
+                          L" that may be caused by the mod.";
 
-                          nullptr,//L"Check here to DISABLE Special K for this game.",
+  task_config.pszFooterIcon       = TD_INFORMATION_ICON;
+  task_config.pszFooter           = L"You can re-enable auto-injection at any time by "
+                          L"holding Ctrl + Shift down at startup.";
 
-                          L"You can re-enable auto-injection at any time by "
-                          L"holding Ctrl + Shift down at startup.",
-                          TD_INFORMATION_ICON,
+  task_config.pszVerificationText = L"Check here to DISABLE Special K for this game.";
 
-                          L"Check here to DISABLE Special K for this game.",
-                          &disable );
+  task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
-  if (SUCCEEDED (hr)) {
+  if (timer)
+    task_config.dwFlags |= TDF_CALLBACK_TIMER;
+
+  int nRadioPressed = 0;
+
+  HRESULT hr =
+    TaskDialogIndirect ( &task_config,
+                          &nButtonPressed,
+                            &nRadioPressed,
+                              &disable );
+
+  SK_LoadConfig (L"SpecialK");
+
+  if (SUCCEEDED (hr))
+  {
+    switch (nRadioPressed)
+    {
+      case 0:
+        config.apis.d3d9.hook       = true;
+        config.apis.d3d9ex.hook     = true;
+
+        config.apis.dxgi.d3d11.hook = true;
+        config.apis.dxgi.d3d12.hook = true;
+
+        config.apis.OpenGL.hook     = true;
+        config.apis.Vulkan.hook     = true;
+        break;
+
+      case 1:
+        config.apis.d3d9.hook       = true;
+        config.apis.d3d9ex.hook     = true;
+
+        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d12.hook = false;
+
+        config.apis.OpenGL.hook     = false;
+        config.apis.Vulkan.hook     = false;
+        break;
+
+      case 2:
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+
+        config.apis.dxgi.d3d11.hook = true;
+        config.apis.dxgi.d3d12.hook = false;
+
+        config.apis.OpenGL.hook     = false;
+        config.apis.Vulkan.hook     = false;
+        break;
+
+      case 3:
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+
+        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d12.hook = true;
+
+        config.apis.OpenGL.hook     = false;
+        config.apis.Vulkan.hook     = false;
+        break;
+
+      case 4:
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+
+        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d12.hook = false;
+
+        config.apis.OpenGL.hook     = true;
+        config.apis.Vulkan.hook     = false;
+        break;
+
+      case 5:
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+
+        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d12.hook = false;
+
+        config.apis.OpenGL.hook     = false;
+        config.apis.Vulkan.hook     = true;
+        break;
+    }
+
+    SK_SaveConfig (L"SpecialK");
+
+
     if (disable) {
       FILE* fDeny = _wfopen (wszBlacklist, L"w");
 
@@ -1678,6 +1789,8 @@ SK_Bypass_CRT (LPVOID user)
       DeleteFileW (wszBlacklist);
       InterlockedExchange (&SK_BypassResult, SK_BYPASS_DEACTIVATE);
     }
+
+    TerminateProcess (GetCurrentProcess (), 0x00);
   }
 
   InterlockedDecrement (&SK_bypass_dialog_active);

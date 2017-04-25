@@ -604,7 +604,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     last_chance = true;
 
-    if (crash_log.fLog)
+    if (crash_log.fLog && (! crash_log.silent))
       PlaySound ( (LPCWSTR)crash_sound.buf,
                     nullptr,
                       SND_SYNC |
