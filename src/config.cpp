@@ -245,6 +245,10 @@ struct {
 
   struct {
     sk::ParameterBool*    disable_ps4_hid;
+    sk::ParameterBool*    rehook_xinput;
+    sk::ParameterBool*    hook_dinput8;
+    sk::ParameterBool*    hook_hid;
+    sk::ParameterBool*    hook_xinput;
   } gamepad;
 } input;
 
@@ -567,6 +571,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"NoWarpVisibleGameCursor"
   );
 
+
   input.gamepad.disable_ps4_hid =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -576,6 +581,50 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Gamepad",
         L"DisablePS4HID"
+  );
+
+  input.gamepad.rehook_xinput =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Re-install XInput hooks if the hook-chain is modified (wrapper compat).")
+      );
+  input.gamepad.rehook_xinput->register_to_ini (
+    dll_ini,
+      L"Input.Gamepad",
+        L"RehookXInput"
+  );
+
+  input.gamepad.hook_dinput8 =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Install hooks for DirectInput 8")
+      );
+  input.gamepad.hook_dinput8->register_to_ini (
+    dll_ini,
+      L"Input.Gamepad",
+        L"EnableDirectInput8"
+  );
+
+  input.gamepad.hook_hid =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Install hooks for HID")
+      );
+  input.gamepad.hook_hid->register_to_ini (
+    dll_ini,
+      L"Input.Gamepad",
+        L"EnableHID"
+  );
+
+  input.gamepad.hook_xinput =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Install hooks for HID")
+      );
+  input.gamepad.hook_xinput->register_to_ini (
+    dll_ini,
+      L"Input.Gamepad",
+        L"EnableXInput"
   );
 
 
@@ -2347,6 +2396,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (input.gamepad.disable_ps4_hid->load ())
     config.input.gamepad.disable_ps4_hid = input.gamepad.disable_ps4_hid->get_value ();
+  if (input.gamepad.rehook_xinput->load ())
+    config.input.gamepad.rehook_xinput = input.gamepad.rehook_xinput->get_value ();
+  if (input.gamepad.hook_xinput->load ())
+    config.input.gamepad.hook_xinput = input.gamepad.hook_xinput->get_value ();
+  if (input.gamepad.hook_dinput8->load ())
+    config.input.gamepad.hook_dinput8 = input.gamepad.hook_dinput8->get_value ();
+  if (input.gamepad.hook_hid->load ())
+    config.input.gamepad.hook_hid = input.gamepad.hook_hid->get_value ();
 
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
@@ -2621,6 +2678,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.no_warp_visible->set_value     (SK_ImGui_Cursor.prefs.no_warp.visible);
 
   input.gamepad.disable_ps4_hid->set_value    (config.input.gamepad.disable_ps4_hid);
+  input.gamepad.rehook_xinput->set_value      (config.input.gamepad.rehook_xinput);
 
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
@@ -2866,6 +2924,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.no_warp_visible->store     ();
 
   input.gamepad.disable_ps4_hid->store    ();
+  input.gamepad.rehook_xinput->store      ();
 
   window.borderless->store                ();
   window.center->store                    ();

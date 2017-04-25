@@ -41,6 +41,8 @@ bool SK_ImGui_WantTextCapture     (void);
 
 #define XINPUT_GAMEPAD_LEFT_SHOULDER  0x0100
 #define XINPUT_GAMEPAD_RIGHT_SHOULDER 0x0200
+#define XINPUT_GAMEPAD_GUIDE          0x0400
+
 #define XINPUT_GAMEPAD_LEFT_TRIGGER   0x10000
 #define XINPUT_GAMEPAD_RIGHT_TRIGGER  0x20000
 
@@ -48,6 +50,8 @@ bool SK_ImGui_WantTextCapture     (void);
 #define XINPUT_GAMEPAD_B              0x2000
 #define XINPUT_GAMEPAD_X              0x4000
 #define XINPUT_GAMEPAD_Y              0x8000
+
+#define XINPUT_GETSTATEEX_ORDINAL MAKEINTRESOURCEA (100)
 
 typedef struct _XINPUT_GAMEPAD {
   WORD  wButtons;
@@ -59,10 +63,26 @@ typedef struct _XINPUT_GAMEPAD {
   SHORT sThumbRY;
 } XINPUT_GAMEPAD, *PXINPUT_GAMEPAD;
 
+typedef struct _XINPUT_GAMEPAD_EX {
+  WORD  wButtons;
+  BYTE  bLeftTrigger;
+  BYTE  bRightTrigger;
+  SHORT sThumbLX;
+  SHORT sThumbLY;
+  SHORT sThumbRX;
+  SHORT sThumbRY;
+  DWORD dwUnknown;
+} XINPUT_GAMEPAD_EX, *PXINPUT_GAMEPAD_EX;
+
 typedef struct _XINPUT_STATE {
   DWORD          dwPacketNumber;
   XINPUT_GAMEPAD Gamepad;
 } XINPUT_STATE, *PXINPUT_STATE;
+
+typedef struct _XINPUT_STATE_EX {
+  DWORD             dwPacketNumber;
+  XINPUT_GAMEPAD_EX Gamepad;
+} XINPUT_STATE_EX, *PXINPUT_STATE_EX;
 
 typedef DWORD (WINAPI *XInputGetState_pfn)(
   _In_  DWORD        dwUserIndex,

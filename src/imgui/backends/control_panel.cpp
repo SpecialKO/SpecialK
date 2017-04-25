@@ -1225,7 +1225,17 @@ SK_ImGui_ControlPanel (void)
       {
         ImGui::TreePush      ("");
 
-        ImGui::Separator      ();
+        ImGui::Checkbox       ("Rehook XInput", &config.input.gamepad.rehook_xinput); ImGui::SameLine ();
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Re-installs input hooks if third-party hooks are detected.");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("This may improve compatibility with x360ce, but will require a game restart.");
+          ImGui::EndTooltip    ();
+        }
+
         ImGui::Checkbox       ("Disable PS4 HID Input", &config.input.gamepad.disable_ps4_hid);
 
         if (ImGui::IsItemHovered ())
@@ -2794,39 +2804,46 @@ SK_ImGui_Toggle (void)
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
     static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
-    if (hModTBFix == nullptr && hModTZFix == nullptr) 
+    if (hModTZFix == nullptr)
     {
       // Turns the hardware cursor on/off as needed
       ImGui_ToggleCursor ();
 
-      // Transition: (Visible -> Invisible)
-      if (! SK_ImGui_Visible)
+      // Most games
+      if (! hModTBFix)
       {
-        //SK_ImGui_Cursor.showSystemCursor ();
-      }
+        // Transition: (Visible -> Invisible)
+        if (! SK_ImGui_Visible)
+        {
+          //SK_ImGui_Cursor.showSystemCursor ();
+        }
 
-      else
-      {
-        //SK_ImGui_Cursor.showImGuiCursor ();
+        else
+        {
+          //SK_ImGui_Cursor.showImGuiCursor ();
 
-        if (EnableEULAIfPirate ())
-          config.imgui.show_eula = true;
+          if (EnableEULAIfPirate ())
+            config.imgui.show_eula = true;
 
-        static bool first = true;
+          static bool first = true;
 
-        if (first) {
-          eula.never_show_again = true;
-          eula.show             = config.imgui.show_eula;
-          first                 = false;
+          if (first) {
+            eula.never_show_again = true;
+            eula.show             = config.imgui.show_eula;
+            first                 = false;
+          }
         }
       }
+
+      // TBFix
+      else
+        EnableEULAIfPirate ();
     }
 
+    // TZFix
     else
-    {
       EnableEULAIfPirate ();
-    }
-    
+
     if (SK_ImGui_Visible)
       SK_Console::getInstance ()->visible = false;
 

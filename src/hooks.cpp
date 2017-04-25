@@ -188,7 +188,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
         dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
                       L"(Status: \"%hs\")",
-                        pszProcName,
+                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                           pwszModule,
                             MH_StatusToString (status) );
 
@@ -198,7 +198,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
-                    pszProcName,
+                    (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                       pwszModule,
                         MH_StatusToString (status) );
   }
@@ -265,7 +265,7 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
         dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
                       L"(Status: \"%hs\")",
-                        pszProcName,
+                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                           pwszModule,
                             MH_StatusToString (status) );
 
@@ -275,7 +275,7 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
-                    pszProcName,
+                    (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                       pwszModule,
                         MH_StatusToString (status) );
   }
@@ -311,10 +311,8 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //  Defer the standard DllMain (...) entry-point until the
     //    software actually loads the library on its own.
     //
-    hMod = LoadLibraryExW_Original (
-             pwszModule,
-               nullptr,
-                 DONT_RESOLVE_DLL_REFERENCES );
+    hMod = LoadLibraryW_Original (
+             pwszModule );
   }
 
   LPVOID    pFuncAddr = nullptr;
@@ -353,7 +351,7 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
         dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
                       L"(Status: \"%hs\")",
-                        pszProcName,
+                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                           pwszModule,
                             MH_StatusToString (status) );
 
@@ -363,7 +361,7 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
-                    pszProcName,
+                    (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                       pwszModule,
                         MH_StatusToString (status) );
   }
