@@ -59,6 +59,8 @@ HMODULE        SK_GetCallingDLL        (LPVOID pReturn = _ReturnAddress ());
 std::wstring   SK_GetCallerName        (LPVOID pReturn = _ReturnAddress ());
 std::wstring   SK_GetModuleName        (HMODULE hDll);
 
+LPVOID         SK_GetProcAddress       (const wchar_t* wszModule, const char* szFunc);
+
 #include <queue>
 
 std::queue <DWORD>

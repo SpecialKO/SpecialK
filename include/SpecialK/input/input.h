@@ -127,4 +127,13 @@ struct sk_imgui_cursor_s
 bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove);
 
+
+typedef void (WINAPI *keybd_event_pfn)(
+    _In_ BYTE bVk,
+    _In_ BYTE bScan,
+    _In_ DWORD dwFlags,
+    _In_ ULONG_PTR dwExtraInfo );
+
+extern keybd_event_pfn keybd_event_Original;
+
 #endif /* __SK__INPUT_H__ */

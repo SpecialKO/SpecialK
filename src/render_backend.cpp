@@ -176,16 +176,25 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
     if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &capable))
     {
-      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &active)) {
-        last_checked = timeGetTime ();
-        success      = true;
+      if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 && SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+      {
+        success = true;
+        active  = TRUE;
       }
 
       else
       {
-        // On failure, postpone the next check
-        last_checked = timeGetTime () + 3000UL;
-        active       = FALSE;
+        if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &active)) {
+          last_checked = timeGetTime ();
+          success      = true;
+        }
+
+        else
+        {
+          // On failure, postpone the next check
+          last_checked = timeGetTime () + 3000UL;
+          active       = FALSE;
+        }
       }
     }
 

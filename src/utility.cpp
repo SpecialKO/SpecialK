@@ -992,6 +992,12 @@ crc32c (uint32_t crc, buffer input, size_t length)
   return append_func (crc, input, length);
 }
 
+LPVOID
+SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc)
+{
+  return GetProcAddress (GetModuleHandle (wszModule), szFunc);
+}
+
 std::wstring
 SK_GetModuleName (HMODULE hDll)
 {

@@ -242,6 +242,10 @@ struct {
     sk::ParameterBool*    no_warp_visible;
     sk::ParameterBool*    block_invisible;
   } cursor;
+
+  struct {
+    sk::ParameterBool*    disable_ps4_hid;
+  } gamepad;
 } input;
 
 struct {
@@ -561,6 +565,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Cursor",
         L"NoWarpVisibleGameCursor"
+  );
+
+  input.gamepad.disable_ps4_hid =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Disable PS4 HID Interface (prevent double-input processing in some games)")
+      );
+  input.gamepad.disable_ps4_hid->register_to_ini (
+    dll_ini,
+      L"Input.Gamepad",
+        L"DisablePS4HID"
   );
 
 
@@ -1857,6 +1872,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.OpenGL.hook                = false;
         config.apis.Vulkan.hook                = false;
 
+        config.input.ui.capture_hidden         = true; // Mouselook is a bitch
+        SK_ImGui_Cursor.prefs.no_warp.ui_open  = true;
+        SK_ImGui_Cursor.prefs.no_warp.visible  = true;
+
         config.textures.d3d11.cache            = true;
         config.textures.cache.ignore_nonmipped = true;
         config.textures.cache.max_size         = 4096;
@@ -2326,6 +2345,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (input.cursor.block_invisible->load ())
     config.input.ui.capture_hidden = input.cursor.block_invisible->get_value ();
 
+  if (input.gamepad.disable_ps4_hid->load ())
+    config.input.gamepad.disable_ps4_hid = input.gamepad.disable_ps4_hid->get_value ();
+
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
   }
@@ -2598,6 +2620,8 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.no_warp_ui->set_value          (SK_ImGui_Cursor.prefs.no_warp.ui_open);
   input.cursor.no_warp_visible->set_value     (SK_ImGui_Cursor.prefs.no_warp.visible);
 
+  input.gamepad.disable_ps4_hid->set_value    (config.input.gamepad.disable_ps4_hid);
+
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
   window.background_render->set_value         (config.window.background_render);
@@ -2840,6 +2864,8 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.block_invisible->store     ();
   input.cursor.no_warp_ui->store          ();
   input.cursor.no_warp_visible->store     ();
+
+  input.gamepad.disable_ps4_hid->store    ();
 
   window.borderless->store                ();
   window.center->store                    ();

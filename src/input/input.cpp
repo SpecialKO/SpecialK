@@ -50,7 +50,7 @@ SK_InputUtil_IsHWCursorVisible (void)
 }
 
 
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { dll_log.Log (__FUNCTION__); called = true; } }
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (__FUNCTION__), L"Input Mgr." ); called = true; } }
 
 extern bool SK_ImGui_Visible;
 extern bool nav_usable;
@@ -64,6 +64,137 @@ extern bool nav_usable;
 
 #include <hidusage.h>
 #include <Hidpi.h>
+#include <Hidsdi.h>
+
+bool
+SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
+{
+  bool filter = false;
+
+  HIDP_CAPS caps;
+  NTSTATUS  stat =
+    HidP_GetCaps (pData, &caps);
+
+  if ( stat           == HIDP_STATUS_SUCCESS && 
+       caps.UsagePage == HID_USAGE_PAGE_GENERIC )
+  {
+    switch (caps.Usage)
+    {
+      case HID_USAGE_GENERIC_GAMEPAD:
+      case HID_USAGE_GENERIC_JOYSTICK:
+      {
+        if (SK_ImGui_WantGamepadCapture ())
+          filter = true;
+      } break;
+
+      case HID_USAGE_GENERIC_MOUSE:
+      {
+        if (SK_ImGui_WantMouseCapture ())
+          filter = true;
+      } break;
+
+      case HID_USAGE_GENERIC_KEYBOARD:
+      {
+        if (SK_ImGui_WantKeyboardCapture ())
+          filter = true;
+      } break;
+    }
+  }
+
+  //SK_LOG0 ( ( L"HID Preparsed Data - Stat: %04x, UsagePage: %02x, Usage: %02x",
+                //stat, caps.UsagePage, caps.Usage ),
+              //L" HIDInput ");
+
+  return filter;
+}
+
+typedef BOOLEAN (__stdcall *HidD_GetPreparsedData_pfn)(
+  _In_  HANDLE                HidDeviceObject,
+  _Out_ PHIDP_PREPARSED_DATA *PreparsedData
+);
+
+HidD_GetPreparsedData_pfn HidD_GetPreparsedData_Original = nullptr;
+
+PHIDP_PREPARSED_DATA* SK_HID_PreparsedDataP = nullptr;
+PHIDP_PREPARSED_DATA  SK_HID_PreparsedData = nullptr;
+
+BOOLEAN
+__stdcall
+HidD_GetPreparsedData_Detour (
+  _In_  HANDLE                HidDeviceObject,
+  _Out_ PHIDP_PREPARSED_DATA *PreparsedData )
+{
+  SK_LOG_FIRST_CALL
+
+  PHIDP_PREPARSED_DATA pData;
+  BOOL bRet = HidD_GetPreparsedData_Original (HidDeviceObject, &pData);
+
+  if (bRet)
+  {
+    SK_HID_PreparsedDataP = PreparsedData;
+    SK_HID_PreparsedData  = pData;
+
+    if (SK_HID_FilterPreparsedData (pData) || config.input.gamepad.disable_ps4_hid)
+      return FALSE;
+
+    *PreparsedData   =  pData;
+  }
+
+  // Can't figure out how The Witness works yet, but it will bypass input blocking
+  //   on HID using a PS4 controller unless we return FALSE here.
+  //return FALSE;
+  return bRet;
+}
+
+typedef BOOLEAN (__stdcall *HidD_FreePreparsedData_pfn)(
+  _In_ PHIDP_PREPARSED_DATA PreparsedData
+);
+
+HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original = nullptr;
+
+BOOLEAN
+__stdcall
+HidD_FreePreparsedData_Detour (
+  _In_ PHIDP_PREPARSED_DATA PreparsedData )
+{
+  BOOLEAN bRet = HidD_FreePreparsedData_Original (PreparsedData);
+
+  if (PreparsedData == SK_HID_PreparsedData)
+    SK_HID_PreparsedData = nullptr;
+
+  return bRet;
+}
+
+typedef BOOLEAN (__stdcall *HidD_GetFeature_pfn)(
+  _In_  HANDLE HidDeviceObject,
+  _Out_ PVOID  ReportBuffer,
+  _In_  ULONG  ReportBufferLength
+);
+
+HidD_GetFeature_pfn HidD_GetFeature_Original = nullptr;
+
+BOOLEAN
+__stdcall
+HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
+                         _Out_ PVOID  ReportBuffer,
+                         _In_  ULONG  ReportBufferLength )
+{
+  bool filter = false;
+
+  PHIDP_PREPARSED_DATA pData;
+  if (HidD_GetPreparsedData_Original (HidDeviceObject, &pData))
+  {
+    if (SK_HID_FilterPreparsedData (pData))
+      filter = true;
+
+    HidD_FreePreparsedData (pData);
+  }
+
+  if (! filter)
+    return HidD_GetFeature_Original ( HidDeviceObject, ReportBuffer, ReportBufferLength );
+
+  return FALSE;
+}
 
 typedef NTSTATUS (__stdcall *HidP_GetData_pfn)(
   _In_    HIDP_REPORT_TYPE     ReportType,
@@ -99,36 +230,7 @@ HidP_GetData_Detour (
 
   if ( ret == HIDP_STATUS_SUCCESS && ( ReportType == HidP_Input || ReportType == HidP_Output ))
   {
-
-    HIDP_CAPS caps;
-    NTSTATUS  stat =
-      HidP_GetCaps (PreparsedData, &caps);
-
-    if ( stat           == HIDP_STATUS_SUCCESS && 
-         caps.UsagePage == HID_USAGE_PAGE_GENERIC )
-    {
-      switch (caps.Usage)
-      {
-        case HID_USAGE_GENERIC_GAMEPAD:
-        case HID_USAGE_GENERIC_JOYSTICK:
-        {
-          if (SK_ImGui_WantGamepadCapture ())
-            filter = true;
-        } break;
-
-        case HID_USAGE_GENERIC_MOUSE:
-        {
-          if (SK_ImGui_WantMouseCapture ())
-            filter = true;
-        } break;
-
-        case HID_USAGE_GENERIC_KEYBOARD:
-        {
-          if (SK_ImGui_WantKeyboardCapture ())
-            filter = true;
-        } break;
-      }
-    }
+    filter = SK_HID_FilterPreparsedData (PreparsedData);
   }
 
 
@@ -153,6 +255,18 @@ SK_Input_HookHID (void)
     SK_CreateDLLHook2 ( L"HID.DLL", "HidP_GetData",
                           HidP_GetData_Detour,
                 (LPVOID*)&HidP_GetData_Original );
+
+    SK_CreateDLLHook2 ( L"HID.DLL", "HidD_GetPreparsedData",
+                          HidD_GetPreparsedData_Detour,
+                (LPVOID*)&HidD_GetPreparsedData_Original );
+
+    SK_CreateDLLHook2 ( L"HID.DLL", "HidD_FreePreparsedData",
+                          HidD_FreePreparsedData_Detour,
+                (LPVOID*)&HidD_FreePreparsedData_Original );
+
+    SK_CreateDLLHook2 ( L"HID.DLL", "HidD_GetFeature",
+                          HidD_GetFeature_Detour,
+                (LPVOID*)&HidD_GetFeature_Original );
 
     MH_ApplyQueued ();
 
@@ -189,7 +303,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   _In_ UINT             cbSize
 )
 {
-  //SK_LOG_FIRST_CALL
+  SK_LOG_FIRST_CALL
 
   if (cbSize != sizeof RAWINPUTDEVICE) {
     dll_log.Log ( L"[ RawInput ] RegisterRawInputDevices has wrong "
@@ -325,7 +439,8 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
                           _In_      UINT      uiCommand,
                           _Out_opt_ LPVOID    pData,
                           _Inout_   PUINT     pcbSize,
-                          _In_      UINT      cbSizeHeader);
+                          _In_      UINT      cbSizeHeader,
+                                    BOOL      self);
 
 UINT
 WINAPI
@@ -338,7 +453,7 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
   SK_LOG_FIRST_CALL
 
   //if (SK_ImGui_WantGamepadCapture ())
-    return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+  return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, false);
 
  //return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 }
@@ -383,11 +498,19 @@ typedef HRESULT (WINAPI *IDirectInputDevice8_SetCooperativeLevel_pfn)(
 );
 
 IDirectInput8_CreateDevice_pfn
-        IDirectInput8_CreateDevice_Original              = nullptr;
+        IDirectInput8_CreateDevice_Original               = nullptr;
+
 IDirectInputDevice8_GetDeviceState_pfn
-        IDirectInputDevice8_GetDeviceState_Original      = nullptr;
+        IDirectInputDevice8_GetDeviceState_MOUSE_Original = nullptr;
+
+IDirectInputDevice8_GetDeviceState_pfn
+        IDirectInputDevice8_GetDeviceState_KEYBOARD_Original = nullptr;
+
+IDirectInputDevice8_GetDeviceState_pfn
+        IDirectInputDevice8_GetDeviceState_GAMEPAD_Original = nullptr;
+
 IDirectInputDevice8_SetCooperativeLevel_pfn
-        IDirectInputDevice8_SetCooperativeLevel_Original = nullptr;
+        IDirectInputDevice8_SetCooperativeLevel_Original  = nullptr;
 
 
 struct SK_DI8_Keyboard {
@@ -423,10 +546,16 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
                                             DWORD                      cbData,
                                             LPVOID                     lpvData )
 {
-  HRESULT hr;
-  hr = IDirectInputDevice8_GetDeviceState_Original ( This,
-                                                       cbData,
-                                                         lpvData );
+  SK_LOG_FIRST_CALL
+
+  SK_LOG4 ( ( L" DirectInput 8 - GetDeviceState: cbData = %lu",
+                cbData ),
+              L"Direct Inp" );
+
+  HRESULT hr = S_OK;
+  //hr = IDirectInputDevice8_GetDeviceState_Original ( This,
+                                                       //cbData,
+                                                         //lpvData );
 
 
 
@@ -434,19 +563,21 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
   {
     if (cbData == sizeof DIJOYSTATE2) 
     {
+      static DIJOYSTATE2 last_state;
+
       DIJOYSTATE2* out = (DIJOYSTATE2 *)lpvData;
 
       if (nav_usable)
       {
-        memset (out, 0, sizeof DIJOYSTATE2);
+        memcpy (out, &last_state, cbData);
 
         out->rgdwPOV [0] = -1;
         out->rgdwPOV [1] = -1;
         out->rgdwPOV [2] = -1;
         out->rgdwPOV [3] = -1;
-      }
+      } else
+        memcpy (&last_state, out, cbData);
 
-      else {
 #if 0
         DIJOYSTATE2  in  = *out;
 
@@ -458,24 +589,27 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
           }
         }
 #endif
-      }
     }
 
     else if (cbData == sizeof DIJOYSTATE) 
     {
       //dll_log.Log (L"Joy");
 
+      static DIJOYSTATE last_state;
+
       DIJOYSTATE* out = (DIJOYSTATE *)lpvData;
 
       if (nav_usable)
       {
-        memset (out, 0, sizeof DIJOYSTATE);
+        memcpy (out, &last_state, cbData);
 
         out->rgdwPOV [0] = -1;
         out->rgdwPOV [1] = -1;
         out->rgdwPOV [2] = -1;
         out->rgdwPOV [3] = -1;
       }
+      else
+        memcpy (&last_state, out, cbData);
     }
 
     else if (This == _dik.pDev || cbData == 256)
@@ -519,6 +653,53 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
   }
 
 
+
+  return hr;
+}
+
+//
+// TODO: Create a wrapper instead of flat hooks like this, this won't work when
+//         multiple hardware vendor devices are present.
+//
+
+HRESULT
+WINAPI
+IDirectInputDevice8_GetDeviceState_MOUSE_Detour ( LPDIRECTINPUTDEVICE        This,
+                                                  DWORD                      cbData,
+                                                  LPVOID                     lpvData )
+{
+  HRESULT hr = IDirectInputDevice8_GetDeviceState_MOUSE_Original ( This, cbData, lpvData );
+
+  if (SUCCEEDED (hr))
+    IDirectInputDevice8_GetDeviceState_Detour ( This, cbData, lpvData );
+
+  return hr;
+}
+
+HRESULT
+WINAPI
+IDirectInputDevice8_GetDeviceState_KEYBOARD_Detour ( LPDIRECTINPUTDEVICE        This,
+                                                     DWORD                      cbData,
+                                                     LPVOID                     lpvData )
+{
+  HRESULT hr = IDirectInputDevice8_GetDeviceState_KEYBOARD_Original ( This, cbData, lpvData );
+
+  if (SUCCEEDED (hr))
+    IDirectInputDevice8_GetDeviceState_Detour ( This, cbData, lpvData );
+
+  return hr;
+}
+
+HRESULT
+WINAPI
+IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour ( LPDIRECTINPUTDEVICE        This,
+                                                    DWORD                      cbData,
+                                                    LPVOID                     lpvData )
+{
+  HRESULT hr = IDirectInputDevice8_GetDeviceState_GAMEPAD_Original ( This, cbData, lpvData );
+
+  if (SUCCEEDED (hr))
+    IDirectInputDevice8_GetDeviceState_Detour ( This, cbData, lpvData );
 
   return hr;
 }
@@ -572,31 +753,46 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
                                                           lplpDirectInputDevice,
                                                            pUnkOuter ) );
 
-  static bool hooked = false;
-
-  if (SUCCEEDED (hr) && (! hooked))
+  if (SUCCEEDED (hr))
   {
-    if (! hooked)
-    {
-      hooked = true;
-      void** vftable = *(void***)*lplpDirectInputDevice;
+    void** vftable = *(void***)*lplpDirectInputDevice;
 
+    if (rguid == GUID_SysMouse)
+    {
       SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
                            vftable [9],
-                           IDirectInputDevice8_GetDeviceState_Detour,
-                (LPVOID *)&IDirectInputDevice8_GetDeviceState_Original );
-
-      MH_QueueEnableHook (vftable [9]);
-
-      SK_CreateFuncHook ( L"IDirectInputDevice8::SetCooperativeLevel",
-                           vftable [13],
-                           IDirectInputDevice8_SetCooperativeLevel_Detour,
-                 (LPVOID*)&IDirectInputDevice8_SetCooperativeLevel_Original );
-
-      MH_QueueEnableHook (vftable [13]);
-
-      MH_ApplyQueued ();
+                           IDirectInputDevice8_GetDeviceState_MOUSE_Detour,
+                (LPVOID *)&IDirectInputDevice8_GetDeviceState_MOUSE_Original );
     }
+
+    else if (rguid == GUID_SysKeyboard)
+    {
+      SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
+                           vftable [9],
+                           IDirectInputDevice8_GetDeviceState_KEYBOARD_Detour,
+                (LPVOID *)&IDirectInputDevice8_GetDeviceState_KEYBOARD_Original );
+    }
+
+    else
+    {
+      SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
+                           vftable [9],
+                           IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour,
+                (LPVOID *)&IDirectInputDevice8_GetDeviceState_GAMEPAD_Original );
+    }
+
+    MH_QueueEnableHook (vftable [9]);
+
+#if 0
+    SK_CreateFuncHook ( L"IDirectInputDevice8::SetCooperativeLevel",
+                         vftable [13],
+                         IDirectInputDevice8_SetCooperativeLevel_Detour,
+               (LPVOID*)&IDirectInputDevice8_SetCooperativeLevel_Original );
+
+    MH_QueueEnableHook (vftable [13]);
+#endif
+
+    MH_ApplyQueued ();
 
     if (rguid == GUID_SysMouse)
       _dim.pDev = *lplpDirectInputDevice;
@@ -709,10 +905,22 @@ typedef DWORD (WINAPI *XInputGetState_pfn)(
   _Out_ XINPUT_STATE *pState
 );
 
-static XInputGetState_pfn XInputGetState1_3_Original   = nullptr;
-static XInputGetState_pfn XInputGetState1_4_Original   = nullptr;
-static XInputGetState_pfn XInputGetState9_1_0_Original = nullptr;
-static XInputGetState_pfn XInputGetState_Original      = nullptr;
+struct SK_XInputContext
+{
+  struct instance_s
+  {
+    uint8_t            orig_instructions [16]  =   { 0 };
+    LPVOID             orig_addr               =     0  ;
+
+    const wchar_t*     wszModuleName           =     L"";
+    HMODULE            hMod                    =       0;
+    XInputGetState_pfn XInputGetState_Detour   = nullptr;
+    XInputGetState_pfn XInputGetState_Original = nullptr;
+    LPVOID             XInputGetState_Target   = nullptr;
+  } XInput1_3, XInput1_4, XInput9_1_0;
+
+  instance_s* primary_hook;
+} xinput_ctx;
 
 
 extern bool
@@ -727,10 +935,17 @@ XInputGetState1_3_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  SK_LOG_FIRST_CALL
+
+  SK_XInputContext::instance_s* pCtx =
+    &xinput_ctx.XInput1_3;
+
   DWORD dwRet =
-    XInputGetState1_3_Original (dwUserIndex, pState);
+    pCtx->XInputGetState_Original (dwUserIndex, pState);
 
     SK_ImGui_FilterXInput      (dwUserIndex, pState);
+
+  xinput_ctx.primary_hook = pCtx;
 
   return dwRet;
 }
@@ -741,10 +956,17 @@ XInputGetState1_4_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  DWORD dwRet =
-    XInputGetState1_4_Original (dwUserIndex, pState);
+  SK_LOG_FIRST_CALL
 
-    SK_ImGui_FilterXInput      (dwUserIndex, pState);
+  SK_XInputContext::instance_s* pCtx =
+    &xinput_ctx.XInput1_4;
+
+  DWORD dwRet =
+    pCtx->XInputGetState_Original (dwUserIndex, pState);
+
+    SK_ImGui_FilterXInput         (dwUserIndex, pState);
+
+  xinput_ctx.primary_hook = pCtx;
 
   return dwRet;
 }
@@ -755,10 +977,17 @@ XInputGetState9_1_0_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  DWORD dwRet =
-    XInputGetState9_1_0_Original (dwUserIndex, pState);
+  SK_LOG_FIRST_CALL
 
-    SK_ImGui_FilterXInput        (dwUserIndex, pState);
+  SK_XInputContext::instance_s* pCtx =
+    &xinput_ctx.XInput9_1_0;
+
+  DWORD dwRet =
+    pCtx->XInputGetState_Original (dwUserIndex, pState);
+
+    SK_ImGui_FilterXInput         (dwUserIndex, pState);
+
+  xinput_ctx.primary_hook = pCtx;
 
   return dwRet;
 }
@@ -771,16 +1000,31 @@ SK_Input_HookXInput1_4 (void)
 
   if (! InterlockedExchangeAdd (&hooked, 0))
   {
+    SK_XInputContext::instance_s* pCtx =
+      &xinput_ctx.XInput1_4;
+
     SK_LOG0 ( ( L"  >> Hooking XInput 1.4" ),
                 L"   Input  " );
 
+    pCtx->wszModuleName         = L"XInput1_4.dll";
+    pCtx->hMod                  = GetModuleHandle (pCtx->wszModuleName);
+    pCtx->XInputGetState_Detour = XInputGetState1_4_Detour;
+
+    pCtx->orig_addr = SK_GetProcAddress (pCtx->wszModuleName, "XInputGetState");
+
+    if (pCtx->orig_addr != nullptr)
+      memcpy (pCtx->orig_instructions, pCtx->orig_addr, 16);
+
     SK_CreateDLLHook3 ( L"XInput1_4.dll",
                          "XInputGetState",
-                         XInputGetState1_4_Detour,
-              (LPVOID *)&XInputGetState1_4_Original );
+                         pCtx->XInputGetState_Detour,
+              (LPVOID *)&pCtx->XInputGetState_Original,
+              (LPVOID *)&pCtx->XInputGetState_Target );
 
-    if (XInputGetState_Original == nullptr)
-      XInputGetState_Original = XInputGetState1_4_Original;
+    MH_QueueEnableHook (pCtx->XInputGetState_Target);
+
+    if (xinput_ctx.primary_hook == nullptr)
+      xinput_ctx.primary_hook = &xinput_ctx.XInput1_4;
 
     InterlockedIncrement (&hooked);
   }
@@ -793,16 +1037,31 @@ SK_Input_HookXInput1_3 (void)
 
   if (! InterlockedExchangeAdd (&hooked, 0))
   {
+    SK_XInputContext::instance_s* pCtx =
+      &xinput_ctx.XInput1_3;
+
     SK_LOG0 ( ( L"  >> Hooking XInput 1.3" ),
                 L"   Input  " );
 
+    pCtx->wszModuleName         = L"XInput1_3.dll";
+    pCtx->hMod                  = GetModuleHandle (pCtx->wszModuleName);
+    pCtx->XInputGetState_Detour = XInputGetState1_3_Detour;
+
+    pCtx->orig_addr = SK_GetProcAddress (pCtx->wszModuleName, "XInputGetState");
+
+    if (pCtx->orig_addr != nullptr)
+      memcpy (pCtx->orig_instructions, pCtx->orig_addr, 16);
+
     SK_CreateDLLHook3 ( L"XInput1_3.dll",
                          "XInputGetState",
-                         XInputGetState1_3_Detour,
-              (LPVOID *)&XInputGetState1_3_Original );
+                         pCtx->XInputGetState_Detour,
+              (LPVOID *)&pCtx->XInputGetState_Original,
+              (LPVOID *)&pCtx->XInputGetState_Target );
 
-    if (XInputGetState_Original == nullptr)
-      XInputGetState_Original = XInputGetState1_3_Original;
+    MH_QueueEnableHook (pCtx->XInputGetState_Target);
+
+    if (xinput_ctx.primary_hook == nullptr)
+      xinput_ctx.primary_hook = &xinput_ctx.XInput1_3;
 
     InterlockedIncrement (&hooked);
   }
@@ -815,16 +1074,31 @@ SK_Input_HookXInput9_1_0 (void)
 
   if (! InterlockedExchangeAdd (&hooked, 0))
   {
+    SK_XInputContext::instance_s* pCtx =
+      &xinput_ctx.XInput9_1_0;
+
     SK_LOG0 ( ( L"  >> Hooking XInput9_1_0" ),
                 L"   Input  " );
 
+    pCtx->wszModuleName         = L"XInput9_1_0.dll";
+    pCtx->hMod                  = GetModuleHandle (pCtx->wszModuleName);
+    pCtx->XInputGetState_Detour = XInputGetState9_1_0_Detour;
+
+    pCtx->orig_addr = SK_GetProcAddress (pCtx->wszModuleName, "XInputGetState");
+
+    if (pCtx->orig_addr != nullptr)
+      memcpy (pCtx->orig_instructions, pCtx->orig_addr, 16);
+
     SK_CreateDLLHook3 ( L"XInput9_1_0.dll",
                          "XInputGetState",
-                         XInputGetState9_1_0_Detour,
-              (LPVOID *)&XInputGetState9_1_0_Original );
+                         pCtx->XInputGetState_Detour,
+              (LPVOID *)&pCtx->XInputGetState_Original,
+              (LPVOID *)&pCtx->XInputGetState_Target );
 
-    if (XInputGetState_Original == nullptr)
-      XInputGetState_Original = XInputGetState9_1_0_Original;
+    MH_QueueEnableHook (pCtx->XInputGetState_Target);
+
+    if (xinput_ctx.primary_hook == nullptr)
+      xinput_ctx.primary_hook = &xinput_ctx.XInput9_1_0;
 
     InterlockedIncrement (&hooked);
   }
@@ -854,7 +1128,10 @@ SK_XInput_PollController ( INT           iJoyID,
 #endif
 
 
-  if (XInputGetState_Original == nullptr)
+  SK_XInputContext::instance_s* pCtx =
+    xinput_ctx.primary_hook;
+
+  if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
   {
     static bool tried_to_hook = false;
 
@@ -866,31 +1143,91 @@ SK_XInput_PollController ( INT           iJoyID,
 
     // First try 1.3, that's generally available.
     SK_Input_HookXInput1_3 ();
+    pCtx = xinput_ctx.primary_hook;
 
     // Then 1.4
-    if (XInputGetState_Original == nullptr)
+    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr) {
       SK_Input_HookXInput1_4 ();
+      pCtx = xinput_ctx.primary_hook;
+    }
 
     // Down-level 9_1_0 if all else failes
-    if (XInputGetState_Original == nullptr)
+    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr) {
       SK_Input_HookXInput9_1_0 ();
+      pCtx = xinput_ctx.primary_hook;
+    }
 
 
     // No XInput?! User shouldn't be playing games :P
-    if (XInputGetState_Original == nullptr)
+    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
     {
       SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
                   L" input-related features may not work as intended." ),
-                  L"Input Mgr" );
-      XInputGetState_Original =
+                  L"Input Mgr." );
+      xinput_ctx.primary_hook =
+        &xinput_ctx.XInput1_3;
+      pCtx = xinput_ctx.primary_hook;
+      pCtx->XInputGetState_Original =
         (XInputGetState_pfn)
           GetProcAddress ( LoadLibrary (L"XInput1_3.dll"),
                            "XInputGetState" );
     }
+
+    SK_ApplyQueuedHooks ();
   }
 
   if (iJoyID == -1)
     return true;
+
+  MH_STATUS ret = 
+    MH_EnableHook (pCtx->XInputGetState_Target);
+
+  if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
+                 ( pCtx->orig_addr != 0 &&
+           memcmp (pCtx->orig_instructions,
+                   pCtx->orig_addr, 16) )
+     )
+  {
+    if ( MH_OK == MH_RemoveHook (pCtx->XInputGetState_Target) )
+    {
+      if ( MH_OK ==
+             SK_CreateDLLHook ( pCtx->wszModuleName, "XInputGetState",
+                                  pCtx->XInputGetState_Detour,
+                       (LPVOID *)&pCtx->XInputGetState_Original,
+                       (LPVOID *)&pCtx->XInputGetState_Target )
+         )
+      {
+        MH_EnableHook (pCtx->XInputGetState_Target);
+
+        SK_LOG0 ( ( L" Re-hooked XInput using '%s'...",
+                       pCtx->wszModuleName ),
+                    L"Input Mgr." );
+
+        memcpy (pCtx->orig_instructions, pCtx->orig_addr, 16);
+
+        if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
+          xinput_ctx.XInput1_3 = *pCtx;
+        if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
+          xinput_ctx.XInput1_4 = *pCtx;
+        if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
+          xinput_ctx.XInput9_1_0 = *pCtx;
+      }
+
+      else
+      {
+        SK_LOG0 ( ( L" Failed to re-hook XInput using '%s'...",
+               pCtx->wszModuleName ),
+            L"Input Mgr." );
+      }
+    }
+
+    else
+    {
+      SK_LOG0 ( ( L" Failed to remove XInput hook from '%s'...",
+             pCtx->wszModuleName ),
+          L"Input Mgr." );
+    }
+  }
 
   const int MAX_CONTROLLERS = 4;
 
@@ -901,8 +1238,10 @@ SK_XInput_PollController ( INT           iJoyID,
 
   // This function is actually a performance hazzard when no controllers
   //   are plugged in, so ... throttle the sucker.
-  if (last_poll [iJoyID] < timeGetTime () - 500UL)
-    dwRet [iJoyID] = XInputGetState_Original (iJoyID, &xstate);
+  if (last_poll [iJoyID] < timeGetTime () - 500UL) {
+    dwRet [iJoyID] =
+      xinput_ctx.primary_hook->XInputGetState_Original (iJoyID, &xstate);
+  }
 
   if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
     return false;
@@ -918,7 +1257,7 @@ SK_XInput_PollController ( INT           iJoyID,
 void
 SK_Input_PreHookXInput (void)
 {
-  if (XInputGetState_Original == nullptr)
+  if (xinput_ctx.primary_hook == nullptr)
   {
     static sk_import_test_s tests [] = { { "XInput1_3.dll",   false },
                                          { "XInput1_4.dll",   false },
@@ -1477,6 +1816,29 @@ SendInput_Detour (
   return SendInput_Original (nInputs, pInputs, cbSize);
 }
 
+keybd_event_pfn keybd_event_Original = nullptr;
+
+void
+WINAPI
+keybd_event_Detour (
+    _In_ BYTE bVk,
+    _In_ BYTE bScan,
+    _In_ DWORD dwFlags,
+    _In_ ULONG_PTR dwExtraInfo
+)
+{
+  SK_LOG_FIRST_CALL
+
+// TODO: Process this the right way...
+
+  if (SK_ImGui_Visible)
+  {
+    return;
+  }
+
+  keybd_event_Original (bVk, bScan, dwFlags, dwExtraInfo);
+}
+
 VOID
 WINAPI
 mouse_event_Detour (
@@ -1614,7 +1976,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_MBUTTONDBLCLK:
       case WM_MBUTTONDOWN:
       case WM_MBUTTONUP:
-      case WM_MOUSEACTIVATE:
       case WM_MOUSEHWHEEL:
       case WM_MOUSEWHEEL:
       case WM_RBUTTONDBLCLK:
@@ -1683,6 +2044,10 @@ void SK_Input_PreInit (void)
                      mouse_event_Detour,
            (LPVOID*)&mouse_event_Original );
 
+  SK_CreateDLLHook2 ( L"user32.dll", "keybd_event",
+                     keybd_event_Detour,
+           (LPVOID*)&keybd_event_Original );
+
   SK_CreateDLLHook2 ( L"user32.dll", "RegisterRawInputDevices",
                      RegisterRawInputDevices_Detour,
            (LPVOID*)&RegisterRawInputDevices_Original );
@@ -1702,4 +2067,6 @@ SK_Input_Init (void)
   SK_Input_PreeHookHID   ();
   SK_Input_PreHookDI8    ();
   SK_Input_PreHookXInput ();
+
+  SK_ApplyQueuedHooks    ();
 }

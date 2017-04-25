@@ -349,6 +349,13 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     if (pGUIDev == nullptr)
       return;
 
+    CComPtr <ID3D11Device> pDev;
+
+    if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev)))) {
+      extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
+      SK_DXGI_UpdateSwapChain (This);
+    }
+
     // The process of bootstrapping this through CEGUI does not add a reference, so
     //   don't bother decrementing the reference count by releasing it.
     pGUIDev->GetImmediateContext (&pCEG_DevCtx);
@@ -689,7 +696,6 @@ bool
 
    return false;
  };
-
 
 struct dxgi_caps_t {
   struct {
@@ -1160,6 +1166,35 @@ SK_CEGUI_QueueResetD3D11 (void)
 
 
 
+void
+SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
+{
+  CComPtr <ID3D11Device> pDev;
+
+  if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
+  {
+    SK_GetCurrentRenderBackend ().device    = pDev;
+    SK_GetCurrentRenderBackend ().swapchain = This;
+
+    if (sk::NVAPI::nv_hardware)
+    {
+      CComPtr <IDXGISurface> pSurf = nullptr;
+
+      NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
+
+      // NVIDIA's drivers deadlock us if you try to do this, so just assume that fullscreen mode is
+      //   always G-Sync'd.
+      //
+      //if (SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+      //{
+        //if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pSurf))))
+          //NvAPI_D3D_GetObjectHandleForResource (pDev, pSurf, &SK_GetCurrentRenderBackend ().surface);
+      //}
+    }
+  }
+}
+
+
 struct D3DX11_STATE_BLOCK
 {
   ID3D11VertexShader*       VS;
@@ -1408,18 +1443,7 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
-  CComPtr <ID3D11Device> pDev;
-  
-  if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
-  {
-    SK_GetCurrentRenderBackend ().device    = pDev;
-    SK_GetCurrentRenderBackend ().swapchain = This;
-    CComPtr <IDXGISurface> pSurf = nullptr;
-
-    This->GetBuffer (0, IID_PPV_ARGS (&pSurf));
-
-    NvAPI_D3D_GetObjectHandleForResource (pDev, pSurf, &SK_GetCurrentRenderBackend ().surface);
-  }
+  CComPtr <ID3D11Device> pDev = nullptr;
 
 #if 0
   if (! config.cegui.enable)
@@ -2357,6 +2381,11 @@ __declspec (noinline)
         SK_SetWindowResX (desc.BufferDesc.Width);
         SK_SetWindowResY (desc.BufferDesc.Height);
       }
+    }
+
+    if (SUCCEEDED (ret))
+    {
+      SK_GetCurrentRenderBackend ().fullscreen_exclusive = Fullscreen;
     }
 
     return ret;

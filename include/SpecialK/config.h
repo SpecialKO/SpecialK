@@ -315,12 +315,16 @@ struct sk_config_t
         bool  capture           = false;
         bool  capture_mouse;
       };
-      bool    capture_hidden    =  true; // Capture mouse if HW cursor is not visible
+      bool    capture_hidden    = false; // Capture mouse if HW cursor is not visible
       bool    capture_keyboard  = false;
       bool    capture_gamepad   = false;
       bool    use_hw_cursor     =  true;
       bool    use_raw_input     =  true;
     } ui;
+
+    struct {
+      bool    disable_ps4_hid   = false;
+    } gamepad;
   } input;
 
   struct {

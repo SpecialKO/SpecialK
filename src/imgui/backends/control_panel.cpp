@@ -466,6 +466,9 @@ SK_ImGui_AdjustCursor (void)
     }, nullptr, 0x00, nullptr );
 }
 
+bool reset_frame_history = true;
+bool was_reset           = false;
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -482,8 +485,12 @@ SK_ImGui_ControlPanel (void)
   static float values [120]  = { 0 };
   static int   values_offset =   0;
 
-  values [values_offset] = 1000.0f * ImGui::GetIO ().DeltaTime;
-  values_offset = (values_offset + 1) % IM_ARRAYSIZE (values);
+  if (! reset_frame_history) {
+    values [values_offset] = 1000.0f * ImGui::GetIO ().DeltaTime;
+    values_offset = (values_offset + 1) % IM_ARRAYSIZE (values);
+  }
+
+  reset_frame_history = false;
 
 
   static float last_width  = -1;
@@ -683,17 +690,6 @@ SK_ImGui_ControlPanel (void)
       if ( ImGui::CollapsingHeader ("Framerate Limiter", ImGuiTreeNodeFlags_CollapsingHeader | 
                                                          ImGuiTreeNodeFlags_DefaultOpen ) )
       {
-#if 0
-        if (reset_frame_history) {
-          const float fZero = 0.0f;
-          memset (values, *(reinterpret_cast <const DWORD *> (&fZero)), sizeof (float) * 120);
-    
-          values_offset       = 0;
-          reset_frame_history = false;
-          was_reset           = true;
-        }
-#endif
-  
         float sum = 0.0f;
 
         float min = FLT_MAX;
@@ -1145,7 +1141,10 @@ SK_ImGui_ControlPanel (void)
         ImGui::Separator   ( );
         ImGui::EndGroup    ( );
 
-        ImGui::Text ("ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }", SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x, SK_ImGui_Cursor.pos.y, SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
+        ImGui::Text ( "ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }",
+                        SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x,
+                                                 SK_ImGui_Cursor.pos.y,
+                          SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
         ImGui::SameLine ();
         ImGui::Text (" {%s :: Last Update: %lu}", SK_ImGui_Cursor.idle ? "Idle" : "Not Idle", SK_ImGui_Cursor.last_move);
         ImGui::TreePop     ( );
@@ -1222,7 +1221,26 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePop ();
       }
 
-      if (ImGui::CollapsingHeader ("Input Backend", ImGuiTreeNodeFlags_DefaultOpen))
+      if (ImGui::CollapsingHeader ("Gamepad"))
+      {
+        ImGui::TreePush      ("");
+
+        ImGui::Separator      ();
+        ImGui::Checkbox       ("Disable PS4 HID Input", &config.input.gamepad.disable_ps4_hid);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevents double input processing in games that support XInput and native PS4.");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("This option requires restarting the game.");
+          ImGui::EndTooltip    ();
+        }
+
+        ImGui::TreePop ();
+      }
+
+      if (ImGui::CollapsingHeader ("Low-Level Mouse Settings", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush      ("");
 
@@ -1301,7 +1319,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::Checkbox ("Block Input When No Cursor is Visible", &config.input.ui.capture_hidden);  ImGui::SameLine ();
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Fixes buggy games like Mass Effect Andromeda");
+          ImGui::SetTooltip ("Generally prevents mouselook if you move your cursor away from the config UI");
 
         ImGui::Checkbox ("No Warp (UI open)",                     &SK_ImGui_Cursor.prefs.no_warp.ui_open);
 
@@ -1317,6 +1335,7 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePop        ();
         ImGui::EndGroup       ();
+
         ImGui::TreePop        ();
       }
 
@@ -1786,22 +1805,22 @@ SK_ImGui_ControlPanel (void)
       {
         ImGui::PushItemWidth (-1);
         if (ImGui::Button (u8"  <<  ")) {
-          keybd_event (VK_MEDIA_PREV_TRACK, 0x22, 1, 0);
-          keybd_event (VK_MEDIA_PREV_TRACK, 0x22, 3, 0);
+          keybd_event_Original (VK_MEDIA_PREV_TRACK, 0x22, 1, 0);
+          keybd_event_Original (VK_MEDIA_PREV_TRACK, 0x22, 3, 0);
         }
 
         ImGui::SameLine ();
 
         if (ImGui::Button (u8"  Play / Pause  ")) {
-          keybd_event (VK_MEDIA_PLAY_PAUSE, 0x22, 1, 0);
-          keybd_event (VK_MEDIA_PLAY_PAUSE, 0x22, 3, 0); 
+          keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0x22, 1, 0);
+          keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0x22, 3, 0); 
         }
 
         ImGui::SameLine ();
 
         if (ImGui::Button (u8"  >>  ")) {
-          keybd_event (VK_MEDIA_NEXT_TRACK, 0x22, 1, 0);
-          keybd_event (VK_MEDIA_NEXT_TRACK, 0x22, 3, 0);
+          keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0x22, 1, 0);
+          keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0x22, 3, 0);
         }
         ImGui::PopItemWidth ();
       }
@@ -2723,6 +2742,13 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
 BYTE __imgui_keybd_state [512] = { 0 };
 
+// Keys down when the UI started capturing input,
+//   the first captured key release event will be
+//     sent to the game and the state of that key reset.
+//
+//  This prevents the game from thinking a key is stuck.
+UINT SK_ImGui_ActivationKeys [256] = { 0 };;
+
 __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
@@ -2835,55 +2861,9 @@ SK_ImGui_Toggle (void)
     }
 
     ImGui::SetNextWindowFocus ();
+
+    reset_frame_history = true;
   }
-
-
-  // Send the game key release notifications when activating / deactivating menu
-  //   otherwise some may consider a key stuck and behave strangely (ReShade has this problem).
-
-#if 0
-  bool control   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
-  bool shift     = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
-  bool backspace = (GetAsyncKeyState_Original (VK_BACK)    & 0x8000) != 0;
-
-  INPUT keys [2];
-
-  if (! control)
-  {
-    keys [1].type           = INPUT_KEYBOARD;
-    keys [1].ki.wVk         = VK_CONTROL;
-    keys [1].ki.wScan       = 0x0;
-    keys [1].ki.dwFlags     = KEYEVENTF_KEYUP;
-    keys [1].ki.time        = 0;
-    keys [1].ki.dwExtraInfo = 0;
-
-    SendInput (1, &keys [1], sizeof INPUT);
-  }
-
-  if (! shift)
-  {
-    keys [1].type           = INPUT_KEYBOARD;
-    keys [1].ki.wVk         = VK_SHIFT;
-    keys [1].ki.wScan       = 0x0;
-    keys [1].ki.dwFlags     = KEYEVENTF_KEYUP;
-    keys [1].ki.time        = 0;
-    keys [1].ki.dwExtraInfo = 0;
-
-    SendInput (1, &keys [1], sizeof INPUT);
-  }
-
-  if (! backspace)
-  {
-    keys [1].type           = INPUT_KEYBOARD;
-    keys [1].ki.wVk         = VK_BACK;
-    keys [1].ki.wScan       = 0x0;
-    keys [1].ki.dwFlags     = KEYEVENTF_KEYUP;
-    keys [1].ki.time        = 0;
-    keys [1].ki.dwExtraInfo = 0;
-
-    SendInput (1, &keys [1], sizeof INPUT);
-  }
-#endif
 }
 
 extern LONG SK_RawInput_MouseX;
