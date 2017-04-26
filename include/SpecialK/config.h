@@ -328,6 +328,11 @@ struct sk_config_t
       bool    hook_dinput8      = true;
       bool    hook_hid          = true;
       bool    hook_xinput       = true; // Kind of important ;)
+
+      struct {
+        int   ui_slot           =    0;
+        bool  placehold [4]     = { false };
+      } xinput;
     } gamepad;
   } input;
 

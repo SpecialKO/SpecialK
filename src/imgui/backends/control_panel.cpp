@@ -1247,6 +1247,56 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndTooltip    ();
         }
 
+        ImGui::Separator ();
+
+        static bool connected [4];
+        connected [0] = SK_XInput_PollController (0);
+        connected [1] = SK_XInput_PollController (1);
+        connected [2] = SK_XInput_PollController (2);
+        connected [3] = SK_XInput_PollController (3);
+
+        if ( connected [0] || connected [1] ||
+             connected [2] || connected [3] )
+        {
+          ImGui::Text("UI Controlled By:  "); ImGui::SameLine();
+
+          if (connected [0]) {
+            ImGui::RadioButton ("XInput Controller 0###XInputSlot", &config.input.gamepad.xinput.ui_slot, 0);
+            if (connected [1] || connected [2] || connected [3]) ImGui::SameLine ();
+          }
+
+          if (connected [1]) {
+            ImGui::RadioButton ("XInput Controller 1###XInputSlot", &config.input.gamepad.xinput.ui_slot, 1);
+            if (connected [2] || connected [3]) ImGui::SameLine ();
+          }
+
+          if (connected [2]) {
+            ImGui::RadioButton ("XInput Controller 2###XInputSlot", &config.input.gamepad.xinput.ui_slot, 2);
+            if (connected [3]) ImGui::SameLine ();
+          }
+
+          if (connected [3])
+            ImGui::RadioButton ("XInput Controller 3###XInputSlot", &config.input.gamepad.xinput.ui_slot, 3);
+        }
+
+        ImGui::Text ("XInput Placeholders");
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip  ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("This is useful for stupid games like God Eater 2 that do not support hot-plugging in a sane way.");
+            ImGui::BulletText  ("Keep in mind, there is a performnace penalty for reading from controllers that are not connected -- stupid games also do this.");
+          ImGui::EndTooltip    ();
+        }
+
+        ImGui::SameLine();
+        ImGui::Checkbox ("Slot 0", &config.input.gamepad.xinput.placehold [0]); ImGui::SameLine ();
+        ImGui::Checkbox ("Slot 1", &config.input.gamepad.xinput.placehold [1]); ImGui::SameLine ();
+        ImGui::Checkbox ("Slot 2", &config.input.gamepad.xinput.placehold [2]); ImGui::SameLine ();
+        ImGui::Checkbox ("Slot 3", &config.input.gamepad.xinput.placehold [3]);
+
         ImGui::TreePop ();
       }
 

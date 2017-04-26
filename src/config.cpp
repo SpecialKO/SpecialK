@@ -249,6 +249,11 @@ struct {
     sk::ParameterBool*    hook_dinput8;
     sk::ParameterBool*    hook_hid;
     sk::ParameterBool*    hook_xinput;
+
+    struct {
+      sk::ParameterInt*  ui_slot;
+      sk::ParameterInt*  placeholders;
+    } xinput;
   } gamepad;
 } input;
 
@@ -583,17 +588,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"DisablePS4HID"
   );
 
-  input.gamepad.rehook_xinput =
-    static_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Re-install XInput hooks if the hook-chain is modified (wrapper compat).")
-      );
-  input.gamepad.rehook_xinput->register_to_ini (
-    dll_ini,
-      L"Input.Gamepad",
-        L"RehookXInput"
-  );
-
   input.gamepad.hook_dinput8 =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -602,8 +596,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   input.gamepad.hook_dinput8->register_to_ini (
     dll_ini,
       L"Input.Gamepad",
-        L"EnableDirectInput8"
-  );
+        L"EnableDirectInput8" );
 
   input.gamepad.hook_hid =
     static_cast <sk::ParameterBool *>
@@ -613,8 +606,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   input.gamepad.hook_hid->register_to_ini (
     dll_ini,
       L"Input.Gamepad",
-        L"EnableHID"
-  );
+        L"EnableHID" );
+
 
   input.gamepad.hook_xinput =
     static_cast <sk::ParameterBool *>
@@ -623,9 +616,38 @@ SK_LoadConfigEx (std::wstring name, bool create)
       );
   input.gamepad.hook_xinput->register_to_ini (
     dll_ini,
-      L"Input.Gamepad",
-        L"EnableXInput"
-  );
+      L"Input.XInput",
+        L"Enable" );
+
+  input.gamepad.rehook_xinput =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Re-install XInput hooks if the hook-chain is modified (wrapper compat).")
+      );
+  input.gamepad.rehook_xinput->register_to_ini (
+    dll_ini,
+      L"Input.XInput",
+        L"Rehook" );
+
+  input.gamepad.xinput.ui_slot =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"XInput Controller that owns the config UI.")
+      );
+  input.gamepad.xinput.ui_slot->register_to_ini (
+    dll_ini,
+      L"Input.XInput",
+        L"UISlot" );
+
+  input.gamepad.xinput.placeholders =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"XInput Controllers to Fake.")
+      );
+  input.gamepad.xinput.placeholders->register_to_ini (
+    dll_ini,
+      L"Input.XInput",
+        L"PlaceholderMask" );
 
 
   window.borderless =
@@ -2405,6 +2427,18 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (input.gamepad.hook_hid->load ())
     config.input.gamepad.hook_hid = input.gamepad.hook_hid->get_value ();
 
+  if (input.gamepad.xinput.placeholders->load ()) {
+    int placeholder_mask = input.gamepad.xinput.placeholders->get_value ();
+
+    config.input.gamepad.xinput.placehold [0] = ( placeholder_mask & 0x1 );
+    config.input.gamepad.xinput.placehold [1] = ( placeholder_mask & 0x2 );
+    config.input.gamepad.xinput.placehold [2] = ( placeholder_mask & 0x4 );
+    config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
+  }
+
+  if (input.gamepad.xinput.ui_slot->load ())
+    config.input.gamepad.xinput.ui_slot = input.gamepad.xinput.ui_slot->get_value ();
+
   if (window.borderless->load ()) {
     config.window.borderless = window.borderless->get_value ();
   }
@@ -2680,6 +2714,16 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.disable_ps4_hid->set_value    (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->set_value      (config.input.gamepad.rehook_xinput);
 
+  int placeholder_mask = 0x0;
+
+  placeholder_mask |= (config.input.gamepad.xinput.placehold [0] ? 0x1 : 0x0);
+  placeholder_mask |= (config.input.gamepad.xinput.placehold [1] ? 0x2 : 0x0);
+  placeholder_mask |= (config.input.gamepad.xinput.placehold [2] ? 0x4 : 0x0);
+  placeholder_mask |= (config.input.gamepad.xinput.placehold [3] ? 0x8 : 0x0);
+
+  input.gamepad.xinput.placeholders->set_value (placeholder_mask);
+  input.gamepad.xinput.ui_slot->set_value      (config.input.gamepad.xinput.ui_slot);
+
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
   window.background_render->set_value         (config.window.background_render);
@@ -2899,47 +2943,49 @@ SK_SaveConfig ( std::wstring name,
   monitoring.io.show->store               ();
   monitoring.io.interval->store           ();
 
-  monitoring.cpu.show->store              ();
-  monitoring.cpu.interval->store          ();
-  monitoring.cpu.simple->store            ();
+  monitoring.cpu.show->store               ();
+  monitoring.cpu.interval->store           ();
+  monitoring.cpu.simple->store             ();
 
-  monitoring.gpu.show->store              ();
-  monitoring.gpu.print_slowdown->store    ();
-  monitoring.gpu.interval->store          ();
+  monitoring.gpu.show->store               ();
+  monitoring.gpu.print_slowdown->store     ();
+  monitoring.gpu.interval->store           ();
 
-  monitoring.disk.show->store             ();
-  monitoring.disk.interval->store         ();
-  monitoring.disk.type->store             ();
+  monitoring.disk.show->store              ();
+  monitoring.disk.interval->store          ();
+  monitoring.disk.type->store              ();
 
-  monitoring.pagefile.show->store         ();
-  monitoring.pagefile.interval->store     ();
+  monitoring.pagefile.show->store          ();
+  monitoring.pagefile.interval->store      ();
 
-  input.cursor.manage->store              ();
-  input.cursor.keys_activate->store       ();
-  input.cursor.timeout->store             ();
-  input.cursor.ui_capture->store          ();
-  input.cursor.hw_cursor->store           ();
-  input.cursor.block_invisible->store     ();
-  input.cursor.no_warp_ui->store          ();
-  input.cursor.no_warp_visible->store     ();
+  input.cursor.manage->store               ();
+  input.cursor.keys_activate->store        ();
+  input.cursor.timeout->store              ();
+  input.cursor.ui_capture->store           ();
+  input.cursor.hw_cursor->store            ();
+  input.cursor.block_invisible->store      ();
+  input.cursor.no_warp_ui->store           ();
+  input.cursor.no_warp_visible->store      ();
 
-  input.gamepad.disable_ps4_hid->store    ();
-  input.gamepad.rehook_xinput->store      ();
+  input.gamepad.disable_ps4_hid->store     ();
+  input.gamepad.rehook_xinput->store       ();
+  input.gamepad.xinput.ui_slot->store      ();
+  input.gamepad.xinput.placeholders->store ();
 
-  window.borderless->store                ();
-  window.center->store                    ();
-  window.background_render->store         ();
-  window.background_mute->store           ();
-  window.offset.x->store                  ();
-  window.offset.y->store                  ();
-  window.confine_cursor->store            ();
-  window.unconfine_cursor->store          ();
-  window.persistent_drag->store           ();
-  window.fullscreen->store                ();
-  window.fix_mouse_coords->store          ();
-  window.override->store                  ();
+  window.borderless->store                 ();
+  window.center->store                     ();
+  window.background_render->store          ();
+  window.background_mute->store            ();
+  window.offset.x->store                   ();
+  window.offset.y->store                   ();
+  window.confine_cursor->store             ();
+  window.unconfine_cursor->store           ();
+  window.persistent_drag->store            ();
+  window.fullscreen->store                 ();
+  window.fix_mouse_coords->store           ();
+  window.override->store                   ();
 
-  nvidia.api.disable->store               ();
+  nvidia.api.disable->store                ();
 
   if (  SK_IsInjected ()                  || 
       ( SK_GetDLLRole () & DLL_ROLE::DXGI ||

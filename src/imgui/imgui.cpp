@@ -11712,7 +11712,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
   XINPUT_STATE state;
     static XINPUT_STATE last_state = { 0 };
 
-  if (SK_XInput_PollController (0, &state))
+  if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
   { 
     if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
          state.Gamepad.wButtons & XINPUT_GAMEPAD_START )
@@ -11749,6 +11749,18 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     else
       dwLastPress = MAXDWORD;
+
+
+    if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE )
+    {
+      if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE ) )
+      {
+        bool toggle = true,
+             nav    = (! nav_usable);
+
+        SK_ImGui_ToggleEx (toggle, nav);
+      }
+    }
   }
 
   else
@@ -11769,12 +11781,11 @@ SK_ImGui_PollGamepad (void)
   // io.MouseWheel : filled by WM_MOUSEWHEEL events
 
   XINPUT_STATE state;
-    static XINPUT_STATE last_state = { 0 };
 
   for (int i = 0; i < ImGuiNavInput_COUNT; i++)
     io.NavInputs [i] = 0.0f;
 
-  if (SK_XInput_PollController (0, &state))
+  if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
   {
     if (nav_usable)
     {
