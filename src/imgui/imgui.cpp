@@ -11484,8 +11484,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       SK_ImGui_Cursor.LocalToClient (&center);
 
       // Now test the cursor against the center of the screen
-      if ( abs (center.x - GET_X_LPARAM (lParam)) <= (center.x / 20) &&
-           abs (center.y - GET_Y_LPARAM (lParam)) <= (center.y / 20) )
+      if ( abs (center.x - GET_X_LPARAM (lParam)) <= (center.x / 30) &&
+           abs (center.y - GET_Y_LPARAM (lParam)) <= (center.y / 30) )
         filter = true;
 
       POINT local { GET_X_LPARAM (lParam),
