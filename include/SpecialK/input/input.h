@@ -149,7 +149,6 @@ typedef DWORD (WINAPI *XInputGetBatteryInformation_pfn)(
 );
 
 
-
 void SK_Input_HookDI8 (void);
 void SK_Input_HookHID (void);
 

@@ -41,6 +41,7 @@
 #include <SpecialK/sound.h>
 
 #include <SpecialK/diagnostics/debug_utils.h>
+#include <SpecialK/input/xinput_hotplug.h>
 
 #include <SpecialK/nvapi.h>
 
@@ -1286,16 +1287,42 @@ SK_ImGui_ControlPanel (void)
           ImGui::BeginTooltip  ();
             ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
             ImGui::Separator   ();
-            ImGui::BulletText  ("This is useful for stupid games like God Eater 2 that do not support hot-plugging in a sane way.");
-            ImGui::BulletText  ("Keep in mind, there is a performnace penalty for reading from controllers that are not connected -- stupid games also do this.");
+            ImGui::BulletText  ("Useful for stupid games like God Eater 2 that do not support hot-plugging in a sane way.");
+            ImGui::BulletText  ("Also reduces performance problems games cause themselves by trying to poll controllers that are not connected.");
           ImGui::EndTooltip    ();
         }
 
         ImGui::SameLine();
-        ImGui::Checkbox ("Slot 0", &config.input.gamepad.xinput.placehold [0]); ImGui::SameLine ();
-        ImGui::Checkbox ("Slot 1", &config.input.gamepad.xinput.placehold [1]); ImGui::SameLine ();
-        ImGui::Checkbox ("Slot 2", &config.input.gamepad.xinput.placehold [2]); ImGui::SameLine ();
-        ImGui::Checkbox ("Slot 3", &config.input.gamepad.xinput.placehold [3]);
+
+        auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex) ->
+             void
+             {
+               ImGui::Checkbox (szName, &config.input.gamepad.xinput.placehold [dwIndex]);
+
+               SK_XInput_PacketJournal journal =
+                 SK_XInput_GetPacketJournal (dwIndex);
+
+               if (ImGui::IsItemHovered ())
+               {
+                 ImGui::BeginTooltip ( );
+                  ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing" );
+                  ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
+                                         journal.sequence.last, journal.sequence.current );
+                  ImGui::Separator   ( );
+                  ImGui::Columns     (2, nullptr, 0);
+                  ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
+                  ImGui::Text        ("%+07lu", journal.packet_count.virt);        ImGui::NextColumn ();
+                  ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
+                  ImGui::Text        ("%+07lu", journal.packet_count.real);
+                  ImGui::Columns     (1);
+                 ImGui::EndTooltip   ( );
+               }
+             };
+
+        XInputPlaceholderCheckbox ("Slot 0", 0); ImGui::SameLine ();
+        XInputPlaceholderCheckbox ("Slot 1", 1); ImGui::SameLine ();
+        XInputPlaceholderCheckbox ("Slot 2", 2); ImGui::SameLine ();
+        XInputPlaceholderCheckbox ("Slot 3", 3);
 
         ImGui::TreePop ();
       }
@@ -1395,6 +1422,19 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePop        ();
         ImGui::EndGroup       ();
+
+#if 0
+        extern bool SK_DInput8_BlockWindowsKey (bool block);
+        extern bool SK_DInput8_HasKeyboard     (void);
+
+        if (SK_DInput8_HasKeyboard ())
+        {
+          if (ImGui::Checkbox ("Block Windows Key", &config.input.keyboard.block_windows_key))
+          {
+            config.input.keyboard.block_windows_key = SK_DInput8_BlockWindowsKey (config.input.keyboard.block_windows_key);
+          }
+        }
+#endif
 
         ImGui::TreePop        ();
       }

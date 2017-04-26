@@ -21,6 +21,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define DIRECTINPUT_VERSION 0x0800
 
+#define NOMINMAX
+
 #include <SpecialK/input/input.h>
 #include <SpecialK/window.h>
 #include <SpecialK/console.h>
@@ -50,6 +52,7 @@ SK_InputUtil_IsHWCursorVisible (void)
 }
 
 
+#define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
 
 extern bool SK_ImGui_Visible;
@@ -279,7 +282,7 @@ SK_Input_HookHID (void)
 }
 
 void
-SK_Input_PreeHookHID (void)
+SK_Input_PreHookHID (void)
 {
   if (! config.input.gamepad.hook_hid)
     return;
@@ -288,7 +291,7 @@ SK_Input_PreeHookHID (void)
 
   SK_TestImports (GetModuleHandle (nullptr), tests, 1);
 
-  if (tests [0].used)
+  if (tests [0].used)// || GetModuleHandle (L"hid.dll"))
   {
     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
                 L"   Input  " );
@@ -663,6 +666,31 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
   return hr;
 }
 
+bool
+SK_DInput8_HasKeyboard (void)
+{
+  return (_dik.pDev && IDirectInputDevice8_SetCooperativeLevel_Original);
+}
+bool
+SK_DInput8_BlockWindowsKey (bool block)
+{
+  DWORD dwFlags =
+    block ? DISCL_NOWINKEY : 0x0;
+
+  dwFlags &= ~DISCL_EXCLUSIVE;
+  dwFlags &= ~DISCL_BACKGROUND;
+
+  dwFlags |= DISCL_NONEXCLUSIVE;
+  dwFlags |= DISCL_FOREGROUND;
+
+  if (SK_DInput8_HasKeyboard ())
+    IDirectInputDevice8_SetCooperativeLevel_Original (_dik.pDev, game_window.hWnd, dwFlags);
+  else
+    return false;
+
+  return block;
+}
+
 //
 // TODO: Create a wrapper instead of flat hooks like this, this won't work when
 //         multiple hardware vendor devices are present.
@@ -716,8 +744,8 @@ IDirectInputDevice8_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE  This,
                                                  HWND                 hwnd,
                                                  DWORD                dwFlags )
 {
-  //if (config.input.block_windows)
-    //dwFlags |= DISCL_NOWINKEY;
+  if (config.input.keyboard.block_windows_key)
+    dwFlags |= DISCL_NOWINKEY;
 
 #if 0
   if (config.render.allow_background) {
@@ -789,14 +817,14 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
 
     MH_QueueEnableHook (vftable [9]);
 
-#if 0
-    SK_CreateFuncHook ( L"IDirectInputDevice8::SetCooperativeLevel",
-                         vftable [13],
-                         IDirectInputDevice8_SetCooperativeLevel_Detour,
-               (LPVOID*)&IDirectInputDevice8_SetCooperativeLevel_Original );
-
-    MH_QueueEnableHook (vftable [13]);
-#endif
+    if (rguid == GUID_SysKeyboard)
+    {
+      SK_CreateFuncHook ( L"IDirectInputDevice8::SetCooperativeLevel",
+                           vftable [13],
+                           IDirectInputDevice8_SetCooperativeLevel_Detour,
+                 (LPVOID*)&IDirectInputDevice8_SetCooperativeLevel_Original );
+      MH_QueueEnableHook (vftable [13]);
+    }
 
     MH_ApplyQueued ();
 
@@ -895,7 +923,7 @@ SK_Input_PreHookDI8 (void)
 
     SK_TestImports (GetModuleHandle (nullptr), tests, 2);
 
-    if (tests [0].used || tests [1].used)
+    if (tests [0].used || tests [1].used)// || GetModuleHandle (L"dinput8.dll"))
     {
       SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
                   L"   Input  " );
@@ -947,9 +975,6 @@ struct SK_XInputContext
     uint8_t                         orig_inst_set [64]                   =   { 0 };
     LPVOID                          orig_addr_set                        =     0  ;
 
-    //uint8_t              orig_inst_ex [64]         =   { 0 };
-    //LPVOID               orig_addr_ex              =     0  ;
-
     //
     // Extended stuff (XInput1_3 and XInput1_4 ONLY)
     //
@@ -962,187 +987,14 @@ struct SK_XInputContext
   } XInput1_3, XInput1_4, XInput9_1_0;
 
   instance_s* primary_hook;
-
-  struct {
-    static const DWORD RecheckInterval = 500UL;
-
-    bool  holding     = false;
-    DWORD last_polled = 0;
-  } placeholders [4];
 } xinput_ctx;
 
+#include <SpecialK/input/xinput_hotplug.h>
 
 extern bool
 SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState );
-
-// Throttles polling while no actual device is connected, because
-//   XInput polling failures are performance nightmares.
-DWORD
-SK_XInput_PlaceHold ( DWORD         dwRet,
-                      DWORD         dwUserIndex,
-                      XINPUT_STATE *pState )
-{
-  if ( dwRet == ERROR_DEVICE_NOT_CONNECTED &&
-       config.input.gamepad.xinput.placehold [dwUserIndex] )
-  {
-    if (! xinput_ctx.placeholders [dwUserIndex].holding) {
-      xinput_ctx.placeholders [dwUserIndex].last_polled = timeGetTime ();
-
-      xinput_ctx.placeholders [dwUserIndex].holding =
-        true;//(! SK_XInput_PollController (dwUserIndex, pState));
-    }
-
-    else
-    {
-      if ( xinput_ctx.placeholders [dwUserIndex].last_polled <
-           timeGetTime () - xinput_ctx.placeholders [dwUserIndex].RecheckInterval )
-      {
-        // Re-check the next time this controller is polled
-        xinput_ctx.placeholders [dwUserIndex].holding = false;
-      }
-    }
-
-    dwRet = ERROR_SUCCESS;
-
-    //if (xinput_ctx.placeholders [dwUserIndex].holding)
-    {
-      static int fake_packet [4] = { 0 };
-
-      fake_packet [dwUserIndex]++;
-
-      ZeroMemory (pState, sizeof XINPUT_STATE);
-
-      pState->dwPacketNumber = fake_packet [dwUserIndex];
-    }
-  }
-
-  return dwRet;
-}
-
-DWORD
-SK_XInput_PlaceHoldEx ( DWORD            dwRet,
-                        DWORD            dwUserIndex,
-                        XINPUT_STATE_EX *pState )
-{
-  return SK_XInput_PlaceHold ( dwRet, dwUserIndex, (XINPUT_STATE *)pState );
-}
-
-DWORD
-SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
-                          DWORD                dwUserIndex,
-                          DWORD                dwFlags,
-                          XINPUT_CAPABILITIES *pCapabilities )
-{
-  if ( dwRet == ERROR_DEVICE_NOT_CONNECTED &&
-       config.input.gamepad.xinput.placehold [dwUserIndex] )
-  {
-    if (! xinput_ctx.placeholders [dwUserIndex].holding) {
-      xinput_ctx.placeholders [dwUserIndex].last_polled = timeGetTime ();
-
-      xinput_ctx.placeholders [dwUserIndex].holding =
-        true;//(! SK_XInput_PollController (dwUserIndex));
-    }
-
-    else
-    {
-      if ( xinput_ctx.placeholders [dwUserIndex].last_polled <
-           timeGetTime () - xinput_ctx.placeholders [dwUserIndex].RecheckInterval )
-      {
-        // Re-check the next time this controller is polled
-        xinput_ctx.placeholders [dwUserIndex].holding = false;
-      }
-    }
-
-    dwRet = ERROR_SUCCESS;
-
-    //if (xinput_ctx.placeholders [dwUserIndex].holding)
-    {
-      ZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
-
-      pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
-      pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
-      pCapabilities->Flags   = XINPUT_CAPS_FFB_SUPPORTED;
-    }
-  }
-
-  return dwRet;
-}
-
-DWORD
-SK_XInput_PlaceHoldBattery ( DWORD                       dwRet,
-                             DWORD                       dwUserIndex,
-                             BYTE                        devType,
-                             XINPUT_BATTERY_INFORMATION *pBatteryInformation )
-{
-  if ( dwRet == ERROR_DEVICE_NOT_CONNECTED &&
-       config.input.gamepad.xinput.placehold [dwUserIndex] )
-  {
-    if (! xinput_ctx.placeholders [dwUserIndex].holding) {
-      xinput_ctx.placeholders [dwUserIndex].last_polled = timeGetTime ();
-
-      xinput_ctx.placeholders [dwUserIndex].holding =
-        true;//(! SK_XInput_PollController (dwUserIndex));
-    }
-
-    else
-    {
-      if ( xinput_ctx.placeholders [dwUserIndex].last_polled <
-           timeGetTime () - xinput_ctx.placeholders [dwUserIndex].RecheckInterval )
-      {
-        // Re-check the next time this controller is polled
-        xinput_ctx.placeholders [dwUserIndex].holding = false;
-      }
-    }
-
-    dwRet = ERROR_SUCCESS;
-
-    //if (xinput_ctx.placeholders [dwUserIndex].holding)
-    {
-      pBatteryInformation->BatteryType  = BATTERY_TYPE_WIRED;
-      pBatteryInformation->BatteryLevel = BATTERY_LEVEL_FULL;
-    }
-  }
-
-  return dwRet;
-}
-
-DWORD
-SK_XInput_PlaceHoldSet ( DWORD             dwRet,
-                         DWORD             dwUserIndex,
-                         XINPUT_VIBRATION *pVibration )
-{
-  if ( dwRet == ERROR_DEVICE_NOT_CONNECTED &&
-       config.input.gamepad.xinput.placehold [dwUserIndex] )
-  {
-    if (! xinput_ctx.placeholders [dwUserIndex].holding) {
-      xinput_ctx.placeholders [dwUserIndex].last_polled = timeGetTime ();
-
-      xinput_ctx.placeholders [dwUserIndex].holding = true;
-        //(! SK_XInput_PollController (dwUserIndex));
-    }
-
-    else
-    {
-      if ( xinput_ctx.placeholders [dwUserIndex].last_polled <
-           timeGetTime () - xinput_ctx.placeholders [dwUserIndex].RecheckInterval )
-      {
-        // Re-check the next time this controller is polled
-        xinput_ctx.placeholders [dwUserIndex].holding = false;
-      }
-    }
-
-    dwRet = ERROR_SUCCESS;
-
-    //if (xinput_ctx.placeholders [dwUserIndex].holding) {
-      //pVibration->wLeftMotorSpeed  = 0;
-      //pVibration->wRightMotorSpeed = 0;
-    //}
-  }
-
-  return dwRet;
-}
 
 DWORD
 WINAPI
@@ -1156,14 +1008,15 @@ XInputGetState1_3_Detour (
     &xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original (dwUserIndex, pState);
+    pCtx->XInputGetState_Original   (dwUserIndex, pState);
 
-    SK_ImGui_FilterXInput         (dwUserIndex, pState);
+    SK_ImGui_FilterXInput           (dwUserIndex, pState);
+  SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
 
   dwRet =
-    SK_XInput_PlaceHold    (dwRet, dwUserIndex, pState);
+    SK_XInput_PlaceHold      (dwRet, dwUserIndex, pState);
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -1184,14 +1037,15 @@ XInputGetStateEx1_3_Detour (
     &xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetStateEx_Original (dwUserIndex, pState);
+    pCtx->XInputGetStateEx_Original   (dwUserIndex, pState);
 
-    SK_ImGui_FilterXInput           (dwUserIndex, (XINPUT_STATE *)pState);
+    SK_ImGui_FilterXInput             (dwUserIndex, (XINPUT_STATE *)pState);
+    SK_XInput_PacketJournalize (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
 
   dwRet =
-    SK_XInput_PlaceHoldEx    (dwRet, dwUserIndex, pState);
+    SK_XInput_PlaceHoldEx      (dwRet, dwUserIndex, pState);
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -1213,7 +1067,7 @@ XInputGetCapabilities1_3_Detour (
     &xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
 
@@ -1238,7 +1092,7 @@ XInputGetBatteryInformation1_3_Detour (
     &xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation);
 
@@ -1262,7 +1116,7 @@ XInputSetState1_3_Detour (
     &xinput_ctx.XInput1_3;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputSetState_Original (dwUserIndex, pVibration);
 
@@ -1287,14 +1141,15 @@ XInputGetState1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original (dwUserIndex, pState);
+    pCtx->XInputGetState_Original   (dwUserIndex, pState);
 
-    SK_ImGui_FilterXInput         (dwUserIndex, pState);
+    SK_ImGui_FilterXInput           (dwUserIndex, pState);
+  SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
 
   dwRet =
-    SK_XInput_PlaceHold    (dwRet, dwUserIndex, pState);
+    SK_XInput_PlaceHold      (dwRet, dwUserIndex, pState);
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -1315,14 +1170,15 @@ XInputGetStateEx1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetStateEx_Original (dwUserIndex, pState);
+    pCtx->XInputGetStateEx_Original        (dwUserIndex, pState);
 
-    SK_ImGui_FilterXInput           (dwUserIndex, (XINPUT_STATE *)pState);
+    SK_ImGui_FilterXInput           (       dwUserIndex, (XINPUT_STATE *)pState);
+    SK_XInput_PacketJournalize      (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
 
   dwRet =
-    SK_XInput_PlaceHoldEx    (dwRet, dwUserIndex, pState);
+    SK_XInput_PlaceHoldEx           (dwRet, dwUserIndex, pState);
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -1344,7 +1200,7 @@ XInputGetCapabilities1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
 
@@ -1369,7 +1225,7 @@ XInputGetBatteryInformation1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation);
 
@@ -1393,7 +1249,7 @@ XInputSetState1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputSetState_Original (dwUserIndex, pVibration);
 
@@ -1418,14 +1274,15 @@ XInputGetState9_1_0_Detour (
     &xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetState_Original (dwUserIndex, pState);
+    pCtx->XInputGetState_Original   (dwUserIndex, pState);
 
-    SK_ImGui_FilterXInput         (dwUserIndex, pState);
+    SK_ImGui_FilterXInput           (dwUserIndex, pState);
+  SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
 
   dwRet =
-    SK_XInput_PlaceHold    (dwRet, dwUserIndex, pState);
+    SK_XInput_PlaceHold      (dwRet, dwUserIndex, pState);
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
@@ -1447,37 +1304,12 @@ XInputGetCapabilities9_1_0_Detour (
     &xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities);
 
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
-
-  xinput_ctx.primary_hook = pCtx;
-
-  return dwRet;
-}
-
-DWORD
-WINAPI
-XInputGetBatteryInformation9_1_0_Detour (
-  _In_  DWORD                       dwUserIndex,
-  _In_  BYTE                        devType,
-  _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
-{
-  SK_LOG_FIRST_CALL
-
-  SK_XInputContext::instance_s* pCtx =
-    &xinput_ctx.XInput9_1_0;
-
-  DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
-      ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation);
-
-  dwRet =
-    SK_XInput_PlaceHoldBattery (dwRet, dwUserIndex, devType, pBatteryInformation);
 
   xinput_ctx.primary_hook = pCtx;
 
@@ -1496,7 +1328,7 @@ XInputSetState9_1_0_Detour (
     &xinput_ctx.XInput9_1_0;
 
   DWORD dwRet =
-    xinput_ctx.placeholders [dwUserIndex].holding ?
+    SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
     pCtx->XInputSetState_Original (dwUserIndex, pVibration);
 
@@ -1542,30 +1374,34 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
   pCtx->orig_addr_batt = SK_GetProcAddress (pCtx->wszModuleName, "XInputGetBatteryInformation");
 
+  // Down-level (XInput 9_1_0) does not have XInputGetBatteryInformation
+  //
   if (pCtx->orig_addr_batt != nullptr)
+  {
     memcpy (pCtx->orig_inst_batt, pCtx->orig_addr_batt, 64);
 
-  SK_CreateDLLHook2 ( pCtx->wszModuleName,
-                       "XInputGetBatteryInformation",
-                       pCtx->XInputGetBatteryInformation_Detour,
-            (LPVOID *)&pCtx->XInputGetBatteryInformation_Original,
-            (LPVOID *)&pCtx->XInputGetBatteryInformation_Target );
+    SK_CreateDLLHook2 ( pCtx->wszModuleName,
+                         "XInputGetBatteryInformation",
+                         pCtx->XInputGetBatteryInformation_Detour,
+              (LPVOID *)&pCtx->XInputGetBatteryInformation_Original,
+              (LPVOID *)&pCtx->XInputGetBatteryInformation_Target );
 
-  MH_QueueEnableHook (pCtx->XInputGetBatteryInformation_Target);
+    MH_QueueEnableHook (pCtx->XInputGetBatteryInformation_Target);
 
 
-  pCtx->orig_addr_set = SK_GetProcAddress (pCtx->wszModuleName, "XInputSetState");
+    pCtx->orig_addr_set = SK_GetProcAddress (pCtx->wszModuleName, "XInputSetState");
 
-  if (pCtx->orig_addr_set != nullptr)
-    memcpy (pCtx->orig_inst_set, pCtx->orig_addr_set, 64);
+    if (pCtx->orig_addr_set != nullptr)
+      memcpy (pCtx->orig_inst_set, pCtx->orig_addr_set, 64);
 
-  SK_CreateDLLHook2 ( pCtx->wszModuleName,
-                       "XInputSetState",
-                       pCtx->XInputSetState_Detour,
-            (LPVOID *)&pCtx->XInputSetState_Original,
-            (LPVOID *)&pCtx->XInputSetState_Target );
+    SK_CreateDLLHook2 ( pCtx->wszModuleName,
+                         "XInputSetState",
+                         pCtx->XInputSetState_Detour,
+              (LPVOID *)&pCtx->XInputSetState_Original,
+              (LPVOID *)&pCtx->XInputSetState_Target );
 
-  MH_QueueEnableHook (pCtx->XInputSetState_Target);
+    MH_QueueEnableHook (pCtx->XInputSetState_Target);
+  }
 
 
   pCtx->orig_addr_ex = SK_GetProcAddress (pCtx->wszModuleName, XINPUT_GETSTATEEX_ORDINAL);
@@ -1665,7 +1501,7 @@ SK_Input_HookXInput9_1_0 (void)
     pCtx->XInputGetStateEx_Detour            = nullptr; // Not supported
     pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities9_1_0_Detour;
     pCtx->XInputSetState_Detour              = XInputSetState9_1_0_Detour;
-    pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation9_1_0_Detour;
+    pCtx->XInputGetBatteryInformation_Detour = nullptr; // Not supported
 
     SK_Input_HookXInputContext (pCtx);
 
@@ -1702,13 +1538,13 @@ SK_XInput_RehookIfNeeded (void)
     if ( MH_OK == MH_RemoveHook (pCtx->XInputGetState_Target) )
     {
       if ( MH_OK ==
-             SK_CreateDLLHook ( pCtx->wszModuleName, "XInputGetState",
+             SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputGetState",
                                   pCtx->XInputGetState_Detour,
                        (LPVOID *)&pCtx->XInputGetState_Original,
                        (LPVOID *)&pCtx->XInputGetState_Target )
          )
       {
-        MH_EnableHook (pCtx->XInputGetState_Target);
+        MH_QueueEnableHook (pCtx->XInputGetState_Target);
 
         SK_LOG0 ( ( L" Re-hooked XInput using '%s'...",
                        pCtx->wszModuleName ),
@@ -1755,13 +1591,13 @@ SK_XInput_RehookIfNeeded (void)
     if ( MH_OK == MH_RemoveHook (pCtx->XInputSetState_Target) )
     {
       if ( MH_OK ==
-             SK_CreateDLLHook ( pCtx->wszModuleName, "XInputSetState",
+             SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputSetState",
                                   pCtx->XInputSetState_Detour,
                        (LPVOID *)&pCtx->XInputSetState_Original,
                        (LPVOID *)&pCtx->XInputSetState_Target )
          )
       {
-        MH_EnableHook (pCtx->XInputSetState_Target);
+        MH_QueueEnableHook (pCtx->XInputSetState_Target);
 
         SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
                        pCtx->wszModuleName ),
@@ -1808,13 +1644,13 @@ SK_XInput_RehookIfNeeded (void)
     if ( MH_OK == MH_RemoveHook (pCtx->XInputGetCapabilities_Target) )
     {
       if ( MH_OK ==
-             SK_CreateDLLHook ( pCtx->wszModuleName, "XInputGetCapabilities",
+             SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputGetCapabilities",
                                   pCtx->XInputGetCapabilities_Detour,
                        (LPVOID *)&pCtx->XInputGetCapabilities_Original,
                        (LPVOID *)&pCtx->XInputGetCapabilities_Target )
          )
       {
-        MH_EnableHook (pCtx->XInputGetCapabilities_Target);
+        MH_QueueEnableHook (pCtx->XInputGetCapabilities_Target);
 
         SK_LOG0 ( ( L" Re-hooked XInput (Caps) using '%s'...",
                        pCtx->wszModuleName ),
@@ -1847,55 +1683,59 @@ SK_XInput_RehookIfNeeded (void)
   }
 
 
-  ret =
-    MH_EnableHook (pCtx->XInputGetBatteryInformation_Target);
-
-
-  // Test for modified hooks
-  if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                 ( pCtx->orig_addr_batt != 0 &&
-           memcmp (pCtx->orig_inst_batt,
-                   pCtx->orig_addr_batt, 64 ) )
-     )
+  // XInput9_1_0 won't have this, so skip it.
+  if (pCtx->XInputGetBatteryInformation_Target != nullptr)
   {
-    if ( MH_OK == MH_RemoveHook (pCtx->XInputGetBatteryInformation_Target) )
+    ret =
+      MH_EnableHook (pCtx->XInputGetBatteryInformation_Target);
+
+
+    // Test for modified hooks
+    if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
+                   ( pCtx->orig_addr_batt != 0 &&
+             memcmp (pCtx->orig_inst_batt,
+                     pCtx->orig_addr_batt, 64 ) )
+       )
     {
-      if ( MH_OK ==
-             SK_CreateDLLHook ( pCtx->wszModuleName, "XInputGetBatteryInformation",
-                                  pCtx->XInputGetBatteryInformation_Detour,
-                       (LPVOID *)&pCtx->XInputGetBatteryInformation_Original,
-                       (LPVOID *)&pCtx->XInputGetBatteryInformation_Target )
-         )
+      if ( MH_OK == MH_RemoveHook (pCtx->XInputGetBatteryInformation_Target) )
       {
-        MH_EnableHook (pCtx->XInputGetBatteryInformation_Target);
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputGetBatteryInformation",
+                                    pCtx->XInputGetBatteryInformation_Detour,
+                         (LPVOID *)&pCtx->XInputGetBatteryInformation_Original,
+                         (LPVOID *)&pCtx->XInputGetBatteryInformation_Target )
+           )
+        {
+          MH_QueueEnableHook (pCtx->XInputGetBatteryInformation_Target);
 
-        SK_LOG0 ( ( L" Re-hooked XInput (Battery) using '%s'...",
-                       pCtx->wszModuleName ),
-                    L"Input Mgr." );
+          SK_LOG0 ( ( L" Re-hooked XInput (Battery) using '%s'...",
+                         pCtx->wszModuleName ),
+                      L"Input Mgr." );
 
-        memcpy (pCtx->orig_inst_batt, pCtx->orig_addr_batt, 64);
+          memcpy (pCtx->orig_inst_batt, pCtx->orig_addr_batt, 64);
 
-        if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
-          xinput_ctx.XInput1_3 = *pCtx;
-        if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
-          xinput_ctx.XInput1_4 = *pCtx;
-        if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
-          xinput_ctx.XInput9_1_0 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
+            xinput_ctx.XInput1_3 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
+            xinput_ctx.XInput1_4 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
+            xinput_ctx.XInput9_1_0 = *pCtx;
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L" Failed to re-hook XInput (Battery) using '%s'...",
+                 pCtx->wszModuleName ),
+              L"Input Mgr." );
+        }
       }
 
       else
       {
-        SK_LOG0 ( ( L" Failed to re-hook XInput (Battery) using '%s'...",
+        SK_LOG0 ( ( L" Failed to remove XInput (Battery) hook from '%s'...",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
-    }
-
-    else
-    {
-      SK_LOG0 ( ( L" Failed to remove XInput (Battery) hook from '%s'...",
-             pCtx->wszModuleName ),
-          L"Input Mgr." );
     }
   }
 
@@ -1916,13 +1756,13 @@ SK_XInput_RehookIfNeeded (void)
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetStateEx_Target) )
       {
         if ( MH_OK ==
-               SK_CreateDLLHook ( pCtx->wszModuleName, XINPUT_GETSTATEEX_ORDINAL,
+               SK_CreateDLLHook2 (  pCtx->wszModuleName, XINPUT_GETSTATEEX_ORDINAL,
                                     pCtx->XInputGetStateEx_Detour,
                          (LPVOID *)&pCtx->XInputGetStateEx_Original,
                          (LPVOID *)&pCtx->XInputGetStateEx_Target )
            )
         {
-          MH_EnableHook (pCtx->XInputGetStateEx_Target);
+          MH_QueueEnableHook (pCtx->XInputGetStateEx_Target);
 
           SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",
                          pCtx->wszModuleName ),
@@ -1954,6 +1794,8 @@ SK_XInput_RehookIfNeeded (void)
       }
     }
   }
+
+  MH_ApplyQueued ();
 }
 
 bool
@@ -2831,7 +2673,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 
 
 
-
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
@@ -2888,6 +2729,10 @@ void SK_Input_PreInit (void)
                      GetRawInputBuffer_Detour,
            (LPVOID*)&GetRawInputBuffer_Original );
 #endif
+
+  if (config.input.gamepad.hook_xinput)
+    SK_XInput_InitHotPlugHooks ();
+
   MH_ApplyQueued ();
 }
 
@@ -2895,7 +2740,7 @@ void SK_Input_PreInit (void)
 void
 SK_Input_Init (void)
 {
-  SK_Input_PreeHookHID   ();
+  SK_Input_PreHookHID    ();
   SK_Input_PreHookDI8    ();
   SK_Input_PreHookXInput ();
 

@@ -495,7 +495,7 @@
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;glew\Win32\glew.lib;%(AdditionalDependencies);d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;glew\Win32\glew.lib;%(AdditionalDependencies);C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\d3dcompiler.lib</AdditionalDependencies>
       <ImportLibrary />
       <AssemblyDebug>true</AssemblyDebug>
       <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
@@ -1327,6 +1327,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\import.h" />
     <ClInclude Include="include\SpecialK\ini.h" />
     <ClInclude Include="include\SpecialK\input\input.h" />
+    <ClInclude Include="include\SpecialK\input\xinput_hotplug.h" />
     <ClInclude Include="include\SpecialK\io_monitor.h" />
     <ClInclude Include="include\SpecialK\log.h" />
     <ClInclude Include="include\SpecialK\memory_monitor.h" />
@@ -1578,6 +1579,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\input\input.cpp" />
+    <ClCompile Include="src\input\xinput_hotplug.cpp" />
     <ClCompile Include="src\osd\popup.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>

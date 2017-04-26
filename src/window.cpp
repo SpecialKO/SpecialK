@@ -2442,6 +2442,8 @@ ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 extern void    ImGui_ImplDX11_InvalidateDeviceObjects (void);
 extern bool    ImGui_ImplDX11_CreateDeviceObjects     (void);
 
+#include <dbt.h>
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -2523,7 +2525,41 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (uMsg == WM_INPUT)
       return game_window.DefProc (uMsg, wParam, lParam);
 
-    return result;
+    return 0;//result;
+  }
+
+  if (uMsg == WM_DEVICECHANGE)
+  {
+    switch (wParam)
+    {
+      case DBT_DEVICEARRIVAL:
+      {
+        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
+
+        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+          dll_log.Log (L"[Input Mgr.]  (Input Device Connected)");
+        }
+      } break;
+
+      case DBT_DEVICEQUERYREMOVE:
+      case DBT_DEVICEREMOVEPENDING:
+      case DBT_DEVICEREMOVECOMPLETE:
+      {
+        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
+
+        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+          dll_log.Log (L"[Input Mgr.]  (Input Device Disconnected)");
+
+          if ( config.input.gamepad.xinput.placehold [0] || 
+               config.input.gamepad.xinput.placehold [1] || 
+               config.input.gamepad.xinput.placehold [2] || 
+               config.input.gamepad.xinput.placehold [3] )
+          {
+            return 0;
+          }
+        }
+      } break;
+    }
   }
 
 

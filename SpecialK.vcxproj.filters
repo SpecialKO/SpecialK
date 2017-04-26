@@ -124,6 +124,12 @@
     <Filter Include="Source Files\Backends\Update">
       <UniqueIdentifier>{6c9ee774-936a-4832-8a8a-c4cbf5b9a6f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Input">
+      <UniqueIdentifier>{254711e3-28ff-4fbd-8175-fa18b5b6a352}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input">
+      <UniqueIdentifier>{72c67e28-e403-4857-b012-3e8c3d5987cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -301,7 +307,10 @@
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\input\input.h">
-      <Filter>Header Files\Backends</Filter>
+      <Filter>Header Files\Backends\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\input\xinput_hotplug.h">
+      <Filter>Header Files\Backends\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -456,7 +465,10 @@
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends</Filter>
+      <Filter>Source Files\Backends\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\xinput_hotplug.cpp">
+      <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

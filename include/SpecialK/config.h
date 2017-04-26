@@ -334,6 +334,10 @@ struct sk_config_t
         bool  placehold [4]     = { false };
       } xinput;
     } gamepad;
+
+    struct {
+      bool    block_windows_key = false;
+    } keyboard;
   } input;
 
   struct {
