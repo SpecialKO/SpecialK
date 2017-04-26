@@ -11465,7 +11465,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       bool filter = false;
 
       static POINTS last_pos;
-      const short   threshold    = 3;
+      const short   threshold    = 1;
       const float   smooth_range = 0.0f;
             bool    smooth       = false;
 
@@ -11474,8 +11474,18 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       //   This does create a weird deadzone in the center of the screen,
       //     but most people will not notice ;)
       //
-      if ( abs (last_pos.x - GET_X_LPARAM (lParam)) < threshold &&
-           abs (last_pos.y - GET_Y_LPARAM (lParam)) < threshold )
+      if ( abs (last_pos.x - GET_X_LPARAM (lParam)) <= threshold &&
+           abs (last_pos.y - GET_Y_LPARAM (lParam)) <= threshold )
+        filter = true;
+
+      POINT center { ImGui::GetIO ().DisplaySize.x / 2,
+                     ImGui::GetIO ().DisplaySize.y / 2 };
+
+      SK_ImGui_Cursor.LocalToClient (&center);
+
+      // Now test the cursor against the center of the screen
+      if ( abs (center.x - GET_X_LPARAM (lParam)) <= (center.x / 20) &&
+           abs (center.y - GET_Y_LPARAM (lParam)) <= (center.y / 20) )
         filter = true;
 
       POINT local { GET_X_LPARAM (lParam),
@@ -11484,11 +11494,10 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       last_pos.x = local.x;
       last_pos.y = local.y;
 
-      SK_ImGui_Cursor.ClientToLocal (&local);
+      //SK_ImGui_Cursor.ClientToLocal (&local);
 
-      SK_ImGui_Cursor.orig_pos.x = local.x;
-      SK_ImGui_Cursor.orig_pos.y = local.y;
-
+      //SK_ImGui_Cursor.orig_pos.x = local.x;
+      //SK_ImGui_Cursor.orig_pos.y = local.y;
 
       // Dispose Without Processing
       if (filter)
@@ -11663,8 +11672,13 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  if (SK_ImGui_WantGamepadCapture ()) {
-    ZeroMemory (pState, sizeof XINPUT_STATE);
+  if (SK_ImGui_WantGamepadCapture ())
+  {
+    ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
+
+    // SDL Keepalive
+    pState->dwPacketNumber = std::max (1UL, pState->dwPacketNumber);
+
     return true;
   }
 
@@ -11709,8 +11723,8 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 void
 SK_ImGui_PollGamepad_EndFrame (void)
 {
-  XINPUT_STATE state;
-    static XINPUT_STATE last_state = { 0 };
+         XINPUT_STATE state;
+  static XINPUT_STATE last_state = { 1, 0 };
 
   if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
   { 
@@ -11749,22 +11763,10 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     else
       dwLastPress = MAXDWORD;
-
-
-    if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE )
-    {
-      if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE ) )
-      {
-        bool toggle = true,
-             nav    = (! nav_usable);
-
-        SK_ImGui_ToggleEx (toggle, nav);
-      }
-    }
   }
 
   else
-    ZeroMemory (&state, sizeof XINPUT_STATE);
+    ZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
 
   last_state = state;
 }
@@ -11789,22 +11791,22 @@ SK_ImGui_PollGamepad (void)
   {
     if (nav_usable)
     {
-      io.NavInputs [ImGuiNavInput_PadActivate]    += state.Gamepad.wButtons & XINPUT_GAMEPAD_A;            // press button, tweak value                    // e.g. Circle button
-      io.NavInputs [ImGuiNavInput_PadCancel]      += state.Gamepad.wButtons & XINPUT_GAMEPAD_B;            // close menu/popup/child, lose selection       // e.g. Cross button
-      io.NavInputs [ImGuiNavInput_PadInput]       += state.Gamepad.wButtons & XINPUT_GAMEPAD_Y;            // text input                                   // e.g. Triangle button
-      io.NavInputs [ImGuiNavInput_PadMenu]        += state.Gamepad.wButtons & XINPUT_GAMEPAD_X;            // access menu, focus, move, resize             // e.g. Square button
-      io.NavInputs [ImGuiNavInput_PadUp]          += state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;      // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]        += state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;    // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]        += state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;    // move left
-      io.NavInputs [ImGuiNavInput_PadRight]       += state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;   // move right
+      io.NavInputs [ImGuiNavInput_PadActivate]    += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_A);            // press button, tweak value                    // e.g. Circle button
+      io.NavInputs [ImGuiNavInput_PadCancel]      += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_B);            // close menu/popup/child, lose selection       // e.g. Cross button
+      io.NavInputs [ImGuiNavInput_PadInput]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_Y);            // text input                                   // e.g. Triangle button
+      io.NavInputs [ImGuiNavInput_PadMenu]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_X);            // access menu, focus, move, resize             // e.g. Square button
+      io.NavInputs [ImGuiNavInput_PadUp]          += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);      // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
+      io.NavInputs [ImGuiNavInput_PadDown]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN);    // move down
+      io.NavInputs [ImGuiNavInput_PadLeft]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT);    // move left
+      io.NavInputs [ImGuiNavInput_PadRight]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);   // move right
 
       io.NavInputs [ImGuiNavInput_PadScrollUp]    += std::max (0.0f, (float)state.Gamepad.sThumbLY /  32767.0f) / analog_sensitivity;
       io.NavInputs [ImGuiNavInput_PadScrollDown]  += std::max (0.0f, (float)state.Gamepad.sThumbLY / -32768.0f) / analog_sensitivity;
       io.NavInputs [ImGuiNavInput_PadScrollLeft]  += std::max (0.0f, (float)state.Gamepad.sThumbLX / -32768.0f) / analog_sensitivity;
       io.NavInputs [ImGuiNavInput_PadScrollRight] += std::max (0.0f, (float)state.Gamepad.sThumbLX /  32767.0f) / analog_sensitivity;
 
-      io.NavInputs [ImGuiNavInput_PadFocusPrev]   += state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;   // next window (with PadMenu held)              // e.g. L-trigger
-      io.NavInputs [ImGuiNavInput_PadFocusNext]   += state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;   // prev window (with PadMenu held)              // e.g. R-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusPrev]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);   // next window (with PadMenu held)              // e.g. L-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusNext]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);   // prev window (with PadMenu held)              // e.g. R-trigger
     }
   }
 

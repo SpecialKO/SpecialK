@@ -2523,9 +2523,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (result != 0)
   {
     if (uMsg == WM_INPUT)
-      return game_window.DefProc (uMsg, wParam, lParam);
+      return 0;//game_window.DefProc (uMsg, wParam, lParam);
 
-    return 0;//result;
+    return 1;
   }
 
   if (uMsg == WM_DEVICECHANGE)
@@ -2536,8 +2536,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
 
-        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
-          dll_log.Log (L"[Input Mgr.]  (Input Device Connected)");
+        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+        {
+          if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+               config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+          {
+            dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
+            return 1;
+          }
         }
       } break;
 
@@ -2547,15 +2553,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
 
-        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
-          dll_log.Log (L"[Input Mgr.]  (Input Device Disconnected)");
-
-          if ( config.input.gamepad.xinput.placehold [0] || 
-               config.input.gamepad.xinput.placehold [1] || 
-               config.input.gamepad.xinput.placehold [2] || 
-               config.input.gamepad.xinput.placehold [3] )
+        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+        {
+          if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+               config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
           {
-            return 0;
+            dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
+            return BROADCAST_QUERY_DENY;//game_window.DefProc (uMsg, wParam, lParam);
           }
         }
       } break;
@@ -3231,7 +3235,6 @@ SK_InstallWindowHook (HWND hWnd)
     //else
       //SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
-#if 0
     if (game_window.unicode) {
       DWORD dwStyle = GetClassLongW (hWnd, GCL_STYLE);
       dwStyle &= (~CS_DBLCLKS);
@@ -3242,7 +3245,6 @@ SK_InstallWindowHook (HWND hWnd)
       dwStyle &= (~CS_DBLCLKS);
       SetClassLongA ( hWnd, GCL_STYLE, dwStyle );
     }
-#endif
 
     game_window.hooked = false;
   }

@@ -984,9 +984,9 @@ struct SK_XInputContext
 
     uint8_t                         orig_inst_ex [64]                    =   { 0 };
     LPVOID                          orig_addr_ex                         =     0  ;
-  } XInput1_3, XInput1_4, XInput9_1_0;
+  } XInput1_3 { 0 }, XInput1_4 { 0 }, XInput9_1_0 { 0 };
 
-  instance_s* primary_hook;
+  instance_s* primary_hook = nullptr;
 } xinput_ctx;
 
 #include <SpecialK/input/xinput_hotplug.h>
@@ -1346,9 +1346,6 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 {
   pCtx->orig_addr = SK_GetProcAddress (pCtx->wszModuleName, "XInputGetState");
 
-  if (pCtx->orig_addr != nullptr)
-    memcpy (pCtx->orig_inst, pCtx->orig_addr, 64);
-
   SK_CreateDLLHook2 ( pCtx->wszModuleName,
                        "XInputGetState",
                        pCtx->XInputGetState_Detour,
@@ -1359,9 +1356,6 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
 
   pCtx->orig_addr_caps = SK_GetProcAddress (pCtx->wszModuleName, "XInputGetCapabilities");
-
-  if (pCtx->orig_addr_caps != nullptr)
-    memcpy (pCtx->orig_inst_caps, pCtx->orig_addr_caps, 64);
 
   SK_CreateDLLHook2 ( pCtx->wszModuleName,
                        "XInputGetCapabilities",
@@ -1378,8 +1372,6 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
   //
   if (pCtx->orig_addr_batt != nullptr)
   {
-    memcpy (pCtx->orig_inst_batt, pCtx->orig_addr_batt, 64);
-
     SK_CreateDLLHook2 ( pCtx->wszModuleName,
                          "XInputGetBatteryInformation",
                          pCtx->XInputGetBatteryInformation_Detour,
@@ -1390,9 +1382,6 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
 
     pCtx->orig_addr_set = SK_GetProcAddress (pCtx->wszModuleName, "XInputSetState");
-
-    if (pCtx->orig_addr_set != nullptr)
-      memcpy (pCtx->orig_inst_set, pCtx->orig_addr_set, 64);
 
     SK_CreateDLLHook2 ( pCtx->wszModuleName,
                          "XInputSetState",
@@ -1410,8 +1399,6 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
   //
   if (pCtx->orig_addr_ex != nullptr)
   {
-    memcpy (pCtx->orig_inst_ex, pCtx->orig_addr_ex, 64);
-
     SK_CreateDLLHook2 ( pCtx->wszModuleName,
                          XINPUT_GETSTATEEX_ORDINAL,
                          pCtx->XInputGetStateEx_Detour,
@@ -1420,6 +1407,23 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
     MH_QueueEnableHook (pCtx->XInputGetStateEx_Target);
   }
+
+  MH_ApplyQueued ();
+
+  if (pCtx->orig_addr != nullptr)
+    memcpy (pCtx->orig_inst, pCtx->orig_addr, 64);
+
+  if (pCtx->orig_addr_caps != nullptr)
+    memcpy (pCtx->orig_inst_caps, pCtx->orig_addr_caps, 64);
+
+  if (pCtx->orig_addr_batt != nullptr)
+    memcpy (pCtx->orig_inst_batt, pCtx->orig_addr_batt, 64);
+
+  if (pCtx->orig_addr_set != nullptr)
+    memcpy (pCtx->orig_inst_set, pCtx->orig_addr_set, 64);
+
+  if (pCtx->orig_addr_ex != nullptr)
+    memcpy (pCtx->orig_inst_ex, pCtx->orig_addr_ex, 64);
 }
 
 void
@@ -1550,8 +1554,6 @@ SK_XInput_RehookIfNeeded (void)
                        pCtx->wszModuleName ),
                     L"Input Mgr." );
 
-        memcpy (pCtx->orig_inst, pCtx->orig_addr, 64);
-
         if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
           xinput_ctx.XInput1_3 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
@@ -1603,8 +1605,6 @@ SK_XInput_RehookIfNeeded (void)
                        pCtx->wszModuleName ),
                     L"Input Mgr." );
 
-        memcpy (pCtx->orig_inst_set, pCtx->orig_addr_set, 64);
-
         if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
           xinput_ctx.XInput1_3 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
@@ -1655,8 +1655,6 @@ SK_XInput_RehookIfNeeded (void)
         SK_LOG0 ( ( L" Re-hooked XInput (Caps) using '%s'...",
                        pCtx->wszModuleName ),
                     L"Input Mgr." );
-
-        memcpy (pCtx->orig_inst_caps, pCtx->orig_addr_caps, 64);
 
         if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
           xinput_ctx.XInput1_3 = *pCtx;
@@ -1712,8 +1710,6 @@ SK_XInput_RehookIfNeeded (void)
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
 
-          memcpy (pCtx->orig_inst_batt, pCtx->orig_addr_batt, 64);
-
           if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
             xinput_ctx.XInput1_3 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
@@ -1768,8 +1764,6 @@ SK_XInput_RehookIfNeeded (void)
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
 
-          memcpy (pCtx->orig_inst_ex, pCtx->orig_addr_ex, 64);
-
           if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
             xinput_ctx.XInput1_3 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
@@ -1796,6 +1790,21 @@ SK_XInput_RehookIfNeeded (void)
   }
 
   MH_ApplyQueued ();
+
+  if (pCtx->orig_addr != nullptr)
+    memcpy (pCtx->orig_inst, pCtx->orig_addr, 64);
+
+  if (pCtx->orig_addr_set != nullptr)
+    memcpy (pCtx->orig_inst_set, pCtx->orig_addr_set, 64);
+
+  if (pCtx->orig_addr_caps != nullptr)
+    memcpy (pCtx->orig_inst_caps, pCtx->orig_addr_caps, 64);
+
+  if (pCtx->orig_addr_batt != nullptr)
+    memcpy (pCtx->orig_inst_batt, pCtx->orig_addr_batt, 64);
+
+  if (pCtx->orig_addr_ex != nullptr)
+    memcpy (pCtx->orig_inst_ex, pCtx->orig_addr_ex, 64);
 }
 
 bool

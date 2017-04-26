@@ -96,7 +96,14 @@ typedef DWORD (WINAPI *XInputGetState_pfn)(
 );
 
 
-typedef struct _XINPUT_GAMEPAD_EX : _XINPUT_GAMEPAD {
+typedef struct _XINPUT_GAMEPAD_EX {
+  WORD  wButtons;
+  BYTE  bLeftTrigger;
+  BYTE  bRightTrigger;
+  SHORT sThumbLX;
+  SHORT sThumbLY;
+  SHORT sThumbRX;
+  SHORT sThumbRY;
   DWORD dwUnknown;
 } XINPUT_GAMEPAD_EX, *PXINPUT_GAMEPAD_EX;
 

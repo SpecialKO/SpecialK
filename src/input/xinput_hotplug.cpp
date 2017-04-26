@@ -29,17 +29,19 @@
 #include <SpecialK/log.h>
 
 #include <algorithm>
+#include <dbt.h>
+
 
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"XInput_Hot" ); called = true; } }
 
 struct {
-  static const DWORD RecheckInterval = 500UL;
+  static const DWORD RecheckInterval = 1000UL;
 
   bool  holding     = false;
   DWORD last_polled = 0;
-} static placeholders [4];
+} static placeholders [XUSER_MAX_COUNT];
 
-static SK_XInput_PacketJournal packets [4];
+static SK_XInput_PacketJournal packets [XUSER_MAX_COUNT];
 
 
 SK_XInput_PacketJournal
@@ -52,7 +54,7 @@ SK_XInput_GetPacketJournal (DWORD dwUserIndex)
 bool
 SK_XInput_Holding (DWORD dwUserIndex)
 {
-  return placeholders [std::min (dwUserIndex, 3UL)].holding;
+  return placeholders [dwUserIndex].holding;
 }
 
 
@@ -63,6 +65,8 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
                       DWORD         dwUserIndex,
                       XINPUT_STATE *pState )
 {
+  bool was_holding = placeholders [dwUserIndex].holding;
+
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
@@ -85,15 +89,21 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
 
     dwRet = ERROR_SUCCESS;
 
-    packets [dwUserIndex].packet_count.virt++;
-    packets [dwUserIndex].sequence.current++;
+    if (! was_holding)
+    {
+      packets [dwUserIndex].packet_count.virt++;
+      packets [dwUserIndex].sequence.current++;
+    }
 
-    ZeroMemory (pState, sizeof XINPUT_STATE);
+    ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
-    packets [dwUserIndex].sequence.current =
-      std::max   ( packets  [dwUserIndex].sequence.current,
-        std::max ( packets  [dwUserIndex].packet_count.real,
-                    packets [dwUserIndex].sequence.last ) );
+    if (! was_holding)
+    {
+      packets [dwUserIndex].sequence.current =
+        std::max   ( packets [dwUserIndex].sequence.current,
+          std::max ( packets [dwUserIndex].packet_count.real,
+                     packets [dwUserIndex].sequence.last ) );
+    }
 
     pState->dwPacketNumber = packets [dwUserIndex].sequence.current;
                              packets [dwUserIndex].sequence.last = 0;
@@ -203,8 +213,24 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
       if ( placeholders [dwUserIndex].last_polled <
            timeGetTime () - placeholders [dwUserIndex].RecheckInterval )
       {
-        // Re-check the next time this controller is polled
         placeholders [dwUserIndex].holding = false;
+
+        if (SK_XInput_PollController (dwUserIndex))
+        {
+          DWORD info = BSM_ALLDESKTOPS | BSM_APPLICATIONS;
+
+          DEV_BROADCAST_HDR header {
+            sizeof DEV_BROADCAST_HDR,
+              DBT_DEVTYP_DEVICEINTERFACE,
+                0
+          };
+
+          // Real controller is back, broadcast this.
+          //
+          //   > The Steam overlay should really do this, but does not.
+          //
+          BroadcastSystemMessage (0x00, &info, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&header);
+        }
       }
     }
 
@@ -233,9 +259,9 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
       packets [dwUserIndex].sequence.current++;
 
       packets [dwUserIndex].sequence.current =
-        std::max   ( packets  [dwUserIndex].sequence.current,
-          std::max ( packets  [dwUserIndex].packet_count.real,
-                      packets [dwUserIndex].sequence.last ) );
+        std::max   ( packets [dwUserIndex].sequence.current,
+          std::max ( packets [dwUserIndex].packet_count.real,
+                     packets [dwUserIndex].sequence.last ) );
 
       pState->dwPacketNumber = packets [dwUserIndex].sequence.current;
     }
@@ -247,7 +273,8 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
 
 
 
-#include <dbt.h>
+
+static GUID GUID_Zero;
 
 typedef HDEVNOTIFY (WINAPI *RegisterDeviceNotification_pfn)(
   _In_ HANDLE hRecipient,
@@ -266,22 +293,27 @@ RegisterDeviceNotificationW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  // We can easily catch the window-message notifications,
-  //   we're hooking this function to catch the service notifications
-  if (! (Flags & DEVICE_NOTIFY_WINDOW_HANDLE))
-  {
-    DEV_BROADCAST_DEVICEINTERFACE_W* pNotifyFilter = 
-      (DEV_BROADCAST_DEVICEINTERFACE_W *)NotificationFilter;
+  DEV_BROADCAST_DEVICEINTERFACE_W* pNotifyFilter = 
+    (DEV_BROADCAST_DEVICEINTERFACE_W *)NotificationFilter;
 
-    if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-    {
-      if ( config.input.gamepad.xinput.placehold [0] ||
-           config.input.gamepad.xinput.placehold [1] ||
-           config.input.gamepad.xinput.placehold [2] ||
-           config.input.gamepad.xinput.placehold [3] )
-      {
-        return NULL;
-      }
+  if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+  {
+#if 0
+    OLECHAR wszGUID [128] = { L'\0' };
+
+    HRESULT hr =
+      StringFromGUID2 (pNotifyFilter->dbcc_classguid, wszGUID, 127);
+
+    SK_LOG0 ( ( L"@ Game registered device notification for GUID: '%s'", wszGUID ),
+                L"Input Mgr." );
+#endif
+
+    // Fix for Watch_Dogs 2 and possibly other games
+    if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero)) {
+      Flags |= DEVICE_NOTIFY_ALL_INTERFACE_CLASSES;
+
+      SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationW (...)"),
+                 L"XInput_Hot" );
     }
   }
 
@@ -299,22 +331,27 @@ RegisterDeviceNotificationA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  // We can easily catch the window-message notifications,
-  //   we're hooking this function to catch the service notifications
-  if (! (Flags & DEVICE_NOTIFY_WINDOW_HANDLE))
-  {
-    DEV_BROADCAST_DEVICEINTERFACE_A* pNotifyFilter = 
-      (DEV_BROADCAST_DEVICEINTERFACE_A *)NotificationFilter;
+  DEV_BROADCAST_DEVICEINTERFACE_A* pNotifyFilter = 
+    (DEV_BROADCAST_DEVICEINTERFACE_A *)NotificationFilter;
 
-    if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-    {
-      if ( config.input.gamepad.xinput.placehold [0] ||
-           config.input.gamepad.xinput.placehold [1] ||
-           config.input.gamepad.xinput.placehold [2] ||
-           config.input.gamepad.xinput.placehold [3] )
-      {
-        return NULL;
-      }
+  if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+  {
+#if 0
+    OLECHAR wszGUID [128] = { L'\0' };
+
+    HRESULT hr =
+      StringFromGUID2 (pNotifyFilter->dbcc_classguid, wszGUID, 127);
+
+    SK_LOG0 ( ( L"@ Game registered device notification for GUID: '%s'", wszGUID ),
+                L"Input Mgr." );
+#endif
+
+    // Fix for Watch_Dogs 2 and possibly other games
+    if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero)) {
+      Flags |= DEVICE_NOTIFY_ALL_INTERFACE_CLASSES;
+
+      SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationA (...)"),
+                 L"XInput_Hot" );
     }
   }
 
@@ -326,6 +363,8 @@ RegisterDeviceNotificationA_Detour (
 void
 SK_XInput_InitHotPlugHooks (void)
 {
+  CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
+
 // According to the DLL Export Table, ...A and ...W are the same freaking function :)
   SK_CreateDLLHook3 ( L"user32.dll", "RegisterDeviceNotificationW",
                      RegisterDeviceNotificationW_Detour,

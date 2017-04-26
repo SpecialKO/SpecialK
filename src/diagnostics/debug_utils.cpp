@@ -87,7 +87,7 @@ ExitProcess_Detour (UINT uExitCode)
   //SK_DisableHook       (ExitProcess_Hook);
   //SK_UnhookLoadLibrary ();
   SK_SelfDestruct      ();
-  ExitProcess          (uExitCode);
+  ExitProcess_Original (uExitCode);
 }
 
 typedef void (WINAPI *OutputDebugStringA_pfn)(LPCSTR lpOutputString);

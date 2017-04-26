@@ -2848,7 +2848,9 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
-  if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr)
+  static volatile ULONG initializing = FALSE;
+
+  if (! (InterlockedCompareExchange (&initializing, 1, 0)) && ( InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr ))
   {
     // Handle situations where Steam was initialized earlier than
     //   expected...
@@ -2859,7 +2861,7 @@ SteamAPI_RunCallbacks_Detour (void)
            SK_SteamAPI_InitManagers ();
     }
 
-    CreateThread ( nullptr, 0,
+      CreateThread ( nullptr, 0,
       [](LPVOID user) ->
         DWORD
           {
