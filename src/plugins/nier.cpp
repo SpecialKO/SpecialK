@@ -21,7 +21,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.5.2"
+#define FAR_VERSION_NUM L"0.5.5.3"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -1458,18 +1458,21 @@ SK_FAR_PSSetShaderResources (
 {
   static ID3D11ShaderResourceView* views [256];
 
-  for (UINT i = 0; i < NumViews; i++)
+  if (ppShaderResourceViews != nullptr)
   {
-    views [i] = ppShaderResourceViews [i];
+    for (UINT i = 0; i < NumViews; i++)
+    {
+      views [i] = ppShaderResourceViews [i];
 
-    if (far_ao.views.count (ppShaderResourceViews [i]) && far_ao.disable) {
-      views [i] = nullptr;
-      far_ao.active = true;
-    }
+      if (far_ao.views.count (ppShaderResourceViews [i]) && far_ao.disable) {
+        views [i] = nullptr;
+        far_ao.active = true;
+      }
 
-    else if (far_bloom.views.count (ppShaderResourceViews [i]) && far_bloom.disable) {
-      views [i] = nullptr;
-      far_bloom.active = true;
+      else if (far_bloom.views.count (ppShaderResourceViews [i]) && far_bloom.disable) {
+        views [i] = nullptr;
+        far_bloom.active = true;
+      }
     }
   }
 

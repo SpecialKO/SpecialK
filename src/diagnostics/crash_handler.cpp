@@ -374,7 +374,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log (L"-----------------------------------------------------------");
   crash_log.Log (L"[ FaultMod ]  # File.....: '%hs'",  szModName);
 #ifndef _WIN64
-  crash_log.Log (L"[ FaultMod ]  * EIP Addr.: %hs+%ph", pszShortName, ip-BaseAddr);
+  crash_log.Log (L"[ FaultMod ]  * EIP Addr.: %hs+%08Xh", pszShortName, ip-BaseAddr);
 
   crash_log.Log ( L"[StackFrame] <-> Eip=%08xh, Esp=%08xh, Ebp=%08xh",
                   ip,
@@ -676,7 +676,8 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
                          &Displacement,
                            &sip.si ) )
   {
-    strncpy             (pszOut, sip.si.Name, std::min (ulLen, sip.si.NameLen));
+    *pszOut = '\0';
+    strncat             (pszOut, sip.si.Name, std::min (ulLen, sip.si.NameLen));
     ret = (ULONG)strlen (pszOut);
   } else {
     *pszOut = '\0';

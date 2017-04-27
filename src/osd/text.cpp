@@ -1596,8 +1596,10 @@ SK_TextOverlay::update (const char* szText)
 {
   size_t len = szText != nullptr ? strlen (szText) : 0;
 
-  if (szText != nullptr)
-    strncpy (data_.text, szText, std::min (len + 1, data_.text_len));
+  if (szText != nullptr) {
+    *data_.text = '\0';
+    strncat (data_.text, szText, std::min (len + 1, data_.text_len));
+  }
 
   if (font_.cegui && geometry_)
   {
@@ -1629,7 +1631,8 @@ SK_TextOverlay::update (const char* szText)
 
     static __declspec (thread) char text [32768] = { '\0' };
 
-    strncpy (text, data_.text, 32766);
+    *text = '\0';
+    strncat (text, data_.text, 32766);
 
     int   num_lines    = SK_CountLines (text);
     char* line         = strtok_ex     (text, "\n");

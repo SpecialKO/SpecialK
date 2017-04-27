@@ -65,7 +65,7 @@ SK_GetDocumentsDir (void)
   HANDLE hToken;
 
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken))
-    return NULL;
+    return L"(null)";
 
   CComHeapPtr <wchar_t> str;
 
@@ -80,7 +80,7 @@ SK_GetFontsDir (void)
   HANDLE hToken;
 
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken))
-    return NULL;
+    return L"(null)";
 
   CComHeapPtr <wchar_t> str;
 
@@ -114,7 +114,8 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
      )
   {
     if (buf != nullptr && pdwLen != nullptr && *pdwLen > 0) {
-      wcsncpy (buf, str, *pdwLen);
+      *buf = '\0';
+      wcsncat (buf, str, *pdwLen);
     }
 
     CoTaskMemFree (str);
@@ -181,6 +182,9 @@ SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
 {
   wchar_t* wszEvaluated =
     (wchar_t *)malloc (sizeof (wchar_t) * (MAX_PATH + 2));
+
+  if (wszEvaluated == nullptr)
+    return L"OUT_OF_MEMORY";
 
   ExpandEnvironmentStringsW ( wszEvaluateMe,
                                 wszEvaluated,
@@ -995,7 +999,13 @@ crc32c (uint32_t crc, buffer input, size_t length)
 LPVOID
 SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc)
 {
-  return GetProcAddress (GetModuleHandle (wszModule), szFunc);
+  HMODULE hMod = 
+    GetModuleHandle (wszModule);
+
+  if (hMod != nullptr)
+   return GetProcAddress (hMod, szFunc);
+
+  return nullptr;
 }
 
 std::wstring
@@ -1325,7 +1335,6 @@ SK_TestImports (          HMODULE  hMod,
     // Resort to checking for DLL residency instead
     for (int i = 0; i < nCount; i++)
     {
-      HMODULE hMod;
       if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                   pTests [i].szModuleName,
                                     &hMod ) )
@@ -1354,7 +1363,7 @@ SK_TestRenderImports ( HMODULE hMod,
   *vulkan = tests [1].used;
   *d3d9   = tests [2].used;
 //*dxgi   = tests [3].used;
-  *d3d11  = tests [4].used;
+  *d3d11  = tests [3].used;
 }
 
 int

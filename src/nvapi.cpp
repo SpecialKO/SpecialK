@@ -330,15 +330,16 @@ std::wstring
 NVAPI::GetDriverVersion (NvU32* pVer)
 {
   NvU32             ver;
-  NvAPI_ShortString ver_str;       // ANSI
-  wchar_t           ver_wstr [64]; // Unicode
+  NvAPI_ShortString ver_str;                   // ANSI
+  wchar_t           ver_wstr [64] = { L'\0' }; // Unicode
 
   NvAPI_SYS_GetDriverAndBranchVersion (&ver, ver_str);
 
   // The driver-branch string's not particularly user frieldy,
   //   let's do this the right way and report a number the end-user
   //     is actually going to recognize...
-  _snwprintf (ver_wstr, 64, L"%u.%u", ver / 100, ver % 100);
+  _snwprintf (ver_wstr, 63, L"%u.%u", ver / 100, ver % 100);
+  ver_wstr [63] = L'\0';
 
   if (pVer != NULL)
     *pVer = ver;

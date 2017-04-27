@@ -92,19 +92,22 @@ LoadFileInResource ( int          name,
                     MAKEINTRESOURCE (name),
                     MAKEINTRESOURCE (type) );
 
-  HGLOBAL rcData = 
-    LoadResource (handle, rc);
-
-  if (rcData != nullptr) {
-
-    size =
-      SizeofResource (handle, rc);
-
-    data =
-      static_cast <const char *>(
-        LockResource (rcData)
-      );
-   }
+  if (rc != nullptr)
+  {
+    HGLOBAL rcData = 
+      LoadResource (handle, rc);
+    
+    if (rcData != nullptr)
+    {
+      size =
+        SizeofResource (handle, rc);
+    
+      data =
+        static_cast <const char *>(
+          LockResource (rcData)
+        );
+    }
+  } 
 }
 
 extern void SK_Steam_SetNotifyCorner (void);
@@ -343,7 +346,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
       if (size.x > max_width) max_width = size.x;
     }
 
-    ImGui::PushItemWidth (max_width * font_size);
+    ImGui::PushItemWidth (max_width * 3.0f * ImGui::GetIO ().FontGlobalScale);
 
     //if (ImGui::ListBoxHeader ("##empty", count, std::min (count + 3, 10)))
     ImGui::BeginGroup ( );
@@ -394,7 +397,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
           volume_ctl->GetMasterVolume (&volume);
 
           char szLabel [32] = { '\0' };
-          snprintf (szLabel, 31, "###VoumeSlider%lu", i);
+          snprintf (szLabel, 31, "###VoumeSlider%li", i);
 
           ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImColor (0.5f, 0.5f, 0.5f) : ImColor (1.0f, 1.0f, 1.0f));
           ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
@@ -415,7 +418,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
           ImGui::SameLine ();
 
-          snprintf (szLabel, 31, "###VoumeCheckbox%lu", i);
+          snprintf (szLabel, 31, "###VoumeCheckbox%li", i);
           ImGui::PushItemWidth (30.0f);
           if (ImGui::Checkbox (szLabel, (bool *)&mute))
             volume_ctl->SetMute (mute, nullptr);
@@ -517,17 +520,31 @@ SK_ImGui_ControlPanel (void)
                                                                    0.9f * io.DisplaySize.y ) );
 
   
-  const char* szTitle   = SK_ImGui_ControlPanelTitle ();
-  static int  title_len = int ((float)ImGui::CalcTextSize (szTitle).x * 1.075f);
-  bool        open      = true;
+  const char* szTitle     = SK_ImGui_ControlPanelTitle ();
+  static int  title_len   = int ((float)ImGui::CalcTextSize (szTitle).x * 1.075f);
+  static bool first_frame = true;
+  bool        open        = true;
 
 
   ImGuiStyle& style =
     ImGui::GetStyle ();
 
+  // Initialize the dialog using the user's scale preference
+  if (first_frame)
+  {
+    // Range-restrict for sanity!
+    config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
+  
+    io.FontGlobalScale = config.imgui.scale;
+    first_frame        = false;
+  }
+
+  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+  const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
   style.WindowTitleAlign = ImVec2 (0.5f, 0.5f);
 
-  style.WindowMinSize.x = title_len * 1.075f;
+  style.WindowMinSize.x = title_len * 1.075f * io.FontGlobalScale;
   style.WindowMinSize.y = 200;
 
   extern bool nav_usable;
@@ -568,7 +585,7 @@ SK_ImGui_ControlPanel (void)
     RECT client;
     GetClientRect (game_window.hWnd, &client);
 
-    snprintf ( szResolution, 63, "   %lux%lu", 
+    snprintf ( szResolution, 63, "   %lix%li", 
                                    client.right - client.left,
                                      client.bottom - client.top );
 
@@ -590,7 +607,7 @@ SK_ImGui_ControlPanel (void)
     if ( client.right - client.left   != res_x || client.bottom - client.top   != res_y ||
          io.DisplayFramebufferScale.x != res_x || io.DisplayFramebufferScale.y != res_y )
     {
-      snprintf ( szResolution, 63, "   %lux%lu", 
+      snprintf ( szResolution, 63, "   %lix%li",
                                      res_x,
                                        res_y );
     
@@ -648,17 +665,6 @@ SK_ImGui_ControlPanel (void)
     ImGui::Separator (   );
 
     static bool has_own_scale = (hModTZFix || hModTBFix);
-    static bool first_frame   = true;
-
-    // Initialize the dialog using the user's scale preference
-    if (first_frame)
-    {
-      // Range-restrict for sanity!
-      config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
-
-      io.FontGlobalScale = config.imgui.scale;
-      first_frame        = false;
-    }
 
     if ((! has_own_scale) && ImGui::CollapsingHeader ("UI Scale"))
     {
@@ -680,9 +686,6 @@ SK_ImGui_ControlPanel (void)
     {
       SK_FAR_ControlPanel ();
     }
-
-    const  float font_size           =              ImGui::GetFont ()->FontSize                        * io.FontGlobalScale;
-    const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
     static bool has_own_limiter = (hModTZFix || hModTBFix);
 
@@ -1932,8 +1935,8 @@ extern float SK_ImGui_PulseNav_Strength;
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Click Here to Manage Another Application.");
 
-      ImGui::SetColumnOffset (1, 450);
-      ImGui::NextColumn      (      );
+      ImGui::SetColumnOffset (1, 530 * io.FontGlobalScale);
+      ImGui::NextColumn      (                           );
 
       ImGui::BeginGroup ();
       {
@@ -2760,10 +2763,10 @@ extern float SK_ImGui_PulseNav_Strength;
         snprintf ( szLabel, 511,
                      "Fetching Achievements... %.2f%% (%lu/%lu) : %s",
                        100.0f * ratio,
-                      (int32_t)(ratio * (float)friends),
-                                               friends,
+                     (uint32_t)(ratio * (float)friends),
+                                     (uint32_t)friends,
                       SK_SteamAPI_GetFriendName (
-                        (int32_t)(ratio * (float)friends)
+                       (uint32_t)(ratio * (float)friends)
                       )
                  );
         

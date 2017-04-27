@@ -1291,7 +1291,7 @@ SK_MonitorPagefile (LPVOID user)
     if (hr == WBEM_E_BUFFER_TOO_SMALL 
         && pagefile.dwNumReturned > pagefile.dwNumObjects)
     {
-      pagefile.apEnumAccess = new IWbemObjectAccess* [pagefile.dwNumReturned];
+      pagefile.apEnumAccess = new IWbemObjectAccess* [pagefile.dwNumReturned + 1];
       if (pagefile.apEnumAccess == nullptr)
       {
         hr = E_OUTOFMEMORY;

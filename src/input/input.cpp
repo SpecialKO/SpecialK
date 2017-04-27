@@ -122,6 +122,7 @@ PHIDP_PREPARSED_DATA* SK_HID_PreparsedDataP = nullptr;
 PHIDP_PREPARSED_DATA  SK_HID_PreparsedData = nullptr;
 
 BOOLEAN
+_Success_(return)
 __stdcall
 HidD_GetPreparsedData_Detour (
   _In_  HANDLE                HidDeviceObject,
@@ -177,6 +178,7 @@ typedef BOOLEAN (__stdcall *HidD_GetFeature_pfn)(
 HidD_GetFeature_pfn HidD_GetFeature_Original = nullptr;
 
 BOOLEAN
+_Success_ (return)
 __stdcall
 HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
                          _Out_ PVOID  ReportBuffer,
@@ -343,7 +345,9 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   }
 
   BOOL bRet =
-    RegisterRawInputDevices_Original (pDevices, uiNumDevices, cbSize);
+    pDevices != nullptr ?
+      RegisterRawInputDevices_Original (pDevices, uiNumDevices, cbSize) :
+                FALSE;
 
   if (pDevices)
     delete [] pDevices;
@@ -382,6 +386,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
     {
       if (pData != nullptr)
       {
+        ZeroMemory (pData, *pcbSize);
         const int max_items = (sizeof RAWINPUT / *pcbSize);
               int count     =                            0;
         uint8_t *pTemp      = (uint8_t *)
@@ -774,7 +779,7 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                            L"Other Device";
 
-  dll_log.Log ( L"[   Input  ][!] IDirectInput8::CreateDevice (%08Xh, %s, %08Xh, %08Xh)",
+  dll_log.Log ( L"[   Input  ][!] IDirectInput8::CreateDevice (%ph, %s, %ph, %ph)",
                    This,
                      wszDevice,
                        lplpDirectInputDevice,
@@ -1877,11 +1882,19 @@ SK_XInput_PollController ( INT           iJoyID,
                   L"Input Mgr." );
       xinput_ctx.primary_hook =
         &xinput_ctx.XInput1_3;
+
       pCtx = xinput_ctx.primary_hook;
-      pCtx->XInputGetState_Original =
-        (XInputGetState_pfn)
-          GetProcAddress ( LoadLibrary (L"XInput1_3.dll"),
-                           "XInputGetState" );
+
+      HMODULE hModXInput1_3 =
+        LoadLibrary (L"XInput1_3.dll");
+
+      if (hModXInput1_3 != 0)
+      {
+        pCtx->XInputGetState_Original =
+          (XInputGetState_pfn)
+            GetProcAddress ( hModXInput1_3,
+                             "XInputGetState" );
+      }
     }
 
     SK_ApplyQueuedHooks ();
@@ -1916,7 +1929,8 @@ SK_XInput_PollController ( INT           iJoyID,
 
   const int MAX_CONTROLLERS = 4;
 
-  XINPUT_STATE_EX xstate;
+  XINPUT_STATE_EX xstate = { 0 };
+  xstate.dwPacketNumber  =   1;
 
   static DWORD last_poll [MAX_CONTROLLERS] = { 0 };
   static DWORD dwRet     [MAX_CONTROLLERS] = { 0 };

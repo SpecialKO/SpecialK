@@ -289,7 +289,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
           ZeroMemory (val_str, sizeof (wchar_t) * (l - value + 1));
 
           size_t   val_len = wcrlen          (value, l);
-          wcsncpy (val_str, value, val_len);
+          wcsncat (val_str, value, val_len);
 
           // Prefer to change an existing value
           if (section.contains_key (key_str)) {
@@ -377,7 +377,7 @@ iSK_INI::parse (void)
 
     wchar_t* wszDataCur = &wszData [0];
 
-    for (wchar_t* i = wszDataCur; i < wszDataEnd; i = CharNextW (i))
+    for (wchar_t* i = wszDataCur; i < wszDataEnd && i != nullptr; i = CharNextW (i))
     {
       if (*i == L'[' && (i == wszData || *CharPrevW (&wszData [0], i) == L'\n')) {
         begin = CharNextW (i);
@@ -504,7 +504,7 @@ iSK_INI::import (const wchar_t* import_data)
 
     wchar_t* wszImportCur = &wszImport [0];
 
-    for (wchar_t* i = wszImportCur; i < wszImportEnd; i = CharNextW (i))
+    for (wchar_t* i = wszImportCur; i < wszImportEnd && i != nullptr; i = CharNextW (i))
     {
       if (*i == L'[' && (i == wszImport || *CharPrevW (&wszImport [0], i) == L'\n')) {
         begin = CharNextW (i);

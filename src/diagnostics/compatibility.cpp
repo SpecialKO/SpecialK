@@ -931,7 +931,7 @@ _SK_SummarizeModule ( LPVOID   base_addr,  ptrdiff_t   mod_size,
                       (void *)base_addr, (uint32_t)mod_size,
                         szSymbol, wszModName );
   } else {
-    pLogger->Log ( L"[ Module ]  ( %ph + %08lu )       %-64hs       %s",
+    pLogger->Log ( L"[ Module ]  ( %ph + %08li )       %-64hs       %s",
                       base_addr, mod_size, "", wszModName );
   }
 

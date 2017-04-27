@@ -671,7 +671,7 @@ skMemCmd::execute (const char* szArgs)
 
         VirtualProtect ((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &dwOld);
           uint8_t out;
-          sscanf (val, "%hhux", &out);
+          sscanf (val, "%cx", &out);
           *(uint8_t *)addr = out;
         VirtualProtect ((LPVOID)addr, 1, dwOld, &dwOld);
       }

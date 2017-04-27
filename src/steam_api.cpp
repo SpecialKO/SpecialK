@@ -350,7 +350,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
                         caller.c_str () );
       break;
     default:
-      steam_log.Log ( L" * (%-28s) Installed Unknown Callback (Class=%lu00, Id=%lu)",
+      steam_log.Log ( L" * (%-28s) Installed Unknown Callback (Class=%li00, Id=%li)",
                         caller.c_str (), iCallback / 100, iCallback % 100 );
       break;
   }
@@ -433,7 +433,7 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
                         caller.c_str () );
       break;
     default:
-      steam_log.Log ( L" * (%-28s) Uninstalled Unknown Callback (Class=%lu00, Id=%lu)",
+      steam_log.Log ( L" * (%-28s) Uninstalled Unknown Callback (Class=%li00, Id=%li)",
                         caller.c_str (), iCallback / 100, iCallback % 100 );
       break;
   }
@@ -1724,7 +1724,7 @@ public:
 
       else
       {
-        steam_log.Log ( L" Non-Zero Result (%lu) for GlobalAchievementPercentagesReady_t",
+        steam_log.Log ( L" Non-Zero Result (%li) for GlobalAchievementPercentagesReady_t",
                           eCallFail );
 
         has_global_data = false;
@@ -2387,7 +2387,7 @@ protected:
     extern CEGUI::Window* SK_achv_popup;
 
     char szPopupName [16];
-    sprintf (szPopupName, "Achievement_%lu", lifetime_popups++);
+    sprintf (szPopupName, "Achievement_%li", lifetime_popups++);
 
     popup->window              = SK_achv_popup->clone (true);
     Achievement*   achievement = popup->achievement;
@@ -2452,7 +2452,7 @@ protected:
       //achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
     
       snprintf ( szUnlockTime, 128,
-                   "Current Progress: %lu/%lu (%6.2f%%)",
+                   "Current Progress: %li/%li (%6.2f%%)",
                      achievement->progress_.current,
                        achievement->progress_.max,
                          progress
@@ -2497,8 +2497,8 @@ protected:
 
           else
           {
-            steam_log.Log ( L" * Fetched RGBA Icon (idx=%lu) for Achievement: '%hs'  (%lux%lu) "
-                              L"{ Took %lu try(s) }",
+            steam_log.Log ( L" * Fetched RGBA Icon (idx=%li) for Achievement: '%hs'  (%lux%lu) "
+                              L"{ Took %li try(s) }",
                               icon_idx, achievement->name_, w, h, tries );
           }
         }
@@ -2638,7 +2638,7 @@ SK_UnlockSteamAchievement (uint32_t idx)
     return;
   }
 
-  steam_log.LogEx (true, L" >> Attempting to Unlock Achievement: %i... ",
+  steam_log.LogEx (true, L" >> Attempting to Unlock Achievement: %lu... ",
     idx );
 
   ISteamUserStats* stats = steam_ctx.UserStats ();
@@ -3222,7 +3222,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
       char szManifest [MAX_PATH] = { '\0' };
 
       sprintf ( szManifest,
-                  "%s\\steamapps\\appmanifest_%d.acf",
+                  "%s\\steamapps\\appmanifest_%lu.acf",
                     (char *)steam_lib_paths [i],
                       appid );
 
@@ -3290,7 +3290,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
   char szManifest [MAX_PATH] = { '\0' };
 
   sprintf ( szManifest,
-              "%ls\\steamapps\\appmanifest_%d.acf",
+              "%ls\\steamapps\\appmanifest_%lu.acf",
                 wszSteamPath,
                   appid );
 
@@ -3334,8 +3334,10 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
       if (! dwRead)
       {
-        delete [] szManifestData;
-        return nullptr;
+        if (szManifestData != nullptr)
+          delete [] szManifestData;
+
+        return "(null)";
       }
 
       char* szAppName =
@@ -3345,8 +3347,10 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
       if (szAppName != nullptr)
       {
+        *szAppName = '\0';
+
         // Make sure everything is lowercase
-        strncpy (szAppName, "\"name\"", strlen ("\"name\""));
+        strncat (szAppName, "\"name\"", strlen ("\"name\""));
 
         sscanf ( szAppName,
                    "\"name\" \"%259[^\"]\"",
@@ -4426,7 +4430,7 @@ SteamAPI_UserStatsReceived_Detour ( CCallbackBase* This, UserStatsReceived_t* pP
 {
   if (config.system.log_level > 2)
   {
-    dll_log.Log (L"Result: %lu - User: %llx, Game: %llu  [Callback: %lu]", pParam->m_eResult,
+    dll_log.Log (L"Result: %li - User: %llx, Game: %llu  [Callback: %lu]", pParam->m_eResult,
       pParam->m_steamIDUser.ConvertToUint64 (), pParam->m_nGameID, pParam->k_iCallback );
   }
 

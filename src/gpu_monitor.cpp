@@ -416,7 +416,8 @@ SK_PollGPU (void)
   if (dt > config.gpu.interval) {
     gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
 
-    SetEvent (hPollEvent);
+    if (hPollEvent != 0)
+      SetEvent (hPollEvent);
   }
 }
 

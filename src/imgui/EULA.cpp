@@ -48,16 +48,24 @@ SK_GetLicenseText (SHORT id)
     HGLOBAL license_ref =
       LoadResource ( SK_GetDLL (), res );
 
-    char* res_data = (char *)malloc (res_size + 1);
-    memset (res_data, 0, res_size+1);
+    char* res_data =
+      (char *)malloc (res_size + 1);
 
-    strncpy (res_data, (char *)LockResource (license_ref), res_size - 1);
+    if (res_data != nullptr)
+    {
+      ZeroMemory (res_data, res_size + 1);
 
-    std::string str (res_data);
+      char* locked = (char *)LockResource (license_ref);
 
-    free (res_data);
+      if (locked != nullptr)
+        strncat (res_data, locked, res_size - 1);
 
-    return str;
+      std::string str (res_data);
+
+      free (res_data);
+
+      return str;
+    }
   }
 
   return std::string ("");

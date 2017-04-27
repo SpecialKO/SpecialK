@@ -96,7 +96,8 @@ public:
           {
             if (pent.th32ProcessID == proc_id)
             {
-              strncpy (szTitle, pent.szExeFile, 511);
+              *szTitle = '\0';
+              strncat (szTitle, pent.szExeFile, 511);
               break;
             }
 

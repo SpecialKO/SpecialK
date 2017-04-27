@@ -498,6 +498,9 @@ D3D9SetTexture_Detour (
       pTexture = nullptr;
   }
 
+  if (pTexture == nullptr)
+    return E_POINTER;
+
   return D3D9SetTexture_Original (This, Sampler, pTexture);
 }
 
@@ -2293,7 +2296,7 @@ sk::d3d9::TextureManager::Init (void)
       FindClose (hFind);
     }
 
-    tex_log.LogEx ( false, L" %lu files (%3.1f MiB)\n",
+    tex_log.LogEx ( false, L" %li files (%3.1f MiB)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
   }
 
@@ -2665,7 +2668,7 @@ sk::d3d9::TextureManager::updateOSD (void)
 
   osd_stats += szFormatted;
 
-  sprintf ( szFormatted, "%6lu   New Textures : %8.2f MiB    %s\n",
+  sprintf ( szFormatted, "%6li   New Textures : %8.2f MiB    %s\n",
               numInjectedTextures (),
                 cache_injected,
                   __remap_textures ? "<----" : "" );
@@ -2885,7 +2888,7 @@ SK_TextureWorkerThread::ThreadProc (LPVOID user)
 
       size_t now    =  streaming_memory::data_len [GetCurrentThreadId ()];
       if (before != now) {
-        tex_log.Log ( L"[ Mem. Mgr ]  Trimmed %9lu bytes of temporary memory for tid=%x",
+        tex_log.Log ( L"[ Mem. Mgr ]  Trimmed %9li bytes of temporary memory for tid=%x",
                         (long)(before - now),
                           GetCurrentThreadId () );
       }

@@ -2705,7 +2705,7 @@ static void NavUpdate()
         {
             // Leave the "menu" layer
             g.NavLayer = 0;
-            if (g.NavWindow->NavLastId)
+            if (g.NavWindow && g.NavWindow->NavLastId)
                 SetNavIdAndMoveMouse(g.NavWindow->NavLastId, ImRect());
             else
                 NavInitWindow(g.NavWindow, true);
@@ -3251,7 +3251,7 @@ static void SaveIniSettingsToDisk(const char* ini_filename)
         fprintf(f, "[%s]\n", name);
         fprintf(f, "Pos=%d,%d\n", (int)settings->Pos.x, (int)settings->Pos.y);
         fprintf(f, "Size=%d,%d\n", (int)settings->Size.x, (int)settings->Size.y);
-        fprintf(f, "Collapsed=%d\n", settings->Collapsed);
+        fprintf(f, "Collapsed=%li\n", settings->Collapsed);
         fprintf(f, "\n");
     }
 
@@ -4784,7 +4784,7 @@ bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_on_first_us
     window->RootWindow = g.CurrentWindowStack[root_idx];
     window->RootNonPopupWindow = g.CurrentWindowStack[root_non_popup_idx];      // Used to display TitleBgActive color and for selecting which window to use for NavWindowing
     window->RootNavWindow = window;
-    while (window->RootNavWindow->Flags & ImGuiWindowFlags_NavFlattened)
+    while (window->RootNavWindow && window->RootNavWindow->Flags & ImGuiWindowFlags_NavFlattened)
         window->RootNavWindow = window->RootNavWindow->ParentWindow;
 
     // When reusing window again multiple times a frame, just append content (don't need to setup again)
@@ -11087,7 +11087,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               // Only filter keydown message, not key releases
               if (SK_ImGui_WantKeyboardCapture ())
               {
-                if ((! ((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+                if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
                   filter = true;
 
                 else
@@ -11105,8 +11105,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
               if (SK_ImGui_WantMouseCapture ())
               {
-                bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
                 // That's actually a mouse button...
                 if (foreground)
                 {
@@ -11391,8 +11389,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   {
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
       io.KeysDown [(wParam & 0xff)] = 1;
-    else if ((wParam & 0xff) < 5)
-      io.MouseDown [(wParam & 0xff)] = true;
+    else if ((wParam & 0x7) < 5)
+      io.MouseDown [(wParam & 0x7)] = true;
 
     BYTE  vkCode   = LOWORD (wParam) & 0xFF;
     BYTE  scanCode = HIWORD (lParam) & 0x7F;
@@ -11483,8 +11481,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       POINT local { GET_X_LPARAM (lParam),
                     GET_Y_LPARAM (lParam) };
 
-      last_pos.x = local.x;
-      last_pos.y = local.y;
+      last_pos.x = (SHORT)local.x;
+      last_pos.y = (SHORT)local.y;
 
       //SK_ImGui_Cursor.ClientToLocal (&local);
 
@@ -11660,6 +11658,7 @@ bool  nav_usable       = false;
 extern bool SK_ImGui_Visible;
 
 bool
+_Success_(false)
 SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )

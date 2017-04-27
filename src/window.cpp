@@ -519,7 +519,7 @@ public:
 
          char szTemp    [32] = { 0 };
 
-      strncpy (szTemp, *(char **)val, 31);
+      strncat (szTemp, *(char **)val, 31);
 
       if (val != nullptr)
         sscanf (szTemp, "%lux%lu", &x, &y);
@@ -1172,7 +1172,7 @@ AdjustWindowRect_Detour (
     _In_    BOOL   bMenu )
 {
   SK_LOG1 ( ( L"AdjustWindowRect ( "
-              L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu ) - %s",
+              L"{%4li,%4li / %4li,%4li}, 0x%04X, %li ) - %s",
                 lpRect->left, lpRect->top,
                   lpRect->right, lpRect->bottom,
                     dwStyle, bMenu,
@@ -1191,7 +1191,7 @@ AdjustWindowRectEx_Detour (
     _In_    DWORD  dwExStyle )
 {
   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
-              L"{%4lu,%4lu / %4lu,%4lu}, 0x%04X, %lu, 0x%04X ) - %s",
+              L"{%4li,%4li / %4li,%4li}, 0x%04X, %lu, 0x%04X ) - %s",
                 lpRect->left, lpRect->top,
                   lpRect->right, lpRect->bottom,
                     dwStyle, bMenu,
@@ -2051,7 +2051,7 @@ SK_AdjustWindow (void)
     // Summarize the border
     if (SK_WindowManager::StyleHasBorder (game_window.actual.style)) {
       _swprintf ( wszBorderDesc,
-                   L"(Frame = %lupx x %lupx, Title = %lupx)",
+                   L"(Frame = %lipx x %lipx, Title = %lipx)",
                      2 * SK_GetSystemMetrics (SM_CXDLGFRAME),
                      2 * SK_GetSystemMetrics (SM_CYDLGFRAME),
                          SK_GetSystemMetrics (SM_CYCAPTION) );
@@ -2155,7 +2155,7 @@ GetSystemMetrics_Detour (_In_ int nIndex)
 
   int nRet = GetSystemMetrics_Original (nIndex);
 
-  SK_LOG4 ( ( L"GetSystemMetrics (%4lu) : %-5lu - %s",
+  SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
                 nIndex, nRet,
                   SK_SummarizeCaller ().c_str () ),
               L"Resolution" );
@@ -3257,7 +3257,7 @@ SK_InstallWindowHook (HWND hWnd)
 
   if (count > 0)
   {
-    RAWINPUTDEVICE* pDevs = new RAWINPUTDEVICE [count];
+    RAWINPUTDEVICE* pDevs = new RAWINPUTDEVICE [count+1];
 
     GetRegisteredRawInputDevices (pDevs, &count, sizeof RAWINPUTDEVICE);
 

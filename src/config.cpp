@@ -1883,7 +1883,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     TheWitcher3,          // witcher3.exe
     ResidentEvil7,        // re7.exe
     DragonsDogma,         // DDDA.exe
-    EverQuest             // eqgame.exe
+    EverQuest,            // eqgame.exe
+    GodEater2RageBurst,   // GE2RB.exe
+    WatchDogs2            // WatchDogs2.exe
   };
 
   std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -1900,6 +1902,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"re7.exe",                      SK_GAME_ID::ResidentEvil7        );
   games.emplace ( L"DDDA.exe",                     SK_GAME_ID::DragonsDogma         );
   games.emplace ( L"eqgame.exe",                   SK_GAME_ID::EverQuest            );
+  games.emplace ( L"GE2RB.exe",                    SK_GAME_ID::GodEater2RageBurst   );
+  games.emplace ( L"WatchDogs2.exe",               SK_GAME_ID::WatchDogs2           );
 
   //
   // Application Compatibility Overrides
@@ -2065,6 +2069,25 @@ SK_LoadConfigEx (std::wstring name, bool create)
       case SK_GAME_ID::EverQuest:
         // Fix-up rare issues during Server Select -> Game
         //config.compatibility.d3d9.rehook_reset = true;
+        break;
+
+
+      case SK_GAME_ID::GodEater2RageBurst:
+        //Does not support XInput hot-plugging, needs Special K loving :)
+        config.input.gamepad.xinput.placehold [0] = true;
+
+        config.apis.d3d9.hook                     = true;
+        config.apis.d3d9ex.hook                   = true;
+        config.apis.dxgi.d3d11.hook               = false;
+        config.apis.dxgi.d3d12.hook               = false;
+        config.apis.OpenGL.hook                   = false;
+        config.apis.Vulkan.hook                   = false;
+        break;
+
+
+      case SK_GAME_ID::WatchDogs2:
+        //Does not support XInput hot-plugging, needs Special K loving :)
+        config.input.gamepad.xinput.placehold [0] = true;
         break;
     }
   }
@@ -2471,7 +2494,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       config.window.offset.x.percent /= 100.0f;
     } else {
       config.window.offset.x.percent = 0.0f;
-      swscanf (offset.c_str (), L"%lu", &config.window.offset.x.absolute);
+      swscanf (offset.c_str (), L"%li", &config.window.offset.x.absolute);
     }
   }
   if (window.offset.y->load ()) {
@@ -2483,7 +2506,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       config.window.offset.y.percent /= 100.0f;
     } else {
       config.window.offset.y.percent = 0.0f;
-      swscanf (offset.c_str (), L"%lu", &config.window.offset.y.absolute);
+      swscanf (offset.c_str (), L"%li", &config.window.offset.y.absolute);
     }
   }
   if (window.confine_cursor->load ())
@@ -2744,7 +2767,7 @@ SK_SaveConfig ( std::wstring name,
   window.background_mute->set_value           (config.window.background_mute);
   if (config.window.offset.x.absolute != 0) {
     wchar_t wszAbsolute [16];
-    _swprintf (wszAbsolute, L"%lu", config.window.offset.x.absolute);
+    _swprintf (wszAbsolute, L"%li", config.window.offset.x.absolute);
     window.offset.x->set_value (wszAbsolute);
   } else {
     wchar_t wszPercent [16];
@@ -2755,7 +2778,7 @@ SK_SaveConfig ( std::wstring name,
   }
   if (config.window.offset.y.absolute != 0) {
     wchar_t wszAbsolute [16];
-    _swprintf (wszAbsolute, L"%lu", config.window.offset.y.absolute);
+    _swprintf (wszAbsolute, L"%li", config.window.offset.y.absolute);
     window.offset.y->set_value (wszAbsolute);
   } else {
     wchar_t wszPercent [16];
@@ -3179,7 +3202,7 @@ SK_Keybind::update (void)
 {
   human_readable = L"";
 
-  std::wstring key_name = virtKeyCodeToHumanKeyName [vKey];
+  std::wstring key_name = virtKeyCodeToHumanKeyName [(BYTE)(vKey & 0xFF)];
 
   if (! key_name.length ())
     return;
@@ -3301,9 +3324,9 @@ SK_Keybind::parse (void)
 
   wchar_t wszKeyBind [128] = { L'\0' };
 
-  wcsncpy (wszKeyBind, human_readable.c_str (), 128);
+  wcsncat (wszKeyBind, human_readable.c_str (), 127);
 
-  wchar_t* wszBuf;
+  wchar_t* wszBuf = nullptr;
   wchar_t* wszTok = std::wcstok (wszKeyBind, L"+", &wszBuf);
 
   ctrl  = false;

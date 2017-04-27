@@ -196,8 +196,9 @@ SK_CEGUI_InitBase (void)
         dynamic_cast <CEGUI::DefaultResourceProvider *>
             (CEGUI::System::getDllSingleton ().getResourceProvider ());
 
-         char szRootPath [MAX_PATH] = { 0 };
+         char szRootPath [MAX_PATH + 2] = { 0 };
     snprintf (szRootPath, MAX_PATH, "%ws", _wgetenv (L"CEGUI_PARENT_DIR"));
+              szRootPath [MAX_PATH] = '\0';
 
     CEGUI::String dataPathPrefix ( ( std::string (szRootPath) +
                                      std::string ("CEGUI/datafiles") ).c_str () );
@@ -865,7 +866,7 @@ SK_DXGI_BeginHooking (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-#if 1
+#if 0
     HANDLE hHookInitDXGI =
       (HANDLE)
         _beginthreadex ( nullptr,
@@ -2030,9 +2031,7 @@ extern "C" {
 
         if (FAILED (hr) && hr == DXGI_ERROR_DEVICE_REMOVED)
         {
-          CComPtr <ID3D11Device> pDev;
-
-          if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))))
+          if (pDev != nullptr)
           {
             // D3D11 Device Removed, let's find out why...
             HRESULT hr_removed = pDev->GetDeviceRemovedReason ();
@@ -2224,7 +2223,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
       if (pDesc != nullptr && pDescLocal == nullptr)
       {
-        dll_log.Log ( L"[   DXGI   ]      >> %lu modes (%lu removed)",
+        dll_log.Log ( L"[   DXGI   ]      >> %lu modes (%li removed)",
                         *pNumModes,
                           removed_count );
       }
@@ -2260,9 +2259,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
          mode_to_match.RefreshRate.Numerator  != config.render.framerate.refresh_rate )
     {
       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
-                    L"(Requested: %f, Using: %lu)",
-                      mode_to_match.RefreshRate.Numerator /
-                      mode_to_match.RefreshRate.Denominator,
+                    L"(Requested: %f, Using: %li)",
+                      (float)mode_to_match.RefreshRate.Numerator /
+                      (float)mode_to_match.RefreshRate.Denominator,
                         config.render.framerate.refresh_rate
                   );
 
@@ -2319,8 +2318,8 @@ __declspec (noinline)
                                          BOOL            Fullscreen,
                                          IDXGIOutput    *pTarget )
   {
-    DXGI_LOG_CALL_I2 (L"IDXGISwapChain", L"SetFullscreenState", L"%lu, %ph",
-                      Fullscreen, pTarget);
+    DXGI_LOG_CALL_I2 (L"IDXGISwapChain", L"SetFullscreenState", L"%s, %ph",
+                      Fullscreen ? L"{ Fullscreen }" : L"{ Windowed }", pTarget);
 
     InterlockedExchange (&__gui_reset, TRUE);
 
@@ -2500,9 +2499,9 @@ __declspec (noinline)
            new_new_params.RefreshRate.Numerator != config.render.framerate.refresh_rate )
       {
         dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
-                      L"(Requested: %f, Using: %lu)",
-                        new_new_params.RefreshRate.Numerator /
-                        new_new_params.RefreshRate.Denominator,
+                      L"(Requested: %f, Using: %li)",
+                        (float)new_new_params.RefreshRate.Numerator /
+                        (float)new_new_params.RefreshRate.Denominator,
                           config.render.framerate.refresh_rate
                     );
 
@@ -2739,9 +2738,9 @@ __declspec (noinline)
            pDesc->BufferDesc.RefreshRate.Numerator != config.render.framerate.refresh_rate )
       {
         dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
-                      L"(Requested: %f, Using: %lu)",
-                        pDesc->BufferDesc.RefreshRate.Numerator /
-                        pDesc->BufferDesc.RefreshRate.Denominator,
+                      L"(Requested: %f, Using: %li)",
+                   (float)pDesc->BufferDesc.RefreshRate.Numerator /
+                   (float)pDesc->BufferDesc.RefreshRate.Denominator,
                           config.render.framerate.refresh_rate
                     );
 
@@ -2795,7 +2794,7 @@ __declspec (noinline)
       }
     }
 
-    dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
+    dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                    bFlipMode ? L"Flip" : L"Traditional",
                      bWait ? L"Yes" : L"No",
                        bWait ? config.render.framerate.swapchain_wait : 0 );
@@ -2983,7 +2982,7 @@ __declspec (noinline)
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
 
-      dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
+      dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                      bFlipMode ? L"Flip" : L"Traditional",
                        bWait ? L"Yes" : L"No",
                          bWait ? config.render.framerate.swapchain_wait : 0 );
@@ -3160,7 +3159,7 @@ __declspec (noinline)
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
       }
 
-      dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %lu ms]",
+      dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                      bFlipMode ? L"Flip" : L"Traditional",
                        bWait ? L"Yes" : L"No",
                          bWait ? config.render.framerate.swapchain_wait : 0 );
@@ -4341,7 +4340,7 @@ HookDXGI (LPVOID user)
 
   extern LPVOID pfnD3D11CreateDevice;
 
-#if 1
+#if 0
   HRESULT hr =
     ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
       0,
@@ -4401,15 +4400,15 @@ HookDXGI (LPVOID user)
                              err.WCode (), err.ErrorMessage () );
   }
 
-  DestroyWindow (hwnd);
-
-  InterlockedExchange (&__dxgi_ready, TRUE);
-
   // These don't do anything (anymore)
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
   if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 
   if (success)  CoUninitialize ();
+
+  //DestroyWindow (hwnd);
+
+  InterlockedExchange (&__dxgi_ready, TRUE);
 
 
   CloseHandle ( GetCurrentThread () );
@@ -4737,7 +4736,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
 
   bool success =
-    SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
+    SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
 
 
   while ( InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )

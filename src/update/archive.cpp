@@ -371,7 +371,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       wchar_t* wsz_ =
         wcsstr ( wszDefault_+1, L"_" );
 
-      lstrcatW (wszUserConfig, wsz_+1);
+      if (wsz_ != nullptr)
+        lstrcatW (wszUserConfig, wsz_+1);
     }
 
     lstrcatW ( wszOldConfig, wszUserConfig );

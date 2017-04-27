@@ -57,6 +57,8 @@ LONG                  __d3d12_ready            = FALSE;
 void
 WaitForInitD3D12 (void)
 {
+  return;
+
   while (! InterlockedCompareExchange (&__d3d12_ready, FALSE, FALSE))
     Sleep (config.system.init_delay);
 }
@@ -193,6 +195,9 @@ __stdcall
 HookD3D12 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
+
+  config.apis.dxgi.d3d12.hook = false;
+    return 0;
 
   if (! config.apis.dxgi.d3d12.hook)
     return 0;
