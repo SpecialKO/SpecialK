@@ -669,7 +669,7 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 1, PAGE_READWRITE, &dwOld);
+        VirtualProtect ((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &dwOld);
           uint8_t out;
           sscanf (val, "%hhux", &out);
           *(uint8_t *)addr = out;
@@ -684,7 +684,7 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 2, PAGE_READWRITE, &dwOld);
+        VirtualProtect ((LPVOID)addr, 2, PAGE_EXECUTE_READWRITE, &dwOld);
           uint16_t out;
           sscanf (val, "%hx", &out);
           *(uint16_t *)addr = out;
@@ -698,7 +698,7 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
+        VirtualProtect ((LPVOID)addr, 4, PAGE_EXECUTE_READWRITE, &dwOld);
           uint32_t out;
           sscanf (val, "%x", &out);
           *(uint32_t *)addr = out;
@@ -712,7 +712,7 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
+        VirtualProtect ((LPVOID)addr, 8, PAGE_EXECUTE_READWRITE, &dwOld);
           uint64_t out;
           sscanf (val, "%llx", &out);
           *(uint64_t *)addr = out;
@@ -726,7 +726,7 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 8, PAGE_READWRITE, &dwOld);
+        VirtualProtect ((LPVOID)addr, 8, PAGE_EXECUTE_READWRITE, &dwOld);
           double out;
           sscanf (val, "%lf", &out);
           *(double *)addr = out;
@@ -740,7 +740,7 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 4, PAGE_READWRITE, &dwOld);
+        VirtualProtect ((LPVOID)addr, 4, PAGE_EXECUTE_READWRITE, &dwOld);
           float out;
           sscanf (val, "%f", &out);
           *(float *)addr = out;
@@ -754,7 +754,7 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 256, PAGE_READWRITE, &dwOld);
+        VirtualProtect ((LPVOID)addr, 256, PAGE_EXECUTE_READWRITE, &dwOld);
           strcpy ((char *)addr, val);
         VirtualProtect ((LPVOID)addr, 256, dwOld, &dwOld);
       }

@@ -246,6 +246,7 @@ struct {
   struct {
     sk::ParameterBool*    disable_ps4_hid;
     sk::ParameterBool*    rehook_xinput;
+    sk::ParameterBool*    haptic_ui;
     sk::ParameterBool*    hook_dinput8;
     sk::ParameterBool*    hook_hid;
     sk::ParameterBool*    hook_xinput;
@@ -587,6 +588,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Input.Gamepad",
         L"DisablePS4HID"
   );
+
+  input.gamepad.haptic_ui =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Give tactile feedback on gamepads when navigating the UI")
+      );
+  input.gamepad.haptic_ui->register_to_ini (
+    dll_ini,
+      L"Input.Gamepad",
+        L"AllowHapticUI" );
 
   input.gamepad.hook_dinput8 =
     static_cast <sk::ParameterBool *>
@@ -2426,6 +2437,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.input.gamepad.hook_dinput8 = input.gamepad.hook_dinput8->get_value ();
   if (input.gamepad.hook_hid->load ())
     config.input.gamepad.hook_hid = input.gamepad.hook_hid->get_value ();
+  if (input.gamepad.haptic_ui->load ())
+    config.input.gamepad.haptic_ui = input.gamepad.haptic_ui->get_value ();
 
   if (input.gamepad.xinput.placeholders->load ()) {
     int placeholder_mask = input.gamepad.xinput.placeholders->get_value ();
@@ -2713,6 +2726,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.gamepad.disable_ps4_hid->set_value    (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->set_value      (config.input.gamepad.rehook_xinput);
+  input.gamepad.haptic_ui->set_value          (config.input.gamepad.haptic_ui);
 
   int placeholder_mask = 0x0;
 
@@ -2971,6 +2985,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.rehook_xinput->store       ();
   input.gamepad.xinput.ui_slot->store      ();
   input.gamepad.xinput.placeholders->store ();
+  input.gamepad.haptic_ui->store           ();
 
   window.borderless->store                 ();
   window.center->store                     ();

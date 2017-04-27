@@ -236,8 +236,9 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
 
     dwRet = ERROR_SUCCESS;
 
-    pVibration->wLeftMotorSpeed  = 0;
-    pVibration->wRightMotorSpeed = 0;
+    // Leave these whatever the game thinks/wants, it doesn't matter ;)
+    //pVibration->wLeftMotorSpeed  = 0;
+    //pVibration->wRightMotorSpeed = 0;
   }
 
   return dwRet;

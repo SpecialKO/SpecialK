@@ -343,12 +343,13 @@ SK_ImGui_SelectAudioSessionDlg (void)
       if (size.x > max_width) max_width = size.x;
     }
 
-    ImGui::PushItemWidth (max_width * 2.5f);
+    ImGui::PushItemWidth (max_width * font_size);
 
-    if (ImGui::ListBoxHeader ("##empty", count, std::min (count + 3, 10)))
+    //if (ImGui::ListBoxHeader ("##empty", count, std::min (count + 3, 10)))
+    ImGui::BeginGroup ( );
     {
       ImGui::PushStyleColor (ImGuiCol_ChildWindowBg, ImColor (0, 0, 0, 0));
-      ImGui::BeginChild ("SessionSelectHeader");
+      ImGui::BeginChild ("SessionSelectHeader", ImVec2 (0, 0), true, ImGuiWindowFlags_NavFlattened);
       ImGui::Columns    (2);
       ImGui::Text       ("Task");
       ImGui::NextColumn ();
@@ -358,7 +359,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       ImGui::Separator  ();
 
-      ImGui::BeginChild ("SessionSelectData");
+      ImGui::BeginGroup ();//"SessionSelectData");
       ImGui::Columns    (2);
 
       for (int i = 0; i < count; i++)
@@ -403,17 +404,19 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
           volume *= 100.0f;
 
+          ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth () - 30.0f);
           if (ImGui::SliderFloat (szLabel, &volume, 0.0f, 100.0f, "Volume: %03.1f%%")) {
             volume /= 100.0f;
             volume_ctl->SetMasterVolume (volume, nullptr);
           }
+          ImGui::PopItemWidth  ();
 
           ImGui::PopStyleColor (5);
 
           ImGui::SameLine ();
 
           snprintf (szLabel, 31, "###VoumeCheckbox%lu", i);
-          ImGui::PushItemWidth (10.0f);
+          ImGui::PushItemWidth (30.0f);
           if (ImGui::Checkbox (szLabel, (bool *)&mute))
             volume_ctl->SetMute (mute, nullptr);
           ImGui::PopItemWidth  ();
@@ -423,12 +426,12 @@ SK_ImGui_SelectAudioSessionDlg (void)
       }
 
       ImGui::Columns  (1);
-      ImGui::EndChild ( );
+      ImGui::EndGroup ( );
       ImGui::EndChild ( );
       ImGui::PopStyleColor ();
 
-
-      ImGui::ListBoxFooter ();
+      ImGui::EndGroup ( );
+      //ImGui::ListBoxFooter ();
 
       if (sel_idx != -1)
       {
@@ -961,7 +964,7 @@ SK_ImGui_ControlPanel (void)
         };
 
         ImGui::PushStyleVar                                                           (ImGuiStyleVar_ChildWindowRounding, 10.0f);
-        ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * 4), true/*, ImGuiWindowFlags_ChildWindowAutoFitY*/);
+        ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * 4), true, ImGuiWindowFlags_NavFlattened);
 
         ImGui::Columns    ( 2 );
 
@@ -1226,6 +1229,11 @@ SK_ImGui_ControlPanel (void)
       {
         ImGui::TreePush      ("");
 
+        ImGui::Columns        (2);
+        ImGui::Checkbox       ("Haptic UI Feedback", &config.input.gamepad.haptic_ui);
+
+        ImGui::NextColumn     ();
+
         ImGui::Checkbox       ("Rehook XInput", &config.input.gamepad.rehook_xinput); ImGui::SameLine ();
 
         if (ImGui::IsItemHovered ())
@@ -1247,6 +1255,9 @@ SK_ImGui_ControlPanel (void)
             ImGui::BulletText  ("This option requires restarting the game.");
           ImGui::EndTooltip    ();
         }
+
+        ImGui::NextColumn ( );
+        ImGui::Columns    (1);
 
         ImGui::Separator ();
 
@@ -1323,6 +1334,29 @@ SK_ImGui_ControlPanel (void)
         XInputPlaceholderCheckbox ("Slot 1", 1); ImGui::SameLine ();
         XInputPlaceholderCheckbox ("Slot 2", 2); ImGui::SameLine ();
         XInputPlaceholderCheckbox ("Slot 3", 3);
+
+// TODO
+#if 0
+        ImGui::Separator ();
+
+extern float SK_ImGui_PulseTitle_Duration;
+extern float SK_ImGui_PulseTitle_Strength;
+
+extern float SK_ImGui_PulseButton_Duration;
+extern float SK_ImGui_PulseButton_Strength;
+
+extern float SK_ImGui_PulseNav_Duration;
+extern float SK_ImGui_PulseNav_Strength;
+
+        ImGui::SliderFloat ("NavPulseStrength", &SK_ImGui_PulseNav_Strength, 0.0f, 2.0f);
+        ImGui::SliderFloat ("NavPulseDuration", &SK_ImGui_PulseNav_Duration, 0.0f, 1000.0f);
+
+        ImGui::SliderFloat ("ButtonPulseStrength", &SK_ImGui_PulseButton_Strength, 0.0f, 2.0f);
+        ImGui::SliderFloat ("ButtonPulseDuration", &SK_ImGui_PulseButton_Duration, 0.0f, 1000.0f);
+
+        ImGui::SliderFloat ("TitlePulseStrength", &SK_ImGui_PulseTitle_Strength, 0.0f, 2.0f);
+        ImGui::SliderFloat ("TitlePulseDuration", &SK_ImGui_PulseTitle_Duration, 0.0f, 1000.0f);
+#endif
 
         ImGui::TreePop ();
       }
@@ -2248,7 +2282,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePush     ("");
 
         ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 16.0f);
-        ImGui::BeginChild   ("WMI Monitors", ImVec2 (font_size * 50.0f,font_size_multiline * 6.05f), true);
+        ImGui::BeginChild   ("WMI Monitors", ImVec2 (font_size * 50.0f,font_size_multiline * 6.05f), true, ImGuiWindowFlags_NavFlattened);
 
         ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.785f, 0.0784f, 1.0f));
         ImGui::TextWrapped    ("These functions spawn a WMI monitoring service and may take several seconds to start.");

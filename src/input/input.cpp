@@ -1115,10 +1115,13 @@ XInputSetState1_3_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
+  bool nop = SK_ImGui_WantGamepadCapture () && config.input.gamepad.haptic_ui;
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+      nop ? ERROR_SUCCESS :
+            pCtx->XInputSetState_Original (dwUserIndex, pVibration);
 
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
@@ -1248,10 +1251,13 @@ XInputSetState1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
+  bool nop = SK_ImGui_WantGamepadCapture () && config.input.gamepad.haptic_ui;
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+      nop ? ERROR_SUCCESS :
+            pCtx->XInputSetState_Original (dwUserIndex, pVibration);
 
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
@@ -1327,10 +1333,14 @@ XInputSetState9_1_0_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
 
+  bool nop = SK_ImGui_WantGamepadCapture () && config.input.gamepad.haptic_ui;
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
       ERROR_DEVICE_NOT_CONNECTED :
-    pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+      nop ?
+        ERROR_SUCCESS :
+        pCtx->XInputSetState_Original (dwUserIndex, pVibration);
 
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
@@ -1379,18 +1389,18 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
               (LPVOID *)&pCtx->XInputGetBatteryInformation_Target );
 
     MH_QueueEnableHook (pCtx->XInputGetBatteryInformation_Target);
-
-
-    pCtx->orig_addr_set = SK_GetProcAddress (pCtx->wszModuleName, "XInputSetState");
-
-    SK_CreateDLLHook2 ( pCtx->wszModuleName,
-                         "XInputSetState",
-                         pCtx->XInputSetState_Detour,
-              (LPVOID *)&pCtx->XInputSetState_Original,
-              (LPVOID *)&pCtx->XInputSetState_Target );
-
-    MH_QueueEnableHook (pCtx->XInputSetState_Target);
   }
+
+
+  pCtx->orig_addr_set = SK_GetProcAddress (pCtx->wszModuleName, "XInputSetState");
+
+  SK_CreateDLLHook2 ( pCtx->wszModuleName,
+                       "XInputSetState",
+                       pCtx->XInputSetState_Detour,
+            (LPVOID *)&pCtx->XInputSetState_Original,
+            (LPVOID *)&pCtx->XInputSetState_Target );
+
+  MH_QueueEnableHook (pCtx->XInputSetState_Target);
 
 
   pCtx->orig_addr_ex = SK_GetProcAddress (pCtx->wszModuleName, XINPUT_GETSTATEEX_ORDINAL);
@@ -1805,6 +1815,23 @@ SK_XInput_RehookIfNeeded (void)
 
   if (pCtx->orig_addr_ex != nullptr)
     memcpy (pCtx->orig_inst_ex, pCtx->orig_addr_ex, 64);
+}
+
+bool
+SK_XInput_PulseController ( INT   iJoyID,
+                            float fStrengthLeft,
+                            float fStrengthRight )
+{
+  XINPUT_VIBRATION vibes;
+  vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
+  vibes.wRightMotorSpeed = (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f);
+
+  if (xinput_ctx.primary_hook && xinput_ctx.primary_hook->XInputSetState_Original) {
+    xinput_ctx.primary_hook->XInputSetState_Original ( iJoyID, &vibes );
+    return true;
+  }
+
+  return false;
 }
 
 bool
@@ -2491,7 +2518,7 @@ SendInput_Detour (
 
   if (SK_ImGui_Visible)
   {
-    return 0;
+    //return 0;
   }
 
   return SendInput_Original (nInputs, pInputs, cbSize);

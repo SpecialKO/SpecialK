@@ -75,6 +75,10 @@ bool SK_ImGui_WantTextCapture     (void);
 
 #define XINPUT_CAPS_FFB_SUPPORTED     0x0001
 
+#define XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  7849
+#define XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE 8689
+#define XINPUT_GAMEPAD_TRIGGER_THRESHOLD    30
+
 typedef struct _XINPUT_GAMEPAD {
   WORD  wButtons;
   BYTE  bLeftTrigger;

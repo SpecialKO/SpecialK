@@ -325,6 +325,7 @@ struct sk_config_t
     struct {
       bool    disable_ps4_hid   = false;
       bool    rehook_xinput     = false;
+      bool    haptic_ui         = true;
       bool    hook_dinput8      = true;
       bool    hook_hid          = true;
       bool    hook_xinput       = true; // Kind of important ;)
