@@ -11652,6 +11652,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 float analog_sensitivity = 333.33f;
 
 #include <SpecialK/input/input.h>
+#include <SpecialK/input/xinput.h>
 
 bool  nav_usable       = false;
 
@@ -11839,6 +11840,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   last_state = state;
 }
+
 
 void
 SK_ImGui_PollGamepad (void)

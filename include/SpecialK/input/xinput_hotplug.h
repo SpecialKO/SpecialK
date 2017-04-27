@@ -23,6 +23,7 @@
 #define __SK__XINPUT_HOTPLUG_H__
 
 #include <SpecialK/input/input.h>
+#include <SpecialK/input/xinput.h>
 
 typedef struct _SK_XInput_PacketJournal
 {

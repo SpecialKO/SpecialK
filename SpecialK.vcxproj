@@ -1331,6 +1331,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\import.h" />
     <ClInclude Include="include\SpecialK\ini.h" />
     <ClInclude Include="include\SpecialK\input\input.h" />
+    <ClInclude Include="include\SpecialK\input\xinput.h" />
     <ClInclude Include="include\SpecialK\input\xinput_hotplug.h" />
     <ClInclude Include="include\SpecialK\io_monitor.h" />
     <ClInclude Include="include\SpecialK\log.h" />
@@ -1583,6 +1584,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\input\input.cpp" />
+    <ClCompile Include="src\input\xinput_core.cpp" />
     <ClCompile Include="src\input\xinput_hotplug.cpp" />
     <ClCompile Include="src\osd\popup.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>

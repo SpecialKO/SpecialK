@@ -11,6 +11,8 @@
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/input/input.h>
+#include <SpecialK/input/xinput.h>
+
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 #include <process.h>

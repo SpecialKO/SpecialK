@@ -19,12 +19,6 @@
     <Filter Include="Source Files\Backends">
       <UniqueIdentifier>{c3aa99c1-1a7a-44b3-a85e-71e8399357a9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\DXGI">
-      <UniqueIdentifier>{9fc0d275-b19f-426f-95cd-1ea60a0a4e4f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Backends\DXGI">
-      <UniqueIdentifier>{51556ace-0f83-4e7e-86f9-187c3ff300ba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Libraries">
       <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
     </Filter>
@@ -34,26 +28,8 @@
     <Filter Include="Header Files\DirectXTex">
       <UniqueIdentifier>{53877763-ffe5-4232-9427-f0c56a07fa57}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\D3D9">
-      <UniqueIdentifier>{038d867a-cc76-4b6b-be3b-f0c825a7fbd4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Backends\D3D9">
-      <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Diagnostics">
       <UniqueIdentifier>{05e53788-2b5b-4da9-8e0a-749b8481056a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Vulkan">
-      <UniqueIdentifier>{b3e55d30-eb61-4133-9051-ecef8c9b2ba3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\OpenGL">
-      <UniqueIdentifier>{660a5a14-f7cb-46cd-b8db-7a4c79494b74}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Backends\OpenGL">
-      <UniqueIdentifier>{84c84912-d7f2-47e1-a62f-3d158cdf57fc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Backends\Vulkan">
-      <UniqueIdentifier>{9dab1f98-acb1-4149-9520-8225f69fc95a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Update">
       <UniqueIdentifier>{e6ec08a7-8e65-4d10-90c4-450c13e4a46e}</UniqueIdentifier>
@@ -129,6 +105,72 @@
     </Filter>
     <Filter Include="Header Files\Backends\Input">
       <UniqueIdentifier>{72c67e28-e403-4857-b012-3e8c3d5987cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render">
+      <UniqueIdentifier>{d3333596-3bf4-4078-b2cc-fd1b3cf3b353}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\D3D9">
+      <UniqueIdentifier>{038d867a-cc76-4b6b-be3b-f0c825a7fbd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DXGI">
+      <UniqueIdentifier>{9fc0d275-b19f-426f-95cd-1ea60a0a4e4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\OpenGL">
+      <UniqueIdentifier>{660a5a14-f7cb-46cd-b8db-7a4c79494b74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\Vulkan">
+      <UniqueIdentifier>{b3e55d30-eb61-4133-9051-ecef8c9b2ba3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\XInput">
+      <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\Steam">
+      <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\HID">
+      <UniqueIdentifier>{9e3f4015-6b36-4bfd-b248-98f9ecc51663}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\DirectInput">
+      <UniqueIdentifier>{0745912d-ee2d-464e-af70-a696b08bb85a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\RawInput">
+      <UniqueIdentifier>{7255c8a8-67ce-4ca2-b845-fa7a2139307d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\WinMM">
+      <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render">
+      <UniqueIdentifier>{bc556da4-4ff6-493c-a3d7-61a032c53c16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\Vulkan">
+      <UniqueIdentifier>{9dab1f98-acb1-4149-9520-8225f69fc95a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\OpenGL">
+      <UniqueIdentifier>{84c84912-d7f2-47e1-a62f-3d158cdf57fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\DXGI">
+      <UniqueIdentifier>{51556ace-0f83-4e7e-86f9-187c3ff300ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\D3D9">
+      <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\XInput">
+      <UniqueIdentifier>{34308ae9-cbef-4d8c-b596-f740b220f76b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\RawInput">
+      <UniqueIdentifier>{69eae58e-4683-42c0-a93f-213a266d09d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\DirectInput">
+      <UniqueIdentifier>{bc817c0b-4958-4d2e-9fb5-2e83c3fabca7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\HID">
+      <UniqueIdentifier>{15deb719-305e-4e72-a7a4-c37c34097ab4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\Steam">
+      <UniqueIdentifier>{8d08864c-0c07-458d-a724-91ea7713e931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\WinMM">
+      <UniqueIdentifier>{4b8d1c1f-caf6-47c3-8888-ad495da6cb19}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -214,10 +256,10 @@
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\vulkan_backend.h">
-      <Filter>Header Files\Backends\Vulkan</Filter>
+      <Filter>Header Files\Backends\Render\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\opengl_backend.h">
-      <Filter>Header Files\Backends\OpenGL</Filter>
+      <Filter>Header Files\Backends\Render\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\DLL_VERSION.H">
       <Filter>Header Files\Core</Filter>
@@ -241,22 +283,19 @@
       <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\d3d9_backend.h">
-      <Filter>Header Files\Backends\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\d3d12_interfaces.h">
-      <Filter>Header Files\Backends\DXGI</Filter>
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\dxgi_backend.h">
-      <Filter>Header Files\Backends\DXGI</Filter>
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\dxgi_interfaces.h">
-      <Filter>Header Files\Backends\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render_backend.h">
-      <Filter>Header Files\Backends</Filter>
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\d3d9\texmgr.h">
-      <Filter>Header Files\Backends\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\hooks.h">
       <Filter>Header Files\Utility</Filter>
@@ -309,8 +348,14 @@
     <ClInclude Include="include\SpecialK\input\input.h">
       <Filter>Header Files\Backends\Input</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render_backend.h">
+      <Filter>Header Files\Backends\Render</Filter>
+    </ClInclude>
     <ClInclude Include="include\SpecialK\input\xinput_hotplug.h">
-      <Filter>Header Files\Backends\Input</Filter>
+      <Filter>Header Files\Backends\Input\XInput</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\input\xinput.h">
+      <Filter>Header Files\Backends\Input\XInput</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -369,28 +414,28 @@
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
     <ClCompile Include="src\dxgi.cpp">
-      <Filter>Source Files\Backends\DXGI</Filter>
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
     </ClCompile>
     <ClCompile Include="src\d3d11.cpp">
-      <Filter>Source Files\Backends\DXGI</Filter>
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
     </ClCompile>
     <ClCompile Include="src\d3d12.cpp">
-      <Filter>Source Files\Backends\DXGI</Filter>
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
     </ClCompile>
     <ClCompile Include="src\vulkan.cpp">
-      <Filter>Source Files\Backends\Vulkan</Filter>
+      <Filter>Source Files\Backends\Render\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\opengl.cpp">
-      <Filter>Source Files\Backends\OpenGL</Filter>
+      <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\fo4.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\d3d9.cpp">
-      <Filter>Source Files\Backends\D3D9</Filter>
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
     <ClCompile Include="src\d3d9\texmgr.cpp">
-      <Filter>Source Files\Backends\D3D9</Filter>
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
     <ClCompile Include="src\update\version.cpp">
       <Filter>Source Files\Update</Filter>
@@ -415,9 +460,6 @@
     </ClCompile>
     <ClCompile Include="src\diagnostics\compatibility.cpp">
       <Filter>Source Files\Diagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render_backend.cpp">
-      <Filter>Source Files\Backends</Filter>
     </ClCompile>
     <ClCompile Include="src\sound.cpp">
       <Filter>Source Files\Utility</Filter>
@@ -467,8 +509,14 @@
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
+    <ClCompile Include="src\render_backend.cpp">
+      <Filter>Source Files\Backends\Render</Filter>
+    </ClCompile>
     <ClCompile Include="src\input\xinput_hotplug.cpp">
-      <Filter>Source Files\Backends\Input</Filter>
+      <Filter>Source Files\Backends\Input\XInput</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\xinput_core.cpp">
+      <Filter>Source Files\Backends\Input\XInput</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
