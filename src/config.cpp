@@ -191,6 +191,7 @@ struct {
     sk::ParameterBool*    flip_discard;
     sk::ParameterInt*     refresh_rate;
     sk::ParameterBool*    wait_for_vblank;
+    sk::ParameterBool*    allow_dwm_tearing;
   } framerate;
   struct {
     sk::ParameterInt*     adapter_override;
@@ -1090,6 +1091,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Render.FrameRate",
           L"RefreshRate" );
   }
+
+  render.framerate.allow_dwm_tearing =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable DWM Tearing (Windows 10+)")
+      );
+  render.framerate.allow_dwm_tearing->register_to_ini (
+    dll_ini,
+      L"Render.DXGI",
+        L"AllowTearingInDWM" );
 
   if (SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9)) {
     compatibility.d3d9.rehook_present =
@@ -2266,6 +2277,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.render.framerate.flip_discard =
           render.framerate.flip_discard->get_value ();
 
+        if (render.framerate.allow_dwm_tearing->load ()) {
+          config.render.dxgi.allow_tearing = render.framerate.allow_dwm_tearing->get_value ();
+          if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
+        }
+
         extern bool SK_DXGI_use_factory1;
         if (config.render.framerate.flip_discard)
           SK_DXGI_use_factory1 = true;
@@ -2825,8 +2841,9 @@ SK_SaveConfig ( std::wstring name,
     if (  SK_IsInjected () ||
         ( SK_GetDLLRole () & DLL_ROLE::DXGI ) )
     {
-      render.framerate.max_delta_time->set_value (config.render.framerate.max_delta_time);
-      render.framerate.flip_discard->set_value   (config.render.framerate.flip_discard);
+      render.framerate.max_delta_time->set_value    (config.render.framerate.max_delta_time);
+      render.framerate.flip_discard->set_value      (config.render.framerate.flip_discard);
+      render.framerate.allow_dwm_tearing->set_value (config.render.dxgi.allow_tearing);
 
       texture.d3d11.cache->set_value        (config.textures.d3d11.cache);
       texture.d3d11.precise_hash->set_value (config.textures.d3d11.precise_hash);
@@ -3044,8 +3061,9 @@ SK_SaveConfig ( std::wstring name,
 
     if (  SK_IsInjected () ||
         ( SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
-      render.framerate.max_delta_time->store ();
-      render.framerate.flip_discard->store   ();
+      render.framerate.max_delta_time->store    ();
+      render.framerate.flip_discard->store      ();
+      render.framerate.allow_dwm_tearing->store ();
 
       texture.d3d11.cache->store        ();
       texture.d3d11.precise_hash->store ();

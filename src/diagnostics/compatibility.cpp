@@ -102,9 +102,6 @@ BlacklistLibraryW (LPCWSTR lpFileName)
         dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
       return TRUE;
     }
-
-    //dll_log.Log (L"[PlaysTVFix] Delaying Raptr overlay until window is in foreground...");
-    //CreateThread (nullptr, 0, SK_DelayLoadThreadW_FOREGROUND, _wcsdup (lpFileName), 0x00, nullptr);
   }
 
   if (config.compatibility.disable_nv_bloat)
@@ -145,38 +142,6 @@ BlacklistLibraryW (LPCWSTR lpFileName)
       }
     }
   }
-
-#if 0
-  if (config.compatibility.disable_msi_deadlock)
-  {
-    static bool init = false;
-    static std::vector <std::wstring> msi_blacklist;
-
-    if (! init)
-    {
-      msi_blacklist.emplace_back (L"Nahimic2DevProps.dll");
-      msi_blacklist.emplace_back (L"Nahimic2OSD.dll");
-      init = true;
-    }
-
-    for ( auto&& it : msi_blacklist )
-    {
-      if (StrStrIW (lpFileName, it.c_str ()))
-      {
-        HMODULE hModMSI;
-
-        dll_log.Log ( L"[Black List] Disabling MSI DeadlockWare ('%s'), so long we hardly knew ye', "
-                                   L"but you deadlocked a lot of games.",
-                        lpFileName );
-
-        if (GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, it.c_str(), &hModMSI))
-          FreeLibrary_Original (hModMSI);
-
-        return TRUE;
-      }
-    }
-  }
-#endif
 
   return FALSE;
 }
@@ -1222,15 +1187,8 @@ TaskDialogCallback (
   UNREFERENCED_PARAMETER (dwRefData);
   UNREFERENCED_PARAMETER (wParam);
 
-  if (uNotification == TDN_TIMER) {
-    //DWORD dwProcId;
-    //DWORD dwThreadId =
-      //GetWindowThreadProcessId (GetForegroundWindow (), &dwProcId);
-
-    //if (dwProcId == GetCurrentProcessId ()) {
-      SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
-    //}
-  }
+  if (uNotification == TDN_TIMER)
+    SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
 
   if (uNotification == TDN_HYPERLINK_CLICKED) {
     ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOW);
@@ -1246,11 +1204,8 @@ TaskDialogCallback (
     InterlockedIncrementAcquire (&SK_bypass_dialog_active);
   }
 
-  if (uNotification == TDN_CREATED) {
+  if (uNotification == TDN_CREATED)
     SK_bypass_dialog_hwnd = hWnd;
-
-    //SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
-  }
 
   if (uNotification == TDN_DESTROYED) {
     SK_bypass_dialog_hwnd = 0;
@@ -1575,9 +1530,8 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
                             nullptr,
                               verify );
 
-  if (nButtonPressed == 0xdead01ae) {
+  if (nButtonPressed == 0xdead01ae)
     config.compatibility.disable_raptr = true;
-  }
 
   return hr;
 }
@@ -1771,6 +1725,16 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.Vulkan.hook     = true;
         break;
     }
+
+    extern iSK_INI* dll_ini;
+
+    // TEMPORARY: There will be a function to disable plug-ins here, for now
+    //              just disable ReShade.
+#ifdef _WIN64
+    dll_ini->remove_section (L"Import.ReShade64");
+#else
+    dll_ini->remove_section (L"Import.ReShade32");  
+#endif
 
     SK_SaveConfig (L"SpecialK");
 

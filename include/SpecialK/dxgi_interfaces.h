@@ -22,6 +22,9 @@
 #ifndef __SK__DXGI_INTERFACES_H__
 #define __SK__DXGI_INTERFACES_H__
 
+#define DXGI_PRESENT_ALLOW_TEARING          0x00000200UL
+#define DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING  2048
+
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 

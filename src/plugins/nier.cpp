@@ -23,13 +23,19 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.5.3"
+#define FAR_VERSION_NUM L"0.5.6"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
 //   will be dismissed as the game crashes when it tries to
 //     draw the first frame.
 volatile LONG __FAR_init = FALSE;
+
+
+//#define WORKING_FPS_UNCAP
+//#define WORKING_CAMERA_CONTROLS
+//#define WORKING_GAMESTATES
+#define WORKING_FPS_SLEEP_FIX
 
 
 struct far_game_state_s {
@@ -46,8 +52,8 @@ struct far_game_state_s {
   bool   patchable   = false; // True only if the memory addresses can be validated
 
   bool needFPSCap (void) {
-    return enforce_cap || (   *pMenu != 0) || (*pLoading   != 0) ||
-                          (*pHacking != 0) || (*pShortcuts != 0);
+    return enforce_cap; //|| (   *pMenu != 0) || (*pLoading   != 0) ||
+                          //(*pHacking != 0) || (*pShortcuts != 0);
   }
 
   void capFPS   (void);
@@ -378,14 +384,20 @@ SK_FAR_SetFramerateCap (bool enable)
   }
 }
 
+// Altimor's FPS cap removal
+//
+uint8_t* psleep     = (uint8_t *)0x14092E887; // Original pre-patch
+uint8_t* pspinlock  = (uint8_t *)0x14092E8CF; // +0x48
+uint8_t* pmin_tstep = (uint8_t *)0x140805DEC; // Original pre-patch
+uint8_t* pmax_tstep = (uint8_t *)0x140805E18; // +0x2c
+
 bool
 SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
 {
-  const uint8_t sleep_wait [] = { 0xFF, 0x15, 0xD3, 0x4B, 0x2C, 0x06 };
-  const uint8_t busy_wait  [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+  static uint8_t sleep_wait [] = { 0x7e, 0x08, 0x8b, 0xca, 0xff, 0x15 };
+  static uint8_t busy_wait  [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
 
-  static bool   init      = false;
-  static LPVOID wait_addr = 0x0;
+  static bool init = false;
 
   // Square-Enix rarely patches the games they publish, so just search for this pattern and
   //   don't bother to adjust memory addresses... if it's not found using the hard-coded address,
@@ -394,37 +406,50 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
   {
     init = true;
 
-    if ( (wait_addr = SK_Scan ( sleep_wait, 6, nullptr )) == nullptr )
+    if ( (psleep = (uint8_t *)SK_Scan ( sleep_wait, 6, nullptr )) == nullptr )
     {
       dll_log.Log (L"[ FARLimit ]  Could not locate Framerate Limiter Sleep Addr.");
     }
     else {
-      dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter Sleep Addr.: 0x%p", wait_addr);
+      psleep += 4;
+      dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter Sleep Addr.: 0x%p", psleep);
+      memcpy      (sleep_wait, psleep, 6);
+
+      pspinlock  = psleep + 0x48;
+
+
+      uint8_t tstep0      [] = { 0x73, 0x1C, 0xC7, 0x05, 0x00, 0x00 };
+      uint8_t tstep0_mask [] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
+
+      pmin_tstep = (uint8_t *)SK_Scan ( tstep0, sizeof tstep0, tstep0_mask );
+      pmax_tstep = pmin_tstep + 0x2c;
+
+      dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
     }
   }
 
-  if (wait_addr == nullptr)
+  if (psleep == nullptr)
     return false;
 
   wait_behavior = behavior;
 
   DWORD dwProtect;
-  VirtualProtect (wait_addr, 6, PAGE_EXECUTE_READWRITE, &dwProtect);
+  VirtualProtect (psleep, 6, PAGE_EXECUTE_READWRITE, &dwProtect);
 
   // Hard coded for now; safe to do this without pausing threads and flushing caches
   //   because the config UI runs from the only thread that the game framerate limits.
   switch (behavior)
   {
     case SK_FAR_WaitBehavior::Busy:
-      memcpy (wait_addr, busy_wait, 6);
+      memcpy (psleep, busy_wait, 6);
       break;
 
     case SK_FAR_WaitBehavior::Sleep:
-      memcpy (wait_addr, sleep_wait, 6);
+      memcpy (psleep, sleep_wait, 6);
       break;
   }
 
-  VirtualProtect (wait_addr, 6, dwProtect, &dwProtect);
+  VirtualProtect (psleep, 6, dwProtect, &dwProtect);
 
   return true;
 }
@@ -452,7 +477,7 @@ SK_FAR_EndFrame (void)
   if (far_osd_disclaimer->get_value ())
     SK_DrawExternalOSD ( "FAR", "  Press Ctrl + Shift + O         to toggle In-Game OSD\n"
                                 "  Press Ctrl + Shift + Backspace to access In-Game Config Menu\n"
-                                "    ( Select + Start )\n\n"
+                                "    ( Select + Start on Gamepads )\n\n"
                                 "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
   else if (config.system.log_level == 1)
   {
@@ -555,6 +580,7 @@ SK_FAR_EndFrame (void)
     }
   }
 
+#ifdef WORKING_CAMERA_CONTROLS
   XINPUT_STATE state;
   if (__FAR_Freelook && SK_XInput_PollController (0, &state))
   {
@@ -634,6 +660,7 @@ SK_FAR_EndFrame (void)
     (*far_cam.pCamera) [0] = pos    [0] + dX;
     (*far_cam.pCamera) [2] = pos    [2] + dY;
   }
+#endif
 }
 
 
@@ -664,9 +691,9 @@ typedef void (CALLBACK *SK_PluginKeyPress_pfn)(
 SK_PluginKeyPress_pfn SK_PluginKeyPress_Original;
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
-  (UINT)((vKey) | ((ctrl) != 0) << 9)  |    \
-                  ((shift != 0) << 10) |    \
-                  ((alt   != 0) << 11)
+  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
+                  (((shift)!= 0) << 10) |   \
+                  (((alt)  != 0) << 11))
 
 #define SK_ControlShiftKey(vKey) SK_MakeKeyMask ((vKey), true, true, false)
 
@@ -695,9 +722,11 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
   switch (uiMaskedKeyCode)
   {
+#ifdef WORKING_FPS_UNCAP
     case SK_ControlShiftKey (VK_OEM_PERIOD):
       SK_FAR_SetFramerateCap (game_state.enforce_cap);
       break;
+#endif
 
     case SK_ControlShiftKey (VK_OEM_6): // ']'
     {
@@ -1662,6 +1691,11 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
       far_uncap_fps->store     ();
     }
 
+#ifndef WORKING_FPS_UNCAP
+    // FORCE OFF UNTIL I CAN FIX
+    far_uncap_fps->set_value (false);
+#endif
+
 
     far_rtss_warned = 
         static_cast <sk::ParameterBool *>
@@ -2156,6 +2190,7 @@ SK_FAR_ControlPanel (void)
       bool remove_cap = far_uncap_fps->get_value ();
       bool busy_wait  = (wait_behavior == SK_FAR_WaitBehavior::Busy);
 
+#ifdef WORKING_FPS_UNCAP
       if (ImGui::Checkbox ("Remove 60 FPS Cap  ", &remove_cap))
       {
         changed = true;
@@ -2180,6 +2215,7 @@ SK_FAR_ControlPanel (void)
       }
 
       ImGui::SameLine ();
+#endif
 
       if (ImGui::Checkbox ("Use Busy-Wait For Capped FPS", &busy_wait))
       {
@@ -2200,6 +2236,7 @@ SK_FAR_ControlPanel (void)
       ImGui::TreePop ();
     }
 
+#ifdef WORKING_CAMERA_CONTROLS
     if (ImGui::CollapsingHeader ("Camera and HUD"))
     {
       auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
@@ -2270,6 +2307,7 @@ SK_FAR_ControlPanel (void)
 
       ImGui::TreePop        ();
     }
+#endif
 
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
@@ -2304,13 +2342,6 @@ SK_FAR_IsPlugIn (void)
 );
 
 
-
-// Altimor's FPS cap removal
-//
-uint8_t* psleep     = (uint8_t *)0x14092E887;
-uint8_t* pspinlock  = (uint8_t *)0x14092E8CF;
-uint8_t* pmin_tstep = (uint8_t *)0x140805DEC;
-uint8_t* pmax_tstep = (uint8_t *)0x140805E18;
 
 void
 far_game_state_s::uncapFPS (void)

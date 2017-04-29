@@ -665,6 +665,8 @@
 #define IMGUI_DEFINE_PLACEMENT_NEW
 #include <imgui/imgui_internal.h>
 
+#include <limits>
+
 #include <ctype.h>      // toupper, isprint
 #include <stdlib.h>     // NULL, malloc, free, qsort, atoi
 #include <stdio.h>      // vsnprintf, sscanf, printf
@@ -901,7 +903,7 @@ ImGuiIO::ImGuiIO()
     MouseDragThreshold = 6.0f;
     for (int i = 0; i < IM_ARRAYSIZE(MouseDownDuration); i++) MouseDownDuration[i] = MouseDownDurationPrev[i] = -1.0f;
     for (int i = 0; i < IM_ARRAYSIZE(KeysDownDuration); i++) KeysDownDuration[i]  = KeysDownDurationPrev[i] = -1.0f;
-    for (int i = 0; i < IM_ARRAYSIZE(NavInputsDownDuration); i++) NavInputsDownDuration[i] = -1.0f;
+    for (int i = 0; i < IM_ARRAYSIZE(NavInputsDownDuration); i++) NavInputsDownDuration[i] = NavInputsDownDurationPrev[i] = -1.0f;
 
     // Set OS X style defaults based on __APPLE__ compile time flag
 #ifdef __APPLE__
@@ -2474,6 +2476,7 @@ enum ImGuiNavReadMode
 {
     ImGuiNavReadMode_Down,
     ImGuiNavReadMode_Pressed,
+    ImGuiNavReadMode_Released,
     ImGuiNavReadMode_Repeat,
     ImGuiNavReadMode_RepeatSlow,
     ImGuiNavReadMode_RepeatFast
@@ -2494,6 +2497,9 @@ static float GetNavInputAmount(ImGuiNavInput n, ImGuiNavReadMode mode)
         return (float)ImGui::CalcTypematicPressedRepeatAmount(t, t - g.IO.DeltaTime, g.IO.KeyRepeatDelay * 1.00f, g.IO.KeyRepeatRate * 2.00f);
     if (mode == ImGuiNavReadMode_RepeatFast)
         return (float)ImGui::CalcTypematicPressedRepeatAmount(t, t - g.IO.DeltaTime, g.IO.KeyRepeatDelay * 0.80f, g.IO.KeyRepeatRate * 0.30f);
+    const float tp = g.IO.NavInputsDownDurationPrev[n];
+    if (mode == ImGuiNavReadMode_Released)
+        return (tp > t && t == 0.0f) ? tp : std::numeric_limits <float>::max ();
     return 0.0f;
 }
 
@@ -2507,6 +2513,7 @@ static bool IsNavInputDown(ImGuiNavInput n)
 static bool IsNavInputPressed(ImGuiNavInput n, ImGuiNavReadMode mode)// = ImGuiNavReadMode_Re)
 {
     return GetNavInputAmount(n, mode) > 0.0f;
+    // XXX: Nonsensical for released read mode -- what to do?
 }
 
 static ImVec2 GetNavInputAmount2d(int stick_no, ImGuiNavReadMode mode, float slow_factor = 0.0f, float fast_factor = 0.0f)
@@ -2832,9 +2839,10 @@ void ImGui::NewFrame()
     // STUPID HACK: This should be in response to window messages, but there has been
     //                 a bit of trouble reliably receciving those messages in some games.
     if (GetForegroundWindow () != game_window.hWnd) {
-        //g.IO.WantTextInput                 = false;
-        //g.IO.WantCaptureKeyboard           = false;
-        //g.IO.WantCaptureMouse              = false;
+        g.IO.WantTextInput                 = false;
+        g.IO.WantCaptureKeyboard           = false;
+        g.IO.WantCaptureMouse              = false;
+        g.IO.WantMoveMouse                 = false;
         FocusWindow                        (nullptr);
         SK_Console::getInstance()->visible = false;
     }
@@ -2842,6 +2850,37 @@ void ImGui::NewFrame()
     if (g.IO.WantCaptureKeyboard) {
         SK_Console::getInstance ()->visible = false;
     }
+
+    //if (g.IO.NavInputsDownDuration [ImGuiNavInput_PadInput] > 0.1f) {
+      //g.IO.MouseClicked [1] = true;
+      //g.IO.WantMoveMouse    = true;
+    //}
+
+  //
+  // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
+  //
+  //          Remove the cursor after a brief timeout period (500 ms), it will come back if moved ;)
+  //
+  static int last_x, last_y;
+
+  if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCapture ())
+    SK_ImGui_Cursor.last_move = timeGetTime ();
+
+  last_x = SK_ImGui_Cursor.pos.x; last_y = SK_ImGui_Cursor.pos.y;
+
+  bool was_idle = SK_ImGui_Cursor.idle;
+
+  if (SK_ImGui_Visible && SK_ImGui_Cursor.last_move < timeGetTime () - 500)
+    SK_ImGui_Cursor.idle = true;
+
+  else
+    SK_ImGui_Cursor.idle = false;
+
+  if (was_idle != SK_ImGui_Cursor.idle)
+    SK_ImGui_Cursor.update ();
+
+
+
 
 
     SetCurrentFont(GetDefaultFont());
@@ -2876,6 +2915,7 @@ void ImGui::NewFrame()
     for (int i = 0; i < IM_ARRAYSIZE(g.IO.KeysDown); i++)
         g.IO.KeysDownDuration[i] = g.IO.KeysDown[i] ? (g.IO.KeysDownDuration[i] < 0.0f ? 0.0f : g.IO.KeysDownDuration[i] + g.IO.DeltaTime) : -1.0f;
     memcpy(g.IO.NavInputsPrev, g.IO.NavInputs, sizeof(g.IO.NavInputs));
+    memcpy(g.IO.NavInputsDownDurationPrev, g.IO.NavInputsDownDuration, sizeof(g.IO.NavInputsDownDuration));
     for (int i = 0; i < IM_ARRAYSIZE(g.IO.NavInputs); i++)
         g.IO.NavInputsDownDuration[i] = (g.IO.NavInputs[i] > 0.0f) ? (g.IO.NavInputsDownDuration[i] < 0.0f ? 0.0f : g.IO.NavInputsDownDuration[i] + g.IO.DeltaTime) : -1.0f;
 
@@ -10985,53 +11025,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self )
 {
-#if 0
-  static std::set <HRAWINPUT> processed_data;
-  static std::set <HRAWINPUT> processed_headers;
-
-  switch (uiCommand)
-  {
-    case RID_HEADER:
-    {
-      if (processed_headers.count (hRawInput))
-      {
-        dll_log.Log (L"Skipping processed raw input header");
-
-        if (pData != nullptr)
-          memset (pData, 0, *pcbSize);
-
-        *pcbSize = 0;
-        return 0;
-      }
-
-      processed_headers.insert (hRawInput);
-    } break;
-
-    case RID_INPUT:
-    {
-      if (processed_data.count (hRawInput))
-      {
-        dll_log.Log (L"Skipping processed raw input data");
-
-        if (pData != nullptr)
-          memset (pData, 0, *pcbSize);
-
-        *pcbSize = 0;
-        return 0;
-      }
-
-      processed_data.insert (hRawInput);
-    } break;
-  }
-
-  if (processed_headers.size () > 8)
-    processed_headers.clear ();
-
-  if (processed_data.size () > 8)
-    processed_data.clear ();
-#endif
-
-
   bool owns_data = false;
 
   if (pData == nullptr)
@@ -11130,8 +11123,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           default:
           {
-            if (SK_ImGui_WantGamepadCapture ())
-              filter = true;
+            // TODO: Determine which controller the input is from
+            //if (SK_ImGui_WantGamepadCapture ())
+              //filter = true;
           } break;
         }
 
@@ -11187,7 +11181,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         SK_ImGui_Cursor.update ();
       } break;
 
-#if 0
+
       case RIM_TYPEKEYBOARD:
       {
         USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
@@ -11217,7 +11211,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             ImGui::GetIO ().AddInputCharacter (VKey);
         }
       } break;
-#endif
+
 
       default:
         break;
@@ -11269,8 +11263,83 @@ SK_Input_RememberPressedKeys (void)
 {
   for (int i = 0; i < 256; i++)
   {
-    SK_ImGui_ActivationKeys [i] = ImGui::GetIO ().KeysDown [i] ? 3 : 0;
+    SK_ImGui_ActivationKeys [i] = ImGui::GetIO ().KeysDown [i] ? 10 : 0;
   }
+}
+
+LRESULT
+WINAPI
+ImGui_UniversalMouseDispatch ( UINT msg, WPARAM wParam, LPARAM lParam )
+{
+  switch (msg)
+  {
+    case WM_MOUSEMOVE:
+      break;
+
+    case WM_LBUTTONDOWN:
+      break;
+
+    case WM_LBUTTONUP:
+      break;
+  }
+
+  return 0;
+}
+
+bool
+SK_ImGui_WantMouseWarpFiltering (void)
+{
+  extern bool
+  SK_InputUtil_IsHWCursorVisible (void);
+
+  if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) ||
+       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
+    return true;
+
+  return false;
+}
+
+LONG
+SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold = 1)
+{
+  bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
+
+  if (filter_warps)
+  {
+    bool filter = false;
+
+    // Filter out small movements / mouselook warps
+    //
+    //   This does create a weird deadzone in the center of the screen,
+    //     but most people will not notice ;)
+    //
+    if ( abs (last_pos.x - GET_X_LPARAM (lParam)) < threshold &&
+         abs (last_pos.y - GET_Y_LPARAM (lParam)) < threshold )
+      filter = true;
+
+    POINT center { (LONG)(ImGui::GetIO ().DisplaySize.x / 2.0f),
+                   (LONG)(ImGui::GetIO ().DisplaySize.y / 2.0f) };
+
+    SK_ImGui_Cursor.LocalToClient (&center);
+
+    // Now test the cursor against the center of the screen
+    if ( abs (center.x - GET_X_LPARAM (lParam)) <= (center.x / 30) &&
+         abs (center.y - GET_Y_LPARAM (lParam)) <= (center.y / 30) )
+      filter = true;
+
+    POINT local { GET_X_LPARAM (lParam),
+                  GET_Y_LPARAM (lParam) };
+
+    last_pos.x = (SHORT)local.x;
+    last_pos.y = (SHORT)local.y;
+
+    // Dispose Without Processing
+    if (filter) {
+      return SK_ImGui_Visible ? 1 : 0;
+    }
+  }
+
+  return -1;
 }
 
 IMGUI_API
@@ -11283,9 +11352,11 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   if (hWnd != game_window.hWnd)
     return 0;
 
+  static POINTS last_pos;
+
   UNREFERENCED_PARAMETER (lParam);
 
-  auto MessageProc = [](HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) ->
+  auto MessageProc = [&](HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) ->
   bool {
   static bool window_active = true;
 
@@ -11295,7 +11366,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   auto ActivateWindow = [&](bool active = false)->
   void
     {
-      SK_Input_RememberPressedKeys ();
+      if (active)
+        SK_Input_RememberPressedKeys ();
 
 #if 0
       for (int i = 0; i < 256; i++)
@@ -11317,8 +11389,41 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   switch (msg)
   {
   case WM_HOTKEY:
-    if (SK_ImGui_WantKeyboardCapture ())
+    if (SK_ImGui_WantGamepadCapture ())
       return 1;
+    break;
+
+    // TODO: Take the bazillion different sources of input and translate them all into
+    //          a standard window message format for sanity's sake during filter evaluation.
+  case WM_APPCOMMAND:
+  {
+    switch (GET_DEVICE_LPARAM (lParam))
+    {
+      case FAPPCOMMAND_KEY:
+      {
+        if (SK_ImGui_WantKeyboardCapture ())
+          return true;
+      } break;
+
+      case FAPPCOMMAND_MOUSE:
+      {
+        if (SK_ImGui_WantMouseCapture()) {
+          dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
+          return true;
+        }
+
+        static DWORD last_pos = 0;
+               DWORD dwPos    = GetMessagePos ();
+
+        LONG lRet = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
+
+        if (lRet >= 0) {
+          dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
+          return true;
+        }
+      } break;
+    }
+  } break;
 
   case WM_MOUSEACTIVATE:
       ActivateWindow (((HWND)wParam == hWnd));
@@ -11386,6 +11491,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   case WM_KEYDOWN:
   case WM_SYSKEYDOWN:
+  //if (SK_ImGui_WantMouseCapture ())
   {
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
       io.KeysDown [(wParam & 0xff)] = 1;
@@ -11423,10 +11529,12 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     }
 
     return true;
-  }
+  } break;
 
   case WM_KEYUP:
   case WM_SYSKEYUP:
+  //if (SK_ImGui_WantMouseCapture ())
+  {
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
       io.KeysDown [(wParam & 0xff)] = 0;
     else if ((wParam & 0xff) < 5)
@@ -11440,59 +11548,20 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       return false;
     }
     return true;
+  } break;
 
   case WM_MOUSEMOVE:
   {
-    bool filter_warps = false;
+    LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
 
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) /*||
-         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible ()*/ )
-      filter_warps = true;
-
-
-    if (filter_warps)
-    {
-      bool filter = false;
-
-      static POINTS last_pos;
-      const short   threshold    = 1;
-      const float   smooth_range = 0.0f;
-            bool    smooth       = false;
-
-      // Filter out small movements / mouselook warps
-      //
-      //   This does create a weird deadzone in the center of the screen,
-      //     but most people will not notice ;)
-      //
-      if ( abs (last_pos.x - GET_X_LPARAM (lParam)) < threshold &&
-           abs (last_pos.y - GET_Y_LPARAM (lParam)) < threshold )
-        filter = true;
-
-      POINT center { (LONG)(ImGui::GetIO ().DisplaySize.x / 2.0f),
-                     (LONG)(ImGui::GetIO ().DisplaySize.y / 2.0f) };
-
-      SK_ImGui_Cursor.LocalToClient (&center);
-
-      // Now test the cursor against the center of the screen
-      if ( abs (center.x - GET_X_LPARAM (lParam)) <= (center.x / 30) &&
-           abs (center.y - GET_Y_LPARAM (lParam)) <= (center.y / 30) )
-        filter = true;
-
-      POINT local { GET_X_LPARAM (lParam),
-                    GET_Y_LPARAM (lParam) };
-
-      last_pos.x = (SHORT)local.x;
-      last_pos.y = (SHORT)local.y;
-
-      //SK_ImGui_Cursor.ClientToLocal (&local);
-
-      //SK_ImGui_Cursor.orig_pos.x = local.x;
-      //SK_ImGui_Cursor.orig_pos.y = local.y;
-
-      // Dispose Without Processing
-      if (filter)
-        return SK_ImGui_Visible;
-    }
+    // Return:
+    //
+    //   -1 if no filtering is desired
+    //    0 if the message should be passed onto app, but internal cursor pos unchanged
+    //    1 if the message should be completely eradicated
+    //
+    if (lDeltaRet >= 0)
+      return lDeltaRet;
 
     SHORT xPos = GET_X_LPARAM (lParam);
     SHORT yPos = GET_Y_LPARAM (lParam);
@@ -11511,7 +11580,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     }
 
     return true;
-    //SK_ImGui_Cursor.update ();
   } break;
 
 
@@ -11522,7 +11590,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     return true;
 
 
-  //case WM_INPUT_DEVICE_CHANGE:
   case WM_INPUT:
   {
     RAWINPUT data = { 0 };
@@ -11542,16 +11609,17 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
       switch (data.header.dwType)
       {
-        case RIM_TYPEMOUSE:            
-          cap = SK_ImGui_WantMouseCapture ();
+        case RIM_TYPEMOUSE:
+          cap = cap && SK_ImGui_WantMouseCapture ();
           break;
 
         case RIM_TYPEKEYBOARD:
-          cap = SK_ImGui_WantKeyboardCapture ();
+          cap = false;
+          //cap &= SK_ImGui_WantKeyboardCapture ();
           break;
 
         default:
-          cap = SK_ImGui_WantGamepadCapture ();
+          cap = cap && SK_ImGui_WantGamepadCapture ();
           break;
         }
 
@@ -11569,30 +11637,30 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
 
 
-  //
-  // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
-  //
-  //          Remove the cursor after a brief timeout period (500 ms), it will come back if moved ;)
-  //
-  static int last_x, last_y;
+  if ( (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST) ||
+        msg == WM_APPCOMMAND )
+  {
+    DWORD dwPos = GetMessagePos ();
 
-  if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCapture ())
-    SK_ImGui_Cursor.last_move = timeGetTime ();
+    SHORT xPos = GET_X_LPARAM ((LPARAM)dwPos);
+    SHORT yPos = GET_Y_LPARAM ((LPARAM)dwPos);
 
-  last_x = SK_ImGui_Cursor.pos.x; last_y = SK_ImGui_Cursor.pos.y;
+    SK_ImGui_Cursor.pos.x = xPos;
+    SK_ImGui_Cursor.pos.y = yPos;
 
-  bool was_idle = SK_ImGui_Cursor.idle;
+    SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
 
-  if (SK_ImGui_Visible && SK_ImGui_Cursor.last_move < timeGetTime() - 500)
-    SK_ImGui_Cursor.idle = true;
+    ImGuiIO& io = ImGui::GetIO ();
 
-  else
-    SK_ImGui_Cursor.idle = false;
+    io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+    io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+  }
 
-  if (was_idle != SK_ImGui_Cursor.idle)
-    SK_ImGui_Cursor.update ();
+  SK_ImGui_Cursor.update ();
 
 
+
+  bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
 
   UINT uMsg = msg;
 
@@ -11602,10 +11670,18 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       ImGui::GetIO ();
 
     bool keyboard_capture =
-      ( ( (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST) || uMsg == WM_HOTKEY || uMsg == WM_APPCOMMAND ) &&
+      ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
+           uMsg == WM_HOTKEY     ||
+         ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam) == FAPPCOMMAND_KEY ) ) &&
           SK_ImGui_WantKeyboardCapture () );
+
     bool mouse_capture =
-      ( ( uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST       ) && SK_ImGui_WantMouseCapture () );
+      ( ( ( uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST ) ||
+          ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam) == FAPPCOMMAND_MOUSE ) ) && 
+
+          ( SK_ImGui_WantMouseCapture () || 
+            (filter_warps && uMsg == WM_MOUSEMOVE) )
+      );
 
     if ((wParam & 0xFF) < 5)
     {
@@ -11664,7 +11740,7 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  if (SK_ImGui_WantGamepadCapture ())
+  if (SK_ImGui_WantGamepadCapture () && dwUserIndex == config.input.gamepad.xinput.ui_slot)
   {
     ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
@@ -11722,18 +11798,10 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   toggle_ui  = SK_ImGui_Visible;
   toggle_nav = nav_usable;
 
-  if (toggle_nav)
+  if (SK_ImGui_Visible && nav_usable)
   {
     SK_Input_RememberPressedKeys ();
 
-    for (int i = 0; i < 256; i++)
-    {
-      if (SK_ImGui_ActivationKeys [i])
-        game_window.CallProc (game_window.hWnd, WM_KEYUP, i, 0xFFFFFFFF);
-    }
-  }
-
-  if (SK_ImGui_Visible && nav_usable) {
     haptic_events.PulseTitle.start = (float)timeGetTime ();
     haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
                                        haptic_events.PulseTitle.duration;
@@ -11848,6 +11916,13 @@ SK_ImGui_PollGamepad (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
+
+  // This stupid hack prevents the Steam overlay from making the software
+  //   think tab is stuck down.
+  for (int i = 5; i < 128; i++)
+    io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+
+
   XINPUT_STATE state;
 
   for (int i = 0; i < ImGuiNavInput_COUNT; i++)
@@ -11882,15 +11957,14 @@ SK_ImGui_PollGamepad (void)
       float uLX = (LX / 32767.0f) * unit;
       float uLY = (LY / 32767.0f) * unit;
 
-
-      io.NavInputs [ImGuiNavInput_PadActivate]    += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_A);            // press button, tweak value                    // e.g. Circle button
-      io.NavInputs [ImGuiNavInput_PadCancel]      += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_B);            // close menu/popup/child, lose selection       // e.g. Cross button
-      io.NavInputs [ImGuiNavInput_PadInput]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_Y);            // text input                                   // e.g. Triangle button
-      io.NavInputs [ImGuiNavInput_PadMenu]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_X);            // access menu, focus, move, resize             // e.g. Square button
-      io.NavInputs [ImGuiNavInput_PadUp]          += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);      // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN);    // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT);    // move left
-      io.NavInputs [ImGuiNavInput_PadRight]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);   // move right
+      io.NavInputs [ImGuiNavInput_PadActivate]    += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_A)          != 0;   // press button, tweak value                    // e.g. Circle button
+      io.NavInputs [ImGuiNavInput_PadCancel]      += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_B)          != 0;   // close menu/popup/child, lose selection       // e.g. Cross button
+      io.NavInputs [ImGuiNavInput_PadInput]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)          != 0;   // text input                                   // e.g. Triangle button
+      io.NavInputs [ImGuiNavInput_PadMenu]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_X)          != 0;   // access menu, focus, move, resize             // e.g. Square button
+      io.NavInputs [ImGuiNavInput_PadUp]          += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0;   // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
+      io.NavInputs [ImGuiNavInput_PadDown]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0;   // move down
+      io.NavInputs [ImGuiNavInput_PadLeft]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0;   // move left
+      io.NavInputs [ImGuiNavInput_PadRight]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;   // move right
 
 
       io.NavInputs [ImGuiNavInput_PadScrollDown] = 0.0f;
@@ -11913,8 +11987,8 @@ SK_ImGui_PollGamepad (void)
         io.NavInputs [ImGuiNavInput_PadScrollLeft]  -= uLX / analog_sensitivity;
 
 
-      io.NavInputs [ImGuiNavInput_PadFocusPrev]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);   // next window (with PadMenu held)              // e.g. L-trigger
-      io.NavInputs [ImGuiNavInput_PadFocusNext]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);   // prev window (with PadMenu held)              // e.g. R-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusPrev]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0;   // next window (with PadMenu held)              // e.g. L-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusNext]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;   // prev window (with PadMenu held)              // e.g. R-trigger
 
 #define SK_Threshold(x,y) (x) > (y) ? ( (x) - (y) ) : 0
 

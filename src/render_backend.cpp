@@ -170,7 +170,10 @@ SK_BootVulkan (void)
 void
 SK_RenderBackend_V2::gsync_s::update (void)
 {
-  if (last_checked < timeGetTime() - 500UL)
+  if (! (config.apis.NvAPI.gsync_status && sk::NVAPI::nv_hardware))
+    return;
+
+  if (last_checked < timeGetTime () - 500UL)
   {
     bool success = false;
 

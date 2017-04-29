@@ -83,6 +83,9 @@ struct SK_XInputContext
   instance_s* primary_hook = nullptr;
 } xinput_ctx;
 
+#define SK_XINPUT_READ  SK_XInput_Backend.markRead  ();
+#define SK_XINPUT_WRITE SK_XInput_Backend.markWrite ();
+
 
 extern bool
 SK_ImGui_FilterXInput (
@@ -96,6 +99,7 @@ XInputGetState1_3_Detour (
   _Out_ XINPUT_STATE *pState )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -125,6 +129,7 @@ XInputGetStateEx1_3_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -155,6 +160,7 @@ XInputGetCapabilities1_3_Detour (
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -180,6 +186,7 @@ XInputGetBatteryInformation1_3_Detour (
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -204,11 +211,12 @@ XInputSetState1_3_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_WRITE
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
-  bool nop = SK_ImGui_WantGamepadCapture () && config.input.gamepad.haptic_ui;
+  bool nop = SK_ImGui_WantGamepadCapture () && dwUserIndex == config.input.gamepad.xinput.ui_slot && config.input.gamepad.haptic_ui;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -232,6 +240,7 @@ XInputGetState1_4_Detour (
   _Out_ XINPUT_STATE *pState )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -261,6 +270,7 @@ XInputGetStateEx1_4_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -291,6 +301,7 @@ XInputGetCapabilities1_4_Detour (
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -316,6 +327,7 @@ XInputGetBatteryInformation1_4_Detour (
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -340,11 +352,12 @@ XInputSetState1_4_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_WRITE
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
-  bool nop = SK_ImGui_WantGamepadCapture () && config.input.gamepad.haptic_ui;
+  bool nop = SK_ImGui_WantGamepadCapture () && dwUserIndex == config.input.gamepad.xinput.ui_slot && config.input.gamepad.haptic_ui;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -368,6 +381,7 @@ XInputGetState9_1_0_Detour (
   _Out_ XINPUT_STATE *pState )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -398,6 +412,7 @@ XInputGetCapabilities9_1_0_Detour (
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_READ
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -422,11 +437,12 @@ XInputSetState9_1_0_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
+  SK_XINPUT_WRITE
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
 
-  bool nop = SK_ImGui_WantGamepadCapture () && config.input.gamepad.haptic_ui;
+  bool nop = SK_ImGui_WantGamepadCapture () && dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot && config.input.gamepad.haptic_ui;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -494,6 +510,11 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
               (LPVOID *)&pCtx->XInputGetStateEx_Target );
   }
 
+  MH_QueueEnableHook (pCtx->XInputGetState_Target);
+  MH_QueueEnableHook (pCtx->XInputSetState_Target);
+  MH_QueueEnableHook (pCtx->XInputGetCapabilities_Target);
+  MH_QueueEnableHook (pCtx->XInputGetBatteryInformation_Target);
+  MH_QueueEnableHook (pCtx->XInputGetStateEx_Target);
 
   MH_ApplyQueued ();
 
@@ -632,8 +653,7 @@ SK_XInput_RehookIfNeeded (void)
       if ( MH_OK ==
              SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputGetState",
                                   pCtx->XInputGetState_Detour,
-                       (LPVOID *)&pCtx->XInputGetState_Original,
-                       (LPVOID *)&pCtx->XInputGetState_Target )
+                       (LPVOID *)&pCtx->XInputGetState_Original )
          )
       {
         SK_LOG0 ( ( L" Re-hooked XInput using '%s'...",
@@ -681,8 +701,7 @@ SK_XInput_RehookIfNeeded (void)
       if ( MH_OK ==
              SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputSetState",
                                   pCtx->XInputSetState_Detour,
-                       (LPVOID *)&pCtx->XInputSetState_Original,
-                       (LPVOID *)&pCtx->XInputSetState_Target )
+                       (LPVOID *)&pCtx->XInputSetState_Original )
          )
       {
         SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
@@ -728,10 +747,9 @@ SK_XInput_RehookIfNeeded (void)
     if ( MH_OK == MH_RemoveHook (pCtx->XInputGetCapabilities_Target) )
     {
       if ( MH_OK ==
-             SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputGetCapabilities",
-                                  pCtx->XInputGetCapabilities_Detour,
-                       (LPVOID *)&pCtx->XInputGetCapabilities_Original,
-                       (LPVOID *)&pCtx->XInputGetCapabilities_Target )
+             SK_CreateDLLHook2(  pCtx->wszModuleName, "XInputGetCapabilities",
+                                 pCtx->XInputGetCapabilities_Detour,
+                      (LPVOID *)&pCtx->XInputGetCapabilities_Original )
          )
       {
         SK_LOG0 ( ( L" Re-hooked XInput (Caps) using '%s'...",
@@ -780,10 +798,9 @@ SK_XInput_RehookIfNeeded (void)
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetBatteryInformation_Target) )
       {
         if ( MH_OK ==
-               SK_CreateDLLHook2 (  pCtx->wszModuleName, "XInputGetBatteryInformation",
-                                    pCtx->XInputGetBatteryInformation_Detour,
-                         (LPVOID *)&pCtx->XInputGetBatteryInformation_Original,
-                         (LPVOID *)&pCtx->XInputGetBatteryInformation_Target )
+               SK_CreateDLLHook2(  pCtx->wszModuleName, "XInputGetBatteryInformation",
+                                   pCtx->XInputGetBatteryInformation_Detour,
+                        (LPVOID *)&pCtx->XInputGetBatteryInformation_Original )
            )
         {
           SK_LOG0 ( ( L" Re-hooked XInput (Battery) using '%s'...",
@@ -832,8 +849,7 @@ SK_XInput_RehookIfNeeded (void)
         if ( MH_OK ==
                SK_CreateDLLHook2 (  pCtx->wszModuleName, XINPUT_GETSTATEEX_ORDINAL,
                                     pCtx->XInputGetStateEx_Detour,
-                         (LPVOID *)&pCtx->XInputGetStateEx_Original,
-                         (LPVOID *)&pCtx->XInputGetStateEx_Target )
+                         (LPVOID *)&pCtx->XInputGetStateEx_Original )
            )
         {
           SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",
@@ -994,8 +1010,8 @@ SK_XInput_PollController ( INT           iJoyID,
   XINPUT_STATE_EX xstate = { 0 };
   xstate.dwPacketNumber  =   1;
 
-  static DWORD last_poll [XUSER_MAX_COUNT] = { 0 };
-  static DWORD dwRet     [XUSER_MAX_COUNT] = { 0 };
+  static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
+  static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
 
   // This function is actually a performance hazzard when no controllers
   //   are plugged in, so ... throttle the sucker.

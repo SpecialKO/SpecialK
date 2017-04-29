@@ -491,10 +491,6 @@ D3D11CreateDevice_Detour (
 {
   DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
 
-  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
-  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"NvCamera64.dll")
-    WaitForInitDXGI ();
-
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level;
   ID3D11Device*     ret_device;
@@ -571,8 +567,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
   // Even if the game doesn't care about the feature level, we do.
-  D3D_FEATURE_LEVEL ret_level;
-  ID3D11Device*     ret_device;
+  D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_9_1;
+  ID3D11Device*     ret_device = nullptr;
 
   // Allow override of swapchain parameters
   DXGI_SWAP_CHAIN_DESC* swap_chain_desc     = (DXGI_SWAP_CHAIN_DESC *)pSwapChainDesc;
@@ -581,7 +577,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   DXGI_LOG_CALL_0 (L"D3D11CreateDeviceAndSwapChain");
 
   // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
-  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"d3d11.dll")
+  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"d3d11.dll" && SK_GetCallingDLL () != SK_GetDLL ())
     WaitForInitDXGI ();
 
   dll_log.LogEx ( true,
@@ -1462,8 +1458,8 @@ SK_D3D11_PopulateResourceList (void)
           //   include these while scanning for textures.
           if (    StrStrIW (fd.cFileName, L".dds")    &&
                (! StrStrIW (fd.cFileName, L".dds.txt") ) ) {
-            uint32_t top_crc32;
-            uint32_t checksum;
+            uint32_t top_crc32 = 0x00;
+            uint32_t checksum  = 0x00;
 
             bool compressed = false;
 
@@ -1541,9 +1537,9 @@ SK_D3D11_PopulateResourceList (void)
 
   if ( GetFileAttributesW (wszTexInjectDir) !=
          INVALID_FILE_ATTRIBUTES ) {
-    WIN32_FIND_DATA fd;
+    WIN32_FIND_DATA fd     = { 0 };
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
-    unsigned int    files  = 0;
+    unsigned int    files  =   0;
     LARGE_INTEGER   liSize = { 0 };
 
     dll_log.LogEx ( true, L"[DX11TexMgr] Enumerating injectable..." );
@@ -1600,9 +1596,9 @@ SK_D3D11_PopulateResourceList (void)
 
   if ( GetFileAttributesW (wszTexInjectDir_FFX) !=
          INVALID_FILE_ATTRIBUTES ) {
-    WIN32_FIND_DATA fd;
+    WIN32_FIND_DATA fd     = { 0 };
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
-    int             files  = 0;
+    int             files  =   0;
     LARGE_INTEGER   liSize = { 0 };
 
     dll_log.LogEx ( true, L"[DX11TexMgr] Enumerating FFX inject..." );
@@ -1965,10 +1961,10 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
         pDesc->Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
     compressed = true;
 
-  int bpp = ( (pDesc->Format >= DXGI_FORMAT_BC1_TYPELESS &&
-               pDesc->Format <= DXGI_FORMAT_BC1_UNORM_SRGB) ||
-              (pDesc->Format >= DXGI_FORMAT_BC4_TYPELESS &&
-               pDesc->Format <= DXGI_FORMAT_BC4_SNORM) ) ? 0 : 1;
+  const int bpp = ( (pDesc->Format >= DXGI_FORMAT_BC1_TYPELESS &&
+                     pDesc->Format <= DXGI_FORMAT_BC1_UNORM_SRGB) ||
+                    (pDesc->Format >= DXGI_FORMAT_BC4_TYPELESS &&
+                     pDesc->Format <= DXGI_FORMAT_BC4_SNORM) ) ? 0 : 1;
 
   unsigned int width  = pDesc->Width;
   unsigned int height = pDesc->Height;
@@ -2229,7 +2225,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
         break;
       }
 
-      size_t lines =
+      const size_t lines =
         DirectX::ComputeScanlines (mdata.format, height);
 
       if  (! lines) {
@@ -2238,7 +2234,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
       }
 
       auto sptr =
-        reinterpret_cast <const uint8_t *>(
+        static_cast <const uint8_t *>(
           pInitialData [lod].pSysMem
         );
 
@@ -2419,7 +2415,7 @@ D3D11Dev_CreateTexture2D_Override (
 
   cacheable &= (ppTexture2D != nullptr);
 
-  bool dumpable = 
+  const bool dumpable = 
               cacheable && pDesc->Usage != D3D11_USAGE_DYNAMIC &&
                            pDesc->Usage != D3D11_USAGE_STAGING;
 
@@ -2433,7 +2429,7 @@ D3D11Dev_CreateTexture2D_Override (
       ffx_crc32 = crc32_ffx (pDesc, pInitialData, &size);
     }
 
-    bool injectable = (
+    const bool injectable = (
            checksum != 0x00 &&
             ( SK_D3D11_IsInjectable     (top_crc32, checksum) ||
               SK_D3D11_IsInjectable     (top_crc32, 0x00)     ||

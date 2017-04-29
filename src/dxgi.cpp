@@ -1177,7 +1177,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
     SK_GetCurrentRenderBackend ().device    = pDev;
     SK_GetCurrentRenderBackend ().swapchain = This;
 
-    if (sk::NVAPI::nv_hardware)
+    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
       CComPtr <IDXGISurface> pSurf = nullptr;
 
@@ -1976,7 +1976,9 @@ extern "C" {
 
           SK_GetCurrentRenderBackend ().device    = pDev;
           SK_GetCurrentRenderBackend ().swapchain = This;
-          NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
+
+          if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+            NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
 
           if (bAlwaysAllowFullscreen)
             pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
@@ -1994,6 +1996,20 @@ extern "C" {
     first_frame = false;
 
     int interval = config.render.framerate.present_interval;
+
+    if ( config.render.dxgi.allow_tearing )
+    {
+      DXGI_SWAP_CHAIN_DESC desc;
+      if (SUCCEEDED (This->GetDesc (&desc)))
+      {
+        if (desc.Windowed) {
+          Flags       |= DXGI_PRESENT_ALLOW_TEARING;
+          SyncInterval = 0;
+          interval     = 0;
+        }
+      }
+    }
+
     int flags    = Flags;
 
     // Application preference
@@ -2008,20 +2024,22 @@ extern "C" {
         flags |= DXGI_PRESENT_DO_NOT_WAIT;
     }
 
+    // Test first, then do (if test_present is true)
+    hr = config.render.dxgi.test_present ? 
+           Present_Original (This, 0, Flags | DXGI_PRESENT_TEST) :
+           S_OK;
+
+    bool can_present = SUCCEEDED (hr) || hr == DXGI_STATUS_OCCLUDED;
+
     if (! bFlipMode)
     {
-      // Test first, then do (if test_present is true)
-      hr = config.render.dxgi.test_present ? 
-             Present_Original (This, 0, Flags | DXGI_PRESENT_TEST) :
-             S_OK;
-
-      if (SUCCEEDED (hr) || hr == DXGI_STATUS_OCCLUDED)
+      if (can_present)
       {
              SK_CEGUI_DrawD3D11 (This);
         hr = Present_Original   (This, interval, flags);
       }
 
-      if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED)
+      else
       {
         dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
                       L"returned non-S_OK (%s :: %s)",
@@ -2054,27 +2072,29 @@ extern "C" {
       CComPtr <IDXGISwapChain1> pSwapChain1;
       if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain1))))
       {
-        bool can_present = true;//SUCCEEDED (hr);
-
         if (can_present)
         {
-          // Draw here to include in Steam screenshots
           SK_CEGUI_DrawD3D11 (This);
 
-        // No overlays will work if we don't do this...
-        /////if (config.osd.show) {
-          hr =
-            Present_Original (
-              This,
-                0,
-                  flags | DXGI_PRESENT_DO_NOT_SEQUENCE | DXGI_PRESENT_DO_NOT_WAIT );
+          // No overlays will work if we don't do this...
+          /////if (config.osd.show) {
+            hr =
+              Present_Original (
+                This,
+                  0,
+                    flags | DXGI_PRESENT_DO_NOT_SEQUENCE       | DXGI_PRESENT_DO_NOT_WAIT |
+                            DXGI_PRESENT_STEREO_TEMPORARY_MONO | DXGI_PRESENT_USE_DURATION );
 
-          // Draw here to hide from Steam screenshots
-          //SK_CEGUI_DrawD3D11 (This);
+                  // ^^^ Deliberately invalid set of flags so that this call will fail, we just
+                  //       want third-party overlays that don't hook Present1 to understand what
+                  //         is going on.
 
-        /////}
+            // Draw here to hide from Steam screenshots
+            //SK_CEGUI_DrawD3D11 (This);
 
-          hr = Present1_Original (pSwapChain1, interval, flags, &pparams);
+          /////}
+
+          hr = Present1_Original (pSwapChain1, interval, flags | DXGI_PRESENT_DO_NOT_WAIT, &pparams);
         }
       }
     }
@@ -2323,6 +2343,13 @@ __declspec (noinline)
 
     InterlockedExchange (&__gui_reset, TRUE);
 
+    if ( config.render.dxgi.allow_tearing &&
+           /* Test Caps */ true ) {
+      //Fullscreen = FALSE;
+      //dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
+      //pTarget = nullptr;
+    }
+
 #if 0
     DXGI_MODE_DESC mode_desc = { 0 };
 
@@ -2356,11 +2383,8 @@ __declspec (noinline)
     //
     if (/*Fullscreen &&*/SUCCEEDED (ret))
     {
-      //mode_desc.RefreshRate = { 0 };
-      //ResizeTarget_Original (This, &mode_desc);
-
-      //if (bFlipMode)
-        //ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+      if (bFlipMode)
+        ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 
       DXGI_SWAP_CHAIN_DESC desc;
       if (SUCCEEDED (This->GetDesc (&desc)))
@@ -2414,6 +2438,11 @@ __declspec (noinline)
 
     InterlockedExchange (&__gui_reset, TRUE);
 
+    if ( config.render.dxgi.allow_tearing &&
+           /* Test Caps */ true ) {
+      SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+      dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
+    }
 
     // Fake it
     //if (bWait)
@@ -2604,7 +2633,29 @@ __declspec (noinline)
     DXGI_LOG_CALL_I3 (iname.c_str (), L"CreateSwapChain", L"%ph, %ph, %ph",
                     pDevice, pDesc, ppSwapChain);
 
-    //ImGui_DX11Shutdown ();
+    if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
+    {
+      IDXGISwapChain* pSwap = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+
+      DXGI_SWAP_CHAIN_DESC desc;
+      if (SUCCEEDED (pSwap->GetDesc (&desc)))
+      {
+        if ( desc.OutputWindow == pDesc->OutputWindow &&
+             pDevice           == SK_GetCurrentRenderBackend ().device )
+        {
+          CComPtr <ID3D11Device> pD3D11Dev = nullptr;
+
+          if (SUCCEEDED (pDevice->QueryInterface <ID3D11Device> (&pD3D11Dev)))
+          {
+            ID3D11DeviceContext* pCtx = nullptr;
+            pD3D11Dev->GetImmediateContext (&pCtx);
+
+            pCtx->ClearState ();
+            pCtx->Flush      ();
+          }
+        }
+      }
+    }
 
     HRESULT ret;
 
@@ -2696,6 +2747,15 @@ __declspec (noinline)
       {
         pDesc->BufferCount = config.render.framerate.buffer_count;
         dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+      }
+
+      if ( config.render.dxgi.allow_tearing &&
+             /* Test Caps */ true ) {
+        pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        //pDesc->Windowed                           = true;
+        //pDesc->BufferDesc.RefreshRate.Denominator = 0;
+        //pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+        dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
       }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
@@ -2916,6 +2976,12 @@ __declspec (noinline)
       }
 #endif
 
+      if ( config.render.dxgi.allow_tearing &&
+             /* Test Caps */ true ) {
+        pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
+      }
+
       if (! bFlipMode)
         bFlipMode =
           ( dxgi_caps.present.flip_sequential && (
@@ -3104,6 +3170,12 @@ __declspec (noinline)
         L"Flip Sequential" :
         pDesc->SwapEffect == 4 ?
         L"Flip Discard" : L"<Unknown>");
+
+      if ( config.render.dxgi.allow_tearing &&
+             /* Test Caps */ true ) {
+        pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
+      }
 
       // D3D12 apps will actually use flip model, hurray!
       if ( pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||

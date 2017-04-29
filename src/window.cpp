@@ -57,8 +57,8 @@ extern volatile ULONG __SK_DLL_Ending;
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 
-#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX )
-#define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )
+#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU )
+#define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )                     // ^^^ Keep the window's icon unchanged
 
 #define SK_LOG_LEVEL_UNTESTED
 
@@ -1576,7 +1576,8 @@ SK_SetWindowStyle (DWORD_PTR dwStyle)
 {
   // This is damn important, never allow this style
   //   to be removed or the window will vanish.
-  dwStyle |= WS_VISIBLE;
+  dwStyle |= (WS_VISIBLE | WS_SYSMENU);
+  dwStyle &= (~WS_DISABLED);
 
   game_window.actual.style = dwStyle;
 
@@ -1590,7 +1591,8 @@ SK_SetWindowStyleEx (DWORD_PTR dwStyleEx)
 {
   // This is damn important, never allow this style
   //   to be removed or the window will vanish.
-  dwStyleEx |= WS_EX_APPWINDOW;
+  dwStyleEx |=   WS_EX_APPWINDOW;
+  dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
 
   game_window.actual.style_ex = dwStyleEx;
 
@@ -1761,6 +1763,10 @@ SK_ResetWindow (void)
 
       GetWindowRect (game_window.hWnd, &game_window.actual.window);
       GetClientRect (game_window.hWnd, &game_window.actual.client);
+
+      // Force a sane set of window styles initially
+      SK_SetWindowStyle   ( game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE)   );
+      SK_SetWindowStyleEx ( game_window.GetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE) );
       
       if (config.window.borderless)
       {
@@ -1790,8 +1796,6 @@ void
 SK_AdjustWindow (void)
 {
   SK_WINDOW_LOG_CALL3 ();
-
-  DWORD async       = 0x00;//IsGUIThread (FALSE) ? SWP_ASYNCWINDOWPOS : SWP_ASYNCWINDOWPOS;
 
   if (game_window.GetWindowLongPtr == nullptr)
     return;
@@ -2266,7 +2270,7 @@ PeekMessageW_Detour (
 
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet)
+  if (bRet && lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return bRet;
@@ -2295,7 +2299,7 @@ PeekMessageA_Detour (
 
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet)
+  if (bRet && lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return bRet;
@@ -2316,7 +2320,8 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  SK_EarlyDispatchMessage (lpMsg, true);
+  if (lpMsg->hwnd != nullptr)
+    SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
 }
@@ -2330,7 +2335,8 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  SK_EarlyDispatchMessage (lpMsg, true);
+  if (lpMsg->hwnd != nullptr)
+    SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
 }
@@ -2501,71 +2507,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   bool console_visible =
     SK_Console::getInstance ()->isVisible ();
 
-  if (uMsg == WM_SETCURSOR && SK_ImGui_Visible)
-  {
-    //SK_LOG_CALL ("WM_SETCURSOR")
-
-    if ((HWND)wParam == game_window.hWnd)
-    {
-      SK_ImGui_Cursor.update ();
-      return 1;
-    }
-
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-  }
-
-
-  //
-  // ImGui input handling
-  //
-  LRESULT result = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
-
-  if (result != 0)
-  {
-    if (uMsg == WM_INPUT)
-      return 0;//game_window.DefProc (uMsg, wParam, lParam);
-
-    return 1;
-  }
-
-  if (uMsg == WM_DEVICECHANGE)
-  {
-    switch (wParam)
-    {
-      case DBT_DEVICEARRIVAL:
-      {
-        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
-
-        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-        {
-          if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-               config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
-          {
-            dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
-            return 1;
-          }
-        }
-      } break;
-
-      case DBT_DEVICEQUERYREMOVE:
-      case DBT_DEVICEREMOVEPENDING:
-      case DBT_DEVICEREMOVECOMPLETE:
-      {
-        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
-
-        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-        {
-          if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-               config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
-          {
-            dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
-            return BROADCAST_QUERY_DENY;//game_window.DefProc (uMsg, wParam, lParam);
-          }
-        }
-      } break;
-    }
-  }
-
 
 #if 0
   // HACK: Fallout 4 terminates abnormally at shutdown, meaning DllMain will
@@ -2643,9 +2584,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (! last_mouse.init)
     {
       if (config.input.cursor.timeout != 0)
-        SetTimer (hWnd, last_mouse.timer_id, config.input.cursor.timeout / 2, nullptr);
+        SetTimer (hWnd, (UINT_PTR)last_mouse.timer_id, (UINT)config.input.cursor.timeout / 2, nullptr);
       else
-        SetTimer (hWnd, last_mouse.timer_id, 250/*USER_TIMER_MINIMUM*/, nullptr);
+        SetTimer (hWnd, (UINT_PTR)last_mouse.timer_id, 250UL/*USER_TIMER_MINIMUM*/, nullptr);
 
       last_mouse.init = true;
     }
@@ -3284,34 +3225,25 @@ SK_InstallWindowHook (HWND hWnd)
     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
   }
 
+  SK_CreateDLLHook2 ( L"user32.dll", "TranslateMessage",
+                     TranslateMessage_Detour,
+           (LPVOID*)&TranslateMessage_Original );
 
-    SK_CreateDLLHook2 ( L"user32.dll", "TranslateMessage",
-                       TranslateMessage_Detour,
-             (LPVOID*)&TranslateMessage_Original );
+  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
+                     PeekMessageW_Detour,
+           (LPVOID*)&PeekMessageW_Original );
 
-    //SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
-                       //DispatchMessageW_Detour,
-             //(LPVOID*)&DispatchMessageW_Original );
+  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
+                     GetMessageW_Detour,
+           (LPVOID*)&GetMessageW_Original );
 
-    SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
-                       PeekMessageW_Detour,
-             (LPVOID*)&PeekMessageW_Original );
+  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
+                     PeekMessageA_Detour,
+           (LPVOID*)&PeekMessageA_Original );
 
-    SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
-                       GetMessageW_Detour,
-             (LPVOID*)&GetMessageW_Original );
-
-    //SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
-                       //DispatchMessageA_Detour,
-             //(LPVOID*)&DispatchMessageA_Original );
-
-    SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
-                       PeekMessageA_Detour,
-             (LPVOID*)&PeekMessageA_Original );
-
-    SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
-                       GetMessageA_Detour,
-             (LPVOID*)&GetMessageA_Original );
+  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
+                     GetMessageA_Detour,
+           (LPVOID*)&GetMessageA_Original );
 
   MH_ApplyQueued ();
 
@@ -3339,28 +3271,6 @@ SK_GetGameWindow (void)
 
   return game_window.hWnd;
 }
-
-#if 0
-bool
-SK_TestAndHook ( const wchar_t* wszModule,
-                 const char*     szFunc,
-                 LPVOID         pDetour,
-                 LPVOID*       ppTarget )
-{
-  HMODULE hMod =
-    GetModuleHandle (wszModule);
-
-  sk_import_test_s test { szFunc, false };
-
-  SK_TestImports (hMod, &test, 1);
-
-  if (test.used) {
-    SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
-                       PeekMessageW_Detour,
-             (LPVOID*)&PeekMessageW_Original );
-  }
-}
-#endif
 
 void
 SK_HookWinAPI (void)

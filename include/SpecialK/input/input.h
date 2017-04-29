@@ -76,6 +76,40 @@ struct sk_imgui_cursor_s
 } extern SK_ImGui_Cursor;
 
 
+struct sk_input_api_context_s
+{
+  volatile LONG reads, writes;
+
+  struct {
+    volatile LONG reads, writes;
+  } last_frame;
+
+  void markRead  (void) { InterlockedIncrement (&last_frame.reads);  }
+  void markWrite (void) { InterlockedIncrement (&last_frame.writes); }
+
+  bool nextFrame (void) {
+    InterlockedAdd (&reads, last_frame.reads);
+    InterlockedAdd (&writes, last_frame.writes);
+
+    bool active = InterlockedAdd (&last_frame.reads, 0) || InterlockedAdd (&last_frame.writes, 0);
+
+    InterlockedExchange (&last_frame.reads,  0);
+    InterlockedExchange (&last_frame.writes, 0);
+
+    return active;
+  }
+};
+
+extern sk_input_api_context_s SK_XInput_Backend;
+extern sk_input_api_context_s SK_DI8_Backend;
+extern sk_input_api_context_s SK_HID_Backend;
+extern sk_input_api_context_s SK_Win32_Backend;
+extern sk_input_api_context_s SK_RawInput_Backend;
+
+extern sk_input_api_context_s SK_WinMM_Backend;
+extern sk_input_api_context_s SK_Steam_Backend;
+
+
 bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove);
 

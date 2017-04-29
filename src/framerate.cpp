@@ -68,11 +68,6 @@ LARGE_INTEGER SK::Framerate::Stats::freq;
 LPVOID pfnQueryPerformanceCounter       = nullptr;
 LPVOID pfnSleep                         = nullptr;
 
-#if 0
-static __declspec (thread) int           last_sleep     =   1;
-static __declspec (thread) LARGE_INTEGER last_perfCount = { 0 };
-#endif
-
 typedef void (WINAPI *Sleep_pfn)(DWORD dwMilliseconds);
 Sleep_pfn Sleep_Original = nullptr;
 
@@ -80,20 +75,6 @@ void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
-#if 0
-  extern DWORD dwRenderThread;
-  if ( GetCurrentThreadId () == dwRenderThread ) {
-    if (dwMilliseconds < 10) {
-      YieldProcessor ();
-      return;
-    }
-  }
-#endif
-
-  //dll_log.Log (L"Sleep (%lu) - tid: 0x%X", dwMilliseconds, GetCurrentThreadId ());
-
-  //last_sleep = dwMilliseconds;
-
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
   if (dwMilliseconds == 0) {
     YieldProcessor ();
@@ -119,36 +100,6 @@ BOOL
 WINAPI
 QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 {
-#if 0
-  BOOL ret = QueryPerformanceCounter_Original (lpPerformanceCount);
-
-  if (last_sleep > 0 /*thread_sleep [GetCurrentThreadId ()] > 0 *//*|| (! (tzf::FrameRateFix::fullscreen ||
-    tzf::FrameRateFix::driver_limit_setup ||
-    config.framerate.allow_windowed_mode))*/) {
-    memcpy (&last_perfCount, lpPerformanceCount, sizeof (LARGE_INTEGER) );
-    //thread_perf [GetCurrentThreadId ()] = last_perfCount;
-    return ret;
-  } else {
-    static LARGE_INTEGER freq = { 0 };
-    if (freq.QuadPart == 0ULL)
-      QueryPerformanceFrequency (&freq);
-
-    const float fudge_factor = config.render.framerate.fudge_factor;// * freq.QuadPart;
-
-    last_sleep = 1;
-    //thread_sleep [GetCurrentThreadId ()] = 1;
-
-    //last_perfCount = thread_perf [GetCurrentThreadId ()];
-
-    // Mess with the numbers slightly to prevent hiccups
-    lpPerformanceCount->QuadPart += (lpPerformanceCount->QuadPart - last_perfCount.QuadPart) *
-      fudge_factor/* * freq.QuadPart*/;
-    memcpy (&last_perfCount, lpPerformanceCount, sizeof (LARGE_INTEGER) );
-    //thread_perf [GetCurrentThreadId ()] = last_perfCount;
-
-    return ret;
-  }
-#endif
   return QueryPerformanceCounter_Original (lpPerformanceCount);
 }
 
@@ -203,13 +154,6 @@ SK::Framerate::Init (void)
 void
 SK::Framerate::Shutdown (void)
 {
-  // Removing hooks is dangerous, likely because something else
-  //   has hooked many of these functions...
-
-////////  SK_DisableHook (pfnSleep);
-
-  // Disabling the hook is no safer, apparently
-
 #if 0
   SK_RemoveHook (pfnSleep);
   SK_RemoveHook (pfnQueryPerformanceCounter);
@@ -457,15 +401,6 @@ SK::Framerate::Limiter::wait (void)
         } else if (dxgi_output != nullptr) {
           dxgi_output->WaitForVBlank ();
         }
-      }
-#endif
-
-#if 0
-      if (GetForegroundWindow () != tzf::RenderFix::hWndDevice &&
-          tzf::FrameRateFix::fullscreen) {
-        //dll_log.Log (L" # Restarting framerate limiter; fullscreen Alt+Tab...");
-        restart = true;
-        break;
       }
 #endif
 

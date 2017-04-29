@@ -548,6 +548,7 @@ public:
   {
     return false;
 
+#if 0
     if (config.steam.silent)
       return false;
 
@@ -747,6 +748,7 @@ public:
     steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
 
     return true;
+    #endif
   }
 
   bool InitSteamAPI (HMODULE hSteamDLL)

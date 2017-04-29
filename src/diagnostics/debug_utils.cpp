@@ -83,9 +83,6 @@ WINAPI
 ExitProcess_Detour (UINT uExitCode)
 {
   // Since many, many games don't shutdown cleanly, let's unload ourself.
-
-  //SK_DisableHook       (ExitProcess_Hook);
-  //SK_UnhookLoadLibrary ();
   SK_SelfDestruct      ();
   ExitProcess_Original (uExitCode);
 }
@@ -171,15 +168,20 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
 {
   AllocConsole ();
 
-  freopen ("CONIN$",  "r", stdin);
-  freopen ("CONOUT$", "w", stdout);
-  freopen ("CONOUT$", "w", stderr);
+  static volatile LONG init = FALSE;
 
-  SK_CreateDLLHook2 ( L"kernel32.dll", "TerminateProcess",
-                     TerminateProcess_Detour,
-           (LPVOID*)&TerminateProcess_Original );
+  if (! InterlockedCompareExchange (&init, 1, 0))
+  {
+    freopen ("CONIN$",  "r", stdin);
+    freopen ("CONOUT$", "w", stdout);
+    freopen ("CONOUT$", "w", stderr);
 
-  MH_ApplyQueued ();
+    SK_CreateDLLHook2 ( L"kernel32.dll", "TerminateProcess",
+                       TerminateProcess_Detour,
+             (LPVOID*)&TerminateProcess_Original );
+
+    MH_ApplyQueued ();
+  }
 }
 
 BOOL

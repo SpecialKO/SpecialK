@@ -55,6 +55,16 @@ SK_InputUtil_IsHWCursorVisible (void)
 #define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
 
+
+#define SK_HID_READ  SK_HID_Backend.markRead  ();
+#define SK_HID_WRITE SK_HID_Backend.markWrite ();
+
+#define SK_DI8_READ  SK_DI8_Backend.markRead  ();
+#define SK_DI8_WRITE SK_DI8_Backend.markWrite ();
+
+#define SK_RAWINPUT_READ  SK_RawInput_Backend.markRead  ();
+#define SK_RAWINPUT_WRITE SK_RawInput_Backend.markWrite ();
+
 extern bool SK_ImGui_Visible;
 extern bool nav_usable;
 
@@ -129,9 +139,10 @@ HidD_GetPreparsedData_Detour (
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData )
 {
   SK_LOG_FIRST_CALL
+  SK_HID_READ
 
   PHIDP_PREPARSED_DATA pData;
-  BOOL bRet = HidD_GetPreparsedData_Original (HidDeviceObject, &pData);
+  BOOLEAN bRet = HidD_GetPreparsedData_Original (HidDeviceObject, &pData);
 
   if (bRet)
   {
@@ -185,6 +196,7 @@ HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
                          _In_  ULONG  ReportBufferLength )
 {
   bool filter = false;
+  SK_HID_READ
 
   PHIDP_PREPARSED_DATA pData;
   if (HidD_GetPreparsedData_Original (HidDeviceObject, &pData))
@@ -223,6 +235,7 @@ HidP_GetData_Detour (
   _In_    ULONG                ReportLength )
 {
   SK_LOG_FIRST_CALL
+  SK_HID_READ
 
   NTSTATUS ret =
     HidP_GetData_Original ( ReportType, DataList,
@@ -366,6 +379,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
                           _In_      UINT      cbSizeHeader)
 {
   SK_LOG_FIRST_CALL
+  SK_RAWINPUT_READ
 
   if (SK_ImGui_Visible)
   {
@@ -465,9 +479,10 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
                         _In_      UINT      cbSizeHeader)
 {
   SK_LOG_FIRST_CALL
+  SK_RAWINPUT_READ
 
   //if (SK_ImGui_WantGamepadCapture ())
-  return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, false);
+    return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, false);
 
  //return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 }
@@ -628,15 +643,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
     else if (This == _dik.pDev || cbData == 256)
     {
-      //static uint8_t last_keys [256] = { '\0' };
-
       if (SK_ImGui_WantKeyboardCapture () && lpvData != nullptr)
-      {
         memset (lpvData, 0, cbData);
-      }
-
-      //else 
-        //memcpy (last_keys, lpvData, 256);
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -707,6 +715,8 @@ IDirectInputDevice8_GetDeviceState_MOUSE_Detour ( LPDIRECTINPUTDEVICE        Thi
                                                   DWORD                      cbData,
                                                   LPVOID                     lpvData )
 {
+  SK_DI8_READ
+
   HRESULT hr = IDirectInputDevice8_GetDeviceState_MOUSE_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
@@ -721,6 +731,8 @@ IDirectInputDevice8_GetDeviceState_KEYBOARD_Detour ( LPDIRECTINPUTDEVICE        
                                                      DWORD                      cbData,
                                                      LPVOID                     lpvData )
 {
+  SK_DI8_READ
+
   HRESULT hr = IDirectInputDevice8_GetDeviceState_KEYBOARD_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
@@ -735,6 +747,8 @@ IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour ( LPDIRECTINPUTDEVICE        T
                                                     DWORD                      cbData,
                                                     LPVOID                     lpvData )
 {
+  SK_DI8_READ
+
   HRESULT hr = IDirectInputDevice8_GetDeviceState_GAMEPAD_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
@@ -1599,6 +1613,7 @@ GetKeyboardState_Detour (PBYTE lpKeyState)
 }
 
 #include <Windowsx.h>
+#include <dbt.h>
 
 LRESULT
 WINAPI
@@ -1609,13 +1624,62 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 {
   bool handled = false;
 
-  if (lpMsg->message >= WM_MOUSEFIRST && lpMsg->message <= WM_MOUSELAST)
+  if (lpMsg->hwnd == game_window.hWnd)
   {
     switch (lpMsg->message)
     {
+      case WM_SETCURSOR:
+      {
+        if (SK_ImGui_Visible)
+        {
+          SK_ImGui_Cursor.update ();
+          return true;
+        }
+      } break;
+
+      // TODO: Does this message have an HWND always?
+      case WM_DEVICECHANGE:
+      {
+        switch (lpMsg->wParam)
+        {
+          case DBT_DEVICEARRIVAL:
+          {
+            DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lpMsg->lParam;
+
+            if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+            {
+              if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+                   config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+              {
+                dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
+                return true;
+              }
+            }
+          } break;
+
+          case DBT_DEVICEQUERYREMOVE:
+          case DBT_DEVICEREMOVEPENDING:
+          case DBT_DEVICEREMOVECOMPLETE:
+          {
+            DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lpMsg->lParam;
+
+            if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+            {
+              if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+                   config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+              {
+                dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
+                return true;
+              }
+            }
+          } break;
+        }
+      } break;
+
       // Pre-Dispose These Mesages (fixes The Witness)
       case WM_LBUTTONDBLCLK:
       case WM_LBUTTONDOWN:
+      case WM_LBUTTONUP:
       case WM_MBUTTONDBLCLK:
       case WM_MBUTTONDOWN:
       case WM_MBUTTONUP:
@@ -1627,15 +1691,23 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_XBUTTONDBLCLK:
       case WM_XBUTTONDOWN:
       case WM_XBUTTONUP:
-      case WM_LBUTTONUP:
-        if (SK_ImGui_WantMouseCapture ())
-        {
-          DispatchMessage (lpMsg);
-          lpMsg->message = WM_NULL;
+      {
+        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
+        if (SK_ImGui_WantMouseCapture ())
           return true;
-        }
-        break;
+      } break;
+
+      default:
+      {
+        //
+        // ImGui input handling
+        //
+        LRESULT result = ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+        if (result != 0)
+          return true;
+      } break;
     }
   }
 
@@ -1718,3 +1790,10 @@ SK_Input_Init (void)
 
   SK_ApplyQueuedHooks    ();
 }
+
+
+
+sk_input_api_context_s SK_XInput_Backend;
+sk_input_api_context_s SK_DI8_Backend;
+sk_input_api_context_s SK_HID_Backend;
+sk_input_api_context_s SK_RawInput_Backend;

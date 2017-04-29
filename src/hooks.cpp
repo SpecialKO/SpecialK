@@ -201,6 +201,9 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                     (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                       pwszModule,
                         MH_StatusToString (status) );
+
+    if (ppFuncAddr != nullptr)
+      *ppFuncAddr = nullptr;
   }
   else if (ppFuncAddr != nullptr)
     *ppFuncAddr = pFuncAddr;
@@ -278,13 +281,16 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                     (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
                       pwszModule,
                         MH_StatusToString (status) );
+
+    if (ppFuncAddr != nullptr)
+      *ppFuncAddr = nullptr;
   }
 
   else {
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
 
-    MH_QueueEnableHook (ppFuncAddr);
+    MH_QueueEnableHook (pFuncAddr);
   }
 
   return status;
@@ -371,7 +377,7 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
 
-    MH_QueueEnableHook (ppFuncAddr);
+    MH_QueueEnableHook (pFuncAddr);
   }
 
   return status;

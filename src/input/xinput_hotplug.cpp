@@ -215,23 +215,6 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
            timeGetTime () - placeholders [dwUserIndex].RecheckInterval )
       {
         placeholders [dwUserIndex].holding = false;
-
-        if (SK_XInput_PollController (dwUserIndex))
-        {
-          DWORD info = BSM_ALLDESKTOPS | BSM_APPLICATIONS;
-
-          DEV_BROADCAST_HDR header {
-            sizeof DEV_BROADCAST_HDR,
-              DBT_DEVTYP_DEVICEINTERFACE,
-                0
-          };
-
-          // Real controller is back, broadcast this.
-          //
-          //   > The Steam overlay should really do this, but does not.
-          //
-          BroadcastSystemMessage (0x00, &info, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&header);
-        }
       }
     }
 
@@ -298,7 +281,7 @@ RegisterDeviceNotificationW_Detour (
   DEV_BROADCAST_DEVICEINTERFACE_W* pNotifyFilter = 
     (DEV_BROADCAST_DEVICEINTERFACE_W *)NotificationFilter;
 
-  if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+  if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
   {
 #if 0
     OLECHAR wszGUID [128] = { L'\0' };
@@ -336,7 +319,7 @@ RegisterDeviceNotificationA_Detour (
   DEV_BROADCAST_DEVICEINTERFACE_A* pNotifyFilter = 
     (DEV_BROADCAST_DEVICEINTERFACE_A *)NotificationFilter;
 
-  if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+  if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
   {
 #if 0
     OLECHAR wszGUID [128] = { L'\0' };

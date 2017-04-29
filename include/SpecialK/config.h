@@ -258,6 +258,7 @@ struct sk_config_t
       bool    test_present      = false;
       bool    slow_state_cache  = true;
       bool    debug_layer       = false;
+      bool    allow_tearing     = false;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
@@ -320,6 +321,7 @@ struct sk_config_t
       bool    capture_gamepad   = false;
       bool    use_hw_cursor     =  true;
       bool    use_raw_input     =  true;
+      bool    show_input_apis   =  true;
     } ui;
 
     struct {
@@ -405,6 +407,7 @@ struct sk_config_t
 
     struct {
       bool   enable            = true;
+      bool   gsync_status      = false;
     } NvAPI;
 
     struct {

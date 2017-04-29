@@ -1101,6 +1101,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
+  // Load user-defined DLLs (Early)
+#ifdef _WIN64
+  SK_LoadEarlyImports64 ();
+#else
+  SK_LoadEarlyImports32 ();
+#endif
+
   HMODULE hMod = GetModuleHandle (SK_GetHostApp ());
 
   if (hMod != NULL) {
@@ -1127,13 +1134,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
-
-  // Load user-defined DLLs (Early)
-#ifdef _WIN64
-  SK_LoadEarlyImports64 ();
-#else
-  SK_LoadEarlyImports32 ();
-#endif
 
   callback_fn (SK_InitFinishCallback);
 
@@ -1340,10 +1340,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     config.system.central_repository = true;
 
   // This is a fatal combination
-  if (SK_IsInjected () && SK_IsSuperSpecialK ()) {
-    //FreeLibrary (SK_GetDLL ());
+  if (SK_IsInjected () && SK_IsSuperSpecialK ())
     return false;
-  }
 
   SK_EstablishRootPath ();
   SK_CreateDirectories (SK_GetConfigPath ());
@@ -1358,9 +1356,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     std::pair <std::queue <DWORD>, BOOL> retval =
       SK_BypassInject ();
 
-    //SK_ResumeThreads (retval.first);
-
-    //FreeLibrary (SK_GetDLL ());
     return true;
   }
 
@@ -2270,29 +2265,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   //if (FAILED (hr))
     //return hr;
 
-#ifdef USE_MT_KEYS
-  //
-  // Do this in a different thread for the handful of game that use GetAsyncKeyState_Original
-  //   from the rendering thread to handle keyboard input.
-  //
-  if (poll_interval == 0ULL) {
-    LARGE_INTEGER freq;
-    QueryPerformanceFrequency (&freq);
-
-    // Every 10 ms
-    poll_interval = freq.QuadPart / 100ULL;
-
-    _beginthreadex (
-      nullptr,
-        0,
-          KeyboardThread,
-            nullptr,
-              0,
-                nullptr );
-  }
-#else
   DoKeyboard ();
-#endif
 
   if (config.sli.show && device != nullptr)
   {

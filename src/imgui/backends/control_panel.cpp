@@ -25,6 +25,7 @@
 #include <imgui/backends/imgui_gl3.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_d3d11.h>
+#include <imgui/widgets/msgbox.h>
 #include <d3d9.h>
 
 #include <SpecialK/config.h>
@@ -44,6 +45,7 @@
 #include <SpecialK/input/xinput_hotplug.h>
 
 #include <SpecialK/nvapi.h>
+#include <SpecialK/ini.h>
 
 
 #include <windows.h>
@@ -77,6 +79,9 @@ extern GetCursorInfo_pfn GetCursorInfo_Original;
        bool              cursor_vis      = false;
 
 extern HWND              SK_FindRootWindow (DWORD proc_id);
+
+std::wstring
+SK_NvAPI_GetGPUInfoStr (void);
 
 void
 LoadFileInResource ( int          name,
@@ -257,7 +262,7 @@ namespace SK_ImGui
 void
 SK_ImGui_UpdateCursor (void)
 {
-  ImGui::GetIO ().MouseDownDuration [0] = 0.0f;
+  ////ImGui::GetIO ().MouseDownDuration [0] = 0.0f;
   
   POINT orig_pos;
   GetCursorPos_Original (&orig_pos);
@@ -486,6 +491,8 @@ SK_ImGui_ControlPanel (void)
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
+  static bool show_test_window = false;
+
   //
   // Framerate history
   //
@@ -532,6 +539,8 @@ SK_ImGui_ControlPanel (void)
   // Initialize the dialog using the user's scale preference
   if (first_frame)
   {
+    io.NavMovesMouse = true;
+
     // Range-restrict for sanity!
     config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
   
@@ -555,6 +564,7 @@ SK_ImGui_ControlPanel (void)
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
   ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
   ImGui::PopStyleColor  ();
+
           char szAPIName [32] = { '\0' };
     snprintf ( szAPIName, 32, "%ws    "
 #ifndef _WIN64
@@ -565,6 +575,33 @@ SK_ImGui_ControlPanel (void)
                              SK_GetCurrentRenderBackend ().name );
 
     ImGui::MenuItem ("Active Render API        ", szAPIName);
+
+#define SK_ImGui_IsItemRightClicked() ImGui::IsItemClicked (1) || (ImGui::IsItemFocused () && io.NavInputsDownDuration [ImGuiNavInput_PadActivate] > 0.4f && ((io.NavInputsDownDuration [ImGuiNavInput_PadActivate] = 0.0f) == 0.0f))
+
+    if (SK_ImGui_IsItemRightClicked ())
+      ImGui::OpenPopup ("RenderSubMenu");
+
+    if (ImGui::BeginPopup ("RenderSubMenu"))
+    {
+      //if (ImGui::MenuItem ("Force-Inject Steam Overlay", "", nullptr))
+        //SK_Steam_LoadOverlayEarly ();
+
+      //ImGui::Separator ();
+      ImGui::MenuItem ("Display Active Input APIs", "", &config.input.ui.show_input_apis);
+
+
+      if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
+      {
+        //ImGui::TextWrapped ("%ws", SK_NvAPI_GetGPUInfoStr ().c_str ());
+        ImGui::MenuItem    ("Display G-Sync Status", "", &config.apis.NvAPI.gsync_status);
+        ImGui::Separator   ();
+      }
+
+      ImGui::MenuItem ("Gamepad/Keyboard Input Moves Mouse", "", &io.NavMovesMouse);
+      //ImGui::MenuItem ("ImGui Demo", "", &show_test_window);
+
+      ImGui::EndPopup ();
+    }
 
     ImGui::Separator ();
 
@@ -637,7 +674,7 @@ SK_ImGui_ControlPanel (void)
     }
 
 
-    if (sk::NVAPI::nv_hardware)
+    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
       SK_GetCurrentRenderBackend ().gsync_state.update ();
 
@@ -798,6 +835,28 @@ SK_ImGui_ControlPanel (void)
 
       ////if (ImGui::IsItemHovered ())
         ////ImGui::SetTooltip ("Increased compatibility with video capture software");
+
+      static bool started_tearing = config.render.dxgi.allow_tearing;
+             bool tearing_pref    = config.render.dxgi.allow_tearing;
+
+      if (ImGui::CollapsingHeader ("SwapChain Management"))
+      {
+        ImGui::TreePush ("");
+        if (ImGui::Checkbox ("Enable DWM Tearing (Windows 10 Anniversary Edition)", &tearing_pref))
+        {
+          if (started_tearing) config.render.dxgi.allow_tearing = tearing_pref;
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("This Feature is HIGHLY Experimental");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("You must manually enable this in the INI file and then you can toggle it in-game here.");
+          ImGui::EndTooltip   ();
+        }
+        ImGui::TreePop  (  );
+      }
 
       if (ImGui::CollapsingHeader ("Texture Management"))
       {
@@ -1163,8 +1222,60 @@ SK_ImGui_ControlPanel (void)
       ImGui::PopStyleColor (3);
     }
 
-    if ( ImGui::CollapsingHeader ("Input Management") )
+    bool input_mgmt_open = ImGui::CollapsingHeader ("Input Management");
+
+    if (config.input.ui.show_input_apis)
     {
+      static DWORD last_xinput   = 0;
+      static DWORD last_hid      = 0;
+      static DWORD last_di8      = 0;
+      static DWORD last_rawinput = 0;
+
+      if (SK_XInput_Backend.nextFrame ())
+        last_xinput = timeGetTime ();
+
+      if (SK_HID_Backend.nextFrame ())
+        last_hid = timeGetTime ();
+
+      if (SK_DI8_Backend.nextFrame ())
+        last_di8 = timeGetTime ();
+
+      if (SK_RawInput_Backend.nextFrame ())
+        last_rawinput = timeGetTime ();
+
+
+      if (last_xinput > timeGetTime () - 500UL) {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_xinput) / 500.0f), 1.0f, 0.8f));
+        ImGui::SameLine       ();
+        ImGui::Text           ("       XInput");
+        ImGui::PopStyleColor  ();
+      }
+
+      if (last_hid > timeGetTime () - 500UL) {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_hid) / 500.0f), 1.0f, 0.8f));
+        ImGui::SameLine       ();
+        ImGui::Text           ("       HID");
+        ImGui::PopStyleColor  ();
+      }
+
+      if (last_di8 > timeGetTime () - 500UL) {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_di8) / 500.0f), 1.0f, 0.8f));
+        ImGui::SameLine       ();
+        ImGui::Text           ("       Direct Input");
+        ImGui::PopStyleColor  ();
+      }
+
+      if (last_rawinput > timeGetTime () - 500UL) {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_rawinput) / 500.0f), 1.0f, 0.8f));
+        ImGui::SameLine       ();
+        ImGui::Text           ("       Raw Input");
+        ImGui::PopStyleColor  ();
+      }
+    }
+
+    if (input_mgmt_open)
+    {
+
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
       ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
@@ -1264,7 +1375,7 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Separator ();
 
-        static bool connected [4];
+        bool connected [4];
         connected [0] = SK_XInput_PollController (0);
         connected [1] = SK_XInput_PollController (1);
         connected [2] = SK_XInput_PollController (2);
@@ -1276,22 +1387,22 @@ SK_ImGui_ControlPanel (void)
           ImGui::Text("UI Controlled By:  "); ImGui::SameLine();
 
           if (connected [0]) {
-            ImGui::RadioButton ("XInput Controller 0###XInputSlot", &config.input.gamepad.xinput.ui_slot, 0);
+            ImGui::RadioButton ("XInput Controller 0##XInputSlot", &config.input.gamepad.xinput.ui_slot, 0);
             if (connected [1] || connected [2] || connected [3]) ImGui::SameLine ();
           }
 
           if (connected [1]) {
-            ImGui::RadioButton ("XInput Controller 1###XInputSlot", &config.input.gamepad.xinput.ui_slot, 1);
+            ImGui::RadioButton ("XInput Controller 1##XInputSlot", &config.input.gamepad.xinput.ui_slot, 1);
             if (connected [2] || connected [3]) ImGui::SameLine ();
           }
 
           if (connected [2]) {
-            ImGui::RadioButton ("XInput Controller 2###XInputSlot", &config.input.gamepad.xinput.ui_slot, 2);
+            ImGui::RadioButton ("XInput Controller 2##XInputSlot", &config.input.gamepad.xinput.ui_slot, 2);
             if (connected [3]) ImGui::SameLine ();
           }
 
           if (connected [3])
-            ImGui::RadioButton ("XInput Controller 3###XInputSlot", &config.input.gamepad.xinput.ui_slot, 3);
+            ImGui::RadioButton ("XInput Controller 3##XInputSlot", &config.input.gamepad.xinput.ui_slot, 3);
         }
 
         ImGui::Text ("XInput Placeholders");
@@ -2423,6 +2534,107 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::PopStyleColor (3);
     }
 
+    if (ImGui::CollapsingHeader ("Plug-Ins") && SK_IsInjected ())
+    {
+      ImGui::TreePush ("");
+
+      extern iSK_INI*       dll_ini;
+      extern const wchar_t* SK_GetHostPath (void);
+
+      bool    reshade                 = false;
+      wchar_t imp_path [MAX_PATH + 2] = { L'\0' };
+      wchar_t imp_name [64]           = { L'\0' };
+
+#ifdef _WIN64
+      wcscat   (imp_name, L"Import.ReShade64");
+
+      if (SK_IsInjected ())
+        wsprintf (imp_path, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+      else
+        wsprintf (imp_path, L"%s\\ReShade64.dll", SK_GetHostPath ());
+#else
+      wcscat   (imp_name, L"Import.ReShade32");
+
+      if (SK_IsInjected ())
+        wsprintf (imp_path, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+      else
+        wsprintf (imp_path, L"%s\\ReShade32.dll", SK_GetHostPath ());
+#endif
+      reshade = dll_ini->contains_section (imp_name);
+
+      ImGui::Text     ("Third-Party");
+      ImGui::TreePush ("");
+
+      bool changed = false;
+      changed |= ImGui::Checkbox ("ReShade", &reshade);
+
+      static int order = 0;
+
+      if (dll_ini->contains_section (imp_name) && dll_ini->get_section (imp_name).get_value (L"When") == L"Early")
+        order = 0;
+      else
+        order = 1;
+
+      ImGui::SameLine ();
+      changed |= ImGui::Combo ("Load Order", &order, "Early\0Plug-In\0\0");
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Plug-In Load Order is Suggested by Default.");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
+        ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
+        ImGui::EndTooltip   ();
+      }
+
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
+      ImGui::TextWrapped    ("If you run into problems with the plug-in, pressing and holding Ctrl + Shift at game startup will disable it.");
+      ImGui::PopStyleColor  ();
+
+      if (changed)
+      {
+        if (! reshade) {
+          dll_ini->remove_section (imp_name);
+          dll_ini->write          (L"SpecialK.ini");
+        }
+
+        else if (GetFileAttributesW (imp_path) != INVALID_FILE_ATTRIBUTES)
+        {
+          wchar_t wszImportRecord [4096];
+
+          _swprintf (wszImportRecord, L"[%s]\n", imp_name);
+#ifdef _WIN64
+          wcscat (wszImportRecord, L"Architecture=x64\n");
+#else
+          wcscat (wszImportRecord, L"Architecture=Win32\n");
+#endif
+          wcscat (wszImportRecord, L"Role=ThirdParty\n");
+
+          if (order == 0)
+            wcscat (wszImportRecord, L"When=Early\n");
+          else
+            wcscat (wszImportRecord, L"When=PlugIn\n");
+
+          wcscat (wszImportRecord, L"Filename=");
+          wcscat (wszImportRecord, imp_path);
+          wcscat (wszImportRecord, L"\n\n");
+
+          dll_ini->import         (wszImportRecord);
+          dll_ini->write          (L"SpecialK.ini");
+        }
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        if (GetFileAttributesW (imp_path) == INVALID_FILE_ATTRIBUTES)
+          ImGui::SetTooltip ("Please install ReShade to %ws", imp_path);
+      }
+
+      ImGui::TreePop ();
+      ImGui::TreePop ();
+    }
+
     if (SK::SteamAPI::AppID () != 0)
     {
       if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader | 
@@ -2779,11 +2991,32 @@ extern float SK_ImGui_PulseNav_Strength;
       }
     }
 
+  if (show_test_window)
+    ImGui::ShowTestWindow (&show_test_window);
+
   ImVec2 pos  = ImGui::GetWindowPos  ();
   ImVec2 size = ImGui::GetWindowSize ();
 
   SK_ImGui_LastWindowCenter.x = pos.x + size.x / 2.0f;
   SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
+
+  if (io.WantMoveMouse) {
+    SK_ImGui_Cursor.pos.x = (LONG)io.MousePos.x;
+    SK_ImGui_Cursor.pos.y = (LONG)io.MousePos.y;
+
+    POINT screen_pos = SK_ImGui_Cursor.pos;
+
+    if (GetCursor () != nullptr)
+      SK_ImGui_Cursor.orig_img = GetCursor ();
+
+    SK_ImGui_Cursor.LocalToScreen (&screen_pos);
+    SetCursorPos_Original ( screen_pos.x,
+                            screen_pos.y );
+
+    io.WantCaptureMouse = true;
+
+    SK_ImGui_UpdateCursor ();
+  }
 
   if (recenter)
     SK_ImGui_CenterCursorOnWindow ();
@@ -2792,6 +3025,176 @@ extern float SK_ImGui_PulseNav_Strength;
 
   return open;
 }
+
+#define __NvAPI_GetPhysicalGPUFromDisplay                 0x1890E8DA
+#define __NvAPI_GetPhysicalGPUFromGPUID                   0x5380AD1A
+#define __NvAPI_GetGPUIDfromPhysicalGPU                   0x6533EA3E
+
+#define __NvAPI_GetInfoFrameStatePvt                      0x7FC17574
+#define __NvAPI_GPU_GetMemoryInfo                         0x07F9B368
+
+#define __NvAPI_LoadMicrocode                             0x3119F36E
+#define __NvAPI_GetLoadedMicrocodePrograms                0x919B3136
+#define __NvAPI_GetDisplayDriverBuildTitle                0x7562E947
+#define __NvAPI_GetDisplayDriverCompileType               0x988AEA78
+#define __NvAPI_GetDisplayDriverSecurityLevel             0x9D772BBA
+#define __NvAPI_AccessDisplayDriverRegistry               0xF5579360
+#define __NvAPI_GetDisplayDriverRegistryPath              0x0E24CEEE
+#define __NvAPI_GetUnAttachedDisplayDriverRegistryPath    0x633252D8
+#define __NvAPI_GPU_GetRawFuseData                        0xE0B1DCE9
+#define __NvAPI_GPU_GetFoundry                            0x5D857A00
+#define __NvAPI_GPU_GetVPECount                           0xD8CBF37B
+
+#define __NvAPI_GPU_GetTargetID                           0x35B5FD2F
+
+#define __NvAPI_GPU_GetShortName                          0xD988F0F3
+
+#define __NvAPI_GPU_GetVbiosMxmVersion                    0xE1D5DABA
+#define __NvAPI_GPU_GetVbiosImage                         0xFC13EE11
+#define __NvAPI_GPU_GetMXMBlock                           0xB7AB19B9
+
+#define __NvAPI_GPU_SetCurrentPCIEWidth                   0x3F28E1B9
+#define __NvAPI_GPU_SetCurrentPCIESpeed                   0x3BD32008
+#define __NvAPI_GPU_GetPCIEInfo                           0xE3795199
+#define __NvAPI_GPU_ClearPCIELinkErrorInfo                0x8456FF3D
+#define __NvAPI_GPU_ClearPCIELinkAERInfo                  0x521566BB
+#define __NvAPI_GPU_GetFrameBufferCalibrationLockFailures 0x524B9773
+#define __NvAPI_GPU_SetDisplayUnderflowMode               0x387B2E41
+#define __NvAPI_GPU_GetDisplayUnderflowStatus             0xED9E8057
+
+#define __NvAPI_GPU_GetBarInfo                            0xE4B701E3
+
+#define __NvAPI_GPU_GetPSFloorSweepStatus                 0xDEE047AB
+#define __NvAPI_GPU_GetVSFloorSweepStatus                 0xD4F3944C
+#define __NvAPI_GPU_GetSerialNumber                       0x14B83A5F
+#define __NvAPI_GPU_GetManufacturingInfo                  0xA4218928
+
+#define __NvAPI_GPU_GetRamConfigStrap                     0x51CCDB2A
+#define __NvAPI_GPU_GetRamBusWidth                        0x7975C581
+
+#define __NvAPI_GPU_GetRamBankCount                       0x17073A3C
+#define __NvAPI_GPU_GetArchInfo                           0xD8265D24
+#define __NvAPI_GPU_GetExtendedMinorRevision              0x25F17421
+#define __NvAPI_GPU_GetSampleType                         0x32E1D697
+#define __NvAPI_GPU_GetHardwareQualType                   0xF91E777B
+#define __NvAPI_GPU_GetAllClocks                          0x1BD69F49
+#define __NvAPI_GPU_SetClocks                             0x6F151055
+#define __NvAPI_GPU_SetPerfHybridMode                     0x7BC207F8
+#define __NvAPI_GPU_GetPerfHybridMode                     0x5D7CCAEB
+#define __NvAPI_GPU_GetHybridControllerInfo               0xD26B8A58
+#define __NvAPI_GetHybridMode                             0x0E23B68C1
+
+#define __NvAPI_RestartDisplayDriver                      0xB4B26B65
+#define __NvAPI_GPU_GetAllGpusOnSameBoard                 0x4DB019E6
+
+#define __NvAPI_SetTopologyDisplayGPU                     0xF409D5E5
+#define __NvAPI_GetTopologyDisplayGPU                     0x813D89A8
+#define __NvAPI_SYS_GetSliApprovalCookie                  0xB539A26E
+
+#define __NvAPI_CreateUnAttachedDisplayFromDisplay        0xA0C72EE4
+#define __NvAPI_GetDriverModel                            0x25EEB2C4
+#define __NvAPI_GPU_CudaEnumComputeCapableGpus            0x5786CC6E
+#define __NvAPI_GPU_PhysxSetState                         0x4071B85E
+#define __NvAPI_GPU_PhysxQueryRecommendedState            0x7A4174F4
+#define __NvAPI_GPU_GetDeepIdleState                      0x1AAD16B4
+#define __NvAPI_GPU_SetDeepIdleState                      0x568A2292
+
+#define __NvAPI_GetScalingCaps                            0x8E875CF9
+#define __NvAPI_GPU_GetThermalTable                       0xC729203C
+#define __NvAPI_GPU_GetHybridControllerInfo               0xD26B8A58
+#define __NvAPI_SYS_SetPostOutput                         0xD3A092B1
+
+std::wstring
+ErrorMessage ( _NvAPI_Status err,
+               const char*   args,
+               UINT          line_no,
+               const char*   function_name,
+               const char*   file_name )
+{
+  char szError [256];
+
+  NvAPI_GetErrorMessage (err, szError);
+
+  wchar_t wszFormattedError [1024] = { L'\0' };
+
+  swprintf ( wszFormattedError, 1024,
+              L"Line %u of %hs (in %hs (...)):\n"
+              L"------------------------\n\n"
+              L"NvAPI_%hs\n\n\t>> %hs <<",
+               line_no,
+                file_name,
+                 function_name,
+                  args,
+                   szError );
+
+  return wszFormattedError;
+}
+
+
+std::wstring
+SK_NvAPI_GetGPUInfoStr (void)
+{
+  return L"";
+
+  static wchar_t adapters [4096] = { L'\0' };
+
+  if (*adapters != L'\0')
+    return adapters;
+
+  if (sk::NVAPI::CountPhysicalGPUs ())
+  {
+    typedef NvU32 NvGPUID;
+
+    typedef void*        (__cdecl *NvAPI_QueryInterface_pfn)                                   (unsigned int offset);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetRamType_pfn)            (NvPhysicalGpuHandle handle, NvU32* memtype);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetShaderPipeCount_pfn)    (NvPhysicalGpuHandle handle, NvU32* count);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetShaderSubPipeCount_pfn) (NvPhysicalGpuHandle handle, NvU32* count);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetFBWidthAndLocation_pfn) (NvPhysicalGpuHandle handle, NvU32* width, NvU32* loc);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetPartitionCount_pfn)     (NvPhysicalGpuHandle handle, NvU32* count);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetTotalSMCount_pfn)       (NvPhysicalGpuHandle handle, NvU32* count);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetTotalSPCount_pfn)       (NvPhysicalGpuHandle handle, NvU32* count);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetTotalTPCCount_pfn)      (NvPhysicalGpuHandle handle, NvU32* count);
+
+    typedef NvAPI_Status (__cdecl *NvAPI_RestartDisplayDriver_pfn)      (void);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetSerialNumber_pfn)       (NvPhysicalGpuHandle handle,   NvU32* num);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetManufacturingInfo_pfn)  (NvPhysicalGpuHandle handle,    void* data);
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetFoundry_pfn)            (NvPhysicalGpuHandle handle,    void* data);
+    typedef NvAPI_Status (__cdecl *NvAPI_GetDriverModel_pfn)            (NvPhysicalGpuHandle handle,   NvU32* data);
+    typedef NvAPI_Status (__cdecl *NvAPI_GetGPUIDFromPhysicalGPU_pfn)   (NvPhysicalGpuHandle handle, NvGPUID* gpuid);
+
+    typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetShortName_pfn)          (NvPhysicalGpuHandle handle, NvAPI_ShortString str);
+    typedef NvAPI_Status (__cdecl *NvAPI_GetHybridMode_pfn)             (NvPhysicalGpuHandle handle, NvU32*            mode);
+
+#ifdef _WIN64
+    HMODULE hLib = LoadLibrary (L"nvapi64.dll");
+#else
+    HMODULE hLib = LoadLibrary (L"nvapi.dll");
+#endif
+    static NvAPI_QueryInterface_pfn            NvAPI_QueryInterface            = (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+
+    static NvAPI_GPU_GetRamType_pfn            NvAPI_GPU_GetRamType            = (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface            (0x57F7CAAC);
+    static NvAPI_GPU_GetShaderPipeCount_pfn    NvAPI_GPU_GetShaderPipeCount    = (NvAPI_GPU_GetShaderPipeCount_pfn)NvAPI_QueryInterface    (0x63E2F56F);
+    static NvAPI_GPU_GetShaderSubPipeCount_pfn NvAPI_GPU_GetShaderSubPipeCount = (NvAPI_GPU_GetShaderSubPipeCount_pfn)NvAPI_QueryInterface (0x0BE17923);
+    static NvAPI_GPU_GetFBWidthAndLocation_pfn NvAPI_GPU_GetFBWidthAndLocation = (NvAPI_GPU_GetFBWidthAndLocation_pfn)NvAPI_QueryInterface (0x11104158);
+    static NvAPI_GPU_GetPartitionCount_pfn     NvAPI_GPU_GetPartitionCount     = (NvAPI_GPU_GetPartitionCount_pfn)NvAPI_QueryInterface     (0x86F05D7A);
+    static NvAPI_RestartDisplayDriver_pfn      NvAPI_RestartDisplayDriver      = (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface      (__NvAPI_RestartDisplayDriver);
+    static NvAPI_GPU_GetSerialNumber_pfn       NvAPI_GPU_GetSerialNumber       = (NvAPI_GPU_GetSerialNumber_pfn)NvAPI_QueryInterface       (__NvAPI_GPU_GetSerialNumber);
+    static NvAPI_GPU_GetManufacturingInfo_pfn  NvAPI_GPU_GetManufacturingInfo  = (NvAPI_GPU_GetManufacturingInfo_pfn)NvAPI_QueryInterface  (__NvAPI_GPU_GetManufacturingInfo);
+    static NvAPI_GPU_GetFoundry_pfn            NvAPI_GPU_GetFoundry            = (NvAPI_GPU_GetFoundry_pfn)NvAPI_QueryInterface            (__NvAPI_GPU_GetFoundry);
+    static NvAPI_GetDriverModel_pfn            NvAPI_GetDriverModel            = (NvAPI_GetDriverModel_pfn)NvAPI_QueryInterface            (__NvAPI_GetDriverModel);
+    static NvAPI_GPU_GetShortName_pfn          NvAPI_GPU_GetShortName          = (NvAPI_GPU_GetShortName_pfn)NvAPI_QueryInterface          (__NvAPI_GPU_GetShortName);
+
+    static NvAPI_GPU_GetTotalSMCount_pfn       NvAPI_GPU_GetTotalSMCount       = (NvAPI_GPU_GetTotalSMCount_pfn)NvAPI_QueryInterface       (0x0AE5FBCFE);// 0x329D77CD);// 0x0AE5FBCFE);
+    static NvAPI_GPU_GetTotalSPCount_pfn       NvAPI_GPU_GetTotalSPCount       = (NvAPI_GPU_GetTotalSPCount_pfn)NvAPI_QueryInterface       (0xE4B701E3);// 0xE0B1DCE9);// 0x0B6D62591);
+    static NvAPI_GPU_GetTotalTPCCount_pfn      NvAPI_GPU_GetTotalTPCCount      = (NvAPI_GPU_GetTotalTPCCount_pfn)NvAPI_QueryInterface      (0x4E2F76A8);
+    //static NvAPI_GPU_GetTotalTPCCount_pfn NvAPI_GPU_GetTotalTPCCount = (NvAPI_GPU_GetTotalTPCCount_pfn)NvAPI_QueryInterface (0xD8265D24);// 0x4E2F76A8);// __NvAPI_GPU_Get
+    static NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU   = (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (__NvAPI_GetGPUIDfromPhysicalGPU);
+    static NvAPI_GetHybridMode_pfn             NvAPI_GetHybridMode             = (NvAPI_GetHybridMode_pfn)NvAPI_QueryInterface             (__NvAPI_GetHybridMode);
+  }
+
+  return adapters;
+}
+
 
 #include <string>
 #include <vector>

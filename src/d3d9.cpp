@@ -958,7 +958,9 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
     {
       SK_GetCurrentRenderBackend ().device    = This;
       SK_GetCurrentRenderBackend ().swapchain = pSwapChain;
-      NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+
+      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+        NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
     }
   }
 
@@ -1067,7 +1069,9 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
       {
         SK_GetCurrentRenderBackend ().device    = This;
         SK_GetCurrentRenderBackend ().swapchain = pSwapChain;
-        NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+
+        if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+          NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
       }
     }
   }
@@ -1251,7 +1255,9 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
       {
         SK_GetCurrentRenderBackend ().device    = pDev;
         SK_GetCurrentRenderBackend ().swapchain = This;
-        NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+
+        if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+          NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
       }
     }
 
