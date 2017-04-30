@@ -2225,6 +2225,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
+    <None Include="injector64.dll" />
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
     <None Include="resource\cursors\ovr_horz.cur" />

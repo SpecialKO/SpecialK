@@ -1213,12 +1213,12 @@ CheckVersionThread (LPVOID user)
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
 
-  if (SK_FetchVersionInfo (L"SpecialK/0.8.x")) {
+  if (SK_FetchVersionInfo (L"SpecialK")) {
     extern HRESULT
       __stdcall
       SK_UpdateSoftware (const wchar_t* wszProduct);
 
-    SK_UpdateSoftware (L"SpecialK/0.8.x");
+    SK_UpdateSoftware (L"SpecialK");
   }
 
   CloseHandle (GetCurrentThread ());

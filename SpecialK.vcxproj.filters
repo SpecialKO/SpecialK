@@ -616,6 +616,9 @@
     <None Include="resource\cursors\ovr_horz.cur">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="injector64.dll">
+      <Filter>Update Server</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

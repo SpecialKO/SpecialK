@@ -247,9 +247,15 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   wchar_t wszRemoteRepoURL [MAX_PATH] = { L'\0' };
 
-  swprintf ( wszRemoteRepoURL,
-               L"/Kaldaien/%s/master/version.ini",
-                 wszProduct );
+  // TEMPORARILY REBASE TO 0.8.X
+  if (! lstrcmpW (wszProduct, L"SpecialK"))
+    swprintf ( wszRemoteRepoURL,
+                 L"/Kaldaien/%s/0.8.x/version.ini",
+                   wszProduct );
+  else
+    swprintf ( wszRemoteRepoURL,
+                 L"/Kaldaien/%s/master/version.ini",
+                   wszProduct );
 
   PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
 
