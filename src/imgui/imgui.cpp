@@ -11640,20 +11640,23 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   if ( (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST) ||
         msg == WM_APPCOMMAND )
   {
-    DWORD dwPos = GetMessagePos ();
+    if (! handled)
+    {
+      DWORD dwPos = GetMessagePos ();
 
-    SHORT xPos = GET_X_LPARAM ((LPARAM)dwPos);
-    SHORT yPos = GET_Y_LPARAM ((LPARAM)dwPos);
+      SHORT xPos = GET_X_LPARAM ((LPARAM)dwPos);
+      SHORT yPos = GET_Y_LPARAM ((LPARAM)dwPos);
 
-    SK_ImGui_Cursor.pos.x = xPos;
-    SK_ImGui_Cursor.pos.y = yPos;
+      SK_ImGui_Cursor.pos.x = xPos;
+      SK_ImGui_Cursor.pos.y = yPos;
 
-    SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
+      SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
 
-    ImGuiIO& io = ImGui::GetIO ();
+      ImGuiIO& io = ImGui::GetIO ();
 
-    io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-    io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+      io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+      io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+    }
   }
 
   SK_ImGui_Cursor.update ();

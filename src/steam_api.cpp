@@ -3649,7 +3649,11 @@ DWORD
 WINAPI
 CSteamworks_Delay_Init (LPVOID user)
 {
-#if 0
+  if (! SK_IsInjected ()) {
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }
+
   int tries = 0;
 
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
@@ -3665,7 +3669,6 @@ CSteamworks_Delay_Init (LPVOID user)
 
     ++tries;
   }
-#endif
 
   CloseHandle (GetCurrentThread ());
 
@@ -3830,7 +3833,11 @@ DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID user)
 {
-#if 0
+  if (! SK_IsInjected ()) {
+    CloseHandle (GetCurrentThread ());
+    return 0;
+  }
+
   int tries = 0;
 
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
@@ -3846,7 +3853,6 @@ SteamAPI_Delay_Init (LPVOID user)
 
     ++tries;
   }
-#endif
 
   CloseHandle (GetCurrentThread ());
 

@@ -592,3 +592,8 @@ SKX_SetPluginName            = SKX_SetPluginName              PRIVATE ; No more 
 BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState    PRIVATE
 
 RunDLL_ElevateMe             = RunDLL_ElevateMe               PRIVATE
+RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
+
+SKX_InstallCBTHook            = SKX_InstallCBTHook            PRIVATE
+SKX_RemoveCBTHook             = SKX_RemoveCBTHook             PRIVATE
+SKX_IsHookingCBT              = SKX_IsHookingCBT              PRIVATE

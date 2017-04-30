@@ -1350,7 +1350,10 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       dc->VSSetShaderResources(0, VSShaderResourceCount, sb->VSShaderResources);
   UINT VSConstantBufferCount = calc_count(sb->VSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
   if (VSConstantBufferCount)
-      dc->VSSetConstantBuffers(0, VSConstantBufferCount, sb->VSConstantBuffers);
+    D3D11_VSSetConstantBuffers_Original (dc, 0, VSConstantBufferCount, sb->VSConstantBuffers);
+
+//extern D3D11_VSSetConstantBuffers_pfn         D3D11_VSSetConstantBuffers_Original;
+//extern D3D11_PSSetShaderResources_pfn         D3D11_PSSetShaderResources_Original;
 
   dc->GSSetShader(sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
   UINT GSSamplerCount = calc_count(sb->GSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
@@ -1391,7 +1394,7 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       dc->PSSetSamplers(0, PSSamplerCount, sb->PSSamplers);
   UINT PSShaderResourceCount = calc_count(sb->PSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
   if (PSShaderResourceCount)
-      dc->PSSetShaderResources(0, PSShaderResourceCount, sb->PSShaderResources);
+    D3D11_PSSetShaderResources_Original (dc, 0, PSShaderResourceCount, sb->PSShaderResources);
   UINT PSConstantBufferCount = calc_count(sb->PSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
   if (PSConstantBufferCount)
       dc->PSSetConstantBuffers(0, PSConstantBufferCount, sb->PSConstantBuffers);
@@ -1422,8 +1425,12 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->OMSetDepthStencilState(sb->OMDepthStencilState, sb->OMDepthStencilRef);
   dc->OMSetBlendState(sb->OMBlendState, sb->OMBlendFactor, sb->OMSampleMask);
 
-  dc->RSSetViewports(sb->RSViewportCount, sb->RSViewports);
-  dc->RSSetScissorRects(sb->RSScissorRectCount, sb->RSScissorRects);
+//extern D3D11_RSSetScissorRects_pfn            D3D11_RSSetScissorRects_Original;
+//extern D3D11_RSSetViewports_pfn               D3D11_RSSetViewports_Original;
+
+  D3D11_RSSetViewports_Original    (dc, sb->RSViewportCount, sb->RSViewports);
+  D3D11_RSSetScissorRects_Original (dc, sb->RSScissorRectCount, sb->RSScissorRects);
+
   dc->RSSetState(sb->RSRasterizerState);
 
   UINT SOBuffersOffsets[4] = { 0 }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
@@ -2401,8 +2408,8 @@ __declspec (noinline)
         }
 #endif
 
-        SK_SetWindowResX (desc.BufferDesc.Width);
-        SK_SetWindowResY (desc.BufferDesc.Height);
+        //SK_SetWindowResX (desc.BufferDesc.Width);
+        //SK_SetWindowResY (desc.BufferDesc.Height);
       }
     }
 

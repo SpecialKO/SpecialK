@@ -166,56 +166,7 @@ typedef HRESULT (WINAPI *D3DX11GetImageInfoFromFileW_pfn)(
   _In_  D3DX11_IMAGE_INFO *pSrcInfo,
   _Out_ HRESULT           *pHResult
 );
-typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
-  _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D
-);
-typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView_pfn)(
-  _In_            ID3D11Device                   *This,
-  _In_            ID3D11Resource                 *pResource,
-  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
-  _Out_opt_       ID3D11RenderTargetView        **ppRTView
-);
-typedef void (WINAPI *D3D11_RSSetScissorRects_pfn)(
-  _In_           ID3D11DeviceContext *This,
-  _In_           UINT                 NumRects,
-  _In_opt_ const D3D11_RECT          *pRects
-);
-typedef void (WINAPI *D3D11_RSSetViewports_pfn)(
-  _In_           ID3D11DeviceContext* This,
-  _In_           UINT                 NumViewports,
-  _In_opt_ const D3D11_VIEWPORT     * pViewports
-);
-typedef void (WINAPI *D3D11_VSSetConstantBuffers_pfn)(
-  _In_     ID3D11DeviceContext* This,
-  _In_     UINT                 StartSlot,
-  _In_     UINT                 NumBuffers,
-  _In_opt_ ID3D11Buffer *const *ppConstantBuffers
-);
-typedef void (WINAPI *D3D11_UpdateSubresource_pfn)(
-  _In_           ID3D11DeviceContext *This,
-  _In_           ID3D11Resource      *pDstResource,
-  _In_           UINT                 DstSubresource,
-  _In_opt_ const D3D11_BOX           *pDstBox,
-  _In_     const void                *pSrcData,
-  _In_           UINT                 SrcRowPitch,
-  _In_           UINT                 SrcDepthPitch
-);
-typedef HRESULT (WINAPI *D3D11_Map_pfn)(
-  _In_      ID3D11DeviceContext      *This,
-  _In_      ID3D11Resource           *pResource,
-  _In_      UINT                      Subresource,
-  _In_      D3D11_MAP                 MapType,
-  _In_      UINT                      MapFlags,
-  _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
-);
-typedef void (WINAPI *D3D11_CopyResource_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Resource      *pDstResource,
-  _In_ ID3D11Resource      *pSrcResource
-);
+
 typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
   _In_           ID3D11DeviceContext1 *This,
   _In_           ID3D11Resource       *pDstResource,
@@ -225,60 +176,6 @@ typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
   _In_           UINT                  SrcRowPitch,
   _In_           UINT                  SrcDepthPitch,
   _In_           UINT                  CopyFlags
-);
-typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
-  _In_           ID3D11DeviceContext             *This,
-  _In_           UINT                             StartSlot,
-  _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
-);
-typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
-  _In_           ID3D11Device            *This,
-  _In_     const D3D11_BUFFER_DESC       *pDesc,
-  _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_      ID3D11Buffer           **ppBuffer
-);
-typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
-  _In_           ID3D11Device                     *This,
-  _In_           ID3D11Resource                   *pResource,
-  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView
-);
-typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 IndexCount,
-  _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation
-);
-typedef void (WINAPI *D3D11_Draw_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCount,
-  _In_ UINT                 StartVertexLocation
-);
-typedef void (WINAPI *D3D11_DrawIndexedInstanced_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 IndexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation,
-  _In_ UINT                 StartInstanceLocation
-);
-typedef void (WINAPI *D3D11_DrawIndexedInstancedIndirect_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs
-);
-typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation
-);
-typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs
 );
 
 
@@ -494,6 +391,10 @@ D3D11CreateDevice_Detour (
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level;
   ID3D11Device*     ret_device;
+
+  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
+  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"d3d11.dll" && SK_GetCallingDLL () != SK_GetDLL ())
+    WaitForInitDXGI ();
 
   dll_log.LogEx ( true,
                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",

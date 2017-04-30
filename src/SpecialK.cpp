@@ -61,6 +61,7 @@ CRITICAL_SECTION loader_lock   = { 0 };
 CRITICAL_SECTION wmi_cs        = { 0 };
 CRITICAL_SECTION cs_dbghelp    = { 0 };
 
+
 SK_TLS*
 __stdcall
 SK_GetTLS (void)
@@ -121,88 +122,67 @@ SK_EstablishDllRole (HMODULE hModule)
   //  * <Black Lists Matter> *
   //
   //___________________________________________________________________________
-  std::unordered_set <std::wstring> blacklist;
+  const std::unordered_set <std::wstring> blacklist = {
+    // Steam-Specific Stuff
+    L"steam.exe",              L"GameOverlayUI.exe",        L"streaming_client.exe",
+    L"steamerrorreporter.exe", L"steamerrorreporter64.exe", L"steamservice.exe",
+    L"steam_monitor.exe",      L"steamwebhelper.exe",       L"html5app_steam.exe",
+    L"wow_helper.exe",         L"uninstall.exe",
 
-  // Steam-Specific Stuff
-  blacklist.emplace (L"steam.exe");
-  blacklist.emplace (L"GameOverlayUI.exe");
-  blacklist.emplace (L"streaming_client.exe");
-  blacklist.emplace (L"steamerrorreporter.exe");
-  blacklist.emplace (L"steamerrorreporter64.exe");
-  blacklist.emplace (L"steamservice.exe");
-  blacklist.emplace (L"steam_monitor.exe");
-  blacklist.emplace (L"steamwebhelper.exe");
-  blacklist.emplace (L"html5app_steam.exe");
-  blacklist.emplace (L"wow_helper.exe");
-  blacklist.emplace (L"uninstall.exe");
+    // Crash Helpers
+    L"WriteMiniDump.exe",   L"CrashReporter.exe", L"SupportTool.exe",
+    L"CrashSender1400.exe", L"WerFault.exe",
 
-  // Crash Helpers
-  blacklist.emplace (L"WriteMiniDump.exe");
-  blacklist.emplace (L"CrashReporter.exe");
-  blacklist.emplace (L"SupportTool.exe");
-  blacklist.emplace (L"CrashSender1400.exe");
-  blacklist.emplace (L"WerFault.exe");
+    // Runtime Installers
+    L"DXSETUP.exe",          L"setup.exe",            L"vc_redist.x64.exe",             L"vc_redist.x86.exe",
+    L"vc2010redist_x64.exe", L"vc2010redist_x86.exe", L"vcredist_x64.exe",              L"vcredist_x86.exe",
+    L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe",        L"dotnetfx35.exe",                L"DotNetFx35Client.exe",
+    L"dotNetFx40_Full_x86_x64.exe",                   L"dotNetFx40_Client_x86_x64.exe", L"oalinst.exe",
+    L"EasyAntiCheat_Setup.exe",                       L"UplayInstaller.exe",
 
-  // Runtime Installers
-  blacklist.emplace (L"DXSETUP.exe");
-  blacklist.emplace (L"setup.exe");
-  blacklist.emplace (L"vc_redist.x64.exe");
-  blacklist.emplace (L"vc_redist.x86.exe");
-  blacklist.emplace (L"vc2010redist_x64.exe");
-  blacklist.emplace (L"vc2010redist_x86.exe");
-  blacklist.emplace (L"vcredist_x64.exe");
-  blacklist.emplace (L"vcredist_x86.exe");
-  blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
-  blacklist.emplace (L"dotnetfx35.exe");
-  blacklist.emplace (L"DotNetFx35Client.exe");
-  blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
-  blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
-  blacklist.emplace (L"oalinst.exe");
-  blacklist.emplace (L"EasyAntiCheat_Setup.exe");
-  blacklist.emplace (L"UplayInstaller.exe");
+    // Launchers
+    L"x64launcher.exe", L"x86launcher.exe",
+    L"Launcher.exe",
+    L"FFX&X-2_LAUNCHER.exe",
+    L"Fallout4Launcher.exe",
+    L"SkyrimSELauncher.exe",
+    L"ModLauncher.exe",
+    L"AkibaUU_Config.exe",
+    L"Obduction.exe",
+    L"Grandia2Launcher.exe",
+    L"FFXiii2Launcher.exe",
+    L"Bethesda.net_Launcher.exe",
+    L"UbisoftGameLauncher.exe",
+    L"UbisoftGameLauncher64.exe",
+    L"SplashScreen.exe",
+    L"GameLauncherCefChildProcess.exe",
+    L"LaunchPad.exe",
+    L"CNNLauncher.exe",
 
-  // Launchers
-  blacklist.emplace (L"x64launcher.exe");
-  blacklist.emplace (L"x86launcher.exe");
-  blacklist.emplace (L"Launcher.exe");
-  blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
-  blacklist.emplace (L"Fallout4Launcher.exe");
-  blacklist.emplace (L"SkyrimSELauncher.exe");
-  blacklist.emplace (L"ModLauncher.exe");
-  blacklist.emplace (L"AkibaUU_Config.exe");
-  blacklist.emplace (L"Obduction.exe");
-  blacklist.emplace (L"Grandia2Launcher.exe");
-  blacklist.emplace (L"FFXiii2Launcher.exe");
-  blacklist.emplace (L"Bethesda.net_Launcher.exe");
-  blacklist.emplace (L"UbisoftGameLauncher.exe");
-  blacklist.emplace (L"UbisoftGameLauncher64.exe");
-  blacklist.emplace (L"SplashScreen.exe");
-  blacklist.emplace (L"GameLauncherCefChildProcess.exe");
-  blacklist.emplace (L"LaunchPad.exe");
-  blacklist.emplace (L"CNNLauncher.exe");
+    // Other Stuff
+    L"ActivationUI.exe",
+    L"zosSteamStarter.exe",
+    L"notepad.exe",
+    L"7zFM.exe",
+    L"WinRar.exe",
+    L"EAC.exe",
+    L"vcpkgsrv.exe",
+    L"dllhost.exe",
+    L"git.exe",
+    L"link.exe",
+    L"cl.exe",
+    L"rc.exe",
+    L"conhost.exe",
+    L"GameBarPresenceWriter.exe",
+    L"OAWrapper.exe",
+    L"NvOAWrapperCache.exe",
 
-  // Other Stuff
-  blacklist.emplace (L"ActivationUI.exe");
-  blacklist.emplace (L"zosSteamStarter.exe");
-  blacklist.emplace (L"notepad.exe");
-  blacklist.emplace (L"7zFM.exe");
-  blacklist.emplace (L"WinRar.exe");
-  blacklist.emplace (L"EAC.exe");
-  blacklist.emplace (L"vcpkgsrv.exe");
-  blacklist.emplace (L"dllhost.exe");
-  blacklist.emplace (L"git.exe");
-  blacklist.emplace (L"link.exe");
-  blacklist.emplace (L"cl.exe");
-  blacklist.emplace (L"rc.exe");
-  blacklist.emplace (L"conhost.exe");
-  blacklist.emplace (L"GameBarPresenceWriter.exe");
-  blacklist.emplace (L"OAWrapper.exe");
-  blacklist.emplace (L"NvOAWrapperCache.exe");
+    // Misc. Tools
+    L"SleepOnLan.exe"
+    //L"ds3t.exe",
+    //L"tzt.exe"
+  };
 
-  // Misc. Tools
-  blacklist.emplace (L"SleepOnLan.exe");
-  //blacklist.emplace (L"ds3t.exe");
-  //blacklist.emplace (L"tzt.exe");
 
   // If Blacklisted, Bail-Out
   if (blacklist.count (std::wstring (SK_GetHostApp ())))
@@ -518,6 +498,8 @@ SK_Detach (DLL_ROLE role)
   return ret;
 }
 
+extern "C" __declspec (dllexport) bool __stdcall SKX_IsHookingCBT (void);
+
 BOOL
 APIENTRY
 DllMain ( HMODULE hModule,
@@ -530,49 +512,35 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
-      ULONG                     local_refs =
-          InterlockedIncrement (&__SK_DLL_Refs);
+      if ( (! SKX_IsHookingCBT ()) && ( StrStrIW (SK_GetHostApp (), L"minject") ||
+                                        StrStrIW (SK_GetHostApp (), L"rundll32") ) )
+        return TRUE;
 
-      // Sanity Check:
-      // -------------
-      //
-      //  Bail-out if by some fluke this DLL is attached twice
-      //    (usually caused by a stack overflow in a third-party injector).
-      //
-      //    It is impossible to report this error, because that would bring
-      //      in dependencies on DLLs not yet loaded. Fortunately if the DLL
-      //        is of the wrapper variety, Windows will complain with error:
-      //
-      //          0xc0000142
-      //
-      if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
-        return FALSE;
+      else if (SKX_IsHookingCBT ())
+        return TRUE;
 
-      SK_Init_MinHook       ();
-      SK_PreInitLoadLibrary ();
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
-        return FALSE;
+        return TRUE;
+
+
+      // ^^^^ In no case should we ever return FALSE in this function, however.
+      //
+      //        Leaving this DLL loaded but uninitialized is benign compared to
+      //          what third-party software will do to us if we pull the rug out.
+      //
+
+
+      SK_Init_MinHook       ();
+      SK_PreInitLoadLibrary ();
 
       // Don't let Steam prevent me from attaching a debugger at startup
       game_debug.init                  (L"logs/game_output.log", L"w");
       game_debug.lockless = true;
       SK::Diagnostics::Debugger::Allow ();
 
-      DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH] = { L'\0' };
-
-      HANDLE hProc = GetCurrentProcess ();
-
-      QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
-
-      wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
-
-      while (  pwszShortName      >  wszProcessName &&
-             *(pwszShortName - 1) != L'\\')
-        --pwszShortName;
 
       BOOL ret = TRUE;
 
@@ -592,10 +560,13 @@ DllMain ( HMODULE hModule,
         ret = SK_Attach (SK_GetDLLRole ());
 
         if (! ret)
-         TlsFree (__SK_TLS_INDEX);
+          TlsFree (__SK_TLS_INDEX);
+        else
+          ULONG                     local_refs =
+              InterlockedIncrement (&__SK_DLL_Refs);
       }
 
-      return ret;
+      return TRUE;
     } break;
 
 
@@ -653,16 +624,6 @@ DllMain ( HMODULE hModule,
           LocalFree   (lpvData);
           TlsSetValue (__SK_TLS_INDEX, nullptr);
         }
-
-// So, yeah... this is a very bad idea - DON'T DO THAT!
-#if 0
-        if (InterlockedDecrement (&__SK_Threads_Attached) == 1)
-        {
-          InterlockedExchange (&__SK_DLL_Ending, TRUE);
-          SK_Detach (SK_GetDLLRole ());
-          TlsFree   (__SK_TLS_INDEX);
-        }
-#endif
       }
     } break;
   }

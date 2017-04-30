@@ -1330,6 +1330,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\hooks.h" />
     <ClInclude Include="include\SpecialK\import.h" />
     <ClInclude Include="include\SpecialK\ini.h" />
+    <ClInclude Include="include\SpecialK\injection\injection.h" />
     <ClInclude Include="include\SpecialK\input\input.h" />
     <ClInclude Include="include\SpecialK\input\xinput.h" />
     <ClInclude Include="include\SpecialK\input\xinput_hotplug.h" />
@@ -1584,6 +1585,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\imgui\widgets\msgbox.cpp" />
+    <ClCompile Include="src\injection\injection.cpp" />
     <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\input\xinput_core.cpp" />
     <ClCompile Include="src\input\xinput_hotplug.cpp" />
@@ -2055,8 +2057,6 @@ Exit 0</Command>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="cursors\ovr_move.cur" />
-    <None Include="cursors\ovr_ptr.cur" />
     <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">true</ExcludedFromBuild>
@@ -2227,14 +2227,8 @@ Exit 0</Command>
     </None>
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
-    <None Include="resource\cursors\cursor3.cur" />
-    <None Include="resource\cursors\ovr_diag1.ani" />
-    <None Include="resource\cursors\ovr_diag2.ani" />
-    <None Include="resource\cursors\ovr_horz.ani" />
-    <None Include="resource\cursors\ovr_move.cur" />
+    <None Include="resource\cursors\ovr_horz.cur" />
     <None Include="resource\cursors\ovr_ptr.cur" />
-    <None Include="resource\cursors\ovr_text.ani" />
-    <None Include="resource\cursors\ovr_vert.ani" />
     <None Include="version.ini" />
     <None Include="SpecialK.def" />
   </ItemGroup>

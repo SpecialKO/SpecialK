@@ -104,6 +104,22 @@ SK_CreateFuncHook ( LPCWSTR pwszFuncName,
                         MH_StatusToString (status) );
   }
 
+  else if (status == MH_ERROR_ALREADY_CREATED)
+  {
+    if (MH_OK == (status = MH_RemoveHook (pTarget)))
+    {
+      dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%s'... software "
+                    L"is probably going to explode!", pwszFuncName );
+
+      return SK_CreateFuncHook (pwszFuncName, pTarget, pDetour, ppOriginal);
+    } else
+      dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%s' "
+                    L"[Address: %04ph]!  (Status: \"%hs\")",
+                      pwszFuncName,
+                        pTarget,
+                          MH_StatusToString (status) );
+  }
+
   return status;
 }
 
@@ -126,6 +142,22 @@ SK_CreateFuncHookEx ( LPCWSTR pwszFuncName,
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook (idx=%lu) "
                   L"for '%s' [Address: %04ph]!  (Status: \"%hs\")",
                     idx,
+                      pwszFuncName,
+                        pTarget,
+                          MH_StatusToString (status) );
+  }
+
+  else if (status == MH_ERROR_ALREADY_CREATED)
+  {
+    if (MH_OK == (status = MH_RemoveHookEx (pTarget, idx)))
+    {
+      dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%s'... software "
+                    L"is probably going to explode!", pwszFuncName );
+
+      return SK_CreateFuncHookEx (pwszFuncName, pTarget, pDetour, ppOriginal, idx);
+    } else
+      dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%s' "
+                    L"[Address: %04ph]!  (Status: \"%hs\")",
                       pwszFuncName,
                         pTarget,
                           MH_StatusToString (status) );
@@ -194,6 +226,19 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
         return status;
       }
+
+      else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
+      {
+        dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%hs'... software "
+                      L"is probably going to explode!", pszProcName );
+
+        return SK_CreateDLLHook (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
+      } else
+        dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%hs' "
+                      L"[Address: %04ph]!  (Status: \"%hs\")",
+                        pszProcName,
+                          pFuncAddr,
+                            MH_StatusToString (status) );
     }
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
@@ -274,6 +319,19 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
         return status;
       }
+
+      else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
+      {
+        dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%hs'... software "
+                      L"is probably going to explode!", pszProcName );
+
+        return SK_CreateDLLHook2 (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
+      } else
+        dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%hs' "
+                      L"[Address: %04ph]!  (Status: \"%hs\")",
+                        pszProcName,
+                          pFuncAddr,
+                            MH_StatusToString (status) );
     }
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
@@ -401,6 +459,13 @@ SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
   if (ret == MH_OK)
     ret = SK_EnableHook (ppVFTable [dwOffset]);
 
+  else
+    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
+                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
+                    pwszFuncName,
+                      dwOffset,
+                        MH_StatusToString (ret) );
+
   return ret;
 }
 
@@ -444,6 +509,14 @@ SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
 
   if (ret == MH_OK)
     ret = MH_QueueEnableHook (ppVFTable [dwOffset]);
+
+  else
+    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
+                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
+                    pwszFuncName,
+                      dwOffset,
+                        MH_StatusToString (ret) );
+
 
   return ret;
 }

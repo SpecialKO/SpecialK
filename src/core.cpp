@@ -1101,13 +1101,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
-  // Load user-defined DLLs (Early)
-#ifdef _WIN64
-  SK_LoadEarlyImports64 ();
-#else
-  SK_LoadEarlyImports32 ();
-#endif
-
   HMODULE hMod = GetModuleHandle (SK_GetHostApp ());
 
   if (hMod != NULL) {
@@ -1135,6 +1128,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
 
+
+
   callback_fn (SK_InitFinishCallback);
 
   SK_ResumeThreads (__SK_Init_Suspended_tids);
@@ -1143,18 +1138,17 @@ SK_InitCore (const wchar_t* backend, void* callback)
   //   so notify the end-user.
   extern void SK_KillFRAPS (void);
               SK_KillFRAPS ();
-
-
-  // Setup the compatibility backend, which monitors loaded libraries,
-  //   blacklists bad DLLs and detects render APIs...
-  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-
-  // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
   SK_LoadPlugIns64 ();
 #else
   SK_LoadPlugIns32 ();
 #endif
+
+  // Setup the compatibility backend, which monitors loaded libraries,
+  //   blacklists bad DLLs and detects render APIs...
+  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+
+  // Load user-defined DLLs (Plug-In
 }
 
 
@@ -1219,12 +1213,12 @@ CheckVersionThread (LPVOID user)
   __stdcall
   SK_FetchVersionInfo (const wchar_t* wszProduct);
 
-  if (SK_FetchVersionInfo (L"SpecialK")) {
+  if (SK_FetchVersionInfo (L"SpecialK/0.8.x")) {
     extern HRESULT
       __stdcall
       SK_UpdateSoftware (const wchar_t* wszProduct);
 
-    SK_UpdateSoftware (L"SpecialK");
+    SK_UpdateSoftware (L"SpecialK/0.8.x");
   }
 
   CloseHandle (GetCurrentThread ());
@@ -1462,9 +1456,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     if (config.compatibility.init_while_suspended)
     {
-      __SK_Init_Suspended_tids =
-        SK_SuspendAllOtherThreads ();
+      //__SK_Init_Suspended_tids =
+        //SK_SuspendAllOtherThreads ();
     }
+
+    // Required by Minject, the DLL's not loaded early enough.
+    if (SK_IsInjected ())
+      config.steam.init_delay = std::max (config.steam.init_delay, 500);
 
     if (config.steam.preload_overlay)
       SK_Steam_LoadOverlayEarly ();
@@ -1510,6 +1508,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+
+  // Load user-defined DLLs (Early)
+#ifdef _WIN64
+  SK_LoadEarlyImports64 ();
+#else
+  SK_LoadEarlyImports32 ();
+#endif
 
   LeaveCriticalSection (&init_mutex);
 
@@ -2508,4 +2513,84 @@ RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
                    LPSTR lpszCmdLine, int       nCmdShow )
 {
   ShellExecuteA ( nullptr, "runas", lpszCmdLine, nullptr, nullptr, SW_SHOWNORMAL );
+}
+
+
+#include <SpecialK/injection/injection.h>
+
+BOOL
+SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
+{
+  DWORD dwDesiredAccess = PROCESS_TERMINATE;
+  BOOL  bInheritHandle  = FALSE;
+
+  HANDLE hProcess =
+    OpenProcess ( dwDesiredAccess, bInheritHandle, dwProcessId );
+
+  if (hProcess == nullptr)
+    return FALSE;
+  
+  BOOL result =
+    TerminateProcess (hProcess, uExitCode);
+  
+  CloseHandle (hProcess);
+  
+  return result;
+}
+
+// Useful for manging injection of the 32-bit DLL from a 64-bit application or
+//   visa versa.
+void
+CALLBACK
+RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
+                          LPSTR lpszCmdLine, int       nCmdShow )
+{
+  if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
+  {
+    SKX_InstallCBTHook ();
+
+    if (SKX_IsHookingCBT ())
+    {
+#ifndef _WIN64
+      FILE* fPID = fopen ("SpecialK32.pid", "w");
+#else
+      FILE* fPID = fopen ("SpecialK64.pid", "w");
+#endif
+
+      if (fPID)
+      {
+        fprintf (fPID, "%lu\n", GetCurrentProcessId ());
+        fclose  (fPID);
+
+        Sleep (INFINITE);
+      }
+    }
+  }
+
+  else if (StrStrA (lpszCmdLine, "Remove"))
+  {
+    SKX_RemoveCBTHook ();
+
+#ifndef _WIN64
+    FILE* fPID = fopen ("SpecialK32.pid", "r");
+#else
+    FILE* fPID = fopen ("SpecialK64.pid", "r");
+#endif
+
+    if (fPID != nullptr)
+    {
+                      DWORD dwPID = 0;
+      fscanf (fPID, "%lu", &dwPID);
+      fclose (fPID);
+
+      if (SK_TerminatePID (dwPID, 0x00))
+      {
+#ifndef _WIN64
+        DeleteFileA ("SpecialK32.pid");
+#else
+        DeleteFileA ("SpecialK64.pid");
+#endif
+      }
+    }
+  }
 }

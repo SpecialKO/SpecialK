@@ -364,4 +364,135 @@ public:
   LARGE_INTEGER                               PerfFreq;
 } extern SK_D3D11_Textures;
 
+
+
+
+
+typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
+  _In_            ID3D11Device           *This,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+  _Out_opt_       ID3D11Texture2D        **ppTexture2D
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView_pfn)(
+  _In_            ID3D11Device                   *This,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
+  _Out_opt_       ID3D11RenderTargetView        **ppRTView
+);
+typedef void (WINAPI *D3D11_RSSetScissorRects_pfn)(
+  _In_           ID3D11DeviceContext *This,
+  _In_           UINT                 NumRects,
+  _In_opt_ const D3D11_RECT          *pRects
+);
+typedef void (WINAPI *D3D11_RSSetViewports_pfn)(
+  _In_           ID3D11DeviceContext* This,
+  _In_           UINT                 NumViewports,
+  _In_opt_ const D3D11_VIEWPORT     * pViewports
+);
+typedef void (WINAPI *D3D11_VSSetConstantBuffers_pfn)(
+  _In_     ID3D11DeviceContext* This,
+  _In_     UINT                 StartSlot,
+  _In_     UINT                 NumBuffers,
+  _In_opt_ ID3D11Buffer *const *ppConstantBuffers
+);
+typedef void (WINAPI *D3D11_UpdateSubresource_pfn)(
+  _In_           ID3D11DeviceContext *This,
+  _In_           ID3D11Resource      *pDstResource,
+  _In_           UINT                 DstSubresource,
+  _In_opt_ const D3D11_BOX           *pDstBox,
+  _In_     const void                *pSrcData,
+  _In_           UINT                 SrcRowPitch,
+  _In_           UINT                 SrcDepthPitch
+);
+typedef HRESULT (WINAPI *D3D11_Map_pfn)(
+  _In_      ID3D11DeviceContext      *This,
+  _In_      ID3D11Resource           *pResource,
+  _In_      UINT                      Subresource,
+  _In_      D3D11_MAP                 MapType,
+  _In_      UINT                      MapFlags,
+  _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
+);
+typedef void (WINAPI *D3D11_CopyResource_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Resource      *pDstResource,
+  _In_ ID3D11Resource      *pSrcResource
+);
+
+typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
+  _In_           ID3D11Device            *This,
+  _In_     const D3D11_BUFFER_DESC       *pDesc,
+  _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
+  _Out_opt_      ID3D11Buffer           **ppBuffer
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
+  _In_           ID3D11Device                     *This,
+  _In_           ID3D11Resource                   *pResource,
+  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView
+);
+typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation
+);
+typedef void (WINAPI *D3D11_Draw_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCount,
+  _In_ UINT                 StartVertexLocation
+);
+typedef void (WINAPI *D3D11_DrawIndexedInstanced_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 IndexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartIndexLocation,
+  _In_ INT                  BaseVertexLocation,
+  _In_ UINT                 StartInstanceLocation
+);
+typedef void (WINAPI *D3D11_DrawIndexedInstancedIndirect_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs
+);
+typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ UINT                 VertexCountPerInstance,
+  _In_ UINT                 InstanceCount,
+  _In_ UINT                 StartVertexLocation,
+  _In_ UINT                 StartInstanceLocation
+);
+typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Buffer        *pBufferForArgs,
+  _In_ UINT                 AlignedByteOffsetForArgs
+);
+
+
+extern D3D11Dev_CreateBuffer_pfn             D3D11Dev_CreateBuffer_Original;
+extern D3D11Dev_CreateTexture2D_pfn          D3D11Dev_CreateTexture2D_Original;
+extern D3D11Dev_CreateRenderTargetView_pfn   D3D11Dev_CreateRenderTargetView_Original;
+extern D3D11Dev_CreateShaderResourceView_pfn D3D11Dev_CreateShaderResourceView_Original;
+
+extern D3D11_RSSetScissorRects_pfn            D3D11_RSSetScissorRects_Original;
+extern D3D11_RSSetViewports_pfn               D3D11_RSSetViewports_Original;
+extern D3D11_VSSetConstantBuffers_pfn         D3D11_VSSetConstantBuffers_Original;
+extern D3D11_PSSetShaderResources_pfn         D3D11_PSSetShaderResources_Original;
+extern D3D11_UpdateSubresource_pfn            D3D11_UpdateSubresource_Original;
+extern D3D11_DrawIndexed_pfn                  D3D11_DrawIndexed_Original;
+extern D3D11_Draw_pfn                         D3D11_Draw_Original;
+extern D3D11_DrawIndexedInstanced_pfn         D3D11_DrawIndexedInstanced_Original;
+extern D3D11_DrawIndexedInstancedIndirect_pfn D3D11_DrawIndexedInstancedIndirect_Original;
+extern D3D11_DrawInstanced_pfn                D3D11_DrawInstanced_Original;
+extern D3D11_DrawInstancedIndirect_pfn        D3D11_DrawInstancedIndirect_Original;
+extern D3D11_Map_pfn                          D3D11_Map_Original;
+
+extern D3D11_CopyResource_pfn          D3D11_CopyResource_Original;
+
 #endif /* __SK__DXGI_BACKEND_H__ */

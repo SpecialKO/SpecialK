@@ -172,6 +172,12 @@
     <Filter Include="Header Files\Backends\Input\WinMM">
       <UniqueIdentifier>{4b8d1c1f-caf6-47c3-8888-ad495da6cb19}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Backends\Injection">
+      <UniqueIdentifier>{4eb8f52c-c0bb-4370-b45b-c551d28f52bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Injection">
+      <UniqueIdentifier>{569bbbef-5600-47af-81d4-83c0349fc042}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -357,6 +363,9 @@
     <ClInclude Include="include\SpecialK\input\xinput.h">
       <Filter>Header Files\Backends\Input\XInput</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\injection\injection.h">
+      <Filter>Header Files\Backends\Injection</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -521,6 +530,9 @@
     <ClCompile Include="src\imgui\widgets\msgbox.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\injection\injection.cpp">
+      <Filter>Source Files\Backends\Injection</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">
@@ -598,34 +610,10 @@
     <None Include="version.ini">
       <Filter>Update Server</Filter>
     </None>
-    <None Include="resource\cursors\ovr_diag1.ani">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\cursors\ovr_diag2.ani">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\cursors\ovr_horz.ani">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\cursors\ovr_move.cur">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="resource\cursors\ovr_ptr.cur">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="resource\cursors\ovr_text.ani">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\cursors\ovr_vert.ani">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="cursors\ovr_move.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="cursors\ovr_ptr.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\cursors\cursor3.cur">
+    <None Include="resource\cursors\ovr_horz.cur">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

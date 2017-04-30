@@ -540,7 +540,7 @@ SK_Input_HookXInput1_4 (void)
 {
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedExchangeAdd (&hooked, 0))
+  if (! InterlockedCompareExchange (&hooked, 1, 0))
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_4;
@@ -561,7 +561,6 @@ SK_Input_HookXInput1_4 (void)
     if (xinput_ctx.primary_hook == nullptr)
       xinput_ctx.primary_hook = &xinput_ctx.XInput1_4;
 
-    InterlockedIncrement (&hooked);
   }
 }
 
@@ -570,7 +569,7 @@ SK_Input_HookXInput1_3 (void)
 {
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedExchangeAdd (&hooked, 0))
+  if (! InterlockedCompareExchange (&hooked, 1, 0))
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_3;
@@ -590,8 +589,6 @@ SK_Input_HookXInput1_3 (void)
 
     if (xinput_ctx.primary_hook == nullptr)
       xinput_ctx.primary_hook = &xinput_ctx.XInput1_3;
-
-    InterlockedIncrement (&hooked);
   }
 }
 
@@ -600,7 +597,7 @@ SK_Input_HookXInput9_1_0 (void)
 {
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedExchangeAdd (&hooked, 0))
+  if (! InterlockedCompareExchange (&hooked, 1, 0))
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput9_1_0;
@@ -620,8 +617,6 @@ SK_Input_HookXInput9_1_0 (void)
 
     if (xinput_ctx.primary_hook == nullptr)
       xinput_ctx.primary_hook = &xinput_ctx.XInput9_1_0;
-
-    InterlockedIncrement (&hooked);
   }
 }
 

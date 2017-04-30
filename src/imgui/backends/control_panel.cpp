@@ -350,8 +350,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       if (size.x > max_width) max_width = size.x;
     }
-
-    ImGui::PushItemWidth (max_width * 3.0f * ImGui::GetIO ().FontGlobalScale);
+    ImGui::PushItemWidth (max_width * 5.0f * ImGui::GetIO ().FontGlobalScale);
 
     //if (ImGui::ListBoxHeader ("##empty", count, std::min (count + 3, 10)))
     ImGui::BeginGroup ( );
@@ -2534,12 +2533,13 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::PopStyleColor (3);
     }
 
-    if (ImGui::CollapsingHeader ("Plug-Ins") && SK_IsInjected ())
+    if (ImGui::CollapsingHeader ("Plug-Ins"))
     {
       ImGui::TreePush ("");
 
       extern iSK_INI*       dll_ini;
-      extern const wchar_t* SK_GetHostPath (void);
+      
+
 
       bool    reshade                 = false;
       wchar_t imp_path [MAX_PATH + 2] = { L'\0' };
@@ -2548,17 +2548,17 @@ extern float SK_ImGui_PulseNav_Strength;
 #ifdef _WIN64
       wcscat   (imp_name, L"Import.ReShade64");
 
-      if (SK_IsInjected ())
+      //if (SK_IsInjected ())
         wsprintf (imp_path, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-      else
-        wsprintf (imp_path, L"%s\\ReShade64.dll", SK_GetHostPath ());
+      //else
+        //wsprintf (imp_path, L"%s\\ReShade64.dll", SK_GetHostPath ());
 #else
       wcscat   (imp_name, L"Import.ReShade32");
 
-      if (SK_IsInjected ())
+      //if (SK_IsInjected ())
         wsprintf (imp_path, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-      else
-        wsprintf (imp_path, L"%s\\ReShade32.dll", SK_GetHostPath ());
+      //else
+        //wsprintf (imp_path, L"%s\\ReShade32.dll", SK_GetHostPath ());
 #endif
       reshade = dll_ini->contains_section (imp_name);
 
@@ -2588,9 +2588,14 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::EndTooltip   ();
       }
 
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
-      ImGui::TextWrapped    ("If you run into problems with the plug-in, pressing and holding Ctrl + Shift at game startup will disable it.");
-      ImGui::PopStyleColor  ();
+      // Injection bypass doesn't work for the wrapper, obviously :)
+      //
+      //   This probably shouldn't be tied to that system.
+      if (SK_IsInjected ()) {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
+        ImGui::TextWrapped    ("If you run into problems with the plug-in, pressing and holding Ctrl + Shift at game startup will disable it.");
+        ImGui::PopStyleColor  ();
+      }
 
       if (changed)
       {
