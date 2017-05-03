@@ -158,8 +158,14 @@ typedef DWORD (WINAPI *XInputGetBatteryInformation_pfn)(
 
 
 
-bool SK_XInput_PollController ( INT           iJoyID, 
-                                XINPUT_STATE* pState = nullptr );
+bool SK_XInput_PollController  ( INT           iJoyID, 
+                                 XINPUT_STATE* pState = nullptr );
+
+bool SK_XInput_PulseController ( INT           iJoyID,
+                                 float         fStrengthLeft,
+                                 float         fStrengthRight   );
+
+void SK_XInput_ZeroHaptics     ( INT           iJoyID           );
 
 
 #endif /* __SK__XINPUT_H__ */

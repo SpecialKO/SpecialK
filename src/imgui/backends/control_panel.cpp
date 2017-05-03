@@ -281,10 +281,10 @@ SK_ImGui_ControlPanelTitle (void)
 {
   static char szTitle [512] = { '\0' };
 
-  static bool init          =    false,
-              steam         =   (SK::SteamAPI::AppID () != 0x0);
+  bool steam = (SK::SteamAPI::AppID() != 0x0);
 
-  if (! init)
+  extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
+
   {
     // TEMP HACK
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
@@ -313,8 +313,6 @@ SK_ImGui_ControlPanelTitle (void)
 
     else
       snprintf (szTitle, 511, "%ws", title.c_str ());
-
-    init = true;
   }
 
   return szTitle;
@@ -487,6 +485,14 @@ SK_ImGui_ControlPanel (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
+
+  if (ImGui::GetFont () == nullptr)
+  {
+    dll_log.Log (L"[   ImGui   ]  Fatal Error:  No Font Loaded!");
+    return false;
+  }
+
+
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
@@ -525,7 +531,7 @@ SK_ImGui_ControlPanel (void)
   ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 200), ImVec2 ( 0.9f * io.DisplaySize.x,
                                                                    0.9f * io.DisplaySize.y ) );
 
-  
+
   const char* szTitle     = SK_ImGui_ControlPanelTitle ();
   static int  title_len   = int ((float)ImGui::CalcTextSize (szTitle).x * 1.075f);
   static bool first_frame = true;
@@ -561,8 +567,42 @@ SK_ImGui_ControlPanel (void)
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV ((float)(timeGetTime () % 2800) / 2800.0f,  (0.5f + (sin ((float)(timeGetTime () % 500) / 500.0f)) * 0.5f) / 2.0f, 1.0f));
   else
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
-  ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+  ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | (SK_IsInjected () ? ImGuiWindowFlags_MenuBar : 0x00));
   ImGui::PopStyleColor  ();
+
+
+  if (SK_IsInjected ())
+  {
+    if (ImGui::BeginMenuBar ())
+    {
+      if (ImGui::BeginMenu ("File"))
+      {
+        static bool wrappable = true;
+        if (SK_IsInjected () && wrappable)
+        {
+          if (ImGui::MenuItem ("Install Wrapper DLL instead of Global Injector for this game."))
+          {
+            extern bool SKinja_SwitchToRenderWrapper (void);
+
+            if (SKinja_SwitchToRenderWrapper ())
+              wrappable = false;
+          }
+        }
+
+        else if (wrappable = false)
+        {
+          if (ImGui::MenuItem ("Install Global Injector instead of Local Wrapper this game."))
+          {
+          }
+        }
+
+        ImGui::EndMenu  ();
+      }
+
+      ImGui::EndMenuBar ();
+    }
+  }
+
 
           char szAPIName [32] = { '\0' };
     snprintf ( szAPIName, 32, "%ws    "
@@ -1230,6 +1270,27 @@ SK_ImGui_ControlPanel (void)
       static DWORD last_di8      = 0;
       static DWORD last_rawinput = 0;
 
+      struct { ULONG reads; } xinput;
+
+      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8;
+      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid;
+      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input;
+
+      xinput.reads      = SK_XInput_Backend.reads [2];
+
+      di8.kbd_reads     = SK_DI8_Backend.reads [1];
+      di8.mouse_reads   = SK_DI8_Backend.reads [0];
+      di8.gamepad_reads = SK_DI8_Backend.reads [2];
+
+      hid.kbd_reads     = SK_HID_Backend.reads [1];
+      hid.mouse_reads   = SK_HID_Backend.reads [0];
+      hid.gamepad_reads = SK_HID_Backend.reads [2];
+
+      raw_input.kbd_reads     = SK_RawInput_Backend.reads [1];
+      raw_input.mouse_reads   = SK_RawInput_Backend.reads [0];
+      raw_input.gamepad_reads = SK_RawInput_Backend.reads [2];
+
+
       if (SK_XInput_Backend.nextFrame ())
         last_xinput = timeGetTime ();
 
@@ -1248,6 +1309,13 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine       ();
         ImGui::Text           ("       XInput");
         ImGui::PopStyleColor  ();
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Gamepad     %lu", xinput.reads);
+          ImGui::EndTooltip   ();
+        }
       }
 
       if (last_hid > timeGetTime () - 500UL) {
@@ -1255,6 +1323,20 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine       ();
         ImGui::Text           ("       HID");
         ImGui::PopStyleColor  ();
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+
+          if (hid.kbd_reads > 0)
+            ImGui::Text       ("Keyboard      %lu", hid.kbd_reads);
+          if (hid.mouse_reads > 0)
+            ImGui::Text         ("Mouse       %lu", hid.mouse_reads);
+          if (hid.gamepad_reads > 0)
+            ImGui::Text         ("Gamepad     %lu", hid.gamepad_reads);
+
+          ImGui::EndTooltip   ();
+        }
       }
 
       if (last_di8 > timeGetTime () - 500UL) {
@@ -1262,6 +1344,23 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine       ();
         ImGui::Text           ("       Direct Input");
         ImGui::PopStyleColor  ();
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+
+          if (di8.kbd_reads > 0) {
+            ImGui::Text       ("Keyboard  %lu", di8.kbd_reads);
+          }
+          if (di8.mouse_reads > 0) {
+            ImGui::Text       ("Mouse     %lu", di8.mouse_reads);
+          }
+          if (di8.gamepad_reads > 0) {
+            ImGui::Text       ("Gamepad   %lu", di8.gamepad_reads);
+          };
+
+          ImGui::EndTooltip   ();
+        }
       }
 
       if (last_rawinput > timeGetTime () - 500UL) {
@@ -1269,6 +1368,23 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine       ();
         ImGui::Text           ("       Raw Input");
         ImGui::PopStyleColor  ();
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+
+          if (raw_input.kbd_reads > 0) {
+            ImGui::Text       ("Keyboard   %lu", raw_input.kbd_reads);
+          }
+          if (raw_input.mouse_reads > 0) {
+            ImGui::Text       ("Mouse      %lu", raw_input.mouse_reads);
+          }
+          if (raw_input.gamepad_reads > 0) {
+            ImGui::Text       ("Gamepad    %lu", raw_input.gamepad_reads);
+          }
+
+          ImGui::EndTooltip   ();
+        }
       }
     }
 
@@ -3028,9 +3144,13 @@ extern float SK_ImGui_PulseNav_Strength;
 
   ImGui::End   ();
 
+  if (! open)
+    SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
+
   return open;
 }
 
+#if 0
 #define __NvAPI_GetPhysicalGPUFromDisplay                 0x1890E8DA
 #define __NvAPI_GetPhysicalGPUFromGPUID                   0x5380AD1A
 #define __NvAPI_GetGPUIDfromPhysicalGPU                   0x6533EA3E
@@ -3199,6 +3319,7 @@ SK_NvAPI_GetGPUInfoStr (void)
 
   return adapters;
 }
+#endif
 
 
 #include <string>

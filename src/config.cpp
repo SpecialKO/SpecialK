@@ -1991,28 +1991,28 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       case SK_GAME_ID::Dreamfall_Chapters:
         // One of only a handful of games where the interop hack does not work
-        config.render.dxgi.slow_state_cache = true;
-        SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
+        config.render.dxgi.slow_state_cache    = true;
+        SK_DXGI_SlowStateCache                 = config.render.dxgi.slow_state_cache;
 
-        config.system.trace_load_library    = true;
-        config.system.strict_compliance     = false;
+        config.system.trace_load_library       = true;
+        config.system.strict_compliance        = false;
 
         // Game has mouselook problems without this
-        config.input.ui.capture_mouse       = true;
+        config.input.mouse.add_relative_motion = true;
 
         // Chances are good that we will not catch SteamAPI early enough to hook callbacks, so
         //   auto-pump.
-        config.steam.auto_pump_callbacks    = true;
-        config.steam.preload_client         = true;
-        config.steam.filter_stat_callback   = true; // Will stop running SteamAPI when it receives
+        config.steam.auto_pump_callbacks       = true;
+        config.steam.preload_client            = true;
+        config.steam.filter_stat_callback      = true; // Will stop running SteamAPI when it receives
                                                     //   data it didn't ask for
 
-        config.apis.dxgi.d3d12.hook         = false;
-        config.apis.dxgi.d3d11.hook         = true;
-        config.apis.d3d9.hook               = true;
-        config.apis.d3d9ex.hook             = true;
-        config.apis.OpenGL.hook             = false;
-        config.apis.Vulkan.hook             = false;
+        config.apis.dxgi.d3d12.hook            = false;
+        config.apis.dxgi.d3d11.hook            = true;
+        config.apis.d3d9.hook                  = true;
+        config.apis.d3d9ex.hook                = true;
+        config.apis.OpenGL.hook                = false;
+        config.apis.Vulkan.hook                = false;
         break;
 
 

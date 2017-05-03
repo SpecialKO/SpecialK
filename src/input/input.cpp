@@ -56,14 +56,14 @@ SK_InputUtil_IsHWCursorVisible (void)
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
 
 
-#define SK_HID_READ  SK_HID_Backend.markRead  ();
-#define SK_HID_WRITE SK_HID_Backend.markWrite ();
+#define SK_HID_READ(type)  SK_HID_Backend.markRead  (type);
+#define SK_HID_WRITE(type) SK_HID_Backend.markWrite (type);
 
-#define SK_DI8_READ  SK_DI8_Backend.markRead  ();
-#define SK_DI8_WRITE SK_DI8_Backend.markWrite ();
+#define SK_DI8_READ(type)  SK_DI8_Backend.markRead  (type);
+#define SK_DI8_WRITE(type) SK_DI8_Backend.markWrite (type);
 
-#define SK_RAWINPUT_READ  SK_RawInput_Backend.markRead  ();
-#define SK_RAWINPUT_WRITE SK_RawInput_Backend.markWrite ();
+#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend.markRead  (type);
+#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend.markWrite (type);
 
 extern bool SK_ImGui_Visible;
 extern bool nav_usable;
@@ -96,18 +96,22 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       case HID_USAGE_GENERIC_GAMEPAD:
       case HID_USAGE_GENERIC_JOYSTICK:
       {
+        SK_HID_READ (sk_input_dev_type::Gamepad)
+
         if (SK_ImGui_WantGamepadCapture ())
           filter = true;
       } break;
 
       case HID_USAGE_GENERIC_MOUSE:
       {
+        SK_HID_READ (sk_input_dev_type::Mouse)
         if (SK_ImGui_WantMouseCapture ())
           filter = true;
       } break;
 
       case HID_USAGE_GENERIC_KEYBOARD:
       {
+        SK_HID_READ (sk_input_dev_type::Keyboard)
         if (SK_ImGui_WantKeyboardCapture ())
           filter = true;
       } break;
@@ -139,7 +143,6 @@ HidD_GetPreparsedData_Detour (
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData )
 {
   SK_LOG_FIRST_CALL
-  SK_HID_READ
 
   PHIDP_PREPARSED_DATA pData;
   BOOLEAN bRet = HidD_GetPreparsedData_Original (HidDeviceObject, &pData);
@@ -196,7 +199,7 @@ HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
                          _In_  ULONG  ReportBufferLength )
 {
   bool filter = false;
-  SK_HID_READ
+  ////SK_HID_READ (sk_input_dev_type::Gamepad)
 
   PHIDP_PREPARSED_DATA pData;
   if (HidD_GetPreparsedData_Original (HidDeviceObject, &pData))
@@ -235,7 +238,6 @@ HidP_GetData_Detour (
   _In_    ULONG                ReportLength )
 {
   SK_LOG_FIRST_CALL
-  SK_HID_READ
 
   NTSTATUS ret =
     HidP_GetData_Original ( ReportType, DataList,
@@ -248,6 +250,7 @@ HidP_GetData_Detour (
 
   if ( ret == HIDP_STATUS_SUCCESS && ( ReportType == HidP_Input || ReportType == HidP_Output ))
   {
+    // This will classify the data for us, so don't record this eventyet.
     filter = SK_HID_FilterPreparsedData (PreparsedData);
   }
 
@@ -379,7 +382,6 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
                           _In_      UINT      cbSizeHeader)
 {
   SK_LOG_FIRST_CALL
-  SK_RAWINPUT_READ
 
   if (SK_ImGui_Visible)
   {
@@ -423,16 +425,19 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
           switch (pItem->header.dwType)
           {
             case RIM_TYPEKEYBOARD:
+              SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
               if (SK_ImGui_WantKeyboardCapture ())
                 remove = true;
               break;
 
             case RIM_TYPEMOUSE:
+              SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
               if (SK_ImGui_WantMouseCapture ())
                 remove = true;
               break;
 
             default:
+              SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
               if (SK_ImGui_WantGamepadCapture ())
                 remove = true;
               break;
@@ -479,7 +484,6 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
                         _In_      UINT      cbSizeHeader)
 {
   SK_LOG_FIRST_CALL
-  SK_RAWINPUT_READ
 
   //if (SK_ImGui_WantGamepadCapture ())
     return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, false);
@@ -592,6 +596,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
   {
     if (cbData == sizeof DIJOYSTATE2) 
     {
+      SK_DI8_READ (sk_input_dev_type::Gamepad)
       static DIJOYSTATE2 last_state;
 
       DIJOYSTATE2* out = (DIJOYSTATE2 *)lpvData;
@@ -622,6 +627,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
     else if (cbData == sizeof DIJOYSTATE) 
     {
+      SK_DI8_READ (sk_input_dev_type::Gamepad)
+
       //dll_log.Log (L"Joy");
 
       static DIJOYSTATE last_state;
@@ -643,6 +650,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
     else if (This == _dik.pDev || cbData == 256)
     {
+      SK_DI8_READ (sk_input_dev_type::Keyboard)
+
       if (SK_ImGui_WantKeyboardCapture () && lpvData != nullptr)
         memset (lpvData, 0, cbData);
     }
@@ -650,6 +659,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
               cbData == sizeof (DIMOUSESTATE)  )
     {
+      SK_DI8_READ (sk_input_dev_type::Mouse)
+
       //dll_log.Log (L"Mouse");
 
       if (SK_ImGui_WantMouseCapture ())
@@ -715,8 +726,6 @@ IDirectInputDevice8_GetDeviceState_MOUSE_Detour ( LPDIRECTINPUTDEVICE        Thi
                                                   DWORD                      cbData,
                                                   LPVOID                     lpvData )
 {
-  SK_DI8_READ
-
   HRESULT hr = IDirectInputDevice8_GetDeviceState_MOUSE_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
@@ -731,8 +740,6 @@ IDirectInputDevice8_GetDeviceState_KEYBOARD_Detour ( LPDIRECTINPUTDEVICE        
                                                      DWORD                      cbData,
                                                      LPVOID                     lpvData )
 {
-  SK_DI8_READ
-
   HRESULT hr = IDirectInputDevice8_GetDeviceState_KEYBOARD_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
@@ -747,8 +754,6 @@ IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour ( LPDIRECTINPUTDEVICE        T
                                                     DWORD                      cbData,
                                                     LPVOID                     lpvData )
 {
-  SK_DI8_READ
-
   HRESULT hr = IDirectInputDevice8_GetDeviceState_GAMEPAD_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
@@ -1219,9 +1224,6 @@ SK_ImGui_WantGamepadCapture (void)
 
   if (SK_ImGui_Visible)
   {
-    ImGuiIO& io =
-      ImGui::GetIO ();
-
     extern bool nav_usable;
     if (nav_usable)
       imgui_capture = true;
@@ -1778,6 +1780,9 @@ void SK_Input_PreInit (void)
     SK_XInput_InitHotPlugHooks ();
 
   MH_ApplyQueued ();
+
+  void SK_Input_Init (void);
+  SK_Input_Init ();
 }
 
 

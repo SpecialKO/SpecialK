@@ -23,7 +23,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.6.1"
+#define FAR_VERSION_NUM L"0.5.6.2"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -795,7 +795,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   //
   //   If it is the latter, disable this feature -- this prevents nasty
   //     surprises if the plug-in falls out of maintenance.
-  if (! SK_IsInjected ())
+  //if (! SK_IsInjected ())
   {
     game_state.enforce_cap = (! far_uncap_fps->get_value ());
 

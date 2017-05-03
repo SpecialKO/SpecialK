@@ -313,7 +313,14 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     ImGui_DX11Shutdown ();
     ImGui_DX11Startup  (This);
 
-    return;
+    CComPtr <ID3D11Device> pDev = nullptr;
+
+    if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev)))) {
+      extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
+      SK_DXGI_UpdateSwapChain (This);
+    }
+
+    //return;
   }
 
   //if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 2)
@@ -350,12 +357,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     if (pGUIDev == nullptr)
       return;
 
-    CComPtr <ID3D11Device> pDev;
-
-    if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev)))) {
-      extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
-      SK_DXGI_UpdateSwapChain (This);
-    }
+    CComPtr <ID3D11Device> pDev = nullptr;
 
     // The process of bootstrapping this through CEGUI does not add a reference, so
     //   don't bother decrementing the reference count by releasing it.
@@ -991,7 +993,7 @@ SK_GetDXGIFactoryInterfaceEx (const IID& riid)
 int
 SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
 {
-  CComPtr <IUnknown> pTemp;
+  CComPtr <IUnknown> pTemp = nullptr;
 
   if (SUCCEEDED (
     pFactory->QueryInterface (__uuidof (IDXGIFactory4), (void **)&pTemp)))
@@ -1109,7 +1111,7 @@ SK_GetDXGIAdapterInterfaceEx (const IID& riid)
 int
 SK_GetDXGIAdapterInterfaceVer (IUnknown *pAdapter)
 {
-  CComPtr <IUnknown> pTemp;
+  CComPtr <IUnknown> pTemp = nullptr;
 
   if (SUCCEEDED(
     pAdapter->QueryInterface (__uuidof (IDXGIAdapter3), (void **)&pTemp)))
@@ -1170,7 +1172,7 @@ SK_CEGUI_QueueResetD3D11 (void)
 void
 SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 {
-  CComPtr <ID3D11Device> pDev;
+  CComPtr <ID3D11Device> pDev = nullptr;
 
   if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
   {
@@ -1831,7 +1833,7 @@ extern "C" {
 
     HRESULT hr = E_FAIL;
 
-    CComPtr <ID3D11Device> pDev;
+    CComPtr <ID3D11Device> pDev = nullptr;
 
     int interval = config.render.framerate.present_interval;
     int flags    = PresentFlags;
@@ -1861,9 +1863,9 @@ extern "C" {
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
       {
-        CComPtr <IDXGIDevice>  pDevDXGI;
-        CComPtr <IDXGIAdapter> pAdapter;
-        CComPtr <IDXGIFactory> pFactory;
+        CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+        CComPtr <IDXGIAdapter> pAdapter = nullptr;
+        CComPtr <IDXGIFactory> pFactory = nullptr;
 
         if ( SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
              SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter))  &&
@@ -1952,7 +1954,7 @@ extern "C" {
 
     HRESULT hr = E_FAIL;
 
-    CComPtr <ID3D11Device> pDev;
+    CComPtr <ID3D11Device> pDev = nullptr;
 
     static bool first_frame = true;
 
@@ -1970,9 +1972,9 @@ extern "C" {
       // TODO: Clean this code up
       if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
       {
-        CComPtr <IDXGIDevice>  pDevDXGI;
-        CComPtr <IDXGIAdapter> pAdapter;
-        CComPtr <IDXGIFactory> pFactory;
+        CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+        CComPtr <IDXGIAdapter> pAdapter = nullptr;
+        CComPtr <IDXGIFactory> pFactory = nullptr;
 
         if ( SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
              SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter))  &&
@@ -2076,7 +2078,8 @@ extern "C" {
       pparams.pScrollOffset   = nullptr;
       pparams.pScrollRect     = nullptr;
 
-      CComPtr <IDXGISwapChain1> pSwapChain1;
+      CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
+
       if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain1))))
       {
         if (can_present)
@@ -2108,7 +2111,7 @@ extern "C" {
 
     if (bWait)
     {
-      CComPtr <IDXGISwapChain2> pSwapChain2;
+      CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
 
       if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain2))))
       {
@@ -2883,7 +2886,8 @@ __declspec (noinline)
 
       const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-      CComPtr <IDXGISwapChain2> pSwapChain2;
+      CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
+
       if ( bFlipMode && bWait &&
            SUCCEEDED ( (*ppSwapChain)->QueryInterface (IID_PPV_ARGS (&pSwapChain2)) )
           )
@@ -2904,7 +2908,7 @@ __declspec (noinline)
       {
         if (max_latency != -1)
         {
-          CComPtr <IDXGIDevice1> pDevice1;
+          CComPtr <IDXGIDevice1> pDevice1 = nullptr;
 
           if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
                              IID_PPV_ARGS (&pDevice1)
@@ -2918,7 +2922,7 @@ __declspec (noinline)
         }
       }
 
-      CComPtr <ID3D11Device> pDev;
+      CComPtr <ID3D11Device> pDev = nullptr;
 
       if (SUCCEEDED ( pDevice->QueryInterface ( IID_PPV_ARGS (&pDev) )
                     )
@@ -3081,7 +3085,8 @@ __declspec (noinline)
 
       const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-      CComPtr <IDXGISwapChain2> pSwapChain2;
+      CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
+
       if ( bFlipMode && bWait &&
            SUCCEEDED ( (*ppSwapChain)->QueryInterface (IID_PPV_ARGS (&pSwapChain2)) )
           )
@@ -3100,7 +3105,7 @@ __declspec (noinline)
       else
       {
         if (max_latency != -1) {
-          CComPtr <IDXGIDevice1> pDevice1;
+          CComPtr <IDXGIDevice1> pDevice1 = nullptr;
 
           if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
                              IID_PPV_ARGS (&pDevice1)
@@ -3114,7 +3119,7 @@ __declspec (noinline)
         }
       }
 
-      CComPtr <ID3D11Device> pDev;
+      CComPtr <ID3D11Device> pDev = nullptr;
 
       if (SUCCEEDED ( pDevice->QueryInterface ( IID_PPV_ARGS (&pDev) )
                     )
@@ -3258,7 +3263,8 @@ __declspec (noinline)
 
       const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-      CComPtr <IDXGISwapChain2> pSwapChain2;
+      CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
+
       if ( bFlipMode && bWait &&
            SUCCEEDED ( (*ppSwapChain)->QueryInterface (IID_PPV_ARGS (&pSwapChain2)) )
           )
@@ -3278,7 +3284,7 @@ __declspec (noinline)
       else
       {
         if (max_latency != -1) {
-          CComPtr <IDXGIDevice1> pDevice1;
+          CComPtr <IDXGIDevice1> pDevice1 = nullptr;
 
           if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
                              IID_PPV_ARGS (&pDevice1)
@@ -3292,7 +3298,7 @@ __declspec (noinline)
         }
       }
 
-      CComPtr <ID3D11Device> pDev;
+      CComPtr <ID3D11Device> pDev = nullptr;
 
       if (SUCCEEDED ( pDevice->QueryInterface ( IID_PPV_ARGS (&pDev) )
                     )
@@ -3566,7 +3572,7 @@ __declspec (noinline)
       }
 
       if (! GetDesc1_Original) {
-        CComPtr <IDXGIAdapter1> pAdapter1;
+        CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
 
        if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1)))) {
           DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(pAdapter1)->GetDesc1",
@@ -3575,7 +3581,8 @@ __declspec (noinline)
       }
 
       if (! GetDesc2_Original) {
-        CComPtr <IDXGIAdapter2> pAdapter2;
+        CComPtr <IDXGIAdapter2> pAdapter2 = nullptr;
+
         if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter2)))) {
 
           DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
@@ -3649,7 +3656,8 @@ __declspec (noinline)
       //
       // Windows 8 has a software implementation, which we can detect.
       //
-      CComPtr <IDXGIAdapter1> pAdapter1;
+      CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+
       HRESULT hr =
         (*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1));
 
@@ -4451,9 +4459,9 @@ HookDXGI (LPVOID user)
 
   if (SUCCEEDED (hr))
   {
-    CComPtr <IDXGIDevice>  pDevDXGI;
-    CComPtr <IDXGIAdapter> pAdapter;
-    CComPtr <IDXGIFactory> pFactory;
+    CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+    CComPtr <IDXGIAdapter> pAdapter = nullptr;
+    CComPtr <IDXGIFactory> pFactory = nullptr;
 
     if ( SUCCEEDED (pDevice->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
          SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter))  &&

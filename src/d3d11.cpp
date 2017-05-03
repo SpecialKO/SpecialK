@@ -722,7 +722,8 @@ D3D11_UpdateSubresource_Override (
 {
   //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)", pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 
-  CComPtr <ID3D11Texture2D> pTex;
+  CComPtr <ID3D11Texture2D> pTex = nullptr;
+
   if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex))))
   {
     if (SK_D3D11_TextureIsCached (pTex))
@@ -752,7 +753,8 @@ D3D11_Map_Override (
    _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
-  CComPtr <ID3D11Texture2D> pTex;
+  CComPtr <ID3D11Texture2D> pTex = nullptr;
+
   if (SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex))))
   {
     if (SK_D3D11_TextureIsCached (pTex))
@@ -778,7 +780,7 @@ D3D11_CopyResource_Override (
   _In_ ID3D11Resource      *pSrcResource )
 {
   //CComPtr <ID3D11Texture2D> pSrcTex;
-  CComPtr <ID3D11Texture2D> pDstTex;
+  CComPtr <ID3D11Texture2D> pDstTex = nullptr;
 
   if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pDstTex)))) {
     if (SK_D3D11_TextureIsCached (pDstTex)) {
@@ -2992,7 +2994,11 @@ HookD3D11 (LPVOID user)
 
     if (pHooks->ppImmediateContext != nullptr)
     {
-      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
+      //
+      // Third-party software frequently causes these hooks to become corrupted, try installing a new
+      //   vftable pointer instead of hooking the function.
+      //
+      DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                              D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                              D3D11_VSSetConstantBuffers_pfn);
 
@@ -3008,7 +3014,11 @@ HookD3D11 (LPVOID user)
                            D3D11_Draw_Override, D3D11_Draw_Original,
                            D3D11_Draw_pfn);
 
-      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
+      //
+      // Third-party software frequently causes these hooks to become corrupted, try installing a new
+      //   vftable pointer instead of hooking the function.
+      //
+      DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
                            D3D11_Map_Override, D3D11_Map_Original,
                            D3D11_Map_pfn);
 

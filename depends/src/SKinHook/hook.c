@@ -39,7 +39,7 @@
 #endif
 
 // Initial capacity of the HOOK_ENTRY buffer.
-#define INITIAL_HOOK_CAPACITY   32
+#define INITIAL_HOOK_CAPACITY   128
 
 // Initial capacity of the thread IDs buffer.
 #define INITIAL_THREAD_CAPACITY 128
@@ -614,7 +614,9 @@ MH_Initialize (VOID)
 
   if (g_hHeap == NULL)
   {
-    g_hHeap = HeapCreate (0, 0, 0);
+    g_hHeap = HeapCreate ( 0, sizeof (HOOK_ENTRY)     * (INITIAL_HOOK_CAPACITY*4) + 1 +
+                              sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
+                              16384 * 16, 0 );
 
     if (g_hHeap != NULL)
     {

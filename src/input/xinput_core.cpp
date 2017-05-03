@@ -27,6 +27,8 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/utility.h>
 
+#include <SpecialK/diagnostics/compatibility.h>
+
 #include <cstdint>
 #include <algorithm>
 
@@ -50,25 +52,25 @@ struct SK_XInputContext
     XInputGetState_pfn              XInputGetState_Original              = nullptr;
     LPVOID                          XInputGetState_Target                = nullptr;
 
-    uint8_t                         orig_inst    [64]                    =   { 0 };
+    uint8_t                         orig_inst    [12]                    =   { 0 };
 
     XInputGetCapabilities_pfn       XInputGetCapabilities_Detour         = nullptr;
     XInputGetCapabilities_pfn       XInputGetCapabilities_Original       = nullptr;
     LPVOID                          XInputGetCapabilities_Target         = nullptr;
 
-    uint8_t                         orig_inst_caps [64]                  =   { 0 };
+    uint8_t                         orig_inst_caps [12]                  =   { 0 };
 
     XInputGetBatteryInformation_pfn XInputGetBatteryInformation_Detour   = nullptr;
     XInputGetBatteryInformation_pfn XInputGetBatteryInformation_Original = nullptr;
     LPVOID                          XInputGetBatteryInformation_Target   = nullptr;
 
-    uint8_t                         orig_inst_batt [64]                  =   { 0 };
+    uint8_t                         orig_inst_batt [12]                  =   { 0 };
 
     XInputSetState_pfn              XInputSetState_Detour                = nullptr;
     XInputSetState_pfn              XInputSetState_Original              = nullptr;
     LPVOID                          XInputSetState_Target                = nullptr;
 
-    uint8_t                         orig_inst_set [64]                   =   { 0 };
+    uint8_t                         orig_inst_set [12]                   =   { 0 };
 
     //
     // Extended stuff (XInput1_3 and XInput1_4 ONLY)
@@ -77,14 +79,14 @@ struct SK_XInputContext
     XInputGetStateEx_pfn            XInputGetStateEx_Original            = nullptr;
     LPVOID                          XInputGetStateEx_Target              = nullptr;
 
-    uint8_t                         orig_inst_ex [64]                    =   { 0 };
+    uint8_t                         orig_inst_ex [12]                    =   { 0 };
   } XInput1_3 { 0 }, XInput1_4 { 0 }, XInput9_1_0 { 0 };
 
   instance_s* primary_hook = nullptr;
 } xinput_ctx;
 
-#define SK_XINPUT_READ  SK_XInput_Backend.markRead  ();
-#define SK_XINPUT_WRITE SK_XInput_Backend.markWrite ();
+#define SK_XINPUT_READ(type)  SK_XInput_Backend.markRead  (type);
+#define SK_XINPUT_WRITE(type) SK_XInput_Backend.markWrite (type);
 
 
 extern bool
@@ -99,7 +101,7 @@ XInputGetState1_3_Detour (
   _Out_ XINPUT_STATE *pState )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -129,7 +131,7 @@ XInputGetStateEx1_3_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -160,7 +162,7 @@ XInputGetCapabilities1_3_Detour (
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -186,7 +188,7 @@ XInputGetBatteryInformation1_3_Detour (
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -211,7 +213,7 @@ XInputSetState1_3_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_WRITE
+  SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -240,7 +242,7 @@ XInputGetState1_4_Detour (
   _Out_ XINPUT_STATE *pState )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -270,7 +272,7 @@ XInputGetStateEx1_4_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -301,7 +303,7 @@ XInputGetCapabilities1_4_Detour (
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -327,7 +329,7 @@ XInputGetBatteryInformation1_4_Detour (
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -352,7 +354,7 @@ XInputSetState1_4_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_WRITE
+  SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -381,7 +383,7 @@ XInputGetState9_1_0_Detour (
   _Out_ XINPUT_STATE *pState )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -412,7 +414,7 @@ XInputGetCapabilities9_1_0_Detour (
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_READ
+  SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -437,7 +439,7 @@ XInputSetState9_1_0_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
-  SK_XINPUT_WRITE
+  SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -463,24 +465,29 @@ XInputSetState9_1_0_Detour (
 void
 SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 {
+  pCtx->XInputGetState_Target =
+    SK_GetProcAddress (pCtx->wszModuleName, "XInputGetState");
+
   SK_CreateDLLHook2 ( pCtx->wszModuleName,
                        "XInputGetState",
                        pCtx->XInputGetState_Detour,
-            (LPVOID *)&pCtx->XInputGetState_Original,
-            (LPVOID *)&pCtx->XInputGetState_Target );
+            (LPVOID *)&pCtx->XInputGetState_Original );
+
+  pCtx->XInputGetCapabilities_Target =
+    SK_GetProcAddress (pCtx->wszModuleName, "XInputGetCapabilities");
 
   SK_CreateDLLHook2 ( pCtx->wszModuleName,
                        "XInputGetCapabilities",
                        pCtx->XInputGetCapabilities_Detour,
-            (LPVOID *)&pCtx->XInputGetCapabilities_Original,
-            (LPVOID *)&pCtx->XInputGetCapabilities_Target );
+            (LPVOID *)&pCtx->XInputGetCapabilities_Original );
+
+  pCtx->XInputSetState_Target =
+    SK_GetProcAddress (pCtx->wszModuleName, "XInputSetState");
 
   SK_CreateDLLHook2 ( pCtx->wszModuleName,
                        "XInputSetState",
                        pCtx->XInputSetState_Detour,
-            (LPVOID *)&pCtx->XInputSetState_Original,
-            (LPVOID *)&pCtx->XInputSetState_Target );
-
+            (LPVOID *)&pCtx->XInputSetState_Original );
 
   pCtx->XInputGetBatteryInformation_Target =
     SK_GetProcAddress (pCtx->wszModuleName, "XInputGetBatteryInformation");
@@ -492,8 +499,7 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
     SK_CreateDLLHook2 ( pCtx->wszModuleName,
                          "XInputGetBatteryInformation",
                          pCtx->XInputGetBatteryInformation_Detour,
-              (LPVOID *)&pCtx->XInputGetBatteryInformation_Original,
-              (LPVOID *)&pCtx->XInputGetBatteryInformation_Target );
+              (LPVOID *)&pCtx->XInputGetBatteryInformation_Original );
   }
 
   pCtx->XInputGetStateEx_Target =
@@ -506,33 +512,25 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
     SK_CreateDLLHook2 ( pCtx->wszModuleName,
                          XINPUT_GETSTATEEX_ORDINAL,
                          pCtx->XInputGetStateEx_Detour,
-              (LPVOID *)&pCtx->XInputGetStateEx_Original,
-              (LPVOID *)&pCtx->XInputGetStateEx_Target );
+              (LPVOID *)&pCtx->XInputGetStateEx_Original );
   }
-
-  MH_QueueEnableHook (pCtx->XInputGetState_Target);
-  MH_QueueEnableHook (pCtx->XInputSetState_Target);
-  MH_QueueEnableHook (pCtx->XInputGetCapabilities_Target);
-  MH_QueueEnableHook (pCtx->XInputGetBatteryInformation_Target);
-  MH_QueueEnableHook (pCtx->XInputGetStateEx_Target);
 
   MH_ApplyQueued ();
 
-
   if (pCtx->XInputGetState_Target != nullptr)
-    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   64);
+    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   11);
 
   if (pCtx->XInputSetState_Target != nullptr)
-    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               64);
+    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               11);
 
   if (pCtx->XInputGetCapabilities_Target != nullptr)
-    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       64);
+    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       11);
 
   if (pCtx->XInputGetBatteryInformation_Target != nullptr)
-    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 64);
+    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 11);
 
   if (pCtx->XInputGetStateEx_Target != nullptr)
-    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              64);
+    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              11);
 }
 
 void
@@ -640,7 +638,7 @@ SK_XInput_RehookIfNeeded (void)
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                  ( pCtx->XInputGetState_Target != 0 &&
            memcmp (pCtx->orig_inst,
-                   pCtx->XInputGetState_Target, 64 ) )
+                   pCtx->XInputGetState_Target, 11 ) )
      )
   {
     if ( MH_OK == MH_RemoveHook (pCtx->XInputGetState_Target) )
@@ -688,7 +686,7 @@ SK_XInput_RehookIfNeeded (void)
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                  ( pCtx->XInputSetState_Target != 0 &&
            memcmp (pCtx->orig_inst_set,
-                   pCtx->XInputSetState_Target, 64 ) )
+                   pCtx->XInputSetState_Target, 11 ) )
      )
   {
     if ( MH_OK == MH_RemoveHook (pCtx->XInputSetState_Target) )
@@ -736,7 +734,7 @@ SK_XInput_RehookIfNeeded (void)
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                  ( pCtx->XInputGetCapabilities_Target != 0 &&
            memcmp (pCtx->orig_inst_caps,
-                   pCtx->XInputGetCapabilities_Target, 64 ) )
+                   pCtx->XInputGetCapabilities_Target, 11 ) )
      )
   {
     if ( MH_OK == MH_RemoveHook (pCtx->XInputGetCapabilities_Target) )
@@ -787,7 +785,7 @@ SK_XInput_RehookIfNeeded (void)
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                    ( pCtx->XInputGetBatteryInformation_Target != 0 &&
              memcmp (pCtx->orig_inst_batt,
-                     pCtx->XInputGetBatteryInformation_Target, 64 ) )
+                     pCtx->XInputGetBatteryInformation_Target, 11 ) )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetBatteryInformation_Target) )
@@ -836,7 +834,7 @@ SK_XInput_RehookIfNeeded (void)
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                    ( pCtx->XInputGetStateEx_Target != 0 &&
              memcmp (pCtx->orig_inst_ex,
-                     pCtx->XInputGetStateEx_Target, 64 ) )
+                     pCtx->XInputGetStateEx_Target, 11 ) )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetStateEx_Target) )
@@ -879,19 +877,19 @@ SK_XInput_RehookIfNeeded (void)
 
 
   if (pCtx->XInputGetState_Target != nullptr)
-    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   64);
+    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   11);
 
   if (pCtx->XInputSetState_Target != nullptr)
-    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               64);
+    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               11);
 
   if (pCtx->XInputGetCapabilities_Target != nullptr)
-    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       64);
+    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       11);
 
   if (pCtx->XInputGetBatteryInformation_Target != nullptr)
-    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 64);
+    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 11);
 
   if (pCtx->XInputGetStateEx_Target != nullptr)
-    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              64);
+    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              11);
 }
 
 
@@ -960,7 +958,7 @@ SK_XInput_PollController ( INT           iJoyID,
       pCtx = xinput_ctx.primary_hook;
 
       HMODULE hModXInput1_3 =
-        LoadLibrary (L"XInput1_3.dll");
+        LoadLibraryW_Original (L"XInput1_3.dll");
 
       if (hModXInput1_3 != 0)
       {
@@ -1062,20 +1060,28 @@ SK_Input_PreHookXInput (void)
     {
       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
                   L"   Input  " );
-
-#if 0
-      // Brutually stupid, let's not do this -- use the import table instead
-      //                                          try the other DLLs later
-      SK_Input_HookXInput1_3 ();
-      SK_Input_HookXInput1_4 ();
-      SK_Input_HookXInput9_1_0 ();
-#else
       if (tests [0].used) SK_Input_HookXInput1_3   ();
       if (tests [1].used) SK_Input_HookXInput1_4   ();
       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
-#endif
     }
+
+   if (GetModuleHandle (L"XInput1_3.dll"))
+      SK_Input_HookXInput1_3 ();
+
+    if (GetModuleHandle (L"XInput1_4.dll"))
+      SK_Input_HookXInput1_4 ();
+
+    if (GetModuleHandle (L"XInput9_1_0.dll"))
+      SK_Input_HookXInput9_1_0 ();
 
     MH_ApplyQueued ();
   }
+}
+
+
+
+void
+SK_XInput_ZeroHaptics(INT iJoyID)
+{
+  SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
 }

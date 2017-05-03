@@ -236,8 +236,12 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                 StrStrIW (wszModName, L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
-              ( StrStrIA (lpFileName,  "dxgi.dll") ||
-                StrStrIW (wszModName, L"dxgi.dll") ))
+              ( StrStrIA (lpFileName,  "d3d11.dll") ||
+                StrStrIW (wszModName, L"d3d11.dll") ))
+      SK_BootDXGI   ();
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
+              ( StrStrIA (lpFileName,  "d3d12.dll") ||
+                StrStrIW (wszModName, L"d3d12.dll") ))
       SK_BootDXGI   ();
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrIA (lpFileName,  "OpenGL32.dll") ||
@@ -257,15 +261,18 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     else if (   StrStrIA (lpFileName, "hid.dll") )
       SK_Input_HookHID ();
 
+#if 0
     if (! config.steam.silent) {
       if (StrStrIA (lpFileName, "CSteamworks.dll")) {
         SK_HookCSteamworks ();
       } else if (StrStrIA (lpFileName, "steam_api.dll")   ||
                  StrStrIA (lpFileName, "steam_api64.dll") ||
-                 StrStrIA (lpFileName, "SteamNative.dll") ) {
+                 StrStrIA (lpFileName, "SteamNative.dll") ||
+                 StrStrIA (lpFileName, "steamclient") ) {
         SK_HookSteamAPI ();
       }
     }
+#endif
 
 #if 0
     // Some software repeatedly loads and unloads this, which can
@@ -360,8 +367,12 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
               StrStrIW (wszModName, L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
-              ( StrStrIW (lpFileName, L"dxgi.dll") ||
-                StrStrIW (wszModName, L"dxgi.dll") ))
+              ( StrStrIW (lpFileName, L"d3d11.dll") ||
+                StrStrIW (wszModName, L"d3d11.dll") ))
+      SK_BootDXGI   ();
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
+              ( StrStrIW (lpFileName, L"d3d12.dll") ||
+                StrStrIW (wszModName, L"d3d12.dll") ))
       SK_BootDXGI   ();
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrIW (lpFileName, L"OpenGL32.dll") ||
@@ -381,15 +392,18 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     else if (   StrStrIW (lpFileName, L"hid.dll") )
       SK_Input_HookHID ();
     
+#if 0
     if (! config.steam.silent) {
       if (StrStrIW (lpFileName, L"CSteamworks.dll")) {
         SK_HookCSteamworks ();
       } else if (StrStrIW (lpFileName, L"steam_api.dll")   ||
                  StrStrIW (lpFileName, L"steam_api64.dll") ||
-                 StrStrIW (lpFileName, L"SteamNative.dll") ) {
+                 StrStrIW (lpFileName, L"SteamNative.dll") ||
+                 StrStrIW (lpFileName, L"steamclient") ) {
         SK_HookSteamAPI ();
       }
     }
+#endif
     
 #if 0
     // Some software repeatedly loads and unloads this, which can
@@ -1043,8 +1057,20 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
             
               loaded_vulkan = true;
             }
+
+            //else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+            //  SK_BootDXGI ();
+            //
+            //  loaded_dxgi = true;
+            //}
+
+            else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\d3d11.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+              SK_BootDXGI ();
             
-            else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+              loaded_dxgi = true;
+            }
+
+            else if ( config.apis.dxgi.d3d12.hook && StrStrIW (wszModName, L"\\d3d12.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
               SK_BootDXGI ();
             
               loaded_dxgi = true;
@@ -1064,7 +1090,8 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
             SK_HookCSteamworks ();
           } else if (StrStrIW (wszModName, L"steam_api.dll")   ||
                  StrStrIW     (wszModName, L"steam_api64.dll") ||
-                 StrStrIW     (wszModName, L"SteamNative.dll") ) {
+                 StrStrIW     (wszModName, L"SteamNative.dll") ||
+                 StrStrIW     (wszModName, L"steamclient") ) {
               SK_HookSteamAPI ();
           }
         }

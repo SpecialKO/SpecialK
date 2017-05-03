@@ -11016,6 +11016,9 @@ extern float analog_sensitivity;
 
 extern UINT SK_ImGui_ActivationKeys [256];
 
+#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend.markRead  (type);
+#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend.markWrite (type);
+
 UINT
 WINAPI
 SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
@@ -11056,6 +11059,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         {
           case RIM_TYPEMOUSE:
           {
+            SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
+
             if (SK_ImGui_Visible)
             {
               if ( SK_ImGui_WantMouseCapture () )
@@ -11071,6 +11076,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           case RIM_TYPEKEYBOARD:
           {
+            SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
+
             USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
 
             bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
@@ -11123,6 +11130,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           default:
           {
+            SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
             // TODO: Determine which controller the input is from
             //if (SK_ImGui_WantGamepadCapture ())
               //filter = true;
@@ -11140,15 +11148,21 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RIM_TYPEMOUSE:
       {
-        POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
+        if (config.input.mouse.add_relative_motion)
+        {
+          // 99% of games don't need this, and if we use relative motion to update the cursor position that
+          //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
+          //     Raw Input does not include cursor accelleration, etc.
+          POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
 
-        SK_ImGui_Cursor.ClientToLocal (&client);
+          SK_ImGui_Cursor.ClientToLocal (&client);
 
-        SK_ImGui_Cursor.pos.x += client.x;
-        SK_ImGui_Cursor.pos.y += client.y;
-        
-        ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-        ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+          SK_ImGui_Cursor.pos.x += client.x;
+          SK_ImGui_Cursor.pos.y += client.y;
+          
+          ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+          ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+        }
 
         // Don't take mouse button presses while in the background
         if (GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT)
@@ -11178,7 +11192,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         //if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL        )
           //ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData) / WHEEL_DELTA;
 
-        SK_ImGui_Cursor.update ();
+        //SK_ImGui_Cursor.update ();
       } break;
 
 
@@ -11412,10 +11426,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           return true;
         }
 
-        static DWORD last_pos = 0;
-               DWORD dwPos    = GetMessagePos ();
-
-        LONG lRet = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
+        DWORD dwPos = GetMessagePos ();
+        LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
 
         if (lRet >= 0) {
           dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
@@ -11500,9 +11512,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
     BYTE  vkCode   = LOWORD (wParam) & 0xFF;
     BYTE  scanCode = HIWORD (lParam) & 0x7F;
-    SHORT repeated = LOWORD (lParam);
-
-    bool  keyDown  = ! (lParam & 0x80000000UL);
+    //SHORT repeated = LOWORD (lParam);
+    //bool  keyDown  = ! (lParam & 0x80000000UL);
 
     BYTE                       keyState [256];
     GetKeyboardState_Original (keyState);
@@ -11560,8 +11571,10 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     //    0 if the message should be passed onto app, but internal cursor pos unchanged
     //    1 if the message should be completely eradicated
     //
-    if (lDeltaRet >= 0)
+    if (lDeltaRet >= 0) {
+      SK_ImGui_Cursor.update ();
       return lDeltaRet;
+    }
 
     SHORT xPos = GET_X_LPARAM (lParam);
     SHORT yPos = GET_Y_LPARAM (lParam);
@@ -11575,9 +11588,12 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
 
     if (! SK_ImGui_WantMouseCapture ()) {
+      SK_ImGui_Cursor.update ();
       SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
       return false;
     }
+
+    SK_ImGui_Cursor.update ();
 
     return true;
   } break;
@@ -11637,41 +11653,12 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
 
 
-  if ( (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST) ||
-        msg == WM_APPCOMMAND )
-  {
-    if (! handled)
-    {
-      DWORD dwPos = GetMessagePos ();
-
-      SHORT xPos = GET_X_LPARAM ((LPARAM)dwPos);
-      SHORT yPos = GET_Y_LPARAM ((LPARAM)dwPos);
-
-      SK_ImGui_Cursor.pos.x = xPos;
-      SK_ImGui_Cursor.pos.y = yPos;
-
-      SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
-
-      ImGuiIO& io = ImGui::GetIO ();
-
-      io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-      io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-    }
-  }
-
-  SK_ImGui_Cursor.update ();
-
-
-
   bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
 
   UINT uMsg = msg;
 
   if (SK_ImGui_Visible && handled)
   { 
-    ImGuiIO& io =
-      ImGui::GetIO ();
-
     bool keyboard_capture =
       ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
            uMsg == WM_HOTKEY     ||
@@ -11783,6 +11770,8 @@ bool
 SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight );
+extern void
+SK_XInput_ZeroHaptics ( INT iJoyID );
 
 
 bool
@@ -11814,8 +11803,7 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 
   // Zero-out any residual haptic data
   if (! SK_ImGui_Visible)
-      SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
-                                    0.0f, 0.0f );
+      SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
 
   return SK_ImGui_Visible;
 }

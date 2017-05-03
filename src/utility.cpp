@@ -1469,11 +1469,17 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
     WORD wCodePage;
   } *lpTranslate = nullptr;
 
-  if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
+  wchar_t wszFullyQualifiedName [MAX_PATH * 2] = { L'\0' };
+
+  lstrcatW (wszFullyQualifiedName, SK_GetHostPath ());
+  lstrcatW (wszFullyQualifiedName, L"\\");
+  lstrcatW (wszFullyQualifiedName, wszName);
+
+  if (GetFileAttributes (wszFullyQualifiedName) == INVALID_FILE_ATTRIBUTES)
     return false;
 
   GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
-                           wszName,
+                           wszFullyQualifiedName,
                              0x00,
                                4096,
                                  cbData );

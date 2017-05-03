@@ -1326,16 +1326,17 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  // Don't let Steam prevent me from attaching a debugger at startup
+  game_debug.init                  (L"logs/game_output.log", L"w");
+  game_debug.lockless = true;
+  SK::Diagnostics::Debugger::Allow ();
+
   // Allow users to centralize all files if they want
   if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
 
   if (SK_IsInjected ())
     config.system.central_repository = true;
-
-  // This is a fatal combination
-  if (SK_IsInjected () && SK_IsSuperSpecialK ())
-    return false;
 
   SK_EstablishRootPath ();
   SK_CreateDirectories (SK_GetConfigPath ());
@@ -1462,10 +1463,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     // Required by Minject, the DLL's not loaded early enough.
     if (SK_IsInjected ())
-      config.steam.init_delay = std::max (config.steam.init_delay, 500);
+      config.steam.init_delay = std::max (config.steam.init_delay, 6666);
+    else {
+      extern void
+      SK_TestSteamImports (HMODULE hMod);
 
-    if (config.steam.preload_overlay)
-      SK_Steam_LoadOverlayEarly ();
+      extern void
+      SK_Steam_InitCommandConsoleVariables (void);
+
+      SK_Steam_InitCommandConsoleVariables ();
+      SK_TestSteamImports                  (GetModuleHandle (nullptr));
+    }
 
     SK_InitCompatBlacklist ();
   }
@@ -1483,14 +1491,20 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init ();
 
-  if (! SK_IsSuperSpecialK ()) {
-    SK_Steam_InitCommandConsoleVariables ();
-    SK_TestSteamImports                  (GetModuleHandle (nullptr));
-  }
 
+  // Load user-defined DLLs (Early)
+#ifdef _WIN64
+  SK_LoadEarlyImports64 ();
+#else
+  SK_LoadEarlyImports32 ();
+#endif
 
 
   // Do this from the startup thread
+
+  if (config.steam.preload_overlay)
+    SK_Steam_LoadOverlayEarly ();
+
   extern void SK_Input_PreInit (void); 
   SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
   SK_HookWinAPI       ();
@@ -1508,13 +1522,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
-
-  // Load user-defined DLLs (Early)
-#ifdef _WIN64
-  SK_LoadEarlyImports64 ();
-#else
-  SK_LoadEarlyImports32 ();
-#endif
 
   LeaveCriticalSection (&init_mutex);
 
@@ -1673,6 +1680,7 @@ SK_ShutdownCore (const wchar_t* backend)
 
 extern void SK_InitWindow (HWND hWnd);
 #include <SpecialK/render_backend.h>
+#include <imgui/imgui.h>
 
 __declspec (noinline)
 COM_DECLSPEC_NOTHROW
@@ -1680,6 +1688,18 @@ void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  if (io.Fonts == nullptr)
+  {
+    extern void
+    SK_ImGui_LoadFonts (void);
+
+    SK_ImGui_LoadFonts ();
+  }
+
+
   // Throttle, but do not deadlock the render loop
   if (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
     Sleep (166);
@@ -1701,7 +1721,7 @@ SK_BeginBufferSwap (void)
     {
       // Steam Init: Better late than never
 
-      SK_TestSteamImports (nullptr);
+      SK_TestSteamImports (GetModuleHandle (nullptr));
     }
 
 
@@ -2513,84 +2533,4 @@ RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
                    LPSTR lpszCmdLine, int       nCmdShow )
 {
   ShellExecuteA ( nullptr, "runas", lpszCmdLine, nullptr, nullptr, SW_SHOWNORMAL );
-}
-
-
-#include <SpecialK/injection/injection.h>
-
-BOOL
-SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
-{
-  DWORD dwDesiredAccess = PROCESS_TERMINATE;
-  BOOL  bInheritHandle  = FALSE;
-
-  HANDLE hProcess =
-    OpenProcess ( dwDesiredAccess, bInheritHandle, dwProcessId );
-
-  if (hProcess == nullptr)
-    return FALSE;
-  
-  BOOL result =
-    TerminateProcess (hProcess, uExitCode);
-  
-  CloseHandle (hProcess);
-  
-  return result;
-}
-
-// Useful for manging injection of the 32-bit DLL from a 64-bit application or
-//   visa versa.
-void
-CALLBACK
-RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
-                          LPSTR lpszCmdLine, int       nCmdShow )
-{
-  if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
-  {
-    SKX_InstallCBTHook ();
-
-    if (SKX_IsHookingCBT ())
-    {
-#ifndef _WIN64
-      FILE* fPID = fopen ("SpecialK32.pid", "w");
-#else
-      FILE* fPID = fopen ("SpecialK64.pid", "w");
-#endif
-
-      if (fPID)
-      {
-        fprintf (fPID, "%lu\n", GetCurrentProcessId ());
-        fclose  (fPID);
-
-        Sleep (INFINITE);
-      }
-    }
-  }
-
-  else if (StrStrA (lpszCmdLine, "Remove"))
-  {
-    SKX_RemoveCBTHook ();
-
-#ifndef _WIN64
-    FILE* fPID = fopen ("SpecialK32.pid", "r");
-#else
-    FILE* fPID = fopen ("SpecialK64.pid", "r");
-#endif
-
-    if (fPID != nullptr)
-    {
-                      DWORD dwPID = 0;
-      fscanf (fPID, "%lu", &dwPID);
-      fclose (fPID);
-
-      if (SK_TerminatePID (dwPID, 0x00))
-      {
-#ifndef _WIN64
-        DeleteFileA ("SpecialK32.pid");
-#else
-        DeleteFileA ("SpecialK64.pid");
-#endif
-      }
-    }
-  }
 }

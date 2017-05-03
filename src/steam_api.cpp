@@ -355,6 +355,18 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       break;
   }
 
+  if (SK_IsInjected ())
+  {
+    // Only really screwed up games (there are some) install callbacks before initializing SteamAPI,
+    //   so if we've gotten this far and still missed the API init call try to implicitly init SteamAPI.
+    //
+    if (! InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE))
+    {
+      if (SteamAPI_InitSafe ())
+        SteamAPI_RunCallbacks ();
+    }
+  }
+
   SteamAPI_RegisterCallback_Original (pCallback, iCallback);
 
   LeaveCriticalSection (&callback_cs);
@@ -2850,9 +2862,7 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
-  static volatile ULONG initializing = FALSE;
-
-  if (! (InterlockedCompareExchange (&initializing, 1, 0)) && ( InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr ))
+  if (( InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr ))
   {
     // Handle situations where Steam was initialized earlier than
     //   expected...
@@ -3352,7 +3362,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
         *szAppName = '\0';
 
         // Make sure everything is lowercase
-        strncat (szAppName, "\"name\"", strlen ("\"name\""));
+        strncpy (szAppName, "\"name\"", strlen ("\"name\""));
 
         sscanf ( szAppName,
                    "\"name\" \"%259[^\"]\"",
@@ -3371,11 +3381,16 @@ SK_UseManifestToGetAppName (uint32_t appid)
 std::string
 SK::SteamAPI::AppName (void)
 {
-  // Only do this once, the AppID never changes =P
-  static std::string app_name =
-    SK_UseManifestToGetAppName (AppID ());
+  if (AppID () != 0x00)
+  {
+    // Only do this once, the AppID never changes =P
+    static std::string app_name =
+      SK_UseManifestToGetAppName (AppID ());
 
-  return app_name;
+    return app_name;
+  }
+
+  return "";
 }
 
 void

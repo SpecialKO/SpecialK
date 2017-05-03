@@ -211,7 +211,7 @@ struct sk_config_t
 
     int     appid                = 0;
     bool    preload_client       = false;
-    bool    preload_overlay      = false;
+    bool    preload_overlay      = true; // For input processing, this is important
   } steam;
 
 
@@ -341,6 +341,19 @@ struct sk_config_t
     struct {
       bool    block_windows_key = false;
     } keyboard;
+
+    struct {
+      // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
+      bool    add_relative_motion = false;
+//
+// Uses APIs such as DirectInput or RawInput that only send relative motion events
+//   to derive the virtual position of the cursor, since the game hijacks the
+//     physical position.
+//
+//   >> Ideally we want absolute cursor position every frame for the UI, but
+//        that's not always possible. <<
+//
+    } mouse;
   } input;
 
   struct {

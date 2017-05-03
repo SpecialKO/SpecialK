@@ -39,6 +39,7 @@
 #include <string>
 
 #include <atlbase.h>
+#include <comdef.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
@@ -61,6 +62,8 @@ HookD3D9 (LPVOID user);
 unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user);
+
+extern volatile ULONG ImGui_Init;
 
 void
 WINAPI
@@ -600,6 +603,20 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
 
     SK_Steam_ClearPopups ();
+
+    //
+    // Initialize ImGui for D3D9 games
+    //
+    D3DDEVICE_CREATION_PARAMETERS params;
+    pDev->GetCreationParameters (&params);
+    
+    if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
+                                    pDev,
+                                     nullptr )
+       )
+    {
+      InterlockedExchange ( &ImGui_Init, TRUE );
+    }
   }
 }
 
@@ -949,7 +966,8 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
   CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-  if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+  if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+  {
     SK_CEGUI_DrawD3D9 (This, pSwapChain);
 
     CComPtr <IDirect3DSurface9> pSurf = nullptr;
@@ -1060,7 +1078,8 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
   {
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain))) {
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+    {
       SK_CEGUI_DrawD3D9 (This, pSwapChain);
 
       CComPtr <IDirect3DSurface9> pSurf = nullptr;
@@ -1445,7 +1464,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   // D3D9Ex Specific Stuff
   //
 
-  CComPtr <IDirect3DDevice9Ex> pDevEx;
+  CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
 
   if (SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevEx))))
   {
@@ -1532,7 +1551,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   if (! config.apis.d3d9ex.hook)
     return;
 
-  CComPtr <IDirect3DDevice9Ex> pDevEx;
+  CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
 
   if (SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevEx))))
   {
@@ -2769,6 +2788,17 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     ResetCEGUI_D3D9 (nullptr);
+
+    //
+    // Initialize ImGui for D3D9 games
+    //
+    if ( ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
+                                    *ppReturnedDeviceInterface,
+                                     pPresentationParameters )
+       )
+    {
+      InterlockedExchange ( &ImGui_Init, TRUE );
+    }
     //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
   }
 
@@ -3063,6 +3093,17 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     ResetCEGUI_D3D9 (nullptr);
     //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+
+    //
+    // Initialize ImGui for D3D9 games
+    //
+    if ( ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
+                                    *ppReturnedDeviceInterface,
+                                     pPresentationParameters )
+       )
+    {
+      InterlockedExchange ( &ImGui_Init, TRUE );
+    }
   }
 
   return ret;
@@ -3267,35 +3308,35 @@ HookD3D9 (LPVOID user)
 
     HWND hwnd = 0;
 
-    if (pD3D9 != nullptr) {
+    if (pD3D9 != nullptr)
+    {
       hwnd =
         CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
                           WS_POPUP | WS_MINIMIZEBOX,
                             CW_USEDEFAULT, CW_USEDEFAULT,
-                              800, 600, 0,
+                              64, 64, 0,
                                 nullptr, nullptr, 0x00 );
 
-      D3DPRESENT_PARAMETERS pparams;
-      ZeroMemory (&pparams, sizeof (pparams));
+      D3DPRESENT_PARAMETERS pparams = { 0 };
 
-      pparams.SwapEffect       = D3DSWAPEFFECT_DISCARD;
-      pparams.BackBufferFormat = D3DFMT_UNKNOWN;
-      pparams.Windowed         = TRUE;
+      pparams.SwapEffect            = D3DSWAPEFFECT_DISCARD;
+      pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
+      pparams.Windowed              = TRUE;
 
       CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
-      if ( SUCCEEDED ( pD3D9->CreateDevice (
-                         D3DADAPTER_DEFAULT,
-                           D3DDEVTYPE_HAL,
-                             hwnd,
-                               D3DCREATE_HARDWARE_VERTEXPROCESSING,
-                                 &pparams,
-                                   &pD3D9Dev )
-                     )
-        )
-      {
-        dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
+      dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
 
+      HRESULT hr = pD3D9->CreateDevice (
+                     D3DADAPTER_DEFAULT,
+                       D3DDEVTYPE_HAL,
+                         hwnd,
+                           D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                             &pparams,
+                               &pD3D9Dev );
+
+      if (SUCCEEDED (hr))
+      {
         D3D9_INTERCEPT ( &pD3D9, 16,
                         "IDirect3D9::CreateDevice",
                           D3D9CreateDevice_Override,
@@ -3429,30 +3470,34 @@ HookD3D9 (LPVOID user)
         // Initialize stuff...
         SK_D3D9RenderBackend::getInstance ();
       } else {
-        dll_log.Log (L"[   D3D9   ]   * Failure");
+        _com_error err (hr);
+        dll_log.Log ( L"[   D3D9   ]   * Failure  (%s)",
+                      err.ErrorMessage () );
       }
 
       DestroyWindow (hwnd);
 
       CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
-      HRESULT hr = (config.apis.d3d9ex.hook) ?
+      hr = (config.apis.d3d9ex.hook) ?
         Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
                          :
                     E_NOINTERFACE;
 
       hwnd = 0;
 
-      if (SUCCEEDED (hr)) {
+      if (SUCCEEDED (hr))
+      {
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
+
         hwnd =
           CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
                             WS_POPUP | WS_MINIMIZEBOX,
                               CW_USEDEFAULT, CW_USEDEFAULT,
-                                800, 600, 0,
+                                64, 64, 0,
                                   nullptr, nullptr, 0x00 );
 
-        ZeroMemory (&pparams, sizeof (pparams));
+        pparams                  = { 0 };
 
         pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
         pparams.BackBufferFormat = D3DFMT_UNKNOWN;
@@ -3482,6 +3527,9 @@ HookD3D9 (LPVOID user)
           SK_D3D9_HookReset   (pD3D9DevEx);
           SK_D3D9_HookPresent (pD3D9DevEx);
 
+          // Initialize stuff...
+          SK_D3D9RenderBackend::getInstance ();
+
           dll_log.Log (L"[   D3D9   ]   * Success");
         } else {
           dll_log.Log (L"[   D3D9   ]   * Failure");
@@ -3497,7 +3545,7 @@ HookD3D9 (LPVOID user)
     }
   }
   if (success)
-    CoUninitialize();
+    CoUninitialize ();
 
   return 0;
 }
