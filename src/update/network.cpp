@@ -50,6 +50,12 @@
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
 
+extern void
+SK_Inject_Stop (void);
+
+extern void
+SK_Inject_Start (void);
+
 enum {
   STATUS_UPDATED   = 1,
   STATUS_REMINDER  = 2,
@@ -1115,6 +1121,9 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
+          if (SK_IsInjected ())
+            SK_Inject_Stop ();
+
           HANDLE hThread =
             CreateThread ( nullptr,
                              0,
@@ -1132,6 +1141,9 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                   ) == 0
                 )
             Sleep (15);
+
+          if (SK_IsInjected ())
+            SK_Inject_Start ();
 
           if ( InterlockedCompareExchange ( &__SK_UpdateStatus, 0, 0 ) == 1 )
           {

@@ -29,4 +29,29 @@ extern bool
 __stdcall
 SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK");
 
+#include <string>
+
+struct SK_VersionInfo_V1
+{
+  std::wstring branch;
+  std::wstring package;
+  int          build;
+};
+
+typedef SK_VersionInfo_V1 SK_VersionInfo;
+
+SK_VersionInfo SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct);
+SK_VersionInfo SK_Version_GetLocalInfo_V1  (const wchar_t* wszProduct);
+
+#define SK_Version_GetLatestInfo SK_Version_GetLatestInfo_V1
+#define SK_Version_GetLocalInfo  SK_Version_GetLocalInfo_V1
+
+std::vector <std::string>
+SK_Version_GetAvailableBranches (const wchar_t* wszProduct);
+
+bool
+SK_Version_SwitchBranches       (const wchar_t* wszProduct, const char* szBranch);
+
+std::wstring SK_Version_GetLastCheckTime_WStr (void);
+
 #endif /* __SK__Update_Version_H__ */

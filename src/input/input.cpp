@@ -1123,8 +1123,11 @@ ImGuiCursor_Impl (void)
   //
   else
   {
-    SetCursor_Original (nullptr);
-    ImGui::GetIO ().MouseDrawCursor = (! SK_ImGui_Cursor.idle);
+    if (SK_ImGui_Visible)
+    {
+      SetCursor_Original (nullptr);
+      ImGui::GetIO ().MouseDrawCursor = (! SK_ImGui_Cursor.idle);
+    }
   }
 }
 
@@ -1632,11 +1635,8 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
     {
       case WM_SETCURSOR:
       {
-        if (SK_ImGui_Visible)
-        {
-          SK_ImGui_Cursor.update ();
-          return true;
-        }
+        SK_ImGui_Cursor.update ();
+        return false;
       } break;
 
       // TODO: Does this message have an HWND always?

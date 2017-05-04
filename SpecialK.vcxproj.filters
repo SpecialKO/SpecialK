@@ -178,6 +178,9 @@
     <Filter Include="Source Files\Backends\Injection">
       <UniqueIdentifier>{569bbbef-5600-47af-81d4-83c0349fc042}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Update">
+      <UniqueIdentifier>{6c5c0f3e-6b89-4600-993c-db87d90083cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">

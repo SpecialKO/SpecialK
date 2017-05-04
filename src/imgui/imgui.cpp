@@ -11572,7 +11572,9 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     //    1 if the message should be completely eradicated
     //
     if (lDeltaRet >= 0) {
-      SK_ImGui_Cursor.update ();
+      if (SK_ImGui_Visible)
+        SK_ImGui_Cursor.update ();
+
       return lDeltaRet;
     }
 
@@ -11587,13 +11589,18 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
     io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
 
-    if (! SK_ImGui_WantMouseCapture ()) {
-      SK_ImGui_Cursor.update ();
+    if (! SK_ImGui_WantMouseCapture ())
+    {
+      if (SK_ImGui_Visible)
+        SK_ImGui_Cursor.update ();
+
       SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
+
       return false;
     }
 
-    SK_ImGui_Cursor.update ();
+    if (SK_ImGui_Visible)
+      SK_ImGui_Cursor.update ();
 
     return true;
   } break;

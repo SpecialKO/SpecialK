@@ -1392,6 +1392,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
 
+  //dll_log.Log (L"LoadLibraryA Addres: %ph", GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadLibraryA"));
+
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
     L"-------------------\n");

@@ -2411,8 +2411,8 @@ __declspec (noinline)
         }
 #endif
 
-        //SK_SetWindowResX (desc.BufferDesc.Width);
-        //SK_SetWindowResY (desc.BufferDesc.Height);
+        SK_SetWindowResX (desc.BufferDesc.Width);
+        SK_SetWindowResY (desc.BufferDesc.Height);
       }
     }
 

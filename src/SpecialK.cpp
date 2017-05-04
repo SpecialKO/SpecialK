@@ -586,19 +586,24 @@ DllMain ( HMODULE hModule,
           return TRUE;
       }
 
-      // We reserve the right to deny attaching the DLL, this will generally
-      //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole (hModule))
-        return FALSE;
-
-
       SK_Init_MinHook       ();
       SK_PreInitLoadLibrary ();
+
+      bool SK_Injection_JournalRecord (HMODULE);
+      bool bInjectionTarget = SK_Injection_JournalRecord (hModule);
+
+      if (! bInjectionTarget)
+      {
+        // We reserve the right to deny attaching the DLL, this will generally
+        //   happen if a game does not opt-in to system wide injection.
+        if (! SK_EstablishDllRole (hModule))
+          return FALSE;
+      }
 
 
       // It's too early to do this for the wrapper version, the config file has not
       //   been loaded yet.
-      if (SK_IsInjected ())
+      if (SK_IsInjected () && (! bInjectionTarget))
       {
         extern void
         SK_TestSteamImports (HMODULE hMod);
@@ -639,7 +644,10 @@ DllMain ( HMODULE hModule,
       }
 
       if (ret)
-        ret = SK_Attach (SK_GetDLLRole ());
+      {
+        if (! bInjectionTarget)
+          ret = SK_Attach (SK_GetDLLRole ());
+      }
 
       return ret;
     } break;

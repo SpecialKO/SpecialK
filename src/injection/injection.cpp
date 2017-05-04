@@ -23,6 +23,7 @@
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
+#include <SpecialK/log.h>
 
 #include <Shlwapi.h>
 
@@ -393,4 +394,57 @@ bool
 SKinja_SwitchToGlobalInjector (void)
 {
   return false;
+}
+
+
+
+
+bool
+SK_bIsSteamClient (HMODULE hMod);
+
+bool SK_Injection_JournalRecord (HMODULE hModule)
+{
+  return false;
+  //return SK_bIsSteamClient (hModule);
+}
+
+
+
+extern std::wstring
+SK_SYS_GetInstallPath (void);
+
+void
+SK_Inject_Stop (void)
+{
+  std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
+
+  wchar_t wszCurrentDir [MAX_PATH * 2] = { L'\0' };
+  GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
+
+  SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+
+  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+
+  SetCurrentDirectoryW (wszCurrentDir);
+
+  SK_ResumeThreads (suspended);
+}
+
+void
+SK_Inject_Start (void)
+{
+  std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
+
+  wchar_t wszCurrentDir [MAX_PATH * 2] = { L'\0' };
+  GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
+
+  SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+
+  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+
+  SetCurrentDirectoryW (wszCurrentDir);
+
+  SK_ResumeThreads (suspended);
 }

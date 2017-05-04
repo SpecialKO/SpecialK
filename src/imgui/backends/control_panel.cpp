@@ -41,6 +41,9 @@
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/sound.h>
 
+#include <SpecialK/update/version.h>
+#include <SpecialK/update/network.h>
+
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/input/xinput_hotplug.h>
 
@@ -478,6 +481,14 @@ SK_ImGui_AdjustCursor (void)
 bool reset_frame_history = true;
 bool was_reset           = false;
 
+__declspec (noinline)
+IMGUI_API
+void
+__stdcall
+SK_PlugIn_ControlPanelWidget (void)
+{
+}
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -567,13 +578,12 @@ SK_ImGui_ControlPanel (void)
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV ((float)(timeGetTime () % 2800) / 2800.0f,  (0.5f + (sin ((float)(timeGetTime () % 500) / 500.0f)) * 0.5f) / 2.0f, 1.0f));
   else
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
-  ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | (SK_IsInjected () ? ImGuiWindowFlags_MenuBar : 0x00));
+  ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_MenuBar);
   ImGui::PopStyleColor  ();
-
-
-  if (SK_IsInjected ())
+  
+  if (ImGui::BeginMenuBar ())
   {
-    if (ImGui::BeginMenuBar ())
+    if (SK_IsInjected ())
     {
       if (ImGui::BeginMenu ("File"))
       {
@@ -598,9 +608,72 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::EndMenu  ();
       }
-
-      ImGui::EndMenuBar ();
     }
+
+    if (SK_IsInjected ())
+    {
+    if (ImGui::BeginMenu ("Update"))
+    {
+      static std::vector <std::string> branches = SK_Version_GetAvailableBranches (L"SpecialK");
+
+      SK_VersionInfo vinfo =
+        SK_Version_GetLocalInfo (L"SpecialK");
+
+      char current_ver [128] = { '\0' };
+      snprintf (current_ver, 128, "%ws (%lu)", vinfo.package.c_str (), vinfo.build);
+
+      char current_branch [64] = { '\0' };
+      snprintf (current_branch, 64, "%ws", vinfo.branch.c_str ());
+
+      SK_VersionInfo vinfo_latest =
+        SK_Version_GetLatestInfo (L"SpecialK");
+
+      bool selected = false;
+          ImGui::MenuItem  ("Current Version###Menu_CurrentVersion", current_ver,    &selected, false);
+          ImGui::MenuItem  ("Current Branch###Menu_CurrentBranch",   current_branch, &selected, false);
+
+      ImGui::Separator ();
+
+      ImGui::SetNextWindowContentSize (ImVec2 (-1.0f, branches.size ()));
+
+      if (ImGui::BeginMenu ("Select a Different Branch"))
+      {
+        for ( auto it : branches )
+          if (ImGui::MenuItem (it.c_str ()))
+          {
+            SK_Version_SwitchBranches (L"SpecialK", it.c_str ());
+            // TODO: Change branch
+            branches = SK_Version_GetAvailableBranches (L"SpecialK");
+          }
+
+        ImGui::EndMenu ();
+      }
+
+      ImGui::MenuItem  ("Change Update Preferences");
+
+      if (vinfo.build >= vinfo_latest.build)
+      {
+        if (ImGui::MenuItem  ("Check for Update")) {
+          SK_FetchVersionInfo1 (L"SpecialK", true);
+          branches = SK_Version_GetAvailableBranches (L"SpecialK");
+        }
+      }
+
+      else
+      {
+        if (ImGui::MenuItem  ("Update Now")) {
+          SK_UpdateSoftware (L"SpecialK");
+        }
+      }
+      ImGui::Separator ();
+
+      snprintf        (current_ver, 128, "%ws (%lu)", vinfo_latest.package.c_str (), vinfo_latest.build);
+      ImGui::MenuItem ("Latest Version###Menu_LatestVersion",   current_ver,    &selected, false);
+      ImGui::MenuItem ("Last Checked###Menu_LastUpdateCheck",   SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ()).c_str (), &selected, false);
+      ImGui::EndMenu ();
+    }
+    }
+    ImGui::EndMenuBar ();
   }
 
 
@@ -757,11 +830,8 @@ SK_ImGui_ControlPanel (void)
     }
 
 
-    // STUPID DESIGN
-    if (SK_FAR_IsPlugIn ())
-    {
-      SK_FAR_ControlPanel ();
-    }
+    SK_PlugIn_ControlPanelWidget ();
+
 
     static bool has_own_limiter = (hModTZFix || hModTBFix);
 
@@ -1595,11 +1665,12 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::TreePush      ("");
 
         ImGui::BeginGroup    ();
-        ImGui::Text          ("Mouse Input API");
+        ImGui::Text          ("Got Mouse Problems?");
         ImGui::TreePush      ("");
         int  input_backend = 1;
         bool changed       = false;
 
+#if 0
         changed |=
           ImGui::RadioButton ("Win32",     &input_backend, 0); ImGui::SameLine ();
         if (ImGui::IsItemHovered ())
@@ -1608,6 +1679,9 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::RadioButton ("Raw Input", &input_backend, 1);
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("More Reliable (currently the only supported input API)");
+#endif
+        if (ImGui::Checkbox ("My game won't let me move my mouse!!!", &config.input.mouse.add_relative_motion))
+          ImGui::SetTooltip ("Use this option and please notify Kaldaien so he can add the game to a compatibility list");
 
         ImGui::TreePop       ();
         ImGui::EndGroup      ();

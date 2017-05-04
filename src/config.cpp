@@ -2099,6 +2099,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       case SK_GAME_ID::WatchDogs2:
         //Does not support XInput hot-plugging, needs Special K loving :)
         config.input.gamepad.xinput.placehold [0] = true;
+        config.input.mouse.add_relative_motion    = true;
         break;
     }
   }

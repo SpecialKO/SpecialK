@@ -361,3 +361,166 @@ SK_FetchVersionInfo (const wchar_t* wszProduct)
 {
   return SK_FetchVersionInfo1 (wszProduct);
 }
+
+
+#include <SpecialK/core.h>
+
+std::wstring
+SK_SYS_GetInstallPath (void)
+{
+  if (SK_IsInjected ())
+  {
+    std::wstring path  = SK_GetDocumentsDir ();
+                 path += L"\\My Mods\\SpecialK";
+          return path;
+  }
+
+  return SK_GetHostPath ();
+}
+
+std::wstring
+SK_Version_GetInstallIniPath (void)
+{
+  return SK_SYS_GetInstallPath () + std::wstring (L"\\Version\\installed.ini");
+}
+
+std::wstring
+SK_Version_GetRepoIniPath (void)
+{
+  return SK_SYS_GetInstallPath () + std::wstring (L"\\Version\\repository.ini");
+}
+
+SK_VersionInfo
+SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
+{
+  SK_FetchVersionInfo (wszProduct);
+
+  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+  iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
+
+  install_ini.parse ();
+  repo_ini.parse    ();
+
+  SK_VersionInfo_V1 ver_info;
+  ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+
+  wchar_t wszBranchSection [128] = { L'\0' };
+  _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
+
+  if (repo_ini.contains_section (wszBranchSection)) {
+    ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
+
+    wchar_t wszPackage [128] = { L'\0' };
+    swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+
+    ver_info.package = wszPackage;
+  }
+
+  else {
+    ver_info.package = L"Invalid";
+    ver_info.branch  = L"Invalid";
+    ver_info.build   = -1;
+  }
+
+  return ver_info;
+}
+
+SK_VersionInfo
+SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
+{
+  SK_FetchVersionInfo (wszProduct);
+
+  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+
+  install_ini.parse ();
+
+  SK_VersionInfo_V1 ver_info;
+  ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+  ver_info.package  = install_ini.get_section (L"Version.Local").get_value (L"InstallPackage");
+
+  wchar_t wszPackage [128] = { L'\0' };
+  swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+
+  ver_info.package = wszPackage;
+
+  return ver_info;
+}
+
+
+std::wstring
+SK_Version_GetLastCheckTime_WStr (void)
+{
+  WIN32_FIND_DATA FindFileData;
+
+  HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
+
+  FILETIME   ftModified;
+  FileTimeToLocalFileTime (&FindFileData.ftLastWriteTime, &ftModified);
+
+  SYSTEMTIME stModified;
+  FileTimeToSystemTime (&ftModified, &stModified);
+
+  FindClose (hFileBackup);
+
+  wchar_t wszFileTime [512];
+
+  GetDateFormat (LOCALE_CUSTOM_UI_DEFAULT, DATE_AUTOLAYOUT, &stModified, NULL, wszFileTime, 512);
+
+  std::wstring date_time = wszFileTime;
+
+  GetTimeFormat (LOCALE_CUSTOM_UI_DEFAULT, TIME_NOSECONDS, &stModified, NULL, wszFileTime, 512);
+
+  date_time += L" ";
+  date_time += wszFileTime;
+
+  return date_time;
+}
+
+
+#include <Shlwapi.h>
+
+std::vector <std::string>
+SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
+{
+  std::vector <std::string> branches;
+
+  SK_FetchVersionInfo (wszProduct);
+
+  iSK_INI repo_ini (SK_Version_GetRepoIniPath    ().c_str ());
+  repo_ini.parse   ();
+
+  iSK_INI::_TSectionMap& sections =
+    repo_ini.get_sections ();
+
+  for ( auto it : sections )
+  {
+    if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
+    {
+      wchar_t wszBranchName [128] = { L'\0' };
+      swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
+
+      branches.push_back (SK_WideCharToUTF8 (wszBranchName));
+    }
+  }
+
+  return branches;
+}
+
+bool
+SK_Version_SwitchBranches (const wchar_t* wszProduct, const char* szBranch)
+{
+  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+  install_ini.parse   ();
+
+  // TODO: Validate selected branch against those in the repository
+
+  wchar_t wszBranch [128] = { L'\0' };
+  swprintf (wszBranch, L"%hs", szBranch);
+
+  install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
+  install_ini.get_section (L"Version.Local").get_value (L"InstallPackage") = L"PendingBranchMigration,0";
+
+  install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+
+  return true;
+}

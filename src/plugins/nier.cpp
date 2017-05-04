@@ -23,7 +23,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.6.2"
+#define FAR_VERSION_NUM L"0.5.6.5"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -32,28 +32,28 @@
 volatile LONG __FAR_init = FALSE;
 
 
-//#define WORKING_FPS_UNCAP
-//#define WORKING_CAMERA_CONTROLS
-//#define WORKING_GAMESTATES
+#define WORKING_FPS_UNCAP
+#define WORKING_CAMERA_CONTROLS
+#define WORKING_GAMESTATES
 #define WORKING_FPS_SLEEP_FIX
 
 
 struct far_game_state_s {
   // Game state addresses courtesy of Francesco149
-  DWORD* pMenu       = (DWORD *)0x1418F39C4;
-  DWORD* pLoading    = (DWORD *)0x141975520;
-  DWORD* pHacking    = (DWORD *)0x1410E0AB4;
-  DWORD* pShortcuts  = (DWORD *)0x1413FC35C;
+  DWORD* pMenu       = (DWORD *)0x14190D494;//0x1418F39C4;
+  DWORD* pLoading    = (DWORD *)0x14198F0A0;//0x141975520;
+  DWORD* pHacking    = (DWORD *)0x1410FA090;//0x1410E0AB4;
+  DWORD* pShortcuts  = (DWORD *)0x141415AC4;//0x1413FC35C;
 
-  float* pHUDOpacity = (float *)0x14196C63C;
+  float* pHUDOpacity = (float *)0x1419861BC;//0x14196C63C;
 
   bool   capped      = true;  // Actual state of limiter
   bool   enforce_cap = true;  // User's current preference
   bool   patchable   = false; // True only if the memory addresses can be validated
 
   bool needFPSCap (void) {
-    return enforce_cap; //|| (   *pMenu != 0) || (*pLoading   != 0) ||
-                          //(*pHacking != 0) || (*pShortcuts != 0);
+    return enforce_cap|| (   *pMenu != 0) || (*pLoading   != 0) ||
+                         (*pHacking != 0) || (*pShortcuts != 0);
   }
 
   void capFPS   (void);
@@ -104,9 +104,10 @@ struct far_cam_state_s {
   };
 
   // Memory addresses courtesy of Idk31 and Smithfield
-  vec3_t* pCamera    = (vec3_t *)0x1415EB950; 
-  vec3_t* pLook      = (vec3_t *)0x1415EB960;
-  float*  pRoll      = (float *) 0x1415EB990;
+  //  Ptr at  { F3 44 0F 11 88 74 02 00 00 89 88 84 02 00 00 }  +  4
+  vec3_t* pCamera    = (vec3_t *)0x141605400;//0x1415EB950; 
+  vec3_t* pLook      = (vec3_t *)0x141605410;//0x1415EB960;
+  float*  pRoll      = (float *) 0x141415B90;//1415EB990;
 
   vec3_t  fwd, right, up;
 
@@ -124,21 +125,31 @@ struct far_cam_state_s {
   };
 
   bool toggleCenterLock (void) {
-    if (center_lock) SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdc89 F0111DCC00D290F");
-    else             SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdc89 F90909090909090");
+    // { 0x0F, 0xC6, 0xC0, 0x00, 0x0F, 0x5C, 0xF1, 0x0F, 0x59, 0xF0, 0x0F, 0x58, 0xCE }                    -0x7 = Center Lock
+    if (center_lock) SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4d5729 0F0112FCD00D290F");
+    else             SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4d5729 0F90909090909090");
+
+    //4cdc89
 
     return (center_lock = (! center_lock));
   }
 
   bool toggleFocusLock (void) {
-    if (focus_lock) SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdbc8 850111DD910D290F");
-    else            SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4cdbc8 8590909090909090");
+    // Center Lock - C1
+    if (focus_lock) SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4D5668 850112FDA10D290F");
+    else            SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4D5668 8590909090909090");
 
     return (focus_lock = (! focus_lock));
   }
 } static far_cam;
 
 bool __FAR_Freelook = false;
+
+
+typedef void (__stdcall *SK_PlugIn_ControlPanelWidget_pfn)(void);
+        void  __stdcall SK_FAR_ControlPanel               (void);
+
+SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
 
 
 #include <unordered_set>
@@ -425,6 +436,8 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
       pmax_tstep = pmin_tstep + 0x2c;
 
       dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
+
+      //{ 0xF3, 0x0F, 0x11, 0x44, 0x24, 0x20, 0xF3, 0x0F, 0x11, 0x4C, 0x24, 0x24, 0xF3, 0x0F, 0x11, 0x54, 0x24, 0x28, 0xF3, 0x0F, 0x11, 0x5C, 0x24, 0x2C }    (-4) = HUD Opacity
     }
   }
 
@@ -580,7 +593,6 @@ SK_FAR_EndFrame (void)
     }
   }
 
-#ifdef WORKING_CAMERA_CONTROLS
   XINPUT_STATE state;
   if (__FAR_Freelook && SK_XInput_PollController (0, &state))
   {
@@ -588,11 +600,63 @@ SK_FAR_EndFrame (void)
 #define VEC3_NORM(v) sqrt( (v)[0]*(v)[0] + (v)[1]*(v)[1] + (v)[2]*(v)[2] )
 #endif
 
-    float ddX = (state.Gamepad.sThumbLX + 1.0f) / 32768.0f;
-    float ddY = (state.Gamepad.sThumbLY + 1.0f) / 32768.0f;
+    float LX   = state.Gamepad.sThumbLX;
+    float LY   = state.Gamepad.sThumbLY;
 
-    float ddA = (state.Gamepad.sThumbRX + 1.0f) / 32768.0f;
-    float ddB = (state.Gamepad.sThumbRY + 1.0f) / 32768.0f;
+    float norm = sqrt (LX*LX + LY*LY);
+
+    float nLX  = LX / norm;
+    float nLY  = LY / norm;
+
+    float unit = 1.0f;
+
+    if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+    {
+      norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+      unit =         norm / (32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+    }
+
+    else
+    {
+      norm = 0.0f;
+      unit = 0.0f;
+    }
+
+    float uLX = (LX / 32767.0f) * unit;
+    float uLY = (LY / 32767.0f) * unit;
+
+
+    float RX   = state.Gamepad.sThumbRX;
+    float RY   = state.Gamepad.sThumbRY;
+
+          norm = sqrt (RX*RX + RY*RY);
+
+    float nRX  = RX / norm;
+    float nRY  = RY / norm;
+
+          unit = 1.0f;
+
+    if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
+    {
+      norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+      unit =         norm / (32767.0f  - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+    }
+
+    else
+    {
+      norm = 0.0f;
+      unit = 0.0f;
+    }
+
+    float uRX = (RX / 32767.0f) * unit;
+    float uRY = (RY / 32767.0f) * unit;
+
+
+    float ddX = uLX;
+    float ddY = uLY;
+
+    float ddA = uRX;
+    float ddB = uRY;
 
     vec3_t pos;     pos     [0] = (*far_cam.pCamera) [0]; pos    [1] = (*far_cam.pCamera) [1]; pos    [2] = (*far_cam.pCamera) [2];
     vec3_t target;  target  [0] = (*far_cam.pLook)   [0]; target [1] = (*far_cam.pLook)   [1]; target [2] = (*far_cam.pLook)   [2];
@@ -660,7 +724,6 @@ SK_FAR_EndFrame (void)
     (*far_cam.pCamera) [0] = pos    [0] + dX;
     (*far_cam.pCamera) [2] = pos    [2] + dY;
   }
-#endif
 }
 
 
@@ -791,11 +854,6 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   // Wait for the mod to init, it may be held up during version check
   while (! InterlockedAdd (&__FAR_init, 0)) Sleep (16);
 
-  // This actually determines whether the DLL is dxgi.dll or SpecialK64.dll.
-  //
-  //   If it is the latter, disable this feature -- this prevents nasty
-  //     surprises if the plug-in falls out of maintenance.
-  //if (! SK_IsInjected ())
   {
     game_state.enforce_cap = (! far_uncap_fps->get_value ());
 
@@ -1599,6 +1657,13 @@ SK_FAR_InitPlugin (void)
                             (LPVOID *)&D3D11_DrawIndexed_Original );
   MH_QueueEnableHook (D3D11_DrawIndexed_Override);
 
+  SK_CreateFuncHook ( L"SK_PlugIn_ControlPanelWidget",
+                        SK_PlugIn_ControlPanelWidget,
+                          SK_FAR_ControlPanel,
+               (LPVOID *)&SK_PlugIn_ControlPanelWidget_Original );
+
+  MH_QueueEnableHook (SK_PlugIn_ControlPanelWidget);
+
 typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCountPerInstance,
@@ -1963,7 +2028,6 @@ SK_FAR_ShutdownPlugin (const wchar_t* backend)
   return true;
 }
 
-
 void
 __stdcall
 SK_FAR_ControlPanel (void)
@@ -2236,7 +2300,6 @@ SK_FAR_ControlPanel (void)
       ImGui::TreePop ();
     }
 
-#ifdef WORKING_CAMERA_CONTROLS
     if (ImGui::CollapsingHeader ("Camera and HUD"))
     {
       auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
@@ -2307,7 +2370,6 @@ SK_FAR_ControlPanel (void)
 
       ImGui::TreePop        ();
     }
-#endif
 
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
