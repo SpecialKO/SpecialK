@@ -11189,8 +11189,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           ImGui::GetIO ().MouseDown [3] = false;
         if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
           ImGui::GetIO ().MouseDown [4] = false;
-        //if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL        )
-          //ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData) / WHEEL_DELTA;
+        if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL        )
+          ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData) / WHEEL_DELTA;
 
         //SK_ImGui_Cursor.update ();
       } break;

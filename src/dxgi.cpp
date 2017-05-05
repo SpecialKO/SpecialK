@@ -1682,7 +1682,25 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       }
     }
 
-    hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+    D3D11_TEXTURE2D_DESC tex2d_desc;
+    pBackBuffer->GetDesc (&tex2d_desc);
+
+    // SRGB Correction for UIs
+    switch (tex2d_desc.Format)
+    {
+      case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+      {
+        D3D11_RENDER_TARGET_VIEW_DESC rtdesc = { };
+        rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
+        rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+        hr = pDev->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+      } break;
+
+      default:
+        hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+        break;
+    }
 
     if (SUCCEEDED (hr))
     {

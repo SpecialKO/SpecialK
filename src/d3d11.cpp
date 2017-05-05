@@ -2998,9 +2998,15 @@ HookD3D11 (LPVOID user)
       // Third-party software frequently causes these hooks to become corrupted, try installing a new
       //   vftable pointer instead of hooking the function.
       //
+#if 0
       DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                              D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                              D3D11_VSSetConstantBuffers_pfn);
+#else
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
+                             D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
+                             D3D11_VSSetConstantBuffers_pfn);
+#endif
 
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 8, "ID3D11DeviceContext::PSSetShaderResources",
                              D3D11_PSSetShaderResources_Override, D3D11_PSSetShaderResources_Original,
@@ -3018,9 +3024,15 @@ HookD3D11 (LPVOID user)
       // Third-party software frequently causes these hooks to become corrupted, try installing a new
       //   vftable pointer instead of hooking the function.
       //
+#if 0
       DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
                            D3D11_Map_Override, D3D11_Map_Original,
                            D3D11_Map_pfn);
+#else
+      DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
+                           D3D11_Map_Override, D3D11_Map_Original,
+                           D3D11_Map_pfn);
+#endif
 
       DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 20, "ID3D11DeviceContext::DrawIndexedInstanced",
                            D3D11_DrawIndexedInstanced_Override, D3D11_DrawIndexedInstanced_Original,

@@ -583,41 +583,41 @@ SK_ImGui_ControlPanel (void)
   
   if (ImGui::BeginMenuBar ())
   {
-    if (SK_IsInjected ())
+    if (ImGui::BeginMenu ("File"))
     {
-      if (ImGui::BeginMenu ("File"))
+      static bool wrappable = true;
+
+      if (SK_IsInjected () && wrappable)
       {
-        static bool wrappable = true;
-        if (SK_IsInjected () && wrappable)
+        if (ImGui::MenuItem ("Install Wrapper DLL for this game."))
         {
-          if (ImGui::MenuItem ("Install Wrapper DLL instead of Global Injector for this game."))
-          {
-            extern bool SKinja_SwitchToRenderWrapper (void);
+          extern bool SKinja_SwitchToRenderWrapper (void);
 
-            if (SKinja_SwitchToRenderWrapper ())
-              wrappable = false;
-          }
+          if (SKinja_SwitchToRenderWrapper ())
+            wrappable = false;
         }
-
-        else if (wrappable = false)
-        {
-          if (ImGui::MenuItem ("Install Global Injector instead of Local Wrapper this game."))
-          {
-          }
-        }
-
-        ImGui::EndMenu  ();
       }
+
+      else
+      {
+        if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game."))
+        {
+          extern bool
+          SKinja_SwitchToGlobalInjector (void);
+
+          wrappable = 
+            SKinja_SwitchToGlobalInjector ();
+        }
+      }
+
+      ImGui::EndMenu  ();
     }
 
-    if (SK_IsInjected ())
-    {
     if (ImGui::BeginMenu ("Update"))
     {
-      static std::vector <std::string> branches = SK_Version_GetAvailableBranches (L"SpecialK");
-
-      SK_VersionInfo vinfo =
-        SK_Version_GetLocalInfo (L"SpecialK");
+      static std::vector <std::string> branches = SK_Version_GetAvailableBranches (nullptr);
+      static SK_VersionInfo vinfo =
+        SK_Version_GetLocalInfo (nullptr);
 
       char current_ver [128] = { '\0' };
       snprintf (current_ver, 128, "%ws (%lu)", vinfo.package.c_str (), vinfo.build);
@@ -625,8 +625,8 @@ SK_ImGui_ControlPanel (void)
       char current_branch [64] = { '\0' };
       snprintf (current_branch, 64, "%ws", vinfo.branch.c_str ());
 
-      SK_VersionInfo vinfo_latest =
-        SK_Version_GetLatestInfo (L"SpecialK");
+      static SK_VersionInfo vinfo_latest =
+        SK_Version_GetLatestInfo (nullptr);
 
       bool selected = false;
           ImGui::MenuItem  ("Current Version###Menu_CurrentVersion", current_ver,    &selected, false);
@@ -634,16 +634,19 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::Separator ();
 
-      ImGui::SetNextWindowContentSize (ImVec2 (-1.0f, branches.size ()));
-
       if (ImGui::BeginMenu ("Select a Different Branch"))
       {
         for ( auto it : branches )
           if (ImGui::MenuItem (it.c_str ()))
           {
-            SK_Version_SwitchBranches (L"SpecialK", it.c_str ());
-            // TODO: Change branch
-            branches = SK_Version_GetAvailableBranches (L"SpecialK");
+            SK_Version_SwitchBranches (nullptr, it.c_str ());
+
+            // Re-fetch the version info and then go to town updating stuff ;)
+            SK_FetchVersionInfo1 (nullptr, true);
+
+            branches     = SK_Version_GetAvailableBranches (nullptr);
+            vinfo        = SK_Version_GetLocalInfo         (nullptr);
+            vinfo_latest = SK_Version_GetLatestInfo        (nullptr);
           }
 
         ImGui::EndMenu ();
@@ -654,15 +657,29 @@ SK_ImGui_ControlPanel (void)
       if (vinfo.build >= vinfo_latest.build)
       {
         if (ImGui::MenuItem  ("Check for Update")) {
-          SK_FetchVersionInfo1 (L"SpecialK", true);
-          branches = SK_Version_GetAvailableBranches (L"SpecialK");
+          SK_FetchVersionInfo1 (nullptr, true);
+          branches     = SK_Version_GetAvailableBranches (nullptr);
+          vinfo        = SK_Version_GetLocalInfo         (nullptr);
+          vinfo_latest = SK_Version_GetLatestInfo        (nullptr);
         }
       }
 
       else
       {
         if (ImGui::MenuItem  ("Update Now")) {
-          SK_UpdateSoftware (L"SpecialK");
+          SK_UpdateSoftware (nullptr);
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip   ();
+          ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.8f, 0.1f, 1.0f));
+          ImGui::Text           ("DO NOT DO THIS IN FULLSCREEN EXCLUSIVE MODE");
+          ImGui::PopStyleColor  ();
+          ImGui::Separator      ();
+          ImGui::BulletText     ("In fact you should not do this at all if you can help it");
+          ImGui::BulletText     ("Restart the software and let it do the update at startup for best results.");
+          ImGui::EndTooltip     ();
         }
       }
       ImGui::Separator ();
@@ -671,7 +688,6 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem ("Latest Version###Menu_LatestVersion",   current_ver,    &selected, false);
       ImGui::MenuItem ("Last Checked###Menu_LastUpdateCheck",   SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ()).c_str (), &selected, false);
       ImGui::EndMenu ();
-    }
     }
     ImGui::EndMenuBar ();
   }

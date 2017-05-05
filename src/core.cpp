@@ -1130,9 +1130,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
 
 
-  callback_fn (SK_InitFinishCallback);
-
   SK_ResumeThreads (__SK_Init_Suspended_tids);
+
+  callback_fn (SK_InitFinishCallback);
 
   // Malware needs to be disabled, but cannot be...
   //   so notify the end-user.
@@ -1294,9 +1294,22 @@ SK_EstablishRootPath (void)
   if (config.system.central_repository)
   {
     if (! SK_IsSuperSpecialK ()) {
-      wcsncpy ( SK_RootPath,
-                  std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
-                    MAX_PATH - 1 );
+#if 0
+      if (SK_IsInjected ()) {
+        wchar_t *wszPath = wcsdup (SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+        PathRemoveFileSpec (wszPath);
+        wcsncpy ( SK_RootPath,
+                    wszPath,
+                      MAX_PATH - 1 );
+        free (wszPath);
+      }
+      else
+#endif
+      {
+        wcsncpy ( SK_RootPath,
+                    std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
+                      MAX_PATH - 1 );
+      }
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
     }

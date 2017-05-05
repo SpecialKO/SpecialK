@@ -233,7 +233,24 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
   CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
 
-  g_pd3dDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+  D3D11_TEXTURE2D_DESC tex2d_desc;
+  pBackBuffer->GetDesc (&tex2d_desc);
+
+  // SRGB Correction for UIs
+  switch (tex2d_desc.Format)
+  {
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    {
+      D3D11_RENDER_TARGET_VIEW_DESC rtdesc = { };
+      rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
+      rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+      g_pd3dDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+    } break;
+
+    default:
+     g_pd3dDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+  }
 
   ctx->OMSetRenderTargets ( 1,
                               &pRenderTargetView,

@@ -174,24 +174,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 {
   HMODULE hMod = nullptr;
 
-  // First try to get (and permanently hold) a reference to the hooked module
-  if (! GetModuleHandleEx (
-          GET_MODULE_HANDLE_EX_FLAG_PIN,
-            pwszModule,
-              &hMod ) )
-  {
-    //
-    // If that fails, partially load the module into memory to establish our
-    //   function hook.
-    //
-    //  Defer the standard DllMain (...) entry-point until the
-    //    software actually loads the library on its own.
-    //
-    hMod = LoadLibraryW_Original (
-             pwszModule );//
-               //nullptr,
-                 ///*DONT_RESOLVE_DLL_REFERENCES*/0 );
-  }
+  hMod = LoadLibraryW_Original ( pwszModule );
 
   LPVOID    pFuncAddr = nullptr;
   MH_STATUS status    = MH_OK;
@@ -266,24 +249,7 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 {
   HMODULE hMod = nullptr;
 
-  // First try to get (and permanently hold) a reference to the hooked module
-  if (! GetModuleHandleEx (
-          GET_MODULE_HANDLE_EX_FLAG_PIN,
-            pwszModule,
-              &hMod ) )
-  {
-    //
-    // If that fails, partially load the module into memory to establish our
-    //   function hook.
-    //
-    //  Defer the standard DllMain (...) entry-point until the
-    //    software actually loads the library on its own.
-    //
-    hMod = LoadLibraryW_Original (
-             pwszModule );//,
-               //nullptr,
-                 ///*DONT_RESOLVE_DLL_REFERENCES*/0 );
-  }
+  hMod = LoadLibraryW_Original ( pwszModule );
 
   LPVOID    pFuncAddr = nullptr;
   MH_STATUS status    = MH_OK;
@@ -363,21 +329,7 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   HMODULE hMod = nullptr;
 
   // First try to get (and permanently hold) a reference to the hooked module
-  if (! GetModuleHandleEx (
-          GET_MODULE_HANDLE_EX_FLAG_PIN,
-            pwszModule,
-              &hMod ) )
-  {
-    //
-    // If that fails, partially load the module into memory to establish our
-    //   function hook.
-    //
-    //  Defer the standard DllMain (...) entry-point until the
-    //    software actually loads the library on its own.
-    //
-    hMod = LoadLibraryW_Original (
-             pwszModule );
-  }
+  hMod = LoadLibraryW_Original ( pwszModule );
 
   LPVOID    pFuncAddr = nullptr;
   MH_STATUS status    = MH_OK;

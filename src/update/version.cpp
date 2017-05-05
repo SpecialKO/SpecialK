@@ -37,10 +37,17 @@
 
 DWORD dwInetCtx;
 
+std::wstring __SK_LastProductTested = L"";
+
 bool
 __stdcall
 SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 {
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
+  __SK_LastProductTested = wszProduct;
+
   FILETIME                  ftNow;
   GetSystemTimeAsFileTime (&ftNow);
 
@@ -359,6 +366,9 @@ bool
 __stdcall
 SK_FetchVersionInfo (const wchar_t* wszProduct)
 {
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
   return SK_FetchVersionInfo1 (wszProduct);
 }
 
@@ -393,6 +403,9 @@ SK_Version_GetRepoIniPath (void)
 SK_VersionInfo
 SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
 {
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
   SK_FetchVersionInfo (wszProduct);
 
   iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
@@ -428,6 +441,9 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
 SK_VersionInfo
 SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
 {
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
   SK_FetchVersionInfo (wszProduct);
 
   iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
@@ -482,6 +498,9 @@ SK_Version_GetLastCheckTime_WStr (void)
 std::vector <std::string>
 SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
 {
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
   std::vector <std::string> branches;
 
   SK_FetchVersionInfo (wszProduct);
@@ -509,6 +528,9 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
 bool
 SK_Version_SwitchBranches (const wchar_t* wszProduct, const char* szBranch)
 {
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
   iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
   install_ini.parse   ();
 

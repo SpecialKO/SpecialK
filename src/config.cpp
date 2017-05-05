@@ -2280,7 +2280,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
         if (render.framerate.allow_dwm_tearing->load ()) {
           config.render.dxgi.allow_tearing = render.framerate.allow_dwm_tearing->get_value ();
-          if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
+          //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
         }
 
         extern bool SK_DXGI_use_factory1;

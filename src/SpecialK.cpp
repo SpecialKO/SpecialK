@@ -581,8 +581,9 @@ DllMain ( HMODULE hModule,
       if (GetModuleHandle (L"SpecialK32.dll") == hModSelf)
 #endif
       {
-        if ( StrStrIW (SK_GetHostApp (), L"SKIM") ||
-             StrStrIW (SK_GetHostApp (), L"rundll32") )
+        if ( StrStrIW (SK_GetHostApp (), L"SKIM")     ||
+             StrStrIW (SK_GetHostApp (), L"rundll32") ||
+             StrStrIW (SK_GetHostApp (), L"SKInject") )
           return TRUE;
       }
 

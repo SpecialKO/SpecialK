@@ -2904,9 +2904,6 @@ SteamAPI_RunCallbacks_Detour (void)
               }
             }
 
-            if (steam_achievements != nullptr)
-              steam_achievements->requestStats ();
-
             __try
             {
               SteamAPI_RunCallbacks_Original ();
@@ -3887,6 +3884,9 @@ SK_HookSteamAPI (void)
   if (config.steam.silent)
     return;
 
+  if (! GetModuleHandle (wszSteamAPI))
+    return;
+
   EnterCriticalSection (&init_cs);
   if (InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
   {
@@ -3979,6 +3979,8 @@ SK_SteamAPI_InitManagers (void)
         steam_achievements = new SK_Steam_AchievementManager (
           config.steam.achievements.sound_file.c_str     ()
         );
+
+        steam_achievements->requestStats ();
       }
 
       steam_log.LogEx (false, L"\n");

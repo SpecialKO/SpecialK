@@ -393,7 +393,37 @@ SKinja_SwitchToRenderWrapper (void)
 bool
 SKinja_SwitchToGlobalInjector (void)
 {
-  return false;
+  wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
+  lstrcatW (wszOut, SK_GetHostPath ());
+
+  switch (SK_GetCurrentRenderBackend().api)
+  {
+    case SK_RenderAPI::D3D9:
+    case SK_RenderAPI::D3D9Ex:
+      lstrcatW (wszOut, L"\\d3d9.dll");
+      break;
+
+    case SK_RenderAPI::D3D10:
+    case SK_RenderAPI::D3D11:
+    case SK_RenderAPI::D3D12:
+      lstrcatW (wszOut, L"\\dxgi.dll");
+      break;
+
+    case SK_RenderAPI::OpenGL:
+      lstrcatW (wszOut, L"\\OpenGL32.dll");
+      break;
+
+    //case SK_RenderAPI::Vulkan:
+      //lstrcatW (wszOut, L"\\vk-1.dll");
+      //break;
+  }
+
+  wchar_t wszTemp [MAX_PATH] = { L'\0' };
+  GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
+
+  MoveFileW (wszOut, wszTemp);
+
+  return true;
 }
 
 

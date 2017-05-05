@@ -463,6 +463,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
                                                             D3DCOLORWRITEENABLE_BLUE  |
                                                             D3DCOLORWRITEENABLE_ALPHA );
 
+      pDev->SetRenderState         (D3DRS_SRGBWRITEENABLE,  FALSE);
       pDev->SetSamplerState        (0, D3DSAMP_SRGBTEXTURE, FALSE);
 
       pDev->SetTextureStageState   (0, D3DTSS_COLOROP,      D3DTOP_MODULATE);
@@ -526,6 +527,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       SK_Steam_DrawOSD ();
 
+      pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
       pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
       pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
       pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);

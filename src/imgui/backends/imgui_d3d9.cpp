@@ -171,6 +171,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   D3DCAPS9                      caps;
   g_pd3dDevice->GetDeviceCaps (&caps);
 
+
+
   g_pd3dDevice->SetRenderState       (D3DRS_CULLMODE,          D3DCULL_NONE);
   g_pd3dDevice->SetRenderState       (D3DRS_LIGHTING,          FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           TRUE);
@@ -182,6 +184,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   g_pd3dDevice->SetRenderState       (D3DRS_SCISSORTESTENABLE, TRUE);
   g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           FALSE);
 
+  g_pd3dDevice->SetRenderState       (D3DRS_SRGBWRITEENABLE,    FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_COLORWRITEENABLE,  D3DCOLORWRITEENABLE_RED   | 
                                                                D3DCOLORWRITEENABLE_GREEN | 
                                                                D3DCOLORWRITEENABLE_BLUE  |
