@@ -124,94 +124,6 @@ SK_EstablishDllRole (HMODULE hModule)
   //___________________________________________________________________________
   std::unordered_set <std::wstring> blacklist;
 
-  // Steam-Specific Stuff
-  blacklist.emplace (L"steam.exe");
-  blacklist.emplace (L"GameOverlayUI.exe");
-  blacklist.emplace (L"streaming_client.exe");
-  blacklist.emplace (L"steamerrorreporter.exe");
-  blacklist.emplace (L"steamerrorreporter64.exe");
-  blacklist.emplace (L"steamservice.exe");
-  blacklist.emplace (L"steam_monitor.exe");
-  blacklist.emplace (L"steamwebhelper.exe");
-  blacklist.emplace (L"html5app_steam.exe");
-  blacklist.emplace (L"wow_helper.exe");
-  blacklist.emplace (L"uninstall.exe");
-
-  // Crash Helpers
-  blacklist.emplace (L"WriteMiniDump.exe");
-  blacklist.emplace (L"CrashReporter.exe");
-  blacklist.emplace (L"SupportTool.exe");
-  blacklist.emplace (L"CrashSender1400.exe");
-  blacklist.emplace (L"WerFault.exe");
-
-  // Runtime Installers
-  blacklist.emplace (L"DXSETUP.exe");
-  blacklist.emplace (L"setup.exe");
-  blacklist.emplace (L"vc_redist.x64.exe");
-  blacklist.emplace (L"vc_redist.x86.exe");
-  blacklist.emplace (L"vc2010redist_x64.exe");
-  blacklist.emplace (L"vc2010redist_x86.exe");
-  blacklist.emplace (L"vcredist_x64.exe");
-  blacklist.emplace (L"vcredist_x86.exe");
-  blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
-  blacklist.emplace (L"dotnetfx35.exe");
-  blacklist.emplace (L"DotNetFx35Client.exe");
-  blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
-  blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
-  blacklist.emplace (L"oalinst.exe");
-  blacklist.emplace (L"EasyAntiCheat_Setup.exe");
-  blacklist.emplace (L"UplayInstaller.exe");
-
-  // Launchers
-  blacklist.emplace (L"x64launcher.exe");
-  blacklist.emplace (L"x86launcher.exe");
-  blacklist.emplace (L"Launcher.exe");
-  blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
-  blacklist.emplace (L"Fallout4Launcher.exe");
-  blacklist.emplace (L"SkyrimSELauncher.exe");
-  blacklist.emplace (L"ModLauncher.exe");
-  blacklist.emplace (L"AkibaUU_Config.exe");
-  blacklist.emplace (L"Obduction.exe");
-  blacklist.emplace (L"Grandia2Launcher.exe");
-  blacklist.emplace (L"FFXiii2Launcher.exe");
-  blacklist.emplace (L"Bethesda.net_Launcher.exe");
-  blacklist.emplace (L"UbisoftGameLauncher.exe");
-  blacklist.emplace (L"UbisoftGameLauncher64.exe");
-  blacklist.emplace (L"SplashScreen.exe");
-  blacklist.emplace (L"GameLauncherCefChildProcess.exe");
-  blacklist.emplace (L"LaunchPad.exe");
-  blacklist.emplace (L"CNNLauncher.exe");
-
-  // Other Stuff
-  blacklist.emplace (L"ActivationUI.exe");
-  blacklist.emplace (L"zosSteamStarter.exe");
-  blacklist.emplace (L"notepad.exe");
-  blacklist.emplace (L"7zFM.exe");
-  blacklist.emplace (L"WinRar.exe");
-  blacklist.emplace (L"EAC.exe");
-  blacklist.emplace (L"vcpkgsrv.exe");
-  blacklist.emplace (L"dllhost.exe");
-  blacklist.emplace (L"git.exe");
-  blacklist.emplace (L"link.exe");
-  blacklist.emplace (L"cl.exe");
-  blacklist.emplace (L"rc.exe");
-  blacklist.emplace (L"conhost.exe");
-  blacklist.emplace (L"GameBarPresenceWriter.exe");
-  blacklist.emplace (L"OAWrapper.exe");
-  blacklist.emplace (L"NvOAWrapperCache.exe");
-
-  // Misc. Tools
-  blacklist.emplace (L"SleepOnLan.exe");
-  //blacklist.emplace (L"ds3t.exe");
-  //blacklist.emplace (L"tzt.exe");
-
-  // If Blacklisted, Bail-Out
-  if (blacklist.count (std::wstring (SK_GetHostApp ())))
-  {
-    //FreeLibrary (SK_GetDLL ());
-    return false;
-  }
-
   wchar_t wszDllFullName [  MAX_PATH  ] = { L'\0' };
           wszDllFullName [MAX_PATH - 1] =   L'\0';
 
@@ -378,6 +290,94 @@ SK_EstablishDllRole (HMODULE hModule)
         return false;
       }
     }
+
+  // Steam-Specific Stuff
+  blacklist.emplace (L"steam.exe");
+  blacklist.emplace (L"GameOverlayUI.exe");
+  blacklist.emplace (L"streaming_client.exe");
+  blacklist.emplace (L"steamerrorreporter.exe");
+  blacklist.emplace (L"steamerrorreporter64.exe");
+  blacklist.emplace (L"steamservice.exe");
+  blacklist.emplace (L"steam_monitor.exe");
+  blacklist.emplace (L"steamwebhelper.exe");
+  blacklist.emplace (L"html5app_steam.exe");
+  blacklist.emplace (L"wow_helper.exe");
+  blacklist.emplace (L"uninstall.exe");
+
+  // Crash Helpers
+  blacklist.emplace (L"WriteMiniDump.exe");
+  blacklist.emplace (L"CrashReporter.exe");
+  blacklist.emplace (L"SupportTool.exe");
+  blacklist.emplace (L"CrashSender1400.exe");
+  blacklist.emplace (L"WerFault.exe");
+
+  // Runtime Installers
+  blacklist.emplace (L"DXSETUP.exe");
+  blacklist.emplace (L"setup.exe");
+  blacklist.emplace (L"vc_redist.x64.exe");
+  blacklist.emplace (L"vc_redist.x86.exe");
+  blacklist.emplace (L"vc2010redist_x64.exe");
+  blacklist.emplace (L"vc2010redist_x86.exe");
+  blacklist.emplace (L"vcredist_x64.exe");
+  blacklist.emplace (L"vcredist_x86.exe");
+  blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
+  blacklist.emplace (L"dotnetfx35.exe");
+  blacklist.emplace (L"DotNetFx35Client.exe");
+  blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
+  blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
+  blacklist.emplace (L"oalinst.exe");
+  blacklist.emplace (L"EasyAntiCheat_Setup.exe");
+  blacklist.emplace (L"UplayInstaller.exe");
+
+  // Launchers
+  blacklist.emplace (L"x64launcher.exe");
+  blacklist.emplace (L"x86launcher.exe");
+  blacklist.emplace (L"Launcher.exe");
+  blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
+  blacklist.emplace (L"Fallout4Launcher.exe");
+  blacklist.emplace (L"SkyrimSELauncher.exe");
+  blacklist.emplace (L"ModLauncher.exe");
+  blacklist.emplace (L"AkibaUU_Config.exe");
+  blacklist.emplace (L"Obduction.exe");
+  blacklist.emplace (L"Grandia2Launcher.exe");
+  blacklist.emplace (L"FFXiii2Launcher.exe");
+  blacklist.emplace (L"Bethesda.net_Launcher.exe");
+  blacklist.emplace (L"UbisoftGameLauncher.exe");
+  blacklist.emplace (L"UbisoftGameLauncher64.exe");
+  blacklist.emplace (L"SplashScreen.exe");
+  blacklist.emplace (L"GameLauncherCefChildProcess.exe");
+  blacklist.emplace (L"LaunchPad.exe");
+  blacklist.emplace (L"CNNLauncher.exe");
+
+  // Other Stuff
+  blacklist.emplace (L"ActivationUI.exe");
+  blacklist.emplace (L"zosSteamStarter.exe");
+  blacklist.emplace (L"notepad.exe");
+  blacklist.emplace (L"7zFM.exe");
+  blacklist.emplace (L"WinRar.exe");
+  blacklist.emplace (L"EAC.exe");
+  blacklist.emplace (L"vcpkgsrv.exe");
+  blacklist.emplace (L"dllhost.exe");
+  blacklist.emplace (L"git.exe");
+  blacklist.emplace (L"link.exe");
+  blacklist.emplace (L"cl.exe");
+  blacklist.emplace (L"rc.exe");
+  blacklist.emplace (L"conhost.exe");
+  blacklist.emplace (L"GameBarPresenceWriter.exe");
+  blacklist.emplace (L"OAWrapper.exe");
+  blacklist.emplace (L"NvOAWrapperCache.exe");
+
+  // Misc. Tools
+  blacklist.emplace (L"SleepOnLan.exe");
+  //blacklist.emplace (L"ds3t.exe");
+  //blacklist.emplace (L"tzt.exe");
+
+  // If Blacklisted, Bail-Out
+  if (blacklist.count (std::wstring (SK_GetHostApp ())))
+  {
+    //FreeLibrary (SK_GetDLL ());
+    return false;
+  }
 
     return true;
   }
@@ -587,11 +587,7 @@ DllMain ( HMODULE hModule,
           return TRUE;
       }
 
-      SK_Init_MinHook       ();
-      SK_PreInitLoadLibrary ();
-
-      bool SK_Injection_JournalRecord (HMODULE);
-      bool bInjectionTarget = SK_Injection_JournalRecord (hModule);
+      bool bInjectionTarget = FALSE;
 
       if (! bInjectionTarget)
       {
@@ -601,6 +597,8 @@ DllMain ( HMODULE hModule,
           return FALSE;
       }
 
+      SK_Init_MinHook       ();
+      SK_PreInitLoadLibrary ();
 
       // It's too early to do this for the wrapper version, the config file has not
       //   been loaded yet.
@@ -646,8 +644,9 @@ DllMain ( HMODULE hModule,
 
       if (ret)
       {
-        if (! bInjectionTarget)
+        if (! bInjectionTarget) {
           ret = SK_Attach (SK_GetDLLRole ());
+        }
       }
 
       return ret;

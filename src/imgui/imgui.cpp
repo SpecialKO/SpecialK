@@ -11594,7 +11594,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       if (SK_ImGui_Visible)
         SK_ImGui_Cursor.update ();
 
-      SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
+      //SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
 
       return false;
     }

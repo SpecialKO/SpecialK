@@ -355,8 +355,8 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
     for (unsigned int i = 0; i < uiNumDevices; i++)
     {
       pDevices [i] = pRawInputDevices [i];
-      pDevices [i].dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
-      pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+      //pDevices [i].dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
+      //pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
     }
   }
 

@@ -49,6 +49,15 @@ SK_VersionInfo SK_Version_GetLocalInfo_V1  (const wchar_t* wszProduct);
 std::vector <std::string>
 SK_Version_GetAvailableBranches (const wchar_t* wszProduct);
 
+uint64_t
+SK_Version_GetUpdateFrequency (const wchar_t* wszProduct);
+
+void
+SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq);
+
+void
+SK_Version_ForceUpdateNextLaunch (const wchar_t* wszProduct);
+
 bool
 SK_Version_SwitchBranches       (const wchar_t* wszProduct, const char* szBranch);
 

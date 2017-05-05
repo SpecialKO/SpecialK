@@ -1695,10 +1695,14 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
         hr = pDev->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+
+        SK_GetCurrentRenderBackend ().framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
       } break;
 
       default:
         hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+
+        SK_GetCurrentRenderBackend ().framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
         break;
     }
 

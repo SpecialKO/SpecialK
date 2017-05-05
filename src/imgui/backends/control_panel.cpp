@@ -634,7 +634,7 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::Separator ();
 
-      if (ImGui::BeginMenu ("Select a Different Branch"))
+      if (ImGui::BeginMenu ("Select a Different Branch", branches.size () > 1))
       {
         for ( auto it : branches )
           if (ImGui::MenuItem (it.c_str ()))
@@ -649,26 +649,89 @@ SK_ImGui_ControlPanel (void)
             vinfo_latest = SK_Version_GetLatestInfo        (nullptr);
           }
 
+        ImGui::Separator ();
+
+        ImGui::Text       ("Most of my projects have branches that pre-date this in-game menu...");
+        ImGui::BulletText ("Changing branches here may be a one-way trip :)");
+
         ImGui::EndMenu ();
       }
 
-      ImGui::MenuItem  ("Change Update Preferences");
-
-      if (vinfo.build >= vinfo_latest.build)
+      if (ImGui::BeginMenu  ("Update Preferences"))
       {
-        if (ImGui::MenuItem  ("Check for Update")) {
-          SK_FetchVersionInfo1 (nullptr, true);
-          branches     = SK_Version_GetAvailableBranches (nullptr);
-          vinfo        = SK_Version_GetLocalInfo         (nullptr);
-          vinfo_latest = SK_Version_GetLatestInfo        (nullptr);
+        enum {
+          SixHours    = 0,
+          TwelveHours = 1,
+          OneDay      = 2,
+          OneWeek     = 3,
+          Never       = 4
+        };
+
+        const ULONGLONG _Hour = 36000000000ULL;
+
+        auto GetFrequencyPreset = [=] (void) -> int {
+          uint64_t freq = SK_Version_GetUpdateFrequency (nullptr);
+
+          if (freq == 0 || freq == MAXULONGLONG)
+            return Never;
+
+          if (freq <= (6 * _Hour))
+            return SixHours;
+
+          if (freq <= (12 * _Hour))
+            return TwelveHours;
+
+          if (freq <= (24 * _Hour))
+            return OneDay;
+
+          if (freq <= (24 * 7 * _Hour))
+            return OneWeek;
+
+          return Never;
+        };
+
+        static int sel = GetFrequencyPreset ();
+
+        ImGui::Text ("Check for Updates"); ImGui::SameLine ();
+
+        if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
+                              "Once every 6 hours\0"
+                              "Once every 12 hours\0"
+                              "Once per-day\0"
+                              "Once per-week\0"
+                              "Never (disable)\0\0" ) )
+        {
+          switch (sel)
+          {
+            default:
+            case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
+            case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
+            case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
+            case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
+            case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
+          }
         }
+
+        if (vinfo.build >= vinfo_latest.build)
+        {
+          if (ImGui::MenuItem  ("Check for Updates Now")) {
+            SK_FetchVersionInfo1 (nullptr, true);
+            branches     = SK_Version_GetAvailableBranches (nullptr);
+            vinfo        = SK_Version_GetLocalInfo         (nullptr);
+            vinfo_latest = SK_Version_GetLatestInfo        (nullptr);
+
+            if (vinfo.build < vinfo_latest.build)
+              SK_Version_ForceUpdateNextLaunch (nullptr);
+          }
+        }
+
+        ImGui::EndMenu ();
       }
 
-      else
+      if (vinfo.build < vinfo_latest.build)
       {
-        if (ImGui::MenuItem  ("Update Now")) {
+        if (ImGui::MenuItem  ("Update Now"))
           SK_UpdateSoftware (nullptr);
-        }
 
         if (ImGui::IsItemHovered ())
         {
@@ -733,9 +796,12 @@ SK_ImGui_ControlPanel (void)
 
     ImGui::Separator ();
 
-    char szResolution [64] = { '\0' };
+    char szResolution [128] = { '\0' };
     snprintf ( szResolution, 63, "   %lux%lu", 
                                    (UINT)io.DisplayFramebufferScale.x, (UINT)io.DisplayFramebufferScale.y );
+
+    if (SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB)
+      strcat (szResolution, "    (sRGB)");
 
     bool override = false;
 

@@ -41,11 +41,17 @@ struct SK_RenderBackend_V1 {
              wchar_t      name [16] = { L'\0' };
 };
 
+enum {
+  SK_FRAMEBUFFER_FLAG_SRGB  = 0x1,
+  SK_FRAMEBUFFER_FLAG_FLOAT = 0x2
+};
+
 struct SK_RenderBackend_V2 : SK_RenderBackend_V1 {
-  IUnknown*               device    = nullptr;
-  IUnknown*               swapchain = nullptr;
-  NVDX_ObjectHandle       surface   = 0;
-  bool                    fullscreen_exclusive;
+  IUnknown*               device               = nullptr;
+  IUnknown*               swapchain            = nullptr;
+  NVDX_ObjectHandle       surface              = 0;
+  bool                    fullscreen_exclusive = false;
+  uint64_t                framebuffer_flags    = 0x00;
 
   struct gsync_s {
     void update (void);

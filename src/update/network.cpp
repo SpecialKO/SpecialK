@@ -860,10 +860,14 @@ UpdateDlg_Thread (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  CreateDialog ( SK_GetDLL (),
-                   MAKEINTRESOURCE (IDD_UPDATE),
-                    GetDesktopWindow (),
-                      Update_DlgProc );
+  HWND hWndDlg =
+    CreateDialog ( SK_GetDLL (),
+                     MAKEINTRESOURCE (IDD_UPDATE),
+                      GetDesktopWindow (),
+                        Update_DlgProc );
+
+  BringWindowToTop (hWndDlg);
+  SetFocus         (hWndDlg);
 
   MSG  msg;
   BOOL bRet;

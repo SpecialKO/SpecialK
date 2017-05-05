@@ -116,7 +116,7 @@ void
 SK_Console::Start (void)
 {
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
-  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (GetModuleHandle (L"PrettyPrinny.dll")) {
     bNoConsole = true;
     return;
   }
@@ -143,7 +143,7 @@ void
 SK_Console::End (void)
 {
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
-  if (GetModuleHandle (L"AgDrag.dll") || GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (GetModuleHandle (L"PrettyPrinny.dll")) {
     bNoConsole = true;
     return;
   }

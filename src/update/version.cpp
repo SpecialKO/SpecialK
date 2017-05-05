@@ -525,6 +525,111 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
   return branches;
 }
 
+
+uint64_t
+SK_Version_GetUpdateFrequency (const wchar_t* wszProduct)
+{
+  uint64_t update_freq;
+
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
+  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+  install_ini.parse   ();
+
+
+  iSK_INISection& user_prefs =
+    install_ini.get_section (L"Update.User");
+
+  bool has_freq =
+    user_prefs.contains_key (L"Frequency");
+
+  std::wstring freq =
+    user_prefs.get_value (L"Frequency");
+
+  wchar_t h [3] = { L"0" },
+          d [3] = { L"0" },
+          w [3] = { L"0" };
+
+  swscanf ( freq.c_str (), L"%3[^h]h", h );
+
+  // Default to 6h if unspecified
+  if (! has_freq)
+  {
+    wcscpy (h, L"6");
+
+    install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
+    install_ini.write  (wszProduct);
+  }
+
+  const ULONGLONG _Hour = 36000000000ULL;
+
+  update_freq += (   1ULL * _Hour * _wtoi (h) );
+  update_freq += (  24ULL * _Hour * _wtoi (d) );
+  update_freq += ( 168ULL * _Hour * _wtoi (w) );
+
+  //dll_log.Log ( L"Update Frequency: %lu hours, %lu days, %lu weeks (%s)",
+                  //_wtoi (h), _wtoi (d), _wtoi (w), freq.c_str () );
+
+  if (freq == L"never")
+    update_freq = MAXULONGLONG;
+
+  return update_freq;
+}
+
+
+void
+SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
+{
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
+  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+  install_ini.parse   ();
+
+  iSK_INISection& user_prefs =
+    install_ini.get_section (L"Update.User");
+
+  wchar_t wszFormatted [128] = { L'\0' };
+
+  if (freq > 0 && freq < MAXULONGLONG)
+    wsprintf (wszFormatted, L"%luh", freq / 36000000000ULL);
+  else
+    wsprintf (wszFormatted, L"never");
+
+  if (! user_prefs.contains_key (L"Frequency"))
+    user_prefs.add_key_value (L"Frequency", wszFormatted);
+  else
+    user_prefs.get_value (L"Frequency") = wszFormatted;
+
+  install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+}
+
+
+void
+SK_Version_ForceUpdateNextLaunch (const wchar_t* wszProduct)
+{
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
+  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+  install_ini.parse   ();
+
+  if (install_ini.contains_section (L"Update.User"))
+  {
+    if (install_ini.get_section (L"Update.User").contains_key (L"Reminder"))
+      install_ini.get_section (L"Update.User").remove_key (L"Reminder");
+  }
+
+  iSK_INISection& user_prefs =
+    install_ini.get_section (L"Update.User");
+
+  user_prefs.add_key_value (L"Reminder", L"0");
+
+  install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+}
+
+
 bool
 SK_Version_SwitchBranches (const wchar_t* wszProduct, const char* szBranch)
 {

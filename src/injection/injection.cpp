@@ -40,11 +40,6 @@ ShellProc ( _In_ int    nCode,
             _In_ WPARAM wParam,
             _In_ LPARAM lParam )
 {
-  if (nCode < 0) {
-    CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
-    return 0;
-  }
-
   return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
 }
 
@@ -53,13 +48,7 @@ LRESULT
 CALLBACK
 CBTProc (int nCode, WPARAM wParam, LPARAM lParam)
 {
-  if (nCode < 0)
-  {
-    CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
-    return 0;
-  }
-
-  return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+  return CallNextHookEx(g_hHookCBT, nCode, wParam, lParam);
 }
 
 
@@ -443,6 +432,7 @@ bool SK_Injection_JournalRecord (HMODULE hModule)
 extern std::wstring
 SK_SYS_GetInstallPath (void);
 
+#if 1
 void
 SK_Inject_Stop (void)
 {
@@ -478,3 +468,64 @@ SK_Inject_Start (void)
 
   SK_ResumeThreads (suspended);
 }
+#else
+void
+SK_Inject_Stop (void)
+{
+  STARTUPINFOW si = { 0 };
+  si.cb = sizeof si;
+
+  PROCESS_INFORMATION pi = { 0 };
+
+  CreateProcessW ( L"rundll32.exe",
+                     L"SpecialK32.dll,RunDLL_InjectionManager Remove",
+                       nullptr, nullptr,
+                         FALSE,
+                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
+                             nullptr,
+                               SK_SYS_GetInstallPath ().c_str (),
+                                 &si, &pi );
+
+  si = { 0 };
+  si.cb = sizeof si;
+
+  CreateProcessW ( L"rundll32.exe",
+                     L"SpecialK64.dll,RunDLL_InjectionManager Remove",
+                       nullptr, nullptr,
+                         FALSE,
+                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
+                             nullptr,
+                               SK_SYS_GetInstallPath ().c_str (),
+                                 &si, &pi );
+}
+
+void
+SK_Inject_Start (void)
+{
+  STARTUPINFOW si = { 0 };
+  si.cb = sizeof si;
+
+  PROCESS_INFORMATION pi = { 0 };
+
+  CreateProcessW ( L"rundll32.exe",
+                     L"SpecialK32.dll,RunDLL_InjectionManager Install",
+                       nullptr, nullptr,
+                         FALSE,
+                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
+                             nullptr,
+                               SK_SYS_GetInstallPath ().c_str (),
+                                 &si, &pi );
+
+  si = { 0 };
+  si.cb = sizeof si;
+
+  CreateProcessW ( L"rundll32.exe",
+                     L"SpecialK64.dll,RunDLL_InjectionManager Install",
+                       nullptr, nullptr,
+                         FALSE,
+                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
+                             nullptr,
+                               SK_SYS_GetInstallPath ().c_str (),
+                                 &si, &pi );
+}
+#endif
