@@ -29,6 +29,7 @@
 #include <d3d9.h>
 
 #include <SpecialK/config.h>
+#include <SpecialK/core.h>
 #include <SpecialK/DLL_VERSION.H>
 #include <SpecialK/command.h>
 #include <SpecialK/console.h>
@@ -71,7 +72,6 @@ extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
 extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
 extern const wchar_t* __stdcall SK_GetBackend (void);
-extern       bool     __stdcall SK_IsInjected (bool set = false);
 
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
@@ -580,11 +580,44 @@ SK_ImGui_ControlPanel (void)
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
   ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_MenuBar);
   ImGui::PopStyleColor  ();
+
+
+  auto DisplayMenu = [io](void) -> void {
+    //if (ImGui::MenuItem ("Force-Inject Steam Overlay", "", nullptr))
+      //SK_Steam_LoadOverlayEarly ();
+
+    //ImGui::Separator ();
+    ImGui::MenuItem ("Virtual Gamepad/Keyboard Cursor", "", &io.NavMovesMouse);
+    ImGui::MenuItem ("Display Active Input APIs",       "", &config.input.ui.show_input_apis);
+
+
+    if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
+    {
+      //ImGui::TextWrapped ("%ws", SK_NvAPI_GetGPUInfoStr ().c_str ());
+      ImGui::MenuItem    ("Display G-Sync Status", "", &config.apis.NvAPI.gsync_status);
+    }
+
+    ImGui::Separator ();
+
+    ImGui::MenuItem ("ImGui Demo",              "", &show_test_window);
+  };
+
   
   if (ImGui::BeginMenuBar ())
   {
     if (ImGui::BeginMenu ("File"))
     {
+      bool selected = false;
+
+      if (ImGui::MenuItem ( "Browse Logs", "", &selected )) {
+        std::wstring log_dir =
+          std::wstring (SK_GetConfigPath ()) + std::wstring (L"\\logs");
+
+        ShellExecuteW (game_window.hWnd, L"explore", log_dir.c_str (), nullptr, nullptr, SW_NORMAL);
+      }
+
+      ImGui::Separator ();
+
       static bool wrappable = true;
 
       if (SK_IsInjected () && wrappable)
@@ -613,120 +646,100 @@ SK_ImGui_ControlPanel (void)
       ImGui::EndMenu  ();
     }
 
+
+    if (ImGui::BeginMenu ("Display"))
+    {
+      DisplayMenu    ();
+      ImGui::EndMenu ();
+    }
+
+
+    auto PopulateBranches = [] (auto branches) -> 
+      std::map <std::string, SK_BranchInfo>
+        {
+          std::map <std::string, SK_BranchInfo> details;
+
+          for ( auto it : branches )
+            details.emplace (it, SK_Version_GetLatestBranchInfo (nullptr, it.c_str ()));
+
+          return details;
+        };
+
+    static std::vector <std::string>                branches       = SK_Version_GetAvailableBranches (nullptr);
+    static std::map    <std::string, SK_BranchInfo> branch_details = PopulateBranches (branches);
+
+    static SK_VersionInfo vinfo =
+      SK_Version_GetLocalInfo (nullptr);
+
+    char current_ver [128] = { '\0' };
+    snprintf (current_ver, 128, "%ws (%lu)", vinfo.package.c_str (), vinfo.build);
+
+    char current_branch_str [64] = { '\0' };
+    snprintf (current_branch_str, 64, "%ws", vinfo.branch.c_str ());
+
+    static SK_VersionInfo vinfo_latest =
+      SK_Version_GetLatestInfo (nullptr);
+
+    static SK_BranchInfo_V1 current_branch =
+      SK_Version_GetLatestBranchInfo (nullptr, SK_WideCharToUTF8 (vinfo.branch).c_str ());
+
     if (ImGui::BeginMenu ("Update"))
     {
-      static std::vector <std::string> branches = SK_Version_GetAvailableBranches (nullptr);
-      static SK_VersionInfo vinfo =
-        SK_Version_GetLocalInfo (nullptr);
-
-      char current_ver [128] = { '\0' };
-      snprintf (current_ver, 128, "%ws (%lu)", vinfo.package.c_str (), vinfo.build);
-
-      char current_branch [64] = { '\0' };
-      snprintf (current_branch, 64, "%ws", vinfo.branch.c_str ());
-
-      static SK_VersionInfo vinfo_latest =
-        SK_Version_GetLatestInfo (nullptr);
-
       bool selected = false;
           ImGui::MenuItem  ("Current Version###Menu_CurrentVersion", current_ver,    &selected, false);
-          ImGui::MenuItem  ("Current Branch###Menu_CurrentBranch",   current_branch, &selected, false);
+
+      if (branches.size () > 1)
+      {
+        char szCurrentBranchMenu [128] = { '\0' };
+        sprintf (szCurrentBranchMenu, "Current Branch:  (%s)###SelectBranchMenu", current_branch_str);
+
+        if (ImGui::BeginMenu (szCurrentBranchMenu, branches.size () > 1))
+        {
+          for ( auto it : branches )
+          {
+            bool selected = ( SK_UTF8ToWideChar (it) == current_branch.release.vinfo.branch );
+
+            if (ImGui::MenuItem (it.c_str (), SK_WideCharToUTF8 (branch_details [it].general.description).c_str (), &selected))
+            {
+              SK_Version_SwitchBranches (nullptr, it.c_str ());
+
+              // Re-fetch the version info and then go to town updating stuff ;)
+              SK_FetchVersionInfo1 (nullptr, true);
+
+              branches       = SK_Version_GetAvailableBranches (nullptr);
+              vinfo          = SK_Version_GetLocalInfo         (nullptr);
+              vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
+              current_branch = SK_Version_GetLatestBranchInfo  (nullptr, SK_WideCharToUTF8 (vinfo_latest.branch).c_str ());
+              branch_details = PopulateBranches (branches);
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::Text         ("%ws", branch_details [it].release.title.c_str ());
+              //ImGui::Separator    ();
+              //ImGui::BulletText   ("Build: %li", branch_details [it].release.vinfo.build);
+              ImGui::EndTooltip   ();
+            }
+          }
+
+          ImGui::Separator ();
+
+          ImGui::TreePush       ("");
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.125f, 0.9f, 0.75f));
+          ImGui::Text           ("Most of my projects have branches that pre-date this menu...");
+          ImGui::BulletText     ("Changing branches here may be a one-way trip :)");
+          ImGui::PopStyleColor  ();
+          ImGui::TreePop        ();
+
+          ImGui::EndMenu ();
+        }
+      }
+
+      else
+        ImGui::MenuItem  ("Current Branch###Menu_CurrentBranch", current_branch_str, &selected, false);
 
       ImGui::Separator ();
-
-      if (ImGui::BeginMenu ("Select a Different Branch", branches.size () > 1))
-      {
-        for ( auto it : branches )
-          if (ImGui::MenuItem (it.c_str ()))
-          {
-            SK_Version_SwitchBranches (nullptr, it.c_str ());
-
-            // Re-fetch the version info and then go to town updating stuff ;)
-            SK_FetchVersionInfo1 (nullptr, true);
-
-            branches     = SK_Version_GetAvailableBranches (nullptr);
-            vinfo        = SK_Version_GetLocalInfo         (nullptr);
-            vinfo_latest = SK_Version_GetLatestInfo        (nullptr);
-          }
-
-        ImGui::Separator ();
-
-        ImGui::Text       ("Most of my projects have branches that pre-date this in-game menu...");
-        ImGui::BulletText ("Changing branches here may be a one-way trip :)");
-
-        ImGui::EndMenu ();
-      }
-
-      if (ImGui::BeginMenu  ("Update Preferences"))
-      {
-        enum {
-          SixHours    = 0,
-          TwelveHours = 1,
-          OneDay      = 2,
-          OneWeek     = 3,
-          Never       = 4
-        };
-
-        const ULONGLONG _Hour = 36000000000ULL;
-
-        auto GetFrequencyPreset = [=] (void) -> int {
-          uint64_t freq = SK_Version_GetUpdateFrequency (nullptr);
-
-          if (freq == 0 || freq == MAXULONGLONG)
-            return Never;
-
-          if (freq <= (6 * _Hour))
-            return SixHours;
-
-          if (freq <= (12 * _Hour))
-            return TwelveHours;
-
-          if (freq <= (24 * _Hour))
-            return OneDay;
-
-          if (freq <= (24 * 7 * _Hour))
-            return OneWeek;
-
-          return Never;
-        };
-
-        static int sel = GetFrequencyPreset ();
-
-        ImGui::Text ("Check for Updates"); ImGui::SameLine ();
-
-        if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
-                              "Once every 6 hours\0"
-                              "Once every 12 hours\0"
-                              "Once per-day\0"
-                              "Once per-week\0"
-                              "Never (disable)\0\0" ) )
-        {
-          switch (sel)
-          {
-            default:
-            case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
-            case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
-            case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
-            case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
-            case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
-          }
-        }
-
-        if (vinfo.build >= vinfo_latest.build)
-        {
-          if (ImGui::MenuItem  ("Check for Updates Now")) {
-            SK_FetchVersionInfo1 (nullptr, true);
-            branches     = SK_Version_GetAvailableBranches (nullptr);
-            vinfo        = SK_Version_GetLocalInfo         (nullptr);
-            vinfo_latest = SK_Version_GetLatestInfo        (nullptr);
-
-            if (vinfo.build < vinfo_latest.build)
-              SK_Version_ForceUpdateNextLaunch (nullptr);
-          }
-        }
-
-        ImGui::EndMenu ();
-      }
 
       if (vinfo.build < vinfo_latest.build)
       {
@@ -744,13 +757,113 @@ SK_ImGui_ControlPanel (void)
           ImGui::BulletText     ("Restart the software and let it do the update at startup for best results.");
           ImGui::EndTooltip     ();
         }
+        ImGui::Separator ();
       }
-      ImGui::Separator ();
 
       snprintf        (current_ver, 128, "%ws (%lu)", vinfo_latest.package.c_str (), vinfo_latest.build);
       ImGui::MenuItem ("Latest Version###Menu_LatestVersion",   current_ver,    &selected, false);
       ImGui::MenuItem ("Last Checked###Menu_LastUpdateCheck",   SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ()).c_str (), &selected, false);
+
+      enum {
+        SixHours    = 0,
+        TwelveHours = 1,
+        OneDay      = 2,
+        OneWeek     = 3,
+        Never       = 4
+      };
+
+      const ULONGLONG _Hour = 36000000000ULL;
+
+      auto GetFrequencyPreset = [=] (void) -> int {
+        uint64_t freq = SK_Version_GetUpdateFrequency (nullptr);
+
+        if (freq == 0 || freq == MAXULONGLONG)
+          return Never;
+
+        if (freq <= (6 * _Hour))
+          return SixHours;
+
+        if (freq <= (12 * _Hour))
+          return TwelveHours;
+
+        if (freq <= (24 * _Hour))
+          return OneDay;
+
+        if (freq <= (24 * 7 * _Hour))
+          return OneWeek;
+
+        return Never;
+      };
+
+      static int sel = GetFrequencyPreset ();
+
+      if (ImGui::BeginMenu ("Check for Updates"))
+      {
+        if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
+                              "Once every 6 hours\0"
+                              "Once every 12 hours\0"
+                              "Once per-day\0"
+                              "Once per-week\0"
+                              "Never (disable)\0\0" ) )
+        {
+          switch (sel)
+          {
+            default:
+            case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
+            case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
+            case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
+            case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
+            case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
+          }
+        }
+        ImGui::EndMenu ();
+      }
+
+      if (vinfo.build >= vinfo_latest.build)
+      {
+        if (ImGui::MenuItem  (" >> Check Now")) {
+          SK_FetchVersionInfo1 (nullptr, true);
+          branches       = SK_Version_GetAvailableBranches (nullptr);
+          vinfo          = SK_Version_GetLocalInfo         (nullptr);
+          vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
+          branch_details = PopulateBranches                (branches);
+
+          if (vinfo.build < vinfo_latest.build)
+            SK_Version_ForceUpdateNextLaunch (nullptr);
+        }
+      }
+
       ImGui::EndMenu ();
+    }
+
+    if (ImGui::BeginMenu ("Help"))
+    {
+      bool selected = false;
+
+      //ImGui::MenuItem ("Special K Documentation (Work in Progress)", "Ctrl + Shift + Nul", &selected, false);
+
+      ImGui::TreePush ("");
+      {
+        if (ImGui::MenuItem ("\"Kaldaien's Mod\"", "Steam Group", &selected, true))
+          SK_SteamOverlay_GoToURL ("http://steamcommunity.com/groups/SpecialK_Mods");
+      }
+      ImGui::TreePop ();
+
+      ImGui::Separator ();
+
+      if ( ImGui::MenuItem ( "View Release Notes",
+                               SK_WideCharToUTF8 (current_branch.release.title).c_str (),
+                                 &selected
+                           )
+         )
+      {
+        SK_SteamOverlay_GoToURL (SK_WideCharToUTF8 (current_branch.release.notes).c_str ());
+      }
+
+      if (ImGui::MenuItem ("About this Software...", "", &selected))
+        eula.show = true;
+
+      ImGui::EndMenu  ();
     }
     ImGui::EndMenuBar ();
   }
@@ -774,23 +887,7 @@ SK_ImGui_ControlPanel (void)
 
     if (ImGui::BeginPopup ("RenderSubMenu"))
     {
-      //if (ImGui::MenuItem ("Force-Inject Steam Overlay", "", nullptr))
-        //SK_Steam_LoadOverlayEarly ();
-
-      //ImGui::Separator ();
-      ImGui::MenuItem ("Display Active Input APIs", "", &config.input.ui.show_input_apis);
-
-
-      if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
-      {
-        //ImGui::TextWrapped ("%ws", SK_NvAPI_GetGPUInfoStr ().c_str ());
-        ImGui::MenuItem    ("Display G-Sync Status", "", &config.apis.NvAPI.gsync_status);
-        ImGui::Separator   ();
-      }
-
-      ImGui::MenuItem ("Gamepad/Keyboard Input Moves Mouse", "", &io.NavMovesMouse);
-      //ImGui::MenuItem ("ImGui Demo", "", &show_test_window);
-
+      DisplayMenu ();
       ImGui::EndPopup ();
     }
 

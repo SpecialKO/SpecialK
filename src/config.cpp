@@ -1969,9 +1969,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.OpenGL.hook                = false;
         config.apis.Vulkan.hook                = false;
 
-        config.input.ui.capture_hidden         = true; // Mouselook is a bitch
-        SK_ImGui_Cursor.prefs.no_warp.ui_open  = true;
-        SK_ImGui_Cursor.prefs.no_warp.visible  = true;
+        config.input.ui.capture_hidden         = false; // Mouselook is a bitch
+        config.input.mouse.add_relative_motion = true;
+        SK_ImGui_Cursor.prefs.no_warp.ui_open  = false;
+        SK_ImGui_Cursor.prefs.no_warp.visible  = false;
 
         config.textures.d3d11.cache            = true;
         config.textures.cache.ignore_nonmipped = true;

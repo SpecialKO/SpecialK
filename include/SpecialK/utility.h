@@ -47,6 +47,7 @@ int            SK_MessageBox           (std::wstring caption,
                                         uint32_t     flags);
 
 std::string    SK_WideCharToUTF8       (std::wstring in);
+std::wstring   SK_UTF8ToWideChar       (std::string  in);
 
 void           SK_SetNormalFileAttribs (std::wstring file);
 

@@ -2270,7 +2270,7 @@ PeekMessageW_Detour (
 
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet && lpMsg->hwnd != nullptr /*&& (wRemoveMsg & PM_REMOVE) != 0*/)
+  if (bRet /*&& lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0*/)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return bRet;
@@ -2299,7 +2299,7 @@ PeekMessageA_Detour (
 
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet && lpMsg->hwnd != nullptr /*&& (wRemoveMsg & PM_REMOVE) != 0*/)
+  if (bRet /*&& lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0*/)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return bRet;

@@ -356,7 +356,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
     {
       pDevices [i] = pRawInputDevices [i];
       //pDevices [i].dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
-      //pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+      pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
     }
   }
 
@@ -1297,10 +1297,9 @@ ImGui_ToggleCursor (void)
     SK_ImGui_CenterCursorOnWindow ();
 
     // Save original cursor position
-    GetCursorPos_Original         (&SK_ImGui_Cursor.orig_pos);
-    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
+    GetCursorPos_Original         (&SK_ImGui_Cursor.pos);
+    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
 
-    SK_ImGui_Cursor.pos              = SK_ImGui_Cursor.orig_pos;
     ImGui::GetIO ().WantCaptureMouse = true;
   }
 
@@ -1359,7 +1358,13 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
   if (SK_ImGui_Visible)
   {
-    if (SK_ImGui_WantMouseCapture ())
+    bool implicit_capture = false;
+
+    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible                  ) ||
+         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+      implicit_capture = true;
+
+    if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
       POINT client = SK_ImGui_Cursor.orig_pos;
 
@@ -1374,9 +1379,6 @@ GetCursorInfo_Detour (PCURSORINFO pci)
       SK_ImGui_Cursor.LocalToScreen (&client);
       pci->ptScreenPos.x = client.x;
       pci->ptScreenPos.y = client.y;
-
-      SK_ImGui_Cursor.ScreenToLocal (&client);
-      SK_ImGui_Cursor.orig_pos = client;
     }
 
     return TRUE;
@@ -1397,7 +1399,13 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
   if (SK_ImGui_Visible)
   {
-    if (SK_ImGui_WantMouseCapture ())
+    bool implicit_capture = false;
+
+    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible                  ) ||
+         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+      implicit_capture = true;
+
+    if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
       POINT client = SK_ImGui_Cursor.orig_pos;
 
@@ -1412,9 +1420,6 @@ GetCursorPos_Detour (LPPOINT lpPoint)
       SK_ImGui_Cursor.LocalToScreen (&client);
       lpPoint->x = client.x;
       lpPoint->y = client.y;
-
-      SK_ImGui_Cursor.ScreenToLocal (&client);
-      SK_ImGui_Cursor.orig_pos = client;
     }
 
     return TRUE;
@@ -1629,7 +1634,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 {
   bool handled = false;
 
-  if (lpMsg->hwnd == game_window.hWnd)
+  if (true)//lpMsg->hwnd == game_window.hWnd)
   {
     switch (lpMsg->message)
     {
@@ -1685,8 +1690,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_MBUTTONDBLCLK:
       case WM_MBUTTONDOWN:
       case WM_MBUTTONUP:
-      case WM_MOUSEHWHEEL:
-      case WM_MOUSEWHEEL:
       case WM_RBUTTONDBLCLK:
       case WM_RBUTTONDOWN:
       case WM_RBUTTONUP:

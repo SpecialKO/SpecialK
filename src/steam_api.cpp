@@ -4485,3 +4485,69 @@ SteamAPI_UserStatsReceived_Detour ( CCallbackBase* This, UserStatsReceived_t* pP
 
   SteamAPI_UserStatsReceived_Original (This, pParam);
 }
+
+
+
+bool
+__stdcall
+SK_SteamOverlay_GoToURL (const char* szURL)
+{
+  if (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ())
+  {
+    if (steam_ctx.Friends () != nullptr)
+    {
+      steam_ctx.Friends ()->ActivateGameOverlayToWebPage (szURL);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+__stdcall
+SK_SteamOverlay_GoToFriendProfile (CSteamID friend_sid)
+{
+  if (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ())
+  {
+    if (steam_ctx.Friends () != nullptr)
+    {
+      steam_ctx.Friends ()->ActivateGameOverlayToUser ("steamid", friend_sid);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+__stdcall
+SK_SteamOverlay_GoToFriendAchievements (CSteamID friend_sid)
+{
+  if (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ())
+  {
+    if (steam_ctx.Friends () != nullptr)
+    {
+      steam_ctx.Friends ()->ActivateGameOverlayToUser ("achievements", friend_sid);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+__stdcall
+SK_SteamOverlay_GoToFriendStats (CSteamID friend_sid)
+{
+  if (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ())
+  {
+    if (steam_ctx.Friends () != nullptr)
+    {
+      steam_ctx.Friends ()->ActivateGameOverlayToUser ("stats", friend_sid);
+      return true;
+    }
+  }
+
+  return false;
+}

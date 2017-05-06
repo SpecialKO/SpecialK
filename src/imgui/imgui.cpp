@@ -11059,7 +11059,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         {
           case RIM_TYPEMOUSE:
           {
-            SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
+            if (! self)
+              SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
 
             if (SK_ImGui_Visible)
             {
@@ -11076,7 +11077,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           case RIM_TYPEKEYBOARD:
           {
-            SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
+            if (! self)
+              SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
 
             USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
 
@@ -11130,7 +11132,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           default:
           {
-            SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
+            if (! self)
+              SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
+
             // TODO: Determine which controller the input is from
             //if (SK_ImGui_WantGamepadCapture ())
               //filter = true;
@@ -11142,7 +11146,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
   filter = FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
 
-  if (uiCommand == RID_INPUT && (! owns_data) && SK_ImGui_Visible)
+  if (uiCommand == RID_INPUT && SK_ImGui_Visible)
   {
     switch (((RAWINPUT *)pData)->header.dwType)
     {
@@ -11178,7 +11182,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
             ImGui::GetIO ().MouseDown [4] = true;
         }
-        
+
         if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
           ImGui::GetIO ().MouseDown [0] = false;
         if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
@@ -11189,10 +11193,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           ImGui::GetIO ().MouseDown [3] = false;
         if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
           ImGui::GetIO ().MouseDown [4] = false;
-        if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL        )
-          ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData) / WHEEL_DELTA;
-
-        //SK_ImGui_Cursor.update ();
+        if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
+          ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
       } break;
 
 
@@ -11594,7 +11596,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       if (SK_ImGui_Visible)
         SK_ImGui_Cursor.update ();
 
-      //SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
+      SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
 
       return false;
     }

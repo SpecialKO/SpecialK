@@ -651,3 +651,70 @@ SK_Version_SwitchBranches (const wchar_t* wszProduct, const char* szBranch)
 
   return true;
 }
+
+
+
+SK_BranchInfo_V1
+SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBranch)
+{
+  if (wszProduct == nullptr)
+    wszProduct = __SK_LastProductTested.c_str ();
+
+
+  iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+  repo_ini.parse   ();
+
+
+  static SK_BranchInfo_V1 __INVAID_BRANCH
+  {
+    0x1, L"Invalid", L"Invalid", L"Invalid",
+
+        SK_VersionInfo_V1 { L"Invalid", L"Invalid", -1 },
+
+    0x1, L"NotUsed", L"Invalid"
+  };
+
+
+  wchar_t wszFormatted [256] = { L'\0' };
+  wsprintf (wszFormatted, L"Version.%hs", szBranch);
+
+  if (repo_ini.contains_section (wszFormatted))
+  {
+    iSK_INISection& branch_sec =
+      repo_ini.get_section (wszFormatted);
+
+    auto ParseInstallPackage = [](const char* szBranch, const wchar_t* wszPackage) ->
+      SK_VersionInfo_V1
+        {
+          SK_VersionInfo_V1 vinfo1;
+
+          vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
+
+          wchar_t wszPackage_ [128] = { L'\0' };
+          swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
+
+          vinfo1.package = wszPackage_;
+
+          return vinfo1;
+        };
+
+    SK_BranchInfo_V1 branch {
+      0x1,
+      branch_sec.get_value (L"Title"),
+      branch_sec.get_value (L"ReleaseNotes"),
+      branch_sec.get_value (L"Description"),
+
+      ParseInstallPackage (szBranch, branch_sec.get_value (L"InstallPackage").c_str ()),
+
+      0x1,
+      L"Not Implemented",
+      branch_sec.get_value (L"BranchDescription")
+    };
+
+    return branch;
+  }
+
+
+  else
+    return __INVAID_BRANCH;
+}
