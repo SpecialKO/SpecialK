@@ -95,6 +95,9 @@ SK_InitPlugIn64 (HMODULE hLibrary)
     hLibrary = NULL;
   }
 
+  if (hLibrary != NULL)
+    SK_SymRefreshModuleList ();
+
   return hLibrary;
 }
 
@@ -158,7 +161,8 @@ SK_LoadEarlyImports64 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 void
@@ -187,7 +191,7 @@ SK_LoadPlugIns64 (void)
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_X64 &&
               imports [i].when->get_value         () == SK_IMPORT_PLUGIN) {
 
-            dll_log.Log (L"[ SpecialK ]  * Loading Special K Plug-In %s...",
+            dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
@@ -221,7 +225,8 @@ SK_LoadPlugIns64 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 void
@@ -277,7 +282,8 @@ SK_LoadLateImports64 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 void
@@ -333,7 +339,8 @@ SK_LoadLazyImports64 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 
@@ -368,7 +375,8 @@ SK_InitPlugIn32 (HMODULE hLibrary)
     hLibrary = NULL;
   }
 
-  SK_SymRefreshModuleList ();
+  if (hLibrary != NULL)
+    SK_SymRefreshModuleList ();
 
   return hLibrary;
 }
@@ -433,7 +441,8 @@ SK_LoadEarlyImports32 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 void
@@ -462,7 +471,7 @@ SK_LoadPlugIns32 (void)
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
               imports [i].when->get_value         () == SK_IMPORT_PLUGIN) {
 
-            dll_log.Log (L"[ SpecialK ]  * Loading SpecialK Plug-In %s... ",
+            dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
             if (! blacklisted) {
@@ -471,6 +480,7 @@ SK_LoadPlugIns32 (void)
               );
 
               if (imports [i].hLibrary != NULL) {
+                dll_log.LogEx (false, L"success!\n");
                 ++success;
 
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
@@ -495,7 +505,8 @@ SK_LoadPlugIns32 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 void
@@ -551,7 +562,8 @@ SK_LoadLateImports32 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 void
@@ -608,7 +620,8 @@ SK_LoadLazyImports32 (void)
     }
   }
 
-  SK_SymRefreshModuleList ();
+  if (success > 0)
+    SK_SymRefreshModuleList ();
 }
 
 void
@@ -650,6 +663,8 @@ SK_UnloadImports (void)
       }
     }
   }
+
+  SK_SymRefreshModuleList ();
 }
 
 

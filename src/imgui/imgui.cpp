@@ -11028,12 +11028,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self )
 {
+  if (GetActiveWindow () != nullptr && GetActiveWindow () != game_window.hWnd)
+    return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
   bool owns_data = false;
 
   if (pData == nullptr)
   {
-    int size =
-      GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+    GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
     if (*pcbSize < 1024)
       pData = new uint8_t [*pcbSize];
@@ -11358,14 +11360,13 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
   return -1;
 }
 
-IMGUI_API
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
                                   WPARAM wParam,
                                   LPARAM lParam )
 {
-  if (hWnd != game_window.hWnd)
+  if (GetActiveWindow () != game_window.hWnd)
     return 0;
 
   static POINTS last_pos;
@@ -11398,7 +11399,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       if (! active)
       {
         for (int i = 0; i < 5;   i++) io.MouseDown [i] = false;
-        for (int i = 0; i < 512; i++) io.KeysDown  [i] = false;
+        for (int i = 5; i < 512; i++) io.KeysDown  [i] = false;
       }
     };
 
@@ -11439,9 +11440,10 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     }
   } break;
 
+
   case WM_MOUSEACTIVATE:
-      ActivateWindow (((HWND)wParam == hWnd));
-      break;
+    ActivateWindow (((HWND)wParam == hWnd));
+    break;
 
   case WM_ACTIVATEAPP:
   case WM_ACTIVATE:
@@ -11508,38 +11510,39 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   //if (SK_ImGui_WantMouseCapture ())
   {
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
-      io.KeysDown [(wParam & 0xff)] = 1;
-    else if ((wParam & 0x7) < 5)
-      io.MouseDown [(wParam & 0x7)] = true;
-
-    BYTE  vkCode   = LOWORD (wParam) & 0xFF;
-    BYTE  scanCode = HIWORD (lParam) & 0x7F;
-    //SHORT repeated = LOWORD (lParam);
-    //bool  keyDown  = ! (lParam & 0x80000000UL);
-
-    BYTE                       keyState [256];
-    GetKeyboardState_Original (keyState);
-
-    if (vkCode != VK_TAB)
     {
-      keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+      io.KeysDown [(wParam & 0xff)] = 1;
 
-      wchar_t key_str;
+      BYTE  vkCode   = LOWORD (wParam) & 0xFF;
+      BYTE  scanCode = HIWORD (lParam) & 0x7F;
 
-      if ( ToUnicodeEx ( vkCode,
-                         scanCode,
-                         keyState,
-                        &key_str,
-                         1,
-                         0x00,
-                         GetKeyboardLayout (0) )
-               &&
-            iswprint ( key_str )
-         )
+      if (vkCode != VK_TAB)
       {
-        ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
+        BYTE                       keyState [256];
+        GetKeyboardState_Original (keyState);
+
+        keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+
+        wchar_t key_str;
+
+        if ( ToUnicodeEx ( vkCode,
+                           scanCode,
+                           keyState,
+                          &key_str,
+                           1,
+                           0x00,
+                           GetKeyboardLayout (0) )
+                 &&
+              iswprint ( key_str )
+           )
+        {
+          ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
+        }
       }
     }
+
+    else if ((wParam & 0x7) < 5)
+      io.MouseDown [(wParam & 0x7)] = true;
 
     return true;
   } break;

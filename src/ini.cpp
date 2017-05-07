@@ -386,7 +386,7 @@ iSK_INI::parse (void)
       if (*i == L']' && (i == wszSecondToLast || *CharNextW (i) == L'\n'))
         end = i;
 
-      if (begin != nullptr && end != nullptr) {
+      if (begin != nullptr && end != nullptr && begin < end) {
            wchar_t* sec_name =    new wchar_t    [end - begin + 1];
         ZeroMemory (sec_name, sizeof (wchar_t) * (end - begin + 1));
 

@@ -30,6 +30,7 @@
 #include <SpecialK/update/version.h>
 
 #include <Windows.h>
+#include <Shlwapi.h>
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
 
@@ -38,6 +39,40 @@
 DWORD dwInetCtx;
 
 std::wstring __SK_LastProductTested = L"";
+
+
+#include <SpecialK/core.h>
+#include <SpecialK/config.h>
+
+std::wstring
+SK_SYS_GetInstallPath (void)
+{
+  if (! SK_IsInjected ()) {
+    // TODO: Add VersionPath :)
+    return std::wstring (std::wstring (SK_GetHostPath ()) + L"\\");
+  }
+
+  else {
+    std::wstring path  = SK_GetDocumentsDir ();
+                 path += L"\\My Mods\\SpecialK\\";
+          return path;
+  }
+}
+
+std::wstring
+SK_Version_GetInstallIniPath (void)
+{
+  return SK_SYS_GetInstallPath () + std::wstring (L"Version\\installed.ini");
+}
+
+std::wstring
+SK_Version_GetRepoIniPath (void)
+{
+  return SK_SYS_GetInstallPath () + std::wstring (L"Version\\repository.ini");
+}
+
+
+
 
 bool
 __stdcall
@@ -58,9 +93,6 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
 
   wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
-  wchar_t wszRepoFile    [MAX_PATH] = { L'\0' };
-
-  extern const wchar_t* __stdcall SK_GetRootPath (void);
 
   //Profiles/
   //PlugIns/
@@ -92,16 +124,10 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   //TSFix_Res/... (PlugIns/TSFix/Resources/...)
 
 
-  lstrcatW (wszInstallFile, SK_GetRootPath ());
-  lstrcatW (wszInstallFile, L"Version\\");
+  lstrcatW (wszInstallFile, SK_Version_GetInstallIniPath ().c_str ());
+  PathRemoveFileSpec (wszInstallFile);
 
-  lstrcatW (wszRepoFile, SK_GetRootPath ());
-  lstrcatW (wszRepoFile, L"Version\\");
-
-  SK_CreateDirectories (wszRepoFile);
-
-  lstrcatW (wszInstallFile, L"installed.ini");
-  lstrcatW (wszRepoFile,    L"repository.ini");
+  SK_CreateDirectories (wszInstallFile);
 
   bool need_remind  = false,
        has_remind   = false;
@@ -111,8 +137,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   // Update frequency (measured in 100ns)
   ULONGLONG update_freq = 0ULL;
 
-  if (GetFileAttributes (wszInstallFile) != INVALID_FILE_ATTRIBUTES) {
-    iSK_INI install_ini (wszInstallFile);
+  if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+  {
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
     install_ini.parse ();
 
@@ -137,7 +164,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
         wcscpy (h, L"6");
 
         install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
-        install_ini.write  (wszInstallFile);
+        install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
       }
 
       const ULONGLONG _Hour = 36000000000ULL;
@@ -174,7 +201,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
           need_remind = true;
 
           user_prefs.remove_key (L"Reminder");
-          install_ini.write (wszInstallFile);
+          install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
         }
 
         delete remind_time;
@@ -182,17 +209,18 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     }
   }
 
-  if (GetFileAttributes (wszRepoFile) != INVALID_FILE_ATTRIBUTES)
+  
+  if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
     HANDLE hVersionConfig =
-      CreateFile ( wszRepoFile,
+      CreateFile ( SK_Version_GetRepoIniPath ().c_str (),
                      GENERIC_READ,
                        FILE_SHARE_READ  |
                        FILE_SHARE_WRITE |
                        FILE_SHARE_DELETE,
                          nullptr,
                            OPEN_EXISTING,
-                             GetFileAttributes (wszRepoFile) |
+                             GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) |
                              FILE_FLAG_SEQUENTIAL_SCAN,
                                nullptr );
 
@@ -303,13 +331,13 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                                           0x00, NULL )
       )
     {
-      DWORD dwAttribs = GetFileAttributes (wszRepoFile);
+      DWORD dwAttribs = GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
 
       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
         dwAttribs = FILE_ATTRIBUTE_NORMAL;
 
       HANDLE hVersionFile =
-        CreateFileW ( wszRepoFile,
+        CreateFileW ( SK_Version_GetRepoIniPath ().c_str (),
                         GENERIC_WRITE,
                           FILE_SHARE_READ | FILE_SHARE_WRITE,
                             nullptr,
@@ -373,33 +401,6 @@ SK_FetchVersionInfo (const wchar_t* wszProduct)
 }
 
 
-#include <SpecialK/core.h>
-
-std::wstring
-SK_SYS_GetInstallPath (void)
-{
-  if (SK_IsInjected ())
-  {
-    std::wstring path  = SK_GetDocumentsDir ();
-                 path += L"\\My Mods\\SpecialK";
-          return path;
-  }
-
-  return SK_GetHostPath ();
-}
-
-std::wstring
-SK_Version_GetInstallIniPath (void)
-{
-  return SK_SYS_GetInstallPath () + std::wstring (L"\\Version\\installed.ini");
-}
-
-std::wstring
-SK_Version_GetRepoIniPath (void)
-{
-  return SK_SYS_GetInstallPath () + std::wstring (L"\\Version\\repository.ini");
-}
-
 SK_VersionInfo
 SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
 {
@@ -408,32 +409,37 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
 
   SK_FetchVersionInfo (wszProduct);
 
-  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
-  iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
-
-  install_ini.parse ();
-  repo_ini.parse    ();
-
   SK_VersionInfo_V1 ver_info;
-  ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
-  wchar_t wszBranchSection [128] = { L'\0' };
-  _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
+  if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
+       GetFileAttributes (SK_Version_GetRepoIniPath    ().c_str ()) != INVALID_FILE_ATTRIBUTES )
+  {
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+    iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
-  if (repo_ini.contains_section (wszBranchSection)) {
-    ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
+    repo_ini.parse    ();  
+    install_ini.parse ();
+  
+    ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
-    wchar_t wszPackage [128] = { L'\0' };
-    swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+    wchar_t wszBranchSection [128] = { L'\0' };
+    _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
 
-    ver_info.package = wszPackage;
+    if (repo_ini.contains_section (wszBranchSection)) {
+      ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
+
+      wchar_t wszPackage [128] = { L'\0' };
+      swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+
+      ver_info.package = wszPackage;
+    }
+
+    return ver_info;
   }
 
-  else {
-    ver_info.package = L"Invalid";
-    ver_info.branch  = L"Invalid";
-    ver_info.build   = -1;
-  }
+  ver_info.package = L"Invalid";
+  ver_info.branch  = L"Invalid";
+  ver_info.build   = -1;
 
   return ver_info;
 }
@@ -446,18 +452,22 @@ SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
 
   SK_FetchVersionInfo (wszProduct);
 
-  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
-
-  install_ini.parse ();
-
   SK_VersionInfo_V1 ver_info;
-  ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
-  ver_info.package  = install_ini.get_section (L"Version.Local").get_value (L"InstallPackage");
 
-  wchar_t wszPackage [128] = { L'\0' };
-  swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+  if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+  {
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+  
+    install_ini.parse ();
 
-  ver_info.package = wszPackage;
+    ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+    ver_info.package  = install_ini.get_section (L"Version.Local").get_value (L"InstallPackage");
+
+    wchar_t wszPackage [128] = { L'\0' };
+    swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+
+    ver_info.package = wszPackage;
+  }
 
   return ver_info;
 }
@@ -505,20 +515,23 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
 
   SK_FetchVersionInfo (wszProduct);
 
-  iSK_INI repo_ini (SK_Version_GetRepoIniPath    ().c_str ());
-  repo_ini.parse   ();
-
-  iSK_INI::_TSectionMap& sections =
-    repo_ini.get_sections ();
-
-  for ( auto it : sections )
+  if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
-    if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
-    {
-      wchar_t wszBranchName [128] = { L'\0' };
-      swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
+    iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+    repo_ini.parse    ();
 
-      branches.push_back (SK_WideCharToUTF8 (wszBranchName));
+    iSK_INI::_TSectionMap& sections =
+      repo_ini.get_sections ();
+
+    for ( auto it : sections )
+    {
+      if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
+      {
+        wchar_t wszBranchName [128] = { L'\0' };
+        swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
+
+        branches.push_back (SK_WideCharToUTF8 (wszBranchName));
+      }
     }
   }
 
@@ -529,50 +542,53 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
 uint64_t
 SK_Version_GetUpdateFrequency (const wchar_t* wszProduct)
 {
-  uint64_t update_freq;
+  uint64_t update_freq = MAXULONGLONG;
 
   if (wszProduct == nullptr)
     wszProduct = __SK_LastProductTested.c_str ();
 
-  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
-  install_ini.parse   ();
-
-
-  iSK_INISection& user_prefs =
-    install_ini.get_section (L"Update.User");
-
-  bool has_freq =
-    user_prefs.contains_key (L"Frequency");
-
-  std::wstring freq =
-    user_prefs.get_value (L"Frequency");
-
-  wchar_t h [3] = { L"0" },
-          d [3] = { L"0" },
-          w [3] = { L"0" };
-
-  swscanf ( freq.c_str (), L"%3[^h]h", h );
-
-  // Default to 6h if unspecified
-  if (! has_freq)
+  if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
-    wcscpy (h, L"6");
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+    install_ini.parse   ();
 
-    install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
-    install_ini.write  (wszProduct);
+
+    iSK_INISection& user_prefs =
+      install_ini.get_section (L"Update.User");
+
+    bool has_freq =
+      user_prefs.contains_key (L"Frequency");
+
+    std::wstring freq =
+      user_prefs.get_value (L"Frequency");
+
+    wchar_t h [3] = { L"0" },
+            d [3] = { L"0" },
+            w [3] = { L"0" };
+
+    swscanf ( freq.c_str (), L"%3[^h]h", h );
+
+    // Default to 6h if unspecified
+    if (! has_freq)
+    {
+      wcscpy (h, L"6");
+
+      install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
+      install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+    }
+
+    const ULONGLONG _Hour = 36000000000ULL;
+
+    update_freq += (   1ULL * _Hour * _wtoi (h) );
+    update_freq += (  24ULL * _Hour * _wtoi (d) );
+    update_freq += ( 168ULL * _Hour * _wtoi (w) );
+
+    //dll_log.Log ( L"Update Frequency: %lu hours, %lu days, %lu weeks (%s)",
+                    //_wtoi (h), _wtoi (d), _wtoi (w), freq.c_str () );
+
+    if (freq == L"never")
+      update_freq = MAXULONGLONG;
   }
-
-  const ULONGLONG _Hour = 36000000000ULL;
-
-  update_freq += (   1ULL * _Hour * _wtoi (h) );
-  update_freq += (  24ULL * _Hour * _wtoi (d) );
-  update_freq += ( 168ULL * _Hour * _wtoi (w) );
-
-  //dll_log.Log ( L"Update Frequency: %lu hours, %lu days, %lu weeks (%s)",
-                  //_wtoi (h), _wtoi (d), _wtoi (w), freq.c_str () );
-
-  if (freq == L"never")
-    update_freq = MAXULONGLONG;
 
   return update_freq;
 }
@@ -584,25 +600,28 @@ SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
   if (wszProduct == nullptr)
     wszProduct = __SK_LastProductTested.c_str ();
 
-  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
-  install_ini.parse   ();
+  if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+  {
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+    install_ini.parse ();
 
-  iSK_INISection& user_prefs =
-    install_ini.get_section (L"Update.User");
+    iSK_INISection& user_prefs =
+      install_ini.get_section (L"Update.User");
 
-  wchar_t wszFormatted [128] = { L'\0' };
+    wchar_t wszFormatted [128] = { L'\0' };
 
-  if (freq > 0 && freq < MAXULONGLONG)
-    wsprintf (wszFormatted, L"%luh", freq / 36000000000ULL);
-  else
-    wsprintf (wszFormatted, L"never");
+    if (freq > 0 && freq < MAXULONGLONG)
+      wsprintf (wszFormatted, L"%luh", freq / 36000000000ULL);
+    else
+      wsprintf (wszFormatted, L"never");
 
-  if (! user_prefs.contains_key (L"Frequency"))
-    user_prefs.add_key_value (L"Frequency", wszFormatted);
-  else
-    user_prefs.get_value (L"Frequency") = wszFormatted;
+    if (! user_prefs.contains_key (L"Frequency"))
+      user_prefs.add_key_value (L"Frequency", wszFormatted);
+    else
+      user_prefs.get_value (L"Frequency") = wszFormatted;
 
-  install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+    install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+  }
 }
 
 
@@ -612,21 +631,24 @@ SK_Version_ForceUpdateNextLaunch (const wchar_t* wszProduct)
   if (wszProduct == nullptr)
     wszProduct = __SK_LastProductTested.c_str ();
 
-  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
-  install_ini.parse   ();
-
-  if (install_ini.contains_section (L"Update.User"))
+  if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
-    if (install_ini.get_section (L"Update.User").contains_key (L"Reminder"))
-      install_ini.get_section (L"Update.User").remove_key (L"Reminder");
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+            install_ini.parse ();
+
+    if (install_ini.contains_section (L"Update.User"))
+    {
+      if (install_ini.get_section (L"Update.User").contains_key (L"Reminder"))
+        install_ini.get_section (L"Update.User").remove_key (L"Reminder");
+    }
+
+    iSK_INISection& user_prefs =
+      install_ini.get_section (L"Update.User");
+
+    user_prefs.add_key_value (L"Reminder", L"0");
+
+    install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
   }
-
-  iSK_INISection& user_prefs =
-    install_ini.get_section (L"Update.User");
-
-  user_prefs.add_key_value (L"Reminder", L"0");
-
-  install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 }
 
 
@@ -636,18 +658,22 @@ SK_Version_SwitchBranches (const wchar_t* wszProduct, const char* szBranch)
   if (wszProduct == nullptr)
     wszProduct = __SK_LastProductTested.c_str ();
 
-  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
-  install_ini.parse   ();
+  if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+  {
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
-  // TODO: Validate selected branch against those in the repository
+    install_ini.parse ();
 
-  wchar_t wszBranch [128] = { L'\0' };
-  swprintf (wszBranch, L"%hs", szBranch);
+    // TODO: Validate selected branch against those in the repository
 
-  install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
-  install_ini.get_section (L"Version.Local").get_value (L"InstallPackage") = L"PendingBranchMigration,0";
+    wchar_t wszBranch [128] = { L'\0' };
+    swprintf (wszBranch, L"%hs", szBranch);
 
-  install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+    install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
+    install_ini.get_section (L"Version.Local").get_value (L"InstallPackage") = L"PendingBranchMigration,0";
+
+    install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+  }
 
   return true;
 }
@@ -661,10 +687,6 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
     wszProduct = __SK_LastProductTested.c_str ();
 
 
-  iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
-  repo_ini.parse   ();
-
-
   static SK_BranchInfo_V1 __INVAID_BRANCH
   {
     0x1, L"Invalid", L"Invalid", L"Invalid",
@@ -675,46 +697,50 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
   };
 
 
-  wchar_t wszFormatted [256] = { L'\0' };
-  wsprintf (wszFormatted, L"Version.%hs", szBranch);
-
-  if (repo_ini.contains_section (wszFormatted))
+  if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
-    iSK_INISection& branch_sec =
-      repo_ini.get_section (wszFormatted);
+    iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+      repo_ini.parse    ();
 
-    auto ParseInstallPackage = [](const char* szBranch, const wchar_t* wszPackage) ->
-      SK_VersionInfo_V1
-        {
-          SK_VersionInfo_V1 vinfo1;
+    wchar_t wszFormatted [256] = { L'\0' };
+    wsprintf (wszFormatted, L"Version.%hs", szBranch);
 
-          vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
+    if (repo_ini.contains_section (wszFormatted))
+    {
+      iSK_INISection& branch_sec =
+        repo_ini.get_section (wszFormatted);
 
-          wchar_t wszPackage_ [128] = { L'\0' };
-          swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
+      auto ParseInstallPackage = [](const char* szBranch, const wchar_t* wszPackage) ->
+        SK_VersionInfo_V1
+          {
+            SK_VersionInfo_V1 vinfo1;
 
-          vinfo1.package = wszPackage_;
+            vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
 
-          return vinfo1;
-        };
+            wchar_t wszPackage_ [128] = { L'\0' };
+            swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
 
-    SK_BranchInfo_V1 branch {
-      0x1,
-      branch_sec.get_value (L"Title"),
-      branch_sec.get_value (L"ReleaseNotes"),
-      branch_sec.get_value (L"Description"),
+            vinfo1.package = wszPackage_;
 
-      ParseInstallPackage (szBranch, branch_sec.get_value (L"InstallPackage").c_str ()),
+            return vinfo1;
+          };
 
-      0x1,
-      L"Not Implemented",
-      branch_sec.get_value (L"BranchDescription")
-    };
+      SK_BranchInfo_V1 branch {
+        0x1,
+        branch_sec.get_value (L"Title"),
+        branch_sec.get_value (L"ReleaseNotes"),
+        branch_sec.get_value (L"Description"),
 
-    return branch;
+        ParseInstallPackage (szBranch, branch_sec.get_value (L"InstallPackage").c_str ()),
+
+        0x1,
+        L"Not Implemented",
+        branch_sec.get_value (L"BranchDescription")
+      };
+
+      return branch;
+    }
   }
 
-
-  else
-    return __INVAID_BRANCH;
+  return __INVAID_BRANCH;
 }

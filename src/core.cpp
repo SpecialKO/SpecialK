@@ -1382,12 +1382,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
   }
 
+  EnterCriticalSection (&init_mutex);
+
   ZeroMemory (&init_, sizeof init_params_t);
 
   init_.backend  = _wcsdup (backend);
   init_.callback =          callback;
-
-  EnterCriticalSection (&init_mutex);
 
   SK::Diagnostics::CrashHandler::InitSyms ();
 
@@ -1470,6 +1470,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       dll_log.LogEx (false, L"done!\n");
     }
 
+    if (config.system.display_debug_out)
+      SK::Diagnostics::Debugger::SpawnConsole ();
+
+    if (config.system.handle_crashes)
+      SK::Diagnostics::CrashHandler::Init ();
+
+
     if (config.compatibility.init_while_suspended)
     {
       //__SK_Init_Suspended_tids =
@@ -1493,18 +1500,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_InitCompatBlacklist ();
   }
 
-
-  if (SK_IsSuperSpecialK ()) {
+  else
+  {
     config.system.handle_crashes = false;
     config.system.game_output    = false;
     config.steam.silent          = true;
   }
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
 
 
   // Load user-defined DLLs (Early)
@@ -1514,11 +1515,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_LoadEarlyImports32 ();
 #endif
 
-
   // Do this from the startup thread
 
   if (config.steam.preload_overlay)
     SK_Steam_LoadOverlayEarly ();
+
 
   extern void SK_Input_PreInit (void); 
   SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
@@ -1538,8 +1539,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
-  LeaveCriticalSection (&init_mutex);
-
 
   InterlockedExchangePointer (
     (void **)&hInitThread,
@@ -1550,7 +1549,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                              &init_,
                                0x00,
                                  nullptr )
-  );
+  ); // Avoid the temptation to wait on this thread
+
+  LeaveCriticalSection (&init_mutex);
 
   return true;
 }
@@ -1641,12 +1642,6 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
-  // Breakbad Disable Disclaimer; pretend the log was empty :)
-  if (crash_log.lines == 1)
-    crash_log.lines = 0;
-
-  crash_log.close ();
-
   const wchar_t* config_name = backend;
 
   if (SK_IsInjected ())
@@ -1666,9 +1661,6 @@ SK_ShutdownCore (const wchar_t* backend)
   }
 #endif
 
-  // Don't care about crashes after this :)
-  config.system.handle_crashes = false;
-
   SK_UnloadImports        ();
   SK::Framerate::Shutdown ();
 
@@ -1680,13 +1672,14 @@ SK_ShutdownCore (const wchar_t* backend)
 
   SymCleanup (GetCurrentProcess ());
 
-  SK_ShutdownWMI ();
-  
+  SK_ShutdownWMI    ();
+  SK_UnInit_MinHook ();
 
-  FreeLibrary_Original (backend_dll);
+  // Breakbad Disable Disclaimer; pretend the log was empty :)
+  if (crash_log.lines == 1)
+    crash_log.lines = 0;
 
-  SK_UnInit_MinHook      ();
-  //FreeLibrary_Original (SK_GetDLL ());
+  crash_log.close ();
 
   return true;
 }
@@ -2284,7 +2277,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
 #ifndef SK_BUILD__INSTALLER
   else {
-    if (wglGetCurrentContext () != 0) {
+    if (config.apis.OpenGL.hook && wglGetCurrentContext () != 0) {
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }

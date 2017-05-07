@@ -274,7 +274,6 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     }
 #endif
 
-#if 0
     // Some software repeatedly loads and unloads this, which can
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
@@ -284,7 +283,6 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                              lpFileName,
                                &hModDontCare );
     }
-#endif
   }
 }
 
@@ -405,7 +403,6 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     }
 #endif
     
-#if 0
     // Some software repeatedly loads and unloads this, which can
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
@@ -415,7 +412,6 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                              lpFileName,
                                &hModDontCare );
     }
-#endif
   }
 }
 

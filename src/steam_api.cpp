@@ -4488,9 +4488,12 @@ SteamAPI_UserStatsReceived_Detour ( CCallbackBase* This, UserStatsReceived_t* pP
 
 
 
+// Fallback to Win32 API if the Steam overlay is not functioning.
+#include <SpecialK/window.h>
+
 bool
 __stdcall
-SK_SteamOverlay_GoToURL (const char* szURL)
+SK_SteamOverlay_GoToURL (const char* szURL, bool bUseWindowsShellIfOverlayFails)
 {
   if (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ())
   {
@@ -4499,6 +4502,11 @@ SK_SteamOverlay_GoToURL (const char* szURL)
       steam_ctx.Friends ()->ActivateGameOverlayToWebPage (szURL);
       return true;
     }
+  }
+
+  if (bUseWindowsShellIfOverlayFails) {
+    ShellExecuteA (game_window.hWnd, "open", szURL, nullptr, nullptr, SW_NORMAL);
+    return true;
   }
 
   return false;

@@ -392,10 +392,6 @@ D3D11CreateDevice_Detour (
   D3D_FEATURE_LEVEL ret_level;
   ID3D11Device*     ret_device;
 
-  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
-  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"d3d11.dll" && SK_GetCallingDLL () != SK_GetDLL ())
-    WaitForInitDXGI ();
-
   dll_log.LogEx ( true,
                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
                       FeatureLevels,
@@ -414,6 +410,14 @@ D3D11CreateDevice_Detour (
                   L"  D3D 11  " );
       Flags |= D3D11_CREATE_DEVICE_DEBUG;
     }
+  }
+
+  else
+  {
+    // CreateDevice may implicitly be called from d3d11.dll when DeviceAndSwapChain are,
+    //   we don't need to wait for initialization for this special case.
+    if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") && SK_GetCallingDLL () != SK_GetDLL ())
+      WaitForInitDXGI ();
   }
 
   //
@@ -477,10 +481,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   DXGI_LOG_CALL_0 (L"D3D11CreateDeviceAndSwapChain");
 
-  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
-  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallerName () != L"d3d11.dll" && SK_GetCallingDLL () != SK_GetDLL ())
-    WaitForInitDXGI ();
-
   dll_log.LogEx ( true,
                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
                       FeatureLevels,
@@ -499,6 +499,12 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                   L"  D3D 11  " );
       Flags |= D3D11_CREATE_DEVICE_DEBUG;
     }
+  }
+
+  else
+  {
+    if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallingDLL () != SK_GetDLL ())
+      WaitForInitDXGI ();
   }
 
   //

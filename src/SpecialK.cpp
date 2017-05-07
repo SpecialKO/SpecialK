@@ -187,6 +187,12 @@ SK_EstablishDllRole (HMODULE hModule)
     // Opted out of explicit injection, now try automatic
     if (! explicit_inject)
     {
+      // Skip lengthy tests if we already have the wrapper version loaded.
+      if (SK_IsDLLSpecialK (L"d3d9.dll") || SK_IsDLLSpecialK (L"dxgi.dll") || SK_IsDLLSpecialK (L"OpenGL32.dll")) {
+        SK_SetDLLRole (DLL_ROLE::INVALID);
+        return false;
+      }
+
       extern void
       __stdcall
       SK_EstablishRootPath (void);
@@ -671,13 +677,11 @@ DllMain ( HMODULE hModule,
         }
       }
 
-      //if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
+      if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
       {
-        //if (! InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0))
+        if (! InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0))
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
-
-          SK_UnInit_MinHook ();
 
           ret =
             SK_Detach (SK_GetDLLRole ());
@@ -697,7 +701,7 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_ATTACH:
     {
-      //if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
+      if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
       {
         InterlockedIncrement (&__SK_Threads_Attached);
 
@@ -714,7 +718,7 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_DETACH:
     {
-      //if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
+      if (InterlockedExchangeAddRelease(&__SK_DLL_Attached, 0))
       {
         LPVOID lpvData =
           (LPVOID)TlsGetValue (__SK_TLS_INDEX);

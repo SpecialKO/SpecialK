@@ -29,6 +29,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/resource.h>
 
+#include <SpecialK/update/version.h>
 #include <SpecialK/update/archive.h>
 #include <SpecialK/update/network.h>
 
@@ -383,13 +384,7 @@ RemindMeLater_DlgProc (
             break;
         }
 
-        wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
-
-        swprintf ( wszInstallFile,
-              L"%s\\Version\\installed.ini",
-                SK_GetRootPath () );
-
-        iSK_INI install_ini (wszInstallFile);
+        iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
         install_ini.parse ();
 
@@ -444,7 +439,7 @@ RemindMeLater_DlgProc (
           delete frequency;
         }
 
-        install_ini.write (wszInstallFile);
+        install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
         EndDialog (hWndDlg, 0);
         hWndRemind = (HWND)INVALID_HANDLE_VALUE;
@@ -636,7 +631,7 @@ Update_DlgProc (
       for ( auto it = files.begin (); it != files.end (); ++it )
       {
         wchar_t wszFinalPath [MAX_PATH] = { L'\0' };
-        wcscpy (wszFinalPath, SK_GetRootPath ());
+        wcscpy (wszFinalPath, SK_SYS_GetInstallPath ().c_str ());
 
         lstrcatW (wszFinalPath, it->name.c_str ());
 
@@ -761,6 +756,13 @@ Update_DlgProc (
                
               switch (uNotification)
               {
+                case TDN_CREATED:
+                  BringWindowToTop    (hWnd);
+                  SetForegroundWindow (hWnd);
+                  SetActiveWindow     (hWnd);
+                  SetFocus            (hWnd);
+                  break;
+
                 case TDN_HYPERLINK_CLICKED:
                   ShellExecuteW ( nullptr,
                                     L"OPEN",
@@ -793,7 +795,7 @@ Update_DlgProc (
               swprintf ( wszBackupMessage,
                            L"Your old files have been backed up "
                            L"<a href=\"%s\\Version\\%s\\\">here.</a>\n\n%s",
-                             SK_GetRootPath (),
+                             SK_GetConfigPath (),
                                update_dlg_build,
                                 config_files_changed ?
                   L"Config files were altered, but your originals "
@@ -866,8 +868,10 @@ UpdateDlg_Thread (LPVOID user)
                       GetDesktopWindow (),
                         Update_DlgProc );
 
-  BringWindowToTop (hWndDlg);
-  SetFocus         (hWndDlg);
+  BringWindowToTop    (hWndDlg);
+  SetForegroundWindow (hWndDlg);
+  SetActiveWindow     (hWndDlg);
+  SetFocus            (hWndDlg);
 
   MSG  msg;
   BOOL bRet;
@@ -937,19 +941,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
     task_config.pszContent         = L"Would you like to begin installation now?";
   }
 
-  wchar_t wszRepoFile    [MAX_PATH] = { L'\0' };
-  wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
-
-  swprintf ( wszRepoFile,
-              L"%s\\Version\\repository.ini",
-                SK_GetRootPath () );
-
-  swprintf ( wszInstallFile,
-              L"%s\\Version\\installed.ini",
-                SK_GetRootPath () );
-
-  iSK_INI install_ini (wszInstallFile);
-  iSK_INI repo_ini    (wszRepoFile);
+  iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+  iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
   install_ini.parse ();
   repo_ini.parse    ();
@@ -1001,7 +994,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
   //   the repository.ini file's updated timestamp to delay a second
   //     attempt by the user to upgrade.
   install_ini.import (L"[Update.User]\nReminder=0\n\n");
-  install_ini.write  (wszInstallFile);
+  install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
 
   iSK_INISection& latest_ver =
     repo_ini.get_section_f (L"Version.%s", build.branch);
@@ -1054,14 +1047,14 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
       wchar_t   wszUpdateFile [MAX_PATH] = { L'\0' };
 
-      lstrcatW (wszUpdateFile, SK_GetRootPath ());
+      lstrcatW (wszUpdateFile, SK_SYS_GetInstallPath ().c_str ());
       lstrcatW (wszUpdateFile, L"Version\\");
 
       wchar_t wszUpdateTempFile [MAX_PATH];
 
       swprintf ( wszUpdateTempFile,
-                   L"%s\\Version\\%s.7z",
-                     SK_GetRootPath (),
+                   L"%sVersion\\%s.7z",
+                     SK_SYS_GetInstallPath ().c_str (),
                        build.latest.package );
 
       wcsncpy (get->wszLocalPath, wszUpdateTempFile, MAX_PATH - 1);
@@ -1173,7 +1166,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
             // Remove reminder if we successfully install...
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
-            install_ini.write       (wszInstallFile);
+            install_ini.write       (SK_Version_GetInstallIniPath ().c_str ());
 
             extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
             SK_TerminateParentProcess (0x00);

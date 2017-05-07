@@ -36,6 +36,7 @@
 #include <lzma/7zFile.h>
 #include <lzma/7zVersion.h>
 
+#include <SpecialK/update/version.h>
 #include <SpecialK/update/archive.h>
 
 bool config_files_changed = false;
@@ -107,6 +108,20 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
   SzArEx_Free (&arc, &thread_alloc);
 
   return files;
+}
+
+void
+SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
+{
+  if (! MoveFileExW ( wszOld,
+                        wszNew,
+                          MOVEFILE_REPLACE_EXISTING ) )
+  {
+    wchar_t wszTemp [MAX_PATH] = { L'\0' };
+    GetTempFileNameW (nullptr, L"OLD", timeGetTime (), wszTemp);
+
+    MoveFileExW ( wszNew, wszTemp, 0x00 );
+  }
 }
 
 HRESULT
@@ -225,12 +240,12 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     wchar_t wszDestPath [MAX_PATH] = { L'\0' };
     wchar_t wszMovePath [MAX_PATH] = { L'\0' };
 
-    wcscpy (wszDestPath, SK_GetRootPath ());
+    wcscpy (wszDestPath, SK_SYS_GetInstallPath ().c_str ());
 
     lstrcatW (wszDestPath, files [i].name.c_str ());
 
     if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES) {
-      wcscpy (wszMovePath, SK_GetRootPath ());
+      wcscpy (wszMovePath, SK_SYS_GetInstallPath ().c_str ());
 
       lstrcatW (wszMovePath, L"Version\\");
 
@@ -254,9 +269,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
         lstrcatW (wszMovePath, L".old");
       }
 
-      MoveFileExW ( wszDestPath,
-                      wszMovePath,
-                        MOVEFILE_REPLACE_EXISTING );
+      SK_MoveFileNoFail ( wszDestPath,
+                            wszMovePath );
     }
 
     else {
@@ -357,8 +371,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     wchar_t wszUserConfig    [MAX_PATH + 2] = { L'\0' }; // Currently Deployed
     wchar_t wszOldConfig     [MAX_PATH + 2] = { L'\0' }; // Backed-Up User Cfg
 
-    wcscpy   (wszDefaultConfig, SK_GetRootPath ());
-    wcscpy   (wszUserConfig,    SK_GetRootPath ());
+    wcscpy   (wszDefaultConfig, SK_GetConfigPath ());
+    wcscpy   (wszUserConfig,    SK_GetConfigPath ());
 
     lstrcatW (wszDefaultConfig, config_files [i].name.c_str ());
     lstrcatW (wszUserConfig,    config_files [i].name.c_str ());
@@ -412,12 +426,11 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
         if (GetFileAttributes (wszUserConfig) != INVALID_FILE_ATTRIBUTES)
           config_files_changed = true;
 
-        MoveFileExW ( wszNewConfig,
-                        wszDefaultConfig,
-                          MOVEFILE_REPLACE_EXISTING );
-        MoveFileExW ( wszUserConfig,
-                        wszOldConfig,
-                          MOVEFILE_REPLACE_EXISTING );
+        SK_MoveFileNoFail ( wszNewConfig,
+                              wszDefaultConfig );
+
+        SK_MoveFileNoFail ( wszUserConfig,
+                              wszOldConfig );
 
         CopyFileW   ( wszDefaultConfig,
                         wszUserConfig,

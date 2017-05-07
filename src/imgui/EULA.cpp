@@ -77,6 +77,10 @@ void
 __stdcall
 SK_ImGui_DrawEULA_PlugIn (LPVOID reserved)
 {
+  // Need a minimal function body to avoid compiler optimization
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
   return;
 }
 
@@ -112,6 +116,11 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   sprintf (szTitle, "%ws Software License Agreement", plugin.c_str ());
 
+
+  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+  const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+
   ImGui::SetNextWindowPosCenter (ImGuiSetCond_Always);
   ImGui::SetNextWindowFocus     ();
 
@@ -119,6 +128,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
                   SK_Steam_PiratesAhoy () != 0x0 );
+
+
+  ImGui::BeginGroup ();
 
   if (pirate)
   {
@@ -138,6 +150,14 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     ImGui::PopStyleColor ();
   }
 
+  ImGui::Separator ();
+  ImGui::EndGroup  ();
+
+
+  ImGui::BeginChild ("EULA_Body",  ImVec2 (0.0f, font_size_multiline * 12), false);
+  ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, 0.0f),                     false, ImGuiWindowFlags_NavFlattened);
+  ImGui::BeginGroup ();
+
   if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
                                         "Overview of Products Licensed"))
   {
@@ -146,7 +166,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     ImGui::PopFont  ();
   }
 
-  ImGui::Separator ();
+  ImGui::Separator  ();
 
   SK_ImGui_DrawEULA_PlugIn (reserved);
 
@@ -241,7 +261,12 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
   }
 
-  ImGui::Separator ();
+  ImGui::EndGroup ();
+  ImGui::EndChild (); // EULA_Body
+  ImGui::EndChild (); // EULA_Body
+
+  ImGui::Separator  ();
+  ImGui::BeginGroup ();
 
   struct show_eula_s {
     bool show;
@@ -294,6 +319,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
     SK_SaveConfig (config_name);
   }
+
+  ImGui::EndGroup ();
+
 
   ImGui::End ();
 }

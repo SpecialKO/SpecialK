@@ -101,6 +101,12 @@ SetWindowPos_Detour(
     _In_     UINT uFlags);
 
 ClipCursor_pfn         ClipCursor_Original         = nullptr;
+GetCursorPos_pfn       GetCursorPos_Original       = nullptr;
+GetCursorInfo_pfn      GetCursorInfo_Original      = nullptr;
+SetCursorPos_pfn       SetCursorPos_Original       = nullptr;
+SendInput_pfn          SendInput_Original          = nullptr;
+mouse_event_pfn        mouse_event_Original        = nullptr;
+
 SetWindowPos_pfn       SetWindowPos_Original       = nullptr;
 SetWindowPlacement_pfn SetWindowPlacement_Original = nullptr;
 MoveWindow_pfn         MoveWindow_Original         = nullptr;
@@ -116,11 +122,9 @@ AdjustWindowRect_pfn   AdjustWindowRect_Original   = nullptr;
 AdjustWindowRectEx_pfn AdjustWindowRectEx_Original = nullptr;
 
 GetSystemMetrics_pfn   GetSystemMetrics_Original   = nullptr;
-GetCursorPos_pfn       GetCursorPos_Original       = nullptr;
-GetCursorInfo_pfn      GetCursorInfo_Original      = nullptr;
 
-GetWindowRect_pfn GetWindowRect_Original = nullptr;
-GetClientRect_pfn GetClientRect_Original = nullptr;
+GetWindowRect_pfn      GetWindowRect_Original      = nullptr;
+GetClientRect_pfn      GetClientRect_Original      = nullptr;
 
 struct window_t {
   DWORD proc_id;
@@ -128,10 +132,6 @@ struct window_t {
 };
 
 sk_window_s       game_window;
-
-SetCursorPos_pfn  SetCursorPos_Original          = nullptr;
-SendInput_pfn     SendInput_Original             = nullptr;
-mouse_event_pfn   mouse_event_Original           = nullptr;
 
 extern bool SK_ImGui_Visible;
 
@@ -2084,7 +2084,7 @@ SK_AdjustWindow (void)
   //     window was moved, it still processes mouse input in a sane way.
   //
 
-  auto DescribeRect = [=](RECT* lpRect) ->
+  auto DescribeRect = [&](RECT* lpRect) ->
   void {
     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
                             lpRect->left, lpRect->top,
@@ -2108,7 +2108,7 @@ SK_AdjustWindow (void)
     RECT clip;
     GetClipCursor (&clip);
 
-    auto DescribeClipRect = [=](const wchar_t* wszName, RECT* lpRect) ->
+    auto DescribeClipRect = [&](const wchar_t* wszName, RECT* lpRect) ->
     void {
       SK_LOG2_EX ( true, ( L"[Cursor Mgr] Clip Rect (%s)", wszName ) );
       DescribeRect (lpRect);
@@ -2270,7 +2270,7 @@ PeekMessageW_Detour (
 
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet /*&& lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0*/)
+  if (bRet && lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return bRet;
@@ -2299,7 +2299,7 @@ PeekMessageA_Detour (
 
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet /*&& lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0*/)
+  if (bRet && lpMsg->hwnd != nullptr && (wRemoveMsg & PM_REMOVE) != 0)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return bRet;
@@ -2353,9 +2353,9 @@ DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  //if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
-    //if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
-      //return 0;
+  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+    if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
+      return 0;
 
   return DispatchMessageW_Original (lpMsg);
 }
@@ -2372,9 +2372,9 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  //if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
-    //if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
-      //return 0;
+  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+    if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
+      return 0;
 
   return DispatchMessageA_Original (lpMsg);
 }
@@ -2388,6 +2388,7 @@ struct {
   int    init     = false;
   int    timer_id = 0x68993;
 } last_mouse;
+
 
 DWORD
 WINAPI
@@ -2409,6 +2410,8 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
         {
           BringWindowToTop    ((HWND)user);
           SetForegroundWindow ((HWND)user);
+          SetActiveWindow     ((HWND)user);
+          SetFocus            ((HWND)user);
 
           CloseHandle (GetCurrentThread ());
 
@@ -2458,6 +2461,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  // If we are forcing a shutdown, then route any messages through the
+  //   default Win32 handler.
   if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
@@ -2526,6 +2531,17 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 #endif
 
 
+  LRESULT
+  WINAPI
+  ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
+                                    WPARAM wParam,
+                                    LPARAM lParam );
+
+  if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+    return game_window.DefProc (uMsg, wParam, lParam);
+
+
+#if 0
   if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
   {
     POINT pt;
@@ -2537,6 +2553,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
   }
+#endif
 
 
   if (config.input.cursor.manage)
@@ -3111,6 +3128,52 @@ SK_InstallWindowHook (HWND hWnd)
   WNDPROC wnd_proc = (WNDPROC)
     game_window.GetWindowLongPtr ( hWnd, GWLP_WNDPROC );
 
+
+  // When ImGui is active, we will do character translation internally
+  //   for any Raw Input or Win32 keydown event -- disable Windows'
+  //     translation from WM_KEYDOWN to WM_CHAR while we are doing this.
+  //
+  SK_CreateDLLHook2 ( L"user32.dll", "TranslateMessage",
+                     TranslateMessage_Detour,
+           (LPVOID*)&TranslateMessage_Original );
+
+
+  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
+                     PeekMessageW_Detour,
+           (LPVOID*)&PeekMessageW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
+                     PeekMessageA_Detour,
+           (LPVOID*)&PeekMessageA_Original );
+
+
+  // Hook as few of these as possible, disrupting the message pump
+  //   when we already have the game's main window hooked is redundant.
+  //
+  //   ** PeekMessage is hooked because The Witness pulls mouse click events
+  //        out of the pump without passing them through its window procedure.
+  //
+#if 0
+  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
+                     GetMessageW_Detour,
+           (LPVOID*)&GetMessageW_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
+                     GetMessageA_Detour,
+           (LPVOID*)&GetMessageA_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
+                     DispatchMessageA_Detour,
+           (LPVOID*)&DispatchMessageA_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
+                     DispatchMessageW_Detour,
+           (LPVOID*)&DispatchMessageW_Original );
+#endif
+
+  MH_ApplyQueued ();
+
+
   game_window.WndProc_Original = nullptr;
 
   wchar_t wszClassName [256] = { L'\0' };
@@ -3140,7 +3203,7 @@ SK_InstallWindowHook (HWND hWnd)
                         (LPVOID *)&game_window.WndProc_Original )
       )
     {
-      MH_EnableHook ((LPVOID)class_proc);
+      MH_QueueEnableHook ((LPVOID)class_proc);
 
       dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
 
@@ -3152,7 +3215,7 @@ SK_InstallWindowHook (HWND hWnd)
                                     (LPVOID *)&game_window.WndProc_Original )
             )
     {
-      MH_EnableHook ((LPVOID)wnd_proc);
+      MH_QueueEnableHook ((LPVOID)wnd_proc);
 
       dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
 
@@ -3176,14 +3239,16 @@ SK_InstallWindowHook (HWND hWnd)
     //else
       //SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
+
     if (game_window.unicode) {
       DWORD dwStyle = GetClassLongW (hWnd, GCL_STYLE);
-      dwStyle &= (~CS_DBLCLKS);
+            dwStyle &= (~CS_DBLCLKS);
       SetClassLongW ( hWnd, GCL_STYLE, dwStyle );
     }
     else {
       DWORD dwStyle = GetClassLongA (hWnd, GCL_STYLE);
-      dwStyle &= (~CS_DBLCLKS);
+            dwStyle &= (~CS_DBLCLKS); // This wreaks havoc with input processing and
+                                      //   I have yet to see a game that legitimately needs it.
       SetClassLongA ( hWnd, GCL_STYLE, dwStyle );
     }
 
@@ -3225,31 +3290,10 @@ SK_InstallWindowHook (HWND hWnd)
     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
   }
 
-  SK_CreateDLLHook2 ( L"user32.dll", "TranslateMessage",
-                     TranslateMessage_Detour,
-           (LPVOID*)&TranslateMessage_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
-                     PeekMessageW_Detour,
-           (LPVOID*)&PeekMessageW_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
-                     GetMessageW_Detour,
-           (LPVOID*)&GetMessageW_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
-                     PeekMessageA_Detour,
-           (LPVOID*)&PeekMessageA_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
-                     GetMessageA_Detour,
-           (LPVOID*)&GetMessageA_Original );
-
-  MH_ApplyQueued ();
 
 
-  SK_InitWindow    (hWnd);
-  //SetClassLongPtrW (hWnd, GCLP_HCURSOR, (LONG_PTR)nullptr);
+  SK_InitWindow (hWnd);
+
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();

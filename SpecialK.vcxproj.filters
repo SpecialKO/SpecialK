@@ -181,6 +181,9 @@
     <Filter Include="Header Files\Update">
       <UniqueIdentifier>{6c5c0f3e-6b89-4600-993c-db87d90083cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Plugins">
+      <UniqueIdentifier>{ebca487d-f1cf-40ca-9c0a-cbca2889bb5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -369,6 +372,9 @@
     <ClInclude Include="include\SpecialK\injection\injection.h">
       <Filter>Header Files\Backends\Injection</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\plugin\plugin_mgr.h">
+      <Filter>Header Files\Plugins</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -535,6 +541,9 @@
     </ClCompile>
     <ClCompile Include="src\injection\injection.cpp">
       <Filter>Source Files\Backends\Injection</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\plugin_mgr.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

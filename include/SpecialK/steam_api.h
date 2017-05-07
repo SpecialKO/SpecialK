@@ -128,7 +128,7 @@ const char* __stdcall SK_SteamAPI_GetFriendName        (uint32_t friend_idx, siz
 
 bool __stdcall SK_SteamAPI_TakeScreenshot           (void);
 bool __stdcall SK_IsSteamOverlayActive              (void);
-bool __stdcall SK_SteamOverlay_GoToURL              (const char* szURL);
+bool __stdcall SK_SteamOverlay_GoToURL              (const char* szURL, bool bUseWindowsShellIfOverlayFails = false);
 
 void    __stdcall SK_SteamAPI_UpdateNumPlayers      (void);
 int32_t __stdcall SK_SteamAPI_GetNumPlayers         (void);

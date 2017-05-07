@@ -23,7 +23,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.6.5"
+#define FAR_VERSION_NUM L"0.5.6.9"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -1615,11 +1615,10 @@ SK_FAR_PSSetShaderResources (
 void
 SK_FAR_InitPlugin (void)
 {
-  if (! SK_IsInjected ())
-    SK_FAR_CheckVersion (nullptr);
-
   SK_SetPluginName (FAR_VERSION_STR);
 
+  if (! SK_IsInjected ())
+    SK_FAR_CheckVersion (nullptr);
 
   SK_CreateFuncHook ( L"ID3D11Device::CreateBuffer",
                         D3D11Dev_CreateBuffer_Override,

@@ -154,10 +154,8 @@ SK::Framerate::Init (void)
 void
 SK::Framerate::Shutdown (void)
 {
-#if 0
-  SK_RemoveHook (pfnSleep);
-  SK_RemoveHook (pfnQueryPerformanceCounter);
-#endif
+  SK_DisableHook (pfnSleep);
+  SK_DisableHook (pfnQueryPerformanceCounter);
 }
 
 SK::Framerate::Limiter::Limiter (double target)

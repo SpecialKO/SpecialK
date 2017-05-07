@@ -174,7 +174,16 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 {
   HMODULE hMod = nullptr;
 
-  hMod = LoadLibraryW_Original ( pwszModule );
+  if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
+  {
+    // In the future, establish queueing capabilities, for now, just pull the DLL in.
+    //
+    //  >> Pass the library load through the original (now hooked) function so that
+    //       anything else that hooks this DLL on-load does not miss its initial load.
+    //
+    if (LoadLibraryW (pwszModule))
+      GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
+  }
 
   LPVOID    pFuncAddr = nullptr;
   MH_STATUS status    = MH_OK;
@@ -249,7 +258,16 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 {
   HMODULE hMod = nullptr;
 
-  hMod = LoadLibraryW_Original ( pwszModule );
+  if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
+  {
+    // In the future, establish queueing capabilities, for now, just pull the DLL in.
+    //
+    //  >> Pass the library load through the original (now hooked) function so that
+    //       anything else that hooks this DLL on-load does not miss its initial load.
+    //
+    if (LoadLibraryW (pwszModule))
+      GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
+  }
 
   LPVOID    pFuncAddr = nullptr;
   MH_STATUS status    = MH_OK;
@@ -328,8 +346,16 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 {
   HMODULE hMod = nullptr;
 
-  // First try to get (and permanently hold) a reference to the hooked module
-  hMod = LoadLibraryW_Original ( pwszModule );
+  if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
+  {
+    // In the future, establish queueing capabilities, for now, just pull the DLL in.
+    //
+    //  >> Pass the library load through the original (now hooked) function so that
+    //       anything else that hooks this DLL on-load does not miss its initial load.
+    //
+    if (LoadLibraryW (pwszModule))
+      GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
+  }
 
   LPVOID    pFuncAddr = nullptr;
   MH_STATUS status    = MH_OK;
@@ -601,6 +627,7 @@ SK_Init_MinHook (void)
 
   if ((status = MH_Initialize ()) != MH_OK)
   {
+// Logging will generally not be started at this point
 #if 0
     dll_log.Log ( L"[ Min Hook ] Failed to Initialize MinHook Library! "
                   L"(Status: \"%hs\")",
@@ -619,9 +646,12 @@ SK_UnInit_MinHook (void)
 
   if ((status = MH_Uninitialize ()) != MH_OK)
   {
+// Logging will generally be shut-down by this point
+#if 0
     dll_log.Log ( L"[ Min Hook ] Failed to Uninitialize MinHook Library! "
                   L"(Status: \"%hs\")",
                     MH_StatusToString (status) );
+#endif
   }
 
   return status;

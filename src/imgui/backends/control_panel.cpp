@@ -487,6 +487,9 @@ void
 __stdcall
 SK_PlugIn_ControlPanelWidget (void)
 {
+  // Needs a function body for hooking -- otherwise compiler eliminates dead code :(
+  ImGuiIO& io =
+    ImGui::GetIO ();
 }
 
 __declspec (dllexport)
@@ -582,7 +585,7 @@ SK_ImGui_ControlPanel (void)
   ImGui::PopStyleColor  ();
 
 
-  auto DisplayMenu = [io](void) -> void {
+  auto DisplayMenu = [&](void) -> void {
     //if (ImGui::MenuItem ("Force-Inject Steam Overlay", "", nullptr))
       //SK_Steam_LoadOverlayEarly ();
 
@@ -774,7 +777,7 @@ SK_ImGui_ControlPanel (void)
 
       const ULONGLONG _Hour = 36000000000ULL;
 
-      auto GetFrequencyPreset = [=] (void) -> int {
+      auto GetFrequencyPreset = [&] (void) -> int {
         uint64_t freq = SK_Version_GetUpdateFrequency (nullptr);
 
         if (freq == 0 || freq == MAXULONGLONG)
@@ -845,7 +848,7 @@ SK_ImGui_ControlPanel (void)
       ImGui::TreePush ("");
       {
         if (ImGui::MenuItem ("\"Kaldaien's Mod\"", "Steam Group", &selected, true))
-          SK_SteamOverlay_GoToURL ("http://steamcommunity.com/groups/SpecialK_Mods");
+          SK_SteamOverlay_GoToURL ("http://steamcommunity.com/groups/SpecialK_Mods", true);
       }
       ImGui::TreePop ();
 
@@ -857,7 +860,7 @@ SK_ImGui_ControlPanel (void)
                            )
          )
       {
-        SK_SteamOverlay_GoToURL (SK_WideCharToUTF8 (current_branch.release.notes).c_str ());
+        SK_SteamOverlay_GoToURL (SK_WideCharToUTF8 (current_branch.release.notes).c_str (), true);
       }
 
       if (ImGui::MenuItem ("About this Software...", "", &selected))
@@ -1969,7 +1972,7 @@ extern float SK_ImGui_PulseNav_Strength;
       //
       // If we did this from the render thread, we would deadlock most games
       //
-      auto DeferCommand = [=] (const char* szCommand) ->
+      auto DeferCommand = [&] (const char* szCommand) ->
         void
           {
             CreateThread ( nullptr,
@@ -3653,7 +3656,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   POINT orig_pos;
   GetCursorPos_Original  (&orig_pos);
-  SK_ImGui_Cursor.update ();  
+  SK_ImGui_Cursor.update ();
   SetCursorPos_Original  (orig_pos.x, orig_pos.y);
 
   return 0;

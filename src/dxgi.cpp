@@ -868,7 +868,7 @@ SK_DXGI_BeginHooking (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-#if 0
+#if 1
     HANDLE hHookInitDXGI =
       (HANDLE)
         _beginthreadex ( nullptr,
@@ -4396,8 +4396,8 @@ HookDXGI (LPVOID user)
 
   DXGI_SWAP_CHAIN_DESC desc = { };
 
-  desc.BufferDesc.Width                   = 800;
-  desc.BufferDesc.Height                  = 600;
+  desc.BufferDesc.Width                   = 640;
+  desc.BufferDesc.Height                  = 480;
 
   desc.BufferDesc.RefreshRate.Numerator   = 0;
   desc.BufferDesc.RefreshRate.Denominator = 0;
@@ -4417,7 +4417,7 @@ HookDXGI (LPVOID user)
     CreateWindowW ( L"STATIC", L"Dummy DXGI Window",
                       WS_POPUP | WS_MINIMIZEBOX,
                         CW_USEDEFAULT, CW_USEDEFAULT,
-                          800, 600, 0,
+                          640, 480, 0,
                             nullptr, nullptr, 0x00 );
 
   desc.OutputWindow = hwnd;
@@ -4449,7 +4449,7 @@ HookDXGI (LPVOID user)
 
   extern LPVOID pfnD3D11CreateDevice;
 
-#if 0
+#if 1
   HRESULT hr =
     ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
       0,
@@ -4515,7 +4515,7 @@ HookDXGI (LPVOID user)
 
   if (success)  CoUninitialize ();
 
-  //DestroyWindow (hwnd);
+  DestroyWindow (hwnd);
 
   InterlockedExchange (&__dxgi_ready, TRUE);
 

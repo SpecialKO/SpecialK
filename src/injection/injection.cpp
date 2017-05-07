@@ -29,8 +29,11 @@
 
 #include <unordered_set>
 
-static HHOOK g_hHookCBT   = nullptr;
-static HHOOK g_hHookShell = nullptr; // In theory, this is a lighter-weight hook on a game oriented machine
+//#pragma data_seg (".SK_Hooks")
+HHOOK g_hHookCBT   = nullptr;
+HHOOK g_hHookShell = nullptr; // In theory, this is a lighter-weight hook on a game oriented machine
+//#pragma data_seg ()
+//#pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
 extern volatile ULONG __SK_HookContextOwner;
 
@@ -40,7 +43,7 @@ ShellProc ( _In_ int    nCode,
             _In_ WPARAM wParam,
             _In_ LPARAM lParam )
 {
-  return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+  return CallNextHookEx(g_hHookShell, nCode, wParam, lParam);
 }
 
 

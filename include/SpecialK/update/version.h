@@ -21,6 +21,16 @@
 #ifndef __SK__Update__Version_H__
 #define __SK__Update__Version_H__
 
+
+#include <string>
+#include <map>
+
+// [!!] Can't DLL export these, they return a C++ string
+std::wstring SK_SYS_GetInstallPath        (void);
+std::wstring SK_Version_GetRepoIniPath    (void);
+std::wstring SK_Version_GetInstallIniPath (void);
+
+
 extern bool
 __stdcall
 SK_FetchVersionInfo1 (const wchar_t* wszProduct = L"SpecialK", bool force = false);

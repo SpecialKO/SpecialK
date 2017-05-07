@@ -276,6 +276,9 @@ SK_Input_HookHID (void)
 
   if (! InterlockedExchangeAdd (&hooked, 0))
   {
+    SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
+                L"   Input  " );
+
     SK_CreateDLLHook2 ( L"HID.DLL", "HidP_GetData",
                           HidP_GetData_Detour,
                 (LPVOID*)&HidP_GetData_Original );
@@ -311,9 +314,6 @@ SK_Input_PreHookHID (void)
 
   if (tests [0].used)// || GetModuleHandle (L"hid.dll"))
   {
-    SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
-                L"   Input  " );
-
     SK_Input_HookHID ();
   }
 }
@@ -925,6 +925,9 @@ SK_Input_HookDI8 (void)
 
   if (! InterlockedExchangeAdd (&hooked, 0))
   {
+    SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
+                  L"   Input  " );
+
     SK_CreateDLLHook ( L"dinput8.dll",
                         "DirectInput8Create",
                         DirectInput8Create_Detour,
@@ -949,9 +952,6 @@ SK_Input_PreHookDI8 (void)
 
     if (tests [0].used || tests [1].used)// || GetModuleHandle (L"dinput8.dll"))
     {
-      SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
-                  L"   Input  " );
-
       SK_Input_HookDI8 ();
     }
   }
@@ -1634,13 +1634,15 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 {
   bool handled = false;
 
-  if (true)//lpMsg->hwnd == game_window.hWnd)
+  //if (lpMsg->hwnd == game_window.hWnd)
   {
     switch (lpMsg->message)
     {
       case WM_SETCURSOR:
       {
-        SK_ImGui_Cursor.update ();
+        if (lpMsg->hwnd == game_window.hWnd)
+          SK_ImGui_Cursor.update();
+
         return false;
       } break;
 
@@ -1696,6 +1698,8 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_XBUTTONDBLCLK:
       case WM_XBUTTONDOWN:
       case WM_XBUTTONUP:
+      case WM_MOUSEMOVE:
+      case WM_MOUSEWHEEL:
       {
         ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 

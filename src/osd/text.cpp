@@ -413,55 +413,7 @@ SKX_DrawExternalOSD (const char* szAppName, const char* szText)
 }
 
 
-//Stupid Hack, rewrite me... (IN PROGRESS - see isPlugin below)
-static bool isArkhamKnight    = false;
-static bool isTalesOfZestiria = false;
-static bool isFallout4        = false;
-static bool isNieRAutomata    = false;
-static bool isDarkSouls3      = false;
-static bool isDivinityOrigSin = false;
-
-static bool isPlugin          = false;
-
-
-// TODO: Move this into CORE or somehwere else, the "plugin" system
-//        needs a proper formal design.
-std::wstring plugin_name = L"";
-
-// FIXME: For the love of @#$% do not pass std::wstring objects across
-//          DLL boundaries !!
-void
-__stdcall
-SK_SetPluginName (std::wstring name)
-{
-  plugin_name = name;
-  isPlugin    = true;
-}
-
-void
-__stdcall
-SKX_SetPluginName (const wchar_t* wszName)
-{
-  plugin_name = wszName;
-  isPlugin    = true;
-}
-
-std::wstring
-__stdcall
-SK_GetPluginName (void)
-{
-  if (isPlugin)
-    return plugin_name;
-
-  return L"Special K";
-}
-
-bool
-__stdcall
-SK_HasPlugin (void)
-{
-  return isPlugin;
-}
+#include <SpecialK/plugin/plugin_mgr.h>
 
 // This is a terrible design, but I don't care.
 extern void
@@ -584,7 +536,7 @@ SK_DrawOSD (void)
     else if (isNieRAutomata)
     {
       OSD_PRINTF "%ws   %ws\n\n",
-                 plugin_name.c_str (), time
+                 SK_GetPluginName ().c_str (), time
       OSD_END
     }
 
@@ -605,14 +557,14 @@ SK_DrawOSD (void)
     else if (isDarkSouls3)
     {
       OSD_PRINTF "%ws   %ws\n\n",
-                 plugin_name.c_str (), time
+                 SK_GetPluginName ().c_str (), time
       OSD_END
     }
 
-    else if (isPlugin)
+    else if (SK_HasPlugin  ())
     {
       OSD_PRINTF "%ws   %ws\n\n",
-                 plugin_name.c_str (), time
+                 SK_GetPluginName ().c_str (), time
       OSD_END
     }
 
