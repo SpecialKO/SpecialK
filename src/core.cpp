@@ -1521,8 +1521,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_Steam_LoadOverlayEarly ();
 
 
-  extern void SK_Input_PreInit (void); 
-  SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
   SK_HookWinAPI       ();
   SK::Framerate::Init ();
 

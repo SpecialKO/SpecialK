@@ -1649,40 +1649,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       // TODO: Does this message have an HWND always?
       case WM_DEVICECHANGE:
       {
-        switch (lpMsg->wParam)
-        {
-          case DBT_DEVICEARRIVAL:
-          {
-            DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lpMsg->lParam;
-
-            if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-            {
-              if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-                   config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
-              {
-                dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
-                return true;
-              }
-            }
-          } break;
-
-          case DBT_DEVICEQUERYREMOVE:
-          case DBT_DEVICEREMOVEPENDING:
-          case DBT_DEVICEREMOVECOMPLETE:
-          {
-            DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lpMsg->lParam;
-
-            if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-            {
-              if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-                   config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
-              {
-                dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
-                return true;
-              }
-            }
-          } break;
-        }
+        return ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
       } break;
 
       // Pre-Dispose These Mesages (fixes The Witness)

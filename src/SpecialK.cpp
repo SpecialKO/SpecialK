@@ -606,6 +606,9 @@ DllMain ( HMODULE hModule,
       SK_Init_MinHook       ();
       SK_PreInitLoadLibrary ();
 
+      extern void SK_Input_PreInit (void); 
+      SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
+
       // It's too early to do this for the wrapper version, the config file has not
       //   been loaded yet.
       if (SK_IsInjected () && (! bInjectionTarget))

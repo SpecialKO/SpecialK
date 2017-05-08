@@ -11360,14 +11360,56 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
   return -1;
 }
 
+#include <dbt.h>
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
                                   WPARAM wParam,
                                   LPARAM lParam )
 {
+  if (msg == WM_DEVICECHANGE)
+  {
+    switch (wParam)
+    {
+      case DBT_DEVICEARRIVAL:
+      {
+        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
+
+        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+        {
+          if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+               config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+          {
+            dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
+            return true;
+          }
+        }
+      } break;
+
+      case DBT_DEVICEQUERYREMOVE:
+      case DBT_DEVICEREMOVEPENDING:
+      case DBT_DEVICEREMOVECOMPLETE:
+      {
+        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
+
+        if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+        {
+          if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+               config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+          {
+            dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
+            return true;
+          }
+        }
+      } break;
+    }
+  }
+
+
   if (GetActiveWindow () != game_window.hWnd && GetActiveWindow () != nullptr)
     return 0;
+
 
   static POINTS last_pos;
 
