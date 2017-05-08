@@ -98,6 +98,11 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   ImGuiIO& io =
     ImGui::GetIO ();
 
+  struct show_eula_s {
+    bool show;
+    bool never_show_again;
+  };
+
   static float last_width  = -1;
   static float last_height = -1;
 
@@ -116,6 +121,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   sprintf (szTitle, "%ws Software License Agreement", plugin.c_str ());
 
+  if (((show_eula_s *)reserved)->show)
+    ImGui::OpenPopup (szTitle);
 
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
@@ -124,8 +131,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   ImGui::SetNextWindowPosCenter (ImGuiSetCond_Always);
   ImGui::SetNextWindowFocus     ();
 
-  ImGui::Begin (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
-
+  if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
+  {
   bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
                   SK_Steam_PiratesAhoy () != 0x0 );
 
@@ -268,11 +275,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   ImGui::Separator  ();
   ImGui::BeginGroup ();
 
-  struct show_eula_s {
-    bool show;
-    bool never_show_again;
-  };
-
   ImGui::Columns  (2, "", false);
   ImGui::TreePush (   "");
 
@@ -306,7 +308,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   ImGui::SameLine ();
 
-  if (ImGui::Button (" Accept ")) {
+  if (ImGui::Button (" Accept ") && (! pirate)) {
+    ImGui::CloseCurrentPopup ();
+
     open = false;
     ((show_eula_s *)reserved)->show = open;
 
@@ -323,5 +327,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   ImGui::EndGroup ();
 
 
-  ImGui::End ();
+  ImGui::EndPopup ();
+  }
 }

@@ -2438,7 +2438,7 @@ far_game_state_s::capFPS (void)
   else {
     // Save and later restore FPS
     //
-    //   Avoid using Speical K's command processor because that
+    //   Avoid using Special K's command processor because that
     //     would store this value persistently.
     __FAR_TargetFPS = SK::Framerate::GetLimiter ()->get_limit ();
                       SK::Framerate::GetLimiter ()->set_limit (59.94);

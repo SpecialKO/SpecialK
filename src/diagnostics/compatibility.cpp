@@ -211,6 +211,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
   //   not good. Hash the string and compare it in the future.
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
        StrStrIW (wszModName, L"Activation")          ||
+       StrStrIW (wszModName, L"ReShade")             ||
        StrStrIW (wszModName, L"rxcore")              ||
        StrStrIW (wszModName, L"RTSSHooks")           ||
        StrStrIW (wszModName, L"GeDoSaTo")            ||
@@ -283,6 +284,13 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                              lpFileName,
                                &hModDontCare );
     }
+
+    if (StrStrIA (lpFileName, "OpenCL")) {
+      HMODULE hModDontCare;
+      GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_PIN,
+                             lpFileName,
+                               &hModDontCare );
+    }
   }
 }
 
@@ -339,6 +347,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
   // This is silly, this many string comparions per-load is
   if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
        StrStrIW (wszModName, L"Activation")          ||
+       StrStrIW (wszModName, L"ReShade")             ||
        StrStrIW (wszModName, L"rxcore")              ||
   //   not good. Hash the string and compare it in the future.
        StrStrIW (wszModName, L"RTSSHooks")           ||
@@ -407,6 +416,13 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
     if (StrStrIW (lpFileName, L"d3dcompiler_")) {
+      HMODULE hModDontCare;
+      GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
+                             lpFileName,
+                               &hModDontCare );
+    }
+
+    if (StrStrIW (lpFileName, L"OpenCL")) {
       HMODULE hModDontCare;
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
                              lpFileName,

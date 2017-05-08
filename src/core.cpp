@@ -1673,7 +1673,6 @@ SK_ShutdownCore (const wchar_t* backend)
   SymCleanup (GetCurrentProcess ());
 
   SK_ShutdownWMI    ();
-  SK_UnInit_MinHook ();
 
   // Breakbad Disable Disclaimer; pretend the log was empty :)
   if (crash_log.lines == 1)
@@ -1960,6 +1959,13 @@ SK_BeginBufferSwap (void)
       extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
                    SK_ImGui_DrawFrame (       0x00,          nullptr );
     }
+  }
+
+  extern uint32_t WINAPI SK_Steam_PiratesAhoy (void);
+  if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Visible))
+  {
+    extern void SK_ImGui_Toggle (void);
+                SK_ImGui_Toggle ();
   }
 }
 

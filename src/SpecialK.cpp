@@ -683,6 +683,8 @@ DllMain ( HMODULE hModule,
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
+          SK_UnInit_MinHook ();
+
           ret =
             SK_Detach (SK_GetDLLRole ());
           TlsFree     (__SK_TLS_INDEX);

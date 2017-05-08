@@ -104,21 +104,8 @@ SK_CreateFuncHook ( LPCWSTR pwszFuncName,
                         MH_StatusToString (status) );
   }
 
-  else if (status == MH_ERROR_ALREADY_CREATED)
-  {
-    if (MH_OK == (status = MH_RemoveHook (pTarget)))
-    {
-      dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%s'... software "
-                    L"is probably going to explode!", pwszFuncName );
-
-      return SK_CreateFuncHook (pwszFuncName, pTarget, pDetour, ppOriginal);
-    } else
-      dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%s' "
-                    L"[Address: %04ph]!  (Status: \"%hs\")",
-                      pwszFuncName,
-                        pTarget,
-                          MH_StatusToString (status) );
-  }
+  if (MH_ERROR_ALREADY_CREATED == status)
+    status = MH_OK;
 
   return status;
 }
@@ -147,21 +134,8 @@ SK_CreateFuncHookEx ( LPCWSTR pwszFuncName,
                           MH_StatusToString (status) );
   }
 
-  else if (status == MH_ERROR_ALREADY_CREATED)
-  {
-    if (MH_OK == (status = MH_RemoveHookEx (pTarget, idx)))
-    {
-      dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%s'... software "
-                    L"is probably going to explode!", pwszFuncName );
-
-      return SK_CreateFuncHookEx (pwszFuncName, pTarget, pDetour, ppOriginal, idx);
-    } else
-      dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%s' "
-                    L"[Address: %04ph]!  (Status: \"%hs\")",
-                      pwszFuncName,
-                        pTarget,
-                          MH_StatusToString (status) );
-  }
+  if (MH_ERROR_ALREADY_CREATED == status)
+    status = MH_OK;
 
   return status;
 }
@@ -201,7 +175,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                           ppOriginal );
   }
 
-  if (status != MH_OK)
+  if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
   {
     if (status == MH_ERROR_ALREADY_CREATED)
     {
@@ -286,38 +260,8 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                           ppOriginal );
   }
 
-  if (status != MH_OK)
+  if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
   {
-    if (status == MH_ERROR_ALREADY_CREATED)
-    {
-      if (ppOriginal == nullptr) {
-        SH_Introspect ( pFuncAddr,
-                          SH_TRAMPOLINE,
-                            ppOriginal );
-
-        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
-                      L"(Status: \"%hs\")",
-                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                          pwszModule,
-                            MH_StatusToString (status) );
-
-        return status;
-      }
-
-      else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
-      {
-        dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%hs'... software "
-                      L"is probably going to explode!", pszProcName );
-
-        return SK_CreateDLLHook2 (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
-      } else
-        dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%hs' "
-                      L"[Address: %04ph]!  (Status: \"%hs\")",
-                        pszProcName,
-                          pFuncAddr,
-                            MH_StatusToString (status) );
-    }
-
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
                     (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
@@ -373,34 +317,8 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                           ppOriginal );
   }
 
-  if (status != MH_OK)
+  if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
   {
-    // Silently ignore this problem
-    if (status == MH_ERROR_ALREADY_CREATED && ppOriginal != nullptr)
-    {
-      if (ppFuncAddr != nullptr)
-        *ppFuncAddr = pFuncAddr;
-      return MH_OK;
-    }
-
-    if (status == MH_ERROR_ALREADY_CREATED)
-    {
-      if (ppOriginal == nullptr)
-      {
-        SH_Introspect ( pFuncAddr,
-                          SH_TRAMPOLINE,
-                            ppOriginal );
-
-        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
-                      L"(Status: \"%hs\")",
-                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                          pwszModule,
-                            MH_StatusToString (status) );
-
-        return status;
-      }
-    }
-
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
                     (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
@@ -485,7 +403,7 @@ SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
           pDetour,
             ppOriginal );
 
-  if (ret == MH_OK)
+  if (ret == MH_OK || ret == MH_ERROR_ALREADY_CREATED)
     ret = MH_QueueEnableHook (ppVFTable [dwOffset]);
 
   else

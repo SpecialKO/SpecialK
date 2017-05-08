@@ -1202,11 +1202,6 @@ SK_DrawOSD (void)
 
   extern int gpu_prio;
 
-  OSD_B_PRINTF "\n  GPU Priority: %+1i\n",
-    gpu_prio
-  OSD_END
-
-
   if (disk_stats.booting)
   {
     OSD_D_PRINTF "\n  Starting Disk Monitor...\n" OSD_END

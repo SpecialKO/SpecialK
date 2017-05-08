@@ -72,15 +72,6 @@ struct sk_config_t
 
 
   struct {
-    bool   use            = false;
-
-    struct {
-      BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'B', 0 };
-    } keys;
-  } load_balance;
-
-
-  struct {
     bool   show           = true;
 
     bool   pump           = false;

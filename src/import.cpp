@@ -54,6 +54,29 @@ SK_GetDLL (void);
 typedef BOOL (WINAPI *SKPlugIn_Init_pfn)     (HMODULE hSpecialK);
 typedef BOOL (WINAPI *SKPlugIn_Shutdown_pfn) (LPVOID  user);
 
+
+bool
+SK_IsDLLReShade (HMODULE hMod)
+{
+  if (GetProcAddress (hMod, "WSARecv") && GetProcAddress (hMod, "CreateDXGIFactory2") && GetProcAddress (hMod, "SetCursorPos"))
+  {
+    return true;
+  }
+
+  return false;
+}
+
+//
+// EMERGENCY Fix-Up for ReShade infinite recursion in D3D11
+//
+void
+SK_FIXUP_ReShade (HMODULE hModReShade)
+{
+  extern void SK_D3D11_FixReShade (HMODULE hModReShade);
+
+  SK_D3D11_FixReShade (hModReShade);
+}
+
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
 
@@ -139,6 +162,9 @@ SK_LoadEarlyImports64 (void)
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
+                if (SK_IsDLLReShade (imports [i].hLibrary))
+                  SK_FIXUP_ReShade (imports [i].hLibrary);
+
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
                   imports [i].hLibrary = SK_InitPlugIn64 (imports [i].hLibrary);
 
@@ -202,6 +228,9 @@ SK_LoadPlugIns64 (void)
               if (imports [i].hLibrary != NULL) {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
+
+                if (SK_IsDLLReShade (imports [i].hLibrary))
+                  SK_FIXUP_ReShade (imports [i].hLibrary);
 
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
                   imports [i].hLibrary = SK_InitPlugIn64 (imports [i].hLibrary);
@@ -419,6 +448,9 @@ SK_LoadEarlyImports32 (void)
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
+                if (SK_IsDLLReShade (imports [i].hLibrary))
+                  SK_FIXUP_ReShade (imports [i].hLibrary);
+
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
                   imports [i].hLibrary = SK_InitPlugIn32 (imports [i].hLibrary);
 
@@ -482,6 +514,9 @@ SK_LoadPlugIns32 (void)
               if (imports [i].hLibrary != NULL) {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
+
+                if (SK_IsDLLReShade (imports [i].hLibrary))
+                  SK_FIXUP_ReShade (imports [i].hLibrary);
 
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
                   imports [i].hLibrary = SK_InitPlugIn32 (imports [i].hLibrary);

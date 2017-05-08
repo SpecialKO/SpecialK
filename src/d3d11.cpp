@@ -374,90 +374,6 @@ extern volatile DWORD SK_D3D11_init_tid;
 
 HRESULT
 WINAPI
-D3D11CreateDevice_Detour (
-  _In_opt_                            IDXGIAdapter         *pAdapter,
-                                      D3D_DRIVER_TYPE       DriverType,
-                                      HMODULE               Software,
-                                      UINT                  Flags,
-  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
-                                      UINT                  FeatureLevels,
-                                      UINT                  SDKVersion,
-  _Out_opt_                           ID3D11Device        **ppDevice,
-  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
-  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
-{
-  DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
-
-  // Even if the game doesn't care about the feature level, we do.
-  D3D_FEATURE_LEVEL ret_level;
-  ID3D11Device*     ret_device;
-
-  dll_log.LogEx ( true,
-                    L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
-                      FeatureLevels,
-                        SK_DXGI_FeatureLevelsToStr (
-                          FeatureLevels,
-                            (DWORD *)pFeatureLevels
-                        ).c_str ()
-                );
-
-  // Optionally Enable Debug Layer
-  if (InterlockedAdd (&__d3d11_ready, 0))
-  {
-    if (config.render.dxgi.debug_layer && (! (Flags & D3D11_CREATE_DEVICE_DEBUG)))
-    {
-      SK_LOG0 ( ( L" ==> Enabling D3D11 Debug layer" ),
-                  L"  D3D 11  " );
-      Flags |= D3D11_CREATE_DEVICE_DEBUG;
-    }
-  }
-
-  else
-  {
-    // CreateDevice may implicitly be called from d3d11.dll when DeviceAndSwapChain are,
-    //   we don't need to wait for initialization for this special case.
-    if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") && SK_GetCallingDLL () != SK_GetDLL ())
-      WaitForInitDXGI ();
-  }
-
-  //
-  // DXGI Adapter Override (for performance)
-  //
-
-  SK_DXGI_AdapterOverride ( &pAdapter, &DriverType );
-
-  HRESULT res;
-
-  DXGI_CALL(res, 
-    D3D11CreateDevice_Import (pAdapter,
-                              DriverType,
-                              Software,
-                              Flags,
-                              pFeatureLevels,
-                              FeatureLevels,
-                              SDKVersion,
-                              &ret_device,
-                              &ret_level,
-                              ppImmediateContext));
-
-  if (SUCCEEDED (res))
-  {
-    dwRenderThread = GetCurrentThreadId ();
-
-    SK_D3D11_SetDevice ( &ret_device, ret_level );
-  }
-
-  if (ppDevice != nullptr)
-    *ppDevice = ret_device;
-
-  if (pFeatureLevel != nullptr)
-    *pFeatureLevel = ret_level;
-
-  return res;
-}
-
-HRESULT
-WINAPI
 D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                       D3D_DRIVER_TYPE        DriverType,
                                       HMODULE                Software,
@@ -632,6 +548,25 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     *pFeatureLevel = ret_level;
 
   return res;
+}
+
+HRESULT
+WINAPI
+D3D11CreateDevice_Detour (
+  _In_opt_                            IDXGIAdapter         *pAdapter,
+                                      D3D_DRIVER_TYPE       DriverType,
+                                      HMODULE               Software,
+                                      UINT                  Flags,
+  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
+                                      UINT                  FeatureLevels,
+                                      UINT                  SDKVersion,
+  _Out_opt_                           ID3D11Device        **ppDevice,
+  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
+  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
+{
+  DXGI_LOG_CALL_0 (L"D3D11CreateDevice");
+
+  return D3D11CreateDeviceAndSwapChain_Detour (pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, nullptr, nullptr, ppDevice, pFeatureLevel, ppImmediateContext);
 }
 
 
@@ -3083,4 +3018,38 @@ HookD3D11 (LPVOID user)
     CoUninitialize ();
 
   return 0;
+}
+
+
+HRESULT
+WINAPI
+ReShade_D3D11CreateDevice_Detour (
+  _In_opt_                            IDXGIAdapter         *pAdapter,
+                                      D3D_DRIVER_TYPE       DriverType,
+                                      HMODULE               Software,
+                                      UINT                  Flags,
+  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
+                                      UINT                  FeatureLevels,
+                                      UINT                  SDKVersion,
+  _Out_opt_                           ID3D11Device        **ppDevice,
+  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
+  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
+{
+  return D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags, pFeatureLevels,
+                                                FeatureLevels, SDKVersion, nullptr, nullptr, ppDevice, pFeatureLevel,
+                                                ppImmediateContext );
+}
+
+void
+SK_D3D11_FixReShade (HMODULE hModReShade)
+{
+//  SK_LOG0 ( (L"Fixing Potential ReShade Infinite Recursion (D3D11CreateDevice)"),
+//             L"ReShadeFix" );
+//
+//  LPVOID dontcare = nullptr;
+//
+//  SK_CreateFuncHook (     L"ReShade D3D11CreateDevice",
+//      GetProcAddress (hModReShade, "D3D11CreateDevice"),
+//                     ReShade_D3D11CreateDevice_Detour,
+//                          (LPVOID *)&dontcare );
 }

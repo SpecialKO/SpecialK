@@ -765,9 +765,6 @@ public:
 
   bool InitSteamAPI (HMODULE hSteamDLL)
   {
-    if (config.steam.silent)
-      return false;
-
     if (SteamAPI_InitSafe == nullptr)
     {
       SteamAPI_InitSafe =
@@ -3881,8 +3878,8 @@ SK_HookSteamAPI (void)
 #endif
   steam_size = SK_GetFileSize (wszSteamAPI);
 
-  if (config.steam.silent)
-    return;
+  //if (config.steam.silent)
+  //  return;
 
   if (! GetModuleHandle (wszSteamAPI))
     return;
@@ -4422,7 +4419,8 @@ SK_Steam_PiratesAhoy (void)
   // CPY
   if (steam_ctx.User () != nullptr)
   {
-    if (steam_ctx.User ()->GetSteamID ().ConvertToUint64 () == 18295873490452480 << 4)
+    if ( steam_ctx.User ()->GetSteamID ().ConvertToUint64 () == 18295873490452480 << 4 ||
+         steam_ctx.User ()->GetSteamID ().ConvertToUint64 () == 25520399320093309  * 3 )
       verdict = 0x1;
   }
 
@@ -4432,8 +4430,11 @@ SK_Steam_PiratesAhoy (void)
   decided = true;
 
   // User opted out of Steam enhancement, no further action necessary
-  if (config.steam.silent)
+  if (config.steam.silent && verdict)
+  {
+    SK_SelfDestruct ();
     verdict = 0x00;
+  }
 
   return verdict;
 }

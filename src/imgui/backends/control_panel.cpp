@@ -3692,7 +3692,7 @@ SK_ImGui_Toggle (void)
                       SK_Steam_PiratesAhoy () != 0x0 );
       if (pirate)
       {
-        if (dwLastTime == 0)
+        if (dwLastTime < timeGetTime () - 1000)
         {
           dwLastTime             = timeGetTime ();
 

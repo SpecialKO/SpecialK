@@ -2531,16 +2531,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 #endif
 
 
-  LRESULT
-  WINAPI
-  ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
-                                    WPARAM wParam,
-                                    LPARAM lParam );
-
-  if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-    return game_window.DefProc (uMsg, wParam, lParam);
-
-
 #if 0
   if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
   {
@@ -3002,6 +2992,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
+  LRESULT
+  WINAPI
+  ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
+                                    WPARAM wParam,
+                                    LPARAM lParam );
+
+  if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+    return game_window.DefProc (uMsg, wParam, lParam);
+
+
   //
   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
   //
@@ -3153,7 +3153,6 @@ SK_InstallWindowHook (HWND hWnd)
   //   ** PeekMessage is hooked because The Witness pulls mouse click events
   //        out of the pump without passing them through its window procedure.
   //
-#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
                      GetMessageW_Detour,
            (LPVOID*)&GetMessageW_Original );
@@ -3162,6 +3161,7 @@ SK_InstallWindowHook (HWND hWnd)
                      GetMessageA_Detour,
            (LPVOID*)&GetMessageA_Original );
 
+#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
                      DispatchMessageA_Detour,
            (LPVOID*)&DispatchMessageA_Original );

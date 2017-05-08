@@ -11366,7 +11366,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
                                   WPARAM wParam,
                                   LPARAM lParam )
 {
-  if (GetActiveWindow () != game_window.hWnd)
+  if (GetActiveWindow () != game_window.hWnd && GetActiveWindow () != nullptr)
     return 0;
 
   static POINTS last_pos;
