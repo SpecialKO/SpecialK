@@ -116,6 +116,8 @@ ShellProc ( _In_ int    nCode,
                        if (msg.message == g_uiBroadcastMsg)
                        {
                          DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
+                         DestroyWindow  (hWndBroadcastRecipient);
+
                          FreeLibraryAndExitThread (hModHookInstance, 0x00);
                        }
 
@@ -129,6 +131,7 @@ ShellProc ( _In_ int    nCode,
                    break;
                }
 
+               DestroyWindow            (hWndBroadcastRecipient);
                FreeLibraryAndExitThread (hModHookInstance, 0x00);
 
                return 0;
