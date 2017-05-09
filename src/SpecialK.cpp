@@ -600,11 +600,17 @@ DllMain ( HMODULE hModule,
         // We reserve the right to deny attaching the DLL, this will generally
         //   happen if a game does not opt-in to system wide injection.
         if (! SK_EstablishDllRole (hModule))
-          return FALSE;
+          return TRUE;
       }
 
       SK_Init_MinHook       ();
       SK_PreInitLoadLibrary ();
+
+
+      if (config.steam.preload_overlay) {
+        extern bool SK_Steam_LoadOverlayEarly (void);
+        SK_Steam_LoadOverlayEarly ();
+      }
 
       extern void SK_Input_PreInit (void); 
       SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
@@ -686,8 +692,6 @@ DllMain ( HMODULE hModule,
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
-          SK_UnInit_MinHook ();
-
           ret =
             SK_Detach (SK_GetDLLRole ());
           TlsFree     (__SK_TLS_INDEX);
@@ -699,7 +703,7 @@ DllMain ( HMODULE hModule,
         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
       //}
 
-      return ret;
+      //return ret;
     } break;
 
 

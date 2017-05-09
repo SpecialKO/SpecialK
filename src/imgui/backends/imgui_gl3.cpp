@@ -399,6 +399,17 @@ ImGui_ImplGL3_NewFrame (void)
 
   io.KeySuper  = false;
 
+
+  // For games that hijack the mouse cursor using Direct Input 8.
+  //
+  //  -- Acquire actually means release their exclusive ownership : )
+  //
+  if (SK_ImGui_WantMouseCapture ())
+    SK_Input_DI8Mouse_Acquire ();
+  else
+    SK_Input_DI8Mouse_Release ();
+
+
   SK_ImGui_PollGamepad ();
 
   // Start the frame

@@ -29,13 +29,18 @@
 
 #include <unordered_set>
 
-//#pragma data_seg (".SK_Hooks")
-HHOOK g_hHookCBT   = nullptr;
-HHOOK g_hHookShell = nullptr; // In theory, this is a lighter-weight hook on a game oriented machine
-//#pragma data_seg ()
-//#pragma comment  (linker, "/section:.SK_Hooks,RWS")
+#pragma data_seg (".SK_Hooks")
+HHOOK g_hHookCBT       = nullptr;
+HHOOK g_hHookShell     = nullptr; // In theory, this is a lighter-weight hook on a game oriented machine
+#pragma data_seg ()
+#pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
 extern volatile ULONG __SK_HookContextOwner;
+
+// We will create a dummy window to receive a broadcast message for shutdown.
+HWND    hWndBroadcastRecipient = NULL;
+HMODULE hModHookInstance       = NULL;
+UINT    g_uiBroadcastMsg       = WM_USER; // Will be filled in with a real value later...
 
 LRESULT
 CALLBACK
@@ -43,7 +48,98 @@ ShellProc ( _In_ int    nCode,
             _In_ WPARAM wParam,
             _In_ LPARAM lParam )
 {
-  return CallNextHookEx(g_hHookShell, nCode, wParam, lParam);
+  if (hModHookInstance == NULL)
+  {
+    static volatile LONG lHookIters = 0L;
+
+    // Don't create that thread more than once, but don't bother with a complete
+    //   critical section.
+    if (InterlockedAdd (&lHookIters, 1L) > 1L)
+      return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+
+    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                          (wchar_t *) &SKX_InstallShellHook,
+                            (HMODULE *) &hModHookInstance );
+
+    // Get and keep a reference to this DLL if this is the first time we are injecting.
+#ifdef _WIN64
+    if (GetModuleHandle (L"SpecialK64.dll") == hModHookInstance)
+      GetModuleHandleEx ( 0x00, L"SpecialK64.dll", &hModHookInstance );
+#else
+    if (GetModuleHandle (L"SpecialK32.dll") == hModHookInstance)
+      GetModuleHandleEx ( 0x00, L"SpecialK32.dll", &hModHookInstance );
+#endif
+    else
+      return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+
+
+#ifndef _WIN64
+    g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_32");
+#else
+    g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_64");
+#endif
+
+
+    //
+    // Quick-and-dirty IPC
+    //
+    //   This message pump will keep the hook alive until it receives a
+    //     special broadcast message, at which point it unloads the DLL
+    //       from the current process.
+    //
+    CreateThread ( nullptr, 0,
+         [](LPVOID user) ->
+           DWORD
+             {
+               hWndBroadcastRecipient =
+                 CreateWindowW ( L"STATIC", L"Special K Broadcast Window",
+                                   WS_POPUP | WS_MINIMIZEBOX,
+                                     CW_USEDEFAULT, CW_USEDEFAULT,
+                                       32, 32, 0,
+                                         nullptr, nullptr, 0x00 );
+
+               MSG  msg;
+               BOOL bRet;
+
+               while (true)
+               {
+                 bRet = GetMessage (&msg, hWndBroadcastRecipient, 0, 0);
+
+                 if (bRet > 0)
+                 {
+                   switch (msg.message)
+                   {
+                     default:
+                     {
+                       // Shutdown hook (unload DLL)
+                       if (msg.message == g_uiBroadcastMsg)
+                       {
+                         DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
+                         FreeLibraryAndExitThread (hModHookInstance, 0x00);
+                       }
+
+                       else
+                         DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
+                     } break;
+                   }
+                 }
+
+                 else
+                   break;
+               }
+
+               FreeLibraryAndExitThread (hModHookInstance, 0x00);
+
+               return 0;
+             },
+           nullptr,
+         0x00,
+       nullptr
+     );
+  }
+
+  return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
 }
 
 
@@ -137,16 +233,10 @@ SKX_InstallShellHook (void)
 
   HMODULE hMod;
 
-  //if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                           //GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                             //(wchar_t *) &SKX_InstallShellHook,
-                               //(HMODULE *) &hMod ) )
-  
-#ifdef _WIN64
-  hMod = GetModuleHandle (L"SpecialK64.dll");
-#else
-  hMod = GetModuleHandle (L"SpecialK32.dll");
-#endif
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                        (wchar_t *) &SKX_InstallShellHook,
+                          (HMODULE *) &hMod );
 
   extern HMODULE
   __stdcall
@@ -154,6 +244,12 @@ SKX_InstallShellHook (void)
 
   if (hMod == SK_GetDLL ())
   {
+#ifndef _WIN64
+    g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_32");
+#else
+    g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_64");
+#endif
+
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
     //
@@ -175,6 +271,21 @@ SKX_RemoveShellHook (void)
 {
   if (g_hHookShell)
   {
+#ifndef _WIN64
+    g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_32");
+#else
+    g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_64");
+#endif
+
+    DWORD  dwRecipients = BSM_ALLDESKTOPS | BSM_APPLICATIONS;
+    UINT   uiMessage    = g_uiBroadcastMsg;
+
+    BroadcastSystemMessage ( BSF_IGNORECURRENTTASK | BSF_NOTIMEOUTIFNOTHUNG |
+                             BSF_POSTMESSAGE,
+                               &dwRecipients,
+                                 uiMessage,
+                                   0, 0 );
+
     if (UnhookWindowsHookEx (g_hHookShell))
     {
       __SK_HookContextOwner = false;

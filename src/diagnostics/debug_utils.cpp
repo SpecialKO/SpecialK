@@ -154,9 +154,11 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                      OutputDebugStringW_Detour,
            (LPVOID*)&OutputDebugStringW_Original );
 
+#if 0
   SK_CreateDLLHook2 ( L"kernel32.dll", "ExitProcess",
                      ExitProcess_Detour,
            (LPVOID*)&ExitProcess_Original );
+#endif
 
   MH_ApplyQueued ();
 

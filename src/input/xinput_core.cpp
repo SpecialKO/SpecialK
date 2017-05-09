@@ -89,6 +89,36 @@ struct SK_XInputContext
 #define SK_XINPUT_WRITE(type) SK_XInput_Backend.markWrite (type);
 
 
+#include <unordered_set>
+
+void
+SK_XInput_EstablishPrimaryHook (HMODULE hModCaller, SK_XInputContext::instance_s* pCtx)
+{
+  // Calling module (return address) indicates the game made this call
+  if (hModCaller == GetModuleHandle (nullptr))
+    xinput_ctx.primary_hook = pCtx;
+
+  // Third-party software polled the controller, it better be using the same
+  //   interface version as the game is or a lot of input emulation software
+  //     will not work correctly.
+  else if (pCtx != xinput_ctx.primary_hook && xinput_ctx.primary_hook != nullptr)
+  {
+    static std::unordered_set <HMODULE> warned_modules;
+
+    if (! warned_modules.count (hModCaller))
+    {
+      SK_LOG0 ( ( L"WARNING: Third-party module '%s' uses different XInput interface version "
+                  L"(%s) than the game (%s); input remapping software may not work correctly.",
+                    SK_GetModuleName (hModCaller).c_str (),
+                    pCtx->wszModuleName, xinput_ctx.primary_hook->wszModuleName ),
+                  L"Input Mgr." );
+
+      warned_modules.insert (hModCaller);
+    }
+  }
+}
+
+
 extern bool
 SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
@@ -119,7 +149,7 @@ XInputGetState1_3_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -149,7 +179,7 @@ XInputGetStateEx1_3_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -175,7 +205,7 @@ XInputGetCapabilities1_3_Detour (
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -201,7 +231,7 @@ XInputGetBatteryInformation1_3_Detour (
   dwRet =
     SK_XInput_PlaceHoldBattery (dwRet, dwUserIndex, devType, pBatteryInformation);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -218,7 +248,9 @@ XInputSetState1_3_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
-  bool nop = SK_ImGui_WantGamepadCapture () && dwUserIndex == config.input.gamepad.xinput.ui_slot && config.input.gamepad.haptic_ui;
+  bool nop = SK_ImGui_WantGamepadCapture ()                       &&
+               dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                 config.input.gamepad.haptic_ui;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -229,7 +261,7 @@ XInputSetState1_3_Detour (
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -260,7 +292,7 @@ XInputGetState1_4_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -290,7 +322,7 @@ XInputGetStateEx1_4_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -316,7 +348,7 @@ XInputGetCapabilities1_4_Detour (
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -342,7 +374,7 @@ XInputGetBatteryInformation1_4_Detour (
   dwRet =
     SK_XInput_PlaceHoldBattery (dwRet, dwUserIndex, devType, pBatteryInformation);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -359,7 +391,9 @@ XInputSetState1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
-  bool nop = SK_ImGui_WantGamepadCapture () && dwUserIndex == config.input.gamepad.xinput.ui_slot && config.input.gamepad.haptic_ui;
+  bool nop = SK_ImGui_WantGamepadCapture ()                       &&
+               dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                 config.input.gamepad.haptic_ui;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -370,7 +404,7 @@ XInputSetState1_4_Detour (
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -401,7 +435,7 @@ XInputGetState9_1_0_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -427,7 +461,7 @@ XInputGetCapabilities9_1_0_Detour (
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -444,7 +478,9 @@ XInputSetState9_1_0_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
 
-  bool nop = SK_ImGui_WantGamepadCapture () && dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot && config.input.gamepad.haptic_ui;
+  bool nop = SK_ImGui_WantGamepadCapture ()                       &&
+               dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                 config.input.gamepad.haptic_ui;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -456,7 +492,7 @@ XInputSetState9_1_0_Detour (
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
 
-  xinput_ctx.primary_hook = pCtx;
+  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
 
   return dwRet;
 }
@@ -1004,7 +1040,8 @@ SK_XInput_PollController ( INT           iJoyID,
   xstate.dwPacketNumber  =   1;
 
   static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
-  static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
+  static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
+                                               ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
 
   // This function is actually a performance hazzard when no controllers
   //   are plugged in, so ... throttle the sucker.

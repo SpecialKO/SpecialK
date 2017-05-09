@@ -1281,7 +1281,7 @@ struct D3DX11_STATE_BLOCK
 
 void CreateStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 {
-  memset(sb, 0, sizeof(D3DX11_STATE_BLOCK));
+  ZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
 
   dc->VSGetShader(&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
   dc->VSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->VSSamplers);
@@ -1349,8 +1349,8 @@ calc_count (_T** arr, UINT max_count)
 
 void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 {
-  UINT minus_one[D3D11_PS_CS_UAV_REGISTER_COUNT];
-  memset(minus_one, -1, sizeof(minus_one));
+  UINT minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+  
   dc->VSSetShader(sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
   UINT VSSamplerCount = calc_count(sb->VSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
   if (VSSamplerCount)
@@ -1360,7 +1360,9 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       dc->VSSetShaderResources(0, VSShaderResourceCount, sb->VSShaderResources);
   UINT VSConstantBufferCount = calc_count(sb->VSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
   if (VSConstantBufferCount)
-    D3D11_VSSetConstantBuffers_Original (dc, 0, VSConstantBufferCount, sb->VSConstantBuffers);
+    dc->VSSetConstantBuffers (0, VSConstantBufferCount, sb->VSConstantBuffers);
+  //D3D11_VSSetConstantBuffers_Original(dc, 0, VSConstantBufferCount, sb->VSConstantBuffers);
+
 
 //extern D3D11_VSSetConstantBuffers_pfn         D3D11_VSSetConstantBuffers_Original;
 //extern D3D11_PSSetShaderResources_pfn         D3D11_PSSetShaderResources_Original;
@@ -1404,7 +1406,8 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       dc->PSSetSamplers(0, PSSamplerCount, sb->PSSamplers);
   UINT PSShaderResourceCount = calc_count(sb->PSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
   if (PSShaderResourceCount)
-    D3D11_PSSetShaderResources_Original (dc, 0, PSShaderResourceCount, sb->PSShaderResources);
+    dc->PSSetShaderResources (0, PSShaderResourceCount, sb->PSShaderResources);
+    //D3D11_PSSetShaderResources_Original (dc, 0, PSShaderResourceCount, sb->PSShaderResources);
   UINT PSConstantBufferCount = calc_count(sb->PSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
   if (PSConstantBufferCount)
       dc->PSSetConstantBuffers(0, PSConstantBufferCount, sb->PSConstantBuffers);
@@ -1438,8 +1441,10 @@ void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 //extern D3D11_RSSetScissorRects_pfn            D3D11_RSSetScissorRects_Original;
 //extern D3D11_RSSetViewports_pfn               D3D11_RSSetViewports_Original;
 
-  D3D11_RSSetViewports_Original    (dc, sb->RSViewportCount, sb->RSViewports);
-  D3D11_RSSetScissorRects_Original (dc, sb->RSScissorRectCount, sb->RSScissorRects);
+  //D3D11_RSSetViewports_Original    (dc, sb->RSViewportCount, sb->RSViewports);
+  //D3D11_RSSetScissorRects_Original (dc, sb->RSScissorRectCount, sb->RSScissorRects);
+  dc->RSSetViewports    (sb->RSViewportCount,    sb->RSViewports);
+  dc->RSSetScissorRects (sb->RSScissorRectCount, sb->RSScissorRects);
 
   dc->RSSetState(sb->RSRasterizerState);
 
@@ -2491,6 +2496,12 @@ __declspec (noinline)
   DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                         _In_ const DXGI_MODE_DESC *pNewTargetParameters )
   {
+    if (pNewTargetParameters == nullptr) {
+      HRESULT ret;
+      DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
+      return ret;
+    }
+
     DXGI_LOG_CALL_I6 (L"IDXGISwapChain", L"ResizeTarget", L"{ (%lux%lu@%3.1fHz), fmt=%lu, scaling=0x%02x, scanlines=0x%02x }",
                         pNewTargetParameters->Width, pNewTargetParameters->Height,
                         pNewTargetParameters->RefreshRate.Denominator != 0 ?
@@ -2580,7 +2591,7 @@ __declspec (noinline)
         }
       }
 
-      DXGI_MODE_DESC* pNewNewTargetParameters =
+      const DXGI_MODE_DESC* pNewNewTargetParameters =
         &new_new_params;
 
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));

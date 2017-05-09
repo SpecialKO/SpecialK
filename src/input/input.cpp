@@ -324,11 +324,325 @@ SK_Input_PreHookHID (void)
 // Raw Input
 //
 //////////////////////////////////////////////////////////////////////////////////
+std::vector <RAWINPUTDEVICE> raw_devices;   // ALL devices, this is the list as Windows would give it to the game
+
+std::vector <RAWINPUTDEVICE> raw_mice;      // View of only mice
+std::vector <RAWINPUTDEVICE> raw_keyboards; // View of only keyboards
+std::vector <RAWINPUTDEVICE> raw_gamepads;  // View of only gamepads
+
+struct
+{
+
+  struct
+  {
+    bool active          = false;
+    bool legacy_messages = false;
+  } mouse,
+    keyboard;
+
+} raw_overrides;
+
+typedef UINT (WINAPI *GetRegisteredRawInputDevices_pfn)(
+  _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
+  _Inout_   PUINT           puiNumDevices,
+  _In_      UINT            cbSize );
+
+GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original = nullptr;
+
+// Returns all mice, in their override state (if applicable)
+std::vector <RAWINPUTDEVICE>
+SK_RawInput_GetMice (bool* pDifferent = nullptr)
+{
+  bool different = false;
+
+  if (raw_overrides.mouse.active)
+  {
+    std::vector <RAWINPUTDEVICE> overrides;
+
+    for (RAWINPUTDEVICE it : raw_mice)
+    {
+      HWND hWnd = it.hwndTarget;
+
+      if (raw_overrides.mouse.legacy_messages) {
+        different |= (it.dwFlags & RIDEV_NOLEGACY) != 0;
+        it.dwFlags   &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
+        it.dwFlags   &= ~RIDEV_CAPTUREMOUSE;
+        it.hwndTarget = hWnd;
+        RegisterRawInputDevices_Original ( &it, 1, sizeof RAWINPUTDEVICE );
+      } else {
+        different |= (it.dwFlags & RIDEV_NOLEGACY) == 0;
+        it.dwFlags   |= RIDEV_NOLEGACY;
+        RegisterRawInputDevices_Original ( &it, 1, sizeof RAWINPUTDEVICE );
+      }
+    
+      overrides.push_back (it);
+    }
+
+    if (pDifferent != nullptr)
+      *pDifferent = different;
+
+    return overrides;
+  }
+
+  else
+  {
+    if (pDifferent != nullptr)
+       *pDifferent = false;
+
+    return raw_mice;
+  }
+}
+
+// Returns all keyboards, in their override state (if applicable)
+std::vector <RAWINPUTDEVICE>
+SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
+{
+  bool different = false;
+
+  if (raw_overrides.keyboard.active)
+  {
+    std::vector <RAWINPUTDEVICE> overrides;
+
+    for (auto it : raw_keyboards)
+    {
+      if (raw_overrides.keyboard.legacy_messages) {
+        different |= ((it).dwFlags & RIDEV_NOLEGACY) != 0;
+        (it).dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS);
+      } else {
+        different |= ((it).dwFlags & RIDEV_NOLEGACY) == 0;
+        (it).dwFlags |= RIDEV_NOLEGACY | RIDEV_APPKEYS;
+      }
+
+      overrides.push_back (it);
+    }
+
+    if (pDifferent != nullptr)
+      *pDifferent = different;
+
+    return overrides;
+  }
+
+  else
+  {
+    if (pDifferent != nullptr)
+      *pDifferent = false;
+
+    return raw_keyboards;
+  }
+}
+
+// Temporarily override game's preferences for input device window message generation
+bool
+SK_RawInput_EnableLegacyMouse (bool enable)
+{
+  if (! raw_overrides.mouse.active)
+  {
+    raw_overrides.mouse.active          = true;
+    raw_overrides.mouse.legacy_messages = enable;
+
+    // XXX: In the one in a million chance that a game supports multiple mice ...
+    //        Special K doesn't distinguish one from the other :P
+    //
+
+    std::vector <RAWINPUTDEVICE> device_override;
+
+    bool different = false;
+
+    std::vector <RAWINPUTDEVICE> mice = SK_RawInput_GetMice (&different);
+
+    for (auto it : raw_keyboards) device_override.push_back (it);
+    for (auto it : raw_gamepads)  device_override.push_back (it);
+    for (auto it : mice)          device_override.push_back (it);
+
+    dll_log.Log (L"%lu mice are now legacy...", mice.size ());
+
+    RegisterRawInputDevices_Original (
+      device_override.data (),
+        static_cast <UINT> (device_override.size ()),
+          sizeof RAWINPUTDEVICE
+    );
+
+    return different;
+  }
+
+  return false;
+}
+
+// Restore the game's original setting
+void
+SK_RawInput_RestoreLegacyMouse (void)
+{
+  if (raw_overrides.mouse.active)
+  {
+    raw_overrides.mouse.active = false;
+
+    RegisterRawInputDevices_Original (
+      raw_devices.data (),
+        static_cast <UINT> (raw_devices.size ()),
+          sizeof RAWINPUTDEVICE
+    );
+  }
+}
+
+// Temporarily override game's preferences for input device window message generation
+bool
+SK_RawInput_EnableLegacyKeyboard (bool enable)
+{
+  if (! raw_overrides.keyboard.active)
+  {
+    raw_overrides.keyboard.active          = true;
+    raw_overrides.keyboard.legacy_messages = enable;
+
+    std::vector <RAWINPUTDEVICE> device_override;
+
+    bool different = false;
+
+    std::vector <RAWINPUTDEVICE> keyboards = SK_RawInput_GetKeyboards (&different);
+
+    for (auto it : keyboards)    device_override.push_back (it);
+    for (auto it : raw_gamepads) device_override.push_back (it);
+    for (auto it : raw_mice)     device_override.push_back (it);
+
+    RegisterRawInputDevices_Original (
+      device_override.data (),
+        static_cast <UINT> (device_override.size ()),
+          sizeof RAWINPUTDEVICE
+    );
+
+    return different;
+  }
+
+  return false;
+}
+
+// Restore the game's original setting
+void
+SK_RawInput_RestoreLegacyKeyboard (void)
+{
+  if (raw_overrides.keyboard.active)
+  {
+    raw_overrides.keyboard.active = false;
+
+    RegisterRawInputDevices_Original (
+      raw_devices.data (),
+        static_cast <UINT> (raw_devices.size ()),
+          sizeof RAWINPUTDEVICE
+    );
+  }
+}
+
+std::vector <RAWINPUTDEVICE>&
+SK_RawInput_GetRegisteredGamepads (void)
+{
+  return raw_gamepads;
+}
+
+
+// Given a complete list of devices in raw_devices, sub-divide into category for
+//   quicker device filtering.
+void
+SK_RawInput_ClassifyDevices (void)
+{
+  raw_mice.clear      ();
+  raw_keyboards.clear ();
+  raw_gamepads.clear  ();
+
+  for (auto it : raw_devices)
+  {
+    if ((it).usUsagePage == 0x1)
+    {
+      switch ((it).usUsage)
+      {
+        case 02:
+          raw_mice.push_back       (it);
+          break;
+
+        case 06:
+          raw_keyboards.push_back  (it);
+          break;
+
+        case 04: // Joystick
+        case 05: // Gamepad
+          raw_gamepads.push_back   (it);
+          break;
+
+        default:
+          // UH OH, what the heck is this device?
+          break;
+      }
+    }
+  }
+}
+
+UINT
+SK_RawInput_PopulateDeviceList (void)
+{
+  DWORD            dwLastError = GetLastError ();
+  RAWINPUTDEVICE*  pDevices    = nullptr;
+  UINT            uiNumDevices = 0;
+
+  UINT ret =
+    GetRegisteredRawInputDevices_Original (pDevices, &uiNumDevices, sizeof RAWINPUTDEVICE);
+
+  assert (ret == -1);
+
+  SetLastError (dwLastError);
+
+  if (uiNumDevices != 0)
+  {
+    pDevices = new RAWINPUTDEVICE [uiNumDevices];
+
+    GetRegisteredRawInputDevices_Original (pDevices, &uiNumDevices, sizeof RAWINPUTDEVICE);
+
+    raw_devices.clear ();
+
+    for (UINT i = 0; i < uiNumDevices; i++)
+      raw_devices.push_back (pDevices [i]);
+
+    SK_RawInput_ClassifyDevices ();
+
+    delete [] pDevices;
+  }
+
+  return uiNumDevices;
+}
+
+UINT WINAPI GetRegisteredRawInputDevices_Detour (
+  _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
+  _Inout_   PUINT           puiNumDevices,
+  _In_      UINT            cbSize )
+{
+  SK_LOG_FIRST_CALL
+
+  assert (cbSize == sizeof RAWINPUTDEVICE);
+
+  // On the first call to this function, we will need to query this stuff.
+  static bool init = false;
+
+  if (! init) {
+    SK_RawInput_PopulateDeviceList ();
+    init = true;
+  }
+
+
+  if (*puiNumDevices < static_cast <UINT> (raw_devices.size ())) {
+      *puiNumDevices = static_cast <UINT> (raw_devices.size ());
+
+    SetLastError (ERROR_INSUFFICIENT_BUFFER);
+
+    return -1;
+  }
+
+  int idx = 0;
+  for (auto it : raw_devices) pRawInputDevices [idx++] = it;
+
+  return idx;
+}
+
 BOOL WINAPI RegisterRawInputDevices_Detour (
   _In_ PCRAWINPUTDEVICE pRawInputDevices,
   _In_ UINT             uiNumDevices,
-  _In_ UINT             cbSize
-)
+  _In_ UINT             cbSize )
 {
   SK_LOG_FIRST_CALL
 
@@ -344,10 +658,15 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
                                              cbSize );
   }
 
+  raw_devices.clear ();
+
   RAWINPUTDEVICE* pDevices = nullptr;
 
   if (pRawInputDevices && uiNumDevices > 0)
     pDevices = new RAWINPUTDEVICE [uiNumDevices];
+
+  // The devices that we will pass to Windows after any overrides are applied
+  std::vector <RAWINPUTDEVICE> actual_device_list;
 
   if (pDevices != nullptr)
   {
@@ -355,14 +674,25 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
     for (unsigned int i = 0; i < uiNumDevices; i++)
     {
       pDevices [i] = pRawInputDevices [i];
-      //pDevices [i].dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
-      pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+      raw_devices.push_back (pDevices [i]);
     }
+
+    SK_RawInput_ClassifyDevices ();
   }
+
+  std::vector <RAWINPUTDEVICE> override_keyboards = SK_RawInput_GetKeyboards          ();
+  std::vector <RAWINPUTDEVICE> override_mice      = SK_RawInput_GetMice               ();
+  std::vector <RAWINPUTDEVICE> override_gamepads  = SK_RawInput_GetRegisteredGamepads ();
+
+  for (auto it : override_keyboards) actual_device_list.push_back (it);
+  for (auto it : override_mice)      actual_device_list.push_back (it);
+  for (auto it : override_gamepads)  actual_device_list.push_back (it);
 
   BOOL bRet =
     pDevices != nullptr ?
-      RegisterRawInputDevices_Original (pDevices, uiNumDevices, cbSize) :
+      RegisterRawInputDevices_Original ( actual_device_list.data   (),
+                       static_cast <UINT> (actual_device_list.size () ),
+                                             cbSize ) :
                 FALSE;
 
   if (pDevices)
@@ -546,15 +876,8 @@ IDirectInputDevice8_SetCooperativeLevel_pfn
         IDirectInputDevice8_SetCooperativeLevel_Original  = nullptr;
 
 
-struct SK_DI8_Keyboard {
-  LPDIRECTINPUTDEVICE pDev = nullptr;
-  uint8_t             state [512];
-} _dik;
-
-struct SK_DI8_Mouse {
-  LPDIRECTINPUTDEVICE pDev = nullptr;
-  DIMOUSESTATE2       state;
-} _dim;
+struct SK_DI8_Keyboard _dik;
+struct SK_DI8_Mouse    _dim;
 
 
 __declspec (noinline)
@@ -569,6 +892,50 @@ SK_DI8_Mouse*
 WINAPI
 SK_Input_GetDI8Mouse (void) {
   return &_dim;
+}
+
+__declspec (noinline)
+bool
+WINAPI
+SK_Input_DI8Mouse_Acquire (SK_DI8_Mouse* pMouse)
+{
+  if (pMouse == nullptr && _dim.pDev != nullptr)
+    pMouse = &_dim;
+
+  if (pMouse != nullptr)
+  {
+    IDirectInputDevice8_SetCooperativeLevel_Original (
+      pMouse->pDev,
+        game_window.hWnd,
+          pMouse->coop_level
+    );
+
+    return true;
+  }
+
+  return false;
+}
+
+__declspec (noinline)
+bool
+WINAPI
+SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse)
+{
+  if (pMouse == nullptr && _dim.pDev != nullptr)
+    pMouse = &_dim;
+
+  if (pMouse != nullptr)
+  {
+    IDirectInputDevice8_SetCooperativeLevel_Original (
+      pMouse->pDev,
+        game_window.hWnd,
+          (pMouse->coop_level & (~DISCL_EXCLUSIVE)) | DISCL_NONEXCLUSIVE
+    );
+
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -715,6 +1082,12 @@ SK_DInput8_BlockWindowsKey (bool block)
   return block;
 }
 
+bool
+SK_DInput8_HasMouse (void)
+{
+  return (_dim.pDev && IDirectInputDevice8_SetCooperativeLevel_Original);
+}
+
 //
 // TODO: Create a wrapper instead of flat hooks like this, this won't work when
 //         multiple hardware vendor devices are present.
@@ -762,6 +1135,8 @@ IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour ( LPDIRECTINPUTDEVICE        T
   return hr;
 }
 
+
+
 HRESULT
 WINAPI
 IDirectInputDevice8_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE  This,
@@ -771,19 +1146,29 @@ IDirectInputDevice8_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE  This,
   if (config.input.keyboard.block_windows_key)
     dwFlags |= DISCL_NOWINKEY;
 
-#if 0
-  if (config.render.allow_background) {
-    dwFlags &= ~DISCL_EXCLUSIVE;
-    dwFlags &= ~DISCL_BACKGROUND;
+  HRESULT hr =
+    IDirectInputDevice8_SetCooperativeLevel_Original (This, hwnd, dwFlags);
 
-    dwFlags |= DISCL_NONEXCLUSIVE;
-    dwFlags |= DISCL_FOREGROUND;
+  if (SUCCEEDED (hr))
+  {
+    // Mouse
+    if (This == _dim.pDev)
+      _dim.coop_level = dwFlags;
 
-    return IDirectInputDevice8_SetCooperativeLevel_Original (This, hwnd, dwFlags);
+    // Keyboard   (why do people use DirectInput for keyboards? :-\)
+    else if (This == _dik.pDev)
+      _dik.coop_level = dwFlags;
+
+    // Anything else is probably not important
   }
-#endif
 
-  return IDirectInputDevice8_SetCooperativeLevel_Original (This, hwnd, dwFlags);
+  if (SK_ImGui_WantMouseCapture ()) {
+    dwFlags &= ~DISCL_EXCLUSIVE;
+
+    IDirectInputDevice8_SetCooperativeLevel_Original (This, hwnd, dwFlags);
+  }
+
+  return hr;
 }
 
 HRESULT
@@ -841,7 +1226,7 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
 
     MH_QueueEnableHook (vftable [9]);
 
-    if (rguid == GUID_SysKeyboard)
+    if (! IDirectInputDevice8_SetCooperativeLevel_Original)
     {
       SK_CreateFuncHook ( L"IDirectInputDevice8::SetCooperativeLevel",
                            vftable [13],
@@ -853,7 +1238,9 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
     MH_ApplyQueued ();
 
     if (rguid == GUID_SysMouse)
+    {
       _dim.pDev = *lplpDirectInputDevice;
+    }
     else if (rguid == GUID_SysKeyboard)
       _dik.pDev = *lplpDirectInputDevice;
   }
@@ -1456,7 +1843,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
     //game_mouselook = SK_GetFramesDrawn ();
   }
 
-  else {
+  else if (! SK_ImGui_WantMouseCapture ()) {
     return SetCursorPos_Original (x, y);
   }
 
@@ -1477,7 +1864,7 @@ SendInput_Detour (
 
   if (SK_ImGui_Visible)
   {
-    //return 0;
+    return 0;
   }
 
   return SendInput_Original (nInputs, pInputs, cbSize);
@@ -1641,7 +2028,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_SETCURSOR:
       {
         if (lpMsg->hwnd == game_window.hWnd)
-          SK_ImGui_Cursor.update();
+          SK_ImGui_Cursor.update ();
 
         return false;
       } break;
@@ -1665,8 +2052,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       case WM_XBUTTONDBLCLK:
       case WM_XBUTTONDOWN:
       case WM_XBUTTONUP:
+      case WM_NCMOUSEHOVER:
+      case WM_NCMOUSELEAVE:
+      case WM_NCMOUSEMOVE:
       case WM_MOUSEMOVE:
       case WM_MOUSEWHEEL:
+      case WM_CAPTURECHANGED:
+      case WM_POINTERCAPTURECHANGED:
+      case WM_NCHITTEST:
       {
         ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
@@ -1743,6 +2136,10 @@ void SK_Input_PreInit (void)
   SK_CreateDLLHook2 ( L"user32.dll", "RegisterRawInputDevices",
                      RegisterRawInputDevices_Detour,
            (LPVOID*)&RegisterRawInputDevices_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetRegisteredRawInputDevices",
+                      GetRegisteredRawInputDevices_Detour,
+           (LPVOID *)&GetRegisteredRawInputDevices_Original );
 
 #if 0
   SK_CreateDLLHook2 ( L"user32.dll", "GetRawInputBuffer",

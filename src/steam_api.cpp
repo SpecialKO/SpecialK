@@ -4432,7 +4432,6 @@ SK_Steam_PiratesAhoy (void)
   // User opted out of Steam enhancement, no further action necessary
   if (config.steam.silent && verdict)
   {
-    SK_SelfDestruct ();
     verdict = 0x00;
   }
 

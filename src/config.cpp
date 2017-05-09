@@ -1896,7 +1896,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     DragonsDogma,         // DDDA.exe
     EverQuest,            // eqgame.exe
     GodEater2RageBurst,   // GE2RB.exe
-    WatchDogs2            // WatchDogs2.exe
+    WatchDogs2,           // WatchDogs2.exe
+    NieRAutomata          // NieRAutomata.exe
   };
 
   std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -1915,6 +1916,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"eqgame.exe",                   SK_GAME_ID::EverQuest            );
   games.emplace ( L"GE2RB.exe",                    SK_GAME_ID::GodEater2RageBurst   );
   games.emplace ( L"WatchDogs2.exe",               SK_GAME_ID::WatchDogs2           );
+  games.emplace ( L"NieRAutomata.exe",             SK_GAME_ID::NieRAutomata         );
 
   //
   // Application Compatibility Overrides
@@ -2101,6 +2103,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
         //Does not support XInput hot-plugging, needs Special K loving :)
         config.input.gamepad.xinput.placehold [0] = true;
         config.input.mouse.add_relative_motion    = true;
+        break;
+
+      case SK_GAME_ID::NieRAutomata:
+        // Maximize compatibility with 3rd party injectors that corrupt hooks
+        ///config.render.dxgi.slow_state_cache = false;
+        ///SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
         break;
     }
   }

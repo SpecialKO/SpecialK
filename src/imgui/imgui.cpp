@@ -11028,6 +11028,23 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self )
 {
+  extern bool SK_ImGui_Visible;
+  if (SK_ImGui_Visible)
+    SK_RawInput_EnableLegacyMouse  (true);
+  else
+    SK_RawInput_RestoreLegacyMouse ();
+
+  // This isn't particularly important, we can already translate the
+  //   raw input data into WM_CHAR / WM_UNICHAR messages as need be.
+#if 0
+  if (SK_ImGui_WantKeyboardCapture ())
+    SK_RawInput_EnableLegacyKeyboard (true);
+  else
+    SK_RawInput_RestoreLegacyKeyboard ();
+#endif
+
+
+
   if (GetActiveWindow () != nullptr && GetActiveWindow () != game_window.hWnd)
     return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
@@ -11608,6 +11625,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     return true;
   } break;
 
+  case WM_NCMOUSEMOVE:
   case WM_MOUSEMOVE:
   {
     LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
@@ -11704,7 +11722,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   bool handled          = MessageProc (hWnd, msg, wParam, lParam);
   bool filter_raw_input = (msg == WM_INPUT && handled);
-
 
 
   bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
@@ -11870,8 +11887,9 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
   { 
-    if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
-         state.Gamepad.wButtons & XINPUT_GAMEPAD_START )
+    if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
+         state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
+         last_state.dwPacketNumber <= state.dwPacketNumber )
     {
       if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
               last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START ) )
@@ -11886,25 +11904,28 @@ SK_ImGui_PollGamepad_EndFrame (void)
      const DWORD LONG_PRESS  = 400UL;
     static DWORD dwLastPress = MAXDWORD;
 
-    if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
-         (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
+    if (last_state.dwPacketNumber <= state.dwPacketNumber)
     {
-      if (dwLastPress < timeGetTime () - LONG_PRESS)
+      if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
+           (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
       {
-        bool toggle_vis = (! SK_ImGui_Visible);
-        bool toggle_nav =    true;
+        if (dwLastPress < timeGetTime () - LONG_PRESS)
+        {
+          bool toggle_vis = (! SK_ImGui_Visible);
+          bool toggle_nav =    true;
 
-        SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
+          SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
 
-        dwLastPress = MAXDWORD;
+          dwLastPress = MAXDWORD;
+        }
       }
+
+      else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
+        dwLastPress = timeGetTime ();
+
+      else
+        dwLastPress = MAXDWORD;
     }
-
-    else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
-      dwLastPress = timeGetTime ();
-
-    else
-      dwLastPress = MAXDWORD;
   }
 
   else
@@ -11950,7 +11971,6 @@ SK_ImGui_PollGamepad_EndFrame (void)
     nav_id = g.NavId;
   }
 
-
   last_state = state;
 }
 
@@ -11968,13 +11988,16 @@ SK_ImGui_PollGamepad (void)
     io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
 
 
-  XINPUT_STATE state;
+         XINPUT_STATE state;
+  static XINPUT_STATE last_state { 1, 0 };
 
   for (int i = 0; i < ImGuiNavInput_COUNT; i++)
     io.NavInputs [i] = 0.0f;
 
-  if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
+  if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) && last_state.dwPacketNumber <= state.dwPacketNumber)
   {
+    last_state = state;
+
     if (nav_usable)
     {
       float LX   = state.Gamepad.sThumbLX;

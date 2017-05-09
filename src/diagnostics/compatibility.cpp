@@ -986,6 +986,19 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 }
 
 void
+SK_MalwareProtection (const wchar_t* wszModName)
+{
+  // Malware.Ramnit
+  if (StrStrIW (SK_GetDLLVersionStr (wszModName).c_str(), L"buildbot_winslave007@WUS"))
+  {
+    wchar_t wszWarning [256] = { L'\0' };
+    swprintf ( wszWarning, L"WARNING: Malicious DLL (Malware.Ramnit) Detected, it is STRONGLY Suggested that you Remove '%s'",
+                 wszModName );
+    SK_MessageBox (wszWarning, L"Malware Detected on Your System", MB_OK | MB_SYSTEMMODAL | MB_ICONWARNING );
+  }
+}
+
+void
 SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 {
   SK_LockDllLoader ();
@@ -1052,6 +1065,9 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
             extern DWORD __stdcall SK_RaptrWarn (LPVOID user);
             CreateThread ( nullptr, 0, SK_RaptrWarn, nullptr, 0x00, nullptr );
           }
+
+          // Detect and remove malicious DLLs while the game is running.
+          SK_MalwareProtection (wszModName);
         }
 
         if (when == SK_ModuleEnum::PostLoad)

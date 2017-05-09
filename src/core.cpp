@@ -1517,10 +1517,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   // Do this from the startup thread
 
-  if (config.steam.preload_overlay)
-    SK_Steam_LoadOverlayEarly ();
-
-
   SK_HookWinAPI       ();
   SK::Framerate::Init ();
 
@@ -1672,11 +1668,13 @@ SK_ShutdownCore (const wchar_t* backend)
 
   SK_ShutdownWMI    ();
 
-  // Breakbad Disable Disclaimer; pretend the log was empty :)
+  // Breakpad Disable Disclaimer; pretend the log was empty :)
   if (crash_log.lines == 1)
     crash_log.lines = 0;
 
   crash_log.close ();
+
+  SK_UnInit_MinHook ();
 
   return true;
 }

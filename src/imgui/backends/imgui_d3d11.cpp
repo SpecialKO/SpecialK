@@ -737,6 +737,17 @@ ImGui_ImplDX11_NewFrame (void)
   // io.MouseDown : filled by WM_*BUTTON* events
   // io.MouseWheel : filled by WM_MOUSEWHEEL events
 
+
+  // For games that hijack the mouse cursor using Direct Input 8.
+  //
+  //  -- Acquire actually means release their exclusive ownership : )
+  //
+  if (SK_ImGui_WantMouseCapture ())
+    SK_Input_DI8Mouse_Acquire ();
+  else
+    SK_Input_DI8Mouse_Release ();
+
+
   SK_ImGui_PollGamepad ();
 
   // Start the frame

@@ -165,4 +165,62 @@ typedef void (WINAPI *keybd_event_pfn)(
 
 extern keybd_event_pfn keybd_event_Original;
 
+
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
+#include <cstdint>
+
+struct SK_DI8_Keyboard {
+  LPDIRECTINPUTDEVICE pDev = nullptr;
+  uint8_t             state [512];
+  DWORD               coop_level;     // The level the game requested, not necessarily
+                                      //   its current state (changes based on UI).
+};
+
+struct SK_DI8_Mouse {
+  LPDIRECTINPUTDEVICE pDev = nullptr;
+  DIMOUSESTATE2       state;
+  DWORD               coop_level;     // The level the game requested, not necessarily
+                                      //   its current state (changes based on UI).
+};
+
+
+__declspec (noinline)
+SK_DI8_Keyboard*
+WINAPI
+SK_Input_GetDI8Keyboard (void);
+
+__declspec (noinline)
+SK_DI8_Mouse*
+WINAPI
+SK_Input_GetDI8Mouse (void);
+
+
+__declspec (noinline)
+bool
+WINAPI
+SK_Input_DI8Mouse_Acquire (SK_DI8_Mouse* pMouse = nullptr);
+
+__declspec (noinline)
+bool
+WINAPI
+SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse = nullptr);
+
+
+// Temporarily override game's preferences for input device window message generation
+bool
+SK_RawInput_EnableLegacyMouse (bool enable);
+
+// Restore the game's original setting
+void
+SK_RawInput_RestoreLegacyMouse (void);
+
+// Temporarily override game's preferences for input device window message generation
+bool
+SK_RawInput_EnableLegacyKeyboard (bool enable);
+
+// Restore the game's original setting
+void
+SK_RawInput_RestoreLegacyKeyboard (void);
+
 #endif /* __SK__INPUT_H__ */

@@ -270,6 +270,7 @@ typedef ULONG (WINAPI *IUnknown_AddRef_pfn)  (IUnknown* This);
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
 IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 
+__declspec (noinline)
 ULONG
 WINAPI
 IUnknown_Release (IUnknown* This)
@@ -290,6 +291,7 @@ IUnknown_Release (IUnknown* This)
   return IUnknown_Release_Original (This);
 }
 
+__declspec (noinline)
 ULONG
 WINAPI
 IUnknown_AddRef (IUnknown* This)
@@ -372,6 +374,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
 
 extern volatile DWORD SK_D3D11_init_tid;
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
@@ -388,7 +391,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
   // Even if the game doesn't care about the feature level, we do.
-  D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_9_1;
+  D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_11_1;
   ID3D11Device*     ret_device = nullptr;
 
   // Allow override of swapchain parameters
@@ -550,6 +553,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   return res;
 }
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11CreateDevice_Detour (
@@ -570,6 +574,7 @@ D3D11CreateDevice_Detour (
 }
 
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
@@ -634,7 +639,7 @@ D3D11_VSSetConstantBuffers_Override (
   ID3D11Buffer *const  *ppConstantBuffers )
 {
   //dll_log.Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
-  D3D11_VSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
+  return D3D11_VSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
 }
 
 __declspec (noinline)
@@ -647,9 +652,10 @@ D3D11_PSSetShaderResources_Override (
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
 )
 {
-  D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+  return D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 }
 
+__declspec (noinline)
 void
 WINAPI
 D3D11_UpdateSubresource_Override (
@@ -665,7 +671,8 @@ D3D11_UpdateSubresource_Override (
 
   CComPtr <ID3D11Texture2D> pTex = nullptr;
 
-  if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex))))
+  if (            pDstResource != nullptr &&
+       SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pTex))) )
   {
     if (SK_D3D11_TextureIsCached (pTex))
     {
@@ -681,9 +688,10 @@ D3D11_UpdateSubresource_Override (
     }
   }
 
-  D3D11_UpdateSubresource_Original (This, pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
+  return D3D11_UpdateSubresource_Original (This, pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 }
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11_Map_Override (
@@ -694,9 +702,13 @@ D3D11_Map_Override (
    _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
+  if (pResource == nullptr)
+    return S_OK;
+
   CComPtr <ID3D11Texture2D> pTex = nullptr;
 
-  if (SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex))))
+  if (            pResource != nullptr &&
+       SUCCEEDED (pResource->QueryInterface (IID_PPV_ARGS (&pTex))) )
   {
     if (SK_D3D11_TextureIsCached (pTex))
     {
@@ -713,6 +725,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   return D3D11_Map_Original (This, pResource, Subresource, MapType, MapFlags, pMappedResource);
 }
 
+__declspec (noinline)
 void
 WINAPI
 D3D11_CopyResource_Override (
@@ -723,14 +736,16 @@ D3D11_CopyResource_Override (
   //CComPtr <ID3D11Texture2D> pSrcTex;
   CComPtr <ID3D11Texture2D> pDstTex = nullptr;
 
-  if (SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pDstTex)))) {
+  if (            pDstResource != nullptr && 
+       SUCCEEDED (pDstResource->QueryInterface (IID_PPV_ARGS (&pDstTex))) )
+  {
     if (SK_D3D11_TextureIsCached (pDstTex)) {
       dll_log.Log (L"[DX11TexMgr] Cached texture was modified... removing from cache!");
       SK_D3D11_RemoveTexFromCache (pDstTex);
     }
   }
 
-  D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
+  return D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
 }
 
 
@@ -810,14 +825,15 @@ D3D11_DrawInstancedIndirect_Override (
 
 
 
+__declspec (noinline)
 void
 WINAPI
 D3D11_RSSetViewports_Override (
-  ID3D11DeviceContext*  This,
-  UINT                  NumViewports,
-  const D3D11_VIEWPORT* pViewports )
+        ID3D11DeviceContext* This,
+        UINT                 NumViewports,
+  const D3D11_VIEWPORT*      pViewports )
 {
-  D3D11_RSSetViewports_Original (This, NumViewports, pViewports);
+  return D3D11_RSSetViewports_Original (This, NumViewports, pViewports);
 }
 
 
@@ -2193,6 +2209,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   return E_FAIL;
 }
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateBuffer_Override (
@@ -2204,6 +2221,7 @@ D3D11Dev_CreateBuffer_Override (
   return D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
 }
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateShaderResourceView_Override (
@@ -2216,6 +2234,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 }
 
 
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
@@ -2939,7 +2958,7 @@ HookD3D11 (LPVOID user)
       // Third-party software frequently causes these hooks to become corrupted, try installing a new
       //   vftable pointer instead of hooking the function.
       //
-#if 1
+#if 0
       DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                              D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                              D3D11_VSSetConstantBuffers_pfn);
@@ -2965,7 +2984,7 @@ HookD3D11 (LPVOID user)
       // Third-party software frequently causes these hooks to become corrupted, try installing a new
       //   vftable pointer instead of hooking the function.
       //
-#if 1
+#if 0
       DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
                            D3D11_Map_Override, D3D11_Map_Original,
                            D3D11_Map_pfn);

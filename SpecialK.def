@@ -594,12 +594,13 @@ BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState    PRIVATE
 RunDLL_ElevateMe             = RunDLL_ElevateMe               PRIVATE
 RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
 
-SKX_InstallCBTHook           = SKX_InstallShellHook           PRIVATE
+SKX_InstallCBTHook           = SKX_InstallShellHook            PRIVATE
 SKX_RemoveCBTHook            = SKX_RemoveShellHook            PRIVATE
 SKX_IsHookingCBT             = SKX_IsHookingShell             PRIVATE
 
-g_hHookCBT                   = g_hHookCBT   DATA
-g_hHookShell                 = g_hHookShell DATA
+g_hHookCBT                   = g_hHookCBT       DATA
+g_hHookShell                 = g_hHookShell     DATA
+g_uiBroadcastMsg             = g_uiBroadcastMsg DATA
 
 SECTIONS
 

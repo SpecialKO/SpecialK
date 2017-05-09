@@ -23,7 +23,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.6.9"
+#define FAR_VERSION_NUM L"0.5.6.12"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
