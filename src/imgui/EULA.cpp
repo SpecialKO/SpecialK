@@ -133,20 +133,12 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
   {
-  bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
-                  SK_Steam_PiratesAhoy () != 0x0 );
+    bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
+                    SK_Steam_PiratesAhoy () != 0x0 );
 
 
-  ImGui::BeginGroup ();
+    ImGui::BeginGroup ();
 
-  if (pirate)
-  {
-    ImGui::TextColored ( ImVec4 (1.0f, 0.5f, 0.0f, 1.0f),
-         "The following is a list of parties you believe should be violated; familiarize yourself - you will be quizzed repeatedly." );
-  }
-
-  else
-  {
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.9f, 0.9f, 0.1f, 1.0f));
     ImGui::Bullet   ();
     ImGui::SameLine ();
@@ -155,178 +147,170 @@ SK_ImGui_DrawEULA (LPVOID reserved)
          "terms and conditions set forth by their respective copyright holders.\n"
     );
     ImGui::PopStyleColor ();
-  }
 
-  ImGui::Separator ();
-  ImGui::EndGroup  ();
-
-
-  ImGui::BeginChild ("EULA_Body",  ImVec2 (0.0f, font_size_multiline * 12), false);
-  ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, 0.0f),                     false, ImGuiWindowFlags_NavFlattened);
-  ImGui::BeginGroup ();
-
-  if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
-                                        "Overview of Products Licensed"))
-  {
-    ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_OVERVIEW).c_str ());
-    ImGui::PopFont  ();
-  }
-
-  ImGui::Separator  ();
-
-  SK_ImGui_DrawEULA_PlugIn (reserved);
-
-  if (ImGui::CollapsingHeader ("7zip"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_7ZIP).c_str ());
-  }
-
-  if (config.apis.ADL.enable && ImGui::CollapsingHeader ("ADL"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ADL).c_str ());
-  }
-
-  if (config.cegui.enable && ImGui::CollapsingHeader ("CEGUI (D3D9/11/GL)"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_CEGUI).c_str ());
-  }
-
-  if ( ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 ||
-         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 ) &&
-       ImGui::CollapsingHeader ("DirectXTex (D3D11/12)")
-     )
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_DXTEX).c_str ());
-  }
-
-  if (config.cegui.enable && ImGui::CollapsingHeader ("FreeType 2"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_FREETYPE2).c_str ());
-  }
+    ImGui::Separator ();
+    ImGui::EndGroup  ();
 
 
-  if ( config.cegui.enable &&  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL &&
-         ImGui::CollapsingHeader ("GLEW (OpenGL)")
-     )
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLEW).c_str ());
-  }
+    ImGui::BeginChild ("EULA_Body",  ImVec2 (0.0f, font_size_multiline * 12), false);
+    ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, 0.0f),                     false, ImGuiWindowFlags_NavFlattened);
+    ImGui::BeginGroup ();
 
-  //IDR_LICENSE_GLFW_2_2    TEXTFILE  "licenses/GLFW_2_2.txt"
+    if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
+                                          "Overview of Products Licensed"))
+    {
+      ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_OVERVIEW).c_str ());
+      ImGui::PopFont  ();
+    }
 
-  if (config.cegui.enable && ImGui::CollapsingHeader ("GLM v 0.9.4.5"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLM_0_9_4_5).c_str ());
-  }
+    ImGui::Separator  ();
 
-  if (ImGui::CollapsingHeader ("ImGui"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_IMGUI).c_str ());
-  }
+    SK_ImGui_DrawEULA_PlugIn (reserved);
 
-  //IDR_LICENSE_MESA_7_0    TEXTFILE  "licenses/Mesa_7_0.txt"
+    if (ImGui::CollapsingHeader ("7zip"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_7ZIP).c_str ());
+    }
 
-  if (ImGui::CollapsingHeader ("MinHook"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_MINHOOK).c_str ());
-  }
+    if (config.apis.ADL.enable && ImGui::CollapsingHeader ("ADL"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ADL).c_str ());
+    }
 
-  if (config.apis.NvAPI.enable && ImGui::CollapsingHeader ("NvAPI"))
-  {
-    ImGui::PushFont    (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NVAPI).c_str ());
-    ImGui::PopFont     ();
-  }
+    if (config.cegui.enable && ImGui::CollapsingHeader ("CEGUI (D3D9/11/GL)"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_CEGUI).c_str ());
+    }
 
-  if (config.cegui.enable && ImGui::CollapsingHeader ("PCRE"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE).c_str ());
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE_CPP).c_str ());
-  }
+    if ( ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 ||
+           SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 ) &&
+         ImGui::CollapsingHeader ("DirectXTex (D3D11/12)")
+       )
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_DXTEX).c_str ());
+    }
 
-  if (ImGui::CollapsingHeader ("Special K"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_SPECIALK).c_str ());
-  }
-
-  if (config.cegui.enable && ImGui::CollapsingHeader ("STB"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_STB).c_str ());
-  }
-
-  
-  if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Vulkan &&
-         ImGui::CollapsingHeader ("Vulkan")
-     )
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_VULKAN).c_str ());
-  }
-
-  if (config.cegui.enable && ImGui::CollapsingHeader ("ZLIB"))
-  {
-    ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
-  }
-
-  ImGui::EndGroup ();
-  ImGui::EndChild (); // EULA_Body
-  ImGui::EndChild (); // EULA_Body
-
-  ImGui::Separator  ();
-  ImGui::BeginGroup ();
-
-  ImGui::Columns  (2, "", false);
-  ImGui::TreePush (   "");
-
-  if (ImGui::Button (" Decline ")) {
-    ExitProcess (0x00);
-  }
-
-  if (ImGui::IsItemHovered ())
-  {
-    ImGui::BeginTooltip ();
-    ImGui::Bullet       ();                                              ImGui::SameLine ();
-    ImGui::TextColored  (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "WARNING:  "); ImGui::SameLine ();
-    ImGui::TextColored  (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f), "Game will exit!");
-    ImGui::EndTooltip   ();
-  }
-
-  ImGui::TreePop    ();
-  ImGui::NextColumn ();
-
-  if (! pirate)
-  {
-    ImGui::Checkbox ("I agree ... never show me this again!", &((show_eula_s *)reserved)->never_show_again);
-  }
-
-  else
-  {
-    ((show_eula_s *)reserved)->never_show_again = true;
-    ImGui::Checkbox ("Always show me this, I am a glutton for punishment!", &((show_eula_s *)reserved)->never_show_again);
-    ((show_eula_s *)reserved)->never_show_again = true;
-  }
-
-  ImGui::SameLine ();
-
-  if (ImGui::Button (" Accept ") && (! pirate)) {
-    ImGui::CloseCurrentPopup ();
-
-    open = false;
-    ((show_eula_s *)reserved)->show = open;
-
-    config.imgui.show_eula = ! ((show_eula_s *)reserved)->never_show_again;
-
-    const wchar_t* config_name = SK_GetBackend ();
-
-    if (SK_IsInjected ())
-      config_name = L"SpecialK";
-
-    SK_SaveConfig (config_name);
-  }
-
-  ImGui::EndGroup ();
+    if (config.cegui.enable && ImGui::CollapsingHeader ("FreeType 2"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_FREETYPE2).c_str ());
+    }
 
 
-  ImGui::EndPopup ();
+    if ( config.cegui.enable &&  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL &&
+           ImGui::CollapsingHeader ("GLEW (OpenGL)")
+       )
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLEW).c_str ());
+    }
+
+    //IDR_LICENSE_GLFW_2_2    TEXTFILE  "licenses/GLFW_2_2.txt"
+
+    if (config.cegui.enable && ImGui::CollapsingHeader ("GLM v 0.9.4.5"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLM_0_9_4_5).c_str ());
+    }
+
+    if (ImGui::CollapsingHeader ("ImGui"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_IMGUI).c_str ());
+    }
+
+    //IDR_LICENSE_MESA_7_0    TEXTFILE  "licenses/Mesa_7_0.txt"
+
+    if (ImGui::CollapsingHeader ("MinHook"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_MINHOOK).c_str ());
+    }
+
+    if (config.apis.NvAPI.enable && ImGui::CollapsingHeader ("NvAPI"))
+    {
+      ImGui::PushFont    (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NVAPI).c_str ());
+      ImGui::PopFont     ();
+    }
+
+    if (config.cegui.enable && ImGui::CollapsingHeader ("PCRE"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE).c_str ());
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE_CPP).c_str ());
+    }
+
+    if (ImGui::CollapsingHeader ("Special K"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_SPECIALK).c_str ());
+    }
+
+    if (config.cegui.enable && ImGui::CollapsingHeader ("STB"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_STB).c_str ());
+    }
+
+    
+    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Vulkan &&
+           ImGui::CollapsingHeader ("Vulkan")
+       )
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_VULKAN).c_str ());
+    }
+
+    if (config.cegui.enable && ImGui::CollapsingHeader ("ZLIB"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
+    }
+
+    ImGui::EndGroup ();
+    ImGui::EndChild (); // EULA_Body
+    ImGui::EndChild (); // EULA_Body
+
+    ImGui::Separator  ();
+    ImGui::BeginGroup ();
+
+    ImGui::Columns  (2, "", false);
+    ImGui::TreePush (   "");
+
+    if (ImGui::Button (" Decline "))
+    {
+      ExitProcess (0x00);
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip ();
+      ImGui::Bullet       ();                                              ImGui::SameLine ();
+      ImGui::TextColored  (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "WARNING:  "); ImGui::SameLine ();
+      ImGui::TextColored  (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f), "Game will exit!");
+      ImGui::EndTooltip   ();
+    }
+
+    ImGui::TreePop    ();
+    ImGui::NextColumn ();
+
+    if (! pirate)
+    {
+      ImGui::Checkbox ("I agree ... never show me this again!", &((show_eula_s *)reserved)->never_show_again);
+    }
+
+    ImGui::SameLine ();
+
+    if (ImGui::Button (" Accept ") && (! pirate))
+    {
+      ImGui::CloseCurrentPopup ();
+
+      open = false;
+      ((show_eula_s *)reserved)->show = open;
+
+      config.imgui.show_eula = ! ((show_eula_s *)reserved)->never_show_again;
+
+      const wchar_t* config_name = SK_GetBackend ();
+
+      if (SK_IsInjected ())
+        config_name = L"SpecialK";
+
+      SK_SaveConfig (config_name);
+    }
+
+    ImGui::EndGroup ();
+    ImGui::EndPopup ();
   }
 }

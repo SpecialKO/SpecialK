@@ -433,6 +433,7 @@ struct sk_config_t
             version             = SK_VER_STR;
     bool    trace_load_library  = true;
     bool    strict_compliance   = false;
+    float   global_inject_delay = 0.0f;
   } system;
 } extern config;
 

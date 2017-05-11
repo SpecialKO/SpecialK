@@ -27,11 +27,8 @@
 
 #include <Shlwapi.h>
 
-#include <unordered_set>
-
 #pragma data_seg (".SK_Hooks")
-HHOOK g_hHookCBT       = nullptr;
-HHOOK g_hHookShell     = nullptr; // In theory, this is a lighter-weight hook on a game oriented machine
+HHOOK g_hHookCBT = nullptr;
 #pragma data_seg ()
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
@@ -44,9 +41,9 @@ UINT    g_uiBroadcastMsg       = WM_USER; // Will be filled in with a real value
 
 LRESULT
 CALLBACK
-ShellProc ( _In_ int    nCode,
-            _In_ WPARAM wParam,
-            _In_ LPARAM lParam )
+CBTProc ( _In_ int    nCode,
+          _In_ WPARAM wParam,
+          _In_ LPARAM lParam )
 {
   if (hModHookInstance == NULL)
   {
@@ -55,11 +52,11 @@ ShellProc ( _In_ int    nCode,
     // Don't create that thread more than once, but don't bother with a complete
     //   critical section.
     if (InterlockedAdd (&lHookIters, 1L) > 1L)
-      return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+      return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                         GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                          (wchar_t *) &SKX_InstallShellHook,
+                          (wchar_t *) &SKX_InstallCBTHook,
                             (HMODULE *) &hModHookInstance );
 
     // Get and keep a reference to this DLL if this is the first time we are injecting.
@@ -71,7 +68,7 @@ ShellProc ( _In_ int    nCode,
       GetModuleHandleEx ( 0x00, L"SpecialK32.dll", &hModHookInstance );
 #endif
     else
-      return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+      return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
 
 #ifndef _WIN64
@@ -142,65 +139,8 @@ ShellProc ( _In_ int    nCode,
      );
   }
 
-  return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+  return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 }
-
-
-LRESULT
-CALLBACK
-CBTProc (int nCode, WPARAM wParam, LPARAM lParam)
-{
-  return CallNextHookEx(g_hHookCBT, nCode, wParam, lParam);
-}
-
-
-
-#if 0
-extern "C" __declspec (dllexport)
-void
-__stdcall
-SKX_InstallCBTHook (void)
-{
-  // Nothing to do here, move along.
-  if (g_hHookCBT != nullptr)
-    return;
-
-  HMODULE hMod;
-
-  if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                           GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                             (wchar_t *) &SKX_InstallCBTHook,
-                               (HMODULE *) &hMod ) )
-  {
-    g_hHookCBT =
-      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
-  }
-}
-
-
-extern "C" __declspec (dllexport)
-void
-__stdcall
-SKX_RemoveCBTHook (void)
-{
-  if (g_hHookCBT)
-  {
-    if (UnhookWindowsHookEx (g_hHookCBT))
-      g_hHookCBT = nullptr;
-  }
-}
-
-
-extern "C" __declspec (dllexport)
-bool
-__stdcall
-SKX_IsHookingCBT (void)
-{
-  return (g_hHookCBT != nullptr);
-}
-#endif
-
-
 
 
 BOOL
@@ -228,17 +168,17 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 extern "C" __declspec (dllexport)
 void
 __stdcall
-SKX_InstallShellHook (void)
+SKX_InstallCBTHook (void)
 {
   // Nothing to do here, move along.
-  if (g_hHookShell != nullptr)
+  if (g_hHookCBT != nullptr)
     return;
 
   HMODULE hMod;
 
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                        (wchar_t *) &SKX_InstallShellHook,
+                        (wchar_t *) &SKX_InstallCBTHook,
                           (HMODULE *) &hMod );
 
   extern HMODULE
@@ -258,10 +198,10 @@ SKX_InstallShellHook (void)
     //
     //  >>  ** Thank you GeForce Experience :-\
     //
-    g_hHookShell =
-      SetWindowsHookEx (WH_CBT, ShellProc, hMod, 0);
+    g_hHookCBT =
+      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
 
-    if (g_hHookShell != 0)
+    if (g_hHookCBT != 0)
       __SK_HookContextOwner = true;
   }
 }
@@ -270,9 +210,9 @@ SKX_InstallShellHook (void)
 extern "C" __declspec (dllexport)
 void
 __stdcall
-SKX_RemoveShellHook (void)
+SKX_RemoveCBTHook (void)
 {
-  if (g_hHookShell)
+  if (g_hHookCBT)
   {
 #ifndef _WIN64
     g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_32");
@@ -289,65 +229,38 @@ SKX_RemoveShellHook (void)
                                  uiMessage,
                                    0, 0 );
 
-    if (UnhookWindowsHookEx (g_hHookShell))
+    if (UnhookWindowsHookEx (g_hHookCBT))
     {
       __SK_HookContextOwner = false;
-      g_hHookShell          = nullptr;
+      g_hHookCBT            = nullptr;
     }
   }
 }
 
-extern "C" __declspec (dllexport)
+extern "C"
+__declspec (dllexport)
 bool
 __stdcall
-SKX_IsHookingShell (void)
+SKX_IsHookingCBT (void)
 {
-  return (g_hHookShell != nullptr);
+  return (g_hHookCBT != nullptr);
 }
 
 
 
 
-#if 0
-extern "C" __declspec (dllexport)
-bool
-__stdcall
-SKX_IsProcessHooked (DWORD dwPid)
-{
-  DWORD dwDesiredAccess = PROCESS_CREATE_THREAD;
-  BOOL  bInheritHandle  = FALSE;
-
-  HANDLE hProcess =
-    OpenProcess ( dwDesiredAccess, bInheritHandle, dwPid );
-
-  if (hProcess == nullptr)
-    return FALSE;
-  
-  BOOL result =
-    hooked_procs.count (hProcess);
-
-  CloseHandle (hProcess);
-  
-  return result;
-}
-#endif
-
-
-
-
-
-// Useful for manging injection of the 32-bit DLL from a 64-bit application or
-//   visa versa.
+// Useful for managing injection of the 32-bit DLL from a 64-bit application
+//   or visa versa.
 void
 CALLBACK
 RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                           LPSTR lpszCmdLine, int       nCmdShow )
 {
-  if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingShell ()))
+  if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
   {
-    SKX_InstallShellHook ();
+    SKX_InstallCBTHook ();
 
-    if (SKX_IsHookingShell ())
+    if (SKX_IsHookingCBT ())
     {
 #ifndef _WIN64
       FILE* fPID = fopen ("SpecialK32.pid", "w");
@@ -367,7 +280,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
 
   else if (StrStrA (lpszCmdLine, "Remove"))
   {
-    SKX_RemoveShellHook ();
+    SKX_RemoveCBTHook ();
 
 #ifndef _WIN64
     FILE* fPID = fopen ("SpecialK32.pid", "r");
@@ -532,24 +445,17 @@ SKinja_SwitchToGlobalInjector (void)
   return true;
 }
 
+extern std::wstring
+SK_SYS_GetInstallPath (void);
 
 
-
-bool
-SK_bIsSteamClient (HMODULE hMod);
 
 bool SK_Injection_JournalRecord (HMODULE hModule)
 {
   return false;
-  //return SK_bIsSteamClient (hModule);
 }
 
 
-
-extern std::wstring
-SK_SYS_GetInstallPath (void);
-
-#if 1
 void
 SK_Inject_Stop (void)
 {
@@ -585,64 +491,3 @@ SK_Inject_Start (void)
 
   SK_ResumeThreads (suspended);
 }
-#else
-void
-SK_Inject_Stop (void)
-{
-  STARTUPINFOW si = { 0 };
-  si.cb = sizeof si;
-
-  PROCESS_INFORMATION pi = { 0 };
-
-  CreateProcessW ( L"rundll32.exe",
-                     L"SpecialK32.dll,RunDLL_InjectionManager Remove",
-                       nullptr, nullptr,
-                         FALSE,
-                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
-                             nullptr,
-                               SK_SYS_GetInstallPath ().c_str (),
-                                 &si, &pi );
-
-  si = { 0 };
-  si.cb = sizeof si;
-
-  CreateProcessW ( L"rundll32.exe",
-                     L"SpecialK64.dll,RunDLL_InjectionManager Remove",
-                       nullptr, nullptr,
-                         FALSE,
-                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
-                             nullptr,
-                               SK_SYS_GetInstallPath ().c_str (),
-                                 &si, &pi );
-}
-
-void
-SK_Inject_Start (void)
-{
-  STARTUPINFOW si = { 0 };
-  si.cb = sizeof si;
-
-  PROCESS_INFORMATION pi = { 0 };
-
-  CreateProcessW ( L"rundll32.exe",
-                     L"SpecialK32.dll,RunDLL_InjectionManager Install",
-                       nullptr, nullptr,
-                         FALSE,
-                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
-                             nullptr,
-                               SK_SYS_GetInstallPath ().c_str (),
-                                 &si, &pi );
-
-  si = { 0 };
-  si.cb = sizeof si;
-
-  CreateProcessW ( L"rundll32.exe",
-                     L"SpecialK64.dll,RunDLL_InjectionManager Install",
-                       nullptr, nullptr,
-                         FALSE,
-                           CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
-                             nullptr,
-                               SK_SYS_GetInstallPath ().c_str (),
-                                 &si, &pi );
-}
-#endif

@@ -1174,30 +1174,6 @@ std::wstring
 __stdcall
 SK_GetPluginName (void);
 
-void
-SK_KillFRAPS (void)
-{
-#ifdef _WIN64
-  if (GetModuleHandle (L"fraps64.dll")) {
-#else
-  if (GetModuleHandle (L"fraps32.dll")) {
-#endif
-    std::wstring warning;
-
-    warning += L"FRAPS is running, it must be disabled for ";
-    warning += SK_GetPluginName ();
-    warning += L" to work!";
-
-    MessageBox ( NULL,
-                   warning.c_str (),
-                     L"Please Close FRAPS",
-                       MB_OK          | MB_ICONSTOP |
-                       MB_SYSTEMMODAL | MB_SETFOREGROUND );
-
-    ExitProcess (0x00);
-  }
-}
-
 #include <queue>
 
 std::queue <DWORD>

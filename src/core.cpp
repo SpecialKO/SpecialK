@@ -60,6 +60,7 @@
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/vulkan_backend.h>
 
 #include <atlbase.h>
 #include <comdef.h>
@@ -779,7 +780,6 @@ SK_InitFinishCallback (void)
   if (SK_IsSuperSpecialK ())
     return;
 
-  extern void SK_Input_Init (void);
   SK_Input_Init ();
 
   extern int32_t SK_D3D11_amount_to_purge;
@@ -850,8 +850,6 @@ SK_InitFinishCallback (void)
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
 
-  extern BOOL SK_UsingVulkan (void);
-
     // Create a thread that pumps the OSD
   if (config.osd.pump || SK_UsingVulkan ()) {
     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
@@ -891,7 +889,9 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   typedef void (WINAPI *finish_pfn)  (void);
   typedef void (WINAPI *callback_pfn)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
-  callback_pfn callback_fn = (callback_pfn)callback;
+
+  callback_pfn callback_fn =
+    (callback_pfn)callback;
 
   if (backend_dll != NULL) {
     LeaveCriticalSection (&init_mutex);
@@ -927,7 +927,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"---------------------\n");
 
   // If the module name is this, then we need to load the system-wide DLL...
-  wchar_t wszProxyName [MAX_PATH];
+  wchar_t   wszProxyName [MAX_PATH];
   wsprintf (wszProxyName, L"%s.dll", backend);
 
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
@@ -945,7 +945,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #endif
 
-  wchar_t wszWorkDir [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszWorkDir   [MAX_PATH + 2] = { L'\0' };
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
 
   dll_log.Log (L" Working Directory:          %s", wszWorkDir);
@@ -957,20 +957,23 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   const wchar_t* dll_name = wszBackendDLL;
 
-  if (! SK_Path_wcsicmp (wszProxyName, wszModuleName)) {
+  if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
     dll_name = wszBackendDLL;
-  } else {
+  else
     dll_name = wszProxyName;
-  }
 
   bool load_proxy = false;
 
-  if (! SK_IsSuperSpecialK ()) {
-    if (! SK_IsInjected ()) {
+  if (! SK_IsSuperSpecialK ())
+  {
+    if (! SK_IsInjected ())
+    {
       extern import_t imports [SK_MAX_IMPORTS];
 
-      for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-        if (imports [i].role != nullptr && imports [i].role->get_value () == backend) {
+      for (int i = 0; i < SK_MAX_IMPORTS; i++)
+      {
+        if (imports [i].role != nullptr && imports [i].role->get_value () == backend)
+        {
           dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
           dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
           load_proxy = true;
@@ -1005,12 +1008,14 @@ SK_InitCore (const wchar_t* backend, void* callback)
     L"----------------------------------------------------------------------"
     L"---------------------\n");
 
-  if (SK_IsSuperSpecialK ()) {
+  if (SK_IsSuperSpecialK ())
+  {
     callback_fn (SK_InitFinishCallback);
     return;
   }
 
-  if (config.system.silent) {
+  if (config.system.silent)
+  {
     dll_log.silent = true;
 
     std::wstring log_fnameW;
@@ -1023,9 +1028,11 @@ SK_InitCore (const wchar_t* backend, void* callback)
     log_fnameW += L".log";
 
     DeleteFile (log_fnameW.c_str ());
-  } else {
-    dll_log.silent = false;
   }
+
+  else
+    dll_log.silent = false;
+
 
   dll_log.LogEx (true, L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI): ");
 
@@ -1103,7 +1110,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   HMODULE hMod = GetModuleHandle (SK_GetHostApp ());
 
-  if (hMod != NULL) {
+  if (hMod != NULL)
+  {
     DWORD* dwOptimus = (DWORD *)GetProcAddress (hMod, "NvOptimusEnablement");
 
     if (dwOptimus != NULL) {
@@ -1128,40 +1136,31 @@ SK_InitCore (const wchar_t* backend, void* callback)
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
 
-
-
   SK_ResumeThreads (__SK_Init_Suspended_tids);
-
-  callback_fn (SK_InitFinishCallback);
-
-  // Malware needs to be disabled, but cannot be...
-  //   so notify the end-user.
-  extern void SK_KillFRAPS (void);
-              SK_KillFRAPS ();
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
+         callback_fn (SK_InitFinishCallback);
 
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
   SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
-  // Load user-defined DLLs (Plug-In
+  // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+  SK_LoadPlugIns64 ();
+#else
+  SK_LoadPlugIns32 ();
+#endif
 }
 
 
-volatile  LONG SK_bypass_dialog_active = FALSE;
+volatile LONG SK_bypass_dialog_active = FALSE;
 
 void
 WaitForInit (void)
 {
   static volatile ULONG init = FALSE;
 
-  if (InterlockedCompareExchange (&init, FALSE, FALSE)) {
+  if (InterlockedCompareExchange (&init, FALSE, FALSE))
     return;
-  }
 
   while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr))
   {
@@ -1265,11 +1264,11 @@ __stdcall
 SK_EstablishRootPath (void)
 {
   wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
-          wszConfigPath [  MAX_PATH  ] = L'\0';
+          wszConfigPath [  MAX_PATH  ] = { L'\0' };
 
-          SK_RootPath   [    0     ]   = L'\0';
+          SK_RootPath   [    0     ]   = { L'\0' };
 
-          SK_RootPath   [ MAX_PATH ]   = L'\0';
+          SK_RootPath   [ MAX_PATH ]   = { L'\0' };
 
   // Make expansion of %UserProfile% agree with the actual directory, for people
   //   who rebase their documents directory without fixing this env. variable.
@@ -1487,12 +1486,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     if (SK_IsInjected ())
       config.steam.init_delay = std::max (config.steam.init_delay, 6666);
     else {
-      extern void
-      SK_TestSteamImports (HMODULE hMod);
-
-      extern void
-      SK_Steam_InitCommandConsoleVariables (void);
-
       SK_Steam_InitCommandConsoleVariables ();
       SK_TestSteamImports                  (GetModuleHandle (nullptr));
     }
@@ -1951,9 +1944,10 @@ SK_BeginBufferSwap (void)
     //
     // TEMP HACK: There is only one opportune time to do this in DXGI-based APIs
     //     
-    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) {
+    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+    {
       extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
-                   SK_ImGui_DrawFrame (       0x00,          nullptr );
+                   SK_ImGui_DrawFrame (       0x00,     nullptr );
     }
   }
 
@@ -1980,9 +1974,6 @@ DoKeyboard (void)
 
   if (skip)
     return;
-
-
-
 
   static ULONGLONG last_osd_scale { 0ULL };
   static ULONGLONG last_poll      { 0ULL };
@@ -2297,8 +2288,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   // Treat resize and obscured statuses as failures; DXGI does not, but
   //  we should not draw the OSD when these events happen.
-  //if (FAILED (hr))
-    //return hr;
+  if (FAILED (hr))
+    return hr;
 
   DoKeyboard ();
 

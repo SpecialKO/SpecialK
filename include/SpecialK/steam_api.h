@@ -54,6 +54,17 @@ namespace SK
   }
 }
 
+// Tests the Import Table of hMod for anything Steam-Related
+//
+//   If found, and this test is performed after the pre-init
+//     DLL phase, SteamAPI in one of its many forms will be
+//       hooked.
+void
+SK_TestSteamImports (HMODULE hMod);
+
+void
+SK_Steam_InitCommandConsoleVariables (void);
+
 //
 // Internal data stored in the Achievement Manager, this is
 //   the publicly visible data...

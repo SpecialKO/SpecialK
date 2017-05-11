@@ -7641,4 +7641,107 @@ public:
 
 };
 
+typedef HRESULT (STDMETHODCALLTYPE *PresentSwapChain_pfn)(
+                                       IDXGISwapChain *This,
+                                       UINT            SyncInterval,
+                                       UINT            Flags);
+
+typedef HRESULT (STDMETHODCALLTYPE *Present1SwapChain1_pfn)(
+                                       IDXGISwapChain1         *This,
+                                       UINT                     SyncInterval,
+                                       UINT                     Flags,
+                                 const DXGI_PRESENT_PARAMETERS *pPresentParameters);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChain_pfn)(
+                                       IDXGIFactory          *This,
+                                 _In_  IUnknown              *pDevice,
+                                 _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
+                                _Out_  IDXGISwapChain       **ppSwapChain);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChainForHwnd_pfn)(
+                                       IDXGIFactory2                    *This,
+                            _In_       IUnknown                         *pDevice,
+                            _In_       HWND                              hWnd,
+                            _In_ const DXGI_SWAP_CHAIN_DESC1            *pDesc,
+                        _In_opt_ const DXGI_SWAP_CHAIN_FULLSCREEN_DESC  *pFullscreenDesc,
+                        _In_opt_       IDXGIOutput                      *pRestrictToOutput,
+                           _Out_       IDXGISwapChain1                 **ppSwapChain);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChainForCoreWindow_pfn)(
+                                       IDXGIFactory2                   *This,
+                            _In_       IUnknown                        *pDevice,
+                            _In_       IUnknown                        *pWindow,
+                            _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
+                        _In_opt_       IDXGIOutput                     *pRestrictToOutput,
+                           _Out_       IDXGISwapChain1                **ppSwapChain);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChainForComposition_pfn)(
+                                       IDXGIFactory2          *This,
+                        _In_           IUnknown               *pDevice,
+                        _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
+                        _In_opt_       IDXGIOutput            *pRestrictToOutput,
+                        _Outptr_       IDXGISwapChain1       **ppSwapChain);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetFullscreenState_pfn)(
+                                       IDXGISwapChain *This,
+                                       BOOL            Fullscreen,
+                                       IDXGIOutput    *pTarget);
+
+typedef HRESULT (STDMETHODCALLTYPE *GetFullscreenState_pfn)(
+                                       IDXGISwapChain  *This,
+                            _Out_opt_  BOOL            *pFullscreen,
+                            _Out_opt_  IDXGIOutput    **ppTarget );
+
+typedef HRESULT (STDMETHODCALLTYPE *ResizeBuffers_pfn)(
+                                       IDXGISwapChain *This,
+                            /* [in] */ UINT            BufferCount,
+                            /* [in] */ UINT            Width,
+                            /* [in] */ UINT            Height,
+                            /* [in] */ DXGI_FORMAT     NewFormat,
+                            /* [in] */ UINT            SwapChainFlags);
+
+typedef HRESULT (STDMETHODCALLTYPE *ResizeTarget_pfn)(
+                                  _In_ IDXGISwapChain  *This,
+                            _In_ const DXGI_MODE_DESC  *pNewTargetParameters );
+
+typedef HRESULT (STDMETHODCALLTYPE *GetDisplayModeList_pfn)(
+                                       IDXGIOutput     *This,
+                            /* [in] */ DXGI_FORMAT      EnumFormat,
+                            /* [in] */ UINT             Flags,
+                            /* [annotation][out][in] */
+                              _Inout_  UINT            *pNumModes,
+                            /* [annotation][out] */
+_Out_writes_to_opt_(*pNumModes,*pNumModes)
+                                       DXGI_MODE_DESC *pDesc );
+
+typedef HRESULT (STDMETHODCALLTYPE *FindClosestMatchingMode_pfn)(
+                                       IDXGIOutput    *This,
+                           /* [annotation][in] */
+                           _In_  const DXGI_MODE_DESC *pModeToMatch,
+                           /* [annotation][out] */
+                           _Out_       DXGI_MODE_DESC *pClosestMatch,
+                           /* [annotation][in] */
+                            _In_opt_  IUnknown *pConcernedDevice );
+
+typedef HRESULT (STDMETHODCALLTYPE *WaitForVBlank_pfn)(
+                                       IDXGIOutput    *This );
+
+
+typedef HRESULT (STDMETHODCALLTYPE *GetDesc1_pfn)(IDXGIAdapter1      *This,
+                                         _Out_    DXGI_ADAPTER_DESC1 *pDesc);
+typedef HRESULT (STDMETHODCALLTYPE *GetDesc2_pfn)(IDXGIAdapter2      *This,
+                                           _Out_  DXGI_ADAPTER_DESC2 *pDesc);
+typedef HRESULT (STDMETHODCALLTYPE *GetDesc_pfn) (IDXGIAdapter       *This,
+                                           _Out_  DXGI_ADAPTER_DESC  *pDesc);
+
+typedef HRESULT (STDMETHODCALLTYPE *EnumAdapters_pfn)(
+                                        IDXGIFactory  *This,
+                                        UINT           Adapter,
+                                  _Out_ IDXGIAdapter **ppAdapter);
+
+typedef HRESULT (STDMETHODCALLTYPE *EnumAdapters1_pfn)(
+                                        IDXGIFactory1  *This,
+                                        UINT            Adapter,
+                                  _Out_ IDXGIAdapter1 **ppAdapter);
+
 #endif /* __SK__DXGI_INTERFACES_H__ */

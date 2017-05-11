@@ -524,9 +524,6 @@
     <ClCompile Include="src\imgui\addons\tinyfiledialogs.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends\Input</Filter>
-    </ClCompile>
     <ClCompile Include="src\render_backend.cpp">
       <Filter>Source Files\Backends\Render</Filter>
     </ClCompile>
@@ -544,6 +541,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\plugin_mgr.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\input.cpp">
+      <Filter>Source Files\Backends\Input\XInput</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -47,4 +47,6 @@ namespace SK
   }
 }
 
+BOOL SK_UsingVulkan (void);
+
 #endif /* __SK__VULKAN_BACKEND_H__ */

@@ -1,3 +1,29 @@
+//
+// Copyright 2017  Andon  "Kaldaien" Coleman
+//                 Niklas "DrDaxxy"  Kielblock,
+//                 Peter  "Durante"  Thoman,
+//
+//        Francesco149, Idk31, Smithfield, and GitHub contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+//
+
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <SpecialK/dxgi_backend.h>
@@ -23,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.6.12"
+#define FAR_VERSION_NUM L"0.5.6.14"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -1611,6 +1637,48 @@ SK_FAR_PSSetShaderResources (
 
 
 
+extern
+__declspec (noinline)
+void
+__stdcall
+SK_ImGui_DrawEULA_PlugIn (LPVOID reserved);
+
+__declspec (noinline)
+void
+__stdcall
+SK_FAR_EULA_Insert (LPVOID reserved)
+{
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  if (ImGui::CollapsingHeader ("FAR (Fix Automata Resolution)", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TextWrapped ( " Copyright 2017  Andon  \"Kaldaien\" Coleman\n"
+                         "                 Niklas \"DrDaxxy\" Kielblock,\n"
+                         "                 Peter  \"Durante\" Thoman,\n"
+                         "\n"
+                         "        Francesco149, Idk31, Smithfield, and GitHub contributors.\n"
+                         "\n"
+                         " Permission is hereby granted, free of charge, to any person obtaining a copy\n"
+                         " of this software and associated documentation files (the \"Software\"), to\n"
+                         " deal in the Software without restriction, including without limitation the\n"
+                         " rights to use, copy, modify, merge, publish, distribute, sublicense, and/or\n"
+                         " sell copies of the Software, and to permit persons to whom the Software is\n"
+                         " furnished to do so, subject to the following conditions:\n"
+                         " \n"
+                         " The above copyright notice and this permission notice shall be included in\n"
+                         " all copies or substantial portions of the Software.\n"
+                         "\n"
+                         " THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n"
+                         " IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n"
+                         " FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL\n"
+                         " THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n"
+                         " LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\n"
+                         " FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER\n"
+                         " DEALINGS IN THE SOFTWARE.\n" );
+  }
+}
+
 
 void
 SK_FAR_InitPlugin (void)
@@ -1662,6 +1730,15 @@ SK_FAR_InitPlugin (void)
                (LPVOID *)&SK_PlugIn_ControlPanelWidget_Original );
 
   MH_QueueEnableHook (SK_PlugIn_ControlPanelWidget);
+
+  LPVOID dontcare = nullptr;
+
+  SK_CreateFuncHook ( L"SK_ImGUI_DrawEULA_PlugIn",
+                      SK_ImGui_DrawEULA_PlugIn,
+                      SK_FAR_EULA_Insert,
+                     &dontcare );
+
+  MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
 
 typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
   _In_ ID3D11DeviceContext *This,

@@ -674,7 +674,7 @@ DllMain ( HMODULE hModule,
 
       if (__SK_HookContextOwner)
       {
-        SKX_RemoveShellHook ();
+        SKX_RemoveCBTHook ();
 
         if (! __SK_HookContextOwner)
         {

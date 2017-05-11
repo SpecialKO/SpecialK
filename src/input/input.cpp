@@ -250,7 +250,7 @@ HidP_GetData_Detour (
 
   if ( ret == HIDP_STATUS_SUCCESS && ( ReportType == HidP_Input || ReportType == HidP_Output ))
   {
-    // This will classify the data for us, so don't record this eventyet.
+    // This will classify the data for us, so don't record this event yet.
     filter = SK_HID_FilterPreparsedData (PreparsedData);
   }
 
@@ -549,20 +549,20 @@ SK_RawInput_ClassifyDevices (void)
 
   for (auto it : raw_devices)
   {
-    if ((it).usUsagePage == 0x1)
+    if ((it).usUsagePage == HID_USAGE_PAGE_GENERIC)
     {
       switch ((it).usUsage)
       {
-        case 02:
+        case HID_USAGE_GENERIC_MOUSE:
           raw_mice.push_back       (it);
           break;
 
-        case 06:
+        case HID_USAGE_GENERIC_KEYBOARD:
           raw_keyboards.push_back  (it);
           break;
 
-        case 04: // Joystick
-        case 05: // Gamepad
+        case HID_USAGE_GENERIC_JOYSTICK: // Joystick
+        case HID_USAGE_GENERIC_GAMEPAD:  // Gamepad
           raw_gamepads.push_back   (it);
           break;
 
@@ -1391,7 +1391,7 @@ sk_imgui_cursor_s::LocalToScreen (LPPOINT lpPoint)
 }
 
 void
-sk_imgui_cursor_s::LocalToClient    (LPPOINT lpPoint)
+sk_imgui_cursor_s::LocalToClient (LPPOINT lpPoint)
 {
   RECT real_client;
   GetClientRect (game_window.hWnd, &real_client);
@@ -1445,7 +1445,7 @@ sk_imgui_cursor_s::ClientToLocal    (LPPOINT lpPoint)
 }
 
 void
-sk_imgui_cursor_s::ScreenToLocal    (LPPOINT lpPoint)
+sk_imgui_cursor_s::ScreenToLocal (LPPOINT lpPoint)
 {
   ScreenToClient (game_window.hWnd, lpPoint);
   ClientToLocal  (lpPoint);
@@ -1619,6 +1619,7 @@ SK_ImGui_WantGamepadCapture (void)
       imgui_capture = true;
   }
 
+  // Stupid hack, breaking whatever abstraction this horrible mess passes for
   extern bool __FAR_Freelook;
   if (__FAR_Freelook)
     imgui_capture = true;

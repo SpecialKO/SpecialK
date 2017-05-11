@@ -1900,7 +1900,7 @@ extern float SK_ImGui_PulseNav_Strength;
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip  ();
-            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Redistribute Input Latency -- (Trade Cursor Lag for UI Lag)");
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Reduce Input Latency -- (Trade Cursor Lag for UI Lag)");
             ImGui::Separator   ();
             ImGui::BulletText  ("You will experience several frames of lag while dragging UI windows around.");
             ImGui::BulletText  ("Most Games use Hardware Cursors; turning this on will reduce visible cursor trails.");
