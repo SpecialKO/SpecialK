@@ -46,26 +46,22 @@
 #include <SpecialK/osd/text.h>
 #include <SpecialK/render_backend.h>
 
-#include <SpecialK/command.h>
-
 // PlaySound
 #pragma comment (lib, "winmm.lib")
 
-iSK_Logger steam_log;
+         iSK_Logger       steam_log;
 
-volatile ULONG __SK_Steam_init = FALSE;
+volatile ULONG            __SK_Steam_init = FALSE;
+volatile ULONG            __SteamAPI_hook = FALSE;
 
-uint64_t steam_size;
+         CRITICAL_SECTION callback_cs = { 0 };
+         CRITICAL_SECTION init_cs     = { 0 };
+         CRITICAL_SECTION popup_cs    = { 0 };
 
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
 #define STEAM_API_NODLL
 #include <SpecialK/steam_api.h>
-
-
-// Must be global for x86 ABI problems
-CSteamID player;
-
 
 #include <time.h>
 
@@ -76,89 +72,10 @@ CSteamID player;
 std::multiset <class CCallbackBase *> overlay_activation_callbacks;
 
 void SK_HookSteamAPI                      (void);
-void SK_SteamAPI_InitManagers             (void);
-void SK_SteamAPI_DestroyManagers          (void);
 void SK_SteamAPI_UpdateGlobalAchievements (void);
-
-void StartSteamPump (bool force = false);
-
-volatile ULONG __CSteamworks_hook = FALSE;
-volatile ULONG __SteamAPI_hook    = FALSE;
-
-
-CRITICAL_SECTION callback_cs = { 0 };
-CRITICAL_SECTION init_cs     = { 0 };
-CRITICAL_SECTION popup_cs    = { 0 };
-
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
-
-
-bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
-bool S_CALLTYPE SteamAPI_Init_Detour     (void);
-void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
-
-typedef bool (S_CALLTYPE *SteamAPI_Init_pfn    )(void);
-typedef bool (S_CALLTYPE *SteamAPI_InitSafe_pfn)(void);
-
-typedef bool (S_CALLTYPE *SteamAPI_RestartAppIfNecessary_pfn)
-    (uint32 unOwnAppID);
-typedef bool (S_CALLTYPE *SteamAPI_IsSteamRunning_pfn)(void);
-
-typedef void (S_CALLTYPE *SteamAPI_Shutdown_pfn)(void);
-
-typedef void (S_CALLTYPE *SteamAPI_RegisterCallback_pfn)
-    (class CCallbackBase *pCallback, int iCallback);
-typedef void (S_CALLTYPE *SteamAPI_UnregisterCallback_pfn)
-    (class CCallbackBase *pCallback);
-
-typedef void (S_CALLTYPE *SteamAPI_RegisterCallResult_pfn)
-    (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
-typedef void (S_CALLTYPE *SteamAPI_UnregisterCallResult_pfn)
-    (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
-
-typedef void (S_CALLTYPE *SteamAPI_RunCallbacks_pfn)(void);
-
-typedef HSteamUser (*SteamAPI_GetHSteamUser_pfn)(void);
-typedef HSteamPipe (*SteamAPI_GetHSteamPipe_pfn)(void);
-
-typedef ISteamClient* (S_CALLTYPE *SteamClient_pfn)(void);
-
-typedef bool (*GetControllerState_pfn)
-    (ISteamController* This, uint32 unControllerIndex, SteamControllerState_t *pState);
-
-SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                = nullptr;
-SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original       = nullptr;
-
-void
-S_CALLTYPE
-SteamAPI_RunCallbacks_Detour (void);
-
-SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback            = nullptr;
-SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original   = nullptr;
-
-SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback          = nullptr;
-SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original = nullptr;
-
-SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult          = nullptr;
-SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult        = nullptr;
-
-SteamAPI_Init_pfn                  SteamAPI_Init                        = nullptr;
-SteamAPI_InitSafe_pfn              SteamAPI_InitSafe                    = nullptr;
-
-SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary       = nullptr;
-SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning              = nullptr;
-
-SteamAPI_GetHSteamUser_pfn         SteamAPI_GetHSteamUser               = nullptr;
-SteamAPI_GetHSteamPipe_pfn         SteamAPI_GetHSteamPipe               = nullptr;
-
-SteamClient_pfn                    SteamClient                          = nullptr;
-
-SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                    = nullptr;
-SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original           = nullptr;
-
-GetControllerState_pfn             GetControllerState_Original          = nullptr;
 
 class SK_Steam_OverlayManager
 {
@@ -262,6 +179,29 @@ void
 S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
+  //
+  // TODO: This is a late-injection strategy that appears to be necessary for Prey even when
+  //         installed as a wrapper.
+  //
+  //   >> That problem seems to be related to its re-rooting the working directory before loading
+  //        render API DLLs.
+  //
+  if (SK_IsInjected ())
+  {
+    // Only really screwed up games (there are some) install callbacks before initializing SteamAPI,
+    //   so if we've gotten this far and still missed the API init call try to implicitly init SteamAPI.
+    //
+    if (! InterlockedExchangeAdd (&__SK_Steam_init, 0UL))
+    {
+      if (SteamAPI_InitSafe_Original != nullptr)
+      {
+        if (SteamAPI_InitSafe_Detour ())
+          SteamAPI_RunCallbacks_Detour ();
+      }
+    }
+  }
+
+
   // Don't care about OUR OWN callbacks ;)
   if (SK_GetCallingDLL () == SK_GetDLL ())
   {
@@ -355,18 +295,6 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       break;
   }
 
-  if (SK_IsInjected ())
-  {
-    // Only really screwed up games (there are some) install callbacks before initializing SteamAPI,
-    //   so if we've gotten this far and still missed the API init call try to implicitly init SteamAPI.
-    //
-    if (! InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE))
-    {
-      if (SteamAPI_InitSafe ())
-        SteamAPI_RunCallbacks ();
-    }
-  }
-
   SteamAPI_RegisterCallback_Original (pCallback, iCallback);
 
   LeaveCriticalSection (&callback_cs);
@@ -455,14 +383,8 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
   LeaveCriticalSection (&callback_cs);
 }
 
-typedef bool (S_CALLTYPE* SteamAPI_InitSafe_pfn)(void);
-typedef bool (S_CALLTYPE* SteamAPI_Init_pfn)    (void);
-
 SteamAPI_InitSafe_pfn SteamAPI_InitSafe_Original = nullptr;
 SteamAPI_Init_pfn     SteamAPI_Init_Original     = nullptr;
-
-bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
-bool S_CALLTYPE SteamAPI_Init_Detour     (void);
 
 extern "C" void __cdecl SteamAPIDebugTextHook (int nSeverity, const char *pchDebugText);
 
@@ -551,539 +473,7 @@ ISteamController_GetControllerState_Detour (
   SteamControllerState_t *pState );
 
 
-class SK_SteamAPIContext : public SK_IVariableListener
-{
-public:
-  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
-
-  bool InitCSteamworks (HMODULE hSteamDLL)
-  {
-    return false;
-
-#if 0
-    if (config.steam.silent)
-      return false;
-
-    if (SteamAPI_InitSafe == nullptr)
-    {
-      SteamAPI_InitSafe =
-        (SteamAPI_InitSafe_pfn)GetProcAddress (
-          hSteamDLL,
-            "InitSafe"
-        );
-    }
-
-    if (SteamAPI_GetHSteamUser == nullptr)
-    {
-      SteamAPI_GetHSteamUser =
-        (SteamAPI_GetHSteamUser_pfn)GetProcAddress (
-           hSteamDLL,
-             "GetHSteamUser_"
-        );
-    }
-
-    if (SteamAPI_GetHSteamPipe == nullptr)
-    {
-      SteamAPI_GetHSteamPipe =
-        (SteamAPI_GetHSteamPipe_pfn)GetProcAddress (
-           hSteamDLL,
-             "GetHSteamPipe_"
-        );
-    }
-
-    SteamAPI_IsSteamRunning =
-      (SteamAPI_IsSteamRunning_pfn)GetProcAddress (
-         hSteamDLL,
-           "IsSteamRunning"
-      );
-
-    if (SteamClient == nullptr)
-    {
-      SteamClient =
-        (SteamClient_pfn)GetProcAddress (
-           hSteamDLL,
-             "SteamClient_"
-        );
-    }
-
-    bool success = true;
-
-    if (SteamAPI_GetHSteamUser == nullptr)
-    {
-      steam_log.Log (L"Could not load GetHSteamUser (...)");
-      success = false;
-    }
-
-    if (SteamAPI_GetHSteamPipe == nullptr)
-    {
-      steam_log.Log (L"Could not load GetHSteamPipe (...)");
-      success = false;
-    }
-
-    if (SteamClient == nullptr) {
-      steam_log.Log (L"Could not load SteamClient (...)");
-      success = false;
-    }
-
-    if (SteamAPI_RegisterCallback == nullptr)
-    {
-      steam_log.Log (L"Could not load RegisterCallback (...)");
-      success = false;
-    }
-
-    if (SteamAPI_UnregisterCallback == nullptr)
-    {
-      steam_log.Log (L"Could not load UnregisterCallback (...)");
-      success = false;
-    }
-
-    if (SteamAPI_RunCallbacks == nullptr)
-    {
-      steam_log.Log (L"Could not load RunCallbacks (...)");
-      success = false;
-    }
-
-    if (! success)
-      return false;
-
-    client_ = SteamClient ();
-
-    hSteamUser = SteamAPI_GetHSteamUser ();
-    hSteamPipe = SteamAPI_GetHSteamPipe ();
-
-    if (! client_)
-      return false;
-
-    user_ =
-      client_->GetISteamUser (
-        hSteamUser,
-          hSteamPipe,
-            STEAMUSER_INTERFACE_VERSION
-      );
-
-    if (user_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
-                        STEAMUSER_INTERFACE_VERSION );
-      return false;
-    }
-
-    friends_ =
-      client_->GetISteamFriends (
-        hSteamUser,
-          hSteamPipe,
-            STEAMFRIENDS_INTERFACE_VERSION
-      );
-
-    if (friends_ == nullptr) {
-      steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
-                        STEAMFRIENDS_INTERFACE_VERSION );
-      return false;
-    }
-
-    user_stats_ =
-      client_->GetISteamUserStats (
-        hSteamUser,
-          hSteamPipe,
-            STEAMUSERSTATS_INTERFACE_VERSION
-      );
-
-    if (user_stats_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
-                        STEAMUSERSTATS_INTERFACE_VERSION );
-      return false;
-    }
-
-    apps_ =
-      client_->GetISteamApps (
-        hSteamUser,
-          hSteamPipe,
-            STEAMAPPS_INTERFACE_VERSION
-      );
-
-    if (apps_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
-                        STEAMAPPS_INTERFACE_VERSION );
-      return false;
-    }
-
-    utils_ =
-      client_->GetISteamUtils ( hSteamPipe,
-                                  STEAMUTILS_INTERFACE_VERSION );
-
-    if (utils_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
-                        STEAMUTILS_INTERFACE_VERSION );
-      return false;
-    }
-
-    screenshots_ =
-      client_->GetISteamScreenshots ( hSteamUser,
-                                        hSteamPipe,
-                                          STEAMSCREENSHOTS_INTERFACE_VERSION );
-
-    if (screenshots_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                        STEAMSCREENSHOTS_INTERFACE_VERSION );
-
-      screenshots_ =
-        client_->GetISteamScreenshots ( hSteamUser,
-                                          hSteamPipe,
-                                            "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
-
-      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                        "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
-
-
-      //return false;
-    }
-
-    controller_ =
-      client_->GetISteamController (
-        hSteamUser,
-          hSteamPipe,
-            STEAMCONTROLLER_INTERFACE_VERSION );
-
-    //void** vftable = *(void***)*&controller_;
-    //SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
-                             //vftable, 3,
-              //ISteamController_GetControllerState_Detour,
-                    //(LPVOID *)&GetControllerState_Original );
-
-
-    steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
-    SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
-    steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
-
-    return true;
-    #endif
-  }
-
-  bool InitSteamAPI (HMODULE hSteamDLL)
-  {
-    if (SteamAPI_InitSafe == nullptr)
-    {
-      SteamAPI_InitSafe =
-        (SteamAPI_InitSafe_pfn)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_InitSafe"
-        );
-    }
-
-    if (SteamAPI_GetHSteamUser == nullptr)
-    {
-      SteamAPI_GetHSteamUser =
-        (SteamAPI_GetHSteamUser_pfn)GetProcAddress (
-           hSteamDLL,
-             "SteamAPI_GetHSteamUser"
-        );
-    }
-
-    if (SteamAPI_GetHSteamPipe == nullptr)
-    {
-      SteamAPI_GetHSteamPipe =
-        (SteamAPI_GetHSteamPipe_pfn)GetProcAddress (
-           hSteamDLL,
-             "SteamAPI_GetHSteamPipe"
-        );
-    }
-
-    SteamAPI_IsSteamRunning =
-      (SteamAPI_IsSteamRunning_pfn)GetProcAddress (
-         hSteamDLL,
-           "SteamAPI_IsSteamRunning"
-      );
-
-    if (SteamClient == nullptr)
-    {
-      SteamClient =
-        (SteamClient_pfn)GetProcAddress (
-           hSteamDLL,
-             "SteamClient"
-        );
-    }
-
-    if (SteamAPI_RegisterCallResult == nullptr)
-    {
-      SteamAPI_RegisterCallResult =
-        (SteamAPI_RegisterCallResult_pfn)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_RegisterCallResult"
-        );
-    }
-
-    if (SteamAPI_UnregisterCallResult == nullptr)
-    {
-      SteamAPI_UnregisterCallResult =
-        (SteamAPI_UnregisterCallResult_pfn)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_UnregisterCallResult"
-        );
-    }
-
-
-    bool success = true;
-
-    if (SteamAPI_GetHSteamUser == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_GetHSteamUser (...)");
-      success = false;
-    }
-
-    if (SteamAPI_GetHSteamPipe == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_GetHSteamPipe (...)");
-      success = false;
-    }
-
-    if (SteamClient == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamClient (...)");
-      success = false;
-    }
-
-
-    if (SteamAPI_RunCallbacks == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_RunCallbacks (...)");
-      success = false;
-    }
-
-    if (SteamAPI_Shutdown == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_Shutdown (...)");
-      success = false;
-    }
-
-    if (! success)
-      return false;
-
-    if (! SteamAPI_InitSafe ())
-    {
-      steam_log.Log (L" SteamAPI_InitSafe (...) Failed?!");
-      return false;
-    }
-
-    client_ = SteamClient ();
-
-    if (! client_)
-    {
-      steam_log.Log (L" SteamClient (...) Failed?!");
-      return false;
-    }
-
-    hSteamPipe = SteamAPI_GetHSteamPipe ();
-    hSteamUser = SteamAPI_GetHSteamUser ();
-
-    MH_QueueEnableHook (SteamAPI_Shutdown);
-    MH_QueueEnableHook (SteamAPI_RunCallbacks);
-    MH_ApplyQueued     ();
-
-    user_ =
-      client_->GetISteamUser (
-        hSteamUser,
-          hSteamPipe,
-            STEAMUSER_INTERFACE_VERSION
-      );
-
-    if (user_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
-                        STEAMUSER_INTERFACE_VERSION );
-      return false;
-    }
-
-    // Blacklist of people not allowed to use my software (for being disruptive to other users)
-    uint32_t aid = user_->GetSteamID ().GetAccountID    ();
-    uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
-
-    if ( aid ==  64655118 || aid == 183437803 )
-    {
-      SK_MessageBox ( L"You are not authorized to use this software",
-                        L"Unauthorized User", MB_ICONWARNING | MB_OK );
-      ExitProcess (0x00);
-    }
-
-    friends_ =
-      client_->GetISteamFriends (
-        hSteamUser,
-          hSteamPipe,
-            STEAMFRIENDS_INTERFACE_VERSION
-      );
-
-    if (friends_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
-                        STEAMFRIENDS_INTERFACE_VERSION );
-      return false;
-    }
-
-    user_stats_ =
-      client_->GetISteamUserStats (
-        hSteamUser,
-          hSteamPipe,
-            STEAMUSERSTATS_INTERFACE_VERSION
-      );
-
-    if (user_stats_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
-                        STEAMUSERSTATS_INTERFACE_VERSION );
-      return false;
-    }
-
-    apps_ =
-      client_->GetISteamApps (
-        hSteamUser,
-          hSteamPipe,
-            STEAMAPPS_INTERFACE_VERSION
-      );
-
-    if (apps_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
-                        STEAMAPPS_INTERFACE_VERSION );
-      return false;
-    }
-
-    utils_ =
-      client_->GetISteamUtils ( hSteamPipe,
-                                  STEAMUTILS_INTERFACE_VERSION );
-
-    if (utils_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
-                        STEAMUTILS_INTERFACE_VERSION );
-      return false;
-    }
-
-    screenshots_ =
-      client_->GetISteamScreenshots ( hSteamUser,
-                                        hSteamPipe,
-                                          STEAMSCREENSHOTS_INTERFACE_VERSION );
-
-    // We can live without this...
-    if (screenshots_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                        STEAMSCREENSHOTS_INTERFACE_VERSION );
-
-      screenshots_ =
-        client_->GetISteamScreenshots ( hSteamUser,
-                                          hSteamPipe,
-                                            "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
-
-      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                        "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
-
-
-      //return false;
-    }
-
-    player = user_->GetSteamID ();
-
-#if 0
-    controller_ =
-      client_->GetISteamController (
-        hSteamUser,
-          hSteamPipe,
-            STEAMCONTROLLER_INTERFACE_VERSION );
-
-    void** vftable = *(void***)*(&controller_);
-    SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
-                             vftable, 3,
-              ISteamController_GetControllerState_Detour,
-                    (LPVOID *)&GetControllerState_Original );
-#endif
-
-    steam_log.LogEx (true, L" # Installing Steam API Debug Text Callback... ");
-    SteamClient ()->SetWarningMessageHook (&SteamAPIDebugTextHook);
-    steam_log.LogEx (false, L"SteamAPIDebugTextHook\n\n");
-
-    return true;
-  }
-
-  void Shutdown (void)
-  {
-    if (InterlockedExchange         (&__SK_Steam_init, 0))
-    { 
-      if (client_)
-      {
-#if 0
-        if (hSteamUser != 0)
-          client_->ReleaseUser       (hSteamPipe, hSteamUser);
-      
-        if (hSteamPipe != 0)
-          client_->BReleaseSteamPipe (hSteamPipe);
-#endif
-      
-        SK_SteamAPI_DestroyManagers  ();
-      }
-      
-      hSteamPipe   = 0;
-      hSteamUser   = 0;
-      
-      client_      = nullptr;
-      user_        = nullptr;
-      user_stats_  = nullptr;
-      apps_        = nullptr;
-      friends_     = nullptr;
-      utils_       = nullptr;
-      screenshots_ = nullptr;
-      controller_  = nullptr;
-      
-      if (SteamAPI_Shutdown_Original != nullptr)
-      {
-        SteamAPI_Shutdown_Original = nullptr;
-
-        SK_DisableHook (SteamAPI_RunCallbacks);
-        SK_DisableHook (SteamAPI_Shutdown);
-
-        SteamAPI_Shutdown ();
-      }
-    }
-  }
-
-  ISteamUser*        User        (void) { return user_;        }
-  ISteamUserStats*   UserStats   (void) { return user_stats_;  }
-  ISteamApps*        Apps        (void) { return apps_;        }
-  ISteamFriends*     Friends     (void) { return friends_;     }
-  ISteamUtils*       Utils       (void) { return utils_;       }
-  ISteamScreenshots* Screenshots (void) { return screenshots_; }
-  ISteamController*  Controller  (void) { return controller_;  }
-
-  SK_IVariable*      popup_origin   = nullptr;
-  SK_IVariable*      notify_corner  = nullptr;
-
-  SK_IVariable*      tbf_pirate_fun = nullptr;
-  float              tbf_float      = 45.0f;
-
-  // Backing storage for the human readable variable names,
-  //   the actual system uses an integer value but we need
-  //     storage for the cvars.
-  struct {
-    char popup_origin  [16] = { "DontCare" };
-    char notify_corner [16] = { "DontCare" };
-  } var_strings;
-
-protected:
-private:
-  HSteamPipe         hSteamPipe     = 0;
-  HSteamUser         hSteamUser     = 0;
-
-  ISteamClient*      client_        = nullptr;
-  ISteamUser*        user_          = nullptr;
-  ISteamUserStats*   user_stats_    = nullptr;
-  ISteamApps*        apps_          = nullptr;
-  ISteamFriends*     friends_       = nullptr;
-  ISteamUtils*       utils_         = nullptr;
-  ISteamScreenshots* screenshots_   = nullptr;
-  ISteamController*  controller_    = nullptr;
-} steam_ctx;
+SK_SteamAPIContext steam_ctx;
 
 
 void
@@ -3042,7 +2432,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 }
 
 void
-StartSteamPump (bool force)
+SK_Steam_StartPump (bool force)
 {
   if (InterlockedCompareExchangePointer (&hSteamPump, 0, 0) != 0)
     return;
@@ -3061,7 +2451,7 @@ StartSteamPump (bool force)
 }
 
 void
-KillSteamPump (void)
+SK_Steam_KillPump (void)
 {
   HANDLE hOriginal =
     InterlockedExchangePointer (&hSteamPump, 0);
@@ -3451,14 +2841,11 @@ bool
 S_CALLTYPE
 SteamAPI_InitSafe_Detour (void)
 {
-  EnterCriticalSection (&init_cs);
-
   // In case we already initialized stuff...
-  if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE))
-  {
-    LeaveCriticalSection (&init_cs);
-    return true;
-  }
+  if (InterlockedExchangeAdd (&__SK_Steam_init, 0))
+    return SteamAPI_InitSafe_Original ();
+
+  EnterCriticalSection (&init_cs);
 
   static int init_tries = -1;
 
@@ -3469,10 +2856,9 @@ SteamAPI_InitSafe_Detour (void)
     steam_log.Log (L"----------(InitSafe)-----------\n");
   }
 
-  if ( SteamAPI_InitSafe_Original != nullptr &&
-       SteamAPI_InitSafe_Original () )
+  if ( SteamAPI_InitSafe_Original () )
   {
-    InterlockedExchange (&__SK_Steam_init, TRUE);
+    InterlockedIncrement (&__SK_Steam_init);
 
 #ifdef _WIN64
   const wchar_t* steam_dll_str    = L"steam_api64.dll";
@@ -3489,7 +2875,7 @@ SteamAPI_InitSafe_Detour (void)
                       init_tries + 1,
                         SK::SteamAPI::AppID () );
 
-    StartSteamPump ();
+    SK_Steam_StartPump ();
 
     LeaveCriticalSection (&init_cs);
     return true;
@@ -3507,7 +2893,7 @@ SteamAPI_Shutdown_Detour (void)
 
 #if 1
   EnterCriticalSection         (&init_cs);
-  KillSteamPump                ();
+  SK_Steam_KillPump            ();
   LeaveCriticalSection         (&init_cs);
 
   steam_ctx.Shutdown           ();
@@ -3536,14 +2922,11 @@ bool
 S_CALLTYPE
 SteamAPI_Init_Detour (void)
 {
-  EnterCriticalSection (&init_cs);
-
   // In case we already initialized stuff...
   if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE))
-  {
-    LeaveCriticalSection (&init_cs);
     return true;
-  }
+
+  EnterCriticalSection (&init_cs);
 
   static int init_tries = -1;
 
@@ -3556,7 +2939,7 @@ SteamAPI_Init_Detour (void)
 
   if (SteamAPI_Init_Original ())
   {
-    InterlockedExchange (&__SK_Steam_init, TRUE);
+    InterlockedIncrement (&__SK_Steam_init);
 
 #ifdef _WIN64
   const wchar_t* steam_dll_str    = L"steam_api64.dll";
@@ -3572,7 +2955,7 @@ SteamAPI_Init_Detour (void)
                       init_tries + 1,
                         SK::SteamAPI::AppID () );
 
-    StartSteamPump ();
+    SK_Steam_StartPump ();
 
     LeaveCriticalSection (&init_cs);
     return true;
@@ -3602,86 +2985,6 @@ __stdcall
 SK_SteamAPI_TakeScreenshot (void)
 {
   return SK::SteamAPI::TakeScreenshot ();
-}
-
-
-typedef bool (S_CALLTYPE *InitSafe_pfn)(void);
-InitSafe_pfn InitSafe_Original = nullptr;
-
-bool
-S_CALLTYPE
-InitSafe_Detour (void)
-{
-  EnterCriticalSection (&init_cs);
-
-  // In case we already initialized stuff...
-  if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE))
-  {
-    LeaveCriticalSection (&init_cs);
-    return true;
-  }
-
-  static int init_tries = -1;
-
-  if (++init_tries == 0)
-  {
-    steam_log.Log ( L"Initializing CSteamWorks Backend  << %s >>",
-                      SK_GetCallerName ().c_str () );
-    steam_log.Log (L"-----------(InitSafe)-----------\n");
-  }
-
-  if (InitSafe_Original ())
-  {
-    InterlockedExchange (&__SK_Steam_init, TRUE);
-
-    HMODULE hSteamAPI =
-      LoadLibraryW_Original (L"CSteamworks.dll");
-
-    if (! steam_ctx.UserStats ())
-      steam_ctx.InitCSteamworks (hSteamAPI);
-
-    steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-                      init_tries + 1,
-                        SK::SteamAPI::AppID () );
-
-    StartSteamPump ();
-
-    LeaveCriticalSection (&init_cs);
-    return true;
-  }
-
-  LeaveCriticalSection (&init_cs);
-  return false;
-}
-
-DWORD
-WINAPI
-CSteamworks_Delay_Init (LPVOID user)
-{
-  if (! SK_IsInjected ()) {
-    CloseHandle (GetCurrentThread ());
-    return 0;
-  }
-
-  int tries = 0;
-
-  while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
-            tries < 120 )
-  {
-    Sleep (config.steam.init_delay);
-
-    if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
-      break;
-
-    if (InitSafe_Detour != nullptr)
-      InitSafe_Detour ();
-
-    ++tries;
-  }
-
-  CloseHandle (GetCurrentThread ());
-
-  return 0;
 }
 
 void
@@ -3714,130 +3017,6 @@ SK_Steam_InitCommandConsoleVariables (void)
   steam_ctx.tbf_pirate_fun = SK_CreateVar (SK_IVariable::Float, &steam_ctx.tbf_float, &steam_ctx);
 }
 
-void
-SK_HookCSteamworks (void)
-{
-  if (config.steam.silent)
-    return;
-
-  bool has_steamapi = false;
-
-  EnterCriticalSection (&init_cs);
-  if ( InterlockedCompareExchange (&__CSteamworks_hook, TRUE, FALSE) ||
-       InterlockedCompareExchange (&__SteamAPI_hook,    FALSE, FALSE) )
-  {
-    LeaveCriticalSection (&init_cs);
-    return;
-  }
-
-  steam_log.Log (L"CSteamworks.dll was loaded, hooking...");
-
-  // Get the full path to the module's file.
-  HANDLE  hProc = GetCurrentProcess ();
-  HMODULE hMod  = GetModuleHandle (L"CSteamworks.dll");
-
-  wchar_t wszModName [MAX_PATH] = { L'\0' };
-
-  if ( GetModuleFileNameExW ( hProc,
-                                hMod,
-                                  wszModName,
-                                    sizeof (wszModName) /
-                                      sizeof (wchar_t) ) )
-  {
-    wchar_t* dll_path =
-      StrStrIW (wszModName, L"CSteamworks.dll");
-
-    if (dll_path != nullptr)
-      *dll_path = L'\0';
-
-#ifdef _WIN64
-    lstrcatW (wszModName, L"steam_api64.dll");
-#else
-    lstrcatW (wszModName, L"steam_api.dll");
-#endif
-
-    if (LoadLibraryW_Original (wszModName))
-    {
-      steam_log.Log ( L" >>> Located a real steam_api DLL: '%s'...",
-                      wszModName );
-
-      has_steamapi = true;
-
-      SK_HookSteamAPI ();
-
-      SteamAPI_InitSafe_Detour ();
-
-      //SK_ApplyQueuedHooks ();
-    }
-
-    else
-    {
-      SK_CreateDLLHook3 ( wszModName,
-                          "SteamAPI_InitSafe",
-                         SteamAPI_InitSafe_Detour,
-              (LPVOID *)&SteamAPI_InitSafe_Original,
-              (LPVOID *)&SteamAPI_InitSafe );
-     
-      SK_CreateDLLHook3 ( wszModName,
-                          "SteamAPI_Init",
-                         SteamAPI_Init_Detour,
-              (LPVOID *)&SteamAPI_Init_Original,
-              (LPVOID *)&SteamAPI_Init );
-     
-      SK_CreateDLLHook3 ( wszModName,
-                          "SteamAPI_RegisterCallback",
-                          SteamAPI_RegisterCallback_Detour,
-               (LPVOID *)&SteamAPI_RegisterCallback_Original,
-               (LPVOID *)&SteamAPI_RegisterCallback );
-     
-      SK_CreateDLLHook3 ( wszModName,
-                          "SteamAPI_UnregisterCallback",
-                          SteamAPI_UnregisterCallback_Detour,
-                (LPVOID *)&SteamAPI_UnregisterCallback_Original,
-                (LPVOID *)&SteamAPI_UnregisterCallback );
-
-      SK_CreateDLLHook3 ( L"CSteamworks.dll",
-                         "InitSafe",
-                         InitSafe_Detour,
-              (LPVOID *)&InitSafe_Original );
-      
-      SK_CreateDLLHook3 ( L"CSteamworks.dll",
-                         "Init",
-                        SteamAPI_Init_Detour,
-              (LPVOID *)&SteamAPI_Init_Original );
-      
-      SK_CreateDLLHook3 ( L"CSteamworks.dll",
-                          "Shutdown",
-                          SteamAPI_Shutdown_Detour,
-               (LPVOID *)&SteamAPI_Shutdown_Original );
-      
-      SK_CreateDLLHook3 ( L"CSteamworks.dll",
-                         "RegisterCallback",
-                         SteamAPI_RegisterCallback_Detour,
-              (LPVOID *)&SteamAPI_RegisterCallback_Original,
-              (LPVOID *)&SteamAPI_RegisterCallback );
-      
-      SK_CreateDLLHook3 ( L"CSteamworks.dll",
-                         "UnregisterCallback",
-                         SteamAPI_UnregisterCallback_Detour,
-              (LPVOID *)&SteamAPI_UnregisterCallback_Original,
-              (LPVOID *)&SteamAPI_UnregisterCallback );
-      
-      SK_CreateDLLHook3 ( L"CSteamworks.dll",
-                         "RunCallbacks",
-                         SteamAPI_RunCallbacks_Detour,
-              (LPVOID *)&SteamAPI_RunCallbacks_Original,
-              (LPVOID *)&SteamAPI_RunCallbacks );
-
-      SK_ApplyQueuedHooks ();
-
-      SteamAPI_InitSafe ();
-    }
-  }
-
-  LeaveCriticalSection (&init_cs);
-}
-
 DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID user)
@@ -3857,7 +3036,7 @@ SteamAPI_Delay_Init (LPVOID user)
     if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
       break;
 
-    if (SteamAPI_InitSafe_Detour != nullptr)
+    if (SteamAPI_InitSafe_Original != nullptr)
       SteamAPI_InitSafe_Detour ();
 
     ++tries;
@@ -3876,10 +3055,10 @@ SK_HookSteamAPI (void)
 #else
     const wchar_t* wszSteamAPI = L"steam_api.dll";
 #endif
-  steam_size = SK_GetFileSize (wszSteamAPI);
+  SK::SteamAPI::steam_size = SK_GetFileSize (wszSteamAPI);
 
-  //if (config.steam.silent)
-  //  return;
+  if (config.steam.silent)
+    return;
 
   if (! GetModuleHandle (wszSteamAPI))
     return;
@@ -3917,17 +3096,17 @@ SK_HookSteamAPI (void)
             (LPVOID *)&SteamAPI_UnregisterCallback_Original,
             (LPVOID *)&SteamAPI_UnregisterCallback );
 
-  //
-  // Do not queue these up (by calling CreateDLLHook2),
-  //   they will be installed only upon the game successfully
-  //     calling one of the SteamAPI initialization functions.
-  //
-  SK_CreateDLLHook ( wszSteamAPI,
+  SK_CreateDLLHook2 ( wszSteamAPI,
                      "SteamAPI_RunCallbacks",
                       SteamAPI_RunCallbacks_Detour,
            (LPVOID *)&SteamAPI_RunCallbacks_Original,
            (LPVOID *)&SteamAPI_RunCallbacks );
 
+  //
+  // Do not queue these up (by calling CreateDLLHook2),
+  //   they will be installed only upon the game successfully
+  //     calling one of the SteamAPI initialization functions.
+  //
   SK_CreateDLLHook ( wszSteamAPI,
                      "SteamAPI_Shutdown",
                       SteamAPI_Shutdown_Detour,
@@ -4232,46 +3411,33 @@ SK_SteamImported (void)
 void
 SK_TestSteamImports (HMODULE hMod)
 {
-  sk_import_test_s steamworks [] = { { "CSteamworks.dll", false } };
+  sk_import_test_s steam_api [] = { { "steam_api.dll",   false },
+                                    { "steam_api64.dll", false } };
 
-  SK_TestImports (hMod, steamworks, sizeof (steamworks) / sizeof sk_import_test_s);
+  SK_TestImports (hMod, steam_api, sizeof (steam_api) / sizeof sk_import_test_s);
 
-  if (steamworks [0].used)
+  if (steam_api [0].used | steam_api [1].used)
   {
-    SK_HookCSteamworks ();
+    SK_HookSteamAPI ();
     steam_imported = true;
   }
 
   else
   {
-    sk_import_test_s steam_api [] = { { "steam_api.dll",   false },
-                                      { "steam_api64.dll", false } };
-
-    SK_TestImports (hMod, steam_api, sizeof (steam_api) / sizeof sk_import_test_s);
-
-    if (steam_api [0].used | steam_api [1].used)
+    if (GetModuleHandle (L"CSteamworks.dll"))
     {
-      SK_HookSteamAPI ();
+      SK_HookCSteamworks ();
       steam_imported = true;
     }
 
-    else
+    else if (! SK_IsInjected ())
     {
-      if (GetModuleHandle (L"CSteamworks.dll"))
+      if ( LoadLibraryW_Original (L"steam_api.dll")   ||
+           LoadLibraryW_Original (L"steam_api64.dll") ||
+           GetModuleHandle       (L"SteamNative.dll") )
       {
-        SK_HookCSteamworks ();
-        steam_imported = true;
-      }
-
-      else if (! SK_IsInjected ())
-      {
-        if ( LoadLibraryW_Original (L"steam_api.dll")   ||
-             LoadLibraryW_Original (L"steam_api64.dll") ||
-             GetModuleHandle       (L"SteamNative.dll") )
-        {
-           SK_HookSteamAPI ();
-           steam_imported = true;
-        }
+         SK_HookSteamAPI ();
+         steam_imported = true;
       }
     }
   }
@@ -4411,7 +3577,7 @@ SK_Steam_PiratesAhoy (void)
     SK_GetFileCRC32C (L"steam_api.dll");
 #endif
 
-  if (steam_size > 0 && steam_size < (1024 * 92))
+  if (SK::SteamAPI::steam_size > 0 && SK::SteamAPI::steam_size < (1024 * 92))
   {
     verdict = 0x68992;
   }
@@ -4474,7 +3640,7 @@ SteamAPI_UserStatsReceived_Detour ( CCallbackBase* This, UserStatsReceived_t* pP
   // This message only means that data has been received, not
   //   what that data is... so we can spoof the receipt of the player's
   //     data over and over if need be.
-  if (pParam->m_steamIDUser != player)
+  if (pParam->m_steamIDUser != SK::SteamAPI::player)
   {
     pParam->m_nGameID     = 0;
     pParam->m_steamIDUser = last_user;
@@ -4559,3 +3725,37 @@ SK_SteamOverlay_GoToFriendStats (CSteamID friend_sid)
 
   return false;
 }
+
+SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                = nullptr;
+SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original       = nullptr;
+
+SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback            = nullptr;
+SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original   = nullptr;
+
+SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback          = nullptr;
+SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original = nullptr;
+
+SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult          = nullptr;
+SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult        = nullptr;
+
+SteamAPI_Init_pfn                  SteamAPI_Init                        = nullptr;
+SteamAPI_InitSafe_pfn              SteamAPI_InitSafe                    = nullptr;
+
+SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary       = nullptr;
+SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning              = nullptr;
+
+SteamAPI_GetHSteamUser_pfn         SteamAPI_GetHSteamUser               = nullptr;
+SteamAPI_GetHSteamPipe_pfn         SteamAPI_GetHSteamPipe               = nullptr;
+
+SteamClient_pfn                    SteamClient                          = nullptr;
+
+SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                    = nullptr;
+SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original           = nullptr;
+
+GetControllerState_pfn             GetControllerState_Original          = nullptr;
+
+
+uint64_t    SK::SteamAPI::steam_size;
+
+// Must be global for x86 ABI problems
+CSteamID    SK::SteamAPI::player;

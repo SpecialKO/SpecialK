@@ -35,8 +35,8 @@
 #include <SpecialK/console.h>
 
 #include <SpecialK/window.h>
-#include <SpecialK/steam_api.h>
 #include <SpecialK/log.h>
+#include <SpecialK/steam_api.h>
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
@@ -1125,25 +1125,23 @@ SK_ImGui_ControlPanel (void)
       ////ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
 
       ////if (ImGui::IsItemHovered ())
-        ////ImGui::SetTooltip ("Increased compatibility with video capture software");
+        ////ImGui::SetTooltip ("Increased compatibility with video capture software")
 
-      static bool started_tearing = config.render.dxgi.allow_tearing;
-             bool tearing_pref    = config.render.dxgi.allow_tearing;
+      extern BOOL SK_DXGI_SupportsTearing (void);
 
-      if (ImGui::CollapsingHeader ("SwapChain Management"))
+      if (config.render.framerate.flip_discard && SK_DXGI_SupportsTearing () && ImGui::CollapsingHeader ("SwapChain Management"))
       {
         ImGui::TreePush ("");
-        if (ImGui::Checkbox ("Enable DWM Tearing (Windows 10 Anniversary Edition)", &tearing_pref))
+        bool tearing_pref = config.render.dxgi.allow_tearing;
+        if (ImGui::Checkbox ("Enable DWM Tearing", &tearing_pref))
         {
-          if (started_tearing) config.render.dxgi.allow_tearing = tearing_pref;
+          config.render.dxgi.allow_tearing = tearing_pref;
         }
 
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
           ImGui::Text         ("This Feature is HIGHLY Experimental");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("You must manually enable this in the INI file and then you can toggle it in-game here.");
           ImGui::EndTooltip   ();
         }
         ImGui::TreePop  (  );
@@ -3266,11 +3264,17 @@ extern float SK_ImGui_PulseNav_Strength;
         valid = valid && (! SK_Steam_PiratesAhoy ());
 
         if (valid)
-          ImGui::MenuItem ("I am not a pirate", "", &valid, false);
+          ImGui::MenuItem ("I am not a pirate!", "", &valid, false);
         else
         {
-          if (ImGui::MenuItem ("I am a filthy pirate!"))
+          ImGui::MenuItem (u8"I am an irreverent pirate moron™", "", &valid, false);
           {
+            // Delete the CPY config, and push user back onto legitimate install,
+            //   to prevent repeated pirate detection.
+            //
+            //  If stupid user presses this button for any other reason, that is
+            //    their own problem. Crackers should make a better attempt to
+            //      randomize thier easily detectable hackjobs.
             if (GetFileAttributes (L"CPY.ini") != INVALID_FILE_ATTRIBUTES)
             {
               DeleteFileW (L"CPY.ini");
@@ -3287,11 +3291,6 @@ extern float SK_ImGui_PulseNav_Strength;
       }
 
       SK_ImGui::BatteryMeter ();
-
-      //ImGui::CollapsingHeader ("Window Management");
-      //if (ImGui::CollapsingHeader ("Software Updates")) {
-        //config.
-      //}
 
       ImGui::Columns    ( 1 );
       ImGui::Separator  (   );
@@ -4216,19 +4215,13 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 
     if (! was_open)
     {
-      //keybind->vKey = 0;
-
       GetKeyboardState_Original (bind_keys);
-
-      //for (int i = 0 ; i < keys ; i++ ) bind_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
 
       was_open = true;
     }
 
     BYTE active_keys [256];
     GetKeyboardState_Original (active_keys);
-
-    //for (int i = 0 ; i < keys ; i++ ) active_keys [i] = (GetKeyState_Original (i) & 0x8000) != 0;
 
     if (memcmp (active_keys, bind_keys, keys))
     {
@@ -4252,8 +4245,6 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
         ImGui::CloseCurrentPopup ();
         ImGui::GetIO ().WantCaptureKeyboard = true;
       }
-
-      //memcpy (bind_keys, active_keys, keys);
     }
 
     keybind->ctrl  = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0; 

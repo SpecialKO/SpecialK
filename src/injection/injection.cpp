@@ -36,7 +36,7 @@ extern volatile ULONG __SK_HookContextOwner;
 
 // We will create a dummy window to receive a broadcast message for shutdown.
 HWND    hWndBroadcastRecipient = NULL;
-HMODULE hModHookInstance       = NULL;
+HMODULE hModHookInstance      = NULL;
 UINT    g_uiBroadcastMsg       = WM_USER; // Will be filled in with a real value later...
 
 LRESULT
@@ -101,31 +101,17 @@ CBTProc ( _In_ int    nCode,
 
                while (true)
                {
-                 bRet = GetMessage (&msg, hWndBroadcastRecipient, 0, 0);
-
-                 if (bRet > 0)
+                 bRet = GetMessage (&msg, 0, 0, 0);
                  {
-                   switch (msg.message)
+                   // Shutdown hook (unload DLL)
+                   if (msg.message == g_uiBroadcastMsg)
                    {
-                     default:
-                     {
-                       // Shutdown hook (unload DLL)
-                       if (msg.message == g_uiBroadcastMsg)
-                       {
-                         DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
-                         DestroyWindow  (hWndBroadcastRecipient);
-
-                         FreeLibraryAndExitThread (hModHookInstance, 0x00);
-                       }
-
-                       else
-                         DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
-                     } break;
+                     DestroyWindow            (hWndBroadcastRecipient);
+                     FreeLibraryAndExitThread (hModHookInstance, 0x00);
                    }
-                 }
 
-                 else
-                   break;
+                   DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
+                 }
                }
 
                DestroyWindow            (hWndBroadcastRecipient);
@@ -165,7 +151,7 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 
 
 
-extern "C" __declspec (dllexport)
+extern "C"
 void
 __stdcall
 SKX_InstallCBTHook (void)
@@ -202,12 +188,12 @@ SKX_InstallCBTHook (void)
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
 
     if (g_hHookCBT != 0)
-      __SK_HookContextOwner = true;
+      InterlockedExchange (&__SK_HookContextOwner, TRUE);
   }
 }
 
 
-extern "C" __declspec (dllexport)
+extern "C"
 void
 __stdcall
 SKX_RemoveCBTHook (void)
@@ -220,10 +206,11 @@ SKX_RemoveCBTHook (void)
     g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_64");
 #endif
 
-    DWORD  dwRecipients = BSM_ALLDESKTOPS | BSM_APPLICATIONS;
+    DWORD  dwRecipients = BSM_APPLICATIONS;
     UINT   uiMessage    = g_uiBroadcastMsg;
 
-    BroadcastSystemMessage ( BSF_IGNORECURRENTTASK | BSF_NOTIMEOUTIFNOTHUNG |
+    
+    BroadcastSystemMessage ( BSF_IGNORECURRENTTASK | BSF_NOTIMEOUTIFNOTHUNG | BSF_FORCEIFHUNG |
                              BSF_POSTMESSAGE,
                                &dwRecipients,
                                  uiMessage,
@@ -231,14 +218,13 @@ SKX_RemoveCBTHook (void)
 
     if (UnhookWindowsHookEx (g_hHookCBT))
     {
-      __SK_HookContextOwner = false;
-      g_hHookCBT            = nullptr;
+      InterlockedExchange (&__SK_HookContextOwner, FALSE);
+      g_hHookCBT = nullptr;
     }
   }
 }
 
 extern "C"
-__declspec (dllexport)
 bool
 __stdcall
 SKX_IsHookingCBT (void)
@@ -273,6 +259,59 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         fprintf (fPID, "%lu\n", GetCurrentProcessId ());
         fclose  (fPID);
 
+#ifndef _WIN64
+        g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_32");
+#else
+        g_uiBroadcastMsg = RegisterWindowMessageW (L"SpecialK_64");
+#endif
+
+
+        //
+        // Quick-and-dirty IPC
+        //
+        //   This message pump will keep the hook alive until it receives a
+        //     special broadcast message, at which point it unloads the DLL
+        //       from the current process.
+        //
+        CreateThread ( nullptr, 0,
+         [](LPVOID user) ->
+           DWORD
+             {
+               hWndBroadcastRecipient =
+                 CreateWindowW ( L"STATIC", L"Special K Broadcast Window",
+                                   WS_POPUP | WS_MINIMIZEBOX,
+                                     CW_USEDEFAULT, CW_USEDEFAULT,
+                                       32, 32, 0,
+                                         nullptr, nullptr, 0x00 );
+
+               MSG  msg;
+               BOOL bRet;
+
+               while (true)
+               {
+                 bRet = GetMessage (&msg, 0, 0, 0);
+                 {
+                   // Shutdown hook (unload DLL)
+                   if ((msg.hwnd == HWND_BROADCAST || msg.hwnd == hWndBroadcastRecipient) && msg.message == g_uiBroadcastMsg)
+                   {
+                     DestroyWindow    (hWndBroadcastRecipient);
+                     TerminateProcess (GetCurrentProcess (), 0x00);
+                   }
+
+                   DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
+                 }
+               }
+
+               DestroyWindow    (hWndBroadcastRecipient);
+               TerminateProcess (GetCurrentProcess (), 0x00);
+
+               return 0;
+              },
+              nullptr,
+            0x00,
+          nullptr
+        );
+
         Sleep (INFINITE);
       }
     }
@@ -304,6 +343,8 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
       }
     }
   }
+
+  TerminateProcess (GetCurrentProcess (), 0x00);
 }
 
 

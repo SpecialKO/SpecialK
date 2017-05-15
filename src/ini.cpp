@@ -176,7 +176,6 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     fclose (fINI);
   }
   else {
-    //AD_MessageBox (L"Unable to Locate INI File", filename, MB_OK);
     delete [] wszName;
     wszName = nullptr;
     wszData = nullptr;
@@ -246,8 +245,6 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
 
           size_t   val_len = wcrlen          (value, l);
           wcsncpy (val_str, value, val_len);
-
-          //MessageBoxW (NULL, key_str, val_str, MB_OK);
 
           section.add_key_value (key_str, val_str);
 
@@ -392,8 +389,6 @@ iSK_INI::parse (void)
 
         size_t   sec_len = wcrlen (begin, end);
         wcsncpy (sec_name,         begin, sec_len);
-
-        //MessageBoxW (NULL, sec_name, L"Section", MB_OK);
 
         wchar_t* start  = CharNextW (CharNextW (end));
         wchar_t* finish = start;
@@ -683,9 +678,6 @@ iSK_INI::write (const wchar_t* fname)
   FILE*   fOut = nullptr;
   errno_t ret  = 0;
 
-  // Strip Read-Only
-  /////////AD_SetNormalFileAttribs (fname);
-
   switch (encoding_) {
     case INI_UTF8:
       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-8", _SH_DENYNO), fname, fOut);
@@ -701,7 +693,6 @@ iSK_INI::write (const wchar_t* fname)
       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
       break;
   }
-  //fOut = _wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO);
 
   if (ret != 0 || fOut == 0) {
     SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname, MB_OK | MB_ICONSTOP);
@@ -763,9 +754,6 @@ iSK_INI::write (const wchar_t* fname)
 
   fflush (fOut);
   fclose (fOut);
-
-  // Make Read-Only
-  ////SetFileAttributes (fname.c_str (), FILE_ATTRIBUTE_READONLY);
 }
 
 

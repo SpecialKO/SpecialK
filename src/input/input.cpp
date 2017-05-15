@@ -1410,8 +1410,8 @@ sk_imgui_cursor_s::LocalToClient (LPPOINT lpPoint)
   out.width  = (float)(real_client.right  - real_client.left);
   out.height = (float)(real_client.bottom - real_client.top);
 
-  float x = 2.0f * ((float)lpPoint->x / in.width ) - 1.0f;
-  float y = 2.0f * ((float)lpPoint->y / in.height) - 1.0f;
+  float x = 2.0f * ((float)lpPoint->x / std::max (1.0f, in.width )) - 1.0f;
+  float y = 2.0f * ((float)lpPoint->y / std::max (1.0f, in.height)) - 1.0f;
 
   lpPoint->x = (LONG)( ( x * out.width  + out.width  ) / 2.0f );
   lpPoint->y = (LONG)( ( y * out.height + out.height ) / 2.0f );
@@ -1437,8 +1437,10 @@ sk_imgui_cursor_s::ClientToLocal    (LPPOINT lpPoint)
   in.width   = (float)(real_client.right  - real_client.left);
   in.height  = (float)(real_client.bottom - real_client.top);
 
-  float x = 2.0f * ((float)lpPoint->x / in.width ) - 1.0f;
-  float y = 2.0f * ((float)lpPoint->y / in.height) - 1.0f;
+  float x = 2.0f * ((float)lpPoint->x / std::max (1.0f, in.width )) - 1.0f;
+  float y = 2.0f * ((float)lpPoint->y / std::max (1.0f, in.height)) - 1.0f;
+                                        // Avoid division-by-zero, this should be a signaling NAN but
+                                        //   some games alter FPU behavior and will turn this into a non-continuable exception.
 
   lpPoint->x = (LONG)( ( x * out.width  + out.width  ) / 2.0f );
   lpPoint->y = (LONG)( ( y * out.height + out.height ) / 2.0f );

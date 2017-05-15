@@ -28,12 +28,8 @@ LRESULT
 CALLBACK
 CBTProc (int nCode, WPARAM wParam, LPARAM lParam);
 
-extern "C" __declspec (dllexport) void __stdcall SKX_InstallCBTHook (void);
-extern "C" __declspec (dllexport) void __stdcall SKX_RemoveCBTHook  (void);
-extern "C" __declspec (dllexport) bool __stdcall SKX_IsHookingCBT   (void);
-
-extern "C" __declspec (dllexport) void __stdcall SKX_InstallShellHook (void);
-extern "C" __declspec (dllexport) void __stdcall SKX_RemoveShellHook  (void);
-extern "C" __declspec (dllexport) bool __stdcall SKX_IsHookingShell   (void);
+extern "C" void __stdcall SKX_InstallCBTHook (void);
+extern "C" void __stdcall SKX_RemoveCBTHook  (void);
+extern "C" bool __stdcall SKX_IsHookingCBT   (void);
 
 #endif /* __SK__INJECTION_H__ */

@@ -200,17 +200,16 @@ SK_EstablishDllRole (HMODULE hModule)
 
       SK_LoadConfigEx (L"SpecialK", false);
 
+      sk_import_test_s steam_tests [] = {
 #ifdef _WIN64
-      sk_import_test_s steam_tests [] = { { "steam_api64.dll", false },
-                                          { "steamnative.dll", false },
-                                          { "CSteamworks.dll", false } };
+           { "steam_api64.dll", false },
 #else
-      sk_import_test_s steam_tests [] = { { "steam_api.dll",   false },
-                                          { "steamnative.dll", false },
-                                          { "CSteamworks.dll", false } };
+           { "steam_api.dll",   false },
 #endif
+           { "steamnative.dll", false }
+      };
 
-      SK_TestImports ( GetModuleHandle (nullptr), steam_tests, 3 );
+      SK_TestImports ( GetModuleHandle (nullptr), steam_tests, 2 );
 
       DWORD   dwProcessSize = MAX_PATH;
       wchar_t wszProcessName [MAX_PATH] = { L'\0' };
@@ -221,8 +220,7 @@ SK_EstablishDllRole (HMODULE hModule)
       QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
 
       bool is_steamworks_game =
-        ( steam_tests [0].used | steam_tests [1].used |
-          steam_tests [2].used )                        ||
+        ( steam_tests [0].used | steam_tests [1].used ) ||
            SK_Path_wcsstr (wszProcessName, L"steamapps");
 
       if (is_steamworks_game)
@@ -400,18 +398,18 @@ BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
-  InitializeCriticalSectionAndSpinCount (&budget_mutex, 4000);
-  InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
-  InitializeCriticalSectionAndSpinCount (&loader_lock,  65536);
-  InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
-  InitializeCriticalSectionAndSpinCount (&cs_dbghelp, 1048576);
-
   if (! InterlockedCompareExchangeAcquire (
           &__SK_DLL_Attached,
             FALSE,
               FALSE )
      )
   {
+    InitializeCriticalSectionAndSpinCount (&budget_mutex,  4000);
+    InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
+    InitializeCriticalSectionAndSpinCount (&loader_lock,  65536);
+    InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
+    InitializeCriticalSectionAndSpinCount (&cs_dbghelp, 1048576);
+
     switch (role)
     {
       case DLL_ROLE::DXGI:
@@ -530,16 +528,17 @@ SK_Detach (DLL_ROLE role)
       case DLL_ROLE::Vulkan:
         break;
     }
+
+    DeleteCriticalSection (&budget_mutex);
+    DeleteCriticalSection (&loader_lock);
+    DeleteCriticalSection (&init_mutex);
+    DeleteCriticalSection (&cs_dbghelp);
+    DeleteCriticalSection (&wmi_cs);
   }
 
   else {
     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
   }
-
-  DeleteCriticalSection (&budget_mutex);
-  DeleteCriticalSection (&loader_lock);
-  DeleteCriticalSection (&init_mutex);
-  DeleteCriticalSection (&cs_dbghelp);
 
   return ret;
 }
@@ -593,41 +592,14 @@ DllMain ( HMODULE hModule,
           return TRUE;
       }
 
-      bool bInjectionTarget = FALSE;
 
-      if (! bInjectionTarget)
-      {
-        // We reserve the right to deny attaching the DLL, this will generally
-        //   happen if a game does not opt-in to system wide injection.
-        if (! SK_EstablishDllRole (hModule))
-          return TRUE;
-      }
+      // We reserve the right to deny attaching the DLL, this will generally
+      //   happen if a game does not opt-in to system wide injection.
+      if (! SK_EstablishDllRole (hModule))
+        return FALSE;
 
       SK_Init_MinHook       ();
       SK_PreInitLoadLibrary ();
-
-
-      if (config.steam.preload_overlay) {
-        extern bool SK_Steam_LoadOverlayEarly (void);
-        SK_Steam_LoadOverlayEarly ();
-      }
-
-      extern void SK_Input_PreInit (void); 
-      SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
-
-      // It's too early to do this for the wrapper version, the config file has not
-      //   been loaded yet.
-      if (SK_IsInjected () && (! bInjectionTarget))
-      {
-        extern void
-        SK_TestSteamImports (HMODULE hMod);
-
-        extern void
-        SK_Steam_InitCommandConsoleVariables (void);
-
-        SK_Steam_InitCommandConsoleVariables ();
-        SK_TestSteamImports                  (GetModuleHandle (nullptr));
-      }
 
 
       DWORD   dwProcessSize = MAX_PATH;
@@ -659,9 +631,7 @@ DllMain ( HMODULE hModule,
 
       if (ret)
       {
-        if (! bInjectionTarget) {
-          ret = SK_Attach (SK_GetDLLRole ());
-        }
+        ret = SK_Attach (SK_GetDLLRole ());
       }
 
       return ret;
@@ -670,13 +640,11 @@ DllMain ( HMODULE hModule,
 
     case DLL_PROCESS_DETACH:
     {
-      BOOL ret = FALSE;
-
-      if (__SK_HookContextOwner)
+      if (InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
       {
         SKX_RemoveCBTHook ();
 
-        if (! __SK_HookContextOwner)
+        if (! InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
         {
 #ifdef _WIN64
           DeleteFileW (L"SpecialK64.pid");
@@ -692,9 +660,8 @@ DllMain ( HMODULE hModule,
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
-          ret =
-            SK_Detach (SK_GetDLLRole ());
-          TlsFree     (__SK_TLS_INDEX);
+          SK_Detach (SK_GetDLLRole ());
+          TlsFree   (__SK_TLS_INDEX);
         }
       }
 
@@ -703,7 +670,7 @@ DllMain ( HMODULE hModule,
         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
       //}
 
-      //return ret;
+      return TRUE;
     } break;
 
 
@@ -727,7 +694,7 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_DETACH:
     {
-      if (InterlockedExchangeAddRelease(&__SK_DLL_Attached, 0))
+      if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
       {
         LPVOID lpvData =
           (LPVOID)TlsGetValue (__SK_TLS_INDEX);

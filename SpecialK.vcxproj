@@ -474,6 +474,8 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -901,6 +903,8 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1164,6 +1168,8 @@ Exit 0</Command>
       <MinimalRebuild>false</MinimalRebuild>
       <ControlFlowGuard>false</ControlFlowGuard>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1381,6 +1387,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\CSteamWorks.cpp" />
     <ClCompile Include="src\d3d11.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>

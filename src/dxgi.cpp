@@ -711,7 +711,17 @@ struct dxgi_caps_t {
     bool flip_discard    = false;
     bool waitable        = false;
   } present;
+
+  struct {
+    BOOL allow_tearing   = FALSE;
+  } swapchain;
 } dxgi_caps;
+
+BOOL
+SK_DXGI_SupportsTearing (void)
+{
+  return dxgi_caps.swapchain.allow_tearing;
+}
 
 extern "C" {
   CreateSwapChain_pfn     CreateSwapChain_Original     = nullptr;
@@ -861,6 +871,8 @@ SK_GetDXGIFactoryInterfaceVer (const IID& riid)
     return 3;
   if (riid == __uuidof (IDXGIFactory4))
     return 4;
+  if (riid == __uuidof (IDXGIFactory5))
+    return 5;
 
   //assert (false);
   return -1;
@@ -881,6 +893,8 @@ SK_GetDXGIFactoryInterfaceEx (const IID& riid)
     interface_name = L"IDXGIFactory3";
   else if (riid == __uuidof (IDXGIFactory4))
     interface_name = L"IDXGIFactory4";
+  else if (riid == __uuidof (IDXGIFactory5))
+    interface_name = L"IDXGIFactory5";
   else
   {
     wchar_t *pwszIID = nullptr;
@@ -899,6 +913,28 @@ int
 SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
 {
   CComPtr <IUnknown> pTemp = nullptr;
+
+  if (SUCCEEDED (
+    pFactory->QueryInterface (__uuidof (IDXGIFactory5), (void **)&pTemp)))
+  {
+    dxgi_caps.device.enqueue_event    = true;
+    dxgi_caps.device.latency_control  = true;
+    dxgi_caps.present.flip_sequential = true;
+    dxgi_caps.present.waitable        = true;
+    dxgi_caps.present.flip_discard    = true;
+
+    HRESULT hr =
+      ((IDXGIFactory5 *)pTemp.p)->CheckFeatureSupport (
+        DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+          &dxgi_caps.swapchain.allow_tearing,
+            sizeof (dxgi_caps.swapchain.allow_tearing)
+      );
+
+    dxgi_caps.swapchain.allow_tearing = 
+      SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
+
+    return 5;
+  }
 
   if (SUCCEEDED (
     pFactory->QueryInterface (__uuidof (IDXGIFactory4), (void **)&pTemp)))
@@ -951,6 +987,9 @@ std::wstring
 SK_GetDXGIFactoryInterface (IUnknown *pFactory)
 {
   int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+
+  if (iver == 5)
+    return SK_GetDXGIFactoryInterfaceEx (__uuidof (IDXGIFactory5));
 
   if (iver == 4)
     return SK_GetDXGIFactoryInterfaceEx (__uuidof (IDXGIFactory4));
@@ -2008,7 +2047,7 @@ extern "C" {
 
     int interval = config.render.framerate.present_interval;
 
-    if ( config.render.dxgi.allow_tearing )
+    if ( config.render.framerate.flip_discard && config.render.dxgi.allow_tearing )
     {
       DXGI_SWAP_CHAIN_DESC desc;
       if (SUCCEEDED (This->GetDesc (&desc)))
@@ -2355,11 +2394,10 @@ __declspec (noinline)
 
     InterlockedExchange (&__gui_reset, TRUE);
 
-    if ( config.render.dxgi.allow_tearing &&
-           /* Test Caps */ true ) {
-      //Fullscreen = FALSE;
-      //dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
-      //pTarget = nullptr;
+    if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing ) {
+      Fullscreen = FALSE;
+      dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Override:  Enable" );
+      pTarget = nullptr;
     }
 
     HRESULT ret;
@@ -2410,10 +2448,9 @@ __declspec (noinline)
 
     InterlockedExchange (&__gui_reset, TRUE);
 
-    if ( config.render.dxgi.allow_tearing &&
-           /* Test Caps */ true ) {
+    if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing) {
       SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-      dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
+      dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
     }
 
     // Fake it
@@ -2731,13 +2768,10 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
     }
 
-    if ( config.render.dxgi.allow_tearing &&
-           /* Test Caps */ true ) {
+    if ( config.render.framerate.flip_discard &&  dxgi_caps.swapchain.allow_tearing ) {
       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-      //pDesc->Windowed                           = true;
-      //pDesc->BufferDesc.RefreshRate.Denominator = 0;
-      //pDesc->BufferDesc.RefreshRate.Numerator   = 0;
-      dll_log.Log ( L"[   DXGI   ]  >> Tearing Override:  Enable" );
+      dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+      pDesc->Windowed = TRUE;
     }
 
     if ( config.render.dxgi.scaling_mode != -1 &&

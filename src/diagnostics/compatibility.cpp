@@ -19,6 +19,7 @@
  *
 **/
 #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <Windows.h>
 #include <SpecialK/diagnostics/compatibility.h>
@@ -45,11 +46,37 @@
 #include <SpecialK/render_backend.h>
 
 
+extern
+ULONG
+SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen);
+
+extern DWORD __stdcall SK_RaptrWarn (LPVOID user);
+
+BOOL __stdcall SK_TerminateParentProcess    (UINT uExitCode);
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
 void           SK_UnhookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = false;
+
+
+
+#ifdef _WIN64
+#define SK_STEAM_BIT_WSTRING L"64"
+#define SK_STEAM_BIT_STRING   "64"
+#else
+#define SK_STEAM_BIT_WSTRING L""
+#define SK_STEAM_BIT_STRING   ""
+#endif
+
+static const wchar_t* wszSteamClientDLL = L"SteamClient";
+static const char*     szSteamClientDLL =  "SteamClient";
+
+static const wchar_t* wszSteamNativeDLL = L"SteamNative.dll";
+static const char*     szSteamNativeDLL =  "SteamNative.dll";
+
+static const wchar_t* wszSteamAPIDLL    = L"steam_api" SK_STEAM_BIT_WSTRING L".dll";
+static const char*     szSteamAPIDLL    =  "steam_api" SK_STEAM_BIT_STRING   ".dll";
 
 
 struct sk_loader_hooks_t {
@@ -96,10 +123,15 @@ BOOL
 __stdcall
 BlacklistLibraryW (LPCWSTR lpFileName)
 {
-  if ( StrStrIW (lpFileName, L"ltc_game") ) {
-    if (config.compatibility.disable_raptr) {
-      if (! (SK_LoadLibrary_SILENCE))
-        dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
+  //
+  // TODO: This option is practically obsolete, Raptr is very compatible these days...
+  //         (either that, or I've conquered Raptr ;))
+  //
+  if (config.compatibility.disable_raptr)
+  {
+    if ( StrStrIW (lpFileName, L"ltc_game") )
+    {
+      dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
       return TRUE;
     }
   }
@@ -184,8 +216,10 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
       LoadLibraryA (szSteamPath);
 
       HMODULE hModClient;
-      GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT | GET_MODULE_HANDLE_EX_FLAG_PIN,
-                           szSteamPath, &hModClient );
+      GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+                           GET_MODULE_HANDLE_EX_FLAG_PIN,
+                             szSteamPath,
+                               &hModClient );
     }
   }
 
@@ -207,21 +241,24 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                           szSymbol );
   }
 
-  // This is silly, this many string comparions per-load is
-  //   not good. Hash the string and compare it in the future.
-  if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-       StrStrIW (wszModName, L"Activation")          ||
-       StrStrIW (wszModName, L"ReShade")             ||
-       StrStrIW (wszModName, L"rxcore")              ||
-       StrStrIW (wszModName, L"RTSSHooks")           ||
-       StrStrIW (wszModName, L"GeDoSaTo")            ||
-       StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
+  if (config.compatibility.rehook_loadlibrary)
   {
-    if (config.compatibility.rehook_loadlibrary)
+    // This is silly, this many string comparions per-load is
+    //   not good. Hash the string and compare it in the future.
+    if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+         StrStrIW (wszModName, L"Activation")          ||
+         StrStrIW (wszModName, L"ReShade")             ||
+         StrStrIW (wszModName, L"rxcore")              ||
+         StrStrIW (wszModName, L"RTSSHooks")           ||
+         StrStrIW (wszModName, L"GeDoSaTo")            ||
+         StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
+    {   
       SK_ReHookLoadLibrary ();
+    }
   }
 
-  if (hCallingMod != SK_GetDLL () && SK_IsInjected ()) {
+  if (hCallingMod != SK_GetDLL () && SK_IsInjected ())
+  {
          if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
               ( StrStrIA (lpFileName,  "d3d9.dll")    ||
                 StrStrIW (wszModName, L"d3d9.dll")    ||
@@ -264,12 +301,9 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
 
 #if 0
     if (! config.steam.silent) {
-      if (StrStrIA (lpFileName, "CSteamworks.dll")) {
-        SK_HookCSteamworks ();
-      } else if (StrStrIA (lpFileName, "steam_api.dll")   ||
-                 StrStrIA (lpFileName, "steam_api64.dll") ||
-                 StrStrIA (lpFileName, "SteamNative.dll") ||
-                 StrStrIA (lpFileName, "steamclient") ) {
+      if ( StrStrIA (lpFileName, szSteamAPIDLL)    ||
+           StrStrIA (lpFileName, szSteamNativeDLL) ||
+           StrStrIA (lpFileName, szSteamClientDLL) ) {
         SK_HookSteamAPI ();
       }
     }
@@ -300,7 +334,8 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                        LPCWSTR lpFunction,
                        LPVOID  lpCallerFunc )
 {
-  if (config.steam.preload_client) {
+  if (config.steam.preload_client)
+  {
     if (StrStrIW (lpFileName, L"gameoverlayrenderer64"))
     {
        wchar_t wszSteamPath             [MAX_PATH + 1] = { L'\0' };
@@ -320,10 +355,10 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
         LoadLibraryW (wszSteamPath);
 
       HMODULE hModClient;
-      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT | GET_MODULE_HANDLE_EX_FLAG_PIN,
-                          wszSteamPath, &hModClient );
-
-      //SK_ReHookLoadLibrary ();
+      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+                          GET_MODULE_HANDLE_EX_FLAG_PIN,
+                            wszSteamPath,
+                              &hModClient );
     }
   }
 
@@ -344,21 +379,24 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                           szSymbol );
   }
 
-  // This is silly, this many string comparions per-load is
-  if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-       StrStrIW (wszModName, L"Activation")          ||
-       StrStrIW (wszModName, L"ReShade")             ||
-       StrStrIW (wszModName, L"rxcore")              ||
-  //   not good. Hash the string and compare it in the future.
-       StrStrIW (wszModName, L"RTSSHooks")           ||
-       StrStrIW (wszModName, L"GeDoSaTo")            ||
-       StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
+  if (config.compatibility.rehook_loadlibrary)
   {
-    if (config.compatibility.rehook_loadlibrary)
+    // This is silly, this many string comparions per-load is
+    if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+         StrStrIW (wszModName, L"Activation")          ||
+         StrStrIW (wszModName, L"ReShade")             ||
+         StrStrIW (wszModName, L"rxcore")              ||
+    //   not good. Hash the string and compare it in the future.
+         StrStrIW (wszModName, L"RTSSHooks")           ||
+         StrStrIW (wszModName, L"GeDoSaTo")            ||
+         StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
+    {
       SK_ReHookLoadLibrary ();
+    }
   }
 
-  if (hCallingMod != SK_GetDLL () && SK_IsInjected ()) {
+  if (hCallingMod != SK_GetDLL () && SK_IsInjected ())
+  {
        if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
             ( StrStrIW (lpFileName, L"d3d9.dll")    ||
               StrStrIW (wszModName, L"d3d9.dll")    ||
@@ -401,12 +439,9 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     
 #if 0
     if (! config.steam.silent) {
-      if (StrStrIW (lpFileName, L"CSteamworks.dll")) {
-        SK_HookCSteamworks ();
-      } else if (StrStrIW (lpFileName, L"steam_api.dll")   ||
-                 StrStrIW (lpFileName, L"steam_api64.dll") ||
-                 StrStrIW (lpFileName, L"SteamNative.dll") ||
-                 StrStrIW (lpFileName, L"steamclient") ) {
+      if ( StrStrIW (lpFileName, wszSteamAPIDLL)    ||
+           StrStrIW (lpFileName, wszSteamNativeDLL) ||
+           StrStrIW (lpFileName, wszSteamClientDLL) ) {
         SK_HookSteamAPI ();
       }
     }
@@ -495,20 +530,23 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
   } 
 
   __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                           EXCEPTION_EXECUTE_HANDLER :
-                           EXCEPTION_CONTINUE_SEARCH  )
+                       EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
   {
     SetLastError (0);
   }
 
-  if (hModEarly == nullptr && BlacklistLibraryA (lpFileName)) {
+
+  if (hModEarly == nullptr && BlacklistLibraryA (lpFileName))
+  {
     SK_UnlockDllLoader ();
     return NULL;
   }
 
-  HMODULE hMod = LoadLibraryA_Original (lpFileName);
+  HMODULE hMod =
+    LoadLibraryA_Original (lpFileName);
 
-  if (hModEarly != hMod) {
+  if (hModEarly != hMod)
+  {
     SK_TraceLoadLibraryA ( SK_GetCallingDLL (),
                              lpFileName,
                                "LoadLibraryA", _ReturnAddress () );
@@ -539,15 +577,19 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
     SetLastError (0);
   }
 
-  if (hModEarly == nullptr&& BlacklistLibraryW (lpFileName)) {
+
+  if (hModEarly == nullptr && BlacklistLibraryW (lpFileName))
+  {
     SK_UnlockDllLoader ();
     return NULL;
   }
 
 
-  HMODULE hMod = LoadLibraryW_Original (lpFileName);
+  HMODULE hMod =
+    LoadLibraryW_Original (lpFileName);
 
-  if (hModEarly != hMod) {
+  if (hModEarly != hMod)
+  {
     SK_TraceLoadLibraryW ( SK_GetCallingDLL (),
                              lpFileName,
                                L"LoadLibraryW", _ReturnAddress () );
@@ -670,68 +712,6 @@ SK_CheckForGeDoSaTo (void)
     return true;
 
   return false;
-}
-
-typedef HHOOK (WINAPI *SetWindowsHookEx_pfn)(
-  _In_ int       idHook,
-  _In_ HOOKPROC  lpfn,
-  _In_ HINSTANCE hMod,
-  _In_ DWORD     dwThreadId
-);
-
-SetWindowsHookEx_pfn SetWindowsHookExA_Original = nullptr;
-SetWindowsHookEx_pfn SetWindowsHookExW_Original = nullptr;
-
-HHOOK
-WINAPI
-SetWindowsHookExA_Detour (
-  _In_ int       idHook,
-  _In_ HOOKPROC  lpfn,
-  _In_ HINSTANCE hMod,
-  _In_ DWORD     dwThreadId
-)
-{
-  //MessageBox (NULL, SK_GetModuleName (hMod).c_str (), L"Module", MB_OK);
-  //dll_log.Log (L"[WindowsHook] Module: '%s'", SK_GetModuleName (hMod).c_str ());
-
-  return 0;
-  //return SetWindowsHookExA_Original (idHook, lpfn, hMod, dwThreadId);
-}
-
-HHOOK
-WINAPI
-SetWindowsHookExW_Detour (
-  _In_ int       idHook,
-  _In_ HOOKPROC  lpfn,
-  _In_ HINSTANCE hMod,
-  _In_ DWORD     dwThreadId
-)
-{
-  //MessageBox (NULL, SK_GetModuleName (hMod).c_str (), L"Module", MB_OK);
-  //dll_log.Log (L"[WindowsHook] Module: '%s'", SK_GetModuleName (hMod).c_str ());
-
-  return 0;//return SetWindowsHookExW_Original (idHook, lpfn, hMod, dwThreadId);
-}
-
-
-void
-__stdcall
-SK_InitWindowsHookHook (void)
-{
-  static bool init_winhook = false;
-
-  if (! init_winhook)
-  {
-    SK_CreateDLLHook ( L"user32.dll", "SetWindowsHookExA",
-                       SetWindowsHookExA_Detour,
-             (LPVOID*)&SetWindowsHookExA_Original );
-
-    SK_CreateDLLHook ( L"user32.dll", "SetWindowsHookExW",
-                       SetWindowsHookExW_Detour,
-             (LPVOID*)&SetWindowsHookExW_Original );
-
-   init_winhook = true;
-  }
 }
 
 //
@@ -893,12 +873,14 @@ static bool loaded_vulkan = false;
 static bool loaded_d3d9   = false;
 static bool loaded_dxgi   = false;
 
+
 struct enum_working_set_s {
-  HMODULE     modules [1024];
-  int         count;
-  iSK_Logger* logger;
-  HANDLE      proc;
+  HMODULE     modules [1024] = { 0 };
+  int         count          =   0;
+  iSK_Logger* logger         = nullptr;
+  HANDLE      proc           = INVALID_HANDLE_VALUE;
 };
+
 
 #include <unordered_set>
 std::unordered_set <HMODULE> logged_modules;
@@ -908,10 +890,6 @@ _SK_SummarizeModule ( LPVOID   base_addr,  ptrdiff_t   mod_size,
                       HMODULE  hMod,       uintptr_t   addr,
                       wchar_t* wszModName, iSK_Logger* pLogger )
 {
-  extern
-  ULONG
-  SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen);
-
   char  szSymbol [1024] = { };
   ULONG ulLen  =  1024;
 
@@ -1062,7 +1040,6 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
           if (! warned) {
             warned = true;
 
-            extern DWORD __stdcall SK_RaptrWarn (LPVOID user);
             CreateThread ( nullptr, 0, SK_RaptrWarn, nullptr, 0x00, nullptr );
           }
 
@@ -1114,13 +1091,10 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
         if (! config.steam.silent)
         {
-          if (StrStrIW (wszModName, L"CSteamworks.dll")) {
-            SK_HookCSteamworks ();
-          } else if (StrStrIW (wszModName, L"steam_api.dll")   ||
-                 StrStrIW     (wszModName, L"steam_api64.dll") ||
-                 StrStrIW     (wszModName, L"SteamNative.dll") ||
-                 StrStrIW     (wszModName, L"steamclient") ) {
-              SK_HookSteamAPI ();
+          if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
+               StrStrIW (wszModName, wszSteamNativeDLL) ||
+               StrStrIW (wszModName, wszSteamClientDLL) ) {
+            SK_HookSteamAPI ();
           }
         }
       }
@@ -1148,9 +1122,9 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                pLogger  = SK_CreateLog (L"logs/modules.log");
   DWORD        dwProcID = GetCurrentProcessId ();
 
-  HMODULE      hMods [1024];
-  HANDLE       hProc    = nullptr;
-  DWORD        cbNeeded = 0;
+  HMODULE      hMods [1024] = { 0 };
+  HANDLE       hProc        = nullptr;
+  DWORD        cbNeeded     =   0;
 
   // Get a handle to the process.
   hProc = OpenProcess ( PROCESS_QUERY_INFORMATION |
@@ -1210,8 +1184,11 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     SK_ValidateGlobalRTSSProfile ();
   }
 
-  else if ( GetModuleHandle (L"RTSSHooks.dll") ||
-            GetModuleHandle (L"RTSSHooks64.dll") )
+#ifdef _WIN64
+  else if ( GetModuleHandle (L"RTSSHooks64.dll") )
+#else
+  else if ( GetModuleHandle (L"RTSSHooks.dll") )
+#endif
   {
     SK_ValidateGlobalRTSSProfile ();
     // RTSS is in High App Detection or Stealth Mode
@@ -1245,12 +1222,14 @@ TaskDialogCallback (
   if (uNotification == TDN_TIMER)
     SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
 
-  if (uNotification == TDN_HYPERLINK_CLICKED) {
+  if (uNotification == TDN_HYPERLINK_CLICKED)
+  {
     ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOW);
     return S_OK;
   }
 
-  if (uNotification == TDN_DIALOG_CONSTRUCTED) {
+  if (uNotification == TDN_DIALOG_CONSTRUCTED)
+  {
     while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0) > 1)
       Sleep (10);
 
@@ -1463,7 +1442,6 @@ SK_ValidateGlobalRTSSProfile (void)
       CloseHandle  (pinfo.hThread);
       CloseHandle  (pinfo.hProcess);
 
-      extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
       SK_TerminateParentProcess (0x00);
     }
   }
@@ -1836,7 +1814,6 @@ SK_Bypass_CRT (LPVOID user)
     CloseHandle      (pinfo.hThread);
     CloseHandle      (pinfo.hProcess);
 
-    extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
     SK_TerminateParentProcess (0x00);
   }
 
@@ -1852,7 +1829,8 @@ std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {
-  std::queue <DWORD> tids = SK_SuspendAllOtherThreads ();
+  std::queue <DWORD> tids =
+    SK_SuspendAllOtherThreads ();
 
   lstrcpyW (__bypass.wszBlacklist, SK_GetBlacklistFilename ());
 

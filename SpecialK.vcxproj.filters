@@ -542,8 +542,11 @@
     <ClCompile Include="src\plugins\plugin_mgr.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="src\CSteamWorks.cpp">
+      <Filter>Source Files\Steam</Filter>
+    </ClCompile>
     <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends\Input\XInput</Filter>
+      <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

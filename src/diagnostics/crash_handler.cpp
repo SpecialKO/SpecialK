@@ -595,7 +595,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   // On second chance it's pretty clear that no exception handler exists,
   //   terminate the software.
-  bool repeated = (! memcmp (&last_ctx, ExceptionInfo->ContextRecord, sizeof CONTEXT)) &&
+  bool repeated = (! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)) &&
                   (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
   bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 

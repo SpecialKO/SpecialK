@@ -87,6 +87,7 @@ extern CRITICAL_SECTION cs_dbghelp;
 volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
+extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
 // Disable SLI memory in Batman Arkham Knight
 bool USE_SLI = true;
@@ -98,10 +99,8 @@ extern "C++" void SK_FAR_FirstFrame (void);
 
 
 NV_GET_CURRENT_SLI_STATE sli_state;
-BOOL                     nvapi_init = FALSE;
-int                      gpu_prio;
-
-HMODULE                  backend_dll  = 0;
+BOOL                     nvapi_init  = FALSE;
+HMODULE                  backend_dll = 0;
 
 // LOL -- This tests for RunDLL32 / SKIM
 bool
@@ -839,8 +838,7 @@ SK_InitFinishCallback (void)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  if (! SK_IsSuperSpecialK ())
-    SK_SaveConfig (config_name);
+  SK_SaveConfig (config_name);
 
   // For the global injector, when not started by SKIM, check its version
   if (SK_IsInjected () && (! SK_IsSuperSpecialK ()))
@@ -964,21 +962,18 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   bool load_proxy = false;
 
-  if (! SK_IsSuperSpecialK ())
+  if (! SK_IsInjected ())
   {
-    if (! SK_IsInjected ())
-    {
-      extern import_t imports [SK_MAX_IMPORTS];
+    extern import_t imports [SK_MAX_IMPORTS];
 
-      for (int i = 0; i < SK_MAX_IMPORTS; i++)
+    for (int i = 0; i < SK_MAX_IMPORTS; i++)
+    {
+      if (imports [i].role != nullptr && imports [i].role->get_value () == backend)
       {
-        if (imports [i].role != nullptr && imports [i].role->get_value () == backend)
-        {
-          dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
-          dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
-          load_proxy = true;
-          break;
-        }
+        dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
+        dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
+        load_proxy = true;
+        break;
       }
     }
   }
@@ -1007,12 +1002,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
   dll_log.LogEx (false,
     L"----------------------------------------------------------------------"
     L"---------------------\n");
-
-  if (SK_IsSuperSpecialK ())
-  {
-    callback_fn (SK_InitFinishCallback);
-    return;
-  }
 
   if (config.system.silent)
   {
@@ -1325,7 +1314,7 @@ SK_EstablishRootPath (void)
     } else {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
     }
-    lstrcatW (wszConfigPath, SK_GetHostPath ());
+    lstrcatW (wszConfigPath, SK_GetRootPath ());
   }
 
   lstrcatW (SK_RootPath,   L"\\");
@@ -1344,7 +1333,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK::Diagnostics::Debugger::Allow ();
 
   // Allow users to centralize all files if they want
-  if ( GetFileAttributes ( L"SpecialK.central" ) != INVALID_FILE_ATTRIBUTES )
+  //
+  //   Stupid hack, if the application is running with a different working-directory than
+  //     the executable -- compensate!
+  if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
+                             std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
 
   if (SK_IsInjected ())
@@ -1388,12 +1381,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init_.backend  = _wcsdup (backend);
   init_.callback =          callback;
 
-  SK::Diagnostics::CrashHandler::InitSyms ();
-
-  // Don't start SteamAPI if we're running the installer...
-  if (SK_IsSuperSpecialK ())
-    config.steam.init_delay = 0;
-
   wchar_t log_fname [MAX_PATH];
           log_fname [MAX_PATH - 1] = L'\0';
 
@@ -1401,6 +1388,25 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   dll_log.init (log_fname, L"w");
   dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
+
+
+  if (SK_IsSuperSpecialK ()) {
+    LeaveCriticalSection (&init_mutex);
+    return TRUE;
+  }
+
+
+  SK::Diagnostics::CrashHandler::InitSyms ();
+
+
+  if (config.steam.preload_overlay) {
+    extern bool SK_Steam_LoadOverlayEarly (void);
+    SK_Steam_LoadOverlayEarly ();
+  }
+
+  extern void SK_Input_PreInit (void); 
+  SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
+
 
   budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
 
@@ -1437,68 +1443,60 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  if (! SK_IsSuperSpecialK ())
-  {
-    dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+  dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
-    if (SK_LoadConfig (config_name))
-      dll_log.LogEx (false, L"done!\n");
-
-    else
-    {
-      dll_log.LogEx (false, L"failed!\n");
-
-      std::wstring default_name (L"default_");
-                   default_name += config_name;
-
-      std::wstring default_ini (default_name + L".ini");
-
-      if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
-      {
-        dll_log.LogEx (true, L"Loading default preferences from %s.ini... ", default_name.c_str ());
-
-        if (! SK_LoadConfig (default_name))
-          dll_log.LogEx (false, L"failed!\n");
-        else
-          dll_log.LogEx (false, L"done!\n");
-      }
-
-      // If no INI file exists, write one immediately.
-      dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
-      SK_SaveConfig (config_name);
-      dll_log.LogEx (false, L"done!\n");
-    }
-
-    if (config.system.display_debug_out)
-      SK::Diagnostics::Debugger::SpawnConsole ();
-
-    if (config.system.handle_crashes)
-      SK::Diagnostics::CrashHandler::Init ();
-
-
-    if (config.compatibility.init_while_suspended)
-    {
-      //__SK_Init_Suspended_tids =
-        //SK_SuspendAllOtherThreads ();
-    }
-
-    // Required by Minject, the DLL's not loaded early enough.
-    if (SK_IsInjected ())
-      config.steam.init_delay = std::max (config.steam.init_delay, 6666);
-    else {
-      SK_Steam_InitCommandConsoleVariables ();
-      SK_TestSteamImports                  (GetModuleHandle (nullptr));
-    }
-
-    SK_InitCompatBlacklist ();
-  }
+  if (SK_LoadConfig (config_name))
+    dll_log.LogEx (false, L"done!\n");
 
   else
   {
-    config.system.handle_crashes = false;
-    config.system.game_output    = false;
-    config.steam.silent          = true;
+    dll_log.LogEx (false, L"failed!\n");
+
+    std::wstring default_name (L"default_");
+                 default_name += config_name;
+
+    std::wstring default_ini (default_name + L".ini");
+
+    if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
+    {
+      dll_log.LogEx (true, L"Loading default preferences from %s.ini... ", default_name.c_str ());
+
+      if (! SK_LoadConfig (default_name))
+        dll_log.LogEx (false, L"failed!\n");
+      else
+        dll_log.LogEx (false, L"done!\n");
+    }
+
+    // If no INI file exists, write one immediately.
+    dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
+    SK_SaveConfig (config_name);
+    dll_log.LogEx (false, L"done!\n");
   }
+
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init ();
+
+
+  if (config.compatibility.init_while_suspended)
+  {
+    //__SK_Init_Suspended_tids =
+      //SK_SuspendAllOtherThreads ();
+  }
+
+
+  SK_Steam_InitCommandConsoleVariables ();
+  SK_TestSteamImports                  (GetModuleHandle (nullptr));
+
+
+  // Required by Minject, the DLL's not loaded early enough.
+  if (SK_IsInjected ())
+    config.steam.init_delay = std::max (config.steam.init_delay, 6666);
+
+
+  SK_InitCompatBlacklist ();
 
 
   // Load user-defined DLLs (Early)
@@ -1640,6 +1638,8 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
+  // We generally don't start SteamAPI -- but someday might want this as a feature, so
+  //    let this code rot here ;)
 #if 0
   if ((! config.steam.silent)) {
     dll_log.LogEx  (true, L"[ SteamAPI ] Shutting down Steam API... ");
@@ -1711,9 +1711,7 @@ SK_BeginBufferSwap (void)
     SK_LoadLateImports32 ();
 #endif
 
-    extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
-
-    if (InterlockedCompareExchange64 (&SK_SteamAPI_CallbackRunCount, 0, 0) == 0)
+    if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) < 1)
     {
       // Steam Init: Better late than never
 
@@ -2270,7 +2268,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
 #ifndef SK_BUILD__INSTALLER
   else {
-    if (config.apis.OpenGL.hook && wglGetCurrentContext () != 0) {
+    if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != 0) {
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }
@@ -2317,14 +2315,19 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   SK_ImGui_PollGamepad_EndFrame ();
 
 
+  // Maybe make this into an option, but for now just get this the hell out of there
+  //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
+  _controlfp (MCW_EM, MCW_EM);
+
+
   return hr;
 }
 
 struct sk_host_process_s {
-  wchar_t wszApp       [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszApp       [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
+  wchar_t wszPath      [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
+  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
+  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
 } host_proc;
 
 bool

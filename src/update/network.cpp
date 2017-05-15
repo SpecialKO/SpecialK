@@ -18,6 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+#define NOMINMAX
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_SECURE_NO_WARNINGS
 //#define ISOLATION_AWARE_ENABLED 1
@@ -88,7 +89,7 @@ DownloadThread (LPVOID user)
     (sk_internet_get_t *)user;
 
   auto TaskMsg =
-    [get](UINT Msg, WPARAM wParam, LPARAM lParam) ->
+    [&get](UINT Msg, WPARAM wParam, LPARAM lParam) ->
       LRESULT
       {
         if (get->hTaskDlg != 0)
@@ -100,24 +101,32 @@ DownloadThread (LPVOID user)
       };
 
   auto SetProgress = 
-    [=](double cur, double max) ->
+    [&](double cur, double max) ->
       void
       {
         TaskMsg ( TDM_SET_PROGRESS_BAR_POS,
                     static_cast <INT16> (
                       static_cast <double> (MAXINT16) *
-                               ( cur / max )
+                               ( cur / std::max (1.0, max) )
                     ), 0L );
       };
 
   auto SetErrorState =
-    [=](void) ->
+    [&](void) ->
       void
       {
         TaskMsg (TDM_SET_PROGRESS_BAR_STATE, PBST_NORMAL, 0L);
         TaskMsg (TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, 1));
         TaskMsg (TDM_SET_PROGRESS_BAR_POS,   1,           0L);
         TaskMsg (TDM_SET_PROGRESS_BAR_STATE, PBST_ERROR,  0L);
+
+        TaskMsg (TDM_ENABLE_BUTTON, IDYES, 1); // Re-enable the update button
+        TaskMsg (TDM_ENABLE_BUTTON, 0,     1); // Re-enable remind me later button
+
+        // Re-name the update button from Yes to Retry
+        SetDlgItemTextW (get->hTaskDlg, IDYES, L"Retry");
+
+        get->status = STATUS_FAILED;
       };
 
   TaskMsg (TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, MAXINT16));
@@ -167,6 +176,13 @@ DownloadThread (LPVOID user)
                                   INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC,
                                     (DWORD_PTR)&dwInetCtx );
 
+
+  // Wait 2500 msecs for a dead connection, then give up
+  //
+  ULONG ulTimeout = 2500UL;
+  InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
+
+
   if (! hInetHTTPGetReq) {
     InternetCloseHandle (hInetHost);
     InternetCloseHandle (hInetRoot);
@@ -208,7 +224,8 @@ DownloadThread (LPVOID user)
                                 FILE_FLAG_SEQUENTIAL_SCAN,
                                   nullptr );
 
-      while (hGetFile != INVALID_HANDLE_VALUE && dwSize > 0) {
+      while (hGetFile != INVALID_HANDLE_VALUE && dwSize > 0)
+      {
         DWORD    dwRead = 0;
         uint8_t *pData  = (uint8_t *)malloc (dwSize);
 
@@ -247,13 +264,20 @@ DownloadThread (LPVOID user)
       if (hGetFile != INVALID_HANDLE_VALUE)
         CloseHandle (hGetFile);
 
-      else
+      else {
         SetErrorState ();
+      }
     }
 
     //HttpEndRequest ( hInetHTTPGetReq, nullptr, 0x00, 0 );
 
-    get->status = STATUS_UPDATED;
+    if (dwTotalBytesDownloaded >= dwContentLength) {
+      get->status = STATUS_UPDATED;
+    }
+
+    else {
+      SetErrorState ();
+    }
   }
 
   else {
@@ -266,9 +290,11 @@ DownloadThread (LPVOID user)
 
   goto END;
 
+
+  // (Cleanup On Error)
 CLEANUP:
   SetErrorState ();
-  get->status = STATUS_FAILED;
+
 
 END:
   //if (! get->hTaskDlg)
@@ -1015,7 +1041,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
   wcscpy ( update_dlg_relnotes,
             latest_ver.get_value (L"ReleaseNotes").c_str () );
 
-  if (build.latest.in_branch > build.installed || force) {
+  if (build.latest.in_branch > build.installed || force)
+  {
     iSK_INISection& archive =
       repo_ini.get_section_f ( L"Archive.%s",
                                  build.latest.package );
@@ -1081,8 +1108,10 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
         }
       }
 
-      if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr))) {
-        if (get->status == STATUS_UPDATED) {
+      if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr)))
+      {
+        if (get->status == STATUS_UPDATED)
+        {
           sk::ParameterFactory ParameterFactory;
 
           sk::ParameterBool* backup_pref =
@@ -1184,7 +1213,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
       delete get;
     }
 
-    else {
+    else
+    {
       delete get;
       return E_FAIL;
     }

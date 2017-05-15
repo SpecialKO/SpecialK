@@ -49,7 +49,8 @@ SK_SYS_GetInstallPath (void)
 {
   if (! SK_IsInjected ()) {
     // TODO: Add VersionPath :)
-    return std::wstring (std::wstring (SK_GetHostPath ()) + L"\\");
+    return SK_GetRootPath ();
+    //return SK_GetConfigPath ();// std::wstring (std::wstring (SK_GetHostPath ()) + L"\\");
   }
 
   else {

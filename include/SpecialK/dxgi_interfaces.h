@@ -22,9 +22,6 @@
 #ifndef __SK__DXGI_INTERFACES_H__
 #define __SK__DXGI_INTERFACES_H__
 
-#define DXGI_PRESENT_ALLOW_TEARING          0x00000200UL
-#define DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING  2048
-
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
@@ -7743,5 +7740,25 @@ typedef HRESULT (STDMETHODCALLTYPE *EnumAdapters1_pfn)(
                                         IDXGIFactory1  *This,
                                         UINT            Adapter,
                                   _Out_ IDXGIAdapter1 **ppAdapter);
+
+
+#define DXGI_PRESENT_ALLOW_TEARING          0x00000200UL
+#define DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING  2048
+
+typedef
+enum DXGI_FEATURE
+{
+    DXGI_FEATURE_PRESENT_ALLOW_TEARING = 0
+} DXGI_FEATURE;
+
+MIDL_INTERFACE("7632e1f5-ee65-4dca-87fd-84cd75f8838d")
+IDXGIFactory5 : public IDXGIFactory4
+{
+  public:
+      virtual HRESULT STDMETHODCALLTYPE CheckFeatureSupport(
+                         DXGI_FEATURE Feature,
+                        _Inout_updates_bytes_(FeatureSupportDataSize) void *pFeatureSupportData,
+                         UINT FeatureSupportDataSize) = 0;
+ };
 
 #endif /* __SK__DXGI_INTERFACES_H__ */

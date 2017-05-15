@@ -2188,3 +2188,16 @@ SK_HookGL (void)
   GL_HOOKED = TRUE;
 }
 #endif
+
+
+__declspec (nothrow)
+HGLRC
+WINAPI
+SK_GetCurrentGLContext (void)
+{
+  if (imp_wglGetCurrentContext != nullptr)
+    return imp_wglGetCurrentContext ();
+
+  // Fallback, better hope this never happens ;)
+  return wglGetCurrentContext ();
+}
