@@ -11171,25 +11171,27 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RIM_TYPEMOUSE:
       {
-        if (config.input.mouse.add_relative_motion)
-        {
-          // 99% of games don't need this, and if we use relative motion to update the cursor position that
-          //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
-          //     Raw Input does not include cursor accelleration, etc.
-          POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
-
-          SK_ImGui_Cursor.ClientToLocal (&client);
-
-          SK_ImGui_Cursor.pos.x += client.x;
-          SK_ImGui_Cursor.pos.y += client.y;
-          
-          ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-          ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-        }
-
         // Don't take mouse button presses while in the background
         if (GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT)
         {
+          if (SK_ImGui_Visible && config.input.mouse.add_relative_motion && self)
+          {
+            // 99% of games don't need this, and if we use relative motion to update the cursor position that
+            //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
+            //     Raw Input does not include cursor accelleration, etc.
+            POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
+
+            ////SK_ImGui_Cursor.ClientToLocal (&client);
+
+            SK_ImGui_Cursor.pos.x += client.x;
+            SK_ImGui_Cursor.pos.y += client.y;
+            
+            ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+            ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+
+            SK_ImGui_Cursor.update ();
+          }
+
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
             ImGui::GetIO ().MouseDown [0] = true;
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
@@ -11600,8 +11602,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       }
     }
 
-    else if ((wParam & 0x7) < 5)
-      io.MouseDown [(wParam & 0x7)] = true;
+    else if ((wParam & 0xff) < 5)
+      io.MouseDown [(wParam & 0xff)] = true;
 
     return true;
   } break;

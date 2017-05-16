@@ -335,7 +335,7 @@ struct sk_config_t
 
     struct {
       // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
-      bool    add_relative_motion = false;
+      bool    add_relative_motion = true;
 //
 // Uses APIs such as DirectInput or RawInput that only send relative motion events
 //   to derive the virtual position of the cursor, since the game hijacks the

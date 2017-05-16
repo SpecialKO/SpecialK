@@ -238,14 +238,14 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       }
 
       //
-      // Many games shutdown SteamAPI on an async operation I/O failure,
+      // Many games shutdown SteamAPI on an async operation I/O failure;
       //   reading friend achievement stats will fail-fast thanks to Valve
-      //     not implementing a query for all friends who have a specific
-      //       AppID in their library.
+      //     not implementing a query for friends who have a specific AppID
+      //       in their library.
       //
-      //   Most will have no achievemetns for the currently running game,
-      //     so hook the game's callback procedure and filter out events
-      //       that we generated much to the game's surprise :)
+      //   Most friends will have no achievements for the current game,
+      //     so hook the game's callback procedure and filter out failure
+      //       events that we generated much to the game's surprise :)
       //
       else if (config.steam.filter_stat_callback)
       {
@@ -349,6 +349,11 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     case UserStatsReceived_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Uninstalled User Stats Receipt Callback",
                         caller.c_str () );
+
+      // May need to block this callback to prevent some games from spuriously shutting
+      //   SteamAPI down if the server's not cooperating.
+      //
+      //  * Fixes issues with missed/backlogged achievements in games like The Witcher 3
       if (config.steam.block_stat_callback)
       {
         steam_log.Log (L" ### Callback Blacklisted ###");
@@ -502,6 +507,8 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
  
   bool known = false;
 
+  // ( Dead man's switch for silly pirates that attempt to bypass framerate limit
+  //    with a hex edit rather than a proper forked project - "crack" this the right way please )
   if (var == tbf_pirate_fun)
   {
     known = true;
@@ -536,6 +543,8 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
 
     return true;
   }
+
+
   if (var == notify_corner)
   {
     known = true;
@@ -1010,7 +1019,7 @@ public:
       return;
 
     // A user may return kEResultFail if they don't own this game, so
-    //   do this anyway so we can continue enumerating all friends.
+    //   do this anyway and continue enumerating remaining friends.
     if (pParam->m_eResult == k_EResultOK)
     {
       // If the stats are not for the player, they are probably for one of
@@ -1598,6 +1607,9 @@ public:
     }
   }
 
+  // FIXME: Poorly named given the existence of requestStats
+  //
+  //   (nb: triggered when the async Steam call in requestStats returns)
   void pullStats (void)
   {
     ISteamUserStats* stats = steam_ctx.UserStats ();
@@ -1824,7 +1836,7 @@ protected:
     achv_friend->setText (szFriend);
 
 
-    // If the server hasn't updated the unlock time, just use the curren time
+    // If the server hasn't updated the unlock time, just use the current time
     if (achievement != nullptr && achievement->time_ == 0)
       _time32 (&achievement->time_);
 
@@ -3613,7 +3625,10 @@ SK_Steam_PiratesAhoy2 (void)
 
 
 
-
+//
+// Detoured to filter out async call failure events that the game isn't expecting and
+//   may respond by shutting SteamAPI down if received.
+//
 extern "C"
 void
 __fastcall

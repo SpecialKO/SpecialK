@@ -1731,6 +1731,47 @@ ImGui_ToggleCursor (void)
 
 
 
+typedef int (WINAPI *GetMouseMovePointsEx_pfn)(
+  _In_  UINT             cbSize,
+  _In_  LPMOUSEMOVEPOINT lppt,
+  _Out_ LPMOUSEMOVEPOINT lpptBuf,
+  _In_  int              nBufPoints,
+  _In_  DWORD            resolution
+);
+
+GetMouseMovePointsEx_pfn GetMouseMovePointsEx_Original = nullptr;
+
+int
+WINAPI
+GetMouseMovePointsEx_Detour(
+  _In_  UINT             cbSize,
+  _In_  LPMOUSEMOVEPOINT lppt,
+  _Out_ LPMOUSEMOVEPOINT lpptBuf,
+  _In_  int              nBufPoints,
+  _In_  DWORD            resolution )
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_ImGui_Visible)
+  {
+    bool implicit_capture = false;
+
+    // Depending on warp prefs, we may not allow the game to know about mouse movement
+    //   (even if ImGui doesn't want mouse capture)
+    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible                  ) ||
+         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+      implicit_capture = true;
+
+    if (SK_ImGui_WantMouseCapture () || implicit_capture)
+    {
+      return 0;
+    }
+  }
+
+  return GetMouseMovePointsEx_Original (cbSize, lppt, lpptBuf, nBufPoints, resolution);
+}
+
+
 
 HCURSOR
 WINAPI
@@ -1755,7 +1796,9 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 {
   SK_LOG_FIRST_CALL
 
-  BOOL ret = GetCursorInfo_Original (pci);
+  POINT pt  = pci->ptScreenPos;
+  BOOL  ret = GetCursorInfo_Original (pci);
+        pci->ptScreenPos = pt;
 
   pci->hCursor = SK_ImGui_Cursor.orig_img;
 
@@ -1764,6 +1807,8 @@ GetCursorInfo_Detour (PCURSORINFO pci)
   {
     bool implicit_capture = false;
 
+    // Depending on warp prefs, we may not allow the game to know about mouse movement
+    //   (even if ImGui doesn't want mouse capture)
     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible                  ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
       implicit_capture = true;
@@ -1789,7 +1834,7 @@ GetCursorInfo_Detour (PCURSORINFO pci)
   }
 
 
-  return ret;
+  return GetCursorInfo_Original (pci);
 }
 
 BOOL
@@ -1798,13 +1843,13 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 {
   SK_LOG_FIRST_CALL
 
-  BOOL ret = GetCursorPos_Original (lpPoint);
-
 
   if (SK_ImGui_Visible)
   {
     bool implicit_capture = false;
 
+    // Depending on warp prefs, we may not allow the game to know about mouse movement
+    //   (even if ImGui doesn't want mouse capture)
     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible                  ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
       implicit_capture = true;
@@ -1830,7 +1875,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   }
 
 
-  return ret;
+  return GetCursorPos_Original (lpPoint);
 }
 
 BOOL
@@ -2034,7 +2079,7 @@ WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool
-SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
+SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
 {
   bool handled = false;
 
@@ -2045,12 +2090,13 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
       // Fix for Melody's Escape, which attempts to remove these messages!
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
-        DispatchMessageW (lpMsg);
+        if (peek)
+          DispatchMessageW (lpMsg);
         break;
 
       case WM_SETCURSOR:
       {
-        if (lpMsg->hwnd == game_window.hWnd)
+        if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != 0)
           SK_ImGui_Cursor.update ();
 
         return false;
@@ -2088,8 +2134,6 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 
         if (SK_ImGui_WantMouseCapture ())
           return true;
-
-        DispatchMessageW (lpMsg);
       } break;
 
       default:
@@ -2137,6 +2181,10 @@ void SK_Input_PreInit (void)
   SK_CreateDLLHook2 ( L"user32.dll", "GetCursorInfo",
                      GetCursorInfo_Detour,
            (LPVOID*)&GetCursorInfo_Original );
+
+  SK_CreateDLLHook2 ( L"user32.dll", "GetMouseMovePointsEx",
+                     GetMouseMovePointsEx_Detour,
+           (LPVOID*)&GetMouseMovePointsEx_Original );
 
   SK_CreateDLLHook2 ( L"user32.dll", "SetCursor",
                      SetCursor_Detour,

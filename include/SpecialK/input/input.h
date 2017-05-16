@@ -154,7 +154,7 @@ extern sk_input_api_context_s SK_Steam_Backend;
 
 
 bool
-SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove);
+SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek);
 
 
 typedef void (WINAPI *keybd_event_pfn)(

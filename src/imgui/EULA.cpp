@@ -48,6 +48,9 @@ SK_GetLicenseText (SHORT id)
     HGLOBAL license_ref =
       LoadResource ( SK_GetDLL (), res );
 
+    // There's no forseeable reason this would be NULL, but the Application Verifier won't shutup about it.
+    if (! license_ref) return std::string ("");
+
     char* res_data =
       (char *)malloc (res_size + 1);
 
@@ -58,7 +61,7 @@ SK_GetLicenseText (SHORT id)
       char* locked = (char *)LockResource (license_ref);
 
       if (locked != nullptr)
-        strncat (res_data, locked, res_size - 1);
+        strncat (res_data, locked, res_size);
 
       std::string str (res_data);
 

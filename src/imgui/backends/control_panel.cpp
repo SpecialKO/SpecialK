@@ -1845,7 +1845,7 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::TreePush      ("");
 
         ImGui::BeginGroup    ();
-        ImGui::Text          ("Got Mouse Problems?");
+        ImGui::Text          ("Mouse Problems?");
         ImGui::TreePush      ("");
         int  input_backend = 1;
         bool changed       = false;
@@ -1860,8 +1860,14 @@ extern float SK_ImGui_PulseNav_Strength;
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("More Reliable (currently the only supported input API)");
 #endif
-        if (ImGui::Checkbox ("My game won't let me move my mouse!!!", &config.input.mouse.add_relative_motion))
-          ImGui::SetTooltip ("Use this option and please notify Kaldaien so he can add the game to a compatibility list");
+        bool non_relative = (! config.input.mouse.add_relative_motion);
+
+        ImGui::Checkbox ("Fix Jittery Mouse (in menus)", &non_relative);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("If this helps, please notify Kaldaien so he can add the game to a compatibility list");
+
+        config.input.mouse.add_relative_motion = (! non_relative);
 
         ImGui::TreePop       ();
         ImGui::EndGroup      ();

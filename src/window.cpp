@@ -2234,9 +2234,9 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
 LPMSG last_message = nullptr;
 
 bool
-SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove)
+SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
-  if ( SK_ImGui_HandlesMessage (lpMsg, remove) )
+  if ( SK_ImGui_HandlesMessage (lpMsg, remove, peek) )
   {
     if (remove)
       lpMsg->message = WM_NULL;
@@ -2271,7 +2271,7 @@ PeekMessageW_Detour (
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
   if (bRet && lpMsg->hwnd != nullptr /*&& (wRemoveMsg & PM_REMOVE) != 0*/)
-    SK_EarlyDispatchMessage (lpMsg, true);
+    SK_EarlyDispatchMessage (lpMsg, true, true);
 
   return bRet;
 }
@@ -2300,7 +2300,7 @@ PeekMessageA_Detour (
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
   if (bRet && lpMsg->hwnd != nullptr /*&& (wRemoveMsg & PM_REMOVE) != 0*/)
-    SK_EarlyDispatchMessage (lpMsg, true);
+    SK_EarlyDispatchMessage (lpMsg, true, true);
 
   return bRet;
 }

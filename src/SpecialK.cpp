@@ -290,13 +290,13 @@ SK_EstablishDllRole (HMODULE hModule)
             return FALSE;
         }
 
-        else if (config.apis.ddraw.hook && ddraw)
-        {
-          SK_SetDLLRole (DLL_ROLE::DDraw);
-
-          if (SK_IsDLLSpecialK (L"ddraw.dll"))
-            return FALSE;
-        }
+        //else if (config.apis.ddraw.hook && ddraw)
+        //{
+        //  SK_SetDLLRole (DLL_ROLE::DDraw);
+        //
+        //  if (SK_IsDLLSpecialK (L"ddraw.dll"))
+        //    return FALSE;
+        //}
 
         else if (config.apis.OpenGL.hook && gl)
         {
@@ -532,6 +532,7 @@ SK_Attach (DLL_ROLE role)
 
 #ifndef SK_BUILD__INSTALLER
       case DLL_ROLE::OpenGL:
+      {
         // If this is the global injector and there is a wrapper version
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
@@ -551,6 +552,7 @@ SK_Attach (DLL_ROLE role)
             &__SK_DLL_Attached,
               1
           );
+      }
 #endif
 
       case DLL_ROLE::Vulkan:
