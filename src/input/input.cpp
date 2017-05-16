@@ -359,6 +359,13 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
   {
     std::vector <RAWINPUTDEVICE> overrides;
 
+    // Aw, the game doesn't have any mice -- let's fix that.
+    if (raw_mice.size () == 0) {
+      raw_devices.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
+      raw_mice.push_back    (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
+      raw_overrides.mouse.legacy_messages = true;
+    }
+
     for (RAWINPUTDEVICE it : raw_mice)
     {
       HWND hWnd = it.hwndTarget;
@@ -402,6 +409,13 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
   if (raw_overrides.keyboard.active)
   {
     std::vector <RAWINPUTDEVICE> overrides;
+
+    // Aw, the game doesn't have any mice -- let's fix that.
+    if (raw_keyboards.size () == 0) {
+      raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
+      raw_keyboards.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
+      raw_overrides.keyboard.legacy_messages = true;
+    }
 
     for (auto it : raw_keyboards)
     {
@@ -2028,6 +2042,12 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
   {
     switch (lpMsg->message)
     {
+      // Fix for Melody's Escape, which attempts to remove these messages!
+      case WM_KEYDOWN:
+      case WM_SYSKEYDOWN:
+        DispatchMessageW (lpMsg);
+        break;
+
       case WM_SETCURSOR:
       {
         if (lpMsg->hwnd == game_window.hWnd)
@@ -2068,6 +2088,8 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove)
 
         if (SK_ImGui_WantMouseCapture ())
           return true;
+
+        DispatchMessageW (lpMsg);
       } break;
 
       default:

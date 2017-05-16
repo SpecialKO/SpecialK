@@ -1287,28 +1287,34 @@ SK_TestImports (          HMODULE  hMod,
 
       while ((uintptr_t)pImpDesc < end)
       {
-        if (pImpDesc->Name == 0x00)
+        __try
         {
-          ++pImpDesc;
-          continue;
-        }
-
-        const char* szImport =
-          (const char *)(pImgBase + (pImpDesc++)->Name);
-
-        //dll_log.Log (L"%hs", szImport);
-
-        for (int i = 0; i < nCount; i++)
-        {
-          if ((! pTests [i].used) && StrStrIA (szImport, pTests [i].szModuleName))
+          if (pImpDesc->Name == 0x00)
           {
-            pTests [i].used = true;
-                     ++hits;
+            ++pImpDesc;
+            continue;
           }
-        }
 
-        //if (hits == nCount)
-          //break;
+          const char* szImport =
+            (const char *)(pImgBase + (pImpDesc++)->Name);
+
+          //dll_log.Log (L"%hs", szImport);
+
+          for (int i = 0; i < nCount; i++)
+          {
+            if ((! pTests [i].used) && StrStrIA (szImport, pTests [i].szModuleName))
+            {
+              pTests [i].used = true;
+                       ++hits;
+            }
+          }
+
+          if (hits == nCount)
+            break;
+        }
+        __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+                     EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
+        }
       }
     }
   }
