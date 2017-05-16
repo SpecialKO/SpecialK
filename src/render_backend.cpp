@@ -40,6 +40,7 @@ SK_GetCurrentRenderBackend (void)
 extern void WINAPI SK_HookGL     (void);
 extern void WINAPI SK_HookVulkan (void);
 extern void WINAPI SK_HookD3D9   (void);
+extern void WINAPI SK_HookD3D8   (void);
 extern void WINAPI SK_HookDXGI   (void);
 
 void
@@ -92,6 +93,31 @@ SK_BootD3D9 (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
   SK_HookD3D9 ();
+}
+
+void
+SK_BootD3D8 (void)
+{
+  while (backend_dll == 0) {
+    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
+    Sleep (500UL);
+  }
+
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  // Establish the minimal set of APIs necessary to work as d3d8.dll
+  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+    config.apis.d3d8.hook = true;
+
+  if (! config.apis.d3d8.hook)
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
+
+  SK_HookD3D8 ();
 }
 
 extern HMODULE backend_dll;

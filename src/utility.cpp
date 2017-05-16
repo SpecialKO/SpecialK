@@ -1338,27 +1338,43 @@ SK_TestImports (          HMODULE  hMod,
   }
 }
 
+//
+// This prototype is now completely ridiculous, this "design" sucks...
+//   FIXME!!
+// 
 void
 SK_TestRenderImports ( HMODULE hMod,
                        bool*   gl,
                        bool*   vulkan,
                        bool*   d3d9,
                        bool*   dxgi,
-                       bool*   d3d11 )
+                       bool*   d3d11,
+                       bool*   d3d8,
+                       bool*   ddraw,
+                       bool*   glide )
 {
   static sk_import_test_s tests [] = { { "OpenGL32.dll", false },
                                        { "vulkan-1.dll", false },
                                        { "d3d9.dll",     false },
                                        //{ "dxgi.dll",     false },
-                                       { "d3d11.dll",    false } };
+                                       { "d3d11.dll",    false },
+                                       { "d3d8.dll",     false },
+                                       { "ddraw.dll",    false },
+
+                                       // 32-bit only
+                                       { "glide.dll",    false } };
 
   SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);
 
   *gl     = tests [0].used;
   *vulkan = tests [1].used;
   *d3d9   = tests [2].used;
+  *dxgi   = false;
 //*dxgi   = tests [3].used;
   *d3d11  = tests [3].used;
+  *d3d8   = tests [4].used;
+  *ddraw  = tests [5].used;
+  *glide  = tests [6].used;
 }
 
 int

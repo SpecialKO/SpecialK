@@ -54,6 +54,12 @@ EXPORTS
   D3D9CreateVertexDeclaration_Override   = D3D9CreateVertexDeclaration_Override    PRIVATE
 
 
+;LIBRARY "d3d8"
+
+EXPORTS
+  Direct3DCreate8          = Direct3DCreate8           PRIVATE
+
+
 ;LIBRARY "dxgi"
 
 EXPORTS

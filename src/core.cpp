@@ -774,6 +774,13 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
+  //
+  // TEMP HACK: dgVoodoo2
+  //
+  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+    SK_BootDXGI ();
+
+
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
   if (SK_IsSuperSpecialK ())
@@ -927,6 +934,12 @@ SK_InitCore (const wchar_t* backend, void* callback)
   // If the module name is this, then we need to load the system-wide DLL...
   wchar_t   wszProxyName [MAX_PATH];
   wsprintf (wszProxyName, L"%s.dll", backend);
+
+  //
+  // TEMP HACK: dgVoodoo
+  //
+  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
 #ifdef _WIN64
@@ -1482,8 +1495,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (config.compatibility.init_while_suspended)
   {
-    //__SK_Init_Suspended_tids =
-      //SK_SuspendAllOtherThreads ();
+    //
   }
 
 

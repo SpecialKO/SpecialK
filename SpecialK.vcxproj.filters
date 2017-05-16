@@ -184,6 +184,15 @@
     <Filter Include="Header Files\Plugins">
       <UniqueIdentifier>{ebca487d-f1cf-40ca-9c0a-cbca2889bb5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Backends\Render\D3D8">
+      <UniqueIdentifier>{ea2941f5-1ba5-41d4-8b46-b0ec1ac6c1ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\DDraw">
+      <UniqueIdentifier>{10611ec8-047b-4de6-879f-aaf611ca1087}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\D3D8">
+      <UniqueIdentifier>{09f216f3-b598-4a6a-aee1-587fd9d42d27}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -375,6 +384,9 @@
     <ClInclude Include="include\SpecialK\plugin\plugin_mgr.h">
       <Filter>Header Files\Plugins</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\d3d8_backend.h">
+      <Filter>Header Files\Backends\Render\D3D8</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -547,6 +559,9 @@
     </ClCompile>
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\d3d8.cpp">
+      <Filter>Source Files\Backends\Render\D3D8</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

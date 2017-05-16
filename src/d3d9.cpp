@@ -78,6 +78,7 @@ __stdcall
 SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pDevice = nullptr);
 
 
+
 typedef IDirect3D9*
   (STDMETHODCALLTYPE *Direct3DCreate9PROC)(  UINT           SDKVersion);
 typedef HRESULT

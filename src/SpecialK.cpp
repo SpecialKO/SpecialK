@@ -32,6 +32,7 @@
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/d3d9_backend.h>
+#include <SpecialK/d3d8_backend.h>
 #include <SpecialK/opengl_backend.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
@@ -138,6 +139,9 @@ SK_EstablishDllRole (HMODULE hModule)
   if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
     SK_SetDLLRole (DLL_ROLE::DXGI);
 
+  else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll"))
+    SK_SetDLLRole (DLL_ROLE::D3D8);
+
   else if (! SK_Path_wcsicmp (wszShort, L"d3d9.dll"))
     SK_SetDLLRole (DLL_ROLE::D3D9);
 
@@ -156,12 +160,20 @@ SK_EstablishDllRole (HMODULE hModule)
 
     bool explicit_inject = false;
 
-    wchar_t wszD3D9 [MAX_PATH] = { L'\0' };
-    wchar_t wszDXGI [MAX_PATH] = { L'\0' };
-    wchar_t wszGL   [MAX_PATH] = { L'\0' };
+    wchar_t wszD3D9  [MAX_PATH] = { L'\0' };
+    wchar_t wszD3D8  [MAX_PATH] = { L'\0' };
+    wchar_t wszDDraw [MAX_PATH] = { L'\0' };
+    wchar_t wszDXGI  [MAX_PATH] = { L'\0' };
+    wchar_t wszGL    [MAX_PATH] = { L'\0' };
 
     lstrcatW (wszD3D9, SK_GetHostPath ());
     lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
+
+    lstrcatW (wszD3D8, SK_GetHostPath ());
+    lstrcatW (wszD3D8, L"\\SpecialK.d3d8");
+
+    lstrcatW (wszDDraw, SK_GetHostPath ());
+    lstrcatW (wszDDraw, L"\\SpecialK.ddraw");
 
     lstrcatW (wszDXGI, SK_GetHostPath ());
     lstrcatW (wszDXGI, L"\\SpecialK.dxgi");
@@ -171,6 +183,16 @@ SK_EstablishDllRole (HMODULE hModule)
 
     if      ( GetFileAttributesW (wszD3D9) != INVALID_FILE_ATTRIBUTES ) {
       SK_SetDLLRole (DLL_ROLE::D3D9);
+      explicit_inject = true;
+    }
+
+    else if ( GetFileAttributesW (wszD3D8) != INVALID_FILE_ATTRIBUTES ) {
+      SK_SetDLLRole (DLL_ROLE::D3D8);
+      explicit_inject = true;
+    }
+
+    else if ( GetFileAttributesW (wszDDraw) != INVALID_FILE_ATTRIBUTES ) {
+      SK_SetDLLRole (DLL_ROLE::DDraw);
       explicit_inject = true;
     }
 
@@ -188,7 +210,8 @@ SK_EstablishDllRole (HMODULE hModule)
     if (! explicit_inject)
     {
       // Skip lengthy tests if we already have the wrapper version loaded.
-      if (SK_IsDLLSpecialK (L"d3d9.dll") || SK_IsDLLSpecialK (L"dxgi.dll") || SK_IsDLLSpecialK (L"OpenGL32.dll")) {
+      if ( SK_IsDLLSpecialK (L"d3d9.dll") || SK_IsDLLSpecialK (L"dxgi.dll") || SK_IsDLLSpecialK (L"OpenGL32.dll") ||
+           SK_IsDLLSpecialK (L"d3d8.dll") || SK_IsDLLSpecialK (L"ddraw.dll") ) {
         SK_SetDLLRole (DLL_ROLE::INVALID);
         return false;
       }
@@ -225,12 +248,13 @@ SK_EstablishDllRole (HMODULE hModule)
 
       if (is_steamworks_game)
       {
-        bool gl = false, vulkan = false, d3d9 = false, d3d11 = false, dxgi = false;
+        bool gl = false, vulkan = false, d3d9 = false, d3d11 = false, dxgi = false, d3d8 = false, ddraw = false, glide = false;
 
         SK_TestRenderImports (
           GetModuleHandle (nullptr),
             &gl, &vulkan,
-              &d3d9, &dxgi, &d3d11
+              &d3d9, &dxgi, &d3d11,
+                &d3d8, &ddraw, &glide
         );
 
 
@@ -238,9 +262,19 @@ SK_EstablishDllRole (HMODULE hModule)
         d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
         //dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr);
         d3d11  |= (GetModuleHandle (L"d3d11.dll")    != nullptr);
+        d3d8   |= (GetModuleHandle (L"d3d8.dll")     != nullptr);
+        ddraw  |= (GetModuleHandle (L"ddraw.dll")    != nullptr);
 
 
-        if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11)) 
+        if (config.apis.d3d8.hook && d3d8)
+        {
+          SK_SetDLLRole (DLL_ROLE::D3D8);
+
+          if (SK_IsDLLSpecialK (L"d3d8.dll"))
+            return FALSE;
+        }
+
+        else if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11)) 
         {
           SK_SetDLLRole (DLL_ROLE::DXGI);
 
@@ -253,6 +287,14 @@ SK_EstablishDllRole (HMODULE hModule)
           SK_SetDLLRole (DLL_ROLE::D3D9);
 
           if (SK_IsDLLSpecialK (L"d3d9.dll"))
+            return FALSE;
+        }
+
+        else if (config.apis.ddraw.hook && ddraw)
+        {
+          SK_SetDLLRole (DLL_ROLE::DDraw);
+
+          if (SK_IsDLLSpecialK (L"ddraw.dll"))
             return FALSE;
         }
 
@@ -279,6 +321,10 @@ SK_EstablishDllRole (HMODULE hModule)
             SK_SetDLLRole (DLL_ROLE::OpenGL);
           else if (config.apis.Vulkan.hook)
             SK_SetDLLRole (DLL_ROLE::Vulkan);
+          else if (config.apis.d3d8.hook)
+            SK_SetDLLRole (DLL_ROLE::D3D8);
+          else if (config.apis.ddraw.hook)
+            SK_SetDLLRole (DLL_ROLE::DDraw);
         }
 
         if (SK_GetDLLRole () == DLL_ROLE::INVALID)
@@ -458,6 +504,31 @@ SK_Attach (DLL_ROLE role)
           );
       }
 
+      case DLL_ROLE::D3D8:
+      {
+        // If this is the global injector and there is a wrapper version
+        //   of Special K in the DLL search path, then bail-out!
+        if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
+        {
+          SK_SetDLLRole (DLL_ROLE::INVALID);
+          return FALSE;
+        }
+
+        InterlockedCompareExchange (
+          &__SK_DLL_Attached,
+            SK::D3D8::Startup (),
+              FALSE
+        );
+
+        return
+          InterlockedExchangeAddRelease (
+            &__SK_DLL_Attached,
+              1
+          );
+      }
+
+      // TODO: DDraw and Glide
+
 
 #ifndef SK_BUILD__INSTALLER
       case DLL_ROLE::OpenGL:
@@ -517,6 +588,10 @@ SK_Detach (DLL_ROLE role)
 
       case DLL_ROLE::D3D9:
         ret = SK::D3D9::Shutdown ();
+        break;
+
+      case DLL_ROLE::D3D8:
+        ret = SK::D3D8::Shutdown ();
         break;
 
 #ifndef SK_BUILD__INSTALLER

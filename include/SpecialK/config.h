@@ -397,6 +397,14 @@ struct sk_config_t
   struct {
     struct {
       bool   hook              = true;
+    } glide;
+
+    struct {
+      bool   hook              = true;
+    } d3d8, ddraw;
+
+    struct {
+      bool   hook              = true;
     } d3d9, d3d9ex;
 
     struct {

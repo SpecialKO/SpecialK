@@ -101,16 +101,31 @@ __stdcall
 SK_GetFramesDrawn (void);
 
 enum DLL_ROLE {
-  INVALID    = 0x00,
+  INVALID    = 0x000,
+
 
   // Graphics APIs
-  DXGI       = 0x01, // D3D 10-12
-  D3D9       = 0x02,
-  OpenGL     = 0x04,
-  Vulkan     = 0x08,
+  DXGI       = 0x001, // D3D 10-12
+  D3D9       = 0x002,
+  OpenGL     = 0x004, // All versions
+  Vulkan     = 0x008,
 
-  // Other DLLs
+
+  // Third-party Wrappers (i.e. dgVoodoo2)
+  // -------------------------------------
+  //
+  //  Special K merely exports the correct symbols
+  //    for binary compatibility; it has no native 
+  //      support for rendering in these APIs.
+  //
+  D3D8       = 0xC0000010,
+  DDraw      = 0xC0000020,
+  Glide      = 0xC0000040, // All versions
+
+
+  // Behavior Flags
   PlugIn     = 0x00010000, // Stuff like Tales of Zestiria "Fix"
+  Wrapper    = 0x40000000,
   ThirdParty = 0x80000000
 };
 

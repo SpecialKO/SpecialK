@@ -28,14 +28,24 @@
 extern __declspec (nothrow) HGLRC WINAPI SK_GetCurrentGLContext (void);
 
 enum class SK_RenderAPI {
-  Reserved = 0x01,
-  OpenGL   = 0x02,
-  Vulkan   = 0x04,
-  D3D9     = 0x08,
-  D3D9Ex   = 0x18,
-  D3D10    = 0x20, // Don't care
-  D3D11    = 0x40,
-  D3D12    = 0x80
+  Reserved  = 0x0001,
+
+  // Native API Implementations
+  OpenGL    = 0x0002,
+  Vulkan    = 0x0004,
+  D3D9      = 0x0008,
+  D3D9Ex    = 0x0018,
+  D3D10     = 0x0020, // Don't care
+  D3D11     = 0x0040,
+  D3D12     = 0x0080,
+
+  // Wrapped APIs (D3D12 Flavor)
+  D3D11On12 = 0x1080,
+
+  // Wrapped APIs (D3D11 Flavor)
+  D3D8On11  = 0x2040,
+  DDrawOn11 = 0x4040,
+  GlideOn11 = 0x8040,
 };
 
 struct SK_RenderBackend_V1 {
@@ -73,6 +83,10 @@ SK_GetCurrentRenderBackend (void);
 void
 __stdcall
 SK_InitRenderBackends (void);
+
+void SK_BootD3D8   (void);
+void SK_BootDDraw  (void);
+void SK_BootGlide  (void);
 
 void SK_BootD3D9   (void);
 void SK_BootDXGI   (void);
