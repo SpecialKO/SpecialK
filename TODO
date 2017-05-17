@@ -1,0 +1,13 @@
+*** nb: Migrate SKIM architecture to GitLab instead of GitHub
+
+
+Work licensing terms for third-party add-ons / plug-ins into project so that
+installation of these components (i.e. ReShade, dgVoodoo) can be simplified for
+the end-user.
+
+Finish Vulkan API support, right now framerate limiting and counting is in but
+without a UI to display this information it's pretty useless ;)
+
+
+### Continue work on license terms to protect myself from what happened on
+GitHub. (I will be a repeated target of fraudulent terms-of-service violations.)
