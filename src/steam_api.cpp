@@ -3569,6 +3569,65 @@ SK_SteamAPI_Utils (void)
 }
 
 
+//
+// ATTENTION PIRATES:  Forking Special K and circumventing this is 99% of the work you need
+// ------------------    to do to "crack" my mods. The remaining 1% involves removing my name.
+//
+//
+//  You will find various measures scattered throughout the code that took me all of five
+//    minutes to devise whose intention is to make any attempt to do something other than
+//      modify the source code fail.
+//
+//  >> TBFix, for example, will throw up a HUGE positive LOD bias causing blurry textures if
+//       the framerate limit restriction is bypassed with a simple hex edit.
+//
+//  Please refrain from simply binary-editing one of my distributions, if you have the skill to
+//    circumvent DRM it should be obvious that I intend every one of my measures to be plainly
+//      visible and should take you thirty-seconds to figure out and remove the correct way.
+//
+//
+//
+//  "Proper" (lol) Redistribution for Illegal Purposes (which I do not condone) follows:
+//  ------------------------------------------------------------------------------------
+//
+//    1.  Fork the C++ code, make your changes public for the decency of your community
+//    2.  Remove my name if you are going to distribute your modification in anything illegal
+//    3.  Stop accusing me of distributing malware, you rarely even honor bullet-point #1
+//
+//
+//
+//  Common Sense Practices it Frequently Astounds me that you Ignore:
+//  -----------------------------------------------------------------
+//
+//   (*) Disable SteamAPI enhancement, most of the stuff you complain about isn't even a problem
+//        if you would simply turn SteamAPI features off.
+//
+//    >> Your fake SteamAPI implementations are fragile, and I sure as hell have no intention to
+//         test against them or fix them.
+//
+//    >> Opt-out of Steam-related enhancement if you care about stability.
+//
+//
+//   (*) Do not grab the latest version of my mod and shoe-horn it into your cracked binary
+//
+//    >> I maintain forward-compatibility for the benefit of the paying Steam community,
+//         you need the opposite since your executable never receives updates.
+//
+//    >> I remove fixes for stuff that the publisher has already fixed, you get nothing from
+//         following my update schedule when your executable has its own set of problems that
+//           are not addressed by new versions of the software.
+//
+//
+//  The feature that deletes files is for the benefit of people who "upgrade" from pirated to
+//  legit and swear up and down they are continuing to be detected as a pirate. Don't click that
+//  button unless you are a legitimate user who upgraded and has remnant illegal files lingering.
+//
+//
+//-----------------------------------------------------------------------------------------------
+//    Remove my name from any forked work, and stop making your community look like a bunch of
+//      children; it reflects poorly on the whole of PC gaming.
+//-----------------------------------------------------------------------------------------------
+//
 uint32_t
 __stdcall
 SK_Steam_PiratesAhoy (void)
