@@ -1,8 +1,8 @@
 # SpecialK
 Core systems used by all of my mods
 
-##This file is part of Special K.
-####Copyright (C) 2015-2016 Andon "Kaldaien" Coleman.
+## This file is part of Special K.
+#### Copyright (C) 2015-2017 Andon "Kaldaien" Coleman.
 > Special K is free software : you can redistribute it and / or modify
 > it under the terms of the GNU General Public License as published by
 > The Free Software Foundation, either version 3 of the License, or
