@@ -1,0 +1,15 @@
++ Added code to compensate for games that pull WM_KEYDOWN messages out of the
+    pump by using PeekMessage* with PM_REMOVE set.
+
++ Enabled relative mouse motion from RawInput in any game that tries to capture
+    mouse input non-cooperatively.
+
++ Added support for wrapping d3d8.dll, no native renderer exists or ever will,
+    the project relies on optional third-party API wrappers for legacy APIs.
+    
++ Optional dgVoodoo support added, place the (all 32-bit) DLLs in
+    Documents\My Mods\Special K\PlugIns\ThirdParty\dgVoodoo\
+    
++ Fixed-up floating-point exception handling in Prey
+
+--------- (Initial GitLab Migration) ---------
