@@ -1,3 +1,5 @@
++ Fixed license text truncation on EULA screen
+
 + Added code to compensate for games that pull WM_KEYDOWN messages out of the
     pump by using PeekMessage* with PM_REMOVE set.
 
