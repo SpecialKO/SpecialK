@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.7.1"
+#define FAR_VERSION_NUM L"0.5.7.2"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -407,6 +407,46 @@ extern LPVOID __SK_base_img_addr;
 extern LPVOID __SK_end_img_addr;
 
 extern void* __stdcall SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask);
+
+
+
+typedef LONG NTSTATUS;
+
+typedef NTSTATUS (NTAPI *NtQueryTimerResolution_pfn)
+(
+  OUT PULONG              MinimumResolution,
+  OUT PULONG              MaximumResolution,
+  OUT PULONG              CurrentResolution
+);
+
+typedef NTSTATUS (NTAPI *NtSetTimerResolution_pfn)
+(
+  IN  ULONG               DesiredResolution,
+  IN  BOOLEAN             SetResolution,
+  OUT PULONG              CurrentResolution
+);
+
+HMODULE                    NtDll                  = 0;
+
+NtQueryTimerResolution_pfn NtQueryTimerResolution = nullptr;
+NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
+
+typedef BOOL (WINAPI *SwitchToThread_pfn)(void);
+
+SwitchToThread_pfn SwitchToThread_Original = nullptr;
+
+int  __FAR_PauseIters     = 8;
+bool __FAR_SwitchToThread = true;
+
+BOOL
+WINAPI
+SwitchToThread_Detour (void)
+{
+  if (__FAR_SwitchToThread)
+    if (! SwitchToThread_Original ()) for (int i = 0; i < __FAR_PauseIters; i++) YieldProcessor ();
+
+  return __FAR_SwitchToThread;
+}
 
 void
 SK_FAR_SetFramerateCap (bool enable)
@@ -1688,6 +1728,35 @@ SK_FAR_InitPlugin (void)
   if (! SK_IsInjected ())
     SK_FAR_CheckVersion (nullptr);
 
+  SK_CreateDLLHook2 ( L"kernel32.dll",
+                      "SwitchToThread",
+                       SwitchToThread_Detour,
+            (LPVOID *)&SwitchToThread_Original );
+
+  if (NtDll == 0) {
+    NtDll = LoadLibrary (L"ntdll.dll");
+
+    NtQueryTimerResolution =
+      (NtQueryTimerResolution_pfn)
+        GetProcAddress (NtDll, "NtQueryTimerResolution");
+
+    NtSetTimerResolution =
+      (NtSetTimerResolution_pfn)
+        GetProcAddress (NtDll, "NtSetTimerResolution");
+
+    if (NtQueryTimerResolution != nullptr &&
+        NtSetTimerResolution   != nullptr) {
+      ULONG min, max, cur;
+      NtQueryTimerResolution (&min, &max, &cur);
+      dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                      (float)(cur * 100)/1000000.0f );
+      NtSetTimerResolution   (max, TRUE,  &cur);
+      dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
+                      (float)(cur * 100)/1000000.0f );
+
+    }
+  }
+
   SK_CreateFuncHook ( L"ID3D11Device::CreateBuffer",
                         D3D11Dev_CreateBuffer_Override,
                           SK_FAR_CreateBuffer,
@@ -2372,6 +2441,9 @@ SK_FAR_ControlPanel (void)
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Fixes video stuttering, but may cause it during gameplay.");
+
+      ImGui::SliderInt ("YieldProcessor Iterations", &__FAR_PauseIters, 0, 16);
+      ImGui::Checkbox  ("SwitchToThread",            &__FAR_SwitchToThread);
 
       ImGui::TreePop ();
     }

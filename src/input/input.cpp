@@ -65,28 +65,20 @@ SK_InputUtil_IsHWCursorVisible (void)
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend.markRead  (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend.markWrite (type);
 
-extern bool SK_ImGui_Visible;
-extern bool nav_usable;
 
 //////////////////////////////////////////////////////////////
 //
 // HIDClass (Usermode)
 //
 //////////////////////////////////////////////////////////////
-#pragma comment (lib, "hid.lib")
-
-#include <hidusage.h>
-#include <Hidpi.h>
-#include <Hidsdi.h>
-
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
 {
   bool filter = false;
 
-  HIDP_CAPS caps;
-  NTSTATUS  stat =
-    HidP_GetCaps (pData, &caps);
+        HIDP_CAPS caps;
+  const NTSTATUS  stat =
+          HidP_GetCaps (pData, &caps);
 
   if ( stat           == HIDP_STATUS_SUCCESS && 
        caps.UsagePage == HID_USAGE_PAGE_GENERIC )
@@ -125,15 +117,8 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
   return filter;
 }
 
-typedef BOOLEAN (__stdcall *HidD_GetPreparsedData_pfn)(
-  _In_  HANDLE                HidDeviceObject,
-  _Out_ PHIDP_PREPARSED_DATA *PreparsedData
-);
-
-HidD_GetPreparsedData_pfn HidD_GetPreparsedData_Original = nullptr;
-
 PHIDP_PREPARSED_DATA* SK_HID_PreparsedDataP = nullptr;
-PHIDP_PREPARSED_DATA  SK_HID_PreparsedData = nullptr;
+PHIDP_PREPARSED_DATA  SK_HID_PreparsedData  = nullptr;
 
 BOOLEAN
 _Success_(return)
@@ -164,11 +149,11 @@ HidD_GetPreparsedData_Detour (
   return bRet;
 }
 
-typedef BOOLEAN (__stdcall *HidD_FreePreparsedData_pfn)(
-  _In_ PHIDP_PREPARSED_DATA PreparsedData
-);
-
+HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original  = nullptr;
 HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original = nullptr;
+HidD_GetFeature_pfn        HidD_GetFeature_Original        = nullptr;
+HidP_GetData_pfn           HidP_GetData_Original           = nullptr;
+SetCursor_pfn              SetCursor_Original              = nullptr;
 
 BOOLEAN
 __stdcall
@@ -182,14 +167,6 @@ HidD_FreePreparsedData_Detour (
 
   return bRet;
 }
-
-typedef BOOLEAN (__stdcall *HidD_GetFeature_pfn)(
-  _In_  HANDLE HidDeviceObject,
-  _Out_ PVOID  ReportBuffer,
-  _In_  ULONG  ReportBufferLength
-);
-
-HidD_GetFeature_pfn HidD_GetFeature_Original = nullptr;
 
 BOOLEAN
 _Success_ (return)
@@ -215,17 +192,6 @@ HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
 
   return FALSE;
 }
-
-typedef NTSTATUS (__stdcall *HidP_GetData_pfn)(
-  _In_    HIDP_REPORT_TYPE     ReportType,
-  _Out_   PHIDP_DATA           DataList,
-  _Inout_ PULONG               DataLength,
-  _In_    PHIDP_PREPARSED_DATA PreparsedData,
-  _In_    PCHAR                Report,
-  _In_    ULONG                ReportLength
-);
-
-HidP_GetData_pfn HidP_GetData_Original = nullptr;
 
 NTSTATUS
 __stdcall
@@ -1367,9 +1333,6 @@ SK_Input_PreHookDI8 (void)
 #include <imgui/imgui.h>
 sk_imgui_cursor_s SK_ImGui_Cursor;
 
-typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
-extern SetCursor_pfn SetCursor_Original;
-
 HCURSOR GetGameCursor (void);
 
 
@@ -1414,8 +1377,8 @@ sk_imgui_cursor_s::LocalToClient (LPPOINT lpPoint)
     ImGui::GetIO ().DisplayFramebufferScale;
 
   struct {
-    float width,
-          height;
+    float width  = 1.0f,
+          height = 1.0f;
   } in, out;
 
   in.width   = local_dims.x;
@@ -1437,12 +1400,12 @@ sk_imgui_cursor_s::ClientToLocal    (LPPOINT lpPoint)
   RECT real_client;
   GetClientRect (game_window.hWnd, &real_client);
 
-  ImVec2 local_dims =
+  const ImVec2 local_dims =
     ImGui::GetIO ().DisplayFramebufferScale;
 
   struct {
-    float width,
-          height;
+    float width  = 1.0f,
+          height = 1.0f;
   } in, out;
 
   out.width  = local_dims.x;
@@ -1598,7 +1561,6 @@ SK_ImGui_WantKeyboardCapture (void)
     ImGuiIO& io =
       ImGui::GetIO ();
 
-    extern bool nav_usable;
     if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
       imgui_capture = true;
   }
@@ -1630,7 +1592,6 @@ SK_ImGui_WantGamepadCapture (void)
 
   if (SK_ImGui_Visible)
   {
-    extern bool nav_usable;
     if (nav_usable)
       imgui_capture = true;
   }
@@ -1662,13 +1623,6 @@ SK_ImGui_WantMouseCapture (void)
 
   return imgui_capture;
 }
-
-typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
-SetCursor_pfn SetCursor_Original = nullptr;
-
-extern
-void
-SK_ImGui_CenterCursorOnWindow (void);
 
 HCURSOR GetGameCursor (void)
 {
@@ -2090,8 +2044,18 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
       // Fix for Melody's Escape, which attempts to remove these messages!
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
+      case WM_SYSKEYUP:
+      case WM_KEYUP:
         if (peek)
-          DispatchMessageW (lpMsg);
+        {
+          if (! ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+          {
+            DispatchMessageW (lpMsg);
+          }
+          return true;
+        }
+        else
+          return ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0;
         break;
 
       case WM_SETCURSOR:

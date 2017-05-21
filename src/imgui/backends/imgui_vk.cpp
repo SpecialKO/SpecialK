@@ -296,8 +296,8 @@ ImGui_ImplVulkan_RenderDrawLists (ImDrawData* draw_data)
 
   // Upload Vertex and index Data:
   {
-    ImDrawVert* vtx_dst;
-    ImDrawIdx*  idx_dst;
+    ImDrawVert* vtx_dst = 0;
+    ImDrawIdx*  idx_dst = 0;
 
     err =
       vkMapMemory (g_Device, g_VertexBufferMemory [g_FrameIndex], 0, vertex_size, 0, (void**)(&vtx_dst));
@@ -443,7 +443,7 @@ ImGui_ImplVulkan_CreateFontsTexture (VkCommandBuffer command_buffer)
   size_t upload_size =
     width * height * 4 * sizeof (uint8_t);
 
-  VkResult err;
+  VkResult err = VK_NOT_READY;
 
   // Create the Image:
   {
@@ -833,7 +833,7 @@ ImGui_ImplVulkan_CreateDeviceObjects (void)
   blend_info.attachmentCount = 1;
   blend_info.pAttachments    = color_attachment;
 
-  VkDynamicState dynamic_states [2] =
+  const VkDynamicState dynamic_states [2] =
     { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
   VkPipelineDynamicStateCreateInfo dynamic_state = { };

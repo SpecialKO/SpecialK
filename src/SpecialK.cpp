@@ -669,14 +669,14 @@ DllMain ( HMODULE hModule,
           return TRUE;
       }
 
+      SK_PreInitLoadLibrary ();
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
-        return FALSE;
+        return TRUE;
 
-      SK_Init_MinHook       ();
-      SK_PreInitLoadLibrary ();
+      SK_Init_MinHook ();
 
 
       DWORD   dwProcessSize = MAX_PATH;

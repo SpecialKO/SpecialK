@@ -159,7 +159,7 @@ namespace SK_ImGui
     const ImFont::Glyph *glyph;
           char           c;
           bool           ret;
-          ImGuiContext&  g         = *GImGui;
+    const ImGuiContext&  g         = *GImGui;
     const ImGuiStyle&    style     = g.Style;
           float          pad       = style.FramePadding.x;
           ImVec4         color;
@@ -284,7 +284,7 @@ SK_ImGui_ControlPanelTitle (void)
 {
   static char szTitle [512] = { '\0' };
 
-  bool steam = (SK::SteamAPI::AppID() != 0x0);
+  const bool steam = (SK::SteamAPI::AppID() != 0x0);
 
   extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
@@ -675,7 +675,7 @@ SK_ImGui_ControlPanel (void)
       SK_Version_GetLocalInfo (nullptr);
 
     char current_ver [128] = { '\0' };
-    snprintf (current_ver, 128, "%ws (%lu)", vinfo.package.c_str (), vinfo.build);
+    snprintf (current_ver, 128, "%ws (%li)", vinfo.package.c_str (), vinfo.build);
 
     char current_branch_str [64] = { '\0' };
     snprintf (current_branch_str, 64, "%ws", vinfo.branch.c_str ());
@@ -763,7 +763,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::Separator ();
       }
 
-      snprintf        (current_ver, 128, "%ws (%lu)", vinfo_latest.package.c_str (), vinfo_latest.build);
+      snprintf        (current_ver, 128, "%ws (%li)", vinfo_latest.package.c_str (), vinfo_latest.build);
       ImGui::MenuItem ("Latest Version###Menu_LatestVersion",   current_ver,    &selected, false);
       ImGui::MenuItem ("Last Checked###Menu_LastUpdateCheck",   SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ()).c_str (), &selected, false);
 
@@ -1485,7 +1485,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::Separator ( );
         ImGui::Columns   (3);
 
-        RECT client,window;
+        RECT window;
         GetClientRect (game_window.hWnd, &client);
         GetWindowRect (game_window.hWnd, &window);
 
@@ -4217,7 +4217,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
   {
     ImGui::GetIO ().WantCaptureKeyboard = false;
 
-    int keys = 256;
+    const int keys = 256;
 
     if (! was_open)
     {

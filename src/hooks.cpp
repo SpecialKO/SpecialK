@@ -108,7 +108,7 @@ SK_CreateFuncHook ( LPCWSTR pwszFuncName,
   {
     if (MH_OK == (status = MH_RemoveHook (pTarget)))
     {
-      dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%s'... software "
+      dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%s'... software "
                     L"is probably going to explode!", pwszFuncName );
 
       return SK_CreateFuncHook (pwszFuncName, pTarget, pDetour, ppOriginal);
@@ -151,7 +151,7 @@ SK_CreateFuncHookEx ( LPCWSTR pwszFuncName,
   {
     if (MH_OK == (status = MH_RemoveHookEx (pTarget, idx)))
     {
-      dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%s'... software "
+      dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%s'... software "
                     L"is probably going to explode!", pwszFuncName );
 
       return SK_CreateFuncHookEx (pwszFuncName, pTarget, pDetour, ppOriginal, idx);
@@ -221,7 +221,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
-        dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%hs'... software "
+        dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
                       L"is probably going to explode!", pszProcName );
 
         return SK_CreateDLLHook (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
@@ -306,7 +306,7 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
-        dll_log.Log ( L"[ Min Hook ] Removing Corrupted Hook for '%hs'... software "
+        dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
                       L"is probably going to explode!", pszProcName );
 
         return SK_CreateDLLHook2 (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);

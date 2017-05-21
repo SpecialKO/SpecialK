@@ -649,6 +649,9 @@
     <None Include="injector64.dll">
       <Filter>Update Server</Filter>
     </None>
+    <None Include="CHANGELOG" />
+    <None Include="README.md" />
+    <None Include="TODO" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

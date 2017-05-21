@@ -1895,10 +1895,10 @@ extern "C" {
 
     if (first_frame)
     {
-      if (sk::NVAPI::app_name == L"Fallout4.exe")
+      if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
         SK_FO4_PresentFirstFrame (This, SyncInterval, flags);
 
-      else if (sk::NVAPI::app_name == L"DarkSoulsIII.exe")
+      else if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
         SK_DS3_PresentFirstFrame (This, SyncInterval, flags);
 
       // TODO: Clean this code up
@@ -2331,8 +2331,10 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     {
       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
                     L"(Requested: %f, Using: %li)",
-                      (float)mode_to_match.RefreshRate.Numerator /
-                      (float)mode_to_match.RefreshRate.Denominator,
+                      mode_to_match.RefreshRate.Denominator != 0 ?
+                        (float)mode_to_match.RefreshRate.Numerator /
+                        (float)mode_to_match.RefreshRate.Denominator :
+                          std::numeric_limits <float>::quiet_NaN (),
                         config.render.framerate.refresh_rate
                   );
 
@@ -2453,11 +2455,7 @@ __declspec (noinline)
       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
     }
 
-    // Fake it
-    //if (bWait)
-      //return S_OK;
-
-    // TODO: Something if FUllscreen
+    // TODO: Something if Fullscreen
     if (config.window.borderless && (! config.window.fullscreen))
     {
       if (! config.window.res.override.isZero ())
@@ -2485,10 +2483,10 @@ __declspec (noinline)
         SK_SetWindowResX (Width);
         SK_SetWindowResY (Height);
       }
-    }
 
-    SK_DXGI_HookPresent (This);
-    MH_ApplyQueued      ();
+      SK_DXGI_HookPresent (This);
+      MH_ApplyQueued      ();
+    }
 
     return ret;
   }
@@ -2511,7 +2509,7 @@ __declspec (noinline)
                         pNewTargetParameters->RefreshRate.Denominator != 0 ?
                           (float)pNewTargetParameters->RefreshRate.Numerator /
                           (float)pNewTargetParameters->RefreshRate.Denominator :
-                            0.0f,
+                            std::numeric_limits <float>::quiet_NaN (),
                         pNewTargetParameters->Format,
                         pNewTargetParameters->Scaling,
                         pNewTargetParameters->ScanlineOrdering );
@@ -2538,8 +2536,10 @@ __declspec (noinline)
       {
         dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
                       L"(Requested: %f, Using: %li)",
-                        (float)new_new_params.RefreshRate.Numerator /
-                        (float)new_new_params.RefreshRate.Denominator,
+                        new_new_params.RefreshRate.Denominator != 0 ?
+                          (float)new_new_params.RefreshRate.Numerator /
+                          (float)new_new_params.RefreshRate.Denominator :
+                            std::numeric_limits <float>::quiet_NaN (),
                           config.render.framerate.refresh_rate
                     );
 
@@ -2624,8 +2624,11 @@ __declspec (noinline)
       }
     }
 
-    SK_DXGI_HookPresent (This);
-    MH_ApplyQueued      ();
+    if (SUCCEEDED (ret))
+    {
+      SK_DXGI_HookPresent (This);
+      MH_ApplyQueued      ();
+    }
 
     return ret;
   }
@@ -2700,10 +2703,10 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
       pDesc->BufferDesc.Width,
       pDesc->BufferDesc.Height,
-      pDesc->BufferDesc.RefreshRate.Denominator > 0 ?
-      (float)pDesc->BufferDesc.RefreshRate.Numerator /
-      (float)pDesc->BufferDesc.RefreshRate.Denominator :
-      (float)pDesc->BufferDesc.RefreshRate.Numerator,
+      pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+        (float)pDesc->BufferDesc.RefreshRate.Numerator /
+        (float)pDesc->BufferDesc.RefreshRate.Denominator :
+          std::numeric_limits <float>::quiet_NaN (),
       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
         L"Unspecified" :
         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
@@ -2754,7 +2757,9 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
 
     else
     {
-      if (config.render.framerate.flip_discard) {
+      // If forcing flip-model, then force multisampling off
+      if (config.render.framerate.flip_discard)
+      {
         bFlipMode = dxgi_caps.present.flip_sequential;
         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
       }
@@ -2768,7 +2773,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
     }
 
-    if ( config.render.framerate.flip_discard &&  dxgi_caps.swapchain.allow_tearing ) {
+    if ( config.render.framerate.flip_discard &&  dxgi_caps.swapchain.allow_tearing )
+    {
       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
       pDesc->Windowed = TRUE;
@@ -2815,8 +2821,10 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     {
       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
                     L"(Requested: %f, Using: %li)",
-                 (float)pDesc->BufferDesc.RefreshRate.Numerator /
-                 (float)pDesc->BufferDesc.RefreshRate.Denominator,
+                 pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+                   (float)pDesc->BufferDesc.RefreshRate.Numerator /
+                   (float)pDesc->BufferDesc.RefreshRate.Denominator :
+                     std::numeric_limits <float>::quiet_NaN (),
                         config.render.framerate.refresh_rate
                   );
 
@@ -3006,7 +3014,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 
 
     HRESULT ret;
-    DXGI_CALL(ret, CreateSwapChain_Original (This, pDevice, &new_desc, ppSwapChain));
+    DXGI_CALL (ret, CreateSwapChain_Original (This, pDevice, &new_desc, ppSwapChain));
 
 
     if ( SUCCEEDED (ret)         &&
@@ -3015,7 +3023,6 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     {
       SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, ppSwapChain);
     }
-
 
     return ret;
   }
@@ -3092,7 +3099,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 
     SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, &new_fullscreen_desc);
 
-    DXGI_CALL(ret, CreateSwapChainForHwnd_Original (This, pDevice, hWnd, &new_desc1, &new_fullscreen_desc, pRestrictToOutput, ppSwapChain));
+    DXGI_CALL (ret, CreateSwapChainForHwnd_Original (This, pDevice, hWnd, &new_desc1, &new_fullscreen_desc, pRestrictToOutput, ppSwapChain));
 
     if ( SUCCEEDED (ret)      &&
          ppSwapChain  != NULL &&
@@ -3129,7 +3136,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
 
 
-    DXGI_CALL(ret, CreateSwapChainForComposition_Original (This, pDevice, &new_desc1, pRestrictToOutput, ppSwapChain));
+    DXGI_CALL (ret, CreateSwapChainForComposition_Original (This, pDevice, &new_desc1, pRestrictToOutput, ppSwapChain));
 
     if ( SUCCEEDED (ret)      &&
          ppSwapChain  != NULL &&
@@ -3460,7 +3467,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
           {
 // This creates problems in 32-bit environments...
 #ifdef _WIN64
-            if (sk::NVAPI::app_name != L"Fallout4.exe") {
+            if (lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+            {
               dll_log.Log (
                 L"   # SLI Detected (Corrected Memory Total: %llu MiB -- "
                 L"Original: %llu MiB)",
@@ -4286,7 +4294,7 @@ HookDXGI (LPVOID user)
 bool
 SK::DXGI::Shutdown (void)
 {
-  if (sk::NVAPI::app_name == L"DarkSoulsIII.exe")
+  if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
   {
     SK_DS3_ShutdownPlugin (L"dxgi");
   }

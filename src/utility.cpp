@@ -1053,8 +1053,8 @@ SK_GetModuleFullName (HMODULE hDll)
 PROCESSENTRY32
 FindProcessByName (const wchar_t* wszName)
 {
-  HANDLE         hProcessSnap;
-  PROCESSENTRY32 pe32 = { 0 };
+  HANDLE         hProcessSnap = nullptr;
+  PROCESSENTRY32 pe32         = { 0 };
 
   hProcessSnap = CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
 
@@ -1154,7 +1154,7 @@ SK_SelfDestruct (void)
 HMODULE
 SK_GetCallingDLL (LPVOID pReturn)
 {
-  HMODULE hCallingMod;
+  HMODULE hCallingMod = 0;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         (LPCWSTR)pReturn,

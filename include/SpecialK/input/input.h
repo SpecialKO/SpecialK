@@ -207,6 +207,59 @@ WINAPI
 SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse = nullptr);
 
 
+typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
+extern SetCursor_pfn SetCursor_Original;
+
+extern
+void
+SK_ImGui_CenterCursorOnWindow (void);
+
+//////////////////////////////////////////////////////////////
+//
+// HIDClass (Usermode)
+//
+//////////////////////////////////////////////////////////////
+#pragma comment (lib, "hid.lib")
+
+#include <Hidsdi.h>
+#include <Windows.h>
+#include <winnt.h>
+#include <hidusage.h>
+#include <Hidpi.h>
+
+
+typedef BOOLEAN (__stdcall *HidD_GetPreparsedData_pfn)(
+  _In_  HANDLE                HidDeviceObject,
+  _Out_ PHIDP_PREPARSED_DATA *PreparsedData
+);
+
+typedef BOOLEAN (__stdcall *HidD_FreePreparsedData_pfn)(
+  _In_ PHIDP_PREPARSED_DATA PreparsedData
+);
+
+typedef NTSTATUS (__stdcall *HidP_GetData_pfn)(
+  _In_    HIDP_REPORT_TYPE     ReportType,
+  _Out_   PHIDP_DATA           DataList,
+  _Inout_ PULONG               DataLength,
+  _In_    PHIDP_PREPARSED_DATA PreparsedData,
+  _In_    PCHAR                Report,
+  _In_    ULONG                ReportLength
+);
+
+typedef BOOLEAN (__stdcall *HidD_GetFeature_pfn)(
+  _In_  HANDLE HidDeviceObject,
+  _Out_ PVOID  ReportBuffer,
+  _In_  ULONG  ReportBufferLength
+);
+
+extern HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original ;
+extern HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original;
+extern HidD_GetFeature_pfn        HidD_GetFeature_Original       ;
+extern HidP_GetData_pfn           HidP_GetData_Original          ;
+extern SetCursor_pfn              SetCursor_Original             ;
+
+
+
 // Temporarily override game's preferences for input device window message generation
 bool
 SK_RawInput_EnableLegacyMouse (bool enable);

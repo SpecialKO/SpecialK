@@ -120,8 +120,8 @@ std::queue <DWORD> __SK_Init_Suspended_tids;
 void
 SK_PathRemoveExtension (wchar_t* wszInOut)
 {
-  wchar_t *wszEnd = wszInOut,
-          *wszPrev;
+  wchar_t *wszEnd  = wszInOut,
+          *wszPrev = nullptr;
 
   while (*CharNextW (wszEnd) != L'\0')
     wszEnd = CharNextW (wszEnd);
@@ -662,7 +662,7 @@ skMemCmd::execute (const char* szArgs)
 
   addr += (uintptr_t)base_addr;
 
-  char result [512];
+  char result [512] = { '0' };
 
   switch (type) {
     case 'b':

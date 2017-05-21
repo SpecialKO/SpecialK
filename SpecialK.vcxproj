@@ -234,6 +234,8 @@
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <EnableCppCoreCheck>true</EnableCppCoreCheck>
+    <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -2071,6 +2073,7 @@ Exit 0</Command>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="CHANGELOG" />
     <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">true</ExcludedFromBuild>
@@ -2242,8 +2245,10 @@ Exit 0</Command>
     <None Include="injector64.dll" />
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
+    <None Include="README.md" />
     <None Include="resource\cursors\ovr_horz.cur" />
     <None Include="resource\cursors\ovr_ptr.cur" />
+    <None Include="TODO" />
     <None Include="version.ini" />
     <None Include="SpecialK.def" />
   </ItemGroup>

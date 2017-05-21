@@ -241,19 +241,22 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
                           szSymbol );
   }
 
-  if (config.compatibility.rehook_loadlibrary)
+  if (hCallingMod != SK_GetDLL ())
   {
-    // This is silly, this many string comparions per-load is
-    //   not good. Hash the string and compare it in the future.
-    if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-         StrStrIW (wszModName, L"Activation")          ||
-         StrStrIW (wszModName, L"ReShade")             ||
-         StrStrIW (wszModName, L"rxcore")              ||
-         StrStrIW (wszModName, L"RTSSHooks")           ||
-         StrStrIW (wszModName, L"GeDoSaTo")            ||
-         StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
-    {   
-      SK_ReHookLoadLibrary ();
+    if (config.compatibility.rehook_loadlibrary)
+    {
+      // This is silly, this many string comparions per-load is
+      //   not good. Hash the string and compare it in the future.
+      if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+           StrStrIW (wszModName, L"Activation")          ||
+           StrStrIW (wszModName, L"ReShade")             ||
+           StrStrIW (wszModName, L"rxcore")              ||
+           StrStrIW (wszModName, L"RTSSHooks")           ||
+           StrStrIW (wszModName, L"GeDoSaTo")            ||
+           StrStrIW (wszModName, L"Nahimic2DevProps") )
+      {   
+        SK_ReHookLoadLibrary ();
+      }
     }
   }
 
@@ -362,7 +365,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
       else
         LoadLibraryW (wszSteamPath);
 
-      HMODULE hModClient;
+      HMODULE hModClient = 0;
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                           GET_MODULE_HANDLE_EX_FLAG_PIN,
                             wszSteamPath,
@@ -387,19 +390,21 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
                           szSymbol );
   }
 
-  if (config.compatibility.rehook_loadlibrary)
+  if (hCallingMod != SK_GetDLL ())
   {
-    // This is silly, this many string comparions per-load is
-    if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-         StrStrIW (wszModName, L"Activation")          ||
-         StrStrIW (wszModName, L"ReShade")             ||
-         StrStrIW (wszModName, L"rxcore")              ||
-    //   not good. Hash the string and compare it in the future.
-         StrStrIW (wszModName, L"RTSSHooks")           ||
-         StrStrIW (wszModName, L"GeDoSaTo")            ||
-         StrStrIW (wszModName, L"Nahimic2DevProps.dll") )
+    if (config.compatibility.rehook_loadlibrary)
     {
-      SK_ReHookLoadLibrary ();
+      // This is silly, this many string comparions per-load is
+      if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+           StrStrIW (wszModName, L"Activation")          ||
+           StrStrIW (wszModName, L"ReShade")             ||
+           StrStrIW (wszModName, L"rxcore")              ||
+           StrStrIW (wszModName, L"RTSSHooks")           ||
+           StrStrIW (wszModName, L"GeDoSaTo")            ||
+           StrStrIW (wszModName, L"Nahimic2DevProps") )
+      {
+        SK_ReHookLoadLibrary ();
+      }
     }
   }
 
@@ -467,14 +472,14 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     //   cause TLS-related problems if left unchecked... just leave
     //     the damn thing loaded permanently!
     if (StrStrIW (lpFileName, L"d3dcompiler_")) {
-      HMODULE hModDontCare;
+      HMODULE hModDontCare = 0;
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
                              lpFileName,
                                &hModDontCare );
     }
 
     if (StrStrIW (lpFileName, L"OpenCL")) {
-      HMODULE hModDontCare;
+      HMODULE hModDontCare = 0;
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN,
                              lpFileName,
                                &hModDontCare );
@@ -745,10 +750,6 @@ void
 __stdcall
 SK_ReHookLoadLibrary (void)
 {
-  // App Compat Section
-  if (wcsstr (SK_GetHostApp (), L"witcher3.exe"))
-    return;
-
   if (! config.system.trace_load_library)
     return;
 
@@ -836,7 +837,7 @@ SK_UnhookLoadLibrary (void)
   if (_loader_hooks.LoadLibraryA_target != nullptr)
     MH_QueueDisableHook (_loader_hooks.LoadLibraryA_target);
   if (_loader_hooks.LoadLibraryW_target != nullptr)
-    MH_QueueDisableHook(_loader_hooks.LoadLibraryA_target);
+    MH_QueueDisableHook(_loader_hooks.LoadLibraryW_target);
   if (_loader_hooks.LoadLibraryExA_target != nullptr)
     MH_QueueDisableHook (_loader_hooks.LoadLibraryExA_target);
   if (_loader_hooks.LoadLibraryExW_target != nullptr)
@@ -858,9 +859,9 @@ SK_UnhookLoadLibrary (void)
     MH_RemoveHook (_loader_hooks.FreeLibrary_target);
 
   _loader_hooks.LoadLibraryW_target   = nullptr;
-  _loader_hooks.LoadLibraryExA_target = nullptr;
   _loader_hooks.LoadLibraryA_target   = nullptr;
   _loader_hooks.LoadLibraryExW_target = nullptr;
+  _loader_hooks.LoadLibraryExA_target = nullptr;
   _loader_hooks.FreeLibrary_target    = nullptr;
 
   // Re-establish the non-hooked functions

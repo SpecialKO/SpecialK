@@ -104,8 +104,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
     return;
 
   // Copy and convert all vertices into a single contiguous buffer
-  CUSTOMVERTEX* vtx_dst;
-  ImDrawIdx*    idx_dst;
+  CUSTOMVERTEX* vtx_dst = 0;
+  ImDrawIdx*    idx_dst = 0;
 
   if ( g_pVB->Lock ( 0,
                        (UINT)(draw_data->TotalVtxCount * sizeof CUSTOMVERTEX),

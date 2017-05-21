@@ -348,8 +348,8 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       else if (var->getType () == SK_IVariable::Int)
       {
         if (command_args_len > 0) {
-          int original_val = ((SK_IVarStub <int>*) var)->getValue ();
-          int int_val = 0;
+          const int original_val = ((SK_IVarStub <int>*) var)->getValue ();
+                     int int_val = 0;
 
           /* Increment */
           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
@@ -368,8 +368,8 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       else if (var->getType () == SK_IVariable::Short)
       {
         if (command_args_len > 0) {
-          short original_val = ((SK_IVarStub <short>*) var)->getValue ();
-          short short_val    = 0;
+          const short original_val = ((SK_IVarStub <short>*) var)->getValue ();
+                   short short_val = 0;
 
           /* Increment */
           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&

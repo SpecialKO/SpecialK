@@ -3414,8 +3414,13 @@ SK_SteamImported (void)
 {
   static int tries = 0;
 
-  return steam_imported || GetModuleHandle (L"steam_api64.dll") ||
-                           GetModuleHandle (L"steam_api.dll")   ||
+#ifdef _WIN64
+  const wchar_t* steam_dll_str = L"steam_api64.dll";
+#else
+  const wchar_t* steam_dll_str = L"steam_api.dll";
+#endif
+
+  return steam_imported || GetModuleHandle (steam_dll_str)      ||
                            GetModuleHandle (L"CSteamworks.dll") ||
                            GetModuleHandle (L"SteamNative.dll");
 }
@@ -3423,12 +3428,22 @@ SK_SteamImported (void)
 void
 SK_TestSteamImports (HMODULE hMod)
 {
-  sk_import_test_s steam_api [] = { { "steam_api.dll",   false },
+#ifdef _WIN64
+  static const wchar_t* steam_dll_str = L"steam_api64.dll";
+#else
+  static const wchar_t* steam_dll_str = L"steam_api.dll";
+#endif
+
+  sk_import_test_s steam_api [] = { 
+#ifdef _WIN64
                                     { "steam_api64.dll", false } };
+#else
+                                    { "steam_api.dll",   false } };
+#endif
 
   SK_TestImports (hMod, steam_api, sizeof (steam_api) / sizeof sk_import_test_s);
 
-  if (steam_api [0].used | steam_api [1].used)
+  if (steam_api->used)
   {
     SK_HookSteamAPI ();
     steam_imported = true;
@@ -3444,8 +3459,7 @@ SK_TestSteamImports (HMODULE hMod)
 
     else if (! SK_IsInjected ())
     {
-      if ( LoadLibraryW_Original (L"steam_api.dll")   ||
-           LoadLibraryW_Original (L"steam_api64.dll") ||
+      if ( LoadLibraryW_Original (steam_dll_str) ||
            GetModuleHandle       (L"SteamNative.dll") )
       {
          SK_HookSteamAPI ();
@@ -3454,8 +3468,7 @@ SK_TestSteamImports (HMODULE hMod)
     }
   }
 
-  if ( LoadLibraryW_Original (L"steam_api.dll")   ||
-       LoadLibraryW_Original (L"steam_api64.dll") ||
+  if ( LoadLibraryW_Original (steam_dll_str) ||
        GetModuleHandle       (L"SteamNative.dll") )
   {
      SK_HookSteamAPI ();

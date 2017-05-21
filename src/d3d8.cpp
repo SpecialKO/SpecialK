@@ -163,7 +163,7 @@ d3d8_init_callback (finish_pfn finish)
 bool
 SK::D3D8::Startup (void)
 {
-  bool ret = SK_StartupCore (L"d3d8", d3d8_init_callback);
+  const bool ret = SK_StartupCore (L"d3d8", d3d8_init_callback);
 
   return ret;
 }
@@ -185,7 +185,7 @@ HookD3D8 (LPVOID user)
     return 0;
   }
 
-  bool success = SUCCEEDED (
+  const bool success = SUCCEEDED (
     CoInitializeEx (nullptr, COINIT_MULTITHREADED)
   );
 

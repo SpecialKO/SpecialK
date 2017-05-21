@@ -463,7 +463,7 @@ D3D9SetTexture_Detour (
                      //Sampler, pTexture );
   //}
 
-  void* dontcare;
+  void* dontcare = nullptr;
   if ( pTexture != nullptr &&
        pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK )
   {
@@ -1550,7 +1550,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   }
 
   // Performance statistics for caching system
-  LARGE_INTEGER start, end;
+  LARGE_INTEGER start = { 0 }, end = { 0 };
 
   static LARGE_INTEGER freq = { 0LL };
 
@@ -1881,9 +1881,10 @@ sk::d3d9::TextureManager::getTexture (uint32_t checksum)
         textures.erase     ((*rem)->tex_crc32);
       }
 
-      delete *rem;
-
+      auto rem_p = rem;
       ++rem;
+
+      delete (*rem_p);
     }
 
     remove_textures.clear ();

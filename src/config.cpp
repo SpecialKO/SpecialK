@@ -1897,7 +1897,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     EverQuest,            // eqgame.exe
     GodEater2RageBurst,   // GE2RB.exe
     WatchDogs2,           // WatchDogs2.exe
-    NieRAutomata          // NieRAutomata.exe
+    NieRAutomata,         // NieRAutomata.exe
+    Warframe_x64          // Warframe.x64.exe
   };
 
   std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -1917,6 +1918,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"GE2RB.exe",                    SK_GAME_ID::GodEater2RageBurst   );
   games.emplace ( L"WatchDogs2.exe",               SK_GAME_ID::WatchDogs2           );
   games.emplace ( L"NieRAutomata.exe",             SK_GAME_ID::NieRAutomata         );
+  games.emplace ( L"Warframe.x64.exe",             SK_GAME_ID::Warframe_x64         );
 
   //
   // Application Compatibility Overrides
@@ -2107,8 +2109,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       case SK_GAME_ID::NieRAutomata:
         // Maximize compatibility with 3rd party injectors that corrupt hooks
-        ///config.render.dxgi.slow_state_cache = false;
-        ///SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
+        //config.render.dxgi.slow_state_cache    = false;
+        //SK_DXGI_SlowStateCache                 = config.render.dxgi.slow_state_cache;
+        config.render.dxgi.scaling_mode        = DXGI_MODE_SCALING_UNSPECIFIED;
+        config.input.mouse.add_relative_motion = false;
+        break;
+
+      case SK_GAME_ID::Warframe_x64:
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+        config.apis.dxgi.d3d11.hook = true;
         break;
     }
   }

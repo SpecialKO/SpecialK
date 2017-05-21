@@ -114,8 +114,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
   }
 
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (768.0f, 256.0f), ImVec2 ( 0.666f * io.DisplaySize.x,
-                                                                         0.666f * io.DisplaySize.y ) );
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (780.0f, 325.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
+                                                                         0.925f * io.DisplaySize.y ) );
 
   std::wstring plugin = SK_GetPluginName ();
 
@@ -136,6 +136,18 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
   {
+    if (io.DisplaySize.x < 1024.0f || io.DisplaySize.y < 768.0f) {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.6f, 0.2f, 1.0f));
+      ImGui::Bullet   ();
+      ImGui::SameLine ();
+      ImGui::TextWrapped (
+           "This software only runs at resolutions >= 1024x768, please uninstall the software or use a higher resolution than (%lux%lu).",
+             (int)io.DisplaySize.x, (int)io.DisplaySize.y
+      );
+      ImGui::PopStyleColor ();
+      goto END_POPUP;
+    }
+
     bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
                     SK_Steam_PiratesAhoy () != 0x0 );
 
@@ -155,7 +167,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     ImGui::EndGroup  ();
 
 
-    ImGui::BeginChild ("EULA_Body",  ImVec2 (0.0f, font_size_multiline * 12), false);
+    ImGui::BeginChild ("EULA_Body",  ImVec2 (0.0f, font_size_multiline * 14), false);
     ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, 0.0f),                     false, ImGuiWindowFlags_NavFlattened);
     ImGui::BeginGroup ();
 
@@ -313,7 +325,25 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       SK_SaveConfig (config_name);
     }
 
+    if (pirate && ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip ();
+
+      ImGui::TextColored (ImColor (255,255,255), "Read the Yellow Text");
+      ImGui::Separator   ();
+      ImGui::BulletText  ("Please use the other button, you already broke the terms.");
+      ImGui::BulletText  ("You may be able to find a modified version with these terms removed");
+      ImGui::TreePush    ("");
+      ImGui::TextWrapped ("The authors listed above are not responsible for said modified version and will not "
+                          "provide you support no matter how much you make life difficult for them.");
+      ImGui::TreePop     ();
+
+      ImGui::EndTooltip  ();
+    }
+
     ImGui::EndGroup ();
+
+END_POPUP:
     ImGui::EndPopup ();
   }
 }

@@ -101,10 +101,9 @@ CrashHandler::Init (void)
                      SetUnhandledExceptionFilter_Detour,
           (LPVOID *)&SetUnhandledExceptionFilter_Original );
 
-  SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
-                  SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
-                  SYMOPT_DEFERRED_LOADS );
-
+  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
+                  SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
+                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS         | SYMOPT_DEBUG );
 
   SymInitialize (
     GetCurrentProcess (),
@@ -336,7 +335,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       break;
   }
 
-  HMODULE hModSource;
+  HMODULE hModSource = nullptr;
   char    szModName [MAX_PATH] = { '\0' };
   HANDLE  hProc                = GetCurrentProcess ();
 
@@ -521,7 +520,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                        (DWORD64)ip,
                          &Displacement,
                            &sip.si ) ) {
-    DWORD Disp;
+    DWORD Disp = 0x00UL;
 #ifdef _WIN64
     IMAGEHLP_LINE64 ihl64;
     ihl64.SizeOfStruct = sizeof IMAGEHLP_LINE64;
@@ -539,7 +538,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     IMAGEHLP_LINE ihl;
     ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 
-    BOOL  bFileAndLine =
+    const BOOL bFileAndLine =
       SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
 
     if (bFileAndLine) {
@@ -595,9 +594,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   // On second chance it's pretty clear that no exception handler exists,
   //   terminate the software.
-  bool repeated = (! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)) &&
-                  (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
-  bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
+  const bool repeated = (! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)) &&
+                        (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
+  const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
   if ((repeated || non_continue)) {
     SK_AutoClose_Log (crash_log);
@@ -745,9 +744,9 @@ SK_BypassSteamCrashHandler (void)
   if (! config.steam.silent)
   {
 #ifdef _WIN64
-    const wchar_t* wszSteamDLL = L"steam_api64.dll";
+    const wchar_t* wszSteamDLL = { L"steam_api64.dll" };
 #else
-    const wchar_t* wszSteamDLL = L"steam_api.dll";
+    const wchar_t* wszSteamDLL = { L"steam_api.dll" };
 #endif
 
     HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);

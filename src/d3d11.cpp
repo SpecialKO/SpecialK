@@ -359,7 +359,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
         if ( pAdapter == nullptr )
           return;
 
-        int iver =
+        const int iver =
           SK_GetDXGIAdapterInterfaceVer ( pAdapter );
 
         // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)

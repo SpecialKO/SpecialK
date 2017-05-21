@@ -96,8 +96,8 @@ CBTProc ( _In_ int    nCode,
                                        32, 32, 0,
                                          nullptr, nullptr, 0x00 );
 
-               MSG  msg;
-               BOOL bRet;
+               MSG  msg  = { };
+               BOOL bRet = TRUE;
 
                while (true)
                {

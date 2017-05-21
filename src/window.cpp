@@ -34,6 +34,7 @@
 
 #include <string>
 #include <algorithm>
+#include <numeric>
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/log.h>
@@ -788,8 +789,8 @@ SK_CalcCursorPos (LPPOINT lpPoint)
     return;
 
   struct {
-    float width,
-          height;
+    float width  = 64.0f,
+          height = 64.0f;
   } in, out;
 
   lpPoint->x -= ( (LONG)game_window.actual.window.left );
@@ -822,8 +823,8 @@ SK_ReverseCursorPos (LPPOINT lpPoint)
     return;
 
   struct {
-    float width,
-          height;
+    float width  = 64.0f,
+          height = 64.0f;
   } in, out;
 
   lpPoint->x -= ( (LONG)game_window.coord_remap.offset.x +
@@ -912,7 +913,8 @@ ClipCursor_Detour (const RECT *lpRect)
   if ( lpRect != nullptr &&
        game_window.needsCoordTransform () )
   {
-    POINT top_left, bottom_right;
+    POINT top_left     = { std::numeric_limits <LONG>::max (), std::numeric_limits <LONG>::max () };
+    POINT bottom_right = { std::numeric_limits <LONG>::min (), std::numeric_limits <LONG>::min () };
 
     top_left.y = game_window.actual.window.top;
     top_left.x = game_window.actual.window.left;
@@ -1191,7 +1193,7 @@ AdjustWindowRectEx_Detour (
     _In_    DWORD  dwExStyle )
 {
   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
-              L"{%4li,%4li / %4li,%4li}, 0x%04X, %lu, 0x%04X ) - %s",
+              L"{%4li,%4li / %4li,%4li}, 0x%04X, %li, 0x%04X ) - %s",
                 lpRect->left, lpRect->top,
                   lpRect->right, lpRect->bottom,
                     dwStyle, bMenu,
@@ -2992,12 +2994,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  LRESULT
-  WINAPI
-  ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
-                                    WPARAM wParam,
-                                    LPARAM lParam );
-
   if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
     return game_window.DefProc (uMsg, wParam, lParam);
 
@@ -3258,8 +3254,8 @@ SK_InstallWindowHook (HWND hWnd)
   bool has_raw_mouse = false;
   UINT count         = 0;
 
-  GetRegisteredRawInputDevices (nullptr, &count, sizeof RAWINPUTDEVICE);
-  GetLastError                 ();
+                 GetRegisteredRawInputDevices (nullptr, &count, sizeof RAWINPUTDEVICE);
+  DWORD dwLast = GetLastError                 ();
 
   if (count > 0)
   {
