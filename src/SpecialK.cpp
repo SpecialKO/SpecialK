@@ -421,6 +421,7 @@ SK_EstablishDllRole (HMODULE hModule)
   blacklist.emplace (L"explorer.exe");
   blacklist.emplace (L"browser_broker.exe");
   blacklist.emplace (L"dwm.exe");
+  blacklist.emplace (L"LaunchTM.exe");
 
   // Misc. Tools
   blacklist.emplace (L"SleepOnLan.exe");
@@ -727,7 +728,7 @@ DllMain ( HMODULE hModule,
         ret = SK_Attach (SK_GetDLLRole ());
       }
 
-      return ret;
+      return TRUE;
     } break;
 
 
@@ -754,7 +755,6 @@ DllMain ( HMODULE hModule,
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
           SK_Detach (SK_GetDLLRole ());
-          TlsFree   (__SK_TLS_INDEX);
         }
       }
 
@@ -762,6 +762,8 @@ DllMain ( HMODULE hModule,
         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
       //}
+
+      TlsFree   (__SK_TLS_INDEX);
 
       return TRUE;
     } break;

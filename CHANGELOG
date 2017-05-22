@@ -1,3 +1,9 @@
++ Added 1.5 second delay unload for blacklisted applications to prevent performance
+    problems when the CBT hook inevitbly tries to re-inject the DLL.
++ Removed legacy command console code (low-level keyboard hook, message pump)
++ Removed FreeLibrary hook, memory leaks in other software were being caught
+    while debugging... it was obnoxious ;)
++ Fixed SteamAPI_Init being called instead of SteamAPI_Init_Detour
 + Fixed DirectDraw issues in Disgaea2 (presumably for video playback)
 + Fixed LoadLibraryW unhook during shutdown (had been unhooking LoadLibraryA)
 + Disabled relative mouse move in NieR: Automata - it always sends legacy input

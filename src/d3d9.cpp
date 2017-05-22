@@ -499,24 +499,25 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     D3DPRESENT_PARAMETERS pp;
 
-    if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp))) {
+    if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp)) && pp.hDeviceWindow != 0)
+    {
       extern HWND hWndRender;
       if (pp.hDeviceWindow != hWndRender)
         hWndRender = pp.hDeviceWindow;
+    }
 
-      if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0) {
-        D3DVIEWPORT9 vp_new;
+    if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0) {
+      D3DVIEWPORT9 vp_new;
 
-        vp_new.X      = 0;
-        vp_new.Y      = 0;
-        vp_new.Width  = pp.BackBufferWidth;
-        vp_new.Height = pp.BackBufferHeight;
+      vp_new.X      = 0;
+      vp_new.Y      = 0;
+      vp_new.Width  = pp.BackBufferWidth;
+      vp_new.Height = pp.BackBufferHeight;
 
-        vp_new.MinZ =  0.0f;
-        vp_new.MaxZ =  1.0f;
+      vp_new.MinZ =  0.0f;
+      vp_new.MaxZ =  1.0f;
 
-        pDev->SetViewport (&vp_new);
-      }
+      pDev->SetViewport (&vp_new);
     }
 
     cegD3D9->beginRendering ();
@@ -2477,7 +2478,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
 
       if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-        hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : GetFocus ();
+        hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : hWndRender;
       }
 
       if (config.render.d3d9.force_fullscreen)

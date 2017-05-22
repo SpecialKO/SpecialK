@@ -2907,6 +2907,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       pFullscreenDesc->ScanlineOrdering        = pDesc->BufferDesc.ScanlineOrdering;
     }
   }
+
+  game_window.hWnd = pDesc->OutputWindow;
 }
 
 void

@@ -2272,68 +2272,67 @@ SteamAPI_RunCallbacks_Detour (void)
            SK_SteamAPI_InitManagers ();
     }
 
-      CreateThread ( nullptr, 0,
-      [](LPVOID user) ->
-        DWORD
-          {
-            strcpy ( steam_ctx.var_strings.popup_origin,
-                       SK_Steam_PopupOriginToStr (
-                         config.steam.achievements.popup.origin
-                       )
-                   );
+    static volatile HANDLE hThread = 0;
 
-            strcpy ( steam_ctx.var_strings.notify_corner,
-                       SK_Steam_PopupOriginToStr (
-                         config.steam.notify_corner
-                       )
-                   );
-
-            Sleep (1500UL);
-
-            SK_Steam_SetNotifyCorner ();
-
-            if (! steam_ctx.UserStats ())
+    if (InterlockedCompareExchangePointer (&hThread, 0, 0) == 0)
+    {
+      InterlockedExchangePointer (&hThread,
+        CreateThread ( nullptr, 0,
+        [](LPVOID user) ->
+          DWORD
             {
-              if (SteamAPI_InitSafe_Original != nullptr)
-                SteamAPI_InitSafe_Detour ();
+              strcpy ( steam_ctx.var_strings.popup_origin,
+                         SK_Steam_PopupOriginToStr (
+                           config.steam.achievements.popup.origin
+                         )
+                     );
+
+              strcpy ( steam_ctx.var_strings.notify_corner,
+                         SK_Steam_PopupOriginToStr (
+                           config.steam.notify_corner
+                         )
+                     );
 
               if (! steam_ctx.UserStats ())
               {
-                CloseHandle (GetCurrentThread ());
-                return -1;
+                if (SteamAPI_InitSafe_Original != nullptr)
+                  SteamAPI_InitSafe_Detour ();
+
+                if (! steam_ctx.UserStats ())
+                {
+                  InterlockedExchangePointer ((volatile HANDLE *)user, nullptr);
+                  CloseHandle (GetCurrentThread ());
+                  return -1;
+                }
               }
-            }
 
-            __try
-            {
-              SteamAPI_RunCallbacks_Original ();
-            }
+              __try
+              {
+                SK_Steam_SetNotifyCorner ();
 
-            __except (EXCEPTION_EXECUTE_HANDLER)
-            {
-              steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-            }
+                SteamAPI_RunCallbacks_Original ();
 
-            SteamAPICall_t call =
-              steam_ctx.UserStats ()->RequestGlobalAchievementPercentages ();
+                SteamAPICall_t call =
+                  steam_ctx.UserStats ()->RequestGlobalAchievementPercentages ();
 
-            __try
-            {
-              SteamAPI_RunCallbacks_Original ();
-            }
+                SteamAPI_RunCallbacks_Original ();
+              }
 
-            __except (EXCEPTION_EXECUTE_HANDLER)
-            {
-              steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-            }
+              __except (EXCEPTION_EXECUTE_HANDLER)
+              {
+                steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+              }
 
-            CloseHandle (GetCurrentThread ());
+              InterlockedExchangePointer ((volatile HANDLE *)user, nullptr);
 
-            return 0;
-          }, nullptr,
-        0x00,
-      nullptr
-    );
+              CloseHandle (GetCurrentThread ());
+
+              return 0;
+            }, (LPVOID)&hThread,
+          0x00,
+        nullptr)
+      );
+    }
   }
   InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
 
@@ -2904,31 +2903,17 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
-#if 1
   EnterCriticalSection         (&init_cs);
   SK_Steam_KillPump            ();
   LeaveCriticalSection         (&init_cs);
 
   steam_ctx.Shutdown           ();
-  return;
-#endif
 
-#if 0
-  CreateThread ( nullptr, 0,
-       [](LPVOID user) ->
-  DWORD {
-    Sleep (20000UL);
-
-    while (SteamAPI_InitSafe_Original == nullptr)
-      Sleep (10000UL);
-
-    if (SteamAPI_InitSafe ())
-      StartSteamPump (true);
-
-    CloseHandle (GetCurrentThread ());
-    return 0;
-  }, nullptr, 0x00, nullptr );
-#endif
+  // Start back up again :)
+  //
+  //  >> Stupid hack for The Witcher 3
+  //
+  SteamAPI_RunCallbacks_Detour ();
 }
 
 bool

@@ -372,8 +372,6 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   }
 }
 
-extern volatile DWORD SK_D3D11_init_tid;
-
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -422,7 +420,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   else
   {
-    if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () && SK_GetCallingDLL () != SK_GetDLL ())
+    if (SK_GetCallingDLL () != SK_GetDLL ())
       WaitForInitDXGI ();
   }
 
@@ -2243,9 +2241,7 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
-  // Exclude stuff that hooks D3D11 device creation and wants to recurse (i.e. NVIDIA Ansel)
-  if (InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
-    WaitForInitDXGI ();
+  WaitForInitDXGI ();
 
   if (InterlockedExchangeAdd (&SK_D3D11_tex_init, 0) == FALSE)
     SK_D3D11_InitTextures ();
