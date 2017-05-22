@@ -2294,7 +2294,8 @@ SteamAPI_RunCallbacks_Detour (void)
 
             if (! steam_ctx.UserStats ())
             {
-              SteamAPI_InitSafe ();
+              if (SteamAPI_InitSafe_Original != nullptr)
+                SteamAPI_InitSafe_Detour ();
 
               if (! steam_ctx.UserStats ())
               {

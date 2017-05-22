@@ -206,4 +206,7 @@ namespace SK
   };
 };
 
+typedef void (WINAPI *Sleep_pfn)                       (DWORD dwMilliseconds);
+typedef BOOL (WINAPI *QueryPerformanceCounter_t)(_Out_ LARGE_INTEGER *lpPerformanceCount);
+
 #endif /* __SK__FRAMERATE_H__ */

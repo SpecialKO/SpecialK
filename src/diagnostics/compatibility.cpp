@@ -23,6 +23,7 @@
 
 #include <Windows.h>
 #include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/crash_handler.h>
 #include <process.h>
 
 #include <psapi.h>
@@ -45,17 +46,12 @@
 #include <SpecialK/window.h>
 #include <SpecialK/render_backend.h>
 
-
-extern
-ULONG
-SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen);
-
 extern DWORD __stdcall SK_RaptrWarn (LPVOID user);
 
 BOOL __stdcall SK_TerminateParentProcess    (UINT uExitCode);
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
-void           SK_UnhookLoadLibrary         (void);
+void __stdcall SK_UnhookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = false;
 
@@ -501,12 +497,12 @@ FreeLibrary_Detour (HMODULE hLibModule)
 
   SK_LockDllLoader ();
 
-  std::wstring name = SK_GetModuleName     (hLibModule);
+  std::wstring name = SK_GetModuleName (hLibModule);
 
   if (name == L"NvCamera64.dll")
     return FALSE;
 
-  BOOL         bRet = FreeLibrary_Original (hLibModule);
+  BOOL bRet = FreeLibrary_Original (hLibModule);
 
   if ( (! (SK_LoadLibrary_SILENCE)) ||
            SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos )
@@ -815,12 +811,18 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.FreeLibrary_target = nullptr;
   }
 
+
+  // Steamclient64.dll leaks heap memory when unloaded,
+  //   to prevent this from showing up during debug sessions,
+  //     don't hook this function :)
+#if 0
   SK_CreateDLLHook2 ( L"kernel32.dll", "FreeLibrary",
                      FreeLibrary_Detour,
            (LPVOID*)&FreeLibrary_Original,
                     &_loader_hooks.FreeLibrary_target );
 
   MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
+#endif
 
   MH_ApplyQueued ();
 
@@ -828,6 +830,7 @@ SK_ReHookLoadLibrary (void)
 }
 
 void
+__stdcall
 SK_UnhookLoadLibrary (void)
 {
   SK_LockDllLoader ();
@@ -879,10 +882,6 @@ SK_InitCompatBlacklist (void)
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
   SK_ReHookLoadLibrary ();
 }
-
-extern std::wstring
-__stdcall
-SK_GetDLLVersionStr (const wchar_t* wszName);
 
 
 static bool loaded_gl     = false;

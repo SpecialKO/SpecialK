@@ -66,6 +66,9 @@ LPVOID         SK_GetProcAddress       (const wchar_t* wszModule, const char* sz
 
 HMODULE __stdcall
                SK_GetDLL               (void);
+std::wstring
+        __stdcall
+               SK_GetDLLVersionStr     (const wchar_t* wszName);
 
 #include <queue>
 

@@ -128,6 +128,7 @@
     <TargetName>DirectXTex</TargetName>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
+    <IncludePath>C:\Users\andon\Source\Repos\SpecialK\depends\include\DirectXTex\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">
     <OutDir>Bin\Desktop_2015\$(Platform)\$(Configuration)\</OutDir>
@@ -142,6 +143,7 @@
     <TargetName>DirectXTex</TargetName>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
+    <IncludePath>C:\Users\andon\Source\Repos\SpecialK\depends\include\DirectXTex;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|X64'">
     <OutDir>Bin\Desktop_2015\$(Platform)\$(Configuration)\</OutDir>

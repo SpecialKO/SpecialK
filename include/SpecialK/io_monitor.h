@@ -24,6 +24,8 @@
 
 #include <Windows.h>
 
+void SK_ShutdownWMI (void);
+
 struct thread_events
 {
   struct telemetry

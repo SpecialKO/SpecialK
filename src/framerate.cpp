@@ -33,10 +33,14 @@
 #include <d3d9.h>
 #include <d3d11.h>
 #include <atlbase.h>
+
 extern IDirect3DDevice9 *g_pD3D9Dev;
 extern IDXGISwapChain   *g_pDXGISwap;
 
-typedef BOOL (WINAPI *QueryPerformanceCounter_t)(_Out_ LARGE_INTEGER *lpPerformanceCount);
+LPVOID pfnQueryPerformanceCounter = nullptr;
+LPVOID pfnSleep                   = nullptr;
+
+Sleep_pfn                 Sleep_Original                   = nullptr;
 QueryPerformanceCounter_t QueryPerformanceCounter_Original = nullptr;
 
 auto SK_CurrentPerf = []()->
@@ -64,12 +68,6 @@ SK_QueryPerf (void)
 }
 
 LARGE_INTEGER SK::Framerate::Stats::freq;
-
-LPVOID pfnQueryPerformanceCounter       = nullptr;
-LPVOID pfnSleep                         = nullptr;
-
-typedef void (WINAPI *Sleep_pfn)(DWORD dwMilliseconds);
-Sleep_pfn Sleep_Original = nullptr;
 
 void
 WINAPI

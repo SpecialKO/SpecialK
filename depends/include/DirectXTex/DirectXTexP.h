@@ -32,6 +32,17 @@
 #endif
 
 #include <windows.h>
+
+#if defined(_XBOX_ONE) && defined(_TITLE)
+#include <d3d12_x.h>
+#include <d3d11_x.h>
+#elif (_WIN32_WINNT >= _WIN32_WINNT_WIN10)
+#include <d3d12.h>
+#include <d3d11_4.h>
+#else
+#include <d3d11_1.h>
+#endif
+
 #include <directxmath.h>
 #include <directxpackedvector.h>
 #include <assert.h>
@@ -163,6 +174,7 @@ namespace DirectX
         CONVF_PACKED    = 0x400,
         CONVF_BC        = 0x800,
         CONVF_YUV       = 0x1000,
+        CONVF_POS_ONLY  = 0x2000,
         CONVF_R         = 0x10000,
         CONVF_G         = 0x20000,
         CONVF_B         = 0x40000,
@@ -175,40 +187,40 @@ namespace DirectX
 
     void __cdecl _CopyScanline( _When_(pDestination == pSource, _Inout_updates_bytes_(outSize))
                                 _When_(pDestination != pSource, _Out_writes_bytes_(outSize))
-                                LPVOID pDestination, _In_ size_t outSize, 
-                                _In_reads_bytes_(inSize) LPCVOID pSource, _In_ size_t inSize,
+                                    void* pDestination, _In_ size_t outSize,
+                                _In_reads_bytes_(inSize) const void* pSource, _In_ size_t inSize,
                                 _In_ DXGI_FORMAT format, _In_ DWORD flags );
 
     void __cdecl _SwizzleScanline( _When_(pDestination == pSource, _In_)
                                    _When_(pDestination != pSource, _Out_writes_bytes_(outSize))
-                                   LPVOID pDestination, _In_ size_t outSize, 
-                                   _In_reads_bytes_(inSize) LPCVOID pSource, _In_ size_t inSize,
+                                        void* pDestination, _In_ size_t outSize,
+                                   _In_reads_bytes_(inSize) const void* pSource, _In_ size_t inSize,
                                    _In_ DXGI_FORMAT format, _In_ DWORD flags );
  
     _Success_(return != false)
-    bool __cdecl _ExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestination, _In_ size_t outSize,
+    bool __cdecl _ExpandScanline( _Out_writes_bytes_(outSize) void* pDestination, _In_ size_t outSize,
                                   _In_ DXGI_FORMAT outFormat, 
-                                  _In_reads_bytes_(inSize) LPCVOID pSource, _In_ size_t inSize,
+                                  _In_reads_bytes_(inSize) const void* pSource, _In_ size_t inSize,
                                   _In_ DXGI_FORMAT inFormat, _In_ DWORD flags );
 
     _Success_(return != false)
     bool __cdecl _LoadScanline( _Out_writes_(count) XMVECTOR* pDestination, _In_ size_t count,
-                                _In_reads_bytes_(size) LPCVOID pSource, _In_ size_t size, _In_ DXGI_FORMAT format );
+                                _In_reads_bytes_(size) const void* pSource, _In_ size_t size, _In_ DXGI_FORMAT format );
 
     _Success_(return != false)
     bool __cdecl _LoadScanlineLinear( _Out_writes_(count) XMVECTOR* pDestination, _In_ size_t count,
-                                      _In_reads_bytes_(size) LPCVOID pSource, _In_ size_t size, _In_ DXGI_FORMAT format, _In_ DWORD flags  );
+                                      _In_reads_bytes_(size) const void* pSource, _In_ size_t size, _In_ DXGI_FORMAT format, _In_ DWORD flags  );
 
     _Success_(return != false)
-    bool __cdecl _StoreScanline( LPVOID pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
+    bool __cdecl _StoreScanline( _Out_writes_bytes_(size) void* pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
                                  _In_reads_(count) const XMVECTOR* pSource, _In_ size_t count, _In_ float threshold = 0 );
 
     _Success_(return != false)
-    bool __cdecl _StoreScanlineLinear( LPVOID pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
+    bool __cdecl _StoreScanlineLinear( _Out_writes_bytes_(size) void* pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
                                        _Inout_updates_all_(count) XMVECTOR* pSource, _In_ size_t count, _In_ DWORD flags, _In_ float threshold = 0 );
 
     _Success_(return != false)
-    bool __cdecl _StoreScanlineDither( LPVOID pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
+    bool __cdecl _StoreScanlineDither( _Out_writes_bytes_(size) void* pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
                                        _Inout_updates_all_(count) XMVECTOR* pSource, _In_ size_t count, _In_ float threshold, size_t y, size_t z,
                                        _Inout_updates_all_opt_(count+2) XMVECTOR* pDiffusionErrors );
 
@@ -225,6 +237,6 @@ namespace DirectX
     //---------------------------------------------------------------------------------
     // DDS helper functions
     HRESULT __cdecl _EncodeDDSHeader( _In_ const TexMetadata& metadata, DWORD flags,
-                                      _Out_writes_bytes_to_opt_(maxsize, required) LPVOID pDestination, _In_ size_t maxsize, _Out_ size_t& required );
+                                      _Out_writes_bytes_to_opt_(maxsize, required) void* pDestination, _In_ size_t maxsize, _Out_ size_t& required );
 
 }; // namespace

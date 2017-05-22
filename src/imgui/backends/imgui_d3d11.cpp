@@ -375,15 +375,23 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   // Build texture atlas
   ImGuiIO& io = ImGui::GetIO ();
 
-  extern void
-  SK_ImGui_LoadFonts (void);
+  static bool           init   = false;
+  static unsigned char* pixels = nullptr;
+  static int            width  = 0,
+                        height = 0;
 
-  SK_ImGui_LoadFonts ();
+  // Only needs to be done once, the raw pixels are API agnostic
+  if (! init)
+  {
+    extern void
+    SK_ImGui_LoadFonts (void);
 
-  unsigned char* pixels;
-  int            width, height;
+    SK_ImGui_LoadFonts ();
 
-  io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
+    io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
+
+    init = true;
+  }
 
   // Upload texture to graphics system
   {

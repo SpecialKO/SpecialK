@@ -417,6 +417,11 @@ SK_EstablishDllRole (HMODULE hModule)
   blacklist.emplace (L"OAWrapper.exe");
   blacklist.emplace (L"NvOAWrapperCache.exe");
 
+  blacklist.emplace (L"sihost.exe");
+  blacklist.emplace (L"explorer.exe");
+  blacklist.emplace (L"browser_broker.exe");
+  blacklist.emplace (L"dwm.exe");
+
   // Misc. Tools
   blacklist.emplace (L"SleepOnLan.exe");
   //blacklist.emplace (L"ds3t.exe");
@@ -426,6 +431,17 @@ SK_EstablishDllRole (HMODULE hModule)
   if (blacklist.count (std::wstring (SK_GetHostApp ())))
   {
     //FreeLibrary (SK_GetDLL ());
+    CreateThread (nullptr, 0, [](LPVOID user) ->
+                        DWORD {
+                          DWORD dwTime = timeGetTime ();
+
+                          while (timeGetTime () < dwTime + 1500UL)
+                            Sleep (100UL);
+
+                          FreeLibraryAndExitThread (SK_GetDLL (), 0x00);
+
+                          return 0;
+                        }, nullptr, 0x00, nullptr );
     return false;
   }
 

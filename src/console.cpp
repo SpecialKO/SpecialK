@@ -126,17 +126,6 @@ SK_Console::Start (void)
   ZeroMemory (text, 4096);
 
   text [0] = '>';
-
-#if 0
-  hMsgPump =
-    (HANDLE)
-      _beginthreadex ( nullptr,
-                         0,
-                           SK_Console::MessagePump,
-                             &hooks,
-                               0,
-                                 nullptr );
-#endif
 }
 
 void
@@ -148,85 +137,7 @@ SK_Console::End (void)
     return;
   }
 
-  if (hMsgPump != 0) {
-    TerminateThread (hMsgPump, 0x00);
-    hMsgPump = 0;
-  }
-
-  CloseHandle (GetCurrentThread ());
   return;
-}
-
-HANDLE
-SK_Console::GetThread (void)
-{
-  return hMsgPump;
-}
-
-#include <dxgi.h>
-extern IDXGISwapChain* g_pSwapChainDXGI;
-extern HWND            hWndRender;
-
-// Pending removal, because we now hook the window's message procedure
-//
-unsigned int
-__stdcall
-SK_Console::MessagePump (LPVOID hook_ptr)
-{
-  // Old interface, no longer valid -- legacy remains.
-  UNREFERENCED_PARAMETER (hook_ptr);
-
-  HWND  hWndForeground;
-  DWORD dwThreadId;
-  DWORD dwTime = timeGetTime ();
-
-  while (true) {
-    // Spin until the game has drawn a frame
-    if (hWndRender == 0 || (! SK_GetFramesDrawn ())) {
-      Sleep (83);
-      continue;
-    }
-
-    if (hWndRender != 0) {
-      hWndForeground = hWndRender;
-    } else {
-      Sleep (333);
-      //hWndForeground = GetForegroundWindow ();
-      continue;
-    }
-
-    DWORD dwProc;
-
-    dwThreadId =
-      GetWindowThreadProcessId (hWndForeground, &dwProc);
-
-    // Ugly hack, but a different window might be in the foreground...
-    if (dwProc != GetCurrentProcessId ()) {
-      //dll_log.Log (L" *** Tried to hook the wrong process!!!");
-      Sleep (83);
-
-      continue;
-    }
-
-    if (SK_GetFramesDrawn ()) {
-      hWndRender = hWndForeground;
-      break;
-    }
-  }
-
-  DWORD dwNow = timeGetTime ();
-
-  dll_log.Log ( L"[CmdConsole]  # Found window in %03.01f seconds, "
-                L"installing window hook...",
-                  (float)(dwNow - dwTime) / 1000.0f );
-
-  SK_InstallWindowHook (hWndForeground);
-
-  SK_Console::getInstance ()->hMsgPump = 0;
-
-  CloseHandle (GetCurrentThread ());
-
-  return 0;
 }
 
 void
@@ -433,44 +344,6 @@ int
 SK_Console::KeyDown (BYTE vkCode, LPARAM lParam)
 {
   return SK_HandleConsoleKey (true, vkCode, lParam);
-}
-
-LRESULT
-CALLBACK
-SK_Console::KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam)
-{
-#if 0
-  if (nCode >= 0)
-  {
-    switch (wParam) {
-      case WM_KEYDOWN:
-      case WM_SYSKEYDOWN:
-      {
-        LPKBDLLHOOKSTRUCT lpKbdLL = (LPKBDLLHOOKSTRUCT)lParam;
-        if (! (lpKbdLL->flags & 0x40)) {
-            BYTE    scanCode = HIWORD (lParam) & 0x7F;
-            SHORT   repeated = LOWORD (lParam);
-            bool    keyDown  = ! (lParam & 0x80000000UL);
-          return SK_Console::getInstance ()->KeyDown (lpKbdLL->vkCode, (1 << 30) | (1 << 29));
-        }
-      } break;
-
-      case WM_KEYUP:
-      case WM_SYSKEYUP:
-      {
-        LPKBDLLHOOKSTRUCT lpKbdLL = (LPKBDLLHOOKSTRUCT)lParam;
-        if ((lpKbdLL->flags & 0x40)) {
-            BYTE    scanCode = HIWORD (lParam) & 0x7F;
-            SHORT   repeated = LOWORD (lParam);
-            bool    keyDown  = ! (lParam & 0x80000000UL);
-          return SK_Console::getInstance ()->KeyUp (lpKbdLL->vkCode, 0x4000 | (1 << 29) | (1 << 30));
-        }
-      } break;
-    }
-  }
-#endif
-
-  return CallNextHookEx (SK_Console::getInstance ()->hooks.keyboard_ll, nCode, wParam, lParam);
 }
 
 void

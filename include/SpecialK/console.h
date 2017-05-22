@@ -33,20 +33,17 @@ class SK_Console
 {
 public:
 //private:
-  HANDLE               hMsgPump;
-  struct hooks_t {
-    HHOOK              keyboard_ll;
-  } hooks;
+  HANDLE               hMsgPump = nullptr;
 
   static SK_Console*   pConsole;
 
-  char          text  [4096];
+  char          text  [4096]   = { '\0' };
+                               
+  BYTE          keys_ [256]    = {      };
+  bool          visible        = false;
 
-  BYTE          keys_ [256];
-  bool          visible;
-
-  bool          command_issued;
-  std::string   result_str;
+  bool          command_issued = false;
+  std::string   result_str     = "";
 
   struct command_history_t {
     std::vector <std::string> history;
@@ -69,17 +66,7 @@ public:
 
   void reset       (void); // Call when window activation changes
 
-  HANDLE GetThread (void);
-
   bool isVisible (void) { return visible; }
-
-  static unsigned int
-    __stdcall
-    MessagePump (LPVOID hook_ptr);
-
-  static LRESULT
-    CALLBACK
-    KeyboardProc (int nCode, WPARAM wParam, LPARAM lParam);
 };
 
 void SK_DrawConsole (void);

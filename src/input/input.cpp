@@ -2046,17 +2046,20 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
       case WM_SYSKEYDOWN:
       case WM_SYSKEYUP:
       case WM_KEYUP:
+      {
         if (peek)
         {
+          LRESULT
+          CALLBACK
+          SK_DetourWindowProc ( _In_  HWND   hWnd,
+                                _In_  UINT   uMsg,
+                                _In_  WPARAM wParam,
+                                _In_  LPARAM lParam );
+
           if (! ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-          {
-            DispatchMessageW (lpMsg);
-          }
-          return true;
+            return SK_DetourWindowProc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
         }
-        else
-          return ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0;
-        break;
+      } break;
 
       case WM_SETCURSOR:
       {

@@ -77,26 +77,11 @@ static const GUID IID_ID3D11Device2 = { 0x9d06dffa, 0xd1e5, 0x4d07, { 0x83, 0xa8
 static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0, 0x9c, 0xe0, 0xb0, 0xdc, 0x9a, 0xe6 } };
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 
-
-extern CRITICAL_SECTION init_mutex;
-extern CRITICAL_SECTION budget_mutex;
-extern CRITICAL_SECTION loader_lock;
-extern CRITICAL_SECTION wmi_cs;
-extern CRITICAL_SECTION cs_dbghelp;
-
 volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { 0 };
 
-extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
-
 // Disable SLI memory in Batman Arkham Knight
 bool USE_SLI = true;
-
-
-extern "C++" void SK_DS3_InitPlugin (void);
-extern "C++" void SK_FAR_InitPlugin (void);
-extern "C++" void SK_FAR_FirstFrame (void);
-
 
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init  = FALSE;
@@ -485,7 +470,7 @@ osd_pump (LPVOID lpThreadParam)
   return 0;
 }
 
-extern void SK_ShutdownWMI (void);
+#include <SpecialK/io_monitor.h>
 
 void
 __stdcall
@@ -783,8 +768,10 @@ SK_InitFinishCallback (void)
 
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
-  if (SK_IsSuperSpecialK ())
+  if (SK_IsSuperSpecialK ()) {
+    LeaveCriticalSection (&init_mutex);
     return;
+  }
 
   SK_Input_Init ();
 
@@ -879,9 +866,6 @@ SK_InitFinishCallback (void)
 
 
   LeaveCriticalSection (&init_mutex);
-
-  if (SK_IsHostAppSKIM ())
-    return;
 }
 
 void
@@ -1227,23 +1211,14 @@ CheckVersionThread (LPVOID user)
   return 0;
 }
 
-unsigned int
+DWORD
 __stdcall
-DllThread_CRT (LPVOID user)
+DllThread (LPVOID user)
 {
   init_params_t* params =
     (init_params_t *)user;
 
   SK_InitCore (params->backend, params->callback);
-
-  return 0;
-}
-
-DWORD
-__stdcall
-DllThread (LPVOID user)
-{
-  DllThread_CRT (user);
 
   return 0;
 }
@@ -1383,7 +1358,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //
     if ( blacklist ) {
       //FreeLibrary_Original (SK_GetDLL ());
-      return false;
+      return true;
     }
   }
 
@@ -1696,6 +1671,10 @@ void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
+  // Maybe make this into an option, but for now just get this the hell out of there
+  //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
+  _controlfp (MCW_EM, MCW_EM);
+
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -2293,6 +2272,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::DXGI::StartBudgetThread_NoAdapter ();
   }
 
+  DoKeyboard ();
+
+  extern void SK_ImGui_PollGamepad_EndFrame (void);
+  SK_ImGui_PollGamepad_EndFrame ();
+
   // Draw after present, this may make stuff 1 frame late, but... it
   //   helps with VSYNC performance.
 
@@ -2300,8 +2284,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   //  we should not draw the OSD when these events happen.
   if (FAILED (hr))
     return hr;
-
-  DoKeyboard ();
 
   if (config.sli.show && device != nullptr)
   {
@@ -2322,24 +2304,14 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-
-  extern void SK_ImGui_PollGamepad_EndFrame (void);
-  SK_ImGui_PollGamepad_EndFrame ();
-
-
-  // Maybe make this into an option, but for now just get this the hell out of there
-  //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
-  _controlfp (MCW_EM, MCW_EM);
-
-
   return hr;
 }
 
 struct sk_host_process_s {
-  wchar_t wszApp       [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
-  wchar_t wszPath      [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
-  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
-  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L"RaceConditionDetected" };
+  wchar_t wszApp       [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
 } host_proc;
 
 bool

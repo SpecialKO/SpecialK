@@ -3235,19 +3235,6 @@ SK_InstallWindowHook (HWND hWnd)
     //else
       //SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
-
-    if (game_window.unicode) {
-      DWORD dwStyle = GetClassLongW (hWnd, GCL_STYLE);
-            dwStyle &= (~CS_DBLCLKS);
-      SetClassLongW ( hWnd, GCL_STYLE, dwStyle );
-    }
-    else {
-      DWORD dwStyle = GetClassLongA (hWnd, GCL_STYLE);
-            dwStyle &= (~CS_DBLCLKS); // This wreaks havoc with input processing and
-                                      //   I have yet to see a game that legitimately needs it.
-      SetClassLongA ( hWnd, GCL_STYLE, dwStyle );
-    }
-
     game_window.hooked = false;
   }
 

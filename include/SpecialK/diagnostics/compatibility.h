@@ -42,6 +42,7 @@ void __stdcall SK_InitCompatBlacklist (void);
 void __stdcall SK_PreInitLoadLibrary  (void); // Before we hook load library, just import it
 
 void __stdcall SK_ReHookLoadLibrary   (void);
+void __stdcall SK_UnhookLoadLibrary   (void);
 
 void __stdcall SK_LockDllLoader       (void);
 void __stdcall SK_UnlockDllLoader     (void);

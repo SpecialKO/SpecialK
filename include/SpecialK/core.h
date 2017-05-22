@@ -28,8 +28,20 @@
 #include <SpecialK/memory_monitor.h>
 #include <SpecialK/nvapi.h>
 
-extern HMODULE          backend_dll;
-extern CRITICAL_SECTION init_mutex;
+extern CRITICAL_SECTION         init_mutex;
+extern CRITICAL_SECTION         budget_mutex;
+extern CRITICAL_SECTION         loader_lock;
+extern CRITICAL_SECTION         wmi_cs;
+extern CRITICAL_SECTION         cs_dbghelp;
+
+extern HMODULE                  backend_dll;
+extern CRITICAL_SECTION         init_mutex;
+
+extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
+
+extern "C++" void SK_DS3_InitPlugin (void);
+extern "C++" void SK_FAR_InitPlugin (void);
+extern "C++" void SK_FAR_FirstFrame (void);
 
 // Disable SLI memory in Batman Arkham Knight
 extern bool                     USE_SLI;

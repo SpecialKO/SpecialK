@@ -428,13 +428,13 @@ DWORD dwRenderThread = 0x0000;
 bool SK_DXGI_use_factory1 = false;
 bool SK_DXGI_factory_init = false;
 
-extern void  __stdcall SK_D3D11_TexCacheCheckpoint    ( void );
-extern void  __stdcall SK_D3D11_UpdateRenderStats     ( IDXGISwapChain*      pSwapChain );
+extern void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
+extern void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
+                                                   
+extern void  __stdcall SK_D3D12_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
 
-extern void  __stdcall SK_D3D12_UpdateRenderStats     ( IDXGISwapChain*      pSwapChain );
-
-extern BOOL __stdcall SK_NvAPI_SetFramerateLimit  (uint32_t limit);
-extern void __stdcall SK_NvAPI_SetAppFriendlyName (const wchar_t* wszFriendlyName);
+extern BOOL __stdcall SK_NvAPI_SetFramerateLimit   (uint32_t        limit);
+extern void __stdcall SK_NvAPI_SetAppFriendlyName  (const wchar_t*  wszFriendlyName);
 
 volatile LONG  __dxgi_ready  = FALSE;
 
@@ -724,13 +724,13 @@ SK_DXGI_SupportsTearing (void)
 }
 
 extern "C" {
-  CreateSwapChain_pfn     CreateSwapChain_Original     = nullptr;
-  PresentSwapChain_pfn    Present_Original             = nullptr;
-  Present1SwapChain1_pfn  Present1_Original            = nullptr;
-  SetFullscreenState_pfn  SetFullscreenState_Original  = nullptr;
-  GetFullscreenState_pfn  GetFullscreenState_Original  = nullptr;
-  ResizeBuffers_pfn       ResizeBuffers_Original       = nullptr;
-  ResizeTarget_pfn        ResizeTarget_Original        = nullptr;
+  CreateSwapChain_pfn               CreateSwapChain_Original               = nullptr;
+  PresentSwapChain_pfn              Present_Original                       = nullptr;
+  Present1SwapChain1_pfn            Present1_Original                      = nullptr;
+  SetFullscreenState_pfn            SetFullscreenState_Original            = nullptr;
+  GetFullscreenState_pfn            GetFullscreenState_Original            = nullptr;
+  ResizeBuffers_pfn                 ResizeBuffers_Original                 = nullptr;
+  ResizeTarget_pfn                  ResizeTarget_Original                  = nullptr;
 
   GetDisplayModeList_pfn            GetDisplayModeList_Original            = nullptr;
   FindClosestMatchingMode_pfn       FindClosestMatchingMode_Original       = nullptr;
@@ -739,16 +739,16 @@ extern "C" {
   CreateSwapChainForCoreWindow_pfn  CreateSwapChainForCoreWindow_Original  = nullptr;
   CreateSwapChainForComposition_pfn CreateSwapChainForComposition_Original = nullptr;
 
-  GetDesc_pfn             GetDesc_Original             = nullptr;
-  GetDesc1_pfn            GetDesc1_Original            = nullptr;
-  GetDesc2_pfn            GetDesc2_Original            = nullptr;
+  GetDesc_pfn                       GetDesc_Original                       = nullptr;
+  GetDesc1_pfn                      GetDesc1_Original                      = nullptr;
+  GetDesc2_pfn                      GetDesc2_Original                      = nullptr;
 
-  EnumAdapters_pfn        EnumAdapters_Original        = nullptr;
-  EnumAdapters1_pfn       EnumAdapters1_Original       = nullptr;
+  EnumAdapters_pfn                  EnumAdapters_Original                  = nullptr;
+  EnumAdapters1_pfn                 EnumAdapters1_Original                 = nullptr;
 
-  CreateDXGIFactory_pfn   CreateDXGIFactory_Import     = nullptr;
-  CreateDXGIFactory1_pfn  CreateDXGIFactory1_Import    = nullptr;
-  CreateDXGIFactory2_pfn  CreateDXGIFactory2_Import    = nullptr;
+  CreateDXGIFactory_pfn             CreateDXGIFactory_Import               = nullptr;
+  CreateDXGIFactory1_pfn            CreateDXGIFactory1_Import              = nullptr;
+  CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullptr;
 
   const wchar_t*
   SK_DescribeVirtualProtectFlags (DWORD dwProtect)
@@ -783,7 +783,7 @@ SK_DXGI_BeginHooking (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-#if 1
+#if 0
     HANDLE hHookInitDXGI =
       (HANDLE)
         _beginthreadex ( nullptr,
@@ -4140,7 +4140,6 @@ HookDXGI (LPVOID user)
 
   if (! config.apis.dxgi.d3d11.hook)
   {
-    CloseHandle (GetCurrentThread ());
     return 0;
   }
 
@@ -4165,7 +4164,6 @@ HookDXGI (LPVOID user)
 
   if (InterlockedCompareExchange (&__dxgi_ready, TRUE, TRUE))
   {
-    CloseHandle (GetCurrentThread ());
     return 0;
   }
 
@@ -4205,15 +4203,13 @@ HookDXGI (LPVOID user)
 
   desc.SwapEffect   = DXGI_SWAP_EFFECT_DISCARD;
 
-  CComPtr <ID3D11Device>        pDevice           = nullptr;
+  ID3D11Device*                 pDevice           = nullptr;
   D3D_FEATURE_LEVEL             featureLevel;
   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
   CComPtr <IDXGISwapChain>      pSwapChain        = nullptr;
 
   // DXI stuff is ready at this point, we'll hook the swapchain stuff
   //   after this call.
-
-  InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
   typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
     _In_opt_                            IDXGIAdapter         *pAdapter,
@@ -4242,8 +4238,6 @@ HookDXGI (LPVOID user)
                       &featureLevel,
                         &pImmediateContext );
 
-  InterlockedExchange (&SK_D3D11_init_tid, 0);
-
   if (SUCCEEDED (hr))
   {
     CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
@@ -4263,6 +4257,10 @@ HookDXGI (LPVOID user)
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
       HookD3D11 (&d3d11_hook_ctx);
+
+      // These don't do anything (anymore)
+      if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
     }
   }
 
@@ -4274,18 +4272,9 @@ HookDXGI (LPVOID user)
                              err.WCode (), err.ErrorMessage () );
   }
 
-  // These don't do anything (anymore)
-  if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
-  if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
-
-  if (success)  CoUninitialize ();
-
   DestroyWindow (hwnd);
 
   InterlockedExchange (&__dxgi_ready, TRUE);
-
-
-  CloseHandle ( GetCurrentThread () );
 
   return 0;
 }

@@ -21,6 +21,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <SpecialK/diagnostics/debug_utils.h>
+#include <SpecialK/diagnostics/compatibility.h>
+
 
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
@@ -39,13 +41,12 @@
 
 iSK_Logger game_debug;
 
-typedef BOOL (WINAPI *TerminateProcess_pfn)(HANDLE hProcess, UINT uExitCode);
-TerminateProcess_pfn TerminateProcess_Original = nullptr;
-
-typedef void (WINAPI *ExitProcess_pfn)(UINT uExitCode);
-
-ExitProcess_pfn ExitProcess_Original = nullptr;
-ExitProcess_pfn ExitProcess_Hook     = nullptr;
+TerminateProcess_pfn
+                       TerminateProcess_Original   = nullptr;
+ExitProcess_pfn        ExitProcess_Original        = nullptr;
+ExitProcess_pfn        ExitProcess_Hook            = nullptr;
+OutputDebugStringA_pfn OutputDebugStringA_Original = nullptr;
+OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
 
 BOOL
 __stdcall
@@ -75,9 +76,6 @@ TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
   return TerminateProcess_Original (hProcess, uExitCode);
 }
 
-extern void
-SK_UnhookLoadLibrary (void);
-
 void
 WINAPI
 ExitProcess_Detour (UINT uExitCode)
@@ -87,11 +85,7 @@ ExitProcess_Detour (UINT uExitCode)
   ExitProcess     (uExitCode);
 }
 
-typedef void (WINAPI *OutputDebugStringA_pfn)(LPCSTR lpOutputString);
-OutputDebugStringA_pfn OutputDebugStringA_Original = nullptr;
 
-typedef void (WINAPI *OutputDebugStringW_pfn)(LPCWSTR lpOutputString);
-OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
 
 void
 WINAPI
