@@ -2908,7 +2908,7 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     }
   }
 
-  game_window.hWnd = pDesc->OutputWindow;
+  //game_window.hWnd = pDesc->OutputWindow;
 }
 
 void

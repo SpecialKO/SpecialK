@@ -1768,6 +1768,12 @@ SK_ImGui_ControlPanel (void)
 
           if (connected [3])
             ImGui::RadioButton ("XInput Controller 3##XInputSlot", &config.input.gamepad.xinput.ui_slot, 3);
+
+          ImGui::SameLine    ();
+          ImGui::RadioButton ("Nothing", &config.input.gamepad.xinput.ui_slot, 4);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
         }
 
         ImGui::Text ("XInput Placeholders");
@@ -1777,7 +1783,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::BeginTooltip  ();
             ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
             ImGui::Separator   ();
-            ImGui::BulletText  ("Useful for stupid games like God Eater 2 that do not support hot-plugging in a sane way.");
+            ImGui::BulletText  ("Useful for games like God Eater 2 that do not support hot-plugging in a sane way.");
             ImGui::BulletText  ("Also reduces performance problems games cause themselves by trying to poll controllers that are not connected.");
           ImGui::EndTooltip    ();
         }
@@ -1864,8 +1870,13 @@ extern float SK_ImGui_PulseNav_Strength;
 
         ImGui::Checkbox ("Fix Jittery Mouse (in menus)", &non_relative);
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("If this helps, please notify Kaldaien so he can add the game to a compatibility list");
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Disable RawInput mouse delta processing");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("In games that ONLY use DirectInput / RawInput for mouse, this may make the config menu unusable.");
+          ImGui::EndTooltip   ();
+        }
 
         config.input.mouse.add_relative_motion = (! non_relative);
 
@@ -3280,7 +3291,7 @@ extern float SK_ImGui_PulseNav_Strength;
             //
             //  If stupid user presses this button for any other reason, that is
             //    their own problem. Crackers should make a better attempt to
-            //      randomize thier easily detectable hackjobs.
+            //      randomize their easily detectable hackjobs.
             if (GetFileAttributes (L"CPY.ini") != INVALID_FILE_ATTRIBUTES)
             {
               DeleteFileW (L"CPY.ini");
