@@ -3234,14 +3234,14 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
           *ppAdapter  = pGameAdapter;
           *DriverType = D3D_DRIVER_TYPE_UNKNOWN;
 
-          pGameAdapter->GetDesc (&game_desc);
+          GetDesc_Original (pGameAdapter, &game_desc);
         }
 
         if ( SK_DXGI_preferred_adapter != -1 &&
              SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
         {
           DXGI_ADAPTER_DESC override_desc;
-          pOverrideAdapter->GetDesc (&override_desc);
+          GetDesc_Original (pOverrideAdapter, &override_desc);
 
           if ( game_desc.VendorId     == Vendors::Intel     &&
                override_desc.VendorId != Vendors::Microsoft &&
@@ -3278,12 +3278,16 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   STDMETHODCALLTYPE GetDesc2_Override (IDXGIAdapter2      *This,
                                 _Out_  DXGI_ADAPTER_DESC2 *pDesc)
   {
+#if 0
     std::wstring iname = SK_GetDXGIAdapterInterface (This);
 
     DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc2", L"%ph, %ph", This, pDesc);
 
     HRESULT    ret;
     DXGI_CALL (ret, GetDesc2_Original (This, pDesc));
+#else
+    HRESULT ret = GetDesc2_Original (This, pDesc);
+#endif
 
     //// OVERRIDE VRAM NUMBER
     if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
@@ -3311,12 +3315,16 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   STDMETHODCALLTYPE GetDesc1_Override (IDXGIAdapter1      *This,
                                 _Out_  DXGI_ADAPTER_DESC1 *pDesc)
   {
+#if 0
     std::wstring iname = SK_GetDXGIAdapterInterface (This);
 
     DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc1", L"%ph, %ph", This, pDesc);
 
     HRESULT    ret;
     DXGI_CALL (ret, GetDesc1_Original (This, pDesc));
+#else
+    HRESULT ret = GetDesc1_Original (This, pDesc);
+#endif
 
     //// OVERRIDE VRAM NUMBER
     if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
@@ -3343,12 +3351,16 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   STDMETHODCALLTYPE GetDesc_Override (IDXGIAdapter      *This,
                                _Out_  DXGI_ADAPTER_DESC *pDesc)
   {
+#if 0
     std::wstring iname = SK_GetDXGIAdapterInterface (This);
 
     DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc",L"%ph, %ph", This, pDesc);
 
     HRESULT    ret;
     DXGI_CALL (ret, GetDesc_Original (This, pDesc));
+#else
+    HRESULT ret = GetDesc_Original (This, pDesc);
+#endif
 
     //// OVERRIDE VRAM NUMBER
     if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
@@ -3368,14 +3380,17 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
         dll_log.LogEx (false, L"Failure! (No Match Found)\n");
     }
 
+    if (config.system.log_level >= 1)
+    {
+      dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu MiB, Dedicated System: %zu MiB, Shared System: %zu MiB",
+                      pDesc->DedicatedVideoMemory    >> 20UL,
+                        pDesc->DedicatedSystemMemory >> 20UL,
+                          pDesc->SharedSystemMemory  >> 20UL );
+    }
+
     if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
                    SK_GetCallerName () == L"Fallout4.exe"  )
     {
-      dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu, Dedicated System: %zu, Shared System: %zu",
-                      pDesc->DedicatedVideoMemory,
-                        pDesc->DedicatedSystemMemory,
-                          pDesc->SharedSystemMemory );
-
       pDesc->DedicatedVideoMemory = pDesc->SharedSystemMemory;
     }
 
@@ -3388,139 +3403,102 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
                                 _Inout_  IDXGIAdapter      **ppAdapter,
                                          EnumAdapters_pfn    pFunc)
   {
-    DXGI_ADAPTER_DESC desc;
-
-    bool silent = dll_log.silent;
-    dll_log.silent = true;
-    {
-      // Don't log this call
-      (*ppAdapter)->GetDesc (&desc);
-    }
-    dll_log.silent = silent;
-
     int iver = SK_GetDXGIAdapterInterfaceVer (*ppAdapter);
 
-    UNREFERENCED_PARAMETER (iver);
+    DXGI_ADAPTER_DESC desc = { 0 };
 
-    // Only do this for NVIDIA SLI GPUs on Windows 10 (DXGI 1.4)
-    if (false) {//nvapi_init && sk::NVAPI::CountSLIGPUs () > 0 && iver >= 3) {
-      if (! GetDesc_Original) {
-        DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
-          GetDesc_Override, GetDesc_Original, GetDesc_pfn);
-      }
-
-      if (! GetDesc1_Original) {
-        CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
-
-       if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1)))) {
-          DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(pAdapter1)->GetDesc1",
-            GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
-       }
-      }
-
-      if (! GetDesc2_Original) {
-        CComPtr <IDXGIAdapter2> pAdapter2 = nullptr;
-
-        if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter2)))) {
-
-          DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
-            GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
-        }
-      }
-    }
-
-    // Logic to skip Intel and Microsoft adapters and return only AMD / NV
-    //if (lstrlenW (pDesc->Description)) {
-    if (true)
+    switch (iver)
     {
-      if (! lstrlenW (desc.Description))
-        dll_log.LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
-
-#ifdef SKIP_INTEL
-      if ((desc.VendorId == Microsoft || desc.VendorId == Intel) && Adapter == 0) {
-#else
-      if (false)
+      default:
+      case 2:
       {
-#endif
-        // We need to release the reference we were just handed before
-        //   skipping it.
-        (*ppAdapter)->Release ();
+        if (! GetDesc2_Original)
+        {
+          CComPtr <IDXGIAdapter2> pAdapter2 = nullptr;
 
-        dll_log.LogEx (false,
-          L"[   DXGI   ] >> (Host Application Tried To Enum Intel or Microsoft Adapter "
-          L"as Adapter 0) -- Skipping Adapter '%s' <<\n", desc.Description);
+          if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter2)))) {
 
-        return (pFunc (This, Adapter + 1, ppAdapter));
-      }
-
-      else
-      {
-        //
-        // TODO: This was for Windows 10 + Batman: Arkham Knight,it is no longer needed.
-        //
-
-        // Only do this for NVIDIA SLI GPUs on Windows 10 (DXGI 1.4)
-        if (false) { //nvapi_init && sk::NVAPI::CountSLIGPUs () > 0 && iver >= 3) {
-          DXGI_ADAPTER_DESC* match =
-            sk::NVAPI::FindGPUByDXGIName (desc.Description);
-
-          if (match != NULL &&
-            desc.DedicatedVideoMemory > match->DedicatedVideoMemory)
-          {
-// This creates problems in 32-bit environments...
-#ifdef _WIN64
-            if (lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-            {
-              dll_log.Log (
-                L"   # SLI Detected (Corrected Memory Total: %llu MiB -- "
-                L"Original: %llu MiB)",
-                match->DedicatedVideoMemory >> 20ULL,
-                desc.DedicatedVideoMemory   >> 20ULL);
-            }
-
-            else {
-              match->DedicatedVideoMemory = desc.DedicatedVideoMemory;
-            }
-#endif
+            DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
+              GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
           }
         }
       }
 
-      dll_log.LogEx(true,L"[   DXGI   ]  @ Returned Adapter %lu: '%s' (LUID: %08X:%08X)",
-        Adapter,
-          desc.Description,
-            desc.AdapterLuid.HighPart,
-              desc.AdapterLuid.LowPart );
-
-      //
-      // Windows 8 has a software implementation, which we can detect.
-      //
-      CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
-
-      HRESULT hr =
-        (*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1));
-
-      if (SUCCEEDED (hr))
+      case 1:
       {
-        bool silence = dll_log.silent;
-        dll_log.silent = true; // Temporarily disable logging
-
-        DXGI_ADAPTER_DESC1 desc1;
-
-        if (SUCCEEDED (pAdapter1->GetDesc1 (&desc1)))
+        if (! GetDesc1_Original)
         {
-          dll_log.silent = silence; // Restore logging
-#define DXGI_ADAPTER_FLAG_REMOTE   0x1
-#define DXGI_ADAPTER_FLAG_SOFTWARE 0x2
-          if (desc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-            dll_log.LogEx (false, L" <Software>");
-          else
-            dll_log.LogEx (false, L" <Hardware>");
-          if (desc1.Flags & DXGI_ADAPTER_FLAG_REMOTE)
-            dll_log.LogEx (false, L" [Remote]");
+          CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+
+          if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1)))) {
+            DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
+              GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
+          }
+        }
+      }
+
+      case 0:
+      {
+        if (! GetDesc_Original)
+        {
+          DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
+            GetDesc_Override, GetDesc_Original, GetDesc_pfn);
         }
 
-        dll_log.silent = silence; // Restore logging
+        if (GetDesc_Original)
+          GetDesc_Original (*ppAdapter, &desc);
+      }
+    }
+
+    // Logic to skip Intel and Microsoft adapters and return only AMD / NV
+    if (! lstrlenW (desc.Description))
+      dll_log.LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
+
+#ifdef SKIP_INTEL
+    if ((desc.VendorId == Microsoft || desc.VendorId == Intel) && Adapter == 0) {
+#else
+    if (false)
+    {
+#endif
+      // We need to release the reference we were just handed before
+      //   skipping it.
+      (*ppAdapter)->Release ();
+
+      dll_log.LogEx (false,
+        L"[   DXGI   ] >> (Host Application Tried To Enum Intel or Microsoft Adapter "
+        L"as Adapter 0) -- Skipping Adapter '%s' <<\n", desc.Description);
+
+      return (pFunc (This, Adapter + 1, ppAdapter));
+    }
+
+    dll_log.LogEx(true,L"[   DXGI   ]  @ Returned Adapter %lu: '%s' (LUID: %08X:%08X)",
+      Adapter,
+        desc.Description,
+          desc.AdapterLuid.HighPart,
+            desc.AdapterLuid.LowPart );
+
+    //
+    // Windows 8 has a software implementation, which we can detect.
+    //
+    CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+
+    HRESULT hr =
+      (*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1));
+
+    if (SUCCEEDED (hr))
+    {
+      DXGI_ADAPTER_DESC1 desc1;
+
+      if (SUCCEEDED (GetDesc1_Original (pAdapter1, &desc1)))
+      {
+#define DXGI_ADAPTER_FLAG_REMOTE   0x1
+#define DXGI_ADAPTER_FLAG_SOFTWARE 0x2
+        if (desc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+          dll_log.LogEx (false, L" <Software>");
+        else
+          dll_log.LogEx (false, L" <Hardware>");
+        if (desc1.Flags & DXGI_ADAPTER_FLAG_REMOTE)
+          dll_log.LogEx (false, L" [Remote]");
       }
     }
 
@@ -3568,7 +3546,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 
     if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr) {
       return EnumAdapters_Common (This, Adapter, (IDXGIAdapter **)ppAdapter,
-                                  (EnumAdapters_pfn)EnumAdapters1_Override);
+                                  (EnumAdapters_pfn)EnumAdapters1_Original);
     }
 
     return ret;
@@ -3612,7 +3590,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr)
     {
       return EnumAdapters_Common (This, Adapter, ppAdapter,
-                                  (EnumAdapters_pfn)EnumAdapters_Override);
+                                  (EnumAdapters_pfn)EnumAdapters_Original);
     }
 
     return ret;
@@ -4055,20 +4033,34 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                    CreateSwapChain_Original,
                                    CreateSwapChain_pfn );
 
-  //if (EnumAdapters_Original == nullptr) {
-    //
-    // EnumAdapters actually calls EnumAdapters1 if the interface
-    //   implements IDXGIFactory1...
-    //
-    //  >> Avoid some nasty recursion and only hook EnumAdapters if the
-    //       interface version is DXGI 1.0.
-    //
-    DXGI_VIRTUAL_HOOK ( &pFactory,     7,
-                        "IDXGIFactory::EnumAdapters",
-                         EnumAdapters_Override,
-                         EnumAdapters_Original,
-                         EnumAdapters_pfn );
-  //}
+  //
+  // EnumAdapters actually calls EnumAdapters1 if the interface
+  //   implements IDXGIFactory1...
+  //
+  //  >> Avoid some nasty recursion and only hook EnumAdapters if the
+  //       interface version is DXGI 1.0.
+  //
+  DXGI_VIRTUAL_HOOK ( &pFactory,     7,
+                      "IDXGIFactory::EnumAdapters",
+                       EnumAdapters_Override,
+                       EnumAdapters_Original,
+                       EnumAdapters_pfn );
+
+#if 0
+  if (iver > 0)
+  {
+    CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+
+    if (SUCCEEDED (pFactory->QueryInterface <IDXGIFactory1> (&pFactory1)))
+    {
+      DXGI_VIRTUAL_HOOK ( &pFactory1,     12,
+                          "IDXGIFactory1::EnumAdapters1",
+                           EnumAdapters1_Override,
+                           EnumAdapters1_Original,
+                           EnumAdapters1_pfn );
+    }
+  }
+#endif
 
   //  0 QueryInterface
   //  1 AddRef

@@ -208,24 +208,6 @@ SK_WMI_ServerThread (LPVOID lpUser)
     goto WMI_CLEANUP;
   }
 
-  // Set the proxy so that impersonation of the client occurs.
-  if (FAILED (hr = CoSetProxyBlanket (
-                     COM::base.wmi.pNameSpace,
-                     RPC_C_AUTHN_WINNT,
-                     RPC_C_AUTHZ_NONE,
-                     NULL,
-                     RPC_C_AUTHN_LEVEL_CALL,
-                     RPC_C_IMP_LEVEL_IMPERSONATE,
-                     NULL,
-                     EOAC_NONE )
-             )
-     )
-  {
-    dll_log.Log (L"[ WMI Wbem ] Failure to set proxy impersonation (%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
-    goto WMI_CLEANUP;
-  }
-
   IUnknown* pUnk = nullptr;
 
   if (FAILED (COM::base.wmi.pNameSpace->QueryInterface (IID_IUnknown, (void **)&pUnk)))

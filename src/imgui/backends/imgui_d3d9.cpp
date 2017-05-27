@@ -526,10 +526,10 @@ ImGui_ImplDX9_NewFrame (void)
   //
   //  -- Acquire actually means release their exclusive ownership : )
   //
-  if (SK_ImGui_WantMouseCapture ())
-    SK_Input_DI8Mouse_Acquire ();
-  else
-    SK_Input_DI8Mouse_Release ();
+  //if (SK_ImGui_WantMouseCapture ())
+  //  SK_Input_DI8Mouse_Acquire ();
+  //else
+  //  SK_Input_DI8Mouse_Release ();
 
 
   // Start the frame

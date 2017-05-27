@@ -434,7 +434,7 @@ SK_RawInput_EnableLegacyMouse (bool enable)
     for (auto it : raw_gamepads)  device_override.push_back (it);
     for (auto it : mice)          device_override.push_back (it);
 
-    dll_log.Log (L"%lu mice are now legacy...", mice.size ());
+//    dll_log.Log (L"%lu mice are now legacy...", mice.size ());
 
     RegisterRawInputDevices_Original (
       device_override.data (),
@@ -1180,31 +1180,36 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
   {
     void** vftable = *(void***)*lplpDirectInputDevice;
 
-    if (rguid == GUID_SysMouse)
+    //
+    // This weird hack is necessary for EverQuest; crazy game hooks itself to try and thwart
+    //   macro programs.
+    //
+    if (rguid == GUID_SysMouse && _dim.pDev == nullptr)
     {
       SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
                            vftable [9],
                            IDirectInputDevice8_GetDeviceState_MOUSE_Detour,
                 (LPVOID *)&IDirectInputDevice8_GetDeviceState_MOUSE_Original );
+      MH_QueueEnableHook (vftable [9]);
     }
 
-    else if (rguid == GUID_SysKeyboard)
+    else if (rguid == GUID_SysKeyboard && _dik.pDev == nullptr)
     {
       SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
                            vftable [9],
                            IDirectInputDevice8_GetDeviceState_KEYBOARD_Detour,
                 (LPVOID *)&IDirectInputDevice8_GetDeviceState_KEYBOARD_Original );
+      MH_QueueEnableHook (vftable [9]);
     }
 
-    else
+    else if (rguid != GUID_SysMouse && rguid != GUID_SysKeyboard)
     {
       SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
                            vftable [9],
                            IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour,
                 (LPVOID *)&IDirectInputDevice8_GetDeviceState_GAMEPAD_Original );
+      MH_QueueEnableHook (vftable [9]);
     }
-
-    MH_QueueEnableHook (vftable [9]);
 
     if (! IDirectInputDevice8_SetCooperativeLevel_Original)
     {
@@ -2037,83 +2042,68 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
 {
   bool handled = false;
 
-  //if (lpMsg->hwnd == game_window.hWnd)
+  switch (lpMsg->message)
   {
-    switch (lpMsg->message)
+    // Fix for Melody's Escape, which attempts to remove these messages!
+    case WM_KEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYDOWN:
+    case WM_SYSKEYUP:
     {
-      // Fix for Melody's Escape, which attempts to remove these messages!
-      case WM_KEYDOWN:
-      case WM_SYSKEYDOWN:
-      case WM_SYSKEYUP:
-      case WM_KEYUP:
+      if (peek)
       {
-        if (peek)
-        {
-          LRESULT
-          CALLBACK
-          SK_DetourWindowProc ( _In_  HWND   hWnd,
-                                _In_  UINT   uMsg,
-                                _In_  WPARAM wParam,
-                                _In_  LPARAM lParam );
+        if (lpMsg->message == WM_KEYDOWN || lpMsg->message == WM_SYSKEYDOWN)
+          SK_Console::getInstance ()->KeyDown (lpMsg->wParam & 0xFF, lpMsg->lParam);
 
-          if (! ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-            return SK_DetourWindowProc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-        }
-      } break;
+        if (lpMsg->message == WM_KEYUP || lpMsg->message == WM_SYSKEYUP)
+          SK_Console::getInstance ()->KeyUp (lpMsg->wParam & 0xFF, lpMsg->lParam);
 
-      case WM_SETCURSOR:
-      {
-        if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != 0)
-          SK_ImGui_Cursor.update ();
+        if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) || SK_Console::getInstance ()->isVisible ())
+          handled = true;
+      }
+    } break;
 
-        return false;
-      } break;
+    case WM_SETCURSOR:
+    {
+      if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != 0)
+        SK_ImGui_Cursor.update ();
+    } break;
 
-      // TODO: Does this message have an HWND always?
-      case WM_DEVICECHANGE:
-      {
-        return ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-      } break;
+    // TODO: Does this message have an HWND always?
+    case WM_DEVICECHANGE:
+    {
+      handled = ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+    } break;
 
-      // Pre-Dispose These Mesages (fixes The Witness)
-      case WM_LBUTTONDBLCLK:
-      case WM_LBUTTONDOWN:
-      case WM_LBUTTONUP:
-      case WM_MBUTTONDBLCLK:
-      case WM_MBUTTONDOWN:
-      case WM_MBUTTONUP:
-      case WM_RBUTTONDBLCLK:
-      case WM_RBUTTONDOWN:
-      case WM_RBUTTONUP:
-      case WM_XBUTTONDBLCLK:
-      case WM_XBUTTONDOWN:
-      case WM_XBUTTONUP:
-      case WM_NCMOUSEHOVER:
-      case WM_NCMOUSELEAVE:
-      case WM_NCMOUSEMOVE:
-      case WM_MOUSEMOVE:
-      case WM_MOUSEWHEEL:
-      case WM_CAPTURECHANGED:
-      case WM_POINTERCAPTURECHANGED:
-      case WM_NCHITTEST:
-      {
-        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+    // Pre-Dispose These Mesages (fixes The Witness)
+    case WM_LBUTTONDBLCLK:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_MBUTTONDBLCLK:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_RBUTTONDBLCLK:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_XBUTTONDBLCLK:
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
 
-        if (SK_ImGui_WantMouseCapture ())
-          return true;
-      } break;
+    case WM_MOUSEMOVE:
+    case WM_MOUSEWHEEL:
+    {
+      handled = true;
 
-      default:
-      {
-        //
-        // ImGui input handling
-        //
-        LRESULT result = ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
-        if (result != 0)
-          return true;
-      } break;
-    }
+      if (! SK_ImGui_WantMouseCapture ())
+        handled = false;
+    } break;
+
+    default:
+    {
+      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+    } break;
   }
 
   return handled;

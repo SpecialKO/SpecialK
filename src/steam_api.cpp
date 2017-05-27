@@ -219,6 +219,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     {
       steam_log.Log ( L" * (%-28s) Installed Overlay Activation Callback",
                         caller.c_str () );
+
       overlay_activation_callbacks.insert (pCallback);
     } break;
 
@@ -303,13 +304,13 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 void
 SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
 {
-  try
+  __try
   {
     if (overlay_activation_callbacks.find (pCallback) != overlay_activation_callbacks.end ())
       overlay_activation_callbacks.erase (pCallback);
   }
 
-  catch (...)
+  __except (EXCEPTION_EXECUTE_HANDLER)
   {
   }
 }
@@ -2798,22 +2799,22 @@ SK::SteamAPI::SetOverlayState (bool active)
 
   EnterCriticalSection (&callback_cs);
 
-  GameOverlayActivated_t state;
-  state.m_bActive = active;
-  overlay_state   = active;
-
-  std::set <CCallbackBase *>::iterator it =
-    overlay_activation_callbacks.begin ();
-
-  try
+  __try
   {
+    GameOverlayActivated_t state;
+    state.m_bActive = active;
+    overlay_state   = active;
+
+    std::multiset <CCallbackBase *>::iterator it =
+      overlay_activation_callbacks.begin ();
+
     while (it != overlay_activation_callbacks.end ())
     {
       (*it++)->Run (&state);
     }
   }
 
-  catch (...)
+  __except (EXCEPTION_EXECUTE_HANDLER)
   {
   }
 

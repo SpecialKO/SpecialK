@@ -99,22 +99,20 @@ CBTProc ( _In_ int    nCode,
                MSG  msg  = { };
                BOOL bRet = TRUE;
 
-               while (true)
+               while (hWndBroadcastRecipient != 0)
                {
-                 bRet = GetMessage (&msg, 0, 0, 0);
+                 bRet = GetMessage (&msg, hWndBroadcastRecipient, 0, 0);
                  {
                    // Shutdown hook (unload DLL)
                    if (msg.message == g_uiBroadcastMsg)
                    {
-                     DestroyWindow            (hWndBroadcastRecipient);
-                     FreeLibraryAndExitThread (hModHookInstance, 0x00);
+                     break;
                    }
 
                    DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
                  }
                }
 
-               DestroyWindow            (hWndBroadcastRecipient);
                FreeLibraryAndExitThread (hModHookInstance, 0x00);
 
                return 0;
@@ -287,22 +285,21 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                MSG  msg;
                BOOL bRet;
 
-               while (true)
+               while (hWndBroadcastRecipient != 0)
                {
-                 bRet = GetMessage (&msg, 0, 0, 0);
+                 bRet = GetMessage (&msg, hWndBroadcastRecipient, 0, 0);
                  {
                    // Shutdown hook (unload DLL)
                    if ((msg.hwnd == HWND_BROADCAST || msg.hwnd == hWndBroadcastRecipient) && msg.message == g_uiBroadcastMsg)
                    {
-                     DestroyWindow    (hWndBroadcastRecipient);
-                     TerminateProcess (GetCurrentProcess (), 0x00);
+                     break;
                    }
 
                    DefWindowProcW (msg.hwnd, msg.message, msg.wParam, msg.lParam);
                  }
                }
 
-               DestroyWindow    (hWndBroadcastRecipient);
+               //DestroyWindow    (hWndBroadcastRecipient);
                TerminateProcess (GetCurrentProcess (), 0x00);
 
                return 0;

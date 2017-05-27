@@ -1611,7 +1611,10 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
   UNREFERENCED_PARAMETER (pFullscreenDisplayMode);
 
   if (InterlockedCompareExchange (&ImGui_Init, 0, 0))
+  {
+    ResetCEGUI_D3D9                       (nullptr);
     ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
+  }
 
   return;
 }
@@ -1678,12 +1681,6 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
        D3D9Present_Original == nullptr )
     SK_D3D9_HookPresent (This);
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
-  {
-    // Release
-    ResetCEGUI_D3D9 (nullptr);
-  }
-
   D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
 
   D3D9_CALL (hr, D3D9Reset_Original (This,
@@ -1737,12 +1734,6 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
     if (config.compatibility.d3d9.rehook_present)
       SK_D3D9_HookPresent (pDev);
-
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
-    {
-      // Release
-      ResetCEGUI_D3D9 (nullptr);
-    }
 
     pDev.Release ();
   }
@@ -2484,6 +2475,19 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       if (config.render.d3d9.force_fullscreen)
         pparams->Windowed = FALSE;
 
+      else if (config.render.d3d9.force_windowed)
+      {
+        if (pparams->hDeviceWindow)
+        {
+          pparams->Windowed                   = TRUE;
+          pparams->FullScreen_RefreshRateInHz = 0;
+
+          SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE,    GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & (~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)));
+          SetWindowPos      (pparams->hDeviceWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+        } else
+          dll_log.Log (L"[  D3D9  ] Could not force windowed mode, game has no device window?!");
+      }
+
       if (pparams->Windowed && config.window.borderless && (! config.window.fullscreen))
       {
         if (config.window.res.override.isZero ()) {
@@ -2531,6 +2535,10 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         SK_SetWindowResX (client.right  - client.left);
         SK_SetWindowResY (client.bottom - client.top);;
       }
+
+      // Range Restrict to prevent D3DERR_INVALID_CALL
+      if (pparams->PresentationInterval > 16)
+        pparams->PresentationInterval = 0;
 
       if (pparams->Windowed) {
         //SetWindowPos_Original ( hWndRender,
@@ -2581,6 +2589,9 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
       SK_SetPresentParamsD3D9 ( nullptr,
                                   pPresentationParameters );
   }
+
+  if (config.render.d3d9.force_windowed)
+    hFocusWindow = pPresentationParameters->hDeviceWindow;
 
   D3D9_CALL (ret, D3D9CreateDeviceEx_Original (This,
                                                Adapter,
@@ -2846,17 +2857,18 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
 
   HRESULT ret;
 
-  {
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
-      SK_D3D9_SetFPSTarget       (pPresentationParameters);
-      SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
-    }
-
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
-      SK_SetPresentParamsD3D9 ( nullptr,
-                                  pPresentationParameters );
-    }
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    SK_D3D9_SetFPSTarget       (pPresentationParameters);
+    SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
   }
+
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
+    SK_SetPresentParamsD3D9 ( nullptr,
+                                pPresentationParameters );
+  }
+
+  if (config.render.d3d9.force_windowed)
+    hFocusWindow = pPresentationParameters->hDeviceWindow;
 
   D3D9_CALL (ret, D3D9CreateDevice_Original ( This, Adapter,
                                           DeviceType,

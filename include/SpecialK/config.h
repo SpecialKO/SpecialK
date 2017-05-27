@@ -224,6 +224,7 @@ struct sk_config_t
       bool    force_d3d9ex      = false;
       bool    force_impure      = false;
       bool    force_fullscreen  = false;
+      bool    force_windowed    = false;
       int     hook_type         = 0;
       bool    osd_in_vidcap     = false;
     } d3d9;

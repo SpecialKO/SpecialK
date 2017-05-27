@@ -170,7 +170,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
   bool&                          command_issued = SK_Console::getInstance ()->command_issued;
   std::string&                   result_str     = SK_Console::getInstance ()->result_str;
 
-  if ((! SK_IsSteamOverlayActive ())) {
+  if (! SK_IsSteamOverlayActive ())
+  {
     //BYTE   vkCode   = LOWORD (wParam) & 0xFF;
     BYTE     scanCode = HIWORD (lParam) & 0x7F;
     ///SHORT repeated = LOWORD (lParam);
@@ -196,13 +197,15 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     else if (vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT) {
       vkCode = VK_SHIFT;
 
-      if (keyDown) keys_ [vkCode] = 0x81; else keys_ [vkCode] = 0x00;
+      if (keyDown) keys_ [vkCode] = 0x81;
+      else         keys_ [vkCode] = 0x00;
     }
 
     else if (vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU) {
       vkCode = VK_MENU;
 
-      if (keyDown) keys_ [vkCode] = 0x81; else keys_ [vkCode] = 0x00;
+      if (keyDown) keys_ [vkCode] = 0x81;
+      else         keys_ [vkCode] = 0x00;
     }
 
     //else if ((! repeated) && vkCode == VK_CAPITAL) {
@@ -212,7 +215,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL) {
       vkCode = VK_CONTROL;
 
-      if (keyDown) keys_ [vkCode] = 0x81; else keys_ [vkCode] = 0x00;
+      if (keyDown) keys_ [vkCode] = 0x81;
+      else         keys_ [vkCode] = 0x00;
     }
 
     else if (keyDown && visible && ((vkCode == VK_UP) || (vkCode == VK_DOWN)))
@@ -294,7 +298,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 
         SK_PluginKeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
 
-        if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && keys_ [VK_TAB] && vkCode == VK_TAB) {
+        if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && vkCode == VK_TAB)
+        {
           visible = ! visible;
 
           // This will pause/unpause the game
@@ -305,7 +310,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       }
 
       // Don't print the tab character, it's pretty useless.
-      if (visible && vkCode != VK_TAB) {
+      if (visible && vkCode != VK_TAB)
+      {
         keys_ [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
 
         unsigned char key_str [2];

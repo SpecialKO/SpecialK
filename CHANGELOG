@@ -1,25 +1,34 @@
-+ Added 1.5 second delay unload for blacklisted applications to prevent performance
-    problems when the CBT hook inevitbly tries to re-inject the DLL.
-+ Removed legacy command console code (low-level keyboard hook, message pump)
-+ Removed FreeLibrary hook, memory leaks in other software were being caught
-    while debugging... it was obnoxious ;)
-+ Fixed SteamAPI_Init being called instead of SteamAPI_Init_Detour
-+ Fixed DirectDraw issues in Disgaea2 (presumably for video playback)
-+ Fixed LoadLibraryW unhook during shutdown (had been unhooking LoadLibraryA)
-+ Disabled relative mouse move in NieR: Automata - it always sends legacy input
-+ Fixed problems dispatching keyboard input early from PeekMessage caused
-    in Mass Effect: Andromeda
-+ Added pirate tooltips to EULA ;)
-+ Added resolution warning to EULA screen
-+ Fixed license text truncation on EULA screen
-+ Added code to compensate for games that pull WM_KEYDOWN messages out of the
-    pump by using PeekMessage* with PM_REMOVE set.
-+ Enabled relative mouse motion from RawInput in any game that tries to capture
-    mouse input non-cooperatively.
-+ Added support for wrapping d3d8.dll, no native renderer exists or ever will,
-    the project relies on optional third-party API wrappers for legacy APIs.
-+ Optional dgVoodoo support added, place the (all 32-bit) DLLs in
-    Documents\My Mods\Special K\PlugIns\ThirdParty\dgVoodoo\
-+ Fixed-up floating-point exception handling in Prey
+0.8.12.2:
+ + Added a D3D9 ForceWindowed override to SpecialK.ini
+ + Fixed SteamAPI exception handling in 32-bit ABI (Steam overlay callback)
+ + Fixed double-input processing through PeekMessage
+ + Fixed CEGUI / ImGui reset on multi-frame D3D9 device loss recovery
+
+0.8.12.1:
+ + Added 1.5 second delay unload for blacklisted applications to prevent performance
+     problems when the CBT hook inevitbly tries to re-inject the DLL.
+
+0.8.12:
+ + Removed legacy command console code (low-level keyboard hook, message pump)
+ + Removed FreeLibrary hook, memory leaks in other software were being caught
+     while debugging... it was obnoxious ;)
+ + Fixed SteamAPI_Init being called instead of SteamAPI_Init_Detour
+ + Fixed DirectDraw issues in Disgaea2 (presumably for video playback)
+ + Fixed LoadLibraryW unhook during shutdown (had been unhooking LoadLibraryA)
+ + Disabled relative mouse move in NieR: Automata - it always sends legacy input
+ + Fixed problems dispatching keyboard input early from PeekMessage caused
+     in Mass Effect: Andromeda
+ + Added pirate tooltips to EULA ;)
+ + Added resolution warning to EULA screen
+ + Fixed license text truncation on EULA screen
+ + Added code to compensate for games that pull WM_KEYDOWN messages out of the
+     pump by using PeekMessage* with PM_REMOVE set.
+ + Enabled relative mouse motion from RawInput in any game that tries to capture
+     mouse input non-cooperatively.
+ + Added support for wrapping d3d8.dll, no native renderer exists or ever will,
+     the project relies on optional third-party API wrappers for legacy APIs.
+ + Optional dgVoodoo support added, place the (all 32-bit) DLLs in
+     Documents\My Mods\Special K\PlugIns\ThirdParty\dgVoodoo\
+ + Fixed-up floating-point exception handling in Prey
 
 --------- (Initial GitLab Migration) ---------

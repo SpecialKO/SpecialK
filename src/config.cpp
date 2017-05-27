@@ -208,6 +208,7 @@ struct {
   struct {
     sk::ParameterBool*    force_d3d9ex;
     sk::ParameterBool*    force_fullscreen;
+    sk::ParameterBool*    force_windowed;
     sk::ParameterInt*     hook_type;
     sk::ParameterBool*    impure;
   } d3d9;
@@ -1177,6 +1178,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.D3D9",
           L"ForceFullscreen" );
+
+    render.d3d9.force_windowed =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Force Windowed Mode")
+        );
+    render.d3d9.force_windowed->register_to_ini (
+      dll_ini,
+        L"Render.D3D9",
+          L"ForceWindowed" );
   }
 
   if (SK_IsInjected () || (SK_GetDLLRole () & (DLL_ROLE::DXGI))) {
@@ -2284,6 +2295,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
       if (render.d3d9.force_fullscreen->load ())
         config.render.d3d9.force_fullscreen =
           render.d3d9.force_fullscreen->get_value ();
+      if (render.d3d9.force_windowed->load ())
+        config.render.d3d9.force_windowed =
+          render.d3d9.force_windowed->get_value ();
       if (render.d3d9.hook_type->load ())
         config.render.d3d9.hook_type =
           render.d3d9.hook_type->get_value ();
@@ -2949,6 +2963,7 @@ SK_SaveConfig ( std::wstring name,
     {
       render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
       render.d3d9.force_fullscreen->set_value (config.render.d3d9.force_fullscreen);
+      render.d3d9.force_windowed->set_value   (config.render.d3d9.force_windowed);
       render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
     }
   }
@@ -3112,9 +3127,10 @@ SK_SaveConfig ( std::wstring name,
 
     if (  SK_IsInjected () ||
         ( SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
-      render.d3d9.force_d3d9ex->store      ();
-      render.d3d9.force_fullscreen->store  ();
-      render.d3d9.hook_type->store         ();
+      render.d3d9.force_d3d9ex->store     ();
+      render.d3d9.force_fullscreen->store ();
+      render.d3d9.force_windowed->store   ();
+      render.d3d9.hook_type->store        ();
     }
   }
 

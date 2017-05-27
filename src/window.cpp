@@ -168,6 +168,16 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
 
       if ( (dwStyle & (WS_VISIBLE | WS_MINIMIZEBOX)) )
       {
+        char szTitle [256];
+
+        // Filter out applications that Special K's global injector created
+        //   a dummy top-level window for.
+        if (GetWindowTextA (hWnd, szTitle, 256) > 0)
+          if (! stricmp (szTitle, "Special K Broadcast Window"))
+            return TRUE;
+        else
+          return TRUE;
+
         win.root = hWnd;
         return FALSE;
       }
@@ -1064,6 +1074,10 @@ SetWindowPos_Detour(
 
   if (hWnd == game_window.hWnd)
     SK_WINDOW_LOG_CALL1 ();
+
+  if (config.render.d3d9.force_windowed)
+    if (hWndInsertAfter == HWND_TOPMOST)
+      hWndInsertAfter = HWND_TOP;
 
   BOOL bRet = 
     SetWindowPos_Original ( hWnd, hWndInsertAfter,
@@ -2994,8 +3008,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-    return game_window.DefProc (uMsg, wParam, lParam);
+  static bool eqgame = wcsstr (SK_GetHostApp (), L"eqgame.exe");
+  if (eqgame)
+  {
+    ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+  }
 
 
   //
@@ -3137,7 +3154,7 @@ SK_InstallWindowHook (HWND hWnd)
   SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
                      PeekMessageW_Detour,
            (LPVOID*)&PeekMessageW_Original );
-
+  
   SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
                      PeekMessageA_Detour,
            (LPVOID*)&PeekMessageA_Original );
@@ -3157,7 +3174,6 @@ SK_InstallWindowHook (HWND hWnd)
                      GetMessageA_Detour,
            (LPVOID*)&GetMessageA_Original );
 
-#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
                      DispatchMessageA_Detour,
            (LPVOID*)&DispatchMessageA_Original );
@@ -3165,7 +3181,6 @@ SK_InstallWindowHook (HWND hWnd)
   SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
                      DispatchMessageW_Detour,
            (LPVOID*)&DispatchMessageW_Original );
-#endif
 
   MH_ApplyQueued ();
 
@@ -3186,7 +3201,12 @@ SK_InstallWindowHook (HWND hWnd)
 
   // Compat Hack: EverQuest (hook classfunc)
   //
-  //   Input will be processed in-game, but not during server select.
+  //   Initial PeekMessage hook will handle input at server select,
+  //     hooked window proc will handle events in-game.
+  //
+  //   This game hooks its own message loop dispatch functions, probably
+  //     as an anti-cheat method. Hooking the class procedure is the only
+  //       workaround.
   //
   if (wcsstr (SK_GetHostApp (), L"eqgame.exe"))
     hook_classfunc = true;
@@ -3320,7 +3340,7 @@ SK_HookWinAPI (void)
               //L"Window Sys" );
 
 
-#if 0
+#if 1
   SK_CreateDLLHook2 ( L"user32.dll", "SetWindowPos",
                         SetWindowPos_Detour,
              (LPVOID *)&SetWindowPos_Original );

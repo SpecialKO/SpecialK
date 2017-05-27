@@ -1060,10 +1060,10 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
             CreateThread ( nullptr, 0, SK_RaptrWarn, nullptr, 0x00, nullptr );
           }
-
-          // Detect and remove malicious DLLs while the game is running.
-          SK_MalwareProtection (wszModName);
         }
+
+        // Detect and remove malicious DLLs while the game is running.
+        SK_MalwareProtection (wszModName);
 
         if (when == SK_ModuleEnum::PostLoad)
         {

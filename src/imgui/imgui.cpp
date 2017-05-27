@@ -11444,24 +11444,18 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   auto ActivateWindow = [&](bool active = false)->
   void
     {
-      if (active)
+      bool changed = (active != window_active);
+
+      if (active && changed)
         SK_Input_RememberPressedKeys ();
 
-#if 0
-      for (int i = 0; i < 256; i++)
-      {
-        if (SK_ImGui_ActivationKeys [i])
-          game_window.CallProc (game_window.hWnd, WM_KEYUP, i, 0xFFFFFFFF);
-      }
-#endif
-
-      window_active = active;
-
-      if (! active)
+      if ((! active) && changed)
       {
         for (int i = 0; i < 5;   i++) io.MouseDown [i] = false;
         for (int i = 5; i < 512; i++) io.KeysDown  [i] = false;
       }
+
+      window_active = active;
     };
 
   switch (msg)
@@ -11479,6 +11473,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     {
       case FAPPCOMMAND_KEY:
       {
+        dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
+
         if (SK_ImGui_WantKeyboardCapture ())
           return true;
       } break;
@@ -11489,6 +11485,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
           return true;
         }
+
+        dll_log.Log (L"WM_APPCOMMAND Mouse Event");
 
         DWORD dwPos = GetMessagePos ();
         LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
@@ -11536,7 +11534,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
 
   case WM_LBUTTONDOWN:
-  //case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
+  case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
     io.MouseDown [0] = true;
     return true;
 
@@ -11545,7 +11543,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     return true;
 
   case WM_RBUTTONDOWN:
-  //case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
+  case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
     io.MouseDown [1] = true;
     return true;
 
@@ -11554,7 +11552,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     return true;
 
   case WM_MBUTTONDOWN:
-  //case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
+  case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
     io.MouseDown [2] = true;
     return true;
 
@@ -11568,8 +11566,11 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   case WM_KEYDOWN:
   case WM_SYSKEYDOWN:
-  //if (SK_ImGui_WantMouseCapture ())
   {
+    // Don't process Alt+Tab or Alt+Enter
+    if (msg == WM_SYSKEYDOWN && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
+      return false;
+
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
     {
       io.KeysDown [(wParam & 0xff)] = 1;
@@ -11610,8 +11611,11 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   case WM_KEYUP:
   case WM_SYSKEYUP:
-  //if (SK_ImGui_WantMouseCapture ())
   {
+    // Don't process Alt+Tab or Alt+Enter
+    if (msg == WM_SYSKEYUP && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
+      return false;
+
     if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
       io.KeysDown [(wParam & 0xff)] = 0;
     else if ((wParam & 0xff) < 5)
@@ -11674,10 +11678,12 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
 
   case WM_CHAR:
+  {
     // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
     if ((wParam & 0xff) >= 5 && wParam < 0x10000)
       io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
     return true;
+  } break;
 
 
   case WM_INPUT:
@@ -11711,13 +11717,13 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
         default:
           cap = cap && SK_ImGui_WantGamepadCapture ();
           break;
-        }
-
-        delete [] pData;
-
-        return cap;
       }
+
+      delete [] pData;
+
+      return cap;
     }
+  } break;
   }
   return false;
   };

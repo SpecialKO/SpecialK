@@ -756,14 +756,14 @@ DllMain ( HMODULE hModule,
 
           SK_Detach (SK_GetDLLRole ());
         }
+
+        TlsFree (__SK_TLS_INDEX);
       }
 
       //else {
         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
       //}
-
-      TlsFree   (__SK_TLS_INDEX);
 
       return TRUE;
     } break;
