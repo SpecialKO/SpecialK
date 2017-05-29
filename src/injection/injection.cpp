@@ -42,7 +42,10 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  if (hModHookInstance == NULL)
+  if (nCode < 0)
+    return CallNextHookEx (0, nCode, wParam, lParam);
+
+  if (hModHookInstance == NULL && g_hHookCBT)
   {
     static volatile LONG lHookIters = 0L;
 
@@ -51,7 +54,7 @@ CBTProc ( _In_ int    nCode,
     if (InterlockedAdd (&lHookIters, 1L) > 1L)
       return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
-    GetModuleHandleEx ( 0x0,
+    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 #ifdef _WIN64
                           L"SpecialK64.dll",
 #else
@@ -64,9 +67,8 @@ CBTProc ( _In_ int    nCode,
          [](LPVOID user) ->
            DWORD
              {
-               WaitForSingleObject (g_hShutdown, INFINITE);
-
-               FreeLibraryAndExitThread (hModHookInstance, 0x00);
+               if (g_hShutdown != 0)
+                 WaitForSingleObject (g_hShutdown, INFINITE);
 
                hModHookInstance = NULL;
 
@@ -131,11 +133,14 @@ SKX_InstallCBTHook (void)
 
   if (hMod == SK_GetDLL ())
   {
-    #ifdef _WIN64
+    if (g_hShutdown == 0)
+    {
+#ifdef _WIN64
       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
-    #else
+#else
       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
-    #endif
+#endif
+    }
 
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
@@ -157,7 +162,8 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  SetEvent (g_hShutdown);
+  if (g_hShutdown != 0)
+    SetEvent (g_hShutdown);
 
   if (g_hHookCBT)
   {
@@ -208,9 +214,10 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
          [](LPVOID user) ->
            DWORD
              {
-               WaitForSingleObject (g_hShutdown, INFINITE);
+               if (g_hShutdown != 0)
+                 WaitForSingleObject (g_hShutdown, INFINITE);
 
-               TerminateProcess (GetCurrentProcess (), 0x00);
+               ExitProcess (0x00);
 
                return 0;
              },
@@ -250,7 +257,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
     }
   }
 
-  TerminateProcess (GetCurrentProcess (), 0x00);
+  ExitProcess (0x00);
 }
 
 

@@ -127,7 +127,10 @@ extern void
 __stdcall
 SK_EstablishRootPath (void);
 
-static std::unordered_set <std::wstring> blacklist;
+#pragma data_seg (".SK_Hooks")
+std::unordered_set <std::wstring> blacklist;
+#pragma data_seg ()
+#pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
 bool
 __stdcall
@@ -147,6 +150,8 @@ SK_EstablishDllRole (HMODULE hModule)
   //
   if (blacklist.size () == 0)
   {
+    blacklist.reserve (512);
+
     // Steam-Specific Stuff
     blacklist.emplace (L"steam.exe");
     blacklist.emplace (L"GameOverlayUI.exe");
@@ -224,6 +229,7 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"NvOAWrapperCache.exe");
 
     blacklist.emplace (L"sihost.exe");
+    blacklist.emplace (L"Chrome.exe");
     blacklist.emplace (L"explorer.exe");
     blacklist.emplace (L"browser_broker.exe");
     blacklist.emplace (L"dwm.exe");
@@ -574,11 +580,27 @@ SK_Attach (DLL_ROLE role)
       } break;
     }
 
-    return
-      InterlockedExchangeAddRelease (
-        &__SK_DLL_Attached,
-          1
-      );
+    __SK_TLS_INDEX = TlsAlloc ();
+
+    if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
+    {
+#if 0
+      MessageBox ( NULL,
+                     L"Out of TLS Indexes",
+                       L"Cannot Init. Special K",
+                         MB_ICONERROR | MB_OK |
+                         MB_APPLMODAL | MB_SETFOREGROUND );
+#endif
+    }
+
+    else
+    {
+      return
+        InterlockedExchangeAddRelease (
+          &__SK_DLL_Attached,
+            1
+        );
+    }
   }
 
   return DontInject ();
@@ -695,11 +717,9 @@ DllMain ( HMODULE hModule,
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
       {
-        return TRUE;
-        // ^^^ Obviously that's not exactly "denying" anything; the DLL will
-        //       be placed onto a queue for later unload. This prevents the
-        //         global injector from repeatedly re-injecting and killing
-        //           performance.
+        blacklist.emplace (std::wstring (SK_GetHostApp ()));
+
+        return FALSE;
       }
 
 
@@ -720,27 +740,12 @@ DllMain ( HMODULE hModule,
         --pwszShortName;
 
 
-      BOOL ret = TRUE;
+      BOOL bRet = SK_Attach (SK_GetDLLRole ());
 
-      __SK_TLS_INDEX = TlsAlloc ();
+      if (! bRet)
+        blacklist.emplace (std::wstring (SK_GetHostApp ()));
 
-      if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
-      {
-        ret = FALSE;
-
-        MessageBox ( NULL,
-                       L"Out of TLS Indexes",
-                         L"Cannot Init. Special K",
-                           MB_ICONERROR | MB_OK |
-                           MB_APPLMODAL | MB_SETFOREGROUND );
-      }
-
-      if (ret)
-      {
-        return SK_Attach (SK_GetDLLRole ());
-      }
-
-      return TRUE;
+      return bRet;
     } break;
 
 
@@ -787,20 +792,17 @@ DllMain ( HMODULE hModule,
 
 
     case DLL_THREAD_ATTACH:
-    {
-      if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
+    { 
+      InterlockedIncrement (&__SK_Threads_Attached);
+
+      LPVOID lpvData =
+        (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
+
+      if (lpvData != nullptr)
       {
-        InterlockedIncrement (&__SK_Threads_Attached);
-
-        LPVOID lpvData =
-          (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
-
-        if (lpvData != nullptr)
+        if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
         {
-          if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
-          {
-            LocalFree (lpvData);
-          }
+          LocalFree (lpvData);
         }
       }
     } break;
@@ -808,16 +810,13 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_DETACH:
     {
-      if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
-      {
-        LPVOID lpvData =
-          (LPVOID)TlsGetValue (__SK_TLS_INDEX);
+      LPVOID lpvData =
+        (LPVOID)TlsGetValue (__SK_TLS_INDEX);
 
-        if (lpvData != nullptr)
-        {
-          LocalFree   (lpvData);
-          TlsSetValue (__SK_TLS_INDEX, nullptr);
-        }
+      if (lpvData != nullptr)
+      {
+        LocalFree   (lpvData);
+        TlsSetValue (__SK_TLS_INDEX, nullptr);
       }
     } break;
   }

@@ -2276,7 +2276,7 @@ PeekMessageW_Detour (
 
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet && lpMsg->hwnd != nullptr /*&& (wRemoveMsg & PM_REMOVE) != 0*/)
+  if (bRet && lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage (lpMsg, true, true);
 
   return bRet;
@@ -2305,7 +2305,7 @@ PeekMessageA_Detour (
 
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-  if (bRet && lpMsg->hwnd != nullptr /*&& (wRemoveMsg & PM_REMOVE) != 0*/)
+  if (bRet && lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage (lpMsg, true, true);
 
   return bRet;
@@ -2326,7 +2326,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (lpMsg->hwnd != nullptr)
+  if (lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
@@ -2341,7 +2341,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (lpMsg->hwnd != nullptr)
+  if (lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
@@ -2359,7 +2359,7 @@ DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+  if (lpMsg->hwnd == game_window.hWnd)
     if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
       return 0;
 
@@ -2378,7 +2378,7 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  if (lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == NULL )
+  if (lpMsg->hwnd == game_window.hWnd)
     if (SK_EarlyDispatchMessage ((MSG *)lpMsg, false))
       return 0;
 
@@ -2996,8 +2996,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  static bool recursive_wheel = false;
-
   bool handled = false;
 
   static bool eqgame = wcsstr (SK_GetHostApp (), L"eqgame.exe");
@@ -3006,25 +3004,63 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
   }
 
+
+
+  // Synaptics Touchpad Compat Hack:
+  // -------------------------------
+  //
+  //  PROBLEM:    Driver only generates window messages for mousewheel, it does
+  //                not activate RawInput, DirectInput or HID like a real mouse
+  //
+  //  WORKAROUND: Generate a full-blown input event using SendInput (...); be
+  //                aware that this event will generate ANOTHER WM_MOUSEWHEEL.
+  //
+  //    ** MUST handle recursive behavior caused by this fix-up **
+  //
+  static bool recursive_wheel = false;
+
+  // Dual purpose: This also catches any WM_MOUSEWHEEL messages that Synaptics
+  //                 issued through CallWindowProc (...) rather than
+  //                   SendMessage (...) / PostMessage (...) -- UGH.
+  //
+  //      >> We need to process those for ImGui <<
+  //
   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
   {
-    if (! eqgame) handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+    if (! eqgame)
+      handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
     if ((! handled) && config.input.mouse.fix_synaptics)
     {
       INPUT input        = { 0 };
+
       input.type         = INPUT_MOUSE;
       input.mi.dwFlags   = MOUSEEVENTF_WHEEL;
       input.mi.mouseData = GET_WHEEL_DELTA_WPARAM (wParam);
+
       recursive_wheel    = true;
+
       SendInput_Original (1, &input, sizeof INPUT);
     }
   }
 
+  // In-lieu of a proper fence, this solves the recursion problem.
+  //
+  //   There's no guarantee the message we are ignoring is the one we
+  //     generated, but one misplaced message won't kill anything.
+  //
   else if (recursive_wheel && uMsg == WM_MOUSEWHEEL)
     recursive_wheel = false;
 
 
+
+  //
+  // Squelch input messages that managed to get into the loop without triggering
+  //   filtering logic in the GetMessage (...), PeekMessage (...) and
+  //     DispatchMessage (...) hooks.
+  //
+  //   [ Mostly for EverQuest ]
+  //
   if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture ())
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
@@ -3035,12 +3071,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 
+
   //
   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
   //
-  if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam)) {
+  if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
+  {
     // Block keyboard input to the game while the console is visible
-    if (console_visible /*|| ((! active) && uMsg != WM_SYSKEYDOWN)*/) {
+    if (console_visible)
+    {
       if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
