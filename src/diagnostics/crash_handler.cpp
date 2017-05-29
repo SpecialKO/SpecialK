@@ -31,6 +31,7 @@
 
 #include <Windows.h>
 #include <intsafe.h>
+#include <Shlwapi.h>
 #include <algorithm>
 
 //#define STRICT_COMPLIANCE
@@ -194,6 +195,8 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
+  bool scaleform = false;
+
 #if 1
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
                   SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
@@ -554,6 +557,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         sip.si.Name );
     }
 
+    if (StrStrIA (sip.si.Name, "Scaleform"))
+      scaleform = true;
+
     if (top_func == "")
       top_func = sip.si.Name;
 
@@ -598,7 +604,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
   const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if ((repeated || non_continue)) {
+  if ((repeated || non_continue) && (! scaleform)) {
     SK_AutoClose_Log (crash_log);
 
     last_chance = true;

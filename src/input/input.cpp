@@ -327,9 +327,9 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
 
     // Aw, the game doesn't have any mice -- let's fix that.
     if (raw_mice.size () == 0) {
-      raw_devices.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
-      raw_mice.push_back    (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
-      raw_overrides.mouse.legacy_messages = true;
+      //raw_devices.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
+      //raw_mice.push_back    (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
+      //raw_overrides.mouse.legacy_messages = true;
     }
 
     for (RAWINPUTDEVICE it : raw_mice)
@@ -344,7 +344,7 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
         RegisterRawInputDevices_Original ( &it, 1, sizeof RAWINPUTDEVICE );
       } else {
         different |= (it.dwFlags & RIDEV_NOLEGACY) == 0;
-        it.dwFlags   |= RIDEV_NOLEGACY;
+        it.dwFlags              |= RIDEV_NOLEGACY;
         RegisterRawInputDevices_Original ( &it, 1, sizeof RAWINPUTDEVICE );
       }
     
@@ -378,9 +378,9 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
 
     // Aw, the game doesn't have any mice -- let's fix that.
     if (raw_keyboards.size () == 0) {
-      raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
-      raw_keyboards.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
-      raw_overrides.keyboard.legacy_messages = true;
+      //raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
+      //raw_keyboards.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
+      //raw_overrides.keyboard.legacy_messages = true;
     }
 
     for (auto it : raw_keyboards)
@@ -390,7 +390,7 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
         (it).dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS);
       } else {
         different |= ((it).dwFlags & RIDEV_NOLEGACY) == 0;
-        (it).dwFlags |= RIDEV_NOLEGACY | RIDEV_APPKEYS;
+        (it).dwFlags |=   RIDEV_NOLEGACY | RIDEV_APPKEYS;
       }
 
       overrides.push_back (it);
@@ -406,6 +406,8 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
   {
     if (pDifferent != nullptr)
       *pDifferent = false;
+
+    //(it).dwFlags &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS);
 
     return raw_keyboards;
   }
@@ -685,6 +687,11 @@ RegisterRawInputDevices_pfn RegisterRawInputDevices_Original = nullptr;
 GetRawInputData_pfn         GetRawInputData_Original         = nullptr;
 GetRawInputBuffer_pfn       GetRawInputBuffer_Original       = nullptr;
 
+//
+// This function has never once been encountered after debugging > 100 games,
+//   it is VERY likely this logic is broken since no known game uses RawInput
+//     for buffered reads.
+//
 UINT
 WINAPI
 GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
@@ -937,8 +944,6 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
                                                        //cbData,
                                                          //lpvData );
 
-
-
   if (SUCCEEDED (hr) && lpvData != nullptr)
   {
     if (cbData == sizeof DIJOYSTATE2) 
@@ -960,15 +965,15 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
         memcpy (&last_state, out, cbData);
 
 #if 0
-        DIJOYSTATE2  in  = *out;
+      DIJOYSTATE2  in  = *out;
 
-        for (int i = 0; i < 12; i++) {
-          // Negative values are for axes, we cannot remap those yet
-          if (gamepad.remap.map [ i ] >= 0) {
-            out->rgbButtons [ i ] = 
-              in.rgbButtons [ gamepad.remap.map [ i ] ];
-          }
+      for (int i = 0; i < 12; i++) {
+        // Negative values are for axes, we cannot remap those yet
+        if (gamepad.remap.map [ i ] >= 0) {
+          out->rgbButtons [ i ] = 
+            in.rgbButtons [ gamepad.remap.map [ i ] ];
         }
+      }
 #endif
     }
 
@@ -1031,8 +1036,6 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       }
     }
   }
-
-
 
   return hr;
 }
@@ -2053,12 +2056,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
       if (peek)
       {
         if (lpMsg->message == WM_KEYDOWN || lpMsg->message == WM_SYSKEYDOWN)
-          SK_Console::getInstance ()->KeyDown (lpMsg->wParam & 0xFF, lpMsg->lParam);
+          if (! SK_Console::getInstance ()->KeyDown (lpMsg->wParam & 0xFF, lpMsg->lParam))
+            handled = true;
 
         if (lpMsg->message == WM_KEYUP || lpMsg->message == WM_SYSKEYUP)
-          SK_Console::getInstance ()->KeyUp (lpMsg->wParam & 0xFF, lpMsg->lParam);
+          if (! SK_Console::getInstance ()->KeyUp (lpMsg->wParam & 0xFF, lpMsg->lParam))
+            handled = true;
 
-        if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) || SK_Console::getInstance ()->isVisible ())
+        if (( (! handled) && ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) ) || SK_Console::getInstance ()->isVisible ())
           handled = true;
       }
     } break;
@@ -2100,6 +2105,12 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
         handled = false;
     } break;
 
+    case WM_INPUT:
+    {
+      if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) || SK_Console::getInstance ()->isVisible ())
+        handled = true;
+    } break;
+
     default:
     {
       ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
@@ -2111,6 +2122,8 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
 
 
 #include <SpecialK/input/xinput_hotplug.h>
+
+void SK_Input_Init (void);
 
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
@@ -2182,7 +2195,6 @@ void SK_Input_PreInit (void)
 
   MH_ApplyQueued ();
 
-  void SK_Input_Init (void);
   SK_Input_Init ();
 }
 

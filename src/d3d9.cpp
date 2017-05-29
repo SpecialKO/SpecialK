@@ -176,7 +176,6 @@ SetGammaRamp_pfn         D3D9SetGammaRamp_Original    = nullptr;
 Direct3DCreate9PROC      Direct3DCreate9_Import       = nullptr;
 Direct3DCreate9ExPROC    Direct3DCreate9Ex_Import     = nullptr;
 
-IDirect3DDevice9*        g_pD3D9Dev                   = nullptr;
 D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  0  };
 
 COM_DECLSPEC_NOTHROW
@@ -221,6 +220,7 @@ class SK_D3D9RenderBackend : public SK_IVariableListener
   virtual bool OnVarChange (SK_IVariable* var, void* val)
   {
     if (val != nullptr) {
+#if 0
       if (var == osd_vidcap_) {
         if (*(bool *)val == true) {
           static volatile ULONG __installed_second_hook = FALSE;
@@ -252,6 +252,7 @@ class SK_D3D9RenderBackend : public SK_IVariableListener
 
         return true;
       }
+#endif
     }
     
     return false;
@@ -803,37 +804,6 @@ extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
 }
 
 void
-SK_D3D9_PlaysTV_Hook (void)
-{
-  if (g_pD3D9Dev == nullptr)
-    return;
-
-  static volatile ULONG __installed_second_hook = FALSE;
-
-  if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE)) {
-    D3D9_INTERCEPT_EX ( &g_pD3D9Dev, 17,
-                          "IDirect3DDevice9::Present",
-                          D3D9PresentCallback_Pre,
-                          D3D9Present_Original_Pre,
-                          D3D9PresentDevice_pfn );
-
-    InterlockedExchange (
-      &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
-        TRUE
-    );
-
-    dll_log.Log ( L"[  D3D9  ]  First Present Hook: %p, "
-                             L"Second Present Hook: %p",
-                  D3D9Present_Original,
-                  D3D9Present_Original_Pre );
-
-    if (D3D9Present_Original_Pre != nullptr) {
-      config.render.d3d9.osd_in_vidcap = true;
-    }
-  }
-}
-
-void
 WINAPI
 SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
@@ -842,8 +812,6 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
                  L"Software Vertex Processing Replaced with Mixed-Mode.");
     BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
     BehaviorFlags |=  D3DCREATE_MIXED_VERTEXPROCESSING;
-
-    //SK_D3D9_PlaysTV_Hook ();
   }
 
   if (config.render.d3d9.force_impure)
@@ -960,8 +928,6 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
   if (This == nullptr)
     return E_NOINTERFACE;
 
-  g_pD3D9Dev = This;
-
   //SK_D3D9_UpdateRenderStats (nullptr, This);
 
   SK_BeginBufferSwap ();
@@ -1053,8 +1019,6 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   if (This == nullptr)
     return E_NOINTERFACE;
-
-  g_pD3D9Dev = This;
 
   if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX)
   {

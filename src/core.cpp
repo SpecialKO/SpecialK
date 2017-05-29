@@ -1315,11 +1315,6 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  // Don't let Steam prevent me from attaching a debugger at startup
-  game_debug.init                  (L"logs/game_output.log", L"w");
-  game_debug.lockless = true;
-  SK::Diagnostics::Debugger::Allow ();
-
   // Allow users to centralize all files if they want
   //
   //   Stupid hack, if the application is running with a different working-directory than
@@ -1361,6 +1356,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return true;
     }
   }
+
+  // Don't let Steam prevent me from attaching a debugger at startup
+  game_debug.init                  (L"logs/game_output.log", L"w");
+  game_debug.lockless = true;
+  SK::Diagnostics::Debugger::Allow ();
 
   EnterCriticalSection (&init_mutex);
 

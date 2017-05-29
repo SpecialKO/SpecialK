@@ -11028,25 +11028,30 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self )
 {
+  static HRAWINPUT last_input = 0;
+
+  bool already_processed = (last_input == hRawInput);
+       last_input        =  (! self) ? hRawInput : 0;
+
+
   extern bool SK_ImGui_Visible;
   if (SK_ImGui_Visible)
     SK_RawInput_EnableLegacyMouse  (true);
   else
     SK_RawInput_RestoreLegacyMouse ();
 
-  // This isn't particularly important, we can already translate the
-  //   raw input data into WM_CHAR / WM_UNICHAR messages as need be.
-#if 0
-  if (SK_ImGui_WantKeyboardCapture ())
+  // Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
+  //
+  //if (SK_ImGui_WantKeyboardCapture ())
     SK_RawInput_EnableLegacyKeyboard (true);
-  else
-    SK_RawInput_RestoreLegacyKeyboard ();
-#endif
+  //else
+  //  SK_RawInput_RestoreLegacyKeyboard ();
 
 
 
-  if (GetActiveWindow () != nullptr && GetActiveWindow () != game_window.hWnd)
+  if ( ( GetActiveWindow () != nullptr && GetActiveWindow () != game_window.hWnd ) )
     return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
 
   bool owns_data = false;
 
@@ -11069,7 +11074,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool mouse    = false;
   bool keyboard = false;
 
-  auto FilterRawInput = [self](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
+  auto FilterRawInput = [self,already_processed](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
     bool
       {
         bool filter = false;
@@ -11078,7 +11083,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         {
           case RIM_TYPEMOUSE:
           {
-            if (! self)
+            if ((! self) && uiCommand == RID_INPUT && (! already_processed))
               SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
 
             if (SK_ImGui_Visible)
@@ -11096,12 +11101,28 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           case RIM_TYPEKEYBOARD:
           {
-            if (! self)
+            if ((! self) && uiCommand == RID_INPUT && (! already_processed))
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
 
             USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
 
             bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+
+
+            //
+            // This isn't needed, we have to force legacy message generation on for the Steam Overlay not to
+            //   break Skyrim SE. That means we can always use the game's message pump to get keyboard input
+            //
+
+            //if (foreground && uiCommand == RID_INPUT)
+            //{
+            //  if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+            //    SK_Console::getInstance ()->KeyDown (VKey & 0xFF, MAKELPARAM (0, ((RAWINPUT *)pData)->data.keyboard.MakeCode));
+            //
+            //  else
+            //    SK_Console::getInstance ()->KeyUp   (VKey & 0xFF, MAKELPARAM (0, ((RAWINPUT *)pData)->data.keyboard.MakeCode));
+            //}
+
 
             if (SK_ImGui_Visible)
             {
@@ -11151,7 +11172,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           default:
           {
-            if (! self)
+            if ((! self) && uiCommand == RID_INPUT && (! already_processed))
               SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
 
             // TODO: Determine which controller the input is from
@@ -11172,9 +11193,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
       case RIM_TYPEMOUSE:
       {
         // Don't take mouse button presses while in the background
-        if (GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT)
+        if (GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT && self)
         {
-          if (SK_ImGui_Visible && config.input.mouse.add_relative_motion && self)
+          if (SK_ImGui_Visible && config.input.mouse.add_relative_motion)
           {
             // 99% of games don't need this, and if we use relative motion to update the cursor position that
             //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
@@ -11204,18 +11225,21 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             ImGui::GetIO ().MouseDown [4] = true;
         }
 
-        if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
-          ImGui::GetIO ().MouseDown [0] = false;
-        if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
-          ImGui::GetIO ().MouseDown [1] = false;
-        if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP )
-          ImGui::GetIO ().MouseDown [2] = false;
-        if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP      )
-          ImGui::GetIO ().MouseDown [3] = false;
-        if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
-          ImGui::GetIO ().MouseDown [4] = false;
-        if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
-          ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
+        if (self)
+        {
+          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
+            ImGui::GetIO ().MouseDown [0] = false;
+          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
+            ImGui::GetIO ().MouseDown [1] = false;
+          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP )
+            ImGui::GetIO ().MouseDown [2] = false;
+          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP      )
+            ImGui::GetIO ().MouseDown [3] = false;
+          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
+            ImGui::GetIO ().MouseDown [4] = false;
+          if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
+            ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
+        }
       } break;
 
 
@@ -11225,7 +11249,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
         bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
-        if ( ! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) && (! self) )
+        if ( ! ((((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) && (! self)) )
         {
           if (foreground)
             ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
@@ -11710,7 +11734,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           break;
 
         case RIM_TYPEKEYBOARD:
-          cap = false;
+          cap = SK_Console::getInstance ()->isVisible ();
           //cap &= SK_ImGui_WantKeyboardCapture ();
           break;
 
@@ -11773,18 +11797,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
     if ( keyboard_capture || mouse_capture || filter_raw_input )
     {
-      extern bool nav_usable;
-
-      if ((! keyboard_capture) || nav_usable)
-      {
-        if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
-          SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam);
-      }
-
-      if (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP)
-        SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam);
-      else
-        return 1;
+      return 1;
     }
   }
 

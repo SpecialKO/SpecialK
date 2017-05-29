@@ -445,7 +445,7 @@ public:
           if (var == x_override_) {
             config.window.res.override.x = *(unsigned int *)val;
 
-            // We cannot allow one variable ot remain 0 while the other becomes
+            // We cannot allow one variable to remain 0 while the other becomes
             //   non-zero, so just make the window a square temporarily.
             if (config.window.res.override.y == 0)
               config.window.res.override.y = config.window.res.override.x;
@@ -454,7 +454,7 @@ public:
           else if (var == y_override_) {
             config.window.res.override.y = *(unsigned int *)val;
 
-            // We cannot allow one variable ot remain 0 while the other becomes
+            // We cannot allow one variable to remain 0 while the other becomes
             //   non-zero, so just make the window a square temporarily.
             if (config.window.res.override.x == 0)
               config.window.res.override.x = config.window.res.override.y;
@@ -2466,8 +2466,6 @@ ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 extern void    ImGui_ImplDX11_InvalidateDeviceObjects (void);
 extern bool    ImGui_ImplDX11_CreateDeviceObjects     (void);
-
-#include <dbt.h>
 
 __declspec (noinline)
 LRESULT

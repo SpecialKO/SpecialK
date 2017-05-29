@@ -3034,37 +3034,3 @@ HookD3D11 (LPVOID user)
 
   return 0;
 }
-
-
-HRESULT
-WINAPI
-ReShade_D3D11CreateDevice_Detour (
-  _In_opt_                            IDXGIAdapter         *pAdapter,
-                                      D3D_DRIVER_TYPE       DriverType,
-                                      HMODULE               Software,
-                                      UINT                  Flags,
-  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
-                                      UINT                  FeatureLevels,
-                                      UINT                  SDKVersion,
-  _Out_opt_                           ID3D11Device        **ppDevice,
-  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
-  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
-{
-  return D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags, pFeatureLevels,
-                                                FeatureLevels, SDKVersion, nullptr, nullptr, ppDevice, pFeatureLevel,
-                                                ppImmediateContext );
-}
-
-void
-SK_D3D11_FixReShade (HMODULE hModReShade)
-{
-//  SK_LOG0 ( (L"Fixing Potential ReShade Infinite Recursion (D3D11CreateDevice)"),
-//             L"ReShadeFix" );
-//
-//  LPVOID dontcare = nullptr;
-//
-//  SK_CreateFuncHook (     L"ReShade D3D11CreateDevice",
-//      GetProcAddress (hModReShade, "D3D11CreateDevice"),
-//                     ReShade_D3D11CreateDevice_Detour,
-//                          (LPVOID *)&dontcare );
-}

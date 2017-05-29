@@ -312,15 +312,13 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     // XXX: TODO (Full shutdown isn't necessary, just invalidate)
     ImGui_DX11Shutdown ();
     ImGui_DX11Startup  (This);
+  }
 
-    CComPtr <ID3D11Device> pDev = nullptr;
+  CComPtr <ID3D11Device> pDev = nullptr;
 
-    if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev)))) {
-      extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
-      SK_DXGI_UpdateSwapChain (This);
-    }
-
-    //return;
+  if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev)))) {
+    extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
+    SK_DXGI_UpdateSwapChain (This);
   }
 
   //if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 2)
@@ -572,7 +570,6 @@ extern int                      gpu_prio;
 
 bool             bAlwaysAllowFullscreen = false;
 HWND             hWndRender             = 0;
-IDXGISwapChain*  g_pDXGISwap            = nullptr;
 
 bool bFlipMode = false;
 bool bWait     = false;
@@ -1852,8 +1849,6 @@ extern "C" {
   {
     SK_LOG_ONCE (L"Present1");
 
-    g_pDXGISwap = This;
-
     //
     // Early-out for games that use testing to minimize blocking
     //
@@ -1965,8 +1960,6 @@ extern "C" {
                                        UINT            Flags)
   {
     //dll_log.Log (L"SWAP %x, %lu, %p", Flags, SyncInterval, This);
-
-    g_pDXGISwap = This;
 
     //
     // Early-out for games that use testing to minimize blocking

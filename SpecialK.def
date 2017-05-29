@@ -605,7 +605,6 @@ SKX_RemoveCBTHook            = SKX_RemoveCBTHook              PRIVATE
 SKX_IsHookingCBT             = SKX_IsHookingCBT               PRIVATE
 
 g_hHookCBT                   = g_hHookCBT       DATA
-g_uiBroadcastMsg             = g_uiBroadcastMsg DATA
 
 SECTIONS
 

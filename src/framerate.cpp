@@ -23,6 +23,7 @@
 #include <Windows.h>
 
 #include <SpecialK/framerate.h>
+#include <SpecialK/render_backend.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
@@ -33,9 +34,6 @@
 #include <d3d9.h>
 #include <d3d11.h>
 #include <atlbase.h>
-
-extern IDirect3DDevice9 *g_pD3D9Dev;
-extern IDXGISwapChain   *g_pDXGISwap;
 
 LPVOID pfnQueryPerformanceCounter = nullptr;
 LPVOID pfnSleep                   = nullptr;
@@ -167,9 +165,9 @@ SK_D3D9_GetTimingDevice (void)
   if (! config.render.framerate.wait_for_vblank)
     return nullptr;
 
-  static IDirect3DDevice9Ex* pTimingDevice = (IDirect3DDevice9Ex*)-1;
+  static IDirect3DDevice9Ex* pTimingDevice = (IDirect3DDevice9Ex *)-1;
 
-  if (pTimingDevice == (IDirect3DDevice9Ex*)-1)
+  if (pTimingDevice == (IDirect3DDevice9Ex *)-1)
   {
     CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
@@ -239,33 +237,44 @@ SK::Framerate::Limiter::init (double target)
 
   frames = 0;
 
-  CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
+  CComPtr <IDirect3DDevice9Ex> d3d9ex      = nullptr;
+  CComPtr <IDXGISwapChain>     dxgi_swap   = nullptr;
+  CComPtr <IDXGIOutput>        dxgi_output = nullptr;
 
-  // D3D9
-  if (g_pD3D9Dev != nullptr) {
-    g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
-
-    // Align the start to VBlank for minimum input latency
-    if (d3d9ex != nullptr || (d3d9ex = SK_D3D9_GetTimingDevice ()))
+  switch (SK_GetCurrentRenderBackend ().api)
+  {
+    case SK_RenderAPI::D3D10:
+    case SK_RenderAPI::D3D11:
+    case SK_RenderAPI::D3D12:
     {
-      d3d9ex->SetMaximumFrameLatency (1);
-      d3d9ex->WaitForVBlank          (0);
-      d3d9ex->SetMaximumFrameLatency (
-        config.render.framerate.pre_render_limit == -1 ?
-             2 : config.render.framerate.pre_render_limit );
-    }
-  }
+      if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
+      {
+        if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
+        {
+          if (SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)))
+          {
+            dxgi_output->WaitForVBlank ();
+          }
+        }
+      }
+    } break;
 
-  CComPtr <IDXGISwapChain> dxgi_swap = nullptr;
+    case SK_RenderAPI::D3D9:
+    case SK_RenderAPI::D3D9Ex:
+    {
+      if (SK_GetCurrentRenderBackend ().device != nullptr)
+      {
+        SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
 
-  // D3D11
-  if (g_pDXGISwap != nullptr) {
-    g_pDXGISwap->QueryInterface ( IID_PPV_ARGS (&dxgi_swap) );
-
-    if (dxgi_swap != nullptr) {
-      CComPtr <IDXGIOutput> output = nullptr;
-      if (SUCCEEDED (dxgi_swap->GetContainingOutput (&output))) {
-        output->WaitForVBlank ();
+        // Align the start to VBlank for minimum input latency
+        if (d3d9ex != nullptr || (d3d9ex = SK_D3D9_GetTimingDevice ()))
+        {
+          d3d9ex->SetMaximumFrameLatency (1);
+          d3d9ex->WaitForVBlank          (0);
+          d3d9ex->SetMaximumFrameLatency (
+            config.render.framerate.pre_render_limit == -1 ?
+                 2 : config.render.framerate.pre_render_limit );
+        }
       }
     }
   }
@@ -357,46 +366,61 @@ SK::Framerate::Limiter::wait (void)
       ( ((double)start.QuadPart + (double)frames * (ms / 1000.0) * (double)freq.QuadPart) )
     );
 
-  if (next.QuadPart > 0ULL) {
+  if (next.QuadPart > 0ULL)
+  {
     // If available (Windows 7+), wait on the swapchain
     CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
 
-    // D3D9Ex
-    if (g_pD3D9Dev != nullptr)
-    {
-      static IDirect3DDevice9Ex* pDev9Ex = (IDirect3DDevice9Ex *)-1;
-
-      if (FAILED (g_pD3D9Dev->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
-      {
-        d3d9ex = SK_D3D9_GetTimingDevice ();
-      }
-    }
-
+    // D3D10/11/12
     CComPtr <IDXGISwapChain> dxgi_swap   = nullptr;
     CComPtr <IDXGIOutput>    dxgi_output = nullptr;
 
-    // D3D10/11/12
-    if (g_pDXGISwap != nullptr) {
-      if (SUCCEEDED (g_pDXGISwap->QueryInterface ( IID_PPV_ARGS (&dxgi_swap) ))) {
-        dxgi_swap->GetContainingOutput (&dxgi_output);
+    if (config.render.framerate.wait_for_vblank)
+    {
+      switch (SK_GetCurrentRenderBackend ().api)
+      {
+        case SK_RenderAPI::D3D10:
+        case SK_RenderAPI::D3D11:
+        case SK_RenderAPI::D3D12:
+        {
+          if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
+          {
+            if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
+            {
+              dxgi_swap->GetContainingOutput (&dxgi_output);
+            }
+          }
+        } break;
+
+        case SK_RenderAPI::D3D9:
+        case SK_RenderAPI::D3D9Ex:
+        {
+          if (SK_GetCurrentRenderBackend ().device != nullptr)
+          {
+            if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
+            {
+              d3d9ex = SK_D3D9_GetTimingDevice ();
+            }
+          }
+        }
       }
     }
 
     const float target_ms = target_fps / 1000.0f;
 
-    while (time.QuadPart < next.QuadPart) {
+    while (time.QuadPart < next.QuadPart)
+    {
 #if 0
       if ((double)(next.QuadPart - time.QuadPart) > (0.0166667 * (double)freq.QuadPart))
         Sleep (10);
 #else
-      if (config.render.framerate.wait_for_vblank && (double)(next.QuadPart - time.QuadPart) > (0.001 * (1000.0 / target_fps) * (double)freq.QuadPart) * 0.555
-)
+      if (config.render.framerate.wait_for_vblank && (double)(next.QuadPart - time.QuadPart) > (0.001 * (1000.0 / target_fps) * (double)freq.QuadPart) * 0.555)
       {
-        if (d3d9ex != nullptr) {
+        if (d3d9ex != nullptr)
           d3d9ex->WaitForVBlank (0);
-        } else if (dxgi_output != nullptr) {
+
+        else if (dxgi_output != nullptr)
           dxgi_output->WaitForVBlank ();
-        }
       }
 #endif
 

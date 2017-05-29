@@ -1,3 +1,12 @@
+0.8.12.3:
+ + Improved global injection startup/shutdown reliability
+ + Fixed game_output.log being saved to the wrong location when using the
+     global injector.
+ + Fixed legacy keyboard input in Steam overlay in Skyrim: Special Edition
+ + Fixed legacy mouse input after Alt+Tab in EverQuest
+ + Switched framerate limiter over to new render backend system; WaitForVBLANK
+     may not function correctly in some D3D9Ex games.
+
 0.8.12.2:
  + Added a D3D9 ForceWindowed override to SpecialK.ini
  + Fixed SteamAPI exception handling in 32-bit ABI (Steam overlay callback)
@@ -6,7 +15,7 @@
 
 0.8.12.1:
  + Added 1.5 second delay unload for blacklisted applications to prevent performance
-     problems when the CBT hook inevitbly tries to re-inject the DLL.
+     problems when the CBT hook inevitably tries to re-inject the DLL.
 
 0.8.12:
  + Removed legacy command console code (low-level keyboard hook, message pump)

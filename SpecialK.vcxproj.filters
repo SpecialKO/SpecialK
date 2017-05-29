@@ -428,9 +428,6 @@
     <ClCompile Include="src\config.cpp">
       <Filter>Source Files\Config</Filter>
     </ClCompile>
-    <ClCompile Include="src\import.cpp">
-      <Filter>Source Files\Config</Filter>
-    </ClCompile>
     <ClCompile Include="src\console.cpp">
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
@@ -562,6 +559,9 @@
     </ClCompile>
     <ClCompile Include="src\d3d8.cpp">
       <Filter>Source Files\Backends\Render\D3D8</Filter>
+    </ClCompile>
+    <ClCompile Include="src\import.cpp">
+      <Filter>Source Files\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

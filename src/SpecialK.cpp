@@ -725,7 +725,7 @@ DllMain ( HMODULE hModule,
 
       if (ret)
       {
-        ret = SK_Attach (SK_GetDLLRole ());
+        SK_Attach (SK_GetDLLRole ());
       }
 
       return TRUE;
