@@ -1015,6 +1015,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
       //dll_log.Log (L"Mouse");
 
+      //((DIMOUSESTATE *)lpvData)->lZ += InterlockedAdd      (&SK_Input_GetDI8Mouse ()->delta_z, 0);
+                                       //InterlockedExchange (&SK_Input_GetDI8Mouse ()->delta_z, 0);
+
       if (SK_ImGui_WantMouseCapture ())
       {
         switch (cbData)
@@ -1960,7 +1963,7 @@ GetAsyncKeyState_Detour (_In_ int vKey)
   if (config.window.background_render && (! game_window.active))
     SK_ConsumeVKey (vKey);
 
-  if (vKey >= 5)
+  if ((vKey & 0xFF) >= 5)
   {
     if (SK_ImGui_WantKeyboardCapture ())
       SK_ConsumeVKey (vKey);
@@ -1992,7 +1995,7 @@ GetKeyState_Detour (_In_ int nVirtKey)
   if (config.window.background_render && (! game_window.active))
     SK_ConsumeVirtKey (nVirtKey);
 
-  if (nVirtKey >= 5)
+  if ((nVirtKey & 0xFF) >= 5)
   {
     if (SK_ImGui_WantKeyboardCapture ())
       SK_ConsumeVirtKey (nVirtKey);
@@ -2062,10 +2065,10 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
         if (lpMsg->message == WM_KEYUP || lpMsg->message == WM_SYSKEYUP)
           if (! SK_Console::getInstance ()->KeyUp (lpMsg->wParam & 0xFF, lpMsg->lParam))
             handled = true;
-
-        if (( (! handled) && ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) ) || SK_Console::getInstance ()->isVisible ())
-          handled = true;
       }
+
+      if (( (! handled) && ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) ) || SK_Console::getInstance ()->isVisible ())
+        handled = true;
     } break;
 
     case WM_SETCURSOR:
@@ -2096,6 +2099,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
 
     case WM_MOUSEMOVE:
     case WM_MOUSEWHEEL:
+    case WM_MOUSEHWHEEL:
     {
       handled = true;
 

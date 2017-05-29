@@ -233,7 +233,7 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
 void
 SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState)
 {
-  if (dwRet == ERROR_SUCCESS)
+  if (dwRet == ERROR_SUCCESS && dwUserIndex >= 0 && dwUserIndex <= 3)
   {
     if ( packets [dwUserIndex].sequence.last !=
          pState->dwPacketNumber )

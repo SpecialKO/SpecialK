@@ -42,14 +42,18 @@
 
 #include <SpecialK/tls.h>
 
+
+// Fix that stupid macro that redirects to Unicode/ANSI
 #undef LoadLibrary
 
 // Don't EVER make these function calls from this code unit.
 #define LoadLibrary int x = __stdcall;
 #define FreeLibrary int x = __stdcall;
 
+
 // We need this to load embedded resources correctly...
-volatile HMODULE hModSelf          = 0;
+volatile HMODULE hModSelf              = 0;
+
 
 volatile ULONG   __SK_DLL_Attached     = FALSE;
 volatile ULONG   __SK_Threads_Attached = 0;
@@ -58,11 +62,13 @@ volatile DWORD   __SK_TLS_INDEX        = MAXDWORD;
 volatile ULONG   __SK_DLL_Ending       = FALSE;
 volatile ULONG   __SK_HookContextOwner = FALSE;
 
+
 CRITICAL_SECTION init_mutex    = { 0 };
 CRITICAL_SECTION budget_mutex  = { 0 };
 CRITICAL_SECTION loader_lock   = { 0 };
 CRITICAL_SECTION wmi_cs        = { 0 };
 CRITICAL_SECTION cs_dbghelp    = { 0 };
+
 
 SK_TLS*
 __stdcall
@@ -74,11 +80,13 @@ SK_GetTLS (void)
   LPVOID lpvData =
     TlsGetValue (__SK_TLS_INDEX);
 
-  if (lpvData == nullptr) {
+  if (lpvData == nullptr)
+  {
     lpvData =
       (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
 
-    if (! TlsSetValue (__SK_TLS_INDEX, lpvData)) {
+    if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+    {
       LocalFree (lpvData);
       return nullptr;
     }
@@ -86,6 +94,7 @@ SK_GetTLS (void)
 
   return (SK_TLS *)lpvData;
 }
+
 
 bool
 __stdcall
@@ -113,17 +122,127 @@ SK_GetDLL (void)
 
 #include <unordered_set>
 
+
+extern void
+__stdcall
+SK_EstablishRootPath (void);
+
+static std::unordered_set <std::wstring> blacklist;
+
 bool
 __stdcall
 SK_EstablishDllRole (HMODULE hModule)
 {
+  SK_SetDLLRole (DLL_ROLE::INVALID);
+
   // Holy Rusted Metal Batman !!!
   //---------------------------------------------------------------------------
   //
   //  * <Black Lists Matter> *
   //
   //___________________________________________________________________________
-  std::unordered_set <std::wstring> blacklist;
+
+  //
+  // Init Once ===> C++14 allows constexpr hashtables, use those instead dummy!
+  //
+  if (blacklist.size () == 0)
+  {
+    // Steam-Specific Stuff
+    blacklist.emplace (L"steam.exe");
+    blacklist.emplace (L"GameOverlayUI.exe");
+    blacklist.emplace (L"streaming_client.exe");
+    blacklist.emplace (L"steamerrorreporter.exe");
+    blacklist.emplace (L"steamerrorreporter64.exe");
+    blacklist.emplace (L"steamservice.exe");
+    blacklist.emplace (L"steam_monitor.exe");
+    blacklist.emplace (L"steamwebhelper.exe");
+    blacklist.emplace (L"html5app_steam.exe");
+    blacklist.emplace (L"wow_helper.exe");
+    blacklist.emplace (L"uninstall.exe");
+
+    // Crash Helpers
+    blacklist.emplace (L"WriteMiniDump.exe");
+    blacklist.emplace (L"CrashReporter.exe");
+    blacklist.emplace (L"SupportTool.exe");
+    blacklist.emplace (L"CrashSender1400.exe");
+    blacklist.emplace (L"WerFault.exe");
+
+    // Runtime Installers
+    blacklist.emplace (L"DXSETUP.exe");
+    blacklist.emplace (L"setup.exe");
+    blacklist.emplace (L"vc_redist.x64.exe");
+    blacklist.emplace (L"vc_redist.x86.exe");
+    blacklist.emplace (L"vc2010redist_x64.exe");
+    blacklist.emplace (L"vc2010redist_x86.exe");
+    blacklist.emplace (L"vcredist_x64.exe");
+    blacklist.emplace (L"vcredist_x86.exe");
+    blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
+    blacklist.emplace (L"dotnetfx35.exe");
+    blacklist.emplace (L"DotNetFx35Client.exe");
+    blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
+    blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
+    blacklist.emplace (L"oalinst.exe");
+    blacklist.emplace (L"EasyAntiCheat_Setup.exe");
+    blacklist.emplace (L"UplayInstaller.exe");
+
+    // Launchers
+    blacklist.emplace (L"x64launcher.exe");
+    blacklist.emplace (L"x86launcher.exe");
+    blacklist.emplace (L"Launcher.exe");
+    blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
+    blacklist.emplace (L"Fallout4Launcher.exe");
+    blacklist.emplace (L"SkyrimSELauncher.exe");
+    blacklist.emplace (L"ModLauncher.exe");
+    blacklist.emplace (L"AkibaUU_Config.exe");
+    blacklist.emplace (L"Obduction.exe");
+    blacklist.emplace (L"Grandia2Launcher.exe");
+    blacklist.emplace (L"FFXiii2Launcher.exe");
+    blacklist.emplace (L"Bethesda.net_Launcher.exe");
+    blacklist.emplace (L"UbisoftGameLauncher.exe");
+    blacklist.emplace (L"UbisoftGameLauncher64.exe");
+    blacklist.emplace (L"SplashScreen.exe");
+    blacklist.emplace (L"GameLauncherCefChildProcess.exe");
+    blacklist.emplace (L"LaunchPad.exe");
+    blacklist.emplace (L"CNNLauncher.exe");
+
+    // Other Stuff
+    blacklist.emplace (L"ActivationUI.exe");
+    blacklist.emplace (L"zosSteamStarter.exe");
+    blacklist.emplace (L"notepad.exe");
+    blacklist.emplace (L"7zFM.exe");
+    blacklist.emplace (L"WinRar.exe");
+    blacklist.emplace (L"EAC.exe");
+    blacklist.emplace (L"vcpkgsrv.exe");
+    blacklist.emplace (L"dllhost.exe");
+    blacklist.emplace (L"git.exe");
+    blacklist.emplace (L"link.exe");
+    blacklist.emplace (L"cl.exe");
+    blacklist.emplace (L"rc.exe");
+    blacklist.emplace (L"conhost.exe");
+    blacklist.emplace (L"GameBarPresenceWriter.exe");
+    blacklist.emplace (L"OAWrapper.exe");
+    blacklist.emplace (L"NvOAWrapperCache.exe");
+
+    blacklist.emplace (L"sihost.exe");
+    blacklist.emplace (L"explorer.exe");
+    blacklist.emplace (L"browser_broker.exe");
+    blacklist.emplace (L"dwm.exe");
+    blacklist.emplace (L"LaunchTM.exe");
+
+    // Misc. Tools
+    blacklist.emplace (L"SleepOnLan.exe");
+    //blacklist.emplace (L"ds3t.exe");
+    //blacklist.emplace (L"tzt.exe");
+  }
+
+
+  // If Blacklisted, Bail-Out
+  if (blacklist.count (std::wstring (SK_GetHostApp ())))
+  {
+    SK_SetDLLRole (DLL_ROLE::INVALID);
+
+    return false;
+  }
 
   wchar_t wszDllFullName [  MAX_PATH  ] = { L'\0' };
           wszDllFullName [MAX_PATH - 1] =   L'\0';
@@ -154,11 +273,12 @@ SK_EstablishDllRole (HMODULE hModule)
   //
   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
   {
-    SK_IsInjected (true);
+    SK_IsInjected (true); // SET the injected state
 
     config.system.central_repository = true;
 
     bool explicit_inject = false;
+
 
     wchar_t wszD3D9  [MAX_PATH] = { L'\0' };
     wchar_t wszD3D8  [MAX_PATH] = { L'\0' };
@@ -180,6 +300,7 @@ SK_EstablishDllRole (HMODULE hModule)
 
     lstrcatW (wszGL,   SK_GetHostPath ());
     lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
+
 
     if      ( GetFileAttributesW (wszD3D9) != INVALID_FILE_ATTRIBUTES ) {
       SK_SetDLLRole (DLL_ROLE::D3D9);
@@ -210,18 +331,17 @@ SK_EstablishDllRole (HMODULE hModule)
     if (! explicit_inject)
     {
       // Skip lengthy tests if we already have the wrapper version loaded.
-      if ( SK_IsDLLSpecialK (L"d3d9.dll") || SK_IsDLLSpecialK (L"dxgi.dll") || SK_IsDLLSpecialK (L"OpenGL32.dll") ||
-           SK_IsDLLSpecialK (L"d3d8.dll") || SK_IsDLLSpecialK (L"ddraw.dll") ) {
+      if ( SK_IsDLLSpecialK (L"d3d9.dll")     || SK_IsDLLSpecialK (L"dxgi.dll") ||
+           SK_IsDLLSpecialK (L"OpenGL32.dll") ||
+           SK_IsDLLSpecialK (L"d3d8.dll")     || SK_IsDLLSpecialK (L"ddraw.dll") )
+      {
         SK_SetDLLRole (DLL_ROLE::INVALID);
         return false;
       }
 
-      extern void
-      __stdcall
-      SK_EstablishRootPath (void);
       SK_EstablishRootPath ();
+      SK_LoadConfigEx      (L"SpecialK", false);
 
-      SK_LoadConfigEx (L"SpecialK", false);
 
       sk_import_test_s steam_tests [] = {
 #ifdef _WIN64
@@ -233,6 +353,7 @@ SK_EstablishDllRole (HMODULE hModule)
       };
 
       SK_TestImports ( GetModuleHandle (nullptr), steam_tests, 2 );
+
 
       DWORD   dwProcessSize = MAX_PATH;
       wchar_t wszProcessName [MAX_PATH] = { L'\0' };
@@ -246,9 +367,12 @@ SK_EstablishDllRole (HMODULE hModule)
         ( steam_tests [0].used | steam_tests [1].used ) ||
            SK_Path_wcsstr (wszProcessName, L"steamapps");
 
+
+      // If this is a Steamworks game, then let's figure out the graphics API dynamically
       if (is_steamworks_game)
       {
-        bool gl = false, vulkan = false, d3d9 = false, d3d11 = false, dxgi = false, d3d8 = false, ddraw = false, glide = false;
+        bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
+             dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
         SK_TestRenderImports (
           GetModuleHandle (nullptr),
@@ -260,7 +384,13 @@ SK_EstablishDllRole (HMODULE hModule)
 
         gl     |= (GetModuleHandle (L"OpenGL32.dll") != nullptr);
         d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
-        //dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr);
+
+        //
+        // Not specific enough; some engines will pull in DXGI even if they
+        //   do not use D3D10/11/12/D2D/DWrite
+        //
+        //dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr); 
+
         d3d11  |= (GetModuleHandle (L"d3d11.dll")    != nullptr);
         d3d8   |= (GetModuleHandle (L"d3d8.dll")     != nullptr);
         ddraw  |= (GetModuleHandle (L"ddraw.dll")    != nullptr);
@@ -309,6 +439,7 @@ SK_EstablishDllRole (HMODULE hModule)
         else if (config.apis.Vulkan.hook && vulkan)
           SK_SetDLLRole (DLL_ROLE::Vulkan);
 
+
         // No Freaking Clue What API This is, Let's use the config file to
         //   filter out any APIs the user knows are not valid.
         else
@@ -332,135 +463,30 @@ SK_EstablishDllRole (HMODULE hModule)
 
         // This time, save the config file
         SK_LoadConfig (L"SpecialK");
-      }
 
-      else
-      {
-        SK_SetDLLRole (DLL_ROLE::INVALID);
-        return false;
+        return true;
       }
     }
-
-  // Steam-Specific Stuff
-  blacklist.emplace (L"steam.exe");
-  blacklist.emplace (L"GameOverlayUI.exe");
-  blacklist.emplace (L"streaming_client.exe");
-  blacklist.emplace (L"steamerrorreporter.exe");
-  blacklist.emplace (L"steamerrorreporter64.exe");
-  blacklist.emplace (L"steamservice.exe");
-  blacklist.emplace (L"steam_monitor.exe");
-  blacklist.emplace (L"steamwebhelper.exe");
-  blacklist.emplace (L"html5app_steam.exe");
-  blacklist.emplace (L"wow_helper.exe");
-  blacklist.emplace (L"uninstall.exe");
-
-  // Crash Helpers
-  blacklist.emplace (L"WriteMiniDump.exe");
-  blacklist.emplace (L"CrashReporter.exe");
-  blacklist.emplace (L"SupportTool.exe");
-  blacklist.emplace (L"CrashSender1400.exe");
-  blacklist.emplace (L"WerFault.exe");
-
-  // Runtime Installers
-  blacklist.emplace (L"DXSETUP.exe");
-  blacklist.emplace (L"setup.exe");
-  blacklist.emplace (L"vc_redist.x64.exe");
-  blacklist.emplace (L"vc_redist.x86.exe");
-  blacklist.emplace (L"vc2010redist_x64.exe");
-  blacklist.emplace (L"vc2010redist_x86.exe");
-  blacklist.emplace (L"vcredist_x64.exe");
-  blacklist.emplace (L"vcredist_x86.exe");
-  blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
-  blacklist.emplace (L"dotnetfx35.exe");
-  blacklist.emplace (L"DotNetFx35Client.exe");
-  blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
-  blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
-  blacklist.emplace (L"oalinst.exe");
-  blacklist.emplace (L"EasyAntiCheat_Setup.exe");
-  blacklist.emplace (L"UplayInstaller.exe");
-
-  // Launchers
-  blacklist.emplace (L"x64launcher.exe");
-  blacklist.emplace (L"x86launcher.exe");
-  blacklist.emplace (L"Launcher.exe");
-  blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
-  blacklist.emplace (L"Fallout4Launcher.exe");
-  blacklist.emplace (L"SkyrimSELauncher.exe");
-  blacklist.emplace (L"ModLauncher.exe");
-  blacklist.emplace (L"AkibaUU_Config.exe");
-  blacklist.emplace (L"Obduction.exe");
-  blacklist.emplace (L"Grandia2Launcher.exe");
-  blacklist.emplace (L"FFXiii2Launcher.exe");
-  blacklist.emplace (L"Bethesda.net_Launcher.exe");
-  blacklist.emplace (L"UbisoftGameLauncher.exe");
-  blacklist.emplace (L"UbisoftGameLauncher64.exe");
-  blacklist.emplace (L"SplashScreen.exe");
-  blacklist.emplace (L"GameLauncherCefChildProcess.exe");
-  blacklist.emplace (L"LaunchPad.exe");
-  blacklist.emplace (L"CNNLauncher.exe");
-
-  // Other Stuff
-  blacklist.emplace (L"ActivationUI.exe");
-  blacklist.emplace (L"zosSteamStarter.exe");
-  blacklist.emplace (L"notepad.exe");
-  blacklist.emplace (L"7zFM.exe");
-  blacklist.emplace (L"WinRar.exe");
-  blacklist.emplace (L"EAC.exe");
-  blacklist.emplace (L"vcpkgsrv.exe");
-  blacklist.emplace (L"dllhost.exe");
-  blacklist.emplace (L"git.exe");
-  blacklist.emplace (L"link.exe");
-  blacklist.emplace (L"cl.exe");
-  blacklist.emplace (L"rc.exe");
-  blacklist.emplace (L"conhost.exe");
-  blacklist.emplace (L"GameBarPresenceWriter.exe");
-  blacklist.emplace (L"OAWrapper.exe");
-  blacklist.emplace (L"NvOAWrapperCache.exe");
-
-  blacklist.emplace (L"sihost.exe");
-  blacklist.emplace (L"explorer.exe");
-  blacklist.emplace (L"browser_broker.exe");
-  blacklist.emplace (L"dwm.exe");
-  blacklist.emplace (L"LaunchTM.exe");
-
-  // Misc. Tools
-  blacklist.emplace (L"SleepOnLan.exe");
-  //blacklist.emplace (L"ds3t.exe");
-  //blacklist.emplace (L"tzt.exe");
-
-  // If Blacklisted, Bail-Out
-  if (blacklist.count (std::wstring (SK_GetHostApp ())))
-  {
-    //FreeLibrary (SK_GetDLL ());
-    CreateThread (nullptr, 0, [](LPVOID user) ->
-                        DWORD {
-                          DWORD dwTime = timeGetTime ();
-
-                          while (timeGetTime () < dwTime + 1500UL)
-                            Sleep (100UL);
-
-                          FreeLibraryAndExitThread (SK_GetDLL (), 0x00);
-
-                          return 0;
-                        }, nullptr, 0x00, nullptr );
-    return false;
   }
 
+  if (SK_GetDLLRole () != DLL_ROLE::INVALID)
     return true;
-  }
 
-  else {
-    SK_SetDLLRole (DLL_ROLE::INVALID);
-    return false;
-  }
-
-  return true;
+  return false;
 }
 
 BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
+  auto DontInject = [] (void) ->
+    BOOL
+      {
+        SK_SetDLLRole (DLL_ROLE::INVALID);
+        return FALSE;
+      };
+
+
   if (! InterlockedCompareExchangeAcquire (
           &__SK_DLL_Attached,
             FALSE,
@@ -481,8 +507,7 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
         {
-          SK_SetDLLRole (DLL_ROLE::INVALID);
-          return FALSE;
+          return DontInject ();
         }
 
         InterlockedCompareExchange (
@@ -490,13 +515,7 @@ SK_Attach (DLL_ROLE role)
             SK::DXGI::Startup (),
               FALSE
         );
-
-        return
-          InterlockedExchangeAddRelease (
-            &__SK_DLL_Attached,
-              1
-          );
-      }
+      } break;
 
       case DLL_ROLE::D3D9:
       {
@@ -504,8 +523,7 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
         {
-          SK_SetDLLRole (DLL_ROLE::INVALID);
-          return FALSE;
+          return DontInject ();
         }
 
         InterlockedCompareExchange (
@@ -513,13 +531,7 @@ SK_Attach (DLL_ROLE role)
             SK::D3D9::Startup (),
               FALSE
         );
-
-        return
-          InterlockedExchangeAddRelease (
-            &__SK_DLL_Attached,
-              1
-          );
-      }
+      } break;
 
       case DLL_ROLE::D3D8:
       {
@@ -527,8 +539,7 @@ SK_Attach (DLL_ROLE role)
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
         {
-          SK_SetDLLRole (DLL_ROLE::INVALID);
-          return FALSE;
+          return DontInject ();
         }
 
         InterlockedCompareExchange (
@@ -536,26 +547,18 @@ SK_Attach (DLL_ROLE role)
             SK::D3D8::Startup (),
               FALSE
         );
-
-        return
-          InterlockedExchangeAddRelease (
-            &__SK_DLL_Attached,
-              1
-          );
-      }
+      } break;
 
       // TODO: DDraw and Glide
 
 
-#ifndef SK_BUILD__INSTALLER
       case DLL_ROLE::OpenGL:
       {
         // If this is the global injector and there is a wrapper version
         //   of Special K in the DLL search path, then bail-out!
         if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
         {
-          SK_SetDLLRole (DLL_ROLE::INVALID);
-          return FALSE;
+          return DontInject ();
         }
 
         InterlockedCompareExchange (
@@ -563,24 +566,22 @@ SK_Attach (DLL_ROLE role)
             SK::OpenGL::Startup (),
               FALSE
         );
-
-        return
-          InterlockedExchangeAddRelease (
-            &__SK_DLL_Attached,
-              1
-          );
-      }
-#endif
+      } break;
 
       case DLL_ROLE::Vulkan:
-        SK_SetDLLRole (DLL_ROLE::INVALID);
-        return FALSE;
-        break;
+      {
+        return DontInject ();
+      } break;
     }
+
+    return
+      InterlockedExchangeAddRelease (
+        &__SK_DLL_Attached,
+          1
+      );
   }
 
-  SK_SetDLLRole (DLL_ROLE::INVALID);
-  return FALSE;
+  return DontInject ();
 }
 
 BOOL
@@ -598,7 +599,6 @@ SK_Detach (DLL_ROLE role)
          )
      )
   {
-    
     switch (role)
     {
       case DLL_ROLE::DXGI:
@@ -613,13 +613,12 @@ SK_Detach (DLL_ROLE role)
         ret = SK::D3D8::Shutdown ();
         break;
 
-#ifndef SK_BUILD__INSTALLER
       case DLL_ROLE::OpenGL:
         ret = SK::OpenGL::Shutdown ();
         break;
-#endif
 
       case DLL_ROLE::Vulkan:
+        ret = TRUE;
         break;
     }
 
@@ -638,10 +637,6 @@ SK_Detach (DLL_ROLE role)
 }
 
 
-extern "C" __declspec (dllexport)
-bool
-__stdcall
-SKX_IsProcessHooked (DWORD dwPid);
 
 
 BOOL
@@ -669,10 +664,14 @@ DllMain ( HMODULE hModule,
       //          0xc0000142
       //
       if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
+      {
         return FALSE;
+      }
+
 
       ULONG                     local_refs =
           InterlockedIncrement (&__SK_DLL_Refs);
+
 
 #ifdef _WIN64
       if (GetModuleHandle (L"SpecialK64.dll") == hModSelf)
@@ -680,18 +679,29 @@ DllMain ( HMODULE hModule,
       if (GetModuleHandle (L"SpecialK32.dll") == hModSelf)
 #endif
       {
-        if ( StrStrIW (SK_GetHostApp (), L"SKIM")     ||
-             StrStrIW (SK_GetHostApp (), L"rundll32") ||
-             StrStrIW (SK_GetHostApp (), L"SKInject") )
+        if ( StrStrIW (SK_GetHostApp (), L"SKIM") ||
+             StrStrIW (SK_GetHostApp (), L"rundll32") )
+        {
           return TRUE;
+        }
       }
 
+
+      // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
+
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
+      {
         return TRUE;
+        // ^^^ Obviously that's not exactly "denying" anything; the DLL will
+        //       be placed onto a queue for later unload. This prevents the
+        //         global injector from repeatedly re-injecting and killing
+        //           performance.
+      }
+
 
       SK_Init_MinHook ();
 
@@ -709,11 +719,13 @@ DllMain ( HMODULE hModule,
              *(pwszShortName - 1) != L'\\')
         --pwszShortName;
 
+
       BOOL ret = TRUE;
 
       __SK_TLS_INDEX = TlsAlloc ();
 
-      if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES) {
+      if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
+      {
         ret = FALSE;
 
         MessageBox ( NULL,
@@ -725,7 +737,7 @@ DllMain ( HMODULE hModule,
 
       if (ret)
       {
-        SK_Attach (SK_GetDLLRole ());
+        return SK_Attach (SK_GetDLLRole ());
       }
 
       return TRUE;
@@ -734,10 +746,13 @@ DllMain ( HMODULE hModule,
 
     case DLL_PROCESS_DETACH:
     {
+      // If the DLL being unloaded is the source of a CBT hook, then
+      //   shut that down before detaching the DLL.
       if (InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
       {
         SKX_RemoveCBTHook ();
 
+        // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
         if (! InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
         {
 #ifdef _WIN64
@@ -747,6 +762,7 @@ DllMain ( HMODULE hModule,
 #endif
         }
       }
+
 
       if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
       {
@@ -779,9 +795,12 @@ DllMain ( HMODULE hModule,
         LPVOID lpvData =
           (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
 
-        if (lpvData != nullptr) {
+        if (lpvData != nullptr)
+        {
           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+          {
             LocalFree (lpvData);
+          }
         }
       }
     } break;
@@ -794,7 +813,8 @@ DllMain ( HMODULE hModule,
         LPVOID lpvData =
           (LPVOID)TlsGetValue (__SK_TLS_INDEX);
 
-        if (lpvData != nullptr) {
+        if (lpvData != nullptr)
+        {
           LocalFree   (lpvData);
           TlsSetValue (__SK_TLS_INDEX, nullptr);
         }

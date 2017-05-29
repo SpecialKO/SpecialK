@@ -243,6 +243,7 @@ struct {
     sk::ParameterBool*    no_warp_ui;
     sk::ParameterBool*    no_warp_visible;
     sk::ParameterBool*    block_invisible;
+    sk::ParameterBool*    fix_synaptics;
   } cursor;
 
   struct {
@@ -555,6 +556,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Cursor",
         L"BlockInvisibleCursorInput"
+  );
+
+  input.cursor.fix_synaptics =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Fix Synaptic Touchpad Scroll")
+      );
+  input.cursor.fix_synaptics->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"FixSynapticTouchpadScroll"
   );
 
   input.cursor.no_warp_ui =
@@ -2499,6 +2511,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     SK_ImGui_Cursor.prefs.no_warp.visible = input.cursor.no_warp_visible->get_value ();
   if (input.cursor.block_invisible->load ())
     config.input.ui.capture_hidden = input.cursor.block_invisible->get_value ();
+  if (input.cursor.fix_synaptics->load ())
+    config.input.mouse.fix_synaptics = input.cursor.fix_synaptics->get_value ();
 
   if (input.gamepad.disable_ps4_hid->load ())
     config.input.gamepad.disable_ps4_hid = input.gamepad.disable_ps4_hid->get_value ();
@@ -2796,6 +2810,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.block_invisible->set_value     (config.input.ui.capture_hidden);
   input.cursor.no_warp_ui->set_value          (SK_ImGui_Cursor.prefs.no_warp.ui_open);
   input.cursor.no_warp_visible->set_value     (SK_ImGui_Cursor.prefs.no_warp.visible);
+  input.cursor.fix_synaptics->set_value       (config.input.mouse.fix_synaptics);
 
   input.gamepad.disable_ps4_hid->set_value    (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->set_value      (config.input.gamepad.rehook_xinput);
@@ -3055,6 +3070,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.block_invisible->store      ();
   input.cursor.no_warp_ui->store           ();
   input.cursor.no_warp_visible->store      ();
+  input.cursor.fix_synaptics->store        ();
 
   input.gamepad.disable_ps4_hid->store     ();
   input.gamepad.rehook_xinput->store       ();

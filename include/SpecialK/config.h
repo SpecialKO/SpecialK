@@ -335,6 +335,13 @@ struct sk_config_t
     } keyboard;
 
     struct {
+      // Translate WM_MOUSEWHEEL messages into actual events that will trigger
+      //   other mouse APIs such as DirectInput and RawInput.
+      //
+      //  * Without this, mousewheel scrolling doesn't work in MANY games on a
+      //      Synaptics touchpad.
+      //
+      bool    fix_synaptics       = false;
       // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
       bool    add_relative_motion = true;
 //

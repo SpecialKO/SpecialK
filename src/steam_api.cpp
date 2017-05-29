@@ -2383,8 +2383,8 @@ void SK::SteamAPI::Pump (void)
 {
   if (steam_ctx.UserStats ())
   {
-    if (SteamAPI_RunCallbacks != nullptr)
-      SteamAPI_RunCallbacks ();
+    if (SteamAPI_RunCallbacks_Original != nullptr)
+      SteamAPI_RunCallbacks_Detour ();
   }
 }
 

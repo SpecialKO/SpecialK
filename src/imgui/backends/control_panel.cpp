@@ -616,7 +616,7 @@ SK_ImGui_ControlPanel (void)
         std::wstring log_dir =
           std::wstring (SK_GetConfigPath ()) + std::wstring (L"\\logs");
 
-        ShellExecuteW (game_window.hWnd, L"explore", log_dir.c_str (), nullptr, nullptr, SW_NORMAL);
+        ShellExecuteW (GetActiveWindow (), L"explore", log_dir.c_str (), nullptr, nullptr, SW_NORMAL);
       }
 
       ImGui::Separator ();
@@ -1872,13 +1872,24 @@ extern float SK_ImGui_PulseNav_Strength;
 
         if (ImGui::IsItemHovered ()) {
           ImGui::BeginTooltip ();
-          ImGui::Text         ("Disable RawInput mouse delta processing");
+          ImGui::Text         ("Disable RawInput Mouse Delta Processing");
           ImGui::Separator    ();
           ImGui::BulletText   ("In games that ONLY use DirectInput / RawInput for mouse, this may make the config menu unusable.");
           ImGui::EndTooltip   ();
         }
 
         config.input.mouse.add_relative_motion = (! non_relative);
+
+        ImGui::Checkbox ("Fix Synaptics Scroll", &config.input.mouse.fix_synaptics);
+
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Generate Missing DirectInput / RawInput / HID Events for Touchpad Scroll");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Synaptics touchpads only generate Win32 API messages and scroll events go unnoticed by most games.");
+          ImGui::BulletText   ("Enabling this will attempt to fix missing input APIs for the Synaptics driver.");
+          ImGui::EndTooltip   ();
+        }
 
         ImGui::TreePop       ();
         ImGui::EndGroup      ();

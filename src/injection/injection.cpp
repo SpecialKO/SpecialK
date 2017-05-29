@@ -131,6 +131,12 @@ SKX_InstallCBTHook (void)
 
   if (hMod == SK_GetDLL ())
   {
+    #ifdef _WIN64
+      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
+    #else
+      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
+    #endif
+
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
     //
@@ -140,11 +146,6 @@ SKX_InstallCBTHook (void)
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
 
     if (g_hHookCBT != 0) {
-      #ifdef _WIN64
-        g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
-      #else
-        g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
-      #endif
       InterlockedExchange (&__SK_HookContextOwner, TRUE);
     }
   }

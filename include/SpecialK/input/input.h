@@ -182,6 +182,10 @@ struct SK_DI8_Mouse {
   DIMOUSESTATE2       state;
   DWORD               coop_level;     // The level the game requested, not necessarily
                                       //   its current state (changes based on UI).
+
+  // Weird hack for some touchpads that don't send out mousewheel events in any API
+  //   other than Win32.
+  volatile LONG       delta_z = 0;
 };
 
 
