@@ -57,7 +57,7 @@ extern "C" {
 
   void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
   bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
-  bool WINAPI    SK_ShutdownCore (const wchar_t* backend);
+  bool __stdcall SK_ShutdownCore (const wchar_t* backend);
 
   void    STDMETHODCALLTYPE SK_BeginBufferSwap (void);
   HRESULT STDMETHODCALLTYPE SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
@@ -72,21 +72,6 @@ SK_SetConfigPath (const wchar_t* path);
 const wchar_t*
 __stdcall
 SK_GetConfigPath (void);
-
-const wchar_t*
-SK_GetHostApp (void);
-
-// NOT the working directory, this is the directory that
-//   the executable is located in.
-const wchar_t*
-SK_GetHostPath (void);
-
-const wchar_t*
-SK_GetBlacklistFilename (void);
-
-const wchar_t*
-__stdcall
-SK_GetRootPath (void);
 
 HMODULE
 __stdcall

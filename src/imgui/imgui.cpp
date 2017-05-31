@@ -11192,8 +11192,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RIM_TYPEMOUSE:
       {
-        // Don't take mouse button presses while in the background
-        if (GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT && self)
+        if (self)
         {
           if (SK_ImGui_Visible && config.input.mouse.add_relative_motion)
           {
@@ -11223,10 +11222,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             ImGui::GetIO ().MouseDown [3] = true;
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
             ImGui::GetIO ().MouseDown [4] = true;
-        }
 
-        if (self)
-        {
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
             ImGui::GetIO ().MouseDown [0] = false;
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
@@ -11247,29 +11243,32 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
       {
         USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
 
-        bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
-        if ( ! ((((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) && (! self)) )
+        if ((VKey & 0xFF) > 4)
         {
+          bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+
+          if ( ! ((((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) && (! self)) )
+          {
+            if (foreground)
+              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+          } else
+            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
+
+
+          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
+          {
+            if (foreground && (! self))
+              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+          }
+
+          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP   && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
+            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
+
           if (foreground)
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-        } else
-          ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
-
-
-        if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
-        {
-          if (foreground && (! self))
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-        }
-
-        if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP   && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
-          ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
-
-        if (foreground)
-        {
-          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
-            ImGui::GetIO ().AddInputCharacter (VKey);
+          {
+            if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
+              ImGui::GetIO ().AddInputCharacter (VKey);
+          }
         }
       } break;
 
@@ -11355,7 +11354,9 @@ SK_ImGui_WantMouseWarpFiltering (void)
 
   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) ||
        ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
+  {
     return true;
+  }
 
   return false;
 }
@@ -11376,7 +11377,9 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
     //
     if ( abs (last_pos.x - GET_X_LPARAM (lParam)) < threshold &&
          abs (last_pos.y - GET_Y_LPARAM (lParam)) < threshold )
+    {
       filter = true;
+    }
 
     POINT center { (LONG)(ImGui::GetIO ().DisplaySize.x / 2.0f),
                    (LONG)(ImGui::GetIO ().DisplaySize.y / 2.0f) };
@@ -11386,7 +11389,9 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
     // Now test the cursor against the center of the screen
     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (center.x / 30) &&
          abs (center.y - GET_Y_LPARAM (lParam)) <= (center.y / 30) )
+    {
       filter = true;
+    }
 
     POINT local { GET_X_LPARAM (lParam),
                   GET_Y_LPARAM (lParam) };
@@ -11395,7 +11400,8 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
     last_pos.y = (SHORT)local.y;
 
     // Dispose Without Processing
-    if (filter) {
+    if (filter)
+    {
       return SK_ImGui_Visible ? 1 : 0;
     }
   }
@@ -11459,14 +11465,15 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   UNREFERENCED_PARAMETER (lParam);
 
   auto MessageProc = [&](HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) ->
-  bool {
-  static bool window_active = true;
+  bool
+  {
+    static bool window_active = true;
 
-  ImGuiIO& io =
-    ImGui::GetIO ();
+    ImGuiIO& io =
+      ImGui::GetIO ();
 
-  auto ActivateWindow = [&](bool active = false)->
-  void
+    auto ActivateWindow = [&](bool active = false)->
+    void
     {
       bool changed = (active != window_active);
 
@@ -11482,274 +11489,301 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       window_active = active;
     };
 
-  switch (msg)
-  {
-  case WM_HOTKEY:
-    if (SK_ImGui_WantGamepadCapture ())
-      return 1;
-    break;
-
-    // TODO: Take the bazillion different sources of input and translate them all into
-    //          a standard window message format for sanity's sake during filter evaluation.
-  case WM_APPCOMMAND:
-  {
-    switch (GET_DEVICE_LPARAM (lParam))
+    switch (msg)
     {
-      case FAPPCOMMAND_KEY:
+      case WM_HOTKEY:
       {
-        dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
-
-        if (SK_ImGui_WantKeyboardCapture ())
-          return true;
-      } break;
-
-      case FAPPCOMMAND_MOUSE:
-      {
-        if (SK_ImGui_WantMouseCapture()) {
-          dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
-          return true;
-        }
-
-        dll_log.Log (L"WM_APPCOMMAND Mouse Event");
-
-        DWORD dwPos = GetMessagePos ();
-        LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
-
-        if (lRet >= 0) {
-          dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
-          return true;
+        if (SK_ImGui_WantGamepadCapture ())
+        {
+          return 1;
         }
       } break;
-    }
-  } break;
 
-
-  case WM_MOUSEACTIVATE:
-    ActivateWindow (((HWND)wParam == hWnd));
-    break;
-
-  case WM_ACTIVATEAPP:
-  case WM_ACTIVATE:
-  case WM_NCACTIVATE:
-  {
-    if (msg == WM_NCACTIVATE)
-    {
-      ActivateWindow (wParam != 0x00);
-    }
-
-    else if (msg == WM_ACTIVATEAPP || msg == WM_ACTIVATE)
-    {
-      switch (wParam)
+      // TODO: Take the bazillion different sources of input and translate them all into
+      //          a standard window message format for sanity's sake during filter evaluation.
+      case WM_APPCOMMAND:
       {
-        case 1:  // WA_ACTIVE / TRUE
-        case 2:  // WA_CLICKACTIVE
-        default: // Unknown
+        switch (GET_DEVICE_LPARAM (lParam))
         {
-          ActivateWindow (TRUE);
-        } break;
+          case FAPPCOMMAND_KEY:
+          {
+            dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
 
-        case 0: // WA_INACTIVE / FALSE
-        {
-          ActivateWindow (FALSE);
-        } break;
-      }
-    }
-  } break;
+            if (SK_ImGui_WantKeyboardCapture ())
+            {
+              return true;
+            }
+          } break;
 
+          case FAPPCOMMAND_MOUSE:
+          {
+            if (SK_ImGui_WantMouseCapture ())
+            {
+              dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
+              return true;
+            }
 
-  case WM_LBUTTONDOWN:
-  case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
-    io.MouseDown [0] = true;
-    return true;
+            dll_log.Log (L"WM_APPCOMMAND Mouse Event");
 
-  case WM_LBUTTONUP:
-    io.MouseDown [0] = false;
-    return true;
+            DWORD dwPos = GetMessagePos ();
+            LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
 
-  case WM_RBUTTONDOWN:
-  case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
-    io.MouseDown [1] = true;
-    return true;
-
-  case WM_RBUTTONUP:
-    io.MouseDown [1] = false;
-    return true;
-
-  case WM_MBUTTONDOWN:
-  case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
-    io.MouseDown [2] = true;
-    return true;
-
-  case WM_MBUTTONUP:
-    io.MouseDown [2] = false;
-    return true;
-
-  case WM_MOUSEWHEEL:
-    io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
-    return true;
-
-  case WM_KEYDOWN:
-  case WM_SYSKEYDOWN:
-  {
-    // Don't process Alt+Tab or Alt+Enter
-    if (msg == WM_SYSKEYDOWN && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
-      return false;
-
-    if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
-    {
-      io.KeysDown [(wParam & 0xff)] = 1;
-
-      BYTE  vkCode   = LOWORD (wParam) & 0xFF;
-      BYTE  scanCode = HIWORD (lParam) & 0x7F;
-
-      if (vkCode != VK_TAB)
-      {
-        BYTE                       keyState [256];
-        GetKeyboardState_Original (keyState);
-
-        keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
-
-        wchar_t key_str;
-
-        if ( ToUnicodeEx ( vkCode,
-                           scanCode,
-                           keyState,
-                          &key_str,
-                           1,
-                           0x00,
-                           GetKeyboardLayout (0) )
-                 &&
-              iswprint ( key_str )
-           )
-        {
-          ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
+            if (lRet >= 0)
+            {
+              dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
+              return true;
+            }
+          } break;
         }
-      }
-    }
-
-    else if ((wParam & 0xff) < 5)
-      io.MouseDown [(wParam & 0xff)] = true;
-
-    return true;
-  } break;
-
-  case WM_KEYUP:
-  case WM_SYSKEYUP:
-  {
-    // Don't process Alt+Tab or Alt+Enter
-    if (msg == WM_SYSKEYUP && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
-      return false;
-
-    if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
-      io.KeysDown [(wParam & 0xff)] = 0;
-    else if ((wParam & 0xff) < 5)
-      io.MouseDown [(wParam & 0xff)] = true;
-
-    // Let key release messages for keys that were pressed when the UI was
-    //   activated slip through to the game.
-    if (SK_ImGui_ActivationKeys [wParam & 0xFF])
-    {
-      SK_ImGui_ActivationKeys [wParam & 0xFF]--;
-      return false;
-    }
-    return true;
-  } break;
-
-  case WM_NCMOUSEMOVE:
-  case WM_MOUSEMOVE:
-  {
-    LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
-
-    // Return:
-    //
-    //   -1 if no filtering is desired
-    //    0 if the message should be passed onto app, but internal cursor pos unchanged
-    //    1 if the message should be completely eradicated
-    //
-    if (lDeltaRet >= 0) {
-      if (SK_ImGui_Visible)
-        SK_ImGui_Cursor.update ();
-
-      return lDeltaRet;
-    }
-
-    SHORT xPos = GET_X_LPARAM (lParam);
-    SHORT yPos = GET_Y_LPARAM (lParam);
-
-    SK_ImGui_Cursor.pos.x = xPos;
-    SK_ImGui_Cursor.pos.y = yPos;
-
-    SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
-
-    io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-    io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-
-    if (! SK_ImGui_WantMouseCapture ())
-    {
-      if (SK_ImGui_Visible)
-        SK_ImGui_Cursor.update ();
-
-      SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
-
-      return false;
-    }
-
-    if (SK_ImGui_Visible)
-      SK_ImGui_Cursor.update ();
-
-    return true;
-  } break;
+      } break;
 
 
-  case WM_CHAR:
-  {
-    // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-    if ((wParam & 0xff) >= 5 && wParam < 0x10000)
-      io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
-    return true;
-  } break;
-
-
-  case WM_INPUT:
-  {
-    RAWINPUT data = { 0 };
-    UINT     size = sizeof RAWINPUT;
-
-    int      ret  =
-      GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
-
-    if (ret)
-    {
-      uint8_t *pData = new uint8_t [size];
-
-      if (! pData)
-        return 0;
-
-      bool cap = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true);
-
-      switch (data.header.dwType)
+      case WM_MOUSEACTIVATE:
       {
-        case RIM_TYPEMOUSE:
-          cap = cap && SK_ImGui_WantMouseCapture ();
-          break;
+        if (hWnd == game_window.hWnd)
+        {
+          ActivateWindow (((HWND)wParam == hWnd));
+        }
+      } break;
 
-        case RIM_TYPEKEYBOARD:
-          cap = SK_Console::getInstance ()->isVisible ();
-          //cap &= SK_ImGui_WantKeyboardCapture ();
-          break;
+      case WM_ACTIVATEAPP:
+      case WM_ACTIVATE:
+      case WM_NCACTIVATE:
+      {
+        if (hWnd == game_window.hWnd)
+        {
+          if (msg == WM_NCACTIVATE)
+          {
+            ActivateWindow (wParam != 0x00);
+          }
 
-        default:
-          cap = cap && SK_ImGui_WantGamepadCapture ();
-          break;
-      }
+          else if (msg == WM_ACTIVATEAPP || msg == WM_ACTIVATE)
+          {
+            switch (wParam)
+            {
+              case 1:  // WA_ACTIVE / TRUE
+              case 2:  // WA_CLICKACTIVE
+              default: // Unknown
+              {
+                ActivateWindow (TRUE);
+              } break;
 
-      delete [] pData;
+              case 0: // WA_INACTIVE / FALSE
+              {
+                ActivateWindow (FALSE);
+              } break;
+            }
+          }
+        }
+      } break;
 
-      return cap;
+
+      case WM_LBUTTONDOWN:
+      case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
+        io.MouseDown [0] = true;
+        return true;
+
+      case WM_LBUTTONUP:
+        io.MouseDown [0] = false;
+        return true;
+
+      case WM_RBUTTONDOWN:
+      case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
+        io.MouseDown [1] = true;
+        return true;
+
+      case WM_RBUTTONUP:
+        io.MouseDown [1] = false;
+        return true;
+
+      case WM_MBUTTONDOWN:
+      case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
+        io.MouseDown [2] = true;
+        return true;
+
+      case WM_MBUTTONUP:
+        io.MouseDown [2] = false;
+        return true;
+
+      case WM_MOUSEWHEEL:
+        io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
+        return true;
+
+      case WM_KEYDOWN:
+      case WM_SYSKEYDOWN:
+      {
+        // Don't process Alt+Tab or Alt+Enter
+        if (msg == WM_SYSKEYDOWN && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
+          return false;
+
+        if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
+        {
+          io.KeysDown [(wParam & 0xff)] = 1;
+
+          BYTE  vkCode   = LOWORD (wParam) & 0xFF;
+          BYTE  scanCode = HIWORD (lParam) & 0x7F;
+
+          if (vkCode != VK_TAB)
+          {
+            BYTE                       keyState [256];
+            GetKeyboardState_Original (keyState);
+
+            keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+
+            wchar_t key_str;
+
+            if ( ToUnicodeEx ( vkCode,
+                               scanCode,
+                               keyState,
+                              &key_str,
+                               1,
+                               0x00,
+                               GetKeyboardLayout (0) )
+                     &&
+                  iswprint ( key_str )
+               )
+            {
+              ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
+            }
+          }
+        }
+
+        else if ((wParam & 0xff) < 5)
+        {
+          io.MouseDown [(wParam & 0xff)] = true;
+        }
+
+        return true;
+      } break;
+
+      case WM_KEYUP:
+      case WM_SYSKEYUP:
+      {
+        // Don't process Alt+Tab or Alt+Enter
+        if (msg == WM_SYSKEYUP && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
+          return false;
+
+        if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
+        {
+          io.KeysDown [(wParam & 0xff)] = 0;
+        }
+
+        else if (( wParam & 0xff ) < 5)
+        {
+          io.MouseDown [(wParam & 0xff)] = true;
+        }
+
+        // Let key release messages for keys that were pressed when the UI was
+        //   activated slip through to the game.
+        if (SK_ImGui_ActivationKeys [wParam & 0xFF])
+        {
+          SK_ImGui_ActivationKeys [wParam & 0xFF]--;
+          return false;
+        }
+        return true;
+      } break;
+
+      case WM_NCMOUSEMOVE:
+      case WM_MOUSEMOVE:
+      {
+        LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
+
+        // Return:
+        //
+        //   -1 if no filtering is desired
+        //    0 if the message should be passed onto app, but internal cursor pos unchanged
+        //    1 if the message should be completely eradicated
+        //
+        if (lDeltaRet >= 0)
+        {
+          if (SK_ImGui_Visible)
+            SK_ImGui_Cursor.update ();
+
+          return lDeltaRet;
+        }
+
+        SHORT xPos = GET_X_LPARAM (lParam);
+        SHORT yPos = GET_Y_LPARAM (lParam);
+
+        SK_ImGui_Cursor.pos.x = xPos;
+        SK_ImGui_Cursor.pos.y = yPos;
+
+        SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
+
+        io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+        io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+
+        if (! SK_ImGui_WantMouseCapture ())
+        {
+          if (SK_ImGui_Visible)
+            SK_ImGui_Cursor.update ();
+
+          SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
+
+          return false;
+        }
+
+        if (SK_ImGui_Visible)
+          SK_ImGui_Cursor.update ();
+
+        return true;
+      } break;
+
+
+      case WM_CHAR:
+      {
+        // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
+        if ((wParam & 0xff) >= 5 && wParam < 0x10000)
+        {
+          io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
+        }
+
+        return true;
+      } break;
+
+
+      case WM_INPUT:
+      {
+        RAWINPUT data = { 0 };
+        UINT     size = sizeof RAWINPUT;
+
+        int      ret  =
+          GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
+
+        if (ret)
+        {
+          uint8_t *pData = new uint8_t [size];
+
+          if (! pData)
+            return 0;
+
+          bool cap =
+            SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true);
+
+          switch (data.header.dwType)
+          {
+            case RIM_TYPEMOUSE:
+              cap = cap && SK_ImGui_WantMouseCapture ();
+              break;
+
+            case RIM_TYPEKEYBOARD:
+              cap = SK_Console::getInstance ()->isVisible ();
+              //cap &= SK_ImGui_WantKeyboardCapture ();
+              break;
+
+            default:
+              cap = cap && SK_ImGui_WantGamepadCapture ();
+              break;
+          }
+
+          delete [] pData;
+
+          return cap;
+        }
+      } break;
     }
-  } break;
-  }
-  return false;
+
+    return false;
   };
 
   bool handled          = MessageProc (hWnd, msg, wParam, lParam);

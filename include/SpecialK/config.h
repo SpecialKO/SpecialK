@@ -203,6 +203,7 @@ struct sk_config_t
     int     appid                = 0;
     bool    preload_client       = false;
     bool    preload_overlay      = true; // For input processing, this is important
+    bool    show_playtime        = true; // In the control panel title
   } steam;
 
 

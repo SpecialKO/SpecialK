@@ -119,6 +119,7 @@ struct {
 struct {
   sk::ParameterFloat*     scale;
   sk::ParameterBool*      show_eula;
+  sk::ParameterBool*      show_playtime;
 } imgui;
 
 struct {
@@ -1508,6 +1509,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"ImGui.Global",
         L"FontScale" );
 
+  imgui.show_playtime =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Display Playing Time in Config UI")
+      );
+  imgui.show_playtime->register_to_ini (
+    osd_ini,
+      L"ImGui.Global",
+        L"ShowPlaytime" );
+
   imgui.show_eula =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -2172,6 +2183,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (imgui.show_eula->load ())
     config.imgui.show_eula = imgui.show_eula->get_value ();
 
+  if (imgui.show_playtime->load ())
+    config.steam.show_playtime = imgui.show_playtime->get_value ();
+
 
   if (monitoring.io.show->load () && config.osd.remember_state)
     config.io.show = monitoring.io.show->get_value ();
@@ -2794,6 +2808,7 @@ SK_SaveConfig ( std::wstring name,
 
   imgui.scale->set_value                      (config.imgui.scale);
   imgui.show_eula->set_value                  (config.imgui.show_eula);
+  imgui.show_playtime->set_value              (config.steam.show_playtime);
 
   apis.d3d9.hook->set_value                   (config.apis.d3d9.hook);
   apis.d3d9ex.hook->set_value                 (config.apis.d3d9ex.hook);
@@ -3164,6 +3179,7 @@ SK_SaveConfig ( std::wstring name,
   osd.viewport.scale->store              ();
 
   imgui.scale->store                     ();
+  imgui.show_playtime->store             ();
   imgui.show_eula->store                 ();
 
   steam.achievements.sound_file->store       ();

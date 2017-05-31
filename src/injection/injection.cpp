@@ -267,7 +267,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
 #include <SpecialK/render_backend.h>
 
 bool
-SKinja_SwitchToRenderWrapper (void)
+SK_Inject_SwitchToRenderWrapper (void)
 {
   wchar_t wszIn [MAX_PATH * 2] = { L'\0' };
   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
@@ -364,7 +364,7 @@ SKinja_SwitchToRenderWrapper (void)
 }
 
 bool
-SKinja_SwitchToGlobalInjector (void)
+SK_Inject_SwitchToGlobalInjector (void)
 {
   wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
   lstrcatW (wszOut, SK_GetHostPath ());
@@ -404,7 +404,7 @@ SK_SYS_GetInstallPath (void);
 
 
 
-bool SK_Injection_JournalRecord (HMODULE hModule)
+bool SK_Inject_JournalRecord (HMODULE hModule)
 {
   return false;
 }

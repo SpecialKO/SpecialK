@@ -102,27 +102,6 @@ struct init_params_t {
 std::queue <DWORD> __SK_Init_Suspended_tids;
 
 
-void
-SK_PathRemoveExtension (wchar_t* wszInOut)
-{
-  wchar_t *wszEnd  = wszInOut,
-          *wszPrev = nullptr;
-
-  while (*CharNextW (wszEnd) != L'\0')
-    wszEnd = CharNextW (wszEnd);
-
-  wszPrev = wszEnd;
-
-  while (  CharPrevW (wszInOut, wszPrev) > wszInOut &&
-          *CharPrevW (wszInOut, wszPrev) != L'.' )
-    wszPrev = CharPrevW (wszInOut, wszPrev);
-
-  if (CharPrevW (wszInOut, wszPrev) > wszInOut) {
-    if (*CharPrevW (wszInOut, wszPrev) == L'.')
-      *CharPrevW (wszInOut, wszPrev) = L'\0';
-  }
-}
-
 wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
 wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
 wchar_t SK_Backend    [128];
@@ -764,6 +743,10 @@ SK_InitFinishCallback (void)
   //
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
     SK_BootDXGI ();
+
+
+  SK_DeleteTemporaryFiles ();
+  SK_DeleteTemporaryFiles (L"Version", L"*.old");
 
 
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
@@ -1530,7 +1513,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 extern "C" {
 bool
-WINAPI
+__stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
   if (config.window.background_mute)
@@ -2305,195 +2288,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
   return hr;
-}
-
-struct sk_host_process_s {
-  wchar_t wszApp       [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
-} host_proc;
-
-bool
-__cdecl
-SK_IsHostAppSKIM (void)
-{
-  return (StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
-}
-
-bool
-__cdecl
-SK_IsRunDLLInvocation (void)
-{
-  return (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
-}
-
-bool
-__cdecl
-SK_IsSuperSpecialK (void)
-{
-  return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
-}
-
-
-const wchar_t*
-SK_GetHostApp (void)
-{
-  static volatile
-    ULONG init = FALSE;
-
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
-  {
-    DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
-
-    HANDLE hProc =
-      GetCurrentProcess ();
-
-    QueryFullProcessImageName (
-      hProc,
-        0,
-          wszProcessName,
-            &dwProcessSize );
-
-    int      len           = lstrlenW (wszProcessName);
-    wchar_t* pwszShortName =           wszProcessName;
-
-    for (int i = 0; i < len; i++)
-      pwszShortName = CharNextW (pwszShortName);
-
-    while (  pwszShortName > wszProcessName ) {
-      wchar_t* wszPrev =
-        CharPrevW (wszProcessName, pwszShortName);
-
-      if (wszPrev < wszProcessName)
-        break;
-
-      if (*wszPrev != L'\\' && *wszPrev != L'/') {
-        pwszShortName = wszPrev;
-        continue;
-      }
-
-      break;
-    }
-
-    lstrcpynW (
-      host_proc.wszApp,
-        pwszShortName,
-          MAX_PATH * 2 - 1
-    );
-  }
-
-  return host_proc.wszApp;
-}
-
-const wchar_t*
-SK_GetFullyQualifiedApp (void)
-{
-  static volatile
-    ULONG init = FALSE;
-
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
-  {
-    DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
-
-    HANDLE hProc =
-      GetCurrentProcess ();
-
-    QueryFullProcessImageName (
-      hProc,
-        0,
-          wszProcessName,
-            &dwProcessSize );
-
-    lstrcpynW (
-      host_proc.wszFullName,
-        wszProcessName,
-          MAX_PATH * 2 - 1
-    );
-  }
-
-  return host_proc.wszFullName;
-}
-
-// NOT the working directory, this is the directory that
-//   the executable is located in.
-
-const wchar_t*
-SK_GetHostPath (void)
-{
-  static volatile
-    ULONG init = FALSE;
-
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
-  {
-    DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
-
-    HANDLE hProc =
-      GetCurrentProcess ();
-
-    QueryFullProcessImageName (
-      hProc,
-        0,
-          wszProcessName,
-            &dwProcessSize );
-
-    int      len           = lstrlenW (wszProcessName);
-    wchar_t* pwszShortName =           wszProcessName;
-
-    for (int i = 0; i < len; i++)
-      pwszShortName = CharNextW (pwszShortName);
-
-    wchar_t* wszFirstSep = nullptr;
-
-    while (  pwszShortName > wszProcessName )
-    {
-      wchar_t* wszPrev =
-        CharPrevW (wszProcessName, pwszShortName);
-
-      if (wszPrev < wszProcessName)
-        break;
-
-      if (*wszPrev == L'\\' || *wszPrev == L'/')
-      {                              // Leave the trailing separator
-        wszFirstSep = wszPrev; 
-        break;
-      }
-
-      pwszShortName = wszPrev;
-    }
-
-    if (wszFirstSep != nullptr)
-      *wszFirstSep = L'\0';
-
-    lstrcpynW (
-      host_proc.wszPath,
-        wszProcessName,
-          MAX_PATH * 2 - 1
-    );
-  }
-
-  return host_proc.wszPath;
-}
-
-const wchar_t*
-SK_GetBlacklistFilename (void)
-{
-  static volatile
-    ULONG init = FALSE;
-
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
-  {
-    lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
-    lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
-    lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
-
-    SK_PathRemoveExtension (host_proc.wszBlacklist);
-  }
-
-  return host_proc.wszBlacklist;
 }
 
 DLL_ROLE dll_role = DLL_ROLE::INVALID;

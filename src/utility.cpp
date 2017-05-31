@@ -1941,6 +1941,259 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
 }
 
 
+
+struct sk_host_process_s {
+  wchar_t wszApp       [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
+} host_proc;
+
+bool
+__cdecl
+SK_IsHostAppSKIM (void)
+{
+  return (StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
+}
+
+bool
+__cdecl
+SK_IsRunDLLInvocation (void)
+{
+  return (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+}
+
+bool
+__cdecl
+SK_IsSuperSpecialK (void)
+{
+  return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
+}
+
+
+void
+SK_PathRemoveExtension (wchar_t* wszInOut)
+{
+  wchar_t *wszEnd  = wszInOut,
+          *wszPrev = nullptr;
+
+  while (*CharNextW (wszEnd) != L'\0')
+    wszEnd = CharNextW (wszEnd);
+
+  wszPrev = wszEnd;
+
+  while (  CharPrevW (wszInOut, wszPrev) > wszInOut &&
+          *CharPrevW (wszInOut, wszPrev) != L'.' )
+    wszPrev = CharPrevW (wszInOut, wszPrev);
+
+  if (CharPrevW (wszInOut, wszPrev) > wszInOut) {
+    if (*CharPrevW (wszInOut, wszPrev) == L'.')
+      *CharPrevW (wszInOut, wszPrev) = L'\0';
+  }
+}
+
+
+const wchar_t*
+SK_GetBlacklistFilename (void)
+{
+  static volatile
+    ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
+    lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
+    lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
+
+    SK_PathRemoveExtension (host_proc.wszBlacklist);
+  }
+
+  return host_proc.wszBlacklist;
+}
+
+const wchar_t*
+SK_GetHostApp (void)
+{
+  static volatile
+    ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    DWORD   dwProcessSize =  MAX_PATH * 2;
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
+
+    HANDLE hProc =
+      GetCurrentProcess ();
+
+    QueryFullProcessImageName (
+      hProc,
+        0,
+          wszProcessName,
+            &dwProcessSize );
+
+    int      len           = lstrlenW (wszProcessName);
+    wchar_t* pwszShortName =           wszProcessName;
+
+    for (int i = 0; i < len; i++)
+      pwszShortName = CharNextW (pwszShortName);
+
+    while (  pwszShortName > wszProcessName ) {
+      wchar_t* wszPrev =
+        CharPrevW (wszProcessName, pwszShortName);
+
+      if (wszPrev < wszProcessName)
+        break;
+
+      if (*wszPrev != L'\\' && *wszPrev != L'/') {
+        pwszShortName = wszPrev;
+        continue;
+      }
+
+      break;
+    }
+
+    lstrcpynW (
+      host_proc.wszApp,
+        pwszShortName,
+          MAX_PATH * 2 - 1
+    );
+  }
+
+  return host_proc.wszApp;
+}
+
+const wchar_t*
+SK_GetFullyQualifiedApp (void)
+{
+  static volatile
+    ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    DWORD   dwProcessSize =  MAX_PATH * 2;
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
+
+    HANDLE hProc =
+      GetCurrentProcess ();
+
+    QueryFullProcessImageName (
+      hProc,
+        0,
+          wszProcessName,
+            &dwProcessSize );
+
+    lstrcpynW (
+      host_proc.wszFullName,
+        wszProcessName,
+          MAX_PATH * 2 - 1
+    );
+  }
+
+  return host_proc.wszFullName;
+}
+
+// NOT the working directory, this is the directory that
+//   the executable is located in.
+
+const wchar_t*
+SK_GetHostPath (void)
+{
+  static volatile
+    ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    DWORD   dwProcessSize =  MAX_PATH * 2;
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
+
+    HANDLE hProc =
+      GetCurrentProcess ();
+
+    QueryFullProcessImageName (
+      hProc,
+        0,
+          wszProcessName,
+            &dwProcessSize );
+
+    int      len           = lstrlenW (wszProcessName);
+    wchar_t* pwszShortName =           wszProcessName;
+
+    for (int i = 0; i < len; i++)
+      pwszShortName = CharNextW (pwszShortName);
+
+    wchar_t* wszFirstSep = nullptr;
+
+    while (  pwszShortName > wszProcessName )
+    {
+      wchar_t* wszPrev =
+        CharPrevW (wszProcessName, pwszShortName);
+
+      if (wszPrev < wszProcessName)
+        break;
+
+      if (*wszPrev == L'\\' || *wszPrev == L'/')
+      {                              // Leave the trailing separator
+        wszFirstSep = wszPrev; 
+        break;
+      }
+
+      pwszShortName = wszPrev;
+    }
+
+    if (wszFirstSep != nullptr)
+      *wszFirstSep = L'\0';
+
+    lstrcpynW (
+      host_proc.wszPath,
+        wszProcessName,
+          MAX_PATH * 2 - 1
+    );
+  }
+
+  return host_proc.wszPath;
+}
+
+
+
+size_t
+SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
+{
+  WIN32_FIND_DATA fd;
+  HANDLE          hFind  = INVALID_HANDLE_VALUE;
+  size_t          files  = 0UL;
+  LARGE_INTEGER   liSize = { 0 };
+
+  LARGE_INTEGER   liCompressed   = { 0 };
+  LARGE_INTEGER   liUncompressed = { 0 };
+
+  wchar_t wszFindPattern [MAX_PATH * 2] = { L'\0' };
+
+  lstrcatW (wszFindPattern, wszPath);
+  lstrcatW (wszFindPattern, L"\\");
+  lstrcatW (wszFindPattern, wszPattern);
+
+  hFind = FindFirstFileW (wszFindPattern, &fd);
+
+  if (hFind != INVALID_HANDLE_VALUE)
+  {
+    dll_log.LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ", wszPath );
+
+    do
+    {
+      if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+      {
+        if (DeleteFileW (fd.cFileName))
+          ++files;
+      }
+    } while (FindNextFileW (hFind, &fd) != 0);
+
+    dll_log.LogEx ( false, L"%lu files deleted\n", files);
+  }
+
+  return files;
+}
+
+
 void
 SK_ElevateToAdmin (void)
 {

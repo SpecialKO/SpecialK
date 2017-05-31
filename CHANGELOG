@@ -1,5 +1,10 @@
 0.8.12.3:
+ + Added game playtime to control panel title
+ + Added Synaptics touchpad mousewheel support for DirectInput/RawInput/HID
+ + Added temporary file cleanup (i.e. SKI*.tmp, Version\*.old, ...) to DLL init.
  + Improved global injection startup/shutdown reliability
+ + Fixed control panel window moving if its title changes
+ + Fixed Fallout 4 / Scaleform exception handling
  + Fixed game_output.log being saved to the wrong location when using the
      global injector.
  + Fixed legacy keyboard input in Steam overlay in Skyrim: Special Edition

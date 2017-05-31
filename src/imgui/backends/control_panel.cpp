@@ -311,11 +311,30 @@ SK_ImGui_ControlPanelTitle (void)
       if (appname.length ())
         title += L"      -      ";
 
-      snprintf (szTitle, 511, "%ws%s", title.c_str (), appname.c_str ());
+      if (config.steam.show_playtime)
+      {
+        uint32   elapsed = steam_ctx.Utils ()->GetSecondsSinceAppActive ();
+        uint32_t secs    = elapsed % 60;
+        uint32_t mins    = elapsed / 60;
+        uint32_t hours   = elapsed / 3600;
+
+
+        snprintf ( szTitle, 511, "%ws%s     (%01lu:%02lu:%02lu)###SK_MAIN_CPL",
+                     title.c_str (), appname.c_str (),
+                       hours, mins, secs );
+      }
+
+      else
+      {
+        snprintf ( szTitle, 511, "%ws%s###SK_MAIN_CPL",
+                     title.c_str (), appname.c_str () );
+      }
     }
 
     else
-      snprintf (szTitle, 511, "%ws", title.c_str ());
+    {
+      snprintf (szTitle, 511, "%ws###SK_MAIN_CPL", title.c_str ());
+    }
   }
 
   return szTitle;
@@ -600,6 +619,9 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem    ("Display G-Sync Status", "", &config.apis.NvAPI.gsync_status);
     }
 
+    if (! config.steam.silent && steam_ctx.Utils () != nullptr)
+      ImGui::MenuItem ("Display Playtime in Title", "", &config.steam.show_playtime);
+
     ImGui::Separator ();
 
     ImGui::MenuItem ("ImGui Demo",              "", &show_test_window);
@@ -627,9 +649,9 @@ SK_ImGui_ControlPanel (void)
       {
         if (ImGui::MenuItem ("Install Wrapper DLL for this game."))
         {
-          extern bool SKinja_SwitchToRenderWrapper (void);
+          extern bool SK_Inject_SwitchToRenderWrapper (void);
 
-          if (SKinja_SwitchToRenderWrapper ())
+          if (SK_Inject_SwitchToRenderWrapper ())
             wrappable = false;
         }
       }
@@ -639,10 +661,10 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game."))
         {
           extern bool
-          SKinja_SwitchToGlobalInjector (void);
+          SK_Inject_SwitchToGlobalInjector (void);
 
           wrappable = 
-            SKinja_SwitchToGlobalInjector ();
+            SK_Inject_SwitchToGlobalInjector ();
         }
       }
 
