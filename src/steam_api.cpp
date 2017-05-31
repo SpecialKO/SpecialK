@@ -40,11 +40,17 @@
 #include <SpecialK/config.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 #include <SpecialK/osd/popup.h>
 #include <SpecialK/osd/text.h>
 #include <SpecialK/render_backend.h>
+
+// We're not going to use DLL Import - we will load these function pointers
+//  by hand.
+#define STEAM_API_NODLL
+#include <SpecialK/steam_api.h>
 
 // PlaySound
 #pragma comment (lib, "winmm.lib")
@@ -54,14 +60,9 @@
 volatile ULONG            __SK_Steam_init = FALSE;
 volatile ULONG            __SteamAPI_hook = FALSE;
 
-         CRITICAL_SECTION callback_cs = { 0 };
-         CRITICAL_SECTION init_cs     = { 0 };
-         CRITICAL_SECTION popup_cs    = { 0 };
-
-// We're not going to use DLL Import - we will load these function pointers
-//  by hand.
-#define STEAM_API_NODLL
-#include <SpecialK/steam_api.h>
+         CRITICAL_SECTION callback_cs     = { 0 };
+         CRITICAL_SECTION init_cs         = { 0 };
+         CRITICAL_SECTION popup_cs        = { 0 };
 
 #include <time.h>
 
@@ -478,7 +479,6 @@ ISteamController_GetControllerState_Detour (
   uint32                  unControllerIndex,
   SteamControllerState_t *pState );
 
-
 SK_SteamAPIContext steam_ctx;
 
 
@@ -695,8 +695,6 @@ bool           has_global_data  = false;
 ULONG          next_friend      = 0UL;
 ULONG          friend_count     = 0UL;
 SteamAPICall_t friend_query     = 0;
-
-#define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
 class SK_Steam_AchievementManager
 {
@@ -3628,12 +3626,65 @@ SK_SteamAPI_Utils (void)
 //      children; it reflects poorly on the whole of PC gaming.
 //-----------------------------------------------------------------------------------------------
 //
+static uint32_t        verdict        = 0x00;
+static bool            decided        = false;
+
+static SteamAPICall_t  hAsyncSigCheck = 0; // File Signature Validation
+
+enum class SK_Steam_FileSigPass_e
+{
+  Executable = 0,
+  SteamAPI   = 1,
+  DLC        = 2,
+
+  Done       = MAXINT
+};
+
+static SK_Steam_FileSigPass_e
+                       validation_pass (SK_Steam_FileSigPass_e::Executable);
+
 uint32_t
 __stdcall
 SK_Steam_PiratesAhoy (void)
 {
-  static uint32_t verdict = 0x00;
-  static bool     decided = false;
+  if (validation_pass != SK_Steam_FileSigPass_e::Done)
+  {
+    if ( hAsyncSigCheck == 0 && steam_ctx.Utils () != nullptr && (! config.steam.silent) )
+    {
+      switch (validation_pass)
+      {
+        case SK_Steam_FileSigPass_e::Executable:
+        {
+          hAsyncSigCheck =
+            steam_ctx.Utils ()->CheckFileSignature (SK_WideCharToUTF8 (SK_GetHostApp ()).c_str ());
+        } break;
+
+        case SK_Steam_FileSigPass_e::SteamAPI:
+        {
+          char szRelSteamAPI [MAX_PATH * 2] = { '\0' };
+
+          // Generally, though not always (i.e. CSteamWorks) we will link against one of these two DLLs
+          //
+          //   The actual DLL used is pulled from the IAT during init, but I am too lazy to bother doing
+          //     this the right way ;)
+#ifdef _WIN64
+          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, "%ws\\steam_api64.dll",
+                       SK_GetHostPath () );
+#else
+          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, "%ws\\steam_api.dll",
+                       SK_GetHostPath () );
+#endif
+          hAsyncSigCheck =
+            steam_ctx.Utils ()->CheckFileSignature (szRelSteamAPI);
+        } break;
+      }
+
+      steam_ctx.chk_file_sig.Set (
+        hAsyncSigCheck,
+          &steam_ctx,
+            &SK_SteamAPIContext::OnFileSigDone );
+    }
+  }
 
   if (decided)
   {
@@ -3669,7 +3720,8 @@ SK_Steam_PiratesAhoy (void)
   // User opted out of Steam enhancement, no further action necessary
   if (config.steam.silent && verdict)
   {
-    verdict = 0x00;
+    validation_pass = SK_Steam_FileSigPass_e::Done;
+    verdict         = 0x00;
   }
 
   return verdict;
@@ -3682,6 +3734,87 @@ SK_Steam_PiratesAhoy2 (void)
   return SK_Steam_PiratesAhoy ();
 }
 
+void
+SK_SteamAPIContext::OnFileSigDone (CheckFileSignature_t* pParam, bool bFailed)
+{
+  ECheckFileSignature result = pParam->m_eCheckFileSignature;
+
+  auto HandleResult = [&](const wchar_t* wszFileName) ->
+    void
+    {
+      switch (result)
+      {
+        case k_ECheckFileSignatureNoSignaturesFoundForThisApp:
+        {
+          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
+                          L" No Signatures For This App" );
+        } break;
+
+        case k_ECheckFileSignatureNoSignaturesFoundForThisFile:
+        {
+          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
+                          L" No Signature For This App File :: '%ws'",
+                            wszFileName );
+        } break;
+
+        case k_ECheckFileSignatureFileNotFound:
+        {
+          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
+                          L" Signature File Not Found :: '%ws'",
+                            wszFileName );
+        } break;
+
+        case k_ECheckFileSignatureInvalidSignature:
+        {
+          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
+                          L" INVALID File Signature :: '%ws'",
+                            wszFileName );
+          if ( validation_pass == SK_Steam_FileSigPass_e::SteamAPI ||
+               validation_pass == SK_Steam_FileSigPass_e::DLC )
+          {
+            verdict |= ~( k_ECheckFileSignatureInvalidSignature );
+            decided  =    true;
+          }
+        } break;
+
+        case k_ECheckFileSignatureValidSignature:
+        {
+          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
+                          L" VALID File Signature :: '%ws'",
+                            wszFileName );
+        } break;
+
+        default:
+        {
+          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
+                          L" UNKNOWN STATUS (%lu) :: '%ws'",
+                            result, wszFileName );
+        } break;
+      }
+    };
+
+
+  switch (validation_pass)
+  {
+    case SK_Steam_FileSigPass_e::Executable:
+    {
+      HandleResult (SK_GetHostApp ());
+
+      hAsyncSigCheck  = 0;
+      validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
+    } break;
+
+    case SK_Steam_FileSigPass_e::SteamAPI:
+    {
+      HandleResult (L"SteamAPI");
+
+      hAsyncSigCheck  = 0;
+      validation_pass = SK_Steam_FileSigPass_e::Done;
+    } break;
+  }
+
+  chk_file_sig.Cancel ();
+}
 
 
 //

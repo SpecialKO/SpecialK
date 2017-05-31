@@ -284,7 +284,7 @@ SK_ImGui_ControlPanelTitle (void)
 {
   static char szTitle [512] = { '\0' };
 
-  const bool steam = (SK::SteamAPI::AppID() != 0x0);
+  const bool steam = (SK::SteamAPI::AppID () != 0x0);
 
   extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
@@ -300,9 +300,9 @@ SK_ImGui_ControlPanelTitle (void)
     if (SK_HasPlugin () && hModTBFix == nullptr)
       title += SK_GetPluginName ();
     else
-      title += L"Special K (v " SK_VERSION_STR_W L")";
+      title += L"Special K  (v " SK_VERSION_STR_W L")";
 
-    title += L" Control Panel";
+    title += L"  Control Panel";
 
     if (steam)
     {

@@ -28,6 +28,8 @@
 #include <string>
 #include <SpecialK/utility.h>
 
+#define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
+
 namespace SK
 {
   namespace SteamAPI
@@ -516,6 +518,11 @@ public:
 
     return true;
   }
+
+  STEAM_CALLRESULT ( SK_SteamAPIContext,
+                     OnFileSigDone,
+                     CheckFileSignature_t,
+                     chk_file_sig );
 
   void Shutdown (void)
   {
