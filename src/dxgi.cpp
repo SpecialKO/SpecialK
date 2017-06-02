@@ -2430,7 +2430,7 @@ __declspec (noinline)
                                _In_ DXGI_FORMAT     NewFormat,
                                _In_ UINT            SwapChainFlags )
   {
-    DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeBuffers", L"%lu,%lu,%lu,...,0x%08X,0x%08X",
+    DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeBuffers", L"%lu,%lu,%lu,fmt=%lu,0x%08X",
                         BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
     if (       config.render.framerate.buffer_count != -1           &&

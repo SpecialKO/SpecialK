@@ -3225,6 +3225,7 @@ SK_InstallWindowHook (HWND hWnd)
   //   ** PeekMessage is hooked because The Witness pulls mouse click events
   //        out of the pump without passing them through its window procedure.
   //
+#if 0
   SK_CreateDLLHook2 ( L"user32.dll", "GetMessageW",
                      GetMessageW_Detour,
            (LPVOID*)&GetMessageW_Original );
@@ -3240,6 +3241,7 @@ SK_InstallWindowHook (HWND hWnd)
   SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
                      DispatchMessageW_Detour,
            (LPVOID*)&DispatchMessageW_Original );
+#endif
 
   MH_ApplyQueued ();
 

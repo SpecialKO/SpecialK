@@ -342,7 +342,7 @@ SK_EstablishDllRole (HMODULE hModule)
            SK_IsDLLSpecialK (L"d3d8.dll")     || SK_IsDLLSpecialK (L"ddraw.dll") )
       {
         SK_SetDLLRole (DLL_ROLE::INVALID);
-        return false;
+        return true;
       }
 
       SK_EstablishRootPath ();
@@ -713,19 +713,6 @@ DllMain ( HMODULE hModule,
       SK_PreInitLoadLibrary ();
 
 
-      // We reserve the right to deny attaching the DLL, this will generally
-      //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole (hModule))
-      {
-        blacklist.emplace (std::wstring (SK_GetHostApp ()));
-
-        return FALSE;
-      }
-
-
-      SK_Init_MinHook ();
-
-
       DWORD   dwProcessSize = MAX_PATH;
       wchar_t wszProcessName [MAX_PATH] = { L'\0' };
 
@@ -740,10 +727,32 @@ DllMain ( HMODULE hModule,
         --pwszShortName;
 
 
+      // We reserve the right to deny attaching the DLL, this will generally
+      //   happen if a game does not opt-in to system wide injection.
+      if (! SK_EstablishDllRole (hModule))
+      {
+        blacklist.emplace (std::wstring (SK_GetHostApp ()));
+
+        return FALSE;
+      }
+
+
+      if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+        return TRUE;
+
+
+      SK_Init_MinHook ();
+
+
       BOOL bRet = SK_Attach (SK_GetDLLRole ());
 
       if (! bRet)
+      {
+        if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+          return TRUE;
+
         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+      }
 
       return bRet;
     } break;

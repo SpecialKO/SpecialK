@@ -419,12 +419,43 @@ typedef void (WINAPI *D3D11_CopyResource_pfn)(
   _In_ ID3D11Resource      *pSrcResource
 );
 
+typedef void (WINAPI *D3D11_VSSetShaderResources_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
 typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
 );
+typedef void (WINAPI *D3D11_GSSetShaderResources_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
+typedef void (WINAPI *D3D11_HSSetShaderResources_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
+typedef void (WINAPI *D3D11_DSSetShaderResources_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
+typedef void (WINAPI *D3D11_CSSetShaderResources_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
+
 typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
   _In_           ID3D11Device            *This,
   _In_     const D3D11_BUFFER_DESC       *pDesc,
@@ -475,10 +506,17 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 );
 
 
-extern D3D11Dev_CreateBuffer_pfn             D3D11Dev_CreateBuffer_Original;
-extern D3D11Dev_CreateTexture2D_pfn          D3D11Dev_CreateTexture2D_Original;
-extern D3D11Dev_CreateRenderTargetView_pfn   D3D11Dev_CreateRenderTargetView_Original;
-extern D3D11Dev_CreateShaderResourceView_pfn D3D11Dev_CreateShaderResourceView_Original;
+extern D3D11Dev_CreateBuffer_pfn              D3D11Dev_CreateBuffer_Original;
+extern D3D11Dev_CreateTexture2D_pfn           D3D11Dev_CreateTexture2D_Original;
+extern D3D11Dev_CreateRenderTargetView_pfn    D3D11Dev_CreateRenderTargetView_Original;
+extern D3D11Dev_CreateShaderResourceView_pfn  D3D11Dev_CreateShaderResourceView_Original;
+
+extern D3D11Dev_CreateVertexShader_pfn        D3D11Dev_CreateVertexShader_Original;
+extern D3D11Dev_CreatePixelShader_pfn         D3D11Dev_CreatePixelShader_Original;
+extern D3D11Dev_CreateGeometryShader_pfn      D3D11Dev_CreateGeometryShader_Original;
+extern D3D11Dev_CreateHullShader_pfn          D3D11Dev_CreateHullShader_Original;
+extern D3D11Dev_CreateDomainShader_pfn        D3D11Dev_CreateDomainShader_Original;
+extern D3D11Dev_CreateComputeShader_pfn       D3D11Dev_CreateComputeShader_Original;
 
 extern D3D11_RSSetScissorRects_pfn            D3D11_RSSetScissorRects_Original;
 extern D3D11_RSSetViewports_pfn               D3D11_RSSetViewports_Original;
@@ -493,6 +531,16 @@ extern D3D11_DrawInstanced_pfn                D3D11_DrawInstanced_Original;
 extern D3D11_DrawInstancedIndirect_pfn        D3D11_DrawInstancedIndirect_Original;
 extern D3D11_Map_pfn                          D3D11_Map_Original;
 
-extern D3D11_CopyResource_pfn          D3D11_CopyResource_Original;
+extern D3D11_VSSetShader_pfn                  D3D11_VSSetShader_Original;
+extern D3D11_PSSetShader_pfn                  D3D11_PSSetShader_Original;
+extern D3D11_GSSetShader_pfn                  D3D11_GSSetShader_Original;
+extern D3D11_HSSetShader_pfn                  D3D11_HSSetShader_Original;
+extern D3D11_DSSetShader_pfn                  D3D11_DSSetShader_Original;
+extern D3D11_CSSetShader_pfn                  D3D11_CSSetShader_Original;
+
+extern D3D11_CopyResource_pfn                 D3D11_CopyResource_Original;
+
+
+
 
 #endif /* __SK__DXGI_BACKEND_H__ */

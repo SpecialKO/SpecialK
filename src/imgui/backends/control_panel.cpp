@@ -83,6 +83,9 @@ extern GetCursorInfo_pfn GetCursorInfo_Original;
 
 extern HWND              SK_FindRootWindow (DWORD proc_id);
 
+       bool              show_shader_mod_dlg;
+extern bool              SK_D3D11_ShaderModDlg (void);
+
 std::wstring
 SK_NvAPI_GetGPUInfoStr (void);
 
@@ -619,8 +622,10 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem    ("Display G-Sync Status", "", &config.apis.NvAPI.gsync_status);
     }
 
-    if (! config.steam.silent && steam_ctx.Utils () != nullptr)
+    if ((! config.steam.silent) && steam_ctx.Utils () != nullptr)
+    {
       ImGui::MenuItem ("Display Playtime in Title", "", &config.steam.show_playtime);
+    }
 
     ImGui::Separator ();
 
@@ -1137,7 +1142,7 @@ SK_ImGui_ControlPanel (void)
     SK_RenderAPI api = SK_GetCurrentRenderBackend ().api;
 
     if ( api == SK_RenderAPI::D3D11 &&
-         ImGui::CollapsingHeader ("Direct3D 11 Settings" ) )
+         ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
     {
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
       ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
@@ -1285,6 +1290,10 @@ SK_ImGui_ControlPanel (void)
         ImGui::InputInt2 ("Maximum Resolution", (int *)&config.render.dxgi.res.max.x);
         ImGui::TreePop   ();
        }
+
+      if (ImGui::Button (" Shader Mod Tools ")) {
+        show_shader_mod_dlg = ( ! show_shader_mod_dlg );
+      }
 
       ImGui::TreePop       ( );
       ImGui::PopStyleColor (3);
@@ -3417,9 +3426,6 @@ extern float SK_ImGui_PulseNav_Strength;
       }
     }
 
-  if (show_test_window)
-    ImGui::ShowTestWindow (&show_test_window);
-
   ImVec2 pos  = ImGui::GetWindowPos  ();
   ImVec2 size = ImGui::GetWindowSize ();
 
@@ -3446,6 +3452,14 @@ extern float SK_ImGui_PulseNav_Strength;
 
   if (recenter)
     SK_ImGui_CenterCursorOnWindow ();
+
+
+  if (show_test_window)
+    ImGui::ShowTestWindow (&show_test_window);
+
+  if (show_shader_mod_dlg)
+    show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
+
 
   ImGui::End   ();
 

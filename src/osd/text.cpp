@@ -509,7 +509,8 @@ SK_DrawOSD (void)
     static HMODULE hModGame = GetModuleHandle (nullptr);
     static wchar_t wszGameName [MAX_PATH] = { L'\0' };
 
-    if (wszGameName [0] == L'\0') {
+    if (wszGameName [0] == L'\0')
+    {
       GetModuleFileName (hModGame, wszGameName, MAX_PATH);
 
       if (StrStrIW (wszGameName, L"BatmanAK.exe"))

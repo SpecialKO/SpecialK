@@ -34,7 +34,7 @@ struct sk_config_t
 {
   struct {
     bool   show           = true;
-    LONG   format         = LOCALE_CUSTOM_UI_DEFAULT;
+    LONG   format         = LOCALE_USER_DEFAULT;
 
     struct {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'T', 0 };

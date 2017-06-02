@@ -49,13 +49,16 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.5.7.4"
+#define FAR_VERSION_NUM L"0.6.0"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
 //   will be dismissed as the game crashes when it tries to
 //     draw the first frame.
 volatile LONG __FAR_init = FALSE;
+
+
+float __FAR_MINIMUM_EXT = 0.0f;
 
 
 #define WORKING_FPS_UNCAP
@@ -91,6 +94,7 @@ sk::ParameterFactory  far_factory;
 iSK_INI*              far_prefs                 = nullptr;
 wchar_t               far_prefs_file [MAX_PATH] = { L'\0' };
 sk::ParameterInt*     far_gi_workgroups         = nullptr;
+sk::ParameterFloat*   far_gi_min_light_extent   = nullptr;
 sk::ParameterInt*     far_bloom_width           = nullptr;
 sk::ParameterBool*    far_bloom_disable         = nullptr;
 sk::ParameterBool*    far_fix_motion_blur       = nullptr;
@@ -175,7 +179,7 @@ bool __FAR_Freelook = false;
 typedef void (__stdcall *SK_PlugIn_ControlPanelWidget_pfn)(void);
         void  __stdcall SK_FAR_ControlPanel               (void);
 
-SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
+static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
 
 
 #include <unordered_set>
@@ -322,12 +326,68 @@ SK_FAR_CreateBuffer (
   _Out_opt_      ID3D11Buffer           **ppBuffer )
 {
   // Global Illumination (DrDaxxy)
-  if ( pDesc != nullptr && pDesc->StructureByteStride == 96 &&
-                           pDesc->ByteWidth           == 96 * 128 )
+  if ( pDesc != nullptr && pDesc->StructureByteStride == 96       &&
+                           pDesc->ByteWidth           == 96 * 128 &&
+                           pDesc->BindFlags           & D3D11_BIND_SHADER_RESOURCE )
   {
     D3D11_BUFFER_DESC new_desc = *pDesc;
 
     new_desc.ByteWidth = 96 * __FAR_GlobalIllumWorkGroupSize;
+
+    // New Stuff for 0.6.0
+    // -------------------
+    //
+    //  >> Project small lights to infinity and leave large lights lit <<
+    //
+    //
+    //    TODO:  Scale light volume by distance from camera (in world-space) to properly
+    //             handle small nearby lights.
+    //
+    if (pInitialData != 0)
+    {
+      struct far_light_volume_s {
+        float world_pos    [4];
+        float world_to_vol [16];
+        float half_extents [4];
+      };
+
+      far_light_volume_s* lights =
+        (far_light_volume_s *)pInitialData->pSysMem;
+
+      static far_light_volume_s backup_lights [128];
+
+      for (int i = 0; i < 128; i++) {
+        if (lights [i].half_extents [0] < __FAR_MINIMUM_EXT ||
+            lights [i].half_extents [1] < __FAR_MINIMUM_EXT ||
+            lights [i].half_extents [2] < __FAR_MINIMUM_EXT)
+        {
+          if ( lights [i].half_extents [0] != 0.0f && lights [i].half_extents [1] != 0.0f &&
+               lights [i].half_extents [2] != 0.0f )
+          {
+            backup_lights [i] = lights [i];
+
+            // Degenerate light volume
+            lights [i].half_extents [0] = 0.0f;
+            lights [i].half_extents [1] = 0.0f;
+            lights [i].half_extents [2] = 0.0f;
+            
+            // Project to infinity
+            lights [i].world_pos [0] = 0.0f; lights [i].world_pos [1] = 0.0f;
+            lights [i].world_pos [2] = 0.0f; lights [i].world_pos [3] = 0.0f;
+          }
+        }
+
+        else
+        {
+          if ( lights [i].half_extents [0] == 0.0f && lights [i].half_extents [1] == 0.0f &&
+               lights [i].half_extents [2] == 0.0f)
+          {
+            // Restore the original light
+            lights [i] = backup_lights [i];
+          }
+        }
+      }
+    }
 
     return D3D11Dev_CreateBuffer_Original (This, &new_desc, pInitialData, ppBuffer);
   }
@@ -800,7 +860,7 @@ typedef void (CALLBACK *SK_PluginKeyPress_pfn)(
   BOOL Control, BOOL Shift, BOOL Alt,
   BYTE vkCode
 );
-SK_PluginKeyPress_pfn SK_PluginKeyPress_Original;
+static SK_PluginKeyPress_pfn SK_PluginKeyPress_Original;
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
   (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
@@ -1847,6 +1907,20 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     far_gi_workgroups->set_value (__FAR_GlobalIllumWorkGroupSize);
     far_gi_workgroups->store     ();
 
+    far_gi_min_light_extent =
+        static_cast <sk::ParameterFloat *>
+          (far_factory.create_parameter <float> (L"Global Illumination Minimum Unclipped Light Volume"));
+
+    far_gi_min_light_extent->register_to_ini ( far_prefs,
+                                      L"FAR.Lighting",
+                                        L"MinLightVolumeExtent" );
+
+    if (far_gi_min_light_extent->load ())
+      __FAR_MINIMUM_EXT = far_gi_min_light_extent->get_value ();
+
+    far_gi_min_light_extent->set_value (__FAR_MINIMUM_EXT);
+    far_gi_min_light_extent->store     ();
+
 
     far_limiter_busy = 
         static_cast <sk::ParameterBool *>
@@ -2365,6 +2439,12 @@ SK_FAR_ControlPanel (void)
         ImGui::SameLine ();
         ImGui::TextColored (ImVec4 (0.5f, 1.0f, 0.1f, 1.0f), " Adjust this for Performance Boost");
         //ImGui::Checkbox ("Compatibility Mode", &__FAR_GlobalIllumCompatMode);
+      }
+
+      if (ImGui::SliderFloat ("Minimum Light Extent", &__FAR_MINIMUM_EXT, 0.0f, 64.0f))
+      {
+        far_gi_min_light_extent->set_value (__FAR_MINIMUM_EXT);
+        far_gi_min_light_extent->store     ();
       }
 
       ImGui::TreePop ();

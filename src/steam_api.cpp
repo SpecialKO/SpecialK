@@ -2424,9 +2424,9 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 
       while (true)
       {
-        Sleep (250);
-
         SK::SteamAPI::Pump ();
+
+        Sleep (250);
       }
     }
 
@@ -3647,16 +3647,17 @@ uint32_t
 __stdcall
 SK_Steam_PiratesAhoy (void)
 {
+#if 0
   if (validation_pass != SK_Steam_FileSigPass_e::Done)
   {
-    if ( hAsyncSigCheck == 0 && steam_ctx.Utils () != nullptr && (! config.steam.silent) )
+    if ( InterlockedCompareExchange (&hAsyncSigCheck, 1, 0) == 0 && steam_ctx.Utils () != nullptr && (! config.steam.silent) )
     {
       switch (validation_pass)
       {
         case SK_Steam_FileSigPass_e::Executable:
         {
-          hAsyncSigCheck =
-            steam_ctx.Utils ()->CheckFileSignature (SK_WideCharToUTF8 (SK_GetHostApp ()).c_str ());
+          InterlockedExchange (&hAsyncSigCheck,
+            steam_ctx.Utils ()->CheckFileSignature (SK_WideCharToUTF8 (SK_GetHostApp ()).c_str ()));
         } break;
 
         case SK_Steam_FileSigPass_e::SteamAPI:
@@ -3674,8 +3675,8 @@ SK_Steam_PiratesAhoy (void)
           snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, "%ws\\steam_api.dll",
                        SK_GetHostPath () );
 #endif
-          hAsyncSigCheck =
-            steam_ctx.Utils ()->CheckFileSignature (szRelSteamAPI);
+          InterlockedExchange (&hAsyncSigCheck,
+            steam_ctx.Utils ()->CheckFileSignature (szRelSteamAPI));
         } break;
       }
 
@@ -3685,6 +3686,7 @@ SK_Steam_PiratesAhoy (void)
             &SK_SteamAPIContext::OnFileSigDone );
     }
   }
+#endif
 
   if (decided)
   {
@@ -3735,11 +3737,15 @@ SK_Steam_PiratesAhoy2 (void)
 }
 
 void
-SK_SteamAPIContext::OnFileSigDone (CheckFileSignature_t* pParam, bool bFailed)
+SK_SteamAPIContext::OnFileSigDone ( CheckFileSignature_t* pParam,
+                                    bool                  bFailed )
 {
-  ECheckFileSignature result = pParam->m_eCheckFileSignature;
+  ECheckFileSignature result =
+    bFailed ? k_ECheckFileSignatureNoSignaturesFoundForThisApp :
+              pParam->m_eCheckFileSignature;
 
-  auto HandleResult = [&](const wchar_t* wszFileName) ->
+
+  auto HandleResult = [=](const wchar_t* wszFileName) ->
     void
     {
       switch (result)
@@ -3800,18 +3806,19 @@ SK_SteamAPIContext::OnFileSigDone (CheckFileSignature_t* pParam, bool bFailed)
     {
       HandleResult (SK_GetHostApp ());
 
-      hAsyncSigCheck  = 0;
       validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
+      InterlockedExchange (&hAsyncSigCheck, 0);
     } break;
 
     case SK_Steam_FileSigPass_e::SteamAPI:
     {
       HandleResult (L"SteamAPI");
 
-      hAsyncSigCheck  = 0;
       validation_pass = SK_Steam_FileSigPass_e::Done;
+      InterlockedExchange (&hAsyncSigCheck, 0);
     } break;
   }
+
 
   chk_file_sig.Cancel ();
 }

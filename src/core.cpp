@@ -797,6 +797,9 @@ SK_InitFinishCallback (void)
   else if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
     SK_FAR_InitPlugin ();
 
+  else if (! lstrcmpW (SK_GetHostApp (), L"RiME.exe"))
+    SK_REASON_InitPlugin ();
+
   if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe")) {
     SK_GetCommandProcessor ()->ProcessCommandFormatted (
       "TargetFPS %f",
@@ -2231,6 +2234,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       } else {
         wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
       }
+
+      extern void SK_D3D11_EndFrame (void);
+                  SK_D3D11_EndFrame ();
+
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12)))) {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
       wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);
@@ -2255,11 +2262,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::DXGI::StartBudgetThread_NoAdapter ();
   }
 
-  DoKeyboard ();
-
-  extern void SK_ImGui_PollGamepad_EndFrame (void);
-  SK_ImGui_PollGamepad_EndFrame ();
-
   // Draw after present, this may make stuff 1 frame late, but... it
   //   helps with VSYNC performance.
 
@@ -2267,6 +2269,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   //  we should not draw the OSD when these events happen.
   if (FAILED (hr))
     return hr;
+
+  DoKeyboard ();
+
+  extern void SK_ImGui_PollGamepad_EndFrame (void);
+  SK_ImGui_PollGamepad_EndFrame ();
+
+  InterlockedIncrement (&frames_drawn);
 
   if (config.sli.show && device != nullptr)
   {

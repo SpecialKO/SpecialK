@@ -491,11 +491,11 @@ SK_Version_GetLastCheckTime_WStr (void)
 
   wchar_t wszFileTime [512];
 
-  GetDateFormat (LOCALE_CUSTOM_UI_DEFAULT, DATE_AUTOLAYOUT, &stModified, NULL, wszFileTime, 512);
+  GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, NULL, wszFileTime, 512);
 
   std::wstring date_time = wszFileTime;
 
-  GetTimeFormat (LOCALE_CUSTOM_UI_DEFAULT, TIME_NOSECONDS, &stModified, NULL, wszFileTime, 512);
+  GetTimeFormat (LOCALE_USER_DEFAULT, TIME_NOSECONDS, &stModified, NULL, wszFileTime, 512);
 
   date_time += L" ";
   date_time += wszFileTime;
