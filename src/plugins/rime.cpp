@@ -22,7 +22,7 @@
 
 #include <atlbase.h>
 
-#define REASON_VERSION_NUM L"0.0.1"
+#define REASON_VERSION_NUM L"0.0.2"
 #define REASON_VERSION_STR L"ReASON v " REASON_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -34,8 +34,10 @@ sk::ParameterFactory  reason_factory;
 iSK_INI*              reason_prefs                 = nullptr;
 wchar_t               reason_prefs_file [MAX_PATH] = { L'\0' };
 sk::ParameterBool*    reason_simple_interior_water = nullptr;
+sk::ParameterBool*    reason_simple_ocean_water    = nullptr;
 
-bool    __REASON_SimpleInterior =   false;
+bool __REASON_SimpleInterior = false;
+bool __REASON_SimpleOcean    = false;
 
 extern std::unordered_set <uint32_t> SK_D3D11_Blacklist_PS;
 
@@ -237,6 +239,23 @@ SK_REASON_InitPlugin (void)
     reason_simple_interior_water->set_value (__REASON_SimpleInterior);
     reason_simple_interior_water->store     ();
 
+    reason_simple_ocean_water = 
+        static_cast <sk::ParameterBool *>
+          (reason_factory.create_parameter <bool> (L"Simplified Ocean Water"));
+
+    reason_simple_ocean_water->register_to_ini ( reason_prefs,
+                                                   L"ReASON.Water",
+                                                     L"SimpleOcean" );
+
+    if (reason_simple_ocean_water->load ())
+      __REASON_SimpleOcean = reason_simple_ocean_water->get_value ();
+
+    if (__REASON_SimpleOcean)
+      SK_D3D11_Blacklist_PS.insert (0x750c5215);
+
+    reason_simple_ocean_water->set_value (__REASON_SimpleInterior);
+    reason_simple_ocean_water->store     ();
+
     reason_prefs->write (reason_prefs_file);
 
 
@@ -285,6 +304,21 @@ SK_REASON_ControlPanel (void)
 
         reason_simple_interior_water->set_value (__REASON_SimpleInterior);
         reason_simple_interior_water->store     ();
+      }
+
+      ImGui::SameLine ();
+
+      if (ImGui::Checkbox ("Simple Ocean Water", &__REASON_SimpleOcean))
+      {
+        changed = true;
+
+        if (__REASON_SimpleOcean)
+          SK_D3D11_Blacklist_PS.insert (0x750c5215);
+        else
+          SK_D3D11_Blacklist_PS.erase  (0x750c5215);
+
+        reason_simple_ocean_water->set_value (__REASON_SimpleOcean);
+        reason_simple_ocean_water->store     ();
       }
 
       //if (ImGui::IsItemHovered ())
