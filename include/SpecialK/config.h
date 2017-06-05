@@ -328,6 +328,7 @@ struct sk_config_t
       struct {
         int   ui_slot           =    0;
         bool  placehold [4]     = { false };
+        bool  disable_rumble    = false;
       } xinput;
     } gamepad;
 

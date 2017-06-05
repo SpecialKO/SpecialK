@@ -57,6 +57,9 @@ int            SK_MessageBox           (std::wstring caption,
 std::string    SK_WideCharToUTF8       (std::wstring in);
 std::wstring   SK_UTF8ToWideChar       (std::string  in);
 
+std::string
+__cdecl        SK_FormatString         (char const* const _Format, ...);
+
 void           SK_SetNormalFileAttribs (std::wstring file);
 
 const wchar_t* SK_GetHostApp           (void);

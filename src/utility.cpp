@@ -1495,10 +1495,10 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                4096,
                                  cbData );
 
-  if (VerQueryValue ( cbData,
-                      TEXT ("\\VarFileInfo\\Translation"),
-                        (LPVOID *)&lpTranslate,
-                                  &cbTranslatedBytes ) && cbTranslatedBytes)
+  if ( VerQueryValue ( cbData,
+                       TEXT ("\\VarFileInfo\\Translation"),
+                         (LPVOID *)&lpTranslate,
+                                   &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
   {
     wsprintfW ( wszPropName,
                   L"\\StringFileInfo\\%04x%04x\\ProductName",
@@ -1547,8 +1547,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
   if ( VerQueryValue ( cbData,
                          TEXT ("\\VarFileInfo\\Translation"),
                            (LPVOID *)&lpTranslate,
-                                     &cbTranslatedBytes ) && cbTranslatedBytes ) {
-
+                                     &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
+  {
     wsprintfW ( wszPropName,
                   L"\\StringFileInfo\\%04x%04x\\FileDescription",
                     lpTranslate [0].wLanguage,
@@ -2237,4 +2237,30 @@ SK_ElevateToAdmin (void)
                   &sinfo,  &pinfo );
 
   TerminateProcess    (GetCurrentProcess (), 0x00);
+}
+
+std::string
+__cdecl
+SK_FormatString (char const* const _Format, ...)
+{
+  std::string out;
+
+  int len = 0;
+
+  va_list   _ArgList;
+  va_start (_ArgList, _Format);
+  {
+    len = vsnprintf (nullptr, 0, _Format, _ArgList);
+  }
+  va_end (_ArgList);
+
+  out.resize (len + 1, '\0');
+
+  va_start (_ArgList, _Format);
+  {
+    len = vsprintf ((char *)out.data (), _Format, _ArgList);
+  }
+  va_end (_ArgList);
+
+  return out;
 }

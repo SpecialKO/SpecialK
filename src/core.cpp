@@ -2185,7 +2185,6 @@ DoKeyboard (void)
   } else {
     toggle_render = false;
   }
-
 }
 
 IUnknown* g_iRenderDevice = nullptr;
@@ -2237,7 +2236,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
       extern void SK_D3D11_EndFrame (void);
                   SK_D3D11_EndFrame ();
-
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12)))) {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
       wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);

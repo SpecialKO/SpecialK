@@ -81,8 +81,6 @@ extern void     __stdcall SK_FAR_ControlPanel  (void);
 extern GetCursorInfo_pfn GetCursorInfo_Original;
        bool              cursor_vis      = false;
 
-extern HWND              SK_FindRootWindow (DWORD proc_id);
-
        bool              show_shader_mod_dlg;
 extern bool              SK_D3D11_ShaderModDlg (void);
 
@@ -1741,6 +1739,10 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Columns        (2);
         ImGui::Checkbox       ("Haptic UI Feedback", &config.input.gamepad.haptic_ui);
+
+        ImGui::SameLine       ();
+
+        ImGui::Checkbox       ("Disable ALL Rumble", &config.input.gamepad.xinput.disable_rumble);
 
         ImGui::NextColumn     ();
 

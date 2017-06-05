@@ -22,6 +22,8 @@
 #ifndef __SK__SOUND_H__
 #define __SK__SOUND_H__
 
+#include <SpecialK/window.h>
+
 #include <Mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <endpointvolume.h>
@@ -57,17 +59,15 @@ public:
 
     DWORD proc_id = getProcessId ();
 
-    extern HWND SK_FindRootWindow (DWORD proc_id);
-
     char     szTitle [512] = {  '\0' };
     wchar_t wszTitle [512] = { L'\0' };
     
-    HWND hWndRoot = SK_FindRootWindow (proc_id);
-    if (hWndRoot != 0)
+    window_t win = SK_FindRootWindow (proc_id);
+    if (win.root != 0)
     { 
       // This is all happening from the application's message pump in most games,
       //   so this specialized function avoids deadlocking the pump.
-      InternalGetWindowText (hWndRoot, wszTitle, 511);
+      InternalGetWindowText (win.root, wszTitle, 511);
       WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE);
 
       //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),

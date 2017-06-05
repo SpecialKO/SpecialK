@@ -7859,6 +7859,24 @@ typedef void (STDMETHODCALLTYPE *D3D11_DispatchIndirect_pfn)(ID3D11DeviceContext
 
 typedef void (STDMETHODCALLTYPE *D3D11_DrawAuto_pfn)(ID3D11DeviceContext *This);
 
+struct ID3D11RenderTargetView;
+struct ID3D11DepthStencilView;
+struct ID3D11UnorderedAccessView;
+
+typedef void (STDMETHODCALLTYPE *D3D11_OMSetRenderTargets_pfn)(ID3D11DeviceContext           *This,
+                                                      _In_     UINT                           NumViews,
+                                                      _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
+                                                      _In_opt_ ID3D11DepthStencilView        *pDepthStencilView);
+
+typedef void (STDMETHODCALLTYPE *D3D11_OMSetRenderTargetsAndUnorderedAccessViews_pfn)(ID3D11DeviceContext              *This,
+                                                                       _In_           UINT                              NumRTVs,
+                                                                       _In_opt_       ID3D11RenderTargetView    *const *ppRenderTargetViews,
+                                                                       _In_opt_       ID3D11DepthStencilView           *pDepthStencilView,
+                                                                       _In_           UINT                              UAVStartSlot,
+                                                                       _In_           UINT                              NumUAVs,
+                                                                       _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+                                                                       _In_opt_ const UINT                             *pUAVInitialCounts);
+
 
 
 #define DXGI_PRESENT_ALLOW_TEARING          0x00000200UL

@@ -248,9 +248,10 @@ XInputSetState1_3_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
-  bool nop = SK_ImGui_WantGamepadCapture ()                       &&
-               dwUserIndex == config.input.gamepad.xinput.ui_slot &&
-                 config.input.gamepad.haptic_ui;
+  bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
+                 dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                   config.input.gamepad.haptic_ui ) ||
+               config.input.gamepad.xinput.disable_rumble;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -391,9 +392,10 @@ XInputSetState1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
-  bool nop = SK_ImGui_WantGamepadCapture ()                       &&
-               dwUserIndex == config.input.gamepad.xinput.ui_slot &&
-                 config.input.gamepad.haptic_ui;
+  bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
+                 dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                   config.input.gamepad.haptic_ui ) ||
+               config.input.gamepad.xinput.disable_rumble;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -478,9 +480,10 @@ XInputSetState9_1_0_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
 
-  bool nop = SK_ImGui_WantGamepadCapture ()                       &&
-               dwUserIndex == config.input.gamepad.xinput.ui_slot &&
-                 config.input.gamepad.haptic_ui;
+  bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
+                 dwUserIndex == config.input.gamepad.xinput.ui_slot &&
+                   config.input.gamepad.haptic_ui ) ||
+               config.input.gamepad.xinput.disable_rumble;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -934,6 +937,9 @@ SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
 {
+  if (config.input.gamepad.xinput.disable_rumble)
+    return false;
+
   XINPUT_VIBRATION vibes;
 
   vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);

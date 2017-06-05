@@ -612,7 +612,7 @@ SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
     wchar_t wszFormatted [128] = { L'\0' };
 
     if (freq > 0 && freq < MAXULONGLONG)
-      wsprintf (wszFormatted, L"%luh", freq / 36000000000ULL);
+      wsprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
     else
       wsprintf (wszFormatted, L"never");
 

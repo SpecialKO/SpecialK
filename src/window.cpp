@@ -127,11 +127,6 @@ GetSystemMetrics_pfn   GetSystemMetrics_Original   = nullptr;
 GetWindowRect_pfn      GetWindowRect_Original      = nullptr;
 GetClientRect_pfn      GetClientRect_Original      = nullptr;
 
-struct window_t {
-  DWORD proc_id;
-  HWND  root;
-};
-
 sk_window_s       game_window;
 
 extern bool SK_ImGui_Visible;
@@ -177,7 +172,7 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
   return TRUE;
 }
 
-HWND
+window_t
 SK_FindRootWindow (DWORD proc_id)
 {
   window_t win;
@@ -187,7 +182,7 @@ SK_FindRootWindow (DWORD proc_id)
 
   EnumWindows (SK_EnumWindows, (LPARAM)&win);
 
-  return win.root;
+  return win;
 }
 
 bool override_window_rects = false;

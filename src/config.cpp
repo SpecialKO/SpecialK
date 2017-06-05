@@ -258,6 +258,7 @@ struct {
     struct {
       sk::ParameterInt*  ui_slot;
       sk::ParameterInt*  placeholders;
+      sk::ParameterBool* disable_rumble;
     } xinput;
   } gamepad;
 } input;
@@ -674,6 +675,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.XInput",
         L"PlaceholderMask" );
+
+  input.gamepad.xinput.disable_rumble =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Disable Rumble")
+      );
+  input.gamepad.xinput.disable_rumble->register_to_ini (
+    dll_ini,
+      L"Input.XInput",
+        L"DisableRumble" );
 
 
   window.borderless =
@@ -2550,6 +2561,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
+  if (input.gamepad.xinput.disable_rumble->load ())
+    config.input.gamepad.xinput.disable_rumble = input.gamepad.xinput.disable_rumble->get_value ();
+
   if (input.gamepad.xinput.ui_slot->load ())
     config.input.gamepad.xinput.ui_slot = input.gamepad.xinput.ui_slot->get_value ();
 
@@ -2841,6 +2855,8 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.placeholders->set_value (placeholder_mask);
   input.gamepad.xinput.ui_slot->set_value      (config.input.gamepad.xinput.ui_slot);
 
+  input.gamepad.xinput.disable_rumble->set_value (config.input.gamepad.xinput.disable_rumble);
+
   window.borderless->set_value                (config.window.borderless);
   window.center->set_value                    (config.window.center);
   window.background_render->set_value         (config.window.background_render);
@@ -3087,11 +3103,12 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.no_warp_visible->store      ();
   input.cursor.fix_synaptics->store        ();
 
-  input.gamepad.disable_ps4_hid->store     ();
-  input.gamepad.rehook_xinput->store       ();
-  input.gamepad.xinput.ui_slot->store      ();
-  input.gamepad.xinput.placeholders->store ();
-  input.gamepad.haptic_ui->store           ();
+  input.gamepad.disable_ps4_hid->store       ();
+  input.gamepad.rehook_xinput->store         ();
+  input.gamepad.xinput.ui_slot->store        ();
+  input.gamepad.xinput.placeholders->store   ();
+  input.gamepad.xinput.disable_rumble->store ();
+  input.gamepad.haptic_ui->store             ();
 
   window.borderless->store                 ();
   window.center->store                     ();

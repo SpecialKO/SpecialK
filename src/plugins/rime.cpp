@@ -22,7 +22,7 @@
 
 #include <atlbase.h>
 
-#define REASON_VERSION_NUM L"0.0.2"
+#define REASON_VERSION_NUM L"0.0.2.1"
 #define REASON_VERSION_STR L"ReASON v " REASON_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog

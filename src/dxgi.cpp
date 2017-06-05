@@ -72,6 +72,8 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
                         DXGI_FORMAT     NewFormat,
                         UINT            SwapChainFlags );
 
+extern void SK_D3D11_EndFrame (void);
+
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 #include <CEGUI/DefaultResourceProvider.h>
@@ -912,7 +914,7 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
   CComPtr <IUnknown> pTemp = nullptr;
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (__uuidof (IDXGIFactory5), (void **)&pTemp)))
+    pFactory->QueryInterface <IDXGIFactory5> ((IDXGIFactory5 **)&pTemp)))
   {
     dxgi_caps.device.enqueue_event    = true;
     dxgi_caps.device.latency_control  = true;
@@ -934,7 +936,7 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
   }
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (__uuidof (IDXGIFactory4), (void **)&pTemp)))
+    pFactory->QueryInterface <IDXGIFactory4> ((IDXGIFactory4 **)&pTemp)))
   {
     dxgi_caps.device.enqueue_event    = true;
     dxgi_caps.device.latency_control  = true;
@@ -945,7 +947,7 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
   }
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (__uuidof (IDXGIFactory3), (void **)&pTemp)))
+    pFactory->QueryInterface <IDXGIFactory3> ((IDXGIFactory3 **)&pTemp)))
   {
     dxgi_caps.device.enqueue_event    = true;
     dxgi_caps.device.latency_control  = true;
@@ -955,7 +957,7 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
   }
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (__uuidof (IDXGIFactory2), (void **)&pTemp)))
+    pFactory->QueryInterface <IDXGIFactory2> ((IDXGIFactory2 **)&pTemp)))
   {
     dxgi_caps.device.enqueue_event    = true;
     dxgi_caps.device.latency_control  = true;
@@ -964,14 +966,14 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
   }
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (__uuidof (IDXGIFactory1), (void **)&pTemp)))
+    pFactory->QueryInterface <IDXGIFactory1> ((IDXGIFactory1 **)&pTemp)))
   {
     dxgi_caps.device.latency_control  = true;
     return 1;
   }
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (__uuidof (IDXGIFactory), (void **)&pTemp)))
+    pFactory->QueryInterface <IDXGIFactory> ((IDXGIFactory **)&pTemp)))
   {
     return 0;
   }
@@ -2387,6 +2389,8 @@ __declspec (noinline)
     DXGI_LOG_CALL_I2 (L"IDXGISwapChain", L"SetFullscreenState", L"%s, %ph",
                       Fullscreen ? L"{ Fullscreen }" : L"{ Windowed }", pTarget);
 
+    SK_D3D11_EndFrame ();
+
     InterlockedExchange (&__gui_reset, TRUE);
 
     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing ) {
@@ -2432,6 +2436,8 @@ __declspec (noinline)
   {
     DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeBuffers", L"%lu,%lu,%lu,fmt=%lu,0x%08X",
                         BufferCount, Width, Height, NewFormat, SwapChainFlags);
+
+    SK_D3D11_EndFrame ();
 
     if (       config.render.framerate.buffer_count != -1           &&
          (UINT)config.render.framerate.buffer_count !=  BufferCount &&
@@ -2491,6 +2497,8 @@ __declspec (noinline)
   DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                         _In_ const DXGI_MODE_DESC *pNewTargetParameters )
   {
+    SK_D3D11_EndFrame ();
+
     if (pNewTargetParameters == nullptr) {
       HRESULT ret;
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
@@ -4020,6 +4028,18 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
   int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
+  //  0 QueryInterface
+  //  1 AddRef
+  //  2 Release
+  //  3 SetPrivateData
+  //  4 SetPrivateDataInterface
+  //  5 GetPrivateData
+  //  6 GetParent
+  //  7 EnumAdapters
+  //  8 MakeWindowAssociation
+  //  9 GetWindowAssociation
+  // 10 CreateSwapChain
+  // 11 CreateSoftwareAdapter
   DXGI_VIRTUAL_HOOK ( &pFactory,     10,
                       "IDXGIFactory::CreateSwapChain",
                        DXGIFactory_CreateSwapChain_Override,
@@ -4039,36 +4059,23 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                        EnumAdapters_Original,
                        EnumAdapters_pfn );
 
-#if 0
-  if (iver > 0)
-  {
-    CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+  CComPtr <IDXGIFactory1> pFactory1 = nullptr;
 
-    if (SUCCEEDED (pFactory->QueryInterface <IDXGIFactory1> (&pFactory1)))
-    {
-      DXGI_VIRTUAL_HOOK ( &pFactory1,     12,
-                          "IDXGIFactory1::EnumAdapters1",
-                           EnumAdapters1_Override,
-                           EnumAdapters1_Original,
-                           EnumAdapters1_pfn );
-    }
-  }
-#endif
-
-  //  0 QueryInterface
-  //  1 AddRef
-  //  2 Release
-  //  3 SetPrivateData
-  //  4 SetPrivateDataInterface
-  //  5 GetPrivateData
-  //  6 GetParent
-  //  7 EnumAdapters
-  //  8 MakeWindowAssociation
-  //  9 GetWindowAssociation
-  // 10 CreateSwapChain
-  // 11 CreateSoftwareAdapter
   // 12 EnumAdapters1
   // 13 IsCurrent
+  if (SUCCEEDED (pFactory->QueryInterface <IDXGIFactory1> (&pFactory1)))
+  {
+    DXGI_VIRTUAL_HOOK ( &pFactory1,     12,
+                        "IDXGIFactory1::EnumAdapters1",
+                         EnumAdapters1_Override,
+                         EnumAdapters1_Original,
+                         EnumAdapters1_pfn );
+  }
+  
+
+  // DXGI 1.2+
+  CComPtr <IDXGIFactory2> pFactory2 = nullptr;
+
   // 14 IsWindowedStereoEnabled
   // 15 CreateSwapChainForHwnd
   // 16 CreateSwapChainForCoreWindow
@@ -4080,33 +4087,45 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   // 22 RegisterOcclusionStatusEvent
   // 23 UnregisterOcclusionStatus
   // 24 CreateSwapChainForComposition
-  
-  // DXGI 1.2+
-  if (iver > 1)
+  if (SUCCEEDED (pFactory->QueryInterface <IDXGIFactory2> (&pFactory2)))
   {
-    CComPtr <IDXGIFactory2> pFactory2 = nullptr;
+    DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
+                        "IDXGIFactory2::CreateSwapChainForHwnd",
+                         DXGIFactory2_CreateSwapChainForHwnd_Override,
+                                      CreateSwapChainForHwnd_Original,
+                                      CreateSwapChainForHwnd_pfn );
 
-    if (SUCCEEDED (pFactory->QueryInterface (IID_PPV_ARGS (&pFactory2))))
-    {
-      DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
-                          "IDXGIFactory2::CreateSwapChainForHwnd",
-                           DXGIFactory2_CreateSwapChainForHwnd_Override,
-                                        CreateSwapChainForHwnd_Original,
-                                        CreateSwapChainForHwnd_pfn );
+    DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
+                        "IDXGIFactory2::CreateSwapChainForCoreWindow",
+                         DXGIFactory2_CreateSwapChainForCoreWindow_Override,
+                                      CreateSwapChainForCoreWindow_Original,
+                                      CreateSwapChainForCoreWindow_pfn );
 
-      DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
-                          "IDXGIFactory2::CreateSwapChainForCoreWindow",
-                           DXGIFactory2_CreateSwapChainForCoreWindow_Override,
-                                        CreateSwapChainForCoreWindow_Original,
-                                        CreateSwapChainForCoreWindow_pfn );
-
-      DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
-                          "IDXGIFactory2::CreateSwapChainForComposition",
-                           DXGIFactory2_CreateSwapChainForComposition_Override,
-                                        CreateSwapChainForComposition_Original,
-                                        CreateSwapChainForComposition_pfn );
-    }
+    DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
+                        "IDXGIFactory2::CreateSwapChainForComposition",
+                         DXGIFactory2_CreateSwapChainForComposition_Override,
+                                      CreateSwapChainForComposition_Original,
+                                      CreateSwapChainForComposition_pfn );
   }
+
+
+  // DXGI 1.3+
+  CComPtr <IDXGIFactory3> pFactory3 = nullptr;
+
+  // 25 GetCreationFlags
+
+
+  // DXGI 1.4+
+  CComPtr <IDXGIFactory4> pFactory4 = nullptr;
+
+  // 26 EnumAdapterByLuid
+  // 27 EnumWarpAdapter
+
+
+  // DXGI 1.5+
+  CComPtr <IDXGIFactory5> pFactory5 = nullptr;
+
+  // 28 CheckFeatureSupport
 
   MH_ApplyQueued ();
 }
@@ -4190,8 +4209,8 @@ HookDXGI (LPVOID user)
 
   desc.SwapEffect   = DXGI_SWAP_EFFECT_DISCARD;
 
-  ID3D11Device*                 pDevice           = nullptr;
   D3D_FEATURE_LEVEL             featureLevel;
+  CComPtr <ID3D11Device>        pDevice           = nullptr;
   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
   CComPtr <IDXGISwapChain>      pSwapChain        = nullptr;
 

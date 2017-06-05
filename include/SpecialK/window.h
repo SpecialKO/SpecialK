@@ -419,4 +419,13 @@ struct sk_window_s {
 
 extern sk_window_s game_window;
 
+
+struct window_t {
+  DWORD proc_id;
+  HWND  root;
+};
+
+window_t
+SK_FindRootWindow (DWORD proc_id);
+
 #endif /* __SK__WINDOW_H__ */

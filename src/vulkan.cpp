@@ -141,7 +141,7 @@ vkCreateWin32SurfaceKHR_Detour ( VkInstance                   instance,
                            const VkAllocationCallbacks*       pAllocator,
                                  VkSurfaceKHR*                pSurface )
 {
-  VK_LOG_CALL (L" [!] vkCreateWin32SurfaceKHR", L"HWND=%X"), pCreateInfo->hwnd);
+  VK_LOG_CALL (L" [!] vkCreateWin32SurfaceKHR", L"HWND=%p"), pCreateInfo->hwnd);
   VK_LOG_CALL_END;
 
   VkResult ret;
