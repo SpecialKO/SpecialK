@@ -505,19 +505,20 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   HRESULT res;
 
-  DXGI_CALL(res, 
-    D3D11CreateDeviceAndSwapChain_Import (pAdapter,
-                                          DriverType,
-                                          Software,
-                                          Flags,
-                                          pFeatureLevels,
-                                          FeatureLevels,
-                                          SDKVersion,
-                                          swap_chain_desc,
-                                          ppSwapChain,
-                                          &ret_device,
-                                          &ret_level,
-                                          ppImmediateContext));
+  DXGI_CALL (res, 
+    D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
+                                             DriverType,
+                                               Software,
+                                                 Flags,
+                                                   pFeatureLevels,
+                                                     FeatureLevels,
+                                                       SDKVersion,
+                                                         swap_chain_desc,
+                                                           ppSwapChain,
+                                                             &ret_device,
+                                                               &ret_level,
+                                                                 ppImmediateContext )
+            );
 
   if (SUCCEEDED (res))
   {
@@ -526,7 +527,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       if ( dwRenderThread == 0x00 ||
            dwRenderThread == GetCurrentThreadId () )
       {
-        if ( hWndRender                   != 0 &&
+        if ( hWndRender                    != 0 &&
              swap_chain_desc->OutputWindow != 0 &&
              swap_chain_desc->OutputWindow != hWndRender )
           dll_log.Log (L"[  D3D 11  ] Game created a new window?!");
@@ -596,6 +597,7 @@ D3D11Dev_CreateShaderResourceView_pfn               D3D11Dev_CreateShaderResourc
 D3D11Dev_CreateVertexShader_pfn                     D3D11Dev_CreateVertexShader_Original                     = nullptr;
 D3D11Dev_CreatePixelShader_pfn                      D3D11Dev_CreatePixelShader_Original                      = nullptr;
 D3D11Dev_CreateGeometryShader_pfn                   D3D11Dev_CreateGeometryShader_Original                   = nullptr;
+D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn   D3D11Dev_CreateGeometryShaderWithStreamOutput_Original   = nullptr;
 D3D11Dev_CreateHullShader_pfn                       D3D11Dev_CreateHullShader_Original                       = nullptr;
 D3D11Dev_CreateDomainShader_pfn                     D3D11Dev_CreateDomainShader_Original                     = nullptr;
 D3D11Dev_CreateComputeShader_pfn                    D3D11Dev_CreateComputeShader_Original                    = nullptr;
@@ -620,6 +622,7 @@ D3D11_DrawInstancedIndirect_pfn                     D3D11_DrawInstancedIndirect_
 D3D11_Dispatch_pfn                                  D3D11_Dispatch_Original                                  = nullptr;
 D3D11_DispatchIndirect_pfn                          D3D11_DispatchIndirect_Original                          = nullptr;
 D3D11_Map_pfn                                       D3D11_Map_Original                                       = nullptr;
+
 D3D11_OMSetRenderTargets_pfn                        D3D11_OMSetRenderTargets_Original                        = nullptr;
 D3D11_OMSetRenderTargetsAndUnorderedAccessViews_pfn D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original = nullptr;
 
@@ -629,6 +632,13 @@ D3D11_GSSetShader_pfn                  D3D11_GSSetShader_Original               
 D3D11_HSSetShader_pfn                  D3D11_HSSetShader_Original                  = nullptr;
 D3D11_DSSetShader_pfn                  D3D11_DSSetShader_Original                  = nullptr;
 D3D11_CSSetShader_pfn                  D3D11_CSSetShader_Original                  = nullptr;
+
+D3D11_VSGetShader_pfn                  D3D11_VSGetShader_Original                  = nullptr;
+D3D11_PSGetShader_pfn                  D3D11_PSGetShader_Original                  = nullptr;
+D3D11_GSGetShader_pfn                  D3D11_GSGetShader_Original                  = nullptr;
+D3D11_HSGetShader_pfn                  D3D11_HSGetShader_Original                  = nullptr;
+D3D11_DSGetShader_pfn                  D3D11_DSGetShader_Original                  = nullptr;
+D3D11_CSGetShader_pfn                  D3D11_CSGetShader_Original                  = nullptr;
 
 D3D11_CopyResource_pfn          D3D11_CopyResource_Original       = nullptr;
 D3D11_UpdateSubresource1_pfn    D3D11_UpdateSubresource1_Original = nullptr;
@@ -689,19 +699,23 @@ struct SK_D3D11_ShaderDesc
 
 #include <map>
 
+class iSK_VertexShaderD3D11;
+class iSK_PixelShaderD3D11;
+class iSK_GeometryShaderD3D11;
+class iSK_HullShaderD3D11;
+class iSK_DomainShaderD3D11;
+class iSK_ComputeShaderD3D11;
+
 struct SK_D3D11_KnownShaders
 {
 
   template <typename _T> 
   struct ShaderRegistry
   {
-    std::multimap      <uint32_t,                 _T*>    all;
-    std::unordered_map <uint32_t,                 _T*>    newest;
+    std::unordered_map <_T*, uint32_t>                 rev;
+    std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
 
-    std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>    descs;
-
-  //std::unordered_map <UINT, ID3D11ShaderResourceView *> resources;
-    ULONG                                                 changes_last_frame = 0;
+    ULONG                                              changes_last_frame = 0;
   };
 
   ShaderRegistry <ID3D11PixelShader>    pixel;
@@ -887,7 +901,8 @@ shader_tracking_s::activate ( ID3D11ClassInstance *const *ppClassInstances,
                               UINT                        NumClassInstances )
 {
   for ( UINT i = 0 ; i < NumClassInstances ; i++ )
-    addClassInstance (ppClassInstances [i]);
+    if (ppClassInstances && ppClassInstances [i])
+      addClassInstance (ppClassInstances [i]);
 
 
   if (! active)
@@ -983,961 +998,6 @@ shader_tracking_s::use (IUnknown* pShader)
 }
 
 
-class iSK_PixelShaderD3D11 : public
-      ID3D11PixelShader
-{
-public:
-    iSK_PixelShaderD3D11 (       ID3D11PixelShader  **ppShader,
-                                 ID3D11ClassLinkage  *pLinkage,
-                           const uint8_t             *pShaderBytecode,
-                                 SIZE_T               BytecodeLength )
-    {
-      SK_D3D11_ShaderDesc desc;
-
-      desc.type   = SK_D3D11_ShaderType::Pixel;
-      desc.crc32c = crc32c (0, (const uint8_t *)pShaderBytecode, BytecodeLength);
-
-      if (SK_D3D11_Shaders.pixel.descs.count (desc.crc32c))
-      {
-        rDesc = SK_D3D11_Shaders.pixel.descs [desc.crc32c];
-        SK_D3D11_Shaders.pixel.descs [desc.crc32c].usage.refs++;
-
-        SK_D3D11_Shaders.pixel.all.emplace    (std::make_pair (rDesc.crc32c, this));
-
-        SK_D3D11_Shaders.pixel.newest.erase   (rDesc.crc32c);
-        SK_D3D11_Shaders.pixel.newest.emplace (std::make_pair (rDesc.crc32c, this));
-      } 
-
-      else
-      {
-        desc.usage.last_frame = SK_GetFramesDrawn ();
-        _time64 (&desc.usage.last_time);
-
-        SK_D3D11_Shaders.pixel.all.emplace    (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.pixel.newest.emplace (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.pixel.descs.insert   (std::make_pair (desc.crc32c, desc));
-
-        for (UINT i = 0; i < BytecodeLength; i++)
-          SK_D3D11_Shaders.pixel.descs [desc.crc32c].bytecode.push_back (pShaderBytecode [i]);
-
-        rDesc = SK_D3D11_Shaders.pixel.descs [desc.crc32c];
-      }
-
-      InterlockedExchange  (&refs,          1);
-      InterlockedIncrement (&rDesc.usage.refs);
-
-      pShader   = *ppShader;
-      *ppShader = this;
-    };
-
-
-    /*** IUnknown methods ***/
-    STDMETHOD (QueryInterface) (THIS_ REFIID riid, void** ppvObj)
-    {
-      if ( IsEqualGUID (riid, IID_SKPixelShaderD3D11) ||
-           IsEqualGUID (riid, IID_ID3D11PixelShader)  ||
-           IsEqualGUID (riid, IID_ID3D11DeviceChild)  ||
-           IsEqualGUID (riid, IID_IUnknown) )
-      {
-        AddRef ();
-
-        *ppvObj = this;
-
-        return S_OK;
-      }
-
-      return pShader->QueryInterface (riid, ppvObj);
-    }
-
-    STDMETHOD_ (ULONG,AddRef) (THIS)
-    {
-      return pShader->AddRef ();
-    }
-
-    STDMETHOD_ (ULONG,Release) (THIS)
-    {
-      ULONG ret = pShader->Release ();
-
-      if (ret == 0)
-      {
-        InterlockedExchange (&refs, 0);
-
-        EnterCriticalSection (&cs_shader);
-
-        for ( auto it  = SK_D3D11_Shaders.pixel.all.begin ();
-                   it != SK_D3D11_Shaders.pixel.all.end   ();
-                 ++it )
-        {
-          if (it->second == this)
-          {
-            if (SK_D3D11_Shaders.pixel.newest [rDesc.crc32c] == this)
-            {
-              auto it_next = it; ++it_next;
-              auto it_prev = it; --it_prev;
-
-              SK_D3D11_Shaders.pixel.newest.erase (it->first);
-
-              if (it_next != SK_D3D11_Shaders.pixel.all.end ())
-              {
-                SK_D3D11_Shaders.pixel.newest.emplace (std::make_pair (it_next->first, it_next->second));
-              }
-
-              else if (it_prev != SK_D3D11_Shaders.pixel.all.end ())
-              {
-                SK_D3D11_Shaders.pixel.newest.emplace (std::make_pair (it_prev->first, it_prev->second));
-              }
-            }
-
-            SK_D3D11_Shaders.pixel.all.erase (it);
-            break;
-          }
-        }
-
-        SK_D3D11_Shaders.pixel.descs [rDesc.crc32c].usage.refs--;
-
-        LeaveCriticalSection (&cs_shader);
-      }
-
-      return ret;
-    }
-
-    /*** ID3D11DeviceChild methods ***/
-    STDMETHOD_ (void,GetDevice) (_Out_ ID3D11Device **ppDevice)
-    {
-      return pShader->GetDevice (ppDevice);
-    }
-
-    STDMETHOD (GetPrivateData) (
-         _In_                                 REFGUID  guid,
-         _Inout_                              UINT    *pDataSize,
-         _Out_writes_bytes_opt_( *pDataSize ) void    *pData )
-    {
-      return pShader->GetPrivateData (guid, pDataSize, pData);
-    }
-        
-    STDMETHOD (SetPrivateData) (
-         _In_                                   REFGUID  guid,
-         _In_                                   UINT     DataSize,
-         _In_reads_bytes_opt_( DataSize ) const void    *pData )
-    {
-      return pShader->SetPrivateData (guid, DataSize, pData);
-    }
-
-    STDMETHOD (SetPrivateDataInterface) ( _In_           REFGUID   guid,
-                                          _In_opt_ const IUnknown *pData )
-    {
-      return pShader->SetPrivateDataInterface (guid, pData);
-    }
-
-
-    SK_D3D11_ShaderDesc& getDesc       (void) { return rDesc;   }
-    ID3D11PixelShader*   getRealShader (void) { if (InterlockedCompareExchange (&refs, 0, 0)) return pShader; return nullptr; }
-
-protected:
-private:
-           SK_D3D11_ShaderDesc rDesc;
-
-           ID3D11PixelShader*   pShader = nullptr;
-  volatile ULONG                refs    = 0;
-};
-
-class iSK_VertexShaderD3D11 : public
-      ID3D11VertexShader
-{
-public:
-    iSK_VertexShaderD3D11 (      ID3D11VertexShader **ppShader,
-                                 ID3D11ClassLinkage  *pLinkage,
-                           const uint8_t             *pShaderBytecode,
-                                 SIZE_T               BytecodeLength )
-    {
-      SK_D3D11_ShaderDesc desc;
-
-      desc.type   = SK_D3D11_ShaderType::Vertex;
-      desc.crc32c = crc32c (0, (const uint8_t *)pShaderBytecode, BytecodeLength);
-
-      if (SK_D3D11_Shaders.vertex.descs.count (desc.crc32c))
-      {
-        rDesc = SK_D3D11_Shaders.vertex.descs [desc.crc32c];
-        rDesc.usage.refs++;
-
-        SK_D3D11_Shaders.vertex.all.emplace    (std::make_pair (rDesc.crc32c, this));
-
-        SK_D3D11_Shaders.vertex.newest.erase   (rDesc.crc32c);
-        SK_D3D11_Shaders.vertex.newest.emplace (std::make_pair (rDesc.crc32c, this));
-      } 
-
-      else
-      {
-        desc.usage.last_frame = SK_GetFramesDrawn ();
-        _time64 (&desc.usage.last_time);
-
-        SK_D3D11_Shaders.vertex.all.emplace    (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.vertex.newest.emplace (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.vertex.descs.insert   (std::make_pair (desc.crc32c, desc));
-
-        for (UINT i = 0; i < BytecodeLength; i++)
-          SK_D3D11_Shaders.vertex.descs [desc.crc32c].bytecode.push_back (pShaderBytecode [i]);
-
-        rDesc = SK_D3D11_Shaders.vertex.descs [desc.crc32c];
-      }
-
-      InterlockedExchange  (&refs,          1);
-      InterlockedIncrement (&rDesc.usage.refs);
-
-      pShader   = *ppShader;
-      *ppShader = this;
-    };
-
-
-    /*** IUnknown methods ***/
-    STDMETHOD (QueryInterface) (THIS_ REFIID riid, void** ppvObj)
-    {
-      if ( IsEqualGUID (riid, IID_SKVertexShaderD3D11) ||
-           IsEqualGUID (riid, IID_ID3D11VertexShader)  ||
-           IsEqualGUID (riid, IID_ID3D11DeviceChild)   ||
-           IsEqualGUID (riid, IID_IUnknown) )
-      {
-        AddRef ();
-
-        *ppvObj = this;
-
-        return S_OK;
-      }
-
-      return pShader->QueryInterface (riid, ppvObj);
-    }
-
-    STDMETHOD_ (ULONG,AddRef) (THIS)
-    {
-      return pShader->AddRef ();
-    }
-
-    STDMETHOD_ (ULONG,Release) (THIS)
-    {
-      ULONG ret = pShader->Release ();
-
-      if (ret == 0)
-      {
-        InterlockedExchange (&refs, 0);
-
-        EnterCriticalSection (&cs_shader);
-
-        for ( auto it  = SK_D3D11_Shaders.vertex.all.begin ();
-                   it != SK_D3D11_Shaders.vertex.all.end   ();
-                 ++it )
-        {
-          if (it->second == this)
-          {
-            if (SK_D3D11_Shaders.vertex.newest [rDesc.crc32c] == this)
-            {
-              auto it_next = it; ++it_next;
-              auto it_prev = it; --it_prev;
-
-              SK_D3D11_Shaders.vertex.newest.erase (it->first);
-
-              if (it_next != SK_D3D11_Shaders.vertex.all.end ())
-              {
-                SK_D3D11_Shaders.vertex.newest.emplace (std::make_pair (it_next->first, it_next->second));
-              }
-
-              else if (it_prev != SK_D3D11_Shaders.vertex.all.end ())
-              {
-                SK_D3D11_Shaders.vertex.newest.emplace (std::make_pair (it_prev->first, it_prev->second));
-              }
-            }
-
-            SK_D3D11_Shaders.vertex.all.erase (it);
-            break;
-          }
-        }
-
-        SK_D3D11_Shaders.vertex.descs [rDesc.crc32c].usage.refs--;
-
-        LeaveCriticalSection (&cs_shader);
-      }
-
-      return ret;
-    }
-
-    /*** ID3D11DeviceChild methods ***/
-    STDMETHOD_ (void,GetDevice) (_Out_ ID3D11Device **ppDevice)
-    {
-      return pShader->GetDevice (ppDevice);
-    }
-
-    STDMETHOD (GetPrivateData) (
-         _In_                                 REFGUID  guid,
-         _Inout_                              UINT    *pDataSize,
-         _Out_writes_bytes_opt_( *pDataSize ) void    *pData )
-    {
-      return pShader->GetPrivateData (guid, pDataSize, pData);
-    }
-        
-    STDMETHOD (SetPrivateData) (
-         _In_                                   REFGUID  guid,
-         _In_                                   UINT     DataSize,
-         _In_reads_bytes_opt_( DataSize ) const void    *pData )
-    {
-      return pShader->SetPrivateData (guid, DataSize, pData);
-    }
-
-    STDMETHOD (SetPrivateDataInterface) ( _In_           REFGUID   guid,
-                                          _In_opt_ const IUnknown *pData )
-    {
-      return pShader->SetPrivateDataInterface (guid, pData);
-    }
-
-
-    SK_D3D11_ShaderDesc& getDesc       (void) { return rDesc;   }
-    ID3D11VertexShader*  getRealShader (void) { if (InterlockedCompareExchange (&refs, 0, 0)) return pShader; return nullptr; }
-
-protected:
-private:
-           SK_D3D11_ShaderDesc  rDesc;
-
-           ID3D11VertexShader*  pShader = nullptr;
-  volatile ULONG                refs    = 0;
-};
-
-
-class iSK_GeometryShaderD3D11 : public
-      ID3D11GeometryShader
-{
-public:
-    iSK_GeometryShaderD3D11 (    ID3D11GeometryShader **ppShader,
-                                 ID3D11ClassLinkage    *pLinkage,
-                           const uint8_t               *pShaderBytecode,
-                                 SIZE_T                 BytecodeLength )
-    {
-      SK_D3D11_ShaderDesc desc;
-
-      desc.type   = SK_D3D11_ShaderType::Geometry;
-      desc.crc32c = crc32c (0, (const uint8_t *)pShaderBytecode, BytecodeLength);
-
-      if (SK_D3D11_Shaders.geometry.descs.count (desc.crc32c))
-      {
-        rDesc = SK_D3D11_Shaders.geometry.descs [desc.crc32c];
-        rDesc.usage.refs++;
-
-        SK_D3D11_Shaders.geometry.all.emplace    (std::make_pair (rDesc.crc32c, this));
-
-        SK_D3D11_Shaders.geometry.newest.erase   (rDesc.crc32c);
-        SK_D3D11_Shaders.geometry.newest.emplace (std::make_pair (rDesc.crc32c, this));
-      } 
-
-      else
-      {
-        desc.usage.last_frame = SK_GetFramesDrawn ();
-        _time64 (&desc.usage.last_time);
-
-        SK_D3D11_Shaders.geometry.all.emplace    (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.geometry.newest.emplace (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.geometry.descs.insert   (std::make_pair (desc.crc32c, desc));
-
-        for (UINT i = 0; i < BytecodeLength; i++)
-          SK_D3D11_Shaders.geometry.descs [desc.crc32c].bytecode.push_back (pShaderBytecode [i]);
-
-        rDesc = SK_D3D11_Shaders.geometry.descs [desc.crc32c];
-      }
-
-      InterlockedExchange  (&refs,          1);
-      InterlockedIncrement (&rDesc.usage.refs);
-
-      pShader   = *ppShader;
-      *ppShader = this;
-    };
-
-
-    /*** IUnknown methods ***/
-    STDMETHOD (QueryInterface) (THIS_ REFIID riid, void** ppvObj)
-    {
-      if ( IsEqualGUID (riid, IID_SKGeometryShaderD3D11) ||
-           IsEqualGUID (riid, IID_ID3D11GeometryShader)  ||
-           IsEqualGUID (riid, IID_ID3D11DeviceChild)     ||
-           IsEqualGUID (riid, IID_IUnknown) )
-      {
-        AddRef ();
-
-        *ppvObj = this;
-
-        return S_OK;
-      }
-
-      return pShader->QueryInterface (riid, ppvObj);
-    }
-
-    STDMETHOD_ (ULONG,AddRef) (THIS)
-    {
-      return pShader->AddRef ();
-    }
-
-    STDMETHOD_ (ULONG,Release) (THIS)
-    {
-      ULONG ret = pShader->Release ();
-
-      if (ret == 0)
-      {
-        InterlockedExchange (&refs, 0);
-
-        EnterCriticalSection (&cs_shader);
-
-        for ( auto it  = SK_D3D11_Shaders.geometry.all.begin ();
-                   it != SK_D3D11_Shaders.geometry.all.end   ();
-                 ++it )
-        {
-          if (it->second == this)
-          {
-            if (SK_D3D11_Shaders.geometry.newest [rDesc.crc32c] == this)
-            {
-              auto it_next = it; ++it_next;
-              auto it_prev = it; --it_prev;
-
-              SK_D3D11_Shaders.geometry.newest.erase (it->first);
-
-              if (it_next != SK_D3D11_Shaders.geometry.all.end ())
-              {
-                SK_D3D11_Shaders.geometry.newest.emplace (std::make_pair (it_next->first, it_next->second));
-              }
-
-              else if (it_prev != SK_D3D11_Shaders.geometry.all.end ())
-              {
-                SK_D3D11_Shaders.geometry.newest.emplace (std::make_pair (it_prev->first, it_prev->second));
-              }
-            }
-
-            SK_D3D11_Shaders.geometry.all.erase (it);
-            break;
-          }
-        }
-
-        SK_D3D11_Shaders.geometry.descs [rDesc.crc32c].usage.refs--;
-
-        LeaveCriticalSection (&cs_shader);
-      }
-
-      return ret;
-    }
-
-    /*** ID3D11DeviceChild methods ***/
-    STDMETHOD_ (void,GetDevice) (_Out_ ID3D11Device **ppDevice)
-    {
-      return pShader->GetDevice (ppDevice);
-    }
-
-    STDMETHOD (GetPrivateData) (
-         _In_                                 REFGUID  guid,
-         _Inout_                              UINT    *pDataSize,
-         _Out_writes_bytes_opt_( *pDataSize ) void    *pData )
-    {
-      return pShader->GetPrivateData (guid, pDataSize, pData);
-    }
-        
-    STDMETHOD (SetPrivateData) (
-         _In_                                   REFGUID  guid,
-         _In_                                   UINT     DataSize,
-         _In_reads_bytes_opt_( DataSize ) const void    *pData )
-    {
-      return pShader->SetPrivateData (guid, DataSize, pData);
-    }
-
-    STDMETHOD (SetPrivateDataInterface) ( _In_           REFGUID   guid,
-                                          _In_opt_ const IUnknown *pData )
-    {
-      return pShader->SetPrivateDataInterface (guid, pData);
-    }
-
-
-    SK_D3D11_ShaderDesc&  getDesc       (void) { return rDesc;   }
-    ID3D11GeometryShader* getRealShader (void) { if (InterlockedCompareExchange (&refs, 0, 0)) return pShader; return nullptr; }
-
-protected:
-private:
-           SK_D3D11_ShaderDesc rDesc;
-
-           ID3D11GeometryShader* pShader = nullptr;
-  volatile ULONG                 refs    = 0;
-};
-
-
-class iSK_HullShaderD3D11 : public
-      ID3D11HullShader
-{
-public:
-    iSK_HullShaderD3D11 (    ID3D11HullShader   **ppShader,
-                             ID3D11ClassLinkage  *pLinkage,
-                       const uint8_t             *pShaderBytecode,
-                             SIZE_T               BytecodeLength )
-    {
-      SK_D3D11_ShaderDesc desc;
-
-      desc.type = SK_D3D11_ShaderType::Hull;
-      desc.crc32c = crc32c (0, (const uint8_t *)pShaderBytecode, BytecodeLength);
-
-      if (SK_D3D11_Shaders.hull.descs.count (desc.crc32c))
-      {
-        rDesc = SK_D3D11_Shaders.hull.descs [desc.crc32c];
-        rDesc.usage.refs++;
-
-        SK_D3D11_Shaders.hull.all.emplace    (std::make_pair (rDesc.crc32c, this));
-
-        SK_D3D11_Shaders.hull.newest.erase   (rDesc.crc32c);
-        SK_D3D11_Shaders.hull.newest.emplace (std::make_pair (rDesc.crc32c, this));
-      } 
-
-      else
-      {
-        desc.usage.last_frame = SK_GetFramesDrawn ();
-        _time64 (&desc.usage.last_time);
-
-        SK_D3D11_Shaders.hull.all.emplace    (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.hull.newest.emplace (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.hull.descs.insert   (std::make_pair (desc.crc32c, desc));
-
-        for (UINT i = 0; i < BytecodeLength; i++)
-          SK_D3D11_Shaders.hull.descs [desc.crc32c].bytecode.push_back (pShaderBytecode [i]);
-
-        rDesc = SK_D3D11_Shaders.hull.descs [desc.crc32c];
-      }
-
-      InterlockedExchange  (&refs,          1);
-      InterlockedIncrement (&rDesc.usage.refs);
-
-      pShader   = *ppShader;
-      *ppShader = this;
-    };
-
-
-    /*** IUnknown methods ***/
-    STDMETHOD (QueryInterface) (THIS_ REFIID riid, void** ppvObj)
-    {
-      if ( IsEqualGUID (riid, IID_SKHullShaderD3D11) ||
-           IsEqualGUID (riid, IID_ID3D11HullShader)  ||
-           IsEqualGUID (riid, IID_ID3D11DeviceChild) ||
-           IsEqualGUID (riid, IID_IUnknown) )
-      {
-        AddRef ();
-
-        *ppvObj = this;
-
-        return S_OK;
-      }
-
-      return pShader->QueryInterface (riid, ppvObj);
-    }
-
-    STDMETHOD_ (ULONG,AddRef) (THIS)
-    {
-      return pShader->AddRef ();
-    }
-
-    STDMETHOD_ (ULONG,Release) (THIS)
-    {
-      ULONG ret = pShader->Release ();
-
-      if (ret == 0)
-      {
-        InterlockedExchange (&refs, 0);
-
-        EnterCriticalSection (&cs_shader);
-
-        for ( auto it  = SK_D3D11_Shaders.hull.all.begin ();
-                   it != SK_D3D11_Shaders.hull.all.end   ();
-                 ++it )
-        {
-          if (it->second == this)
-          {
-            if (SK_D3D11_Shaders.hull.newest [rDesc.crc32c] == this)
-            {
-              auto it_next = it; ++it_next;
-              auto it_prev = it; --it_prev;
-
-              SK_D3D11_Shaders.hull.newest.erase (it->first);
-
-              if (it_next != SK_D3D11_Shaders.hull.all.end ())
-              {
-                SK_D3D11_Shaders.hull.newest.emplace (std::make_pair (it_next->first, it_next->second));
-              }
-
-              else if (it_prev != SK_D3D11_Shaders.hull.all.end ())
-              {
-                SK_D3D11_Shaders.hull.newest.emplace (std::make_pair (it_prev->first, it_prev->second));
-              }
-            }
-
-            SK_D3D11_Shaders.hull.all.erase (it);
-            break;
-          }
-        }
-
-        SK_D3D11_Shaders.hull.descs [rDesc.crc32c].usage.refs--;
-
-        LeaveCriticalSection (&cs_shader);
-      }
-
-      return ret;
-    }
-
-    /*** ID3D11DeviceChild methods ***/
-    STDMETHOD_ (void,GetDevice) (_Out_ ID3D11Device **ppDevice)
-    {
-      return pShader->GetDevice (ppDevice);
-    }
-
-    STDMETHOD (GetPrivateData) (
-         _In_                                 REFGUID  guid,
-         _Inout_                              UINT    *pDataSize,
-         _Out_writes_bytes_opt_( *pDataSize ) void    *pData )
-    {
-      return pShader->GetPrivateData (guid, pDataSize, pData);
-    }
-        
-    STDMETHOD (SetPrivateData) (
-         _In_                                   REFGUID  guid,
-         _In_                                   UINT     DataSize,
-         _In_reads_bytes_opt_( DataSize ) const void    *pData )
-    {
-      return pShader->SetPrivateData (guid, DataSize, pData);
-    }
-
-    STDMETHOD (SetPrivateDataInterface) ( _In_           REFGUID   guid,
-                                          _In_opt_ const IUnknown *pData )
-    {
-      return pShader->SetPrivateDataInterface (guid, pData);
-    }
-
-
-    SK_D3D11_ShaderDesc& getDesc       (void) { return rDesc;   }
-    ID3D11HullShader*    getRealShader (void) { if (InterlockedCompareExchange (&refs, 0, 0)) return pShader; return nullptr; }
-
-protected:
-private:
-           SK_D3D11_ShaderDesc rDesc;
-
-           ID3D11HullShader*  pShader = nullptr;
-  volatile ULONG              refs    = 0;
-};
-
-
-class iSK_DomainShaderD3D11 : public
-      ID3D11DomainShader
-{
-public:
-    iSK_DomainShaderD3D11 (      ID3D11DomainShader **ppShader,
-                                 ID3D11ClassLinkage  *pLinkage,
-                           const uint8_t             *pShaderBytecode,
-                                 SIZE_T               BytecodeLength )
-    {
-      SK_D3D11_ShaderDesc desc;
-
-      desc.type   = SK_D3D11_ShaderType::Domain;
-      desc.crc32c = crc32c (0, (const uint8_t *)pShaderBytecode, BytecodeLength);
-
-      if (SK_D3D11_Shaders.domain.descs.count (desc.crc32c))
-      {
-        rDesc = SK_D3D11_Shaders.domain.descs [desc.crc32c];
-        rDesc.usage.refs++;
-
-        SK_D3D11_Shaders.domain.all.emplace    (std::make_pair (rDesc.crc32c, this));
-
-        SK_D3D11_Shaders.domain.newest.erase   (rDesc.crc32c);
-        SK_D3D11_Shaders.domain.newest.emplace (std::make_pair (rDesc.crc32c, this));
-      } 
-
-      else
-      {
-        desc.usage.last_frame = SK_GetFramesDrawn ();
-        _time64 (&desc.usage.last_time);
-
-        SK_D3D11_Shaders.domain.all.emplace    (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.domain.newest.emplace (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.domain.descs.insert   (std::make_pair (desc.crc32c, desc));
-
-        for (UINT i = 0; i < BytecodeLength; i++)
-          SK_D3D11_Shaders.domain.descs [desc.crc32c].bytecode.push_back (pShaderBytecode [i]);
-
-        rDesc = SK_D3D11_Shaders.domain.descs [desc.crc32c];
-      }
-
-      InterlockedExchange  (&refs,          1);
-      InterlockedIncrement (&rDesc.usage.refs);
-
-      pShader   = *ppShader;
-      *ppShader = this;
-    };
-
-
-    /*** IUnknown methods ***/
-    STDMETHOD (QueryInterface) (THIS_ REFIID riid, void** ppvObj)
-    {
-      if ( IsEqualGUID (riid, IID_SKDomainShaderD3D11) ||
-           IsEqualGUID (riid, IID_ID3D11DomainShader)  ||
-           IsEqualGUID (riid, IID_ID3D11DeviceChild)   ||
-           IsEqualGUID (riid, IID_IUnknown) )
-      {
-        AddRef ();
-
-        *ppvObj = this;
-
-        return S_OK;
-      }
-
-      return pShader->QueryInterface (riid, ppvObj);
-    }
-
-    STDMETHOD_ (ULONG,AddRef) (THIS)
-    {
-      return pShader->AddRef ();
-    }
-
-    STDMETHOD_ (ULONG,Release) (THIS)
-    {
-      ULONG ret = pShader->Release ();
-
-      if (ret == 0)
-      {
-        InterlockedExchange (&refs, 0);
-
-        EnterCriticalSection (&cs_shader);
-
-        for ( auto it  = SK_D3D11_Shaders.domain.all.begin ();
-                   it != SK_D3D11_Shaders.domain.all.end   ();
-                 ++it )
-        {
-          if (it->second == this)
-          {
-            if (SK_D3D11_Shaders.domain.newest [rDesc.crc32c] == this)
-            {
-              auto it_next = it; ++it_next;
-              auto it_prev = it; --it_prev;
-
-              SK_D3D11_Shaders.domain.newest.erase (it->first);
-
-              if (it_next != SK_D3D11_Shaders.domain.all.end ())
-              {
-                SK_D3D11_Shaders.domain.newest.emplace (std::make_pair (it_next->first, it_next->second));
-              }
-
-              else if (it_prev != SK_D3D11_Shaders.domain.all.end ())
-              {
-                SK_D3D11_Shaders.domain.newest.emplace (std::make_pair (it_prev->first, it_prev->second));
-              }
-            }
-
-            SK_D3D11_Shaders.domain.all.erase (it);
-            break;
-          }
-        }
-
-        SK_D3D11_Shaders.domain.descs [rDesc.crc32c].usage.refs--;
-
-        LeaveCriticalSection (&cs_shader);
-      }
-
-      return ret;
-    }
-
-    /*** ID3D11DeviceChild methods ***/
-    STDMETHOD_ (void,GetDevice) (_Out_ ID3D11Device **ppDevice)
-    {
-      return pShader->GetDevice (ppDevice);
-    }
-
-    STDMETHOD (GetPrivateData) (
-         _In_                                 REFGUID  guid,
-         _Inout_                              UINT    *pDataSize,
-         _Out_writes_bytes_opt_( *pDataSize ) void    *pData )
-    {
-      return pShader->GetPrivateData (guid, pDataSize, pData);
-    }
-        
-    STDMETHOD (SetPrivateData) (
-         _In_                                   REFGUID  guid,
-         _In_                                   UINT     DataSize,
-         _In_reads_bytes_opt_( DataSize ) const void    *pData )
-    {
-      return pShader->SetPrivateData (guid, DataSize, pData);
-    }
-
-    STDMETHOD (SetPrivateDataInterface) ( _In_           REFGUID   guid,
-                                          _In_opt_ const IUnknown *pData )
-    {
-      return pShader->SetPrivateDataInterface (guid, pData);
-    }
-
-
-    SK_D3D11_ShaderDesc& getDesc       (void) { return rDesc;   }
-    ID3D11DomainShader*  getRealShader (void) { if (InterlockedCompareExchange (&refs, 0, 0)) return pShader; return nullptr; }
-
-protected:
-private:
-           SK_D3D11_ShaderDesc rDesc;
-
-           ID3D11DomainShader* pShader = nullptr;
-  volatile ULONG               refs    = 0;
-};
-
-
-class iSK_ComputeShaderD3D11 : public
-      ID3D11ComputeShader
-{
-public:
-    iSK_ComputeShaderD3D11 (    ID3D11ComputeShader **ppShader,
-                                ID3D11ClassLinkage   *pLinkage,
-                          const uint8_t              *pShaderBytecode,
-                                SIZE_T                BytecodeLength )
-    {
-      SK_D3D11_ShaderDesc desc;
-
-      desc.type = SK_D3D11_ShaderType::Compute;
-      desc.crc32c = crc32c (0, (const uint8_t *)pShaderBytecode, BytecodeLength);
-
-      if (SK_D3D11_Shaders.compute.descs.count (desc.crc32c))
-      {
-        rDesc = SK_D3D11_Shaders.compute.descs [desc.crc32c];
-        rDesc.usage.refs++;
-
-        SK_D3D11_Shaders.compute.all.emplace    (std::make_pair (rDesc.crc32c, this));
-
-        SK_D3D11_Shaders.compute.newest.erase   (rDesc.crc32c);
-        SK_D3D11_Shaders.compute.newest.emplace (std::make_pair (rDesc.crc32c, this));
-      } 
-
-      else
-      {
-        desc.usage.last_frame = SK_GetFramesDrawn ();
-        _time64 (&desc.usage.last_time);
-
-        SK_D3D11_Shaders.compute.all.emplace    (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.compute.newest.emplace (std::make_pair (desc.crc32c, this));
-        SK_D3D11_Shaders.compute.descs.insert   (std::make_pair (desc.crc32c, desc));
-
-        SK_D3D11_Shaders.compute.descs [desc.crc32c].crc32c = desc.crc32c;
-
-        for (UINT i = 0; i < BytecodeLength; i++)
-          SK_D3D11_Shaders.compute.descs [desc.crc32c].bytecode.push_back (pShaderBytecode [i]);
-
-        rDesc = SK_D3D11_Shaders.compute.descs [desc.crc32c];
-      }
-
-      InterlockedExchange  (&refs,          1);
-      InterlockedIncrement (&rDesc.usage.refs);
-
-      pShader   = *ppShader;
-      *ppShader = this;
-    };
-
-
-    /*** IUnknown methods ***/
-    STDMETHOD (QueryInterface) (THIS_ REFIID riid, void** ppvObj)
-    {
-      if ( IsEqualGUID (riid, IID_SKComputeShaderD3D11) ||
-           IsEqualGUID (riid, IID_ID3D11ComputeShader)  ||
-           IsEqualGUID (riid, IID_ID3D11DeviceChild)    ||
-           IsEqualGUID (riid, IID_IUnknown) )
-      {
-        AddRef ();
-
-        *ppvObj = this;
-
-        return S_OK;
-      }
-
-      return pShader->QueryInterface (riid, ppvObj);
-    }
-
-    STDMETHOD_ (ULONG,AddRef) (THIS)
-    {
-      return pShader->AddRef ();
-    }
-
-    STDMETHOD_ (ULONG,Release) (THIS)
-    {
-      ULONG ret = pShader->Release ();
-
-      if (ret == 0)
-      {
-        InterlockedExchange (&refs, 0);
-
-        EnterCriticalSection (&cs_shader);
-
-        for ( auto it  = SK_D3D11_Shaders.compute.all.begin ();
-                   it != SK_D3D11_Shaders.compute.all.end   ();
-                 ++it )
-        {
-          if (it->second == this)
-          {
-            if (SK_D3D11_Shaders.compute.newest [rDesc.crc32c] == this)
-            {
-              auto it_next = it; ++it_next;
-              auto it_prev = it; --it_prev;
-
-              SK_D3D11_Shaders.compute.newest.erase (it->first);
-
-              if (it_next != SK_D3D11_Shaders.compute.all.end ())
-              {
-                SK_D3D11_Shaders.compute.newest.emplace (std::make_pair (it_next->first, it_next->second));
-              }
-
-              else if (it_prev != SK_D3D11_Shaders.compute.all.end ())
-              {
-                SK_D3D11_Shaders.compute.newest.emplace (std::make_pair (it_prev->first, it_prev->second));
-              }
-            }
-
-            SK_D3D11_Shaders.compute.all.erase (it);
-            break;
-          }
-        }
-
-        SK_D3D11_Shaders.compute.descs [rDesc.crc32c].usage.refs--;
-
-        LeaveCriticalSection (&cs_shader);
-      }
-
-      return ret;
-    }
-
-    /*** ID3D11DeviceChild methods ***/
-    STDMETHOD_ (void,GetDevice) (_Out_ ID3D11Device **ppDevice)
-    {
-      return pShader->GetDevice (ppDevice);
-    }
-
-    STDMETHOD (GetPrivateData) (
-         _In_                                 REFGUID  guid,
-         _Inout_                              UINT    *pDataSize,
-         _Out_writes_bytes_opt_( *pDataSize ) void    *pData )
-    {
-      return pShader->GetPrivateData (guid, pDataSize, pData);
-    }
-        
-    STDMETHOD (SetPrivateData) (
-         _In_                                   REFGUID  guid,
-         _In_                                   UINT     DataSize,
-         _In_reads_bytes_opt_( DataSize ) const void    *pData )
-    {
-      return pShader->SetPrivateData (guid, DataSize, pData);
-    }
-
-    STDMETHOD (SetPrivateDataInterface) ( _In_           REFGUID   guid,
-                                          _In_opt_ const IUnknown *pData )
-    {
-      return pShader->SetPrivateDataInterface (guid, pData);
-    }
-
-
-    SK_D3D11_ShaderDesc& getDesc       (void) { return rDesc;   }
-    ID3D11ComputeShader* getRealShader (void) { if (InterlockedCompareExchange (&refs, 0, 0)) return pShader; return nullptr; }
-
-protected:
-private:
-           SK_D3D11_ShaderDesc rDesc;
-
-           ID3D11ComputeShader* pShader = nullptr;
-  volatile ULONG                refs    = 100;
-};
-
-
 bool drawing_cpl = false;
 
 
@@ -1956,9 +1016,33 @@ D3D11Dev_CreateVertexShader_Override (
 
   if (SUCCEEDED (hr) && ppVertexShader)
   {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
     EnterCriticalSection (&cs_shader);
 
-    new iSK_VertexShaderD3D11 (ppVertexShader, pClassLinkage, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    if (! SK_D3D11_Shaders.vertex.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+
+      desc.type   = SK_D3D11_ShaderType::Vertex;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.vertex.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.vertex.rev.count (*ppVertexShader) &&
+               SK_D3D11_Shaders.vertex.rev [*ppVertexShader] != checksum )
+      SK_D3D11_Shaders.vertex.rev.erase (*ppVertexShader);
+
+    SK_D3D11_Shaders.vertex.rev.emplace (std::make_pair (*ppVertexShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.vertex.descs [checksum];
+
+    desc.usage.last_frame = SK_GetFramesDrawn ();
+    _time64 (&desc.usage.last_time);
 
     LeaveCriticalSection (&cs_shader);
   }
@@ -1981,11 +1065,34 @@ D3D11Dev_CreatePixelShader_Override (
 
   if (SUCCEEDED (hr) && ppPixelShader)
   {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
     EnterCriticalSection (&cs_shader);
 
-    new iSK_PixelShaderD3D11 (ppPixelShader, pClassLinkage, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    if (! SK_D3D11_Shaders.pixel.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Pixel;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.pixel.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.pixel.rev.count (*ppPixelShader) &&
+               SK_D3D11_Shaders.pixel.rev [*ppPixelShader] != checksum )
+      SK_D3D11_Shaders.pixel.rev.erase (*ppPixelShader);
+
+    SK_D3D11_Shaders.pixel.rev.emplace (std::make_pair (*ppPixelShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.pixel.descs [checksum];
 
     LeaveCriticalSection (&cs_shader);
+
+    desc.usage.last_frame = SK_GetFramesDrawn ();
+    _time64 (&desc.usage.last_time);
   }
 
   return hr;
@@ -2006,15 +1113,94 @@ D3D11Dev_CreateGeometryShader_Override (
 
   if (SUCCEEDED (hr) && ppGeometryShader)
   {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
     EnterCriticalSection (&cs_shader);
 
-    new iSK_GeometryShaderD3D11 (ppGeometryShader, pClassLinkage, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    if (! SK_D3D11_Shaders.geometry.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Geometry;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.geometry.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.geometry.rev.count (*ppGeometryShader) &&
+               SK_D3D11_Shaders.geometry.rev [*ppGeometryShader] != checksum )
+      SK_D3D11_Shaders.geometry.rev.erase (*ppGeometryShader);
+
+    SK_D3D11_Shaders.geometry.rev.emplace (std::make_pair (*ppGeometryShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.geometry.descs [checksum];
 
     LeaveCriticalSection (&cs_shader);
+
+    desc.usage.last_frame = SK_GetFramesDrawn ();
+    _time64 (&desc.usage.last_time);
   }
 
   return hr;
 }
+
+__declspec (noinline,nothrow)
+HRESULT
+WINAPI
+D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
+  _In_            ID3D11Device               *This,
+  _In_      const void                       *pShaderBytecode,
+  _In_            SIZE_T                     BytecodeLength,
+  _In_opt_  const D3D11_SO_DECLARATION_ENTRY *pSODeclaration,
+  _In_            UINT                       NumEntries,
+  _In_opt_  const UINT                       *pBufferStrides,
+  _In_            UINT                       NumStrides,
+  _In_            UINT                       RasterizedStream,
+  _In_opt_        ID3D11ClassLinkage         *pClassLinkage,
+  _Out_opt_       ID3D11GeometryShader       **ppGeometryShader )
+{
+  HRESULT hr =
+    D3D11Dev_CreateGeometryShaderWithStreamOutput_Original (This, pShaderBytecode, BytecodeLength,
+                                                              pSODeclaration, NumEntries, pBufferStrides, NumStrides,
+                                                                RasterizedStream, pClassLinkage, ppGeometryShader);
+
+  if (SUCCEEDED (hr) && ppGeometryShader)
+  {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
+    EnterCriticalSection (&cs_shader);
+
+    if (! SK_D3D11_Shaders.geometry.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Geometry;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.geometry.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.geometry.rev.count (*ppGeometryShader) &&
+               SK_D3D11_Shaders.geometry.rev [*ppGeometryShader] != checksum )
+      SK_D3D11_Shaders.geometry.rev.erase (*ppGeometryShader);
+
+    SK_D3D11_Shaders.geometry.rev.emplace (std::make_pair (*ppGeometryShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.geometry.descs [checksum];
+
+    LeaveCriticalSection (&cs_shader);
+
+    desc.usage.last_frame = SK_GetFramesDrawn ();
+    _time64 (&desc.usage.last_time);
+  }
+
+  return hr;
+}
+
 
 __declspec (noinline,nothrow)
 HRESULT
@@ -2031,11 +1217,34 @@ D3D11Dev_CreateHullShader_Override (
 
   if (SUCCEEDED (hr) && ppHullShader)
   {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
     EnterCriticalSection (&cs_shader);
 
-    new iSK_HullShaderD3D11 (ppHullShader, pClassLinkage, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    if (! SK_D3D11_Shaders.hull.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Hull;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.hull.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.hull.rev.count (*ppHullShader) &&
+               SK_D3D11_Shaders.hull.rev [*ppHullShader] != checksum )
+      SK_D3D11_Shaders.hull.rev.erase (*ppHullShader);
+
+    SK_D3D11_Shaders.hull.rev.emplace (std::make_pair (*ppHullShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.hull.descs [checksum];
 
     LeaveCriticalSection (&cs_shader);
+
+    desc.usage.last_frame = SK_GetFramesDrawn ();
+    _time64 (&desc.usage.last_time);
   }
 
   return hr;
@@ -2056,11 +1265,34 @@ D3D11Dev_CreateDomainShader_Override (
 
   if (SUCCEEDED (hr) && ppDomainShader)
   {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
     EnterCriticalSection (&cs_shader);
 
-    new iSK_DomainShaderD3D11 (ppDomainShader, pClassLinkage, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    if (! SK_D3D11_Shaders.domain.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Domain;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.domain.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.domain.rev.count (*ppDomainShader) &&
+               SK_D3D11_Shaders.domain.rev [*ppDomainShader] != checksum )
+      SK_D3D11_Shaders.domain.rev.erase (*ppDomainShader);
+
+    SK_D3D11_Shaders.domain.rev.emplace (std::make_pair (*ppDomainShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.domain.descs [checksum];
 
     LeaveCriticalSection (&cs_shader);
+
+    desc.usage.last_frame = SK_GetFramesDrawn ();
+    _time64 (&desc.usage.last_time);
   }
 
   return hr;
@@ -2081,11 +1313,34 @@ D3D11Dev_CreateComputeShader_Override (
 
   if (SUCCEEDED (hr) && ppComputeShader)
   {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
     EnterCriticalSection (&cs_shader);
 
-    new iSK_ComputeShaderD3D11 (ppComputeShader, pClassLinkage, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    if (! SK_D3D11_Shaders.compute.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Compute;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.compute.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.compute.rev.count (*ppComputeShader) &&
+               SK_D3D11_Shaders.compute.rev [*ppComputeShader] != checksum )
+      SK_D3D11_Shaders.compute.rev.erase (*ppComputeShader);
+
+    SK_D3D11_Shaders.compute.rev.emplace (std::make_pair (*ppComputeShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.compute.descs [checksum];
 
     LeaveCriticalSection (&cs_shader);
+
+    desc.usage.last_frame = SK_GetFramesDrawn ();
+    _time64 (&desc.usage.last_time);
   }
 
   return hr;
@@ -2102,36 +1357,55 @@ D3D11_VSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  CComPtr <iSK_VertexShaderD3D11> known_vs = nullptr;
-
   if (pVertexShader)
   {
-    if (SUCCEEDED (pVertexShader->QueryInterface (IID_SKVertexShaderD3D11, (void **)&known_vs)))
+    EnterCriticalSection (&cs_shader);
+
+    if (SK_D3D11_Shaders.vertex.rev.count (pVertexShader))
     {
       ++SK_D3D11_Shaders.vertex.changes_last_frame;
 
-      SK_D3D11_ShaderDesc& rDesc = known_vs->getDesc ();
+      uint32_t checksum = SK_D3D11_Shaders.vertex.descs [SK_D3D11_Shaders.vertex.rev [pVertexShader]].crc32c;
 
-      current_vs = rDesc.crc32c;
+      current_vs = checksum;
 
-      rDesc.usage.last_frame = SK_GetFramesDrawn ();
-      _time64 (&rDesc.usage.last_time);
+      SK_D3D11_Shaders.vertex.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      _time64 (&SK_D3D11_Shaders.vertex.descs [checksum].usage.last_time);
 
-      SK_D3D11_Shaders.vertex.descs [rDesc.crc32c].usage.last_frame = SK_GetFramesDrawn ();
+      LeaveCriticalSection (&cs_shader);
 
-      if (rDesc.crc32c == tracked_vs.crc32c) tracked_vs.activate   (ppClassInstances, NumClassInstances);
-      else                                   tracked_vs.deactivate ();
+      if (checksum == tracked_vs.crc32c) tracked_vs.activate   (ppClassInstances, NumClassInstances);
+      else                               tracked_vs.deactivate ();
+    }
 
-      D3D11_VSSetShader_Original (This, known_vs->getRealShader (), ppClassInstances, NumClassInstances);
+    else
+    {
+      LeaveCriticalSection (&cs_shader);
 
-      return;
+      tracked_vs.deactivate ();
+      current_vs        = 0x0;
     }
   }
 
-  tracked_vs.deactivate ();
-  current_vs        = 0x0;
+  else
+  {
+    tracked_vs.deactivate ();
+    current_vs        = 0x0;
+  }
 
   D3D11_VSSetShader_Original (This, pVertexShader, ppClassInstances, NumClassInstances);
+}
+
+__declspec (noinline,nothrow)
+void
+STDMETHODCALLTYPE
+D3D11_VSGetShader_Override (
+ _In_        ID3D11DeviceContext         *This,
+ _Out_       ID3D11VertexShader         **ppVertexShader,
+ _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+ _Inout_opt_ UINT                        *pNumClassInstances )
+{
+  return D3D11_VSGetShader_Original (This, ppVertexShader, ppClassInstances, pNumClassInstances);
 }
 
 __declspec (noinline,nothrow)
@@ -2143,36 +1417,55 @@ D3D11_PSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  CComPtr <iSK_PixelShaderD3D11> known_ps = nullptr;
-
   if (pPixelShader)
   {
-    if (SUCCEEDED (pPixelShader->QueryInterface (IID_SKPixelShaderD3D11, (void **)&known_ps)))
+    EnterCriticalSection (&cs_shader);
+
+    if (SK_D3D11_Shaders.pixel.rev.count (pPixelShader))
     {
       ++SK_D3D11_Shaders.pixel.changes_last_frame;
 
-      SK_D3D11_ShaderDesc& rDesc = known_ps->getDesc ();
+      uint32_t checksum = SK_D3D11_Shaders.pixel.descs [SK_D3D11_Shaders.pixel.rev [pPixelShader]].crc32c;
 
-      current_ps = rDesc.crc32c;
+      current_ps = checksum;
 
-      rDesc.usage.last_frame = SK_GetFramesDrawn ();
-      _time64 (&rDesc.usage.last_time);
+      SK_D3D11_Shaders.pixel.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      _time64 (&SK_D3D11_Shaders.pixel.descs [checksum].usage.last_time);
 
-      SK_D3D11_Shaders.pixel.descs [rDesc.crc32c].usage.last_frame = SK_GetFramesDrawn ();
+      LeaveCriticalSection (&cs_shader);
 
-      if (rDesc.crc32c == tracked_ps.crc32c) tracked_ps.activate   (ppClassInstances, NumClassInstances);
-      else                                   tracked_ps.deactivate ();
+      if (checksum == tracked_ps.crc32c) tracked_ps.activate   (ppClassInstances, NumClassInstances);
+      else                               tracked_ps.deactivate ();
+    }
 
-      D3D11_PSSetShader_Original (This, known_ps->getRealShader (), ppClassInstances, NumClassInstances);
+    else
+    {
+      LeaveCriticalSection (&cs_shader);
 
-      return;
+      tracked_ps.deactivate ();
+      current_ps        = 0x0;
     }
   }
 
-  tracked_ps.deactivate ();
-  current_ps        = 0x0;
+  else
+  {
+    tracked_ps.deactivate ();
+    current_ps        = 0x0;
+  }
 
   D3D11_PSSetShader_Original (This, pPixelShader, ppClassInstances, NumClassInstances);
+}
+
+__declspec (noinline,nothrow)
+void
+STDMETHODCALLTYPE
+D3D11_PSGetShader_Override (
+ _In_        ID3D11DeviceContext         *This,
+ _Out_       ID3D11PixelShader          **ppPixelShader,
+ _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+ _Inout_opt_ UINT                        *pNumClassInstances )
+{
+  return D3D11_PSGetShader_Original (This, ppPixelShader, ppClassInstances, pNumClassInstances);
 }
 
 __declspec (noinline,nothrow)
@@ -2184,36 +1477,55 @@ D3D11_GSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  CComPtr <iSK_GeometryShaderD3D11> known_gs = nullptr;
-
   if (pGeometryShader)
   {
-    if (SUCCEEDED (pGeometryShader->QueryInterface (IID_SKGeometryShaderD3D11, (void **)&known_gs)))
+    EnterCriticalSection (&cs_shader);
+
+    if (SK_D3D11_Shaders.geometry.rev.count (pGeometryShader))
     {
       ++SK_D3D11_Shaders.geometry.changes_last_frame;
 
-      SK_D3D11_ShaderDesc& rDesc = known_gs->getDesc ();
+      uint32_t checksum = SK_D3D11_Shaders.geometry.descs [SK_D3D11_Shaders.geometry.rev [pGeometryShader]].crc32c;
 
-      current_gs = rDesc.crc32c;
+      current_gs = checksum;
 
-      rDesc.usage.last_frame = SK_GetFramesDrawn ();
-      _time64 (&rDesc.usage.last_time);
+      SK_D3D11_Shaders.geometry.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      _time64 (&SK_D3D11_Shaders.geometry.descs [checksum].usage.last_time);
 
-      SK_D3D11_Shaders.geometry.descs [rDesc.crc32c].usage.last_frame = SK_GetFramesDrawn ();
+      LeaveCriticalSection (&cs_shader);
 
-      if (rDesc.crc32c == tracked_gs.crc32c) tracked_gs.activate   (ppClassInstances, NumClassInstances);
-      else                                   tracked_gs.deactivate ();
+      if (checksum == tracked_gs.crc32c) tracked_gs.activate   (ppClassInstances, NumClassInstances);
+      else                               tracked_gs.deactivate ();
+    }
 
-      D3D11_GSSetShader_Original (This, known_gs->getRealShader (), ppClassInstances, NumClassInstances);
+    else
+    {
+      LeaveCriticalSection (&cs_shader);
 
-      return;
+      tracked_gs.deactivate ();
+      current_gs        = 0x0;
     }
   }
 
-  tracked_gs.deactivate ();
-  current_gs        = 0x0;
+  else
+  {
+    tracked_gs.deactivate ();
+    current_gs        = 0x0;
+  }
 
   D3D11_GSSetShader_Original (This, pGeometryShader, ppClassInstances, NumClassInstances);
+}
+
+__declspec (noinline,nothrow)
+void
+STDMETHODCALLTYPE
+D3D11_GSGetShader_Override (
+ _In_        ID3D11DeviceContext         *This,
+ _Out_       ID3D11GeometryShader       **ppGeometryShader,
+ _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+ _Inout_opt_ UINT                        *pNumClassInstances )
+{
+  return D3D11_GSGetShader_Original (This, ppGeometryShader, ppClassInstances, pNumClassInstances);
 }
 
 __declspec (noinline,nothrow)
@@ -2225,36 +1537,55 @@ D3D11_HSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  CComPtr <iSK_HullShaderD3D11> known_hs = nullptr;
-
   if (pHullShader)
   {
-    if (SUCCEEDED (pHullShader->QueryInterface (IID_SKHullShaderD3D11, (void **)&known_hs)))
+    EnterCriticalSection (&cs_shader);
+
+    if (SK_D3D11_Shaders.hull.rev.count (pHullShader))
     {
       ++SK_D3D11_Shaders.hull.changes_last_frame;
 
-      SK_D3D11_ShaderDesc& rDesc = known_hs->getDesc ();
+      uint32_t checksum = SK_D3D11_Shaders.hull.descs [SK_D3D11_Shaders.hull.rev [pHullShader]].crc32c;
 
-      current_hs = rDesc.crc32c;
+      current_hs = checksum;
 
-      rDesc.usage.last_frame = SK_GetFramesDrawn ();
-      _time64 (&rDesc.usage.last_time);
+      SK_D3D11_Shaders.hull.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      _time64 (&SK_D3D11_Shaders.hull.descs [checksum].usage.last_time);
 
-      SK_D3D11_Shaders.hull.descs [rDesc.crc32c].usage.last_frame = SK_GetFramesDrawn ();
+      LeaveCriticalSection (&cs_shader);
 
-      if (rDesc.crc32c == tracked_hs.crc32c) tracked_hs.activate   (ppClassInstances, NumClassInstances);
-      else                                   tracked_hs.deactivate ();
+      if (checksum == tracked_hs.crc32c) tracked_hs.activate   (ppClassInstances, NumClassInstances);
+      else                               tracked_hs.deactivate ();
+    }
 
-      D3D11_HSSetShader_Original (This, known_hs->getRealShader (), ppClassInstances, NumClassInstances);
+    else
+    {
+      LeaveCriticalSection (&cs_shader);
 
-      return;
+      tracked_hs.deactivate ();
+      current_hs        = 0x0;
     }
   }
 
-  tracked_hs.deactivate ();
-  current_hs        = 0x0;
+  else
+  {
+    tracked_hs.deactivate ();
+    current_hs        = 0x0;
+  }
 
   D3D11_HSSetShader_Original (This, pHullShader, ppClassInstances, NumClassInstances);
+}
+
+__declspec (noinline,nothrow)
+void
+STDMETHODCALLTYPE
+D3D11_HSGetShader_Override (
+ _In_        ID3D11DeviceContext         *This,
+ _Out_       ID3D11HullShader           **ppHullShader,
+ _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+ _Inout_opt_ UINT                        *pNumClassInstances )
+{
+  return D3D11_HSGetShader_Original (This, ppHullShader, ppClassInstances, pNumClassInstances);
 }
 
 __declspec (noinline,nothrow)
@@ -2266,36 +1597,55 @@ D3D11_DSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  CComPtr <iSK_DomainShaderD3D11> known_ds = nullptr;
-
   if (pDomainShader)
   {
-    if (SUCCEEDED (pDomainShader->QueryInterface (IID_SKDomainShaderD3D11, (void **)&known_ds)))
+    EnterCriticalSection (&cs_shader);
+
+    if (SK_D3D11_Shaders.domain.rev.count (pDomainShader))
     {
       ++SK_D3D11_Shaders.domain.changes_last_frame;
 
-      SK_D3D11_ShaderDesc& rDesc = known_ds->getDesc ();
+      uint32_t checksum = SK_D3D11_Shaders.domain.descs [SK_D3D11_Shaders.domain.rev [pDomainShader]].crc32c;
 
-      current_ds = rDesc.crc32c;
+      current_ds = checksum;
 
-      rDesc.usage.last_frame = SK_GetFramesDrawn ();
-      _time64 (&rDesc.usage.last_time);
+      SK_D3D11_Shaders.domain.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      _time64 (&SK_D3D11_Shaders.domain.descs [checksum].usage.last_time);
 
-      if (rDesc.crc32c == tracked_ds.crc32c) tracked_ds.activate   (ppClassInstances, NumClassInstances);
-      else                                   tracked_ds.deactivate ();
+      LeaveCriticalSection (&cs_shader);
 
-      SK_D3D11_Shaders.domain.descs [rDesc.crc32c].usage.last_frame = SK_GetFramesDrawn ();
+      if (checksum == tracked_ds.crc32c) tracked_ds.activate   (ppClassInstances, NumClassInstances);
+      else                               tracked_ds.deactivate ();
+    }
 
-      D3D11_DSSetShader_Original (This, known_ds->getRealShader (), ppClassInstances, NumClassInstances);
+    else
+    {
+      LeaveCriticalSection (&cs_shader);
 
-      return;
+      tracked_ds.deactivate ();
+      current_ds        = 0x0;
     }
   }
 
-  tracked_ds.deactivate ();
-  current_ds        = 0x0;
+  else
+  {
+    tracked_ds.deactivate ();
+    current_ds        = 0x0;
+  }
 
   D3D11_DSSetShader_Original (This, pDomainShader, ppClassInstances, NumClassInstances);
+}
+
+__declspec (noinline,nothrow)
+void
+STDMETHODCALLTYPE
+D3D11_DSGetShader_Override (
+ _In_        ID3D11DeviceContext         *This,
+ _Out_       ID3D11DomainShader         **ppDomainShader,
+ _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+ _Inout_opt_ UINT                        *pNumClassInstances )
+{
+  return D3D11_DSGetShader_Original (This, ppDomainShader, ppClassInstances, pNumClassInstances);
 }
 
 __declspec (noinline,nothrow)
@@ -2307,36 +1657,55 @@ D3D11_CSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  CComPtr <iSK_ComputeShaderD3D11> known_cs = nullptr;
-
-  if (pComputeShader)
+   if (pComputeShader)
   {
-    if (SUCCEEDED (pComputeShader->QueryInterface (IID_SKComputeShaderD3D11, (void **)&known_cs)))
+    EnterCriticalSection (&cs_shader);
+
+    if (SK_D3D11_Shaders.compute.rev.count (pComputeShader))
     {
       ++SK_D3D11_Shaders.compute.changes_last_frame;
 
-      SK_D3D11_ShaderDesc& rDesc = known_cs->getDesc ();
+      uint32_t checksum = SK_D3D11_Shaders.compute.descs [SK_D3D11_Shaders.compute.rev [pComputeShader]].crc32c;;
 
-      current_cs = rDesc.crc32c;
+      current_cs = checksum;
 
-      rDesc.usage.last_frame = SK_GetFramesDrawn ();
-      _time64 (&rDesc.usage.last_time);
+                SK_D3D11_Shaders.compute.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      _time64 (&SK_D3D11_Shaders.compute.descs [checksum].usage.last_time);
 
-      if (rDesc.crc32c == tracked_cs.crc32c) tracked_cs.activate   (ppClassInstances, NumClassInstances);
-      else                                   tracked_cs.deactivate ();
+      LeaveCriticalSection (&cs_shader);
 
-      SK_D3D11_Shaders.compute.descs [rDesc.crc32c].usage.last_frame = SK_GetFramesDrawn ();
+      if (checksum == tracked_cs.crc32c) tracked_cs.activate   (ppClassInstances, NumClassInstances);
+      else                               tracked_cs.deactivate ();
+    }
 
-      D3D11_CSSetShader_Original (This, known_cs->getRealShader (), ppClassInstances, NumClassInstances);
+    else
+    {
+      LeaveCriticalSection (&cs_shader);
 
-      return;
+      tracked_cs.deactivate ();
+      current_cs        = 0x0;
     }
   }
 
-  tracked_cs.deactivate ();
-  current_cs        = 0x0;
+  else
+  {
+    tracked_cs.deactivate ();
+    current_cs        = 0x0;
+  }
 
   D3D11_CSSetShader_Original (This, pComputeShader, ppClassInstances, NumClassInstances);
+}
+
+__declspec (noinline,nothrow)
+void
+STDMETHODCALLTYPE
+D3D11_CSGetShader_Override (
+ _In_        ID3D11DeviceContext         *This,
+ _Out_       ID3D11ComputeShader        **ppComputeShader,
+ _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+ _Inout_opt_ UINT                        *pNumClassInstances )
+{
+  return D3D11_CSGetShader_Original (This, ppComputeShader, ppClassInstances, pNumClassInstances);
 }
 
 typedef void (STDMETHODCALLTYPE *D3D11_PSSetShader_pfn)(ID3D11DeviceContext        *This,
@@ -4026,7 +3395,7 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
              _Out_opt_       uint32_t               *pLOD0_CRC32 )
 {
   // Ignore Cubemaps for Now
-  if (false)//pDesc->MiscFlags == 0x04)
+  if (pDesc->MiscFlags == D3D11_RESOURCE_MISC_TEXTURECUBE)
   {
 //    dll_log.Log (L"[ Tex Hash ] >> Will not hash cubemap");
     if (pLOD0_CRC32)
@@ -4510,14 +3879,14 @@ D3D11Dev_CreateTexture2D_Override (
 
   cacheable &=
     (! ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
-        (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)) ) &&
+        (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)) )/* &&
         (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE)) &&
-            (! (pDesc->Usage & D3D11_USAGE_DYNAMIC));
+            (! (pDesc->Usage & D3D11_USAGE_DYNAMIC))*/;
 
   cacheable &= (ppTexture2D != nullptr);
 
   const bool dumpable = 
-              cacheable && (! (pDesc->Usage & D3D11_USAGE_DYNAMIC || pDesc->Usage & D3D11_USAGE_STAGING));
+              cacheable;/* && (! ((pDesc->Usage & D3D11_USAGE_DYNAMIC) || (pDesc->Usage & D3D11_USAGE_STAGING)))*/;
 
   uint32_t top_crc32 = 0x00;
   uint32_t ffx_crc32 = 0x00;
@@ -4567,7 +3936,11 @@ D3D11Dev_CreateTexture2D_Override (
     return S_OK;
   }
 
-  SK_D3D11_Textures.CacheMisses_2D++;
+  // The concept of a cache-miss only applies if the texture had data at the time
+  //   of creation...
+  if ( pInitialData          != nullptr &&
+       pInitialData->pSysMem != nullptr )
+    SK_D3D11_Textures.CacheMisses_2D++;
 
   if (cacheable) {
     if (D3DX11CreateTextureFromFileW != nullptr && SK_D3D11_res_root.length ()) {
@@ -5161,7 +4534,7 @@ HookD3D11 (LPVOID user)
   if (! config.apis.dxgi.d3d11.hook)
     return 0;
 
-  InitializeCriticalSectionAndSpinCount (&cs_shader, 1024);
+  InitializeCriticalSectionAndSpinCount (&cs_shader, 16384);
 
   bool success =
     SUCCEEDED (CoInitializeEx (nullptr, COINIT_MULTITHREADED));
@@ -5195,9 +4568,9 @@ HookD3D11 (LPVOID user)
     DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 13, "ID3D11Device::CreateGeometryShader",
                          D3D11Dev_CreateGeometryShader_Override, D3D11Dev_CreateGeometryShader_Original,
                          D3D11Dev_CreateGeometryShader_pfn);
-    //DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 14, "ID3D11Device::CreateGeometryShaderWithStreamOutput",
-    //                       D3D11Dev_CreateGeometryShaderWithStreamOutput_Override, D3D11Dev_CreateGeometryShaderWithStreamOutput_Original,
-    //                       D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn);
+    DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 14, "ID3D11Device::CreateGeometryShaderWithStreamOutput",
+                           D3D11Dev_CreateGeometryShaderWithStreamOutput_Override, D3D11Dev_CreateGeometryShaderWithStreamOutput_Original,
+                           D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn);
 
     DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 15, "ID3D11Device::CreatePixelShader",
                          D3D11Dev_CreatePixelShader_Override, D3D11Dev_CreatePixelShader_Original,
@@ -5225,7 +4598,7 @@ HookD3D11 (LPVOID user)
     //   vftable pointer instead of hooking the function.
     //
 #if 0
-    DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                            D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
                            D3D11_VSSetConstantBuffers_pfn);
 #else
@@ -5259,7 +4632,7 @@ HookD3D11 (LPVOID user)
     //   vftable pointer instead of hooking the function.
     //
 #if 0
-    DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
                          D3D11_Map_Override, D3D11_Map_Original,
                          D3D11_Map_pfn);
 #else
@@ -5355,6 +4728,31 @@ HookD3D11 (LPVOID user)
     DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 69, "ID3D11DeviceContext::CSSetShader",
                          D3D11_CSSetShader_Override, D3D11_CSSetShader_Original,
                          D3D11_CSSetShader_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 74, "ID3D11DeviceContext::PSGetShader",
+                         D3D11_PSGetShader_Override, D3D11_PSGetShader_Original,
+                         D3D11_PSGetShader_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 76, "ID3D11DeviceContext::VSGetShader",
+                         D3D11_VSGetShader_Override, D3D11_VSGetShader_Original,
+                         D3D11_VSGetShader_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 82, "ID3D11DeviceContext::GSGetShader",
+                         D3D11_GSGetShader_Override, D3D11_GSGetShader_Original,
+                         D3D11_GSGetShader_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 98, "ID3D11DeviceContext::HSGetShader",
+                         D3D11_HSGetShader_Override, D3D11_HSGetShader_Original,
+                         D3D11_HSGetShader_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 102, "ID3D11DeviceContext::DSGetShader",
+                         D3D11_DSGetShader_Override, D3D11_DSGetShader_Original,
+                         D3D11_DSGetShader_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 107, "ID3D11DeviceContext::CSGetShader",
+                         D3D11_CSGetShader_Override, D3D11_CSGetShader_Original,
+                         D3D11_CSGetShader_pfn);
+
 #endif
 
     MH_ApplyQueued ();
@@ -5834,11 +5232,13 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         std::vector <uint32_t> vec;
         vec.reserve (256);
 
+        EnterCriticalSection (&cs_shader);
+
         switch (type)
         {
           case sk_shader_class::Vertex:
           {
-            for (auto const& vertex_shader : SK_D3D11_Shaders.vertex.newest)
+            for (auto const& vertex_shader : SK_D3D11_Shaders.vertex.descs)
             {
               if (SK_D3D11_Shaders.vertex.descs [vertex_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
               {
@@ -5854,7 +5254,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
           case sk_shader_class::Pixel:
           {
-            for (auto const& pixel_shader : SK_D3D11_Shaders.pixel.newest)
+            for (auto const& pixel_shader : SK_D3D11_Shaders.pixel.descs)
             {
               if (SK_D3D11_Shaders.pixel.descs [pixel_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
               {
@@ -5870,7 +5270,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
           case sk_shader_class::Geometry:
           {
-            for (auto const& geometry_shader : SK_D3D11_Shaders.geometry.newest)
+            for (auto const& geometry_shader : SK_D3D11_Shaders.geometry.descs)
             {
               if (SK_D3D11_Shaders.geometry.descs [geometry_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
               {
@@ -5881,7 +5281,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
           case sk_shader_class::Hull:
           {
-            for (auto const& hull_shader : SK_D3D11_Shaders.hull.newest)
+            for (auto const& hull_shader : SK_D3D11_Shaders.hull.descs)
             {
               if (SK_D3D11_Shaders.hull.descs [hull_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
               {
@@ -5892,7 +5292,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
           case sk_shader_class::Domain:
           {
-            for (auto const& domain_shader : SK_D3D11_Shaders.domain.newest)
+            for (auto const& domain_shader : SK_D3D11_Shaders.domain.descs)
             {
               if (SK_D3D11_Shaders.domain.descs [domain_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
               {
@@ -5903,7 +5303,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
           case sk_shader_class::Compute:
           {
-            for (auto const& compute_shader : SK_D3D11_Shaders.compute.newest)
+            for (auto const& compute_shader : SK_D3D11_Shaders.compute.descs)
             {
               if (SK_D3D11_Shaders.compute.descs [compute_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
               {
@@ -5913,7 +5313,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           } break;
         }
 
-        assert (false);
+        LeaveCriticalSection (&cs_shader);
 
         return vec;
       };
@@ -6121,6 +5521,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (tracker->crc32c != 0)
     {
+      EnterCriticalSection (&cs_shader);
+
       switch (shader_type)
       {
         case sk_shader_class::Vertex:
@@ -6171,6 +5573,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                                     IID_ID3D11ShaderReflection, reinterpret_cast <void **>(&pReflect));
           break;
       }
+
+      LeaveCriticalSection (&cs_shader);
 
       if (SUCCEEDED (hr) && strlen ((const char *)pDisasm->GetBufferPointer ()))
       {
@@ -6729,7 +6133,11 @@ SK_D3D11_ShaderModDlg (void)
 
   bool show_dlg = true;
 
-  ImGui::SetNextWindowSizeConstraints ( ImVec2 (768.0f, 384.0f), ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.96f, ImGui::GetIO ().DisplaySize.y * 0.96f ) );
+  ImGui::SetNextWindowSize ( ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.96f, ImGui::GetIO ().DisplaySize.y * 0.62f ), ImGuiSetCond_Appearing);
+
+  ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
+                                        ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.66f, ImGui::GetIO ().DisplaySize.y * 0.33f ),
+                                        ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.96f, ImGui::GetIO ().DisplaySize.y * 0.96f ) );
 
   if ( ImGui::Begin ( "D3D11 Shader Mod Toolkit",
                         &show_dlg,
@@ -6811,7 +6219,7 @@ SK_D3D11_ShaderModDlg (void)
 
   ImGui::BeginChild ( "Shader_Right_Side" );
 
-  if (ImGui::CollapsingHeader ("Live RenderTarget View"))
+  if (ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen))
   {
     static float last_ht    = 256.0f;
     static float last_width = 256.0f;
@@ -6820,10 +6228,21 @@ SK_D3D11_ShaderModDlg (void)
     static bool                      list_dirty     = true;
     static uintptr_t                 last_sel_ptr   =    0;
     static int                            sel       =   -1;
+    static bool                       first_frame   = true;
 
-    static std::vector <ID3D11RenderTargetView *> render_textures;
-    render_textures.reserve (128);
-    render_textures.clear   ();
+    std::set <ID3D11RenderTargetView *> live_textures;
+
+    struct lifetime
+    {
+      UINT last_frame;
+      UINT frames_active;
+    };
+
+    static std::unordered_map <ID3D11RenderTargetView *, lifetime> render_lifetime;
+    static std::vector        <ID3D11RenderTargetView *>           render_textures;
+
+    //render_textures.reserve (128);
+    //render_textures.clear   ();
 
     for (auto it : SK_D3D11_RenderTargets.rt_views)
     {
@@ -6850,14 +6269,59 @@ SK_D3D11_ShaderModDlg (void)
 
           if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
           {
-            if (SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, nullptr)))
-            {
-              render_textures.push_back (it);
-            }
+            //if (SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, nullptr)))
+            //{
+              if (! render_lifetime.count (it))
+              {
+                lifetime life;
+
+                life.frames_active = 1;
+                life.last_frame    = SK_GetFramesDrawn ();
+
+                render_textures.push_back (it);
+                render_lifetime.emplace   (std::make_pair (it, life));
+              }
+
+              else {
+                render_lifetime [it].frames_active++;
+                render_lifetime [it].last_frame = SK_GetFramesDrawn ();
+              }
+
+              live_textures.emplace (it);
+            //}
           }
         }
       }
     }
+
+
+     const ULONG      zombie_threshold = 120;
+    static ULONG last_zombie_pass      = SK_GetFramesDrawn ();
+
+    if (last_zombie_pass < SK_GetFramesDrawn () - zombie_threshold / 2)
+    {
+      bool newly_dead = false;
+
+      for (auto it : render_textures)
+      {
+        if (render_lifetime [it].last_frame < SK_GetFramesDrawn () - zombie_threshold)
+        {
+          render_lifetime.erase (it);
+          newly_dead = true;
+        }
+      }
+
+      if (newly_dead)
+      {
+        render_textures.clear ();
+
+        for (auto it : render_lifetime)
+          render_textures.push_back (it.first);
+      }
+
+      last_zombie_pass = SK_GetFramesDrawn ();
+    }
+
 
     if (list_dirty)
     {
@@ -6946,15 +6410,19 @@ SK_D3D11_ShaderModDlg (void)
 
     if (render_textures.size ())
     {
+      if (first_frame)
+      {
+        sel         = 0;
+        first_frame = false;
+      }
+
       static      int last_sel = 0;
       static bool sel_changed  = false;
 
-      if (sel > 0 && sel < (int)render_textures.size ())
+      if (sel >= 0 && sel < (int)render_textures.size ())
       {
-        if (sel != last_sel)
+        if (last_sel_ptr != (uintptr_t)render_textures [sel])
           sel_changed = true;
-
-        last_sel = sel;
       }
 
       for ( int line = 0; line < (int)render_textures.size (); line++ )
@@ -6999,7 +6467,7 @@ SK_D3D11_ShaderModDlg (void)
 
     ImGui::BeginGroup ();
 
-    if (render_textures.size () && sel >= 0)
+    if (render_textures.size () && sel >= 0 && live_textures.count (render_textures [sel]))
     {
       ID3D11RenderTargetView* rt_view = render_textures [sel];
 

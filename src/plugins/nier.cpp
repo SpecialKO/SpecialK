@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.6.0"
+#define FAR_VERSION_NUM L"0.6.0.3"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -343,7 +343,7 @@ SK_FAR_CreateBuffer (
     //    TODO:  Scale light volume by distance from camera (in world-space) to properly
     //             handle small nearby lights.
     //
-    if (pInitialData != 0)
+    if (pInitialData != nullptr && pInitialData->pSysMem != nullptr)
     {
       struct far_light_volume_s {
         float world_pos    [4];
@@ -1125,6 +1125,7 @@ D3D11_PSSetShaderResources_Override (
 //  Note that there are more low-res 800x450 buffers not yet handled by this, 
 //  but which could probably be handled similarly. Primarily, SSAO.
 
+__declspec (noinline,nothrow)
 HRESULT
 WINAPI
 SK_FAR_CreateTexture2D (
@@ -1531,7 +1532,7 @@ SK_FAR_CorrectAspectRatio (ID3D11DeviceContext *pDevCtx)
   return false;
 }
 
-
+__declspec (noinline,nothrow)
 void
 WINAPI
 SK_FAR_DrawIndexed (
@@ -1556,6 +1557,7 @@ SK_FAR_DrawIndexed (
     SK_FAR_RestoreAspectRatio (This);
 }
 
+__declspec (noinline,nothrow)
 void
 WINAPI
 SK_FAR_Draw (
@@ -1580,6 +1582,7 @@ SK_FAR_Draw (
 }
 
 
+__declspec (noinline,nothrow)
 void
 WINAPI
 SK_FAR_DrawIndexedInstanced (
@@ -1598,6 +1601,7 @@ SK_FAR_DrawIndexedInstanced (
     SK_FAR_RestoreAspectRatio (This);
 }
 
+__declspec (noinline,nothrow)
 void
 WINAPI
 SK_FAR_DrawIndexedInstancedIndirect (
@@ -1613,6 +1617,7 @@ SK_FAR_DrawIndexedInstancedIndirect (
     SK_FAR_RestoreAspectRatio (This);
 }
 
+__declspec (noinline,nothrow)
 void
 WINAPI
 SK_FAR_DrawInstanced (
@@ -1630,6 +1635,7 @@ SK_FAR_DrawInstanced (
     SK_FAR_RestoreAspectRatio (This);
 }
 
+__declspec (noinline,nothrow)
 void
 WINAPI
 SK_FAR_DrawInstancedIndirect (
@@ -1645,7 +1651,10 @@ SK_FAR_DrawInstancedIndirect (
     SK_FAR_RestoreAspectRatio (This);
 }
 
+#include <cmath>
+#include <memory>
 
+__declspec (noinline,nothrow)
 void
 WINAPI
 SK_FAR_PSSetShaderResources (
@@ -1654,7 +1663,8 @@ SK_FAR_PSSetShaderResources (
   _In_     UINT                             NumViews,
   _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  static ID3D11ShaderResourceView* views [256];
+  std::vector <ID3D11ShaderResourceView *> views;
+  views.reserve (NumViews);
 
   if (ppShaderResourceViews != nullptr)
   {
@@ -1663,18 +1673,18 @@ SK_FAR_PSSetShaderResources (
       views [i] = ppShaderResourceViews [i];
 
       if (far_ao.views.count (ppShaderResourceViews [i]) && far_ao.disable) {
-        views [i] = nullptr;
+        views [i]     = nullptr;
         far_ao.active = true;
       }
 
       else if (far_bloom.views.count (ppShaderResourceViews [i]) && far_bloom.disable) {
-        views [i] = nullptr;
+        views [i]        = nullptr;
         far_bloom.active = true;
       }
     }
   }
 
-  ppShaderResourceViews = views;
+  ppShaderResourceViews = views.data ();
 
 #if 0
   for (int i = 0; i < NumViews; i++)

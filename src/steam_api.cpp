@@ -2908,11 +2908,22 @@ SteamAPI_Shutdown_Detour (void)
 
   steam_ctx.Shutdown           ();
 
-  // Start back up again :)
-  //
-  //  >> Stupid hack for The Witcher 3
-  //
-  SteamAPI_RunCallbacks_Detour ();
+  CreateThread (nullptr, 0,
+    [](LPVOID user) ->
+    DWORD
+    {
+      Sleep (1000UL);
+
+      // Start back up again :)
+      //
+      //  >> Stupid hack for The Witcher 3
+      //
+      SteamAPI_RunCallbacks_Detour ();
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, nullptr, 0x00, nullptr);
 }
 
 bool

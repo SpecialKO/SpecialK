@@ -171,6 +171,12 @@ BlacklistLibraryW (LPCWSTR lpFileName)
     }
   }
 
+  if (StrStrIW (SK_GetHostApp (), L"RiME.exe"))
+  {
+    if (StrStrIW (lpFileName, L"openvr_api.dll"))
+      return TRUE;
+  }
+
   return FALSE;
 }
 

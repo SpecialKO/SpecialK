@@ -130,6 +130,20 @@ IsDebuggerPresent_Detour (void)
   return IsDebuggerPresent_Original ();
 }
 
+typedef void (WINAPI *DebugBreak_pfn)(void);
+DebugBreak_pfn DebugBreak_Original = nullptr;
+
+__declspec (noinline)
+void
+WINAPI
+DebugBreak_Detour (void)
+{
+  //if (config.debug.allow_break)
+  //  return DebugBreak_Original ();
+
+  return;
+}
+
 bool
 SK::Diagnostics::Debugger::Allow (bool bAllow)
 {
@@ -151,6 +165,10 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
   SK_CreateDLLHook2 ( L"kernel32.dll", "ExitProcess",
                      ExitProcess_Detour,
            (LPVOID*)&ExitProcess_Original );
+
+  SK_CreateDLLHook2 ( L"kernel32.dll", "DebugBreak",
+                     DebugBreak_Detour,
+           (LPVOID*)&DebugBreak_Original );
 
   MH_ApplyQueued ();
 

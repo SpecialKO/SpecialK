@@ -4074,7 +4074,6 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   
 
   // DXGI 1.2+
-  CComPtr <IDXGIFactory2> pFactory2 = nullptr;
 
   // 14 IsWindowedStereoEnabled
   // 15 CreateSwapChainForHwnd
@@ -4087,25 +4086,30 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   // 22 RegisterOcclusionStatusEvent
   // 23 UnregisterOcclusionStatus
   // 24 CreateSwapChainForComposition
-  if (SUCCEEDED (pFactory->QueryInterface <IDXGIFactory2> (&pFactory2)))
+  CComPtr <IDXGIFactory2> pFactory2 = nullptr;
+
+  if (CreateDXGIFactory2_Import)
   {
-    DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
-                        "IDXGIFactory2::CreateSwapChainForHwnd",
-                         DXGIFactory2_CreateSwapChainForHwnd_Override,
-                                      CreateSwapChainForHwnd_Original,
-                                      CreateSwapChainForHwnd_pfn );
+    if (SUCCEEDED (CreateDXGIFactory1_Import (IID_IDXGIFactory2, (void **)&pFactory2)))
+    {
+      DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
+                          "IDXGIFactory2::CreateSwapChainForHwnd",
+                           DXGIFactory2_CreateSwapChainForHwnd_Override,
+                                        CreateSwapChainForHwnd_Original,
+                                        CreateSwapChainForHwnd_pfn );
 
-    DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
-                        "IDXGIFactory2::CreateSwapChainForCoreWindow",
-                         DXGIFactory2_CreateSwapChainForCoreWindow_Override,
-                                      CreateSwapChainForCoreWindow_Original,
-                                      CreateSwapChainForCoreWindow_pfn );
+      DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
+                          "IDXGIFactory2::CreateSwapChainForCoreWindow",
+                           DXGIFactory2_CreateSwapChainForCoreWindow_Override,
+                                        CreateSwapChainForCoreWindow_Original,
+                                        CreateSwapChainForCoreWindow_pfn );
 
-    DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
-                        "IDXGIFactory2::CreateSwapChainForComposition",
-                         DXGIFactory2_CreateSwapChainForComposition_Override,
-                                      CreateSwapChainForComposition_Original,
-                                      CreateSwapChainForComposition_pfn );
+      DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
+                          "IDXGIFactory2::CreateSwapChainForComposition",
+                           DXGIFactory2_CreateSwapChainForComposition_Override,
+                                        CreateSwapChainForComposition_Original,
+                                        CreateSwapChainForComposition_pfn );
+    }
   }
 
 
@@ -4422,140 +4426,140 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
         hr = E_FAIL;
       }
+
+      dll_log.LogEx ( true,
+                        L"[ DXGI 1.2 ] GPU Scheduling...:"
+                                     L" Pre-Emptive" );
+
+      DXGI_QUERY_VIDEO_MEMORY_INFO
+              _mem_info;
+      DXGI_ADAPTER_DESC2
+              desc2;
+
+      int     i      = 0;
+      bool    silent = dll_log.silent;
+      dll_log.silent = true;
+      {
+        // Don't log this call, because that would be silly...
+        pAdapter3->GetDesc2 ( &desc2 );
+      }
+      dll_log.silent = silent;
+
+
+      switch ( desc2.GraphicsPreemptionGranularity )
+      {
+        case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
+          dll_log.LogEx ( false, L" (DMA Buffer)\n"         );
+          break;
+
+        case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
+          dll_log.LogEx ( false, L" (Graphics Primitive)\n" );
+          break;
+
+        case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
+          dll_log.LogEx ( false, L" (Triangle)\n"           );
+          break;
+
+        case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
+          dll_log.LogEx ( false, L" (Fragment)\n"           );
+          break;
+
+        case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
+          dll_log.LogEx ( false, L" (Instruction)\n"        );
+          break;
+
+        default:
+          dll_log.LogEx (false, L"UNDEFINED\n");
+          break;
+      }
+
+      dll_log.LogEx ( true,
+                        L"[ DXGI 1.4 ] Local Memory.....:" );
+
+      while ( SUCCEEDED (
+                pAdapter3->QueryVideoMemoryInfo (
+                  i,
+                    DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                      &_mem_info
+                )
+              )
+            )
+      {
+        if ( i > 0 )
+        {
+          dll_log.LogEx ( false, L"\n"                              );
+          dll_log.LogEx ( true,  L"                               " );
+        }
+
+        dll_log.LogEx ( false,
+                          L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+                                    L"Budget: %#5llu / %#5llu MiB)",
+                            i++,
+                              _mem_info.CurrentReservation      >> 20ULL,
+                              _mem_info.AvailableForReservation >> 20ULL,
+                              _mem_info.CurrentUsage            >> 20ULL,
+                              _mem_info.Budget                  >> 20ULL
+                      );
+
+        pAdapter3->SetVideoMemoryReservation (
+              ( i - 1 ),
+                DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                  ( i == 1 || USE_SLI ) ?
+                    uint64_t ( _mem_info.AvailableForReservation *
+                                 config.mem.reserve * 0.01f ) 
+                           :
+                           0
+        );
+      }
+
+      i = 0;
+
+      dll_log.LogEx ( false, L"\n"                              );
+      dll_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
+
+      while ( SUCCEEDED (
+                pAdapter3->QueryVideoMemoryInfo (
+                  i,
+                    DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+                      &_mem_info
+                )
+              )
+            )
+      {
+        if ( i > 0 )
+        {
+          dll_log.LogEx ( false, L"\n"                              );
+          dll_log.LogEx ( true,  L"                               " );
+        }
+
+        dll_log.LogEx ( false,
+                          L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+                                    L"Budget: %#5llu / %#5llu MiB)",
+                            i++,
+                              _mem_info.CurrentReservation      >> 20ULL,
+                              _mem_info.AvailableForReservation >> 20ULL,
+                              _mem_info.CurrentUsage            >> 20ULL,
+                              _mem_info.Budget                  >> 20ULL
+                      );
+
+        pAdapter3->SetVideoMemoryReservation (
+              ( i - 1 ),
+                DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+                  ( i == 1 || USE_SLI ) ?
+                    uint64_t ( _mem_info.AvailableForReservation *
+                                 config.mem.reserve * 0.01f )
+                           :
+                           0
+        );
+      }
+
+      ::mem_info [0].nodes = ( i - 1 );
+      ::mem_info [1].nodes = ( i - 1 );
+
+      dll_log.LogEx ( false, L"\n" );
     }
 
     LeaveCriticalSection ( &budget_mutex );
-
-    dll_log.LogEx ( true,
-                      L"[ DXGI 1.2 ] GPU Scheduling...:"
-                                   L" Pre-Emptive" );
-
-    DXGI_QUERY_VIDEO_MEMORY_INFO
-            _mem_info;
-    DXGI_ADAPTER_DESC2
-            desc2;
-
-    int     i      = 0;
-    bool    silent = dll_log.silent;
-    dll_log.silent = true;
-    {
-      // Don't log this call, because that would be silly...
-      pAdapter3->GetDesc2 ( &desc2 );
-    }
-    dll_log.silent = silent;
-
-
-    switch ( desc2.GraphicsPreemptionGranularity )
-    {
-      case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
-        dll_log.LogEx ( false, L" (DMA Buffer)\n"         );
-        break;
-
-      case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
-        dll_log.LogEx ( false, L" (Graphics Primitive)\n" );
-        break;
-
-      case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
-        dll_log.LogEx ( false, L" (Triangle)\n"           );
-        break;
-
-      case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
-        dll_log.LogEx ( false, L" (Fragment)\n"           );
-        break;
-
-      case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
-        dll_log.LogEx ( false, L" (Instruction)\n"        );
-        break;
-
-      default:
-        dll_log.LogEx (false, L"UNDEFINED\n");
-        break;
-    }
-
-    dll_log.LogEx ( true,
-                      L"[ DXGI 1.4 ] Local Memory.....:" );
-
-    while ( SUCCEEDED (
-              pAdapter3->QueryVideoMemoryInfo (
-                i,
-                  DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-                    &_mem_info
-              )
-            )
-          )
-    {
-      if ( i > 0 )
-      {
-        dll_log.LogEx ( false, L"\n"                              );
-        dll_log.LogEx ( true,  L"                               " );
-      }
-
-      dll_log.LogEx ( false,
-                        L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-                                  L"Budget: %#5llu / %#5llu MiB)",
-                          i++,
-                            _mem_info.CurrentReservation      >> 20ULL,
-                            _mem_info.AvailableForReservation >> 20ULL,
-                            _mem_info.CurrentUsage            >> 20ULL,
-                            _mem_info.Budget                  >> 20ULL
-                    );
-
-      pAdapter3->SetVideoMemoryReservation (
-            ( i - 1 ),
-              DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-                ( i == 1 || USE_SLI ) ?
-                  uint64_t ( _mem_info.AvailableForReservation *
-                               config.mem.reserve * 0.01f ) 
-                         :
-                         0
-      );
-    }
-
-    i = 0;
-
-    dll_log.LogEx ( false, L"\n"                              );
-    dll_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
-
-    while ( SUCCEEDED (
-              pAdapter3->QueryVideoMemoryInfo (
-                i,
-                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-                    &_mem_info
-              )
-            )
-          )
-    {
-      if ( i > 0 )
-      {
-        dll_log.LogEx ( false, L"\n"                              );
-        dll_log.LogEx ( true,  L"                               " );
-      }
-
-      dll_log.LogEx ( false,
-                        L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-                                  L"Budget: %#5llu / %#5llu MiB)",
-                          i++,
-                            _mem_info.CurrentReservation      >> 20ULL,
-                            _mem_info.AvailableForReservation >> 20ULL,
-                            _mem_info.CurrentUsage            >> 20ULL,
-                            _mem_info.Budget                  >> 20ULL
-                    );
-
-      pAdapter3->SetVideoMemoryReservation (
-            ( i - 1 ),
-              DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-                ( i == 1 || USE_SLI ) ?
-                  uint64_t ( _mem_info.AvailableForReservation *
-                               config.mem.reserve * 0.01f )
-                         :
-                         0
-      );
-    }
-
-    ::mem_info [0].nodes = ( i - 1 );
-    ::mem_info [1].nodes = ( i - 1 );
-
-    dll_log.LogEx ( false, L"\n" );
   }
 
   return hr;

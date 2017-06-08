@@ -957,7 +957,7 @@ calculate_table_hw (void)
   }
 }
 
-static uint32_t (*append_func)(uint32_t, buffer, size_t) = nullptr;
+static uint32_t (__cdecl *append_func)(uint32_t, buffer, size_t) = nullptr;
 
 #include <SpecialK/log.h>
 
@@ -966,36 +966,18 @@ void
 __cdecl
 __crc32_init (void)
 {
-  static bool             init = false;
-  static CRITICAL_SECTION cs_init;
+  // somebody can call sw version directly, so, precalculate table for this version
+  calculate_table ();
 
-  if (! init) {
-    InitializeCriticalSection (&cs_init);
-    init = true;
+  if (crc32c_hw_available ()) {
+    //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
+    calculate_table_hw ();
+    append_func = crc32c_append_hw;
   }
 
-  if (append_func == nullptr)
-  {
-    EnterCriticalSection (&cs_init);
-
-    if (append_func != nullptr)
-      return;
-
-    // somebody can call sw version directly, so, precalculate table for this version
-    calculate_table ();
-
-    if (crc32c_hw_available ()) {
-      //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
-      calculate_table_hw ();
-      append_func = crc32c_append_hw;
-    }
-
-    else {
-      //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
-      append_func = crc32c_append_sw;
-    }
-
-    LeaveCriticalSection (&cs_init);
+  else {
+    //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
+    append_func = crc32c_append_sw;
   }
 }
 
@@ -1004,9 +986,13 @@ uint32_t
 __cdecl
 crc32c (uint32_t crc, buffer input, size_t length)
 {
-  __crc32_init ();
+  if (append_func == nullptr)
+    __crc32_init ();
 
-  return append_func (crc, input, length);
+  if (input != nullptr && length > 0)
+    return append_func (crc, input, length);
+
+  return crc;
 }
 
 LPVOID

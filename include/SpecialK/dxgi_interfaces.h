@@ -7775,6 +7775,7 @@ struct ID3D11GeometryShader;
 struct ID3D11HullShader;
 struct ID3D11DomainShader;
 struct ID3D11ComputeShader;
+struct D3D11_SO_DECLARATION_ENTRY;
 
 typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateVertexShader_pfn)(ID3D11Device        *This,
                                                      _In_      const void                *pShaderBytecode,
@@ -7793,6 +7794,18 @@ typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateGeometryShader_pfn)(ID3D11Dev
                                                        _In_            SIZE_T                 BytecodeLength,
                                                        _In_opt_        ID3D11ClassLinkage    *pClassLinkage,
                                                        _Out_opt_       ID3D11GeometryShader **ppGeometryShader);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn)(
+  _In_            ID3D11Device                *This,
+  _In_      const void                        *pShaderBytecode,
+  _In_            SIZE_T                       BytecodeLength,
+  _In_opt_  const D3D11_SO_DECLARATION_ENTRY  *pSODeclaration,
+  _In_            UINT                         NumEntries,
+  _In_opt_  const UINT                        *pBufferStrides,
+  _In_            UINT                         NumStrides,
+  _In_            UINT                         RasterizedStream,
+  _In_opt_        ID3D11ClassLinkage          *pClassLinkage,
+  _Out_opt_       ID3D11GeometryShader       **ppGeometryShader );
 
 typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateHullShader_pfn)(ID3D11Device        *This,
                                                    _In_      const void                *pShaderBytecode,
@@ -7845,6 +7858,37 @@ typedef void (STDMETHODCALLTYPE *D3D11_CSSetShader_pfn)(ID3D11DeviceContext     
                                                _In_opt_ ID3D11ComputeShader        *pComputeShader,
                                                _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
                                                         UINT                        NumClassInstances);
+
+
+typedef void (STDMETHODCALLTYPE *D3D11_VSGetShader_pfn)(ID3D11DeviceContext         *This,
+                                            _Out_       ID3D11VertexShader         **ppVertexShader,
+                                            _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+                                            _Inout_opt_ UINT                        *pNumClassInstances);
+
+typedef void (STDMETHODCALLTYPE *D3D11_PSGetShader_pfn)(ID3D11DeviceContext         *This,
+                                            _Out_       ID3D11PixelShader          **ppPixelShader,
+                                            _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+                                            _Inout_opt_ UINT                        *pNumClassInstances);
+
+typedef void (STDMETHODCALLTYPE *D3D11_GSGetShader_pfn)(ID3D11DeviceContext         *This,
+                                            _Out_       ID3D11GeometryShader       **ppGeometryShader,
+                                            _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+                                            _Inout_opt_ UINT                        *pNumClassInstances);
+
+typedef void (STDMETHODCALLTYPE *D3D11_HSGetShader_pfn)(ID3D11DeviceContext         *This,
+                                            _Out_       ID3D11HullShader           **ppHullShader,
+                                            _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+                                            _Inout_opt_ UINT                        *pNumClassInstances);
+
+typedef void (STDMETHODCALLTYPE *D3D11_DSGetShader_pfn)(ID3D11DeviceContext         *This,
+                                            _Out_       ID3D11DomainShader         **ppDomainShader,
+                                            _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+                                            _Inout_opt_ UINT                        *pNumClassInstances);
+
+typedef void (STDMETHODCALLTYPE *D3D11_CSGetShader_pfn)(ID3D11DeviceContext         *This,
+                                            _Out_       ID3D11ComputeShader        **ppComputeShader,
+                                            _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
+                                            _Inout_opt_ UINT                        *pNumClassInstances);
 
 typedef void (STDMETHODCALLTYPE *D3D11_Dispatch_pfn)(ID3D11DeviceContext *This,
                                                 _In_ UINT                 ThreadGroupCountX,
