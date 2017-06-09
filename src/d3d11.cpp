@@ -594,6 +594,42 @@ D3D11Dev_CreateTexture2D_pfn                        D3D11Dev_CreateTexture2D_Ori
 D3D11Dev_CreateRenderTargetView_pfn                 D3D11Dev_CreateRenderTargetView_Original                 = nullptr;
 D3D11Dev_CreateShaderResourceView_pfn               D3D11Dev_CreateShaderResourceView_Original               = nullptr;
 
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateVertexShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
+                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage, 
+                                                                      __in  const LPVOID                                                            pCreateVertexShaderExArgs,
+                                                                      __out       ID3D11VertexShader                                              **ppVertexShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateHullShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in const void               *pShaderBytecode, 
+                                                                    __in        SIZE_T        BytecodeLength, __in_opt   ID3D11ClassLinkage *pClassLinkage, 
+                                                                    __in  const LPVOID                                                       pCreateHullShaderExArgs,
+                                                                    __out       ID3D11HullShader                                           **ppHullShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateDomainShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
+                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+                                                                      __in  const LPVOID                                                           pCreateDomainShaderExArgs,
+                                                                      __out       ID3D11DomainShader                                             **ppDomainShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateGeometryShaderEx_2_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
+                                                                          __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+                                                                          __in  const LPVOID                                                           pCreateGeometryShaderExArgs,
+                                                                          __out       ID3D11GeometryShader                                           **ppGeometryShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShaderExplicit_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode,
+                                                                                  __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage,
+                                                                                  __in  const LPVOID                                                           pCreateFastGSArgs,
+                                                                                  __out       ID3D11GeometryShader                                           **ppGeometryShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShader_pfn)( __in  ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
+                                                                          __in  SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage,
+                                                                          __out ID3D11GeometryShader                                            **ppGeometryShader );
+
+NvAPI_D3D11_CreateVertexShaderEx_pfn                NvAPI_D3D11_CreateVertexShaderEx_Original                = nullptr;
+NvAPI_D3D11_CreateGeometryShaderEx_2_pfn            NvAPI_D3D11_CreateGeometryShaderEx_2_Original            = nullptr;
+NvAPI_D3D11_CreateFastGeometryShader_pfn            NvAPI_D3D11_CreateFastGeometryShader_Original            = nullptr;
+NvAPI_D3D11_CreateFastGeometryShaderExplicit_pfn    NvAPI_D3D11_CreateFastGeometryShaderExplicit_Original    = nullptr;
+NvAPI_D3D11_CreateHullShaderEx_pfn                  NvAPI_D3D11_CreateHullShaderEx_Original                  = nullptr;
+NvAPI_D3D11_CreateDomainShaderEx_pfn                NvAPI_D3D11_CreateDomainShaderEx_Original                = nullptr;
+
 D3D11Dev_CreateVertexShader_pfn                     D3D11Dev_CreateVertexShader_Original                     = nullptr;
 D3D11Dev_CreatePixelShader_pfn                      D3D11Dev_CreatePixelShader_Original                      = nullptr;
 D3D11Dev_CreateGeometryShader_pfn                   D3D11Dev_CreateGeometryShader_Original                   = nullptr;
@@ -657,76 +693,7 @@ D3D11Dev_CreateRenderTargetView_Override (
              pDesc, ppRTView );
 }
 
-enum class SK_D3D11_ShaderType {
-  Vertex   =  1,
-  Pixel    =  2,
-  Geometry =  4,
-  Domain   =  8,
-  Hull     = 16,
-  Compute  = 32,
-
-  Invalid  = MAXINT
-};
-
-uint32_t current_vs = 0x0;
-uint32_t current_ps = 0x0;
-uint32_t current_gs = 0x0;
-uint32_t current_hs = 0x0;
-uint32_t current_ds = 0x0;
-uint32_t current_cs = 0x0;
-
-std::unordered_set <uint32_t> SK_D3D11_Blacklist_VS;
-std::unordered_set <uint32_t> SK_D3D11_Blacklist_PS;
-std::unordered_set <uint32_t> SK_D3D11_Blacklist_GS;
-std::unordered_set <uint32_t> SK_D3D11_Blacklist_HS;
-std::unordered_set <uint32_t> SK_D3D11_Blacklist_DS;
-std::unordered_set <uint32_t> SK_D3D11_Blacklist_CS;
-
-struct SK_D3D11_ShaderDesc
-{
-  SK_D3D11_ShaderType type   = SK_D3D11_ShaderType::Invalid;
-  uint32_t            crc32c = 0UL;
-
-  std::vector <BYTE>  bytecode;
-
-  struct
-  {
-    uint32_t   last_frame = 0UL;
-    __time64_t last_time  = 0ULL;
-    ULONG      refs       = 0;
-  } usage;
-};
-
-#include <map>
-
-class iSK_VertexShaderD3D11;
-class iSK_PixelShaderD3D11;
-class iSK_GeometryShaderD3D11;
-class iSK_HullShaderD3D11;
-class iSK_DomainShaderD3D11;
-class iSK_ComputeShaderD3D11;
-
-struct SK_D3D11_KnownShaders
-{
-
-  template <typename _T> 
-  struct ShaderRegistry
-  {
-    std::unordered_map <_T*, uint32_t>                 rev;
-    std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
-
-    ULONG                                              changes_last_frame = 0;
-  };
-
-  ShaderRegistry <ID3D11PixelShader>    pixel;
-  ShaderRegistry <ID3D11VertexShader>   vertex;
-  ShaderRegistry <ID3D11GeometryShader> geometry;
-  ShaderRegistry <ID3D11HullShader>     hull;
-  ShaderRegistry <ID3D11DomainShader>   domain;
-  ShaderRegistry <ID3D11ComputeShader>  compute;
-
-} SK_D3D11_Shaders;
-
+SK_D3D11_KnownShaders SK_D3D11_Shaders;
 
 struct SK_D3D11_KnownTargets
 {
@@ -746,24 +713,6 @@ struct SK_D3D11_KnownTargets
   }
 
 } SK_D3D11_RenderTargets;
-
-
-struct SK_DisjointTimerQueryD3D11
-{
-
-  ID3D11Query* async  = nullptr;
-  bool         active = false;
-
-  D3D11_QUERY_DATA_TIMESTAMP_DISJOINT last_results = { 0 };
-};
-
-struct SK_TimerQueryD3D11
-{
-  ID3D11Query* async  = nullptr;
-  bool         active = false;
-
-  UINT64 last_results = { 0 };
-};
 
 struct target_tracking_s
 {
@@ -795,102 +744,6 @@ struct target_tracking_s
   std::unordered_set <uint32_t> ref_ds;
   std::unordered_set <uint32_t> ref_cs;
 } tracked_rtv;
-
-struct shader_tracking_s
-{
-  void clear (void)
-  {
-    //active    = false;
-
-    num_draws = 0;
-
-    for ( auto it : used_views )
-      it->Release ();
-
-    used_views.clear ();
-
-
-    for ( auto it : classes )
-      it->Release ();
-
-    classes.clear ();
-
-    //used_textures.clear ();
-
-    //for (int i = 0; i < 16; i++)
-      //current_textures [i] = 0x00;
-  }
-
-  void use (IUnknown* pShader);
-
-  // Used for timing queries and interface tracking
-  void activate   ( ID3D11ClassInstance *const *ppClassInstances,
-                    UINT                        NumClassInstances );
-  void deactivate (void);
-
-  uint32_t                      crc32c       =  0x00;
-  bool                          cancel_draws = false;
-  bool                          active       = false;
-  int                           num_draws    =     0;
-
-  // The slot used has meaning, but I think we can ignore it for now...
-  //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
-
-  std::unordered_set <ID3D11ShaderResourceView *> used_views;
-
-  IUnknown*                         shader_obj     = nullptr;
-
-
-  static SK_DisjointTimerQueryD3D11 disjoint_query;
-
-  struct duration_s
-  {
-    // Timestamp at beginning
-    SK_TimerQueryD3D11 start;
-
-    // Timestamp at end
-    SK_TimerQueryD3D11 end;
-  };
-  std::vector <duration_s> timers;
-
-  // Cumulative runtime of all timers after the disjoint query
-  //   is finished and reading these results would not stall
-  //     the pipeline
-  UINT64                            runtime_ticks  = 0ULL;
-  double                            runtime_ms     = 0.0;
-
-
-  void addClassInstance (ID3D11ClassInstance* pInstance)
-  {
-    if (! classes.count (pInstance))
-    {
-      pInstance->AddRef ();
-      classes.insert    (pInstance);
-    }
-  }
-
-  std::set <ID3D11ClassInstance *> classes;
-
-//  struct shader_constant_s
-//  {
-//    char                Name [128];
-//    D3DXREGISTER_SET    RegisterSet;
-//    UINT                RegisterIndex;
-//    UINT                RegisterCount;
-//    D3DXPARAMETER_CLASS Class;
-//    D3DXPARAMETER_TYPE  Type;
-//    UINT                Rows;
-//    UINT                Columns;
-//    UINT                Elements;
-//    std::vector <shader_constant_s>
-//                        struct_members;
-//    bool                Override;
-//    float               Data [4]; // TEMP HACK
-//  };
-
-//  std::vector <shader_constant_s> constants;
-} tracked_vs, tracked_ps, tracked_gs,
-  tracked_hs, tracked_ds, tracked_cs;
 
 struct SK_DisjointTimerQueryD3D11 shader_tracking_s::disjoint_query;
 
@@ -1001,6 +854,276 @@ shader_tracking_s::use (IUnknown* pShader)
 bool drawing_cpl = false;
 
 
+NvAPI_Status
+__cdecl
+NvAPI_D3D11_CreateVertexShaderEx_Override ( __in        ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
+                                            __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage, 
+                                            __in  const LPVOID                                                            pCreateVertexShaderExArgs,
+                                            __out       ID3D11VertexShader                                              **ppVertexShader )
+{
+  NvAPI_Status ret =
+    NvAPI_D3D11_CreateVertexShaderEx_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateVertexShaderExArgs, ppVertexShader );
+
+  if (ret == NVAPI_OK)
+  {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
+    EnterCriticalSection (&cs_shader);
+
+    if (! SK_D3D11_Shaders.vertex.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+
+      desc.type   = SK_D3D11_ShaderType::Vertex;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.vertex.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.vertex.rev.count (*ppVertexShader) &&
+               SK_D3D11_Shaders.vertex.rev [*ppVertexShader] != checksum )
+      SK_D3D11_Shaders.vertex.rev.erase (*ppVertexShader);
+
+    SK_D3D11_Shaders.vertex.rev.emplace (std::make_pair (*ppVertexShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.vertex.descs [checksum];
+
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
+    _time64 (&desc.usage.last_time);
+
+    LeaveCriticalSection (&cs_shader);
+  }
+
+  return ret;
+}
+
+NvAPI_Status
+__cdecl
+NvAPI_D3D11_CreateHullShaderEx_Override ( __in        ID3D11Device *pDevice,        __in const void               *pShaderBytecode, 
+                                          __in        SIZE_T        BytecodeLength, __in_opt   ID3D11ClassLinkage *pClassLinkage, 
+                                          __in  const LPVOID                                                       pCreateHullShaderExArgs,
+                                          __out       ID3D11HullShader                                           **ppHullShader )
+{
+  NvAPI_Status ret =
+    NvAPI_D3D11_CreateHullShaderEx_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateHullShaderExArgs, ppHullShader );
+
+  if (ret == NVAPI_OK)
+  {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
+    EnterCriticalSection (&cs_shader);
+
+    if (! SK_D3D11_Shaders.hull.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Hull;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.hull.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.hull.rev.count (*ppHullShader) &&
+               SK_D3D11_Shaders.hull.rev [*ppHullShader] != checksum )
+      SK_D3D11_Shaders.hull.rev.erase (*ppHullShader);
+
+    SK_D3D11_Shaders.hull.rev.emplace (std::make_pair (*ppHullShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.hull.descs [checksum];
+
+    LeaveCriticalSection (&cs_shader);
+
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
+    _time64 (&desc.usage.last_time);
+  }
+
+  return ret;
+}
+
+NvAPI_Status
+__cdecl
+NvAPI_D3D11_CreateDomainShaderEx_Override ( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
+                                            __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+                                            __in  const LPVOID                                                           pCreateDomainShaderExArgs,
+                                            __out       ID3D11DomainShader                                             **ppDomainShader )
+{
+  NvAPI_Status ret =
+    NvAPI_D3D11_CreateDomainShaderEx_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateDomainShaderExArgs, ppDomainShader );
+
+  if (ret == NVAPI_OK)
+  {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
+    EnterCriticalSection (&cs_shader);
+
+    if (! SK_D3D11_Shaders.domain.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Domain;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.domain.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.domain.rev.count (*ppDomainShader) &&
+               SK_D3D11_Shaders.domain.rev [*ppDomainShader] != checksum )
+      SK_D3D11_Shaders.domain.rev.erase (*ppDomainShader);
+
+    SK_D3D11_Shaders.domain.rev.emplace (std::make_pair (*ppDomainShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.domain.descs [checksum];
+
+    LeaveCriticalSection (&cs_shader);
+
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
+    _time64 (&desc.usage.last_time);
+  }
+
+  return ret;
+}
+
+NvAPI_Status
+__cdecl
+NvAPI_D3D11_CreateGeometryShaderEx_2_Override ( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
+                                                __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+                                                __in  const LPVOID                                                           pCreateGeometryShaderExArgs,
+                                                __out       ID3D11GeometryShader                                           **ppGeometryShader )
+{
+  NvAPI_Status ret =
+    NvAPI_D3D11_CreateGeometryShaderEx_2_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateGeometryShaderExArgs, ppGeometryShader );
+
+  if (ret == NVAPI_OK)
+  {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
+    EnterCriticalSection (&cs_shader);
+
+    if (! SK_D3D11_Shaders.geometry.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Geometry;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.geometry.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.geometry.rev.count (*ppGeometryShader) &&
+               SK_D3D11_Shaders.geometry.rev [*ppGeometryShader] != checksum )
+      SK_D3D11_Shaders.geometry.rev.erase (*ppGeometryShader);
+
+    SK_D3D11_Shaders.geometry.rev.emplace (std::make_pair (*ppGeometryShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.geometry.descs [checksum];
+
+    LeaveCriticalSection (&cs_shader);
+
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
+    _time64 (&desc.usage.last_time);
+  }
+
+  return ret;
+}
+
+NvAPI_Status
+__cdecl
+NvAPI_D3D11_CreateFastGeometryShaderExplicit_Override ( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode,
+                                                        __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage,
+                                                        __in  const LPVOID                                                           pCreateFastGSArgs,
+                                                        __out       ID3D11GeometryShader                                           **ppGeometryShader )
+{
+  NvAPI_Status ret =
+    NvAPI_D3D11_CreateFastGeometryShaderExplicit_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateFastGSArgs, ppGeometryShader );
+
+  if (ret == NVAPI_OK)
+  {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
+    EnterCriticalSection (&cs_shader);
+
+    if (! SK_D3D11_Shaders.geometry.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Geometry;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.geometry.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.geometry.rev.count (*ppGeometryShader) &&
+               SK_D3D11_Shaders.geometry.rev [*ppGeometryShader] != checksum )
+      SK_D3D11_Shaders.geometry.rev.erase (*ppGeometryShader);
+
+    SK_D3D11_Shaders.geometry.rev.emplace (std::make_pair (*ppGeometryShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.geometry.descs [checksum];
+
+    LeaveCriticalSection (&cs_shader);
+
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
+    _time64 (&desc.usage.last_time);
+  }
+
+  return ret;
+}
+
+NvAPI_Status
+__cdecl
+NvAPI_D3D11_CreateFastGeometryShader_Override ( __in  ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
+                                                __in  SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage,
+                                                __out ID3D11GeometryShader                                            **ppGeometryShader )
+{
+  NvAPI_Status ret =
+    NvAPI_D3D11_CreateFastGeometryShader_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, ppGeometryShader );
+
+  if (ret == NVAPI_OK)
+  {
+    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+
+    EnterCriticalSection (&cs_shader);
+
+    if (! SK_D3D11_Shaders.geometry.descs.count (checksum))
+    {
+      SK_D3D11_ShaderDesc desc;
+      desc.type   = SK_D3D11_ShaderType::Geometry;
+      desc.crc32c = checksum;
+
+      for (UINT i = 0; i < BytecodeLength; i++)
+        desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+
+      SK_D3D11_Shaders.geometry.descs.emplace (std::make_pair (checksum, desc));
+    }
+
+    if ( SK_D3D11_Shaders.geometry.rev.count (*ppGeometryShader) &&
+               SK_D3D11_Shaders.geometry.rev [*ppGeometryShader] != checksum )
+      SK_D3D11_Shaders.geometry.rev.erase (*ppGeometryShader);
+
+    SK_D3D11_Shaders.geometry.rev.emplace (std::make_pair (*ppGeometryShader, checksum));
+
+    SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.geometry.descs [checksum];
+
+    LeaveCriticalSection (&cs_shader);
+
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
+    _time64 (&desc.usage.last_time);
+  }
+
+  return ret;
+}
+
 __declspec (noinline,nothrow)
 HRESULT
 WINAPI
@@ -1041,7 +1164,7 @@ D3D11Dev_CreateVertexShader_Override (
 
     SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.vertex.descs [checksum];
 
-    desc.usage.last_frame = SK_GetFramesDrawn ();
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
 
     LeaveCriticalSection (&cs_shader);
@@ -1091,7 +1214,7 @@ D3D11Dev_CreatePixelShader_Override (
 
     LeaveCriticalSection (&cs_shader);
 
-    desc.usage.last_frame = SK_GetFramesDrawn ();
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
 
@@ -1139,7 +1262,7 @@ D3D11Dev_CreateGeometryShader_Override (
 
     LeaveCriticalSection (&cs_shader);
 
-    desc.usage.last_frame = SK_GetFramesDrawn ();
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
 
@@ -1194,7 +1317,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 
     LeaveCriticalSection (&cs_shader);
 
-    desc.usage.last_frame = SK_GetFramesDrawn ();
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
 
@@ -1243,7 +1366,7 @@ D3D11Dev_CreateHullShader_Override (
 
     LeaveCriticalSection (&cs_shader);
 
-    desc.usage.last_frame = SK_GetFramesDrawn ();
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
 
@@ -1291,7 +1414,7 @@ D3D11Dev_CreateDomainShader_Override (
 
     LeaveCriticalSection (&cs_shader);
 
-    desc.usage.last_frame = SK_GetFramesDrawn ();
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
 
@@ -1339,7 +1462,7 @@ D3D11Dev_CreateComputeShader_Override (
 
     LeaveCriticalSection (&cs_shader);
 
-    desc.usage.last_frame = SK_GetFramesDrawn ();
+    InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
 
@@ -1367,30 +1490,33 @@ D3D11_VSSetShader_Override (
 
       uint32_t checksum = SK_D3D11_Shaders.vertex.descs [SK_D3D11_Shaders.vertex.rev [pVertexShader]].crc32c;
 
-      current_vs = checksum;
+      SK_D3D11_Shaders.vertex.current = checksum;
 
-      SK_D3D11_Shaders.vertex.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      InterlockedExchange (&SK_D3D11_Shaders.vertex.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.vertex.descs [checksum].usage.last_time);
 
       LeaveCriticalSection (&cs_shader);
 
-      if (checksum == tracked_vs.crc32c) tracked_vs.activate   (ppClassInstances, NumClassInstances);
-      else                               tracked_vs.deactivate ();
+      if (checksum == SK_D3D11_Shaders.vertex.tracked.crc32c)
+        SK_D3D11_Shaders.vertex.tracked.activate (ppClassInstances, NumClassInstances);
+
+      else
+        SK_D3D11_Shaders.vertex.tracked.deactivate ();
     }
 
     else
     {
       LeaveCriticalSection (&cs_shader);
 
-      tracked_vs.deactivate ();
-      current_vs        = 0x0;
+      SK_D3D11_Shaders.vertex.tracked.deactivate ();
+      SK_D3D11_Shaders.vertex.current = 0x0;
     }
   }
 
   else
   {
-    tracked_vs.deactivate ();
-    current_vs        = 0x0;
+    SK_D3D11_Shaders.vertex.tracked.deactivate ();
+    SK_D3D11_Shaders.vertex.current = 0x0;
   }
 
   D3D11_VSSetShader_Original (This, pVertexShader, ppClassInstances, NumClassInstances);
@@ -1427,30 +1553,32 @@ D3D11_PSSetShader_Override (
 
       uint32_t checksum = SK_D3D11_Shaders.pixel.descs [SK_D3D11_Shaders.pixel.rev [pPixelShader]].crc32c;
 
-      current_ps = checksum;
+      SK_D3D11_Shaders.pixel.current = checksum;
 
-      SK_D3D11_Shaders.pixel.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      InterlockedExchange (&SK_D3D11_Shaders.pixel.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.pixel.descs [checksum].usage.last_time);
 
       LeaveCriticalSection (&cs_shader);
 
-      if (checksum == tracked_ps.crc32c) tracked_ps.activate   (ppClassInstances, NumClassInstances);
-      else                               tracked_ps.deactivate ();
+      if (checksum == SK_D3D11_Shaders.pixel.tracked.crc32c)
+        SK_D3D11_Shaders.pixel.tracked.activate   (ppClassInstances, NumClassInstances);
+      else
+        SK_D3D11_Shaders.pixel.tracked.deactivate ();
     }
 
     else
     {
       LeaveCriticalSection (&cs_shader);
 
-      tracked_ps.deactivate ();
-      current_ps        = 0x0;
+      SK_D3D11_Shaders.pixel.tracked.deactivate ();
+      SK_D3D11_Shaders.pixel.current = 0x0;
     }
   }
 
   else
   {
-    tracked_ps.deactivate ();
-    current_ps        = 0x0;
+    SK_D3D11_Shaders.pixel.tracked.deactivate ();
+    SK_D3D11_Shaders.pixel.current = 0x0;
   }
 
   D3D11_PSSetShader_Original (This, pPixelShader, ppClassInstances, NumClassInstances);
@@ -1487,30 +1615,33 @@ D3D11_GSSetShader_Override (
 
       uint32_t checksum = SK_D3D11_Shaders.geometry.descs [SK_D3D11_Shaders.geometry.rev [pGeometryShader]].crc32c;
 
-      current_gs = checksum;
+      SK_D3D11_Shaders.geometry.current = checksum;
 
-      SK_D3D11_Shaders.geometry.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      InterlockedExchange (&SK_D3D11_Shaders.geometry.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.geometry.descs [checksum].usage.last_time);
 
       LeaveCriticalSection (&cs_shader);
 
-      if (checksum == tracked_gs.crc32c) tracked_gs.activate   (ppClassInstances, NumClassInstances);
-      else                               tracked_gs.deactivate ();
+      if (checksum == SK_D3D11_Shaders.geometry.tracked.crc32c)
+        SK_D3D11_Shaders.geometry.tracked.activate (ppClassInstances, NumClassInstances);
+
+      else
+        SK_D3D11_Shaders.geometry.tracked.deactivate ();
     }
 
     else
     {
       LeaveCriticalSection (&cs_shader);
 
-      tracked_gs.deactivate ();
-      current_gs        = 0x0;
+      SK_D3D11_Shaders.geometry.tracked.deactivate ();
+      SK_D3D11_Shaders.geometry.current = 0x0;
     }
   }
 
   else
   {
-    tracked_gs.deactivate ();
-    current_gs        = 0x0;
+    SK_D3D11_Shaders.geometry.tracked.deactivate ();
+    SK_D3D11_Shaders.geometry.current = 0x0;
   }
 
   D3D11_GSSetShader_Original (This, pGeometryShader, ppClassInstances, NumClassInstances);
@@ -1547,30 +1678,33 @@ D3D11_HSSetShader_Override (
 
       uint32_t checksum = SK_D3D11_Shaders.hull.descs [SK_D3D11_Shaders.hull.rev [pHullShader]].crc32c;
 
-      current_hs = checksum;
+      SK_D3D11_Shaders.hull.current = checksum;
 
-      SK_D3D11_Shaders.hull.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      InterlockedExchange (&SK_D3D11_Shaders.hull.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.hull.descs [checksum].usage.last_time);
 
       LeaveCriticalSection (&cs_shader);
 
-      if (checksum == tracked_hs.crc32c) tracked_hs.activate   (ppClassInstances, NumClassInstances);
-      else                               tracked_hs.deactivate ();
+      if (checksum == SK_D3D11_Shaders.hull.tracked.crc32c)
+        SK_D3D11_Shaders.hull.tracked.activate (ppClassInstances, NumClassInstances);
+
+      else
+        SK_D3D11_Shaders.hull.tracked.deactivate ();
     }
 
     else
     {
       LeaveCriticalSection (&cs_shader);
 
-      tracked_hs.deactivate ();
-      current_hs        = 0x0;
+      SK_D3D11_Shaders.hull.tracked.deactivate ();
+      SK_D3D11_Shaders.hull.current = 0x0;
     }
   }
 
   else
   {
-    tracked_hs.deactivate ();
-    current_hs        = 0x0;
+    SK_D3D11_Shaders.hull.tracked.deactivate ();
+    SK_D3D11_Shaders.hull.current = 0x0;
   }
 
   D3D11_HSSetShader_Original (This, pHullShader, ppClassInstances, NumClassInstances);
@@ -1607,30 +1741,33 @@ D3D11_DSSetShader_Override (
 
       uint32_t checksum = SK_D3D11_Shaders.domain.descs [SK_D3D11_Shaders.domain.rev [pDomainShader]].crc32c;
 
-      current_ds = checksum;
+      SK_D3D11_Shaders.domain.current = checksum;
 
-      SK_D3D11_Shaders.domain.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      InterlockedExchange (&SK_D3D11_Shaders.domain.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.domain.descs [checksum].usage.last_time);
 
       LeaveCriticalSection (&cs_shader);
 
-      if (checksum == tracked_ds.crc32c) tracked_ds.activate   (ppClassInstances, NumClassInstances);
-      else                               tracked_ds.deactivate ();
+      if (checksum == SK_D3D11_Shaders.domain.tracked.crc32c)
+        SK_D3D11_Shaders.domain.tracked.activate (ppClassInstances, NumClassInstances);
+
+      else
+        SK_D3D11_Shaders.domain.tracked.deactivate ();
     }
 
     else
     {
       LeaveCriticalSection (&cs_shader);
 
-      tracked_ds.deactivate ();
-      current_ds        = 0x0;
+      SK_D3D11_Shaders.domain.tracked.deactivate ();
+      SK_D3D11_Shaders.domain.current = 0x0;
     }
   }
 
   else
   {
-    tracked_ds.deactivate ();
-    current_ds        = 0x0;
+    SK_D3D11_Shaders.domain.tracked.deactivate ();
+    SK_D3D11_Shaders.domain.current = 0x0;
   }
 
   D3D11_DSSetShader_Original (This, pDomainShader, ppClassInstances, NumClassInstances);
@@ -1665,32 +1802,35 @@ D3D11_CSSetShader_Override (
     {
       ++SK_D3D11_Shaders.compute.changes_last_frame;
 
-      uint32_t checksum = SK_D3D11_Shaders.compute.descs [SK_D3D11_Shaders.compute.rev [pComputeShader]].crc32c;;
+      uint32_t checksum = SK_D3D11_Shaders.compute.descs [SK_D3D11_Shaders.compute.rev [pComputeShader]].crc32c;
 
-      current_cs = checksum;
+      SK_D3D11_Shaders.compute.current = checksum;
 
-                SK_D3D11_Shaders.compute.descs [checksum].usage.last_frame = SK_GetFramesDrawn ();
+      InterlockedExchange (&SK_D3D11_Shaders.compute.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.compute.descs [checksum].usage.last_time);
 
       LeaveCriticalSection (&cs_shader);
 
-      if (checksum == tracked_cs.crc32c) tracked_cs.activate   (ppClassInstances, NumClassInstances);
-      else                               tracked_cs.deactivate ();
+      if (checksum == SK_D3D11_Shaders.compute.tracked.crc32c)
+        SK_D3D11_Shaders.compute.tracked.activate (ppClassInstances, NumClassInstances);
+
+      else
+        SK_D3D11_Shaders.compute.tracked.deactivate ();
     }
 
     else
     {
       LeaveCriticalSection (&cs_shader);
 
-      tracked_cs.deactivate ();
-      current_cs        = 0x0;
+      SK_D3D11_Shaders.compute.tracked.deactivate ();
+      SK_D3D11_Shaders.compute.current = 0x0;
     }
   }
 
   else
   {
-    tracked_cs.deactivate ();
-    current_cs        = 0x0;
+    SK_D3D11_Shaders.compute.tracked.deactivate ();
+    SK_D3D11_Shaders.compute.current = 0x0;
   }
 
   D3D11_CSSetShader_Original (This, pComputeShader, ppClassInstances, NumClassInstances);
@@ -1771,13 +1911,15 @@ D3D11_VSSetShaderResources_Override (
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
+    shader_tracking_s& tracked = SK_D3D11_Shaders.vertex.tracked;
+
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (tracked_vs.crc32c != 0 && tracked_vs.active && ppShaderResourceViews [i] && (! tracked_vs.used_views.count (ppShaderResourceViews [i])))
+      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
-        tracked_vs.used_views.insert (ppShaderResourceViews [i]);
+        tracked.used_views.insert (ppShaderResourceViews [i]);
       }
     }
   }
@@ -1796,13 +1938,15 @@ D3D11_PSSetShaderResources_Override (
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
+    shader_tracking_s& tracked = SK_D3D11_Shaders.pixel.tracked;
+
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (tracked_ps.crc32c != 0 && tracked_ps.active && ppShaderResourceViews [i] && (! tracked_ps.used_views.count (ppShaderResourceViews [i])))
+      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
-        tracked_ps.used_views.insert (ppShaderResourceViews [i]);
+        tracked.used_views.insert (ppShaderResourceViews [i]);
       }
     }
   }
@@ -1821,13 +1965,15 @@ D3D11_GSSetShaderResources_Override (
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
+    shader_tracking_s& tracked = SK_D3D11_Shaders.geometry.tracked;
+
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (tracked_gs.crc32c != 0 && tracked_gs.active && ppShaderResourceViews [i] && (! tracked_gs.used_views.count (ppShaderResourceViews [i])))
+      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
-        tracked_gs.used_views.insert (ppShaderResourceViews [i]);
+        tracked.used_views.insert (ppShaderResourceViews [i]);
       }
     }
   }
@@ -1848,11 +1994,13 @@ D3D11_HSSetShaderResources_Override (
   {
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (tracked_hs.crc32c != 0 && tracked_hs.active && ppShaderResourceViews [i] && (! tracked_hs.used_views.count (ppShaderResourceViews [i])))
+      shader_tracking_s& tracked = SK_D3D11_Shaders.hull.tracked;
+
+      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
-        tracked_hs.used_views.insert (ppShaderResourceViews [i]);
+        tracked.used_views.insert (ppShaderResourceViews [i]);
       }
     }
   }
@@ -1871,13 +2019,15 @@ D3D11_DSSetShaderResources_Override (
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
+    shader_tracking_s& tracked = SK_D3D11_Shaders.domain.tracked;
+
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (tracked_ds.crc32c != 0 && tracked_ds.active && ppShaderResourceViews [i] && (! tracked_ds.used_views.count (ppShaderResourceViews [i])))
+      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
-        tracked_ds.used_views.insert (ppShaderResourceViews [i]);
+        tracked.used_views.insert (ppShaderResourceViews [i]);
       }
     }
   }
@@ -1896,13 +2046,15 @@ D3D11_CSSetShaderResources_Override (
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
+    shader_tracking_s& tracked = SK_D3D11_Shaders.compute.tracked;
+
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (tracked_cs.crc32c != 0 && tracked_cs.active && ppShaderResourceViews [i] && (! tracked_cs.used_views.count (ppShaderResourceViews [i])))
+      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
-        tracked_cs.used_views.insert (ppShaderResourceViews [i]);
+        tracked.used_views.insert (ppShaderResourceViews [i]);
       }
     }
   }
@@ -2014,30 +2166,30 @@ SK_D3D11_DrawHandler (void)
 
   if (rtv_active)
   {
-    if (current_vs != 0x00) tracked_rtv.ref_vs.insert (current_vs);
-    if (current_ps != 0x00) tracked_rtv.ref_ps.insert (current_ps);
-    if (current_gs != 0x00) tracked_rtv.ref_gs.insert (current_gs);
-    if (current_hs != 0x00) tracked_rtv.ref_hs.insert (current_hs);
-    if (current_ds != 0x00) tracked_rtv.ref_ds.insert (current_ds);
+    if (SK_D3D11_Shaders.vertex.current   != 0x00) tracked_rtv.ref_vs.insert (SK_D3D11_Shaders.vertex.current);
+    if (SK_D3D11_Shaders.pixel.current    != 0x00) tracked_rtv.ref_ps.insert (SK_D3D11_Shaders.pixel.current);
+    if (SK_D3D11_Shaders.geometry.current != 0x00) tracked_rtv.ref_gs.insert (SK_D3D11_Shaders.geometry.current);
+    if (SK_D3D11_Shaders.hull.current     != 0x00) tracked_rtv.ref_hs.insert (SK_D3D11_Shaders.hull.current);
+    if (SK_D3D11_Shaders.domain.current   != 0x00) tracked_rtv.ref_ds.insert (SK_D3D11_Shaders.domain.current);
   }
 
-  if (tracked_vs.active) { tracked_vs.use (nullptr); }
-  if (tracked_ps.active) { tracked_ps.use (nullptr); }
-  if (tracked_gs.active) { tracked_gs.use (nullptr); }
-  if (tracked_hs.active) { tracked_hs.use (nullptr); }
-  if (tracked_ds.active) { tracked_ds.use (nullptr); }
+  if (SK_D3D11_Shaders.vertex.tracked.active)   { SK_D3D11_Shaders.vertex.tracked.use   (nullptr); }
+  if (SK_D3D11_Shaders.pixel.tracked.active)    { SK_D3D11_Shaders.pixel.tracked.use    (nullptr); }
+  if (SK_D3D11_Shaders.geometry.tracked.active) { SK_D3D11_Shaders.geometry.tracked.use (nullptr); }
+  if (SK_D3D11_Shaders.hull.tracked.active)     { SK_D3D11_Shaders.hull.tracked.use     (nullptr); }
+  if (SK_D3D11_Shaders.domain.tracked.active)   { SK_D3D11_Shaders.domain.tracked.use   (nullptr); }
 
-  if (tracked_vs.active && tracked_vs.cancel_draws) return true;
-  if (tracked_ps.active && tracked_ps.cancel_draws) return true;
-  if (tracked_gs.active && tracked_gs.cancel_draws) return true;
-  if (tracked_hs.active && tracked_hs.cancel_draws) return true;
-  if (tracked_ds.active && tracked_ds.cancel_draws) return true;
+  if (SK_D3D11_Shaders.vertex.tracked.active   && SK_D3D11_Shaders.vertex.tracked.cancel_draws)   return true;
+  if (SK_D3D11_Shaders.pixel.tracked.active    && SK_D3D11_Shaders.pixel.tracked.cancel_draws)    return true;
+  if (SK_D3D11_Shaders.geometry.tracked.active && SK_D3D11_Shaders.geometry.tracked.cancel_draws) return true;
+  if (SK_D3D11_Shaders.hull.tracked.active     && SK_D3D11_Shaders.hull.tracked.cancel_draws)     return true;
+  if (SK_D3D11_Shaders.domain.tracked.active   && SK_D3D11_Shaders.domain.tracked.cancel_draws)   return true;
 
-  if (SK_D3D11_Blacklist_VS.count (current_vs)) return true;
-  if (SK_D3D11_Blacklist_PS.count (current_ps)) return true;
-  if (SK_D3D11_Blacklist_GS.count (current_gs)) return true;
-  if (SK_D3D11_Blacklist_HS.count (current_hs)) return true;
-  if (SK_D3D11_Blacklist_DS.count (current_ds)) return true;
+  if (SK_D3D11_Shaders.vertex.blacklist.count   (SK_D3D11_Shaders.vertex.current))   return true;
+  if (SK_D3D11_Shaders.pixel.blacklist.count    (SK_D3D11_Shaders.pixel.current))    return true;
+  if (SK_D3D11_Shaders.geometry.blacklist.count (SK_D3D11_Shaders.geometry.current)) return true;
+  if (SK_D3D11_Shaders.hull.blacklist.count     (SK_D3D11_Shaders.hull.current))     return true;
+  if (SK_D3D11_Shaders.domain.blacklist.count   (SK_D3D11_Shaders.domain.current))   return true;
 
   return false;
 }
@@ -2055,14 +2207,14 @@ SK_D3D11_DispatchHandler (void)
 
   if (rtv_active)
   {
-    if (current_cs != 0x00) tracked_rtv.ref_cs.insert (current_cs);
+    if (SK_D3D11_Shaders.compute.current != 0x00) tracked_rtv.ref_cs.insert (SK_D3D11_Shaders.compute.current);
   }
 
-  if (tracked_cs.active) { tracked_cs.use (nullptr); }
+  if (SK_D3D11_Shaders.compute.tracked.active) { SK_D3D11_Shaders.compute.tracked.use (nullptr); }
 
-  if (tracked_cs.active && tracked_cs.cancel_draws) return true;
+  if (SK_D3D11_Shaders.compute.tracked.active && SK_D3D11_Shaders.compute.tracked.cancel_draws) return true;
 
-  if (SK_D3D11_Blacklist_CS.count (current_cs)) return true;
+  if (SK_D3D11_Shaders.compute.blacklist.count (SK_D3D11_Shaders.compute.current)) return true;
 
   return false;
 }
@@ -4755,6 +4907,10 @@ HookD3D11 (LPVOID user)
 
 #endif
 
+    if (sk::NVAPI::nv_hardware)
+    {
+    }
+
     MH_ApplyQueued ();
   }
 
@@ -5153,6 +5309,27 @@ uint32_t change_sel_hs = 0x00;
 uint32_t change_sel_ds = 0x00;
 uint32_t change_sel_cs = 0x00;
 
+#define SK_ImGui_IsItemRightClicked() ImGui::IsItemClicked (1) || (ImGui::IsItemFocused () && io.NavInputsDownDuration [ImGuiNavInput_PadActivate] > 0.4f && ((io.NavInputsDownDuration [ImGuiNavInput_PadActivate] = 0.0f) == 0.0f))
+
+auto ShaderMenu = [&](std::unordered_set <uint32_t>& blacklist, uint32_t shader) ->
+  void
+  {
+    if (blacklist.count (shader))
+    {
+      if (ImGui::MenuItem ("Enable Shader"))
+      {
+        blacklist.erase (shader);
+      }
+    }
+    else
+    {
+      if (ImGui::MenuItem ("Disable Shader"))
+      {
+        blacklist.emplace (shader);
+      }
+    }
+  };
+
 void
 SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 {
@@ -5209,12 +5386,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       {
         switch (type)
         {
-          case sk_shader_class::Vertex:   return &tracked_vs;
-          case sk_shader_class::Pixel:    return &tracked_ps;
-          case sk_shader_class::Geometry: return &tracked_gs;
-          case sk_shader_class::Hull:     return &tracked_hs;
-          case sk_shader_class::Domain:   return &tracked_ds;
-          case sk_shader_class::Compute:  return &tracked_cs;
+          case sk_shader_class::Vertex:   return &SK_D3D11_Shaders.vertex.tracked;
+          case sk_shader_class::Pixel:    return &SK_D3D11_Shaders.pixel.tracked;
+          case sk_shader_class::Geometry: return &SK_D3D11_Shaders.geometry.tracked;
+          case sk_shader_class::Hull:     return &SK_D3D11_Shaders.hull.tracked;
+          case sk_shader_class::Domain:   return &SK_D3D11_Shaders.domain.tracked;
+          case sk_shader_class::Compute:  return &SK_D3D11_Shaders.compute.tracked;
         }
 
         assert (false);
@@ -5240,7 +5417,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& vertex_shader : SK_D3D11_Shaders.vertex.descs)
             {
-              if (SK_D3D11_Shaders.vertex.descs [vertex_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
+              if (SK_D3D11_Shaders.vertex.descs [vertex_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
               {
                 // Ignore ImGui / CEGUI shaders
                 if ( vertex_shader.first != 0xb42ede74 &&
@@ -5256,7 +5433,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& pixel_shader : SK_D3D11_Shaders.pixel.descs)
             {
-              if (SK_D3D11_Shaders.pixel.descs [pixel_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
+              if (SK_D3D11_Shaders.pixel.descs [pixel_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
               {
                 // Ignore ImGui / CEGUI shaders
                 if ( pixel_shader.first != 0xd3af3aa0 &&
@@ -5272,7 +5449,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& geometry_shader : SK_D3D11_Shaders.geometry.descs)
             {
-              if (SK_D3D11_Shaders.geometry.descs [geometry_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
+              if (SK_D3D11_Shaders.geometry.descs [geometry_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
               {
                 vec.emplace_back (geometry_shader.first);
               }
@@ -5283,7 +5460,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& hull_shader : SK_D3D11_Shaders.hull.descs)
             {
-              if (SK_D3D11_Shaders.hull.descs [hull_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
+              if (SK_D3D11_Shaders.hull.descs [hull_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
               {
                 vec.emplace_back (hull_shader.first);
               }
@@ -5294,7 +5471,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& domain_shader : SK_D3D11_Shaders.domain.descs)
             {
-              if (SK_D3D11_Shaders.domain.descs [domain_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
+              if (SK_D3D11_Shaders.domain.descs [domain_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
               {
                 vec.emplace_back (domain_shader.first);
               }
@@ -5305,7 +5482,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& compute_shader : SK_D3D11_Shaders.compute.descs)
             {
-              if (SK_D3D11_Shaders.compute.descs [compute_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 5)
+              if (SK_D3D11_Shaders.compute.descs [compute_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
               {
                 vec.emplace_back (compute_shader.first);
               }
@@ -5377,6 +5554,24 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         }
       };
 
+  auto GetShaderBlacklist =
+    [&](sk_shader_class& type)->
+      std::unordered_set <uint32_t>&
+      {
+        static std::unordered_set <uint32_t> invalid;
+
+        switch (type)
+        {
+          case sk_shader_class::Vertex:   return SK_D3D11_Shaders.vertex.blacklist;
+          case sk_shader_class::Pixel:    return SK_D3D11_Shaders.pixel.blacklist;
+          case sk_shader_class::Geometry: return SK_D3D11_Shaders.geometry.blacklist;
+          case sk_shader_class::Hull:     return SK_D3D11_Shaders.hull.blacklist;
+          case sk_shader_class::Domain:   return SK_D3D11_Shaders.domain.blacklist;
+          case sk_shader_class::Compute:  return SK_D3D11_Shaders.compute.blacklist;
+          default:                        return invalid;
+        }
+     };
+
   if (list->dirty)
   {
         list->sel = -1;
@@ -5394,7 +5589,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     {
       char szDesc [32] = { '\0' };
 
-      sprintf (szDesc, "%08lx##%s", it, GetShaderWord (shader_type));
+      bool disabled = GetShaderBlacklist (shader_type).count (it) != 0;
+
+      sprintf (szDesc, "%s%08lx##%s", disabled ? "*" : " ", it, GetShaderWord (shader_type));
 
       list->contents.emplace_back (szDesc);
 
@@ -5482,6 +5679,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     last_sel = list->sel;
 
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
     for ( UINT line = 0; line < shaders.size (); line++ )
     {
       if (line == list->sel)
@@ -5511,6 +5711,17 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           list->last_sel  = (uint32_t)shaders [list->sel];
           tracker->crc32c = (uint32_t)shaders [list->sel];
         }
+      }
+
+      if (SK_ImGui_IsItemRightClicked ())
+      {
+        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_%s%08lx", GetShaderWord (shader_type), (uint32_t)shaders [line]).c_str ());
+      }
+
+      if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_%s%08lx", GetShaderWord (shader_type), (uint32_t)shaders [line]).c_str ()))
+      {
+        ShaderMenu (GetShaderBlacklist (shader_type), (uint32_t)shaders [line]);
+        ImGui::EndPopup ();
       }
     }
 
@@ -5911,12 +6122,12 @@ std::vector <IUnknown *> temp_resources;
 void
 SK_D3D11_EndFrame (void)
 {
-  tracked_vs.deactivate ();
-  tracked_ps.deactivate ();
-  tracked_gs.deactivate ();
-  tracked_hs.deactivate ();
-  tracked_ds.deactivate ();
-  tracked_cs.deactivate ();
+  SK_D3D11_Shaders.vertex.tracked.deactivate   ();
+  SK_D3D11_Shaders.pixel.tracked.deactivate    ();
+  SK_D3D11_Shaders.geometry.tracked.deactivate ();
+  SK_D3D11_Shaders.hull.tracked.deactivate     ();
+  SK_D3D11_Shaders.domain.tracked.deactivate   ();
+  SK_D3D11_Shaders.compute.tracked.deactivate  ();
 
   tracked_rtv.clear ();
 
@@ -5983,12 +6194,12 @@ SK_D3D11_EndFrame (void)
                 tracker->timers.clear ();
               };
 
-            ClearTimers (&tracked_vs);
-            ClearTimers (&tracked_ps);
-            ClearTimers (&tracked_gs);
-            ClearTimers (&tracked_hs);
-            ClearTimers (&tracked_ds);
-            ClearTimers (&tracked_cs);
+            ClearTimers (&SK_D3D11_Shaders.vertex.tracked);
+            ClearTimers (&SK_D3D11_Shaders.pixel.tracked);
+            ClearTimers (&SK_D3D11_Shaders.geometry.tracked);
+            ClearTimers (&SK_D3D11_Shaders.hull.tracked);
+            ClearTimers (&SK_D3D11_Shaders.domain.tracked);
+            ClearTimers (&SK_D3D11_Shaders.compute.tracked);
 
             disjoint_done = true;
           }
@@ -6081,33 +6292,33 @@ SK_D3D11_EndFrame (void)
         tracker->timers = rejects;
       };
 
-    AccumulateRuntimeTicks (dev_ctx, &tracked_vs);
-    CalcRuntimeMS          (&tracked_vs);
+    AccumulateRuntimeTicks (dev_ctx, &SK_D3D11_Shaders.vertex.tracked);
+    CalcRuntimeMS          (&SK_D3D11_Shaders.vertex.tracked);
 
-    AccumulateRuntimeTicks (dev_ctx, &tracked_ps);
-    CalcRuntimeMS          (&tracked_ps);
+    AccumulateRuntimeTicks (dev_ctx, &SK_D3D11_Shaders.pixel.tracked);
+    CalcRuntimeMS          (&SK_D3D11_Shaders.pixel.tracked);
 
-    AccumulateRuntimeTicks (dev_ctx, &tracked_gs);
-    CalcRuntimeMS          (&tracked_gs);
+    AccumulateRuntimeTicks (dev_ctx, &SK_D3D11_Shaders.geometry.tracked);
+    CalcRuntimeMS          (&SK_D3D11_Shaders.geometry.tracked);
 
-    AccumulateRuntimeTicks (dev_ctx, &tracked_hs);
-    CalcRuntimeMS          (&tracked_hs);
+    AccumulateRuntimeTicks (dev_ctx, &SK_D3D11_Shaders.hull.tracked);
+    CalcRuntimeMS          (&SK_D3D11_Shaders.hull.tracked);
 
-    AccumulateRuntimeTicks (dev_ctx, &tracked_ds);
-    CalcRuntimeMS          (&tracked_ds);
+    AccumulateRuntimeTicks (dev_ctx, &SK_D3D11_Shaders.domain.tracked);
+    CalcRuntimeMS          (&SK_D3D11_Shaders.domain.tracked);
 
-    AccumulateRuntimeTicks (dev_ctx, &tracked_cs);
-    CalcRuntimeMS          (&tracked_cs);
+    AccumulateRuntimeTicks (dev_ctx, &SK_D3D11_Shaders.compute.tracked);
+    CalcRuntimeMS          (&SK_D3D11_Shaders.compute.tracked);
 
     disjoint_done = false;
   }
 
-  tracked_vs.clear ();
-  tracked_ps.clear ();
-  tracked_gs.clear ();
-  tracked_hs.clear ();
-  tracked_ds.clear ();
-  tracked_cs.clear ();
+  SK_D3D11_Shaders.vertex.tracked.clear   ();
+  SK_D3D11_Shaders.pixel.tracked.clear    ();
+  SK_D3D11_Shaders.geometry.tracked.clear ();
+  SK_D3D11_Shaders.hull.tracked.clear     ();
+  SK_D3D11_Shaders.domain.tracked.clear   ();
+  SK_D3D11_Shaders.compute.tracked.clear  ();
 
   SK_D3D11_Shaders.vertex.changes_last_frame   = 0;
   SK_D3D11_Shaders.pixel.changes_last_frame    = 0;
@@ -6546,6 +6757,9 @@ SK_D3D11_ShaderModDlg (void)
 
             if (shaders > 0)
             {
+              ImGuiIO& io =
+                ImGui::GetIO ();
+
               ImGui::BeginChild ( "RenderTargetContributors",
                                 ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
                                          -1.0f ),
@@ -6562,9 +6776,22 @@ SK_D3D11_ShaderModDlg (void)
 
                   for ( auto it : tracked_rtv.ref_vs )
                   {
-                    if (ImGui::Selectable (SK_FormatString ("%08lx##vs", it).c_str (), &selected))
+                    bool disabled = SK_D3D11_Shaders.vertex.blacklist.count (it) != 0;
+
+                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##vs", disabled ? "*" : " ", it).c_str (), &selected))
                     {
                       change_sel_vs = it;
+                    }
+
+                    if (SK_ImGui_IsItemRightClicked ( ))
+                    {
+                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ());
+                    }
+
+                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ()))
+                    {
+                      ShaderMenu (SK_D3D11_Shaders.vertex.blacklist, it);
+                      ImGui::EndPopup ();
                     }
                   }
 
@@ -6579,9 +6806,22 @@ SK_D3D11_ShaderModDlg (void)
 
                   for ( auto it : tracked_rtv.ref_ps )
                   {
-                    if (ImGui::Selectable (SK_FormatString ("%08lx##ps", it).c_str (), &selected))
+                    bool disabled = SK_D3D11_Shaders.pixel.blacklist.count (it) != 0;
+
+                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##ps", disabled ? "*" : " ", it).c_str (), &selected))
                     {
                       change_sel_ps = it;
+                    }
+
+                    if (SK_ImGui_IsItemRightClicked ( ))
+                    {
+                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ());
+                    }
+
+                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ()))
+                    {
+                      ShaderMenu (SK_D3D11_Shaders.pixel.blacklist, it);
+                      ImGui::EndPopup ();
                     }
                   }
 
@@ -6601,9 +6841,22 @@ SK_D3D11_ShaderModDlg (void)
 
                   for ( auto it : tracked_rtv.ref_gs )
                   {
-                    if (ImGui::Selectable (SK_FormatString ("%08lx##gs", it).c_str (), &selected))
+                    bool disabled = SK_D3D11_Shaders.geometry.blacklist.count (it) != 0;
+
+                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##gs", disabled ? "*" : " ", it).c_str (), &selected))
                     {
                       change_sel_gs = it;
+                    }
+
+                    if (SK_ImGui_IsItemRightClicked ( ))
+                    {
+                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ());
+                    }
+
+                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ()))
+                    {
+                      ShaderMenu (SK_D3D11_Shaders.geometry.blacklist, it);
+                      ImGui::EndPopup ();
                     }
                   }
 
@@ -6625,9 +6878,22 @@ SK_D3D11_ShaderModDlg (void)
 
                   for ( auto it : tracked_rtv.ref_hs )
                   {
-                    if (ImGui::Selectable (SK_FormatString ("%08lx##hs", it).c_str (), &selected))
+                    bool disabled = SK_D3D11_Shaders.hull.blacklist.count (it) != 0;
+
+                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##hs", disabled ? "*" : " ", it).c_str (), &selected))
                     {
                       change_sel_hs = it;
+                    }
+
+                    if (SK_ImGui_IsItemRightClicked ( ))
+                    {
+                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ());
+                    }
+
+                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ()))
+                    {
+                      ShaderMenu (SK_D3D11_Shaders.hull.blacklist, it);
+                      ImGui::EndPopup ();
                     }
                   }
 
@@ -6642,9 +6908,22 @@ SK_D3D11_ShaderModDlg (void)
 
                   for ( auto it : tracked_rtv.ref_ds )
                   {
-                    if (ImGui::Selectable (SK_FormatString ("%08lx##ds", it).c_str (), &selected))
+                    bool disabled = SK_D3D11_Shaders.domain.blacklist.count (it) != 0;
+
+                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##ds", disabled ? "*" : " ", it).c_str (), &selected))
                     {
                       change_sel_ds = it;
+                    }
+
+                    if (SK_ImGui_IsItemRightClicked ( ))
+                    {
+                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ());
+                    }
+
+                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ()))
+                    {
+                      ShaderMenu (SK_D3D11_Shaders.domain.blacklist, it);
+                      ImGui::EndPopup ();
                     }
                   }
 
@@ -6663,9 +6942,22 @@ SK_D3D11_ShaderModDlg (void)
 
                   for ( auto it : tracked_rtv.ref_cs )
                   {
-                    if (ImGui::Selectable (SK_FormatString ("%08lx##cs", it).c_str (), &selected))
+                    bool disabled = SK_D3D11_Shaders.compute.blacklist.count (it) != 0;
+
+                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##cs", disabled ? "*" : " ", it).c_str (), &selected))
                     {
                       change_sel_cs = it;
+                    }
+
+                    if (SK_ImGui_IsItemRightClicked ( ))
+                    {
+                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ());
+                    }
+
+                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ()))
+                    {
+                      ShaderMenu (SK_D3D11_Shaders.compute.blacklist, it);
+                      ImGui::EndPopup ();
                     }
                   }
 

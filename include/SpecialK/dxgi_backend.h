@@ -544,4 +544,173 @@ extern D3D11_CopyResource_pfn                             D3D11_CopyResource_Ori
 
 
 
+enum class SK_D3D11_ShaderType {
+  Vertex   =  1,
+  Pixel    =  2,
+  Geometry =  4,
+  Domain   =  8,
+  Hull     = 16,
+  Compute  = 32,
+
+  Invalid  = MAXINT
+};
+
+struct SK_D3D11_ShaderDesc
+{
+  SK_D3D11_ShaderType type   = SK_D3D11_ShaderType::Invalid;
+  uint32_t            crc32c = 0UL;
+
+  std::vector <BYTE>  bytecode;
+
+  struct
+  {
+    volatile ULONG last_frame = 0UL;
+    __time64_t     last_time  = 0ULL;
+    ULONG          refs       = 0;
+  } usage;
+};
+
+#include <map>
+
+struct SK_DisjointTimerQueryD3D11
+{
+
+  ID3D11Query* async  = nullptr;
+  bool         active = false;
+
+  D3D11_QUERY_DATA_TIMESTAMP_DISJOINT last_results = { 0 };
+};
+
+struct SK_TimerQueryD3D11
+{
+  ID3D11Query* async  = nullptr;
+  bool         active = false;
+
+  UINT64 last_results = { 0 };
+};
+
+struct shader_tracking_s
+{
+  void clear (void)
+  {
+    //active    = false;
+
+    num_draws = 0;
+
+    for ( auto it : used_views )
+      it->Release ();
+
+    used_views.clear ();
+
+
+    for ( auto it : classes )
+      it->Release ();
+
+    classes.clear ();
+
+    //used_textures.clear ();
+
+    //for (int i = 0; i < 16; i++)
+      //current_textures [i] = 0x00;
+  }
+
+  void use (IUnknown* pShader);
+
+  // Used for timing queries and interface tracking
+  void activate   ( ID3D11ClassInstance *const *ppClassInstances,
+                    UINT                        NumClassInstances );
+  void deactivate (void);
+
+  uint32_t                      crc32c       =  0x00;
+  bool                          cancel_draws = false;
+  bool                          active       = false;
+  int                           num_draws    =     0;
+
+  // The slot used has meaning, but I think we can ignore it for now...
+  //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
+
+  std::unordered_set <ID3D11ShaderResourceView *> used_views;
+
+  IUnknown*                         shader_obj     = nullptr;
+
+
+  static SK_DisjointTimerQueryD3D11 disjoint_query;
+
+  struct duration_s
+  {
+    // Timestamp at beginning
+    SK_TimerQueryD3D11 start;
+
+    // Timestamp at end
+    SK_TimerQueryD3D11 end;
+  };
+  std::vector <duration_s> timers;
+
+  // Cumulative runtime of all timers after the disjoint query
+  //   is finished and reading these results would not stall
+  //     the pipeline
+  UINT64                            runtime_ticks  = 0ULL;
+  double                            runtime_ms     = 0.0;
+
+
+  void addClassInstance (ID3D11ClassInstance* pInstance)
+  {
+    if (! classes.count (pInstance))
+    {
+      pInstance->AddRef ();
+      classes.insert    (pInstance);
+    }
+  }
+
+  std::set <ID3D11ClassInstance *> classes;
+
+//  struct shader_constant_s
+//  {
+//    char                Name [128];
+//    D3DXREGISTER_SET    RegisterSet;
+//    UINT                RegisterIndex;
+//    UINT                RegisterCount;
+//    D3DXPARAMETER_CLASS Class;
+//    D3DXPARAMETER_TYPE  Type;
+//    UINT                Rows;
+//    UINT                Columns;
+//    UINT                Elements;
+//    std::vector <shader_constant_s>
+//                        struct_members;
+//    bool                Override;
+//    float               Data [4]; // TEMP HACK
+//  };
+
+//  std::vector <shader_constant_s> constants;
+};
+
+struct SK_D3D11_KnownShaders
+{
+
+  template <typename _T> 
+  struct ShaderRegistry
+  {
+    std::unordered_map <_T*, uint32_t>                 rev;
+    std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
+
+    std::unordered_set <uint32_t>                      blacklist;
+
+    uint32_t                                           current = 0x0;
+    shader_tracking_s                                  tracked;
+
+    ULONG                                              changes_last_frame = 0;
+  };
+
+  ShaderRegistry <ID3D11PixelShader>    pixel;
+  ShaderRegistry <ID3D11VertexShader>   vertex;
+  ShaderRegistry <ID3D11GeometryShader> geometry;
+  ShaderRegistry <ID3D11HullShader>     hull;
+  ShaderRegistry <ID3D11DomainShader>   domain;
+  ShaderRegistry <ID3D11ComputeShader>  compute;
+
+} extern SK_D3D11_Shaders;
+
+
+
+
 #endif /* __SK__DXGI_BACKEND_H__ */

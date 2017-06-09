@@ -39,8 +39,6 @@ sk::ParameterBool*    reason_simple_ocean_water    = nullptr;
 bool __REASON_SimpleInterior = false;
 bool __REASON_SimpleOcean    = false;
 
-extern std::unordered_set <uint32_t> SK_D3D11_Blacklist_PS;
-
 extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
@@ -234,7 +232,7 @@ SK_REASON_InitPlugin (void)
       __REASON_SimpleInterior = reason_simple_interior_water->get_value ();
 
     if (__REASON_SimpleInterior)
-      SK_D3D11_Blacklist_PS.insert (0x93a52f8d);
+      SK_D3D11_Shaders.pixel.blacklist.insert (0x93a52f8d);
 
     reason_simple_interior_water->set_value (__REASON_SimpleInterior);
     reason_simple_interior_water->store     ();
@@ -251,7 +249,7 @@ SK_REASON_InitPlugin (void)
       __REASON_SimpleOcean = reason_simple_ocean_water->get_value ();
 
     if (__REASON_SimpleOcean)
-      SK_D3D11_Blacklist_PS.insert (0x750c5215);
+      SK_D3D11_Shaders.pixel.blacklist.insert (0x750c5215);
 
     reason_simple_ocean_water->set_value (__REASON_SimpleInterior);
     reason_simple_ocean_water->store     ();
@@ -298,9 +296,9 @@ SK_REASON_ControlPanel (void)
         changed = true;
 
         if (__REASON_SimpleInterior)
-          SK_D3D11_Blacklist_PS.insert (0x93a52f8d);
+          SK_D3D11_Shaders.pixel.blacklist.insert (0x93a52f8d);
         else
-          SK_D3D11_Blacklist_PS.erase  (0x93a52f8d);
+          SK_D3D11_Shaders.pixel.blacklist.erase  (0x93a52f8d);
 
         reason_simple_interior_water->set_value (__REASON_SimpleInterior);
         reason_simple_interior_water->store     ();
@@ -313,9 +311,9 @@ SK_REASON_ControlPanel (void)
         changed = true;
 
         if (__REASON_SimpleOcean)
-          SK_D3D11_Blacklist_PS.insert (0x750c5215);
+          SK_D3D11_Shaders.pixel.blacklist.insert (0x750c5215);
         else
-          SK_D3D11_Blacklist_PS.erase  (0x750c5215);
+          SK_D3D11_Shaders.pixel.blacklist.erase  (0x750c5215);
 
         reason_simple_ocean_water->set_value (__REASON_SimpleOcean);
         reason_simple_ocean_water->store     ();
