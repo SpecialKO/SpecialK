@@ -5336,8 +5336,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   static float last_width = 256.0f;
   const  float font_size  = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
 
-  ImGui::BeginGroup ();
-
   struct shader_class_imp_s
   {
     std::vector <std::string> contents;
@@ -5417,14 +5415,11 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& vertex_shader : SK_D3D11_Shaders.vertex.descs)
             {
-              if (SK_D3D11_Shaders.vertex.descs [vertex_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
+              // Ignore ImGui / CEGUI shaders
+              if ( vertex_shader.first != 0xb42ede74 &&
+                   vertex_shader.first != 0x1f8c62dc )
               {
-                // Ignore ImGui / CEGUI shaders
-                if ( vertex_shader.first != 0xb42ede74 &&
-                     vertex_shader.first != 0x1f8c62dc )
-                {
-                  vec.emplace_back (vertex_shader.first);
-                }
+                vec.emplace_back (vertex_shader.first);
               }
             }
           } break;
@@ -5433,14 +5428,11 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& pixel_shader : SK_D3D11_Shaders.pixel.descs)
             {
-              if (SK_D3D11_Shaders.pixel.descs [pixel_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
+              // Ignore ImGui / CEGUI shaders
+              if ( pixel_shader.first != 0xd3af3aa0 &&
+                   pixel_shader.first != 0xb04a90ba )
               {
-                // Ignore ImGui / CEGUI shaders
-                if ( pixel_shader.first != 0xd3af3aa0 &&
-                     pixel_shader.first != 0xb04a90ba )
-                {
-                  vec.emplace_back (pixel_shader.first);
-                }
+                vec.emplace_back (pixel_shader.first);
               }
             }
           } break;
@@ -5449,10 +5441,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& geometry_shader : SK_D3D11_Shaders.geometry.descs)
             {
-              if (SK_D3D11_Shaders.geometry.descs [geometry_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
-              {
-                vec.emplace_back (geometry_shader.first);
-              }
+              vec.emplace_back (geometry_shader.first);
             }
           } break;
 
@@ -5460,10 +5449,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& hull_shader : SK_D3D11_Shaders.hull.descs)
             {
-              if (SK_D3D11_Shaders.hull.descs [hull_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
-              {
-                vec.emplace_back (hull_shader.first);
-              }
+              vec.emplace_back (hull_shader.first);
             }
           } break;
 
@@ -5471,10 +5457,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& domain_shader : SK_D3D11_Shaders.domain.descs)
             {
-              if (SK_D3D11_Shaders.domain.descs [domain_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
-              {
-                vec.emplace_back (domain_shader.first);
-              }
+              vec.emplace_back (domain_shader.first);
             }
           } break;
 
@@ -5482,10 +5465,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& compute_shader : SK_D3D11_Shaders.compute.descs)
             {
-              if (SK_D3D11_Shaders.compute.descs [compute_shader.first].usage.last_frame >= SK_GetFramesDrawn () - 60)
-              {
-                vec.emplace_back (compute_shader.first);
-              }
+              vec.emplace_back (compute_shader.first);
             }
           } break;
         }
@@ -5617,11 +5597,44 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     }
   }
 
+  bool scrolled = false;
+
   if (ImGui::IsMouseHoveringRect (list->last_min, list->last_max))
   {
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
   }
+
+  struct sk_shader_state_s {
+    int  last_sel      = 0;
+    bool sel_changed   = false;
+    bool hide_inactive = false;
+    int  active_frames = 2;
+
+    static int ClassToIdx (sk_shader_class& shader_class)
+    {
+      // nb: shader_class is a bitmask, we need indices
+      switch (shader_class)
+      {
+        case sk_shader_class::Vertex:   return 0;
+        default:
+        case sk_shader_class::Pixel:    return 1;
+        case sk_shader_class::Geometry: return 2;
+        case sk_shader_class::Hull:     return 3;
+        case sk_shader_class::Domain:   return 4;
+        case sk_shader_class::Compute:  return 5;
+
+        // Masked combinations are, of course, invalid :)
+      }
+    }
+  } static shader_state [6];
+
+  int&  last_sel      =  shader_state [sk_shader_state_s::ClassToIdx (shader_type)].last_sel;
+  bool& sel_changed   =  shader_state [sk_shader_state_s::ClassToIdx (shader_type)].sel_changed;
+  bool* hide_inactive = &shader_state [sk_shader_state_s::ClassToIdx (shader_type)].hide_inactive;
+  int&  active_frames =  shader_state [sk_shader_state_s::ClassToIdx (shader_type)].active_frames;
+
+  ImGui::Checkbox (SK_FormatString ("Hide Inactive Shaders##%s", GetShaderWord (shader_type)).c_str (), hide_inactive);
 
   ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
   ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
@@ -5641,38 +5654,30 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next shader");
     ImGui::EndTooltip   ();
 
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+    if (! scrolled)
+    {
+           if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+      else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+    }
   }
 
   if (shaders.size ())
   {
-    struct {
-      int  last_sel    = 0;
-      bool sel_changed = false;
-    } static shader_state [6];
-
-    auto ShaderClassToIdx = [](sk_shader_class& shader_class) ->
-      int
+    auto ShaderBase = [](sk_shader_class& shader_class) ->
+      void*
       {
-        // nb: shader_class is a bitmask, we need indices
         switch (shader_class)
         {
-          case sk_shader_class::Vertex:   return 0;
+          case sk_shader_class::Vertex:   return &SK_D3D11_Shaders.vertex;
+          case sk_shader_class::Pixel:    return &SK_D3D11_Shaders.pixel;
+          case sk_shader_class::Geometry: return &SK_D3D11_Shaders.geometry;
+          case sk_shader_class::Hull:     return &SK_D3D11_Shaders.hull;
+          case sk_shader_class::Domain:   return &SK_D3D11_Shaders.domain;
+          case sk_shader_class::Compute:  return &SK_D3D11_Shaders.compute;
           default:
-          case sk_shader_class::Pixel:    return 1;
-          case sk_shader_class::Geometry: return 2;
-          case sk_shader_class::Hull:     return 3;
-          case sk_shader_class::Domain:   return 4;
-          case sk_shader_class::Compute:  return 5;
-
-          // Masked combinations are, of course, invalid :)
+          return nullptr;
         }
       };
-
-
-    int&  last_sel    = shader_state [ShaderClassToIdx (shader_type)].last_sel;
-    bool& sel_changed = shader_state [ShaderClassToIdx (shader_type)].sel_changed;
 
     if (list->sel != last_sel)
       sel_changed = true;
@@ -5684,19 +5689,32 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     for ( UINT line = 0; line < shaders.size (); line++ )
     {
+      SK_D3D11_ShaderDesc& rDesc =
+        ((SK_D3D11_KnownShaders::ShaderRegistry <ID3D11VertexShader>*)ShaderBase (shader_type))->descs [
+          (uint32_t)shaders [line]
+        ];
+
+      bool active = rDesc.usage.last_frame > SK_GetFramesDrawn () - active_frames;
+
+      if (active)
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.95f, 1.0f));
+      else
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.425f, 0.425f, 0.425f, 0.9f));
+
       if (line == list->sel)
       {
         bool selected    = true;
 
-        ImGui::Selectable (list->contents [line].c_str (), &selected);
+        if (active || (! *hide_inactive))
+          ImGui::Selectable (list->contents [line].c_str (), &selected);
 
         if (sel_changed)
         {
           ImGui::SetScrollHere (0.5f);
 
           sel_changed     = false;
-          list->last_sel  = (uint32_t)shaders [list->sel];
-          tracker->crc32c = (uint32_t)shaders [list->sel];
+          list->last_sel  = rDesc.crc32c;
+          tracker->crc32c = rDesc.crc32c;
         }
       }
 
@@ -5704,14 +5722,19 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       {
         bool selected    = false;
 
-        if (ImGui::Selectable (list->contents [line].c_str (), &selected))
+        if (active || (! *hide_inactive))
         {
-          sel_changed     = true;
-          list->sel       =  line;
-          list->last_sel  = (uint32_t)shaders [list->sel];
-          tracker->crc32c = (uint32_t)shaders [list->sel];
+          if (ImGui::Selectable (list->contents [line].c_str (), &selected))
+          {
+            sel_changed     = true;
+            list->sel       =  line;
+            list->last_sel  = rDesc.crc32c;
+            tracker->crc32c = rDesc.crc32c;
+          }
         }
       }
+
+      ImGui::PopStyleColor ();
 
       if (SK_ImGui_IsItemRightClicked ())
       {
@@ -5883,8 +5906,11 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   ImGui::BeginGroup    ();
 
   if (ImGui::IsItemHoveredRect ()) {
-         if (ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) list->sel--;
-    else if (ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
+    if (! scrolled)
+    {
+           if (ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) list->sel--;
+      else if (ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
+    }
   }
 
   if (tracker->crc32c != 0x00 && list->sel >= 0 && list->sel < (int)list->contents.size ())
@@ -6107,7 +6133,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   else
     tracker->cancel_draws = false;
 
-  ImGui::EndGroup ();
   ImGui::EndGroup ();
 
   list->last_ht    = ImGui::GetItemRectSize ().y;
