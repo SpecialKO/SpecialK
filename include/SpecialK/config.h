@@ -266,9 +266,10 @@ struct sk_config_t
       bool    precise_hash      = false;
       bool    dump              = false;
       bool    inject            = true;
-      bool    cache             = false;
+      bool    cache             = true;
       std::wstring
               res_root          = L"SK_Res";
+      bool    highlight_debug   = true;
     } d3d11;
     struct {
       int     min_evict         = 64;

@@ -745,6 +745,9 @@ struct target_tracking_s
   std::unordered_set <uint32_t> ref_cs;
 } tracked_rtv;
 
+ID3D11Texture2D* tracked_texture            = nullptr;
+DWORD            tracked_tex_blink_duration = 666UL;
+
 struct SK_DisjointTimerQueryD3D11 shader_tracking_s::disjoint_query;
 
 
@@ -1898,6 +1901,40 @@ D3D11_VSSetConstantBuffers_Override (
   return D3D11_VSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
 }
 
+std::unordered_set <ID3D11Texture2D *> used_textures;
+
+bool
+SK_D3D11_ActivateSRV (ID3D11ShaderResourceView* pSRV)
+{
+  if (! pSRV)
+    return true;
+
+  D3D11_SHADER_RESOURCE_VIEW_DESC rsv_desc;
+
+  pSRV->GetDesc (&rsv_desc);
+
+  CComPtr <ID3D11Resource>  pRes = nullptr;
+  CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+  if (rsv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
+  {
+    pSRV->GetResource (&pRes);
+
+    if (SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)))
+    {
+      used_textures.emplace (pTex);
+
+      if (tracked_texture == pTex && config.textures.d3d11.highlight_debug)
+      {
+        if (timeGetTime () % tracked_tex_blink_duration > tracked_tex_blink_duration / 2)
+          return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 __declspec (noinline,nothrow)
 void
 STDMETHODCALLTYPE
@@ -1907,7 +1944,7 @@ D3D11_VSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  D3D11_VSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+  ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
@@ -1915,6 +1952,11 @@ D3D11_VSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
+      if (SK_D3D11_ActivateSRV (ppShaderResourceViews [i]))
+        newResourceViews [i] =  ppShaderResourceViews [i];
+      else
+        newResourceViews [i] = nullptr;
+
       if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
@@ -1923,6 +1965,10 @@ D3D11_VSSetShaderResources_Override (
       }
     }
   }
+
+  D3D11_VSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+
+  delete [] newResourceViews;
 }
 
 __declspec (noinline,nothrow)
@@ -1934,7 +1980,7 @@ D3D11_PSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+  ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
@@ -1942,6 +1988,11 @@ D3D11_PSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
+      if (SK_D3D11_ActivateSRV (ppShaderResourceViews [i]))
+        newResourceViews [i] =  ppShaderResourceViews [i];
+      else
+        newResourceViews [i] = nullptr;
+
       if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
@@ -1950,6 +2001,10 @@ D3D11_PSSetShaderResources_Override (
       }
     }
   }
+
+  D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+
+  delete [] newResourceViews;
 }
 
 __declspec (noinline,nothrow)
@@ -1961,7 +2016,7 @@ D3D11_GSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  D3D11_GSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+  ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
@@ -1969,6 +2024,11 @@ D3D11_GSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
+      if (SK_D3D11_ActivateSRV (ppShaderResourceViews [i]))
+        newResourceViews [i] =  ppShaderResourceViews [i];
+      else
+        newResourceViews [i] = nullptr;
+
       if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
@@ -1977,6 +2037,10 @@ D3D11_GSSetShaderResources_Override (
       }
     }
   }
+
+  D3D11_GSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+
+  delete [] newResourceViews;
 }
 
 __declspec (noinline,nothrow)
@@ -1988,13 +2052,18 @@ D3D11_HSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  D3D11_HSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+  ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
+    shader_tracking_s& tracked = SK_D3D11_Shaders.hull.tracked;
+
     for (UINT i = 0; i < NumViews; i++)
     {
-      shader_tracking_s& tracked = SK_D3D11_Shaders.hull.tracked;
+      if (SK_D3D11_ActivateSRV (ppShaderResourceViews [i]))
+        newResourceViews [i] =  ppShaderResourceViews [i];
+      else
+        newResourceViews [i] = nullptr;
 
       if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
@@ -2004,6 +2073,10 @@ D3D11_HSSetShaderResources_Override (
       }
     }
   }
+
+  D3D11_HSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+
+  delete [] newResourceViews;
 }
 
 __declspec (noinline,nothrow)
@@ -2015,7 +2088,7 @@ D3D11_DSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  D3D11_DSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+  ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
@@ -2023,6 +2096,11 @@ D3D11_DSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
+      if (SK_D3D11_ActivateSRV (ppShaderResourceViews [i]))
+        newResourceViews [i] =  ppShaderResourceViews [i];
+      else
+        newResourceViews [i] = nullptr;
+
       if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
@@ -2031,6 +2109,10 @@ D3D11_DSSetShaderResources_Override (
       }
     }
   }
+
+  D3D11_DSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+
+  delete [] newResourceViews;
 }
 
 __declspec (noinline,nothrow)
@@ -2042,7 +2124,7 @@ D3D11_CSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  D3D11_CSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+  ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
   {
@@ -2050,6 +2132,11 @@ D3D11_CSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
+      if (SK_D3D11_ActivateSRV (ppShaderResourceViews [i]))
+        newResourceViews [i] =  ppShaderResourceViews [i];
+      else
+        newResourceViews [i] = nullptr;
+
       if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
@@ -2058,6 +2145,10 @@ D3D11_CSSetShaderResources_Override (
       }
     }
   }
+
+  D3D11_CSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+
+  delete [] newResourceViews;
 }
 
 __declspec (noinline,nothrow)
@@ -3602,8 +3693,17 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
         unsigned int lod_size = stride * (height / 4 +
                                           height % 4);
 
-        checksum = crc32c (checksum, (const uint8_t *)pData, lod_size);
-        size    += lod_size;
+        __try {
+          checksum = crc32c (checksum, (const uint8_t *)pData, lod_size);
+          size += lod_size;
+        }
+
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          size += stride * (height / 4) + (height % 4);
+          SK_LOG0 ( ( L"Access Violation while Hashing Texture: %x", checksum ),
+                      L" Tex Hash " );
+        }
       }
 
       else
@@ -3749,6 +3849,18 @@ SK_D3D11_AddDumped (uint32_t top_crc32, uint32_t checksum)
   dumped_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
 }
 
+void
+__stdcall
+SK_D3D11_RemoveDumped (uint32_t top_crc32, uint32_t checksum)
+{
+  SK_AutoCriticalSection critical (&dump_cs);
+
+  if (! config.textures.d3d11.precise_hash)
+    dumped_textures.erase (top_crc32);
+
+  dumped_collisions.erase (crc32c (top_crc32, (uint8_t *)&checksum, 4));
+}
+
 bool
 __stdcall
 SK_D3D11_IsInjectable (uint32_t top_crc32, uint32_t checksum)
@@ -3790,6 +3902,105 @@ SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum)
 
 HRESULT
 __stdcall
+SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
+{
+  CComPtr <ID3D11Device>        pDev    = nullptr;
+  CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+
+  if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
+  {
+    pDev->GetImmediateContext (&pDevCtx);
+  
+    DirectX::ScratchImage img;
+
+    if (SUCCEEDED (DirectX::CaptureTexture (pDev, pDevCtx, pTex, img)))
+    {
+      wchar_t wszPath [ MAX_PATH + 2 ] = { L'\0' };
+
+      wcscpy ( wszPath,
+                 SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+
+      lstrcatW (wszPath, L"/dump/textures/");
+      lstrcatW (wszPath, SK_GetHostApp ());
+      lstrcatW (wszPath, L"/");
+
+      DXGI_FORMAT fmt = img.GetMetadata ().format;
+
+      bool compressed = false;
+
+      if ( (fmt >= DXGI_FORMAT_BC1_TYPELESS  &&
+            fmt <= DXGI_FORMAT_BC5_SNORM)    ||
+           (fmt >= DXGI_FORMAT_BC6H_TYPELESS &&
+            fmt <= DXGI_FORMAT_BC7_UNORM_SRGB) )
+        compressed = true;
+
+      wchar_t wszOutName [MAX_PATH + 2] = { L'\0' };
+
+      if (compressed) {
+        _swprintf ( wszOutName, L"%s\\Compressed_%08X.dds",
+                      wszPath, crc32c );
+      } else {
+        _swprintf ( wszOutName, L"%s\\Uncompressed_%08X.dds",
+                      wszPath, crc32c );
+      }
+
+      SK_CreateDirectories (wszPath);
+
+      HRESULT hr =
+        DirectX::SaveToDDSFile (img.GetImages (), img.GetImageCount (), img.GetMetadata (), 0x00, wszOutName);
+
+      if (SUCCEEDED (hr))
+      {
+        SK_D3D11_AddDumped (crc32c, crc32c);
+
+        return hr;
+      }
+    }
+  }
+
+  return E_FAIL;
+}
+
+BOOL
+SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
+{
+  wchar_t wszPath [ MAX_PATH + 2 ] = { L'\0' };
+
+  wcscpy ( wszPath,
+             SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+
+  lstrcatW (wszPath, L"/dump/textures/");
+  lstrcatW (wszPath, SK_GetHostApp ());
+  lstrcatW (wszPath, L"/");
+
+  wchar_t wszOutName [MAX_PATH + 2] = { L'\0' };
+  _swprintf ( wszOutName, L"%s\\Compressed_%08X.dds",
+                wszPath, crc32c );
+
+  if (DeleteFileW (wszOutName))
+  {
+    SK_D3D11_RemoveDumped (crc32c, crc32c);
+
+    return TRUE;
+  }
+
+  *wszOutName = L'\0';
+
+  _swprintf ( wszOutName, L"%s\\Uncompressed_%08X.dds",
+                wszPath, crc32c );
+
+  if (DeleteFileW (wszOutName))
+  {
+    SK_D3D11_RemoveDumped (crc32c, crc32c);
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+HRESULT
+__stdcall
 SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                           _In_ const D3D11_SUBRESOURCE_DATA *pInitialData,
                           _In_       uint32_t                top_crc32,
@@ -3818,7 +4029,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   mdata.arraySize  = pDesc->ArraySize;
   mdata.mipLevels  = pDesc->MipLevels;
   mdata.miscFlags  = (pDesc->MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) ? 
-                        DirectX::TEX_MISC_TEXTURECUBE : 0;
+                                            DirectX::TEX_MISC_TEXTURECUBE : 0;
   mdata.miscFlags2 = 0;
   mdata.format     = pDesc->Format;
   mdata.dimension  = DirectX::TEX_DIMENSION_TEXTURE2D;
@@ -3922,6 +4133,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                         top_crc32,
                           checksum );
 
+#if 0
       wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { L'\0' };
 
       _swprintf (wszMetaFilename, L"%s.txt", wszOutName);
@@ -3954,6 +4166,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 
         fclose (fMetaData);
       }
+#endif
 
       return SaveToDDSFile ( image.GetImages (), image.GetImageCount (),
                                image.GetMetadata (), DirectX::DDS_FLAGS_NONE,
@@ -4027,23 +4240,24 @@ D3D11Dev_CreateTexture2D_Override (
 
   bool cacheable = (pInitialData          != nullptr &&
                     pInitialData->pSysMem != nullptr &&
-                    pDesc->Width > 0 && pDesc->Height > 0);
+                    pDesc->Width > 0 && pDesc->Height > 0) && pDesc->ArraySize == 1;
 
   cacheable &=
     (! ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
-        (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)) )/* &&
-        (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE)) &&
+        (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)) ) &&
+        (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))/* &&
             (! (pDesc->Usage & D3D11_USAGE_DYNAMIC))*/;
 
   cacheable &= (ppTexture2D != nullptr);
 
   const bool dumpable = 
-              cacheable;/* && (! ((pDesc->Usage & D3D11_USAGE_DYNAMIC) || (pDesc->Usage & D3D11_USAGE_STAGING)))*/;
+              cacheable && (! (pDesc->Usage & D3D11_USAGE_STAGING));
 
   uint32_t top_crc32 = 0x00;
   uint32_t ffx_crc32 = 0x00;
 
-  if (cacheable) {
+  if (cacheable)
+  {
     checksum = crc32_tex (pDesc, pInitialData, &size, &top_crc32);
 
     if (SK_D3D11_inject_textures_ffx) {
@@ -5330,6 +5544,509 @@ auto ShaderMenu = [&](std::unordered_set <uint32_t>& blacklist, uint32_t shader)
     }
   };
 
+std::vector <IUnknown *> temp_resources;
+
+static size_t debug_tex_id = 0x0;
+static size_t tex_dbg_idx  = 0;
+
+void
+SK_LiveTextureView (bool& can_scroll)
+{
+  const float font_size           = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+  static float last_ht    = 256.0f;
+  static float last_width = 256.0f;
+
+  struct list_entry_s {
+    std::string          name;
+    uint32_t             crc32c;
+    D3D11_TEXTURE2D_DESC desc;
+    ID3D11Texture2D*     pTex;
+  };
+
+  static std::vector <list_entry_s> list_contents;
+  static std::unordered_map
+           <uint32_t, list_entry_s> texture_map;
+  static bool                       list_dirty     = true;
+  static size_t                     sel            =    0;
+
+  static std::vector <list_entry_s> textures_used_last_dump;
+  extern              size_t        tex_dbg_idx;
+  extern              size_t        debug_tex_id;
+
+  ImGui::BeginChild ("ToolHeadings##TexturesD3D11", ImVec2 (font_size * 66.0f, font_size * 2.5f), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
+  if (ImGui::Button ("  Refresh Textures  "))
+  {
+    //SK_ICommandProcessor& command =
+    //  *SK_GetCommandProcessor ();
+    //
+    //command.ProcessCommandLine ("Textures.Trace true");
+
+    //tbf::RenderFix::tex_mgr.updateOSD ();
+
+    list_dirty = true;
+  }
+
+  if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Refreshes the set of texture checksums used in the last frame drawn.");
+
+  ImGui::SameLine ();
+
+  if (ImGui::Button (" Clear Debug "))
+  {
+    sel                         = -1;
+    debug_tex_id                =  0;
+    textures_used_last_dump.clear ();
+    last_ht                     =  0;
+    last_width                  =  0;
+    tracked_texture             =  nullptr;
+  }
+
+  if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Exits texture debug mode.");
+
+  ImGui::SameLine ();
+
+  ImGui::Checkbox ("Highlight Selected Texture in Game##D3D11_HighlightSelectedTexture", &config.textures.d3d11.highlight_debug);
+
+  ImGui::SameLine ();
+
+  static bool hide_inactive = true;
+
+  ImGui::Checkbox ("Hide Inactive Textures##D3D11_HideInactiveTextures",                 &hide_inactive);
+
+  ImGui::Separator ();
+  ImGui::EndChild  ();
+
+  if (list_dirty)
+  {
+    textures_used_last_dump.clear ();
+
+    list_contents.clear ();
+         //sel = tex_dbg_idx;
+
+    if (debug_tex_id == 0)
+      last_ht = 0;
+
+    {
+      SK_AutoCriticalSection critical (&tex_cs);
+
+      for (auto it : SK_D3D11_Textures.HashMap_2D)
+      {
+        for (auto it2 : it)
+        {
+          D3D11_TEXTURE2D_DESC desc;
+          it2.second->GetDesc (&desc);
+
+          list_entry_s entry;
+
+          entry.crc32c = it2.first;
+          entry.desc   = desc;
+          entry.name   = "DontCare";
+          entry.pTex   = it2.second;
+
+          textures_used_last_dump.push_back (entry);
+
+          if (! texture_map.count (entry.crc32c))
+            texture_map.emplace (std::make_pair (entry.crc32c, entry));
+        }
+      }
+    }
+
+    // The underlying list is unsorted for speed, but that's not at all
+    //   intuitive to humans, so sort the thing when we have the RT view open.
+    std::sort ( textures_used_last_dump.begin (),
+                textures_used_last_dump.end   (),
+                  []( list_entry_s& a,
+                      list_entry_s& b )
+                {
+                  return a.crc32c <
+                         b.crc32c;
+                }
+              );
+
+
+    for ( auto it : textures_used_last_dump )
+    {
+      char szDesc [48] = { };
+
+      sprintf (szDesc, "%08x##Texture2D_D3D11", it.crc32c);
+
+      list_entry_s entry;
+
+      entry.crc32c = it.crc32c;
+      entry.desc   = it.desc;
+      entry.name   = szDesc;
+
+      list_contents.emplace_back (entry);
+    }
+
+    //list_dirty = false;
+  }
+
+  ImGui::BeginGroup ();
+
+  ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
+  ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
+
+  ImGui::BeginChild ( "D3D11_TexHashes_CRC32C",
+                      ImVec2 ( font_size * 6.0f, std::max (font_size * 15.0f, last_ht)),
+                        true, ImGuiWindowFlags_AlwaysAutoResize );
+
+  if (ImGui::IsWindowHovered ())
+    can_scroll = false;
+
+  if (textures_used_last_dump.size ())
+  {
+    static size_t last_sel     = std::numeric_limits <size_t>::max ();
+    static bool   sel_changed  = false;
+    
+    if (sel != last_sel)
+      sel_changed = true;
+    
+    last_sel = sel;
+    
+    for ( size_t line = 0; line < textures_used_last_dump.size (); line++)
+    {
+      bool active = used_textures.count (textures_used_last_dump [line].pTex) != 0;
+
+      if (active)
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.95f, 1.0f));
+      else
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.425f, 0.425f, 0.425f, 0.9f));
+
+      if ((! hide_inactive) || active)
+      {
+        if (line == sel)
+        {
+          bool selected = true;
+          ImGui::Selectable (list_contents [line].name.c_str (), &selected);
+    
+          if (sel_changed)
+          {
+            ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+            sel_changed     = false;
+            tex_dbg_idx     = line;
+            sel             = line;
+            debug_tex_id    = textures_used_last_dump [line].crc32c;
+            tracked_texture = textures_used_last_dump [line].pTex;
+          }
+        }
+    
+        else
+        {
+          bool selected = false;
+    
+          if (ImGui::Selectable (list_contents[line].name.c_str (), &selected))
+          {
+            sel_changed     = true;
+            tex_dbg_idx     = line;
+            sel             = line;
+            debug_tex_id    = textures_used_last_dump [line].crc32c;
+            tracked_texture = textures_used_last_dump [line].pTex;
+          }
+        }
+      }
+
+      ImGui::PopStyleColor ();
+    }
+  }
+
+  ImGui::EndChild ();
+
+  int dir = 0;
+
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::BeginTooltip ();
+    ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "");
+    ImGui::Separator    ();
+    ImGui::BulletText   ("Press [ to select the previous texture from this list");
+    ImGui::BulletText   ("Press ] to select the next texture from this list");
+    ImGui::EndTooltip   ();
+
+    int dir = 0;
+
+         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { dir =  1;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+
+    if (dir != 0)
+    {
+      if (      sel <  0)                               sel = 0;
+      if ((UINT)sel >= textures_used_last_dump.size ()) sel = textures_used_last_dump.size () - 1;
+
+      while (sel >= 0 && (size_t)sel < textures_used_last_dump.size ())
+      {
+        sel += dir;
+
+        if (hide_inactive)
+        {
+          bool active = used_textures.count (textures_used_last_dump [sel].pTex) != 0;
+
+          if (active)
+            break;
+        }
+
+        else
+          break;
+      }
+
+      if (      sel <  0)                               sel = 0;
+      if ((UINT)sel >= textures_used_last_dump.size ()) sel = textures_used_last_dump.size () - 1;
+    }
+  }
+
+  ImGui::SameLine     ();
+  ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 20.0f);
+  
+  last_ht    = std::max (last_ht,    16.0f);
+  last_width = std::max (last_width, 16.0f);
+  
+  if (debug_tex_id != 0x00)
+  {
+    list_entry_s& entry =
+      texture_map [(uint32_t)debug_tex_id];
+
+    D3D11_TEXTURE2D_DESC tex_desc = entry.desc;
+    size_t               tex_size;
+    float                load_time;
+
+    ID3D11Texture2D* pTex = SK_D3D11_Textures.getTexture2D ((uint32_t)debug_tex_id, &tex_desc, &tex_size, &load_time);
+
+    if (pTex != nullptr)
+    {
+      ID3D11ShaderResourceView* pSRV = nullptr;
+
+      D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+
+      srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+      srv_desc.Format                    = tex_desc.Format;
+
+      // Typeless compressed types need to assume a type, or they won't render :P
+      switch (srv_desc.Format)
+      {
+        case DXGI_FORMAT_BC1_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_BC1_UNORM;
+          break;
+        case DXGI_FORMAT_BC2_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_BC2_UNORM;
+          break;
+        case DXGI_FORMAT_BC3_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_BC3_UNORM;
+          break;
+        case DXGI_FORMAT_BC4_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_BC4_UNORM;
+          break;
+        case DXGI_FORMAT_BC5_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_BC5_UNORM;
+          break;
+        case DXGI_FORMAT_BC6H_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_BC6H_SF16;
+          break;
+        case DXGI_FORMAT_BC7_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_BC7_UNORM;
+          break;
+      };
+
+      srv_desc.Texture2D.MipLevels       = -1;
+      srv_desc.Texture2D.MostDetailedMip =  0;
+
+      CComPtr <ID3D11Device> pDev = nullptr;
+
+      if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
+      {
+#if 0
+        ImVec4 border_color = config.textures.highlight_debug_tex ? 
+                                ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
+                                  (__remap_textures && has_alternate) ? ImVec4 (0.5f,  0.5f,  0.5f, 1.0f) :
+                                                                        ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
+#else
+        ImVec4 border_color = ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
+#endif
+
+        ImGui::PushStyleColor (ImGuiCol_Border, border_color);
+
+        ImGui::BeginGroup     ();
+        ImGui::BeginChild     ( "Texture_Select_D3D11",
+                                ImVec2 ( std::max (font_size * 19.0f, (float)tex_desc.Width + 24.0f),
+                              (float)tex_desc.Height + font_size * 10.0f),
+                                  true,
+                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
+
+        //if ((! config.textures.highlight_debug_tex) && has_alternate)
+        //{
+        //  if (ImGui::IsItemHovered ())
+        //    ImGui::SetTooltip ("Click me to make this texture the visible version.");
+        //  
+        //  // Allow the user to toggle texture override by clicking the frame
+        //  if (ImGui::IsItemClicked ())
+        //    __remap_textures = false;
+        //}
+
+        last_width  = (float)tex_desc.Width;
+        last_ht     = (float)tex_desc.Height + font_size * 10.0f;
+
+
+        int num_lods = tex_desc.MipLevels;
+
+        ImGui::BeginGroup ();
+        ImGui::Text       ( "Dimensions:   " );
+        ImGui::Text       ( "Format:       " );
+        ImGui::Text       ( "Data Size:    " );
+        ImGui::Text       ( "Load Time:    " );
+        ImGui::EndGroup   ();
+
+        ImGui::SameLine   ();
+
+        ImGui::BeginGroup ();
+        ImGui::Text       ( "%lux%lu (%lu %s)",
+                              tex_desc.Width, tex_desc.Height,
+                                num_lods, num_lods > 1 ? "LODs" : "LOD" );
+        ImGui::Text       ( "%ws",
+                              SK_DXGI_FormatToStr (tex_desc.Format).c_str () );
+        ImGui::Text       ( "%.2f MiB",
+                              tex_size / (1024.0f * 1024.0f) );
+        ImGui::Text       ( "%.6f Seconds",
+                              load_time / 1000.0f );
+        ImGui::EndGroup   ();
+
+        ImGui::Separator  ();
+
+        if (! SK_D3D11_IsDumped (entry.crc32c, entry.crc32c))
+        {
+          if ( ImGui::Button ("  Dump Texture to Disk  ") )
+          {
+            SK_D3D11_DumpTexture2D (pTex, entry.crc32c);
+          }
+        }
+
+        else
+        {
+          if ( ImGui::Button ("  Delete Dumped Texture from Disk  ") )
+          {
+            SK_D3D11_DeleteDumpedTexture (entry.crc32c);
+          }
+        }
+
+        ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
+
+        if (SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, &pSRV)))
+        {
+          ImGui::BeginChildFrame (ImGui::GetID (pSRV), ImVec2 ((float)tex_desc.Width + 8, (float)tex_desc.Height + 8),
+                                  ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoScrollbar);
+          temp_resources.push_back (pSRV);
+          ImGui::Image           ( pSRV,
+                                     ImVec2 ((float)tex_desc.Width, (float)tex_desc.Height),
+                                       ImVec2  (0,0),             ImVec2  (1,1),
+                                       ImColor (255,255,255,255), ImColor (255,255,255,128)
+                               );
+          ImGui::EndChildFrame ();
+        }
+        ImGui::EndChild        ();
+        ImGui::EndGroup        ();
+        ImGui::PopStyleColor   (2);
+      }
+    }
+
+#if 0
+    if (has_alternate)
+    {
+      ImGui::SameLine ();
+
+      D3DSURFACE_DESC desc;
+
+      if (SUCCEEDED (pTex->d3d9_tex->pTexOverride->GetLevelDesc (0, &desc)))
+      {
+        ImVec4 border_color = config.textures.highlight_debug_tex ? 
+                                ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
+                                  (__remap_textures) ? ImVec4 (0.3f,  1.0f,  0.3f, 1.0f) :
+                                                       ImVec4 (0.5f,  0.5f,  0.5f, 1.0f);
+
+        ImGui::PushStyleColor  (ImGuiCol_Border, border_color);
+
+        ImGui::BeginGroup ();
+        ImGui::BeginChild ( "Item Selection2",
+                            ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width  + 24.0f),
+                                                                  (float)desc.Height + font_size * 10.0f),
+                              true,
+                                ImGuiWindowFlags_AlwaysAutoResize );
+
+        //if (! config.textures.highlight_debug_tex)
+        //{
+        //  if (ImGui::IsItemHovered ())
+        //    ImGui::SetTooltip ("Click me to make this texture the visible version.");
+        //
+        //  // Allow the user to toggle texture override by clicking the frame
+        //  if (ImGui::IsItemClicked ())
+        //    __remap_textures = true;
+        //}
+
+
+        last_width  = std::max (last_width, (float)desc.Width);
+        last_ht     = std::max (last_ht,    (float)desc.Height + font_size * 10.0f);
+
+
+        extern std::wstring
+        SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
+
+
+        SK_D3D11_IsInjectable ()
+        bool injected  =
+          (TBF_GetInjectableTexture (debug_tex_id) != nullptr),
+             reloading = false;
+
+        int num_lods = pTex->d3d9_tex->pTexOverride->GetLevelCount ();
+
+        ImGui::Text ( "Dimensions:   %lux%lu  (%lu %s)",
+                        desc.Width, desc.Height,
+                           num_lods, num_lods > 1 ? "LODs" : "LOD" );
+        ImGui::Text ( "Format:       %ws",
+                        SK_D3D9_FormatToStr (desc.Format).c_str () );
+        ImGui::Text ( "Data Size:    %.2f MiB",
+                        (double)pTex->d3d9_tex->override_size / (1024.0f * 1024.0f) );
+        ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), injected ? "Injected Texture" : "Resampled Texture" );
+
+        ImGui::Separator     ();
+
+
+        if (injected)
+        {
+          if ( ImGui::Button ("  Reload This Texture  ") && tbf::RenderFix::tex_mgr.reloadTexture (debug_tex_id) )
+          {
+            reloading    = true;
+
+            tbf::RenderFix::tex_mgr.updateOSD ();
+          }
+        }
+
+        else {
+          ImGui::Button ("  Resample This Texture  "); // NO-OP, but preserves alignment :P
+        }
+
+        if (! reloading)
+        {
+          ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
+          ImGui::BeginChildFrame (0, ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
+          ImGui::Image           ( pTex->d3d9_tex->pTexOverride,
+                                     ImVec2 ((float)desc.Width, (float)desc.Height),
+                                       ImVec2  (0,0),             ImVec2  (1,1),
+                                       ImColor (255,255,255,255), ImColor (255,255,255,128)
+                                 );
+          ImGui::EndChildFrame   ();
+          ImGui::PopStyleColor   (1);
+        }
+
+        ImGui::EndChild        ();
+        ImGui::EndGroup        ();
+        ImGui::PopStyleColor   (1);
+      }
+    }
+#endif
+  }
+  ImGui::EndGroup      ();
+  ImGui::PopStyleColor (1);
+  ImGui::PopStyleVar   (2);
+}
 void
 SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 {
@@ -6009,8 +6726,15 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             ImGui::SameLine ( );
 
             ImGui::BeginGroup ();
-            ImGui::Text       ("Texture: %08lx", pTex);
-            ImGui::Text       ("Format:  %ws",   SK_DXGI_FormatToStr (fmt).c_str ());
+            ImGui::Text       ("Texture: ");
+            ImGui::Text       ("Format:  ");
+            ImGui::EndGroup   ();
+
+            ImGui::SameLine   ();
+
+            ImGui::BeginGroup ();
+            ImGui::Text       ("%08lx", pTex);
+            ImGui::Text       ("%ws",   SK_DXGI_FormatToStr (fmt).c_str ());
             ImGui::EndGroup   ();
           }
         }
@@ -6141,8 +6865,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   list->last_max   = ImGui::GetItemRectMax ();
 }
 
-std::vector <IUnknown *> temp_resources;
-
 
 void
 SK_D3D11_EndFrame (void)
@@ -6154,7 +6876,8 @@ SK_D3D11_EndFrame (void)
   SK_D3D11_Shaders.domain.tracked.deactivate   ();
   SK_D3D11_Shaders.compute.tracked.deactivate  ();
 
-  tracked_rtv.clear ();
+  tracked_rtv.clear   ();
+  used_textures.clear ();
 
   // True if the disjoint query is complete and we can get the results of
   //   each tracked shader's timing
@@ -6382,630 +7105,634 @@ SK_D3D11_ShaderModDlg (void)
     bool can_scroll = ImGui::IsWindowFocused () && ImGui::IsMouseHoveringRect ( ImVec2 (ImGui::GetWindowPos ().x,                             ImGui::GetWindowPos ().y),
                                                                                 ImVec2 (ImGui::GetWindowPos ().x + ImGui::GetWindowSize ().x, ImGui::GetWindowPos ().y + ImGui::GetWindowSize ().y) );
 
-  ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.666f);
+    ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.666f);
 
-  ImGui::Columns (2);
+    ImGui::Columns (2);
 
-  ImGui::BeginChild ( "Shader_Left_Side" );
+    ImGui::BeginChild ( "Shader_Left_Side" );
 
-  if (ImGui::CollapsingHeader ("Live Shader View", ImGuiTreeNodeFlags_DefaultOpen))
-  {
-    ImGui::TreePush ("");
-
-    auto ShaderClassMenu = [&](sk_shader_class shader_type) ->
-      void
-      {
-        bool        used_last_frame   = false;
-        bool        ui_link_activated = false;
-        const char* label             = "UNKNOWN";
-
-        switch (shader_type)
-        {
-          case sk_shader_class::Vertex:   ui_link_activated = change_sel_vs != 0x00;
-                                          label             = "Vertex Shaders";
-                                          used_last_frame   = SK_D3D11_Shaders.vertex.changes_last_frame > 0;
-            break;
-          case sk_shader_class::Pixel:    ui_link_activated = change_sel_ps != 0x00;
-                                          label             = "Pixel Shaders";
-                                          used_last_frame   = SK_D3D11_Shaders.pixel.changes_last_frame > 0;
-            break;
-          case sk_shader_class::Geometry: ui_link_activated = change_sel_gs != 0x00;
-                                          label             = "Geometry Shaders";
-                                          used_last_frame   = SK_D3D11_Shaders.geometry.changes_last_frame > 0;
-            break;
-          case sk_shader_class::Hull:     ui_link_activated = change_sel_hs != 0x00;
-                                          label             = "Hull Shaders";
-                                          used_last_frame   = SK_D3D11_Shaders.hull.changes_last_frame > 0;
-            break;
-          case sk_shader_class::Domain:   ui_link_activated = change_sel_ds != 0x00;
-                                          label             = "Domain Shaders";
-                                          used_last_frame   = SK_D3D11_Shaders.domain.changes_last_frame > 0;
-            break;
-          case sk_shader_class::Compute:  ui_link_activated = change_sel_cs != 0x00;
-                                          label             = "Compute Shaders";
-                                          used_last_frame   = SK_D3D11_Shaders.compute.changes_last_frame > 0;
-            break;
-          default:
-            break;
-        }
-
-        if (used_last_frame)
-        {
-          if (ui_link_activated)
-            ImGui::SetNextTreeNodeOpen (true, ImGuiSetCond_Always);
-
-          if (ImGui::CollapsingHeader (label))
-            SK_LiveShaderClassView (shader_type, can_scroll);
-        }
-      };
-
-    ShaderClassMenu (sk_shader_class::Vertex);
-    ShaderClassMenu (sk_shader_class::Pixel);
-    ShaderClassMenu (sk_shader_class::Geometry);
-    ShaderClassMenu (sk_shader_class::Hull);
-    ShaderClassMenu (sk_shader_class::Domain);
-    ShaderClassMenu (sk_shader_class::Compute);
-
-    ImGui::TreePop ();
-  }
-
-  ImGui::EndChild ();
-
-  ImGui::NextColumn ();
-
-  ImGui::BeginChild ( "Shader_Right_Side" );
-
-  if (ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen))
-  {
-    static float last_ht    = 256.0f;
-    static float last_width = 256.0f;
-
-    static std::vector <std::string> list_contents;
-    static bool                      list_dirty     = true;
-    static uintptr_t                 last_sel_ptr   =    0;
-    static int                            sel       =   -1;
-    static bool                       first_frame   = true;
-
-    std::set <ID3D11RenderTargetView *> live_textures;
-
-    struct lifetime
+    if (ImGui::CollapsingHeader ("Live Shader View", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      UINT last_frame;
-      UINT frames_active;
-    };
+      ImGui::TreePush ("");
 
-    static std::unordered_map <ID3D11RenderTargetView *, lifetime> render_lifetime;
-    static std::vector        <ID3D11RenderTargetView *>           render_textures;
-
-    //render_textures.reserve (128);
-    //render_textures.clear   ();
-
-    for (auto it : SK_D3D11_RenderTargets.rt_views)
-    {
-      D3D11_RENDER_TARGET_VIEW_DESC desc;
-      it->GetDesc (&desc);
-
-      if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
-      {
-        CComPtr <ID3D11Texture2D> pTex = nullptr;
-        CComPtr <ID3D11Resource>  pRes = nullptr;
-
-        it->GetResource (&pRes);
-
-        if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+      auto ShaderClassMenu = [&](sk_shader_class shader_type) ->
+        void
         {
-          D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+          bool        used_last_frame   = false;
+          bool        ui_link_activated = false;
+          const char* label             = "UNKNOWN";
 
-          srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-          srv_desc.Format                    = desc.Format;
-          srv_desc.Texture2D.MipLevels       = desc.Texture2D.MipSlice + 1;
-          srv_desc.Texture2D.MostDetailedMip = desc.Texture2D.MipSlice;
-
-          CComPtr <ID3D11Device> pDev = nullptr;
-
-          if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
+          switch (shader_type)
           {
-            //if (SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, nullptr)))
-            //{
-              if (! render_lifetime.count (it))
+            case sk_shader_class::Vertex:   ui_link_activated = change_sel_vs != 0x00;
+                                            label             = "Vertex Shaders";
+                                            used_last_frame   = SK_D3D11_Shaders.vertex.changes_last_frame > 0;
+              break;
+            case sk_shader_class::Pixel:    ui_link_activated = change_sel_ps != 0x00;
+                                            label             = "Pixel Shaders";
+                                            used_last_frame   = SK_D3D11_Shaders.pixel.changes_last_frame > 0;
+              break;
+            case sk_shader_class::Geometry: ui_link_activated = change_sel_gs != 0x00;
+                                            label             = "Geometry Shaders";
+                                            used_last_frame   = SK_D3D11_Shaders.geometry.changes_last_frame > 0;
+              break;
+            case sk_shader_class::Hull:     ui_link_activated = change_sel_hs != 0x00;
+                                            label             = "Hull Shaders";
+                                            used_last_frame   = SK_D3D11_Shaders.hull.changes_last_frame > 0;
+              break;
+            case sk_shader_class::Domain:   ui_link_activated = change_sel_ds != 0x00;
+                                            label             = "Domain Shaders";
+                                            used_last_frame   = SK_D3D11_Shaders.domain.changes_last_frame > 0;
+              break;
+            case sk_shader_class::Compute:  ui_link_activated = change_sel_cs != 0x00;
+                                            label             = "Compute Shaders";
+                                            used_last_frame   = SK_D3D11_Shaders.compute.changes_last_frame > 0;
+              break;
+            default:
+              break;
+          }
+
+          if (used_last_frame)
+          {
+            if (ui_link_activated)
+              ImGui::SetNextTreeNodeOpen (true, ImGuiSetCond_Always);
+
+            if (ImGui::CollapsingHeader (label))
+              SK_LiveShaderClassView (shader_type, can_scroll);
+          }
+        };
+
+        ShaderClassMenu (sk_shader_class::Vertex);
+        ShaderClassMenu (sk_shader_class::Pixel);
+        ShaderClassMenu (sk_shader_class::Geometry);
+        ShaderClassMenu (sk_shader_class::Hull);
+        ShaderClassMenu (sk_shader_class::Domain);
+        ShaderClassMenu (sk_shader_class::Compute);
+
+        ImGui::TreePop ();
+      }
+
+      ImGui::EndChild ();
+
+      ImGui::NextColumn ();
+
+      ImGui::BeginChild ( "Shader_Right_Side" );
+
+      if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        SK_LiveTextureView (can_scroll);
+      }
+
+      if (ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        static float last_ht    = 256.0f;
+        static float last_width = 256.0f;
+
+        static std::vector <std::string> list_contents;
+        static bool                      list_dirty     = true;
+        static uintptr_t                 last_sel_ptr   =    0;
+        static int                            sel       =   -1;
+        static bool                       first_frame   = true;
+
+        std::set <ID3D11RenderTargetView *> live_textures;
+
+        struct lifetime
+        {
+          UINT last_frame;
+          UINT frames_active;
+        };
+
+        static std::unordered_map <ID3D11RenderTargetView *, lifetime> render_lifetime;
+        static std::vector        <ID3D11RenderTargetView *>           render_textures;
+
+        //render_textures.reserve (128);
+        //render_textures.clear   ();
+
+        for (auto it : SK_D3D11_RenderTargets.rt_views)
+        {
+          D3D11_RENDER_TARGET_VIEW_DESC desc;
+          it->GetDesc (&desc);
+
+          if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
+          {
+            CComPtr <ID3D11Texture2D> pTex = nullptr;
+            CComPtr <ID3D11Resource>  pRes = nullptr;
+
+            it->GetResource (&pRes);
+
+            if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+            {
+              D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+
+              srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+              srv_desc.Format                    = desc.Format;
+              srv_desc.Texture2D.MipLevels       = desc.Texture2D.MipSlice + 1;
+              srv_desc.Texture2D.MostDetailedMip = desc.Texture2D.MipSlice;
+
+              CComPtr <ID3D11Device> pDev = nullptr;
+
+              if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
               {
-                lifetime life;
+                if (! render_lifetime.count (it))
+                {
+                  lifetime life;
 
-                life.frames_active = 1;
-                life.last_frame    = SK_GetFramesDrawn ();
+                  life.frames_active = 1;
+                  life.last_frame    = SK_GetFramesDrawn ();
 
-                render_textures.push_back (it);
-                render_lifetime.emplace   (std::make_pair (it, life));
+                  render_textures.push_back (it);
+                  render_lifetime.emplace   (std::make_pair (it, life));
+                }
+
+                else {
+                  render_lifetime [it].frames_active++;
+                  render_lifetime [it].last_frame = SK_GetFramesDrawn ();
+                }
+
+                live_textures.emplace (it);
               }
-
-              else {
-                render_lifetime [it].frames_active++;
-                render_lifetime [it].last_frame = SK_GetFramesDrawn ();
-              }
-
-              live_textures.emplace (it);
-            //}
+            }
           }
         }
-      }
-    }
 
 
-     const ULONG      zombie_threshold = 120;
-    static ULONG last_zombie_pass      = SK_GetFramesDrawn ();
+       const ULONG      zombie_threshold = 120;
+      static ULONG last_zombie_pass      = SK_GetFramesDrawn ();
 
-    if (last_zombie_pass < SK_GetFramesDrawn () - zombie_threshold / 2)
-    {
-      bool newly_dead = false;
-
-      for (auto it : render_textures)
+      if (last_zombie_pass < SK_GetFramesDrawn () - zombie_threshold / 2)
       {
-        if (render_lifetime [it].last_frame < SK_GetFramesDrawn () - zombie_threshold)
+        bool newly_dead = false;
+
+        for (auto it : render_textures)
         {
-          render_lifetime.erase (it);
-          newly_dead = true;
+          if (render_lifetime [it].last_frame < SK_GetFramesDrawn () - zombie_threshold)
+          {
+            render_lifetime.erase (it);
+            newly_dead = true;
+          }
         }
-      }
 
-      if (newly_dead)
-      {
-        render_textures.clear ();
-
-        for (auto it : render_lifetime)
-          render_textures.push_back (it.first);
-      }
-
-      last_zombie_pass = SK_GetFramesDrawn ();
-    }
-
-
-    if (list_dirty)
-    {
-          sel = -1;
-      int idx =  0;
-          list_contents.clear ();
-
-      // The underlying list is unsorted for speed, but that's not at all
-      //   intuitive to humans, so sort the thing when we have the RT view open.
-      std::sort ( render_textures.begin (),
-                  render_textures.end   (),
-        []( ID3D11RenderTargetView *a,
-            ID3D11RenderTargetView *b )
+        if (newly_dead)
         {
-          return (uintptr_t)a < (uintptr_t)b;
+          render_textures.clear ();
+
+          for (auto it : render_lifetime)
+            render_textures.push_back (it.first);
         }
-      );
+
+        last_zombie_pass = SK_GetFramesDrawn ();
+      }
 
 
-      for ( auto it : render_textures )
+      if (list_dirty)
       {
-        static char szDesc [32] = { '\0' };
+            sel = -1;
+        int idx =  0;
+            list_contents.clear ();
+
+        // The underlying list is unsorted for speed, but that's not at all
+        //   intuitive to humans, so sort the thing when we have the RT view open.
+        std::sort ( render_textures.begin (),
+                    render_textures.end   (),
+          []( ID3D11RenderTargetView *a,
+              ID3D11RenderTargetView *b )
+          {
+            return (uintptr_t)a < (uintptr_t)b;
+          }
+        );
+
+
+        for ( auto it : render_textures )
+        {
+          static char szDesc [32] = { '\0' };
 
 #ifdef _WIN64
-        sprintf (szDesc, "%07llx###rtv_%p", (uintptr_t)it, it);
+          sprintf (szDesc, "%07llx###rtv_%p", (uintptr_t)it, it);
 #else
-        sprintf (szDesc, "%07lx###rtv_%p", (uintptr_t)it, it);
+          sprintf (szDesc, "%07lx###rtv_%p", (uintptr_t)it, it);
 #endif
 
-        list_contents.push_back (szDesc);
+          list_contents.push_back (szDesc);
 
-        if ((uintptr_t)it == last_sel_ptr) {
-          sel = idx;
-          //tbf::RenderFix::tracked_rt.tracking_tex = render_textures [sel];
+          if ((uintptr_t)it == last_sel_ptr) {
+            sel = idx;
+            //tbf::RenderFix::tracked_rt.tracking_tex = render_textures [sel];
+          }
+
+          ++idx;
         }
-
-        ++idx;
       }
-    }
 
-    ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
-    ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
+      ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
+      ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
-    ImGui::BeginChild ( "RenderTargetViewList",
-                        ImVec2 ( font_size * 7.0f, -1.0f),
-                          true, ImGuiWindowFlags_AlwaysAutoResize );
+      ImGui::BeginChild ( "RenderTargetViewList",
+                          ImVec2 ( font_size * 7.0f, -1.0f),
+                            true, ImGuiWindowFlags_AlwaysAutoResize );
 
-    if (ImGui::IsWindowHovered ())
-    {
-      can_scroll = false;
+      if (ImGui::IsWindowHovered ())
+      {
+        can_scroll = false;
 
-      ImGui::BeginTooltip ();
-      ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
-      ImGui::Separator    ();
-      ImGui::BulletText   ("Press [ while the mouse is hovering this list to select the previous output");
-      ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next output");
-      ImGui::EndTooltip   ();
+        ImGui::BeginTooltip ();
+        ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Press [ while the mouse is hovering this list to select the previous output");
+        ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next output");
+        ImGui::EndTooltip   ();
+
+        if (render_textures.size ())
+        {
+          int direction = 0;
+
+               if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { direction--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+          else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { direction++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+
+          int neutral_idx = 0;
+
+          for (int i = 0; i < (int)render_textures.size (); i++)
+          {
+            if ((uintptr_t)render_textures [i] >= last_sel_ptr)
+            {
+              neutral_idx = i;
+              break;
+            }
+          }
+
+          sel = neutral_idx + direction;
+
+          if (sel < 0)
+            sel = 0;
+
+          if (sel >= (int)render_textures.size ())
+            sel = (int)render_textures.size () - 1;
+        }
+      }
 
       if (render_textures.size ())
       {
-        int direction = 0;
-
-             if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { direction--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-        else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { direction++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-
-        int neutral_idx = 0;
-
-        for (int i = 0; i < (int)render_textures.size (); i++)
+        if (first_frame)
         {
-          if ((uintptr_t)render_textures [i] >= last_sel_ptr)
-          {
-            neutral_idx = i;
-            break;
-          }
+          sel         = 0;
+          first_frame = false;
         }
 
-        sel = neutral_idx + direction;
+        static      int last_sel = 0;
+        static bool sel_changed  = false;
 
-        if (sel < 0)
-          sel = 0;
-
-        if (sel >= (int)render_textures.size ())
-          sel = (int)render_textures.size () - 1;
-      }
-    }
-
-    if (render_textures.size ())
-    {
-      if (first_frame)
-      {
-        sel         = 0;
-        first_frame = false;
-      }
-
-      static      int last_sel = 0;
-      static bool sel_changed  = false;
-
-      if (sel >= 0 && sel < (int)render_textures.size ())
-      {
-        if (last_sel_ptr != (uintptr_t)render_textures [sel])
-          sel_changed = true;
-      }
-
-      for ( int line = 0; line < (int)render_textures.size (); line++ )
-      {      
-        if (line == sel)
+        if (sel >= 0 && sel < (int)render_textures.size ())
         {
-          bool selected = true;
-          ImGui::Selectable (list_contents [line].c_str (), &selected);
-
-          if (sel_changed)
-          {
-            ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
-            sel_changed  = false;
-            last_sel_ptr = (uintptr_t)render_textures [sel];
-            tracked_rtv.resource =    render_textures [sel];
-          }
+          if (last_sel_ptr != (uintptr_t)render_textures [sel])
+            sel_changed = true;
         }
 
-        else
-        {
-          bool selected = false;
-
-          if (ImGui::Selectable (list_contents [line].c_str (), &selected))
+        for ( int line = 0; line < (int)render_textures.size (); line++ )
+        {      
+          if (line == sel)
           {
-            if (selected)
+            bool selected = true;
+            ImGui::Selectable (list_contents [line].c_str (), &selected);
+
+            if (sel_changed)
             {
-              sel_changed          = true;
-              sel                  =  line;
-              last_sel_ptr         = (uintptr_t)render_textures [sel];
-              tracked_rtv.resource =            render_textures [sel];
+              ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+              sel_changed  = false;
+              last_sel_ptr = (uintptr_t)render_textures [sel];
+              tracked_rtv.resource =    render_textures [sel];
             }
           }
-        }
-      }
-    }
 
-    ImGui::EndChild ();
-    ImGui::PopStyleVar   ();
-    ImGui::PopStyleColor ();
-
-    ImGui::SameLine ();
-
-    ImGui::BeginGroup ();
-
-    if (render_textures.size () && sel >= 0 && live_textures.count (render_textures [sel]))
-    {
-      ID3D11RenderTargetView* rt_view = render_textures [sel];
-
-      D3D11_RENDER_TARGET_VIEW_DESC rtv_desc;
-      rt_view->GetDesc (&rtv_desc);
-
-      if (rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
-      {
-        CComPtr <ID3D11Texture2D> pTex = nullptr;
-        CComPtr <ID3D11Resource>  pRes = nullptr;
-
-        rt_view->GetResource (&pRes);
-
-        if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
-        {
-          D3D11_TEXTURE2D_DESC desc;
-          pTex->GetDesc (&desc);
-
-          ID3D11ShaderResourceView* pSRV = nullptr;
-
-          D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
-
-          srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-          srv_desc.Format                    = rtv_desc.Format;
-          srv_desc.Texture2D.MipLevels       = rtv_desc.Texture2D.MipSlice + 1;
-          srv_desc.Texture2D.MostDetailedMip = rtv_desc.Texture2D.MipSlice;
-
-          CComPtr <ID3D11Device> pDev = nullptr;
-
-          if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)) &&
-              SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, &pSRV)))
+          else
           {
-            temp_resources.push_back (pSRV);
-
-            // Some Render Targets are MASSIVE, let's try to keep the damn things on the screen ;)
-            float effective_width  = std::min (0.75f * ImGui::GetIO ().DisplaySize.x, (float)desc.Width  / 2.0f);
-            float effective_height = std::min (0.75f * ImGui::GetIO ().DisplaySize.y, (float)desc.Height / 2.0f);
-
-            ImGui::SameLine ();
-
-            size_t shaders = std::min ((size_t)12, std::max (tracked_rtv.ref_vs.size (), tracked_rtv.ref_ps.size ()) +
-                                       tracked_rtv.ref_gs.size () +
-                             std::max (tracked_rtv.ref_hs.size (), tracked_rtv.ref_ds.size ()) +
-                                       tracked_rtv.ref_cs.size ());
-
-            ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.5f, 0.5f, 0.5f, 1.0f));
-            ImGui::BeginGroup ();
-            ImGui::BeginChild ( "RenderTargetPreview",
-                                ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
-                                         -1.0f ),
-                                  true,
-                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs );
-
-            last_width  = effective_width;
-            last_ht     = effective_height + font_size * 4.0f + (float)shaders * font_size;
-
-            ImGui::Text ( "Dimensions:   %lux%lu",
-                            desc.Width, desc.Height/*,
-                              pTex->d3d9_tex->GetLevelCount ()*/ );
-            ImGui::Text ( "Format:       %ws",
-                            SK_DXGI_FormatToStr (desc.Format).c_str () );
-
-            ImGui::Separator     ();
-
-            ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
-            ImGui::BeginChildFrame (ImGui::GetID (pSRV), ImVec2 (effective_width + 8.0f, effective_height + 8.0f), ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs |
-                                                                                                                   ImGuiWindowFlags_NoScrollbar);
-            ImGui::Image           ( pSRV,
-                                       ImVec2 (effective_width, effective_height),
-                                         ImVec2  (0,0),             ImVec2  (1,1),
-                                         ImColor (255,255,255,255), ImColor (255,255,255,128)
-                                   );
-            ImGui::EndChildFrame   ();
-
             bool selected = false;
 
-            if (shaders > 0)
+            if (ImGui::Selectable (list_contents [line].c_str (), &selected))
             {
-              ImGuiIO& io =
-                ImGui::GetIO ();
-
-              ImGui::BeginChild ( "RenderTargetContributors",
-                                ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
-                                         -1.0f ),
-                                  true,
-                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar );
-
-              if (tracked_rtv.ref_vs.size () > 0 || tracked_rtv.ref_ps.size () > 0)
+              if (selected)
               {
-                ImGui::Columns (2);
-
-                if (ImGui::CollapsingHeader ("Vertex Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                  ImGui::TreePush ("");
-
-                  for ( auto it : tracked_rtv.ref_vs )
-                  {
-                    bool disabled = SK_D3D11_Shaders.vertex.blacklist.count (it) != 0;
-
-                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##vs", disabled ? "*" : " ", it).c_str (), &selected))
-                    {
-                      change_sel_vs = it;
-                    }
-
-                    if (SK_ImGui_IsItemRightClicked ( ))
-                    {
-                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ());
-                    }
-
-                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ()))
-                    {
-                      ShaderMenu (SK_D3D11_Shaders.vertex.blacklist, it);
-                      ImGui::EndPopup ();
-                    }
-                  }
-
-                  ImGui::TreePop ();
-                }
-
-                ImGui::NextColumn ();
-
-                if (ImGui::CollapsingHeader ("Pixel Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                  ImGui::TreePush ("");
-
-                  for ( auto it : tracked_rtv.ref_ps )
-                  {
-                    bool disabled = SK_D3D11_Shaders.pixel.blacklist.count (it) != 0;
-
-                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##ps", disabled ? "*" : " ", it).c_str (), &selected))
-                    {
-                      change_sel_ps = it;
-                    }
-
-                    if (SK_ImGui_IsItemRightClicked ( ))
-                    {
-                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ());
-                    }
-
-                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ()))
-                    {
-                      ShaderMenu (SK_D3D11_Shaders.pixel.blacklist, it);
-                      ImGui::EndPopup ();
-                    }
-                  }
-
-                  ImGui::TreePop ();
-                }
+                sel_changed          = true;
+                sel                  =  line;
+                last_sel_ptr         = (uintptr_t)render_textures [sel];
+                tracked_rtv.resource =            render_textures [sel];
               }
-
-              if (tracked_rtv.ref_gs.size () > 0)
-              {
-                ImGui::Columns   (1);
-                ImGui::Separator ( );
-                ImGui::Columns   (2);
-
-                if (ImGui::CollapsingHeader ("Geometry Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                  ImGui::TreePush ("");
-
-                  for ( auto it : tracked_rtv.ref_gs )
-                  {
-                    bool disabled = SK_D3D11_Shaders.geometry.blacklist.count (it) != 0;
-
-                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##gs", disabled ? "*" : " ", it).c_str (), &selected))
-                    {
-                      change_sel_gs = it;
-                    }
-
-                    if (SK_ImGui_IsItemRightClicked ( ))
-                    {
-                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ());
-                    }
-
-                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ()))
-                    {
-                      ShaderMenu (SK_D3D11_Shaders.geometry.blacklist, it);
-                      ImGui::EndPopup ();
-                    }
-                  }
-
-                  ImGui::TreePop ();
-                }
-
-                ImGui::NextColumn ();
-              }
-
-              if (tracked_rtv.ref_hs.size () > 0 || tracked_rtv.ref_ds.size () > 0)
-              {
-                ImGui::Columns   (1);
-                ImGui::Separator ( );
-                ImGui::Columns   (2);
-
-                if (ImGui::CollapsingHeader ("Hull Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                  ImGui::TreePush ("");
-
-                  for ( auto it : tracked_rtv.ref_hs )
-                  {
-                    bool disabled = SK_D3D11_Shaders.hull.blacklist.count (it) != 0;
-
-                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##hs", disabled ? "*" : " ", it).c_str (), &selected))
-                    {
-                      change_sel_hs = it;
-                    }
-
-                    if (SK_ImGui_IsItemRightClicked ( ))
-                    {
-                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ());
-                    }
-
-                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ()))
-                    {
-                      ShaderMenu (SK_D3D11_Shaders.hull.blacklist, it);
-                      ImGui::EndPopup ();
-                    }
-                  }
-
-                  ImGui::TreePop ();
-                }
-
-                ImGui::NextColumn ();
-
-                if (ImGui::CollapsingHeader ("Domain Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                  ImGui::TreePush ("");
-
-                  for ( auto it : tracked_rtv.ref_ds )
-                  {
-                    bool disabled = SK_D3D11_Shaders.domain.blacklist.count (it) != 0;
-
-                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##ds", disabled ? "*" : " ", it).c_str (), &selected))
-                    {
-                      change_sel_ds = it;
-                    }
-
-                    if (SK_ImGui_IsItemRightClicked ( ))
-                    {
-                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ());
-                    }
-
-                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ()))
-                    {
-                      ShaderMenu (SK_D3D11_Shaders.domain.blacklist, it);
-                      ImGui::EndPopup ();
-                    }
-                  }
-
-                  ImGui::TreePop ();
-                }
-              }
-
-              if (tracked_rtv.ref_cs.size () > 0)
-              {
-                ImGui::Columns   (1);
-                ImGui::Separator ( );
-
-                if (ImGui::CollapsingHeader ("Compute Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                  ImGui::TreePush ("");
-
-                  for ( auto it : tracked_rtv.ref_cs )
-                  {
-                    bool disabled = SK_D3D11_Shaders.compute.blacklist.count (it) != 0;
-
-                    if (ImGui::Selectable (SK_FormatString ("%s%08lx##cs", disabled ? "*" : " ", it).c_str (), &selected))
-                    {
-                      change_sel_cs = it;
-                    }
-
-                    if (SK_ImGui_IsItemRightClicked ( ))
-                    {
-                      ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ());
-                    }
-
-                    if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ()))
-                    {
-                      ShaderMenu (SK_D3D11_Shaders.compute.blacklist, it);
-                      ImGui::EndPopup ();
-                    }
-                  }
-
-                  ImGui::TreePop ();
-                }
-              }
-
-              ImGui::Columns   (1);
-              ImGui::EndChild  ();
             }
-            ImGui::EndChild        ();
-            ImGui::EndGroup        ();
-            ImGui::PopStyleColor   (2);
           }
         }
       }
+
+      ImGui::EndChild ();
+      ImGui::PopStyleVar   ();
+      ImGui::PopStyleColor ();
+
+      ImGui::SameLine ();
+
+      ImGui::BeginGroup ();
+
+      if (render_textures.size () && sel >= 0 && live_textures.count (render_textures [sel]))
+      {
+        ID3D11RenderTargetView* rt_view = render_textures [sel];
+
+        D3D11_RENDER_TARGET_VIEW_DESC rtv_desc;
+        rt_view->GetDesc (&rtv_desc);
+
+        if (rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
+        {
+          CComPtr <ID3D11Texture2D> pTex = nullptr;
+          CComPtr <ID3D11Resource>  pRes = nullptr;
+
+          rt_view->GetResource (&pRes);
+
+          if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+          {
+            D3D11_TEXTURE2D_DESC desc;
+            pTex->GetDesc (&desc);
+
+            ID3D11ShaderResourceView* pSRV = nullptr;
+
+            D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+
+            srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+            srv_desc.Format                    = rtv_desc.Format;
+            srv_desc.Texture2D.MipLevels       = -1;
+            srv_desc.Texture2D.MostDetailedMip =  0;
+
+            CComPtr <ID3D11Device> pDev = nullptr;
+
+            if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
+            {
+              // Some Render Targets are MASSIVE, let's try to keep the damn things on the screen ;)
+              float effective_width  = std::min (0.75f * ImGui::GetIO ().DisplaySize.x, (float)desc.Width  / 2.0f);
+              float effective_height = std::min (0.75f * ImGui::GetIO ().DisplaySize.y, (float)desc.Height / 2.0f);
+
+              ImGui::SameLine ();
+
+              size_t shaders = std::min ((size_t)12, std::max (tracked_rtv.ref_vs.size (), tracked_rtv.ref_ps.size ()) +
+                                         tracked_rtv.ref_gs.size () +
+                               std::max (tracked_rtv.ref_hs.size (), tracked_rtv.ref_ds.size ()) +
+                                         tracked_rtv.ref_cs.size ());
+
+              ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.5f, 0.5f, 0.5f, 1.0f));
+              ImGui::BeginGroup ();
+              ImGui::BeginChild ( "RenderTargetPreview",
+                                  ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
+                                           -1.0f ),
+                                    true,
+                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs );
+
+              last_width  = effective_width;
+              last_ht     = effective_height + font_size * 4.0f + (float)shaders * font_size;
+
+              ImGui::Text ( "Dimensions:   %lux%lu",
+                              desc.Width, desc.Height/*,
+                                pTex->d3d9_tex->GetLevelCount ()*/ );
+              ImGui::Text ( "Format:       %ws",
+                              SK_DXGI_FormatToStr (desc.Format).c_str () );
+
+              ImGui::Separator       ();
+
+              ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
+
+              if (SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, &pSRV)))
+              {
+                ImGui::BeginChildFrame (ImGui::GetID (pSRV), ImVec2 (effective_width + 8.0f, effective_height + 8.0f), ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs |
+                                                                                                                       ImGuiWindowFlags_NoScrollbar);
+                temp_resources.push_back (pSRV);
+                ImGui::Image           ( pSRV,
+                                           ImVec2 (effective_width, effective_height),
+                                             ImVec2  (0,0),             ImVec2  (1,1),
+                                             ImColor (255,255,255,255), ImColor (255,255,255,128)
+                                       );
+                ImGui::EndChildFrame   ();
+              }
+
+              bool selected = false;
+
+              if (shaders > 0)
+              {
+                ImGuiIO& io =
+                  ImGui::GetIO ();
+
+                ImGui::BeginChild ( "RenderTargetContributors",
+                                  ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
+                                           -1.0f ),
+                                    true,
+                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar );
+
+                if (tracked_rtv.ref_vs.size () > 0 || tracked_rtv.ref_ps.size () > 0)
+                {
+                  ImGui::Columns (2);
+
+                  if (ImGui::CollapsingHeader ("Vertex Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
+                  {
+                    ImGui::TreePush ("");
+
+                    for ( auto it : tracked_rtv.ref_vs )
+                    {
+                      bool disabled = SK_D3D11_Shaders.vertex.blacklist.count (it) != 0;
+
+                      if (ImGui::Selectable (SK_FormatString ("%s%08lx##vs", disabled ? "*" : " ", it).c_str (), &selected))
+                      {
+                        change_sel_vs = it;
+                      }
+
+                      if (SK_ImGui_IsItemRightClicked ( ))
+                      {
+                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ());
+                      }
+
+                      if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ()))
+                      {
+                        ShaderMenu (SK_D3D11_Shaders.vertex.blacklist, it);
+                        ImGui::EndPopup ();
+                      }
+                    }
+
+                    ImGui::TreePop ();
+                  }
+
+                  ImGui::NextColumn ();
+
+                  if (ImGui::CollapsingHeader ("Pixel Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
+                  {
+                    ImGui::TreePush ("");
+
+                    for ( auto it : tracked_rtv.ref_ps )
+                    {
+                      bool disabled = SK_D3D11_Shaders.pixel.blacklist.count (it) != 0;
+
+                      if (ImGui::Selectable (SK_FormatString ("%s%08lx##ps", disabled ? "*" : " ", it).c_str (), &selected))
+                      {
+                        change_sel_ps = it;
+                      }
+
+                      if (SK_ImGui_IsItemRightClicked ( ))
+                      {
+                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ());
+                      }
+
+                      if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ()))
+                      {
+                        ShaderMenu (SK_D3D11_Shaders.pixel.blacklist, it);
+                        ImGui::EndPopup ();
+                      }
+                    }
+
+                    ImGui::TreePop ();
+                  }
+                }
+
+                if (tracked_rtv.ref_gs.size () > 0)
+                {
+                  ImGui::Columns   (1);
+                  ImGui::Separator ( );
+                  ImGui::Columns   (2);
+
+                  if (ImGui::CollapsingHeader ("Geometry Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
+                  {
+                    ImGui::TreePush ("");
+
+                    for ( auto it : tracked_rtv.ref_gs )
+                    {
+                      bool disabled = SK_D3D11_Shaders.geometry.blacklist.count (it) != 0;
+
+                      if (ImGui::Selectable (SK_FormatString ("%s%08lx##gs", disabled ? "*" : " ", it).c_str (), &selected))
+                      {
+                        change_sel_gs = it;
+                      }
+
+                      if (SK_ImGui_IsItemRightClicked ( ))
+                      {
+                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ());
+                      }
+
+                      if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ()))
+                      {
+                        ShaderMenu (SK_D3D11_Shaders.geometry.blacklist, it);
+                        ImGui::EndPopup ();
+                      }
+                    }
+
+                    ImGui::TreePop ();
+                  }
+
+                  ImGui::NextColumn ();
+                }
+
+                if (tracked_rtv.ref_hs.size () > 0 || tracked_rtv.ref_ds.size () > 0)
+                {
+                  ImGui::Columns   (1);
+                  ImGui::Separator ( );
+                  ImGui::Columns   (2);
+
+                  if (ImGui::CollapsingHeader ("Hull Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
+                  {
+                    ImGui::TreePush ("");
+
+                    for ( auto it : tracked_rtv.ref_hs )
+                    {
+                      bool disabled = SK_D3D11_Shaders.hull.blacklist.count (it) != 0;
+
+                      if (ImGui::Selectable (SK_FormatString ("%s%08lx##hs", disabled ? "*" : " ", it).c_str (), &selected))
+                      {
+                        change_sel_hs = it;
+                      }
+
+                      if (SK_ImGui_IsItemRightClicked ( ))
+                      {
+                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ());
+                      }
+
+                      if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ()))
+                      {
+                        ShaderMenu (SK_D3D11_Shaders.hull.blacklist, it);
+                        ImGui::EndPopup ();
+                      }
+                    }
+
+                    ImGui::TreePop ();
+                  }
+
+                  ImGui::NextColumn ();
+
+                  if (ImGui::CollapsingHeader ("Domain Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
+                  {
+                    ImGui::TreePush ("");
+
+                    for ( auto it : tracked_rtv.ref_ds )
+                    {
+                      bool disabled = SK_D3D11_Shaders.domain.blacklist.count (it) != 0;
+
+                      if (ImGui::Selectable (SK_FormatString ("%s%08lx##ds", disabled ? "*" : " ", it).c_str (), &selected))
+                      {
+                        change_sel_ds = it;
+                      }
+
+                      if (SK_ImGui_IsItemRightClicked ( ))
+                      {
+                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ());
+                      }
+
+                      if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ()))
+                      {
+                        ShaderMenu (SK_D3D11_Shaders.domain.blacklist, it);
+                        ImGui::EndPopup ();
+                      }
+                    }
+
+                    ImGui::TreePop ();
+                  }
+                }
+
+                if (tracked_rtv.ref_cs.size () > 0)
+                {
+                  ImGui::Columns   (1);
+                  ImGui::Separator ( );
+
+                  if (ImGui::CollapsingHeader ("Compute Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
+                  {
+                    ImGui::TreePush ("");
+
+                    for ( auto it : tracked_rtv.ref_cs )
+                    {
+                      bool disabled = SK_D3D11_Shaders.compute.blacklist.count (it) != 0;
+
+                      if (ImGui::Selectable (SK_FormatString ("%s%08lx##cs", disabled ? "*" : " ", it).c_str (), &selected))
+                      {
+                        change_sel_cs = it;
+                      }
+
+                      if (SK_ImGui_IsItemRightClicked ( ))
+                      {
+                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ());
+                      }
+
+                      if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ()))
+                      {
+                        ShaderMenu (SK_D3D11_Shaders.compute.blacklist, it);
+                        ImGui::EndPopup ();
+                      }
+                    }
+
+                    ImGui::TreePop ();
+                  }
+                }
+
+                ImGui::Columns   (1);
+                ImGui::EndChild  ();
+              }
+              ImGui::EndChild        ();
+              ImGui::EndGroup        ();
+              ImGui::PopStyleColor   (2);
+            }
+          }
+        }
+      }
+
+      ImGui::EndGroup ( );
     }
 
-    ImGui::EndGroup ( );
-  }
-
-  ImGui::EndChild ( );
-  ImGui::Columns  (1);
+    ImGui::EndChild ( );
+    ImGui::Columns  (1);
 
     ImGui::PopItemWidth ();
   }

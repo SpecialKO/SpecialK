@@ -1,5 +1,11 @@
 0.8.13:
+ + Enabled D3D11 Texture Cache by DEFAULT (for new mod tools to work)
+ + Added Texture View (D3D11)
+ + Added RenderTarget View (D3D11)
+ + Added Shader Disassembly View (D3D11)
  + Added option to disable DebugBreak (...) in kernel32.dll
+ + Added fix for incorrectly packed compressed DDS textures
+ + Remove Malware detection, I have no intention to maintain that feature
 
 0.8.12.3:
  + Added game playtime to control panel title
