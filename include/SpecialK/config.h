@@ -205,7 +205,7 @@ struct sk_config_t
     bool    preload_client       = false;
     bool    preload_overlay      = true;  // For input processing, this is important
     bool    show_playtime        = true;  // In the control panel title
-    bool    force_load_steamapi  = true;  // Load steam_api{64}.dll even in games
+    bool    force_load_steamapi  = false; // Load steam_api{64}.dll even in games
                                           //   that do not use it
   } steam;
 

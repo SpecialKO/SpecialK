@@ -438,7 +438,7 @@ Unfreeze (PFROZEN_THREADS pThreads)
     for (i = 0; i < pThreads->size; ++i)
     {
       HANDLE hThread =
-        OpenThread ( THREAD_ACCESS,
+        OpenThread ( THREAD_SUSPEND_RESUME,
                        FALSE,
                          pThreads->pItems [i] );
 

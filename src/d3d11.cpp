@@ -662,22 +662,22 @@ D3D11_Map_pfn                                       D3D11_Map_Original          
 D3D11_OMSetRenderTargets_pfn                        D3D11_OMSetRenderTargets_Original                        = nullptr;
 D3D11_OMSetRenderTargetsAndUnorderedAccessViews_pfn D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original = nullptr;
 
-D3D11_VSSetShader_pfn                  D3D11_VSSetShader_Original                  = nullptr;
-D3D11_PSSetShader_pfn                  D3D11_PSSetShader_Original                  = nullptr;
-D3D11_GSSetShader_pfn                  D3D11_GSSetShader_Original                  = nullptr;
-D3D11_HSSetShader_pfn                  D3D11_HSSetShader_Original                  = nullptr;
-D3D11_DSSetShader_pfn                  D3D11_DSSetShader_Original                  = nullptr;
-D3D11_CSSetShader_pfn                  D3D11_CSSetShader_Original                  = nullptr;
+D3D11_VSSetShader_pfn                               D3D11_VSSetShader_Original                               = nullptr;
+D3D11_PSSetShader_pfn                               D3D11_PSSetShader_Original                               = nullptr;
+D3D11_GSSetShader_pfn                               D3D11_GSSetShader_Original                               = nullptr;
+D3D11_HSSetShader_pfn                               D3D11_HSSetShader_Original                               = nullptr;
+D3D11_DSSetShader_pfn                               D3D11_DSSetShader_Original                               = nullptr;
+D3D11_CSSetShader_pfn                               D3D11_CSSetShader_Original                               = nullptr;
 
-D3D11_VSGetShader_pfn                  D3D11_VSGetShader_Original                  = nullptr;
-D3D11_PSGetShader_pfn                  D3D11_PSGetShader_Original                  = nullptr;
-D3D11_GSGetShader_pfn                  D3D11_GSGetShader_Original                  = nullptr;
-D3D11_HSGetShader_pfn                  D3D11_HSGetShader_Original                  = nullptr;
-D3D11_DSGetShader_pfn                  D3D11_DSGetShader_Original                  = nullptr;
-D3D11_CSGetShader_pfn                  D3D11_CSGetShader_Original                  = nullptr;
+D3D11_VSGetShader_pfn                               D3D11_VSGetShader_Original                               = nullptr;
+D3D11_PSGetShader_pfn                               D3D11_PSGetShader_Original                               = nullptr;
+D3D11_GSGetShader_pfn                               D3D11_GSGetShader_Original                               = nullptr;
+D3D11_HSGetShader_pfn                               D3D11_HSGetShader_Original                               = nullptr;
+D3D11_DSGetShader_pfn                               D3D11_DSGetShader_Original                               = nullptr;
+D3D11_CSGetShader_pfn                               D3D11_CSGetShader_Original                               = nullptr;
 
-D3D11_CopyResource_pfn          D3D11_CopyResource_Original       = nullptr;
-D3D11_UpdateSubresource1_pfn    D3D11_UpdateSubresource1_Original = nullptr;
+D3D11_CopyResource_pfn                              D3D11_CopyResource_Original                              = nullptr;
+D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Original                        = nullptr;
 
 __declspec (noinline,nothrow)
 HRESULT
@@ -865,7 +865,10 @@ NvAPI_D3D11_CreateVertexShaderEx_Override ( __in        ID3D11Device *pDevice,  
                                             __out       ID3D11VertexShader                                              **ppVertexShader )
 {
   NvAPI_Status ret =
-    NvAPI_D3D11_CreateVertexShaderEx_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateVertexShaderExArgs, ppVertexShader );
+    NvAPI_D3D11_CreateVertexShaderEx_Original ( pDevice,
+                                                  pShaderBytecode, BytecodeLength,
+                                                    pClassLinkage, pCreateVertexShaderExArgs,
+                                                      ppVertexShader );
 
   if (ret == NVAPI_OK)
   {
@@ -911,7 +914,10 @@ NvAPI_D3D11_CreateHullShaderEx_Override ( __in        ID3D11Device *pDevice,    
                                           __out       ID3D11HullShader                                           **ppHullShader )
 {
   NvAPI_Status ret =
-    NvAPI_D3D11_CreateHullShaderEx_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateHullShaderExArgs, ppHullShader );
+    NvAPI_D3D11_CreateHullShaderEx_Original ( pDevice,
+                                                pShaderBytecode, BytecodeLength,
+                                                  pClassLinkage, pCreateHullShaderExArgs,
+                                                    ppHullShader );
 
   if (ret == NVAPI_OK)
   {
@@ -956,7 +962,10 @@ NvAPI_D3D11_CreateDomainShaderEx_Override ( __in        ID3D11Device *pDevice,  
                                             __out       ID3D11DomainShader                                             **ppDomainShader )
 {
   NvAPI_Status ret =
-    NvAPI_D3D11_CreateDomainShaderEx_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateDomainShaderExArgs, ppDomainShader );
+    NvAPI_D3D11_CreateDomainShaderEx_Original ( pDevice,
+                                                  pShaderBytecode, BytecodeLength,
+                                                    pClassLinkage, pCreateDomainShaderExArgs,
+                                                      ppDomainShader );
 
   if (ret == NVAPI_OK)
   {
@@ -1001,7 +1010,10 @@ NvAPI_D3D11_CreateGeometryShaderEx_2_Override ( __in        ID3D11Device *pDevic
                                                 __out       ID3D11GeometryShader                                           **ppGeometryShader )
 {
   NvAPI_Status ret =
-    NvAPI_D3D11_CreateGeometryShaderEx_2_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateGeometryShaderExArgs, ppGeometryShader );
+    NvAPI_D3D11_CreateGeometryShaderEx_2_Original ( pDevice,
+                                                      pShaderBytecode, BytecodeLength,
+                                                        pClassLinkage, pCreateGeometryShaderExArgs,
+                                                          ppGeometryShader );
 
   if (ret == NVAPI_OK)
   {
@@ -1046,7 +1058,10 @@ NvAPI_D3D11_CreateFastGeometryShaderExplicit_Override ( __in        ID3D11Device
                                                         __out       ID3D11GeometryShader                                           **ppGeometryShader )
 {
   NvAPI_Status ret =
-    NvAPI_D3D11_CreateFastGeometryShaderExplicit_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, pCreateFastGSArgs, ppGeometryShader );
+    NvAPI_D3D11_CreateFastGeometryShaderExplicit_Original ( pDevice,
+                                                              pShaderBytecode, BytecodeLength,
+                                                                pClassLinkage, pCreateFastGSArgs,
+                                                                  ppGeometryShader );
 
   if (ret == NVAPI_OK)
   {
@@ -1090,7 +1105,9 @@ NvAPI_D3D11_CreateFastGeometryShader_Override ( __in  ID3D11Device *pDevice,    
                                                 __out ID3D11GeometryShader                                            **ppGeometryShader )
 {
   NvAPI_Status ret =
-    NvAPI_D3D11_CreateFastGeometryShader_Original ( pDevice, pShaderBytecode, BytecodeLength, pClassLinkage, ppGeometryShader );
+    NvAPI_D3D11_CreateFastGeometryShader_Original ( pDevice,
+                                                      pShaderBytecode, BytecodeLength,
+                                                        pClassLinkage, ppGeometryShader );
 
   if (ret == NVAPI_OK)
   {
@@ -1138,7 +1155,9 @@ D3D11Dev_CreateVertexShader_Override (
   _Out_opt_       ID3D11VertexShader **ppVertexShader )
 {
   HRESULT hr =
-    D3D11Dev_CreateVertexShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppVertexShader);
+    D3D11Dev_CreateVertexShader_Original ( This,
+                                             pShaderBytecode, BytecodeLength,
+                                               pClassLinkage, ppVertexShader );
 
   if (SUCCEEDED (hr) && ppVertexShader)
   {
@@ -1187,7 +1206,9 @@ D3D11Dev_CreatePixelShader_Override (
   _Out_opt_       ID3D11PixelShader  **ppPixelShader )
 {
   HRESULT hr =
-    D3D11Dev_CreatePixelShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppPixelShader);
+    D3D11Dev_CreatePixelShader_Original ( This, pShaderBytecode,
+                                            BytecodeLength, pClassLinkage,
+                                              ppPixelShader );
 
   if (SUCCEEDED (hr) && ppPixelShader)
   {
@@ -1235,7 +1256,9 @@ D3D11Dev_CreateGeometryShader_Override (
   _Out_opt_       ID3D11GeometryShader **ppGeometryShader )
 {
   HRESULT hr =
-    D3D11Dev_CreateGeometryShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppGeometryShader);
+    D3D11Dev_CreateGeometryShader_Original ( This, pShaderBytecode,
+                                               BytecodeLength, pClassLinkage,
+                                                 ppGeometryShader );
 
   if (SUCCEEDED (hr) && ppGeometryShader)
   {
@@ -1288,9 +1311,12 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _Out_opt_       ID3D11GeometryShader       **ppGeometryShader )
 {
   HRESULT hr =
-    D3D11Dev_CreateGeometryShaderWithStreamOutput_Original (This, pShaderBytecode, BytecodeLength,
-                                                              pSODeclaration, NumEntries, pBufferStrides, NumStrides,
-                                                                RasterizedStream, pClassLinkage, ppGeometryShader);
+    D3D11Dev_CreateGeometryShaderWithStreamOutput_Original ( This, pShaderBytecode,
+                                                               BytecodeLength,
+                                                                 pSODeclaration, NumEntries,
+                                                                   pBufferStrides, NumStrides,
+                                                                     RasterizedStream, pClassLinkage,
+                                                                       ppGeometryShader );
 
   if (SUCCEEDED (hr) && ppGeometryShader)
   {
@@ -1339,7 +1365,9 @@ D3D11Dev_CreateHullShader_Override (
   _Out_opt_       ID3D11HullShader   **ppHullShader )
 {
   HRESULT hr =
-    D3D11Dev_CreateHullShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppHullShader);
+    D3D11Dev_CreateHullShader_Original ( This, pShaderBytecode,
+                                           BytecodeLength, pClassLinkage,
+                                             ppHullShader );
 
   if (SUCCEEDED (hr) && ppHullShader)
   {
@@ -1387,7 +1415,9 @@ D3D11Dev_CreateDomainShader_Override (
   _Out_opt_       ID3D11DomainShader **ppDomainShader )
 {
   HRESULT hr =
-    D3D11Dev_CreateDomainShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppDomainShader);
+    D3D11Dev_CreateDomainShader_Original ( This, pShaderBytecode,
+                                             BytecodeLength, pClassLinkage,
+                                               ppDomainShader );
 
   if (SUCCEEDED (hr) && ppDomainShader)
   {
@@ -1435,7 +1465,9 @@ D3D11Dev_CreateComputeShader_Override (
   _Out_opt_       ID3D11ComputeShader **ppComputeShader )
 {
   HRESULT hr =
-    D3D11Dev_CreateComputeShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppComputeShader);
+    D3D11Dev_CreateComputeShader_Original ( This, pShaderBytecode,
+                                              BytecodeLength, pClassLinkage,
+                                                ppComputeShader );
 
   if (SUCCEEDED (hr) && ppComputeShader)
   {
@@ -1522,7 +1554,8 @@ D3D11_VSSetShader_Override (
     SK_D3D11_Shaders.vertex.current = 0x0;
   }
 
-  D3D11_VSSetShader_Original (This, pVertexShader, ppClassInstances, NumClassInstances);
+  D3D11_VSSetShader_Original ( This, pVertexShader,
+                                 ppClassInstances, NumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1534,7 +1567,8 @@ D3D11_VSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
  _Inout_opt_ UINT                        *pNumClassInstances )
 {
-  return D3D11_VSGetShader_Original (This, ppVertexShader, ppClassInstances, pNumClassInstances);
+  return D3D11_VSGetShader_Original ( This, ppVertexShader,
+                                        ppClassInstances, pNumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1584,7 +1618,8 @@ D3D11_PSSetShader_Override (
     SK_D3D11_Shaders.pixel.current = 0x0;
   }
 
-  D3D11_PSSetShader_Original (This, pPixelShader, ppClassInstances, NumClassInstances);
+  D3D11_PSSetShader_Original ( This, pPixelShader,
+                                 ppClassInstances, NumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1596,7 +1631,8 @@ D3D11_PSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
  _Inout_opt_ UINT                        *pNumClassInstances )
 {
-  return D3D11_PSGetShader_Original (This, ppPixelShader, ppClassInstances, pNumClassInstances);
+  return D3D11_PSGetShader_Original ( This, ppPixelShader,
+                                        ppClassInstances, pNumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1710,7 +1746,8 @@ D3D11_HSSetShader_Override (
     SK_D3D11_Shaders.hull.current = 0x0;
   }
 
-  D3D11_HSSetShader_Original (This, pHullShader, ppClassInstances, NumClassInstances);
+  D3D11_HSSetShader_Original ( This, pHullShader,
+                                 ppClassInstances, NumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1722,7 +1759,8 @@ D3D11_HSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
  _Inout_opt_ UINT                        *pNumClassInstances )
 {
-  return D3D11_HSGetShader_Original (This, ppHullShader, ppClassInstances, pNumClassInstances);
+  return D3D11_HSGetShader_Original ( This, ppHullShader,
+                                        ppClassInstances, pNumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1773,7 +1811,8 @@ D3D11_DSSetShader_Override (
     SK_D3D11_Shaders.domain.current = 0x0;
   }
 
-  D3D11_DSSetShader_Original (This, pDomainShader, ppClassInstances, NumClassInstances);
+  D3D11_DSSetShader_Original ( This, pDomainShader,
+                                 ppClassInstances, NumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1785,7 +1824,8 @@ D3D11_DSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance *const  *ppClassInstances,
  _Inout_opt_ UINT                        *pNumClassInstances )
 {
-  return D3D11_DSGetShader_Original (This, ppDomainShader, ppClassInstances, pNumClassInstances);
+  return D3D11_DSGetShader_Original ( This, ppDomainShader,
+                                        ppClassInstances, pNumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1836,7 +1876,8 @@ D3D11_CSSetShader_Override (
     SK_D3D11_Shaders.compute.current = 0x0;
   }
 
-  D3D11_CSSetShader_Original (This, pComputeShader, ppClassInstances, NumClassInstances);
+  D3D11_CSSetShader_Original ( This, pComputeShader,
+                                 ppClassInstances, NumClassInstances );
 }
 
 __declspec (noinline,nothrow)
@@ -1957,7 +1998,8 @@ D3D11_VSSetShaderResources_Override (
       else
         newResourceViews [i] = nullptr;
 
-      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
+      if (   tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] &&
+          (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
@@ -1993,7 +2035,8 @@ D3D11_PSSetShaderResources_Override (
       else
         newResourceViews [i] = nullptr;
 
-      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
+      if (   tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] &&
+          (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
@@ -2029,7 +2072,8 @@ D3D11_GSSetShaderResources_Override (
       else
         newResourceViews [i] = nullptr;
 
-      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
+      if (   tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] &&
+          (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
@@ -2038,7 +2082,8 @@ D3D11_GSSetShaderResources_Override (
     }
   }
 
-  D3D11_GSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+  D3D11_GSSetShaderResources_Original ( This, StartSlot,
+                                          NumViews, newResourceViews );
 
   delete [] newResourceViews;
 }
@@ -2065,7 +2110,8 @@ D3D11_HSSetShaderResources_Override (
       else
         newResourceViews [i] = nullptr;
 
-      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
+      if (   tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] &&
+          (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
@@ -2074,7 +2120,8 @@ D3D11_HSSetShaderResources_Override (
     }
   }
 
-  D3D11_HSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+  D3D11_HSSetShaderResources_Original ( This, StartSlot,
+                                          NumViews, newResourceViews );
 
   delete [] newResourceViews;
 }
@@ -2101,7 +2148,8 @@ D3D11_DSSetShaderResources_Override (
       else
         newResourceViews [i] = nullptr;
 
-      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
+      if (   tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] &&
+          (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
@@ -2110,7 +2158,8 @@ D3D11_DSSetShaderResources_Override (
     }
   }
 
-  D3D11_DSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+  D3D11_DSSetShaderResources_Original ( This, StartSlot,
+                                          NumViews, newResourceViews );
 
   delete [] newResourceViews;
 }
@@ -2137,7 +2186,8 @@ D3D11_CSSetShaderResources_Override (
       else
         newResourceViews [i] = nullptr;
 
-      if (tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] && (! tracked.used_views.count (ppShaderResourceViews [i])))
+      if (   tracked.crc32c != 0 && tracked.active && ppShaderResourceViews [i] &&
+          (! tracked.used_views.count (ppShaderResourceViews [i])))
       {
         ppShaderResourceViews [i]->AddRef ();
 
@@ -2146,7 +2196,8 @@ D3D11_CSSetShaderResources_Override (
     }
   }
 
-  D3D11_CSSetShaderResources_Original (This, StartSlot, NumViews, newResourceViews);
+  D3D11_CSSetShaderResources_Original ( This, StartSlot,
+                                          NumViews, newResourceViews );
 
   delete [] newResourceViews;
 }
@@ -2163,7 +2214,8 @@ D3D11_UpdateSubresource_Override (
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch)
 {
-  //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)", pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
+  //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)",
+  //          pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 
   CComPtr <ID3D11Texture2D> pTex = nullptr;
 
@@ -2177,13 +2229,18 @@ D3D11_UpdateSubresource_Override (
 
     else
     {
-      D3D11_UpdateSubresource_Original (This, pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
+      D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                           pDstBox, pSrcData, SrcRowPitch,
+                                             SrcDepthPitch );
+
       //dll_log.Log (L"[DX11TexMgr] Updated 2D texture...");
       return;
     }
   }
 
-  return D3D11_UpdateSubresource_Original (This, pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
+  return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                              pDstBox, pSrcData, SrcRowPitch,
+                                                SrcDepthPitch );
 }
 
 __declspec (noinline,nothrow)
@@ -2217,7 +2274,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     }
   }
 
-  return D3D11_Map_Original (This, pResource, Subresource, MapType, MapFlags, pMappedResource);
+  return D3D11_Map_Original ( This, pResource, Subresource,
+                                MapType, MapFlags, pMappedResource );
 }
 
 __declspec (noinline,nothrow)
@@ -2366,7 +2424,10 @@ D3D11_DrawIndexedInstanced_Override (
   if (SK_D3D11_DrawHandler ())
     return;
 
-  return D3D11_DrawIndexedInstanced_Original (This, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+  return
+    D3D11_DrawIndexedInstanced_Original ( This, IndexCountPerInstance,
+                                            InstanceCount, StartIndexLocation,
+                                              BaseVertexLocation, StartInstanceLocation );
 }
 
 __declspec (noinline,nothrow)
@@ -2380,7 +2441,9 @@ D3D11_DrawIndexedInstancedIndirect_Override (
   if (SK_D3D11_DrawHandler ())
     return;
 
-  return D3D11_DrawIndexedInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
+  return
+    D3D11_DrawIndexedInstancedIndirect_Original ( This, pBufferForArgs,
+                                                    AlignedByteOffsetForArgs );
 }
 
 __declspec (noinline,nothrow)
@@ -2396,7 +2459,10 @@ D3D11_DrawInstanced_Override (
   if (SK_D3D11_DrawHandler ())
     return;
 
-  return D3D11_DrawInstanced_Original (This, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+  return
+    D3D11_DrawInstanced_Original ( This, VertexCountPerInstance,
+                                     InstanceCount, StartVertexLocation,
+                                       StartInstanceLocation );
 }
 
 __declspec (noinline,nothrow)
@@ -2410,7 +2476,9 @@ D3D11_DrawInstancedIndirect_Override (
   if (SK_D3D11_DrawHandler ())
     return;
 
-  return D3D11_DrawInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
+  return
+    D3D11_DrawInstancedIndirect_Original ( This, pBufferForArgs,
+                                             AlignedByteOffsetForArgs );
 }
 
 
@@ -2452,7 +2520,8 @@ _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 {
-  D3D11_OMSetRenderTargets_Original (This, NumViews, ppRenderTargetViews, pDepthStencilView);
+  D3D11_OMSetRenderTargets_Original ( This, NumViews,
+                                        ppRenderTargetViews, pDepthStencilView );
 
   if (NumViews > 0)
   {
@@ -2501,7 +2570,11 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
                                             _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
                                             _In_opt_ const UINT                             *pUAVInitialCounts )
 {
-  D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (This, NumRTVs, ppRenderTargetViews, pDepthStencilView, UAVStartSlot, NumUAVs, ppUnorderedAccessViews, pUAVInitialCounts);
+  D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
+    This, NumRTVs, ppRenderTargetViews,
+      pDepthStencilView, UAVStartSlot, NumUAVs,
+        ppUnorderedAccessViews, pUAVInitialCounts
+  );
 
   if (NumRTVs > 0)
   {
@@ -4186,7 +4259,9 @@ D3D11Dev_CreateBuffer_Override (
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_      ID3D11Buffer           **ppBuffer )
 {
-  return D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
+  return
+    D3D11Dev_CreateBuffer_Original ( This, pDesc,
+                                       pInitialData, ppBuffer );
 }
 
 
@@ -4201,7 +4276,9 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  HRESULT hr = D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
+  HRESULT hr =
+    D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
+                                                   pDesc, ppSRView );
 
   return hr;
 }
@@ -5163,312 +5240,6 @@ struct shader_disasm_s {
   std::vector <constant_buffer> cbuffers;
 };
 
-#include <d3d9.h>
-
-//---------------------------------------------------------------------------
-// D3DXTX_VERSION:
-// --------------
-// Version token used to create a procedural texture filler in effects
-// Used by D3DXFill[]TX functions
-//---------------------------------------------------------------------------
-#define D3DXTX_VERSION(_Major,_Minor) (('T' << 24) | ('X' << 16) | ((_Major) << 8) | (_Minor))
-
-
-
-//----------------------------------------------------------------------------
-// D3DXSHADER flags:
-// -----------------
-// D3DXSHADER_DEBUG
-//   Insert debug file/line/type/symbol information.
-//
-// D3DXSHADER_SKIPVALIDATION
-//   Do not validate the generated code against known capabilities and
-//   constraints.  This option is only recommended when compiling shaders
-//   you KNOW will work.  (ie. have compiled before without this option.)
-//   Shaders are always validated by D3D before they are set to the device.
-//
-// D3DXSHADER_SKIPOPTIMIZATION 
-//   Instructs the compiler to skip optimization steps during code generation.
-//   Unless you are trying to isolate a problem in your code using this option 
-//   is not recommended.
-//
-// D3DXSHADER_PACKMATRIX_ROWMAJOR
-//   Unless explicitly specified, matrices will be packed in row-major order
-//   on input and output from the shader.
-//
-// D3DXSHADER_PACKMATRIX_COLUMNMAJOR
-//   Unless explicitly specified, matrices will be packed in column-major 
-//   order on input and output from the shader.  This is generally more 
-//   efficient, since it allows vector-matrix multiplication to be performed
-//   using a series of dot-products.
-//
-// D3DXSHADER_PARTIALPRECISION
-//   Force all computations in resulting shader to occur at partial precision.
-//   This may result in faster evaluation of shaders on some hardware.
-//
-// D3DXSHADER_FORCE_VS_SOFTWARE_NOOPT
-//   Force compiler to compile against the next highest available software
-//   target for vertex shaders.  This flag also turns optimizations off, 
-//   and debugging on.  
-//
-// D3DXSHADER_FORCE_PS_SOFTWARE_NOOPT
-//   Force compiler to compile against the next highest available software
-//   target for pixel shaders.  This flag also turns optimizations off, 
-//   and debugging on.
-//
-// D3DXSHADER_NO_PRESHADER
-//   Disables Preshaders. Using this flag will cause the compiler to not 
-//   pull out static expression for evaluation on the host cpu
-//
-// D3DXSHADER_AVOID_FLOW_CONTROL
-//   Hint compiler to avoid flow-control constructs where possible.
-//
-// D3DXSHADER_PREFER_FLOW_CONTROL
-//   Hint compiler to prefer flow-control constructs where possible.
-//
-//----------------------------------------------------------------------------
-
-#define D3DXSHADER_DEBUG                          (1 << 0)
-#define D3DXSHADER_SKIPVALIDATION                 (1 << 1)
-#define D3DXSHADER_SKIPOPTIMIZATION               (1 << 2)
-#define D3DXSHADER_PACKMATRIX_ROWMAJOR            (1 << 3)
-#define D3DXSHADER_PACKMATRIX_COLUMNMAJOR         (1 << 4)
-#define D3DXSHADER_PARTIALPRECISION               (1 << 5)
-#define D3DXSHADER_FORCE_VS_SOFTWARE_NOOPT        (1 << 6)
-#define D3DXSHADER_FORCE_PS_SOFTWARE_NOOPT        (1 << 7)
-#define D3DXSHADER_NO_PRESHADER                   (1 << 8)
-#define D3DXSHADER_AVOID_FLOW_CONTROL             (1 << 9)
-#define D3DXSHADER_PREFER_FLOW_CONTROL            (1 << 10)
-#define D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY (1 << 12)
-#define D3DXSHADER_IEEE_STRICTNESS                (1 << 13)
-#define D3DXSHADER_USE_LEGACY_D3DX9_31_DLL        (1 << 16)
-
-
-// optimization level flags
-#define D3DXSHADER_OPTIMIZATION_LEVEL0            (1 << 14)
-#define D3DXSHADER_OPTIMIZATION_LEVEL1            0
-#define D3DXSHADER_OPTIMIZATION_LEVEL2            ((1 << 14) | (1 << 15))
-#define D3DXSHADER_OPTIMIZATION_LEVEL3            (1 << 15)
-
-
-
-//----------------------------------------------------------------------------
-// D3DXCONSTTABLE flags:
-// -------------------
-
-#define D3DXCONSTTABLE_LARGEADDRESSAWARE          (1 << 17)
-
-
-
-//----------------------------------------------------------------------------
-// D3DXHANDLE:
-// -----------
-// Handle values used to efficiently reference shader and effect parameters.
-// Strings can be used as handles.  However, handles are not always strings.
-//----------------------------------------------------------------------------
-
-#ifndef D3DXFX_LARGEADDRESS_HANDLE
-typedef LPCSTR D3DXHANDLE;
-#else
-typedef UINT_PTR D3DXHANDLE;
-#endif
-typedef D3DXHANDLE *LPD3DXHANDLE;
-
-
-//----------------------------------------------------------------------------
-// D3DXMACRO:
-// ----------
-// Preprocessor macro definition.  The application pass in a NULL-terminated
-// array of this structure to various D3DX APIs.  This enables the application
-// to #define tokens at runtime, before the file is parsed.
-//----------------------------------------------------------------------------
-
-typedef struct _D3DXMACRO
-{
-    LPCSTR Name;
-    LPCSTR Definition;
-
-} D3DXMACRO, *LPD3DXMACRO;
-
-
-//----------------------------------------------------------------------------
-// D3DXSEMANTIC:
-//----------------------------------------------------------------------------
-
-typedef struct _D3DXSEMANTIC
-{
-    UINT Usage;
-    UINT UsageIndex;
-
-} D3DXSEMANTIC, *LPD3DXSEMANTIC;
-
-
-
-//----------------------------------------------------------------------------
-// D3DXREGISTER_SET:
-//----------------------------------------------------------------------------
-
-typedef enum _D3DXREGISTER_SET
-{
-    D3DXRS_BOOL,
-    D3DXRS_INT4,
-    D3DXRS_FLOAT4,
-    D3DXRS_SAMPLER,
-
-    // force 32-bit size enum
-    D3DXRS_FORCE_DWORD = 0x7fffffff
-
-} D3DXREGISTER_SET, *LPD3DXREGISTER_SET;
-
-
-//----------------------------------------------------------------------------
-// D3DXPARAMETER_CLASS:
-//----------------------------------------------------------------------------
-
-typedef enum _D3DXPARAMETER_CLASS
-{
-    D3DXPC_SCALAR,
-    D3DXPC_VECTOR,
-    D3DXPC_MATRIX_ROWS,
-    D3DXPC_MATRIX_COLUMNS,
-    D3DXPC_OBJECT,
-    D3DXPC_STRUCT,
-
-    // force 32-bit size enum
-    D3DXPC_FORCE_DWORD = 0x7fffffff
-
-} D3DXPARAMETER_CLASS, *LPD3DXPARAMETER_CLASS;
-
-
-//----------------------------------------------------------------------------
-// D3DXPARAMETER_TYPE:
-//----------------------------------------------------------------------------
-
-typedef enum _D3DXPARAMETER_TYPE
-{
-    D3DXPT_VOID,
-    D3DXPT_BOOL,
-    D3DXPT_INT,
-    D3DXPT_FLOAT,
-    D3DXPT_STRING,
-    D3DXPT_TEXTURE,
-    D3DXPT_TEXTURE1D,
-    D3DXPT_TEXTURE2D,
-    D3DXPT_TEXTURE3D,
-    D3DXPT_TEXTURECUBE,
-    D3DXPT_SAMPLER,
-    D3DXPT_SAMPLER1D,
-    D3DXPT_SAMPLER2D,
-    D3DXPT_SAMPLER3D,
-    D3DXPT_SAMPLERCUBE,
-    D3DXPT_PIXELSHADER,
-    D3DXPT_VERTEXSHADER,
-    D3DXPT_PIXELFRAGMENT,
-    D3DXPT_VERTEXFRAGMENT,
-    D3DXPT_UNSUPPORTED,
-
-    // force 32-bit size enum
-    D3DXPT_FORCE_DWORD = 0x7fffffff
-
-} D3DXPARAMETER_TYPE, *LPD3DXPARAMETER_TYPE;
-
-
-//----------------------------------------------------------------------------
-// D3DXCONSTANTTABLE_DESC:
-//----------------------------------------------------------------------------
-
-typedef struct _D3DXCONSTANTTABLE_DESC
-{
-    LPCSTR Creator;                     // Creator string
-    DWORD Version;                      // Shader version
-    UINT Constants;                     // Number of constants
-
-} D3DXCONSTANTTABLE_DESC, *LPD3DXCONSTANTTABLE_DESC;
-
-
-//----------------------------------------------------------------------------
-// D3DXCONSTANT_DESC:
-//----------------------------------------------------------------------------
-
-typedef struct _D3DXCONSTANT_DESC
-{
-    LPCSTR Name;                        // Constant name
-
-    D3DXREGISTER_SET RegisterSet;       // Register set
-    UINT RegisterIndex;                 // Register index
-    UINT RegisterCount;                 // Number of registers occupied
-
-    D3DXPARAMETER_CLASS Class;          // Class
-    D3DXPARAMETER_TYPE Type;            // Component type
-
-    UINT Rows;                          // Number of rows
-    UINT Columns;                       // Number of columns
-    UINT Elements;                      // Number of array elements
-    UINT StructMembers;                 // Number of structure member sub-parameters
-
-    UINT Bytes;                         // Data size, in bytes
-    LPCVOID DefaultValue;               // Pointer to default value
-
-} D3DXCONSTANT_DESC, *LPD3DXCONSTANT_DESC;
-
-
-
-//----------------------------------------------------------------------------
-// ID3DXConstantTable:
-//----------------------------------------------------------------------------
-
-typedef interface ID3DXConstantTable ID3DXConstantTable;
-typedef interface ID3DXConstantTable *LPD3DXCONSTANTTABLE;
-
-// {AB3C758F-093E-4356-B762-4DB18F1B3A01}
-DEFINE_GUID(IID_ID3DXConstantTable, 
-0xab3c758f, 0x93e, 0x4356, 0xb7, 0x62, 0x4d, 0xb1, 0x8f, 0x1b, 0x3a, 0x1);
-
-
-#undef INTERFACE
-#define INTERFACE ID3DXConstantTable
-
-DECLARE_INTERFACE_(ID3DXConstantTable, IUnknown)
-{
-    // IUnknown
-    STDMETHOD(QueryInterface)(THIS_ REFIID iid, LPVOID *ppv) PURE;
-    STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-    STDMETHOD_(ULONG, Release)(THIS) PURE;
-
-    // Buffer
-    STDMETHOD_(LPVOID, GetBufferPointer)(THIS) PURE;
-    STDMETHOD_(DWORD, GetBufferSize)(THIS) PURE;
-
-    // Descs
-    STDMETHOD(GetDesc)(THIS_ D3DXCONSTANTTABLE_DESC *pDesc) PURE;
-    STDMETHOD(GetConstantDesc)(THIS_ D3DXHANDLE hConstant, D3DXCONSTANT_DESC *pConstantDesc, UINT *pCount) PURE;
-    STDMETHOD_(UINT, GetSamplerIndex)(THIS_ D3DXHANDLE hConstant) PURE;
-
-    // Handle operation
-    STDMETHOD_(D3DXHANDLE, GetConstant)(THIS_ D3DXHANDLE hConstant, UINT Index) PURE;
-    STDMETHOD_(D3DXHANDLE, GetConstantByName)(THIS_ D3DXHANDLE hConstant, LPCSTR pName) PURE;
-    STDMETHOD_(D3DXHANDLE, GetConstantElement)(THIS_ D3DXHANDLE hConstant, UINT Index) PURE;
-
-    // Set Constants
-    STDMETHOD(SetDefaults)(THIS_ LPDIRECT3DDEVICE9 pDevice) PURE;
-    STDMETHOD(SetValue)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, LPCVOID pData, UINT Bytes) PURE;
-    STDMETHOD(SetBool)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, BOOL b) PURE;
-    STDMETHOD(SetBoolArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST BOOL* pb, UINT Count) PURE;
-    STDMETHOD(SetInt)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, INT n) PURE;
-    STDMETHOD(SetIntArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST INT* pn, UINT Count) PURE;
-    STDMETHOD(SetFloat)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, FLOAT f) PURE;
-    STDMETHOD(SetFloatArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST FLOAT* pf, UINT Count) PURE;
-    STDMETHOD(SetVector)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID pVector) PURE;
-    STDMETHOD(SetVectorArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID pVector, UINT Count) PURE;
-    STDMETHOD(SetMatrix)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID pMatrix) PURE;
-    STDMETHOD(SetMatrixArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID pMatrix, UINT Count) PURE;
-    STDMETHOD(SetMatrixPointerArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID* ppMatrix, UINT Count) PURE;
-    STDMETHOD(SetMatrixTranspose)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID pMatrix) PURE;
-    STDMETHOD(SetMatrixTransposeArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID pMatrix, UINT Count) PURE;
-    STDMETHOD(SetMatrixTransposePointerArray)(THIS_ LPDIRECT3DDEVICE9 pDevice, D3DXHANDLE hConstant, CONST LPVOID* ppMatrix, UINT Count) PURE;
-};
-
-
 typedef interface ID3DXBuffer ID3DXBuffer;
 typedef interface ID3DXBuffer *LPD3DXBUFFER;
 
@@ -5490,11 +5261,6 @@ DECLARE_INTERFACE_(ID3DXBuffer, IUnknown)
     STDMETHOD_ (LPVOID, GetBufferPointer) (THIS) PURE;
     STDMETHOD_ (DWORD,  GetBufferSize)    (THIS) PURE;
 };
-
-typedef HRESULT (WINAPI *D3DXGetShaderConstantTable_pfn)
-( _In_  const DWORD                *pFunction,
-  _Out_       LPD3DXCONSTANTTABLE *ppConstantTable
-);
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>

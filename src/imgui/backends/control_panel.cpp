@@ -2479,26 +2479,27 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::SetColumnOffset (1, 530 * io.FontGlobalScale);
       ImGui::NextColumn      (                           );
 
+      // Send both keydown and keyup events because software like Amazon Music only responds to keyup
       ImGui::BeginGroup ();
       {
         ImGui::PushItemWidth (-1);
         if (ImGui::Button (u8"  <<  ")) {
-          keybd_event_Original (VK_MEDIA_PREV_TRACK, 0x22, 1, 0);
-          keybd_event_Original (VK_MEDIA_PREV_TRACK, 0x22, 3, 0);
+          keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
+          keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
         }
 
         ImGui::SameLine ();
 
         if (ImGui::Button (u8"  Play / Pause  ")) {
-          keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0x22, 1, 0);
-          keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0x22, 3, 0); 
+          keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY,                   0);
+          keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0); 
         }
 
         ImGui::SameLine ();
 
         if (ImGui::Button (u8"  >>  ")) {
-          keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0x22, 1, 0);
-          keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0x22, 3, 0);
+          keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
+          keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
         }
         ImGui::PopItemWidth ();
       }

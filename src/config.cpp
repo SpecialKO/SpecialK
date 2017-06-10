@@ -2192,7 +2192,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       case SK_GAME_ID::Sacred2:
         // Contrary to its name, this game needs this turned off ;)
-        config.cegui.safe_init = false;
+        config.cegui.safe_init           = false;
+        config.steam.force_load_steamapi = true; // Not safe in all games, but it is here.
         break;
     }
   }
