@@ -151,6 +151,7 @@ struct sk_config_t
 
   struct {
     bool    enable             = true;
+    bool    safe_init          = true;
   } cegui;
 
   struct {
@@ -202,8 +203,10 @@ struct sk_config_t
 
     int     appid                = 0;
     bool    preload_client       = false;
-    bool    preload_overlay      = true; // For input processing, this is important
-    bool    show_playtime        = true; // In the control panel title
+    bool    preload_overlay      = true;  // For input processing, this is important
+    bool    show_playtime        = true;  // In the control panel title
+    bool    force_load_steamapi  = true;  // Load steam_api{64}.dll even in games
+                                          //   that do not use it
   } steam;
 
 

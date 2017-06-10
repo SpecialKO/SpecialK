@@ -1,4 +1,7 @@
 0.8.13:
+ + Added option to force-inject steam_api into games published before SteamWorks.
+   (steam_api{64}.dll must be placed in Documents\My Mods\SpecialK\)
+ + Added configuration for CEGUI initialization (safe vs. fast [default])
  + Enabled D3D11 Texture Cache by DEFAULT (for new mod tools to work)
  + Added Texture View (D3D11)
  + Added RenderTarget View (D3D11)

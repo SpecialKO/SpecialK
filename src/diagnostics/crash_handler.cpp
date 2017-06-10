@@ -755,23 +755,26 @@ SK_BypassSteamCrashHandler (void)
     const wchar_t* wszSteamDLL = { L"steam_api.dll" };
 #endif
 
-    HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
-
-    if (hMod)
+    if (SK_GetFileSize (wszSteamDLL) > 0)
     {
-      crash_log.Log (L"Disabling Steam Breakpad...");
+      HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
 
-      SK_CreateDLLHook2 ( wszSteamDLL,
-                          "SteamAPI_UseBreakpadCrashHandler",
-                         SteamAPI_UseBreakpadCrashHandler_Detour,
-              (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
-    
-      SK_CreateDLLHook2 ( wszSteamDLL,
-                          "SteamAPI_SetBreakpadAppID",
-                         SteamAPI_SetBreakpadAppID_Detour,
-              (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
-    
-      MH_ApplyQueued ();
+      if (hMod)
+      {
+        crash_log.Log (L"Disabling Steam Breakpad...");
+
+        SK_CreateDLLHook2 ( wszSteamDLL,
+                            "SteamAPI_UseBreakpadCrashHandler",
+                           SteamAPI_UseBreakpadCrashHandler_Detour,
+                (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
+      
+        SK_CreateDLLHook2 ( wszSteamDLL,
+                            "SteamAPI_SetBreakpadAppID",
+                           SteamAPI_SetBreakpadAppID_Detour,
+                (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
+      
+        MH_ApplyQueued ();
+      }
     }
   }
 }
@@ -784,21 +787,27 @@ CrashHandler::InitSyms (void)
   if (config.system.strict_compliance)
     EnterCriticalSection (&cs_dbghelp);
 
-  HRSRC   default_sound =
-    FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
-
-  if (default_sound != nullptr) {
-    crash_sound.ref   =
-      LoadResource (SK_GetDLL (), default_sound);
-
-    if (crash_sound.ref != 0)
-      crash_sound.buf = (uint8_t *)LockResource (crash_sound.ref);
-  }
-
   static volatile ULONG init = 0UL;
 
   if (! InterlockedExchange (&init, 1))
   {
+    if (config.system.handle_crashes)
+    {
+      HRSRC   default_sound =
+        FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
+
+      if (default_sound != nullptr) {
+        crash_sound.ref   =
+          LoadResource (SK_GetDLL (), default_sound);
+
+        if (crash_sound.ref != 0)
+          crash_sound.buf = (uint8_t *)LockResource (crash_sound.ref);
+      }
+
+      if (! config.steam.silent)
+        SK_BypassSteamCrashHandler ();
+    }
+
     SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
                     SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
                     SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS         | SYMOPT_DEBUG );
@@ -808,8 +817,6 @@ CrashHandler::InitSyms (void)
       GetCurrentProcess (),
         NULL,
           TRUE );
-
-    SK_BypassSteamCrashHandler ();
   }
 
   if (config.system.strict_compliance)

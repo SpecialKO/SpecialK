@@ -1459,6 +1459,47 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //
   }
 
+  // Lazy-load SteamAPI into a process that doesn't use it, this brings
+  //   a number of benefits.
+  if (config.steam.force_load_steamapi)
+  {
+    static bool tried = false;
+
+    if (! tried)
+    {
+      tried = true;
+
+#ifdef _WIN64
+      const wchar_t* wszSteamDLL = { L"steam_api64.dll" };
+#else
+      const wchar_t* wszSteamDLL = { L"steam_api.dll" };
+#endif
+
+      if (! GetModuleHandle (wszSteamDLL))
+      {
+        wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { L'\0' };
+
+        wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+
+        if (PathRemoveFileSpec (wszDLLPath))
+        {
+          lstrcatW (wszDLLPath, L"\\");
+          lstrcatW (wszDLLPath, wszSteamDLL);
+
+          if (SK_GetFileSize (wszDLLPath) > 0)
+          {
+            HMODULE hMod = LoadLibraryW_Original (wszDLLPath);
+
+            if (hMod)
+            {
+              dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
+                              wszDLLPath );
+            }
+          }
+        }
+      }
+    }
+  }
 
   SK_Steam_InitCommandConsoleVariables ();
   SK_TestSteamImports                  (GetModuleHandle (nullptr));
@@ -1733,8 +1774,6 @@ SK_BeginBufferSwap (void)
       //          paths <<
       //
 
-#define LOAD_ALTERED
-
       SK_LockDllLoader ();
   
       // Disable until we validate CEGUI's state
@@ -1776,13 +1815,14 @@ SK_BeginBufferSwap (void)
 
       wchar_t wszWorkingDir [MAX_PATH + 2] = { L'\0' };
 
-#ifndef LOAD_ALTERED
-      std::queue <DWORD> tids =
-        SK_SuspendAllOtherThreads ();
+      if (! config.cegui.safe_init)
+      {
+        //std::queue <DWORD> tids =
+        //  SK_SuspendAllOtherThreads ();
 
-      GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
-      SetCurrentDirectory    (        wszCEGUIModPath);
-#endif
+        GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
+        SetCurrentDirectory    (        wszCEGUIModPath);
+      }
   
       // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
       //   do support it if a certain Windows Update (KB2533623) is installed.
@@ -1821,9 +1861,9 @@ SK_BeginBufferSwap (void)
         auto DelayLoadDLL = [&](const char* szDLL)->
           bool
             {
-#ifndef LOAD_ALTERED
-              return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
-#else
+              if (! config.cegui.safe_init)
+                return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
+
               k32_SetDefaultDllDirectories (
                 LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
                 LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
@@ -1844,10 +1884,8 @@ SK_BeginBufferSwap (void)
               }
   
               k32_RemoveDllDirectory (cookie);
-              SK_UnlockDllLoader     ();
   
               return ret;
-#endif
             };
   
         if (DelayLoadDLL ("CEGUIBase-0.dll"))
@@ -1882,10 +1920,11 @@ SK_BeginBufferSwap (void)
         }
       }
 
-#ifndef LOAD_ALTERED
-      SetCurrentDirectory (wszWorkingDir);
-      SK_ResumeThreads    (tids);
-#endif
+      if (! config.cegui.safe_init)
+      {
+        SetCurrentDirectory (wszWorkingDir);
+        //SK_ResumeThreads  (tids);
+      }
 
       SK_UnlockDllLoader  ();
     }

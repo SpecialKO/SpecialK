@@ -3980,7 +3980,7 @@ SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original           = nullpt
 GetControllerState_pfn             GetControllerState_Original          = nullptr;
 
 
-uint64_t    SK::SteamAPI::steam_size;
+uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;
 
 // Must be global for x86 ABI problems
-CSteamID    SK::SteamAPI::player;
+CSteamID    SK::SteamAPI::player (0ULL);

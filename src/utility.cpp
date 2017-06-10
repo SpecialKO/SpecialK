@@ -1177,8 +1177,8 @@ SK_SuspendAllOtherThreads (void)
 
     if (Thread32First (hSnap, &tent))
     {
-      bool locked = 
-        dll_log.lock ();
+      //bool locked = 
+      //  dll_log.lock ();
 
       do
       {
@@ -1189,7 +1189,7 @@ SK_SuspendAllOtherThreads (void)
                tent.th32OwnerProcessID == GetCurrentProcessId () )
           {
             HANDLE hThread =
-              OpenThread (THREAD_ALL_ACCESS, FALSE, tent.th32ThreadID);
+              OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID);
 
             if (hThread != NULL) {
               threads.push  (tent.th32ThreadID);
@@ -1203,8 +1203,8 @@ SK_SuspendAllOtherThreads (void)
         tent.dwSize = sizeof (tent);
       } while (Thread32Next (hSnap, &tent));
 
-      if (locked)
-        dll_log.unlock ();
+      //if (locked)
+      //  dll_log.unlock ();
     }
 
     CloseHandle (hSnap);
@@ -1221,12 +1221,12 @@ SK_ResumeThreads (std::queue <DWORD> threads)
     DWORD tid = threads.front ();
 
     HANDLE hThread =
-      OpenThread (THREAD_ALL_ACCESS, FALSE, tid);
+      OpenThread (THREAD_SUSPEND_RESUME, FALSE, tid);
 
     if (hThread != NULL)
     {
       ResumeThread (hThread);
-      CloseHandle (hThread);
+      CloseHandle  (hThread);
     }
 
     threads.pop ();

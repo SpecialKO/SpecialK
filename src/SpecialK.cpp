@@ -228,6 +228,8 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"OAWrapper.exe");
     blacklist.emplace (L"NvOAWrapperCache.exe");
 
+    blacklist.emplace (L"s2gs.exe"); // Sacred 2 Game Server
+
     blacklist.emplace (L"sihost.exe");
     blacklist.emplace (L"Chrome.exe");
     blacklist.emplace (L"explorer.exe");

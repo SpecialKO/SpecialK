@@ -147,6 +147,7 @@ struct {
     sk::ParameterBool*    filter_stat_callbacks;
     sk::ParameterBool*    load_early;
     sk::ParameterBool*    early_overlay;
+    sk::ParameterBool*    force_load;
   } system;
 
   struct {
@@ -168,6 +169,7 @@ struct {
 } nvidia;
 
 sk::ParameterBool*        enable_cegui;
+sk::ParameterBool*        safe_cegui;
 sk::ParameterFloat*       mem_reserve;
 sk::ParameterBool*        debug_output;
 sk::ParameterBool*        game_output;
@@ -1033,6 +1035,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"SpecialK.System",
         L"EnableCEGUI" );
 
+  safe_cegui =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Safely Initialize CEGUI")
+      );
+  safe_cegui->register_to_ini (
+    dll_ini,
+      L"SpecialK.System",
+        L"SafeInitCEGUI" );
+
   version =
     static_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
@@ -1813,6 +1825,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Steam.System",
         L"PreLoadSteamOverlay" );
 
+  steam.system.force_load =
+    static_cast <sk::ParameterBool *>
+    (g_ParameterFactory.create_parameter <bool> (
+      L"Forcefully load steam_api{64}.dll")
+    );
+  steam.system.force_load->register_to_ini (
+    dll_ini,
+      L"Steam.System",
+        L"ForceLoadSteamAPI" );
+
   steam.log.silent =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -1943,7 +1965,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     GodEater2RageBurst,   // GE2RB.exe
     WatchDogs2,           // WatchDogs2.exe
     NieRAutomata,         // NieRAutomata.exe
-    Warframe_x64          // Warframe.x64.exe
+    Warframe_x64,         // Warframe.x64.exe
+    Sacred2               // sacred2.exe
   };
 
   std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -1964,6 +1987,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"WatchDogs2.exe",               SK_GAME_ID::WatchDogs2           );
   games.emplace ( L"NieRAutomata.exe",             SK_GAME_ID::NieRAutomata         );
   games.emplace ( L"Warframe.x64.exe",             SK_GAME_ID::Warframe_x64         );
+  games.emplace ( L"Sacred2.exe",                  SK_GAME_ID::Sacred2              );
 
   //
   // Application Compatibility Overrides
@@ -2164,6 +2188,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
         config.apis.dxgi.d3d11.hook = true;
+        break;
+
+      case SK_GAME_ID::Sacred2:
+        // Contrary to its name, this game needs this turned off ;)
+        config.cegui.safe_init = false;
         break;
     }
   }
@@ -2672,6 +2701,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.steam.preload_client = steam.system.load_early->get_value ();
   if (steam.system.early_overlay->load ())
     config.steam.preload_overlay = steam.system.early_overlay->get_value ();
+  if (steam.system.force_load->load ())
+    config.steam.force_load_steamapi = steam.system.force_load->get_value ();
   if (steam.system.notify_corner->load ())
     config.steam.notify_corner =
       SK_Steam_PopupOriginWStrToEnum (
@@ -2730,6 +2761,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (enable_cegui->load ())
     config.cegui.enable = enable_cegui->get_value ();
+
+  if (safe_cegui->load ())
+    config.cegui.safe_init = safe_cegui->get_value ();
 
   if (version->load ())
     config.system.version = version->get_value ();
@@ -3042,6 +3076,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.filter_stat_callbacks->set_value (config.steam.filter_stat_callback);
   steam.system.load_early->set_value            (config.steam.preload_client);
   steam.system.early_overlay->set_value         (config.steam.preload_overlay);
+  steam.system.force_load->set_value            (config.steam.force_load_steamapi);
   steam.system.notify_corner->set_value         (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
@@ -3215,6 +3250,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.filter_stat_callbacks->store  ();
   steam.system.load_early->store             ();
   steam.system.early_overlay->store          ();
+  steam.system.force_load->store             ();
   steam.log.silent->store                    ();
 
   init_delay->store                      ();
@@ -3240,6 +3276,9 @@ SK_SaveConfig ( std::wstring name,
 
   enable_cegui->set_value                (config.cegui.enable);
   enable_cegui->store                    ();
+
+  safe_cegui->set_value                  (config.cegui.safe_init);
+  safe_cegui->store                      ();
 
   trace_libraries->set_value             (config.system.trace_load_library);
   trace_libraries->store                 ();
