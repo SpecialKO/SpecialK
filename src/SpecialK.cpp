@@ -27,6 +27,8 @@
 #include <Shlwapi.h>
 #include <process.h>
 
+#include <ctime>
+
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/diagnostics/debug_utils.h>
@@ -55,12 +57,13 @@
 volatile HMODULE hModSelf              = 0;
 
 
-volatile ULONG   __SK_DLL_Attached     = FALSE;
-volatile ULONG   __SK_Threads_Attached = 0;
-volatile ULONG   __SK_DLL_Refs         = 0;
-volatile DWORD   __SK_TLS_INDEX        = MAXDWORD;
-volatile ULONG   __SK_DLL_Ending       = FALSE;
-volatile ULONG   __SK_HookContextOwner = FALSE;
+volatile ULONG      __SK_DLL_Attached     = FALSE;
+         __time64_t __SK_DLL_AttachTime   = 0ULL;
+volatile ULONG      __SK_Threads_Attached = 0;
+volatile ULONG      __SK_DLL_Refs         = 0;
+volatile DWORD      __SK_TLS_INDEX        = MAXDWORD;
+volatile ULONG      __SK_DLL_Ending       = FALSE;
+volatile ULONG      __SK_HookContextOwner = FALSE;
 
 
 CRITICAL_SECTION init_mutex    = { 0 };
@@ -597,6 +600,8 @@ SK_Attach (DLL_ROLE role)
 
     else
     {
+      _time64 (&__SK_DLL_AttachTime);
+
       return
         InterlockedExchangeAddRelease (
           &__SK_DLL_Attached,

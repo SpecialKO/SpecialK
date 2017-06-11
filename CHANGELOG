@@ -1,4 +1,6 @@
 0.8.13:
+ + Add play time tracking to non-Steam games
+ + Fix hour roll-over problems in play time stats
  + d3dcompiler_*.dll is pinned at load-time to prevent TLS issues in software
      that loads and unloads this DLL when it compiles HLSL shaders.
  + Fixed 3DMigoto compatibility

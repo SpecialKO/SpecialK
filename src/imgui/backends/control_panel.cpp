@@ -305,6 +305,17 @@ SK_ImGui_ControlPanelTitle (void)
 
     title += L"  Control Panel";
 
+    extern __time64_t __SK_DLL_AttachTime;
+
+    __time64_t now     = 0ULL;
+     _time64 (&now);
+
+    uint32_t   elapsed = static_cast <uint32_t> (now - __SK_DLL_AttachTime);
+
+    uint32_t   secs    =  elapsed % 60ULL;
+    uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
+    uint32_t   hours   =  elapsed / 3600ULL;
+
     if (steam)
     {
       std::string appname = SK::SteamAPI::AppName ();
@@ -314,12 +325,6 @@ SK_ImGui_ControlPanelTitle (void)
 
       if (config.steam.show_playtime)
       {
-        uint32   elapsed = steam_ctx.Utils ()->GetSecondsSinceAppActive ();
-        uint32_t secs    = elapsed % 60;
-        uint32_t mins    = elapsed / 60;
-        uint32_t hours   = elapsed / 3600;
-
-
         snprintf ( szTitle, 511, "%ws%s     (%01lu:%02lu:%02lu)###SK_MAIN_CPL",
                      title.c_str (), appname.c_str (),
                        hours, mins, secs );
@@ -334,6 +339,15 @@ SK_ImGui_ControlPanelTitle (void)
 
     else
     {
+      if (config.steam.show_playtime)
+      {
+        title += L"      -      ";
+
+        snprintf ( szTitle, 511, "%ws(%01lu:%02lu:%02lu)###SK_MAIN_CPL",
+                     title.c_str (),
+                       hours, mins, secs );
+      }
+
       snprintf (szTitle, 511, "%ws###SK_MAIN_CPL", title.c_str ());
     }
   }
