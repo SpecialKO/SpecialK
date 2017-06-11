@@ -262,7 +262,7 @@ SK_TraceLoadLibraryA ( HMODULE hCallingMod,
     }
   }
 
-  if (hCallingMod != SK_GetDLL () && SK_IsInjected ())
+  if (hCallingMod != SK_GetDLL ()/* && SK_IsInjected ()*/)
   {
          if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
               ( StrStrIA (lpFileName,  "d3d9.dll")    ||
@@ -410,7 +410,7 @@ SK_TraceLoadLibraryW ( HMODULE hCallingMod,
     }
   }
 
-  if (hCallingMod != SK_GetDLL () && SK_IsInjected ())
+  if (hCallingMod != SK_GetDLL ()/* && SK_IsInjected ()*/)
   {
        if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
             ( StrStrIW (lpFileName, L"d3d9.dll")    ||

@@ -2129,6 +2129,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
 
 void SK_Input_Init (void);
 
+
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {

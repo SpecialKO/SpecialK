@@ -1515,6 +1515,11 @@ D3D11_VSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_GetTLS ()->imgui.drawing)
+    return D3D11_VSSetShader_Original (This, pVertexShader, ppClassInstances, NumClassInstances);
+
+
   if (pVertexShader)
   {
     EnterCriticalSection (&cs_shader);
@@ -1580,6 +1585,11 @@ D3D11_PSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_GetTLS ()->imgui.drawing)
+    return D3D11_PSSetShader_Original (This, pPixelShader, ppClassInstances, NumClassInstances);
+
+
   if (pPixelShader)
   {
     EnterCriticalSection (&cs_shader);
@@ -1985,6 +1995,11 @@ D3D11_VSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_GetTLS ()->imgui.drawing)
+    return D3D11_VSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+
+
   ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
@@ -2022,6 +2037,11 @@ D3D11_PSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_GetTLS ()->imgui.drawing)
+    return D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
+
+
   ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
@@ -2257,6 +2277,16 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   if (pResource == nullptr)
     return S_OK;
 
+
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_GetTLS ()->imgui.drawing)
+  {
+    return D3D11_Map_Original ( This, pResource,
+                                  Subresource, MapType,
+                                    MapFlags, pMappedResource );
+  }
+
+
   CComPtr <ID3D11Texture2D> pTex = nullptr;
 
   if (            pResource != nullptr &&
@@ -2388,6 +2418,15 @@ D3D11_DrawIndexed_Override (
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation )
 {
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_GetTLS ()->imgui.drawing)
+  {
+    return D3D11_DrawIndexed_Original ( This, IndexCount,
+                                                StartIndexLocation,
+                                                  BaseVertexLocation );
+  }
+
+
   if (SK_D3D11_DrawHandler ())
     return;
 
@@ -2522,6 +2561,10 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 {
   D3D11_OMSetRenderTargets_Original ( This, NumViews,
                                         ppRenderTargetViews, pDepthStencilView );
+
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_GetTLS ()->imgui.drawing) return;
+
 
   if (NumViews > 0)
   {
@@ -5634,7 +5677,7 @@ SK_LiveTextureView (bool& can_scroll)
 
         ImGui::BeginGroup     ();
         ImGui::BeginChild     ( "Texture_Select_D3D11",
-                                ImVec2 ( std::max (font_size * 19.0f, (float)tex_desc.Width + 24.0f),
+                                ImVec2 ( std::max (font_size * 26.0f, (float)tex_desc.Width + 24.0f),
                               (float)tex_desc.Height + font_size * 10.0f),
                                   true,
                                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
@@ -5887,8 +5930,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     [](sk_shader_class& type) ->
       std::vector <uint32_t>
       {
-        std::vector <uint32_t> vec;
-        vec.reserve (256);
+        static std::vector <uint32_t> vec;
+        vec.clear ();
 
         EnterCriticalSection (&cs_shader);
 
@@ -5902,7 +5945,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               if ( vertex_shader.first != 0xb42ede74 &&
                    vertex_shader.first != 0x1f8c62dc )
               {
-                vec.emplace_back (vertex_shader.first);
+                if (vertex_shader.first > 0x00000000) vec.emplace_back (vertex_shader.first);
               }
             }
           } break;
@@ -5915,7 +5958,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               if ( pixel_shader.first != 0xd3af3aa0 &&
                    pixel_shader.first != 0xb04a90ba )
               {
-                vec.emplace_back (pixel_shader.first);
+                if (pixel_shader.first > 0x00000000) vec.emplace_back (pixel_shader.first);
               }
             }
           } break;
@@ -5924,7 +5967,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& geometry_shader : SK_D3D11_Shaders.geometry.descs)
             {
-              vec.emplace_back (geometry_shader.first);
+              if (geometry_shader.first > 0x00000000) vec.emplace_back (geometry_shader.first);
             }
           } break;
 
@@ -5932,7 +5975,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& hull_shader : SK_D3D11_Shaders.hull.descs)
             {
-              vec.emplace_back (hull_shader.first);
+              if (hull_shader.first > 0x00000000) vec.emplace_back (hull_shader.first);
             }
           } break;
 
@@ -5940,7 +5983,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& domain_shader : SK_D3D11_Shaders.domain.descs)
             {
-              vec.emplace_back (domain_shader.first);
+              if (domain_shader.first > 0x00000000) vec.emplace_back (domain_shader.first);
             }
           } break;
 
@@ -5948,7 +5991,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& compute_shader : SK_D3D11_Shaders.compute.descs)
             {
-              vec.emplace_back (compute_shader.first);
+              if (compute_shader.first > 0x00000000) vec.emplace_back (compute_shader.first);
             }
           } break;
         }
@@ -6082,10 +6125,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   bool scrolled = false;
 
+  int dir = 0;
+
   if (ImGui::IsMouseHoveringRect (list->last_min, list->last_max))
   {
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
   }
 
   struct sk_shader_state_s {
@@ -6139,8 +6184,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (! scrolled)
     {
-           if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
-      else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+           if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+      else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
     }
   }
 
@@ -6162,6 +6207,38 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         }
       };
 
+
+    auto GetShaderDesc = [&](sk_shader_class type, uint32_t crc32c) ->
+      SK_D3D11_ShaderDesc&
+        {
+          return
+            ((SK_D3D11_KnownShaders::ShaderRegistry <ID3D11VertexShader>*)ShaderBase (type))->descs [
+              crc32c
+            ];
+        };
+
+    // User wants to cycle list elements, we know only the direction, not how many indices in the list
+    //   we need to increment to get an unfiltered list item.
+    if (dir != 0)
+    {
+      do
+      {
+        list->sel += dir;
+
+        if (*hide_inactive)
+        {
+          SK_D3D11_ShaderDesc& rDesc =
+            GetShaderDesc (shader_type, (uint32_t)shaders [list->sel]);
+
+          if (rDesc.usage.last_frame <= SK_GetFramesDrawn () - active_frames)
+            continue;
+        }
+
+        break;
+      } while (list->sel > 0 && list->sel < shaders.size () - 1);
+    }
+
+
     if (list->sel != last_sel)
       sel_changed = true;
 
@@ -6170,12 +6247,21 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     ImGuiIO& io =
       ImGui::GetIO ();
 
+    auto ChangeSelectedShader = []( shader_class_imp_s*  list,
+                                    shader_tracking_s*   tracker,
+                                    SK_D3D11_ShaderDesc& rDesc ) ->
+      void
+        {
+          list->last_sel         = rDesc.crc32c;
+          tracker->crc32c        = rDesc.crc32c;
+          tracker->runtime_ms    = 0.0f;
+          tracker->runtime_ticks = 0ULL;
+        };
+
     for ( UINT line = 0; line < shaders.size (); line++ )
     {
       SK_D3D11_ShaderDesc& rDesc =
-        ((SK_D3D11_KnownShaders::ShaderRegistry <ID3D11VertexShader>*)ShaderBase (shader_type))->descs [
-          (uint32_t)shaders [line]
-        ];
+        GetShaderDesc (shader_type, (uint32_t)shaders [line]);
 
       bool active = rDesc.usage.last_frame > SK_GetFramesDrawn () - active_frames;
 
@@ -6186,7 +6272,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
       if (line == list->sel)
       {
-        bool selected    = true;
+        bool selected = true;
 
         if (active || (! *hide_inactive))
           ImGui::Selectable (list->contents [line].c_str (), &selected);
@@ -6195,9 +6281,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           ImGui::SetScrollHere (0.5f);
 
-          sel_changed     = false;
-          list->last_sel  = rDesc.crc32c;
-          tracker->crc32c = rDesc.crc32c;
+          sel_changed = false;
+
+          ChangeSelectedShader (list, tracker, rDesc);
         }
       }
 
@@ -6209,10 +6295,10 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
           if (ImGui::Selectable (list->contents [line].c_str (), &selected))
           {
-            sel_changed     = true;
-            list->sel       =  line;
-            list->last_sel  = rDesc.crc32c;
-            tracker->crc32c = rDesc.crc32c;
+            sel_changed = true;
+            list->sel   =  line;
+
+            ChangeSelectedShader (list, tracker, rDesc);
           }
         }
       }
@@ -7248,11 +7334,22 @@ SK_D3D11_ShaderModDlg (void)
               last_width  = effective_width;
               last_ht     = effective_height + font_size * 4.0f + (float)shaders * font_size;
 
-              ImGui::Text ( "Dimensions:   %lux%lu",
+              ImGui::BeginGroup ();
+
+              ImGui::Text ( "Dimensions:   " );
+              ImGui::Text ( "Format:       " );
+
+              ImGui::EndGroup   ();
+              ImGui::SameLine   ();
+              ImGui::BeginGroup ();
+
+              ImGui::Text ( "%lux%lu",
                               desc.Width, desc.Height/*,
                                 pTex->d3d9_tex->GetLevelCount ()*/ );
-              ImGui::Text ( "Format:       %ws",
+              ImGui::Text ( "%ws",
                               SK_DXGI_FormatToStr (desc.Format).c_str () );
+
+              ImGui::EndGroup   ();
 
               ImGui::Separator       ();
 

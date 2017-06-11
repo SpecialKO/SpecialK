@@ -64,12 +64,35 @@ struct VERTEX_CONSTANT_BUFFER
     float        mvp[4][4];
 };
 
+
+#include <SpecialK/tls.h>
+
+class SK_AutoBool
+{
+public:
+  SK_AutoBool (bool& var) : backing_store_ (var)
+  {
+    var = true;
+  }
+
+  ~SK_AutoBool (void)
+  {
+    backing_store_ = false;
+  }
+
+private:
+  bool& backing_store_;
+};
+
+
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
 void
 ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 {
+  SK_AutoBool auto_render (SK_GetTLS ()->imgui.drawing);
+
   ImGuiIO& io =
     ImGui::GetIO ();
 
@@ -236,8 +259,10 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
   old.PSInstancesCount = old.VSInstancesCount = 256;
 
-  D3D11_PSGetShader_Original (ctx, &old.PS, old.PSInstances, &old.PSInstancesCount);
-  D3D11_VSGetShader_Original (ctx, &old.VS, old.VSInstances, &old.VSInstancesCount);
+  //D3D11_PSGetShader_Original (ctx, &old.PS, old.PSInstances, &old.PSInstancesCount);
+  //D3D11_VSGetShader_Original (ctx, &old.VS, old.VSInstances, &old.VSInstancesCount);
+  ctx->PSGetShader (&old.PS, old.PSInstances, &old.PSInstancesCount);
+  ctx->VSGetShader (&old.VS, old.VSInstances, &old.VSInstancesCount);
 
   ctx->VSGetConstantBuffers   (0, 1, &old.VSConstantBuffer);
   ctx->IAGetPrimitiveTopology (      &old.PrimitiveTopology);
@@ -292,11 +317,13 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   ctx->IASetIndexBuffer       (g_pIB, sizeof(ImDrawIdx) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
   ctx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-  D3D11_VSSetShader_Original  (ctx, g_pVertexShader, NULL, 0);
+  //D3D11_VSSetShader_Original  (ctx, g_pVertexShader, NULL, 0);
+  ctx->VSSetShader            (g_pVertexShader, NULL, 0);
   ctx->VSSetConstantBuffers   (0, 1, &g_pVertexConstantBuffer);
 
 
-  D3D11_PSSetShader_Original  (ctx, g_pPixelShader, NULL, 0);
+  //D3D11_PSSetShader_Original  (ctx, g_pPixelShader, NULL, 0);
+  ctx->PSSetShader            (g_pPixelShader, NULL, 0);
   ctx->PSSetSamplers          (0, 1, &g_pFontSampler);
 
   // Setup render state
@@ -329,11 +356,12 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
           (LONG)pcmd->ClipRect.z, (LONG)pcmd->ClipRect.w
         };
 
-        D3D11_PSSetShaderResources_Original (ctx, 0, 1, (ID3D11ShaderResourceView **)&pcmd->TextureId);
-        //ctx->PSSetShaderResources (0, 1, (ID3D11ShaderResourceView **)&pcmd->TextureId);
+        //D3D11_PSSetShaderResources_Original (ctx, 0, 1, (ID3D11ShaderResourceView **)&pcmd->TextureId);
+        ctx->PSSetShaderResources (0, 1, (ID3D11ShaderResourceView **)&pcmd->TextureId);
         ctx->RSSetScissorRects    (1, &r);
 
-        D3D11_DrawIndexed_Original (ctx, pcmd->ElemCount, idx_offset, vtx_offset);
+        //D3D11_DrawIndexed_Original (ctx, pcmd->ElemCount, idx_offset, vtx_offset);
+        ctx->DrawIndexed (pcmd->ElemCount, idx_offset, vtx_offset);
       }
 
       idx_offset += pcmd->ElemCount;
@@ -355,20 +383,23 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   ctx->OMSetDepthStencilState (old.DepthStencilState, old.StencilRef);
   if (old.DepthStencilState) old.DepthStencilState->Release ();
 
-  D3D11_PSSetShaderResources_Original (ctx, 0, 1, &old.PSShaderResource);
+  //D3D11_PSSetShaderResources_Original (ctx, 0, 1, &old.PSShaderResource);
+  ctx->PSSetShaderResources (0, 1, &old.PSShaderResource);
   if (old.PSShaderResource) old.PSShaderResource->Release ();
 
   ctx->PSSetSamplers          (0, 1, &old.PSSampler);
   if (old.PSSampler) old.PSSampler->Release ();
 
-  D3D11_PSSetShader_Original (ctx, old.PS, old.PSInstances, old.PSInstancesCount);
+  //D3D11_PSSetShader_Original (ctx, old.PS, old.PSInstances, old.PSInstancesCount);
+  ctx->PSSetShader (old.PS, old.PSInstances, old.PSInstancesCount);
   if (old.PS) old.PS->Release ();
 
   for (UINT i = 0; i < old.PSInstancesCount; i++)
     if (old.PSInstances [i])
       old.PSInstances [i]->Release ();
 
-  D3D11_VSSetShader_Original (ctx, old.VS, old.VSInstances, old.VSInstancesCount);
+  //D3D11_VSSetShader_Original (ctx, old.VS, old.VSInstances, old.VSInstancesCount);
+  ctx->VSSetShader (old.VS, old.VSInstances, old.VSInstancesCount);
   if (old.VS) old.VS->Release ();
 
   ctx->VSSetConstantBuffers   (0, 1, &old.VSConstantBuffer);

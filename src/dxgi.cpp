@@ -4046,19 +4046,6 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                    CreateSwapChain_Original,
                                    CreateSwapChain_pfn );
 
-  //
-  // EnumAdapters actually calls EnumAdapters1 if the interface
-  //   implements IDXGIFactory1...
-  //
-  //  >> Avoid some nasty recursion and only hook EnumAdapters if the
-  //       interface version is DXGI 1.0.
-  //
-  DXGI_VIRTUAL_HOOK ( &pFactory,     7,
-                      "IDXGIFactory::EnumAdapters",
-                       EnumAdapters_Override,
-                       EnumAdapters_Original,
-                       EnumAdapters_pfn );
-
   CComPtr <IDXGIFactory1> pFactory1 = nullptr;
 
   // 12 EnumAdapters1
@@ -4070,6 +4057,22 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                          EnumAdapters1_Override,
                          EnumAdapters1_Original,
                          EnumAdapters1_pfn );
+  }
+
+  else
+  {
+    //
+    // EnumAdapters actually calls EnumAdapters1 if the interface
+    //   implements IDXGIFactory1...
+    //
+    //  >> Avoid some nasty recursion and only hook EnumAdapters if the
+    //       interface version is DXGI 1.0.
+    //
+    DXGI_VIRTUAL_HOOK ( &pFactory,     7,
+                        "IDXGIFactory::EnumAdapters",
+                         EnumAdapters_Override,
+                         EnumAdapters_Original,
+                         EnumAdapters_pfn );
   }
   
 

@@ -1,7 +1,11 @@
 0.8.13:
+ + d3dcompiler_*.dll is pinned at load-time to prevent TLS issues in software
+     that loads and unloads this DLL when it compiles HLSL shaders.
+ + Fixed 3DMigoto compatibility
+     (ImGui changed to use hooked D3D11 functions instead of trampoline)
  + Added support for resolutions as low as 1280x720 and 1024x768
  + Added option to force-inject steam_api into games published before SteamWorks.
-   (steam_api{64}.dll must be placed in Documents\My Mods\SpecialK\)
+     (steam_api{64}.dll must be placed in Documents\My Mods\SpecialK\)
  + Added configuration for CEGUI initialization (safe vs. fast [default])
  + Enabled D3D11 Texture Cache by DEFAULT (for new mod tools to work)
  + Added Texture View (D3D11)

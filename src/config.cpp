@@ -2176,6 +2176,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.input.mouse.add_relative_motion    = true;
         break;
 
+
       case SK_GAME_ID::NieRAutomata:
         // Maximize compatibility with 3rd party injectors that corrupt hooks
         //config.render.dxgi.slow_state_cache    = false;
@@ -2184,11 +2185,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.input.mouse.add_relative_motion = false;
         break;
 
+
       case SK_GAME_ID::Warframe_x64:
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
         config.apis.dxgi.d3d11.hook = true;
         break;
+
 
       case SK_GAME_ID::Sacred2:
         // Contrary to its name, this game needs this turned off ;)
