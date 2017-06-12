@@ -75,7 +75,7 @@ CRITICAL_SECTION cs_dbghelp    = { 0 };
 
 SK_TLS*
 __stdcall
-SK_GetTLS (void)
+SK_TLS_Bottom (void)
 {
   if (__SK_TLS_INDEX == -1)
     return nullptr;
@@ -86,16 +86,67 @@ SK_GetTLS (void)
   if (lpvData == nullptr)
   {
     lpvData =
-      (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
+      (LPVOID)LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max);
 
     if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
     {
       LocalFree (lpvData);
       return nullptr;
     }
+
+    ((SK_TLS *)lpvData)->stack.current = 0;
   }
 
   return (SK_TLS *)lpvData;
+}
+
+SK_TLS*
+__stdcall
+SK_TLS_Top (void)
+{
+  if (__SK_TLS_INDEX == -1)
+    return nullptr;
+
+  SK_TLS* pTLS = SK_TLS_Bottom ();
+
+  return &(pTLS [pTLS->stack.current]);
+}
+
+bool
+__stdcall
+SK_TLS_Push (void)
+{
+  if (__SK_TLS_INDEX == -1)
+    return false;
+
+  if (SK_TLS_Bottom ()->stack.current < SK_TLS::stack::max)
+  {
+    ((SK_TLS *)SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current + 1] =
+      ((SK_TLS *)SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current++];
+
+    return true;
+  }
+
+  // Overflow
+  return false;
+}
+
+bool
+__stdcall
+SK_TLS_Pop  (void)
+{
+  if (__SK_TLS_INDEX == -1)
+    return false;
+
+  if (SK_TLS_Bottom ()->stack.current > 0)
+  {
+    ((SK_TLS *)SK_TLS_Bottom ())->stack.current--;
+
+    return true;
+  }
+
+  // Underflow
+  return false;
 }
 
 
@@ -812,7 +863,7 @@ DllMain ( HMODULE hModule,
       InterlockedIncrement (&__SK_Threads_Attached);
 
       LPVOID lpvData =
-        (LPVOID)LocalAlloc (LPTR, sizeof SK_TLS);
+        (LPVOID)LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max);
 
       if (lpvData != nullptr)
       {
@@ -820,6 +871,9 @@ DllMain ( HMODULE hModule,
         {
           LocalFree (lpvData);
         }
+
+        else
+          ((SK_TLS *)lpvData)->stack.current = 0;
       }
     } break;
 

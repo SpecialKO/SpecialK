@@ -940,13 +940,16 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (config.input.gamepad.xinput.disable_rumble)
     return false;
 
+  if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
+    return false;
+
   XINPUT_VIBRATION vibes;
 
   vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
   vibes.wRightMotorSpeed = (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f);
 
   if (xinput_ctx.primary_hook && xinput_ctx.primary_hook->XInputSetState_Original) {
-    xinput_ctx.primary_hook->XInputSetState_Original ( iJoyID, &vibes );
+    xinput_ctx.primary_hook->XInputSetState_Detour ( iJoyID, &vibes );
     return true;
   }
 
@@ -1034,6 +1037,9 @@ SK_XInput_PollController ( INT           iJoyID,
 
   if (iJoyID == -1)
     return true;
+
+  if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
+    return false;
 
 
 

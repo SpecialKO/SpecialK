@@ -49,12 +49,12 @@ SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 std::string
 SK_WideCharToUTF8 (std::wstring in)
 {
-  int len = WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
+  int len = WideCharToMultiByte ( CP_UTF8, WC_COMPOSITECHECK | WC_DISCARDNS, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
 
   std::string out;
               out.resize (len);
 
-  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), (int)in.length (), (char *)out.data (), len, nullptr, FALSE );
+  WideCharToMultiByte           ( CP_UTF8, WC_COMPOSITECHECK | WC_DISCARDNS, in.c_str (), (int)in.length (), (char *)out.data (), len, nullptr, FALSE );
 
   return out;
 }
@@ -62,12 +62,12 @@ SK_WideCharToUTF8 (std::wstring in)
 std::wstring
 SK_UTF8ToWideChar (std::string in)
 {
-  int len = MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0 );
+  int len = MultiByteToWideChar ( CP_UTF8, WC_COMPOSITECHECK | WC_DISCARDNS, in.c_str (), -1, nullptr, 0 );
 
   std::wstring out;
                out.resize (len);
 
-  MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), (int)in.length (), (wchar_t *)out.data (), len );
+  MultiByteToWideChar           ( CP_UTF8, WC_COMPOSITECHECK | WC_DISCARDNS, in.c_str (), (int)in.length (), (wchar_t *)out.data (), len );
 
   return out;
 }

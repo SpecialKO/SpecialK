@@ -218,7 +218,7 @@ bool SK_D3D11_IsTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
 #else
   UNREFERENCED_PARAMETER (dwThreadId);
 
-  SK_TLS* pTLS = SK_GetTLS ();
+  SK_TLS* pTLS = SK_TLS_Top ();
 
   if (pTLS != nullptr)
     return pTLS->d3d11.texinject_thread;
@@ -239,7 +239,7 @@ SK_D3D11_ClearTexInjectThread ( DWORD dwThreadId = GetCurrentThreadId () )
 #else
   UNREFERENCED_PARAMETER (dwThreadId);
 
-  SK_TLS* pTLS = SK_GetTLS ();
+  SK_TLS* pTLS = SK_TLS_Top ();
 
   if (pTLS != nullptr)
     pTLS->d3d11.texinject_thread = false;
@@ -258,7 +258,7 @@ SK_D3D11_SetTexInjectThread ( DWORD dwThreadId = GetCurrentThreadId () )
 #else
   UNREFERENCED_PARAMETER (dwThreadId);
 
-  SK_TLS* pTLS = SK_GetTLS ();
+  SK_TLS* pTLS = SK_TLS_Top ();
 
   if (pTLS != nullptr)
     pTLS->d3d11.texinject_thread = true;
@@ -1516,7 +1516,7 @@ D3D11_VSSetShader_Override (
           UINT                        NumClassInstances )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_GetTLS ()->imgui.drawing)
+  if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_VSSetShader_Original (This, pVertexShader, ppClassInstances, NumClassInstances);
 
 
@@ -1586,7 +1586,7 @@ D3D11_PSSetShader_Override (
           UINT                        NumClassInstances )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_GetTLS ()->imgui.drawing)
+  if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_PSSetShader_Original (This, pPixelShader, ppClassInstances, NumClassInstances);
 
 
@@ -1996,7 +1996,7 @@ D3D11_VSSetShaderResources_Override (
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_GetTLS ()->imgui.drawing)
+  if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_VSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
 
@@ -2038,7 +2038,7 @@ D3D11_PSSetShaderResources_Override (
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_GetTLS ()->imgui.drawing)
+  if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
 
@@ -2279,7 +2279,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_GetTLS ()->imgui.drawing)
+  if (SK_TLS_Top ()->imgui.drawing)
   {
     return D3D11_Map_Original ( This, pResource,
                                   Subresource, MapType,
@@ -2419,7 +2419,7 @@ D3D11_DrawIndexed_Override (
   _In_ INT                  BaseVertexLocation )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_GetTLS ()->imgui.drawing)
+  if (SK_TLS_Top ()->imgui.drawing)
   {
     return D3D11_DrawIndexed_Original ( This, IndexCount,
                                                 StartIndexLocation,
@@ -2563,7 +2563,7 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
                                         ppRenderTargetViews, pDepthStencilView );
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_GetTLS ()->imgui.drawing) return;
+  if (SK_TLS_Top ()->imgui.drawing) return;
 
 
   if (NumViews > 0)
@@ -2947,11 +2947,16 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
         }
 
         desc2d.last_used = SK_QueryPerf ().QuadPart;
-        desc2d.hits++;
 
-        RedundantData_2D += size;
-        RedundantTime_2D += fTime;
-        RedundantLoads_2D++;
+        // Don't record cache hits caused by the shader mod interface
+        if (! SK_TLS_Top ()->imgui.drawing)
+        {
+          desc2d.hits++;
+
+          RedundantData_2D += size;
+          RedundantTime_2D += fTime;
+          RedundantLoads_2D++;
+        }
 
         return pTex2D;
       }
@@ -4122,6 +4127,10 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                           _In_       uint32_t                top_crc32,
                           _In_       uint32_t                checksum )
 {
+  SK_ScopedTLS tls_scope;
+
+  SK_TLS_Top ()->d3d11.texinject_thread = true;
+
   dll_log.Log ( L"[DX11TexDmp] Dumping Texture: %08x::%08x... (fmt=%03lu, "
                     L"BindFlags=0x%04x, Usage=0x%04x, CPUAccessFlags"
                     L"=0x%02x, Misc=0x%02x, MipLODs=%02lu, ArraySize=%02lu)",
@@ -4332,11 +4341,14 @@ HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc_,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
   WaitForInitDXGI ();
+
+  D3D11_TEXTURE2D_DESC   desc = *pDesc_;
+  D3D11_TEXTURE2D_DESC* pDesc = &desc;
 
   if (InterlockedExchangeAdd (&SK_D3D11_tex_init, 0) == FALSE)
     SK_D3D11_InitTextures ();
@@ -4363,15 +4375,22 @@ D3D11Dev_CreateTexture2D_Override (
                     pDesc->Width > 0 && pDesc->Height > 0) && pDesc->ArraySize == 1;
 
   cacheable &=
-    (! ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
-        (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)) ) &&
-        (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))/* &&
-            (! (pDesc->Usage & D3D11_USAGE_DYNAMIC))*/;
-
-  cacheable &= (ppTexture2D != nullptr);
+    (! ((pDesc->BindFlags      & D3D11_BIND_DEPTH_STENCIL) ||
+        (pDesc->BindFlags      & D3D11_BIND_RENDER_TARGET)) ) &&
+        (pDesc->BindFlags      & D3D11_BIND_SHADER_RESOURCE)  &&
+     (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))     &&
+     (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_READ))      &&
+     (! (pDesc->Usage         == D3D11_USAGE_DYNAMIC));
 
   const bool dumpable = 
-              cacheable && (! (pDesc->Usage & D3D11_USAGE_STAGING));
+              cacheable;
+
+  // NieR: Automata uses the staging flag incorrectly, there's no reason to use this on
+  //   a resource that is never memory-mapped.
+  if (cacheable && (pDesc->Usage == D3D11_USAGE_STAGING))
+  {
+    pDesc->BindFlags = D3D11_USAGE_DEFAULT;
+  }
 
   uint32_t top_crc32 = 0x00;
   uint32_t ffx_crc32 = 0x00;
@@ -5620,7 +5639,14 @@ SK_LiveTextureView (bool& can_scroll)
     size_t               tex_size;
     float                load_time;
 
+
+    SK_TLS_Push ();
+    SK_TLS_Top  ()->imgui.drawing = true;
+
     ID3D11Texture2D* pTex = SK_D3D11_Textures.getTexture2D ((uint32_t)debug_tex_id, &tex_desc, &tex_size, &load_time);
+
+    SK_TLS_Pop  ();
+
 
     if (pTex != nullptr)
     {
@@ -5718,6 +5744,17 @@ SK_LiveTextureView (bool& can_scroll)
         ImGui::Text       ( "%.6f Seconds",
                               load_time / 1000.0f );
         ImGui::EndGroup   ();
+
+#if 0
+        ImGui::SameLine   ();
+
+        ImGui::BeginGroup ();
+        {
+          SK_AutoCriticalSection critical (&tex_cs);
+          ImGui::Text       ( "Cache Hits:   %lu", SK_D3D11_Textures.Textures_2D [pTex].hits );
+        }
+        ImGui::EndGroup   ();
+#endif
 
         ImGui::Separator  ();
 

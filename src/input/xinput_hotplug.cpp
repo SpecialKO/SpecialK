@@ -40,14 +40,17 @@ struct {
 
   bool  holding     = false;
   DWORD last_polled = 0;
-} static placeholders [XUSER_MAX_COUNT];
+} static placeholders [XUSER_MAX_COUNT + 1];
 
-static SK_XInput_PacketJournal packets [XUSER_MAX_COUNT];
+static SK_XInput_PacketJournal packets [XUSER_MAX_COUNT + 1];
 
 
 SK_XInput_PacketJournal
 SK_XInput_GetPacketJournal (DWORD dwUserIndex)
 {
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return packets [XUSER_MAX_COUNT];
+
   return packets [dwUserIndex];
 }
 
@@ -55,6 +58,9 @@ SK_XInput_GetPacketJournal (DWORD dwUserIndex)
 bool
 SK_XInput_Holding (DWORD dwUserIndex)
 {
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return false;
+
   return placeholders [dwUserIndex].holding;
 }
 
@@ -66,6 +72,9 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
                       DWORD         dwUserIndex,
                       XINPUT_STATE *pState )
 {
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   bool was_holding = placeholders [dwUserIndex].holding;
 
   if ( dwRet != ERROR_SUCCESS &&
@@ -127,6 +136,9 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
                           DWORD                dwFlags,
                           XINPUT_CAPABILITIES *pCapabilities )
 {
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
@@ -165,6 +177,9 @@ SK_XInput_PlaceHoldBattery ( DWORD                       dwRet,
                              BYTE                        devType,
                              XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
@@ -199,6 +214,9 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
                          DWORD             dwUserIndex,
                          XINPUT_VIBRATION *pVibration )
 {
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
@@ -233,7 +251,10 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
 void
 SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState)
 {
-  if (dwRet == ERROR_SUCCESS && dwUserIndex >= 0 && dwUserIndex <= 3)
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return;
+
+  if (dwRet == ERROR_SUCCESS)
   {
     if ( packets [dwUserIndex].sequence.last !=
          pState->dwPacketNumber )

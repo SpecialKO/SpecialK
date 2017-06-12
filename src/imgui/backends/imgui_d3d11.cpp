@@ -67,23 +67,6 @@ struct VERTEX_CONSTANT_BUFFER
 
 #include <SpecialK/tls.h>
 
-class SK_AutoBool
-{
-public:
-  SK_AutoBool (bool& var) : backing_store_ (var)
-  {
-    var = true;
-  }
-
-  ~SK_AutoBool (void)
-  {
-    backing_store_ = false;
-  }
-
-private:
-  bool& backing_store_;
-};
-
 
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
@@ -91,7 +74,9 @@ private:
 void
 ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 {
-  SK_AutoBool auto_render (SK_GetTLS ()->imgui.drawing);
+  SK_ScopedTLS tls_scope;
+
+  SK_TLS_Top ()->imgui.drawing = true;
 
   ImGuiIO& io =
     ImGui::GetIO ();
@@ -422,6 +407,11 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 static void
 ImGui_ImplDX11_CreateFontsTexture (void)
 {
+  SK_ScopedTLS tls_scope;
+
+  // Do not dump ImGui font textures
+  SK_TLS_Top ()->d3d11.texinject_thread = true;
+
   // Build texture atlas
   ImGuiIO& io = ImGui::GetIO ();
 

@@ -1575,8 +1575,11 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesChinese()
         0x0020, 0x00FF, // Basic Latin + Latin Supplement
         0x3000, 0x30FF, // Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
+        //0x4e00, 0x9FAF, // CJK Ideograms (FULL Range)
+        //0x4E00, 0x62FF, // Reduced CJK Ideograms
+        //0x8D00, 0x9FCC, // Reduced CJK Ideograms 2
+        0xF900, 0xFAFF, // CJK Compat Ideograms
         0xFF00, 0xFFEF, // Half-width characters
-        0x4e00, 0x9FAF, // CJK Ideograms
         0,
     };
     return &ranges[0];
@@ -2002,6 +2005,9 @@ void ImFont::RenderChar(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
     }
 }
 
+#include <unordered_set>
+#include <SpecialK/log.h>
+
 void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width, bool cpu_fine_clip) const
 {
     if (!text_end)
@@ -2098,6 +2104,20 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
         float char_width = 0.0f;
         if (const Glyph* glyph = FindGlyph((unsigned short)c))
         {
+            if (glyph == FallbackGlyph)
+            {
+                static std::unordered_set <unsigned short> unprintable_chars;
+
+                if (! unprintable_chars.count ((unsigned short)c))
+                {
+                    unprintable_chars.emplace ((unsigned short)c);
+
+                    // Some characters used for Steam account names are outside the 2-byte range
+                    dll_log.Log ( L"[ImGui Font] Unprintable Character: '%wc' (U+%lx)",
+                                    (wchar_t)c, (wchar_t)c );
+                }
+            }
+
             char_width = glyph->XAdvance * scale;
 
             // Arbitrarily assume that both space and tabs are empty glyphs as an optimization

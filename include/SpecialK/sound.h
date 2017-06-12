@@ -68,7 +68,7 @@ public:
       // This is all happening from the application's message pump in most games,
       //   so this specialized function avoids deadlocking the pump.
       InternalGetWindowText (win.root, wszTitle, 511);
-      WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE);
+      WideCharToMultiByte   (CP_UTF8, WC_COMPOSITECHECK | WC_DISCARDNS, wszTitle, (int)wcslen (wszTitle), szTitle, 511, nullptr, FALSE);
 
       //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
                   //L"  WASAPI  " );

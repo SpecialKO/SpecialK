@@ -10936,10 +10936,13 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
   {
     0x0020, 0x00FF, // Basic Latin + Latin Supplement
     0x0100, 0x03FF, // Latin, IPA, Greek
+    0x2000, 0x206F, // General Punctuation
     0x2100, 0x21FF, // Letterlike Symbols
-    0,
+    0x2600, 0x26FF, // Misc. Characters
+    0x2700, 0x27BF, // Dingbats
+    0
   };
-  return &ranges[0];
+  return &ranges [0];
 }
 
 void
