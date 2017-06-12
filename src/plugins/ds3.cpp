@@ -1178,7 +1178,6 @@ SK_DS3_SetFullscreenState (
   return ret;
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1209,7 +1208,6 @@ SK_DS3_ResizeBuffers (IDXGISwapChain *This,
   return hr;
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE

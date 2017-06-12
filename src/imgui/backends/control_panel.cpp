@@ -348,7 +348,8 @@ SK_ImGui_ControlPanelTitle (void)
                        hours, mins, secs );
       }
 
-      snprintf (szTitle, 511, "%ws###SK_MAIN_CPL", title.c_str ());
+      else
+        snprintf (szTitle, 511, "%ws###SK_MAIN_CPL", title.c_str ());
     }
   }
 

@@ -25,7 +25,7 @@
 #include <Windows.h>
 #include <nvapi.h>
 
-extern __declspec (nothrow) HGLRC WINAPI SK_GetCurrentGLContext (void);
+extern HGLRC WINAPI SK_GetCurrentGLContext (void);
 
 enum class SK_RenderAPI {
   Reserved  = 0x0001,

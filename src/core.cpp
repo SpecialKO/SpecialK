@@ -1694,7 +1694,6 @@ extern void SK_InitWindow (HWND hWnd);
 #include <imgui/imgui.h>
 
 __declspec (noinline)
-COM_DECLSPEC_NOTHROW
 void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
@@ -2233,7 +2232,6 @@ IUnknown* g_iSwapChain    = nullptr;
 #include <SpecialK/render_backend.h>
 
 __declspec (noinline)
-COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE
 SK_EndBufferSwap (HRESULT hr, IUnknown* device)

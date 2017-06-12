@@ -175,6 +175,63 @@ extern "C" void __fastcall SteamAPI_UserStatsReceived_Detour       (CCallbackBas
 //extern "C" void __cdecl SteamAPI_UserStatsReceivedIOFail_Detour (CCallbackBase* This, UserStatsReceived_t* pParam, bool bIOFailure, SteamAPICall_t hSteamAPICall);
 
 
+const char*
+__stdcall
+SK_Steam_ClassifyCallback (int iCallback)
+{
+  switch ((iCallback / 100) * 100)
+  {
+    case k_iSteamUserCallbacks:                  return "k_iSteamUserCallbacks";
+    case k_iSteamGameServerCallbacks:            return "k_iSteamGameServerCallbacks";
+    case k_iSteamFriendsCallbacks:               return "k_iSteamFriendsCallbacks";
+    case k_iSteamBillingCallbacks:               return "k_iSteamBillingCallbacks";
+    case k_iSteamMatchmakingCallbacks:           return "k_iSteamMatchmakingCallbacks";
+    case k_iSteamContentServerCallbacks:         return "k_iSteamContentServerCallbacks";
+    case k_iSteamUtilsCallbacks:                 return "k_iSteamUtilsCallbacks";
+    case k_iClientFriendsCallbacks:              return "k_iClientFriendsCallbacks";
+    case k_iClientUserCallbacks:                 return "k_iClientUserCallbacks";
+    case k_iSteamAppsCallbacks:                  return "k_iSteamAppsCallbacks";
+    case k_iSteamUserStatsCallbacks:             return "k_iSteamUserStatsCallbacks";
+    case k_iSteamNetworkingCallbacks:            return "k_iSteamNetworkingCallbacks";
+    case k_iClientRemoteStorageCallbacks:        return "k_iClientRemoteStorageCallbacks";
+    case k_iClientDepotBuilderCallbacks:         return "k_iClientDepotBuilderCallbacks";
+    case k_iSteamGameServerItemsCallbacks:       return "k_iSteamGameServerItemsCallbacks";
+    case k_iClientUtilsCallbacks:                return "k_iClientUtilsCallbacks";
+    case k_iSteamGameCoordinatorCallbacks:       return "k_iSteamGameCoordinatorCallbacks";
+    case k_iSteamGameServerStatsCallbacks:       return "k_iSteamGameServerStatsCallbacks";
+    case k_iSteam2AsyncCallbacks:                return "k_iSteam2AsyncCallbacks";
+    case k_iSteamGameStatsCallbacks:             return "k_iSteamGameStatsCallbacks";
+    case k_iClientHTTPCallbacks:                 return "k_iClientHTTPCallbacks";
+    case k_iClientScreenshotsCallbacks:          return "k_iClientScreenshotsCallbacks";
+    case k_iSteamScreenshotsCallbacks:           return "k_iSteamScreenshotsCallbacks";
+    case k_iClientAudioCallbacks:                return "k_iClientAudioCallbacks";
+    case k_iClientUnifiedMessagesCallbacks:      return "k_iClientUnifiedMessagesCallbacks";
+    case k_iSteamStreamLauncherCallbacks:        return "k_iSteamStreamLauncherCallbacks";
+    case k_iClientControllerCallbacks:           return "k_iClientControllerCallbacks";
+    case k_iSteamControllerCallbacks:            return "k_iSteamControllerCallbacks";
+    case k_iClientParentalSettingsCallbacks:     return "k_iClientParentalSettingsCallbacks";
+    case k_iClientDeviceAuthCallbacks:           return "k_iClientDeviceAuthCallbacks";
+    case k_iClientNetworkDeviceManagerCallbacks: return "k_iClientNetworkDeviceManagerCallbacks";
+    case k_iClientMusicCallbacks:                return "k_iClientMusicCallbacks";
+    case k_iClientRemoteClientManagerCallbacks:  return "k_iClientRemoteClientManagerCallbacks";
+    case k_iClientUGCCallbacks:                  return "k_iClientUGCCallbacks";
+    case k_iSteamStreamClientCallbacks:          return "k_iSteamStreamClientCallbacks";
+    case k_IClientProductBuilderCallbacks:       return "k_IClientProductBuilderCallbacks";
+    case k_iClientShortcutsCallbacks:            return "k_iClientShortcutsCallbacks";
+    case k_iClientRemoteControlManagerCallbacks: return "k_iClientRemoteControlManagerCallbacks";
+    case k_iSteamAppListCallbacks:               return "k_iSteamAppListCallbacks";
+    case k_iSteamMusicCallbacks:                 return "k_iSteamMusicCallbacks";
+    case k_iSteamMusicRemoteCallbacks:           return "k_iSteamMusicRemoteCallbacks";
+    case k_iClientVRCallbacks:                   return "k_iClientVRCallbacks";
+    case k_iClientReservedCallbacks:             return "k_iClientReservedCallbacks";
+    case k_iSteamReservedCallbacks:              return "k_iSteamReservedCallbacks";
+    case k_iSteamHTMLSurfaceCallbacks:           return "k_iSteamHTMLSurfaceCallbacks";
+    case k_iClientVideoCallbacks:                return "k_iClientVideoCallbacks";
+    case k_iClientInventoryCallbacks:            return "k_iClientInventoryCallbacks";
+    default:                                     return "UNKNOWN";
+  }
+}
+
 S_API
 void
 S_CALLTYPE
@@ -283,6 +340,14 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       steam_log.Log ( L" * (%-28s) Installed User Achievements Storage Callback",
                         caller.c_str () );
       break;
+    case UserStatsUnloaded_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed User Stats Unloaded Callback",
+                        caller.c_str () );
+      break;
+    case SteamShutdown_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed SteamAPI Shutdown Callback",
+                        caller.c_str () );
+      break;
     case DlcInstalled_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Installed DLC Installation Callback",
                         caller.c_str () );
@@ -291,10 +356,51 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       steam_log.Log ( L" * (%-28s) Installed Async. SteamAPI Completion Callback",
                         caller.c_str () );
       break;
-    default:
-      steam_log.Log ( L" * (%-28s) Installed Unknown Callback (Class=%li00, Id=%li)",
-                        caller.c_str (), iCallback / 100, iCallback % 100 );
+    case SteamServersConnected_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Steam Server Connected Callback",
+                        caller.c_str () );
       break;
+    case SteamServerConnectFailure_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Steam Server Connection Failure Callback",
+                        caller.c_str () );
+      break;
+    case SteamServersDisconnected_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Steam Server Disconnect Callback",
+                        caller.c_str () );
+      break;
+    case LobbyEnter_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Lobby Enter Callback",
+                        caller.c_str () );
+      break;
+    case LobbyDataUpdate_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Lobby Data Update Callback",
+                        caller.c_str () );
+      break;
+    case LobbyChatUpdate_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Lobby Chat Update Callback",
+                        caller.c_str () );
+      break;
+    case GameLobbyJoinRequested_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Game Lobby Join Request Callback",
+                        caller.c_str () );
+      break;
+    case GameRichPresenceJoinRequested_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Game Rich Presence Join Request Callback",
+                        caller.c_str () );
+      break;
+    case P2PSessionConnectFail_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Peer to Peer Session Connect Failure Callback",
+                        caller.c_str () );
+      break;
+    case P2PSessionRequest_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Installed Peer to Peer Session Request Callback",
+                        caller.c_str () );
+      break;
+    default:
+    {
+      steam_log.Log ( L" * (%-28s) Installed Unknown Callback (Class=%hs, Id=%li)",
+                        caller.c_str (), SK_Steam_ClassifyCallback (iCallback), iCallback % 100 );
+    } break;
   }
 
   SteamAPI_RegisterCallback_Original (pCallback, iCallback);
@@ -371,6 +477,14 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
       steam_log.Log ( L" * (%-28s) Uninstalled User Achievements Storage Callback",
                         caller.c_str () );
       break;
+    case UserStatsUnloaded_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled User Stats Unloaded Callback",
+                        caller.c_str () );
+      break;
+    case SteamShutdown_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled SteamAPI Shutdown Callback",
+                        caller.c_str () );
+      break;
     case DlcInstalled_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Uninstalled DLC Installation Callback",
                         caller.c_str () );
@@ -379,10 +493,51 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
       steam_log.Log ( L" * (%-28s) Uninstalled Async. SteamAPI Completion Callback",
                         caller.c_str () );
       break;
-    default:
-      steam_log.Log ( L" * (%-28s) Uninstalled Unknown Callback (Class=%li00, Id=%li)",
-                        caller.c_str (), iCallback / 100, iCallback % 100 );
+    case SteamServersConnected_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Steam Server Connected Callback",
+                        caller.c_str () );
       break;
+    case SteamServerConnectFailure_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Steam Server Connection Failure Callback",
+                        caller.c_str () );
+      break;
+    case SteamServersDisconnected_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Steam Server Disconnect Callback",
+                        caller.c_str () );
+      break;
+    case LobbyEnter_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Lobby Enter Callback",
+                        caller.c_str () );
+      break;
+    case LobbyDataUpdate_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Lobby Data Update Callback",
+                        caller.c_str () );
+      break;
+    case LobbyChatUpdate_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Lobby Chat Update Callback",
+                        caller.c_str () );
+      break;
+    case GameLobbyJoinRequested_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Game Lobby Join Request Callback",
+                        caller.c_str () );
+      break;
+    case GameRichPresenceJoinRequested_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Game Rich Presence Join Request Callback",
+                        caller.c_str () );
+      break;
+    case P2PSessionConnectFail_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Peer to Peer Session Connect Failure Callback",
+                        caller.c_str () );
+      break;
+    case P2PSessionRequest_t::k_iCallback:
+      steam_log.Log ( L" * (%-28s) Uninstalled Peer to Peer Session Request Callback",
+                        caller.c_str () );
+      break;
+    default:
+    {
+      steam_log.Log ( L" * (%-28s) Uninstalled Unknown Callback (Class=%hs, Id=%li)",
+                        caller.c_str (), SK_Steam_ClassifyCallback (iCallback), iCallback % 100 );
+    } break;
   }
 
   SteamAPI_UnregisterCallback_Original (pCallback);

@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.6.0.5"
+#define FAR_VERSION_NUM L"0.6.1"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -317,6 +317,8 @@ SK_FAR_CheckVersion (LPVOID user)
   return 0;
 }
 
+#include <../depends/include/glm/glm.hpp>
+
 HRESULT
 WINAPI
 SK_FAR_CreateBuffer (
@@ -356,10 +358,33 @@ SK_FAR_CreateBuffer (
 
       static far_light_volume_s backup_lights [128];
 
-      for (int i = 0; i < 128; i++) {
-        if (lights [i].half_extents [0] < __FAR_MINIMUM_EXT ||
-            lights [i].half_extents [1] < __FAR_MINIMUM_EXT ||
-            lights [i].half_extents [2] < __FAR_MINIMUM_EXT)
+      // This code is bloody ugly, but it works ;)
+      for (int i = 0; i < 128; i++)
+      {
+        float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
+                                lights [i].world_pos [2], lights [i].world_pos [3] };
+
+        if ( lights [i].world_pos [0] == 0.0f && lights [i].world_pos [1] == 0.0f && 
+             lights [i].world_pos [2] == 0.0f && lights [i].world_pos [3] == 0.0f )
+        {
+          lights    [i] = backup_lights [i];
+
+          light_pos [0] = backup_lights [i].world_pos [0]; light_pos [1] = backup_lights [i].world_pos [1];
+          light_pos [2] = backup_lights [i].world_pos [2]; light_pos [3] = backup_lights [i].world_pos [3];
+        }
+
+        glm::vec4   cam_pos_world   (light_pos [0] - ((float *)far_cam.pCamera) [0], light_pos [1] - ((float *)far_cam.pCamera) [1], light_pos [2] - ((float *)far_cam.pCamera) [2], 1.0f);
+
+        glm::mat4x4 world_mat (lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
+                               lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
+                               lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
+                               lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15]);
+
+        glm::vec4 test = world_mat * cam_pos_world;
+
+        if ( fabs (lights [i].half_extents [0]) < fabs (test.x) * __FAR_MINIMUM_EXT ||
+             fabs (lights [i].half_extents [1]) < fabs (test.z) * __FAR_MINIMUM_EXT ||
+             fabs (lights [i].half_extents [2]) < fabs (test.y) * __FAR_MINIMUM_EXT )
         {
           if ( lights [i].half_extents [0] != 0.0f && lights [i].half_extents [1] != 0.0f &&
                lights [i].half_extents [2] != 0.0f )
@@ -1125,7 +1150,7 @@ D3D11_PSSetShaderResources_Override (
 //  Note that there are more low-res 800x450 buffers not yet handled by this, 
 //  but which could probably be handled similarly. Primarily, SSAO.
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 SK_FAR_CreateTexture2D (
@@ -1532,7 +1557,7 @@ SK_FAR_CorrectAspectRatio (ID3D11DeviceContext *pDevCtx)
   return false;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 WINAPI
 SK_FAR_DrawIndexed (
@@ -1557,7 +1582,7 @@ SK_FAR_DrawIndexed (
     SK_FAR_RestoreAspectRatio (This);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 WINAPI
 SK_FAR_Draw (
@@ -1582,7 +1607,7 @@ SK_FAR_Draw (
 }
 
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 WINAPI
 SK_FAR_DrawIndexedInstanced (
@@ -1601,7 +1626,7 @@ SK_FAR_DrawIndexedInstanced (
     SK_FAR_RestoreAspectRatio (This);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 WINAPI
 SK_FAR_DrawIndexedInstancedIndirect (
@@ -1617,7 +1642,7 @@ SK_FAR_DrawIndexedInstancedIndirect (
     SK_FAR_RestoreAspectRatio (This);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 WINAPI
 SK_FAR_DrawInstanced (
@@ -1635,7 +1660,7 @@ SK_FAR_DrawInstanced (
     SK_FAR_RestoreAspectRatio (This);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 WINAPI
 SK_FAR_DrawInstancedIndirect (
@@ -1654,7 +1679,7 @@ SK_FAR_DrawInstancedIndirect (
 #include <cmath>
 #include <memory>
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 WINAPI
 SK_FAR_PSSetShaderResources (
@@ -2451,8 +2476,12 @@ SK_FAR_ControlPanel (void)
         //ImGui::Checkbox ("Compatibility Mode", &__FAR_GlobalIllumCompatMode);
       }
 
-      if (ImGui::SliderFloat ("Minimum Light Extent", &__FAR_MINIMUM_EXT, 0.0f, 64.0f))
+      float extent = __FAR_MINIMUM_EXT * 100.0f;
+
+      if (ImGui::SliderFloat ("Minimum Light Extent", &extent, 0.0f, 100.0f, "%0.2f%%"))
       {
+        __FAR_MINIMUM_EXT = std::min (1.0f, std::max (0.0f, extent / 100.0f));
+
         far_gi_min_light_extent->set_value (__FAR_MINIMUM_EXT);
         far_gi_min_light_extent->store     ();
       }

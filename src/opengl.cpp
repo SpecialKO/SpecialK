@@ -304,7 +304,6 @@ extern "C"
     typedef _Return (WINAPI *imp_##_Name##_pfn) _Proto;                     \
     imp_##_Name##_pfn imp_##_Name = nullptr;                                \
                                                                             \
-  __declspec (nothrow)                                                      \
   _Return WINAPI                                                            \
   _Name _Proto {                                                            \
     if (imp_##_Name == nullptr) {                                           \
@@ -328,7 +327,6 @@ extern "C"
     typedef void (WINAPI *imp_##_Name##_pfn) _Proto;                        \
     imp_##_Name##_pfn imp_##_Name = nullptr;                                \
                                                                             \
-  __declspec (nothrow)                                                      \
   void WINAPI                                                               \
   _Name _Proto {                                                            \
     if (imp_##_Name == nullptr) {                                           \
@@ -2190,7 +2188,6 @@ SK_HookGL (void)
 #endif
 
 
-__declspec (nothrow)
 HGLRC
 WINAPI
 SK_GetCurrentGLContext (void)

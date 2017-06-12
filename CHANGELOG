@@ -1,6 +1,9 @@
 0.8.13:
- + Add play time tracking to non-Steam games
- + Fix hour roll-over problems in play time stats
+ + Removed Chinese Unicode code points from ImGui font; added Latin punctuation
+ + Fixed NieR: Automata Texture Staging
+ + Added Thread Local Storage Stack
+ + Added play time tracking to non-Steam games
+ + Fixed hour roll-over problems in play time stats
     >> Special K is Y2K38 ready! :) <<
  + d3dcompiler_*.dll is pinned at load-time to prevent TLS issues in software
      that loads and unloads this DLL when it compiles HLSL shaders.

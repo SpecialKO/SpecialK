@@ -803,7 +803,7 @@ SK_DXGI_BeginHooking (void)
 }
 
 #define DXGI_STUB(_Return, _Name, _Proto, _Args)                            \
-  __declspec (nothrow) _Return STDMETHODCALLTYPE                            \
+  _Return STDMETHODCALLTYPE                                                 \
   _Name _Proto {                                                            \
     WaitForInit ();                                                         \
                                                                             \
@@ -830,7 +830,7 @@ SK_DXGI_BeginHooking (void)
 }
 
 #define DXGI_STUB_(_Name, _Proto, _Args)                                    \
-  __declspec (nothrow) void STDMETHODCALLTYPE                               \
+  void STDMETHODCALLTYPE                                                    \
   _Name _Proto {                                                            \
     WaitForInit ();                                                         \
                                                                             \
@@ -2181,7 +2181,6 @@ extern "C" {
   }
 
 
-  COM_DECLSPEC_NOTHROW
   __declspec (noinline)
   HRESULT
   STDMETHODCALLTYPE
@@ -2305,7 +2304,6 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     return hr;
   }
 
-  COM_DECLSPEC_NOTHROW
   __declspec (noinline)
   HRESULT
   STDMETHODCALLTYPE
@@ -2357,7 +2355,6 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     return FindClosestMatchingMode_Original (This, &mode_to_match, pClosestMatch, pConcernedDevice );
   }
 
-  COM_DECLSPEC_NOTHROW
   __declspec (noinline)
   HRESULT
   STDMETHODCALLTYPE
@@ -2367,7 +2364,6 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     return WaitForVBlank_Original (This);
   }
 
-  COM_DECLSPEC_NOTHROW
   __declspec (noinline)
   HRESULT
   STDMETHODCALLTYPE
@@ -2378,8 +2374,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     return GetFullscreenState_Original (This, pFullscreen, ppTarget);
   }
 
-  COM_DECLSPEC_NOTHROW
-__declspec (noinline)
+  __declspec (noinline)
   HRESULT
   STDMETHODCALLTYPE
   DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
@@ -2423,7 +2418,6 @@ __declspec (noinline)
     return ret;
   }
 
-  COM_DECLSPEC_NOTHROW
   __declspec (noinline)
   HRESULT
   STDMETHODCALLTYPE
@@ -2490,7 +2484,6 @@ __declspec (noinline)
     return ret;
   }
 
-  COM_DECLSPEC_NOTHROW
   __declspec (noinline)
   HRESULT
   STDMETHODCALLTYPE
@@ -3156,15 +3149,13 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     Intel     = 0x8086
   } Vendors;
 
-  __declspec (nothrow)
   HRESULT
   STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                                  _Out_ void   **ppFactory);
 
-  __declspec (nothrow)
-    HRESULT
-    STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
-                                    _Out_ void   **ppFactory);
+  HRESULT
+  STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
+                                  _Out_ void   **ppFactory);
 
   // Do this in a thread because it is not safe to do from
   //   the thread that created the window or drives the message
@@ -3597,10 +3588,9 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     return ret;
   }
 
-  __declspec (nothrow)
-    HRESULT
-    STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
-                                   _Out_ void   **ppFactory)
+  HRESULT
+  STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
+                                 _Out_ void   **ppFactory)
   {
     // For DXGI compliance, do not mix-and-match
     if (SK_DXGI_use_factory1)
@@ -3624,10 +3614,9 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     return ret;
   }
 
-  __declspec (nothrow)
-    HRESULT
-    STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
-                                    _Out_ void   **ppFactory)
+  HRESULT
+  STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
+                                  _Out_ void   **ppFactory)
   {
     // For DXGI compliance, do not mix-and-match
     if ((! SK_DXGI_use_factory1) && (SK_DXGI_factory_init))
@@ -3657,11 +3646,10 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     return     ret;
   }
 
-  __declspec (nothrow)
-    HRESULT
-    STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
-                                          REFIID   riid,
-                                    _Out_ void   **ppFactory)
+  HRESULT
+  STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
+                                        REFIID   riid,
+                                  _Out_ void   **ppFactory)
   {
     SK_DXGI_use_factory1 = true;
     SK_DXGI_factory_init = true;
@@ -4144,7 +4132,6 @@ struct sk_hook_d3d11_t {
 
 volatile DWORD SK_D3D11_init_tid = 0;
 
-__declspec (nothrow)
 unsigned int
 __stdcall
 HookDXGI (LPVOID user)

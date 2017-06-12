@@ -84,7 +84,6 @@ typedef IDirect3D9*
 typedef HRESULT
   (STDMETHODCALLTYPE *Direct3DCreate9ExPROC)(UINT           SDKVersion,
                                              IDirect3D9Ex** d3d9ex);
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 D3DPRESENT_PARAMETERS*
 WINAPI
@@ -178,7 +177,6 @@ Direct3DCreate9ExPROC    Direct3DCreate9Ex_Import     = nullptr;
 
 D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  0  };
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
@@ -682,9 +680,9 @@ SK_HookD3D9 (void)
         dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %p  { Hooked }",
           (Direct3DCreate9Ex_Import) );
       }
-    }
 
-    MH_ApplyQueued ();
+      MH_ApplyQueued ();
+    }
   }
 
 #if 0
@@ -915,7 +913,6 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
 
 extern bool WINAPI SK_CheckForGeDoSaTo (void);
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
@@ -974,7 +971,6 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
   return hr;
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
@@ -1003,7 +999,6 @@ WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
                                        pDirtyRegion );
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
@@ -1078,7 +1073,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
 
 #define D3D9_STUB_HRESULT(_Return, _Name, _Proto, _Args)                  \
-  COM_DECLSPEC_NOTHROW __declspec (noinline) _Return STDMETHODCALLTYPE    \
+  __declspec (noinline) _Return STDMETHODCALLTYPE                         \
   _Name _Proto {                                                          \
     WaitForInit ();                                                       \
                                                                           \
@@ -1106,7 +1101,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 }
 
 #define D3D9_STUB_VOIDP(_Return, _Name, _Proto, _Args)                    \
-  COM_DECLSPEC_NOTHROW __declspec (noinline) _Return STDMETHODCALLTYPE    \
+  __declspec (noinline) _Return STDMETHODCALLTYPE                         \
   _Name _Proto {                                                          \
     WaitForInit ();                                                       \
                                                                           \
@@ -1134,7 +1129,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 }
 
 #define D3D9_STUB_VOID(_Return, _Name, _Proto, _Args)                     \
-  COM_DECLSPEC_NOTHROW __declspec (noinline) _Return STDMETHODCALLTYPE    \
+  __declspec (noinline) _Return STDMETHODCALLTYPE                         \
   _Name _Proto {                                                          \
     WaitForInit ();                                                       \
                                                                           \
@@ -1162,7 +1157,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 }
 
 #define D3D9_STUB_INT(_Return, _Name, _Proto, _Args)                      \
-  COM_DECLSPEC_NOTHROW __declspec (noinline) _Return STDMETHODCALLTYPE    \
+  __declspec (noinline) _Return STDMETHODCALLTYPE                         \
   _Name _Proto {                                                          \
     WaitForInit ();                                                       \
                                                                           \
@@ -1214,7 +1209,6 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateAdditionalSwapChain_pfn)
 
 CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
 
-  COM_DECLSPEC_NOTHROW
   __declspec (noinline)
   HRESULT
   WINAPI D3D9PresentSwapCallback (IDirect3DSwapChain9 *This,
@@ -1275,7 +1269,6 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
     return SK_EndBufferSwap (hr);
   }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1311,7 +1304,6 @@ D3D9CreateAdditionalSwapChain_Override (
 typedef HRESULT (STDMETHODCALLTYPE *TestCooperativeLevel_pfn)(IDirect3DDevice9* This);
 TestCooperativeLevel_pfn D3D9TestCooperativeLevel_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1329,7 +1321,6 @@ typedef HRESULT (STDMETHODCALLTYPE *BeginScene_pfn)
 
 BeginScene_pfn D3D9BeginScene_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1349,7 +1340,6 @@ typedef HRESULT (STDMETHODCALLTYPE *EndScene_pfn)
 
 EndScene_pfn D3D9EndScene_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1368,14 +1358,12 @@ D3D9EndScene_Override (IDirect3DDevice9* This)
   return hr;
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
 D3D9Reset_Override ( IDirect3DDevice9      *This,
                      D3DPRESENT_PARAMETERS *pPresentationParameters );
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1601,7 +1589,6 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
 }
 
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1617,11 +1604,11 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                   SK_SummarizeCaller ().c_str ()
   );
 
-  SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
-               (! pPresentationParameters->Windowed) );
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  {
+    SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
+                 (! pPresentationParameters->Windowed) );
 
-
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0)) {
     SK_D3D9_SetFPSTarget    (      pPresentationParameters);
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
   }
@@ -1645,7 +1632,10 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
        D3D9Present_Original == nullptr )
     SK_D3D9_HookPresent (This);
 
-  D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  {
+    D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
+  }
 
   D3D9_CALL (hr, D3D9Reset_Original (This,
                                       pPresentationParameters));
@@ -1653,15 +1643,23 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   if (SUCCEEDED (hr))
   {
     if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    {
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+      D3D9Reset_Post          (This, pPresentationParameters, nullptr);
+    }
+  }
 
-    D3D9Reset_Post (This, pPresentationParameters, nullptr);
+  else
+  {
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    {
+      D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
+    }
   }
 
   return hr;
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1678,11 +1676,11 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                     This, pPresentationParameters, pFullscreenDisplayMode,
                       SK_SummarizeCaller ().c_str () );
 
-  SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
-               (! pPresentationParameters->Windowed) );
-
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
+    SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
+                 (! pPresentationParameters->Windowed) );
+
     SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
   }
@@ -1702,7 +1700,10 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     pDev.Release ();
   }
 
-  D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
+  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  {
+    D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
+  }
 
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
@@ -1710,16 +1711,25 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   if (SUCCEEDED (hr))
   {
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))  
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    {
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
-
-    D3D9Reset_Post (This, pPresentationParameters, pFullscreenDisplayMode);
+      D3D9Reset_Post          (This, pPresentationParameters, pFullscreenDisplayMode);
+    }
   }
+
+  else
+  {
+    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    {
+      D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
+    }
+  }
+
 
   return hr;
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
@@ -1745,7 +1755,6 @@ typedef HRESULT (STDMETHODCALLTYPE *DrawPrimitive_pfn)
 
 DrawPrimitive_pfn D3D9DrawPrimitive_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1772,7 +1781,6 @@ typedef HRESULT (STDMETHODCALLTYPE *DrawIndexedPrimitive_pfn)
 
 DrawIndexedPrimitive_pfn D3D9DrawIndexedPrimitive_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1803,7 +1811,6 @@ typedef HRESULT (STDMETHODCALLTYPE *DrawPrimitiveUP_pfn)
 
 DrawPrimitiveUP_pfn D3D9DrawPrimitiveUP_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1834,7 +1841,6 @@ typedef HRESULT (STDMETHODCALLTYPE *DrawIndexedPrimitiveUP_pfn)
 
 DrawIndexedPrimitiveUP_pfn D3D9DrawIndexedPrimitiveUP_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1870,7 +1876,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetTexture_pfn)
 
 SetTexture_pfn D3D9SetTexture_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1889,7 +1894,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetSamplerState_pfn)
 
 SetSamplerState_pfn D3D9SetSamplerState_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1908,7 +1912,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetViewport_pfn)
 
 SetViewport_pfn D3D9SetViewport_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1926,7 +1929,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetRenderState_pfn)
 
 SetRenderState_pfn D3D9SetRenderState_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1947,7 +1949,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetVertexShaderConstantF_pfn)
 SetVertexShaderConstantF_pfn D3D9SetVertexShaderConstantF_Original = nullptr;
 
 __declspec (noinline)
-COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE
 D3D9SetVertexShaderConstantF_Override (IDirect3DDevice9* This,
@@ -1967,7 +1968,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetPixelShaderConstantF_pfn)
 
 SetPixelShaderConstantF_pfn D3D9SetPixelShaderConstantF_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1989,7 +1989,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetPixelShader_pfn)
 
 SetPixelShader_pfn D3D9SetPixelShader_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2008,7 +2007,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetVertexShader_pfn)
 
 SetVertexShader_pfn D3D9SetVertexShader_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2025,7 +2023,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetScissorRect_pfn)
 
 SetScissorRect_pfn D3D9SetScissorRect_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2048,7 +2045,6 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateTexture_pfn)
 
 CreateTexture_pfn D3D9CreateTexture_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2081,7 +2077,6 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateVertexBuffer_pfn)
 
 CreateVertexBuffer_pfn D3D9CreateVertexBuffer_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2114,7 +2109,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetStreamSource_pfn)
 
 SetStreamSource_pfn D3D9SetStreamSource_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2143,7 +2137,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetStreamSourceFreq_pfn)
 
 SetStreamSourceFreq_pfn D3D9SetStreamSourceFreq_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2167,7 +2160,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetFVF_pfn)
 
 SetFVF_pfn D3D9SetFVF_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2187,7 +2179,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetVertexDeclaration_pfn)
 
 SetVertexDeclaration_pfn D3D9SetVertexDeclaration_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2207,7 +2198,6 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateVertexDeclaration_pfn)
 
 CreateVertexDeclaration_pfn D3D9CreateVertexDeclaration_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2233,7 +2223,6 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateRenderTarget_pfn)
 
 CreateRenderTarget_pfn D3D9CreateRenderTarget_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2265,7 +2254,6 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateDepthStencilSurface_pfn)
 
 CreateDepthStencilSurface_pfn D3D9CreateDepthStencilSurface_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2292,7 +2280,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetRenderTarget_pfn)
 SetRenderTarget_pfn D3D9SetRenderTarget_Original = nullptr;
 
 __declspec (noinline)
-COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE
 D3D9SetRenderTarget_Override (IDirect3DDevice9  *This,
@@ -2309,7 +2296,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetDepthStencilSurface_pfn)
 SetDepthStencilSurface_pfn D3D9SetDepthStencilSurface_Original = nullptr;
 
 __declspec (noinline)
-COM_DECLSPEC_NOTHROW
 HRESULT
 STDMETHODCALLTYPE
 D3D9SetDepthStencilSurface_Override (IDirect3DDevice9  *This,
@@ -2327,7 +2313,6 @@ typedef HRESULT (STDMETHODCALLTYPE *UpdateTexture_pfn)
 
 UpdateTexture_pfn D3D9UpdateTexture_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2350,7 +2335,6 @@ typedef HRESULT (STDMETHODCALLTYPE *StretchRect_pfn)
 
 StretchRect_pfn D3D9StretchRect_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2379,7 +2363,6 @@ typedef HRESULT (STDMETHODCALLTYPE *SetCursorPosition_pfn)
 
 SetCursorPosition_pfn D3D9SetCursorPosition_Original = nullptr;
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2519,7 +2502,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
   return pparams;
 }
 
-COM_DECLSPEC_NOTHROW
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE

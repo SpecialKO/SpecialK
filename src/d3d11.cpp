@@ -273,7 +273,7 @@ typedef ULONG (WINAPI *IUnknown_AddRef_pfn)  (IUnknown* This);
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
 IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 ULONG
 WINAPI
 IUnknown_Release (IUnknown* This)
@@ -294,7 +294,7 @@ IUnknown_Release (IUnknown* This)
   return IUnknown_Release_Original (This);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 ULONG
 WINAPI
 IUnknown_AddRef (IUnknown* This)
@@ -379,7 +379,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   }
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
@@ -559,7 +559,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   return res;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11CreateDevice_Detour (
@@ -679,7 +679,7 @@ D3D11_CSGetShader_pfn                               D3D11_CSGetShader_Original  
 D3D11_CopyResource_pfn                              D3D11_CopyResource_Original                              = nullptr;
 D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Original                        = nullptr;
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
 D3D11Dev_CreateRenderTargetView_Override (
@@ -1144,7 +1144,23 @@ NvAPI_D3D11_CreateFastGeometryShader_Override ( __in  ID3D11Device *pDevice,    
   return ret;
 }
 
-__declspec (noinline,nothrow)
+uint32_t
+__cdecl
+SK_D3D11_ChecksumShaderBytecode ( _In_      const void                *pShaderBytecode,
+                                  _In_            SIZE_T               BytecodeLength  )
+{
+  __try
+  {
+    return crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return 0x00;
+  }
+}
+
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateVertexShader_Override (
@@ -1154,6 +1170,8 @@ D3D11Dev_CreateVertexShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11VertexShader **ppVertexShader )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   HRESULT hr =
     D3D11Dev_CreateVertexShader_Original ( This,
                                              pShaderBytecode, BytecodeLength,
@@ -1161,9 +1179,11 @@ D3D11Dev_CreateVertexShader_Override (
 
   if (SUCCEEDED (hr) && ppVertexShader)
   {
-    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    uint32_t checksum =
+      SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
-    EnterCriticalSection (&cs_shader);
+    if (checksum == 0x00)
+      return hr;
 
     if (! SK_D3D11_Shaders.vertex.descs.count (checksum))
     {
@@ -1188,14 +1208,12 @@ D3D11Dev_CreateVertexShader_Override (
 
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
-
-    LeaveCriticalSection (&cs_shader);
   }
 
   return hr;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreatePixelShader_Override (
@@ -1205,6 +1223,8 @@ D3D11Dev_CreatePixelShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11PixelShader  **ppPixelShader )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   HRESULT hr =
     D3D11Dev_CreatePixelShader_Original ( This, pShaderBytecode,
                                             BytecodeLength, pClassLinkage,
@@ -1212,9 +1232,11 @@ D3D11Dev_CreatePixelShader_Override (
 
   if (SUCCEEDED (hr) && ppPixelShader)
   {
-    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    uint32_t checksum =
+      SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
-    EnterCriticalSection (&cs_shader);
+    if (checksum == 0x00)
+      return hr;
 
     if (! SK_D3D11_Shaders.pixel.descs.count (checksum))
     {
@@ -1236,8 +1258,6 @@ D3D11Dev_CreatePixelShader_Override (
 
     SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.pixel.descs [checksum];
 
-    LeaveCriticalSection (&cs_shader);
-
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
@@ -1245,7 +1265,7 @@ D3D11Dev_CreatePixelShader_Override (
   return hr;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateGeometryShader_Override (
@@ -1255,6 +1275,8 @@ D3D11Dev_CreateGeometryShader_Override (
   _In_opt_        ID3D11ClassLinkage    *pClassLinkage,
   _Out_opt_       ID3D11GeometryShader **ppGeometryShader )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   HRESULT hr =
     D3D11Dev_CreateGeometryShader_Original ( This, pShaderBytecode,
                                                BytecodeLength, pClassLinkage,
@@ -1262,9 +1284,11 @@ D3D11Dev_CreateGeometryShader_Override (
 
   if (SUCCEEDED (hr) && ppGeometryShader)
   {
-    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    uint32_t checksum =
+      SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
-    EnterCriticalSection (&cs_shader);
+    if (checksum == 0x00)
+      return hr;
 
     if (! SK_D3D11_Shaders.geometry.descs.count (checksum))
     {
@@ -1286,8 +1310,6 @@ D3D11Dev_CreateGeometryShader_Override (
 
     SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.geometry.descs [checksum];
 
-    LeaveCriticalSection (&cs_shader);
-
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
@@ -1295,7 +1317,7 @@ D3D11Dev_CreateGeometryShader_Override (
   return hr;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
@@ -1310,6 +1332,8 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _In_opt_        ID3D11ClassLinkage         *pClassLinkage,
   _Out_opt_       ID3D11GeometryShader       **ppGeometryShader )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   HRESULT hr =
     D3D11Dev_CreateGeometryShaderWithStreamOutput_Original ( This, pShaderBytecode,
                                                                BytecodeLength,
@@ -1320,9 +1344,11 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 
   if (SUCCEEDED (hr) && ppGeometryShader)
   {
-    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    uint32_t checksum =
+      SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
-    EnterCriticalSection (&cs_shader);
+    if (checksum == 0x00)
+      return hr;
 
     if (! SK_D3D11_Shaders.geometry.descs.count (checksum))
     {
@@ -1344,8 +1370,6 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 
     SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.geometry.descs [checksum];
 
-    LeaveCriticalSection (&cs_shader);
-
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
@@ -1354,7 +1378,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 }
 
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateHullShader_Override (
@@ -1364,6 +1388,8 @@ D3D11Dev_CreateHullShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11HullShader   **ppHullShader )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   HRESULT hr =
     D3D11Dev_CreateHullShader_Original ( This, pShaderBytecode,
                                            BytecodeLength, pClassLinkage,
@@ -1371,9 +1397,11 @@ D3D11Dev_CreateHullShader_Override (
 
   if (SUCCEEDED (hr) && ppHullShader)
   {
-    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    uint32_t checksum =
+      SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
-    EnterCriticalSection (&cs_shader);
+    if (checksum == 0x00)
+      return hr;
 
     if (! SK_D3D11_Shaders.hull.descs.count (checksum))
     {
@@ -1395,8 +1423,6 @@ D3D11Dev_CreateHullShader_Override (
 
     SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.hull.descs [checksum];
 
-    LeaveCriticalSection (&cs_shader);
-
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
@@ -1404,7 +1430,7 @@ D3D11Dev_CreateHullShader_Override (
   return hr;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateDomainShader_Override (
@@ -1414,6 +1440,8 @@ D3D11Dev_CreateDomainShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11DomainShader **ppDomainShader )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   HRESULT hr =
     D3D11Dev_CreateDomainShader_Original ( This, pShaderBytecode,
                                              BytecodeLength, pClassLinkage,
@@ -1421,9 +1449,11 @@ D3D11Dev_CreateDomainShader_Override (
 
   if (SUCCEEDED (hr) && ppDomainShader)
   {
-    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    uint32_t checksum =
+      SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
-    EnterCriticalSection (&cs_shader);
+    if (checksum == 0x00)
+      return hr;
 
     if (! SK_D3D11_Shaders.domain.descs.count (checksum))
     {
@@ -1445,8 +1475,6 @@ D3D11Dev_CreateDomainShader_Override (
 
     SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.domain.descs [checksum];
 
-    LeaveCriticalSection (&cs_shader);
-
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
@@ -1454,7 +1482,7 @@ D3D11Dev_CreateDomainShader_Override (
   return hr;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateComputeShader_Override (
@@ -1464,6 +1492,8 @@ D3D11Dev_CreateComputeShader_Override (
   _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
   _Out_opt_       ID3D11ComputeShader **ppComputeShader )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   HRESULT hr =
     D3D11Dev_CreateComputeShader_Original ( This, pShaderBytecode,
                                               BytecodeLength, pClassLinkage,
@@ -1471,9 +1501,11 @@ D3D11Dev_CreateComputeShader_Override (
 
   if (SUCCEEDED (hr) && ppComputeShader)
   {
-    uint32_t checksum = crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
+    uint32_t checksum =
+      SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
-    EnterCriticalSection (&cs_shader);
+    if (checksum == 0x00)
+      return hr;
 
     if (! SK_D3D11_Shaders.compute.descs.count (checksum))
     {
@@ -1495,8 +1527,6 @@ D3D11Dev_CreateComputeShader_Override (
 
     SK_D3D11_ShaderDesc& desc = SK_D3D11_Shaders.compute.descs [checksum];
 
-    LeaveCriticalSection (&cs_shader);
-
     InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
     _time64 (&desc.usage.last_time);
   }
@@ -1506,7 +1536,7 @@ D3D11Dev_CreateComputeShader_Override (
 
 
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_VSSetShader_Override (
@@ -1515,6 +1545,8 @@ D3D11_VSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_VSSetShader_Original (This, pVertexShader, ppClassInstances, NumClassInstances);
@@ -1522,8 +1554,6 @@ D3D11_VSSetShader_Override (
 
   if (pVertexShader)
   {
-    EnterCriticalSection (&cs_shader);
-
     if (SK_D3D11_Shaders.vertex.rev.count (pVertexShader))
     {
       ++SK_D3D11_Shaders.vertex.changes_last_frame;
@@ -1535,8 +1565,6 @@ D3D11_VSSetShader_Override (
       InterlockedExchange (&SK_D3D11_Shaders.vertex.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.vertex.descs [checksum].usage.last_time);
 
-      LeaveCriticalSection (&cs_shader);
-
       if (checksum == SK_D3D11_Shaders.vertex.tracked.crc32c)
         SK_D3D11_Shaders.vertex.tracked.activate (ppClassInstances, NumClassInstances);
 
@@ -1546,8 +1574,6 @@ D3D11_VSSetShader_Override (
 
     else
     {
-      LeaveCriticalSection (&cs_shader);
-
       SK_D3D11_Shaders.vertex.tracked.deactivate ();
       SK_D3D11_Shaders.vertex.current = 0x0;
     }
@@ -1563,7 +1589,7 @@ D3D11_VSSetShader_Override (
                                  ppClassInstances, NumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_VSGetShader_Override (
@@ -1576,7 +1602,7 @@ D3D11_VSGetShader_Override (
                                         ppClassInstances, pNumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_PSSetShader_Override (
@@ -1585,15 +1611,14 @@ D3D11_PSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_PSSetShader_Original (This, pPixelShader, ppClassInstances, NumClassInstances);
 
-
   if (pPixelShader)
   {
-    EnterCriticalSection (&cs_shader);
-
     if (SK_D3D11_Shaders.pixel.rev.count (pPixelShader))
     {
       ++SK_D3D11_Shaders.pixel.changes_last_frame;
@@ -1605,8 +1630,6 @@ D3D11_PSSetShader_Override (
       InterlockedExchange (&SK_D3D11_Shaders.pixel.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.pixel.descs [checksum].usage.last_time);
 
-      LeaveCriticalSection (&cs_shader);
-
       if (checksum == SK_D3D11_Shaders.pixel.tracked.crc32c)
         SK_D3D11_Shaders.pixel.tracked.activate   (ppClassInstances, NumClassInstances);
       else
@@ -1615,8 +1638,6 @@ D3D11_PSSetShader_Override (
 
     else
     {
-      LeaveCriticalSection (&cs_shader);
-
       SK_D3D11_Shaders.pixel.tracked.deactivate ();
       SK_D3D11_Shaders.pixel.current = 0x0;
     }
@@ -1632,7 +1653,7 @@ D3D11_PSSetShader_Override (
                                  ppClassInstances, NumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_PSGetShader_Override (
@@ -1645,7 +1666,7 @@ D3D11_PSGetShader_Override (
                                         ppClassInstances, pNumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_GSSetShader_Override (
@@ -1654,10 +1675,10 @@ D3D11_GSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   if (pGeometryShader)
   {
-    EnterCriticalSection (&cs_shader);
-
     if (SK_D3D11_Shaders.geometry.rev.count (pGeometryShader))
     {
       ++SK_D3D11_Shaders.geometry.changes_last_frame;
@@ -1669,8 +1690,6 @@ D3D11_GSSetShader_Override (
       InterlockedExchange (&SK_D3D11_Shaders.geometry.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.geometry.descs [checksum].usage.last_time);
 
-      LeaveCriticalSection (&cs_shader);
-
       if (checksum == SK_D3D11_Shaders.geometry.tracked.crc32c)
         SK_D3D11_Shaders.geometry.tracked.activate (ppClassInstances, NumClassInstances);
 
@@ -1680,8 +1699,6 @@ D3D11_GSSetShader_Override (
 
     else
     {
-      LeaveCriticalSection (&cs_shader);
-
       SK_D3D11_Shaders.geometry.tracked.deactivate ();
       SK_D3D11_Shaders.geometry.current = 0x0;
     }
@@ -1696,7 +1713,7 @@ D3D11_GSSetShader_Override (
   D3D11_GSSetShader_Original (This, pGeometryShader, ppClassInstances, NumClassInstances);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_GSGetShader_Override (
@@ -1708,7 +1725,7 @@ D3D11_GSGetShader_Override (
   return D3D11_GSGetShader_Original (This, ppGeometryShader, ppClassInstances, pNumClassInstances);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_HSSetShader_Override (
@@ -1717,10 +1734,10 @@ D3D11_HSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   if (pHullShader)
   {
-    EnterCriticalSection (&cs_shader);
-
     if (SK_D3D11_Shaders.hull.rev.count (pHullShader))
     {
       ++SK_D3D11_Shaders.hull.changes_last_frame;
@@ -1732,8 +1749,6 @@ D3D11_HSSetShader_Override (
       InterlockedExchange (&SK_D3D11_Shaders.hull.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.hull.descs [checksum].usage.last_time);
 
-      LeaveCriticalSection (&cs_shader);
-
       if (checksum == SK_D3D11_Shaders.hull.tracked.crc32c)
         SK_D3D11_Shaders.hull.tracked.activate (ppClassInstances, NumClassInstances);
 
@@ -1743,8 +1758,6 @@ D3D11_HSSetShader_Override (
 
     else
     {
-      LeaveCriticalSection (&cs_shader);
-
       SK_D3D11_Shaders.hull.tracked.deactivate ();
       SK_D3D11_Shaders.hull.current = 0x0;
     }
@@ -1760,7 +1773,7 @@ D3D11_HSSetShader_Override (
                                  ppClassInstances, NumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_HSGetShader_Override (
@@ -1773,7 +1786,7 @@ D3D11_HSGetShader_Override (
                                         ppClassInstances, pNumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DSSetShader_Override (
@@ -1782,10 +1795,10 @@ D3D11_DSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   if (pDomainShader)
   {
-    EnterCriticalSection (&cs_shader);
-
     if (SK_D3D11_Shaders.domain.rev.count (pDomainShader))
     {
       ++SK_D3D11_Shaders.domain.changes_last_frame;
@@ -1797,8 +1810,6 @@ D3D11_DSSetShader_Override (
       InterlockedExchange (&SK_D3D11_Shaders.domain.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.domain.descs [checksum].usage.last_time);
 
-      LeaveCriticalSection (&cs_shader);
-
       if (checksum == SK_D3D11_Shaders.domain.tracked.crc32c)
         SK_D3D11_Shaders.domain.tracked.activate (ppClassInstances, NumClassInstances);
 
@@ -1808,8 +1819,6 @@ D3D11_DSSetShader_Override (
 
     else
     {
-      LeaveCriticalSection (&cs_shader);
-
       SK_D3D11_Shaders.domain.tracked.deactivate ();
       SK_D3D11_Shaders.domain.current = 0x0;
     }
@@ -1825,7 +1834,7 @@ D3D11_DSSetShader_Override (
                                  ppClassInstances, NumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DSGetShader_Override (
@@ -1838,7 +1847,7 @@ D3D11_DSGetShader_Override (
                                         ppClassInstances, pNumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_CSSetShader_Override (
@@ -1847,10 +1856,10 @@ D3D11_CSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-   if (pComputeShader)
-  {
-    EnterCriticalSection (&cs_shader);
+  SK_AutoCriticalSection auto_cs (&cs_shader);
 
+  if (pComputeShader)
+  {
     if (SK_D3D11_Shaders.compute.rev.count (pComputeShader))
     {
       ++SK_D3D11_Shaders.compute.changes_last_frame;
@@ -1862,8 +1871,6 @@ D3D11_CSSetShader_Override (
       InterlockedExchange (&SK_D3D11_Shaders.compute.descs [checksum].usage.last_frame, SK_GetFramesDrawn ());
       _time64 (&SK_D3D11_Shaders.compute.descs [checksum].usage.last_time);
 
-      LeaveCriticalSection (&cs_shader);
-
       if (checksum == SK_D3D11_Shaders.compute.tracked.crc32c)
         SK_D3D11_Shaders.compute.tracked.activate (ppClassInstances, NumClassInstances);
 
@@ -1873,8 +1880,6 @@ D3D11_CSSetShader_Override (
 
     else
     {
-      LeaveCriticalSection (&cs_shader);
-
       SK_D3D11_Shaders.compute.tracked.deactivate ();
       SK_D3D11_Shaders.compute.current = 0x0;
     }
@@ -1890,7 +1895,7 @@ D3D11_CSSetShader_Override (
                                  ppClassInstances, NumClassInstances );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_CSGetShader_Override (
@@ -1928,7 +1933,7 @@ typedef void (STDMETHODCALLTYPE *D3D11_CSSetShader_pfn)(ID3D11DeviceContext     
                                                         UINT                        NumClassInstances);
 
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_RSSetScissorRects_Override (
@@ -1939,7 +1944,7 @@ D3D11_RSSetScissorRects_Override (
   return D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_VSSetConstantBuffers_Override (
@@ -1986,7 +1991,7 @@ SK_D3D11_ActivateSRV (ID3D11ShaderResourceView* pSRV)
   return true;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_VSSetShaderResources_Override (
@@ -1995,6 +2000,8 @@ D3D11_VSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_VSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
@@ -2028,7 +2035,7 @@ D3D11_VSSetShaderResources_Override (
   delete [] newResourceViews;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_PSSetShaderResources_Override (
@@ -2037,6 +2044,8 @@ D3D11_PSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Top ()->imgui.drawing)
     return D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
@@ -2070,7 +2079,7 @@ D3D11_PSSetShaderResources_Override (
   delete [] newResourceViews;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_GSSetShaderResources_Override (
@@ -2079,6 +2088,8 @@ D3D11_GSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
@@ -2108,7 +2119,7 @@ D3D11_GSSetShaderResources_Override (
   delete [] newResourceViews;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_HSSetShaderResources_Override (
@@ -2146,7 +2157,7 @@ D3D11_HSSetShaderResources_Override (
   delete [] newResourceViews;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DSSetShaderResources_Override (
@@ -2155,6 +2166,8 @@ D3D11_DSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
@@ -2184,7 +2197,7 @@ D3D11_DSSetShaderResources_Override (
   delete [] newResourceViews;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_CSSetShaderResources_Override (
@@ -2193,6 +2206,8 @@ D3D11_CSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   ID3D11ShaderResourceView** newResourceViews = new ID3D11ShaderResourceView* [NumViews];
 
   if (NumViews > 0 && ppShaderResourceViews)
@@ -2222,7 +2237,7 @@ D3D11_CSSetShaderResources_Override (
   delete [] newResourceViews;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_UpdateSubresource_Override (
@@ -2263,7 +2278,7 @@ D3D11_UpdateSubresource_Override (
                                                 SrcDepthPitch );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
 D3D11_Map_Override (
@@ -2308,7 +2323,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                                 MapType, MapFlags, pMappedResource );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_CopyResource_Override (
@@ -2398,7 +2413,7 @@ SK_D3D11_DispatchHandler (void)
   return false;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
@@ -2409,7 +2424,7 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
   return D3D11_DrawAuto_Original (This);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DrawIndexed_Override (
@@ -2435,7 +2450,7 @@ D3D11_DrawIndexed_Override (
                                                 BaseVertexLocation );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_Draw_Override (
@@ -2449,7 +2464,7 @@ D3D11_Draw_Override (
   return D3D11_Draw_Original ( This, VertexCount, StartVertexLocation );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DrawIndexedInstanced_Override (
@@ -2469,7 +2484,7 @@ D3D11_DrawIndexedInstanced_Override (
                                               BaseVertexLocation, StartInstanceLocation );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DrawIndexedInstancedIndirect_Override (
@@ -2485,7 +2500,7 @@ D3D11_DrawIndexedInstancedIndirect_Override (
                                                     AlignedByteOffsetForArgs );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DrawInstanced_Override (
@@ -2504,7 +2519,7 @@ D3D11_DrawInstanced_Override (
                                        StartInstanceLocation );
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DrawInstancedIndirect_Override (
@@ -2521,7 +2536,7 @@ D3D11_DrawInstancedIndirect_Override (
 }
 
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
@@ -2535,7 +2550,7 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
   return D3D11_Dispatch_Original (This, ThreadGroupCountX, ThreadGroupCountY, ThreadGroupCountZ);
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
@@ -2550,7 +2565,7 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
 
 
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_OMSetRenderTargets_Override (
@@ -2601,7 +2616,7 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
   }
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext              *This,
@@ -2644,7 +2659,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
   }
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_RSSetViewports_Override (
@@ -4302,7 +4317,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   return E_FAIL;
 }
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateBuffer_Override (
@@ -4319,7 +4334,7 @@ D3D11Dev_CreateBuffer_Override (
 
 #include <unordered_set>
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateShaderResourceView_Override (
@@ -4336,7 +4351,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 }
 
 
-__declspec (noinline,nothrow)
+__declspec (noinline)
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
@@ -5008,7 +5023,6 @@ struct sk_hook_d3d11_t {
  ID3D11DeviceContext** ppImmediateContext;
 };
 
-__declspec (nothrow)
 unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
@@ -5970,7 +5984,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         static std::vector <uint32_t> vec;
         vec.clear ();
 
-        EnterCriticalSection (&cs_shader);
+        SK_AutoCriticalSection auto_cs (&cs_shader);
 
         switch (type)
         {
@@ -6032,8 +6046,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             }
           } break;
         }
-
-        LeaveCriticalSection (&cs_shader);
 
         return vec;
       };
@@ -6272,7 +6284,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         }
 
         break;
-      } while (list->sel > 0 && list->sel < shaders.size () - 1);
+      } while (list->sel > 0 && (unsigned)list->sel < shaders.size () - 1);
     }
 
 
@@ -6361,7 +6373,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (tracker->crc32c != 0)
     {
-      EnterCriticalSection (&cs_shader);
+      SK_AutoCriticalSection auto_cs (&cs_shader);
 
       switch (shader_type)
       {
@@ -6413,8 +6425,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                                     IID_ID3D11ShaderReflection, reinterpret_cast <void **>(&pReflect));
           break;
       }
-
-      LeaveCriticalSection (&cs_shader);
 
       if (SUCCEEDED (hr) && strlen ((const char *)pDisasm->GetBufferPointer ()))
       {

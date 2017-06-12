@@ -189,7 +189,6 @@ SK_D3D12_EnableHooks (void)
     SK_EnableHook (pfnD3D12CreateDevice);
 }
 
-__declspec (nothrow)
 unsigned int
 __stdcall
 HookD3D12 (LPVOID user)

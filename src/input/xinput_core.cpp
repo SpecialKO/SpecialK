@@ -949,7 +949,7 @@ SK_XInput_PulseController ( INT   iJoyID,
   vibes.wRightMotorSpeed = (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f);
 
   if (xinput_ctx.primary_hook && xinput_ctx.primary_hook->XInputSetState_Original) {
-    xinput_ctx.primary_hook->XInputSetState_Detour ( iJoyID, &vibes );
+    xinput_ctx.primary_hook->XInputSetState_Original ( iJoyID, &vibes );
     return true;
   }
 
@@ -1130,7 +1130,7 @@ SK_Input_PreHookXInput (void)
 
 
 void
-SK_XInput_ZeroHaptics(INT iJoyID)
+SK_XInput_ZeroHaptics (INT iJoyID)
 {
   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
 }
