@@ -171,20 +171,39 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   D3DCAPS9                      caps;
   g_pd3dDevice->GetDeviceCaps (&caps);
 
+  CComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
+  CComPtr <IDirect3DSurface9> rts [32];
+  CComPtr <IDirect3DSurface9> pDS         = nullptr;
 
+  for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
+  {
+    g_pd3dDevice->GetRenderTarget (target, &rts [target]);
+  }
+
+  g_pd3dDevice->GetDepthStencilSurface (&pDS);
+  
+  if (SUCCEEDED (g_pd3dDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
+  {
+    g_pd3dDevice->SetRenderTarget        (0, pBackBuffer);
+    g_pd3dDevice->SetDepthStencilSurface (nullptr);
+
+    for (UINT target = 1; target < caps.NumSimultaneousRTs; target++)
+      g_pd3dDevice->SetRenderTarget (target, nullptr);
+  }
 
   g_pd3dDevice->SetRenderState       (D3DRS_CULLMODE,          D3DCULL_NONE);
   g_pd3dDevice->SetRenderState       (D3DRS_LIGHTING,          FALSE);
-  g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           TRUE);
   g_pd3dDevice->SetRenderState       (D3DRS_ALPHABLENDENABLE,  TRUE);
   g_pd3dDevice->SetRenderState       (D3DRS_ALPHATESTENABLE,   FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_BLENDOP,           D3DBLENDOP_ADD);
+//  g_pd3dDevice->SetRenderState       (D3DRS_BLENDOPALPHA,      D3DBLENDOP_ADD);
   g_pd3dDevice->SetRenderState       (D3DRS_SRCBLEND,          D3DBLEND_SRCALPHA);
   g_pd3dDevice->SetRenderState       (D3DRS_DESTBLEND,         D3DBLEND_INVSRCALPHA);
+  g_pd3dDevice->SetRenderState       (D3DRS_STENCILENABLE,     FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_SCISSORTESTENABLE, TRUE);
   g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           FALSE);
 
-  g_pd3dDevice->SetRenderState       (D3DRS_SRGBWRITEENABLE,    FALSE);
+  g_pd3dDevice->SetRenderState       (D3DRS_SRGBWRITEENABLE,   FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_COLORWRITEENABLE,  D3DCOLORWRITEENABLE_RED   | 
                                                                D3DCOLORWRITEENABLE_GREEN | 
                                                                D3DCOLORWRITEENABLE_BLUE  |
@@ -274,6 +293,11 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
     vtx_offset += cmd_list->VtxBuffer.Size;
   }
+
+  for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
+    g_pd3dDevice->SetRenderTarget (target, rts [target]);
+
+  g_pd3dDevice->SetDepthStencilSurface (pDS);
 
   // Restore the DX9 state
   d3d9_state_block->Apply   ();

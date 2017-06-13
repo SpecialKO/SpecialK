@@ -1953,18 +1953,6 @@ SK_BeginBufferSwap (void)
 
   extern bool SK_ImGui_Visible;
 
-  if (SK_ImGui_Visible)
-  {
-    //
-    // TEMP HACK: There is only one opportune time to do this in DXGI-based APIs
-    //     
-    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
-    {
-      extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
-                   SK_ImGui_DrawFrame (       0x00,     nullptr );
-    }
-  }
-
   extern uint32_t WINAPI SK_Steam_PiratesAhoy (void);
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Visible))
   {

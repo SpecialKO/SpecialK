@@ -1,4 +1,9 @@
 0.8.13:
+ + Fixed typo (spe----) in EULA
+ + Improved Gamepad Input in Audio Session Selector
+ + Changed OSD to deaw below ImGui control panel in D3D9
+ + Fixed Achivement Popups in Senkran Kagura: Shinovi Versus
+ + Fixed Overlay Rendering in Pillars of Eternity / Tyranny / Torment
  + Removed Chinese Unicode code points from ImGui font; added Latin punctuation
  + Fixed NieR: Automata Texture Staging
  + Added Thread Local Storage Stack
