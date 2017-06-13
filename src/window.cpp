@@ -1575,31 +1575,42 @@ GetWindowLongPtrW_Detour (
 void
 SK_SetWindowStyle (DWORD_PTR dwStyle)
 {
-  // This is damn important, never allow this style
-  //   to be removed or the window will vanish.
-  dwStyle |= (WS_VISIBLE | WS_SYSMENU);
+  // Ensure that the border style is sane
+  if (dwStyle == game_window.border_style)
+  {
+    game_window.border_style |= WS_CAPTION | WS_SYSMENU | WS_POPUP | WS_MINIMIZEBOX | WS_VISIBLE;
+    dwStyle                   = game_window.border_style;
+  }
+
+  // Clear the high-bits
+  dwStyle &= 0xFFFFFFFF;
+
+  // Minimal sane set of extended window styles for sane rendering
+  dwStyle |= (WS_VISIBLE | WS_SYSMENU) | WS_POPUP | WS_MINIMIZEBOX;
   dwStyle &= (~WS_DISABLED);
 
-  game_window.actual.style = dwStyle;
+  game_window.actual.style = (dwStyle & 0xFFFFFFFF);
 
   game_window.SetWindowLongPtr ( game_window.hWnd,
                                    GWL_STYLE,
-                                     dwStyle );
+                                     (dwStyle & 0xFFFFFFFF) );
 }
 
 void
 SK_SetWindowStyleEx (DWORD_PTR dwStyleEx)
 {
-  // This is damn important, never allow this style
-  //   to be removed or the window will vanish.
-  dwStyleEx |=   WS_EX_APPWINDOW;
-  dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
+  // Clear the high-bits
+  dwStyleEx &= 0xFFFFFFFF;
 
-  game_window.actual.style_ex = dwStyleEx;
+  // Minimal sane set of extended window styles for sane rendering
+  dwStyleEx |=   WS_EX_APPWINDOW;
+  dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL);
+
+  game_window.actual.style_ex = (dwStyleEx & 0xFFFFFFFF);
 
   game_window.SetWindowLongPtr ( game_window.hWnd,
                                    GWL_EXSTYLE,
-                                     dwStyleEx );
+                                     (dwStyleEx & 0xFFFFFFFF) );
 }
 
 RECT
@@ -2718,7 +2729,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   switch (uMsg)
   {
     case WM_SYSCOMMAND:
-      if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+      if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
         return 0;
       break;
 

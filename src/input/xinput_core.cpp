@@ -133,6 +133,9 @@ XInputGetState1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pState      == nullptr)         return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
@@ -162,6 +165,9 @@ XInputGetStateEx1_3_Detour (
 {
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pState      == nullptr)         return E_POINTER;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -194,6 +200,9 @@ XInputGetCapabilities1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pCapabilities == nullptr)         return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
@@ -220,6 +229,9 @@ XInputGetBatteryInformation1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pBatteryInformation == nullptr)         return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
@@ -244,6 +256,9 @@ XInputSetState1_3_Detour (
 {
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pVibration  == nullptr)         return E_POINTER;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -277,6 +292,9 @@ XInputGetState1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pState      == nullptr)         return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
@@ -306,6 +324,9 @@ XInputGetStateEx1_4_Detour (
 {
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pState      == nullptr)         return E_POINTER;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -338,6 +359,9 @@ XInputGetCapabilities1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pCapabilities == nullptr)         return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
@@ -364,6 +388,9 @@ XInputGetBatteryInformation1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pBatteryInformation == nullptr) return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
@@ -388,6 +415,9 @@ XInputSetState1_4_Detour (
 {
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pVibration  == nullptr)         return E_POINTER;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -421,6 +451,9 @@ XInputGetState9_1_0_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pState      == nullptr)         return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
 
@@ -452,6 +485,9 @@ XInputGetCapabilities9_1_0_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
+  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pCapabilities == nullptr)         return E_POINTER;
+
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
 
@@ -476,6 +512,9 @@ XInputSetState9_1_0_Detour (
 {
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (pVibration  == nullptr)         return E_POINTER;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -1114,7 +1153,7 @@ SK_Input_PreHookXInput (void)
       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
     }
 
-   if (GetModuleHandle (L"XInput1_3.dll"))
+    if (GetModuleHandle (L"XInput1_3.dll"))
       SK_Input_HookXInput1_3 ();
 
     if (GetModuleHandle (L"XInput1_4.dll"))
@@ -1132,5 +1171,7 @@ SK_Input_PreHookXInput (void)
 void
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
+  if (iJoyID >= XUSER_MAX_COUNT) return;
+
   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
 }

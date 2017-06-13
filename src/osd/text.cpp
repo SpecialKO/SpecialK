@@ -1539,6 +1539,15 @@ auto SK_CountLines = [](const char* line)->
     return num_lines;
   };
 
+void
+__stdcall
+SK_OSD_GetDefaultColor (float& r, float& g, float& b)
+{
+  r = (238.0f / 255.0f);
+  g = (250.0f / 255.0f);
+  b = (  5.0f / 255.0f);
+}
+
 float
 SK_TextOverlay::update (const char* szText)
 {
@@ -1569,9 +1578,7 @@ SK_TextOverlay::update (const char* szText)
 
     if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1)
     {
-      red   = (238.0f / 255.0f);
-      green = (250.0f / 255.0f);
-      blue  = (  5.0f / 255.0f);
+      SK_OSD_GetDefaultColor (red, green, blue);
     }
 
     float   x, y;

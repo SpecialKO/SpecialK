@@ -3441,13 +3441,7 @@ HookD3D9 (LPVOID user)
         // 117 DeletePatch
         // 118 CreateQuery
 
-        SK_D3D9_HookReset   (pD3D9Dev);
-        SK_D3D9_HookPresent (pD3D9Dev);
-
         dll_log.Log (L"[   D3D9   ]   * Success");
-
-        // Initialize stuff...
-        SK_D3D9RenderBackend::getInstance ();
       } else {
         _com_error err (hr);
         dll_log.Log ( L"[   D3D9   ]   * Failure  (%s)",
@@ -3515,6 +3509,15 @@ HookD3D9 (LPVOID user)
         }
 
         DestroyWindow (hwnd);
+      }
+
+      else
+      {
+        SK_D3D9_HookReset   (pD3D9Dev);
+        SK_D3D9_HookPresent (pD3D9Dev);
+
+        // Initialize stuff...
+        SK_D3D9RenderBackend::getInstance ();
       }
 
       InterlockedExchange (&__d3d9_ready, TRUE);

@@ -2050,6 +2050,11 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
 
   switch (lpMsg->message)
   {
+    case WM_SYSCOMMAND:
+      if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0) // Disable ALT application menu
+        handled = true;
+      break;
+
     // Fix for Melody's Escape, which attempts to remove these messages!
     case WM_KEYDOWN:
     case WM_KEYUP:

@@ -1,7 +1,7 @@
 //
-// Copyright 2017  Andon  "Kaldaien" Coleman
+// Copyright 2017  Andon  "Kaldaien" Coleman,
 //                 Niklas "DrDaxxy"  Kielblock,
-//                 Peter  "Durante"  Thoman,
+//                 Peter  "Durante"  Thoman
 //
 //        Francesco149, Idk31, Smithfield, and GitHub contributors.
 //
@@ -341,25 +341,22 @@ SK_FAR_CreateBuffer (
     //
     //  >> Project small lights to infinity and leave large lights lit <<
     //
-    //
-    //    TODO:  Scale light volume by distance from camera (in world-space) to properly
-    //             handle small nearby lights.
-    //
     if (pInitialData != nullptr && pInitialData->pSysMem != nullptr)
     {
       struct far_light_volume_s {
-        float world_pos    [4];
+        float world_pos    [ 4];
         float world_to_vol [16];
-        float half_extents [4];
+        float half_extents [ 4];
       };
 
+      // Throw away the const-qualifier; it's safe.
       far_light_volume_s* lights =
         (far_light_volume_s *)pInitialData->pSysMem;
 
       static far_light_volume_s backup_lights [128];
 
       // This code is bloody ugly, but it works ;)
-      for (int i = 0; i < 128; i++)
+      for (int i = 0; i < __FAR_GlobalIllumWorkGroupSize; i++)
       {
         float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
                                 lights [i].world_pos [2], lights [i].world_pos [3] };
@@ -373,14 +370,17 @@ SK_FAR_CreateBuffer (
           light_pos [2] = backup_lights [i].world_pos [2]; light_pos [3] = backup_lights [i].world_pos [3];
         }
 
-        glm::vec4   cam_pos_world   (light_pos [0] - ((float *)far_cam.pCamera) [0], light_pos [1] - ((float *)far_cam.pCamera) [1], light_pos [2] - ((float *)far_cam.pCamera) [2], 1.0f);
+        glm::vec4   cam_pos_world ( light_pos [0] - ((float *)far_cam.pCamera) [0],
+                                    light_pos [1] - ((float *)far_cam.pCamera) [1],
+                                    light_pos [2] - ((float *)far_cam.pCamera) [2],
+                                                 1.0f );
 
-        glm::mat4x4 world_mat (lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
-                               lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
-                               lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
-                               lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15]);
+        glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
+                                lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
+                                lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
+                                lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15] );
 
-        glm::vec4 test = world_mat * cam_pos_world;
+        glm::vec4   test = world_mat * cam_pos_world;
 
         if ( fabs (lights [i].half_extents [0]) < fabs (test.x) * __FAR_MINIMUM_EXT ||
              fabs (lights [i].half_extents [1]) < fabs (test.z) * __FAR_MINIMUM_EXT ||
@@ -396,7 +396,7 @@ SK_FAR_CreateBuffer (
             lights [i].half_extents [1] = 0.0f;
             lights [i].half_extents [2] = 0.0f;
             
-            // Project to infinity
+            // Project to infinity (but not beyond, because that makes no sense)
             lights [i].world_pos [0] = 0.0f; lights [i].world_pos [1] = 0.0f;
             lights [i].world_pos [2] = 0.0f; lights [i].world_pos [3] = 0.0f;
           }
@@ -730,10 +730,6 @@ SK_FAR_EndFrame (void)
   XINPUT_STATE state;
   if (__FAR_Freelook && SK_XInput_PollController (0, &state))
   {
-#if 0
-#define VEC3_NORM(v) sqrt( (v)[0]*(v)[0] + (v)[1]*(v)[1] + (v)[2]*(v)[2] )
-#endif
-
     float LX   = state.Gamepad.sThumbLX;
     float LY   = state.Gamepad.sThumbLY;
 
@@ -1771,9 +1767,9 @@ SK_FAR_EULA_Insert (LPVOID reserved)
 
   if (ImGui::CollapsingHeader ("FAR (Fix Automata Resolution)", ImGuiTreeNodeFlags_DefaultOpen))
   {
-    ImGui::TextWrapped ( " Copyright 2017  Andon  \"Kaldaien\" Coleman\n"
+    ImGui::TextWrapped ( " Copyright 2017  Andon  \"Kaldaien\" Coleman,\n"
                          "                 Niklas \"DrDaxxy\" Kielblock,\n"
-                         "                 Peter  \"Durante\" Thoman,\n"
+                         "                 Peter  \"Durante\" Thoman\n"
                          "\n"
                          "        Francesco149, Idk31, Smithfield, and GitHub contributors.\n"
                          "\n"
