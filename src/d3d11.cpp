@@ -585,7 +585,7 @@ HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
 _In_            ID3D11Device           *This,
-_In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+_In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
 _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
 _Out_opt_       ID3D11Texture2D        **ppTexture2D );
 
@@ -4356,14 +4356,14 @@ HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc_,
+  _In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
-  WaitForInitDXGI ();
+  // ^^^^ Const qualifier discarded from prototype because making a copy of this variable
+  //        and modifying causes any other hooked function to see the original data.
 
-  D3D11_TEXTURE2D_DESC   desc = *pDesc_;
-  D3D11_TEXTURE2D_DESC* pDesc = &desc;
+  WaitForInitDXGI ();
 
   if (InterlockedExchangeAdd (&SK_D3D11_tex_init, 0) == FALSE)
     SK_D3D11_InitTextures ();

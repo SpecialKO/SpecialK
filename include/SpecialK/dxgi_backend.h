@@ -370,7 +370,7 @@ public:
 
 typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
   _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D
 );
