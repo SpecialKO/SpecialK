@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.6.1"
+#define FAR_VERSION_NUM L"0.6.1.2"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -316,14 +316,19 @@ SK_FAR_CreateBuffer (
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_      ID3D11Buffer           **ppBuffer )
 {
+  struct far_light_volume_s {
+    float world_pos    [ 4];
+    float world_to_vol [16];
+    float half_extents [ 4];
+  };
+
   // Global Illumination (DrDaxxy)
-  if ( pDesc != nullptr && pDesc->StructureByteStride == 96       &&
-                           pDesc->ByteWidth           == 96 * 128 &&
-                           pDesc->BindFlags           & D3D11_BIND_SHADER_RESOURCE )
+  if ( pDesc != nullptr && pDesc->StructureByteStride == sizeof (far_light_volume_s)       &&
+                           pDesc->ByteWidth           == sizeof (far_light_volume_s) * 128 &&
+                           pDesc->BindFlags            & D3D11_BIND_SHADER_RESOURCE )
   {
     D3D11_BUFFER_DESC new_desc = *pDesc;
-
-    new_desc.ByteWidth = 96 * __FAR_GlobalIllumWorkGroupSize;
+                      new_desc.ByteWidth = sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize;
 
     // New Stuff for 0.6.0
     // -------------------
@@ -332,32 +337,20 @@ SK_FAR_CreateBuffer (
     //
     if (pInitialData != nullptr && pInitialData->pSysMem != nullptr)
     {
-      struct far_light_volume_s {
-        float world_pos    [ 4];
-        float world_to_vol [16];
-        float half_extents [ 4];
-      };
-
-      // Throw away the const-qualifier; it's safe.
       far_light_volume_s* lights =
         (far_light_volume_s *)pInitialData->pSysMem;
 
-      static far_light_volume_s backup_lights [128];
+      static far_light_volume_s new_lights [128];
+
+      memcpy ( new_lights,
+                 lights,
+                   sizeof (far_light_volume_s) * 128 );
 
       // This code is bloody ugly, but it works ;)
       for (int i = 0; i < __FAR_GlobalIllumWorkGroupSize; i++)
       {
         float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
                                 lights [i].world_pos [2], lights [i].world_pos [3] };
-
-        if ( lights [i].world_pos [0] == 0.0f && lights [i].world_pos [1] == 0.0f && 
-             lights [i].world_pos [2] == 0.0f && lights [i].world_pos [3] == 0.0f )
-        {
-          lights    [i] = backup_lights [i];
-
-          light_pos [0] = backup_lights [i].world_pos [0]; light_pos [1] = backup_lights [i].world_pos [1];
-          light_pos [2] = backup_lights [i].world_pos [2]; light_pos [3] = backup_lights [i].world_pos [3];
-        }
 
         glm::vec4   cam_pos_world ( light_pos [0] - ((float *)far_cam.pCamera) [0],
                                     light_pos [1] - ((float *)far_cam.pCamera) [1],
@@ -371,39 +364,28 @@ SK_FAR_CreateBuffer (
 
         glm::vec4   test = world_mat * cam_pos_world;
 
-        if ( fabs (lights [i].half_extents [0]) < fabs (test.x) * __FAR_MINIMUM_EXT ||
-             fabs (lights [i].half_extents [1]) < fabs (test.z) * __FAR_MINIMUM_EXT ||
-             fabs (lights [i].half_extents [2]) < fabs (test.y) * __FAR_MINIMUM_EXT )
+        if ( ( fabs (lights [i].half_extents [0]) <= fabs (test.x) * __FAR_MINIMUM_EXT ||
+               fabs (lights [i].half_extents [1]) <= fabs (test.y) * __FAR_MINIMUM_EXT ||
+               fabs (lights [i].half_extents [2]) <= fabs (test.z) * __FAR_MINIMUM_EXT )  /* && ( fabs (lights [i].half_extents [0]) > 0.0001f ||
+                                                                                                  fabs (lights [i].half_extents [1]) > 0.0001f ||
+                                                                                                  fabs (lights [i].half_extents [2]) > 0.0001f ) */ )
         {
-          if ( lights [i].half_extents [0] != 0.0f && lights [i].half_extents [1] != 0.0f &&
-               lights [i].half_extents [2] != 0.0f )
-          {
-            backup_lights [i] = lights [i];
+          // Degenerate light volume
+          new_lights [i].half_extents [0] = 0.0f;
+          new_lights [i].half_extents [1] = 0.0f;
+          new_lights [i].half_extents [2] = 0.0f;
 
-            // Degenerate light volume
-            lights [i].half_extents [0] = 0.0f;
-            lights [i].half_extents [1] = 0.0f;
-            lights [i].half_extents [2] = 0.0f;
-            
-            // Project to infinity (but not beyond, because that makes no sense)
-            lights [i].world_pos [0] = 0.0f; lights [i].world_pos [1] = 0.0f;
-            lights [i].world_pos [2] = 0.0f; lights [i].world_pos [3] = 0.0f;
-          }
-        }
-
-        else
-        {
-          if ( lights [i].half_extents [0] == 0.0f && lights [i].half_extents [1] == 0.0f &&
-               lights [i].half_extents [2] == 0.0f)
-          {
-            // Restore the original light
-            lights [i] = backup_lights [i];
-          }
+          // Project to infinity (but not beyond, because that makes no sense)
+          new_lights [i].world_pos [0] = 0.0f; new_lights [i].world_pos [1] = 0.0f;
+          new_lights [i].world_pos [2] = 0.0f; new_lights [i].world_pos [3] = 0.0f;
         }
       }
-    }
 
-    return D3D11Dev_CreateBuffer_Original (This, &new_desc, pInitialData, ppBuffer);
+      D3D11_SUBRESOURCE_DATA new_data = *pInitialData;
+                             new_data.pSysMem = (void *)new_lights;
+
+      return D3D11Dev_CreateBuffer_Original (This, &new_desc, &new_data, ppBuffer);
+    }
   }
 
   return D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
@@ -427,7 +409,7 @@ SK_FAR_CreateShaderResourceView (
     CComPtr <ID3D11Buffer> pBuf;
 
     if ( SUCCEEDED (
-           pResource->QueryInterface (__uuidof (ID3D11Buffer), (void **)&pBuf)
+           pResource->QueryInterface <ID3D11Buffer> (&pBuf)
          )
        )
     {
@@ -1308,8 +1290,8 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 //   If we are at mip slice N, divide by 2^N
                 if (desc.Texture2D.MipSlice > 0)
                 {
-                  vp.Width  = (float)(texdesc.Width  >> desc.Texture2D.MipSlice);
-                  vp.Height = (float)(texdesc.Height >> desc.Texture2D.MipSlice);
+                  vp.Width  = (texdesc.Width  / powf (2.0f, (float)desc.Texture2D.MipSlice));
+                  vp.Height = (texdesc.Height / powf (2.0f, (float)desc.Texture2D.MipSlice));
                 }
 
                 pDevCtx->RSSetViewports (1, &vp);
@@ -1340,10 +1322,9 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 //   [ 0.5f / W, 0.5f / H, W, H ] (half-pixel size and total dimensions)
                 if (desc.Texture2D.MipSlice == 0 && far_bloom.width != -1)
                 {
-                  static std::map <UINT, ID3D11Buffer*> buffers;
+                  static std::unordered_map <UINT, ID3D11Buffer*> buffers;
 
-                  auto iter = buffers.find (texdesc.Width);
-                  if (iter == buffers.cend ())
+                  if (! buffers.count (texdesc.Width))
                   {
                     SK_LOG3 ( ( L"Create Bloom Buffer (%lu)", texdesc.Width ),
                                 L"FAR PlugIn" );
@@ -1373,10 +1354,9 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 //   [ W, H, LOD (Mip-1), 0.0f ]
                 else if (far_ao.width != -1)
                 {
-                  static std::map <UINT, ID3D11Buffer*> mipBuffers;
+                  static std::unordered_map <UINT, ID3D11Buffer*> mipBuffers;
 
-                  auto iter = mipBuffers.find (desc.Texture2D.MipSlice);
-                  if (iter == mipBuffers.cend ())
+                  if (! mipBuffers.count (desc.Texture2D.MipSlice))
                   {
                     SK_LOG3 ( ( L"Create AO Buffer (%lu)", desc.Texture2D.MipSlice ),
                                 L"FAR PlugIn" );
@@ -2313,6 +2293,16 @@ SK_FAR_ControlPanel (void)
 
         far_gi_min_light_extent->set_value (__FAR_MINIMUM_EXT);
         far_gi_min_light_extent->store     ();
+      }
+
+      if (ImGui::IsItemHovered ( ))
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Fine-tune Light Culling");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Higher values are faster, but will produce visible artifacts.");
+        ImGui::BulletText   ("Use Amusement Park: Attraction Sq. as a reference when adjusting this.");
+        ImGui::EndTooltip   ();
       }
 
       ImGui::TreePop ();

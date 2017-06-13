@@ -4389,23 +4389,16 @@ D3D11Dev_CreateTexture2D_Override (
                     pInitialData->pSysMem != nullptr &&
                     pDesc->Width > 0 && pDesc->Height > 0) && pDesc->ArraySize == 1;
 
-  cacheable &=
-    (! ((pDesc->BindFlags      & D3D11_BIND_DEPTH_STENCIL) ||
+  cacheable = cacheable &&
+    (! ((pDesc->BindFlags      & D3D11_BIND_DEPTH_STENCIL)    ||
         (pDesc->BindFlags      & D3D11_BIND_RENDER_TARGET)) ) &&
         (pDesc->BindFlags      & D3D11_BIND_SHADER_RESOURCE)  &&
-     (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))     &&
-     (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_READ))      &&
-     (! (pDesc->Usage         == D3D11_USAGE_DYNAMIC));
+        (pDesc->Usage          < D3D11_USAGE_DYNAMIC); // Cancel out Dynamic and Staging
 
   const bool dumpable = 
               cacheable;
 
-  // NieR: Automata uses the staging flag incorrectly, there's no reason to use this on
-  //   a resource that is never memory-mapped.
-  if (cacheable && (pDesc->Usage == D3D11_USAGE_STAGING))
-  {
-    pDesc->BindFlags = D3D11_USAGE_DEFAULT;
-  }
+  cacheable = cacheable && (pDesc->CPUAccessFlags ^ D3D11_CPU_ACCESS_WRITE);
 
   uint32_t top_crc32 = 0x00;
   uint32_t ffx_crc32 = 0x00;
