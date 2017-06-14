@@ -1214,6 +1214,8 @@ SetWindowLong_Marshall (
   _In_ int               nIndex,
   _In_ LONG              dwNewLong )
 {
+  //dll_log.Log (L"SetWindowLong: Idx=%li, Val=%X -- Caller: %s", nIndex, dwNewLong, SK_GetCallerName ().c_str ());
+
   // Override window styles
   if (hWnd == game_window.hWnd)
   {
@@ -1399,6 +1401,8 @@ SetWindowLongPtr_Marshall (
   _In_ LONG_PTR             dwNewLong
 )
 {
+  //dll_log.Log (L"SetWindowLongPtr: Idx=%li, Val=%X -- Caller: %s", nIndex, dwNewLong, SK_GetCallerName ().c_str ());
+
   // Override window styles
   if (hWnd == game_window.hWnd)
   {
@@ -2402,6 +2406,74 @@ struct {
 } last_mouse;
 
 
+
+#include <SpecialK/render_backend.h>
+#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/dxgi_interfaces.h>
+
+
+DWORD
+WINAPI
+SK_ToggleFullscreenThread (LPVOID user)
+{
+  BOOL                     fullscreen     = FALSE;
+  CComPtr <IDXGISwapChain> pGameSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+
+  if (SUCCEEDED (pGameSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+  {
+    if (fullscreen)
+    {
+      DXGI_SWAP_CHAIN_DESC swap_desc;
+      pGameSwapChain->GetDesc (&swap_desc);
+
+      DXGI_MODE_DESC mode = swap_desc.BufferDesc;
+      swap_desc.BufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+      swap_desc.BufferUsage       = DXGI_USAGE_DISCARD_ON_PRESENT;
+      swap_desc.Flags             = 0x02;
+
+      pGameSwapChain->ResizeTarget       (&mode);
+      pGameSwapChain->SetFullscreenState (FALSE, nullptr);
+
+      SetWindowPos_Original ( game_window.hWnd, HWND_NOTOPMOST,
+                                0, 0,
+                                  0, 0,
+                                    SWP_NOACTIVATE     | SWP_NOMOVE     | SWP_NOSIZE       | SWP_ASYNCWINDOWPOS |
+                                    SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOOWNERZORDER );
+    }
+
+    else
+    {
+      DXGI_SWAP_CHAIN_DESC swap_desc;
+      pGameSwapChain->GetDesc (&swap_desc);
+
+      DXGI_MODE_DESC mode = swap_desc.BufferDesc;
+      swap_desc.BufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+      swap_desc.BufferUsage       = DXGI_USAGE_DISCARD_ON_PRESENT;
+      swap_desc.Flags             = 0x02;
+
+      pGameSwapChain->ResizeTarget       (&mode);
+      pGameSwapChain->SetFullscreenState (TRUE, nullptr);
+
+      mode.RefreshRate.Denominator = 0;
+      mode.RefreshRate.Numerator   = 0;
+
+      pGameSwapChain->ResizeTarget  (&mode);
+
+      //pGameSwapChain->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN,
+      //                               DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+
+      SetWindowPos_Original ( game_window.hWnd, HWND_TOPMOST,
+                                0, 0,
+                                  0, 0,
+                                    SWP_NOACTIVATE     | SWP_NOMOVE     | SWP_NOSIZE       | SWP_ASYNCWINDOWPOS |
+                                    SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOOWNERZORDER );
+    }
+  }
+
+  return 0;
+}
+
+
 DWORD
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
@@ -2660,6 +2732,26 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         if (config.window.background_mute)
           SK_WindowManager::getInstance ()->muteGame ((! active));
+
+
+        static bool bIsLegoUndercover = 
+          (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
+
+        if (bIsLegoUndercover)
+        {
+          BOOL                     fullscreen = FALSE;
+          CComPtr <IDXGISwapChain> pGameSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ( ).swapchain;
+
+          if (SUCCEEDED (pGameSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+          {
+
+            if (active && (! fullscreen))
+              SK_ToggleFullscreenThread (nullptr);
+
+            if ((! active) && (fullscreen))
+              SK_ToggleFullscreenThread (nullptr);
+          }
+        }
       }
 
 

@@ -386,6 +386,8 @@ SK_FAR_CreateBuffer (
 
       return D3D11Dev_CreateBuffer_Original (This, &new_desc, &new_data, ppBuffer);
     }
+
+    return D3D11Dev_CreateBuffer_Original (This, &new_desc, pInitialData, ppBuffer);
   }
 
   return D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
@@ -2301,7 +2303,7 @@ SK_FAR_ControlPanel (void)
         ImGui::Text         ("Fine-tune Light Culling");
         ImGui::Separator    ();
         ImGui::BulletText   ("Higher values are faster, but will produce visible artifacts.");
-        ImGui::BulletText   ("Use Amusement Park: Attraction Sq. as a reference when adjusting this.");
+        ImGui::BulletText   ("Use Park Ruins: Attraction Sq. as a reference when adjusting this.");
         ImGui::EndTooltip   ();
       }
 

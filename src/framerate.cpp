@@ -67,10 +67,15 @@ SK_QueryPerf (void)
 
 LARGE_INTEGER SK::Framerate::Stats::freq;
 
+volatile ULONG dwLimiterThreadId = 0;
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
+  if (InterlockedExchangeAdd (&dwLimiterThreadId, 0) == GetCurrentThreadId ())
+    return;
+
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
   if (dwMilliseconds == 0) {
     YieldProcessor ();
@@ -318,6 +323,8 @@ SK::Framerate::Limiter::wait (void)
 
   if (fps != target_fps)
     init (target_fps);
+
+  InterlockedExchange (&dwLimiterThreadId, GetCurrentThreadId ());
 
   if (target_fps == 0)
     return;
