@@ -1,8 +1,14 @@
 0.8.13:
+ + Added Texture LOD Selection to D3D11 Texture View
+ + Added Texture Set Filtering to D3D11 Texture View
+ + Added XInput vibration parameter validation
+ + Fixed alt-tab in Fullscreen mode in EverQuest and Hunie Pop
+ + Fixed double-input processing in God Eater 2: Rageburst
+ + Fixed SteamAPI init. problems in Final Fantasy IX
  + Fixed typo (spe----) in EULA
  + Improved Gamepad Input in Audio Session Selector
- + Changed OSD to deaw below ImGui control panel in D3D9
- + Fixed Achivement Popups in Senkran Kagura: Shinovi Versus
+ + Changed OSD to draw below ImGui control panel in D3D9
+ + Fixed Achievement Popups in Senkran Kagura: Shinovi Versus
  + Fixed Overlay Rendering in Pillars of Eternity / Tyranny / Torment
  + Removed Chinese Unicode code points from ImGui font; added Latin punctuation
  + Fixed NieR: Automata Texture Staging
@@ -19,6 +25,7 @@
      (steam_api{64}.dll must be placed in Documents\My Mods\SpecialK\)
  + Added configuration for CEGUI initialization (safe vs. fast [default])
  + Enabled D3D11 Texture Cache by DEFAULT (for new mod tools to work)
+ + Added Memory View (D3D11)
  + Added Texture View (D3D11)
  + Added RenderTarget View (D3D11)
  + Added Shader Disassembly View (D3D11)

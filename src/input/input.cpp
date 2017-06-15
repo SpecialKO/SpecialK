@@ -2055,6 +2055,10 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
         handled = true;
       break;
 
+    case WM_CHAR:
+      handled = SK_ImGui_WantTextCapture ();
+      break;
+
     // Fix for Melody's Escape, which attempts to remove these messages!
     case WM_KEYDOWN:
     case WM_KEYUP:
@@ -2072,7 +2076,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
             handled = true;
       }
 
-      if (( (! handled) && ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) ) || SK_Console::getInstance ()->isVisible ())
+      if (( (! peek) && ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) ) || SK_Console::getInstance ()->isVisible ())
         handled = true;
     } break;
 
@@ -2108,7 +2112,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
     {
       handled = true;
 
-      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      if (peek)
+      {
+        if (SK_ImGui_WantMouseCapture ())
+          ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      }
+
+      else
+        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
       if (! SK_ImGui_WantMouseCapture ())
         handled = false;

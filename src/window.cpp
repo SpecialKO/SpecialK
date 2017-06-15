@@ -1064,6 +1064,15 @@ SetWindowPos_Detour(
     if (hWndInsertAfter == HWND_TOPMOST)
       hWndInsertAfter = HWND_TOP;
 
+
+
+  static bool bIsLegoUndercover = 
+      (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
+  
+  if (bIsLegoUndercover) uFlags |= SWP_ASYNCWINDOWPOS;
+
+
+
   BOOL bRet = 
     SetWindowPos_Original ( hWnd, hWndInsertAfter,
                               X, Y,
@@ -2249,6 +2258,17 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
 
 LPMSG last_message = nullptr;
 
+typedef LRESULT (WINAPI *DispatchMessageW_pfn)(
+  _In_ const MSG *lpmsg
+);
+
+typedef LRESULT (WINAPI *DispatchMessageA_pfn)(
+  _In_ const MSG *lpmsg
+);
+
+DispatchMessageW_pfn DispatchMessageW_Original = nullptr;
+DispatchMessageA_pfn DispatchMessageA_Original = nullptr;
+
 bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
@@ -2313,6 +2333,14 @@ PeekMessageA_Detour (
 {
   SK_LOG_FIRST_CALL
 
+
+  static bool bIsLegoUndercover = 
+      (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
+  
+  if (bIsLegoUndercover) wRemoveMsg = PM_REMOVE;
+
+
+
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
   if (bRet && lpMsg->hwnd != HWND_DESKTOP)
@@ -2357,12 +2385,6 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   return TRUE;
 }
 
-typedef LRESULT (WINAPI *DispatchMessageW_pfn)(
-  _In_ const MSG *lpmsg
-);
-
-DispatchMessageW_pfn DispatchMessageW_Original = nullptr;
-
 LRESULT
 WINAPI
 DispatchMessageW_Detour (_In_ const MSG *lpMsg)
@@ -2375,12 +2397,6 @@ DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 
   return DispatchMessageW_Original (lpMsg);
 }
-
-typedef LRESULT (WINAPI *DispatchMessageA_pfn)(
-  _In_ const MSG *lpmsg
-);
-
-DispatchMessageA_pfn DispatchMessageA_Original = nullptr;
 
 LRESULT
 WINAPI
@@ -2418,8 +2434,9 @@ SK_ToggleFullscreenThread (LPVOID user)
 {
   BOOL                     fullscreen     = FALSE;
   CComPtr <IDXGISwapChain> pGameSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+  CComPtr <IDXGIOutput> pOutput    = nullptr;
 
-  if (SUCCEEDED (pGameSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+  if (SUCCEEDED (pGameSwapChain->GetFullscreenState (&fullscreen, &pOutput))) 
   {
     if (fullscreen)
     {
@@ -2434,11 +2451,12 @@ SK_ToggleFullscreenThread (LPVOID user)
       pGameSwapChain->ResizeTarget       (&mode);
       pGameSwapChain->SetFullscreenState (FALSE, nullptr);
 
-      SetWindowPos_Original ( game_window.hWnd, HWND_NOTOPMOST,
-                                0, 0,
-                                  0, 0,
-                                    SWP_NOACTIVATE     | SWP_NOMOVE     | SWP_NOSIZE       | SWP_ASYNCWINDOWPOS |
-                                    SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOOWNERZORDER );
+      SetForegroundWindow (game_window.hWnd);
+      SetFocus            (game_window.hWnd);
+      SetActiveWindow     (game_window.hWnd);
+
+      game_window.SetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE, game_window.GetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE) & (~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)));
+      SetWindowPos_Original        (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING|SWP_ASYNCWINDOWPOS|SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE);
     }
 
     else
@@ -2452,21 +2470,21 @@ SK_ToggleFullscreenThread (LPVOID user)
       swap_desc.Flags             = 0x02;
 
       pGameSwapChain->ResizeTarget       (&mode);
-      pGameSwapChain->SetFullscreenState (TRUE, nullptr);
+      pGameSwapChain->SetFullscreenState (TRUE, pOutput);
+
+      pOutput.Release ();
 
       mode.RefreshRate.Denominator = 0;
       mode.RefreshRate.Numerator   = 0;
 
       pGameSwapChain->ResizeTarget  (&mode);
 
-      //pGameSwapChain->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN,
-      //                               DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+      SetForegroundWindow (game_window.hWnd);
+      SetFocus            (game_window.hWnd);
+      SetActiveWindow     (game_window.hWnd);
 
-      SetWindowPos_Original ( game_window.hWnd, HWND_TOPMOST,
-                                0, 0,
-                                  0, 0,
-                                    SWP_NOACTIVATE     | SWP_NOMOVE     | SWP_NOSIZE       | SWP_ASYNCWINDOWPOS |
-                                    SWP_NOSENDCHANGING | SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOOWNERZORDER );
+      game_window.SetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE, game_window.GetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE) & (~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)));
+      SetWindowPos_Original        (game_window.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING|SWP_ASYNCWINDOWPOS|SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE);
     }
   }
 
@@ -2744,12 +2762,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
           if (SUCCEEDED (pGameSwapChain->GetFullscreenState (&fullscreen, nullptr)))
           {
+            //if (active && (! fullscreen))
+            //SK_ToggleFullscreenThread (nullptr);
 
-            if (active && (! fullscreen))
-              SK_ToggleFullscreenThread (nullptr);
-
-            if ((! active) && (fullscreen))
-              SK_ToggleFullscreenThread (nullptr);
+            //if ((! active) && (fullscreen))
+            //SK_ToggleFullscreenThread (nullptr);
           }
         }
       }
@@ -2899,7 +2916,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           case 2:  // WA_CLICKACTIVE
           default: // Unknown
           {
-            if ((HWND)lParam != game_window.hWnd)
+            if ((HWND)lParam == game_window.hWnd)
             {
               if (last_active == false) {
                 SK_LOG2 ( ( L"Application Activated (WM_ACTIVATEAPP)" ),
@@ -3311,7 +3328,7 @@ SK_InstallWindowHook (HWND hWnd)
   SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageW",
                      PeekMessageW_Detour,
            (LPVOID*)&PeekMessageW_Original );
-  
+
   SK_CreateDLLHook2 ( L"user32.dll", "PeekMessageA",
                      PeekMessageA_Detour,
            (LPVOID*)&PeekMessageA_Original );
@@ -3327,17 +3344,17 @@ SK_InstallWindowHook (HWND hWnd)
                      GetMessageW_Detour,
            (LPVOID*)&GetMessageW_Original );
 
+  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
+                     DispatchMessageW_Detour,
+           (LPVOID*)&DispatchMessageW_Original );
+  
   SK_CreateDLLHook2 ( L"user32.dll", "GetMessageA",
-                     GetMessageA_Detour,
-           (LPVOID*)&GetMessageA_Original );
+                       GetMessageA_Detour,
+             (LPVOID*)&GetMessageA_Original );
 
   SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageA",
                      DispatchMessageA_Detour,
            (LPVOID*)&DispatchMessageA_Original );
-
-  SK_CreateDLLHook2 ( L"user32.dll", "DispatchMessageW",
-                     DispatchMessageW_Detour,
-           (LPVOID*)&DispatchMessageW_Original );
 
   MH_ApplyQueued ();
 

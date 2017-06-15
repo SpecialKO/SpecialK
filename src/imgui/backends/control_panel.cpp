@@ -399,7 +399,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
     ImGui::BeginChild ("SessionSelectHeader",   ImVec2 (0, 0), true,  ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_NoInputs |
                                                                       ImGuiWindowFlags_NoNavInputs);
     ImGui::BeginGroup ( );
-    ImGui::Columns    (2);                                                                         
+    ImGui::Columns    (2);
     ImGui::Text       ("Task");
     ImGui::NextColumn ();
     ImGui::Text       ("Volume / Mute");
@@ -974,12 +974,38 @@ SK_ImGui_ControlPanel (void)
                                    client.right - client.left,
                                      client.bottom - client.top );
 
-    if (ImGui::MenuItem (" Window Resolution     ", szResolution))
-    {
-      config.window.res.override.x = client.right  - client.left;
-      config.window.res.override.y = client.bottom - client.top;
+    bool windowed = true;
 
-      override = true;
+    if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
+    {
+      BOOL fullscreen = FALSE;
+
+      if (SUCCEEDED (((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain)->GetFullscreenState (&fullscreen, nullptr)))
+      {
+        windowed = (! fullscreen);
+      }
+    }
+
+    if (windowed)
+    {
+      if (ImGui::MenuItem (" Window Resolution     ", szResolution))
+      {
+        config.window.res.override.x = client.right  - client.left;
+        config.window.res.override.y = client.bottom - client.top;
+
+        override = true;
+      }
+    }
+
+    else
+    {
+      if (ImGui::MenuItem (" Fullscreen Resolution", szResolution))
+      {
+        config.window.res.override.x = client.right  - client.left;
+        config.window.res.override.y = client.bottom - client.top;
+
+        override = true;
+      }
     }
 
     HDC hDC = GetWindowDC (game_window.hWnd);
@@ -1318,7 +1344,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePop   ();
        }
 
-      if (ImGui::Button (" Shader Mod Tools ")) {
+      if (ImGui::Button (" Render Mod Tools ")) {
         show_shader_mod_dlg = ( ! show_shader_mod_dlg );
       }
 

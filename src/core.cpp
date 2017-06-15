@@ -72,7 +72,6 @@
 #include <CEGUI/Logger.h>
 
 
-static const GUID IID_ID3D11Device1 = { 0xa04bfb29, 0x08ef, 0x43d6, { 0xa4, 0x9c, 0xa9, 0xbd, 0xbd, 0xcb, 0xe6, 0x86 } };
 static const GUID IID_ID3D11Device2 = { 0x9d06dffa, 0xd1e5, 0x4d07, { 0x83, 0xa8, 0x1b, 0xb1, 0x23, 0xf2, 0xf8, 0x41 } };
 static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0, 0x9c, 0xe0, 0xb0, 0xdc, 0x9a, 0xe6 } };
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
@@ -101,7 +100,6 @@ struct init_params_t {
 
 
 std::queue <DWORD> __SK_Init_Suspended_tids;
-
 
 wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
 wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
@@ -1506,10 +1504,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_TestSteamImports                  (GetModuleHandle (nullptr));
 
 
-  // Required by Minject, the DLL's not loaded early enough.
-  if (SK_IsInjected ())
-    config.steam.init_delay = std::max (config.steam.init_delay, 6666);
-
 
   SK_InitCompatBlacklist ();
 
@@ -1522,10 +1516,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 #endif
 
   // Do this from the startup thread
-
   SK_HookWinAPI       ();
   SK::Framerate::Init ();
-
 
 
   // Hard-code the AppID for ToZ

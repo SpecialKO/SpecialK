@@ -263,6 +263,7 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"GameLauncherCefChildProcess.exe");
     blacklist.emplace (L"LaunchPad.exe");
     blacklist.emplace (L"CNNLauncher.exe");
+    blacklist.emplace (L"FF9_Launcher.exe");
 
     // Other Stuff
     blacklist.emplace (L"ActivationUI.exe");

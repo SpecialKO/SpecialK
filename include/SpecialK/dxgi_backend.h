@@ -27,6 +27,7 @@
 
 #include <string>
 #include <d3d11.h>
+#include <d3d11_1.h>
 
 #define __PTR_SIZE   sizeof LPCVOID
 #define __PAGE_PRIVS PAGE_EXECUTE_READWRITE
@@ -710,6 +711,86 @@ struct SK_D3D11_KnownShaders
 
 } extern SK_D3D11_Shaders;
 
+
+typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
+  _In_opt_                            IDXGIAdapter         *pAdapter,
+                                      D3D_DRIVER_TYPE       DriverType,
+                                      HMODULE               Software,
+                                      UINT                  Flags,
+  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
+                                      UINT                  FeatureLevels,
+                                      UINT                  SDKVersion,
+  _Out_opt_                           ID3D11Device        **ppDevice,
+  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
+  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
+
+typedef HRESULT (WINAPI *D3D11CreateDeviceAndSwapChain_pfn)(
+  _In_opt_                             IDXGIAdapter*,
+                                       D3D_DRIVER_TYPE,
+                                       HMODULE,
+                                       UINT,
+  _In_reads_opt_ (FeatureLevels) CONST D3D_FEATURE_LEVEL*,
+                                       UINT FeatureLevels,
+                                       UINT,
+  _In_opt_                       CONST DXGI_SWAP_CHAIN_DESC*,
+  _Out_opt_                            IDXGISwapChain**,
+  _Out_opt_                            ID3D11Device**,
+  _Out_opt_                            D3D_FEATURE_LEVEL*,
+  _Out_opt_                            ID3D11DeviceContext**);
+
+typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
+  _In_           ID3D11DeviceContext1 *This,
+  _In_           ID3D11Resource       *pDstResource,
+  _In_           UINT                  DstSubresource,
+  _In_opt_ const D3D11_BOX            *pDstBox,
+  _In_     const void                 *pSrcData,
+  _In_           UINT                  SrcRowPitch,
+  _In_           UINT                  SrcDepthPitch,
+  _In_           UINT                  CopyFlags
+);
+
+#include <../depends/include/nvapi/nvapi_lite_common.h>
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateVertexShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
+                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage, 
+                                                                      __in  const LPVOID                                                            pCreateVertexShaderExArgs,
+                                                                      __out       ID3D11VertexShader                                              **ppVertexShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateHullShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in const void               *pShaderBytecode, 
+                                                                    __in        SIZE_T        BytecodeLength, __in_opt   ID3D11ClassLinkage *pClassLinkage, 
+                                                                    __in  const LPVOID                                                       pCreateHullShaderExArgs,
+                                                                    __out       ID3D11HullShader                                           **ppHullShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateDomainShaderEx_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
+                                                                      __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+                                                                      __in  const LPVOID                                                           pCreateDomainShaderExArgs,
+                                                                      __out       ID3D11DomainShader                                             **ppDomainShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateGeometryShaderEx_2_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode, 
+                                                                          __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage, 
+                                                                          __in  const LPVOID                                                           pCreateGeometryShaderExArgs,
+                                                                          __out       ID3D11GeometryShader                                           **ppGeometryShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShaderExplicit_pfn)( __in        ID3D11Device *pDevice,        __in     const void               *pShaderBytecode,
+                                                                                  __in        SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage *pClassLinkage,
+                                                                                  __in  const LPVOID                                                           pCreateFastGSArgs,
+                                                                                  __out       ID3D11GeometryShader                                           **ppGeometryShader );
+
+typedef NvAPI_Status (__cdecl *NvAPI_D3D11_CreateFastGeometryShader_pfn)( __in  ID3D11Device *pDevice,        __in     const void                *pShaderBytecode, 
+                                                                          __in  SIZE_T        BytecodeLength, __in_opt       ID3D11ClassLinkage  *pClassLinkage,
+                                                                          __out ID3D11GeometryShader                                            **ppGeometryShader );
+
+
+typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
+  _In_opt_                            IDXGIAdapter         *pAdapter,
+                                      D3D_DRIVER_TYPE       DriverType,
+                                      HMODULE               Software,
+                                      UINT                  Flags,
+  _In_opt_                      const D3D_FEATURE_LEVEL    *pFeatureLevels,
+                                      UINT                  FeatureLevels,
+                                      UINT                  SDKVersion,
+  _Out_opt_                           ID3D11Device        **ppDevice,
+  _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
+  _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
 
 
 

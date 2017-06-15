@@ -1966,7 +1966,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     WatchDogs2,           // WatchDogs2.exe
     NieRAutomata,         // NieRAutomata.exe
     Warframe_x64,         // Warframe.x64.exe
-    Sacred2               // sacred2.exe
+    Sacred2,              // sacred2.exe
+    FinalFantasy9         // FF9.exe   
   };
 
   std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -1988,6 +1989,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"NieRAutomata.exe",             SK_GAME_ID::NieRAutomata         );
   games.emplace ( L"Warframe.x64.exe",             SK_GAME_ID::Warframe_x64         );
   games.emplace ( L"Sacred2.exe",                  SK_GAME_ID::Sacred2              );
+  games.emplace ( L"FF9.exe",                      SK_GAME_ID::FinalFantasy9        );
 
   //
   // Application Compatibility Overrides
@@ -2197,6 +2199,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
         // Contrary to its name, this game needs this turned off ;)
         config.cegui.safe_init           = false;
         config.steam.force_load_steamapi = true; // Not safe in all games, but it is here.
+        break;
+
+
+      case SK_GAME_ID::FinalFantasy9:
+        // Don't auto-pump callbacks
+        config.steam.auto_pump_callbacks = false;
+        config.apis.OpenGL.hook          = false; // Not an OpenGL game, API auto-detect is borked
         break;
     }
   }

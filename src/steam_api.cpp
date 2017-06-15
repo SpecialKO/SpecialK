@@ -237,29 +237,6 @@ void
 S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
-  //
-  // TODO: This is a late-injection strategy that appears to be necessary for Prey even when
-  //         installed as a wrapper.
-  //
-  //   >> That problem seems to be related to its re-rooting the working directory before loading
-  //        render API DLLs.
-  //
-  if (SK_IsInjected ())
-  {
-    // Only really screwed up games (there are some) install callbacks before initializing SteamAPI,
-    //   so if we've gotten this far and still missed the API init call try to implicitly init SteamAPI.
-    //
-    if (! InterlockedExchangeAdd (&__SK_Steam_init, 0UL))
-    {
-      if (SteamAPI_InitSafe_Original != nullptr)
-      {
-        if (SteamAPI_InitSafe_Detour ())
-          SteamAPI_RunCallbacks_Detour ();
-      }
-    }
-  }
-
-
   // Don't care about OUR OWN callbacks ;)
   if (SK_GetCallingDLL () == SK_GetDLL ())
   {
