@@ -19,6 +19,11 @@
  *
 **/
 
+typedef void* LPDIRECTDRAW;
+typedef void* LPDDENUMCALLBACK;
+typedef void* LPDDENUMCALLBACKEX;
+
+#ifndef _WIN64
 #define _CRT_SECURE_NO_WARNINGS
 #define NOMINMAX
 
@@ -62,10 +67,6 @@ WaitForInit_DDraw (void)
 }
 
 typedef void (WINAPI *finish_pfn)(void);
-
-typedef LPVOID LPDIRECTDRAW;
-typedef LPVOID LPDDENUMCALLBACK;
-typedef LPVOID LPDDENUMCALLBACKEX;
 
 typedef HRESULT (WINAPI *DirectDrawCreate_pfn)(
   _In_  GUID         FAR *lpGUID,
@@ -398,3 +399,65 @@ HookDDraw (LPVOID user)
 
   return 0;
 }
+#else
+#include <Windows.h>
+#include <combaseapi.h>
+__declspec (noinline)
+HRESULT
+WINAPI
+DirectDrawCreate (_In_  GUID         FAR *lpGUID,
+                  _Out_ LPDIRECTDRAW FAR *lplpDD,
+                  _In_  IUnknown     FAR *pUnkOuter)
+{
+  return E_NOTIMPL;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+DirectDrawCreateEx (_In_  GUID         FAR *lpGUID,
+                    _Out_ LPDIRECTDRAW FAR *lplpDD,
+                    _In_  REFIID            iid,
+                    _In_  IUnknown     FAR *pUnkOuter)
+{
+  return E_NOTIMPL;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+DirectDrawEnumerateA (_In_ LPDDENUMCALLBACK lpCallback,
+                      _In_ LPVOID           lpContext)
+{
+  return E_NOTIMPL;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+DirectDrawEnumerateW (_In_ LPDDENUMCALLBACK lpCallback,
+                      _In_ LPVOID           lpContext)
+{
+  return E_NOTIMPL;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+DirectDrawEnumerateExA (_In_ LPDDENUMCALLBACKEX lpCallback,
+                        _In_ LPVOID             lpContext,
+                        _In_ DWORD              dwFlags)
+{
+  return E_NOTIMPL;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+DirectDrawEnumerateExW (_In_ LPDDENUMCALLBACKEX lpCallback,
+                        _In_ LPVOID             lpContext,
+                        _In_ DWORD              dwFlags)
+{
+  return E_NOTIMPL;
+}
+#endif

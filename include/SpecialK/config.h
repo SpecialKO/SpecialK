@@ -414,9 +414,11 @@ struct sk_config_t
       bool   hook              = true;
     } glide;
 
+#ifndef _WIN64
     struct {
       bool   hook              = true;
     } d3d8, ddraw;
+#endif
 
     struct {
       bool   hook              = true;
@@ -425,12 +427,20 @@ struct sk_config_t
     struct {
       struct {
         bool hook              = true;
-      } d3d11, d3d12;
+      }
+#ifdef _WIN64
+        d3d12,
+#endif
+        d3d11;
     } dxgi;
 
     struct {
       bool   hook              = true;
-    } OpenGL, Vulkan;
+    }
+#ifdef _WIN64
+      Vulkan,
+#endif
+      OpenGL;
 
     struct {
       bool   enable            = true;

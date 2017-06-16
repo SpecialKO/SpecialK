@@ -412,6 +412,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                 StrStrI  (lpFileName, SK_TEXT("nvd3dum.dll")) ||
                 StrStrIW (wszModName,        L"nvd3dum.dll")  ) )
       SK_BootD3D9   ();
+#ifndef _WIN64
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d8.dll")) ||
                 StrStrIW (wszModName,        L"d3d8.dll")    ) )
@@ -420,21 +421,24 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
               ( StrStrI  (lpFileName, SK_TEXT("ddraw.dll")) ||
                 StrStrIW (wszModName,        L"ddraw.dll")   ) )
       SK_BootDDraw  ();
+#endif
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d11.dll")) ||
                 StrStrIW (wszModName,        L"d3d11.dll") ))
       SK_BootDXGI   ();
+#ifdef _WIN64
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||
                 StrStrIW (wszModName,        L"d3d12.dll") ))
       SK_BootDXGI   ();
+    else if (   StrStrI  (lpFileName, SK_TEXT("vulkan-1.dll")) ||
+                StrStrIW (wszModName,        L"vulkan-1.dll")  )
+      SK_BootVulkan ();
+#endif
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("OpenGL32.dll")) ||
                 StrStrIW (wszModName,        L"OpenGL32.dll") ))
       SK_BootOpenGL ();
-    else if (   StrStrI  (lpFileName, SK_TEXT("vulkan-1.dll")) ||
-                StrStrIW (wszModName,        L"vulkan-1.dll")  )
-      SK_BootVulkan ();
     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
       SK_Input_HookXInput1_3 ();
     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
@@ -871,8 +875,10 @@ SK_InitCompatBlacklist (void)
 static bool loaded_gl     = false;
 static bool loaded_vulkan = false;
 static bool loaded_d3d9   = false;
+#ifndef _WIN64
 static bool loaded_d3d8   = false;
 static bool loaded_ddraw  = false;
+#endif
 static bool loaded_dxgi   = false;
 
 
@@ -1043,11 +1049,13 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
               loaded_gl = true;
             }
 
+#ifdef _WIN64
             else if ( config.apis.Vulkan.hook && StrStrIW (wszModName, L"vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
               SK_BootVulkan ();
             
               loaded_vulkan = true;
             }
+#endif
 
             //else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
             //  SK_BootDXGI ();
@@ -1061,11 +1069,13 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
               loaded_dxgi = true;
             }
 
+#ifdef _WIN64
             else if ( config.apis.dxgi.d3d12.hook && StrStrIW (wszModName, L"d3d12.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
               SK_BootDXGI ();
             
               loaded_dxgi = true;
             }
+#endif
 
             else if ( config.apis.d3d9.hook && StrStrIW (wszModName, L"d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
               SK_BootD3D9 ();
@@ -1073,6 +1083,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
               loaded_d3d9 = true;
             }
 
+#ifndef _WIN64
             else if ( config.apis.d3d8.hook && StrStrIW (wszModName, L"d3d8.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D8)))) {
               SK_BootD3D8 ();
             
@@ -1084,6 +1095,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
             
               loaded_ddraw = true;
             }
+#endif
           }
         }
 
@@ -1643,13 +1655,19 @@ SK_Bypass_CRT (LPVOID user)
                                         };
 
   const TASKDIALOG_BUTTON rbuttons [] = {  { 0, L"Auto-Detect"   },
+#ifndef _WIN64
                                            { 6, L"Direct3D8"     },
                                            { 7, L"DirectDraw"    },
+#endif
                                            { 1, L"Direct3D9{Ex}" },
                                            { 2, L"Direct3D11"    },
+#ifdef _WIN64
                                            { 3, L"Direct3D12"    },
+#endif
                                            { 4, L"OpenGL"        },
+#ifdef _WIN64
                                            { 5, L"Vulkan"        }
+#endif
                                        };
 
   task_config.cbSize              = sizeof (task_config);
@@ -1703,13 +1721,16 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.d3d9ex.hook     = true;
 
         config.apis.dxgi.d3d11.hook = true;
-        config.apis.dxgi.d3d12.hook = true;
 
         config.apis.OpenGL.hook     = true;
-        config.apis.Vulkan.hook     = true;
 
+#ifndef _WIN64
         config.apis.d3d8.hook       = true;
         config.apis.ddraw.hook      = true;
+#else
+        config.apis.Vulkan.hook     = true;
+        config.apis.dxgi.d3d12.hook = true;
+#endif
 
         if (nButtonPressed == 0)
         {
@@ -1722,13 +1743,16 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.d3d9ex.hook     = true;
 
         config.apis.dxgi.d3d11.hook = false;
-        config.apis.dxgi.d3d12.hook = false;
 
         config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = false;
 
+#ifndef _WIN64
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = false;
+#else
+        config.apis.Vulkan.hook     = false;
+        config.apis.dxgi.d3d12.hook = false;
+#endif
 
         if (nButtonPressed == 0)
         {
@@ -1741,13 +1765,16 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.d3d9ex.hook     = false;
 
         config.apis.dxgi.d3d11.hook = true;
-        config.apis.dxgi.d3d12.hook = false;
 
         config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = false;
 
+#ifndef _WIN64
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = false;
+#else
+        config.apis.dxgi.d3d12.hook = false;
+        config.apis.Vulkan.hook     = false;
+#endif
 
         if (nButtonPressed == 0)
         {
@@ -1755,6 +1782,7 @@ SK_Bypass_CRT (LPVOID user)
         }
         break;
 
+#ifdef _WIN64
       case 3:
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
@@ -1765,27 +1793,28 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.OpenGL.hook     = false;
         config.apis.Vulkan.hook     = false;
 
-        config.apis.d3d8.hook       = false;
-        config.apis.ddraw.hook      = false;
-
         if (nButtonPressed == 0)
         {
           SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DXGI);
         }
         break;
+#endif
 
       case 4:
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
 
         config.apis.dxgi.d3d11.hook = false;
-        config.apis.dxgi.d3d12.hook = false;
 
         config.apis.OpenGL.hook     = true;
-        config.apis.Vulkan.hook     = false;
 
+#ifndef _WIN64
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = false;
+#else
+        config.apis.dxgi.d3d12.hook = false;
+        config.apis.Vulkan.hook     = false;
+#endif
 
         if (nButtonPressed == 0)
         {
@@ -1793,6 +1822,7 @@ SK_Bypass_CRT (LPVOID user)
         }
         break;
 
+#ifdef _WIN64
       case 5:
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
@@ -1802,20 +1832,17 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.OpenGL.hook     = false;
         config.apis.Vulkan.hook     = true;
-
-        config.apis.d3d8.hook       = false;
-        config.apis.ddraw.hook      = false;
         break;
+#endif
 
+#ifndef _WIN64
       case 6:
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
 
         config.apis.dxgi.d3d11.hook = true;  // D3D8 on D3D11 (not native D3D8)
-        config.apis.dxgi.d3d12.hook = false;
 
         config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = false;
 
         config.apis.d3d8.hook       = true;
         config.apis.ddraw.hook      = false;
@@ -1831,10 +1858,8 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.d3d9ex.hook     = false;
 
         config.apis.dxgi.d3d11.hook = true;  // DDraw on D3D11 (not native DDraw)
-        config.apis.dxgi.d3d12.hook = false;
 
         config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = false;
 
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = true;
@@ -1843,6 +1868,10 @@ SK_Bypass_CRT (LPVOID user)
         {
           SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DDraw);
         }
+        break;
+#endif
+
+      default:
         break;
     }
 

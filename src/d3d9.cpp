@@ -1038,9 +1038,6 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   //SK_D3D9_UpdateRenderStats (nullptr, This);
 
-  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
-  SK_BeginBufferSwap ();
-
   if (! ( config.render.d3d9.osd_in_vidcap && InterlockedExchangeAdd (
             &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
               0 )
@@ -1065,6 +1062,21 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
       }
     }
   }
+
+  CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
+
+  if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface (IID_PPV_ARGS (&pDev9Ex))))
+  {
+       (int&)SK_GetCurrentRenderBackend ().api  = ( (int)SK_RenderAPI::D3D9 |
+                                                    (int)SK_RenderAPI::D3D9Ex );
+  }
+
+  else
+  {
+    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
+  }
+
+  SK_BeginBufferSwap ();
 
   HRESULT hr = D3D9Present_Original (This,
                                      pSourceRect,
@@ -1231,9 +1243,6 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
 
     //SK_D3D9_UpdateRenderStats (This);
 
-    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
-    SK_BeginBufferSwap ();
-
     CComPtr <IDirect3DDevice9> pDev = nullptr;
 
     if (SUCCEEDED (This->GetDevice (&pDev)))
@@ -1251,6 +1260,21 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
           NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
       }
     }
+
+    CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
+
+    if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface (IID_PPV_ARGS (&pDev9Ex))))
+    {
+         (int&)SK_GetCurrentRenderBackend ().api  = ( (int)SK_RenderAPI::D3D9 |
+                                                      (int)SK_RenderAPI::D3D9Ex );
+    }
+
+    else
+    {
+      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
+    }
+
+    SK_BeginBufferSwap ();
 
     HRESULT hr = D3D9PresentSwap_Original (This,
                                            pSourceRect,

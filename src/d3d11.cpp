@@ -5425,8 +5425,10 @@ HookD3D11 (LPVOID user)
     MH_ApplyQueued ();
   }
 
+#ifdef _WIN64
   if (config.apis.dxgi.d3d12.hook)
     HookD3D12 (nullptr);
+#endif
 
   if (success)
     CoUninitialize ();

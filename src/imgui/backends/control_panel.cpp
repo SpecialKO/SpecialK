@@ -927,13 +927,21 @@ SK_ImGui_ControlPanel (void)
 
 
           char szAPIName [32] = { '\0' };
-    snprintf ( szAPIName, 32, "%ws    "
+    snprintf ( szAPIName, 32, "%ws",  SK_GetCurrentRenderBackend ().name );
+
+    // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
+    int api_mask = (int)SK_GetCurrentRenderBackend ().api;
+
+    if ((api_mask & (int)SK_RenderAPI::D3D12) != 0x0)
+      lstrcatA (szAPIName,   "On12");
+    else if ((api_mask & (int)SK_RenderAPI::D3D11) != 0x0)
+      lstrcatA (szAPIName, u8"→11" );
+
 #ifndef _WIN64
-                                   "[ 32-bit ]",
+    lstrcatA (szAPIName, "    [ 32-bit ]");
 #else
-                                   "[ 64-bit ]",
+    lstrcatA (szAPIName, "    [ 64-bit ]");
 #endif
-                             SK_GetCurrentRenderBackend ().name );
 
     ImGui::MenuItem ("Active Render API        ", szAPIName);
 
@@ -980,7 +988,7 @@ SK_ImGui_ControlPanel (void)
     //
     // TODO: Generalize this for all APIs and move it into SK's Render Backend
     //
-    if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
+    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
     {
       BOOL fullscreen = FALSE;
 
@@ -1209,7 +1217,7 @@ SK_ImGui_ControlPanel (void)
 
     SK_RenderAPI api = SK_GetCurrentRenderBackend ().api;
 
-    if ( api == SK_RenderAPI::D3D11 &&
+    if ( (int)api & (int)SK_RenderAPI::D3D11 &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
     {
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
@@ -1397,61 +1405,149 @@ SK_ImGui_ControlPanel (void)
               config.apis.d3d9.hook       = true;
               break;
 
+#ifdef _WIN64
             case SK_RenderAPI::D3D12:
               config.apis.dxgi.d3d12.hook = true;
+#endif
             case SK_RenderAPI::D3D11:
               config.apis.dxgi.d3d11.hook = true;
               break;
+
+#ifndef _WIN64
+            case SK_RenderAPI::DDrawOn11:
+              config.apis.ddraw.hook       = true;
+              config.apis.dxgi.d3d11.hook  = true;
+              break;
+
+            case SK_RenderAPI::D3D8On11:
+              config.apis.d3d8.hook        = true;
+              config.apis.dxgi.d3d11.hook  = true;
+              break;
+#endif
 
             case SK_RenderAPI::OpenGL:
               config.apis.OpenGL.hook     = true;
               break;
 
+#ifdef _WIN64
             case SK_RenderAPI::Vulkan:
               config.apis.Vulkan.hook     = true;
               break;
+#endif
           }
         };
 
-        ImGui::PushStyleVar                                                           (ImGuiStyleVar_ChildWindowRounding, 10.0f);
-        ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * 4), true, ImGuiWindowFlags_NavFlattened);
+        using Tooltip_pfn = void (*)(void);
+
+        auto ImGui_CheckboxEx = [](const char* szName, bool* pVar, bool enabled = true, Tooltip_pfn tooltip_disabled = nullptr) ->
+          void
+          {
+            if (enabled)
+            {
+              ImGui::Checkbox (szName, pVar);
+            }
+
+            else
+            {
+              ImGui::TreePush     ("");
+              ImGui::TextDisabled (szName);
+
+              if (tooltip_disabled != nullptr)
+                tooltip_disabled ();
+
+              ImGui::TreePop      (  );
+
+              *pVar = false;
+            }
+          };
+
+#ifdef _WIN64
+        const int num_lines = 4; // Basic set of APIs
+#else
+        const int num_lines = 5; // + DirectDraw / Direct3D 8
+#endif
+
+        ImGui::PushStyleVar                                                                          (ImGuiStyleVar_ChildWindowRounding, 10.0f);
+        ImGui::BeginChild ("", ImVec2 (font_size * 39, font_size_multiline * num_lines * 1.1f), true, ImGuiWindowFlags_NavFlattened);
 
         ImGui::Columns    ( 2 );
 
-        ImGui::Checkbox ("Direct3D 9", &config.apis.d3d9.hook);
-
-        if (config.apis.d3d9.hook)
-          ImGui::Checkbox ("Direct3D 9Ex", &config.apis.d3d9ex.hook);
-        else {
-          ImGui::TextDisabled ("   Direct3D 9Ex");
-          config.apis.d3d9ex.hook = false;
-        }
+        ImGui_CheckboxEx ("Direct3D 9",   &config.apis.d3d9.hook);
+        ImGui_CheckboxEx ("Direct3D 9Ex", &config.apis.d3d9ex.hook, config.apis.d3d9.hook);
 
         ImGui::NextColumn (  );
 
-        ImGui::Checkbox ("Direct3D 11", &config.apis.dxgi.d3d11.hook);
+        ImGui_CheckboxEx ("Direct3D 11", &config.apis.dxgi.d3d11.hook);
 
-        if (config.apis.dxgi.d3d11.hook)
-          ImGui::Checkbox ("Direct3D 12", &config.apis.dxgi.d3d12.hook);
-        else {
-          ImGui::TextDisabled ("   Direct3D 12");
-          config.apis.dxgi.d3d12.hook = false;
-        }
+#ifdef _WIN64
+        ImGui_CheckboxEx ("Direct3D 12", &config.apis.dxgi.d3d12.hook, config.apis.dxgi.d3d11.hook);
+#endif
 
         ImGui::Columns    ( 1 );
         ImGui::Separator  (   );
+
+#ifndef _WIN64
+        ImGui::Columns    ( 2 );
+
+        static bool has_dgvoodoo =
+          GetFileAttributesA (
+            SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll",
+                                std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
+                            ).c_str ()
+          ) != INVALID_FILE_ATTRIBUTES;
+
+        // Leaks memory, but who cares? :P
+        static const char* dgvoodoo_install_path =
+          _strdup (
+            SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo",
+                    std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
+                ).c_str ()
+          );
+
+        auto Tooltip_dgVoodoo = [](void) ->
+          void
+          {
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+                ImGui::TextColored (ImColor (235, 235, 235), "Requires Third-Party Plug-In:");
+                ImGui::SameLine    ();
+                ImGui::TextColored (ImColor (255, 255, 0),   "dgVoodoo");
+                ImGui::Separator   ();
+                ImGui::BulletText  ("Please install this to: '%s'", dgvoodoo_install_path);
+              ImGui::EndTooltip   ();
+            }
+          };
+
+        ImGui_CheckboxEx ("Direct3D 8", &config.apis.d3d8.hook, has_dgvoodoo, Tooltip_dgVoodoo);
+
+        ImGui::NextColumn (  );
+
+        ImGui_CheckboxEx ("Direct Draw", &config.apis.ddraw.hook, has_dgvoodoo, Tooltip_dgVoodoo);
+
+        ImGui::Columns    ( 1 );
+        ImGui::Separator  (   );
+#endif
+
         ImGui::Columns    ( 2 );
                           
         ImGui::Checkbox   ("OpenGL ", &config.apis.OpenGL.hook); ImGui::SameLine ();
+#ifdef _WIN64
         ImGui::Checkbox   ("Vulkan ", &config.apis.Vulkan.hook);
+#endif
 
         ImGui::NextColumn (  );
 
         if (ImGui::Button (" Disable All But the Active API "))
         {
           config.apis.d3d9ex.hook     = false; config.apis.d3d9.hook       = false;
-          config.apis.dxgi.d3d11.hook = false; config.apis.dxgi.d3d12.hook = false;
-          config.apis.OpenGL.hook     = false; config.apis.Vulkan.hook     = false;
+          config.apis.dxgi.d3d11.hook = false;
+          config.apis.OpenGL.hook     = false;
+#ifdef _WIN64
+          config.apis.dxgi.d3d12.hook = false; config.apis.Vulkan.hook     = false;
+#else
+          config.apis.d3d8.hook       = false; config.apis.ddraw.hook      = false;
+#endif
         }
 
         if (ImGui::IsItemHovered ())
@@ -3763,7 +3859,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui_ImplDX9_NewFrame ();
   }
 
-  else if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11) {
+  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) {
     d3d11 = true;
 
     ImGui_ImplDX11_NewFrame ();
@@ -3835,7 +3931,7 @@ SK_ImGui_Toggle (void)
   bool gl    = false;
 
   if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)   d3d9  = true;
-  if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::D3D11)  d3d11 = true;
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)  d3d11 = true;
   if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::OpenGL) gl    = true;
 
   auto EnableEULAIfPirate = [](void) ->

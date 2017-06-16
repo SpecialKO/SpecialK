@@ -198,8 +198,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_CEGUI).c_str ());
     }
 
-    if ( ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 ||
-           SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 ) &&
+    if ( ((int)SK_GetCurrentRenderBackend ().api &  (int)SK_RenderAPI::D3D11 ||
+               SK_GetCurrentRenderBackend ().api ==      SK_RenderAPI::D3D12 ) &&
          ImGui::CollapsingHeader ("DirectXTex (D3D11/12)")
        )
     {

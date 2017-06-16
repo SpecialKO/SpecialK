@@ -300,11 +300,17 @@ struct {
 struct {
   struct {
     sk::ParameterBool*    hook;
-  }   ddraw, d3d8,
+  }   
+#ifndef _WIN64
+      ddraw, d3d8,
+#endif
       d3d9,  d3d9ex,
-      d3d11, d3d12,
-      OpenGL,
-      Vulkan;
+      d3d11, 
+#ifdef _WIN64
+      d3d12,
+      Vulkan,
+#endif
+      OpenGL;
 } apis;
 
 
@@ -854,6 +860,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"RehookLoadLibrary" );
 
 
+#ifndef _WIN64
   apis.ddraw.hook =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -873,6 +880,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"API.Hook",
         L"d3d8" );
+#endif
 
   apis.d3d9.hook =
     static_cast <sk::ParameterBool *>
@@ -904,6 +912,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"API.Hook",
         L"d3d11" );
 
+#ifdef _WIN64
   apis.d3d12.hook =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -914,16 +923,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"API.Hook",
         L"d3d12" );
 
-  apis.OpenGL.hook =
-    static_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable OpenGL Hooking")
-      );
-  apis.OpenGL.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"OpenGL" );
-
   apis.Vulkan.hook =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -933,6 +932,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"API.Hook",
         L"Vulkan" );
+#endif
+
+  apis.OpenGL.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable OpenGL Hooking")
+      );
+  apis.OpenGL.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"OpenGL" );
 
 
   mem_reserve =
@@ -2037,7 +2047,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       case SK_GAME_ID::Tyranny:
         // Cannot auto-detect API?!
         config.apis.dxgi.d3d11.hook       = false;
-        config.apis.dxgi.d3d12.hook       = false;
         config.apis.OpenGL.hook           = false;
         config.steam.filter_stat_callback = true; // Will stop running SteamAPI when it receives
                                                   //   data it didn't ask for
@@ -2058,9 +2067,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.d3d9.hook       = true;
         config.apis.d3d9ex.hook     = false;
         config.apis.dxgi.d3d11.hook = false;
-        config.apis.dxgi.d3d12.hook = false;
         config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = false;
         break;
 
 
@@ -2075,9 +2082,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
         config.apis.d3d9.hook                  = false;
         config.apis.d3d9ex.hook                = false;
-        config.apis.dxgi.d3d12.hook            = false;
         config.apis.OpenGL.hook                = false;
-        config.apis.Vulkan.hook                = false;
 
         config.input.ui.capture_hidden         = false; // Mouselook is a bitch
         config.input.mouse.add_relative_motion = true;
@@ -2118,12 +2123,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.steam.filter_stat_callback      = true; // Will stop running SteamAPI when it receives
                                                     //   data it didn't ask for
 
-        config.apis.dxgi.d3d12.hook            = false;
         config.apis.dxgi.d3d11.hook            = true;
         config.apis.d3d9.hook                  = true;
         config.apis.d3d9ex.hook                = true;
         config.apis.OpenGL.hook                = false;
-        config.apis.Vulkan.hook                = false;
         break;
 
 
@@ -2148,11 +2151,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.steam.filter_stat_callback = true;  // Will stop running SteamAPI when it receives
                                                    //   data it didn't ask for
 
-        config.apis.dxgi.d3d12.hook       = false;
         config.apis.d3d9.hook             = false;
         config.apis.d3d9ex.hook           = false;
         config.apis.OpenGL.hook           = false;
-        config.apis.Vulkan.hook           = false;
 
         config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
         break;
@@ -2181,10 +2182,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
         config.apis.d3d9.hook                 = true;
         config.apis.dxgi.d3d11.hook           = false;
-        config.apis.dxgi.d3d12.hook           = false;
         config.apis.d3d9ex.hook               = false;
         config.apis.OpenGL.hook               = false;
-        config.apis.Vulkan.hook               = false;
         break;
 
 
@@ -2201,9 +2200,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.d3d9.hook                     = true;
         config.apis.d3d9ex.hook                   = true;
         config.apis.dxgi.d3d11.hook               = false;
-        config.apis.dxgi.d3d12.hook               = false;
         config.apis.OpenGL.hook                   = false;
-        config.apis.Vulkan.hook                   = false;
         break;
 
 
@@ -2331,11 +2328,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.sli.show = monitoring.SLI.show->get_value ();
 
 
+#ifndef _WIN64
   if (apis.ddraw.hook->load ())
     config.apis.ddraw.hook = apis.ddraw.hook->get_value ();
 
   if (apis.d3d8.hook->load ())
     config.apis.d3d8.hook = apis.d3d8.hook->get_value ();
+#endif
+
 
   if (apis.d3d9.hook->load ())
     config.apis.d3d9.hook = apis.d3d9.hook->get_value ();
@@ -2346,14 +2346,18 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (apis.d3d11.hook->load ())
     config.apis.dxgi.d3d11.hook = apis.d3d11.hook->get_value ();
 
+#ifdef _WIN64
   if (apis.d3d12.hook->load ())
     config.apis.dxgi.d3d12.hook = apis.d3d12.hook->get_value ();
+#endif
 
   if (apis.OpenGL.hook->load ())
     config.apis.OpenGL.hook = apis.OpenGL.hook->get_value ();
 
+#ifdef _WIN64
   if (apis.Vulkan.hook->load ())
     config.apis.Vulkan.hook = apis.Vulkan.hook->get_value ();
+#endif
 
   if (nvidia.api.disable->load ())
     config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
@@ -2925,14 +2929,19 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_eula->set_value                  (config.imgui.show_eula);
   imgui.show_playtime->set_value              (config.steam.show_playtime);
 
+
+#ifndef _WIN64
   apis.ddraw.hook->set_value                  (config.apis.ddraw.hook);
   apis.d3d8.hook->set_value                   (config.apis.d3d8.hook);
+#endif
   apis.d3d9.hook->set_value                   (config.apis.d3d9.hook);
   apis.d3d9ex.hook->set_value                 (config.apis.d3d9ex.hook);
   apis.d3d11.hook->set_value                  (config.apis.dxgi.d3d11.hook);
-  apis.d3d12.hook->set_value                  (config.apis.dxgi.d3d12.hook);
   apis.OpenGL.hook->set_value                 (config.apis.OpenGL.hook);
+#ifdef _WIN64
+  apis.d3d12.hook->set_value                  (config.apis.dxgi.d3d12.hook);
   apis.Vulkan.hook->set_value                 (config.apis.Vulkan.hook);
+#endif
 
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
@@ -3158,14 +3167,20 @@ SK_SaveConfig ( std::wstring name,
   log_level->set_value                       (config.system.log_level);
   prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
 
+#ifndef _WIN64
   apis.ddraw.hook->store                  ();
   apis.d3d8.hook->store                   ();
+#endif
   apis.d3d9.hook->store                   ();
   apis.d3d9ex.hook->store                 ();
   apis.d3d11.hook->store                  ();
+#ifdef _WIN64
   apis.d3d12.hook->store                  ();
+#endif
   apis.OpenGL.hook->store                 ();
+#ifdef _WIN64
   apis.Vulkan.hook->store                 ();
+#endif
 
   compatibility.ignore_raptr->store       ();
   compatibility.disable_raptr->store      ();

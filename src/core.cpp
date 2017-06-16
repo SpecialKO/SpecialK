@@ -152,11 +152,12 @@ SK_GetFramesDrawn (void)
   return InterlockedExchangeAdd (&frames_drawn, 0);
 }
 
-#define D3D12_IGNORE_SDK_LAYERS
-
 #include <d3d9.h>
 #include <d3d11.h>
+#ifdef _WIN64
+#define D3D12_IGNORE_SDK_LAYERS
 #include <SpecialK/d3d12_interfaces.h>
+#endif
 
 const wchar_t*
 __stdcall
@@ -916,6 +917,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   wsprintf (wszProxyName, L"%s.dll", backend);
 
 
+#ifndef _WIN64
   //
   // TEMP HACK: dgVoodoo
   //
@@ -923,6 +925,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+#endif
 
 
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
@@ -1947,7 +1950,7 @@ SK_BeginBufferSwap (void)
 
           if (config.apis.dxgi.d3d11.hook)
           {
-            if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11 )
+            if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
             {
               if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
                 config.cegui.enable = true;
@@ -2268,7 +2271,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     CComPtr <ID3D11Device>       pDev11  = nullptr;
+#ifdef _WIN64
     CComPtr <ID3D12Device>       pDev12  = nullptr;
+#endif
 
     if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9Ex)))) {
          (int&)__SK_RBkEnd.api  = ( (int)SK_RenderAPI::D3D9 |
@@ -2277,8 +2282,22 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9)))) {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D9;
       wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
-    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11)))) {
-               __SK_RBkEnd.api  = SK_RenderAPI::D3D11;
+    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11))))
+    {
+      // Establish the API used this frame (and handle possible translation layers)
+      //
+      switch (SK_GetDLLRole ())
+      {
+        case DLL_ROLE::D3D8:
+          __SK_RBkEnd.api = SK_RenderAPI::D3D8On11;
+          break;
+        case DLL_ROLE::DDraw:
+          __SK_RBkEnd.api = SK_RenderAPI::DDrawOn11;
+          break;
+        default:
+          __SK_RBkEnd.api = SK_RenderAPI::D3D11;
+          break;
+      }
 
       IUnknown* pTest = nullptr;
 
@@ -2303,9 +2322,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
       extern void SK_D3D11_EndFrame (void);
                   SK_D3D11_EndFrame ();
+#ifdef _WIN64
     } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12)))) {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
       wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);
+#endif
     } else {
                __SK_RBkEnd.api  = SK_RenderAPI::Reserved;
       wcsncpy (__SK_RBkEnd.name, L"UNKNOWN", 8);

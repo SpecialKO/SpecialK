@@ -39,8 +39,13 @@ enum class SK_RenderAPI {
   D3D11     = 0x0040,
   D3D12     = 0x0080,
 
+  // These aren't native, but we need the bitmask anyway
+  D3D8      = 0x2000,
+  DDraw     = 0x4000,
+  Glide     = 0x8000,
+
   // Wrapped APIs (D3D12 Flavor)
-  D3D11On12 = 0x1080,
+  D3D11On12 = 0x00C0,
 
   // Wrapped APIs (D3D11 Flavor)
   D3D8On11  = 0x2040,

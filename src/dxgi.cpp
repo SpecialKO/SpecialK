@@ -1753,7 +1753,21 @@ extern "C" {
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
 
-    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+    // Establish the API used this frame (and handle possible translation layers)
+    //
+    switch (SK_GetDLLRole ())
+    {
+      case DLL_ROLE::D3D8:
+        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
+        break;
+      case DLL_ROLE::DDraw:
+        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
+        break;
+      default:
+        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+        break;
+    }
+
     SK_BeginBufferSwap ();
 
     HRESULT hr = E_FAIL;
@@ -1877,7 +1891,21 @@ extern "C" {
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
 
-    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+    // Establish the API used this frame (and handle possible translation layers)
+    //
+    switch (SK_GetDLLRole ())
+    {
+      case DLL_ROLE::D3D8:
+        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
+        break;
+      case DLL_ROLE::DDraw:
+        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
+        break;
+      default:
+        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+        break;
+    }
+
     SK_BeginBufferSwap ();
 
     HRESULT hr = E_FAIL;
@@ -3655,8 +3683,10 @@ SK_HookDXGI (void)
   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
     return;
 
+#ifdef _WIN64
   if (! config.apis.dxgi.d3d11.hook)
     config.apis.dxgi.d3d12.hook = false;
+#endif
 
   if (! config.apis.dxgi.d3d11.hook)
     return;
@@ -4151,7 +4181,10 @@ HookDXGI (LPVOID user)
 
       // These don't do anything (anymore)
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+
+#ifdef _WIN64
       if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+#endif
     }
   }
 
@@ -4180,7 +4213,10 @@ SK::DXGI::Shutdown (void)
   }
 
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
+
+#ifdef _WIN64
   if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
+#endif
 
   return SK_ShutdownCore (L"dxgi");
 }

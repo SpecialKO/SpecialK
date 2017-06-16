@@ -289,6 +289,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
       lstrcatW (wszOut, L"\\OpenGL32.dll");
       break;
 
+#ifndef _WIN64
     case DLL_ROLE::DDraw:
       lstrcatW (wszOut, L"\\ddraw.dll");
       break;
@@ -296,6 +297,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
     case DLL_ROLE::D3D8:
       lstrcatW (wszOut, L"\\d3d8.dll");
       break;
+#endif
 
     //case SK_RenderAPI::Vulkan:
       //lstrcatW (wszOut, L"\\vk-1.dll");
@@ -351,6 +353,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
         lstrcatW (wszOut, L"\\OpenGL32.ini");
         break;
 
+#ifndef _WIN64
       case DLL_ROLE::DDraw:
         lstrcatW (wszOut, L"\\ddraw.ini");
         break;
@@ -358,6 +361,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
       case DLL_ROLE::D3D8:
         lstrcatW (wszOut, L"\\d3d8.ini");
         break;
+#endif
 
       //case SK_RenderAPI::Vulkan:
         //lstrcatW (wszOut, L"\\vk-1.dll");
@@ -389,16 +393,23 @@ SK_Inject_SwitchToRenderWrapper (void)
       lstrcatW (wszOut, L"\\d3d9.dll");
       break;
 
+#ifndef _WIN64
+    case SK_RenderAPI::D3D8On11:
+      lstrcatW (wszOut, L"\\d3d8.dll");
+      break;
+
+    case SK_RenderAPI::DDrawOn11:
+      lstrcatW (wszOut, L"\\ddraw.dll");
+      break;
+#endif
+
     case SK_RenderAPI::D3D10:
     case SK_RenderAPI::D3D11:
+#ifdef _WIN64
     case SK_RenderAPI::D3D12:
+#endif
     {
-      if (SK_GetDLLRole () == DLL_ROLE::D3D8) // D3D8On11
-        lstrcatW (wszOut, L"\\d3d8.dll");
-      else if (SK_GetDLLRole () == DLL_ROLE::DDraw) // DDrawOn11
-        lstrcatW (wszOut, L"\\ddraw.dll");
-      else
-        lstrcatW (wszOut, L"\\dxgi.dll");
+      lstrcatW (wszOut, L"\\dxgi.dll");
     } break;
 
     case SK_RenderAPI::OpenGL:
@@ -452,16 +463,23 @@ SK_Inject_SwitchToRenderWrapper (void)
         lstrcatW (wszOut, L"\\d3d9.ini");
         break;
 
+#ifndef _WIN64
+    case SK_RenderAPI::D3D8On11:
+      lstrcatW (wszOut, L"\\d3d8.ini");
+      break;
+
+    case SK_RenderAPI::DDrawOn11:
+      lstrcatW (wszOut, L"\\ddraw.ini");
+      break;
+#endif
+
       case SK_RenderAPI::D3D10:
       case SK_RenderAPI::D3D11:
+#ifdef _WIN64
       case SK_RenderAPI::D3D12:
+#endif
       {
-        if (SK_GetDLLRole () == DLL_ROLE::D3D8) // D3D8On11
-          lstrcatW (wszOut, L"\\d3d8.ini");
-        else if (SK_GetDLLRole () == DLL_ROLE::DDraw) // DDrawOn11
-          lstrcatW (wszOut, L"\\ddraw.ini");
-        else
-          lstrcatW (wszOut, L"\\dxgi.ini");
+        lstrcatW (wszOut, L"\\dxgi.ini");
       } break;
 
       case SK_RenderAPI::OpenGL:
@@ -495,16 +513,23 @@ SK_Inject_SwitchToGlobalInjector (void)
       lstrcatW (wszOut, L"\\d3d9.dll");
       break;
 
+#ifndef _WIN64
+    case SK_RenderAPI::D3D8On11:
+      lstrcatW (wszOut, L"\\d3d8.dll");
+      break;
+
+    case SK_RenderAPI::DDrawOn11:
+      lstrcatW (wszOut, L"\\ddraw.dll");
+      break;
+#endif
+
     case SK_RenderAPI::D3D10:
     case SK_RenderAPI::D3D11:
+#ifdef _WIN64
     case SK_RenderAPI::D3D12:
+#endif
     {
-      if (SK_GetDLLRole () == DLL_ROLE::D3D8) // D3D8On11
-        lstrcatW (wszOut, L"\\d3d8.dll");
-      else if (SK_GetDLLRole () == DLL_ROLE::DDraw) // DDrawOn11
-        lstrcatW (wszOut, L"\\ddraw.dll");
-      else
-        lstrcatW (wszOut, L"\\dxgi.dll");
+      lstrcatW (wszOut, L"\\dxgi.dll");
     } break;
       break;
 

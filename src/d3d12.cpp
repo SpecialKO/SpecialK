@@ -194,9 +194,10 @@ __stdcall
 HookD3D12 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
-
+#ifndef _WIN64
+  return 0;
+#else
   config.apis.dxgi.d3d12.hook = false;
-    return 0;
 
   if (! config.apis.dxgi.d3d12.hook)
     return 0;
@@ -291,6 +292,7 @@ HookD3D12 (LPVOID user)
   }
 
   return 0;
+#endif
 }
 
 extern void

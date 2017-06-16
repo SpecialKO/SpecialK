@@ -19,6 +19,7 @@
 *
 **/
 
+#ifndef _WIN64
 #define _CRT_SECURE_NO_WARNINGS
 #define NOMINMAX
 
@@ -201,3 +202,13 @@ HookD3D8 (LPVOID user)
  
   return 0;
 }
+#else
+#include <combaseapi.h>
+__declspec (noinline)
+IUnknown*
+STDMETHODCALLTYPE
+Direct3DCreate8 (UINT SDKVersion)
+{
+  return nullptr;
+}
+#endif

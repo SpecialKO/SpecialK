@@ -1,4 +1,10 @@
 0.8.14:
+ + Added option to install wrapper DLL through global injector's compat. menu
+ + Fixed framerate statistics above ~333 FPS
+ + Disabled DirectDraw and D3D8 in 64-bit builds
+ + Disabled Vulkan and D3D12 in 32-bit builds
+ + Added support for games that change render API without a full restart;
+     OSD will not work, but the game will continue running ;)
  + Fixed WMI Performance Monitoring thread initialization
  + Added DirectDraw support (using dgVoodoo)
  + Fixed OpenGL vertex memory management in Sinless

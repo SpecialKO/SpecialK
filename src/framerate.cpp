@@ -246,40 +246,38 @@ SK::Framerate::Limiter::init (double target)
   CComPtr <IDXGISwapChain>     dxgi_swap   = nullptr;
   CComPtr <IDXGIOutput>        dxgi_output = nullptr;
 
-  switch (SK_GetCurrentRenderBackend ().api)
+  SK_RenderAPI api = SK_GetCurrentRenderBackend ().api;
+
+  if (      api ==      SK_RenderAPI::D3D10 ||
+       (int)api &  (int)SK_RenderAPI::D3D11 ||
+       (int)api &  (int)SK_RenderAPI::D3D12 )
   {
-    case SK_RenderAPI::D3D10:
-    case SK_RenderAPI::D3D11:
-    case SK_RenderAPI::D3D12:
+    if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
     {
-      if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
+      if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
       {
-        if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
+        if (SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)))
         {
-          if (SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)))
-          {
-            dxgi_output->WaitForVBlank ();
-          }
+          dxgi_output->WaitForVBlank ();
         }
       }
-    } break;
+    }
+  }
 
-    case SK_RenderAPI::D3D9:
-    case SK_RenderAPI::D3D9Ex:
+  else if ((int)api & (int)SK_RenderAPI::D3D9)
+  {
+    if (SK_GetCurrentRenderBackend ().device != nullptr)
     {
-      if (SK_GetCurrentRenderBackend ().device != nullptr)
-      {
-        SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
+      SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
 
-        // Align the start to VBlank for minimum input latency
-        if (d3d9ex != nullptr || (d3d9ex = SK_D3D9_GetTimingDevice ()))
-        {
-          d3d9ex->SetMaximumFrameLatency (1);
-          d3d9ex->WaitForVBlank          (0);
-          d3d9ex->SetMaximumFrameLatency (
-            config.render.framerate.pre_render_limit == -1 ?
-                 2 : config.render.framerate.pre_render_limit );
-        }
+      // Align the start to VBlank for minimum input latency
+      if (d3d9ex != nullptr || (d3d9ex = SK_D3D9_GetTimingDevice ()))
+      {
+        d3d9ex->SetMaximumFrameLatency (1);
+        d3d9ex->WaitForVBlank          (0);
+        d3d9ex->SetMaximumFrameLatency (
+          config.render.framerate.pre_render_limit == -1 ?
+               2 : config.render.framerate.pre_render_limit );
       }
     }
   }
@@ -384,30 +382,28 @@ SK::Framerate::Limiter::wait (void)
 
     if (config.render.framerate.wait_for_vblank)
     {
-      switch (SK_GetCurrentRenderBackend ().api)
-      {
-        case SK_RenderAPI::D3D10:
-        case SK_RenderAPI::D3D11:
-        case SK_RenderAPI::D3D12:
-        {
-          if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
-          {
-            if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
-            {
-              dxgi_swap->GetContainingOutput (&dxgi_output);
-            }
-          }
-        } break;
+      SK_RenderAPI api = SK_GetCurrentRenderBackend ().api;
 
-        case SK_RenderAPI::D3D9:
-        case SK_RenderAPI::D3D9Ex:
+      if (      api ==      SK_RenderAPI::D3D10 ||
+           (int)api &  (int)SK_RenderAPI::D3D11 ||
+           (int)api &  (int)SK_RenderAPI::D3D12 )
+      {
+        if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
         {
-          if (SK_GetCurrentRenderBackend ().device != nullptr)
+          if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
           {
-            if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
-            {
-              d3d9ex = SK_D3D9_GetTimingDevice ();
-            }
+            dxgi_swap->GetContainingOutput (&dxgi_output);
+          }
+        }
+      }
+
+      else if ((int)api & (int)SK_RenderAPI::D3D9)
+      {
+        if (SK_GetCurrentRenderBackend ().device != nullptr)
+        {
+          if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
+          {
+            d3d9ex = SK_D3D9_GetTimingDevice ();
           }
         }
       }

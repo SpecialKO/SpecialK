@@ -250,6 +250,7 @@ void
 WINAPI
 SK_HookVulkan (void)
 {
+#ifdef _WIN64
   static volatile ULONG hooked = FALSE;
 
   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
@@ -311,6 +312,7 @@ SK_HookVulkan (void)
   }
 
   InterlockedExchange (&__vk_ready, TRUE);
+#endif
 }
 
 bool

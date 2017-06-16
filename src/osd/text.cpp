@@ -259,6 +259,20 @@ SK_GetSharedMemory (void)
 
 bool
 __stdcall
+SK_IsD3D8 (void)
+{
+  return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D8) != 0x0;
+}
+
+bool
+__stdcall
+SK_IsDDraw (void)
+{
+  return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::DDraw) != 0x0;
+}
+
+bool
+__stdcall
 SK_IsD3D9 (void)
 {
   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0x0;
@@ -268,11 +282,24 @@ bool
 __stdcall
 SK_IsD3D11 (void)
 {
+  return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) != 0x0;
+}
+
+bool
+__stdcall
+SK_IsPureD3D11 (void)
+{
   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11);
 }
 
 bool
 SK_IsD3D12 (void)
+{
+  return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D12) != 0x0;
+}
+
+bool
+SK_IsPureD3D12 (void)
 {
   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12);
 }
