@@ -974,8 +974,12 @@ SK_ImGui_ControlPanel (void)
                                    client.right - client.left,
                                      client.bottom - client.top );
 
+
     bool windowed = true;
 
+    //
+    // TODO: Generalize this for all APIs and move it into SK's Render Backend
+    //
     if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
     {
       BOOL fullscreen = FALSE;
@@ -985,6 +989,17 @@ SK_ImGui_ControlPanel (void)
         windowed = (! fullscreen);
       }
     }
+
+    else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+    {
+      D3DPRESENT_PARAMETERS pparams;
+
+      if (SUCCEEDED (((IDirect3DSwapChain9 *)SK_GetCurrentRenderBackend ().swapchain)->GetPresentParameters (&pparams)))
+      {
+        windowed = pparams.Windowed;
+      }
+    }
+
 
     if (windowed)
     {

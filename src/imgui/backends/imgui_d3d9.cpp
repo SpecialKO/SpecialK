@@ -483,7 +483,9 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
 #include <windowsx.h>
 #include <SpecialK/input/input.h>
 
-IMGUI_API
+void
+SK_ImGui_PollGamepad (void);
+
 void
 ImGui_ImplDX9_NewFrame (void)
 {
@@ -542,7 +544,6 @@ ImGui_ImplDX9_NewFrame (void)
 
   io.KeySuper  = false;
 
-  extern void SK_ImGui_PollGamepad (void);
   SK_ImGui_PollGamepad ();
 
 

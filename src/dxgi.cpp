@@ -1799,10 +1799,7 @@ extern "C" {
           This->GetDesc (&desc);
 
 
-          static bool bIsLegoUndercover = 
-              (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
-          
-          if (bIsLegoUndercover)  pFactory->MakeWindowAssociation ( 0, 0 );
+          if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( 0, 0 );
 
 
           if (bAlwaysAllowFullscreen)
@@ -1920,15 +1917,12 @@ extern "C" {
 
 
 
-          static bool bIsLegoUndercover = 
-              (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
-          
-          if (bIsLegoUndercover)  pFactory->MakeWindowAssociation ( 0, 0 );
+          if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( 0, 0 );
 
 
 
-          if (bAlwaysAllowFullscreen)
-            pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
+          //if (bAlwaysAllowFullscreen)
+            pFactory->MakeWindowAssociation (desc.OutputWindow, 0);//DXGI_MWA_NO_WINDOW_CHANGES);
 
           hWndRender       = desc.OutputWindow;
 
@@ -2575,10 +2569,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
   }
 
 
-  static bool bIsLegoUndercover = 
-    (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
 
-  if (bIsLegoUndercover)  pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+  if (config.render.dxgi.safe_fullscreen) pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 
 

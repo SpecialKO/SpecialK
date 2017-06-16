@@ -353,10 +353,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   DXGI_LOG_CALL_1 (L"D3D11CreateDeviceAndSwapChain", L"Flags=%x", Flags );
 
-  //Flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
-  Flags |= D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS;
-  //Flags |= D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
-
   dll_log.LogEx ( true,
                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
                       FeatureLevels,
@@ -522,10 +518,6 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice", L"Flags=%x", Flags);
-
-  //Flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
-  Flags |= D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS;
-  //Flags |= D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
 
   return D3D11CreateDeviceAndSwapChain_Detour (pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, nullptr, nullptr, ppDevice, pFeatureLevel, ppImmediateContext);
 }

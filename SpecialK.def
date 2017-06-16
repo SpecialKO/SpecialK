@@ -60,6 +60,19 @@ EXPORTS
   Direct3DCreate8          = Direct3DCreate8           PRIVATE
 
 
+;LIBRARY "ddraw"
+
+EXPORTS
+  DirectDrawCreate         = DirectDrawCreate          PRIVATE
+  DirectDrawCreateEx       = DirectDrawCreateEx        PRIVATE
+
+  DirectDrawEnumerateA     = DirectDrawEnumerateA      PRIVATE
+  DirectDrawEnumerateW     = DirectDrawEnumerateW      PRIVATE
+
+  DirectDrawEnumerateExA   = DirectDrawEnumerateExA    PRIVATE
+  DirectDrawEnumerateExW   = DirectDrawEnumerateExW    PRIVATE
+
+
 ;LIBRARY "dxgi"
 
 EXPORTS

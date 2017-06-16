@@ -416,10 +416,10 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
               ( StrStrI  (lpFileName, SK_TEXT("d3d8.dll")) ||
                 StrStrIW (wszModName,        L"d3d8.dll")    ) )
       SK_BootD3D8   ();
-    //else if ( (! (SK_GetDLLRole () & DLL_ROLE::DDraw)) && config.apis.ddraw.hook &&
-    //          ( StrStrIA (lpFileName,  "ddraw.dll")   ||
-    //            StrStrIW (wszModName, L"ddraw.dll")   ) )
-    //  SK_BootDDraw  ();
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DDraw)) && config.apis.ddraw.hook &&
+              ( StrStrI  (lpFileName, SK_TEXT("ddraw.dll")) ||
+                StrStrIW (wszModName,        L"ddraw.dll")   ) )
+      SK_BootDDraw  ();
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d11.dll")) ||
                 StrStrIW (wszModName,        L"d3d11.dll") ))
@@ -1079,11 +1079,11 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
               loaded_d3d8 = true;
             }
 
-            //else if ( config.apis.ddraw.hook && StrStrIW (wszModName, L"\\ddraw.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DDraw)))) {
-            //  SK_BootDDraw ();
-            //
-            //  loaded_ddraw = true;
-            //}
+            else if ( config.apis.ddraw.hook && StrStrIW (wszModName, L"\\ddraw.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DDraw)))) {
+              SK_BootDDraw ();
+            
+              loaded_ddraw = true;
+            }
           }
         }
 

@@ -1,22 +1,22 @@
 /**
- * This file is part of Special K.
- *
- * Special K is free software : you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by The Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
- *
- * Special K is distributed in the hope that it will be useful,
- *
- * But WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Special K.
- *
- *   If not, see <http://www.gnu.org/licenses/>.
- *
+* This file is part of Special K.
+*
+* Special K is free software : you can redistribute it
+* and/or modify it under the terms of the GNU General Public License
+* as published by The Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* Special K is distributed in the hope that it will be useful,
+*
+* But WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Special K.
+*
+*   If not, see <http://www.gnu.org/licenses/>.
+*
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -62,7 +62,7 @@ WaitForInit_D3D8 (void)
 }
 
 typedef IUnknown*
-  (STDMETHODCALLTYPE *Direct3DCreate8PROC)(  UINT           SDKVersion);
+(STDMETHODCALLTYPE *Direct3DCreate8PROC)(  UINT           SDKVersion);
 
 Direct3DCreate8PROC      Direct3DCreate8_Import       = nullptr;
 
@@ -107,11 +107,11 @@ SK_HookD3D8 (void)
 
   HMODULE hBackend = 
     (SK_GetDLLRole () & DLL_ROLE::D3D8) ? backend_dll :
-                                   GetModuleHandle (L"d3d8.dll");
+                                    GetModuleHandle (L"d3d8.dll");
 
   dll_log.Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
   dll_log.Log (L"[   D3D8   ] ================================");
-
+  
   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll")) {
     dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %ph",
       (Direct3DCreate8_Import) =  \
@@ -123,11 +123,11 @@ SK_HookD3D8 (void)
     bool bProxy = GetModuleHandle (L"d3d8.dll") != hBackend;
 
     if ( MH_OK ==
-           SK_CreateDLLHook2 ( L"d3d8.dll",
+            SK_CreateDLLHook2 ( L"d3d8.dll",
                                 "Direct3DCreate8",
-                                 Direct3DCreate8,
+                                  Direct3DCreate8,
                       (LPVOID *)&Direct3DCreate8_Import )
-       )
+        )
     {
       if (bProxy)
       {
@@ -198,6 +198,6 @@ HookD3D8 (LPVOID user)
 
   if (success)
     CoUninitialize ();
-
+ 
   return 0;
 }

@@ -1631,7 +1631,7 @@ public:
 
                 // Popup is in the final location, so now is when screenshots
                 //   need to be taken.
-                if (config.steam.achievements.take_screenshot && take_screenshot)
+                if (config.steam.achievements.take_screenshot && take_screenshot && it->achievement->unlocked_)
                   SK::SteamAPI::TakeScreenshot ();
 
                 win->show        ();
@@ -1993,7 +1993,7 @@ protected:
                      progress / 100.0f
                );
 
-      //achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
+      achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
     
       snprintf ( szUnlockTime, 128,
                    "Current Progress: %li/%li (%6.2f%%)",

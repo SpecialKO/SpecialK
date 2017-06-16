@@ -49,6 +49,10 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
 
   draw_data->ScaleClipRects (ImVec2 (1.0f, 1.0f));//io.DisplayFramebufferScale);
 
+  //
+  // nb: State bckup/restore is handled higher up the callstack
+  //
+#if 0
   // Backup GL state
   GLint     last_program;              glGetIntegerv (GL_CURRENT_PROGRAM,              &last_program);
   GLint     last_texture;              glGetIntegerv (GL_TEXTURE_BINDING_2D,           &last_texture);
@@ -66,6 +70,7 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
   GLboolean last_enable_cull_face    = glIsEnabled   (GL_CULL_FACE);
   GLboolean last_enable_depth_test   = glIsEnabled   (GL_DEPTH_TEST);
   GLboolean last_enable_scissor_test = glIsEnabled   (GL_SCISSOR_TEST);
+#endif
 
   // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled
   glEnable        (GL_BLEND);
@@ -98,44 +103,46 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
     const ImDrawList* cmd_list = draw_data->CmdLists[n];
     const ImDrawIdx* idx_buffer_offset = 0;
 
-    glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
-    glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
+    glBindBuffer (GL_ARRAY_BUFFER,         g_VboHandle);
+    glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
+    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
+    glBufferData (GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx),  (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
 
     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
     {
-      const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+      const ImDrawCmd* pcmd = &cmd_list->CmdBuffer [cmd_i];
       if (pcmd->UserCallback)
       {
-        pcmd->UserCallback(cmd_list, pcmd);
+        pcmd->UserCallback (cmd_list, pcmd);
       }
       else
       {
-        glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-        glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-        glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
+        glBindTexture  (GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
+        glScissor      ((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
+        glDrawElements (GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
       }
       idx_buffer_offset += pcmd->ElemCount;
     }
   }
 
+#if 0
   // Restore modified GL state
-  glUseProgram(last_program);
-  glActiveTexture(last_active_texture);
-  glBindTexture(GL_TEXTURE_2D, last_texture);
-  glBindVertexArray(last_vertex_array);
-  glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
-  glBlendEquationSeparate(last_blend_equation_rgb, last_blend_equation_alpha);
-  glBlendFunc(last_blend_src, last_blend_dst);
-  if (last_enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
-  if (last_enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
-  if (last_enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-  if (last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
-  glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
-  glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
+  glUseProgram            (last_program);
+  glActiveTexture         (last_active_texture);
+  glBindTexture           (GL_TEXTURE_2D,           last_texture);
+  glBindVertexArray       (last_vertex_array);
+  glBlendEquationSeparate (last_blend_equation_rgb, last_blend_equation_alpha);
+  glBlendFunc             (last_blend_src,          last_blend_dst);
+
+  if (last_enable_blend)        glEnable (GL_BLEND);        else glDisable (GL_BLEND);
+  if (last_enable_cull_face)    glEnable (GL_CULL_FACE);    else glDisable (GL_CULL_FACE);
+  if (last_enable_depth_test)   glEnable (GL_DEPTH_TEST);   else glDisable (GL_DEPTH_TEST);
+  if (last_enable_scissor_test) glEnable (GL_SCISSOR_TEST); else glDisable (GL_SCISSOR_TEST);
+
+  glViewport ( last_viewport    [0], last_viewport    [1], (GLsizei)last_viewport    [2], (GLsizei)last_viewport    [3]);
+  glScissor  ( last_scissor_box [0], last_scissor_box [1], (GLsizei)last_scissor_box [2], (GLsizei)last_scissor_box [3]);
+#endif
 }
 
 static const char*
@@ -247,8 +254,8 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
   glGenBuffers (1, &g_VboHandle);
   glGenBuffers (1, &g_ElementsHandle);
 
-  glGenVertexArrays (1, &g_VaoHandle);
-  glBindVertexArray (g_VaoHandle);
+  glGenVertexArrays (1,              &g_VaoHandle);
+  glBindVertexArray (                 g_VaoHandle);
   glBindBuffer      (GL_ARRAY_BUFFER, g_VboHandle);
 
   glEnableVertexAttribArray (g_AttribLocationPosition);
@@ -404,10 +411,10 @@ ImGui_ImplGL3_NewFrame (void)
   //
   //  -- Acquire actually means release their exclusive ownership : )
   //
-  if (SK_ImGui_WantMouseCapture ())
-    SK_Input_DI8Mouse_Acquire ();
-  else
-    SK_Input_DI8Mouse_Release ();
+  //if (SK_ImGui_WantMouseCapture ())
+  //  SK_Input_DI8Mouse_Acquire ();
+  //else
+  //  SK_Input_DI8Mouse_Release ();
 
 
   SK_ImGui_PollGamepad ();

@@ -580,7 +580,7 @@ SK_DrawOSD (void)
   if (config.fps.show)
   {
     // What the bloody hell?! How do we ever get a dt value near 0?
-    if (dt > 0.001)
+    if (dt > 0.0001)
       frame_history.addSample (1000.0 * dt, now);
     else
       frame_history.addSample (INFINITY, now);

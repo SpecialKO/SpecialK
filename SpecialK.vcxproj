@@ -1333,6 +1333,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\d3d8_backend.h" />
     <ClInclude Include="include\SpecialK\d3d9\texmgr.h" />
     <ClInclude Include="include\SpecialK\d3d9_backend.h" />
+    <ClInclude Include="include\SpecialK\ddraw_backend.h" />
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h" />
     <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h" />
     <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h" />
@@ -1438,6 +1439,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\ddraw.cpp" />
     <ClCompile Include="src\diagnostics\compatibility.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>

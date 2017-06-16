@@ -193,6 +193,9 @@
     <Filter Include="Source Files\Backends\Render\D3D8">
       <UniqueIdentifier>{09f216f3-b598-4a6a-aee1-587fd9d42d27}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Render\DDraw">
+      <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -387,6 +390,9 @@
     <ClInclude Include="include\SpecialK\d3d8_backend.h">
       <Filter>Header Files\Backends\Render\D3D8</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\ddraw_backend.h">
+      <Filter>Header Files\Backends\Render\DDraw</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -565,6 +571,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\rime.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ddraw.cpp">
+      <Filter>Source Files\Backends\Render\DDraw</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

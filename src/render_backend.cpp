@@ -41,6 +41,7 @@ extern void WINAPI SK_HookGL     (void);
 extern void WINAPI SK_HookVulkan (void);
 extern void WINAPI SK_HookD3D9   (void);
 extern void WINAPI SK_HookD3D8   (void);
+extern void WINAPI SK_HookDDraw  (void);
 extern void WINAPI SK_HookDXGI   (void);
 
 void
@@ -118,6 +119,31 @@ SK_BootD3D8 (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
 
   SK_HookD3D8 ();
+}
+
+void
+SK_BootDDraw (void)
+{
+  while (backend_dll == 0) {
+    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
+    Sleep (500UL);
+  }
+
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  // Establish the minimal set of APIs necessary to work as ddraw.dll
+  if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+    config.apis.ddraw.hook = true;
+
+  if (! config.apis.ddraw.hook)
+    return;
+
+  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
+
+  SK_HookDDraw ();
 }
 
 extern HMODULE backend_dll;

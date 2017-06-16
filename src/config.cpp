@@ -207,6 +207,7 @@ struct {
     sk::ParameterStringW* rotation;
     sk::ParameterBool*    test_present;
     sk::ParameterBool*    debug_layer;
+    sk::ParameterBool*    safe_fullscreen;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -1347,6 +1348,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Render.DXGI",
           L"TestSwapChainPresent" );
 
+    render.dxgi.safe_fullscreen =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Prevent DXGI Deadlocks in Improperly Written Games")
+        );
+    render.dxgi.safe_fullscreen->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"SafeFullscreenMode" );
+
 
     texture.d3d11.cache =
       static_cast <sk::ParameterBool *>
@@ -1966,6 +1977,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     WatchDogs2,           // WatchDogs2.exe
     NieRAutomata,         // NieRAutomata.exe
     Warframe_x64,         // Warframe.x64.exe
+    LEGOCityUndercover,   // LEGOLCUR_DX11.exe
+    Sacred ,              // sacred.exe
     Sacred2,              // sacred2.exe
     FinalFantasy9         // FF9.exe   
   };
@@ -1988,6 +2001,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"WatchDogs2.exe",               SK_GAME_ID::WatchDogs2           );
   games.emplace ( L"NieRAutomata.exe",             SK_GAME_ID::NieRAutomata         );
   games.emplace ( L"Warframe.x64.exe",             SK_GAME_ID::Warframe_x64         );
+  games.emplace ( L"Sacred.exe",                   SK_GAME_ID::Sacred               );
   games.emplace ( L"Sacred2.exe",                  SK_GAME_ID::Sacred2              );
   games.emplace ( L"FF9.exe",                      SK_GAME_ID::FinalFantasy9        );
 
@@ -2195,10 +2209,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
         break;
 
 
+      case SK_GAME_ID::LEGOCityUndercover:
+        config.render.dxgi.safe_fullscreen = true;
+        break;
+
+
       case SK_GAME_ID::Sacred2:
+      case SK_GAME_ID::Sacred:
+        config.render.dxgi.safe_fullscreen = true; // dgVoodoo compat
         // Contrary to its name, this game needs this turned off ;)
-        config.cegui.safe_init           = false;
-        config.steam.force_load_steamapi = true; // Not safe in all games, but it is here.
+        config.cegui.safe_init             = false;
+        config.steam.force_load_steamapi   = true; // Not safe in all games, but it is here.
         break;
 
 
@@ -2528,6 +2549,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       if (render.dxgi.swapchain_wait->load ())
         config.render.framerate.swapchain_wait = render.dxgi.swapchain_wait->get_value ();
+
+      if (render.dxgi.safe_fullscreen->load ())
+        config.render.dxgi.safe_fullscreen = render.dxgi.safe_fullscreen->get_value ();
 
       if (texture.d3d11.cache->load ())
         config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
@@ -3049,7 +3073,8 @@ SK_SaveConfig ( std::wstring name,
           break;
       }
 
-      render.dxgi.debug_layer->set_value (config.render.dxgi.debug_layer);
+      render.dxgi.debug_layer->set_value     (config.render.dxgi.debug_layer);
+      render.dxgi.safe_fullscreen->set_value (config.render.dxgi.safe_fullscreen);
     }
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9)
@@ -3211,12 +3236,13 @@ SK_SaveConfig ( std::wstring name,
 
       texture.cache.ignore_non_mipped->store ();
 
-      render.dxgi.max_res->store        ();
-      render.dxgi.min_res->store        ();
-      render.dxgi.scaling_mode->store   ();
-      render.dxgi.scanline_order->store ();
-      render.dxgi.exception_mode->store ();
-      render.dxgi.debug_layer->store    ();
+      render.dxgi.max_res->store         ();
+      render.dxgi.min_res->store         ();
+      render.dxgi.scaling_mode->store    ();
+      render.dxgi.scanline_order->store  ();
+      render.dxgi.exception_mode->store  ();
+      render.dxgi.debug_layer->store     ();
+      render.dxgi.safe_fullscreen->store ();
 
       render.dxgi.swapchain_wait->store ();
     }

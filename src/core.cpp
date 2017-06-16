@@ -742,7 +742,8 @@ SK_InitFinishCallback (void)
   //
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
     SK_BootDXGI ();
-
+  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+    SK_BootDXGI ();
 
   SK_DeleteTemporaryFiles ();
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
@@ -909,6 +910,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
   //
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
 #ifdef _WIN64
@@ -2266,14 +2269,22 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
-#ifndef SK_BUILD__INSTALLER
   else {
     if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != 0) {
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }
   }
-#endif
+
+  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+  {
+    wcscpy (__SK_RBkEnd.name, L"D3D8");
+  }
+
+  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+  {
+    wcscpy (__SK_RBkEnd.name, L"DDraw");
+  }
 
   static volatile ULONG budget_init = FALSE;
 

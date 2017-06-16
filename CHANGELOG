@@ -1,3 +1,9 @@
+0.8.14:
+ + Added DirectDraw support (using dgVoodoo)
+ + Fixed OpenGL vertex memory management in Sinless
+ + Fixed achievement popups with partial progress (no longer treated as unlock)
+ + Screenshot on achievement unlock fixed when popups are disabled
+
 0.8.13:
  + Added Texture LOD Selection to D3D11 Texture View
  + Added Texture Set Filtering to D3D11 Texture View

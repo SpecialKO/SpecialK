@@ -1066,10 +1066,7 @@ SetWindowPos_Detour(
 
 
 
-  static bool bIsLegoUndercover = 
-      (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
-  
-  if (bIsLegoUndercover) uFlags |= SWP_ASYNCWINDOWPOS;
+  if (config.render.dxgi.safe_fullscreen) uFlags |= SWP_ASYNCWINDOWPOS;
 
 
 
@@ -1756,7 +1753,7 @@ SK_AdjustBorder (void)
                       origin_x, origin_y,
                         new_window.right - new_window.left,
                         new_window.bottom - new_window.top,
-                          SWP_NOACTIVATE   | SWP_NOZORDER       | SWP_NOREPOSITION |
+                          SWP_NOZORDER       | SWP_NOREPOSITION |
                           SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_SHOWWINDOW  );
 
     GetWindowRect (game_window.hWnd, &game_window.actual.window);
@@ -1844,7 +1841,7 @@ SK_AdjustWindow (void)
                                 mi.rcMonitor.top,
                                   mi.rcMonitor.right  - mi.rcMonitor.left,
                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                    SWP_NOACTIVATE   | SWP_NOSENDCHANGING | SWP_NOZORDER |
+                                    SWP_NOSENDCHANGING | SWP_NOZORDER |
                                     SWP_NOREPOSITION | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
 
     SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
@@ -2061,7 +2058,7 @@ SK_AdjustWindow (void)
                                   game_window.actual.window.top,
                                     game_window.actual.window.right  - game_window.actual.window.left,
                                     game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_NOACTIVATE   | SWP_NOSENDCHANGING | SWP_NOZORDER |
+                                      SWP_NOSENDCHANGING | SWP_NOZORDER |
                                       SWP_NOREPOSITION | SWP_SHOWWINDOW );
     }
 
@@ -2304,6 +2301,10 @@ PeekMessageW_Detour (
 {
   SK_LOG_FIRST_CALL
 
+
+  if (config.render.dxgi.safe_fullscreen) wRemoveMsg = PM_REMOVE;
+
+
   BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
   if (bRet && lpMsg->hwnd != HWND_DESKTOP)
@@ -2332,13 +2333,9 @@ PeekMessageA_Detour (
   _In_     UINT  wRemoveMsg )
 {
   SK_LOG_FIRST_CALL
-
-
-  static bool bIsLegoUndercover = 
-      (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
   
-  if (bIsLegoUndercover) wRemoveMsg = PM_REMOVE;
 
+  if (config.render.dxgi.safe_fullscreen) wRemoveMsg = PM_REMOVE;
 
 
   BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
@@ -2426,70 +2423,6 @@ struct {
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/dxgi_interfaces.h>
-
-
-DWORD
-WINAPI
-SK_ToggleFullscreenThread (LPVOID user)
-{
-  BOOL                     fullscreen     = FALSE;
-  CComPtr <IDXGISwapChain> pGameSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
-  CComPtr <IDXGIOutput> pOutput    = nullptr;
-
-  if (SUCCEEDED (pGameSwapChain->GetFullscreenState (&fullscreen, &pOutput))) 
-  {
-    if (fullscreen)
-    {
-      DXGI_SWAP_CHAIN_DESC swap_desc;
-      pGameSwapChain->GetDesc (&swap_desc);
-
-      DXGI_MODE_DESC mode = swap_desc.BufferDesc;
-      swap_desc.BufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-      swap_desc.BufferUsage       = DXGI_USAGE_DISCARD_ON_PRESENT;
-      swap_desc.Flags             = 0x02;
-
-      pGameSwapChain->ResizeTarget       (&mode);
-      pGameSwapChain->SetFullscreenState (FALSE, nullptr);
-
-      SetForegroundWindow (game_window.hWnd);
-      SetFocus            (game_window.hWnd);
-      SetActiveWindow     (game_window.hWnd);
-
-      game_window.SetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE, game_window.GetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE) & (~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)));
-      SetWindowPos_Original        (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING|SWP_ASYNCWINDOWPOS|SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE);
-    }
-
-    else
-    {
-      DXGI_SWAP_CHAIN_DESC swap_desc;
-      pGameSwapChain->GetDesc (&swap_desc);
-
-      DXGI_MODE_DESC mode = swap_desc.BufferDesc;
-      swap_desc.BufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-      swap_desc.BufferUsage       = DXGI_USAGE_DISCARD_ON_PRESENT;
-      swap_desc.Flags             = 0x02;
-
-      pGameSwapChain->ResizeTarget       (&mode);
-      pGameSwapChain->SetFullscreenState (TRUE, pOutput);
-
-      pOutput.Release ();
-
-      mode.RefreshRate.Denominator = 0;
-      mode.RefreshRate.Numerator   = 0;
-
-      pGameSwapChain->ResizeTarget  (&mode);
-
-      SetForegroundWindow (game_window.hWnd);
-      SetFocus            (game_window.hWnd);
-      SetActiveWindow     (game_window.hWnd);
-
-      game_window.SetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE, game_window.GetWindowLongPtr (game_window.hWnd, GWL_EXSTYLE) & (~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)));
-      SetWindowPos_Original        (game_window.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING|SWP_ASYNCWINDOWPOS|SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE);
-    }
-  }
-
-  return 0;
-}
 
 
 DWORD
@@ -2750,25 +2683,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         if (config.window.background_mute)
           SK_WindowManager::getInstance ()->muteGame ((! active));
-
-
-        static bool bIsLegoUndercover = 
-          (StrStrIW (SK_GetHostApp (), L"LEGOLCUR_DX11.exe") != nullptr);
-
-        if (bIsLegoUndercover)
-        {
-          BOOL                     fullscreen = FALSE;
-          CComPtr <IDXGISwapChain> pGameSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ( ).swapchain;
-
-          if (SUCCEEDED (pGameSwapChain->GetFullscreenState (&fullscreen, nullptr)))
-          {
-            //if (active && (! fullscreen))
-            //SK_ToggleFullscreenThread (nullptr);
-
-            //if ((! active) && (fullscreen))
-            //SK_ToggleFullscreenThread (nullptr);
-          }
-        }
       }
 
 
@@ -2916,7 +2830,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           case 2:  // WA_CLICKACTIVE
           default: // Unknown
           {
-            if ((HWND)lParam == game_window.hWnd)
+            if ((HWND)lParam != game_window.hWnd)
             {
               if (last_active == false) {
                 SK_LOG2 ( ( L"Application Activated (WM_ACTIVATEAPP)" ),

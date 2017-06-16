@@ -35,6 +35,7 @@
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/d3d8_backend.h>
+#include <SpecialK/ddraw_backend.h>
 #include <SpecialK/opengl_backend.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
@@ -324,6 +325,9 @@ SK_EstablishDllRole (HMODULE hModule)
   else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll"))
     SK_SetDLLRole (DLL_ROLE::D3D8);
 
+  else if (! SK_Path_wcsicmp (wszShort, L"ddraw.dll"))
+    SK_SetDLLRole (DLL_ROLE::DDraw);
+
   else if (! SK_Path_wcsicmp (wszShort, L"d3d9.dll"))
     SK_SetDLLRole (DLL_ROLE::D3D9);
 
@@ -483,14 +487,6 @@ SK_EstablishDllRole (HMODULE hModule)
             return FALSE;
         }
 
-        //else if (config.apis.ddraw.hook && ddraw)
-        //{
-        //  SK_SetDLLRole (DLL_ROLE::DDraw);
-        //
-        //  if (SK_IsDLLSpecialK (L"ddraw.dll"))
-        //    return FALSE;
-        //}
-
         else if (config.apis.OpenGL.hook && gl)
         {
           SK_SetDLLRole (DLL_ROLE::OpenGL);
@@ -501,6 +497,14 @@ SK_EstablishDllRole (HMODULE hModule)
 
         else if (config.apis.Vulkan.hook && vulkan)
           SK_SetDLLRole (DLL_ROLE::Vulkan);
+
+        else if (config.apis.ddraw.hook && ddraw)
+        {
+          SK_SetDLLRole (DLL_ROLE::DDraw);
+        
+          if (SK_IsDLLSpecialK (L"ddraaw.dll"))
+            return FALSE;
+        }
 
 
         // No Freaking Clue What API This is, Let's use the config file to
@@ -612,9 +616,6 @@ SK_Attach (DLL_ROLE role)
         );
       } break;
 
-      // TODO: DDraw and Glide
-
-
       case DLL_ROLE::OpenGL:
       {
         // If this is the global injector and there is a wrapper version
@@ -634,6 +635,22 @@ SK_Attach (DLL_ROLE role)
       case DLL_ROLE::Vulkan:
       {
         return DontInject ();
+      } break;
+
+      case DLL_ROLE::DDraw:
+      {
+        // If this is the global injector and there is a wrapper version
+        //   of Special K in the DLL search path, then bail-out!
+        if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
+        {
+          return DontInject ();
+        }
+
+        InterlockedCompareExchange (
+          &__SK_DLL_Attached,
+            SK::DDraw::Startup (),
+              FALSE
+        );
       } break;
     }
 
@@ -692,6 +709,10 @@ SK_Detach (DLL_ROLE role)
 
       case DLL_ROLE::D3D8:
         ret = SK::D3D8::Shutdown ();
+        break;
+
+      case DLL_ROLE::DDraw:
+        ret = SK::DDraw::Shutdown ();
         break;
 
       case DLL_ROLE::OpenGL:
