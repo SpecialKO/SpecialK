@@ -23,6 +23,7 @@
 #define __SK__INJECTION_H__
 
 #include <SpecialK/window.h>
+#include <SpecialK/core.h>
 
 LRESULT
 CALLBACK
@@ -31,5 +32,12 @@ CBTProc (int nCode, WPARAM wParam, LPARAM lParam);
 extern "C" void __stdcall SKX_InstallCBTHook (void);
 extern "C" void __stdcall SKX_RemoveCBTHook  (void);
 extern "C" bool __stdcall SKX_IsHookingCBT   (void);
+
+bool
+SK_Inject_SwitchToRenderWrapper (void);
+
+bool
+SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role);
+
 
 #endif /* __SK__INJECTION_H__ */

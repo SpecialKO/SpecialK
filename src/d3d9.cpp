@@ -933,6 +933,7 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
   //SK_D3D9_UpdateRenderStats (nullptr, This);
 
+  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9Ex;
   SK_BeginBufferSwap ();
 
   HRESULT hr = E_FAIL;
@@ -1037,6 +1038,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   //SK_D3D9_UpdateRenderStats (nullptr, This);
 
+  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
   SK_BeginBufferSwap ();
 
   if (! ( config.render.d3d9.osd_in_vidcap && InterlockedExchangeAdd (
@@ -1229,6 +1231,7 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
 
     //SK_D3D9_UpdateRenderStats (This);
 
+    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
     SK_BeginBufferSwap ();
 
     CComPtr <IDirect3DDevice9> pDev = nullptr;

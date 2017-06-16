@@ -54,8 +54,8 @@ extern bool SK_InitWMI     (void);
 
 process_stats_t process_stats;
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK_MonitorProcess (LPVOID user)
 {
   SK_AutoCOMInit auto_com;
@@ -229,6 +229,8 @@ SK_MonitorProcess (LPVOID user)
 
   proc.lID = 1;
 
+  proc.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"ProcMon Shutdown Signal");
+
   COM::base.wmi.Unlock ();
 
   while (proc.lID != 0)
@@ -294,6 +296,12 @@ PROC_CLEANUP:
   {
     proc.pRefresher->Release ();
     proc.pRefresher = nullptr;
+  }
+
+  if (proc.hShutdownSignal != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (proc.hShutdownSignal);
+    proc.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 
   COM::base.wmi.Unlock   ();

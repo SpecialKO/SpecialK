@@ -433,8 +433,8 @@ cpu_perf_t cpu_stats;
 
 #include <SpecialK/config.h>
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
   SK_AutoCOMInit auto_com;
@@ -500,12 +500,14 @@ SK_MonitorCPU (LPVOID user_param)
   cpu.dwNumReturned = 0;
   cpu.dwNumObjects  = 0;
 
+  cpu.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal");
+
   COM::base.wmi.Unlock ();
 
-  while (cpu_stats.lID != 0)
+  while (cpu.lID != 0)
   {
-    // Sleep for 500 ms.
-    Sleep (DWORD (update * 1000.0));
+    if (WaitForSingleObject (cpu.hShutdownSignal, DWORD (update * 1000.0)) == WAIT_OBJECT_0)
+      break;
 
     // Only poll WMI while the data view is visible
     if (! config.cpu.show)
@@ -769,6 +771,12 @@ CPU_CLEANUP:
     cpu.pRefresher = nullptr;
   }
 
+  if (cpu.hShutdownSignal != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (cpu.hShutdownSignal);
+    cpu.hShutdownSignal = 0;
+  }
+
   COM::base.wmi.Unlock   ();
 
   return 0;
@@ -776,8 +784,8 @@ CPU_CLEANUP:
 
 disk_perf_t disk_stats;
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK_MonitorDisk (LPVOID user)
 {
   SK_AutoCOMInit auto_com;
@@ -841,12 +849,14 @@ SK_MonitorDisk (LPVOID user)
   disk.dwNumReturned = 0;
   disk.dwNumObjects  = 0;
 
+  disk.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"DiskMon Shutdown Signal");
+
   COM::base.wmi.Unlock ();
 
   while (disk_stats.lID != 0)
   {
-    // Sleep for 500 ms.
-    Sleep (DWORD (update * 1000.0));
+    if (WaitForSingleObject (disk_stats.hShutdownSignal, DWORD (update * 1000.0)) == WAIT_OBJECT_0)
+      break;
 
     // Only poll WMI while the data view is visible
     if (! config.disk.show)
@@ -1178,6 +1188,12 @@ DISK_CLEANUP:
     disk.pRefresher = nullptr;
   }
 
+  if (disk.hShutdownSignal != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (disk.hShutdownSignal);
+    disk.hShutdownSignal = INVALID_HANDLE_VALUE;
+  }
+
   COM::base.wmi.Unlock   ();
 
   return 0;
@@ -1185,8 +1201,8 @@ DISK_CLEANUP:
 
 pagefile_perf_t pagefile_stats;
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
   SK_AutoCOMInit auto_com;
@@ -1250,12 +1266,14 @@ SK_MonitorPagefile (LPVOID user)
 
   int iter = 0;
 
+  pagefile.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Monitor Shutdown Signal");
+
   COM::base.wmi.Unlock ();
 
   while (pagefile.lID != 0)
   {
-    // Sleep for 500 ms.
-    Sleep ((DWORD)(update * 1000.0));
+    if (WaitForSingleObject (pagefile.hShutdownSignal, DWORD (update * 1000.0)) == WAIT_OBJECT_0)
+      break;
 
     // Only poll WMI while the pagefile stats are shown
     if (! config.pagefile.show)
@@ -1494,6 +1512,12 @@ PAGEFILE_CLEANUP:
   {
     pagefile.pRefresher->Release ();
     pagefile.pRefresher = nullptr;
+  }
+
+  if (pagefile.hShutdownSignal != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (pagefile.hShutdownSignal);
+    pagefile.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 
   COM::base.wmi.Unlock   ();

@@ -81,7 +81,7 @@ wchar_t update_dlg_build    [MAX_PATH];
 wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH];
 
 
-unsigned int
+DWORD
 WINAPI
 DownloadThread (LPVOID user)
 {
@@ -554,12 +554,12 @@ DownloadDialogCallback (
 
       get->hTaskDlg = hWnd;
 
-      _beginthreadex ( nullptr,
-                         0,
-                          DownloadThread,
-                            (LPVOID)get,
-                              0x00,
-                              nullptr );
+      CreateThread ( nullptr,
+                       0,
+                         DownloadThread,
+                           (LPVOID)get,
+                             0x00,
+                               nullptr );
     }
 
     else {

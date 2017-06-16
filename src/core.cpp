@@ -77,8 +77,8 @@ static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 
-volatile HANDLE  hInitThread   = { 0 };
-         HANDLE  hPumpThread   = { 0 };
+volatile HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
+         HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
 
 // Disable SLI memory in Batman Arkham Knight
 bool USE_SLI = true;
@@ -425,10 +425,12 @@ SK_DescribeHRESULT (HRESULT result)
   }
 }
 
+HANDLE osd_shutdown = INVALID_HANDLE_VALUE;
+
 // Stupid solution for games that inexplicibly draw to the screen
 //   without ever swapping buffers.
-unsigned int
-__stdcall
+DWORD
+WINAPI
 osd_pump (LPVOID lpThreadParam)
 { 
   UNREFERENCED_PARAMETER (lpThreadParam);
@@ -436,14 +438,13 @@ osd_pump (LPVOID lpThreadParam)
   // TODO: This actually increases the number of frames rendered, which
   //         may interfere with other mod logic... the entire feature is
   //           a hack, but that behavior is not intended.
-  while (true) {
-    Sleep            ((DWORD)(config.osd.pump_interval * 1000.0f));
+  while (true)
+  {
+    if (WaitForSingleObject (osd_shutdown, (DWORD)(config.osd.pump_interval * 1000.0f)) == WAIT_OBJECT_0)
+      break;
+
     SK_EndBufferSwap (S_OK, nullptr);
   }
-
-
-
-
 
   return 0;
 }
@@ -454,86 +455,90 @@ void
 __stdcall
 SK_StartPerfMonThreads (void)
 {
-  if (config.mem.show) {
+  if (config.mem.show)
+  {
     //
     // Spawn Process Monitor Thread
     //
-    if (process_stats.hThread == 0) {
+    if (process_stats.hThread == INVALID_HANDLE_VALUE)
+    {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
       process_stats.hThread = 
-        (HANDLE)
-          _beginthreadex ( nullptr,
-                             0,
-                               SK_MonitorProcess,
-                                 nullptr,
-                                   0,
-                                     nullptr );
+        CreateThread ( nullptr,
+                         0,
+                           SK_MonitorProcess,
+                             nullptr,
+                               0,
+                                 nullptr );
 
-      if (process_stats.hThread != 0)
+      if (process_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (process_stats.hThread));
       else
         dll_log.LogEx (false, L"Failed!\n");
     }
   }
 
-  if (config.cpu.show) {
+  if (config.cpu.show)
+  {
     //
     // Spawn CPU Refresh Thread
     //
-    if (cpu_stats.hThread == 0) {
+    if (cpu_stats.hThread == INVALID_HANDLE_VALUE)
+    {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
 
       cpu_stats.hThread = 
-        (HANDLE)
-          _beginthreadex ( nullptr,
-                             0,
-                               SK_MonitorCPU,
-                                 nullptr,
-                                   0,
-                                     nullptr );
+        CreateThread ( nullptr,
+                         0,
+                           SK_MonitorCPU,
+                             nullptr,
+                               0,
+                                 nullptr );
 
-      if (cpu_stats.hThread != 0)
+      if (cpu_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (cpu_stats.hThread));
       else
         dll_log.LogEx (false, L"Failed!\n");
     }
   }
 
-  if (config.disk.show) {
-    if (disk_stats.hThread == 0) {
+  if (config.disk.show)
+  {
+    if (disk_stats.hThread == INVALID_HANDLE_VALUE)
+    {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
 
       disk_stats.hThread =
-        (HANDLE)
-          _beginthreadex ( nullptr,
-                             0,
-                               SK_MonitorDisk,
-                                 nullptr,
-                                   0,
-                                     nullptr );
+        CreateThread ( nullptr,
+                         0,
+                           SK_MonitorDisk,
+                             nullptr,
+                               0,
+                                 nullptr );
 
-      if (disk_stats.hThread != 0)
+      if (disk_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (disk_stats.hThread));
       else
         dll_log.LogEx (false, L"failed!\n");
     }
   }
 
-  if (config.pagefile.show) {
-    if (pagefile_stats.hThread == 0) {
+  if (config.pagefile.show)
+  {
+    if (pagefile_stats.hThread == INVALID_HANDLE_VALUE)
+    {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
 
       pagefile_stats.hThread =
-        (HANDLE)
-          _beginthreadex ( nullptr,
-                             0,
-                               SK_MonitorPagefile,
-                                 nullptr,
-                                   0,
-                                     nullptr );
+        CreateThread ( nullptr,
+                         0,
+                           SK_MonitorPagefile,
+                             nullptr,
+                               0,
+                                 nullptr );
 
-      if (pagefile_stats.hThread != 0)
+      if (pagefile_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx ( false, L"tid=0x%04x\n",
                           GetThreadId (pagefile_stats.hThread) );
       else
@@ -729,8 +734,8 @@ skMemCmd::execute (const char* szArgs)
   return SK_ICommandResult ("mem", szArgs);
 }
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 CheckVersionThread (LPVOID user);
 
 void
@@ -822,25 +827,28 @@ SK_InitFinishCallback (void)
 
   // For the global injector, when not started by SKIM, check its version
   if (SK_IsInjected () && (! SK_IsSuperSpecialK ()))
-    _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+    CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
 
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
 
     // Create a thread that pumps the OSD
-  if (config.osd.pump || SK_UsingVulkan ()) {
+  if (config.osd.pump || SK_UsingVulkan ())
+  {
+    osd_shutdown =
+      CreateEvent (nullptr, FALSE, FALSE, L"OSD Pump Shutdown");
+
     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
     hPumpThread =
-      (HANDLE)
-        _beginthreadex ( nullptr,
-                           0,
-                             osd_pump,
-                               nullptr,
-                                 0,
-                                   nullptr );
+        CreateThread ( nullptr,
+                         0,
+                           osd_pump,
+                             nullptr,
+                               0,
+                                 nullptr );
 
-    if (hPumpThread != nullptr)
+    if (hPumpThread != INVALID_HANDLE_VALUE)
       dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
                         GetThreadId (hPumpThread),
                           config.osd.pump_interval * 1000.0f );
@@ -868,13 +876,15 @@ SK_InitCore (const wchar_t* backend, void* callback)
   callback_pfn callback_fn =
     (callback_pfn)callback;
 
-  if (backend_dll != NULL) {
+  if (backend_dll != NULL)
+  {
     LeaveCriticalSection (&init_mutex);
-    SK_ResumeThreads (__SK_Init_Suspended_tids);
+    SK_ResumeThreads     (__SK_Init_Suspended_tids);
     return;
   }
 
-  if (config.system.central_repository) {
+  if (config.system.central_repository)
+  {
     // Create Symlink for end-user's convenience
     if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
                                std::wstring (L"\\SpecialK")
@@ -905,6 +915,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   wchar_t   wszProxyName [MAX_PATH];
   wsprintf (wszProxyName, L"%s.dll", backend);
 
+
   //
   // TEMP HACK: dgVoodoo
   //
@@ -912,6 +923,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+
 
   wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
 #ifdef _WIN64
@@ -1136,7 +1148,7 @@ WaitForInit (void)
   if (InterlockedCompareExchange (&init, FALSE, FALSE))
     return;
 
-  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr))
+  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) != INVALID_HANDLE_VALUE)
   {
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
       InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr),
@@ -1162,7 +1174,7 @@ WaitForInit (void)
   //       for each attached thread to finish its DllMain (...) function.
   //
   if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
-    CloseHandle (InterlockedExchangePointer ((LPVOID *)&hInitThread, nullptr));
+    CloseHandle (InterlockedExchangePointer ((LPVOID *)&hInitThread, INVALID_HANDLE_VALUE));
 
     // Load user-defined DLLs (Lazy)
 #ifdef _WIN64
@@ -1176,8 +1188,8 @@ WaitForInit (void)
   }
 }
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 CheckVersionThread (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
@@ -1200,7 +1212,7 @@ CheckVersionThread (LPVOID user)
 }
 
 DWORD
-__stdcall
+WINAPI
 DllThread (LPVOID user)
 {
   init_params_t* params =
@@ -1544,14 +1556,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   InterlockedExchangePointer (
-    (void **)&hInitThread,
-      (HANDLE)
-        CreateThread ( nullptr,
-                         0,
-                           DllThread,
-                             &init_,
-                               0x00,
-                                 nullptr )
+    (LPVOID *)&hInitThread,
+      CreateThread ( nullptr,
+                       0,
+                         DllThread,
+                           &init_,
+                             0x00,
+                               nullptr )
   ); // Avoid the temptation to wait on this thread
 
   LeaveCriticalSection (&init_mutex);
@@ -1581,67 +1592,87 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->End ();
 
-  if (hPumpThread != 0) {
+  if (hPumpThread != INVALID_HANDLE_VALUE)
+  {
     dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
-
+  
     CloseHandle     (hPumpThread);
-    hPumpThread = 0;
-
+                     hPumpThread = INVALID_HANDLE_VALUE;
+  
     dll_log.LogEx   (false, L"done!\n");
   }
 
   SK::DXGI::ShutdownBudgetThread ();
 
-  if (process_stats.hThread != 0) {
+  if (process_stats.hThread != INVALID_HANDLE_VALUE)
+  {
     dll_log.LogEx (true,L"[ WMI Perf ] Shutting down Process Monitor... ");
+
     // Signal the thread to shutdown
-    process_stats.lID = 0;
+    SetEvent (process_stats.hShutdownSignal);
+
     WaitForSingleObject
       (process_stats.hThread, 1000UL); // Give 1 second, and
                                        // then we're killing
                                        // the thing!
-    CloseHandle     (process_stats.hThread);
-    process_stats.hThread  = 0;
+
+    CloseHandle (process_stats.hThread);
+                 process_stats.hThread  = INVALID_HANDLE_VALUE;
+
     dll_log.LogEx (false, L"done!\n");
   }
 
-  if (cpu_stats.hThread != 0) {
+  if (cpu_stats.hThread != INVALID_HANDLE_VALUE)
+  {
     dll_log.LogEx (true,L"[ WMI Perf ] Shutting down CPU Monitor... ");
+
     // Signal the thread to shutdown
-    cpu_stats.lID = 0;
+    SetEvent (cpu_stats.hShutdownSignal);
+
     WaitForSingleObject (cpu_stats.hThread, 1000UL); // Give 1 second, and
                                                      // then we're killing
                                                      // the thing!
-    CloseHandle     (cpu_stats.hThread);
-    cpu_stats.hThread  = 0;
-    cpu_stats.num_cpus = 0;
+
+    CloseHandle (cpu_stats.hThread);
+                 cpu_stats.hThread  = INVALID_HANDLE_VALUE;
+                 cpu_stats.num_cpus = 0;
+
     dll_log.LogEx (false, L"done!\n");
   }
 
-  if (disk_stats.hThread != 0) {
+  if (disk_stats.hThread != INVALID_HANDLE_VALUE)
+  {
     dll_log.LogEx (true, L"[ WMI Perf ] Shutting down Disk Monitor... ");
+
     // Signal the thread to shutdown
-    disk_stats.lID = 0;
+    SetEvent (disk_stats.hShutdownSignal);
+
     WaitForSingleObject (disk_stats.hThread, 1000UL); // Give 1 second, and
                                                       // then we're killing
                                                       // the thing!
-    CloseHandle     (disk_stats.hThread);
-    disk_stats.hThread   = 0;
-    disk_stats.num_disks = 0;
+    CloseHandle (disk_stats.hThread);
+                 disk_stats.hThread   = INVALID_HANDLE_VALUE;
+                 disk_stats.num_disks = 0;
+
     dll_log.LogEx (false, L"done!\n");
   }
 
-  if (pagefile_stats.hThread != 0) {
+  if (pagefile_stats.hThread != INVALID_HANDLE_VALUE)
+  {
     dll_log.LogEx (true, L"[ WMI Perf ] Shutting down Pagefile Monitor... ");
+
     // Signal the thread to shutdown
-    pagefile_stats.lID = 0;
+    SetEvent (pagefile_stats.hShutdownSignal);
+
     WaitForSingleObject (
       pagefile_stats.hThread, 1000UL); // Give 1 second, and
                                        // then we're killing
                                        // the thing!
-    CloseHandle     (pagefile_stats.hThread);
-    pagefile_stats.hThread       = 0;
-    pagefile_stats.num_pagefiles = 0;
+
+    CloseHandle (pagefile_stats.hThread);
+                 pagefile_stats.hThread       = INVALID_HANDLE_VALUE;
+                 pagefile_stats.num_pagefiles = 0;
+
     dll_log.LogEx (false, L"done!\n");
   }
 
@@ -1760,9 +1791,11 @@ SK_BeginBufferSwap (void)
 
 
   static volatile LONG cegui_init = FALSE;
+  static SK_RenderAPI  last_api   = SK_RenderAPI::Reserved;
 
   if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
-       (! InterlockedCompareExchange (&cegui_init, 1, 0)) )
+       ( (! InterlockedCompareExchange (&cegui_init, 1, 0)) ||
+          last_api != SK_GetCurrentRenderBackend ().api ) )
   {
     if (config.cegui.enable)
     {
@@ -1932,6 +1965,8 @@ SK_BeginBufferSwap (void)
       SK_UnlockDllLoader  ();
     }
   }
+
+  last_api = SK_GetCurrentRenderBackend ().api;
 
 
   SK_DrawOSD         ();

@@ -1622,6 +1622,9 @@ struct sk_bypass_s {
   wchar_t wszBlacklist [MAX_PATH];
 } __bypass;
 
+
+#include <SpecialK/injection/injection.h>
+
 DWORD
 WINAPI
 SK_Bypass_CRT (LPVOID user)
@@ -1636,14 +1639,17 @@ SK_Bypass_CRT (LPVOID user)
   int              nButtonPressed = 0;
   TASKDIALOGCONFIG task_config    = {0};
 
-  const TASKDIALOG_BUTTON buttons [] = {  { 0, L"Auto-Detect"   },
-                                          { 6, L"Direct3D8"     },
-                                          { 7, L"DirectDraw"    },
-                                          { 1, L"Direct3D9{Ex}" },
-                                          { 2, L"Direct3D11"    },
-                                          { 3, L"Direct3D12"    },
-                                          { 4, L"OpenGL"        },
-                                          { 5, L"Vulkan"        }
+  const TASKDIALOG_BUTTON  buttons [] = {  { 0, L"Install Wrapper DLL" }
+                                        };
+
+  const TASKDIALOG_BUTTON rbuttons [] = {  { 0, L"Auto-Detect"   },
+                                           { 6, L"Direct3D8"     },
+                                           { 7, L"DirectDraw"    },
+                                           { 1, L"Direct3D9{Ex}" },
+                                           { 2, L"Direct3D11"    },
+                                           { 3, L"Direct3D12"    },
+                                           { 4, L"OpenGL"        },
+                                           { 5, L"Vulkan"        }
                                        };
 
   task_config.cbSize              = sizeof (task_config);
@@ -1651,10 +1657,10 @@ SK_Bypass_CRT (LPVOID user)
   task_config.hwndParent          = GetActiveWindow ();
   task_config.pszWindowTitle      = L"Special K Compatibility Layer";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
-  task_config.pRadioButtons       = buttons;
-  task_config.cRadioButtons       = ARRAYSIZE (buttons);
-  task_config.pButtons            = nullptr;
-  task_config.cButtons            = 0;
+  task_config.pRadioButtons       = rbuttons;
+  task_config.cRadioButtons       = ARRAYSIZE (rbuttons);
+  task_config.pButtons            = buttons;
+  task_config.cButtons            = ARRAYSIZE (buttons);
   task_config.dwFlags             = 0x00;
   task_config.pfCallback          = TaskDialogCallback;
   task_config.lpCallbackData      = 0;
@@ -1673,7 +1679,7 @@ SK_Bypass_CRT (LPVOID user)
 
   task_config.pszVerificationText = L"Check here to DISABLE Special K for this game.";
 
-  task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
+  //task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
   if (timer)
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
@@ -1704,6 +1710,11 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.d3d8.hook       = true;
         config.apis.ddraw.hook      = true;
+
+        if (nButtonPressed == 0)
+        {
+          SK_Inject_SwitchToRenderWrapperEx (SK_GetDLLRole ());
+        }
         break;
 
       case 1:
@@ -1718,6 +1729,11 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = false;
+
+        if (nButtonPressed == 0)
+        {
+          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::D3D9);
+        }
         break;
 
       case 2:
@@ -1732,6 +1748,11 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = false;
+
+        if (nButtonPressed == 0)
+        {
+          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DXGI);
+        }
         break;
 
       case 3:
@@ -1746,6 +1767,11 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = false;
+
+        if (nButtonPressed == 0)
+        {
+          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DXGI);
+        }
         break;
 
       case 4:
@@ -1760,6 +1786,11 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = false;
+
+        if (nButtonPressed == 0)
+        {
+          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::OpenGL);
+        }
         break;
 
       case 5:
@@ -1780,7 +1811,7 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
 
-        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d11.hook = true;  // D3D8 on D3D11 (not native D3D8)
         config.apis.dxgi.d3d12.hook = false;
 
         config.apis.OpenGL.hook     = false;
@@ -1788,13 +1819,18 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.d3d8.hook       = true;
         config.apis.ddraw.hook      = false;
+
+        if (nButtonPressed == 0)
+        {
+          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::D3D8);
+        }
         break;
 
       case 7:
         config.apis.d3d9.hook       = false;
         config.apis.d3d9ex.hook     = false;
 
-        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d11.hook = true;  // DDraw on D3D11 (not native DDraw)
         config.apis.dxgi.d3d12.hook = false;
 
         config.apis.OpenGL.hook     = false;
@@ -1802,6 +1838,11 @@ SK_Bypass_CRT (LPVOID user)
 
         config.apis.d3d8.hook       = false;
         config.apis.ddraw.hook      = true;
+
+        if (nButtonPressed == 0)
+        {
+          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DDraw);
+        }
         break;
     }
 

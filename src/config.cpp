@@ -300,7 +300,8 @@ struct {
 struct {
   struct {
     sk::ParameterBool*    hook;
-  }   d3d9,  d3d9ex,
+  }   ddraw, d3d8,
+      d3d9,  d3d9ex,
       d3d11, d3d12,
       OpenGL,
       Vulkan;
@@ -852,6 +853,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Compatibility.General",
         L"RehookLoadLibrary" );
 
+
+  apis.ddraw.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable DirectDraw Hooking")
+      );
+  apis.ddraw.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"ddraw" );
+
+  apis.d3d8.hook =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Enable D3D8 Hooking")
+      );
+  apis.d3d8.hook->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"d3d8" );
 
   apis.d3d9.hook =
     static_cast <sk::ParameterBool *>
@@ -2210,11 +2231,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
       case SK_GAME_ID::LEGOCityUndercover:
+        // Prevent the game from deadlocking its message pump in fullscreen
         config.render.dxgi.safe_fullscreen = true;
         break;
 
 
       case SK_GAME_ID::Sacred2:
+        config.render.d3d9.force_windowed  = true; // Fullscreen is not particularly well
+                                                   //   supported in this game
       case SK_GAME_ID::Sacred:
         config.render.dxgi.safe_fullscreen = true; // dgVoodoo compat
         // Contrary to its name, this game needs this turned off ;)
@@ -2306,6 +2330,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (monitoring.SLI.show->load ())
     config.sli.show = monitoring.SLI.show->get_value ();
 
+
+  if (apis.ddraw.hook->load ())
+    config.apis.ddraw.hook = apis.ddraw.hook->get_value ();
+
+  if (apis.d3d8.hook->load ())
+    config.apis.d3d8.hook = apis.d3d8.hook->get_value ();
 
   if (apis.d3d9.hook->load ())
     config.apis.d3d9.hook = apis.d3d9.hook->get_value ();
@@ -2895,6 +2925,8 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_eula->set_value                  (config.imgui.show_eula);
   imgui.show_playtime->set_value              (config.steam.show_playtime);
 
+  apis.ddraw.hook->set_value                  (config.apis.ddraw.hook);
+  apis.d3d8.hook->set_value                   (config.apis.d3d8.hook);
   apis.d3d9.hook->set_value                   (config.apis.d3d9.hook);
   apis.d3d9ex.hook->set_value                 (config.apis.d3d9ex.hook);
   apis.d3d11.hook->set_value                  (config.apis.dxgi.d3d11.hook);
@@ -3126,6 +3158,8 @@ SK_SaveConfig ( std::wstring name,
   log_level->set_value                       (config.system.log_level);
   prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
 
+  apis.ddraw.hook->store                  ();
+  apis.d3d8.hook->store                   ();
   apis.d3d9.hook->store                   ();
   apis.d3d9ex.hook->store                 ();
   apis.d3d11.hook->store                  ();

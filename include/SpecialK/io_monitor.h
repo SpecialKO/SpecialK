@@ -82,7 +82,8 @@ void SK_CountIO (io_perf_t& ioc, const double update = 0.25 / 1.0e-7);
 
 struct WMI_refresh_thread_t
 {
-  HANDLE                   hThread                      = 0;
+  HANDLE                   hThread                      = INVALID_HANDLE_VALUE;
+  HANDLE                   hShutdownSignal              = INVALID_HANDLE_VALUE;
 
   IWbemRefresher          *pRefresher                   = nullptr;
   IWbemConfigureRefresher *pConfig                      = nullptr;
@@ -173,9 +174,9 @@ struct pagefile_perf_t : WMI_refresh_thread_t
 };
 
 
-unsigned int __stdcall SK_MonitorCPU      (LPVOID user);
-unsigned int __stdcall SK_MonitorDisk     (LPVOID user);
-unsigned int __stdcall SK_MonitorPagefile (LPVOID user);
+DWORD WINAPI SK_MonitorCPU      (LPVOID user);
+DWORD WINAPI SK_MonitorDisk     (LPVOID user);
+DWORD WINAPI SK_MonitorPagefile (LPVOID user);
 
 extern cpu_perf_t      cpu_stats;
 extern disk_perf_t     disk_stats;

@@ -1,4 +1,5 @@
 0.8.14:
+ + Fixed WMI Performance Monitoring thread initialization
  + Added DirectDraw support (using dgVoodoo)
  + Fixed OpenGL vertex memory management in Sinless
  + Fixed achievement popups with partial progress (no longer treated as unlock)

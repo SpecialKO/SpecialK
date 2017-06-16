@@ -284,7 +284,8 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"OAWrapper.exe");
     blacklist.emplace (L"NvOAWrapperCache.exe");
 
-    blacklist.emplace (L"s2gs.exe"); // Sacred 2 Game Server
+    blacklist.emplace (L"GameServer.exe");// Sacred   Game Server
+    blacklist.emplace (L"s2gs.exe");      // Sacred 2 Game Server
 
     blacklist.emplace (L"sihost.exe");
     blacklist.emplace (L"Chrome.exe");
@@ -398,9 +399,11 @@ SK_EstablishDllRole (HMODULE hModule)
     if (! explicit_inject)
     {
       // Skip lengthy tests if we already have the wrapper version loaded.
-      if ( SK_IsDLLSpecialK (L"d3d9.dll")     || SK_IsDLLSpecialK (L"dxgi.dll") ||
-           SK_IsDLLSpecialK (L"OpenGL32.dll") ||
-           SK_IsDLLSpecialK (L"d3d8.dll")     || SK_IsDLLSpecialK (L"ddraw.dll") )
+      if ( ( GetModuleHandle (L"d3d9.dll")     && SK_IsDLLSpecialK (L"d3d9.dll") )     || 
+           ( GetModuleHandle (L"dxgi.dll")     && SK_IsDLLSpecialK (L"dxgi.dll") )     ||
+           ( GetModuleHandle (L"OpenGL32.dll") && SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
+           ( GetModuleHandle (L"d3d8.dll")     && SK_IsDLLSpecialK (L"d3d8.dll") )     ||
+           ( GetModuleHandle (L"ddraw.dll")    && SK_IsDLLSpecialK (L"ddraw.dll") ) )
       {
         SK_SetDLLRole (DLL_ROLE::INVALID);
         return true;

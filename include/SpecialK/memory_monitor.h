@@ -30,7 +30,8 @@
 
 struct WMI_refresh_instance_thread_t
 {
-  HANDLE                   hThread                      = 0;
+  HANDLE                   hThread                      = INVALID_HANDLE_VALUE;
+  HANDLE                   hShutdownSignal              = INVALID_HANDLE_VALUE;
 
   IWbemRefresher          *pRefresher                   = nullptr;
   IWbemConfigureRefresher *pConfig                      = nullptr;
@@ -69,8 +70,8 @@ struct process_stats_t : WMI_refresh_instance_thread_t
 
 extern process_stats_t process_stats;
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK_MonitorProcess (LPVOID user);
 
 #endif /* __SK__MEMORY_MONITOR_H__ */

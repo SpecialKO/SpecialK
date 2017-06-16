@@ -1336,6 +1336,7 @@ SwapBuffers (HDC hDC)
     hWndRender = WindowFromDC (hDC);
 
 
+  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
   SK_BeginBufferSwap ();
 
   if (gdi_swap_buffers == nullptr) {
@@ -1384,6 +1385,7 @@ wglSwapBuffers (HDC hDC)
   if (hWndRender == 0 || (! IsWindow (hWndRender)))
     hWndRender = WindowFromDC (hDC);
 
+  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
   SK_BeginBufferSwap ();
 
   if (wgl_swap_buffers == nullptr) {

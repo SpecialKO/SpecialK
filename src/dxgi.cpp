@@ -556,18 +556,18 @@ extern "C++" HRESULT STDMETHODCALLTYPE
 extern "C++" HRESULT STDMETHODCALLTYPE
                   SK_FAR_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 
-extern "C" unsigned int __stdcall SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID);
+extern "C" DWORD WINAPI SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID);
 
 void
 WINAPI
 SK_DXGI_BringRenderWindowToTop (void)
 {
-  _beginthreadex ( nullptr,
-                     0,
-                       SK_DXGI_BringRenderWindowToTop_THREAD,
-                         nullptr,
-                           0,
-                             nullptr );
+  CreateThread ( nullptr,
+                   0,
+                     SK_DXGI_BringRenderWindowToTop_THREAD,
+                       nullptr,
+                         0,
+                           nullptr );
 }
 
 extern int                      gpu_prio;
@@ -1753,6 +1753,7 @@ extern "C" {
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
 
+    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
     SK_BeginBufferSwap ();
 
     HRESULT hr = E_FAIL;
@@ -1876,6 +1877,7 @@ extern "C" {
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
 
+    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
     SK_BeginBufferSwap ();
 
     HRESULT hr = E_FAIL;
@@ -3061,8 +3063,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   // Do this in a thread because it is not safe to do from
   //   the thread that created the window or drives the message
   //     pump...
-  unsigned int
-  __stdcall
+  DWORD
+  WINAPI
   SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID user)
   {
     UNREFERENCED_PARAMETER (user);
@@ -4202,6 +4204,7 @@ struct budget_thread_params_t
            HANDLE         handle   = INVALID_HANDLE_VALUE;
            DWORD          cookie   = 0UL;
            HANDLE         event    = INVALID_HANDLE_VALUE;
+           HANDLE         shutdown = INVALID_HANDLE_VALUE;
   volatile ULONG          ready    = FALSE;
 } budget_thread;
 
@@ -4449,8 +4452,8 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
                              if ((ref) < (min)) (min) = (ref);
 
 const uint32_t
-  BUDGET_POLL_INTERVAL = 66UL; // How often to sample the budget
-                               //  in msecs
+  BUDGET_POLL_INTERVAL = 133UL; // How often to sample the budget
+                                //  in msecs
 
 unsigned int
 __stdcall
@@ -4458,33 +4461,22 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 {
   budget_thread_params_t* params =
     (budget_thread_params_t *)user_data;
-
-  if (true)
-  {
-    budget_log.silent = true;
-    params->tid       = GetCurrentThreadId ();
-    params->event     =
-      CreateEvent ( nullptr,
+  
+  budget_log.silent = true;
+  params->tid       = GetCurrentThreadId ();
+  params->event     =
+    CreateEvent ( nullptr,
+                    FALSE,
                       FALSE,
-                        FALSE,
-                          L"DXGIMemoryBudget"
-                  );
+                        L"DXGIMemoryBudget"
+                );
+  params->shutdown  = 
+    CreateEvent ( nullptr,
+                    FALSE,
+                      FALSE,
+                        L"DXGIMemoryBudget_Shutdown" );
 
-    InterlockedExchange ( &params->ready, TRUE );
-  }
-
-  else
-  {
-    params->tid = 0;
-
-    //
-    // The thread is not ready (we cannot write tracking info),
-    //   but signal it as such anyway...
-    //
-    InterlockedExchange ( &params->ready, TRUE );
-
-    return 0;
-  }
+  InterlockedExchange ( &params->ready, TRUE );
 
 
   bool success =
@@ -4499,13 +4491,24 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     if ( params->event == 0 )
       break;
 
+    HANDLE phEvents [] = { params->event, params->shutdown };
+
     DWORD dwWaitStatus =
-      WaitForSingleObject ( params->event,
-                              BUDGET_POLL_INTERVAL * 2 );
+      WaitForMultipleObjects ( 2,
+                                 phEvents,
+                                   FALSE,
+                                     BUDGET_POLL_INTERVAL * 2 );
 
     if (! InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
     {
       ResetEvent ( params->event );
+      break;
+    }
+
+    if (dwWaitStatus == WAIT_OBJECT_0 + 1)
+    {
+      InterlockedExchange ( &params->ready, FALSE );
+      ResetEvent          (  params->shutdown     );
       break;
     }
 
@@ -4684,6 +4687,9 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
                  buffer;
   }
 
+  CloseHandle (params->shutdown);
+               params->shutdown = INVALID_HANDLE_VALUE;
+
   if (success)
     CoUninitialize ();
 
@@ -4746,7 +4752,7 @@ SK::DXGI::ShutdownBudgetThread ( void )
         L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
     );
 
-    InterlockedExchange ( &budget_thread.ready, FALSE );
+    SetEvent (budget_thread.shutdown );
 
     DWORD dwWaitState =
       SignalObjectAndWait ( budget_thread.event,
