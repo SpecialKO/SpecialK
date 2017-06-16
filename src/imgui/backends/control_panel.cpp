@@ -932,9 +932,9 @@ SK_ImGui_ControlPanel (void)
     // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
     int api_mask = (int)SK_GetCurrentRenderBackend ().api;
 
-    if ((api_mask & (int)SK_RenderAPI::D3D12) != 0x0)
+    if ((api_mask & (int)SK_RenderAPI::D3D12)      != 0x0 && api_mask != (int)SK_RenderAPI::D3D12)
       lstrcatA (szAPIName,   "On12");
-    else if ((api_mask & (int)SK_RenderAPI::D3D11) != 0x0)
+    else if ((api_mask & (int)SK_RenderAPI::D3D11) != 0x0 && api_mask != (int)SK_RenderAPI::D3D11)
       lstrcatA (szAPIName, u8"→11" );
 
 #ifndef _WIN64

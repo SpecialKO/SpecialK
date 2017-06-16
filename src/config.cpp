@@ -2032,6 +2032,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"WatchDogs2.exe",               SK_GAME_ID::WatchDogs2           );
   games.emplace ( L"NieRAutomata.exe",             SK_GAME_ID::NieRAutomata         );
   games.emplace ( L"Warframe.x64.exe",             SK_GAME_ID::Warframe_x64         );
+  games.emplace ( L"LEGOLCUR_DX11.exe",            SK_GAME_ID::LEGOCityUndercover   );
   games.emplace ( L"Sacred.exe",                   SK_GAME_ID::Sacred               );
   games.emplace ( L"sacred2.exe",                  SK_GAME_ID::Sacred2              );
   games.emplace ( L"FF9.exe",                      SK_GAME_ID::FinalFantasy9        );

@@ -635,7 +635,8 @@ SK_DrawOSD (void)
 
     if (mean != INFINITY)
     {
-      if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0) {
+      if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
+      {
         OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>",
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
@@ -648,96 +649,35 @@ SK_DrawOSD (void)
                         1000.0 / effective_mean,
                           effective_mean
         OSD_END
-#if 0
-        //
-        // Framerate Smoothing
-        //
-        double effective_fps = 1000.0 / effective_mean;
-
-        if (effective_fps > 60.0)
-          effective_fps = 60.0;
-
-        if (effective_fps < 30.0)
-          effective_fps = 30.0;
-
-        static double        last_change = 0.0;
-        static LARGE_INTEGER when        = { 0 };
-
-        if (fabs (effective_fps - last_change) > 10.0 || (double)(now.QuadPart - when.QuadPart) / (double)SK::Framerate::Stats::freq.QuadPart > 0.25) {
-          extern float target_fps;
-          target_fps = effective_fps;
-          //SK::Framerate::GetLimiter ()->change_limit (effective_fps);
-          last_change   = effective_fps;
-          when.QuadPart = now.QuadPart;
-        }
-#endif
-
-
-
-        static LARGE_INTEGER last_frame;
-
-#if 0
-        if (1000.0 * dt < config.render.framerate.max_delta_time) {
-          LARGE_INTEGER next;
-          next.QuadPart = last_frame.QuadPart + ((double)SK_FrameStats::freq.QuadPart * (double)(config.render.framerate.max_delta_time) / 1000.0);
-
-          LARGE_INTEGER delay;
-          while (true) {
-            QueryPerformanceCounter_Original (&delay);
-
-            if (delay.QuadPart < next.QuadPart)
-              continue;
-
-            break;
-          }
-
-          QueryPerformanceCounter_Original (&last_frame);
-        }
-#endif
-        }
-
-        // No Effective Frametime History
-        else {
-          OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)",
-            SK_GetCurrentRenderBackend ().name,
-              // Cast to FP to avoid integer division by zero.
-              fps,
-                mean,
-                  sqrt (sd),
-                    min,
-                      max,
-                        hitches
-          OSD_END
-        }
       }
 
-      // No Frametime History
+      // No Effective Frametime History
       else
       {
-        OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms",
+        OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)",
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
-            1000.0f * 0.0f / 1.0f, 0.0f
+            fps,
+              mean,
+                sqrt (sd),
+                  min,
+                    max,
+                      hitches
         OSD_END
       }
+    }
 
-      OSD_PRINTF "\n" OSD_END
+    // No Frametime History
+    else
+    {
+      OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms",
+        SK_GetCurrentRenderBackend ().name,
+          // Cast to FP to avoid integer division by zero.
+          1000.0f * 0.0f / 1.0f, 0.0f
+      OSD_END
+    }
 
-#ifdef DUMP_SWAPCHAIN_INFO
-      if (g_pSwapChain9 != nullptr)
-      {
-        D3DDISPLAYMODE        dmode;
-        D3DPRESENT_PARAMETERS pparams;
-
-        g_pSwapChain9->GetDisplayMode       (&dmode);
-        g_pSwapChain9->GetPresentParameters (&pparams);
-
-        OSD_PRINTF "  SWAPCH :  %#3lu Hz (%#4lux%#4lu) - Flags: 0x%04X, Refresh: %#3lu Hz, Interval: %#2lu, Effect: %lu\n",
-          dmode.RefreshRate, dmode.Width, dmode.Height,
-          pparams.Flags, pparams.FullScreen_RefreshRateInHz, pparams.PresentationInterval, pparams.SwapEffect
-        OSD_END
-      }
-#endif
+    OSD_PRINTF "\n" OSD_END
   }
 
   // Poll GPU stats...
@@ -1024,7 +964,6 @@ SK_DrawOSD (void)
 
   if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ()))
   {
-#ifndef SK_BUILD__INSTALLER
     if (SK_IsD3D11 ())
     {
       OSD_R_PRINTF "\n%ws",
@@ -1045,7 +984,6 @@ SK_DrawOSD (void)
         SK::OpenGL::getPipelineStatsDesc ().c_str ()
       OSD_END
     }
-#endif
   }
 
   if (cpu_stats.booting)
@@ -1219,7 +1157,7 @@ SK_DrawOSD (void)
   extern uint32_t SK_D3D11_amount_to_purge;
   extern bool     SK_D3D11_cache_textures;
 
-  if (SK_D3D11_cache_textures)
+  if (SK_D3D11_cache_textures && SK_IsD3D11 ())
   {
     extern std::string SK_D3D11_SummarizeTexCache (void);
 
