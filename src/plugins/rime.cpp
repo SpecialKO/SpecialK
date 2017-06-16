@@ -319,16 +319,6 @@ SK_REASON_ControlPanel (void)
         reason_simple_ocean_water->store     ();
       }
 
-      //if (ImGui::IsItemHovered ())
-      //{
-      //  ImGui::BeginTooltip ();
-      //  ImGui::Text         ("Global Illumination Simulates Indirect Light Bouncing");
-      //  ImGui::Separator    ();
-      //  ImGui::BulletText   ("Lower quality for better performance, but less realistic lighting in shadows.");
-      //  ImGui::BulletText   ("Please direct thanks for this feature to DrDaxxy ;)");
-      //  ImGui::EndTooltip   ();
-      //}
-
       ImGui::TreePop     ( );
     }
 

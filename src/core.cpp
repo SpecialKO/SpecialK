@@ -1300,6 +1300,9 @@ SK_EstablishRootPath (void)
 }
 
 bool
+SK_InitWMI (void);
+
+bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
@@ -1517,6 +1520,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 #else
   SK_LoadEarlyImports32 ();
 #endif
+
+
+  // Performance monitorng pre-init
+  CreateThread (nullptr, 0, [](LPVOID) -> DWORD { SK_InitWMI (); CloseHandle (GetCurrentThread ()); return 0; }, nullptr, 0x00, nullptr);
+
 
   // Do this from the startup thread
   SK_HookWinAPI       ();

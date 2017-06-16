@@ -157,8 +157,8 @@ COM::Base::WMI::Unlock (void)
   LeaveCriticalSection (&wmi_cs);
 }
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK_WMI_ServerThread (LPVOID lpUser)
 {
   SK_AutoCOMInit auto_com;
@@ -304,23 +304,28 @@ SK_InitWMI (void)
 
   COM::base.wmi.Lock ();
 
-  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0) {
+  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0)
+  {
     COM::base.wmi.Unlock ();
     return true;
   }
 
-  InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread,
-      (HANDLE)
-        _beginthreadex ( nullptr,
-                           0,
-                             SK_WMI_ServerThread,
-                               nullptr,
-                                 0x00,
-                                   nullptr ), 0);
+  if (! InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, UIntToPtr (1), UintToPtr (0)))
+  {
+    InterlockedExchangePointer (&COM::base.wmi.hServerThread,
+        CreateThread ( nullptr,
+                         0,
+                           SK_WMI_ServerThread,
+                             nullptr,
+                               0x00,
+                                nullptr )
+    );
+  }
 
   while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) == 0)
     Sleep (100);
 
+#if 0
   perfmon.cpu.start         = CreateEvent (nullptr, FALSE, FALSE, L"CPU Startup");
   perfmon.cpu.stop          = CreateEvent (nullptr, FALSE, FALSE, L"CPU Stop");
   perfmon.cpu.poll          = CreateEvent (nullptr, FALSE, FALSE, L"CPU Poll");
@@ -350,6 +355,7 @@ SK_InitWMI (void)
   perfmon.pagefile.stop     = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Stop");
   perfmon.pagefile.poll     = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Poll");
   perfmon.pagefile.shutdown = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Shutdown");
+#endif
 
   COM::base.wmi.Unlock ();
 
@@ -388,6 +394,7 @@ SK_ShutdownWMI (void)
     }
   }
 
+#if 0
   CloseHandle (perfmon.cpu.start);
   CloseHandle (perfmon.cpu.stop);       
   CloseHandle (perfmon.cpu.poll);   
@@ -417,6 +424,7 @@ SK_ShutdownWMI (void)
   CloseHandle (perfmon.pagefile.stop);  
   CloseHandle (perfmon.pagefile.poll);
   CloseHandle (perfmon.pagefile.shutdown);
+#endif
 
   DeleteCriticalSection (&wmi_cs);
 }
