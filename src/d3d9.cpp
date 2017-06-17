@@ -179,6 +179,12 @@ Direct3DCreate9ExPROC    Direct3DCreate9Ex_Import     = nullptr;
 
 D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  0  };
 
+enum reset_stage_s {
+  Initiate = 0x0, // Fake device loss
+  Respond  = 0x1, // Fake device not reset
+  Clear    = 0x2  // Return status to normal
+} trigger_reset (reset_stage_s::Clear);
+
 __declspec (noinline)
 HRESULT
 WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
@@ -981,8 +987,13 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
                                         pDirtyRegion );
 
   if (! config.osd.pump)
-    return SK_EndBufferSwap ( hr,
-                                (IUnknown *)This );
+  {
+    if (trigger_reset == reset_stage_s::Clear)
+      hr = SK_EndBufferSwap (hr, This);
+
+    else
+      hr = D3DERR_DEVICELOST;
+  }
 
   return hr;
 }
@@ -1094,8 +1105,14 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
                                      pDirtyRegion);
 
   if (! config.osd.pump)
-    return SK_EndBufferSwap ( hr,
-                              (IUnknown *)This );
+  {
+    if (trigger_reset == reset_stage_s::Clear)
+    {
+      hr = SK_EndBufferSwap (hr, This);
+    }
+    else
+      hr = D3DERR_DEVICELOST;
+  }
 
   return hr;
 }
@@ -1304,13 +1321,25 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
 
     if (SUCCEEDED (This->GetDevice (&dev)) && dev != nullptr)
     {
-      HRESULT ret = SK_EndBufferSwap ( hr,
-                                       (IUnknown *)dev );
+      if (trigger_reset == reset_stage_s::Clear)
+      {
+        hr = SK_EndBufferSwap (hr, dev);
+      }
+      else
+        hr = D3DERR_DEVICELOST;
+
       ((IUnknown *)dev)->Release ();
-      return ret;
+      return hr;
     }
 
-    return SK_EndBufferSwap (hr);
+    if (trigger_reset == reset_stage_s::Clear)
+    {
+      hr = SK_EndBufferSwap (hr, dev);
+    }
+    else
+      hr = D3DERR_DEVICELOST;
+
+    return hr;
   }
 
 __declspec (noinline)
@@ -1354,6 +1383,17 @@ STDMETHODCALLTYPE
 D3D9TestCooperativeLevel_Override (IDirect3DDevice9* This)
 {
   HRESULT hr;
+
+  if (trigger_reset == reset_stage_s::Initiate)
+  {
+    trigger_reset = reset_stage_s::Respond;
+    return D3DERR_DEVICELOST;
+  }
+
+  else if (trigger_reset == reset_stage_s::Respond)
+  {
+    return D3DERR_DEVICENOTRESET;
+  }
 
   hr = D3D9TestCooperativeLevel_Original (This);
 
@@ -1630,6 +1670,8 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
   {
     InterlockedExchange ( &ImGui_Init, TRUE );
   }
+
+  trigger_reset = reset_stage_s::Clear;
 }
 
 
@@ -3753,3 +3795,9 @@ SK_D3D9_RehookThread (LPVOID user)
   return 0;
 }
 #endif
+
+void
+SK_D3D9_TriggerReset (void)
+{
+  trigger_reset = reset_stage_s::Initiate;
+}

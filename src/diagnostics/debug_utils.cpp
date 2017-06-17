@@ -81,8 +81,17 @@ WINAPI
 ExitProcess_Detour (UINT uExitCode)
 {
   // Since many, many games don't shutdown cleanly, let's unload ourself.
-  SK_SelfDestruct ();
-  ExitProcess     (uExitCode);
+  SK_SelfDestruct      ();
+
+  if (ExitProcess_Original != nullptr)
+  {
+    ExitProcess_pfn callthrough = ExitProcess_Original;
+    ExitProcess_Original        = nullptr;
+    callthrough (uExitCode);
+  }
+
+  else
+    ExitProcess (uExitCode);
 }
 
 

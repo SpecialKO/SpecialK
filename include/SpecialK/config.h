@@ -223,6 +223,8 @@ struct sk_config_t
       int     refresh_rate      = -1;
       int     pin_render_thread = -1;
       bool    wait_for_vblank   = false;
+      bool    sleepless_render  = true;
+      bool    sleepless_window  = false;
     } framerate;
     struct {
       bool    force_d3d9ex      = false;
@@ -490,6 +492,7 @@ struct SK_Keybind
 
 bool SK_LoadConfigEx (std::wstring name, bool create = true);
 bool SK_LoadConfig   (std::wstring name         = L"dxgi");
+bool SK_DeleteConfig (std::wstring name         = L"dxgi");
 void SK_SaveConfig   (std::wstring name         = L"dxgi",
                       bool         close_config = false);
 

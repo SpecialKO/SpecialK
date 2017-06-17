@@ -77,6 +77,8 @@ struct SK_RenderBackend_V2 : SK_RenderBackend_V1 {
     BOOL                  active       = FALSE;
     DWORD                 last_checked = 0;
   } gsync_state;
+
+  DWORD                   thread       = 0;
 };
 
 typedef SK_RenderBackend_V2 SK_RenderBackend;

@@ -2189,6 +2189,269 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
 }
 
 
+bool
+SK_FileHasSpaces (const wchar_t* wszLongFileName)
+{
+  return StrStrIW (wszLongFileName, L" ") != nullptr;
+}
+
+BOOL
+SK_FileHas8Dot3Name (const wchar_t* wszLongFileName)
+{
+  wchar_t wszShortPath [MAX_PATH + 2] = { L'\0' };
+ 
+  if ((! GetShortPathName   (wszLongFileName, wszShortPath, MAX_PATH - 1)) ||
+         GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES      ||
+         StrStrIW           (wszLongFileName, L" "))
+  {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+HRESULT ModifyPrivilege(
+    IN LPCTSTR szPrivilege,
+    IN BOOL fEnable)
+{
+    HRESULT hr = S_OK;
+    TOKEN_PRIVILEGES NewState;
+    LUID             luid;
+    HANDLE hToken    = NULL;
+
+    // Open the process token for this process.
+    if (!OpenProcessToken(GetCurrentProcess(),
+                          TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+                          &hToken ))
+    {
+        printf("Failed OpenProcessToken\n");
+        return ERROR_FUNCTION_FAILED;
+    }
+
+    // Get the local unique ID for the privilege.
+    if ( !LookupPrivilegeValue( NULL,
+                                szPrivilege,
+                                &luid ))
+    {
+        CloseHandle( hToken );
+        printf("Failed LookupPrivilegeValue\n");
+        return ERROR_FUNCTION_FAILED;
+    }
+
+    // Assign values to the TOKEN_PRIVILEGE structure.
+    NewState.PrivilegeCount = 1;
+    NewState.Privileges[0].Luid = luid;
+    NewState.Privileges[0].Attributes = 
+              (fEnable ? SE_PRIVILEGE_ENABLED : 0);
+
+    // Adjust the token privilege.
+    if (!AdjustTokenPrivileges(hToken,
+                               FALSE,
+                               &NewState,
+                               0,
+                               NULL,
+                               NULL))
+    {
+        printf("Failed AdjustTokenPrivileges\n");
+        hr = ERROR_FUNCTION_FAILED;
+    }
+
+    // Close the handle.
+    CloseHandle(hToken);
+
+    return hr;
+}
+
+
+bool
+SK_Generate8Dot3 (const wchar_t* wszLongFileName)
+{
+  wchar_t* wszFileName  = _wcsdup (wszLongFileName);
+  wchar_t* wszFileName1 = _wcsdup (wszLongFileName);
+
+  wchar_t  wsz8     [11] = { L'\0' }; // One non-nul for overflow
+  wchar_t  wszDot3  [ 4] = { L'\0' };
+  wchar_t  wsz8Dot3 [14] = { L'\0' };
+
+  while (SK_FileHasSpaces (wszFileName))
+  {
+    ModifyPrivilege (SE_RESTORE_NAME, TRUE);
+    ModifyPrivilege (SE_BACKUP_NAME,  TRUE);
+
+    HANDLE hFile = 
+      CreateFileW ( wszFileName,
+                      GENERIC_WRITE | DELETE,
+                        FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                          nullptr,
+                            OPEN_EXISTING,
+                              GetFileAttributes (wszFileName) | FILE_FLAG_BACKUP_SEMANTICS,
+                                nullptr );
+
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+      free (wszFileName);
+      free (wszFileName1);
+
+      return false;
+    }
+
+    DWORD dwAttrib =
+      GetFileAttributes (wszFileName);
+
+    if (dwAttrib == INVALID_FILE_ATTRIBUTES)
+    {
+      free (wszFileName);
+      free (wszFileName1);
+
+      CloseHandle (hFile);
+
+      return false;
+    }
+
+    bool dir = false;
+
+    if (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)
+    {
+      dir = true;
+    }
+
+    else
+    {
+      dir = false;
+
+      const wchar_t* pwszExt =
+        PathFindExtension (wszFileName);
+
+      if (*pwszExt == L'.')
+      {
+        if (*CharNextW (pwszExt) != L'\0')
+        {
+          if (*CharNextW (CharNextW (pwszExt)) != L'\0')
+          {
+            if (*CharNextW (CharNextW (CharNextW (pwszExt))) != L'\0')
+            {
+              // DOT3 Satisfied
+              *CharNextW (CharNextW (CharNextW (CharNextW (pwszExt)))) = L'\0';
+
+              wcsncpy (wszDot3, CharNextW (pwszExt), 3);
+            }
+          }
+        }
+      }
+
+      PathRemoveExtension (wszFileName);
+    }
+
+    PathStripPath       (wszFileName);
+    PathRemoveBackslash (wszFileName);
+    PathRemoveBlanks    (wszFileName);
+
+    wcsncpy (wsz8, wszFileName, 10);
+
+    int idx = 0;
+
+    if (wcslen (wsz8) > 8)
+    {
+      wsz8 [6] = L'~';
+      wsz8 [7] = L'0';
+      wsz8 [8] = L'\0';
+
+      _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+
+      while ((! SetFileShortNameW (hFile, wsz8Dot3)) && idx < 9)
+      {
+        wsz8 [6] = L'~';
+        wsz8 [7] = L'0' + idx++;
+        wsz8 [8] = L'\0';
+
+        _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+      }
+    }
+
+    else
+    {
+      _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+    }
+
+    if (idx == 9)
+    {
+      free (wszFileName);
+      free (wszFileName1);
+
+      CloseHandle (hFile);
+
+      return false;
+    }
+
+    PathRemoveFileSpec (wszFileName1);
+    wcscpy (wszFileName, wszFileName1);
+
+    CloseHandle (hFile);
+  }
+
+  free (wszFileName);
+  free (wszFileName1);
+
+  return true;
+}
+
+
+
+void
+SK_RestartGame (const wchar_t* wszDLL)
+{
+  extern const wchar_t*
+  SK_GetFullyQualifiedApp (void);
+
+  extern const wchar_t*
+  SK_GetHostPath (void);
+
+  extern std::wstring
+  SK_GetModuleFullName (HMODULE hDll);
+
+  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { L'\0' };
+  wchar_t wszShortPath [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszFullname  [MAX_PATH + 2] = { L'\0' };
+
+  wcsncpy ( wszFullname, wszDLL != nullptr ?
+                         wszDLL :
+                           SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH - 1 );
+
+  SK_Generate8Dot3 (wszFullname);
+  wcscpy (wszShortPath, wszFullname);
+ 
+  if (SK_FileHasSpaces (wszFullname))
+    GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1);
+  
+  if (SK_FileHasSpaces (wszShortPath))
+  {
+    SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+                    L"\r\n\r\n\t"
+                    L"This is a common problem for non-boot drives, please ensure that the drive your "
+                    L"game is installed to has 8.3 filename generation enabled and then re-install "
+                    L"the mod.",
+                      L"Cannot Automatically Restart Game Because of Bad Filesystem Policy.",
+                        MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
+    ExitProcess   (0x00);
+  }
+
+  _swprintf ( wszRunDLLCmd,
+               L"RunDll32.exe %s,RunDLL_RestartGame %s",
+                 wszShortPath,
+                   SK_GetFullyQualifiedApp () );
+
+  STARTUPINFOW        sinfo = { 0 };
+  PROCESS_INFORMATION pinfo = { 0 };
+
+  sinfo.cb = sizeof STARTUPINFOW;
+
+  CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
+                  FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
+                  &sinfo,  &pinfo );
+
+  TerminateProcess (GetCurrentProcess (), 0x00);
+}
+
 void
 SK_ElevateToAdmin (void)
 {
@@ -2207,11 +2470,19 @@ SK_ElevateToAdmin (void)
 
   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH - 1);
  
-  if ((! GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1)) ||
-         GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES  ||
-         StrStrIW           (wszShortPath, L" "))
+  SK_Generate8Dot3 (wszFullname);
+  wcscpy (wszShortPath, wszFullname);
+ 
+  if (SK_FileHasSpaces (wszFullname))
+    GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1);
+  
+  if (SK_FileHasSpaces (wszShortPath))
   {
-    SK_MessageBox ( L"Your computer is broken; please enable DOS 8.3 filename generation.",
+    SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+                    L"\r\n\r\n\t"
+                    L"This is a common problem for non-boot drives, please ensure that the drive your "
+                    L"game is installed to has 8.3 filename generation enabled and then re-install "
+                    L"the mod.",
                       L"Cannot Elevate To Admin Because of Bad Filesystem Policy.",
                         MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
     ExitProcess   (0x00);

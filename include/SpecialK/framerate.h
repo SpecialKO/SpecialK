@@ -59,7 +59,40 @@ namespace SK
       uint32_t      frames;
     };
 
-    Limiter* GetLimiter (void);
+    typedef class EventCounter_V1 EventCounter;
+
+    class EventCounter_V1
+    {
+    public:
+      class SleepStats
+      {
+      public:
+        volatile ULONG attempts   = 0UL,
+                       rejections = 0UL;
+
+        struct
+        {
+          volatile LONG64 deprived = 0ULL,
+                          allowed  = 0ULL;
+        } time;
+
+
+        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);                                     InterlockedAdd64 (&time.allowed,  (ULONGLONG)dwMilliseconds); }
+        void wake  (DWORD dwMilliseconds) { InterlockedIncrement (&attempts); InterlockedIncrement (&rejections); InterlockedAdd64 (&time.deprived, (ULONGLONG)dwMilliseconds); }
+      };
+
+      SleepStats& getMessagePumpStats  (void) { return message_pump;  }
+      SleepStats& getRenderThreadStats (void) { return render_thread; }
+      SleepStats& getMicroStats        (void) { return micro_sleep;   }
+      SleepStats& getMacroStats        (void) { return macro_sleep;   }
+
+    protected:
+      SleepStats message_pump, render_thread,
+                 micro_sleep,  macro_sleep;
+    } extern events;
+
+    static inline EventCounter* GetEvents  (void) { return &events; }
+                  Limiter*      GetLimiter (void);
 
     class Stats {
     public:
@@ -206,9 +239,10 @@ namespace SK
   };
 };
 
-typedef void (WINAPI *Sleep_pfn)                       (DWORD dwMilliseconds);
-typedef BOOL (WINAPI *QueryPerformanceCounter_t)(_Out_ LARGE_INTEGER *lpPerformanceCount);
+typedef void (WINAPI *Sleep_pfn)                                 (DWORD dwMilliseconds);
+typedef BOOL (WINAPI *QueryPerformanceCounter_pfn)(_Out_ LARGE_INTEGER *lpPerformanceCount);
 
-extern Sleep_pfn Sleep_Original;
+extern Sleep_pfn                   Sleep_Original;
+extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;
 
 #endif /* __SK__FRAMERATE_H__ */

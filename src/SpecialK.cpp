@@ -804,9 +804,9 @@ DllMain ( HMODULE hModule,
 
 
 #ifdef _WIN64
-      if (GetModuleHandle (L"SpecialK64.dll") == hModSelf)
+      //if (GetModuleHandle (L"SpecialK64.dll") == hModSelf)
 #else
-      if (GetModuleHandle (L"SpecialK32.dll") == hModSelf)
+      //if (GetModuleHandle (L"SpecialK32.dll") == hModSelf)
 #endif
       {
         if ( StrStrIW (SK_GetHostApp (), L"SKIM") ||
@@ -817,7 +817,9 @@ DllMain ( HMODULE hModule,
       }
 
 
-      Sleep_Original = (Sleep_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "Sleep");
+      Sleep_Original                   = (Sleep_pfn)                  GetProcAddress (GetModuleHandle (L"kernel32.dll"), "Sleep");
+      QueryPerformanceCounter_Original = (QueryPerformanceCounter_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "QueryPerformanceCounter");
+
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();

@@ -1612,6 +1612,14 @@ struct sk_bypass_s {
 
 #include <SpecialK/injection/injection.h>
 
+
+LPVOID pfnGetClientRect    = nullptr;
+LPVOID pfnGetWindowRect    = nullptr;
+LPVOID pfnGetSystemMetrics = nullptr;
+
+std::queue <DWORD> suspended_tids;
+
+
 DWORD
 WINAPI
 SK_Bypass_CRT (LPVOID user)
@@ -1626,19 +1634,80 @@ SK_Bypass_CRT (LPVOID user)
   int              nButtonPressed = 0;
   TASKDIALOGCONFIG task_config    = {0};
 
-  const TASKDIALOG_BUTTON  buttons_global [] = {  { 0, L"Install Wrapper DLL" },
-                                                  { 2, L"Disable Plug-Ins"    },
+  enum {
+    BUTTON_INSTALL         = 0,
+    BUTTON_UNINSTALL       = 0,
+    BUTTON_OK              = 1,
+    BUTTON_DISABLE_PLUGINS = 2,
+    BUTTON_RESET_CONFIG    = 3,
+  };
+
+  // The global injector; local wrapper not installed for the current game
+  const TASKDIALOG_BUTTON  buttons_global [] = {  { BUTTON_INSTALL,         L"Install Wrapper DLL" },
+                                                  { BUTTON_DISABLE_PLUGINS, L"Disable Plug-Ins"    },
+                                                  { BUTTON_RESET_CONFIG,    L"Reset Config"        },
                                                };
-  const TASKDIALOG_BUTTON  buttons_local  [] = {  { 0, L"Uninstall Wrapper DLL" },
-                                                  { 2, L"Disable Plug-Ins"      },
+
+  // Wrapper installation in system containing global version of Special K
+  const TASKDIALOG_BUTTON  buttons_local  [] = {  { BUTTON_UNINSTALL,       L"Uninstall Wrapper DLL" },
+                                                  { BUTTON_DISABLE_PLUGINS, L"Disable Plug-Ins"      },
+                                                  { BUTTON_RESET_CONFIG,    L"Reset Config"          },
                                                };
+
+  // Standalone Special K mod; no global injector detected
+  const TASKDIALOG_BUTTON  buttons_standalone  [] = {  { BUTTON_UNINSTALL,       L"Uninstall Mod"    },
+                                                       { BUTTON_DISABLE_PLUGINS, L"Disable Plug-Ins" },
+                                                       { BUTTON_RESET_CONFIG,    L"Reset Config"     },
+                                                    };
+
+  bool gl     = false,
+       vulkan = false,
+       d3d9   = false,
+       d3d8   = false,
+       dxgi   = false,
+       ddraw  = false,
+       d3d11  = false,
+       glide  = false;
+
+  SK_TestRenderImports (GetModuleHandle (nullptr), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
+
+  bool no_imports = !(gl || vulkan || d3d9 || d3d8 || ddraw || d3d11 || glide);
+
+  auto dgVoodoo_Check = [](void) ->
+    bool
+    {
+      return
+        GetFileAttributesA (
+          SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll",
+                              std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
+                          ).c_str ()
+        ) != INVALID_FILE_ATTRIBUTES;
+    };
+
+  auto dgVooodoo_Nag = [&](void) ->
+    bool
+    {
+      while (
+        MessageBox (HWND_DESKTOP, L"dgVoodoo is required for Direct3D8 / DirecrtDraw support\r\n\t"
+                                  L"Please install its DLLs to 'Documents\\My Mods\\SpecialK\\PlugIns\\ThidParty\\dgVoodoo'",
+                                    L"Third-Party Plug-In Required",
+                                      MB_ICONSTOP | MB_RETRYCANCEL) == IDRETRY && (! dgVoodoo_Check ())
+            ) ;
+
+      return dgVoodoo_Check ();
+    };
+
+  bool has_dgvoodoo = dgVoodoo_Check ();
 
   extern const wchar_t* __SK_DLL_Backend;
 
-  static wchar_t wszAPIName [64] = { L"Auto-Detect   " };
+  static wchar_t wszAPIName [128] = { L"Auto-Detect   " };
        lstrcatW (wszAPIName, L"(");
        lstrcatW (wszAPIName, __SK_DLL_Backend);
        lstrcatW (wszAPIName, L")");
+
+  if (no_imports)
+    lstrcatW (wszAPIName, L"  { Import Address Table FAIL -> Detected API May Be Wrong }");
 
   const TASKDIALOG_BUTTON rbuttons [] = {  { 0, wszAPIName       },
 #ifndef _WIN64
@@ -1672,27 +1741,37 @@ SK_Bypass_CRT (LPVOID user)
   
   else
   {
-    task_config.pButtons          =            buttons_local;
-    task_config.cButtons          = ARRAYSIZE (buttons_local);
+    if (SK_HasGlobalInjector ())
+    {
+      task_config.pButtons        =            buttons_local;
+      task_config.cButtons        = ARRAYSIZE (buttons_local);
+    }
+
+    else
+    {
+      task_config.pButtons        =            buttons_standalone;
+      task_config.cButtons        = ARRAYSIZE (buttons_standalone);
+    }
   }
 
   task_config.dwFlags             = 0x00;
   task_config.pfCallback          = TaskDialogCallback;
   task_config.lpCallbackData      = 0;
+  task_config.nDefaultButton      = TDCBF_OK_BUTTON;
 
   task_config.pszMainInstruction  = L"Special K Injection Compatibility Options";
 
   task_config.pszMainIcon         = TD_SHIELD_ICON;
-  task_config.pszContent          = L"By pressing Ctrl + Shift at application start, you"
-                          L" have opted into compatibility mode.\n\nUse the"
-                          L" menu options provided to troubleshoot problems"
-                          L" that may be caused by the mod.";
+  task_config.pszContent          = L"Compatibility Mode has been Activated by Pressing and "
+                                    L"Holding Ctrl + Shift"
+                                    L"\n\nUse this menu to troubleshoot problems caused by"
+                                    L" the software";
 
   if (SK_IsInjected ())
   {
     task_config.pszFooterIcon       = TD_INFORMATION_ICON;
-    task_config.pszFooter           = L"You can re-enable auto-injection by "
-                                      L"holding Ctrl + Shift down at startup.";
+    task_config.pszFooter           = L"WARNING: Installing the wrong API wrapper may require "
+                                      L"manual recovery; if in doubt, use AUTO.";
     task_config.pszVerificationText = L"Disable Global Injection for this Game";
   }
 
@@ -1709,13 +1788,32 @@ SK_Bypass_CRT (LPVOID user)
 
   int nRadioPressed = 0;
 
+
   HRESULT hr =
     TaskDialogIndirect ( &task_config,
                           &nButtonPressed,
                             &nRadioPressed,
                               SK_IsInjected () ? &disable : nullptr );
 
-  SK_LoadConfig (L"SpecialK");
+
+  extern iSK_INI* dll_ini;
+  const wchar_t* wszConfigName = nullptr;
+
+  if (SK_IsInjected ())
+    wszConfigName = L"SpecialK";
+
+  else
+  {
+    extern const wchar_t* __SK_DLL_Backend;
+          wszConfigName = __SK_DLL_Backend;
+  }
+
+
+  std::wstring temp_dll = L"";
+
+
+
+  SK_LoadConfig (wszConfigName);
 
   if (SUCCEEDED (hr))
   {
@@ -1737,10 +1835,24 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.dxgi.d3d12.hook = true;
 #endif
 
-        if (nButtonPressed == 0)
+        if (nButtonPressed == BUTTON_INSTALL)
         {
           if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (SK_GetDLLRole ());
-          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          else
+          {
+            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+
+            temp_dll = SK_UTF8ToWideChar (
+                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                             32
+#else
+                             64
+#endif
+                         )
+                      );
+            }
         }
         break;
 
@@ -1760,10 +1872,28 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.dxgi.d3d12.hook = false;
 #endif
 
-        if (nButtonPressed == 0)
+        if (nButtonPressed == BUTTON_INSTALL)
         {
-          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::D3D9);
-          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          if (SK_IsInjected ())
+          {
+            //temp_dll = L"d3d9.dll";
+            SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::D3D9);
+          }
+
+          else
+          {
+            temp_dll = SK_UTF8ToWideChar (
+                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                             32
+#else
+                             64
+#endif
+                         )
+                      );
+            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          }
         }
         break;
 
@@ -1783,10 +1913,28 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.Vulkan.hook     = false;
 #endif
 
-        if (nButtonPressed == 0)
+        if (nButtonPressed == BUTTON_INSTALL)
         {
-          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::DXGI);
-          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          if (SK_IsInjected ())
+          {
+            //temp_dll = L"dxgi.dll";
+            SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DXGI);
+          }
+
+          else
+          {
+            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            temp_dll = SK_UTF8ToWideChar (
+                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                             32
+#else
+                             64
+#endif
+                         )
+                      );
+          }
         }
         break;
 
@@ -1801,10 +1949,27 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.OpenGL.hook     = false;
         config.apis.Vulkan.hook     = false;
 
-        if (nButtonPressed == 0)
+        if (nButtonPressed == BUTTON_INSTALL)
         {
-          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::DXGI);
-          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          if (SK_IsInjected ())
+          {
+            //temp_dll = L"dxgi.dll";
+            SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DXGI);
+          }
+          else
+          {
+            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            temp_dll = SK_UTF8ToWideChar (
+                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                             32
+#else
+                             64
+#endif
+                         )
+                      );
+            }
         }
         break;
 #endif
@@ -1825,10 +1990,28 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.Vulkan.hook     = false;
 #endif
 
-        if (nButtonPressed == 0)
+        if (nButtonPressed == BUTTON_INSTALL)
         {
-          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::OpenGL);
-          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          if (SK_IsInjected ())
+          {
+            //temp_dll = L"OpenGL32.dll";
+            SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::OpenGL);
+          }
+
+          else
+          {
+            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            temp_dll = SK_UTF8ToWideChar (
+                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                             32
+#else
+                             64
+#endif
+                         )
+                      );
+          }
         }
         break;
 
@@ -1857,28 +2040,66 @@ SK_Bypass_CRT (LPVOID user)
         config.apis.d3d8.hook       = true;
         config.apis.ddraw.hook      = false;
 
-        if (nButtonPressed == 0)
+        if (has_dgvoodoo || dgVooodoo_Nag ())
         {
-          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::D3D8);
-          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          if (nButtonPressed == BUTTON_INSTALL)
+          {
+            if (SK_IsInjected ())
+            {
+              SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::D3D8);
+            }
+
+            else
+            {
+              SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+              temp_dll = SK_UTF8ToWideChar (
+                           SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                             SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                               32
+#else
+                               64
+#endif
+                           )
+                        );
+            }
+          }
         }
         break;
 
       case 7:
-        config.apis.d3d9.hook       = false;
-        config.apis.d3d9ex.hook     = false;
+        config.apis.d3d9.hook = false;
+        config.apis.d3d9ex.hook = false;
 
         config.apis.dxgi.d3d11.hook = true;  // DDraw on D3D11 (not native DDraw)
 
-        config.apis.OpenGL.hook     = false;
+        config.apis.OpenGL.hook = false;
 
-        config.apis.d3d8.hook       = false;
-        config.apis.ddraw.hook      = true;
+        config.apis.d3d8.hook = false;
+        config.apis.ddraw.hook = true;
 
-        if (nButtonPressed == 0)
+        if (nButtonPressed == BUTTON_INSTALL)
         {
-          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::DDraw);
-          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+          if (has_dgvoodoo || dgVooodoo_Nag ())
+          {
+            if (SK_IsInjected ())
+              SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DDraw);
+            else
+            {
+              SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+
+              temp_dll = SK_UTF8ToWideChar (
+                           SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                             SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                               32
+#else
+                               64
+#endif
+                           )
+                        );
+            }
+          }
         }
         break;
 #endif
@@ -1887,87 +2108,220 @@ SK_Bypass_CRT (LPVOID user)
         break;
     }
 
-    extern iSK_INI* dll_ini;
 
-    if (nButtonPressed == 2)
+    if (nButtonPressed == BUTTON_DISABLE_PLUGINS)
     {
       // TEMPORARY: There will be a function to disable plug-ins here, for now
       //              just disable ReShade.
 #ifdef _WIN64
       dll_ini->remove_section (L"Import.ReShade64");
 #else
-      dll_ini->remove_section (L"Import.ReShade32");  
+      dll_ini->remove_section (L"Import.ReShade32");
 #endif
     }
 
-    if (SK_IsInjected ())
-      SK_SaveConfig (L"SpecialK");
-    else
+    if (nButtonPressed == BUTTON_RESET_CONFIG)
     {
-      extern const wchar_t* __SK_DLL_Backend;
-      SK_SaveConfig (__SK_DLL_Backend);
+      SK_DeleteConfig (wszConfigName);
+
+      // Hard-code known plug-in config files -- bad (lack of) design.
+      //
+      SK_DeleteConfig (L"FAR.ini");   SK_DeleteConfig (L"UnX.ini");   SK_DeleteConfig (L"PPrinny.ini");
+      SK_DeleteConfig (L"TBFix.ini"); SK_DeleteConfig (L"TSFix.ini"); SK_DeleteConfig (L"TZFix.ini");
+    }
+
+    else if (nButtonPressed != BUTTON_OK)
+    {
+      SK_SaveConfig (wszConfigName);
+    }
+
+    if (nButtonPressed == BUTTON_INSTALL && no_imports && nRadioPressed == 0 /* Auto */)
+    {
+      MessageBoxA   ( HWND_DESKTOP,
+                        SK_FormatString ( "API detection may be incorrect, delete '%ws.dll' "
+                                          "manually if Special K does not inject "
+                                          "itself.", __SK_DLL_Backend ).c_str (),
+                          "Possible API Detection Problems",
+                            MB_ICONINFORMATION | MB_OK
+                    );
+      ShellExecuteW ( HWND_DESKTOP, L"explore", SK_GetHostPath (), nullptr, nullptr, SW_SHOWNORMAL );
     }
 
     if (disable)
     {
-      FILE* fDeny = _wfopen (wszBlacklist, L"w");
+      FILE* fDeny =
+        _wfopen (wszBlacklist, L"w");
 
-      if (fDeny) {
+      if (fDeny != nullptr)
+      {
         fputc  ('\0', fDeny);
         fflush (      fDeny);
         fclose (      fDeny);
       }
 
       InterlockedExchange (&SK_BypassResult, SK_BYPASS_ACTIVATE);
-    } else {
-      DeleteFileW (wszBlacklist);
-      InterlockedExchange (&SK_BypassResult, SK_BYPASS_DEACTIVATE);
     }
 
-    TerminateProcess (GetCurrentProcess (), 0x00);
+    else
+    {
+      DeleteFileW         (wszBlacklist);
+      InterlockedExchange (&SK_BypassResult, SK_BYPASS_DEACTIVATE);
+    }
   }
 
-  InterlockedDecrement (&SK_bypass_dialog_active);
-
-  if (disable != __bypass.disable)
+  if (nButtonPressed != TDCBF_OK_BUTTON)
   {
-    STARTUPINFO         sinfo = { 0 };
-    PROCESS_INFORMATION pinfo = { 0 };
+    if (! temp_dll.length ())
+      SK_RestartGame (nullptr);
+    else
+      SK_RestartGame (temp_dll.c_str ());
 
-    sinfo.cb          = sizeof STARTUPINFO;
-    sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_RUNFULLSCREEN;
-    sinfo.wShowWindow = SW_SHOWNORMAL;
+    ExitProcess (0);
+  }
 
-    CreateProcess (
-      nullptr,
-        (LPWSTR)SK_GetHostApp (),
-          nullptr, nullptr,
-            TRUE,
-              CREATE_SUSPENDED,
-                nullptr, nullptr,
-                  &sinfo, &pinfo );
+  else
+  {
+    SK_RemoveHook (pfnGetClientRect);
+    SK_RemoveHook (pfnGetWindowRect);
+    SK_RemoveHook (pfnGetSystemMetrics);
 
-    ResumeThread (pinfo.hThread);
-    CloseHandle  (pinfo.hThread);
-    CloseHandle  (pinfo.hProcess);
+    InterlockedDecrement (&SK_bypass_dialog_active);
 
-    SK_TerminateParentProcess (0x00);
+    SK_ResumeThreads (suspended_tids);
   }
 
   CloseHandle (GetCurrentThread ());
-  ExitProcess (0);
 
-//return 0;
+  return 0;
 }
 
+
+
+
+
 #include <process.h>
+#include <SpecialK/hooks.h>
+
+typedef BOOL (WINAPI *GetClientRect_pfn)(
+  _In_  HWND   hWnd,
+  _Out_ LPRECT lpRect
+);
+typedef BOOL (WINAPI *GetWindowRect_pfn)(
+  _In_  HWND   hWnd,
+  _Out_ LPRECT lpRect
+);
+typedef int (WINAPI *GetSystemMetrics_pfn)(
+  _In_ int nIndex
+);
+
+static GetClientRect_pfn    GetClientRect_DeadEnd    = nullptr;
+static GetWindowRect_pfn    GetWindowRect_DeadEnd    = nullptr;
+static GetSystemMetrics_pfn GetSystemMetrics_DeadEnd = nullptr;
+
+
+//
+// Common functions that will be issued when a game finishes creating
+//   its render window and before it can begin doing stuff.
+//
+//   Block these functions if the call comes from the game, so that
+//     the compatibility options dialog can operate in peace.
+//
+
+auto
+BlockingCallOfDeath = [](void) ->
+int
+{
+  const int never = 0;
+        MSG msg;
+
+  while (GetMessage (&msg, 0, 0, 0))
+  {
+    Sleep_Original (0);
+    continue;
+  }
+
+  Sleep_Original (INFINITE);
+
+  return never;
+};
+
+
+BOOL
+WINAPI
+GetClientRect_BlockingCallOfDeath (
+  _In_  HWND   hWnd,
+  _Out_ LPRECT lpRect
+)
+{
+  // We are exempt from our own "deathtrap", lol.
+  //
+  //   In case a Common Control Dialog calls through this function,
+  //     let it do so.
+  //
+  if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
+    return GetClientRect_DeadEnd (hWnd, lpRect);
+
+  return BlockingCallOfDeath ();
+}
+
+BOOL
+WINAPI
+GetWindowRect_BlockingCallOfDeath (
+  _In_  HWND   hWnd,
+  _Out_ LPRECT lpRect
+)
+{
+  // We are exempt from our own "deathtrap", lol.
+  //
+  //   In case a Common Control Dialog calls through this function,
+  //     let it do so.
+  //
+  if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
+    return GetWindowRect_DeadEnd (hWnd, lpRect);
+
+  return BlockingCallOfDeath ();
+}
+
+int
+WINAPI
+GetSystemMetrics_BlockingCallOfDeath (_In_ int nIndex)
+{
+  // We are exempt from our own "deathtrap", lol.
+  //
+  //   In case a Common Control Dialog calls through this function,
+  //     let it do so.
+  //
+  if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
+    return GetSystemMetrics_DeadEnd (nIndex);
+
+  return BlockingCallOfDeath ();
+}
+
 
 std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {
-  std::queue <DWORD> tids =
-    SK_SuspendAllOtherThreads ();
+  SK_CreateDLLHook ( L"user32.dll",
+                      "GetWindowRect",
+                       GetWindowRect_BlockingCallOfDeath,
+             (LPVOID*)&GetWindowRect_DeadEnd,
+             (LPVOID*)&pfnGetWindowRect );
+
+  SK_CreateDLLHook ( L"user32.dll",
+                      "GetClientRect",
+                       GetClientRect_BlockingCallOfDeath,
+             (LPVOID*)&GetClientRect_DeadEnd,
+             (LPVOID*)&pfnGetClientRect  );
+
+  SK_CreateDLLHook ( L"user32.dll",
+                      "GetSystemMetrics",
+                       GetSystemMetrics_BlockingCallOfDeath,
+            (LPVOID *)&GetSystemMetrics_DeadEnd,
+            (LPVOID *)&pfnGetSystemMetrics  );
+
+
+  suspended_tids = SK_SuspendAllOtherThreads ();
 
   lstrcpyW (__bypass.wszBlacklist, SK_GetBlacklistFilename ());
 
@@ -1984,7 +2338,7 @@ SK_BypassInject (void)
                        0x00,
                          nullptr );
 
-  return std::make_pair (tids, __bypass.disable);
+  return std::make_pair (suspended_tids, __bypass.disable);
 }
 
 

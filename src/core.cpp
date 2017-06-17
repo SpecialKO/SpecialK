@@ -740,6 +740,9 @@ DWORD
 WINAPI
 CheckVersionThread (LPVOID user);
 
+volatile LONG    SK_bypass_dialog_active = FALSE;
+volatile ULONG __SK_Init                 = FALSE;
+
 void
 __stdcall
 SK_InitFinishCallback (void)
@@ -1130,15 +1133,15 @@ SK_InitCore (const wchar_t* backend, void* callback)
   SK_ResumeThreads (__SK_Init_Suspended_tids);
          callback_fn (SK_InitFinishCallback);
 
-  // Setup the compatibility backend, which monitors loaded libraries,
-  //   blacklists bad DLLs and detects render APIs...
-  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+
+  if (! InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+  {
+    // Setup the compatibility backend, which monitors loaded libraries,
+    //   blacklists bad DLLs and detects render APIs...
+    SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+  }
 }
 
-
-volatile LONG SK_bypass_dialog_active = FALSE;
-
-volatile ULONG __SK_Init = FALSE;
 
 void
 WaitForInit (void)
@@ -1223,7 +1226,7 @@ DllThread (LPVOID user)
 
 
 bool
-WINAPI
+__stdcall
 SK_HasGlobalInjector (void)
 {
   static int last_test = 0;
@@ -1361,16 +1364,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_EstablishRootPath ();
   SK_CreateDirectories (SK_GetConfigPath ());
 
+  bool bypass = false;
 
   // Injection Compatibility Menu
-  if ( (SK_HasGlobalInjector () || SK_IsInjected ()) &&
-       GetAsyncKeyState (VK_SHIFT) &&
+  if ( GetAsyncKeyState (VK_SHIFT) &&
        GetAsyncKeyState (VK_CONTROL) )
   {
-    std::pair <std::queue <DWORD>, BOOL> retval =
-      SK_BypassInject ();
+    SK_BypassInject ();
 
-    return true;
+    //bypass = true;
   }
 
   else
@@ -1494,6 +1496,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log.LogEx (false, L"done!\n");
   }
 
+
+  if (bypass)
+    goto BACKEND_INIT;
+
+
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
@@ -1591,6 +1598,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
 
+BACKEND_INIT:
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,
       CreateThread ( nullptr,
@@ -1785,8 +1793,11 @@ SK_BeginBufferSwap (void)
 
 
   // Throttle, but do not deadlock the render loop
-  if (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
+  while (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
     Sleep_Original (166);
+
+  // ^^^ Use condition variable instead
+
 
   static int import_tries = 0;
 
@@ -2300,6 +2311,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 {
   extern SK_RenderBackend __SK_RBkEnd;
 
+  __SK_RBkEnd.thread = GetCurrentThreadId ();
+
   if (device != nullptr) {
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
@@ -2451,4 +2464,12 @@ RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
                    LPSTR lpszCmdLine, int       nCmdShow )
 {
   ShellExecuteA ( nullptr, "runas", lpszCmdLine, nullptr, nullptr, SW_SHOWNORMAL );
+}
+
+void
+CALLBACK
+RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
+                     LPSTR lpszCmdLine, int       nCmdShow )
+{
+  ShellExecuteA ( nullptr, "open", lpszCmdLine, nullptr, nullptr, SW_SHOWNORMAL );
 }

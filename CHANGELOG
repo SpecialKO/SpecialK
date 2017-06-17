@@ -1,3 +1,21 @@
+0.8.15:
+
+ + Injection Compatibility Options Menu DRASTICALLY Overhauled
+ -------------------------------------------------------------
+  * Can now be used for both local DLL wrappers and global injector
+  * Can be activated with late global injection as a means of installing a
+      local DLL.
+   >> Activate global injection, hold Ctrl + Shift, activate your game, click
+        Install and then deactivate global injection.
+  * Added config file reset option
+  * Added plug-in disable feature (ReShade)
+  * Added D3D8/DDraw plug-in validation
+  * Improved API auto-detection and validation of executable's DLL Import Table.
+
+ + Added sleepless render / window thread options to framerate limiter to fix
+     games like LEGO City Undercover, that trash their window's message pump.
+ + Added Fullscreen override option to control panel for D3D9 games
+
 0.8.14:
  + Add D3D11 Safe Fullscreen option for games that disable fullscreen mode
     (i.e. LEGO City Undercover, Final Fantasy X/X-2, anything on Windows Store)

@@ -195,6 +195,8 @@ struct {
     sk::ParameterInt*     refresh_rate;
     sk::ParameterBool*    wait_for_vblank;
     sk::ParameterBool*    allow_dwm_tearing;
+    sk::ParameterBool*    sleepless_window;
+    sk::ParameterBool*    sleepless_render;
   } framerate;
   struct {
     sk::ParameterInt*     adapter_override;
@@ -1170,6 +1172,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Render.DXGI",
         L"AllowTearingInDWM" );
+
+  render.framerate.sleepless_render =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Sleep Free Render Thread")
+      );
+  render.framerate.sleepless_render->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"SleeplessRenderThread" );
+
+  render.framerate.sleepless_window =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Sleep Free Window Thread")
+      );
+  render.framerate.sleepless_window->register_to_ini (
+    dll_ini,
+      L"Render.FrameRate",
+        L"SleeplessWindowThread" );
 
   if (SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9)) {
     compatibility.d3d9.rehook_present =
@@ -2229,7 +2251,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       case SK_GAME_ID::LEGOCityUndercover:
         // Prevent the game from deadlocking its message pump in fullscreen
-        config.render.dxgi.safe_fullscreen = true;
+        config.render.dxgi.safe_fullscreen       = true;
+        config.render.framerate.sleepless_window = true; // Fix framerate limiter
         break;
 
 
@@ -2363,6 +2386,19 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
 
 
+  if (render.framerate.target_fps->load ())
+    config.render.framerate.target_fps =
+      render.framerate.target_fps->get_value ();
+  if (render.framerate.limiter_tolerance->load ())
+    config.render.framerate.limiter_tolerance =
+      render.framerate.limiter_tolerance->get_value ();
+  if (render.framerate.sleepless_render->load ())
+    config.render.framerate.sleepless_render =
+      render.framerate.sleepless_render->get_value ();
+  if (render.framerate.sleepless_window->load ())
+    config.render.framerate.sleepless_window =
+      render.framerate.sleepless_window->get_value ();
+
   if ( SK_IsInjected () ||
          ( SK_GetDLLRole () & DLL_ROLE::D3D9 ||
            SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
@@ -2380,12 +2416,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       config.nvidia.sli.override =
         nvidia.sli.override->get_value ();
 
-    if (render.framerate.target_fps->load ())
-      config.render.framerate.target_fps =
-        render.framerate.target_fps->get_value ();
-    if (render.framerate.limiter_tolerance->load ())
-      config.render.framerate.limiter_tolerance =
-        render.framerate.limiter_tolerance->get_value ();
     if (render.framerate.wait_for_vblank->load ())
       config.render.framerate.wait_for_vblank =
         render.framerate.wait_for_vblank->get_value ();
@@ -2864,11 +2894,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 
-  if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
-       SK_GetDLLRole () == DLL_ROLE::DXGI )
-  {
-    config.render.dxgi.safe_fullscreen = true;
-  }
+  //if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
+  //     SK_GetDLLRole () == DLL_ROLE::DDraw )
+  //{
+  //  config.render.dxgi.safe_fullscreen = true;
+  //}
 
 
 
@@ -2878,12 +2908,24 @@ SK_LoadConfigEx (std::wstring name, bool create)
   return true;
 }
 
+bool
+SK_DeleteConfig (std::wstring name)
+{
+  wchar_t wszFullName [ MAX_PATH + 2 ] = { L'\0' };
+
+  lstrcatW (wszFullName, SK_GetConfigPath ());
+  lstrcatW (wszFullName,       name.c_str ());
+  lstrcatW (wszFullName,             L".ini");
+
+  return (DeleteFileW (wszFullName) != FALSE);
+}
+
 void
 SK_SaveConfig ( std::wstring name,
                 bool         close_config )
 {
   //
-  // Shuttind down before initializaiton would be damn near fatal if we didn't catch this! :)
+  // Shutting down before initializaiton would be damn near fatal if we didn't catch this! :)
   //
   if (dll_ini == nullptr)
     return;
@@ -3017,13 +3059,16 @@ SK_SaveConfig ( std::wstring name,
 
   window.override->set_value (wszFormattedRes);
 
+  extern float target_fps;
+
+  render.framerate.target_fps->set_value        (target_fps);
+  render.framerate.limiter_tolerance->set_value (config.render.framerate.limiter_tolerance);
+  render.framerate.sleepless_render->set_value  (config.render.framerate.sleepless_render);
+  render.framerate.sleepless_window->set_value  (config.render.framerate.sleepless_window);
+
   if ( SK_IsInjected () ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
   {
-    extern float target_fps;
-
-    render.framerate.target_fps->set_value        (target_fps);
-    render.framerate.limiter_tolerance->set_value (config.render.framerate.limiter_tolerance);
     render.framerate.wait_for_vblank->set_value   (config.render.framerate.wait_for_vblank);
     render.framerate.prerender_limit->set_value   (config.render.framerate.pre_render_limit);
     render.framerate.buffer_count->set_value      (config.render.framerate.buffer_count);
@@ -3255,11 +3300,14 @@ SK_SaveConfig ( std::wstring name,
 
   nvidia.api.disable->store                ();
 
+  render.framerate.target_fps->store        ();
+  render.framerate.limiter_tolerance->store ();
+  render.framerate.sleepless_render->store  ();
+  render.framerate.sleepless_window->store  ();
+
   if (  SK_IsInjected ()                  || 
       ( SK_GetDLLRole () & DLL_ROLE::DXGI ||
         SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
-    render.framerate.target_fps->store        ();
-    render.framerate.limiter_tolerance->store ();
     render.framerate.wait_for_vblank->store   ();
     render.framerate.buffer_count->store      ();
     render.framerate.prerender_limit->store   ();

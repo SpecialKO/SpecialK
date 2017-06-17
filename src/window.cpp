@@ -2831,7 +2831,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           case 2:  // WA_CLICKACTIVE
           default: // Unknown
           {
-            if ((HWND)lParam != game_window.hWnd)
+            if ((HWND)lParam == game_window.hWnd)
             {
               if (last_active == false) {
                 SK_LOG2 ( ( L"Application Activated (WM_ACTIVATEAPP)" ),
@@ -3029,7 +3029,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   bool handled = false;
 
   static bool eqgame = wcsstr (SK_GetHostApp (), L"eqgame.exe");
-  if (eqgame)
+
+  static bool ddraw  = GetModuleHandle (L"ddraw.dll") != nullptr;
+  static bool d3d8   = GetModuleHandle (L"d3d8.dll")  != nullptr;
+
+  if (eqgame || ddraw || d3d8)
   {
     handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
   }

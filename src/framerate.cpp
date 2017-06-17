@@ -35,11 +35,13 @@
 #include <d3d11.h>
 #include <atlbase.h>
 
+SK::Framerate::EventCounter SK::Framerate::events;
+
 LPVOID pfnQueryPerformanceCounter = nullptr;
 LPVOID pfnSleep                   = nullptr;
 
-Sleep_pfn                 Sleep_Original                   = nullptr;
-QueryPerformanceCounter_t QueryPerformanceCounter_Original = nullptr;
+Sleep_pfn                   Sleep_Original                   = nullptr;
+QueryPerformanceCounter_pfn QueryPerformanceCounter_Original = nullptr;
 
 auto SK_CurrentPerf = []()->
  LARGE_INTEGER
@@ -67,47 +69,97 @@ SK_QueryPerf (void)
 
 LARGE_INTEGER SK::Framerate::Stats::freq;
 
-volatile ULONG dwLimiterThreadId = 0;
-
 #include <SpecialK/utility.h>
-
-extern volatile ULONG __SK_Init;
 
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
-  //if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE) == TRUE)
-  //{
-    if (InterlockedExchangeAdd (&dwLimiterThreadId, 0) == GetCurrentThreadId ())
+#if 0
+  if (InterlockedExchangeAdd (&dwLimiterThreadId, 0) == GetCurrentThreadId ())
+  {
+    if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
     {
-      if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
-      {
-        static bool reported = false;
-        if (! reported) { dll_log.Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds); reported = true; }
+      static bool reported = false;
+      if (! reported) { dll_log.Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds); reported = true; }
 
-        //YieldProcessor ();
-        return;
-      }
+      //YieldProcessor ();
+      return;
     }
-  //}
+  }
 
   bool bGUIThread = false;
 
-  //if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE) == TRUE)
-  //{
-    if (IsGUIThread (FALSE))
+  if (IsGUIThread (FALSE))
+  {
+    if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
     {
-      if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
+      static bool reported = false;
+      if (! reported) { dll_log.Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds); reported = true; }
+
+      //YieldProcessor ();
+      return;
+    }
+  }
+#else
+  bool bIsCallerGame = (SK_GetCallingDLL () == GetModuleHandle (nullptr));
+
+  if (bIsCallerGame)
+  {
+    BOOL bGUIThread    = IsGUIThread (FALSE);
+    BOOL bRenderThread = (SK_GetCurrentRenderBackend ().thread == GetCurrentThreadId ());
+
+    if (bRenderThread)
+    {
+      if (config.render.framerate.sleepless_render && dwMilliseconds != INFINITE)
       {
         static bool reported = false;
-        if (! reported) { dll_log.Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds); reported = true; }
+              if (! reported)
+              {
+                dll_log.Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds);
+                reported = true;
+              }
 
-        //YieldProcessor ();
+        SK::Framerate::events.getRenderThreadStats ().wake (dwMilliseconds);
+
+        if (bGUIThread)
+          SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
+
+        //if (dwMilliseconds <= 1)
+        //  YieldProcessor ();
+
         return;
       }
+
+      SK::Framerate::events.getRenderThreadStats ().sleep  (dwMilliseconds);
     }
-  //}
+
+    if (bGUIThread)
+    {
+      if (config.render.framerate.sleepless_window && dwMilliseconds != INFINITE)
+      {
+        static bool reported = false;
+              if (! reported)
+              {
+                dll_log.Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds);
+                reported = true;
+              }
+
+        SK::Framerate::events.getMessagePumpStats ().wake   (dwMilliseconds);
+
+        if (bRenderThread)
+          SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
+
+        //if (dwMilliseconds <= 1)
+        //  YieldProcessor ();
+
+        return;
+      }
+
+      SK::Framerate::events.getMessagePumpStats ().sleep (dwMilliseconds);
+    }
+  }
+#endif
 
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
   if (dwMilliseconds == 0)
@@ -120,7 +172,8 @@ Sleep_Detour (DWORD dwMilliseconds)
 #ifdef DUAL_USE_MAX_DELTA
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
-  if (dwMilliseconds >= (DWORD)config.render.framerate.max_delta_time) {
+  if (dwMilliseconds >= (DWORD)config.render.framerate.max_delta_time)
+  {
     //if (dwMilliseconds == 0)
       //return YieldProcessor ();
 #endif
@@ -130,6 +183,8 @@ Sleep_Detour (DWORD dwMilliseconds)
   }
 #endif
 }
+
+extern volatile LONG SK_BypassResult;
 
 BOOL
 WINAPI
@@ -355,8 +410,6 @@ SK::Framerate::Limiter::wait (void)
 
   if (fps != target_fps)
     init (target_fps);
-
-  InterlockedExchange (&dwLimiterThreadId, GetCurrentThreadId ());
 
   if (target_fps == 0)
     return;

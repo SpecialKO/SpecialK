@@ -94,6 +94,10 @@ bool
 __stdcall
 SK_IsInjected (bool set = false);
 
+bool
+__stdcall
+SK_HasGlobalInjector (void);
+
 ULONG
 __stdcall
 SK_GetFramesDrawn (void);

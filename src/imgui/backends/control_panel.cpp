@@ -44,6 +44,7 @@
 
 #include <SpecialK/update/version.h>
 #include <SpecialK/update/network.h>
+#include <SpecialK/framerate.h>
 
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/input/xinput_hotplug.h>
@@ -121,6 +122,12 @@ LoadFileInResource ( int          name,
 
 extern void SK_Steam_SetNotifyCorner (void);
 
+
+enum reset_stage_s {
+  Initiate = 0x0, // Fake device loss
+  Respond  = 0x1, // Fake device not reset
+  Clear    = 0x2  // Return status to normal
+} extern trigger_reset;
 
 struct show_eula_s {
   bool show;
@@ -1031,6 +1038,56 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+    if (((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0x0)
+    {
+      extern void
+      SK_D3D9_TriggerReset (void);
+
+      if (SK_ImGui_IsItemRightClicked () && trigger_reset == reset_stage_s::Clear)
+      {
+        ImGui::OpenPopup ("SubMenu_DisplayMode");
+      }
+
+      if (ImGui::BeginPopup ("SubMenu_DisplayMode"))
+      {
+        if (windowed)
+        {
+          if (ImGui::MenuItem ("Force Fullscreen"))
+          {
+            config.render.d3d9.force_fullscreen = true;
+            config.render.d3d9.force_windowed   = false;
+            SK_D3D9_TriggerReset ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Games that do not natively support Fullscreen mode may require an application restart.");
+          }
+        }
+
+        else
+        {
+          if (ImGui::MenuItem ("Force Windowed"))
+          {
+            config.render.d3d9.force_fullscreen = false;
+            config.render.d3d9.force_windowed   = true;
+            SK_D3D9_TriggerReset ();
+          }
+        }
+
+        if (config.render.d3d9.force_fullscreen || config.render.d3d9.force_windowed)
+        {
+          if (ImGui::MenuItem ("Disable Override"))
+          {
+            config.render.d3d9.force_fullscreen = false;
+            config.render.d3d9.force_windowed   = false;
+          }
+        }
+
+        ImGui::EndPopup ();
+      }
+    }
+
     HDC hDC = GetWindowDC (game_window.hWnd);
 
     int res_x = GetDeviceCaps (hDC, HORZRES);
@@ -1179,23 +1236,9 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::PopStyleColor ();
 
-        bool changed = ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.005f, 0.75);
-        
-        if (ImGui::IsItemHovered ()) {
-          ImGui::BeginTooltip ();
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
-          ImGui::Text           ("Controls Framerate Smoothness\n\n");
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
-          ImGui::Text           ("  Lower = Smoother, but setting ");
-          ImGui::SameLine       ();
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
-          ImGui::Text           ("too low");
-          ImGui::SameLine       ();
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
-          ImGui::Text           (" will cause framerate instability...");
-          ImGui::PopStyleColor  (4);
-          ImGui::EndTooltip     ();
-        }
+        static bool advanced = false;
+               bool changed  = false;
+
 
         // Don't apply this number if it's < 10, that does very undesirable things
         float target_orig = target_fps;
@@ -1210,6 +1253,60 @@ SK_ImGui_ControlPanel (void)
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("0.0 will disable Special K's framerate limiter");
+
+        ImGui::SameLine ();
+
+        ImGui::Checkbox ("Advanced###Advanced_FPS", &advanced);
+
+        if (advanced)
+        {
+          ImGui::BeginGroup ();
+
+          ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.005f, 0.75);
+         
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
+            ImGui::Text           ("Controls Framerate Smoothness\n\n");
+            ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
+            ImGui::Text           ("  Lower = Smoother, but setting ");
+            ImGui::SameLine       ();
+            ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
+            ImGui::Text           ("too low");
+            ImGui::SameLine       ();
+            ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
+            ImGui::Text           (" will cause framerate instability...");
+            ImGui::PopStyleColor  (4);
+            ImGui::EndTooltip     ();
+          }
+
+          changed |= ImGui::Checkbox ("Sleepless Render Thread",         &config.render.framerate.sleepless_render  );
+                  if (ImGui::IsItemHovered ())
+                  {
+                    SK::Framerate::EventCounter::SleepStats& stats =
+                      SK::Framerate::GetEvents ()->getRenderThreadStats ();
+
+                      ImGui::SetTooltip
+                                     ( "(%llu ms asleep, %llu ms awake)",
+                                         /*(stats.attempts - stats.rejections), stats.attempts,*/
+                                           InterlockedAdd64 (&stats.time.allowed, 0), InterlockedAdd64 (&stats.time.deprived, 0) );
+                    }
+                     ImGui::SameLine (                                                                              );
+
+          changed |= ImGui::Checkbox ("Sleepless Window Thread", &config.render.framerate.sleepless_window );
+                  if (ImGui::IsItemHovered ())
+                  {
+                    SK::Framerate::EventCounter::SleepStats& stats =
+                      SK::Framerate::GetEvents ()->getMessagePumpStats ();
+
+                      ImGui::SetTooltip
+                                     ( "(%llu ms asleep, %llu ms awake)",
+                                         /*(stats.attempts - stats.rejections), stats.attempts,*/
+                                           InterlockedAdd64 (&stats.time.allowed, 0), InterlockedAdd64 (&stats.time.deprived, 0) );
+                  }
+          ImGui::EndGroup ();
+        }
       }
 
       ImGui::PopItemWidth ();
