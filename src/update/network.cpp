@@ -30,6 +30,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/resource.h>
 
+#include <SpecialK/framerate.h>
 #include <SpecialK/update/version.h>
 #include <SpecialK/update/archive.h>
 #include <SpecialK/update/network.h>
@@ -1166,7 +1167,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                                                        0 )
                   ) == 0
                 )
-            Sleep (15);
+            Sleep_Original (15);
 
           if (SK_IsInjected ())
             SK_Inject_Start ();

@@ -47,6 +47,7 @@
 #include <SpecialK/render_backend.h>
 
 
+#include <SpecialK/framerate.h>
 #include <SpecialK/DLL_VERSION.H>
 
 #define SK_CHAR(x) (      _T ) constexpr _T      (typeid (_T) == typeid (wchar_t)) ? (      _T )_L(x) : (      _T )(x)
@@ -326,32 +327,6 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     (GetModuleHandleEx_pfn)
       constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW  : 
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA  );
-
-  if (config.steam.preload_client)
-  {
-    if (StrStrI (lpFileName, SK_TEXT("gameoverlayrenderer64")))
-    {
-       _T       szSteamPath             [MAX_PATH + 1] = { SK_CHAR('\0') };
-      strncpy_ (szSteamPath, lpFileName, MAX_PATH - 1);
-
-      PathRemoveFileSpec (szSteamPath);
-
-#ifdef _WIN64
-      lstrcat (szSteamPath, SK_TEXT("\\steamclient64.dll"));
-#else
-      lstrcat (szSteamPath, SK_TEXT("\\steamclient.dll"));
-#endif
-
-      LoadLibrary (szSteamPath);
-
-      HMODULE hModClient;
-      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-                          GET_MODULE_HANDLE_EX_FLAG_PIN,
-                            szSteamPath,
-                              &hModClient );
-    }
-  }
-
 
   wchar_t wszModName [MAX_PATH] = { L'\0' };
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
@@ -997,7 +972,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
           if (config.compatibility.rehook_loadlibrary) {
             SK_ReHookLoadLibrary ();
-            Sleep (16);
+            Sleep_Original (16);
           }
         }
 
@@ -1010,7 +985,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
           if (config.compatibility.rehook_loadlibrary) {
             SK_ReHookLoadLibrary ();
-            Sleep (16);
+            Sleep_Original (16);
           }
         }
 
@@ -1023,7 +998,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
           if (config.compatibility.rehook_loadlibrary) {
             SK_ReHookLoadLibrary ();
-            Sleep (16);
+            Sleep_Original (16);
           }
         }
 
@@ -1241,7 +1216,7 @@ TaskDialogCallback (
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
     while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0) > 1)
-      Sleep (10);
+      Sleep_Original (10);
 
     SK_bypass_dialog_hwnd = hWnd;
 
@@ -1643,7 +1618,7 @@ SK_Bypass_CRT (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  static BOOL     disable      = __bypass.disable;
+  static BOOL     disable      = false;//__bypass.disable;
          wchar_t* wszBlacklist = __bypass.wszBlacklist;
 
   bool timer = true;
@@ -1651,10 +1626,21 @@ SK_Bypass_CRT (LPVOID user)
   int              nButtonPressed = 0;
   TASKDIALOGCONFIG task_config    = {0};
 
-  const TASKDIALOG_BUTTON  buttons [] = {  { 0, L"Install Wrapper DLL" }
-                                        };
+  const TASKDIALOG_BUTTON  buttons_global [] = {  { 0, L"Install Wrapper DLL" },
+                                                  { 2, L"Disable Plug-Ins"    },
+                                               };
+  const TASKDIALOG_BUTTON  buttons_local  [] = {  { 0, L"Uninstall Wrapper DLL" },
+                                                  { 2, L"Disable Plug-Ins"      },
+                                               };
 
-  const TASKDIALOG_BUTTON rbuttons [] = {  { 0, L"Auto-Detect"   },
+  extern const wchar_t* __SK_DLL_Backend;
+
+  static wchar_t wszAPIName [64] = { L"Auto-Detect   " };
+       lstrcatW (wszAPIName, L"(");
+       lstrcatW (wszAPIName, __SK_DLL_Backend);
+       lstrcatW (wszAPIName, L")");
+
+  const TASKDIALOG_BUTTON rbuttons [] = {  { 0, wszAPIName       },
 #ifndef _WIN64
                                            { 6, L"Direct3D8"     },
                                            { 7, L"DirectDraw"    },
@@ -1677,8 +1663,19 @@ SK_Bypass_CRT (LPVOID user)
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pRadioButtons       = rbuttons;
   task_config.cRadioButtons       = ARRAYSIZE (rbuttons);
-  task_config.pButtons            = buttons;
-  task_config.cButtons            = ARRAYSIZE (buttons);
+
+  if (SK_IsInjected ())
+  {
+    task_config.pButtons          =            buttons_global;
+    task_config.cButtons          = ARRAYSIZE (buttons_global);
+  }
+  
+  else
+  {
+    task_config.pButtons          =            buttons_local;
+    task_config.cButtons          = ARRAYSIZE (buttons_local);
+  }
+
   task_config.dwFlags             = 0x00;
   task_config.pfCallback          = TaskDialogCallback;
   task_config.lpCallbackData      = 0;
@@ -1691,11 +1688,19 @@ SK_Bypass_CRT (LPVOID user)
                           L" menu options provided to troubleshoot problems"
                           L" that may be caused by the mod.";
 
-  task_config.pszFooterIcon       = TD_INFORMATION_ICON;
-  task_config.pszFooter           = L"You can re-enable auto-injection at any time by "
-                          L"holding Ctrl + Shift down at startup.";
+  if (SK_IsInjected ())
+  {
+    task_config.pszFooterIcon       = TD_INFORMATION_ICON;
+    task_config.pszFooter           = L"You can re-enable auto-injection by "
+                                      L"holding Ctrl + Shift down at startup.";
+    task_config.pszVerificationText = L"Disable Global Injection for this Game";
+  }
 
-  task_config.pszVerificationText = L"Check here to DISABLE Special K for this game.";
+  else
+  {
+    task_config.pszFooter           = nullptr;
+    task_config.pszVerificationText = nullptr;
+  }
 
   //task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
@@ -1708,7 +1713,7 @@ SK_Bypass_CRT (LPVOID user)
     TaskDialogIndirect ( &task_config,
                           &nButtonPressed,
                             &nRadioPressed,
-                              &disable );
+                              SK_IsInjected () ? &disable : nullptr );
 
   SK_LoadConfig (L"SpecialK");
 
@@ -1734,7 +1739,8 @@ SK_Bypass_CRT (LPVOID user)
 
         if (nButtonPressed == 0)
         {
-          SK_Inject_SwitchToRenderWrapperEx (SK_GetDLLRole ());
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (SK_GetDLLRole ());
+          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
         }
         break;
 
@@ -1756,7 +1762,8 @@ SK_Bypass_CRT (LPVOID user)
 
         if (nButtonPressed == 0)
         {
-          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::D3D9);
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::D3D9);
+          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
         }
         break;
 
@@ -1778,7 +1785,8 @@ SK_Bypass_CRT (LPVOID user)
 
         if (nButtonPressed == 0)
         {
-          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DXGI);
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::DXGI);
+          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
         }
         break;
 
@@ -1795,7 +1803,8 @@ SK_Bypass_CRT (LPVOID user)
 
         if (nButtonPressed == 0)
         {
-          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DXGI);
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::DXGI);
+          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
         }
         break;
 #endif
@@ -1818,7 +1827,8 @@ SK_Bypass_CRT (LPVOID user)
 
         if (nButtonPressed == 0)
         {
-          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::OpenGL);
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::OpenGL);
+          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
         }
         break;
 
@@ -1849,7 +1859,8 @@ SK_Bypass_CRT (LPVOID user)
 
         if (nButtonPressed == 0)
         {
-          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::D3D8);
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::D3D8);
+          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
         }
         break;
 
@@ -1866,7 +1877,8 @@ SK_Bypass_CRT (LPVOID user)
 
         if (nButtonPressed == 0)
         {
-          SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DDraw);
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (DLL_ROLE::DDraw);
+          else                  SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
         }
         break;
 #endif
@@ -1877,18 +1889,27 @@ SK_Bypass_CRT (LPVOID user)
 
     extern iSK_INI* dll_ini;
 
-    // TEMPORARY: There will be a function to disable plug-ins here, for now
-    //              just disable ReShade.
+    if (nButtonPressed == 2)
+    {
+      // TEMPORARY: There will be a function to disable plug-ins here, for now
+      //              just disable ReShade.
 #ifdef _WIN64
-    dll_ini->remove_section (L"Import.ReShade64");
+      dll_ini->remove_section (L"Import.ReShade64");
 #else
-    dll_ini->remove_section (L"Import.ReShade32");  
+      dll_ini->remove_section (L"Import.ReShade32");  
 #endif
+    }
 
-    SK_SaveConfig (L"SpecialK");
+    if (SK_IsInjected ())
+      SK_SaveConfig (L"SpecialK");
+    else
+    {
+      extern const wchar_t* __SK_DLL_Backend;
+      SK_SaveConfig (__SK_DLL_Backend);
+    }
 
-
-    if (disable) {
+    if (disable)
+    {
       FILE* fDeny = _wfopen (wszBlacklist, L"w");
 
       if (fDeny) {
@@ -1926,9 +1947,9 @@ SK_Bypass_CRT (LPVOID user)
                 nullptr, nullptr,
                   &sinfo, &pinfo );
 
-    ResumeThread     (pinfo.hThread);
-    CloseHandle      (pinfo.hThread);
-    CloseHandle      (pinfo.hProcess);
+    ResumeThread (pinfo.hThread);
+    CloseHandle  (pinfo.hThread);
+    CloseHandle  (pinfo.hProcess);
 
     SK_TerminateParentProcess (0x00);
   }

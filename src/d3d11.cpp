@@ -81,7 +81,7 @@ volatile LONG  __d3d11_ready    = FALSE;
 void WaitForInitD3D11 (void)
 {
   while (! InterlockedCompareExchange (&__d3d11_ready, FALSE, FALSE))
-    Sleep (config.system.init_delay);
+    Sleep_Original (config.system.init_delay);
 }
 
 
@@ -5185,7 +5185,7 @@ HookD3D11 (LPVOID user)
     }
 
     while (CreateDXGIFactory_Import == nullptr)
-      Sleep (33);
+      Sleep_Original (33);
 
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
@@ -5231,9 +5231,10 @@ HookD3D11 (LPVOID user)
     DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 13, "ID3D11Device::CreateGeometryShader",
                          D3D11Dev_CreateGeometryShader_Override, D3D11Dev_CreateGeometryShader_Original,
                          D3D11Dev_CreateGeometryShader_pfn);
-    DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 14, "ID3D11Device::CreateGeometryShaderWithStreamOutput",
-                           D3D11Dev_CreateGeometryShaderWithStreamOutput_Override, D3D11Dev_CreateGeometryShaderWithStreamOutput_Original,
-                           D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn);
+
+    //DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 14, "ID3D11Device::CreateGeometryShaderWithStreamOutput",
+    //                       D3D11Dev_CreateGeometryShaderWithStreamOutput_Override, D3D11Dev_CreateGeometryShaderWithStreamOutput_Original,
+    //                       D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn);
 
     DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 15, "ID3D11Device::CreatePixelShader",
                          D3D11Dev_CreatePixelShader_Override, D3D11Dev_CreatePixelShader_Original,
@@ -5261,9 +5262,9 @@ HookD3D11 (LPVOID user)
     //   vftable pointer instead of hooking the function.
     //
 #if 0
-    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
-                           D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
-                           D3D11_VSSetConstantBuffers_pfn);
+    DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
+                             D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
+                             D3D11_VSSetConstantBuffers_pfn);
 #else
     DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 7, "ID3D11DeviceContext::VSSetConstantBuffers",
                          D3D11_VSSetConstantBuffers_Override, D3D11_VSSetConstantBuffers_Original,
@@ -5274,13 +5275,25 @@ HookD3D11 (LPVOID user)
                          D3D11_PSSetShaderResources_Override, D3D11_PSSetShaderResources_Original,
                          D3D11_PSSetShaderResources_pfn);
 
+#if 0
+    DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 9, "ID3D11DeviceContext::PSSetShader",
+                             D3D11_PSSetShader_Override, D3D11_PSSetShader_Original,
+                             D3D11_PSSetShader_pfn);
+#else
     DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 9, "ID3D11DeviceContext::PSSetShader",
                          D3D11_PSSetShader_Override, D3D11_PSSetShader_Original,
                          D3D11_PSSetShader_pfn);
+#endif
 
+#if 0
+    DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 11, "ID3D11DeviceContext::VSSetShader",
+                             D3D11_VSSetShader_Override, D3D11_VSSetShader_Original,
+                             D3D11_VSSetShader_pfn);
+#else
     DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 11, "ID3D11DeviceContext::VSSetShader",
                          D3D11_VSSetShader_Override, D3D11_VSSetShader_Original,
                          D3D11_VSSetShader_pfn);
+#endif
 
     DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 12, "ID3D11DeviceContext::DrawIndexed",
                          D3D11_DrawIndexed_Override, D3D11_DrawIndexed_Original,
@@ -5295,9 +5308,9 @@ HookD3D11 (LPVOID user)
     //   vftable pointer instead of hooking the function.
     //
 #if 0
-    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
-                         D3D11_Map_Override, D3D11_Map_Original,
-                         D3D11_Map_pfn);
+    DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
+                             D3D11_Map_Override, D3D11_Map_Original,
+                             D3D11_Map_pfn);
 #else
     DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 14, "ID3D11DeviceContext::Map",
                          D3D11_Map_Override, D3D11_Map_Original,

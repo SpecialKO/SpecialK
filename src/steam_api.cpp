@@ -41,6 +41,7 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 #include <SpecialK/osd/popup.h>
@@ -2525,7 +2526,7 @@ WINAPI
 SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 {
   // Wait 5 seconds, then begin a timing investigation
-  Sleep (5000);
+  Sleep_Original (5000);
 
   // First, begin a timing probe.
   //
@@ -2536,7 +2537,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 
   const UINT TEST_PERIOD = 15;
 
-  Sleep (TEST_PERIOD * 1000UL);
+  Sleep_Original (TEST_PERIOD * 1000UL);
 
   LONGLONG callback_count1 = SK_SteamAPI_CallbackRunCount;
 
@@ -2558,7 +2559,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
       {
         SK::SteamAPI::Pump ();
 
-        Sleep (250);
+        Sleep_Original (250);
       }
     }
 
@@ -3044,7 +3045,7 @@ SteamAPI_Shutdown_Detour (void)
     [](LPVOID user) ->
     DWORD
     {
-      Sleep (1000UL);
+      Sleep_Original (1000UL);
 
       // Start back up again :)
       //
@@ -3171,7 +3172,7 @@ SteamAPI_Delay_Init (LPVOID user)
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
             tries < 120 )
   {
-    Sleep (config.steam.init_delay);
+    Sleep_Original (config.steam.init_delay);
 
     if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
       break;
@@ -3255,8 +3256,24 @@ SK_HookSteamAPI (void)
 
   SK_ApplyQueuedHooks ();
 
-  if (config.steam.init_delay > 0) {
-    CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
+  if (! config.steam.force_load_steamapi)
+  {
+    if (config.steam.init_delay > 0) {
+      CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
+    }
+  }
+
+  else
+  {
+    CreateThread (nullptr, 0, [](LPVOID user) ->
+      DWORD
+      {
+        SteamAPI_InitSafe_Detour ();
+
+        CloseHandle (GetCurrentThread ());
+
+        return 0;
+      }, nullptr, 0x00, nullptr);
   }
 
   LeaveCriticalSection (&init_cs);

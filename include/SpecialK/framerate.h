@@ -209,4 +209,6 @@ namespace SK
 typedef void (WINAPI *Sleep_pfn)                       (DWORD dwMilliseconds);
 typedef BOOL (WINAPI *QueryPerformanceCounter_t)(_Out_ LARGE_INTEGER *lpPerformanceCount);
 
+extern Sleep_pfn Sleep_Original;
+
 #endif /* __SK__FRAMERATE_H__ */

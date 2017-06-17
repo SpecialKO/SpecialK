@@ -26,6 +26,7 @@
 #include <SpecialK/D3D9/texmgr.h>
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/import.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
@@ -50,6 +51,7 @@
 
 #include <imgui/backends/imgui_d3d9.h>
 
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 volatile LONG                        __d3d9_ready = FALSE;
@@ -70,7 +72,7 @@ WINAPI
 WaitForInit_D3D9 (void)
 {
   while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
-    Sleep (config.system.init_delay);
+    Sleep_Original (config.system.init_delay);
 }
 
 extern "C++" void
@@ -687,6 +689,13 @@ SK_HookD3D9 (void)
     }
   }
 
+// Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+  SK_LoadPlugIns64 ();
+#else
+  SK_LoadPlugIns32 ();
+#endif
+
 #if 0
   HANDLE hThread =
     (HANDLE)
@@ -719,7 +728,7 @@ d3d9_init_callback (finish_pfn finish)
     SK_BootD3D9 ();
 
     while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
-      Sleep (100UL);
+      Sleep_Original (100UL);
   }
 
   finish ();
@@ -3659,7 +3668,7 @@ SK_D3D9_HookWatch (LPVOID user)
         );
         memcpy (watch->val, watch->addr, watch->size);
       }
-      Sleep (100UL);
+      Sleep_Original (100UL);
     }
   }
 
@@ -3695,7 +3704,7 @@ SK_D3D9_RehookThread (LPVOID user)
   while (! InterlockedCompareExchange (&__installed_second_hook, FALSE, FALSE))
   {
     if ((volatile IDirect3DDevice9 *)g_pD3D9Dev == nullptr) {
-      Sleep (1000UL);
+      Sleep_Original (1000UL);
       continue;
     }
 
@@ -3705,7 +3714,7 @@ SK_D3D9_RehookThread (LPVOID user)
       LPVOID dontcare;
 
       if (SH_Introspect (PresentVFTable, SH_DETOUR, &dontcare) == MH_ERROR_NOT_CREATED) {
-        Sleep (15000UL);
+        Sleep_Original (15000UL);
 
         D3D9_INTERCEPT_EX ( &g_pD3D9Dev, 17,
                               "IDirect3DDevice9::Present",
@@ -3736,7 +3745,7 @@ SK_D3D9_RehookThread (LPVOID user)
 
     last_present = vftable [17];
 
-    Sleep (1000UL);
+    Sleep_Original (1000UL);
   }
 
   CloseHandle (GetCurrentThread ());

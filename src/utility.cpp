@@ -1313,7 +1313,8 @@ SK_TestImports (          HMODULE  hMod,
 
   if (hits == 0)
   {
-    // Resort to checking for DLL residency instead
+    // Supplement the import table test with a check for residency,
+    //   this may catch games that load graphics APIs dynamically.
     for (int i = 0; i < nCount; i++)
     {
       if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -1496,7 +1497,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                         (LPVOID *)&wszProduct,
                                   &cbProductBytes );
 
-    return (cbProductBytes && (! SK_Path_wcsicmp (wszProduct, L"Special K")));
+    return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
   }
 
   return false;

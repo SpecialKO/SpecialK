@@ -84,8 +84,9 @@ volatile HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
 bool USE_SLI = true;
 
 NV_GET_CURRENT_SLI_STATE sli_state;
-BOOL                     nvapi_init  = FALSE;
-HMODULE                  backend_dll = 0;
+BOOL                     nvapi_init       = FALSE;
+HMODULE                  backend_dll      = 0;
+const wchar_t*           __SK_DLL_Backend = nullptr;
 
 // LOL -- This tests for RunDLL32 / SKIM
 bool
@@ -754,6 +755,7 @@ SK_InitFinishCallback (void)
   SK_DeleteTemporaryFiles ();
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
 
+  SK::Framerate::Init ();
 
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
@@ -1131,24 +1133,17 @@ SK_InitCore (const wchar_t* backend, void* callback)
   // Setup the compatibility backend, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
   SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-
-  // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
 }
 
 
 volatile LONG SK_bypass_dialog_active = FALSE;
 
+volatile ULONG __SK_Init = FALSE;
+
 void
 WaitForInit (void)
 {
-  static volatile ULONG init = FALSE;
-
-  if (InterlockedCompareExchange (&init, FALSE, FALSE))
+  if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE))
     return;
 
   while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) != INVALID_HANDLE_VALUE)
@@ -1162,7 +1157,7 @@ WaitForInit (void)
   while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
-    Sleep (150);
+    Sleep_Original (150);
   }
 
   // First thread to reach this point wins ... a shiny new car and
@@ -1176,7 +1171,7 @@ WaitForInit (void)
   //     them as soon as all DLL code is loaded. Then it becomes a sloppy race
   //       for each attached thread to finish its DllMain (...) function.
   //
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
+  if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE)) {
     CloseHandle (InterlockedExchangePointer ((LPVOID *)&hInitThread, INVALID_HANDLE_VALUE));
 
     // Load user-defined DLLs (Lazy)
@@ -1224,6 +1219,34 @@ DllThread (LPVOID user)
   SK_InitCore (params->backend, params->callback);
 
   return 0;
+}
+
+
+bool
+WINAPI
+SK_HasGlobalInjector (void)
+{
+  static int last_test = 0;
+
+  if (last_test == 0)
+  {
+    wchar_t wszBasePath [MAX_PATH * 2 - 1] = { L'\0' };
+
+    wcsncpy ( wszBasePath,
+                std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\" ).c_str (),
+                  MAX_PATH - 1 );
+
+#ifdef _WIN64
+    lstrcatW (wszBasePath, L"SpecialK64.dll");
+#else
+    lstrcatW (wszBasePath, L"SpecialK32.dll");
+#endif
+
+    bool result = (GetFileAttributesW (wszBasePath) != INVALID_FILE_ATTRIBUTES);
+    last_test   = result ? 1 : -1;
+  }
+
+  return (last_test != -1);
 }
 
 #include <wingdi.h>
@@ -1321,6 +1344,9 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  __SK_DLL_Backend = backend;
+
+
   // Allow users to centralize all files if they want
   //
   //   Stupid hack, if the application is running with a different working-directory than
@@ -1336,19 +1362,19 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_CreateDirectories (SK_GetConfigPath ());
 
 
-  // Only the injector version can be bypassed, the wrapper version
-  //   must fully initialize or the game will not be able to use the
-  //     DLL it is wrapping.
-  if ( SK_IsInjected    ()         &&
+  // Injection Compatibility Menu
+  if ( (SK_HasGlobalInjector () || SK_IsInjected ()) &&
        GetAsyncKeyState (VK_SHIFT) &&
-       GetAsyncKeyState (VK_CONTROL) ) {
+       GetAsyncKeyState (VK_CONTROL) )
+  {
     std::pair <std::queue <DWORD>, BOOL> retval =
       SK_BypassInject ();
 
     return true;
   }
 
-  else {
+  else
+  {
     bool blacklist =
       SK_IsInjected () &&
       (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
@@ -1357,7 +1383,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     // Internal blacklist, the user will have the ability to setup their
     //   own later...
     //
-    if ( blacklist ) {
+    if ( blacklist )
+    {
       //FreeLibrary_Original (SK_GetDLL ());
       return true;
     }
@@ -1479,6 +1506,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //
   }
 
+
   // Lazy-load SteamAPI into a process that doesn't use it, this brings
   //   a number of benefits.
   if (config.steam.force_load_steamapi)
@@ -1499,7 +1527,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       {
         wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { L'\0' };
 
-        wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+        if (SK_IsInjected ())
+          wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+        else
+        {
+          _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
+                        SK_GetDocumentsDir ().c_str () );
+        }
 
         if (PathRemoveFileSpec (wszDLLPath))
         {
@@ -1543,7 +1577,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   // Do this from the startup thread
   SK_HookWinAPI       ();
-  SK::Framerate::Init ();
 
 
   // Hard-code the AppID for ToZ
@@ -1753,7 +1786,7 @@ SK_BeginBufferSwap (void)
 
   // Throttle, but do not deadlock the render loop
   if (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
-    Sleep (166);
+    Sleep_Original (166);
 
   static int import_tries = 0;
 
@@ -2320,6 +2353,16 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
         wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
       }
 
+      if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+      {
+        wcscpy (__SK_RBkEnd.name, L"D3D8");
+      }
+
+      else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+      {
+        wcscpy (__SK_RBkEnd.name, L"DDraw");
+      }
+
       extern void SK_D3D11_EndFrame (void);
                   SK_D3D11_EndFrame ();
 #ifdef _WIN64
@@ -2338,16 +2381,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }
-  }
-
-  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
-  {
-    wcscpy (__SK_RBkEnd.name, L"D3D8");
-  }
-
-  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
-  {
-    wcscpy (__SK_RBkEnd.name, L"DDraw");
   }
 
   static volatile ULONG budget_init = FALSE;

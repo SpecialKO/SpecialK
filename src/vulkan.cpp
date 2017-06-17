@@ -31,6 +31,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 #include <Shlwapi.h>
@@ -42,7 +43,7 @@ void
 WaitForInit_Vk (void)
 {
   while (! InterlockedCompareExchange (&__vk_ready, FALSE, FALSE))
-    Sleep (config.system.init_delay);
+    Sleep_Original (config.system.init_delay);
 }
 
 extern HMODULE WINAPI SK_GetDLL   (void);

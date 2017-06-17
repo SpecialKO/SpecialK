@@ -2810,7 +2810,7 @@ SK_TextureWorkerThread::ThreadProc (LPVOID user)
               /*config.textures.*/___worker_threads,
                 /*config.textures.*/___worker_threads
           ) < /*config.textures.*/___worker_threads ) {
-    Sleep (15);
+    Sleep_Original (15);
   }
 
   SK_TextureWorkerThread* pThread =

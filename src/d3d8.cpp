@@ -29,6 +29,7 @@
 
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
+#include <SpecialK/import.h>
 
 #include <SpecialK/config.h>
 
@@ -46,6 +47,7 @@
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
 
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 volatile LONG __d3d8_ready = FALSE;
@@ -59,7 +61,7 @@ WINAPI
 WaitForInit_D3D8 (void)
 {
   while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
-    Sleep (config.system.init_delay);
+    Sleep_Original (config.system.init_delay);
 }
 
 typedef IUnknown*
@@ -143,6 +145,13 @@ SK_HookD3D8 (void)
     MH_ApplyQueued ();
   }
 
+// Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+  SK_LoadPlugIns64 ();
+#else
+  SK_LoadPlugIns32 ();
+#endif
+
   HookD3D8 (nullptr);
 }
 
@@ -154,7 +163,7 @@ d3d8_init_callback (finish_pfn finish)
     SK_BootD3D8 ();
 
     while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
-      Sleep (100UL);
+      Sleep_Original (100UL);
   }
 
   finish ();

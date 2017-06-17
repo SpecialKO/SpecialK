@@ -34,6 +34,12 @@ extern "C" void __stdcall SKX_RemoveCBTHook  (void);
 extern "C" bool __stdcall SKX_IsHookingCBT   (void);
 
 bool
+SK_Inject_SwitchToGlobalInjector (void);
+
+bool
+SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role);
+
+bool
 SK_Inject_SwitchToRenderWrapper (void);
 
 bool

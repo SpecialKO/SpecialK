@@ -550,6 +550,50 @@ SK_Inject_SwitchToGlobalInjector (void)
   return true;
 }
 
+bool
+SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
+{
+  wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
+  lstrcatW (wszOut, SK_GetHostPath ());
+
+  switch (role)
+  {
+    case DLL_ROLE::D3D9:
+      lstrcatW (wszOut, L"\\d3d9.dll");
+      break;
+
+#ifndef _WIN64
+    case DLL_ROLE::D3D8:
+      lstrcatW (wszOut, L"\\d3d8.dll");
+      break;
+    case DLL_ROLE::DDraw:
+      lstrcatW (wszOut, L"\\ddraw.dll");
+      break;
+#endif
+
+    case DLL_ROLE::DXGI:
+    {
+      lstrcatW (wszOut, L"\\dxgi.dll");
+    } break;
+      break;
+
+    case DLL_ROLE::OpenGL:
+      lstrcatW (wszOut, L"\\OpenGL32.dll");
+      break;
+
+    //case SK_RenderAPI::Vulkan:
+      //lstrcatW (wszOut, L"\\vk-1.dll");
+      //break;
+  }
+
+  wchar_t wszTemp [MAX_PATH] = { L'\0' };
+  GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
+
+  MoveFileW (wszOut, wszTemp);
+
+  return true;
+}
+
 extern std::wstring
 SK_SYS_GetInstallPath (void);
 

@@ -3187,7 +3187,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (dll_ini->contains_section (imp_name) && dll_ini->get_section (imp_name).get_value (L"When") == L"Early")
         order = 0;
-      else
+      else if (dll_ini->contains_section (imp_name) || (! SK_IsInjected ()))
         order = 1;
 
       ImGui::SameLine ();
@@ -3203,14 +3203,9 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::EndTooltip   ();
       }
 
-      // Injection bypass doesn't work for the wrapper, obviously :)
-      //
-      //   This probably shouldn't be tied to that system.
-      if (SK_IsInjected ()) {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
-        ImGui::TextWrapped    ("If you run into problems with the plug-in, pressing and holding Ctrl + Shift at game startup will disable it.");
-        ImGui::PopStyleColor  ();
-      }
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
+      ImGui::TextWrapped    ("If you run into problems with the plug-in, pressing and holding Ctrl + Shift at game startup can disable it.");
+      ImGui::PopStyleColor  ();
 
       if (changed)
       {

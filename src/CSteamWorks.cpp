@@ -41,6 +41,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 #include <SpecialK/osd/popup.h>
@@ -318,7 +319,7 @@ CSteamworks_Delay_Init (LPVOID user)
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
             tries < 120 )
   {
-    Sleep (config.steam.init_delay);
+    Sleep_Original (config.steam.init_delay);
 
     if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
       break;

@@ -69,15 +69,49 @@ LARGE_INTEGER SK::Framerate::Stats::freq;
 
 volatile ULONG dwLimiterThreadId = 0;
 
+#include <SpecialK/utility.h>
+
+extern volatile ULONG __SK_Init;
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
-  if (InterlockedExchangeAdd (&dwLimiterThreadId, 0) == GetCurrentThreadId ())
-    return;
+  //if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE) == TRUE)
+  //{
+    if (InterlockedExchangeAdd (&dwLimiterThreadId, 0) == GetCurrentThreadId ())
+    {
+      if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
+      {
+        static bool reported = false;
+        if (! reported) { dll_log.Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds); reported = true; }
+
+        //YieldProcessor ();
+        return;
+      }
+    }
+  //}
+
+  bool bGUIThread = false;
+
+  //if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE) == TRUE)
+  //{
+    if (IsGUIThread (FALSE))
+    {
+      if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
+      {
+        static bool reported = false;
+        if (! reported) { dll_log.Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds); reported = true; }
+
+        //YieldProcessor ();
+        return;
+      }
+    }
+  //}
 
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
-  if (dwMilliseconds == 0) {
+  if (dwMilliseconds == 0)
+  {
     YieldProcessor ();
     return;
   }
@@ -415,7 +449,7 @@ SK::Framerate::Limiter::wait (void)
     {
 #if 0
       if ((double)(next.QuadPart - time.QuadPart) > (0.0166667 * (double)freq.QuadPart))
-        Sleep (10);
+        Sleep_Original (10);
 #else
       if (config.render.framerate.wait_for_vblank && (double)(next.QuadPart - time.QuadPart) > (0.001 * (1000.0 / target_fps) * (double)freq.QuadPart) * 0.555)
       {

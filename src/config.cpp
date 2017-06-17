@@ -2051,7 +2051,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.OpenGL.hook           = false;
         config.steam.filter_stat_callback = true; // Will stop running SteamAPI when it receives
                                                   //   data it didn't ask for
-                                                  
         break;
 
 
@@ -2862,6 +2861,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
                                   
   config.imgui.font.chinese.file  = "msyh.ttc";
   config.imgui.font.chinese.size  = 18.0f;
+
+
+
+  if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
+       SK_GetDLLRole () == DLL_ROLE::DXGI )
+  {
+    config.render.dxgi.safe_fullscreen = true;
+  }
 
 
 

@@ -33,6 +33,7 @@ typedef void* LPDDENUMCALLBACKEX;
 
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
+#include <SpecialK/import.h>
 
 #include <SpecialK/config.h>
 
@@ -50,6 +51,7 @@ typedef void* LPDDENUMCALLBACKEX;
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
 
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 volatile LONG __ddraw_ready = FALSE;
@@ -63,7 +65,7 @@ WINAPI
 WaitForInit_DDraw (void)
 {
   while (! InterlockedCompareExchange (&__ddraw_ready, FALSE, FALSE))
-    Sleep (config.system.init_delay);
+    Sleep_Original (config.system.init_delay);
 }
 
 typedef void (WINAPI *finish_pfn)(void);
@@ -328,6 +330,13 @@ SK_HookDDraw (void)
     MH_ApplyQueued ();
   }
 
+// Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+  SK_LoadPlugIns64 ();
+#else
+  SK_LoadPlugIns32 ();
+#endif
+
   HookDDraw (nullptr);
 }
 
@@ -339,7 +348,7 @@ ddraw_init_callback (finish_pfn finish)
     SK_BootDDraw ();
 
     while (! InterlockedCompareExchange (&__ddraw_ready, FALSE, FALSE))
-      Sleep (100UL);
+      Sleep_Original (100UL);
   }
 
   finish ();

@@ -584,9 +584,9 @@ EnterSpinLock (VOID)
 
         // Prevent the loop from being too busy.
         if (spinCount < 32)
-            YieldProcessor ();//Sleep (0);
+            SleepEx (0, FALSE);
         else
-            Sleep (1);
+            SleepEx (1, FALSE);
 
         spinCount++;
     }

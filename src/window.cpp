@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <numeric>
 #include <SpecialK/steam_api.h>
+#include <SpecialK/framerate.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
@@ -1779,7 +1780,7 @@ SK_ResetWindow (void)
     [](LPVOID user) ->
     DWORD
     {
-      Sleep (100);
+      Sleep_Original (100);
 
       EnterCriticalSection (&cs_reset);
 
@@ -2432,7 +2433,7 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   static volatile ULONG nest_lvl = 0UL;
 
   while (InterlockedExchangeAdd (&nest_lvl, 0))
-    Sleep (125);
+    Sleep_Original (125);
 
   InterlockedIncrementAcquire (&nest_lvl);
 

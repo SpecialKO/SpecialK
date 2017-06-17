@@ -23,6 +23,7 @@
 #define NOMINMAX
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/import.h>
 
 #include <Windows.h>
 
@@ -447,7 +448,7 @@ void WaitForInitDXGI (void)
   }
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE)) {
-    Sleep (config.system.init_delay);
+    Sleep_Original (config.system.init_delay);
   }
 }
 
@@ -3768,10 +3769,14 @@ SK_HookDXGI (void)
   pCommandProc->AddVariable ( "UseFlipDiscard",
           new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
 
+
+
+
+
   SK_DXGI_BeginHooking ();
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
-    Sleep (100UL);
+    Sleep_Original (100UL);
 }
 
 static std::queue <DWORD> old_threads;
@@ -3785,7 +3790,7 @@ dxgi_init_callback (finish_pfn finish)
     SK_BootDXGI ();
 
     while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
-      Sleep (100UL);
+      Sleep_Original (100UL);
   }
 
   finish ();
@@ -4090,7 +4095,7 @@ HookDXGI (LPVOID user)
     }
 
     while (CreateDXGIFactory_Import == nullptr)
-      Sleep (33);
+      Sleep_Original (33);
 
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
@@ -4144,20 +4149,46 @@ HookDXGI (LPVOID user)
   // DXI stuff is ready at this point, we'll hook the swapchain stuff
   //   after this call.
 
+  HRESULT hr = E_NOTIMPL;
+
   extern LPVOID pfnD3D11CreateDevice;
 
-  HRESULT hr =
-    ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
-      0,
-        D3D_DRIVER_TYPE_HARDWARE,
-          nullptr,
-            0,
-              nullptr,
-                0,
-                  D3D11_SDK_VERSION,
-                    &pDevice,
-                      &featureLevel,
-                        &pImmediateContext );
+#ifdef _WIN64
+    hr =
+      ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
+        0,
+          D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+              0,
+                nullptr,
+                  0,
+                    D3D11_SDK_VERSION,
+                      &pDevice,
+                        &featureLevel,
+                          &pImmediateContext );
+#endif
+
+  // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+  SK_LoadPlugIns64 ();
+#else
+  SK_LoadPlugIns32 ();
+#endif
+
+#ifndef _WIN64
+    hr =
+      D3D11CreateDevice_Import (
+        0,
+          D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+              0,
+                nullptr,
+                  0,
+                    D3D11_SDK_VERSION,
+                      &pDevice,
+                        &featureLevel,
+                          &pImmediateContext );
+#endif
 
   if (SUCCEEDED (hr))
   {
@@ -4299,7 +4330,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
       while ( ! InterlockedCompareExchange ( &budget_thread.ready,
                                                FALSE,
                                                  FALSE )
-            ) Sleep (100);
+            ) Sleep_Original (100);
 
 
       if ( budget_thread.tid != 0 )

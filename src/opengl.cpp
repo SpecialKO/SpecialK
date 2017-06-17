@@ -36,7 +36,9 @@
 #include <SpecialK/window.h>
 
 #include <SpecialK/log.h>
+#include <SpecialK/import.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 #include <process.h>
@@ -55,7 +57,7 @@ void
 WaitForInit_GL (void)
 {
   while (! InterlockedCompareExchange (&__gl_ready, FALSE, FALSE))
-    Sleep (0);
+    Sleep_Original (100);
 }
 
 #define WaitForInit() ;
@@ -1869,8 +1871,8 @@ SK_HookGL (void)
     if (true) {
       wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
-#if 1
-      SK_CreateDLLHook2 ( wszBackendDLL,
+#if 0
+      SK_CreateDLLHook ( wszBackendDLL,
                          "wglSwapBuffers",
                           wglSwapBuffers,
                (LPVOID *)&wgl_swap_buffers );
@@ -2241,6 +2243,13 @@ SK_HookGL (void)
       SK_GL_HOOK(wglRealizeLayerPalette);
       SK_GL_HOOK(wglSetLayerPaletteEntries);
       SK_GL_HOOK(wglSetPixelFormat);
+
+// Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+  SK_LoadPlugIns64 ();
+#else
+  SK_LoadPlugIns32 ();
+#endif
 
       MH_ApplyQueued ();
     }

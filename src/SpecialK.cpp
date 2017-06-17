@@ -48,6 +48,7 @@
 #include <SpecialK/injection/injection.h>
 
 #include <SpecialK/tls.h>
+#include <SpecialK/framerate.h>
 
 
 // Fix that stupid macro that redirects to Unicode/ANSI
@@ -407,11 +408,11 @@ SK_EstablishDllRole (HMODULE hModule)
     if (! explicit_inject)
     {
       // Skip lengthy tests if we already have the wrapper version loaded.
-      if ( ( GetModuleHandle (L"d3d9.dll")     && SK_IsDLLSpecialK (L"d3d9.dll") )     || 
-           ( GetModuleHandle (L"dxgi.dll")     && SK_IsDLLSpecialK (L"dxgi.dll") )     ||
-           ( GetModuleHandle (L"OpenGL32.dll") && SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
-           ( GetModuleHandle (L"d3d8.dll")     && SK_IsDLLSpecialK (L"d3d8.dll") )     ||
-           ( GetModuleHandle (L"ddraw.dll")    && SK_IsDLLSpecialK (L"ddraw.dll") ) )
+      if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
+           ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
+           ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
+           ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
+           ( SK_IsDLLSpecialK (L"ddraw.dll") ) )
       {
         SK_SetDLLRole (DLL_ROLE::INVALID);
         return true;
@@ -458,7 +459,6 @@ SK_EstablishDllRole (HMODULE hModule)
               &d3d9, &dxgi, &d3d11,
                 &d3d8, &ddraw, &glide
         );
-
 
         gl     |= (GetModuleHandle (L"OpenGL32.dll") != nullptr);
         d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
@@ -520,7 +520,7 @@ SK_EstablishDllRole (HMODULE hModule)
         {
           SK_SetDLLRole (DLL_ROLE::DDraw);
         
-          if (SK_IsDLLSpecialK (L"ddraaw.dll"))
+          if (SK_IsDLLSpecialK (L"ddraw.dll"))
             return FALSE;
         }
 #endif
@@ -816,6 +816,8 @@ DllMain ( HMODULE hModule,
         }
       }
 
+
+      Sleep_Original = (Sleep_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "Sleep");
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();

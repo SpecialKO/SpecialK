@@ -60,7 +60,7 @@ WaitForInitD3D12 (void)
   return;
 
   while (! InterlockedCompareExchange (&__d3d12_ready, FALSE, FALSE))
-    Sleep (config.system.init_delay);
+    Sleep_Original (config.system.init_delay);
 }
 
 namespace SK {

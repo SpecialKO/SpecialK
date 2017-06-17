@@ -141,7 +141,7 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
 
     AudioSessionState state;
 
-    if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateActive)
+if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateActive)
     {
       if ( unique_procs.count (dwProcess) == 0 && ( max_count == 0 || *count < max_count ) )
       {

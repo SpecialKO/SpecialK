@@ -236,7 +236,8 @@ SK_MonitorProcess (LPVOID user)
   while (proc.lID != 0)
   {
     // Sleep until ready
-    Sleep (DWORD (update * 1000.0));
+    if (WaitForSingleObject (proc.hShutdownSignal, (DWORD (update * 1000.0))) == WAIT_OBJECT_0)
+      break;
 
     // Only poll WMI while the data view is visible
     if (! config.mem.show)
