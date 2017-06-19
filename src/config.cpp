@@ -318,6 +318,8 @@ struct {
       Vulkan,
 #endif
       OpenGL;
+
+  sk::ParameterInt*       last_known;
 } apis;
 
 
@@ -866,6 +868,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Compatibility.General",
         L"RehookLoadLibrary" );
 
+
+  apis.last_known =
+    static_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"Last Known Render API")
+      );
+  apis.last_known->register_to_ini (
+    dll_ini,
+      L"API.Hook",
+        L"LastKnown" );
 
 #ifndef _WIN64
   apis.ddraw.hook =
@@ -2391,6 +2403,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.sli.show = monitoring.SLI.show->get_value ();
 
 
+  if (apis.last_known->load ())
+    config.apis.last_known = (SK_RenderAPI)apis.last_known->get_value ();
+
 #ifndef _WIN64
   if (apis.ddraw.hook->load ())
     config.apis.ddraw.hook = apis.ddraw.hook->get_value ();
@@ -3024,6 +3039,8 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_input_apis->set_value            (config.imgui.show_input_apis);
 
 
+  apis.last_known->set_value                  ((int)config.apis.last_known);
+
 #ifndef _WIN64
   apis.ddraw.hook->set_value                  (config.apis.ddraw.hook);
   apis.d3d8.hook->set_value                   (config.apis.d3d8.hook);
@@ -3265,6 +3282,7 @@ SK_SaveConfig ( std::wstring name,
   log_level->set_value                       (config.system.log_level);
   prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
 
+  apis.last_known->store                  ();
 #ifndef _WIN64
   apis.ddraw.hook->store                  ();
   apis.d3d8.hook->store                   ();

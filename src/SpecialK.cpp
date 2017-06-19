@@ -348,6 +348,17 @@ SK_EstablishDllRole (HMODULE hModule)
   //
   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
   {
+    // Skip lengthy tests if we already have the wrapper version loaded.
+    if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
+         ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
+         ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
+         ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
+         ( SK_IsDLLSpecialK (L"ddraw.dll") ) )
+    {
+      SK_SetDLLRole (DLL_ROLE::INVALID);
+      return true;
+    }
+
     SK_IsInjected (true); // SET the injected state
 
     config.system.central_repository = true;
@@ -407,17 +418,6 @@ SK_EstablishDllRole (HMODULE hModule)
     // Opted out of explicit injection, now try automatic
     if (! explicit_inject)
     {
-      // Skip lengthy tests if we already have the wrapper version loaded.
-      if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
-           ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
-           ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
-           ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
-           ( SK_IsDLLSpecialK (L"ddraw.dll") ) )
-      {
-        SK_SetDLLRole (DLL_ROLE::INVALID);
-        return true;
-      }
-
       SK_EstablishRootPath ();
       SK_LoadConfigEx      (L"SpecialK", false);
 

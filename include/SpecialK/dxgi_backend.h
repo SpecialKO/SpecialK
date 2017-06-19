@@ -367,8 +367,11 @@ public:
 
 
 
-
-
+typedef HRESULT (WINAPI *D3D11Dev_CreateSamplerState_pfn)(
+  _In_            ID3D11Device        *This,
+  _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
+  _Out_opt_       ID3D11SamplerState **ppSamplerState
+);
 typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
   _In_            ID3D11Device           *This,
   _In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
@@ -380,6 +383,12 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView_pfn)(
   _In_            ID3D11Resource                 *pResource,
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
   _Out_opt_       ID3D11RenderTargetView        **ppRTView
+);
+typedef void (WINAPI *D3D11_PSSetSamplers_pfn)(
+  _In_     ID3D11DeviceContext       *This,
+  _In_     UINT                       StartSlot,
+  _In_     UINT                       NumSamplers,
+  _In_opt_ ID3D11SamplerState *const *ppSamplers
 );
 typedef void (WINAPI *D3D11_RSSetScissorRects_pfn)(
   _In_           ID3D11DeviceContext *This,

@@ -2394,6 +2394,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
+  config.apis.last_known = __SK_RBkEnd.api;
+
   static volatile ULONG budget_init = FALSE;
 
   if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE)) {

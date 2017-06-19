@@ -24,6 +24,8 @@
 #include <Windows.h>
 #include <string>
 
+#include <SpecialK/render_backend.h>
+
 extern const wchar_t* SK_VER_STR;
 
 const wchar_t*
@@ -457,6 +459,8 @@ struct sk_config_t
     struct {
       bool   enable            = true;
     } ADL;
+
+    SK_RenderAPI last_known    = SK_RenderAPI::Reserved;
   } apis;
 
   struct {

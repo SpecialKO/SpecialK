@@ -1,3 +1,11 @@
+0.8.17:
+ + Added Last-Known-RenderAPI to Special K's INI file to help with the auto-detect
+     mechanism on the compatibility menu
+ + Corrected scenario where having a local API wrapper version of Special K in-place
+     and one of the API virtual files (i.e. SpecialK.d3d9) would cause both DLLs to
+       load.
+ + Temporarily re-enabled auto-update.
+
 0.8.16:
  + Renamed Window/Fullscreen override options now that they work in multiple APIs
      (refer to Display.Output)

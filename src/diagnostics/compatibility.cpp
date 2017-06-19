@@ -1701,12 +1701,39 @@ SK_Bypass_CRT (LPVOID user)
 
   extern const wchar_t* __SK_DLL_Backend;
 
+  if (config.apis.last_known != SK_RenderAPI::Reserved)
+  {
+    switch ((SK_RenderAPI)config.apis.last_known)
+    {
+      case SK_RenderAPI::D3D8:
+      case SK_RenderAPI::D3D8On11:
+        __SK_DLL_Backend = L"d3d8";
+        break;
+      case SK_RenderAPI::DDraw:
+      case SK_RenderAPI::DDrawOn11:
+        __SK_DLL_Backend = L"ddraw";
+        break;
+      case SK_RenderAPI::D3D10:
+      case SK_RenderAPI::D3D11:
+      case SK_RenderAPI::D3D12:
+        __SK_DLL_Backend = L"dxgi";
+        break;
+      case SK_RenderAPI::D3D9:
+      case SK_RenderAPI::D3D9Ex:
+        __SK_DLL_Backend = L"d3d9";
+        break;
+      case SK_RenderAPI::OpenGL:
+        __SK_DLL_Backend = L"OpenGL32";
+        break;
+    }
+  }
+
   static wchar_t wszAPIName [128] = { L"Auto-Detect   " };
        lstrcatW (wszAPIName, L"(");
        lstrcatW (wszAPIName, __SK_DLL_Backend);
        lstrcatW (wszAPIName, L")");
 
-  if (no_imports)
+  if (no_imports && config.apis.last_known == SK_RenderAPI::Reserved)
     lstrcatW (wszAPIName, L"  { Import Address Table FAIL -> Detected API May Be Wrong }");
 
   const TASKDIALOG_BUTTON rbuttons [] = {  { 0, wszAPIName       },
@@ -2135,7 +2162,10 @@ SK_Bypass_CRT (LPVOID user)
       SK_SaveConfig (wszConfigName);
     }
 
-    if (nButtonPressed == BUTTON_INSTALL && no_imports && nRadioPressed == 0 /* Auto */)
+    if ( nButtonPressed         == BUTTON_INSTALL &&
+         no_imports                               &&
+         nRadioPressed          == 0 /* Auto */   &&
+         config.apis.last_known == SK_RenderAPI::Reserved )
     {
       MessageBoxA   ( HWND_DESKTOP,
                         SK_FormatString ( "API detection may be incorrect, delete '%ws.dll' "

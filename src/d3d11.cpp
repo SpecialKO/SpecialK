@@ -532,6 +532,7 @@ _In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
 _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
 _Out_opt_       ID3D11Texture2D        **ppTexture2D );
 
+D3D11Dev_CreateSamplerState_pfn                     D3D11Dev_CreateSamplerState_Original                     = nullptr;
 D3D11Dev_CreateBuffer_pfn                           D3D11Dev_CreateBuffer_Original                           = nullptr;
 D3D11Dev_CreateTexture2D_pfn                        D3D11Dev_CreateTexture2D_Original                        = nullptr;
 D3D11Dev_CreateRenderTargetView_pfn                 D3D11Dev_CreateRenderTargetView_Original                 = nullptr;
@@ -575,6 +576,8 @@ D3D11_Map_pfn                                       D3D11_Map_Original          
 
 D3D11_OMSetRenderTargets_pfn                        D3D11_OMSetRenderTargets_Original                        = nullptr;
 D3D11_OMSetRenderTargetsAndUnorderedAccessViews_pfn D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original = nullptr;
+
+D3D11_PSSetSamplers_pfn                             D3D11_PSSetSamplers_Original                             = nullptr;
 
 D3D11_VSSetShader_pfn                               D3D11_VSSetShader_Original                               = nullptr;
 D3D11_PSSetShader_pfn                               D3D11_PSSetShader_Original                               = nullptr;
@@ -4442,6 +4445,59 @@ D3D11Dev_CreateShaderResourceView_Override (
 
 std::set <ID3D11Texture2D *> render_tex;
 
+void
+WINAPI
+D3D11_PSSetSamplers_Override
+(
+  _In_     ID3D11DeviceContext       *This,
+  _In_     UINT                       StartSlot,
+  _In_     UINT                       NumSamplers,
+  _In_opt_ ID3D11SamplerState *const *ppSamplers )
+{
+#if 0
+  if (ppSamplers != nullptr)
+  {
+    for (UINT i = 0; i < NumSamplers; i++)
+    {
+      //ID3D11SamplerState sample_state = ppSamplers [i].
+    }
+  }
+#endif
+
+  D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, ppSamplers);
+}
+
+HRESULT
+WINAPI
+D3D11Dev_CreateSamplerState_Override
+(
+  _In_            ID3D11Device        *This,
+  _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
+  _Out_opt_       ID3D11SamplerState **ppSamplerState )
+{
+  D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
+
+  if ( new_desc.Filter == D3D11_FILTER_MIN_MAG_MIP_LINEAR       ||
+       new_desc.Filter == D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT ||
+       new_desc.Filter == D3D11_FILTER_ANISOTROPIC )
+  {
+    new_desc.Filter = D3D11_FILTER_ANISOTROPIC;
+
+    if (new_desc.MaxAnisotropy != 0)
+      new_desc.MaxAnisotropy = 16;
+  }
+
+  HRESULT hr =
+    D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
+
+  if (FAILED (hr))
+  {
+    return D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
+  }
+
+  return hr;
+}
+
 
 __declspec (noinline)
 HRESULT
@@ -5252,10 +5308,11 @@ HookD3D11 (LPVOID user)
     //DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 19, "ID3D11Device::CreateClassLinkage",
     //                       D3D11Dev_CreateClassLinkage_Override, D3D11Dev_CreateClassLinkage_Original,
     //                       D3D11Dev_CreateClassLinkage_pfn);
-    
 
-    
-    
+    DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 23, "ID3D11Device::CreateSamplerState",
+                         D3D11Dev_CreateSamplerState_Override, D3D11Dev_CreateSamplerState_Original,
+                         D3D11Dev_CreateSamplerState_pfn);
+
 #if 1
     //
     // Third-party software frequently causes these hooks to become corrupted, try installing a new
@@ -5284,6 +5341,10 @@ HookD3D11 (LPVOID user)
                          D3D11_PSSetShader_Override, D3D11_PSSetShader_Original,
                          D3D11_PSSetShader_pfn);
 #endif
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 10, "ID3D11DeviceContext::PSSetSamplers",
+                         D3D11_PSSetSamplers_Override, D3D11_PSSetSamplers_Original,
+                         D3D11_PSSetSamplers_pfn);
 
 #if 0
     DXGI_VIRTUAL_OVERRIDE (pHooks->ppImmediateContext, 11, "ID3D11DeviceContext::VSSetShader",
