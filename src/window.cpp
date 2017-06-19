@@ -1061,7 +1061,7 @@ SetWindowPos_Detour(
   if (hWnd == game_window.hWnd)
     SK_WINDOW_LOG_CALL1 ();
 
-  if (config.render.d3d9.force_windowed)
+  if (config.display.force_windowed)
     if (hWndInsertAfter == HWND_TOPMOST)
       hWndInsertAfter = HWND_TOP;
 

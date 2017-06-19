@@ -1,3 +1,12 @@
+0.8.16:
+ + Renamed Window/Fullscreen override options now that they work in multiple APIs
+     (refer to Display.Output)
+ + Added version info for all plug-ins to the help menu
+ + Store user preferences for G-Sync and Input API persistently.
+ + Extended screen mode option to include D3D11
+ + Changed the D3D9 screen mode option to a combobox for mode and checkbox for
+     permanent override.
+
 0.8.15:
 
  + Injection Compatibility Options Menu DRASTICALLY Overhauled

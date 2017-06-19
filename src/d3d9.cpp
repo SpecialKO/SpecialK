@@ -179,12 +179,6 @@ Direct3DCreate9ExPROC    Direct3DCreate9Ex_Import     = nullptr;
 
 D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  0  };
 
-enum reset_stage_s {
-  Initiate = 0x0, // Fake device loss
-  Respond  = 0x1, // Fake device not reset
-  Clear    = 0x2  // Return status to normal
-} trigger_reset (reset_stage_s::Clear);
-
 __declspec (noinline)
 HRESULT
 WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
@@ -988,7 +982,7 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
   if (! config.osd.pump)
   {
-    if (trigger_reset == reset_stage_s::Clear)
+    if (trigger_reset == reset_stage_e::Clear)
       hr = SK_EndBufferSwap (hr, This);
 
     else
@@ -1106,7 +1100,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   if (! config.osd.pump)
   {
-    if (trigger_reset == reset_stage_s::Clear)
+    if (trigger_reset == reset_stage_e::Clear)
     {
       hr = SK_EndBufferSwap (hr, This);
     }
@@ -1321,7 +1315,7 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
 
     if (SUCCEEDED (This->GetDevice (&dev)) && dev != nullptr)
     {
-      if (trigger_reset == reset_stage_s::Clear)
+      if (trigger_reset == reset_stage_e::Clear)
       {
         hr = SK_EndBufferSwap (hr, dev);
       }
@@ -1332,7 +1326,7 @@ CreateAdditionalSwapChain_pfn D3D9CreateAdditionalSwapChain_Original = nullptr;
       return hr;
     }
 
-    if (trigger_reset == reset_stage_s::Clear)
+    if (trigger_reset == reset_stage_e::Clear)
     {
       hr = SK_EndBufferSwap (hr, dev);
     }
@@ -1384,13 +1378,13 @@ D3D9TestCooperativeLevel_Override (IDirect3DDevice9* This)
 {
   HRESULT hr;
 
-  if (trigger_reset == reset_stage_s::Initiate)
+  if (trigger_reset == reset_stage_e::Initiate)
   {
-    trigger_reset = reset_stage_s::Respond;
+    trigger_reset = reset_stage_e::Respond;
     return D3DERR_DEVICELOST;
   }
 
-  else if (trigger_reset == reset_stage_s::Respond)
+  else if (trigger_reset == reset_stage_e::Respond)
   {
     return D3DERR_DEVICENOTRESET;
   }
@@ -1671,7 +1665,8 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
     InterlockedExchange ( &ImGui_Init, TRUE );
   }
 
-  trigger_reset = reset_stage_s::Clear;
+  trigger_reset       = reset_stage_e::Clear;
+  request_mode_change = mode_change_request_e::None;
 }
 
 
@@ -2506,10 +2501,16 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : hWndRender;
       }
 
-      if (config.render.d3d9.force_fullscreen)
+      bool switch_to_fullscreen = config.display.force_fullscreen || ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && 
+                                                                          request_mode_change == mode_change_request_e::Fullscreen );
+      bool switch_to_windowed   = config.display.force_windowed   || ( (  SK_GetCurrentRenderBackend ().fullscreen_exclusive) && 
+                                                                          request_mode_change == mode_change_request_e::Windowed   );
+
+
+      if (switch_to_fullscreen)
         pparams->Windowed = FALSE;
 
-      else if (config.render.d3d9.force_windowed)
+      else if (switch_to_windowed)
       {
         if (pparams->hDeviceWindow)
         {
@@ -2584,6 +2585,8 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       }
 
       memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
+
+      SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pparams->Windowed);
     }
   }
 
@@ -2621,7 +2624,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                                    pPresentationParameters );
   }
 
-  if (config.render.d3d9.force_windowed)
+  if (config.display.force_windowed)
     hFocusWindow = pPresentationParameters->hDeviceWindow;
 
   D3D9_CALL (ret, D3D9CreateDeviceEx_Original (This,
@@ -2897,7 +2900,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                                    pPresentationParameters );
   }
 
-  if (config.render.d3d9.force_windowed)
+  if (config.display.force_windowed)
     hFocusWindow = pPresentationParameters->hDeviceWindow;
 
   D3D9_CALL (ret, D3D9CreateDevice_Original ( This, Adapter,
@@ -3797,7 +3800,14 @@ SK_D3D9_RehookThread (LPVOID user)
 #endif
 
 void
-SK_D3D9_TriggerReset (void)
+SK_D3D9_TriggerReset (bool temporary)
 {
-  trigger_reset = reset_stage_s::Initiate;
+  trigger_reset = reset_stage_e::Initiate;
+
+  if (temporary)
+  {
+    request_mode_change = SK_GetCurrentRenderBackend ().fullscreen_exclusive ?
+                            mode_change_request_e::Windowed :
+                            mode_change_request_e::Fullscreen;
+  }
 }

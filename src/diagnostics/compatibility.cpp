@@ -2190,6 +2190,7 @@ SK_Bypass_CRT (LPVOID user)
     SK_ResumeThreads (suspended_tids);
   }
 
+
   CloseHandle (GetCurrentThread ());
 
   return 0;

@@ -51,6 +51,7 @@
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/ini.h>
+#include <SpecialK/import.h>
 
 
 #include <windows.h>
@@ -122,18 +123,6 @@ LoadFileInResource ( int          name,
 
 extern void SK_Steam_SetNotifyCorner (void);
 
-
-enum reset_stage_s {
-  Initiate = 0x0, // Fake device loss
-  Respond  = 0x1, // Fake device not reset
-  Clear    = 0x2  // Return status to normal
-} extern trigger_reset;
-
-struct show_eula_s {
-  bool show;
-  bool never_show_again;
-} extern eula;
-
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
 extern bool           SK_ImGui_Visible;
 
@@ -146,6 +135,11 @@ __stdcall
 SK_SteamAPI_GetOverlayState (bool real);
 
 extern void ImGui_ToggleCursor (void);
+
+struct show_eula_s {
+  bool show;
+  bool never_show_again;
+} extern eula;
 
 #include <map>
 #include <unordered_set>
@@ -548,6 +542,68 @@ SK_PlugIn_ControlPanelWidget (void)
     ImGui::GetIO ();
 }
 
+void
+DisplayModeMenu (bool windowed)
+{
+  if (! ( ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) ||
+          ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) ) )
+    return;
+
+  enum {
+    DISPLAY_MODE_WINDOWED   = 0,
+    DISPLAY_MODE_FULLSCREEN = 1
+  };
+
+  int         mode      = windowed ? DISPLAY_MODE_WINDOWED :
+                                     DISPLAY_MODE_FULLSCREEN;
+  int    orig_mode      = mode;
+
+  bool       force      = windowed ? config.display.force_windowed :
+                                     config.display.force_fullscreen;
+
+  const char* modes = "Windowed Mode\0Fullscreen Mode\0\0";
+
+  if (ImGui::Combo ("###SubMenu_DisplayMode_Combo", &mode, modes, 2) && mode != orig_mode)
+  {
+    switch (mode)
+    {
+      case DISPLAY_MODE_WINDOWED:
+      {
+        SK_GetCurrentRenderBackend ().requestWindowedMode (force);
+      } break;
+
+      default:
+      case DISPLAY_MODE_FULLSCREEN:
+      {
+        SK_GetCurrentRenderBackend ().requestFullscreenMode (force);
+      } break;
+    }
+  }
+
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::SetTooltip ("Games that do not natively support Fullscreen mode may require an application restart.");
+  }
+
+  ImGui::SameLine ();
+
+  if (ImGui::Checkbox ("Force Override", &force))
+  {
+    switch (mode)
+    {
+      case DISPLAY_MODE_WINDOWED:
+        config.display.force_fullscreen = false;
+        config.display.force_windowed   = force;
+        break;
+      default:
+      case DISPLAY_MODE_FULLSCREEN:
+        config.display.force_fullscreen = force;
+        config.display.force_windowed   = false;
+        break;
+    }
+  }
+}
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -561,6 +617,34 @@ SK_ImGui_ControlPanel (void)
     dll_log.Log (L"[   ImGui   ]  Fatal Error:  No Font Loaded!");
     return false;
   }
+
+
+
+  bool windowed = true;
+
+  //
+  // TODO: Generalize this for all APIs and move it into SK's Render Backend
+  //
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  {
+    BOOL fullscreen = FALSE;
+
+    if (SUCCEEDED (((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain)->GetFullscreenState (&fullscreen, nullptr)))
+    {
+      windowed = (! fullscreen);
+    }
+  }
+
+  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+  {
+    D3DPRESENT_PARAMETERS pparams;
+
+    if (SUCCEEDED (((IDirect3DSwapChain9 *)SK_GetCurrentRenderBackend ().swapchain)->GetPresentParameters (&pparams)))
+    {
+      windowed = pparams.Windowed;
+    }
+  }
+
 
 
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
@@ -647,7 +731,7 @@ SK_ImGui_ControlPanel (void)
 
     //ImGui::Separator ();
     ImGui::MenuItem ("Virtual Gamepad/Keyboard Cursor", "", &io.NavMovesMouse);
-    ImGui::MenuItem ("Display Active Input APIs",       "", &config.input.ui.show_input_apis);
+    ImGui::MenuItem ("Display Active Input APIs",       "", &config.imgui.show_input_apis);
 
 
     if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
@@ -663,7 +747,9 @@ SK_ImGui_ControlPanel (void)
 
     ImGui::Separator ();
 
-    ImGui::MenuItem ("ImGui Demo",              "", &show_test_window);
+    DisplayModeMenu (windowed);
+
+    //ImGui::MenuItem ("ImGui Demo",              "", &show_test_window);
   };
 
   
@@ -861,27 +947,28 @@ SK_ImGui_ControlPanel (void)
 
       static int sel = GetFrequencyPreset ();
 
-      if (ImGui::BeginMenu ("Check for Updates"))
+      ImGui::Text     ("Check for Updates");
+      ImGui::TreePush ("");
+
+      if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
+                            "Once every 6 hours\0"
+                            "Once every 12 hours\0"
+                            "Once per-day\0"
+                            "Once per-week\0"
+                            "Never (disable)\0\0" ) )
       {
-        if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
-                              "Once every 6 hours\0"
-                              "Once every 12 hours\0"
-                              "Once per-day\0"
-                              "Once per-week\0"
-                              "Never (disable)\0\0" ) )
+        switch (sel)
         {
-          switch (sel)
-          {
-            default:
-            case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
-            case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
-            case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
-            case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
-            case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
-          }
+          default:
+          case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
+          case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
+          case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
+          case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
+          case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
         }
-        ImGui::EndMenu ();
       }
+
+      ImGui::TreePop ();
 
       if (vinfo.build >= vinfo_latest.build)
       {
@@ -927,6 +1014,92 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::MenuItem ("About this Software...", "", &selected))
         eula.show = true;
 
+      ImGui::Separator ();
+
+      ImGui::TreePush ("");
+
+      if (SK_IsInjected ())
+        ImGui::MenuItem ( "Special K Bootstrapper",
+                          SK_FormatString (
+                            "Global Injector  %s",
+                                SK_VERSION_STR_A
+                            ).c_str (), ""
+                        );
+      else
+        ImGui::MenuItem ( "Special K Bootstrapper",
+                            SK_FormatString (
+                              "%ws API Wrapper  %s",
+                                SK_GetBackend (), SK_VERSION_STR_A
+                            ).c_str (), ""
+                        );
+
+      if (host_executable.product_desc.length () > 4)
+      {
+        ImGui::MenuItem   ( "Current Game",
+                              SK_WideCharToUTF8 (
+                                host_executable.product_desc
+                              ).c_str ()
+                          );
+      }
+
+      ImGui::TreePop ();
+
+      ImGui::Separator ();
+
+      ImGui::TreePush ("");
+      ImGui::TreePush ("");
+
+      for (int i = 0; i < SK_MAX_IMPORTS; i++)
+      {
+        if (imports [i].filename != nullptr)
+        {
+          if (imports [i].role->get_value ( ) != L"PlugIn")
+          {
+            ImGui::MenuItem (
+              SK_FormatString ( "Third-Party Plug-In:  (%ws)",
+                                  imports [i].name.c_str () ).c_str (),
+              SK_WideCharToUTF8 (
+                imports [i].product_desc
+              ).c_str ()
+            );
+          }
+
+          else
+          {
+            ImGui::MenuItem (
+              SK_FormatString ( "Official Plug-In:  (%ws)",
+                                  imports [i].name.c_str () ).c_str (),
+              SK_WideCharToUTF8 (
+                imports [i].product_desc
+              ).c_str ()
+            );
+          }
+        }
+      }
+
+#ifndef _WIN64
+      if (dgvoodoo_d3d8 != nullptr)
+      {
+        ImGui::MenuItem ( SK_WideCharToUTF8 (dgvoodoo_d3d8->name).c_str         (),
+                          SK_WideCharToUTF8 (dgvoodoo_d3d8->product_desc).c_str () );
+      }
+
+      if (dgvoodoo_ddraw != nullptr)
+      {
+        ImGui::MenuItem ( SK_WideCharToUTF8 (dgvoodoo_ddraw->name).c_str         (),
+                          SK_WideCharToUTF8 (dgvoodoo_ddraw->product_desc).c_str () );
+      }
+
+      if (dgvoodoo_d3dimm != nullptr)
+      {
+        ImGui::MenuItem ( SK_WideCharToUTF8 (dgvoodoo_d3dimm->name).c_str         (),
+                          SK_WideCharToUTF8 (dgvoodoo_d3dimm->product_desc).c_str () );
+      }
+#endif
+
+      ImGui::TreePop ();
+      ImGui::TreePop ();
+
       ImGui::EndMenu  ();
     }
     ImGui::EndMenuBar ();
@@ -955,7 +1128,10 @@ SK_ImGui_ControlPanel (void)
 #define SK_ImGui_IsItemRightClicked() ImGui::IsItemClicked (1) || (ImGui::IsItemFocused () && io.NavInputsDownDuration [ImGuiNavInput_PadActivate] > 0.4f && ((io.NavInputsDownDuration [ImGuiNavInput_PadActivate] = 0.0f) == 0.0f))
 
     if (SK_ImGui_IsItemRightClicked ())
-      ImGui::OpenPopup ("RenderSubMenu");
+    {
+      ImGui::OpenPopup         ("RenderSubMenu");
+      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+    }
 
     if (ImGui::BeginPopup ("RenderSubMenu"))
     {
@@ -966,55 +1142,36 @@ SK_ImGui_ControlPanel (void)
     ImGui::Separator ();
 
     char szResolution [128] = { '\0' };
-    snprintf ( szResolution, 63, "   %lux%lu", 
-                                   (UINT)io.DisplayFramebufferScale.x, (UINT)io.DisplayFramebufferScale.y );
 
-    if (SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB)
-      strcat (szResolution, "    (sRGB)");
-
+    bool sRGB     = SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB;
     bool override = false;
-
-    if (ImGui::MenuItem (" Framebuffer Resolution", szResolution))
-    {
-      config.window.res.override.x = (UINT)io.DisplayFramebufferScale.x;
-      config.window.res.override.y = (UINT)io.DisplayFramebufferScale.y;
-
-      override = true;
-    }
 
     RECT client;
     GetClientRect (game_window.hWnd, &client);
 
+    if ( (LONG)io.DisplayFramebufferScale.x != client.right  - client.left ||
+         (LONG)io.DisplayFramebufferScale.y != client.bottom - client.top  ||
+         sRGB )
+    {
+      snprintf ( szResolution, 63, "   %lux%lu", 
+                   (UINT)io.DisplayFramebufferScale.x,
+                   (UINT)io.DisplayFramebufferScale.y );
+
+      if (sRGB)
+        strcat (szResolution, "    (sRGB)");
+
+      if (ImGui::MenuItem (" Framebuffer Resolution", szResolution))
+      {
+        config.window.res.override.x = (UINT)io.DisplayFramebufferScale.x;
+        config.window.res.override.y = (UINT)io.DisplayFramebufferScale.y;
+
+        override = true;
+      }
+    }
+
     snprintf ( szResolution, 63, "   %lix%li", 
                                    client.right - client.left,
                                      client.bottom - client.top );
-
-
-    bool windowed = true;
-
-    //
-    // TODO: Generalize this for all APIs and move it into SK's Render Backend
-    //
-    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
-    {
-      BOOL fullscreen = FALSE;
-
-      if (SUCCEEDED (((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain)->GetFullscreenState (&fullscreen, nullptr)))
-      {
-        windowed = (! fullscreen);
-      }
-    }
-
-    else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
-    {
-      D3DPRESENT_PARAMETERS pparams;
-
-      if (SUCCEEDED (((IDirect3DSwapChain9 *)SK_GetCurrentRenderBackend ().swapchain)->GetPresentParameters (&pparams)))
-      {
-        windowed = pparams.Windowed;
-      }
-    }
-
 
     if (windowed)
     {
@@ -1035,56 +1192,6 @@ SK_ImGui_ControlPanel (void)
         config.window.res.override.y = client.bottom - client.top;
 
         override = true;
-      }
-    }
-
-    if (((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0x0)
-    {
-      extern void
-      SK_D3D9_TriggerReset (void);
-
-      if (SK_ImGui_IsItemRightClicked () && trigger_reset == reset_stage_s::Clear)
-      {
-        ImGui::OpenPopup ("SubMenu_DisplayMode");
-      }
-
-      if (ImGui::BeginPopup ("SubMenu_DisplayMode"))
-      {
-        if (windowed)
-        {
-          if (ImGui::MenuItem ("Force Fullscreen"))
-          {
-            config.render.d3d9.force_fullscreen = true;
-            config.render.d3d9.force_windowed   = false;
-            SK_D3D9_TriggerReset ();
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Games that do not natively support Fullscreen mode may require an application restart.");
-          }
-        }
-
-        else
-        {
-          if (ImGui::MenuItem ("Force Windowed"))
-          {
-            config.render.d3d9.force_fullscreen = false;
-            config.render.d3d9.force_windowed   = true;
-            SK_D3D9_TriggerReset ();
-          }
-        }
-
-        if (config.render.d3d9.force_fullscreen || config.render.d3d9.force_windowed)
-        {
-          if (ImGui::MenuItem ("Disable Override"))
-          {
-            config.render.d3d9.force_fullscreen = false;
-            config.render.d3d9.force_windowed   = false;
-          }
-        }
-
-        ImGui::EndPopup ();
       }
     }
 
@@ -1805,7 +1912,7 @@ SK_ImGui_ControlPanel (void)
 
     bool input_mgmt_open = ImGui::CollapsingHeader ("Input Management");
 
-    if (config.input.ui.show_input_apis)
+    if (config.imgui.show_input_apis)
     {
       static DWORD last_xinput   = 0;
       static DWORD last_hid      = 0;

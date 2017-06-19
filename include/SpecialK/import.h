@@ -36,9 +36,14 @@ extern const std::wstring SK_IMPORT_ROLE_D3D11;
 extern const std::wstring SK_IMPORT_ARCH_X64;
 extern const std::wstring SK_IMPORT_ARCH_WIN32;
 
-struct import_t {
+struct import_s
+{
+  // Parameters populated after load
   HMODULE               hLibrary     = 0;
+  std::wstring          product_desc = L"";
 
+  // User-defined parameters
+  std::wstring          name         = L"";
   sk::ParameterStringW* filename     = nullptr;
   sk::ParameterStringW* when         = nullptr; // 0 = Early,  1 = Late,  2 = Lazy
   sk::ParameterStringW* role         = nullptr; // 0 = dxgi,   1 = d3d11
@@ -46,7 +51,12 @@ struct import_t {
   sk::ParameterStringW* blacklist    = nullptr;
 };
 
-extern import_t imports [SK_MAX_IMPORTS];
+
+extern import_s  imports          [SK_MAX_IMPORTS];
+extern import_s  host_executable;
+extern import_s* dgvoodoo_d3d8;
+extern import_s* dgvoodoo_ddraw;
+extern import_s* dgvoodoo_d3dimm;
 
 void SK_LoadEarlyImports64 (void);
 void SK_LoadLateImports64  (void);

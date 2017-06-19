@@ -6597,6 +6597,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
       if (SK_ImGui_IsItemRightClicked ())
       {
+        ImGui::SetNextWindowSize          (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
         ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_%s%08lx", GetShaderWord (shader_type), (uint32_t)shaders [line]).c_str ());
       }
 
@@ -7885,7 +7886,8 @@ SK_D3D11_ShaderModDlg (void)
 
                       if (SK_ImGui_IsItemRightClicked ( ))
                       {
-                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ());
+                        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+                        ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ());
                       }
 
                       if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ()))
@@ -7915,7 +7917,8 @@ SK_D3D11_ShaderModDlg (void)
 
                       if (SK_ImGui_IsItemRightClicked ( ))
                       {
-                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ());
+                        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+                        ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ());
                       }
 
                       if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ()))
@@ -7950,7 +7953,8 @@ SK_D3D11_ShaderModDlg (void)
 
                       if (SK_ImGui_IsItemRightClicked ( ))
                       {
-                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ());
+                        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+                        ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ());
                       }
 
                       if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ()))
@@ -7987,7 +7991,8 @@ SK_D3D11_ShaderModDlg (void)
 
                       if (SK_ImGui_IsItemRightClicked ( ))
                       {
-                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ());
+                        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+                        ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ());
                       }
 
                       if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ()))
@@ -8017,7 +8022,8 @@ SK_D3D11_ShaderModDlg (void)
 
                       if (SK_ImGui_IsItemRightClicked ( ))
                       {
-                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ());
+                        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+                        ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ());
                       }
 
                       if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ()))
@@ -8052,7 +8058,8 @@ SK_D3D11_ShaderModDlg (void)
 
                       if (SK_ImGui_IsItemRightClicked ())
                       {
-                        ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ());
+                        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+                        ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ());
                       }
 
                       if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_CS%08lx", it).c_str ()))

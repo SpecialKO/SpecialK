@@ -1562,10 +1562,10 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
   std::wstring ret = L"";
 
-  if (cbProductBytes)
+  if (cbProductBytes) {
     ret += wszFileDescrip;
-
-  ret += L"  ";
+    ret += L"  ";
+  }
 
   if (cbVersionBytes)
     ret += wszFileVersion;

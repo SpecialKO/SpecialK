@@ -2315,10 +2315,38 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
     InterlockedExchange (&__gui_reset, TRUE);
 
-    if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing ) {
+    if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+    {
       Fullscreen = FALSE;
       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Override:  Enable" );
       pTarget = nullptr;
+    }
+
+    if (config.display.force_fullscreen && Fullscreen == FALSE)
+    {
+      Fullscreen = TRUE;
+      dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+                    L"(Requested: Windowed, Using: Fullscreen)" );
+    }
+    else if (config.display.force_windowed && Fullscreen == TRUE)
+    {
+      Fullscreen = FALSE;
+      Fullscreen = TRUE;
+      dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+                    L"(Requested: Fullscreen, Using: Windowed)" );
+    }
+
+    if (request_mode_change == mode_change_request_e::Fullscreen && Fullscreen == FALSE)
+    {
+      dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+              L"User Initiated Fulllscreen Switch" );
+      Fullscreen = TRUE;
+    }
+    else if (request_mode_change == mode_change_request_e::Windowed && Fullscreen == TRUE)
+    {
+      dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+              L"User Initiated Windowed Switch" );
+      Fullscreen = FALSE;
     }
 
     HRESULT ret;
@@ -2346,6 +2374,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   }
 
   __declspec (noinline)
+
+
   HRESULT
   STDMETHODCALLTYPE
   DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
@@ -2599,31 +2629,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     }
   }
 
-
-
-  if (config.render.dxgi.safe_fullscreen) pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-
-
   if (pDesc != nullptr)
   {
-    if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
-    {
-      if (! config.window.res.override.isZero ())
-      {
-        pDesc->BufferDesc.Width  = config.window.res.override.x;
-        pDesc->BufferDesc.Height = config.window.res.override.y;
-      }
-
-      else
-      {
-        SK_DXGI_BorderCompensation (
-          pDesc->BufferDesc.Width,
-            pDesc->BufferDesc.Height
-        );
-      }
-    }
-
     dll_log.LogEx ( true,
       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
@@ -2667,6 +2674,46 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       pDesc->Windowed                           = true;
       pDesc->BufferDesc.RefreshRate.Denominator = 0;
       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+    }
+
+    if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+    {
+      if (! config.window.res.override.isZero ())
+      {
+        pDesc->BufferDesc.Width  = config.window.res.override.x;
+        pDesc->BufferDesc.Height = config.window.res.override.y;
+      }
+
+      else
+      {
+        SK_DXGI_BorderCompensation (
+          pDesc->BufferDesc.Width,
+            pDesc->BufferDesc.Height
+        );
+      }
+    }
+
+    if (config.render.dxgi.safe_fullscreen)                       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    if (request_mode_change == mode_change_request_e::Fullscreen)
+    {
+      dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
+      pDesc->Windowed = FALSE;
+      pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    }
+
+    if (config.display.force_fullscreen && pDesc->Windowed)
+    {
+      dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+                    L"(Requested: Windowed, Using: Fullscreen)" );
+      pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+      pDesc->Windowed = FALSE;
+    }
+
+    else if (config.display.force_windowed)
+    {
+      dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+                    L"(Requested: Fullscreen, Using: Windowed)" );
+      pDesc->Windowed = TRUE;
     }
 
     if (! bFlipMode)

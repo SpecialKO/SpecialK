@@ -120,6 +120,8 @@ struct {
   sk::ParameterFloat*     scale;
   sk::ParameterBool*      show_eula;
   sk::ParameterBool*      show_playtime;
+  sk::ParameterBool*      show_gsync_status;
+  sk::ParameterBool*      show_input_apis;
 } imgui;
 
 struct {
@@ -213,12 +215,15 @@ struct {
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
-    sk::ParameterBool*    force_fullscreen;
-    sk::ParameterBool*    force_windowed;
     sk::ParameterInt*     hook_type;
     sk::ParameterBool*    impure;
   } d3d9;
 } render;
+
+struct {
+  sk::ParameterBool*      force_fullscreen;
+  sk::ParameterBool*      force_windowed;
+} display;
 
 struct {
   struct {
@@ -1090,6 +1095,27 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Version" );
 
 
+  display.force_fullscreen =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Force Fullscreen Mode")
+      );
+  display.force_fullscreen->register_to_ini (
+    dll_ini,
+      L"Display.Output",
+        L"ForceFullscreen" );
+
+  display.force_windowed =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Force Windowed Mode")
+      );
+  display.force_windowed->register_to_ini (
+    dll_ini,
+      L"Display.Output",
+        L"ForceWindowed" );
+
+
   render.framerate.target_fps =
     static_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
@@ -1259,25 +1285,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.D3D9",
           L"HookType" );
-    render.d3d9.force_fullscreen =
-      static_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Force Fullscreen Mode")
-        );
-    render.d3d9.force_fullscreen->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"ForceFullscreen" );
-
-    render.d3d9.force_windowed =
-      static_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Force Windowed Mode")
-        );
-    render.d3d9.force_windowed->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"ForceWindowed" );
   }
 
   if (SK_IsInjected () || (SK_GetDLLRole () & (DLL_ROLE::DXGI))) {
@@ -1616,6 +1623,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"SpecialK.System",
         L"ShowEULA" );
 
+  imgui.show_gsync_status =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Show G-Sync Status on Control Panel")
+      );
+  imgui.show_gsync_status->register_to_ini (
+    osd_ini,
+      L"ImGui.Global",
+        L"ShowGSyncStatus" );
+
+  imgui.show_input_apis =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Show Input APIs currently in-use")
+      );
+  imgui.show_input_apis->register_to_ini (
+    osd_ini,
+      L"ImGui.Global",
+        L"ShowActiveInputAPIs" );
+
 
   osd.show =
     static_cast <sk::ParameterBool *>
@@ -1917,9 +1944,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   int import = 0;
 
+  host_executable.hLibrary     = GetModuleHandle     (nullptr);
+  host_executable.product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (host_executable.hLibrary).c_str ());
+
   while (sec != sections.end ())
   {
-    if (wcsstr ((*sec).first.c_str (), L"Import.")) {
+    if (wcsstr ((*sec).first.c_str (), L"Import."))
+    {
+      imports [import].name =
+        CharNextW (wcsstr ((*sec).first.c_str (), L"."));
+
       imports [import].filename = 
          static_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
@@ -2257,7 +2291,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
       case SK_GAME_ID::Sacred2:
-        config.render.d3d9.force_windowed  = true; // Fullscreen is not particularly well
+        config.display.force_windowed      = true; // Fullscreen is not particularly well
                                                    //   supported in this game
       case SK_GAME_ID::Sacred:
         config.render.dxgi.safe_fullscreen = true; // dgVoodoo compat
@@ -2303,6 +2337,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (imgui.show_playtime->load ())
     config.steam.show_playtime = imgui.show_playtime->get_value ();
+
+  if (imgui.show_gsync_status->load ())
+    config.apis.NvAPI.gsync_status = imgui.show_gsync_status->get_value ();
+
+  if (imgui.show_input_apis->load ())
+    config.imgui.show_input_apis = imgui.show_input_apis->get_value ();
 
 
   if (monitoring.io.show->load () && config.osd.remember_state)
@@ -2386,6 +2426,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
 
 
+  if (display.force_fullscreen->load ())
+    config.display.force_fullscreen =
+      display.force_fullscreen->get_value ();
+  if (display.force_windowed->load ())
+    config.display.force_windowed =
+      display.force_windowed->get_value ();
+
+
   if (render.framerate.target_fps->load ())
     config.render.framerate.target_fps =
       render.framerate.target_fps->get_value ();
@@ -2456,12 +2504,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       if (render.d3d9.impure->load ())
         config.render.d3d9.force_impure =
           render.d3d9.impure->get_value ();
-      if (render.d3d9.force_fullscreen->load ())
-        config.render.d3d9.force_fullscreen =
-          render.d3d9.force_fullscreen->get_value ();
-      if (render.d3d9.force_windowed->load ())
-        config.render.d3d9.force_windowed =
-          render.d3d9.force_windowed->get_value ();
       if (render.d3d9.hook_type->load ())
         config.render.d3d9.hook_type =
           render.d3d9.hook_type->get_value ();
@@ -2978,6 +3020,8 @@ SK_SaveConfig ( std::wstring name,
   imgui.scale->set_value                      (config.imgui.scale);
   imgui.show_eula->set_value                  (config.imgui.show_eula);
   imgui.show_playtime->set_value              (config.steam.show_playtime);
+  imgui.show_gsync_status->set_value          (config.apis.NvAPI.gsync_status);
+  imgui.show_input_apis->set_value            (config.imgui.show_input_apis);
 
 
 #ifndef _WIN64
@@ -3060,6 +3104,9 @@ SK_SaveConfig ( std::wstring name,
   window.override->set_value (wszFormattedRes);
 
   extern float target_fps;
+
+  display.force_fullscreen->set_value (config.display.force_fullscreen);
+  display.force_windowed->set_value   (config.display.force_windowed);
 
   render.framerate.target_fps->set_value        (target_fps);
   render.framerate.limiter_tolerance->set_value (config.render.framerate.limiter_tolerance);
@@ -3174,8 +3221,6 @@ SK_SaveConfig ( std::wstring name,
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9)
     {
       render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
-      render.d3d9.force_fullscreen->set_value (config.render.d3d9.force_fullscreen);
-      render.d3d9.force_windowed->set_value   (config.render.d3d9.force_windowed);
       render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
     }
   }
@@ -3300,6 +3345,9 @@ SK_SaveConfig ( std::wstring name,
 
   nvidia.api.disable->store                ();
 
+  display.force_fullscreen->store          ();
+  display.force_windowed->store            ();
+
   render.framerate.target_fps->store        ();
   render.framerate.limiter_tolerance->store ();
   render.framerate.sleepless_render->store  ();
@@ -3355,8 +3403,6 @@ SK_SaveConfig ( std::wstring name,
     if (  SK_IsInjected () ||
         ( SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
       render.d3d9.force_d3d9ex->store     ();
-      render.d3d9.force_fullscreen->store ();
-      render.d3d9.force_windowed->store   ();
       render.d3d9.hook_type->store        ();
     }
   }
@@ -3377,6 +3423,8 @@ SK_SaveConfig ( std::wstring name,
   imgui.scale->store                     ();
   imgui.show_playtime->store             ();
   imgui.show_eula->store                 ();
+  imgui.show_gsync_status->store         ();
+  imgui.show_input_apis->store           ();
 
   steam.achievements.sound_file->store       ();
   steam.achievements.play_sound->store       ();

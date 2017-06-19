@@ -44,7 +44,8 @@ const std::wstring SK_IMPORT_ROLE_3RDPARTY = L"ThirdParty";
 const std::wstring SK_IMPORT_ARCH_X64      = L"x64";
 const std::wstring SK_IMPORT_ARCH_WIN32    = L"Win32";
 
-import_t imports [SK_MAX_IMPORTS] = { 0 };
+import_s imports [SK_MAX_IMPORTS] = { 0 };
+import_s host_executable          = { 0 };
 
 extern
 HMODULE
@@ -136,7 +137,13 @@ SK_LoadEarlyImports64 (void)
                 imports [i].filename->get_value_str ().c_str ()
               );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -200,9 +207,15 @@ SK_LoadPlugIns64 (void)
                 imports [i].filename->get_value_str ().c_str ()
               );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
+
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
 
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
                   imports [i].hLibrary = SK_InitPlugIn64 (imports [i].hLibrary);
@@ -264,10 +277,19 @@ SK_LoadLateImports64 (void)
                 imports [i].filename->get_value_str ().c_str ()
               );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
-              } else  {
+
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-2;
@@ -321,10 +343,19 @@ SK_LoadLazyImports64 (void)
                 imports [i].filename->get_value_str ().c_str ()
               );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
-              } else  {
+
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-3;
@@ -416,9 +447,15 @@ SK_LoadEarlyImports32 (void)
                 imports [i].filename->get_value_str ().c_str ()
               );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
+
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
 
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
                   imports [i].hLibrary = SK_InitPlugIn32 (imports [i].hLibrary);
@@ -480,9 +517,15 @@ SK_LoadPlugIns32 (void)
                 imports [i].filename->get_value_str ().c_str ()
               );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
+
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
 
                 if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
                   imports [i].hLibrary = SK_InitPlugIn32 (imports [i].hLibrary);
@@ -544,10 +587,19 @@ SK_LoadLateImports32 (void)
                 imports [i].filename->get_value_str ().c_str ()
                 );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
-              } else  {
+
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-2;
@@ -601,10 +653,19 @@ SK_LoadLazyImports32 (void)
                 imports [i].filename->get_value_str ().c_str ()
                 );
 
-              if (imports [i].hLibrary != NULL) {
+              if (imports [i].hLibrary != NULL)
+              {
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
-              } else  {
+
+                imports [i].product_desc =
+                  SK_GetDLLVersionStr (
+                    SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
+                  );
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-3;

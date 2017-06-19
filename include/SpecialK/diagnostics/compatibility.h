@@ -34,7 +34,6 @@ enum class SK_ModuleEnum {
 enum class SK_NV_Bloat {
   None       = 0x0,
   RxCore     = 0x1,
-  
 };
 
 void __stdcall SK_EnumLoadedModules   (SK_ModuleEnum when = SK_ModuleEnum::PreLoad);

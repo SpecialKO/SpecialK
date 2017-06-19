@@ -54,7 +54,9 @@ typedef void* LPDDENUMCALLBACKEX;
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
-volatile LONG __ddraw_ready = FALSE;
+         import_s* dgvoodoo_ddraw  = nullptr;
+         import_s* dgvoodoo_d3dimm = nullptr;
+volatile LONG      __ddraw_ready   = FALSE;
 
 unsigned int
 __stdcall
@@ -330,6 +332,11 @@ SK_HookDDraw (void)
     MH_ApplyQueued ();
   }
 
+  dgvoodoo_ddraw = new import_s ();
+  dgvoodoo_ddraw->hLibrary     = hBackend;
+  dgvoodoo_ddraw->name         = L"API Support Plug-In";
+  dgvoodoo_ddraw->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
+
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
   SK_LoadPlugIns64 ();
@@ -361,10 +368,18 @@ SK::DDraw::Startup (void)
   wchar_t wszImmediateMode [MAX_PATH * 2 + 1] = { L'\0' };
 
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-  LoadLibraryW (wszImmediateMode);
+
+  dgvoodoo_d3dimm               = new import_s ();
+  dgvoodoo_d3dimm->hLibrary     = LoadLibraryW (wszImmediateMode);
+  dgvoodoo_d3dimm->name         = L"API Support Plug-In";
+  dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3dimm->hLibrary).c_str ());
 
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-  LoadLibraryW (wszImmediateMode);
+  
+  dgvoodoo_d3d8               = new import_s ();
+  dgvoodoo_d3d8->hLibrary     = LoadLibraryW (wszImmediateMode);
+  dgvoodoo_d3d8->name         = L"API Support Plug-In";
+  dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3d8->hLibrary).c_str ());
 
   config.apis.d3d8.hook = false;
 

@@ -157,6 +157,7 @@ struct sk_config_t
   struct {
     float   scale              = 1.0f;
     bool    show_eula          = true;
+    bool    show_input_apis    = true;
 
     struct {
       struct {
@@ -229,8 +230,6 @@ struct sk_config_t
     struct {
       bool    force_d3d9ex      = false;
       bool    force_impure      = false;
-      bool    force_fullscreen  = false;
-      bool    force_windowed    = false;
       int     hook_type         = 0;
       bool    osd_in_vidcap     = false;
     } d3d9;
@@ -266,6 +265,13 @@ struct sk_config_t
       BYTE toggle [4]      = { VK_CONTROL, VK_SHIFT, 'R', 0 };
     } keys;
   } render;
+
+  struct {
+    bool      force_fullscreen  = false;
+    bool      force_windowed    = false;
+    int       monitor_idx       =    -1; // TODO
+    float     refresh_rate      =  0.0f; // TODO
+  } display;
 
   struct {
     struct {
@@ -321,7 +327,6 @@ struct sk_config_t
       bool    capture_gamepad   = false;
       bool    use_hw_cursor     =  true;
       bool    use_raw_input     =  true;
-      bool    show_input_apis   =  true;
     } ui;
 
     struct {

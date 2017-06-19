@@ -63,6 +63,18 @@ enum {
   SK_FRAMEBUFFER_FLAG_FLOAT = 0x2
 };
 
+enum reset_stage_e {
+  Initiate = 0x0, // Fake device loss
+  Respond  = 0x1, // Fake device not reset
+  Clear    = 0x2  // Return status to normal
+} extern trigger_reset;
+
+enum mode_change_request_e {
+  Windowed   = 0,    // Switch from Fullscreen to Windowed
+  Fullscreen = 1,    // Switch from Windowed to Fullscreen
+  None       = 0xFF
+} extern request_mode_change;
+
 struct SK_RenderBackend_V2 : SK_RenderBackend_V1 {
   IUnknown*               device               = nullptr;
   IUnknown*               swapchain            = nullptr;
@@ -79,6 +91,11 @@ struct SK_RenderBackend_V2 : SK_RenderBackend_V1 {
   } gsync_state;
 
   DWORD                   thread       = 0;
+
+  bool canEnterFullscreen  (void);
+
+  void requestFullscreenMode (bool override = false);
+  void requestWindowedMode   (bool override = false);
 };
 
 typedef SK_RenderBackend_V2 SK_RenderBackend;

@@ -50,7 +50,8 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
-volatile LONG __d3d8_ready = FALSE;
+         import_s* dgvoodoo_d3d8 = nullptr;
+volatile LONG      __d3d8_ready  = FALSE;
 
 unsigned int
 __stdcall
@@ -144,6 +145,11 @@ SK_HookD3D8 (void)
 
     MH_ApplyQueued ();
   }
+
+  dgvoodoo_d3d8 = new import_s ();
+  dgvoodoo_d3d8->hLibrary     = hBackend;
+  dgvoodoo_d3d8->name         = L"API Support Plug-In";
+  dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
 
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64

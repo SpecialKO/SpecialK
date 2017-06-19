@@ -285,3 +285,91 @@ SK_RenderBackend_V2::gsync_s::update (void)
       last_checked = timeGetTime ();
   }
 }
+
+
+extern void
+SK_D3D9_TriggerReset (bool);
+
+#include <SpecialK/dxgi_backend.h>
+
+bool
+SK_RenderBackendUtil_IsFullscreen (void)
+{
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  {
+    IDXGISwapChain* pSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+
+    BOOL fullscreen;
+    if (SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+      return fullscreen;
+
+    return SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+  }
+
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+  {
+    IDirect3DSwapChain9* pSwapChain = (IDirect3DSwapChain9 *)SK_GetCurrentRenderBackend ().swapchain;
+
+    D3DPRESENT_PARAMETERS pparams;
+    if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
+      return (! pparams.Windowed);
+
+    return SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+  }
+
+  return false;
+}
+
+void
+SK_RenderBackend_V2::requestFullscreenMode (bool override)
+{
+  if (override)
+  {
+    config.display.force_windowed   = false;
+    config.display.force_fullscreen = true;
+  }
+
+  fullscreen_exclusive = SK_RenderBackendUtil_IsFullscreen ();
+
+  if (! fullscreen_exclusive)
+  {
+    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+    {
+      SK_D3D9_TriggerReset (true);
+    }
+
+    else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+    {
+      ((IDXGISwapChain *)swapchain)->SetFullscreenState (TRUE, nullptr);
+    }
+  }
+}
+
+void
+SK_RenderBackend_V2::requestWindowedMode (bool override)
+{
+  if (override)
+  {
+    config.display.force_windowed   = true;
+    config.display.force_fullscreen = false;
+  }
+
+  fullscreen_exclusive = SK_RenderBackendUtil_IsFullscreen ();
+
+  if (fullscreen_exclusive)
+  {
+    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+    {
+      SK_D3D9_TriggerReset (true);
+    }
+
+    else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+    {
+      ((IDXGISwapChain *)swapchain)->SetFullscreenState (FALSE, nullptr);
+    }
+  }
+}
+
+
+reset_stage_e         trigger_reset       (reset_stage_e::Clear);
+mode_change_request_e request_mode_change (mode_change_request_e::None);

@@ -969,8 +969,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   if (! SK_IsInjected ())
   {
-    extern import_t imports [SK_MAX_IMPORTS];
-
     for (int i = 0; i < SK_MAX_IMPORTS; i++)
     {
       if (imports [i].role != nullptr && imports [i].role->get_value () == backend)
