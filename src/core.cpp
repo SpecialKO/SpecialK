@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -832,7 +832,7 @@ SK_InitFinishCallback (void)
   SK_SaveConfig (config_name);
 
   // For the global injector, when not started by SKIM, check its version
-  if (SK_IsInjected () && (! SK_IsSuperSpecialK ()))
+  //if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
     CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
 
@@ -1193,17 +1193,18 @@ CheckVersionThread (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  extern bool
-  __stdcall
-  SK_FetchVersionInfo (const wchar_t* wszProduct);
+  InterlockedIncrement (&SK_bypass_dialog_active);
 
-  if (SK_FetchVersionInfo (L"SpecialK")) {
-    extern HRESULT
-      __stdcall
-      SK_UpdateSoftware (const wchar_t* wszProduct);
-
-    SK_UpdateSoftware (L"SpecialK");
+  if (SK_FetchVersionInfo (L"SpecialK"))
+  {
+    // ↑ Check, but ↓ don't update unless running the global injector version
+    if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+    {
+      SK_UpdateSoftware (L"SpecialK");
+    }
   }
+
+  InterlockedDecrement (&SK_bypass_dialog_active);
 
   CloseHandle (GetCurrentThread ());
 

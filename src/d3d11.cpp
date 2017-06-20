@@ -2668,7 +2668,7 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
                                         ppRenderTargetViews, pDepthStencilView );
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Top ()->imgui.drawing) return;
+  if (SK_TLS_Top () && SK_TLS_Top ()->imgui.drawing) return;
 
 
   if (NumViews > 0)

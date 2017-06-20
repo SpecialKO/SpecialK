@@ -740,11 +740,7 @@ SK_ImGui_ControlPanel (void)
       ImGui::MenuItem    ("Display G-Sync Status", "", &config.apis.NvAPI.gsync_status);
     }
 
-    if ((! config.steam.silent) && steam_ctx.Utils () != nullptr)
-    {
-      ImGui::MenuItem ("Display Playtime in Title", "", &config.steam.show_playtime);
-    }
-
+    ImGui::MenuItem  ("Display Playtime in Title", "", &config.steam.show_playtime);
     ImGui::Separator ();
 
     DisplayModeMenu (windowed);
@@ -822,10 +818,10 @@ SK_ImGui_ControlPanel (void)
       SK_Version_GetLocalInfo (nullptr);
 
     char current_ver [128] = { '\0' };
-    snprintf (current_ver, 128, "%ws (%li)", vinfo.package.c_str (), vinfo.build);
+    snprintf (current_ver, 127, "%ws (%li)", vinfo.package.c_str (), vinfo.build);
 
     char current_branch_str [64] = { '\0' };
-    snprintf (current_branch_str, 64, "%ws", vinfo.branch.c_str ());
+    snprintf (current_branch_str, 63, "%ws", vinfo.branch.c_str ());
 
     static SK_VersionInfo vinfo_latest =
       SK_Version_GetLatestInfo (nullptr);
@@ -910,7 +906,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::Separator ();
       }
 
-      snprintf        (current_ver, 128, "%ws (%li)", vinfo_latest.package.c_str (), vinfo_latest.build);
+      snprintf        (current_ver, 127, "%ws (%li)", vinfo_latest.package.c_str (), vinfo_latest.build);
       ImGui::MenuItem ("Latest Version###Menu_LatestVersion",   current_ver,    &selected, false);
       ImGui::MenuItem ("Last Checked###Menu_LastUpdateCheck",   SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ()).c_str (), &selected, false);
 

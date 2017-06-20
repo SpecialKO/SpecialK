@@ -47,10 +47,14 @@ std::wstring __SK_LastProductTested = L"";
 std::wstring
 SK_SYS_GetInstallPath (void)
 {
-  if (! SK_IsInjected ()) {
+  if (! SK_IsInjected ())
+  {
     // TODO: Add VersionPath :)
-    return SK_GetRootPath ();
-    //return SK_GetConfigPath ();// std::wstring (std::wstring (SK_GetHostPath ()) + L"\\");
+    if (! config.system.central_repository)
+      return SK_GetRootPath   ();
+    else
+      return std::wstring (std::wstring (SK_GetConfigPath ()) + L"\\");
+          // std::wstring (std::wstring (SK_GetHostPath ()) + L"\\");
   }
 
   else {
@@ -144,7 +148,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
     install_ini.parse ();
 
-    if (! install_ini.get_sections ().empty ()) {
+    if (! install_ini.get_sections ().empty ())
+    {
       iSK_INISection& user_prefs =
         install_ini.get_section (L"Update.User");
 
@@ -208,6 +213,12 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
         delete remind_time;
       }
     }
+
+    else {
+      install_ini.import ( L"[Version.Local]\nInstallPackage= \nBranch=Latest\n\n"
+                           L"[Upate.User]\nFrequency=6h\nReminder=0\n\n"          );
+      install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+    }
   }
 
   
@@ -267,9 +278,13 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   if (! hInetRoot)
     return false;
 
+  bool use_gitlab = (! lstrcmpW (wszProduct, L"SpecialK"));
+
   HINTERNET hInetGitHub =
     InternetConnect ( hInetRoot,
-                        L"raw.githubusercontent.com",
+                        use_gitlab ?
+                          L"gitlab.com" :
+                          L"raw.githubusercontent.com",
                           INTERNET_DEFAULT_HTTP_PORT,
                             nullptr, nullptr,
                               INTERNET_SERVICE_HTTP,
@@ -284,7 +299,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   wchar_t wszRemoteRepoURL [MAX_PATH] = { L'\0' };
 
   // TEMPORARILY REBASE TO 0.8.X
-  if (! lstrcmpW (wszProduct, L"SpecialK"))
+  if (use_gitlab)
     swprintf ( wszRemoteRepoURL,
                  L"/Kaldaien/%s/0.8.x/version.ini",
                    wszProduct );

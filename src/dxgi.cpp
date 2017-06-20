@@ -321,7 +321,8 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
   CComPtr <ID3D11Device> pDev = nullptr;
 
-  if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev)))) {
+  if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))))
+  {
     extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
     SK_DXGI_UpdateSwapChain (This);
   }
@@ -1129,16 +1130,23 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
     {
       CComPtr <IDXGISurface> pSurf = nullptr;
 
-      NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
+      extern bool
+      SK_RenderBackendUtil_IsFullscreen (void);;
 
       // NVIDIA's drivers deadlock us if you try to do this, so just assume that fullscreen mode is
       //   always G-Sync'd.
       //
-      //if (SK_GetCurrentRenderBackend ().fullscreen_exclusive)
-      //{
-        //if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pSurf))))
-          //NvAPI_D3D_GetObjectHandleForResource (pDev, pSurf, &SK_GetCurrentRenderBackend ().surface);
-      //}
+      if (SK_RenderBackendUtil_IsFullscreen ())//SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+      {
+        if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pSurf))))
+          NvAPI_D3D_GetObjectHandleForResource (pDev, pSurf, &SK_GetCurrentRenderBackend ().surface);
+
+        else
+          NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
+      }
+
+      else
+        NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
     }
   }
 }

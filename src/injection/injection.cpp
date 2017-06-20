@@ -266,6 +266,10 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
 #include <SpecialK/utility.h>
 #include <SpecialK/render_backend.h>
 
+extern void
+__stdcall
+SK_EstablishRootPath (void);
+
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 {
@@ -315,6 +319,8 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
                  fputws (L" ", fOut);
                        fclose (fOut);
 
+    config.system.central_repository = true;
+
     *wszOut = L'\0';
     *wszIn  = L'\0';
 
@@ -331,35 +337,29 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
     if (! CopyFileW (wszIn, wszOut, TRUE))
       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
 
-    *wszOut = L'\0';
-    *wszIn  = L'\0';
-
-    lstrcatW (wszIn, SK_GetConfigPath ());
-    lstrcatW (wszIn, L"\\SpecialK.ini");
-
-    lstrcatW (wszOut, SK_GetConfigPath ());
+    SK_EstablishRootPath ();
 
     switch (role)
     {
       case DLL_ROLE::D3D9:
-        lstrcatW (wszOut, L"\\d3d9.ini");
+        SK_SaveConfig (L"d3d9");
         break;
 
       case DLL_ROLE::DXGI:
-        lstrcatW (wszOut, L"\\dxgi.ini");
+        SK_SaveConfig (L"dxgi");
         break;
 
       case DLL_ROLE::OpenGL:
-        lstrcatW (wszOut, L"\\OpenGL32.ini");
+        SK_SaveConfig (L"OpenGL32");
         break;
 
 #ifndef _WIN64
       case DLL_ROLE::DDraw:
-        lstrcatW (wszOut, L"\\ddraw.ini");
+        SK_SaveConfig (L"ddraw");
         break;
 
       case DLL_ROLE::D3D8:
-        lstrcatW (wszOut, L"\\d3d8.ini");
+        SK_SaveConfig (L"d3d8");
         break;
 #endif
 
@@ -368,8 +368,43 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
         //break;
     }
 
-    if (! CopyFileW (wszIn, wszOut, TRUE))
-      ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
+    *wszIn = L'\0';
+
+    std::string ver_dir = SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
+
+    DWORD dwAttribs = GetFileAttributesA (ver_dir.c_str ());
+
+    if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+          CreateDirectoryA (ver_dir.c_str (), nullptr) )
+    {
+      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+      PathRemoveFileSpecW  (wszIn);
+
+      lstrcatW (wszIn, L"\\Version\\installed.ini");
+
+      *wszOut = L'\0';
+
+      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+      lstrcatW (wszOut, L"\\installed.ini");
+
+      DeleteFileW (       wszOut);
+      CopyFile    (wszIn, wszOut, FALSE);
+
+      *wszIn = L'\0';
+
+      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+      PathRemoveFileSpecW  (wszIn);
+
+      lstrcatW (wszIn, L"\\Version\\repository.ini");
+
+      *wszOut = L'\0';
+
+      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+      lstrcatW (wszOut, L"\\repository.ini");
+
+      DeleteFileW (       wszOut);
+      CopyFile    (wszIn, wszOut, FALSE);
+    }
 
     return true;
   }
@@ -432,6 +467,8 @@ SK_Inject_SwitchToRenderWrapper (void)
                  fputws (L" ", fOut);
                        fclose (fOut);
 
+    config.system.central_repository = true;
+
     *wszOut = L'\0';
     *wszIn  = L'\0';
 
@@ -448,28 +485,22 @@ SK_Inject_SwitchToRenderWrapper (void)
     if (! CopyFileW (wszIn, wszOut, TRUE))
       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
 
-    *wszOut = L'\0';
-    *wszIn  = L'\0';
-
-    lstrcatW (wszIn, SK_GetConfigPath ());
-    lstrcatW (wszIn, L"\\SpecialK.ini");
-
-    lstrcatW (wszOut, SK_GetConfigPath ());
+    SK_EstablishRootPath ();
 
     switch (SK_GetCurrentRenderBackend ().api)
     {
       case SK_RenderAPI::D3D9:
       case SK_RenderAPI::D3D9Ex:
-        lstrcatW (wszOut, L"\\d3d9.ini");
+        SK_SaveConfig (L"d3d9");
         break;
 
 #ifndef _WIN64
     case SK_RenderAPI::D3D8On11:
-      lstrcatW (wszOut, L"\\d3d8.ini");
+      SK_SaveConfig (L"d3d8");
       break;
 
     case SK_RenderAPI::DDrawOn11:
-      lstrcatW (wszOut, L"\\ddraw.ini");
+      SK_SaveConfig (L"ddraw");
       break;
 #endif
 
@@ -479,11 +510,11 @@ SK_Inject_SwitchToRenderWrapper (void)
       case SK_RenderAPI::D3D12:
 #endif
       {
-        lstrcatW (wszOut, L"\\dxgi.ini");
+        SK_SaveConfig (L"dxgi");
       } break;
 
       case SK_RenderAPI::OpenGL:
-        lstrcatW (wszOut, L"\\OpenGL32.ini");
+        SK_SaveConfig (L"OpenGL32");
         break;
 
       //case SK_RenderAPI::Vulkan:
@@ -491,8 +522,43 @@ SK_Inject_SwitchToRenderWrapper (void)
         //break;
     }
 
-    if (! CopyFileW (wszIn, wszOut, TRUE))
-      ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
+    *wszIn = L'\0';
+
+    std::string ver_dir = SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
+
+    DWORD dwAttribs = GetFileAttributesA (ver_dir.c_str ());
+
+    if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+          CreateDirectoryA (ver_dir.c_str (), nullptr) )
+    {
+      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+      PathRemoveFileSpecW  (wszIn);
+
+      lstrcatW (wszIn, L"\\Version\\installed.ini");
+
+      *wszOut = L'\0';
+
+      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+      lstrcatW (wszOut, L"\\installed.ini");
+
+      DeleteFileW (       wszOut);
+      CopyFile    (wszIn, wszOut, FALSE);
+
+      *wszIn = L'\0';
+
+      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+      PathRemoveFileSpecW  (wszIn);
+
+      lstrcatW (wszIn, L"\\Version\\repository.ini");
+
+      *wszOut = L'\0';
+
+      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+      lstrcatW (wszOut, L"\\repository.ini");
+
+      DeleteFileW (       wszOut);
+      CopyFile    (wszIn, wszOut, FALSE);
+    }
 
     return true;
   }
@@ -503,6 +569,9 @@ SK_Inject_SwitchToRenderWrapper (void)
 bool
 SK_Inject_SwitchToGlobalInjector (void)
 {
+  config.system.central_repository = true;
+  SK_EstablishRootPath ();
+
   wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
   lstrcatW (wszOut, SK_GetHostPath ());
 
@@ -547,12 +616,17 @@ SK_Inject_SwitchToGlobalInjector (void)
 
   MoveFileW (wszOut, wszTemp);
 
+  SK_SaveConfig (L"SpecialK");
+
   return true;
 }
 
 bool
 SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
 {
+  config.system.central_repository = true;
+  SK_EstablishRootPath ();
+
   wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
   lstrcatW (wszOut, SK_GetHostPath ());
 
@@ -591,6 +665,8 @@ SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
 
   MoveFileW (wszOut, wszTemp);
 
+  SK_SaveConfig (L"SpecialK");
+
   return true;
 }
 
@@ -608,7 +684,7 @@ bool SK_Inject_JournalRecord (HMODULE hModule)
 void
 SK_Inject_Stop (void)
 {
-  std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
+  //std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
 
   wchar_t wszCurrentDir [MAX_PATH * 2] = { L'\0' };
   GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
@@ -620,13 +696,13 @@ SK_Inject_Stop (void)
 
   SetCurrentDirectoryW (wszCurrentDir);
 
-  SK_ResumeThreads (suspended);
+  //SK_ResumeThreads (suspended);
 }
 
 void
 SK_Inject_Start (void)
 {
-  std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
+  //std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
 
   wchar_t wszCurrentDir [MAX_PATH * 2] = { L'\0' };
   GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
@@ -638,5 +714,5 @@ SK_Inject_Start (void)
 
   SetCurrentDirectoryW (wszCurrentDir);
 
-  SK_ResumeThreads (suspended);
+  //SK_ResumeThreads (suspended);
 }

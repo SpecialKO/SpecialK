@@ -918,6 +918,8 @@ UpdateDlg_Thread (LPVOID user)
   return 0;
 }
 
+extern volatile LONG SK_bypass_dialog_active;
+
 HRESULT
 __stdcall
 SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
@@ -999,7 +1001,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
   if (empty) {
     installed_ver.set_name      (L"Version.Local");
-    installed_ver.add_key_value (L"InstallPackage", L"");
+    installed_ver.add_key_value (L"InstallPackage", L" ");
+    installed_ver.add_key_value (L"Branch",         L"Latest");
     // ^^^^ Add a key/value pair so that the section isn't purged on write
   }
 
@@ -1169,9 +1172,6 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                 )
             Sleep_Original (15);
 
-          if (SK_IsInjected ())
-            SK_Inject_Start ();
-
           if ( InterlockedCompareExchange ( &__SK_UpdateStatus, 0, 0 ) == 1 )
           {
             if (empty) {
@@ -1198,8 +1198,11 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
             install_ini.write       (SK_Version_GetInstallIniPath ().c_str ());
 
-            extern BOOL __stdcall SK_TerminateParentProcess (UINT uExitCode);
-            SK_TerminateParentProcess (0x00);
+
+            if (SK_IsInjected ())
+              SK_Inject_Start ();
+
+            SK_RestartGame ();
 
             return S_OK;
           }

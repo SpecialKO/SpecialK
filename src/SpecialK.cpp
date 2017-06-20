@@ -850,7 +850,11 @@ DllMain ( HMODULE hModule,
 
 
       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
-        return TRUE;
+      {
+        blacklist.emplace (std::wstring (SK_GetHostApp ()));
+
+        return FALSE;
+      }
 
 
       SK_Init_MinHook ();
@@ -860,10 +864,10 @@ DllMain ( HMODULE hModule,
 
       if (! bRet)
       {
-        if (SK_GetDLLRole () == DLL_ROLE::INVALID)
-          return TRUE;
-
         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+
+        if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+          return FALSE;
       }
 
       return bRet;

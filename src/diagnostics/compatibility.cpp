@@ -1708,22 +1708,27 @@ SK_Bypass_CRT (LPVOID user)
       case SK_RenderAPI::D3D8:
       case SK_RenderAPI::D3D8On11:
         __SK_DLL_Backend = L"d3d8";
+        SK_SetDLLRole (DLL_ROLE::D3D8);
         break;
       case SK_RenderAPI::DDraw:
       case SK_RenderAPI::DDrawOn11:
         __SK_DLL_Backend = L"ddraw";
+        SK_SetDLLRole (DLL_ROLE::DDraw);
         break;
       case SK_RenderAPI::D3D10:
       case SK_RenderAPI::D3D11:
       case SK_RenderAPI::D3D12:
         __SK_DLL_Backend = L"dxgi";
+        SK_SetDLLRole (DLL_ROLE::DXGI);
         break;
       case SK_RenderAPI::D3D9:
       case SK_RenderAPI::D3D9Ex:
         __SK_DLL_Backend = L"d3d9";
+        SK_SetDLLRole (DLL_ROLE::D3D9);
         break;
       case SK_RenderAPI::OpenGL:
         __SK_DLL_Backend = L"OpenGL32";
+        SK_SetDLLRole (DLL_ROLE::OpenGL);
         break;
     }
   }
@@ -1839,7 +1844,6 @@ SK_Bypass_CRT (LPVOID user)
   std::wstring temp_dll = L"";
 
 
-
   SK_LoadConfig (wszConfigName);
 
   if (SUCCEEDED (hr))
@@ -1919,7 +1923,7 @@ SK_Bypass_CRT (LPVOID user)
 #endif
                          )
                       );
-            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::D3D9);
           }
         }
         break;
@@ -1950,7 +1954,7 @@ SK_Bypass_CRT (LPVOID user)
 
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DXGI);
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
                            SK_GetDocumentsDir ().c_str (),
@@ -1985,7 +1989,7 @@ SK_Bypass_CRT (LPVOID user)
           }
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DXGI);
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
                            SK_GetDocumentsDir ().c_str (),
@@ -2027,7 +2031,7 @@ SK_Bypass_CRT (LPVOID user)
 
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::OpenGL);
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
                            SK_GetDocumentsDir ().c_str (),
@@ -2078,7 +2082,7 @@ SK_Bypass_CRT (LPVOID user)
 
             else
             {
-              SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+              SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::D3D8);
               temp_dll = SK_UTF8ToWideChar (
                            SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
                              SK_GetDocumentsDir ().c_str (),
@@ -2113,7 +2117,7 @@ SK_Bypass_CRT (LPVOID user)
               SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DDraw);
             else
             {
-              SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+              SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DDraw);
 
               temp_dll = SK_UTF8ToWideChar (
                            SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",

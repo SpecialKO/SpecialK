@@ -1,4 +1,13 @@
+0.8.18:
+ 
+ + Added version info to wrapper DLL installations; updating is not supported
+ + Installing a wrapper DLL through the compat menu now copies the config from the
+     global profile.
+ + Uninstalling a wrapper DLL copies the local config back to the global profile
+ + Fixed G-Sync indicator in D3D11
+
 0.8.17:
+
  + Added Last-Known-RenderAPI to Special K's INI file to help with the auto-detect
      mechanism on the compatibility menu
  + Corrected scenario where having a local API wrapper version of Special K in-place
@@ -34,6 +43,7 @@
  + Added Fullscreen override option to control panel for D3D9 games
 
 0.8.14:
+
  + Add D3D11 Safe Fullscreen option for games that disable fullscreen mode
     (i.e. LEGO City Undercover, Final Fantasy X/X-2, anything on Windows Store)
     ==> Set SafeFullscreenMode in dxgi.ini / SpecialK.ini, then press Alt+Enter
@@ -61,6 +71,7 @@
  + Fixed Overlay Rendering in Pillars of Eternity / Tyranny / Torment
 
 0.8.13:
+
  + Removed Chinese Unicode code points from ImGui font; added Latin punctuation
  + Fixed NieR: Automata Texture Staging
  + Added Thread Local Storage Stack
@@ -85,6 +96,7 @@
  + Remove Malware detection, I have no intention to maintain that feature
 
 0.8.12.3:
+
  + Added game playtime to control panel title
  + Added Synaptics touchpad mousewheel support for DirectInput/RawInput/HID
  + Added temporary file cleanup (i.e. SKI*.tmp, Version\*.old, ...) to DLL init.
@@ -99,16 +111,19 @@
      may not function correctly in some D3D9Ex games.
 
 0.8.12.2:
+
  + Added a D3D9 ForceWindowed override to SpecialK.ini
  + Fixed SteamAPI exception handling in 32-bit ABI (Steam overlay callback)
  + Fixed double-input processing through PeekMessage
  + Fixed CEGUI / ImGui reset on multi-frame D3D9 device loss recovery
 
 0.8.12.1:
+
  + Added 1.5 second delay unload for blacklisted applications to prevent performance
      problems when the CBT hook inevitably tries to re-inject the DLL.
 
 0.8.12:
+
  + Removed legacy command console code (low-level keyboard hook, message pump)
  + Removed FreeLibrary hook, memory leaks in other software were being caught
      while debugging... it was obnoxious ;)
