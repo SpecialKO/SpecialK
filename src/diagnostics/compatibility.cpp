@@ -1205,7 +1205,9 @@ TaskDialogCallback (
   UNREFERENCED_PARAMETER (wParam);
 
   if (uNotification == TDN_TIMER)
+  {
     SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
+  }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
   {
@@ -1215,6 +1217,18 @@ TaskDialogCallback (
 
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
+    LONG_PTR style    = GetWindowLongPtrW (hWnd, GWL_STYLE);
+    LONG_PTR style_ex = GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
+
+    SetWindowLongPtrW (hWnd, GWL_STYLE,   style    | WS_POPUP);    
+    SetWindowLongPtrW (hWnd, GWL_EXSTYLE, style_ex | WS_EX_TOPMOST | WS_EX_APPWINDOW);
+
+    SetWindowPos      ( hWnd, HWND_TOPMOST,
+                          0, 0,
+                          0, 0,
+                            SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
+                            SWP_NOMOVE         | SWP_NOSIZE );
+
     while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0) > 1)
       Sleep_Original (10);
 
@@ -1224,7 +1238,9 @@ TaskDialogCallback (
   }
 
   if (uNotification == TDN_CREATED)
+  {
     SK_bypass_dialog_hwnd = hWnd;
+  }
 
   if (uNotification == TDN_DESTROYED) {
     SK_bypass_dialog_hwnd = 0;

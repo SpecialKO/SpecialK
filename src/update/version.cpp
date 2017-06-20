@@ -45,16 +45,29 @@ std::wstring __SK_LastProductTested = L"";
 #include <SpecialK/config.h>
 
 std::wstring
+SK_SYS_GetVersionPath (void)
+{
+  if (! SK_IsInjected ())
+  {
+    if (! config.system.central_repository)
+      return std::wstring (SK_GetRootPath ()) + L"\\Version\\";
+    else
+      return std::wstring (std::wstring (SK_GetConfigPath ()) + L"\\Version\\");
+  }
+
+  else {
+    std::wstring path  = SK_GetDocumentsDir ();
+                 path += L"\\My Mods\\SpecialK\\Version\\";
+          return path;
+  }
+}
+
+std::wstring
 SK_SYS_GetInstallPath (void)
 {
   if (! SK_IsInjected ())
   {
-    // TODO: Add VersionPath :)
-    if (! config.system.central_repository)
-      return SK_GetRootPath   ();
-    else
-      return std::wstring (std::wstring (SK_GetConfigPath ()) + L"\\");
-          // std::wstring (std::wstring (SK_GetHostPath ()) + L"\\");
+    return SK_GetRootPath ();
   }
 
   else {
@@ -67,13 +80,13 @@ SK_SYS_GetInstallPath (void)
 std::wstring
 SK_Version_GetInstallIniPath (void)
 {
-  return SK_SYS_GetInstallPath () + std::wstring (L"Version\\installed.ini");
+  return SK_SYS_GetVersionPath () + std::wstring (L"installed.ini");
 }
 
 std::wstring
 SK_Version_GetRepoIniPath (void)
 {
-  return SK_SYS_GetInstallPath () + std::wstring (L"Version\\repository.ini");
+  return SK_SYS_GetVersionPath () + std::wstring (L"repository.ini");
 }
 
 
@@ -282,9 +295,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   HINTERNET hInetGitHub =
     InternetConnect ( hInetRoot,
-                        use_gitlab ?
-                          L"gitlab.com" :
-                          L"raw.githubusercontent.com",
+                        L"raw.githubusercontent.com",
                           INTERNET_DEFAULT_HTTP_PORT,
                             nullptr, nullptr,
                               INTERNET_SERVICE_HTTP,
@@ -299,7 +310,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   wchar_t wszRemoteRepoURL [MAX_PATH] = { L'\0' };
 
   // TEMPORARILY REBASE TO 0.8.X
-  if (use_gitlab)
+  if (! lstrcmpW (wszProduct, L"SpecialK"))
     swprintf ( wszRemoteRepoURL,
                  L"/Kaldaien/%s/0.8.x/version.ini",
                    wszProduct );
@@ -627,9 +638,9 @@ SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
     wchar_t wszFormatted [128] = { L'\0' };
 
     if (freq > 0 && freq < MAXULONGLONG)
-      wsprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
+      _swprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
     else
-      wsprintf (wszFormatted, L"never");
+      _swprintf (wszFormatted, L"never");
 
     if (! user_prefs.contains_key (L"Frequency"))
       user_prefs.add_key_value (L"Frequency", wszFormatted);
@@ -719,7 +730,7 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
       repo_ini.parse    ();
 
     wchar_t wszFormatted [256] = { L'\0' };
-    wsprintf (wszFormatted, L"Version.%hs", szBranch);
+    _swprintf (wszFormatted, L"Version.%hs", szBranch);
 
     if (repo_ini.contains_section (wszFormatted))
     {

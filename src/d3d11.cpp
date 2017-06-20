@@ -4475,6 +4475,7 @@ D3D11Dev_CreateSamplerState_Override
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
   _Out_opt_       ID3D11SamplerState **ppSamplerState )
 {
+#if 0
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
   if ( new_desc.Filter == D3D11_FILTER_MIN_MAG_MIP_LINEAR       ||
@@ -4490,12 +4491,10 @@ D3D11Dev_CreateSamplerState_Override
   HRESULT hr =
     D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
 
-  if (FAILED (hr))
-  {
-    return D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
-  }
-
-  return hr;
+  if (SUCCEEDED (hr))
+    return hr;
+#endif
+  return D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
 }
 
 

@@ -26,6 +26,7 @@
 #include <map>
 
 // [!!] Can't DLL export these, they return a C++ string
+std::wstring SK_SYS_GetVersionPath        (void);
 std::wstring SK_SYS_GetInstallPath        (void);
 std::wstring SK_Version_GetRepoIniPath    (void);
 std::wstring SK_Version_GetInstallIniPath (void);

@@ -1934,6 +1934,7 @@ struct sk_host_process_s {
   wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
   wchar_t wszFullName  [ MAX_PATH * 2 ] = { L'\0' };
   wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszSystemDir [ MAX_PATH * 2 ] = { L'\0' };
 } host_proc;
 
 bool
@@ -2139,6 +2140,34 @@ SK_GetHostPath (void)
 
   return host_proc.wszPath;
 }
+
+
+const wchar_t*
+SK_GetSystemDirectory (void)
+{
+  static volatile
+    ULONG init = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+#ifdef _WIN64
+    GetSystemDirectory (host_proc.wszSystemDir, MAX_PATH);
+#else
+    HANDLE hProc = GetCurrentProcess ();
+
+    BOOL   bWOW64;
+    ::IsWow64Process (hProc, &bWOW64);
+
+    if (bWOW64)
+      GetSystemWow64Directory (host_proc.wszSystemDir, MAX_PATH);
+    else
+      GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
+#endif
+  }
+
+  return host_proc.wszSystemDir;
+}
+
 
 
 
@@ -2436,7 +2465,24 @@ SK_RestartGame (const wchar_t* wszDLL)
                           MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
     }
 
-    ExitProcess   (0x00);
+    else if (SK_HasGlobalInjector ())
+    {
+      std::wstring global_dll = SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
+
+#ifdef _WIN64
+      global_dll += L"64.dll";
+#else
+      global_dll += L"32.dll";
+#endif
+
+                wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH - 1 );
+      GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1);
+
+
+    }
+
+    if (SK_FileHasSpaces (wszShortPath))
+      ExitProcess (0x00);
   }
 
   _swprintf ( wszRunDLLCmd,

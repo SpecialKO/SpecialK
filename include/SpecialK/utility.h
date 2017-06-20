@@ -64,6 +64,7 @@ __cdecl        SK_FormatString         (char const* const _Format, ...);
 void           SK_SetNormalFileAttribs (std::wstring file);
 
 const wchar_t* SK_GetHostApp           (void);
+const wchar_t* SK_GetSystemDirectory   (void);
 iSK_INI*       SK_GetDLLConfig         (void);
 
 #pragma intrinsic (_ReturnAddress)

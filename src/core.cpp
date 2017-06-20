@@ -831,11 +831,6 @@ SK_InitFinishCallback (void)
 
   SK_SaveConfig (config_name);
 
-  // For the global injector, when not started by SKIM, check its version
-  //if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-    CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
-
-
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->Start ();
 
@@ -1187,6 +1182,183 @@ WaitForInit (void)
   }
 }
 
+typedef HWND (WINAPI *CreateWindowW_pfn)(
+  _In_opt_ LPCWSTR   lpClassName,
+  _In_opt_ LPCWSTR   lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam
+);
+
+typedef HWND (WINAPI *CreateWindowA_pfn)(
+  _In_opt_ LPCSTR    lpClassName,
+  _In_opt_ LPCSTR    lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam
+);
+
+typedef HWND (WINAPI *CreateWindowExW_pfn)(
+  _In_     DWORD     dwExStyle,
+  _In_opt_ LPCWSTR   lpClassName,
+  _In_opt_ LPCWSTR   lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam
+);
+
+typedef HWND (WINAPI *CreateWindowExA_pfn)(
+  _In_     DWORD     dwExStyle,
+  _In_opt_ LPCSTR    lpClassName,
+  _In_opt_ LPCSTR    lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam
+);
+
+CreateWindowW_pfn    CreateWindowW_Original   = nullptr;
+CreateWindowA_pfn    CreateWindowA_Original   = nullptr;
+CreateWindowExW_pfn  CreateWindowExW_Original = nullptr;
+CreateWindowExA_pfn  CreateWindowExA_Original = nullptr;
+
+HWND
+WINAPI
+CreateWindowW_Detour (
+  _In_opt_ LPCWSTR   lpClassName,
+  _In_opt_ LPCWSTR   lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+      Sleep (0);
+  }
+
+  return CreateWindowW_Original ( lpClassName, lpWindowName, dwStyle,
+                                    x, y, nWidth, nHeight,
+                                      hWndParent, hMenu, hInstance,
+                                        lpParam );
+}
+
+HWND
+WINAPI
+CreateWindowA_Detour (
+  _In_opt_ LPCSTR    lpClassName,
+  _In_opt_ LPCSTR    lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam)
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+      Sleep (0);
+  }
+
+  return CreateWindowA_Original ( lpClassName, lpWindowName, dwStyle,
+                                    x, y, nWidth, nHeight,
+                                      hWndParent, hMenu, hInstance,
+                                        lpParam );
+}
+
+HWND
+WINAPI
+CreateWindowExW_Detour (
+  _In_     DWORD     dwExStyle,
+  _In_opt_ LPCWSTR   lpClassName,
+  _In_opt_ LPCWSTR   lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+      Sleep (0);
+  }
+
+  return CreateWindowExW_Original ( dwExStyle,
+                                      lpClassName, lpWindowName,
+                                        dwStyle,
+                                          x, y, nWidth, nHeight,
+                                            hWndParent, hMenu, hInstance,
+                                              lpParam );
+}
+
+HWND
+WINAPI
+CreateWindowExA_Detour (
+  _In_     DWORD     dwExStyle,
+  _In_opt_ LPCSTR    lpClassName,
+  _In_opt_ LPCSTR    lpWindowName,
+  _In_     DWORD     dwStyle,
+  _In_     int       x,
+  _In_     int       y,
+  _In_     int       nWidth,
+  _In_     int       nHeight,
+  _In_opt_ HWND      hWndParent,
+  _In_opt_ HMENU     hMenu,
+  _In_opt_ HINSTANCE hInstance,
+  _In_opt_ LPVOID    lpParam )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+      Sleep (0);
+  }
+
+  return CreateWindowExA_Original ( dwExStyle,
+                                      lpClassName, lpWindowName,
+                                        dwStyle,
+                                          x, y, nWidth, nHeight,
+                                            hWndParent, hMenu, hInstance,
+                                              lpParam );
+}
+
 DWORD
 WINAPI
 CheckVersionThread (LPVOID user)
@@ -1195,12 +1367,16 @@ CheckVersionThread (LPVOID user)
 
   InterlockedIncrement (&SK_bypass_dialog_active);
 
-  if (SK_FetchVersionInfo (L"SpecialK"))
+  // If a local repository is present, use that.
+  if (GetFileAttributes (L"Version\\installed.ini") == INVALID_FILE_ATTRIBUTES)
   {
-    // ↑ Check, but ↓ don't update unless running the global injector version
-    if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+    if (SK_FetchVersionInfo (L"SpecialK"))
     {
-      SK_UpdateSoftware (L"SpecialK");
+      // ↑ Check, but ↓ don't update unless running the global injector version
+      if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+      {
+        SK_UpdateSoftware (L"SpecialK");
+      }
     }
   }
 
@@ -1389,6 +1565,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       //FreeLibrary_Original (SK_GetDLL ());
       return true;
     }
+
+    // For the global injector, when not started by SKIM, check its version
+    //if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+      CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
   }
 
   // Don't let Steam prevent me from attaching a debugger at startup
@@ -1775,6 +1955,13 @@ void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
+  // Throttle, but do not deadlock the render loop
+  while (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
+    Sleep_Original (166);
+
+  // ^^^ Use condition variable instead
+
+
   // Maybe make this into an option, but for now just get this the hell out of there
   //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
   _controlfp (MCW_EM, MCW_EM);
@@ -1789,13 +1976,6 @@ SK_BeginBufferSwap (void)
 
     SK_ImGui_LoadFonts ();
   }
-
-
-  // Throttle, but do not deadlock the render loop
-  while (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
-    Sleep_Original (166);
-
-  // ^^^ Use condition variable instead
 
 
   static int import_tries = 0;

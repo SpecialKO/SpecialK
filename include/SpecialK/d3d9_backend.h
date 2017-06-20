@@ -690,4 +690,279 @@ namespace SK
   }
 }
 
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9PresentDevice_pfn)(
+           IDirect3DDevice9    *This,
+_In_ const RECT                *pSourceRect,
+_In_ const RECT                *pDestRect,
+_In_       HWND                 hDestWindowOverride,
+_In_ const RGNDATA             *pDirtyRegion);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9PresentDeviceEx_pfn)(
+           IDirect3DDevice9Ex  *This,
+_In_ const RECT                *pSourceRect,
+_In_ const RECT                *pDestRect,
+_In_       HWND                 hDestWindowOverride,
+_In_ const RGNDATA             *pDirtyRegion,
+_In_       DWORD                dwFlags);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9PresentSwapChain_pfn)(
+             IDirect3DSwapChain9 *This,
+  _In_ const RECT                *pSourceRect,
+  _In_ const RECT                *pDestRect,
+  _In_       HWND                 hDestWindowOverride,
+  _In_ const RGNDATA             *pDirtyRegion,
+  _In_       DWORD                dwFlags);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9PresentSwapChainEx_pfn)(
+  IDirect3DDevice9Ex  *This,
+  _In_ const RECT                *pSourceRect,
+  _In_ const RECT                *pDestRect,
+  _In_       HWND                 hDestWindowOverride,
+  _In_ const RGNDATA             *pDirtyRegion,
+  _In_       DWORD                dwFlags);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9CreateDevice_pfn)(
+           IDirect3D9             *This,
+           UINT                    Adapter,
+           D3DDEVTYPE              DeviceType,
+           HWND                    hFocusWindow,
+           DWORD                   BehaviorFlags,
+           D3DPRESENT_PARAMETERS  *pPresentationParameters,
+           IDirect3DDevice9      **ppReturnedDeviceInterface);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9CreateDeviceEx_pfn)(
+           IDirect3D9Ex           *This,
+           UINT                    Adapter,
+           D3DDEVTYPE              DeviceType,
+           HWND                    hFocusWindow,
+           DWORD                   BehaviorFlags,
+           D3DPRESENT_PARAMETERS  *pPresentationParameters,
+           D3DDISPLAYMODEEX       *pFullscreenDisplayMode,
+           IDirect3DDevice9Ex    **ppReturnedDeviceInterface);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9Reset_pfn)(
+           IDirect3DDevice9      *This,
+           D3DPRESENT_PARAMETERS *pPresentationParameters);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9ResetEx_pfn)(
+           IDirect3DDevice9Ex    *This,
+           D3DPRESENT_PARAMETERS *pPresentationParameters,
+           D3DDISPLAYMODEEX      *pFullscreenDisplayMode );
+
+typedef void (STDMETHODCALLTYPE *SetGammaRamp_pfn)(
+           IDirect3DDevice9      *This,
+_In_       UINT                   iSwapChain,
+_In_       DWORD                  Flags,
+_In_ const D3DGAMMARAMP          *pRamp );
+
+typedef HRESULT (STDMETHODCALLTYPE *DrawPrimitive_pfn)
+  ( IDirect3DDevice9* This,
+    D3DPRIMITIVETYPE  PrimitiveType,
+    UINT              StartVertex,
+    UINT              PrimitiveCount );
+
+typedef HRESULT (STDMETHODCALLTYPE *DrawIndexedPrimitive_pfn)
+  ( IDirect3DDevice9* This,
+    D3DPRIMITIVETYPE  Type,
+    INT               BaseVertexIndex,
+    UINT              MinVertexIndex,
+    UINT              NumVertices,
+    UINT              startIndex,
+    UINT              primCount );
+
+typedef HRESULT (STDMETHODCALLTYPE *DrawPrimitiveUP_pfn)
+  ( IDirect3DDevice9* This,
+    D3DPRIMITIVETYPE  PrimitiveType,
+    UINT              PrimitiveCount,
+    const void       *pVertexStreamZeroData,
+    UINT              VertexStreamZeroStride );
+
+typedef HRESULT (STDMETHODCALLTYPE *DrawIndexedPrimitiveUP_pfn)
+  ( IDirect3DDevice9* This,
+    D3DPRIMITIVETYPE  PrimitiveType,
+    UINT              MinVertexIndex,
+    UINT              NumVertices,
+    UINT              PrimitiveCount,
+    const void       *pIndexData,
+    D3DFORMAT         IndexDataFormat,
+    const void       *pVertexStreamZeroData,
+    UINT              VertexStreamZeroStride );
+
+typedef HRESULT (STDMETHODCALLTYPE *SetTexture_pfn)
+  (     IDirect3DDevice9      *This,
+   _In_ DWORD                  Sampler,
+   _In_ IDirect3DBaseTexture9 *pTexture);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetSamplerState_pfn)
+  (IDirect3DDevice9*   This,
+   DWORD               Sampler,
+   D3DSAMPLERSTATETYPE Type,
+   DWORD               Value);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetViewport_pfn)
+  (      IDirect3DDevice9* This,
+   CONST D3DVIEWPORT9*     pViewport);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetRenderState_pfn)
+  (IDirect3DDevice9*  This,
+   D3DRENDERSTATETYPE State,
+   DWORD              Value);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetVertexShaderConstantF_pfn)
+  (IDirect3DDevice9* This,
+    UINT             StartRegister,
+    CONST float*     pConstantData,
+    UINT             Vector4fCount);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetPixelShaderConstantF_pfn)
+  (IDirect3DDevice9* This,
+    UINT             StartRegister,
+    CONST float*     pConstantData,
+    UINT             Vector4fCount);
+
+struct IDirect3DPixelShader9;
+
+typedef HRESULT (STDMETHODCALLTYPE *SetPixelShader_pfn)
+  (IDirect3DDevice9*      This,
+   IDirect3DPixelShader9* pShader);
+
+struct IDirect3DVertexShader9;
+
+typedef HRESULT (STDMETHODCALLTYPE *SetVertexShader_pfn)
+  (IDirect3DDevice9*       This,
+   IDirect3DVertexShader9* pShader);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetScissorRect_pfn)
+  (IDirect3DDevice9* This,
+   CONST RECT*       pRect);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateTexture_pfn)
+  (IDirect3DDevice9   *This,
+   UINT                Width,
+   UINT                Height,
+   UINT                Levels,
+   DWORD               Usage,
+   D3DFORMAT           Format,
+   D3DPOOL             Pool,
+   IDirect3DTexture9 **ppTexture,
+   HANDLE             *pSharedHandle);
+
+struct IDirect3DSurface9;
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateVertexBuffer_pfn)
+(
+  _In_  IDirect3DDevice9        *This,
+  _In_  UINT                     Length,
+  _In_  DWORD                    Usage,
+  _In_  DWORD                    FVF,
+  _In_  D3DPOOL                  Pool,
+  _Out_ IDirect3DVertexBuffer9 **ppVertexBuffer,
+  _In_  HANDLE                  *pSharedHandle
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetStreamSource_pfn)
+(
+  IDirect3DDevice9       *This,
+  UINT                    StreamNumber,
+  IDirect3DVertexBuffer9 *pStreamData,
+  UINT                    OffsetInBytes,
+  UINT                    Stride
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetStreamSourceFreq_pfn)
+( _In_ IDirect3DDevice9 *This,
+  _In_ UINT              StreamNumber,
+  _In_ UINT              FrequencyParameter
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetFVF_pfn)
+(
+  IDirect3DDevice9 *This,
+  DWORD             FVF
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetVertexDeclaration_pfn)
+(
+  IDirect3DDevice9            *This,
+  IDirect3DVertexDeclaration9 *pDecl
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateRenderTarget_pfn)
+  (IDirect3DDevice9     *This,
+   UINT                  Width,
+   UINT                  Height,
+   D3DFORMAT             Format,
+   D3DMULTISAMPLE_TYPE   MultiSample,
+   DWORD                 MultisampleQuality,
+   BOOL                  Lockable,
+   IDirect3DSurface9   **ppSurface,
+   HANDLE               *pSharedHandle);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateDepthStencilSurface_pfn)
+  (IDirect3DDevice9     *This,
+   UINT                  Width,
+   UINT                  Height,
+   D3DFORMAT             Format,
+   D3DMULTISAMPLE_TYPE   MultiSample,
+   DWORD                 MultisampleQuality,
+   BOOL                  Discard,
+   IDirect3DSurface9   **ppSurface,
+   HANDLE               *pSharedHandle);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetRenderTarget_pfn)
+  (IDirect3DDevice9  *This,
+   DWORD              RenderTargetIndex,
+   IDirect3DSurface9 *pRenderTarget);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetDepthStencilSurface_pfn)
+  (IDirect3DDevice9  *This,
+   IDirect3DSurface9 *pNewZStencil);
+
+struct IDirect3DBaseTexture9;
+
+typedef HRESULT (STDMETHODCALLTYPE *UpdateTexture_pfn)
+  (IDirect3DDevice9      *This,
+   IDirect3DBaseTexture9 *pSourceTexture,
+   IDirect3DBaseTexture9 *pDestinationTexture);
+
+typedef HRESULT (STDMETHODCALLTYPE *StretchRect_pfn)
+  (      IDirect3DDevice9    *This,
+         IDirect3DSurface9   *pSourceSurface,
+   const RECT                *pSourceRect,
+         IDirect3DSurface9   *pDestSurface,
+   const RECT                *pDestRect,
+         D3DTEXTUREFILTERTYPE Filter);
+
+typedef HRESULT (STDMETHODCALLTYPE *SetCursorPosition_pfn)
+(
+       IDirect3DDevice9 *This,
+  _In_ INT               X,
+  _In_ INT               Y,
+  _In_ DWORD             Flags
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *TestCooperativeLevel_pfn)(IDirect3DDevice9* This);
+
+typedef HRESULT (STDMETHODCALLTYPE *BeginScene_pfn)
+  (IDirect3DDevice9* This);
+
+typedef HRESULT (STDMETHODCALLTYPE *EndScene_pfn)
+  (IDirect3DDevice9* This);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateVertexDeclaration_pfn)
+(
+        IDirect3DDevice9             *This,
+  CONST D3DVERTEXELEMENT9            *pVertexElements,
+        IDirect3DVertexDeclaration9 **ppDecl
+);
+
+
+typedef HRESULT (STDMETHODCALLTYPE *GetSwapChain_pfn)
+  (IDirect3DDevice9* This, UINT iSwapChain, IDirect3DSwapChain9** pSwapChain);
+
+typedef HRESULT (STDMETHODCALLTYPE *CreateAdditionalSwapChain_pfn)
+  (IDirect3DDevice9* This, D3DPRESENT_PARAMETERS* pPresentationParameters,
+   IDirect3DSwapChain9** pSwapChain);
+
 #endif /* __SK__D3D9_BACKEND_H__ */

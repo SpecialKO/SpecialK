@@ -35,6 +35,8 @@
 #include <SpecialK/update/archive.h>
 #include <SpecialK/update/network.h>
 
+#include <SpecialK/window.h>
+
 #include <Windows.h>
 #include <windowsx.h>
 
@@ -518,10 +520,30 @@ DownloadDialogCallback (
     return S_OK;
   }
 
-  if (uNotification == TDN_DIALOG_CONSTRUCTED) {
+  if (uNotification == TDN_DIALOG_CONSTRUCTED)
+  {
+    BringWindowToTop    (hWnd);
+    SetForegroundWindow (hWnd);
+    SetActiveWindow     (hWnd);
+    SetFocus            (hWnd);
+
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, 1));
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_POS,   1,           0L);
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
+
+    LONG_PTR style    = GetWindowLongPtrW (hWnd, GWL_STYLE);
+    LONG_PTR style_ex = GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
+
+    SetWindowLongPtrW (hWnd, GWL_STYLE,   style    | WS_POPUP);    
+    SetWindowLongPtrW (hWnd, GWL_EXSTYLE, style_ex | WS_EX_TOPMOST | WS_EX_APPWINDOW);
+
+    SetWindowPos      ( hWnd, HWND_TOPMOST,
+                          0, 0,
+                          0, 0,
+                            SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
+                            SWP_NOMOVE         | SWP_NOSIZE );
+
+    SK_RealizeForegroundWindow (hWnd);
 
     return S_OK;
   }
@@ -784,11 +806,27 @@ Update_DlgProc (
               switch (uNotification)
               {
                 case TDN_CREATED:
+                {
                   BringWindowToTop    (hWnd);
                   SetForegroundWindow (hWnd);
                   SetActiveWindow     (hWnd);
                   SetFocus            (hWnd);
-                  break;
+
+                  LONG_PTR style    = GetWindowLongPtrW (hWnd, GWL_STYLE);
+                  LONG_PTR style_ex = GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
+
+                  SetWindowLongPtrW (hWnd, GWL_STYLE,   style    | WS_POPUP);
+                  SetWindowLongPtrW (hWnd, GWL_EXSTYLE, style_ex | WS_EX_TOPMOST | WS_EX_APPWINDOW);
+
+                  SetWindowPos      ( hWnd, HWND_TOPMOST,
+                                        0, 0,
+                                        0, 0,
+                                          SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
+                                          SWP_NOMOVE         | SWP_NOSIZE );
+
+                  SK_RealizeForegroundWindow (hWnd);
+
+                } break;
 
                 case TDN_HYPERLINK_CLICKED:
                   ShellExecuteW ( nullptr,
@@ -1078,14 +1116,13 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
       wchar_t   wszUpdateFile [MAX_PATH] = { L'\0' };
 
-      lstrcatW (wszUpdateFile, SK_SYS_GetInstallPath ().c_str ());
-      lstrcatW (wszUpdateFile, L"Version\\");
+      lstrcatW (wszUpdateFile, SK_SYS_GetVersionPath ().c_str ());
 
       wchar_t wszUpdateTempFile [MAX_PATH];
 
       swprintf ( wszUpdateTempFile,
-                   L"%sVersion\\%s.7z",
-                     SK_SYS_GetInstallPath ().c_str (),
+                   L"%s%s.7z",
+                     SK_SYS_GetVersionPath ().c_str (),
                        build.latest.package );
 
       wcsncpy (get->wszLocalPath, wszUpdateTempFile, MAX_PATH - 1);

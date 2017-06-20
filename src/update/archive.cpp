@@ -244,10 +244,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     lstrcatW (wszDestPath, files [i].name.c_str ());
 
-    if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES) {
-      wcscpy (wszMovePath, SK_SYS_GetInstallPath ().c_str ());
-
-      lstrcatW (wszMovePath, L"Version\\");
+    if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES)
+    {
+      wcscpy (wszMovePath, SK_SYS_GetVersionPath ().c_str ());
 
       if (           wszOldVersion != nullptr &&
            lstrlenW (wszOldVersion)           &&
