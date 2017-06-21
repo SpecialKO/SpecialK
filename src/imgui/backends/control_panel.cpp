@@ -78,7 +78,7 @@ extern const wchar_t* __stdcall SK_GetBackend (void);
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
 
-       bool               SK_DXGI_SlowStateCache = false;
+       bool               SK_DXGI_FullStateCache = true;
 
 extern GetCursorInfo_pfn GetCursorInfo_Original;
        bool              cursor_vis      = false;

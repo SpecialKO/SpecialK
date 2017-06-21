@@ -1,5 +1,6 @@
 0.8.19:
 
+ + [D3D11] Fixed stateblock leak that prevented ResizeBuffers (...) from working
  + Fixed late initialization problems if compat menu is dismissed by pressing OK
  + Added version to compatibility menu
  + Improved compatibility menu and update menu's input focus behavior

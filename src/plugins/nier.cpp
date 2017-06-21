@@ -1827,16 +1827,16 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
                                               L"FAR.Compatibility",
                                                 L"NoD3D11Interop" );
 
-    extern bool SK_DXGI_SlowStateCache;
+    extern bool SK_DXGI_FullStateCache;
 
     if (! far_slow_state_cache->load ())
-      SK_DXGI_SlowStateCache = true;
+      SK_DXGI_FullStateCache = false;
     else
-      SK_DXGI_SlowStateCache = far_slow_state_cache->get_value ();
+      SK_DXGI_FullStateCache = far_slow_state_cache->get_value ();
 
-    config.render.dxgi.slow_state_cache = SK_DXGI_SlowStateCache;
+    config.render.dxgi.full_state_cache = SK_DXGI_FullStateCache;
 
-    far_slow_state_cache->set_value (SK_DXGI_SlowStateCache);
+    far_slow_state_cache->set_value (SK_DXGI_FullStateCache);
     far_slow_state_cache->store     ();
 
 

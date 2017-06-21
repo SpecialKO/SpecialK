@@ -1299,7 +1299,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"HookType" );
   }
 
-  if (SK_IsInjected () || (SK_GetDLLRole () & (DLL_ROLE::DXGI))) {
     render.framerate.max_delta_time =
       static_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
@@ -1550,7 +1549,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Textures.Cache",
           L"IgnoreNonMipmapped" );
-  }
 
 
   nvidia.api.disable =
@@ -2050,8 +2048,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
                                             //      Razer *, RTSS (Sometimes)
                                             //
 
-  extern bool SK_DXGI_SlowStateCache;
-              SK_DXGI_SlowStateCache = config.render.dxgi.slow_state_cache;
+  extern bool SK_DXGI_FullStateCache;
+              SK_DXGI_FullStateCache = config.render.dxgi.full_state_cache;
 
 
   // Default = Don't Care
@@ -2161,22 +2159,22 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.textures.cache.ignore_nonmipped = true;
         config.textures.cache.max_size         = 4096;
 
-        config.render.dxgi.slow_state_cache    = true;
+        config.render.dxgi.full_state_cache    = true;
         break;
 
 
       case SK_GAME_ID::MadMax:
         // Misnomer: This uses D3D11 interop to backup D3D11.1+ states,
         //   only MadMax needs this AS FAR AS I KNOW.
-        config.render.dxgi.slow_state_cache = false;
-        SK_DXGI_SlowStateCache              = config.render.dxgi.slow_state_cache;
+        config.render.dxgi.full_state_cache = true;
+        SK_DXGI_FullStateCache              = config.render.dxgi.full_state_cache;
         break;
 
 
       case SK_GAME_ID::Dreamfall_Chapters:
         // One of only a handful of games where the interop hack does not work
-        config.render.dxgi.slow_state_cache    = true;
-        SK_DXGI_SlowStateCache                 = config.render.dxgi.slow_state_cache;
+        config.render.dxgi.full_state_cache    = true;
+        SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
 
         config.system.trace_load_library       = true;
         config.system.strict_compliance        = false;
@@ -2462,250 +2460,250 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.render.framerate.sleepless_window =
       render.framerate.sleepless_window->get_value ();
 
-  if ( SK_IsInjected () ||
-         ( SK_GetDLLRole () & DLL_ROLE::D3D9 ||
-           SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
-    // SLI only works in Direct3D
-    if (nvidia.sli.compatibility->load ())
-      config.nvidia.sli.compatibility =
-        nvidia.sli.compatibility->get_value ();
-    if (nvidia.sli.mode->load ())
-      config.nvidia.sli.mode =
-        nvidia.sli.mode->get_value ();
-    if (nvidia.sli.num_gpus->load ())
-      config.nvidia.sli.num_gpus =
-        nvidia.sli.num_gpus->get_value ();
-    if (nvidia.sli.override->load ())
-      config.nvidia.sli.override =
-        nvidia.sli.override->get_value ();
+  // D3D9/11
+  //
 
-    if (render.framerate.wait_for_vblank->load ())
-      config.render.framerate.wait_for_vblank =
-        render.framerate.wait_for_vblank->get_value ();
-    if (render.framerate.buffer_count->load ())
-      config.render.framerate.buffer_count =
-        render.framerate.buffer_count->get_value ();
-    if (render.framerate.prerender_limit->load ())
-      config.render.framerate.pre_render_limit =
-        render.framerate.prerender_limit->get_value ();
-    if (render.framerate.present_interval->load ())
-      config.render.framerate.present_interval =
-        render.framerate.present_interval->get_value ();
+  // SLI only works in Direct3D
+  if (nvidia.sli.compatibility->load ())
+    config.nvidia.sli.compatibility =
+      nvidia.sli.compatibility->get_value ();
+  if (nvidia.sli.mode->load ())
+    config.nvidia.sli.mode =
+      nvidia.sli.mode->get_value ();
+  if (nvidia.sli.num_gpus->load ())
+    config.nvidia.sli.num_gpus =
+      nvidia.sli.num_gpus->get_value ();
+  if (nvidia.sli.override->load ())
+    config.nvidia.sli.override =
+      nvidia.sli.override->get_value ();
 
-    if (render.framerate.refresh_rate) {
-      if (render.framerate.refresh_rate->load ())
-        config.render.framerate.refresh_rate =
-          render.framerate.refresh_rate->get_value ();
+  if (render.framerate.wait_for_vblank->load ())
+    config.render.framerate.wait_for_vblank =
+      render.framerate.wait_for_vblank->get_value ();
+  if (render.framerate.buffer_count->load ())
+    config.render.framerate.buffer_count =
+      render.framerate.buffer_count->get_value ();
+  if (render.framerate.prerender_limit->load ())
+    config.render.framerate.pre_render_limit =
+      render.framerate.prerender_limit->get_value ();
+  if (render.framerate.present_interval->load ())
+    config.render.framerate.present_interval =
+      render.framerate.present_interval->get_value ();
+
+  if (render.framerate.refresh_rate) {
+    if (render.framerate.refresh_rate->load ())
+      config.render.framerate.refresh_rate =
+        render.framerate.refresh_rate->get_value ();
+  }
+
+  // D3D9
+  //
+  if (compatibility.d3d9.rehook_present->load ())
+    config.compatibility.d3d9.rehook_present =
+      compatibility.d3d9.rehook_present->get_value ();
+  if (compatibility.d3d9.rehook_reset->load ())
+    config.compatibility.d3d9.rehook_reset =
+      compatibility.d3d9.rehook_reset->get_value ();
+
+  if (compatibility.d3d9.hook_present_vtable->load ())
+    config.compatibility.d3d9.hook_present_vftbl =
+      compatibility.d3d9.hook_present_vtable->get_value ();
+  if (compatibility.d3d9.hook_reset_vtable->load ())
+    config.compatibility.d3d9.hook_reset_vftbl =
+      compatibility.d3d9.hook_reset_vtable->get_value ();
+
+  if (render.d3d9.force_d3d9ex->load ())
+    config.render.d3d9.force_d3d9ex =
+      render.d3d9.force_d3d9ex->get_value ();
+  if (render.d3d9.impure->load ())
+    config.render.d3d9.force_impure =
+      render.d3d9.impure->get_value ();
+  if (render.d3d9.hook_type->load ())
+    config.render.d3d9.hook_type =
+      render.d3d9.hook_type->get_value ();
+
+
+  // DXGI
+  //
+  if (render.framerate.max_delta_time->load ())
+    config.render.framerate.max_delta_time =
+      render.framerate.max_delta_time->get_value ();
+  if (render.framerate.flip_discard->load ()) {
+    config.render.framerate.flip_discard =
+      render.framerate.flip_discard->get_value ();
+
+    if (render.framerate.allow_dwm_tearing->load ()) {
+      config.render.dxgi.allow_tearing = render.framerate.allow_dwm_tearing->get_value ();
+      //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
     }
 
-    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9) {
-      if (compatibility.d3d9.rehook_present->load ())
-        config.compatibility.d3d9.rehook_present =
-          compatibility.d3d9.rehook_present->get_value ();
-      if (compatibility.d3d9.rehook_reset->load ())
-        config.compatibility.d3d9.rehook_reset =
-          compatibility.d3d9.rehook_reset->get_value ();
+    extern bool SK_DXGI_use_factory1;
+    if (config.render.framerate.flip_discard)
+      SK_DXGI_use_factory1 = true;
+  }
 
-      if (compatibility.d3d9.hook_present_vtable->load ())
-        config.compatibility.d3d9.hook_present_vftbl =
-          compatibility.d3d9.hook_present_vtable->get_value ();
-      if (compatibility.d3d9.hook_reset_vtable->load ())
-        config.compatibility.d3d9.hook_reset_vftbl =
-          compatibility.d3d9.hook_reset_vtable->get_value ();
+  if (render.dxgi.adapter_override->load ())
+    config.render.dxgi.adapter_override =
+      render.dxgi.adapter_override->get_value ();
 
-      if (render.d3d9.force_d3d9ex->load ())
-        config.render.d3d9.force_d3d9ex =
-          render.d3d9.force_d3d9ex->get_value ();
-      if (render.d3d9.impure->load ())
-        config.render.d3d9.force_impure =
-          render.d3d9.impure->get_value ();
-      if (render.d3d9.hook_type->load ())
-        config.render.d3d9.hook_type =
-          render.d3d9.hook_type->get_value ();
+  if (render.dxgi.max_res->load ()) {
+    swscanf ( render.dxgi.max_res->get_value_str ().c_str (),
+                L"%lux%lu",
+                &config.render.dxgi.res.max.x,
+                  &config.render.dxgi.res.max.y );
+  }
+  if (render.dxgi.min_res->load ()) {
+    swscanf ( render.dxgi.min_res->get_value_str ().c_str (),
+                L"%lux%lu",
+                &config.render.dxgi.res.min.x,
+                  &config.render.dxgi.res.min.y );
+  }
+
+  if (render.dxgi.scaling_mode->load ())
+  {
+    if (! _wcsicmp (
+            render.dxgi.scaling_mode->get_value_str ().c_str (),
+            L"Unspecified"
+          )
+       )
+    {
+      config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_UNSPECIFIED;
     }
 
-    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::DXGI) {
-      if (render.framerate.max_delta_time->load ())
-        config.render.framerate.max_delta_time =
-          render.framerate.max_delta_time->get_value ();
-      if (render.framerate.flip_discard->load ()) {
-        config.render.framerate.flip_discard =
-          render.framerate.flip_discard->get_value ();
+    else if (! _wcsicmp (
+                 render.dxgi.scaling_mode->get_value_str ().c_str (),
+                 L"Centered"
+               )
+            )
+    {
+      config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_CENTERED;
+    }
 
-        if (render.framerate.allow_dwm_tearing->load ()) {
-          config.render.dxgi.allow_tearing = render.framerate.allow_dwm_tearing->get_value ();
-          //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
-        }
-
-        extern bool SK_DXGI_use_factory1;
-        if (config.render.framerate.flip_discard)
-          SK_DXGI_use_factory1 = true;
-      }
-
-      if (render.dxgi.adapter_override->load ())
-        config.render.dxgi.adapter_override =
-          render.dxgi.adapter_override->get_value ();
-
-      if (render.dxgi.max_res->load ()) {
-        swscanf ( render.dxgi.max_res->get_value_str ().c_str (),
-                    L"%lux%lu",
-                    &config.render.dxgi.res.max.x,
-                      &config.render.dxgi.res.max.y );
-      }
-      if (render.dxgi.min_res->load ()) {
-        swscanf ( render.dxgi.min_res->get_value_str ().c_str (),
-                    L"%lux%lu",
-                    &config.render.dxgi.res.min.x,
-                      &config.render.dxgi.res.min.y );
-      }
-
-      if (render.dxgi.scaling_mode->load ())
-      {
-        if (! _wcsicmp (
-                render.dxgi.scaling_mode->get_value_str ().c_str (),
-                L"Unspecified"
-              )
-           )
-        {
-          config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_UNSPECIFIED;
-        }
-
-        else if (! _wcsicmp (
-                     render.dxgi.scaling_mode->get_value_str ().c_str (),
-                     L"Centered"
-                   )
-                )
-        {
-          config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_CENTERED;
-        }
-
-        else if (! _wcsicmp (
-                     render.dxgi.scaling_mode->get_value_str ().c_str (),
-                     L"Stretched"
-                   )
-                )
-        {
-          config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_STRETCHED;
-        }
-      }
-
-      if (render.dxgi.scanline_order->load ())
-      {
-        if (! _wcsicmp (
-                render.dxgi.scanline_order->get_value_str ().c_str (),
-                L"Unspecified"
-              )
-           )
-        {
-          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-        }
-
-        else if (! _wcsicmp (
-                     render.dxgi.scanline_order->get_value_str ().c_str (),
-                     L"Progressive"
-                   )
-                )
-        {
-          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
-        }
-
-        else if (! _wcsicmp (
-                     render.dxgi.scanline_order->get_value_str ().c_str (),
-                     L"LowerFieldFirst"
-                   )
-                )
-        {
-          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
-        }
-
-        else if (! _wcsicmp (
-                     render.dxgi.scanline_order->get_value_str ().c_str (),
-                     L"UpperFieldFirst"
-                   )
-                )
-        {
-          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST;
-        }
-
-        // If a user specifies Interlaced, default to Lower Field First
-        else if (! _wcsicmp (
-                     render.dxgi.scanline_order->get_value_str ().c_str (),
-                     L"Interlaced"
-                   )
-                )
-        {
-          config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
-        }
-      }
-
-      if (render.dxgi.debug_layer->load ())
-        config.render.dxgi.debug_layer = render.dxgi.debug_layer->get_value ();
-
-      if (render.dxgi.exception_mode->load ())
-      {
-        if (! _wcsicmp (
-                render.dxgi.exception_mode->get_value_str ().c_str (),
-                L"Raise"
-              )
-           )
-        {
-          #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
-          config.render.dxgi.exception_mode = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
-        }
-
-        else if (! _wcsicmp (
-                     render.dxgi.exception_mode->get_value_str ().c_str (),
-                     L"Ignore"
-                   )
-                )
-        {
-          config.render.dxgi.exception_mode = 0;
-        }
-        else
-          config.render.dxgi.exception_mode = -1;
-      }
-
-      if (render.dxgi.test_present->load ())
-        config.render.dxgi.test_present = render.dxgi.test_present->get_value ();
-
-      if (render.dxgi.swapchain_wait->load ())
-        config.render.framerate.swapchain_wait = render.dxgi.swapchain_wait->get_value ();
-
-      if (render.dxgi.safe_fullscreen->load ())
-        config.render.dxgi.safe_fullscreen = render.dxgi.safe_fullscreen->get_value ();
-
-      if (texture.d3d11.cache->load ())
-        config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
-      if (texture.d3d11.precise_hash->load ())
-        config.textures.d3d11.precise_hash = texture.d3d11.precise_hash->get_value ();
-      if (texture.d3d11.dump->load ())
-        config.textures.d3d11.dump = texture.d3d11.dump->get_value ();
-      if (texture.d3d11.inject->load ())
-        config.textures.d3d11.inject = texture.d3d11.inject->get_value ();
-      if (texture.d3d11.res_root->load ())
-        config.textures.d3d11.res_root = texture.d3d11.res_root->get_value ();
-
-      if (texture.cache.max_entries->load ())
-        config.textures.cache.max_entries = texture.cache.max_entries->get_value ();
-      if (texture.cache.min_entries->load ())
-        config.textures.cache.min_entries = texture.cache.min_entries->get_value ();
-      if (texture.cache.max_evict->load ())
-        config.textures.cache.max_evict = texture.cache.max_evict->get_value ();
-      if (texture.cache.min_evict->load ())
-        config.textures.cache.min_evict = texture.cache.min_evict->get_value ();
-      if (texture.cache.max_size->load ())
-        config.textures.cache.max_size = texture.cache.max_size->get_value ();
-      if (texture.cache.min_size->load ())
-        config.textures.cache.min_size = texture.cache.min_size->get_value ();
-      if (texture.cache.ignore_non_mipped->load ())
-        config.textures.cache.ignore_nonmipped = texture.cache.ignore_non_mipped->get_value ();
-
-      extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
-
-      if (config.render.dxgi.adapter_override != -1)
-        SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
+    else if (! _wcsicmp (
+                 render.dxgi.scaling_mode->get_value_str ().c_str (),
+                 L"Stretched"
+               )
+            )
+    {
+      config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_STRETCHED;
     }
   }
+
+  if (render.dxgi.scanline_order->load ())
+  {
+    if (! _wcsicmp (
+            render.dxgi.scanline_order->get_value_str ().c_str (),
+            L"Unspecified"
+          )
+       )
+    {
+      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    }
+
+    else if (! _wcsicmp (
+                 render.dxgi.scanline_order->get_value_str ().c_str (),
+                 L"Progressive"
+               )
+            )
+    {
+      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
+    }
+
+    else if (! _wcsicmp (
+                 render.dxgi.scanline_order->get_value_str ().c_str (),
+                 L"LowerFieldFirst"
+               )
+            )
+    {
+      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
+    }
+
+    else if (! _wcsicmp (
+                 render.dxgi.scanline_order->get_value_str ().c_str (),
+                 L"UpperFieldFirst"
+               )
+            )
+    {
+      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST;
+    }
+
+    // If a user specifies Interlaced, default to Lower Field First
+    else if (! _wcsicmp (
+                 render.dxgi.scanline_order->get_value_str ().c_str (),
+                 L"Interlaced"
+               )
+            )
+    {
+      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
+    }
+  }
+
+  if (render.dxgi.debug_layer->load ())
+    config.render.dxgi.debug_layer = render.dxgi.debug_layer->get_value ();
+
+  if (render.dxgi.exception_mode->load ())
+  {
+    if (! _wcsicmp (
+            render.dxgi.exception_mode->get_value_str ().c_str (),
+            L"Raise"
+          )
+       )
+    {
+      #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
+      config.render.dxgi.exception_mode = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
+    }
+
+    else if (! _wcsicmp (
+                 render.dxgi.exception_mode->get_value_str ().c_str (),
+                 L"Ignore"
+               )
+            )
+    {
+      config.render.dxgi.exception_mode = 0;
+    }
+    else
+      config.render.dxgi.exception_mode = -1;
+  }
+
+  if (render.dxgi.test_present->load ())
+    config.render.dxgi.test_present = render.dxgi.test_present->get_value ();
+
+  if (render.dxgi.swapchain_wait->load ())
+    config.render.framerate.swapchain_wait = render.dxgi.swapchain_wait->get_value ();
+
+  if (render.dxgi.safe_fullscreen->load ())
+    config.render.dxgi.safe_fullscreen = render.dxgi.safe_fullscreen->get_value ();
+
+  if (texture.d3d11.cache->load ())
+    config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
+  if (texture.d3d11.precise_hash->load ())
+    config.textures.d3d11.precise_hash = texture.d3d11.precise_hash->get_value ();
+  if (texture.d3d11.dump->load ())
+    config.textures.d3d11.dump = texture.d3d11.dump->get_value ();
+  if (texture.d3d11.inject->load ())
+    config.textures.d3d11.inject = texture.d3d11.inject->get_value ();
+  if (texture.d3d11.res_root->load ())
+    config.textures.d3d11.res_root = texture.d3d11.res_root->get_value ();
+
+  if (texture.cache.max_entries->load ())
+    config.textures.cache.max_entries = texture.cache.max_entries->get_value ();
+  if (texture.cache.min_entries->load ())
+    config.textures.cache.min_entries = texture.cache.min_entries->get_value ();
+  if (texture.cache.max_evict->load ())
+    config.textures.cache.max_evict = texture.cache.max_evict->get_value ();
+  if (texture.cache.min_evict->load ())
+    config.textures.cache.min_evict = texture.cache.min_evict->get_value ();
+  if (texture.cache.max_size->load ())
+    config.textures.cache.max_size = texture.cache.max_size->get_value ();
+  if (texture.cache.min_size->load ())
+    config.textures.cache.min_size = texture.cache.min_size->get_value ();
+  if (texture.cache.ignore_non_mipped->load ())
+    config.textures.cache.ignore_nonmipped = texture.cache.ignore_non_mipped->get_value ();
+
+  extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
+
+  if (config.render.dxgi.adapter_override != -1)
+    SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
 
   if (input.cursor.manage->load ())
     config.input.cursor.manage = input.cursor.manage->get_value ();

@@ -1763,19 +1763,20 @@ SK_Bypass_CRT (LPVOID user)
   if (no_imports && config.apis.last_known == SK_RenderAPI::Reserved)
     lstrcatW (wszAPIName, L"  { Import Address Table FAIL -> Detected API May Be Wrong }");
 
-  const TASKDIALOG_BUTTON rbuttons [] = {  { 0, wszAPIName       },
+  const TASKDIALOG_BUTTON rbuttons [] = {  { 0, wszAPIName          },
+                                           { 1, L"Enable All APIs"  },
 #ifndef _WIN64
-                                           { 6, L"Direct3D8"     },
-                                           { 7, L"DirectDraw"    },
-#endif
-                                           { 1, L"Direct3D9{Ex}" },
-                                           { 2, L"Direct3D11"    },
-#ifdef _WIN64
-                                           { 3, L"Direct3D12"    },
-#endif
-                                           { 4, L"OpenGL"        },
-#ifdef _WIN64
-                                           { 5, L"Vulkan"        }
+                                           { 7, L"Direct3D8"        },
+                                           { 8, L"DirectDraw"       },
+#endif                                                              
+                                           { 2, L"Direct3D9{Ex}"    },
+                                           { 3, L"Direct3D11"       },
+#ifdef _WIN64                                                       
+                                           { 4, L"Direct3D12"       },
+#endif                                                              
+                                           { 5, L"OpenGL"           },
+#ifdef _WIN64                                                       
+                                           { 6, L"Vulkan"           }
 #endif
                                        };
 
@@ -1868,11 +1869,84 @@ SK_Bypass_CRT (LPVOID user)
 
   SK_LoadConfig (wszConfigName);
 
+  config.apis.d3d9.hook       = false;
+  config.apis.d3d9ex.hook     = false;
+  config.apis.dxgi.d3d11.hook = false;
+
+  config.apis.OpenGL.hook     = false;
+
+#ifdef _WIN64
+  config.apis.dxgi.d3d12.hook = false;
+  config.apis.Vulkan.hook     = false;
+#else
+  config.apis.d3d8.hook       = false;
+  config.apis.ddraw.hook      = false;
+#endif
+
   if (SUCCEEDED (hr))
   {
+    if (nRadioPressed == 0)
+    {
+      if (! _wcsicmp (__SK_DLL_Backend, L"dxgi"))
+      {
+        config.apis.dxgi.d3d11.hook = true;
+#ifdef _WIN64
+        config.apis.dxgi.d3d12.hook = true;
+#endif
+      }
+
+      else if (! _wcsicmp (__SK_DLL_Backend, L"d3d9"))
+      {
+        config.apis.d3d9.hook   = true;
+        config.apis.d3d9ex.hook = true;
+      }
+
+      else if (! _wcsicmp (__SK_DLL_Backend, L"OpenGL32"))
+      {
+        config.apis.OpenGL.hook = true;
+      }
+
+#ifndef _WIN64
+      else if (! _wcsicmp (__SK_DLL_Backend, L"d3d8"))
+      {
+        config.apis.d3d8.hook       = true;
+        config.apis.dxgi.d3d11.hook = true;
+      }
+
+      else if (! _wcsicmp (__SK_DLL_Backend, L"ddraw"))
+      {
+        config.apis.ddraw.hook      = true;
+        config.apis.dxgi.d3d11.hook = true;
+      }
+#else
+#endif
+    }
+
     switch (nRadioPressed)
     {
       case 0:
+        if (nButtonPressed == BUTTON_INSTALL)
+        {
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (SK_GetDLLRole ());
+          else
+          {
+            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+
+            temp_dll = SK_UTF8ToWideChar (
+                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_GetDocumentsDir ().c_str (),
+#ifndef _WIN64
+                             32
+#else
+                             64
+#endif
+                         )
+                      );
+            }
+        }
+        break;
+
+      case 1:
         config.apis.d3d9.hook       = true;
         config.apis.d3d9ex.hook     = true;
 
@@ -1909,21 +1983,9 @@ SK_Bypass_CRT (LPVOID user)
         }
         break;
 
-      case 1:
+      case 2:
         config.apis.d3d9.hook       = true;
         config.apis.d3d9ex.hook     = true;
-
-        config.apis.dxgi.d3d11.hook = false;
-
-        config.apis.OpenGL.hook     = false;
-
-#ifndef _WIN64
-        config.apis.d3d8.hook       = false;
-        config.apis.ddraw.hook      = false;
-#else
-        config.apis.Vulkan.hook     = false;
-        config.apis.dxgi.d3d12.hook = false;
-#endif
 
         if (nButtonPressed == BUTTON_INSTALL)
         {
@@ -1950,21 +2012,8 @@ SK_Bypass_CRT (LPVOID user)
         }
         break;
 
-      case 2:
-        config.apis.d3d9.hook       = false;
-        config.apis.d3d9ex.hook     = false;
-
+      case 3:
         config.apis.dxgi.d3d11.hook = true;
-
-        config.apis.OpenGL.hook     = false;
-
-#ifndef _WIN64
-        config.apis.d3d8.hook       = false;
-        config.apis.ddraw.hook      = false;
-#else
-        config.apis.dxgi.d3d12.hook = false;
-        config.apis.Vulkan.hook     = false;
-#endif
 
         if (nButtonPressed == BUTTON_INSTALL)
         {
@@ -1992,15 +2041,9 @@ SK_Bypass_CRT (LPVOID user)
         break;
 
 #ifdef _WIN64
-      case 3:
-        config.apis.d3d9.hook       = false;
-        config.apis.d3d9ex.hook     = false;
-
-        config.apis.dxgi.d3d11.hook = false;
+      case 4:
+        config.apis.dxgi.d3d11.hook = true; // Required by D3D12 code :P
         config.apis.dxgi.d3d12.hook = true;
-
-        config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = false;
 
         if (nButtonPressed == BUTTON_INSTALL)
         {
@@ -2027,21 +2070,8 @@ SK_Bypass_CRT (LPVOID user)
         break;
 #endif
 
-      case 4:
-        config.apis.d3d9.hook       = false;
-        config.apis.d3d9ex.hook     = false;
-
-        config.apis.dxgi.d3d11.hook = false;
-
-        config.apis.OpenGL.hook     = true;
-
-#ifndef _WIN64
-        config.apis.d3d8.hook       = false;
-        config.apis.ddraw.hook      = false;
-#else
-        config.apis.dxgi.d3d12.hook = false;
-        config.apis.Vulkan.hook     = false;
-#endif
+      case 5:
+        config.apis.OpenGL.hook = true;
 
         if (nButtonPressed == BUTTON_INSTALL)
         {
@@ -2069,29 +2099,15 @@ SK_Bypass_CRT (LPVOID user)
         break;
 
 #ifdef _WIN64
-      case 5:
-        config.apis.d3d9.hook       = false;
-        config.apis.d3d9ex.hook     = false;
-
-        config.apis.dxgi.d3d11.hook = false;
-        config.apis.dxgi.d3d12.hook = false;
-
-        config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = true;
+      case 6:
+        config.apis.Vulkan.hook = true;
         break;
 #endif
 
 #ifndef _WIN64
-      case 6:
-        config.apis.d3d9.hook       = false;
-        config.apis.d3d9ex.hook     = false;
-
+      case 7:
         config.apis.dxgi.d3d11.hook = true;  // D3D8 on D3D11 (not native D3D8)
-
-        config.apis.OpenGL.hook     = false;
-
         config.apis.d3d8.hook       = true;
-        config.apis.ddraw.hook      = false;
 
         if (has_dgvoodoo || dgVooodoo_Nag ())
         {
@@ -2120,16 +2136,9 @@ SK_Bypass_CRT (LPVOID user)
         }
         break;
 
-      case 7:
-        config.apis.d3d9.hook = false;
-        config.apis.d3d9ex.hook = false;
-
+      case 8:
         config.apis.dxgi.d3d11.hook = true;  // DDraw on D3D11 (not native DDraw)
-
-        config.apis.OpenGL.hook = false;
-
-        config.apis.d3d8.hook = false;
-        config.apis.ddraw.hook = true;
+        config.apis.ddraw.hook      = true;
 
         if (nButtonPressed == BUTTON_INSTALL)
         {
@@ -2237,6 +2246,8 @@ SK_Bypass_CRT (LPVOID user)
 
   else
   {
+    SK_SaveConfig        ();
+
     SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
     SK_RemoveHook (pfnGetClientRect);

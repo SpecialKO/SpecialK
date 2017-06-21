@@ -1558,7 +1558,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     CComPtr <ID3D11DeviceContext>  pImmediateContext  = nullptr;
     CComPtr <ID3D11DeviceContext1> pImmediateContext1 = nullptr;
 
-    if (! config.render.dxgi.slow_state_cache)
+    if (config.render.dxgi.full_state_cache)
     {
                           pDev->GetImmediateContext (&pImmediateContext);
         hr =
@@ -1591,7 +1591,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                                                                    &pCtxState )))
       {
         SK_LOG_ONCE (L"[   DXGI   ]  *** CreateDeviceContextState (...) failed! ***");
-        return;
+        config.render.dxgi.full_state_cache = false;
       }
     }
 
@@ -1623,7 +1623,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     {
       static D3DX11_STATE_BLOCK sb;
 
-      if (config.render.dxgi.slow_state_cache)
+      if (! config.render.dxgi.full_state_cache)
         CreateStateblock (pCEG_DevCtx, &sb);
       else
         pImmediateContext1->SwapDeviceContextState (pCtxState, &pCtxStateOrig);
@@ -1682,7 +1682,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         }
       }
 
-      if (config.render.dxgi.slow_state_cache)
+      if (! config.render.dxgi.full_state_cache)
         ApplyStateblock (pCEG_DevCtx, &sb);
       else
         pImmediateContext1->SwapDeviceContextState (pCtxStateOrig, nullptr);
@@ -1690,8 +1690,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   }
 
   // The config UI may change this, apply the setting AFTER the UI is drawn.
-  extern bool SK_DXGI_SlowStateCache;
-  config.render.dxgi.slow_state_cache = SK_DXGI_SlowStateCache;
+  extern bool SK_DXGI_FullStateCache;
+  config.render.dxgi.full_state_cache = SK_DXGI_FullStateCache;
 }
 
 void
@@ -1699,8 +1699,6 @@ SK_DXGI_BorderCompensation (UINT& x, UINT& y)
 {
   if (! config.window.borderless)
     return;
-
-  return;
 
   RECT game_rect = *SK_GetGameRect ();
 
@@ -2887,6 +2885,9 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       pFullscreenDesc->Scaling                 = pDesc->BufferDesc.Scaling;
       pFullscreenDesc->ScanlineOrdering        = pDesc->BufferDesc.ScanlineOrdering;
     }
+
+    else
+      pFullscreenDesc->Windowed                = TRUE;
   }
 
   //game_window.hWnd = pDesc->OutputWindow;
@@ -2897,6 +2898,8 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
                                    _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
                                    _In_  IDXGISwapChain       **ppSwapChain )
 {
+  SK_CEGUI_QueueResetD3D11 ();
+
   SK_SetWindowResX (pDesc->BufferDesc.Width);
   SK_SetWindowResY (pDesc->BufferDesc.Height);
 
@@ -2964,8 +2967,24 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   // ONLY AS COMPLETE AS NEEDED, if new code is added to PostInit, this will probably need changing.
   DXGI_SWAP_CHAIN_DESC desc;
 
-  desc.BufferDesc.Width  = pDesc1->Width;
-  desc.BufferDesc.Height = pDesc1->Height;
+  desc.BufferDesc.Width   = pDesc1->Width;
+  desc.BufferDesc.Height  = pDesc1->Height;
+
+  desc.BufferDesc.Format  = pDesc1->Format;
+  //desc.BufferDesc.Scaling = pDesc1->Scaling;
+
+  desc.BufferCount       = pDesc1->BufferCount;
+  desc.BufferUsage       = pDesc1->BufferUsage;
+  desc.Flags             = pDesc1->Flags;
+  desc.SampleDesc        = pDesc1->SampleDesc;
+  desc.SwapEffect        = pDesc1->SwapEffect;
+
+  if (pFullscreenDesc)
+  {
+    desc.Windowed                    = pFullscreenDesc->Windowed;
+    desc.BufferDesc.RefreshRate      = pFullscreenDesc->RefreshRate;
+    desc.BufferDesc.ScanlineOrdering = pFullscreenDesc->ScanlineOrdering;
+  }
 
   CComPtr <IDXGISwapChain> pSwapChain = nullptr;
 
@@ -3082,7 +3101,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 
     SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, &new_fullscreen_desc);
 
-    DXGI_CALL (ret, CreateSwapChainForHwnd_Original (This, pDevice, hWnd, &new_desc1, &new_fullscreen_desc, pRestrictToOutput, ppSwapChain));
+    DXGI_CALL (ret, CreateSwapChainForHwnd_Original (This, pDevice, hWnd, &new_desc1, pFullscreenDesc ? &new_fullscreen_desc : pFullscreenDesc, pRestrictToOutput, ppSwapChain));
 
     if ( SUCCEEDED (ret)      &&
          ppSwapChain  != NULL &&

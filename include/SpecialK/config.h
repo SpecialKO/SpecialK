@@ -255,7 +255,7 @@ struct sk_config_t
       // DXGI 1.1 (Ignored for now)
       int     rotation          =    -1; // -1 = Don't Care
       bool    test_present      = false;
-      bool    slow_state_cache  = true;
+      bool    full_state_cache  = true;
       bool    debug_layer       = false;
       bool    allow_tearing     = false;
       bool    safe_fullscreen   = false;
