@@ -947,6 +947,67 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 }
 
 void
+SK_BootModule (const wchar_t* wszModName)
+{
+  if (SK_IsInjected ())
+  {
+    if ( config.apis.OpenGL.hook && StrStrIW (wszModName, L"opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
+      SK_BootOpenGL ();
+  
+      loaded_gl = true;
+    }
+
+#ifdef _WIN64
+  else if ( config.apis.Vulkan.hook && StrStrIW (wszModName, L"vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
+    SK_BootVulkan ();
+  
+    loaded_vulkan = true;
+  }
+#endif
+
+  //else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+  //  SK_BootDXGI ();
+  //
+  //  loaded_dxgi = true;
+  //}
+
+  else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"d3d11.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+    SK_BootDXGI ();
+  
+    loaded_dxgi = true;
+  }
+
+#ifdef _WIN64
+  else if ( config.apis.dxgi.d3d12.hook && StrStrIW (wszModName, L"d3d12.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
+    SK_BootDXGI ();
+  
+    loaded_dxgi = true;
+  }
+#endif
+
+  else if ( config.apis.d3d9.hook && StrStrIW (wszModName, L"d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
+    SK_BootD3D9 ();
+  
+    loaded_d3d9 = true;
+  }
+
+#ifndef _WIN64
+  else if ( config.apis.d3d8.hook && StrStrIW (wszModName, L"d3d8.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D8)))) {
+    SK_BootD3D8 ();
+  
+    loaded_d3d8 = true;
+  }
+
+  else if ( config.apis.ddraw.hook && StrStrIW (wszModName, L"\\ddraw.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DDraw)))) {
+    SK_BootDDraw ();
+  
+    loaded_ddraw = true;
+  }
+#endif
+  }
+}
+
+void
 SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 {
   SK_LockDllLoader ();
@@ -1016,62 +1077,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
         if (when == SK_ModuleEnum::PostLoad)
         {
-          if (SK_IsInjected ())
-          {
-            if ( config.apis.OpenGL.hook && StrStrIW (wszModName, L"opengl32.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)))) {
-              SK_BootOpenGL ();
-
-              loaded_gl = true;
-            }
-
-#ifdef _WIN64
-            else if ( config.apis.Vulkan.hook && StrStrIW (wszModName, L"vulkan-1.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan)))) {
-              SK_BootVulkan ();
-            
-              loaded_vulkan = true;
-            }
-#endif
-
-            //else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\dxgi.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
-            //  SK_BootDXGI ();
-            //
-            //  loaded_dxgi = true;
-            //}
-
-            else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"d3d11.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
-              SK_BootDXGI ();
-            
-              loaded_dxgi = true;
-            }
-
-#ifdef _WIN64
-            else if ( config.apis.dxgi.d3d12.hook && StrStrIW (wszModName, L"d3d12.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI)))) {
-              SK_BootDXGI ();
-            
-              loaded_dxgi = true;
-            }
-#endif
-
-            else if ( config.apis.d3d9.hook && StrStrIW (wszModName, L"d3d9.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9)))) {
-              SK_BootD3D9 ();
-            
-              loaded_d3d9 = true;
-            }
-
-#ifndef _WIN64
-            else if ( config.apis.d3d8.hook && StrStrIW (wszModName, L"d3d8.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D8)))) {
-              SK_BootD3D8 ();
-            
-              loaded_d3d8 = true;
-            }
-
-            else if ( config.apis.ddraw.hook && StrStrIW (wszModName, L"\\ddraw.dll") && (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DDraw)))) {
-              SK_BootDDraw ();
-            
-              loaded_ddraw = true;
-            }
-#endif
-          }
+          SK_BootModule (wszModName);
         }
 
         if (! config.steam.silent)
@@ -1349,7 +1355,7 @@ SK_ValidateGlobalRTSSProfile (void)
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = SK_GetDLL ();
   task_config.hwndParent          = GetActiveWindow ();
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pButtons            = nullptr;
   task_config.cButtons            = 0;
@@ -1471,7 +1477,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = SK_GetDLL ();
   task_config.hwndParent          = GetActiveWindow ();
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pButtons            = nullptr;
   task_config.cButtons            = 0;
@@ -1523,7 +1529,7 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
 
   task_config.cbSize              = sizeof    (task_config);
   task_config.hInstance           = SK_GetDLL ();
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
 
   TASKDIALOG_BUTTON button;
@@ -1776,7 +1782,7 @@ SK_Bypass_CRT (LPVOID user)
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = SK_GetDLL ();
   task_config.hwndParent          = GetActiveWindow ();
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer";
+  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pRadioButtons       = rbuttons;
   task_config.cRadioButtons       = ARRAYSIZE (rbuttons);
@@ -2231,9 +2237,11 @@ SK_Bypass_CRT (LPVOID user)
 
   else
   {
+    SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+
     SK_RemoveHook (pfnGetClientRect);
     SK_RemoveHook (pfnGetWindowRect);
-    SK_RemoveHook (pfnGetSystemMetrics);
+    //SK_RemoveHook (pfnGetSystemMetrics);
 
     InterlockedDecrement (&SK_bypass_dialog_active);
 
@@ -2365,11 +2373,11 @@ SK_BypassInject (void)
              (LPVOID*)&GetClientRect_DeadEnd,
              (LPVOID*)&pfnGetClientRect  );
 
-  SK_CreateDLLHook ( L"user32.dll",
-                      "GetSystemMetrics",
-                       GetSystemMetrics_BlockingCallOfDeath,
-            (LPVOID *)&GetSystemMetrics_DeadEnd,
-            (LPVOID *)&pfnGetSystemMetrics  );
+  //SK_CreateDLLHook ( L"user32.dll",
+  //                    "GetSystemMetrics",
+  //                     GetSystemMetrics_BlockingCallOfDeath,
+  //          (LPVOID *)&GetSystemMetrics_DeadEnd,
+  //          (LPVOID *)&pfnGetSystemMetrics  );
 
 
   suspended_tids = SK_SuspendAllOtherThreads ();

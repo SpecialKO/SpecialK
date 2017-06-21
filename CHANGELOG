@@ -1,3 +1,9 @@
+0.8.19:
+
+ + Fixed late initialization problems if compat menu is dismissed by pressing OK
+ + Added version to compatibility menu
+ + Improved compatibility menu and update menu's input focus behavior
+
 0.8.18:
  
  + Added version info to wrapper DLL installations; updating is not supported
