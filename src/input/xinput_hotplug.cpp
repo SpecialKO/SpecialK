@@ -306,7 +306,7 @@ RegisterDeviceNotificationW_Detour (
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
   {
 #if 0
-    OLECHAR wszGUID [128] = { L'\0' };
+    OLECHAR wszGUID [128] = { };
 
     HRESULT hr =
       StringFromGUID2 (pNotifyFilter->dbcc_classguid, wszGUID, 127);
@@ -344,7 +344,7 @@ RegisterDeviceNotificationA_Detour (
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
   {
 #if 0
-    OLECHAR wszGUID [128] = { L'\0' };
+    OLECHAR wszGUID [128] = { };
 
     HRESULT hr =
       StringFromGUID2 (pNotifyFilter->dbcc_classguid, wszGUID, 127);

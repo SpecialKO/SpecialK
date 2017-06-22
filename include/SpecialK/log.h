@@ -103,7 +103,7 @@ interface iSK_Logger : public IUnknown
                                                       ... );
 
   HANDLE           hLogFile              = INVALID_HANDLE_VALUE;
-  wchar_t          name [ MAX_PATH + 2 ] = { L'\0' };
+  wchar_t          name [ MAX_PATH + 2 ] = { };
   bool             silent                = false;
   bool             initialized           = false;
   int              lines                 =   0;
@@ -111,8 +111,8 @@ interface iSK_Logger : public IUnknown
   ULONG            refs                  =   0UL;
 
   struct {
-    wchar_t        raw       [ 8192] = { L'\0' };
-    wchar_t        formatted [16384] = { L'\0' };
+    wchar_t        raw       [ 8192] = { };
+    wchar_t        formatted [16384] = { };
   } buffers;
 };
 

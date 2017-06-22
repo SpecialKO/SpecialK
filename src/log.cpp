@@ -55,8 +55,8 @@ SK_Timestamp (wchar_t* const out)
   }
 #endif
 
-  wchar_t date [64] = { L'\0' };
-  wchar_t time [64] = { L'\0' };
+  wchar_t date [64] = { };
+  wchar_t time [64] = { };
 
   GetDateFormat (LOCALE_INVARIANT,DATE_SHORTDATE,   &stLogTime,NULL,date,64);
   GetTimeFormat (LOCALE_INVARIANT,TIME_NOTIMEMARKER,&stLogTime,NULL,time,64);
@@ -268,10 +268,10 @@ std::wstring
 __stdcall
 SK_SummarizeCaller (LPVOID lpReturnAddr)
 {
-  wchar_t wszSummary [256] = { L'\0' };
+  wchar_t wszSummary [ 256] = { };
 
-  char  szSymbol [1024] = { };
-  ULONG ulLen  =  1024;
+  char    szSymbol   [1024] = { };
+  ULONG   ulLen             = 1024;
     
   ulLen = SK_GetSymbolNameFromModuleAddr (
             SK_GetCallingDLL (),

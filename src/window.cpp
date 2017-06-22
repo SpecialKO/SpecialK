@@ -475,14 +475,14 @@ public:
 #else
         if (var != center_window_)
         {
-          static char szCmd [64] = { '\0' };
+          static char szCmd [64] = { };
           snprintf (szCmd, 63, "Window.Center %d", config.window.center);
 
           DeferCommand (szCmd);
         }
 
         if (var != borderless_) {
-          static char szCmd [64] = { '\0' };
+          static char szCmd [64] = { };
           snprintf (szCmd, 63, "Window.Borderless %d", config.window.borderless);
 
           DeferCommand (szCmd);
@@ -2071,7 +2071,7 @@ SK_AdjustWindow (void)
 
 
 
-    wchar_t wszBorderDesc [128] = { L'\0' };
+    wchar_t wszBorderDesc [128] = { };
 
     bool has_border = SK_WindowManager::StyleHasBorder (game_window.actual.style);
 
@@ -2679,11 +2679,32 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       game_window.active = active;
 
-      if (state_changed) {
+      if (state_changed)
+      {
         SK_Console::getInstance ()->reset ();
 
         if (config.window.background_mute)
           SK_WindowManager::getInstance ()->muteGame ((! active));
+
+        // Keep Unity games from crashing at startup when forced into FULLSCREEN
+        //
+        //  ... also prevents a game from staying topmost when you Alt+Tab
+        //
+        SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)) | WS_EX_APPWINDOW);
+        SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+                                                                         SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+                                                                         SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+        SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+                                                                   SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+                                                                   SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
+
+        //if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+        //{
+        //  extern void
+        //  SK_D3D9_TriggerReset (bool);
+        //
+        //  SK_D3D9_TriggerReset (false);
+        //}
       }
 
 
@@ -3280,7 +3301,7 @@ SK_InstallWindowHook (HWND hWnd)
 
   game_window.WndProc_Original = nullptr;
 
-  wchar_t wszClassName [256] = { L'\0' };
+  wchar_t wszClassName [256] = { };
   GetClassNameW ( hWnd, wszClassName, 256 );
 
   dll_log.Log ( L"[Window Mgr] Hooking the Window Procedure for "

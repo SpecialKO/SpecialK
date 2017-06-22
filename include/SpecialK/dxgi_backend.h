@@ -197,8 +197,8 @@ namespace SK
 
     void    ShutdownBudgetThread        (void);
 
-    unsigned int
-    __stdcall
+    DWORD
+    WINAPI
     BudgetThread (LPVOID user_data);
   }
 }
@@ -423,10 +423,27 @@ typedef HRESULT (WINAPI *D3D11_Map_pfn)(
   _In_      UINT                      MapFlags,
   _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource
 );
+typedef void (WINAPI *D3D11_Unmap_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Resource      *pResource,
+  _In_ UINT                 Subresource
+);
+
 typedef void (WINAPI *D3D11_CopyResource_pfn)(
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource
+);
+typedef void (WINAPI *D3D11_CopySubresourceRegion_pfn)(
+  _In_           ID3D11DeviceContext *This,
+  _In_           ID3D11Resource      *pDstResource,
+  _In_           UINT                 DstSubresource,
+  _In_           UINT                 DstX,
+  _In_           UINT                 DstY,
+  _In_           UINT                 DstZ,
+  _In_           ID3D11Resource      *pSrcResource,
+  _In_           UINT                 SrcSubresource,
+  _In_opt_ const D3D11_BOX           *pSrcBox
 );
 
 typedef void (WINAPI *D3D11_VSSetShaderResources_pfn)(
@@ -550,7 +567,7 @@ extern D3D11_DSSetShader_pfn                              D3D11_DSSetShader_Orig
 extern D3D11_CSSetShader_pfn                              D3D11_CSSetShader_Original;
 
 extern D3D11_CopyResource_pfn                             D3D11_CopyResource_Original;
-
+extern D3D11_CopySubresourceRegion_pfn                    D3D11_CopySubresourceRegion_Original;
 
 
 

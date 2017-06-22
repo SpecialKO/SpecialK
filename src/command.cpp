@@ -103,11 +103,11 @@ public:
           this );
     }
 
-    char line [1024];
+          char line [1024] = { };
+    static int num_lines   =  0;
 
-    static int num_lines = 0;
-
-    while (fgets (line, 1024, src) != NULL) {
+    while (fgets (line, 1024, src) != nullptr)
+    {
       num_lines++;
 
       /* Remove the newline character... */
@@ -439,11 +439,10 @@ SK_ICommandResult
 SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
 {
   va_list ap;
-  int     len;
 
-  va_start         (ap, szCommandFormat);
-  len = _vscprintf (szCommandFormat, ap);
-  va_end           (ap);
+  va_start             (ap, szCommandFormat);
+  int len = _vscprintf (szCommandFormat, ap);
+  va_end               (ap);
 
   char* szFormattedCommandLine =
     (char *)malloc (sizeof (char) * (len + 1));
@@ -483,16 +482,20 @@ void
 SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
                                      _Inout_   uint32_t* dwLen ) const
 {
-  uint32_t len;
+  uint32_t len = 0;
 
-  if (getValue ()) {
+  if (getValue ())
+  {
     len = (uint32_t)strlen ("true");
 
     if (szOut != nullptr)
       strncpy (szOut, "true", *dwLen);
 
     *dwLen = std::min (*dwLen, len);
-  } else {
+  }
+
+  else
+  {
     len = (uint32_t)strlen ("false");
 
     if (szOut != nullptr)

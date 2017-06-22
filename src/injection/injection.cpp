@@ -117,7 +117,7 @@ SKX_InstallCBTHook (void)
   if (g_hHookCBT != nullptr)
     return;
 
-  HMODULE hMod;
+  HMODULE hMod = 0;
 
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 #ifdef _WIN64
@@ -273,10 +273,10 @@ SK_EstablishRootPath (void);
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 {
-  wchar_t wszIn [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszIn  [MAX_PATH * 2] = { };
   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
-  wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszOut [MAX_PATH * 2] = { };
   lstrcatW (wszOut, SK_GetHostPath ());
 
   switch (role)
@@ -370,9 +370,11 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     *wszIn = L'\0';
 
-    std::string ver_dir = SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
+    std::string ver_dir   =
+      SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
 
-    DWORD dwAttribs = GetFileAttributesA (ver_dir.c_str ());
+    const DWORD dwAttribs =
+      GetFileAttributesA (ver_dir.c_str ());
 
     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
           CreateDirectoryA (ver_dir.c_str (), nullptr) )
@@ -415,10 +417,10 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 bool
 SK_Inject_SwitchToRenderWrapper (void)
 {
-  wchar_t wszIn [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszIn [MAX_PATH * 2] = { };
   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
-  wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszOut [MAX_PATH * 2] = { };
   lstrcatW (wszOut, SK_GetHostPath ());
 
   switch (SK_GetCurrentRenderBackend ().api)
@@ -524,9 +526,11 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     *wszIn = L'\0';
 
-    std::string ver_dir = SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
+    std::string ver_dir   =
+      SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
 
-    DWORD dwAttribs = GetFileAttributesA (ver_dir.c_str ());
+    const DWORD dwAttribs =
+      GetFileAttributesA (ver_dir.c_str ());
 
     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
           CreateDirectoryA (ver_dir.c_str (), nullptr) )
@@ -572,7 +576,7 @@ SK_Inject_SwitchToGlobalInjector (void)
   config.system.central_repository = true;
   SK_EstablishRootPath ();
 
-  wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszOut [MAX_PATH * 2] = { };
   lstrcatW (wszOut, SK_GetHostPath ());
 
   switch (SK_GetCurrentRenderBackend ().api)
@@ -611,7 +615,7 @@ SK_Inject_SwitchToGlobalInjector (void)
       //break;
   }
 
-  wchar_t wszTemp [MAX_PATH] = { L'\0' };
+  wchar_t wszTemp [MAX_PATH] = {  };
   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
 
   MoveFileW (wszOut, wszTemp);
@@ -627,7 +631,7 @@ SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
   config.system.central_repository = true;
   SK_EstablishRootPath ();
 
-  wchar_t wszOut [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszOut [MAX_PATH * 2] = { };
   lstrcatW (wszOut, SK_GetHostPath ());
 
   switch (role)
@@ -660,7 +664,7 @@ SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
       //break;
   }
 
-  wchar_t wszTemp [MAX_PATH] = { L'\0' };
+  wchar_t wszTemp [MAX_PATH] = { };
   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
 
   MoveFileW (wszOut, wszTemp);
@@ -686,7 +690,7 @@ SK_Inject_Stop (void)
 {
   //std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
 
-  wchar_t wszCurrentDir [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszCurrentDir [MAX_PATH * 2] = { };
   GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
 
   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
@@ -704,7 +708,7 @@ SK_Inject_Start (void)
 {
   //std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
 
-  wchar_t wszCurrentDir [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszCurrentDir [MAX_PATH * 2] = { };
   GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
 
   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());

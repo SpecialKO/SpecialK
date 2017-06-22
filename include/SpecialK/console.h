@@ -37,7 +37,7 @@ public:
 
   static SK_Console*   pConsole;
 
-  char          text  [4096]   = { '\0' };
+  char          text  [4096]   = {      };
                                
   BYTE          keys_ [256]    = {      };
   bool          visible        = false;

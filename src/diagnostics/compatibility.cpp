@@ -205,12 +205,6 @@ BlacklistLibrary (const _T* lpFileName)
     }
   }
 
-  if (StrStrIW (SK_GetHostApp (), L"RiME.exe"))
-  {
-    if (StrStrI (lpFileName, SK_TEXT("openvr_api.dll")))
-      return TRUE;
-  }
-
   return FALSE;
 
 #pragma pop_macro ("StrStrI")
@@ -328,7 +322,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW  : 
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA  );
 
-  wchar_t wszModName [MAX_PATH] = { L'\0' };
+  wchar_t wszModName [MAX_PATH] = { };
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
   if (! SK_LoadLibrary_SILENCE)
@@ -339,13 +333,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (lpCallerFunc), (uintptr_t)lpCallerFunc, szSymbol, ulLen);
 
     if (constexpr (typeid (_T) == typeid (char)))
-      dll_log.Log ( "[DLL Loader]   ( %-28ls ) loaded '%#64hs' <%hs> { '%hs' }",
+      dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#64hs' <%hs> { '%hs' }",
                       wszModName,
                         lpFileName,
                           lpFunction,
                             szSymbol );
     else
-      dll_log.Log ( L"[DLL Loader]   ( %-28ls ) loaded '%#64ls' <%ls> { '%hs' }",
+      dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#64ws' <%ws> { '%hs' }",
                       wszModName,
                         lpFileName,
                           lpFunction,
@@ -858,7 +852,7 @@ static bool loaded_dxgi   = false;
 
 
 struct enum_working_set_s {
-  HMODULE     modules [1024] = { 0 };
+  HMODULE     modules [1024] = {     };
   int         count          =   0;
   iSK_Logger* logger         = nullptr;
   HANDLE      proc           = INVALID_HANDLE_VALUE;
@@ -1014,7 +1008,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
   for ( int i = 0; i < (int)(cbNeeded / sizeof (HMODULE)); i++ )
   {
-    wchar_t wszModName [MAX_PATH + 2] = { L'\0' };
+    wchar_t wszModName [MAX_PATH + 2] = { };
             ZeroMemory (wszModName, sizeof (wchar_t) * (MAX_PATH + 2));
 
     __try {
@@ -1217,7 +1211,7 @@ TaskDialogCallback (
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
   {
-    ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOW);
+    ShellExecuteW (nullptr, L"open", reinterpret_cast <wchar_t *>(lParam), nullptr, nullptr, SW_SHOW);
     return S_OK;
   }
 
@@ -1266,7 +1260,7 @@ SK_ValidateGlobalRTSSProfile (void)
   if (config.system.ignore_rtss_delay)
     return TRUE;
 
-  wchar_t wszRTSSHooks [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszRTSSHooks [MAX_PATH + 2] = { };
 
   if (third_party_dlls.overlays.rtss_hooks) {
     GetModuleFileNameW (
@@ -1350,10 +1344,10 @@ SK_ValidateGlobalRTSSProfile (void)
   if (warned)
     return TRUE;
 
-  TASKDIALOGCONFIG task_config    = {0};
+  TASKDIALOGCONFIG task_config    = { };
 
   task_config.cbSize              = sizeof (task_config);
-  task_config.hInstance           = SK_GetDLL ();
+  task_config.hInstance           = SK_GetDLL       ();
   task_config.hwndParent          = GetActiveWindow ();
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
@@ -1365,11 +1359,12 @@ SK_ValidateGlobalRTSSProfile (void)
 
   task_config.pszMainInstruction  = L"RivaTuner Statistics Server Incompatibility";
 
-  wchar_t wszFooter [1024];
+  wchar_t wszFooter [1024] = { };
 
   // Delay triggers are invalid, but we can do nothing about it due to
   //   privilige issues.
-  if (! SK_IsAdmin ()) {
+  if (! SK_IsAdmin ())
+  {
     task_config.pszMainIcon        = TD_WARNING_ICON;
     task_config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
                                      L"compatibility issues.";
@@ -1469,7 +1464,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
                         wchar_t* wszVerifyText,
                         BOOL*    verify )
 {
-  bool timer = true;
+  const bool timer = true;
 
   int              nButtonPressed = 0;
   TASKDIALOGCONFIG task_config    = {0};
@@ -1522,10 +1517,10 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
                           BOOL*    verify,
                           wchar_t* wszCommand )
 {
-  bool timer = true;
+  const bool timer = true;
 
   int              nButtonPressed =   0;
-  TASKDIALOGCONFIG task_config    = { 0 };
+  TASKDIALOGCONFIG task_config    = {   };
 
   task_config.cbSize              = sizeof    (task_config);
   task_config.hInstance           = SK_GetDLL ();
@@ -1693,7 +1688,7 @@ SK_Bypass_CRT (LPVOID user)
 
   SK_TestRenderImports (GetModuleHandle (nullptr), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
 
-  bool no_imports = !(gl || vulkan || d3d9 || d3d8 || ddraw || d3d11 || glide);
+  const bool no_imports = !(gl || vulkan || d3d9 || d3d8 || ddraw || d3d11 || glide);
 
   auto dgVoodoo_Check = [](void) ->
     bool
@@ -1719,8 +1714,7 @@ SK_Bypass_CRT (LPVOID user)
       return dgVoodoo_Check ();
     };
 
-  bool has_dgvoodoo = dgVoodoo_Check ();
-
+         const bool       has_dgvoodoo = dgVoodoo_Check ();
   extern const wchar_t* __SK_DLL_Backend;
 
   if (config.apis.last_known != SK_RenderAPI::Reserved)
@@ -1852,7 +1846,7 @@ SK_Bypass_CRT (LPVOID user)
 
 
   extern iSK_INI* dll_ini;
-  const wchar_t* wszConfigName = nullptr;
+  const  wchar_t* wszConfigName = L"";
 
   if (SK_IsInjected ())
     wszConfigName = L"SpecialK";
@@ -2328,8 +2322,10 @@ GetClientRect_BlockingCallOfDeath (
   //   In case a Common Control Dialog calls through this function,
   //     let it do so.
   //
+  BOOL bRet = GetClientRect_DeadEnd (hWnd, lpRect);
+
   if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
-    return GetClientRect_DeadEnd (hWnd, lpRect);
+    return bRet;
 
   return BlockingCallOfDeath ();
 }
@@ -2346,8 +2342,10 @@ GetWindowRect_BlockingCallOfDeath (
   //   In case a Common Control Dialog calls through this function,
   //     let it do so.
   //
+  BOOL bRet = GetWindowRect_DeadEnd (hWnd, lpRect);
+
   if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
-    return GetWindowRect_DeadEnd (hWnd, lpRect);
+    return bRet;
 
   return BlockingCallOfDeath ();
 }

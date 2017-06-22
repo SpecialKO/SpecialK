@@ -117,7 +117,7 @@ SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
                         wszNew,
                           MOVEFILE_REPLACE_EXISTING ) )
   {
-    wchar_t wszTemp [MAX_PATH] = { L'\0' };
+    wchar_t wszTemp [MAX_PATH] = { };
     GetTempFileNameW (nullptr, L"OLD", timeGetTime (), wszTemp);
 
     MoveFileExW ( wszNew, wszTemp, 0x00 );
@@ -237,8 +237,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDestPath [MAX_PATH] = { L'\0' };
-    wchar_t wszMovePath [MAX_PATH] = { L'\0' };
+    wchar_t wszDestPath [MAX_PATH] = { };
+    wchar_t wszMovePath [MAX_PATH] = { };
 
     wcscpy (wszDestPath, SK_SYS_GetInstallPath ().c_str ());
 
@@ -364,11 +364,11 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDefaultConfig [MAX_PATH + 2] = { L'\0' }; // Existing Default Cfg
-    wchar_t wszNewConfig     [MAX_PATH + 2] = { L'\0' }; // Just Downloaded
+    wchar_t wszDefaultConfig [MAX_PATH + 2] = { }; // Existing Default Cfg
+    wchar_t wszNewConfig     [MAX_PATH + 2] = { }; // Just Downloaded
 
-    wchar_t wszUserConfig    [MAX_PATH + 2] = { L'\0' }; // Currently Deployed
-    wchar_t wszOldConfig     [MAX_PATH + 2] = { L'\0' }; // Backed-Up User Cfg
+    wchar_t wszUserConfig    [MAX_PATH + 2] = { }; // Currently Deployed
+    wchar_t wszOldConfig     [MAX_PATH + 2] = { }; // Backed-Up User Cfg
 
     wcscpy   (wszDefaultConfig, SK_GetConfigPath ());
     wcscpy   (wszUserConfig,    SK_GetConfigPath ());

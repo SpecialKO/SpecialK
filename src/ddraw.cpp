@@ -252,14 +252,22 @@ SK_HookDDraw (void)
     void 
     {
       (DirectDrawEnumerateA_Import) =  \
-        (DirectDrawEnumerate_pfn)GetProcAddress (hBackend, "DirectDrawEnumerateA");
+        reinterpret_cast <DirectDrawEnumerate_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateA")
+        );
       (DirectDrawEnumerateW_Import) =  \
-        (DirectDrawEnumerate_pfn)GetProcAddress (hBackend, "DirectDrawEnumerateW");
+        reinterpret_cast <DirectDrawEnumerate_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateW") 
+        );
 
       (DirectDrawEnumerateExA_Import) =  \
-        (DirectDrawEnumerateEx_pfn)GetProcAddress (hBackend, "DirectDrawEnumerateExA");
+        reinterpret_cast <DirectDrawEnumerateEx_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateExA")
+        );
       (DirectDrawEnumerateExW_Import) =  \
-        (DirectDrawEnumerateEx_pfn)GetProcAddress (hBackend, "DirectDrawEnumerateExW");
+        reinterpret_cast <DirectDrawEnumerateEx_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateExW")
+        );
     };
 
   dll_log.Log (L"[   DDraw  ] Importing DirectDrawCreate{Ex}..");
@@ -269,10 +277,16 @@ SK_HookDDraw (void)
   {
     dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %ph",
       (DirectDrawCreate_Import) =  \
-        (DirectDrawCreate_pfn)GetProcAddress (hBackend, "DirectDrawCreate"));
+        reinterpret_cast <DirectDrawCreate_pfn> (
+          GetProcAddress (hBackend, "DirectDrawCreate")
+        )
+    );
     dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %ph",
       (DirectDrawCreateEx_Import) =  \
-        (DirectDrawCreateEx_pfn)GetProcAddress (hBackend, "DirectDrawCreateEx"));
+        reinterpret_cast <DirectDrawCreateEx_pfn> (
+          GetProcAddress (hBackend, "DirectDrawCreateEx")
+        )
+    );
 
     LoadSupplementalImports ();
   }
@@ -316,9 +330,13 @@ SK_HookDDraw (void)
       if (bProxy)
       {
         (DirectDrawCreate_Import)   =  \
-          (DirectDrawCreate_pfn)GetProcAddress (hBackend, "DirectDrawCreate");
+          reinterpret_cast <DirectDrawCreate_pfn> (
+            GetProcAddress (hBackend, "DirectDrawCreate")
+          );
         (DirectDrawCreateEx_Import) =  \
-          (DirectDrawCreateEx_pfn)GetProcAddress (hBackend, "DirectDrawCreateEx");
+          reinterpret_cast <DirectDrawCreateEx_pfn> (
+            GetProcAddress (hBackend, "DirectDrawCreateEx")
+          );
 
         LoadSupplementalImports ();
       }
@@ -365,7 +383,7 @@ ddraw_init_callback (finish_pfn finish)
 bool
 SK::DDraw::Startup (void)
 {
-  wchar_t wszImmediateMode [MAX_PATH * 2 + 1] = { L'\0' };
+  wchar_t wszImmediateMode [MAX_PATH * 2 + 1] = { };
 
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
@@ -391,6 +409,24 @@ SK::DDraw::Startup (void)
 bool
 SK::DDraw::Shutdown (void)
 {
+  if (dgvoodoo_ddraw)
+  {
+    FreeLibrary (dgvoodoo_ddraw->hLibrary);
+    delete dgvoodoo_ddraw;
+  }
+
+  if (dgvoodoo_d3d8)
+  {
+    FreeLibrary (dgvoodoo_d3d8->hLibrary);
+    delete dgvoodoo_d3d8;
+  }
+
+  if (dgvoodoo_d3dimm)
+  {
+    FreeLibrary (dgvoodoo_d3dimm->hLibrary);
+    delete dgvoodoo_d3dimm;
+  }
+
   return SK_ShutdownCore (L"ddraw");
 }
 

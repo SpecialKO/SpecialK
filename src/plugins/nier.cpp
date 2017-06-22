@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.6.1.2"
+#define FAR_VERSION_NUM L"0.6.2.0"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -682,7 +682,8 @@ SK_FAR_EndFrame (void)
     }
   }
 
-  XINPUT_STATE state;
+  XINPUT_STATE state = { };
+
   if (__FAR_Freelook && SK_XInput_PollController (0, &state))
   {
     float LX   = state.Gamepad.sThumbLX;

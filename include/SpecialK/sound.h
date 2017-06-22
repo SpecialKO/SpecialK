@@ -59,8 +59,8 @@ public:
 
     DWORD proc_id = getProcessId ();
 
-    char     szTitle [512] = {  '\0' };
-    wchar_t wszTitle [512] = { L'\0' };
+    char     szTitle [512] = { };
+    wchar_t wszTitle [512] = { };
     
     window_t win = SK_FindRootWindow (proc_id);
     if (win.root != 0)

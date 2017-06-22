@@ -679,7 +679,7 @@ Update_DlgProc (
 
       for ( auto it = files.begin (); it != files.end (); ++it )
       {
-        wchar_t wszFinalPath [MAX_PATH] = { L'\0' };
+        wchar_t wszFinalPath [MAX_PATH] = { };
         wcscpy (wszFinalPath, SK_SYS_GetInstallPath ().c_str ());
 
         lstrcatW (wszFinalPath, it->name.c_str ());
@@ -850,7 +850,7 @@ Update_DlgProc (
               return S_OK;
             };
 
-          wchar_t wszBackupMessage [4096] = { L'\0' };
+          wchar_t wszBackupMessage [4096] = { };
 
           extern bool config_files_changed;
 
@@ -1044,7 +1044,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
     // ^^^^ Add a key/value pair so that the section isn't purged on write
   }
 
-  wchar_t wszCurrentBuild [128] = { L'\0' };
+  wchar_t wszCurrentBuild [128] = { };
 
   if (empty) {
     *wszCurrentBuild = L'\0';
@@ -1114,7 +1114,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
     {
       task_config.lpCallbackData = (LONG_PTR)get;
 
-      wchar_t   wszUpdateFile [MAX_PATH] = { L'\0' };
+      wchar_t   wszUpdateFile [MAX_PATH] = { };
 
       lstrcatW (wszUpdateFile, SK_SYS_GetVersionPath ().c_str ());
 

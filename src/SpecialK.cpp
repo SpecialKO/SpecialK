@@ -94,13 +94,16 @@ SK_TLS_Bottom (void)
     lpvData =
       (LPVOID)LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max);
 
-    if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+    if (lpvData != nullptr)
     {
-      LocalFree (lpvData);
-      return nullptr;
-    }
+      if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+      {
+        LocalFree (lpvData);
+        return nullptr;
+      }
 
-    ((SK_TLS *)lpvData)->stack.current = 0;
+      ((SK_TLS *)lpvData)->stack.current = 0;
+    }
   }
 
   return (SK_TLS *)lpvData;
@@ -113,9 +116,7 @@ SK_TLS_Top (void)
   if (__SK_TLS_INDEX == -1)
     return nullptr;
 
-  SK_TLS* pTLS = SK_TLS_Bottom ();
-
-  return &(pTLS [pTLS->stack.current]);
+  return &(SK_TLS_Bottom ()[SK_TLS_Bottom ()->stack.current]);
 }
 
 bool
@@ -314,8 +315,8 @@ SK_EstablishDllRole (HMODULE hModule)
     return false;
   }
 
-  wchar_t wszDllFullName [  MAX_PATH  ] = { L'\0' };
-          wszDllFullName [MAX_PATH - 1] =   L'\0';
+  wchar_t wszDllFullName [  MAX_PATH  ] = { };
+          wszDllFullName [MAX_PATH - 1] = { };
 
   GetModuleFileName (hModule, wszDllFullName, MAX_PATH - 1);
 
@@ -366,11 +367,11 @@ SK_EstablishDllRole (HMODULE hModule)
     bool explicit_inject = false;
 
 
-    wchar_t wszD3D9  [MAX_PATH] = { L'\0' };
-    wchar_t wszD3D8  [MAX_PATH] = { L'\0' };
-    wchar_t wszDDraw [MAX_PATH] = { L'\0' };
-    wchar_t wszDXGI  [MAX_PATH] = { L'\0' };
-    wchar_t wszGL    [MAX_PATH] = { L'\0' };
+    wchar_t wszD3D9  [MAX_PATH] = { };
+    wchar_t wszD3D8  [MAX_PATH] = { };
+    wchar_t wszDDraw [MAX_PATH] = { };
+    wchar_t wszDXGI  [MAX_PATH] = { };
+    wchar_t wszGL    [MAX_PATH] = { };
 
     lstrcatW (wszD3D9, SK_GetHostPath ());
     lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
@@ -435,14 +436,14 @@ SK_EstablishDllRole (HMODULE hModule)
 
 
       DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH] = { L'\0' };
+      wchar_t wszProcessName [MAX_PATH] = { };
 
       HANDLE hProc =
         GetCurrentProcess ();
 
       QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
 
-      bool is_steamworks_game =
+      const bool is_steamworks_game =
         ( steam_tests [0].used | steam_tests [1].used ) ||
            SK_Path_wcsstr (wszProcessName, L"steamapps");
 
@@ -826,7 +827,7 @@ DllMain ( HMODULE hModule,
 
 
       DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH] = { L'\0' };
+      wchar_t wszProcessName [MAX_PATH] = { };
 
       HANDLE hProc = GetCurrentProcess ();
 
@@ -848,14 +849,12 @@ DllMain ( HMODULE hModule,
         return FALSE;
       }
 
-
-      if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+      // We don't want to initialize the DLL, but we also don't want it re-inject itself constantly
+      //   just return TRUE here.
+      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        blacklist.emplace (std::wstring (SK_GetHostApp ()));
-
-        return FALSE;
+        return TRUE;
       }
-
 
       SK_Init_MinHook ();
 
@@ -903,7 +902,8 @@ DllMain ( HMODULE hModule,
           SK_Detach (SK_GetDLLRole ());
         }
 
-        TlsFree (__SK_TLS_INDEX);
+        if (__SK_TLS_INDEX != MAXDWORD)
+          TlsFree (__SK_TLS_INDEX);
       }
 
       //else {
@@ -920,31 +920,37 @@ DllMain ( HMODULE hModule,
     { 
       InterlockedIncrement (&__SK_Threads_Attached);
 
-      LPVOID lpvData =
-        (LPVOID)LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max);
-
-      if (lpvData != nullptr)
+      if (__SK_TLS_INDEX != MAXDWORD)
       {
-        if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
-        {
-          LocalFree (lpvData);
-        }
+        LPVOID lpvData =
+          (LPVOID)LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max);
 
-        else
-          ((SK_TLS *)lpvData)->stack.current = 0;
+        if (lpvData != nullptr)
+        {
+          if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+          {
+            LocalFree (lpvData);
+          }
+
+          else
+            ((SK_TLS *)lpvData)->stack.current = 0;
+        }
       }
     } break;
 
 
     case DLL_THREAD_DETACH:
     {
-      LPVOID lpvData =
-        (LPVOID)TlsGetValue (__SK_TLS_INDEX);
-
-      if (lpvData != nullptr)
+      if (__SK_TLS_INDEX != MAXDWORD)
       {
-        LocalFree   (lpvData);
-        TlsSetValue (__SK_TLS_INDEX, nullptr);
+        LPVOID lpvData =
+          (LPVOID)TlsGetValue (__SK_TLS_INDEX);
+
+        if (lpvData != nullptr)
+        {
+          LocalFree   (lpvData);
+          TlsSetValue (__SK_TLS_INDEX, nullptr);
+        }
       }
     } break;
   }

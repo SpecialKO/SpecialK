@@ -100,8 +100,8 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
 
   for (int n = 0; n < draw_data->CmdListsCount; n++)
   {
-    const ImDrawList* cmd_list = draw_data->CmdLists[n];
-    const ImDrawIdx* idx_buffer_offset = 0;
+    const ImDrawList* cmd_list          = draw_data->CmdLists [n];
+    const ImDrawIdx*  idx_buffer_offset = 0;
 
     glBindBuffer (GL_ARRAY_BUFFER,         g_VboHandle);
     glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
@@ -375,18 +375,14 @@ ImGui_ImplGL3_NewFrame (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  // Setup display size (every frame to accommodate for window resizing)
-  int         w,         h;
-  int display_w, display_h;
-
   RECT client;
   GetClientRect (game_window.hWnd, &client);
 
-  w = client.right  - client.left;
-  h = client.bottom - client.top;
-
-  display_w = w;
-  display_h = h;
+  // Setup display size (every frame to accommodate for window resizing)
+  int         w = client.right  - client.left,
+              h = client.bottom - client.top;
+  int display_w = w,
+      display_h = h;
 
   io.DisplaySize             = ImVec2 ((float)w, (float)h);
   io.DisplayFramebufferScale = ImVec2 ((float)w, (float)h);//ImVec2 (w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);

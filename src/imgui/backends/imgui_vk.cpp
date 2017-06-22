@@ -185,7 +185,7 @@ ImGui_ImplVulkan_VkResult (VkResult err)
 void
 ImGui_ImplVulkan_RenderDrawLists (ImDrawData* draw_data)
 {
-  VkResult err;
+  VkResult err { };
 
   ImGuiIO& io =
     ImGui::GetIO ();
@@ -435,8 +435,9 @@ ImGui_ImplVulkan_CreateFontsTexture (VkCommandBuffer command_buffer)
 
   SK_ImGui_LoadFonts ();
 
-  unsigned char* pixels;
-  int            width, height;
+  unsigned char* pixels = nullptr;
+  int            width  = 0,
+                 height = 0;
 
   io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
 

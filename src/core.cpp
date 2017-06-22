@@ -102,8 +102,8 @@ struct init_params_t {
 
 std::queue <DWORD> __SK_Init_Suspended_tids;
 
-wchar_t SK_RootPath   [MAX_PATH + 2] = { L'\0' };
-wchar_t SK_ConfigPath [MAX_PATH + 2] = { L'\0' };
+wchar_t SK_RootPath   [MAX_PATH + 2] = { };
+wchar_t SK_ConfigPath [MAX_PATH + 2] = { };
 wchar_t SK_Backend    [128];
 
 __declspec (noinline)
@@ -586,13 +586,15 @@ private:
 SK_ICommandResult
 skUpdateCmd::execute (const char* szArgs)
 {
-  if (! strlen (szArgs)) {
+  if (! strlen (szArgs))
+  {
     SK_FetchVersionInfo1 (L"SpecialK", true);
     SK_UpdateSoftware1   (L"SpecialK", true);
   }
 
-  else {
-    wchar_t wszProduct [128] = { L'\0' };
+  else
+  {
+    wchar_t wszProduct [128] = { };
     
     mbtowc (wszProduct, szArgs, strlen (szArgs));
 
@@ -609,9 +611,9 @@ skMemCmd::execute (const char* szArgs)
   if (szArgs == nullptr)
     return SK_ICommandResult ("mem", szArgs);
 
-  uintptr_t addr;
-  char      type;
-  char      val [256] = { '\0' };
+  uintptr_t addr      =  0;
+  char      type      =  0;
+  char      val [256] = { };
 
 #ifdef _WIN64
   sscanf (szArgs, "%c %llx %s", &type, &addr, val);
@@ -632,7 +634,7 @@ skMemCmd::execute (const char* szArgs)
 
   addr += (uintptr_t)base_addr;
 
-  char result [512] = { '0' };
+  char result [512] = { };
 
   switch (type) {
     case 'b':
@@ -928,7 +930,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
 #endif
 
 
-  wchar_t wszBackendDLL [MAX_PATH] = { L'\0' };
+  wchar_t wszBackendDLL [MAX_PATH] = { };
 #ifdef _WIN64
   GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #else
@@ -943,7 +945,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #endif
 
-  wchar_t wszWorkDir   [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszWorkDir   [MAX_PATH + 2] = { };
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
 
   dll_log.Log (L" Working Directory:          %s", wszWorkDir);
@@ -1408,7 +1410,7 @@ SK_HasGlobalInjector (void)
 
   if (last_test == 0)
   {
-    wchar_t wszBasePath [MAX_PATH * 2 - 1] = { L'\0' };
+    wchar_t wszBasePath [MAX_PATH * 2 - 1] = { };
 
     wcsncpy ( wszBasePath,
                 std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\" ).c_str (),
@@ -1435,21 +1437,21 @@ extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
 
 // True if the user has rebased their %UserProfile% directory the wrong way
 static bool    altered_user_profile     = false;
-static wchar_t wszProfile    [MAX_PATH] = { L'\0' };
-static wchar_t wszDocs       [MAX_PATH] = { L'\0' };
-static wchar_t wszEnvProfile [MAX_PATH] = { L'\0' };
-static wchar_t wszEnvDocs    [MAX_PATH] = { L'\0' };
+static wchar_t wszProfile    [MAX_PATH] = { };
+static wchar_t wszDocs       [MAX_PATH] = { };
+static wchar_t wszEnvProfile [MAX_PATH] = { };
+static wchar_t wszEnvDocs    [MAX_PATH] = { };
 
 void
 __stdcall
 SK_EstablishRootPath (void)
 {
-  wchar_t wszConfigPath [MAX_PATH + 1] = { L'\0' };
-          wszConfigPath [  MAX_PATH  ] = { L'\0' };
+  wchar_t wszConfigPath [MAX_PATH + 1] = { };
+          wszConfigPath [  MAX_PATH  ] = { };
 
-          SK_RootPath   [    0     ]   = { L'\0' };
+          SK_RootPath   [    0     ]   = { };
 
-          SK_RootPath   [ MAX_PATH ]   = { L'\0' };
+          SK_RootPath   [ MAX_PATH ]   = { };
 
   // Make expansion of %UserProfile% agree with the actual directory, for people
   //   who rebase their documents directory without fixing this env. variable.
@@ -1704,14 +1706,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       tried = true;
 
 #ifdef _WIN64
-      const wchar_t* wszSteamDLL = { L"steam_api64.dll" };
+      static const wchar_t* wszSteamDLL = L"steam_api64.dll";
 #else
-      const wchar_t* wszSteamDLL = { L"steam_api.dll" };
+      static const wchar_t* wszSteamDLL = L"steam_api.dll";
 #endif
 
       if (! GetModuleHandle (wszSteamDLL))
       {
-        wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { L'\0' };
+        wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { };
 
         if (SK_IsInjected ())
           wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
@@ -2041,9 +2043,9 @@ SK_BeginBufferSwap (void)
       // Disable until we validate CEGUI's state
       config.cegui.enable = false;
   
-      wchar_t wszCEGUIModPath [MAX_PATH]        = { L'\0' };
-      wchar_t wszCEGUITestDLL [MAX_PATH]        = { L'\0' };
-      wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { L'\0' };
+      wchar_t wszCEGUIModPath [MAX_PATH]        = { };
+      wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
+      wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
 
   
   #ifdef _WIN64
@@ -2075,7 +2077,7 @@ SK_BeginBufferSwap (void)
       lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
       lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
 
-      wchar_t wszWorkingDir [MAX_PATH + 2] = { L'\0' };
+      wchar_t wszWorkingDir [MAX_PATH + 2] = { };
 
       if (! config.cegui.safe_init)
       {
@@ -2114,7 +2116,7 @@ SK_BeginBufferSwap (void)
       {
         dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
   
-        wchar_t wszEnvVar [ MAX_PATH + 32 ] = { L'\0' };
+        wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
   
         _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
         _wputenv  (wszEnvVar);
@@ -2135,7 +2137,7 @@ SK_BeginBufferSwap (void)
               bool                 ret    = false;
   
               __try {
-                    char szFullDLL [MAX_PATH] = { '\0' };
+                    char szFullDLL [MAX_PATH] = { };
                 sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
   
                 cookie =               k32_AddDllDirectory    (wszCEGUIModPath);

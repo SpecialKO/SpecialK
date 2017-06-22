@@ -158,13 +158,13 @@ namespace SK_ImGui
     using namespace ImGui;
 
           ImFont        *font      = GImGui->Font;
-    const ImFont::Glyph *glyph;
-          char           c;
-          bool           ret;
+    const ImFont::Glyph *glyph     = nullptr;
+          char           c         = 0;
+          bool           ret       = false;
     const ImGuiContext&  g         = *GImGui;
     const ImGuiStyle&    style     = g.Style;
           float          pad       = style.FramePadding.x;
-          ImVec4         color;
+          ImVec4         color     = { };
     const char*          hash_mark = strstr (text, "##");
           ImVec2         text_size = CalcTextSize     (text, hash_mark);
           ImGuiWindow*   window    = GetCurrentWindow ();
@@ -234,14 +234,14 @@ namespace SK_ImGui
 
     if (utils)
     {
-      uint8_t battery_level =
+      const uint8_t battery_level =
         utils->GetCurrentBatteryPower ();
       
       if (battery_level != 255) // 255 = Running on AC
       {
-        float battery_ratio = (float)battery_level/100.0f;
+        const float battery_ratio = (float)battery_level/100.0f;
 
-        static char szBatteryLevel [128] = { '\0' };
+        static char szBatteryLevel [128] = { };
         snprintf (szBatteryLevel, 127, "%lu%% Battery Charge Remaining", battery_level);
 
         ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, 0.666f));
@@ -284,9 +284,8 @@ void   SK_ImGui_CenterCursorOnWindow (void);
 const char*
 SK_ImGui_ControlPanelTitle (void)
 {
-  static char szTitle [512] = { '\0' };
-
-  const bool steam = (SK::SteamAPI::AppID () != 0x0);
+  static char szTitle [512] = { };
+  const  bool steam         = (SK::SteamAPI::AppID () != 0x0);
 
   extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
@@ -429,7 +428,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
         CComPtr <ISimpleAudioVolume> volume_ctl =
           pSession->getSimpleAudioVolume ();
 
-        BOOL mute;
+        BOOL mute = FALSE;
+
         if (volume_ctl != nullptr && SUCCEEDED (volume_ctl->GetMute (&mute)))
         {
           if (drawing_self)
@@ -449,7 +449,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
           float volume = 0.0f;
           volume_ctl->GetMasterVolume (&volume);
 
-          char szLabel [32] = { '\0' };
+          char szLabel [32] = { };
           snprintf (szLabel, 31, "###VoumeSlider%li", i);
 
           ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImColor (0.5f, 0.5f, 0.5f) : ImColor (1.0f, 1.0f, 1.0f));
@@ -557,7 +557,6 @@ DisplayModeMenu (bool windowed)
   int         mode      = windowed ? DISPLAY_MODE_WINDOWED :
                                      DISPLAY_MODE_FULLSCREEN;
   int    orig_mode      = mode;
-
   bool       force      = windowed ? config.display.force_windowed :
                                      config.display.force_fullscreen;
 
@@ -817,11 +816,11 @@ SK_ImGui_ControlPanel (void)
     static SK_VersionInfo vinfo =
       SK_Version_GetLocalInfo (nullptr);
 
-    char current_ver [128] = { '\0' };
-    snprintf (current_ver, 127, "%ws (%li)", vinfo.package.c_str (), vinfo.build);
+    char current_ver        [128] = { };
+    char current_branch_str [ 64] = { };
 
-    char current_branch_str [64] = { '\0' };
-    snprintf (current_branch_str, 63, "%ws", vinfo.branch.c_str ());
+    snprintf (current_ver,        127, "%ws (%li)", vinfo.package.c_str (), vinfo.build);
+    snprintf (current_branch_str,  63, "%ws",       vinfo.branch.c_str  ());
 
     static SK_VersionInfo vinfo_latest =
       SK_Version_GetLatestInfo (nullptr);
@@ -836,7 +835,7 @@ SK_ImGui_ControlPanel (void)
 
       if (branches.size () > 1)
       {
-        char szCurrentBranchMenu [128] = { '\0' };
+        char szCurrentBranchMenu [128] = { };
         sprintf (szCurrentBranchMenu, "Current Branch:  (%s)###SelectBranchMenu", current_branch_str);
 
         if (ImGui::BeginMenu (szCurrentBranchMenu, branches.size () > 1))
@@ -1102,7 +1101,7 @@ SK_ImGui_ControlPanel (void)
   }
 
 
-          char szAPIName [32] = { '\0' };
+          char szAPIName [32] = { };
     snprintf ( szAPIName, 32, "%ws",  SK_GetCurrentRenderBackend ().name );
 
     // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
@@ -1137,7 +1136,7 @@ SK_ImGui_ControlPanel (void)
 
     ImGui::Separator ();
 
-    char szResolution [128] = { '\0' };
+    char szResolution [128] = { };
 
     bool sRGB     = SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB;
     bool override = false;
@@ -1235,7 +1234,8 @@ SK_ImGui_ControlPanel (void)
     {
       SK_GetCurrentRenderBackend ().gsync_state.update ();
 
-      char szGSyncStatus [128] = { '\0' };
+      char szGSyncStatus [128] = { };
+
       if (SK_GetCurrentRenderBackend ().gsync_state.capable)
       {
         strcat (szGSyncStatus, "Supported + ");
@@ -1917,9 +1917,9 @@ SK_ImGui_ControlPanel (void)
 
       struct { ULONG reads; } xinput;
 
-      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8;
-      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid;
-      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input;
+      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
+      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
+      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
 
       xinput.reads      = SK_XInput_Backend.reads [2];
 
@@ -2906,7 +2906,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
         if (SUCCEEDED (pMeterInfo->GetMeteringChannelCount (&channels)))
         {
-          static float channel_peaks_ [32];
+          static float channel_peaks_ [32] { };
 
           struct
           {
@@ -2915,9 +2915,9 @@ extern float SK_ImGui_PulseNav_Strength;
               float inst_max = FLT_MIN;  DWORD dwMaxSample = 0;  float disp_max = FLT_MIN;
             } vu_peaks;
 
-            float peaks [120];
-            int   current_idx;
-          } static history [32];
+            float peaks    [120] { };
+            int   current_idx =   0;
+          } static history [ 32] { };
 
           #define VUMETER_TIME 300
 
@@ -2934,8 +2934,8 @@ extern float SK_ImGui_PulseNav_Strength;
             // Will fill-in with unique names for ImGui
             //   (all buttons say the same thing =P)
             //
-            char mute_button  [14] = { '\0' };
-            char slider_label [8 ] = { '\0' };
+            char mute_button  [14] = { };
+            char slider_label [8 ] = { };
           };
 
           static std::map <int, volume_s> channel_volumes;
@@ -3357,8 +3357,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
 
       bool    reshade                 = false;
-      wchar_t imp_path [MAX_PATH + 2] = { L'\0' };
-      wchar_t imp_name [64]           = { L'\0' };
+      wchar_t imp_path [MAX_PATH + 2] = { };
+      wchar_t imp_name [64]           = { };
 
 #ifdef _WIN64
       wcscat   (imp_name, L"Import.ReShade64");
@@ -3462,7 +3462,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
         if (SK_SteamAPI_GetNumPossibleAchievements () > 0)
         {
-          static char szProgress [128] = { '\0' };
+          static char szProgress [128] = { };
 
           float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
           size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
@@ -3739,8 +3739,8 @@ extern float SK_ImGui_PulseNav_Strength;
       {
         ImGui::Columns    ( 2, "SteamSep", true );
 
-        static char szNumber       [16] = { '\0' };
-        static char szPrettyNumber [32] = { '\0' };
+        static char szNumber       [16] = { };
+        static char szPrettyNumber [32] = { };
 
         const NUMBERFMTA fmt = { 0, 0, 3, ".", ",", 0 };
 
@@ -3786,7 +3786,7 @@ extern float SK_ImGui_PulseNav_Strength;
         float ratio   = SK_SteamAPI_FriendStatPercentage ();
         int   friends = SK_SteamAPI_GetNumFriends        ();
 
-        static char szLabel [512] = { '\0' };
+        static char szLabel [512] = { };
 
         snprintf ( szLabel, 511,
                      "Fetching Achievements... %.2f%% (%lu/%lu) : %s",
@@ -3940,7 +3940,7 @@ ErrorMessage ( _NvAPI_Status err,
 
   NvAPI_GetErrorMessage (err, szError);
 
-  wchar_t wszFormattedError [1024] = { L'\0' };
+  wchar_t wszFormattedError [1024] = { };
 
   swprintf ( wszFormattedError, 1024,
               L"Line %u of %hs (in %hs (...)):\n"
@@ -3961,7 +3961,7 @@ SK_NvAPI_GetGPUInfoStr (void)
 {
   return L"";
 
-  static wchar_t adapters [4096] = { L'\0' };
+  static wchar_t adapters [4096] = { };
 
   if (*adapters != L'\0')
     return adapters;

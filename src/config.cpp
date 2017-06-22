@@ -270,6 +270,8 @@ struct {
       sk::ParameterInt*  placeholders;
       sk::ParameterBool* disable_rumble;
     } xinput;
+
+    sk::ParameterBool*   native_ps4;
   } gamepad;
 } input;
 
@@ -653,6 +655,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Gamepad",
         L"EnableHID" );
+
+  input.gamepad.native_ps4 =
+    static_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Native PS4 Mode (temporary)")
+      );
+  input.gamepad.native_ps4->register_to_ini (
+    dll_ini,
+      L"Input.Gamepad",
+        L"EnableNativePS4" );
 
 
   input.gamepad.hook_xinput =
@@ -1188,8 +1200,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Render.FrameRate",
         L"PreRenderLimit" );
 
-  if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9) ||
-                           (SK_GetDLLRole () & DLL_ROLE::DXGI) ) {
+
+  // D3D9 / DXGI
     render.framerate.refresh_rate =
       static_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
@@ -1199,7 +1211,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.FrameRate",
           L"RefreshRate" );
-  }
+
 
   render.framerate.allow_dwm_tearing =
     static_cast <sk::ParameterBool *>
@@ -1231,7 +1243,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Render.FrameRate",
         L"SleeplessWindowThread" );
 
-  if (SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::D3D9)) {
+
+  // D3D9
     compatibility.d3d9.rehook_present =
       static_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
@@ -1297,7 +1310,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.D3D9",
           L"HookType" );
-  }
+
 
     render.framerate.max_delta_time =
       static_cast <sk::ParameterInt *>
@@ -2158,24 +2171,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.textures.d3d11.cache            = true;
         config.textures.cache.ignore_nonmipped = true;
         config.textures.cache.max_size         = 4096;
-
-        config.render.dxgi.full_state_cache    = true;
         break;
 
 
       case SK_GAME_ID::MadMax:
-        // Misnomer: This uses D3D11 interop to backup D3D11.1+ states,
-        //   only MadMax needs this AS FAR AS I KNOW.
-        config.render.dxgi.full_state_cache = true;
-        SK_DXGI_FullStateCache              = config.render.dxgi.full_state_cache;
         break;
 
 
       case SK_GAME_ID::Dreamfall_Chapters:
-        // One of only a handful of games where the interop hack does not work
-        config.render.dxgi.full_state_cache    = true;
-        SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
-
         config.system.trace_load_library       = true;
         config.system.strict_compliance        = false;
 
@@ -2730,10 +2733,15 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.input.gamepad.rehook_xinput = input.gamepad.rehook_xinput->get_value ();
   if (input.gamepad.hook_xinput->load ())
     config.input.gamepad.hook_xinput = input.gamepad.hook_xinput->get_value ();
+
+  // Hidden INI values; they're loaded, but never written
   if (input.gamepad.hook_dinput8->load ())
     config.input.gamepad.hook_dinput8 = input.gamepad.hook_dinput8->get_value ();
   if (input.gamepad.hook_hid->load ())
     config.input.gamepad.hook_hid = input.gamepad.hook_hid->get_value ();
+  if (input.gamepad.native_ps4->load ())
+    config.input.gamepad.native_ps4 = input.gamepad.native_ps4->get_value ();
+
   if (input.gamepad.haptic_ui->load ())
     config.input.gamepad.haptic_ui = input.gamepad.haptic_ui->get_value ();
 
@@ -2966,7 +2974,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 bool
 SK_DeleteConfig (std::wstring name)
 {
-  wchar_t wszFullName [ MAX_PATH + 2 ] = { L'\0' };
+  wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszFullName, SK_GetConfigPath ());
   lstrcatW (wszFullName,       name.c_str ());
@@ -3110,7 +3118,7 @@ SK_SaveConfig ( std::wstring name,
   window.fullscreen->set_value                (config.window.fullscreen);
   window.fix_mouse_coords->set_value          (config.window.res.override.fix_mouse);
 
-  wchar_t wszFormattedRes [64] = { L'\0' };
+  wchar_t wszFormattedRes [64] = { };
 
   wsprintf ( wszFormattedRes, L"%lux%lu",
                config.window.res.override.x,
@@ -3500,7 +3508,7 @@ SK_SaveConfig ( std::wstring name,
   if (! (nvapi_init && sk::NVAPI::nv_hardware))
     dll_ini->remove_section (L"NVIDIA.SLI");
 
-  wchar_t wszFullName [ MAX_PATH + 2 ] = { L'\0' };
+  wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszFullName, SK_GetConfigPath ());
   lstrcatW (wszFullName,       name.c_str ());
@@ -3591,7 +3599,7 @@ SK_Keybind::parse (void)
   {
     for (int i = 0; i < 0xFF; i++)
     {
-      wchar_t name [32] = { L'\0' };
+      wchar_t name [32] = { };
 
       switch (i)
       {
@@ -3628,8 +3636,8 @@ SK_Keybind::parse (void)
           unsigned int scanCode =
             ( MapVirtualKey (i, 0) & 0xFF );
 
-          BYTE buf [256] = { 0 };
-          unsigned short int temp;
+                        BYTE buf [256] = { };
+          unsigned short int temp      =  0;
           
           bool asc = (i <= 32);
 
@@ -3672,7 +3680,7 @@ SK_Keybind::parse (void)
     init = true;
   }
 
-  wchar_t wszKeyBind [128] = { L'\0' };
+  wchar_t wszKeyBind [128] = { };
 
   wcsncat (wszKeyBind, human_readable.c_str (), 127);
 

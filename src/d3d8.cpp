@@ -86,17 +86,10 @@ Direct3DCreate8 (UINT SDKVersion)
                     SDKVersion,
                       SK_SummarizeCaller ().c_str () );
 
-  IUnknown* d3d8 = nullptr;
+  if (Direct3DCreate8_Import)
+    return Direct3DCreate8_Import (SDKVersion);
 
-  if (Direct3DCreate8_Import) {
-    d3d8 = Direct3DCreate8_Import (SDKVersion);
-  }
-
-  if (d3d8 != nullptr) {
-    // ...
-  }
-
-  return d3d8;
+  return nullptr;
 }
 
 void
@@ -116,27 +109,35 @@ SK_HookD3D8 (void)
   dll_log.Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
   dll_log.Log (L"[   D3D8   ] ================================");
   
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll")) {
+  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll"))
+  {
     dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %ph",
       (Direct3DCreate8_Import) =  \
-        (Direct3DCreate8PROC)GetProcAddress (hBackend, "Direct3DCreate8"));
+        reinterpret_cast <Direct3DCreate8PROC> (
+          GetProcAddress (hBackend, "Direct3DCreate8")
+        )
+    );
   }
 
-  else
+  else if (hBackend != nullptr)
   {
-    bool bProxy = GetModuleHandle (L"d3d8.dll") != hBackend;
+    const bool bProxy =
+      ( GetModuleHandle (L"d3d8.dll") != hBackend );
+
 
     if ( MH_OK ==
             SK_CreateDLLHook2 ( L"d3d8.dll",
                                 "Direct3DCreate8",
                                   Direct3DCreate8,
-                      (LPVOID *)&Direct3DCreate8_Import )
+     reinterpret_cast <LPVOID *>(&Direct3DCreate8_Import) )
         )
     {
       if (bProxy)
       {
         (Direct3DCreate8_Import) =  \
-          (Direct3DCreate8PROC)GetProcAddress (hBackend, "Direct3DCreate8");
+          reinterpret_cast <Direct3DCreate8PROC> (
+            GetProcAddress (hBackend, "Direct3DCreate8")
+          );
       }
 
       dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %p  { Hooked }",

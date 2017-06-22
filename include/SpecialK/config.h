@@ -255,7 +255,7 @@ struct sk_config_t
       // DXGI 1.1 (Ignored for now)
       int     rotation          =    -1; // -1 = Don't Care
       bool    test_present      = false;
-      bool    full_state_cache  = true;
+      bool    full_state_cache  = false;
       bool    debug_layer       = false;
       bool    allow_tearing     = false;
       bool    safe_fullscreen   = false;
@@ -338,6 +338,7 @@ struct sk_config_t
       bool    hook_dinput8      = true;
       bool    hook_hid          = true;
       bool    hook_xinput       = true; // Kind of important ;)
+      bool    native_ps4        = false;
 
       struct {
         int   ui_slot           =    0;

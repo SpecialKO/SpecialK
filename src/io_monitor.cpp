@@ -1092,8 +1092,8 @@ SK_MonitorDisk (LPVOID user)
         goto DISK_CLEANUP;
       }
 
-      long bytes = 0;
-      wchar_t name [64] = { L'\0' };
+      long    bytes     =  0;
+      wchar_t name [64] = { };
 
       if (FAILED (hr = disk.apEnumAccess [i]->ReadPropertyValue (
                              disk.lNameHandle,
@@ -1435,8 +1435,8 @@ SK_MonitorPagefile (LPVOID user)
         goto PAGEFILE_CLEANUP;
       }
 
-      long bytes = 0;
-      wchar_t name [256] = { L'\0' };
+      long    bytes      =  0;
+      wchar_t name [256] = { };
 
       if (FAILED (hr = pagefile.apEnumAccess [i]->ReadPropertyValue (
                              pagefile.lNameHandle,

@@ -59,8 +59,8 @@ SK_GPUPollingThread (LPVOID user)
 
     if (nvapi_init)
     {
-    NvPhysicalGpuHandle gpus [NVAPI_MAX_PHYSICAL_GPUS];
-    NvU32               gpu_count;
+    NvPhysicalGpuHandle gpus [NVAPI_MAX_PHYSICAL_GPUS] = { };
+    NvU32               gpu_count                      =  0;
 
     if (NVAPI_OK != NvAPI_EnumPhysicalGPUs (gpus, &gpu_count))
       return 0;

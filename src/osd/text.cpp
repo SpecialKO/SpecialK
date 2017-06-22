@@ -216,7 +216,7 @@ SK_TextOverlay::~SK_TextOverlay (void)
                          config.io.show)      { pszOSD += sprintf (pszOSD,
 #define OSD_END    ); }
 
-char szOSD [32768] = { '\0' };
+char szOSD [32768] = { };
 
 #include <SpecialK/nvapi.h>
 extern NV_GET_CURRENT_SLI_STATE sli_state;
@@ -524,7 +524,7 @@ SK_DrawOSD (void)
     SYSTEMTIME     st;
     GetLocalTime (&st);
 
-    wchar_t time [128] = { L'\0' };
+    wchar_t time [128] = { };
 
     GetTimeFormat ( config.time.format,
                       0L,
@@ -534,7 +534,7 @@ SK_DrawOSD (void)
                               128 );
 
     static HMODULE hModGame = GetModuleHandle (nullptr);
-    static wchar_t wszGameName [MAX_PATH] = { L'\0' };
+    static wchar_t wszGameName [MAX_PATH] = { };
 
     if (wszGameName [0] == L'\0')
     {
@@ -1549,7 +1549,7 @@ SK_TextOverlay::update (const char* szText)
     float   x, y;
     getPos (x, y);
 
-    static __declspec (thread) char text [32768] = { '\0' };
+    static __declspec (thread) char text [32768] = { };
 
     *text = '\0';
     strncat (text, data_.text, 32766);

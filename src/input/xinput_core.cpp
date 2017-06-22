@@ -130,11 +130,16 @@ XInputGetState1_3_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return E_POINTER;
+
+  ZeroMemory (pState, sizeof (XINPUT_STATE));
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -152,7 +157,7 @@ XInputGetState1_3_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -163,11 +168,16 @@ XInputGetStateEx1_3_Detour (
   _In_  DWORD            dwUserIndex,
   _Out_ XINPUT_STATE_EX *pState )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return E_POINTER;
+
+  ZeroMemory (pState, sizeof (XINPUT_STATE_EX));
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -185,7 +195,7 @@ XInputGetStateEx1_3_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -197,11 +207,16 @@ XInputGetCapabilities1_3_Detour (
   _In_  DWORD                dwFlags,
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pCapabilities == nullptr)         return E_POINTER;
+
+  ZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+
+  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -214,7 +229,7 @@ XInputGetCapabilities1_3_Detour (
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -226,11 +241,16 @@ XInputGetBatteryInformation1_3_Detour (
   _In_  BYTE                        devType,
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pBatteryInformation == nullptr)         return E_POINTER;
+
+  ZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+
+  if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
@@ -243,7 +263,7 @@ XInputGetBatteryInformation1_3_Detour (
   dwRet =
     SK_XInput_PlaceHoldBattery (dwRet, dwUserIndex, devType, pBatteryInformation);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -254,14 +274,18 @@ XInputSetState1_3_Detour (
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
-  if (pVibration  == nullptr)         return E_POINTER;
-
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
+
+  if (pVibration  == nullptr)           return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+  if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        return ERROR_DEVICE_NOT_CONNECTED;
+                                      }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
                  dwUserIndex == config.input.gamepad.xinput.ui_slot &&
@@ -277,7 +301,7 @@ XInputSetState1_3_Detour (
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -289,11 +313,16 @@ XInputGetState1_4_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return E_POINTER;
+
+  ZeroMemory (pState, sizeof (XINPUT_STATE));
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -311,7 +340,7 @@ XInputGetState1_4_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -322,11 +351,15 @@ XInputGetStateEx1_4_Detour (
   _In_  DWORD            dwUserIndex,
   _Out_ XINPUT_STATE_EX *pState )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return E_POINTER;
+
+  ZeroMemory (pState, sizeof (XINPUT_STATE_EX));
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -344,7 +377,7 @@ XInputGetStateEx1_4_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -356,11 +389,16 @@ XInputGetCapabilities1_4_Detour (
   _In_  DWORD                dwFlags,
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pCapabilities == nullptr)         return E_POINTER;
+
+  ZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+
+  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -373,7 +411,7 @@ XInputGetCapabilities1_4_Detour (
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -385,11 +423,16 @@ XInputGetBatteryInformation1_4_Detour (
   _In_  BYTE                        devType,
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pBatteryInformation == nullptr) return E_POINTER;
+
+  ZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -402,7 +445,7 @@ XInputGetBatteryInformation1_4_Detour (
   dwRet =
     SK_XInput_PlaceHoldBattery (dwRet, dwUserIndex, devType, pBatteryInformation);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -413,14 +456,18 @@ XInputSetState1_4_Detour (
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
-  if (pVibration  == nullptr)         return E_POINTER;
-
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
+
+  if (pVibration  == nullptr)         return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+  if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                        return ERROR_DEVICE_NOT_CONNECTED;
+                                      }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
                  dwUserIndex == config.input.gamepad.xinput.ui_slot &&
@@ -436,7 +483,7 @@ XInputSetState1_4_Detour (
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -448,11 +495,16 @@ XInputGetState9_1_0_Detour (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return E_POINTER;
+
+  ZeroMemory (pState, sizeof (XINPUT_STATE));
+
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -470,7 +522,7 @@ XInputGetState9_1_0_Detour (
 
   // Migrate the function that we use internally over to
   //   whatever the game is actively using -- helps with X360Ce
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -482,11 +534,16 @@ XInputGetCapabilities9_1_0_Detour (
   _In_  DWORD                dwFlags,
   _Out_ XINPUT_CAPABILITIES *pCapabilities )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
   if (pCapabilities == nullptr)         return E_POINTER;
+
+  ZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
+
+  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -499,7 +556,7 @@ XInputGetCapabilities9_1_0_Detour (
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }
@@ -510,14 +567,18 @@ XInputSetState9_1_0_Detour (
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
-  if (pVibration  == nullptr)         return E_POINTER;
-
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
+
+  if (pVibration  == nullptr)         return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+  if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                      return ERROR_DEVICE_NOT_CONNECTED;
+                                      }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
                  dwUserIndex == config.input.gamepad.xinput.ui_slot &&
@@ -534,7 +595,7 @@ XInputSetState9_1_0_Detour (
   dwRet =
     SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
 
-  SK_XInput_EstablishPrimaryHook (SK_GetCallingDLL (), pCtx);
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
   return dwRet;
 }

@@ -439,7 +439,7 @@ SK_WASAPI_GetChannelName (int channel_idx)
   //   the ordinal instead and add that fallback name to the hashmap
   else
   {
-    char szChannelOrdinal [32] = { '\0' };
+    char szChannelOrdinal [32] = { };
     snprintf (szChannelOrdinal, 31, "Unknown Channel (%02li)", channel_idx);
 
     channel_names.emplace (channel_idx, szChannelOrdinal);

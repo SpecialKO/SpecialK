@@ -358,7 +358,7 @@ SK_HookCSteamworks (void)
   HANDLE  hProc = GetCurrentProcess ();
   HMODULE hMod  = GetModuleHandle (L"CSteamworks.dll");
 
-  wchar_t wszModName [MAX_PATH] = { L'\0' };
+  wchar_t wszModName [MAX_PATH] = { };
 
   if ( GetModuleFileNameExW ( hProc,
                                 hMod,

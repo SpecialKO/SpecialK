@@ -144,7 +144,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
     SymGetModuleBase   ( hProc, ip );
 #endif
 
-  char    szModName [ MAX_PATH + 2 ] = { '\0' };
+  char    szModName [ MAX_PATH + 2 ] = { };
 
   GetModuleFileNameA   ( hMod, szModName, MAX_PATH );
 
@@ -339,7 +339,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
 
   HMODULE hModSource = nullptr;
-  char    szModName [MAX_PATH] = { '\0' };
+  char    szModName [MAX_PATH] = { };
   HANDLE  hProc                = GetCurrentProcess ();
 
   SymRefreshModuleList ( hProc );
@@ -653,7 +653,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
   DWORD64 BaseAddr =
     SymGetModuleBase64 ( hProc, ip );
 
-  char    szModName [ MAX_PATH + 2 ] = { '\0' };
+  char    szModName [ MAX_PATH + 2 ] = {  };
 
   int len = GetModuleFileNameA  ( hMod, szModName, MAX_PATH );
 
@@ -750,9 +750,9 @@ SK_BypassSteamCrashHandler (void)
   if (! config.steam.silent)
   {
 #ifdef _WIN64
-    const wchar_t* wszSteamDLL = { L"steam_api64.dll" };
+    const wchar_t* wszSteamDLL = L"steam_api64.dll";
 #else
-    const wchar_t* wszSteamDLL = { L"steam_api.dll" };
+    const wchar_t* wszSteamDLL = L"steam_api.dll";
 #endif
 
     if (SK_GetFileSize (wszSteamDLL) > 0)

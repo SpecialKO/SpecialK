@@ -431,7 +431,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     pDev->GetDepthStencilSurface (&ds);
 
-    D3DSURFACE_DESC surf_desc;
+    D3DSURFACE_DESC surf_desc = { };
 
     if (SUCCEEDED (pDev->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
     {
@@ -1313,7 +1313,7 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9TestCooperativeLevel_Override (IDirect3DDevice9* This)
 {
-  HRESULT hr;
+  HRESULT hr = E_FAIL;
 
   if (trigger_reset == reset_stage_e::Initiate)
   {
@@ -1633,13 +1633,6 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   HRESULT hr;
 
-  if (config.compatibility.d3d9.rehook_reset)
-    SK_D3D9_HookReset   (This);
-
-  if ( config.compatibility.d3d9.rehook_present ||
-       D3D9Present_Original == nullptr )
-    SK_D3D9_HookPresent (This);
-
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
     D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
@@ -1650,6 +1643,13 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   if (SUCCEEDED (hr))
   {
+    if (config.compatibility.d3d9.rehook_reset)
+      SK_D3D9_HookReset   (This);
+
+    if ( config.compatibility.d3d9.rehook_present ||
+         D3D9Present_Original == nullptr )
+      SK_D3D9_HookPresent (This);
+
     if (InterlockedExchangeAdd (&__d3d9_ready, 0))
     {
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
@@ -2177,7 +2177,9 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
 
       if (switch_to_fullscreen)
+      {
         pparams->Windowed = FALSE;
+      }
 
       else if (switch_to_windowed)
       {
@@ -2185,9 +2187,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         {
           pparams->Windowed                   = TRUE;
           pparams->FullScreen_RefreshRateInHz = 0;
-
-          SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE,    GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & (~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)));
-          SetWindowPos      (pparams->hDeviceWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
         } else
           dll_log.Log (L"[  D3D9  ] Could not force windowed mode, game has no device window?!");
       }
@@ -2251,6 +2250,25 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
                                     //0, 0,
                                       //pparams->BackBufferWidth, pparams->BackBufferHeight,
                                         //SWP_NOZORDER | SWP_NOSENDCHANGING );
+      }
+
+      else if (switch_to_fullscreen && (! pparams->Windowed))
+      {
+        if ( SetWindowLongPtrW_Original == nullptr ||
+             GetWindowLongPtrW_Original == nullptr )
+        {
+          SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) | (WS_EX_TOPMOST | WS_EX_APPWINDOW)));
+          SetWindowPos      (pparams->hDeviceWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
+                                                                               SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+          SK_InstallWindowHook (pparams->hDeviceWindow);
+        }
+
+        else
+        {
+          SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST | WS_EX_APPWINDOW)));
+          SetWindowPos_Original      (game_window.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
+                                                                                  SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+        }
       }
 
       memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
@@ -2561,7 +2579,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
                       ppReturnedDeviceInterface,
                         SK_SummarizeCaller ().c_str () );
 
-  HRESULT ret;
+  HRESULT ret = E_FAIL;
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
@@ -2979,7 +2997,7 @@ std::wstring
 WINAPI
 SK::D3D9::getPipelineStatsDesc (void)
 {
-  wchar_t wszDesc [1024] = { L'\0' };
+  wchar_t wszDesc [1024] = { };
 
   D3DDEVINFO_D3D9PIPELINETIMINGS& stats =
     pipeline_stats_d3d9.last_results;

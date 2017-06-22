@@ -58,7 +58,7 @@ SK_GetLicenseText (SHORT id)
     {
       ZeroMemory (res_data, res_size + 1);
 
-      char* locked = (char *)LockResource (license_ref);
+      const char* const locked = (char *)LockResource (license_ref);
 
       if (locked != nullptr)
         strncat (res_data, locked, res_size);
@@ -119,7 +119,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   std::wstring plugin = SK_GetPluginName ();
 
-         char szTitle [256] = { '\0' };
+         char szTitle [256] = { };
   static bool open          = true;
 
   sprintf (szTitle, "%ws Software License Agreement", plugin.c_str ());

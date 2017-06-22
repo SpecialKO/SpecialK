@@ -129,8 +129,10 @@ HidD_GetPreparsedData_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  PHIDP_PREPARSED_DATA pData;
-  BOOLEAN bRet = HidD_GetPreparsedData_Original (HidDeviceObject, &pData);
+  PHIDP_PREPARSED_DATA pData = nullptr;
+  BOOLEAN              bRet  =
+    HidD_GetPreparsedData_Original ( HidDeviceObject,
+                                       &pData );
 
   if (bRet)
   {
@@ -160,7 +162,8 @@ __stdcall
 HidD_FreePreparsedData_Detour (
   _In_ PHIDP_PREPARSED_DATA PreparsedData )
 {
-  BOOLEAN bRet = HidD_FreePreparsedData_Original (PreparsedData);
+  BOOLEAN bRet =
+    HidD_FreePreparsedData_Original (PreparsedData);
 
   if (PreparsedData == SK_HID_PreparsedData)
     SK_HID_PreparsedData = nullptr;
@@ -175,10 +178,11 @@ HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
                          _Out_ PVOID  ReportBuffer,
                          _In_  ULONG  ReportBufferLength )
 {
-  bool filter = false;
   ////SK_HID_READ (sk_input_dev_type::Gamepad)
 
-  PHIDP_PREPARSED_DATA pData;
+  bool                 filter = false;
+  PHIDP_PREPARSED_DATA pData  = nullptr;
+
   if (HidD_GetPreparsedData_Original (HidDeviceObject, &pData))
   {
     if (SK_HID_FilterPreparsedData (pData))
@@ -572,7 +576,7 @@ SK_RawInput_PopulateDeviceList (void)
 
   if (uiNumDevices != 0)
   {
-    pDevices = new RAWINPUTDEVICE [uiNumDevices];
+    pDevices = new RAWINPUTDEVICE [uiNumDevices + 1];
 
     GetRegisteredRawInputDevices_Original (pDevices, &uiNumDevices, sizeof RAWINPUTDEVICE);
 
@@ -926,6 +930,83 @@ SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse)
 }
 
 
+#include <SpecialK/input/xinput.h>
+
+
+XINPUT_STATE di8_to_xi;
+
+XINPUT_STATE
+SK_DI8_TranslateToXInput (DIJOYSTATE* pJoy)
+{
+  static DWORD dwPacket = 0;
+
+  ZeroMemory (&di8_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+
+  //
+  // Hard-coded mappings for DualShock 4 -> XInput
+  //
+
+  if (pJoy->rgbButtons [ 9])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+
+  if (pJoy->rgbButtons [ 8])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+
+  if (pJoy->rgbButtons [10])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+
+  if (pJoy->rgbButtons [11])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+
+  if (pJoy->rgbButtons [ 6])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+
+  if (pJoy->rgbButtons [ 7])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+
+  if (pJoy->rgbButtons [ 4])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+
+  if (pJoy->rgbButtons [ 5])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+
+  if (pJoy->rgbButtons [ 1])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+
+  if (pJoy->rgbButtons [ 2])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+
+  if (pJoy->rgbButtons [ 0])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+
+  if (pJoy->rgbButtons [ 3])
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+  if (pJoy->rgdwPOV [0] == 0)
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+
+  if (pJoy->rgdwPOV [0] == 9000)
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+
+  if (pJoy->rgdwPOV [0] == 18000)
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+
+  if (pJoy->rgdwPOV [0] == 27000)
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+
+  di8_to_xi.Gamepad.sThumbLX      =  (SHORT)((float)MAXSHORT * ((float)pJoy->lX / 255.0f));
+  di8_to_xi.Gamepad.sThumbLY      = -(SHORT)((float)MAXSHORT * ((float)pJoy->lY / 255.0f));
+
+  di8_to_xi.Gamepad.sThumbRX      =  (SHORT)((float)MAXSHORT * ((float)pJoy->lZ  / 255.0f));
+  di8_to_xi.Gamepad.sThumbRY      = -(SHORT)((float)MAXSHORT * ((float)pJoy->lRz / 255.0f));
+
+  di8_to_xi.Gamepad.bLeftTrigger  =   (BYTE)((float)MAXBYTE  * ((float)pJoy->lRx / 255.0f));
+  di8_to_xi.Gamepad.bRightTrigger =   (BYTE)((float)MAXBYTE  * ((float)pJoy->lRy / 255.0f));
+
+  di8_to_xi.dwPacketNumber = dwPacket++;
+
+  return di8_to_xi;
+}
 
 HRESULT
 WINAPI
@@ -940,9 +1021,6 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
               L"Direct Inp" );
 
   HRESULT hr = S_OK;
-  //hr = IDirectInputDevice8_GetDeviceState_Original ( This,
-                                                       //cbData,
-                                                         //lpvData );
 
   if (SUCCEEDED (hr) && lpvData != nullptr)
   {
@@ -952,6 +1030,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       static DIJOYSTATE2 last_state;
 
       DIJOYSTATE2* out = (DIJOYSTATE2 *)lpvData;
+
+      SK_DI8_TranslateToXInput ((DIJOYSTATE *)out);
 
       if (nav_usable)
       {
@@ -963,18 +1043,6 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
         out->rgdwPOV [3] = -1;
       } else
         memcpy (&last_state, out, cbData);
-
-#if 0
-      DIJOYSTATE2  in  = *out;
-
-      for (int i = 0; i < 12; i++) {
-        // Negative values are for axes, we cannot remap those yet
-        if (gamepad.remap.map [ i ] >= 0) {
-          out->rgbButtons [ i ] = 
-            in.rgbButtons [ gamepad.remap.map [ i ] ];
-        }
-      }
-#endif
     }
 
     else if (cbData == sizeof DIJOYSTATE) 
@@ -987,6 +1055,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
       DIJOYSTATE* out = (DIJOYSTATE *)lpvData;
 
+      SK_DI8_TranslateToXInput (out);
+
       if (nav_usable)
       {
         memcpy (out, &last_state, cbData);
@@ -998,6 +1068,32 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       }
       else
         memcpy (&last_state, out, cbData);
+
+#if 0
+      XINPUT_STATE xis;
+      SK_XInput_PollController (0, &xis);
+
+      out->rgbButtons [ 9] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_START          ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 8] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_BACK           ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [10] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB     ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [11] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB    ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 6] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_TRIGGER   ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 7] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_TRIGGER  ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 4] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER  ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 5] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 1] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_A              ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 2] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_B              ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 0] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_X              ) != 0x0 ? 0xFF : 0x00);
+      out->rgbButtons [ 3] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_Y              ) != 0x0 ? 0xFF : 0x00);
+
+      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP           ) != 0x0 ?      0 : 0);
+      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT        ) != 0x0 ?  90000 : 0);
+      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN         ) != 0x0 ? 180000 : 0);
+      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT         ) != 0x0 ? 270000 : 0);
+
+      if (out->rgdwPOV [0] == 0)
+        out->rgdwPOV [0] = -1;
+#endif
     }
 
     else if (This == _dik.pDev || cbData == 256)
@@ -1190,6 +1286,7 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
     // This weird hack is necessary for EverQuest; crazy game hooks itself to try and thwart
     //   macro programs.
     //
+    /*
     if (rguid == GUID_SysMouse && _dim.pDev == nullptr)
     {
       SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
@@ -1210,12 +1307,16 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
 
     else if (rguid != GUID_SysMouse && rguid != GUID_SysKeyboard)
     {
+    */
+    if (IDirectInputDevice8_GetDeviceState_GAMEPAD_Original == nullptr)
+    {
       SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
                            vftable [9],
                            IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour,
                 (LPVOID *)&IDirectInputDevice8_GetDeviceState_GAMEPAD_Original );
       MH_QueueEnableHook (vftable [9]);
     }
+    //}
 
     if (! IDirectInputDevice8_SetCooperativeLevel_Original)
     {

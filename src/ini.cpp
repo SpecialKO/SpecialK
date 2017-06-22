@@ -644,7 +644,7 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
                          wchar_t const* const    _Format,
                                                  ... )
 {
-  wchar_t wszFormatted [128];
+  wchar_t wszFormatted [128] = { };
 
   int len = 0;
 

@@ -989,7 +989,7 @@ crc32c (uint32_t crc, buffer input, size_t length)
   if (append_func == nullptr)
     __crc32_init ();
 
-  if (input != nullptr && length > 0)
+  if (input != nullptr && length > 0 && append_func != nullptr)
     return append_func (crc, input, length);
 
   return crc;
@@ -1010,8 +1010,8 @@ SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc)
 std::wstring
 SK_GetModuleName (HMODULE hDll)
 {
-  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { L'\0' };
-          wszDllFullName [   MAX_PATH   ] =   L'\0';
+  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { };
+          wszDllFullName [   MAX_PATH   ] = { };
 
   GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
 
@@ -1028,8 +1028,8 @@ SK_GetModuleName (HMODULE hDll)
 std::wstring
 SK_GetModuleFullName (HMODULE hDll)
 {
-  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { L'\0' };
-          wszDllFullName [   MAX_PATH   ] =   L'\0';
+  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { };
+          wszDllFullName [   MAX_PATH   ] = { };
 
   GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
 
@@ -1071,7 +1071,7 @@ SK_GetRTSSInstallDir (void)
   PROCESSENTRY32 pe32 =
     FindProcessByName (L"RTSS.exe");
 
-  wchar_t wszPath [MAX_PATH] = { '\0' };
+  wchar_t wszPath [MAX_PATH] = { };
 
   if (wcsstr (pe32.szExeFile, L"RTSS.exe")) {
     HANDLE hProcess =
@@ -1457,8 +1457,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT     cbTranslatedBytes = 0,
            cbProductBytes    = 0;
 
-  uint8_t  cbData      [4096] = {     0 };
-  wchar_t  wszPropName [64]   = { L'\0' };
+  uint8_t  cbData      [4096] = { };
+  wchar_t  wszPropName [64]   = { };
 
   wchar_t* wszProduct = nullptr; // Will point somewhere in cbData
 
@@ -1467,7 +1467,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
     WORD wCodePage;
   } *lpTranslate = nullptr;
 
-  wchar_t wszFullyQualifiedName [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszFullyQualifiedName [MAX_PATH * 2] = { };
 
   lstrcatW (wszFullyQualifiedName, SK_GetHostPath ());
   lstrcatW (wszFullyQualifiedName, L"\\");
@@ -1511,8 +1511,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
            cbProductBytes    = 0,
            cbVersionBytes    = 0;
 
-  uint8_t  cbData      [4096] = {     0 };
-  wchar_t  wszPropName [64]   = { L'\0' };
+  uint8_t  cbData      [4096] = { };
+  wchar_t  wszPropName [64]   = { };
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -1930,11 +1930,11 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
 
 
 struct sk_host_process_s {
-  wchar_t wszApp       [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszPath      [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszFullName  [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { L'\0' };
-  wchar_t wszSystemDir [ MAX_PATH * 2 ] = { L'\0' };
+  wchar_t wszApp       [ MAX_PATH * 2 ] = { };
+  wchar_t wszPath      [ MAX_PATH * 2 ] = { };
+  wchar_t wszFullName  [ MAX_PATH * 2 ] = { };
+  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { };
+  wchar_t wszSystemDir [ MAX_PATH * 2 ] = { };
 } host_proc;
 
 bool
@@ -2008,7 +2008,7 @@ SK_GetHostApp (void)
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
 
     HANDLE hProc =
       GetCurrentProcess ();
@@ -2059,7 +2059,7 @@ SK_GetFullyQualifiedApp (void)
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
 
     HANDLE hProc =
       GetCurrentProcess ();
@@ -2092,7 +2092,7 @@ SK_GetHostPath (void)
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { L'\0' };
+    wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
 
     HANDLE hProc =
       GetCurrentProcess ();
@@ -2182,7 +2182,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   LARGE_INTEGER   liCompressed   = { 0 };
   LARGE_INTEGER   liUncompressed = { 0 };
 
-  wchar_t wszFindPattern [MAX_PATH * 2] = { L'\0' };
+  wchar_t wszFindPattern [MAX_PATH * 2] = { };
 
   lstrcatW (wszFindPattern, wszPath);
   lstrcatW (wszFindPattern, L"\\");
@@ -2194,7 +2194,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   {
     dll_log.LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ", wszPath );
 
-    wchar_t wszFullPath [MAX_PATH * 2 + 1] = { L'\0' };
+    wchar_t wszFullPath [MAX_PATH * 2 + 1] = { };
 
     do
     {
@@ -2227,7 +2227,7 @@ SK_FileHasSpaces (const wchar_t* wszLongFileName)
 BOOL
 SK_FileHas8Dot3Name (const wchar_t* wszLongFileName)
 {
-  wchar_t wszShortPath [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszShortPath [MAX_PATH + 2] = { };
  
   if ((! GetShortPathName   (wszLongFileName, wszShortPath, MAX_PATH - 1)) ||
          GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES      ||
@@ -2298,9 +2298,9 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
   wchar_t* wszFileName  = _wcsdup (wszLongFileName);
   wchar_t* wszFileName1 = _wcsdup (wszLongFileName);
 
-  wchar_t  wsz8     [11] = { L'\0' }; // One non-nul for overflow
-  wchar_t  wszDot3  [ 4] = { L'\0' };
-  wchar_t  wsz8Dot3 [14] = { L'\0' };
+  wchar_t  wsz8     [11] = { }; // One non-nul for overflow
+  wchar_t  wszDot3  [ 4] = { };
+  wchar_t  wsz8Dot3 [14] = { };
 
   while (SK_FileHasSpaces (wszFileName))
   {
@@ -2438,9 +2438,9 @@ SK_RestartGame (const wchar_t* wszDLL)
   extern std::wstring
   SK_GetModuleFullName (HMODULE hDll);
 
-  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { L'\0' };
-  wchar_t wszShortPath [MAX_PATH + 2] = { L'\0' };
-  wchar_t wszFullname  [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+  wchar_t wszShortPath [MAX_PATH + 2] = { };
+  wchar_t wszFullname  [MAX_PATH + 2] = { };
 
   wcsncpy ( wszFullname, wszDLL != nullptr ?
                          wszDLL :
@@ -2514,9 +2514,9 @@ SK_ElevateToAdmin (void)
   extern std::wstring
   SK_GetModuleFullName (HMODULE hDll);
 
-  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { L'\0' };
-  wchar_t wszShortPath [MAX_PATH + 2] = { L'\0' };
-  wchar_t wszFullname  [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+  wchar_t wszShortPath [MAX_PATH + 2] = { };
+  wchar_t wszFullname  [MAX_PATH + 2] = { };
 
   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH - 1);
  

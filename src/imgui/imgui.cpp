@@ -10960,7 +10960,7 @@ SK_ImGui_LoadFonts (void)
 
     auto LoadFont = [](std::string filename, float point_size, const ImWchar* glyph_range, ImFontConfig* cfg = nullptr)
     {
-      char szFullPath [ MAX_PATH * 2 + 1 ] = { '\0' };
+      char szFullPath [ MAX_PATH * 2 + 1 ] = { };
 
       if (GetFileAttributesA (filename.c_str ()) != INVALID_FILE_ATTRIBUTES)
         strncpy (szFullPath, filename.c_str (), MAX_PATH * 2);
@@ -11179,8 +11179,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
 
             // TODO: Determine which controller the input is from
-            //if (SK_ImGui_WantGamepadCapture ())
-              //filter = true;
+            if (SK_ImGui_WantGamepadCapture ())
+              filter = true;
           } break;
         }
 
@@ -11937,14 +11937,90 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   return SK_ImGui_Visible;
 }
 
+typedef HRESULT (WINAPI *IDirectInputDevice8_GetDeviceState_pfn)(
+  LPDIRECTINPUTDEVICE  This,
+  DWORD                cbData,
+  LPVOID               lpvData
+);
+
+extern IDirectInputDevice8_GetDeviceState_pfn
+        IDirectInputDevice8_GetDeviceState_GAMEPAD_Original;
+
+extern XINPUT_STATE di8_to_xi;
+
 void
 SK_ImGui_PollGamepad_EndFrame (void)
 {
          XINPUT_STATE state;
   static XINPUT_STATE last_state = { 1, 0 };
 
-  if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
-  { 
+#if 0
+  static XINPUT_STATE xi_state;
+
+  ZeroMemory (&xi_state.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+
+  JOYINFOEX joy_ex { 0 };
+  joy_ex.dwSize  = sizeof JOYINFOEX;
+  joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+                   JOY_RETURNCENTERED | JOY_USEDEADZONE;
+
+  bool nav   = nav_usable;
+  nav_usable = false;
+  joyGetPosEx (JOYSTICKID1, &joy_ex);
+  nav_usable = nav;
+
+  xi_state.Gamepad.bLeftTrigger  = 0;//joy_ex.dwUpos > 0;
+  xi_state.Gamepad.bRightTrigger = 0;//joy_ex.dwVpos > 0;
+
+  xi_state.Gamepad.wButtons = 0;
+  
+  if (joy_ex.dwButtons & (1 << 1))
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+  if (joy_ex.dwButtons & (1 << 2))
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+  if (joy_ex.dwButtons & 1)
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+  if (joy_ex.dwButtons & (1 << 3))
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+  if (joy_ex.dwButtons & (1 << 9))
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+  if (joy_ex.dwButtons & (1 << 8))
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+
+  //xi_state.Gamepad.bLeftTrigger =
+  //  UNX_PollAxis (gamepad.remap.buttons.LT, joy_ex, caps);
+  //
+  //xi_state.Gamepad.bRightTrigger =
+  //  UNX_PollAxis (gamepad.remap.buttons.RT, joy_ex, caps);
+  //
+  //if (UNX_PollAxis (gamepad.remap.buttons.LB, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+  //if (UNX_PollAxis (gamepad.remap.buttons.RB, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+  //
+  //if (UNX_PollAxis (gamepad.remap.buttons.LS, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+  //if (UNX_PollAxis (gamepad.remap.buttons.RS, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+
+  if (joy_ex.dwPOV == JOY_POVFORWARD)
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+  if (joy_ex.dwPOV & JOY_POVBACKWARD)
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+  if (joy_ex.dwPOV & JOY_POVLEFT)
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+  if (joy_ex.dwPOV & JOY_POVRIGHT)
+    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+
+  xi_state.dwPacketNumber++;
+
+  state = xi_state;
+#endif
+  state = di8_to_xi;
+
+  if (config.input.gamepad.native_ps4 || SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
+  {
     if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
          state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
          last_state.dwPacketNumber <= state.dwPacketNumber )
@@ -12052,7 +12128,10 @@ SK_ImGui_PollGamepad (void)
   for (int i = 0; i < ImGuiNavInput_COUNT; i++)
     io.NavInputs [i] = 0.0f;
 
-  if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) && last_state.dwPacketNumber <= state.dwPacketNumber)
+  state = di8_to_xi;
+
+  if ((config.input.gamepad.native_ps4 || SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state)) &&
+       last_state.dwPacketNumber <= state.dwPacketNumber)
   {
     last_state = state;
 

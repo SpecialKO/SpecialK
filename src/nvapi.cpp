@@ -104,7 +104,7 @@ NVAPI::ErrorMessage (_NvAPI_Status err,
 
   NvAPI_GetErrorMessage (err, szError);
 
-  wchar_t wszFormattedError [1024] = { L'\0' };
+  wchar_t wszFormattedError [1024] = { };
 
   swprintf ( wszFormattedError, 1024,
               L"Line %u of %hs (in %hs (...)):\n"
@@ -330,8 +330,8 @@ std::wstring
 NVAPI::GetDriverVersion (NvU32* pVer)
 {
   NvU32             ver;
-  NvAPI_ShortString ver_str;                   // ANSI
-  wchar_t           ver_wstr [64] = { L'\0' }; // Unicode
+  NvAPI_ShortString ver_str;             // ANSI
+  wchar_t           ver_wstr [64] = { }; // Unicode
 
   NvAPI_SYS_GetDriverAndBranchVersion (&ver, ver_str);
 

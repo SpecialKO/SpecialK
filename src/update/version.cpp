@@ -110,7 +110,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   uliNow.HighPart = ftNow.dwHighDateTime;
 
 
-  wchar_t wszInstallFile [MAX_PATH] = { L'\0' };
+  wchar_t wszInstallFile [MAX_PATH] = { };
 
   //Profiles/
   //PlugIns/
@@ -307,7 +307,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     return false;
   }
 
-  wchar_t wszRemoteRepoURL [MAX_PATH] = { L'\0' };
+  wchar_t wszRemoteRepoURL [MAX_PATH] = { };
 
   // TEMPORARILY REBASE TO 0.8.X
   if (! lstrcmpW (wszProduct, L"SpecialK"))
@@ -449,13 +449,13 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
   
     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
-    wchar_t wszBranchSection [128] = { L'\0' };
+    wchar_t wszBranchSection [128] = { };
     _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
 
     if (repo_ini.contains_section (wszBranchSection)) {
       ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
 
-      wchar_t wszPackage [128] = { L'\0' };
+      wchar_t wszPackage [128] = { };
       swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
 
       ver_info.package = wszPackage;
@@ -490,7 +490,7 @@ SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
     ver_info.package  = install_ini.get_section (L"Version.Local").get_value (L"InstallPackage");
 
-    wchar_t wszPackage [128] = { L'\0' };
+    wchar_t wszPackage [128] = { };
     swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
 
     ver_info.package = wszPackage;
@@ -554,7 +554,7 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
     {
       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
       {
-        wchar_t wszBranchName [128] = { L'\0' };
+        wchar_t wszBranchName [128] = { };
         swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
 
         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
@@ -635,7 +635,7 @@ SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
     iSK_INISection& user_prefs =
       install_ini.get_section (L"Update.User");
 
-    wchar_t wszFormatted [128] = { L'\0' };
+    wchar_t wszFormatted [128] = { };
 
     if (freq > 0 && freq < MAXULONGLONG)
       _swprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
@@ -693,7 +693,7 @@ SK_Version_SwitchBranches (const wchar_t* wszProduct, const char* szBranch)
 
     // TODO: Validate selected branch against those in the repository
 
-    wchar_t wszBranch [128] = { L'\0' };
+    wchar_t wszBranch [128] = { };
     swprintf (wszBranch, L"%hs", szBranch);
 
     install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
@@ -729,7 +729,7 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
       repo_ini.parse    ();
 
-    wchar_t wszFormatted [256] = { L'\0' };
+    wchar_t wszFormatted [256] = { };
     _swprintf (wszFormatted, L"Version.%hs", szBranch);
 
     if (repo_ini.contains_section (wszFormatted))
@@ -744,7 +744,7 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
 
             vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
 
-            wchar_t wszPackage_ [128] = { L'\0' };
+            wchar_t wszPackage_ [128] = { };
             swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
 
             vinfo1.package = wszPackage_;

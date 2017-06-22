@@ -55,7 +55,7 @@ enum class SK_RenderAPI {
 
 struct SK_RenderBackend_V1 {
   enum class SK_RenderAPI api       = SK_RenderAPI::Reserved;
-             wchar_t      name [16] = { L'\0' };
+             wchar_t      name [16] = { };
 };
 
 enum {

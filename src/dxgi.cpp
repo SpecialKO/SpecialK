@@ -161,8 +161,8 @@ SK_CEGUI_RelocateLog (void)
 {
   // Move the log file that this darn thing just created...
   if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES) {
-    char     szNewLogPath [MAX_PATH * 4] = {  '\0' };
-    wchar_t wszNewLogPath [MAX_PATH]     = { L'\0' };
+    char     szNewLogPath [MAX_PATH * 4] = { };
+    wchar_t wszNewLogPath [MAX_PATH]     = { };
 
     wcscpy   (wszNewLogPath, SK_GetConfigPath ());
     wcstombs ( szNewLogPath, SK_GetConfigPath (), MAX_PATH * 4 - 1);
@@ -360,8 +360,6 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
     if (pGUIDev == nullptr)
       return;
-
-    CComPtr <ID3D11Device> pDev = nullptr;
 
     // The process of bootstrapping this through CEGUI does not add a reference, so
     //   don't bother decrementing the reference count by releasing it.
@@ -1152,331 +1150,143 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 }
 
 
-struct D3DX11_STATE_BLOCK
-{
-  ID3D11VertexShader*        VS;
-  ID3D11SamplerState*        VSSamplers        [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView*  VSShaderResources [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*              VSConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*       VSInterfaces      [D3D11_SHADER_MAX_INTERFACES];
-  UINT                       VSInterfaceCount;
-
-  ID3D11GeometryShader*      GS;
-  ID3D11SamplerState*        GSSamplers        [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView*  GSShaderResources [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*              GSConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*       GSInterfaces      [D3D11_SHADER_MAX_INTERFACES];
-  UINT                       GSInterfaceCount;
-
-  ID3D11HullShader*          HS;
-  ID3D11SamplerState*        HSSamplers        [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView*  HSShaderResources [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*              HSConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*       HSInterfaces      [D3D11_SHADER_MAX_INTERFACES];
-  UINT                       HSInterfaceCount;
-
-  ID3D11DomainShader*        DS;
-  ID3D11SamplerState*        DSSamplers        [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView*  DSShaderResources [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*              DSConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*       DSInterfaces      [D3D11_SHADER_MAX_INTERFACES];
-  UINT                       DSInterfaceCount;
-
-  ID3D11PixelShader*         PS;
-  ID3D11SamplerState*        PSSamplers        [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView*  PSShaderResources [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*              PSConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*       PSInterfaces      [D3D11_SHADER_MAX_INTERFACES];
-  UINT                       PSInterfaceCount;
-
-  ID3D11ComputeShader*       CS;
-  ID3D11SamplerState*        CSSamplers             [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-  ID3D11ShaderResourceView*  CSShaderResources      [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*              CSConstantBuffers      [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-  ID3D11ClassInstance*       CSInterfaces           [D3D11_SHADER_MAX_INTERFACES];
-  UINT                       CSInterfaceCount;
-  ID3D11UnorderedAccessView* CSUnorderedAccessViews [D3D11_PS_CS_UAV_REGISTER_COUNT];
-
-  ID3D11Buffer*              IAVertexBuffers        [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-  UINT                       IAVertexBuffersStrides [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-  UINT                       IAVertexBuffersOffsets [D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-  ID3D11Buffer*              IAIndexBuffer;
-  DXGI_FORMAT                IAIndexBufferFormat;
-  UINT                       IAIndexBufferOffset;
-  ID3D11InputLayout*         IAInputLayout;
-  D3D11_PRIMITIVE_TOPOLOGY   IAPrimitiveTopology;
-
-  ID3D11RenderTargetView*    OMRenderTargets        [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
-  ID3D11DepthStencilView*    OMRenderTargetStencilView;
-  ID3D11UnorderedAccessView* OMUnorderedAccessViews [D3D11_PS_CS_UAV_REGISTER_COUNT];
-  ID3D11DepthStencilState*   OMDepthStencilState;
-  UINT                       OMDepthStencilRef;
-  ID3D11BlendState*          OMBlendState;
-  FLOAT                      OMBlendFactor  [4];
-  UINT                       OMSampleMask;
-
-  UINT                       RSViewportCount;
-  D3D11_VIEWPORT             RSViewports    [D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-  UINT                       RSScissorRectCount;
-  D3D11_RECT                 RSScissorRects [D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-  ID3D11RasterizerState*     RSRasterizerState;
-  ID3D11Buffer*              SOBuffers      [4];
-  ID3D11Predicate*           Predication;
-  BOOL                       PredicationValue;
-};
-
-void CreateStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
-{
-  ZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
-
-  dc->VSGetShader          (&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
-
-  dc->VSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->VSSamplers);
-  dc->VSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->VSShaderResources);
-  dc->VSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->VSConstantBuffers);
-
-  dc->GSGetShader          (&sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
-
-  dc->GSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->GSSamplers);
-  dc->GSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->GSShaderResources);
-  dc->GSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->GSConstantBuffers);
-
-  dc->HSGetShader          (&sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
-
-  dc->HSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->HSSamplers);
-  dc->HSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->HSShaderResources);
-  dc->HSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
-
-  dc->DSGetShader          (&sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
-  dc->DSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->DSSamplers);
-  dc->DSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->DSShaderResources);
-  dc->DSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
-
-  dc->PSGetShader          (&sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
-
-  dc->PSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->PSSamplers);
-  dc->PSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->PSShaderResources);
-  dc->PSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->PSConstantBuffers);
-
-  dc->CSGetShader          (&sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
-
-  dc->CSGetSamplers             (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->CSSamplers);
-  dc->CSGetShaderResources      (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->CSShaderResources);
-  dc->CSGetConstantBuffers      (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->CSConstantBuffers);
-  dc->CSGetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT,                    sb->CSUnorderedAccessViews);
-
-  dc->IAGetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, sb->IAVertexBuffers,
-                                                                            sb->IAVertexBuffersStrides,
-                                                                            sb->IAVertexBuffersOffsets);
-  dc->IAGetIndexBuffer       (&sb->IAIndexBuffer, &sb->IAIndexBufferFormat, &sb->IAIndexBufferOffset);
-  dc->IAGetInputLayout       (&sb->IAInputLayout);
-  dc->IAGetPrimitiveTopology (&sb->IAPrimitiveTopology);
-
-  dc->OMGetRenderTargetsAndUnorderedAccessViews ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets,
-               &sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT,         sb->OMUnorderedAccessViews );
-
-  dc->OMGetDepthStencilState (&sb->OMDepthStencilState, &sb->OMDepthStencilRef);
-  dc->OMGetBlendState        (&sb->OMBlendState,         sb->OMBlendFactor, &sb->OMSampleMask);
-
-  sb->RSViewportCount    = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-
-  dc->RSGetViewports         (&sb->RSViewportCount, sb->RSViewports);
-
-  sb->RSScissorRectCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-
-  dc->RSGetScissorRects      (&sb->RSScissorRectCount, sb->RSScissorRects);
-  dc->RSGetState             (&sb->RSRasterizerState);
-
-  //dc->SOGetTargets         (4, sb->SOBuffers);
-  dc->GetPredication         (&sb->Predication, &sb->PredicationValue);
-}
-
 template <class _T>
+static
+__forceinline
 UINT
 calc_count (_T** arr, UINT max_count)
 {
-  for ( UINT i = 0         ;
-             i < max_count ;
-           ++i )           {
-    if (arr [i] == 0)
+  for ( int i = (int)max_count - 1 ;
+            i >= 0 ;
+          --i )
+  {
+    if (arr [i] != 0)
       return i;
   }
 
   return max_count;
 }
 
-void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
+#define SK_D3D11_MAX_SCISSORS \
+  D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE
+
+struct StateBlockDataStore {
+  UINT                       ScissorRectsCount, ViewportsCount;
+  D3D11_RECT                 ScissorRects [SK_D3D11_MAX_SCISSORS];
+  D3D11_VIEWPORT             Viewports    [SK_D3D11_MAX_SCISSORS];
+  ID3D11RasterizerState*     RS;
+  ID3D11BlendState*          BlendState;
+  FLOAT                      BlendFactor  [4];
+  UINT                       SampleMask;
+  UINT                       StencilRef;
+  ID3D11DepthStencilState*   DepthStencilState;
+  ID3D11ShaderResourceView*  PSShaderResource;
+  ID3D11SamplerState*        PSSampler;
+  ID3D11PixelShader*         PS;
+  ID3D11VertexShader*        VS;
+  UINT                       PSInstancesCount, VSInstancesCount;
+  ID3D11ClassInstance       *PSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *VSInstances  [D3D11_SHADER_MAX_INTERFACES];
+  D3D11_PRIMITIVE_TOPOLOGY   PrimitiveTopology;
+  ID3D11Buffer              *IndexBuffer,
+                            *VertexBuffer,
+                            *VSConstantBuffer;
+  UINT                       IndexBufferOffset, VertexBufferStride,
+                             VertexBufferOffset;
+  DXGI_FORMAT                IndexBufferFormat;
+  ID3D11InputLayout*         InputLayout;
+
+  ID3D11DepthStencilView*    DepthStencilView;
+  ID3D11RenderTargetView*    RenderTargetView;
+};
+
+struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
 {
-  UINT minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] = { std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-                                                      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-                                                      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-                                                      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
-  
-  dc->VSSetShader            (sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
+  void capture (ID3D11DeviceContext* pCtx)
+  {
+    ZeroMemory (&ScissorRectsCount, sizeof (StateBlockDataStore));
 
-  UINT VSSamplerCount =
-    calc_count               (sb->VSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+    ScissorRectsCount = ViewportsCount =
+      D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
 
-  if (VSSamplerCount)
-    dc->VSSetSamplers        (0, VSSamplerCount, sb->VSSamplers);
+    pCtx->RSGetScissorRects      (      &ScissorRectsCount, ScissorRects);
+    pCtx->RSGetViewports         (      &ViewportsCount,    Viewports);
+    pCtx->RSGetState             (      &RS);
+    pCtx->OMGetBlendState        (      &BlendState,         BlendFactor,
+                                                            &SampleMask);
+    pCtx->OMGetDepthStencilState (      &DepthStencilState, &StencilRef);
+    pCtx->PSGetShaderResources   (0, 1, &PSShaderResource);
+    pCtx->PSGetSamplers          (0, 1, &PSSampler);
 
-  UINT VSShaderResourceCount =
-    calc_count               (sb->VSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+    PSInstancesCount = VSInstancesCount =
+      D3D11_SHADER_MAX_INTERFACES;
 
-  if (VSShaderResourceCount)
-    dc->VSSetShaderResources (0, VSShaderResourceCount, sb->VSShaderResources);
+    pCtx->PSGetShader            (&PS, PSInstances, &PSInstancesCount);
+    pCtx->VSGetShader            (&VS, VSInstances, &VSInstancesCount);
+    pCtx->VSGetConstantBuffers   (0, 1, &VSConstantBuffer);
+    pCtx->IAGetPrimitiveTopology (      &PrimitiveTopology);
+    pCtx->IAGetIndexBuffer       (      &IndexBuffer,  &IndexBufferFormat,
+                                                       &IndexBufferOffset);
+    pCtx->IAGetVertexBuffers     (0, 1, &VertexBuffer, &VertexBufferStride,
+                                                       &VertexBufferOffset);
+    pCtx->IAGetInputLayout       (      &InputLayout );
+    pCtx->OMGetRenderTargets     (1, &RenderTargetView, &DepthStencilView);
 
-  UINT VSConstantBufferCount =
-    calc_count               (sb->VSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+    PSInstancesCount = calc_count (PSInstances, PSInstancesCount);
+    VSInstancesCount = calc_count (VSInstances, VSInstancesCount);
+  }
 
-  if (VSConstantBufferCount)
-    dc->VSSetConstantBuffers (0, VSConstantBufferCount, sb->VSConstantBuffers);
+  void apply (ID3D11DeviceContext* pCtx)
+  {
+    pCtx->RSSetScissorRects      (ScissorRectsCount, ScissorRects);
+    pCtx->RSSetViewports         (ViewportsCount,    Viewports);
+    pCtx->OMSetDepthStencilState (DepthStencilState, StencilRef);
+    pCtx->RSSetState             (RS);
+    pCtx->PSSetShader            (PS, PSInstances,   PSInstancesCount);
+    pCtx->VSSetShader            (VS, VSInstances,   VSInstancesCount);
+    pCtx->IASetPrimitiveTopology (PrimitiveTopology);
+    pCtx->OMSetBlendState        (BlendState,        BlendFactor,
+                                                     SampleMask);
+    pCtx->IASetIndexBuffer       (IndexBuffer,       IndexBufferFormat,
+                                                     IndexBufferOffset);
+    pCtx->IASetInputLayout       (InputLayout);
+    pCtx->PSSetShaderResources   (0, 1, &PSShaderResource);
+    pCtx->VSSetConstantBuffers   (0, 1, &VSConstantBuffer);
+    pCtx->PSSetSamplers          (0, 1, &PSSampler);
+    pCtx->IASetVertexBuffers     (0, 1, &VertexBuffer,    &VertexBufferStride,
+                                                          &VertexBufferOffset);
+    pCtx->OMSetRenderTargets     (1,    &RenderTargetView, DepthStencilView);
 
-  dc->GSSetShader            (sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
+    //
+    // Now balance the reference counts that D3D added even though we did not want them :P
+    //
+    for (UINT i = 0; i < VSInstancesCount; i++)
+    {
+      if (VSInstances [i])
+          VSInstances [i]->Release ();
+    }
 
-  UINT GSSamplerCount =
-    calc_count               (sb->GSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+    if (RS)                RS->Release                ();
+    if (PS)                PS->Release                ();
+    if (VS)                VS->Release                ();
+    if (PSSampler)         PSSampler->Release         ();
+    if (BlendState)        BlendState->Release        ();
+    if (InputLayout)       InputLayout->Release       ();
+    if (IndexBuffer)       IndexBuffer->Release       ();
+    if (VertexBuffer)      VertexBuffer->Release      ();
+    if (PSShaderResource)  PSShaderResource->Release  ();
+    if (VSConstantBuffer)  VSConstantBuffer->Release  ();
+    if (RenderTargetView)  RenderTargetView->Release  ();
+    if (DepthStencilView)  DepthStencilView->Release  ();
+    if (DepthStencilState) DepthStencilState->Release ();
 
-  if (GSSamplerCount)
-    dc->GSSetSamplers        (0, GSSamplerCount, sb->GSSamplers);
-
-  UINT GSShaderResourceCount =
-    calc_count               (sb->GSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (GSShaderResourceCount)
-    dc->GSSetShaderResources (0, GSShaderResourceCount, sb->GSShaderResources);
-
-  UINT GSConstantBufferCount =
-    calc_count               (sb->GSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-  if (GSConstantBufferCount)
-    dc->GSSetConstantBuffers (0, GSConstantBufferCount, sb->GSConstantBuffers);
-
-  dc->HSSetShader            (sb->HS, sb->HSInterfaces, sb->HSInterfaceCount);
-
-  UINT HSSamplerCount =
-    calc_count               (sb->HSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-  if (HSSamplerCount)
-    dc->HSSetSamplers        (0, HSSamplerCount, sb->HSSamplers);
-
-  UINT HSShaderResourceCount =
-    calc_count               (sb->HSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (HSShaderResourceCount)
-    dc->HSSetShaderResources (0, HSShaderResourceCount, sb->HSShaderResources);
-
-  UINT HSConstantBufferCount =
-    calc_count               (sb->HSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-  if (HSConstantBufferCount)
-    dc->HSSetConstantBuffers (0, HSConstantBufferCount, sb->HSConstantBuffers);
-
-  dc->DSSetShader            (sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
-
-  UINT DSSamplerCount =
-    calc_count               (sb->DSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-  if (DSSamplerCount)
-    dc->DSSetSamplers        (0, DSSamplerCount, sb->DSSamplers);
-
-  UINT DSShaderResourceCount =
-    calc_count               (sb->DSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (DSShaderResourceCount)
-    dc->DSSetShaderResources (0, DSShaderResourceCount, sb->DSShaderResources);
-
-  UINT DSConstantBufferCount =
-    calc_count               (sb->DSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-  if (DSConstantBufferCount)
-    dc->DSSetConstantBuffers (0, DSConstantBufferCount, sb->DSConstantBuffers);
-
-  dc->PSSetShader            (sb->PS, sb->PSInterfaces, sb->PSInterfaceCount);
-
-  UINT PSSamplerCount =
-    calc_count               (sb->PSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-  if (PSSamplerCount)
-    dc->PSSetSamplers        (0, PSSamplerCount, sb->PSSamplers);
-
-  UINT PSShaderResourceCount =
-    calc_count               (sb->PSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (PSShaderResourceCount)
-    dc->PSSetShaderResources (0, PSShaderResourceCount, sb->PSShaderResources);
-
-  //D3D11_PSSetShaderResources_Original (dc, 0, PSShaderResourceCount, sb->PSShaderResources);
-  UINT PSConstantBufferCount =
-    calc_count               (sb->PSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-  if (PSConstantBufferCount)
-    dc->PSSetConstantBuffers (0, PSConstantBufferCount, sb->PSConstantBuffers);
-
-  dc->CSSetShader            (sb->CS, sb->CSInterfaces, sb->CSInterfaceCount);
-
-  UINT CSSamplerCount =
-    calc_count               (sb->CSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-
-  if (CSSamplerCount)
-    dc->CSSetSamplers        (0, CSSamplerCount, sb->CSSamplers);
-
-  UINT CSShaderResourceCount =
-    calc_count               (sb->CSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (CSShaderResourceCount)
-    dc->CSSetShaderResources (0, CSShaderResourceCount, sb->CSShaderResources);
-
-  UINT CSConstantBufferCount =
-    calc_count               (sb->CSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-
-  if (CSConstantBufferCount)
-    dc->CSSetConstantBuffers (0, CSConstantBufferCount, sb->CSConstantBuffers);
-
-  dc->CSSetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
-
-  UINT IAVertexBufferCount =
-    calc_count               (sb->IAVertexBuffers, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
-
-  if (IAVertexBufferCount)
-    dc->IASetVertexBuffers   (0, IAVertexBufferCount, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
-
-  dc->IASetIndexBuffer       (sb->IAIndexBuffer, sb->IAIndexBufferFormat, sb->IAIndexBufferOffset);
-  dc->IASetInputLayout       (sb->IAInputLayout);
-  dc->IASetPrimitiveTopology (sb->IAPrimitiveTopology);
-
-  dc->OMSetRenderTargetsAndUnorderedAccessViews ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, 
-                sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT,         sb->OMUnorderedAccessViews, minus_one );
-
-  UINT OMRenderTargetCount =
-    calc_count (sb->OMRenderTargets, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
-
-  if (OMRenderTargetCount)
-    dc->OMSetRenderTargets   (OMRenderTargetCount, sb->OMRenderTargets, sb->OMRenderTargetStencilView);
-
-  dc->OMSetDepthStencilState (sb->OMDepthStencilState, sb->OMDepthStencilRef);
-  dc->OMSetBlendState        (sb->OMBlendState,        sb->OMBlendFactor, sb->OMSampleMask);
-
-  dc->RSSetViewports         (sb->RSViewportCount,     sb->RSViewports);
-  dc->RSSetScissorRects      (sb->RSScissorRectCount,  sb->RSScissorRects);
-
-  dc->RSSetState             (sb->RSRasterizerState);
-
-  //UINT SOBuffersOffsets [4] = { 0 }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
-  //                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1, 
-  //                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2, 
-  //                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 3 };*/
-  //
-  //UINT SOBufferCount =
-  //  calc_count (sb->SOBuffers, 4);
-  //
-  //if (SOBufferCount)
-  //  dc->SOSetTargets (SOBufferCount, sb->SOBuffers, SOBuffersOffsets);
-
-  dc->SetPredication (sb->Predication, sb->PredicationValue);
-}
-
-
+    for (UINT i = 0; i < PSInstancesCount; i++)
+    {
+      if (PSInstances [i])
+          PSInstances [i]->Release ();
+    }
+  }
+};
 
 
 
@@ -1543,7 +1353,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     CComPtr <ID3D11Texture2D>        pBackBuffer       = nullptr;
     CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
     CComPtr <ID3D11BlendState>       pBlendState       = nullptr;
-
+    
     CComPtr <ID3D11Device1>          pDevice1          = nullptr;
     CComPtr <ID3DDeviceContextState> pCtxState         = nullptr;
     CComPtr <ID3DDeviceContextState> pCtxStateOrig     = nullptr;
@@ -1558,9 +1368,10 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     CComPtr <ID3D11DeviceContext>  pImmediateContext  = nullptr;
     CComPtr <ID3D11DeviceContext1> pImmediateContext1 = nullptr;
 
+    pDev->GetImmediateContext (&pImmediateContext);
+
     if (config.render.dxgi.full_state_cache)
     {
-                          pDev->GetImmediateContext (&pImmediateContext);
         hr =
         pImmediateContext->QueryInterface (IID_PPV_ARGS (&pImmediateContext1));
                      pDev->QueryInterface (IID_PPV_ARGS (&pDevice1));
@@ -1572,7 +1383,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       D3D_FEATURE_LEVEL ft_lvl =
         pDev->GetFeatureLevel ();
-      
+
       GUID              dev_lvl = (ft_lvl == D3D_FEATURE_LEVEL_11_1) ?
                                      __uuidof (ID3D11Device1) :
                                      __uuidof (ID3D11Device);
@@ -1621,12 +1432,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (SUCCEEDED (hr))
     {
-      static D3DX11_STATE_BLOCK sb;
-
-      if (! config.render.dxgi.full_state_cache)
-        CreateStateblock (pCEG_DevCtx, &sb);
-      else
-        pImmediateContext1->SwapDeviceContextState (pCtxState, &pCtxStateOrig);
+      static SK_D3D11_Stateblock_Lite sb;
+      sb.capture (pImmediateContext);
 
       pCEG_DevCtx->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
 
@@ -1659,16 +1466,17 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       vp.TopLeftY = 0;
 
       pCEG_DevCtx->RSSetViewports (1, &vp);
-
-      cegD3D11->beginRendering ();
       {
-        SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+        cegD3D11->beginRendering ();
+        {
+          SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
-        SK_Steam_DrawOSD ();
+          SK_Steam_DrawOSD ();
 
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+          CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+        }
+        cegD3D11->endRendering ();
       }
-      cegD3D11->endRendering ();
 
       extern bool SK_ImGui_Visible;
 
@@ -1682,10 +1490,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         }
       }
 
-      if (! config.render.dxgi.full_state_cache)
-        ApplyStateblock (pCEG_DevCtx, &sb);
-      else
-        pImmediateContext1->SwapDeviceContextState (pCtxStateOrig, nullptr);
+      sb.apply (pImmediateContext);
     }
   }
 
@@ -1697,6 +1502,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 void
 SK_DXGI_BorderCompensation (UINT& x, UINT& y)
 {
+  return;
   if (! config.window.borderless)
     return;
 
@@ -2392,9 +2198,10 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                _In_ UINT            SwapChainFlags )
   {
     DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeBuffers", L"%lu,%lu,%lu,fmt=%lu,0x%08X",
-                        BufferCount, Width, Height, NewFormat, SwapChainFlags);
+                        BufferCount, Width, Height, (UINT)NewFormat, SwapChainFlags);
 
-    SK_D3D11_EndFrame ();
+    SK_D3D11_EndFrame       ();
+    SK_D3D11_Textures.reset ();
 
     if (       config.render.framerate.buffer_count != -1           &&
          (UINT)config.render.framerate.buffer_count !=  BufferCount &&
@@ -2467,9 +2274,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
                           (float)pNewTargetParameters->RefreshRate.Numerator /
                           (float)pNewTargetParameters->RefreshRate.Denominator :
                             std::numeric_limits <float>::quiet_NaN (),
-                        pNewTargetParameters->Format,
-                        pNewTargetParameters->Scaling,
-                        pNewTargetParameters->ScanlineOrdering );
+                        (UINT)pNewTargetParameters->Format,
+                              pNewTargetParameters->Scaling,
+                              pNewTargetParameters->ScanlineOrdering );
 
     InterlockedExchange (&__gui_reset, TRUE);
 
@@ -2596,7 +2403,7 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
                                   _Inout_opt_ HWND&                            hWnd,
                                   _Inout_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc )
 {
-  DXGI_SWAP_CHAIN_DESC stub_desc; // Stores common attributes between DESC and DESC1
+  DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
   bool                 translated = false;
 
   if (pDesc1 != nullptr)
@@ -4392,13 +4199,12 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
 
       budget_thread.handle =
-        (HANDLE)
-          _beginthreadex ( nullptr,
-                             0,
-                               BudgetThread,
-                                 (LPVOID)&budget_thread,
-                                   0x00,
-                                     nullptr );
+          CreateThread ( nullptr,
+                           0,
+                             BudgetThread,
+                               (LPVOID)&budget_thread,
+                                 0x00,
+                                   nullptr );
 
 
       while ( ! InterlockedCompareExchange ( &budget_thread.ready,
@@ -4596,8 +4402,8 @@ const uint32_t
   BUDGET_POLL_INTERVAL = 133UL; // How often to sample the budget
                                 //  in msecs
 
-unsigned int
-__stdcall
+DWORD
+WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
 {
   budget_thread_params_t* params =
@@ -4845,30 +4651,32 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
   bool success =
     SUCCEEDED ( CoInitializeEx ( nullptr, COINIT_MULTITHREADED ) );
 
-
   static HMODULE
     hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
 
-  static CreateDXGIFactory_pfn
-    CreateDXGIFactory =
-      (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
-                                                 "CreateDXGIFactory" );
-  CComPtr <IDXGIFactory> factory = nullptr;
-  CComPtr <IDXGIAdapter> adapter = nullptr;
-
-  // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
-  if ( SUCCEEDED (
-         CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
-       )
-     )
+  if (hDXGI)
   {
+    static CreateDXGIFactory_pfn
+      CreateDXGIFactory =
+        (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
+                                                   "CreateDXGIFactory" );
+    CComPtr <IDXGIFactory> factory = nullptr;
+    CComPtr <IDXGIAdapter> adapter = nullptr;
+
+    // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
     if ( SUCCEEDED (
-           factory->EnumAdapters ( 0,
-                                     &adapter )
+           CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
          )
        )
     {
-      hr = StartBudgetThread ( &adapter );
+      if ( SUCCEEDED (
+             factory->EnumAdapters ( 0,
+                                       &adapter )
+           )
+         )
+      {
+        hr = StartBudgetThread ( &adapter );
+      }
     }
   }
 

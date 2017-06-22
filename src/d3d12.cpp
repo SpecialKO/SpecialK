@@ -63,16 +63,20 @@ WaitForInitD3D12 (void)
     Sleep_Original (config.system.init_delay);
 }
 
-namespace SK {
-  namespace DXGI {
-    struct PipelineStatsD3D12 {
-      struct StatQueryD3D12 {
+namespace SK
+{
+  namespace DXGI
+  {
+    struct PipelineStatsD3D12
+    {
+      struct StatQueryD3D12
+      {
         ID3D12QueryHeap* heap   = nullptr;
         bool             active = false;
       } query;
 
       D3D12_QUERY_DATA_PIPELINE_STATISTICS
-                 last_results;
+                 last_results   = { };
     } pipeline_stats_d3d11;
   };
 };

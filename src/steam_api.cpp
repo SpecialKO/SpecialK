@@ -1808,7 +1808,7 @@ public:
     bool xbox = false,
          psn  = false;
 
-    wchar_t wszFileName [MAX_PATH + 2] = { L'\0' };
+    wchar_t wszFileName [MAX_PATH + 2] = { };
 
     if (! wcslen (wszUnlockSound))
     {
@@ -1953,14 +1953,14 @@ protected:
     achv_rank->setText ( SK_Steam_RarityToName (achievement->global_percent_) );
 
     CEGUI::Window* achv_global = achv_popup->getChild ("GlobalRarity");
-    char szGlobal [32] = { '\0' };
+    char szGlobal [32] = { };
     snprintf ( szGlobal, 32,
                  "Global: %6.2f%%",
                    achievement->global_percent_ );
     achv_global->setText (szGlobal);
     
     CEGUI::Window* achv_friend = achv_popup->getChild ("FriendRarity");
-    char szFriend [32] = { '\0' };
+    char szFriend [32] = { };
     snprintf ( szFriend, 32,
                  "Friends: %6.2f%%",
         100.0 * ((double)          achievement->friends_.unlocked /
@@ -1977,7 +1977,7 @@ protected:
 
     float progress = achievement->progress_.getPercent ();
     
-    char szUnlockTime [128] = { '\0' };
+    char szUnlockTime [128] = { };
     if (progress == 100.0f)
     {
       snprintf ( szUnlockTime, 128,
@@ -2140,8 +2140,8 @@ private:
   SteamAPICall_t global_request;
   SteamAPICall_t stats_request;
 
-  bool           default_loaded;
-  uint8_t*       unlock_sound;   // A .WAV (PCM) file
+  bool           default_loaded = false;
+  uint8_t*       unlock_sound   = nullptr;   // A .WAV (PCM) file
 } static *steam_achievements = nullptr;
 
 void
@@ -2759,7 +2759,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
   {
     for (int i = 0; i < steam_libs; i++)
     {
-      char szManifest [MAX_PATH] = { '\0' };
+      char szManifest [MAX_PATH] = { };
 
       sprintf ( szManifest,
                   "%s\\steamapps\\appmanifest_%lu.acf",
@@ -2779,9 +2779,9 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
         if (hManifest != INVALID_HANDLE_VALUE)
         {
-          DWORD  dwSize,
-                 dwSizeHigh,
-                 dwRead;
+          DWORD  dwSize     = 0,
+                 dwSizeHigh = 0,
+                 dwRead     = 0;
 
           dwSize = GetFileSize (hManifest, &dwSizeHigh);
 
@@ -2807,7 +2807,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
           char* szAppName =
             StrStrIA (szManifestData, "\"name\"");
 
-          char szGameName [MAX_PATH] = { '\0' };
+          char szGameName [MAX_PATH] = { };
 
           if (szAppName != nullptr)
           {
@@ -2827,7 +2827,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
     }
   }
 
-  char szManifest [MAX_PATH] = { '\0' };
+  char szManifest [MAX_PATH] = { };
 
   sprintf ( szManifest,
               "%ls\\steamapps\\appmanifest_%lu.acf",
@@ -2883,7 +2883,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
       char* szAppName =
         StrStrIA (szManifestData, "\"name\"");
 
-      char szGameName [MAX_PATH] = { '\0' };
+      char szGameName [MAX_PATH] = { };
 
       if (szAppName != nullptr)
       {
@@ -3644,7 +3644,7 @@ SK_Steam_LoadOverlayEarly (void)
   const wchar_t* wszSteamPath =
       SK_GetSteamDir ();
 
-  wchar_t wszOverlayDLL [MAX_PATH + 2] = { L'\0' };
+  wchar_t wszOverlayDLL [MAX_PATH + 2] = { };
 
   lstrcatW (wszOverlayDLL, wszSteamPath);
 
@@ -3822,7 +3822,7 @@ SK_Steam_PiratesAhoy (void)
 
         case SK_Steam_FileSigPass_e::SteamAPI:
         {
-          char szRelSteamAPI [MAX_PATH * 2] = { '\0' };
+          char szRelSteamAPI [MAX_PATH * 2] = { };
 
           // Generally, though not always (i.e. CSteamWorks) we will link against one of these two DLLs
           //
