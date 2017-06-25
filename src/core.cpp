@@ -886,24 +886,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
     return;
   }
 
-  if (config.system.central_repository)
-  {
-    // Create Symlink for end-user's convenience
-    if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
-                               std::wstring (L"\\SpecialK")
-                             ).c_str ()
-                           ) == INVALID_FILE_ATTRIBUTES ) {
-      std::wstring link (SK_GetHostPath ());
-      link += L"\\SpecialK\\";
-
-      CreateSymbolicLink (
-        link.c_str         (),
-          SK_GetConfigPath (),
-            SYMBOLIC_LINK_FLAG_DIRECTORY
-      );
-    }
-  }
-
   if (! lstrcmpW (SK_GetHostApp (), L"BatmanAK.exe"))
     USE_SLI = false;
 
@@ -1540,6 +1522,41 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   SK_EstablishRootPath ();
   SK_CreateDirectories (SK_GetConfigPath ());
+
+
+  if (config.system.central_repository)
+  {
+    // Create Symlink for end-user's convenience
+    if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
+                               std::wstring (L"\\SpecialK\\")
+                             ).c_str ()
+                           ) == INVALID_FILE_ATTRIBUTES )
+    {
+      std::wstring link (SK_GetHostPath ());
+      link += L"\\SpecialK\\";
+
+      CreateSymbolicLink (
+        link.c_str         (),
+          SK_GetConfigPath (),
+            SYMBOLIC_LINK_FLAG_DIRECTORY
+      );
+    }
+
+    if ( GetFileAttributes ( ( std::wstring (SK_GetConfigPath ()) +
+                               std::wstring (L"Game\\") ).c_str ()
+                           ) == INVALID_FILE_ATTRIBUTES )
+    {
+      std::wstring link (SK_GetConfigPath ());
+      link += L"Game\\";
+
+      CreateSymbolicLink (
+        link.c_str         (),
+          SK_GetHostPath   (),
+            SYMBOLIC_LINK_FLAG_DIRECTORY
+      );
+    }
+  }
+
 
   bool bypass = false;
 

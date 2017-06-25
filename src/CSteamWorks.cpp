@@ -358,6 +358,8 @@ SK_HookCSteamworks (void)
   HANDLE  hProc = GetCurrentProcess ();
   HMODULE hMod  = GetModuleHandle (L"CSteamworks.dll");
 
+  if (! hMod) hMod  = GetModuleHandle (L"steamworks.net.dll"); // Mafia 3 nonsense
+
   wchar_t wszModName [MAX_PATH] = { };
 
   if ( GetModuleFileNameExW ( hProc,

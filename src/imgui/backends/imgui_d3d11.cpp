@@ -313,6 +313,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
   // Do not dump ImGui font textures
   SK_TLS_Top ()->d3d11.texinject_thread = true;
+  SK_TLS_Top ()->imgui.drawing          = true;
 
   // Build texture atlas
   ImGuiIO& io = ImGui::GetIO ();
@@ -396,6 +397,11 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 bool
 ImGui_ImplDX11_CreateDeviceObjects (void)
 {
+  SK_ScopedTLS tls_scope;
+
+  // Do not dump ImGui font textures
+  SK_TLS_Top ()->imgui.drawing = true;
+
   if (g_pFontSampler)
     ImGui_ImplDX11_InvalidateDeviceObjects ();
 
@@ -549,6 +555,11 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   if (! g_pd3dDevice)
     return;
 
+  SK_ScopedTLS tls_scope;
+
+  // Do not dump ImGui font textures
+  SK_TLS_Top ()->imgui.drawing = true;
+
   if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = NULL; }
   if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = NULL; ImGui::GetIO ().Fonts->TexID = 0; }
   if (g_pIB)                   { g_pIB->Release              ();              g_pIB = NULL; }
@@ -627,6 +638,12 @@ ImGui_ImplDX11_Init (IDXGISwapChain* pSwapChain, ID3D11Device* device, ID3D11Dev
 void
 ImGui_ImplDX11_Shutdown (void)
 {
+  SK_ScopedTLS tls_scope;
+
+  // Do not dump ImGui font textures
+  SK_TLS_Top ()->imgui.drawing = true;
+
+
   ImGui_ImplDX11_InvalidateDeviceObjects ();
   ImGui::Shutdown                        ();
 
@@ -719,6 +736,11 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (SwapChainFlags);
   UNREFERENCED_PARAMETER (Width);
   UNREFERENCED_PARAMETER (Height);
+
+  SK_ScopedTLS tls_scope;
+
+  // Do not dump ImGui font textures
+  SK_TLS_Top ()->imgui.drawing = true;
 
   g_pd3dDevice = nullptr;
 

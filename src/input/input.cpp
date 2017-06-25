@@ -387,7 +387,7 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
       //raw_overrides.keyboard.legacy_messages = true;
     }
 
-    for (auto it : raw_keyboards)
+    for (auto& it : raw_keyboards)
     {
       if (raw_overrides.keyboard.legacy_messages) {
         different |= ((it).dwFlags & RIDEV_NOLEGACY) != 0;
@@ -436,9 +436,9 @@ SK_RawInput_EnableLegacyMouse (bool enable)
 
     std::vector <RAWINPUTDEVICE> mice = SK_RawInput_GetMice (&different);
 
-    for (auto it : raw_keyboards) device_override.push_back (it);
-    for (auto it : raw_gamepads)  device_override.push_back (it);
-    for (auto it : mice)          device_override.push_back (it);
+    for (auto& it : raw_keyboards) device_override.push_back (it);
+    for (auto& it : raw_gamepads)  device_override.push_back (it);
+    for (auto& it : mice)          device_override.push_back (it);
 
 //    dll_log.Log (L"%lu mice are now legacy...", mice.size ());
 
@@ -485,9 +485,9 @@ SK_RawInput_EnableLegacyKeyboard (bool enable)
 
     std::vector <RAWINPUTDEVICE> keyboards = SK_RawInput_GetKeyboards (&different);
 
-    for (auto it : keyboards)    device_override.push_back (it);
-    for (auto it : raw_gamepads) device_override.push_back (it);
-    for (auto it : raw_mice)     device_override.push_back (it);
+    for (auto& it : keyboards)    device_override.push_back (it);
+    for (auto& it : raw_gamepads) device_override.push_back (it);
+    for (auto& it : raw_mice)     device_override.push_back (it);
 
     RegisterRawInputDevices_Original (
       device_override.data (),
@@ -533,7 +533,7 @@ SK_RawInput_ClassifyDevices (void)
   raw_keyboards.clear ();
   raw_gamepads.clear  ();
 
-  for (auto it : raw_devices)
+  for (auto& it : raw_devices)
   {
     if ((it).usUsagePage == HID_USAGE_PAGE_GENERIC)
     {
@@ -620,7 +620,7 @@ UINT WINAPI GetRegisteredRawInputDevices_Detour (
   }
 
   int idx = 0;
-  for (auto it : raw_devices) pRawInputDevices [idx++] = it;
+  for (auto& it : raw_devices) pRawInputDevices [idx++] = it;
 
   return idx;
 }
@@ -670,9 +670,9 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   std::vector <RAWINPUTDEVICE> override_mice      = SK_RawInput_GetMice               ();
   std::vector <RAWINPUTDEVICE> override_gamepads  = SK_RawInput_GetRegisteredGamepads ();
 
-  for (auto it : override_keyboards) actual_device_list.push_back (it);
-  for (auto it : override_mice)      actual_device_list.push_back (it);
-  for (auto it : override_gamepads)  actual_device_list.push_back (it);
+  for (auto& it : override_keyboards) actual_device_list.push_back (it);
+  for (auto& it : override_mice)      actual_device_list.push_back (it);
+  for (auto& it : override_gamepads)  actual_device_list.push_back (it);
 
   BOOL bRet =
     pDevices != nullptr ?

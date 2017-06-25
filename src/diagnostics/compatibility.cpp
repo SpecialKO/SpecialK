@@ -88,6 +88,8 @@ static const char*     szSteamNativeDLL =  "SteamNative.dll";
 
 static const wchar_t* wszSteamAPIDLL    = L"steam_api" SK_STEAM_BIT_WSTRING L".dll";
 static const char*     szSteamAPIDLL    =  "steam_api" SK_STEAM_BIT_STRING   ".dll";
+static const wchar_t* wszSteamAPIAltDLL = L"steam_api.dll";
+static const char*     szSteamAPIAltDLL =  "steam_api.dll";
 
 
 struct sk_loader_hooks_t {
@@ -1077,6 +1079,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
         if (! config.steam.silent)
         {
           if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
+               StrStrIW (wszModName, wszSteamAPIAltDLL) ||
                StrStrIW (wszModName, wszSteamNativeDLL) ||
                StrStrIW (wszModName, wszSteamClientDLL) ) {
             SK_HookSteamAPI ();

@@ -2178,7 +2178,20 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
       if (switch_to_fullscreen)
       {
-        pparams->Windowed = FALSE;
+        HMONITOR hMonitor =
+          MonitorFromWindow ( game_window.hWnd,
+                                MONITOR_DEFAULTTONEAREST );
+
+        MONITORINFO mi  = { 0 };
+        mi.cbSize       = sizeof (mi);
+        GetMonitorInfo (hMonitor, &mi);
+
+        pparams->Windowed                   = FALSE;
+        pparams->BackBufferCount            = 1;
+        pparams->EnableAutoDepthStencil     = true;
+        pparams->FullScreen_RefreshRateInHz = 60;
+        if (pparams->BackBufferWidth  < 512) pparams->BackBufferWidth  = mi.rcMonitor.right  - mi.rcMonitor.left;
+        if (pparams->BackBufferHeight < 256) pparams->BackBufferHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
       }
 
       else if (switch_to_windowed)
@@ -2608,7 +2621,7 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     if (pPresentationParameters != nullptr)
     {
       dll_log.LogEx (true,
-                L"[   D3D9   ]  SwapChain Settings:   Res=(%lux%lu), Format=0x%04X, "
+                L"[   D3D9   ]  SwapChain Settings:   Res=(%lux%lu), Format=%04lu, "
                                         L"Count=%lu - "
                                         L"SwapEffect: 0x%02X, Flags: 0x%04X,"
                                         L"AutoDepthStencil: %s "

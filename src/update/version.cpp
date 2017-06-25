@@ -291,8 +291,6 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   if (! hInetRoot)
     return false;
 
-  bool use_gitlab = (! lstrcmpW (wszProduct, L"SpecialK"));
-
   HINTERNET hInetGitHub =
     InternetConnect ( hInetRoot,
                         L"raw.githubusercontent.com",

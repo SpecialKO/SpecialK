@@ -2671,7 +2671,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  auto ActivateWindow = [](bool active = false)->
+  auto ActivateWindow = [&](bool active = false)->
   void
     {
       bool state_changed =
@@ -2690,21 +2690,22 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         //
         //  ... also prevents a game from staying topmost when you Alt+Tab
         //
-        SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)) | WS_EX_APPWINDOW);
-        SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-                                                                         SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-                                                                         SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
-        SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-                                                                   SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-                                                                   SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
 
-        //if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
-        //{
-        //  extern void
-        //  SK_D3D9_TriggerReset (bool);
-        //
-        //  SK_D3D9_TriggerReset (false);
-        //}
+        if (active && config.display.force_fullscreen && ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9))
+        {
+          SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)) | WS_EX_APPWINDOW);
+          //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+          //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+          //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+          //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+          //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+          //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
+
+          extern void
+          SK_D3D9_TriggerReset (bool);
+        
+          SK_D3D9_TriggerReset (false);
+        }
       }
 
 
@@ -2846,41 +2847,51 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       else if (uMsg == WM_ACTIVATE)
       {
+        const wchar_t* source   = L"UNKKNOWN";
+        bool           activate = false;
+
         switch (LOWORD (wParam))
         {
-          case 1:  // WA_ACTIVE / TRUE
-          case 2:  // WA_CLICKACTIVE
+          case WA_ACTIVE:
+          case WA_CLICKACTIVE:
           default: // Unknown
           {
-            if ((HWND)lParam == game_window.hWnd)
-            {
-              if (last_active == false) {
-                SK_LOG2 ( ( L"Application Activated (WM_ACTIVATEAPP)" ),
-                            L"Window Mgr" );
-              }
-
-              ActivateWindow (true);
-            }
+            activate = (HWND)lParam != game_window.hWnd;
+            source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
+                                              L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
+            ActivateWindow (activate);
           } break;
 
-          case 0: // WA_INACTIVE / FALSE
+          case WA_INACTIVE:
           {
-            if ((HWND)lParam == game_window.hWnd)
-            {
-              if (last_active == true)
-              {
-                SK_LOG2 ( ( L"Application Deactivated (WM_ACTIVATEAPP)" ),
-                            L"Window Mgr" );
-              }
-
-              ActivateWindow (false);
-
-              if (config.window.background_render)
-              {
-                return 1;
-              }
-            }
+            activate = lParam == 0 || (HWND)lParam == game_window.hWnd;
+            source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
+            ActivateWindow (activate);
           } break;
+        }
+
+        switch (last_active)
+        {
+          case true:
+            if (! activate)
+            {
+              SK_LOG2 ( ( L"Application Deactivated %s", source ),
+                          L"Window Mgr" );
+            }
+            break;
+
+          case false:
+            if (activate)
+            {
+              SK_LOG2 ( ( L"Application Activated %s", source ),
+                          L"Window Mgr" );
+            }
+            break;
+        }
+
+        if (config.window.background_render)
+        {
+          return 1;
         }
       }
     } break;
@@ -3054,7 +3065,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   static bool ddraw  = GetModuleHandle (L"ddraw.dll") != nullptr;
   static bool d3d8   = GetModuleHandle (L"d3d8.dll")  != nullptr;
 
-  if (eqgame || ddraw || d3d8)
+  if (eqgame)
   {
     handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
   }

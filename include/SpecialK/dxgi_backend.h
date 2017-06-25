@@ -676,8 +676,9 @@ struct shader_tracking_s
   // Cumulative runtime of all timers after the disjoint query
   //   is finished and reading these results would not stall
   //     the pipeline
-  UINT64                            runtime_ticks  = 0ULL;
-  double                            runtime_ms     = 0.0;
+  UINT64                            runtime_ticks   = 0ULL;
+  double                            runtime_ms      = 0.0;
+  double                            last_runtime_ms = 0.0;
 
 
   void addClassInstance (ID3D11ClassInstance* pInstance)

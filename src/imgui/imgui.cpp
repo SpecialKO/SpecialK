@@ -2408,7 +2408,7 @@ static void SetNavId(ImGuiID id)
     ImGuiContext& g = *GImGui;
     IM_ASSERT(g.NavWindow);
     g.NavId = id;
-    if (g.NavLayer == 0)
+    if (g.NavLayer == 0 && g.NavWindow)
         g.NavWindow->NavLastId = g.NavId;
 }
 
@@ -11077,10 +11077,12 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool mouse    = false;
   bool keyboard = false;
 
-  auto FilterRawInput = [self,already_processed](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
+  bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+
+  auto FilterRawInput = [self,already_processed,foreground](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
     bool
       {
-        bool filter = false;
+        bool filter     = false;
 
         switch (pData->header.dwType)
         {
@@ -11108,9 +11110,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
 
             USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
-
-            bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
 
             //
             // This isn't needed, we have to force legacy message generation on for the Steam Overlay not to
@@ -11215,16 +11214,19 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             SK_ImGui_Cursor.update ();
           }
 
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
-            ImGui::GetIO ().MouseDown [0] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
-            ImGui::GetIO ().MouseDown [1] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
-            ImGui::GetIO ().MouseDown [2] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
-            ImGui::GetIO ().MouseDown [3] = true;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
-            ImGui::GetIO ().MouseDown [4] = true;
+          if (foreground)
+          {
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
+              ImGui::GetIO ().MouseDown [0] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
+              ImGui::GetIO ().MouseDown [1] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
+              ImGui::GetIO ().MouseDown [2] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
+              ImGui::GetIO ().MouseDown [3] = true;
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
+              ImGui::GetIO ().MouseDown [4] = true;
+          }
 
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
             ImGui::GetIO ().MouseDown [0] = false;
@@ -11236,6 +11238,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             ImGui::GetIO ().MouseDown [3] = false;
           if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
             ImGui::GetIO ().MouseDown [4] = false;
+
           if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
             ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
         }
@@ -11248,8 +11251,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
         if ((VKey & 0xFF) > 4)
         {
-          bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
           if ( ! ((((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) && (! self)) )
           {
             if (foreground)
@@ -11512,10 +11513,11 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           {
             dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
 
-            if (SK_ImGui_WantKeyboardCapture ())
-            {
+            //if (SK_ImGui_WantKeyboardCapture ())
+            //{
+            if (window_active)
               return true;
-            }
+            //}
           } break;
 
           case FAPPCOMMAND_MOUSE:
@@ -11555,25 +11557,25 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       {
         if (hWnd == game_window.hWnd)
         {
-          if (msg == WM_NCACTIVATE)
+          if (msg == WM_NCACTIVATE || msg == WM_ACTIVATEAPP)
           {
             ActivateWindow (wParam != 0x00);
           }
 
-          else if (msg == WM_ACTIVATEAPP || msg == WM_ACTIVATE)
+          else if (msg == WM_ACTIVATE)
           {
-            switch (wParam)
+            switch (LOWORD (wParam))
             {
-              case 1:  // WA_ACTIVE / TRUE
-              case 2:  // WA_CLICKACTIVE
+              case WA_ACTIVE:
+              case WA_CLICKACTIVE:
               default: // Unknown
               {
-                ActivateWindow (TRUE);
+                ActivateWindow ((HWND)lParam != game_window.hWnd);
               } break;
 
-              case 0: // WA_INACTIVE / FALSE
+              case WA_INACTIVE:
               {
-                ActivateWindow (FALSE);
+                ActivateWindow (lParam == 0 || (HWND)lParam == game_window.hWnd);
               } break;
             }
           }

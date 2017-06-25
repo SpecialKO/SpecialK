@@ -121,8 +121,6 @@ SK_Console::Start (void)
     return;
   }
 
-  char* text = SK_Console::getInstance ()->text;
-
   ZeroMemory (text, 4096);
 
   text [0] = '>';

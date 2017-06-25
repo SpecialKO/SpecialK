@@ -677,12 +677,12 @@ Update_DlgProc (
       unsigned int backup_count = 0;
       uint64_t     backup_size  = 0ULL;
 
-      for ( auto it = files.begin (); it != files.end (); ++it )
+      for ( auto& it : files )
       {
         wchar_t wszFinalPath [MAX_PATH] = { };
         wcscpy (wszFinalPath, SK_SYS_GetInstallPath ().c_str ());
 
-        lstrcatW (wszFinalPath, it->name.c_str ());
+        lstrcatW (wszFinalPath, it.name.c_str ());
 
         // This function returns 0 if no file exists
         uint64_t bsize =

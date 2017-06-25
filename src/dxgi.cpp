@@ -1432,6 +1432,9 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (SUCCEEDED (hr))
     {
+      SK_TLS_Push ();
+      SK_TLS_Top  ()->imgui.drawing = true;
+
       static SK_D3D11_Stateblock_Lite sb;
       sb.capture (pImmediateContext);
 
@@ -1491,6 +1494,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       }
 
       sb.apply (pImmediateContext);
+
+      SK_TLS_Pop ();
     }
   }
 

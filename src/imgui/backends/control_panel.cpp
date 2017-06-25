@@ -804,7 +804,7 @@ SK_ImGui_ControlPanel (void)
         {
           std::map <std::string, SK_BranchInfo> details;
 
-          for ( auto it : branches )
+          for ( auto& it : branches )
             details.emplace (it, SK_Version_GetLatestBranchInfo (nullptr, it.c_str ()));
 
           return details;
@@ -840,7 +840,7 @@ SK_ImGui_ControlPanel (void)
 
         if (ImGui::BeginMenu (szCurrentBranchMenu, branches.size () > 1))
         {
-          for ( auto it : branches )
+          for ( auto& it : branches )
           {
             bool selected = ( SK_UTF8ToWideChar (it) == current_branch.release.vinfo.branch );
 

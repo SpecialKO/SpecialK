@@ -917,10 +917,7 @@ Exit 0</Command>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <SupportUnloadOfDelayLoadedDLL>false</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -935,7 +932,7 @@ Exit 0</Command>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <ImportLibrary />
-      <FixedBaseAddress>false</FixedBaseAddress>
+      <Profile>true</Profile>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
