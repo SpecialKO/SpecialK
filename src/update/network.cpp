@@ -964,7 +964,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 {
   UNREFERENCED_PARAMETER (wszProduct);
 
-  TASKDIALOGCONFIG  task_config  = { 0 };
+  TASKDIALOGCONFIG  task_config  = { };
 
   task_config.cbSize             = sizeof          ( task_config );
   task_config.hInstance          = GetModuleHandle (  nullptr    );
@@ -1189,7 +1189,9 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
           if (SK_IsInjected ())
+          {
             SK_Inject_Stop ();
+          }
 
           HANDLE hThread =
             CreateThread ( nullptr,
@@ -1222,6 +1224,12 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                                    L"KeepDownloads=true\n\n" );
             }
 
+            if (SK_IsInjected ())
+            {
+              SK_Inject_Start ();
+            }
+
+
             keep_pref->set_value (update_dlg_keep);
             keep_pref->store     ();
 
@@ -1235,9 +1243,6 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
             install_ini.write       (SK_Version_GetInstallIniPath ().c_str ());
 
-
-            if (SK_IsInjected ())
-              SK_Inject_Start ();
 
             SK_RestartGame ();
 

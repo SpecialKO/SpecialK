@@ -51,9 +51,10 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 //   DarkSouls3 seems to underflow references on occasion!!!
 #define DS3_REF_TWEAK
 
-#define DYNAMIC_TEX_CACHING 1
+//#define DYNAMIC_TEX_CACHING 1
 
 CRITICAL_SECTION cs_shader;
+CRITICAL_SECTION cs_render_view;
 CRITICAL_SECTION cs_mmio;
 
 namespace SK
@@ -739,10 +740,7 @@ struct SK_D3D11_KnownTargets
 struct SK_D3D11_KnownThreads
 {
   SK_D3D11_KnownThreads (void) {
-    InitializeCriticalSectionAndSpinCount (&cs, 0x666);
-
-    ids.reserve    (8);
-    active.reserve (8);
+    InitializeCriticalSectionAndSpinCount (&cs, 0x6666);
   }
 
   void   clear_all    (void);
@@ -772,9 +770,9 @@ struct SK_D3D11_KnownThreads
   void   mark         (void);
 
 private:
-  std::unordered_set <DWORD> ids;
-  std::unordered_set <DWORD> active;
-  CRITICAL_SECTION           cs;
+  std::set <DWORD> ids;
+  std::set <DWORD> active;
+  CRITICAL_SECTION cs;
 } SK_D3D11_MemoryThreads,
   SK_D3D11_DrawThreads,
   SK_D3D11_ShaderThreads;
@@ -799,6 +797,9 @@ SK_D3D11_KnownThreads::count_all (void)
 void
 SK_D3D11_KnownThreads::mark (void)
 {
+  if (! SK_D3D11_EnableTracking)
+    return;
+
   SK_AutoCriticalSection auto_cs (&cs);
 
   ids.emplace    (GetCurrentThreadId ());
@@ -2255,6 +2256,8 @@ SK_D3D11_ActivateSRV (ID3D11ShaderResourceView* pSRV)
 
     if (SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)))
     {
+      SK_AutoCriticalSection auto_cs (&cs_render_view);
+
       used_textures.emplace (pTex);
 
       if (tracked_texture == pTex && config.textures.d3d11.highlight_debug)
@@ -2563,6 +2566,7 @@ D3D11_UpdateSubresource_Override (
   //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)",
   //          pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 
+#ifdef DYNAMIC_TEX_CACHING
   CComPtr <ID3D11Texture2D> pTex = nullptr;
 
   if (SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
@@ -2573,6 +2577,7 @@ D3D11_UpdateSubresource_Override (
       SK_D3D11_RemoveTexFromCache (pTex);
     }
   }
+#endif
 
   return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
                                               pDstBox, pSrcData, SrcRowPitch,
@@ -2594,6 +2599,18 @@ D3D11_Map_Override (
    _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
+  //D3D11_RESOURCE_DIMENSION dim;
+  //pResource->GetType (&dim);
+  //
+  //if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  //{
+  //  if (! (MapFlags & D3D11_MAP_FLAG_DO_NOT_WAIT))
+  //  {
+  //    if (MapType != D3D11_MAP_READ && MapType != D3D11_MAP_READ_WRITE)
+  //      MapType = D3D11_MAP_WRITE_DISCARD;
+  //  }
+  //}
+
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking))
   {
@@ -2605,14 +2622,12 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   SK_D3D11_MemoryThreads.mark ();
 
 
-  if (pResource == nullptr)
-    return S_OK;
-
   HRESULT hr = D3D11_Map_Original ( This, pResource, Subresource,
                                       MapType, MapFlags, pMappedResource );
 
   if (SUCCEEDED (hr))
   {
+#ifdef DYNAMIC_TEX_CACHING
     if (pMappedResource && Subresource == 0)
     {
       CComPtr <ID3D11Texture2D> pTex = nullptr;
@@ -2628,13 +2643,12 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
         else
         {
-#ifdef DYNAMIC_TEX_CACHING
           mapped_textures.emplace (std::make_pair (pResource, *pMappedResource));
           //dll_log.Log (L"[DX11TexMgr] Mapped 2D texture...");
-#endif
         }
       }
     }
+#endif
 
     bool read = ( MapType == D3D11_MAP_READ || 
                   MapType == D3D11_MAP_READ_WRITE );
@@ -2721,6 +2735,7 @@ D3D11_Unmap_Override (
     return;
 
 
+#ifdef DYNAMIC_TEX_CACHING
   D3D11_RESOURCE_DIMENSION rdim;
   pResource->GetType (&rdim);
 
@@ -2743,7 +2758,6 @@ D3D11_Unmap_Override (
       
         else
         {
-#ifdef DYNAMIC_TEX_CACHING
           uint32_t      checksum  = 0;
           uint32_t      cache_tag = 0;
           size_t        size      = 0;
@@ -2765,14 +2779,13 @@ D3D11_Unmap_Override (
           //dll_log.Log (L"[DX11TexMgr] Mapped 2D texture... (%x -- %lu bytes)", checksum, size);
 
           dynamic_textures.emplace (std::make_pair (pResource, checksum));
-#endif
         }
       }
 
-      SK_AutoCriticalSection auto_cs (&cs_mmio);
       mapped_textures.erase (pResource);
     }
   }
+#endif
 
   D3D11_Unmap_Original (This, pResource, Subresource);
 }
@@ -2798,6 +2811,7 @@ D3D11_CopyResource_Override (
 
   ID3D11Texture2D* pDstTex = nullptr;
 
+#ifdef DYNAMIC_TEX_CACHING
   if (            pDstResource != nullptr && 
        SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pDstTex)) )
   {
@@ -2806,6 +2820,7 @@ D3D11_CopyResource_Override (
       SK_D3D11_RemoveTexFromCache (pDstTex);
     }
   }
+#endif
 
   D3D11_RESOURCE_DIMENSION res_dim;
 
@@ -2891,6 +2906,7 @@ D3D11_CopySubresourceRegion_Override (
 
   ID3D11Texture2D* pDstTex = nullptr;
 
+#ifdef DYNAMIC_TEX_CACHING
   if (            pDstResource != nullptr && 
        SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pDstTex)) )
   {
@@ -2899,6 +2915,7 @@ D3D11_CopySubresourceRegion_Override (
       SK_D3D11_RemoveTexFromCache (pDstTex);
     }
   }
+#endif
 
   D3D11_RESOURCE_DIMENSION res_dim;
 
@@ -3027,13 +3044,13 @@ SK_D3D11_DispatchHandler (void)
   if (SK_D3D11_EnableTracking)
   {
     bool rtv_active = false;
-    
+
     for (auto it : tracked_rtv.active)
     {
       if (it)
         rtv_active = true;
     }
-    
+
     if (rtv_active)
     {
       if (SK_D3D11_Shaders.compute.current != 0x00) tracked_rtv.ref_cs.insert (SK_D3D11_Shaders.compute.current);
@@ -3218,6 +3235,8 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 
   if (NumViews > 0)
   {
+    SK_AutoCriticalSection auto_cs (&cs_render_view);
+
     if (ppRenderTargetViews)
     {
       for (UINT i = 0; i < NumViews; i++)
@@ -3278,6 +3297,8 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
 
   if (NumRTVs > 0)
   {
+    SK_AutoCriticalSection auto_cs (&cs_render_view);
+
     if (ppRenderTargetViews)
     {
       for (UINT i = 0; i < NumRTVs; i++)
@@ -3756,10 +3777,6 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   //if (! injectable_textures.count (crc32))
     //return;
 
-  if (SK_D3D11_TextureIsCached (pTex)) {
-    dll_log.Log (L"[DX11TexMgr] Texture is already cached?!");
-  }
-
   if (pDesc->Usage == D3D11_USAGE_STAGING)
   {
 //    dll_log.Log ( L"[DX11TexMgr] Texture '%08X' Is Not Cacheable "
@@ -3774,6 +3791,10 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 //                  L"Due To CPUAccessFlags: 0x%X",
 //                  crc32, pDesc->CPUAccessFlags );
     return;
+  }
+
+  if (SK_D3D11_TextureIsCached (pTex)) {
+    dll_log.Log (L"[DX11TexMgr] Texture is already cached?!");
   }
 
   AggregateSize_2D += mem_size;
@@ -5856,10 +5877,10 @@ SK_D3D11_InitTextures (void)
          StrStrIW (SK_GetHostApp (), L"FFX&X-2_Will.exe") )
       SK_D3D11_inject_textures_ffx = true;
 
-    InitializeCriticalSectionAndSpinCount (&tex_cs,    MAXDWORD);
+    InitializeCriticalSectionAndSpinCount (&tex_cs,    969184);
     InitializeCriticalSectionAndSpinCount (&hash_cs,   0x4000);
     InitializeCriticalSectionAndSpinCount (&dump_cs,   0x0200);
-    InitializeCriticalSectionAndSpinCount (&cache_cs,  MAXDWORD);
+    InitializeCriticalSectionAndSpinCount (&cache_cs,  989184);
     InitializeCriticalSectionAndSpinCount (&inject_cs, 0x1000);
 
     cache_opts.max_entries       = config.textures.cache.max_entries;
@@ -6051,8 +6072,9 @@ HookD3D11 (LPVOID user)
   if (! config.apis.dxgi.d3d11.hook)
     return 0;
 
-  InitializeCriticalSectionAndSpinCount (&cs_shader, 0xcafe);
-  InitializeCriticalSectionAndSpinCount (&cs_mmio,   0xbabe);
+  InitializeCriticalSectionAndSpinCount (&cs_shader,      0xcafe);
+  InitializeCriticalSectionAndSpinCount (&cs_mmio,        0xbabe);
+  InitializeCriticalSectionAndSpinCount (&cs_render_view, 0x0fd0);
 
   bool success =
     SUCCEEDED (CoInitializeEx (nullptr, COINIT_MULTITHREADED));
@@ -6586,7 +6608,8 @@ SK_LiveTextureView (bool& can_scroll)
       {
         bool active = used_textures.count (it.second.pTex) != 0;
 
-        if (active || tex_set == 0) {
+        if (active || tex_set == 0)
+        {
           char szDesc [48] = { };
 
           sprintf (szDesc, "%08x##Texture2D_D3D11", it.second.crc32c);
@@ -7139,12 +7162,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   shader_tracking_s*
     tracker = GetShaderTracker (shader_type);
 
-  auto GetShaderVector =
+  auto GetShaderSet =
     [](sk_shader_class& type) ->
-      std::vector <uint32_t>
+      std::set <uint32_t>&
       {
-        static std::vector <uint32_t> vec;
-        vec.clear ();
+        static std::set <uint32_t> set;
+        set.clear ();
 
         SK_AutoCriticalSection auto_cs (&cs_shader);
 
@@ -7158,7 +7181,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               if ( vertex_shader.first != 0xb42ede74 &&
                    vertex_shader.first != 0x1f8c62dc )
               {
-                if (vertex_shader.first > 0x00000000) vec.emplace_back (vertex_shader.first);
+                if (vertex_shader.first > 0x00000000) set.emplace (vertex_shader.first);
               }
             }
           } break;
@@ -7171,7 +7194,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               if ( pixel_shader.first != 0xd3af3aa0 &&
                    pixel_shader.first != 0xb04a90ba )
               {
-                if (pixel_shader.first > 0x00000000) vec.emplace_back (pixel_shader.first);
+                if (pixel_shader.first > 0x00000000) set.emplace (pixel_shader.first);
               }
             }
           } break;
@@ -7180,7 +7203,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& geometry_shader : SK_D3D11_Shaders.geometry.descs)
             {
-              if (geometry_shader.first > 0x00000000) vec.emplace_back (geometry_shader.first);
+              if (geometry_shader.first > 0x00000000) set.emplace (geometry_shader.first);
             }
           } break;
 
@@ -7188,7 +7211,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& hull_shader : SK_D3D11_Shaders.hull.descs)
             {
-              if (hull_shader.first > 0x00000000) vec.emplace_back (hull_shader.first);
+              if (hull_shader.first > 0x00000000) set.emplace (hull_shader.first);
             }
           } break;
 
@@ -7196,7 +7219,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& domain_shader : SK_D3D11_Shaders.domain.descs)
             {
-              if (domain_shader.first > 0x00000000) vec.emplace_back (domain_shader.first);
+              if (domain_shader.first > 0x00000000) set.emplace (domain_shader.first);
             }
           } break;
 
@@ -7204,16 +7227,18 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           {
             for (auto const& compute_shader : SK_D3D11_Shaders.compute.descs)
             {
-              if (compute_shader.first > 0x00000000) vec.emplace_back (compute_shader.first);
+              if (compute_shader.first > 0x00000000) set.emplace (compute_shader.first);
             }
           } break;
         }
 
-        return vec;
+        return set;
       };
 
+  std::set <uint32_t>& set = GetShaderSet (shader_type);
+
   std::vector <uint32_t>
-    shaders   ( GetShaderVector (shader_type) );
+    shaders ( set.begin (), set.end () );
 
   auto GetShaderDisasm =
     [](sk_shader_class& type) ->
@@ -7294,13 +7319,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         list->sel = -1;
     int idx       =  0;
         list->contents.clear ();
-
-    //// The underlying list is unsorted for speed, but that's not at all
-    ////   intuitive to humans, so sort the thing when we have the RT view open.
-    std::sort ( shaders.begin (),
-                shaders.end   () );
-
-
 
     for ( auto it : shaders )
     {
@@ -8226,6 +8244,10 @@ SK_D3D11_ShaderModDlg (void)
 
     if (ImGui::CollapsingHeader ("Live Shader View", ImGuiTreeNodeFlags_DefaultOpen))
     {
+      SK_AutoCriticalSection auto_cs  (&cs_render_view);
+      SK_AutoCriticalSection auto_cs2 (&cs_shader);
+      SK_AutoCriticalSection auto_cs3 (&cs_mmio);
+
       SK_D3D11_UpdateRenderStatsEx ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
 
       ImGui::TreePush ("");
@@ -8322,6 +8344,10 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        SK_AutoCriticalSection auto_cs  (&cs_render_view);
+        SK_AutoCriticalSection auto_cs2 (&cs_shader);
+        SK_AutoCriticalSection auto_cs3 (&cs_mmio);
+
         ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNavInputs );
 
         ImGui::TreePush   (""                      );
@@ -8459,13 +8485,19 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        SK_AutoCriticalSection auto_cs  (&cs_render_view);
+        SK_AutoCriticalSection auto_cs2 (&cs_shader);
+        SK_AutoCriticalSection auto_cs3 (&cs_mmio);
+
         SK_LiveTextureView (can_scroll);
       }
 
-      if (SK_D3D11_DrawThreads.count_active () <= 1)
-      {
       if (ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        SK_AutoCriticalSection auto_cs  (&cs_render_view);
+        SK_AutoCriticalSection auto_cs2 (&cs_shader);
+        SK_AutoCriticalSection auto_cs3 (&cs_mmio);
+
         static float last_ht    = 256.0f;
         static float last_width = 256.0f;
 
@@ -9069,7 +9101,6 @@ SK_D3D11_ShaderModDlg (void)
             }
           }
         }
-      }
       }
 
       else

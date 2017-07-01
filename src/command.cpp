@@ -38,7 +38,7 @@ SK_GetCommandProcessor (void)
 
   if (command == nullptr) {
     command = new SK_ICommandProcessor ();
-    InitializeCriticalSectionAndSpinCount (&cs_process_cmd, MAXDWORD);
+    InitializeCriticalSectionAndSpinCount (&cs_process_cmd, 104858);
   }
 
   return command;

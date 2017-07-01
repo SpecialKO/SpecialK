@@ -99,7 +99,7 @@ Sleep_Detour (DWORD dwMilliseconds)
           SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
         //if (dwMilliseconds <= 1)
-        //  YieldProcessor ();
+        YieldProcessor ();
 
         return;
       }
@@ -124,7 +124,7 @@ Sleep_Detour (DWORD dwMilliseconds)
           SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
         //if (dwMilliseconds <= 1)
-        //  YieldProcessor ();
+        YieldProcessor ();
 
         return;
       }

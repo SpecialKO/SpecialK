@@ -1137,14 +1137,67 @@ SK_SelfDestruct (void)
   }
 }
 
+class SK_ModuleAddrMap
+{
+public:
+  SK_ModuleAddrMap (void)
+  {
+    InitializeCriticalSectionAndSpinCount (&cs_map, 68992<<2);
+  }
+
+  bool contains (LPVOID pAddr, HMODULE* phMod)
+  {
+    //SK_AutoCriticalSection cs_auto (&cs_map);
+
+    if (resolved.count (pAddr)) {
+      *phMod = resolved [pAddr];
+      return true;
+    }
+
+    return false;
+  }
+
+  void insert (LPVOID pAddr, HMODULE hMod)
+  {
+    //SK_AutoCriticalSection cs_auto (&cs_map);
+
+    resolved [pAddr] = hMod;
+  }
+
+  void Lock   (void) { EnterCriticalSection (&cs_map); }
+  void Unlock (void) { LeaveCriticalSection (&cs_map); }
+
+protected:
+
+private:
+  CRITICAL_SECTION                   cs_map;
+  std::map         <LPVOID, HMODULE> resolved;
+} SK_ModulesMap;
+
+
 HMODULE
 SK_GetCallingDLL (LPVOID pReturn)
 {
   HMODULE hCallingMod = 0;
+
+  SK_ModulesMap.Lock ();
+
+  if (SK_ModulesMap.contains (pReturn, &hCallingMod))
+  {
+    SK_ModulesMap.Unlock ();
+    return hCallingMod;
+  }
+
+  SK_ModulesMap.Unlock ();
+
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         (LPCWSTR)pReturn,
                           &hCallingMod );
+
+  SK_ModulesMap.Lock   (                    );
+  SK_ModulesMap.insert (pReturn, hCallingMod);
+  SK_ModulesMap.Unlock (                    );
 
   return hCallingMod;
 }

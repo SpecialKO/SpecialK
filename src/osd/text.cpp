@@ -48,7 +48,7 @@ CRITICAL_SECTION       SK_TextOverlayManager::cs_   = {     };
 
 SK_TextOverlayManager::SK_TextOverlayManager (void)
 {
-  InitializeCriticalSectionAndSpinCount (&cs_, MAXDWORD);
+  InitializeCriticalSectionAndSpinCount (&cs_, 104858);
 
   gui_ctx_         = nullptr;
   need_full_reset_ = false;

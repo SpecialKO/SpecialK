@@ -589,11 +589,11 @@ SK_Attach (DLL_ROLE role)
               FALSE )
      )
   {
-    InitializeCriticalSectionAndSpinCount (&budget_mutex,  4000);
-    InitializeCriticalSectionAndSpinCount (&init_mutex,   50000);
-    InitializeCriticalSectionAndSpinCount (&loader_lock,  65536);
+    InitializeCriticalSectionAndSpinCount (&budget_mutex,   400);
+    InitializeCriticalSectionAndSpinCount (&init_mutex,    5000);
+    InitializeCriticalSectionAndSpinCount (&loader_lock,   6536);
     InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
-    InitializeCriticalSectionAndSpinCount (&cs_dbghelp, 1048576);
+    InitializeCriticalSectionAndSpinCount (&cs_dbghelp,  104857);
 
     switch (role)
     {

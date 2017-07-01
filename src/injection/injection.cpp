@@ -33,6 +33,8 @@ HANDLE  g_hShutdown            = 0;
 #pragma data_seg ()
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
+extern volatile ULONG __SK_DLL_Attached;
+
 HMODULE hModHookInstance       = NULL;
 extern volatile ULONG __SK_HookContextOwner;
 
@@ -217,11 +219,21 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                if (g_hShutdown != 0)
                  WaitForSingleObject (g_hShutdown, INFINITE);
 
-               ExitProcess (0x00);
+               while (  InterlockedCompareExchangeAcquire (
+                        &__SK_DLL_Attached,
+                          FALSE,
+                            FALSE ) || (! SK_IsHostAppSKIM ()))
+                 SleepEx (250UL, TRUE);
+
+
+               if ((int)user != -128)
+                 ExitProcess (0x00);
+               else
+                 CloseHandle (GetCurrentThread ());
 
                return 0;
              },
-             nullptr,
+             (LPVOID)nCmdShow,
            0x00,
          nullptr );
 
@@ -246,7 +258,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
       fscanf (fPID, "%lu", &dwPID);
       fclose (fPID);
 
-      if (SK_TerminatePID (dwPID, 0x00))
+      if (dwPID == GetCurrentProcessId () || SK_TerminatePID (dwPID, 0x00))
       {
 #ifndef _WIN64
         DeleteFileA ("SpecialK32.pid");
@@ -257,7 +269,8 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
     }
   }
 
-  ExitProcess (0x00);
+  if (nCmdShow != -128)
+   ExitProcess (0x00);
 }
 
 
@@ -685,6 +698,49 @@ bool SK_Inject_JournalRecord (HMODULE hModule)
 }
 
 
+
+#include <TlHelp32.h>
+#include <Shlwapi.h>
+
+bool
+SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
+{
+  HANDLE         hProcSnap;
+  PROCESSENTRY32 pe32;
+
+  hProcSnap =
+    CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+
+  if (hProcSnap == INVALID_HANDLE_VALUE)
+    return false;
+
+  pe32.dwSize = sizeof PROCESSENTRY32;
+
+  if (! Process32First (hProcSnap, &pe32))
+  {
+    CloseHandle (hProcSnap);
+    return false;
+  }
+
+  do
+  {
+    if (StrStrIW (wszProcName, pe32.szExeFile))
+    {
+      window_t win = SK_FindRootWindow (pe32.th32ProcessID);
+
+      SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
+
+      CloseHandle (hProcSnap);
+      return true;
+    }
+  } while (Process32Next (hProcSnap, &pe32));
+
+  CloseHandle (hProcSnap);
+
+  return false;
+}
+
+
 void
 SK_Inject_Stop (void)
 {
@@ -695,8 +751,37 @@ SK_Inject_Stop (void)
 
   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
-  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
-  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+  LoadLibrary (L"SpecialK32.dll");
+  LoadLibrary (L"SpecialK64.dll");
+
+#ifdef _WIN64
+  wchar_t wszWOW64 [MAX_PATH + 2] = { };
+  GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+#else
+  wchar_t wszWOW64 [MAX_PATH + 2] = { };
+  GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+#endif
+
+  wchar_t wszSys32 [MAX_PATH + 2] = { };
+  GetSystemDirectoryW      (wszSys32, MAX_PATH);
+
+  SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+
+  if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+  {
+    lstrcatW      (wszWOW64, L"\\rundll32.exe");
+    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+
+    lstrcatW      (wszSys32, L"\\rundll32.exe");
+    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+  }
+
+  else
+  {
+    ShellExecuteA        (NULL, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+    Sleep                (100UL);
+    SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+  }
 
   SetCurrentDirectoryW (wszCurrentDir);
 
@@ -713,8 +798,35 @@ SK_Inject_Start (void)
 
   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
-  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
-  ShellExecuteA (NULL, "open", "rundll32.exe", "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+#ifdef _WIN64
+  wchar_t wszWOW64 [MAX_PATH + 2] = { };
+  GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+#else
+  wchar_t wszWOW64 [MAX_PATH + 2] = { };
+  GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+#endif
+
+  wchar_t wszSys32 [MAX_PATH + 2] = { };
+  GetSystemDirectoryW      (wszSys32, MAX_PATH);
+
+  if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+  {
+    if (SKX_IsHookingCBT ())
+    {
+      RunDLL_InjectionManager ( NULL, NULL,
+                                "Remove", -128 );
+    }
+
+    lstrcatW      (wszSys32, L"\\rundll32.exe");
+    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+
+    lstrcatW      (wszWOW64, L"\\rundll32.exe");
+    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+  }
+  else
+  {
+    ShellExecuteA (NULL, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+  }
 
   SetCurrentDirectoryW (wszCurrentDir);
 

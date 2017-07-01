@@ -162,7 +162,16 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
           break;
       }
 
-      if ( (dwStyle & (WS_VISIBLE | WS_MINIMIZEBOX)) )
+      bool    SKIM               = false;
+      wchar_t wszName [MAX_PATH] = { };
+
+      if (RealGetWindowClassW (hWnd, wszName, MAX_PATH))
+      {
+        if (StrStrIW (wszName, L"SKIM"))
+          SKIM = true;
+      }
+
+      if ( (dwStyle & (WS_VISIBLE | WS_MINIMIZEBOX)) || SKIM )
       {
         win.root = hWnd;
         return FALSE;
