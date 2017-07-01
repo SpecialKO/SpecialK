@@ -271,6 +271,8 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"LaunchPad.exe");
     blacklist.emplace (L"CNNLauncher.exe");
     blacklist.emplace (L"FF9_Launcher.exe");
+    blacklist.emplace (L"A17Config.exe");
+    blacklist.emplace (L"A18Config.exe"); // Atelier Firis
 
     // Other Stuff
     blacklist.emplace (L"ActivationUI.exe");

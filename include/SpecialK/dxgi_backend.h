@@ -495,6 +495,20 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView
 );
+typedef HRESULT (WINAPI *D3D11Dev_CreateDepthStencilView_pfn)(
+  _In_            ID3D11Device                  *This,
+  _In_            ID3D11Resource                *pResource,
+  _In_opt_  const D3D11_DEPTH_STENCIL_VIEW_DESC *pDesc,
+  _Out_opt_       ID3D11DepthStencilView        **ppDepthStencilView
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateUnorderedAccessView_pfn)(
+  _In_            ID3D11Device                     *This,
+  _In_            ID3D11Resource                   *pResource,
+  _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
+  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView
+);
+
+
 typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 IndexCount,

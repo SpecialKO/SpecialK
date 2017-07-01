@@ -1,3 +1,14 @@
+0.8.20:
+ + [D3D11] Added texture updae frequency (0 = Manually Refresh, 1+ = Auto) for the
+             texture mod tools.
+ + [D3D11] Added option to replace 24-bit Depth Buffer with 32-bit
+ + [D3D11] Improved multi-threaded safety in the D3D11 mod tools for games that draw
+             from multiple threads.
+ + [SKIM]  Added support to minimize SKIM v 0.7.0+ to the System Tray and have it
+             manage global injection for the end-user.
+ + [D3D9]  Fixed swapchain recovery afer device loss
+ + [GL]    Improved startup time
+
 0.8.19:
 
  + [D3D11] Re-wrote stateblock code to minimize reference counting problems

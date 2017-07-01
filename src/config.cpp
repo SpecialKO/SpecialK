@@ -212,6 +212,7 @@ struct {
     sk::ParameterBool*    test_present;
     sk::ParameterBool*    debug_layer;
     sk::ParameterBool*    safe_fullscreen;
+    sk::ParameterBool*    enhanced_depth;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -1441,6 +1442,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.DXGI",
           L"SafeFullscreenMode" );
+
+    render.dxgi.enhanced_depth =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding")
+        );
+    render.dxgi.enhanced_depth->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"Use64BitDepthStencil" );
 
 
     texture.d3d11.cache =
@@ -2677,6 +2688,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (render.dxgi.safe_fullscreen->load ())
     config.render.dxgi.safe_fullscreen = render.dxgi.safe_fullscreen->get_value ();
 
+  if (render.dxgi.enhanced_depth->load ())
+    config.render.dxgi.enhanced_depth = render.dxgi.enhanced_depth->get_value ();
+
+
   if (texture.d3d11.cache->load ())
     config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
   if (texture.d3d11.precise_hash->load ())
@@ -3239,6 +3254,7 @@ SK_SaveConfig ( std::wstring name,
 
       render.dxgi.debug_layer->set_value     (config.render.dxgi.debug_layer);
       render.dxgi.safe_fullscreen->set_value (config.render.dxgi.safe_fullscreen);
+      render.dxgi.enhanced_depth->set_value  (config.render.dxgi.enhanced_depth);
     }
 
     if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9)
@@ -3420,6 +3436,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.exception_mode->store  ();
       render.dxgi.debug_layer->store     ();
       render.dxgi.safe_fullscreen->store ();
+      render.dxgi.enhanced_depth->store  ();
 
       render.dxgi.swapchain_wait->store ();
     }

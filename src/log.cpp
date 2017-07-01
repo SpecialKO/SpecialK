@@ -119,7 +119,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   fLog = _wfopen (full_name.c_str (), wszMode);
 
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
-   lockless = false;
+   lockless = true;//false;
 
   if ((! bRet) || (fLog == NULL)) {
     silent = true;

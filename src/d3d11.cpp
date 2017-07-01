@@ -51,6 +51,8 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 //   DarkSouls3 seems to underflow references on occasion!!!
 #define DS3_REF_TWEAK
 
+#define DYNAMIC_TEX_CACHING 1
+
 CRITICAL_SECTION cs_shader;
 CRITICAL_SECTION cs_mmio;
 
@@ -538,6 +540,8 @@ D3D11Dev_CreateBuffer_pfn                           D3D11Dev_CreateBuffer_Origin
 D3D11Dev_CreateTexture2D_pfn                        D3D11Dev_CreateTexture2D_Original                        = nullptr;
 D3D11Dev_CreateRenderTargetView_pfn                 D3D11Dev_CreateRenderTargetView_Original                 = nullptr;
 D3D11Dev_CreateShaderResourceView_pfn               D3D11Dev_CreateShaderResourceView_Original               = nullptr;
+D3D11Dev_CreateDepthStencilView_pfn                 D3D11Dev_CreateDepthStencilView_Original                 = nullptr;
+D3D11Dev_CreateUnorderedAccessView_pfn              D3D11Dev_CreateUnorderedAccessView_Original              = nullptr;
 
 NvAPI_D3D11_CreateVertexShaderEx_pfn                NvAPI_D3D11_CreateVertexShaderEx_Original                = nullptr;
 NvAPI_D3D11_CreateGeometryShaderEx_2_pfn            NvAPI_D3D11_CreateGeometryShaderEx_2_Original            = nullptr;
@@ -599,6 +603,58 @@ D3D11_CopyResource_pfn                              D3D11_CopyResource_Original 
 D3D11_CopySubresourceRegion_pfn                     D3D11_CopySubresourceRegion_Original                     = nullptr;
 D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Original                        = nullptr;
 
+bool
+SK_D3D11_IsDataSizeClassOf (DXGI_FORMAT typeless, DXGI_FORMAT typed, int recursion = 0)
+{
+  switch (typeless)
+  {
+    case DXGI_FORMAT_R24G8_TYPELESS:
+      return true;
+
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      return true;
+
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+      return typed == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+      return true;
+  }
+
+  if (recursion == 0)
+    return SK_D3D11_IsDataSizeClassOf (typed, typeless, 1);
+
+  return false;
+}
+
+bool
+SK_D3D11_OverrideDepthStencil (DXGI_FORMAT& fmt)
+{
+  if (! config.render.dxgi.enhanced_depth)
+    return false;
+
+  switch (fmt)
+  {
+    case DXGI_FORMAT_R24G8_TYPELESS:
+      fmt = DXGI_FORMAT_R32G8X24_TYPELESS;
+      return true;
+
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+      fmt = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+      return true;
+
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      fmt = DXGI_FORMAT_X32_TYPELESS_G8X24_UINT;
+      return true;
+
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+      fmt = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+      return true;
+  }
+
+  return false;
+}
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -608,9 +664,45 @@ D3D11Dev_CreateRenderTargetView_Override (
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
   _Out_opt_       ID3D11RenderTargetView        **ppRTView )
 {
-  return D3D11Dev_CreateRenderTargetView_Original (
-           This, pResource,
-             pDesc, ppRTView );
+  if (pDesc != nullptr)
+  {
+    D3D11_RENDER_TARGET_VIEW_DESC desc;
+    D3D11_RESOURCE_DIMENSION      dim;
+
+    pResource->GetType (&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      desc = *pDesc;
+
+      DXGI_FORMAT newFormat = pDesc->Format;
+
+      CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+      pResource->QueryInterface <ID3D11Texture2D> (&pTex);
+
+      if (pTex)
+      {
+        D3D11_TEXTURE2D_DESC tex_desc;
+        pTex->GetDesc (&tex_desc);
+
+        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+          desc.Format = newFormat;
+
+        HRESULT hr = D3D11Dev_CreateRenderTargetView_Original ( This, pResource,
+                                                                  &desc, ppRTView );
+
+        if (SUCCEEDED (hr))
+          return hr;
+      }
+    }
+  }
+
+  HRESULT hr = D3D11Dev_CreateRenderTargetView_Original (
+                 This, pResource,
+                   pDesc, ppRTView );
+
+  return hr;
 }
 
 
@@ -622,6 +714,12 @@ struct SK_D3D11_KnownTargets
 {
   std::unordered_set <ID3D11RenderTargetView *> rt_views;
   std::unordered_set <ID3D11DepthStencilView *> ds_views;
+
+  SK_D3D11_KnownTargets (void)
+  {
+    rt_views.reserve (128);
+    ds_views.reserve ( 64);
+  }
 
   void clear (void)
   {
@@ -642,6 +740,9 @@ struct SK_D3D11_KnownThreads
 {
   SK_D3D11_KnownThreads (void) {
     InitializeCriticalSectionAndSpinCount (&cs, 0x666);
+
+    ids.reserve    (8);
+    active.reserve (8);
   }
 
   void   clear_all    (void);
@@ -715,6 +816,13 @@ struct memory_tracking_s
 
   struct history_s
   {
+    history_s (void)
+    {
+      vertex_buffers.reserve   ( 32);
+      index_buffers.reserve    ( 64);
+      constant_buffers.reserve (512);
+    }
+
     void clear (CRITICAL_SECTION* cs)
     {
       InterlockedExchange (&map_types [0], 0); InterlockedExchange (&map_types [1], 0);
@@ -789,6 +897,13 @@ struct memory_tracking_s
 
 struct target_tracking_s
 {
+  target_tracking_s (void) {
+    ref_vs.reserve (32); ref_ps.reserve (32);
+    ref_gs.reserve (32);
+    ref_hs.reserve (32); ref_ds.reserve (32);
+    ref_cs.reserve (32);
+  };
+
   void clear (void)
   {
     memset (active, 0, sizeof (bool) * D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
@@ -2840,13 +2955,14 @@ D3D11_CopySubresourceRegion_Override (
     dynamic_textures.erase    (pSrcResource);
   }
 
-  else
-#else
+  //else
+#endif
  if (pDstTex)
     pDstTex->Release ();
-#endif
 }
 
+
+bool SK_D3D11_SkipDraw = false;
 
 bool
 SK_D3D11_DrawHandler (void)
@@ -2896,6 +3012,9 @@ SK_D3D11_DrawHandler (void)
   if (SK_D3D11_Shaders.hull.blacklist.count     (SK_D3D11_Shaders.hull.current))     return true;
   if (SK_D3D11_Shaders.domain.blacklist.count   (SK_D3D11_Shaders.domain.current))   return true;
 
+  if (SK_D3D11_SkipDraw)
+    return true;
+
   return false;
 }
 
@@ -2926,6 +3045,9 @@ SK_D3D11_DispatchHandler (void)
 
   if (SK_D3D11_Shaders.compute.tracked.active && SK_D3D11_Shaders.compute.tracked.cancel_draws) return true;
   if (SK_D3D11_Shaders.compute.blacklist.count (SK_D3D11_Shaders.compute.current))              return true;
+
+  if (SK_D3D11_SkipDraw)
+    return true;
 
   return false;
 }
@@ -3085,13 +3207,14 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
   D3D11_OMSetRenderTargets_Original ( This, NumViews,
                                         ppRenderTargetViews, pDepthStencilView );
 
+  SK_D3D11_SkipDraw = false;
+
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Top () && SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking)) 
   {
     for (int i = 0 ; i < 8; i++) tracked_rtv.active [i] = false;
     return;
   }
-
 
   if (NumViews > 0)
   {
@@ -3196,7 +3319,47 @@ D3D11_RSSetViewports_Override (
         UINT                 NumViewports,
   const D3D11_VIEWPORT*      pViewports )
 {
-  return D3D11_RSSetViewports_Original (This, NumViewports, pViewports);
+#if 0
+  if (NumViewports > 0)
+  {
+    D3D11_VIEWPORT* vps = new D3D11_VIEWPORT [NumViewports];
+    for (UINT i = 0; i < NumViewports; i++)
+    {
+      vps [i] = pViewports [i];
+
+      if ((vps [i].Width == 3840 || vps [i].Height == 2160))
+      {
+        if (! config.render.dxgi.res.max.isZero ())
+        {
+          if (vps [i].Width == 3840)
+          {
+            float orig_ratio = 3840.0f / vps [i].Height;
+
+            vps [i].Width  = config.render.dxgi.res.max.x;
+            vps [i].Height = vps [i].Width / orig_ratio;
+          }
+
+          else if (vps [i].Height == 2160)
+          {
+            float orig_ratio = vps [i].Width / 2160.0f;
+
+            vps [i].Width  = orig_ratio * vps [i].Height;
+            vps [i].Height = config.render.dxgi.res.max.y;
+          }
+        }
+      }
+    }
+
+    D3D11_RSSetViewports_Original (This, NumViewports, vps);
+
+    delete [] vps;
+
+    return;
+  }
+
+  else
+#endif
+    D3D11_RSSetViewports_Original (This, NumViewports, pViewports);
 }
 
 
@@ -4892,10 +5055,137 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
+  if (pDesc != nullptr)
+  {
+    DXGI_FORMAT newFormat = pDesc->Format;
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC desc = *pDesc;
+    D3D11_RESOURCE_DIMENSION        dim;
+
+    pResource->GetType (&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+      pResource->QueryInterface <ID3D11Texture2D> (&pTex);
+
+      if (pTex)
+      {
+        D3D11_TEXTURE2D_DESC tex_desc;
+        pTex->GetDesc (&tex_desc);
+
+        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+          desc.Format = newFormat;
+
+        HRESULT hr = D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
+                                                                    &desc, ppSRView );
+
+        if (SUCCEEDED (hr))
+          return hr;
+      }
+    }
+  }
+
   HRESULT hr =
     D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
                                                    pDesc, ppSRView );
 
+  return hr;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+D3D11Dev_CreateDepthStencilView_Override (
+  _In_            ID3D11Device                  *This,
+  _In_            ID3D11Resource                *pResource,
+  _In_opt_  const D3D11_DEPTH_STENCIL_VIEW_DESC *pDesc,
+  _Out_opt_       ID3D11DepthStencilView        **ppDepthStencilView )
+{
+  if (pDesc != nullptr)
+  {
+    D3D11_DEPTH_STENCIL_VIEW_DESC desc = *pDesc;
+
+    D3D11_RESOURCE_DIMENSION dim;
+    pResource->GetType (&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      DXGI_FORMAT newFormat = pDesc->Format;
+
+      CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+      pResource->QueryInterface <ID3D11Texture2D> (&pTex);
+
+      if (pTex)
+      {
+        D3D11_TEXTURE2D_DESC tex_desc;
+        pTex->GetDesc (&tex_desc);
+
+        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+          desc.Format = newFormat;
+
+        HRESULT hr = D3D11Dev_CreateDepthStencilView_Original ( This, pResource,
+                                                                  &desc, ppDepthStencilView );
+
+        if (SUCCEEDED (hr))
+          return hr;
+      }
+    }
+  }
+
+  HRESULT hr =
+    D3D11Dev_CreateDepthStencilView_Original ( This, pResource,
+                                                 pDesc, ppDepthStencilView );
+  return hr;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+D3D11Dev_CreateUnorderedAccessView_Override (
+  _In_            ID3D11Device                     *This,
+  _In_            ID3D11Resource                   *pResource,
+  _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
+  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView )
+{
+  if (pDesc != nullptr)
+  {
+    D3D11_UNORDERED_ACCESS_VIEW_DESC desc = *pDesc;
+    D3D11_RESOURCE_DIMENSION         dim;
+
+    pResource->GetType (&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      DXGI_FORMAT newFormat = pDesc->Format;
+
+      CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+      pResource->QueryInterface <ID3D11Texture2D> (&pTex);
+
+      if (pTex)
+      {
+        D3D11_TEXTURE2D_DESC tex_desc;
+        pTex->GetDesc (&tex_desc);
+
+        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+          desc.Format = newFormat;
+            
+
+        HRESULT hr = D3D11Dev_CreateUnorderedAccessView_Original ( This, pResource,
+                                                                     &desc, ppUAView );
+
+        if (SUCCEEDED (hr))
+          return hr;
+      }
+    }
+  }
+
+  HRESULT hr =
+    D3D11Dev_CreateUnorderedAccessView_Original ( This, pResource,
+                                                    pDesc, ppUAView );
   return hr;
 }
 
@@ -4965,6 +5255,30 @@ D3D11Dev_CreateTexture2D_Override (
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
   SK_D3D11_MemoryThreads.mark ();
+
+
+
+  if (pDesc != nullptr)
+  {
+    DXGI_FORMAT newFormat = pDesc->Format;
+
+    if (pInitialData == nullptr || pInitialData->pSysMem == nullptr)
+    {
+      if (SK_D3D11_OverrideDepthStencil (newFormat))
+      {
+        pDesc->Format = newFormat;
+        pInitialData  = nullptr;
+      }
+    }
+
+    if (! config.render.dxgi.res.max.isZero ())
+    {
+      if (pDesc->Width == 3840)
+        pDesc->Width = config.render.dxgi.res.max.x;
+      if (pDesc->Height == 2160)
+        pDesc->Height = config.render.dxgi.res.max.y;
+    }
+  }
 
 
   if (ppTexture2D == nullptr)
@@ -5761,10 +6075,18 @@ HookD3D11 (LPVOID user)
     DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 7, "ID3D11Device::CreateShaderResourceView",
                          D3D11Dev_CreateShaderResourceView_Override, D3D11Dev_CreateShaderResourceView_Original,
                          D3D11Dev_CreateShaderResourceView_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 8, "ID3D11Device::CreateUnorderedAccessView",
+                         D3D11Dev_CreateUnorderedAccessView_Override, D3D11Dev_CreateUnorderedAccessView_Original,
+                         D3D11Dev_CreateUnorderedAccessView_pfn);
     
     DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 9, "ID3D11Device::CreateRenderTargetView",
                            D3D11Dev_CreateRenderTargetView_Override, D3D11Dev_CreateRenderTargetView_Original,
                            D3D11Dev_CreateRenderTargetView_pfn);
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 10, "ID3D11Device::CreateDepthStencilView",
+                           D3D11Dev_CreateDepthStencilView_Override, D3D11Dev_CreateDepthStencilView_Original,
+                           D3D11Dev_CreateDepthStencilView_pfn);
 
     DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 12, "ID3D11Device::CreateVertexShader",
                          D3D11Dev_CreateVertexShader_Override, D3D11Dev_CreateVertexShader_Original,
@@ -6132,8 +6454,8 @@ SK_LiveTextureView (bool& can_scroll)
   extern              size_t        tex_dbg_idx;
   extern              size_t        debug_tex_id;
 
-  static              int           refresh_interval     = 1;
-  static              int           last_frame           = 0;
+  static              int           refresh_interval     = 0UL; // > 0 = Periodic Refresh
+  static              int           last_frame           = 0UL;
   static              size_t        total_texture_memory = 0ULL;
 
   
@@ -6197,7 +6519,7 @@ SK_LiveTextureView (bool& can_scroll)
 
   if (refresh_interval > 0 || list_dirty)
   {
-    if (SK_GetFramesDrawn () > last_frame + refresh_interval || list_dirty)
+    if ((LONG)SK_GetFramesDrawn () > last_frame + refresh_interval || list_dirty)
     {
       list_dirty           = true;
       last_frame           = SK_GetFramesDrawn ();
@@ -6506,6 +6828,13 @@ SK_LiveTextureView (bool& can_scroll)
           break;
         case DXGI_FORMAT_BC7_TYPELESS:
           srv_desc.Format = DXGI_FORMAT_BC7_UNORM;
+          break;
+
+        case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+          break;
+        case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
           break;
       };
 
@@ -7864,6 +8193,8 @@ SK_D3D11_EndFrame (void)
 bool
 SK_D3D11_ShaderModDlg (void)
 {
+  SK_AutoCriticalSection auto_cs (&cs_shader);
+
   const float font_size           = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
   const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
@@ -8131,6 +8462,8 @@ SK_D3D11_ShaderModDlg (void)
         SK_LiveTextureView (can_scroll);
       }
 
+      if (SK_D3D11_DrawThreads.count_active () <= 1)
+      {
       if (ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen))
       {
         static float last_ht    = 256.0f;
@@ -8139,15 +8472,15 @@ SK_D3D11_ShaderModDlg (void)
         static std::vector <std::string> list_contents;
         static bool                      list_dirty     = true;
         static uintptr_t                 last_sel_ptr   =    0;
-        static int                       sel            =   -1;
+        static size_t                    sel            = std::numeric_limits <size_t>::max ();
         static bool                       first_frame   = true;
 
         std::set <ID3D11RenderTargetView *> live_textures;
 
         struct lifetime
         {
-          UINT last_frame;
-          UINT frames_active;
+          ULONG last_frame;
+          ULONG frames_active;
         };
 
         static std::unordered_map <ID3D11RenderTargetView *, lifetime> render_lifetime;
@@ -8309,7 +8642,7 @@ SK_D3D11_ShaderModDlg (void)
   
             int neutral_idx = 0;
   
-            for (int i = 0; i < render_textures.size (); i++)
+            for (UINT i = 0; i < render_textures.size (); i++)
             {
               if ((uintptr_t)render_textures [i] >= last_sel_ptr)
               {
@@ -8320,7 +8653,7 @@ SK_D3D11_ShaderModDlg (void)
   
             sel = neutral_idx + direction;
   
-            if (sel >= render_textures.size ())
+            if ((ULONG)sel > (ULONG)render_textures.size ())
             {
               sel = render_textures.size () - 1;
             }
@@ -8406,7 +8739,7 @@ SK_D3D11_ShaderModDlg (void)
           if (ImGui::IsItemFocused ()) focused = true; else focused = false;
         }
   
-        if (render_textures.size () > sel && live_textures.count (render_textures [sel]))
+        if (render_textures.size () > (size_t)sel && live_textures.count (render_textures [sel]))
         {
           ID3D11RenderTargetView* rt_view = render_textures [sel];
   
@@ -8506,8 +8839,8 @@ SK_D3D11_ShaderModDlg (void)
                 bool selected = false;
   
   
-                int count = tracked_rtv.ref_vs.size () + tracked_rtv.ref_ps.size () + tracked_rtv.ref_gs.size () +
-                            tracked_rtv.ref_hs.size () + tracked_rtv.ref_ds.size () + tracked_rtv.ref_cs.size ();
+                size_t count = tracked_rtv.ref_vs.size () + tracked_rtv.ref_ps.size () + tracked_rtv.ref_gs.size () +
+                               tracked_rtv.ref_hs.size () + tracked_rtv.ref_ds.size () + tracked_rtv.ref_cs.size ();
   
                 if (shaders > 0 && count > 0)
                 {
@@ -8736,6 +9069,12 @@ SK_D3D11_ShaderModDlg (void)
             }
           }
         }
+      }
+      }
+
+      else
+      {
+        ImGui::Text ("Live RenderTarget View is UNSAFE in multi-threaded rendering engines, it has been disabled.");
       }
 
       ImGui::EndChild     ( );

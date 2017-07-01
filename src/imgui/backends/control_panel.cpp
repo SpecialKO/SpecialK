@@ -1571,6 +1571,25 @@ SK_ImGui_ControlPanel (void)
         show_shader_mod_dlg = ( ! show_shader_mod_dlg );
       }
 
+      ImGui::SameLine ();
+
+#if 0
+      if (ImGui::Button (" Re-Hook SwapChain Present "))
+      {
+        extern void
+        SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook = false);
+
+        SK_DXGI_HookPresent ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain, true);
+      }
+
+      ImGui::SameLine ();
+#endif
+
+      ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Requires application restart");
+
       ImGui::TreePop       ( );
       ImGui::PopStyleColor (3);
     }

@@ -2242,6 +2242,9 @@ SK_BeginBufferSwap (void)
     extern void SK_ImGui_Toggle (void);
                 SK_ImGui_Toggle ();
   }
+
+  extern void SK_ImGui_PollGamepad_EndFrame (void);
+  SK_ImGui_PollGamepad_EndFrame ();
 }
 
 ULONGLONG poll_interval = 0;
@@ -2611,9 +2614,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     return hr;
 
   DoKeyboard ();
-
-  extern void SK_ImGui_PollGamepad_EndFrame (void);
-  SK_ImGui_PollGamepad_EndFrame ();
 
   InterlockedIncrement (&frames_drawn);
 

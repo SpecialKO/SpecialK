@@ -67,6 +67,9 @@
 
 extern volatile ULONG __SK_DLL_Ending;
 
+extern CRITICAL_SECTION cs_shader;
+extern CRITICAL_SECTION cs_mmio;
+
 extern void
 ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
                         UINT            BufferCount,
@@ -447,7 +450,7 @@ void WaitForInitDXGI (void)
   }
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE)) {
-    Sleep_Original (config.system.init_delay);
+    SleepEx (config.system.init_delay, TRUE);
   }
 }
 
@@ -600,7 +603,7 @@ SKX_D3D11_EnableFullscreen (bool bFullscreen)
 extern
 unsigned int __stdcall HookD3D11                   (LPVOID user);
 
-void                   SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain);
+void                   SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain, bool rehook = false);
 void         WINAPI    SK_DXGI_SetPreferredAdapter (int override_id);
 
 
@@ -2128,6 +2131,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     DXGI_LOG_CALL_I2 (L"IDXGISwapChain", L"SetFullscreenState", L"%s, %ph",
                       Fullscreen ? L"{ Fullscreen }" : L"{ Windowed }", pTarget);
 
+    SK_AutoCriticalSection auto_shader_cs (&cs_shader);
+    SK_AutoCriticalSection auto_mmio_cs   (&cs_mmio);
+
     SK_D3D11_EndFrame ();
 
     InterlockedExchange (&__gui_reset, TRUE);
@@ -2205,8 +2211,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     DXGI_LOG_CALL_I5 (L"IDXGISwapChain", L"ResizeBuffers", L"%lu,%lu,%lu,fmt=%lu,0x%08X",
                         BufferCount, Width, Height, (UINT)NewFormat, SwapChainFlags);
 
-    SK_D3D11_EndFrame       ();
-    SK_D3D11_Textures.reset ();
+    {
+      SK_AutoCriticalSection auto_shader_cs (&cs_shader);
+      SK_AutoCriticalSection auto_mmio_cs   (&cs_mmio);
+
+      SK_D3D11_EndFrame       ();
+      SK_D3D11_Textures.reset ();
+    }
 
     if (       config.render.framerate.buffer_count != -1           &&
          (UINT)config.render.framerate.buffer_count !=  BufferCount &&
@@ -2241,6 +2252,17 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       }
     }
 
+    if ((! config.render.dxgi.res.max.isZero ()) && Width > config.render.dxgi.res.max.x)
+      Width = config.render.dxgi.res.max.x;
+    if ((! config.render.dxgi.res.max.isZero ()) && Height > config.render.dxgi.res.max.y)
+      Height = config.render.dxgi.res.max.y;
+
+    if ((! config.render.dxgi.res.min.isZero ()) && Width < config.render.dxgi.res.min.x)
+      Width = config.render.dxgi.res.min.x;
+    if ((! config.render.dxgi.res.min.isZero ()) && Height < config.render.dxgi.res.min.y)
+      Height = config.render.dxgi.res.min.y;
+
+
     HRESULT ret;
     DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
 
@@ -2265,6 +2287,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                         _In_ const DXGI_MODE_DESC *pNewTargetParameters )
   {
+    SK_AutoCriticalSection auto_shader_cs (&cs_shader);
+    SK_AutoCriticalSection auto_mmio_cs   (&cs_mmio);
+
     SK_D3D11_EndFrame ();
 
     if (pNewTargetParameters == nullptr) {
@@ -2673,6 +2698,17 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
                  bFlipMode ? L"Flip" : L"Traditional",
                    bWait ? L"Yes" : L"No",
                      bWait ? config.render.framerate.swapchain_wait : 0 );
+
+
+  if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
+    pDesc->BufferDesc.Width = config.render.dxgi.res.max.x;
+  if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
+    pDesc->BufferDesc.Height = config.render.dxgi.res.max.y;
+
+  if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
+    pDesc->BufferDesc.Width = config.render.dxgi.res.min.x;
+  if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
+    pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
 
 
   if (translated)
@@ -3662,7 +3698,7 @@ SK_HookDXGI (void)
   SK_DXGI_BeginHooking ();
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
-    Sleep_Original (100UL);
+    SleepEx (100UL, TRUE);
 }
 
 static std::queue <DWORD> old_threads;
@@ -3676,7 +3712,7 @@ dxgi_init_callback (finish_pfn finish)
     SK_BootDXGI ();
 
     while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
-      Sleep_Original (100UL);
+      SleepEx (100UL, TRUE);
   }
 
   finish ();
@@ -3694,9 +3730,54 @@ SK::DXGI::Startup (void)
 extern "C" bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t* backend);
 
 
-void
-SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
+#define DXGI_VIRTUAL_HOOK_EX(_Base,_Index,_Name,_Override,_Original,_Type) {  \
+  void** _vftable = *(void***)*(_Base);                                       \
+                                                                              \
+  if ((_Original) == nullptr) {                                               \
+    SK_CreateVFTableHookEx( L##_Name,                                         \
+                              _vftable,                                       \
+                                (_Index),                                     \
+                                  (_Override),                                \
+                                    (LPVOID *)&(_Original));                  \
+  }                                                                           \
+}
+
+#define DXGI_INTERCEPT_EX(_Base,_Index,_Name,_Override,_Original,_Type)\
+    DXGI_VIRTUAL_HOOK_EX (   _Base,   _Index, _Name, _Override,        \
+                        _Original, _Type );                            \
+
+PresentSwapChain_pfn PresentSwapChain_Original_Pre = nullptr;
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE PresentCallback_Pre (IDXGISwapChain *This,
+                                       UINT            SyncInterval,
+                                       UINT            Flags)
 {
+  SK_CEGUI_DrawD3D11 (This);
+
+  return PresentSwapChain_Original_Pre (This, SyncInterval, Flags);
+}
+
+void
+SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook)
+{
+  if (rehook)
+  {
+    static volatile ULONG __installed_second_hook = FALSE;
+
+    if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE)) {
+      DXGI_INTERCEPT_EX ( &pSwapChain, 8,
+                            "IDXGISwapChain::Present",
+                            PresentCallback_Pre,
+                            PresentSwapChain_Original_Pre,
+                            PresentSwapChain_pfn );
+      MH_ApplyQueuedEx (1);
+    }
+
+    return;
+  }
+
   static LPVOID vftable_8  = nullptr;
   static LPVOID vftable_22 = nullptr;
 
@@ -3706,19 +3787,20 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
   {
     //dll_log.Log (L"Rehooking IDXGISwapChain::Present (...)");
 
-#if 0
-    if (MH_OK == SK_RemoveHook (vftable [8]))
-      Present_Original = nullptr;
-    else {
-      dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
-                    L"IDXGISwapChain::Present (...)!" );
-      if (MH_OK == SK_RemoveHook (vftable_8))
+    if (rehook)
+    {
+      if (MH_OK == SK_RemoveHook (vftable [8]))
         Present_Original = nullptr;
+      else {
+        dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
+                      L"IDXGISwapChain::Present (...)!" );
+        if (MH_OK == SK_RemoveHook (vftable_8))
+          Present_Original = nullptr;
+      }
     }
-#endif
   }
 
-  else
+  if (Present_Original == nullptr)
   {
     DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
                         "IDXGISwapChain::Present",
@@ -3740,19 +3822,20 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
     {
       //dll_log.Log (L"Rehooking IDXGISwapChain::Present1 (...)");
 
-#if 0
-      if (MH_OK == SK_RemoveHook (vftable [22]))
-        Present1_Original = nullptr;
-      else {
-        dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
-                      L"IDXGISwapChain1::Present1 (...)!" );
-        if (MH_OK == SK_RemoveHook (vftable_22))
+      if (rehook)
+      {
+        if (MH_OK == SK_RemoveHook (vftable [22]))
           Present1_Original = nullptr;
+        else {
+          dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
+                        L"IDXGISwapChain1::Present1 (...)!" );
+          if (MH_OK == SK_RemoveHook (vftable_22))
+            Present1_Original = nullptr;
+        }
       }
-#endif
     }
 
-    else
+    if (Present1_Original == nullptr)
     {
       DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
                           "IDXGISwapChain1::Present1",
@@ -3766,6 +3849,8 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
 
   //if (config.system.handle_crashes)
     //SK::Diagnostics::CrashHandler::Reinstall ();
+
+  if (rehook) MH_ApplyQueued ();
 }
 
 std::wstring
@@ -4086,15 +4171,21 @@ HookDXGI (LPVOID user)
          SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter))  &&
          SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
     {
-      if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
-        SK_DXGI_HookSwapChain (pSwapChain);
-
-      SK_DXGI_HookFactory (pFactory);
-
       d3d11_hook_ctx.ppDevice           = &pDevice;
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
       HookD3D11 (&d3d11_hook_ctx);
+
+      if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
+      {
+        SK_DXGI_HookSwapChain (pSwapChain);
+        SK_DXGI_HookFactory   (pFactory);
+      }
+
+      else
+      {
+        dll_log.Log (L"[   DXGI   ]  >> Failed to Hook SwapChain <<");
+      }
 
       // These don't do anything (anymore)
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
@@ -4103,6 +4194,8 @@ HookDXGI (LPVOID user)
       if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 #endif
     }
+
+    InterlockedExchange (&__dxgi_ready, TRUE);
   }
 
   else
@@ -4114,8 +4207,6 @@ HookDXGI (LPVOID user)
   }
 
   DestroyWindow (hwnd);
-
-  InterlockedExchange (&__dxgi_ready, TRUE);
 
   return 0;
 }

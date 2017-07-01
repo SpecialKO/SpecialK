@@ -195,10 +195,6 @@ BlacklistLibrary (const _T* lpFileName)
       {
         HMODULE hModNV;
 
-        //dll_log.Log ( L"[Black List] Disabling NVIDIA BloatWare ('%s'), so long we hardly knew ye', "
-                                   //L"but you did bad stuff in a lot of games.",
-                        //lpFileName );
-
         if (GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, it, &hModNV))
           FreeLibrary_Original (hModNV);
 

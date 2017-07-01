@@ -61,6 +61,11 @@ SK_InitRenderBackends (void)
                                            new SK_IVarStub <bool> (&config.apis.dxgi.d3d12.hook ) );
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.Vulkan",
                                            new SK_IVarStub <bool> (&config.apis.Vulkan.hook ) );
+#else
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.D3D8",
+                                           new SK_IVarStub <bool> (&config.apis.d3d8.hook ) );
+  SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.DDraw",
+                                           new SK_IVarStub <bool> (&config.apis.ddraw.hook ) );
 #endif
 
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.OpenGL",

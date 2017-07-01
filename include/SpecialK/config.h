@@ -259,6 +259,7 @@ struct sk_config_t
       bool    debug_layer       = false;
       bool    allow_tearing     = false;
       bool    safe_fullscreen   = false;
+      bool    enhanced_depth    = false;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
