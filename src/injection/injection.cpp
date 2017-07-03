@@ -25,11 +25,19 @@
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
 
+#include <set>
 #include <Shlwapi.h>
 
+#define MAX_INJECTED_PROCS 32
+
 #pragma data_seg (".SK_Hooks")
-HHOOK   g_hHookCBT             = nullptr;
-HANDLE  g_hShutdown            = 0;
+HHOOK                 g_hHookCBT    = nullptr;
+HANDLE                g_hShutdown   = 0;
+
+// TODO: Replace with interlocked linked-list instead of obliterating cache
+//         every time two processes try to walk this thing simultaneously.
+//
+static volatile DWORD g_sHookedPIDs [MAX_INJECTED_PROCS] = { };
 #pragma data_seg ()
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
@@ -37,6 +45,67 @@ extern volatile ULONG __SK_DLL_Attached;
 
 HMODULE hModHookInstance       = NULL;
 extern volatile ULONG __SK_HookContextOwner;
+
+void
+SK_Inject_ValidateProcesses (void)
+{
+  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  {
+    HANDLE hProc =
+      OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
+                      InterlockedExchangeAdd (&g_sHookedPIDs [i], 0) );
+
+    if (hProc == NULL)
+    {
+      InterlockedExchange (&g_sHookedPIDs [i], 0);
+    }
+
+    else
+    {
+      DWORD dwExitCode = STILL_ACTIVE;
+
+      GetExitCodeProcess (hProc, &dwExitCode);
+
+      if (dwExitCode != STILL_ACTIVE)
+        InterlockedExchange (&g_sHookedPIDs [i], 0);
+
+      CloseHandle (hProc);
+    }
+  }
+}
+
+void
+SK_Inject_ReleaseProcess (void)
+{
+  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  {
+    InterlockedCompareExchange (&g_sHookedPIDs [i], 0, GetCurrentProcessId ());
+  }
+}
+
+void
+SK_Inject_AcquireProcess (void)
+{
+  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  {
+    if (! InterlockedCompareExchange (&g_sHookedPIDs [i], GetCurrentProcessId (), 0))
+    {
+      break;
+    }
+  }
+}
+
+bool
+SK_Inject_InvadingProcess (DWORD dwThreadId)
+{
+  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  {
+    if (InterlockedExchangeAdd (&g_sHookedPIDs [i], 0) == dwThreadId)
+      return true;
+  }
+
+  return false;
+}
 
 LRESULT
 CALLBACK
@@ -47,13 +116,14 @@ CBTProc ( _In_ int    nCode,
   if (nCode < 0)
     return CallNextHookEx (0, nCode, wParam, lParam);
 
+
   if (hModHookInstance == NULL && g_hHookCBT)
   {
     static volatile LONG lHookIters = 0L;
 
     // Don't create that thread more than once, but don't bother with a complete
     //   critical section.
-    if (InterlockedAdd (&lHookIters, 1L) > 1L)
+    if (InterlockedAdd (&lHookIters, 1L) > 0L)
       return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -83,6 +153,7 @@ CBTProc ( _In_ int    nCode,
        nullptr
     );
   }
+
 
   return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 }
@@ -831,4 +902,38 @@ SK_Inject_Start (void)
   SetCurrentDirectoryW (wszCurrentDir);
 
   //SK_ResumeThreads (suspended);
+}
+
+
+size_t
+__stdcall
+SKX_GetInjectedPIDs ( DWORD* pdwList,
+                      size_t capacity )
+{
+  DWORD* pdwListIter = pdwList;
+  size_t i           = 0;
+
+  SK_Inject_ValidateProcesses ();
+
+  for (int idx = 0; idx < MAX_INJECTED_PROCS; idx++)
+  {
+    if (InterlockedExchangeAdd (&g_sHookedPIDs [idx], 0) != 0)
+    {
+      if (i < (SSIZE_T)capacity - 1)
+      {
+        if (pdwListIter != nullptr)
+        {
+          *pdwListIter = InterlockedExchangeAdd (&g_sHookedPIDs [idx], 0);
+          pdwListIter++;
+        }
+      }
+
+      ++i;
+    }
+  }
+
+  if (pdwListIter != nullptr)
+    *pdwListIter = 0;
+
+  return i;
 }

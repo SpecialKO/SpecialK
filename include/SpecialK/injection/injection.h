@@ -33,6 +33,8 @@ extern "C" void __stdcall SKX_InstallCBTHook (void);
 extern "C" void __stdcall SKX_RemoveCBTHook  (void);
 extern "C" bool __stdcall SKX_IsHookingCBT   (void);
 
+extern "C" size_t __stdcall SKX_GetInjectedPIDs (DWORD* pdwList, size_t capacity);
+
 bool
 SK_Inject_SwitchToGlobalInjector (void);
 
@@ -44,6 +46,14 @@ SK_Inject_SwitchToRenderWrapper (void);
 
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role);
+
+// Internal use only
+//
+void
+SK_Inject_ReleaseProcess (void);
+
+void
+SK_Inject_AcquireProcess (void);
 
 
 #endif /* __SK__INJECTION_H__ */

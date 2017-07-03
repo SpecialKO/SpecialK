@@ -671,7 +671,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   input.gamepad.hook_xinput =
     static_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
-        L"Install hooks for HID")
+        L"Install hooks for XInput")
       );
   input.gamepad.hook_xinput->register_to_ini (
     dll_ini,

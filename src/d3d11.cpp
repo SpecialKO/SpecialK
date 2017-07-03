@@ -2611,22 +2611,19 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   //  }
   //}
 
-  // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking))
-  {
-    return D3D11_Map_Original ( This, pResource,
-                                  Subresource, MapType,
-                                    MapFlags, pMappedResource );
-  }
-
-  SK_D3D11_MemoryThreads.mark ();
-
-
   HRESULT hr = D3D11_Map_Original ( This, pResource, Subresource,
                                       MapType, MapFlags, pMappedResource );
 
-  if (SUCCEEDED (hr))
+  // ImGui gets to pass-through without invoking the hook
+  if (SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking))
   {
+    return hr;
+  }
+
+  if (SUCCEEDED (hr) && pMappedResource)
+  {
+    SK_D3D11_MemoryThreads.mark ();
+
 #ifdef DYNAMIC_TEX_CACHING
     if (pMappedResource && Subresource == 0)
     {

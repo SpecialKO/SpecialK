@@ -183,7 +183,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
     SK_ImGui_DrawEULA_PlugIn (reserved);
 
-    if (ImGui::CollapsingHeader ("7zip"))
+    if (ImGui::CollapsingHeader ("7-Zip"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_7ZIP).c_str ());
     }

@@ -784,6 +784,12 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
+      if ( InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0) ||
+           InterlockedExchangeAddAcquire (&__SK_DLL_Ending,   0) )
+      {
+        return FALSE;
+      }
+
       // Sanity Check:
       // -------------
       //
@@ -866,9 +872,16 @@ DllMain ( HMODULE hModule,
       if (! bRet)
       {
         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+      }
 
-        if (SK_GetDLLRole () == DLL_ROLE::INVALID)
-          return FALSE;
+      if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+      {
+        return FALSE;
+      }
+
+      if (SK_IsInjected ())
+      {
+        SK_Inject_AcquireProcess ();
       }
 
       return bRet;
@@ -877,35 +890,38 @@ DllMain ( HMODULE hModule,
 
     case DLL_PROCESS_DETACH:
     {
-      // If the DLL being unloaded is the source of a CBT hook, then
-      //   shut that down before detaching the DLL.
-      if (InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
-      {
-        SKX_RemoveCBTHook ();
+      SK_Inject_ReleaseProcess ();
 
-        // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
-        if (! InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
+      if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
+      {
+        // If the DLL being unloaded is the source of a CBT hook, then
+        //   shut that down before detaching the DLL.
+        if (InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
         {
+          SKX_RemoveCBTHook ();
+
+          // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
+          if (! InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
+          {
 #ifdef _WIN64
-          DeleteFileW (L"SpecialK64.pid");
+            DeleteFileW (L"SpecialK64.pid");
 #else
-          DeleteFileW (L"SpecialK32.pid");
+            DeleteFileW (L"SpecialK32.pid");
 #endif
+          }
         }
-      }
 
-
-      if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
-      {
-        if (! InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0))
+        if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
-          SK_Detach (SK_GetDLLRole ());
-        }
+          //if (SK_IsInjected ())
 
-        if (__SK_TLS_INDEX != MAXDWORD)
-          TlsFree (__SK_TLS_INDEX);
+          SK_Detach (SK_GetDLLRole ());
+
+          if (__SK_TLS_INDEX != MAXDWORD)
+            TlsFree (__SK_TLS_INDEX);
+        }
       }
 
       //else {

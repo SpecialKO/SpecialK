@@ -175,7 +175,7 @@ XInputGetStateEx1_3_Detour (
 
   if (pState      == nullptr)         return E_POINTER;
 
-  ZeroMemory (pState, sizeof (XINPUT_STATE_EX));
+  ZeroMemory (pState, sizeof (XINPUT_STATE));
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -352,12 +352,13 @@ XInputGetStateEx1_4_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
   if (pState      == nullptr)         return E_POINTER;
 
-  ZeroMemory (pState, sizeof (XINPUT_STATE_EX));
+  ZeroMemory (pState, sizeof (XINPUT_STATE));
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -675,6 +676,9 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 void
 SK_Input_HookXInput1_4 (void)
 {
+  if (! config.input.gamepad.hook_xinput)
+    return;
+
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, 1, 0))
@@ -704,6 +708,9 @@ SK_Input_HookXInput1_4 (void)
 void
 SK_Input_HookXInput1_3 (void)
 {
+  if (! config.input.gamepad.hook_xinput)
+    return;
+
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, 1, 0))
@@ -732,6 +739,9 @@ SK_Input_HookXInput1_3 (void)
 void
 SK_Input_HookXInput9_1_0 (void)
 {
+  if (! config.input.gamepad.hook_xinput)
+    return;
+
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, 1, 0))
@@ -761,6 +771,9 @@ SK_Input_HookXInput9_1_0 (void)
 void
 SK_XInput_RehookIfNeeded (void)
 {
+  if (! config.input.gamepad.hook_xinput)
+    return;
+
   // This shouldn't be needed now that we know SDL uses XInputGetStateEx (ordinal=100),
   //   but may improve compatibility with X360ce.
   if (! config.input.gamepad.rehook_xinput)
@@ -968,7 +981,7 @@ SK_XInput_RehookIfNeeded (void)
   {
     ret = 
       MH_EnableHook (pCtx->XInputGetStateEx_Target);
-
+  
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                    ( pCtx->XInputGetStateEx_Target != 0 &&
@@ -987,13 +1000,13 @@ SK_XInput_RehookIfNeeded (void)
           SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
-
+  
           if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
             xinput_ctx.XInput1_3 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
             xinput_ctx.XInput1_4 = *pCtx;
         }
-
+  
         else
         {
           SK_LOG0 ( ( L" Failed to re-hook XInput (Ex) using '%s'...",
@@ -1001,7 +1014,7 @@ SK_XInput_RehookIfNeeded (void)
               L"Input Mgr." );
         }
       }
-
+  
       else
       {
         SK_LOG0 ( ( L" Failed to remove XInput (Ex) hook from '%s'...",
@@ -1060,6 +1073,9 @@ bool
 SK_XInput_PollController ( INT           iJoyID,
                            XINPUT_STATE* pState )
 {
+  if (! config.input.gamepad.hook_xinput)
+    return false;
+
   SK_XInputContext::instance_s* pCtx =
     xinput_ctx.primary_hook;
 
@@ -1148,8 +1164,8 @@ SK_XInput_PollController ( INT           iJoyID,
 
 
 
-  XINPUT_STATE_EX xstate = { 0 };
-  xstate.dwPacketNumber  =   1;
+  XINPUT_STATE_EX xstate = { };
+  xstate.dwPacketNumber  =  1;
 
   static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
   static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
@@ -1197,6 +1213,9 @@ SK_XInput_PollController ( INT           iJoyID,
 void
 SK_Input_PreHookXInput (void)
 {
+  if (! config.input.gamepad.hook_xinput)
+    return;
+
   if (xinput_ctx.primary_hook == nullptr)
   {
     static sk_import_test_s tests [] = { { "XInput1_3.dll",   false },
@@ -1219,7 +1238,7 @@ SK_Input_PreHookXInput (void)
 
     if (GetModuleHandle (L"XInput1_4.dll"))
       SK_Input_HookXInput1_4 ();
-
+    
     if (GetModuleHandle (L"XInput9_1_0.dll"))
       SK_Input_HookXInput9_1_0 ();
 

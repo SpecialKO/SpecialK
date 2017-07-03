@@ -617,6 +617,7 @@ RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
 SKX_InstallCBTHook           = SKX_InstallCBTHook             PRIVATE
 SKX_RemoveCBTHook            = SKX_RemoveCBTHook              PRIVATE
 SKX_IsHookingCBT             = SKX_IsHookingCBT               PRIVATE
+SKX_GetInjectedPIDs          = SKX_GetInjectedPIDs            PRIVATE
 
 g_hHookCBT                   = g_hHookCBT       DATA
 g_vBlacklist                 = blacklist        DATA

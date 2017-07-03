@@ -1,14 +1,18 @@
 0.8.21:
- + [D3D11] Reduced D3D11 API overhead in games that stream memory-mapped textures when
-             texture caching is enabled but the render mod window is not open
- + [SKIM]  Using +Inject or -Inject commandline switches starts SKIM minimized to the
-             tray; left-click the icon in the try to restore it
- + [SKIM]  Branch migration takes effect immediately in all software except for the
-             global injector
- + [SKIM]  Only one instance of SKIM can run simultaneously, minimized instances will
-             be restored if a new instance is launched
- + [SKIM]  The commandline switch -Inject will now kill any running injection instances
-             and exit
+ + [SKIM]   Changed system tray icon (to another KDE icon =P) so that it is easier to
+              recognize
+ + [XInput] Fix for games that use XInputGetStateEx (...) without allocating the correct
+              memory size for the data structure (+1 DWORD)
+ + [D3D11]  Reduced D3D11 API overhead in games that stream memory-mapped textures when
+              texture caching is enabled but the render mod window is not open
+ + [SKIM]   Using +Inject or -Inject commandline switches starts SKIM minimized to the
+              tray; left-click the icon in the try to restore it
+ + [SKIM]   Branch migration takes effect immediately in all software except for the
+              global injector
+ + [SKIM]   Only one instance of SKIM can run simultaneously, minimized instances will
+              be restored if a new instance is launched
+ + [SKIM]   The commandline switch -Inject will now kill any running injection instances
+              and exit
 
 0.8.20:
  + [D3D11] Added texture updae frequency (0 = Manually Refresh, 1+ = Auto) for the

@@ -189,13 +189,15 @@ class SK_D3D9RenderBackend : public SK_IVariableListener
   {
     if (val != nullptr)
     {
-#if 0
-      if (var == osd_vidcap_) {
-        if (*(bool *)val == true) {
+      if (var == osd_vidcap_)
+      {
+        if (*(bool *)val == true)
+        {
           static volatile ULONG __installed_second_hook = FALSE;
 
-          if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE)) {
-                  D3D9_INTERCEPT_EX ( &g_pD3D9Dev, 17,
+          if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE))
+          {
+                  D3D9_INTERCEPT_EX ( &SK_GetCurrentRenderBackend ().device, 17,
                                         "IDirect3DDevice9::Present",
                                         D3D9PresentCallback_Pre,
                                         D3D9Present_Original_Pre,
@@ -212,16 +214,19 @@ class SK_D3D9RenderBackend : public SK_IVariableListener
                         D3D9Present_Original,
                         D3D9Present_Original_Pre );
 
-          if (D3D9Present_Original_Pre != nullptr) {
+          if (D3D9Present_Original_Pre != nullptr)
+          {
             config.render.d3d9.osd_in_vidcap = true;
           }
-        } else {
+        }
+
+        else
+        {
           config.render.d3d9.osd_in_vidcap = false;
         }
 
         return true;
       }
-#endif
     }
     
     return false;
