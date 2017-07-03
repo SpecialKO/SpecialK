@@ -24,27 +24,41 @@
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 
 #include <set>
 #include <Shlwapi.h>
+#include <time.h>
 
-#define MAX_INJECTED_PROCS 32
 
 #pragma data_seg (".SK_Hooks")
-HHOOK                 g_hHookCBT    = nullptr;
-HANDLE                g_hShutdown   = 0;
+volatile HHOOK          g_hHookCBT    = nullptr;
+volatile HANDLE         g_hShutdown   = 0;
 
 // TODO: Replace with interlocked linked-list instead of obliterating cache
 //         every time two processes try to walk this thing simultaneously.
 //
-static volatile DWORD g_sHookedPIDs [MAX_INJECTED_PROCS] = { };
+static volatile DWORD g_sHookedPIDs [MAX_INJECTED_PROCS]        = { };
+
+static          SK_InjectionRecord_s __SK_InjectionHistory
+                                    [MAX_INJECTED_PROC_HISTORY];
+
+       volatile LONG SK_InjectionRecord_s::count               = 0L;
+       volatile LONG SK_InjectionRecord_s::rollovers           = 0L;
+
 #pragma data_seg ()
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
-extern volatile ULONG __SK_DLL_Attached;
 
-HMODULE hModHookInstance       = NULL;
-extern volatile ULONG __SK_HookContextOwner;
+SK_InjectionRecord_s*
+SK_Inject_GetRecord (int idx)
+{
+  return &__SK_InjectionHistory [idx];
+}
+
+
+SK_InjectionRecord_s* local_record = nullptr;
+
 
 void
 SK_Inject_ValidateProcesses (void)
@@ -81,6 +95,20 @@ SK_Inject_ReleaseProcess (void)
   {
     InterlockedCompareExchange (&g_sHookedPIDs [i], 0, GetCurrentProcessId ());
   }
+
+  if (local_record != nullptr)
+  {
+    _time64 (&local_record->process.eject);
+
+    local_record->render.api    = SK_GetCurrentRenderBackend ().api;
+    local_record->render.frames = SK_GetFramesDrawn ();
+
+    //local_record.input.xinput  = SK_Input_
+    // ...
+    // ...
+    // ...
+    // ...
+  }
 }
 
 void
@@ -90,6 +118,32 @@ SK_Inject_AcquireProcess (void)
   {
     if (! InterlockedCompareExchange (&g_sHookedPIDs [i], GetCurrentProcessId (), 0))
     {
+      ULONG injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
+
+      // Rollover and start erasing the oldest history
+      if (injection_idx >= MAX_INJECTED_PROC_HISTORY)
+      {
+        if (InterlockedCompareExchange (&SK_InjectionRecord_s::count, 0, injection_idx))
+        {
+          injection_idx = 1;
+          InterlockedIncrement (&SK_InjectionRecord_s::rollovers);
+        }
+
+        else
+          injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
+      }
+
+      local_record =
+        &__SK_InjectionHistory [injection_idx - 1];
+
+                local_record->process.id = GetCurrentProcessId ();
+      _time64 (&local_record->process.inject);
+      wcsncpy ( local_record->process.name,
+                  SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
+                    MAX_PATH );
+
+      PathStripPath (local_record->process.name);
+
       break;
     }
   }
@@ -106,6 +160,14 @@ SK_Inject_InvadingProcess (DWORD dwThreadId)
 
   return false;
 }
+
+
+
+extern volatile ULONG   __SK_DLL_Attached;
+extern volatile ULONG   __SK_HookContextOwner;
+                HMODULE hModHookInstance = NULL;
+
+
 
 LRESULT
 CALLBACK
@@ -297,14 +359,14 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                  SleepEx (250UL, TRUE);
 
 
-               if ((int)user != -128)
+               if (PtrToInt (user) != -128)
                  ExitProcess (0x00);
                else
                  CloseHandle (GetCurrentThread ());
 
                return 0;
              },
-             (LPVOID)nCmdShow,
+             UIntToPtr (nCmdShow),
            0x00,
          nullptr );
 
@@ -910,8 +972,8 @@ __stdcall
 SKX_GetInjectedPIDs ( DWORD* pdwList,
                       size_t capacity )
 {
-  DWORD* pdwListIter = pdwList;
-  size_t i           = 0;
+  DWORD*  pdwListIter = pdwList;
+  SSIZE_T i           = 0;
 
   SK_Inject_ValidateProcesses ();
 

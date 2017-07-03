@@ -1,3 +1,12 @@
+0.8.22:
+ + [SKIM]  Added list of (64-bit) programs currently injected and a confirmation if you
+             attempt to stop injection while a program is using Special K.
+ + [SKIM]  Added tooltip to system tray icon
+ + [D3D11] Added support for changing fullscreen display scaling mode while your game is
+             running; should make using centered scaling modes a bit more intuitive.
+ + [Misc]  Added injection stats to Help menu, mouseover Global Injector version to see
+             basic information about games recently played.
+
 0.8.21:
  + [SKIM]   Changed system tray icon (to another KDE icon =P) so that it is easier to
               recognize

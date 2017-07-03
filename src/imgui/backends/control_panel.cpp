@@ -52,6 +52,7 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/import.h>
+#include <SpecialK/injection/injection.h>
 
 
 #include <windows.h>
@@ -601,6 +602,49 @@ DisplayModeMenu (bool windowed)
         break;
     }
   }
+
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  {
+    if (mode == DISPLAY_MODE_FULLSCREEN)
+    {
+      int mode      = std::min (std::max (config.render.dxgi.scaling_mode + 1, 0), 3);
+      int orig_mode = mode;
+
+      const char* modes = "Application Preference\0Unspecified\0Centered\0Stretched\0\0";
+
+      if (ImGui::Combo ("Scaling Mode###SubMenu_DisplayScaling_Combo", &mode, modes, 4) && mode != orig_mode)
+      {
+        switch (mode)
+        {
+          case 0:
+            config.render.dxgi.scaling_mode = -1;
+            break;
+
+          case 1:
+            config.render.dxgi.scaling_mode = 0;
+            break;
+          case 2:
+            config.render.dxgi.scaling_mode = 1;
+            break;
+          case 3:
+            config.render.dxgi.scaling_mode = 2;
+            break;
+        }
+
+        SK_GetCurrentRenderBackend ().requestFullscreenMode (force);
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Override Scaling Mode");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Set to Unspecified if you want to CORRECTLY run Fullscreen Native");
+        ImGui::BulletText   ("Centered Scaling Requires Fullscreen Override be FORCED On");
+        ImGui::EndTooltip   ();
+      }
+    }
+  }
 }
 
 __declspec (dllexport)
@@ -1014,12 +1058,36 @@ SK_ImGui_ControlPanel (void)
       ImGui::TreePush ("");
 
       if (SK_IsInjected ())
+      {
         ImGui::MenuItem ( "Special K Bootstrapper",
                           SK_FormatString (
                             "Global Injector  %s",
                                 SK_VERSION_STR_A
                             ).c_str (), ""
                         );
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("%lu-Bit Injection History", sizeof (uintptr_t) == 4 ? 32 : 64);
+          ImGui::Separator    ();
+
+          int count = InterlockedAdd (&SK_InjectionRecord_s::count, 0UL);
+          ImGui::BulletText   ("%lu injections since restart", count);
+          //
+          //for (int i = 0; i < count; i++)
+          //{
+          //  SK_InjectionRecord_s* record =
+          //    SK_Inject_GetRecord (i);
+          //
+          //  ImGui::Text ( " pid 0x%04x: [%ws] { %llu Frames }",
+          //                  record->process.id,
+          //                    record->process.name,
+          //                      record->render.frames );
+          //}
+          ImGui::EndTooltip   ();
+        }
+      }
       else
         ImGui::MenuItem ( "Special K Bootstrapper",
                             SK_FormatString (

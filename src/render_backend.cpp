@@ -348,6 +348,19 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
       ((IDXGISwapChain *)swapchain)->SetFullscreenState (TRUE, nullptr);
     }
   }
+
+  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  {
+    DXGI_SWAP_CHAIN_DESC swap_desc;
+
+    if (SUCCEEDED (((IDXGISwapChain *)swapchain)->GetDesc (&swap_desc)))
+    {
+      if (SUCCEEDED (((IDXGISwapChain *)swapchain)->ResizeTarget (&swap_desc.BufferDesc)))
+      {
+        SendMessage (swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED, MAKELPARAM (swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height));
+      }
+    }
+  }
 }
 
 void

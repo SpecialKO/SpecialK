@@ -2019,11 +2019,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
       if (config.render.dxgi.scaling_mode != -1)
       {
-        if (config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED)
+        if ( config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED &&
+             config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED )
         {
           for ( INT i = (INT)*pNumModes - 1 ; i >= 0 ; --i )
           {
             if ( pDesc [i].Scaling != DXGI_MODE_SCALING_UNSPECIFIED &&
+                 pDesc [i].Scaling != DXGI_MODE_SCALING_CENTERED    &&
                  pDesc [i].Scaling != config.render.dxgi.scaling_mode )
             {
               pDesc [i] = pDesc [i + 1];
@@ -2083,7 +2085,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     }
 
     if ( config.render.dxgi.scaling_mode != -1 &&
-         mode_to_match.Scaling           != config.render.dxgi.scaling_mode )
+         mode_to_match.Scaling           != config.render.dxgi.scaling_mode &&
+                         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED )
     {
       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
                     L"(Requested: %s, Using: %s)",

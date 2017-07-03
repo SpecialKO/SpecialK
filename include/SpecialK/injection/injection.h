@@ -47,6 +47,7 @@ SK_Inject_SwitchToRenderWrapper (void);
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role);
 
+
 // Internal use only
 //
 void
@@ -54,6 +55,40 @@ SK_Inject_ReleaseProcess (void);
 
 void
 SK_Inject_AcquireProcess (void);
+
+
+#define MAX_INJECTED_PROCS        16
+#define MAX_INJECTED_PROC_HISTORY 64
+
+struct SK_InjectionRecord_s
+{
+  struct {
+    wchar_t    name [MAX_PATH] = {  };
+    DWORD      id              =    0;
+    __time64_t inject          = 0ULL;
+    __time64_t eject           = 0ULL;
+  } process;
+
+  struct {
+    SK_RenderAPI api    = SK_RenderAPI::Reserved;
+    ULONG64      frames = 0ULL;
+  } render;
+
+  // Use a bitmask instead of this stupidness
+  struct {
+    bool xinput       = false;
+    bool raw_input    = false;
+    bool direct_input = false;
+    bool hid          = false;
+    bool steam        = false;
+  } input;
+
+  static volatile LONG count;
+  static volatile LONG rollovers;
+};
+
+SK_InjectionRecord_s*
+SK_Inject_GetRecord (int idx);
 
 
 #endif /* __SK__INJECTION_H__ */

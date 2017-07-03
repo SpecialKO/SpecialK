@@ -915,14 +915,12 @@ DllMain ( HMODULE hModule,
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
-          //if (SK_IsInjected ())
-
           SK_Detach (SK_GetDLLRole ());
-
-          if (__SK_TLS_INDEX != MAXDWORD)
-            TlsFree (__SK_TLS_INDEX);
         }
       }
+
+      if (__SK_TLS_INDEX != MAXDWORD)
+        TlsFree (__SK_TLS_INDEX);
 
       //else {
         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
