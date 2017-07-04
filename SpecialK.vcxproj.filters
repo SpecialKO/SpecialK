@@ -575,6 +575,9 @@
     <ClCompile Include="src\ddraw.cpp">
       <Filter>Source Files\Backends\Render\DDraw</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\ffencer_ad.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">

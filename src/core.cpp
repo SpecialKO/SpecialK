@@ -1792,6 +1792,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
     config.steam.appid = 405900;
 
+  if (! lstrcmpW (SK_GetHostApp (), L"FairyFencerAD.exe"))
+  {
+    extern void SK_FFAD_InitPlugin (void);
+    SK_FFAD_InitPlugin ();
+  }
+
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
