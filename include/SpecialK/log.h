@@ -22,8 +22,7 @@
 #define __SK__LOG_H__
 
 #include <intrin.h>
-
-#include <combaseapi.h>
+#include <Unknwn.h>
 
 #if 0
 #include <cstdio>
@@ -128,8 +127,8 @@ SK_CreateLog (const wchar_t* const wszName);
 #include <cstdio>
 #include <string>
 
-#include <minwindef.h>
-#include <minwinbase.h>
+//#include <minwindef.h>
+//#include <minwinbase.h>
 
 // {A4BF1773-CAAB-48F3-AD88-C2AB5C23BD6F}
 static const GUID IID_SK_Logger = 

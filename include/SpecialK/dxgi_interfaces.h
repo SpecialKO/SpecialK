@@ -186,7 +186,7 @@ extern "C"{
   /* interface __MIDL_itf_dxgi_0000_0000 */
   /* [local] */ 
 
-#include <winapifamily.h>
+//#include <winapifamily.h>
 #define DXGI_CPU_ACCESS_NONE    ( 0 )
 #define DXGI_CPU_ACCESS_DYNAMIC    ( 1 )
 #define DXGI_CPU_ACCESS_READ_WRITE    ( 2 )
@@ -3094,7 +3094,7 @@ extern "C"{
   /* interface __MIDL_itf_dxgi1_2_0000_0000 */
   /* [local] */ 
 
-#include <winapifamily.h>
+//#include <winapifamily.h>
 #pragma region Desktop Family
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 
@@ -5560,7 +5560,7 @@ extern "C"{
   /* interface __MIDL_itf_dxgi1_3_0000_0000 */
   /* [local] */ 
 
-#include <winapifamily.h>
+//#include <winapifamily.h>
 #pragma region App Family
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
 #define DXGI_CREATE_FACTORY_DEBUG 0x1

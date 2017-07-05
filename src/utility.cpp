@@ -2538,19 +2538,22 @@ SK_RestartGame (const wchar_t* wszDLL)
       ExitProcess (0x00);
   }
 
-  _swprintf ( wszRunDLLCmd,
-               L"RunDll32.exe %s,RunDLL_RestartGame %s",
-                 wszShortPath,
-                   SK_GetFullyQualifiedApp () );
+  if (! SK_IsSuperSpecialK ())
+  {
+    _swprintf ( wszRunDLLCmd,
+                 L"RunDll32.exe %s,RunDLL_RestartGame %s",
+                   wszShortPath,
+                     SK_GetFullyQualifiedApp () );
 
-  STARTUPINFOW        sinfo = { 0 };
-  PROCESS_INFORMATION pinfo = { 0 };
+    STARTUPINFOW        sinfo = { 0 };
+    PROCESS_INFORMATION pinfo = { 0 };
 
-  sinfo.cb = sizeof STARTUPINFOW;
+    sinfo.cb = sizeof STARTUPINFOW;
 
-  CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
-                  FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
-                  &sinfo,  &pinfo );
+    CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
+                    FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
+                    &sinfo,  &pinfo );
+  }
 
   TerminateProcess (GetCurrentProcess (), 0x00);
 }

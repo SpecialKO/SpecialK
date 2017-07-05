@@ -223,7 +223,6 @@ SK_ImGui_CenterCursorOnWindow (void);
 // HIDClass (Usermode)
 //
 //////////////////////////////////////////////////////////////
-#pragma comment (lib, "hid.lib")
 
 #include <Hidsdi.h>
 #include <Windows.h>
@@ -231,6 +230,10 @@ SK_ImGui_CenterCursorOnWindow (void);
 #include <hidusage.h>
 #include <Hidpi.h>
 
+typedef NTSTATUS (__stdcall *HidP_GetCaps_pfn)(
+  _In_  PHIDP_PREPARSED_DATA PreparsedData,
+  _Out_ PHIDP_CAPS           Capabilities
+);
 
 typedef BOOLEAN (__stdcall *HidD_GetPreparsedData_pfn)(
   _In_  HANDLE                HidDeviceObject,
@@ -256,6 +259,7 @@ typedef BOOLEAN (__stdcall *HidD_GetFeature_pfn)(
   _In_  ULONG  ReportBufferLength
 );
 
+extern HidP_GetCaps_pfn           HidP_GetCaps_Original          ;
 extern HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original ;
 extern HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original;
 extern HidD_GetFeature_pfn        HidD_GetFeature_Original       ;

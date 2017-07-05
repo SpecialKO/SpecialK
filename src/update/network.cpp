@@ -1244,7 +1244,12 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
             install_ini.write       (SK_Version_GetInstallIniPath ().c_str ());
 
 
-            SK_RestartGame ();
+            bool
+            __cdecl
+            SK_IsSuperSpecialK (void);
+
+            if (! SK_IsSuperSpecialK ())
+              SK_RestartGame ();
 
             return S_OK;
           }

@@ -2266,6 +2266,16 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       Height = config.render.dxgi.res.min.y;
 
 
+
+    if (! config.window.res.override.isZero ())
+    {
+      Width  = config.window.res.override.x;
+      Height = config.window.res.override.y;
+    }
+
+
+
+
     HRESULT ret;
     DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
 
@@ -2394,6 +2404,16 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
       const DXGI_MODE_DESC* pNewNewTargetParameters =
         &new_new_params;
+
+
+
+      if (! config.window.res.override.isZero ())
+      {
+        new_new_params.Width  = config.window.res.override.x;
+        new_new_params.Height = config.window.res.override.y;
+      }
+
+
 
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
 
@@ -2538,6 +2558,14 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
         );
       }
     }
+
+
+    if (! config.window.res.override.isZero ())
+    {
+      pDesc->BufferDesc.Width  = config.window.res.override.x;
+      pDesc->BufferDesc.Height = config.window.res.override.y;
+    }
+
 
     if (config.render.dxgi.safe_fullscreen)                       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
     if (request_mode_change == mode_change_request_e::Fullscreen)
@@ -4543,7 +4571,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       WaitForMultipleObjects ( 2,
                                  phEvents,
                                    FALSE,
-                                     BUDGET_POLL_INTERVAL * 2 );
+                                     BUDGET_POLL_INTERVAL * 3 );
 
     if (! InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
     {

@@ -51,8 +51,6 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 //   DarkSouls3 seems to underflow references on occasion!!!
 #define DS3_REF_TWEAK
 
-//#define DYNAMIC_TEX_CACHING 1
-
 CRITICAL_SECTION cs_shader;
 CRITICAL_SECTION cs_render_view;
 CRITICAL_SECTION cs_mmio;
@@ -2566,18 +2564,19 @@ D3D11_UpdateSubresource_Override (
   //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource (%ph, %lu, %ph, %ph, %lu, %lu)",
   //          pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 
-#ifdef DYNAMIC_TEX_CACHING
-  CComPtr <ID3D11Texture2D> pTex = nullptr;
-
-  if (SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
+  if (config.textures.cache.allow_staging)
   {
-    if (SK_D3D11_TextureIsCached (pTex))
+    CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+    if (SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
     {
-      dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
-      SK_D3D11_RemoveTexFromCache (pTex);
+      if (SK_D3D11_TextureIsCached (pTex))
+      {
+        dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
+        SK_D3D11_RemoveTexFromCache (pTex);
+      }
     }
   }
-#endif
 
   return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
                                               pDstBox, pSrcData, SrcRowPitch,
@@ -2615,7 +2614,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                                       MapType, MapFlags, pMappedResource );
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (SK_TLS_Top ()->imgui.drawing || (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
   {
     return hr;
   }
@@ -2624,28 +2623,29 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   {
     SK_D3D11_MemoryThreads.mark ();
 
-#ifdef DYNAMIC_TEX_CACHING
-    if (pMappedResource && Subresource == 0)
+    if (config.textures.cache.allow_staging)
     {
-      CComPtr <ID3D11Texture2D> pTex = nullptr;
-      
-      if (            pResource != nullptr &&
-           SUCCEEDED (pResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
+      if (pMappedResource && Subresource == 0)
       {
-        if (SK_D3D11_TextureIsCached (pTex))
+        CComPtr <ID3D11Texture2D> pTex = nullptr;
+        
+        if (            pResource != nullptr &&
+             SUCCEEDED (pResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
         {
-          dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
-          SK_D3D11_RemoveTexFromCache (pTex);
-        }
+          if (SK_D3D11_TextureIsCached (pTex))
+          {
+            dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
+            SK_D3D11_RemoveTexFromCache (pTex);
+          }
 
-        else
-        {
-          mapped_textures.emplace (std::make_pair (pResource, *pMappedResource));
-          //dll_log.Log (L"[DX11TexMgr] Mapped 2D texture...");
+          else
+          {
+            mapped_textures.emplace (std::make_pair (pResource, *pMappedResource));
+            //dll_log.Log (L"[DX11TexMgr] Mapped 2D texture...");
+          }
         }
       }
     }
-#endif
 
     bool read = ( MapType == D3D11_MAP_READ || 
                   MapType == D3D11_MAP_READ_WRITE );
@@ -2719,7 +2719,7 @@ D3D11_Unmap_Override (
   _In_ UINT                 Subresource )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (SK_TLS_Top ()->imgui.drawing || (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
   {
     D3D11_Unmap_Original (This, pResource, Subresource);
     return;
@@ -2732,57 +2732,58 @@ D3D11_Unmap_Override (
     return;
 
 
-#ifdef DYNAMIC_TEX_CACHING
-  D3D11_RESOURCE_DIMENSION rdim;
-  pResource->GetType (&rdim);
-
-  if (rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  if (config.textures.cache.allow_staging)
   {
-    SK_AutoCriticalSection auto_cs (&cs_mmio);
+    D3D11_RESOURCE_DIMENSION rdim;
+    pResource->GetType (&rdim);
 
-    if (mapped_textures.count (pResource))
+    if (rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      CComPtr <ID3D11Texture2D> pTex = nullptr;
-      
-      if (            pResource != nullptr &&
-           SUCCEEDED (pResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
+      SK_AutoCriticalSection auto_cs (&cs_mmio);
+
+      if (mapped_textures.count (pResource))
       {
-        if (SK_D3D11_TextureIsCached (pTex))
+        CComPtr <ID3D11Texture2D> pTex = nullptr;
+        
+        if (            pResource != nullptr &&
+             SUCCEEDED (pResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
         {
-          dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
-          SK_D3D11_RemoveTexFromCache (pTex);
+          if (SK_D3D11_TextureIsCached (pTex))
+          {
+            dll_log.Log (L"[DX11TexMgr] Cached texture was updated... removing from cache!");
+            SK_D3D11_RemoveTexFromCache (pTex);
+          }
+        
+          else
+          {
+            uint32_t      checksum  = 0;
+            uint32_t      cache_tag = 0;
+            size_t        size      = 0;
+
+            uint32_t top_crc32 = 0x00;
+
+            D3D11_TEXTURE2D_DESC desc;
+            pTex->GetDesc (&desc);
+
+            __declspec (noinline)
+            uint32_t
+            __cdecl
+            crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
+                         _In_      const D3D11_SUBRESOURCE_DATA *pInitialData,
+                         _Out_opt_       size_t                 *pSize,
+                         _Out_opt_       uint32_t               *pLOD0_CRC32 );
+
+            checksum = crc32_tex (&desc, (D3D11_SUBRESOURCE_DATA *)&mapped_textures [pResource], &size, &top_crc32);
+            //dll_log.Log (L"[DX11TexMgr] Mapped 2D texture... (%x -- %lu bytes)", checksum, size);
+
+            dynamic_textures.emplace (std::make_pair (pResource, checksum));
+          }
         }
-      
-        else
-        {
-          uint32_t      checksum  = 0;
-          uint32_t      cache_tag = 0;
-          size_t        size      = 0;
 
-          uint32_t top_crc32 = 0x00;
-
-          D3D11_TEXTURE2D_DESC desc;
-          pTex->GetDesc (&desc);
-
-          __declspec (noinline)
-          uint32_t
-          __cdecl
-          crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-                       _In_      const D3D11_SUBRESOURCE_DATA *pInitialData,
-                       _Out_opt_       size_t                 *pSize,
-                       _Out_opt_       uint32_t               *pLOD0_CRC32 );
-
-          checksum = crc32_tex (&desc, (D3D11_SUBRESOURCE_DATA *)&mapped_textures [pResource], &size, &top_crc32);
-          //dll_log.Log (L"[DX11TexMgr] Mapped 2D texture... (%x -- %lu bytes)", checksum, size);
-
-          dynamic_textures.emplace (std::make_pair (pResource, checksum));
-        }
+        mapped_textures.erase (pResource);
       }
-
-      mapped_textures.erase (pResource);
     }
   }
-#endif
 
   D3D11_Unmap_Original (This, pResource, Subresource);
 }
@@ -2796,7 +2797,7 @@ D3D11_CopyResource_Override (
   _In_ ID3D11Resource      *pSrcResource )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (SK_TLS_Top ()->imgui.drawing || (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
   {
     D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
     return;
@@ -2808,16 +2809,17 @@ D3D11_CopyResource_Override (
 
   ID3D11Texture2D* pDstTex = nullptr;
 
-#ifdef DYNAMIC_TEX_CACHING
-  if (            pDstResource != nullptr && 
-       SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pDstTex)) )
+  if (config.textures.cache.allow_staging)
   {
-    if (SK_D3D11_TextureIsCached (pDstTex)) {
-      dll_log.Log (L"[DX11TexMgr] Cached texture was modified... removing from cache!");
-      SK_D3D11_RemoveTexFromCache (pDstTex);
+    if (            pDstResource != nullptr && 
+         SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pDstTex)) )
+    {
+      if (SK_D3D11_TextureIsCached (pDstTex)) {
+        dll_log.Log (L"[DX11TexMgr] Cached texture was modified... removing from cache!");
+        SK_D3D11_RemoveTexFromCache (pDstTex);
+      }
     }
   }
-#endif
 
   D3D11_RESOURCE_DIMENSION res_dim;
 
@@ -2865,15 +2867,19 @@ D3D11_CopyResource_Override (
 
   D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
 
-#ifdef DYNAMIC_TEX_CACHING
-  if (pDstTex != nullptr && dynamic_textures.count (pSrcResource))
+  if (config.textures.cache.allow_staging)
   {
-    //dynamic_textures2.emplace (std::make_pair (pDstTex, dynamic_textures [pSrcResource]));
-    dynamic_textures.erase    (pSrcResource);
+    if (pDstTex != nullptr && dynamic_textures.count (pSrcResource))
+    {
+      dynamic_textures2.emplace (std::make_pair (pDstTex, dynamic_textures [pSrcResource]));
+      dynamic_textures.erase    (pSrcResource);
+    }
+    else if (pDstTex)
+      pDstTex->Release ();
+
+    return;
   }
 
-  else 
-#endif
   if (pDstTex)
     pDstTex->Release ();
 }
@@ -2893,7 +2899,7 @@ D3D11_CopySubresourceRegion_Override (
   _In_opt_ const D3D11_BOX           *pSrcBox )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Top ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (SK_TLS_Top ()->imgui.drawing || (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
   {
     D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
     return;
@@ -2903,16 +2909,17 @@ D3D11_CopySubresourceRegion_Override (
 
   ID3D11Texture2D* pDstTex = nullptr;
 
-#ifdef DYNAMIC_TEX_CACHING
-  if (            pDstResource != nullptr && 
-       SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pDstTex)) )
+  if (config.textures.cache.allow_staging)
   {
-    if (SK_D3D11_TextureIsCached (pDstTex)) {
-      dll_log.Log (L"[DX11TexMgr] Cached texture was modified... removing from cache!");
-      SK_D3D11_RemoveTexFromCache (pDstTex);
+    if (            pDstResource != nullptr && 
+         SUCCEEDED (pDstResource->QueryInterface <ID3D11Texture2D> (&pDstTex)) )
+    {
+      if (SK_D3D11_TextureIsCached (pDstTex)) {
+        dll_log.Log (L"[DX11TexMgr] Cached texture was modified... removing from cache!");
+        SK_D3D11_RemoveTexFromCache (pDstTex);
+      }
     }
   }
-#endif
 
   D3D11_RESOURCE_DIMENSION res_dim;
 
@@ -2962,17 +2969,22 @@ D3D11_CopySubresourceRegion_Override (
 
   D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
 
-#ifdef DYNAMIC_TEX_CACHING
-  if (pDstTex != nullptr && dynamic_textures.count (pSrcResource))
+  if (config.textures.cache.allow_staging)
   {
-    //dynamic_textures2.emplace (std::make_pair (pDstTex, dynamic_textures [pSrcResource]));
-    dynamic_textures.erase    (pSrcResource);
+    if (pDstTex != nullptr && dynamic_textures.count (pSrcResource))
+    {
+      dynamic_textures2.emplace (std::make_pair (pDstTex, dynamic_textures [pSrcResource]));
+      dynamic_textures.erase    (pSrcResource);
+    }
+
+    else if (pDstTex)
+      pDstTex->Release ();
+
+    return;
   }
 
-  //else
-#endif
  if (pDstTex)
-    pDstTex->Release ();
+   pDstTex->Release ();
 }
 
 
@@ -3345,26 +3357,10 @@ D3D11_RSSetViewports_Override (
     {
       vps [i] = pViewports [i];
 
-      if ((vps [i].Width == 3840 || vps [i].Height == 2160))
+      if (! (config.render.dxgi.res.max.isZero () || config.render.dxgi.res.min.isZero ()))
       {
-        if (! config.render.dxgi.res.max.isZero ())
-        {
-          if (vps [i].Width == 3840)
-          {
-            float orig_ratio = 3840.0f / vps [i].Height;
-
-            vps [i].Width  = config.render.dxgi.res.max.x;
-            vps [i].Height = vps [i].Width / orig_ratio;
-          }
-
-          else if (vps [i].Height == 2160)
-          {
-            float orig_ratio = vps [i].Width / 2160.0f;
-
-            vps [i].Width  = orig_ratio * vps [i].Height;
-            vps [i].Height = config.render.dxgi.res.max.y;
-          }
-        }
+        vps [i].Height /= ((float)config.render.dxgi.res.min.y/(float)config.render.dxgi.res.max.y);
+        vps [i].Width  /= ((float)config.render.dxgi.res.min.x/(float)config.render.dxgi.res.max.x);
       }
     }
 
@@ -5272,6 +5268,13 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
+  // ^^^^ Const qualifier discarded from prototype because making a copy of this variable
+  //        and modifying causes any other hooked function to see the original data.
+
+
+  WaitForInitDXGI ();
+
+
   SK_D3D11_MemoryThreads.mark ();
 
 
@@ -5289,23 +5292,23 @@ D3D11Dev_CreateTexture2D_Override (
       }
     }
 
-    if (! config.render.dxgi.res.max.isZero ())
-    {
-      if (pDesc->Width == 3840)
-        pDesc->Width = config.render.dxgi.res.max.x;
-      if (pDesc->Height == 2160)
-        pDesc->Height = config.render.dxgi.res.max.y;
-    }
+    //if (! (config.render.dxgi.res.max.isZero () || config.render.dxgi.res.min.isZero ()))
+    //{
+    //  if ( (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL)    ||
+    //       (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) )
+    //  {
+    //    if (pDesc->Width == config.render.dxgi.res.min.x)
+    //      pDesc->Width *= (float)config.render.dxgi.res.max.x / (float)config.render.dxgi.res.min.x;
+    //
+    //    if (pDesc->Height == config.render.dxgi.res.min.y)
+    //      pDesc->Height *= (float)config.render.dxgi.res.max.y / (float)config.render.dxgi.res.min.y;
+    //  }
+    //}
   }
 
 
   if (ppTexture2D == nullptr)
     ppTexture2D = nullptr;
-
-  // ^^^^ Const qualifier discarded from prototype because making a copy of this variable
-  //        and modifying causes any other hooked function to see the original data.
-
-  WaitForInitDXGI ();
 
   if (InterlockedExchangeAdd (&SK_D3D11_tex_init, 0) == FALSE)
     SK_D3D11_InitTextures ();

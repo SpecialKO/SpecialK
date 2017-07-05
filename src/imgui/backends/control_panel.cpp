@@ -1526,9 +1526,9 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Reduce driver memory management overhead in games that stream textures.");
 
-        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.85f, 0.1f, 0.9f));
-        ImGui::SameLine (); ImGui::BulletText ("Requires restart");
-        ImGui::PopStyleColor  ();
+        //ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.85f, 0.1f, 0.9f));
+        //ImGui::SameLine (); ImGui::BulletText ("Requires restart");
+        //ImGui::PopStyleColor  ();
 
         if (config.textures.d3d11.cache)
         {
@@ -1540,6 +1540,20 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Important Compatibility Setting for Some Games (e.g. The Witcher 3)");
+
+          ImGui::SameLine ();
+
+          ImGui::Checkbox ("Cache Staged Texture Uploads", &config.textures.cache.allow_staging);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Enable Texture Dumping and Injection in Unity-based Games");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("May cause degraded performance.");
+            ImGui::BulletText   ("Try to leave this off unless textures are missing from the mod tools.");
+            ImGui::EndTooltip   ();
+          }
         }
 
         ImGui::TreePop  ();
@@ -1550,7 +1564,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::Separator (   );
           ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
           ImGui::Columns   ( 3 );
-            ImGui::Text    ( "          Size" );                                                                     ImGui::NextColumn ();
+            ImGui::Text    ( "          Size" );                                                                 ImGui::NextColumn ();
             ImGui::Text    ( "      Activity" );                                                                 ImGui::NextColumn ();
             ImGui::Text    ( "       Savings" );
           ImGui::Columns   ( 1 );
@@ -2386,6 +2400,8 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::Text          ("Mouse Input Capture");
         ImGui::TreePush      ("");
 
+        ImGui::BeginGroup    (  );
+
         if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture_mouse))
         {
           SK_ImGui_UpdateCursor ();
@@ -2420,7 +2436,17 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::EndTooltip    ();
         }
 
-        ImGui::SameLine ();
+        ImGui::Checkbox ("Block Input When No Cursor is Visible", &config.input.ui.capture_hidden);  ImGui::SameLine ();
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Generally prevents mouselook if you move your cursor away from the config UI");
+
+        ImGui::EndGroup   (  );
+
+        ImGui::TreePush   ("");
+        ImGui::SameLine   (  );
+
+        ImGui::BeginGroup (  );
 
         ImGui::Checkbox ("No Warp (cursor visible)",              &SK_ImGui_Cursor.prefs.no_warp.visible);
 
@@ -2434,11 +2460,6 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::EndTooltip    ();
         }
 
-        ImGui::Checkbox ("Block Input When No Cursor is Visible", &config.input.ui.capture_hidden);  ImGui::SameLine ();
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Generally prevents mouselook if you move your cursor away from the config UI");
-
         ImGui::Checkbox ("No Warp (UI open)",                     &SK_ImGui_Cursor.prefs.no_warp.ui_open);
 
         if (ImGui::IsItemHovered ())
@@ -2451,8 +2472,12 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::EndTooltip    ();
         }
 
-        ImGui::TreePop        ();
-        ImGui::EndGroup       ();
+        ImGui::EndGroup       ( );
+
+        ImGui::TreePop        ( );
+        ImGui::TreePop        ( );
+
+        ImGui::EndGroup       ( );
 
 #if 0
         extern bool SK_DInput8_BlockWindowsKey (bool block);

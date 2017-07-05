@@ -219,7 +219,7 @@ HookD3D8 (LPVOID user)
   return 0;
 }
 #else
-#include <combaseapi.h>
+#include <Unknwn.h>
 __declspec (noinline)
 IUnknown*
 STDMETHODCALLTYPE

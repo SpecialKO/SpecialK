@@ -298,6 +298,7 @@ struct sk_config_t
       int     min_size          = 384L;
       int     max_size          = 2048L;
       bool    ignore_nonmipped  = true;  // Too many collisions without this
+      bool    allow_staging     = false;
     } cache;
   } textures;
 

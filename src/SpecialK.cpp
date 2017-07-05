@@ -821,6 +821,7 @@ DllMain ( HMODULE hModule,
         if ( StrStrIW (SK_GetHostApp (), L"SKIM") ||
              StrStrIW (SK_GetHostApp (), L"rundll32") )
         {
+          SK_EstablishRootPath ();
           return TRUE;
         }
       }

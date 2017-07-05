@@ -242,6 +242,7 @@ struct {
     sk::ParameterInt*     min_entries;
     sk::ParameterInt*     max_entries;
     sk::ParameterBool*    ignore_non_mipped;
+    sk::ParameterBool*    allow_staging;
   } cache;
 } texture;
 
@@ -1574,6 +1575,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Textures.Cache",
           L"IgnoreNonMipmapped" );
 
+    texture.cache.allow_staging =
+      static_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Enable texture caching/dumping/injection on staged textures")
+        );
+    texture.cache.allow_staging->register_to_ini (
+      dll_ini,
+        L"Textures.Cache",
+          L"AllowStaging" );
+
 
   nvidia.api.disable =
     static_cast <sk::ParameterBool *>
@@ -2717,6 +2728,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.textures.cache.min_size = texture.cache.min_size->get_value ();
   if (texture.cache.ignore_non_mipped->load ())
     config.textures.cache.ignore_nonmipped = texture.cache.ignore_non_mipped->get_value ();
+  if (texture.cache.allow_staging->load ())
+    config.textures.cache.allow_staging = texture.cache.allow_staging->get_value ();
 
   extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
 
@@ -3189,6 +3202,7 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.min_size->set_value    (config.textures.cache.min_size);
 
       texture.cache.ignore_non_mipped->set_value (config.textures.cache.ignore_nonmipped);
+      texture.cache.allow_staging->set_value     (config.textures.cache.allow_staging);
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,
@@ -3428,6 +3442,7 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.min_size->store    ();
 
       texture.cache.ignore_non_mipped->store ();
+      texture.cache.allow_staging->store     ();
 
       render.dxgi.max_res->store         ();
       render.dxgi.min_res->store         ();

@@ -73,7 +73,7 @@ typedef NV_GPU_PCIE_INFO_V2 NV_GPU_PCIE_INFO;
 #define NV_GPU_PCIE_INFO_VER    NV_GPU_PCIE_INFO_VER_2
 #endif
 
-#include <combaseapi.h>
+#include <Unknwn.h>
 
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetPCIEInfo_pfn)
     (NvPhysicalGpuHandle handle, NV_PCIE_INFO* info);

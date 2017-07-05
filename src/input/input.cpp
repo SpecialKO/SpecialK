@@ -78,7 +78,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
 
         HIDP_CAPS caps;
   const NTSTATUS  stat =
-          HidP_GetCaps (pData, &caps);
+          HidP_GetCaps_Original (pData, &caps);
 
   if ( stat           == HIDP_STATUS_SUCCESS && 
        caps.UsagePage == HID_USAGE_PAGE_GENERIC )
@@ -155,6 +155,7 @@ HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original  = nullptr;
 HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original = nullptr;
 HidD_GetFeature_pfn        HidD_GetFeature_Original        = nullptr;
 HidP_GetData_pfn           HidP_GetData_Original           = nullptr;
+HidP_GetCaps_pfn           HidP_GetCaps_Original           = nullptr;
 SetCursor_pfn              SetCursor_Original              = nullptr;
 
 BOOLEAN
@@ -188,7 +189,7 @@ HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
     if (SK_HID_FilterPreparsedData (pData))
       filter = true;
 
-    HidD_FreePreparsedData (pData);
+    HidD_FreePreparsedData_Original (pData);
   }
 
   if (! filter)
@@ -264,6 +265,10 @@ SK_Input_HookHID (void)
     SK_CreateDLLHook2 ( L"HID.DLL", "HidD_GetFeature",
                           HidD_GetFeature_Detour,
                 (LPVOID*)&HidD_GetFeature_Original );
+
+    HidP_GetCaps_Original =
+      (HidP_GetCaps_pfn)GetProcAddress ( GetModuleHandle (L"HID.DLL"),
+                                           "HidP_GetCaps" );
 
     MH_ApplyQueued ();
 
