@@ -2230,10 +2230,10 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   WIN32_FIND_DATA fd;
   HANDLE          hFind  = INVALID_HANDLE_VALUE;
   size_t          files  = 0UL;
-  LARGE_INTEGER   liSize = { 0 };
+  LARGE_INTEGER   liSize = { 0ULL };
 
-  LARGE_INTEGER   liCompressed   = { 0 };
-  LARGE_INTEGER   liUncompressed = { 0 };
+  LARGE_INTEGER   liCompressed   = { 0ULL };
+  LARGE_INTEGER   liUncompressed = { 0ULL };
 
   wchar_t wszFindPattern [MAX_PATH * 2] = { };
 
@@ -2545,8 +2545,8 @@ SK_RestartGame (const wchar_t* wszDLL)
                    wszShortPath,
                      SK_GetFullyQualifiedApp () );
 
-    STARTUPINFOW        sinfo = { 0 };
-    PROCESS_INFORMATION pinfo = { 0 };
+    STARTUPINFOW        sinfo = { };
+    PROCESS_INFORMATION pinfo = { };
 
     sinfo.cb = sizeof STARTUPINFOW;
 
@@ -2599,8 +2599,8 @@ SK_ElevateToAdmin (void)
                  wszShortPath,
                    SK_GetFullyQualifiedApp () );
 
-  STARTUPINFOW        sinfo = { 0 };
-  PROCESS_INFORMATION pinfo = { 0 };
+  STARTUPINFOW        sinfo = { };
+  PROCESS_INFORMATION pinfo = { };
 
   sinfo.cb = sizeof STARTUPINFOW;
 

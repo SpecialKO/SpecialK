@@ -52,25 +52,25 @@ struct SK_XInputContext
     XInputGetState_pfn              XInputGetState_Original              = nullptr;
     LPVOID                          XInputGetState_Target                = nullptr;
 
-    uint8_t                         orig_inst    [12]                    =   { 0 };
+    uint8_t                         orig_inst    [12]                    =   {   };
 
     XInputGetCapabilities_pfn       XInputGetCapabilities_Detour         = nullptr;
     XInputGetCapabilities_pfn       XInputGetCapabilities_Original       = nullptr;
     LPVOID                          XInputGetCapabilities_Target         = nullptr;
 
-    uint8_t                         orig_inst_caps [12]                  =   { 0 };
+    uint8_t                         orig_inst_caps [12]                  =   {   };
 
     XInputGetBatteryInformation_pfn XInputGetBatteryInformation_Detour   = nullptr;
     XInputGetBatteryInformation_pfn XInputGetBatteryInformation_Original = nullptr;
     LPVOID                          XInputGetBatteryInformation_Target   = nullptr;
 
-    uint8_t                         orig_inst_batt [12]                  =   { 0 };
+    uint8_t                         orig_inst_batt [12]                  =   {   };
 
     XInputSetState_pfn              XInputSetState_Detour                = nullptr;
     XInputSetState_pfn              XInputSetState_Original              = nullptr;
     LPVOID                          XInputSetState_Target                = nullptr;
 
-    uint8_t                         orig_inst_set [12]                   =   { 0 };
+    uint8_t                         orig_inst_set [12]                   =   {   };
 
     //
     // Extended stuff (XInput1_3 and XInput1_4 ONLY)
@@ -79,7 +79,7 @@ struct SK_XInputContext
     XInputGetStateEx_pfn            XInputGetStateEx_Original            = nullptr;
     LPVOID                          XInputGetStateEx_Target              = nullptr;
 
-    uint8_t                         orig_inst_ex [12]                    =   { 0 };
+    uint8_t                         orig_inst_ex [12]                    =   {   };
   } XInput1_3 { 0 }, XInput1_4 { 0 }, XInput9_1_0 { 0 };
 
   instance_s* primary_hook = nullptr;

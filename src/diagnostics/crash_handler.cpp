@@ -215,9 +215,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   static bool             last_chance = false;
 
-  static CONTEXT          last_ctx  = { 0 };
-  static EXCEPTION_RECORD last_exc  = { 0 };
-  static LARGE_INTEGER    last_time = { 0 };
+  static CONTEXT          last_ctx  = { };
+  static EXCEPTION_RECORD last_exc  = { };
+  static LARGE_INTEGER    last_time = { };
 
   std::wstring desc;
 

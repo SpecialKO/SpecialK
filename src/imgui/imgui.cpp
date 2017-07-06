@@ -2863,7 +2863,13 @@ void ImGui::NewFrame()
   //
   static int last_x, last_y;
 
-  if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCapture ())
+      // Temp Hack:  Edith Finch
+  if (! config.render.dxgi.full_state_cache)
+  {
+    if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCapture ())
+      SK_ImGui_Cursor.last_move = timeGetTime ();
+  }
+  else if (SK_ImGui_WantMouseCapture ())
     SK_ImGui_Cursor.last_move = timeGetTime ();
 
   last_x = SK_ImGui_Cursor.pos.x; last_y = SK_ImGui_Cursor.pos.y;

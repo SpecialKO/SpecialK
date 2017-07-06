@@ -325,7 +325,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
   if (! SK_LoadLibrary_SILENCE)
   {    
-    char  szSymbol [1024] = { 0 };
+    char  szSymbol [1024] = { };
     ULONG ulLen  =  1024;
     
     ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (lpCallerFunc), (uintptr_t)lpCallerFunc, szSymbol, ulLen);
@@ -908,7 +908,7 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
                                          wszModName,
                                            MAX_PATH ) )
       {
-        MODULEINFO mi = { 0 };
+        MODULEINFO mi = { };
 
         uintptr_t entry_pt  = 0;
         uintptr_t base_addr = 0;
@@ -1106,7 +1106,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                pLogger  = SK_CreateLog (L"logs/modules.log");
   DWORD        dwProcID = GetCurrentProcessId ();
 
-  HMODULE      hMods [1024] = { 0 };
+  HMODULE      hMods [1024] = { };
   HANDLE       hProc        = nullptr;
   DWORD        cbNeeded     =   0;
 
@@ -1421,8 +1421,8 @@ SK_ValidateGlobalRTSSProfile (void)
 
       rtss_global.write  (wszRTSSHooks);
 
-      STARTUPINFO         sinfo = { 0 };
-      PROCESS_INFORMATION pinfo = { 0 };
+      STARTUPINFO         sinfo = { };
+      PROCESS_INFORMATION pinfo = { };
 
       sinfo.cb          = sizeof STARTUPINFO;
       sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_RUNFULLSCREEN;

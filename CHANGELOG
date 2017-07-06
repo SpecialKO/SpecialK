@@ -1,4 +1,8 @@
 0.8.22:
+ + [Misc]  Stopping injection while programs are using Special K no longer crashes them :)
+ + [SKIM]  Closing SKIM while injection is enabled now triggers a confirmation dialog
+ + [D3D11] Added option to enable staging texture cache (for Unity games)
+ + [SKIM]  Added option to start SKIM automatically during install and to system tray
  + [SKIM]  Added list of (64-bit) programs currently injected and a confirmation if you
              attempt to stop injection while a program is using Special K.
  + [SKIM]  Added tooltip to system tray icon

@@ -880,6 +880,10 @@ DllMain ( HMODULE hModule,
         return FALSE;
       }
 
+      // If we got this far, it's because this is an injection target
+      //
+      //   Must hold a reference to this DLL so that removing the CBT hook does
+      //     not crash the game.
       if (SK_IsInjected ())
       {
         SK_Inject_AcquireProcess ();

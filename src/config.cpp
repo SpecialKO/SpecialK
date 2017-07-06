@@ -2112,7 +2112,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     LEGOCityUndercover,   // LEGOLCUR_DX11.exe
     Sacred ,              // sacred.exe
     Sacred2,              // sacred2.exe
-    FinalFantasy9         // FF9.exe   
+    FinalFantasy9,        // FF9.exe   
+    EdithFinch            // FinchGame.exe
   };
 
   std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -2137,6 +2138,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"Sacred.exe",                   SK_GAME_ID::Sacred               );
   games.emplace ( L"sacred2.exe",                  SK_GAME_ID::Sacred2              );
   games.emplace ( L"FF9.exe",                      SK_GAME_ID::FinalFantasy9        );
+  games.emplace ( L"FinchGame.exe",                SK_GAME_ID::EdithFinch           );
 
   //
   // Application Compatibility Overrides
@@ -2340,6 +2342,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
         // Don't auto-pump callbacks
         config.steam.auto_pump_callbacks = false;
         config.apis.OpenGL.hook          = false; // Not an OpenGL game, API auto-detect is borked
+        break;
+
+
+      case SK_GAME_ID::EdithFinch:
+        config.render.framerate.sleepless_window = true;
         break;
     }
   }

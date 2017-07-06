@@ -52,8 +52,10 @@ _time64_Detour (__time64_t *timer)
 void
 SK_FFAD_InitPlugin (void)
 {
+#if 0
   SKX_SetPluginName (FFAD_VERSION_STR);
 
   SK_CreateDLLHook2 (L"msvcr100.dll", "_time64", _time64_Detour, (LPVOID *)&_time64_Original);
   MH_ApplyQueued    ();
+#endif
 }

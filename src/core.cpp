@@ -2085,7 +2085,8 @@ SK_BeginBufferSwap (void)
   #else
       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
 
-      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES) {
+      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+      {
         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\Win32",
                       SK_GetDocumentsDir ().c_str () );
 
@@ -2160,9 +2161,6 @@ SK_BeginBufferSwap (void)
               bool                 ret    = false;
   
               __try {
-                    char szFullDLL [MAX_PATH] = { };
-                sprintf (szFullDLL, "%ws\\%s", wszCEGUIModPath, szDLL);
-  
                 cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
                 ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
               }

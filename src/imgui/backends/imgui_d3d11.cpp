@@ -116,7 +116,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
     g_VertexBufferSize = draw_data->TotalVtxCount + 5000;
 
-    D3D11_BUFFER_DESC desc = { 0 };
+    D3D11_BUFFER_DESC desc = { };
 
     desc.Usage          = D3D11_USAGE_DYNAMIC;
     desc.ByteWidth      = g_VertexBufferSize * sizeof (ImDrawVert);
@@ -138,7 +138,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
     g_IndexBufferSize = draw_data->TotalIdxCount + 10000;
 
-    D3D11_BUFFER_DESC desc = { 0 };
+    D3D11_BUFFER_DESC desc = { };
 
     desc.Usage          = D3D11_USAGE_DYNAMIC;
     desc.ByteWidth      = g_IndexBufferSize * sizeof(ImDrawIdx);
@@ -338,7 +338,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
   // Upload texture to graphics system
   {
-    D3D11_TEXTURE2D_DESC desc = { 0 };
+    D3D11_TEXTURE2D_DESC desc = { };
 
     desc.Width            = width;
     desc.Height           = height;

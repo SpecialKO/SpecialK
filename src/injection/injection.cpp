@@ -50,6 +50,12 @@ static          SK_InjectionRecord_s __SK_InjectionHistory
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
 
+extern volatile ULONG   __SK_DLL_Attached;
+extern volatile ULONG   __SK_HookContextOwner;
+                HMODULE hModHookInstance = NULL;
+
+
+
 SK_InjectionRecord_s*
 SK_Inject_GetRecord (int idx)
 {
@@ -144,6 +150,12 @@ SK_Inject_AcquireProcess (void)
 
       PathStripPath (local_record->process.name);
 
+      // Hold a reference so that removing the CBT hook doesn't crash the software
+      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                          GET_MODULE_HANDLE_EX_FLAG_PIN,
+                            (LPCWSTR)&SK_Inject_AcquireProcess,
+                               &hModHookInstance );
+
       break;
     }
   }
@@ -160,12 +172,6 @@ SK_Inject_InvadingProcess (DWORD dwThreadId)
 
   return false;
 }
-
-
-
-extern volatile ULONG   __SK_DLL_Attached;
-extern volatile ULONG   __SK_HookContextOwner;
-                HMODULE hModHookInstance = NULL;
 
 
 
@@ -898,7 +904,7 @@ SK_Inject_Stop (void)
   wchar_t wszSys32 [MAX_PATH + 2] = { };
   GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
-  SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+  //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
 
   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
   {
@@ -911,9 +917,22 @@ SK_Inject_Stop (void)
 
   else
   {
-    ShellExecuteA        (NULL, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
-    Sleep                (100UL);
-    SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+    HWND hWndExisting =
+      FindWindow (L"SKIM_Frontend", nullptr);
+
+    // Best-case, SKIM restarts itself
+    if (hWndExisting)
+    {
+      SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
+    }
+
+    // Worst-case, we do this manually and confuse Steam
+    else
+    {
+      ShellExecuteA        (NULL, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+      Sleep                (100UL);
+      SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+    }
   }
 
   SetCurrentDirectoryW (wszCurrentDir);
@@ -958,7 +977,25 @@ SK_Inject_Start (void)
   }
   else
   {
-    ShellExecuteA (NULL, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+    if (SKX_IsHookingCBT ())
+    {
+      RunDLL_InjectionManager ( NULL, NULL,
+                                "Remove", -128 );
+    }
+
+    HWND hWndExisting =
+      FindWindow (L"SKIM_Frontend", nullptr);
+
+    // Best-case, SKIM restarts itself
+    if (hWndExisting)
+    {
+      SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
+      SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
+    }
+
+    // Worst-case, we do this manually and confuse Steam
+    else
+      ShellExecuteA (NULL, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ( )).c_str ( ), SW_FORCEMINIMIZE);
   }
 
   SetCurrentDirectoryW (wszCurrentDir);

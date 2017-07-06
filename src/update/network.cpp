@@ -962,7 +962,13 @@ HRESULT
 __stdcall
 SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 {
-  UNREFERENCED_PARAMETER (wszProduct);
+  if ((! SK_IsInjected ()))
+  {
+    if (! lstrcmpW (wszProduct, L"SpecialK"))
+    {
+      return E_FAIL;
+    }
+  }
 
   TASKDIALOGCONFIG  task_config  = { };
 
@@ -1224,12 +1230,6 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                                    L"KeepDownloads=true\n\n" );
             }
 
-            if (SK_IsInjected ())
-            {
-              SK_Inject_Start ();
-            }
-
-
             keep_pref->set_value (update_dlg_keep);
             keep_pref->store     ();
 
@@ -1247,6 +1247,11 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
             bool
             __cdecl
             SK_IsSuperSpecialK (void);
+
+            if (SK_IsInjected ())
+            {
+              SK_Inject_Start ();
+            }
 
             if (! SK_IsSuperSpecialK ())
               SK_RestartGame ();

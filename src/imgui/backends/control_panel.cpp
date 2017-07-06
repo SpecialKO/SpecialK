@@ -698,8 +698,8 @@ SK_ImGui_ControlPanel (void)
   //
   // Framerate history
   //
-  static float values [120]  = { 0 };
-  static int   values_offset =   0;
+  static float values [120]  = { };
+  static int   values_offset =  0;
 
   if (! reset_frame_history) {
     values [values_offset] = 1000.0f * ImGui::GetIO ().DeltaTime;
@@ -2662,7 +2662,7 @@ extern float SK_ImGui_PulseNav_Strength;
             MonitorFromWindow ( game_window.hWnd,
                                   MONITOR_DEFAULTTONEAREST );
 
-          MONITORINFO mi  = { 0 };
+          MONITORINFO mi  = { };
           mi.cbSize       = sizeof (mi);
           GetMonitorInfo (hMonitor, &mi);
 
@@ -4218,14 +4218,14 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   return 0;
 }
 
-BYTE __imgui_keybd_state [512] = { 0 };
+BYTE __imgui_keybd_state [512] = { };
 
 // Keys down when the UI started capturing input,
 //   the first captured key release event will be
 //     sent to the game and the state of that key reset.
 //
 //  This prevents the game from thinking a key is stuck.
-UINT SK_ImGui_ActivationKeys [256] = { 0 };;
+UINT SK_ImGui_ActivationKeys [256] = { };
 
 __declspec (dllexport)
 void
@@ -4389,7 +4389,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
   const  float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
   static bool  was_open  = false;
 
-  static BYTE bind_keys [256] = { 0 };
+  static BYTE bind_keys [256] = { };
 
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (font_size * 9, font_size * 3), ImVec2 (font_size * 30, font_size * 6));
 

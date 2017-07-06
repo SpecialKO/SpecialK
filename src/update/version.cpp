@@ -99,6 +99,14 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   if (wszProduct == nullptr)
     wszProduct = __SK_LastProductTested.c_str ();
 
+  if (! SK_IsInjected ())
+  {
+    if (! lstrcmpW (wszProduct, L"SpecialK"))
+    {
+      return false;
+    }
+  }
+
   __SK_LastProductTested = wszProduct;
 
   FILETIME                  ftNow;
@@ -249,7 +257,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                              FILE_FLAG_SEQUENTIAL_SCAN,
                                nullptr );
 
-    if (hVersionConfig != INVALID_HANDLE_VALUE) {
+    if (hVersionConfig != INVALID_HANDLE_VALUE)
+    {
       FILETIME ftModify;
 
       if (GetFileTime (hVersionConfig, nullptr, nullptr, &ftModify))
@@ -275,7 +284,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   //
   //   So that, for example, a 6h frequency can be delayed up to 1 week.
   //
-  if (! force) {
+  if (! force)
+  {
     if (! (( should_fetch && (! has_remind)) || need_remind))
       return false;
   }
@@ -450,7 +460,8 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
     wchar_t wszBranchSection [128] = { };
     _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
 
-    if (repo_ini.contains_section (wszBranchSection)) {
+    if (repo_ini.contains_section (wszBranchSection))
+    {
       ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
 
       wchar_t wszPackage [128] = { };

@@ -361,7 +361,7 @@ public:
               MonitorFromWindow ( game_window.hWnd,
                                     MONITOR_DEFAULTTONEAREST );
 
-            MONITORINFO mi  = { 0 };
+            MONITORINFO mi  = { };
             mi.cbSize       = sizeof (mi);
             GetMonitorInfo (hMonitor, &mi);
 
@@ -523,7 +523,7 @@ public:
       unsigned int x = 65535;
       unsigned int y = 65535;
 
-         char szTemp    [32] = { 0 };
+         char szTemp    [32] = { };
 
       strncat (szTemp, *(char **)val, 31);
 
@@ -1674,14 +1674,15 @@ SK_IsRectTooBigForDesktop (RECT wndRect)
     MonitorFromWindow ( game_window.hWnd,
                           MONITOR_DEFAULTTONEAREST );
 
-  MONITORINFO mi  = { 0 };
+  MONITORINFO mi  = { };
   mi.cbSize       = sizeof (mi);
   GetMonitorInfo (hMonitor, &mi);
 
   int win_width      = wndRect.right       - wndRect.left;
   int win_height     = wndRect.bottom      - wndRect.top;
 
-  if (! config.window.res.override.isZero ()) {
+  if (! config.window.res.override.isZero ())
+  {
     win_width  = config.window.res.override.x;
     win_height = config.window.res.override.y;
   }
@@ -1836,7 +1837,7 @@ SK_AdjustWindow (void)
     MonitorFromWindow ( game_window.hWnd,
                           MONITOR_DEFAULTTONEAREST );
 
-  MONITORINFO mi  = { 0 };
+  MONITORINFO mi  = { };
   mi.cbSize       = sizeof (mi);
   GetMonitorInfo (hMonitor, &mi);
 
@@ -2420,7 +2421,7 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 
 // Avoid static storage in the callback function
 struct {
-  POINTS pos      = { 0 }; // POINT (Short) - Not POINT plural ;)
+  POINTS pos      = { }; // POINT (Short) - Not POINT plural ;)
   DWORD  sampled  = 0UL;
   bool   cursor   = true;
 
@@ -3107,7 +3108,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     if ((! handled) && config.input.mouse.fix_synaptics)
     {
-      INPUT input        = { 0 };
+      INPUT input        = { };
 
       input.type         = INPUT_MOUSE;
       input.mi.dwFlags   = MOUSEEVENTF_WHEEL;

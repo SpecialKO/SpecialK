@@ -98,8 +98,8 @@ Sleep_Detour (DWORD dwMilliseconds)
         if (bGUIThread)
           SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
-        //if (dwMilliseconds <= 1)
-        YieldProcessor ();
+        if (dwMilliseconds <= 1)
+          YieldProcessor ();
 
         return;
       }
@@ -123,8 +123,7 @@ Sleep_Detour (DWORD dwMilliseconds)
         if (bRenderThread)
           SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
-        //if (dwMilliseconds <= 1)
-        YieldProcessor ();
+        MsgWaitForMultipleObjects (0, nullptr, FALSE, dwMilliseconds, QS_ALLINPUT);
 
         return;
       }
@@ -136,7 +135,7 @@ Sleep_Detour (DWORD dwMilliseconds)
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
   if (dwMilliseconds == 0)
   {
-    YieldProcessor ();
+    SleepEx (0, TRUE);
     return;
   }
 

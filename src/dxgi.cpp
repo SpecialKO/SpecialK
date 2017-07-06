@@ -163,7 +163,8 @@ void
 SK_CEGUI_RelocateLog (void)
 {
   // Move the log file that this darn thing just created...
-  if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES) {
+  if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES)
+  {
     char     szNewLogPath [MAX_PATH * 4] = { };
     wchar_t wszNewLogPath [MAX_PATH]     = { };
 

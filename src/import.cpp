@@ -44,8 +44,8 @@ const std::wstring SK_IMPORT_ROLE_3RDPARTY = L"ThirdParty";
 const std::wstring SK_IMPORT_ARCH_X64      = L"x64";
 const std::wstring SK_IMPORT_ARCH_WIN32    = L"Win32";
 
-import_s imports [SK_MAX_IMPORTS] = { 0 };
-import_s host_executable          = { 0 };
+import_s imports [SK_MAX_IMPORTS] = { };
+import_s host_executable          = { };
 
 extern
 HMODULE

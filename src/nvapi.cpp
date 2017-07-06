@@ -663,7 +663,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   //   and then add the executable to it.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
-    NVDRS_PROFILE custom_profile = { 0 };
+    NVDRS_PROFILE custom_profile = { };
 
     custom_profile.isPredefined = false;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
@@ -913,7 +913,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
   NvDRSProfileHandle hProfile;
-  static NVDRS_APPLICATION app = { 0 };
+  static NVDRS_APPLICATION app = { };
 
   //SK_NvAPI_GetAppProfile (hSession, &hProfile, &app);
   NVAPI_SILENT ();
@@ -930,7 +930,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
   // If no executable exists anywhere by this name, create a profile for it
   //   and then add the executable to it.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND) {
-    NVDRS_PROFILE custom_profile = { 0 };
+    NVDRS_PROFILE custom_profile = { };
 
     custom_profile.isPredefined = false;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
@@ -965,10 +965,10 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
     }
   }
 
-  NVDRS_SETTING fps_limiter = { 0 };
+  NVDRS_SETTING fps_limiter = { };
   fps_limiter.version = NVDRS_SETTING_VER;
 
-  NVDRS_SETTING prerendered_frames = { 0 };
+  NVDRS_SETTING prerendered_frames = { };
   prerendered_frames.version = NVDRS_SETTING_VER;
 
   // These settings may not exist, and getting back a value of 0 is okay...
@@ -1078,7 +1078,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
   NvDRSProfileHandle hProfile;
-  static NVDRS_APPLICATION  app = { 0 };
+  static NVDRS_APPLICATION  app = { };
 
   NvU32 compat_bits_enum = 
     (role == DXGI ? SLI_COMPAT_BITS_DXGI_ID :
@@ -1156,7 +1156,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   //   and then add the executable to it.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
-    NVDRS_PROFILE custom_profile = { 0 };
+    NVDRS_PROFILE custom_profile = { };
 
 
     custom_profile.isPredefined = false;
@@ -1326,8 +1326,8 @@ SK_NvAPI_AddLauncherToProf (void)
   NVAPI_CALL (DRS_CreateSession (&hSession));
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
-  NvDRSProfileHandle hProfile  = {   };
-  static NVDRS_APPLICATION app = { 0 };
+  NvDRSProfileHandle hProfile  = { };
+  static NVDRS_APPLICATION app = { };
 
   //SK_NvAPI_GetAppProfile (hSession, &hProfile, &app);
   NVAPI_SILENT ();
