@@ -319,7 +319,7 @@ CSteamworks_Delay_Init (LPVOID user)
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
             tries < 120 )
   {
-    Sleep_Original (config.steam.init_delay);
+    SleepEx (config.steam.init_delay, FALSE);
 
     if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
       break;

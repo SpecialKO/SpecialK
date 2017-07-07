@@ -77,7 +77,7 @@ SK_BootD3D9 (void)
 {
   while (backend_dll == 0) {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
-    Sleep_Original (500UL);
+    SleepEx (500UL, TRUE);
   }
 
   static volatile ULONG __booted = FALSE;
@@ -109,7 +109,7 @@ SK_BootD3D8 (void)
 {
   while (backend_dll == 0) {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
-    Sleep_Original (500UL);
+    SleepEx (500UL, TRUE);
   }
 
   static volatile ULONG __booted = FALSE;
@@ -134,7 +134,7 @@ SK_BootDDraw (void)
 {
   while (backend_dll == 0) {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
-    Sleep_Original (500UL);
+    SleepEx (500UL, TRUE);
   }
 
   static volatile ULONG __booted = FALSE;
@@ -162,7 +162,7 @@ SK_BootDXGI (void)
 {
   while (backend_dll == 0) {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
-    Sleep_Original (500UL);
+    SleepEx (500UL, TRUE);
   }
 
   static volatile ULONG __booted = FALSE;
@@ -196,7 +196,7 @@ SK_BootOpenGL (void)
 {
   while (backend_dll == 0) {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
-    Sleep_Original (500UL);
+    SleepEx (500UL, TRUE);
   }
 
 #ifndef SK_BUILD__INSTALLER

@@ -1009,7 +1009,8 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
     wchar_t wszModName [MAX_PATH + 2] = { };
             ZeroMemory (wszModName, sizeof (wchar_t) * (MAX_PATH + 2));
 
-    __try {
+    __try
+    {
       // Get the full path to the module's file.
       if ( GetModuleFileNameExW ( hProc,
                                     hMods [i],
@@ -1017,50 +1018,58 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
                                         MAX_PATH ) )
       {
         if ( (! third_party_dlls.overlays.rtss_hooks) &&
-              StrStrIW (wszModName, L"RTSSHooks") ) {
+              StrStrIW (wszModName, L"RTSSHooks") )
+        {
           // Hold a reference to this DLL so it is not unloaded prematurely
           GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                 wszModName,
                                   &third_party_dlls.overlays.rtss_hooks );
 
-          if (config.compatibility.rehook_loadlibrary) {
+          if (config.compatibility.rehook_loadlibrary)
+          {
             SK_ReHookLoadLibrary ();
-            Sleep_Original (16);
+            SleepEx (16, TRUE);
           }
         }
 
         else if ( (! third_party_dlls.overlays.steam_overlay) &&
-                   StrStrIW (wszModName, L"gameoverlayrenderer") ) {
+                   StrStrIW (wszModName, L"gameoverlayrenderer") )
+        {
           // Hold a reference to this DLL so it is not unloaded prematurely
           GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                 wszModName,
                                   &third_party_dlls.overlays.steam_overlay );
 
-          if (config.compatibility.rehook_loadlibrary) {
+          if (config.compatibility.rehook_loadlibrary)
+          {
             SK_ReHookLoadLibrary ();
-            Sleep_Original (16);
+            SleepEx (16, TRUE);
           }
         }
 
         else if ( (! third_party_dlls.misc.gedosato) &&
-                   StrStrIW (wszModName, L"GeDoSaTo") ) {
+                   StrStrIW (wszModName, L"GeDoSaTo") )
+        {
           // Hold a reference to this DLL so it is not unloaded prematurely
           GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                 wszModName,
                                   &third_party_dlls.misc.gedosato );
 
-          if (config.compatibility.rehook_loadlibrary) {
+          if (config.compatibility.rehook_loadlibrary)
+          {
             SK_ReHookLoadLibrary ();
-            Sleep_Original (16);
+            SleepEx (16, TRUE);
           }
         }
 
-        else if ( StrStrIW (wszModName, L"ltc_help") && (! (config.compatibility.ignore_raptr || config.compatibility.disable_raptr)) ) {
+        else if ( StrStrIW (wszModName, L"ltc_help") && (! (config.compatibility.ignore_raptr || config.compatibility.disable_raptr)) )
+        {
           static bool warned = false;
 
           // When Raptr's in full effect, it has its own overlay plus PlaysTV ...
           //   only warn about ONE of these things!
-          if (! warned) {
+          if (! warned)
+          {
             warned = true;
 
             CreateThread ( nullptr, 0, SK_RaptrWarn, nullptr, 0x00, nullptr );
@@ -1229,7 +1238,7 @@ TaskDialogCallback (
                             SWP_NOMOVE         | SWP_NOSIZE );
 
     while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0) > 1)
-      Sleep_Original (10);
+      SleepEx (10, TRUE);
 
     SK_bypass_dialog_hwnd = hWnd;
 
@@ -2299,11 +2308,11 @@ int
 
   while (GetMessage (&msg, 0, 0, 0))
   {
-    Sleep_Original (0);
+    SleepEx (0, TRUE);
     continue;
   }
 
-  Sleep_Original (INFINITE);
+  SleepEx (INFINITE, FALSE);
 
   return never;
 };

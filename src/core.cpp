@@ -1137,7 +1137,7 @@ WaitForInit (void)
   while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
-    Sleep_Original (150);
+    SleepEx (150, TRUE);
   }
 
   // First thread to reach this point wins ... a shiny new car and
@@ -1982,7 +1982,7 @@ SK_BeginBufferSwap (void)
 {
   // Throttle, but do not deadlock the render loop
   while (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
-    Sleep_Original (166);
+    SleepEx (166, TRUE);
 
   // ^^^ Use condition variable instead
 

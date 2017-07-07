@@ -537,6 +537,8 @@ SK_SelfDestruct                  = SK_SelfDestruct                   PRIVATE
                                  
 SK_FetchVersionInfo              = SK_FetchVersionInfo               PRIVATE
 SK_UpdateSoftware                = SK_UpdateSoftware                 PRIVATE
+SK_FetchVersionInfo1             = SK_FetchVersionInfo1              PRIVATE
+SK_UpdateSoftware1               = SK_UpdateSoftware1                PRIVATE
                                  
 SK_GetFileCRC32                  = SK_GetFileCRC32                   PRIVATE
 SK_GetFileCRC32C                 = SK_GetFileCRC32C                  PRIVATE

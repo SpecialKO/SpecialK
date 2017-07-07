@@ -2526,7 +2526,7 @@ WINAPI
 SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 {
   // Wait 5 seconds, then begin a timing investigation
-  Sleep_Original (5000);
+  SleepEx (5000, FALSE);
 
   // First, begin a timing probe.
   //
@@ -2537,7 +2537,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 
   const UINT TEST_PERIOD = 15;
 
-  Sleep_Original (TEST_PERIOD * 1000UL);
+  SleepEx (TEST_PERIOD * 1000UL, FALSE);
 
   LONGLONG callback_count1 = SK_SteamAPI_CallbackRunCount;
 
@@ -2559,7 +2559,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
       {
         SK::SteamAPI::Pump ();
 
-        Sleep_Original (250);
+        SleepEx (250, TRUE);
       }
     }
 
@@ -3045,7 +3045,7 @@ SteamAPI_Shutdown_Detour (void)
     [](LPVOID user) ->
     DWORD
     {
-      Sleep_Original (1000UL);
+      SleepEx (1000UL, FALSE);
 
       // Start back up again :)
       //
@@ -3172,7 +3172,7 @@ SteamAPI_Delay_Init (LPVOID user)
   while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
             tries < 120 )
   {
-    Sleep_Original (config.steam.init_delay);
+    SleepEx (config.steam.init_delay, FALSE);
 
     if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
       break;

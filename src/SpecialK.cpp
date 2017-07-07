@@ -291,6 +291,7 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"GameBarPresenceWriter.exe");
     blacklist.emplace (L"OAWrapper.exe");
     blacklist.emplace (L"NvOAWrapperCache.exe");
+    blacklist.emplace (L"mspaint.exe");
 
     blacklist.emplace (L"GameServer.exe");// Sacred   Game Server
     blacklist.emplace (L"s2gs.exe");      // Sacred 2 Game Server
@@ -784,11 +785,7 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
-      if ( InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0) ||
-           InterlockedExchangeAddAcquire (&__SK_DLL_Ending,   0) )
-      {
-        return FALSE;
-      }
+      QueryPerformanceCounter_Original = (QueryPerformanceCounter_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "QueryPerformanceCounter");
 
       // Sanity Check:
       // -------------
@@ -802,9 +799,22 @@ DllMain ( HMODULE hModule,
       //
       //          0xc0000142
       //
-      if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
+      if ( InterlockedExchangeAddAcquire     (&__SK_DLL_Attached, 0) ||
+           InterlockedExchangeAddAcquire     (&__SK_DLL_Ending,   0) ||
+           InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0) )
       {
-        return FALSE;
+        SK_EstablishRootPath ();
+        return TRUE;
+      }
+
+      // We use SKIM for injection and rundll32 for various tricks involving restarting
+      //   the currently running game; neither needs or even wants this DLL fully
+      //     initialized!
+      if ( StrStrIW (SK_GetHostApp (), L"SKIM") ||
+           StrStrIW (SK_GetHostApp (), L"rundll32") )
+      {
+        SK_EstablishRootPath ();
+        return TRUE;
       }
 
 
@@ -812,41 +822,8 @@ DllMain ( HMODULE hModule,
           InterlockedIncrement (&__SK_DLL_Refs);
 
 
-#ifdef _WIN64
-      //if (GetModuleHandle (L"SpecialK64.dll") == hModSelf)
-#else
-      //if (GetModuleHandle (L"SpecialK32.dll") == hModSelf)
-#endif
-      {
-        if ( StrStrIW (SK_GetHostApp (), L"SKIM") ||
-             StrStrIW (SK_GetHostApp (), L"rundll32") )
-        {
-          SK_EstablishRootPath ();
-          return TRUE;
-        }
-      }
-
-
-      Sleep_Original                   = (Sleep_pfn)                  GetProcAddress (GetModuleHandle (L"kernel32.dll"), "Sleep");
-      QueryPerformanceCounter_Original = (QueryPerformanceCounter_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "QueryPerformanceCounter");
-
-
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
-
-
-      DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH] = { };
-
-      HANDLE hProc = GetCurrentProcess ();
-
-      QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
-
-      wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
-
-      while (  pwszShortName      >  wszProcessName &&
-             *(pwszShortName - 1) != L'\\')
-        --pwszShortName;
 
 
       // We reserve the right to deny attaching the DLL, this will generally
@@ -865,6 +842,7 @@ DllMain ( HMODULE hModule,
         return TRUE;
       }
 
+
       SK_Init_MinHook ();
 
 
@@ -879,6 +857,7 @@ DllMain ( HMODULE hModule,
       {
         return FALSE;
       }
+
 
       // If we got this far, it's because this is an injection target
       //

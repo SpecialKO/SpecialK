@@ -237,7 +237,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
   InterlockedExchange (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
-  Sleep_Original (INFINITE);
+  SleepEx (INFINITE, FALSE);
 
 
 WMI_CLEANUP:
@@ -323,7 +323,7 @@ SK_InitWMI (void)
   }
 
   while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) == 0)
-    Sleep_Original (100);
+    SleepEx (100, TRUE);
 
 #if 0
   perfmon.cpu.start         = CreateEvent (nullptr, FALSE, FALSE, L"CPU Startup");

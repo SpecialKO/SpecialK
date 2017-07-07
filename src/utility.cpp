@@ -2232,9 +2232,6 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   size_t          files  = 0UL;
   LARGE_INTEGER   liSize = { 0ULL };
 
-  LARGE_INTEGER   liCompressed   = { 0ULL };
-  LARGE_INTEGER   liUncompressed = { 0ULL };
-
   wchar_t wszFindPattern [MAX_PATH * 2] = { };
 
   lstrcatW (wszFindPattern, wszPath);

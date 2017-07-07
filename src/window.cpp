@@ -1790,7 +1790,7 @@ SK_ResetWindow (void)
     [](LPVOID user) ->
     DWORD
     {
-      Sleep_Original (100);
+      SleepEx (100, TRUE);
 
       EnterCriticalSection (&cs_reset);
 
@@ -2443,7 +2443,7 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   static volatile ULONG nest_lvl = 0UL;
 
   while (InterlockedExchangeAdd (&nest_lvl, 0))
-    Sleep_Original (125);
+    SleepEx (125, TRUE);
 
   InterlockedIncrementAcquire (&nest_lvl);
 

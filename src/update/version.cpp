@@ -99,6 +99,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   if (wszProduct == nullptr)
     wszProduct = __SK_LastProductTested.c_str ();
 
+#define INJECTOR
+#ifndef INJECTOR
   if (! SK_IsInjected ())
   {
     if (! lstrcmpW (wszProduct, L"SpecialK"))
@@ -106,6 +108,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       return false;
     }
   }
+#endif
 
   __SK_LastProductTested = wszProduct;
 
@@ -224,7 +227,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
         remind_time->load ();
 
-        if (uliNow.QuadPart >= (uint64_t)remind_time->get_value ()) {
+        if (uliNow.QuadPart >= (uint64_t)remind_time->get_value ())
+        {
           need_remind = true;
 
           user_prefs.remove_key (L"Reminder");
@@ -235,7 +239,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       }
     }
 
-    else {
+    else
+    {
       install_ini.import ( L"[Version.Local]\nInstallPackage= \nBranch=Latest\n\n"
                            L"[Upate.User]\nFrequency=6h\nReminder=0\n\n"          );
       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
@@ -310,7 +315,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                                 0x00,
                                   (DWORD_PTR)&dwInetCtx );
 
-  if (! hInetGitHub) {
+  if (! hInetGitHub)
+  {
     InternetCloseHandle (hInetRoot);
     return false;
   }
@@ -329,9 +335,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
 
-  DWORD dwFlags = INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_CACHE_IF_NET_FAIL |
-                  INTERNET_FLAG_IGNORE_CERT_CN_INVALID   | INTERNET_FLAG_NEED_FILE         |
-                  INTERNET_FLAG_PRAGMA_NOCACHE           | INTERNET_FLAG_RESYNCHRONIZE;
+  DWORD dwFlags =   INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_IGNORE_CERT_CN_INVALID 
+                  | INTERNET_FLAG_NEED_FILE                | INTERNET_FLAG_PRAGMA_NOCACHE
+                  | INTERNET_FLAG_RESYNCHRONIZE;
 
   extern bool SK_IsSuperSpecialK (void);
 
@@ -348,7 +354,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                                   dwFlags,
                                     (DWORD_PTR)&dwInetCtx );
 
-  if (! hInetGitHubOpen) {
+  if (! hInetGitHubOpen)
+  {
     InternetCloseHandle (hInetGitHub);
     InternetCloseHandle (hInetRoot);
     return false;
@@ -381,7 +388,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                                 FILE_FLAG_SEQUENTIAL_SCAN,
                                   nullptr );
 
-      while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0) {
+      while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0)
+      {
         DWORD    dwRead = 0;
         uint8_t *pData  = (uint8_t *)malloc (dwSize);
 

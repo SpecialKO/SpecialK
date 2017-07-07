@@ -140,25 +140,31 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   std::vector <sk_file_entry_s> config_files =
     SK_Get7ZFileContents (wszArchive);
 
-  for ( auto it = config_files.begin (); it != config_files.end (); ) {
-    if (! wcsstr (it->name.c_str (), L"default_")) {
+  for ( auto& it = config_files.begin (); it != config_files.end (); )
+  {
+    if (! wcsstr (it->name.c_str (), L"default_"))
+    {
       it = config_files.erase (it);
-    } else {
-      ++it;
+      continue;
     }
+
+    ++it;
   }
 
   // Now that we have a set of ALL files and a set of config files,
   //   remove the config files from the other set so that we have
   //     two disjoint sets of files.
-  auto   it  = files.begin ();
-  while (it != files.end ()) {
+  auto&  it  = files.begin ();
+  while (it != files.end ())
+  {
 
     bool matched = false;
 
-    auto   it2  = config_files.begin ();
-    while (it2 != config_files.end ()) {
-      if (it2->fileno == it->fileno) {
+    auto&  it2  = config_files.begin ();
+    while (it2 != config_files.end ())
+    {
+      if (it2->fileno == it->fileno)
+      {
         matched = true;
 
         it = files.erase (it);

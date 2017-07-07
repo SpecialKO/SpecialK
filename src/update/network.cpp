@@ -21,7 +21,6 @@
 #define NOMINMAX
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_SECURE_NO_WARNINGS
-//#define ISOLATION_AWARE_ENABLED 1
 
 #include <SpecialK/ini.h>
 #include <SpecialK/parameter.h>
@@ -160,7 +159,8 @@ DownloadThread (LPVOID user)
                                 0x00,
                                   (DWORD_PTR)&dwInetCtx );
 
-  if (! hInetHost) {
+  if (! hInetHost)
+  {
     InternetCloseHandle (hInetRoot);
     goto CLEANUP;
   }
@@ -186,7 +186,8 @@ DownloadThread (LPVOID user)
   InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
 
 
-  if (! hInetHTTPGetReq) {
+  if (! hInetHTTPGetReq)
+  {
     InternetCloseHandle (hInetHost);
     InternetCloseHandle (hInetRoot);
     goto CLEANUP;
@@ -196,7 +197,8 @@ DownloadThread (LPVOID user)
                             nullptr,
                               0,
                                 nullptr,
-                                  0 ) ) {
+                                  0 ) )
+  {
 
     DWORD dwContentLength     = 0;
     DWORD dwContentLength_Len = sizeof DWORD;
@@ -267,25 +269,21 @@ DownloadThread (LPVOID user)
       if (hGetFile != INVALID_HANDLE_VALUE)
         CloseHandle (hGetFile);
 
-      else {
+      else
         SetErrorState ();
-      }
     }
 
     //HttpEndRequest ( hInetHTTPGetReq, nullptr, 0x00, 0 );
 
-    if (dwTotalBytesDownloaded >= dwContentLength) {
+    if (dwTotalBytesDownloaded >= dwContentLength)
       get->status = STATUS_UPDATED;
-    }
 
-    else {
+    else
       SetErrorState ();
-    }
   }
 
-  else {
+  else
     SetErrorState ();
-  }
 
   InternetCloseHandle (hInetHTTPGetReq);
   InternetCloseHandle (hInetHost);
@@ -331,7 +329,8 @@ RemindMeLater_DlgProc (
   HWND hWndNextCheck =
     GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
 
-  switch (uMsg) {
+  switch (uMsg)
+  {
     case WM_INITDIALOG:
     {
       HRSRC   default_sound =
@@ -430,7 +429,8 @@ RemindMeLater_DlgProc (
 
         sk::ParameterFactory ParameterFactory;
 
-        if (! never) {
+        if (! never)
+        {
           sk::ParameterInt64* remind_time =
             (sk::ParameterInt64 *)
               ParameterFactory.create_parameter <int64_t> (L"Reminder");
@@ -447,7 +447,8 @@ RemindMeLater_DlgProc (
           delete remind_time;
         }
 
-        else {
+        else
+        {
           sk::ParameterStringW* frequency =
             (sk::ParameterStringW *)
               ParameterFactory.create_parameter <std::wstring> (
@@ -508,13 +509,15 @@ DownloadDialogCallback (
 
     if ( get->status == STATUS_UPDATED   ||
          get->status == STATUS_CANCELLED ||
-         get->status == STATUS_REMINDER ) {
+         get->status == STATUS_REMINDER )
+    {
       EndDialog ( hWnd, 0 );
       return S_OK;
     }
   }
 
-  if (uNotification == TDN_HYPERLINK_CLICKED) {
+  if (uNotification == TDN_HYPERLINK_CLICKED)
+  {
     ShellExecuteW (nullptr, L"open", (wchar_t *)lParam, nullptr, nullptr, SW_SHOWMAXIMIZED);
 
     return S_OK;
@@ -548,7 +551,8 @@ DownloadDialogCallback (
     return S_OK;
   }
 
-  if (uNotification == TDN_CREATED) {
+  if (uNotification == TDN_CREATED)
+  {
     SK_RealizeForegroundWindow (hWnd);
 
     return S_OK;
@@ -585,13 +589,15 @@ DownloadDialogCallback (
                                nullptr );
     }
 
-    else {
+    else
+    {
       //get->status = STATUS_CANCELLED;
       //return S_OK;
     }
   }
 
-  if (uNotification == TDN_DESTROYED) {
+  if (uNotification == TDN_DESTROYED)
+  {
     //sk_internet_get_t* get =
       //(sk_internet_get_t *)dwRefData;
 
@@ -614,7 +620,8 @@ DecompressionProgressCallback (int current, int total)
   HWND hWndProgress =
     GetDlgItem (hWndUpdateDlg, IDC_UPDATE_PROGRESS);
 
-  if (total != last_total) {
+  if (total != last_total)
+  {
     SendMessage (hWndProgress, PBM_SETSTATE, PBST_NORMAL, 0UL);
     SendMessage (hWndProgress, PBM_SETRANGE, 0UL, MAKEWPARAM (0, total));
     total = last_total;
@@ -640,7 +647,8 @@ Update_DlgProc (
   //HWND hWndNextCheck =
   //  GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
 
-  switch (uMsg) {
+  switch (uMsg)
+  {
     case WM_INITDIALOG:
     {
       InterlockedExchange ( &__SK_UpdateStatus, 0 );
@@ -688,7 +696,8 @@ Update_DlgProc (
         uint64_t bsize =
           SK_GetFileSize (wszFinalPath);
 
-        if (bsize != 0) {
+        if (bsize != 0)
+        {
           backup_size += bsize;
           ++backup_count;
         }
@@ -712,19 +721,28 @@ Update_DlgProc (
       SetWindowFont  (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), header_font, true);
       SetWindowFont  (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   header_font, true);
 
-      Static_SetText (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), wszDownloadSize);
-      Static_SetText (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   wszBackupSize);
-
       // Initiate the update automatically.
       if (SK_IsHostAppSKIM ())
-        SendMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
+      {
+        ShowWindow (hWndBackup,                           SW_HIDE);
+        ShowWindow (hWndKeepDownloads,                    SW_HIDE);
+        ShowWindow (GetDlgItem (hWndDlg, IDC_AUTO_CMD),   SW_HIDE);
+        ShowWindow (GetDlgItem (hWndDlg, IDC_MANUAL_CMD), SW_HIDE);
+
+        swprintf ( wszDownloadSize, L"Download:   %5.2f MiB",
+                     (double)fsize / (1024.0 * 1024.0) );
+      }
+
+      Static_SetText (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), wszDownloadSize);
+      Static_SetText (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   wszBackupSize);
 
       return TRUE;
     }
 
     case WM_COMMAND:
     {
-      if (LOWORD (wParam) == IDC_MANUAL_CMD) {
+      if (LOWORD (wParam) == IDC_MANUAL_CMD)
+      {
         ShellExecuteW ( nullptr,
                           L"OPEN",
                             (wchar_t *)update_dlg_file,
@@ -766,9 +784,13 @@ Update_DlgProc (
           TASKDIALOG_BUTTON buttons [2];
           buttons [0].nButtonID       = IDOK;
 
-          if (! SK_IsHostAppSKIM ()) {
+          if (! SK_IsHostAppSKIM ())
+          {
             buttons [0].pszButtonText = L"Finish Update\nThe game will automatically exit.";
-          } else {
+          }
+
+          else
+          {
             buttons [0].pszButtonText = L"Finish Install";
           }
 
@@ -779,13 +801,15 @@ Update_DlgProc (
           task_cfg.cButtons           = 2;
 
           // Regular Software Update
-          if (! SK_IsHostAppSKIM ()) {
+          if (! SK_IsHostAppSKIM ())
+          {
             task_cfg.pszWindowTitle     = L"Special K Software Update";
             task_cfg.pszMainInstruction = L"Software Update Successful";
           }
 
           // Software Installation
-          else {
+          else
+          {
             task_cfg.pszWindowTitle     = L"Special K Software Install";
             task_cfg.pszMainInstruction = L"Software Installation Successful";
           }
@@ -855,8 +879,10 @@ Update_DlgProc (
           extern bool config_files_changed;
 
 
-          if (! SK_IsHostAppSKIM ()) {
-            if (update_dlg_backup) {
+          if (! SK_IsHostAppSKIM ())
+          {
+            if (update_dlg_backup)
+            {
               swprintf ( wszBackupMessage,
                            L"Your old files have been backed up "
                            L"<a href=\"%s\\Version\\%s\\\">here.</a>\n\n%s",
@@ -869,7 +895,8 @@ Update_DlgProc (
               );
             }
 
-            else {
+            else
+            {
               swprintf ( wszBackupMessage,
                            L"Existing mod files were overwritten%s",
                              config_files_changed ?
@@ -895,7 +922,8 @@ Update_DlgProc (
           InterlockedExchange ( &__SK_UpdateStatus, 1 );
         }
 
-        else {
+        else
+        {
           // FAILURE:
           EndDialog           (  hWndUpdateDlg,      0 );
           hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
@@ -933,26 +961,45 @@ UpdateDlg_Thread (LPVOID user)
                       GetDesktopWindow (),
                         Update_DlgProc );
 
+  IsGUIThread (TRUE);
+
   BringWindowToTop    (hWndDlg);
   SetForegroundWindow (hWndDlg);
   SetActiveWindow     (hWndDlg);
   SetFocus            (hWndDlg);
+
+  bool started = false;
 
   MSG  msg;
   BOOL bRet;
 
   while ((bRet = GetMessage (&msg, NULL, 0, 0)) != 0)
   {
-    if (bRet == -1) {
+    if (bRet == -1)
+    {
       CloseHandle (GetCurrentThread ());
       return 0;
     }
 
     TranslateMessage (&msg);
     DispatchMessage  (&msg);
+
+
+    if (msg.message = WM_INITDIALOG && msg.hwnd == hWndDlg)
+    {
+      if (SK_IsHostAppSKIM ( ))
+      {
+        if (! started)
+        {
+          started = true;
+          SendMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
+        }
+      }
+    }
   }
 
   CloseHandle (GetCurrentThread ());
+
   return 0;
 }
 
@@ -962,6 +1009,8 @@ HRESULT
 __stdcall
 SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 {
+#define INJECTOR
+#ifndef INJECTOR
   if ((! SK_IsInjected ()))
   {
     if (! lstrcmpW (wszProduct, L"SpecialK"))
@@ -969,6 +1018,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
       return E_FAIL;
     }
   }
+#endif
 
   TASKDIALOGCONFIG  task_config  = { };
 
@@ -1043,7 +1093,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
   iSK_INISection& installed_ver =
     install_ini.get_section (L"Version.Local");
 
-  if (empty) {
+  if (empty)
+  {
     installed_ver.set_name      (L"Version.Local");
     installed_ver.add_key_value (L"InstallPackage", L" ");
     installed_ver.add_key_value (L"Branch",         L"Latest");
@@ -1052,11 +1103,15 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
   wchar_t wszCurrentBuild [128] = { };
 
-  if (empty) {
+  if (empty)
+  {
     *wszCurrentBuild = L'\0';
     build.installed  = -1;
     wcscpy (build.branch, L"Latest");
-  } else {
+  }
+
+  else
+  {
     swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
                 L"%128[^,],%li",
                   wszCurrentBuild,
@@ -1141,7 +1196,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
       int nButton = 0;
 
       extern HWND SK_bypass_dialog_hwnd;
-      while (SK_bypass_dialog_hwnd != 0 && IsWindow (SK_bypass_dialog_hwnd)) {
+      while (SK_bypass_dialog_hwnd != 0 && IsWindow (SK_bypass_dialog_hwnd))
+      {
         MSG  msg;
         BOOL bRet;
 
@@ -1215,7 +1271,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                                                        0 )
                   ) == 0
                 )
-            Sleep_Original (15);
+            SleepEx (15, TRUE);
 
           if ( InterlockedCompareExchange ( &__SK_UpdateStatus, 0, 0 ) == 1 )
           {
