@@ -625,7 +625,13 @@ UINT WINAPI GetRegisteredRawInputDevices_Detour (
   }
 
   int idx = 0;
-  for (auto& it : raw_devices) pRawInputDevices [idx++] = it;
+  for (auto& it : raw_devices)
+  {
+    if (pRawInputDevices)
+      pRawInputDevices [idx++] = it;
+    else
+      idx++;
+  }
 
   return idx;
 }
@@ -639,7 +645,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
 
   if (cbSize != sizeof RAWINPUTDEVICE) {
     dll_log.Log ( L"[ RawInput ] RegisterRawInputDevices has wrong "
-                  L"structure size (%lu bytes), expected: %lu",
+                  L"structure size (%lu bytes), expected: %zu",
                     cbSize,
                       sizeof RAWINPUTDEVICE );
 
@@ -1963,7 +1969,8 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
-  if (config.window.background_render && (! game_window.active))
+  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+      config.window.background_render && (! game_window.active))
     return TRUE;
 
   // Prevent Mouse Look while Drag Locked
@@ -2066,7 +2073,8 @@ GetAsyncKeyState_Detour (_In_ int vKey)
     SK_ConsumeVKey (vKey);
 
   // Block keyboard input to the game while it's in the background
-  if (config.window.background_render && (! game_window.active))
+  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+      config.window.background_render && (! game_window.active))
     SK_ConsumeVKey (vKey);
 
   if ((vKey & 0xFF) >= 5)
@@ -2098,7 +2106,8 @@ GetKeyState_Detour (_In_ int nVirtKey)
     SK_ConsumeVirtKey (nVirtKey);
 
   // Block keyboard input to the game while it's in the background
-  if (config.window.background_render && (! game_window.active))
+  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+      config.window.background_render && (! game_window.active))
     SK_ConsumeVirtKey (nVirtKey);
 
   if ((nVirtKey & 0xFF) >= 5)

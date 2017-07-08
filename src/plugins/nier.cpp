@@ -450,7 +450,7 @@ extern void* __stdcall SK_Scan (const uint8_t* pattern, size_t len, const uint8_
 
 
 
-typedef LONG NTSTATUS;
+typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
 
 typedef NTSTATUS (NTAPI *NtQueryTimerResolution_pfn)
 (
@@ -1624,7 +1624,8 @@ SK_FAR_InitPlugin (void)
   if (! SK_IsInjected ())
     SK_FAR_CheckVersion (nullptr);
 
-  if (NtDll == 0) {
+  if (NtDll == 0)
+  {
     NtDll = LoadLibrary (L"ntdll.dll");
 
     NtQueryTimerResolution =
@@ -1636,7 +1637,8 @@ SK_FAR_InitPlugin (void)
         GetProcAddress (NtDll, "NtSetTimerResolution");
 
     if (NtQueryTimerResolution != nullptr &&
-        NtSetTimerResolution   != nullptr) {
+        NtSetTimerResolution   != nullptr)
+    {
       ULONG min, max, cur;
       NtQueryTimerResolution (&min, &max, &cur);
       dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",

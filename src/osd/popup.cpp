@@ -151,23 +151,27 @@ SK_PopupManager::createPopup (const char* szLayout)
   SK_PopupWindow* popup =
     new SK_PopupWindow (szLayout);
 
-  if (popup->window_ != nullptr) {
-    popups_.insert     (std::make_pair (popup, popup->window_));
-    popups_rev_.insert (std::make_pair (popup->window_, popup));
+  if (popup)
+  {
+    if (popup->window_ != nullptr)
+    {
+      popups_.insert     (std::make_pair (popup, popup->window_));
+      popups_rev_.insert (std::make_pair (popup->window_, popup));
 
-    popup->window_->subscribeEvent (
-      "DestructStart",//CEGUI::Window::EventDestructionStarted,
-        CEGUI::Event::Subscriber ( &SK_PopupManager::OnDestroyPopup,
-                                     this
-                                 )
-    );
+      popup->window_->subscribeEvent (
+        "DestructStart",//CEGUI::Window::EventDestructionStarted,
+          CEGUI::Event::Subscriber ( &SK_PopupManager::OnDestroyPopup,
+                                       this
+                                   )
+      );
 
-    //gui_ctx_->setRootWindow (popup->window_);
+      //gui_ctx_->setRootWindow (popup->window_);
 
-    return popup;
+      return popup;
+    }
+
+    delete popup;
   }
-
-  delete popup;
 
   return nullptr;
 }

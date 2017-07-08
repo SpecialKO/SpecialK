@@ -57,7 +57,7 @@ void
 WaitForInit_GL (void)
 {
   while (! InterlockedCompareExchange (&__gl_ready, FALSE, FALSE))
-    Sleep_Original (100);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 #define WaitForInit() ;
@@ -1734,7 +1734,7 @@ SK::OpenGL::getPipelineStatsDesc (void)
 {
   wchar_t wszDesc [1024];
 
-  D3D11_QUERY_DATA_PIPELINE_STATISTICS stats = { 0 };
+  D3D11_QUERY_DATA_PIPELINE_STATISTICS stats = { };
 
   if (GLPerf::HAS_pipeline_query) {
     stats.IAVertices    = GLPerf::pipeline_states [GLPerf::IAVertices   ]->getLastResult ();
@@ -1865,10 +1865,12 @@ SK_HookGL (void)
   dll_log.Log (L"[ OpenGL32 ] ================================");
 
   if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
-                   L"OPENGL32.dll" ) ) {
+                   L"OPENGL32.dll" ) )
+  {
     dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
 
-    if (true) {
+    if (true)
+    {
       wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
 #if 0

@@ -48,6 +48,8 @@
 #include <SpecialK/osd/text.h>
 #include <SpecialK/render_backend.h>
 
+#include <memory>
+
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
 #define STEAM_API_NODLL
@@ -61,9 +63,9 @@
 volatile ULONG            __SK_Steam_init = FALSE;
 volatile ULONG            __SteamAPI_hook = FALSE;
 
-         CRITICAL_SECTION callback_cs     = { 0 };
-         CRITICAL_SECTION init_cs         = { 0 };
-         CRITICAL_SECTION popup_cs        = { 0 };
+         CRITICAL_SECTION callback_cs     = { };
+         CRITICAL_SECTION init_cs         = { };
+         CRITICAL_SECTION popup_cs        = { };
 
 #include <time.h>
 
@@ -2376,6 +2378,8 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
+  static bool failure = false;
+
   // Throttle to 1000 Hz for STUPID games like Akiba's Trip
   static DWORD dwLastTick = 0;
          DWORD dwNow      = timeGetTime ();
@@ -2389,11 +2393,13 @@ SteamAPI_RunCallbacks_Detour (void)
     {
       InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
       // Skip the callbacks, one call every 1 ms is enough!!
+
+      SleepEx (0, TRUE);
       return;
     }
   }
 
-  if (( InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr ))
+  if ((! failure) && (( InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr )))
   {
     // Handle situations where Steam was initialized earlier than
     //   expected...
@@ -2452,7 +2458,9 @@ SteamAPI_RunCallbacks_Detour (void)
 
               __except (EXCEPTION_EXECUTE_HANDLER)
               {
+                failure = true;
                 steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+                InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
               }
 
               InterlockedExchangePointer ((volatile HANDLE *)user, nullptr);
@@ -2466,16 +2474,30 @@ SteamAPI_RunCallbacks_Detour (void)
       );
     }
   }
-  InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
 
   __try
   {
-    SteamAPI_RunCallbacks_Original ();
+    extern volatile ULONG          __SK_DLL_Ending;
+    if (! InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+    {
+      InterlockedIncrement64         (&SK_SteamAPI_CallbackRunCount);
+      SteamAPI_RunCallbacks_Original ();
+    }
+
+    else
+    {
+      if (SteamAPI_Shutdown != nullptr)
+        TerminateProcess (GetCurrentProcess (), 0x0);
+    }
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
-    steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+    if (! failure)
+    {
+      steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+      failure = true;
+    }
   }
 }
 
@@ -2559,7 +2581,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
       {
         SK::SteamAPI::Pump ();
 
-        SleepEx (250, TRUE);
+        SleepEx (250, FALSE);
       }
     }
 
@@ -2659,12 +2681,12 @@ SK_GetSteamDir (void)
 std::string
 SK_UseManifestToGetAppName (uint32_t appid)
 {
-  typedef char* steam_library_t [MAX_PATH];
+  typedef char* steam_library_t [MAX_PATH * 2];
   static bool   scanned_libs = false;
 
 #define MAX_STEAM_LIBRARIES 16
   static int             steam_libs = 0;
-  static steam_library_t steam_lib_paths [MAX_STEAM_LIBRARIES] = { 0 };
+  static steam_library_t steam_lib_paths [MAX_STEAM_LIBRARIES] = { };
 
   static const wchar_t* wszSteamPath;
 
@@ -2675,231 +2697,227 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
     if (wszSteamPath != nullptr)
     {
-      wchar_t wszLibraryFolders [MAX_PATH];
+      wchar_t wszLibraryFolders [MAX_PATH * 2 + 1] = { };
 
       lstrcpyW (wszLibraryFolders, wszSteamPath);
       lstrcatW (wszLibraryFolders, L"\\steamapps\\libraryfolders.vdf");
 
-      if (GetFileAttributesW (wszLibraryFolders) != INVALID_FILE_ATTRIBUTES)
+      HANDLE hLibFolders =
+        CreateFileW ( wszLibraryFolders,
+                        GENERIC_READ,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE,
+                            nullptr,
+                              OPEN_EXISTING,
+                                GetFileAttributesW (wszLibraryFolders),
+                                  nullptr );
+
+      if (hLibFolders != INVALID_HANDLE_VALUE)
       {
-        HANDLE hLibFolders =
-          CreateFileW ( wszLibraryFolders,
-                          GENERIC_READ,
-                            FILE_SHARE_READ,
-                              nullptr,
-                                OPEN_EXISTING,
-                                  GetFileAttributesW (wszLibraryFolders),
-                                    nullptr );
+        DWORD  dwSize     = 0,
+               dwSizeHigh = 0,
+               dwRead     = 0;
 
-        if (hLibFolders != INVALID_HANDLE_VALUE)
+        dwSize =
+          GetFileSize (hLibFolders, &dwSizeHigh);
+
+        void* data =
+          new uint8_t [dwSize + 1] { };
+
+        if (data == nullptr)
         {
-          DWORD  dwSize,
-                 dwSizeHigh,
-                 dwRead;
+          CloseHandle (hLibFolders);
+          return nullptr;
+        }
 
-          // This isn't a 4+ GiB file... so who the heck cares about the high-bits?
-          dwSize = GetFileSize (hLibFolders, &dwSizeHigh);
+        dwRead = dwSize;
 
-          void* data =
-            new uint8_t [dwSize];
-
-          if (data == nullptr)
+        if (ReadFile (hLibFolders, data, dwSize, &dwRead, nullptr))
+        {
+          for (DWORD i = 0; i < dwSize; i++)
           {
-            CloseHandle (hLibFolders);
-            return nullptr;
-          }
-
-          dwRead = dwSize;
-
-          if (ReadFile (hLibFolders, data, dwSize, &dwRead, nullptr))
-          {
-            for (DWORD i = 0; i < dwSize; i++)
+            if (((const char *)data) [i] == '"' && i < dwSize - 3)
             {
-              if (((const char *)data) [i] == '"' && i < dwSize - 3)
+              if (((const char *)data) [i + 2] == '"')
+                i += 2;
+              else if (((const char *)data) [i + 3] == '"')
+                i += 3;
+              else
+                continue;
+
+              char* lib_start = nullptr;
+
+              for (DWORD j = i; j < dwSize; j++,i++)
               {
-                if (((const char *)data) [i + 2] == '"')
-                  i += 2;
-                else if (((const char *)data) [i + 3] == '"')
-                  i += 3;
-                else
-                  continue;
-
-                char* lib_start = nullptr;
-
-                for (DWORD j = i; j < dwSize; j++,i++)
+                if (((char *)data) [j] == '"' && lib_start == nullptr && j < dwSize - 1)
                 {
-                  if (((char *)data) [j] == '"' && lib_start == nullptr && j < dwSize - 1)
-                  {
-                    lib_start = &((char *)data) [j+1];
-                  }
+                  lib_start = &((char *)data) [j+1];
+                }
 
-                  else if (((char *)data) [j] == '"')
-                  {
-                    ((char *)data) [j] = '\0';
-                    lstrcpyA ((char *)steam_lib_paths [steam_libs++], lib_start);
-                    lib_start = nullptr;
-                  }
+                else if (((char *)data) [j] == '"')
+                {
+                  ((char *)data) [j] = '\0';
+                  lstrcpyA ((char *)steam_lib_paths [steam_libs++], lib_start);
+                  lib_start = nullptr;
                 }
               }
             }
           }
-
-          delete [] data;
-
-          CloseHandle (hLibFolders);
         }
+
+        delete [] data;
+
+        CloseHandle (hLibFolders);
       }
     }
 
     scanned_libs = true;
   }
 
+
   // Search custom library paths first
   if (steam_libs != 0)
   {
     for (int i = 0; i < steam_libs; i++)
     {
-      char szManifest [MAX_PATH] = { };
+      char szManifest [MAX_PATH * 2 + 1] = { };
 
       sprintf ( szManifest,
                   "%s\\steamapps\\appmanifest_%lu.acf",
                     (char *)steam_lib_paths [i],
                       appid );
 
-      if (GetFileAttributesA (szManifest) != INVALID_FILE_ATTRIBUTES)
+      HANDLE hManifest =
+        CreateFileA ( szManifest,
+                      GENERIC_READ,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr,
+                            OPEN_EXISTING,
+                              GetFileAttributesA (szManifest),
+                                nullptr );
+
+      if (hManifest != INVALID_HANDLE_VALUE)
       {
-        HANDLE hManifest =
-          CreateFileA ( szManifest,
-                        GENERIC_READ,
-                          FILE_SHARE_READ,
-                            nullptr,
-                              OPEN_EXISTING,
-                                GetFileAttributesA (szManifest),
-                                  nullptr );
+        DWORD  dwSize     = 0,
+               dwSizeHigh = 0,
+               dwRead     = 0;
 
-        if (hManifest != INVALID_HANDLE_VALUE)
+        dwSize =
+          GetFileSize (hManifest, &dwSizeHigh);
+
+        char* szManifestData =
+          new char [dwSize + 1] { };
+
+        if (! szManifestData)
         {
-          DWORD  dwSize     = 0,
-                 dwSizeHigh = 0,
-                 dwRead     = 0;
+          CloseHandle (hManifest);
+          continue;
+        }
 
-          dwSize = GetFileSize (hManifest, &dwSizeHigh);
+        std::unique_ptr <char> manifest_data (szManifestData);
 
-          char* szManifestData =
-            new char [dwSize + 1];
-
-          szManifestData [dwSize] = '\0';
-
+        bool bRead =
           ReadFile ( hManifest,
                        szManifestData,
                          dwSize,
                            &dwRead,
                              nullptr );
 
-          CloseHandle (hManifest);
+        CloseHandle (hManifest);
 
-          if (! dwRead)
-          {
-            delete [] szManifestData;
-            continue;
-          }
+        if (! (bRead && dwRead))
+        {
+          continue;
+        }
 
-          char* szAppName =
-            StrStrIA (szManifestData, "\"name\"");
+        char* szAppName =
+          StrStrIA (szManifestData, "\"name\"");
 
-          char szGameName [MAX_PATH] = { };
+        char szGameName [513] = { };
 
-          if (szAppName != nullptr)
-          {
-            // Make sure everything is lowercase
-            strncpy (szAppName, "\"name\"", strlen ("\"name\""));
+        if (szAppName != nullptr)
+        {
+          // Make sure everything is lowercase
+          strncpy (szAppName, "\"name\"", strlen ("\"name\""));
 
-            sscanf ( szAppName,
-                       "\"name\" \"%259[^\"]\"",
-                         szGameName );
+          sscanf ( szAppName,
+                     "\"name\" \"%512[^\"]\"",
+                       szGameName );
 
-            return szGameName;
-          }
-
-          delete [] szManifestData;
+          return szGameName;
         }
       }
     }
   }
 
-  char szManifest [MAX_PATH] = { };
+
+  char szManifest [MAX_PATH * 2 + 1] = { };
 
   sprintf ( szManifest,
               "%ls\\steamapps\\appmanifest_%lu.acf",
                 wszSteamPath,
                   appid );
 
-  if (GetFileAttributesA (szManifest) != INVALID_FILE_ATTRIBUTES)
+  HANDLE hManifest =
+    CreateFileA ( szManifest,
+                  GENERIC_READ,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                        OPEN_EXISTING,
+                          GetFileAttributesA (szManifest),
+                            nullptr );
+
+  if (hManifest != INVALID_HANDLE_VALUE)
   {
-    HANDLE hManifest =
-      CreateFileA ( szManifest,
-                    GENERIC_READ,
-                      FILE_SHARE_READ | FILE_SHARE_WRITE,
-                        nullptr,
-                          OPEN_EXISTING,
-                            GetFileAttributesA (szManifest),
-                              nullptr );
+    DWORD dwSize     = 0,
+          dwSizeHigh = 0,
+          dwRead     = 0;
 
-    if (hManifest != INVALID_HANDLE_VALUE)
+    dwSize =
+      GetFileSize (hManifest, &dwSizeHigh);
+
+    char* szManifestData =
+      new char [dwSize + 1] { };
+
+    if (szManifestData == nullptr)
     {
-      DWORD  dwSize,
-             dwSizeHigh,
-             dwRead;
+      CloseHandle (hManifest);
 
-      dwSize = GetFileSize (hManifest, &dwSizeHigh);
+      return "";
+    }
 
-      char* szManifestData =
-        new char [dwSize + 1];
+    std::unique_ptr <char> manifest_data (szManifestData);
 
-      szManifestData [dwSize] = '\0';
-
-      if (szManifestData == nullptr)
-      {
-        CloseHandle (hManifest);
-        return nullptr;
-      }
-
+    bool bRead =
       ReadFile ( hManifest,
                    szManifestData,
                      dwSize,
                        &dwRead,
                          nullptr );
 
-      CloseHandle (hManifest);
+    CloseHandle (hManifest);
 
-      if (! dwRead)
-      {
-        if (szManifestData != nullptr)
-          delete [] szManifestData;
+    if (! (bRead && dwRead))
+    {
+      return "";
+    }
 
-        return "(null)";
-      }
+    char* szAppName =
+      StrStrIA (szManifestData, "\"name\"");
 
-      char* szAppName =
-        StrStrIA (szManifestData, "\"name\"");
+    char szGameName [513] = { };
 
-      char szGameName [MAX_PATH] = { };
+    if (szAppName != nullptr)
+    {
+      *szAppName = '\0';
 
-      if (szAppName != nullptr)
-      {
-        *szAppName = '\0';
+      // Make sure everything is lowercase
+      strncpy (szAppName, "\"name\"", strlen ("\"name\""));
 
-        // Make sure everything is lowercase
-        strncpy (szAppName, "\"name\"", strlen ("\"name\""));
+      sscanf ( szAppName,
+                 "\"name\" \"%512[^\"]\"",
+                   szGameName );
 
-        sscanf ( szAppName,
-                   "\"name\" \"%259[^\"]\"",
-                     szGameName );
-
-        return szGameName;
-      }
-
-      delete [] szManifestData;
+      return szGameName;
     }
   }
 
@@ -3162,8 +3180,10 @@ DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID user)
 {
-  if (! SK_IsInjected ()) {
+  if (! SK_IsInjected ())
+  {
     CloseHandle (GetCurrentThread ());
+
     return 0;
   }
 

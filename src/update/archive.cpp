@@ -110,6 +110,8 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
   return files;
 }
 
+#include <Shlwapi.h>
+
 void
 SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
 {
@@ -117,10 +119,16 @@ SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
                         wszNew,
                           MOVEFILE_REPLACE_EXISTING ) )
   {
-    wchar_t wszTemp [MAX_PATH] = { };
-    GetTempFileNameW (nullptr, L"OLD", timeGetTime (), wszTemp);
+    wchar_t wszPath [MAX_PATH] = { };
+    wcscpy (wszPath, wszNew);
 
-    MoveFileExW ( wszNew, wszTemp, 0x00 );
+    PathRemoveFileSpec (wszPath);
+
+    wchar_t wszTemp [MAX_PATH] = { };
+    GetTempFileNameW (wszPath, L"SKI", timeGetTime (), wszTemp);
+
+    MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING );
+    MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING );
   }
 }
 
@@ -412,7 +420,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                               FILE_FLAG_SEQUENTIAL_SCAN,
                                 nullptr );
 
-    if (hOutFile != INVALID_HANDLE_VALUE) {
+    if (hOutFile != INVALID_HANDLE_VALUE)
+    {
       DWORD dwWritten;
 
       WriteFile ( hOutFile,

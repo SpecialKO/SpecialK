@@ -28,7 +28,7 @@
 #include <vector>
 
 volatile ULONG current_gpu_stat = 0;
-gpu_sensors_t gpu_stats_buffers [2] = { 0 };
+gpu_sensors_t gpu_stats_buffers [2] = { };
 
 gpu_sensors_t& gpu_stats = gpu_stats_buffers [0];
 

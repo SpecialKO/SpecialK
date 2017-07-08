@@ -337,7 +337,7 @@ public:
 
   struct tex2D_descriptor_s {
     ID3D11Texture2D      *texture    = nullptr;
-    D3D11_TEXTURE2D_DESC  desc       = { 0 };
+    D3D11_TEXTURE2D_DESC  desc       = { };
     size_t                mem_size   = 0L;
     uint64_t              load_time  = 0ULL;
     uint32_t              crc32      = 0x00;
@@ -619,7 +619,7 @@ struct SK_DisjointTimerQueryD3D11
   ID3D11Query* async  = nullptr;
   bool         active = false;
 
-  D3D11_QUERY_DATA_TIMESTAMP_DISJOINT last_results = { 0 };
+  D3D11_QUERY_DATA_TIMESTAMP_DISJOINT last_results = { };
 };
 
 struct SK_TimerQueryD3D11
@@ -627,7 +627,7 @@ struct SK_TimerQueryD3D11
   ID3D11Query* async  = nullptr;
   bool         active = false;
 
-  UINT64 last_results = { 0 };
+  UINT64 last_results = { };
 };
 
 struct shader_tracking_s

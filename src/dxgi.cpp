@@ -205,7 +205,7 @@ SK_CEGUI_InitBase (void)
         dynamic_cast <CEGUI::DefaultResourceProvider *>
             (CEGUI::System::getDllSingleton ().getResourceProvider ());
 
-         char szRootPath [MAX_PATH + 2] = { 0 };
+         char szRootPath [MAX_PATH + 2] = { };
     snprintf (szRootPath, MAX_PATH, "%ws", _wgetenv (L"CEGUI_PARENT_DIR"));
               szRootPath [MAX_PATH] = '\0';
 
@@ -217,21 +217,21 @@ SK_CEGUI_InitBase (void)
        rather than only ASCII strings (even though currently they're all ASCII).
        */
     rp->setResourceGroupDirectory("schemes",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/schemes/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/schemes/"));
     rp->setResourceGroupDirectory("imagesets",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/imagesets/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/imagesets/"));
     rp->setResourceGroupDirectory("fonts",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/fonts/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/fonts/"));
     rp->setResourceGroupDirectory("layouts",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/layouts/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/layouts/"));
     rp->setResourceGroupDirectory("looknfeels",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/looknfeel/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/looknfeel/"));
     rp->setResourceGroupDirectory("lua_scripts",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/lua_scripts/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/lua_scripts/"));
     rp->setResourceGroupDirectory("schemas",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/xml_schemas/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/xml_schemas/"));
     rp->setResourceGroupDirectory("animations",
-      dataPathPrefix +reinterpret_cast<const CEGUI::utf8*>("/animations/"));
+      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/animations/"));
 
     // set the default resource groups to be used
     CEGUI::ImageManager::setImagesetDefaultResourceGroup ("imagesets");
@@ -451,7 +451,7 @@ void WaitForInitDXGI (void)
   }
 
   while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE)) {
-    SleepEx (config.system.init_delay, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 }
 
@@ -3105,7 +3105,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
         if ((*ppAdapter) == nullptr)
           EnumAdapters_Original (pFactory, 0, &pGameAdapter);
 
-        DXGI_ADAPTER_DESC game_desc { 0 };
+        DXGI_ADAPTER_DESC game_desc { };
 
         if (pGameAdapter != nullptr)
         {
@@ -3283,7 +3283,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   {
     int iver = SK_GetDXGIAdapterInterfaceVer (*ppAdapter);
 
-    DXGI_ADAPTER_DESC desc = { 0 };
+    DXGI_ADAPTER_DESC desc = { };
 
     switch (iver)
     {
@@ -3744,7 +3744,7 @@ dxgi_init_callback (finish_pfn finish)
     SK_BootDXGI ();
 
     while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
-      SleepEx (100UL, TRUE);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   finish ();
@@ -4098,7 +4098,7 @@ HookDXGI (LPVOID user)
     }
 
     while (CreateDXGIFactory_Import == nullptr)
-      Sleep_Original (33);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLINPUT, MWMO_ALERTABLE);
 
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
@@ -4134,9 +4134,9 @@ HookDXGI (LPVOID user)
 
   HWND hwnd =
     CreateWindowW ( L"STATIC", L"Dummy DXGI Window",
-                      WS_POPUP | WS_MINIMIZEBOX,
+                      WS_POPUP        | WS_MINIMIZEBOX,
                         CW_USEDEFAULT, CW_USEDEFAULT,
-                          640, 480, 0,
+                          1, 1, 0,
                             nullptr, nullptr, 0x00 );
 
   desc.OutputWindow = hwnd;
@@ -4338,7 +4338,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
       while ( ! InterlockedCompareExchange ( &budget_thread.ready,
                                                FALSE,
                                                  FALSE )
-            ) Sleep_Original (100);
+            ) SleepEx (100, TRUE);
 
 
       if ( budget_thread.tid != 0 )
@@ -4389,9 +4389,9 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
                                      L" Pre-Emptive" );
 
       DXGI_QUERY_VIDEO_MEMORY_INFO
-              _mem_info;
+              _mem_info = { };
       DXGI_ADAPTER_DESC2
-              desc2;
+                  desc2 = { };
 
       int     i      = 0;
       bool    silent = dll_log.silent;

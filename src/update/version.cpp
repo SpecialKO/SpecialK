@@ -50,12 +50,13 @@ SK_SYS_GetVersionPath (void)
   if (! SK_IsInjected ())
   {
     if (! config.system.central_repository)
-      return std::wstring (SK_GetRootPath ()) + L"\\Version\\";
+      return std::wstring (SK_GetRootPath ()) + L"Version\\";
     else
-      return std::wstring (std::wstring (SK_GetConfigPath ()) + L"\\Version\\");
+      return std::wstring (std::wstring (SK_GetConfigPath ()) + L"Version\\");
   }
 
-  else {
+  else
+  {
     std::wstring path  = SK_GetDocumentsDir ();
                  path += L"\\My Mods\\SpecialK\\Version\\";
           return path;
@@ -70,7 +71,8 @@ SK_SYS_GetInstallPath (void)
     return SK_GetRootPath ();
   }
 
-  else {
+  else
+  {
     std::wstring path  = SK_GetDocumentsDir ();
                  path += L"\\My Mods\\SpecialK\\";
           return path;
@@ -96,6 +98,15 @@ bool
 __stdcall
 SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 {
+  // If no log is initialized yet, it's because SKIM is doing
+  //   something with this DLL. Init. the log so we can trace
+  //     install issues.
+  if (! dll_log.initialized)
+  {
+    dll_log.init (L"logs/installer.log", L"w");
+  }
+
+
   if (wszProduct == nullptr)
     wszProduct = __SK_LastProductTested.c_str ();
 
@@ -365,7 +376,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                             nullptr,
                               0,
                                 nullptr,
-                                  0 ) ) {
+                                  0 ) )
+  {
     DWORD dwSize;
 
     if ( InternetQueryDataAvailable ( hInetGitHubOpen,

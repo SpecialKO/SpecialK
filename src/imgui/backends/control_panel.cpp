@@ -702,7 +702,7 @@ SK_ImGui_ControlPanel (void)
   static int   values_offset =  0;
 
   if (! reset_frame_history) {
-    values [values_offset] = 1000.0f * ImGui::GetIO ().DeltaTime;
+    values [values_offset] = 1000.0f * io.DeltaTime;
     values_offset = (values_offset + 1) % IM_ARRAYSIZE (values);
   }
 
@@ -2016,7 +2016,7 @@ SK_ImGui_ControlPanel (void)
       static DWORD last_di8      = 0;
       static DWORD last_rawinput = 0;
 
-      struct { ULONG reads; } xinput;
+      struct { ULONG reads; } xinput { };
 
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
@@ -2532,7 +2532,7 @@ extern float SK_ImGui_PulseNav_Strength;
         );
       };
 
-      if (ImGui::CollapsingHeader ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
+      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && ImGui::CollapsingHeader ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush ("");
 
@@ -2590,11 +2590,11 @@ extern float SK_ImGui_PulseNav_Strength;
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text ("Set if Game's Window Resolution is Reported Wrong");
-            ImGui::Separator ();
-            ImGui::BulletText ("0x0 = Disable");
-            ImGui::BulletText ("Applied the Next Time a Style/Position Setting is Changed");
-            ImGui::EndTooltip ();
+            ImGui::Text         ("Set if Game's Window Resolution is Reported Wrong");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("0x0 = Disable");
+            ImGui::BulletText   ("Applied the Next Time a Style/Position Setting is Changed");
+            ImGui::EndTooltip   ();
           }
         }
 
@@ -2711,12 +2711,14 @@ extern float SK_ImGui_PulseNav_Strength;
               if (bottom_align && config.window.offset.y.absolute >= 0)
                 config.window.offset.y.absolute = -1;
 
-              if (config.window.offset.x.absolute == 0) {
+              if (config.window.offset.x.absolute == 0)
+              {
                 config.window.offset.x.absolute = 1;
                 reset_x_to_zero = true;
               }
 
-              if (config.window.offset.y.absolute == 0) {
+              if (config.window.offset.y.absolute == 0)
+              {
                 config.window.offset.y.absolute = 1;
                 reset_y_to_zero = true;
               }
@@ -2842,25 +2844,23 @@ extern float SK_ImGui_PulseNav_Strength;
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Mute the Game when Another Window has Input Focus");
 
-        ImGui::SameLine ();
-
-        if ( ImGui::Checkbox ( "Continue Rendering", &background_render ) )
-          DeferCommand ("Window.BackgroundRender toggle");
-
-        if (ImGui::IsItemHovered ())
+        if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
         {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Block Application Switch Notifications to the Game");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Most Games will Continue Rendering");
-          ImGui::BulletText   ("Disables a Game's Built-in Mute-on-Alt+Tab Functionality");
-          ImGui::BulletText   ("Keyboard/Mouse Input is Blocked, but not Gamepad Input");
-          ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.8f, 0.1f, 1.0f));
-          ImGui::BulletText   ("DO NOT USE THIS IN FULLSCREEN EXCLUSIVE MODE");
-          ImGui::PopStyleColor ();
-          ImGui::SameLine     ();
-          ImGui::Text         (", Alt + Tab will not work.");
-          ImGui::EndTooltip   ();
+          ImGui::SameLine ();
+
+          if ( ImGui::Checkbox ( "Continue Rendering", &background_render ) )
+            DeferCommand ("Window.BackgroundRender toggle");
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Block Application Switch Notifications to the Game");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("Most Games will Continue Rendering");
+            ImGui::BulletText   ("Disables a Game's Built-in Mute-on-Alt+Tab Functionality");
+            ImGui::BulletText   ("Keyboard/Mouse Input is Blocked, but not Gamepad Input");
+            ImGui::EndTooltip   ();
+          }
         }
 
         ImGui::TreePop ();
@@ -4154,19 +4154,22 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   bool d3d11 = false;
   bool gl    = false;
 
-  if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL) {
+  if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+  {
     gl = true;
 
     ImGui_ImplGL3_NewFrame ();
   }
 
-  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) {
+  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+  {
     d3d9 = true;
 
     ImGui_ImplDX9_NewFrame ();
   }
 
-  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) {
+  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  {
     d3d11 = true;
 
     ImGui_ImplDX11_NewFrame ();

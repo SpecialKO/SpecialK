@@ -192,7 +192,7 @@ CBTProc ( _In_ int    nCode,
     // Don't create that thread more than once, but don't bother with a complete
     //   critical section.
     if (InterlockedAdd (&lHookIters, 1L) > 0L)
-      return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+      return CallNextHookEx (0, nCode, wParam, lParam);
 
     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 #ifdef _WIN64
@@ -223,7 +223,7 @@ CBTProc ( _In_ int    nCode,
   }
 
 
-  return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+  return CallNextHookEx (0, nCode, wParam, lParam);
 }
 
 
@@ -362,7 +362,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                         &__SK_DLL_Attached,
                           FALSE,
                             FALSE ) || (! SK_IsHostAppSKIM ()))
-                 SleepEx (250UL, TRUE);
+                 SleepEx (250UL, FALSE);
 
 
                if (PtrToInt (user) != -128)
@@ -376,7 +376,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
            0x00,
          nullptr );
 
-        Sleep (INFINITE);
+        SleepEx (INFINITE, FALSE);
       }
     }
   }
@@ -845,7 +845,7 @@ bool
 SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 {
   HANDLE         hProcSnap;
-  PROCESSENTRY32 pe32;
+  PROCESSENTRY32 pe32 = { };
 
   hProcSnap =
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
@@ -924,13 +924,14 @@ SK_Inject_Stop (void)
     if (hWndExisting)
     {
       SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
+      SleepEx     (100UL, FALSE);
     }
 
     // Worst-case, we do this manually and confuse Steam
     else
     {
       ShellExecuteA        (NULL, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
-      Sleep                (100UL);
+      SleepEx              (100UL, FALSE);
       SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
     }
   }
@@ -990,6 +991,7 @@ SK_Inject_Start (void)
     if (hWndExisting)
     {
       SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
+      SleepEx     (100, FALSE);
       SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
     }
 

@@ -208,9 +208,9 @@ NVAPI::EnumSLIGPUs (void)
  *
  *  ... but, it very likely has caused thread safety issues.
  **/
-static DXGI_ADAPTER_DESC   _nv_dxgi_adapters [64] = { 0 };
-static NvPhysicalGpuHandle _nv_dxgi_gpus     [64] = { 0 };
-static NvPhysicalGpuHandle              phys [64] = { 0 };
+static DXGI_ADAPTER_DESC   _nv_dxgi_adapters [64] = { };
+static NvPhysicalGpuHandle _nv_dxgi_gpus     [64] = { };
+static NvPhysicalGpuHandle              phys [64] = { };
 
 // This function does much more than it's supposed to -- consider fixing that!
 DXGI_ADAPTER_DESC*

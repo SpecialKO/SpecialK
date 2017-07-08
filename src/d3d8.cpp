@@ -62,7 +62,7 @@ WINAPI
 WaitForInit_D3D8 (void)
 {
   while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
-    Sleep_Original (config.system.init_delay);
+    SleepEx (config.system.init_delay, TRUE);
 }
 
 typedef IUnknown*
@@ -170,7 +170,7 @@ d3d8_init_callback (finish_pfn finish)
     SK_BootD3D8 ();
 
     while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
-      Sleep_Original (100UL);
+      SleepEx (100UL, TRUE);
   }
 
   finish ();

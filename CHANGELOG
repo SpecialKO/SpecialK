@@ -1,4 +1,13 @@
+0.8.23:
+
+ + Fixed potential startup deadlock with Steam Overlay and CoInitializeSecurity (...)
+ + Fixed SK_NoFailMove behavior (prevents updates) when attempting to patch a locked file
+ + Fixed (evict-on-update) D3D11 texture cache in The Witcher 3 and Divinity: Original Sin
+ + Added logs/installer.log when installing through SKIM
+ + Added module name and fixed newline endings in game_output.log
+
 0.8.22:
+
  + [Misc]  Stopping injection while programs are using Special K no longer crashes them :)
  + [SKIM]  Closing SKIM while injection is enabled now triggers a confirmation dialog
  + [D3D11] Added option to enable staging texture cache (for Unity games)
@@ -12,6 +21,7 @@
              basic information about games recently played.
 
 0.8.21:
+
  + [SKIM]   Changed system tray icon (to another KDE icon =P) so that it is easier to
               recognize
  + [XInput] Fix for games that use XInputGetStateEx (...) without allocating the correct
@@ -28,6 +38,7 @@
               and exit
 
 0.8.20:
+
  + [D3D11] Added texture updae frequency (0 = Manually Refresh, 1+ = Auto) for the
              texture mod tools.
  + [D3D11] Added option to replace 24-bit Depth Buffer with 32-bit

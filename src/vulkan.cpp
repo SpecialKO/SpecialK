@@ -43,7 +43,7 @@ void
 WaitForInit_Vk (void)
 {
   while (! InterlockedCompareExchange (&__vk_ready, FALSE, FALSE))
-    Sleep_Original (config.system.init_delay);
+    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 extern HMODULE WINAPI SK_GetDLL   (void);

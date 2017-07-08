@@ -489,8 +489,7 @@ SK_ImGui_PollGamepad (void);
 void
 ImGui_ImplDX9_NewFrame (void)
 {
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   if (! g_FontTexture)
     ImGui_ImplDX9_CreateDeviceObjects ();

@@ -764,7 +764,8 @@ SK_InitFinishCallback (void)
 
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
-  if (SK_IsSuperSpecialK ()) {
+  if (SK_IsSuperSpecialK ())
+  {
     LeaveCriticalSection (&init_mutex);
     return;
   }
@@ -813,7 +814,8 @@ SK_InitFinishCallback (void)
   else if (! lstrcmpW (SK_GetHostApp (), L"RiME.exe"))
     SK_REASON_InitPlugin ();
 
-  if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe")) {
+  if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+  {
     SK_GetCommandProcessor ()->ProcessCommandFormatted (
       "TargetFPS %f",
         config.render.framerate.target_fps
@@ -821,7 +823,8 @@ SK_InitFinishCallback (void)
   }
 
   // Get rid of the game output log if the user doesn't want it...
-  if (! config.system.game_output) {
+  if (! config.system.game_output)
+  {
     game_debug.close ();
     game_debug.silent = true;
   }
@@ -964,7 +967,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
     dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
 
   // Pre-Load the original DLL into memory
-  if (dll_name != wszBackendDLL) {
+  if (dll_name != wszBackendDLL)
+  {
                   LoadLibraryW_Original (wszBackendDLL);
     backend_dll = LoadLibraryW_Original (dll_name);
   }
@@ -1011,7 +1015,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   dll_log.LogEx (false, L" %s\n", nvapi_init ? L"Success" : L"Failed");
 
-  if (nvapi_init) {
+  if (nvapi_init)
+  {
     int num_sli_gpus = sk::NVAPI::CountSLIGPUs ();
 
     dll_log.Log (L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
@@ -1021,16 +1026,18 @@ SK_InitCore (const wchar_t* backend, void* callback)
       L"(%i are in SLI mode)",
       sk::NVAPI::CountPhysicalGPUs (), num_sli_gpus);
 
-    if (num_sli_gpus > 0) {
+    if (num_sli_gpus > 0)
+    {
       DXGI_ADAPTER_DESC* sli_adapters =
         sk::NVAPI::EnumSLIGPUs ();
 
       int sli_gpu_idx = 0;
 
-      while (*sli_adapters->Description != L'\0') {
+      while (*sli_adapters->Description != L'\0')
+      {
         dll_log.Log ( L"[  NvAPI   ]   + SLI GPU %d: %s",
-          sli_gpu_idx++,
-          (sli_adapters++)->Description );
+                        sli_gpu_idx++,
+                          (sli_adapters++)->Description );
       }
     }
 
@@ -1042,19 +1049,22 @@ SK_InitCore (const wchar_t* backend, void* callback)
     //
     // Install SLI Override Settings
     //
-    if (sk::NVAPI::CountSLIGPUs () && config.nvidia.sli.override) {
+    if (sk::NVAPI::CountSLIGPUs () && config.nvidia.sli.override)
+    {
       if (! sk::NVAPI::SetSLIOverride
               ( SK_GetDLLRole (),
                   config.nvidia.sli.mode.c_str (),
                     config.nvidia.sli.num_gpus.c_str (),
                       config.nvidia.sli.compatibility.c_str ()
               )
-         ) {
+         )
+      {
         restart = true;
       }
     }
 
-    if (restart) {
+    if (restart)
+    {
       dll_log.Log (L"[  NvAPI   ] >> Restarting to apply NVIDIA driver settings <<");
 
       ShellExecute ( GetDesktopWindow (),
@@ -1065,7 +1075,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
                                SW_SHOWDEFAULT );
       exit (0);
     }
-  } else {
+  }
+
+  else
+  {
     dll_log.LogEx (true, L"[DisplayLib] Initializing AMD Display Library (ADL):   ");
 
     BOOL adl_init = SK_InitADL ();
@@ -1137,7 +1150,7 @@ WaitForInit (void)
   while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
-    SleepEx (150, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 150, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   // First thread to reach this point wins ... a shiny new car and
@@ -1247,7 +1260,7 @@ CreateWindowW_Detour (
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
     if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
-      Sleep (0);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   return CreateWindowW_Original ( lpClassName, lpWindowName, dwStyle,
@@ -1274,7 +1287,7 @@ CreateWindowA_Detour (
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
     if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
-      Sleep (0);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   return CreateWindowA_Original ( lpClassName, lpWindowName, dwStyle,
@@ -1302,7 +1315,7 @@ CreateWindowExW_Detour (
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
     if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
-      Sleep (0);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   return CreateWindowExW_Original ( dwExStyle,
@@ -1332,7 +1345,7 @@ CreateWindowExA_Detour (
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
     if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
-      Sleep (0);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   return CreateWindowExA_Original ( dwExStyle,
@@ -1457,7 +1470,8 @@ SK_EstablishRootPath (void)
 
   if (config.system.central_repository)
   {
-    if (! SK_IsSuperSpecialK ()) {
+    if (! SK_IsSuperSpecialK ())
+    {
 #if 0
       if (SK_IsInjected ()) {
         wchar_t *wszPath = wcsdup (SK_GetModuleFullName (SK_GetDLL ()).c_str ());
@@ -1474,7 +1488,10 @@ SK_EstablishRootPath (void)
                     std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
                       MAX_PATH - 1 );
       }
-    } else {
+    }
+
+    else
+    {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
     }
 
@@ -1485,11 +1502,16 @@ SK_EstablishRootPath (void)
 
   else
   {
-    if (! SK_IsSuperSpecialK ()) {
+    if (! SK_IsSuperSpecialK ())
+    {
       lstrcatW (SK_RootPath,   SK_GetHostPath ());
-    } else {
+    }
+
+    else
+    {
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
     }
+
     lstrcatW (wszConfigPath, SK_GetRootPath ());
   }
 
@@ -1611,7 +1633,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
 
 
-  if (SK_IsSuperSpecialK ()) {
+  if (SK_IsSuperSpecialK ())
+  {
     LeaveCriticalSection (&init_mutex);
     return TRUE;
   }
@@ -1620,7 +1643,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK::Diagnostics::CrashHandler::InitSyms ();
 
 
-  if (config.steam.preload_overlay) {
+  if (config.steam.preload_overlay)
+  {
     extern bool SK_Steam_LoadOverlayEarly (void);
     SK_Steam_LoadOverlayEarly ();
   }
@@ -1638,7 +1662,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     L"-------------------\n");
 
 
-  if (altered_user_profile) {
+  if (altered_user_profile)
+  {
     dll_log.Log ( L"*** WARNING: User has altered their user profile directory the wrong way. ***");
     dll_log.Log ( L"  >> %%UserProfile%%       = '%ws'",
                     wszEnvProfile );
@@ -1929,7 +1954,8 @@ SK_ShutdownCore (const wchar_t* backend)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  if (sk::NVAPI::app_name != L"ds3t.exe") {
+  if (sk::NVAPI::app_name != L"ds3t.exe")
+  {
     dll_log.LogEx (true,  L"[ SpecialK ] Saving user preferences to %s.ini... ", config_name);
     SK_SaveConfig (config_name);
     dll_log.LogEx (false, L"done!\n");
@@ -1982,7 +2008,7 @@ SK_BeginBufferSwap (void)
 {
   // Throttle, but do not deadlock the render loop
   while (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
-    SleepEx (166, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
 
   // ^^^ Use condition variable instead
 
@@ -2319,7 +2345,7 @@ DoKeyboard (void)
 
 #if 0
   if (ullNow.QuadPart < last_poll + poll_interval) {
-    Sleep (10);
+    SleepEx (10, TRUE);
     last_poll = ullNow.QuadPart;
   }
 #endif
@@ -2518,7 +2544,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   __SK_RBkEnd.thread = GetCurrentThreadId ();
 
-  if (device != nullptr) {
+  if (device != nullptr)
+  {
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     CComPtr <ID3D11Device>       pDev11  = nullptr;
@@ -2526,14 +2553,20 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     CComPtr <ID3D12Device>       pDev12  = nullptr;
 #endif
 
-    if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9Ex)))) {
+    if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9Ex))))
+    {
          (int&)__SK_RBkEnd.api  = ( (int)SK_RenderAPI::D3D9 |
                                     (int)SK_RenderAPI::D3D9Ex );
       wcsncpy (__SK_RBkEnd.name, L"D3D9Ex", 8);
-    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9)))) {
+    }
+
+    else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9))))
+    {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D9;
       wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
-    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11))))
+    }
+
+    else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11))))
     {
       // Establish the API used this frame (and handle possible translation layers)
       //
@@ -2584,18 +2617,26 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       extern void SK_D3D11_EndFrame (void);
                   SK_D3D11_EndFrame ();
 #ifdef _WIN64
-    } else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12)))) {
+    }
+
+    else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12))))
+    {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
       wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);
 #endif
-    } else {
+    }
+
+    else
+    {
                __SK_RBkEnd.api  = SK_RenderAPI::Reserved;
       wcsncpy (__SK_RBkEnd.name, L"UNKNOWN", 8);
     }
   }
 
-  else {
-    if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != 0) {
+  else
+  {
+    if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != 0)
+    {
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
     }
@@ -2605,7 +2646,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   static volatile ULONG budget_init = FALSE;
 
-  if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE)) {
+  if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE))
+  {
     SK::DXGI::StartBudgetThread_NoAdapter ();
   }
 
@@ -2625,7 +2667,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   {
     // Get SLI status for the frame we just displayed... this will show up
     //   one frame late, but this is the safest approach.
-    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0) {
+    if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+    {
       sli_state = sk::NVAPI::GetSLIState (device);
     }
   }
@@ -2636,7 +2679,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   //
   // TZFix has its own limiter
   //
-  if (! (hModTZFix || hModTBFix)) {
+  if (! (hModTZFix || hModTBFix))
+  {
     SK::Framerate::GetLimiter ()->wait ();
   }
 

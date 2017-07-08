@@ -85,7 +85,8 @@ CrashHandler::Init (void)
   HRSRC   default_sound =
     FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
 
-  if (default_sound != nullptr) {
+  if (default_sound != nullptr)
+  {
     crash_sound.ref   =
       LoadResource (SK_GetDLL (), default_sound);
 
@@ -93,7 +94,8 @@ CrashHandler::Init (void)
       crash_sound.buf = (uint8_t *)LockResource (crash_sound.ref);
   }
 
-  if (! crash_log.initialized) {
+  if (! crash_log.initialized)
+  {
     crash_log.lockless = true;
     crash_log.init (L"logs/crash.log", L"w");
   }
@@ -368,7 +370,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   char* pszShortName = szDupName + lstrlenA (szDupName);
 
   while (  pszShortName      >  szDupName &&
-    *(pszShortName - 1) != '\\')
+         *(pszShortName - 1) != '\\')
     --pszShortName;
 
   crash_log.Log (L"-----------------------------------------------------------");
@@ -397,7 +399,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
                   ExceptionInfo->ContextRecord->EFlags );
 #else
-  crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, ip-BaseAddr);
+  crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, (uintptr_t)ip-(uintptr_t)BaseAddr);
 
   crash_log.Log ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh",
                   ip,
@@ -471,126 +473,133 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   BOOL ret = TRUE;
 
-  do {
-  SymRefreshModuleList ( hProc );
+  do
+  {
+    SymRefreshModuleList ( hProc );
 
-  ip = stackframe.AddrPC.Offset;
+    ip = stackframe.AddrPC.Offset;
 
-  if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                            (LPCWSTR)ip,
-                              &hModSource )) {
-    GetModuleFileNameA (hModSource, szModName, MAX_PATH);
-  }
+    if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                              (LPCWSTR)ip,
+                                &hModSource ))
+    {
+      GetModuleFileNameA (hModSource, szModName, MAX_PATH);
+    }
 
 #ifdef _WIN64
-  BaseAddr =
-    SymGetModuleBase64 ( hProc, ip );
+    BaseAddr =
+      SymGetModuleBase64 ( hProc, ip );
 #else
-  BaseAddr =
-    SymGetModuleBase   ( hProc, ip );
+    BaseAddr =
+      SymGetModuleBase   ( hProc, ip );
 #endif
 
-  szDupName    = _strdup (szModName);
-  pszShortName = szDupName + lstrlenA (szDupName);
+    szDupName    = _strdup (szModName);
+    pszShortName = szDupName + lstrlenA (szDupName);
 
-  while (  pszShortName      >  szDupName &&
-    *(pszShortName - 1) != '\\')
-    --pszShortName;
+    while (  pszShortName      >  szDupName &&
+           *(pszShortName - 1) != '\\')
+      --pszShortName;
 
 #ifdef _WIN64
-  SymLoadModule64 ( hProc,
+    SymLoadModule64 ( hProc,
+                        nullptr,
+                          pszShortName,
+                            nullptr,
+                              BaseAddr,
+                                0 );
+#else
+    SymLoadModule ( hProc,
                       nullptr,
                         pszShortName,
                           nullptr,
                             BaseAddr,
                               0 );
-#else
-  SymLoadModule ( hProc,
-                    nullptr,
-                      pszShortName,
-                        nullptr,
-                          BaseAddr,
-                            0 );
 #endif
 
-  SYMBOL_INFO_PACKAGE sip;
-  sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-  sip.si.MaxNameLen   = sizeof sip.name;
+    SYMBOL_INFO_PACKAGE sip;
+    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+    sip.si.MaxNameLen   = sizeof sip.name;
 
-  DWORD64 Displacement = 0;
+    DWORD64 Displacement = 0;
 
-  if ( SymFromAddr ( hProc,
-                       (DWORD64)ip,
-                         &Displacement,
-                           &sip.si ) ) {
-    DWORD Disp = 0x00UL;
+    if ( SymFromAddr ( hProc,
+                         (DWORD64)ip,
+                           &Displacement,
+                             &sip.si ) )
+    {
+      DWORD Disp = 0x00UL;
 #ifdef _WIN64
-    IMAGEHLP_LINE64 ihl64;
-    ihl64.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+      IMAGEHLP_LINE64 ihl64;
+      ihl64.SizeOfStruct = sizeof IMAGEHLP_LINE64;
 
-    BOOL  bFileAndLine =
-      SymGetLineFromAddr64 ( hProc, ip, &Disp, &ihl64 );
+      BOOL  bFileAndLine =
+        SymGetLineFromAddr64 ( hProc, ip, &Disp, &ihl64 );
 
-    if (bFileAndLine) {
-      crash_log.Log ( L"[-(Source)-] [!] {%hs} %hs  <%hs:%lu> ",
-                      pszShortName,
-                        sip.si.Name,
-                          ihl64.FileName,
-                            ihl64.LineNumber );
+      if (bFileAndLine)
+      {
+        crash_log.Log ( L"[-(Source)-] [!] {%hs} %hs  <%hs:%lu> ",
+                        pszShortName,
+                          sip.si.Name,
+                            ihl64.FileName,
+                              ihl64.LineNumber );
 #else
-    IMAGEHLP_LINE ihl;
-    ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+      IMAGEHLP_LINE ihl;
+      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 
-    const BOOL bFileAndLine =
-      SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+      const BOOL bFileAndLine =
+        SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
 
-    if (bFileAndLine) {
-      crash_log.Log ( L"[-(Source)-] [!] {%24hs}  %64hs  <%hs:%lu>",
-                      pszShortName,
-                        sip.si.Name,
-                          ihl.FileName,
-                            ihl.LineNumber );
+      if (bFileAndLine)
+      {
+        crash_log.Log ( L"[-(Source)-] [!] {%24hs}  %64hs  <%hs:%lu>",
+                        pszShortName,
+                          sip.si.Name,
+                            ihl.FileName,
+                              ihl.LineNumber );
 #endif
-    } else {
-      crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %64hs",
-                      pszShortName,
-                        sip.si.Name );
+      }
+
+      else
+      {
+        crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %64hs",
+                        pszShortName,
+                          sip.si.Name );
+      }
+
+      if (StrStrIA (sip.si.Name, "Scaleform"))
+        scaleform = true;
+
+      if (top_func == "")
+        top_func = sip.si.Name;
+
+      free (szDupName);
     }
 
-    if (StrStrIA (sip.si.Name, "Scaleform"))
-      scaleform = true;
-
-    if (top_func == "")
-      top_func = sip.si.Name;
-
-
-    free (szDupName);
-  }
-
 #ifdef _WIN64
-  SymUnloadModule64 (hProc, BaseAddr);
+    SymUnloadModule64 (hProc, BaseAddr);
 #else
-  SymUnloadModule   (hProc, BaseAddr);
+    SymUnloadModule   (hProc, BaseAddr);
 #endif
 
 #ifdef _WIN64
-  ret =
-  StackWalk64 ( IMAGE_FILE_MACHINE_AMD64,
-                  hProc,
-                    GetCurrentThread (),
-                      &stackframe,
-                        &ctx,
-                          nullptr, nullptr,
-                            nullptr, nullptr );
+    ret =
+      StackWalk64 ( IMAGE_FILE_MACHINE_AMD64,
+                      hProc,
+                        GetCurrentThread (),
+                          &stackframe,
+                            &ctx,
+                              nullptr, nullptr,
+                                nullptr, nullptr );
 #else
-  ret =
-  StackWalk ( IMAGE_FILE_MACHINE_I386,
-                hProc,
-                  GetCurrentThread (),
-                    &stackframe,
-                      &ctx,
-                        nullptr, nullptr,
-                          nullptr, nullptr );
+    ret =
+      StackWalk ( IMAGE_FILE_MACHINE_I386,
+                    hProc,
+                      GetCurrentThread (),
+                        &stackframe,
+                          &ctx,
+                            nullptr, nullptr,
+                              nullptr, nullptr );
 
 #endif
   } while (ret == TRUE);
@@ -604,7 +613,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
   const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if ((repeated || non_continue) && (! scaleform)) {
+  if ((repeated || non_continue) && (! scaleform) && desc.length ())
+  {
     SK_AutoClose_Log (crash_log);
 
     last_chance = true;
@@ -625,9 +635,13 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   last_exc = *ExceptionInfo->ExceptionRecord;
 
 
-  if (ExceptionInfo->ExceptionRecord->ExceptionFlags == 0)
+  if (ExceptionInfo->ExceptionRecord->ExceptionFlags == 0 || (! desc.length ()))
+  {
     return EXCEPTION_CONTINUE_EXECUTION;
-  else {
+  }
+
+  else
+  {
     return EXCEPTION_EXECUTE_HANDLER;
   }
 }
@@ -684,7 +698,10 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
     *pszOut = '\0';
     strncat             (pszOut, sip.si.Name, std::min (ulLen, sip.si.NameLen));
     ret = (ULONG)strlen (pszOut);
-  } else {
+  }
+
+  else
+  {
     *pszOut = '\0';
     ret     = 0;
   }
@@ -796,7 +813,8 @@ CrashHandler::InitSyms (void)
       HRSRC   default_sound =
         FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
 
-      if (default_sound != nullptr) {
+      if (default_sound != nullptr)
+      {
         crash_sound.ref   =
           LoadResource (SK_GetDLL (), default_sound);
 

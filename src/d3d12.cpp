@@ -60,7 +60,7 @@ WaitForInitD3D12 (void)
   return;
 
   while (! InterlockedCompareExchange (&__d3d12_ready, FALSE, FALSE))
-    Sleep_Original (config.system.init_delay);
+    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 namespace SK

@@ -27,7 +27,7 @@
 #include <SpecialK/utility.h>
 
 
-static CRITICAL_SECTION cs_process_cmd = { 0 };
+static CRITICAL_SECTION cs_process_cmd = { };
 
 
 SK_ICommandProcessor*

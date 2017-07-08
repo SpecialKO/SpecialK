@@ -52,9 +52,13 @@ BOOL
 __stdcall
 SK_TerminateParentProcess (UINT uExitCode)
 {
-  if (TerminateProcess_Original != nullptr) {
+  if (TerminateProcess_Original != nullptr)
+  {
     return TerminateProcess_Original (GetCurrentProcess (), uExitCode);
-  } else {
+  }
+
+  else
+  {
     return TerminateProcess (GetCurrentProcess (), uExitCode);
   }
 }
@@ -102,8 +106,12 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
 {
   // fprintf is stupid, but lpOutputString already contains a newline and
   //   fputs would just add another one...
-  game_debug.LogEx (true,   L"%hs", lpOutputString);
-  fprintf          (stdout,  "%s",  lpOutputString);
+  game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
+                                             lpOutputString);
+  fprintf          (stdout,  "%s",           lpOutputString);
+
+  if (! strstr (lpOutputString, "\n"))
+    game_debug.LogEx (false, L"\n");
 
   // NVIDIA's drivers do something weird, we cannot call the trampoline and
   //   must bail-out, or the NVIDIA streaming service will crash the game!~
@@ -115,8 +123,12 @@ void
 WINAPI
 OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 {
-  game_debug.LogEx (true,   L"%s",  lpOutputString);
-  fprintf          (stdout,  "%ws", lpOutputString);
+  game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
+                                             lpOutputString);
+  fprintf          (stdout,  "%ws",          lpOutputString);
+
+  if (! wcsstr (lpOutputString, L"\n"))
+    game_debug.LogEx (false, L"\n");
 
   // NVIDIA's drivers do something weird, we cannot call the trampoline and
   //   must bail-out, or the NVIDIA streaming service will crash the game!~
@@ -213,8 +225,10 @@ SK::Diagnostics::Debugger::CloseConsole (void)
 
 BOOL
 WINAPI
-SK_IsDebuggerPresent (void) {
-  if (IsDebuggerPresent_Original == nullptr) {
+SK_IsDebuggerPresent (void)
+{
+  if (IsDebuggerPresent_Original == nullptr)
+  {
     SK::Diagnostics::Debugger::Allow (); // DONTCARE, just init
   }
 

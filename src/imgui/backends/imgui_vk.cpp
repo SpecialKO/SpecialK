@@ -1018,7 +1018,7 @@ ImGui_ImplVulkan_Shutdown (void)
 void
 ImGui_ImplVulkan_NewFrame (void)
 {
-  ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& io (ImGui::GetIO ());
 
   // Setup display size (every frame to accommodate for window resizing)
   int         w,         h;

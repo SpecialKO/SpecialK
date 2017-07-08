@@ -389,22 +389,22 @@ SK_LoadConfigEx (std::wstring name, bool create)
   // Create Parameters
   //
   monitoring.io.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show IO Monitoring"));
   monitoring.io.show->register_to_ini (osd_ini, L"Monitor.IO", L"Show");
 
   monitoring.io.interval =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
      (g_ParameterFactory.create_parameter <float> (L"IO Monitoring Interval"));
   monitoring.io.interval->register_to_ini (osd_ini, L"Monitor.IO", L"Interval");
 
   monitoring.disk.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show Disk Monitoring"));
   monitoring.disk.show->register_to_ini (osd_ini, L"Monitor.Disk", L"Show");
 
   monitoring.disk.interval =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
      (g_ParameterFactory.create_parameter <float> (
        L"Disk Monitoring Interval")
      );
@@ -414,7 +414,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Interval" );
 
   monitoring.disk.type =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
      (g_ParameterFactory.create_parameter <int> (
        L"Disk Monitoring Type (0 = Physical, 1 = Logical)")
      );
@@ -425,12 +425,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   monitoring.cpu.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show CPU Monitoring"));
   monitoring.cpu.show->register_to_ini (osd_ini, L"Monitor.CPU", L"Show");
 
   monitoring.cpu.interval =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
      (g_ParameterFactory.create_parameter <float> (
        L"CPU Monitoring Interval (seconds)")
      );
@@ -440,17 +440,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Interval" );
 
   monitoring.cpu.simple =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Minimal CPU info"));
   monitoring.cpu.simple->register_to_ini (osd_ini, L"Monitor.CPU", L"Simple");
 
   monitoring.gpu.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (L"Show GPU Monitoring"));
   monitoring.gpu.show->register_to_ini (osd_ini, L"Monitor.GPU", L"Show");
 
   monitoring.gpu.print_slowdown =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool>(L"Print GPU Slowdown Reason"));
   monitoring.gpu.print_slowdown->register_to_ini (
     osd_ini,
@@ -458,7 +458,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PrintSlowdown" );
 
   monitoring.gpu.interval =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
      (g_ParameterFactory.create_parameter <float> (
        L"GPU Monitoring Interval (seconds)")
      );
@@ -469,7 +469,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   monitoring.pagefile.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Show Pagefile Monitoring")
       );
@@ -479,7 +479,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Show" );
 
   monitoring.pagefile.interval =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
      (g_ParameterFactory.create_parameter <float> (
        L"Pagefile Monitoring Interval (seconds)")
      );
@@ -490,7 +490,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   monitoring.memory.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Show Memory Monitoring")
       );
@@ -501,7 +501,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   monitoring.fps.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Show Framerate Monitoring")
       );
@@ -512,7 +512,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   monitoring.time.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Show Time")
     );
@@ -523,7 +523,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   input.cursor.manage =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Manage Cursor Visibility")
       );
@@ -533,7 +533,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Manage" );
 
   input.cursor.keys_activate =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Keyboard Input Activates Cursor")
       );
@@ -543,7 +543,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"KeyboardActivates" );
 
   input.cursor.timeout =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
         L"Hide Delay")
       );
@@ -553,7 +553,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Timeout" );
 
   input.cursor.ui_capture =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Forcefully Capture Mouse Cursor in UI Mode")
       );
@@ -563,7 +563,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ForceCaptureInUI" );
 
   input.cursor.hw_cursor =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Use a Hardware Cursor for Special K's UI Features")
       );
@@ -573,7 +573,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"UseHardwareCursor" );
 
   input.cursor.block_invisible =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Block Mouse Input if Hardware Cursor is Invisible")
       );
@@ -584,7 +584,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   );
 
   input.cursor.fix_synaptics =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Fix Synaptic Touchpad Scroll")
       );
@@ -595,7 +595,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   );
 
   input.cursor.no_warp_ui =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Prevent Games from Warping Cursor while Config UI is Open")
       );
@@ -606,7 +606,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   );
 
   input.cursor.no_warp_visible =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Prevent Games from Warping Cursor while Mouse Cursor is Visible.")
       );
@@ -618,7 +618,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   input.gamepad.disable_ps4_hid =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Disable PS4 HID Interface (prevent double-input processing in some games)")
       );
@@ -629,7 +629,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   );
 
   input.gamepad.haptic_ui =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Give tactile feedback on gamepads when navigating the UI")
       );
@@ -639,7 +639,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"AllowHapticUI" );
 
   input.gamepad.hook_dinput8 =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Install hooks for DirectInput 8")
       );
@@ -649,7 +649,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"EnableDirectInput8" );
 
   input.gamepad.hook_hid =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Install hooks for HID")
       );
@@ -659,7 +659,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"EnableHID" );
 
   input.gamepad.native_ps4 =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Native PS4 Mode (temporary)")
       );
@@ -670,7 +670,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   input.gamepad.hook_xinput =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Install hooks for XInput")
       );
@@ -680,7 +680,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Enable" );
 
   input.gamepad.rehook_xinput =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Re-install XInput hooks if the hook-chain is modified (wrapper compat).")
       );
@@ -690,7 +690,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Rehook" );
 
   input.gamepad.xinput.ui_slot =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"XInput Controller that owns the config UI.")
       );
@@ -700,7 +700,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"UISlot" );
 
   input.gamepad.xinput.placeholders =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"XInput Controllers to Fake.")
       );
@@ -710,7 +710,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PlaceholderMask" );
 
   input.gamepad.xinput.disable_rumble =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Disable Rumble")
       );
@@ -721,7 +721,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   window.borderless =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Borderless Window Mode")
       );
@@ -731,7 +731,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Borderless" );
 
   window.center =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Center the Window")
       );
@@ -741,7 +741,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Center" );
 
   window.background_render =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Render While Window is in Background")
       );
@@ -751,7 +751,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"RenderInBackground" );
 
   window.background_mute =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Mute While Window is in Background")
       );
@@ -761,7 +761,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"MuteInBackground" );
 
   window.offset.x =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"X Offset (Percent or Absolute)")
       );
@@ -771,7 +771,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"XOffset" );
 
   window.offset.y =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"Y Offset")
       );
@@ -781,7 +781,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"YOffset" );
 
   window.confine_cursor =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Confine the Mouse Cursor to the Game Window.")
       );
@@ -791,7 +791,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ConfineCursor" );
 
   window.unconfine_cursor =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Unconfine the Mouse Cursor from the Game Window.")
       );
@@ -801,7 +801,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"UnconfineCursor" );
 
   window.persistent_drag =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Remember where the window is dragged to.")
       );
@@ -811,7 +811,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PersistentDragPos" );
 
   window.fullscreen =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Make the Game Window Fill the Screen (scale to fit)")
       );
@@ -821,7 +821,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Fullscreen" );
 
   window.override =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"Force the Client Region to this Size in Windowed Mode")
       );
@@ -831,7 +831,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"OverrideRes" );
 
   window.fix_mouse_coords =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Re-Compute Mouse Coordinates for Resized Windows")
       );
@@ -843,7 +843,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   compatibility.ignore_raptr =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Ignore Raptr Warning")
       );
@@ -853,7 +853,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"IgnoreRaptr" );
 
   compatibility.disable_raptr =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Forcefully Disable Raptr")
       );
@@ -863,7 +863,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"DisableRaptr" );
 
   compatibility.disable_nv_bloat =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Disable All NVIDIA BloatWare (GeForce Experience)")
       );
@@ -873,7 +873,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"DisableBloatWare_NVIDIA" );
 
   compatibility.rehook_loadlibrary =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Rehook LoadLibrary When RTSS/Steam/GeDoSaTo hook it")
       );
@@ -884,7 +884,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   apis.last_known =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"Last Known Render API")
       );
@@ -895,7 +895,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 #ifndef _WIN64
   apis.ddraw.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable DirectDraw Hooking")
       );
@@ -905,7 +905,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ddraw" );
 
   apis.d3d8.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable D3D8 Hooking")
       );
@@ -916,7 +916,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 #endif
 
   apis.d3d9.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable D3D9 Hooking")
       );
@@ -926,7 +926,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"d3d9" );
 
   apis.d3d9ex.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable D3D9Ex Hooking")
       );
@@ -936,7 +936,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"d3d9ex" );
 
   apis.d3d11.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable D3D11 Hooking")
       );
@@ -947,7 +947,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 #ifdef _WIN64
   apis.d3d12.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable D3D11 Hooking")
       );
@@ -957,7 +957,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"d3d12" );
 
   apis.Vulkan.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable Vulkan Hooking")
       );
@@ -968,7 +968,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 #endif
 
   apis.OpenGL.hook =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable OpenGL Hooking")
       );
@@ -979,7 +979,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   mem_reserve =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
         L"Memory Reserve Percentage")
       );
@@ -990,7 +990,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   init_delay =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"Initialization Delay (msecs)")
       );
@@ -1000,7 +1000,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"InitDelay" );
 
   silent =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Log Silence")
       );
@@ -1010,7 +1010,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Silent" );
 
   strict_compliance =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Strict DLL Loader Compliance")
       );
@@ -1020,7 +1020,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"StrictCompliant" );
 
   trace_libraries =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Trace DLL Loading")
       );
@@ -1030,7 +1030,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"TraceLoadLibrary" );
 
   log_level =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"Log Verbosity")
       );
@@ -1040,7 +1040,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"LogLevel" );
 
   prefer_fahrenheit =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Prefer Fahrenheit Units")
       );
@@ -1050,7 +1050,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PreferFahrenheit" );
 
   handle_crashes =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Use Custom Crash Handler")
       );
@@ -1060,7 +1060,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"UseCrashHandler" );
 
   debug_output =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Print Application's Debug Output in real-time")
       );
@@ -1070,7 +1070,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"DebugOutput" );
 
   game_output =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Log Application's Debug Output")
       );
@@ -1081,7 +1081,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   ignore_rtss_delay =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Ignore RTSS Delay Incompatibilities")
       );
@@ -1091,7 +1091,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"IgnoreRTSSHookDelay" );
 
   enable_cegui =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable CEGUI")
       );
@@ -1101,7 +1101,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"EnableCEGUI" );
 
   safe_cegui =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Safely Initialize CEGUI")
       );
@@ -1111,7 +1111,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"SafeInitCEGUI" );
 
   version =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"Software Version")
       );
@@ -1122,7 +1122,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   display.force_fullscreen =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Force Fullscreen Mode")
       );
@@ -1132,7 +1132,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ForceFullscreen" );
 
   display.force_windowed =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Force Windowed Mode")
       );
@@ -1143,7 +1143,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   render.framerate.target_fps =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
         L"Framerate Target")
       );
@@ -1153,7 +1153,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"TargetFPS" );
 
   render.framerate.limiter_tolerance =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
         L"Limiter Tolerance")
       );
@@ -1163,7 +1163,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"LimiterTolerance" );
 
   render.framerate.wait_for_vblank =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Limiter Waits for VBLANK?")
       );
@@ -1173,7 +1173,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"WaitForVBLANK" );
 
   render.framerate.buffer_count =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"Number of BackBuffers in the SwapChain")
       );
@@ -1183,7 +1183,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"BackBufferCount" );
 
   render.framerate.present_interval =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"Presentation Interval")
       );
@@ -1193,7 +1193,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PresentationInterval" );
 
   render.framerate.prerender_limit =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"Maximum Frames to Render-Ahead")
       );
@@ -1205,7 +1205,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   // D3D9 / DXGI
     render.framerate.refresh_rate =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Fullscreen Refresh Rate")
         );
@@ -1216,7 +1216,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   render.framerate.allow_dwm_tearing =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Enable DWM Tearing (Windows 10+)")
       );
@@ -1226,7 +1226,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"AllowTearingInDWM" );
 
   render.framerate.sleepless_render =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Sleep Free Render Thread")
       );
@@ -1236,7 +1236,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"SleeplessRenderThread" );
 
   render.framerate.sleepless_window =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Sleep Free Window Thread")
       );
@@ -1248,7 +1248,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   // D3D9
     compatibility.d3d9.rehook_present =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Rehook D3D9 Present On Device Reset")
         );
@@ -1257,7 +1257,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Compatibility.D3D9",
           L"RehookPresent" );
     compatibility.d3d9.rehook_reset =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Rehook D3D9 Reset On Device Reset")
         );
@@ -1267,7 +1267,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"RehookReset" );
 
     compatibility.d3d9.hook_present_vtable =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Use VFtable Override for Present")
         );
@@ -1276,7 +1276,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Compatibility.D3D9",
           L"UseVFTableForPresent" );
     compatibility.d3d9.hook_reset_vtable =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Use VFtable Override for Reset")
         );
@@ -1286,7 +1286,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"UseVFTableForReset" );
 
     render.d3d9.force_d3d9ex =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Force D3D9Ex Context")
         );
@@ -1295,7 +1295,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Render.D3D9",
           L"ForceD3D9Ex" );
     render.d3d9.impure =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Force PURE device off")
         );
@@ -1304,7 +1304,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Render.D3D9",
           L"ForceImpure" );
     render.d3d9.hook_type =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Hook Technique")
         );
@@ -1315,7 +1315,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
     render.framerate.max_delta_time =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Maximum Frame Delta Time")
         );
@@ -1325,7 +1325,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MaxDeltaTime" );
 
     render.framerate.flip_discard =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Use Flip Discard - Windows 10+")
         );
@@ -1335,7 +1335,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"UseFlipDiscard" );
 
     render.dxgi.adapter_override =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Override DXGI Adapter")
         );
@@ -1345,7 +1345,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"AdapterOverride" );
 
     render.dxgi.max_res =
-      static_cast <sk::ParameterStringW *>
+      dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
           L"Maximum Resolution To Report")
         );
@@ -1355,7 +1355,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MaxRes" );
 
     render.dxgi.min_res =
-      static_cast <sk::ParameterStringW *>
+      dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
           L"Minimum Resolution To Report")
         );
@@ -1365,7 +1365,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MinRes" );
 
     render.dxgi.swapchain_wait =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Time to wait in msec. for SwapChain")
         );
@@ -1375,7 +1375,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"SwapChainWait" );
 
     render.dxgi.scaling_mode =
-      static_cast <sk::ParameterStringW *>
+      dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
           L"Scaling Preference (DontCare | Centered | Stretched | Unspecified)")
         );
@@ -1385,7 +1385,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"Scaling" );
 
     render.dxgi.exception_mode =
-      static_cast <sk::ParameterStringW *>
+      dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
           L"D3D11 Exception Handling (DontCare | Raise | Ignore)")
         );
@@ -1395,7 +1395,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"ExceptionMode" );
 
     render.dxgi.debug_layer =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"DXGI Debug Layer Support")
         );
@@ -1405,7 +1405,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"EnableDebugLayer" );
 
     render.dxgi.scanline_order =
-      static_cast <sk::ParameterStringW *>
+      dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
           L"Scanline Order (DontCare | Progressive | LowerFieldFirst | UpperFieldFirst )")
         );
@@ -1415,7 +1415,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"ScanlineOrder" );
 
     render.dxgi.rotation =
-      static_cast <sk::ParameterStringW *>
+      dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
           L"Screen Rotation (DontCare | Identity | 90 | 180 | 270 )")
         );
@@ -1425,7 +1425,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"Rotation" );
 
     render.dxgi.test_present =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Test SwapChain Presentation Before Actually Presenting")
         );
@@ -1435,7 +1435,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"TestSwapChainPresent" );
 
     render.dxgi.safe_fullscreen =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Prevent DXGI Deadlocks in Improperly Written Games")
         );
@@ -1445,7 +1445,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"SafeFullscreenMode" );
 
     render.dxgi.enhanced_depth =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding")
         );
@@ -1456,7 +1456,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
     texture.d3d11.cache =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Cache Textures")
         );
@@ -1466,7 +1466,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"Cache" );
 
     texture.d3d11.precise_hash =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Precise Hash Generation")
         );
@@ -1476,7 +1476,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"PreciseHash" );
 
     texture.d3d11.dump =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Dump Textures")
         );
@@ -1486,7 +1486,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"Dump" );
 
     texture.d3d11.inject =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Inject Textures")
         );
@@ -1496,7 +1496,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"Inject" );
 
     texture.d3d11.res_root =
-      static_cast <sk::ParameterStringW *>
+      dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
           L"Resource Root")
         );
@@ -1506,7 +1506,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"ResourceRoot" );
 
     texture.cache.min_entries =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Minimum Cached Textures")
         );
@@ -1516,7 +1516,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MinEntries" );
 
     texture.cache.max_entries =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Maximum Cached Textures")
         );
@@ -1526,7 +1526,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MaxEntries" );
 
     texture.cache.min_evict =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Minimum Textures to Evict")
         );
@@ -1536,7 +1536,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MinEvict" );
 
     texture.cache.max_evict =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Maximum Textures to Evict")
         );
@@ -1546,7 +1546,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MaxEvict" );
 
     texture.cache.min_size =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Minimum Textures to Evict")
         );
@@ -1556,7 +1556,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MinSizeInMiB" );
 
     texture.cache.max_size =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
           L"Maximum Textures to Evict")
         );
@@ -1566,7 +1566,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"MaxSizeInMiB" );
 
     texture.cache.ignore_non_mipped =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Ignore textures without mipmaps?")
         );
@@ -1576,7 +1576,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           L"IgnoreNonMipmapped" );
 
     texture.cache.allow_staging =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (g_ParameterFactory.create_parameter <bool> (
           L"Enable texture caching/dumping/injection on staged textures")
         );
@@ -1587,7 +1587,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   nvidia.api.disable =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Disable NvAPI")
       );
@@ -1598,7 +1598,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   nvidia.sli.compatibility =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"SLI Compatibility Bits")
       );
@@ -1608,7 +1608,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"CompatibilityBits" );
 
   nvidia.sli.num_gpus =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"SLI GPU Count")
       );
@@ -1618,7 +1618,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"NumberOfGPUs" );
 
   nvidia.sli.mode =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"SLI Mode")
       );
@@ -1628,7 +1628,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Mode" );
 
   nvidia.sli.override =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Override Driver Defaults")
       );
@@ -1639,7 +1639,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   imgui.scale =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
         L"ImGui Scale")
       );
@@ -1649,7 +1649,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"FontScale" );
 
   imgui.show_playtime =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Display Playing Time in Config UI")
       );
@@ -1659,7 +1659,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ShowPlaytime" );
 
   imgui.show_eula =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Show Software EULA")
       );
@@ -1669,7 +1669,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ShowEULA" );
 
   imgui.show_gsync_status =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Show G-Sync Status on Control Panel")
       );
@@ -1679,7 +1679,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ShowGSyncStatus" );
 
   imgui.show_input_apis =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Show Input APIs currently in-use")
       );
@@ -1690,7 +1690,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   osd.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"OSD Visibility")
       );
@@ -1700,7 +1700,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Show" );
 
   osd.update_method.pump =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Refresh the OSD irrespective of frame completion")
       );
@@ -1710,7 +1710,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"AutoPump" );
 
   osd.update_method.pump_interval =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
     (g_ParameterFactory.create_parameter <float> (
       L"Time in seconds between OSD updates")
     );
@@ -1720,7 +1720,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PumpInterval" );
 
   osd.text.red =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"OSD Color (Red)")
       );
@@ -1730,7 +1730,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"TextColorRed" );
 
   osd.text.green =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"OSD Color (Green)")
       );
@@ -1740,7 +1740,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"TextColorGreen" );
 
   osd.text.blue =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"OSD Color (Blue)")
       );
@@ -1750,7 +1750,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"TextColorBlue" );
 
   osd.viewport.pos_x =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"OSD Position (X)")
       );
@@ -1760,7 +1760,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PositionX" );
 
   osd.viewport.pos_y =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
       (g_ParameterFactory.create_parameter <int> (
         L"OSD Position (Y)")
       );
@@ -1770,7 +1770,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PositionY" );
 
   osd.viewport.scale =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
       (g_ParameterFactory.create_parameter <float> (
         L"OSD Scale")
       );
@@ -1780,7 +1780,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Scale" );
 
   osd.state.remember =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Remember status monitoring state")
       );
@@ -1791,7 +1791,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   monitoring.SLI.show =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Show SLI Monitoring")
       );
@@ -1802,7 +1802,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   steam.achievements.sound_file =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"Achievement Sound File")
       );
@@ -1812,7 +1812,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"SoundFile" );
 
   steam.achievements.play_sound =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Silence is Bliss?")
       );
@@ -1822,7 +1822,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PlaySound" );
 
   steam.achievements.take_screenshot =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Precious Memories")
       );
@@ -1832,7 +1832,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"TakeScreenshot" );
 
   steam.system.notify_corner =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"Overlay Notification Position")
       );
@@ -1842,7 +1842,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"NotifyCorner" );
 
   steam.achievements.popup.origin =
-    static_cast <sk::ParameterStringW *>
+    dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
         L"Achievement Popup Position")
       );
@@ -1852,7 +1852,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PopupOrigin" );
 
   steam.achievements.popup.animate =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Achievement Notification Animation")
       );
@@ -1862,7 +1862,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"AnimatePopup" );
 
   steam.achievements.popup.show_title =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Achievement Popup Includes Game Title?")
       );
@@ -1872,7 +1872,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ShowPopupTitle" );
 
   steam.achievements.popup.inset =
-    static_cast <sk::ParameterFloat *>
+    dynamic_cast <sk::ParameterFloat *>
     (g_ParameterFactory.create_parameter <float> (
       L"Achievement Notification Inset X")
     );
@@ -1882,7 +1882,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PopupInset" );
 
   steam.achievements.popup.duration =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
     (g_ParameterFactory.create_parameter <int> (
       L"Achievement Popup Duration (in ms)")
     );
@@ -1892,7 +1892,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PopupDuration" );
 
   steam.system.appid = 
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
     (g_ParameterFactory.create_parameter <int> (
       L"Steam AppID")
     );
@@ -1902,7 +1902,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"AppID" );
 
   steam.system.init_delay =
-    static_cast <sk::ParameterInt *>
+    dynamic_cast <sk::ParameterInt *>
     (g_ParameterFactory.create_parameter <int> (
       L"How long to delay SteamAPI initialization if the game doesn't do it")
     );
@@ -1912,7 +1912,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"AutoInitDelay" );
 
   steam.system.auto_pump =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Should we force the game to run Steam callbacks?")
     );
@@ -1922,7 +1922,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"AutoPumpCallbacks" );
 
   steam.system.block_stat_callback =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Block the User Stats Receipt Callback?")
     );
@@ -1932,7 +1932,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"BlockUserStatsCallback" );
 
   steam.system.filter_stat_callbacks =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Filter Unrelated Data from the User Stats Receipt Callback?")
     );
@@ -1942,7 +1942,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"FilterExternalDataFromCallbacks" );
 
   steam.system.load_early =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Load the Steam Client DLL Early?")
     );
@@ -1952,7 +1952,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PreLoadSteamClient" );
 
   steam.system.early_overlay =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Load the Steam Overlay Early")
     );
@@ -1962,7 +1962,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"PreLoadSteamOverlay" );
 
   steam.system.force_load =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
     (g_ParameterFactory.create_parameter <bool> (
       L"Forcefully load steam_api{64}.dll")
     );
@@ -1972,7 +1972,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"ForceLoadSteamAPI" );
 
   steam.log.silent =
-    static_cast <sk::ParameterBool *>
+    dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
         L"Makes steam_api.log go away")
       );
@@ -2000,7 +2000,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         CharNextW (wcsstr ((*sec).first.c_str (), L"."));
 
       imports [import].filename = 
-         static_cast <sk::ParameterStringW *>
+         dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Filename")
              );
@@ -2010,7 +2010,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
             L"Filename" );
 
       imports [import].when = 
-         static_cast <sk::ParameterStringW *>
+         dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Timeframe")
              );
@@ -2020,7 +2020,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
             L"When" );
 
       imports [import].role = 
-         static_cast <sk::ParameterStringW *>
+         dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Role")
              );
@@ -2030,7 +2030,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
             L"Role" );
 
       imports [import].architecture = 
-         static_cast <sk::ParameterStringW *>
+         dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Architecture")
              );
@@ -2040,7 +2040,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
             L"Architecture" );
 
       imports [import].blacklist = 
-         static_cast <sk::ParameterStringW *>
+         dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Blakclisted Executables")
              );
@@ -2116,7 +2116,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     EdithFinch            // FinchGame.exe
   };
 
-  std::unordered_map <std::wstring, SK_GAME_ID> games;
+  static std::unordered_map <std::wstring, SK_GAME_ID> games;
 
   games.emplace ( L"Tyranny.exe",                  SK_GAME_ID::Tyranny              );
   games.emplace ( L"SRHK.exe",                     SK_GAME_ID::Shadowrun_HongKong   );

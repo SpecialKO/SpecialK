@@ -785,8 +785,6 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
-      QueryPerformanceCounter_Original = (QueryPerformanceCounter_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "QueryPerformanceCounter");
-
       // Sanity Check:
       // -------------
       //
@@ -799,12 +797,9 @@ DllMain ( HMODULE hModule,
       //
       //          0xc0000142
       //
-      if ( InterlockedExchangeAddAcquire     (&__SK_DLL_Attached, 0) ||
-           InterlockedExchangeAddAcquire     (&__SK_DLL_Ending,   0) ||
-           InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0) )
+      if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
       {
-        SK_EstablishRootPath ();
-        return TRUE;
+        return FALSE;
       }
 
       // We use SKIM for injection and rundll32 for various tricks involving restarting
@@ -817,6 +812,13 @@ DllMain ( HMODULE hModule,
         return TRUE;
       }
 
+      if ( InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0) ||
+           InterlockedExchangeAddAcquire (&__SK_DLL_Ending,   0) )
+      {
+        SK_EstablishRootPath ();
+        return TRUE;
+      }
+
 
       ULONG                     local_refs =
           InterlockedIncrement (&__SK_DLL_Refs);
@@ -824,6 +826,22 @@ DllMain ( HMODULE hModule,
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
+
+
+
+      DWORD   dwProcessSize = MAX_PATH;
+      wchar_t wszProcessName [MAX_PATH] = { };
+
+      HANDLE hProc = GetCurrentProcess ();
+
+      QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+
+      wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
+
+      while (  pwszShortName      >  wszProcessName &&
+             *(pwszShortName - 1) != L'\\')
+        --pwszShortName;
+
 
 
       // We reserve the right to deny attaching the DLL, this will generally
@@ -843,6 +861,7 @@ DllMain ( HMODULE hModule,
       }
 
 
+      QueryPerformanceCounter_Original = (QueryPerformanceCounter_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "QueryPerformanceCounter");
       SK_Init_MinHook ();
 
 
@@ -855,7 +874,7 @@ DllMain ( HMODULE hModule,
 
       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return FALSE;
+        return TRUE;
       }
 
 

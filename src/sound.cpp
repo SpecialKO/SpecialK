@@ -39,15 +39,17 @@ SK_WASAPI_GetAudioMeterInfo (void)
 {
   CComPtr <IMMDeviceEnumerator> pDevEnum = nullptr;
 
-  if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
-    return nullptr;
+  if ( FAILED (
+         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator))
+              ) || pDevEnum == nullptr
+     ) return nullptr;
 
-  CComPtr <IMMDevice> pDevice;
+  CComPtr <IMMDevice> pDevice = nullptr;
   if ( FAILED (
          pDevEnum->GetDefaultAudioEndpoint ( eRender,
                                                eConsole,
                                                  &pDevice )
-              )
+              ) || pDevice == nullptr
      ) return nullptr;
 
   IAudioMeterInformation* pMeterInfo = nullptr;

@@ -269,6 +269,11 @@ SK_InitCOM (void)
 {
   HRESULT hr;
 
+  //
+  // HACK to address problems with Steam Overlay
+  //
+  SleepEx (50, TRUE);
+
   if (FAILED (hr = CoInitializeSecurity (
                      NULL,
                      -1,

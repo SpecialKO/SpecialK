@@ -1790,7 +1790,7 @@ SK_ResetWindow (void)
     [](LPVOID user) ->
     DWORD
     {
-      SleepEx (100, TRUE);
+      SleepEx (100, FALSE);
 
       EnterCriticalSection (&cs_reset);
 
@@ -2443,7 +2443,7 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   static volatile ULONG nest_lvl = 0UL;
 
   while (InterlockedExchangeAdd (&nest_lvl, 0))
-    SleepEx (125, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 125, QS_ALLINPUT, MWMO_ALERTABLE);
 
   InterlockedIncrementAcquire (&nest_lvl);
 
@@ -2721,7 +2721,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       if (active && state_changed)
       {
-        if (config.window.background_render)
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
         {
           if (! game_window.cursor_visible) {
             while (ShowCursor (FALSE) >= 0)
@@ -2734,7 +2734,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       else if ((! active) && state_changed)
       {
-        if (config.window.background_render)
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
         {
           game_window.cursor_visible =
             ShowCursor (TRUE) >= 1;
@@ -2796,7 +2796,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         ActivateWindow (true);
 
-        if (config.window.background_render)
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                       L"Window Mgr" );
@@ -2810,7 +2810,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         // Game window was deactivated, but the game doesn't need to know this!
         //   in fact, it needs to be told the opposite.
-        if (config.window.background_render)
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
                       L"Window Mgr" );
@@ -2846,7 +2846,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           // We must fully consume one of these messages or audio will stop playing
           //   when the game loses focus, so do not simply pass this through to the
           //     default window procedure.
-          if (config.window.background_render)
+          if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
           {
             game_window.CallProc (hWnd, uMsg, TRUE, (LPARAM)hWnd);
 
@@ -2899,7 +2899,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             break;
         }
 
-        if (config.window.background_render)
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
         {
           return 1;
         }

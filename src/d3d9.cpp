@@ -72,7 +72,7 @@ WINAPI
 WaitForInit_D3D9 (void)
 {
   while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
-    Sleep_Original (config.system.init_delay);
+    SleepEx (config.system.init_delay, TRUE);
 }
 
 extern "C++" void
@@ -682,7 +682,7 @@ d3d9_init_callback (finish_pfn finish)
     SK_BootD3D9 ();
 
     while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
-      Sleep_Original (100UL);
+      SleepEx (100UL, TRUE);
   }
 
   finish ();
@@ -1636,7 +1636,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   }
 #endif
 
-  HRESULT hr;
+  HRESULT hr = E_FAIL;
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
@@ -2187,7 +2187,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
           MonitorFromWindow ( game_window.hWnd,
                                 MONITOR_DEFAULTTONEAREST );
 
-        MONITORINFO mi  = { 0 };
+        MONITORINFO mi  = { };
         mi.cbSize       = sizeof (mi);
         GetMonitorInfo (hMonitor, &mi);
 
@@ -2318,7 +2318,7 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
                       pFullscreenDisplayMode, ppReturnedDeviceInterface,
                         SK_SummarizeCaller ().c_str () );
 
-  HRESULT ret;
+  HRESULT ret = E_FAIL;
 
   // Don't do this for the dummy context we create during init.
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
@@ -2919,9 +2919,12 @@ Direct3DCreate9 (UINT SDKVersion)
   IDirect3D9*   d3d9    = nullptr;
   IDirect3D9Ex* pD3D9Ex = nullptr;
 
-  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (SDKVersion, &pD3D9Ex))) {
-    if (Direct3DCreate9_Import) {
-      if (force_d3d9ex) {
+  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (SDKVersion, &pD3D9Ex)))
+  {
+    if (Direct3DCreate9_Import)
+    {
+      if (force_d3d9ex)
+      {
         dll_log.Log ( L"[   D3D9   ] [!] %s (%lu) - "
           L"%s",
           L"Direct3DCreate9", SDKVersion,
@@ -3092,12 +3095,12 @@ HookD3D9 (LPVOID user)
     {
       hwnd =
         CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
-                          WS_POPUP | WS_MINIMIZEBOX,
+                          WS_POPUP        | WS_MINIMIZEBOX,
                             CW_USEDEFAULT, CW_USEDEFAULT,
-                              64, 64, 0,
+                              1, 1, 0,
                                 nullptr, nullptr, 0x00 );
 
-      D3DPRESENT_PARAMETERS pparams = { 0 };
+      D3DPRESENT_PARAMETERS pparams = { };
 
       pparams.SwapEffect            = D3DSWAPEFFECT_DISCARD;
       pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
@@ -3271,7 +3274,7 @@ HookD3D9 (LPVOID user)
                                 64, 64, 0,
                                   nullptr, nullptr, 0x00 );
 
-        pparams                  = { 0 };
+        pparams                  = { };
 
         pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
         pparams.BackBufferFormat = D3DFMT_UNKNOWN;

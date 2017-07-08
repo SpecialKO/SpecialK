@@ -99,7 +99,7 @@ Sleep_Detour (DWORD dwMilliseconds)
           SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
         if (dwMilliseconds <= 1)
-          YieldProcessor ();
+          SleepEx (0, TRUE);
 
         return;
       }
@@ -523,7 +523,7 @@ SK::Framerate::GetLimiter (void)
 void
 SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
 {
-  static LARGE_INTEGER last_frame = { 0 };
+  static LARGE_INTEGER last_frame = { };
 
   now = SK_CurrentPerf ();
 

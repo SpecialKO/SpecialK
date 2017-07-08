@@ -161,16 +161,16 @@ bool
 ImGui_ImplGL3_CreateFontsTexture (void)
 {
   // Build texture atlas
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   extern void
   SK_ImGui_LoadFonts (void);
 
   SK_ImGui_LoadFonts ();
 
-  unsigned char* pixels;
-  int            width, height;
+  unsigned char* pixels = nullptr;
+  int            width  = 0,
+                 height = 0;
 
   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
   io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
@@ -372,8 +372,7 @@ ImGui_ImplGL3_NewFrame (void)
   if (! g_FontTexture)
     ImGui_ImplGlfwGL3_CreateDeviceObjects ();
 
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   RECT client;
   GetClientRect (game_window.hWnd, &client);

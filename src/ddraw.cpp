@@ -67,7 +67,7 @@ WINAPI
 WaitForInit_DDraw (void)
 {
   while (! InterlockedCompareExchange (&__ddraw_ready, FALSE, FALSE))
-    Sleep_Original (config.system.init_delay);
+    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 typedef void (WINAPI *finish_pfn)(void);
@@ -373,7 +373,7 @@ ddraw_init_callback (finish_pfn finish)
     SK_BootDDraw ();
 
     while (! InterlockedCompareExchange (&__ddraw_ready, FALSE, FALSE))
-      Sleep_Original (100UL);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   finish ();

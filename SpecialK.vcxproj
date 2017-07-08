@@ -504,7 +504,8 @@
       <AssemblyDebug>true</AssemblyDebug>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <PerUserRedirection>true</PerUserRedirection>
-      <FixedBaseAddress>false</FixedBaseAddress>
+      <SectionAlignment>
+      </SectionAlignment>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -937,6 +938,7 @@ Exit 0</Command>
       <ImportLibrary />
       <Profile>true</Profile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <SectionAlignment>0</SectionAlignment>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>

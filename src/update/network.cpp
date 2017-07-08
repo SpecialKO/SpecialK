@@ -68,9 +68,9 @@ enum {
 };
 
 struct sk_internet_get_t {
-  wchar_t wszHostName  [INTERNET_MAX_HOST_NAME_LENGTH];
-  wchar_t wszHostPath  [INTERNET_MAX_PATH_LENGTH];
-  wchar_t wszLocalPath [MAX_PATH];
+  wchar_t wszHostName  [INTERNET_MAX_HOST_NAME_LENGTH] = { };
+  wchar_t wszHostPath  [INTERNET_MAX_PATH_LENGTH]      = { };
+  wchar_t wszLocalPath [MAX_PATH]                      = { };
   HWND    hTaskDlg;
   int     status;
 };
@@ -78,9 +78,9 @@ struct sk_internet_get_t {
 bool    update_dlg_backup = false;
 bool    update_dlg_keep   = false;
 
-wchar_t update_dlg_file     [MAX_PATH];
-wchar_t update_dlg_build    [MAX_PATH];
-wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH];
+wchar_t update_dlg_file     [MAX_PATH]                 = { };
+wchar_t update_dlg_build    [MAX_PATH]                 = { };
+wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH] = { };
 
 
 DWORD
@@ -644,9 +644,6 @@ Update_DlgProc (
 {
   UNREFERENCED_PARAMETER (lParam);
 
-  //HWND hWndNextCheck =
-  //  GetDlgItem (hWndDlg, IDC_NEXT_VERSION_CHECK);
-
   switch (uMsg)
   {
     case WM_INITDIALOG:
@@ -842,11 +839,11 @@ Update_DlgProc (
                   SetWindowLongPtrW (hWnd, GWL_STYLE,   style    | WS_POPUP);
                   SetWindowLongPtrW (hWnd, GWL_EXSTYLE, style_ex | WS_EX_TOPMOST | WS_EX_APPWINDOW);
 
-                  SetWindowPos      ( hWnd, HWND_TOPMOST,
-                                        0, 0,
-                                        0, 0,
-                                          SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
-                                          SWP_NOMOVE         | SWP_NOSIZE );
+                  SetWindowPos ( hWnd, HWND_TOPMOST,
+                                   0, 0,
+                                   0, 0,
+                                     SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
+                                     SWP_NOMOVE         | SWP_NOSIZE );
 
                   SK_RealizeForegroundWindow (hWnd);
 
@@ -917,17 +914,17 @@ Update_DlgProc (
             DeleteFileW (update_dlg_file);
 
           // SUCCESS:
+          InterlockedExchange ( &__SK_UpdateStatus, 1 );
           EndDialog           (  hWndUpdateDlg,     0 );
           hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
-          InterlockedExchange ( &__SK_UpdateStatus, 1 );
         }
 
         else
         {
           // FAILURE:
+          InterlockedExchange ( &__SK_UpdateStatus, -1 );
           EndDialog           (  hWndUpdateDlg,      0 );
           hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
-          InterlockedExchange ( &__SK_UpdateStatus, -1 );
         }
       }
 
@@ -943,7 +940,7 @@ Update_DlgProc (
     case WM_CREATE:
     {
       InterlockedExchange ( &__SK_UpdateStatus, 0 );
-    }
+    } break;
   }
 
   return 0;
@@ -953,6 +950,8 @@ DWORD
 WINAPI
 UpdateDlg_Thread (LPVOID user)
 {
+  bool started = false;
+
   UNREFERENCED_PARAMETER (user);
 
   HWND hWndDlg =
@@ -968,8 +967,6 @@ UpdateDlg_Thread (LPVOID user)
   SetActiveWindow     (hWndDlg);
   SetFocus            (hWndDlg);
 
-  bool started = false;
-
   MSG  msg;
   BOOL bRet;
 
@@ -981,19 +978,17 @@ UpdateDlg_Thread (LPVOID user)
       return 0;
     }
 
+
     TranslateMessage (&msg);
     DispatchMessage  (&msg);
 
 
-    if (msg.message = WM_INITDIALOG && msg.hwnd == hWndDlg)
+    if ((! started) && msg.hwnd == hWndDlg)
     {
-      if (SK_IsHostAppSKIM ( ))
+      if (SK_IsHostAppSKIM ())
       {
-        if (! started)
-        {
-          started = true;
-          SendMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
-        }
+        started = true;
+        SendMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
       }
     }
   }

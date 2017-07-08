@@ -80,7 +80,7 @@ struct SK_XInputContext
     LPVOID                          XInputGetStateEx_Target              = nullptr;
 
     uint8_t                         orig_inst_ex [12]                    =   {   };
-  } XInput1_3 { 0 }, XInput1_4 { 0 }, XInput9_1_0 { 0 };
+  } XInput1_3 { }, XInput1_4 { }, XInput9_1_0 { };
 
   instance_s* primary_hook = nullptr;
 } xinput_ctx;

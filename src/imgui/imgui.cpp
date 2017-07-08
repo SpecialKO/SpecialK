@@ -1050,7 +1050,7 @@ int ImFormatStringV(char* buf, int buf_size, const char* fmt, va_list args)
 // FIXME-OPT: Replace with e.g. FNV1a hash? CRC32 pretty much randomly access 1KB. Need to do proper measurements.
 ImU32 ImHash(const void* data, int data_size, ImU32 seed)
 {
-    static ImU32 crc32_lut[256] = { 0 };
+    static ImU32 crc32_lut[256] = { };
     if (!crc32_lut[1])
     {
         const ImU32 polynomial = 0xEDB88320;
@@ -11639,7 +11639,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
             BYTE                       keyState [256];
             GetKeyboardState_Original (keyState);
 
-            keyState [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+            keyState [VK_CAPITAL] =
+              GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
 
             wchar_t key_str;
 
@@ -11755,7 +11756,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
       case WM_INPUT:
       {
-        RAWINPUT data = { 0 };
+        RAWINPUT data = { };
         UINT     size = sizeof RAWINPUT;
 
         int      ret  =
@@ -12124,10 +12125,25 @@ SK_ImGui_PollGamepad (void)
     ImGui::GetIO ();
 
 
-  // This stupid hack prevents the Steam overlay from making the software
-  //   think tab is stuck down.
-  for (int i = 5; i < 128; i++)
-    io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+  if (GetForegroundWindow () == game_window.hWnd)
+  {
+    // This stupid hack prevents the Steam overlay from making the software
+    //   think tab is stuck down.
+    for (int i = 5; i < 128; i++)
+      io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+  }
+
+  else
+  {
+    for (int i = 0; i < 5; i++)
+    {
+      io.KeysDown  [i] = false;
+      io.MouseDown [i] = false;
+    }
+
+    for (int i = 5; i < 128; i++)
+      io.KeysDown [i] = false;
+  }
 
 
          XINPUT_STATE state;
