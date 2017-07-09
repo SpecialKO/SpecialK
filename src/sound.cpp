@@ -258,7 +258,8 @@ SK_WASAPI_GetChannelVolumeControl (DWORD proc_id)
   CComPtr <IAudioSessionControl> pSessionCtl =
     SK_WASAPI_GetAudioSessionControl (proc_id);
 
-  if (pSessionCtl != nullptr) {
+  if (pSessionCtl != nullptr)
+  {
     IChannelAudioVolume *pChannelAudioVolume = nullptr;
 
     if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pChannelAudioVolume))))
@@ -275,7 +276,8 @@ SK_WASAPI_GetVolumeControl (DWORD proc_id)
   CComPtr <IAudioSessionControl> pSessionCtl =
     SK_WASAPI_GetAudioSessionControl (proc_id);
 
-  if (pSessionCtl != nullptr) {
+  if (pSessionCtl != nullptr)
+  {
     ISimpleAudioVolume *pSimpleAudioVolume = nullptr;
 
     if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSimpleAudioVolume))))
@@ -457,7 +459,8 @@ SK_SetGameMute (bool bMute)
   ISimpleAudioVolume* pVolume =
     SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
-  if (pVolume != nullptr) {
+  if (pVolume != nullptr)
+  {
       pVolume->SetMute (bMute, nullptr);
       pVolume->Release ();
   }

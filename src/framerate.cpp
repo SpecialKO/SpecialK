@@ -194,14 +194,17 @@ SK::Framerate::Init (void)
           (LPVOID *)&QueryPerformanceCounter_Original,
           (LPVOID *)&pfnQueryPerformanceCounter );
 
-  if (! GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (! GetModuleHandle (L"PrettyPrinny.dll"))
+  {
     SK_CreateDLLHook2 ( L"kernel32.dll", "Sleep",
                        Sleep_Detour,
             (LPVOID *)&Sleep_Original,
             (LPVOID *)&pfnSleep );
   }
+
 #if 0
-  else {
+  else
+  {
     QueryPerformanceCounter_Original =
       (QueryPerformanceCounter_t)
         GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
@@ -392,7 +395,8 @@ SK::Framerate::Limiter::wait (void)
   // Actual frametime before we forced a delay
   effective_ms = 1000.0 * ((double)(time.QuadPart - last.QuadPart) / (double)freq.QuadPart);
 
-  if ((double)(time.QuadPart - next.QuadPart) / (double)freq.QuadPart / (ms / 1000.0) > (config.render.framerate.limiter_tolerance * fps)) {
+  if ((double)(time.QuadPart - next.QuadPart) / (double)freq.QuadPart / (ms / 1000.0) > (config.render.framerate.limiter_tolerance * fps))
+  {
     //dll_log.Log ( L" * Frame ran long (%3.01fx expected) - restarting"
                   //L" limiter...",
             //(double)(time.QuadPart - next.QuadPart) / (double)freq.QuadPart / (ms / 1000.0) / fps );
@@ -498,12 +502,14 @@ SK::Framerate::Limiter::wait (void)
 }
 
 void
-SK::Framerate::Limiter::set_limit (double target) {
+SK::Framerate::Limiter::set_limit (double target)
+{
   init (target);
 }
 
 double
-SK::Framerate::Limiter::effective_frametime (void) {
+SK::Framerate::Limiter::effective_frametime (void)
+{
   return effective_ms;
 }
 
@@ -513,8 +519,10 @@ SK::Framerate::GetLimiter (void)
 {
   static Limiter* limiter = nullptr;
 
-  if (limiter == nullptr) {
-    limiter = new Limiter (config.render.framerate.target_fps);
+  if (limiter == nullptr)
+  {
+    limiter =
+      new Limiter (config.render.framerate.target_fps);
   }
 
   return limiter;

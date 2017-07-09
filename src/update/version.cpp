@@ -35,6 +35,7 @@
 #pragma comment (lib, "wininet.lib")
 
 #include <cstdint>
+#include <atlbase.h>
 
 DWORD dwInetCtx;
 
@@ -201,7 +202,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       swscanf ( freq.c_str (), L"%3[^h]h", h );
 
       // Default to 6h if unspecified
-      if (! has_freq) {
+      if (! has_freq)
+      {
         wcscpy (h, L"6");
 
         install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
@@ -261,7 +263,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   
   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
-    HANDLE hVersionConfig =
+    CHandle hVersionConfig (
       CreateFile ( SK_Version_GetRepoIniPath ().c_str (),
                      GENERIC_READ,
                        FILE_SHARE_READ  |
@@ -271,7 +273,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                            OPEN_EXISTING,
                              GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) |
                              FILE_FLAG_SEQUENTIAL_SCAN,
-                               nullptr );
+                               nullptr )
+    );
 
     if (hVersionConfig != INVALID_HANDLE_VALUE)
     {
@@ -285,12 +288,11 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
         uliModify.HighPart = ftModify.dwHighDateTime;
 
         // Check Version:  User Preference (default=6h)
-        if ((uliNow.QuadPart - uliModify.QuadPart) < update_freq) {
+        if ((uliNow.QuadPart - uliModify.QuadPart) < update_freq)
+        {
           should_fetch = false;
         }
       }
-
-      CloseHandle (hVersionConfig);
     }
   }
 
@@ -390,7 +392,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
         dwAttribs = FILE_ATTRIBUTE_NORMAL;
 
-      HANDLE hVersionFile =
+      CHandle hVersionFile (
         CreateFileW ( SK_Version_GetRepoIniPath ().c_str (),
                         GENERIC_WRITE,
                           FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -398,12 +400,14 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                               CREATE_ALWAYS,
                                 dwAttribs |
                                 FILE_FLAG_SEQUENTIAL_SCAN,
-                                  nullptr );
+                                  nullptr )
+      );
 
       while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0)
       {
-        DWORD    dwRead = 0;
-        uint8_t *pData  = (uint8_t *)malloc (dwSize);
+        DWORD              dwRead = 0;
+        CHeapPtr <uint8_t> pData;
+                           pData.Allocate (dwSize);
 
         if (! pData)
           break;
@@ -423,18 +427,12 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                               nullptr );
         }
 
-        free (pData);
-        pData = nullptr;
-
         if (! InternetQueryDataAvailable ( hInetGitHubOpen,
                                              &dwSize,
                                                0x00, NULL
                                          )
            ) break;
       }
-
-      if (hVersionFile != INVALID_HANDLE_VALUE)
-        CloseHandle (hVersionFile);
     }
   }
 
@@ -544,7 +542,7 @@ SK_Version_GetLastCheckTime_WStr (void)
 
   FindClose (hFileBackup);
 
-  wchar_t wszFileTime [512];
+  wchar_t wszFileTime [512] = { };
 
   GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, NULL, wszFileTime, 512);
 

@@ -536,7 +536,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
   NvDRSProfileHandle hProfile;
-  NVDRS_APPLICATION  app = { 0 };
+  NVDRS_APPLICATION  app = { };
 
   NvU32 compat_bits_enum = 
     (SK_GetDLLRole () == DXGI ? AA_COMPAT_BITS_DXGI_ID :
@@ -1343,8 +1343,9 @@ SK_NvAPI_AddLauncherToProf (void)
 
   // If no executable exists anywhere by this name, create a profile for it
   //   and then add the executable to it.
-  if (ret == NVAPI_EXECUTABLE_NOT_FOUND) {
-    NVDRS_PROFILE custom_profile = { 0 };
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = { };
 
     custom_profile.isPredefined = false;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());

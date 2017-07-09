@@ -291,7 +291,8 @@ SKX_InstallCBTHook (void)
     g_hHookCBT =
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
 
-    if (g_hHookCBT != 0) {
+    if (g_hHookCBT != 0)
+    {
       InterlockedExchange (&__SK_HookContextOwner, TRUE);
     }
   }
@@ -844,10 +845,8 @@ bool SK_Inject_JournalRecord (HMODULE hModule)
 bool
 SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 {
-  HANDLE         hProcSnap;
-  PROCESSENTRY32 pe32 = { };
-
-  hProcSnap =
+  PROCESSENTRY32 pe32      = { };
+  HANDLE         hProcSnap =
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
 
   if (hProcSnap == INVALID_HANDLE_VALUE)
@@ -997,7 +996,7 @@ SK_Inject_Start (void)
 
     // Worst-case, we do this manually and confuse Steam
     else
-      ShellExecuteA (NULL, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ( )).c_str ( ), SW_FORCEMINIMIZE);
+      ShellExecuteA (NULL, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
   }
 
   SetCurrentDirectoryW (wszCurrentDir);

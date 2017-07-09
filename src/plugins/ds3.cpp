@@ -1072,7 +1072,8 @@ SK_DS3_GetFullscreenState (
 {
   HRESULT hr = S_OK;
 
-  if (! ds3_cfg.window.borderless) {
+  if (! ds3_cfg.window.borderless)
+  {
     BOOL bFullscreen = TRUE;
 
     hr =
@@ -1080,7 +1081,10 @@ SK_DS3_GetFullscreenState (
 
     //if (SUCCEEDED (hr))
     ds3_state.Fullscreen = (bFullscreen != FALSE);
-  } else {
+  }
+
+  else
+  {
     DXGISwap_GetFullscreenState_Original (This, nullptr, ppTarget);
   }
 
@@ -1105,7 +1109,8 @@ SK_DS3_SetFullscreenState (
   ds3_state.SwapChain  = This;
 
   DXGI_SWAP_CHAIN_DESC swap_desc;
-  if (SUCCEEDED (This->GetDesc (&swap_desc))) {
+  if (SUCCEEDED (This->GetDesc (&swap_desc)))
+  {
     //ds3_state.Window = swap_desc.OutputWindow;
 
     // Reset the temporary monitor mode change we may have made earlier
@@ -1120,16 +1125,19 @@ SK_DS3_SetFullscreenState (
                                       L"(Virtual Res: %lux%lu)",
                     num_monitors, virtual_x, virtual_y );
 
-    if (ds3_cfg.window.borderless && sus_state.MaxWindow) {
-      DEVMODE devmode = { 0 };
-      devmode.dmSize = sizeof DEVMODE;
+    if (ds3_cfg.window.borderless && sus_state.MaxWindow)
+    {
+      DEVMODE devmode = { };
+      devmode.dmSize  = sizeof DEVMODE;
+
       EnumDisplaySettings (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
 
       // We may need to do a full-on temporary device mode change, since I don't want to
       //   bother with viewport hacks at the moment.
       //
       //  XXX: Later on, we can restore the game's usual viewport hackery.
-      if (ds3_state.Fullscreen) {
+      if (ds3_state.Fullscreen)
+      {
         bool multi_mon_match = ( (int)swap_desc.BufferDesc.Width  == virtual_x &&
                                  (int)swap_desc.BufferDesc.Height == virtual_y );
 
@@ -1138,7 +1146,8 @@ SK_DS3_SetFullscreenState (
         //   or setups where the additional monitors are not meant for rendering.
         //
         if ( (! multi_mon_match) && ( devmode.dmPelsHeight != swap_desc.BufferDesc.Height ||
-                                      devmode.dmPelsWidth  != swap_desc.BufferDesc.Width ) ) {
+                                      devmode.dmPelsWidth  != swap_desc.BufferDesc.Width ) )
+        {
           devmode.dmPelsWidth  = swap_desc.BufferDesc.Width;
           devmode.dmPelsHeight = swap_desc.BufferDesc.Height;
 
@@ -1148,7 +1157,8 @@ SK_DS3_SetFullscreenState (
           ds3_state.monitor.Height = swap_desc.BufferDesc.Height;
         }
 
-        else if (multi_mon_match) {
+        else if (multi_mon_match)
+        {
           ds3_state.monitor.Width  = swap_desc.BufferDesc.Width;
           ds3_state.monitor.Height = swap_desc.BufferDesc.Height;
         }
@@ -1156,7 +1166,8 @@ SK_DS3_SetFullscreenState (
     }
   }
 
-  if (ds3_cfg.window.borderless) {
+  if (ds3_cfg.window.borderless)
+  {
     SK_DS3_FinishResize ();
     SK_DS3_CenterWindow ();
 
@@ -1195,7 +1206,8 @@ SK_DS3_ResizeBuffers (IDXGISwapChain *This,
                                             NewFormat,
                                               SwapChainFlags );
 
-  if (SUCCEEDED (hr)) {
+  if (SUCCEEDED (hr))
+  {
     if (Width != 0)
       ds3_state.Width  = Width;
 
@@ -1269,7 +1281,8 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
     float aspect1 = (float)ds3_state.Width / (float)ds3_state.Height;
 
     if (pViewports [i].Width == 1280.0f && pViewports [i].Height == 720.0f &&
-        pViewports [i].MinDepth == 0.0f && pViewports [i].MaxDepth == 0.0f) {
+        pViewports [i].MinDepth == 0.0f && pViewports [i].MaxDepth == 0.0f)
+    {
       pNewViewports [i].TopLeftX = (float)ds3_cfg.hud.offset_x;
       pNewViewports [i].TopLeftY = (float)ds3_cfg.hud.offset_y;
       pNewViewports [i].Width    = (float)ds3_cfg.hud.res_x;
@@ -1288,7 +1301,8 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
 #endif
                ) ||
                (incorrectly_centered))) {
-      if ((float)ds3_state.Width / (float)ds3_state.Height >= (16.0f / 9.0f)) {
+      if ((float)ds3_state.Width / (float)ds3_state.Height >= (16.0f / 9.0f))
+      {
         float rescaled_width = pNewViewports [i].Width * ((float)ds3_state.Width / (float)ds3_state.Height) / (16.0f / 9.0f);
         float excess_width   = rescaled_width - pNewViewports [i].Width;
 
@@ -1296,7 +1310,10 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
         pNewViewports [i].Height   = (float)ds3_state.Height;
         pNewViewports [i].TopLeftX = -excess_width / 2.0f;
         pNewViewports [i].TopLeftY = 0.0f;
-      } else {
+      }
+
+      else
+      {
         float rescaled_height = pNewViewports [i].Height * (16.0f / 9.0f) / ((float)ds3_state.Width / (float)ds3_state.Height);
         float excess_height   = rescaled_height - pNewViewports [i].Height;
 
@@ -1305,6 +1322,7 @@ SK_DS3_RSSetViewports ( ID3D11DeviceContext* This,
         pNewViewports [i].TopLeftX = 0.0f;
         pNewViewports [i].TopLeftY = -excess_height / 2.0f;
       }
+
       pNewViewports [i].MinDepth = pViewports [i].MaxDepth;
       pNewViewports [i].MaxDepth = pViewports [i].MaxDepth;
     }
@@ -1440,7 +1458,8 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
   ds3_state.SwapChain = This;
   ds3_state.Window    = desc.OutputWindow;
 
-  if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen)) {
+  if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen))
+  {
     SK_DS3_FinishResize ();
     SK_DS3_CenterWindow ();
   }
@@ -1452,7 +1471,8 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
     //
     // Engage Fullscreen Mode At Startup (ARC Hack)
     //
-    if (ds3_cfg.render.fullscreen) {
+    if (ds3_cfg.render.fullscreen)
+    {
       _beginthreadex ( nullptr,
                          0,
                            SK_DS3_FullscreenToggle_Thread,

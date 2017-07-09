@@ -191,7 +191,8 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   if (hMod == 0)
     status = MH_ERROR_MODULE_NOT_FOUND;
 
-  else {
+  else
+  {
     pFuncAddr =
       GetProcAddress (hMod, pszProcName);
 
@@ -205,7 +206,8 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   {
     if (status == MH_ERROR_ALREADY_CREATED)
     {
-      if (ppOriginal == nullptr) {
+      if (ppOriginal == nullptr)
+      {
         SH_Introspect ( pFuncAddr,
                           SH_TRAMPOLINE,
                             ppOriginal );
@@ -225,12 +227,16 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                       L"is probably going to explode!", pszProcName );
 
         return SK_CreateDLLHook (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
-      } else
+      }
+
+      else
+      {
         dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%hs' "
                       L"[Address: %04ph]!  (Status: \"%hs\")",
                         pszProcName,
                           pFuncAddr,
                             MH_StatusToString (status) );
+      }
     }
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
@@ -290,7 +296,8 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
   {
     if (status == MH_ERROR_ALREADY_CREATED)
     {
-      if (ppOriginal == nullptr) {
+      if (ppOriginal == nullptr)
+      {
         SH_Introspect ( pFuncAddr,
                           SH_TRAMPOLINE,
                             ppOriginal );
@@ -310,12 +317,16 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
                       L"is probably going to explode!", pszProcName );
 
         return SK_CreateDLLHook2 (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
-      } else
+      }
+
+      else
+      {
         dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%hs' "
                       L"[Address: %04ph]!  (Status: \"%hs\")",
                         pszProcName,
                           pFuncAddr,
                             MH_StatusToString (status) );
+      }
     }
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
@@ -506,7 +517,8 @@ SK_ApplyQueuedHooks (void)
   MH_STATUS status =
     MH_ApplyQueued ();
 
-  if (status != MH_OK) {
+  if (status != MH_OK)
+  {
     dll_log.Log(L"[ Min Hook ] Failed to Enable Deferred Hooks!"
                   L" (Status: \"%hs\")",
                       MH_StatusToString (status) );

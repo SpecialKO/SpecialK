@@ -49,8 +49,7 @@ void
 ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 {
   // Avoid rendering when minimized
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   if ( io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f )
     return;
@@ -317,8 +316,7 @@ ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS*
   if (! QueryPerformanceCounter   ((LARGE_INTEGER *)&g_Time))
     return false;
 
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
 
   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
@@ -355,8 +353,8 @@ ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS*
     height = (float)pparams->BackBufferHeight;
   }
 
-  ImGui::GetIO ().DisplayFramebufferScale = ImVec2 ( width, height );
-  //ImGui::GetIO ().DisplaySize             = ImVec2 ( width, height );
+  io.DisplayFramebufferScale = ImVec2 ( width, height );
+  //io.DisplaySize             = ImVec2 ( width, height );
 
 
   return true;
@@ -378,8 +376,7 @@ bool
 ImGui_ImplDX9_CreateFontsTexture (void)
 {
   // Build texture atlas
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   extern void
   SK_ImGui_LoadFonts (void);
@@ -412,7 +409,8 @@ ImGui_ImplDX9_CreateFontsTexture (void)
                                  nullptr, 0 ) != D3D_OK )
     return false;
 
-  for (int y = 0; y < height; y++) {
+  for (int y = 0; y < height; y++)
+  {
       memcpy ( (unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y,
                  pixels + (width * bytes_per_pixel) * y,
                    (width * bytes_per_pixel) );
@@ -445,6 +443,8 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
   if (! g_pd3dDevice)
     return;
 
+  ImGuiIO& io (ImGui::GetIO ());
+
   if (g_pVB)
   {
     g_pVB->Release ();
@@ -457,10 +457,10 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
     g_pIB = NULL;
   }
 
-  if ( LPDIRECT3DTEXTURE9 tex = (LPDIRECT3DTEXTURE9)ImGui::GetIO ().Fonts->TexID )
+  if ( LPDIRECT3DTEXTURE9 tex = (LPDIRECT3DTEXTURE9)io.Fonts->TexID )
   {
     tex->Release ();
-    ImGui::GetIO ().Fonts->TexID = 0;
+    io.Fonts->TexID = 0;
   }
 
   g_FontTexture = NULL;
@@ -474,8 +474,8 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
     height = (float)pparams->BackBufferHeight;
   }
 
-  ImGui::GetIO ().DisplayFramebufferScale = ImVec2 ( width, height );
-  ImGui::GetIO ().DisplaySize             = ImVec2 ( width, height );
+  io.DisplayFramebufferScale = ImVec2 ( width, height );
+  io.DisplaySize             = ImVec2 ( width, height );
 }
 
 #include <SpecialK/window.h>

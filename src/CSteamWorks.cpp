@@ -118,7 +118,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
     success = false;
   }
 
-  if (SteamClient == nullptr) {
+  if (SteamClient == nullptr)
+  {
     steam_log.Log (L"Could not load SteamClient (...)");
     success = false;
   }
@@ -173,7 +174,8 @@ SK_SteamAPIContext::InitCSteamworks (HMODULE hSteamDLL)
           STEAMFRIENDS_INTERFACE_VERSION
     );
 
-  if (friends_ == nullptr) {
+  if (friends_ == nullptr)
+  {
     steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
                       STEAMFRIENDS_INTERFACE_VERSION );
     return false;
@@ -288,17 +290,20 @@ InitSafe_Detour (void)
     HMODULE hSteamAPI =
       LoadLibraryW_Original (L"CSteamworks.dll");
 
-    if (! steam_ctx.UserStats ())
-      steam_ctx.InitCSteamworks (hSteamAPI);
+    if (hSteamAPI)
+    {
+      if (! steam_ctx.UserStats ())
+        steam_ctx.InitCSteamworks (hSteamAPI);
 
-    steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-                      init_tries + 1,
-                        SK::SteamAPI::AppID () );
+      steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                        init_tries + 1,
+                          SK::SteamAPI::AppID () );
 
-    SK_Steam_StartPump ();
+      SK_Steam_StartPump ();
 
-    LeaveCriticalSection (&init_cs);
-    return true;
+      LeaveCriticalSection (&init_cs);
+      return true;
+    }
   }
 
   LeaveCriticalSection (&init_cs);
@@ -309,7 +314,8 @@ DWORD
 WINAPI
 CSteamworks_Delay_Init (LPVOID user)
 {
-  if (! SK_IsInjected ()) {
+  if (! SK_IsInjected ())
+  {
     CloseHandle (GetCurrentThread ());
     return 0;
   }

@@ -60,6 +60,10 @@ SK_Inject_Stop (void);
 extern void
 SK_Inject_Start (void);
 
+bool
+__cdecl
+SK_IsSuperSpecialK (void);
+
 enum {
   STATUS_UPDATED   = 1,
   STATUS_REMINDER  = 2,
@@ -122,8 +126,9 @@ DownloadThread (LPVOID user)
         TaskMsg (TDM_SET_PROGRESS_BAR_POS,   1,           0L);
         TaskMsg (TDM_SET_PROGRESS_BAR_STATE, PBST_ERROR,  0L);
 
-        TaskMsg (TDM_ENABLE_BUTTON, IDYES, 1); // Re-enable the update button
-        TaskMsg (TDM_ENABLE_BUTTON, 0,     1); // Re-enable remind me later button
+        TaskMsg (TDM_ENABLE_BUTTON, IDYES,    1); // Re-enable the update button
+        TaskMsg (TDM_ENABLE_BUTTON, 0,        1); // Re-enable remind me later button
+        TaskMsg (TDM_ENABLE_BUTTON, IDCANCEL, 1); // Re-enable cancel button
 
         // Re-name the update button from Yes to Retry
         SetDlgItemTextW (get->hTaskDlg, IDYES, L"Retry");
@@ -336,7 +341,8 @@ RemindMeLater_DlgProc (
       HRSRC   default_sound =
         FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_ANNOYING), L"WAVE");
 
-      if (default_sound != nullptr) {
+      if (default_sound != nullptr)
+      {
         annoy_sound.ref   =
           LoadResource (SK_GetDLL (), default_sound);
 
@@ -579,6 +585,9 @@ DownloadDialogCallback (
       // Also disable the remind me later button
       SendMessage (hWnd, TDM_ENABLE_BUTTON, 0,      0);
 
+      // Also disable the cancel button
+      SendMessage (hWnd, TDM_ENABLE_BUTTON, IDCANCEL, 0);
+
       get->hTaskDlg = hWnd;
 
       CreateThread ( nullptr,
@@ -587,6 +596,11 @@ DownloadDialogCallback (
                            (LPVOID)get,
                              0x00,
                                nullptr );
+    }
+
+    else if (wParam == IDCANCEL)
+    {
+      get->status = STATUS_CANCELLED;
     }
 
     else
@@ -858,7 +872,8 @@ Update_DlgProc (
                   break;
 
                 case TDN_BUTTON_CLICKED:
-                  if (wParam == 0) {
+                  if (wParam == 0)
+                  {
                     ShellExecuteW ( nullptr,
                                       L"OPEN",
                                         (wchar_t *)update_dlg_relnotes,
@@ -1031,8 +1046,17 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
   buttons [0].nButtonID     = IDYES;
   buttons [0].pszButtonText = L"Yes";
 
-  buttons [1].nButtonID     = 0;
-  buttons [1].pszButtonText = L"Remind me later (or disable)";
+  if (! SK_IsHostAppSKIM ())
+  {
+    buttons [1].nButtonID     = 0;
+    buttons [1].pszButtonText = L"Remind me later (or disable)";
+  }
+
+  else
+  {
+    buttons [1].nButtonID     = IDCANCEL;
+    buttons [1].pszButtonText = L"No, I changed my mind...";
+  }
 
 
   task_config.pButtons           = buttons;
@@ -1045,14 +1069,16 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                                    TDF_POSITION_RELATIVE_TO_WINDOW;
   task_config.pfCallback         = DownloadDialogCallback;
 
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsHostAppSKIM ())
+  {
     task_config.pszMainInstruction = L"Software Update Available for Download";
     task_config.pszMainIcon        = TD_INFORMATION_ICON;
 
     task_config.pszContent         = L"Would you like to upgrade now?";
   }
 
-  else {
+  else
+  {
     task_config.pszMainInstruction = L"Software Installation Ready to Download";
     task_config.pszMainIcon        = TD_INFORMATION_ICON;
 
@@ -1270,7 +1296,8 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
           if ( InterlockedCompareExchange ( &__SK_UpdateStatus, 0, 0 ) == 1 )
           {
-            if (empty) {
+            if (empty)
+            {
               install_ini.import ( L"[Version.Local]\n"
                                    L"Branch=Latest\n"
                                    L"InstallPackage= \n\n"
@@ -1294,11 +1321,6 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
             install_ini.write       (SK_Version_GetInstallIniPath ().c_str ());
 
-
-            bool
-            __cdecl
-            SK_IsSuperSpecialK (void);
-
             if (SK_IsInjected ())
             {
               SK_Inject_Start ();
@@ -1314,6 +1336,12 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
           else {
             return E_FAIL;
           }
+        }
+
+        else if (get->status == STATUS_CANCELLED)
+        {
+          DeleteFileW (SK_Version_GetInstallIniPath ().c_str ());
+          return E_FAIL;
         }
       }
 

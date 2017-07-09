@@ -11968,7 +11968,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   ZeroMemory (&xi_state.Gamepad, sizeof (XINPUT_STATE::Gamepad));
 
-  JOYINFOEX joy_ex { 0 };
+  JOYINFOEX joy_ex { };
   joy_ex.dwSize  = sizeof JOYINFOEX;
   joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
                    JOY_RETURNCENTERED | JOY_USEDEADZONE;

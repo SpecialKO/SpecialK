@@ -34,27 +34,38 @@ public:
   operator CEGUI::Window* (void);
 
 protected:
-  SK_PopupWindow (const char* szLayout) {
-    try {
+  SK_PopupWindow (const char* szLayout)
+  {
+    try
+    {
       CEGUI::WindowManager& window_mgr =
         CEGUI::WindowManager::getDllSingleton ();
 
       window_ =
         window_mgr.loadLayoutFromFile (szLayout);
-    } catch (...) {
+    }
+
+    catch (...)
+    {
     }
   }
 
-  ~SK_PopupWindow (void) {
-    if (window_ != nullptr) {
-      try {
+  ~SK_PopupWindow (void)
+  {
+    if (window_ != nullptr)
+    {
+      try
+      {
         CEGUI::WindowManager& window_mgr =
           CEGUI::WindowManager::getDllSingleton ();
 
         window_mgr.destroyWindow (window_);
 
         window_ = nullptr;
-      } catch (...) {
+      }
+
+      catch (...)
+      {
       }
     }
   }
@@ -69,9 +80,13 @@ SK_PopupWindow::getChild (const char* szName)
   if (window_ == nullptr)
     return nullptr;
 
-  try {
+  try
+  {
     return window_->getChild (szName);
-  } catch (...) {
+  }
+
+  catch (...)
+  {
   }
 
   return nullptr;
@@ -117,7 +132,8 @@ SK_PopupManager* SK_PopupManager::__manager__ = nullptr;
 SK_PopupManager*
 SK_PopupManager::getInstance (void)
 {
-  if (__manager__ == nullptr) {
+  if (__manager__ == nullptr)
+  {
     __manager__ = new SK_PopupManager ();
   }
 
@@ -143,7 +159,8 @@ SK_PopupManager::isPopup (SK_PopupWindow* popup)
 SK_PopupWindow*
 SK_PopupManager::createPopup (const char* szLayout)
 {
-  if (gui_ctx_ == nullptr) {
+  if (gui_ctx_ == nullptr)
+  {
     gui_ctx_ =
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
   }
@@ -179,7 +196,8 @@ SK_PopupManager::createPopup (const char* szLayout)
 void
 SK_PopupManager::destroyPopup (SK_PopupWindow* popup)
 {
-  if (isPopup (popup)) {
+  if (isPopup (popup))
+  {
     CEGUI::WindowManager& window_mgr =
       CEGUI::WindowManager::getDllSingleton ();
 
@@ -210,7 +228,8 @@ SK_PopupManager::destroyAllPopups (void)
   CEGUI::WindowManager& window_mgr =
     CEGUI::WindowManager::getDllSingleton ();
 
-  while (it != popups_.end ()) {
+  while (it != popups_.end ())
+  {
     SK_PopupWindow* popup =
       (it)->first;
 
@@ -233,7 +252,8 @@ SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
   CEGUI::WindowEventArgs& win_event =
     (CEGUI::WindowEventArgs &)e;
 
-  if (popups_rev_.count (win_event.window)) {
+  if (popups_rev_.count (win_event.window))
+  {
     popups_.erase     (popups_rev_ [win_event.window]);
     popups_rev_.erase (win_event.window);
   }

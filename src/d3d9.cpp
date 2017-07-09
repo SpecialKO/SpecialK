@@ -610,7 +610,8 @@ SK_HookD3D9 (void)
 {
   static volatile ULONG hooked = FALSE;
 
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE)) {
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
     return;
   }
 
@@ -621,12 +622,14 @@ SK_HookD3D9 (void)
   dll_log.Log (L"[   D3D9   ] Importing Direct3DCreate9{Ex}...");
   dll_log.Log (L"[   D3D9   ] ================================");
 
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll")) {
+  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll"))
+  {
     dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %ph",
       (Direct3DCreate9_Import) =  \
         (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9"));
 
-    if (config.apis.d3d9ex.hook) {
+    if (config.apis.d3d9ex.hook)
+    {
       dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %ph",
         (Direct3DCreate9Ex_Import) =  \
           (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
@@ -678,7 +681,8 @@ void
 WINAPI
 d3d9_init_callback (finish_pfn finish)
 {
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsHostAppSKIM ())
+  {
     SK_BootD3D9 ();
 
     while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
@@ -705,7 +709,8 @@ SK::D3D9::Shutdown (void)
   //   until those projects are modified to use THIS texture manager,
   //     they need special treatment.
   if ( GetModuleHandle (L"tzfix.dll") == NULL &&
-       GetModuleHandle (L"tsfix.dll") == NULL ) {
+       GetModuleHandle (L"tsfix.dll") == NULL )
+  {
     sk::d3d9::tex_mgr.Shutdown ();
   }
 #endif
@@ -1303,7 +1308,8 @@ D3D9CreateAdditionalSwapChain_Override (
                                                            pPresentationParameters,
                                                              pSwapChain ) );
 
-  if (SUCCEEDED (hr)) {
+  if (SUCCEEDED (hr))
+  {
     D3D9_INTERCEPT ( pSwapChain, 3,
                      "IDirect3DSwapChain9::Present",
                      D3D9PresentSwapCallback, D3D9PresentSwap_Original,
@@ -1389,15 +1395,21 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
 
   void** vftable = *(void***)*&pDev;
 
-  if (D3D9Reset_Original != nullptr) {
+  if (D3D9Reset_Original != nullptr)
+  {
     if ( config.render.d3d9.hook_type == 0              &&
          (! config.compatibility.d3d9.hook_reset_vftbl) &&
-            config.compatibility.d3d9.rehook_reset ) {
+            config.compatibility.d3d9.rehook_reset )
+    {
       //dll_log.Log (L"Rehooking IDirect3DDevice9::Present (...)");
 
       if (MH_OK == SK_RemoveHook (vftable [16]))
+      {
         D3D9Reset_Original = nullptr;
-      else {
+      }
+
+      else
+      {
         dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
                       L"IDirect3DDevice9::Reset (...)!" );
         if (MH_OK == SK_RemoveHook (vftable_16))
@@ -1411,7 +1423,8 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   if (config.compatibility.d3d9.hook_reset_vftbl)
     config.render.d3d9.hook_type = 1;
 
-  if (D3D9Reset_Original == nullptr || config.compatibility.d3d9.rehook_reset) {
+  if (D3D9Reset_Original == nullptr || config.compatibility.d3d9.rehook_reset)
+  {
     D3D9_INTERCEPT ( &pDev, 16,
                      "IDirect3DDevice9::Reset",
                       D3D9Reset_Override,
@@ -1436,15 +1449,21 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   {
     vftable = *(void***)*&pDevEx;
 
-    if (D3D9ResetEx_Original != nullptr) {
+    if (D3D9ResetEx_Original != nullptr)
+    {
       if ( config.render.d3d9.hook_type == 0              &&
            (! config.compatibility.d3d9.hook_reset_vftbl) &&
-              config.compatibility.d3d9.rehook_reset ) {
+              config.compatibility.d3d9.rehook_reset )
+      {
         //dll_log.Log (L"Rehooking IDirect3DDevice9Ex::ResetEx (...)");
 
         if (MH_OK == SK_RemoveHook (vftable [132]))
+        {
           D3D9ResetEx_Original = nullptr;
-        else {
+        }
+
+        else
+        {
           dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
                         L"IDirect3DDevice9Ex::ResetEx (...)!" );
           if (MH_OK == SK_RemoveHook (vftable_132))
@@ -1456,7 +1475,8 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
     if (config.compatibility.d3d9.hook_reset_vftbl)
       config.render.d3d9.hook_type = 1;
 
-  if (D3D9ResetEx_Original == nullptr || config.compatibility.d3d9.rehook_reset) {
+  if (D3D9ResetEx_Original == nullptr || config.compatibility.d3d9.rehook_reset)
+  {
       D3D9_INTERCEPT ( &pDevEx, 132,
                       "IDirect3DDevice9Ex::ResetEx",
                       D3D9ResetEx,
@@ -1482,12 +1502,17 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   if (D3D9Present_Original != nullptr) {
     if ( config.render.d3d9.hook_type == 0                &&
          (! config.compatibility.d3d9.hook_present_vftbl) &&
-            config.compatibility.d3d9.rehook_present ) {
+            config.compatibility.d3d9.rehook_present )
+    {
       //dll_log.Log (L"Rehooking IDirect3DDevice9::Present (...)");
 
       if (MH_OK == SK_RemoveHook (vftable [17]))
+      {
         D3D9Present_Original = nullptr;
-      else {
+      }
+
+      else
+      {
         dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
                       L"IDirect3DDevice9::Present (...)!" );
         if (MH_OK == SK_RemoveHook (vftable_17))
@@ -1501,7 +1526,8 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   if (config.compatibility.d3d9.hook_present_vftbl)
     config.render.d3d9.hook_type = 1;
 
-  if (D3D9Present_Original == nullptr || config.compatibility.d3d9.rehook_present) {
+  if (D3D9Present_Original == nullptr || config.compatibility.d3d9.rehook_present)
+  {
     D3D9_INTERCEPT ( &pDev, 17,
                      "IDirect3DDevice9::Present",
                       D3D9PresentCallback,
@@ -1523,15 +1549,21 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   {
     vftable = *(void***)*&pDevEx;
 
-    if (D3D9PresentEx_Original != nullptr) {
+    if (D3D9PresentEx_Original != nullptr)
+    {
       if ( config.render.d3d9.hook_type == 0              &&
          (! config.compatibility.d3d9.hook_present_vftbl) &&
-            config.compatibility.d3d9.rehook_present ) {
+            config.compatibility.d3d9.rehook_present )
+      {
         //dll_log.Log (L"Rehooking IDirect3DDevice9Ex::PresentEx (...)");
 
         if (MH_OK == SK_RemoveHook (vftable [121]))
+        {
           D3D9PresentEx_Original = nullptr;
-        else {
+        }
+
+        else
+        {
           dll_log.Log ( L"[   D3D9   ] Altered vftable detected, re-hooking "
                         L"IDirect3DDevice9Ex::PresentEx (...)!" );
           if (MH_OK == SK_RemoveHook (vftable_121))
@@ -1543,7 +1575,8 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
     if (config.compatibility.d3d9.hook_present_vftbl)
       config.render.d3d9.hook_type = 1;
 
-    if (D3D9PresentEx_Original == nullptr || config.compatibility.d3d9.rehook_present) {
+    if (D3D9PresentEx_Original == nullptr || config.compatibility.d3d9.rehook_present)
+    {
       //
       // D3D9Ex Specific Stuff
       //
@@ -2909,8 +2942,10 @@ Direct3DCreate9 (UINT SDKVersion)
   bool force_d3d9ex = config.render.d3d9.force_d3d9ex;
 
   // Disable D3D9EX whenever GeDoSaTo is present
-  if (force_d3d9ex) {
-    if (GetModuleHandle (L"GeDoSaTo.dll")) {
+  if (force_d3d9ex)
+  {
+    if (GetModuleHandle (L"GeDoSaTo.dll"))
+    {
       dll_log.Log (L"[CompatHack] <!> Disabling D3D9Ex optimizations because GeDoSaTo.dll is present!");
       force_d3d9ex = false;
     }
@@ -2935,10 +2970,12 @@ Direct3DCreate9 (UINT SDKVersion)
     }
   }
 
-  else if (force_d3d9ex) {
+  else if (force_d3d9ex)
+  {
   }
 
-  if (d3d9 != nullptr) {
+  if (d3d9 != nullptr)
+  {
     // ...
   }
 
@@ -2964,10 +3001,12 @@ Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
 
   IDirect3D9Ex* d3d9ex = nullptr;
 
-  if (Direct3DCreate9Ex_Import) {
+  if (Direct3DCreate9Ex_Import)
+  {
     D3D9_CALL (hr, Direct3DCreate9Ex_Import (SDKVersion, &d3d9ex));
 
-    if (SUCCEEDED (hr) && d3d9ex!= nullptr) {
+    if (SUCCEEDED (hr) && d3d9ex!= nullptr)
+    {
       *ppD3D = d3d9ex;
     }
   }
@@ -2987,26 +3026,35 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
 
   CComPtr <IDirect3DDevice9> dev = pDevice;
 
-  if (pDevice != nullptr || (pDevice == nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev)))) {
-    if (pipeline_stats.query.object != nullptr) {
-      if (pipeline_stats.query.active) {
+  if (pDevice != nullptr || (pDevice == nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev))))
+  {
+    if (pipeline_stats.query.object != nullptr)
+    {
+      if (pipeline_stats.query.active)
+      {
         pipeline_stats.query.object->Issue (D3DISSUE_END);
         pipeline_stats.query.active = false;
-      } else {
+      }
+
+      else
+      {
         HRESULT hr =
           pipeline_stats.query.object->GetData (
                               &pipeline_stats.last_results,
                                 sizeof D3DDEVINFO_D3D9PIPELINETIMINGS,
                                   D3DGETDATA_FLUSH );
-        if (hr == S_OK) {
+        if (hr == S_OK)
+        {
           pipeline_stats.query.object->Release ();
           pipeline_stats.query.object = nullptr;
         }
       }
     }
 
-    else {
-      if (SUCCEEDED (dev->CreateQuery (D3DQUERYTYPE_PIPELINETIMINGS, &pipeline_stats.query.object))) {
+    else
+    {
+      if (SUCCEEDED (dev->CreateQuery (D3DQUERYTYPE_PIPELINETIMINGS, &pipeline_stats.query.object)))
+      {
         pipeline_stats.query.object->Issue (D3DISSUE_BEGIN);
         pipeline_stats.query.active = true;
       }
@@ -3026,11 +3074,15 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   // VERTEX SHADING
   //
-  if (stats.VertexProcessingTimePercent > 0.0f) {
+  if (stats.VertexProcessingTimePercent > 0.0f)
+  {
     _swprintf ( wszDesc,
                   L"  VERTEX : %5.2f%%\n",
                     stats.VertexProcessingTimePercent );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"  VERTEX : <Unused>\n" );
   }
@@ -3038,12 +3090,16 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   // PIXEL SHADING
   //
-  if (stats.PixelProcessingTimePercent > 0.0f) {
+  if (stats.PixelProcessingTimePercent > 0.0f)
+  {
     _swprintf ( wszDesc,
                   L"%s  PIXEL  : %5.2f%%\n",
                     wszDesc,
                       stats.PixelProcessingTimePercent );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  PIXEL  : <Unused>\n",
                     wszDesc );
@@ -3052,7 +3108,8 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   // OTHER
   //
-  if (stats.OtherGPUProcessingTimePercent > 0.0f) {
+  if (stats.OtherGPUProcessingTimePercent > 0.0f)
+  {
     _swprintf ( wszDesc,
                   L"%s  OTHER  : %5.2f%%\n",
                     wszDesc, stats.OtherGPUProcessingTimePercent);
@@ -3061,7 +3118,8 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   // IDLE
   //
-  if (stats.GPUIdleTimePercent > 0.0f) {
+  if (stats.GPUIdleTimePercent > 0.0f)
+  {
     _swprintf ( wszDesc,
                   L"%s  IDLE   : %5.2f%%\n",
                     wszDesc,
@@ -3077,7 +3135,8 @@ HookD3D9 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (! config.apis.d3d9.hook) {
+  if (! config.apis.d3d9.hook)
+  {
     return 0;
   }
 
@@ -3246,7 +3305,10 @@ HookD3D9 (LPVOID user)
         // 118 CreateQuery
 
         dll_log.Log (L"[   D3D9   ]   * Success");
-      } else {
+      }
+
+      else
+      {
         _com_error err (hr);
         dll_log.Log ( L"[   D3D9   ]   * Failure  (%s)",
                       err.ErrorMessage () );
@@ -3308,7 +3370,10 @@ HookD3D9 (LPVOID user)
           SK_D3D9RenderBackend::getInstance ();
 
           dll_log.Log (L"[   D3D9   ]   * Success");
-        } else {
+        }
+
+        else
+        {
           dll_log.Log (L"[   D3D9   ]   * Failure");
         }
 

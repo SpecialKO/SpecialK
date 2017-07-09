@@ -676,8 +676,7 @@ ImGui_ImplDX11_NewFrame (void)
   if (! g_pFontSampler)
     ImGui_ImplDX11_CreateDeviceObjects ();
   
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   // Setup display size (every frame to accommodate for window resizing)
   //io.DisplaySize =

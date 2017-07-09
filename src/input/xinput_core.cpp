@@ -1061,7 +1061,8 @@ SK_XInput_PulseController ( INT   iJoyID,
   vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
   vibes.wRightMotorSpeed = (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f);
 
-  if (xinput_ctx.primary_hook && xinput_ctx.primary_hook->XInputSetState_Original) {
+  if (xinput_ctx.primary_hook && xinput_ctx.primary_hook->XInputSetState_Original)
+  {
     xinput_ctx.primary_hook->XInputSetState_Original ( iJoyID, &vibes );
     return true;
   }
@@ -1095,13 +1096,15 @@ SK_XInput_PollController ( INT           iJoyID,
     pCtx = xinput_ctx.primary_hook;
 
     // Then 1.4
-    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr) {
+    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+    {
       SK_Input_HookXInput1_4 ();
       pCtx = xinput_ctx.primary_hook;
     }
 
     // Down-level 9_1_0 if all else fails (does not support XInputEx)
-    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr) {
+    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+    {
       SK_Input_HookXInput9_1_0 ();
       pCtx = xinput_ctx.primary_hook;
     }

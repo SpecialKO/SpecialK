@@ -75,7 +75,8 @@ SK_InitRenderBackends (void)
 void
 SK_BootD3D9 (void)
 {
-  while (backend_dll == 0) {
+  while (backend_dll == 0)
+  {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
   }
@@ -107,7 +108,8 @@ SK_BootD3D9 (void)
 void
 SK_BootD3D8 (void)
 {
-  while (backend_dll == 0) {
+  while (backend_dll == 0)
+  {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
   }
@@ -132,7 +134,8 @@ SK_BootD3D8 (void)
 void
 SK_BootDDraw (void)
 {
-  while (backend_dll == 0) {
+  while (backend_dll == 0)
+  {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
   }
@@ -160,7 +163,8 @@ extern HMODULE backend_dll;
 void
 SK_BootDXGI (void)
 {
-  while (backend_dll == 0) {
+  while (backend_dll == 0)
+  {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
   }
@@ -194,7 +198,8 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
-  while (backend_dll == 0) {
+  while (backend_dll == 0)
+  {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
   }
@@ -262,7 +267,8 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
       else
       {
-        if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &active)) {
+        if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &active))
+        {
           last_checked = timeGetTime ();
           success      = true;
         }

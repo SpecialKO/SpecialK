@@ -49,6 +49,7 @@
 #include <SpecialK/render_backend.h>
 
 #include <memory>
+#include <atlbase.h>
 
 // We're not going to use DLL Import - we will load these function pointers
 //  by hand.
@@ -103,7 +104,8 @@ public:
       {
         static bool first = true;
 
-        if (first) {
+        if (first)
+        {
           cursor_visible_ = ShowCursor (FALSE) >= -1;
                             ShowCursor (TRUE);
           first = false;
@@ -1277,7 +1279,8 @@ public:
     }
 
     else {
-      if (failed) {
+      if (failed)
+      {
         //steam_log.Log ( L" Asynchronous SteamAPI Call _NOT ISSUED BY Special K_ Failed: "
                         //L"(reason=%lu)",
                           //eCallFail );
@@ -1545,7 +1548,8 @@ public:
 
         while (it != popups.end ())
         {
-          if (timeGetTime () < (*it).time + POPUP_DURATION_MS) {
+          if (timeGetTime () < (*it).time + POPUP_DURATION_MS)
+          {
             float percent_of_lifetime = ((float)((*it).time + POPUP_DURATION_MS - timeGetTime ()) / 
                                                 (float)POPUP_DURATION_MS);
 
@@ -1899,7 +1903,8 @@ public:
       {
         HGLOBAL sound_ref     =
           LoadResource (SK_GetDLL (), default_sound);
-        if (sound_ref != 0) {
+        if (sound_ref != 0)
+        {
           unlock_sound        = (uint8_t *)LockResource (sound_ref);
 
           default_loaded = true;
@@ -2223,8 +2228,10 @@ SK_UnlockSteamAchievement (uint32_t idx)
 //      stats->StoreStats                  ();
 #if 0
       bool achieved;
-      if (stats->GetAchievement (szName, &achieved)) {
-        if (achieved) {
+      if (stats->GetAchievement (szName, &achieved))
+      {
+        if (achieved)
+        {
           steam_log.LogEx (true, L"Clearing first\n");
           stats->ClearAchievement            (szName);
           stats->StoreStats                  ();
@@ -2315,7 +2322,8 @@ public:
   {
   }
 
-  ~SK_Steam_UserManager (void) {
+  ~SK_Steam_UserManager (void)
+  {
   }
 
   int32_t  GetNumPlayers    (void) { return InterlockedAdd (&num_players_, 0L); }
@@ -2414,7 +2422,7 @@ SteamAPI_RunCallbacks_Detour (void)
 
     if (InterlockedCompareExchangePointer (&hThread, 0, 0) == 0)
     {
-      InterlockedExchangePointer (&hThread,
+      InterlockedExchangePointer ((void **)&hThread,
         CreateThread ( nullptr, 0,
         [](LPVOID user) ->
           DWORD
@@ -2438,7 +2446,7 @@ SteamAPI_RunCallbacks_Detour (void)
 
                 if (! steam_ctx.UserStats ())
                 {
-                  InterlockedExchangePointer ((volatile HANDLE *)user, nullptr);
+                  InterlockedExchangePointer ((void **)user, nullptr);
                   CloseHandle (GetCurrentThread ());
                   return -1;
                 }
@@ -2463,7 +2471,7 @@ SteamAPI_RunCallbacks_Detour (void)
                 InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
               }
 
-              InterlockedExchangePointer ((volatile HANDLE *)user, nullptr);
+              InterlockedExchangePointer ((void **)user, nullptr);
 
               CloseHandle (GetCurrentThread ());
 
@@ -2592,7 +2600,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
     }
   }
 
-  CloseHandle (InterlockedExchangePointer (&hSteamPump, 0));
+  CloseHandle (InterlockedExchangePointer ((void **)&hSteamPump, 0));
 
   return 0;
 }
@@ -2605,7 +2613,7 @@ SK_Steam_StartPump (bool force)
 
   if (config.steam.auto_pump_callbacks || force)
   {
-    InterlockedExchangePointer ( &hSteamPump,
+    InterlockedExchangePointer ( (void **)&hSteamPump,
                                    CreateThread ( nullptr,
                                                     0,
                                                       SteamAPI_PumpThread,
@@ -2619,13 +2627,13 @@ SK_Steam_StartPump (bool force)
 void
 SK_Steam_KillPump (void)
 {
-  HANDLE hOriginal =
-    InterlockedExchangePointer (&hSteamPump, 0);
+  CHandle hOriginal (
+    InterlockedExchangePointer ((void **)&hSteamPump, 0)
+  );
 
   if (hOriginal != 0)
   {
     TerminateThread (hOriginal, 0x00);
-    CloseHandle     (hOriginal);
   }
 }
 
@@ -2702,14 +2710,15 @@ SK_UseManifestToGetAppName (uint32_t appid)
       lstrcpyW (wszLibraryFolders, wszSteamPath);
       lstrcatW (wszLibraryFolders, L"\\steamapps\\libraryfolders.vdf");
 
-      HANDLE hLibFolders =
+      CHandle hLibFolders (
         CreateFileW ( wszLibraryFolders,
                         GENERIC_READ,
                           FILE_SHARE_READ | FILE_SHARE_WRITE,
                             nullptr,
                               OPEN_EXISTING,
                                 GetFileAttributesW (wszLibraryFolders),
-                                  nullptr );
+                                  nullptr )
+      );
 
       if (hLibFolders != INVALID_HANDLE_VALUE)
       {
@@ -2724,10 +2733,9 @@ SK_UseManifestToGetAppName (uint32_t appid)
           new uint8_t [dwSize + 1] { };
 
         if (data == nullptr)
-        {
-          CloseHandle (hLibFolders);
           return nullptr;
-        }
+
+        std::unique_ptr <uint8_t> _data ((uint8_t *)data);
 
         dwRead = dwSize;
 
@@ -2763,10 +2771,6 @@ SK_UseManifestToGetAppName (uint32_t appid)
             }
           }
         }
-
-        delete [] data;
-
-        CloseHandle (hLibFolders);
       }
     }
 
@@ -2786,14 +2790,15 @@ SK_UseManifestToGetAppName (uint32_t appid)
                     (char *)steam_lib_paths [i],
                       appid );
 
-      HANDLE hManifest =
+      CHandle hManifest (
         CreateFileA ( szManifest,
                       GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                           nullptr,
                             OPEN_EXISTING,
                               GetFileAttributesA (szManifest),
-                                nullptr );
+                                nullptr )
+      );
 
       if (hManifest != INVALID_HANDLE_VALUE)
       {
@@ -2808,10 +2813,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
           new char [dwSize + 1] { };
 
         if (! szManifestData)
-        {
-          CloseHandle (hManifest);
           continue;
-        }
 
         std::unique_ptr <char> manifest_data (szManifestData);
 
@@ -2821,8 +2823,6 @@ SK_UseManifestToGetAppName (uint32_t appid)
                          dwSize,
                            &dwRead,
                              nullptr );
-
-        CloseHandle (hManifest);
 
         if (! (bRead && dwRead))
         {
@@ -2857,14 +2857,15 @@ SK_UseManifestToGetAppName (uint32_t appid)
                 wszSteamPath,
                   appid );
 
-  HANDLE hManifest =
+  CHandle hManifest (
     CreateFileA ( szManifest,
                   GENERIC_READ,
                     FILE_SHARE_READ | FILE_SHARE_WRITE,
                       nullptr,
                         OPEN_EXISTING,
                           GetFileAttributesA (szManifest),
-                            nullptr );
+                            nullptr )
+  );
 
   if (hManifest != INVALID_HANDLE_VALUE)
   {
@@ -2880,8 +2881,6 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
     if (szManifestData == nullptr)
     {
-      CloseHandle (hManifest);
-
       return "";
     }
 
@@ -2893,8 +2892,6 @@ SK_UseManifestToGetAppName (uint32_t appid)
                      dwSize,
                        &dwRead,
                          nullptr );
-
-    CloseHandle (hManifest);
 
     if (! (bRead && dwRead))
     {
@@ -3278,7 +3275,8 @@ SK_HookSteamAPI (void)
 
   if (! config.steam.force_load_steamapi)
   {
-    if (config.steam.init_delay > 0) {
+    if (config.steam.init_delay > 0)
+    {
       CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
     }
   }
@@ -4064,7 +4062,8 @@ SK_SteamOverlay_GoToURL (const char* szURL, bool bUseWindowsShellIfOverlayFails)
     }
   }
 
-  if (bUseWindowsShellIfOverlayFails) {
+  if (bUseWindowsShellIfOverlayFails)
+  {
     ShellExecuteA (game_window.hWnd, "open", szURL, nullptr, nullptr, SW_NORMAL);
     return true;
   }

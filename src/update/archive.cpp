@@ -241,7 +241,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
            SzArEx_Extract ( &arc,          &look_stream.s, files [i].fileno,
                             &block_idx,    &out,           &out_len,
                             &offset,       &decomp_size,
-                            &thread_alloc, &thread_tmp_alloc ) ) {
+                            &thread_alloc, &thread_tmp_alloc ) )
+    {
       dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
                       files [i].name.c_str () );
 
@@ -286,7 +287,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                             wszMovePath );
     }
 
-    else {
+    else
+    {
       SK_CreateDirectories (wszDestPath);
     }
 
@@ -315,12 +317,14 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       // We still need to move files in order to replace ones currently
       //   involving execution, but if the user does not want backups,
       //     attempt to delete the moved files.
-      if (! backup) {
+      if (! backup)
+      {
         DeleteFileW (wszMovePath);
       }
     }
 
-    else {
+    else
+    {
       dll_log.Log ( L"[AutoUpdate] Failed to open file: '%s'",
                       wszDestPath );
 
@@ -330,7 +334,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    if (callback != nullptr) {
+    if (callback != nullptr)
+    {
       callback (i + 1, PtrToUint ((void *)files.size ()));
     }
   }
@@ -368,7 +373,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
            SzArEx_Extract ( &arc,          &look_stream.s, config_files [i].fileno,
                             &block_idx,    &out,           &out_len,
                             &offset,       &decomp_size,
-                            &thread_alloc, &thread_tmp_alloc ) ) {
+                            &thread_alloc, &thread_tmp_alloc ) )
+    {
       dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip config file ('%s')",
                       config_files [i].name.c_str () );
 
@@ -392,7 +398,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     wchar_t* wszDefault_ = wcsstr (wszUserConfig, L"default_");
 
-    if (wszDefault_ != nullptr) {
+    if (wszDefault_ != nullptr)
+    {
       *wszDefault_ = L'\0';
 
       wchar_t* wsz_ =
@@ -451,12 +458,14 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                           FALSE );
       }
 
-      else {
+      else
+      {
         DeleteFileW (wszNewConfig);
       }
     }
 
-    else {
+    else
+    {
       dll_log.Log ( L"[AutoUpdate] Failed to create file: '%s'",
                       wszNewConfig );
 

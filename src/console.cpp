@@ -46,7 +46,8 @@
 
 #include <windowsx.h>
 
-SK_Console::SK_Console (void) {
+SK_Console::SK_Console (void)
+{
   visible        = false;
   command_issued = false;
   result_str     = "";
@@ -75,11 +76,12 @@ SK_Console::Draw (void)
     return;
 
   static bool          carret    = false;
-  static LARGE_INTEGER last_time = { 0 };
+  static LARGE_INTEGER last_time = { 0ULL };
 
            std::string output    = "";
 
-  if (visible) {
+  if (visible)
+  {
     output += text;
 
     LARGE_INTEGER now;
@@ -91,7 +93,8 @@ SK_Console::Draw (void)
     now = SK_QueryPerf ();
 
     // Blink the Carret
-    if ((now.QuadPart - last_time.QuadPart) > (freq.QuadPart / 3)) {
+    if ((now.QuadPart - last_time.QuadPart) > (freq.QuadPart / 3))
+    {
       carret = ! carret;
 
       last_time.QuadPart = now.QuadPart;
@@ -101,11 +104,15 @@ SK_Console::Draw (void)
       output += "-";
 
     // Show Command Results
-    if (command_issued) {
+    if (command_issued)
+    {
       output += "\n";
       output += result_str;
     }
-  } else {
+  }
+
+  else
+  {
     output = "";
   }
 
@@ -115,8 +122,11 @@ SK_Console::Draw (void)
 void
 SK_Console::Start (void)
 {
+  static HMODULE hModPPrinny = GetModuleHandle (L"PrettyPrinny.dll");
+
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
-  if (GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (hModPPrinny)
+  {
     bNoConsole = true;
     return;
   }
@@ -129,8 +139,11 @@ SK_Console::Start (void)
 void
 SK_Console::End (void)
 {
+  static HMODULE hModPPrinny = GetModuleHandle (L"PrettyPrinny.dll");
+
   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
-  if (GetModuleHandle (L"PrettyPrinny.dll")) {
+  if (hModPPrinny)
+  {
     bNoConsole = true;
     return;
   }
@@ -180,8 +193,10 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     if (SK_ImGui_Visible)
       visible = false;
 
-    if (visible && vkCode == VK_BACK) {
-      if (keyDown) {
+    if (visible && vkCode == VK_BACK)
+    {
+      if (keyDown)
+      {
         size_t len = strlen (text);
                len--;
 
@@ -192,14 +207,16 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       }
     }
 
-    else if (vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT) {
+    else if (vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT)
+    {
       vkCode = VK_SHIFT;
 
       if (keyDown) keys_ [vkCode] = 0x81;
       else         keys_ [vkCode] = 0x00;
     }
 
-    else if (vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU) {
+    else if (vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU)
+    {
       vkCode = VK_MENU;
 
       if (keyDown) keys_ [vkCode] = 0x81;
@@ -210,7 +227,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       //if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x81; else keys_ [VK_CAPITAL] = 0x00;
     //}
 
-    else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL) {
+    else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
+    {
       vkCode = VK_CONTROL;
 
       if (keyDown) keys_ [vkCode] = 0x81;
@@ -230,13 +248,15 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       else if (commands.idx >= commands.history.size ())
         commands.idx = commands.history.size () - 1;
 
-      if (commands.history.size ()) {
+      if (commands.history.size ())
+      {
         strcpy (&text [1], commands.history [commands.idx].c_str ());
         command_issued = false;
       }
     }
 
-    else if (visible && vkCode == VK_RETURN) {
+    else if (visible && vkCode == VK_RETURN)
+    {
       bool new_press = keys_ [vkCode] != 0x81;
 
       if (keyDown)
@@ -244,17 +264,21 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       else
         keys_ [vkCode] = 0x0;
 
-      if (keyDown && LOWORD (lParam) < 2 && new_press) {
+      if (keyDown && LOWORD (lParam) < 2 && new_press)
+      {
         size_t len = strlen (text+1);
         // Don't process empty or pure whitespace command lines
-        if (len > 0 && strspn (text+1, " ") != len) {
+        if (len > 0 && strspn (text+1, " ") != len)
+        {
           SK_ICommandResult result =
             SK_GetCommandProcessor ()->ProcessCommandLine (text+1);
 
-          if (result.getStatus ()) {
+          if (result.getStatus ())
+          {
             // Don't repeat the same command over and over
             if (commands.history.size () == 0 ||
-                commands.history.back () != &text [1]) {
+                commands.history.back () != &text [1])
+            {
               commands.history.push_back (&text [1]);
             }
 
@@ -264,7 +288,9 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 
             command_issued = true;
           }
-          else {
+
+          else
+          {
             command_issued = false;
           }
 
@@ -275,12 +301,14 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       }
     }
 
-    else if (keyDown) {
+    else if (keyDown)
+    {
       bool new_press = keys_ [vkCode] != 0x81;
 
       keys_ [vkCode] = 0x81;
 
-      if (new_press) {
+      if (new_press)
+      {
         //
         // Temp Hack:
         // ----------

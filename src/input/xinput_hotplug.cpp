@@ -81,7 +81,8 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! placeholders [dwUserIndex].holding) {
+    if (! placeholders [dwUserIndex].holding)
+    {
       placeholders [dwUserIndex].last_polled = timeGetTime ();
 
       placeholders [dwUserIndex].holding =
@@ -143,7 +144,8 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! placeholders [dwUserIndex].holding) {
+    if (! placeholders [dwUserIndex].holding)
+    {
       placeholders [dwUserIndex].last_polled = timeGetTime ();
 
       placeholders [dwUserIndex].holding =
@@ -221,7 +223,8 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )
   {
-    if (! placeholders [dwUserIndex].holding) {
+    if (! placeholders [dwUserIndex].holding)
+    {
       placeholders [dwUserIndex].last_polled = timeGetTime ();
 
       placeholders [dwUserIndex].holding = true;
@@ -316,7 +319,8 @@ RegisterDeviceNotificationW_Detour (
 #endif
 
     // Fix for Watch_Dogs 2 and possibly other games
-    if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero)) {
+    if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero))
+    {
       Flags |= DEVICE_NOTIFY_ALL_INTERFACE_CLASSES;
 
       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationW (...)"),
@@ -354,7 +358,8 @@ RegisterDeviceNotificationA_Detour (
 #endif
 
     // Fix for Watch_Dogs 2 and possibly other games
-    if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero)) {
+    if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero))
+    {
       Flags |= DEVICE_NOTIFY_ALL_INTERFACE_CLASSES;
 
       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationA (...)"),

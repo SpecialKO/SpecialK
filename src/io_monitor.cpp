@@ -39,7 +39,8 @@ SK_CountIO (io_perf_t& ioc, const double update)
 {
   static HANDLE hProc = GetCurrentProcess ();
 
-  if (ioc.init == false) {
+  if (ioc.init == false)
+  {
     memset (&ioc, 0, sizeof (io_perf_t));
     ioc.init = true;
   }
@@ -89,7 +90,8 @@ SK_CountIO (io_perf_t& ioc, const double update)
   double& write_iop_sec = ioc.write_iop_sec;
   double& other_iop_sec = ioc.other_iop_sec;
 
-  if (ioc.dt >= update) {
+  if (ioc.dt >= update)
+  {
     read_mb_sec  = (
       read_mb_sec + ((dRB / 1048576.0) / (1.0e-7 * (double)ioc.dt))
                    ) / 2.0;

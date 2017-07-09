@@ -38,8 +38,7 @@ void
 ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
 {
   // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   int fb_width  = (int)(io.DisplaySize.x);// * io.DisplayFramebufferScale.x);
   int fb_height = (int)(io.DisplaySize.y);// * io.DisplayFramebufferScale.y);
@@ -303,9 +302,11 @@ ImGui_ImplGL3_InvalidateDeviceObjects (void)
 
   if (g_FontTexture)
   {
+    ImGuiIO& io (ImGui::GetIO ());
+
     glDeleteTextures (1, &g_FontTexture);
-    ImGui::GetIO ().Fonts->TexID = 0;
-    g_FontTexture = 0;
+    io.Fonts->TexID = 0;
+    g_FontTexture   = 0;
   }
 }
 
@@ -326,7 +327,8 @@ ImGui_ImplGL3_Init (void)
 
   //g_Window = window;
 
-  ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& io (ImGui::GetIO ());
+
   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
   io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;

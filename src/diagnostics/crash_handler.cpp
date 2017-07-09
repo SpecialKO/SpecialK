@@ -33,6 +33,7 @@
 #include <intsafe.h>
 #include <Shlwapi.h>
 #include <algorithm>
+#include <memory>
 
 //#define STRICT_COMPLIANCE
 
@@ -153,6 +154,8 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   char* szDupName    = _strdup (szModName);
   char* pszShortName = szDupName + lstrlenA (szDupName);
 
+  std::unique_ptr <char> dup (szDupName);
+
   while (  pszShortName      >  szDupName &&
          *(pszShortName - 1) != '\\')
     --pszShortName;
@@ -182,9 +185,13 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   if ( SymFromAddr ( hProc,
                        (DWORD64)ip,
                          &Displacement,
-                           &sip.si ) ) {
+                           &sip.si ) )
+  {
     ret = sip.si.Name;
-  } else {
+  }
+
+  else
+  {
     ret = "UNKNOWN";
   }
 
@@ -399,7 +406,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
                   ExceptionInfo->ContextRecord->EFlags );
 #else
-  crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, (uintptr_t)ip-(uintptr_t)BaseAddr);
+  crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, (LPVOID)((uintptr_t)ip-(uintptr_t)BaseAddr));
 
   crash_log.Log ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh",
                   ip,

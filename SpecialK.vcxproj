@@ -938,7 +938,8 @@ Exit 0</Command>
       <ImportLibrary />
       <Profile>true</Profile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <SectionAlignment>0</SectionAlignment>
+      <SectionAlignment>
+      </SectionAlignment>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>

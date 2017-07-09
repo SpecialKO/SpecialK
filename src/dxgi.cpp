@@ -142,7 +142,8 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
     CComPtr <ID3D11DeviceContext>    pImmediateContext = nullptr;
     pD3D11Dev->GetImmediateContext (&pImmediateContext);
   
-    if (pImmediateContext != nullptr) {
+    if (pImmediateContext != nullptr)
+    {
       imgui_swap = pSwapChain;
       return ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
     }
@@ -446,11 +447,13 @@ volatile LONG  __dxgi_ready  = FALSE;
 
 void WaitForInitDXGI (void)
 {
-  if (CreateDXGIFactory_Import == nullptr) {
+  if (CreateDXGIFactory_Import == nullptr)
+  {
     SK_BootDXGI ();
   }
 
-  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE)) {
+  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+  {
     MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 }
@@ -465,14 +468,14 @@ SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode)
 {
   switch (mode)
   {
-  case DXGI_MODE_SCALING_CENTERED:
-    return L"DXGI_MODE_SCALING_CENTERED";
-  case DXGI_MODE_SCALING_UNSPECIFIED:
-    return L"DXGI_MODE_SCALING_UNSPECIFIED";
-  case DXGI_MODE_SCALING_STRETCHED:
-    return L"DXGI_MODE_SCALING_STRETCHED";
-  default:
-    return L"UNKNOWN";
+    case DXGI_MODE_SCALING_CENTERED:
+      return L"DXGI_MODE_SCALING_CENTERED";
+    case DXGI_MODE_SCALING_UNSPECIFIED:
+      return L"DXGI_MODE_SCALING_UNSPECIFIED";
+    case DXGI_MODE_SCALING_STRETCHED:
+      return L"DXGI_MODE_SCALING_STRETCHED";
+    default:
+      return L"UNKNOWN";
   }
 }
 
@@ -1364,7 +1367,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     hr = This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
 
-    if (FAILED (hr)) {
+    if (FAILED (hr))
+    {
       SK_LOG_ONCE (L"[   DXGI   ]  *** Backbuffer unavailable! ***");
       return;
     }
@@ -1380,7 +1384,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         pImmediateContext->QueryInterface (IID_PPV_ARGS (&pImmediateContext1));
                      pDev->QueryInterface (IID_PPV_ARGS (&pDevice1));
 
-        if (FAILED (hr)) {
+        if (FAILED (hr))
+        {
           SK_LOG_ONCE (L"[   DXGI   ]  *** Could not query ID3D11Device1 interface! ***");
           return;
         }
@@ -1795,7 +1800,8 @@ extern "C" {
       DXGI_SWAP_CHAIN_DESC desc;
       if (SUCCEEDED (This->GetDesc (&desc)))
       {
-        if (desc.Windowed) {
+        if (desc.Windowed)
+        {
           Flags       |= DXGI_PRESENT_ALLOW_TEARING;
           SyncInterval = 0;
           interval     = 0;
@@ -1941,7 +1947,8 @@ extern "C" {
 _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                            DXGI_MODE_DESC *pDesc)
   {
-    if (pDesc != nullptr) {
+    if (pDesc != nullptr)
+    {
       dll_log.Log ( L"[   DXGI   ] [!] IDXGIOutput::GetDisplayModeList (%ph, "
                                          L"EnumFormat=%lu, Flags=%lu, *pNumModes=%lu, "
                                          L"%ph)",
@@ -2233,7 +2240,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
     InterlockedExchange (&__gui_reset, TRUE);
 
-    if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing) {
+    if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing)
+    {
       SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
     }
@@ -2306,7 +2314,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
     SK_D3D11_EndFrame ();
 
-    if (pNewTargetParameters == nullptr) {
+    if (pNewTargetParameters == nullptr)
+    {
       HRESULT ret;
       DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
       return ret;
@@ -3052,7 +3061,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   {
     UNREFERENCED_PARAMETER (user);
 
-    if (hWndRender != 0) {
+    if (hWndRender != 0)
+    {
       SetActiveWindow     (hWndRender);
       SetForegroundWindow (hWndRender);
       BringWindowToTop    (hWndRender);
@@ -3214,10 +3224,12 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
       DXGI_ADAPTER_DESC* match =
         sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
-      if (match != NULL) {
+      if (match != NULL)
+      {
         dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
         pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
       }
+
       else
         dll_log.LogEx (false, L"Failure! (No Match Found)\n");
     }
@@ -3250,12 +3262,16 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
       DXGI_ADAPTER_DESC* match =
         sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
-      if (match != NULL) {
+      if (match != NULL)
+      {
         dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
         pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
       }
+
       else
+      {
         dll_log.LogEx (false, L"Failure! (No Match Found)\n");
+      }
     }
 
     if (config.system.log_level >= 1)
@@ -3294,8 +3310,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
         {
           CComPtr <IDXGIAdapter2> pAdapter2 = nullptr;
 
-          if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter2)))) {
-
+          if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter2))))
+          {
             DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
               GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
           }
@@ -3308,7 +3324,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
         {
           CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
 
-          if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1)))) {
+          if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1))))
+          {
             DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
               GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
           }
@@ -3452,7 +3469,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     {
       IDXGIAdapter* pAdapter = nullptr;
 
-      if (SUCCEEDED (EnumAdapters_Original (This, SK_DXGI_preferred_adapter, &pAdapter))) {
+      if (SUCCEEDED (EnumAdapters_Original (This, SK_DXGI_preferred_adapter, &pAdapter)))
+      {
         dll_log.Log ( L"[   DXGI   ] (Reported values reflect user override: DXGI Adapter %lu -> %lu)",
                         Adapter, SK_DXGI_preferred_adapter );
         Adapter = SK_DXGI_preferred_adapter;
@@ -3522,7 +3540,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     SK_BootDXGI ();
 
     // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
-    if (CreateDXGIFactory1_Import == nullptr) {
+    if (CreateDXGIFactory1_Import == nullptr)
+    {
       dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on Vista...");
       return CreateDXGIFactory (riid, ppFactory);
     }
@@ -3551,7 +3570,8 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     SK_BootDXGI ();
 
     // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1
-    if (CreateDXGIFactory2_Import == nullptr) {
+    if (CreateDXGIFactory2_Import == nullptr)
+    {
       dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory1 on Vista/7...");
       return CreateDXGIFactory1 (riid, ppFactory);
     }
@@ -3798,7 +3818,8 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook)
   {
     static volatile ULONG __installed_second_hook = FALSE;
 
-    if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE)) {
+    if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE))
+    {
       DXGI_INTERCEPT_EX ( &pSwapChain, 8,
                             "IDXGISwapChain::Present",
                             PresentCallback_Pre,
@@ -3857,8 +3878,12 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook)
       if (rehook)
       {
         if (MH_OK == SK_RemoveHook (vftable [22]))
+        {
           Present1_Original = nullptr;
-        else {
+        }
+
+        else
+        {
           dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
                         L"IDXGISwapChain1::Present1 (...)!" );
           if (MH_OK == SK_RemoveHook (vftable_22))

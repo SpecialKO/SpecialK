@@ -365,19 +365,21 @@ static SK_WASAPI_AudioSession*  audio_session;
 bool
 SK_ImGui_SelectAudioSessionDlg (void)
 {
+  ImGuiIO& io (ImGui::GetIO ());
+
          bool  changed             = false;
-  const  float font_size           = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
-  const  float font_size_multiline = font_size + ImGui::GetIO ().FontGlobalScale * (ImGui::GetStyle ().ItemSpacing.y  + ImGui::GetStyle ().ItemInnerSpacing.y +
-                                                                                    ImGui::GetStyle ().FramePadding.y + ImGui::GetStyle ().WindowPadding.y);
+  const  float font_size           = ImGui::GetFont ()->FontSize    * io.FontGlobalScale;
+  const  float font_size_multiline = font_size + io.FontGlobalScale * (ImGui::GetStyle ().ItemSpacing.y  + ImGui::GetStyle ().ItemInnerSpacing.y +
+                                                                       ImGui::GetStyle ().FramePadding.y + ImGui::GetStyle ().WindowPadding.y);
   static bool  was_open            = false;
 
   int            sel_idx = -1;
 
 
-  ImGui::SetNextWindowSizeConstraints ( ImVec2 (ImGui::GetIO ().DisplaySize.x * 0.25f,
-                                                ImGui::GetIO ().DisplaySize.y * 0.15f),
-                                        ImVec2 (ImGui::GetIO ().DisplaySize.x * 0.75f,
-                                                ImGui::GetIO ().DisplaySize.y * 0.666f) );
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (io.DisplaySize.x * 0.25f,
+                                                io.DisplaySize.y * 0.15f),
+                                        ImVec2 (io.DisplaySize.x * 0.75f,
+                                                io.DisplaySize.y * 0.666f) );
 
   if (ImGui::BeginPopupModal ("Audio Session Selector", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
                                                               ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
@@ -395,7 +397,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       if (size.x > max_width) max_width = size.x;
     }
-    ImGui::PushItemWidth (max_width * 5.0f * ImGui::GetIO ().FontGlobalScale);
+    ImGui::PushItemWidth (max_width * 5.0f * io.FontGlobalScale);
 
     ImGui::BeginChild ("SessionSelectHeader",   ImVec2 (0, 0), true,  ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_NoInputs |
                                                                       ImGuiWindowFlags_NoNavInputs);
@@ -651,8 +653,7 @@ __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
 {
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
 
   if (ImGui::GetFont () == nullptr)
@@ -701,7 +702,8 @@ SK_ImGui_ControlPanel (void)
   static float values [120]  = { };
   static int   values_offset =  0;
 
-  if (! reset_frame_history) {
+  if (! reset_frame_history)
+  {
     values [values_offset] = 1000.0f * io.DeltaTime;
     values_offset = (values_offset + 1) % IM_ARRAYSIZE (values);
   }
@@ -798,7 +800,8 @@ SK_ImGui_ControlPanel (void)
     {
       bool selected = false;
 
-      if (ImGui::MenuItem ( "Browse Logs", "", &selected )) {
+      if (ImGui::MenuItem ( "Browse Logs", "", &selected ))
+      {
         std::wstring log_dir =
           std::wstring (SK_GetConfigPath ()) + std::wstring (L"\\logs");
 
@@ -1011,7 +1014,8 @@ SK_ImGui_ControlPanel (void)
 
       if (vinfo.build >= vinfo_latest.build)
       {
-        if (ImGui::MenuItem  (" >> Check Now")) {
+        if (ImGui::MenuItem  (" >> Check Now"))
+        {
           SK_FetchVersionInfo1 (nullptr, true);
           branches       = SK_Version_GetAvailableBranches (nullptr);
           vinfo          = SK_Version_GetLocalInfo         (nullptr);
@@ -1361,7 +1365,8 @@ SK_ImGui_ControlPanel (void)
         float min = FLT_MAX;
         float max = 0.0f;
 
-        for (float val : values) {
+        for (float val : values)
+        {
           sum += val;
 
           if (val > max)
@@ -1649,7 +1654,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePop   ();
        }
 
-      if (ImGui::Button (" Render Mod Tools ")) {
+      if (ImGui::Button (" Render Mod Tools "))
+      {
         show_shader_mod_dlg = ( ! show_shader_mod_dlg );
       }
 
@@ -1913,10 +1919,13 @@ SK_ImGui_ControlPanel (void)
 
         if (ImGui::Checkbox  ("Print Debug Output to Console",  &config.system.display_debug_out))
         {
-          if (config.system.display_debug_out) {
+          if (config.system.display_debug_out)
+          {
             if (! SK::Diagnostics::Debugger::CloseConsole ()) config.system.display_debug_out = true;
           }
-          else {
+
+          else
+          {
             SK::Diagnostics::Debugger::SpawnConsole ();
           }
         }
@@ -1926,7 +1935,8 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Checkbox  ("Trace LoadLibrary",              &config.system.trace_load_library);
 
-        if (ImGui::IsItemHovered ()) {
+        if (ImGui::IsItemHovered ())
+        {
           ImGui::BeginTooltip ();
           ImGui::Text         ("Monitor DLL Load Activity");
           ImGui::Separator    ();
@@ -1936,7 +1946,8 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Checkbox  ("Strict DLL Loader Compliance",   &config.system.strict_compliance);
 
-        if (ImGui::IsItemHovered ()) {
+        if (ImGui::IsItemHovered ())
+        {
           ImGui::BeginTooltip (  );
           ImGui::Text         ("Prevent Loading DLLs Simultaneousely Across Multiple Threads");
           ImGui::Separator    (  );
@@ -2050,7 +2061,8 @@ SK_ImGui_ControlPanel (void)
         last_rawinput = timeGetTime ();
 
 
-      if (last_xinput > timeGetTime () - 500UL) {
+      if (last_xinput > timeGetTime () - 500UL)
+      {
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_xinput) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       XInput");
@@ -2064,7 +2076,8 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_hid > timeGetTime () - 500UL) {
+      if (last_hid > timeGetTime () - 500UL)
+      {
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_hid) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       HID");
@@ -2085,7 +2098,8 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_di8 > timeGetTime () - 500UL) {
+      if (last_di8 > timeGetTime () - 500UL)
+      {
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_di8) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       Direct Input");
@@ -2109,7 +2123,8 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_rawinput > timeGetTime () - 500UL) {
+      if (last_rawinput > timeGetTime () - 500UL)
+      {
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_rawinput) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       Raw Input");
@@ -2370,7 +2385,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
         ImGui::Checkbox ("Fix Jittery Mouse (in menus)", &non_relative);
 
-        if (ImGui::IsItemHovered ()) {
+        if (ImGui::IsItemHovered ())
+        {
           ImGui::BeginTooltip ();
           ImGui::Text         ("Disable RawInput Mouse Delta Processing");
           ImGui::Separator    ();
@@ -2382,7 +2398,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
         ImGui::Checkbox ("Fix Synaptics Scroll", &config.input.mouse.fix_synaptics);
 
-        if (ImGui::IsItemHovered ()) {
+        if (ImGui::IsItemHovered ())
+        {
           ImGui::BeginTooltip ();
           ImGui::Text         ("Generate Missing DirectInput / RawInput / HID Events for Touchpad Scroll");
           ImGui::Separator    ();
@@ -2961,21 +2978,24 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::BeginGroup ();
       {
         ImGui::PushItemWidth (-1);
-        if (ImGui::Button (u8"  <<  ")) {
+        if (ImGui::Button (u8"  <<  "))
+        {
           keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
           keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
         }
 
         ImGui::SameLine ();
 
-        if (ImGui::Button (u8"  Play / Pause  ")) {
+        if (ImGui::Button (u8"  Play / Pause  "))
+        {
           keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY,                   0);
           keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0); 
         }
 
         ImGui::SameLine ();
 
-        if (ImGui::Button (u8"  >>  ")) {
+        if (ImGui::Button (u8"  >>  "))
+        {
           keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
           keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
         }
@@ -3107,14 +3127,16 @@ extern float SK_ImGui_PulseNav_Strength;
 
               history [i].vu_peaks.disp_min    = history [i].vu_peaks.inst_min;
 
-              if (history [i].vu_peaks.dwMinSample < timeGetTime () - VUMETER_TIME * 3) {
+              if (history [i].vu_peaks.dwMinSample < timeGetTime () - VUMETER_TIME * 3)
+              {
                 history [i].vu_peaks.inst_min    = channel_peaks_ [i];
                 history [i].vu_peaks.dwMinSample = timeGetTime ();
               }
 
               history [i].vu_peaks.disp_max    = history [i].vu_peaks.inst_max;
 
-              if (history [i].vu_peaks.dwMaxSample < timeGetTime () - VUMETER_TIME * 3) {
+              if (history [i].vu_peaks.dwMaxSample < timeGetTime () - VUMETER_TIME * 3)
+              {
                 history [i].vu_peaks.inst_max    = channel_peaks_ [i];
                 history [i].vu_peaks.dwMaxSample = timeGetTime ();
               }
@@ -3925,7 +3947,8 @@ extern float SK_ImGui_PulseNav_Strength;
   SK_ImGui_LastWindowCenter.x = pos.x + size.x / 2.0f;
   SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
 
-  if (io.WantMoveMouse) {
+  if (io.WantMoveMouse)
+  {
     SK_ImGui_Cursor.pos.x = (LONG)io.MousePos.x;
     SK_ImGui_Cursor.pos.y = (LONG)io.MousePos.y;
 
@@ -4190,7 +4213,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   if (keep_open)
   {
-    if (d3d9) {
+    if (d3d9)
+    {
       extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 
       if ( SUCCEEDED (
@@ -4234,6 +4258,8 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
 {
+  ImGuiIO& io (ImGui::GetIO ());
+
   static DWORD dwLastTime = 0x00;
 
   bool d3d11 = false;
@@ -4298,7 +4324,8 @@ SK_ImGui_Toggle (void)
 
           static bool first = true;
 
-          if (first) {
+          if (first)
+          {
             eula.never_show_again = true;
             eula.show             = config.imgui.show_eula;
             first                 = false;
@@ -4338,12 +4365,13 @@ SK_ImGui_Toggle (void)
     // Immediately stop capturing keyboard/mouse events,
     //   this is the only way to preserve cursor visibility
     //     in some games (i.e. Tales of Berseria)
-    ImGui::GetIO ().WantCaptureKeyboard = (! SK_ImGui_Visible);
-    ImGui::GetIO ().WantCaptureMouse    = (! SK_ImGui_Visible);
+    io.WantCaptureKeyboard = (! SK_ImGui_Visible);
+    io.WantCaptureMouse    = (! SK_ImGui_Visible);
 
 
     // Clear navigation focus on window close
-    if (! SK_ImGui_Visible) {
+    if (! SK_ImGui_Visible)
+    {
       extern bool nav_usable;
       nav_usable = false;
     }
@@ -4361,8 +4389,7 @@ extern POINT SK_RawInput_Mouse;
 void
 SK_ImGui_CenterCursorOnWindow (void)
 {
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (ImGui::GetIO ());
 
   SK_ImGui_Cursor.pos.x = (LONG)(SK_ImGui_LastWindowCenter.x);
   SK_ImGui_Cursor.pos.y = (LONG)(SK_ImGui_LastWindowCenter.y);
@@ -4389,7 +4416,9 @@ SK_ImGui_CenterCursorOnWindow (void)
 void
 SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 {
-  const  float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  ImGuiIO& io (ImGui::GetIO ());
+
+  const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
   static bool  was_open  = false;
 
   static BYTE bind_keys [256] = { };
@@ -4398,7 +4427,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 
   if (ImGui::BeginPopupModal (keybind->bind_name, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
   {
-    ImGui::GetIO ().WantCaptureKeyboard = false;
+    io.WantCaptureKeyboard = false;
 
     const int keys = 256;
 
@@ -4432,7 +4461,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
         keybind->vKey = i;
         was_open      = false;
         ImGui::CloseCurrentPopup ();
-        ImGui::GetIO ().WantCaptureKeyboard = true;
+        io.WantCaptureKeyboard = true;
       }
     }
 

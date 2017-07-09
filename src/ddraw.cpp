@@ -125,7 +125,8 @@ DirectDrawCreate (_In_  GUID         FAR *lpGUID,
 
   HRESULT hr = E_NOTIMPL;
   
-  if (DirectDrawCreate_Import) {
+  if (DirectDrawCreate_Import)
+  {
     hr = DirectDrawCreate_Import (lpGUID, lplpDD, pUnkOuter);
   }
   
@@ -153,7 +154,8 @@ DirectDrawCreateEx (_In_  GUID         FAR *lpGUID,
 
   HRESULT hr = E_NOTIMPL;
   
-  if (DirectDrawCreateEx_Import) {
+  if (DirectDrawCreateEx_Import)
+  {
     hr = DirectDrawCreateEx_Import (lpGUID, lplpDD, iid, pUnkOuter);
   }
   
@@ -171,7 +173,8 @@ DirectDrawEnumerateA (_In_ LPDDENUMCALLBACK lpCallback,
 
   HRESULT hr = E_NOTIMPL;
   
-  if (DirectDrawEnumerateA_Import) {
+  if (DirectDrawEnumerateA_Import)
+  {
     hr = DirectDrawEnumerateA_Import (lpCallback, lpContext);
   }
   
@@ -189,7 +192,8 @@ DirectDrawEnumerateW (_In_ LPDDENUMCALLBACK lpCallback,
 
   HRESULT hr = E_NOTIMPL;
   
-  if (DirectDrawEnumerateW_Import) {
+  if (DirectDrawEnumerateW_Import)
+  {
     hr = DirectDrawEnumerateW_Import (lpCallback, lpContext);
   }
   
@@ -208,7 +212,8 @@ DirectDrawEnumerateExA (_In_ LPDDENUMCALLBACKEX lpCallback,
 
   HRESULT hr = E_NOTIMPL;
   
-  if (DirectDrawEnumerateExA_Import) {
+  if (DirectDrawEnumerateExA_Import)
+  {
     hr = DirectDrawEnumerateExA_Import (lpCallback, lpContext, dwFlags);
   }
   
@@ -240,7 +245,8 @@ SK_HookDDraw (void)
 {
   static volatile ULONG hooked = FALSE;
 
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE)) {
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
     return;
   }
 
@@ -369,7 +375,8 @@ void
 WINAPI
 ddraw_init_callback (finish_pfn finish)
 {
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsHostAppSKIM ())
+  {
     SK_BootDDraw ();
 
     while (! InterlockedCompareExchange (&__ddraw_ready, FALSE, FALSE))
@@ -437,7 +444,8 @@ HookDDraw (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (! config.apis.ddraw.hook) {
+  if (! config.apis.ddraw.hook)
+  {
     return 0;
   }
 

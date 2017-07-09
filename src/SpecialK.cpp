@@ -72,11 +72,11 @@ volatile ULONG      __SK_DLL_Ending       = FALSE;
 volatile ULONG      __SK_HookContextOwner = FALSE;
 
 
-CRITICAL_SECTION init_mutex    = { 0 };
-CRITICAL_SECTION budget_mutex  = { 0 };
-CRITICAL_SECTION loader_lock   = { 0 };
-CRITICAL_SECTION wmi_cs        = { 0 };
-CRITICAL_SECTION cs_dbghelp    = { 0 };
+CRITICAL_SECTION init_mutex    = { };
+CRITICAL_SECTION budget_mutex  = { };
+CRITICAL_SECTION loader_lock   = { };
+CRITICAL_SECTION wmi_cs        = { };
+CRITICAL_SECTION cs_dbghelp    = { };
 
 
 SK_TLS*
@@ -319,7 +319,6 @@ SK_EstablishDllRole (HMODULE hModule)
   }
 
   wchar_t wszDllFullName [  MAX_PATH  ] = { };
-          wszDllFullName [MAX_PATH - 1] = { };
 
   GetModuleFileName (hModule, wszDllFullName, MAX_PATH - 1);
 
@@ -394,27 +393,32 @@ SK_EstablishDllRole (HMODULE hModule)
     lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
 
 
-    if      ( GetFileAttributesW (wszD3D9) != INVALID_FILE_ATTRIBUTES ) {
+    if      ( GetFileAttributesW (wszD3D9) != INVALID_FILE_ATTRIBUTES )
+    {
       SK_SetDLLRole (DLL_ROLE::D3D9);
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (wszD3D8) != INVALID_FILE_ATTRIBUTES ) {
+    else if ( GetFileAttributesW (wszD3D8) != INVALID_FILE_ATTRIBUTES )
+    {
       SK_SetDLLRole (DLL_ROLE::D3D8);
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (wszDDraw) != INVALID_FILE_ATTRIBUTES ) {
+    else if ( GetFileAttributesW (wszDDraw) != INVALID_FILE_ATTRIBUTES )
+    {
       SK_SetDLLRole (DLL_ROLE::DDraw);
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (wszDXGI) != INVALID_FILE_ATTRIBUTES ) {
+    else if ( GetFileAttributesW (wszDXGI) != INVALID_FILE_ATTRIBUTES )
+    {
       SK_SetDLLRole (DLL_ROLE::DXGI);
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (wszGL) != INVALID_FILE_ATTRIBUTES ) {
+    else if ( GetFileAttributesW (wszGL) != INVALID_FILE_ATTRIBUTES )
+    {
       SK_SetDLLRole (DLL_ROLE::OpenGL);
       explicit_inject = true;
     }

@@ -1,3 +1,4 @@
+#if 0
 /*
  _________
 /         \ tinyfiledialogs.c 
@@ -4259,3 +4260,4 @@ char const * arrayDialog (
 
 }	// namespace tfd
 
+#endif

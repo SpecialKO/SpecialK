@@ -44,7 +44,8 @@ SK_Timestamp (wchar_t* const out)
      LOBYTE (LOWORD (GetVersion () > 6));
 
   // More accurate timestamp is available on Windows 6.2+
-  if (__hasSystemTimePrecise) {
+  if (__hasSystemTimePrecise)
+  {
     FILETIME   ftLogTime;
     GetSystemTimePreciseAsFileTime (&ftLogTime);
     FileTimeToSystemTime           (&ftLogTime, &stLogTime);
@@ -77,12 +78,14 @@ iSK_Logger dll_log, budget_log;
 void
 iSK_Logger::close (void)
 {
-  if (fLog != NULL) {
+  if (fLog != NULL)
+  {
     fflush (fLog);
     fclose (fLog);
   }
 
-  if (lines == 0) {
+  if (lines == 0)
+  {
     std::wstring full_name =
       SK_GetConfigPath ();
 
@@ -121,7 +124,8 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
    lockless = true;//false;
 
-  if ((! bRet) || (fLog == NULL)) {
+  if ((! bRet) || (fLog == NULL))
+  {
     silent = true;
     return false;
   }
@@ -141,14 +145,18 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
 
   ++lines;
 
-  if (_Timestamp) {
+  if (_Timestamp)
+  {
     wchar_t wszLogTime [128];
 
     WORD ms = SK_Timestamp (wszLogTime);
 
     lock ();
     fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
-  } else {
+  }
+
+  else
+  {
     lock ();
   }
 
@@ -231,7 +239,8 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 HRESULT
 iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
-  if (IsEqualGUID (riid, IID_SK_Logger)) {
+  if (IsEqualGUID (riid, IID_SK_Logger))
+  {
     AddRef ();
     *ppvObj = this;
     return S_OK;
@@ -279,7 +288,8 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
                 szSymbol,
                   ulLen );
 
-  if (ulLen > 0) {
+  if (ulLen > 0)
+  {
     _snwprintf ( wszSummary, 255,
                    L"[ %s <%hs>, tid=0x%04x ]",
 

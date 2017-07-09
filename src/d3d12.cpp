@@ -321,7 +321,8 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
     static CComPtr <ID3D12Resource>            query_res = nullptr;
     static CComPtr <ID3D12CommandQueue>        cmd_queue = nullptr;
 
-    if (cmd_alloc == nullptr) {
+    if (cmd_alloc == nullptr)
+    {
       dev->CreateCommandAllocator ( D3D12_COMMAND_LIST_TYPE_DIRECT,
                                       IID_PPV_ARGS (&cmd_alloc) );
 
@@ -354,7 +355,8 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
       }
     }
 
-    if (cmd_alloc != nullptr && cmd_list == nullptr) {
+    if (cmd_alloc != nullptr && cmd_list == nullptr)
+    {
       dev->CreateCommandList ( 0,
                                  D3D12_COMMAND_LIST_TYPE_DIRECT,
                                    cmd_alloc,

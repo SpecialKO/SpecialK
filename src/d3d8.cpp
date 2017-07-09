@@ -98,7 +98,8 @@ SK_HookD3D8 (void)
 {
   static volatile ULONG hooked = FALSE;
 
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE)) {
+  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
     return;
   }
 
@@ -166,7 +167,8 @@ void
 WINAPI
 d3d8_init_callback (finish_pfn finish)
 {
-  if (! SK_IsHostAppSKIM ()) {
+  if (! SK_IsHostAppSKIM ())
+  {
     SK_BootD3D8 ();
 
     while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
@@ -198,7 +200,8 @@ HookD3D8 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (! config.apis.d3d8.hook) {
+  if (! config.apis.d3d8.hook)
+  {
     return 0;
   }
 

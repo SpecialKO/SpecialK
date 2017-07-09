@@ -51,9 +51,9 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 //   DarkSouls3 seems to underflow references on occasion!!!
 #define DS3_REF_TWEAK
 
-CRITICAL_SECTION cs_shader;
-CRITICAL_SECTION cs_render_view;
-CRITICAL_SECTION cs_mmio;
+CRITICAL_SECTION cs_shader      = { };
+CRITICAL_SECTION cs_render_view = { };
+CRITICAL_SECTION cs_mmio        = { };
 
 namespace SK
 {
@@ -68,8 +68,8 @@ namespace SK
       } query;
 
       D3D11_QUERY_DATA_PIPELINE_STATISTICS
-                 last_results = {  };
-    } pipeline_stats_d3d11;
+                 last_results = { };
+    } pipeline_stats_d3d11    = { };
   };
 };
 
@@ -254,7 +254,7 @@ IUnknown_AddRef (IUnknown* This)
     ID3D11Texture2D* pTex = (ID3D11Texture2D *)This;//nullptr;
 
     // This would cause the damn thing to recurse infinitely...
-    //if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex)))) {
+    //if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex)))){
       if (pTex != nullptr && SK_D3D11_TextureIsCached (pTex))
         SK_D3D11_UseTexture (pTex);
     //}
@@ -488,7 +488,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     //   the game and that devices never migrate threads; for most games
     //     this assumption holds.
     if ( dwRenderThread == 0x00 ||
-         dwRenderThread == GetCurrentThreadId () ) {
+         dwRenderThread == GetCurrentThreadId () )
+    {
       dwRenderThread = GetCurrentThreadId ();
     }
 
@@ -737,7 +738,8 @@ struct SK_D3D11_KnownTargets
 
 struct SK_D3D11_KnownThreads
 {
-  SK_D3D11_KnownThreads (void) {
+  SK_D3D11_KnownThreads (void)
+  {
     InitializeCriticalSectionAndSpinCount (&cs, 0x6666);
   }
 
@@ -1362,7 +1364,8 @@ SK_D3D11_ChecksumShaderBytecode ( _In_      const void                *pShaderBy
     return crc32c (0x00, (const uint8_t *)pShaderBytecode, BytecodeLength);
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
   {
     return 0x00;
   }
@@ -2756,7 +2759,6 @@ D3D11_Unmap_Override (
              SUCCEEDED (pResource->QueryInterface <ID3D11Texture2D> (&pTex)) )
         {
           uint32_t      checksum  = 0;
-          uint32_t      cache_tag = 0;
           size_t        size      = 0;
 
           uint32_t top_crc32 = 0x00;
@@ -3056,7 +3058,7 @@ SK_D3D11_DispatchHandler (void)
   {
     bool rtv_active = false;
 
-    for (auto it : tracked_rtv.active)
+    for (const auto it : tracked_rtv.active)
     {
       if (it)
         rtv_active = true;
@@ -3495,10 +3497,12 @@ SK_D3D11_TexCacheCheckpoint (void)
   static ULONGLONG ullMemoryTotal_KiB = 0;
   static HANDLE    hProc              = nullptr;
 
-  if (! init) {
+  if (! init)
+  {
+    init  = true;
     hProc = GetCurrentProcess ();
+
     GetPhysicallyInstalledSystemMemory (&ullMemoryTotal_KiB);
-    init = true;
   }
 
   ++iter;
@@ -3543,7 +3547,8 @@ SK_D3D11_TexMgr::reset (void)
   {
     SK_AutoCriticalSection critical (&tex_cs);
 
-    for ( ID3D11Texture2D* tex : TexRefs_2D ) {
+    for ( ID3D11Texture2D* tex : TexRefs_2D )
+    {
       if (Textures_2D.count (tex))
         textures.push_back (Textures_2D [tex]);
     }
@@ -3571,13 +3576,16 @@ SK_D3D11_TexMgr::reset (void)
       const int refs =
         IUnknown_AddRef_Original (desc.texture) - 1;
 
-      if (refs <= 3 && desc.texture->Release () <= 3) {
+      if (refs <= 3 && desc.texture->Release () <= 3)
+      {
 #else
       int refs = IUnknown_AddRef_Original (desc.texture) - 1;
 
-      if (refs == 1 && desc.texture->Release () <= 1) {
+      if (refs == 1 && desc.texture->Release () <= 1)
+      {
 #endif
-        for (int i = 0; i < refs; i++) {
+        for (int i = 0; i < refs; i++)
+        {
           desc.texture->Release ();
         }
 
@@ -3600,7 +3608,10 @@ SK_D3D11_TexMgr::reset (void)
 
           break;
         }
-      } else {
+      }
+
+      else
+      {
         desc.texture->Release ();
       }
     }
@@ -3664,11 +3675,13 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              crc32,
         const uint64_t  time = desc2d.load_time;
         const float    fTime = (float)time * 1000.0f / (float)PerfFreq.QuadPart;
 
-        if (pMemSize != nullptr) {
+        if (pMemSize != nullptr)
+        {
           *pMemSize = size;
         }
 
-        if (pTimeSaved != nullptr) {
+        if (pTimeSaved != nullptr)
+        {
           *pTimeSaved = fTime;
         }
 
@@ -3854,7 +3867,8 @@ SK_D3D11_PopulateResourceList (void)
   //   texture load to check if a custom one exists.
   //
   if ( GetFileAttributesW (wszTexDumpDir) !=
-         INVALID_FILE_ATTRIBUTES ) {
+         INVALID_FILE_ATTRIBUTES )
+  {
     WIN32_FIND_DATA fd     = {  };
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
     unsigned int    files  =  0UL;
@@ -3869,42 +3883,59 @@ SK_D3D11_PopulateResourceList (void)
 
     hFind = FindFirstFileW (wszTexDumpDir, &fd);
 
-    if (hFind != INVALID_HANDLE_VALUE) {
-      do {
-        if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES) {
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+      do
+      {
+        if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+        {
           // Dumped Metadata has the extension .dds.txt, do not
           //   include these while scanning for textures.
           if (    StrStrIW (fd.cFileName, L".dds")    &&
-               (! StrStrIW (fd.cFileName, L".dds.txt") ) ) {
+               (! StrStrIW (fd.cFileName, L".dds.txt") ) )
+          {
             uint32_t top_crc32 = 0x00;
             uint32_t checksum  = 0x00;
 
             bool compressed = false;
 
-            if (StrStrIW (fd.cFileName, L"Uncompressed_")) {
-              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_")) {
+            if (StrStrIW (fd.cFileName, L"Uncompressed_"))
+            {
+              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_"))
+              {
                 swscanf ( fd.cFileName,
                             L"Uncompressed_%08X_%08X.dds",
                               &top_crc32,
                                 &checksum );
-              } else {
+              }
+
+              else
+              {
                 swscanf ( fd.cFileName,
                             L"Uncompressed_%08X.dds",
                               &top_crc32 );
                 checksum = 0x00;
               }
-            } else {
-              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_")) {
+            }
+
+            else
+            {
+              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_"))
+              {
                 swscanf ( fd.cFileName,
                             L"Compressed_%08X_%08X.dds",
                               &top_crc32,
                                 &checksum );
-              } else {
+              }
+
+              else
+              {
                 swscanf ( fd.cFileName,
                             L"Compressed_%08X.dds",
                               &top_crc32 );
                 checksum = 0x00;
               }
+
               compressed = true;
             }
 
@@ -3973,13 +4004,18 @@ SK_D3D11_PopulateResourceList (void)
       {
         if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
         {
-          if (StrStrIW (fd.cFileName, L".dds")) {
+          if (StrStrIW (fd.cFileName, L".dds"))
+          {
             uint32_t top_crc32 = 0x00;
             uint32_t checksum  = 0x00;
 
-            if (StrStrIW (fd.cFileName, L"_")) {
+            if (StrStrIW (fd.cFileName, L"_"))
+            {
               swscanf (fd.cFileName, L"%08X_%08X.dds", &top_crc32, &checksum);
-            } else {
+            }
+
+            else
+            {
               swscanf (fd.cFileName, L"%08X.dds",    &top_crc32);
             }
 
@@ -4030,10 +4066,14 @@ SK_D3D11_PopulateResourceList (void)
 
     hFind = FindFirstFileW (wszTexInjectDir_FFX, &fd);
 
-    if (hFind != INVALID_HANDLE_VALUE) {
-      do {
-        if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES) {
-          if (StrStrIW (fd.cFileName, L".dds")) {
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+      do
+      {
+        if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+        {
+          if (StrStrIW (fd.cFileName, L".dds"))
+          {
             uint32_t ffx_crc32;
 
             swscanf (fd.cFileName, L"%08X.dds", &ffx_crc32);
@@ -4199,7 +4239,10 @@ SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
     SK_AutoCriticalSection critical (&hash_cs);
 
     ret = tex_hashes_ex [crc32c (top_crc32, (const uint8_t *)&hash, 4)];
-  } else if (hash == 0x00 && SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
+  }
+
+  else if (hash == 0x00 && SK_D3D11_IsTexHashed (top_crc32, 0x00))
+  {
     SK_AutoCriticalSection critical (&hash_cs);
 
     ret = tex_hashes [top_crc32];
@@ -4672,13 +4715,18 @@ crc32_ffx (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
 
   size_t size = 0;
 
-  for (unsigned int i = 0; i < pDesc->MipLevels; i++) {
-    if (compressed) {
+  for (unsigned int i = 0; i < pDesc->MipLevels; i++)
+  {
+    if (compressed)
+    {
       size += (pInitialData [i].SysMemPitch / block_size) * (height >> i);
 
       checksum =
         crc32 (checksum, (const char *)pInitialData [i].pSysMem, (pInitialData [i].SysMemPitch / block_size) * (height >> i));
-    } else {
+    }
+
+    else
+    {
       size += (pInitialData [i].SysMemPitch) * (height >> i);
 
       checksum =
@@ -4807,10 +4855,14 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       wchar_t wszOutName [MAX_PATH + 2] = { };
 
-      if (compressed) {
+      if (compressed)
+      {
         _swprintf ( wszOutName, L"%s\\Compressed_%08X.dds",
                       wszPath, crc32c );
-      } else {
+      }
+
+      else
+      {
         _swprintf ( wszOutName, L"%s\\Uncompressed_%08X.dds",
                       wszPath, crc32c );
       }
@@ -4914,14 +4966,17 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 
   bool error = false;
 
-  for (size_t slice = 0; slice < mdata.arraySize; ++slice) {
+  for (size_t slice = 0; slice < mdata.arraySize; ++slice)
+  {
     size_t height = mdata.height;
 
-    for (size_t lod = 0; lod < mdata.mipLevels; ++lod) {
+    for (size_t lod = 0; lod < mdata.mipLevels; ++lod)
+    {
       const DirectX::Image* img =
         image.GetImage (lod, slice, 0);
 
-      if (! (img && img->pixels)) {
+      if (! (img && img->pixels))
+      {
         error = true;
         break;
       }
@@ -4942,7 +4997,8 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
       uint8_t* dptr =
         img->pixels;
 
-      for (size_t h = 0; h < lines; ++h) {
+      for (size_t h = 0; h < lines; ++h)
+      {
         size_t msize =
           std::min <size_t> (img->rowPitch, pInitialData [lod].SysMemPitch);
 
@@ -5574,7 +5630,8 @@ D3D11Dev_CreateTexture2D_Override (
       checksum != 0x00 &&
       SK_D3D11_dump_textures )
   {
-    if (! SK_D3D11_IsDumped (top_crc32, checksum)) {
+    if (! SK_D3D11_IsDumped (top_crc32, checksum))
+    {
       SK_D3D11_DumpTexture2D (pDesc, pInitialData, top_crc32, checksum);
     }
   }
@@ -6461,7 +6518,9 @@ static size_t tex_dbg_idx  = 0;
 void
 SK_LiveTextureView (bool& can_scroll)
 {
-  const float font_size           = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  ImGuiIO& io (ImGui::GetIO ());
+
+  const float font_size           = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
   const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
   static float last_ht    = 256.0f;
@@ -6470,7 +6529,7 @@ SK_LiveTextureView (bool& can_scroll)
   struct list_entry_s {
     std::string          name   = "";
     uint32_t             crc32c = 0UL;
-    D3D11_TEXTURE2D_DESC desc   = { };
+    D3D11_TEXTURE2D_DESC desc     { };
     ID3D11Texture2D*     pTex   = nullptr;
     size_t               size   = 0;
   };
@@ -6483,7 +6542,8 @@ SK_LiveTextureView (bool& can_scroll)
   static              size_t        sel             =    0;
   static              int           tex_set         =    1;
   static              int           lod             =    0;
-  static              char          lod_list [1024] = {  };
+  static              char          lod_list [1024]   {  };
+
   extern              size_t        tex_dbg_idx;
   extern              size_t        debug_tex_id;
 
@@ -6742,11 +6802,11 @@ SK_LiveTextureView (bool& can_scroll)
       ImGui::EndTooltip   ();
     }
 
-         if (ImGui::GetIO ().NavInputs [ImGuiNavInput_PadFocusPrev] && ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { dir = -1; }
-    else if (ImGui::GetIO ().NavInputs [ImGuiNavInput_PadFocusNext] && ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { dir =  1; }
+         if (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { dir = -1; }
+    else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { dir =  1; }
 
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { dir =  1;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+         if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; }
+    else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir =  1;  io.WantCaptureKeyboard = true; }
 
     if (dir != 0)
     {
@@ -6782,7 +6842,7 @@ SK_LiveTextureView (bool& can_scroll)
   last_ht    = std::max (last_ht,    16.0f);
   last_width = std::max (last_width, 16.0f);
   
-  if (debug_tex_id != 0x00)
+  if (debug_tex_id != 0x00 && texture_map.count ((uint32_t)debug_tex_id))
   {
     list_entry_s& entry =
       texture_map [(uint32_t)debug_tex_id];
@@ -7106,8 +7166,10 @@ SK_LiveTextureView (bool& can_scroll)
 void
 SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 {
+  ImGuiIO& io (ImGui::GetIO ());
+
   static float last_width = 256.0f;
-  const  float font_size  = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  const  float font_size  = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 
   struct shader_class_imp_s
   {
@@ -7246,7 +7308,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         return set;
       };
 
-  std::set <uint32_t>& set = GetShaderSet (shader_type);
+  std::set <uint32_t>& set =
+    GetShaderSet (shader_type);
 
   std::vector <uint32_t>
     shaders ( set.begin (), set.end () );
@@ -7335,7 +7398,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     {
       char szDesc [32] = { };
 
-      bool disabled = GetShaderBlacklist (shader_type).count (it) != 0;
+      const bool disabled = GetShaderBlacklist (shader_type).count (it) != 0;
 
       sprintf (szDesc, "%s%08lx##%s", disabled ? "*" : " ", it, GetShaderWord (shader_type));
 
@@ -7369,8 +7432,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   if (ImGui::IsMouseHoveringRect (list->last_min, list->last_max))
   {
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+         if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
+    else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
   }
 
   struct sk_shader_state_s {
@@ -7442,11 +7505,11 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (! scrolled)
     {
-            if  (ImGui::GetIO ().NavInputs [ImGuiNavInput_PadFocusPrev] && ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { dir = -1; }
-        else if (ImGui::GetIO ().NavInputs [ImGuiNavInput_PadFocusNext] && ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { dir =  1; }
+            if  (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { dir = -1; }
+        else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { dir =  1; }
 
-           if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
-      else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  ImGui::GetIO ().WantCaptureKeyboard = true; scrolled = true; }
+           if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
+      else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
     }
   }
 
@@ -7504,9 +7567,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       sel_changed = true;
 
     last_sel = list->sel;
-
-    ImGuiIO& io =
-      ImGui::GetIO ();
 
     auto ChangeSelectedShader = []( shader_class_imp_s*  list,
                                     shader_tracking_s*   tracker,
@@ -7742,8 +7802,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   {
     if (! scrolled)
     {
-           if (ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) list->sel--;
-      else if (ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
+           if (io.KeysDownDuration [VK_OEM_4] == 0.0f) list->sel--;
+      else if (io.KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
     }
   }
 
@@ -7860,7 +7920,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       ImGui::EndTooltip ();
     }
 
-    ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
+    ImGui::PushFont (io.Fonts->Fonts [1]); // Fixed-width font
 
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.80f, 0.80f, 1.0f, 1.0f));
     ImGui::TextWrapped    ((*disassembly) [tracker->crc32c].header.c_str ());
@@ -8031,7 +8091,7 @@ SK_D3D11_EndFrame (void)
 
       else
       {
-        const HRESULT hr =
+        HRESULT const hr =
             dev_ctx->GetData ( shader_tracking_s::disjoint_query.async,
                                 &shader_tracking_s::disjoint_query.last_results,
                                   sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT,
@@ -8223,18 +8283,20 @@ SK_D3D11_EndFrame (void)
 bool
 SK_D3D11_ShaderModDlg (void)
 {
+  ImGuiIO& io (ImGui::GetIO ());
+
   SK_AutoCriticalSection auto_cs (&cs_shader);
 
-  const float font_size           = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
+  const float font_size           = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
   const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
   bool show_dlg = true;
 
-  ImGui::SetNextWindowSize ( ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.66f, ImGui::GetIO ().DisplaySize.y * 0.42f ), ImGuiSetCond_Appearing);
+  ImGui::SetNextWindowSize ( ImVec2 ( io.DisplaySize.x * 0.66f, io.DisplaySize.y * 0.42f ), ImGuiSetCond_Appearing);
 
   ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
-                                        ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.16f, ImGui::GetIO ().DisplaySize.y * 0.16f ),
-                                        ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.96f, ImGui::GetIO ().DisplaySize.y * 0.96f ) );
+                                        ImVec2 ( io.DisplaySize.x * 0.16f, io.DisplaySize.y * 0.16f ),
+                                        ImVec2 ( io.DisplaySize.x * 0.96f, io.DisplaySize.y * 0.96f ) );
 
   if ( ImGui::Begin ( SK_FormatString ( "D3D11 Render Mod Toolkit     (%lu/%lu Memory Mgmt Threads,  %lu/%lu Shader Mgmt Threads,  %lu/%lu Draw Threads)###D3D11_RenderDebug",
                                           SK_D3D11_MemoryThreads.count_active   (), SK_D3D11_MemoryThreads.count_all (),
@@ -8257,8 +8319,7 @@ SK_D3D11_ShaderModDlg (void)
     if (ImGui::CollapsingHeader ("Live Shader View", ImGuiTreeNodeFlags_DefaultOpen))
     {
       SK_AutoCriticalSection auto_cs2 (&cs_render_view);
-      SK_AutoCriticalSection auto_cs3 (&cs_shader);
-      SK_AutoCriticalSection auto_cs4 (&cs_mmio);
+      SK_AutoCriticalSection auto_cs3 (&cs_mmio);
 
       SK_D3D11_UpdateRenderStatsEx ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
 
@@ -8320,11 +8381,11 @@ SK_D3D11_ShaderModDlg (void)
           }
         };
 
-        ImGui::TreePush ("");
-        ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
+        ImGui::TreePush    ("");
+        ImGui::PushFont    (io.Fonts->Fonts [1]); // Fixed-width font
         ImGui::TextColored (ImColor (238, 250, 5), "%ws", SK::DXGI::getPipelineStatsDesc ().c_str ());
-        ImGui::PopFont  ();
-        ImGui::TreePop  ();
+        ImGui::PopFont     ();
+        ImGui::TreePop     ();
 
         ShaderClassMenu (sk_shader_class::Vertex);
         ShaderClassMenu (sk_shader_class::Pixel);
@@ -8356,8 +8417,7 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        SK_AutoCriticalSection auto_cs  (&cs_render_view);
-        SK_AutoCriticalSection auto_cs2 (&cs_shader);
+        SK_AutoCriticalSection auto_cs2 (&cs_render_view);
         SK_AutoCriticalSection auto_cs3 (&cs_mmio);
 
         ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNavInputs );
@@ -8497,8 +8557,7 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        SK_AutoCriticalSection auto_cs  (&cs_render_view);
-        SK_AutoCriticalSection auto_cs2 (&cs_shader);
+        SK_AutoCriticalSection auto_cs2 (&cs_render_view);
         SK_AutoCriticalSection auto_cs3 (&cs_mmio);
 
         SK_LiveTextureView (can_scroll);
@@ -8506,8 +8565,7 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        SK_AutoCriticalSection auto_cs  (&cs_render_view);
-        SK_AutoCriticalSection auto_cs2 (&cs_shader);
+        SK_AutoCriticalSection auto_cs2 (&cs_render_view);
         SK_AutoCriticalSection auto_cs3 (&cs_mmio);
 
         static float last_ht    = 256.0f;
@@ -8679,11 +8737,11 @@ SK_D3D11_ShaderModDlg (void)
   
             int direction = 0;
   
-                 if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { direction--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-            else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { direction++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+                 if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { direction--;  io.WantCaptureKeyboard = true; }
+            else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { direction++;  io.WantCaptureKeyboard = true; }
   
-                if  (ImGui::GetIO ().NavInputs [ImGuiNavInput_PadFocusPrev] && ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { direction--; }
-            else if (ImGui::GetIO ().NavInputs [ImGuiNavInput_PadFocusNext] && ImGui::GetIO ().NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { direction++; }
+                if  (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { direction--; }
+            else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { direction++; }
   
             int neutral_idx = 0;
   
@@ -8805,7 +8863,7 @@ SK_D3D11_ShaderModDlg (void)
   
               ID3D11ShaderResourceView* pSRV = nullptr;
   
-              D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+              D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
   
               srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
               srv_desc.Format                    = rtv_desc.Format;
@@ -8817,12 +8875,14 @@ SK_D3D11_ShaderModDlg (void)
               if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
               {
                 // Some Render Targets are MASSIVE, let's try to keep the damn things on the screen ;)
-                float effective_width  = std::min (0.75f * ImGui::GetIO ().DisplaySize.x, (float)desc.Width  / 2.0f);
-                float effective_height = std::min (0.75f * ImGui::GetIO ().DisplaySize.y, (float)desc.Height / 2.0f);
+                float effective_width  = std::min (0.75f * io.DisplaySize.x, (float)desc.Width  / 2.0f);
+                float effective_height = std::min (0.75f * io.DisplaySize.y, (float)desc.Height / 2.0f);
   
-                bool success = SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, &pSRV));
+                bool success =
+                  SUCCEEDED (pDev->CreateShaderResourceView (pTex, &srv_desc, &pSRV));
   
-                if (! success) {
+                if (! success)
+                {
                   effective_width  = 0;
                   effective_height = 0;
                 }
@@ -8896,9 +8956,6 @@ SK_D3D11_ShaderModDlg (void)
                                              -1.0f ),
                                       true,
                                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_NavFlattened );
-
-                  ImGuiIO& io =
-                    ImGui::GetIO ();
   
                   if (tracked_rtv.ref_vs.size () > 0 || tracked_rtv.ref_ps.size () > 0)
                   {

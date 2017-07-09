@@ -304,29 +304,37 @@ public:
         if (var == center_window_)
           config.window.center = *(bool *)val;
 
-        else if (var == x_offset_) {
-          if (*(int *)val >= -4096 && *(int *)val <= 4096) {
+        else if (var == x_offset_)
+        {
+          if (*(int *)val >= -4096 && *(int *)val <= 4096)
+          {
             config.window.offset.x.absolute = *(signed int *)val;
             config.window.offset.x.percent  = 0.0f;
           }
         }
 
-        else if (var == y_offset_) {
-          if (*(int *)val >= -4096 && *(int *)val <= 4096) {
+        else if (var == y_offset_)
+        {
+          if (*(int *)val >= -4096 && *(int *)val <= 4096)
+          {
             config.window.offset.y.absolute = *(signed int *)val;
             config.window.offset.y.percent  = 0.0f;
           }
         }
 
-        else if (var == x_off_pct_) {
-          if (*(float *)val > -1.0f && *(float *)val < 1.0f) {
+        else if (var == x_off_pct_)
+        {
+          if (*(float *)val > -1.0f && *(float *)val < 1.0f)
+          {
             config.window.offset.x.absolute = 0;
             config.window.offset.x.percent = *(float *)val;
           }
         }
 
-        else if (var == y_off_pct_) {
-          if (*(float *)val > -1.0f && *(float *)val < 1.0f) {
+        else if (var == y_off_pct_)
+        {
+          if (*(float *)val > -1.0f && *(float *)val < 1.0f)
+          {
             config.window.offset.y.absolute = 0;
             config.window.offset.y.percent  = *(float *)val;
           }
@@ -433,11 +441,13 @@ public:
           }
         }
 
-        else if (var == x_override_ || var == y_override_) {
+        else if (var == x_override_ || var == y_override_)
+        {
           if ((! config.window.borderless) || config.window.fullscreen)
             return false;
 
-          if (var == x_override_) {
+          if (var == x_override_)
+          {
             config.window.res.override.x = *(unsigned int *)val;
 
             // We cannot allow one variable to remain 0 while the other becomes
@@ -446,7 +456,8 @@ public:
               config.window.res.override.y = config.window.res.override.x;
           }
 
-          else if (var == y_override_) {
+          else if (var == y_override_)
+          {
             config.window.res.override.y = *(unsigned int *)val;
 
             // We cannot allow one variable to remain 0 while the other becomes
@@ -457,7 +468,8 @@ public:
 
           // We have to override BOTH variables to 0 at the same time, or the window
           //   will poof! :P
-          if (*(unsigned int *)val == 0) {
+          if (*(unsigned int *)val == 0)
+          {
             config.window.res.override.x = 0;
             config.window.res.override.y = 0;
           }
@@ -473,7 +485,10 @@ public:
           {
             // Bring the game OUT of fullscreen mode, that's only for borderless
             SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 0");
-          } else {
+          }
+
+          else
+          {
             SK_AdjustWindow ();
             return true;
           }
@@ -490,7 +505,8 @@ public:
           DeferCommand (szCmd);
         }
 
-        if (var != borderless_) {
+        if (var != borderless_)
+        {
           static char szCmd [64] = { };
           snprintf (szCmd, 63, "Window.Borderless %d", config.window.borderless);
 
@@ -508,9 +524,13 @@ public:
       {
         config.window.background_mute = *(bool *)val;
 
-        if (config.window.background_mute && (! game_window.active)) {
+        if (config.window.background_mute && (! game_window.active))
+        {
           muteGame (true);
-        } else if (! config.window.background_mute) {
+        }
+
+        else if (!config.window.background_mute)
+        {
           muteGame (false);
         }
 
@@ -530,7 +550,8 @@ public:
       if (val != nullptr)
         sscanf (szTemp, "%lux%lu", &x, &y);
 
-      if ((x > 320 && x < 16384 && y > 240 && y < 16384) || (x == 0 && y == 0)) {
+      if ((x > 320 && x < 16384 && y > 240 && y < 16384) || (x == 0 && y == 0))
+      {
         config.window.res.override.x = x;
         config.window.res.override.y = y;
 
@@ -542,7 +563,8 @@ public:
         return true;
       }
 
-      else {
+      else
+      {
         char *pszRes = (char *)((SK_IVarStub <char *>*)var)->getValuePtr ();
         snprintf (pszRes, 32, "INVALID");
 
@@ -696,25 +718,30 @@ public:
     SK_SetGameMute (bMute);
   }
 
-  void finishFullscreen (bool fullscreen) {
+  void finishFullscreen (bool fullscreen)
+  {
     state_.fullscreen.actual = fullscreen;
   }
 
-  void finishBorderless (bool borderless) {
+  void finishBorderless (bool borderless)
+  {
     state_.borderless.actual = borderless;
   }
 
-  bool makeFullscreen (bool fullscreen) {
+  bool makeFullscreen (bool fullscreen)
+  {
     state_.fullscreen.set (fullscreen);
     return state_.fullscreen.get ();
   }
 
-  bool makeBorderless (bool borderless) {
+  bool makeBorderless (bool borderless)
+  {
     state_.borderless.set (borderless);
     return state_.borderless.get ();
   }
 
-  bool isChanging (void) {
+  bool isChanging (void)
+  {
     return state_.changing ();
   }
 
@@ -729,7 +756,8 @@ protected:
     } borderless,
       fullscreen;
 
-    bool changing (void) {
+    bool changing (void)
+    {
       return (borderless.requested != borderless.actual ||
               fullscreen.requested != fullscreen.actual);
     };
@@ -866,7 +894,8 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   BOOL ret = GetCursorPos_Original (lpPoint);
 
   // Correct the cursor position for Aspect Ratio
-  if (game_window.needsCoordTransform ()) {
+  if (game_window.needsCoordTransform ())
+  {
     SK_CalcCursorPos (lpPoint);
   }
 
@@ -880,7 +909,8 @@ GetCursorInfo_Detour (PCURSORINFO pci)
   BOOL ret = GetCursorInfo_Original (pci);
 
   // Correct the cursor position for Aspect Ratio
-  if (game_window.needsCoordTransform ()) {
+  if (game_window.needsCoordTransform ())
+  {
     POINT pt;
 
     pt.x = pci->ptScreenPos.x;
@@ -943,9 +973,13 @@ ClipCursor_Detour (const RECT *lpRect)
     return ClipCursor_Original (nullptr);
 
 
-  if (game_window.active && lpRect != nullptr) {
+  if (game_window.active && lpRect != nullptr)
+  {
     return ClipCursor_Original (&game_window.cursor_clip);
-  } else {
+  }
+
+  else
+  {
     return ClipCursor_Original (nullptr);
   }
 }
@@ -960,7 +994,8 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
   static CRITICAL_SECTION cs_center;
   static bool             init = false;
 
-  if (! init) {
+  if (! init)
+  {
     InitializeCriticalSection (&cs_center);
     init = true;
   }
@@ -983,7 +1018,8 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
     } x,y;
   } offsets;
 
-  if (! remember_pos) {
+  if (! remember_pos)
+  {
     offsets.x.absolute = config.window.offset.x.absolute;
     offsets.y.absolute = config.window.offset.y.absolute;
 
@@ -1008,7 +1044,8 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
 
   SK_AdjustWindow ();
 
-  if (! remember_pos) {
+  if (! remember_pos)
+  {
     config.window.offset.x.absolute = offsets.x.absolute;
     config.window.offset.y.absolute = offsets.y.absolute;
 
@@ -1638,7 +1675,8 @@ SK_ComputeClientSize (void)
 {
   bool use_override = (! config.window.res.override.isZero ());
 
-  if (use_override) {
+  if (use_override)
+  {
     return ( RECT { 0L, 0L,
                       (LONG)config.window.res.override.x,
                         (LONG)config.window.res.override.y } );
@@ -1781,7 +1819,8 @@ SK_ResetWindow (void)
   static CRITICAL_SECTION cs_reset;
   static bool             init = false;
 
-  if (! init) {
+  if (! init)
+  {
     InitializeCriticalSection (&cs_reset);
     init = true;
   }
@@ -1924,14 +1963,16 @@ SK_AdjustWindow (void)
     }
 
     // No adjustment if the window is full-width
-    if (render_width == real_width) {
+    if (render_width == real_width)
+    {
       mon_width       = real_width;
       mi.rcWork.right = mi.rcMonitor.right;
       mi.rcWork.left  = mi.rcMonitor.left;
     }
 
     // No adjustment if the window is full-height
-    if (render_height == real_height) {
+    if (render_height == real_height)
+    {
       mon_height       = real_height;
       mi.rcWork.top    = mi.rcMonitor.top;
       mi.rcWork.bottom = mi.rcMonitor.bottom;
@@ -1942,12 +1983,16 @@ SK_AdjustWindow (void)
 
     // We will offset coordinates later; move the window to the top-left
     //   origin first.
-    if (config.window.center) {
+    if (config.window.center)
+    {
       game_window.actual.window.left   = 0;
       game_window.actual.window.top    = 0;
       game_window.actual.window.right  = win_width;
       game_window.actual.window.bottom = win_height;
-    } else {
+    }
+
+    else
+    {
       game_window.actual.window.left   = game_window.game.window.left;
       game_window.actual.window.top    = game_window.game.window.top;
     }
@@ -1974,18 +2019,21 @@ SK_AdjustWindow (void)
       game_window.actual.window.bottom = mi.rcWork.bottom + y_offset + 1;
 
 
-    if (config.window.center) {
+    if (config.window.center)
+    {
       SK_LOG4 ( ( L"Center --> (%li,%li)",
                     mi.rcWork.right - mi.rcWork.left,
                       mi.rcWork.bottom - mi.rcWork.top ),
                     L"Window Mgr" );
 
-      if (x_offset < 0) {
+      if (x_offset < 0)
+      {
         game_window.actual.window.left  -= (win_width / 2);
         game_window.actual.window.right -= (win_width / 2);
       }
 
-      if (y_offset < 0) {
+      if (y_offset < 0)
+      {
         game_window.actual.window.top    -= (win_height / 2);
         game_window.actual.window.bottom -= (win_height / 2);
       }
@@ -2086,7 +2134,8 @@ SK_AdjustWindow (void)
     bool has_border = SK_WindowManager::StyleHasBorder (game_window.actual.style);
 
     // Summarize the border
-    if (SK_WindowManager::StyleHasBorder (game_window.actual.style)) {
+    if (SK_WindowManager::StyleHasBorder (game_window.actual.style))
+    {
       _swprintf ( wszBorderDesc,
                    L"(Frame = %lipx x %lipx, Title = %lipx)",
                      2 * SK_GetSystemMetrics (SM_CXDLGFRAME),
@@ -2524,8 +2573,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 
 
-  if (hWnd != game_window.hWnd) {
-    if (game_window.hWnd != 0) {
+  if (hWnd != game_window.hWnd)
+  {
+    if (game_window.hWnd != 0)
+    {
       dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
                     L" for rendering... (Old=%p, New=%p)",
                       game_window.hWnd, hWnd );
@@ -2599,8 +2650,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
      {
        bool was_active = last_mouse.cursor;
 
-       if (! last_mouse.cursor) {
-         if ((! SK_IsSteamOverlayActive ()) && game_window.active) {
+       if (! last_mouse.cursor)
+       {
+         if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+         {
            while (ShowCursor (TRUE) < 0) ;
            last_mouse.cursor = true;
          }
@@ -2620,8 +2673,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
        bool was_active = last_mouse.cursor;
 
-       if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout) {
-         if ((! SK_IsSteamOverlayActive ()) && game_window.active) {
+       if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+       {
+         if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+         {
            while (ShowCursor (FALSE) >= -1) ;
            last_mouse.cursor = false;
 
@@ -2925,7 +2980,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         game_window.game.window.bottom = wnd_pos->y + height;
       }
 
-      if (wnd_pos->flags ^ SWP_NOSIZE) {
+      if (wnd_pos->flags ^ SWP_NOSIZE)
+      {
         game_window.game.window.right  = game_window.game.window.left + wnd_pos->cx;
         game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
       }
@@ -3045,7 +3101,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_SYSKEYDOWN:
       if (game_window.active)
       {
-        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN)) {
+        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
+        {
           return game_window.CallProc (hWnd, uMsg, wParam, lParam);
         }
       }
@@ -3055,7 +3112,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_SYSKEYUP:
       if (game_window.active)
       {
-        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP)) {
+        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
+        {
           return game_window.CallProc (hWnd, uMsg, wParam, lParam);
         }
       }
@@ -3181,7 +3239,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 void
 SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 {
-  if (game_window.GetWindowLongPtr == nullptr) {
+  if (game_window.GetWindowLongPtr == nullptr)
+  {
     SK_InstallWindowHook (hWnd);
   }
 
@@ -3208,7 +3267,8 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
                        game_window.actual.style
                      );
 
-  if (has_border) {
+  if (has_border)
+  {
     game_window.border_style    = game_window.actual.style;
     game_window.border_style_ex = game_window.actual.style_ex;
   }
@@ -3240,7 +3300,8 @@ SK_InstallWindowHook (HWND hWnd)
 
   game_window.unicode = IsWindowUnicode (hWnd) != FALSE;
 
-  if (game_window.unicode)  {
+  if (game_window.unicode) 
+  {
 #ifdef _WIN64
     game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
 #else
@@ -3253,7 +3314,10 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.CallWindowProc   = (CallWindowProc_pfn)
       GetProcAddress ( GetModuleHandle (L"user32.dll"),
                          "CallWindowProcW" );
-  } else {
+  }
+
+  else
+  {
 #ifdef _WIN64
     game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
 #else

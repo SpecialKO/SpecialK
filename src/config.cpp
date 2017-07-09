@@ -2522,7 +2522,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.render.framerate.present_interval =
       render.framerate.present_interval->get_value ();
 
-  if (render.framerate.refresh_rate) {
+  if (render.framerate.refresh_rate)
+  {
     if (render.framerate.refresh_rate->load ())
       config.render.framerate.refresh_rate =
         render.framerate.refresh_rate->get_value ();
@@ -2560,11 +2561,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (render.framerate.max_delta_time->load ())
     config.render.framerate.max_delta_time =
       render.framerate.max_delta_time->get_value ();
-  if (render.framerate.flip_discard->load ()) {
+  if (render.framerate.flip_discard->load ())
+  {
     config.render.framerate.flip_discard =
       render.framerate.flip_discard->get_value ();
 
-    if (render.framerate.allow_dwm_tearing->load ()) {
+    if (render.framerate.allow_dwm_tearing->load ())
+    {
       config.render.dxgi.allow_tearing = render.framerate.allow_dwm_tearing->get_value ();
       //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
     }
@@ -2578,13 +2581,15 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.render.dxgi.adapter_override =
       render.dxgi.adapter_override->get_value ();
 
-  if (render.dxgi.max_res->load ()) {
+  if (render.dxgi.max_res->load ())
+  {
     swscanf ( render.dxgi.max_res->get_value_str ().c_str (),
                 L"%lux%lu",
                 &config.render.dxgi.res.max.x,
                   &config.render.dxgi.res.max.y );
   }
-  if (render.dxgi.min_res->load ()) {
+  if (render.dxgi.min_res->load ())
+  {
     swscanf ( render.dxgi.min_res->get_value_str ().c_str (),
                 L"%lux%lu",
                 &config.render.dxgi.res.min.x,
@@ -2795,9 +2800,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (input.gamepad.xinput.ui_slot->load ())
     config.input.gamepad.xinput.ui_slot = input.gamepad.xinput.ui_slot->get_value ();
 
-  if (window.borderless->load ()) {
+  if (window.borderless->load ())
     config.window.borderless = window.borderless->get_value ();
-  }
 
   if (window.center->load ())
     config.window.center = window.center->get_value ();
@@ -2808,27 +2812,37 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (window.offset.x->load ()) {
     std::wstring offset = window.offset.x->get_value ();
 
-    if (wcsstr (offset.c_str (), L"%")) {
+    if (wcsstr (offset.c_str (), L"%"))
+    {
       config.window.offset.x.absolute = 0;
       swscanf (offset.c_str (), L"%f%%", &config.window.offset.x.percent);
       config.window.offset.x.percent /= 100.0f;
-    } else {
+    }
+
+    else
+    {
       config.window.offset.x.percent = 0.0f;
       swscanf (offset.c_str (), L"%li", &config.window.offset.x.absolute);
     }
   }
-  if (window.offset.y->load ()) {
+  if (window.offset.y->load ())
+  {
     std::wstring offset = window.offset.y->get_value ();
 
-    if (wcsstr (offset.c_str (), L"%")) {
+    if (wcsstr (offset.c_str (), L"%"))
+    {
       config.window.offset.y.absolute = 0;
       swscanf (offset.c_str (), L"%f%%", &config.window.offset.y.percent);
       config.window.offset.y.percent /= 100.0f;
-    } else {
+    }
+
+    else
+    {
       config.window.offset.y.percent = 0.0f;
       swscanf (offset.c_str (), L"%li", &config.window.offset.y.absolute);
     }
   }
+
   if (window.confine_cursor->load ())
     config.window.confine_cursor = window.confine_cursor->get_value ();
   if (window.unconfine_cursor->load ())
@@ -2840,7 +2854,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (window.fix_mouse_coords->load ())
     config.window.res.override.fix_mouse =
       window.fix_mouse_coords->get_value ();
-  if (window.override->load ()) {
+  if (window.override->load ())
+  {
     swscanf ( window.override->get_value_str ().c_str (),
                 L"%lux%lu",
                 &config.window.res.override.x,
@@ -2862,12 +2877,15 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (steam.achievements.popup.show_title->load ())
     config.steam.achievements.popup.show_title =
       steam.achievements.popup.show_title->get_value ();
-  if (steam.achievements.popup.origin->load ()) {
+  if (steam.achievements.popup.origin->load ())
+  {
     config.steam.achievements.popup.origin =
       SK_Steam_PopupOriginWStrToEnum (
         steam.achievements.popup.origin->get_value ().c_str ()
       );
-  } else {
+  }
+  else
+  {
     config.steam.achievements.popup.origin = 3;
   }
   if (steam.achievements.popup.inset->load ())
@@ -2877,7 +2895,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.steam.achievements.popup.duration =
       steam.achievements.popup.duration->get_value ();
 
-  if (config.steam.achievements.popup.duration == 0)  {
+  if (config.steam.achievements.popup.duration == 0)
+  {
     config.steam.achievements.popup.show        = false;
     config.steam.achievements.pull_friend_stats = false;
     config.steam.achievements.pull_global_stats = false;
@@ -3125,28 +3144,38 @@ SK_SaveConfig ( std::wstring name,
   window.center->set_value                    (config.window.center);
   window.background_render->set_value         (config.window.background_render);
   window.background_mute->set_value           (config.window.background_mute);
-  if (config.window.offset.x.absolute != 0) {
+  if (config.window.offset.x.absolute != 0)
+  {
     wchar_t wszAbsolute [16];
     _swprintf (wszAbsolute, L"%li", config.window.offset.x.absolute);
     window.offset.x->set_value (wszAbsolute);
-  } else {
+  }
+
+  else
+  {
     wchar_t wszPercent [16];
     _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.x.percent);
     SK_RemoveTrailingDecimalZeros (wszPercent);
     lstrcatW (wszPercent, L"%");
     window.offset.x->set_value (wszPercent);
   }
-  if (config.window.offset.y.absolute != 0) {
+
+  if (config.window.offset.y.absolute != 0)
+  {
     wchar_t wszAbsolute [16];
     _swprintf (wszAbsolute, L"%li", config.window.offset.y.absolute);
     window.offset.y->set_value (wszAbsolute);
-  } else {
+  }
+
+  else
+  {
     wchar_t wszPercent [16];
     _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.y.percent);
     SK_RemoveTrailingDecimalZeros (wszPercent);
     lstrcatW (wszPercent, L"%");
     window.offset.y->set_value (wszPercent);
   }
+
   window.confine_cursor->set_value            (config.window.confine_cursor);
   window.unconfine_cursor->set_value          (config.window.unconfine_cursor);
   window.persistent_drag->set_value           (config.window.persistent_drag);
@@ -3416,13 +3445,15 @@ SK_SaveConfig ( std::wstring name,
 
   if (  SK_IsInjected ()                  || 
       ( SK_GetDLLRole () & DLL_ROLE::DXGI ||
-        SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
+        SK_GetDLLRole () & DLL_ROLE::D3D9 ) )
+  {
     render.framerate.wait_for_vblank->store   ();
     render.framerate.buffer_count->store      ();
     render.framerate.prerender_limit->store   ();
     render.framerate.present_interval->store  ();
 
-    if (sk::NVAPI::nv_hardware) {
+    if (sk::NVAPI::nv_hardware)
+    {
       nvidia.sli.compatibility->store        ();
       nvidia.sli.mode->store                 ();
       nvidia.sli.num_gpus->store             ();
@@ -3430,7 +3461,8 @@ SK_SaveConfig ( std::wstring name,
     }
 
     if (  SK_IsInjected () ||
-        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) ) {
+        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) )
+    {
       render.framerate.max_delta_time->store    ();
       render.framerate.flip_discard->store      ();
       render.framerate.allow_dwm_tearing->store ();
@@ -3464,7 +3496,8 @@ SK_SaveConfig ( std::wstring name,
     }
 
     if (  SK_IsInjected () ||
-        ( SK_GetDLLRole () & DLL_ROLE::D3D9 ) ) {
+        ( SK_GetDLLRole () & DLL_ROLE::D3D9 ) )
+    {
       render.d3d9.force_d3d9ex->store     ();
       render.d3d9.hook_type->store        ();
     }
@@ -3561,18 +3594,22 @@ SK_SaveConfig ( std::wstring name,
                      L"\\My Mods\\SpecialK\\Global\\achievements.ini"
                    ).c_str () );
 
-  if (close_config) {
-    if (dll_ini != nullptr) {
+  if (close_config)
+  {
+    if (dll_ini != nullptr)
+    {
       delete dll_ini;
       dll_ini = nullptr;
     }
 
-    if (osd_ini != nullptr) {
+    if (osd_ini != nullptr)
+    {
       delete osd_ini;
       osd_ini = nullptr;
     }
 
-    if (achievement_ini != nullptr) {
+    if (achievement_ini != nullptr)
+    {
       delete achievement_ini;
       achievement_ini = nullptr;
     }

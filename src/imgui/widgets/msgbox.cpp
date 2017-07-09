@@ -1,3 +1,4 @@
+#if 0
 /*
 The MIT License (MIT)
 
@@ -114,3 +115,4 @@ void ImGuiAl::MsgBox::Open()
 {
   ImGui::OpenPopup( m_Title );
 }
+#endif

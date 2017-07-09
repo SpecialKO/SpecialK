@@ -280,9 +280,13 @@ SK::OpenGL::Startup (void)
   std::wstring   dll_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszDllName = dll_name.c_str   ();
 
-  if (! wcsstr (wszDllName, L"SpecialK") ) {
+  if (! wcsstr (wszDllName, L"SpecialK") )
+  {
     SK_LoadRealGL ();
-  } else {
+  }
+
+  else
+  {
     LoadLibraryW_Original (L"OpenGL32.dll");
   }
 
@@ -1390,7 +1394,8 @@ wglSwapBuffers (HDC hDC)
   SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
   SK_BeginBufferSwap ();
 
-  if (wgl_swap_buffers == nullptr) {
+  if (wgl_swap_buffers == nullptr)
+  {
     wgl_swap_buffers =
       (wglSwapBuffers_pfn)GetProcAddress (backend_dll, "wglSwapBuffers");
   }
@@ -1398,7 +1403,8 @@ wglSwapBuffers (HDC hDC)
 
   if (SK_GetCurrentGLContext ())
   {
-    if (SK_GetFramesDrawn () < 1) {
+    if (SK_GetFramesDrawn () < 1)
+    {
       glewExperimental = GL_TRUE;
       glewInit ();
     }
@@ -1407,7 +1413,8 @@ wglSwapBuffers (HDC hDC)
     SK_CEGUI_DrawGL         ();
 
     static bool first = true;
-    if (first) {
+    if (first)
+    {
       ImGui_ImplGL3_Init ();
       first = false;
     }
@@ -1509,7 +1516,8 @@ namespace GLPerf
 
   class PipelineQuery {
   public:
-    PipelineQuery (const wchar_t* wszName, GLenum target) {
+    PipelineQuery (const wchar_t* wszName, GLenum target)
+    {
       name_ = wszName;
       glGenQueries (1, &query_);
 
@@ -1519,30 +1527,36 @@ namespace GLPerf
       target_    = target;
     }
 
-   ~PipelineQuery (GLvoid) {
-      if (glIsQuery (query_)) {
+   ~PipelineQuery (GLvoid)
+   {
+      if (glIsQuery (query_))
+      {
         glDeleteQueries (1, &query_);
         query_ = 0;
       }
     }
 
-    std::wstring getName         (GLvoid) {
+    std::wstring getName         (GLvoid)
+    {
       return name_;
     }
 
-    GLvoid    beginQuery         (GLvoid) {
+    GLvoid    beginQuery         (GLvoid)
+    {
       active_   = GL_TRUE;
       ready_    = GL_FALSE;
       glBeginQuery (target_, query_);
       finished_ = GL_FALSE;
       result_   = 0;
     }
-    GLvoid    endQuery           (GLvoid) {
+    GLvoid    endQuery           (GLvoid)
+    {
       active_   = GL_FALSE;
       glEndQuery (query_);
     }
 
-    GLboolean isFinished         (GLvoid) {
+    GLboolean isFinished         (GLvoid)
+    {
       GLint finished;
 
       glGetQueryObjectiv (query_, GL_QUERY_RESULT_AVAILABLE, &finished);
@@ -1554,16 +1568,20 @@ namespace GLPerf
 
       return GL_FALSE;
     }
-    GLboolean isReady            (GLvoid) {
+    GLboolean isReady            (GLvoid)
+    {
       return ready_;
     }
-    GLboolean isActive           (GLvoid) {
+    GLboolean isActive           (GLvoid)
+    {
       return active_;
     }
 
     // Will return immediately if not ready
-    GLboolean getResulIfFinished (GLuint64* pResult) {
-      if (isFinished ()) {
+    GLboolean getResulIfFinished (GLuint64* pResult)
+    {
+      if (isFinished ())
+      {
         getResult (pResult);
         return GL_TRUE;
       }
@@ -1571,14 +1589,17 @@ namespace GLPerf
       return GL_FALSE;
     }
 
-    GLvoid    getResult          (GLuint64* pResult) { // Will BLOCK
+    // Will BLOCK
+    GLvoid    getResult          (GLuint64* pResult)
+    {
       glGetQueryObjectui64v (query_, GL_QUERY_RESULT, pResult);
       ready_ = GL_TRUE;
 
       result_ = *pResult;
     }
 
-    GLuint64 getLastResult (void) {
+    GLuint64 getLastResult (void)
+    {
       return result_;
     }
 
@@ -1700,7 +1721,8 @@ SK_GL_UpdateRenderStats (void)
 
   static bool init = false;
 
-  if (! init) {
+  if (! init)
+  {
     GLPerf::Init ();
     init = true;
   }
@@ -1708,17 +1730,22 @@ SK_GL_UpdateRenderStats (void)
   //SK::DXGI::PipelineStatsD3D11& pipeline_stats =
     //SK::DXGI::pipeline_stats_d3d11;
 
-  for (int i = 0; i < 11; i++) {
-    if (GLPerf::pipeline_states [i] != nullptr) {
-      if (GLPerf::pipeline_states [i]->isReady ()) {
+  for (int i = 0; i < 11; i++)
+  {
+    if (GLPerf::pipeline_states [i] != nullptr)
+    {
+      if (GLPerf::pipeline_states [i]->isReady ())
+      {
         GLPerf::pipeline_states [i]->beginQuery ();
       }
 
-      else if (GLPerf::pipeline_states [i]->isActive ()) {
+      else if (GLPerf::pipeline_states [i]->isActive ())
+      {
         GLPerf::pipeline_states [i]->endQuery ();
       }
 
-      if (! GLPerf::pipeline_states [i]->isActive ()) {
+      if (! GLPerf::pipeline_states [i]->isActive ())
+      {
         GLuint64 result;
         GLPerf::pipeline_states [i]->getResulIfFinished (&result);
       }
@@ -1736,7 +1763,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
 
   D3D11_QUERY_DATA_PIPELINE_STATISTICS stats = { };
 
-  if (GLPerf::HAS_pipeline_query) {
+  if (GLPerf::HAS_pipeline_query)
+  {
     stats.IAVertices    = GLPerf::pipeline_states [GLPerf::IAVertices   ]->getLastResult ();
     stats.IAPrimitives  = GLPerf::pipeline_states [GLPerf::IAPrimitives ]->getLastResult ();
     stats.VSInvocations = GLPerf::pipeline_states [GLPerf::VSInvocations]->getLastResult ();
@@ -1753,13 +1781,17 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   // VERTEX SHADING
   //
-  if (stats.VSInvocations > 0) {
+  if (stats.VSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"  VERTEX : %s   (%s Verts ==> %s Triangles)\n",
                     SK_CountToString (stats.VSInvocations).c_str (),
                       SK_CountToString (stats.IAVertices).c_str (),
                         SK_CountToString (stats.IAPrimitives).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"  VERTEX : <Unused>\n" );
   }
@@ -1767,13 +1799,17 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   // GEOMETRY SHADING
   //
-  if (stats.GSInvocations > 0) {
+  if (stats.GSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  GEOM   : %s   (%s Prims)\n",
                     wszDesc,
                       SK_CountToString (stats.GSInvocations).c_str (),
                         SK_CountToString (stats.GSPrimitives).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  GEOM   : <Unused>\n",
                     wszDesc );
@@ -1782,13 +1818,17 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   // TESSELLATION
   //
-  if (stats.HSInvocations > 0 || stats.DSInvocations > 0) {
+  if (stats.HSInvocations > 0 || stats.DSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  TESS   : %s Hull ==> %s Domain\n",
                     wszDesc,
                       SK_CountToString (stats.HSInvocations).c_str (),
                         SK_CountToString (stats.DSInvocations).c_str () ) ;
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  TESS   : <Unused>\n",
                     wszDesc );
@@ -1797,14 +1837,18 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   // RASTERIZATION
   //
-  if (stats.CInvocations > 0) {
+  if (stats.CInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
                     wszDesc, 100.0f *
                         ( (float)stats.CPrimitives /
                           (float)stats.CInvocations ),
                       SK_CountToString (stats.CInvocations).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  RASTER : <Unused>\n",
                     wszDesc );
@@ -1813,13 +1857,17 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   // PIXEL SHADING
   //
-  if (stats.PSInvocations > 0) {
+  if (stats.PSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  PIXEL  : %s   (%s Triangles OUT)\n",
                     wszDesc,
                       SK_CountToString (stats.PSInvocations).c_str (),
                         SK_CountToString (stats.CPrimitives).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  PIXEL  : <Unused>\n",
                     wszDesc );
@@ -1828,11 +1876,15 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   // COMPUTE
   //
-  if (stats.CSInvocations > 0) {
+  if (stats.CSInvocations > 0)
+  {
     _swprintf ( wszDesc,
                   L"%s  COMPUTE: %s\n",
                     wszDesc, SK_CountToString (stats.CSInvocations).c_str () );
-  } else {
+  }
+
+  else
+  {
     _swprintf ( wszDesc,
                   L"%s  COMPUTE: <Unused>\n",
                     wszDesc );

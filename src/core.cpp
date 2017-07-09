@@ -623,7 +623,8 @@ skMemCmd::execute (const char* szArgs)
 
   static uint8_t* base_addr = nullptr;
 
-  if (base_addr == nullptr) {
+  if (base_addr == nullptr)
+  {
     base_addr = (uint8_t *)GetModuleHandle (nullptr);
 
     MEMORY_BASIC_INFORMATION basic_mem_info;
@@ -1085,7 +1086,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
     dll_log.LogEx (false, L" %s\n", adl_init ? L"Success" : L"Failed");
 
-    if (adl_init) {
+    if (adl_init)
+    {
       dll_log.Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
                       SK_ADL_CountPhysicalGPUs (),
                         SK_ADL_CountActiveGPUs () );
@@ -1098,24 +1100,30 @@ SK_InitCore (const wchar_t* backend, void* callback)
   {
     DWORD* dwOptimus = (DWORD *)GetProcAddress (hMod, "NvOptimusEnablement");
 
-    if (dwOptimus != NULL) {
+    if (dwOptimus != NULL)
+    {
       dll_log.Log (L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
         *dwOptimus,
         (*dwOptimus & 0x1 ? L"Max Perf." :
           L"Don't Care"));
-    } else {
+    }
+
+    else
+    {
       dll_log.Log (L"[Hybrid GPU]  NvOptimusEnablement..................: UNDEFINED");
     }
 
     DWORD* dwPowerXpress =
       (DWORD *)GetProcAddress (hMod, "AmdPowerXpressRequestHighPerformance");
 
-    if (dwPowerXpress != NULL) {
+    if (dwPowerXpress != NULL)
+    {
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: 0x%02X (%s)",
         *dwPowerXpress,
         (*dwPowerXpress & 0x1 ? L"High Perf." :
           L"Don't Care"));
     }
+
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
@@ -1147,7 +1155,8 @@ WaitForInit (void)
       break;
   }
 
-  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE)) {
+  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE))
+  {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
     MsgWaitForMultipleObjectsEx (0, nullptr, 150, QS_ALLINPUT, MWMO_ALERTABLE);
@@ -1164,7 +1173,8 @@ WaitForInit (void)
   //     them as soon as all DLL code is loaded. Then it becomes a sloppy race
   //       for each attached thread to finish its DllMain (...) function.
   //
-  if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE)) {
+  if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
+  {
     CloseHandle (InterlockedExchangePointer ((LPVOID *)&hInitThread, INVALID_HANDLE_VALUE));
 
     // Load user-defined DLLs (Lazy)
@@ -2100,14 +2110,18 @@ SK_BeginBufferSwap (void)
   #ifdef _WIN64
       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
 
-      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES) {
+      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+      {
         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\x64",
                       SK_GetDocumentsDir ().c_str () );
   
         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
       }
+
       else
+      {
         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
+      }
   #else
       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
 
@@ -2186,12 +2200,15 @@ SK_BeginBufferSwap (void)
               DLL_DIRECTORY_COOKIE cookie = 0;
               bool                 ret    = false;
   
-              __try {
+              __try
+              {
                 cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
                 ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
               }
   
-              __except (EXCEPTION_EXECUTE_HANDLER) {
+              __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+                         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+              {
               }
   
               k32_RemoveDllDirectory (cookie);
@@ -2325,7 +2342,8 @@ DoKeyboard (void)
     SK_CenterWindowAtMouse (config.window.persistent_drag);
 
 
-  if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval) {
+  if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval)
+  {
     if (HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [0])) &&
         HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [1])) &&
         HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [2])))
@@ -2344,7 +2362,8 @@ DoKeyboard (void)
   }
 
 #if 0
-  if (ullNow.QuadPart < last_poll + poll_interval) {
+  if (ullNow.QuadPart < last_poll + poll_interval)
+  {
     SleepEx (10, TRUE);
     last_poll = ullNow.QuadPart;
   }
@@ -2406,7 +2425,10 @@ DoKeyboard (void)
       if (! toggle_sli)
         config.sli.show = (! config.sli.show);
       toggle_sli = true;
-    } else {
+    }
+
+    else
+    {
       toggle_sli = false;
     }
   }
@@ -2419,7 +2441,10 @@ DoKeyboard (void)
     if (! toggle_io)
       config.io.show = (! config.io.show);
     toggle_io = true;
-  } else {
+  }
+
+  else
+  {
     toggle_io = false;
   }
 
@@ -2428,7 +2453,8 @@ DoKeyboard (void)
       HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [1])) &&
       HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [2])))
   {
-    if (! toggle_cpu) {
+    if (! toggle_cpu)
+    {
       config.cpu.show = (! config.cpu.show);
 
       if (config.cpu.show)
@@ -2436,7 +2462,10 @@ DoKeyboard (void)
     }
 
     toggle_cpu = true;
-  } else {
+  }
+
+  else
+  {
     toggle_cpu = false;
   }
 
@@ -2448,7 +2477,10 @@ DoKeyboard (void)
     if (! toggle_gpu)
       config.gpu.show = (! config.gpu.show);
     toggle_gpu = true;
-  } else {
+  }
+
+  else
+  {
     toggle_gpu = false;
   }
 
@@ -2460,7 +2492,10 @@ DoKeyboard (void)
     if (! toggle_fps)
       config.fps.show = (! config.fps.show);
     toggle_fps = true;
-  } else {
+  }
+
+  else
+  {
     toggle_fps = false;
   }
 
@@ -2470,7 +2505,8 @@ DoKeyboard (void)
       HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [2])) &&
       HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [3])))
   {
-    if (! toggle_disk) {
+    if (! toggle_disk)
+    {
       config.disk.show = (! config.disk.show);
 
       if (config.disk.show)
@@ -2478,7 +2514,10 @@ DoKeyboard (void)
     }
 
     toggle_disk = true;
-  } else {
+  }
+
+  else
+  {
     toggle_disk = false;
   }
 
@@ -2488,7 +2527,8 @@ DoKeyboard (void)
       HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [2])) &&
       HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [3])))
   {
-    if (! toggle_pagefile) {
+    if (! toggle_pagefile)
+    {
       config.pagefile.show = (! config.pagefile.show);
 
       if (config.pagefile.show)
@@ -2513,7 +2553,10 @@ DoKeyboard (void)
         SK_InstallOSD ();
     }
     toggle_osd = true;
-  } else {
+  }
+
+  else
+  {
     toggle_osd = false;
   }
 
@@ -2525,7 +2568,10 @@ DoKeyboard (void)
     if (! toggle_render)
       config.render.show = (! config.render.show);
     toggle_render = true;
-  } else {
+  }
+
+  else
+  {
     toggle_render = false;
   }
 }

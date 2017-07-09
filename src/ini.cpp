@@ -62,7 +62,8 @@ dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
-  SK_CreateDirectories (filename);
+  if (wcsstr (filename, L"Version"))
+    SK_CreateDirectories (filename);
 
   AddRef ();
 

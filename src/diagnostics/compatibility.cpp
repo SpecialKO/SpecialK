@@ -498,6 +498,8 @@ HMODULE
 WINAPI
 LoadLibraryA_Detour (LPCSTR lpFileName)
 {
+  LPVOID lpRet = _ReturnAddress ();
+
   if (lpFileName == nullptr)
     return NULL;
 
@@ -527,9 +529,9 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   if (hModEarly != hMod)
   {
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (),
+    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              "LoadLibraryA", _ReturnAddress () );
+                              "LoadLibraryA", lpRet );
   }
 
   SK_UnlockDllLoader ();
@@ -540,6 +542,8 @@ HMODULE
 WINAPI
 LoadLibraryW_Detour (LPCWSTR lpFileName)
 {
+  LPVOID lpRet = _ReturnAddress ();
+
   if (lpFileName == nullptr)
     return NULL;
 
@@ -570,9 +574,9 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
 
   if (hModEarly != hMod)
   {
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (),
+    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              L"LoadLibraryW", _ReturnAddress () );
+                              L"LoadLibraryW", lpRet );
   }
 
   SK_UnlockDllLoader ();
@@ -586,6 +590,8 @@ LoadLibraryExA_Detour (
   _Reserved_ HANDLE hFile,
   _In_       DWORD  dwFlags )
 {
+  LPVOID lpRet = _ReturnAddress ();
+
   if (lpFileName == nullptr)
     return NULL;
 
@@ -622,9 +628,9 @@ LoadLibraryExA_Detour (
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
 {
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (),
+    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              "LoadLibraryExA", _ReturnAddress () );
+                              "LoadLibraryExA", lpRet );
   }
 
   SK_UnlockDllLoader ();
@@ -638,6 +644,8 @@ LoadLibraryExW_Detour (
   _Reserved_ HANDLE  hFile,
   _In_       DWORD   dwFlags )
 {
+  LPVOID lpRet = _ReturnAddress ();
+
   if (lpFileName == nullptr)
     return NULL;
 
@@ -676,9 +684,9 @@ LoadLibraryExW_Detour (
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
   {
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (),
+    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              L"LoadLibraryExW", _ReturnAddress () );
+                              L"LoadLibraryExW", lpRet );
   }
 
   SK_UnlockDllLoader ();
