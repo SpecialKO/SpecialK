@@ -357,7 +357,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     ImGui_DX11Shutdown ();
   }
 
-  else if (cegD3D11 == nullptr)
+  else
   {
     pGUIDev = nullptr;
 
@@ -1976,7 +1976,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     {
       pDescLocal = 
         (DXGI_MODE_DESC *)
-          malloc (sizeof DXGI_MODE_DESC * *pNumModes);
+          malloc (sizeof (DXGI_MODE_DESC) * *pNumModes);
       pDesc      = pDescLocal;
 
       hr =
@@ -2776,7 +2776,7 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     }
 
     else
-      pFullscreenDesc->Windowed                = TRUE;
+      pDesc->Windowed = TRUE;
   }
 
   //game_window.hWnd = pDesc->OutputWindow;
@@ -2842,8 +2842,9 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
                 )
      )
   {
-    // Dangerous to hold a reference to this don't you think?!
     g_pD3D11Dev = pDev;
+
+    SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
   }
 }
 
@@ -2981,12 +2982,12 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 
     HRESULT ret;
 
+    assert (pDesc != nullptr);
+
     DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
     DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc =
       pFullscreenDesc ? *pFullscreenDesc :
                          DXGI_SWAP_CHAIN_FULLSCREEN_DESC { };
-
-    assert (pDesc != nullptr);
 
     SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, &new_fullscreen_desc);
 
@@ -3018,10 +3019,10 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 
     HRESULT ret;
 
+    assert (pDesc != nullptr);
+
     DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
     DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc = {    };
-
-    assert (pDesc != nullptr);
 
     HWND hWnd = 0;
     SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
@@ -4161,7 +4162,7 @@ HookDXGI (LPVOID user)
     CreateWindowW ( L"STATIC", L"Dummy DXGI Window",
                       WS_POPUP        | WS_MINIMIZEBOX,
                         CW_USEDEFAULT, CW_USEDEFAULT,
-                          1, 1, 0,
+                          640, 480, 0,
                             nullptr, nullptr, 0x00 );
 
   desc.OutputWindow = hwnd;
@@ -4179,11 +4180,11 @@ HookDXGI (LPVOID user)
 
   HRESULT hr = E_NOTIMPL;
 
-  extern LPVOID pfnD3D11CreateDevice;
+  extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
 #ifdef _WIN64
     hr =
-      ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
+      ((D3D11CreateDeviceAndSwapChain_pfn)(pfnD3D11CreateDeviceAndSwapChain)) (
         0,
           D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
@@ -4191,9 +4192,11 @@ HookDXGI (LPVOID user)
                 nullptr,
                   0,
                     D3D11_SDK_VERSION,
-                      &pDevice,
-                        &featureLevel,
-                          &pImmediateContext );
+                      &desc,
+                        &pSwapChain,
+                          &pDevice,
+                            &featureLevel,
+                              &pImmediateContext );
 #endif
 
   // Load user-defined DLLs (Plug-In)
@@ -4205,7 +4208,7 @@ HookDXGI (LPVOID user)
 
 #ifndef _WIN64
     hr =
-      D3D11CreateDevice_Import (
+      D3D11CreateDeviceAndSwapChain_Import (
         0,
           D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
@@ -4213,9 +4216,11 @@ HookDXGI (LPVOID user)
                 nullptr,
                   0,
                     D3D11_SDK_VERSION,
-                      &pDevice,
-                        &featureLevel,
-                          &pImmediateContext );
+                      &desc,
+                        &pSwapChain,
+                          &pDevice,
+                            &featureLevel,
+                              &pImmediateContext );
 #endif
 
   if (SUCCEEDED (hr))
@@ -4231,18 +4236,9 @@ HookDXGI (LPVOID user)
       d3d11_hook_ctx.ppDevice           = &pDevice;
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
-      HookD3D11 (&d3d11_hook_ctx);
-
-      if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
-      {
-        SK_DXGI_HookSwapChain (pSwapChain);
-        SK_DXGI_HookFactory   (pFactory);
-      }
-
-      else
-      {
-        dll_log.Log (L"[   DXGI   ]  >> Failed to Hook SwapChain <<");
-      }
+      SK_DXGI_HookSwapChain (pSwapChain);
+      HookD3D11             (&d3d11_hook_ctx);
+      SK_DXGI_HookFactory   (pFactory);
 
       // These don't do anything (anymore)
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
@@ -4251,8 +4247,6 @@ HookDXGI (LPVOID user)
       if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 #endif
     }
-
-    InterlockedExchange (&__dxgi_ready, TRUE);
   }
 
   else
@@ -4262,6 +4256,8 @@ HookDXGI (LPVOID user)
     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
                              err.WCode (), err.ErrorMessage () );
   }
+
+  InterlockedExchange (&__dxgi_ready, TRUE);
 
   DestroyWindow (hwnd);
 
@@ -4560,7 +4556,7 @@ WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
 {
   budget_thread_params_t* params =
-    (budget_thread_params_t *)user_data;
+    static_cast <budget_thread_params_t *> (user_data);
   
   budget_log.silent = true;
   params->tid       = GetCurrentThreadId ();

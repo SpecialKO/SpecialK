@@ -10,6 +10,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
+#include <SpecialK/framerate.h>
 
 // DirectX
 #include <d3d9.h>
@@ -310,10 +311,10 @@ ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS*
   g_hWnd       = (HWND)hwnd;
   g_pd3dDevice = device;
 
-  if (! QueryPerformanceFrequency ((LARGE_INTEGER *)&g_TicksPerSecond))
+  if (! QueryPerformanceFrequency        ((LARGE_INTEGER *)&g_TicksPerSecond))
     return false;
 
-  if (! QueryPerformanceCounter   ((LARGE_INTEGER *)&g_Time))
+  if (! QueryPerformanceCounter_Original ((LARGE_INTEGER *)&g_Time))
     return false;
 
   ImGuiIO& io (ImGui::GetIO ());
@@ -531,15 +532,15 @@ ImGui_ImplDX9_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter ((LARGE_INTEGER *)&current_time);
+  QueryPerformanceCounter_Original ((LARGE_INTEGER *)&current_time);
 
   io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
   g_Time       =         current_time;
 
   // Read keyboard modifiers inputs
-  io.KeyCtrl   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
-  io.KeyShift  = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
-  io.KeyAlt    = (GetAsyncKeyState_Original (VK_MENU)    & 0x8000) != 0;
+  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
+  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
+  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
 
   io.KeySuper  = false;
 

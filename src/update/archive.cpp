@@ -119,13 +119,8 @@ SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
                         wszNew,
                           MOVEFILE_REPLACE_EXISTING ) )
   {
-    wchar_t wszPath [MAX_PATH] = { };
-    wcscpy (wszPath, wszNew);
-
-    PathRemoveFileSpec (wszPath);
-
     wchar_t wszTemp [MAX_PATH] = { };
-    GetTempFileNameW (wszPath, L"SKI", timeGetTime (), wszTemp);
+    GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", timeGetTime (), wszTemp);
 
     MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING );
     MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING );
@@ -390,11 +385,11 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     wchar_t wszUserConfig    [MAX_PATH + 2] = { }; // Currently Deployed
     wchar_t wszOldConfig     [MAX_PATH + 2] = { }; // Backed-Up User Cfg
 
-    wcscpy   (wszDefaultConfig, SK_GetConfigPath ());
-    wcscpy   (wszUserConfig,    SK_GetConfigPath ());
+    wcscpy   (wszDefaultConfig, SK_SYS_GetInstallPath ().c_str ());
+    wcscpy   (wszUserConfig,    SK_SYS_GetInstallPath ().c_str ());
 
-    lstrcatW (wszDefaultConfig, config_files [i].name.c_str ());
-    lstrcatW (wszUserConfig,    config_files [i].name.c_str ());
+    PathAppend (wszDefaultConfig, config_files [i].name.c_str ());
+    PathAppend (wszUserConfig,    config_files [i].name.c_str ());
 
     wchar_t* wszDefault_ = wcsstr (wszUserConfig, L"default_");
 
@@ -406,7 +401,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
         wcsstr ( wszDefault_+1, L"_" );
 
       if (wsz_ != nullptr)
+      {
         lstrcatW (wszUserConfig, wsz_+1);
+      }
     }
 
     lstrcatW ( wszOldConfig, wszUserConfig );
@@ -442,7 +439,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       if ( GetFileAttributes (wszUserConfig)     == INVALID_FILE_ATTRIBUTES ||
            GetFileAttributes (wszDefaultConfig)  == INVALID_FILE_ATTRIBUTES ||
              SK_GetFileCRC32C (wszDefaultConfig, nullptr) !=
-             SK_GetFileCRC32C (wszNewConfig,     nullptr)         )
+             SK_GetFileCRC32C (wszNewConfig,     nullptr) )
       {
         if (GetFileAttributes (wszUserConfig) != INVALID_FILE_ATTRIBUTES)
           config_files_changed = true;

@@ -854,7 +854,7 @@ SK_DrawOSD (void)
 
       if (nvapi_init)
       {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
           i,
            mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
                        gpu_stats.gpus [i].loads_percent.bus,
@@ -868,7 +868,7 @@ SK_DrawOSD (void)
 
       else
       {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %li.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
           i,
           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
           pcie_gen,
@@ -922,7 +922,7 @@ SK_DrawOSD (void)
 
       if (nvapi_init)
       {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %li.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
           i,
                        gpu_stats.gpus [i].memory_B.nonlocal >> 20ULL,
                        gpu_stats.gpus [i].loads_percent.bus,
@@ -936,7 +936,7 @@ SK_DrawOSD (void)
 
       else
       {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %li.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
           i,
           gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL,
           pcie_gen,

@@ -395,8 +395,7 @@ SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
 {
   __try
   {
-    if (overlay_activation_callbacks.find (pCallback) != overlay_activation_callbacks.end ())
-      overlay_activation_callbacks.erase (pCallback);
+    overlay_activation_callbacks.erase (pCallback);
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER)

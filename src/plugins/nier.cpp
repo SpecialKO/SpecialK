@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.6.2.2"
+#define FAR_VERSION_NUM L"0.6.2.9"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -248,6 +248,15 @@ D3D11Dev_CreateShaderResourceView_Override (
 
 extern
 void
+STDMETHODCALLTYPE
+D3D11_PSSetConstantBuffers_Override (
+  _In_     ID3D11DeviceContext*  This,
+  _In_     UINT                  StartSlot,
+  _In_     UINT                  NumBuffers,
+  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers );
+
+extern
+void
 WINAPI
 D3D11_DrawIndexedInstanced_Override (
   _In_ ID3D11DeviceContext *This,
@@ -283,6 +292,18 @@ D3D11_DrawInstancedIndirect_Override (
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs );
 
+extern
+void
+STDMETHODCALLTYPE
+D3D11_UpdateSubresource_Override (
+  _In_           ID3D11DeviceContext* This,
+  _In_           ID3D11Resource      *pDstResource,
+  _In_           UINT                 DstSubresource,
+  _In_opt_ const D3D11_BOX           *pDstBox,
+  _In_     const void                *pSrcData,
+  _In_           UINT                 SrcRowPitch,
+  _In_           UINT                 SrcDepthPitch);
+
 
 // Was threaded originally, but it is important to block until
 //   the update check completes.
@@ -307,6 +328,7 @@ SK_FAR_CheckVersion (LPVOID user)
 }
 
 #include <../depends/include/glm/glm.hpp>
+
 
 HRESULT
 WINAPI
@@ -434,6 +456,17 @@ SK_FAR_CreateShaderResourceView (
   return hr;
 }
 
+void
+STDMETHODCALLTYPE
+SK_FAR_PSSetConstantBuffers (
+  _In_     ID3D11DeviceContext  *This,
+  _In_     UINT                  StartSlot,
+  _In_     UINT                  NumBuffers,
+  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
+{
+  D3D11_PSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
+}
+
 
 enum class SK_FAR_WaitBehavior
 {
@@ -448,28 +481,6 @@ extern LPVOID __SK_end_img_addr;
 
 extern void* __stdcall SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask);
 
-
-
-typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
-
-typedef NTSTATUS (NTAPI *NtQueryTimerResolution_pfn)
-(
-  OUT PULONG              MinimumResolution,
-  OUT PULONG              MaximumResolution,
-  OUT PULONG              CurrentResolution
-);
-
-typedef NTSTATUS (NTAPI *NtSetTimerResolution_pfn)
-(
-  IN  ULONG               DesiredResolution,
-  IN  BOOLEAN             SetResolution,
-  OUT PULONG              CurrentResolution
-);
-
-HMODULE                    NtDll                  = 0;
-
-NtQueryTimerResolution_pfn NtQueryTimerResolution = nullptr;
-NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
 
 void
 SK_FAR_SetFramerateCap (bool enable)
@@ -1041,6 +1052,7 @@ static D3D11_DrawIndexedInstanced_pfn         D3D11_DrawIndexedInstanced_Origina
 static D3D11_DrawIndexedInstancedIndirect_pfn D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
 static D3D11_DrawInstanced_pfn                D3D11_DrawInstanced_Original                = nullptr;
 static D3D11_DrawInstancedIndirect_pfn        D3D11_DrawInstancedIndirect_Original        = nullptr;
+static D3D11_UpdateSubresource_pfn            D3D11_UpdateSubbresource_Original           = nullptr;
 
 
 extern HRESULT
@@ -1393,6 +1405,23 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
   return false;
 }
 
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+SK_FAR_UpdateSubresource (
+  _In_           ID3D11DeviceContext* This,
+  _In_           ID3D11Resource      *pDstResource,
+  _In_           UINT                 DstSubresource,
+  _In_opt_ const D3D11_BOX           *pDstBox,
+  _In_     const void                *pSrcData,
+  _In_           UINT                 SrcRowPitch,
+  _In_           UINT                 SrcDepthPitch)
+{
+  return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                              pDstBox, pSrcData, SrcRowPitch,
+                                                SrcDepthPitch );
+}
+
 D3D11_VIEWPORT backup_vp;
 
 void
@@ -1621,35 +1650,6 @@ SK_FAR_InitPlugin (void)
 {
   SK_SetPluginName (FAR_VERSION_STR);
 
-  if (! SK_IsInjected ())
-    SK_FAR_CheckVersion (nullptr);
-
-  if (NtDll == 0)
-  {
-    NtDll = LoadLibrary (L"ntdll.dll");
-
-    NtQueryTimerResolution =
-      (NtQueryTimerResolution_pfn)
-        GetProcAddress (NtDll, "NtQueryTimerResolution");
-
-    NtSetTimerResolution =
-      (NtSetTimerResolution_pfn)
-        GetProcAddress (NtDll, "NtSetTimerResolution");
-
-    if (NtQueryTimerResolution != nullptr &&
-        NtSetTimerResolution   != nullptr)
-    {
-      ULONG min, max, cur;
-      NtQueryTimerResolution (&min, &max, &cur);
-      dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                      (float)(cur * 100)/1000000.0f );
-      NtSetTimerResolution   (max, TRUE,  &cur);
-      dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
-                      (float)(cur * 100)/1000000.0f );
-
-    }
-  }
-
   SK_CreateFuncHook ( L"ID3D11Device::CreateBuffer",
                         D3D11Dev_CreateBuffer_Override,
                           SK_FAR_CreateBuffer,
@@ -1733,6 +1733,18 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
                             (LPVOID *)&D3D11_DrawInstancedIndirect_Original );
   MH_QueueEnableHook (D3D11_DrawInstancedIndirect_Override);
 
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::PSSetConstantBuffers",
+                        D3D11_PSSetConstantBuffers_Override,
+                          SK_FAR_PSSetConstantBuffers,
+                            (LPVOID *)&D3D11_PSSetConstantBuffers_Original );
+  MH_QueueEnableHook (D3D11_PSSetConstantBuffers_Override);
+
+  SK_CreateFuncHook ( L"ID3D11DeviceContext::UpdateSubresource",
+                        D3D11_UpdateSubresource_Override,
+                          SK_FAR_UpdateSubresource,
+                            (LPVOID *)&D3D11_UpdateSubresource_Original );
+  MH_QueueEnableHook (D3D11_UpdateSubresource_Override);
+
 
   if (far_prefs == nullptr)
   {
@@ -1743,7 +1755,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     far_prefs->parse ();
 
     far_gi_workgroups = 
-        static_cast <sk::ParameterInt *>
+        dynamic_cast <sk::ParameterInt *>
           (far_factory.create_parameter <int> (L"Global Illumination Compute Shader Workgroups"));
 
     far_gi_workgroups->register_to_ini ( far_prefs,
@@ -1757,7 +1769,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     far_gi_workgroups->store     ();
 
     far_gi_min_light_extent =
-        static_cast <sk::ParameterFloat *>
+        dynamic_cast <sk::ParameterFloat *>
           (far_factory.create_parameter <float> (L"Global Illumination Minimum Unclipped Light Volume"));
 
     far_gi_min_light_extent->register_to_ini ( far_prefs,
@@ -1772,7 +1784,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_limiter_busy = 
-        static_cast <sk::ParameterBool *>
+        dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"Favor Busy-Wait For Better Timing"));
 
     far_limiter_busy->register_to_ini ( far_prefs,
@@ -1788,7 +1800,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     }
 
     far_uncap_fps =
-        static_cast <sk::ParameterBool *>
+        dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"Bypass game's framerate ceiling"));
 
     far_uncap_fps->register_to_ini ( far_prefs,
@@ -1809,7 +1821,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_rtss_warned = 
-        static_cast <sk::ParameterBool *>
+        dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"RTSS Warning Issued"));
 
     far_rtss_warned->register_to_ini ( far_prefs,
@@ -1823,7 +1835,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     }
 
     far_slow_state_cache =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (far_factory.create_parameter <bool> (L"Disable D3D11.1 Interop Stateblocks"));
 
     far_slow_state_cache->register_to_ini ( far_prefs,
@@ -1844,7 +1856,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_osd_disclaimer = 
-        static_cast <sk::ParameterBool *>
+        dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"OSD Disclaimer Dismissed"));
 
     far_osd_disclaimer->register_to_ini ( far_prefs,
@@ -1859,7 +1871,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_accepted_license = 
-        static_cast <sk::ParameterBool *>
+        dynamic_cast <sk::ParameterBool *>
           (far_factory.create_parameter <bool> (L"Has accepted the license terms"));
 
     far_accepted_license->register_to_ini ( far_prefs,
@@ -1877,7 +1889,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_bloom_width =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (far_factory.create_parameter <int> (L"Width of Bloom Post-Process"));
 
     far_bloom_width->register_to_ini ( far_prefs,
@@ -1901,7 +1913,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_bloom_disable =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (far_factory.create_parameter <bool> (L"Disable Bloom"));
 
     far_bloom_disable->register_to_ini ( far_prefs,
@@ -1918,7 +1930,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_bloom_skip =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (far_factory.create_parameter <int> (L"Test Texture Skip Factor"));
 
     far_bloom_skip->register_to_ini ( far_prefs,
@@ -1935,7 +1947,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_fix_motion_blur =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (far_factory.create_parameter <bool> (L"Test Fix for Motion Blur"));
 
     far_fix_motion_blur->register_to_ini ( far_prefs,
@@ -1952,7 +1964,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_ao_disable =
-      static_cast <sk::ParameterBool *>
+      dynamic_cast <sk::ParameterBool *>
         (far_factory.create_parameter <bool> (L"Disable AO"));
 
     far_ao_disable->register_to_ini ( far_prefs,
@@ -1969,7 +1981,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
 
     far_ao_width =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (far_factory.create_parameter <int> (L"Width of AO Post-Process"));
 
     far_ao_width->register_to_ini ( far_prefs,
@@ -1992,7 +2004,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     }
 
     far_ao_height =
-      static_cast <sk::ParameterInt *>
+      dynamic_cast <sk::ParameterInt *>
         (far_factory.create_parameter <int> (L"Height of AO Post-Process"));
 
     far_ao_height->register_to_ini ( far_prefs,
@@ -2021,7 +2033,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
         auto
         {
           sk::ParameterStringW* ret =
-           static_cast <sk::ParameterStringW *>
+           dynamic_cast <sk::ParameterStringW *>
             (far_factory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 
           ret->register_to_ini ( far_prefs, L"FAR.Keybinds", ini_name );
@@ -2062,6 +2074,9 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
   }
 
   InterlockedExchange (&__FAR_init, 1);
+
+  if (! SK_IsInjected ())
+    SK_FAR_CheckVersion (nullptr);
 }
 
 // Not currently used
@@ -2300,7 +2315,7 @@ SK_FAR_ControlPanel (void)
         far_gi_min_light_extent->store     ();
       }
 
-      if (ImGui::IsItemHovered ( ))
+      if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
         ImGui::Text         ("Fine-tune Light Culling");

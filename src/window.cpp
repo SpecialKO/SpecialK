@@ -545,10 +545,10 @@ public:
 
          char szTemp    [32] = { };
 
-      strncat (szTemp, *(char **)val, 31);
-
-      if (val != nullptr)
-        sscanf (szTemp, "%lux%lu", &x, &y);
+      if (val != nullptr) {
+        strncat (szTemp, *(char **)val, 31);
+        sscanf  (szTemp, "%lux%lu", &x, &y);
+      }
 
       if ((x > 320 && x < 16384 && y > 240 && y < 16384) || (x == 0 && y == 0))
       {
@@ -2871,6 +2871,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       L"Window Mgr" );
           return MA_ACTIVATE;
         }
+
+        SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
       }
     } break;
 
@@ -2890,7 +2892,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           ActivateWindow (true);
         }
 
-        else if (wParam == FALSE)
+        else
         {
           if (last_active == true)
             SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
@@ -2907,6 +2909,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
             return 0;
           }
+
+          SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
         }
       }
 
@@ -2958,6 +2962,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           return 1;
         }
+
+        if (! activate)
+          SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
       }
     } break;
 
@@ -3460,14 +3467,14 @@ SK_InstallWindowHook (HWND hWnd)
   bool has_raw_mouse = false;
   UINT count         = 0;
 
-                 GetRegisteredRawInputDevices (nullptr, &count, sizeof RAWINPUTDEVICE);
-  DWORD dwLast = GetLastError                 ();
+                 GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
+  DWORD dwLast = GetLastError                          ();
 
   if (count > 0)
   {
-    RAWINPUTDEVICE* pDevs = new RAWINPUTDEVICE [count+1];
+    RAWINPUTDEVICE* pDevs = new RAWINPUTDEVICE [count + 1];
 
-    GetRegisteredRawInputDevices (pDevs, &count, sizeof RAWINPUTDEVICE);
+    GetRegisteredRawInputDevices_Original (pDevs, &count, sizeof RAWINPUTDEVICE);
 
     for (UINT i = 0 ; i < count ; i++)
     {
@@ -3485,9 +3492,9 @@ SK_InstallWindowHook (HWND hWnd)
   {
     RAWINPUTDEVICE rid;
     rid.hwndTarget  = hWnd;
-    rid.usUsage     = 0;
-    rid.usUsagePage = 1;
-    rid.dwFlags     = RIDEV_INPUTSINK | RIDEV_PAGEONLY | RIDEV_DEVNOTIFY;
+    rid.usUsage     = HID_USAGE_GENERIC_MOUSE;
+    rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
+    rid.dwFlags     = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY;
 
     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
   }

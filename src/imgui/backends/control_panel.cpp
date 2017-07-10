@@ -57,6 +57,7 @@
 
 #include <windows.h>
 #include <cstdio>
+#include <memory>
 #include "resource.h"
 
 __declspec (dllexport)
@@ -79,7 +80,7 @@ extern const wchar_t* __stdcall SK_GetBackend (void);
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
 
-       bool               SK_DXGI_FullStateCache = true;
+       bool               SK_DXGI_FullStateCache = false;
 
 extern GetCursorInfo_pfn GetCursorInfo_Original;
        bool              cursor_vis      = false;
@@ -121,6 +122,32 @@ LoadFileInResource ( int          name,
     }
   } 
 }
+
+//
+// If we did this from the render thread, we would deadlock most games
+//
+void
+SK_DeferCommand (const char* szCommand)
+{
+  CreateThread ( nullptr,
+                   0x00,
+                     [ ](LPVOID user) ->
+      DWORD
+        {
+          CHandle hThread (GetCurrentThread);
+
+          std::unique_ptr <char> cmd ((char *)user);
+
+          SK_GetCommandProcessor ()->ProcessCommandLine (
+             (const char *)cmd.get ()
+          );
+
+          return 0;
+        },(LPVOID)_strdup (szCommand),
+      0x00,
+    nullptr
+  );
+};
 
 extern void SK_Steam_SetNotifyCorner (void);
 
@@ -572,6 +599,22 @@ DisplayModeMenu (bool windowed)
       case DISPLAY_MODE_WINDOWED:
       {
         SK_GetCurrentRenderBackend ().requestWindowedMode (force);
+
+        bool borderless = config.window.borderless;
+        bool fullscreen = config.window.fullscreen;
+
+        if (borderless)
+          SK_DeferCommand ("Window.Borderless 1");
+        else
+        {
+          config.window.borderless = true;
+          SK_DeferCommand ("Window.Borderless 0");
+        }
+
+        if (borderless && fullscreen)
+        {
+          SK_ImGui_AdjustCursor ();
+        }
       } break;
 
       default:
@@ -641,9 +684,52 @@ DisplayModeMenu (bool windowed)
         ImGui::BeginTooltip ();
         ImGui::Text         ("Override Scaling Mode");
         ImGui::Separator    ();
-        ImGui::BulletText   ("Set to Unspecified if you want to CORRECTLY run Fullscreen Native");
-        ImGui::BulletText   ("Centered Scaling Requires Fullscreen Override be FORCED On");
+        ImGui::BulletText   ("Set to Unspecified to CORRECTLY run Fullscreen Display Native Resolution");
         ImGui::EndTooltip   ();
+      }
+    }
+  }
+
+  if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+  {
+    int mode      = config.window.borderless ? config.window.fullscreen ? 2 : 1 : 0;
+    int orig_mode = mode;
+
+    const char* modes = config.window.borderless ? "Bordered\0Borderless\0Borderless Fullscreen\0\0" :
+                                                   "Bordered\0Borderless\0\0";
+
+    if (ImGui::Combo ("Window Style###SubMenu_WindowBorder_Combo", &mode, modes, config.window.borderless ? 3 : 2) && mode != orig_mode)
+    {
+      bool fullscreen = config.window.fullscreen;
+      bool borderless = config.window.borderless;
+
+      switch (mode)
+      {
+        case 0:
+          config.window.borderless = false;
+          break;
+
+        case 2:
+          config.window.borderless = true;
+          config.window.fullscreen = true;
+          break;
+
+        case 1:
+          config.window.borderless = true;
+          config.window.fullscreen = false;
+          break;
+      }
+
+      SK_ImGui_AdjustCursor ();
+
+      bool after_fullscreen = config.window.fullscreen;
+
+      if (config.window.borderless != borderless)
+      {
+        config.window.borderless = borderless;
+        config.window.fullscreen = false;
+
+        SK_DeferCommand ("Window.Borderless toggle");
       }
     }
   }
@@ -664,30 +750,7 @@ SK_ImGui_ControlPanel (void)
 
 
 
-  bool windowed = true;
-
-  //
-  // TODO: Generalize this for all APIs and move it into SK's Render Backend
-  //
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
-  {
-    BOOL fullscreen = FALSE;
-
-    if (SUCCEEDED (((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain)->GetFullscreenState (&fullscreen, nullptr)))
-    {
-      windowed = (! fullscreen);
-    }
-  }
-
-  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
-  {
-    D3DPRESENT_PARAMETERS pparams;
-
-    if (SUCCEEDED (((IDirect3DSwapChain9 *)SK_GetCurrentRenderBackend ().swapchain)->GetPresentParameters (&pparams)))
-    {
-      windowed = pparams.Windowed;
-    }
-  }
+  bool windowed = (! SK_GetCurrentRenderBackend ().fullscreen_exclusive);
 
 
 
@@ -2523,32 +2586,6 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
       ImGui::TreePush       ("");
 
-      //
-      // If we did this from the render thread, we would deadlock most games
-      //
-      auto DeferCommand = [&] (const char* szCommand) ->
-        void
-          {
-            CreateThread ( nullptr,
-                             0x00,
-                          [ ](LPVOID user) ->
-              DWORD
-                {
-                  SK_GetCommandProcessor ()->ProcessCommandLine (
-                     (const char*)user
-                  );
-
-                  CloseHandle (GetCurrentThread ());
-
-                  return 0;
-                },
-
-              (LPVOID)szCommand,
-            0x00,
-          nullptr
-        );
-      };
-
       if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && ImGui::CollapsingHeader ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush ("");
@@ -2562,7 +2599,7 @@ extern float SK_ImGui_PulseNav_Strength;
             //config.window.fullscreen = false;
 
           if (! config.window.fullscreen)
-            DeferCommand ("Window.Borderless toggle");
+            SK_DeferCommand ("Window.Borderless toggle");
         }
 
         if (ImGui::IsItemHovered ()) 
@@ -2620,7 +2657,7 @@ extern float SK_ImGui_PulseNav_Strength;
           if ( ImGui::Checkbox ( "Center", &center ) ) {
             config.window.center = center;
             SK_ImGui_AdjustCursor ();
-            //DeferCommand ("Window.Center toggle");
+            //SK_DeferCommand ("Window.Center toggle");
           }
 
           if (ImGui::IsItemHovered ()) {
@@ -2856,7 +2893,7 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::TreePush ("");
 
         if ( ImGui::Checkbox ( "Mute Game ", &background_mute ) )
-          DeferCommand ("Window.BackgroundMute toggle");
+          SK_DeferCommand ("Window.BackgroundMute toggle");
         
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Mute the Game when Another Window has Input Focus");
@@ -2866,7 +2903,7 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::SameLine ();
 
           if ( ImGui::Checkbox ( "Continue Rendering", &background_render ) )
-            DeferCommand ("Window.BackgroundRender toggle");
+            SK_DeferCommand ("Window.BackgroundRender toggle");
 
           if (ImGui::IsItemHovered ())
           {
@@ -4294,7 +4331,7 @@ SK_ImGui_Toggle (void)
   if (d3d9 || d3d11 || gl)
   {
     if (SK_ImGui_Visible)
-      GetKeyboardState (__imgui_keybd_state);
+      GetKeyboardState_Original (__imgui_keybd_state);
 
     SK_ImGui_Visible = (! SK_ImGui_Visible);
 

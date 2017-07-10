@@ -38,6 +38,9 @@
 #include <stdarg.h>
 
 #include <imgui/imgui.h>
+#include <SpecialK/tls.h>
+
+#include <SpecialK/input/xinput.h>
 
 
 bool
@@ -90,10 +93,11 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       {
         SK_HID_READ (sk_input_dev_type::Gamepad)
 
-        if (SK_ImGui_WantGamepadCapture ())
+        if (SK_ImGui_WantGamepadCapture () && (! config.input.gamepad.native_ps4))
           filter = true;
       } break;
 
+      case HID_USAGE_GENERIC_POINTER:
       case HID_USAGE_GENERIC_MOUSE:
       {
         SK_HID_READ (sk_input_dev_type::Mouse)
@@ -102,6 +106,8 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       } break;
 
       case HID_USAGE_GENERIC_KEYBOARD:
+      case HID_USAGE_GENERIC_KEYPAD:
+      case 0:
       {
         SK_HID_READ (sk_input_dev_type::Keyboard)
         if (SK_ImGui_WantKeyboardCapture ())
@@ -230,8 +236,8 @@ HidP_GetData_Detour (
     return ret;
 
   else {
-    memset (DataList, *DataLength, 0);
-           *DataLength           = 0;
+    memset (DataList, 0, *DataLength);
+           *DataLength = 0;
   }
 
   return ret;
@@ -317,21 +323,16 @@ struct
 
 } raw_overrides;
 
-typedef UINT (WINAPI *GetRegisteredRawInputDevices_pfn)(
-  _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
-  _Inout_   PUINT           puiNumDevices,
-  _In_      UINT            cbSize );
-
 GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original = nullptr;
 
 // Returns all mice, in their override state (if applicable)
 std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetMice (bool* pDifferent = nullptr)
 {
-  bool different = false;
-
   if (raw_overrides.mouse.active)
   {
+    bool different = false;
+
     std::vector <RAWINPUTDEVICE> overrides;
 
     // Aw, the game doesn't have any mice -- let's fix that.
@@ -384,10 +385,10 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
 std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
 {
-  bool different = false;
-
   if (raw_overrides.keyboard.active)
   {
+    bool different = false;
+
     std::vector <RAWINPUTDEVICE> overrides;
 
     // Aw, the game doesn't have any mice -- let's fix that.
@@ -957,10 +958,90 @@ SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse)
 }
 
 
-#include <SpecialK/input/xinput.h>
+
+XINPUT_STATE di8_to_xi { };
+XINPUT_STATE joy_to_xi { };
+
+XINPUT_STATE
+SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
+{
+  static DWORD dwPacket = 0;
+
+  ZeroMemory (&joy_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+  
+  if (pJoy->dwButtons & (1 << 1))
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+  if (pJoy->dwButtons & (1 << 2))
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+  if (pJoy->dwButtons & 1)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+  if (pJoy->dwButtons & (1 << 3))
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+  if (pJoy->dwButtons & (1 << 9))
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+  if (pJoy->dwButtons & (1 << 8))
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+
+  if (pJoy->dwButtons & (1 << 10))
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+
+  if (pJoy->dwButtons & (1 << 11))
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+
+  if (pJoy->dwButtons & (1 << 6))
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+
+  if (pJoy->dwButtons & (1 << 7))
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+
+  if (pJoy->dwButtons & (1 << 4))
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+
+  if (pJoy->dwButtons & (1 << 5))
+    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+
+  //xi_state.Gamepad.bLeftTrigger =
+  //  UNX_PollAxis (gamepad.remap.buttons.LT, joy_ex, caps);
+  //
+  //xi_state.Gamepad.bRightTrigger =
+  //  UNX_PollAxis (gamepad.remap.buttons.RT, joy_ex, caps);
+  //
+  //if (UNX_PollAxis (gamepad.remap.buttons.LB, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+  //if (UNX_PollAxis (gamepad.remap.buttons.RB, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+  //
+  //if (UNX_PollAxis (gamepad.remap.buttons.LS, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+  //if (UNX_PollAxis (gamepad.remap.buttons.RS, joy_ex, caps) > 190)
+  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+
+  //joy_to_xi.Gamepad.sThumbLX      =  (SHORT)((float)MAXSHORT * (((float)(pJoy->dwXpos - (pCaps->wXmin + pCaps->wXmax)) /
+  //                                                               (float)(pCaps->wXmin + pCaps->wXmax))));
+  //joy_to_xi.Gamepad.sThumbLY      =  (SHORT)((float)MAXSHORT * (((float)(pJoy->dwYpos - (pCaps->wYmin + pCaps->wYmax)) /
+  //                                                               (float)(pCaps->wYmin + pCaps->wYmax))));
+
+  //joy_to_xi.Gamepad.sThumbRX      =  (SHORT)((float)MAXSHORT * ((float)pJoy->dwZpos / 32767.0f));
+  //joy_to_xi.Gamepad.sThumbRY      = -(SHORT)((float)MAXSHORT * ((float)pJoy->dwRpos / 32767.0f));
+  //
+  //joy_to_xi.Gamepad.bLeftTrigger  =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwUpos / 255.0f));
+  //joy_to_xi.Gamepad.bRightTrigger =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwVpos / 255.0f));
 
 
-XINPUT_STATE di8_to_xi;
+  if (pJoy->dwPOV == JOY_POVFORWARD)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+  if (pJoy->dwPOV == JOY_POVBACKWARD)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+  if (pJoy->dwPOV == JOY_POVLEFT)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+  if (pJoy->dwPOV == JOY_POVRIGHT)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+
+  joy_to_xi.dwPacketNumber = dwPacket++;
+
+  return joy_to_xi;
+}
 
 XINPUT_STATE
 SK_DI8_TranslateToXInput (DIJOYSTATE* pJoy)
@@ -1460,7 +1541,8 @@ SK_Input_PreHookDI8 (void)
 
     if (tests [0].used || tests [1].used)// || GetModuleHandle (L"dinput8.dll"))
     {
-      SK_Input_HookDI8 ();
+      if (tests [1].used)
+        SK_Input_HookDI8 ();
     }
   }
 }

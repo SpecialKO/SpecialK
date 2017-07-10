@@ -77,8 +77,8 @@ Sleep_Detour (DWORD dwMilliseconds)
 {
   bool bIsCallerGame = (SK_GetCallingDLL () == GetModuleHandle (nullptr));
 
-  if (bIsCallerGame)
-  {
+  //if (bIsCallerGame)
+  //{
     BOOL bGUIThread    = IsGUIThread (FALSE);
     BOOL bRenderThread = (SK_GetCurrentRenderBackend ().thread == GetCurrentThreadId ());
 
@@ -130,7 +130,7 @@ Sleep_Detour (DWORD dwMilliseconds)
 
       SK::Framerate::events.getMessagePumpStats ().sleep (dwMilliseconds);
     }
-  }
+  //}
 
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
   if (dwMilliseconds == 0)
@@ -163,6 +163,28 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
 {
   return QueryPerformanceCounter_Original (lpPerformanceCount);
 }
+
+typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
+
+typedef NTSTATUS (NTAPI *NtQueryTimerResolution_pfn)
+(
+  OUT PULONG              MinimumResolution,
+  OUT PULONG              MaximumResolution,
+  OUT PULONG              CurrentResolution
+);
+
+typedef NTSTATUS (NTAPI *NtSetTimerResolution_pfn)
+(
+  IN  ULONG               DesiredResolution,
+  IN  BOOLEAN             SetResolution,
+  OUT PULONG              CurrentResolution
+);
+
+HMODULE                    NtDll                  = 0;
+
+NtQueryTimerResolution_pfn NtQueryTimerResolution = nullptr;
+NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
+
 
 float target_fps        = 0.0;
 
@@ -211,6 +233,32 @@ SK::Framerate::Init (void)
                            "QueryPerformanceCounter" );
   }
 #endif
+
+  if (NtDll == 0)
+  {
+    NtDll = LoadLibrary (L"ntdll.dll");
+
+    NtQueryTimerResolution =
+      (NtQueryTimerResolution_pfn)
+        GetProcAddress (NtDll, "NtQueryTimerResolution");
+
+    NtSetTimerResolution =
+      (NtSetTimerResolution_pfn)
+        GetProcAddress (NtDll, "NtSetTimerResolution");
+
+    if (NtQueryTimerResolution != nullptr &&
+        NtSetTimerResolution   != nullptr)
+    {
+      ULONG min, max, cur;
+      NtQueryTimerResolution (&min, &max, &cur);
+      dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                      (float)(cur * 100)/1000000.0f );
+      NtSetTimerResolution   (max, TRUE,  &cur);
+      dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
+                      (float)(cur * 100)/1000000.0f );
+
+    }
+  }
 
   MH_ApplyQueued ();
 }

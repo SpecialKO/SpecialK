@@ -1803,7 +1803,7 @@ SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile, SK_HashProgre
       DWORD dwFileAttribs =
         GetFileAttributes (wszFile);
 
-      HANDLE hFile (
+      CHandle hFile (
         CreateFile ( wszFile,
                        GENERIC_READ,
                          FILE_SHARE_READ |

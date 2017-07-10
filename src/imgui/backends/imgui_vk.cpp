@@ -1045,9 +1045,9 @@ ImGui_ImplVulkan_NewFrame (void)
   g_Time       =         current_time;
 
   // Read keyboard modifiers inputs
-  io.KeyCtrl   = (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0;
-  io.KeyShift  = (GetAsyncKeyState (VK_SHIFT)   & 0x8000) != 0;
-  io.KeyAlt    = (GetAsyncKeyState (VK_MENU)    & 0x8000) != 0;
+  io.KeyCtrl   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
+  io.KeyShift  = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
+  io.KeyAlt    = (GetAsyncKeyState_Original (VK_MENU)    & 0x8000) != 0;
 
   io.KeySuper  = false;
 }

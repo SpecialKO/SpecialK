@@ -638,7 +638,6 @@ DecompressionProgressCallback (int current, int total)
   {
     SendMessage (hWndProgress, PBM_SETSTATE, PBST_NORMAL, 0UL);
     SendMessage (hWndProgress, PBM_SETRANGE, 0UL, MAKEWPARAM (0, total));
-    total = last_total;
   }
 
   SendMessage (hWndProgress, PBM_SETPOS, current, 0UL);
@@ -1172,7 +1171,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
                                  build.latest.package );
 
     sk_internet_get_t* get =
-      new sk_internet_get_t;
+      new sk_internet_get_t { };
 
     URL_COMPONENTSW    urlcomps;
 
@@ -1198,7 +1197,7 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
       wchar_t   wszUpdateFile [MAX_PATH] = { };
 
-      lstrcatW (wszUpdateFile, SK_SYS_GetVersionPath ().c_str ());
+      wcscpy (wszUpdateFile, SK_SYS_GetVersionPath ().c_str ());
 
       wchar_t wszUpdateTempFile [MAX_PATH];
 

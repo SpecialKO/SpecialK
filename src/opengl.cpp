@@ -23,11 +23,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 
-#ifndef SK_BUILD__INSTALLER
-
 #include <SpecialK/stdafx.h>
 #include <Shlwapi.h>
-//#include <Windows.h>
+#include <Windows.h>
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/opengl_backend.h>
@@ -40,8 +38,6 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
-
-#include <process.h>
 
 extern HMODULE WINAPI SK_GetDLL (void);
 
@@ -1431,6 +1427,27 @@ wglSwapBuffers (HDC hDC)
   return status;
 }
 
+typedef struct _WGLSWAP
+{
+  HDC  hDC;
+  UINT uiFlags;
+} WGLSWAP;
+
+typedef DWORD (WINAPI *wglSwapMultipleBuffers_pfn)(UINT n, CONST WGLSWAP *ps);
+
+wglSwapMultipleBuffers_pfn imp_wglSwapMultipleBuffers = nullptr;
+
+__declspec (noinline)
+DWORD
+WINAPI
+wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
+{
+  for (UINT i = 0; i < n; i++)
+    SwapBuffers (ps->hDC);
+
+  return 0;
+}
+
 #else
 OPENGL_STUB(BOOL,    SwapBuffers, (HDC hDC), (hDC));
 OPENGL_STUB(BOOL, wglSwapBuffers, (HDC hDC), (hDC));
@@ -1438,9 +1455,6 @@ OPENGL_STUB(BOOL, wglSwapBuffers, (HDC hDC), (hDC));
 
 OPENGL_STUB(BOOL, wglSwapLayerBuffers, ( HDC hDC, UINT nPlanes ),
                                        (     hDC,      nPlanes ));
-
-OPENGL_STUB(DWORD, wglSwapMultipleBuffers, ( UINT x, CONST LPVOID* y ),
-                                           (      x,               y ));
 
 
 typedef struct _POINTFLOAT {
@@ -2297,6 +2311,7 @@ SK_HookGL (void)
       SK_GL_HOOK(wglRealizeLayerPalette);
       SK_GL_HOOK(wglSetLayerPaletteEntries);
       SK_GL_HOOK(wglSetPixelFormat);
+      SK_GL_HOOK(wglSwapMultipleBuffers);
 
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
@@ -2327,7 +2342,6 @@ SK_HookGL (void)
 
   GL_HOOKED = TRUE;
 }
-#endif
 
 
 HGLRC

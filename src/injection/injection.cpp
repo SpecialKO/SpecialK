@@ -182,7 +182,7 @@ CBTProc ( _In_ int    nCode,
           _In_ LPARAM lParam )
 {
   if (nCode < 0)
-    return CallNextHookEx (0, nCode, wParam, lParam);
+    return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
 
   if (hModHookInstance == NULL && g_hHookCBT)
@@ -192,7 +192,7 @@ CBTProc ( _In_ int    nCode,
     // Don't create that thread more than once, but don't bother with a complete
     //   critical section.
     if (InterlockedAdd (&lHookIters, 1L) > 0L)
-      return CallNextHookEx (0, nCode, wParam, lParam);
+      return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 #ifdef _WIN64
@@ -223,7 +223,7 @@ CBTProc ( _In_ int    nCode,
   }
 
 
-  return CallNextHookEx (0, nCode, wParam, lParam);
+  return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 }
 
 
@@ -757,7 +757,6 @@ SK_Inject_SwitchToGlobalInjector (void)
     {
       lstrcatW (wszOut, L"\\dxgi.dll");
     } break;
-      break;
 
     case SK_RenderAPI::OpenGL:
       lstrcatW (wszOut, L"\\OpenGL32.dll");
@@ -806,7 +805,6 @@ SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
     {
       lstrcatW (wszOut, L"\\dxgi.dll");
     } break;
-      break;
 
     case DLL_ROLE::OpenGL:
       lstrcatW (wszOut, L"\\OpenGL32.dll");

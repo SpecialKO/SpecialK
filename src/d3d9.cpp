@@ -874,8 +874,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
 
     if (       config.render.framerate.present_interval != -1 &&
          (UINT)config.render.framerate.present_interval !=
-            pPresentationParameters->PresentationInterval &&
-         pPresentationParameters                  != nullptr ) {
+            pPresentationParameters->PresentationInterval ) {
       dll_log.Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%li)",
                       pPresentationParameters->PresentationInterval,
                         config.render.framerate.present_interval );
@@ -3026,7 +3025,7 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
 
   CComPtr <IDirect3DDevice9> dev = pDevice;
 
-  if (pDevice != nullptr || (pDevice == nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev))))
+  if (pDevice != nullptr || SUCCEEDED (pSwapChain->GetDevice (&dev)))
   {
     if (pipeline_stats.query.object != nullptr)
     {

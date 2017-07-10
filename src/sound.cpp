@@ -444,7 +444,7 @@ SK_WASAPI_GetChannelName (int channel_idx)
   else
   {
     char szChannelOrdinal [32] = { };
-    snprintf (szChannelOrdinal, 31, "Unknown Channel (%02li)", channel_idx);
+    snprintf (szChannelOrdinal, 31, "Unknown Channel (%02i)", channel_idx);
 
     channel_names.emplace (channel_idx, szChannelOrdinal);
 

@@ -9,6 +9,7 @@
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/framerate.h>
 
 extern D3D11_PSSetShaderResources_pfn D3D11_PSSetShaderResources_Original;
 extern D3D11_PSSetShader_pfn          D3D11_PSSetShader_Original;
@@ -584,10 +585,10 @@ ImGui_ImplDX11_Init (IDXGISwapChain* pSwapChain, ID3D11Device* device, ID3D11Dev
   static bool first = true;
 
   if (first) {
-    if (! QueryPerformanceFrequency ((LARGE_INTEGER *)&g_TicksPerSecond))
+    if (! QueryPerformanceFrequency        ((LARGE_INTEGER *)&g_TicksPerSecond))
       return false;
 
-    if (! QueryPerformanceCounter   ((LARGE_INTEGER *)&g_Time))
+    if (! QueryPerformanceCounter_Original ((LARGE_INTEGER *)&g_Time))
       return false;
 
     first = false;
@@ -686,15 +687,15 @@ ImGui_ImplDX11_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter ((LARGE_INTEGER *)&current_time);
+  QueryPerformanceCounter_Original ((LARGE_INTEGER *)&current_time);
 
   io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
   g_Time       =         current_time;
 
   // Read keyboard modifiers inputs
-  io.KeyCtrl   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
-  io.KeyShift  = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
-  io.KeyAlt    = (GetAsyncKeyState_Original (VK_MENU)    & 0x8000) != 0;
+  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
+  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
+  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
 
   io.KeySuper  = false;
 
@@ -719,8 +720,6 @@ ImGui_ImplDX11_NewFrame (void)
   // Start the frame
   ImGui::NewFrame ();
 }
-
-#include <atlbase.h>
 
 void
 ImGui_ImplDX11_Resize ( IDXGISwapChain *This,

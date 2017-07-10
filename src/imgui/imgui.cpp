@@ -2863,13 +2863,7 @@ void ImGui::NewFrame()
   //
   static int last_x, last_y;
 
-      // Temp Hack:  Edith Finch
-  if (! config.render.dxgi.full_state_cache)
-  {
-    if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCapture ())
-      SK_ImGui_Cursor.last_move = timeGetTime ();
-  }
-  else if (SK_ImGui_WantMouseCapture ())
+  if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCapture ())
     SK_ImGui_Cursor.last_move = timeGetTime ();
 
   last_x = SK_ImGui_Cursor.pos.x; last_y = SK_ImGui_Cursor.pos.y;
@@ -4979,7 +4973,7 @@ bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_on_first_us
             ImRect rect_to_avoid;
             if (parent_window && parent_window->DC.MenuBarAppending)
                 rect_to_avoid = ImRect(-FLT_MAX, parent_window->Pos.y + parent_window->TitleBarHeight(), FLT_MAX, parent_window->Pos.y + parent_window->TitleBarHeight() + parent_window->MenuBarHeight());
-            else
+            else if (parent_window)
                 rect_to_avoid = ImRect(parent_window->Pos.x + style.ItemSpacing.x, -FLT_MAX, parent_window->Pos.x + parent_window->Size.x - style.ItemSpacing.x - parent_window->ScrollbarSizes.x, FLT_MAX); // We want some overlap to convey the relative depth of each popup (here hard-coded to 4)
             window->PosFloat = FindBestPopupWindowPos(window->PosFloat, window->Size, &window->AutoPosLastDirection, rect_to_avoid);
         }
@@ -11058,7 +11052,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
 
 
-  if ( ( GetActiveWindow () != nullptr && GetActiveWindow () != game_window.hWnd ) )
+  HWND hWndActive = GetActiveWindow ();
+
+  if ( ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
     return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 
@@ -11434,7 +11430,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       case DBT_DEVICEARRIVAL:
       {
         DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
-
+  
         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
         {
           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
@@ -11445,13 +11441,13 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           }
         }
       } break;
-
+  
       case DBT_DEVICEQUERYREMOVE:
       case DBT_DEVICEREMOVEPENDING:
       case DBT_DEVICEREMOVECOMPLETE:
       {
         DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
-
+  
         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
         {
           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
@@ -11466,7 +11462,9 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
   }
 
 
-  if (GetActiveWindow () != game_window.hWnd && GetActiveWindow () != nullptr)
+  HWND hWndActive = GetActiveWindow ();
+
+  if (hWndActive != game_window.hWnd && hWndActive != nullptr)
     return 0;
 
 
@@ -11636,17 +11634,19 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
           if (vkCode != VK_TAB)
           {
+#ifdef USE_DEPRECATED
             BYTE                       keyState [256];
             GetKeyboardState_Original (keyState);
 
             keyState [VK_CAPITAL] =
-              GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+              GetAsyncKeyState_Original (VK_CAPITAL) & 0xFFUL;
+#endif
 
             wchar_t key_str;
 
             if ( ToUnicodeEx ( vkCode,
                                scanCode,
-                               keyState,
+                               (const BYTE *)io.KeysDown,
                               &key_str,
                                1,
                                0x00,
@@ -11956,77 +11956,37 @@ extern IDirectInputDevice8_GetDeviceState_pfn
         IDirectInputDevice8_GetDeviceState_GAMEPAD_Original;
 
 extern XINPUT_STATE di8_to_xi;
+extern XINPUT_STATE joy_to_xi;
 
 void
 SK_ImGui_PollGamepad_EndFrame (void)
 {
+  if (config.input.gamepad.native_ps4)
+  {
+    JOYINFOEX joy_ex   { };
+    JOYCAPSW  joy_caps { };
+
+    joy_ex.dwSize  = sizeof JOYINFOEX;
+    joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+                     JOY_RETURNCENTERED | JOY_USEDEADZONE;
+
+    joyGetPosEx    (JOYSTICKID1, &joy_ex);
+    joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof JOYCAPSW);
+
+    XINPUT_STATE
+    SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
+
+    SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
+  }
+
          XINPUT_STATE state;
   static XINPUT_STATE last_state = { 1, 0 };
 
-#if 0
-  static XINPUT_STATE xi_state;
-
-  ZeroMemory (&xi_state.Gamepad, sizeof (XINPUT_STATE::Gamepad));
-
-  JOYINFOEX joy_ex { };
-  joy_ex.dwSize  = sizeof JOYINFOEX;
-  joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
-                   JOY_RETURNCENTERED | JOY_USEDEADZONE;
-
-  bool nav   = nav_usable;
-  nav_usable = false;
-  joyGetPosEx (JOYSTICKID1, &joy_ex);
-  nav_usable = nav;
-
-  xi_state.Gamepad.bLeftTrigger  = 0;//joy_ex.dwUpos > 0;
-  xi_state.Gamepad.bRightTrigger = 0;//joy_ex.dwVpos > 0;
-
-  xi_state.Gamepad.wButtons = 0;
-  
-  if (joy_ex.dwButtons & (1 << 1))
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-  if (joy_ex.dwButtons & (1 << 2))
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-  if (joy_ex.dwButtons & 1)
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-  if (joy_ex.dwButtons & (1 << 3))
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
-
-  if (joy_ex.dwButtons & (1 << 9))
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
-  if (joy_ex.dwButtons & (1 << 8))
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-
-  //xi_state.Gamepad.bLeftTrigger =
-  //  UNX_PollAxis (gamepad.remap.buttons.LT, joy_ex, caps);
-  //
-  //xi_state.Gamepad.bRightTrigger =
-  //  UNX_PollAxis (gamepad.remap.buttons.RT, joy_ex, caps);
-  //
-  //if (UNX_PollAxis (gamepad.remap.buttons.LB, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-  //if (UNX_PollAxis (gamepad.remap.buttons.RB, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-  //
-  //if (UNX_PollAxis (gamepad.remap.buttons.LS, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-  //if (UNX_PollAxis (gamepad.remap.buttons.RS, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-
-  if (joy_ex.dwPOV == JOY_POVFORWARD)
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
-  if (joy_ex.dwPOV & JOY_POVBACKWARD)
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
-  if (joy_ex.dwPOV & JOY_POVLEFT)
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
-  if (joy_ex.dwPOV & JOY_POVRIGHT)
-    xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
-
-  xi_state.dwPacketNumber++;
-
-  state = xi_state;
-#endif
+#if 1
+  state = joy_to_xi;
+#else
   state = di8_to_xi;
+#endif
 
   if (config.input.gamepad.native_ps4 || SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
   {
@@ -12152,7 +12112,11 @@ SK_ImGui_PollGamepad (void)
   for (int i = 0; i < ImGuiNavInput_COUNT; i++)
     io.NavInputs [i] = 0.0f;
 
+#if 1
+  state = joy_to_xi;
+#else
   state = di8_to_xi;
+#endif
 
   if ((config.input.gamepad.native_ps4 || SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state)) &&
        last_state.dwPacketNumber <= state.dwPacketNumber)

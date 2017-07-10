@@ -31,6 +31,10 @@ struct SK_TLS {
     BOOL drawing             = FALSE;
   } imgui;
 
+  struct  {
+    BOOL hid                 = FALSE;
+  } input;
+
   struct stack
   {
                  int current = 0;

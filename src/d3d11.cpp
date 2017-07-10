@@ -563,6 +563,7 @@ D3D11_RSSetViewports_pfn                            D3D11_RSSetViewports_Origina
 D3D11_VSSetConstantBuffers_pfn                      D3D11_VSSetConstantBuffers_Original                      = nullptr;
 D3D11_VSSetShaderResources_pfn                      D3D11_VSSetShaderResources_Original                      = nullptr;
 D3D11_PSSetShaderResources_pfn                      D3D11_PSSetShaderResources_Original                      = nullptr;
+D3D11_PSSetConstantBuffers_pfn                      D3D11_PSSetConstantBuffers_Original                      = nullptr;
 D3D11_GSSetShaderResources_pfn                      D3D11_GSSetShaderResources_Original                      = nullptr;
 D3D11_HSSetShaderResources_pfn                      D3D11_HSSetShaderResources_Original                      = nullptr;
 D3D11_DSSetShaderResources_pfn                      D3D11_DSSetShaderResources_Original                      = nullptr;
@@ -707,6 +708,11 @@ D3D11Dev_CreateRenderTargetView_Override (
 
 
 bool SK_D3D11_EnableTracking = false;
+
+struct SK_D3D11_RenderHacks_s
+{
+  bool hq_volumetric = false;
+} SK_D3D11_Hacks;
 
 SK_D3D11_KnownShaders SK_D3D11_Shaders;
 
@@ -2236,6 +2242,19 @@ D3D11_VSSetConstantBuffers_Override (
 {
   //dll_log.Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return D3D11_VSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
+}
+
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D11_PSSetConstantBuffers_Override (
+  ID3D11DeviceContext*  This,
+  UINT                  StartSlot,
+  UINT                  NumBuffers,
+  ID3D11Buffer *const  *ppConstantBuffers )
+{
+  //dll_log.Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
+  return D3D11_PSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
 }
 
 std::unordered_set <ID3D11Texture2D *> used_textures;
@@ -5283,9 +5302,41 @@ D3D11_PSSetSamplers_Override
 #if 0
   if (ppSamplers != nullptr)
   {
-    for (UINT i = 0; i < NumSamplers; i++)
+    if (SK_D3D11_Hacks.hq_volumetric)
     {
-      //ID3D11SamplerState sample_state = ppSamplers [i].
+      if (StartSlot == 0 && NumSamplers == 2)
+      {
+        if (SK_D3D11_Shaders.pixel.current == 0xfcdb65ad)
+        {
+          static CComPtr <ID3D11SamplerState> pSampler = nullptr;
+
+          if (pSampler == nullptr)
+          {
+            D3D11_SAMPLER_DESC new_desc;
+
+            new_desc.AddressU        = D3D11_TEXTURE_ADDRESS_MIRROR;
+            new_desc.AddressV        = D3D11_TEXTURE_ADDRESS_MIRROR;
+            new_desc.AddressW        = D3D11_TEXTURE_ADDRESS_MIRROR;
+            new_desc.BorderColor [0] = 0.0f; new_desc.BorderColor [1] = 0.0f;
+            new_desc.BorderColor [2] = 0.0f; new_desc.BorderColor [3] = 0.0f;
+            new_desc.ComparisonFunc  = D3D11_COMPARISON_NEVER;
+            new_desc.Filter          = D3D11_FILTER_ANISOTROPIC;
+            new_desc.MaxAnisotropy   = 16;
+            new_desc.MaxLOD          =  3.402823466e+38F;
+            new_desc.MinLOD          = -3.402823466e+38F;
+            new_desc.MipLODBias      = 0;
+
+            D3D11Dev_CreateSamplerState_Original ((ID3D11Device *)SK_GetCurrentRenderBackend ().device, &new_desc, &pSampler);
+          }
+
+          else
+          {
+            static ID3D11SamplerState* override_samplers [2] = { pSampler, pSampler };
+
+            return D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, override_samplers);
+          }
+        }
+      }
     }
   }
 #endif
@@ -5320,6 +5371,7 @@ D3D11Dev_CreateSamplerState_Override
   if (SUCCEEDED (hr))
     return hr;
 #endif
+
   return D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
 }
 
@@ -6277,6 +6329,10 @@ HookD3D11 (LPVOID user)
                          D3D11_Unmap_Override, D3D11_Unmap_Original,
                          D3D11_Unmap_pfn);
 #endif
+
+    DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 16, "ID3D11DeviceContext::PSSetConstantBuffers",
+                         D3D11_PSSetConstantBuffers_Override, D3D11_PSSetConstantBuffers_Original,
+                         D3D11_PSSetConstantBuffers_pfn);
 
     DXGI_VIRTUAL_HOOK (pHooks->ppImmediateContext, 20, "ID3D11DeviceContext::DrawIndexedInstanced",
                          D3D11_DrawIndexedInstanced_Override, D3D11_DrawIndexedInstanced_Original,
@@ -8417,6 +8473,8 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        //ImGui::Checkbox ("High Quality Volumetric Lighting", &SK_D3D11_Hacks.hq_volumetric);
+
         SK_AutoCriticalSection auto_cs2 (&cs_render_view);
         SK_AutoCriticalSection auto_cs3 (&cs_mmio);
 

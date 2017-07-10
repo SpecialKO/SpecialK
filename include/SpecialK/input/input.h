@@ -284,4 +284,12 @@ SK_RawInput_EnableLegacyKeyboard (bool enable);
 void
 SK_RawInput_RestoreLegacyKeyboard (void);
 
+
+typedef UINT (WINAPI *GetRegisteredRawInputDevices_pfn)(
+  _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
+  _Inout_   PUINT           puiNumDevices,
+  _In_      UINT            cbSize );
+
+extern GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original;
+
 #endif /* __SK__INPUT_H__ */

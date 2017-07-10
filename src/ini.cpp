@@ -75,10 +75,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   wszName = _wcsdup (filename);
 
-  errno_t ret = 0;
   TRY_FILE_IO (_wfsopen (filename, L"rb", _SH_DENYNO), filename, fINI);
 
-  if (ret == 0 && fINI != 0)
+  if (fINI != 0)
   {
     long size = (long)SK_GetFileSize (filename);
 
@@ -653,7 +652,7 @@ iSK_INISection::contains_key (const wchar_t* key)
 {
   for ( std::map <std::wstring, std::wstring>::iterator it = pairs.begin ();
           it != pairs.end ();
-            it++ )
+            ++it )
   {
     if ((*it).first == std::wstring (key))
       return true;

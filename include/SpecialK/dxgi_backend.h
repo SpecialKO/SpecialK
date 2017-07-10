@@ -400,12 +400,6 @@ typedef void (WINAPI *D3D11_RSSetViewports_pfn)(
   _In_           UINT                 NumViewports,
   _In_opt_ const D3D11_VIEWPORT     * pViewports
 );
-typedef void (WINAPI *D3D11_VSSetConstantBuffers_pfn)(
-  _In_     ID3D11DeviceContext* This,
-  _In_     UINT                 StartSlot,
-  _In_     UINT                 NumBuffers,
-  _In_opt_ ID3D11Buffer *const *ppConstantBuffers
-);
 typedef void (WINAPI *D3D11_UpdateSubresource_pfn)(
   _In_           ID3D11DeviceContext *This,
   _In_           ID3D11Resource      *pDstResource,
@@ -452,11 +446,23 @@ typedef void (WINAPI *D3D11_VSSetShaderResources_pfn)(
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
 );
+typedef void (WINAPI *D3D11_VSSetConstantBuffers_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumBuffers,
+  _In_opt_       ID3D11Buffer *const             *ppConstantBuffers
+);
 typedef void (WINAPI *D3D11_PSSetShaderResources_pfn)(
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
+typedef void (WINAPI *D3D11_PSSetConstantBuffers_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumBuffers,
+  _In_opt_       ID3D11Buffer *const             *ppConstantBuffers
 );
 typedef void (WINAPI *D3D11_GSSetShaderResources_pfn)(
   _In_           ID3D11DeviceContext             *This,
@@ -464,17 +470,35 @@ typedef void (WINAPI *D3D11_GSSetShaderResources_pfn)(
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
 );
+typedef void (WINAPI *D3D11_GSSetConstantBuffers_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumBuffers,
+  _In_opt_       ID3D11Buffer *const             *ppConstantBuffers
+);
 typedef void (WINAPI *D3D11_HSSetShaderResources_pfn)(
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
 );
+typedef void (WINAPI *D3D11_HSSetConstantBuffers_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumBuffers,
+  _In_opt_       ID3D11Buffer *const             *ppConstantBuffers
+);
 typedef void (WINAPI *D3D11_DSSetShaderResources_pfn)(
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
+);
+typedef void (WINAPI *D3D11_DSSetConstantBuffers_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumBuffers,
+  _In_opt_       ID3D11Buffer *const             *ppConstantBuffers
 );
 typedef void (WINAPI *D3D11_CSSetShaderResources_pfn)(
   _In_           ID3D11DeviceContext             *This,
@@ -564,6 +588,7 @@ extern D3D11_RSSetScissorRects_pfn                        D3D11_RSSetScissorRect
 extern D3D11_RSSetViewports_pfn                           D3D11_RSSetViewports_Original;
 extern D3D11_VSSetConstantBuffers_pfn                     D3D11_VSSetConstantBuffers_Original;
 extern D3D11_PSSetShaderResources_pfn                     D3D11_PSSetShaderResources_Original;
+extern D3D11_PSSetConstantBuffers_pfn                     D3D11_PSSetConstantBuffers_Original;
 extern D3D11_UpdateSubresource_pfn                        D3D11_UpdateSubresource_Original;
 extern D3D11_DrawIndexed_pfn                              D3D11_DrawIndexed_Original;
 extern D3D11_Draw_pfn                                     D3D11_Draw_Original;

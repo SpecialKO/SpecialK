@@ -809,9 +809,6 @@ SK_InitFinishCallback (void)
   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
     SK_DS3_InitPlugin ();
 
-  else if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
-    SK_FAR_InitPlugin ();
-
   else if (! lstrcmpW (SK_GetHostApp (), L"RiME.exe"))
     SK_REASON_InitPlugin ();
 
@@ -1127,6 +1124,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
+
+
+
+  if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
+    SK_FAR_InitPlugin ();
+
+
 
   SK_ResumeThreads (__SK_Init_Suspended_tids);
          callback_fn (SK_InitFinishCallback);
@@ -1453,10 +1457,6 @@ SK_EstablishRootPath (void)
 {
   wchar_t wszConfigPath [MAX_PATH + 1] = { };
           wszConfigPath [  MAX_PATH  ] = { };
-
-          SK_RootPath   [    0     ]   = { };
-
-          SK_RootPath   [ MAX_PATH ]   = { };
 
   // Make expansion of %UserProfile% agree with the actual directory, for people
   //   who rebase their documents directory without fixing this env. variable.
@@ -1832,7 +1832,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     extern void SK_FFAD_InitPlugin (void);
     SK_FFAD_InitPlugin ();
   }
-
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
@@ -2326,7 +2325,9 @@ DoKeyboard (void)
 
   static bool toggle_drag = false;
 
-  if (HIWORD (GetAsyncKeyState_Original (VK_CONTROL)) && HIWORD (GetAsyncKeyState_Original (VK_SHIFT)) && HIWORD (GetAsyncKeyState_Original (VK_SCROLL)))
+  ImGuiIO& io (ImGui::GetIO ());
+
+  if (io.KeysDown [VK_CONTROL] && io.KeysDown [VK_SHIFT] && io.KeysDown [VK_SCROLL])
   {
     if (! toggle_drag)
       config.window.drag_lock = (! config.window.drag_lock);
@@ -2344,17 +2345,17 @@ DoKeyboard (void)
 
   if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval)
   {
-    if (HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [0])) &&
-        HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [1])) &&
-        HIWORD (GetAsyncKeyState_Original (config.osd.keys.expand [2])))
+    if (io.KeysDown [config.osd.keys.expand [0]] &&
+        io.KeysDown [config.osd.keys.expand [1]] &&
+        io.KeysDown [config.osd.keys.expand [2]])
     {
       last_osd_scale = ullNow.QuadPart;
       SK_ResizeOSD (+0.1f);
     }
 
-    if (HIWORD (GetAsyncKeyState_Original (config.osd.keys.shrink [0])) &&
-        HIWORD (GetAsyncKeyState_Original (config.osd.keys.shrink [1])) &&
-        HIWORD (GetAsyncKeyState_Original (config.osd.keys.shrink [2])))
+    if (io.KeysDown [config.osd.keys.shrink [0]] &&
+        io.KeysDown [config.osd.keys.shrink [1]] &&
+        io.KeysDown [config.osd.keys.shrink [2]])
     {
       last_osd_scale = ullNow.QuadPart;
       SK_ResizeOSD (-0.1f);
@@ -2370,9 +2371,9 @@ DoKeyboard (void)
 #endif
 
   static bool toggle_time = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.time.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.time.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.time.keys.toggle [2])))
+  if (io.KeysDown [config.time.keys.toggle [0]] &&
+      io.KeysDown [config.time.keys.toggle [1]] &&
+      io.KeysDown [config.time.keys.toggle [2]])
   {
     if (! toggle_time) {
       SK_UnlockSteamAchievement (0);
@@ -2385,9 +2386,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_mem = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.mem.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.mem.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.mem.keys.toggle [2])))
+  if (io.KeysDown [config.mem.keys.toggle [0]] &&
+      io.KeysDown [config.mem.keys.toggle [1]] &&
+      io.KeysDown [config.mem.keys.toggle [2]])
   {
     if (! toggle_mem) {
       config.mem.show = (! config.mem.show);
@@ -2403,9 +2404,9 @@ DoKeyboard (void)
 
 #if 0
   static bool toggle_balance = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.load_balance.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.load_balance.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.load_balance.keys.toggle [2])))
+  if (io.KeysDown [config.load_balance.keys.toggle [0] &&
+      io.KeysDown [config.load_balance.keys.toggle [1] &&
+      io.KeysDown [config.load_balance.keys.toggle [2])
   {
     if (! toggle_balance)
       config.load_balance.use = (! config.load_balance.use);
@@ -2418,9 +2419,9 @@ DoKeyboard (void)
   if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1)
   {
     static bool toggle_sli = false;
-    if (HIWORD (GetAsyncKeyState_Original (config.sli.keys.toggle [0])) &&
-        HIWORD (GetAsyncKeyState_Original (config.sli.keys.toggle [1])) &&
-        HIWORD (GetAsyncKeyState_Original (config.sli.keys.toggle [2])))
+    if (io.KeysDown [config.sli.keys.toggle [0]] &&
+        io.KeysDown [config.sli.keys.toggle [1]] &&
+        io.KeysDown [config.sli.keys.toggle [2]])
     {
       if (! toggle_sli)
         config.sli.show = (! config.sli.show);
@@ -2434,9 +2435,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_io = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.io.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.io.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.io.keys.toggle [2])))
+  if (io.KeysDown [config.io.keys.toggle [0]] &&
+      io.KeysDown [config.io.keys.toggle [1]] &&
+      io.KeysDown [config.io.keys.toggle [2]])
   {
     if (! toggle_io)
       config.io.show = (! config.io.show);
@@ -2449,9 +2450,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_cpu = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.cpu.keys.toggle [2])))
+  if (io.KeysDown [config.cpu.keys.toggle [0]] &&
+      io.KeysDown [config.cpu.keys.toggle [1]] &&
+      io.KeysDown [config.cpu.keys.toggle [2]])
   {
     if (! toggle_cpu)
     {
@@ -2470,9 +2471,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_gpu = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.gpu.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.gpu.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.gpu.keys.toggle [2])))
+  if (io.KeysDown [config.gpu.keys.toggle [0]] &&
+      io.KeysDown [config.gpu.keys.toggle [1]] &&
+      io.KeysDown [config.gpu.keys.toggle [2]])
   {
     if (! toggle_gpu)
       config.gpu.show = (! config.gpu.show);
@@ -2485,9 +2486,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_fps = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.fps.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.fps.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.fps.keys.toggle [2])))
+  if (io.KeysDown [config.fps.keys.toggle [0]] &&
+      io.KeysDown [config.fps.keys.toggle [1]] &&
+      io.KeysDown [config.fps.keys.toggle [2]])
   {
     if (! toggle_fps)
       config.fps.show = (! config.fps.show);
@@ -2500,10 +2501,10 @@ DoKeyboard (void)
   }
 
   static bool toggle_disk = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [2])) &&
-      HIWORD (GetAsyncKeyState_Original (config.disk.keys.toggle [3])))
+  if (io.KeysDown [config.disk.keys.toggle [0]] &&
+      io.KeysDown [config.disk.keys.toggle [1]] &&
+      io.KeysDown [config.disk.keys.toggle [2]] &&
+      io.KeysDown [config.disk.keys.toggle [3]])
   {
     if (! toggle_disk)
     {
@@ -2522,10 +2523,10 @@ DoKeyboard (void)
   }
 
   static bool toggle_pagefile = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [2])) &&
-      HIWORD (GetAsyncKeyState_Original (config.pagefile.keys.toggle [3])))
+  if (io.KeysDown [config.pagefile.keys.toggle [0]] &&
+      io.KeysDown [config.pagefile.keys.toggle [1]] &&
+      io.KeysDown [config.pagefile.keys.toggle [2]] &&
+      io.KeysDown [config.pagefile.keys.toggle [3]])
   {
     if (! toggle_pagefile)
     {
@@ -2541,9 +2542,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_osd = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.osd.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.osd.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.osd.keys.toggle [2])))
+  if (io.KeysDown [config.osd.keys.toggle [0]] &&
+      io.KeysDown [config.osd.keys.toggle [1]] &&
+      io.KeysDown [config.osd.keys.toggle [2]])
   {
     if (! toggle_osd)
     {
@@ -2561,9 +2562,9 @@ DoKeyboard (void)
   }
 
   static bool toggle_render = false;
-  if (HIWORD (GetAsyncKeyState_Original (config.render.keys.toggle [0])) &&
-      HIWORD (GetAsyncKeyState_Original (config.render.keys.toggle [1])) &&
-      HIWORD (GetAsyncKeyState_Original (config.render.keys.toggle [2])))
+  if (io.KeysDown [config.render.keys.toggle [0]] &&
+      io.KeysDown [config.render.keys.toggle [1]] &&
+      io.KeysDown [config.render.keys.toggle [2]])
   {
     if (! toggle_render)
       config.render.show = (! config.render.show);
@@ -2658,6 +2659,16 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
       {
         wcscpy (__SK_RBkEnd.name, L"DDraw");
+      }
+
+      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+      {
+        BOOL fullscreen = FALSE;
+
+        if (SUCCEEDED (((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain)->GetFullscreenState (&fullscreen, nullptr)))
+        {
+          SK_GetCurrentRenderBackend ().fullscreen_exclusive = fullscreen;
+        }
       }
 
       extern void SK_D3D11_EndFrame (void);
