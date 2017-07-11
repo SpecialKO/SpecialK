@@ -1,3 +1,11 @@
+0.8.24:
+
+ + Added Window Border Style settings to Display menu
+ + Corrected several Windows 7 issues
+ + Improved DOSBox OpenGL support
+ + Improved thread-safety in D3D11 shader mod tools; still can't safely debug Dishonored 2
+ + Fixed input support in Final Fantasy 8
+
 0.8.23:
 
  + Fixed potential startup deadlock with Steam Overlay and CoInitializeSecurity (...)

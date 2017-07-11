@@ -3021,6 +3021,9 @@ SK_D3D11_DrawHandler (void)
     return false;
 
 
+  SK_AutoCriticalSection auto_cs (&cs_render_view);
+
+
   if (SK_D3D11_EnableTracking)
   {
     SK_D3D11_DrawThreads.mark ();
@@ -3071,6 +3074,9 @@ bool
 SK_D3D11_DispatchHandler (void)
 {
   //SK_D3D11_DrawThreads.mark ();
+
+
+  SK_AutoCriticalSection auto_cs (&cs_render_view);
 
 
   if (SK_D3D11_EnableTracking)
@@ -6861,8 +6867,11 @@ SK_LiveTextureView (bool& can_scroll)
          if (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { dir = -1; }
     else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { dir =  1; }
 
-         if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; }
-    else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir =  1;  io.WantCaptureKeyboard = true; }
+    else
+    {
+           if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; }
+      else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir =  1;  io.WantCaptureKeyboard = true; }
+    }
 
     if (dir != 0)
     {
@@ -7539,7 +7548,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   {
     can_scroll = false;
 
-    if (hovering)
+    if (! focused)
     {
       ImGui::BeginTooltip ();
       ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can cancel all render passes using the selected %s shader to disable an effect", szShaderWord);
@@ -7561,11 +7570,14 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (! scrolled)
     {
-            if  (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { dir = -1; }
-        else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { dir =  1; }
+          if  (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { dir = -1; }
+      else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { dir =  1; }
 
-           if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
-      else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
+      else
+      {
+             if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
+        else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
+      }
     }
   }
 
@@ -8623,9 +8635,11 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        SK_AutoCriticalSection auto_cs2 (&cs_render_view);
-        SK_AutoCriticalSection auto_cs3 (&cs_mmio);
+        SK_AutoCriticalSection auto_cs2 (&cs_render_view, true);
+        SK_AutoCriticalSection auto_cs3 (&cs_mmio,        true);
 
+        if (auto_cs2.try_result () && auto_cs3.try_result ())
+        {
         static float last_ht    = 256.0f;
         static float last_width = 256.0f;
 
@@ -8773,33 +8787,35 @@ SK_D3D11_ShaderModDlg (void)
   
           if (render_textures.size ())
           {
-            //if (hovered)
-            //{
-            //  ImGui::BeginTooltip ();
-            //  ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
-            //  ImGui::Separator    ();
-            //  ImGui::BulletText   ("Press [ while the mouse is hovering this list to select the previous output");
-            //  ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next output");
-            //  ImGui::EndTooltip   ();
-            //}
-            //
-            //else
-            //{
-            //  ImGui::BeginTooltip ();
-            //  ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
-            //  ImGui::Separator    ();
-            //  ImGui::BulletText   ("Press LB to select the previous output");
-            //  ImGui::BulletText   ("Press RB to select the next output");
-            //  ImGui::EndTooltip   ();
-            //}
+            if (! focused)//hovered)
+            {
+              ImGui::BeginTooltip ();
+              ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
+              ImGui::Separator    ();
+              ImGui::BulletText   ("Press [ while the mouse is hovering this list to select the previous output");
+              ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next output");
+              ImGui::EndTooltip   ();
+            }
+
+            else
+            {
+              ImGui::BeginTooltip ();
+              ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
+              ImGui::Separator    ();
+              ImGui::BulletText   ("Press LB to select the previous output");
+              ImGui::BulletText   ("Press RB to select the next output");
+              ImGui::EndTooltip   ();
+            }
   
             int direction = 0;
   
                  if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { direction--;  io.WantCaptureKeyboard = true; }
             else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { direction++;  io.WantCaptureKeyboard = true; }
   
-                if  (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { direction--; }
-            else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { direction++; }
+            else {
+                  if  (io.NavInputs [ImGuiNavInput_PadFocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusPrev] == 0.0f) { direction--; }
+              else if (io.NavInputs [ImGuiNavInput_PadFocusNext] && io.NavInputsDownDuration [ImGuiNavInput_PadFocusNext] == 0.0f) { direction++; }
+            }
   
             int neutral_idx = 0;
   
@@ -8813,14 +8829,15 @@ SK_D3D11_ShaderModDlg (void)
             }
   
             sel = neutral_idx + direction;
+
+            if ((SSIZE_T)sel <  0) sel = 0;
   
-            if ((ULONG)sel > (ULONG)render_textures.size ())
+            if ((ULONG)sel >= (ULONG)render_textures.size ())
             {
               sel = render_textures.size () - 1;
             }
 
-            if (sel < 0)
-              sel = 0;
+            if ((SSIZE_T)sel <  0) sel = 0;
           }
         }
   
@@ -8891,14 +8908,19 @@ SK_D3D11_ShaderModDlg (void)
         ImGui::PopStyleColor ();
         ImGui::PopStyleVar   ();
         ImGui::EndGroup      ();
-  
-        hovered = false; focused = false;
-  
+
+
         if (ImGui::IsItemHoveredRect ())
         {
           if (ImGui::IsItemHovered ()) hovered = true; else hovered = false;
           if (ImGui::IsItemFocused ()) focused = true; else focused = false;
         }
+
+        else
+        {
+          hovered = false; focused = false;
+        }
+ 
   
         if (render_textures.size () > (size_t)sel && live_textures.count (render_textures [sel]))
         {
@@ -9229,12 +9251,13 @@ SK_D3D11_ShaderModDlg (void)
             }
           }
         }
+        }
       }
 
-      else
-      {
-        ImGui::Text ("Live RenderTarget View is UNSAFE in multi-threaded rendering engines, it has been disabled.");
-      }
+      //else
+      //{
+      //  ImGui::Text ("Live RenderTarget View is UNSAFE in multi-threaded rendering engines, it has been disabled.");
+      //}
 
       ImGui::EndChild     ( );
       ImGui::Columns      (1);

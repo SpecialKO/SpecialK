@@ -75,7 +75,7 @@ void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
-  bool bIsCallerGame = (SK_GetCallingDLL () == GetModuleHandle (nullptr));
+  //bool bIsCallerGame = (SK_GetCallingDLL () == GetModuleHandle (nullptr));
 
   //if (bIsCallerGame)
   //{

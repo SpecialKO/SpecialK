@@ -1541,7 +1541,7 @@ SK_Input_PreHookDI8 (void)
 
     if (tests [0].used || tests [1].used)// || GetModuleHandle (L"dinput8.dll"))
     {
-      if (tests [1].used)
+      //if (tests [1].used)
         SK_Input_HookDI8 ();
     }
   }
