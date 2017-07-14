@@ -34,6 +34,10 @@
 #include <Shlwapi.h>
 #include <algorithm>
 #include <memory>
+#include <ctime>
+
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/System.h>
 
 //#define STRICT_COMPLIANCE
 
@@ -199,6 +203,10 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
 }
 
 iSK_Logger crash_log;
+
+extern iSK_Logger steam_log;
+extern iSK_Logger budget_log;
+extern iSK_Logger game_debug;
 
 LONG
 WINAPI
@@ -616,21 +624,149 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   // On second chance it's pretty clear that no exception handler exists,
   //   terminate the software.
-  const bool repeated = (! memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)) &&
-                        (! memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD));
+  const bool repeated = ( !memcmp (&last_ctx, ExceptionInfo->ContextRecord, sizeof CONTEXT) ) &&
+    ( !memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
   const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if ((repeated || non_continue) && (! scaleform) && desc.length ())
+  if (( repeated || non_continue ) && ( !scaleform ) && desc.length ( ))
   {
     SK_AutoClose_Log (crash_log);
 
     last_chance = true;
+
+    WIN32_FIND_DATA fd = { };
+    HANDLE          hFind = INVALID_HANDLE_VALUE;
+    size_t          files = 0UL;
+    LARGE_INTEGER   liSize = { 0ULL };
+
+    wchar_t wszFindPattern [MAX_PATH * 2] = { };
+
+    lstrcatW (wszFindPattern, SK_GetConfigPath ( ));
+    lstrcatW (wszFindPattern, L"logs\\*.log");
+
+    hFind = FindFirstFileW (wszFindPattern, &fd);
+
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+      wchar_t wszBaseDir [MAX_PATH * 2] = { };
+      wchar_t wszOutDir  [MAX_PATH * 2] = { };
+      wchar_t wszTime    [MAX_PATH    ] = { };
+
+      lstrcatW (wszBaseDir, SK_GetConfigPath ( ));
+      lstrcatW (wszBaseDir, L"logs\\");
+
+      wcscpy (wszOutDir, wszBaseDir);
+      lstrcatW (wszOutDir, L"crash\\");
+
+      time_t now;
+      struct tm*    now_tm;
+
+      time (&now);
+      now_tm = localtime (&now);
+
+      const wchar_t* wszTimestamp = L"%m-%d-%Y__%H'%M'%S\\";
+
+      wcsftime (wszTime, MAX_PATH, wszTimestamp, now_tm);
+
+      lstrcatW (wszOutDir, wszTime);
+
+      wchar_t wszOrigPath [MAX_PATH * 2 + 1] = { };
+      wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
+
+      do
+      {
+        if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+        {
+          *wszOrigPath = L'\0';
+          *wszDestPath = L'\0';
+
+          lstrcatW (wszOrigPath, wszBaseDir);
+          lstrcatW (wszOrigPath, fd.cFileName);
+
+          lstrcatW (wszDestPath, wszOutDir);
+          lstrcatW (wszDestPath, fd.cFileName);
+
+          SK_CreateDirectories (wszDestPath);
+
+          if (!StrStrIW (wszOrigPath, L"installer.log"))
+          {
+            if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
+            {
+              dll_log.close ( );
+            }
+
+            if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
+            {
+              crash_log.close ( );
+            }
+
+            if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+            {
+              steam_log.close ( );
+            }
+
+            if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
+            {
+              game_debug.close ( );
+            }
+
+            if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
+            {
+              budget_log.close ( );
+            }
+
+            if (StrStrW (fd.cFileName, L"CEGUI.log"))
+            {
+              CopyFileExW ( L"CEGUI.log", wszDestPath,
+                              nullptr, nullptr, nullptr,
+                                0x00 );
+              CEGUI::Logger::getDllSingleton ().setLogFilename (SK_WideCharToUTF8 (wszDestPath).c_str (), true);
+            }
+
+            else if (CopyFileExW (wszOrigPath, wszDestPath, nullptr, nullptr,nullptr, 0x00))
+            {
+              ++files;
+
+              if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
+              {
+                dll_log.init  (wszDestPath, L"a");
+              }
+
+              if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
+              {
+                crash_log.init  (wszDestPath, L"a");
+              }
+
+              if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+              {
+                steam_log.init  (wszDestPath, L"a");
+              }
+
+              if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
+              {
+                game_debug.init  (wszDestPath, L"a");
+              }
+
+              if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
+              {
+                budget_log.init  (wszDestPath, L"a");
+              }
+            }
+
+            DeleteFileW (wszOrigPath);
+          }
+        }
+      } while (FindNextFileW (hFind, &fd) != 0);
+
+      FindClose (hFind);
+    }
 
     if (crash_log.fLog && (! crash_log.silent))
       PlaySound ( (LPCWSTR)crash_sound.buf,
                     nullptr,
                       SND_SYNC |
                       SND_MEMORY );
+
 
     // Shutdown the module gracefully
     SK_SelfDestruct ();

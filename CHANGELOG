@@ -1,3 +1,8 @@
+0.8.24.1:
+
+ + Crash logs are now stored persistently in logs/crash/<date>/...
+ + Updated SKIM64 to add more functionality to tray menu
+
 0.8.24:
 
  + Added Window Border Style settings to Display menu

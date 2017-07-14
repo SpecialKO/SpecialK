@@ -354,6 +354,7 @@ public:
 
   std::unordered_map < ID3D11Texture2D *,
                        tex2D_descriptor_s  >  Textures_2D;
+  std::vector        <ID3D11Texture2D  *>     TexFreeList_2D;
 
   size_t                                      AggregateSize_2D  = 0ULL;
   size_t                                      RedundantData_2D  = 0ULL;

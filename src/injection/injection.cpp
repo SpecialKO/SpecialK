@@ -905,10 +905,10 @@ SK_Inject_Stop (void)
 
   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
   {
-    lstrcatW      (wszWOW64, L"\\rundll32.exe");
+    PathAppendW   (wszWOW64, L"rundll32.exe");
     ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
-    lstrcatW      (wszSys32, L"\\rundll32.exe");
+    PathAppendW   (wszSys32, L"rundll32.exe");
     ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
   }
 
@@ -967,12 +967,13 @@ SK_Inject_Start (void)
                                 "Remove", -128 );
     }
 
-    lstrcatW      (wszSys32, L"\\rundll32.exe");
+    PathAppendW   (wszSys32, L"rundll32.exe");
     ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
-    lstrcatW      (wszWOW64, L"\\rundll32.exe");
+    PathAppendW   (wszWOW64, L"rundll32.exe");
     ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
   }
+
   else
   {
     if (SKX_IsHookingCBT ())

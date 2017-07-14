@@ -1164,7 +1164,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <PreprocessorDefinitions>_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1208,7 +1208,8 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       </ImportLibrary>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <MinimumRequiredVersion />
-      <SetChecksum>true</SetChecksum>
+      <SetChecksum>false</SetChecksum>
+      <FixedBaseAddress>true</FixedBaseAddress>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>

@@ -1173,7 +1173,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                           FALSE,
                             dwProcID );
 
-  if (hProc == nullptr && (when != SK_ModuleEnum::PreLoad))
+  if (hProc == nullptr && (when != SK_ModuleEnum::PreLoad) && pLogger != nullptr)
   {
     pLogger->close ();
     delete pLogger;
@@ -1210,10 +1210,15 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     enum_working_set_s* pWorkingSet = (enum_working_set_s *)&working_set;
     SK_ThreadWalkModules (pWorkingSet);
 
-    //pLogger->close ();
-    //delete pLogger;
-
     SK_WalkModules (cbNeeded, hProc, hMods, when);
+
+    if (pLogger != nullptr)
+    {
+      pLogger->close ();
+      delete pLogger;
+    }
+
+    pLogger = nullptr;
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr)
