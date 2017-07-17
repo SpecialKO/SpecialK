@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.6.2.11"
+#define FAR_VERSION_NUM L"0.6.2.16"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -831,7 +831,7 @@ WINAPI
 SK_FAR_OSD_Disclaimer (LPVOID user)
 {
   while ((volatile bool&)config.osd.show)
-    Sleep (66);
+    SleepEx (66, FALSE);
 
   far_osd_disclaimer->set_value (false);
   far_osd_disclaimer->store     ();
@@ -949,7 +949,7 @@ STDMETHODCALLTYPE
 SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
 {
   // Wait for the mod to init, it may be held up during version check
-  while (! InterlockedAdd (&__FAR_init, 0)) Sleep (16);
+  while (! InterlockedAdd (&__FAR_init, 0)) SleepEx (16, FALSE);
 
   {
     game_state.enforce_cap = (! far_uncap_fps->get_value ());
@@ -1834,25 +1834,25 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
       far_rtss_warned->store     ();
     }
 
-    far_slow_state_cache =
-      dynamic_cast <sk::ParameterBool *>
-        (far_factory.create_parameter <bool> (L"Disable D3D11.1 Interop Stateblocks"));
+    //far_slow_state_cache =
+    //  dynamic_cast <sk::ParameterBool *>
+    //    (far_factory.create_parameter <bool> (L"Disable D3D11.1 Interop Stateblocks"));
+    //
+    //far_slow_state_cache->register_to_ini ( far_prefs,
+    //                                          L"FAR.Compatibility",
+    //                                            L"NoD3D11Interop" );
+    //
+    //extern bool SK_DXGI_FullStateCache;
+    //
+    //if (! far_slow_state_cache->load ())
+    //  SK_DXGI_FullStateCache = false;
+    //else
+    //  SK_DXGI_FullStateCache = far_slow_state_cache->get_value ();
+    //
+    //config.render.dxgi.full_state_cache = SK_DXGI_FullStateCache;
 
-    far_slow_state_cache->register_to_ini ( far_prefs,
-                                              L"FAR.Compatibility",
-                                                L"NoD3D11Interop" );
-
-    extern bool SK_DXGI_FullStateCache;
-
-    if (! far_slow_state_cache->load ())
-      SK_DXGI_FullStateCache = false;
-    else
-      SK_DXGI_FullStateCache = far_slow_state_cache->get_value ();
-
-    config.render.dxgi.full_state_cache = SK_DXGI_FullStateCache;
-
-    far_slow_state_cache->set_value (SK_DXGI_FullStateCache);
-    far_slow_state_cache->store     ();
+    //far_slow_state_cache->set_value (SK_DXGI_FullStateCache);
+    //far_slow_state_cache->store     ();
 
 
     far_osd_disclaimer = 

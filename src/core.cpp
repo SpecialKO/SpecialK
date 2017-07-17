@@ -77,7 +77,7 @@ static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 
-volatile HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
+volatile HANDLE  hInitThread   = { 0 };
          HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
 
 // Disable SLI memory in Batman Arkham Knight
@@ -880,133 +880,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
   callback_pfn callback_fn =
     (callback_pfn)callback;
 
-  if (backend_dll != NULL)
-  {
-    LeaveCriticalSection (&init_mutex);
-    SK_ResumeThreads     (__SK_Init_Suspended_tids);
-    return;
-  }
-
-  if (! lstrcmpW (SK_GetHostApp (), L"BatmanAK.exe"))
-    USE_SLI = false;
-
-  std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
-  const wchar_t* wszModuleName = module_name.c_str ();
-
-  dll_log.LogEx (false,
-    L"----------------------------------------------------------------------"
-    L"---------------------\n");
-
-  // If the module name is this, then we need to load the system-wide DLL...
-  wchar_t   wszProxyName [MAX_PATH];
-  wsprintf (wszProxyName, L"%s.dll", backend);
-
-
-#ifndef _WIN64
-  //
-  // TEMP HACK: dgVoodoo
-  //
-  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
-    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
-    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-#endif
-
-
-  wchar_t wszBackendDLL [MAX_PATH] = { };
-#ifdef _WIN64
-  GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#else
-  HANDLE hProc = GetCurrentProcess ();
-
-  BOOL   bWOW64;
-  ::IsWow64Process (hProc, &bWOW64);
-
-  if (bWOW64)
-    GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
-  else
-    GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#endif
-
-  wchar_t wszWorkDir   [MAX_PATH + 2] = { };
-  GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
-
-  dll_log.Log (L" Working Directory:          %s", wszWorkDir);
-  dll_log.Log (L" System Directory:           %s", wszBackendDLL);
-
-  lstrcatW (wszBackendDLL, L"\\");
-  lstrcatW (wszBackendDLL, backend);
-  lstrcatW (wszBackendDLL, L".dll");
-
-  const wchar_t* dll_name = wszBackendDLL;
-
-  if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
-    dll_name = wszBackendDLL;
-  else
-    dll_name = wszProxyName;
-
-  bool load_proxy = false;
-
-  if (! SK_IsInjected ())
-  {
-    for (int i = 0; i < SK_MAX_IMPORTS; i++)
-    {
-      if (imports [i].role != nullptr && imports [i].role->get_value () == backend)
-      {
-        dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
-        dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
-        load_proxy = true;
-        break;
-      }
-    }
-  }
-
-  if (! load_proxy)
-    dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
-
-  // Pre-Load the original DLL into memory
-  if (dll_name != wszBackendDLL)
-  {
-                  LoadLibraryW_Original (wszBackendDLL);
-    backend_dll = LoadLibraryW_Original (dll_name);
-  }
-
-  else
-    backend_dll = LoadLibraryW_Original (dll_name);
-
-  if (backend_dll != NULL)
-    dll_log.LogEx (false, L" (%s)\n", dll_name);
-  else
-    dll_log.LogEx (false, L" FAILED (%s)!\n", dll_name);
-
-  // Free the temporary string storage
-  if (load_proxy)
-    free ((void *)dll_name);
-
-  dll_log.LogEx (false,
-    L"----------------------------------------------------------------------"
-    L"---------------------\n");
-
-  if (config.system.silent)
-  {
-    dll_log.silent = true;
-
-    std::wstring log_fnameW;
-
-    if (! SK_IsInjected ())
-      log_fnameW = backend;
-    else
-      log_fnameW = L"SpecialK";
-
-    log_fnameW += L".log";
-
-    DeleteFile (log_fnameW.c_str ());
-  }
-
-  else
-    dll_log.silent = false;
-
-
   dll_log.LogEx (true, L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI): ");
 
   nvapi_init = sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
@@ -1127,11 +1000,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
 
 
-  if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
-    SK_FAR_InitPlugin ();
-
-
-
   SK_ResumeThreads (__SK_Init_Suspended_tids);
          callback_fn (SK_InitFinishCallback);
 
@@ -1150,6 +1018,9 @@ WaitForInit (void)
 {
   if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE))
     return;
+
+  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) == 0)
+    SleepEx (150, TRUE);
 
   while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) != INVALID_HANDLE_VALUE)
   {
@@ -1649,15 +1520,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     return TRUE;
   }
 
-
-  SK::Diagnostics::CrashHandler::InitSyms ();
-
-
   if (config.steam.preload_overlay)
   {
     extern bool SK_Steam_LoadOverlayEarly (void);
     SK_Steam_LoadOverlayEarly ();
   }
+
+  SK::Diagnostics::CrashHandler::InitSyms ();
+
 
   extern void SK_Input_PreInit (void); 
   SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
@@ -1833,10 +1703,130 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_FFAD_InitPlugin ();
   }
 
+  if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
+    SK_FAR_InitPlugin ();
+
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
 
 BACKEND_INIT:
+  if (! lstrcmpW (SK_GetHostApp (), L"BatmanAK.exe"))
+    USE_SLI = false;
+
+  dll_log.LogEx (false,
+    L"----------------------------------------------------------------------"
+    L"---------------------\n");
+
+  // If the module name is this, then we need to load the system-wide DLL...
+  wchar_t   wszProxyName [MAX_PATH];
+  wsprintf (wszProxyName, L"%s.dll", backend);
+
+
+#ifndef _WIN64
+  //
+  // TEMP HACK: dgVoodoo
+  //
+  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+    wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+#endif
+
+
+  wchar_t wszBackendDLL [MAX_PATH] = { };
+#ifdef _WIN64
+  GetSystemDirectory (wszBackendDLL, MAX_PATH);
+#else
+  HANDLE hProc = GetCurrentProcess ();
+
+  BOOL   bWOW64;
+  ::IsWow64Process (hProc, &bWOW64);
+
+  if (bWOW64)
+    GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
+  else
+    GetSystemDirectory (wszBackendDLL, MAX_PATH);
+#endif
+
+  wchar_t wszWorkDir   [MAX_PATH + 2] = { };
+  GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
+
+  dll_log.Log (L" Working Directory:          %s", wszWorkDir);
+  dll_log.Log (L" System Directory:           %s", wszBackendDLL);
+
+  lstrcatW (wszBackendDLL, L"\\");
+  lstrcatW (wszBackendDLL, backend);
+  lstrcatW (wszBackendDLL, L".dll");
+
+  const wchar_t* dll_name = wszBackendDLL;
+
+  if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
+    dll_name = wszBackendDLL;
+  else
+    dll_name = wszProxyName;
+
+  bool load_proxy = false;
+
+  if (! SK_IsInjected ())
+  {
+    for (int i = 0; i < SK_MAX_IMPORTS; i++)
+    {
+      if (imports [i].role != nullptr && imports [i].role->get_value () == backend)
+      {
+        dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
+        dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
+        load_proxy = true;
+        break;
+      }
+    }
+  }
+
+  if (! load_proxy)
+    dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
+
+  // Pre-Load the original DLL into memory
+  if (dll_name != wszBackendDLL)
+  {
+                  LoadLibraryW_Original (wszBackendDLL);
+    backend_dll = LoadLibraryW_Original (dll_name);
+  }
+
+  else
+    backend_dll = LoadLibraryW_Original (dll_name);
+
+  if (backend_dll != NULL)
+    dll_log.LogEx (false, L" (%s)\n", dll_name);
+  else
+    dll_log.LogEx (false, L" FAILED (%s)!\n", dll_name);
+
+  // Free the temporary string storage
+  if (load_proxy)
+    free ((void *)dll_name);
+
+  dll_log.LogEx (false,
+    L"----------------------------------------------------------------------"
+    L"---------------------\n");
+
+  if (config.system.silent)
+  {
+    dll_log.silent = true;
+
+    std::wstring log_fnameW;
+
+    if (! SK_IsInjected ())
+      log_fnameW = backend;
+    else
+      log_fnameW = L"SpecialK";
+
+    log_fnameW += L".log";
+
+    DeleteFile (log_fnameW.c_str ());
+  }
+
+  else
+    dll_log.silent = false;
+
+
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,
       CreateThread ( nullptr,
@@ -1852,7 +1842,6 @@ BACKEND_INIT:
   return true;
 }
 
-extern "C" {
 bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
@@ -1993,16 +1982,17 @@ SK_ShutdownCore (const wchar_t* backend)
 
   SK_ShutdownWMI    ();
 
+  SK_UnInit_MinHook ();
+
   // Breakpad Disable Disclaimer; pretend the log was empty :)
   if (crash_log.lines == 1)
     crash_log.lines = 0;
 
   crash_log.close ();
 
-  SK_UnInit_MinHook ();
+  config.system.handle_crashes = false;
 
   return true;
-}
 }
 
 

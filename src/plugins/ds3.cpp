@@ -22,7 +22,7 @@
 //
 typedef bool (WINAPI *ShutdownPlugin_pfn)(const wchar_t *);
 static ShutdownPlugin_pfn SK_ShutdownCore_Original = nullptr;
-extern "C" bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t *);
+extern bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t *);
 
 ///////////////////////////////////////////
 // WinAPI Hooks
@@ -108,11 +108,11 @@ extern     void    WINAPI D3D11_RSSetViewports_Override     ( ID3D11DeviceContex
                                                               UINT,
                                                         const D3D11_VIEWPORT* );
 
-extern "C" HRESULT STDMETHODCALLTYPE
+extern HRESULT STDMETHODCALLTYPE
   DXGISwap_ResizeTarget_Override ( IDXGISwapChain *,
                         _In_ const DXGI_MODE_DESC * );
 
-extern "C" HRESULT STDMETHODCALLTYPE
+extern HRESULT STDMETHODCALLTYPE
   DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *,
                                _In_ UINT,
                                _In_ UINT,
@@ -120,13 +120,13 @@ extern "C" HRESULT STDMETHODCALLTYPE
                                _In_ DXGI_FORMAT,
                                _In_ UINT );
 
-extern "C" HRESULT STDMETHODCALLTYPE
+extern HRESULT STDMETHODCALLTYPE
   DXGISwap_GetFullscreenState_Override (
     _In_       IDXGISwapChain  *This,
     _Out_opt_  BOOL            *pFullscreen,
     _Out_opt_  IDXGIOutput    **ppTarget );
 
-extern "C" HRESULT STDMETHODCALLTYPE
+extern HRESULT STDMETHODCALLTYPE
   DXGISwap_SetFullscreenState_Override (
     _In_  IDXGISwapChain *This,
     _In_  BOOL            Fullscreen,
@@ -1501,8 +1501,6 @@ SK_DS3_IsBorderless (void)
   return ds3_cfg.window.borderless;
 }
 
-extern "C"
-{
 bool
 WINAPI
 SK_DS3_ShutdownPlugin (const wchar_t* backend)
@@ -1527,5 +1525,4 @@ SK_DS3_ShutdownPlugin (const wchar_t* backend)
 
 
   return true;
-}
 }

@@ -77,8 +77,6 @@ public:
 std::vector <SK_HookedFunction> hooks;
 };
 
-extern "C" {
-
 MH_STATUS
 WINAPI
 SK_EnableHookEx (LPVOID pTarget, UINT idx);
@@ -664,5 +662,3 @@ SK_UnInit_MinHook (void)
 
   return status;
 }
-
-};

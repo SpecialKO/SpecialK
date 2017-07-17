@@ -1,4 +1,15 @@
-0.8.24.1:
+0.8.24.4:
+
+ + Fix deadlock caused by MSI Nahimic due to hotpatching 32-bit code
+  >> Add MORE padding bytes than the x86 ABI requires because Nahimic is borked
+
+0.8.24.3:
+
+ + Fixed all known multi-threaded rendering problems (Dishonored2 can be debugged now).
+ + Reduced texture cache overhead
+ + Improved WMI monitoring performance
+
+0.8.24.1 / 2:
 
  + Crash logs are now stored persistently in logs/crash/<date>/...
  + Updated SKIM64 to add more functionality to tray menu

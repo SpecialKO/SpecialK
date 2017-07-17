@@ -210,9 +210,9 @@ typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory1_pfn) \
 typedef HRESULT (STDMETHODCALLTYPE *CreateDXGIFactory_pfn)  \
   (REFIID riid,  void** ppFactory);
 
-extern "C" CreateDXGIFactory_pfn  CreateDXGIFactory_Import;
-extern "C" CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
-extern "C" CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
+extern CreateDXGIFactory_pfn  CreateDXGIFactory_Import;
+extern CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
+extern CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 
 extern DWORD dwRenderThread;
 extern HWND  hWndRender;
@@ -224,7 +224,6 @@ std::wstring
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
                              const DWORD* pFeatureLevels );
 
-extern "C"
 void
 WINAPI
 SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,

@@ -536,9 +536,6 @@
     <ClCompile Include="src\imgui\backends\imgui_vk.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\imgui\addons\tinyfiledialogs.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="src\render_backend.cpp">
       <Filter>Source Files\Backends\Render</Filter>
     </ClCompile>
@@ -547,9 +544,6 @@
     </ClCompile>
     <ClCompile Include="src\input\xinput_core.cpp">
       <Filter>Source Files\Backends\Input\XInput</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\widgets\msgbox.cpp">
-      <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\injection\injection.cpp">
       <Filter>Source Files\Backends\Injection</Filter>

@@ -32,6 +32,7 @@
 
 #include <algorithm>
 
+HANDLE        hShutdownWMI = 0;
 thread_events perfmon;
 
 void
@@ -130,16 +131,17 @@ extern CRITICAL_SECTION wmi_cs;
 
 namespace COM {
   struct Base {
-    volatile ULONG     init          = FALSE;
+    volatile ULONG     init            = FALSE;
 
     struct WMI {
-      volatile LONG    init          = 0;
+      volatile LONG    init            = 0;
 
-      IWbemServices*   pNameSpace    = nullptr;
-      IWbemLocator*    pWbemLocator  = nullptr;
-      BSTR             bstrNameSpace = nullptr;
+      IWbemServices*   pNameSpace      = nullptr;
+      IWbemLocator*    pWbemLocator    = nullptr;
+      BSTR             bstrNameSpace   = nullptr;
 
-      HANDLE           hServerThread = 0;
+      HANDLE           hServerThread   = 0;
+      HANDLE           hShutdownServer = 0;
 
       void Lock         (void);
       void Unlock       (void);
@@ -239,7 +241,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
   InterlockedExchange (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
-  SleepEx (INFINITE, FALSE);
+  WaitForSingleObject (COM::base.wmi.hShutdownServer, INFINITE);
 
 
 WMI_CLEANUP:
@@ -319,6 +321,9 @@ SK_InitWMI (void)
 
   if (! InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, UIntToPtr (1), UintToPtr (0)))
   {
+    COM::base.wmi.hShutdownServer =
+      CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
+
     InterlockedExchangePointer (&COM::base.wmi.hServerThread,
         CreateThread ( nullptr,
                          0,
@@ -396,8 +401,11 @@ SK_ShutdownWMI (void)
 
     if (COM::base.wmi.hServerThread != 0)
     {
-      TerminateThread (COM::base.wmi.hServerThread, 0);
-                       COM::base.wmi.hServerThread = 0;
+      SetEvent (COM::base.wmi.hShutdownServer);
+
+      WaitForSingleObject (COM::base.wmi.hServerThread, INFINITE);
+
+      COM::base.wmi.hServerThread = 0;
     }
   }
 

@@ -26,6 +26,9 @@
 #include <SpecialK/diagnostics/crash_handler.h>
 #include <process.h>
 
+#pragma warning (disable:4091)
+#include <DbgHelp.h>
+
 #include <psapi.h>
 #pragma comment (lib, "psapi.lib")
 
@@ -105,14 +108,15 @@ static const char*     szSteamAPIAltDLL =  "steam_api.dll";
 
 struct sk_loader_hooks_t {
   // Manually unhooked for compatibility, DO NOT rehook!
-  bool   unhooked              = false;
+  bool   unhooked                   = false;
 
-  LPVOID LoadLibraryA_target   = nullptr;
-  LPVOID LoadLibraryExA_target = nullptr;
-  LPVOID LoadLibraryW_target   = nullptr;
-  LPVOID LoadLibraryExW_target = nullptr;
+  LPVOID LoadLibraryA_target        = nullptr;
+  LPVOID LoadLibraryExA_target      = nullptr;
+  LPVOID LoadLibraryW_target        = nullptr;
+  LPVOID LoadLibraryExW_target      = nullptr;
+  LPVOID LoadPackagedLibrary_target = nullptr;
 
-  LPVOID FreeLibrary_target    = nullptr;
+  LPVOID FreeLibrary_target         = nullptr;
 } _loader_hooks;
 
 extern CRITICAL_SECTION loader_lock;
@@ -160,6 +164,29 @@ BlacklistLibrary (const _T* lpFileName)
     (GetModuleHandleEx_pfn)
       constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW : 
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA );
+
+
+  if (StrStrI (lpFileName, SK_TEXT("action_x64")))
+  {
+    WaitForInit ();
+
+    while (SK_GetFramesDrawn () < 2) SleepEx (66, TRUE);
+  }
+
+  else if (StrStrI (lpFileName, SK_TEXT("action_x86")))
+  {
+    WaitForInit ();
+
+    while (SK_GetFramesDrawn () < 2) SleepEx (66, TRUE);
+  }
+
+  else if (StrStrI (lpFileName, SK_TEXT("RTSSHooks")))
+  {
+    WaitForInit ();
+
+    while (SK_GetFramesDrawn () < 2) SleepEx (66, TRUE);
+  }
+
 
   //
   // TODO: This option is practically obsolete, Raptr is very compatible these days...
@@ -295,6 +322,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 #undef LoadLibrary
 #undef lstrcat
 #undef GetModuleHandleEx
+
+  SymRefreshModuleList (GetCurrentProcess ());
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
@@ -524,8 +553,21 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
     return NULL;
   }
 
-  HMODULE hMod =
-    LoadLibraryA_Original (lpFileName);
+
+  HMODULE hMod = hModEarly;
+
+  __try
+  {
+    __try                                  { hMod = LoadLibraryA_Original (lpFileName); }
+    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                            }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
+                  L" LoadLibraryA ('%hs')!",
+                    lpFileName );
+  }
+
 
   if (hModEarly != hMod)
   {
@@ -569,14 +611,71 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
   }
 
 
-  HMODULE hMod =
-    LoadLibraryW_Original (lpFileName);
+  HMODULE hMod = hModEarly;
+
+  __try
+  {
+    __try                                  { hMod = LoadLibraryW_Original (lpFileName); }
+    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                            }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
+                  L" LoadLibraryW ('%ws')!",
+                    lpFileName );
+  }
+
 
   if (hModEarly != hMod)
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
                               L"LoadLibraryW", lpRet );
+  }
+
+  SK_UnlockDllLoader ();
+  return hMod;
+}
+
+HMODULE
+WINAPI
+LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
+{
+  LPVOID lpRet = _ReturnAddress ();
+
+  if (lpLibFileName == nullptr)
+    return NULL;
+
+ SK_LockDllLoader ();
+
+  HMODULE hModEarly = nullptr;
+
+  __try {
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpLibFileName, &hModEarly );
+  }
+  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
+                           EXCEPTION_EXECUTE_HANDLER :
+                           EXCEPTION_CONTINUE_SEARCH )
+  {
+    SetLastError (0);
+  }
+
+
+  if (hModEarly == nullptr && BlacklistLibrary (lpLibFileName))
+  {
+    SK_UnlockDllLoader ();
+    return NULL;
+  }
+
+
+  HMODULE hMod =
+    LoadPackagedLibrary_Original (lpLibFileName, Reserved);
+
+  if (hModEarly != hMod)
+  {
+    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
+                            lpLibFileName,
+                              L"LoadPackagedLibrary", lpRet );
   }
 
   SK_UnlockDllLoader ();
@@ -623,7 +722,22 @@ LoadLibraryExA_Detour (
     return NULL;
   }
 
-  HMODULE hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
+
+  HMODULE hMod = hModEarly;
+
+  __try
+  {
+    __try                                  { hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags); }
+    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                                              }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
+                  L" LoadLibraryExA ('%hs')!",
+                    lpFileName );
+  }
+
+
 
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
@@ -679,7 +793,21 @@ LoadLibraryExW_Detour (
     return NULL;
   }
 
-  HMODULE hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
+
+  HMODULE hMod = hModEarly;
+
+  __try
+  {
+    __try                                  { hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags); }
+    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                                              }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
+                  L" LoadLibraryExW ('%ws')!",
+                    lpFileName );
+  }
+
 
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
@@ -764,6 +892,23 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.LoadLibraryW_target);
 
 
+  if (GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadPackagedLibrary") != nullptr)
+  {
+    if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
+    {
+      SK_RemoveHook (_loader_hooks.LoadPackagedLibrary_target);
+      _loader_hooks.LoadPackagedLibrary_target = nullptr;
+    }
+
+    SK_CreateDLLHook2 ( L"kernel32.dll", "LoadPackagedLibrary",
+                       LoadPackagedLibrary_Detour,
+             (LPVOID*)&LoadPackagedLibrary_Original,
+                      &_loader_hooks.LoadPackagedLibrary_target );
+
+    MH_QueueEnableHook (_loader_hooks.LoadPackagedLibrary_target);
+  }
+
+
   if (_loader_hooks.LoadLibraryExA_target != nullptr)
   {
     SK_RemoveHook (_loader_hooks.LoadLibraryExA_target);
@@ -828,6 +973,8 @@ SK_UnhookLoadLibrary (void)
     MH_QueueDisableHook (_loader_hooks.LoadLibraryA_target);
   if (_loader_hooks.LoadLibraryW_target != nullptr)
     MH_QueueDisableHook(_loader_hooks.LoadLibraryW_target);
+  if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
+    MH_QueueDisableHook(_loader_hooks.LoadPackagedLibrary_target);
   if (_loader_hooks.LoadLibraryExA_target != nullptr)
     MH_QueueDisableHook (_loader_hooks.LoadLibraryExA_target);
   if (_loader_hooks.LoadLibraryExW_target != nullptr)
@@ -841,6 +988,8 @@ SK_UnhookLoadLibrary (void)
     MH_RemoveHook (_loader_hooks.LoadLibraryA_target);
   if (_loader_hooks.LoadLibraryW_target != nullptr)
     MH_RemoveHook (_loader_hooks.LoadLibraryW_target);
+  if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
+    MH_RemoveHook (_loader_hooks.LoadPackagedLibrary_target);
   if (_loader_hooks.LoadLibraryExA_target != nullptr)
     MH_RemoveHook (_loader_hooks.LoadLibraryExA_target);
   if (_loader_hooks.LoadLibraryExW_target != nullptr)
@@ -848,11 +997,12 @@ SK_UnhookLoadLibrary (void)
   if (_loader_hooks.FreeLibrary_target != nullptr)
     MH_RemoveHook (_loader_hooks.FreeLibrary_target);
 
-  _loader_hooks.LoadLibraryW_target   = nullptr;
-  _loader_hooks.LoadLibraryA_target   = nullptr;
-  _loader_hooks.LoadLibraryExW_target = nullptr;
-  _loader_hooks.LoadLibraryExA_target = nullptr;
-  _loader_hooks.FreeLibrary_target    = nullptr;
+  _loader_hooks.LoadLibraryW_target        = nullptr;
+  _loader_hooks.LoadLibraryA_target        = nullptr;
+  _loader_hooks.LoadPackagedLibrary_target = nullptr;
+  _loader_hooks.LoadLibraryExW_target      = nullptr;
+  _loader_hooks.LoadLibraryExA_target      = nullptr;
+  _loader_hooks.FreeLibrary_target         = nullptr;
 
   // Re-establish the non-hooked functions
   SK_PreInitLoadLibrary ();
@@ -1212,13 +1362,13 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
     SK_WalkModules (cbNeeded, hProc, hMods, when);
 
-    if (pLogger != nullptr)
-    {
-      pLogger->close ();
-      delete pLogger;
-    }
+    //if (pLogger != nullptr)
+    //{
+    //  pLogger->close ();
+    //  delete pLogger;
+    //}
 
-    pLogger = nullptr;
+    //pLogger = nullptr;
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr)
@@ -2490,11 +2640,12 @@ void
 __stdcall
 SK_PreInitLoadLibrary (void)
 {
-  FreeLibrary_Original    = &FreeLibrary;
-  LoadLibraryA_Original   = &LoadLibraryA;
-  LoadLibraryW_Original   = &LoadLibraryW;
-  LoadLibraryExA_Original = &LoadLibraryExA;
-  LoadLibraryExW_Original = &LoadLibraryExW;
+  FreeLibrary_Original         = &FreeLibrary;
+  LoadLibraryA_Original        = &LoadLibraryA;
+  LoadLibraryW_Original        = &LoadLibraryW;
+  LoadLibraryExA_Original      = &LoadLibraryExA;
+  LoadLibraryExW_Original      = &LoadLibraryExW;
+  LoadPackagedLibrary_Original = nullptr; // Windows 8 feature
 }
 
 FreeLibrary_pfn    FreeLibrary_Original    = nullptr;
@@ -2504,3 +2655,5 @@ LoadLibraryW_pfn   LoadLibraryW_Original   = nullptr;
 
 LoadLibraryExA_pfn LoadLibraryExA_Original = nullptr;
 LoadLibraryExW_pfn LoadLibraryExW_Original = nullptr;
+
+LoadPackagedLibrary_pfn LoadPackagedLibrary_Original = nullptr;

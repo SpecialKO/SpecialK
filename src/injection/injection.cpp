@@ -191,7 +191,7 @@ CBTProc ( _In_ int    nCode,
 
     // Don't create that thread more than once, but don't bother with a complete
     //   critical section.
-    if (InterlockedAdd (&lHookIters, 1L) > 0L)
+    if (InterlockedAdd (&lHookIters, 1L) > 1L)
       return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -249,7 +249,6 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 
 
 
-extern "C"
 void
 __stdcall
 SKX_InstallCBTHook (void)
@@ -299,7 +298,6 @@ SKX_InstallCBTHook (void)
 }
 
 
-extern "C"
 void
 __stdcall
 SKX_RemoveCBTHook (void)
@@ -317,7 +315,6 @@ SKX_RemoveCBTHook (void)
   }
 }
 
-extern "C"
 bool
 __stdcall
 SKX_IsHookingCBT (void)

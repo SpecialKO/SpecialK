@@ -62,6 +62,11 @@ typedef HMODULE (WINAPI *LoadLibraryExW_pfn)
   _In_       DWORD   dwFlags
 );
 
+typedef HMODULE (WINAPI *LoadPackagedLibrary_pfn)
+( _In_       LPCWSTR lpwLibFileName,
+  _Reserved_ DWORD   Reserved
+);
+
 extern FreeLibrary_pfn    FreeLibrary_Original;
 
 extern LoadLibraryA_pfn   LoadLibraryA_Original;
@@ -69,6 +74,8 @@ extern LoadLibraryW_pfn   LoadLibraryW_Original;
 
 extern LoadLibraryExA_pfn LoadLibraryExA_Original;
 extern LoadLibraryExW_pfn LoadLibraryExW_Original;
+
+extern LoadPackagedLibrary_pfn LoadPackagedLibrary_Original;
 
 #endif
 

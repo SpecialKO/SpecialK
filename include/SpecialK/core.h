@@ -39,10 +39,10 @@ extern CRITICAL_SECTION         init_mutex;
 
 extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
-extern "C++" void SK_DS3_InitPlugin    (void);
-extern "C++" void SK_REASON_InitPlugin (void);
-extern "C++" void SK_FAR_InitPlugin    (void);
-extern "C++" void SK_FAR_FirstFrame    (void);
+extern void SK_DS3_InitPlugin    (void);
+extern void SK_REASON_InitPlugin (void);
+extern void SK_FAR_InitPlugin    (void);
+extern void SK_FAR_FirstFrame    (void);
 
 // Disable SLI memory in Batman Arkham Knight
 extern bool                     USE_SLI;
@@ -50,21 +50,19 @@ extern bool                     USE_SLI;
 extern NV_GET_CURRENT_SLI_STATE sli_state;
 extern BOOL                     nvapi_init;
 
-extern "C" {
-  // We have some really sneaky overlays that manage to call some of our
-  //   exported functions before the DLL's even attached -- make them wait,
-  //     so we don't crash and burn!
-  void WaitForInit (void);
+// We have some really sneaky overlays that manage to call some of our
+//   exported functions before the DLL's even attached -- make them wait,
+//     so we don't crash and burn!
+void WaitForInit (void);
 
-  void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
-  bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
-  bool __stdcall SK_ShutdownCore (const wchar_t* backend);
+void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
+bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
+bool __stdcall SK_ShutdownCore (const wchar_t* backend);
 
-  void    STDMETHODCALLTYPE SK_BeginBufferSwap (void);
-  HRESULT STDMETHODCALLTYPE SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
+void    STDMETHODCALLTYPE SK_BeginBufferSwap (void);
+HRESULT STDMETHODCALLTYPE SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
 
-  const wchar_t* __stdcall SK_DescribeHRESULT (HRESULT result);
-}
+const wchar_t* __stdcall SK_DescribeHRESULT (HRESULT result);
 
 void
 __stdcall

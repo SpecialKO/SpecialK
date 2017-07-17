@@ -29,11 +29,11 @@ LRESULT
 CALLBACK
 CBTProc (int nCode, WPARAM wParam, LPARAM lParam);
 
-extern "C" void __stdcall SKX_InstallCBTHook (void);
-extern "C" void __stdcall SKX_RemoveCBTHook  (void);
-extern "C" bool __stdcall SKX_IsHookingCBT   (void);
+void __stdcall SKX_InstallCBTHook (void);
+void __stdcall SKX_RemoveCBTHook  (void);
+bool __stdcall SKX_IsHookingCBT   (void);
 
-extern "C" size_t __stdcall SKX_GetInjectedPIDs (DWORD* pdwList, size_t capacity);
+size_t __stdcall SKX_GetInjectedPIDs (DWORD* pdwList, size_t capacity);
 
 bool
 SK_Inject_SwitchToGlobalInjector (void);

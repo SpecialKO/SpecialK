@@ -27,8 +27,6 @@
 
 #include <MinHook/MinHook.h>
 
-extern "C" {
-
 MH_STATUS
 __stdcall
 SK_CreateFuncHook ( LPCWSTR pwszFuncName,
@@ -105,7 +103,5 @@ MH_STATUS __stdcall SK_RemoveHook  (LPVOID pTarget);
 
 MH_STATUS __stdcall SK_Init_MinHook   (void);
 MH_STATUS __stdcall SK_UnInit_MinHook (void);
-
-};
 
 #endif /* __SK__HOOKS_H__ */

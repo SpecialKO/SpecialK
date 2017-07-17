@@ -7651,9 +7651,9 @@ typedef HRESULT (STDMETHODCALLTYPE *Present1SwapChain1_pfn)(
 
 typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChain_pfn)(
                                        IDXGIFactory          *This,
-                                 _In_  IUnknown              *pDevice,
-                                 _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
-                                _Out_  IDXGISwapChain       **ppSwapChain);
+                           _In_        IUnknown              *pDevice,
+                           _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
+                          _Out_        IDXGISwapChain       **ppSwapChain);
 
 typedef HRESULT (STDMETHODCALLTYPE *CreateSwapChainForHwnd_pfn)(
                                        IDXGIFactory2                    *This,

@@ -111,12 +111,14 @@ CrashHandler::Init (void)
 
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
                   SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
-                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS         | SYMOPT_DEBUG );
+                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 
-  SymInitialize (
-    GetCurrentProcess (),
-      NULL,
-        TRUE );
+  SymRefreshModuleList (GetCurrentProcess ());
+
+  //SymInitialize (
+  //  GetCurrentProcess (),
+  //    NULL,
+  //      TRUE );
 
   Reinstall ();
 }
@@ -217,7 +219,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 #if 1
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
                   SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
-                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS         | SYMOPT_DEBUG );
+                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 #else
   SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
                   SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
@@ -225,10 +227,11 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 #endif
 
 
-  SymInitialize (
-    GetCurrentProcess (),
-      NULL,
-        TRUE );
+  SymRefreshModuleList (GetCurrentProcess ());
+  //SymInitialize (
+  //  GetCurrentProcess (),
+  //    NULL,
+  //      TRUE );
 
   static bool             last_chance = false;
 
@@ -630,6 +633,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   if (( repeated || non_continue ) && ( !scaleform ) && desc.length ( ))
   {
+    if (! config.system.handle_crashes)
+      TerminateProcess (GetCurrentProcess (), 0xdeadbeef);
+
     SK_AutoClose_Log (crash_log);
 
     last_chance = true;
@@ -692,27 +698,27 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           {
             if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
             {
-              dll_log.close ( );
+              dll_log.close ();
             }
 
-            if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
-            {
-              crash_log.close ( );
-            }
+            //if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
+            //{
+            //  crash_log.close ();
+            //}
 
             if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
             {
-              steam_log.close ( );
+              steam_log.close ();
             }
 
             if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
             {
-              game_debug.close ( );
+              game_debug.close ();
             }
 
             if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
             {
-              budget_log.close ( );
+              budget_log.close ();
             }
 
             if (StrStrW (fd.cFileName, L"CEGUI.log"))
@@ -730,11 +736,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
               if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
               {
                 dll_log.init  (wszDestPath, L"a");
-              }
-
-              if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
-              {
-                crash_log.init  (wszDestPath, L"a");
               }
 
               if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
@@ -971,9 +972,8 @@ CrashHandler::InitSyms (void)
 
     SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
                     SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
-                    SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS         | SYMOPT_DEBUG );
+                    SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 
-    
     SymInitialize (
       GetCurrentProcess (),
         NULL,
