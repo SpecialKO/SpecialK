@@ -44,6 +44,7 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/osd/text.h>
 
+#undef  SK_LOG_FIRST_CALL
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Window Mgr" ); called = true; } }
 
 #include <mmsystem.h>

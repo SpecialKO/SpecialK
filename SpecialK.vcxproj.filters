@@ -393,6 +393,9 @@
     <ClInclude Include="include\SpecialK\ddraw_backend.h">
       <Filter>Header Files\Backends\Render\DDraw</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\input\dinput8_backend.h">
+      <Filter>Header Files\Backends\Input\DirectInput</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -571,6 +574,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\ffencer_ad.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\dinput8.cpp">
+      <Filter>Source Files\Backends\Input\DirectInput</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

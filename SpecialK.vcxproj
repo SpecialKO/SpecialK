@@ -331,7 +331,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>dxgi</TargetName>
+    <TargetName>dinput8</TargetName>
     <OutDir>C:\Program Files (x86)\Steam\steamapps\common\NieRAutomata\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
@@ -1375,6 +1375,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
     <ClInclude Include="include\SpecialK\import.h" />
     <ClInclude Include="include\SpecialK\ini.h" />
     <ClInclude Include="include\SpecialK\injection\injection.h" />
+    <ClInclude Include="include\SpecialK\input\dinput8_backend.h" />
     <ClInclude Include="include\SpecialK\input\input.h" />
     <ClInclude Include="include\SpecialK\input\xinput.h" />
     <ClInclude Include="include\SpecialK\input\xinput_hotplug.h" />
@@ -1661,6 +1662,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\injection\injection.cpp" />
+    <ClCompile Include="src\input\dinput8.cpp" />
     <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\input\xinput_core.cpp" />
     <ClCompile Include="src\input\xinput_hotplug.cpp" />

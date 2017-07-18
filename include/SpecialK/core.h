@@ -110,6 +110,7 @@ enum DLL_ROLE {
   OpenGL     = 0x004, // All versions
   Vulkan     = 0x008,
 
+  DInput8    = 0x100,
 
   // Third-party Wrappers (i.e. dgVoodoo2)
   // -------------------------------------

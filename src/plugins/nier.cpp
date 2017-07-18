@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.6.2.16"
+#define FAR_VERSION_NUM L"0.7.0"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -321,8 +321,8 @@ SK_FAR_CheckVersion (LPVOID user)
   __stdcall
   SK_UpdateSoftware   (const wchar_t* wszProduct);
 
-  if (SK_FetchVersionInfo (L"FAR"))
-    SK_UpdateSoftware (L"FAR");
+  if (SK_FetchVersionInfo (L"FAR/dinput8"))
+    SK_UpdateSoftware (L"FAR/dinput8");
 
   return 0;
 }

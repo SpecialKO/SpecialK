@@ -33,6 +33,7 @@
 #include <dbt.h>
 
 
+#undef  SK_LOG_FIRST_CALL
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"XInput_Hot" ); called = true; } }
 
 struct {

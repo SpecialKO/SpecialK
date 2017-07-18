@@ -3200,7 +3200,7 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.sleepless_render->set_value  (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->set_value  (config.render.framerate.sleepless_window);
 
-  if ( SK_IsInjected () ||
+  if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
   {
     render.framerate.wait_for_vblank->set_value   (config.render.framerate.wait_for_vblank);
@@ -3217,8 +3217,9 @@ SK_SaveConfig ( std::wstring name,
     nvidia.sli.num_gpus->set_value               (config.nvidia.sli.num_gpus);
     nvidia.sli.override->set_value               (config.nvidia.sli.override);
 
-    if (  SK_IsInjected () ||
-        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) )
+    if (  SK_IsInjected ()                       ||
+        ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
+        ( SK_GetDLLRole () & DLL_ROLE::DXGI    ) )
     {
       render.framerate.max_delta_time->set_value    (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->set_value      (config.render.framerate.flip_discard);
@@ -3307,7 +3308,8 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.enhanced_depth->set_value  (config.render.dxgi.enhanced_depth);
     }
 
-    if (SK_IsInjected () || SK_GetDLLRole () & DLL_ROLE::D3D9)
+    if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
+                             ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) )
     {
       render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
       render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
@@ -3443,8 +3445,9 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.sleepless_render->store  ();
   render.framerate.sleepless_window->store  ();
 
-  if (  SK_IsInjected ()                  || 
-      ( SK_GetDLLRole () & DLL_ROLE::DXGI ||
+  if (  SK_IsInjected ()                     || 
+      ( SK_GetDLLRole () & DLL_ROLE::DInput8 ||
+        SK_GetDLLRole () & DLL_ROLE::DXGI    ||
         SK_GetDLLRole () & DLL_ROLE::D3D9 ) )
   {
     render.framerate.wait_for_vblank->store   ();
@@ -3460,8 +3463,9 @@ SK_SaveConfig ( std::wstring name,
       nvidia.sli.override->store             ();
     }
 
-    if (  SK_IsInjected () ||
-        ( SK_GetDLLRole () & DLL_ROLE::DXGI ) )
+    if (  SK_IsInjected ()                     ||
+        ( SK_GetDLLRole () & DLL_ROLE::DInput8 ||
+          SK_GetDLLRole () & DLL_ROLE::DXGI ) )
     {
       render.framerate.max_delta_time->store    ();
       render.framerate.flip_discard->store      ();
@@ -3495,8 +3499,9 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.swapchain_wait->store ();
     }
 
-    if (  SK_IsInjected () ||
-        ( SK_GetDLLRole () & DLL_ROLE::D3D9 ) )
+    if (  SK_IsInjected ()                       ||
+        ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
+        ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) )
     {
       render.d3d9.force_d3d9ex->store     ();
       render.d3d9.hook_type->store        ();

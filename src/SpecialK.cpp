@@ -34,6 +34,7 @@
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/d3d9_backend.h>
+#include <SpecialK/input/dinput8_backend.h>
 
 #ifndef _WIN64
 #include <SpecialK/d3d8_backend.h>
@@ -345,6 +346,9 @@ SK_EstablishDllRole (HMODULE hModule)
   else if (! SK_Path_wcsicmp (wszShort, L"OpenGL32.dll"))
     SK_SetDLLRole (DLL_ROLE::OpenGL);
 
+  else if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
+    SK_SetDLLRole (DLL_ROLE::DInput8);
+
 
   //
   // This is an injected DLL, not a wrapper DLL...
@@ -356,7 +360,8 @@ SK_EstablishDllRole (HMODULE hModule)
          ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
          ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
          ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
-         ( SK_IsDLLSpecialK (L"ddraw.dll") ) )
+         ( SK_IsDLLSpecialK (L"ddraw.dll") )    ||
+         ( SK_IsDLLSpecialK (L"dinput8.dll") ) )
     {
       SK_SetDLLRole (DLL_ROLE::INVALID);
       return true;
@@ -374,6 +379,7 @@ SK_EstablishDllRole (HMODULE hModule)
     wchar_t wszDDraw [MAX_PATH] = { };
     wchar_t wszDXGI  [MAX_PATH] = { };
     wchar_t wszGL    [MAX_PATH] = { };
+    wchar_t wszDI8   [MAX_PATH] = { };
 
     lstrcatW (wszD3D9, SK_GetHostPath ());
     lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
@@ -391,6 +397,9 @@ SK_EstablishDllRole (HMODULE hModule)
 
     lstrcatW (wszGL,   SK_GetHostPath ());
     lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
+
+    lstrcatW (wszDI8,  SK_GetHostPath ());
+    lstrcatW (wszDI8,  L"\\SpecialK.DInput8");
 
 
     if      ( GetFileAttributesW (wszD3D9) != INVALID_FILE_ATTRIBUTES )
@@ -420,6 +429,12 @@ SK_EstablishDllRole (HMODULE hModule)
     else if ( GetFileAttributesW (wszGL) != INVALID_FILE_ATTRIBUTES )
     {
       SK_SetDLLRole (DLL_ROLE::OpenGL);
+      explicit_inject = true;
+    }
+
+    else if ( GetFileAttributesW (wszDI8) != INVALID_FILE_ATTRIBUTES )
+    {
+      SK_SetDLLRole (DLL_ROLE::DInput8);
       explicit_inject = true;
     }
 
@@ -688,6 +703,22 @@ SK_Attach (DLL_ROLE role)
       {
         return DontInject ();
       } break;
+
+      case DLL_ROLE::DInput8:
+      {
+        // If this is the global injector and there is a wrapper version
+        //   of Special K in the DLL search path, then bail-out!
+        if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
+        {
+          return DontInject ();
+        }
+
+        InterlockedCompareExchange (
+          &__SK_DLL_Attached,
+            SK::DI8::Startup (),
+              FALSE
+        );
+      } break;
     }
 
     __SK_TLS_INDEX = TlsAlloc ();
@@ -757,6 +788,10 @@ SK_Detach (DLL_ROLE role)
 
       case DLL_ROLE::OpenGL:
         ret = SK::OpenGL::Shutdown ();
+        break;
+
+      case DLL_ROLE::DInput8:
+        ret = SK::DI8::Shutdown ();
         break;
     }
 
@@ -844,7 +879,7 @@ DllMain ( HMODULE hModule,
 
       while (  pwszShortName      >  wszProcessName &&
              *(pwszShortName - 1) != L'\\')
-        --pwszShortName;
+             --pwszShortName;
 
 
 
@@ -865,7 +900,12 @@ DllMain ( HMODULE hModule,
       }
 
 
-      QueryPerformanceCounter_Original = (QueryPerformanceCounter_pfn)GetProcAddress (GetModuleHandle (L"kernel32.dll"), "QueryPerformanceCounter");
+      QueryPerformanceCounter_Original =
+        (QueryPerformanceCounter_pfn)GetProcAddress (
+          GetModuleHandle (L"kernel32.dll"),
+                             "QueryPerformanceCounter"
+        );
+
       SK_Init_MinHook ();
 
 

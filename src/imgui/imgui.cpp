@@ -11946,11 +11946,7 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   return SK_ImGui_Visible;
 }
 
-typedef HRESULT (WINAPI *IDirectInputDevice8_GetDeviceState_pfn)(
-  LPDIRECTINPUTDEVICE  This,
-  DWORD                cbData,
-  LPVOID               lpvData
-);
+#include <SpecialK/input/dinput8_backend.h>
 
 extern IDirectInputDevice8_GetDeviceState_pfn
         IDirectInputDevice8_GetDeviceState_GAMEPAD_Original;

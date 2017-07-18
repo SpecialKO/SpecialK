@@ -367,11 +367,10 @@ SK_HookCSteamworks (void)
 
   wchar_t wszModName [MAX_PATH] = { };
 
-  if ( GetModuleFileNameExW ( hProc,
-                                hMod,
-                                  wszModName,
-                                    sizeof (wszModName) /
-                                      sizeof (wchar_t) ) )
+  if ( GetModuleFileNameW ( hMod,
+                              wszModName,
+                                sizeof (wszModName) /
+                                  sizeof (wchar_t) ) )
   {
     wchar_t* dll_path =
       StrStrIW (wszModName, L"CSteamworks.dll");

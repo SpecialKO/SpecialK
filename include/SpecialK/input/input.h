@@ -24,6 +24,9 @@
 
 #include <Windows.h>
 
+#define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
+
 bool SK_ImGui_WantGamepadCapture  (void);
 bool SK_ImGui_WantMouseCapture    (void);
 bool SK_ImGui_WantKeyboardCapture (void);
@@ -166,49 +169,7 @@ typedef void (WINAPI *keybd_event_pfn)(
 extern keybd_event_pfn keybd_event_Original;
 
 
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
 #include <cstdint>
-
-struct SK_DI8_Keyboard {
-  LPDIRECTINPUTDEVICE pDev = nullptr;
-  uint8_t             state [512];
-  DWORD               coop_level;     // The level the game requested, not necessarily
-                                      //   its current state (changes based on UI).
-};
-
-struct SK_DI8_Mouse {
-  LPDIRECTINPUTDEVICE pDev = nullptr;
-  DIMOUSESTATE2       state;
-  DWORD               coop_level;     // The level the game requested, not necessarily
-                                      //   its current state (changes based on UI).
-
-  // Weird hack for some touchpads that don't send out mousewheel events in any API
-  //   other than Win32.
-  volatile LONG       delta_z = 0;
-};
-
-
-__declspec (noinline)
-SK_DI8_Keyboard*
-WINAPI
-SK_Input_GetDI8Keyboard (void);
-
-__declspec (noinline)
-SK_DI8_Mouse*
-WINAPI
-SK_Input_GetDI8Mouse (void);
-
-
-__declspec (noinline)
-bool
-WINAPI
-SK_Input_DI8Mouse_Acquire (SK_DI8_Mouse* pMouse = nullptr);
-
-__declspec (noinline)
-bool
-WINAPI
-SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse = nullptr);
 
 
 typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
