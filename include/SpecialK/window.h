@@ -267,13 +267,13 @@ struct sk_window_s {
     RECT   window { 0, 0, 640, 480 };
     //};
 
-    LONG_PTR style            = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-    LONG_PTR style_ex         = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
+    ULONG_PTR style           = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    ULONG_PTR style_ex        = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
   } game, actual;
 
-  LONG_PTR   border_style     = WS_CLIPSIBLINGS     | WS_CLIPCHILDREN |
+  ULONG_PTR   border_style    = WS_CLIPSIBLINGS     | WS_CLIPCHILDREN |
                                 WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-  LONG_PTR   border_style_ex  = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
+  ULONG_PTR   border_style_ex = WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
 
 //  RECT      rect        { 0, 0,
 //                          0, 0 };

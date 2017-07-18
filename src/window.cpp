@@ -1236,6 +1236,12 @@ AdjustWindowRect_Detour (
   return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
 }
 
+void
+SK_SetWindowStyle (DWORD_PTR dwStyle_ptr);
+
+void
+SK_SetWindowStyleEx (DWORD_PTR dwStyleEx_ptr);
+
 BOOL
 WINAPI
 AdjustWindowRectEx_Detour (
@@ -1300,9 +1306,7 @@ SetWindowLong_Marshall (
             game_window.game.style;
         }
 
-        pOrigFunc ( hWnd,
-                      GWL_STYLE,
-                        (LONG)game_window.actual.style );
+        SK_SetWindowStyle ((LONG)game_window.actual.style);
 
         return (LONG)game_window.actual.style;
       }
@@ -1333,9 +1337,7 @@ SetWindowLong_Marshall (
             game_window.game.style_ex;
         }
 
-        pOrigFunc ( hWnd,
-                      GWL_EXSTYLE,
-                        (LONG)game_window.actual.style_ex );
+        SK_SetWindowStyleEx ((LONG)game_window.actual.style_ex);
 
         return (LONG)game_window.actual.style_ex;
       }
@@ -1487,9 +1489,7 @@ SetWindowLongPtr_Marshall (
             game_window.game.style;
         }
 
-        pOrigFunc ( hWnd,
-                      GWL_STYLE,
-                        game_window.actual.style );
+        SK_SetWindowStyle ((LONG)game_window.actual.style);
 
         return game_window.actual.style;
       }
@@ -1520,9 +1520,7 @@ SetWindowLongPtr_Marshall (
             game_window.game.style_ex;
         }
 
-        pOrigFunc ( hWnd,
-                      GWL_EXSTYLE,
-                        game_window.actual.style_ex );
+        SK_SetWindowStyleEx ((LONG)game_window.actual.style_ex);
 
         return game_window.actual.style_ex;
       }
@@ -1630,44 +1628,45 @@ GetWindowLongPtrW_Detour (
 }
 
 void
-SK_SetWindowStyle (DWORD_PTR dwStyle)
+SK_SetWindowStyle (DWORD_PTR dwStyle_ptr)
 {
   // Ensure that the border style is sane
-  if (dwStyle == game_window.border_style)
+  if (dwStyle_ptr == game_window.border_style)
   {
     game_window.border_style |= WS_CAPTION | WS_SYSMENU | WS_POPUP | WS_MINIMIZEBOX | WS_VISIBLE;
-    dwStyle                   = game_window.border_style;
+    dwStyle_ptr               = game_window.border_style;
   }
 
   // Clear the high-bits
-  dwStyle &= 0xFFFFFFFF;
+  DWORD dwStyle = (dwStyle_ptr & 0xFFFFFFFF);
 
   // Minimal sane set of extended window styles for sane rendering
   dwStyle |= (WS_VISIBLE | WS_SYSMENU) | WS_POPUP | WS_MINIMIZEBOX;
   dwStyle &= (~WS_DISABLED);
 
-  game_window.actual.style = (dwStyle & 0xFFFFFFFF);
+  game_window.actual.style = dwStyle;
 
   game_window.SetWindowLongPtr ( game_window.hWnd,
                                    GWL_STYLE,
-                                     (dwStyle & 0xFFFFFFFF) );
+                                     game_window.actual.style );
 }
 
 void
-SK_SetWindowStyleEx (DWORD_PTR dwStyleEx)
+SK_SetWindowStyleEx (DWORD_PTR dwStyleEx_ptr)
 {
   // Clear the high-bits
-  dwStyleEx &= 0xFFFFFFFF;
+  DWORD dwStyleEx = (dwStyleEx_ptr & 0xFFFFFFFF);
 
   // Minimal sane set of extended window styles for sane rendering
   dwStyleEx |=   WS_EX_APPWINDOW;
-  dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL);
+  dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL |
+                 WS_EX_RIGHT      | WS_EX_RTLREADING);
 
-  game_window.actual.style_ex = (dwStyleEx & 0xFFFFFFFF);
+  game_window.actual.style_ex = dwStyleEx;
 
   game_window.SetWindowLongPtr ( game_window.hWnd,
                                    GWL_EXSTYLE,
-                                     (dwStyleEx & 0xFFFFFFFF) );
+                                     game_window.actual.style_ex );
 }
 
 RECT
@@ -1786,9 +1785,9 @@ SK_AdjustBorder (void)
   SK_SetWindowStyleEx ( game_window.actual.style_ex );
 
   if ( AdjustWindowRectEx_Original ( &new_window,
-                                       PtrToUint ( (LPVOID)game_window.actual.style ),
+                                       (DWORD)game_window.actual.style,
                                          FALSE,
-                                           PtrToUint ( (LPVOID)game_window.actual.style_ex )
+                                           (DWORD)game_window.actual.style_ex
                                    )
      )
   {
@@ -2609,24 +2608,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 
 #if 0
-  // HACK: Fallout 4 terminates abnormally at shutdown, meaning DllMain will
-  //         never be called.
-  //
-  //       To properly shutdown the DLL, trap this window message instead of
-  //         relying on DllMain (...) to be called.
-  if ( hWnd             == game_window.hWnd &&
-       uMsg             == WM_DESTROY       ){//&&
-       ////(! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ) {
-    //dll_log.Log ( L"[ SpecialK ] --- Invoking DllMain shutdown in response to "
-                  //L"WM_DESTROY ---" );
-    SK_SelfDestruct ();
-    ExitProcess (0);
-    return 0;
-  }
-#endif
-
-
-#if 0
   if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
   {
     POINT pt;
@@ -3267,8 +3248,6 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 
   game_window.actual.style_ex =
     game_window.GetWindowLongPtr ( hWnd, GWL_EXSTYLE );
-
-
 
   bool has_border  = SK_WindowManager::StyleHasBorder (
                        game_window.actual.style

@@ -6,6 +6,7 @@
 
 #include <imgui/backends/imgui_vk.h>
 #include <SpecialK/window.h>
+#include <SpecialK/framerate.h>
 
 // Data
 static INT64        g_Time                   = 0;
@@ -930,7 +931,7 @@ ImGui_ImplVulkan_Init (ImGui_ImplVulkan_Init_Data* init_data)
     if (! QueryPerformanceFrequency ((LARGE_INTEGER *)&g_TicksPerSecond))
       return false;
 
-    if (! QueryPerformanceCounter   ((LARGE_INTEGER *)&g_Time))
+    if (! QueryPerformanceCounter_Original ((LARGE_INTEGER *)&g_Time))
       return false;
 
     first = false;
@@ -1039,15 +1040,15 @@ ImGui_ImplVulkan_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter ((LARGE_INTEGER *)&current_time);
+  QueryPerformanceCounter_Original ((LARGE_INTEGER *)&current_time);
 
   io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
   g_Time       =         current_time;
 
   // Read keyboard modifiers inputs
-  io.KeyCtrl   = (GetAsyncKeyState_Original (VK_CONTROL) & 0x8000) != 0;
-  io.KeyShift  = (GetAsyncKeyState_Original (VK_SHIFT)   & 0x8000) != 0;
-  io.KeyAlt    = (GetAsyncKeyState_Original (VK_MENU)    & 0x8000) != 0;
+  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
+  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
+  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
 
   io.KeySuper  = false;
 }

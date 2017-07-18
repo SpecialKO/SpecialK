@@ -22,7 +22,6 @@
 #ifndef __SK__COMPATIBILITY_H__
 #define __SK__COMPATIBILITY_H__
 
-//#define ISOLATION_AWARE_ENABLED 1
 #define PSAPI_VERSION           1
 
 enum class SK_ModuleEnum {
@@ -67,13 +66,13 @@ typedef HMODULE (WINAPI *LoadPackagedLibrary_pfn)
   _Reserved_ DWORD   Reserved
 );
 
-extern FreeLibrary_pfn    FreeLibrary_Original;
+extern FreeLibrary_pfn         FreeLibrary_Original;
 
-extern LoadLibraryA_pfn   LoadLibraryA_Original;
-extern LoadLibraryW_pfn   LoadLibraryW_Original;
+extern LoadLibraryA_pfn        LoadLibraryA_Original;
+extern LoadLibraryW_pfn        LoadLibraryW_Original;
 
-extern LoadLibraryExA_pfn LoadLibraryExA_Original;
-extern LoadLibraryExW_pfn LoadLibraryExW_Original;
+extern LoadLibraryExA_pfn      LoadLibraryExA_Original;
+extern LoadLibraryExW_pfn      LoadLibraryExW_Original;
 
 extern LoadPackagedLibrary_pfn LoadPackagedLibrary_Original;
 

@@ -47,6 +47,7 @@
 
 #include <array>
 #include <string>
+#include <memory>
 
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
@@ -536,6 +537,10 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   HMODULE hModEarly = nullptr;
 
+  char*           compliant_path = _strdup (lpFileName);
+  SK_FixSlashesA (compliant_path);
+     lpFileName = compliant_path;
+
   __try {
     GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)lpFileName, &hModEarly );
   } 
@@ -549,6 +554,8 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
   {
+    free ((void *)lpFileName);
+
     SK_UnlockDllLoader ();
     return NULL;
   }
@@ -576,6 +583,8 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
                               "LoadLibraryA", lpRet );
   }
 
+  free ((void *)lpFileName);
+
   SK_UnlockDllLoader ();
   return hMod;
 }
@@ -593,6 +602,10 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
 
   HMODULE hModEarly = nullptr;
 
+  wchar_t*        compliant_path = _wcsdup (lpFileName);
+  SK_FixSlashesW (compliant_path);
+     lpFileName = compliant_path;
+
   __try {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpFileName, &hModEarly );
   }
@@ -606,6 +619,8 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
 
   if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
   {
+    free ((void *)lpFileName);
+
     SK_UnlockDllLoader ();
     return NULL;
   }
@@ -633,6 +648,8 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
                               L"LoadLibraryW", lpRet );
   }
 
+  free ((void *)lpFileName);
+
   SK_UnlockDllLoader ();
   return hMod;
 }
@@ -650,6 +667,10 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 
   HMODULE hModEarly = nullptr;
 
+  wchar_t*        compliant_path = _wcsdup (lpLibFileName);
+  SK_FixSlashesW (compliant_path);
+  lpLibFileName = compliant_path;
+
   __try {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpLibFileName, &hModEarly );
   }
@@ -663,6 +684,8 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 
   if (hModEarly == nullptr && BlacklistLibrary (lpLibFileName))
   {
+    free ((void *)lpLibFileName);
+
     SK_UnlockDllLoader ();
     return NULL;
   }
@@ -677,6 +700,8 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
                             lpLibFileName,
                               L"LoadPackagedLibrary", lpRet );
   }
+
+  free ((void *)lpLibFileName);
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -694,12 +719,21 @@ LoadLibraryExA_Detour (
   if (lpFileName == nullptr)
     return NULL;
 
+  char*           compliant_path = _strdup (lpFileName);
+  SK_FixSlashesA (compliant_path);
+  lpFileName    = compliant_path;
+
   SK_LockDllLoader ();
 
   if ((dwFlags & LOAD_LIBRARY_AS_DATAFILE) && (! BlacklistLibrary (lpFileName)))
   {
+    HMODULE hModRet =
+      LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
+
+    free ((void *)lpFileName);
+
     SK_UnlockDllLoader ();
-    return LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
+    return hModRet;
   }
 
   HMODULE hModEarly = nullptr;
@@ -718,6 +752,8 @@ LoadLibraryExA_Detour (
 
   if (hModEarly == NULL && BlacklistLibrary (lpFileName))
   {
+    free ((void *)lpFileName);
+
     SK_UnlockDllLoader ();
     return NULL;
   }
@@ -747,6 +783,8 @@ LoadLibraryExA_Detour (
                               "LoadLibraryExA", lpRet );
   }
 
+  free ((void *)lpFileName);
+
   SK_UnlockDllLoader ();
   return hMod;
 }
@@ -763,13 +801,21 @@ LoadLibraryExW_Detour (
   if (lpFileName == nullptr)
     return NULL;
 
+  wchar_t*        compliant_path = _wcsdup (lpFileName);
+  SK_FixSlashesW (compliant_path);
+  lpFileName    = compliant_path;
+
   SK_LockDllLoader ();
 
   if ((dwFlags & LOAD_LIBRARY_AS_DATAFILE) && (! BlacklistLibrary (lpFileName)))
   {
-    SK_UnlockDllLoader ();
+    HMODULE hModRet =
+      LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
 
-    return LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
+    free ((void *)lpFileName);
+
+    SK_UnlockDllLoader ();
+    return hModRet;
   }
 
   HMODULE hModEarly = nullptr;
@@ -788,8 +834,9 @@ LoadLibraryExW_Detour (
 
   if (hModEarly == NULL && BlacklistLibrary (lpFileName))
   {
-    SK_UnlockDllLoader ();
+    free ((void *)lpFileName);
 
+    SK_UnlockDllLoader ();
     return NULL;
   }
 
@@ -816,6 +863,8 @@ LoadLibraryExW_Detour (
                             lpFileName,
                               L"LoadLibraryExW", lpRet );
   }
+
+  free ((void *)lpFileName);
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -1085,10 +1134,9 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
     {
       // Get the full path to the module's file.
       if ( (! logged_modules.count (pWorkingSet->modules [i])) &&
-              GetModuleFileNameExW ( pWorkingSet->proc,
-                                       pWorkingSet->modules [i],
-                                         wszModName,
-                                           MAX_PATH ) )
+              GetModuleFileNameW ( pWorkingSet->modules [i],
+                                     wszModName,
+                                       MAX_PATH ) )
       {
         MODULEINFO mi = { };
 

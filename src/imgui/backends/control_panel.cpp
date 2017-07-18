@@ -1367,8 +1367,6 @@ SK_ImGui_ControlPanel (void)
 
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
-      SK_GetCurrentRenderBackend ().gsync_state.update ();
-
       char szGSyncStatus [128] = { };
 
       if (SK_GetCurrentRenderBackend ().gsync_state.capable)

@@ -27,7 +27,8 @@
 
 extern HGLRC WINAPI SK_GetCurrentGLContext (void);
 
-enum class SK_RenderAPI {
+enum class SK_RenderAPI
+{
   Reserved  = 0x0001,
 
   // Native API Implementations
@@ -53,36 +54,56 @@ enum class SK_RenderAPI {
   GlideOn11 = 0x8040,
 };
 
-struct SK_RenderBackend_V1 {
+class SK_RenderBackend_V1
+{
+public:
   enum class SK_RenderAPI api       = SK_RenderAPI::Reserved;
              wchar_t      name [16] = { };
 };
 
-enum {
+enum
+{
   SK_FRAMEBUFFER_FLAG_SRGB  = 0x1,
   SK_FRAMEBUFFER_FLAG_FLOAT = 0x2
 };
 
-enum reset_stage_e {
+enum reset_stage_e
+{
   Initiate = 0x0, // Fake device loss
   Respond  = 0x1, // Fake device not reset
   Clear    = 0x2  // Return status to normal
 } extern trigger_reset;
 
-enum mode_change_request_e {
+enum mode_change_request_e
+{
   Windowed   = 0,    // Switch from Fullscreen to Windowed
   Fullscreen = 1,    // Switch from Windowed to Fullscreen
   None       = 0xFF
 } extern request_mode_change;
 
-struct SK_RenderBackend_V2 : SK_RenderBackend_V1 {
+class SK_RenderBackend_V2 : public SK_RenderBackend_V1
+{
+public:
+   SK_RenderBackend_V2 (void);
+  ~SK_RenderBackend_V2 (void);
+
   IUnknown*               device               = nullptr;
   IUnknown*               swapchain            = nullptr;
   NVDX_ObjectHandle       surface              = 0;
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
 
-  struct gsync_s {
+
+  // TODO: Proper abstraction
+  struct d3d11_s
+  {
+    //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")     
+    IUnknown*             immediate_ctx        = nullptr;
+  } d3d11;
+
+
+  struct gsync_s
+  {
     void update (void);
 
     BOOL                  capable      = FALSE;
@@ -90,12 +111,25 @@ struct SK_RenderBackend_V2 : SK_RenderBackend_V1 {
     DWORD                 last_checked = 0;
   } gsync_state;
 
-  DWORD                   thread       = 0;
 
-  bool canEnterFullscreen  (void);
+  //
+  // Somewhat meaningless, given how most engines manage
+  //   memory, textures and shaders...
+  //
+  //   This is the thread that handles SwapChain Presentation;
+  //     nothing else can safely be inferred about this thread.
+  //
+  DWORD                   thread       = 0;
+  CRITICAL_SECTION        cs_res       = { };
+
+
+  bool canEnterFullscreen    (void);
 
   void requestFullscreenMode (bool override = false);
   void requestWindowedMode   (bool override = false);
+
+
+  void releaseOwnedResources (void);
 };
 
 typedef SK_RenderBackend_V2 SK_RenderBackend;
@@ -116,5 +150,10 @@ void SK_BootD3D9   (void);
 void SK_BootDXGI   (void);
 void SK_BootOpenGL (void);
 void SK_BootVulkan (void);
+
+
+_Return_type_success_ (nullptr)
+IUnknown*
+SK_COM_ValidateRelease (IUnknown** ppObj);
 
 #endif /* __SK__RENDER_BACKEND__H__ */

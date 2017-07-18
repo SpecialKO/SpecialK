@@ -35,6 +35,15 @@
 #include <d3d11.h>
 #include <atlbase.h>
 
+
+// Dispatch through the trampoline, rather than hook
+//
+typedef HRESULT (STDMETHODCALLTYPE *WaitForVBlank_pfn)(
+  IDXGIOutput *This
+);
+extern WaitForVBlank_pfn WaitForVBlank_Original;
+
+
 SK::Framerate::EventCounter SK::Framerate::events;
 
 LPVOID pfnQueryPerformanceCounter = nullptr;
@@ -211,10 +220,13 @@ SK::Framerate::Init (void)
   pCommandProc->AddVariable ( "TargetFPS",
           new SK_IVarStub <float> (&target_fps));
 
+#define NO_HOOK_QPC
+#ifndef NO_HOOK_QPC
   SK_CreateDLLHook2 ( L"kernel32.dll", "QueryPerformanceCounter",
                      QueryPerformanceCounter_Detour,
           (LPVOID *)&QueryPerformanceCounter_Original,
           (LPVOID *)&pfnQueryPerformanceCounter );
+#endif
 
   if (! GetModuleHandle (L"PrettyPrinny.dll"))
   {
@@ -224,14 +236,11 @@ SK::Framerate::Init (void)
             (LPVOID *)&pfnSleep );
   }
 
-#if 0
-  else
-  {
+#ifdef NO_HOOK_QPC
     QueryPerformanceCounter_Original =
-      (QueryPerformanceCounter_t)
+      (QueryPerformanceCounter_pfn)
         GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
                            "QueryPerformanceCounter" );
-  }
 #endif
 
   if (NtDll == 0)
@@ -267,7 +276,7 @@ void
 SK::Framerate::Shutdown (void)
 {
   SK_DisableHook (pfnSleep);
-  SK_DisableHook (pfnQueryPerformanceCounter);
+  //SK_DisableHook (pfnQueryPerformanceCounter);
 }
 
 SK::Framerate::Limiter::Limiter (double target)
@@ -357,19 +366,23 @@ SK::Framerate::Limiter::init (double target)
   CComPtr <IDXGISwapChain>     dxgi_swap   = nullptr;
   CComPtr <IDXGIOutput>        dxgi_output = nullptr;
 
-  SK_RenderAPI api = SK_GetCurrentRenderBackend ().api;
+  SK_RenderBackend& rb =
+   SK_GetCurrentRenderBackend ();
+
+  SK_RenderAPI api = rb.api;
 
   if (      api ==      SK_RenderAPI::D3D10 ||
        (int)api &  (int)SK_RenderAPI::D3D11 ||
        (int)api &  (int)SK_RenderAPI::D3D12 )
   {
-    if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
+    if (rb.swapchain != nullptr)
     {
-      if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
+      if (SUCCEEDED (rb.swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
       {
         if (SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)))
         {
-          dxgi_output->WaitForVBlank ();
+          WaitForVBlank_Original (dxgi_output);
+          //dxgi_output->WaitForVBlank ();
         }
       }
     }
@@ -377,9 +390,9 @@ SK::Framerate::Limiter::init (double target)
 
   else if ((int)api & (int)SK_RenderAPI::D3D9)
   {
-    if (SK_GetCurrentRenderBackend ().device != nullptr)
+    if (rb.device != nullptr)
     {
-      SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
+      rb.device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) );
 
       // Align the start to VBlank for minimum input latency
       if (d3d9ex != nullptr || (d3d9ex = SK_D3D9_GetTimingDevice ()))
@@ -490,17 +503,20 @@ SK::Framerate::Limiter::wait (void)
     CComPtr <IDXGISwapChain> dxgi_swap   = nullptr;
     CComPtr <IDXGIOutput>    dxgi_output = nullptr;
 
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
     if (config.render.framerate.wait_for_vblank)
     {
-      SK_RenderAPI api = SK_GetCurrentRenderBackend ().api;
+      SK_RenderAPI api = rb.api;
 
       if (      api ==      SK_RenderAPI::D3D10 ||
            (int)api &  (int)SK_RenderAPI::D3D11 ||
            (int)api &  (int)SK_RenderAPI::D3D12 )
       {
-        if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
+        if (rb.swapchain != nullptr)
         {
-          if (SUCCEEDED (SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
+          if (SUCCEEDED (rb.swapchain->QueryInterface <IDXGISwapChain> (&dxgi_swap)))
           {
             dxgi_swap->GetContainingOutput (&dxgi_output);
           }
@@ -509,9 +525,9 @@ SK::Framerate::Limiter::wait (void)
 
       else if ((int)api & (int)SK_RenderAPI::D3D9)
       {
-        if (SK_GetCurrentRenderBackend ().device != nullptr)
+        if (rb.device != nullptr)
         {
-          if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
+          if (FAILED (rb.device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
           {
             d3d9ex = SK_D3D9_GetTimingDevice ();
           }
@@ -533,7 +549,8 @@ SK::Framerate::Limiter::wait (void)
           d3d9ex->WaitForVBlank (0);
 
         else if (dxgi_output != nullptr)
-          dxgi_output->WaitForVBlank ();
+          WaitForVBlank_Original (dxgi_output);
+          //dxgi_output->WaitForVBlank ();
       }
 #endif
 

@@ -22,7 +22,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define NOMINMAX
-//#define ISOLATION_AWARE_ENABLED 1
 #define PSAPI_VERSION           1
 
 #include <Windows.h>

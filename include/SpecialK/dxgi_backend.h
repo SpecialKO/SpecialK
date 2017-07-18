@@ -22,6 +22,8 @@
 #ifndef __SK__DXGI_BACKEND_H__
 #define __SK__DXGI_BACKEND_H__
 
+#define __D3DX11TEX_H__
+
 #include <SpecialK/dxgi_interfaces.h>
 #include <SpecialK/utility.h>
 
@@ -857,6 +859,78 @@ typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _Out_opt_                           ID3D11Device        **ppDevice,
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext);
+
+typedef enum D3DX11_IMAGE_FILE_FORMAT {
+  D3DX11_IFF_BMP          = 0,
+  D3DX11_IFF_JPG          = 1,
+  D3DX11_IFF_PNG          = 3,
+  D3DX11_IFF_DDS          = 4,
+  D3DX11_IFF_TIFF         = 10,
+  D3DX11_IFF_GIF          = 11,
+  D3DX11_IFF_WMP          = 12,
+  D3DX11_IFF_FORCE_DWORD  = 0x7fffffff
+} D3DX11_IMAGE_FILE_FORMAT, *LPD3DX11_IMAGE_FILE_FORMAT;
+
+typedef struct D3DX11_IMAGE_INFO {
+  UINT                     Width;
+  UINT                     Height;
+  UINT                     Depth;
+  UINT                     ArraySize;
+  UINT                     MipLevels;
+  UINT                     MiscFlags;
+  DXGI_FORMAT              Format;
+  D3D11_RESOURCE_DIMENSION ResourceDimension;
+  D3DX11_IMAGE_FILE_FORMAT ImageFileFormat;
+} D3DX11_IMAGE_INFO, *LPD3DX11_IMAGE_INFO;
+
+
+typedef struct D3DX11_IMAGE_LOAD_INFO {
+  UINT              Width;
+  UINT              Height;
+  UINT              Depth;
+  UINT              FirstMipLevel;
+  UINT              MipLevels;
+  D3D11_USAGE       Usage;
+  UINT              BindFlags;
+  UINT              CpuAccessFlags;
+  UINT              MiscFlags;
+  DXGI_FORMAT       Format;
+  UINT              Filter;
+  UINT              MipFilter;
+  D3DX11_IMAGE_INFO *pSrcInfo;
+} D3DX11_IMAGE_LOAD_INFO, *LPD3DX11_IMAGE_LOAD_INFO;
+
+interface ID3DX11ThreadPump;
+
+typedef HRESULT (WINAPI *D3DX11CreateTextureFromFileW_pfn)(
+  _In_  ID3D11Device           *pDevice,
+  _In_  LPCWSTR                pSrcFile,
+  _In_  D3DX11_IMAGE_LOAD_INFO *pLoadInfo,
+  _In_  IUnknown               *pPump,
+  _Out_ ID3D11Resource         **ppTexture,
+  _Out_ HRESULT                *pHResult
+);
+
+interface ID3DX11ThreadPump;
+
+typedef HRESULT (WINAPI *D3DX11GetImageInfoFromFileW_pfn)(
+  _In_  LPCWSTR           pSrcFile,
+  _In_  ID3DX11ThreadPump *pPump,
+  _In_  D3DX11_IMAGE_INFO *pSrcInfo,
+  _Out_ HRESULT           *pHResult
+);
+
+typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
+  _In_           ID3D11DeviceContext1 *This,
+  _In_           ID3D11Resource       *pDstResource,
+  _In_           UINT                  DstSubresource,
+  _In_opt_ const D3D11_BOX            *pDstBox,
+  _In_     const void                 *pSrcData,
+  _In_           UINT                  SrcRowPitch,
+  _In_           UINT                  SrcDepthPitch,
+  _In_           UINT                  CopyFlags
+);
+
 
 
 

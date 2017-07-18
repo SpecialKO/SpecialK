@@ -1,3 +1,7 @@
+0.8.25:
+
+ + Fixed occasional right-to-left window orientation problems in 64-bit builds
+
 0.8.24.4:
 
  + Fix deadlock caused by MSI Nahimic due to hotpatching 32-bit code

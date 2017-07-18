@@ -41,6 +41,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <memory>
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
@@ -78,7 +79,8 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
                         DXGI_FORMAT     NewFormat,
                         UINT            SwapChainFlags );
 
-extern void SK_D3D11_EndFrame (void);
+extern void SK_D3D11_EndFrame       (void);
+extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
@@ -140,12 +142,21 @@ ImGui_DX11Shutdown ( void )
 bool
 ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 {
-  CComPtr <ID3D11Device> pD3D11Dev = nullptr;
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  CComPtr <ID3D11Device>        pD3D11Dev         = nullptr;
+  CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
+
+  assert (pSwapChain == rb.swapchain);
   
   if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev))) )
   {
-    CComPtr <ID3D11DeviceContext>    pImmediateContext = nullptr;
+    assert (pD3D11Dev == rb.device);
+
     pD3D11Dev->GetImmediateContext (&pImmediateContext);
+
+    assert (pImmediateContext == rb.d3d11.immediate_ctx);
   
     if (pImmediateContext != nullptr)
     {
@@ -161,9 +172,6 @@ CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 
 static volatile ULONG __gui_reset          = TRUE;
 static volatile ULONG __cegui_frames_drawn = 0;
-
-ID3D11Device*        pGUIDev     = nullptr;
-ID3D11DeviceContext* pCEG_DevCtx = nullptr;
 
 void
 SK_CEGUI_RelocateLog (void)
@@ -325,37 +333,39 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
   if (! config.cegui.enable)
   {
     // XXX: TODO (Full shutdown isn't necessary, just invalidate)
-    ImGui_DX11Shutdown ();
+    ImGui_DX11Shutdown (    );
     ImGui_DX11Startup  (This);
   }
 
+
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+
+  assert (rb.swapchain == nullptr || This == rb.swapchain);
+
   CComPtr <ID3D11Device> pDev = nullptr;
+
 
   if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))))
   {
-    extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
-    SK_DXGI_UpdateSwapChain (This);
+    assert (rb.device == nullptr || pDev == rb.device);
+
+    rb.releaseOwnedResources (    );
+    SK_DXGI_UpdateSwapChain  (This);
   }
 
-  //if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 2)
-    //return;
 
   if (cegD3D11 != nullptr)
   {
     SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
     SK_PopupManager::getInstance ()->destroyAllPopups         ();
 
-    if (pGUIDev != nullptr)
-        pGUIDev  = nullptr;
-
-    if (pCEG_DevCtx != nullptr)
-    {
-      pCEG_DevCtx->Release ();
-      pCEG_DevCtx = nullptr;
-    }
+    rb.releaseOwnedResources ();
 
     CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-    cegD3D11->destroySystem ();
+
+    cegD3D11->destroySystem  ();
     cegD3D11 = nullptr;
 
     // XXX: TODO (Full shutdown isn't necessary, just invalidate)
@@ -364,63 +374,73 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
   else
   {
-    pGUIDev = nullptr;
+    assert (rb.device != nullptr);
 
-    This->GetDevice (IID_PPV_ARGS (&pGUIDev));
+    if (rb.device == nullptr)
+      SK_DXGI_UpdateSwapChain (This);
 
-    if (pGUIDev == nullptr)
-      return;
+                                   CComPtr <ID3D11DeviceContext>   pDevCtx = nullptr;
+    rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
 
-    // The process of bootstrapping this through CEGUI does not add a reference, so
-    //   don't bother decrementing the reference count by releasing it.
-    pGUIDev->GetImmediateContext (&pCEG_DevCtx);
+    // For CEGUI to work correctly, it is necessary to set the viewport dimensions
+    //   to the backbuffer size prior to bootstrap.
+    CComPtr <ID3D11Texture2D> pBackBuffer = nullptr;
 
-    try
+    D3D11_VIEWPORT vp_orig = { };
+    UINT           num_vp  =  1;
+
+    pDevCtx->RSGetViewports (&num_vp, &vp_orig);
+
+    if ( SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer))) )
     {
-      // For CEGUI to work correctly, it is necessary to set the viewport dimensions
-      //   to the backbuffer size prior to bootstrap.
-      CComPtr <ID3D11Texture2D> pBackBuffer = nullptr;
+      D3D11_VIEWPORT                    vp = { };
+      D3D11_TEXTURE2D_DESC backbuffer_desc = { };
 
-      if ( SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer))) )
+      pBackBuffer->GetDesc (&backbuffer_desc);
+
+      vp.Width    = (float)backbuffer_desc.Width;
+      vp.Height   = (float)backbuffer_desc.Height;
+      vp.MinDepth = 0;
+      vp.MaxDepth = 1;
+      vp.TopLeftX = 0;
+      vp.TopLeftY = 0;
+
+      pDevCtx->RSSetViewports (1, &vp);
+
+      try
       {
-        D3D11_TEXTURE2D_DESC backbuffer_desc;
-        pBackBuffer->GetDesc (&backbuffer_desc);
+        cegD3D11 = (CEGUI::Direct3D11Renderer *)
+          &CEGUI::Direct3D11Renderer::bootstrapSystem (
+            (ID3D11Device *)rb.device, (ID3D11DeviceContext *)rb.d3d11.immediate_ctx
+          );
 
-        D3D11_VIEWPORT vp;
-        ZeroMemory   (&vp, sizeof (vp));
+        ImGui_DX11Startup    (This);
+        SK_CEGUI_RelocateLog (    );
 
-        vp.Width    = (float)backbuffer_desc.Width;
-        vp.Height   = (float)backbuffer_desc.Height;
-        vp.MinDepth = 0;
-        vp.MaxDepth = 1;
-        vp.TopLeftX = 0;
-        vp.TopLeftY = 0;
-
-        pCEG_DevCtx->RSSetViewports (1, &vp);
+        pDevCtx->RSSetViewports (1, &vp_orig);
       }
 
-      cegD3D11 = (CEGUI::Direct3D11Renderer *)
-        &CEGUI::Direct3D11Renderer::bootstrapSystem (pGUIDev, pCEG_DevCtx);
+      catch (...)
+      {
+        pDevCtx->RSSetViewports (1, &vp_orig);
 
-      ImGui_DX11Startup    (This);
+        cegD3D11 = nullptr;
+        return;
+      }
 
-      SK_CEGUI_RelocateLog ();
+      SK_CEGUI_InitBase    ();
+
+      SK_PopupManager::getInstance       ()->destroyAllPopups (        );
+      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
+
+      SK_Steam_ClearPopups ();
     }
 
-    catch (...)
+    else
     {
-      pGUIDev->Release     ();
-      cegD3D11 = nullptr;
-      return;
+      dll_log.Log ( L"[   DXGI   ]  ** Failed to acquire SwapChain's Backbuffer;"
+                    L" will try again next frame." );
     }
-
-    SK_CEGUI_InitBase    ();
-
-    SK_PopupManager::getInstance       ()->destroyAllPopups (        );
-    SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
-
-    SK_Steam_ClearPopups ();
-    pGUIDev->Release     ();
   }
 }
 
@@ -1131,31 +1151,13 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 
   if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
   {
-    SK_GetCurrentRenderBackend ().device    = pDev;
-    SK_GetCurrentRenderBackend ().swapchain = This;
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
 
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-    {
-      CComPtr <IDXGISurface> pSurf = nullptr;
+    rb.device    = pDev;
+    rb.swapchain = This;
 
-      extern bool
-      SK_RenderBackendUtil_IsFullscreen (void);;
-
-      // NVIDIA's drivers deadlock us if you try to do this, so just assume that fullscreen mode is
-      //   always G-Sync'd.
-      //
-      if (SK_RenderBackendUtil_IsFullscreen ())//SK_GetCurrentRenderBackend ().fullscreen_exclusive)
-      {
-        if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pSurf))))
-          NvAPI_D3D_GetObjectHandleForResource (pDev, pSurf, &SK_GetCurrentRenderBackend ().surface);
-
-        else
-          NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
-      }
-
-      else
-        NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
-    }
+    pDev->GetImmediateContext ((ID3D11DeviceContext **)&rb.d3d11.immediate_ctx);
   }
 }
 
@@ -1214,8 +1216,6 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
 {
   void capture (ID3D11DeviceContext* pCtx)
   {
-    ZeroMemory (&ScissorRectsCount, sizeof (StateBlockDataStore));
-
     ScissorRectsCount = ViewportsCount =
       D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
 
@@ -1303,13 +1303,16 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
-  CComPtr <ID3D11Device> pDev = nullptr;
-
   if (! config.cegui.enable)
     return;
 
   if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
     return;
+
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  CComPtr <ID3D11Device> pDev = nullptr;
 
   InterlockedIncrement (&__cegui_frames_drawn);
 
@@ -1317,17 +1320,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   {
     SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
 
-    if (pGUIDev != nullptr)
-    {
-      //pGUIDev->Release ();
-      pGUIDev = nullptr;
-    }
-
-    if (pCEG_DevCtx != nullptr)
-    {
-      pCEG_DevCtx->Release ();
-      pCEG_DevCtx = nullptr;
-    }
+    rb.releaseOwnedResources ();
 
     if (cegD3D11 != nullptr)
     {
@@ -1339,23 +1332,28 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   else if (cegD3D11 == nullptr)
   {
-    extern void
-    SK_InstallWindowHook (HWND hWnd);
-
     DXGI_SWAP_CHAIN_DESC desc;
-    This->GetDesc (&desc);
+    This->GetDesc      (&desc);
 
     SK_InstallWindowHook (desc.OutputWindow);
 
-    ResetCEGUI_D3D11 (This);
+    ResetCEGUI_D3D11     (This);
   }
 
-  else if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
+
+  else if ( rb.device != nullptr && 
+ SUCCEEDED (rb.device->QueryInterface <ID3D11Device> (&pDev)) )
   {
-    if (pGUIDev != pDev)
+    assert (rb.device == pDev);
+
+    // If the swapchain or device changed, bail-out and wait until the next frame for
+    //   things to normalize.
+    if (rb.device != pDev || rb.swapchain == nullptr)
     {
-      ResetCEGUI_D3D11 (This);
-      return;
+      ResetCEGUI_D3D11        (This);
+      SK_DXGI_UpdateSwapChain (This);
+
+      //return;
     }
 
     HRESULT hr;
@@ -1379,13 +1377,13 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     CComPtr <ID3D11DeviceContext>  pImmediateContext  = nullptr;
     CComPtr <ID3D11DeviceContext1> pImmediateContext1 = nullptr;
 
-    pDev->GetImmediateContext (&pImmediateContext);
+    rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pImmediateContext);
 
     if (config.render.dxgi.full_state_cache)
     {
         hr =
-        pImmediateContext->QueryInterface (IID_PPV_ARGS (&pImmediateContext1));
-                     pDev->QueryInterface (IID_PPV_ARGS (&pDevice1));
+        pImmediateContext->QueryInterface <ID3D11DeviceContext1> (&pImmediateContext1);
+                     pDev->QueryInterface <ID3D11Device1>        (&pDevice1);
 
         if (FAILED (hr))
         {
@@ -1418,28 +1416,36 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       }
     }
 
-    D3D11_TEXTURE2D_DESC tex2d_desc;
+    D3D11_TEXTURE2D_DESC          tex2d_desc = { };
+    D3D11_RENDER_TARGET_VIEW_DESC rtdesc     = { };
+
     pBackBuffer->GetDesc (&tex2d_desc);
 
-    // SRGB Correction for UIs
+    // sRGB Correction for UIs
     switch (tex2d_desc.Format)
     {
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+      case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
       {
         D3D11_RENDER_TARGET_VIEW_DESC rtdesc = { };
+
         rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
         rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
         hr = pDev->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
 
-        SK_GetCurrentRenderBackend ().framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
+        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
       } break;
 
       default:
-        hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+      {
+        rtdesc.Format             = tex2d_desc.Format;
+        rtdesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-        SK_GetCurrentRenderBackend ().framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
-        break;
+        hr = pDev->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+
+        rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
+      } break;
     }
 
     if (SUCCEEDED (hr))
@@ -1447,16 +1453,19 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       SK_TLS_Push ();
       SK_TLS_Top  ()->imgui.drawing = true;
 
-      static SK_D3D11_Stateblock_Lite sb;
-      sb.capture (pImmediateContext);
+      std::unique_ptr <SK_D3D11_Stateblock_Lite> sb (
+        new SK_D3D11_Stateblock_Lite { }
+      );
 
-      pCEG_DevCtx->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
+      sb->capture (pImmediateContext);
 
-      D3D11_TEXTURE2D_DESC   backbuffer_desc;
+      pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
+
+      D3D11_VIEWPORT         vp              = { };
+      D3D11_BLEND_DESC       blend           = { };
+      D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
+
       pBackBuffer->GetDesc (&backbuffer_desc);
-
-      D3D11_BLEND_DESC blend;
-      ZeroMemory     (&blend, sizeof (blend));
 
       blend.RenderTarget [0].BlendEnable           = TRUE;
       blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
@@ -1468,10 +1477,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
       if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
-        pCEG_DevCtx->OMSetBlendState (pBlendState, NULL, 0xffffffff);
-
-      D3D11_VIEWPORT vp;
-      ZeroMemory   (&vp, sizeof (vp));
+        pImmediateContext->OMSetBlendState (pBlendState, NULL, 0xffffffff);
 
       vp.Width    = (float)backbuffer_desc.Width;
       vp.Height   = (float)backbuffer_desc.Height;
@@ -1480,7 +1486,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       vp.TopLeftX = 0;
       vp.TopLeftY = 0;
 
-      pCEG_DevCtx->RSSetViewports (1, &vp);
+      pImmediateContext->RSSetViewports (1, &vp);
       {
         cegD3D11->beginRendering ();
         {
@@ -1505,7 +1511,19 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         }
       }
 
-      sb.apply (pImmediateContext);
+      sb->apply (pImmediateContext);
+
+
+      //
+      // Update G-Sync; doing this here prevents trying to do this on frames where
+      //   the swapchain was resized, which would deadlock the software.
+      //
+      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+      {
+        NvAPI_D3D_GetObjectHandleForResource (pDev, pBackBuffer, &rb.surface);
+
+        rb.gsync_state.update ();
+      }
 
       SK_TLS_Pop ();
     }
@@ -1698,10 +1716,10 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
 
   __try
   {
-    __try                                { hr = Present_Original   (This, SyncInterval, Flags); }
-    __except (EXCEPTION_CONTINUE_SEARCH) {                                                      }
+    __try                                { hr = Present_Original (This, SyncInterval, Flags); }
+    __except (EXCEPTION_CONTINUE_SEARCH) {                                                    }
   }
-  __except (EXCEPTION_EXECUTE_HANDLER)   {                                                      }
+  __except (EXCEPTION_EXECUTE_HANDLER)   {                                                    }
 
   return hr;
 }
@@ -1791,9 +1809,7 @@ HRESULT
           NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
 
 
-
         if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( 0, 0 );
-
 
 
         //if (bAlwaysAllowFullscreen)
@@ -2090,7 +2106,8 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
                                               /* [annotation][in]  */
                                     _In_opt_  IUnknown       *pConcernedDevice )
 {
-  dll_log.Log (L"[   DXGI   ] [!] IDXGIOutput::FindClosestMatchingMode (...)");
+  DXGI_LOG_CALL_I3 ( L"IDXGIOutput", L"FindClosestMatchingMode",
+                     L"dontcare, dontcare, dontcare", 0, 0, 0 );
 
   DXGI_MODE_DESC mode_to_match = *pModeToMatch;
 
@@ -2134,9 +2151,10 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-DXGIOutput_WaitForVBlank_Override ( IDXGIOutput    *This )
+DXGIOutput_WaitForVBlank_Override ( IDXGIOutput *This )
 {
-    dll_log.Log (L"[   DXGI   ] [!] IDXGIOutput::WaitForVBlank (...)");
+  DXGI_LOG_CALL_I0 (L"IDXGIOutput", L"WaitForVBlank");
+
   return WaitForVBlank_Original (This);
 }
 
@@ -2184,7 +2202,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   else if (config.display.force_windowed && Fullscreen == TRUE)
   {
     Fullscreen = FALSE;
-    Fullscreen = TRUE;
     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
                   L"(Requested: Fullscreen, Using: Windowed)" );
   }
@@ -2211,7 +2228,13 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   if (SUCCEEDED (ret))
   {
     if (bFlipMode)
-      ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+    {
+      ResizeBuffers_Original ( This, 0, 0, 0, DXGI_FORMAT_UNKNOWN,
+                                 DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
+    }
+
+    ///ResizeBuffers_Original (This, desc.BufferCount, desc.BufferDesc.Width,
+    ///                          desc.BufferDesc.Height, desc.BufferDesc.Format, desc.Flags);
 
     DXGI_SWAP_CHAIN_DESC desc;
     if (SUCCEEDED (This->GetDesc (&desc)))
@@ -2242,9 +2265,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   {
     SK_AutoCriticalSection auto_mmio_cs (&cs_mmio);
 
-    SK_D3D11_EndFrame       ();
-    SK_D3D11_Textures.reset ();
+    SK_D3D11_EndFrame        ();
+    SK_D3D11_Textures.reset  ();
+    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
   }
+
 
   if (       config.render.framerate.buffer_count != -1           &&
        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
@@ -2253,8 +2278,6 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     BufferCount = config.render.framerate.buffer_count;
     dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", BufferCount);
   }
-
-  InterlockedExchange (&__gui_reset, TRUE);
 
   if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing)
   {
@@ -2301,8 +2324,9 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
 
 
-  HRESULT ret;
-  DXGI_CALL (ret, ResizeBuffers_Original (This, BufferCount, Width, Height, NewFormat, SwapChainFlags));
+  HRESULT     ret;
+  DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
+                                              NewFormat, SwapChainFlags ) );
 
   if (SUCCEEDED (ret))
   {
@@ -2328,8 +2352,10 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   {
     SK_AutoCriticalSection auto_mmio_cs (&cs_mmio);
 
-    SK_D3D11_EndFrame ();
+    SK_D3D11_EndFrame        ();
+    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
   }
+
 
   if (pNewTargetParameters == nullptr)
   {
@@ -2338,7 +2364,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     return ret;
   }
 
-  DXGI_LOG_CALL_I6 (L"IDXGISwapChain", L"ResizeTarget", L"{ (%lux%lu@%3.1fHz), fmt=%lu, scaling=0x%02x, scanlines=0x%02x }",
+  DXGI_LOG_CALL_I6 ( L"IDXGISwapChain", L"ResizeTarget", L"{ (%lux%lu@%3.1fHz),"
+                     L" fmt=%lu, scaling=0x%02x, scanlines=0x%02x }",
                       pNewTargetParameters->Width, pNewTargetParameters->Height,
                       pNewTargetParameters->RefreshRate.Denominator != 0 ?
                         (float)pNewTargetParameters->RefreshRate.Numerator /
@@ -2347,8 +2374,6 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       (UINT)pNewTargetParameters->Format,
                             pNewTargetParameters->Scaling,
                             pNewTargetParameters->ScanlineOrdering );
-
-  InterlockedExchange (&__gui_reset, TRUE);
 
   HRESULT ret;
 
@@ -2596,7 +2621,9 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     }
 
 
-    if (config.render.dxgi.safe_fullscreen)                       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    if (config.render.dxgi.safe_fullscreen)
+      pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
     if (request_mode_change == mode_change_request_e::Fullscreen)
     {
       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
@@ -2735,7 +2762,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
     }
 
-    else {
+    else
+    {
       // Resort to triple-buffering if flip mode is not available
       if (config.render.framerate.buffer_count > 2)
         config.render.framerate.buffer_count = 2;
@@ -2773,17 +2801,17 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
 
   if (translated)
   {
-    pDesc1->BufferCount                      = pDesc->BufferCount;
-    pDesc1->BufferUsage                      = pDesc->BufferUsage;
-    pDesc1->Flags                            = pDesc->Flags;
-    pDesc1->SwapEffect                       = pDesc->SwapEffect;
-    pDesc1->SampleDesc.Count                 = pDesc->SampleDesc.Count;
-    pDesc1->SampleDesc.Quality               = pDesc->SampleDesc.Quality;
-    pDesc1->Format                           = pDesc->BufferDesc.Format;
-    pDesc1->Height                           = pDesc->BufferDesc.Height;
-    pDesc1->Width                            = pDesc->BufferDesc.Width;
+    pDesc1->BufferCount                        = pDesc->BufferCount;
+    pDesc1->BufferUsage                        = pDesc->BufferUsage;
+    pDesc1->Flags                              = pDesc->Flags;
+    pDesc1->SwapEffect                         = pDesc->SwapEffect;
+    pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
+    pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
+    pDesc1->Format                             = pDesc->BufferDesc.Format;
+    pDesc1->Height                             = pDesc->BufferDesc.Height;
+    pDesc1->Width                              = pDesc->BufferDesc.Width;
 
-    hWnd                                     = pDesc->OutputWindow;
+    hWnd                                       = pDesc->OutputWindow;
 
     if (pFullscreenDesc != nullptr)
     {
@@ -2816,7 +2844,8 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
   SK_DXGI_HookSwapChain (*ppSwapChain);
 
   //if (bFlipMode || bWait)
-    //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count, pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+    //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
+    //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 
   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
@@ -3011,7 +3040,9 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
 
   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, &new_fullscreen_desc);
 
-  DXGI_CALL (ret, CreateSwapChainForHwnd_Original (This, pDevice, hWnd, &new_desc1, pFullscreenDesc ? &new_fullscreen_desc : pFullscreenDesc, pRestrictToOutput, ppSwapChain));
+  DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, &new_desc1, pFullscreenDesc ?
+                                                       &new_fullscreen_desc : pFullscreenDesc,
+                                                         pRestrictToOutput, ppSwapChain ) );
 
   if ( SUCCEEDED (ret)      &&
        ppSwapChain  != NULL &&
@@ -3048,7 +3079,8 @@ DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *Th
   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
 
 
-  DXGI_CALL (ret, CreateSwapChainForComposition_Original (This, pDevice, &new_desc1, pRestrictToOutput, ppSwapChain));
+  DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
+                                                             pRestrictToOutput, ppSwapChain ));
 
   if ( SUCCEEDED (ret)      &&
        ppSwapChain  != NULL &&
@@ -3295,7 +3327,8 @@ STDMETHODCALLTYPE GetDesc_Override (IDXGIAdapter      *This,
 
   if (config.system.log_level >= 1)
   {
-    dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu MiB, Dedicated System: %zu MiB, Shared System: %zu MiB",
+    dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu MiB, Dedicated System: %zu MiB, "
+                  L"Shared System: %zu MiB",
                     pDesc->DedicatedVideoMemory    >> 20UL,
                       pDesc->DedicatedSystemMemory >> 20UL,
                         pDesc->SharedSystemMemory  >> 20UL );
@@ -3831,10 +3864,6 @@ STDMETHODCALLTYPE PresentCallback_Pre (IDXGISwapChain *This,
 void
 SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook)
 {
-  SYMBOL_INFO_PACKAGE sip = { };
-  sip.si.MaxNameLen       = sizeof (sip.name) - 1;
-  sip.si.SizeOfStruct     = sizeof (sip.si);
-
   if (rehook)
   {
     static volatile ULONG __installed_second_hook = FALSE;
@@ -3876,31 +3905,13 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook)
 
   if (Present_Original == nullptr)
   {
-    //SymRefreshModuleList (GetCurrentProcess ());
-    //SymFromName          (GetCurrentProcess (), "CDXGISwapChain::PresentImpl", &sip.si);
-    
-    bool used_debug_symbol = false;
-    
-    //if (sip.si.Address != 0)
-    //{
-    //  if (MH_OK == SK_CreateFuncHook (L"IDXGISwapChain::Present", (LPVOID)sip.si.Address, PresentCallback, (LPVOID *)&Present_Original))
-    //  {
-    //    SK_EnableHook (Present_Original);
-    //    used_debug_symbol = true;
-    //    vftable_8 = (LPVOID)sip.si.Address;
-    //  }
-    //}
+    DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
+                        "IDXGISwapChain::Present",
+                         PresentCallback,
+                         Present_Original,
+                         PresentSwapChain_pfn );
 
-    if (! used_debug_symbol)
-    {
-      DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
-                          "IDXGISwapChain::Present",
-                           PresentCallback,
-                           Present_Original,
-                           PresentSwapChain_pfn );
-    
-      vftable_8 = vftable [8];
-    }
+    vftable_8 = vftable [8];
   }
 
   CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
@@ -4017,7 +4028,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    WaitForInitDXGI ();
+    //WaitForInitDXGI ();
     return;
   }
 
@@ -4169,6 +4180,7 @@ HookDXGI (LPVOID user)
 
   if (InterlockedCompareExchange (&__dxgi_ready, TRUE, TRUE))
   {
+    WaitForInit ();
     return 0;
   }
 
@@ -4185,9 +4197,10 @@ HookDXGI (LPVOID user)
 
   HRESULT hr = E_NOTIMPL;
 
+  InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
+
 #ifdef _WIN64
   extern LPVOID pfnD3D11CreateDevice;
-  //extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
   hr =
     ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
@@ -4219,19 +4232,11 @@ HookDXGI (LPVOID user)
                         &pImmediateContext );
 #endif
 
-  // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
-
-
   if (SUCCEEDED (hr))
   {
-    IDXGIDevice*  pDevDXGI = nullptr;
-    IDXGIAdapter* pAdapter = nullptr;
-    IDXGIFactory* pFactory = nullptr;
+    CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+    CComPtr <IDXGIAdapter> pAdapter = nullptr;
+    CComPtr <IDXGIFactory> pFactory = nullptr;
 
     if ( SUCCEEDED (pDevice->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
          SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter))  &&
@@ -4240,62 +4245,81 @@ HookDXGI (LPVOID user)
       d3d11_hook_ctx.ppDevice           = &pDevice;
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
+      IDXGIFactory* pThreadFactory = nullptr;
+      pFactory.CopyTo (&pThreadFactory);
+
+  // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+      SK_LoadPlugIns64 ();
+#else
+      SK_LoadPlugIns32 ();
+#endif
+
       HookD3D11           (&d3d11_hook_ctx);
       SK_DXGI_HookFactory (pFactory);
 
-      CreateThread (nullptr, 0, [] (LPVOID user) -> DWORD {
-                                  WaitForInit ();
-      
-                                  DWORD dwStart = timeGetTime ();
-      
-                                  while (SK_GetFramesDrawn () < 3 && timeGetTime () < dwStart + 5000UL)
-                                    SleepEx (100UL, TRUE);
-      
-                                  if (! SK_GetFramesDrawn ())
-                                  {
-                                    HWND hwnd =
-                                      CreateWindowW ( L"STATIC", L"Dummy DXGI Window",
-                                                        WS_POPUP        | WS_MINIMIZEBOX,
-                                                          CW_USEDEFAULT, CW_USEDEFAULT,
-                                                            640, 480, 0,
-                                                              nullptr, nullptr, 0x00 );
-      
-                                    DXGI_SWAP_CHAIN_DESC desc = { };
-      
-                                    desc.BufferDesc.Width                   = 640;
-                                    desc.BufferDesc.Height                  = 480;
-      
-                                    desc.BufferDesc.RefreshRate.Numerator   = 0;
-                                    desc.BufferDesc.RefreshRate.Denominator = 0;
-                                    desc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
-                                    desc.BufferDesc.ScanlineOrdering        = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-                                    desc.BufferDesc.Scaling                 = config.render.dxgi.scaling_mode == -1 ?
-                                                                                DXGI_MODE_SCALING_UNSPECIFIED :
-                                                             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-      
-                                    desc.SampleDesc.Count                   = 1;
-                                    desc.SampleDesc.Quality                 = 0;
-      
-                                    desc.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-                                    desc.BufferCount                        = 1;
-      
-                                    desc.OutputWindow                       = hwnd;
-                                    desc.Windowed                           = TRUE;
-      
-                                    desc.SwapEffect                         = DXGI_SWAP_EFFECT_DISCARD;
-      
-                                    IDXGISwapChain* pSwapChain;
-      
-                                    ((IDXGIFactory *)user)->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain);
-                                    pSwapChain->Release                     ();
-      
-                                    DestroyWindow (hwnd);
-                                  }
-      
-                                  CloseHandle (GetCurrentThread ());
-      
-                                  return 0;
-                                }, (LPVOID)pFactory, 0x00, nullptr);
+      // This crazy thread will create a dummy window in order to create our OWN swap chain to try and
+      //   get a working Pressent (...) hook installed if we 1. miss initial device creation or 2. a
+      //     third-party injector removes our original hook.
+      //
+      CreateThread (nullptr, 0,
+        [] (LPVOID user) ->
+        DWORD
+          {
+            WaitForInit ();
+
+            DWORD dwStart = timeGetTime ();
+
+            while (SK_GetFramesDrawn () < 3 && timeGetTime () < dwStart + 5000UL)
+              SleepEx (100UL, TRUE);
+
+            if (! SK_GetFramesDrawn ())
+            {
+              HWND hwnd =
+                CreateWindowW ( L"STATIC", L"Dummy DXGI Window",
+                                  WS_POPUP        | WS_MINIMIZEBOX,
+                                    CW_USEDEFAULT, CW_USEDEFAULT,
+                                      640, 480, 0,
+                                        nullptr, nullptr, 0x00 );
+
+              DXGI_SWAP_CHAIN_DESC desc = { };
+
+              desc.BufferDesc.Width                   = 640;
+              desc.BufferDesc.Height                  = 480;
+
+              desc.BufferDesc.RefreshRate.Numerator   = 0;
+              desc.BufferDesc.RefreshRate.Denominator = 0;
+              desc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
+              desc.BufferDesc.ScanlineOrdering        = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+              desc.BufferDesc.Scaling                 = config.render.dxgi.scaling_mode == -1 ?
+                                                          DXGI_MODE_SCALING_UNSPECIFIED :
+                                       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+
+              desc.SampleDesc.Count                   = 1;
+              desc.SampleDesc.Quality                 = 0;
+
+              desc.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+              desc.BufferCount                        = 1;
+
+              desc.OutputWindow                       = hwnd;
+              desc.Windowed                           = TRUE;
+
+              desc.SwapEffect                         = DXGI_SWAP_EFFECT_DISCARD;
+
+              IDXGISwapChain* pSwapChain;
+
+              ((IDXGIFactory *)user)->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain);
+              pSwapChain->Release                     ();
+
+              ((IDXGIFactory *)user)->Release ();
+
+              DestroyWindow (hwnd);
+            }
+
+            CloseHandle (GetCurrentThread ());
+
+            return 0;
+          }, (LPVOID)pThreadFactory, 0x00, nullptr);
 
       // These don't do anything (anymore)
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
@@ -4336,6 +4360,8 @@ SK::DXGI::Shutdown (void)
 
   return SK_ShutdownCore (L"dxgi");
 }
+
+
 
 void
 WINAPI
@@ -4612,7 +4638,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 {
   budget_thread_params_t* params =
     static_cast <budget_thread_params_t *> (user_data);
-  
+
   budget_log.silent = true;
   params->tid       = GetCurrentThreadId ();
   params->event     =

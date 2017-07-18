@@ -61,6 +61,11 @@ std::wstring   SK_UTF8ToWideChar       (std::string  in);
 std::string
 __cdecl        SK_FormatString         (char const* const _Format, ...);
 
+void           SK_StripTrailingSlashesW (wchar_t* wszInOut);
+void           SK_FixSlashesW           (wchar_t* wszInOut);
+void           SK_StripTrailingSlashesA (char*     szInOut);
+void           SK_FixSlashesA           (char*     szInOut);
+
 void           SK_SetNormalFileAttribs (std::wstring file);
 
 const wchar_t* SK_GetHostApp           (void);

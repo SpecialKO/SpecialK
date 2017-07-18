@@ -2632,3 +2632,76 @@ SK_FormatString (char const* const _Format, ...)
 
   return out;
 }
+
+
+void
+SK_StripTrailingSlashesW (wchar_t* wszInOut)
+{
+  struct test_slashes
+  {
+    bool operator () (wchar_t a, wchar_t b) const
+    {
+      auto IsSlash = [](wchar_t a) -> bool {
+        return (a == L'\\' || a == L'/');
+      };
+
+      return IsSlash (a) && IsSlash (b);
+    }
+  };
+  
+  std::wstring wstr (wszInOut);
+  
+  wstr.erase ( std::unique ( wstr.begin (),
+                             wstr.end   (), test_slashes () ),
+                 wstr.end () );
+
+  wcscpy (wszInOut, wstr.c_str ());
+}
+
+void
+SK_FixSlashesW (wchar_t* wszInOut)
+{ 
+  std::wstring wstr (wszInOut);
+
+  for ( auto&& it : wstr )
+    if (it == L'/')
+      it = L'\\';
+
+  wcscpy (wszInOut, wstr.c_str ());
+}
+
+void
+SK_StripTrailingSlashesA (char* szInOut)
+{
+  struct test_slashes
+  {
+    bool operator () (char a, char b) const
+    {
+      auto IsSlash = [](char a) -> bool {
+        return (a == '\\' || a == '/');
+      };
+
+      return IsSlash (a) && IsSlash (b);
+    }
+  };
+  
+  std::string str (szInOut);
+  
+  str.erase ( std::unique ( str.begin (),
+                            str.end   (), test_slashes () ),
+                str.end () );
+
+  strcpy (szInOut, str.c_str ());
+}
+
+void
+SK_FixSlashesA (char* szInOut)
+{ 
+  std::string str (szInOut);
+
+  for ( auto&& it : str )
+    if (it == '/')
+      it = '\\';
+
+  strcpy (szInOut, str.c_str ());
+}

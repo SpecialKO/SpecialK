@@ -22,10 +22,17 @@
 #include <d3d9.h>
 
 #include <SpecialK/render_backend.h>
+#include <SpecialK/dxgi_backend.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/command.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/import.h>
+
+#include <atlbase.h>
+
+//#undef NDEBUG
+#include <cassert>
 
 SK_RenderBackend __SK_RBkEnd;
 
@@ -44,6 +51,9 @@ extern void WINAPI SK_HookD3D9   (void);
 extern void WINAPI SK_HookD3D8   (void);
 extern void WINAPI SK_HookDDraw  (void);
 extern void WINAPI SK_HookDXGI   (void);
+
+extern void
+SK_D3D9_TriggerReset (bool);
 
 void
 __stdcall
@@ -102,6 +112,16 @@ SK_BootD3D9 (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
   SK_HookD3D9 ();
+
+  if (SK_GetDLLRole () == DLL_ROLE::D3D9)
+  {
+    // Load user-defined DLLs (Early)
+#ifdef _WIN64
+    SK_LoadEarlyImports64 ();
+#else
+    SK_LoadEarlyImports32 ();
+#endif
+  }
 }
 
 #ifndef _WIN64
@@ -129,6 +149,12 @@ SK_BootD3D8 (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
 
   SK_HookD3D8 ();
+
+  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+  {
+    // Load user-defined DLLs (Early)
+    SK_LoadEarlyImports32 ();
+  }
 }
 
 void
@@ -155,6 +181,12 @@ SK_BootDDraw (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
 
   SK_HookDDraw ();
+
+  if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+  {
+    // Load user-defined DLLs (Early)
+    SK_LoadEarlyImports32 ();
+  }
 }
 #endif
 
@@ -192,6 +224,16 @@ SK_BootDXGI (void)
   dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
   SK_HookDXGI ();
+
+  if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+  {
+    // Load user-defined DLLs (Early)
+#ifdef _WIN64
+    SK_LoadEarlyImports64 ();
+#else
+    SK_LoadEarlyImports32 ();
+#endif
+  }
 }
 
 
@@ -220,6 +262,16 @@ SK_BootOpenGL (void)
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
   SK_HookGL ();
+
+  if (SK_GetDLLRole ( ) == DLL_ROLE::OpenGL)
+  {
+    // Load user-defined DLLs (Early)
+#ifdef _WIN64
+    SK_LoadEarlyImports64 ();
+#else
+    SK_LoadEarlyImports32 ();
+#endif
+  }
 #endif
 }
 
@@ -253,13 +305,28 @@ SK_RenderBackend_V2::gsync_s::update (void)
   if (! (config.apis.NvAPI.gsync_status && sk::NVAPI::nv_hardware))
     return;
 
-  if (last_checked < timeGetTime () - 500UL)
+
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+
+  if ( rb.device    == nullptr ||
+       rb.swapchain == nullptr ||
+       rb.surface   == 0 )
+  {
+    last_checked = timeGetTime ();
+    active       = false;
+    return;
+  }
+
+
+  if ( last_checked < timeGetTime () - 500UL )
   {
     bool success = false;
 
-    if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &capable))
+    if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (rb.device, rb.surface, &capable))
     {
-      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 && SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+      if ((int)rb.api & (int)SK_RenderAPI::D3D11 && rb.fullscreen_exclusive)
       {
         success = true;
         active  = TRUE;
@@ -267,7 +334,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
       else
       {
-        if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (SK_GetCurrentRenderBackend ().device, SK_GetCurrentRenderBackend ().surface, &active))
+        if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (rb.device, rb.surface, &active))
         {
           last_checked = timeGetTime ();
           success      = true;
@@ -294,38 +361,45 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
     else
       last_checked = timeGetTime ();
+
+    // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
+    //   we can generally assume their lifetime is only as long as the D3D resource
+    //     they identify.
+    rb.surface = 0;
   }
 }
 
 
-extern void
-SK_D3D9_TriggerReset (bool);
-
-#include <SpecialK/dxgi_backend.h>
-
 bool
 SK_RenderBackendUtil_IsFullscreen (void)
 {
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
-  {
-    IDXGISwapChain* pSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
 
-    BOOL fullscreen;
+  if ((int)rb.api & (int)SK_RenderAPI::D3D11)
+  {
+    CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+    BOOL                     fullscreen = rb.fullscreen_exclusive;
+
+    rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+
     if (SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
       return fullscreen;
 
-    return SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+    return true;//rb.fullscreen_exclusive;
   }
 
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+  if ((int)rb.api & (int)SK_RenderAPI::D3D9)
   {
-    IDirect3DSwapChain9* pSwapChain = (IDirect3DSwapChain9 *)SK_GetCurrentRenderBackend ().swapchain;
+    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+
+    rb.swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwapChain);
 
     D3DPRESENT_PARAMETERS pparams;
     if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
       return (! pparams.Windowed);
 
-    return SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+    return rb.fullscreen_exclusive;
   }
 
   return false;
@@ -340,30 +414,39 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
     config.display.force_fullscreen = true;
   }
 
-  fullscreen_exclusive = SK_RenderBackendUtil_IsFullscreen ();
+  fullscreen_exclusive =
+    SK_RenderBackendUtil_IsFullscreen ();
 
   if (! fullscreen_exclusive)
   {
-    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+    if ((int)api & (int)SK_RenderAPI::D3D9)
     {
       SK_D3D9_TriggerReset (true);
     }
 
-    else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+    else if ((int)api & (int)SK_RenderAPI::D3D11)
     {
-      ((IDXGISwapChain *)swapchain)->SetFullscreenState (TRUE, nullptr);
+      CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+      swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+
+      pSwapChain->SetFullscreenState (TRUE, nullptr);
     }
   }
 
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  if ((int)api & (int)SK_RenderAPI::D3D11)
   {
     DXGI_SWAP_CHAIN_DESC swap_desc;
 
-    if (SUCCEEDED (((IDXGISwapChain *)swapchain)->GetDesc (&swap_desc)))
+    CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+    swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+
+    if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
     {
-      if (SUCCEEDED (((IDXGISwapChain *)swapchain)->ResizeTarget (&swap_desc.BufferDesc)))
+      if (SUCCEEDED (pSwapChain->ResizeTarget (&swap_desc.BufferDesc)))
       {
-        SendMessage (swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED, MAKELPARAM (swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height));
+        SendMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
+                        MAKELPARAM ( swap_desc.BufferDesc.Width,
+                                     swap_desc.BufferDesc.Height ) );
       }
     }
   }
@@ -378,20 +461,69 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
     config.display.force_fullscreen = false;
   }
 
-  fullscreen_exclusive = SK_RenderBackendUtil_IsFullscreen ();
+  fullscreen_exclusive =
+    SK_RenderBackendUtil_IsFullscreen ();
 
   if (fullscreen_exclusive)
   {
-    if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+    if ((int)api & (int)SK_RenderAPI::D3D9)
     {
       SK_D3D9_TriggerReset (true);
     }
 
-    else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+    else if ((int)api & (int)SK_RenderAPI::D3D11)
     {
-      ((IDXGISwapChain *)swapchain)->SetFullscreenState (FALSE, nullptr);
+      CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+      swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+
+      pSwapChain->SetFullscreenState (FALSE, nullptr);
     }
   }
+}
+
+
+_Return_type_success_ (nullptr)
+IUnknown*
+SK_COM_ValidateRelease (IUnknown** ppObj)
+{
+  if ((! ppObj) || (! InterlockedCompareExchangePointer ((volatile LPVOID *)ppObj, nullptr, nullptr)))
+    return nullptr;
+  
+  ULONG refs =
+    (*ppObj)->Release ();
+  
+  assert (refs == 0);
+  
+  if (refs == 0)
+  {
+    InterlockedExchangePointer ((void **)ppObj, nullptr);
+  }
+
+  return *ppObj;
+}
+
+void
+SK_RenderBackend_V2::releaseOwnedResources (void)
+{
+  SK_AutoCriticalSection auto_cs (&cs_res);
+
+  if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
+  {
+    device              = SK_COM_ValidateRelease (&device);
+    swapchain           = SK_COM_ValidateRelease (&swapchain);
+    d3d11.immediate_ctx = SK_COM_ValidateRelease (&d3d11.immediate_ctx);
+  }
+}
+
+SK_RenderBackend_V2::SK_RenderBackend_V2 (void)
+{
+  InitializeCriticalSectionAndSpinCount (&cs_res, 1024*1024);
+}
+
+SK_RenderBackend_V2::~SK_RenderBackend_V2 (void)
+{
+  releaseOwnedResources ();
+  DeleteCriticalSection (&cs_res);
 }
 
 
