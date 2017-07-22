@@ -343,6 +343,7 @@ struct sk_config_t
       bool    native_ps4        = false;
 
       struct {
+        unsigned
         int   ui_slot           =    0;
         bool  placehold [4]     = { false };
         bool  disable_rumble    = false;
@@ -371,6 +372,7 @@ struct sk_config_t
 //   >> Ideally we want absolute cursor position every frame for the UI, but
 //        that's not always possible. <<
 //
+      float   antiwarp_deadzone = 2.5f;
     } mouse;
   } input;
 

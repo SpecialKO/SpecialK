@@ -57,7 +57,7 @@ SK_InputUtil_IsHWCursorVisible (void)
 
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
 
 
 #define SK_HID_READ(type)  SK_HID_Backend.markRead  (type);
@@ -105,9 +105,9 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
 
       case HID_USAGE_GENERIC_KEYBOARD:
       case HID_USAGE_GENERIC_KEYPAD:
-      case 0:
       {
         SK_HID_READ (sk_input_dev_type::Keyboard)
+
         if (SK_ImGui_WantKeyboardCapture ())
           filter = true;
       } break;
@@ -588,9 +588,10 @@ SK_RawInput_PopulateDeviceList (void)
 
   SetLastError (dwLastError);
 
-  if (uiNumDevices != 0)
+  if (uiNumDevices != 0 && ret == -1)
   {
-    pDevices = new RAWINPUTDEVICE [uiNumDevices + 1];
+    pDevices = new
+      RAWINPUTDEVICE [uiNumDevices + 1];
 
     GetRegisteredRawInputDevices_Original (pDevices, &uiNumDevices, sizeof RAWINPUTDEVICE);
 
@@ -612,6 +613,8 @@ UINT WINAPI GetRegisteredRawInputDevices_Detour (
   _Inout_   PUINT           puiNumDevices,
   _In_      UINT            cbSize )
 {
+  UNREFERENCED_PARAMETER (cbSize);
+
   SK_LOG_FIRST_CALL
 
   assert (cbSize == sizeof RAWINPUTDEVICE);
@@ -632,7 +635,7 @@ UINT WINAPI GetRegisteredRawInputDevices_Detour (
 
     SetLastError (ERROR_INSUFFICIENT_BUFFER);
 
-    return -1;
+    return std::numeric_limits <UINT>::max ();
   }
 
   int idx = 0;
@@ -1108,10 +1111,12 @@ SK_ImGui_WantGamepadCapture (void)
       imgui_capture = true;
   }
 
+#ifdef _WIN64
   // Stupid hack, breaking whatever abstraction this horrible mess passes for
   extern bool __FAR_Freelook;
   if (__FAR_Freelook)
     imgui_capture = true;
+#endif
 
   return imgui_capture;
 }
@@ -1467,7 +1472,7 @@ GetAsyncKeyState_Detour (_In_ int vKey)
       config.window.background_render && (! game_window.active))
     SK_ConsumeVKey (vKey);
 
-  if ((vKey & 0xFF) >= 5)
+  if (vKey & 0xF8) // Valid Keys:  8 - 255
   {
     if (SK_ImGui_WantKeyboardCapture ())
       SK_ConsumeVKey (vKey);
@@ -1500,7 +1505,7 @@ GetKeyState_Detour (_In_ int nVirtKey)
       config.window.background_render && (! game_window.active))
     SK_ConsumeVirtKey (nVirtKey);
 
-  if ((nVirtKey & 0xFF) >= 5)
+  if (nVirtKey & 0xF8) // Valid Keys:  8 - 255
   {
     if (SK_ImGui_WantKeyboardCapture ())
       SK_ConsumeVirtKey (nVirtKey);
@@ -1526,17 +1531,18 @@ GetKeyboardState_Detour (PBYTE lpKeyState)
 
   if (SK_ImGui_WantKeyboardCapture ())
   {
-    memset (lpKeyState, 0, 256);
+    memset (&lpKeyState [7], 0, 248);
     return TRUE;
   }
 
-  BOOL bRet = GetKeyboardState_Original (lpKeyState);
+  BOOL bRet =
+    GetKeyboardState_Original (lpKeyState);
 
   if (bRet)
   {
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
-      memset (lpKeyState, 0, 5);
+      memset (lpKeyState, 0, 7);
   }
 
   return bRet;
@@ -1552,6 +1558,8 @@ ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
 {
+  assert (lpMsg->hwnd == game_window.hWnd);
+
   bool handled = false;
 
   switch (lpMsg->message)
@@ -1571,18 +1579,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
     case WM_SYSKEYDOWN:
     case WM_SYSKEYUP:
     {
-      if (peek)
-      {
-        if (lpMsg->message == WM_KEYDOWN || lpMsg->message == WM_SYSKEYDOWN)
-          if (! SK_Console::getInstance ()->KeyDown (lpMsg->wParam & 0xFF, lpMsg->lParam))
-            handled = true;
-
-        if (lpMsg->message == WM_KEYUP || lpMsg->message == WM_SYSKEYUP)
-          if (! SK_Console::getInstance ()->KeyUp (lpMsg->wParam & 0xFF, lpMsg->lParam))
-            handled = true;
-      }
-
-      if (( (! peek) && ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) ) || SK_Console::getInstance ()->isVisible ())
+      if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
         handled = true;
     } break;
 
@@ -1595,7 +1592,8 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
     // TODO: Does this message have an HWND always?
     case WM_DEVICECHANGE:
     {
-      handled = ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      handled =
+        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     } break;
 
     // Pre-Dispose These Mesages (fixes The Witness)
@@ -1616,25 +1614,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
     case WM_MOUSEWHEEL:
     case WM_MOUSEHWHEEL:
     {
-      handled = true;
+      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
-      if (peek)
-      {
-        if (SK_ImGui_WantMouseCapture ())
-          ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-      }
-
-      else
-        ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-
-      if (! SK_ImGui_WantMouseCapture ())
-        handled = false;
+      handled = SK_ImGui_WantMouseCapture ();
     } break;
 
     case WM_INPUT:
     {
-      if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) || SK_Console::getInstance ()->isVisible ())
-        handled = true;
+      handled = (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0);
     } break;
 
     default:

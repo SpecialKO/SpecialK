@@ -700,6 +700,7 @@
 #pragma GCC diagnostic ignored "-Wcast-qual"                // warning: cast from type 'xxxx' to type 'xxxx' casts away qualifiers
 #endif
 
+
 //-------------------------------------------------------------------------
 // Forward Declarations
 //-------------------------------------------------------------------------
@@ -2881,8 +2882,6 @@ void ImGui::NewFrame()
 
 
 
-
-
     SetCurrentFont(GetDefaultFont());
     IM_ASSERT(g.Font->IsLoaded());
 
@@ -3118,8 +3117,8 @@ void ImGui::NewFrame()
     ImGui::SetNextWindowSize(ImVec2(400,400), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Debug");
 
-    if (eula.show)
-      SK_ImGui_DrawEULA (&eula);
+  if (eula.show)
+    SK_ImGui_DrawEULA (&eula);
 }
 
 // NB: behavior of ImGui after Shutdown() is not tested/guaranteed at the moment. This function is merely here to free heap allocations.
@@ -11017,7 +11016,7 @@ extern float analog_sensitivity;
 #include <SpecialK/log.h>
 
 
-extern UINT SK_ImGui_ActivationKeys [256];
+extern INT SK_ImGui_ActivationKeys [256];
 
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend.markRead  (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend.markWrite (type);
@@ -11031,6 +11030,13 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self )
 {
+  HWND hWndActive =
+    GetActiveWindow ();
+
+  if ( ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
+    return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
+
   static HRAWINPUT last_input = 0;
 
   bool already_processed = (last_input == hRawInput);
@@ -11038,10 +11044,11 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
 
   extern bool SK_ImGui_Visible;
-  if (SK_ImGui_Visible)
+  if (SK_ImGui_Visible && SK_ImGui_WantMouseCapture ())
     SK_RawInput_EnableLegacyMouse  (true);
   else
     SK_RawInput_RestoreLegacyMouse ();
+
 
   // Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
   //
@@ -11049,13 +11056,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     SK_RawInput_EnableLegacyKeyboard (true);
   //else
   //  SK_RawInput_RestoreLegacyKeyboard ();
-
-
-
-  HWND hWndActive = GetActiveWindow ();
-
-  if ( ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
-    return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 
   bool owns_data = false;
@@ -11069,6 +11069,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
     if (pData != nullptr)
       owns_data = true;
+
+    else
+      return -1;
   }
 
 
@@ -11079,12 +11082,17 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool mouse    = false;
   bool keyboard = false;
 
-  bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+  // Input event happened while the window had focus if true, otherwise aanother
+  //   window is currently capturing input and the most appropriate response is
+  //     usually to ignore the event.
+  bool foreground = true;
+    //GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+
 
   auto FilterRawInput = [self,already_processed,foreground](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
     bool
       {
-        bool filter     = false;
+        bool filter = false;
 
         switch (pData->header.dwType)
         {
@@ -11106,73 +11114,54 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             mouse = true;
           } break;
 
+
           case RIM_TYPEKEYBOARD:
           {
             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
 
-            USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
-
-            //
-            // This isn't needed, we have to force legacy message generation on for the Steam Overlay not to
-            //   break Skyrim SE. That means we can always use the game's message pump to get keyboard input
-            //
-
-            //if (foreground && uiCommand == RID_INPUT)
-            //{
-            //  if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
-            //    SK_Console::getInstance ()->KeyDown (VKey & 0xFF, MAKELPARAM (0, ((RAWINPUT *)pData)->data.keyboard.MakeCode));
-            //
-            //  else
-            //    SK_Console::getInstance ()->KeyUp   (VKey & 0xFF, MAKELPARAM (0, ((RAWINPUT *)pData)->data.keyboard.MakeCode));
-            //}
-
+            USHORT VKey =
+              (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
 
             if (SK_ImGui_Visible)
             {
               // Only filter keydown message, not key releases
               if (SK_ImGui_WantKeyboardCapture ())
               {
-                if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+                if (VKey & 0xF8) // Valid Keys:  8 - 255
                   filter = true;
-
-                else
-                {
-                  if (SK_ImGui_ActivationKeys [VKey & 0xFF]) {
-                    filter = false;
-
-                    if (uiCommand == RID_INPUT && (! self))
-                      SK_ImGui_ActivationKeys [VKey & 0xFF]--;
-                  }
-                  else
-                    filter = true;
-                }
               }
+
 
               if (SK_ImGui_WantMouseCapture ())
               {
                 // That's actually a mouse button...
-                if (foreground)
+                if (foreground && VKey < 7)
                 {
-                  if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) < 5)
+                  if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
+                    filter = true;
+
+                  if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP)
                     filter = true;
                 }
-
-                if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP && (VKey & 0xff) < 5)
-                  filter = true;
               }
             }
 
+
             // Block keyboard input to the game while the console is active
-            if (SK_Console::getInstance ()->isVisible ())
+            if (SK_Console::getInstance ()->isVisible () && (VKey & 0xFF) > 7)
               filter = true;
+
 
             // Block keyboard input to the game while it's in the background
             if (config.window.background_render && (! game_window.active))
               filter = true;
 
-            keyboard = true;
+
+            if (VKey & 0xF8) // Valid Keys:  8 - 255
+              keyboard = true;
           } break;
+
 
           default:
           {
@@ -11190,7 +11179,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
   filter = FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
 
-  if (uiCommand == RID_INPUT && SK_ImGui_Visible)
+  if (uiCommand == RID_INPUT /*&& SK_ImGui_Visible*/)
   {
     switch (((RAWINPUT *)pData)->header.dwType)
     {
@@ -11230,17 +11219,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               ImGui::GetIO ().MouseDown [4] = true;
           }
 
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP   )
-            ImGui::GetIO ().MouseDown [0] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP  )
-            ImGui::GetIO ().MouseDown [1] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP )
-            ImGui::GetIO ().MouseDown [2] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP      )
-            ImGui::GetIO ().MouseDown [3] = false;
-          if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP      )
-            ImGui::GetIO ().MouseDown [4] = false;
-
           if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
             ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
         }
@@ -11249,26 +11227,23 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
       case RIM_TYPEKEYBOARD:
       {
-        USHORT VKey = ((RAWINPUT *)pData)->data.keyboard.VKey;
+        USHORT VKey =
+          ((RAWINPUT *)pData)->data.keyboard.VKey;
 
-        if ((VKey & 0xFF) > 4)
+        // VKeys 0-7 aren't on the keyboard :)
+        if (VKey & 0xFFF8) // Valid Keys:  8 - 65535
         {
-          if ( ! ((((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) && (! self)) )
+          if (! ((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK)
           {
             if (foreground)
               ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-          } else
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
+          }
 
-
-          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
+          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
           {
             if (foreground && (! self))
               ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
           }
-
-          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP   && (VKey & 0xff) >= 5 && (VKey & 0xff) < 256)
-            ImGui::GetIO ().KeysDown [VKey & 0xFF] = false;
 
           if (foreground)
           {
@@ -11284,37 +11259,78 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     }
   }
 
-  if (filter)
+  if (filter || keyboard)
   {
-    if (! owns_data) {
-      memset (pData, 0, *pcbSize);
-      *pcbSize = 0;
-    }
-
-    size = *pcbSize;
-
     // Clearing all bytes above would have set the type to mouse, and some games
     //   will actually read data coming from RawInput even when the size returned is 0!
     ((RAWINPUT *)pData)->header.dwType = keyboard ? RIM_TYPEKEYBOARD      :
                                                     mouse ? RIM_TYPEMOUSE :
                                                             RIM_TYPEHID;
 
-    if (uiCommand == RID_INPUT)
+    if (! owns_data)
     {
-      if (mouse)
+      if (! keyboard)
       {
-      }
-      
-      else if (keyboard && (! self))
-      {
-        //dll_log.Log (L"Captured VKey: %x", ((RAWINPUT *)pData)->data.keyboard.VKey);
+        memset (pData, 0, *pcbSize);
       }
 
-      else
+      // Tell the game this event happened in the background, most will
+      //   throw it out quick and easy. Even easier if we tell it the event came
+      //     from the keyboard.
+      if (filter)
       {
-        //dll_log.Log (L"Filtering Gamepad Input");
+        ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
+        ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
+
+        // Fake key release
+        ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
       }
+
+      // Ugh, why does everything have to be so complicated? :P
+      //
+      //   This horrible nightmare prevents games from seeing keys as stuck after
+      //     activating the ImGui overlay.
+      //
+      if (keyboard)
+      {
+        bool release = (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) != 0;
+        bool erase   = SK_ImGui_WantKeyboardCapture ();
+        bool invert  = false;
+
+        USHORT VKey =
+          ( (RAWINPUT *)pData )->data.keyboard.VKey & 0xFF;
+
+        if (erase)
+        {
+          if ((! release) && SK_ImGui_ActivationKeys [VKey] > 0)
+          {
+            SK_ImGui_ActivationKeys [VKey]--;
+            invert = true;
+          }
+
+          if (invert)
+          {
+            // We WANT the game to know about this event, don't sink it.
+            ((RAWINPUT *)pData)->header.wParam = RIM_INPUT;
+            ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
+
+            // Fake key release
+            ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
+
+            if (((RAWINPUT *)pData)->data.keyboard.Message      == WM_KEYDOWN)
+              ((RAWINPUT *)pData)->data.keyboard.Message = WM_KEYUP;
+
+            else if (((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSKEYDOWN)
+              ((RAWINPUT *)pData)->data.keyboard.Message = WM_SYSKEYUP;
+          }
+        }
+      }
+
+      if (! keyboard)
+        *pcbSize = 0;
     }
+
+    size = *pcbSize;
   }
 
   if (owns_data)
@@ -11327,12 +11343,13 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 void
 SK_Input_RememberPressedKeys (void)
 {
-  for (int i = 0; i < 256; i++)
+  for (int i = 7; i < 256; i++)
   {
-    SK_ImGui_ActivationKeys [i] = ImGui::GetIO ().KeysDown [i] ? 10 : 0;
+    SK_ImGui_ActivationKeys [i] += ImGui::GetIO ().KeysDown [i] ? 6 : 0;
   }
 }
 
+#if  0
 LRESULT
 WINAPI
 ImGui_UniversalMouseDispatch ( UINT msg, WPARAM wParam, LPARAM lParam )
@@ -11351,6 +11368,7 @@ ImGui_UniversalMouseDispatch ( UINT msg, WPARAM wParam, LPARAM lParam )
 
   return 0;
 }
+#endif
 
 bool
 SK_ImGui_WantMouseWarpFiltering (void)
@@ -11393,8 +11411,8 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
     SK_ImGui_Cursor.LocalToClient (&center);
 
     // Now test the cursor against the center of the screen
-    if ( abs (center.x - GET_X_LPARAM (lParam)) <= (center.x / 30) &&
-         abs (center.y - GET_Y_LPARAM (lParam)) <= (center.y / 30) )
+    if ( abs (center.x - GET_X_LPARAM (lParam)) <= ((float)center.x / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
+         abs (center.y - GET_Y_LPARAM (lParam)) <= ((float)center.y / (100.0f / config.input.mouse.antiwarp_deadzone)) )
     {
       filter = true;
     }
@@ -11490,8 +11508,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
       if ((! active) && changed)
       {
-        for (int i = 0; i < 5;   i++) io.MouseDown [i] = false;
-        for (int i = 5; i < 512; i++) io.KeysDown  [i] = false;
+        ZeroMemory (io.MouseDown, sizeof (bool) * 5  );
+        ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
       }
 
       window_active = active;
@@ -11547,6 +11565,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       } break;
 
 
+
       case WM_MOUSEACTIVATE:
       {
         if (hWnd == game_window.hWnd)
@@ -11554,6 +11573,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           ActivateWindow (((HWND)wParam == hWnd));
         }
       } break;
+
 
       case WM_ACTIVATEAPP:
       case WM_ACTIVATE:
@@ -11592,17 +11612,9 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
         io.MouseDown [0] = true;
         return true;
 
-      case WM_LBUTTONUP:
-        io.MouseDown [0] = false;
-        return true;
-
       case WM_RBUTTONDOWN:
       case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
         io.MouseDown [1] = true;
-        return true;
-
-      case WM_RBUTTONUP:
-        io.MouseDown [1] = false;
         return true;
 
       case WM_MBUTTONDOWN:
@@ -11610,9 +11622,33 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
         io.MouseDown [2] = true;
         return true;
 
-      case WM_MBUTTONUP:
-        io.MouseDown [2] = false;
+      case WM_XBUTTONDOWN:
+      case WM_XBUTTONDBLCLK: // Sent on receipt of the second click
+      {
+        WORD Flags =
+          GET_XBUTTON_WPARAM (wParam);
+
+        io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
+        io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
+
         return true;
+      } break;
+
+      // Don't care about these events for anything other than filtering;
+      //   we will poll the immediate mouse state when the frame starts.
+      //
+      //  This effectively gives us buffered mouse input behavior, where
+      //    no mouse click is ever lost (only the time that it happened).
+      //
+      case WM_LBUTTONUP:
+        return true;
+      case WM_RBUTTONUP:
+        return true;
+      case WM_MBUTTONUP:
+        return true;
+      case WM_XBUTTONUP:
+        return true;
+
 
       case WM_MOUSEWHEEL:
         io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
@@ -11621,27 +11657,21 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       {
-        // Don't process Alt+Tab or Alt+Enter
-        if (msg == WM_SYSKEYDOWN && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
-          return false;
+        BYTE  vkCode   = LOWORD (wParam) & 0xFF;
+        BYTE  scanCode = HIWORD (lParam) & 0x7F;
 
-        if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
+        if (vkCode & 0xF8) // Valid Keys:  8 - 255
         {
-          io.KeysDown [(wParam & 0xff)] = 1;
+          // Don't process Alt+Tab or Alt+Enter
+          if (msg == WM_SYSKEYDOWN && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
+            return false;
 
-          BYTE  vkCode   = LOWORD (wParam) & 0xFF;
-          BYTE  scanCode = HIWORD (lParam) & 0x7F;
+          // Just the make / break events, repeats are ignored
+          if      ((lParam & 0x40000000UL) == 0)
+            SK_Console::getInstance ()->KeyDown (vkCode, MAXDWORD);
 
           if (vkCode != VK_TAB)
           {
-#ifdef USE_DEPRECATED
-            BYTE                       keyState [256];
-            GetKeyboardState_Original (keyState);
-
-            keyState [VK_CAPITAL] =
-              GetAsyncKeyState_Original (VK_CAPITAL) & 0xFFUL;
-#endif
-
             wchar_t key_str;
 
             if ( ToUnicodeEx ( vkCode,
@@ -11660,40 +11690,66 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           }
         }
 
-        else if ((wParam & 0xff) < 5)
+        // Mouse event
+        //
+        else if (vkCode < 7)
         {
-          io.MouseDown [(wParam & 0xff)] = true;
+          int remap = -1;
+
+          // Stupid hack, but these indices are discontinuous
+          //
+          switch (vkCode)
+          {
+            case VK_LBUTTON:
+              remap = 0;
+              break;
+
+            case VK_RBUTTON:
+              remap = 1;
+              break;
+
+            case VK_MBUTTON:
+              remap = 2;
+              break;
+
+            case VK_XBUTTON1:
+              remap = 3;
+              break;
+
+            case VK_XBUTTON2:
+              remap = 4;
+              break;
+
+            default:
+              assert (false); // WTF?! These keys don't exist
+              break;
+          }
+
+          if (remap != -1)
+            io.MouseDown [remap] = true;
         }
 
         return true;
       } break;
+
 
       case WM_KEYUP:
       case WM_SYSKEYUP:
       {
-        // Don't process Alt+Tab or Alt+Enter
-        if (msg == WM_SYSKEYUP && ( (wParam & 0xFF) == VK_TAB || (wParam & 0xFF) == VK_RETURN ))
-          return false;
+        BYTE vkCode = LOWORD (wParam) & 0xFF;
 
-        if ((wParam & 0xff) > 5 && (wParam & 0xff) < 256)
+        if (vkCode & 0xF8) // Valid Keys:  8 - 255
         {
-          io.KeysDown [(wParam & 0xff)] = 0;
-        }
+          // Don't process Alt+Tab or Alt+Enter
+          if (msg == WM_SYSKEYUP && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
+            return false;
 
-        else if (( wParam & 0xff ) < 5)
-        {
-          io.MouseDown [(wParam & 0xff)] = true;
-        }
+          SK_Console::getInstance ()->KeyUp (vkCode, lParam);
 
-        // Let key release messages for keys that were pressed when the UI was
-        //   activated slip through to the game.
-        if (SK_ImGui_ActivationKeys [wParam & 0xFF])
-        {
-          SK_ImGui_ActivationKeys [wParam & 0xFF]--;
-          return false;
+          return true;
         }
-        return true;
       } break;
+
 
       case WM_NCMOUSEMOVE:
       case WM_MOUSEMOVE:
@@ -11745,7 +11801,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       case WM_CHAR:
       {
         // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-        if ((wParam & 0xff) >= 5 && wParam < 0x10000)
+        if ((wParam & 0xff) > 7 && wParam < 0x10000)
         {
           io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
         }
@@ -11769,22 +11825,22 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           if (! pData)
             return 0;
 
-          bool cap =
-            SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true);
+          bool cap = false;
 
           switch (data.header.dwType)
           {
             case RIM_TYPEMOUSE:
-              cap = cap && SK_ImGui_WantMouseCapture ();
+              cap = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0 && SK_ImGui_WantMouseCapture ();
               break;
 
             case RIM_TYPEKEYBOARD:
-              cap = SK_Console::getInstance ()->isVisible ();
-              //cap &= SK_ImGui_WantKeyboardCapture ();
+              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+              cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
               break;
 
             default:
-              cap = cap && SK_ImGui_WantGamepadCapture ();
+              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+              cap &= SK_ImGui_WantGamepadCapture ();
               break;
           }
 
@@ -11798,6 +11854,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     return false;
   };
 
+
   bool handled          = MessageProc (hWnd, msg, wParam, lParam);
   bool filter_raw_input = (msg == WM_INPUT && handled);
 
@@ -11806,12 +11863,12 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
   UINT uMsg = msg;
 
-  if (SK_ImGui_Visible && handled)
+  if (/*SK_ImGui_Visible &&*/ handled)
   { 
     bool keyboard_capture =
       ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
            uMsg == WM_HOTKEY     ||
-         ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam) == FAPPCOMMAND_KEY ) ) &&
+         ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam)  == FAPPCOMMAND_KEY   ) ) &&
           SK_ImGui_WantKeyboardCapture () );
 
     bool mouse_capture =
@@ -11822,9 +11879,9 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
             (filter_warps && uMsg == WM_MOUSEMOVE) )
       );
 
-    if ((wParam & 0xFF) < 5)
+    if ((wParam & 0xFF) < 7)
     {
-      // Some games use Virtual Key Codes 0-4 (mouse button 0-4)
+      // Some games use Virtual Key Codes 1-6 (mouse button 0-4)
       //   instead of WM_LBUTTONDOWN, etc.
       if ( ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
            ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
@@ -11843,6 +11900,11 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
     if ( keyboard_capture || mouse_capture || filter_raw_input )
     {
+      if (filter_raw_input)
+      {
+        return DefWindowProcW (hWnd, uMsg, lParam, wParam);
+      }
+
       return 1;
     }
   }
@@ -11868,7 +11930,7 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  if (SK_ImGui_WantGamepadCapture () && dwUserIndex == config.input.gamepad.xinput.ui_slot)
+  if (SK_ImGui_WantGamepadCapture () && dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot)
   {
     ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
@@ -11880,10 +11942,6 @@ SK_ImGui_FilterXInput (
 
   return false;
 }
-
-extern void
-SK_ImGui_Toggle (void);
-
 
 
 struct {
@@ -11911,6 +11969,8 @@ SK_XInput_PulseController ( INT   iJoyID,
 extern void
 SK_XInput_ZeroHaptics ( INT iJoyID );
 
+
+extern void SK_ImGui_Toggle (void);
 
 bool
 WINAPI
@@ -11957,6 +12017,34 @@ extern XINPUT_STATE joy_to_xi;
 void
 SK_ImGui_PollGamepad_EndFrame (void)
 {
+  ImGuiIO& io (ImGui::GetIO ());
+
+  // Reset Mouse / Keyboard State so that we can process all state transitions
+  //   that occur during the next frame without losing any input events.
+  if (GetForegroundWindow () == game_window.hWnd)
+  {
+    io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
+    io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;
+    io.MouseDown [2] = (GetAsyncKeyState_Original (VK_MBUTTON)  & 0x8000) != 0;
+    io.MouseDown [3] = (GetAsyncKeyState_Original (VK_XBUTTON1) & 0x8000) != 0;
+    io.MouseDown [4] = (GetAsyncKeyState_Original (VK_XBUTTON2) & 0x8000) != 0;
+
+    // This stupid hack prevents the Steam overlay from making the software
+    //   think tab is stuck down.
+    for (int i = 7; i < 256; i++)
+      io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+  }
+
+  else
+  {
+    ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+    ZeroMemory (io.MouseDown, sizeof (bool) * 5);
+  }
+
+
+
+  // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+  //   for no good reason.
   if (config.input.gamepad.native_ps4)
   {
     JOYINFOEX joy_ex   { };
@@ -11984,7 +12072,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
   state = di8_to_xi;
 #endif
 
-  if (config.input.gamepad.native_ps4 || SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
+  if ( config.input.gamepad.native_ps4 ||
+       SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
   {
     if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
          state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
@@ -12039,7 +12128,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     if (g.NavId != nav_id)
     {
-      if (haptic_events.PulseNav.end > (float)timeGetTime ()) {
+      if (haptic_events.PulseNav.end > (float)timeGetTime ())
+      {
         haptic_events.PulseNav.end   += haptic_events.PulseNav.duration;
         haptic_events.PulseNav.start += haptic_events.PulseNav.duration;
       }
@@ -12081,25 +12171,18 @@ SK_ImGui_PollGamepad (void)
     ImGui::GetIO ();
 
 
-  if (GetForegroundWindow () == game_window.hWnd)
-  {
-    // This stupid hack prevents the Steam overlay from making the software
-    //   think tab is stuck down.
-    for (int i = 5; i < 128; i++)
-      io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
-  }
-
-  else
-  {
-    for (int i = 0; i < 5; i++)
-    {
-      io.KeysDown  [i] = false;
-      io.MouseDown [i] = false;
-    }
-
-    for (int i = 5; i < 128; i++)
-      io.KeysDown [i] = false;
-  }
+  //extern INT SK_ImGui_ActivationKeys [256];
+  //
+  //for (int i = 8; i < 256; i++)
+  //{
+  //  if (SK_ImGui_ActivationKeys [i] > 0)
+  //  {
+  //    game_window.CallProc (game_window.hWnd, WM_KEYUP,    i, 0);
+  //    game_window.CallProc (game_window.hWnd, WM_SYSKEYUP, i, 0);
+  //
+  //    SK_ImGui_ActivationKeys [i] = 0;
+  //  }
+  //}
 
 
          XINPUT_STATE state;

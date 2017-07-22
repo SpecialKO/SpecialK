@@ -1275,13 +1275,12 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
             SK_Inject_Stop ();
           }
 
-          HANDLE hThread =
-            CreateThread ( nullptr,
-                             0,
-                               UpdateDlg_Thread,
-                                 nullptr,
-                                   0x00,
-                                     nullptr );
+          CreateThread ( nullptr,
+                           0,
+                             UpdateDlg_Thread,
+                               nullptr,
+                                 0x00,
+                                   nullptr );
 
           LONG status = 0;
 

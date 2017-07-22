@@ -349,7 +349,7 @@ SK_DS3_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
   size_t pages = 0;
 
 // Scan up to 256 MiB worth of data
-#ifdef __WIN32
+#ifndef __WIN64
 uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 26));
 #else
   // Dark Souls 3 needs this, its address space is completely random to the point
@@ -427,8 +427,9 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
       if (mask != nullptr && (! mask [idx]))
         match = true;
 
-      if (match) {
-        if (++idx == len)
+      if (match)
+      {
+        if (++idx == (int)len)
           return (void *)begin;
 
         ++it;
@@ -1411,6 +1412,8 @@ DWORD
 WINAPI
 SK_DS3_OSD_Disclaimer (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   while ((volatile bool&)config.osd.show)
     Sleep (66);
 

@@ -80,9 +80,13 @@ void
 __stdcall
 SK_ImGui_DrawEULA_PlugIn (LPVOID reserved)
 {
+  UNREFERENCED_PARAMETER (reserved);
+
   // Need a minimal function body to avoid compiler optimization
   ImGuiIO& io =
     ImGui::GetIO ();
+
+  DBG_UNREFERENCED_LOCAL_VARIABLE (io);
 
   return;
 }

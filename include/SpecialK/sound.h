@@ -197,23 +197,52 @@ public:
 
   HRESULT
   STDMETHODCALLTYPE
-  OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID EventContext) { return S_OK; };
+  OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID EventContext) {
+    UNREFERENCED_PARAMETER (NewDisplayName);
+    UNREFERENCED_PARAMETER (EventContext);
+
+    return S_OK;
+  };
         
   HRESULT
   STDMETHODCALLTYPE
-  OnIconPathChanged (LPCWSTR NewIconPath, LPCGUID EventContext) { return S_OK; };
+  OnIconPathChanged (LPCWSTR NewIconPath, LPCGUID EventContext) {
+    UNREFERENCED_PARAMETER (NewIconPath);
+    UNREFERENCED_PARAMETER (EventContext);
+
+    return S_OK;
+  };
         
   HRESULT
   STDMETHODCALLTYPE
-  OnSimpleVolumeChanged (float NewVolume, BOOL NewMute, LPCGUID EventContext) { return S_OK; };
+  OnSimpleVolumeChanged (float NewVolume, BOOL NewMute, LPCGUID EventContext) {
+    UNREFERENCED_PARAMETER (NewVolume);
+    UNREFERENCED_PARAMETER (NewMute);
+    UNREFERENCED_PARAMETER (EventContext);
+
+    return S_OK;
+  };
       
   HRESULT
   STDMETHODCALLTYPE
-  OnChannelVolumeChanged (DWORD ChannelCount, float NewChannelVolumeArray[  ], DWORD ChangedChannel, LPCGUID EventContext) { return S_OK; };
+  OnChannelVolumeChanged (DWORD ChannelCount, float NewChannelVolumeArray[  ], DWORD ChangedChannel, LPCGUID EventContext) {
+    // TODO
+    UNREFERENCED_PARAMETER (ChannelCount);
+    UNREFERENCED_PARAMETER (NewChannelVolumeArray);
+    UNREFERENCED_PARAMETER (ChangedChannel);
+    UNREFERENCED_PARAMETER (EventContext);
+
+    return S_OK;
+  };
       
   HRESULT
   STDMETHODCALLTYPE
-  OnGroupingParamChanged (LPCGUID NewGroupingParam, LPCGUID EventContext) { return S_OK; }
+  OnGroupingParamChanged (LPCGUID NewGroupingParam, LPCGUID EventContext) {
+    UNREFERENCED_PARAMETER (NewGroupingParam);
+    UNREFERENCED_PARAMETER (EventContext);
+
+    return S_OK;
+  }
 
   HRESULT
   STDMETHODCALLTYPE

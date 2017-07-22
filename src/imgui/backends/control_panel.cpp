@@ -452,7 +452,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
         SK_WASAPI_AudioSession* pSession =
           pSessions [i];
 
-        bool selected     = false;
+        //bool selected     = false;
         bool drawing_self = (pSession->getProcessId () == GetCurrentProcessId ());
 
         CComPtr <ISimpleAudioVolume> volume_ctl =
@@ -561,16 +561,18 @@ SK_ImGui_AdjustCursor (void)
 bool reset_frame_history = true;
 bool was_reset           = false;
 
+#pragma optimize( "", off ) 
 __declspec (noinline)
 IMGUI_API
 void
 __stdcall
 SK_PlugIn_ControlPanelWidget (void)
 {
-  // Needs a function body for hooking -- otherwise compiler eliminates dead code :(
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  // Give a function body to prevent dead code elimination
+  int x = rand ();
+  ++x;
 }
+#pragma optimize( "", on ) 
 
 void
 DisplayModeMenu (bool windowed)
@@ -700,7 +702,6 @@ DisplayModeMenu (bool windowed)
 
     if (ImGui::Combo ("Window Style###SubMenu_WindowBorder_Combo", &mode, modes, config.window.borderless ? 3 : 2) && mode != orig_mode)
     {
-      bool fullscreen = config.window.fullscreen;
       bool borderless = config.window.borderless;
 
       switch (mode)
@@ -721,8 +722,6 @@ DisplayModeMenu (bool windowed)
       }
 
       SK_ImGui_AdjustCursor ();
-
-      bool after_fullscreen = config.window.fullscreen;
 
       if (config.window.borderless != borderless)
       {
@@ -2328,25 +2327,25 @@ SK_ImGui_ControlPanel (void)
           ImGui::Text("UI Controlled By:  "); ImGui::SameLine();
 
           if (connected [0]) {
-            ImGui::RadioButton ("XInput Controller 0##XInputSlot", &config.input.gamepad.xinput.ui_slot, 0);
+            ImGui::RadioButton ("XInput Controller 0##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 0);
             if (connected [1] || connected [2] || connected [3]) ImGui::SameLine ();
           }
 
           if (connected [1]) {
-            ImGui::RadioButton ("XInput Controller 1##XInputSlot", &config.input.gamepad.xinput.ui_slot, 1);
+            ImGui::RadioButton ("XInput Controller 1##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 1);
             if (connected [2] || connected [3]) ImGui::SameLine ();
           }
 
           if (connected [2]) {
-            ImGui::RadioButton ("XInput Controller 2##XInputSlot", &config.input.gamepad.xinput.ui_slot, 2);
+            ImGui::RadioButton ("XInput Controller 2##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 2);
             if (connected [3]) ImGui::SameLine ();
           }
 
           if (connected [3])
-            ImGui::RadioButton ("XInput Controller 3##XInputSlot", &config.input.gamepad.xinput.ui_slot, 3);
+            ImGui::RadioButton ("XInput Controller 3##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 3);
 
           ImGui::SameLine    ();
-          ImGui::RadioButton ("Nothing", &config.input.gamepad.xinput.ui_slot, 4);
+          ImGui::RadioButton ("Nothing", (int *)&config.input.gamepad.xinput.ui_slot, 4);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
@@ -2424,15 +2423,48 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (ImGui::CollapsingHeader ("Low-Level Mouse Settings", ImGuiTreeNodeFlags_DefaultOpen))
       {
+        static bool deadzone_hovered = false;
+        float  float_thresh          = std::max (1.0f, std::min (100.0f, config.input.mouse.antiwarp_deadzone));
+
+        ImVec2 deadzone_pos    = ImGui::GetIO ().DisplaySize;
+               deadzone_pos.x /= 2.0f;
+               deadzone_pos.y /= 2.0f;
+        ImVec2 deadzone_size ( ImGui::GetIO ().DisplaySize.x * float_thresh / 200.0f,
+                               ImGui::GetIO ().DisplaySize.y * float_thresh / 200.0f );
+
+        ImVec2 xy0 ( deadzone_pos.x - deadzone_size.x,
+                     deadzone_pos.y - deadzone_size.y );
+        ImVec2 xy1 ( deadzone_pos.x + deadzone_size.x,
+                     deadzone_pos.y + deadzone_size.y );
+
+        if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open ||
+               SK_ImGui_Cursor.prefs.no_warp.visible )  && 
+             ( deadzone_hovered || ImGui::IsMouseHoveringRect ( xy0, xy1, false ) ) )
+        {
+          ImVec4 col = ImColor::HSV ( 0.18f, 
+                                          std::min (1.0f, 0.85f + (sin ((float)(timeGetTime () % 400) / 400.0f))),
+                                             (float)(0.66f + (timeGetTime () % 830) / 830.0f ) );
+          const ImU32 col32 =
+            ImColor (col);
+
+          ImDrawList* draw_list =
+            ImGui::GetWindowDrawList ();
+
+          draw_list->PushClipRectFullScreen (                       );
+          draw_list->AddRect                ( xy0, xy1, col32, 6.0f );
+          draw_list->PopClipRect            (                       );
+        }
+
         ImGui::TreePush      ("");
 
         ImGui::BeginGroup    ();
         ImGui::Text          ("Mouse Problems?");
         ImGui::TreePush      ("");
+
+#if 0
         int  input_backend = 1;
         bool changed       = false;
 
-#if 0
         changed |=
           ImGui::RadioButton ("Win32",     &input_backend, 0); ImGui::SameLine ();
         if (ImGui::IsItemHovered ())
@@ -2551,6 +2583,30 @@ extern float SK_ImGui_PulseNav_Strength;
         }
 
         ImGui::EndGroup       ( );
+
+        if ( SK_ImGui_Cursor.prefs.no_warp.ui_open ||
+             SK_ImGui_Cursor.prefs.no_warp.visible ) 
+        {
+          if ( ImGui::SliderFloat ( "Anti-Warp Deadzone##CursorDeadzone",
+                                      &float_thresh, 1.0f, 100.0f, "%4.2f%% of Screen" ) )
+          {
+            if (float_thresh <= 1.0f)
+              float_thresh = 1.0f;
+
+            config.input.mouse.antiwarp_deadzone = float_thresh;
+          }
+
+          if ( ImGui::IsItemHovered () || ImGui::IsItemFocused () ||
+               ImGui::IsItemClicked () || ImGui::IsItemActive  () )
+          {
+            deadzone_hovered = true;
+          }
+
+          else
+          {
+            deadzone_hovered = false;
+          }
+        }
 
         ImGui::TreePop        ( );
         ImGui::TreePop        ( );
@@ -4197,6 +4253,8 @@ SK_NvAPI_GetGPUInfoStr (void)
 
 #include <SpecialK/render_backend.h>
 
+
+
 //
 // Hook this to override Special K's GUI
 //
@@ -4212,21 +4270,24 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   bool d3d11 = false;
   bool gl    = false;
 
-  if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.api == SK_RenderAPI::OpenGL)
   {
     gl = true;
 
     ImGui_ImplGL3_NewFrame ();
   }
 
-  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+  else if ((int)rb.api & (int)SK_RenderAPI::D3D9)
   {
     d3d9 = true;
 
     ImGui_ImplDX9_NewFrame ();
   }
 
-  else if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  else if ((int)rb.api & (int)SK_RenderAPI::D3D11)
   {
     d3d11 = true;
 
@@ -4287,7 +4348,7 @@ BYTE __imgui_keybd_state [512] = { };
 //     sent to the game and the state of that key reset.
 //
 //  This prevents the game from thinking a key is stuck.
-UINT SK_ImGui_ActivationKeys [256] = { };
+INT SK_ImGui_ActivationKeys [256] = { };
 
 __declspec (dllexport)
 void
@@ -4493,7 +4554,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 
       if (i != keys)
       {
-        keybind->vKey = i;
+        keybind->vKey = (SHORT)i;
         was_open      = false;
         ImGui::CloseCurrentPopup ();
         io.WantCaptureKeyboard = true;

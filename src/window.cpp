@@ -45,7 +45,7 @@
 #include <SpecialK/osd/text.h>
 
 #undef  SK_LOG_FIRST_CALL
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Window Mgr" ); called = true; } }
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Window Mgr" ); called = true; } }
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -548,7 +548,7 @@ public:
 
       if (val != nullptr) {
         strncat (szTemp, *(char **)val, 31);
-        sscanf  (szTemp, "%lux%lu", &x, &y);
+        sscanf  (szTemp, "%ux%u", &x, &y);
       }
 
       if ((x > 320 && x < 16384 && y > 240 && y < 16384) || (x == 0 && y == 0))
@@ -1274,8 +1274,6 @@ SetWindowLong_Marshall (
   _In_ int               nIndex,
   _In_ LONG              dwNewLong )
 {
-  //dll_log.Log (L"SetWindowLong: Idx=%li, Val=%X -- Caller: %s", nIndex, dwNewLong, SK_GetCallerName ().c_str ());
-
   // Override window styles
   if (hWnd == game_window.hWnd)
   {
@@ -1829,6 +1827,8 @@ SK_ResetWindow (void)
     [](LPVOID user) ->
     DWORD
     {
+      UNREFERENCED_PARAMETER (user);
+
       SleepEx (100, FALSE);
 
       EnterCriticalSection (&cs_reset);
@@ -2475,7 +2475,7 @@ struct {
   bool   cursor   = true;
 
   int    init     = false;
-  int    timer_id = 0x68993;
+  UINT   timer_id = 0x68993;
 } last_mouse;
 
 
@@ -3119,9 +3119,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   static bool eqgame = wcsstr (SK_GetHostApp (), L"eqgame.exe");
 
-  static bool ddraw  = GetModuleHandle (L"ddraw.dll") != nullptr;
-  static bool d3d8   = GetModuleHandle (L"d3d8.dll")  != nullptr;
-
   if (eqgame)
   {
     handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
@@ -3444,6 +3441,8 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.hooked = false;
   }
 
+
+
   bool has_raw_mouse = false;
   UINT count         = 0;
 
@@ -3458,9 +3457,13 @@ SK_InstallWindowHook (HWND hWnd)
 
     for (UINT i = 0 ; i < count ; i++)
     {
-      if (pDevs [i].usUsage == 2 && pDevs [i].usUsagePage == 1)
+      if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
+             pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
+           ( pDevs [i].usUsagePage == HID_USAGE_PAGE_GENERIC  ||
+             pDevs [i].usUsagePage == HID_USAGE_PAGE_GAME       ) )
       {
-        has_raw_mouse = true;
+        has_raw_mouse = true; // Technically this could be just about any pointing device
+                              //   including a touchscreen (on purpose).
         break;
       }
     }
@@ -3468,6 +3471,11 @@ SK_InstallWindowHook (HWND hWnd)
     delete [] pDevs;
   }
 
+  SetLastError (dwLast);
+
+  // If no pointing device is setup, go ahead and register our own mouse,
+  //   it won't interfere with the game's operation until the ImGui overlay
+  //     requires a mouse... at which point third-party software will flip out :)
   if (! has_raw_mouse)
   {
     RAWINPUTDEVICE rid;
@@ -3475,7 +3483,7 @@ SK_InstallWindowHook (HWND hWnd)
     rid.usUsage     = HID_USAGE_GENERIC_MOUSE;
     rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
     rid.dwFlags     = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY;
-
+  
     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
   }
 

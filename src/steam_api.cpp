@@ -91,6 +91,12 @@ public:
     active_         = false;
   }
 
+  ~SK_Steam_OverlayManager (void)
+  {
+    cursor_visible_ = false;
+    active_         = false;
+  }
+
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
                    OnActivate,
                    GameOverlayActivated_t,
@@ -289,8 +295,9 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       //
       else if (config.steam.filter_stat_callback)
       {
-        void** vftable = *(void ***)&pCallback;
 #ifdef _WIN64
+        void** vftable = *(void ***)&pCallback;
+
         SK_CreateFuncHook ( L"Callback Redirect",
                               vftable [3],
                               SteamAPI_UserStatsReceived_Detour, 
@@ -2446,7 +2453,7 @@ SteamAPI_RunCallbacks_Detour (void)
                 {
                   InterlockedExchangePointer ((void **)user, nullptr);
                   CloseHandle (GetCurrentThread ());
-                  return -1;
+                  return (DWORD)-1;
                 }
               }
 
@@ -2456,8 +2463,7 @@ SteamAPI_RunCallbacks_Detour (void)
 
                 SteamAPI_RunCallbacks_Original ();
 
-                SteamAPICall_t call =
-                  steam_ctx.UserStats ()->RequestGlobalAchievementPercentages ();
+                steam_ctx.UserStats ()->RequestGlobalAchievementPercentages ();
 
                 SteamAPI_RunCallbacks_Original ();
               }
@@ -2493,7 +2499,7 @@ SteamAPI_RunCallbacks_Detour (void)
     else
     {
       if (SteamAPI_Shutdown != nullptr)
-        TerminateProcess (GetCurrentProcess (), 0x0);
+        TerminateThread (GetCurrentThread (), -1);
     }
   }
 
@@ -2523,9 +2529,12 @@ SteamAPIDebugTextHook (int nSeverity, const char *pchDebugText)
 
 #include <ctime>
 
+// TODO: Remove
 void
 SK::SteamAPI::Init (bool pre_load)
 {
+  UNREFERENCED_PARAMETER (pre_load);
+
   if (config.steam.silent)
     return;
 }
@@ -2553,6 +2562,8 @@ DWORD
 WINAPI
 SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   // Wait 5 seconds, then begin a timing investigation
   SleepEx (5000, FALSE);
 
@@ -3058,7 +3069,20 @@ SteamAPI_Shutdown_Detour (void)
     [](LPVOID user) ->
     DWORD
     {
-      SleepEx (1000UL, FALSE);
+      UNREFERENCED_PARAMETER (user);
+
+      for (int i = 0; i < 100; i++)
+      {
+        SleepEx (100UL, TRUE);
+
+        extern volatile ULONG        __SK_DLL_Ending;
+        if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+        {
+          CloseHandle (GetCurrentThread ());
+
+          return 0;
+        }
+      }
 
       // Start back up again :)
       //
@@ -3175,6 +3199,8 @@ DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   if (! SK_IsInjected ())
   {
     CloseHandle (GetCurrentThread ());
@@ -3284,6 +3310,8 @@ SK_HookSteamAPI (void)
     CreateThread (nullptr, 0, [](LPVOID user) ->
       DWORD
       {
+        UNREFERENCED_PARAMETER (user);
+
         SteamAPI_InitSafe_Detour ();
 
         CloseHandle (GetCurrentThread ());
@@ -3497,11 +3525,10 @@ SK_SteamAPI_GetLockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
 size_t
 SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
 {
-
   std::vector <BOOL> friend_stats;
   friend_stats.resize (SK_SteamAPI_GetNumPossibleAchievements ());
 
-  size_t unlocked =
+//  size_t unlocked =
     SK_SteamAPI_GetUnlockedAchievementsForFriend (friend_idx, friend_stats.data ());
 
   size_t shared = 0;
@@ -3573,8 +3600,6 @@ bool steam_imported = false;
 bool
 SK_SteamImported (void)
 {
-  static int tries = 0;
-
 #ifdef _WIN64
   const wchar_t* steam_dll_str = L"steam_api64.dll";
 #else
@@ -3653,6 +3678,7 @@ SK_SteamAPI_WriteScreenshot (void *pubRGB, uint32 cubRGB, int nWidth, int nHeigh
     steam_ctx.Screenshots ()->WriteScreenshot (pubRGB, cubRGB, nWidth, nHeight);
 }
 
+HMODULE hModOverlay;
 
 bool
 SK_Steam_LoadOverlayEarly (void)
@@ -3670,7 +3696,7 @@ SK_Steam_LoadOverlayEarly (void)
   lstrcatW (wszOverlayDLL, L"\\GameOverlayRenderer.dll");
 #endif
 
-  HMODULE hModOverlay =
+  hModOverlay =
     LoadLibraryW (wszOverlayDLL);
 
   return hModOverlay != NULL;

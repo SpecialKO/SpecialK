@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0"
+#define FAR_VERSION_NUM L"0.7.0.5"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -830,6 +830,8 @@ DWORD
 WINAPI
 SK_FAR_OSD_Disclaimer (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   while ((volatile bool&)config.osd.show)
     SleepEx (66, FALSE);
 
@@ -948,6 +950,10 @@ HRESULT
 STDMETHODCALLTYPE
 SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
 {
+  UNREFERENCED_PARAMETER (pSwapChain);
+  UNREFERENCED_PARAMETER (SyncInterval);
+  UNREFERENCED_PARAMETER (Flags);
+
   // Wait for the mod to init, it may be held up during version check
   while (! InterlockedAdd (&__FAR_init, 0)) SleepEx (16, FALSE);
 
@@ -1433,8 +1439,9 @@ SK_FAR_RestoreAspectRatio (ID3D11DeviceContext *pDevCtx)
 bool
 SK_FAR_CorrectAspectRatio (ID3D11DeviceContext *pDevCtx)
 {
+#if 1
   return false;
-
+#else
   UINT numViewports = 0;
 
   pDevCtx->RSGetViewports (&numViewports, nullptr);
@@ -1477,6 +1484,7 @@ SK_FAR_CorrectAspectRatio (ID3D11DeviceContext *pDevCtx)
   }
 
   return false;
+#endif
 }
 
 __declspec (noinline)
@@ -1613,8 +1621,7 @@ void
 __stdcall
 SK_FAR_EULA_Insert (LPVOID reserved)
 {
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  UNREFERENCED_PARAMETER (reserved);
 
   if (ImGui::CollapsingHeader ("FAR (Fix Automata Resolution)", ImGuiTreeNodeFlags_DefaultOpen))
   {

@@ -20,6 +20,8 @@
 **/
 #define _CRT_SECURE_NO_WARNINGS
 
+#define NOMINMAX
+
 #include <SpecialK/utility.h>
 #include <SpecialK/core.h>
 
@@ -35,8 +37,14 @@
 #include <Shlwapi.h>
 #include <atlbase.h>
 
-#undef min
-#undef max
+extern const wchar_t*
+SK_GetFullyQualifiedApp (void);
+
+extern const wchar_t*
+SK_GetHostPath (void);
+
+extern std::wstring
+SK_GetModuleFullName (HMODULE hDll);
 
 int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
@@ -242,6 +250,49 @@ SK_IsTrue (const wchar_t* string)
   return true;
 }
 
+#include <Shlwapi.h>
+
+void
+SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
+{
+  WIN32_FIND_DATA OldFileData  = { };
+  HANDLE          hOldFind     =
+    FindFirstFile (wszOld, &OldFileData);
+
+  // Strip read-only if need be
+  SK_SetNormalFileAttribs (wszNew);
+
+  if (! MoveFileExW ( wszOld,
+                        wszNew,
+                          MOVEFILE_REPLACE_EXISTING ) )
+  {
+    wchar_t wszTemp [MAX_PATH] = { };
+    GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", timeGetTime (), wszTemp);
+
+    MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING );
+    MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING );
+  }
+
+  // Preserve file times
+  if (hOldFind != INVALID_HANDLE_VALUE)
+  {
+    CHandle hNewFile ( CreateFile ( wszNew,
+                                      GENERIC_READ      | GENERIC_WRITE,
+                                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                          nullptr,
+                                            OPEN_EXISTING,
+                                              GetFileAttributes (wszNew),
+                                                nullptr ) );
+
+    FindClose         (hOldFind);
+    SetFileTime       ( hNewFile,
+                          &OldFileData.ftCreationTime,
+                            &OldFileData.ftLastAccessTime,
+                              &OldFileData.ftLastWriteTime );
+    SetFileAttributes (wszNew, OldFileData.dwFileAttributes);
+  }
+}
+
 // Copies a file preserving file times
 void
 SK_FullCopy (std::wstring from, std::wstring to)
@@ -287,19 +338,28 @@ SK_SetNormalFileAttribs (std::wstring file)
 bool
 SK_IsAdmin (void)
 {
-  bool    bRet   = false;
+  bool    bRet = false;
   CHandle hToken;
 
-  if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken.m_h))
+  if ( OpenProcessToken ( GetCurrentProcess (),
+                            TOKEN_QUERY,
+                              &hToken.m_h )
+     )
   {
-    TOKEN_ELEVATION Elevation;
+    TOKEN_ELEVATION Elevation = { };
 
     DWORD cbSize =
       sizeof TOKEN_ELEVATION;
 
-    if (GetTokenInformation (hToken, TokenElevation, &Elevation, sizeof (Elevation), &cbSize))
+    if ( GetTokenInformation ( hToken,
+                                 TokenElevation,
+                                   &Elevation,
+                                     sizeof (Elevation),
+                                       &cbSize )
+       )
     {
-      bRet = Elevation.TokenIsElevated != 0;
+      bRet =
+        ( Elevation.TokenIsElevated != 0 );
     }
   }
 
@@ -312,24 +372,34 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
   PROCESSENTRY32 pe32 = { };
 
   CHandle hProcSnap (
-    CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0)
+    CreateToolhelp32Snapshot ( TH32CS_SNAPPROCESS,
+                                 0 )
   );
 
   if (hProcSnap == INVALID_HANDLE_VALUE)
     return false;
 
-  pe32.dwSize = sizeof PROCESSENTRY32;
+  pe32.dwSize =
+    sizeof PROCESSENTRY32;
 
-  if (! Process32First (hProcSnap, &pe32))
+  if (! Process32First ( hProcSnap,
+                           &pe32    )
+     )
   {
     return false;
   }
 
   do
   {
-    if (! SK_Path_wcsicmp (wszProcName, pe32.szExeFile))
+    if (! SK_Path_wcsicmp ( wszProcName,
+                              pe32.szExeFile )
+       )
+    {
       return true;
-  } while (Process32Next (hProcSnap, &pe32));
+    }
+  } while ( Process32Next ( hProcSnap,
+                              &pe32    )
+          );
 
   return false;
 }
@@ -339,7 +409,8 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
 
 
 
-static uint32_t crc32_tab[] = {
+static uint32_t crc32_tab [] =
+{
    0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
    0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
    0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
@@ -393,199 +464,215 @@ static uint32_t crc32_tab[] = {
 
 class InstructionSet
 {
-    // forward declarations
-    class InstructionSet_Internal;
+  // Fwd decl
+  class InstructionSet_Internal;
 
 public:
-    // getters
-    static std::string Vendor(void) { return CPU_Rep.vendor_; }
-    static std::string Brand(void) { return CPU_Rep.brand_; }
+  // Accessors
+  //
+  static std::string Vendor (void) { return CPU_Rep.vendor_;        }
+  static std::string Brand  (void) { return CPU_Rep.brand_;         }
 
-    static bool SSE3(void) { return CPU_Rep.f_1_ECX_[0]; }
-    static bool PCLMULQDQ(void) { return CPU_Rep.f_1_ECX_[1]; }
-    static bool MONITOR(void) { return CPU_Rep.f_1_ECX_[3]; }
-    static bool SSSE3(void) { return CPU_Rep.f_1_ECX_[9]; }
-    static bool FMA(void) { return CPU_Rep.f_1_ECX_[12]; }
-    static bool CMPXCHG16B(void) { return CPU_Rep.f_1_ECX_[13]; }
-    static bool SSE41(void) { return CPU_Rep.f_1_ECX_[19]; }
-    static bool SSE42(void) { return CPU_Rep.f_1_ECX_[20]; }
-    static bool MOVBE(void) { return CPU_Rep.f_1_ECX_[22]; }
-    static bool POPCNT(void) { return CPU_Rep.f_1_ECX_[23]; }
-    static bool AES(void) { return CPU_Rep.f_1_ECX_[25]; }
-    static bool XSAVE(void) { return CPU_Rep.f_1_ECX_[26]; }
-    static bool OSXSAVE(void) { return CPU_Rep.f_1_ECX_[27]; }
-    static bool AVX(void) { return CPU_Rep.f_1_ECX_[28]; }
-    static bool F16C(void) { return CPU_Rep.f_1_ECX_[29]; }
-    static bool RDRAND(void) { return CPU_Rep.f_1_ECX_[30]; }
+  static bool SSE3          (void) { return CPU_Rep.f_1_ECX_  [ 0]; }
+  static bool PCLMULQDQ     (void) { return CPU_Rep.f_1_ECX_  [ 1]; }
+  static bool MONITOR       (void) { return CPU_Rep.f_1_ECX_  [ 3]; }
+  static bool SSSE3         (void) { return CPU_Rep.f_1_ECX_  [ 9]; }
+  static bool FMA           (void) { return CPU_Rep.f_1_ECX_  [12]; }
+  static bool CMPXCHG16B    (void) { return CPU_Rep.f_1_ECX_  [13]; }
+  static bool SSE41         (void) { return CPU_Rep.f_1_ECX_  [19]; }
+  static bool SSE42         (void) { return CPU_Rep.f_1_ECX_  [20]; }
+  static bool MOVBE         (void) { return CPU_Rep.f_1_ECX_  [22]; }
+  static bool POPCNT        (void) { return CPU_Rep.f_1_ECX_  [23]; }
+  static bool AES           (void) { return CPU_Rep.f_1_ECX_  [25]; }
+  static bool XSAVE         (void) { return CPU_Rep.f_1_ECX_  [26]; }
+  static bool OSXSAVE       (void) { return CPU_Rep.f_1_ECX_  [27]; }
+  static bool AVX           (void) { return CPU_Rep.f_1_ECX_  [28]; }
+  static bool F16C          (void) { return CPU_Rep.f_1_ECX_  [29]; }
+  static bool RDRAND        (void) { return CPU_Rep.f_1_ECX_  [30]; }
 
-    static bool MSR(void) { return CPU_Rep.f_1_EDX_[5]; }
-    static bool CX8(void) { return CPU_Rep.f_1_EDX_[8]; }
-    static bool SEP(void) { return CPU_Rep.f_1_EDX_[11]; }
-    static bool CMOV(void) { return CPU_Rep.f_1_EDX_[15]; }
-    static bool CLFSH(void) { return CPU_Rep.f_1_EDX_[19]; }
-    static bool MMX(void) { return CPU_Rep.f_1_EDX_[23]; }
-    static bool FXSR(void) { return CPU_Rep.f_1_EDX_[24]; }
-    static bool SSE(void) { return CPU_Rep.f_1_EDX_[25]; }
-    static bool SSE2(void) { return CPU_Rep.f_1_EDX_[26]; }
+  static bool MSR           (void) { return CPU_Rep.f_1_EDX_  [ 5]; }
+  static bool CX8           (void) { return CPU_Rep.f_1_EDX_  [ 8]; }
+  static bool SEP           (void) { return CPU_Rep.f_1_EDX_  [11]; }
+  static bool CMOV          (void) { return CPU_Rep.f_1_EDX_  [15]; }
+  static bool CLFSH         (void) { return CPU_Rep.f_1_EDX_  [19]; }
+  static bool MMX           (void) { return CPU_Rep.f_1_EDX_  [23]; }
+  static bool FXSR          (void) { return CPU_Rep.f_1_EDX_  [24]; }
+  static bool SSE           (void) { return CPU_Rep.f_1_EDX_  [25]; }
+  static bool SSE2          (void) { return CPU_Rep.f_1_EDX_  [26]; }
 
-    static bool FSGSBASE(void) { return CPU_Rep.f_7_EBX_[0]; }
-    static bool BMI1(void) { return CPU_Rep.f_7_EBX_[3]; }
-    static bool HLE(void) { return CPU_Rep.isIntel_ && CPU_Rep.f_7_EBX_[4]; }
-    static bool AVX2(void) { return CPU_Rep.f_7_EBX_[5]; }
-    static bool BMI2(void) { return CPU_Rep.f_7_EBX_[8]; }
-    static bool ERMS(void) { return CPU_Rep.f_7_EBX_[9]; }
-    static bool INVPCID(void) { return CPU_Rep.f_7_EBX_[10]; }
-    static bool RTM(void) { return CPU_Rep.isIntel_ && CPU_Rep.f_7_EBX_[11]; }
-    static bool AVX512F(void) { return CPU_Rep.f_7_EBX_[16]; }
-    static bool RDSEED(void) { return CPU_Rep.f_7_EBX_[18]; }
-    static bool ADX(void) { return CPU_Rep.f_7_EBX_[19]; }
-    static bool AVX512PF(void) { return CPU_Rep.f_7_EBX_[26]; }
-    static bool AVX512ER(void) { return CPU_Rep.f_7_EBX_[27]; }
-    static bool AVX512CD(void) { return CPU_Rep.f_7_EBX_[28]; }
-    static bool SHA(void) { return CPU_Rep.f_7_EBX_[29]; }
+  static bool FSGSBASE      (void) { return CPU_Rep.f_7_EBX_  [ 0]; }
+  static bool BMI1          (void) { return CPU_Rep.f_7_EBX_  [ 3]; }
+  static bool HLE           (void) { return CPU_Rep.isIntel_  && 
+                                            CPU_Rep.f_7_EBX_  [ 4]; }
+  static bool AVX2          (void) { return CPU_Rep.f_7_EBX_  [ 5]; }
+  static bool BMI2          (void) { return CPU_Rep.f_7_EBX_  [ 8]; }
+  static bool ERMS          (void) { return CPU_Rep.f_7_EBX_  [ 9]; }
+  static bool INVPCID       (void) { return CPU_Rep.f_7_EBX_  [10]; }
+  static bool RTM           (void) { return CPU_Rep.isIntel_  &&
+                                            CPU_Rep.f_7_EBX_  [11]; }
+  static bool AVX512F       (void) { return CPU_Rep.f_7_EBX_  [16]; }
+  static bool RDSEED        (void) { return CPU_Rep.f_7_EBX_  [18]; }
+  static bool ADX           (void) { return CPU_Rep.f_7_EBX_  [19]; }
+  static bool AVX512PF      (void) { return CPU_Rep.f_7_EBX_  [26]; }
+  static bool AVX512ER      (void) { return CPU_Rep.f_7_EBX_  [27]; }
+  static bool AVX512CD      (void) { return CPU_Rep.f_7_EBX_  [28]; }
+  static bool SHA           (void) { return CPU_Rep.f_7_EBX_  [29]; }
 
-    static bool PREFETCHWT1(void) { return CPU_Rep.f_7_ECX_[0]; }
+  static bool PREFETCHWT1   (void) { return CPU_Rep.f_7_ECX_  [ 0]; }
 
-    static bool LAHF(void) { return CPU_Rep.f_81_ECX_[0]; }
-    static bool LZCNT(void) { return CPU_Rep.isIntel_ && CPU_Rep.f_81_ECX_[5]; }
-    static bool ABM(void) { return CPU_Rep.isAMD_ && CPU_Rep.f_81_ECX_[5]; }
-    static bool SSE4a(void) { return CPU_Rep.isAMD_ && CPU_Rep.f_81_ECX_[6]; }
-    static bool XOP(void) { return CPU_Rep.isAMD_ && CPU_Rep.f_81_ECX_[11]; }
-    static bool TBM(void) { return CPU_Rep.isAMD_ && CPU_Rep.f_81_ECX_[21]; }
+  static bool LAHF          (void) { return CPU_Rep.f_81_ECX_ [ 0]; }
+  static bool LZCNT         (void) { return CPU_Rep.isIntel_ && 
+                                            CPU_Rep.f_81_ECX_ [ 5]; }
+  static bool ABM           (void) { return CPU_Rep.isAMD_   &&
+                                            CPU_Rep.f_81_ECX_ [ 5]; }
+  static bool SSE4a         (void) { return CPU_Rep.isAMD_   &&
+                                            CPU_Rep.f_81_ECX_ [ 6]; }
+  static bool XOP           (void) { return CPU_Rep.isAMD_   &&
+                                            CPU_Rep.f_81_ECX_ [11]; }
+  static bool TBM           (void) { return CPU_Rep.isAMD_   &&
+                                            CPU_Rep.f_81_ECX_ [21]; }
 
-    static bool SYSCALL(void) { return CPU_Rep.isIntel_ && CPU_Rep.f_81_EDX_[11]; }
-    static bool MMXEXT(void) { return CPU_Rep.isAMD_ && CPU_Rep.f_81_EDX_[22]; }
-    static bool RDTSCP(void) { return CPU_Rep.isIntel_ && CPU_Rep.f_81_EDX_[27]; }
-    static bool _3DNOWEXT(void) { return CPU_Rep.isAMD_ && CPU_Rep.f_81_EDX_[30]; }
-    static bool _3DNOW(void) { return CPU_Rep.isAMD_ && CPU_Rep.f_81_EDX_[31]; }
+  static bool SYSCALL       (void) { return CPU_Rep.isIntel_ &&
+                                            CPU_Rep.f_81_EDX_ [11]; }
+  static bool MMXEXT        (void) { return CPU_Rep.isAMD_   &&
+                                            CPU_Rep.f_81_EDX_ [22]; }
+  static bool RDTSCP        (void) { return CPU_Rep.isIntel_ &&
+                                            CPU_Rep.f_81_EDX_ [27]; }
+  static bool _3DNOWEXT     (void) { return CPU_Rep.isAMD_   &&
+                                            CPU_Rep.f_81_EDX_ [30]; }
+  static bool _3DNOW        (void) { return CPU_Rep.isAMD_   &&
+                                            CPU_Rep.f_81_EDX_ [31]; }
 
 private:
-    static const InstructionSet_Internal CPU_Rep;
+  static const InstructionSet_Internal CPU_Rep;
 
-    class InstructionSet_Internal
+  class InstructionSet_Internal
+  {
+  public:
+    InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     }, 
+                                     isIntel_  { false }, isAMD_    { false }, 
+                                     f_1_ECX_  { 0     }, f_1_EDX_  { 0     }, 
+                                     f_7_EBX_  { 0     }, f_7_ECX_  { 0     }, 
+                                     f_81_ECX_ { 0     }, f_81_EDX_ { 0     }, 
+                                     data_     {       }, extdata_  {       } 
     {
-    public:
-        InstructionSet_Internal()
-            : nIds_{ 0 },
-            nExIds_{ 0 },
-            isIntel_{ false },
-            isAMD_{ false },
-            f_1_ECX_{ 0 },
-            f_1_EDX_{ 0 },
-            f_7_EBX_{ 0 },
-            f_7_ECX_{ 0 },
-            f_81_ECX_{ 0 },
-            f_81_EDX_{ 0 },
-            data_{},
-            extdata_{}
-        {
-            //int cpuInfo[4] = {-1};
-            std::array<int, 4> cpui;
+      //int cpuInfo[4] = {-1};
+      std::array <int, 4> cpui;
 
-            // Calling __cpuid with 0x0 as the function_id argument
-            // gets the number of the highest valid function ID.
-            __cpuid(cpui.data(), 0);
-            nIds_ = cpui[0];
+      // Calling __cpuid with 0x0 as the function_id argument
+      // gets the number of the highest valid function ID.
 
-            for (int i = 0; i <= nIds_; ++i)
-            {
-                __cpuidex(cpui.data(), i, 0);
-                data_.push_back(cpui);
-            }
+      __cpuid (cpui.data (), 0);
+       nIds_ = cpui [0];
 
-            // Capture vendor string
-            char vendor[0x20];
-            memset(vendor, 0, sizeof(vendor));
-            *reinterpret_cast<int*>(vendor) = data_[0][1];
-            *reinterpret_cast<int*>(vendor + 4) = data_[0][3];
-            *reinterpret_cast<int*>(vendor + 8) = data_[0][2];
-            vendor_ = vendor;
-            if (vendor_ == "GenuineIntel")
-            {
-                isIntel_ = true;
-            }
-            else if (vendor_ == "AuthenticAMD")
-            {
-                isAMD_ = true;
-            }
+      for (int i = 0; i <= nIds_; ++i)
+      {
+        __cpuidex       (cpui.data (), i, 0);
+        data_.push_back (cpui);
+      }
 
-            // load bitset with flags for function 0x00000001
-            if (nIds_ >= 1)
-            {
-                f_1_ECX_ = data_[1][2];
-                f_1_EDX_ = data_[1][3];
-            }
+      // Capture vendor string
+      //
+      char vendor [0x20] = { };
 
-            // load bitset with flags for function 0x00000007
-            if (nIds_ >= 7)
-            {
-                f_7_EBX_ = data_[7][1];
-                f_7_ECX_ = data_[7][2];
-            }
+      *reinterpret_cast <int *>(vendor    ) = data_ [0][1];
+      *reinterpret_cast <int *>(vendor + 4) = data_ [0][3];
+      *reinterpret_cast <int *>(vendor + 8) = data_ [0][2];
 
-            // Calling __cpuid with 0x80000000 as the function_id argument
-            // gets the number of the highest valid extended ID.
-            __cpuid(cpui.data(), 0x80000000);
-            nExIds_ = cpui[0];
+      vendor_ = vendor;
 
-            char brand[0x40];
-            memset(brand, 0, sizeof(brand));
+           if  (vendor_ == "GenuineIntel")  isIntel_ = true;
+      else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
 
-            for (int i = 0x80000000; i <= nExIds_; ++i)
-            {
-                __cpuidex(cpui.data(), i, 0);
-                extdata_.push_back(cpui);
-            }
+      // Load Bitset with Flags for Function 0x00000001
+      //
+      if (nIds_ >= 1)
+      {
+        f_1_ECX_ = data_ [1][2];
+        f_1_EDX_ = data_ [1][3];
+      }
 
-            // load bitset with flags for function 0x80000001
-            if (nExIds_ >= 0x80000001)
-            {
-                f_81_ECX_ = extdata_[1][2];
-                f_81_EDX_ = extdata_[1][3];
-            }
+      // Load Bitset with Flags for Function 0x00000007
+      //
+      if (nIds_ >= 7)
+      {
+        f_7_EBX_ = data_ [7][1];
+        f_7_ECX_ = data_ [7][2];
+      }
 
-            // Interpret CPU brand string if reported
-            if (nExIds_ >= 0x80000004)
-            {
-                memcpy(brand, extdata_[2].data(), sizeof(cpui));
-                memcpy(brand + 16, extdata_[3].data(), sizeof(cpui));
-                memcpy(brand + 32, extdata_[4].data(), sizeof(cpui));
-                brand_ = brand;
-            }
-        };
+      // Calling __cpuid with 0x80000000 as the function_id argument
+      // gets the number of the highest valid extended ID.
+      //
+       __cpuid (cpui.data ( ), 0x80000000);
+      nExIds_ = cpui      [0];
 
-        int nIds_;
-        int nExIds_;
-        std::string vendor_;
-        std::string brand_;
-        bool isIntel_;
-        bool isAMD_;
-        std::bitset<32> f_1_ECX_;
-        std::bitset<32> f_1_EDX_;
-        std::bitset<32> f_7_EBX_;
-        std::bitset<32> f_7_ECX_;
-        std::bitset<32> f_81_ECX_;
-        std::bitset<32> f_81_EDX_;
-        std::vector<std::array<int, 4>> data_;
-        std::vector<std::array<int, 4>> extdata_;
+      char brand [0x40] = { };
+
+      for (int i = 0x80000000; i <= nExIds_; ++i)
+      {
+        __cpuidex          (cpui.data (), i, 0);
+        extdata_.push_back (cpui);
+      }
+
+      // Load Bitset with Flags for Function 0x80000001
+      //
+      if (nExIds_ >= 0x80000001)
+      {
+        f_81_ECX_ = extdata_ [1][2];
+        f_81_EDX_ = extdata_ [1][3];
+      }
+
+      // Interpret CPU Brand String if Reported
+      if (nExIds_ >= 0x80000004)
+      {
+        memcpy (brand,      extdata_ [2].data (), sizeof cpui);
+        memcpy (brand + 16, extdata_ [3].data (), sizeof cpui);
+        memcpy (brand + 32, extdata_ [4].data (), sizeof cpui);
+
+        brand_ = brand;
+      }
     };
+
+                             int       nIds_;
+                             int       nExIds_;
+                      std::string      vendor_;
+                      std::string      brand_;
+                             bool      isIntel_;
+                             bool      isAMD_;
+                      std::bitset <32> f_1_ECX_;
+                      std::bitset <32> f_1_EDX_;
+                      std::bitset <32> f_7_EBX_;
+                      std::bitset <32> f_7_ECX_;
+                      std::bitset <32> f_81_ECX_;
+                      std::bitset <32> f_81_EDX_;
+    std::vector < std::array <
+                  int,     4 >
+                >                      data_;
+    std::vector < std::array <
+                  int,     4 > 
+                >                      extdata_;
+  };
 };
 
 // Initialize static member data
-const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
+const InstructionSet::InstructionSet_Internal
+      InstructionSet::CPU_Rep;
 
 extern "C"
 uint32_t
 __cdecl
 crc32 (uint32_t crc, const void *buf, size_t size)
 {
-  const uint8_t *p;
+  const uint8_t *p = nullptr;
 
-  p = (uint8_t *)buf;
-  crc = crc ^ ~0U;
+    p = (uint8_t *)buf;
+  crc =      crc ^ ~0U;
 
   while (size--)
-    crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
+  {
+    crc =
+      crc32_tab [ (crc ^ *p++) & 0xFF ] ^ (crc >> 8);
+  }
 
   return crc ^ ~0U;
 }
@@ -1163,8 +1250,8 @@ public:
 protected:
 
 private:
-  CRITICAL_SECTION                   cs_map;
-  std::map         <LPVOID, HMODULE> resolved;
+  CRITICAL_SECTION                     cs_map;
+  std::unordered_map <LPVOID, HMODULE> resolved;
 } SK_ModulesMap;
 
 
@@ -1684,7 +1771,7 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
 
   uint8_t*  begin = (uint8_t *)base_addr;
   uint8_t*  it    = begin;
-  int       idx   = 0;
+  uint32_t  idx   = 0;
 
   while (it < end_addr)
   {
@@ -1811,7 +1898,7 @@ SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile, SK_HashProgre
                            nullptr,
                              OPEN_EXISTING,
                                dwFileAttribs,
-                                 nullptr )
+        nullptr)
       );
 
       if (hFile == INVALID_HANDLE_VALUE)
@@ -2426,7 +2513,7 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 
     wcsncpy (wsz8, wszFileName, 10);
 
-    int idx = 0;
+    wchar_t idx = 0;
 
     if (wcslen (wsz8) > 8)
     {
@@ -2459,7 +2546,7 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
       return false;
     }
 
-    PathRemoveFileSpec (wszFileName1);
+    PathRemoveFileSpec  (wszFileName1);
     wcscpy (wszFileName, wszFileName1);
   }
 
@@ -2474,22 +2561,13 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 void
 SK_RestartGame (const wchar_t* wszDLL)
 {
-  extern const wchar_t*
-  SK_GetFullyQualifiedApp (void);
-
-  extern const wchar_t*
-  SK_GetHostPath (void);
-
-  extern std::wstring
-  SK_GetModuleFullName (HMODULE hDll);
-
-  wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
   wchar_t wszShortPath [MAX_PATH + 2] = { };
   wchar_t wszFullname  [MAX_PATH + 2] = { };
 
   wcsncpy ( wszFullname, wszDLL != nullptr ?
                          wszDLL :
-                           SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH - 1 );
+                           SK_GetModuleFullName ( SK_GetDLL ()).c_str (),
+                                                    MAX_PATH - 1 );
 
   SK_Generate8Dot3 (wszFullname);
   wcscpy           (wszShortPath, wszFullname);
@@ -2512,7 +2590,8 @@ SK_RestartGame (const wchar_t* wszDLL)
 
     else if (SK_HasGlobalInjector ())
     {
-      std::wstring global_dll = SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
+      std::wstring global_dll =
+        SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
 
 #ifdef _WIN64
       global_dll += L"64.dll";
@@ -2530,6 +2609,8 @@ SK_RestartGame (const wchar_t* wszDLL)
 
   if (! SK_IsSuperSpecialK ())
   {
+    wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+
     _swprintf ( wszRunDLLCmd,
                  L"RunDll32.exe %s,RunDLL_RestartGame %s",
                    wszShortPath,
@@ -2664,8 +2745,10 @@ SK_FixSlashesW (wchar_t* wszInOut)
   std::wstring wstr (wszInOut);
 
   for ( auto&& it : wstr )
+  {
     if (it == L'/')
       it = L'\\';
+  }
 
   wcscpy (wszInOut, wstr.c_str ());
 }
@@ -2700,8 +2783,10 @@ SK_FixSlashesA (char* szInOut)
   std::string str (szInOut);
 
   for ( auto&& it : str )
+  {
     if (it == '/')
       it = '\\';
+  }
 
   strcpy (szInOut, str.c_str ());
 }

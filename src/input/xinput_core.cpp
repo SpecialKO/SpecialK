@@ -33,7 +33,7 @@
 #include <algorithm>
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
 
 ///////////////////////////////////////////////////////
 //
@@ -429,11 +429,11 @@ XInputGetBatteryInformation1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pBatteryInformation == nullptr) return E_POINTER;
+  if (pBatteryInformation == nullptr) return (DWORD)E_POINTER;
 
   ZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
@@ -467,7 +467,7 @@ XInputSetState1_4_Detour (
 
   if (pVibration  == nullptr)         return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
   if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
-                                        return ERROR_DEVICE_NOT_CONNECTED;
+                                        return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
@@ -501,11 +501,11 @@ XInputGetState9_1_0_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return E_POINTER;
+  if (pState      == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pState, sizeof (XINPUT_STATE));
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -540,11 +540,11 @@ XInputGetCapabilities9_1_0_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pCapabilities == nullptr)         return E_POINTER;
+  if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
-  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
@@ -578,7 +578,7 @@ XInputSetState9_1_0_Detour (
 
   if (pVibration  == nullptr)         return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
   if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
-                                      return ERROR_DEVICE_NOT_CONNECTED;
+                                      return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
                                       }
 
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&

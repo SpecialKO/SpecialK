@@ -82,8 +82,8 @@ void SK_CountIO (io_perf_t& ioc, const double update = 0.25 / 1.0e-7);
 
 struct WMI_refresh_thread_t
 {
-  HANDLE                   hThread                      = INVALID_HANDLE_VALUE;
-  HANDLE                   hShutdownSignal              = INVALID_HANDLE_VALUE;
+  volatile HANDLE          hThread                      = INVALID_HANDLE_VALUE;
+  volatile HANDLE          hShutdownSignal              = INVALID_HANDLE_VALUE;
 
   IWbemRefresher          *pRefresher                   = nullptr;
   IWbemConfigureRefresher *pConfig                      = nullptr;

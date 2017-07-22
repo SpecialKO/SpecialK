@@ -195,7 +195,7 @@ NtQueryTimerResolution_pfn NtQueryTimerResolution = nullptr;
 NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
 
 
-float target_fps        = 0.0;
+float target_fps = 0.0;
 
 void
 SK::Framerate::Init (void)
@@ -535,7 +535,7 @@ SK::Framerate::Limiter::wait (void)
       }
     }
 
-    const float target_ms = target_fps / 1000.0f;
+//    const float target_ms = target_fps / 1000.0f;
 
     while (time.QuadPart < next.QuadPart)
     {

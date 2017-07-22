@@ -81,16 +81,36 @@
 }
 
   // Interface-based DXGI call
-#define DXGI_LOG_CALL_I(_Interface,_Name,_Format)                           \
-  dll_log.LogEx (true, L"[   DXGI   ] [!] %s::%s (", _Interface, _Name);    \
-  dll_log.LogEx (false, _Format
+#define DXGI_LOG_CALL_I(_Interface,_Name,_Format)                            \
+  {                                                                          \
+    wchar_t* pwszBuffer        = new wchar_t [4096] { };                     \
+    wchar_t*  wszPreFormatted  = pwszBuffer;                                 \
+    wchar_t*  wszPostFormatted = pwszBuffer + 1024;                          \
+    if (pwszBuffer != nullptr)                                               \
+    {                                                                        \
+      _swprintf ( wszPreFormatted,  L"%s::%s (", _Interface, _Name );        \
+      _swprintf (wszPostFormatted, _Format
+
   // Global DXGI call
-#define DXGI_LOG_CALL(_Name,_Format)                                        \
-  dll_log.LogEx (true, L"[   DXGI   ] [!] %s (", _Name);                    \
-  dll_log.LogEx (false, _Format
-#define DXGI_LOG_CALL_END                                                   \
-  dll_log.LogEx (false, L") -- %s\n",                                       \
-    SK_SummarizeCaller ().c_str () );
+#define DXGI_LOG_CALL(_Name,_Format)                                         \
+  {                                                                          \
+    wchar_t* pwszBuffer        = new wchar_t [4096] { };                     \
+    wchar_t*  wszPreFormatted  = pwszBuffer;                                 \
+    wchar_t*  wszPostFormatted = pwszBuffer + 1024;                          \
+    if (pwszBuffer != nullptr)                                               \
+    {                                                                        \
+      _swprintf (wszPreFormatted,  L"%s (", _Name);                          \
+      _swprintf (wszPostFormatted, _Format
+
+#define DXGI_LOG_CALL_END                                                    \
+      wchar_t* wszFullyFormatted = wszPostFormatted + 1024;                  \
+      _swprintf   ( wszFullyFormatted, L"%s%s)",                             \
+                      wszPreFormatted, wszPostFormatted );                   \
+      dll_log.Log ( L"[   DXGI   ] [!] %-102s -- %s", wszFullyFormatted,     \
+                      SK_SummarizeCaller ().c_str () );                      \
+      free (pwszBuffer);                                                     \
+    }                                                                        \
+  }
 
 #define DXGI_LOG_CALL_I0(_Interface,_Name) {                                 \
   DXGI_LOG_CALL_I   (_Interface,_Name, L"void"));                            \

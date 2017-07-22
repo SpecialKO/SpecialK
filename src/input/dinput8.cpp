@@ -239,6 +239,14 @@ SK_BootDI8 (void)
   );
 
 
+// Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+    SK_LoadEarlyImports64 ();
+#else
+    SK_LoadEarlyImports32 ();
+#endif
+
+
   // OpenGL
   //
   if (gl && GetModuleHandle (L"OpenGL32.dll"))
@@ -259,15 +267,12 @@ SK_BootDI8 (void)
 
   // D3D11
   //
-  if (d3d11 && GetModuleHandle (L"d3d11.dll"))
+  if (d3d11 || GetModuleHandle (L"d3d11.dll"))
     SK_BootDXGI ();
 
   // Alternate form (or D3D12, but we don't care about that right now)
-  else if (dxgi && GetModuleHandle (L"dxgi.dll"))
+  else if (dxgi || GetModuleHandle (L"dxgi.dll"))
     SK_BootDXGI ();
-
-
-
 
 
 // Load user-defined DLLs (Plug-In)
@@ -314,13 +319,6 @@ di8_init_callback (finish_pfn finish)
 {
   if (! SK_IsHostAppSKIM ())
   {
-// Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-    SK_LoadEarlyImports64 ();
-#else
-    SK_LoadEarlyImports32 ();
-#endif
-
     SK_HookDI8 (nullptr);
 
     while (! InterlockedCompareExchange (&__di8_ready, FALSE, FALSE))
@@ -419,6 +417,8 @@ XINPUT_STATE joy_to_xi { };
 XINPUT_STATE
 SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
 {
+  UNREFERENCED_PARAMETER (pCaps);
+
   static DWORD dwPacket = 0;
 
   ZeroMemory (&joy_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
@@ -599,10 +599,10 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       {
         memcpy (out, &last_state, cbData);
 
-        out->rgdwPOV [0] = -1;
-        out->rgdwPOV [1] = -1;
-        out->rgdwPOV [2] = -1;
-        out->rgdwPOV [3] = -1;
+        out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
+        out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
+        out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
+        out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
       } else
         memcpy (&last_state, out, cbData);
     }
@@ -623,10 +623,10 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       {
         memcpy (out, &last_state, cbData);
 
-        out->rgdwPOV [0] = -1;
-        out->rgdwPOV [1] = -1;
-        out->rgdwPOV [2] = -1;
-        out->rgdwPOV [3] = -1;
+        out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
+        out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
+        out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
+        out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
       }
       else
         memcpy (&last_state, out, cbData);
@@ -915,49 +915,6 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
   return hr;
 }
 
-typedef HRESULT (WINAPI *DirectInput8Create_pfn)(
- HINSTANCE hinst,
- DWORD     dwVersion,
- REFIID    riidltf,
- LPVOID*   ppvOut,
- LPUNKNOWN punkOuter
-);
-
-DirectInput8Create_pfn DirectInput8Create_Original = nullptr;
-
-HRESULT
-WINAPI
-DirectInput8Create_Detour (
-  HINSTANCE hinst,
-  DWORD     dwVersion,
-  REFIID    riidltf,
-  LPVOID*   ppvOut,
-  LPUNKNOWN punkOuter
-)
-{
-  HRESULT hr = E_NOINTERFACE;
-
-  if ( SUCCEEDED (
-         (hr = DirectInput8Create_Original (hinst, dwVersion, riidltf, ppvOut, punkOuter))
-       )
-     )
-  {
-    if (! IDirectInput8_CreateDevice_Original)
-    {
-      void** vftable = *(void***)*ppvOut;
-      
-      SK_CreateFuncHook ( L"IDirectInput8::CreateDevice",
-                           vftable [3],
-                           IDirectInput8_CreateDevice_Detour,
-                 (LPVOID*)&IDirectInput8_CreateDevice_Original );
-      
-      SK_EnableHook (vftable [3]);
-    }
-  }
-
-  return hr;
-}
-
 void
 SK_Input_HookDI8 (void)
 {
@@ -971,10 +928,15 @@ SK_Input_HookDI8 (void)
     SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
                   L"   Input  " );
 
-    SK_CreateDLLHook ( L"dinput8.dll",
-                        "DirectInput8Create",
-                        DirectInput8Create_Detour,
-             (LPVOID *)&DirectInput8Create_Original );
+    HMODULE hBackend = 
+      (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
+                                      GetModuleHandle (L"dinput8.dll");
+
+    SK_CreateFuncHook ( L"DirectInput8Create",
+                          GetProcAddress ( hBackend,
+                                             "DirectInput8Create" ),
+                            DirectInput8Create,
+                 (LPVOID *)&DirectInput8Create_Import );
 
     InterlockedIncrement (&hooked);
   }
@@ -986,16 +948,16 @@ SK_Input_PreHookDI8 (void)
   if (! config.input.gamepad.hook_dinput8)
     return;
 
-  if (DirectInput8Create_Original == nullptr)
+  if (DirectInput8Create_Import == nullptr)
   {
     static sk_import_test_s tests [] = { { "dinput.dll",  false },
                                          { "dinput8.dll", false } };
 
     SK_TestImports (GetModuleHandle (nullptr), tests, 2);
 
-    if (tests [0].used || tests [1].used)// || GetModuleHandle (L"dinput8.dll"))
+    if (tests [0].used || tests [1].used || GetModuleHandle (L"dinput8.dll"))
     {
-      //if (tests [1].used)
+      if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         SK_Input_HookDI8 ();
     }
   }

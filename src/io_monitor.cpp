@@ -27,6 +27,7 @@
 #include <SpecialK/log.h>
 
 #include <SpecialK/framerate.h>
+#include <SpecialK/config.h>
 
 #include <process.h>
 
@@ -129,6 +130,8 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
 extern CRITICAL_SECTION wmi_cs;
 
+extern void __stdcall SK_StartPerfMonThreads (void);
+
 namespace COM {
   struct Base {
     volatile ULONG     init            = FALSE;
@@ -140,7 +143,7 @@ namespace COM {
       IWbemLocator*    pWbemLocator    = nullptr;
       BSTR             bstrNameSpace   = nullptr;
 
-      HANDLE           hServerThread   = 0;
+      HANDLE           hServerThread   = INVALID_HANDLE_VALUE;
       HANDLE           hShutdownServer = 0;
 
       void Lock         (void);
@@ -166,6 +169,12 @@ WINAPI
 SK_WMI_ServerThread (LPVOID lpUser)
 {
   SK_AutoCOMInit auto_com;
+
+  if (config.steam.preload_overlay)
+  {
+    extern bool SK_Steam_LoadOverlayEarly (void);
+                SK_Steam_LoadOverlayEarly (    );
+  }
 
   UNREFERENCED_PARAMETER (lpUser);
 
@@ -238,29 +247,51 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   pUnk->Release ();
 
-  InterlockedExchange (&COM::base.wmi.init, 1);
+  Sleep (1500UL);
+
+  COM::base.wmi.Unlock (                      );
+
+  InterlockedExchange   (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
   WaitForSingleObject (COM::base.wmi.hShutdownServer, INFINITE);
 
 
+  extern HMODULE hModOverlay;
+  if (hModOverlay != nullptr)
+  {
+    dll_log.LogEx (true, L"[ SpecialK ] Unloading Steam Overlay... ");
+  
+    FreeLibrary (hModOverlay);
+    hModOverlay = nullptr;
+  
+    dll_log.LogEx (false, L"done!\n");
+  }
+
+  goto WMI_CLEANUP_WITHOUT_LOCK;
+
+
 WMI_CLEANUP:
+  COM::base.wmi.Unlock ();
+
+
+WMI_CLEANUP_WITHOUT_LOCK:
   if (COM::base.wmi.bstrNameSpace != nullptr)
   {
     SysFreeString (COM::base.wmi.bstrNameSpace);
-    COM::base.wmi.bstrNameSpace = nullptr;
+    COM::base.wmi.bstrNameSpace       = nullptr;
   }
 
   if (COM::base.wmi.pWbemLocator != nullptr)
   {
     COM::base.wmi.pWbemLocator->Release ();
-    COM::base.wmi.pWbemLocator = nullptr;
+    COM::base.wmi.pWbemLocator   = nullptr;
   }
 
   if (COM::base.wmi.pNameSpace != nullptr)
   {
     COM::base.wmi.pNameSpace->Release ();
-    COM::base.wmi.pNameSpace = nullptr;
+    COM::base.wmi.pNameSpace   = nullptr;
   }
 
   InterlockedExchange (&COM::base.wmi.init, 0);
@@ -319,57 +350,22 @@ SK_InitWMI (void)
     return true;
   }
 
-  if (! InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, UIntToPtr (1), UintToPtr (0)))
+  if (InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
   {
     COM::base.wmi.hShutdownServer =
       CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
 
-    InterlockedExchangePointer (&COM::base.wmi.hServerThread,
-        CreateThread ( nullptr,
-                         0,
-                           SK_WMI_ServerThread,
-                             nullptr,
-                               0x00,
-                                nullptr )
-    );
+    InterlockedExchangePointer ( &COM::base.wmi.hServerThread,
+                                   GetCurrentThread () );
+
+    SK_WMI_ServerThread (nullptr);
   }
 
-  while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) == 0)
-    SleepEx (100, TRUE);
-
-#if 0
-  perfmon.cpu.start         = CreateEvent (nullptr, FALSE, FALSE, L"CPU Startup");
-  perfmon.cpu.stop          = CreateEvent (nullptr, FALSE, FALSE, L"CPU Stop");
-  perfmon.cpu.poll          = CreateEvent (nullptr, FALSE, FALSE, L"CPU Poll");
-  perfmon.cpu.shutdown      = CreateEvent (nullptr, FALSE, FALSE, L"CPU Shutdown");
-
-  perfmon.gpu.start         = CreateEvent (nullptr, FALSE, FALSE, L"GPU Startup");
-  perfmon.gpu.stop          = CreateEvent (nullptr, FALSE, FALSE, L"GPU Stop");
-  perfmon.gpu.poll          = CreateEvent (nullptr, FALSE, FALSE, L"GPU Poll");
-  perfmon.gpu.shutdown      = CreateEvent (nullptr, FALSE, FALSE, L"GPU Shutdown");
-
-  perfmon.IO.start          = CreateEvent (nullptr, FALSE, FALSE, L"IO Startup");
-  perfmon.IO.stop           = CreateEvent (nullptr, FALSE, FALSE, L"IO Stop");
-  perfmon.IO.poll           = CreateEvent (nullptr, FALSE, FALSE, L"IO Poll");
-  perfmon.IO.shutdown       = CreateEvent (nullptr, FALSE, FALSE, L"IO Shutdown");
-
-  perfmon.disk.start        = CreateEvent (nullptr, FALSE, FALSE, L"Disk Startup");
-  perfmon.disk.stop         = CreateEvent (nullptr, FALSE, FALSE, L"Disk Stop");
-  perfmon.disk.poll         = CreateEvent (nullptr, FALSE, FALSE, L"Disk Poll");
-  perfmon.disk.shutdown     = CreateEvent (nullptr, FALSE, FALSE, L"Disk Shutdown");
-
-  perfmon.memory.start      = CreateEvent (nullptr, FALSE, FALSE, L"Memory Startup");
-  perfmon.memory.stop       = CreateEvent (nullptr, FALSE, FALSE, L"Memory Stop");
-  perfmon.memory.poll       = CreateEvent (nullptr, FALSE, FALSE, L"Memory Poll");
-  perfmon.memory.shutdown   = CreateEvent (nullptr, FALSE, FALSE, L"Memory Shutdown");
-
-  perfmon.pagefile.start    = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Startup");
-  perfmon.pagefile.stop     = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Stop");
-  perfmon.pagefile.poll     = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Poll");
-  perfmon.pagefile.shutdown = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Shutdown");
-#endif
-
-  COM::base.wmi.Unlock ();
+  else
+  {
+    while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+      SleepEx (333, FALSE);
+  }
 
   return true;
 }
@@ -377,71 +373,21 @@ SK_InitWMI (void)
 void
 SK_ShutdownWMI (void)
 {
-  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 1))
   {
-    if (COM::base.wmi.pWbemLocator != nullptr)
+    HANDLE hServerThread = 
+     InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, 0, 0);
+
+    SetEvent (COM::base.wmi.hShutdownServer);
+
+    if (hServerThread)
     {
-      COM::base.wmi.pWbemLocator->Release ();
-      COM::base.wmi.pWbemLocator = nullptr;
+      InterlockedExchangePointer (&hServerThread, 0);
     }
 
-    if (COM::base.wmi.bstrNameSpace != nullptr)
-    {
-      SysFreeString (COM::base.wmi.bstrNameSpace);
-                     COM::base.wmi.bstrNameSpace = nullptr;
-    }
-
-    if (COM::base.wmi.pNameSpace != nullptr)
-    {
-      COM::base.wmi.pNameSpace->Release ();
-      COM::base.wmi.pNameSpace = nullptr;
-    }
-
-    InterlockedExchange (&COM::base.wmi.init, FALSE);
-
-    if (COM::base.wmi.hServerThread != 0)
-    {
-      SetEvent (COM::base.wmi.hShutdownServer);
-
-      WaitForSingleObject (COM::base.wmi.hServerThread, INFINITE);
-
-      COM::base.wmi.hServerThread = 0;
-    }
+    while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+      SleepEx (333, TRUE);
   }
-
-#if 0
-  CloseHandle (perfmon.cpu.start);
-  CloseHandle (perfmon.cpu.stop);       
-  CloseHandle (perfmon.cpu.poll);   
-  CloseHandle (perfmon.cpu.shutdown);
-
-  CloseHandle (perfmon.gpu.start);       
-  CloseHandle (perfmon.gpu.stop);       
-  CloseHandle (perfmon.gpu.poll);   
-  CloseHandle (perfmon.gpu.shutdown);
-
-  CloseHandle (perfmon.IO.start);        
-  CloseHandle (perfmon.IO.stop);        
-  CloseHandle (perfmon.IO.poll);    
-  CloseHandle (perfmon.IO.shutdown);     
-
-  CloseHandle (perfmon.disk.start);      
-  CloseHandle (perfmon.disk.stop);      
-  CloseHandle (perfmon.disk.poll);  
-  CloseHandle (perfmon.disk.shutdown);   
-
-  CloseHandle (perfmon.memory.start);    
-  CloseHandle (perfmon.memory.stop);    
-  CloseHandle (perfmon.memory.poll);
-  CloseHandle (perfmon.memory.shutdown); 
-
-  CloseHandle (perfmon.pagefile.start);  
-  CloseHandle (perfmon.pagefile.stop);  
-  CloseHandle (perfmon.pagefile.poll);
-  CloseHandle (perfmon.pagefile.shutdown);
-#endif
-
-  DeleteCriticalSection (&wmi_cs);
 }
 
 cpu_perf_t cpu_stats;
@@ -452,12 +398,12 @@ DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
+  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+    SleepEx (150, FALSE);
+
   SK_AutoCOMInit auto_com;
 
   UNREFERENCED_PARAMETER (user_param);
-
-  if (! SK_InitWMI ())
-    return std::numeric_limits <unsigned int>::max ();
 
   COM::base.wmi.Lock ();
 
@@ -803,12 +749,12 @@ DWORD
 WINAPI
 SK_MonitorDisk (LPVOID user)
 {
+  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+    SleepEx (150, FALSE);
+
   SK_AutoCOMInit auto_com;
 
   UNREFERENCED_PARAMETER (user);
-
-  if (! SK_InitWMI ())
-    return std::numeric_limits <unsigned int>::max ();
 
   COM::base.wmi.Lock ();
 
@@ -1220,12 +1166,12 @@ DWORD
 WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
+  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+    SleepEx (150, FALSE);
+
   SK_AutoCOMInit auto_com;
 
   UNREFERENCED_PARAMETER (user);
-
-  if (! SK_InitWMI ())
-    return std::numeric_limits <unsigned int>::max ();
 
   COM::base.wmi.Lock ();
 
@@ -1533,6 +1479,278 @@ PAGEFILE_CLEANUP:
   {
     CloseHandle (pagefile.hShutdownSignal);
     pagefile.hShutdownSignal = INVALID_HANDLE_VALUE;
+  }
+
+  COM::base.wmi.Unlock   ();
+
+  return 0;
+}
+
+
+
+
+#include <SpecialK/config.h>
+#include <SpecialK/io_monitor.h>
+#include <SpecialK/memory_monitor.h>
+
+#include <SpecialK/log.h>
+
+#undef min
+#undef max
+
+#pragma comment (lib, "wbemuuid.lib")
+
+process_stats_t process_stats;
+
+DWORD
+WINAPI
+SK_MonitorProcess (LPVOID user)
+{
+  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+    SleepEx (150, FALSE);
+
+  SK_AutoCOMInit auto_com;
+
+  UNREFERENCED_PARAMETER (user);
+
+  COM::base.wmi.Lock ();
+
+  process_stats_t& proc   = process_stats;
+  const double     update = config.mem.interval;
+
+  HRESULT hr;
+
+  if (FAILED (hr = CoCreateInstance (
+                     CLSID_WbemRefresher,
+                     NULL,
+                     CLSCTX_INPROC_SERVER,
+                     IID_IWbemRefresher,
+                     (void**) &proc.pRefresher )
+             )
+     )
+  {
+    dll_log.Log(L"[ WMI Wbem ] Failed to create Refresher Instance (%s:%d) -- 0x%X",
+      __FILEW__, __LINE__, hr);
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pRefresher->QueryInterface (
+                     IID_IWbemConfigureRefresher,
+                     (void **)&proc.pConfig )
+             )
+     )
+  {
+    dll_log.Log(L"[ WMI Wbem ] Failed to Query Refresher Interface (%s:%d) -- 0x%X",
+      __FILEW__, __LINE__, hr);
+    goto PROC_CLEANUP;
+  }
+
+  IWbemClassObject *pClassObj = nullptr;
+
+  HANDLE hProc = GetCurrentProcess ();
+
+  DWORD   dwProcessSize = MAX_PATH;
+  wchar_t wszProcessName [MAX_PATH];
+
+  QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+
+  wchar_t* pwszShortName = wcsrchr (wszProcessName, L'\\') + 1;
+  wchar_t* pwszTruncName = wcsrchr (pwszShortName, L'.');
+
+  if (pwszTruncName != nullptr)
+    *pwszTruncName = L'\0';
+
+  wchar_t wszInstance [512];
+  wsprintf ( wszInstance,
+               L"Win32_PerfFormattedData_PerfProc_Process.Name='%ws'",
+                 pwszShortName );
+
+  if (FAILED (hr = proc.pConfig->AddObjectByPath (
+                     COM::base.wmi.pNameSpace,
+                     wszInstance,
+                     0,
+                     0,
+                     &pClassObj,
+                     0 )
+             )
+     )
+  {
+    dll_log.Log(L"[ WMI Wbem ] Failed to AddObjectByPath (%s:%d) -- 0x%X",
+      __FILEW__, __LINE__, hr);
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = pClassObj->QueryInterface ( IID_IWbemObjectAccess,
+                                               (void **)(&proc.pAccess ) )
+             )
+     )
+  {
+    dll_log.Log(L"[ WMI Wbem ] Failed to Query WbemObjectAccess Interface (%s:%d)"
+                L" -- 0x%X",
+      __FILEW__, __LINE__, hr);
+    pClassObj->Release ();
+    pClassObj = nullptr;
+
+    goto PROC_CLEANUP;
+  }
+
+  pClassObj->Release ();
+  pClassObj = nullptr;
+
+  CIMTYPE variant;
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"PageFileBytes",
+                                                     &variant,
+                                                     &proc.hPageFileBytes )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"PageFileBytesPeak",
+                                                     &variant,
+                                                     &proc.hPageFileBytesPeak )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"ThreadCount",
+                                                     &variant,
+                                                     &proc.hThreadCount )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"PrivateBytes",
+                                                     &variant,
+                                                     &proc.hPrivateBytes )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"WorkingSetPeak",
+                                                     &variant,
+                                                     &proc.hWorkingSetPeak )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"WorkingSet",
+                                                     &variant,
+                                                     &proc.hWorkingSet )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"VirtualBytesPeak",
+                                                     &variant,
+                                                     &proc.hVirtualBytesPeak )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pAccess->GetPropertyHandle ( L"VirtualBytes",
+                                                     &variant,
+                                                     &proc.hVirtualBytes )
+             )
+     )
+  {
+    goto PROC_CLEANUP;
+  }
+
+  proc.pConfig->Release ();
+  proc.pConfig = nullptr;
+
+  int iter = 0;
+
+  proc.lID = 1;
+
+  proc.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"ProcMon Shutdown Signal");
+
+  COM::base.wmi.Unlock ();
+
+  while (proc.lID != 0)
+  {
+    // Sleep until ready
+    if (WaitForSingleObject (proc.hShutdownSignal, (DWORD (update * 1000.0))) == WAIT_OBJECT_0)
+      break;
+
+    // Only poll WMI while the data view is visible
+    if (! config.mem.show)
+      continue;
+
+    COM::base.wmi.Lock ();
+
+    if (FAILED (hr = proc.pRefresher->Refresh (0L)))
+    {
+      goto PROC_CLEANUP;
+    }
+
+    proc.pAccess->ReadQWORD ( proc.hVirtualBytes,
+                                &proc.memory.virtual_bytes );
+    proc.pAccess->ReadQWORD ( proc.hVirtualBytesPeak,
+                                &proc.memory.virtual_bytes_peak );
+
+    proc.pAccess->ReadQWORD ( proc.hWorkingSet,
+                                &proc.memory.working_set );
+    proc.pAccess->ReadQWORD ( proc.hWorkingSetPeak,
+                                &proc.memory.working_set_peak );
+
+    proc.pAccess->ReadQWORD ( proc.hPrivateBytes,
+                                &proc.memory.private_bytes );
+
+    proc.pAccess->ReadDWORD ( proc.hThreadCount,
+                                (DWORD *)&proc.tasks.thread_count );
+
+    proc.pAccess->ReadQWORD ( proc.hPageFileBytes,
+                                &proc.memory.page_file_bytes );
+    proc.pAccess->ReadQWORD ( proc.hPageFileBytesPeak,
+                                &proc.memory.page_file_bytes_peak );
+
+    proc.booting = false;
+
+    ++iter;
+
+    COM::base.wmi.Unlock ();
+  }
+
+PROC_CLEANUP:
+  // dll_log.Log (L" >> PROC_CLEANUP");
+
+  if (proc.pAccess != nullptr)
+  {
+    proc.pAccess->Release ();
+    proc.pAccess = nullptr;
+  }
+
+  if (proc.pConfig != nullptr)
+  {
+    proc.pConfig->Release ();
+    proc.pConfig = nullptr;
+  }
+
+  if (proc.pRefresher != nullptr)
+  {
+    proc.pRefresher->Release ();
+    proc.pRefresher = nullptr;
+  }
+
+  if (proc.hShutdownSignal != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (proc.hShutdownSignal);
+    proc.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 
   COM::base.wmi.Unlock   ();

@@ -122,7 +122,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   fLog = _wfopen (full_name.c_str (), wszMode);
 
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
-   lockless = true;//false;
+   lockless = true;
 
   if ((! bRet) || (fLog == NULL))
   {
@@ -291,7 +291,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
   if (ulLen > 0)
   {
     _snwprintf ( wszSummary, 255,
-                   L"[ %s <%hs>, tid=0x%04x ]",
+                   L"[ %-18s <%30hs>, tid=0x%04x ]",
 
            SK_GetCallerName (lpReturnAddr).c_str (),
              szSymbol,
@@ -301,8 +301,8 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
 
   else {
     _snwprintf ( wszSummary, 255,
-                   L"[ %s, tid=0x%04x ]",
-
+                   L"[ %-28s,                        tid=0x%04x ]",
+                              
            SK_GetCallerName (lpReturnAddr).c_str (),
                GetCurrentThreadId                ()
     );

@@ -97,6 +97,9 @@ SK_Inject_ValidateProcesses (void)
 void
 SK_Inject_ReleaseProcess (void)
 {
+  if (! SK_IsInjected ())
+    return;
+
   for (int i = 0; i < MAX_INJECTED_PROCS; i++)
   {
     InterlockedCompareExchange (&g_sHookedPIDs [i], 0, GetCurrentProcessId ());
@@ -120,6 +123,9 @@ SK_Inject_ReleaseProcess (void)
 void
 SK_Inject_AcquireProcess (void)
 {
+  if (! SK_IsInjected ())
+    return;
+
   for (int i = 0; i < MAX_INJECTED_PROCS; i++)
   {
     if (! InterlockedCompareExchange (&g_sHookedPIDs [i], GetCurrentProcessId (), 0))
@@ -207,6 +213,8 @@ CBTProc ( _In_ int    nCode,
          [](LPVOID user) ->
            DWORD
              {
+               UNREFERENCED_PARAMETER (user);
+
                if (g_hShutdown != 0)
                  WaitForSingleObject (g_hShutdown, INFINITE);
 
@@ -332,6 +340,9 @@ CALLBACK
 RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                           LPSTR lpszCmdLine, int       nCmdShow )
 {
+  UNREFERENCED_PARAMETER (hInst);
+  UNREFERENCED_PARAMETER (hwnd);
+
   if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
   {
     SKX_InstallCBTHook ();
@@ -827,10 +838,12 @@ SK_SYS_GetInstallPath (void);
 
 
 
+#if 0
 bool SK_Inject_JournalRecord (HMODULE hModule)
 {
   return false;
 }
+#endif
 
 
 
@@ -840,6 +853,9 @@ bool SK_Inject_JournalRecord (HMODULE hModule)
 bool
 SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 {
+  UNREFERENCED_PARAMETER (uExitCode);
+
+
   PROCESSENTRY32 pe32      = { };
   HANDLE         hProcSnap =
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);

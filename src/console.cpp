@@ -171,6 +171,33 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   keys [vkCode & 0xFF] = ! keys [vkCode & 0xFF];
 }
 
+BOOL
+SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
+{
+  UNREFERENCED_PARAMETER (Alt);
+
+SHORT SK_ImGui_ToggleKeys [4] = {
+    VK_BACK,              //Primary button (backspace)
+  
+    // Modifier Keys
+    VK_CONTROL, VK_SHIFT, // Ctrl + Shift
+    0
+  };
+
+  if ( vkCode == SK_ImGui_ToggleKeys [0] &&
+       Control && Shift )
+  {
+    extern void SK_ImGui_Toggle (void);
+
+    SK_ImGui_Toggle ();
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+extern SHORT SK_ImGui_ToggleKeys [4];
+
 int
 SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 {
@@ -181,17 +208,70 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
   bool&                          command_issued = SK_Console::getInstance ()->command_issued;
   std::string&                   result_str     = SK_Console::getInstance ()->result_str;
 
+  // This is technically mouse button 0 (left mouse button on default systems),
+  //  but for convenience we allow indexing this array using 0 to have a constant
+  //    state, allowing algorithms to use 0 to mean "don't care."
+  keys_ [0] = TRUE;
+
+
+  // Short-hand Lambda for make/break input processing
+  auto ProcessKeyPress = [&](BYTE vkCode) ->
+  bool
+  {
+    bool new_press =
+     keys_ [vkCode] != 0x81;
+
+    keys_ [vkCode] = 0x81;
+
+    if (new_press)
+    {
+      // First give ImGui a chance to process this
+      if (SK_ImGui_KeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode))
+      {
+        // Then give any plug-ins a chance
+        SK_PluginKeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
+
+        // Finally, toggle the command console
+        if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && vkCode == VK_TAB)
+        {
+          visible = ! visible;
+
+          // This will pause/unpause the game
+          SK::SteamAPI::SetOverlayState (visible);
+
+          return 1;
+        }
+      }
+
+      else
+        return 1;
+    }
+
+    return 0;
+  };
+
+
   if (! SK_IsSteamOverlayActive ())
   {
+    // Proprietary HACKJOB:  lParam = MAXDWORD indicates a make/break event, not meant for text input
+    if (lParam == MAXDWORD && keyDown)
+    {
+      return (! ProcessKeyPress (vkCode));
+    }
+
+
     //BYTE   vkCode   = LOWORD (wParam) & 0xFF;
     BYTE     scanCode = HIWORD (lParam) & 0x7F;
     ///SHORT repeated = LOWORD (lParam);
     //bool   keyDown  = ! (lParam & 0x80000000UL);
 
+
     extern bool SK_ImGui_Visible;
 
+    // Disable the command console if the ImGui overlay is visible
     if (SK_ImGui_Visible)
       visible = false;
+
 
     if (visible && vkCode == VK_BACK)
     {
@@ -264,7 +344,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       else
         keys_ [vkCode] = 0x0;
 
-      if (keyDown && LOWORD (lParam) < 2 && new_press)
+      if (keyDown && ( (lParam & 0x40000000UL) == 0 || new_press ))
       {
         size_t len = strlen (text+1);
         // Don't process empty or pure whitespace command lines
@@ -303,40 +383,15 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 
     else if (keyDown)
     {
-      bool new_press = keys_ [vkCode] != 0x81;
+      // First trigger an event if this is a make/break
+      if (ProcessKeyPress (vkCode))
+        return 0;
 
-      keys_ [vkCode] = 0x81;
-
-      if (new_press)
-      {
-        //
-        // Temp Hack:
-        // ----------
-        //             Hardcode ImGui Toggle Binding (Ctrl + Shift + Backspace)
-        //
-        if ( vkCode == VK_BACK && keys_ [VK_CONTROL] && keys_ [VK_SHIFT] )
-        {
-          extern void SK_ImGui_Toggle (void);
-          SK_ImGui_Toggle ();
-
-          return 0;
-        }
-
-        SK_PluginKeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
-
-        if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && vkCode == VK_TAB)
-        {
-          visible = ! visible;
-
-          // This will pause/unpause the game
-          SK::SteamAPI::SetOverlayState (visible);
-
-          return 0;
-        }
-      }
+      // If not, use the key press for text input
+      //
 
       // Don't print the tab character, it's pretty useless.
-      if (visible && vkCode != VK_TAB)
+      if ( visible && vkCode != VK_TAB )
       {
         keys_ [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
 
@@ -349,7 +404,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
                             (LPWORD)key_str,
                               0,
                               GetKeyboardLayout (0) ) &&
-             isprint ( *key_str ) ) {
+             isprint ( *key_str ) )
+        {
           strncat (text, (char *)key_str, 1);
           command_issued = false;
         }

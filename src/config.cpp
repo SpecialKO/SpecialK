@@ -257,6 +257,8 @@ struct {
     sk::ParameterBool*    no_warp_visible;
     sk::ParameterBool*    block_invisible;
     sk::ParameterBool*    fix_synaptics;
+    sk::ParameterBool*    use_relative_input;
+    sk::ParameterFloat*   antiwarp_deadzone;
   } cursor;
 
   struct {
@@ -592,6 +594,29 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Cursor",
         L"FixSynapticTouchpadScroll"
+  );
+
+  input.cursor.use_relative_input =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Use Raw Input Relative Motion if Needed")
+      );
+  input.cursor.use_relative_input->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"UseRelativeInput"
+  );
+
+  input.cursor.antiwarp_deadzone =
+    dynamic_cast <sk::ParameterFloat *>
+      (g_ParameterFactory.create_parameter <float> (
+        L"Percentage of Screen that the game may try to "
+        L"move the cursor to for mouselook.")
+      );
+  input.cursor.antiwarp_deadzone->register_to_ini (
+    dll_ini,
+      L"Input.Cursor",
+        L"AntiwarpDeadzonePercent"
   );
 
   input.cursor.no_warp_ui =
@@ -2113,7 +2138,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     Sacred ,              // sacred.exe
     Sacred2,              // sacred2.exe
     FinalFantasy9,        // FF9.exe   
-    EdithFinch            // FinchGame.exe
+    EdithFinch,           // FinchGame.exe
+    FinalFantasyX_X2      // FFX.exe / FFX-2.exe
   };
 
   static std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -2139,6 +2165,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"sacred2.exe",                  SK_GAME_ID::Sacred2              );
   games.emplace ( L"FF9.exe",                      SK_GAME_ID::FinalFantasy9        );
   games.emplace ( L"FinchGame.exe",                SK_GAME_ID::EdithFinch           );
+  games.emplace ( L"FFX.exe",                      SK_GAME_ID::FinalFantasyX_X2     );
+  games.emplace ( L"FFX-2.exe",                    SK_GAME_ID::FinalFantasyX_X2     );
 
   //
   // Application Compatibility Overrides
@@ -2347,6 +2375,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       case SK_GAME_ID::EdithFinch:
         config.render.framerate.sleepless_window = true;
+        break;
+
+
+      case SK_GAME_ID::FinalFantasyX_X2:
+        // Don't auto-pump callbacks 
+        //  Excessively lenghty startup is followed by actual SteamAPI init eventually...
+        config.steam.auto_pump_callbacks = false;
         break;
     }
   }
@@ -2766,6 +2801,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.input.ui.capture_hidden = input.cursor.block_invisible->get_value ();
   if (input.cursor.fix_synaptics->load ())
     config.input.mouse.fix_synaptics = input.cursor.fix_synaptics->get_value ();
+  if (input.cursor.antiwarp_deadzone->load ())
+    config.input.mouse.antiwarp_deadzone = input.cursor.antiwarp_deadzone->get_value ();
+  if (input.cursor.use_relative_input->load ())
+    config.input.mouse.add_relative_motion = input.cursor.use_relative_input->get_value ();
 
   if (input.gamepad.disable_ps4_hid->load ())
     config.input.gamepad.disable_ps4_hid = input.gamepad.disable_ps4_hid->get_value ();
@@ -3123,6 +3162,8 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.no_warp_ui->set_value          (SK_ImGui_Cursor.prefs.no_warp.ui_open);
   input.cursor.no_warp_visible->set_value     (SK_ImGui_Cursor.prefs.no_warp.visible);
   input.cursor.fix_synaptics->set_value       (config.input.mouse.fix_synaptics);
+  input.cursor.antiwarp_deadzone->set_value   (config.input.mouse.antiwarp_deadzone);
+  input.cursor.use_relative_input->set_value  (config.input.mouse.add_relative_motion);
 
   input.gamepad.disable_ps4_hid->set_value    (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->set_value      (config.input.gamepad.rehook_xinput);
@@ -3414,6 +3455,8 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.no_warp_ui->store           ();
   input.cursor.no_warp_visible->store      ();
   input.cursor.fix_synaptics->store        ();
+  input.cursor.antiwarp_deadzone->store    ();
+  input.cursor.use_relative_input->store   ();
 
   input.gamepad.disable_ps4_hid->store       ();
   input.gamepad.rehook_xinput->store         ();

@@ -29,6 +29,8 @@
 #include <cstdlib>
 #include <cstdint>
 
+#include <Shlwapi.h>
+
 #include <lzma/7z.h>
 #include <lzma/7zAlloc.h>
 #include <lzma/7zBuf.h>
@@ -110,23 +112,6 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
   return files;
 }
 
-#include <Shlwapi.h>
-
-void
-SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
-{
-  if (! MoveFileExW ( wszOld,
-                        wszNew,
-                          MOVEFILE_REPLACE_EXISTING ) )
-  {
-    wchar_t wszTemp [MAX_PATH] = { };
-    GetTempFileNameW (SK_SYS_GetInstallPath ().c_str (), L"SKI", timeGetTime (), wszTemp);
-
-    MoveFileExW ( wszNew, wszTemp, MOVEFILE_REPLACE_EXISTING );
-    MoveFileExW ( wszOld, wszNew,  MOVEFILE_REPLACE_EXISTING );
-  }
-}
-
 HRESULT
 SK_Decompress7z ( const wchar_t*            wszArchive,
                   const wchar_t*            wszOldVersion,
@@ -143,7 +128,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   std::vector <sk_file_entry_s> config_files =
     SK_Get7ZFileContents (wszArchive);
 
-  for ( auto& it = config_files.begin (); it != config_files.end (); )
+  for ( auto&& it = config_files.begin (); it != config_files.end (); )
   {
     if (! wcsstr (it->name.c_str (), L"default_"))
     {
@@ -157,14 +142,14 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   // Now that we have a set of ALL files and a set of config files,
   //   remove the config files from the other set so that we have
   //     two disjoint sets of files.
-  auto&  it  = files.begin ();
+  auto&& it  = files.begin ();
   while (it != files.end ())
   {
 
     bool matched = false;
 
-    auto&  it2  = config_files.begin ();
-    while (it2 != config_files.end ())
+    auto  it2  = config_files.begin ();
+    while (it2 != config_files.end  ())
     {
       if (it2->fileno == it->fileno)
       {

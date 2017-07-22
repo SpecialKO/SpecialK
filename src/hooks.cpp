@@ -181,7 +181,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //
     //if (LoadLibraryW (pwszModule))
     //  GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
-    if (LoadLibraryExW (pwszModule, nullptr, DONT_RESOLVE_DLL_REFERENCES))
+    if (LoadLibraryW (pwszModule))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -271,7 +271,7 @@ SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (LoadLibraryExW (pwszModule, nullptr, DONT_RESOLVE_DLL_REFERENCES))
+    if (LoadLibraryW (pwszModule))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -364,7 +364,7 @@ SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (LoadLibraryExW (pwszModule, nullptr, DONT_RESOLVE_DLL_REFERENCES))
+    if (LoadLibraryW (pwszModule))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 

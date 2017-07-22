@@ -21,6 +21,7 @@
 
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_SECURE_NO_WARNINGS 
+#define NOMINMAX
 
 #include <d3d11.h>
 
@@ -179,13 +180,17 @@ NVAPI::EnumSLIGPUs (void)
 
   *_nv_sli_adapters [0].Description = L'\0';
 
-  DXGI_ADAPTER_DESC* adapters = NVAPI::EnumGPUs_DXGI ();
+  DXGI_ADAPTER_DESC* adapters =
+    NVAPI::EnumGPUs_DXGI ();
 
-  if (nv_sli_count == -1) {
-    if (nv_hardware) {
+  if (nv_sli_count == -1)
+  {
+    if (nv_hardware)
+    {
       nv_sli_count = 0;
 
-      while (adapters != nullptr) {
+      while (adapters != nullptr)
+      {
         if (adapters->AdapterLuid.LowPart > 1)
           memcpy (&_nv_sli_adapters [nv_sli_count++], adapters,
                   sizeof (DXGI_ADAPTER_DESC));
@@ -223,7 +228,8 @@ sk::NVAPI::EnumGPUs_DXGI (void)
   if (enumerated)
     return _nv_dxgi_adapters;
 
-  if (! nv_hardware) {
+  if (! nv_hardware)
+  {
     enumerated = true;
     *_nv_dxgi_adapters [0].Description = L'\0';
     return _nv_dxgi_adapters;
@@ -555,11 +561,11 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   prop.wszValue = *(pwszPropertyListEntry++);
 
 
-  int method      = -1;
-  int replay_mode = -1;
-  int aa_fix      = -1;
-  int override    = -1;
-  int auto_bias   = -1;
+  unsigned int method      = std::numeric_limits <unsigned int>::max ();
+  unsigned int replay_mode = std::numeric_limits <unsigned int>::max ();
+  unsigned int aa_fix      = std::numeric_limits <unsigned int>::max ();
+  unsigned int override    = std::numeric_limits <unsigned int>::max ();
+  unsigned int auto_bias   = std::numeric_limits <unsigned int>::max ();
 
   while (! ( prop.wszName  == nullptr && 
              prop.wszValue == nullptr ) )

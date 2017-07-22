@@ -51,6 +51,8 @@ DWORD
 __stdcall
 SK_GPUPollingThread (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   while (WaitForSingleObject (hPollEvent, INFINITE) == WAIT_OBJECT_0)
   {
     current_gpu_stat = (! current_gpu_stat);
@@ -506,6 +508,8 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMBudget        (int gpu)
 {
+  UNREFERENCED_PARAMETER (gpu);
+
   // TODO
   return 0;
 }

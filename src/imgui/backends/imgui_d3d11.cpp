@@ -698,12 +698,6 @@ ImGui_ImplDX11_NewFrame (void)
 
   io.KeySuper  = false;
 
-  // io.KeysDown : filled by WM_KEYDOWN/WM_KEYUP events
-  // io.MousePos : filled by WM_MOUSEMOVE events
-  // io.MouseDown : filled by WM_*BUTTON* events
-  // io.MouseWheel : filled by WM_MOUSEWHEEL events
-
-
   // For games that hijack the mouse cursor using Direct Input 8.
   //
   //  -- Acquire actually means release their exclusive ownership : )
@@ -715,6 +709,7 @@ ImGui_ImplDX11_NewFrame (void)
 
 
   SK_ImGui_PollGamepad ();
+
 
   // Start the frame
   ImGui::NewFrame ();
@@ -733,6 +728,8 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (SwapChainFlags);
   UNREFERENCED_PARAMETER (Width);
   UNREFERENCED_PARAMETER (Height);
+  UNREFERENCED_PARAMETER (This);
+
 
   SK_ScopedTLS tls_scope;
 

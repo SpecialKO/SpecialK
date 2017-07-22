@@ -313,6 +313,8 @@ DWORD
 WINAPI
 CSteamworks_Delay_Init (LPVOID user)
 {
+  UNREFERENCED_PARAMETER (user);
+
   if (! SK_IsInjected ())
   {
     CloseHandle (GetCurrentThread ());
@@ -360,8 +362,7 @@ SK_HookCSteamworks (void)
   steam_log.Log (L"CSteamworks.dll was loaded, hooking...");
 
   // Get the full path to the module's file.
-  HANDLE  hProc = GetCurrentProcess ();
-  HMODULE hMod  = GetModuleHandle (L"CSteamworks.dll");
+  HMODULE hMod = GetModuleHandle (L"CSteamworks.dll");
 
   if (! hMod) hMod  = GetModuleHandle (L"steamworks.net.dll"); // Mafia 3 nonsense
 

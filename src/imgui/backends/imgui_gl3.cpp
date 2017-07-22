@@ -383,8 +383,6 @@ ImGui_ImplGL3_NewFrame (void)
   // Setup display size (every frame to accommodate for window resizing)
   int         w = client.right  - client.left,
               h = client.bottom - client.top;
-  int display_w = w,
-      display_h = h;
 
   io.DisplaySize             = ImVec2 ((float)w, (float)h);
   io.DisplayFramebufferScale = ImVec2 ((float)w, (float)h);//ImVec2 (w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);

@@ -1,6 +1,18 @@
 0.8.25:
 
+ + Fixed mouse input in Mouse Effect: Andromeda, *AGAIN*.
+ + Officially supports dinput8.dll injection; the compatibility menu does not offer this
+     as one of its choices, but it will eventually.
+  >> dinput8.dll, for games that use this, has the greatest chance of working with fullscreen
+       video capture software.
+ + Improved keyboard input processing, particularly how it behves while in Input Exclusive mode
+     and you trigger the keybinding to toggle the config menu.
+  >> This is preparing for customizable keybindings, I've been promising them for a long time :)
  + Fixed occasional right-to-left window orientation problems in 64-bit builds
+ + Fixed D3D11 reference counting underflows in some games, especially when a third-party
+     render enhancing mod is present.
+ + Fixed rare texture cache hash collision problem for textures that are removed from the cache
+     because a graphics engine has altered them.
 
 0.8.24.4:
 

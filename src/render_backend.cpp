@@ -111,8 +111,6 @@ SK_BootD3D9 (void)
 
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
 
-  SK_HookD3D9 ();
-
   if (SK_GetDLLRole () == DLL_ROLE::D3D9)
   {
     // Load user-defined DLLs (Early)
@@ -122,6 +120,8 @@ SK_BootD3D9 (void)
     SK_LoadEarlyImports32 ();
 #endif
   }
+
+  SK_HookD3D9 ();
 }
 
 #ifndef _WIN64
@@ -148,13 +148,13 @@ SK_BootD3D8 (void)
 
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
 
-  SK_HookD3D8 ();
-
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
   {
     // Load user-defined DLLs (Early)
     SK_LoadEarlyImports32 ();
   }
+
+  SK_HookD3D8 ();
 }
 
 void
@@ -180,17 +180,15 @@ SK_BootDDraw (void)
 
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
 
-  SK_HookDDraw ();
-
   if (SK_GetDLLRole () == DLL_ROLE::DDraw)
   {
     // Load user-defined DLLs (Early)
     SK_LoadEarlyImports32 ();
   }
+
+  SK_HookDDraw ();
 }
 #endif
-
-extern HMODULE backend_dll;
 
 void
 SK_BootDXGI (void)
@@ -223,8 +221,6 @@ SK_BootDXGI (void)
 
   dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
-  SK_HookDXGI ();
-
   if (SK_GetDLLRole () == DLL_ROLE::DXGI)
   {
     // Load user-defined DLLs (Early)
@@ -234,6 +230,8 @@ SK_BootDXGI (void)
     SK_LoadEarlyImports32 ();
 #endif
   }
+
+  SK_HookDXGI ();
 }
 
 
@@ -261,8 +259,6 @@ SK_BootOpenGL (void)
 
   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
-  SK_HookGL ();
-
   if (SK_GetDLLRole ( ) == DLL_ROLE::OpenGL)
   {
     // Load user-defined DLLs (Early)
@@ -273,6 +269,8 @@ SK_BootOpenGL (void)
 #endif
   }
 #endif
+
+  SK_HookGL ();
 }
 
 
@@ -509,9 +507,13 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
   if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
   {
-    device              = SK_COM_ValidateRelease (&device);
-    swapchain           = SK_COM_ValidateRelease (&swapchain);
-    d3d11.immediate_ctx = SK_COM_ValidateRelease (&d3d11.immediate_ctx);
+    ////device              = SK_COM_ValidateRelease (&device);
+    ////swapchain           = SK_COM_ValidateRelease (&swapchain);
+    ////d3d11.immediate_ctx = SK_COM_ValidateRelease (&d3d11.immediate_ctx);
+
+    device              = nullptr;
+    swapchain           = nullptr;
+    d3d11.immediate_ctx = nullptr;
   }
 }
 

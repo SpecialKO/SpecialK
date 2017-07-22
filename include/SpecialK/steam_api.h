@@ -414,8 +414,8 @@ public:
     }
 
     // Blacklist of people not allowed to use my software (for being disruptive to other users)
-    uint32_t aid = user_->GetSteamID ().GetAccountID    ();
-    uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
+      uint32_t aid = user_->GetSteamID ().GetAccountID    ();
+    //uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
 
     if ( aid ==  64655118 || aid == 183437803 )
     {

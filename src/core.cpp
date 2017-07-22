@@ -467,17 +467,19 @@ SK_StartPerfMonThreads (void)
     //
     // Spawn Process Monitor Thread
     //
-    if (process_stats.hThread == INVALID_HANDLE_VALUE)
+    if ( InterlockedCompareExchangePointer (&process_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+           INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
-      process_stats.hThread = 
+      InterlockedExchangePointer ( (void **)&process_stats.hThread, 
         CreateThread ( nullptr,
                          0,
                            SK_MonitorProcess,
                              nullptr,
                                0,
-                                 nullptr );
+                                 nullptr )
+      );
 
       if (process_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (process_stats.hThread));
@@ -491,17 +493,19 @@ SK_StartPerfMonThreads (void)
     //
     // Spawn CPU Refresh Thread
     //
-    if (cpu_stats.hThread == INVALID_HANDLE_VALUE)
+    if ( InterlockedCompareExchangePointer (&cpu_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+           INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
 
-      cpu_stats.hThread = 
+      InterlockedExchangePointer ( (void **)&cpu_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorCPU,
                              nullptr,
                                0,
-                                 nullptr );
+                                 nullptr )
+      );
 
       if (cpu_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (cpu_stats.hThread));
@@ -512,17 +516,19 @@ SK_StartPerfMonThreads (void)
 
   if (config.disk.show)
   {
-    if (disk_stats.hThread == INVALID_HANDLE_VALUE)
+    if ( InterlockedCompareExchangePointer (&disk_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+           INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
 
-      disk_stats.hThread =
+      InterlockedExchangePointer ( (void **)&disk_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorDisk,
                              nullptr,
                                0,
-                                 nullptr );
+                                 nullptr )
+      );
 
       if (disk_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (disk_stats.hThread));
@@ -533,17 +539,19 @@ SK_StartPerfMonThreads (void)
 
   if (config.pagefile.show)
   {
-    if (pagefile_stats.hThread == INVALID_HANDLE_VALUE)
+    if ( InterlockedCompareExchangePointer (&pagefile_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+           INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
 
-      pagefile_stats.hThread =
+      InterlockedExchangePointer ( (void **)&pagefile_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorPagefile,
                              nullptr,
                                0,
-                                 nullptr );
+                                 nullptr )
+      );
 
       if (pagefile_stats.hThread != INVALID_HANDLE_VALUE)
         dll_log.LogEx ( false, L"tid=0x%04x\n",
@@ -774,8 +782,6 @@ SK_InitFinishCallback (void)
     return;
   }
 
-  SK_Input_Init ();
-
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
     "VRAM.Purge",
@@ -809,11 +815,13 @@ SK_InitFinishCallback (void)
   //
   // Game-Specific Stuff that I am not proud of
   //
+#ifdef _WIN64
   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
     SK_DS3_InitPlugin ();
 
   else if (! lstrcmpW (SK_GetHostApp (), L"RiME.exe"))
     SK_REASON_InitPlugin ();
+#endif
 
   if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
   {
@@ -883,22 +891,30 @@ SK_InitCore (const wchar_t* backend, void* callback)
   callback_pfn callback_fn =
     (callback_pfn)callback;
 
-  dll_log.LogEx (true, L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI): ");
+  dll_log.Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
 
   nvapi_init = sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
 
-  dll_log.LogEx (false, L" %s\n", nvapi_init ? L"Success" : L"Failed");
+  dll_log.Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
+                                                     nvapi_init ? L"Success" :
+                                                                  L"Failed ");
 
   if (nvapi_init)
   {
     int num_sli_gpus = sk::NVAPI::CountSLIGPUs ();
 
-    dll_log.Log (L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
-      sk::NVAPI::GetDriverVersion ().c_str ());
+    dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
+                    sk::NVAPI::GetDriverVersion ().c_str () );
 
-    dll_log.Log (L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i "
-      L"(%i are in SLI mode)",
-      sk::NVAPI::CountPhysicalGPUs (), num_sli_gpus);
+    int gpu_count = sk::NVAPI::CountPhysicalGPUs ();
+
+    dll_log.Log ( gpu_count > 1 ? L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  "
+                                  L"{ SLI: '%s' }"
+                                :
+                                  L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  { '%s' }",
+                                    gpu_count > 1 ? num_sli_gpus :
+                                                    num_sli_gpus + 1,
+                                      sk::NVAPI::EnumGPUs_DXGI ()[0].Description );
 
     if (num_sli_gpus > 0)
     {
@@ -953,11 +969,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   else
   {
-    dll_log.LogEx (true, L"[DisplayLib] Initializing AMD Display Library (ADL):   ");
+    dll_log.Log (L"[DisplayLib] Initializing AMD Display Library (ADL)...");
 
     BOOL adl_init = SK_InitADL ();
 
-    dll_log.LogEx (false, L" %s\n", adl_init ? L"Success" : L"Failed");
+    dll_log.Log   (L"[DisplayLib]              ADL   Init         { %s }",
+                                                     adl_init ? L"Success" :
+                                                                L"Failed ");
 
     if (adl_init)
     {
@@ -975,10 +993,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
     if (dwOptimus != NULL)
     {
-      dll_log.Log (L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
-        *dwOptimus,
-        (*dwOptimus & 0x1 ? L"Max Perf." :
-          L"Don't Care"));
+      dll_log.Log ( L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
+                      *dwOptimus,
+                    ((*dwOptimus) & 0x1) ? L"Max Perf." :
+                                           L"Don't Care" );
     }
 
     else
@@ -993,14 +1011,19 @@ SK_InitCore (const wchar_t* backend, void* callback)
     {
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: 0x%02X (%s)",
         *dwPowerXpress,
-        (*dwPowerXpress & 0x1 ? L"High Perf." :
-          L"Don't Care"));
+        (*dwPowerXpress & 0x1) ? L"High Perf." :
+                                 L"Don't Care" );
     }
 
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
   }
 
+
+#ifdef _WIN64
+  if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
+    SK_FAR_InitPlugin ();
+#endif
 
 
   SK_ResumeThreads (__SK_Init_Suspended_tids);
@@ -1403,14 +1426,10 @@ SK_EstablishRootPath (void)
 }
 
 bool
-SK_InitWMI (void);
-
-bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
   __SK_DLL_Backend = backend;
-
 
   // Allow users to centralize all files if they want
   //
@@ -1470,6 +1489,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_BypassInject ();
 
     //bypass = true;
+
+    return true;
   }
 
   else
@@ -1490,7 +1511,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     // For the global injector, when not started by SKIM, check its version
     //if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-      CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+    CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
   }
 
   // Don't let Steam prevent me from attaching a debugger at startup
@@ -1673,11 +1694,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_InitCompatBlacklist ();
 
 
-
-  // Performance monitorng pre-init
-  CreateThread (nullptr, 0, [](LPVOID) -> DWORD { SK_InitWMI (); CloseHandle (GetCurrentThread ()); return 0; }, nullptr, 0x00, nullptr);
-
-
   // Do this from the startup thread
   SK_HookWinAPI       ();
 
@@ -1695,9 +1711,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     extern void SK_FFAD_InitPlugin (void);
     SK_FFAD_InitPlugin ();
   }
-
-  if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
-    SK_FAR_InitPlugin ();
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
@@ -1754,12 +1767,16 @@ BACKEND_INIT:
   lstrcatW (wszBackendDLL, backend);
   lstrcatW (wszBackendDLL, L".dll");
 
-  const wchar_t* dll_name = wszBackendDLL;
+        bool     use_system_dll = true;
+  const wchar_t* dll_name       = wszBackendDLL;
 
   if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
     dll_name = wszBackendDLL;
   else
-    dll_name = wszProxyName;
+  {
+    dll_name       = wszProxyName;
+    use_system_dll = false;
+  }
 
   bool load_proxy = false;
 
@@ -1783,12 +1800,15 @@ BACKEND_INIT:
   // Pre-Load the original DLL into memory
   if (dll_name != wszBackendDLL)
   {
-                  LoadLibraryW_Original (wszBackendDLL);
-    backend_dll = LoadLibraryW_Original (dll_name);
+                  LoadLibraryExW_Original ( wszBackendDLL, nullptr, use_system_dll ?
+                                              LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00 );
+    backend_dll = LoadLibraryExW_Original (dll_name,      nullptr, 0x0);
+                  GetModuleHandleExW      (GET_MODULE_HANDLE_EX_FLAG_PIN, wszBackendDLL, &backend_dll);
   }
 
   else
-    backend_dll = LoadLibraryW_Original (dll_name);
+    backend_dll = LoadLibraryExW_Original ( dll_name, nullptr, use_system_dll ?
+                                             LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00);
 
   if (backend_dll != NULL)
     dll_log.LogEx (false, L" (%s)\n", dll_name);
@@ -1833,10 +1853,65 @@ BACKEND_INIT:
                                nullptr )
   ); // Avoid the temptation to wait on this thread
 
+  //// Performance monitorng pre-init  (Steam overlay hack; it hooks Wbem and blows stuff up almost immediately)
+  CreateThread ( nullptr, 0,
+                   [](LPVOID) -> DWORD
+                   {
+                     SK_Input_Init ();
+
+                     bool SK_InitWMI (void);
+                       SK_InitWMI    (    );
+
+                     CloseHandle (GetCurrentThread ());
+
+                     return 0;
+                   }, nullptr,
+                 0x00,
+               nullptr );
+
+
   LeaveCriticalSection (&init_mutex);
 
   return true;
 }
+
+
+
+HWND
+SK_Win32_CreateDummyWindow (void)
+{
+  WNDCLASSW wc = { };
+
+  wc.style         = CS_OWNDC;
+  wc.lpfnWndProc   = DefWindowProcW;
+  wc.hInstance     = SK_GetDLL ();
+  wc.lpszClassName = L"Special K Dummy Window Class";
+
+  if (RegisterClassW (&wc))
+  {
+    HWND hWnd =
+      CreateWindowW ( L"Special K Dummy Window Class",
+                        L"Special K Dummy Window",
+                          WS_POPUP | WS_CLIPCHILDREN |
+                          WS_CLIPSIBLINGS,
+                            0, 0,
+                            1, 1,
+                              HWND_DESKTOP,   nullptr,
+                                SK_GetDLL (), nullptr );
+
+    return hWnd;
+  }
+
+  return nullptr;
+}
+
+void
+SK_Win32_CleanupDummyWindow (void)
+{
+  UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
+}
+
+
 
 bool
 __stdcall
@@ -1850,6 +1925,10 @@ SK_ShutdownCore (const wchar_t* backend)
     SK_UnInit_MinHook ();
     return true;
   }
+
+
+  dll_log.Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
+  SK_Win32_CleanupDummyWindow ();
 
 
 
@@ -1870,6 +1949,7 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->End ();
 
+
   if (hPumpThread != INVALID_HANDLE_VALUE)
   {
     dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
@@ -1882,77 +1962,29 @@ SK_ShutdownCore (const wchar_t* backend)
 
   SK::DXGI::ShutdownBudgetThread ();
 
-  if (process_stats.hThread != INVALID_HANDLE_VALUE)
+
+  auto ShutdownWMIThread = [](volatile HANDLE& hSignal, volatile HANDLE& hThread, wchar_t* wszName) -> void
   {
-    dll_log.LogEx (true,L"[ WMI Perf ] Shutting down Process Monitor... ");
+    dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %s... ", wszName);
 
     // Signal the thread to shutdown
-    SetEvent (process_stats.hShutdownSignal);
+    SetEvent (hSignal);
 
     WaitForSingleObject
-      (process_stats.hThread, 1000UL); // Give 1 second, and
-                                       // then we're killing
-                                       // the thing!
+      (hThread, 1000UL); // Give 1 second, and
+                         // then we're killing
+                         // the thing!
 
-    CloseHandle (process_stats.hThread);
-                 process_stats.hThread  = INVALID_HANDLE_VALUE;
-
-    dll_log.LogEx (false, L"done!\n");
-  }
-
-  if (cpu_stats.hThread != INVALID_HANDLE_VALUE)
-  {
-    dll_log.LogEx (true,L"[ WMI Perf ] Shutting down CPU Monitor... ");
-
-    // Signal the thread to shutdown
-    SetEvent (cpu_stats.hShutdownSignal);
-
-    WaitForSingleObject (cpu_stats.hThread, 1000UL); // Give 1 second, and
-                                                     // then we're killing
-                                                     // the thing!
-
-    CloseHandle (cpu_stats.hThread);
-                 cpu_stats.hThread  = INVALID_HANDLE_VALUE;
-                 cpu_stats.num_cpus = 0;
+    CloseHandle (hThread);
+                 hThread  = INVALID_HANDLE_VALUE;
 
     dll_log.LogEx (false, L"done!\n");
-  }
+  };
 
-  if (disk_stats.hThread != INVALID_HANDLE_VALUE)
-  {
-    dll_log.LogEx (true, L"[ WMI Perf ] Shutting down Disk Monitor... ");
-
-    // Signal the thread to shutdown
-    SetEvent (disk_stats.hShutdownSignal);
-
-    WaitForSingleObject (disk_stats.hThread, 1000UL); // Give 1 second, and
-                                                      // then we're killing
-                                                      // the thing!
-    CloseHandle (disk_stats.hThread);
-                 disk_stats.hThread   = INVALID_HANDLE_VALUE;
-                 disk_stats.num_disks = 0;
-
-    dll_log.LogEx (false, L"done!\n");
-  }
-
-  if (pagefile_stats.hThread != INVALID_HANDLE_VALUE)
-  {
-    dll_log.LogEx (true, L"[ WMI Perf ] Shutting down Pagefile Monitor... ");
-
-    // Signal the thread to shutdown
-    SetEvent (pagefile_stats.hShutdownSignal);
-
-    WaitForSingleObject (
-      pagefile_stats.hThread, 1000UL); // Give 1 second, and
-                                       // then we're killing
-                                       // the thing!
-
-    CloseHandle (pagefile_stats.hThread);
-                 pagefile_stats.hThread       = INVALID_HANDLE_VALUE;
-                 pagefile_stats.num_pagefiles = 0;
-
-    dll_log.LogEx (false, L"done!\n");
-  }
+  ShutdownWMIThread (process_stats.hShutdownSignal,  process_stats.hThread,  L"Process Monitor" );
+  ShutdownWMIThread (cpu_stats.hShutdownSignal,      cpu_stats.hThread,      L"CPU Monitor"     );
+  ShutdownWMIThread (disk_stats.hShutdownSignal,     disk_stats.hThread,     L"Disk Monitor"    );
+  ShutdownWMIThread (pagefile_stats.hShutdownSignal, pagefile_stats.hThread, L"Pagefile Monitor");
 
   const wchar_t* config_name = backend;
 
@@ -1966,32 +1998,33 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done!\n");
   }
 
-  // We generally don't start SteamAPI -- but someday might want this as a feature, so
-  //    let this code rot here ;)
-#if 0
-  if ((! config.steam.silent)) {
-    dll_log.LogEx  (true, L"[ SteamAPI ] Shutting down Steam API... ");
-    SK::SteamAPI::Shutdown ();
-    dll_log.LogEx  (false, L"done!\n");
-  }
-#endif
-
-  SK_GetCurrentRenderBackend ().releaseOwnedResources ();
 
   SK_UnloadImports        ();
   SK::Framerate::Shutdown ();
 
+
+  dll_log.LogEx     (true, L"[ SpecialK ] Shutting down MinHook... ");
+  SK_UnInit_MinHook ();
+  dll_log.LogEx     (false, L"done!\n");
+
+
+  dll_log.LogEx  (true, L"[ WMI Perf ] Shutting down WMI WbemLocator... ");
+  SK_ShutdownWMI ();
+  dll_log.LogEx  (false, L"done!\n");
+
+
+  SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+
+
   if (nvapi_init)
     sk::NVAPI::UnloadLibrary ();
+
 
   dll_log.Log (L"[ SpecialK ] Custom %s.dll Detached (pid=0x%04x)",
     backend, GetCurrentProcessId ());
 
   SymCleanup (GetCurrentProcess ());
 
-  SK_ShutdownWMI    ();
-
-  SK_UnInit_MinHook ();
 
   // Breakpad Disable Disclaimer; pretend the log was empty :)
   if (crash_log.lines == 1)
@@ -2288,6 +2321,9 @@ SK_BeginBufferSwap (void)
   extern void SK_ImGui_PollGamepad_EndFrame (void);
   SK_ImGui_PollGamepad_EndFrame ();
 }
+
+
+extern void SK_ImGui_Toggle (void);
 
 ULONGLONG poll_interval = 0;
 
@@ -2770,7 +2806,9 @@ CALLBACK
 RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
                    LPSTR lpszCmdLine, int       nCmdShow )
 {
-  ShellExecuteA ( nullptr, "runas", lpszCmdLine, nullptr, nullptr, SW_SHOWNORMAL );
+  UNREFERENCED_PARAMETER (hInst);
+
+  ShellExecuteA ( hwnd, "runas", lpszCmdLine, nullptr, nullptr, nCmdShow );
 }
 
 void
@@ -2778,5 +2816,7 @@ CALLBACK
 RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
                      LPSTR lpszCmdLine, int       nCmdShow )
 {
-  ShellExecuteA ( nullptr, "open", lpszCmdLine, nullptr, nullptr, SW_SHOWNORMAL );
+  UNREFERENCED_PARAMETER (hInst);
+
+  ShellExecuteA ( hwnd, "open", lpszCmdLine, nullptr, nullptr, nCmdShow );
 }

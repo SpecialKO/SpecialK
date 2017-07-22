@@ -67,6 +67,8 @@ LPTOP_LEVEL_EXCEPTION_FILTER
 WINAPI
 SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter)
 {
+  UNREFERENCED_PARAMETER (lpTopLevelExceptionFilter);
+
   return SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
 }
 
@@ -109,8 +111,7 @@ CrashHandler::Init (void)
                      SetUnhandledExceptionFilter_Detour,
           (LPVOID *)&SetUnhandledExceptionFilter_Original );
 
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
-                  SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
+  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
                   SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 
   SymRefreshModuleList (GetCurrentProcess ());
@@ -217,8 +218,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   bool scaleform = false;
 
 #if 1
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
-                  SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
+  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
                   SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 #else
   SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
@@ -640,9 +640,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     last_chance = true;
 
-    WIN32_FIND_DATA fd = { };
-    HANDLE          hFind = INVALID_HANDLE_VALUE;
-    size_t          files = 0UL;
+    WIN32_FIND_DATA fd     = { };
+    HANDLE          hFind  = INVALID_HANDLE_VALUE;
+    size_t          files  = 0UL;
     LARGE_INTEGER   liSize = { 0ULL };
 
     wchar_t wszFindPattern [MAX_PATH * 2] = { };
@@ -798,7 +798,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
 {
   ULONG ret = 0;
 
-  if (config.system.strict_compliance)
+  //if (config.system.strict_compliance)
     EnterCriticalSection (&cs_dbghelp);
 
   HANDLE hProc =
@@ -850,7 +850,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
     ret     = 0;
   }
 
-  if (config.system.strict_compliance)
+  //if (config.system.strict_compliance)
     LeaveCriticalSection (&cs_dbghelp);
 
   return ret;
@@ -860,17 +860,19 @@ void
 WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc = GetCurrentProcess () )
 {
-  if (config.system.strict_compliance)
+  //if (config.system.strict_compliance)
     EnterCriticalSection (&cs_dbghelp);
 
   SymRefreshModuleList (hProc);
 
-  if (config.system.strict_compliance)
+  //if (config.system.strict_compliance)
     LeaveCriticalSection (&cs_dbghelp);
 }
 
 typedef void (__cdecl *SteamAPI_SetBreakpadAppID_pfn)( uint32_t unAppID );
-typedef void (__cdecl *SteamAPI_UseBreakpadCrashHandler_pfn)(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, LPVOID m_pfnPreMinidumpCallback);
+typedef void (__cdecl *SteamAPI_UseBreakpadCrashHandler_pfn)( char const *pchVersion, char const *pchDate, 
+                                                              char const *pchTime,    bool        bFullMemoryDumps,
+                                                              void       *pvContext,  LPVOID      m_pfnPreMinidumpCallback );
 
 SteamAPI_SetBreakpadAppID_pfn        SteamAPI_SetBreakpadAppID_NEVER        = nullptr;
 SteamAPI_UseBreakpadCrashHandler_pfn SteamAPI_UseBrakepadCrashHandler_NEVER = nullptr;
@@ -945,7 +947,7 @@ SK_BypassSteamCrashHandler (void)
 void
 CrashHandler::InitSyms (void)
 {
-  if (config.system.strict_compliance)
+  //if (config.system.strict_compliance)
     EnterCriticalSection (&cs_dbghelp);
 
   static volatile ULONG init = 0UL;
@@ -970,8 +972,7 @@ CrashHandler::InitSyms (void)
         SK_BypassSteamCrashHandler ();
     }
 
-    SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES             | SYMOPT_UNDNAME               |
-                    SYMOPT_LOAD_ANYTHING    | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_INCLUDE_32BIT_MODULES |
+    SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
                     SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 
     SymInitialize (
@@ -980,6 +981,6 @@ CrashHandler::InitSyms (void)
           TRUE );
   }
 
-  if (config.system.strict_compliance)
+  //if (config.system.strict_compliance)
     LeaveCriticalSection (&cs_dbghelp);
 }

@@ -48,6 +48,7 @@
 #include <array>
 #include <string>
 #include <memory>
+#include <typeindex>
 
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
@@ -65,8 +66,8 @@
 #include <SpecialK/DLL_VERSION.H>
 
 
-#define SK_CHAR(x) (      _T ) constexpr _T      (typeid (_T) == typeid (wchar_t)) ? (      _T )_L(x) : (      _T )(x)
-#define SK_TEXT(x) (const _T*) constexpr LPCVOID (typeid (_T) == typeid (wchar_t)) ? (const _T*)_L(x) : (const _T*)(x)
+#define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
+#define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
 
 typedef PSTR    (__stdcall *StrStrI_pfn)            (LPCVOID lpFirst,   LPCVOID lpSearch);
 typedef BOOL    (__stdcall *PathRemoveFileSpec_pfn) (LPVOID  lpPath);
@@ -158,34 +159,36 @@ BlacklistLibrary (const _T* lpFileName)
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (StrStrI_pfn)           &StrStrIW           :
-                                                            (StrStrI_pfn)           &StrStrIA           );
+      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (StrStrI_pfn)           &StrStrIW           :
+                                                                                                (StrStrI_pfn)           &StrStrIA           );
 
   static GetModuleHandleEx_pfn  GetModuleHandleEx =
     (GetModuleHandleEx_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW : 
-                                                            (GetModuleHandleEx_pfn) &GetModuleHandleExA );
+      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW : 
+                                                                                                (GetModuleHandleEx_pfn) &GetModuleHandleExA );
 
 
+#ifdef _WIN64
   if (StrStrI (lpFileName, SK_TEXT("action_x64")))
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 2) SleepEx (66, TRUE);
+    while (SK_GetFramesDrawn () < 3) SleepEx (133, TRUE);
   }
-
-  else if (StrStrI (lpFileName, SK_TEXT("action_x86")))
+#else
+  if (StrStrI (lpFileName, SK_TEXT("action_x86")))
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 2) SleepEx (66, TRUE);
+    while (SK_GetFramesDrawn () < 3) SleepEx (133, TRUE);
   }
+#endif
 
   else if (StrStrI (lpFileName, SK_TEXT("RTSSHooks")))
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 2) SleepEx (66, TRUE);
+    while (SK_GetFramesDrawn () < 3) SleepEx (133, TRUE);
   }
 
 
@@ -367,13 +370,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (lpCallerFunc), (uintptr_t)lpCallerFunc, szSymbol, ulLen);
 
     if (constexpr (typeid (_T) == typeid (char)))
-      dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#64hs' <%hs> { '%hs' }",
+      dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%hs> { '%21hs' }",
                       wszModName,
                         lpFileName,
                           lpFunction,
                             szSymbol );
     else
-      dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#64ws' <%ws> { '%hs' }",
+      dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116ws' <%ws> { '%21hs' }",
                       wszModName,
                         lpFileName,
                           lpFunction,
@@ -386,19 +389,28 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     {
       // This is silly, this many string comparions per-load is
       //   not good. Hash the string and compare it in the future.
-      if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-           StrStrIW (wszModName, L"Activation")          ||
-           StrStrIW (wszModName, L"ReShade")             ||
+      if ( StrStrIW (wszModName, L"Activation")          ||
            StrStrIW (wszModName, L"rxcore")              ||
-           StrStrIW (wszModName, L"RTSSHooks")           ||
            StrStrIW (wszModName, L"GeDoSaTo") )
       {   
         SK_ReHookLoadLibrary ();
       }
     }
 
-    if (StrStrIW (wszModName, L"Nahimic2DevProps"))
-      SK_ReHookLoadLibrary ();
+    if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
+         StrStrIW (wszModName, L"Nahimic2DevProps")    ||
+         StrStrIW (wszModName, L"ReShade")             ||
+         StrStrIW (wszModName, L"RTSSHooks")           ||
+         StrStrIW (wszModName, L"Activation") )
+    {
+      static int tries = 0;
+
+      // If these things ever repeatedly try to rehook what we
+      //   just rehooked, then give up eventuall to prevent
+      //     infinite recursion.
+      if (tries++ < 5)
+        SK_ReHookLoadLibrary ();
+    }
   }
 
   if (hCallingMod != SK_GetDLL ()/* && SK_IsInjected ()*/)
@@ -483,6 +495,8 @@ BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
+  LPVOID pAddr = _ReturnAddress ();
+
   if (InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0) != 0)
   {
     return FreeLibrary_Original (hLibModule);
@@ -508,7 +522,11 @@ FreeLibrary_Detour (HMODULE hLibModule)
         char  szSymbol [1024] = { };
         ULONG ulLen  =  1024;
     
-        ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (), (uintptr_t)_ReturnAddress (), szSymbol, ulLen);
+        ulLen =
+          SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (),
+                                             (uintptr_t)pAddr,
+                                               szSymbol,
+                                                 ulLen );
 
         dll_log.Log ( L"[DLL Loader]   ( %-28ls ) freed  '%#64ls' from { '%hs' }",
                         SK_GetModuleName (SK_GetCallingDLL ()).c_str (),
@@ -580,7 +598,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              "LoadLibraryA", lpRet );
+                              " LoadLibraryA ", lpRet );
   }
 
   free ((void *)lpFileName);
@@ -645,7 +663,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              L"LoadLibraryW", lpRet );
+                              L" LoadLibraryW ", lpRet );
   }
 
   free ((void *)lpFileName);
@@ -911,6 +929,12 @@ SK_ReHookLoadLibrary (void)
   if (_loader_hooks.unhooked)
     return;
 
+  // Do from a separate thread so that we don't do this while the very hook
+  //   that we are fudging with is in-flight
+  CreateThread (nullptr, 0x00,
+    [](LPVOID user) -> DWORD
+    {
+
   SK_LockDllLoader ();
 
   if (_loader_hooks.LoadLibraryA_target != nullptr)
@@ -1005,9 +1029,15 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
 #endif
 
-  MH_ApplyQueued ();
-
+  MH_ApplyQueued     ();
   SK_UnlockDllLoader ();
+
+  CloseHandle (GetCurrentThread ());
+
+  UNREFERENCED_PARAMETER (user);
+
+  return 0;
+  }, nullptr, 0x00, nullptr );
 }
 
 void
@@ -1092,7 +1122,7 @@ struct enum_working_set_s {
 std::unordered_set <HMODULE> logged_modules;
 
 void
-_SK_SummarizeModule ( LPVOID   base_addr,  ptrdiff_t   mod_size,
+_SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
                       HMODULE  hMod,       uintptr_t   addr,
                       wchar_t* wszModName, iSK_Logger* pLogger )
 {
@@ -1134,9 +1164,10 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
     {
       // Get the full path to the module's file.
       if ( (! logged_modules.count (pWorkingSet->modules [i])) &&
-              GetModuleFileNameW ( pWorkingSet->modules [i],
-                                     wszModName,
-                                       MAX_PATH ) )
+              GetModuleFileNameExW ( pWorkingSet->proc,
+                                       pWorkingSet->modules [i],
+                                        wszModName,
+                                          MAX_PATH ) )
       {
         MODULEINFO mi = { };
 
@@ -1164,6 +1195,8 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
   }
+
+  CloseHandle (pWorkingSet->proc);
 
   SK_UnlockDllLoader ();
 }
@@ -1405,18 +1438,14 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
             working_set.count  = cbNeeded / sizeof HMODULE;
     memcpy (working_set.modules, hMods, cbNeeded);
 
+    // Doing a full enumeration is slow as hell, spawn a worker thread for this
+    //   and learn to deal with the fact that some symbol names will be invalid;
+    //     the crash handler will load them, but certain diagnostic readings under
+    //       normal operation will not.
     enum_working_set_s* pWorkingSet = (enum_working_set_s *)&working_set;
     SK_ThreadWalkModules (pWorkingSet);
 
     SK_WalkModules (cbNeeded, hProc, hMods, when);
-
-    //if (pLogger != nullptr)
-    //{
-    //  pLogger->close ();
-    //  delete pLogger;
-    //}
-
-    //pLogger = nullptr;
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr)
@@ -1473,6 +1502,8 @@ TaskDialogCallback (
     return S_OK;
   }
 
+  // It's important to keep the compatibility menu always on top, far more important than even
+  //   the "Always On Top" window style can give us.
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
     LONG_PTR style    = GetWindowLongPtrW (hWnd, GWL_STYLE);
@@ -1734,6 +1765,9 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
                         wchar_t* wszVerifyText,
                         BOOL*    verify )
 {
+  // TODO
+  UNREFERENCED_PARAMETER (wszConfirmation);
+
   const bool timer = true;
 
   int              nButtonPressed = 0;
@@ -1787,6 +1821,8 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
                           BOOL*    verify,
                           wchar_t* wszCommand )
 {
+  UNREFERENCED_PARAMETER (wszConfirmation);
+
   const bool timer = true;
 
   int              nButtonPressed =   0;
@@ -2014,6 +2050,10 @@ SK_Bypass_CRT (LPVOID user)
       case SK_RenderAPI::OpenGL:
         __SK_DLL_Backend = L"OpenGL32";
         SK_SetDLLRole (DLL_ROLE::OpenGL);
+        break;
+      case SK_RenderAPI::Vulkan:
+        __SK_DLL_Backend = L"vulkan-1";
+        SK_SetDLLRole (DLL_ROLE::Vulkan);
         break;
     }
   }

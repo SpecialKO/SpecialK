@@ -481,6 +481,8 @@ SK_WASAPI_AudioSession::OnStateChanged (AudioSessionState NewState)
 HRESULT
 SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason)
 {
+  UNREFERENCED_PARAMETER (DisconnectReason);
+
   parent_->RemoveSession (this);
 
   return S_OK;

@@ -84,7 +84,7 @@ SK_TLS*
 __stdcall
 SK_TLS_Bottom (void)
 {
-  if (__SK_TLS_INDEX == -1)
+  if (__SK_TLS_INDEX == MAXDWORD)
     return nullptr;
 
   LPVOID lpvData =
@@ -114,7 +114,7 @@ SK_TLS*
 __stdcall
 SK_TLS_Top (void)
 {
-  if (__SK_TLS_INDEX == -1)
+  if (__SK_TLS_INDEX == MAXDWORD)
     return nullptr;
 
   return &(SK_TLS_Bottom ()[SK_TLS_Bottom ()->stack.current]);
@@ -124,7 +124,7 @@ bool
 __stdcall
 SK_TLS_Push (void)
 {
-  if (__SK_TLS_INDEX == -1)
+  if (__SK_TLS_INDEX == MAXDWORD)
     return false;
 
   if (SK_TLS_Bottom ()->stack.current < SK_TLS::stack::max)
@@ -143,7 +143,7 @@ bool
 __stdcall
 SK_TLS_Pop  (void)
 {
-  if (__SK_TLS_INDEX == -1)
+  if (__SK_TLS_INDEX == MAXDWORD)
     return false;
 
   if (SK_TLS_Bottom ()->stack.current > 0)
@@ -859,8 +859,7 @@ DllMain ( HMODULE hModule,
       }
 
 
-      ULONG                     local_refs =
-          InterlockedIncrement (&__SK_DLL_Refs);
+      InterlockedIncrement (&__SK_DLL_Refs);
 
 
       // Setup unhooked function pointers
@@ -892,8 +891,8 @@ DllMain ( HMODULE hModule,
         return FALSE;
       }
 
-      // We don't want to initialize the DLL, but we also don't want it re-inject itself constantly
-      //   just return TRUE here.
+      // We don't want to initialize the DLL, but we also don't want it to
+      //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
         return TRUE;
