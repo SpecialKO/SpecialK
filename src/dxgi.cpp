@@ -1494,24 +1494,18 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
           SK_Steam_DrawOSD ();
 
           CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+
+          // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
+          if (ImGui_DX11Startup             ( This                         ))
+          {
+            extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
+                         SK_ImGui_DrawFrame (       0x00,          nullptr );
+          }
         }
         cegD3D11->endRendering ();
       }
 
-      extern bool SK_ImGui_Visible;
-
-      if (SK_ImGui_Visible)
-      {
-        // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
-        if (ImGui_DX11Startup             ( This                         ))
-        {
-          extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
-                       SK_ImGui_DrawFrame (       0x00,          nullptr );
-        }
-      }
-
       sb->apply (pImmediateContext);
-
 
       //
       // Update G-Sync; doing this here prevents trying to do this on frames where
@@ -2371,8 +2365,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   }
 
   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
-                       L"{ (%lux%lu @ %3.1f Hz),"
-                       L" fmt=%lu,scaling=0x%02x,scanlines=0x%02x }",
+                       L"{ (%lux%lu@%3.1f Hz),"
+                       L"fmt=%lu,scaling=0x%02x,scanlines=0x%02x }",
                           pNewTargetParameters->Width, pNewTargetParameters->Height,
                           pNewTargetParameters->RefreshRate.Denominator != 0 ?
                             (float)pNewTargetParameters->RefreshRate.Numerator /
@@ -2389,7 +2383,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
           pNewTargetParameters->Scaling  != 
             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
                                 ||
-       ( config.render.framerate.refresh_rate != -1 &&
+       ( config.render.framerate.refresh_rate          != -1 &&
            pNewTargetParameters->RefreshRate.Numerator !=
              (UINT)config.render.framerate.refresh_rate )
     )
@@ -2924,11 +2918,11 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   desc.BufferDesc.Format  = pDesc1->Format;
   //desc.BufferDesc.Scaling = pDesc1->Scaling;
 
-  desc.BufferCount       = pDesc1->BufferCount;
-  desc.BufferUsage       = pDesc1->BufferUsage;
-  desc.Flags             = pDesc1->Flags;
-  desc.SampleDesc        = pDesc1->SampleDesc;
-  desc.SwapEffect        = pDesc1->SwapEffect;
+  desc.BufferCount        = pDesc1->BufferCount;
+  desc.BufferUsage        = pDesc1->BufferUsage;
+  desc.Flags              = pDesc1->Flags;
+  desc.SampleDesc         = pDesc1->SampleDesc;
+  desc.SwapEffect         = pDesc1->SwapEffect;
 
   if (pFullscreenDesc)
   {
@@ -4317,6 +4311,9 @@ HookDXGI (LPVOID user)
           pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain);
           SK_DXGI_HookSwapChain     (pSwapChain);
 
+          HookD3D11           (&d3d11_hook_ctx);
+          SK_DXGI_HookFactory (pFactory);
+
           // Copy the vtable, so we can defer hook installation if needed
           IDXGISwapChain* pSwapCopy =
             (IDXGISwapChain *)malloc (sizeof IDXGISwapChain);
@@ -4327,6 +4324,10 @@ HookDXGI (LPVOID user)
           // Some third-party software uninjects itself and unhooks stuff.
 
           memcpy (pSwapCopy, pSwapChain, sizeof IDXGISwapChain);
+
+          // This won't catch Present1 (...), but no games use that
+          //   and we can deal with it later if it happens.
+          SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapCopy, false);
 
           CreateThread ( nullptr,
                            0x0,
@@ -4340,8 +4341,9 @@ HookDXGI (LPVOID user)
                                  //   and we can deal with it later if it happens.
                                  SK_DXGI_HookPresentBase ((IDXGISwapChain *)user, false);
                                                                       free (user);
-                                 MH_ApplyQueued ();
                                }
+
+                               MH_ApplyQueued ();
 
                                CloseHandle (GetCurrentThread ());
 
@@ -4353,9 +4355,6 @@ HookDXGI (LPVOID user)
 
         DestroyWindow (hWnd);
       }
-
-      HookD3D11           (&d3d11_hook_ctx);
-      SK_DXGI_HookFactory (pFactory);
 
       // These don't do anything (anymore)
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();

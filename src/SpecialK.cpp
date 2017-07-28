@@ -783,7 +783,6 @@ SK_Detach (DLL_ROLE role)
         ret = SK::DDraw::Shutdown ();
         break;
 #else
-
 #endif
 
       case DLL_ROLE::OpenGL:
@@ -937,7 +936,7 @@ DllMain ( HMODULE hModule,
     case DLL_PROCESS_DETACH:
     {
       SK_Inject_ReleaseProcess ();
-
+      
       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
       {
         // If the DLL being unloaded is the source of a CBT hook, then
@@ -945,7 +944,7 @@ DllMain ( HMODULE hModule,
         if (InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
         {
           SKX_RemoveCBTHook ();
-
+      
           // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
           if (! InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
           {
@@ -956,14 +955,15 @@ DllMain ( HMODULE hModule,
 #endif
           }
         }
-
+//
         if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
-
-          SK_Detach (SK_GetDLLRole ());
         }
       }
+
+      if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
+        SK_Detach (SK_GetDLLRole ());
 
       if (__SK_TLS_INDEX != MAXDWORD)
         TlsFree (__SK_TLS_INDEX);

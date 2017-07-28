@@ -883,6 +883,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
 {
   EnterCriticalSection (&init_mutex);
 
+  SK_Input_Init ();
+
   wcscpy (SK_Backend, backend);
 
   typedef void (WINAPI *finish_pfn)  (void);
@@ -1857,8 +1859,6 @@ BACKEND_INIT:
   CreateThread ( nullptr, 0,
                    [](LPVOID) -> DWORD
                    {
-                     SK_Input_Init ();
-
                      bool SK_InitWMI (void);
                        SK_InitWMI    (    );
 

@@ -6038,6 +6038,25 @@ SK_D3D11_InitTextures (void)
     cache_opts.min_size          = config.textures.cache.min_size;
     cache_opts.ignore_non_mipped = config.textures.cache.ignore_nonmipped;
 
+    SK_D3D11_Textures.TexRefs_2D.reserve       (8192);
+    SK_D3D11_Textures.Textures_2D.reserve      (8192);
+    SK_D3D11_Textures.HashMap_2D [ 1].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 2].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 3].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 4].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 5].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 6].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 7].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 8].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [ 9].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [10].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [11].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [12].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [13].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [14].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [15].reserve  ( 512);
+    SK_D3D11_Textures.HashMap_2D [16].reserve  ( 512);
+
     //
     // Legacy Hack for Untitled Project X (FFX/FFX-2)
     //

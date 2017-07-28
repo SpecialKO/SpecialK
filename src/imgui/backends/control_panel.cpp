@@ -54,6 +54,8 @@
 #include <SpecialK/import.h>
 #include <SpecialK/injection/injection.h>
 
+#include <SpecialK/io_monitor.h>
+
 
 #include <windows.h>
 #include <cstdio>
@@ -549,6 +551,8 @@ SK_ImGui_AdjustCursor (void)
     [](LPVOID user)->
     DWORD
     {
+      UNREFERENCED_PARAMETER (user);
+
       ClipCursor_Original (nullptr);
         SK_AdjustWindow   ();        // Restore game's clip cursor behavior
 
@@ -560,6 +564,87 @@ SK_ImGui_AdjustCursor (void)
 
 bool reset_frame_history = true;
 bool was_reset           = false;
+
+#include <array>
+
+template <typename _T, int max_samples>
+class SK_ImGui_DataHistory
+{
+public:
+  int   getCapacity   (void)
+  {
+    return max_samples;
+  };
+
+  int   getUpdates    (void)
+  {
+    return updates;
+  }
+
+  _T getEntry      (int idx)
+  {
+    if (idx + values_offset < max_samples)
+      return values [idx + values_offset];
+
+    else
+      return values [(idx + values_offset) % max_samples];
+  }
+
+
+  int                           getOffset (void) { return values_offset; };
+  std::array <_T, max_samples>& getValues (void) { return values;        };
+
+  void   reset     (void) {
+    values_offset = 0;
+    updates       = 0;
+  }
+
+protected:
+  int                          updates       = 0;
+  std::array <_T, max_samples> values;
+  int                          values_offset = 0;
+};
+
+class SK_ImGui_FrameHistory : public SK_ImGui_DataHistory <float, 120>
+{
+public:
+  void timeFrame      (double seconds)
+  {
+    values [values_offset] = 1000.0f * seconds;
+    values_offset          = (values_offset + 1) % SK_ImGui_DataHistory::getCapacity ();
+
+    SK_ImGui_DataHistory::updates++;
+  }
+};
+
+class SK_ImGui_CPUHistory : public SK_ImGui_DataHistory <float, 240>
+{
+public:
+  void recordLoad (cpu_perf_t::cpu_stat_s& perf)
+  {
+    DWORD dwLatest = perf.update_time;
+
+    if (dwLastUpdate < dwLatest)
+    {
+      values [values_offset] = (float)perf.percent_load;
+      values_offset          = (values_offset + 1) % SK_ImGui_DataHistory::getCapacity ();
+
+      dwLastUpdate = dwLatest;
+
+      SK_ImGui_DataHistory::updates++;
+    }
+  }
+
+protected:
+  DWORD dwLastUpdate = 0;
+};
+
+SK_ImGui_FrameHistory SK_ImGui_Frames;
+SK_ImGui_CPUHistory   SK_ImGui_CPUs [64];
+
+bool cpu_widget         = false;
+bool framepacing_widget = false;
+
 
 #pragma optimize( "", off ) 
 __declspec (noinline)
@@ -734,6 +819,156 @@ DisplayModeMenu (bool windowed)
   }
 }
 
+extern float target_fps;
+
+
+void
+SK_ImGui_DrawGraph_CPU (void)
+{
+  ImGuiIO& io (ImGui::GetIO ());
+
+  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+  const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+  static char szAvg [512] = { };
+
+  for (int i = 0; i < cpu_stats.num_cpus; i++)
+  {
+    int   sample = 0;
+    float sum    =   0.0f;
+                 
+    float min    = 100.0f;
+    float max    =   0.0f;
+    
+    for ( auto val : SK_ImGui_CPUs [i].getValues () )
+    {
+      ++sample;
+
+      if (sample > SK_ImGui_CPUs [i].getUpdates ())
+        continue;
+
+      sum += val;
+    
+      if (val > max)
+        max = val;
+    
+      if (val < min)
+        min = val;
+    }
+
+    if (i > 0)
+    {
+      sprintf_s
+            ( szAvg,
+                512,
+                  u8"CPU%lu:\n\n"
+                  u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
+                    i-1,
+                      min, max, sum / std::min ( SK_ImGui_CPUs [i].getUpdates  (),
+                                                 SK_ImGui_CPUs [i].getCapacity () ) );
+    }
+
+    else
+    {
+      sprintf_s
+            ( szAvg,
+                512,
+                  u8"Combined CPU Load:\n\n"
+                  u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
+                    min, max, sum / std::min ( SK_ImGui_CPUs [i].getUpdates  (),
+                                               SK_ImGui_CPUs [i].getCapacity () ) );
+    }
+
+    char szName [128] = { };
+
+    sprintf (szName, "###CPU_%lu", i-1);
+
+    float samples = 
+      std::min ( SK_ImGui_CPUs [i].getUpdates  (),
+                 SK_ImGui_CPUs [i].getCapacity () );
+
+    ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+                              ImColor::HSV ( 0.31f - 0.31f *
+                       std::min ( 1.0f, (sum / samples) / 100.0f ),
+                                               0.73f,
+                                                 0.93f ) );
+
+    ImGui::PlotLines ( szName,
+                         SK_ImGui_CPUs [i].getValues     ().data (),
+                           samples,
+                             SK_ImGui_CPUs [i].getOffset (),
+                               szAvg,
+                                 0.0f,
+                                   100.0f,
+                                     ImVec2 (
+                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4) );
+
+    ImGui::PopStyleColor ();
+  }
+}
+
+void
+SK_ImGui_DrawGraph_FramePacing (void)
+{
+  ImGuiIO& io (ImGui::GetIO ());
+
+  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+  const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+  float sum = 0.0f;
+
+  float min = FLT_MAX;
+  float max = 0.0f;
+
+  for ( auto val : SK_ImGui_Frames.getValues () )
+  {
+    sum += val;
+
+    if (val > max)
+      max = val;
+
+    if (val < min)
+      min = val;
+  }
+
+  static char szAvg [512];
+
+  float target_frametime = ( target_fps == 0.0f ) ?
+                              ( 1000.0f / 60.0f ) :
+                                ( 1000.0f / target_fps );
+
+  float frames = std::min (SK_ImGui_Frames.getUpdates (), SK_ImGui_Frames.getCapacity ());
+
+  sprintf_s
+        ( szAvg,
+            512,
+              u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+              u8"    Extreme frametimes:      %6.3f min, %6.3f max\n\n\n\n"
+              u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
+                sum / frames,
+                  target_frametime,
+                    min, max, max - min,
+                      1000.0f / (sum / frames), (max - min) / (1000.0f / (sum / frames)) );
+
+  ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+                            ImColor::HSV ( 0.31f - 0.31f *
+                     std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
+                                             0.73f,
+                                               0.93f ) );
+
+  ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" : "###Floating_FramePacing",
+                       SK_ImGui_Frames.getValues     ().data (),
+                         frames,
+                           SK_ImGui_Frames.getOffset (),
+                             szAvg,
+                               0.0f,
+                                 2.0f * target_frametime,
+                                   ImVec2 (
+                                     std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 7) );
+
+  ImGui::PopStyleColor ();
+}
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -748,89 +983,7 @@ SK_ImGui_ControlPanel (void)
   }
 
 
-
   bool windowed = (! SK_GetCurrentRenderBackend ().fullscreen_exclusive);
-
-
-
-  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
-  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
-
-  static bool show_test_window = false;
-
-  //
-  // Framerate history
-  //
-  static float values [120]  = { };
-  static int   values_offset =  0;
-
-  if (! reset_frame_history)
-  {
-    values [values_offset] = 1000.0f * io.DeltaTime;
-    values_offset = (values_offset + 1) % IM_ARRAYSIZE (values);
-  }
-
-  reset_frame_history = false;
-
-
-  static float last_width  = -1;
-  static float last_height = -1;
-
-  bool recenter = ( last_width  != io.DisplaySize.x ||
-                    last_height != io.DisplaySize.y );
-
-  if (recenter)
-  {
-    SK_ImGui_LastWindowCenter.x = -1.0f;
-    SK_ImGui_LastWindowCenter.y = -1.0f;
-
-    ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
-    last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
-  }
-
-
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 200), ImVec2 ( 0.9f * io.DisplaySize.x,
-                                                                   0.9f * io.DisplaySize.y ) );
-
-
-  const char* szTitle     = SK_ImGui_ControlPanelTitle ();
-  static int  title_len   = int ((float)ImGui::CalcTextSize (szTitle).x * 1.075f);
-  static bool first_frame = true;
-  bool        open        = true;
-
-
-  ImGuiStyle& style =
-    ImGui::GetStyle ();
-
-  // Initialize the dialog using the user's scale preference
-  if (first_frame)
-  {
-    io.NavMovesMouse = true;
-
-    // Range-restrict for sanity!
-    config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
-  
-    io.FontGlobalScale = config.imgui.scale;
-    first_frame        = false;
-  }
-
-  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
-  const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
-
-  style.WindowTitleAlign = ImVec2 (0.5f, 0.5f);
-
-  style.WindowMinSize.x = title_len * 1.075f * io.FontGlobalScale;
-  style.WindowMinSize.y = 200;
-
-  extern bool nav_usable;
-
-  if (nav_usable)
-    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV ((float)(timeGetTime () % 2800) / 2800.0f,  (0.5f + (sin ((float)(timeGetTime () % 500) / 500.0f)) * 0.5f) / 2.0f, 1.0f));
-  else
-    ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
-  ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_MenuBar);
-  ImGui::PopStyleColor  ();
-
 
   auto DisplayMenu = [&](void) -> void {
     //if (ImGui::MenuItem ("Force-Inject Steam Overlay", "", nullptr))
@@ -855,8 +1008,8 @@ SK_ImGui_ControlPanel (void)
     //ImGui::MenuItem ("ImGui Demo",              "", &show_test_window);
   };
 
-  
-  if (ImGui::BeginMenuBar ())
+
+  auto SpecialK_Menu = [&](void) -> void
   {
     if (ImGui::BeginMenu ("File"))
     {
@@ -1231,9 +1384,80 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::EndMenu  ();
     }
-    ImGui::EndMenuBar ();
+  };
+
+
+  if (ImGui::BeginMainMenuBar ())
+  {
+    SpecialK_Menu ();
+
+    ImGui::EndMainMenuBar ();
   }
 
+
+
+  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
+
+  static bool show_test_window = false;
+
+  static float last_width  = -1;
+  static float last_height = -1;
+
+  bool recenter = ( last_width  != io.DisplaySize.x ||
+                    last_height != io.DisplaySize.y );
+
+  if (recenter)
+  {
+    SK_ImGui_LastWindowCenter.x = -1.0f;
+    SK_ImGui_LastWindowCenter.y = -1.0f;
+
+    ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+    last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
+  }
+
+
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (250, 200), ImVec2 ( 0.9f * io.DisplaySize.x,
+                                                                   0.9f * io.DisplaySize.y ) );
+
+
+  const char* szTitle     = SK_ImGui_ControlPanelTitle ();
+  static int  title_len   = int ((float)ImGui::CalcTextSize (szTitle).x * 1.075f);
+  static bool first_frame = true;
+  bool        open        = true;
+
+
+  ImGuiStyle& style =
+    ImGui::GetStyle ();
+
+  // Initialize the dialog using the user's scale preference
+  if (first_frame)
+  {
+    io.NavMovesMouse = true;
+
+    // Range-restrict for sanity!
+    config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
+  
+    io.FontGlobalScale = config.imgui.scale;
+    first_frame        = false;
+  }
+
+  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+  const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+  style.WindowTitleAlign = ImVec2 (0.5f, 0.5f);
+
+  style.WindowMinSize.x = title_len * 1.075f * io.FontGlobalScale;
+  style.WindowMinSize.y = 200;
+
+  extern bool nav_usable;
+
+  if (nav_usable)
+    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV ((float)(timeGetTime () % 2800) / 2800.0f,  (0.5f + (sin ((float)(timeGetTime () % 500) / 500.0f)) * 0.5f) / 2.0f, 1.0f));
+  else
+    ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
+  ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+  ImGui::PopStyleColor  ();
 
           char szAPIName [32] = { };
     snprintf ( szAPIName, 32, "%ws",  SK_GetCurrentRenderBackend ().name );
@@ -1412,7 +1636,6 @@ SK_ImGui_ControlPanel (void)
 
     static bool has_own_limiter = (hModTZFix || hModTBFix);
 
-
     if (! has_own_limiter)
     {
       ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.666f);
@@ -1420,63 +1643,13 @@ SK_ImGui_ControlPanel (void)
       if ( ImGui::CollapsingHeader ("Framerate Limiter", ImGuiTreeNodeFlags_CollapsingHeader | 
                                                          ImGuiTreeNodeFlags_DefaultOpen ) )
       {
-        float sum = 0.0f;
-
-        float min = FLT_MAX;
-        float max = 0.0f;
-
-        for (float val : values)
-        {
-          sum += val;
-
-          if (val > max)
-            max = val;
-
-          if (val < min)
-            min = val;
-        }
-
-        static char szAvg [512];
-
-        extern float target_fps;
-
-        float target_frametime = ( target_fps == 0.0f ) ?
-                                    ( 1000.0f / 60.0f ) :
-                                      ( 1000.0f / target_fps );
-
-        sprintf_s
-              ( szAvg,
-                  512,
-                    u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-                    u8"    Extreme frametimes:      %6.3f min, %6.3f max\n\n\n\n"
-                    u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
-                      sum / 120.0f, target_frametime,
-                        min, max, max - min,
-                          1000.0f / (sum / 120.0f), (max - min) / (1000.0f / (sum / 120.0f)) );
-
-        ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
-                                  ImColor::HSV ( 0.31f - 0.31f *
-                           std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
-                                                   0.73f,
-                                                     0.93f ) );
-
-        ImGui::PlotLines ( "",
-                             values,
-                               IM_ARRAYSIZE (values),
-                                 values_offset,
-                                   szAvg,
-                                     0.0f,
-                                       2.0f * target_frametime,
-                                         ImVec2 (
-                                           std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 7) );
-
-        ImGui::PopStyleColor ();
+        SK_ImGui_DrawGraph_FramePacing ();
 
         static bool advanced = false;
                bool changed  = false;
 
 
-        // Don't apply this number if it's < 10, that does very undesirable things
+        // Don't apply this number if it's < 10; that does very undesirable things
         float target_orig = target_fps;
 
         if (ImGui::InputFloat ("Framerate Limit", &target_fps))
@@ -1492,17 +1665,18 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::SameLine ();
 
-        ImGui::Checkbox ("Advanced###Advanced_FPS", &advanced);
+        advanced = ImGui::TreeNode ("Advanced###Advanced_FPS");
 
         if (advanced)
         {
+          ImGui::TreePop    ();
           ImGui::BeginGroup ();
 
           ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.005f, 0.75);
          
           if (ImGui::IsItemHovered ())
           {
-            ImGui::BeginTooltip ();
+            ImGui::BeginTooltip   ();
             ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
             ImGui::Text           ("Controls Framerate Smoothness\n\n");
             ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
@@ -1514,7 +1688,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
             ImGui::Text           (" will cause framerate instability...");
             ImGui::PopStyleColor  (4);
-            ImGui::EndTooltip     ();
+            ImGui::EndTooltip     ( );
           }
 
           changed |= ImGui::Checkbox ("Sleepless Render Thread",         &config.render.framerate.sleepless_render  );
@@ -1667,7 +1841,7 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::Columns   ( 3 );  
             ImGui::Text    ( "%#6lu   Evictions",            SK_D3D11_Textures.Evicted_2D         );        ImGui::NextColumn ();
-            ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK_D3D11_Textures.RedundantLoads_2D / 
+            ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK_D3D11_Textures.RedundantLoads_2D   / 
                                                                 (float)SK_D3D11_Textures.CacheMisses_2D, 0.4f ), 0.95f, 0.8f),
                              " %.2f  Hit/Miss",                  (double)SK_D3D11_Textures.RedundantLoads_2D / 
                                                                 (double)SK_D3D11_Textures.CacheMisses_2D  ); ImGui::NextColumn ();
@@ -3573,6 +3747,15 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::PopStyleColor (3);
     }
 
+    if (ImGui::CollapsingHeader ("OSD Widgets"))
+    {
+      ImGui::TreePush ("");
+      ImGui::Checkbox ("Framepacing", &framepacing_widget);
+      ImGui::SameLine ();
+      ImGui::Checkbox ("CPU",         &cpu_widget);
+      ImGui::TreePop  (  );
+    }
+
     if (ImGui::CollapsingHeader ("Plug-Ins"))
     {
       ImGui::TreePush ("");
@@ -4297,6 +4480,25 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else
     return 0x00;
 
+  ImGuiIO& io (ImGui::GetIO ());
+
+
+  //
+  // Framerate history
+  //
+  if (! reset_frame_history)
+  {
+    SK_ImGui_Frames.timeFrame (io.DeltaTime);
+  }
+
+  for (int i = 0; i < cpu_stats.num_cpus; i++)
+  {
+    SK_ImGui_CPUs [i].recordLoad (cpu_stats.cpus [i]);
+  }
+
+  reset_frame_history = false;
+
+
   // Default action is to draw the Special K Control panel,
   //   but if you hook this function you can do anything you
   //     want...
@@ -4305,37 +4507,79 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   //      import SK_ImGui_ControlPanel and call that somewhere
   //        from your hook.
 
-  bool keep_open = SK_ImGui_ControlPanel ();
+  bool keep_open = true;
 
-  if (keep_open)
+
+  if (SK_ImGui_Visible)
+    keep_open = SK_ImGui_ControlPanel ();
+
+
+  if (framepacing_widget)
   {
-    if (d3d9)
-    {
-      extern LPDIRECT3DDEVICE9 g_pd3dDevice;
+    ImGui::Begin            ("###Widget_Framepacing", nullptr, ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoResize |
+                                                               ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize );
 
-      if ( SUCCEEDED (
-             g_pd3dDevice->BeginScene ()
-           )
-         )
-      {
-        ImGui::Render          ();
-        g_pd3dDevice->EndScene ();
-      }
-    }
+    SK_ImGui_DrawGraph_FramePacing ();
 
-    else if (d3d11)
-      ImGui::Render ();
-
-    else if (gl)
-      ImGui::Render ();
+    ImGui::End              ();
   }
 
-  else
+
+  if (cpu_widget)
+  {
+    static bool started = false;
+
+    if ((! config.cpu.show) && (! started))
+    {
+      started = true;
+
+      void
+      __stdcall
+      SK_StartPerfMonThreads (void);
+
+      config.cpu.show = true;
+      SK_StartPerfMonThreads ();
+    }
+
+    ImGui::Begin           ("###Widget_CPU", nullptr, ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoResize |
+                                                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize );
+
+    SK_ImGui_DrawGraph_CPU ();
+
+    ImGui::End             ();
+  }
+
+
+
+  if (d3d9)
+  {
+    extern LPDIRECT3DDEVICE9 g_pd3dDevice;
+
+    if ( SUCCEEDED (
+           g_pd3dDevice->BeginScene ()
+         )
+       )
+    {
+      ImGui::Render          ();
+      g_pd3dDevice->EndScene ();
+    }
+  }
+
+  else if (d3d11)
+    ImGui::Render ();
+
+  else if (gl)
+    ImGui::Render ();
+
+  if (! keep_open)
     SK_ImGui_Toggle ();
 
-  POINT orig_pos;
+
+  POINT                    orig_pos;
   GetCursorPos_Original  (&orig_pos);
+
   SK_ImGui_Cursor.update ();
+
   SetCursorPos_Original  (orig_pos.x, orig_pos.y);
 
   return 0;

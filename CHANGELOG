@@ -1,3 +1,28 @@
+0.8.27
+
+ + Added OSD Widgets (framepacing and CPU load)
+  >> Will polish these off later, they're just toys for now.
+ + Changed Special K's config menu to work similar to a Mac, for easier access to the branches
+     sub-menu at lower resolutions
+ + Fixed various Windows 7 issues
+
+0.8.26
+
+ + Added G-Sync status to framerate readout on OSD
+ + Cleaned up log formatting, turn wordwrap off to appreciate the changes ;)
+ + Various DLL Loader compliance issues have been fixed (in third-party software),
+     including using incorrect paths, wrong flags, etc.
+   >> I am likely to encounter broken software that relied on the original undefined
+        behavior, I'll fix it when it causes problems :)
+   >> This change actuall solves a few oddball problems in the meantime
+ + Added mouse warp deadzone configuration to the control panel for games with obnoxious
+     mouselook.
+ + Fixed occasional Wbem Locator issues caused by the Steam Overlay
+   >> The reason that CPU stats, etc. can take several seconds to load is because the Steam 
+        overlay holds a thread sync lock on the service needed for those stats. The reason
+          those stats sometimes crash games is ... because the Steam overlay holds a lock.
+   >> Tsk, tsk, Steam - other people need those services too, damit :)
+
 0.8.25:
 
  + Fixed mouse input in Mouse Effect: Andromeda, *AGAIN*.

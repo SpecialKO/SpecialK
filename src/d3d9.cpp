@@ -502,13 +502,10 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
-      if (SK_ImGui_Visible)
+      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
       {
-        if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
-        {
-          extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
-                       SK_ImGui_DrawFrame (       0x00,     nullptr );
-        }
+        extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
+                     SK_ImGui_DrawFrame (       0x00,     nullptr );
       }
     }
     cegD3D9->endRendering ();

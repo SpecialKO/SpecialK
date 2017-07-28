@@ -683,6 +683,8 @@ SK_MonitorCPU (LPVOID user_param)
                                   = ( cpu.cpus [i].percent_interrupt + 
                                       interrupt ) / 2;
 
+      cpu.cpus [i].update_time = timeGetTime ();
+
       // Done with the object
       cpu.apEnumAccess [i]->Release ();
       cpu.apEnumAccess [i] = nullptr;

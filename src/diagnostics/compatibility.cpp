@@ -173,14 +173,14 @@ BlacklistLibrary (const _T* lpFileName)
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 3) SleepEx (133, TRUE);
+    while (SK_GetFramesDrawn () < 6) SleepEx (666, TRUE);
   }
 #else
   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 3) SleepEx (133, TRUE);
+    while (SK_GetFramesDrawn () < 6) SleepEx (666, TRUE);
   }
 #endif
 
@@ -188,7 +188,7 @@ BlacklistLibrary (const _T* lpFileName)
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 3) SleepEx (133, TRUE);
+    while (SK_GetFramesDrawn () < 4) SleepEx (250, TRUE);
   }
 
 
@@ -391,24 +391,24 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       //   not good. Hash the string and compare it in the future.
       if ( StrStrIW (wszModName, L"Activation")          ||
            StrStrIW (wszModName, L"rxcore")              ||
-           StrStrIW (wszModName, L"GeDoSaTo") )
+           StrStrIW (wszModName, L"GeDoSaTo")            ||
+           StrStrIW (wszModName, L"gameoverlayrenderer") ||
+           StrStrIW (wszModName, L"RTSSHooks")           ||
+           StrStrIW (wszModName, L"Activation") )
       {   
         SK_ReHookLoadLibrary ();
       }
     }
 
-    if ( StrStrIW (wszModName, L"gameoverlayrenderer") ||
-         StrStrIW (wszModName, L"Nahimic2DevProps")    ||
-         StrStrIW (wszModName, L"ReShade")             ||
-         StrStrIW (wszModName, L"RTSSHooks")           ||
-         StrStrIW (wszModName, L"Activation") )
+    if ( StrStrIW (wszModName, L"Nahimic2DevProps")    ||
+         StrStrIW (wszModName, L"ReShade") )
     {
       static int tries = 0;
 
       // If these things ever repeatedly try to rehook what we
       //   just rehooked, then give up eventuall to prevent
       //     infinite recursion.
-      if (tries++ < 5)
+      if (tries++ < 2)
         SK_ReHookLoadLibrary ();
     }
   }

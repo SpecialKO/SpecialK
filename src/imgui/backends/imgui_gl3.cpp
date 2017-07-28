@@ -148,12 +148,17 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
 static const char*
 ImGui_ImplGL3_GetClipboardText (void* user_data)
 {
+  UNREFERENCED_PARAMETER (user_data);
+
   return nullptr;//return glfwGetClipboardString((GLFWwindow*)user_data);
 }
 
 static void
 ImGui_ImplGL3_SetClipboardText (void* user_data, const char* text)
 {
+  UNREFERENCED_PARAMETER (user_data);
+  UNREFERENCED_PARAMETER (text);
+
   //glfwSetClipboardString((GLFWwindow*)user_data, text);
 }
 

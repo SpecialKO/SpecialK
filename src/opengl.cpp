@@ -86,7 +86,6 @@ ULONG
 __stdcall
 SK_GetFramesDrawn (void);
 
-extern bool  SK_ImGui_Visible;
 extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
 
 unsigned int
@@ -1292,9 +1291,8 @@ SK_CEGUI_DrawGL (void)
       SK_Steam_DrawOSD ();
     
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-    
-      if (SK_ImGui_Visible)
-        SK_ImGui_DrawFrame (0x00, nullptr);
+
+      SK_ImGui_DrawFrame (0x00, nullptr);
     }
     cegGL->endRendering     ();
 

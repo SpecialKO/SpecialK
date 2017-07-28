@@ -110,7 +110,7 @@ struct cpu_perf_t : WMI_refresh_thread_t
 
   // Why 64-bit integers are needed for percents is beyond me,
   //   but this is WMI's doing not mine.
-  struct {
+  struct cpu_stat_s {
     uint64_t               percent_load                 = 0;
     uint64_t               percent_idle                 = 0;
     uint64_t               percent_kernel               = 0;
@@ -118,6 +118,8 @@ struct cpu_perf_t : WMI_refresh_thread_t
     uint64_t               percent_interrupt            = 0;
 
     uint64_t               temp_c                       = 0;
+
+    DWORD                  update_time                  = 0UL;
   } cpus [64];
 
   DWORD                    num_cpus                     = 0;
@@ -137,7 +139,7 @@ struct disk_perf_t : WMI_refresh_thread_t
   long                     lPercentDiskTimeHandle       = 0;
   long                     lPercentIdleTimeHandle       = 0;
 
-  struct {
+  struct disk_stat_s {
     char                   name [32];
 
     uint64_t               percent_load                 = 0;

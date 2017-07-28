@@ -633,11 +633,31 @@ SK_DrawOSD (void)
       last_fps_time = dwTime;
     }
 
+
+    bool gsync = false;
+
+    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+    {
+      if (SK_GetCurrentRenderBackend   ().gsync_state.capable)
+      {
+        if (SK_GetCurrentRenderBackend ().gsync_state.active)
+        {
+          gsync = true;
+        }
+      }
+    }
+
+
     if (mean != INFINITY)
     {
       if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
       {
-        OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>",
+        const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
+
+        if (gsync)
+          format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
+
+        OSD_PRINTF format,
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
             fps,
@@ -654,7 +674,12 @@ SK_DrawOSD (void)
       // No Effective Frametime History
       else
       {
-        OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)",
+        const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
+
+        if (gsync)
+          format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
+
+        OSD_PRINTF format,
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
             fps,
@@ -670,7 +695,12 @@ SK_DrawOSD (void)
     // No Frametime History
     else
     {
-      OSD_PRINTF "  %-7ws:  %#4.01f FPS, %#13.01f ms",
+      const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms";
+
+      if (gsync)
+        format = "  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms";
+
+      OSD_PRINTF format,
         SK_GetCurrentRenderBackend ().name,
           // Cast to FP to avoid integer division by zero.
           1000.0f * 0.0f / 1.0f, 0.0f

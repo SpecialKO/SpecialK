@@ -322,7 +322,7 @@ di8_init_callback (finish_pfn finish)
     SK_HookDI8 (nullptr);
 
     while (! InterlockedCompareExchange (&__di8_ready, FALSE, FALSE))
-      SleepEx (100UL, TRUE);
+      SleepEx (8UL, TRUE);
   }
 
   finish ();
@@ -332,10 +332,7 @@ di8_init_callback (finish_pfn finish)
 bool
 SK::DI8::Startup (void)
 {
-  const bool ret =
-    SK_StartupCore (L"dinput8", di8_init_callback);
-
-  return ret;
+  return SK_StartupCore (L"dinput8", di8_init_callback);
 }
 
 bool
