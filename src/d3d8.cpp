@@ -144,8 +144,6 @@ SK_HookD3D8 (void)
       dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %p  { Hooked }",
         (Direct3DCreate8_Import) );
     }
-
-    MH_ApplyQueued ();
   }
 
   dgvoodoo_d3d8 = new import_s ();
@@ -228,6 +226,7 @@ IUnknown*
 STDMETHODCALLTYPE
 Direct3DCreate8 (UINT SDKVersion)
 {
+  UNREFERENCED_PARAMETER (SDKVersion);
   return nullptr;
 }
 #endif

@@ -3365,9 +3365,6 @@ SK_InstallWindowHook (HWND hWnd)
                      DispatchMessageA_Detour,
            (LPVOID*)&DispatchMessageA_Original );
 
-  MH_ApplyQueued ();
-
-
   game_window.WndProc_Original = nullptr;
 
   wchar_t wszClassName [256] = { };
@@ -3502,6 +3499,9 @@ SK_InstallWindowHook (HWND hWnd)
   cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
 
   cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
+
+
+  SK_ApplyQueuedHooks ();
 }
 
 HWND

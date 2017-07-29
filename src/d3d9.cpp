@@ -657,8 +657,6 @@ SK_HookD3D9 (void)
         dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %p  { Hooked }",
           (Direct3DCreate9Ex_Import) );
       }
-
-      MH_ApplyQueued ();
     }
   }
 
@@ -912,11 +910,22 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
     if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
     {
-      SK_GetCurrentRenderBackend ().device    = This;
-      SK_GetCurrentRenderBackend ().swapchain = pSwapChain;
+      SK_RenderBackend& rb =
+        SK_GetCurrentRenderBackend ();
 
+      rb.device    = This;
+      rb.swapchain = pSwapChain;
+
+
+      //
+      // Update G-Sync; doing this here prevents trying to do this on frames where
+      //   the swapchain was resized, which would deadlock the software.
+      //
       if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-        NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+      {
+        NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
+        rb.gsync_state.update ();
+      }
     }
   }
 
@@ -1023,11 +1032,21 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
       if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
       {
-        SK_GetCurrentRenderBackend ().device    = This;
-        SK_GetCurrentRenderBackend ().swapchain = pSwapChain;
+        SK_RenderBackend& rb =
+          SK_GetCurrentRenderBackend ();
 
+        rb.device    = This;
+        rb.swapchain = pSwapChain;
+
+        //
+        // Update G-Sync; doing this here prevents trying to do this on frames where
+        //   the swapchain was resized, which would deadlock the software.
+        //
         if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-          NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+        {
+          NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
+          rb.gsync_state.update ();
+        }
       }
     }
   }
@@ -1219,11 +1238,21 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
       if (SUCCEEDED (This->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, &pSurf)))
       {
-        SK_GetCurrentRenderBackend ().device    = pDev;
-        SK_GetCurrentRenderBackend ().swapchain = This;
+        SK_RenderBackend& rb =
+          SK_GetCurrentRenderBackend ();
 
+        rb.device    = pDev;
+        rb.swapchain = This;
+
+        //
+        // Update G-Sync; doing this here prevents trying to do this on frames where
+        //   the swapchain was resized, which would deadlock the software.
+        //
         if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-          NvAPI_D3D9_GetSurfaceHandle (pSurf, &SK_GetCurrentRenderBackend ().surface);
+        {
+          NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
+          rb.gsync_state.update ();
+        }
       }
     }
 

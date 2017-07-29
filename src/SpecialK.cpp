@@ -904,7 +904,9 @@ DllMain ( HMODULE hModule,
                              "QueryPerformanceCounter"
         );
 
-      SK_Init_MinHook ();
+      SK_Init_MinHook        ();
+      SK_InitCompatBlacklist ();
+      SK_ApplyQueuedHooks    ();
 
 
       BOOL bRet = SK_Attach (SK_GetDLLRole ());

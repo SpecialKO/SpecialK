@@ -103,7 +103,8 @@ CrashHandler::Init (void)
 
   if (! crash_log.initialized)
   {
-    crash_log.lockless = true;
+    crash_log.flush_freq = 0;
+    crash_log.lockless   = true;
     crash_log.init (L"logs/crash.log", L"w");
   }
 
@@ -556,7 +557,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
       if (bFileAndLine)
       {
-        crash_log.Log ( L"[-(Source)-] [!] {%hs} %hs  <%hs:%lu> ",
+        crash_log.Log ( L"[-(Source)-] [!] {%24hs} %#64hs  <%hs:%lu> ",
                         pszShortName,
                           sip.si.Name,
                             ihl64.FileName,
@@ -570,7 +571,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
       if (bFileAndLine)
       {
-        crash_log.Log ( L"[-(Source)-] [!] {%24hs}  %64hs  <%hs:%lu>",
+        crash_log.Log ( L"[-(Source)-] [!] {%24hs}  %#64hs  <%hs:%lu>",
                         pszShortName,
                           sip.si.Name,
                             ihl.FileName,
@@ -580,7 +581,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
       else
       {
-        crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %64hs",
+        crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %#64hs",
                         pszShortName,
                           sip.si.Name );
       }
@@ -935,8 +936,6 @@ SK_BypassSteamCrashHandler (void)
                             "SteamAPI_SetBreakpadAppID",
                            SteamAPI_SetBreakpadAppID_Detour,
                 (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
-      
-        MH_ApplyQueued ();
       }
     }
   }

@@ -59,7 +59,9 @@ std::string    SK_WideCharToUTF8       (std::wstring in);
 std::wstring   SK_UTF8ToWideChar       (std::string  in);
 
 std::string
-__cdecl        SK_FormatString         (char const* const _Format, ...);
+__cdecl        SK_FormatString         (char    const* const _Format, ...);
+std::wstring
+__cdecl        SK_FormatStringW        (wchar_t const* const _Format, ...);
 
 void           SK_StripTrailingSlashesW (wchar_t* wszInOut);
 void           SK_FixSlashesW           (wchar_t* wszInOut);

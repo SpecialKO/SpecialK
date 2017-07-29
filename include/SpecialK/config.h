@@ -160,6 +160,7 @@ struct sk_config_t
     float   scale              = 1.0f;
     bool    show_eula          = true;
     bool    show_input_apis    = true;
+    bool    use_mac_style_menu = false;
 
     struct {
       struct {
@@ -458,7 +459,7 @@ struct sk_config_t
 
     struct {
       bool   enable            = true;
-      bool   gsync_status      = false;
+      bool   gsync_status      = true;
     } NvAPI;
 
     struct {

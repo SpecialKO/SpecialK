@@ -56,6 +56,5 @@ SK_FFAD_InitPlugin (void)
   SKX_SetPluginName (FFAD_VERSION_STR);
 
   SK_CreateDLLHook2 (L"msvcr100.dll", "_time64", _time64_Detour, (LPVOID *)&_time64_Original);
-  MH_ApplyQueued    ();
 #endif
 }

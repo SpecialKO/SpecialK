@@ -268,8 +268,6 @@ SK::Framerate::Init (void)
 
     }
   }
-
-  MH_ApplyQueued ();
 }
 
 void

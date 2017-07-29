@@ -1,9 +1,18 @@
+0.8.28
+
+ + Fixed G-Sync status query in D3D9 games
+ + Removed tooltips from graph data views
+ + Added mimimum flush interval for log I/O (100 ms default)
+ + Coalesced all INI file output into a single buffered write for imporoved
+     disk I/O performance
+ + Restored multi-threaded DLL analysis at startup (performance)
+
 0.8.27
 
  + Added OSD Widgets (framepacing and CPU load)
   >> Will polish these off later, they're just toys for now.
- + Changed Special K's config menu to work similar to a Mac, for easier access to the branches
-     sub-menu at lower resolutions
+ + Changed Special K's config menu to work similar to a Mac, for easier access
+     to the branches sub-menu at lower resolutions
  + Fixed various Windows 7 issues
 
 0.8.26

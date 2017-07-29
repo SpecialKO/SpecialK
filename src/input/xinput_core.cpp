@@ -135,7 +135,7 @@ XInputGetState1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return E_POINTER;
+  if (pState      == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pState, sizeof (XINPUT_STATE));
 
@@ -173,7 +173,7 @@ XInputGetStateEx1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return E_POINTER;
+  if (pState      == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pState, sizeof (XINPUT_STATE));
 
@@ -212,7 +212,7 @@ XInputGetCapabilities1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pCapabilities == nullptr)         return E_POINTER;
+  if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
@@ -246,7 +246,7 @@ XInputGetBatteryInformation1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pBatteryInformation == nullptr)         return E_POINTER;
+  if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
@@ -318,7 +318,7 @@ XInputGetState1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return E_POINTER;
+  if (pState      == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pState, sizeof (XINPUT_STATE));
 
@@ -356,7 +356,7 @@ XInputGetStateEx1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return E_POINTER;
+  if (pState      == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pState, sizeof (XINPUT_STATE));
 
@@ -395,7 +395,7 @@ XInputGetCapabilities1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pCapabilities == nullptr)         return E_POINTER;
+  if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
   ZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
@@ -1244,8 +1244,6 @@ SK_Input_PreHookXInput (void)
     
     if (GetModuleHandle (L"XInput9_1_0.dll"))
       SK_Input_HookXInput9_1_0 ();
-
-    MH_ApplyQueued ();
   }
 }
 

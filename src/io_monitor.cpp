@@ -392,6 +392,8 @@ SK_ShutdownWMI (void)
 
 cpu_perf_t cpu_stats;
 
+extern bool cpu_widget;
+
 #include <SpecialK/config.h>
 
 DWORD
@@ -471,7 +473,7 @@ SK_MonitorCPU (LPVOID user_param)
       break;
 
     // Only poll WMI while the data view is visible
-    if (! config.cpu.show)
+    if (! (config.cpu.show || cpu_widget))
       continue;
 
     cpu.dwNumReturned = 0;

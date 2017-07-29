@@ -207,6 +207,8 @@ interface iSK_Logger : public IUnknown
   int              lines       =   0;
   CRITICAL_SECTION log_mutex   = { 0 };
   ULONG            refs        =   0UL;
+  DWORD            last_flush  =   0;
+  DWORD            flush_freq  =   100; // msecs
 
 public:
   // Temporary augmentation for log issues during thread suspension

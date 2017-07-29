@@ -216,8 +216,6 @@ SK_BootDI8 (void)
       dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %p  { Hooked }",
         (DirectInput8Create_Import) );
     }
-
-    MH_ApplyQueued ();
   }
 
 
@@ -886,8 +884,6 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
                  (LPVOID*)&IDirectInputDevice8_SetCooperativeLevel_Original );
       MH_QueueEnableHook (vftable [13]);
     }
-
-    MH_ApplyQueued ();
 
     if (rguid == GUID_SysMouse)
     {

@@ -488,7 +488,9 @@ SK_StartPerfMonThreads (void)
     }
   }
 
-  if (config.cpu.show)
+  extern bool cpu_widget;
+
+  if (config.cpu.show || cpu_widget)
   {
     //
     // Spawn CPU Refresh Thread
@@ -761,6 +763,9 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
+  SK_Input_Init ();
+
+
   //
   // TEMP HACK: dgVoodoo2
   //
@@ -768,6 +773,10 @@ SK_InitFinishCallback (void)
     SK_BootDXGI ();
   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
     SK_BootDXGI ();
+
+
+  SK_ApplyQueuedHooks    ();
+
 
   SK_DeleteTemporaryFiles ();
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
@@ -873,6 +882,7 @@ SK_InitFinishCallback (void)
 
   SK_StartPerfMonThreads ();
 
+  SK_ApplyQueuedHooks  ();
 
   LeaveCriticalSection (&init_mutex);
 }
@@ -882,8 +892,6 @@ __stdcall
 SK_InitCore (const wchar_t* backend, void* callback)
 {
   EnterCriticalSection (&init_mutex);
-
-  SK_Input_Init ();
 
   wcscpy (SK_Backend, backend);
 
@@ -1078,6 +1086,8 @@ WaitForInit (void)
   //
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
+    SK_ApplyQueuedHooks ();
+
     CloseHandle (InterlockedExchangePointer ((LPVOID *)&hInitThread, INVALID_HANDLE_VALUE));
 
     // Load user-defined DLLs (Lazy)
@@ -1543,18 +1553,25 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     return TRUE;
   }
 
+  extern bool SK_Steam_LoadOverlayEarly (void);
+  extern void SK_Input_PreInit          (void);
+
   if (config.steam.preload_overlay)
   {
-    extern bool SK_Steam_LoadOverlayEarly (void);
-    SK_Steam_LoadOverlayEarly ();
+
+    CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD {
+                                   SK_Steam_LoadOverlayEarly ();
+                                   SK_Input_Init             ();
+
+                                   CloseHandle (GetCurrentThread ());
+
+                                   return 0;
+                                 }, nullptr, 0x00, nullptr);
   }
 
   SK::Diagnostics::CrashHandler::InitSyms ();
 
-
-  extern void SK_Input_PreInit (void); 
-  SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
-
+  SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
 
   budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
 
@@ -1690,10 +1707,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   SK_Steam_InitCommandConsoleVariables ();
   SK_TestSteamImports                  (GetModuleHandle (nullptr));
-
-
-
-  SK_InitCompatBlacklist ();
 
 
   // Do this from the startup thread
@@ -1855,6 +1868,7 @@ BACKEND_INIT:
                                nullptr )
   ); // Avoid the temptation to wait on this thread
 
+
   //// Performance monitorng pre-init  (Steam overlay hack; it hooks Wbem and blows stuff up almost immediately)
   CreateThread ( nullptr, 0,
                    [](LPVOID) -> DWORD
@@ -1912,6 +1926,7 @@ SK_Win32_CleanupDummyWindow (void)
 }
 
 
+#include <SpecialK/gpu_monitor.h>
 
 bool
 __stdcall
@@ -1949,6 +1964,15 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_Console* pConsole = SK_Console::getInstance ();
   pConsole->End ();
 
+  SK::DXGI::ShutdownBudgetThread ();
+
+  dll_log.LogEx    (true, L"[ GPU Stat ] Shutting down Prognostics Thread...          ");
+
+  DWORD dwTime =
+       timeGetTime ();
+  SK_EndGPUPolling ();
+
+  dll_log.LogEx    (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
   if (hPumpThread != INVALID_HANDLE_VALUE)
   {
@@ -1960,25 +1984,29 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx   (false, L"done!\n");
   }
 
-  SK::DXGI::ShutdownBudgetThread ();
-
-
   auto ShutdownWMIThread = [](volatile HANDLE& hSignal, volatile HANDLE& hThread, wchar_t* wszName) -> void
   {
-    dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %s... ", wszName);
+    wchar_t wszFmtName [32] = { };
+
+    lstrcatW (wszFmtName, wszName);
+    lstrcatW (wszFmtName, L"...");
+
+    dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %-30s ", wszFmtName);
+
+    DWORD dwTime = timeGetTime ();
 
     // Signal the thread to shutdown
     SetEvent (hSignal);
 
-    WaitForSingleObject
-      (hThread, 1000UL); // Give 1 second, and
-                         // then we're killing
-                         // the thing!
+    if (SignalObjectAndWait (hSignal, hThread, 1000UL, TRUE) != WAIT_OBJECT_0) // Give 1 second, and
+    {                                                                          // then we're killing 
+      TerminateThread (hThread, 0x00);                                         // the thing!
+    }
 
     CloseHandle (hThread);
                  hThread  = INVALID_HANDLE_VALUE;
 
-    dll_log.LogEx (false, L"done!\n");
+    dll_log.LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
   };
 
   ShutdownWMIThread (process_stats.hShutdownSignal,  process_stats.hThread,  L"Process Monitor" );
@@ -1993,24 +2021,27 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (sk::NVAPI::app_name != L"ds3t.exe")
   {
-    dll_log.LogEx (true,  L"[ SpecialK ] Saving user preferences to %s.ini... ", config_name);
-    SK_SaveConfig (config_name);
-    dll_log.LogEx (false, L"done!\n");
+    dll_log.LogEx        (true,  L"[ SpecialK ] Saving user preferences to %10s.ini... ", config_name);
+    dwTime = timeGetTime ();
+    SK_SaveConfig        (config_name);
+    dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
   }
 
 
   SK_UnloadImports        ();
   SK::Framerate::Shutdown ();
 
+  dll_log.LogEx        (true, L"[ SpecialK ] Shutting down MinHook...                     ");
+                                                                     
+  dwTime = timeGetTime ();
+  SK_UnInit_MinHook    ();
+  dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
-  dll_log.LogEx     (true, L"[ SpecialK ] Shutting down MinHook... ");
-  SK_UnInit_MinHook ();
-  dll_log.LogEx     (false, L"done!\n");
 
-
-  dll_log.LogEx  (true, L"[ WMI Perf ] Shutting down WMI WbemLocator... ");
-  SK_ShutdownWMI ();
-  dll_log.LogEx  (false, L"done!\n");
+  dll_log.LogEx        (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
+  dwTime = timeGetTime ();
+  SK_ShutdownWMI       ();
+  dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 
   SK_GetCurrentRenderBackend ().releaseOwnedResources ();
@@ -2632,20 +2663,20 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     CComPtr <ID3D12Device>       pDev12  = nullptr;
 #endif
 
-    if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9Ex))))
+    if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
          (int&)__SK_RBkEnd.api  = ( (int)SK_RenderAPI::D3D9 |
                                     (int)SK_RenderAPI::D3D9Ex );
       wcsncpy (__SK_RBkEnd.name, L"D3D9Ex", 8);
     }
 
-    else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev9))))
+    else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
     {
                __SK_RBkEnd.api  = SK_RenderAPI::D3D9;
       wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
     }
 
-    else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev11))))
+    else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
     {
       // Establish the API used this frame (and handle possible translation layers)
       //

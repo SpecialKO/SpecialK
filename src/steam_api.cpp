@@ -665,14 +665,14 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
     {
       if (idx > 0 && history [idx-1] != 45.0f)
       {
-        const SK_IVariable* var =
+        const SK_IVariable* _var =
           SK_GetCommandProcessor ()->ProcessCommandLine (
             "Textures.LODBias"
           ).getVariable ();
         
-        if (var != nullptr)
+        if (_var != nullptr)
         {
-          *(float *)var->getValuePointer () = *(float *)val;
+          *(float *)_var->getValuePointer () = *(float *)val;
         }
       }
     }

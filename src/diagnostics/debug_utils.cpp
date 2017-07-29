@@ -191,8 +191,6 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                      DebugBreak_Detour,
            (LPVOID*)&DebugBreak_Original );
 
-  MH_ApplyQueued ();
-
   return bAllow;
 }
 
@@ -212,8 +210,6 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
     SK_CreateDLLHook2 ( L"kernel32.dll", "TerminateProcess",
                        TerminateProcess_Detour,
              (LPVOID*)&TerminateProcess_Original );
-
-    MH_ApplyQueued ();
   }
 }
 

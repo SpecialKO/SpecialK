@@ -145,7 +145,7 @@ IUnknown_Release (IUnknown* This)
   if (! SK_D3D11_IsTexInjectThread ())
   {
     ID3D11Texture2D* pTex = nullptr;
-    if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pTex))))
+    if (SUCCEEDED (This->QueryInterface <ID3D11Texture2D> (&pTex)))
     {
       ULONG count = IUnknown_Release_Original (pTex);
 
@@ -217,7 +217,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
     CComPtr <IDXGIAdapter> pAdapter = nullptr;
 
     HRESULT hr =
-      (*ppDevice)->QueryInterface ( IID_PPV_ARGS (&pDXGIDev) );
+      (*ppDevice)->QueryInterface <IDXGIDevice> (&pDXGIDev);
 
     if ( SUCCEEDED ( hr ) )
     {
@@ -765,9 +765,9 @@ struct memory_tracking_s
   {
     history_s (void)
     {
-      vertex_buffers.reserve   ( 32);
-      index_buffers.reserve    ( 64);
-      constant_buffers.reserve (512);
+      vertex_buffers.reserve   ( 128);
+      index_buffers.reserve    ( 256);
+      constant_buffers.reserve (2048);
     }
 
     void clear (CRITICAL_SECTION* cs)
@@ -3545,12 +3545,15 @@ SK_D3D11_TexCacheCheckpoint (void)
 void
 SK_D3D11_TexMgr::reset (void)
 {
+  std::vector <ID3D11Texture2D*>                    cleared;
   std::vector <SK_D3D11_TexMgr::tex2D_descriptor_s> textures;
+
   textures.reserve (TexRefs_2D.size ());
 
   uint32_t count  = 0;
   int64_t  purged = 0;
 
+  {
   SK_AutoCriticalSection critical (&cache_cs);
   {
     for ( ID3D11Texture2D* tex : TexRefs_2D )
@@ -3620,6 +3623,8 @@ SK_D3D11_TexMgr::reset (void)
         HashMap_2D [desc.desc.MipLevels].erase (desc.crc32);
         Textures_2D.erase (desc.texture);
         TexRefs_2D.erase  (desc.texture);
+
+        cleared.push_back (desc.texture);
       }
 
       else
@@ -3627,10 +3632,26 @@ SK_D3D11_TexMgr::reset (void)
         desc.texture->Release ();
       }
     }
-  }
+  }}
 
   if (count > 0)
+  {
+#if 0
+    SK_AutoCriticalSection auto_cs (&cs_mmio);
+
+    for (auto tex : cleared)
+    {
+      if (mem_map_stats.lifetime.mapped_resources.count (tex))
+        mem_map_stats.lifetime.mapped_resources.erase   (tex);
+
+      if (mem_map_stats.last_frame.mapped_resources.count (tex))
+        mem_map_stats.last_frame.mapped_resources.erase   (tex);
+    }
+#endif
+
+
     InterlockedExchange (&live_textures_dirty, TRUE);
+  }
 }
 
 ID3D11Texture2D*
@@ -3798,6 +3819,19 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex)
 
     InterlockedExchange (&live_textures_dirty, TRUE);
   }
+
+#if 0
+  if (pTex != nullptr)
+  {
+    SK_AutoCriticalSection auto_cs3 (&cs_mmio);
+
+    if (mem_map_stats.lifetime.mapped_resources.count (pTex))
+      mem_map_stats.lifetime.mapped_resources.erase   (pTex);
+
+    if (mem_map_stats.last_frame.mapped_resources.count (pTex))
+      mem_map_stats.last_frame.mapped_resources.erase   (pTex);
+  }
+#endif
 }
 
 void
@@ -5687,17 +5721,16 @@ D3D11Dev_CreateTexture2D_Override (
   {
     static volatile ULONG init = FALSE;
 
-    if (! InterlockedCompareExchange (&init, TRUE, FALSE)) {
-      DXGI_VIRTUAL_HOOK ( ppTexture2D, 2, "IUnknown::Release",
-                          IUnknown_Release,
-                          IUnknown_Release_Original,
-                          IUnknown_Release_pfn );
-      DXGI_VIRTUAL_HOOK ( ppTexture2D, 1, "IUnknown::AddRef",
-                          IUnknown_AddRef,
-                          IUnknown_AddRef_Original,
-                          IUnknown_AddRef_pfn );
-
-      MH_ApplyQueued ();
+    if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+    {
+      DXGI_VIRTUAL_HOOK_IMM ( ppTexture2D, 2, "IUnknown::Release",
+                              IUnknown_Release,
+                              IUnknown_Release_Original,
+                              IUnknown_Release_pfn );
+      DXGI_VIRTUAL_HOOK_IMM ( ppTexture2D, 1, "IUnknown::AddRef",
+                              IUnknown_AddRef,
+                              IUnknown_AddRef_Original,
+                              IUnknown_AddRef_pfn );
     }
   }
 
@@ -6175,7 +6208,6 @@ SK_D3D11_Shutdown (void)
                         SK_D3D11_Textures.RedundantLoads_2D );
   }
 
-#if 0
   SK_D3D11_Textures.reset ();
 
   // Stop caching while we shutdown
@@ -6189,7 +6221,6 @@ SK_D3D11_Shutdown (void)
     DeleteCriticalSection (&cache_cs);
     DeleteCriticalSection (&inject_cs);
   }
-#endif
 }
 
 void
@@ -6498,8 +6529,6 @@ HookD3D11 (LPVOID user)
                          D3D11_CSGetShader_pfn);
 
 #endif
-
-    MH_ApplyQueued ();
   }
 
 #ifdef _WIN64

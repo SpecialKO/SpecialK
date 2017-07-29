@@ -2688,12 +2688,12 @@ SK_ElevateToAdmin (void)
   TerminateProcess    (GetCurrentProcess (), 0x00);
 }
 
+#include <memory>
+
 std::string
 __cdecl
 SK_FormatString (char const* const _Format, ...)
 {
-  std::string out;
-
   int len = 0;
 
   va_list   _ArgList;
@@ -2703,15 +2703,39 @@ SK_FormatString (char const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  out.resize (len + 1, '\0');
+  std::unique_ptr <char> out (new char [len + 1] { });
 
   va_start (_ArgList, _Format);
   {
-    len = vsprintf ((char *)out.data (), _Format, _ArgList);
+    len = vsprintf (out.get (), _Format, _ArgList);
   }
   va_end (_ArgList);
 
-  return out;
+  return out.get ();
+}
+
+std::wstring
+__cdecl
+SK_FormatStringW (wchar_t const* const _Format, ...)
+{
+  int len = 0;
+
+  va_list   _ArgList;
+  va_start (_ArgList, _Format);
+  {
+    len = _vsnwprintf (nullptr, 0, _Format, _ArgList);
+  }
+  va_end (_ArgList);
+
+  std::unique_ptr <wchar_t> out (new wchar_t [len + 1] { });
+
+  va_start (_ArgList, _Format);
+  {
+    len = _vswprintf (out.get (), _Format, _ArgList);
+  }
+  va_end (_ArgList);
+
+  return out.get ();
 }
 
 

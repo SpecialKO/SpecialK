@@ -129,6 +129,7 @@ uint64_t __stdcall SK_GPU_GetVRAMUsed          (int gpu);
 uint64_t __stdcall SK_GPU_GetVRAMShared        (int gpu);
 uint64_t __stdcall SK_GPU_GetVRAMBudget        (int gpu);
 
-void SK_PollGPU (void);
+void SK_PollGPU       (void);
+void SK_EndGPUPolling (void);
 
 #endif /* __SK__GPU_MONITOR_H__ */

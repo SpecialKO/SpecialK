@@ -1059,8 +1059,6 @@ SK_DS3_InitPlugin (void)
                                   (LPVOID *)&SK_EndFrame_Original );
   MH_QueueEnableHook (SK_BeginBufferSwap);
 
-  MH_ApplyQueued ();
-
   InterlockedExchange (&__SUS_init, 1);
 }
 

@@ -120,6 +120,7 @@ struct {
   sk::ParameterFloat*     scale;
   sk::ParameterBool*      show_eula;
   sk::ParameterBool*      show_playtime;
+  sk::ParameterBool*      mac_style_menu;
   sk::ParameterBool*      show_gsync_status;
   sk::ParameterBool*      show_input_apis;
 } imgui;
@@ -1703,6 +1704,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"ImGui.Global",
         L"ShowGSyncStatus" );
 
+  imgui.mac_style_menu =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Use Mac-style Menu Bar")
+      );
+  imgui.mac_style_menu->register_to_ini (
+    osd_ini,
+      L"ImGui.Global",
+        L"UseMacStyleMenu" );
+
   imgui.show_input_apis =
     dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
@@ -2417,6 +2428,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (imgui.show_gsync_status->load ())
     config.apis.NvAPI.gsync_status = imgui.show_gsync_status->get_value ();
+
+  if (imgui.mac_style_menu->load ())
+    config.imgui.use_mac_style_menu = imgui.mac_style_menu->get_value ();
 
   if (imgui.show_input_apis->load ())
     config.imgui.show_input_apis = imgui.show_input_apis->get_value ();
@@ -3135,6 +3149,7 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_eula->set_value                  (config.imgui.show_eula);
   imgui.show_playtime->set_value              (config.steam.show_playtime);
   imgui.show_gsync_status->set_value          (config.apis.NvAPI.gsync_status);
+  imgui.mac_style_menu->set_value             (config.imgui.use_mac_style_menu);
   imgui.show_input_apis->set_value            (config.imgui.show_input_apis);
 
 
@@ -3568,6 +3583,7 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_playtime->store             ();
   imgui.show_eula->store                 ();
   imgui.show_gsync_status->store         ();
+  imgui.mac_style_menu->store            ();
   imgui.show_input_apis->store           ();
 
   steam.achievements.sound_file->store       ();

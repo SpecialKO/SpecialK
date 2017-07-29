@@ -324,26 +324,17 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
     if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (rb.device, rb.surface, &capable))
     {
-      if ((int)rb.api & (int)SK_RenderAPI::D3D11 && rb.fullscreen_exclusive)
+      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (rb.device, rb.surface, &active))
       {
-        success = true;
-        active  = TRUE;
+        last_checked = timeGetTime ();
+        success      = true;
       }
 
       else
       {
-        if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (rb.device, rb.surface, &active))
-        {
-          last_checked = timeGetTime ();
-          success      = true;
-        }
-
-        else
-        {
-          // On failure, postpone the next check
-          last_checked = timeGetTime () + 3000UL;
-          active       = FALSE;
-        }
+        // On failure, postpone the next check
+        last_checked = timeGetTime () + 3000UL;
+        active       = FALSE;
       }
     }
 

@@ -274,8 +274,6 @@ SK_Input_HookHID (void)
       (HidP_GetCaps_pfn)GetProcAddress ( GetModuleHandle (L"HID.DLL"),
                                            "HidP_GetCaps" );
 
-    MH_ApplyQueued ();
-
     if (HidP_GetData_Original != nullptr)
       InterlockedIncrement (&hooked);
   }
@@ -1707,9 +1705,7 @@ void SK_Input_PreInit (void)
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ();
 
-  MH_ApplyQueued ();
-
-  SK_Input_Init ();
+  SK_ApplyQueuedHooks ();
 }
 
 
@@ -1719,8 +1715,6 @@ SK_Input_Init (void)
   SK_Input_PreHookHID    ();
   SK_Input_PreHookDI8    ();
   SK_Input_PreHookXInput ();
-
-  SK_ApplyQueuedHooks    ();
 }
 
 

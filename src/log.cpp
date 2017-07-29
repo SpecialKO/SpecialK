@@ -72,12 +72,30 @@ SK_Timestamp (wchar_t* const out)
   return stLogTime.wMilliseconds;
 }
 
+BOOL
+SK_FlushLog (iSK_Logger* pLog)
+{
+  DWORD dwTime = timeGetTime ();
+
+  if (pLog->last_flush < dwTime - pLog->flush_freq)
+  {
+    fflush (pLog->fLog);
+            pLog->last_flush = dwTime;
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 iSK_Logger dll_log, budget_log;
 
 
 void
 iSK_Logger::close (void)
 {
+  EnterCriticalSection (&log_mutex);
+
   if (fLog != NULL)
   {
     fflush (fLog);
@@ -97,6 +115,7 @@ iSK_Logger::close (void)
   initialized = false;
   silent      = true;
 
+  LeaveCriticalSection  (&log_mutex);
   DeleteCriticalSection (&log_mutex);
 }
 
@@ -169,7 +188,7 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
 
   unlock ();
 
-  fflush   (fLog);
+  SK_FlushLog (this);
 }
 
 void
@@ -201,7 +220,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   unlock   ();
 
-  fflush   (fLog);
+  SK_FlushLog (this);
 }
 
 void
@@ -233,7 +252,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   unlock   ();
 
-  fflush   (fLog);
+  SK_FlushLog (this);
 }
 
 HRESULT

@@ -124,7 +124,7 @@ public:
   {
     ISimpleAudioVolume* pRet = nullptr;
 
-    if (SUCCEEDED (control_->QueryInterface (IID_PPV_ARGS (&pRet))))
+    if (SUCCEEDED (control_->QueryInterface <ISimpleAudioVolume> (&pRet)))
       return pRet;
 
     return nullptr;
@@ -134,7 +134,7 @@ public:
   {
     IChannelAudioVolume* pRet = nullptr;
 
-    if (SUCCEEDED (control_->QueryInterface (IID_PPV_ARGS (&pRet))))
+    if (SUCCEEDED (control_->QueryInterface <IChannelAudioVolume> (&pRet)))
       return pRet;
 
     return nullptr;
@@ -346,7 +346,7 @@ public:
         continue;
 
       IAudioSessionControl2* pSessionCtl2;
-      if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
+      if (FAILED (pSessionCtl->QueryInterface <IAudioSessionControl2> (&pSessionCtl2)))
         continue;
 
       DWORD dwProcess = 0;
@@ -449,7 +449,7 @@ public:
       pNewSession->AddRef ();
 
       CComPtr <IAudioSessionControl2> pSessionCtl2;
-      if (SUCCEEDED (pNewSession->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
+      if (SUCCEEDED (pNewSession->QueryInterface <IAudioSessionControl2> (&pSessionCtl2)))
       {
         DWORD dwProcess = 0;
         if (SUCCEEDED (pSessionCtl2->GetProcessId (&dwProcess)))

@@ -694,6 +694,8 @@ SK_UnloadImports (void)
   {
     if (imports [i].hLibrary > 0)
     {
+      DWORD dwTime = timeGetTime ();
+
       if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
       {
         SKPlugIn_Shutdown_pfn SKPlugIn_Shutdown =
@@ -705,13 +707,16 @@ SK_UnloadImports (void)
           SKPlugIn_Shutdown (nullptr);
       }
 
-      dll_log.LogEx ( true,
-                        L"[ SpecialK ] Unloading Custom Import %s... ",
-                          imports [i].filename->get_value_str ().c_str ()
-      );
+      dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
+                    imports [i].filename->get_value_str ().c_str () );
 
       if (FreeLibrary_Original (imports [i].hLibrary))
-        dll_log.LogEx (false, L"success!\n");
+      {
+        dll_log.LogEx ( false,
+                        L"-------------------------[ Free Lib ]                "
+                        L"                           success! (%4u ms)\n",
+                          timeGetTime ( ) - dwTime );
+      }
 
       else
       {

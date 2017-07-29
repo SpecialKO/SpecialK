@@ -735,7 +735,7 @@ iSK_INI::write (const wchar_t* fname)
   switch (encoding_)
   {
     case INI_UTF8:
-      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-8", _SH_DENYNO), fname, fOut);
+      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-8",    _SH_DENYNO), fname, fOut);
       break;
 
     // Cannot preserve this, consider adding a byte-swap on file close
@@ -751,69 +751,63 @@ iSK_INI::write (const wchar_t* fname)
 
   if (ret != 0 || fOut == 0)
   {
-    SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname, MB_OK | MB_ICONSTOP);
+    //SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname, MB_OK | MB_ICONSTOP);
     return;
   }
 
-  std::vector <std::wstring>::iterator it  = ordered_sections.begin ();
-  std::vector <std::wstring>::iterator end = ordered_sections.end   ();
+
 
   // Strip Empty Sections
   // --------------------
   //  *** These would cause blank lines to be appended to the end of the INI file
   //        if we did not do something about them here and now. ***
   //
-  while (it != end)
+  for (auto& it : ordered_sections)
   {
-    iSK_INISection& section = get_section ((*it).c_str ());
+    iSK_INISection& section =
+      get_section (it.c_str ());
 
     if (! section.ordered_keys.size ())
     {
       remove_section (section.name.c_str ());
-
-      it  = ordered_sections.begin ();
-      end = ordered_sections.end   ();
-
-      continue;
     }
-
-    ++it;
   }
 
-  it  = ordered_sections.begin ();
-  end = ordered_sections.end   ();
 
-  while (it != end)
+  std::wstring outbuf = L"";
+
+
+  for (auto& it : ordered_sections)
   {
-    iSK_INISection& section = get_section ((*it).c_str ());
+    iSK_INISection& section =
+      get_section (it.c_str ());
 
-    if (section.name.length () && section.ordered_keys.size ())
+    if ( section.name.length       () &&
+         section.ordered_keys.size () )
     {
-      fwprintf (fOut, L"[%s]\n", section.name.c_str ());
+      outbuf += L"[";
+      outbuf += section.name + L"]\n";
 
-      std::vector <std::wstring>::iterator key_it  = section.ordered_keys.begin ();
-      std::vector <std::wstring>::iterator key_end = section.ordered_keys.end   ();
-
-      while (key_it != key_end)
+      for (auto& key_it : section.ordered_keys)
       {
-        std::wstring val = section.get_value ((*key_it).c_str ());
-        fwprintf (fOut, L"%s=%s", key_it->c_str (), val.c_str ());
-        ++key_it;
+        const std::wstring& val =
+          section.get_value (key_it.c_str ());
 
-        // Append a newline for everything except the last key...
-        if (key_it != key_end)
-          fwprintf (fOut, L"\n");
+        outbuf += key_it + L"=";
+        outbuf += val    + L"\n";
       }
 
-      // Append a newline for everything except the last line...
-      if ((it + 1) != end)
-        fwprintf (fOut, L"\n\n");
+      outbuf += L"\n";
     }
-
-    ++it;
   }
 
-  fflush (fOut);
+  if (outbuf.back () == L'\n')
+  {
+    // Strip the unnecessary extra newline
+    outbuf.resize (outbuf.size () - 1);
+  }
+
+  fputws (outbuf.c_str (), fOut);
   fclose (fOut);
 }
 

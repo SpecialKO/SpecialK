@@ -1655,8 +1655,8 @@ HRESULT
       CComPtr <IDXGIAdapter> pAdapter = nullptr;
       CComPtr <IDXGIFactory> pFactory = nullptr;
 
-      if ( SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
-           SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter))  &&
+      if ( SUCCEEDED (pDev->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+           SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
         DXGI_SWAP_CHAIN_DESC desc;
@@ -1795,8 +1795,8 @@ HRESULT
       CComPtr <IDXGIAdapter> pAdapter = nullptr;
       CComPtr <IDXGIFactory> pFactory = nullptr;
 
-      if ( SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
-           SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter))  &&
+      if ( SUCCEEDED (pDev->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+           SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
         DXGI_SWAP_CHAIN_DESC desc;
@@ -1904,7 +1904,7 @@ HRESULT
 
     CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
 
-    if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain1))))
+    if (SUCCEEDED (This->QueryInterface <IDXGISwapChain1> (&pSwapChain1)))
     {
       if (can_present)
       {
@@ -1937,7 +1937,7 @@ HRESULT
   {
     CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
 
-    if (SUCCEEDED (This->QueryInterface (IID_PPV_ARGS (&pSwapChain2))))
+    if (SUCCEEDED (This->QueryInterface <IDXGISwapChain2> (&pSwapChain2)))
     {
       if (pSwapChain2 != nullptr)
       {
@@ -2237,8 +2237,20 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     DXGI_SWAP_CHAIN_DESC desc;
     if (SUCCEEDED (This->GetDesc (&desc)))
     {
-      SK_SetWindowResX (desc.BufferDesc.Width);
-      SK_SetWindowResY (desc.BufferDesc.Height);
+      if (desc.BufferDesc.Width != 0)
+      {
+        SK_SetWindowResX (desc.BufferDesc.Width);
+        SK_SetWindowResY (desc.BufferDesc.Height);
+      }
+
+      else
+      {
+        RECT client;
+
+        GetClientRect (desc.OutputWindow, &client);
+        SK_SetWindowResX (client.right  - client.left);
+        SK_SetWindowResY (client.bottom - client.top);
+      }
     }
 
     SK_GetCurrentRenderBackend ().fullscreen_exclusive = Fullscreen;
@@ -2334,6 +2346,15 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     {
       SK_SetWindowResX (Width);
       SK_SetWindowResY (Height);
+    }
+
+    else
+    {
+      RECT client;
+
+      GetClientRect (game_window.hWnd, &client);
+      SK_SetWindowResX (client.right  - client.left);
+      SK_SetWindowResY (client.bottom - client.top);
     }
 
     SK_DXGI_HookPresent (This);
@@ -2477,6 +2498,15 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
         SK_SetWindowResX (pNewNewTargetParameters->Width);
         SK_SetWindowResY (pNewNewTargetParameters->Height);
       }
+
+      else
+      {
+        RECT client;
+
+        GetClientRect (game_window.hWnd, &client);
+        SK_SetWindowResX (client.right  - client.left);
+        SK_SetWindowResY (client.bottom - client.top);
+      }
     }
   }
 
@@ -2490,6 +2520,15 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
       {
         SK_SetWindowResX (pNewTargetParameters->Width);
         SK_SetWindowResY (pNewTargetParameters->Height);
+      }
+
+      else
+      {
+        RECT client;
+
+        GetClientRect (game_window.hWnd, &client);
+        SK_SetWindowResX (client.right  - client.left);
+        SK_SetWindowResY (client.bottom - client.top);
       }
     }
   }
@@ -2843,8 +2882,20 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
 {
   SK_CEGUI_QueueResetD3D11 ();
 
-  SK_SetWindowResX (pDesc->BufferDesc.Width);
-  SK_SetWindowResY (pDesc->BufferDesc.Height);
+  if (pDesc->BufferDesc.Width != 0)
+  {
+    SK_SetWindowResX (pDesc->BufferDesc.Width);
+    SK_SetWindowResY (pDesc->BufferDesc.Height);
+  }
+
+  else
+  {
+    RECT client;
+
+    GetClientRect    (game_window.hWnd, &client);
+    SK_SetWindowResX (client.right  - client.left);
+    SK_SetWindowResY (client.bottom - client.top);
+  }
 
   SK_DXGI_HookSwapChain (*ppSwapChain);
 
@@ -2893,9 +2944,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
 
   CComPtr <ID3D11Device> pDev = nullptr;
 
-  if (SUCCEEDED ( pDevice->QueryInterface ( IID_PPV_ARGS (&pDev) )
-                )
-     )
+  if (SUCCEEDED (pDevice->QueryInterface <ID3D11Device> (&pDev)))
   {
     g_pD3D11Dev = pDev;
 
@@ -3374,7 +3423,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
       {
         CComPtr <IDXGIAdapter2> pAdapter2 = nullptr;
 
-        if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter2))))
+        if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter2> (&pAdapter2)))
         {
           DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
             GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
@@ -3388,7 +3437,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
       {
         CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
 
-        if (SUCCEEDED ((*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1))))
+        if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter1> (&pAdapter1)))
         {
           DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
@@ -3442,7 +3491,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
   CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
 
   HRESULT hr =
-    (*ppAdapter)->QueryInterface (IID_PPV_ARGS (&pAdapter1));
+    (*ppAdapter)->QueryInterface <IDXGIAdapter1> (&pAdapter1);
 
   if (SUCCEEDED (hr))
   {
@@ -3462,8 +3511,6 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
   }
 
   dll_log.LogEx (false, L"\n");
-
-  MH_ApplyQueued ();
 
   return S_OK;
 }
@@ -3787,8 +3834,6 @@ SK_HookDXGI (void)
     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph  %s",
       (CreateDXGIFactory2_Import),
         (CreateDXGIFactory2_Import ? L"{ Hooked }" : L"" ) );
-
-    MH_ApplyQueued ();
   }
 
   if (CreateDXGIFactory1_Import != nullptr)
@@ -4047,8 +4092,6 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
                                           WaitForVBlank_pfn );
     }
   }
-
-  MH_ApplyQueued ();
 }
 
 
@@ -4172,8 +4215,6 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   CComPtr <IDXGIFactory5> pFactory5 = nullptr;
 
   // 28 CheckFeatureSupport
-
-  MH_ApplyQueued ();
 }
 
 #include <mmsystem.h>
@@ -4269,8 +4310,8 @@ HookDXGI (LPVOID user)
     CComPtr <IDXGIAdapter> pAdapter = nullptr;
     CComPtr <IDXGIFactory> pFactory = nullptr;
 
-    if ( SUCCEEDED (pDevice->QueryInterface (IID_PPV_ARGS (&pDevDXGI))) &&
-         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter))  &&
+    if ( SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
          SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
     {
       d3d11_hook_ctx.ppDevice           = &pDevice;
@@ -4285,6 +4326,9 @@ HookDXGI (LPVOID user)
         SK_LoadPlugIns32 ();
 #endif
       }
+
+      HookD3D11           (&d3d11_hook_ctx);
+      SK_DXGI_HookFactory (pFactory);
 
       extern HWND
       SK_Win32_CreateDummyWindow (void);
@@ -4305,15 +4349,13 @@ HookDXGI (LPVOID user)
         desc.OutputWindow                = hWnd;
         desc.Windowed                    = TRUE;
         desc.SwapEffect                  = DXGI_SWAP_EFFECT_DISCARD;
+
+        CComPtr <IDXGISwapChain>   pSwapChain = nullptr;
+        pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain);
+        SK_DXGI_HookSwapChain     (pSwapChain);
+        SK_ApplyQueuedHooks       (          );
       
         {
-          CComPtr <IDXGISwapChain>   pSwapChain = nullptr;
-          pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain);
-          SK_DXGI_HookSwapChain     (pSwapChain);
-
-          HookD3D11           (&d3d11_hook_ctx);
-          SK_DXGI_HookFactory (pFactory);
-
           // Copy the vtable, so we can defer hook installation if needed
           IDXGISwapChain* pSwapCopy =
             (IDXGISwapChain *)malloc (sizeof IDXGISwapChain);
@@ -4343,7 +4385,7 @@ HookDXGI (LPVOID user)
                                                                       free (user);
                                }
 
-                               MH_ApplyQueued ();
+                               SK_ApplyQueuedHooks ();
 
                                CloseHandle (GetCurrentThread ());
 
@@ -4356,7 +4398,6 @@ HookDXGI (LPVOID user)
         DestroyWindow (hWnd);
       }
 
-      // These don't do anything (anymore)
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
 #ifdef _WIN64
@@ -4437,11 +4478,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
   IDXGIAdapter3* pAdapter3 = nullptr;
   HRESULT        hr        = E_NOTIMPL;
 
-  if ( SUCCEEDED ( (*ppAdapter)->QueryInterface (
-                                     IID_PPV_ARGS ( &pAdapter3 ) 
-                   )
-                 )
-     )
+  if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
   {
     // We darn sure better not spawn multiple threads!
     EnterCriticalSection ( &budget_mutex );

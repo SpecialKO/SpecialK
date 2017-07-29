@@ -352,8 +352,6 @@ SK_HookDDraw (void)
       dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %p  { Hooked }",
         (DirectDrawCreateEx_Import) );
     }
-
-    MH_ApplyQueued ();
   }
 
   dgvoodoo_ddraw = new import_s ();
@@ -477,6 +475,10 @@ DirectDrawCreate (_In_  GUID         FAR *lpGUID,
                   _Out_ LPDIRECTDRAW FAR *lplpDD,
                   _In_  IUnknown     FAR *pUnkOuter)
 {
+  UNREFERENCED_PARAMETER (lpGUID);
+  UNREFERENCED_PARAMETER (lplpDD);
+  UNREFERENCED_PARAMETER (pUnkOuter);
+
   return E_NOTIMPL;
 }
 
@@ -488,6 +490,11 @@ DirectDrawCreateEx (_In_  GUID         FAR *lpGUID,
                     _In_  REFIID            iid,
                     _In_  IUnknown     FAR *pUnkOuter)
 {
+  UNREFERENCED_PARAMETER (lpGUID);
+  UNREFERENCED_PARAMETER (lplpDD);
+  UNREFERENCED_PARAMETER (iid);
+  UNREFERENCED_PARAMETER (pUnkOuter);
+
   return E_NOTIMPL;
 }
 
@@ -497,6 +504,9 @@ WINAPI
 DirectDrawEnumerateA (_In_ LPDDENUMCALLBACK lpCallback,
                       _In_ LPVOID           lpContext)
 {
+  UNREFERENCED_PARAMETER (lpCallback);
+  UNREFERENCED_PARAMETER (lpContext);
+
   return E_NOTIMPL;
 }
 
@@ -506,6 +516,9 @@ WINAPI
 DirectDrawEnumerateW (_In_ LPDDENUMCALLBACK lpCallback,
                       _In_ LPVOID           lpContext)
 {
+  UNREFERENCED_PARAMETER (lpCallback);
+  UNREFERENCED_PARAMETER (lpContext);
+
   return E_NOTIMPL;
 }
 
@@ -516,6 +529,10 @@ DirectDrawEnumerateExA (_In_ LPDDENUMCALLBACKEX lpCallback,
                         _In_ LPVOID             lpContext,
                         _In_ DWORD              dwFlags)
 {
+  UNREFERENCED_PARAMETER (lpCallback);
+  UNREFERENCED_PARAMETER (lpContext);
+  UNREFERENCED_PARAMETER (dwFlags);
+
   return E_NOTIMPL;
 }
 
@@ -526,6 +543,10 @@ DirectDrawEnumerateExW (_In_ LPDDENUMCALLBACKEX lpCallback,
                         _In_ LPVOID             lpContext,
                         _In_ DWORD              dwFlags)
 {
+  UNREFERENCED_PARAMETER (lpCallback);
+  UNREFERENCED_PARAMETER (lpContext);
+  UNREFERENCED_PARAMETER (dwFlags);
+
   return E_NOTIMPL;
 }
 #endif
