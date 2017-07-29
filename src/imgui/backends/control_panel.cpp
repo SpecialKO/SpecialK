@@ -642,7 +642,7 @@ public:
   }
 };
 
-class SK_ImGui_CPUHistory : public SK_ImGui_DataHistory <float, 240>
+class SK_ImGui_CPUHistory : public SK_ImGui_DataHistory <float, 96>
 {
 public:
   void recordLoad (cpu_perf_t::cpu_stat_s& perf)

@@ -1513,7 +1513,10 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       //
       if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
       {
-        NvAPI_D3D_GetObjectHandleForResource (pDev, pBackBuffer, &rb.surface);
+        CComPtr <IDXGISurface> pBackBufferSurf = nullptr;
+
+        if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBufferSurf))))
+          NvAPI_D3D_GetObjectHandleForResource (pDev, pBackBufferSurf, &rb.surface);
 
         rb.gsync_state.update ();
       }
@@ -1805,8 +1808,8 @@ HRESULT
         SK_GetCurrentRenderBackend ().device    = pDev;
         SK_GetCurrentRenderBackend ().swapchain = This;
 
-        if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-          NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
+        //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+        //  NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
 
 
         if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( 0, 0 );
