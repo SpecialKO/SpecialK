@@ -60,6 +60,8 @@
 #include <windows.h>
 #include <cstdio>
 #include <memory>
+#include <typeindex>
+
 #include "resource.h"
 
 __declspec (dllexport)
@@ -615,6 +617,51 @@ public:
   }
 
 
+  void addValue (_T val, bool only_if_different = false)
+  {
+    bool insert = (! only_if_different) || (last_val != val);
+
+    if (insert)
+    {
+      values [values_offset] = val;
+              values_offset  = (values_offset + 1) % getCapacity ();
+
+      ++updates;
+
+      last_val = val;
+    }
+  }
+
+
+  std::type_info getType (void)
+  {
+    return std::typeindex (typeid (_T));
+  }
+
+
+  _T getMin (void)
+  {
+    calcStats ();
+
+    return cached_stats.min;
+  }
+
+  _T getMax (void)
+  {
+    calcStats ();
+
+    return cached_stats.max;
+  }
+
+  _T getAvg (void)
+  {
+    calcStats ();
+
+    return cached_stats.avg;
+  }
+
+
+
   int                           getOffset (void) { return values_offset; };
   std::array <_T, max_samples>& getValues (void) { return values;        };
 
@@ -625,9 +672,44 @@ public:
   }
 
 protected:
+  void calcStats (void)
+  {
+    if (cached_stats.last_calc != updates)
+    {
+      int sample =  0;
+      _T  sum    = { };
+
+      _T  min    = std::numeric_limits <_T>::max ();
+      _T  max    = std::numeric_limits <_T>::min ();
+
+      for (auto& val : values)
+      {
+        if (++sample > updates)
+          break;
+
+        sum += val;
+
+        max = std::max (val, max);
+        min = std::min (val, min);
+      }
+
+      cached_stats.avg = sum / sample;
+      cached_stats.min = min;
+      cached_stats.max = max;
+
+      cached_stats.last_calc = updates;
+    }
+  }
+
   int                          updates       = 0;
   std::array <_T, max_samples> values;
   int                          values_offset = 0;
+  _T                           last_val      = { };
+
+  struct stat_cache_s {
+    _T  min, max, avg;
+    int last_calc = 0;
+  } cached_stats;
 };
 
 class SK_ImGui_FrameHistory : public SK_ImGui_DataHistory <float, 120>
@@ -635,10 +717,7 @@ class SK_ImGui_FrameHistory : public SK_ImGui_DataHistory <float, 120>
 public:
   void timeFrame      (double seconds)
   {
-    values [values_offset] = (float)(1000.0 * seconds);
-    values_offset          = (values_offset + 1) % SK_ImGui_DataHistory::getCapacity ();
-
-    SK_ImGui_DataHistory::updates++;
+    addValue ((float)(1000.0 * seconds));
   }
 };
 
@@ -651,12 +730,9 @@ public:
 
     if (dwLastUpdate < dwLatest)
     {
-      values [values_offset] = (float)perf.percent_load;
-      values_offset          = (values_offset + 1) % SK_ImGui_DataHistory::getCapacity ();
+      addValue ((float)perf.percent_load);
 
       dwLastUpdate = dwLatest;
-
-      SK_ImGui_DataHistory::updates++;
     }
   }
 
@@ -667,10 +743,201 @@ protected:
 SK_ImGui_FrameHistory SK_ImGui_Frames;
 SK_ImGui_CPUHistory   SK_ImGui_CPUs [64];
 
-bool cpu_widget         = false;
-bool texcache_widget    = false;
-bool framepacing_widget = false;
-bool mediaplayer_widget = false;
+
+#include <SpecialK/gpu_monitor.h>
+
+class SKWG_GPU_Monitor
+{
+public:
+  void run (void)
+  {
+    DWORD dwNow = timeGetTime ();
+
+    constexpr float  GHz = (      1000000.0f );
+    constexpr double GiB = ( 1024.0 * 1024.0 );
+
+    if (last_update < dwNow - update_freq)
+    {
+      core_clock_ghz.addValue ( (float)SK_GPU_GetClockRateInkHz    (0) / GHz);
+      vram_clock_ghz.addValue ( (float)SK_GPU_GetMemClockRateInkHz (0) / GHz);
+      gpu_load.addValue       (        SK_GPU_GetGPULoad           (0));
+      gpu_temp_c.addValue     (        SK_GPU_GetTempInC           (0));
+      vram_used_mib.addValue  ((float)(
+                               (double)SK_GPU_GetVRAMUsed          (0) / GiB));
+      //vram_shared.addValue    (       SK_GPU_GetVRAMShared        (0));
+      //fan_rpm.addValue        (       SK_GPU_GetFanSpeedRPM       (0));
+
+      last_update = dwNow;
+    }
+  }
+
+  void draw (void)
+  {
+    ImGuiIO& io (ImGui::GetIO ( ));
+
+    const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+    const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+    char szAvg  [512] = { };
+
+    sprintf_s
+      ( szAvg,
+          512,
+            u8"GPU%lu Load %%:\n\n"
+            u8"          min: %3.0f%%, max: %3.0f%%, avg: %4.1f%%\n",
+              0,
+                gpu_load.getMin (), gpu_load.getMax (),
+                  gpu_load.getAvg () );
+
+    float samples = 
+      std::min ( (float)gpu_load.getUpdates  (),
+                 (float)gpu_load.getCapacity () );
+
+    ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+                              ImColor::HSV ( 0.31f - 0.31f *
+                       std::min ( 1.0f, gpu_load.getAvg () / 100.0f ),
+                                               0.73f,
+                                                 0.93f ) );
+
+    ImGui::PlotLines ( "###GPU_LoadPercent",
+                         gpu_load.getValues     ().data (),
+        static_cast <int> (samples),
+                             gpu_load.getOffset (),
+                               szAvg,
+                                 0.0f,
+                                   100.0f,
+                                     ImVec2 (
+                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
+
+    sprintf_s
+      ( szAvg,
+          512,
+            u8"GPU%lu Temp (°C):\n\n"
+            u8"          min: %4.1f°, max: %4.1f°, avg: %5.2f°\n",
+              0,
+                gpu_temp_c.getMin   (), gpu_temp_c.getMax (),
+                  gpu_temp_c.getAvg () );
+
+    samples = 
+      std::min ( (float)gpu_temp_c.getUpdates  (),
+                 (float)gpu_temp_c.getCapacity () );
+
+    ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+                              ImColor::HSV ( 0.31f - 0.31f *
+                       std::min ( 1.0f, gpu_temp_c.getAvg () / 100.0f ),
+                                               0.73f,
+                                                 0.93f ) );
+
+    ImGui::PlotLines ( "###GPU_TempC",
+                         gpu_temp_c.getValues     ().data (),
+        static_cast <int> (samples),
+                             gpu_temp_c.getOffset (),
+                               szAvg,
+                                 0.0f,
+                                   100.0f,
+                                     ImVec2 (
+                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
+
+
+    ImGui::PushStyleColor ( ImGuiCol_PlotLines, ImColor::HSV (0.0f, 0.0f, 0.725f) );
+
+    sprintf_s
+      ( szAvg,
+          512,
+            u8"GPU%lu Core Clock (GHz):\n\n"
+            u8"          min: %5.3f, max: %5.3f, avg: %6.4f\n",
+              0,
+                core_clock_ghz.getMin   (), core_clock_ghz.getMax (),
+                  core_clock_ghz.getAvg () );
+
+    samples = 
+      std::min ( (float)core_clock_ghz.getUpdates  (),
+                 (float)core_clock_ghz.getCapacity () );
+
+    ImGui::PlotLines ( "###GPU_CoreClock",
+                         core_clock_ghz.getValues ().data (),
+        static_cast <int> (samples),
+                             core_clock_ghz.getOffset (),
+                               szAvg,
+                                 core_clock_ghz.getMin   (),
+                                   core_clock_ghz.getMax (),
+                                     ImVec2 (
+                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
+
+    sprintf_s
+      ( szAvg,
+          512,
+            u8"GPU%lu VRAM Clock (GHz):\n\n"
+            u8"          min: %5.3f, max: %5.3f, avg: %6.4f\n",
+              0,
+                vram_clock_ghz.getMin   (), vram_clock_ghz.getMax (),
+                  vram_clock_ghz.getAvg () );
+
+    samples = 
+      std::min ( (float)vram_clock_ghz.getUpdates  (),
+                 (float)vram_clock_ghz.getCapacity () );
+
+    ImGui::PlotLines ( "###GPU_VRAMClock",
+                         vram_clock_ghz.getValues ().data (),
+        static_cast <int> (samples),
+                             vram_clock_ghz.getOffset (),
+                               szAvg,
+                                 vram_clock_ghz.getMin   (),
+                                   vram_clock_ghz.getMax (),
+                                     ImVec2 (
+                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
+
+    // TODO: Add a parameter to data history to control this
+    static float max_use = 0.0f;
+
+    max_use = std::max (vram_used_mib.getMax (), max_use);
+
+    sprintf_s
+      ( szAvg,
+          512,
+            u8"GPU%lu VRAM Usage (MiB):\n\n"
+            u8"          min: %6.1f, max: %6.1f, avg: %7.2f\n",
+              0,
+                vram_used_mib.getMin   (), max_use,
+                  vram_used_mib.getAvg () );
+
+    samples = 
+      std::min ( (float)vram_used_mib.getUpdates  (),
+                 (float)vram_used_mib.getCapacity () );
+
+    ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+                              ImColor::HSV ( 0.31f - 0.31f *
+                       std::min ( 1.0f, vram_used_mib.getAvg () / 8192.0f ),
+                                               0.73f,
+                                                 0.93f ) );
+
+    ImGui::PlotLines ( "###GPU_VRAMUsage",
+                         vram_used_mib.getValues ().data (),
+        static_cast <int> (samples),
+                             vram_used_mib.getOffset (),
+                               szAvg,
+                                 0.0f,//vram_clock_ghz.getMin   (),
+                                   8192.0f,//max_use,//vram_clock_ghz.getMax (),
+                                     ImVec2 (
+                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
+
+    ImGui::PopStyleColor (4);
+  }
+
+protected:
+  const DWORD update_freq = 666UL;
+
+private:
+  DWORD last_update = 0UL;
+
+  SK_ImGui_DataHistory <float,    96> core_clock_ghz;
+  SK_ImGui_DataHistory <float,    96> vram_clock_ghz;
+  SK_ImGui_DataHistory <float,    96> gpu_load;
+  SK_ImGui_DataHistory <float,    96> gpu_temp_c;
+  SK_ImGui_DataHistory <float,    96> vram_used_mib;
+  SK_ImGui_DataHistory <uint64_t, 96> vram_shared;
+  SK_ImGui_DataHistory <uint32_t, 96> fan_rpm;
+} gpu_mon_widget;
 
 
 #pragma optimize( "", off ) 
@@ -899,28 +1166,6 @@ SK_ImGui_DrawGraph_CPU (void)
 
   for (unsigned int i = 0; i < cpu_stats.num_cpus; i++)
   {
-    int   sample = 0;
-    float sum    =   0.0f;
-                 
-    float min    = 100.0f;
-    float max    =   0.0f;
-    
-    for ( auto val : SK_ImGui_CPUs [i].getValues () )
-    {
-      ++sample;
-
-      if (sample > SK_ImGui_CPUs [i].getUpdates ())
-        continue;
-
-      sum += val;
-    
-      if (val > max)
-        max = val;
-    
-      if (val < min)
-        min = val;
-    }
-
     if (i > 0)
     {
       sprintf_s
@@ -929,8 +1174,8 @@ SK_ImGui_DrawGraph_CPU (void)
                   u8"CPU%lu:\n\n"
                   u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
                     i-1,
-                      min, max, sum / std::min ( SK_ImGui_CPUs [i].getUpdates  (),
-                                                 SK_ImGui_CPUs [i].getCapacity () ) );
+                      SK_ImGui_CPUs [i].getMin (), SK_ImGui_CPUs [i].getMax (),
+                      SK_ImGui_CPUs [i].getAvg () );
     }
 
     else
@@ -940,8 +1185,8 @@ SK_ImGui_DrawGraph_CPU (void)
                 512,
                   u8"Combined CPU Load:\n\n"
                   u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
-                    min, max, sum / std::min ( SK_ImGui_CPUs [i].getUpdates  (),
-                                               SK_ImGui_CPUs [i].getCapacity () ) );
+                    SK_ImGui_CPUs [i].getMin (), SK_ImGui_CPUs [i].getMax (),
+                    SK_ImGui_CPUs [i].getAvg () );
     }
 
     char szName [128] = { };
@@ -954,7 +1199,7 @@ SK_ImGui_DrawGraph_CPU (void)
 
     ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                               ImColor::HSV ( 0.31f - 0.31f *
-                       std::min ( 1.0f, (sum / samples) / 100.0f ),
+                       std::min ( 1.0f, SK_ImGui_CPUs [i].getAvg () / 100.0f ),
                                                0.73f,
                                                  0.93f ) );
 
@@ -1005,6 +1250,19 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   float frames = std::min ( (float)SK_ImGui_Frames.getUpdates  (),
                             (float)SK_ImGui_Frames.getCapacity () );
+
+
+  if (ffx)
+  {
+    // Normal Gameplay: 30 FPS
+    if (sum / frames > 30.0)
+      target_frametime = 33.333333f;
+
+    // Menus: 60 FPS
+    else 
+      target_frametime = 16.666667f;
+  }
+
 
   sprintf_s
         ( szAvg,
@@ -2341,21 +2599,21 @@ SK_ImGui_ControlPanel (void)
       ImGui::SameLine ();
 #endif
 
-      ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
+      bool advanced = ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
 
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Requires application restart");
-
-      if (sk::NVAPI::nv_hardware)
+      if (advanced)
       {
-        ImGui::SameLine ();
+        ImGui::TreePop               ();
+        ImGui::Separator             ();
 
-        bool advanced = ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
+        ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
 
-        if (advanced)
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Requires application restart");
+
+        if (sk::NVAPI::nv_hardware)
         {
-          ImGui::TreePop               ();
-          ImGui::Separator             ();
+          ImGui::SameLine              ();
           SK_ImGui_NV_DepthBoundsD3D11 ();
         }
       }
@@ -3857,16 +4115,22 @@ extern float SK_ImGui_PulseNav_Strength;
     if (ImGui::CollapsingHeader ("Widgets"))
     {
       ImGui::TreePush ("");
-      ImGui::Checkbox ("Framepacing",  &framepacing_widget);
+      ImGui::Checkbox ("Framepacing",  &SK_ImGui_Widgets.framepacing);
       ImGui::SameLine ();
-      ImGui::Checkbox ("CPU",          &cpu_widget);
+      ImGui::Checkbox ("CPU",          &SK_ImGui_Widgets.cpumon);
       ImGui::SameLine ();
-      ImGui::Checkbox ("Media Player", &mediaplayer_widget);
+      ImGui::Checkbox ("GPU",          &SK_ImGui_Widgets.gpumon);
+      ImGui::SameLine ();
+      //ImGui::Checkbox ("Memory",       &SK_ImGui_Widgets.memory);
+      //ImGui::SameLine ();
+      //ImGui::Checkbox ("Disk",         &SK_ImGui_Widgets.disk);
+      //ImGui::SameLine ();
+      ImGui::Checkbox ("Media Player", &SK_ImGui_Widgets.mediaplayer);
 
       if ( (int)api & (int)SK_RenderAPI::D3D11 )
       {
         ImGui::SameLine ();
-        ImGui::Checkbox ("Texture Cache", &texcache_widget);
+        ImGui::Checkbox ("Texture Cache", &SK_ImGui_Widgets.texcache);
       }
       ImGui::TreePop  (  );
     }
@@ -4633,7 +4897,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
 
-  if (framepacing_widget)
+  if (SK_ImGui_Widgets.framepacing)
   {
     static bool move = true;
 
@@ -4651,14 +4915,14 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
     SK_ImGui_DrawGraph_FramePacing ();
 
-    if (ImGui::IsItemClicked (1))
+    if (ImGui::IsMouseClicked (1) && ImGui::IsWindowHovered ())
       move = true;
 
     ImGui::End              ();
   }
 
 
-  if (cpu_widget)
+  if (SK_ImGui_Widgets.cpumon)
   {
     static bool started = false;
 
@@ -4696,14 +4960,14 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
     SK_ImGui_DrawGraph_CPU ();
 
-    if (ImGui::IsItemClicked (1))
+    if (ImGui::IsMouseClicked (1) && ImGui::IsWindowHovered ())
       move = true;
 
     ImGui::End             ();
   }
 
 
-  if (mediaplayer_widget)
+  if (SK_ImGui_Widgets.mediaplayer)
   {
     //ImGui::SetNextWindowSize (ImVec2 (font_size * 35, font_size_multiline * 5.44f), ImGuiSetCond_Always);
 
@@ -4717,9 +4981,22 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
 
+  if (SK_ImGui_Widgets.gpumon)
+  {
+    ImGui::Begin           ("###Widget_GPUMonitor", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
+                                                             ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
+                                                             ImGuiWindowFlags_NoFocusOnAppearing );
+
+    gpu_mon_widget.run     ();
+    gpu_mon_widget.draw    ();
+
+    ImGui::End             ();
+  }
+
+
   if (d3d11)
   {
-    if (texcache_widget)
+    if (SK_ImGui_Widgets.texcache)
     {
       static bool move = true;
       if (move)
@@ -4736,7 +5013,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
       SK_ImGui_DrawTexCache_Chart ();
 
-      if (ImGui::IsItemClicked (1))
+      if (ImGui::IsMouseClicked (1) && ImGui::IsWindowHovered ())
         move = true;
 
       ImGui::End              ();

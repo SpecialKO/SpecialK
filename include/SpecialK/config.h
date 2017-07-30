@@ -386,6 +386,9 @@ struct sk_config_t
       int   absolute            = 0;
       float percent             = 0.0f;
       } x, y;
+      bool isZero (void) { return x.absolute == 0    && y.absolute == 0 &&
+                                  x.percent > -0.00001f && x.percent < 0.00001f &&
+                                  y.percent > -0.00001f && y.percent < 0.00001f; }
     } offset;
     bool    background_render   = false;
     bool    background_mute     = false;

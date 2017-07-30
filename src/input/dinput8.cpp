@@ -127,7 +127,6 @@ DirectInput8Create ( HINSTANCE hinst,
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   {
     WaitForInit_DI8 ();
-    WaitForInit     ();
   }
 
   dll_log.Log ( L"[ DInput 8 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
@@ -226,8 +225,8 @@ SK_BootDI8 (void)
   // This whole thing is as smart as a sack of wet mice in DirectInput mode...
   //   let's get to the real work and start booting graphics APIs!
   //
-  bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
-       dxgi = false, d3d8   = false, ddraw = false, glide = false;
+  static bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
+              dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
   SK_TestRenderImports (
     GetModuleHandle (nullptr),
@@ -244,6 +243,14 @@ SK_BootDI8 (void)
     SK_LoadEarlyImports32 ();
 #endif
 
+
+
+  InterlockedExchange (&__di8_ready, TRUE);
+
+
+CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
+{
+  UNREFERENCED_PARAMETER (user);
 
   // OpenGL
   //
@@ -279,6 +286,11 @@ SK_BootDI8 (void)
 #else
   SK_LoadPlugIns32 ();
 #endif
+
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}, nullptr, 0x00, nullptr);
 }
 
 unsigned int
@@ -299,8 +311,6 @@ SK_HookDI8 (LPVOID user)
   {
     SK_BootDI8 ();
 
-    InterlockedExchange (&__di8_ready, TRUE);
-
     if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
       SK::DXGI::StartBudgetThread_NoAdapter ();
   }
@@ -319,8 +329,7 @@ di8_init_callback (finish_pfn finish)
   {
     SK_HookDI8 (nullptr);
 
-    while (! InterlockedCompareExchange (&__di8_ready, FALSE, FALSE))
-      SleepEx (8UL, TRUE);
+    WaitForInit_DI8 ();
   }
 
   finish ();

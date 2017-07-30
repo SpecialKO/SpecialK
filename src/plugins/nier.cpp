@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.7"
+#define FAR_VERSION_NUM L"0.7.0.9"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -338,19 +338,28 @@ SK_FAR_CreateBuffer (
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_      ID3D11Buffer           **ppBuffer )
 {
+  D3D11_SUBRESOURCE_DATA new_data =
+    ( (pInitialData != nullptr)  ?  (*pInitialData)  :
+                                      D3D11_SUBRESOURCE_DATA { } );
+
+  D3D11_BUFFER_DESC      new_desc =
+    ( (pDesc        != nullptr)  ?  (*pDesc)         :
+                                      D3D11_BUFFER_DESC      { } );
+
+
   struct far_light_volume_s {
     float world_pos    [ 4];
     float world_to_vol [16];
     float half_extents [ 4];
   };
 
+
   // Global Illumination (DrDaxxy)
   if ( pDesc != nullptr && pDesc->StructureByteStride == sizeof (far_light_volume_s)       &&
                            pDesc->ByteWidth           == sizeof (far_light_volume_s) * 128 &&
                            pDesc->BindFlags            & D3D11_BIND_SHADER_RESOURCE )
   {
-    D3D11_BUFFER_DESC new_desc = *pDesc;
-                      new_desc.ByteWidth = sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize;
+    new_desc.ByteWidth = sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize;
 
     // New Stuff for 0.6.0
     // -------------------
@@ -403,13 +412,12 @@ SK_FAR_CreateBuffer (
         }
       }
 
-      D3D11_SUBRESOURCE_DATA new_data = *pInitialData;
-                             new_data.pSysMem = (void *)new_lights;
+      new_data.pSysMem = (void *)new_lights;
 
-      return D3D11Dev_CreateBuffer_Original (This, &new_desc, &new_data, ppBuffer);
+      pInitialData = &new_data;
     }
 
-    return D3D11Dev_CreateBuffer_Original (This, &new_desc, pInitialData, ppBuffer);
+    pDesc = &new_desc;
   }
 
   return D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
@@ -423,6 +431,10 @@ SK_FAR_CreateShaderResourceView (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
+  D3D11_SHADER_RESOURCE_VIEW_DESC new_desc =
+    ( pDesc != nullptr ?
+                *pDesc : D3D11_SHADER_RESOURCE_VIEW_DESC { } );
+
   // Global Illumination (DrDaxxy)
   if ( pDesc != nullptr && pDesc->ViewDimension        == D3D_SRV_DIMENSION_BUFFEREX &&
                            pDesc->BufferEx.NumElements == 128 )
@@ -437,18 +449,16 @@ SK_FAR_CreateShaderResourceView (
          )
        )
     {
-      D3D11_SHADER_RESOURCE_VIEW_DESC new_desc = *pDesc;
-      D3D11_BUFFER_DESC               buf_desc;
+      D3D11_BUFFER_DESC buf_desc;
 
       pBuf->GetDesc (&buf_desc);
 
       if (buf_desc.ByteWidth == 96 * __FAR_GlobalIllumWorkGroupSize)
         new_desc.BufferEx.NumElements = __FAR_GlobalIllumWorkGroupSize;
 
-      return D3D11Dev_CreateShaderResourceView_Original (This, pResource, &new_desc, ppSRView);
+      pDesc = &new_desc;
     }
   }
-
 
   HRESULT hr =
     D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
@@ -1010,7 +1020,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
 
 typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
   _In_            ID3D11Device           *This,
-  _In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D
 );
@@ -1065,7 +1075,7 @@ extern HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Override (
   _In_            ID3D11Device           *This,
-  _In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D );
 
@@ -1108,7 +1118,7 @@ HRESULT
 WINAPI
 SK_FAR_CreateTexture2D (
   _In_            ID3D11Device           *This,
-  _In_  /*const*/ D3D11_TEXTURE2D_DESC   *pDesc,
+  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
@@ -1120,6 +1130,8 @@ SK_FAR_CreateTexture2D (
 
   bool bloom = false;
   bool ao    = false;
+
+  D3D11_TEXTURE2D_DESC copy (*pDesc);
 
   switch (pDesc->Format)
   {
@@ -1150,8 +1162,6 @@ SK_FAR_CreateTexture2D (
 
           if (far_bloom.width != -1 && (pDesc->Width != 50 && pDesc->Height != 28))
           {
-            D3D11_TEXTURE2D_DESC copy = *pDesc;
-
             // Scale the upper parts of the pyramid fully
             // and lower levels progressively less
             double pyramidLevelFactor  = ((double)pDesc->Width - 50.0) / 750.0;
@@ -1199,9 +1209,6 @@ SK_FAR_CreateTexture2D (
                           pDesc->Width, pDesc->Height,
                           pDesc->Format ),
                         L"FAR PlugIn" );
-
-            // set to our display resolution instead
-            D3D11_TEXTURE2D_DESC copy = *pDesc;
 
             copy.Width  = far_ao.width;
             copy.Height = far_ao.height;

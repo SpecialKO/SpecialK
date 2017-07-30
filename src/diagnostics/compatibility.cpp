@@ -153,9 +153,11 @@ BlacklistLibrary (const _T* lpFileName)
 {
 #pragma push_macro ("StrStrI")
 #pragma push_macro ("GetModuleHandleEx")
+#pragma push_macro ("LoadLibrary")
 
 #undef StrStrI
 #undef GetModuleHandleEx
+#undef LoadLibrary
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
@@ -167,22 +169,49 @@ BlacklistLibrary (const _T* lpFileName)
       constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW : 
                                                                                                 (GetModuleHandleEx_pfn) &GetModuleHandleExA );
 
+  static LoadLibrary_pfn  LoadLibrary =
+    (LoadLibrary_pfn)
+      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour : 
+                                                                                                (LoadLibrary_pfn) &LoadLibraryA_Detour );
+
 
 #ifdef _WIN64
   if (StrStrI (lpFileName, SK_TEXT("action_x64")))
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 2) SleepEx (133, FALSE);
+    while (SK_GetFramesDrawn () < 2) SleepEx (8, FALSE);
   }
 #else
   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
   {
     WaitForInit ();
 
-    while (SK_GetFramesDrawn () < 2) SleepEx (133, FALSE);
+    while (SK_GetFramesDrawn () < 2) SleepEx (8, FALSE);
   }
 #endif
+
+  //else if (StrStrI (lpFileName, SK_TEXT("rxcore")) || StrStrI (lpFileName, SK_TEXT("nvinject")) || StrStrI (lpFileName, SK_TEXT("detoured")) || StrStrI (lpFileName, SK_TEXT("rxinput")))
+  //{
+  //  if (SK_GetFramesDrawn () < 2)
+  //  {
+  //    CreateThread (nullptr, 0, [](LPVOID user) -> DWORD {
+  //      WaitForInit ();
+  //      
+  //      while (SK_GetFramesDrawn () < 2) SleepEx (133, FALSE);
+  //  
+  //      LoadLibrary (user);
+  //  
+  //      free (user);
+  //  
+  //      CloseHandle (GetCurrentThread ());
+  //  
+  //      return 0;
+  //    }, (LPVOID)_wcsdup ((const wchar_t *)lpFileName), 0x00, nullptr);
+  //  
+  //    return FALSE;
+  //  }
+  //}
 
   else if (StrStrI (lpFileName, SK_TEXT("RTSSHooks")))
   {
@@ -218,12 +247,14 @@ BlacklistLibrary (const _T* lpFileName)
       nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
+#if 0
 #ifdef _WIN64
       nv_blacklist.emplace_back (SK_TEXT("nvspcap64.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI64.dll"));
 #else
       nv_blacklist.emplace_back (SK_TEXT("nvspcap.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI.dll"));
+#endif
 #endif
       init = true;
     }
@@ -246,6 +277,7 @@ BlacklistLibrary (const _T* lpFileName)
 
 #pragma pop_macro ("StrStrI")
 #pragma pop_macro ("GetModuleHandleEx")
+#pragma pop_macro ("LoadLibrary")
 }
 
 

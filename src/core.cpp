@@ -488,9 +488,7 @@ SK_StartPerfMonThreads (void)
     }
   }
 
-  extern bool cpu_widget;
-
-  if (config.cpu.show || cpu_widget)
+  if (config.cpu.show || SK_ImGui_Widgets.cpumon)
   {
     //
     // Spawn CPU Refresh Thread
@@ -2851,3 +2849,7 @@ RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
 
   ShellExecuteA ( hwnd, "open", lpszCmdLine, nullptr, nullptr, nCmdShow );
 }
+
+
+
+SK_ImGui_WidgetRegistry SK_ImGui_Widgets;

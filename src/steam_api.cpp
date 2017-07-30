@@ -2498,8 +2498,9 @@ SteamAPI_RunCallbacks_Detour (void)
 
     else
     {
-      if (SteamAPI_Shutdown != nullptr)
-        TerminateThread (GetCurrentThread (), -1);
+      // Do not keep restarting SteamAPI :)
+      //if (SteamAPI_Shutdown != nullptr)
+      //  TerminateThread (GetCurrentThread (), MAXDWORD);
     }
   }
 
@@ -2542,6 +2543,7 @@ SK::SteamAPI::Init (bool pre_load)
 void
 SK::SteamAPI::Shutdown (void)
 {
+  // Since we might restart SteamAPI, don't do this.
   //SK_AutoClose_Log (steam_log);
 
   steam_ctx.Shutdown ();

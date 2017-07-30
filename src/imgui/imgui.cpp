@@ -2806,6 +2806,7 @@ static void NavUpdate()
 #include <SpecialK/console.h>
 #include <SpecialK/window.h>
 extern bool SK_ImGui_Visible;
+extern bool SK_ImGui_IsMouseRelevant (void);
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
 struct show_eula_s {
@@ -2871,7 +2872,7 @@ void ImGui::NewFrame()
 
   bool was_idle = SK_ImGui_Cursor.idle;
 
-  if (SK_ImGui_Visible && SK_ImGui_Cursor.last_move < timeGetTime () - 500)
+  if (SK_ImGui_IsMouseRelevant () && SK_ImGui_Cursor.last_move < timeGetTime () - 500)
     SK_ImGui_Cursor.idle = true;
 
   else
@@ -11049,13 +11050,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
        last_input        =  (! self) ? hRawInput : 0;
 
 
-  extern bool SK_ImGui_Visible;
-  if (SK_ImGui_Visible && SK_ImGui_WantMouseCapture ())
-    SK_RawInput_EnableLegacyMouse  (true);
-  else
-    SK_RawInput_RestoreLegacyMouse ();
-
-
+  if (self && (! already_processed))
+  {
+    if (SK_ImGui_WantMouseCapture ())
+      SK_RawInput_EnableLegacyMouse  (true);
+    else
+      SK_RawInput_RestoreLegacyMouse ();
+  }
+  
   // Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
   //
   //if (SK_ImGui_WantKeyboardCapture ())
@@ -11107,7 +11109,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
               SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
 
-            if (SK_ImGui_Visible)
+            if (SK_ImGui_IsMouseRelevant ())
             {
               if ( SK_ImGui_WantMouseCapture () )
                 filter = true;
@@ -11129,7 +11131,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             USHORT VKey =
               (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
 
-            if (SK_ImGui_Visible)
+            if (SK_ImGui_IsMouseRelevant ())
             {
               // Only filter keydown message, not key releases
               if (SK_ImGui_WantKeyboardCapture ())
@@ -11193,7 +11195,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
       {
         if (self)
         {
-          if (SK_ImGui_Visible && config.input.mouse.add_relative_motion)
+          if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
           {
             // 99% of games don't need this, and if we use relative motion to update the cursor position that
             //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
@@ -11382,7 +11384,7 @@ SK_ImGui_WantMouseWarpFiltering (void)
   extern bool
   SK_InputUtil_IsHWCursorVisible (void);
 
-  if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Visible ) ||
+  if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
        ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
   {
     return true;
@@ -11432,7 +11434,7 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
     // Dispose Without Processing
     if (filter)
     {
-      return SK_ImGui_Visible ? 1 : 0;
+      return SK_ImGui_IsMouseRelevant () ? 1 : 0;
     }
   }
 
@@ -11770,7 +11772,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
         //
         if (lDeltaRet >= 0)
         {
-          if (SK_ImGui_Visible)
+          if (SK_ImGui_IsMouseRelevant ())
             SK_ImGui_Cursor.update ();
 
           return lDeltaRet;
@@ -11789,7 +11791,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
         if (! SK_ImGui_WantMouseCapture ())
         {
-          if (SK_ImGui_Visible)
+          if (SK_ImGui_IsMouseRelevant ())
             SK_ImGui_Cursor.update ();
 
           SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
@@ -11797,7 +11799,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           return false;
         }
 
-        if (SK_ImGui_Visible)
+        if (SK_ImGui_IsMouseRelevant ())
           SK_ImGui_Cursor.update ();
 
         return true;

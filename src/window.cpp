@@ -1800,7 +1800,7 @@ SK_AdjustBorder (void)
                       origin_x, origin_y,
                         new_window.right - new_window.left,
                         new_window.bottom - new_window.top,
-                          SWP_NOZORDER       | SWP_NOREPOSITION |
+                          SWP_NOZORDER     | SWP_NOREPOSITION   |
                           SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_SHOWWINDOW  );
 
     GetWindowRect (game_window.hWnd, &game_window.actual.window);
@@ -1892,7 +1892,7 @@ SK_AdjustWindow (void)
                                   mi.rcMonitor.right  - mi.rcMonitor.left,
                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
                                     SWP_NOSENDCHANGING | SWP_NOZORDER |
-                                    SWP_NOREPOSITION | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
+                                    SWP_NOREPOSITION   | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
 
     SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
                   mi.rcMonitor.left, mi.rcMonitor.top,
@@ -1981,6 +1981,11 @@ SK_AdjustWindow (void)
     LONG win_width  = std::min (mon_width,  render_width);
     LONG win_height = std::min (mon_height, render_height);
 
+    // Eliminate relative epsilon from screen percentage offset coords;
+    //   otherwise we may accidentally move the window.
+    bool nomove = config.window.offset.isZero       ();
+    bool nosize = config.window.res.override.isZero ();
+
     // We will offset coordinates later; move the window to the top-left
     //   origin first.
     if (config.window.center)
@@ -1989,6 +1994,7 @@ SK_AdjustWindow (void)
       game_window.actual.window.top    = 0;
       game_window.actual.window.right  = win_width;
       game_window.actual.window.bottom = win_height;
+      nomove                           = false; // Centering requires moving ;)
     }
 
     else
@@ -2117,8 +2123,10 @@ SK_AdjustWindow (void)
                                   game_window.actual.window.top,
                                     game_window.actual.window.right  - game_window.actual.window.left,
                                     game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_NOSENDCHANGING | SWP_NOZORDER |
-                                      SWP_NOREPOSITION | SWP_SHOWWINDOW );
+                                      SWP_NOSENDCHANGING | SWP_NOZORDER   |
+                                      SWP_NOREPOSITION   | SWP_SHOWWINDOW |
+                            (nomove ? SWP_NOMOVE : 0x00) |
+                            (nosize ? SWP_NOSIZE : 0x00) );
     }
 
     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
@@ -3006,10 +3014,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         // Test for user-defined position; if it exists, then we must
         //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
         if ( config.window.offset.x.absolute                 || config.window.offset.y.absolute ||
-             ( config.window.offset.x.percent != 0.0f &&
-               config.window.offset.x.percent != 0.000001f ) ||
-             ( config.window.offset.y.percent != 0.0f &&
-               config.window.offset.y.percent != 0.000001f )
+             ( config.window.offset.x.percent >  0.000001f ||
+               config.window.offset.x.percent < -0.000001f ) ||
+             ( config.window.offset.y.percent >  0.000001f ||
+               config.window.offset.y.percent < -0.000001f )
            )
           offset = true;
 

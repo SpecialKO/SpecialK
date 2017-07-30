@@ -69,8 +69,8 @@ interface iSK_INI : public IUnknown
 {
   typedef const std::map <std::wstring, iSK_INISection> _TSectionMap;
 
-           iSK_INI (const wchar_t* filename);
-  virtual ~iSK_INI (void);
+   iSK_INI (const wchar_t* filename);
+  ~iSK_INI (void);
 
   /*** IUnknown methods ***/
   STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);

@@ -2144,7 +2144,9 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
   }
 
-  return FindClosestMatchingMode_Original (This, &mode_to_match, pClosestMatch, pConcernedDevice );
+  pModeToMatch = &mode_to_match;
+
+  return FindClosestMatchingMode_Original (This, pModeToMatch, pClosestMatch, pConcernedDevice );
 }
 
 __declspec (noinline)
@@ -3003,26 +3005,47 @@ DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
                        L"%ph, %ph, %ph",
                          pDevice, pDesc, ppSwapChain );
 
-
-  DXGI_SWAP_CHAIN_DESC new_desc =
+  auto                 orig_desc = pDesc;
+  DXGI_SWAP_CHAIN_DESC new_desc  =
     pDesc != nullptr ?
       *pDesc :
         DXGI_SWAP_CHAIN_DESC { };
 
   if (pDesc != nullptr)
+  {
     SK_DXGI_CreateSwapChain_PreInit (&new_desc, nullptr, new_desc.OutputWindow, nullptr);
-
+    pDesc = &new_desc;
+  }
 
   HRESULT ret;
-  DXGI_CALL (ret, CreateSwapChain_Original (This, pDevice, &new_desc, ppSwapChain));
+
+  auto CreateSwapChain_Lambchop =
+    [&] (void) ->
+      BOOL
+      {
+        DXGI_CALL (ret, CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain));
+      
+        if ( SUCCEEDED (ret)         &&
+             ppSwapChain  != nullptr &&
+           (*ppSwapChain) != nullptr )
+        {
+          SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, ppSwapChain);
+
+          return TRUE;
+        }
+
+        return FALSE;
+      };
 
 
-  if ( SUCCEEDED (ret)         &&
-       ppSwapChain  != nullptr &&
-     (*ppSwapChain) != nullptr )
+  if (! CreateSwapChain_Lambchop ())
   {
-    SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, ppSwapChain);
+    // Fallback-on-Fail
+    pDesc = orig_desc;
+
+    CreateSwapChain_Lambchop ();
   }
+
 
   return ret;
 }
@@ -3046,7 +3069,8 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
 
   HRESULT ret;
 
-  DXGI_SWAP_CHAIN_DESC1 new_desc1 =
+  auto                   orig_desc = pDesc;
+  DXGI_SWAP_CHAIN_DESC1  new_desc1 =
     pDesc != nullptr ?
       *pDesc :
         DXGI_SWAP_CHAIN_DESC1 { };
@@ -3055,20 +3079,41 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
 
 
-  DXGI_CALL( ret, CreateSwapChainForCoreWindow_Original (
-                    This,
-                      pDevice,
-                        pWindow,
-                          &new_desc1,
-                            pRestrictToOutput,
-                              ppSwapChain ) );
+  if (pDesc != nullptr) pDesc = &new_desc1;
 
-  if ( SUCCEEDED (ret)      &&
-       ppSwapChain  != NULL &&
-     (*ppSwapChain) != NULL )
+  auto CreateSwapChain_Lambchop =
+    [&] (void) ->
+      BOOL
+      {
+        DXGI_CALL( ret, CreateSwapChainForCoreWindow_Original (
+                          This,
+                            pDevice,
+                              pWindow,
+                                pDesc,
+                                  pRestrictToOutput,
+                                    ppSwapChain ) );
+      
+        if ( SUCCEEDED (ret)         &&
+             ppSwapChain  != nullptr &&
+           (*ppSwapChain) != nullptr )
+        {
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
+
+          return TRUE;
+        }
+
+        return FALSE;
+      };
+
+
+  if (! CreateSwapChain_Lambchop ())
   {
-    SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
+    // Fallback-on-Fail
+    pDesc = orig_desc;
+
+    CreateSwapChain_Lambchop ();
   }
+
 
   return ret;
 }
@@ -3094,23 +3139,48 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
 
   assert (pDesc != nullptr);
 
+  auto                            orig_desc1           = pDesc;
+  auto                            orig_fullscreen_desc = pFullscreenDesc;
+
   DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc =
     pFullscreenDesc ? *pFullscreenDesc :
                        DXGI_SWAP_CHAIN_FULLSCREEN_DESC { };
 
+  pDesc           = &new_desc1;
+  pFullscreenDesc = orig_fullscreen_desc ? &new_fullscreen_desc : nullptr;
+
   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, &new_fullscreen_desc);
 
-  DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, &new_desc1, pFullscreenDesc ?
-                                                       &new_fullscreen_desc : pFullscreenDesc,
-                                                         pRestrictToOutput, ppSwapChain ) );
+  auto CreateSwapChain_Lambchop =
+    [&] (void) ->
+      BOOL
+      {
+        DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
+                                                             pRestrictToOutput, ppSwapChain ) );
 
-  if ( SUCCEEDED (ret)      &&
-       ppSwapChain  != NULL &&
-     (*ppSwapChain) != NULL )
+        if ( SUCCEEDED (ret)      &&
+             ppSwapChain  != NULL &&
+           (*ppSwapChain) != NULL )
+        {
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, ppSwapChain);
+
+          return TRUE;
+        }
+
+        return FALSE;
+      };
+
+
+  if (! CreateSwapChain_Lambchop ())
   {
-    SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, ppSwapChain);
+    // Fallback-on-Fail
+    pDesc           = orig_desc1;
+    pFullscreenDesc = orig_fullscreen_desc;
+
+    CreateSwapChain_Lambchop ();
   }
+
 
   return ret;
 }
@@ -3430,6 +3500,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
         {
           DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
             GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
+          SK_ApplyQueuedHooks ();
         }
       }
     }
@@ -3444,6 +3515,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
         {
           DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
+          SK_ApplyQueuedHooks ();
         }
       }
     }
@@ -3454,6 +3526,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
       {
         DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
           GetDesc_Override, GetDesc_Original, GetDesc_pfn);
+        SK_ApplyQueuedHooks ();
       }
 
       if (GetDesc_Original)
@@ -3845,8 +3918,8 @@ SK_HookDXGI (void)
     SK_DXGI_factory_init = true;
   }
 
-  SK_D3D11_Init         ();
   SK_D3D11_InitTextures ();
+  SK_D3D11_Init         ();
   SK_D3D12_Init         ();
 
   SK_ICommandProcessor* pCommandProc =
@@ -4330,8 +4403,15 @@ HookDXGI (LPVOID user)
 #endif
       }
 
+      else
+      {
+        InterlockedExchange (&__dxgi_ready, TRUE);
+      }
+
       HookD3D11           (&d3d11_hook_ctx);
       SK_DXGI_HookFactory (pFactory);
+
+      InterlockedExchange (&__dxgi_ready, TRUE);
 
       extern HWND
       SK_Win32_CreateDummyWindow (void);
@@ -4416,9 +4496,6 @@ HookDXGI (LPVOID user)
     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
                              err.WCode (), err.ErrorMessage () );
   }
-
-  InterlockedExchange (&__dxgi_ready, TRUE);
-
 
   if (success) CoUninitialize ();
 

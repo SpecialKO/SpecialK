@@ -185,8 +185,8 @@ SK_XInput_PlaceHoldBattery ( DWORD                       dwRet,
 {
   UNREFERENCED_PARAMETER (devType);
 
-  if (dwUserIndex         >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
-  if (pBatteryInformation == nullptr)         return E_POINTER;
+  if (dwUserIndex         >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
+  if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
   if ( dwRet != ERROR_SUCCESS &&
        config.input.gamepad.xinput.placehold [dwUserIndex] )

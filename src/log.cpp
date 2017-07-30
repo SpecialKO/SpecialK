@@ -77,7 +77,8 @@ SK_FlushLog (iSK_Logger* pLog)
 {
   DWORD dwTime = timeGetTime ();
 
-  if (pLog->last_flush < dwTime - pLog->flush_freq)
+  if ( pLog->flush_freq == 00 ||
+       pLog->last_flush <= dwTime - pLog->flush_freq )
   {
     fflush (pLog->fLog);
             pLog->last_flush = dwTime;
