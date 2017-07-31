@@ -1483,7 +1483,7 @@ SK_ImGui_VolumeManager (void)
         int   current_idx =   0;
       } static history [ 32] { };
 
-      #define VUMETER_TIME 300
+      #define VUMETER_TIME 333
 
       static float master_vol  = -1.0f; // Master Volume
       static BOOL  master_mute =  FALSE;
@@ -1574,7 +1574,19 @@ SK_ImGui_VolumeManager (void)
           }
 
           history [i].peaks [history [i].current_idx] = channel_peaks_ [i];
-          history [i].current_idx = (history [i].current_idx + 1) % IM_ARRAYSIZE (history [i].peaks);
+
+          if (i & 0x1)
+          {
+            history [i].current_idx = (history [i].current_idx - 1);
+
+            if (history [i].current_idx < 0)
+                history [i].current_idx = IM_ARRAYSIZE (history [i].peaks) - 1;
+          }
+
+          else
+          {
+            history [i].current_idx = (history [i].current_idx + 1) % IM_ARRAYSIZE (history [i].peaks);
+          }
 
           ImGui::BeginGroup ();
 
@@ -1670,14 +1682,16 @@ SK_ImGui_VolumeManager (void)
           }
 
           ImGui::BeginGroup ();
-          ImGui::PlotLines ( "",
-                              history [i].peaks,
-                                IM_ARRAYSIZE (history [i].peaks),
-                                  history [i].current_idx,
-                                    "",
-                                         history [i].vu_peaks.disp_min,
-                                         1.0f,
-                                          ImVec2 (ImGui::GetContentRegionAvailWidth (), ht) );
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ( ( i + 1 ) / (float)channels, 1.0f, val));
+          ImGui::PlotHistogram ( "",
+                                   history [i].peaks,
+                                     IM_ARRAYSIZE (history [i].peaks),
+                                       history [i].current_idx,
+                                         "",
+                                              history [i].vu_peaks.disp_min,
+                                              1.0f,
+                                               ImVec2 (ImGui::GetContentRegionAvailWidth (), ht) );
+          ImGui::PopStyleColor  ();
 
           ImGui::PushStyleColor (ImGuiCol_PlotHistogram,     ImVec4 (0.9f, 0.1f, 0.1f, 0.15f));
           ImGui::ProgressBar    (history [i].vu_peaks.disp_max, ImVec2 (-1.0f, 0.0f));

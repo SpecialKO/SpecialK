@@ -47,11 +47,6 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
 
-
-// For texture caching to work correctly ...
-//   DarkSouls3 seems to underflow references on occasion!!!
-#define DS3_REF_TWEAK
-
 CRITICAL_SECTION cs_shader      = { };
 CRITICAL_SECTION cs_render_view = { };
 CRITICAL_SECTION cs_mmio        = { };
@@ -3581,22 +3576,11 @@ SK_D3D11_TexMgr::reset (void)
 
     if (desc.texture != nullptr)
     {
-#ifdef DS3_REF_TWEAK
-      const int refs =
-        IUnknown_AddRef_Original (desc.texture) - 1;
-
-      if (refs <= 3 && desc.texture->Release () <= 3)
-      {
-#else
       int refs = IUnknown_AddRef_Original (desc.texture) - 1;
 
-      if (refs == 1 && desc.texture->Release () <= 1)
+      if (refs == 1 && IUnknown_Release_Original (desc.texture) == 1)
       {
-#endif
-        for (int i = 0; i < refs; i++)
-        {
-          desc.texture->Release ();
-        }
+        desc.texture->Release ();
 
         count++;
 
@@ -3627,7 +3611,7 @@ SK_D3D11_TexMgr::reset (void)
 
       else
       {
-        desc.texture->Release ();
+        IUnknown_Release_Original (desc.texture);
       }
     }
   }}
@@ -3803,21 +3787,10 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
     SK_D3D11_Textures.Textures_2D.erase  (pTex);
     SK_D3D11_Textures.TexRefs_2D.erase   (pTex);
 
-    //if (blacklist)
-    //  SK_D3D11_Textures.Blacklist_2D [desc.MipLevels].emplace (crc32);
-    //else
+    if (blacklist)
+      SK_D3D11_Textures.Blacklist_2D [desc.MipLevels].emplace (crc32);
+    else
       SK_D3D11_Textures.HashMap_2D   [desc.MipLevels].erase   (crc32);
-
-    const int refs =
-      IUnknown_AddRef_Original (pTex) - 1;
-
-    if (refs <= 3 && pTex->Release () <= 3)
-    {
-      for (int i = 0; i < refs; i++)
-      {
-        IUnknown_Release_Original (pTex);
-      }
-    }
 
     InterlockedExchange (&live_textures_dirty, TRUE);
   }
@@ -3893,10 +3866,6 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
   // Hold a reference ourselves so that the game cannot free it
   pTex->AddRef ();
-#ifdef DS3_REF_TWEAK
-  pTex->AddRef ();
-  pTex->AddRef ();
-#endif
 }
 
 #include <Shlwapi.h>
