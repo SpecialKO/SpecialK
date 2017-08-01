@@ -110,7 +110,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -387,6 +387,7 @@
       <FixedBaseAddress>false</FixedBaseAddress>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AssemblyDebug>false</AssemblyDebug>
+      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
     </Link>
     <ProjectReference />
   </ItemDefinitionGroup>
@@ -423,6 +424,7 @@
       <LanguageStandard>stdcpp14</LanguageStandard>
       <MinimalRebuild>false</MinimalRebuild>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -628,7 +630,7 @@ Exit 0</Command>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <StringPooling>false</StringPooling>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
@@ -638,6 +640,7 @@ Exit 0</Command>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -707,7 +710,7 @@ Exit 0</Command>
       <PreprocessKeepComments>true</PreprocessKeepComments>
       <MinimalRebuild>false</MinimalRebuild>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -715,6 +718,7 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -782,7 +786,7 @@ Exit 0</Command>
       <PreprocessKeepComments>true</PreprocessKeepComments>
       <MinimalRebuild>false</MinimalRebuild>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -868,6 +872,7 @@ Exit 0</Command>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -934,6 +939,7 @@ Exit 0</Command>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1009,6 +1015,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <LanguageStandard>stdcpp14</LanguageStandard>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1076,6 +1083,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <LanguageStandard>stdcpp14</LanguageStandard>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1142,6 +1150,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <LanguageStandard>stdcpp14</LanguageStandard>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1211,6 +1220,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <LanguageStandard>stdcpp14</LanguageStandard>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1280,6 +1290,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <LanguageStandard>stdcpp14</LanguageStandard>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

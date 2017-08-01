@@ -264,35 +264,12 @@ SK_FreeRealGL (void)
 bool
 SK::OpenGL::Startup (void)
 {
-  //
-  // For Thread Local Storage to work correctly, this is the only option.
-  //
-  //  We cannot load the system-wide DLL from a temporary thread; it must
-  //    be the one that handled DLL process attach.
-  //
-  //   >>> This was VERY hard to debug, so please pay attention! <<<
-  //
-  std::wstring   dll_name   = SK_GetModuleName (SK_GetDLL ());
-  const wchar_t* wszDllName = dll_name.c_str   ();
-
-  if (! wcsstr (wszDllName, L"SpecialK") )
-  {
-    SK_LoadRealGL ();
-  }
-
-  else
-  {
-    LoadLibraryW_Original (L"OpenGL32.dll");
-  }
-
   return SK_StartupCore (L"OpenGL32", opengl_init_callback);
 }
 
 bool
 SK::OpenGL::Shutdown (void)
 {
-  SK_FreeRealGL ();
-
   return SK_ShutdownCore (L"OpenGL32");
 }
 
@@ -308,7 +285,6 @@ extern "C"
   _Return WINAPI                                                            \
   _Name _Proto {                                                            \
     if (imp_##_Name == nullptr) {                                           \
-      WaitForInit ();                                                       \
                                                                             \
       static const char* szName = #_Name;                                   \
       imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (backend_dll, szName);\
@@ -331,7 +307,6 @@ extern "C"
   void WINAPI                                                               \
   _Name _Proto {                                                            \
     if (imp_##_Name == nullptr) {                                           \
-      WaitForInit ();                                                       \
                                                                             \
       static const char* szName = #_Name;                                   \
       imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (backend_dll, szName);\
@@ -1331,6 +1306,9 @@ BOOL
 WINAPI
 SwapBuffers (HDC hDC)
 {
+  WaitForInit_GL ();
+
+
   // Setup our window message hook for the command console
   if (hWndRender == 0 || (! IsWindow (hWndRender)))
     hWndRender = WindowFromDC (hDC);
@@ -1381,6 +1359,9 @@ BOOL
 WINAPI
 wglSwapBuffers (HDC hDC)
 {
+  WaitForInit_GL ();
+
+
   // Setup our window message hook for the command console
   if (hWndRender == 0 || (! IsWindow (hWndRender)))
     hWndRender = WindowFromDC (hDC);
@@ -1440,6 +1421,8 @@ DWORD
 WINAPI
 wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
 {
+  WaitForInit_GL ();
+
   for (UINT i = 0; i < n; i++)
     SwapBuffers (ps->hDC);
 
@@ -2298,6 +2281,8 @@ SK_HookGL (void)
       SK_GL_HOOK(wglGetProcAddress);
       SK_GL_HOOK(wglCreateContext);
 
+      SK_GL_HOOK(wglChoosePixelFormat);
+
       SK_GL_HOOK(wglMakeCurrent);
       SK_GL_HOOK(wglShareLists);
       SK_GL_HOOK(wglUseFontBitmapsA);
@@ -2311,23 +2296,21 @@ SK_HookGL (void)
       SK_GL_HOOK(wglSetPixelFormat);
       SK_GL_HOOK(wglSwapMultipleBuffers);
 
-// Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
-
       MH_ApplyQueued ();
     }
 
-    InterlockedExchange (&__gl_ready, TRUE);
-
     dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
                     GL_HOOKS );
-  } else {
-    InterlockedExchange (&__gl_ready, TRUE);
+
+// Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+    SK_LoadPlugIns64 ();
+#else
+    SK_LoadPlugIns32 ();
+#endif
   }
+
+  InterlockedExchange (&__gl_ready, TRUE);
 
 #if 0
   _beginthreadex ( nullptr,

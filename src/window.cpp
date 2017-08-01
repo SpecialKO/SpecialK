@@ -3098,7 +3098,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_SYSKEYDOWN:
       if (game_window.active)
       {
-        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
+        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) /*&& (uMsg != WM_SYSKEYDOWN)*/)
         {
           return game_window.CallProc (hWnd, uMsg, wParam, lParam);
         }
@@ -3109,7 +3109,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_SYSKEYUP:
       if (game_window.active)
       {
-        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
+        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) /*&& (uMsg != WM_SYSKEYUP)*/)
         {
           return game_window.CallProc (hWnd, uMsg, wParam, lParam);
         }

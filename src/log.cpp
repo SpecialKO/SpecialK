@@ -75,6 +75,10 @@ SK_Timestamp (wchar_t* const out)
 BOOL
 SK_FlushLog (iSK_Logger* pLog)
 {
+#if 1
+  fflush (pLog->fLog);
+  return TRUE;
+#else
   DWORD dwTime = timeGetTime ();
 
   if ( pLog->flush_freq == 00 ||
@@ -87,6 +91,7 @@ SK_FlushLog (iSK_Logger* pLog)
   }
 
   return FALSE;
+#endif
 }
 
 iSK_Logger dll_log, budget_log;

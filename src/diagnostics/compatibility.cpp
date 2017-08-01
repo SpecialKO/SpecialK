@@ -1190,8 +1190,13 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
 void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
+#ifdef REAL_THREAD
 CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 {
+#else
+{
+  LPVOID user = (LPVOID)pWorkingSet;
+#endif
   static bool             init           = false;
   static CRITICAL_SECTION cs_thread_walk = { };
 
@@ -1261,11 +1266,14 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 
   free (pWorkingSet);
 
-
+#ifdef REAL_THREAD
   CloseHandle (GetCurrentThread ());
 
   return 0;
 }, (LPVOID)pWorkingSet, 0x00, nullptr);
+#else
+}
+#endif
 }
 
 void

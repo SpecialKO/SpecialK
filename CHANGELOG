@@ -1,3 +1,14 @@
+0.8.29
+
+ + The peak volume meter is now a histogram, assigned color based on channel
+ + Peak volume moves left / right depending on channel
+ + Added very early GPU hardware stat graphs to a new GPU widget
+ + Mouse cursor and input behavior when interacting with widgets is more intuitive
+  >> You can even move them around without the config menu open
+ + Fixed Dark Souls 3 Texture Cache reference leaks
+ + Disabled a few of the optimizations from 0.8.28 for compatibility with GeForce Experience
+  >> Will investigate further in the future
+
 0.8.28
 
  + Removed tooltips from graph data views

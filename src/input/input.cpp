@@ -1085,14 +1085,14 @@ SK_ImGui_WantKeyboardCapture (void)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_Visible)
-  {
+  //if (SK_ImGui_Visible)
+  //{
     ImGuiIO& io =
       ImGui::GetIO ();
 
     if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
       imgui_capture = true;
-  }
+  //}
 
   return imgui_capture;
 }
@@ -1102,14 +1102,14 @@ SK_ImGui_WantTextCapture (void)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_Visible)
-  {
+  //if (SK_ImGui_Visible)
+  //{
     ImGuiIO& io =
       ImGui::GetIO ();
 
     if (io.WantTextInput)
       imgui_capture = true;
-  }
+  //}
 
   return imgui_capture;
 }
