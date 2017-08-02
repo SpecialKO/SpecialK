@@ -37,6 +37,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/osd/text.h>
+#include <SpecialK/widgets/widget.h>
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -167,8 +168,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   UNREFERENCED_PARAMETER (Shift);
   UNREFERENCED_PARAMETER (Alt);
 
-  static bool keys [256];
-  keys [vkCode & 0xFF] = ! keys [vkCode & 0xFF];
+  SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
 }
 
 BOOL

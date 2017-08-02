@@ -74,6 +74,8 @@
 #include <SpecialK/update/version.h>
 #include <SpecialK/update/network.h>
 
+#include <SpecialK/widgets/widget.h>
+
 #include <atlbase.h>
 #include <comdef.h>
 #include <delayimp.h>

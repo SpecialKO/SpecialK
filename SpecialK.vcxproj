@@ -1416,6 +1416,7 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
     <ClInclude Include="include\SpecialK\utility.h" />
     <ClInclude Include="include\SpecialK\vulkan_backend.h" />
     <ClInclude Include="include\SpecialK\DLL_VERSION.H" />
+    <ClInclude Include="include\SpecialK\widgets\widget.h" />
     <ClInclude Include="include\SpecialK\window.h" />
     <ClInclude Include="include\stb\rect_pack.h" />
     <ClInclude Include="include\stb\textedit.h" />
@@ -2184,6 +2185,10 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\widgets\frame_pacing.cpp" />
+    <ClCompile Include="src\widgets\gpu_widget.cpp" />
+    <ClCompile Include="src\widgets\volume_control.cpp" />
+    <ClCompile Include="src\widgets\widget.cpp" />
     <ClCompile Include="src\window.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>

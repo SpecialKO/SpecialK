@@ -22,7 +22,9 @@
 #ifndef __SK__INPUT_H__
 #define __SK__INPUT_H__
 
+#define NOMINMAX
 #include <Windows.h>
+#include <cstdint>
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
@@ -154,6 +156,99 @@ extern sk_input_api_context_s SK_RawInput_Backend;
 
 extern sk_input_api_context_s SK_WinMM_Backend;
 extern sk_input_api_context_s SK_Steam_Backend;
+
+
+
+enum class SK_Input_BindFlags
+{
+  Invalid           =    0,
+
+  NonExclusive      = ( 1UL << 0 ),
+     Exclusive      = ( 1UL << 1 ),
+  ModeAgnostic      = ( NonExclusive  |
+                        Exclusive     ),
+  
+  ActivateOnPress   = ( 1UL << 2 ),
+  ActivateOnRelease = ( 1UL << 3 ),
+
+  Repeatable        = ( 1UL << 4 ),
+
+  ReleaseOnActivate = ( 1UL << 5 ), // Immediately behave as though the buttons were released
+  HoldOnActivate    = ( 1UL << 6 ), // Immediately behave as though the buttons are held
+
+  Default           = ( ModeAgnostic    |
+                        ActivateOnPress )
+};
+
+enum class SK_Input_ModifierKeys
+{
+  None        =    0,
+
+
+  Left_Ctrl   = ( 1UL << 0 ),
+  Right_Ctrl  = ( 1UL << 1 ),
+
+  Left_Alt    = ( 1UL << 2 ),
+  Right_Alt   = ( 1UL << 3 ),
+
+  Left_Shift  = ( 1UL << 4 ),
+  Right_Shift = ( 1UL << 5 ),
+
+
+  Ctrl        = ( Left_Ctrl |
+                 Right_Ctrl ),
+
+  Alt         = ( Left_Alt |
+                 Right_Alt ),
+
+  Shift       = ( Left_Shift |
+                 Right_Shift )
+};
+
+
+struct SK_Input_Duration
+{
+  uint16_t min = 0,
+           max = 0;
+};
+
+struct SK_Input_KeyBinding
+{
+  struct key_s
+  {
+    SK_Input_Duration   duration   = {    };
+    uint16_t            scancode   = 0x0000;
+  } keys [1];
+
+  SK_Input_ModifierKeys modifiers  = SK_Input_ModifierKeys::None;
+  SK_Input_BindFlags    flags      = SK_Input_BindFlags::Default;
+
+  uint8_t               combo_size = 1;
+};
+
+struct SK_Input_PadBinding
+{
+  struct button_s
+  {
+    SK_Input_Duration duration  = {};
+    uint8_t           button    = 00;
+  } buttons [1];
+
+  SK_Input_BindFlags flags      = SK_Input_BindFlags::Default;
+
+  uint8_t            combo_size = 1;
+};
+
+
+class SK_Input_KeyBindFactory
+{
+
+};
+
+class SK_Input_PadBindFactory
+{
+
+};
 
 
 bool

@@ -20,12 +20,15 @@
 **/
 
 #define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_gl3.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/widgets/msgbox.h>
+
+#include <SpecialK/widgets/widget.h>
 #include <d3d9.h>
 
 #include <SpecialK/config.h>
@@ -591,127 +594,6 @@ SK_ImGui_AdjustCursor (void)
 bool reset_frame_history = true;
 bool was_reset           = false;
 
-#include <array>
-
-template <typename _T, int max_samples>
-class SK_ImGui_DataHistory
-{
-public:
-  int   getCapacity   (void)
-  {
-    return max_samples;
-  };
-
-  int   getUpdates    (void)
-  {
-    return updates;
-  }
-
-  _T    getEntry      (int idx)
-  {
-    if (idx + values_offset < max_samples)
-      return values [idx + values_offset];
-
-    else
-      return values [(idx + values_offset) % max_samples];
-  }
-
-
-  void addValue (_T val, bool only_if_different = false)
-  {
-    bool insert = (! only_if_different) || (last_val != val);
-
-    if (insert)
-    {
-      values [values_offset] = val;
-              values_offset  = (values_offset + 1) % getCapacity ();
-
-      ++updates;
-
-      last_val = val;
-    }
-  }
-
-
-  std::type_info getType (void)
-  {
-    return std::typeindex (typeid (_T));
-  }
-
-
-  _T getMin (void)
-  {
-    calcStats ();
-
-    return cached_stats.min;
-  }
-
-  _T getMax (void)
-  {
-    calcStats ();
-
-    return cached_stats.max;
-  }
-
-  _T getAvg (void)
-  {
-    calcStats ();
-
-    return cached_stats.avg;
-  }
-
-
-
-  int                           getOffset (void) { return values_offset; };
-  std::array <_T, max_samples>& getValues (void) { return values;        };
-
-  void   reset     (void)
-  {
-    values_offset = 0;
-    updates       = 0;
-  }
-
-protected:
-  void calcStats (void)
-  {
-    if (cached_stats.last_calc != updates)
-    {
-      int sample =  0;
-      _T  sum    = { };
-
-      _T  min    = std::numeric_limits <_T>::max ();
-      _T  max    = std::numeric_limits <_T>::min ();
-
-      for (auto& val : values)
-      {
-        if (++sample > updates)
-          break;
-
-        sum += val;
-
-        max = std::max (val, max);
-        min = std::min (val, min);
-      }
-
-      cached_stats.avg = sum / sample;
-      cached_stats.min = min;
-      cached_stats.max = max;
-
-      cached_stats.last_calc = updates;
-    }
-  }
-
-  int                          updates       = 0;
-  std::array <_T, max_samples> values;
-  int                          values_offset = 0;
-  _T                           last_val      = { };
-
-  struct stat_cache_s {
-    _T  min, max, avg;
-    int last_calc = 0;
-  } cached_stats;
-};
-
 class SK_ImGui_FrameHistory : public SK_ImGui_DataHistory <float, 120>
 {
 public:
@@ -742,202 +624,6 @@ protected:
 
 SK_ImGui_FrameHistory SK_ImGui_Frames;
 SK_ImGui_CPUHistory   SK_ImGui_CPUs [64];
-
-
-#include <SpecialK/gpu_monitor.h>
-
-class SKWG_GPU_Monitor
-{
-public:
-  void run (void)
-  {
-    DWORD dwNow = timeGetTime ();
-
-    constexpr float  GHz = (      1000000.0f );
-    constexpr double GiB = ( 1024.0 * 1024.0 );
-
-    if (last_update < dwNow - update_freq)
-    {
-      core_clock_ghz.addValue ( (float)SK_GPU_GetClockRateInkHz    (0) / GHz);
-      vram_clock_ghz.addValue ( (float)SK_GPU_GetMemClockRateInkHz (0) / GHz);
-      gpu_load.addValue       (        SK_GPU_GetGPULoad           (0));
-      gpu_temp_c.addValue     (        SK_GPU_GetTempInC           (0));
-      vram_used_mib.addValue  ((float)(
-                               (double)SK_GPU_GetVRAMUsed          (0) / GiB));
-      //vram_shared.addValue    (       SK_GPU_GetVRAMShared        (0));
-      //fan_rpm.addValue        (       SK_GPU_GetFanSpeedRPM       (0));
-
-      last_update = dwNow;
-    }
-  }
-
-  void draw (void)
-  {
-    ImGuiIO& io (ImGui::GetIO ( ));
-
-    const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
-    const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
-
-    char szAvg  [512] = { };
-
-    sprintf_s
-      ( szAvg,
-          512,
-            u8"GPU%lu Load %%:\n\n"
-            u8"          min: %3.0f%%, max: %3.0f%%, avg: %4.1f%%\n",
-              0,
-                gpu_load.getMin (), gpu_load.getMax (),
-                  gpu_load.getAvg () );
-
-    float samples = 
-      std::min ( (float)gpu_load.getUpdates  (),
-                 (float)gpu_load.getCapacity () );
-
-    ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
-                              ImColor::HSV ( 0.31f - 0.31f *
-                       std::min ( 1.0f, gpu_load.getAvg () / 100.0f ),
-                                               0.73f,
-                                                 0.93f ) );
-
-    ImGui::PlotLines ( "###GPU_LoadPercent",
-                         gpu_load.getValues     ().data (),
-        static_cast <int> (samples),
-                             gpu_load.getOffset (),
-                               szAvg,
-                                 0.0f,
-                                   100.0f,
-                                     ImVec2 (
-                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
-
-    sprintf_s
-      ( szAvg,
-          512,
-            u8"GPU%lu Temp (°C):\n\n"
-            u8"          min: %4.1f°, max: %4.1f°, avg: %5.2f°\n",
-              0,
-                gpu_temp_c.getMin   (), gpu_temp_c.getMax (),
-                  gpu_temp_c.getAvg () );
-
-    samples = 
-      std::min ( (float)gpu_temp_c.getUpdates  (),
-                 (float)gpu_temp_c.getCapacity () );
-
-    ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
-                              ImColor::HSV ( 0.31f - 0.31f *
-                       std::min ( 1.0f, gpu_temp_c.getAvg () / 100.0f ),
-                                               0.73f,
-                                                 0.93f ) );
-
-    ImGui::PlotLines ( "###GPU_TempC",
-                         gpu_temp_c.getValues     ().data (),
-        static_cast <int> (samples),
-                             gpu_temp_c.getOffset (),
-                               szAvg,
-                                 0.0f,
-                                   100.0f,
-                                     ImVec2 (
-                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
-
-
-    ImGui::PushStyleColor ( ImGuiCol_PlotLines, ImColor::HSV (0.0f, 0.0f, 0.725f) );
-
-    sprintf_s
-      ( szAvg,
-          512,
-            u8"GPU%lu Core Clock (GHz):\n\n"
-            u8"          min: %5.3f, max: %5.3f, avg: %6.4f\n",
-              0,
-                core_clock_ghz.getMin   (), core_clock_ghz.getMax (),
-                  core_clock_ghz.getAvg () );
-
-    samples = 
-      std::min ( (float)core_clock_ghz.getUpdates  (),
-                 (float)core_clock_ghz.getCapacity () );
-
-    ImGui::PlotLines ( "###GPU_CoreClock",
-                         core_clock_ghz.getValues ().data (),
-        static_cast <int> (samples),
-                             core_clock_ghz.getOffset (),
-                               szAvg,
-                                 core_clock_ghz.getMin   (),
-                                   core_clock_ghz.getMax (),
-                                     ImVec2 (
-                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
-
-    sprintf_s
-      ( szAvg,
-          512,
-            u8"GPU%lu VRAM Clock (GHz):\n\n"
-            u8"          min: %5.3f, max: %5.3f, avg: %6.4f\n",
-              0,
-                vram_clock_ghz.getMin   (), vram_clock_ghz.getMax (),
-                  vram_clock_ghz.getAvg () );
-
-    samples = 
-      std::min ( (float)vram_clock_ghz.getUpdates  (),
-                 (float)vram_clock_ghz.getCapacity () );
-
-    ImGui::PlotLines ( "###GPU_VRAMClock",
-                         vram_clock_ghz.getValues ().data (),
-        static_cast <int> (samples),
-                             vram_clock_ghz.getOffset (),
-                               szAvg,
-                                 vram_clock_ghz.getMin   (),
-                                   vram_clock_ghz.getMax (),
-                                     ImVec2 (
-                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
-
-    // TODO: Add a parameter to data history to control this
-    static float max_use = 0.0f;
-
-    max_use = std::max (vram_used_mib.getMax (), max_use);
-
-    sprintf_s
-      ( szAvg,
-          512,
-            u8"GPU%lu VRAM Usage (MiB):\n\n"
-            u8"          min: %6.1f, max: %6.1f, avg: %7.2f\n",
-              0,
-                vram_used_mib.getMin   (), max_use,
-                  vram_used_mib.getAvg () );
-
-    samples = 
-      std::min ( (float)vram_used_mib.getUpdates  (),
-                 (float)vram_used_mib.getCapacity () );
-
-    ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
-                              ImColor::HSV ( 0.31f - 0.31f *
-                       std::min ( 1.0f, vram_used_mib.getAvg () / 8192.0f ),
-                                               0.73f,
-                                                 0.93f ) );
-
-    ImGui::PlotLines ( "###GPU_VRAMUsage",
-                         vram_used_mib.getValues ().data (),
-        static_cast <int> (samples),
-                             vram_used_mib.getOffset (),
-                               szAvg,
-                                 0.0f,//vram_clock_ghz.getMin   (),
-                                   8192.0f,//max_use,//vram_clock_ghz.getMax (),
-                                     ImVec2 (
-                                       std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
-
-    ImGui::PopStyleColor (4);
-  }
-
-protected:
-  const DWORD update_freq = 666UL;
-
-private:
-  DWORD last_update = 0UL;
-
-  SK_ImGui_DataHistory <float,    96> core_clock_ghz;
-  SK_ImGui_DataHistory <float,    96> vram_clock_ghz;
-  SK_ImGui_DataHistory <float,    96> gpu_load;
-  SK_ImGui_DataHistory <float,    96> gpu_temp_c;
-  SK_ImGui_DataHistory <float,    96> vram_used_mib;
-  SK_ImGui_DataHistory <uint64_t, 96> vram_shared;
-  SK_ImGui_DataHistory <uint32_t, 96> fan_rpm;
-} gpu_mon_widget;
 
 
 #pragma optimize( "", off ) 
@@ -2190,9 +1876,6 @@ SK_ImGui_ControlPanel (void)
   bool        open        = true;
 
 
-  ImGuiStyle& style =
-    ImGui::GetStyle ();
-
   // Initialize the dialog using the user's scale preference
   if (first_frame)
   {
@@ -2208,6 +1891,11 @@ SK_ImGui_ControlPanel (void)
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
+  ImGuiStyle& style =
+    ImGui::GetStyle ();
+
+  ImGuiStyle orig = style;
+
   style.WindowTitleAlign = ImVec2 (0.5f, 0.5f);
 
   style.WindowMinSize.x = title_len * 1.075f * io.FontGlobalScale;
@@ -2221,6 +1909,8 @@ SK_ImGui_ControlPanel (void)
     ImGui::PushStyleColor (ImGuiCol_Text, ImColor (255, 255, 255));
   ImGui::Begin          (szTitle, &open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | (config.imgui.use_mac_style_menu ? 0x00: ImGuiWindowFlags_MenuBar));
   ImGui::PopStyleColor  ();
+
+  style = orig;
 
 
   if (! config.imgui.use_mac_style_menu)
@@ -4128,18 +3818,36 @@ extern float SK_ImGui_PulseNav_Strength;
 
     if (ImGui::CollapsingHeader ("Widgets"))
     {
+      bool framepacing   = SK_ImGui_Widgets.frame_pacing->isVisible   ();
+      bool gpumon        = SK_ImGui_Widgets.gpu_monitor->isVisible    ();
+      bool volumecontrol = SK_ImGui_Widgets.volume_control->isVisible ();
+
       ImGui::TreePush ("");
-      ImGui::Checkbox ("Framepacing",  &SK_ImGui_Widgets.framepacing);
+
+      if (ImGui::Checkbox ("Framepacing", &framepacing))
+      {
+        SK_ImGui_Widgets.frame_pacing->setVisible (framepacing).setActive (framepacing);
+      }
       ImGui::SameLine ();
+
       ImGui::Checkbox ("CPU",          &SK_ImGui_Widgets.cpumon);
       ImGui::SameLine ();
-      ImGui::Checkbox ("GPU",          &SK_ImGui_Widgets.gpumon);
+
+      if (ImGui::Checkbox ("GPU", &gpumon))
+      {
+        SK_ImGui_Widgets.gpu_monitor->setVisible (gpumon).setActive (gpumon);
+      }
       ImGui::SameLine ();
+
       //ImGui::Checkbox ("Memory",       &SK_ImGui_Widgets.memory);
       //ImGui::SameLine ();
       //ImGui::Checkbox ("Disk",         &SK_ImGui_Widgets.disk);
       //ImGui::SameLine ();
-      ImGui::Checkbox ("Media Player", &SK_ImGui_Widgets.mediaplayer);
+
+      if (ImGui::Checkbox ("Volume Control", &volumecontrol))
+      {
+        SK_ImGui_Widgets.volume_control->setVisible (volumecontrol).setActive (volumecontrol);
+      }
 
       if ( (int)api & (int)SK_RenderAPI::D3D11 )
       {
@@ -4892,6 +4600,18 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   reset_frame_history = false;
 
 
+  static bool init_widgets = true;
+
+  if (init_widgets)
+  {
+    SK_ImGui_Widgets.volume_control->run_base ();
+    SK_ImGui_Widgets.frame_pacing->run_base   ();
+    SK_ImGui_Widgets.gpu_monitor->run_base    ();
+
+    init_widgets = false;
+  }
+
+
   // Default action is to draw the Special K Control panel,
   //   but if you hook this function you can do anything you
   //     want...
@@ -4911,29 +4631,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
 
-  if (SK_ImGui_Widgets.framepacing)
-  {
-    static bool move = true;
+  if (SK_ImGui_Widgets.frame_pacing->isActive ())
+    SK_ImGui_Widgets.frame_pacing->run_base ();
 
-    if (move)
-    {
-      ImGui::SetNextWindowPos (ImVec2 (io.DisplaySize.x - font_size * 35, ( io.DisplaySize.y - font_size_multiline * 5.44f )), ImGuiSetCond_Always);
-      move = false;
-    }
-
-    ImGui::SetNextWindowSize (ImVec2 (font_size * 35, font_size_multiline * 5.44f), ImGuiSetCond_Always);
-
-    ImGui::Begin            ("###Widget_Framepacing", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
-                                                               ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
-                                                               ImGuiWindowFlags_NoFocusOnAppearing );
-
-    SK_ImGui_DrawGraph_FramePacing ();
-
-    if (ImGui::IsMouseClicked (1) && ImGui::IsWindowHovered ())
-      move = true;
-
-    ImGui::End              ();
-  }
+  if (SK_ImGui_Widgets.frame_pacing->isVisible ())
+    SK_ImGui_Widgets.frame_pacing->draw_base ();
 
 
   if (SK_ImGui_Widgets.cpumon)
@@ -4981,31 +4683,18 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
 
-  if (SK_ImGui_Widgets.mediaplayer)
-  {
-    //ImGui::SetNextWindowSize (ImVec2 (font_size * 35, font_size_multiline * 5.44f), ImGuiSetCond_Always);
+  if (SK_ImGui_Widgets.volume_control->isActive ())
+    SK_ImGui_Widgets.volume_control->run_base ();
 
-    ImGui::Begin           ("###Widget_MediaPlayer", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
-                                                              ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
-                                                              ImGuiWindowFlags_NoFocusOnAppearing );
-
-    SK_ImGui_VolumeManager ();
-
-    ImGui::End             ();
-  }
+  if (SK_ImGui_Widgets.volume_control->isVisible ())
+    SK_ImGui_Widgets.volume_control->draw_base ();
 
 
-  if (SK_ImGui_Widgets.gpumon)
-  {
-    ImGui::Begin           ("###Widget_GPUMonitor", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
-                                                             ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
-                                                             ImGuiWindowFlags_NoFocusOnAppearing );
+  if (SK_ImGui_Widgets.gpu_monitor->isActive ())
+    SK_ImGui_Widgets.gpu_monitor->run_base ();
 
-    gpu_mon_widget.run     ();
-    gpu_mon_widget.draw    ();
-
-    ImGui::End             ();
-  }
+  if (SK_ImGui_Widgets.gpu_monitor->isVisible ())
+    SK_ImGui_Widgets.gpu_monitor->draw_base ();
 
 
   if (d3d11)

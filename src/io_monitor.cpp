@@ -30,6 +30,8 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/config.h>
 
+#include <SpecialK/widgets/widget.h>
+
 #include <process.h>
 
 #include <algorithm>

@@ -3695,6 +3695,11 @@ std::unordered_map <BYTE, std::wstring> virtKeyCodeToHumanKeyName;
 
 #include <queue>
 
+#define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
+  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
+                  (((shift)!= 0) << 10) |   \
+                  (((alt)  != 0) << 11))
+
 void
 SK_Keybind::update (void)
 {
@@ -3726,6 +3731,8 @@ SK_Keybind::update (void)
     if (! words.empty ())
       human_readable += L"+";
   }
+
+  masked_code = SK_MakeKeyMask (vKey & 0xFF, ctrl, shift, alt);
 }
 
 void
@@ -3737,6 +3744,8 @@ SK_Keybind::parse (void)
 
   if (! init)
   {
+    init = true;
+
     for (int i = 0; i < 0xFF; i++)
     {
       wchar_t name [32] = { };
@@ -3797,32 +3806,48 @@ SK_Keybind::parse (void)
       }
 
     
-      if ( i != VK_CONTROL && i != VK_MENU     &&
-           i != VK_SHIFT   && i != VK_OEM_PLUS && i != VK_OEM_MINUS )
+      if ( i != VK_CONTROL  && i != VK_MENU     &&
+           i != VK_SHIFT    && i != VK_OEM_PLUS && i != VK_OEM_MINUS &&
+           i != VK_LSHIFT   && i != VK_RSHIFT   &&
+           i != VK_LCONTROL && i != VK_RCONTROL &&
+           i != VK_LMENU    && i != VK_RMENU )
       {
-        humanKeyNameToVirtKeyCode [   name] = (BYTE)i;
-        virtKeyCodeToHumanKeyName [(BYTE)i] =    name;
+
+        humanKeyNameToVirtKeyCode.emplace (name, (BYTE)i);
+        virtKeyCodeToHumanKeyName.emplace ((BYTE)i, name);
       }
     }
     
-    humanKeyNameToVirtKeyCode [L"Plus"]  = VK_OEM_PLUS;
-    humanKeyNameToVirtKeyCode [L"Minus"] = VK_OEM_MINUS;
-    humanKeyNameToVirtKeyCode [L"Ctrl"]  = VK_CONTROL;
-    humanKeyNameToVirtKeyCode [L"Alt"]   = VK_MENU;
-    humanKeyNameToVirtKeyCode [L"Shift"] = VK_SHIFT;
+    humanKeyNameToVirtKeyCode.emplace (L"Plus",        (BYTE)VK_OEM_PLUS);
+    humanKeyNameToVirtKeyCode.emplace (L"Minus",       (BYTE)VK_OEM_MINUS);
+    humanKeyNameToVirtKeyCode.emplace (L"Ctrl",        (BYTE)VK_CONTROL);
+    humanKeyNameToVirtKeyCode.emplace (L"Alt",         (BYTE)VK_MENU);
+    humanKeyNameToVirtKeyCode.emplace (L"Shift",       (BYTE)VK_SHIFT);
+    humanKeyNameToVirtKeyCode.emplace (L"Left Shift",  (BYTE)VK_LSHIFT);
+    humanKeyNameToVirtKeyCode.emplace (L"Right Shift", (BYTE)VK_RSHIFT);
+    humanKeyNameToVirtKeyCode.emplace (L"Left Alt",    (BYTE)VK_LMENU);
+    humanKeyNameToVirtKeyCode.emplace (L"Right Alt",   (BYTE)VK_RMENU);
+    humanKeyNameToVirtKeyCode.emplace (L"Left Ctrl",   (BYTE)VK_LCONTROL);
+    humanKeyNameToVirtKeyCode.emplace (L"Right Ctrl",  (BYTE)VK_RCONTROL);
     
-    virtKeyCodeToHumanKeyName [VK_CONTROL]    = L"Ctrl";
-    virtKeyCodeToHumanKeyName [VK_MENU]       = L"Alt";
-    virtKeyCodeToHumanKeyName [VK_SHIFT]      = L"Shift";
-    virtKeyCodeToHumanKeyName [VK_OEM_PLUS]   = L"Plus";
-    virtKeyCodeToHumanKeyName [VK_OEM_MINUS]  = L"Minus";
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_CONTROL,   L"Ctrl");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_MENU,      L"Alt");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_SHIFT,     L"Shift");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_OEM_PLUS,  L"Plus");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_OEM_MINUS, L"Minus");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LSHIFT,    L"Left Shift");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RSHIFT,    L"Right Shift");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LMENU,     L"Left Alt");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RMENU,     L"Right Alt");  
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LCONTROL,  L"Left Ctrl"); 
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RCONTROL,  L"Right Ctrl");
 
     init = true;
   }
 
   wchar_t wszKeyBind [128] = { };
 
-  wcsncat (wszKeyBind, human_readable.c_str (), 127);
+  lstrcatW (wszKeyBind, human_readable.c_str ());
 
   wchar_t* wszBuf = nullptr;
   wchar_t* wszTok = std::wcstok (wszKeyBind, L"+", &wszBuf);
@@ -3833,7 +3858,7 @@ SK_Keybind::parse (void)
 
   if (wszTok == nullptr)
   {
-    vKey  = humanKeyNameToVirtKeyCode [wszKeyBind];
+    vKey = humanKeyNameToVirtKeyCode [wszKeyBind];
   }
 
   while (wszTok)
@@ -3841,14 +3866,16 @@ SK_Keybind::parse (void)
     BYTE vKey_ = humanKeyNameToVirtKeyCode [wszTok];
 
     if (vKey_ == VK_CONTROL)
-      ctrl = true;
+      ctrl  = true;
     else if (vKey_ == VK_SHIFT)
       shift = true;
     else if (vKey_ == VK_MENU)
-      alt = true;
+      alt   = true;
     else
       vKey = vKey_;
 
     wszTok = std::wcstok (nullptr, L"+", &wszBuf);
   }
+
+  masked_code = SK_MakeKeyMask (vKey & 0xFF, ctrl, shift, alt);
 }

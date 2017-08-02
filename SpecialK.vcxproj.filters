@@ -196,6 +196,12 @@
     <Filter Include="Source Files\Backends\Render\DDraw">
       <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ImGui\Widgets">
+      <UniqueIdentifier>{be88cd54-d9ff-4a27-b993-c86dcdb61189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Widgets">
+      <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -396,6 +402,9 @@
     <ClInclude Include="include\SpecialK\input\dinput8_backend.h">
       <Filter>Header Files\Backends\Input\DirectInput</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\widgets\widget.h">
+      <Filter>Header Files\ImGui\Widgets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -577,6 +586,18 @@
     </ClCompile>
     <ClCompile Include="src\input\dinput8.cpp">
       <Filter>Source Files\Backends\Input\DirectInput</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\widget.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\frame_pacing.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\volume_control.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\gpu_widget.cpp">
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

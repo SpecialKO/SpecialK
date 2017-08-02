@@ -497,12 +497,14 @@ struct SK_Keybind
   std::wstring human_readable;
 
   struct {
-    bool ctrl,
+    BOOL ctrl,
          shift,
          alt;
   };
 
   SHORT vKey;
+
+  UINT  masked_code; // For fast comparison
 
   void parse  (void);
   void update (void);
