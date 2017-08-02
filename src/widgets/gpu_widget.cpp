@@ -29,6 +29,8 @@ public:
   SKWG_GPU_Monitor (void) : SK_Widget ("###Widget_GPUMonitor")
   {
     SK_ImGui_Widgets.gpu_monitor = this;
+
+    setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
   void run (void)
@@ -42,6 +44,37 @@ public:
                               L"Widget Toggle Keybinding (GPU Monitor)",
                                 L"Widget.GPUMonitor",
                                   L"ToggleKey" );
+
+      param_visible =
+        LoadWidgetBool ( &visible, osd_ini,
+                           L"Widget Visible (GPU Monitor)",
+                             L"Widget.GPUMonitor",
+                               L"Visible" );
+
+      param_movable =
+        LoadWidgetBool ( &movable, osd_ini,
+                           L"Widget Movable (GPU Monitor)",
+                             L"Widget.GPUMonitor",
+                               L"Movable" );
+
+      param_autofit =
+        LoadWidgetBool ( &autofit, osd_ini,
+                           L"Widget AutoFitted (GPU Monitor)",
+                             L"Widget.GPUMonitor",
+                               L"AutoFit" );
+
+      param_clickthrough =
+        LoadWidgetBool ( &click_through, osd_ini,
+                           L"Widget Ignores Clicks (GPU Monitor)",
+                             L"Widget.GPUMonitor",
+                               L"ClickThrough" );
+
+      param_docking =
+        LoadWidgetDocking ( &docking, osd_ini,
+                              L"Widget Docks to ... (GPU Monitor)",
+                                L"Widget.GPUMonitor",
+                                  L"DockingPoint" );
+
       first = false;
 
       return;

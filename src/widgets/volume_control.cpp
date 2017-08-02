@@ -30,6 +30,9 @@ public:
   SKWG_VolumeControl (void) : SK_Widget ("###Widget_VolumeControl")
   {
     SK_ImGui_Widgets.volume_control = this;
+
+    setResizable    (                false).setAutoFit      (true).setMovable (false).
+    setDockingPoint (DockAnchor::SouthWest).setClickThrough (false);
   };
 
   void run (void)
@@ -48,6 +51,36 @@ public:
                               L"Widget Toggle Keybinding (Volume Control)",
                                 L"Widget.VolumeControl",
                                   L"FocusKey" );
+
+      param_visible =
+        LoadWidgetBool ( &visible, osd_ini,
+                           L"Widget Visible (Volume Control)",
+                             L"Widget.VolumeControl",
+                               L"Visible" );
+
+      param_movable =
+        LoadWidgetBool ( &movable, osd_ini,
+                           L"Widget Movable (Volume Control)",
+                             L"Widget.VolumeControl",
+                               L"Movable" );
+
+      param_autofit =
+        LoadWidgetBool ( &autofit, osd_ini,
+                           L"Widget AutoFitted (Volume Control)",
+                             L"Widget.VolumeControl",
+                               L"AutoFit" );
+
+      param_clickthrough =
+        LoadWidgetBool ( &click_through, osd_ini,
+                           L"Widget Ignores Clicks (Volume Control)",
+                             L"Widget.VolumeControl",
+                               L"ClickThrough" );
+
+      param_docking =
+        LoadWidgetDocking ( &docking, osd_ini,
+                              L"Widget Docks to ... (Volume Control)",
+                                L"Widget.VolumeControl",
+                                  L"DockingPoint" );
 
       first = false;
 

@@ -43,7 +43,12 @@ public:
     North = 0x01,
     South = 0x02,
     East  = 0x10,
-    West  = 0x20
+    West  = 0x20,
+
+    NorthEast = North | East,
+    SouthEast = South | East,
+    NorthWest = North | West,
+    SouthWest = South | West,
 
   };
 
@@ -66,12 +71,17 @@ public:
 
   SK_Widget& setName         (const char* szName)        { name          = szName;        return *this; }
   SK_Widget& setScale        (float       fScale)        { scale         = fScale;        return *this; }
-  SK_Widget& setVisible      (bool        bVisible)      { visible       = bVisible;      return *this; }
+//---------------------
+  SK_Widget& setVisible      (bool        bVisible)      { visible       = bVisible;
+                                                           if (visible)
+                                                             setActive (visible);
+                                                                                          return *this; }
   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+//--------------------
   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
   SK_Widget& setResizable    (bool        bResizable)    { resizable     = bResizable;    return *this; }
-  SK_Widget& setAutofit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
-  SK_Widget& setClickthrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
+  SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+  SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
   SK_Widget& setMinSize      (ImVec2&     iv2MinSize)    { min_size      = iv2MinSize;    return *this; }
   SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)    { max_size      = iv2MaxSize;    return *this; }
   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
@@ -84,7 +94,7 @@ public:
         bool         isActive        (void) const { return    active;         }
         bool         isMovable       (void) const { return    movable;        }
         bool         isResizable     (void) const { return    resizable;      }
-        bool         isAutofitted    (void) const { return    autofit;        }
+        bool         isAutoFitted    (void) const { return    autofit;        }
         bool         isClickable     (void) const { return (! click_through); }
   const ImVec2&      getMinSize      (void) const { return    min_size;       }
   const ImVec2&      getMaxSize      (void) const { return    max_size;       }
@@ -122,11 +132,21 @@ protected:
   sk::ParameterStringW* toggle_key_val;
   sk::ParameterStringW* focus_key_val;
 
+  sk::ParameterBool*    param_visible;
+  sk::ParameterBool*    param_movable;
+  sk::ParameterBool*    param_autofit;
+  sk::ParameterBool*    param_clickthrough;
+  sk::ParameterVec2f*   param_minsize;
+  sk::ParameterVec2f*   param_maxsize;
+  sk::ParameterVec2f*   param_size;
+  sk::ParameterInt*     param_docking;
+  sk::ParameterFloat*   param_scale;
+
   // TODO: Add memory allocator and timing so that performance and resource
   //         consumption for individual widgets can be tracked.
 
 
-private:
+//private:
   std::string name          = "###UninitializedWidget";
 
   float       scale         = 1.0f;
@@ -157,7 +177,7 @@ private:
 
 
 static
-inline
+__inline
 sk::ParameterStringW*
 LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
 {
@@ -176,6 +196,72 @@ LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, wchar_t* wszDesc, wch
 
   binding->human_readable = ret->get_value ();
   binding->parse  ();
+
+  return ret;
+}
+
+static
+__inline
+sk::ParameterBool*
+LoadWidgetBool (bool* pbVal, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
+{
+  sk::ParameterBool* ret =
+   dynamic_cast <sk::ParameterBool *>
+    (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
+
+  ret->register_to_ini ( ini_file, sec_name, key_name );
+
+  if (! ret->load ())
+  {
+    ret->set_value  (*pbVal);
+    ret->store      ();
+  }
+
+  *pbVal = ret->get_value ();
+
+  return ret;
+}
+
+static
+__inline
+sk::ParameterInt*
+LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
+{
+  sk::ParameterInt* ret =
+   dynamic_cast <sk::ParameterInt *>
+    (SK_Widget_ParameterFactory.create_parameter <int> (wszDesc));
+
+  ret->register_to_ini ( ini_file, sec_name, key_name );
+
+  if (! ret->load ())
+  {
+    ret->set_value  ((int)*pdaVal);
+    ret->store      ();
+  }
+
+  *(int *)pdaVal = ret->get_value ();
+
+  return ret;
+}
+
+static
+__inline
+sk::ParameterVec2f*
+LoadWidgetVec2 (ImVec2* piv2Val, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
+{
+  sk::ParameterVec2f* ret =
+   dynamic_cast <sk::ParameterVec2f *>
+    (SK_Widget_ParameterFactory.create_parameter <ImVec2> (wszDesc));
+
+  ret->register_to_ini ( ini_file, sec_name, key_name );
+
+  if (! ret->load ())
+  {
+    ret->set_value  (*piv2Val);
+    ret->store      ();
+  }
+
+  *piv2Val = ret->get_value ();
 
   return ret;
 }

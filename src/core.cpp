@@ -766,15 +766,6 @@ SK_InitFinishCallback (void)
   SK_Input_Init ();
 
 
-  //
-  // TEMP HACK: dgVoodoo2
-  //
-  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
-    SK_BootDXGI ();
-  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
-    SK_BootDXGI ();
-
-
   SK_ApplyQueuedHooks    ();
 
 
@@ -1034,6 +1025,14 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
     SK_FAR_InitPlugin ();
 #endif
+
+  //
+  // TEMP HACK: dgVoodoo2
+  //
+  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+    SK_BootDXGI ();
+  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+    SK_BootDXGI ();
 
 
   SK_ResumeThreads (__SK_Init_Suspended_tids);
@@ -1813,17 +1812,26 @@ BACKEND_INIT:
     dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
 
   // Pre-Load the original DLL into memory
-  if (dll_name != wszBackendDLL)
-  {
-                  LoadLibraryExW_Original ( wszBackendDLL, nullptr, use_system_dll ?
-                                              LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00 );
-    backend_dll = LoadLibraryExW_Original (dll_name,      nullptr, 0x0);
-                  GetModuleHandleExW      (GET_MODULE_HANDLE_EX_FLAG_PIN, wszBackendDLL, &backend_dll);
+  if (dll_name != wszBackendDLL) {
+                  LoadLibraryW_Original (wszBackendDLL);
+    backend_dll = LoadLibraryW_Original (dll_name);
   }
 
   else
-    backend_dll = LoadLibraryExW_Original ( dll_name, nullptr, use_system_dll ?
-                                             LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00);
+    backend_dll = LoadLibraryW_Original (dll_name);
+
+  //// Pre-Load the original DLL into memory
+  //if (dll_name != wszBackendDLL)
+  //{
+  //                LoadLibraryExW_Original ( wszBackendDLL, nullptr, use_system_dll ?
+  //                                            LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00 );
+  //  backend_dll = LoadLibraryExW_Original (dll_name,      nullptr, 0x0);
+  //                GetModuleHandleExW      (GET_MODULE_HANDLE_EX_FLAG_PIN, wszBackendDLL, &backend_dll);
+  //}
+  //
+  //else
+  //  backend_dll = LoadLibraryExW_Original ( dll_name, nullptr, use_system_dll ?
+  //                                           LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00);
 
   if (backend_dll != NULL)
     dll_log.LogEx (false, L" (%s)\n", dll_name);

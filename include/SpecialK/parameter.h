@@ -27,6 +27,7 @@
 
 #include <Windows.h>
 #include <vector>
+#include <imgui/imgui.h>
 
 namespace sk
 {
@@ -180,6 +181,19 @@ public:
 
 protected:
   std::wstring value;
+};
+
+class ParameterVec2f : public Parameter <ImVec2>
+{
+public:
+  std::wstring get_value_str (void);
+  ImVec2       get_value     (void);
+
+  void         set_value     (ImVec2       val);
+  void         set_value_str (std::wstring str);
+
+protected:
+  ImVec2 value;
 };
 
 class ParameterFactory {

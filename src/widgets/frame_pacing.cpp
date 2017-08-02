@@ -31,7 +31,8 @@ class SKWG_FramePacing : public SK_Widget
 public:
   SKWG_FramePacing (void) : SK_Widget ("###Widget_FramePacing")
   {
-    setResizable (false).setAutofit (true);
+    setResizable    (                false).setAutoFit      (true).setMovable (false).
+    setDockingPoint (DockAnchor::SouthEast).setClickThrough (true);
 
     SK_ImGui_Widgets.frame_pacing = this;
   };
@@ -47,6 +48,44 @@ public:
                               L"Widget Toggle Keybinding (FramePacing)",
                                 L"Widget.FramePacing",
                                   L"ToggleKey" );
+
+      param_visible =
+        LoadWidgetBool ( &visible, osd_ini,
+                           L"Widget Visible (FramePacing)",
+                             L"Widget.FramePacing",
+                               L"Visible" );
+
+      param_movable =
+        LoadWidgetBool ( &movable, osd_ini,
+                           L"Widget Movable (FramePacing)",
+                             L"Widget.FramePacing",
+                               L"Movable" );
+
+      param_autofit =
+        LoadWidgetBool ( &autofit, osd_ini,
+                           L"Widget AutoFitted (FramePacing)",
+                             L"Widget.FramePacing",
+                               L"AutoFit" );
+
+      param_clickthrough =
+        LoadWidgetBool ( &click_through, osd_ini,
+                           L"Widget Ignores Clicks (FramePacing)",
+                             L"Widget.FramePacing",
+                               L"ClickThrough" );
+
+      param_docking =
+        LoadWidgetDocking ( &docking, osd_ini,
+                              L"Widget Docks to ... (FramePacing)",
+                                L"Widget.FramePacing",
+                                  L"DockingPoint" );
+
+      //sk::ParameterVec2f* param_minsize;
+      //sk::ParameterVec2f* param_maxsize;
+      //sk::ParameterVec2f* param_size;
+
+      //sk::ParameterInt*   param_docking;
+      //sk::ParameterFloat* param_scale;
+
       first = false;
 
       return;

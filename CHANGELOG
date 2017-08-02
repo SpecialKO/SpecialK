@@ -1,3 +1,10 @@
+0.8.30
+
+ + Added persistent config to some of the widgets (Volume Control / GPU Stats / Framepacing)
+  >> Right click those widgets to open a config menu for them
+ + Fixed DDRAW / D3D8 wrapper problems
+ + Corrected scaling on menus
+
 0.8.29
 
  + The peak volume meter is now a histogram, assigned color based on channel

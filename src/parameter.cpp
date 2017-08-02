@@ -242,6 +242,37 @@ sk::ParameterStringW::set_value_str (std::wstring str)
 }
 
 
+
+std::wstring
+sk::ParameterVec2f::get_value_str (void)
+{
+  return SK_FormatStringW (L"(%f,%f)", value.x, value.y);
+}
+
+ImVec2
+sk::ParameterVec2f::get_value (void)
+{
+  return value;
+}
+
+void
+sk::ParameterVec2f::set_value (ImVec2 val)
+{
+  value = val;
+}
+
+void
+sk::ParameterVec2f::set_value_str (std::wstring str)
+{
+  double x, y;
+
+  swscanf (str.c_str (), L"(%f,%f)", &x, &y);
+
+  value.x = x;
+  value.y = y;
+}
+
+
 template <>
 sk::iParameter*
 sk::ParameterFactory::create_parameter <int> (const wchar_t* name)
@@ -308,6 +339,18 @@ sk::ParameterFactory::create_parameter <std::wstring> (const wchar_t* name)
   UNREFERENCED_PARAMETER (name);
 
   iParameter* param = new ParameterStringW ();
+  params.push_back (param);
+
+  return param;
+}
+
+template <>
+sk::iParameter*
+sk::ParameterFactory::create_parameter <ImVec2> (const wchar_t* name)
+{
+  UNREFERENCED_PARAMETER (name);
+
+  iParameter* param = new ParameterVec2f ();
   params.push_back (param);
 
   return param;
