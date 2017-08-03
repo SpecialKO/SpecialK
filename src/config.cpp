@@ -32,6 +32,7 @@
 
 #include <SpecialK/DLL_VERSION.H>
 #include <SpecialK/input/input.h>
+#include <SpecialK/widgets/widget.h>
 
 #include <unordered_map>
 
@@ -3649,6 +3650,8 @@ SK_SaveConfig ( std::wstring name,
   lstrcatW (wszFullName, SK_GetConfigPath ());
   lstrcatW (wszFullName,       name.c_str ());
   lstrcatW (wszFullName,             L".ini");
+
+  SK_ImGui_Widgets.SaveConfig ();
 
   dll_ini->write ( wszFullName );
   osd_ini->write ( std::wstring ( SK_GetDocumentsDir () +

@@ -11079,7 +11079,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
       owns_data = true;
 
     else
-      return -1;
+      return 0;
   }
 
 
@@ -11093,11 +11093,10 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   // Input event happened while the window had focus if true, otherwise aanother
   //   window is currently capturing input and the most appropriate response is
   //     usually to ignore the event.
-  bool foreground = true;
-    //GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+  bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
 
-  auto FilterRawInput = [self,already_processed,foreground](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
+  auto FilterRawInput = [&](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
     bool
       {
         bool filter = false;
@@ -11506,8 +11505,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     ImGuiIO& io =
       ImGui::GetIO ();
 
-    auto ActivateWindow = [&](bool active = false)->
-    void
+    auto ActivateWindow = [&](bool active = false)
     {
       bool changed = (active != window_active);
 

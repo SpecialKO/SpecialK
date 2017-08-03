@@ -120,7 +120,7 @@
                       wszPreFormatted, wszPostFormatted );                   \
       dll_log.Log ( L"[   DXGI   ] [!] %-102s -- %s", wszFullyFormatted,     \
                       SK_SummarizeCaller ().c_str () );                      \
-      free (pwszBuffer);                                                     \
+      delete [] pwszBuffer;                                                  \
     }                                                                        \
   }
 
@@ -985,6 +985,25 @@ typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
   _In_           UINT                  SrcDepthPitch,
   _In_           UINT                  CopyFlags
 );
+
+
+namespace SK
+{
+  namespace DXGI
+  {
+    struct PipelineStatsD3D11
+    {
+      struct StatQueryD3D11  
+      {
+        ID3D11Query* async  = nullptr;
+        bool         active = false;
+      } query;
+
+      D3D11_QUERY_DATA_PIPELINE_STATISTICS
+                 last_results = { };
+    } extern pipeline_stats_d3d11;
+  };
+};
 
 
 

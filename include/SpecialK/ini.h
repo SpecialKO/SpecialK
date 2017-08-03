@@ -89,6 +89,7 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (iSK_INISection&, get_section_f)   ( THIS_ _In_z_ _Printf_format_string_
                                                   wchar_t const* const _Format,
                                                                        ... );
+  STDMETHOD_ (const wchar_t*,  get_filename)    (THIS) const;
 
 protected:
 private:

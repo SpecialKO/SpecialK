@@ -597,6 +597,11 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
 
 void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_count, ImU32 col, bool anti_aliased)
 {
+  IM_ASSERT(points_count > 2);
+
+  if (points_count < 3)
+    return;
+
     const ImVec2 uv = GImGui->FontTexUvWhitePixel;
     anti_aliased &= GImGui->Style.AntiAliasedShapes;
     //if (ImGui::GetIO().KeyCtrl) anti_aliased = false; // Debug

@@ -637,12 +637,18 @@ UINT WINAPI GetRegisteredRawInputDevices_Detour (
   }
 
   int idx = 0;
-  for (auto& it : raw_devices)
+
+  if (pRawInputDevices)
   {
-    if (pRawInputDevices)
+    for (auto it : raw_devices)
+    {
       pRawInputDevices [idx++] = it;
-    else
-      idx++;
+    }
+  }
+
+  else
+  {
+    idx += raw_devices.size ();
   }
 
   return idx;

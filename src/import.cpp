@@ -73,24 +73,32 @@ SK_InitPlugIn64 (HMODULE hLibrary)
                   SK_GetModuleName (hLibrary).c_str () );
 
   SKPlugIn_Init_pfn SKPlugIn_Init =
-    (SKPlugIn_Init_pfn)GetProcAddress (
-      hLibrary,
-        "SKPlugIn_Init"
+    reinterpret_cast <SKPlugIn_Init_pfn> (
+      GetProcAddress (
+        hLibrary,
+          "SKPlugIn_Init"
+      )
     );
 
-  if (SKPlugIn_Init != nullptr) {
-    if (SKPlugIn_Init (SK_GetDLL ())) {
+  if (SKPlugIn_Init != nullptr) 
+  {
+    if (SKPlugIn_Init (SK_GetDLL ()))
+    {
       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
                       SK_GetModuleName (hLibrary).c_str () );
     }
 
-    else {
+    else
+    {
       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
       FreeLibrary_Original (hLibrary);
       hLibrary = NULL;
     }
-  } else {
+  }
+
+  else
+  {
     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
     FreeLibrary_Original (hLibrary);
@@ -108,8 +116,8 @@ SK_LoadEarlyImports64 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -123,16 +131,21 @@ SK_LoadEarlyImports64 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_X64 &&
-              imports [i].when->get_value         () == SK_IMPORT_EARLY) {
+              imports [i].when->get_value         () == SK_IMPORT_EARLY)
+          {
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
@@ -153,14 +166,20 @@ SK_LoadEarlyImports64 (void)
                   if (imports [i].hLibrary == NULL)
                     --success;
                 }
-              } else  {
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-2;
                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
             }
           }
@@ -178,8 +197,8 @@ SK_LoadPlugIns64 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -193,16 +212,21 @@ SK_LoadPlugIns64 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_X64 &&
-              imports [i].when->get_value         () == SK_IMPORT_PLUGIN) {
+              imports [i].when->get_value         () == SK_IMPORT_PLUGIN)
+          {
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
@@ -217,20 +241,27 @@ SK_LoadPlugIns64 (void)
                     SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
                   );
 
-                if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
+                if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+                {
                   imports [i].hLibrary = SK_InitPlugIn64 (imports [i].hLibrary);
 
                   if (imports [i].hLibrary == NULL)
                     --success;
                 }
-              } else  {
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-2;
                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
             }
           }
@@ -248,8 +279,8 @@ SK_LoadLateImports64 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -263,16 +294,21 @@ SK_LoadLateImports64 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_X64 &&
-              imports [i].when->get_value         () == SK_IMPORT_LATE) {
+              imports [i].when->get_value         () == SK_IMPORT_LATE)
+          {
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
@@ -296,7 +332,10 @@ SK_LoadLateImports64 (void)
                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
             }
           }
@@ -314,8 +353,8 @@ SK_LoadLazyImports64 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -329,16 +368,21 @@ SK_LoadLazyImports64 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_X64 &&
-              imports [i].when->get_value         () == SK_IMPORT_LAZY) {
+              imports [i].when->get_value         () == SK_IMPORT_LAZY)
+          {
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
                 imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
@@ -362,7 +406,10 @@ SK_LoadLazyImports64 (void)
                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
             }
           }
@@ -388,19 +435,25 @@ SK_InitPlugIn32 (HMODULE hLibrary)
         "SKPlugIn_Init"
     );
 
-  if (SKPlugIn_Init != nullptr) {
-    if (SKPlugIn_Init (SK_GetDLL ())) {
+  if (SKPlugIn_Init != nullptr)
+  {
+    if (SKPlugIn_Init (SK_GetDLL ()))
+    {
       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
                       SK_GetModuleName (hLibrary).c_str () );
     }
 
-    else {
+    else
+    {
       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
       FreeLibrary_Original (hLibrary);
       hLibrary = NULL;
     }
-  } else {
+  }
+
+  else
+  {
     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
     FreeLibrary_Original (hLibrary);
@@ -418,8 +471,8 @@ SK_LoadEarlyImports32 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -433,16 +486,20 @@ SK_LoadEarlyImports32 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
-              imports [i].when->get_value         () == SK_IMPORT_EARLY) {
-
+              imports [i].when->get_value         () == SK_IMPORT_EARLY)
+          {
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
@@ -457,20 +514,27 @@ SK_LoadEarlyImports32 (void)
                     SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
                   );
 
-                if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
+                if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+                {
                   imports [i].hLibrary = SK_InitPlugIn32 (imports [i].hLibrary);
 
                   if (imports [i].hLibrary == NULL)
                     --success;
                 }
-              } else  {
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-2;
                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
             }
           }
@@ -488,8 +552,8 @@ SK_LoadPlugIns32 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -503,16 +567,20 @@ SK_LoadPlugIns32 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
-              imports [i].when->get_value         () == SK_IMPORT_PLUGIN) {
-
+              imports [i].when->get_value         () == SK_IMPORT_PLUGIN)
+          {
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
               );
@@ -527,20 +595,27 @@ SK_LoadPlugIns32 (void)
                     SK_GetModuleFullName ( imports [i].hLibrary ).c_str ()
                   );
 
-                if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
+                if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+                {
                   imports [i].hLibrary = SK_InitPlugIn32 (imports [i].hLibrary);
 
                   if (imports [i].hLibrary == NULL)
                     --success;
                 }
-              } else  {
+              }
+
+              else
+              {
                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
                 imports [i].hLibrary = (HMODULE)-2;
                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
             }
           }
@@ -558,8 +633,8 @@ SK_LoadLateImports32 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -573,16 +648,21 @@ SK_LoadLateImports32 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
-              imports [i].when->get_value         () == SK_IMPORT_LATE) {
+              imports [i].when->get_value         () == SK_IMPORT_LATE)
+          {
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
               imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
                 );
@@ -606,7 +686,10 @@ SK_LoadLateImports32 (void)
                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
             }
           }
@@ -624,8 +707,8 @@ SK_LoadLazyImports32 (void)
 {
   int success = 0;
 
-  for (int i = 0; i < SK_MAX_IMPORTS; i++) {
-
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
     // Skip libraries that are already loaded
     if (imports [i].hLibrary != NULL)
       continue;
@@ -639,16 +722,20 @@ SK_LoadLazyImports32 (void)
     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
       blacklisted = true;
 
-    if (imports [i].filename != nullptr) {
-      if (imports [i].when != nullptr) {
-        if (imports [i].architecture != nullptr) {
+    if (imports [i].filename != nullptr)
+    {
+      if (imports [i].when != nullptr)
+      {
+        if (imports [i].architecture != nullptr)
+        {
           if (imports [i].architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
-              imports [i].when->get_value         () == SK_IMPORT_LAZY) {
-
+              imports [i].when->get_value         () == SK_IMPORT_LAZY)
+          {
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
                 imports [i].filename->get_value_str ().c_str ());
 
-            if (! blacklisted) {
+            if (! blacklisted)
+            {
               imports [i].hLibrary = LoadLibraryW_Original (
                 imports [i].filename->get_value_str ().c_str ()
                 );
@@ -672,7 +759,10 @@ SK_LoadLazyImports32 (void)
                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
                                err.WCode (), err.ErrorMessage () );
               }
-            } else {
+            }
+
+            else
+            {
               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
               imports [i].hLibrary = (HMODULE)-3;
             }

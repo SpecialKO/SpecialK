@@ -27,7 +27,7 @@ extern void SK_ImGui_VolumeManager (void);
 class SKWG_VolumeControl : public SK_Widget
 {
 public:
-  SKWG_VolumeControl (void) : SK_Widget ("###Widget_VolumeControl")
+  SKWG_VolumeControl (void) : SK_Widget ("VolumeControl")
   {
     SK_ImGui_Widgets.volume_control = this;
 
@@ -41,50 +41,13 @@ public:
 
     if (first)
     {
-      toggle_key_val =
-        LoadWidgetKeybind ( &toggle_key, osd_ini,
-                              L"Widget Toggle Keybinding (Volume Control)",
-                                L"Widget.VolumeControl",
-                                  L"ToggleKey" );
       focus_key_val =
         LoadWidgetKeybind ( &focus_key, osd_ini,
-                              L"Widget Toggle Keybinding (Volume Control)",
+                              L"Widget Focus Keybinding (Volume Control)",
                                 L"Widget.VolumeControl",
                                   L"FocusKey" );
 
-      param_visible =
-        LoadWidgetBool ( &visible, osd_ini,
-                           L"Widget Visible (Volume Control)",
-                             L"Widget.VolumeControl",
-                               L"Visible" );
-
-      param_movable =
-        LoadWidgetBool ( &movable, osd_ini,
-                           L"Widget Movable (Volume Control)",
-                             L"Widget.VolumeControl",
-                               L"Movable" );
-
-      param_autofit =
-        LoadWidgetBool ( &autofit, osd_ini,
-                           L"Widget AutoFitted (Volume Control)",
-                             L"Widget.VolumeControl",
-                               L"AutoFit" );
-
-      param_clickthrough =
-        LoadWidgetBool ( &click_through, osd_ini,
-                           L"Widget Ignores Clicks (Volume Control)",
-                             L"Widget.VolumeControl",
-                               L"ClickThrough" );
-
-      param_docking =
-        LoadWidgetDocking ( &docking, osd_ini,
-                              L"Widget Docks to ... (Volume Control)",
-                                L"Widget.VolumeControl",
-                                  L"DockingPoint" );
-
       first = false;
-
-      return;
     }
   }
 

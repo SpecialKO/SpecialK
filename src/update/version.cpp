@@ -602,8 +602,9 @@ SK_Version_GetUpdateFrequency (const wchar_t* wszProduct)
 {
   uint64_t update_freq = MAXULONGLONG;
 
-  if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+  UNREFERENCED_PARAMETER (wszProduct);
+  //if (wszProduct == nullptr)
+  //  wszProduct = __SK_LastProductTested.c_str ();
 
   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
@@ -655,8 +656,9 @@ SK_Version_GetUpdateFrequency (const wchar_t* wszProduct)
 void
 SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
 {
-  if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+  UNREFERENCED_PARAMETER (wszProduct);
+  //if (wszProduct == nullptr)
+    //wszProduct = __SK_LastProductTested.c_str ();
 
   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
@@ -686,8 +688,9 @@ SK_Version_SetUpdateFrequency (const wchar_t* wszProduct, uint64_t freq)
 void
 SK_Version_ForceUpdateNextLaunch (const wchar_t* wszProduct)
 {
-  if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+  UNREFERENCED_PARAMETER (wszProduct);
+  //if (wszProduct == nullptr)
+  //  wszProduct = __SK_LastProductTested.c_str ();
 
   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
@@ -713,8 +716,9 @@ SK_Version_ForceUpdateNextLaunch (const wchar_t* wszProduct)
 bool
 SK_Version_SwitchBranches (const wchar_t* wszProduct, const char* szBranch)
 {
-  if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+  UNREFERENCED_PARAMETER (wszProduct);
+  //if (wszProduct == nullptr)
+  //  wszProduct = __SK_LastProductTested.c_str ();
 
   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {

@@ -490,7 +490,7 @@ SK_StartPerfMonThreads (void)
     }
   }
 
-  if (config.cpu.show || SK_ImGui_Widgets.cpumon)
+  if (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ())
   {
     //
     // Spawn CPU Refresh Thread
@@ -638,31 +638,32 @@ skMemCmd::execute (const char* szArgs)
 
   if (base_addr == nullptr)
   {
-    base_addr = (uint8_t *)GetModuleHandle (nullptr);
+    base_addr = reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
 
     MEMORY_BASIC_INFORMATION basic_mem_info;
     VirtualQuery (base_addr, &basic_mem_info, sizeof basic_mem_info);
 
-    base_addr = (uint8_t *)basic_mem_info.BaseAddress;
+    base_addr = reinterpret_cast <uint8_t *> (basic_mem_info.BaseAddress);
   }
 
-  addr += (uintptr_t)base_addr;
+  addr += reinterpret_cast <uintptr_t> (base_addr);
 
   char result [512] = { };
 
-  switch (type) {
+  switch (type)
+  {
     case 'b':
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &dwOld);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 1, PAGE_EXECUTE_READWRITE, &dwOld);
           uint8_t out;
           sscanf (val, "%cx", &out);
-          *(uint8_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 1, dwOld, &dwOld);
+          *reinterpret_cast <uint8_t *> (addr) = out;
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 1, dwOld, &dwOld);
       }
 
-      sprintf (result, "%u", *(uint8_t *)addr);
+      sprintf (result, "%u", *reinterpret_cast <uint8_t *> (addr));
 
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
@@ -670,81 +671,81 @@ skMemCmd::execute (const char* szArgs)
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 2, PAGE_EXECUTE_READWRITE, &dwOld);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 2, PAGE_EXECUTE_READWRITE, &dwOld);
           uint16_t out;
           sscanf (val, "%hx", &out);
-          *(uint16_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 2, dwOld, &dwOld);
+          *reinterpret_cast <uint16_t *> (addr) = out;
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 2, dwOld, &dwOld);
       }
 
-      sprintf (result, "%u", *(uint16_t *)addr);
+      sprintf (result, "%u", *reinterpret_cast <uint16_t *> (addr));
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'i':
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 4, PAGE_EXECUTE_READWRITE, &dwOld);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, PAGE_EXECUTE_READWRITE, &dwOld);
           uint32_t out;
           sscanf (val, "%x", &out);
-          *(uint32_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
+          *reinterpret_cast <uint32_t *> (addr) = out;
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, dwOld, &dwOld);
       }
 
-      sprintf (result, "%u", *(uint32_t *)addr);
+      sprintf (result, "%u", *reinterpret_cast <uint32_t *> (addr));
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'l':
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 8, PAGE_EXECUTE_READWRITE, &dwOld);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, PAGE_EXECUTE_READWRITE, &dwOld);
           uint64_t out;
           sscanf (val, "%llx", &out);
-          *(uint64_t *)addr = out;
-        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
+          *reinterpret_cast <uint64_t *> (addr) = out;
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, dwOld, &dwOld);
       }
 
-      sprintf (result, "%llu", *(uint64_t *)addr);
+      sprintf (result, "%llu", *reinterpret_cast <uint64_t *> (addr));
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'd':
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 8, PAGE_EXECUTE_READWRITE, &dwOld);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, PAGE_EXECUTE_READWRITE, &dwOld);
           double out;
           sscanf (val, "%lf", &out);
-          *(double *)addr = out;
-        VirtualProtect ((LPVOID)addr, 8, dwOld, &dwOld);
+          *reinterpret_cast <double *> (addr) = out;
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, dwOld, &dwOld);
       }
 
-      sprintf (result, "%f", *(double *)addr);
+      sprintf (result, "%f", *reinterpret_cast <double *> (addr));
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'f':
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 4, PAGE_EXECUTE_READWRITE, &dwOld);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, PAGE_EXECUTE_READWRITE, &dwOld);
           float out;
           sscanf (val, "%f", &out);
-          *(float *)addr = out;
-        VirtualProtect ((LPVOID)addr, 4, dwOld, &dwOld);
+          *reinterpret_cast <float *> (addr) = out;
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, dwOld, &dwOld);
       }
 
-      sprintf (result, "%f", *(float *)addr);
+      sprintf (result, "%f", *reinterpret_cast <float *> (addr));
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 't':
       if (strlen (val)) {
         DWORD dwOld;
 
-        VirtualProtect ((LPVOID)addr, 256, PAGE_EXECUTE_READWRITE, &dwOld);
-          strcpy ((char *)addr, val);
-        VirtualProtect ((LPVOID)addr, 256, dwOld, &dwOld);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 256, PAGE_EXECUTE_READWRITE, &dwOld);
+          strcpy (reinterpret_cast <char *> (addr), val);
+        VirtualProtect (reinterpret_cast <LPVOID> (addr), 256, dwOld, &dwOld);
       }
-      sprintf (result, "%s", (char *)addr);
+      sprintf (result, "%s", reinterpret_cast <char *> (addr));
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
   }
@@ -1992,7 +1993,7 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx   (false, L"done!\n");
   }
 
-  auto ShutdownWMIThread = [](volatile HANDLE& hSignal, volatile HANDLE& hThread, wchar_t* wszName) -> void
+  auto ShutdownWMIThread = [](volatile HANDLE& hSignal, volatile HANDLE& hThread, wchar_t* wszName)
   {
     wchar_t wszFmtName [32] = { };
 
@@ -2027,7 +2028,7 @@ SK_ShutdownCore (const wchar_t* backend)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  if (sk::NVAPI::app_name != L"ds3t.exe")
+  if (sk::NVAPI::app_name != L"ds3t.exe" && SK_GetFramesDrawn () > 0)
   {
     dll_log.LogEx        (true,  L"[ SpecialK ] Saving user preferences to %10s.ini... ", config_name);
     dwTime = timeGetTime ();

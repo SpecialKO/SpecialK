@@ -474,7 +474,7 @@ SK_MonitorCPU (LPVOID user_param)
       break;
 
     // Only poll WMI while the data view is visible
-    if (! (config.cpu.show || SK_ImGui_Widgets.cpumon))
+    if (! (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ()))
       continue;
 
     cpu.dwNumReturned = 0;

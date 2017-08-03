@@ -75,6 +75,12 @@ public:
   SK_Widget& setVisible      (bool        bVisible)      { visible       = bVisible;
                                                            if (visible)
                                                              setActive (visible);
+
+                                                           if (param_visible != nullptr)
+                                                           {
+                                                             param_visible->set_value (visible);
+                                                             param_visible->store     ();
+                                                           }
                                                                                           return *this; }
   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 //--------------------
@@ -85,6 +91,7 @@ public:
   SK_Widget& setMinSize      (ImVec2&     iv2MinSize)    { min_size      = iv2MinSize;    return *this; }
   SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)    { max_size      = iv2MaxSize;    return *this; }
   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
+  SK_Widget& setPos          (ImVec2&     iv2Pos)        { pos           = iv2Pos;        return *this; }
   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
 
 
@@ -99,6 +106,7 @@ public:
   const ImVec2&      getMinSize      (void) const { return    min_size;       }
   const ImVec2&      getMaxSize      (void) const { return    max_size;       }
   const ImVec2&      getSize         (void) const { return    size;           }
+  const ImVec2&      getPos          (void) const { return    pos;            }
   const DockAnchor&  getDockingPoint (void) const { return    docking;        }
 
   const SK_Keybind&  getToggleKey    (void) const { return    toggle_key;     }
@@ -106,6 +114,8 @@ public:
 
 
 protected:
+  friend struct SK_ImGui_WidgetRegistry;
+
   virtual void OnConfig (ConfigEvent event) { UNREFERENCED_PARAMETER (event); };
 
   void load (iSK_INI* config);
@@ -135,10 +145,12 @@ protected:
   sk::ParameterBool*    param_visible;
   sk::ParameterBool*    param_movable;
   sk::ParameterBool*    param_autofit;
+  sk::ParameterBool*    param_resizable;
   sk::ParameterBool*    param_clickthrough;
   sk::ParameterVec2f*   param_minsize;
   sk::ParameterVec2f*   param_maxsize;
   sk::ParameterVec2f*   param_size;
+  sk::ParameterVec2f*   param_pos;
   sk::ParameterInt*     param_docking;
   sk::ParameterFloat*   param_scale;
 
@@ -156,12 +168,12 @@ protected:
   bool        locked        = false;
   bool        autofit       = true;
   bool        movable       = true;
-  bool        resizable     = false;
+  bool        resizable     = true;
   bool        click_through = false;
 
-  ImVec2      min_size      = ImVec2 ( 200.0,  200.0);
+  ImVec2      min_size      = ImVec2 ( 375.0,  240.0);
   ImVec2      max_size      = ImVec2 (1024.0, 1024.0);
-  ImVec2      size          = ImVec2 ( 200.0,  200.0); // Values (-1,1) are scaled to resolution
+  ImVec2      size          = ImVec2 ( 375.0,  240.0); // Values (-1,1) are scaled to resolution
   ImVec2      pos           = ImVec2 (   0.0,    0.0); // Values (-∞,1] and [1,∞) are absolute
 
   DockAnchor docking        = DockAnchor::None;
@@ -172,6 +184,9 @@ protected:
 
   int state__;   // 0 = Normal, 1 = Config, SK_WS_USER = First User-Defined State
   int version__;
+
+private:
+  bool run_once__ = false;
 };
 
 
@@ -179,7 +194,7 @@ protected:
 static
 __inline
 sk::ParameterStringW*
-LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
+LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
 {
   sk::ParameterStringW* ret =
    dynamic_cast <sk::ParameterStringW *>
@@ -203,7 +218,7 @@ LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, wchar_t* wszDesc, wch
 static
 __inline
 sk::ParameterBool*
-LoadWidgetBool (bool* pbVal, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
+LoadWidgetBool (bool* pbVal, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
 {
   sk::ParameterBool* ret =
    dynamic_cast <sk::ParameterBool *>
@@ -225,7 +240,7 @@ LoadWidgetBool (bool* pbVal, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_n
 static
 __inline
 sk::ParameterInt*
-LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
+LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
 {
   sk::ParameterInt* ret =
    dynamic_cast <sk::ParameterInt *>
@@ -235,7 +250,7 @@ LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, wchar_t* ws
 
   if (! ret->load ())
   {
-    ret->set_value  ((int)*pdaVal);
+    ret->set_value  (*(int *)pdaVal);
     ret->store      ();
   }
 
@@ -247,7 +262,7 @@ LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, wchar_t* ws
 static
 __inline
 sk::ParameterVec2f*
-LoadWidgetVec2 (ImVec2* piv2Val, iSK_INI* ini_file, wchar_t* wszDesc, wchar_t* sec_name, wchar_t* key_name)
+LoadWidgetVec2 (ImVec2* piv2Val, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
 {
   sk::ParameterVec2f* ret =
    dynamic_cast <sk::ParameterVec2f *>
@@ -393,17 +408,21 @@ protected:
 
 
 struct SK_ImGui_WidgetRegistry {
-  bool cpumon      = false;
   bool texcache    = false;
 
   SK_Widget* frame_pacing;
   SK_Widget* volume_control;
   SK_Widget* gpu_monitor;
+  SK_Widget* cpu_monitor;
+  SK_Widget* d3d11_pipeline;
+
+  //SK_Widget* texcache;
 
   SK_Widget* memory_monitor = nullptr;
   SK_Widget* disk_monitor   = nullptr;
 
   BOOL DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+  BOOL SaveConfig       (void);
 } extern SK_ImGui_Widgets;
 
 

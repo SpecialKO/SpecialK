@@ -259,7 +259,7 @@ private:
     osd_vidcap_ =
       SK_CreateVar (
         SK_IVariable::Boolean,
-          (bool *)&config.render.d3d9.osd_in_vidcap,
+          static_cast <bool *> (&config.render.d3d9.osd_in_vidcap),
             this
       );
 
@@ -1003,7 +1003,7 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
   if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX)
   {
     HRESULT hr =
-      D3D9PresentCallbackEx ( (IDirect3DDevice9Ex *)This,
+      D3D9PresentCallbackEx ( static_cast <IDirect3DDevice9Ex *> (This),
                                 pSourceRect,
                                   pDestRect,
                                     hDestWindowOverride,
@@ -2220,7 +2220,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       //
       // Initialize ImGui for D3D9 games
       //
-      if ( ImGui_ImplDX9_Init ( (void *)pparams->hDeviceWindow,
+      if ( ImGui_ImplDX9_Init ( static_cast <void *> (pparams->hDeviceWindow),
                                   pDevice,
                                     pparams )
          )
@@ -2684,11 +2684,11 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     if (pPresentationParameters != nullptr)
     {
       dll_log.LogEx (true,
-                L"[   D3D9   ]  SwapChain Settings:   Res=(%lux%lu), Format=%04lu, "
+                L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%04i, "
                                         L"Count=%lu - "
                                         L"SwapEffect: 0x%02X, Flags: 0x%04X,"
                                         L"AutoDepthStencil: %s "
-                                        L"PresentationInterval: %lu\n",
+                                        L"PresentationInterval: %u\n",
                    pPresentationParameters->BackBufferWidth,
                    pPresentationParameters->BackBufferHeight,
                    pPresentationParameters->BackBufferFormat,
@@ -2702,10 +2702,10 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
       if (! pPresentationParameters->Windowed)
       {
         dll_log.LogEx (true,
-                L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %lu\n",
+                L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
                    pPresentationParameters->FullScreen_RefreshRateInHz);
         dll_log.LogEx (true,
-                L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %lu\n",
+                L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
                    pPresentationParameters->MultiSampleType,
                    pPresentationParameters->MultiSampleQuality);
       }
@@ -3010,7 +3010,7 @@ Direct3DCreate9 (UINT SDKVersion)
 HRESULT
 __declspec (noinline)
 STDMETHODCALLTYPE
-Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
+Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 {
   WaitForInit_D3D9 ();
   WaitForInit      ();
@@ -3022,15 +3022,14 @@ Direct3DCreate9Ex (__in UINT SDKVersion, __out IDirect3D9Ex **ppD3D)
                       ppD3D,
                         SK_SummarizeCaller ().c_str () );
 
-  HRESULT hr = E_FAIL;
-
+  HRESULT       hr     = E_FAIL;
   IDirect3D9Ex* d3d9ex = nullptr;
 
   if (Direct3DCreate9Ex_Import)
   {
     D3D9_CALL (hr, Direct3DCreate9Ex_Import (SDKVersion, &d3d9ex));
 
-    if (SUCCEEDED (hr) && d3d9ex!= nullptr)
+    if (SUCCEEDED (hr) && d3d9ex != nullptr)
     {
       *ppD3D = d3d9ex;
     }
@@ -3165,7 +3164,7 @@ HookD3D9 (LPVOID user)
     return 0;
   }
 
-  bool success = SUCCEEDED (
+  const bool success = SUCCEEDED (
     CoInitializeEx (nullptr, COINIT_MULTITHREADED)
   );
   {

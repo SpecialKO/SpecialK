@@ -1,5 +1,27 @@
 0.8.30
 
+ [.3]
+  + Added D3D11 Graphics Pipeline Widget, it displays most of the important stats from the
+      shader analytics feature (Ctrl + Shift + R) over a 5 to 10-second history.
+  + Added D3D11 SwapChain Menu, I'll fill the stuff in with tooltips later.
+   >> This mostly benefits Windows 10 users
+  + Fixed Trails of Cold Steel Alt+F4 behavior so it no longer exits if you're trying to
+      close a different program
+  + Added 1 frame swapchain latency in Flip Mode to ensure G-Sync doesn't destroy timing :)
+   >> Will make this an option and restore the original latency reducing measures for
+        non-G-Sync users in a future update.
+
+ [.2]
+  + Added CPU Monitor as an official widget, with OSD config and all
+  + Added grid rulers for docked widgets while moving them
+  + Added option to disable resizing widgets
+  + Added persistent storage of widget positions
+  + Added user-defined min/max size constraints to widgets
+  + Fixed keybind parsing problems with numpad and Left/Right Alt keys
+
+ [.1]
+  + Fixed D3D8 / DDraw Wrapping
+
  + Added persistent config to some of the widgets (Volume Control / GPU Stats / Framepacing)
   >> Right click those widgets to open a config menu for them
  + Fixed DDRAW / D3D8 wrapper problems

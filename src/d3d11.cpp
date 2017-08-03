@@ -35,6 +35,8 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 
+#include <SpecialK/widgets/widget.h>
+
 extern LARGE_INTEGER SK_QueryPerf (void);
 #include <SpecialK/framerate.h>
 #include <SpecialK/tls.h>
@@ -53,23 +55,7 @@ CRITICAL_SECTION cs_mmio        = { };
 
 extern volatile DWORD SK_D3D11_init_tid;
 
-namespace SK
-{
-  namespace DXGI
-  {
-    struct PipelineStatsD3D11
-    {
-      struct StatQueryD3D11  
-      {
-        ID3D11Query* async  = nullptr;
-        bool         active = false;
-      } query;
-
-      D3D11_QUERY_DATA_PIPELINE_STATISTICS
-                 last_results = { };
-    } pipeline_stats_d3d11    = { };
-  };
-};
+SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
 
 extern void WaitForInitDXGI (void);
 
@@ -5517,6 +5503,11 @@ D3D11Dev_CreateTexture2D_Override (
 
   cacheable = cacheable && (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_WRITE));
 
+  if (pDesc->Usage == D3D11_USAGE_DYNAMIC || pDesc->Usage == D3D11_USAGE_STAGING)
+  {
+    const_cast <D3D11_TEXTURE2D_DESC *> (pDesc)->CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
+  }
+
   //if (cacheable && (! (pDesc->CPUAccessFlags & D3D11_CPU_ACCESS_READ)))
     //pDesc->Usage = D3D11_USAGE_IMMUTABLE;
 
@@ -5714,7 +5705,7 @@ D3D11Dev_CreateTexture2D_Override (
   HRESULT ret =
     D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
-  if (ppTexture2D != nullptr)
+  if (SUCCEEDED (ret) && ppTexture2D != nullptr && *ppTexture2D != nullptr)
   {
     static volatile ULONG init = FALSE;
 
@@ -5780,6 +5771,9 @@ SK_D3D11_UpdateRenderStatsEx (IDXGISwapChain* pSwapChain)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
+  if (rb.device == nullptr || rb.d3d11.immediate_ctx == nullptr || rb.swapchain == nullptr)
+    return;
+
   if ( SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&pDev))  &&
        SUCCEEDED (rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx)) )
   {
@@ -5828,7 +5822,8 @@ void
 __stdcall
 SK_D3D11_UpdateRenderStats (IDXGISwapChain* pSwapChain)
 {
-  if (! (pSwapChain && config.render.show))
+  if (! (pSwapChain && ( config.render.show ||
+                           SK_ImGui_Widgets.d3d11_pipeline->isActive () ) ) )
     return;
 
   SK_D3D11_UpdateRenderStatsEx (pSwapChain);
@@ -6602,24 +6597,24 @@ uint32_t change_sel_cs = 0x00;
 
 #define SK_ImGui_IsItemRightClicked() ImGui::IsItemClicked (1) || (ImGui::IsItemFocused () && io.NavInputsDownDuration [ImGuiNavInput_PadActivate] > 0.4f && ((io.NavInputsDownDuration [ImGuiNavInput_PadActivate] = 0.0f) == 0.0f))
 
-auto ShaderMenu = [&](std::unordered_set <uint32_t>& blacklist, uint32_t shader) ->
-  void
+auto ShaderMenu =
+[&] (std::unordered_set <uint32_t>& blacklist, uint32_t shader)
+{
+  if (blacklist.count (shader))
   {
-    if (blacklist.count (shader))
+    if (ImGui::MenuItem ("Enable Shader"))
     {
-      if (ImGui::MenuItem ("Enable Shader"))
-      {
-        blacklist.erase (shader);
-      }
+      blacklist.erase (shader);
     }
-    else
+  }
+  else
+  {
+    if (ImGui::MenuItem ("Disable Shader"))
     {
-      if (ImGui::MenuItem ("Disable Shader"))
-      {
-        blacklist.emplace (shader);
-      }
+      blacklist.emplace (shader);
     }
-  };
+  }
+};
 
 std::vector <IUnknown *> temp_resources;
 
@@ -7702,15 +7697,14 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     auto ChangeSelectedShader = []( shader_class_imp_s*  list,
                                     shader_tracking_s*   tracker,
-                                    SK_D3D11_ShaderDesc& rDesc ) ->
-      void
-        {
-          list->last_sel           = rDesc.crc32c;
-          tracker->crc32c          = rDesc.crc32c;
-          tracker->runtime_ms      = 0.0;
-          tracker->last_runtime_ms = 0.0;
-          tracker->runtime_ticks   = 0ULL;
-        };
+                                    SK_D3D11_ShaderDesc& rDesc )
+    {
+      list->last_sel           = rDesc.crc32c;
+      tracker->crc32c          = rDesc.crc32c;
+      tracker->runtime_ms      = 0.0;
+      tracker->last_runtime_ms = 0.0;
+      tracker->runtime_ticks   = 0ULL;
+    };
 
     for ( UINT line = 0; line < shaders.size (); line++ )
     {
@@ -8243,17 +8237,16 @@ SK_D3D11_EndFrame (void)
 
           else
           {
-            auto ClearTimers = [](shader_tracking_s* tracker) ->
-              void
+            auto ClearTimers = [](shader_tracking_s* tracker)
+            {
+              for (auto& it : tracker->timers)
               {
-                for (auto& it : tracker->timers)
-                {
-                  SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
-                  SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
-                }
+                SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
+                SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
+              }
 
-                tracker->timers.clear ();
-              };
+              tracker->timers.clear ();
+            };
 
             ClearTimers (&SK_D3D11_Shaders.vertex.tracked);
             ClearTimers (&SK_D3D11_Shaders.pixel.tracked);
@@ -8308,24 +8301,23 @@ SK_D3D11_EndFrame (void)
         return 0;
       };
 
-    auto CalcRuntimeMS = [](shader_tracking_s* tracker) ->
-      void
+    auto CalcRuntimeMS = [](shader_tracking_s* tracker)
+    {
+      if (tracker->runtime_ticks != 0)
       {
-        if (tracker->runtime_ticks != 0)
+        tracker->runtime_ms = 1000.0 * ((double)tracker->runtime_ticks / (double)tracker->disjoint_query.last_results.Frequency);
+
+        // Filter out queries that spanned multiple frames
+        //
+        if (tracker->runtime_ms > 0.0 && tracker->last_runtime_ms > 0.0)
         {
-          tracker->runtime_ms = 1000.0 * ((double)tracker->runtime_ticks / (double)tracker->disjoint_query.last_results.Frequency);
-
-          // Filter out queries that spanned multiple frames
-          //
-          if (tracker->runtime_ms > 0.0 && tracker->last_runtime_ms > 0.0)
-          {
-            if (tracker->runtime_ms > tracker->last_runtime_ms * 100.0 || tracker->runtime_ms > 12.0)
-              tracker->runtime_ms = tracker->last_runtime_ms;
-          }
-
-          tracker->last_runtime_ms = tracker->runtime_ms;
+          if (tracker->runtime_ms > tracker->last_runtime_ms * 100.0 || tracker->runtime_ms > 12.0)
+            tracker->runtime_ms = tracker->last_runtime_ms;
         }
-      };
+
+        tracker->last_runtime_ms = tracker->runtime_ms;
+      }
+    };
 
     auto AccumulateRuntimeTicks = [&](ID3D11DeviceContext* dev_ctx, shader_tracking_s* tracker, std::unordered_set <uint32_t>& blacklist) ->
       void
@@ -8447,7 +8439,8 @@ SK_D3D11_ShaderModDlg (void)
     {
       SK_AutoCriticalSection auto_cs2 (&cs_render_view);
 
-      SK_D3D11_UpdateRenderStatsEx ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
+      // This causes the stats below to update
+      SK_ImGui_Widgets.d3d11_pipeline->setActive (true);
 
       ImGui::TreePush ("");
 

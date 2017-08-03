@@ -29,7 +29,7 @@ extern void SK_ImGui_DrawGraph_FramePacing (void);
 class SKWG_FramePacing : public SK_Widget
 {
 public:
-  SKWG_FramePacing (void) : SK_Widget ("###Widget_FramePacing")
+  SKWG_FramePacing (void) : SK_Widget ("FramePacing")
   {
     setResizable    (                false).setAutoFit      (true).setMovable (false).
     setDockingPoint (DockAnchor::SouthEast).setClickThrough (true);
@@ -39,58 +39,6 @@ public:
 
   void run (void)
   {
-    static bool first = true;
-
-    if (first)
-    {
-      toggle_key_val =
-        LoadWidgetKeybind ( &toggle_key, osd_ini,
-                              L"Widget Toggle Keybinding (FramePacing)",
-                                L"Widget.FramePacing",
-                                  L"ToggleKey" );
-
-      param_visible =
-        LoadWidgetBool ( &visible, osd_ini,
-                           L"Widget Visible (FramePacing)",
-                             L"Widget.FramePacing",
-                               L"Visible" );
-
-      param_movable =
-        LoadWidgetBool ( &movable, osd_ini,
-                           L"Widget Movable (FramePacing)",
-                             L"Widget.FramePacing",
-                               L"Movable" );
-
-      param_autofit =
-        LoadWidgetBool ( &autofit, osd_ini,
-                           L"Widget AutoFitted (FramePacing)",
-                             L"Widget.FramePacing",
-                               L"AutoFit" );
-
-      param_clickthrough =
-        LoadWidgetBool ( &click_through, osd_ini,
-                           L"Widget Ignores Clicks (FramePacing)",
-                             L"Widget.FramePacing",
-                               L"ClickThrough" );
-
-      param_docking =
-        LoadWidgetDocking ( &docking, osd_ini,
-                              L"Widget Docks to ... (FramePacing)",
-                                L"Widget.FramePacing",
-                                  L"DockingPoint" );
-
-      //sk::ParameterVec2f* param_minsize;
-      //sk::ParameterVec2f* param_maxsize;
-      //sk::ParameterVec2f* param_size;
-
-      //sk::ParameterInt*   param_docking;
-      //sk::ParameterFloat* param_scale;
-
-      first = false;
-
-      return;
-    }
-
     ImGuiIO& io (ImGui::GetIO ());
 
     const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;

@@ -663,10 +663,10 @@ uint32_t
 __cdecl
 crc32 (uint32_t crc, const void *buf, size_t size)
 {
-  const uint8_t *p = nullptr;
+  const uint8_t *p =
+       (uint8_t *)buf;
 
-    p = (uint8_t *)buf;
-  crc =      crc ^ ~0U;
+  crc = crc ^ ~0U;
 
   while (size--)
   {
@@ -1590,8 +1590,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT     cbTranslatedBytes = 0,
            cbProductBytes    = 0;
 
-  uint8_t  cbData      [4096] = { };
-  wchar_t  wszPropName [64]   = { };
+  uint8_t  cbData     [4096] = { };
 
   wchar_t* wszProduct = nullptr; // Will point somewhere in cbData
 
@@ -1620,6 +1619,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                          (LPVOID *)&lpTranslate,
                                    &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
   {
+    wchar_t wszPropName [64] = { };
+
     wsprintfW ( wszPropName,
                   L"\\StringFileInfo\\%04x%04x\\ProductName",
                     lpTranslate [0].wLanguage,
@@ -1644,8 +1645,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
            cbProductBytes    = 0,
            cbVersionBytes    = 0;
 
-  uint8_t  cbData      [4096] = { };
-  wchar_t  wszPropName [64]   = { };
+  uint8_t  cbData     [4096] = { };
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -1669,6 +1669,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
                            (LPVOID *)&lpTranslate,
                                      &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
   {
+    wchar_t wszPropName [64] = { };
+
     wsprintfW ( wszPropName,
                   L"\\StringFileInfo\\%04x%04x\\FileDescription",
                     lpTranslate [0].wLanguage,

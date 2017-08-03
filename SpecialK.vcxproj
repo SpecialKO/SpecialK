@@ -2185,6 +2185,8 @@ start /D "$(OutDir)" "SK.Inject" SKIM64.exe +Inject 2&gt;nul 1&gt;nul Exit 0</Co
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\widgets\cpu_widget.cpp" />
+    <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp" />
     <ClCompile Include="src\widgets\frame_pacing.cpp" />
     <ClCompile Include="src\widgets\gpu_widget.cpp" />
     <ClCompile Include="src\widgets\volume_control.cpp" />

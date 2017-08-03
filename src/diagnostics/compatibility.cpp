@@ -179,14 +179,14 @@ BlacklistLibrary (const _T* lpFileName)
   if (StrStrI (lpFileName, SK_TEXT("action_x64")))
   {
     WaitForInit ();
-
+  
     while (SK_GetFramesDrawn () < 2) SleepEx (8, FALSE);
   }
 #else
   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
   {
     WaitForInit ();
-
+  
     while (SK_GetFramesDrawn () < 2) SleepEx (8, FALSE);
   }
 #endif
@@ -216,7 +216,7 @@ BlacklistLibrary (const _T* lpFileName)
   else if (StrStrI (lpFileName, SK_TEXT("RTSSHooks")))
   {
     WaitForInit ();
-
+  
     while (SK_GetFramesDrawn () < 1) SleepEx (75, FALSE);
   }
 
@@ -963,9 +963,9 @@ SK_ReHookLoadLibrary (void)
 
   // Do from a separate thread so that we don't do this while the very hook
   //   that we are fudging with is in-flight
-  CreateThread (nullptr, 0x00,
-    [](LPVOID user) -> DWORD
-    {
+  //CreateThread (nullptr, 0x00,
+  //  [](LPVOID user) -> DWORD
+  //  {
 
   SK_LockDllLoader ();
 
@@ -1064,12 +1064,12 @@ SK_ReHookLoadLibrary (void)
   MH_ApplyQueued     ();
   SK_UnlockDllLoader ();
 
-  CloseHandle (GetCurrentThread ());
+  //CloseHandle (GetCurrentThread ());
 
-  UNREFERENCED_PARAMETER (user);
+  //UNREFERENCED_PARAMETER (user);
 
-  return 0;
-  }, nullptr, 0x00, nullptr );
+  //return 0;
+  //}, nullptr, 0x00, nullptr );
 }
 
 void

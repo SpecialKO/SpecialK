@@ -204,24 +204,21 @@ void SK_AdjustWindow (void);
 //
 // If we did this from the render thread, we would deadlock most games
 //
-auto DeferCommand = [=] (const char* szCommand) ->
-  void
-    {
-      CreateThread ( nullptr,
-                       0x00,
-                    [ ](LPVOID user) ->
-        DWORD
-          {
-            SK_GetCommandProcessor ()->ProcessCommandLine (
-               (const char*)user
-            );
+auto DeferCommand = [&] (const char* szCommand)
+{
+  CreateThread ( nullptr,
+                   0x00,
+                [](LPVOID user) ->
+    DWORD
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine (
+           (const char*)user
+        );
 
-            CloseHandle (GetCurrentThread ());
+        CloseHandle (GetCurrentThread ());
 
-            return 0;
-          },
-
-        (LPVOID)szCommand,
+        return 0;
+      }, (LPVOID)szCommand,
       0x00,
     nullptr
   );
@@ -2174,8 +2171,8 @@ SK_AdjustWindow (void)
   //     window was moved, it still processes mouse input in a sane way.
   //
 
-  auto DescribeRect = [&](RECT* lpRect) ->
-  void {
+  auto DescribeRect = [&](RECT* lpRect)
+  {
     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
                             lpRect->left, lpRect->top,
                               lpRect->right - lpRect->left,
@@ -2198,8 +2195,8 @@ SK_AdjustWindow (void)
     RECT clip;
     GetClipCursor (&clip);
 
-    auto DescribeClipRect = [&](const wchar_t* wszName, RECT* lpRect) ->
-    void {
+    auto DescribeClipRect = [&](const wchar_t* wszName, RECT* lpRect)
+    {
       SK_LOG2_EX ( true, ( L"[Cursor Mgr] Clip Rect (%s)", wszName ) );
       DescribeRect (lpRect);
     };
@@ -2370,15 +2367,40 @@ PeekMessageW_Detour (
   SK_LOG_FIRST_CALL
 
 
-  if (config.render.dxgi.safe_fullscreen) wRemoveMsg = PM_REMOVE;
+  if (config.render.dxgi.safe_fullscreen) wRemoveMsg |= PM_REMOVE;
 
 
-  BOOL bRet = PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+  MSG msg = { };
 
-  if (bRet && lpMsg->hwnd != HWND_DESKTOP)
-    SK_EarlyDispatchMessage (lpMsg, true, true);
+  if (PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg & ~PM_REMOVE))
+  {
+    if (SK_EarlyDispatchMessage (&msg, true, true))
+    {
+      //*lpMsg = msg;
+  
+      PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
+  
+      return FALSE;
+    }
+  }
 
-  return bRet;
+
+  static bool cold_steel      = (! wcsicmp (SK_GetHostApp (), L"ed8.exe"));
+         bool remove_bg_input = cold_steel;
+
+  if (remove_bg_input)
+  {
+    if (lpMsg->message == WM_SYSKEYDOWN)
+    {
+      MSG  msg;
+      BOOL bRet = PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
+
+      return FALSE;
+    }
+  }
+
+
+  return PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 }
 
 typedef BOOL (WINAPI *PeekMessageA_pfn)(
@@ -2401,17 +2423,41 @@ PeekMessageA_Detour (
   _In_     UINT  wRemoveMsg )
 {
   SK_LOG_FIRST_CALL
+
+
+  if (config.render.dxgi.safe_fullscreen) wRemoveMsg |= PM_REMOVE;
+
+
+  MSG msg = { };
+  if (PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg & ~PM_REMOVE))
+  {
+    if (SK_EarlyDispatchMessage (&msg, true, true))
+    {
+      //*lpMsg = msg;
   
+      PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
+  
+      return FALSE;
+    }
+  }
 
-  if (config.render.dxgi.safe_fullscreen) wRemoveMsg = PM_REMOVE;
+
+  static bool cold_steel      = (! wcsicmp (SK_GetHostApp (), L"ed8.exe"));
+         bool remove_bg_input = cold_steel;
+
+  if (remove_bg_input)
+  {
+    if (lpMsg->message == WM_SYSKEYDOWN)
+    {
+      MSG  msg;
+      BOOL bRet = PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
+
+      return FALSE;
+    }
+  }
 
 
-  BOOL bRet = PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
-
-  if (bRet && lpMsg->hwnd != HWND_DESKTOP)
-    SK_EarlyDispatchMessage (lpMsg, true, true);
-
-  return bRet;
+  return PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 }
 
 typedef BOOL (WINAPI *GetMessageA_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
@@ -2726,105 +2772,105 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  auto ActivateWindow = [&](bool active = false)->
-  void
+  auto ActivateWindow = [&](bool active = false)
+  {
+    bool state_changed =
+      (game_window.active != active);
+
+    game_window.active = active;
+
+    if (state_changed)
     {
-      bool state_changed =
-        (game_window.active != active);
+      SK_Console::getInstance ()->reset ();
 
-      game_window.active = active;
+      if (config.window.background_mute)
+        SK_WindowManager::getInstance ()->muteGame ((! active));
 
-      if (state_changed)
+      // Keep Unity games from crashing at startup when forced into FULLSCREEN
+      //
+      //  ... also prevents a game from staying topmost when you Alt+Tab
+      //
+
+      if (active && config.display.force_fullscreen && ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9))
       {
-        SK_Console::getInstance ()->reset ();
+        SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)) | WS_EX_APPWINDOW);
+        //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+        //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+        //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+        //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+        //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+        //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
 
-        if (config.window.background_mute)
-          SK_WindowManager::getInstance ()->muteGame ((! active));
-
-        // Keep Unity games from crashing at startup when forced into FULLSCREEN
-        //
-        //  ... also prevents a game from staying topmost when you Alt+Tab
-        //
-
-        if (active && config.display.force_fullscreen && ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9))
-        {
-          SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)) | WS_EX_APPWINDOW);
-          //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-          //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-          //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
-          //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-          //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-          //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
-
-          extern void
-          SK_D3D9_TriggerReset (bool);
-        
-          SK_D3D9_TriggerReset (false);
-        }
+        extern void
+        SK_D3D9_TriggerReset (bool);
+      
+        SK_D3D9_TriggerReset (false);
       }
+    }
 
 
-      if (active && state_changed)
+    if (active && state_changed)
+    {
+      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
       {
-        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+        if (! game_window.cursor_visible)
         {
-          if (! game_window.cursor_visible) {
-            while (ShowCursor (FALSE) >= 0)
-              ;
-          }
-
-          ClipCursor_Original (&game_window.cursor_clip);
-        }
-      }
-
-      else if ((! active) && state_changed)
-      {
-        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
-        {
-          game_window.cursor_visible =
-            ShowCursor (TRUE) >= 1;
-
-          while (ShowCursor (TRUE) < 0)
+          while (ShowCursor (FALSE) >= 0)
             ;
-
-          ClipCursor_Original (nullptr);
         }
+
+        ClipCursor_Original (&game_window.cursor_clip);
       }
+    }
 
-
-      if (config.window.confine_cursor && state_changed)
+    else if ((! active) && state_changed)
+    {
+      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
       {
-        if (active)
-        {
-          SK_LOG4 ( ( L"Confining Mouse Cursor" ),
-                      L"Window Mgr" );
+        game_window.cursor_visible =
+          ShowCursor (TRUE) >= 1;
 
-          ////// XXX: Is this really necessary? State should be consistent unless we missed
-          //////        an event --- Write unit test?
-          GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-          ClipCursor_Original    (&game_window.actual.window);
-        }
+        while (ShowCursor (TRUE) < 0)
+          ;
 
-        else
-        {
-          SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
-                      L"Window Mgr" );
+        ClipCursor_Original (nullptr);
+      }
+    }
 
-          ClipCursor_Original (nullptr);
-        }
+
+    if (config.window.confine_cursor && state_changed)
+    {
+      if (active)
+      {
+        SK_LOG4 ( ( L"Confining Mouse Cursor" ),
+                    L"Window Mgr" );
+
+        ////// XXX: Is this really necessary? State should be consistent unless we missed
+        //////        an event --- Write unit test?
+        GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+        ClipCursor_Original    (&game_window.actual.window);
       }
 
-      if (config.window.unconfine_cursor && state_changed)
+      else
       {
         SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
                     L"Window Mgr" );
-        
+
         ClipCursor_Original (nullptr);
       }
+    }
 
-      if (state_changed)
-        SK_ImGui_Cursor.activateWindow (active);
-   };
+    if (config.window.unconfine_cursor && state_changed)
+    {
+      SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
+                  L"Window Mgr" );
+      
+      ClipCursor_Original (nullptr);
+    }
+
+    if (state_changed)
+      SK_ImGui_Cursor.activateWindow (active);
+  };
 
 
   switch (uMsg)
@@ -3103,6 +3149,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           return game_window.CallProc (hWnd, uMsg, wParam, lParam);
         }
       }
+      else
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
       break;
 
     case WM_KEYUP:
@@ -3114,11 +3162,18 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           return game_window.CallProc (hWnd, uMsg, wParam, lParam);
         }
       }
+      else
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
       break;
 
     case WM_MOUSEMOVE:
       if (! game_window.active)
         GetCursorPos_Original (&game_window.cursor_pos);
+      break;
+
+    case WM_INPUT:
+      if (! game_window.active)
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
       break;
   }
 
@@ -3396,7 +3451,7 @@ SK_InstallWindowHook (HWND hWnd)
   //     as an anti-cheat method. Hooking the class procedure is the only
   //       workaround.
   //
-  if (wcsstr (SK_GetHostApp (), L"eqgame.exe"))
+  if (! wcsicmp (SK_GetHostApp (), L"eqgame.exe"))
     hook_classfunc = true;
 
   if (hook_classfunc)

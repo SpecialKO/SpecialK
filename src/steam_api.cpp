@@ -2848,7 +2848,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
         if (szAppName != nullptr)
         {
           // Make sure everything is lowercase
-          strncpy (szAppName, "\"name\"", strlen ("\"name\""));
+          memcpy (szAppName, "\"name\"", 6);
 
           sscanf ( szAppName,
                      "\"name\" \"%512[^\"]\"",
@@ -2919,7 +2919,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
       *szAppName = '\0';
 
       // Make sure everything is lowercase
-      strncpy (szAppName, "\"name\"", strlen ("\"name\""));
+      memcpy (szAppName, "\"name\"", 6);
 
       sscanf ( szAppName,
                  "\"name\" \"%512[^\"]\"",
@@ -3949,8 +3949,8 @@ SK_SteamAPIContext::OnFileSigDone ( CheckFileSignature_t* pParam,
               pParam->m_eCheckFileSignature;
 
 
-  auto HandleResult = [=](const wchar_t* wszFileName) ->
-    void
+  auto HandleResult =
+    [&](const wchar_t* wszFileName)
     {
       switch (result)
       {

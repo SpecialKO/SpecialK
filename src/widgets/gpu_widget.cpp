@@ -26,7 +26,7 @@ extern iSK_INI* osd_ini;
 class SKWG_GPU_Monitor : public SK_Widget
 {
 public:
-  SKWG_GPU_Monitor (void) : SK_Widget ("###Widget_GPUMonitor")
+  SKWG_GPU_Monitor (void) : SK_Widget ("GPUMonitor")
   {
     SK_ImGui_Widgets.gpu_monitor = this;
 
@@ -35,51 +35,6 @@ public:
 
   void run (void)
   {
-    static bool first = true;
-
-    if (first)
-    {
-      toggle_key_val =
-        LoadWidgetKeybind ( &toggle_key, osd_ini,
-                              L"Widget Toggle Keybinding (GPU Monitor)",
-                                L"Widget.GPUMonitor",
-                                  L"ToggleKey" );
-
-      param_visible =
-        LoadWidgetBool ( &visible, osd_ini,
-                           L"Widget Visible (GPU Monitor)",
-                             L"Widget.GPUMonitor",
-                               L"Visible" );
-
-      param_movable =
-        LoadWidgetBool ( &movable, osd_ini,
-                           L"Widget Movable (GPU Monitor)",
-                             L"Widget.GPUMonitor",
-                               L"Movable" );
-
-      param_autofit =
-        LoadWidgetBool ( &autofit, osd_ini,
-                           L"Widget AutoFitted (GPU Monitor)",
-                             L"Widget.GPUMonitor",
-                               L"AutoFit" );
-
-      param_clickthrough =
-        LoadWidgetBool ( &click_through, osd_ini,
-                           L"Widget Ignores Clicks (GPU Monitor)",
-                             L"Widget.GPUMonitor",
-                               L"ClickThrough" );
-
-      param_docking =
-        LoadWidgetDocking ( &docking, osd_ini,
-                              L"Widget Docks to ... (GPU Monitor)",
-                                L"Widget.GPUMonitor",
-                                  L"DockingPoint" );
-
-      first = false;
-
-      return;
-    }
-
     DWORD dwNow = timeGetTime ();
 
     constexpr float  GHz = (      1000000.0f );
@@ -144,7 +99,7 @@ public:
       ( szAvg,
           512,
             u8"GPU%lu Temp (°C):\n\n"
-            u8"          min: %4.1f°, max: %4.1f°, avg: %5.2f°\n",
+            u8"          min: %3.0f°, max: %3.0f°, avg: %4.1f°\n",
               0,
                 gpu_temp_c.getMin   (), gpu_temp_c.getMax (),
                   gpu_temp_c.getAvg () );
@@ -176,7 +131,7 @@ public:
       ( szAvg,
           512,
             u8"GPU%lu Core Clock (GHz):\n\n"
-            u8"          min: %5.3f, max: %5.3f, avg: %6.4f\n",
+            u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
               0,
                 core_clock_ghz.getMin   (), core_clock_ghz.getMax (),
                   core_clock_ghz.getAvg () );
@@ -199,7 +154,7 @@ public:
       ( szAvg,
           512,
             u8"GPU%lu VRAM Clock (GHz):\n\n"
-            u8"          min: %5.3f, max: %5.3f, avg: %6.4f\n",
+            u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
               0,
                 vram_clock_ghz.getMin   (), vram_clock_ghz.getMax (),
                   vram_clock_ghz.getAvg () );
@@ -227,7 +182,7 @@ public:
       ( szAvg,
           512,
             u8"GPU%lu VRAM Usage (MiB):\n\n"
-            u8"          min: %6.1f, max: %6.1f, avg: %7.2f\n",
+            u8"          min: %6.1f, max: %6.1f, avg: %6.1f\n",
               0,
                 vram_used_mib.getMin   (), max_use,
                   vram_used_mib.getAvg () );

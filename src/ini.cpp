@@ -917,6 +917,13 @@ iSK_INISection::Release (THIS)
   return InterlockedDecrement (&refs);
 }
 
+
+const wchar_t*
+iSK_INI::get_filename (void) const
+{
+  return wszName;
+}
+
 iSK_INI*
 __stdcall
 SK_CreateINI (const wchar_t* const wszName)

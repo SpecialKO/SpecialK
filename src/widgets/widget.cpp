@@ -26,10 +26,180 @@
 #include <unordered_set>
 
 
+extern iSK_INI* osd_ini;
+
+
 void
 SK_Widget::run_base (void)
-{ 
+{
+  if (! run_once__)
+  {
+    run_once__ = true;
+
+    toggle_key_val =
+      LoadWidgetKeybind ( &toggle_key, osd_ini,
+                            SK_FormatStringW   (L"Widget Toggle Keybinding (%hs)", name.c_str ()).c_str (),
+                              SK_FormatStringW (L"Widget.%hs",                     name.c_str ()).c_str (),
+                                L"ToggleKey" );
+
+    param_visible =
+      LoadWidgetBool ( &visible, osd_ini,
+                         SK_FormatStringW   (L"Widget Visible (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",           name.c_str ()).c_str (),
+                             L"Visible" );
+
+    param_movable =
+      LoadWidgetBool ( &movable, osd_ini,
+                         SK_FormatStringW   (L"Widget Movable (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",           name.c_str ()).c_str (),
+                             L"Movable" );
+
+    param_resizable =
+      LoadWidgetBool ( &resizable, osd_ini,
+                         SK_FormatStringW   (L"Widget Resizable (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",             name.c_str ()).c_str (),
+                             L"Resizable" );
+
+    param_autofit =
+      LoadWidgetBool ( &autofit, osd_ini,
+                         SK_FormatStringW   (L"Widget AutoFitted (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",              name.c_str ()).c_str (),
+                             L"AutoFit" );
+
+    param_clickthrough =
+      LoadWidgetBool ( &click_through, osd_ini,
+                         SK_FormatStringW   (L"Widget Ignores Clicks (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",                  name.c_str ()).c_str (),
+                             L"ClickThrough" );
+
+    param_docking =
+      LoadWidgetDocking ( &docking, osd_ini,
+                            SK_FormatStringW   (L"Widget Docks to... (%hs)", name.c_str ()).c_str (),
+                              SK_FormatStringW (L"Widget.%hs",               name.c_str ()).c_str (),
+                                L"DockingPoint" );
+
+    param_minsize =
+      LoadWidgetVec2 ( &min_size, osd_ini,
+                         SK_FormatStringW   (L"Widget Min Size (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",            name.c_str ()).c_str (),
+                             L"MinSize" );
+
+    param_maxsize =
+      LoadWidgetVec2 ( &max_size, osd_ini,
+                         SK_FormatStringW   (L"Widget Max Size (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",            name.c_str ()).c_str (),
+                             L"MaxSize" );
+
+    param_size =
+      LoadWidgetVec2 ( &size, osd_ini,
+                         SK_FormatStringW   (L"Widget Size (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",        name.c_str ()).c_str (),
+                             L"Size" );
+
+    param_pos =
+      LoadWidgetVec2 ( &pos, osd_ini,
+                         SK_FormatStringW   (L"Widget Position (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",            name.c_str ()).c_str (),
+                             L"Position" );
+
+    return;
+  }
+
   run ();
+}
+
+void
+SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
+{
+  ImGuiIO& io (ImGui::GetIO ());
+
+  // Docking alignment visualiztion
+  bool draw_horz_ruler = false;
+  bool draw_vert_ruler = false;
+
+  ImVec2 pos  = pWidget->getPos  ();
+  ImVec2 size = pWidget->getSize ();
+
+
+  if (n || s)
+  {
+    if (pWidget->isMovable () && ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered ())
+    {
+      draw_horz_ruler = true;
+    }
+
+    if (n)
+      pos.y = 0.0;
+
+    if (s)
+      pos.y = io.DisplaySize.y - size.y;
+  }
+
+
+  if (e || w)
+  {
+    if (pWidget->isMovable () && ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered ())
+    {
+      draw_vert_ruler = true;
+    }
+
+    if (e)
+      pos.x = io.DisplaySize.x - size.x;
+
+    if (w)
+      pos.x = 0.0;
+  }
+
+
+  if (                   size.x > 0 &&                    size.y > 0 &&
+      io.DisplaySize.x - size.x > 0 && io.DisplaySize.y - size.y > 0)
+  {
+    pos.x = std::max (0.0f, std::min (pos.x, io.DisplaySize.x - size.x));
+    pos.y = std::max (0.0f, std::min (pos.y, io.DisplaySize.y - size.y));
+  }
+
+
+  if (pWidget->getDockingPoint () != SK_Widget::DockAnchor::None)
+  {
+        pWidget->setPos (pos);
+    ImGui::SetWindowPos (pos, ImGuiSetCond_Always);
+  }
+
+
+  if (draw_horz_ruler ^ draw_vert_ruler)
+  {
+    ImVec2 horz_pos       = ImVec2 (       e ? io.DisplaySize.x - size.x : size.x, 0.0f );
+    ImVec2 vert_pos       = ImVec2 ( 0.0f, s ? io.DisplaySize.y - size.y : size.y       );
+
+    ImVec2 xy0, xy1;
+
+    if (draw_vert_ruler)
+    {
+      xy0 = ImVec2 ( horz_pos.x, 0.0f             );
+      xy1 = ImVec2 ( horz_pos.x, io.DisplaySize.y );
+    }
+
+    if (draw_horz_ruler)
+    {
+      xy0 = ImVec2 ( 0.0f,             vert_pos.y );
+      xy1 = ImVec2 ( io.DisplaySize.x, vert_pos.y );
+    }
+
+    ImVec4 col = ImColor::HSV ( 0.133333f, 
+                                    std::min ( (float)(0.161616f +  (timeGetTime () % 250) / 250.0f -
+                                                            floor ( (timeGetTime () % 250) / 250.0f) ), 1.0f),
+                                        std::min ( (float)(0.333 +  (timeGetTime () % 500) / 500.0f -
+                                                            floor ( (timeGetTime () % 500) / 500.0f) ), 1.0f) );
+    const ImU32 col32 =
+      ImColor (col);
+    
+    ImDrawList* draw_list =
+      ImGui::GetWindowDrawList ();
+    
+    draw_list->PushClipRectFullScreen (                                   );
+    draw_list->AddRect                ( xy0, xy1, col32, 0.0f, 0x00, 2.5f );
+    draw_list->PopClipRect            (                                   );
+  }
 }
 
 void
@@ -44,6 +214,7 @@ SK_Widget::draw_base (void)
 
     ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x, std::max ( size.x, min_size.x ) ),
                                        std::min ( max_size.y, std::max ( size.y, min_size.y ) ) ) );
+    ImGui::SetNextWindowPos  (pos);
 
     initialized.emplace (this);
   }
@@ -51,16 +222,17 @@ SK_Widget::draw_base (void)
 
   ImGuiIO& io (ImGui::GetIO ());
 
-  int flags = ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoCollapse |
-              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing;
+  int flags = ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoCollapse         |
+              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing |
+              ImGuiWindowFlags_NoSavedSettings;
 
   if (autofit)
     flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
-  if (locked || (! movable))
+  if (! movable)
     flags |= ImGuiWindowFlags_NoMove;
 
-  if (locked || (! resizable))
+  if (! resizable)
     flags |= ImGuiWindowFlags_NoResize;
 
   if (click_through && (! SK_ImGui_Visible) && state__ != 1)
@@ -76,19 +248,11 @@ SK_Widget::draw_base (void)
     flags |=  (ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::SetNextWindowSize (ImVec2 (std::max (size.x, 420.0f), std::max (size.y, 190.0f)));
-
-    //last_state_was_config.emplace (this);
   }
 
   else
   {
-    //if (last_state_was_config.count (this))
-    //{
-    //  last_state_was_config.erase (this);
-    //
-    //}
-
-    if (! autofit)
+    if ((! autofit) && (! resizable))
     {
       ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x, std::max ( size.x, min_size.x ) ),
                                          std::min ( max_size.y, std::max ( size.y, min_size.y ) ) ) );
@@ -96,9 +260,9 @@ SK_Widget::draw_base (void)
   }
 
 
-  ImGui::Begin           (name.c_str (), nullptr, flags);
-
-  ImGui::PushItemWidth (0.5f * ImGui::GetWindowWidth ());
+  ImGui::Begin           ( SK_FormatString ("###Widget_%s", name.c_str ()).c_str (),
+                             nullptr,
+                               flags );
 
   pos  = ImGui::GetWindowPos  ();
   size = ImGui::GetWindowSize ();
@@ -108,29 +272,9 @@ SK_Widget::draw_base (void)
        e = (int)docking & (int)DockAnchor::East,
        w = (int)docking & (int)DockAnchor::West;
 
-  if (n || s)
-  {
-    if (n)
-      pos.y = 0.0;
+  SK_Widget_ProcessDocking (this, n, s, e, w);
 
-    if (s)
-      pos.y = io.DisplaySize.y - size.y;
-  }
-
-  if (e || w)
-  {
-    if (e)
-      pos.x = io.DisplaySize.x - size.x;
-
-    if (w)
-      pos.x = 0.0;
-  }
-
-  if (docking != DockAnchor::None)
-  {
-    ImGui::SetWindowPos (pos, ImGuiSetCond_Always);
-  }
-
+  ImGui::PushItemWidth (0.5f * ImGui::GetWindowWidth ());
 
   // Modal State:  Normal drawing
   if (state__ == 0)
@@ -161,6 +305,45 @@ extern void
 SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 void
+SK_Widget::save (iSK_INI* ini)
+{
+  OnConfig (ConfigEvent::SaveStart);
+
+  if (param_visible)
+  {
+    param_visible->set_value  (visible);
+    param_visible->store      ();
+  }
+
+  else
+    return;
+
+  param_movable->set_value      (     movable      );
+  param_clickthrough->set_value (     click_through);
+  param_autofit->set_value      (     autofit      );
+  param_resizable->set_value    (     resizable    );
+  param_docking->set_value      ((int)docking      );
+  param_minsize->set_value      (     min_size     );
+  param_maxsize->set_value      (     max_size     );
+  param_size->set_value         (     size         );
+  param_pos->set_value          (     pos          );
+
+  param_movable->store      ();
+  param_clickthrough->store ();
+  param_autofit->store      ();
+  param_resizable->store    ();
+  param_docking->store      ();
+  param_minsize->store      ();
+  param_maxsize->store      ();
+  param_size->store         ();
+  param_pos->store          ();
+
+  ini->write (ini->get_filename ());
+
+  OnConfig (ConfigEvent::SaveComplete);
+}
+
+void
 SK_Widget::config_base (void)
 {
   static bool changed = false;
@@ -170,23 +353,34 @@ SK_Widget::config_base (void)
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
-  bool lock = (! isMovable ());
-
-  if (ImGui::Checkbox ("Lock Position and Scale",  &lock))
+  if (ImGui::Checkbox ("Movable", &movable))
   {
-    setMovable (! lock);
+    setMovable (movable);
     changed = true;
   }
 
   ImGui::SameLine ();
-  if (ImGui::Checkbox ("Auto-Fit", &autofit))
+  if (ImGui::Checkbox ("Resizable", &resizable))
   {
-    setAutoFit (autofit);
+    setResizable (resizable);
     changed = true;
   }
 
+  if (! resizable)
+  {
+    ImGui::SameLine ();
+    if (ImGui::Checkbox ("Auto-Fit", &autofit))
+    {
+      setAutoFit (autofit);
+      changed = true;
+    }
+  }
+
+  else if (changed)
+    setAutoFit (false);
+
   ImGui::SameLine ();
-  if (ImGui::Checkbox ("Click Through", &click_through))
+  if (ImGui::Checkbox ("Click-Through", &click_through))
   {
     setClickThrough (click_through);
     changed = true;
@@ -206,13 +400,11 @@ SK_Widget::config_base (void)
 
   if (ImGui::Combo ("Vertical Docking Anchor", &dock, anchors, 3))
   {
-    docking = (SK_Widget::DockAnchor)((int)docking & ~( (int)DockAnchor::North |
-                                                        (int)DockAnchor::South ) );
-
     int mask = (dock == 1 ? (int)DockAnchor::North : 0x0) |
                (dock == 2 ? (int)DockAnchor::South : 0x0);
 
-    docking = (DockAnchor)(mask | (int)docking);
+    docking = (DockAnchor)(mask | (int)docking & ~( (int)DockAnchor::North |
+                                                    (int)DockAnchor::South ) );
     changed = true;
   }
 
@@ -225,13 +417,11 @@ SK_Widget::config_base (void)
 
   if (ImGui::Combo ("Horizonal Docking Anchor", &dock, anchors, 3))
   {
-    docking = (SK_Widget::DockAnchor)((int)docking & ~( (int)DockAnchor::West |
-                                                        (int)DockAnchor::East ) );
-
     int mask = (dock == 1 ? (int)DockAnchor::West : 0x0) |
                (dock == 2 ? (int)DockAnchor::East : 0x0);
 
-    docking = (DockAnchor)(mask | (int)docking);
+    docking = (DockAnchor)(mask | (int)docking & ~( (int)DockAnchor::West |
+                                                    (int)DockAnchor::East ) );
     changed = true;
   }
 
@@ -296,30 +486,15 @@ SK_Widget::config_base (void)
 
   bool done = false;
 
-  done |= ImGui::Button (" Save ");
+  done |= ImGui::Button ("  Save  ");
 
   if (done)
   {
     if (changed)
     {
-      param_visible->set_value      (visible);
-      param_movable->set_value      (movable);
-      param_clickthrough->set_value (click_through);
-      param_autofit->set_value      (autofit);
-      param_docking->set_value      ((int)docking);
-
-      param_visible->store      ();
-      param_movable->store      ();
-      param_clickthrough->store ();
-      param_autofit->store      ();
-      param_docking->store      ();
-
-      std::wstring osd_config =
-        SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\osd.ini";
-
       extern iSK_INI* osd_ini;
 
-      osd_ini->write (osd_config.c_str ());
+      save (osd_ini);
 
       changed = false;
     }
@@ -340,16 +515,6 @@ SK_Widget::load (iSK_INI* config)
   OnConfig (ConfigEvent::LoadComplete);
 }
 
-void
-SK_Widget::save (iSK_INI* config)
-{
-  UNREFERENCED_PARAMETER (config);
-
-  OnConfig (ConfigEvent::SaveStart);
-  // ...
-  OnConfig (ConfigEvent::SaveComplete);
-}
-
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
   (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
@@ -362,11 +527,11 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
   UINT uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  static std::array <SK_Widget *, 3> widgets { frame_pacing, volume_control, gpu_monitor };
+  static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
 
   for (auto widget : widgets)
   {
-    if (uiMaskedKeyCode == widget->getToggleKey ().masked_code)
+    if (widget && uiMaskedKeyCode == widget->getToggleKey ().masked_code)
     {
       widget->setVisible (! widget->isVisible ());
 
@@ -375,6 +540,22 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
   }
 
   return FALSE;
+}
+
+BOOL
+SK_ImGui_WidgetRegistry::SaveConfig (void)
+{
+  static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
+
+  for (auto widget : widgets)
+  {
+    if (widget)
+    {
+      widget->save (osd_ini);
+    }
+  }
+
+  return TRUE;
 }
 
 sk::ParameterFactory SK_Widget_ParameterFactory;
