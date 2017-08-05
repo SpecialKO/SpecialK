@@ -1,3 +1,19 @@
+0.8.31
+
+ + Fixed Steam DRM issues in DOOMx64 and a couplf of other OpenGL games
+ + Added a battery meter to the framepacing widget
+ + Added an option to draw a border around widgets
+
+ * Added support for gamepad manipulation of widgets
+ ===================================================
+  > Enter gamepad exclusive input mode, then hold Square (PlayStation) or X (Xbox)
+      and select a widget by pressing the shoulder buttons.
+  > Moving a widget can be done by holding Square / X and moving the left analog stick
+  > Double-tapping the Cross (PlayStation) or A (Xbox) buttons will open widget config
+ 
+ + Removed Alt+F4 input hack for Trails of Cold Steel; it is obsolete
+
+
 0.8.30
 
  [.3]
@@ -27,6 +43,7 @@
  + Fixed DDRAW / D3D8 wrapper problems
  + Corrected scaling on menus
 
+
 0.8.29
 
  + The peak volume meter is now a histogram, assigned color based on channel
@@ -38,6 +55,7 @@
  + Disabled a few of the optimizations from 0.8.28 for compatibility with GeForce Experience
   >> Will investigate further in the future
 
+
 0.8.28
 
  + Removed tooltips from graph data views
@@ -47,6 +65,7 @@
      disk I/O performance
  + Restored multi-threaded DLL analysis at startup (performance)
 
+
 0.8.27
 
  + Added OSD Widgets (framepacing and CPU load)
@@ -54,6 +73,7 @@
  + Changed Special K's config menu to work similar to a Mac, for easier access
      to the branches sub-menu at lower resolutions
  + Fixed various Windows 7 issues
+
 
 0.8.26
 
@@ -72,6 +92,7 @@
           those stats sometimes crash games is ... because the Steam overlay holds a lock.
    >> Tsk, tsk, Steam - other people need those services too, damit :)
 
+
 0.8.25:
 
  + Fixed mouse input in Mouse Effect: Andromeda, *AGAIN*.
@@ -87,6 +108,7 @@
      render enhancing mod is present.
  + Fixed rare texture cache hash collision problem for textures that are removed from the cache
      because a graphics engine has altered them.
+
 
 0.8.24.4:
 
@@ -112,6 +134,7 @@
  + Improved thread-safety in D3D11 shader mod tools; still can't safely debug Dishonored 2
  + Fixed input support in Final Fantasy 8
 
+
 0.8.23:
 
  + Fixed potential startup deadlock with Steam Overlay and CoInitializeSecurity (...)
@@ -119,6 +142,7 @@
  + Fixed (evict-on-update) D3D11 texture cache in The Witcher 3 and Divinity: Original Sin
  + Added logs/installer.log when installing through SKIM
  + Added module name and fixed newline endings in game_output.log
+
 
 0.8.22:
 
@@ -133,6 +157,7 @@
              running; should make using centered scaling modes a bit more intuitive.
  + [Misc]  Added injection stats to Help menu, mouseover Global Injector version to see
              basic information about games recently played.
+
 
 0.8.21:
 
@@ -151,6 +176,7 @@
  + [SKIM]   The commandline switch -Inject will now kill any running injection instances
               and exit
 
+
 0.8.20:
 
  + [D3D11] Added texture updae frequency (0 = Manually Refresh, 1+ = Auto) for the
@@ -163,6 +189,7 @@
  + [D3D9]  Fixed swapchain recovery afer device loss
  + [GL]    Improved startup time
 
+
 0.8.19:
 
  + [D3D11] Re-wrote stateblock code to minimize reference counting problems
@@ -171,6 +198,7 @@
  + Added version to compatibility menu
  + Improved compatibility menu and update menu's input focus behavior
 
+
 0.8.18:
  
  + Added version info to wrapper DLL installations; updating is not supported
@@ -178,6 +206,7 @@
      global profile.
  + Uninstalling a wrapper DLL copies the local config back to the global profile
  + Fixed G-Sync indicator in D3D11
+
 
 0.8.17:
 
@@ -188,6 +217,7 @@
        load.
  + Temporarily re-enabled auto-update.
 
+
 0.8.16:
  + Renamed Window/Fullscreen override options now that they work in multiple APIs
      (refer to Display.Output)
@@ -196,6 +226,7 @@
  + Extended screen mode option to include D3D11
  + Changed the D3D9 screen mode option to a combobox for mode and checkbox for
      permanent override.
+
 
 0.8.15:
 
@@ -214,6 +245,7 @@
  + Added sleepless render / window thread options to framerate limiter to fix
      games like LEGO City Undercover, that trash their window's message pump.
  + Added Fullscreen override option to control panel for D3D9 games
+
 
 0.8.14:
 
@@ -243,6 +275,7 @@
  + Fixed Achievement Popups in Senkran Kagura: Shinovi Versus
  + Fixed Overlay Rendering in Pillars of Eternity / Tyranny / Torment
 
+
 0.8.13:
 
  + Removed Chinese Unicode code points from ImGui font; added Latin punctuation
@@ -267,6 +300,7 @@
  + Added option to disable DebugBreak (...) in kernel32.dll
  + Added fix for incorrectly packed compressed DDS textures
  + Remove Malware detection, I have no intention to maintain that feature
+
 
 0.8.12.3:
 

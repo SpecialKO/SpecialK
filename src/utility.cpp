@@ -2705,15 +2705,19 @@ SK_FormatString (char const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  std::unique_ptr <char> out (new char [len + 1] { });
+  char* out = new char [len + 1] { };
 
   va_start (_ArgList, _Format);
   {
-    len = vsprintf (out.get (), _Format, _ArgList);
+    len = vsprintf (out, _Format, _ArgList);
   }
   va_end (_ArgList);
 
-  return out.get ();
+  std::string str_out (out);
+
+  delete [] out;
+
+  return str_out;
 }
 
 std::wstring
@@ -2729,15 +2733,19 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  std::unique_ptr <wchar_t> out (new wchar_t [len + 1] { });
+  wchar_t* out = new wchar_t [len + 1] { };
 
   va_start (_ArgList, _Format);
   {
-    len = _vswprintf (out.get (), _Format, _ArgList);
+    len = _vswprintf (out, _Format, _ArgList);
   }
   va_end (_ArgList);
 
-  return out.get ();
+  std::wstring wstr_out (out);
+
+  delete [] out;
+
+  return wstr_out;
 }
 
 

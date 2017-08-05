@@ -84,6 +84,14 @@ void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
+  // SteamAPI has some unusual logic that will fail if a call to Sleep (...)
+  //   is skipped -- if the user wants to replace or eliminate sleep from the
+  //     render / window thread for better frame pacing, we have to wait for
+  //       Steam first!
+  if (SK_GetFramesDrawn () < 90)
+    return Sleep_Original (dwMilliseconds);
+
+
   //bool bIsCallerGame = (SK_GetCallingDLL () == GetModuleHandle (nullptr));
 
   //if (bIsCallerGame)

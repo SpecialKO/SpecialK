@@ -85,6 +85,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam );
 
+// Fix for Trails of Cold Steel
+LRESULT
+SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
+
 BOOL
 WINAPI
 SetWindowPlacement_Detour (
@@ -2385,21 +2389,6 @@ PeekMessageW_Detour (
   }
 
 
-  static bool cold_steel      = (! wcsicmp (SK_GetHostApp (), L"ed8.exe"));
-         bool remove_bg_input = cold_steel;
-
-  if (remove_bg_input)
-  {
-    if (lpMsg->message == WM_SYSKEYDOWN)
-    {
-      MSG  msg;
-      BOOL bRet = PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
-
-      return FALSE;
-    }
-  }
-
-
   return PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 }
 
@@ -2437,21 +2426,6 @@ PeekMessageA_Detour (
   
       PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
   
-      return FALSE;
-    }
-  }
-
-
-  static bool cold_steel      = (! wcsicmp (SK_GetHostApp (), L"ed8.exe"));
-         bool remove_bg_input = cold_steel;
-
-  if (remove_bg_input)
-  {
-    if (lpMsg->message == WM_SYSKEYDOWN)
-    {
-      MSG  msg;
-      BOOL bRet = PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
-
       return FALSE;
     }
   }
@@ -3144,9 +3118,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_SYSKEYDOWN:
       if (game_window.active)
       {
-        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) /*&& (uMsg != WM_SYSKEYDOWN)*/)
+        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
         {
-          return game_window.CallProc (hWnd, uMsg, wParam, lParam);
+          return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
         }
       }
       else
@@ -3157,9 +3131,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_SYSKEYUP:
       if (game_window.active)
       {
-        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) /*&& (uMsg != WM_SYSKEYUP)*/)
+        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
         {
-          return game_window.CallProc (hWnd, uMsg, wParam, lParam);
+          return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
         }
       }
       else
@@ -3280,7 +3254,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  return game_window.CallProc (hWnd, uMsg, wParam, lParam);
+  return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
 }
 
 #include <SpecialK/core.h>
@@ -3451,7 +3425,7 @@ SK_InstallWindowHook (HWND hWnd)
   //     as an anti-cheat method. Hooking the class procedure is the only
   //       workaround.
   //
-  if (! wcsicmp (SK_GetHostApp (), L"eqgame.exe"))
+  if (! _wcsicmp (SK_GetHostApp (), L"eqgame.exe"))
     hook_classfunc = true;
 
   if (hook_classfunc)
@@ -3705,4 +3679,41 @@ SK_HookWinAPI (void)
   SetWindowLongPtrW_Original = SetWindowLongW_Original;
 #else
 #endif
+}
+
+
+LRESULT
+sk_window_s::DefProc (
+  _In_ UINT   Msg,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam
+)
+{
+  return DefWindowProc (hWnd, Msg, wParam, lParam);
+}
+
+LRESULT 
+sk_window_s::CallProc (
+    _In_ HWND    hWnd_,
+    _In_ UINT    Msg,
+    _In_ WPARAM  wParam,
+    _In_ LPARAM  lParam )
+{
+  if (! hooked)
+    return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
+  else
+    return WndProc_Original (hWnd_, Msg, wParam, lParam);
+}
+
+
+LRESULT
+SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+  __try {
+    return pWin->CallProc (hWnd_, Msg, wParam, lParam);
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return 1;
+  }
 }

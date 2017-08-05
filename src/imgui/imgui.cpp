@@ -4023,6 +4023,30 @@ bool ImGui::IsMouseDragging(int button, float lock_threshold)
     return g.IO.MouseDragMaxDistanceSqr[button] >= lock_threshold * lock_threshold;
 }
 
+
+// XXX: Special K Addition
+bool ImGui::IsNavDragging(int stick_no, float lock_threshold)
+{
+    IM_ASSERT(ImGuiNavInput_PadScrollUp == ImGuiNavInput_PadUp + 4);
+    IM_ASSERT(stick_no >= 0 && stick_no < 2);
+
+    ImGuiContext& g = *GImGui;
+
+    if (g.NavWindowingTarget != nullptr)
+    {
+      ImVec2 delta;
+      delta.x = GetNavInputAmount(ImGuiNavInput_PadRight + stick_no*4, ImGuiNavReadMode_Down) - GetNavInputAmount(ImGuiNavInput_PadLeft + stick_no*4, ImGuiNavReadMode_Down); 
+      delta.y = GetNavInputAmount(ImGuiNavInput_PadDown  + stick_no*4, ImGuiNavReadMode_Down) - GetNavInputAmount(ImGuiNavInput_PadUp   + stick_no*4, ImGuiNavReadMode_Down); 
+
+      if (lock_threshold < 0.0f)
+        lock_threshold = g.IO.MouseDragThreshold;
+      if (delta.x != 0.0 || delta.y != 0.0)// >= lock_threshold * lock_threshold)
+        return true;
+    }
+
+    return false;
+}
+
 ImVec2 ImGui::GetMousePos()
 {
     return GImGui->IO.MousePos;
@@ -12215,8 +12239,8 @@ SK_ImGui_PollGamepad (void)
 
       float norm = sqrt (LX*LX + LY*LY);
 
-      float nLX  = LX / norm;
-      float nLY  = LY / norm;
+      //float nLX  = LX / norm;
+      //float nLY  = LY / norm;
 
       float unit = 1.0f;
 
@@ -12333,4 +12357,11 @@ SK_ImGui_PollGamepad (void)
 
   io.NavInputs [ImGuiNavInput_PadFocusPrev]  += io.KeyCtrl && io.KeyShift && io.KeysDown [VK_TAB] && io.KeysDownDuration [VK_TAB] == 0.0f ? 1.0f : 0.0f;
   io.NavInputs [ImGuiNavInput_PadFocusNext]  += io.KeyCtrl &&                io.KeysDown [VK_TAB] && io.KeysDownDuration [VK_TAB] == 0.0f ? 1.0f : 0.0f;
+
+
+
+  if (io.NavInputs [ImGuiNavInput_PadActivate] != 0.0f)
+    io.MouseDown [4] = true;
+  else
+    io.MouseDown [4] = false;
 }

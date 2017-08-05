@@ -67,7 +67,9 @@ volatile LONG  __d3d11_ready    = FALSE;
 void WaitForInitD3D11 (void)
 {
   while (! InterlockedCompareExchange (&__d3d11_ready, FALSE, FALSE))
+  {
     MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
+  }
 }
 
 void  __stdcall SK_D3D11_TexCacheCheckpoint    ( void);
@@ -433,8 +435,6 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
-
-InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
   return
     D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags,

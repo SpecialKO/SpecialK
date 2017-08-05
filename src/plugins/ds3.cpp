@@ -748,8 +748,8 @@ SK_DS3_InitPlugin (void)
     lstrcatW (ds3_prefs_file, SK_GetConfigPath ());
     lstrcatW (ds3_prefs_file, L"SoulsUnsqueezed.ini");
 
-    ds3_prefs = new iSK_INI (ds3_prefs_file);
-    ds3_prefs->parse ();
+    ds3_prefs =
+      SK_CreateINI (ds3_prefs_file);
   }
 
   ds3_hud_res_x = 

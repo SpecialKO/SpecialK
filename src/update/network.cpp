@@ -418,8 +418,6 @@ RemindMeLater_DlgProc (
 
         iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
-        install_ini.parse ();
-
         bool empty = false;
 
         if (! install_ini.get_sections ().size ())
@@ -1014,7 +1012,7 @@ extern volatile LONG SK_bypass_dialog_active;
 
 HRESULT
 __stdcall
-SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
+SK_UpdateSoftware1 (const wchar_t*, bool force)
 {
 #define INJECTOR
 #ifndef INJECTOR
@@ -1084,9 +1082,6 @@ SK_UpdateSoftware1 (const wchar_t* wszProduct, bool force)
 
   iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
   iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
-
-  install_ini.parse ();
-  repo_ini.parse    ();
 
   struct {
     signed int   installed;

@@ -124,9 +124,6 @@
     <Filter Include="Source Files\Backends\Input\XInput">
       <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input\Steam">
-      <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Input\HID">
       <UniqueIdentifier>{9e3f4015-6b36-4bfd-b248-98f9ecc51663}</UniqueIdentifier>
     </Filter>
@@ -201,6 +198,9 @@
     </Filter>
     <Filter Include="Source Files\Widgets">
       <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\RawInput\Steam">
+      <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

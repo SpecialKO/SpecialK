@@ -29,6 +29,10 @@
 extern iSK_INI* osd_ini;
 
 
+extern bool
+SK_ImGui_IsWindowRightClicked (ImGuiIO& io = ImGui::GetIO ());
+
+
 void
 SK_Widget::run_base (void)
 {
@@ -65,6 +69,12 @@ SK_Widget::run_base (void)
                          SK_FormatStringW   (L"Widget AutoFitted (%hs)", name.c_str ()).c_str (),
                            SK_FormatStringW (L"Widget.%hs",              name.c_str ()).c_str (),
                              L"AutoFit" );
+
+    param_border =
+      LoadWidgetBool ( &border, osd_ini,
+                         SK_FormatStringW   (L"Widget Draws Border (%hs)", name.c_str ()).c_str (),
+                           SK_FormatStringW (L"Widget.%hs",                name.c_str ()).c_str (),
+                             L"Border" );
 
     param_clickthrough =
       LoadWidgetBool ( &click_through, osd_ini,
@@ -108,8 +118,10 @@ SK_Widget::run_base (void)
   run ();
 }
 
+#include <imgui/imgui_internal.h>
+
 void
-SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
+SK_Widget_CalcClipRect (SK_Widget* pWidget, bool n, bool s, bool e, bool w, ImVec2& min, ImVec2& max)
 {
   ImGuiIO& io (ImGui::GetIO ());
 
@@ -120,10 +132,12 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
   ImVec2 pos  = pWidget->getPos  ();
   ImVec2 size = pWidget->getSize ();
 
+  ImGuiContext& g = *ImGui::GetCurrentContext ();
 
   if (n || s)
   {
-    if (pWidget->isMovable () && ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered ())
+    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
+                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
     {
       draw_horz_ruler = true;
     }
@@ -138,7 +152,80 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
 
   if (e || w)
   {
-    if (pWidget->isMovable () && ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered ())
+    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
+                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
+    {
+      draw_vert_ruler = true;
+    }
+
+    if (e)
+      pos.x = io.DisplaySize.x - size.x;
+
+    if (w)
+      pos.x = 0.0;
+  }
+
+
+  if (                   size.x > 0 &&                    size.y > 0 &&
+      io.DisplaySize.x - size.x > 0 && io.DisplaySize.y - size.y > 0)
+  {
+    pos.x = std::max (0.0f, std::min (pos.x, io.DisplaySize.x - size.x));
+    pos.y = std::max (0.0f, std::min (pos.y, io.DisplaySize.y - size.y));
+  }
+
+  if (draw_horz_ruler ^ draw_vert_ruler)
+  {
+    ImVec2 horz_pos       = ImVec2 (       e ? io.DisplaySize.x - size.x : size.x, 0.0f );
+    ImVec2 vert_pos       = ImVec2 ( 0.0f, s ? io.DisplaySize.y - size.y : size.y       );
+
+    if (draw_vert_ruler)
+    {
+      min = ImVec2 ( 0.0f,       0.0f             );
+      max = ImVec2 ( horz_pos.x, io.DisplaySize.y );
+    }
+
+    if (draw_horz_ruler)
+    {
+      min = ImVec2 ( 0.0f,             0          );
+      max = ImVec2 ( io.DisplaySize.x, vert_pos.y );
+    }
+  }
+}
+
+void
+SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
+{
+  ImGuiIO& io (ImGui::GetIO ());
+
+  // Docking alignment visualiztion
+  bool draw_horz_ruler = false;
+  bool draw_vert_ruler = false;
+
+  ImVec2 pos  = pWidget->getPos  ();
+  ImVec2 size = pWidget->getSize ();
+
+  ImGuiContext& g = *ImGui::GetCurrentContext ();
+
+  if (n || s)
+  {
+    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
+                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
+    {
+      draw_horz_ruler = true;
+    }
+
+    if (n)
+      pos.y = 0.0;
+
+    if (s)
+      pos.y = io.DisplaySize.y - size.y;
+  }
+
+
+  if (e || w)
+  {
+    if (pWidget->isMovable () && ( ( ImGui::IsMouseDragging (0) && ImGui::IsWindowHovered () ) ||
+                                   ( ImGui::IsNavDragging   ( ) && g.NavWindowingTarget == ImGui::GetCurrentWindow () ) ))
     {
       draw_vert_ruler = true;
     }
@@ -220,11 +307,9 @@ SK_Widget::draw_base (void)
   }
 
 
-  ImGuiIO& io (ImGui::GetIO ());
-
-  int flags = ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoCollapse         |
-              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing |
-              ImGuiWindowFlags_NoSavedSettings;
+  int flags = ImGuiWindowFlags_NoTitleBar      | ImGuiWindowFlags_NoCollapse         |
+              ImGuiWindowFlags_NoScrollbar     | ImGuiWindowFlags_NoFocusOnAppearing |
+              ImGuiWindowFlags_NoSavedSettings | (border ? ImGuiWindowFlags_ShowBorders : 0x0);
 
   if (autofit)
     flags |= ImGuiWindowFlags_AlwaysAutoResize;
@@ -248,10 +333,16 @@ SK_Widget::draw_base (void)
     flags |=  (ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::SetNextWindowSize (ImVec2 (std::max (size.x, 420.0f), std::max (size.y, 190.0f)));
+
+    if (! SK_ImGui_Visible)
+      nav_usable = true;
   }
 
   else
   {
+    if (! SK_ImGui_Visible)
+      nav_usable = false;
+
     if ((! autofit) && (! resizable))
     {
       ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x, std::max ( size.x, min_size.x ) ),
@@ -260,19 +351,24 @@ SK_Widget::draw_base (void)
   }
 
 
-  ImGui::Begin           ( SK_FormatString ("###Widget_%s", name.c_str ()).c_str (),
-                             nullptr,
-                               flags );
-
-  pos  = ImGui::GetWindowPos  ();
-  size = ImGui::GetWindowSize ();
-
   bool n = (int)docking & (int)DockAnchor::North,
        s = (int)docking & (int)DockAnchor::South,
        e = (int)docking & (int)DockAnchor::East,
        w = (int)docking & (int)DockAnchor::West;
 
-  SK_Widget_ProcessDocking (this, n, s, e, w);
+  ImGui::Begin           ( SK_FormatString ("###Widget_%s", name.c_str ()).c_str (),
+                             nullptr,
+                               flags );
+
+  static SK_Widget* focus_widget = nullptr;
+
+  bool focus_change = false;
+
+  if (ImGui::IsWindowFocused () && focus_widget != this)
+  {
+    focus_widget = this;
+    focus_change = true;
+  }
 
   ImGui::PushItemWidth (0.5f * ImGui::GetWindowWidth ());
 
@@ -290,15 +386,28 @@ SK_Widget::draw_base (void)
 
   ImGui::PopItemWidth ();
 
+  bool right_clicked =
+    SK_ImGui_IsWindowRightClicked ();
 
-  if (ImGui::IsMouseClicked (1) && ImGui::IsWindowHovered ())
+  pos  = ImGui::GetWindowPos  ();
+  size = ImGui::GetWindowSize ();
+
+  SK_Widget_ProcessDocking (this, n, s, e, w);
+
+  if (right_clicked || focus_change)
   {
-    state__ = 1;
+    ImGui::SetWindowFocus ();
+    ImGui::GetIO          ().WantMoveMouse = true;
+
+    ImGui::GetIO ().MousePos =
+      ImVec2 ( pos.x + size.x / 2.0f,
+               pos.y + size.y / 2.0f );
+
+    if (right_clicked)
+      state__ = 1;
   }
 
-
-
-  ImGui::End ();
+  ImGui::End         ();
 }
 
 extern void
@@ -319,6 +428,7 @@ SK_Widget::save (iSK_INI* ini)
     return;
 
   param_movable->set_value      (     movable      );
+  param_border->set_value       (     border       );
   param_clickthrough->set_value (     click_through);
   param_autofit->set_value      (     autofit      );
   param_resizable->set_value    (     resizable    );
@@ -329,6 +439,7 @@ SK_Widget::save (iSK_INI* ini)
   param_pos->set_value          (     pos          );
 
   param_movable->store      ();
+  param_border->store       ();
   param_clickthrough->store ();
   param_autofit->store      ();
   param_resizable->store    ();
@@ -338,7 +449,13 @@ SK_Widget::save (iSK_INI* ini)
   param_size->store         ();
   param_pos->store          ();
 
-  ini->write (ini->get_filename ());
+  static DWORD dwLastWrite = 0;
+
+  if (dwLastWrite < timeGetTime () - 250)
+  {
+    ini->write (ini->get_filename ());
+    dwLastWrite = timeGetTime ();
+  }
 
   OnConfig (ConfigEvent::SaveComplete);
 }
@@ -383,6 +500,13 @@ SK_Widget::config_base (void)
   if (ImGui::Checkbox ("Click-Through", &click_through))
   {
     setClickThrough (click_through);
+    changed = true;
+  }
+
+  ImGui::SameLine ();
+  if (ImGui::Checkbox ("Draw Border", &border))
+  {
+    setBorder (border);
     changed = true;
   }
 
@@ -448,12 +572,9 @@ SK_Widget::config_base (void)
         param->set_value (binding->human_readable);
         param->store     ();
 
-        std::wstring osd_config =
-          SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\osd.ini";
-
         extern iSK_INI* osd_ini;
 
-        osd_ini->write (osd_config.c_str ());
+        osd_ini->write (osd_ini->get_filename ());
 
         return true;
       }
@@ -506,10 +627,8 @@ SK_Widget::config_base (void)
 
 
 void
-SK_Widget::load (iSK_INI* config)
+SK_Widget::load (iSK_INI*)
 {
-  UNREFERENCED_PARAMETER (config);
-
   OnConfig (ConfigEvent::LoadStart);
   // ...
   OnConfig (ConfigEvent::LoadComplete);

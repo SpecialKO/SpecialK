@@ -36,7 +36,8 @@ SK_GetCommandProcessor (void)
 {
   static SK_ICommandProcessor* command = nullptr;
 
-  if (command == nullptr) {
+  if (command == nullptr)
+  {
     command = new SK_ICommandProcessor ();
     InitializeCriticalSectionAndSpinCount (&cs_process_cmd, 104858);
   }
@@ -55,7 +56,8 @@ str_hash_compare <std::string, std::less <std::string> >::hash_string (const std
   const size_type   __len  = _Keyval.size ();
   const value_type* __data = _Keyval.data ();
 
-  for (size_type __i = 0; __i < __len; ++__i) {
+  for (size_type __i = 0; __i < __len; ++__i)
+  {
     /* Hash Collision Discovered: "r_window_res_x" vs. "r_window_pos_x" */
     //__h = 5 * __h + SK_CaseAdjust (__data [__i], case_insensitive);
 
@@ -86,15 +88,18 @@ str_hash_compare <std::string, std::less <std::string> >::operator() (const std:
 class SK_SourceCmd : public SK_ICommand
 {
 public:
-  SK_SourceCmd (SK_ICommandProcessor* cmd_proc) {
+  SK_SourceCmd (SK_ICommandProcessor* cmd_proc)
+  {
     processor_ = cmd_proc;
   }
 
-  SK_ICommandResult execute (const char* szArgs) {
+  SK_ICommandResult execute (const char* szArgs)
+  {
     /* TODO: Replace with a special tokenizer / parser... */
     FILE* src = fopen (szArgs, "r");
 
-    if (! src) {
+    if (! src)
+    {
       return
         SK_ICommandResult ( "source", szArgs,
           "Could not open file!",
@@ -173,7 +178,8 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
 bool
 SK_ICommandProcessor::RemoveCommand (const char* szCommand)
 {
-  if (FindCommand (szCommand) != NULL) {
+  if (FindCommand (szCommand) != NULL)
+  {
     std::unordered_map < std::string,
                            SK_ICommand*,
                              str_hash_compare <std::string>
@@ -225,7 +231,8 @@ SK_ICommandProcessor::AddVariable (const char* szVariable, SK_IVariable* pVariab
 bool
 SK_ICommandProcessor::RemoveVariable (const char* szVariable)
 {
-  if (FindVariable (szVariable) != NULL) {
+  if (FindVariable (szVariable) != NULL)
+  {
     std::unordered_map < std::string,
                            SK_IVariable*,
                              str_hash_compare <std::string>
@@ -268,17 +275,22 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
     size_t command_args_len = 0;
 
     /* Terminate the command word on the first space... */
-    for (size_t i = 0; i < command_word_len; i++) {
-      if (command_word [i] == ' ') {
+    for (size_t i = 0; i < command_word_len; i++)
+    {
+      if (command_word [i] == ' ')
+      {
         command_word [i] = '\0';
 
-        if (i < (command_word_len - 1)) {
+        if (i < (command_word_len - 1))
+        {
           command_args     = &command_word [i + 1];
           command_args_len = strlen (command_args);
 
           /* Eliminate trailing spaces */
-          for (unsigned int j = 0; j < command_args_len; j++) {
-            if (command_word [i + j + 1] != ' ') {
+          for (unsigned int j = 0; j < command_args_len; j++)
+          {
+            if (command_word [i + j + 1] != ' ')
+            {
               command_args = &command_word [i + j + 1];
               break;
             }
@@ -302,7 +314,8 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 
     SK_ICommand* cmd = FindCommand (cmd_word.c_str ());
 
-    if (cmd != NULL) {
+    if (cmd != nullptr)
+    {
       return cmd->execute (cmd_args.c_str ());
     }
 
@@ -310,30 +323,35 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 
     const SK_IVariable* var = FindVariable (cmd_word.c_str ());
 
-    if (var != NULL) {
+    if (var != nullptr)
+    {
       if (var->getType () == SK_IVariable::Boolean)
       {
-        if (command_args_len > 0) {
+        if (command_args_len > 0)
+        {
           SK_IVarStub <bool>* bool_var = (SK_IVarStub <bool>*) var;
           bool                bool_val = false;
 
           /* False */
           if (! (_stricmp (cmd_args.c_str (), "false") && _stricmp (cmd_args.c_str (), "0") &&
-                 _stricmp (cmd_args.c_str (), "off"))) {
+                 _stricmp (cmd_args.c_str (), "off")))
+          {
             bool_val = false;
             bool_var->setValue (bool_val);
           }
 
           /* True */
           else if (! (_stricmp (cmd_args.c_str (), "true") && _stricmp (cmd_args.c_str (), "1") &&
-                      _stricmp (cmd_args.c_str (), "on"))) {
+                      _stricmp (cmd_args.c_str (), "on")))
+          {
             bool_val = true;
             bool_var->setValue (bool_val);
           }
 
           /* Toggle */
           else if (! (_stricmp (cmd_args.c_str (), "toggle") && _stricmp (cmd_args.c_str (), "~") &&
-                      _stricmp (cmd_args.c_str (), "!"))) {
+                      _stricmp (cmd_args.c_str (), "!")))
+          {
             bool_val = ! bool_var->getValue ();
             bool_var->setValue (bool_val);
 
@@ -347,16 +365,19 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 
       else if (var->getType () == SK_IVariable::Int)
       {
-        if (command_args_len > 0) {
+        if (command_args_len > 0)
+        {
           const int original_val = ((SK_IVarStub <int>*) var)->getValue ();
                      int int_val = 0;
 
           /* Increment */
           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
-                 _stricmp (cmd_args.c_str (), "next"))) {
+                 _stricmp (cmd_args.c_str (), "next")))
+          {
             int_val = original_val + 1;
           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
-                        _stricmp (cmd_args.c_str (), "prev"))) {
+                        _stricmp (cmd_args.c_str (), "prev")))
+          {
             int_val = original_val - 1;
           } else
             int_val = atoi (cmd_args.c_str ());
@@ -367,16 +388,19 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 
       else if (var->getType () == SK_IVariable::Short)
       {
-        if (command_args_len > 0) {
+        if (command_args_len > 0)
+        {
           const short original_val = ((SK_IVarStub <short>*) var)->getValue ();
                    short short_val = 0;
 
           /* Increment */
           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
-                 _stricmp (cmd_args.c_str (), "next"))) {
+                 _stricmp (cmd_args.c_str (), "next")))
+          {
             short_val = original_val + 1;
           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
-                        _stricmp (cmd_args.c_str (), "prev"))) {
+                        _stricmp (cmd_args.c_str (), "prev")))
+          {
             short_val = original_val - 1;
           } else
             short_val = (short)atoi (cmd_args.c_str ());
@@ -387,7 +411,8 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 
       else if (var->getType () == SK_IVariable::Float)
       {
-        if (command_args_len > 0) {
+        if (command_args_len > 0)
+        {
           //          float original_val = ((SK_IVarStub <float>*) var)->getValue ();
           float float_val = (float)atof (cmd_args.c_str ());
 
@@ -397,7 +422,8 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
 
       else if (var->getType () == SK_IVariable::String)
       {
-        if (command_args_len > 0) {
+        if (command_args_len > 0)
+        {
           const char* args = cmd_args.c_str ();
 
           SK_IVarStub <char *>* var_stub =
@@ -410,24 +436,31 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         }
       }
 
-      uint32_t len = 256;
+      uint32_t                       len = 256;
       var->getValueString (nullptr, &len);
 
-      std::unique_ptr <char> pszNew (new char [len + 1]);
-                             pszNew.get () [len] = '\0';
+      char* pszNew = new char [len + 1] { };
 
       ++len;
 
-      var->getValueString (pszNew.get (), &len);
+      var->getValueString (pszNew, &len);
 
-      return SK_ICommandResult (cmd_word.c_str (), cmd_args.c_str (), pszNew.get (), true, var, NULL);
+      SK_ICommandResult ret (cmd_word.c_str (), cmd_args.c_str (), pszNew, true, var, NULL);
+
+      delete [] pszNew;
+
+      return ret;
     }
 
-    else {
+    else
+    {
       /* Default args --> failure... */
       return SK_ICommandResult (cmd_word.c_str (), cmd_args.c_str ());
     }
-  } else {
+  }
+
+  else
+  {
     /* Invalid Command Line (not long enough). */
     return SK_ICommandResult (szCommandLine); /* Default args --> failure... */
   }
@@ -447,7 +480,8 @@ SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
   char* szFormattedCommandLine =
     (char *)malloc (sizeof (char) * (len + 1));
 
-  if (szFormattedCommandLine != nullptr) {
+  if (szFormattedCommandLine != nullptr)
+  {
     *(szFormattedCommandLine + len) = '\0';
 
     va_start  (ap, szCommandFormat);

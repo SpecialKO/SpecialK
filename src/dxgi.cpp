@@ -1904,12 +1904,7 @@ HRESULT
 
   else
   {
-    DXGI_PRESENT_PARAMETERS pparams;
-    pparams.DirtyRectsCount = 0;
-    pparams.pDirtyRects     = nullptr;
-    pparams.pScrollOffset   = nullptr;
-    pparams.pScrollRect     = nullptr;
-
+    DXGI_PRESENT_PARAMETERS   pparams     = { };
     CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
 
     if (SUCCEEDED (This->QueryInterface <IDXGISwapChain1> (&pSwapChain1)))
@@ -1942,6 +1937,12 @@ HRESULT
         hr = SK_DXGI_Present   (This, interval, flags /*| DXGI_PRESENT_DO_NOT_WAIT*/);
 #endif
       }
+    }
+
+    else
+    {
+      // Fallback for something that will probably only ever happen on Windows 7.
+      hr = SK_DXGI_Present (This, interval, flags);
     }
   }
 
@@ -2127,8 +2128,8 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
     dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
                   L"(Requested: %f, Using: %li)",
                     mode_to_match.RefreshRate.Denominator != 0 ?
-                      (float)mode_to_match.RefreshRate.Numerator /
-                      (float)mode_to_match.RefreshRate.Denominator :
+                      static_cast <float> (mode_to_match.RefreshRate.Numerator) /
+                      static_cast <float> (mode_to_match.RefreshRate.Denominator) :
                         std::numeric_limits <float>::quiet_NaN (),
                       config.render.framerate.refresh_rate
                 );
@@ -2243,6 +2244,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   {
     if (bFlipMode)
     {
+      // Steam Overlay does not like this, even though for compliance sake we are supposed to do it :(
       ResizeBuffers_Original ( This, 0, 0, 0, DXGI_FORMAT_UNKNOWN,
                                  DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
     }
@@ -2250,7 +2252,8 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     ///ResizeBuffers_Original (This, desc.BufferCount, desc.BufferDesc.Width,
     ///                          desc.BufferDesc.Height, desc.BufferDesc.Format, desc.Flags);
 
-    DXGI_SWAP_CHAIN_DESC desc;
+    DXGI_SWAP_CHAIN_DESC desc = { };
+
     if (SUCCEEDED (This->GetDesc (&desc)))
     {
       if (desc.BufferDesc.Width != 0)
@@ -2406,10 +2409,10 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                        L"fmt=%lu,scaling=0x%02x,scanlines=0x%02x }",
                           pNewTargetParameters->Width, pNewTargetParameters->Height,
                           pNewTargetParameters->RefreshRate.Denominator != 0 ?
-                            (float)pNewTargetParameters->RefreshRate.Numerator /
-                            (float)pNewTargetParameters->RefreshRate.Denominator :
+           static_cast <float> (pNewTargetParameters->RefreshRate.Numerator) /
+           static_cast <float> (pNewTargetParameters->RefreshRate.Denominator) :
                               std::numeric_limits <float>::quiet_NaN (),
-                          (UINT)pNewTargetParameters->Format,
+            static_cast <UINT> (pNewTargetParameters->Format),
                                 pNewTargetParameters->Scaling,
                                 pNewTargetParameters->ScanlineOrdering );
 
@@ -2434,8 +2437,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
                     L"(Requested: %f, Using: %li)",
                       new_new_params.RefreshRate.Denominator != 0 ?
-                        (float)new_new_params.RefreshRate.Numerator /
-                        (float)new_new_params.RefreshRate.Denominator :
+                        static_cast <float> (new_new_params.RefreshRate.Numerator) /
+                        static_cast <float> (new_new_params.RefreshRate.Denominator) :
                           std::numeric_limits <float>::quiet_NaN (),
                         config.render.framerate.refresh_rate
                   );
@@ -2783,8 +2786,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
                     L"(Requested: %f, Using: %li)",
                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-                   (float)pDesc->BufferDesc.RefreshRate.Numerator /
-                   (float)pDesc->BufferDesc.RefreshRate.Denominator :
+         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
                      std::numeric_limits <float>::quiet_NaN (),
                         config.render.framerate.refresh_rate
                   );
@@ -4424,6 +4427,10 @@ HookDXGI (LPVOID user)
 
       extern HWND
       SK_Win32_CreateDummyWindow (void);
+
+      extern void
+      SK_Win32_CleanupDummyWindow (void);
+
       
       HWND                 hWnd = SK_Win32_CreateDummyWindow ();
       
@@ -4492,7 +4499,8 @@ HookDXGI (LPVOID user)
                           nullptr );
         }
 
-        DestroyWindow (hWnd);
+        DestroyWindow               (hWnd);
+        SK_Win32_CleanupDummyWindow (    );
       }
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();

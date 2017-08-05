@@ -722,7 +722,11 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
               budget_log.close ();
             }
 
-            if (StrStrW (fd.cFileName, L"CEGUI.log"))
+            // There's a small chance that we may crash prior to loading CEGUI's DLLs, in which case
+            //   trying to grab a static reference to the Logger Singleton would blow stuff up.
+            //
+            //   Avoid this by counting the number of frames actually drawn.
+            if (StrStrW (fd.cFileName, L"CEGUI.log") && SK_GetFramesDrawn () > 120)
             {
               CopyFileExW ( L"CEGUI.log", wszDestPath,
                               nullptr, nullptr, nullptr,
@@ -829,9 +833,9 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
                             BaseAddr,
                               0 );
 
-  SYMBOL_INFO_PACKAGE sip;
-  sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-  sip.si.MaxNameLen   = sizeof sip.name;
+  SYMBOL_INFO_PACKAGE sip = { };
+  sip.si.SizeOfStruct     = sizeof SYMBOL_INFO;
+  sip.si.MaxNameLen       = sizeof sip.name;
 
   DWORD64 Displacement = 0;
 

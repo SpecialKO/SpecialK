@@ -49,7 +49,7 @@
 #include <atlbase.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.10"
+#define FAR_VERSION_NUM L"0.7.0.11"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -183,7 +183,7 @@ static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = 
 
 
 // (Presumable) Size of compute shader workgroup
-int    __FAR_GlobalIllumWorkGroupSize =   128;
+UINT   __FAR_GlobalIllumWorkGroupSize =   128;
 bool   __FAR_GlobalIllumCompatMode    =  true;
 
 struct {
@@ -1765,8 +1765,8 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
     lstrcatW (far_prefs_file, SK_GetConfigPath ());
     lstrcatW (far_prefs_file, L"FAR.ini");
 
-    far_prefs = new iSK_INI (far_prefs_file);
-    far_prefs->parse ();
+    far_prefs =
+      SK_CreateINI (far_prefs_file);
 
     far_gi_workgroups = 
         dynamic_cast <sk::ParameterInt *>

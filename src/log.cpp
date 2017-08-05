@@ -100,7 +100,11 @@ iSK_Logger dll_log, budget_log;
 void
 iSK_Logger::close (void)
 {
-  EnterCriticalSection (&log_mutex);
+  if (initialized)
+    EnterCriticalSection (&log_mutex);
+
+  else
+    return;
 
   if (fLog != NULL)
   {
@@ -118,11 +122,14 @@ iSK_Logger::close (void)
     DeleteFileW (full_name.c_str ());
   }
 
-  initialized = false;
-  silent      = true;
+  if (initialized)
+  {
+    initialized = false;
+    silent      = true;
 
-  LeaveCriticalSection  (&log_mutex);
-  DeleteCriticalSection (&log_mutex);
+    LeaveCriticalSection  (&log_mutex);
+    DeleteCriticalSection (&log_mutex);
+  }
 }
 
 bool

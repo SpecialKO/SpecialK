@@ -217,8 +217,7 @@ SK_REASON_InitPlugin (void)
     lstrcatW (reason_prefs_file, SK_GetConfigPath ());
     lstrcatW (reason_prefs_file, L"ReASON.ini");
 
-    reason_prefs = new iSK_INI (reason_prefs_file);
-    reason_prefs->parse ();
+    reason_prefs = SK_CreateINI (reason_prefs_file);
 
     reason_simple_interior_water = 
         static_cast <sk::ParameterBool *>

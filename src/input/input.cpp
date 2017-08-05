@@ -1294,7 +1294,7 @@ GetCursorInfo_Detour (PCURSORINFO pci)
   pci->hCursor = SK_ImGui_Cursor.orig_img;
 
 
-  if (SK_ImGui_IsMouseRelevant ())
+  if (ret && SK_ImGui_IsMouseRelevant ())
   {
     bool implicit_capture = false;
 
@@ -1576,7 +1576,7 @@ WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool
-SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek)
+SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
 {
   assert (lpMsg->hwnd == game_window.hWnd);
 

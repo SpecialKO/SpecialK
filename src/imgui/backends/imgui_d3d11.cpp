@@ -594,7 +594,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 }
 
 bool
-ImGui_ImplDX11_Init (IDXGISwapChain* pSwapChain, ID3D11Device* device, ID3D11DeviceContext* device_context)
+ImGui_ImplDX11_Init (IDXGISwapChain* pSwapChain, ID3D11Device*, ID3D11DeviceContext*)
 {
   static bool first = true;
 

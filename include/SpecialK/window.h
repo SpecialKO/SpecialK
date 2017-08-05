@@ -400,19 +400,13 @@ struct sk_window_s {
     _In_ UINT   Msg,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam
-  ) { return DefWindowProc (hWnd, Msg, wParam, lParam); }
+  );
 
   LRESULT CallProc      (
     _In_ HWND    hWnd_,
     _In_ UINT    Msg,
     _In_ WPARAM  wParam,
-    _In_ LPARAM  lParam )
-  {
-    if (! hooked)
-      return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
-    else
-      return WndProc_Original (hWnd_, Msg, wParam, lParam);
-  }
+    _In_ LPARAM  lParam );
 
   bool hooked = false;
 };

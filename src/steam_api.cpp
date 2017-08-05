@@ -1828,8 +1828,6 @@ public:
           SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini"
         ).c_str () );
 
-      achievement_ini.parse ();
-
       // If the config file is empty, establish defaults and then write it.
       if (achievement_ini.get_sections ().size () == 0)
       {

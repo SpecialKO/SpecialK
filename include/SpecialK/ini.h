@@ -54,11 +54,11 @@ public:
 
   //protected:
   //private:
-  std::wstring                              name;
-  std::map     <std::wstring, std::wstring> pairs;
-  std::vector  <std::wstring>               ordered_keys;
+  std::wstring                                    name;
+  std::map           <std::wstring, std::wstring> keys;
+  std::vector        <std::wstring>               ordered_keys;
 
-  ULONG                                     refs;
+  ULONG                                           refs = 0;
 };
 
 // {DD2B1E00-6C14-4659-8B45-FCEF1BC2C724}
@@ -93,13 +93,14 @@ interface iSK_INI : public IUnknown
 
 protected:
 private:
-  FILE*     fINI;
+  FILE*     fINI    = nullptr;
 
-  wchar_t*  wszName;
-  wchar_t*  wszData;
+  wchar_t*  wszName = nullptr;
+  wchar_t*  wszData = nullptr;
 
-  std::map <std::wstring, iSK_INISection>
-            sections;
+  std::map <
+    std::wstring, iSK_INISection
+  >         sections;
 
   // Preserve insertion order so that we write the INI file in the
   //   same order we read it. Otherwise things get jumbled around
@@ -115,7 +116,11 @@ private:
     INI_UTF16BE = 0x04 // Not natively supported, but can be converted
   } encoding_;
 
-  ULONG     refs;
+  ULONG     refs = 0;
 };
+
+iSK_INI*
+__stdcall
+SK_CreateINI (const wchar_t* const wszName);
 
 #endif /* __SK__INI_H__ */

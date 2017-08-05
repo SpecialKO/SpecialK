@@ -75,8 +75,8 @@ SK_FO4_InitPlugin (void)
       SK_GetDocumentsDir () +
       std::wstring (L"\\My Games\\Fallout4\\Fallout4Prefs.ini");
 
-    fo4_prefs = new iSK_INI ((wchar_t *)fo4_prefs_file.c_str ());
-    fo4_prefs->parse ();
+    fo4_prefs =
+      SK_CreateINI ((wchar_t *)fo4_prefs_file.c_str ());
   }
 
   //nvapi64_dll = LoadLibrary (L"nvapi64.dll");

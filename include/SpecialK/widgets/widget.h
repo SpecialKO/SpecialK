@@ -33,6 +33,8 @@
 
 extern sk::ParameterFactory SK_Widget_ParameterFactory;
 
+struct ImGuiWindow;
+
 class SK_Widget
 {
 public:
@@ -87,6 +89,7 @@ public:
   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
   SK_Widget& setResizable    (bool        bResizable)    { resizable     = bResizable;    return *this; }
   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+  SK_Widget& setBorder       (bool        bBorder)       { border        = bBorder;       return *this; }
   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
   SK_Widget& setMinSize      (ImVec2&     iv2MinSize)    { min_size      = iv2MinSize;    return *this; }
   SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)    { max_size      = iv2MaxSize;    return *this; }
@@ -103,6 +106,7 @@ public:
         bool         isResizable     (void) const { return    resizable;      }
         bool         isAutoFitted    (void) const { return    autofit;        }
         bool         isClickable     (void) const { return (! click_through); }
+        bool         hasBorder       (void) const { return    border;         }
   const ImVec2&      getMinSize      (void) const { return    min_size;       }
   const ImVec2&      getMaxSize      (void) const { return    max_size;       }
   const ImVec2&      getSize         (void) const { return    size;           }
@@ -146,6 +150,7 @@ protected:
   sk::ParameterBool*    param_movable;
   sk::ParameterBool*    param_autofit;
   sk::ParameterBool*    param_resizable;
+  sk::ParameterBool*    param_border;
   sk::ParameterBool*    param_clickthrough;
   sk::ParameterVec2f*   param_minsize;
   sk::ParameterVec2f*   param_maxsize;
@@ -169,6 +174,7 @@ protected:
   bool        autofit       = true;
   bool        movable       = true;
   bool        resizable     = true;
+  bool        border        = false;
   bool        click_through = false;
 
   ImVec2      min_size      = ImVec2 ( 375.0,  240.0);
@@ -186,7 +192,9 @@ protected:
   int version__;
 
 private:
-  bool run_once__ = false;
+  bool           run_once__ = false;
+  ImGuiWindow*   pWindow__  = nullptr;
+  bool           moved      = false;
 };
 
 

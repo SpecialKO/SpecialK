@@ -653,7 +653,8 @@ skMemCmd::execute (const char* szArgs)
   switch (type)
   {
     case 'b':
-      if (strlen (val)) {
+      if (strlen (val))
+      {
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 1, PAGE_EXECUTE_READWRITE, &dwOld);
@@ -668,7 +669,8 @@ skMemCmd::execute (const char* szArgs)
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 's':
-      if (strlen (val)) {
+      if (strlen (val))
+      {
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 2, PAGE_EXECUTE_READWRITE, &dwOld);
@@ -682,7 +684,8 @@ skMemCmd::execute (const char* szArgs)
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'i':
-      if (strlen (val)) {
+      if (strlen (val))
+      {
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, PAGE_EXECUTE_READWRITE, &dwOld);
@@ -696,7 +699,8 @@ skMemCmd::execute (const char* szArgs)
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'l':
-      if (strlen (val)) {
+      if (strlen (val))
+      {
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, PAGE_EXECUTE_READWRITE, &dwOld);
@@ -710,7 +714,8 @@ skMemCmd::execute (const char* szArgs)
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'd':
-      if (strlen (val)) {
+      if (strlen (val))
+      {
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, PAGE_EXECUTE_READWRITE, &dwOld);
@@ -724,7 +729,8 @@ skMemCmd::execute (const char* szArgs)
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 'f':
-      if (strlen (val)) {
+      if (strlen (val))
+      {
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, PAGE_EXECUTE_READWRITE, &dwOld);
@@ -738,7 +744,8 @@ skMemCmd::execute (const char* szArgs)
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
     case 't':
-      if (strlen (val)) {
+      if (strlen (val))
+      {
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 256, PAGE_EXECUTE_READWRITE, &dwOld);
@@ -1495,8 +1502,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   bool bypass = false;
 
   // Injection Compatibility Menu
-  if ( GetAsyncKeyState (VK_SHIFT) &&
-       GetAsyncKeyState (VK_CONTROL) )
+  if ( (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
+       (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
   {
     SK_BypassInject ();
 
@@ -1533,8 +1540,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   EnterCriticalSection (&init_mutex);
 
-  ZeroMemory (&init_, sizeof init_params_t);
-
+  init_          = {               };
   init_.backend  = _wcsdup (backend);
   init_.callback =          callback;
 
@@ -1555,23 +1561,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   extern bool SK_Steam_LoadOverlayEarly (void);
   extern void SK_Input_PreInit          (void);
-
-  if (config.steam.preload_overlay)
-  {
-
-    CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD {
-                                   SK_Steam_LoadOverlayEarly ();
-                                   SK_Input_Init             ();
-
-                                   CloseHandle (GetCurrentThread ());
-
-                                   return 0;
-                                 }, nullptr, 0x00, nullptr);
-  }
-
-  SK::Diagnostics::CrashHandler::InitSyms ();
-
-  SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
 
   budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
 
@@ -1649,6 +1638,24 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init ();
+
+
+  SK::Diagnostics::CrashHandler::InitSyms ();
+
+  if (config.steam.preload_overlay)
+  {
+
+    CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD {
+                                   SK_Steam_LoadOverlayEarly ();
+                                   SK_Input_Init             ();
+
+                                   CloseHandle (GetCurrentThread ());
+
+                                   return 0;
+                                 }, nullptr, 0x00, nullptr);
+  }
+
+  SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
 
 
   if (config.compatibility.init_while_suspended)
@@ -2063,7 +2070,7 @@ SK_ShutdownCore (const wchar_t* backend)
   dll_log.Log (L"[ SpecialK ] Custom %s.dll Detached (pid=0x%04x)",
     backend, GetCurrentProcessId ());
 
-  SymCleanup (GetCurrentProcess ());
+  //SymCleanup (GetCurrentProcess ());
 
 
   // Breakpad Disable Disclaimer; pretend the log was empty :)

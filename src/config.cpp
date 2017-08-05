@@ -377,17 +377,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (! init)
   {
    dll_ini =
-    new iSK_INI (full_name.c_str ());
+    SK_CreateINI (full_name.c_str ());
 
   empty    = dll_ini->get_sections ().empty ();
 
   SK_CreateDirectories (osd_config.c_str ());
 
   osd_ini =
-    new iSK_INI (osd_config.c_str ());
+    SK_CreateINI (osd_config.c_str ());
 
   achievement_ini =
-    new iSK_INI (achievement_config.c_str ());
+    SK_CreateINI (achievement_config.c_str ());
 
   //
   // Create Parameters

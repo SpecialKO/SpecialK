@@ -65,7 +65,7 @@ unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user);
 
-extern volatile ULONG ImGui_Init;
+static volatile ULONG ImGui_Init = FALSE;
 
 void
 WINAPI
@@ -1618,8 +1618,6 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   }
 }
 
-static volatile ULONG ImGui_Init = FALSE;
-
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
@@ -3153,6 +3151,12 @@ SK::D3D9::getPipelineStatsDesc (void)
   return wszDesc;
 }
 
+extern HWND
+SK_Win32_CreateDummyWindow (void);
+
+void
+SK_Win32_CleanupDummyWindow (void);
+
 unsigned int
 __stdcall
 HookD3D9 (LPVOID user)
@@ -3170,24 +3174,22 @@ HookD3D9 (LPVOID user)
   {
     CComPtr <IDirect3D9> pD3D9 = nullptr;
 
-    pD3D9 = Direct3DCreate9_Import (D3D_SDK_VERSION);
+    pD3D9 =
+      Direct3DCreate9_Import (D3D_SDK_VERSION);
 
     HWND hwnd = 0;
 
     if (pD3D9 != nullptr)
-    {
-      hwnd =
-        CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
-                          WS_POPUP        | WS_MINIMIZEBOX,
-                            CW_USEDEFAULT, CW_USEDEFAULT,
-                              1, 1, 0,
-                                nullptr, nullptr, 0x00 );
+    {      
+      hwnd = SK_Win32_CreateDummyWindow ();
 
       D3DPRESENT_PARAMETERS pparams = { };
 
       pparams.SwapEffect            = D3DSWAPEFFECT_DISCARD;
       pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
       pparams.Windowed              = TRUE;
+      pparams.BackBufferCount       = 1;
+      pparams.hDeviceWindow         = hwnd;
 
       CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
@@ -3338,7 +3340,8 @@ HookD3D9 (LPVOID user)
                       err.ErrorMessage () );
       }
 
-      DestroyWindow (hwnd);
+      DestroyWindow               (hwnd);
+      SK_Win32_CleanupDummyWindow (    );
 
       CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
@@ -3352,19 +3355,15 @@ HookD3D9 (LPVOID user)
       if (SUCCEEDED (hr))
       {
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
+        
+        hwnd    = SK_Win32_CreateDummyWindow ();
+        pparams = { };
 
-        hwnd =
-          CreateWindowW ( L"STATIC", L"Dummy D3D9 Window",
-                            WS_POPUP | WS_MINIMIZEBOX,
-                              CW_USEDEFAULT, CW_USEDEFAULT,
-                                64, 64, 0,
-                                  nullptr, nullptr, 0x00 );
-
-        pparams                  = { };
-
-        pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
-        pparams.BackBufferFormat = D3DFMT_UNKNOWN;
-        pparams.Windowed         = TRUE;
+        pparams.SwapEffect            = D3DSWAPEFFECT_FLIPEX;
+        pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
+        pparams.Windowed              = TRUE;
+        pparams.BackBufferCount       = 1;
+        pparams.hDeviceWindow         = hwnd;
 
         CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
 
@@ -3401,7 +3400,8 @@ HookD3D9 (LPVOID user)
           dll_log.Log (L"[   D3D9   ]   * Failure");
         }
 
-        DestroyWindow (hwnd);
+        DestroyWindow               (hwnd);
+        SK_Win32_CleanupDummyWindow (    );
       }
 
       else

@@ -320,17 +320,32 @@ SK_ImGui_IsItemRightClicked (ImGuiIO& io = ImGui::GetIO ())
   return false;
 };
 
+bool
+SK_ImGui_IsWindowRightClicked (ImGuiIO& io)
+{
+  if (ImGui::IsWindowFocused () || ImGui::IsWindowHovered ())
+  {
+    if (ImGui::IsMouseHoveringWindow () && io.MouseClicked [1])
+      return true;
+
+    if (ImGui::IsWindowFocused () && io.MouseDoubleClicked [4])
+    {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 void
 SK_ImGui_UpdateCursor (void)
 {
-  ////ImGui::GetIO ().MouseDownDuration [0] = 0.0f;
-  
   POINT orig_pos;
   GetCursorPos_Original (&orig_pos);
   SetCursorPos_Original (0, 0);
-  
+
   SK_ImGui_Cursor.update ();
-  
+
   SetCursorPos_Original (orig_pos.x, orig_pos.y);
 }
 
@@ -3907,7 +3922,7 @@ extern float SK_ImGui_PulseNav_Strength;
       {
         if (! reshade) {
           dll_ini->remove_section (imp_name);
-          dll_ini->write          (L"SpecialK.ini");
+          dll_ini->write          (dll_ini->get_filename ());
         }
 
         else if (GetFileAttributesW (imp_path) != INVALID_FILE_ATTRIBUTES)
@@ -3932,7 +3947,7 @@ extern float SK_ImGui_PulseNav_Strength;
           wcscat (wszImportRecord, L"\n\n");
 
           dll_ini->import         (wszImportRecord);
-          dll_ini->write          (L"SpecialK.ini");
+          dll_ini->write          (dll_ini->get_filename ());
         }
       }
 
@@ -4309,25 +4324,6 @@ extern float SK_ImGui_PulseNav_Strength;
   SK_ImGui_LastWindowCenter.x = pos.x + size.x / 2.0f;
   SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
 
-  if (io.WantMoveMouse)
-  {
-    SK_ImGui_Cursor.pos.x = (LONG)io.MousePos.x;
-    SK_ImGui_Cursor.pos.y = (LONG)io.MousePos.y;
-
-    POINT screen_pos = SK_ImGui_Cursor.pos;
-
-    if (GetCursor () != nullptr)
-      SK_ImGui_Cursor.orig_img = GetCursor ();
-
-    SK_ImGui_Cursor.LocalToScreen (&screen_pos);
-    SetCursorPos_Original ( screen_pos.x,
-                            screen_pos.y );
-
-    io.WantCaptureMouse = true;
-
-    SK_ImGui_UpdateCursor ();
-  }
-
   if (recenter)
     SK_ImGui_CenterCursorOnWindow ();
 
@@ -4656,6 +4652,25 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     }
   }
 
+
+  if (io.WantMoveMouse)
+  {
+    SK_ImGui_Cursor.pos.x = (LONG)io.MousePos.x;
+    SK_ImGui_Cursor.pos.y = (LONG)io.MousePos.y;
+
+    POINT screen_pos = SK_ImGui_Cursor.pos;
+
+    if (GetCursor () != nullptr)
+      SK_ImGui_Cursor.orig_img = GetCursor ();
+
+    SK_ImGui_Cursor.LocalToScreen (&screen_pos);
+    SetCursorPos_Original ( screen_pos.x,
+                            screen_pos.y );
+
+    io.WantCaptureMouse = true;
+
+    SK_ImGui_UpdateCursor ();
+  }
 
 
   if (d3d9)

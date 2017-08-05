@@ -26,6 +26,14 @@ extern iSK_INI* osd_ini;
 
 extern void SK_ImGui_DrawGraph_FramePacing (void);
 
+namespace
+SK_ImGui
+{
+  bool BatteryMeter (void);
+};
+
+static bool has_battery = false;
+
 class SKWG_FramePacing : public SK_Widget
 {
 public:
@@ -44,7 +52,7 @@ public:
     const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
     const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
-    ImVec2 new_size (font_size * 35, font_size_multiline * 5.44f);
+    ImVec2 new_size (font_size * 35, font_size_multiline * (has_battery ? 6.5f : 5.44f));
     setSize (new_size);
 
     if (isVisible ())
@@ -67,6 +75,8 @@ public:
     }
 
     SK_ImGui_DrawGraph_FramePacing ();
+
+    has_battery = SK_ImGui::BatteryMeter ();
   }
 
   void OnConfig (ConfigEvent event)
