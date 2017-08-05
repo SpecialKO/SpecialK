@@ -287,8 +287,8 @@ SK_CEGUI_InitBase (void)
     {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
-            (float)(game_window.render_x),
-              (float)(game_window.render_y)
+            static_cast <float> (game_window.render_x),
+              static_cast <float> (game_window.render_y)
           )
       );
     }
@@ -1934,7 +1934,7 @@ HRESULT
 
         hr = Present1_Original (pSwapChain1, interval, flags | DXGI_PRESENT_DO_NOT_WAIT, &pparams);
 #else
-        hr = SK_DXGI_Present   (This, interval, flags /*| DXGI_PRESENT_DO_NOT_WAIT*/);
+        hr = SK_DXGI_Present   (This, interval, flags | (bWait ? DXGI_PRESENT_DO_NOT_WAIT : 0x00));
 #endif
       }
     }
@@ -2293,6 +2293,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                          BufferCount, Width, Height,
                    (UINT)NewFormat, SwapChainFlags );
 
+  // Can't do this if waitable
+  if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
+    return S_OK;
+
+
   {
     SK_AutoCriticalSection auto_mmio_cs (&cs_mmio);
 
@@ -2389,6 +2394,10 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
+  // Can't do this if waitable
+  if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
+    return S_OK;
+
   {
     SK_AutoCriticalSection auto_mmio_cs (&cs_mmio);
 
@@ -2616,8 +2625,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       pDesc->BufferDesc.Width,
       pDesc->BufferDesc.Height,
       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-        (float)pDesc->BufferDesc.RefreshRate.Numerator /
-        (float)pDesc->BufferDesc.RefreshRate.Denominator :
+        static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+        static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
           std::numeric_limits <float>::quiet_NaN (),
       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
         L"Unspecified" :

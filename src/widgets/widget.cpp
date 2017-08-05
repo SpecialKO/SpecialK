@@ -292,6 +292,10 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
 void
 SK_Widget::draw_base (void)
 {
+  if (SK_ImGui_Widgets.hide_all)
+    return;
+
+
   static std::unordered_set <SK_Widget *> initialized;
 
   if (! initialized.count (this))

@@ -88,7 +88,7 @@ Sleep_Detour (DWORD dwMilliseconds)
   //   is skipped -- if the user wants to replace or eliminate sleep from the
   //     render / window thread for better frame pacing, we have to wait for
   //       Steam first!
-  if (SK_GetFramesDrawn () < 90)
+  if (SK_GetFramesDrawn () < 30)
     return Sleep_Original (dwMilliseconds);
 
 

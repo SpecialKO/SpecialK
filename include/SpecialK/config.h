@@ -524,4 +524,30 @@ uint32_t
 __cdecl
 SK_Config_GetTargetFPS (void);
 
+
+struct iSK_INI;
+
+struct SK_AppCache_Manager
+{
+  bool         saveAppCache       (bool           close = false);
+  bool         loadAppCacheForExe (const wchar_t* wszExe);
+
+  uint32_t     getAppIDFromPath   (const wchar_t* wszPath) const;
+  std::wstring getAppNameFromID   (uint32_t       uiAppID) const;
+  std::wstring getAppNameFromPath (const wchar_t* wszPath) const;
+
+  bool         addAppToCache      ( const wchar_t* wszRelativePath,
+                                    const wchar_t* wszExecutable,
+                                    const wchar_t* wszAppName,
+                                          uint32_t uiAppID );
+
+  std::wstring getConfigPathFromAppPath (const wchar_t* wszPath) const;
+  std::wstring getConfigPathForAppID    (uint32_t       uiAppID) const;
+
+  int          migrateProfileData       (LPVOID reserved = nullptr);
+
+protected:
+  iSK_INI* app_cache_db = nullptr;
+} extern app_cache_mgr;
+
 #endif __SK__CONFIG_H__

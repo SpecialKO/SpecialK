@@ -149,10 +149,16 @@ SK_SetConfigPath (const wchar_t* path)
   lstrcpyW (SK_ConfigPath, path);
 }
 
+
+const wchar_t*
+__stdcall
+SK_GetConfigPath (void);
+
+
 __declspec (noinline)
 const wchar_t*
 __stdcall
-SK_GetConfigPath (void)
+SK_GetNaiveConfigPath (void)
 {
   return SK_ConfigPath;
 }

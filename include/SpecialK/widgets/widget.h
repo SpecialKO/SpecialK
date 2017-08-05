@@ -431,6 +431,8 @@ struct SK_ImGui_WidgetRegistry {
 
   BOOL DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
   BOOL SaveConfig       (void);
+
+  bool hide_all             = false;
 } extern SK_ImGui_Widgets;
 
 

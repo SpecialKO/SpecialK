@@ -12194,6 +12194,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
 }
 
 
+#include <SpecialK/widgets/widget.h>
+
 void
 SK_ImGui_PollGamepad (void)
 {
@@ -12259,14 +12261,14 @@ SK_ImGui_PollGamepad (void)
       float uLX = (LX / 32767.0f) * unit;
       float uLY = (LY / 32767.0f) * unit;
 
-      io.NavInputs [ImGuiNavInput_PadActivate]    += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_A)          != 0;   // press button, tweak value                    // e.g. Circle button
-      io.NavInputs [ImGuiNavInput_PadCancel]      += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_B)          != 0;   // close menu/popup/child, lose selection       // e.g. Cross button
-      io.NavInputs [ImGuiNavInput_PadInput]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)          != 0;   // text input                                   // e.g. Triangle button
-      io.NavInputs [ImGuiNavInput_PadMenu]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_X)          != 0;   // access menu, focus, move, resize             // e.g. Square button
-      io.NavInputs [ImGuiNavInput_PadUp]          += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0;   // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0;   // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]        += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0;   // move left
-      io.NavInputs [ImGuiNavInput_PadRight]       += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;   // move right
+      io.NavInputs [ImGuiNavInput_PadActivate]    += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_A)          != 0);   // press button, tweak value                    // e.g. Circle button
+      io.NavInputs [ImGuiNavInput_PadCancel]      += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_B)          != 0);   // close menu/popup/child, lose selection       // e.g. Cross button
+      io.NavInputs [ImGuiNavInput_PadInput]       += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)          != 0);   // text input                                   // e.g. Triangle button
+      io.NavInputs [ImGuiNavInput_PadMenu]        += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_X)          != 0);   // access menu, focus, move, resize             // e.g. Square button
+      io.NavInputs [ImGuiNavInput_PadUp]          += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0) * 0.01f;   // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
+      io.NavInputs [ImGuiNavInput_PadDown]        += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0) * 0.01f;   // move down
+      io.NavInputs [ImGuiNavInput_PadLeft]        += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0) * 0.01f;   // move left
+      io.NavInputs [ImGuiNavInput_PadRight]       += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0) * 0.01f;   // move right
 
 
       io.NavInputs [ImGuiNavInput_PadScrollDown] = 0.0f;
@@ -12289,8 +12291,8 @@ SK_ImGui_PollGamepad (void)
         io.NavInputs [ImGuiNavInput_PadScrollLeft]  -= uLX / analog_sensitivity;
 
 
-      io.NavInputs [ImGuiNavInput_PadFocusPrev]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0;   // next window (with PadMenu held)              // e.g. L-trigger
-      io.NavInputs [ImGuiNavInput_PadFocusNext]   += (float)(state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;   // prev window (with PadMenu held)              // e.g. R-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusPrev]   += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0);   // next window (with PadMenu held)              // e.g. L-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusNext]   += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0);   // prev window (with PadMenu held)              // e.g. R-trigger
 
 #define SK_Threshold(x,y) (x) > (y) ? ( (x) - (y) ) : 0
 
@@ -12337,15 +12339,15 @@ SK_ImGui_PollGamepad (void)
       io.NavInputs [ImGuiNavInput_PadScrollLeft]  += (1.0f / analog_sensitivity) * (io.KeysDown ['A']      ? 1.0f : 0.0f);
       io.NavInputs [ImGuiNavInput_PadScrollRight] += (1.0f / analog_sensitivity) * (io.KeysDown ['D']      ? 1.0f : 0.0f);
 
-      io.NavInputs [ImGuiNavInput_PadUp]       += io.KeysDown [VK_UP]    ? 1.0f : 0.0f; // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]     += io.KeysDown [VK_DOWN]  ? 1.0f : 0.0f; // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]     += io.KeysDown [VK_LEFT]  ? 1.0f : 0.0f; // move left
-      io.NavInputs [ImGuiNavInput_PadRight]    += io.KeysDown [VK_RIGHT] ? 1.0f : 0.0f; // move right
+      io.NavInputs [ImGuiNavInput_PadUp]       += io.KeysDown [VK_UP]    ? 0.01f : 0.0f; // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
+      io.NavInputs [ImGuiNavInput_PadDown]     += io.KeysDown [VK_DOWN]  ? 0.01f : 0.0f; // move down
+      io.NavInputs [ImGuiNavInput_PadLeft]     += io.KeysDown [VK_LEFT]  ? 0.01f : 0.0f; // move left
+      io.NavInputs [ImGuiNavInput_PadRight]    += io.KeysDown [VK_RIGHT] ? 0.01f : 0.0f; // move right
 
-      io.NavInputs [ImGuiNavInput_PadUp]       += io.KeysDown ['W'] ? 1.0f : 0.0f;  // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]     += io.KeysDown ['S'] ? 1.0f : 0.0f;  // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]     += io.KeysDown ['A'] ? 1.0f : 0.0f;  // move left
-      io.NavInputs [ImGuiNavInput_PadRight]    += io.KeysDown ['D'] ? 1.0f : 0.0f;  // move right
+      io.NavInputs [ImGuiNavInput_PadUp]       += io.KeysDown ['W'] ? 0.01f : 0.0f;  // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
+      io.NavInputs [ImGuiNavInput_PadDown]     += io.KeysDown ['S'] ? 0.01f : 0.0f;  // move down
+      io.NavInputs [ImGuiNavInput_PadLeft]     += io.KeysDown ['A'] ? 0.01f : 0.0f;  // move left
+      io.NavInputs [ImGuiNavInput_PadRight]    += io.KeysDown ['D'] ? 0.01f : 0.0f;  // move right
     }
 
     io.NavInputs [ImGuiNavInput_PadActivate]   += io.KeysDown [VK_RETURN] ? 1.0f : 0.0f;
@@ -12364,4 +12366,22 @@ SK_ImGui_PollGamepad (void)
     io.MouseDown [4] = true;
   else
     io.MouseDown [4] = false;
+
+
+  ULONG
+  __stdcall
+  SK_GetFramesDrawn (void);
+
+
+  static int last_toggle = 0;
+
+  if ( (io.NavInputs             [ImGuiNavInput_PadTweakSlow] != 0.0f && io.NavInputs             [ImGuiNavInput_PadTweakFast] != 0.0f) &&
+       (io.NavInputsDownDuration [ImGuiNavInput_PadTweakSlow] == 0.0f || io.NavInputsDownDuration [ImGuiNavInput_PadTweakFast] == 0.0f) )
+  {
+    if (last_toggle < SK_GetFramesDrawn () - 1)
+    {
+      SK_ImGui_Widgets.hide_all = (! SK_ImGui_Widgets.hide_all);
+      last_toggle = SK_GetFramesDrawn ();
+    }
+  }
 }

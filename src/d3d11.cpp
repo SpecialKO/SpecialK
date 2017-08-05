@@ -436,6 +436,9 @@ D3D11CreateDevice_Detour (
 {
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
 
+  // Fix for Ansel ... oh how I hate Ansel.
+  InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
+
   return
     D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags,
                                              pFeatureLevels, FeatureLevels, SDKVersion,

@@ -2163,6 +2163,32 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Checkbox ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
 
+        ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+
+          if (! config.render.framerate.flip_discard)
+          {
+            ImGui::Text       ("In Regular Presentation, this Controls V-Sync");
+            ImGui::Separator  (                                               );
+            ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
+          }
+
+          else
+          {
+            ImGui::Text       ("In Flip Model, this Controls Frame Queuing Rather than V-Sync)");
+            ImGui::Separator  (                                                                );
+            ImGui::BulletText ("Values > 1 will disable G - Sync but will produce the most "
+                               "consistent framerates possible."                               );
+          }
+
+          ImGui::EndTooltip ();
+        }
+
+        config.render.framerate.present_interval = std::max (-1, std::min (4, config.render.framerate.present_interval));
+
         if (config.render.framerate.flip_discard)
         {
           bool waitable = config.render.framerate.swapchain_wait > 0;

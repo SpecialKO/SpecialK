@@ -65,7 +65,7 @@ unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user);
 
-static volatile ULONG ImGui_Init = FALSE;
+extern volatile ULONG ImGui_Init = FALSE;
 
 void
 WINAPI

@@ -1,3 +1,22 @@
+0.8.32
+
+  * Profile Name Collision Avoidance
+ ====================================
+
+ + Global Injector Profiles for Steam games use the application name as defined by the game's manifest
+   >> Prior to this, they used <app_name.exe>, which was too generic.
+
+ + This is a two-stage process that involves booting SteamAPI up to determine the AppID and then
+     parsing the manifest.
+
+   >> Translation and mapping data for each game is maintained in a new AppCache\... directory structure
+   >> Profile migration occurs automatically, but for some games my overlay may not render correctly
+        the first time you run a pre-migrated game.
+   >> In some cases, deleting the original <app_name.exe> directory may even be necessary.
+
+ + Later versions of Special K will allow blacklisting launchers and other components that share Steam AppIDs
+
+
 0.8.31
 
  + Fixed Steam DRM issues in DOOMx64 and a couplf of other OpenGL games

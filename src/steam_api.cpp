@@ -2647,6 +2647,12 @@ SK_Steam_KillPump (void)
 }
 
 
+extern const wchar_t*
+SK_GetFullyQualifiedApp (void);
+
+std::string
+SK_UseManifestToGetAppName (uint32_t appid);
+
 uint32_t
 SK::SteamAPI::AppID (void)
 {
@@ -2654,11 +2660,32 @@ SK::SteamAPI::AppID (void)
 
   if (utils != nullptr)
   {
-    static uint32_t id = utils->GetAppID ();
+    static uint32_t id    = 0;
+    static bool     first = true;
+
+    if (first)
+    {
+      id = utils->GetAppID ();
+
+      if (id != 0)
+      {
+        first = false;
+
+        app_cache_mgr.addAppToCache      (SK_GetFullyQualifiedApp (), SK_GetHostApp (), SK_UTF8ToWideChar (SK_UseManifestToGetAppName (id)).c_str (), id);
+        app_cache_mgr.saveAppCache       (true);
+
+        app_cache_mgr.loadAppCacheForExe (SK_GetFullyQualifiedApp ());
+
+        // Trigger profile migration if necessary
+        app_cache_mgr.getConfigPathForAppID (id);
+      }
+    }
 
     // If no AppID was manually set, let's assign one now.
     if (config.steam.appid == 0)
+    {
       config.steam.appid = id;
+    }
 
     return id;
   }
