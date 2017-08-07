@@ -23,6 +23,22 @@
 
 extern iSK_INI* osd_ini;
 
+constexpr
+float
+operator"" _GHz ( long double Hz )
+{
+  return
+    static_cast <float> ( Hz * 1000000000.0 );
+}
+
+constexpr
+float
+ operator"" _MiB ( long double bytes )
+{
+  return
+    static_cast <float> ( bytes * 1048576.0 );
+}
+
 class SKWG_GPU_Monitor : public SK_Widget
 {
 public:
@@ -37,19 +53,15 @@ public:
   {
     DWORD dwNow = timeGetTime ();
 
-    constexpr float  GHz = (      1000000.0f );
-    constexpr double GiB = ( 1024.0 * 1024.0 );
-
     if (last_update < dwNow - update_freq)
     {
       SK_PollGPU ();
 
-      core_clock_ghz.addValue ( (float)SK_GPU_GetClockRateInkHz    (0) / GHz);
-      vram_clock_ghz.addValue ( (float)SK_GPU_GetMemClockRateInkHz (0) / GHz);
-      gpu_load.addValue       (        SK_GPU_GetGPULoad           (0));
-      gpu_temp_c.addValue     (        SK_GPU_GetTempInC           (0));
-      vram_used_mib.addValue  ((float)(
-                               (double)SK_GPU_GetVRAMUsed          (0) / GiB));
+      core_clock_ghz.addValue ( SK_GPU_GetClockRateInkHz    (0) / 0.001_GHz);
+      vram_clock_ghz.addValue ( SK_GPU_GetMemClockRateInkHz (0) / 0.001_GHz);
+      gpu_load.addValue       ( SK_GPU_GetGPULoad           (0)    );
+      gpu_temp_c.addValue     ( SK_GPU_GetTempInC           (0)    );
+      vram_used_mib.addValue  ( SK_GPU_GetVRAMUsed          (0) / 1.0_MiB);
       //vram_shared.addValue    (       SK_GPU_GetVRAMShared        (0));
       //fan_rpm.addValue        (       SK_GPU_GetFanSpeedRPM       (0));
 
@@ -69,7 +81,7 @@ public:
     sprintf_s
       ( szAvg,
           512,
-            u8"GPU%lu Load %%:\n\n"
+            u8"GPU%lu Load %%:\n\n\n"
             u8"          min: %3.0f%%, max: %3.0f%%, avg: %4.1f%%\n",
               0,
                 gpu_load.getMin (), gpu_load.getMax (),
@@ -82,10 +94,10 @@ public:
     ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                               ImColor::HSV ( 0.31f - 0.31f *
                        std::min ( 1.0f, gpu_load.getAvg () / 100.0f ),
-                                               0.73f,
-                                                 0.93f ) );
+                                               0.86f,
+                                                 0.95f ) );
 
-    ImGui::PlotLines ( "###GPU_LoadPercent",
+    ImGui::PlotLinesC ( "###GPU_LoadPercent",
                          gpu_load.getValues     ().data (),
         static_cast <int> (samples),
                              gpu_load.getOffset (),
@@ -93,12 +105,12 @@ public:
                                  0.0f,
                                    100.0f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
     sprintf_s
       ( szAvg,
           512,
-            u8"GPU%lu Temp (°C):\n\n"
+            u8"GPU%lu Temp (°C):\n\n\n"
             u8"          min: %3.0f°, max: %3.0f°, avg: %4.1f°\n",
               0,
                 gpu_temp_c.getMin   (), gpu_temp_c.getMax (),
@@ -111,10 +123,10 @@ public:
     ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                               ImColor::HSV ( 0.31f - 0.31f *
                        std::min ( 1.0f, gpu_temp_c.getAvg () / 100.0f ),
-                                               0.73f,
-                                                 0.93f ) );
+                                               0.86f,
+                                                 0.95f ) );
 
-    ImGui::PlotLines ( "###GPU_TempC",
+    ImGui::PlotLinesC ( "###GPU_TempC",
                          gpu_temp_c.getValues     ().data (),
         static_cast <int> (samples),
                              gpu_temp_c.getOffset (),
@@ -122,7 +134,7 @@ public:
                                  0.0f,
                                    100.0f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
 
     ImGui::PushStyleColor ( ImGuiCol_PlotLines, ImColor::HSV (0.0f, 0.0f, 0.725f) );
@@ -130,7 +142,7 @@ public:
     sprintf_s
       ( szAvg,
           512,
-            u8"GPU%lu Core Clock (GHz):\n\n"
+            u8"GPU%lu Core Clock (GHz):\n\n\n"
             u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
               0,
                 core_clock_ghz.getMin   (), core_clock_ghz.getMax (),
@@ -140,20 +152,20 @@ public:
       std::min ( (float)core_clock_ghz.getUpdates  (),
                  (float)core_clock_ghz.getCapacity () );
 
-    ImGui::PlotLines ( "###GPU_CoreClock",
+    ImGui::PlotLinesC ( "###GPU_CoreClock",
                          core_clock_ghz.getValues ().data (),
         static_cast <int> (samples),
                              core_clock_ghz.getOffset (),
                                szAvg,
-                                 core_clock_ghz.getMin   (),
-                                   core_clock_ghz.getMax (),
+                                 core_clock_ghz.getMin   () / 2.0f,
+                                   core_clock_ghz.getMax () * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
     sprintf_s
       ( szAvg,
           512,
-            u8"GPU%lu VRAM Clock (GHz):\n\n"
+            u8"GPU%lu VRAM Clock (GHz):\n\n\n"
             u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
               0,
                 vram_clock_ghz.getMin   (), vram_clock_ghz.getMax (),
@@ -163,15 +175,15 @@ public:
       std::min ( (float)vram_clock_ghz.getUpdates  (),
                  (float)vram_clock_ghz.getCapacity () );
 
-    ImGui::PlotLines ( "###GPU_VRAMClock",
+    ImGui::PlotLinesC ( "###GPU_VRAMClock",
                          vram_clock_ghz.getValues ().data (),
         static_cast <int> (samples),
                              vram_clock_ghz.getOffset (),
                                szAvg,
-                                 vram_clock_ghz.getMin   (),
-                                   vram_clock_ghz.getMax (),
+                                 vram_clock_ghz.getMin   () / 2.0f,
+                                   vram_clock_ghz.getMax () * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
     // TODO: Add a parameter to data history to control this
     static float max_use = 0.0f;
@@ -181,7 +193,7 @@ public:
     sprintf_s
       ( szAvg,
           512,
-            u8"GPU%lu VRAM Usage (MiB):\n\n"
+            u8"GPU%lu VRAM Usage (MiB):\n\n\n"
             u8"          min: %6.1f, max: %6.1f, avg: %6.1f\n",
               0,
                 vram_used_mib.getMin   (), max_use,
@@ -191,21 +203,27 @@ public:
       std::min ( (float)vram_used_mib.getUpdates  (),
                  (float)vram_used_mib.getCapacity () );
 
+    float capacity_in_mib =
+      static_cast <float> (SK_GPU_GetVRAMBudget (0) >> 20ULL);
+
+    if (capacity_in_mib <= 0.0f)
+      capacity_in_mib = 4096.0f; // Just take a wild guess, lol
+
     ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                               ImColor::HSV ( 0.31f - 0.31f *
-                       std::min ( 1.0f, vram_used_mib.getAvg () / 8192.0f ),
-                                               0.73f,
-                                                 0.93f ) );
+                       std::min ( 1.0f, vram_used_mib.getAvg () / capacity_in_mib ),
+                                               0.86f,
+                                                 0.95f ) );
 
-    ImGui::PlotLines ( "###GPU_VRAMUsage",
+    ImGui::PlotLinesC ( "###GPU_VRAMUsage",
                          vram_used_mib.getValues ().data (),
         static_cast <int> (samples),
                              vram_used_mib.getOffset (),
                                szAvg,
-                                 0.0f,//vram_clock_ghz.getMin   (),
-                                   8192.0f,//max_use,//vram_clock_ghz.getMax (),
+                                 0.0f,//vram_used_mib.getMin   (),//0.0f,
+                                   capacity_in_mib * 1.05,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
     ImGui::PopStyleColor (4);
   }

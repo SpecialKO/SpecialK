@@ -609,7 +609,7 @@ SK_DXGI_BringRenderWindowToTop (void)
 
 extern int                      gpu_prio;
 
-bool             bAlwaysAllowFullscreen = false;
+bool             bAlwaysAllowFullscreen = true;
 HWND             hWndRender             = 0;
 
 bool bFlipMode = false;
@@ -617,15 +617,6 @@ bool bWait     = false;
 
 // Used for integrated GPU override
 int              SK_DXGI_preferred_adapter = -1;
-
-bool
-WINAPI
-SK_DXGI_EnableFlipMode (bool bFlip)
-{
-  const bool before    = bFlipMode;
-             bFlipMode = bFlip;
-  return before;
-}
 
 void
 WINAPI
@@ -1676,10 +1667,10 @@ HRESULT
 
         if (bAlwaysAllowFullscreen)
         {
-          pFactory->MakeWindowAssociation (
-            desc.OutputWindow,
-              DXGI_MWA_NO_WINDOW_CHANGES
-          );
+          //pFactory->MakeWindowAssociation (
+            //desc.OutputWindow,
+              //DXGI_MWA_NO_WINDOW_CHANGES
+          //);
         }
 
         if (hWndRender == 0 || (! IsWindow (hWndRender)))

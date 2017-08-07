@@ -100,6 +100,14 @@ ULONG
 __stdcall
 SK_GetFramesDrawn (void);
 
+
+HWND
+SK_Win32_CreateDummyWindow  (void);
+
+void
+SK_Win32_CleanupDummyWindow (void);
+
+
 enum DLL_ROLE {
   INVALID    = 0x000,
 

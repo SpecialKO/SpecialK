@@ -38,16 +38,18 @@ public:
     ini        = nullptr;
   }
 
-  virtual std::wstring get_value_str (void) = 0;
+  virtual std::wstring get_value_str (void)             = 0;
   virtual void         set_value_str (std::wstring str) = 0;
 
   // Read value from INI
   bool load (void)
   {
-    if (ini != nullptr) {
+    if (ini != nullptr)
+    {
       iSK_INISection& section = ini->get_section (ini_section.c_str ());
 
-      if (section.contains_key (ini_key.c_str ())) {
+      if (section.contains_key (ini_key.c_str ()))
+      {
         set_value_str (section.get_value (ini_key.c_str ()));
         return true;
       }
@@ -61,14 +63,16 @@ public:
   {
     bool ret = false;
 
-    if (ini != nullptr) {
+    if (ini != nullptr)
+    {
       iSK_INISection& section = ini->get_section (ini_section.c_str ());
 
       // If this operation actually creates a section, we need to make sure
       //   that section has a name!
       section.name = ini_section;
 
-      if (section.contains_key (ini_key.c_str ())) {
+      if (section.contains_key (ini_key.c_str ()))
+      {
         section.get_value (ini_key.c_str ()) = get_value_str ();
         ret = true;
       }

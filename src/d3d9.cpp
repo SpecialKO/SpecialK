@@ -3151,12 +3151,6 @@ SK::D3D9::getPipelineStatsDesc (void)
   return wszDesc;
 }
 
-extern HWND
-SK_Win32_CreateDummyWindow (void);
-
-void
-SK_Win32_CleanupDummyWindow (void);
-
 unsigned int
 __stdcall
 HookD3D9 (LPVOID user)
@@ -3181,7 +3175,8 @@ HookD3D9 (LPVOID user)
 
     if (pD3D9 != nullptr)
     {      
-      hwnd = SK_Win32_CreateDummyWindow ();
+      hwnd =
+        SK_Win32_CreateDummyWindow ();
 
       D3DPRESENT_PARAMETERS pparams = { };
 
@@ -3356,7 +3351,8 @@ HookD3D9 (LPVOID user)
       {
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
         
-        hwnd    = SK_Win32_CreateDummyWindow ();
+        hwnd    =
+          SK_Win32_CreateDummyWindow ();
         pparams = { };
 
         pparams.SwapEffect            = D3DSWAPEFFECT_FLIPEX;

@@ -1,4 +1,4 @@
-/**
+/**+
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -209,7 +209,8 @@ SK_GPUPollingThread (LPVOID user)
             (meminfo.availableDedicatedVideoMemory) -
             (meminfo.curAvailableDedicatedVideoMemory);
 
-          stats.gpus [i].memory_B.local = local * 1024LL;
+          stats.gpus [i].memory_B.local    = local                        * 1024LL;
+          stats.gpus [i].memory_B.capacity = meminfo.dedicatedVideoMemory * 1024LL;
 
           stats.gpus [i].memory_B.total =
             ((meminfo.dedicatedVideoMemory) -
@@ -389,7 +390,7 @@ SK_GPUPollingThread (LPVOID user)
 
         stats.gpus [i].volts_mV.supported = true;
         stats.gpus [i].volts_mV.over      = false;
-        stats.gpus [i].volts_mV.core      = (float)activity.iVddc; // mV?
+        stats.gpus [i].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
 
         ADLTemperature temp       = {                   };
                        temp.iSize = sizeof ADLTemperature;
@@ -482,18 +483,18 @@ uint32_t
 __stdcall
 SK_GPU_GetClockRateInkHz (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-           gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
-           0;
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
+                            gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
+                                              0;
 }
 
 uint32_t
 __stdcall
 SK_GPU_GetMemClockRateInkHz (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-           gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
-           0;
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
+                            gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
+                                              0;
 };
 
 uint64_t
@@ -501,9 +502,9 @@ __stdcall
 SK_GPU_GetMemoryBandwidth (int gpu)
 {
   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-      ((uint64_t)gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram * 2ULL * 1000ULL *
-       (uint64_t)gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width) / 8 :
-        0;
+      (static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
+       static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
+                                                 0;
 }
 
 float
@@ -511,25 +512,25 @@ __stdcall
 SK_GPU_GetMemoryLoad (int gpu)
 {
   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-    (float)gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb :
-    0.0f;
+       static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb) :
+                                             0.0f;
 }
 
 float
 __stdcall SK_GPU_GetGPULoad (int gpu)
 {
   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-    (float)gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu :
-    0.0f;
+       static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu) :
+                                             0.0f;
 }
 
 float
 __stdcall
 SK_GPU_GetTempInC           (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-    (float)gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu :
-    0.0f;
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)               ?
+       static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu) :
+                                             0.0f;
 }
 
 uint32_t
@@ -537,32 +538,56 @@ __stdcall
 SK_GPU_GetFanSpeedRPM       (int gpu)
 {
   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-    gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.supported ?
+    gpu_stats_buffers   [current_gpu_stat].gpus [gpu].fans_rpm.supported   ?
       gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
 }
+
+#include <dxgi_backend.h>
 
 uint64_t
 __stdcall
 SK_GPU_GetVRAMUsed          (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-    gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local : 0;
+  buffer_t buffer = mem_info [0].buffer;
+  int      nodes  = mem_info [buffer].nodes;
+
+  return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+         ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
+                  gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
+                                     0;
 }
 
 uint64_t
 __stdcall
 SK_GPU_GetVRAMShared        (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-    gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal : 0;
+  buffer_t buffer = mem_info [0].buffer;
+  int      nodes  = mem_info [buffer].nodes;
+
+  return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+         ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
+                  gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
+                                     0;
+}
+
+uint64_t
+__stdcall
+SK_GPU_GetVRAMCapacity      (int gpu)
+{
+  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                    ?
+                            gpu_stats_buffers [current_gpu_stat].gpus [gpu].memory_B.capacity :
+                                              0;
 }
 
 uint64_t
 __stdcall
 SK_GPU_GetVRAMBudget        (int gpu)
 {
-  UNREFERENCED_PARAMETER (gpu);
+  buffer_t buffer = mem_info [0].buffer;
+  int      nodes  = mem_info [buffer].nodes;
 
-  // TODO
-  return 0;
+  return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+         ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
+                            SK_GPU_GetVRAMCapacity (gpu) )                       :
+                                     0;
 }

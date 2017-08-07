@@ -366,7 +366,7 @@ SK_GetConfigPath (void)
     init = true;
   }
 
-  std::wstring path =
+  static std::wstring path =
     app_cache_mgr.getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
 
   return path.c_str ();
@@ -4019,7 +4019,7 @@ SK_AppCache_Manager::getAppNameFromPath (const wchar_t* wszPath) const
 
 bool
 SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
-                                     const wchar_t* wszExecutable,
+                                     const wchar_t*,
                                      const wchar_t* wszAppName,
                                            uint32_t uiAppID )
 {

@@ -100,7 +100,6 @@ EXPORTS
   SK_D3D11_AddTexHash            = SK_D3D11_AddTexHash             PRIVATE
   SK_D3D11_RemoveTexHash         = SK_D3D11_RemoveTexHash          PRIVATE
   SK_D3D11_PopulateResourceList  = SK_D3D11_PopulateResourceList   PRIVATE
-  SK_DXGI_EnableFlipMode         = SK_DXGI_EnableFlipMode          PRIVATE
   SK_DXGI_SetPreferredAdapter    = SK_DXGI_SetPreferredAdapter     PRIVATE
   SKX_D3D11_MarkTextures         = SKX_D3D11_MarkTextures          PRIVATE
   SKX_D3D11_EnableFullscreen     = SKX_D3D11_EnableFullscreen      PRIVATE
@@ -534,6 +533,7 @@ SK_GetCursorPos                  = GetCursorPos_Detour               PRIVATE
 SK_GetCursorInfo                 = GetCursorInfo_Detour              PRIVATE
 SK_GetGameWindow                 = SK_GetGameWindow                  PRIVATE
 SK_PluginKeyPress                = SK_PluginKeyPress                 PRIVATE
+SK_PlugIn_ControlPanelWidget     = SK_PlugIn_ControlPanelWidget      PRIVATE
 SK_GetConfigPath                 = SK_GetConfigPath                  PRIVATE
 SK_CreateLog                     = SK_CreateLog                      PRIVATE
 SK_CreateINI                     = SK_CreateINI                      PRIVATE

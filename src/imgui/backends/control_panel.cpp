@@ -898,16 +898,16 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                             ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
-                                             0.73f,
-                                               0.93f ) );
+                                             0.86f,
+                                               0.95f ) );
 
   ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" : "###Floating_FramePacing",
                        SK_ImGui_Frames.getValues     ().data (),
       static_cast <int> (frames),
                            SK_ImGui_Frames.getOffset (),
                              szAvg,
-                               0.0f,
-                                 2.0f * target_frametime,
+                               -.1f,
+                                 2.0f * target_frametime + 0.1f,
                                    ImVec2 (
                                      std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 7.0f) );
 
@@ -2116,6 +2116,21 @@ SK_ImGui_ControlPanel (void)
                                          /*(stats.attempts - stats.rejections), stats.attempts,*/
                                            InterlockedAdd64 (&stats.time.allowed, 0), InterlockedAdd64 (&stats.time.deprived, 0) );
                   }
+
+          extern bool  SK_Framerate_Busy;
+          extern float SK_Framerate_WaitScalar;
+          extern bool  SK_Framerate_YieldOnce;
+
+          ImGui::Checkbox   ("Busy-Wait Limiter",            &SK_Framerate_Busy);
+
+          if (! SK_Framerate_Busy)
+          {
+            ImGui::SameLine   ();
+            ImGui::InputFloat ("Wait Scale (% of TargetMS)", &SK_Framerate_WaitScalar);
+
+            ImGui::Checkbox   ("Yield Once",                 &SK_Framerate_YieldOnce);
+          }
+
           ImGui::EndGroup ();
         }
       }
@@ -3633,7 +3648,9 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
       ImGui::TreePush       ("");
 
-      if (ImGui::CollapsingHeader ("Basic Monitoring", ImGuiTreeNodeFlags_DefaultOpen))
+      ImGui::Checkbox ("Display OSD", &config.osd.show);
+
+      if (config.osd.show && ImGui::CollapsingHeader ("Basic Monitoring", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush ("");
 
@@ -3663,7 +3680,7 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::TreePop ();
       }
 
-      if (ImGui::CollapsingHeader ("Extended Monitoring"))
+      if (config.osd.show && ImGui::CollapsingHeader ("Extended Monitoring"))
       {
         ImGui::TreePush     ("");
 
@@ -3738,7 +3755,7 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::TreePop     ();
       }
 
-      if (ImGui::CollapsingHeader ("Appearance", ImGuiTreeNodeFlags_DefaultOpen))
+      if (config.osd.show && ImGui::CollapsingHeader ("Appearance", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush ("");
 
@@ -3829,8 +3846,8 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::BeginTooltip ();
       ImGui::Text         ("Advanced Graphical Extensions to the OSD");
       ImGui::Separator    ();
-      ImGui::BulletText   ("Widgets are Graphical Representations of Performance Data; Viewable on-demand.");
-      ImGui::BulletText   ("Right-click a Widget to access its Config Menu.");
+      ImGui::BulletText   ("Widgets are Graphical Representations of Performance Data");
+      ImGui::BulletText   ("Right-click a Widget to Access its Config Menu");
       ImGui::EndTooltip   ();
     }
 

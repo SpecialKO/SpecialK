@@ -141,18 +141,18 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
   if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
   {
-    if (io.DisplaySize.x < 1024.0f || io.DisplaySize.y < 720.0f)
-    {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.6f, 0.2f, 1.0f));
-      ImGui::Bullet   ();
-      ImGui::SameLine ();
-      ImGui::TextWrapped (
-           "This software only runs at resolutions >= 1024x768 or 1280x720, please uninstall the software or use a higher resolution than (%lux%lu).",
-             (int)io.DisplaySize.x, (int)io.DisplaySize.y
-      );
-      ImGui::PopStyleColor ();
-      goto END_POPUP;
-    }
+    //if (io.DisplaySize.x < 1024.0f || io.DisplaySize.y < 720.0f)
+    //{
+    //  ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.6f, 0.2f, 1.0f));
+    //  ImGui::Bullet   ();
+    //  ImGui::SameLine ();
+    //  ImGui::TextWrapped (
+    //       "This software only runs at resolutions >= 1024x768 or 1280x720, please uninstall the software or use a higher resolution than (%lux%lu).",
+    //         (int)io.DisplaySize.x, (int)io.DisplaySize.y
+    //  );
+    //  ImGui::PopStyleColor ();
+    //  goto END_POPUP;
+    //}
 
     bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
                     SK_Steam_PiratesAhoy () != 0x0 );
@@ -348,8 +348,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     }
 
     ImGui::EndGroup ();
-
-END_POPUP:
     ImGui::EndPopup ();
   }
 }

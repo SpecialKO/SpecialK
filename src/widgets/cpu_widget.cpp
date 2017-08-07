@@ -111,16 +111,16 @@ public:
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
                          std::min ( 1.0f, cpu_records [i].getAvg () / 100.0f ),
-                                                 0.73f,
-                                                   0.93f ) );
+                                                 0.86f,
+                                                   0.95f ) );
 
-      ImGui::PlotLines ( szName,
+      ImGui::PlotLinesC ( szName,
                            cpu_records [i].getValues     ().data (),
           static_cast <int> (samples),
                                cpu_records [i].getOffset (),
                                  szAvg,
-                                   0.0f,
-                                     100.0f,
+                                   -1.0f,
+                                     101.0f,
                                        ImVec2 (
                                          std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
 

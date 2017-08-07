@@ -11960,12 +11960,14 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  if (SK_ImGui_WantGamepadCapture () && dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot)
+  if ( SK_ImGui_WantGamepadCapture () &&
+       dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot )
   {
     ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
     // SDL Keepalive
-    pState->dwPacketNumber = std::max (1UL, pState->dwPacketNumber);
+    pState->dwPacketNumber =
+      std::max (1UL, pState->dwPacketNumber);
 
     return true;
   }
@@ -11980,7 +11982,7 @@ struct {
           start,    end;
   
     float run (void) {
-      float now = (float)timeGetTime ();
+      float now = static_cast <float> (timeGetTime ());
       
       return config.input.gamepad.haptic_ui ?
                std::max (0.0f, strength * ((end - now) / (end - start))) :
@@ -12022,7 +12024,7 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   {
     SK_Input_RememberPressedKeys ();
 
-    haptic_events.PulseTitle.start = (float)timeGetTime ();
+    haptic_events.PulseTitle.start = static_cast <float> (timeGetTime ());
     haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
                                        haptic_events.PulseTitle.duration;
   }
@@ -12061,7 +12063,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     // This stupid hack prevents the Steam overlay from making the software
     //   think tab is stuck down.
-    for (int i = 7; i < 256; i++)
+    for (int i = 8; i < 256; i++)
       io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
   }
 
@@ -12093,7 +12095,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
     SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
   }
 
-         XINPUT_STATE state;
+         XINPUT_STATE state      = {      };
   static XINPUT_STATE last_state = { 1, 0 };
 
 #if 1
@@ -12115,7 +12117,12 @@ SK_ImGui_PollGamepad_EndFrame (void)
         bool toggle = true,
              nav    = (! nav_usable);
 
-        SK_ImGui_ToggleEx (toggle, nav);
+        // Additional condition for Final Fantasy X so as not to interfere with soft reset
+        if (! ( state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD || 
+                state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) )
+        {
+          SK_ImGui_ToggleEx (toggle, nav);
+        }
       }
     }
 
@@ -12132,7 +12139,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
           bool toggle_vis = (! SK_ImGui_Visible);
           bool toggle_nav =    true;
 
-          SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
+          if (SK_ImGui_Visible)
+            SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
 
           dwLastPress = MAXDWORD;
         }
@@ -12152,13 +12160,14 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   if (SK_ImGui_Visible && config.input.gamepad.haptic_ui)
   {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g =
+      *GImGui;
 
     static ImGuiID nav_id = 0;
 
     if (g.NavId != nav_id)
     {
-      if (haptic_events.PulseNav.end > (float)timeGetTime ())
+      if (haptic_events.PulseNav.end > static_cast <float> (timeGetTime ()))
       {
         haptic_events.PulseNav.end   += haptic_events.PulseNav.duration;
         haptic_events.PulseNav.start += haptic_events.PulseNav.duration;
@@ -12166,7 +12175,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
       else
       {
-        haptic_events.PulseNav.start = (float)timeGetTime ();
+        haptic_events.PulseNav.start = static_cast <float> (timeGetTime ());
         haptic_events.PulseNav.end   = haptic_events.PulseNav.start +
                                          haptic_events.PulseNav.duration;
       }
@@ -12174,7 +12183,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     if (g.ActiveIdIsJustActivated)
     {
-      haptic_events.PulseButton.start = (float)timeGetTime ();
+      haptic_events.PulseButton.start = static_cast <float> (timeGetTime ());
       haptic_events.PulseButton.end   = haptic_events.PulseButton.start +
                                           haptic_events.PulseButton.duration;
     }
@@ -12195,6 +12204,12 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
 
 #include <SpecialK/widgets/widget.h>
+
+ULONG
+__stdcall
+SK_GetFramesDrawn (void);
+
+#define SK_Threshold(x,y) (x) > (y) ? ( (x) - (y) ) : 0
 
 void
 SK_ImGui_PollGamepad (void)
@@ -12229,8 +12244,13 @@ SK_ImGui_PollGamepad (void)
   state = di8_to_xi;
 #endif
 
-  if ((config.input.gamepad.native_ps4 || SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state)) &&
-       last_state.dwPacketNumber <= state.dwPacketNumber)
+  if ( ( config.input.gamepad.native_ps4 ||
+         SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
+                                      &state
+                                  )
+        )                                &&
+        last_state.dwPacketNumber <= state.dwPacketNumber
+     )
   {
     last_state = state;
 
@@ -12239,7 +12259,7 @@ SK_ImGui_PollGamepad (void)
       float LX   = state.Gamepad.sThumbLX;
       float LY   = state.Gamepad.sThumbLY;
 
-      float norm = sqrt (LX*LX + LY*LY);
+      float norm = sqrt ( LX*LX + LY*LY );
 
       //float nLX  = LX / norm;
       //float nLY  = LY / norm;
@@ -12249,7 +12269,7 @@ SK_ImGui_PollGamepad (void)
       if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
       {
         norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
-        unit =         norm / (32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+        unit =           norm/(32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
       }
 
       else
@@ -12261,18 +12281,52 @@ SK_ImGui_PollGamepad (void)
       float uLX = (LX / 32767.0f) * unit;
       float uLY = (LY / 32767.0f) * unit;
 
-      io.NavInputs [ImGuiNavInput_PadActivate]    += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_A)          != 0);   // press button, tweak value                    // e.g. Circle button
-      io.NavInputs [ImGuiNavInput_PadCancel]      += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_B)          != 0);   // close menu/popup/child, lose selection       // e.g. Cross button
-      io.NavInputs [ImGuiNavInput_PadInput]       += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)          != 0);   // text input                                   // e.g. Triangle button
-      io.NavInputs [ImGuiNavInput_PadMenu]        += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_X)          != 0);   // access menu, focus, move, resize             // e.g. Square button
-      io.NavInputs [ImGuiNavInput_PadUp]          += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0) * 0.01f;   // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]        += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0) * 0.01f;   // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]        += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0) * 0.01f;   // move left
-      io.NavInputs [ImGuiNavInput_PadRight]       += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0) * 0.01f;   // move right
+      // Press Button, Tweak Value                    // e.g. Circle button
+      io.NavInputs [ImGuiNavInput_PadActivate] +=
+        static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0);
+
+      // Close Menu/PopUp/Child, Clear Selection      // e.g. Cross button
+      io.NavInputs [ImGuiNavInput_PadCancel]   +=
+        static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0);
+
+      // Text Input                                   // e.g. Triangle button
+      io.NavInputs [ImGuiNavInput_PadInput]    +=
+        static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0);
+
+      // Access Menu, Focus, Move, Resize             // e.g. Square button
+      io.NavInputs [ImGuiNavInput_PadMenu]     +=
+        static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0);
+
+      //
+      // [ANALOG INPUTS]
+      //
+      // Move Up, Resize Window (with PadMenu held)   // e.g. D-pad up/down/left/right
+      io.NavInputs [ImGuiNavInput_PadUp]    +=  0.001f *
+        static_cast <float> (
+          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0
+        );
+
+      // Move Down
+      io.NavInputs [ImGuiNavInput_PadDown]  +=  0.001f *
+        static_cast <float> (
+          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0
+        );
+
+      // Move Left
+      io.NavInputs [ImGuiNavInput_PadLeft]  +=  0.001f *
+        static_cast <float> (
+          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0
+        );
+
+      // Move Right
+      io.NavInputs [ImGuiNavInput_PadRight] +=  0.001f *
+        static_cast <float> (
+          (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0
+        );
 
 
-      io.NavInputs [ImGuiNavInput_PadScrollDown] = 0.0f;
-      io.NavInputs [ImGuiNavInput_PadScrollUp]   = 0.0f;
+      io.NavInputs [ImGuiNavInput_PadScrollDown]    = 0.0f;
+      io.NavInputs [ImGuiNavInput_PadScrollUp]      = 0.0f;
 
       if (uLY > 0.0f)
         io.NavInputs [ImGuiNavInput_PadScrollUp]   += uLY / analog_sensitivity;
@@ -12281,8 +12335,8 @@ SK_ImGui_PollGamepad (void)
         io.NavInputs [ImGuiNavInput_PadScrollDown] -= uLY / analog_sensitivity;
 
 
-      io.NavInputs [ImGuiNavInput_PadScrollLeft]  = 0.0f;
-      io.NavInputs [ImGuiNavInput_PadScrollRight] = 0.0f;
+      io.NavInputs [ImGuiNavInput_PadScrollLeft]    = 0.0f;
+      io.NavInputs [ImGuiNavInput_PadScrollRight]   = 0.0f;
 
       if (uLX > 0.0f)
         io.NavInputs [ImGuiNavInput_PadScrollRight] += uLX / analog_sensitivity;
@@ -12291,13 +12345,29 @@ SK_ImGui_PollGamepad (void)
         io.NavInputs [ImGuiNavInput_PadScrollLeft]  -= uLX / analog_sensitivity;
 
 
-      io.NavInputs [ImGuiNavInput_PadFocusPrev]   += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0);   // next window (with PadMenu held)              // e.g. L-trigger
-      io.NavInputs [ImGuiNavInput_PadFocusNext]   += (float)((state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0);   // prev window (with PadMenu held)              // e.g. R-trigger
+      // Next Window (with PadMenu held)              // e.g. L-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusPrev]   +=
+        static_cast <float> (
+          (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0
+        );
 
-#define SK_Threshold(x,y) (x) > (y) ? ( (x) - (y) ) : 0
+      // Prev Window (with PadMenu held)              // e.g. R-trigger
+      io.NavInputs [ImGuiNavInput_PadFocusNext]   += 
+        static_cast <float> (
+          (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0
+        );
 
-      io.NavInputs [ImGuiNavInput_PadTweakSlow]   += (float)(SK_Threshold (state.Gamepad.bLeftTrigger,  XINPUT_GAMEPAD_TRIGGER_THRESHOLD)) / (255.0f-XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-      io.NavInputs [ImGuiNavInput_PadTweakFast]   += (float)(SK_Threshold (state.Gamepad.bRightTrigger, XINPUT_GAMEPAD_TRIGGER_THRESHOLD)) / (255.0f-XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+      io.NavInputs [ImGuiNavInput_PadTweakSlow] +=
+        static_cast <float> ( 
+          SK_Threshold ( state.Gamepad.bLeftTrigger, 
+                         XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
+              ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
+
+      io.NavInputs [ImGuiNavInput_PadTweakFast] +=
+        static_cast <float> (
+          SK_Threshold ( state.Gamepad.bRightTrigger,
+                         XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
+              ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
     }
   }
 
@@ -12315,50 +12385,75 @@ SK_ImGui_PollGamepad (void)
   if (! nav_usable)
     io.NavActive = false;
 
+  //
+  // Same basic idea as above, only for keyboard
+  //
+  //   The primary difference between gamepad and keyboard is the lack of a left
+  //     analog stick to differentiate D-Pad behavior from analog stick movement.
+  //
+  //   For keyboard, we alias both to the same task and also consider WASD to be
+  //     identical to Up/Down/Left/Right.
+  //
   if (io.NavUsable && nav_usable)
   {
-    //io.NavInputs [ImGuiNavInput_PadTweakSlow]     // slower tweaks                                // e.g. L-trigger, analog
-    //io.NavInputs [ImGuiNavInput_PadTweakFast]     // faster tweaks                                // e.g. R-trigger, analog
-
-    io.NavInputs [ImGuiNavInput_PadMenu]       += (io.KeyCtrl) ? 1.0f : 0.0f;   // access menu, focus, move, resize             // e.g. Square button
+    io.NavInputs [ImGuiNavInput_PadMenu] += (io.KeyCtrl) ? 1.0f : 0.0f;
 
     if (! io.WantTextInput)
     {
-      io.NavInputs [ImGuiNavInput_PadScrollUp]    += (1.0f / analog_sensitivity) * (io.KeysDown [VK_PRIOR] ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollDown]  += (1.0f / analog_sensitivity) * (io.KeysDown [VK_NEXT]  ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollLeft]  += (1.0f / analog_sensitivity) * (io.KeysDown [VK_HOME]  ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollRight] += (1.0f / analog_sensitivity) * (io.KeysDown [VK_END]   ? 1.0f : 0.0f);
+      const bool up    = ( io.KeysDown ['W'] || io.KeysDown [VK_UP   ] );
+      const bool down  = ( io.KeysDown ['S'] || io.KeysDown [VK_DOWN ] );
+      const bool left  = ( io.KeysDown ['A'] || io.KeysDown [VK_LEFT ] );
+      const bool right = ( io.KeysDown ['D'] || io.KeysDown [VK_RIGHT] );
 
-      io.NavInputs [ImGuiNavInput_PadScrollUp]    += (1.0f / analog_sensitivity) * (io.KeysDown [VK_UP]    ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollDown]  += (1.0f / analog_sensitivity) * (io.KeysDown [VK_DOWN]  ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollLeft]  += (1.0f / analog_sensitivity) * (io.KeysDown [VK_LEFT]  ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollRight] += (1.0f / analog_sensitivity) * (io.KeysDown [VK_RIGHT] ? 1.0f : 0.0f);
+      const float inv_analog     =
+          ( 1.0f / analog_sensitivity );
 
-      io.NavInputs [ImGuiNavInput_PadScrollUp]    += (1.0f / analog_sensitivity) * (io.KeysDown ['W']      ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollDown]  += (1.0f / analog_sensitivity) * (io.KeysDown ['S']      ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollLeft]  += (1.0f / analog_sensitivity) * (io.KeysDown ['A']      ? 1.0f : 0.0f);
-      io.NavInputs [ImGuiNavInput_PadScrollRight] += (1.0f / analog_sensitivity) * (io.KeysDown ['D']      ? 1.0f : 0.0f);
+      const float analog_epsilon = 0.001f;
 
-      io.NavInputs [ImGuiNavInput_PadUp]       += io.KeysDown [VK_UP]    ? 0.01f : 0.0f; // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]     += io.KeysDown [VK_DOWN]  ? 0.01f : 0.0f; // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]     += io.KeysDown [VK_LEFT]  ? 0.01f : 0.0f; // move left
-      io.NavInputs [ImGuiNavInput_PadRight]    += io.KeysDown [VK_RIGHT] ? 0.01f : 0.0f; // move right
+      io.NavInputs [ImGuiNavInput_PadScrollUp]    +=
+        (io.KeysDown [VK_PRIOR] ? inv_analog : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadScrollDown]  +=
+        (io.KeysDown [VK_NEXT ] ? inv_analog : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadScrollLeft]  +=
+        (io.KeysDown [VK_HOME ] ? inv_analog : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadScrollRight] +=
+        (io.KeysDown [VK_END  ] ? inv_analog : 0.0f);
 
-      io.NavInputs [ImGuiNavInput_PadUp]       += io.KeysDown ['W'] ? 0.01f : 0.0f;  // move up, resize window (with PadMenu held)   // e.g. D-pad up/down/left/right, analog
-      io.NavInputs [ImGuiNavInput_PadDown]     += io.KeysDown ['S'] ? 0.01f : 0.0f;  // move down
-      io.NavInputs [ImGuiNavInput_PadLeft]     += io.KeysDown ['A'] ? 0.01f : 0.0f;  // move left
-      io.NavInputs [ImGuiNavInput_PadRight]    += io.KeysDown ['D'] ? 0.01f : 0.0f;  // move right
+      io.NavInputs [ImGuiNavInput_PadScrollUp]    +=
+        (up    ? inv_analog : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadScrollDown]  +=
+        (down  ? inv_analog : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadScrollLeft]  +=
+        (left  ? inv_analog : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadScrollRight] +=
+        (right ? inv_analog : 0.0f);
+
+      io.NavInputs [ImGuiNavInput_PadUp]          +=
+        (up    ? analog_epsilon : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadDown]        +=
+        (down  ? analog_epsilon : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadLeft]        +=
+        (left  ? analog_epsilon : 0.0f);
+      io.NavInputs [ImGuiNavInput_PadRight]       +=
+        (right ? analog_epsilon : 0.0f);
     }
 
-    io.NavInputs [ImGuiNavInput_PadActivate]   += io.KeysDown [VK_RETURN] ? 1.0f : 0.0f;
-    io.NavInputs [ImGuiNavInput_PadCancel]     += io.KeysDown [VK_ESCAPE] ? 1.0f : 0.0f;
+    io.NavInputs  [ImGuiNavInput_PadActivate]     +=
+      io.KeysDown [VK_RETURN]  ?  1.0f : 0.0f;
+    io.NavInputs  [ImGuiNavInput_PadCancel]       +=
+      io.KeysDown [VK_ESCAPE]  ?  1.0f : 0.0f;
   }
 
   else
     io.NavActive = false;
 
-  io.NavInputs [ImGuiNavInput_PadFocusPrev]  += io.KeyCtrl && io.KeyShift && io.KeysDown [VK_TAB] && io.KeysDownDuration [VK_TAB] == 0.0f ? 1.0f : 0.0f;
-  io.NavInputs [ImGuiNavInput_PadFocusNext]  += io.KeyCtrl &&                io.KeysDown [VK_TAB] && io.KeysDownDuration [VK_TAB] == 0.0f ? 1.0f : 0.0f;
+  io.NavInputs [ImGuiNavInput_PadFocusPrev] +=
+    (io.KeyCtrl && io.KeyShift && io.KeysDown [VK_TAB] &&
+                          io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
+
+  io.NavInputs [ImGuiNavInput_PadFocusNext] +=
+    (io.KeyCtrl                && io.KeysDown [VK_TAB] &&
+                          io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
 
 
 
@@ -12367,21 +12462,197 @@ SK_ImGui_PollGamepad (void)
   else
     io.MouseDown [4] = false;
 
+  static DWORD last_toggle = 0UL;
 
-  ULONG
-  __stdcall
-  SK_GetFramesDrawn (void);
-
-
-  static int last_toggle = 0;
-
-  if ( (io.NavInputs             [ImGuiNavInput_PadTweakSlow] != 0.0f && io.NavInputs             [ImGuiNavInput_PadTweakFast] != 0.0f) &&
-       (io.NavInputsDownDuration [ImGuiNavInput_PadTweakSlow] == 0.0f || io.NavInputsDownDuration [ImGuiNavInput_PadTweakFast] == 0.0f) )
+  if ( ( io.NavInputs             [ImGuiNavInput_PadTweakSlow] != 0.0f &&
+         io.NavInputs             [ImGuiNavInput_PadTweakFast] != 0.0f )   &&
+       ( io.NavInputsDownDuration [ImGuiNavInput_PadTweakSlow] == 0.0f ||
+         io.NavInputsDownDuration [ImGuiNavInput_PadTweakFast] == 0.0f )      )
   {
     if (last_toggle < SK_GetFramesDrawn () - 1)
     {
       SK_ImGui_Widgets.hide_all = (! SK_ImGui_Widgets.hide_all);
-      last_toggle = SK_GetFramesDrawn ();
+      last_toggle               =    SK_GetFramesDrawn ();
     }
   }
+}
+
+
+
+
+
+void
+ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
+                 float (*values_getter)(void* data, int idx),       void* data,
+                 int     values_count,  int   values_offset,  const char* overlay_text,
+                 float   scale_min,     float scale_max,           ImVec2 graph_size,
+                 float, float, float,   bool  inverse )
+{
+  ImGuiWindow* window =
+    GetCurrentWindow ();
+
+  if (window->SkipItems)
+    return;
+
+  ImGuiContext&     g     = *GImGui;
+  const ImGuiStyle& style = g.Style;
+
+  const ImVec2 label_size =
+    CalcTextSize (label, nullptr, true);
+
+  if (graph_size.x == 0.0f)
+      graph_size.x = CalcItemWidth ();
+  if (graph_size.y == 0.0f)
+      graph_size.y = label_size.y + (style.FramePadding.y * 2.0f);
+
+  const ImRect frame_bb ( window->DC.CursorPos,
+                          window->DC.CursorPos + ImVec2 ( graph_size.x,
+                                                          graph_size.y ) );
+  const ImRect inner_bb ( frame_bb.Min + style.FramePadding,
+                          frame_bb.Max - style.FramePadding );
+  const ImRect total_bb ( frame_bb.Min,
+                          frame_bb.Max + ImVec2 ( ( (label_size.x > 0.0f)
+                                                      ?
+                                        style.ItemInnerSpacing.x + label_size.x
+                                                      :
+                                                     0.0f ),
+                                                  0.0f
+                                                )
+                        );
+
+  ItemSize (total_bb, style.FramePadding.y);
+
+  if (! ItemAdd (total_bb, nullptr, &frame_bb))
+    return;
+
+  // Determine scale from values if not specified
+  if ( scale_min == std::numeric_limits <float>::max () ||
+       scale_max == std::numeric_limits <float>::max () )
+  {
+    float v_min = std::numeric_limits <float>::max ();
+    float v_max = std::numeric_limits <float>::min ();
+
+    for (int i = 0; i < values_count; i++)
+    {
+      const float v =
+        values_getter (data, i);
+
+      v_min = ImMin (v_min, v);
+      v_max = ImMax (v_max, v);
+    }
+
+    if (scale_min == std::numeric_limits <float>::max ())
+        scale_min = v_min;
+    if (scale_max == std::numeric_limits <float>::max ())
+        scale_max = v_max;
+  }
+
+  RenderFrame ( frame_bb.Min,
+                frame_bb.Max,
+                  GetColorU32 (ImGuiCol_FrameBg),
+                    true,
+                      style.FrameRounding );
+
+  if (values_count > 0)
+  {
+    int    res_w      = ImMin ( static_cast <int> ( graph_size.x ),
+                                                    values_count ) - 1;
+    int    item_count = values_count - 1;
+
+    const float
+           t_step     = 1.0f / static_cast <float> (res_w);
+
+    float  t0         = 0.0f;
+    float  v0         = values_getter (
+                          data,
+                            (0 + values_offset) % values_count
+                        );
+
+    // Point in the normalized space of our target rectangle
+    ImVec2 tp0 ( t0, 1.0f - ImSaturate ( (v0        - scale_min) /
+                                         (scale_max - scale_min) ) );
+
+    for (int n = 0; n < res_w; n++)
+    {
+      const float  t1      = t0 + t_step;
+
+      const int    v1_idx  = static_cast <int> (t0 * item_count + 0.5f);
+      IM_ASSERT(   v1_idx >= 0 && v1_idx < values_count);
+
+      const float  v1      =
+        values_getter (data, (v1_idx + values_offset + 1) % values_count);
+
+      const ImVec2 tp1 ( t1, 1.0f - ImSaturate ( (v1        - scale_min) /
+                                                 (scale_max - scale_min) ) );
+
+      float col_v0 = ( inverse ? scale_max - v0 : v0 );
+      float col_v1 = ( inverse ? scale_max - v1 : v1 );
+
+      const ImU32 col_base = 
+        ImColor::HSV (
+          0.31f - 0.31f * ImLerp ( std::min ( 1.0f, col_v0 / scale_max ),
+                                   std::min ( 1.0f, col_v1 / scale_max ),
+                                   tp0.y ),
+          0.86f,
+          0.95f
+        );
+
+      // NB: Draw calls are merged together by the DrawList system. Still,
+      //     we should render our batch are lower level to save a bit of CPU.
+      ImVec2 pos0 = ImLerp (inner_bb.Min, inner_bb.Max, tp0);
+      ImVec2 pos1 = ImLerp (inner_bb.Min, inner_bb.Max, tp1);
+
+      window->DrawList->AddLine (pos0, pos1, col_base);
+
+      v0  = v1;
+      t0  = t1;
+      tp0 = tp1;
+    }
+  }
+
+  // Text overlay
+  if (overlay_text)
+  {
+    RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
+                                 frame_bb.Min.y + style.FramePadding.y ),
+                          frame_bb.Max,
+                            overlay_text,
+                              nullptr, nullptr,
+                                ImVec2 (0.5f, 0.0f) );
+  }
+
+  if (label_size.x > 0.0f)
+  {
+    RenderText ( ImVec2 ( frame_bb.Max.x + style.ItemInnerSpacing.x,
+                          inner_bb.Min.y ),
+                   label );
+  }
+}
+
+// Note-to-Future-Self:
+// --------------------
+//  Dear Dumbass,
+//
+//   With this many arguments, stop passing them on the stack and use a structure.
+//
+void
+ImGui::PlotLinesC ( const char*  label,         const float* values,
+                          int    values_count,        int    values_offset,
+                    const char*  overlay_text,        float  scale_min,
+                                                      float  scale_max,
+                          ImVec2 graph_size,          int    stride,
+                          float  saturation,          float  value,
+                          float  avg,                 bool   inverse )
+{
+  ImGuiPlotArrayGetterData data =
+    ImGuiPlotArrayGetterData (values, stride);
+
+  PlotCEx ( ImGuiPlotType_Lines, label,        &Plot_ArrayGetter,
+              reinterpret_cast <void *>(&data), values_count,
+                                                values_offset,
+                overlay_text,   scale_min, scale_max,
+                  graph_size,
+                    saturation, value,     avg,
+                      inverse
+          );
 }

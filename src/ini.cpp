@@ -624,7 +624,7 @@ std::wstring&
 __stdcall
 iSK_INISection::get_value (const wchar_t* key)
 {
-  std::map <std::wstring, std::wstring>::iterator it_key =
+  std::unordered_map <std::wstring, std::wstring>::iterator it_key =
     keys.find (key);
 
   if (it_key != keys.end ())

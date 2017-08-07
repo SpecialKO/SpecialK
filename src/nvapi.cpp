@@ -51,9 +51,6 @@ NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo;
 NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID;
 NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU;
 
-NvAPI_D3D_IsGSyncActive_pfn         _NvAPI_D3D_IsGsyncActive;
-NvAPI_D3D_IsGSyncCapable_pfn        _NvAPI_D3D_IsGsyncSupported;
-
 using namespace sk;
 using namespace sk::NVAPI;
 
@@ -472,15 +469,6 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         dll_log.LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
         nv_hardware = false;
       }
-
-      //_NvAPI_D3D_IsGSyncCapable =
-        //(NvAPI_D3D_IsGSyncCapable_pfn)NvAPI_QueryInterface (__NvAPI_D3D_IsGSyncCapable);
-
-      //_NvAPI_D3D_IsGSyncActive =
-        //(NvAPI_D3D_IsGSyncActive_pfn)NvAPI_QueryInterface (__NvAPI_D3D_IsGSyncActive);
-
-      //_NvAPI_D3D_GetObjectHandleForResource =
-        //(NvAPI_D3D_GetObjectHandleForResource_pfn)NvAPI_QueryInterface (__NvAPI_D3D_GetObjectHandleForResource);
     }
 
     else {
@@ -1163,7 +1151,6 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = { };
-
 
     custom_profile.isPredefined = false;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());

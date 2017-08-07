@@ -900,11 +900,12 @@ Exit 0</Command>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
-      <Command>del "$(OutDir)$(TargetName).lib" 2&gt;nul 1&gt;nul del "$(OutDir)$(TargetName).exp" 2&gt;nul 1&gt;nul 
-Exit 0</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Deleting useless import library...</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
     <ProjectReference />
   </ItemDefinitionGroup>

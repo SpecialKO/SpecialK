@@ -29,46 +29,54 @@
 // 64?! Isn't that a bit ridiculous memory wise? But NvAPI wants it that big
 #define MAX_GPUS 64
 
-struct gpu_sensors_t {
-  struct {
+struct gpu_sensors_t
+{
+  struct
+  {
     //
     // NV's driver only updates load % once per-second...
     //   (or so the API says, but that is wrong in practice).
     //
-    struct {
+    struct
+    {
       uint32_t gpu; // GPU
 
       // NVIDIA ONLY
-      struct {
+      struct
+      {
         uint32_t fb  = 0; // Memory
         uint32_t vid = 0; // Video Encoder
         uint32_t bus = 0; // Bus
       };
     } loads_percent;
 
-    struct {
+    struct
+    {
       uint32_t gpu    = 0;
       uint32_t ram    = 0;
       //uint32_t shader = 0;
     } clocks_kHz;
 
-    struct {
+    struct
+    {
       float core      = 0.0f;
       float ov        = 0.0f;
       bool  over      = false;
       bool  supported = false;
     } volts_mV;
 
-    struct {
+    struct
+    {
       int32_t gpu = 0;
       int32_t ram = 0;
       int32_t psu = 0;
       int32_t pcb = 0;
     } temps_c;
 
-    struct {
-      uint32_t gpu      = 0;
-      bool    supported = false;
+    struct
+    {
+      uint32_t gpu       = 0;
+      bool     supported = false;
     } fans_rpm;
 
     //
@@ -77,16 +85,16 @@ struct gpu_sensors_t {
     //
     //         We can do better in Windows 10!  (*See DXGI 1.4 Memory Info)
     //
-    struct {
+    struct
+    {
       uint64_t local;
       uint64_t nonlocal; // COMPUTED: (total - local)
       uint64_t total;
-
-      // Padding for optimal alignment
-      uint64_t padding;
+      uint64_t capacity;
     } memory_B;
 
-    struct {
+    struct
+    {
       uint32_t mem_type; // 8 == GDDR5
       uint32_t mem_bus_width;
 
@@ -94,12 +102,15 @@ struct gpu_sensors_t {
       uint32_t pcie_gen;
       uint32_t pcie_transfer_rate;
 
-      double pcie_bandwidth_mb (void) {
-        if (pcie_gen == 2 || pcie_gen == 1 || pcie_gen == 0) {
+      double pcie_bandwidth_mb (void)
+      {
+        if (pcie_gen == 2 || pcie_gen == 1 || pcie_gen == 0)
+        {
           return (pcie_transfer_rate / 8.0) * (0.8) * pcie_lanes;
         }
 
-        else if (pcie_gen == 3 || pcie_gen == 4) {
+        else if (pcie_gen == 3 || pcie_gen == 4)
+        {
           return (pcie_transfer_rate / 8.0) * (0.9846) * pcie_lanes;
         }
 
@@ -126,7 +137,9 @@ float    __stdcall SK_GPU_GetGPULoad           (int GPU);
 float    __stdcall SK_GPU_GetTempInC           (int gpu);
 uint32_t __stdcall SK_GPU_GetFanSpeedRPM       (int gpu);
 uint64_t __stdcall SK_GPU_GetVRAMUsed          (int gpu);
+//uint64_t __stdcall SK_GPU_GetVRAMResident      (int gpu);  // TODO: Abstract DXGI 1.4 better
 uint64_t __stdcall SK_GPU_GetVRAMShared        (int gpu);
+uint64_t __stdcall SK_GPU_GetVRAMCapacity      (int gpu);
 uint64_t __stdcall SK_GPU_GetVRAMBudget        (int gpu);
 
 void SK_PollGPU       (void);

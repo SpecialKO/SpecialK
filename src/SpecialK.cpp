@@ -292,7 +292,6 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"GameBarPresenceWriter.exe");
     blacklist.emplace (L"OAWrapper.exe");
     blacklist.emplace (L"NvOAWrapperCache.exe");
-    blacklist.emplace (L"mspaint.exe");
 
     blacklist.emplace (L"GameServer.exe");// Sacred   Game Server
     blacklist.emplace (L"s2gs.exe");      // Sacred 2 Game Server

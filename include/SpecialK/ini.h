@@ -22,7 +22,7 @@
 #define __SK__INI_H__
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <Unknwnbase.h>
@@ -55,7 +55,7 @@ public:
   //protected:
   //private:
   std::wstring                                    name;
-  std::map           <std::wstring, std::wstring> keys;
+  std::unordered_map <std::wstring, std::wstring> keys;
   std::vector        <std::wstring>               ordered_keys;
 
   ULONG                                           refs = 0;
@@ -67,7 +67,7 @@ static const GUID IID_SK_INI =
 
 interface iSK_INI : public IUnknown
 {
-  typedef const std::map <std::wstring, iSK_INISection> _TSectionMap;
+  typedef const std::unordered_map <std::wstring, iSK_INISection> _TSectionMap;
 
    iSK_INI (const wchar_t* filename);
   ~iSK_INI (void);
@@ -98,7 +98,7 @@ private:
   wchar_t*  wszName = nullptr;
   wchar_t*  wszData = nullptr;
 
-  std::map <
+  std::unordered_map <
     std::wstring, iSK_INISection
   >         sections;
 

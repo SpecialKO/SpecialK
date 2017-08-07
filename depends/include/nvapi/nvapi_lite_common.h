@@ -424,9 +424,9 @@ typedef struct
     NvU32   systemVideoMemory;                 //!< Size(in kb) of system memory the driver allocates at load time.
     NvU32   sharedSystemMemory;                //!< Size(in kb) of shared system memory that driver is allowed to commit for surfaces across all allocations.
     NvU32   curAvailableDedicatedVideoMemory;  //!< Size(in kb) of the current available physical framebuffer for allocating video memory surfaces.
-	NvU32   dedicatedVideoMemoryEvictionsSize; //!< Size(in kb) of the total size of memory released as a result of the evictions.
-	NvU32   dedicatedVideoMemoryEvictionCount; //!< Indicates the number of eviction events that caused an allocation to be removed from dedicated video memory to free GPU
-	                                           //!< video memory to make room for other allocations.
+    NvU32   dedicatedVideoMemoryEvictionsSize; //!< Size(in kb) of the total size of memory released as a result of the evictions.
+    NvU32   dedicatedVideoMemoryEvictionCount; //!< Indicates the number of eviction events that caused an allocation to be removed from dedicated video memory to free GPU
+                                               //!< video memory to make room for other allocations.
 } NV_DISPLAY_DRIVER_MEMORY_INFO_V3;
 
 //! \ingroup driverapi

@@ -50,11 +50,11 @@ public:
       D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
         SK::DXGI::pipeline_stats_d3d11.last_results;
 
-      pipeline.raster.fill_ratio.addValue          ( 100.0F * static_cast <float> (stats.CPrimitives) /
+      pipeline.raster.fill_ratio.addValue          ( 100.0f * static_cast <float> (stats.CPrimitives) /
                                                               static_cast <float> (stats.CInvocations),  false );
-      pipeline.raster.triangles_submitted.addValue (          static_cast <float> (stats.CInvocations),  FALSE );
-      pipeline.raster.pixels_filled.addValue       (          static_cast <float> (stats.PSInvocations), FALSE );
-      pipeline.raster.triangles_filled.addValue    (          static_cast <float> (stats.CPrimitives),   FALSE );
+      pipeline.raster.triangles_submitted.addValue (          static_cast <float> (stats.CInvocations),  false );
+      pipeline.raster.pixels_filled.addValue       (          static_cast <float> (stats.PSInvocations), false );
+      pipeline.raster.triangles_filled.addValue    (          static_cast <float> (stats.CPrimitives),   false );
 
 
       pipeline.tessellation.hull.addValue          (static_cast <float> (stats.HSInvocations), false);
@@ -90,7 +90,7 @@ public:
       sprintf_s
         ( szAvg,
             512,
-              u8"Vertex Invocations:\n\n"
+              u8"Vertex Invocations:\n\n\n"
               u8"          min: %ws Invocations,   max: %ws Invocations,   avg: %ws Invocations\n",
                   SK_CountToString   (static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMin ())).c_str   (),
                     SK_CountToString (max_invoke).c_str                                                         (),
@@ -103,18 +103,18 @@ public:
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
                          std::min ( 1.0f, pipeline.vertex.verts_invoked.getMax () / static_cast <float> (max_invoke) ),
-                                                 0.73f,
-                                                   0.93f ) );
+                                                 0.86f,
+                                                   0.95 ) );
 
-      ImGui::PlotLines ( "###Vtx_Assembly",
+      ImGui::PlotLinesC ( "###Vtx_Assembly",
                          pipeline.vertex.verts_invoked.getValues ().data (),
                            samples,
                              pipeline.vertex.verts_invoked.getOffset     (),
                                szAvg,
-                                 pipeline.vertex.verts_invoked.getMin    (),
-               static_cast <float> (max_invoke),
+                                 pipeline.vertex.verts_invoked.getMin    () / 2.0f,
+               static_cast <float> (max_invoke)                             * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
       static uint64_t max_verts = (                    static_cast <uint64_t> (pipeline.vertex.verts_input.getMax ()));
                       max_verts = std::max (max_verts, static_cast <uint64_t> (pipeline.vertex.verts_input.getMax ()));
@@ -122,7 +122,7 @@ public:
       sprintf_s
         ( szAvg,
             512,
-              u8"Vertices Input:\n\n"
+              u8"Vertices Input:\n\n\n"
               u8"          min: %ws Vertices,   max: %ws Vertices,   avg: %ws Vertices\n",
                   SK_CountToString     (static_cast <uint64_t> (pipeline.vertex.verts_input.getMin ())).c_str (),
                     SK_CountToString   (max_verts).c_str                                                      (),
@@ -135,18 +135,18 @@ public:
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
                          std::min ( 1.0f, pipeline.vertex.verts_input.getMax () / static_cast <float> (max_verts) ),
-                                                 0.73f,
-                                                   0.93f ) );
+                                                 0.86f,
+                                                   0.95 ) );
 
-      ImGui::PlotLines ( "###Vtx_Assembly",
+      ImGui::PlotLinesC ( "###Vtx_Assembly",
                          pipeline.vertex.verts_input.getValues ().data (),
                            samples,
                              pipeline.vertex.verts_input.getOffset     (),
                                szAvg,
-                                 pipeline.vertex.verts_input.getMin    (),
-               static_cast <float> (max_verts),
+                                 pipeline.vertex.verts_input.getMin    () / 2.0f,
+               static_cast <float> (max_verts)                            * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
       static uint64_t max_prims = (                    static_cast <uint64_t> (pipeline.vertex.prims_input.getMax ()));
                       max_prims = std::max (max_prims, static_cast <uint64_t> (pipeline.vertex.prims_input.getMax ()));
@@ -154,7 +154,7 @@ public:
       sprintf_s
         ( szAvg,
             512,
-              u8"Primitives Assembled:\n\n"
+              u8"Primitives Assembled:\n\n\n"
               u8"          min: %ws Triangles,   max: %ws Triangles,   avg: %ws Triangles\n",
                   SK_CountToString     (static_cast <uint64_t> (pipeline.vertex.prims_input.getMin ())).c_str (),
                     SK_CountToString   (max_prims).c_str                                                      (),
@@ -167,18 +167,18 @@ public:
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
                          std::min ( 1.0f, pipeline.vertex.prims_input.getMax () / static_cast <float> (max_prims) ),
-                                                 0.73f,
-                                                   0.93f ) );
+                                                 0.86f,
+                                                   0.95 ) );
 
-      ImGui::PlotLines ( "###Prim_Assembly",
+      ImGui::PlotLinesC ( "###Prim_Assembly",
                          pipeline.vertex.prims_input.getValues ().data (),
                            samples,
                              pipeline.vertex.prims_input.getOffset     (),
                                szAvg,
-                                 pipeline.vertex.prims_input.getMin    (),
-               static_cast <float> (max_prims),
+                                 pipeline.vertex.prims_input.getMin    () / 2.0f,
+               static_cast <float> (max_prims)                            * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
       ImGui::PopStyleColor (3);
     }
@@ -195,7 +195,7 @@ public:
       sprintf_s
         ( szAvg,
             512,
-              u8"Raster Fill Rate:\n\n"
+              u8"Raster Fill Rate:\n\n\n"
               u8"          min: %5.1f%%,   max: %5.1f%%,   avg: %5.1f%%\n",
                 pipeline.raster.fill_ratio.getMin   (), pipeline.raster.fill_ratio.getMax (),
                   pipeline.raster.fill_ratio.getAvg () );
@@ -209,19 +209,19 @@ public:
 
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
-                         std::min ( 1.0f, pipeline.raster.fill_ratio.getAvg () / 100.0f ),
-                                                 0.73f,
-                                                   0.93f ) );
+                         std::min ( 1.0f, ((100.0f - pipeline.raster.fill_ratio.getAvg ()) / 100.0f) ),
+                                                 0.86f,
+                                                   0.95 ) );
 
-      ImGui::PlotLines ( "###Raster_Rate",
+      ImGui::PlotLinesC ( "###Raster_Rate",
                          pipeline.raster.fill_ratio.getValues ().data (),
                            samples,
                              pipeline.raster.fill_ratio.getOffset     (),
                                szAvg,
-                                 pipeline.raster.fill_ratio.getMin    (),
-                                   max_ratio,
+                                 0.0f,//pipeline.raster.fill_ratio.getMin    () / 2.0f,
+                                   100.0f,//max_ratio                             * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f), sizeof (float), 0.0, 0.0, 0.0, true );
 
       static uint64_t max_fill = (   static_cast <uint64_t> (pipeline.raster.pixels_filled.getMax ()) );
                       max_fill = std::max (
@@ -230,10 +230,10 @@ public:
                                  );
 
 
-      sprintf_s
+                      sprintf_s
         ( szAvg,
             512,
-              u8"Pixels Shaded:\n\n"
+              u8"Pixels Shaded:\n\n\n"
               u8"          min: %ws Pixels,   max: %ws Pixels,   avg: %ws Pixels\n",
                 SK_CountToString     (static_cast <uint64_t> (pipeline.raster.pixels_filled.getMin ())).c_str (),
                   SK_CountToString   (max_fill).c_str                                                         (),
@@ -246,18 +246,18 @@ public:
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
                          std::min ( 1.0f, pipeline.raster.pixels_filled.getMax () / max_fill ),
-                                                 0.73f,
-                                                   0.93f ) );
+                                                 0.86f,
+                                                   0.95 ) );
 
-      ImGui::PlotLines ( "###Pixels_Filled",
+      ImGui::PlotLinesC ( "###Pixels_Filled",
                          pipeline.raster.pixels_filled.getValues ().data (),
                            samples,
                              pipeline.raster.pixels_filled.getOffset     (),
                                szAvg,
-                                 pipeline.raster.pixels_filled.getMin    (),
-               static_cast <float> (max_fill),
+                                 pipeline.raster.pixels_filled.getMin    () / 2.0f,
+               static_cast <float> (max_fill)                               * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
       ImGui::PopStyleColor (2);
     }
@@ -273,7 +273,7 @@ public:
       sprintf_s
         ( szAvg,
             512,
-              u8"Compute Shader Invocations:\n\n"
+              u8"Compute Shader Invocations:\n\n\n"
               u8"          min: %ws Compels,   max: %ws Compels,   avg: %ws Compels\n",
                 SK_CountToString     (static_cast <uint64_t> (pipeline.compute.dispatches.getMin ())).c_str (),
                   SK_CountToString   (max_dispatch).c_str                                                   (),
@@ -286,18 +286,18 @@ public:
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
                          std::min ( 1.0f, pipeline.raster.pixels_filled.getMax () / max_dispatch ),
-                                                 0.73f,
-                                                   0.93f ) );
+                                                 0.86f,
+                                                   0.95 ) );
 
-      ImGui::PlotLines ( "###Compels_Dispatched",
+      ImGui::PlotLinesC ( "###Compels_Dispatched",
                          pipeline.compute.dispatches.getValues ().data (),
                            samples,
                              pipeline.compute.dispatches.getOffset     (),
                                szAvg,
-                                 pipeline.compute.dispatches.getMin    (),
-               static_cast <float> (max_dispatch),
+                                 pipeline.compute.dispatches.getMin    () / 2.0f,
+               static_cast <float> (max_dispatch)                         * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.0f) );
+                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
       ImGui::PopStyleColor (1);
     }

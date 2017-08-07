@@ -1,3 +1,15 @@
+0.8.33
+
+ + Fixed low-resolution issues with the EULA window
+ + Most analytical graphs are now multi-colored instead of trying to determine
+     a single color to represent the quality of the entire dataset.
+ + Added new options to the framerate limiter (disabled by default) to continue
+     driving a game's window message pump if it renders from the same thread as it
+       handles input.
+  >> Should reduce input latency and help in games like FFX
+  >> You must turn Busy-Wait limiting off in order to use this
+
+
 0.8.32
 
   * Profile Name Collision Avoidance

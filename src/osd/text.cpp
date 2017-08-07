@@ -840,12 +840,12 @@ SK_DrawOSD (void)
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
-          mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
-                      gpu_stats.gpus [i].loads_percent.fb,
-          (double)((uint64_t)gpu_stats.gpus [i].clocks_kHz.ram * 2ULL * 1000ULL *
-                   (uint64_t)gpu_stats.gpus [i].hwinfo.mem_bus_width) / 8.0 /
-                     (1024.0 * 1024.0 * 1024.0) *
-                    ((double)gpu_stats.gpus [i].loads_percent.fb / 100.0)
+                                   mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
+                                               gpu_stats.gpus [i].loads_percent.fb,
+static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
+                       static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
+                                                                           (1024.0 * 1024.0 * 1024.0) *
+static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
         OSD_END
       }
 
@@ -886,10 +886,10 @@ SK_DrawOSD (void)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
           i,
-           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
+           mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
                        gpu_stats.gpus [i].loads_percent.bus,
                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
-              ((double)gpu_stats.gpus [i].loads_percent.bus / 100.0),
+ static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          /  100.0,
                        pcie_gen,
                        gpu_stats.gpus [i].hwinfo.pcie_lanes
                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
@@ -922,12 +922,12 @@ SK_DrawOSD (void)
       {
         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
           i,
-                      gpu_stats.gpus [i].memory_B.local >> 20ULL,
+          mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
                       gpu_stats.gpus [i].loads_percent.fb,
-          (double)((uint64_t)gpu_stats.gpus [i].clocks_kHz.ram * 2ULL * 1000ULL *
-                   (uint64_t)gpu_stats.gpus [i].hwinfo.mem_bus_width) / 8.0 /
-                     (1024.0 * 1024.0 * 1024.0) *
-                    ((double)gpu_stats.gpus [i].loads_percent.fb / 100.0)
+static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
+                       static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
+                                                                           (1024.0 * 1024.0 * 1024.0) *
+static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
         OSD_END
       }
 
@@ -954,10 +954,10 @@ SK_DrawOSD (void)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
           i,
-                       gpu_stats.gpus [i].memory_B.nonlocal >> 20ULL,
+                       gpu_stats.gpus [i].memory_B.nonlocal          >> 20ULL,
                        gpu_stats.gpus [i].loads_percent.bus,
                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
-              ((double)gpu_stats.gpus [i].loads_percent.bus / 100.0),
+ static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          / 100.0,
                        pcie_gen,
                        gpu_stats.gpus [i].hwinfo.pcie_lanes
                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
