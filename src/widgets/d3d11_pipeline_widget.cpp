@@ -23,6 +23,7 @@
 #include <SpecialK/widgets/widget.h>
 #include <SpecialK/gpu_monitor.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/render_backend.h>
 
 #include <algorithm>
 
@@ -43,6 +44,13 @@ public:
 
   void run (void)
   {
+    if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::D3D11              ) ) )
+    {
+      setActive (false);
+      return;
+    }
+
     DWORD dwNow = timeGetTime ();
 
     if (last_update < dwNow - update_freq)
@@ -75,6 +83,13 @@ public:
 
   void draw (void)
   {
+    if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::D3D11              ) ) )
+    {
+      setVisible (false);
+      return;
+    }
+
     ImGuiIO& io (ImGui::GetIO ( ));
 
     const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;

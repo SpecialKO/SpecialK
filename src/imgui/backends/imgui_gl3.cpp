@@ -41,8 +41,8 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
   // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
   ImGuiIO& io (ImGui::GetIO ());
 
-  int fb_width  = (int)(io.DisplaySize.x);// * io.DisplayFramebufferScale.x);
-  int fb_height = (int)(io.DisplaySize.y);// * io.DisplayFramebufferScale.y);
+  int fb_width  = static_cast <int> (io.DisplaySize.x);// * io.DisplayFramebufferScale.x);
+  int fb_height = static_cast <int> (io.DisplaySize.y);// * io.DisplayFramebufferScale.y);
 
   if (fb_width == 0 || fb_height == 0)
     return;
@@ -83,7 +83,8 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
 
   // Setup viewport, orthographic projection matrix
   glViewport ( 0, 0,
-              (GLsizei)fb_width, (GLsizei)fb_height );
+                 static_cast <GLsizei> (fb_width),
+                 static_cast <GLsizei> (fb_height) );
 
   const float ortho_projection [4][4] =
   {
@@ -94,7 +95,7 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
   };
 
   glUseProgram       (g_ShaderHandle);
-  glUniform1i        (g_AttribLocationTex, 0);
+  glUniform1i        (g_AttribLocationTex,     0);
   glUniformMatrix4fv (g_AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
   glBindVertexArray  (g_VaoHandle);
 
@@ -104,10 +105,12 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
     const ImDrawIdx*  idx_buffer_offset = 0;
 
     glBindBuffer (GL_ARRAY_BUFFER,         g_VboHandle);
-    glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
+    glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof (ImDrawVert),
+                                       (const GLvoid *)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
 
     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
-    glBufferData (GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx),  (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
+    glBufferData (GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx),
+                                       (const GLvoid *)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
 
     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
     {
@@ -119,8 +122,13 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
       else
       {
         glBindTexture  (GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-        glScissor      ((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-        glDrawElements (GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
+        glScissor      ( (int) pcmd->ClipRect.x,                     (int)(fb_height        - pcmd->ClipRect.w),
+                         (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y) );
+        glDrawElements ( GL_TRIANGLES, (GLsizei)pcmd->ElemCount,
+                           sizeof (ImDrawIdx) == 2 ?
+                                     GL_UNSIGNED_SHORT :
+                                     GL_UNSIGNED_INT,
+                                       idx_buffer_offset );
       }
       idx_buffer_offset += pcmd->ElemCount;
     }
@@ -177,18 +185,23 @@ ImGui_ImplGL3_CreateFontsTexture (void)
   int            width  = 0,
                  height = 0;
 
-  // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
+  // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small)
+  //   because it is more likely to be compatible with user's existing shaders.
+  //
+  //  If your ImTextureId represent a higher-level concept than just a GL texture id,
+  //    consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
   io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
   
   // Upload texture to graphics system
   GLint last_texture;
 
-  glGetIntegerv   (GL_TEXTURE_BINDING_2D, &last_texture);
-  glGenTextures   (1, &g_FontTexture);
-  glBindTexture   (GL_TEXTURE_2D, g_FontTexture);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexImage2D    (GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+  glGetIntegerv   ( GL_TEXTURE_BINDING_2D, &last_texture               );
+  glGenTextures   ( 1,                     &g_FontTexture              );
+  glBindTexture   ( GL_TEXTURE_2D,          g_FontTexture              );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR    );
+  glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR    );
+  glTexImage2D    ( GL_TEXTURE_2D, 0, GL_RGBA, width, height,    0,
+                                     GL_RGBA, GL_UNSIGNED_BYTE, pixels );
   
   // Store our identifier
   io.Fonts->TexID =
@@ -208,7 +221,7 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
         last_array_buffer,
         last_vertex_array;
 
-  glGetIntegerv (GL_TEXTURE_BINDING_2D,   &last_texture);
+  glGetIntegerv (GL_TEXTURE_BINDING_2D,   &last_texture     );
   glGetIntegerv (GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
   glGetIntegerv (GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
@@ -238,11 +251,11 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
       "	Out_Color = Frag_Color * texture( Texture, Frag_UV.st);\n"
       "}\n";
 
-  g_ShaderHandle = glCreateProgram ();
-  g_VertHandle   = glCreateShader  (GL_VERTEX_SHADER);
+  g_ShaderHandle = glCreateProgram (                  );
+  g_VertHandle   = glCreateShader  ( GL_VERTEX_SHADER );
   g_FragHandle   = glCreateShader  (GL_FRAGMENT_SHADER);
 
-  glShaderSource  (g_VertHandle, 1, &vertex_shader, 0);
+  glShaderSource  (g_VertHandle, 1, &vertex_shader,   0);
   glShaderSource  (g_FragHandle, 1, &fragment_shader, 0);
   glCompileShader (g_VertHandle);
   glCompileShader (g_FragHandle);
@@ -250,11 +263,11 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
   glAttachShader  (g_ShaderHandle, g_FragHandle);
   glLinkProgram   (g_ShaderHandle);
 
-  g_AttribLocationTex      = glGetUniformLocation (g_ShaderHandle, "Texture");
-  g_AttribLocationProjMtx  = glGetUniformLocation (g_ShaderHandle, "ProjMtx");
+  g_AttribLocationTex      = glGetUniformLocation (g_ShaderHandle, "Texture" );
+  g_AttribLocationProjMtx  = glGetUniformLocation (g_ShaderHandle, "ProjMtx" );
   g_AttribLocationPosition = glGetAttribLocation  (g_ShaderHandle, "Position");
-  g_AttribLocationUV       = glGetAttribLocation  (g_ShaderHandle, "UV");
-  g_AttribLocationColor    = glGetAttribLocation  (g_ShaderHandle, "Color");
+  g_AttribLocationUV       = glGetAttribLocation  (g_ShaderHandle, "UV"      );
+  g_AttribLocationColor    = glGetAttribLocation  (g_ShaderHandle, "Color"   );
 
   glGenBuffers (1, &g_VboHandle);
   glGenBuffers (1, &g_ElementsHandle);
@@ -267,10 +280,28 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
   glEnableVertexAttribArray (g_AttribLocationUV);
   glEnableVertexAttribArray (g_AttribLocationColor);
 
-#define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-  glVertexAttribPointer (g_AttribLocationPosition, 2, GL_FLOAT,         GL_FALSE, sizeof (ImDrawVert), (GLvoid *)OFFSETOF (ImDrawVert, pos));
-  glVertexAttribPointer (g_AttribLocationUV,       2, GL_FLOAT,         GL_FALSE, sizeof (ImDrawVert), (GLvoid *)OFFSETOF (ImDrawVert, uv));
-  glVertexAttribPointer (g_AttribLocationColor,    4, GL_UNSIGNED_BYTE, GL_TRUE,  sizeof (ImDrawVert), (GLvoid *)OFFSETOF (ImDrawVert, col));
+#define OFFSETOF(TYPE, ELEMENT) ( reinterpret_cast <size_t> (     \
+                                    &(reinterpret_cast <TYPE *> ( \
+                                      nullptr                     \
+                                     )->ELEMENT)                  \
+                                  )                               \
+                                )
+
+  glVertexAttribPointer ( g_AttribLocationPosition,
+                            2, GL_FLOAT,
+                              GL_FALSE, sizeof (ImDrawVert),
+  reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, pos) )
+                        );
+  glVertexAttribPointer ( g_AttribLocationUV,
+                            2, GL_FLOAT,
+                              GL_FALSE, sizeof (ImDrawVert),
+  reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, uv) )
+                        );
+  glVertexAttribPointer ( g_AttribLocationColor,
+                            4, GL_UNSIGNED_BYTE,
+                              GL_TRUE,  sizeof (ImDrawVert),
+  reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, col) )
+                        );
 #undef OFFSETOF
 
   ImGui_ImplGL3_CreateFontsTexture ();
@@ -322,10 +353,10 @@ ImGui_ImplGL3_Init (void)
   static bool first = true;
 
   if (first) {
-    if (! QueryPerformanceFrequency        ((LARGE_INTEGER *)&g_TicksPerSecond))
+    if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
       return false;
 
-    if (! QueryPerformanceCounter_Original ((LARGE_INTEGER *)&g_Time))
+    if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
       return false;
 
     first = false;
@@ -386,19 +417,25 @@ ImGui_ImplGL3_NewFrame (void)
   GetClientRect (game_window.hWnd, &client);
 
   // Setup display size (every frame to accommodate for window resizing)
-  int         w = client.right  - client.left,
-              h = client.bottom - client.top;
+  int w = client.right  - client.left,
+      h = client.bottom - client.top;
 
-  io.DisplaySize             = ImVec2 ((float)w, (float)h);
-  io.DisplayFramebufferScale = ImVec2 ((float)w, (float)h);//ImVec2 (w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
+  io.DisplaySize             =
+    ImVec2 ( static_cast <float> (w), static_cast <float> (h) );
+  io.DisplayFramebufferScale = 
+    ImVec2 ( static_cast <float> (w), static_cast <float> (h) );
+  //ImVec2 (w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
 
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter_Original ((LARGE_INTEGER *)&current_time);
+  QueryPerformanceCounter_Original (
+    reinterpret_cast <LARGE_INTEGER *> (&current_time)
+  );
 
-  io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
-  g_Time       =         current_time;
+  io.DeltaTime = static_cast <float> (current_time - g_Time) /
+                 static_cast <float> (g_TicksPerSecond);
+  g_Time       =                      current_time;
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;

@@ -316,7 +316,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
     
   ulLen = SK_GetSymbolNameFromModuleAddr (
             SK_GetCallingDLL (),
-              (uintptr_t)lpReturnAddr,
+  reinterpret_cast <uintptr_t> (lpReturnAddr),
                 szSymbol,
                   ulLen );
 

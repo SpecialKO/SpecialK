@@ -62,7 +62,7 @@ SK_WideCharToUTF8 (std::wstring in)
   std::string out;
               out.resize (len);
 
-  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), (int)in.length (), (char *)out.data (), len, nullptr, FALSE );
+  WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <char *> (out.data ()), len, nullptr, FALSE );
 
   return out;
 }
@@ -75,7 +75,7 @@ SK_UTF8ToWideChar (std::string in)
   std::wstring out;
                out.resize (len);
 
-  MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), (int)in.length (), (wchar_t *)out.data (), len );
+  MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <wchar_t *> (out.data ()), len );
 
   return out;
 }
@@ -152,7 +152,7 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! GetUserProfileDirectory (hToken, buf, (DWORD *)pdwLen))
+  if (! GetUserProfileDirectory (hToken, buf, reinterpret_cast <DWORD *> (pdwLen)))
   {
     return false;
   }
@@ -664,7 +664,7 @@ __cdecl
 crc32 (uint32_t crc, const void *buf, size_t size)
 {
   const uint8_t *p =
-       (uint8_t *)buf;
+       reinterpret_cast <const uint8_t *> (buf);
 
   crc = crc ^ ~0U;
 

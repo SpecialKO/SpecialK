@@ -399,7 +399,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     char  szSymbol [1024] = { };
     ULONG ulLen  =  1024;
     
-    ulLen = SK_GetSymbolNameFromModuleAddr (SK_GetCallingDLL (lpCallerFunc), (uintptr_t)lpCallerFunc, szSymbol, ulLen);
+    ulLen =
+      SK_GetSymbolNameFromModuleAddr (
+        SK_GetCallingDLL      (lpCallerFunc),
+ reinterpret_cast <uintptr_t> (lpCallerFunc),
+                            szSymbol,
+                              ulLen );
 
     if (constexpr (typeid (_T) == typeid (char)))
       dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%hs> { '%21hs' }",
@@ -556,7 +561,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
     
         ulLen =
           SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (),
-                                             (uintptr_t)pAddr,
+                                             reinterpret_cast <uintptr_t> (pAddr),
                                                szSymbol,
                                                  ulLen );
 
@@ -592,7 +597,9 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
      lpFileName = compliant_path;
 
   __try {
-    GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)lpFileName, &hModEarly );
+    GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                           static_cast <LPCSTR> (lpFileName),
+                             &hModEarly );
   } 
 
   __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
@@ -604,7 +611,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
   {
-    free ((void *)lpFileName);
+    free ( static_cast <void *> (compliant_path) );
 
     SK_UnlockDllLoader ();
     return NULL;
@@ -633,7 +640,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
                               " LoadLibraryA ", lpRet );
   }
 
-  free ((void *)lpFileName);
+  free ( static_cast <void *> (compliant_path) );
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -669,7 +676,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
 
   if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
   {
-    free ((void *)lpFileName);
+    free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return NULL;
@@ -698,7 +705,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
                               L" LoadLibraryW ", lpRet );
   }
 
-  free ((void *)lpFileName);
+  free (static_cast <void *> (compliant_path));
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -734,7 +741,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 
   if (hModEarly == nullptr && BlacklistLibrary (lpLibFileName))
   {
-    free ((void *)lpLibFileName);
+    free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return NULL;
@@ -751,7 +758,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
                               L"LoadPackagedLibrary", lpRet );
   }
 
-  free ((void *)lpLibFileName);
+  free (static_cast <void *> (compliant_path));
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -780,7 +787,7 @@ LoadLibraryExA_Detour (
     HMODULE hModRet =
       LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
 
-    free ((void *)lpFileName);
+    free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return hModRet;
@@ -802,7 +809,7 @@ LoadLibraryExA_Detour (
 
   if (hModEarly == NULL && BlacklistLibrary (lpFileName))
   {
-    free ((void *)lpFileName);
+    free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return NULL;
@@ -833,7 +840,7 @@ LoadLibraryExA_Detour (
                               "LoadLibraryExA", lpRet );
   }
 
-  free ((void *)lpFileName);
+  free (static_cast <void *> (compliant_path));
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -862,7 +869,7 @@ LoadLibraryExW_Detour (
     HMODULE hModRet =
       LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
 
-    free ((void *)lpFileName);
+    free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return hModRet;
@@ -884,7 +891,7 @@ LoadLibraryExW_Detour (
 
   if (hModEarly == NULL && BlacklistLibrary (lpFileName))
   {
-    free ((void *)lpFileName);
+    free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return NULL;
@@ -914,7 +921,7 @@ LoadLibraryExW_Detour (
                               L"LoadLibraryExW", lpRet );
   }
 
-  free ((void *)lpFileName);
+  free (static_cast <void *> (compliant_path));
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -1164,14 +1171,20 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   ulLen =
     SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
 
-  if (ulLen != 0) {
+  if (ulLen != 0)
+  {
     pLogger->Log ( L"[ Module ]  ( %ph + %08u )   -:< %-64hs >:-   %s",
-                    (void *)base_addr, (uint32_t)mod_size,
+                   static_cast   <void *>   (base_addr),
+                     static_cast <uint32_t> (mod_size),
                       szSymbol, wszModName );
-  } else {
+  }
+
+  else
+  {
     pLogger->Log ( L"[ Module ]  ( %ph + %08i )       %-64hs       %s",
-                    (void *)base_addr, (int32_t)mod_size,
-                      "", wszModName );
+                    static_cast   <void *>  (base_addr),
+                      static_cast <int32_t> (mod_size),
+                        "", wszModName );
   }
 
   std::wstring ver_str =
@@ -1195,7 +1208,7 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 {
 #else
 {
-  LPVOID user = (LPVOID)pWorkingSet;
+  LPVOID user = static_cast <LPVOID> (pWorkingSet);
 #endif
   static bool             init           = false;
   static CRITICAL_SECTION cs_thread_walk = { };
@@ -1211,24 +1224,24 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 
   EnterCriticalSection (&cs_thread_walk);
 
-  enum_working_set_s* pWorkingSet =
-    (enum_working_set_s *)malloc (sizeof (enum_working_set_s));
+  enum_working_set_s* pWorkingSet_ =
+    static_cast <enum_working_set_s *> (malloc (sizeof (enum_working_set_s)));
 
-  memcpy (pWorkingSet, user, sizeof (enum_working_set_s));
+  memcpy (pWorkingSet_, user, sizeof (enum_working_set_s));
 
   iSK_Logger* pLogger =
-    pWorkingSet->logger;
+    pWorkingSet_->logger;
 
-  for (int i = 0; i < pWorkingSet->count; i++ )
+  for (int i = 0; i < pWorkingSet_->count; i++ )
   {
     wchar_t wszModName [MAX_PATH + 2] = { };
 
     __try
     {
       // Get the full path to the module's file.
-      if ( (! logged_modules.count (pWorkingSet->modules [i])) &&
-              GetModuleFileNameExW ( pWorkingSet->proc,
-                                       pWorkingSet->modules [i],
+      if ( (! logged_modules.count (pWorkingSet_->modules [i])) &&
+              GetModuleFileNameExW ( pWorkingSet_->proc,
+                                       pWorkingSet_->modules [i],
                                         wszModName,
                                           MAX_PATH ) )
       {
@@ -1238,18 +1251,24 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
         uintptr_t base_addr = 0;
         uint32_t  mod_size  = 0UL;
 
-        if (GetModuleInformation (pWorkingSet->proc, pWorkingSet->modules [i], &mi, sizeof (MODULEINFO))) {
-          entry_pt  = (uintptr_t)mi.EntryPoint;
-          base_addr = (uintptr_t)mi.lpBaseOfDll;
-          mod_size  =            mi.SizeOfImage;
+        if (GetModuleInformation (pWorkingSet_->proc, pWorkingSet_->modules [i], &mi, sizeof (MODULEINFO)))
+        {
+          entry_pt  = reinterpret_cast <uintptr_t> (mi.EntryPoint);
+          base_addr = reinterpret_cast <uintptr_t> (mi.lpBaseOfDll);
+          mod_size  =                               mi.SizeOfImage;
         }
         else {
           break;
         }
 
-        _SK_SummarizeModule ((void *)base_addr, mod_size, pWorkingSet->modules [i], entry_pt, wszModName, pLogger);
+        _SK_SummarizeModule ( reinterpret_cast <void *> (base_addr),
+                                mod_size,
+                                  pWorkingSet_->modules [i],
+                                    entry_pt,
+                                      wszModName,
+                                        pLogger );
 
-        logged_modules.insert (pWorkingSet->modules [i]);
+        logged_modules.insert (pWorkingSet_->modules [i]);
       }
     }
 
@@ -1259,18 +1278,18 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
     }
   }
 
-  CloseHandle (pWorkingSet->proc);
+  CloseHandle (pWorkingSet_->proc);
 
   LeaveCriticalSection (&cs_thread_walk);
   SK_UnlockDllLoader   ();
 
-  free (pWorkingSet);
+  free (pWorkingSet_);
 
 #ifdef REAL_THREAD
   CloseHandle (GetCurrentThread ());
 
   return 0;
-}, (LPVOID)pWorkingSet, 0x00, nullptr);
+}, static_cast <LPVOID> (WorkingSet), 0x00, nullptr);
 #else
 }
 #endif
@@ -1809,7 +1828,7 @@ SK_ValidateGlobalRTSSProfile (void)
 
       CreateProcess (
         nullptr,
-          (LPWSTR)SK_GetHostApp (),
+const_cast <LPWSTR> (SK_GetHostApp ()),
             nullptr, nullptr,
               TRUE,
                 CREATE_SUSPENDED,
@@ -2101,7 +2120,7 @@ SK_Bypass_CRT (LPVOID user)
 
   if (config.apis.last_known != SK_RenderAPI::Reserved)
   {
-    switch ((SK_RenderAPI)config.apis.last_known)
+    switch (static_cast <SK_RenderAPI> (config.apis.last_known))
     {
       case SK_RenderAPI::D3D8:
       case SK_RenderAPI::D3D8On11:

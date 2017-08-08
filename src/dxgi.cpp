@@ -68,7 +68,8 @@
                        { dll_log.Log ((x)); logged = true; } }
 
 extern volatile ULONG __SK_DLL_Ending;
-volatile DWORD SK_D3D11_init_tid = 0;
+volatile DWORD SK_D3D11_init_tid  = 0;
+volatile DWORD SK_D3D11_ansel_tid = 0;
 
 extern CRITICAL_SECTION cs_shader;
 extern CRITICAL_SECTION cs_mmio;
@@ -1667,10 +1668,10 @@ HRESULT
 
         if (bAlwaysAllowFullscreen)
         {
-          //pFactory->MakeWindowAssociation (
-            //desc.OutputWindow,
-              //DXGI_MWA_NO_WINDOW_CHANGES
-          //);
+          pFactory->MakeWindowAssociation (
+            desc.OutputWindow,
+              DXGI_MWA_NO_WINDOW_CHANGES
+          );
         }
 
         if (hWndRender == 0 || (! IsWindow (hWndRender)))
@@ -1810,8 +1811,8 @@ HRESULT
         if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( 0, 0 );
 
 
-        //if (bAlwaysAllowFullscreen)
-          pFactory->MakeWindowAssociation (desc.OutputWindow, 0);//DXGI_MWA_NO_WINDOW_CHANGES);
+        if (bAlwaysAllowFullscreen)
+          pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
 
         hWndRender       = desc.OutputWindow;
 
@@ -3711,7 +3712,8 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
                       iname.c_str (), ppFactory );
 
-  if (InterlockedCompareExchange (&SK_D3D11_init_tid, 0, GetCurrentThreadId ()) != GetCurrentThreadId ())
+  if ( InterlockedExchangeAdd (&SK_D3D11_init_tid,  0) != GetCurrentThreadId () &&
+       InterlockedExchangeAdd (&SK_D3D11_ansel_tid, 0) != GetCurrentThreadId () )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -3740,7 +3742,8 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
                       iname.c_str (), ppFactory );
 
-  if (InterlockedCompareExchange (&SK_D3D11_init_tid, 0, GetCurrentThreadId ()) != GetCurrentThreadId ())
+  if ( InterlockedExchangeAdd (&SK_D3D11_init_tid,  0) != GetCurrentThreadId () &&
+       InterlockedExchangeAdd (&SK_D3D11_ansel_tid, 0) != GetCurrentThreadId () )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -3772,7 +3775,8 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
                       Flags, iname.c_str (), ppFactory );
 
-  if (InterlockedCompareExchange (&SK_D3D11_init_tid, 0, GetCurrentThreadId ()) != GetCurrentThreadId ())
+  if ( InterlockedExchangeAdd (&SK_D3D11_init_tid,  0) != GetCurrentThreadId () &&
+       InterlockedExchangeAdd (&SK_D3D11_ansel_tid, 0) != GetCurrentThreadId () )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4359,7 +4363,7 @@ HookDXGI (LPVOID user)
 
   InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
-#ifdef _WIN64
+#if 0//def _WIN64
   extern LPVOID pfnD3D11CreateDevice;
 
   hr =

@@ -20,7 +20,13 @@
 **/
 #pragma once
 
+// Useless warninn:  'typedef ': ignored on left of '' when no variable is declared
+#pragma warning (disable: 4091)
+
 #include <Windows.h>
+
+#define _NO_CVCONST_H
+#include <dbghelp.h>
 
 struct SK_TLS {
   struct {
@@ -35,6 +41,18 @@ struct SK_TLS {
     BOOL hid                 = FALSE;
   } input;
 
+  // All stack frames except for bottom
+  //   have meaningless values for these,
+  //
+  //  >> Always access through SK_TLS_Bottom <<
+  //
+  struct
+  {
+    CONTEXT          last_ctx    = {   };
+    EXCEPTION_RECORD last_exc    = {   };
+    bool             last_chance = false;
+  } debug;
+
   struct stack
   {
                  int current = 0;
@@ -48,8 +66,8 @@ SK_TLS* __stdcall SK_TLS_Get    (void); // Alias: SK_TLS_Top
 SK_TLS* __stdcall SK_TLS_Top    (void);
 SK_TLS* __stdcall SK_TLS_Bottom (void);
 
-bool    __stdcall SK_TLS_Push       (void);
-bool    __stdcall SK_TLS_Pop        (void);
+bool    __stdcall SK_TLS_Push   (void);
+bool    __stdcall SK_TLS_Pop    (void);
 
 
 class SK_ScopedTLS

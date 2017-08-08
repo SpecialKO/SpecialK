@@ -1888,11 +1888,11 @@ SK::OpenGL::getPipelineStatsDesc (void)
   return wszDesc;
 }
 
-#define SK_DLL_HOOK(Backend,Func)      \
-  SK_CreateDLLHook2 ( Backend,         \
-                     #Func,            \
-                      Func,            \
-     (LPVOID *)&imp_ ## Func ); ++GL_HOOKS;
+#define SK_DLL_HOOK(Backend,Func)                          \
+  SK_CreateDLLHook2 ( Backend,                             \
+                     #Func,                                \
+                      Func,                                \
+reinterpret_cast <LPVOID *> (&imp_ ## Func) ); ++GL_HOOKS;
 
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
 
@@ -1921,15 +1921,15 @@ SK_HookGL (void)
       wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
 #if 0
-      SK_CreateDLLHook ( wszBackendDLL,
-                         "wglSwapBuffers",
-                          wglSwapBuffers,
-               (LPVOID *)&wgl_swap_buffers );
+      SK_CreateDLLHook (      wszBackendDLL,
+                             "wglSwapBuffers",
+                              wglSwapBuffers,
+reinterpret_cast <LPVOID *> (&wgl_swap_buffers) );
 #else
-      SK_CreateDLLHook2 ( L"gdi32.dll",
-                         "SwapBuffers",
-                          SwapBuffers,
-               (LPVOID *)&gdi_swap_buffers );
+      SK_CreateDLLHook2 (       L"gdi32.dll",
+                                 "SwapBuffers",
+                                  SwapBuffers,
+reinterpret_cast <LPVOID *> (&gdi_swap_buffers) );
 #endif
 
       ++GL_HOOKS;

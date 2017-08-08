@@ -145,7 +145,7 @@ StretchRect_pfn               D3D9StretchRect_Original               = nullptr;
 SetCursorPosition_pfn         D3D9SetCursorPosition_Original         = nullptr;
 
 
-D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  0  };
+D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  };
 
 __declspec (noinline)
 HRESULT
@@ -159,11 +159,11 @@ WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
   void** _vftable = *(void***)*(_Base);                                      \
                                                                              \
   if ((_Original) == nullptr) {                                              \
-    SK_CreateVFTableHook ( L##_Name,                                         \
-                             _vftable,                                       \
-                               (_Index),                                     \
-                                 (_Override),                                \
-                                   (LPVOID *)&(_Original));                  \
+    SK_CreateVFTableHook2 ( L##_Name,                                        \
+                              _vftable,                                      \
+                                (_Index),                                    \
+                                  (_Override),                               \
+                                    (LPVOID *)&(_Original));                 \
   }                                                                          \
 }
 
@@ -480,8 +480,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
         CEGUI::Sizef (
-          (float)(surf_desc.Width),
-            (float)(surf_desc.Height)
+          static_cast <float> (surf_desc.Width),
+          static_cast <float> (surf_desc.Height)
         )
     );
 #endif
@@ -502,7 +502,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
-      if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)
+      if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+           static_cast <int> (SK_RenderAPI::D3D9)                  )
       {
         extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
                      SK_ImGui_DrawFrame (       0x00,     nullptr );
@@ -2275,7 +2276,8 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
           int title = SK_GetSystemMetrics (SM_CYCAPTION);
 
           if ( SK_DiscontEpsilon (pparams->BackBufferWidth,  wnd_rect.right  - wnd_rect.left, 2 * x_dlg + 1) ||
-               SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) ) {
+               SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) )
+          {
             pparams->BackBufferWidth  = wnd_rect.right  - wnd_rect.left;
             pparams->BackBufferHeight = wnd_rect.bottom - wnd_rect.top;
 
@@ -2933,9 +2935,9 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
     //
     // Initialize ImGui for D3D9 games
     //
-    if ( ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
-                                    *ppReturnedDeviceInterface,
-                                     pPresentationParameters )
+    if ( ImGui_ImplDX9_Init ( reinterpret_cast <void *> (pPresentationParameters->hDeviceWindow),
+                                                        *ppReturnedDeviceInterface,
+                                                         pPresentationParameters )
        )
     {
       InterlockedExchange ( &ImGui_Init, TRUE );
@@ -2969,7 +2971,8 @@ Direct3DCreate9 (UINT SDKVersion)
   {
     if (GetModuleHandle (L"GeDoSaTo.dll"))
     {
-      dll_log.Log (L"[CompatHack] <!> Disabling D3D9Ex optimizations because GeDoSaTo.dll is present!");
+      dll_log.Log ( L"[CompatHack] <!> Disabling D3D9Ex optimizations "
+                                       "because GeDoSaTo.dll is present!" );
       force_d3d9ex = false;
     }
   }
@@ -3409,6 +3412,7 @@ HookD3D9 (LPVOID user)
         SK_D3D9RenderBackend::getInstance ();
       }
 
+      SK_ApplyQueuedHooks (                   );
       InterlockedExchange (&__d3d9_ready, TRUE);
 
       if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
@@ -3433,12 +3437,14 @@ HookD3D9Ex (LPVOID user)
 void
 SK_D3D9_TriggerReset (bool temporary)
 {
-  trigger_reset = reset_stage_e::Initiate;
+  trigger_reset =
+    reset_stage_e::Initiate;
 
   if (temporary)
   {
-    request_mode_change = SK_GetCurrentRenderBackend ().fullscreen_exclusive ?
-                            mode_change_request_e::Windowed :
-                            mode_change_request_e::Fullscreen;
+    request_mode_change =
+      SK_GetCurrentRenderBackend ().fullscreen_exclusive ?
+         mode_change_request_e::Windowed :
+         mode_change_request_e::Fullscreen;
   }
 }

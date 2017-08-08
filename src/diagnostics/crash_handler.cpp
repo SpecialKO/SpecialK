@@ -28,6 +28,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/resource.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/tls.h>
 
 #include <Windows.h>
 #include <intsafe.h>
@@ -53,15 +54,16 @@ extern HMODULE __stdcall SK_GetDLL (void);
 
 using namespace SK::Diagnostics;
 
-LONG
-WINAPI
-SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo );
-
 typedef LPTOP_LEVEL_EXCEPTION_FILTER (WINAPI *SetUnhandledExceptionFilter_pfn)(
     _In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter
 );
 
 SetUnhandledExceptionFilter_pfn SetUnhandledExceptionFilter_Original = nullptr;
+
+
+LONG
+WINAPI
+SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo );
 
 LPTOP_LEVEL_EXCEPTION_FILTER
 WINAPI
@@ -71,6 +73,7 @@ SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopL
 
   return SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
 }
+
 
 void
 CrashHandler::Reinstall (void)
@@ -98,7 +101,10 @@ CrashHandler::Init (void)
       LoadResource (SK_GetDLL (), default_sound);
 
     if (crash_sound.ref != 0)
-      crash_sound.buf = (uint8_t *)LockResource (crash_sound.ref);
+    {
+      crash_sound.buf =
+        static_cast <uint8_t *> (LockResource (crash_sound.ref));
+    }
   }
 
   if (! crash_log.initialized)
@@ -108,9 +114,10 @@ CrashHandler::Init (void)
     crash_log.init (L"logs/crash.log", L"w");
   }
 
-  SK_CreateDLLHook ( L"kernel32.dll", "SetUnhandledExceptionFilter",
-                     SetUnhandledExceptionFilter_Detour,
-          (LPVOID *)&SetUnhandledExceptionFilter_Original );
+  SK_CreateDLLHook2 (       L"kernel32.dll",
+                             "SetUnhandledExceptionFilter",
+                              SetUnhandledExceptionFilter_Detour,
+reinterpret_cast <LPVOID *> (&SetUnhandledExceptionFilter_Original) );
 
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
                   SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
@@ -155,14 +162,12 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
     SymGetModuleBase   ( hProc, ip );
 #endif
 
-  char    szModName [ MAX_PATH + 2 ] = { };
+  char szModName [MAX_PATH + 2] = { };
 
   GetModuleFileNameA   ( hMod, szModName, MAX_PATH );
 
   char* szDupName    = _strdup (szModName);
   char* pszShortName = szDupName + lstrlenA (szDupName);
-
-  std::unique_ptr <char> dup (szDupName);
 
   while (  pszShortName      >  szDupName &&
          *(pszShortName - 1) != '\\')
@@ -191,7 +196,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   DWORD64 Displacement = 0;
 
   if ( SymFromAddr ( hProc,
-                       (DWORD64)ip,
+         static_cast <DWORD64> (ip),
                          &Displacement,
                            &sip.si ) )
   {
@@ -202,6 +207,8 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   {
     ret = "UNKNOWN";
   }
+
+  free (szDupName);
 
   return ret;
 }
@@ -234,11 +241,10 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   //    NULL,
   //      TRUE );
 
-  static bool             last_chance = false;
+  bool&             last_chance = SK_TLS_Bottom ()->debug.last_chance;
 
-  static CONTEXT          last_ctx  = { };
-  static EXCEPTION_RECORD last_exc  = { };
-  static LARGE_INTEGER    last_time = { };
+  CONTEXT&          last_ctx    = SK_TLS_Bottom ()->debug.last_ctx;
+  EXCEPTION_RECORD& last_exc    = SK_TLS_Bottom ()->debug.last_exc;
 
   std::wstring desc;
 
@@ -463,7 +469,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   free (szDupName);
 
-  CONTEXT ctx = *ExceptionInfo->ContextRecord;
+  CONTEXT ctx (*ExceptionInfo->ContextRecord);
 
 #ifdef _WIN64
   STACKFRAME64 stackframe;
@@ -498,9 +504,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     ip = stackframe.AddrPC.Offset;
 
-    if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                              (LPCWSTR)ip,
-                                &hModSource ))
+    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+              reinterpret_cast <LPCWSTR> (ip),
+                                 &hModSource ) )
     {
       GetModuleFileNameA (hModSource, szModName, MAX_PATH);
     }
@@ -543,7 +549,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     DWORD64 Displacement = 0;
 
     if ( SymFromAddr ( hProc,
-                         (DWORD64)ip,
+             static_cast <DWORD64> (ip),
                            &Displacement,
                              &sip.si ) )
     {
@@ -563,8 +569,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                             ihl64.FileName,
                               ihl64.LineNumber );
 #else
-      IMAGEHLP_LINE ihl;
-      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+      IMAGEHLP_LINE ihl              = {                  };
+                    ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 
       const BOOL bFileAndLine =
         SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
@@ -628,11 +634,11 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   // On second chance it's pretty clear that no exception handler exists,
   //   terminate the software.
-  const bool repeated = ( !memcmp (&last_ctx, ExceptionInfo->ContextRecord, sizeof CONTEXT) ) &&
-    ( !memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
+  const bool repeated = ( !memcmp (&last_ctx, ExceptionInfo->ContextRecord,   sizeof CONTEXT)         ) &&
+                        ( !memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
   const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if (( repeated || non_continue ) && ( !scaleform ) && desc.length ( ))
+  if ( (repeated || non_continue) && (! scaleform) && desc.length () )
   {
     if (! config.system.handle_crashes)
       TerminateProcess (GetCurrentProcess (), 0xdeadbeef);
@@ -641,17 +647,18 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     last_chance = true;
 
-    WIN32_FIND_DATA fd     = { };
+    WIN32_FIND_DATA fd     = {                  };
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
-    size_t          files  = 0UL;
+    size_t          files  =   0UL;
     LARGE_INTEGER   liSize = { 0ULL };
 
     wchar_t wszFindPattern [MAX_PATH * 2] = { };
 
-    lstrcatW (wszFindPattern, SK_GetConfigPath ( ));
+    lstrcatW (wszFindPattern, SK_GetConfigPath ());
     lstrcatW (wszFindPattern, L"logs\\*.log");
 
-    hFind = FindFirstFileW (wszFindPattern, &fd);
+    hFind =
+      FindFirstFileW (wszFindPattern, &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -665,16 +672,15 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       wcscpy (wszOutDir, wszBaseDir);
       lstrcatW (wszOutDir, L"crash\\");
 
-      time_t now;
+             time_t now = { };
       struct tm*    now_tm;
 
-      time (&now);
+                    time (&now);
       now_tm = localtime (&now);
 
       const wchar_t* wszTimestamp = L"%m-%d-%Y__%H'%M'%S\\";
 
       wcsftime (wszTime, MAX_PATH, wszTimestamp, now_tm);
-
       lstrcatW (wszOutDir, wszTime);
 
       wchar_t wszOrigPath [MAX_PATH * 2 + 1] = { };
@@ -695,7 +701,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
           SK_CreateDirectories (wszDestPath);
 
-          if (!StrStrIW (wszOrigPath, L"installer.log"))
+          if (! StrStrIW (wszOrigPath, L"installer.log"))
           {
             if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
             {
@@ -731,7 +737,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
               CopyFileExW ( L"CEGUI.log", wszDestPath,
                               nullptr, nullptr, nullptr,
                                 0x00 );
-              CEGUI::Logger::getDllSingleton ().setLogFilename (SK_WideCharToUTF8 (wszDestPath).c_str (), true);
+              CEGUI::Logger::getDllSingleton ().
+                setLogFilename (SK_WideCharToUTF8 (wszDestPath).c_str (), true);
             }
 
             else if (CopyFileExW (wszOrigPath, wszDestPath, nullptr, nullptr,nullptr, 0x00))
@@ -768,7 +775,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     }
 
     if (crash_log.fLog && (! crash_log.silent))
-      PlaySound ( (LPCWSTR)crash_sound.buf,
+      PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound.buf),
                     nullptr,
                       SND_SYNC |
                       SND_MEMORY );
@@ -784,7 +791,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   last_exc = *ExceptionInfo->ExceptionRecord;
 
 
-  if (ExceptionInfo->ExceptionRecord->ExceptionFlags == 0 || (! desc.length ()))
+  if ( ExceptionInfo->ExceptionRecord->ExceptionFlags == 0 ||
+       (! desc.length ())
+     )
   {
     return EXCEPTION_CONTINUE_EXECUTION;
   }
@@ -799,7 +808,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 extern CRITICAL_SECTION cs_dbghelp;
 
 ULONG
-SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen)
+SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
+                                 char*   pszOut, ULONG     ulLen )
 {
   ULONG ret = 0;
 
@@ -816,9 +826,12 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
   DWORD64 BaseAddr =
     SymGetModuleBase64 ( hProc, ip );
 
-  char    szModName [ MAX_PATH + 2 ] = {  };
+  char szModName [MAX_PATH + 2] = {  };
 
-  int len = GetModuleFileNameA  ( hMod, szModName, MAX_PATH );
+  int len =
+    GetModuleFileNameA  ( hMod,
+                            szModName,
+                              MAX_PATH );
 
   char* pszShortName = szModName + len- 1;
 
@@ -833,9 +846,9 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
                             BaseAddr,
                               0 );
 
-  SYMBOL_INFO_PACKAGE sip = { };
-  sip.si.SizeOfStruct     = sizeof SYMBOL_INFO;
-  sip.si.MaxNameLen       = sizeof sip.name;
+  SYMBOL_INFO_PACKAGE sip                 = {                };
+                      sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+                      sip.si.MaxNameLen   = sizeof sip.name;
 
   DWORD64 Displacement = 0;
 
@@ -845,8 +858,11 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULON
                            &sip.si ) )
   {
     *pszOut = '\0';
-    strncat             (pszOut, sip.si.Name, std::min (ulLen, sip.si.NameLen));
-    ret = (ULONG)strlen (pszOut);
+
+    strncat             ( pszOut, sip.si.Name,
+                            std::min (ulLen, sip.si.NameLen) );
+    ret =
+      static_cast <ULONG> (strlen (pszOut));
   }
 
   else
@@ -931,15 +947,17 @@ SK_BypassSteamCrashHandler (void)
       {
         crash_log.Log (L"Disabling Steam Breakpad...");
 
-        SK_CreateDLLHook2 ( wszSteamDLL,
-                            "SteamAPI_UseBreakpadCrashHandler",
-                           SteamAPI_UseBreakpadCrashHandler_Detour,
-                (LPVOID *)&SteamAPI_UseBrakepadCrashHandler_NEVER );
+        SK_CreateDLLHook2 (  wszSteamDLL,
+                             "SteamAPI_UseBreakpadCrashHandler",
+                              SteamAPI_UseBreakpadCrashHandler_Detour,
+reinterpret_cast <LPVOID *> (&SteamAPI_UseBrakepadCrashHandler_NEVER) );
       
-        SK_CreateDLLHook2 ( wszSteamDLL,
-                            "SteamAPI_SetBreakpadAppID",
-                           SteamAPI_SetBreakpadAppID_Detour,
-                (LPVOID *)&SteamAPI_SetBreakpadAppID_NEVER );
+        SK_CreateDLLHook2 (  wszSteamDLL,
+                             "SteamAPI_SetBreakpadAppID",
+                              SteamAPI_SetBreakpadAppID_Detour,
+reinterpret_cast <LPVOID *> (&SteamAPI_SetBreakpadAppID_NEVER) );
+
+        SK_ApplyQueuedHooks ();
       }
     }
   }
@@ -968,7 +986,10 @@ CrashHandler::InitSyms (void)
           LoadResource (SK_GetDLL (), default_sound);
 
         if (crash_sound.ref != 0)
-          crash_sound.buf = (uint8_t *)LockResource (crash_sound.ref);
+        {
+          crash_sound.buf =
+            reinterpret_cast <uint8_t *> (LockResource (crash_sound.ref));
+        }
       }
 
       if (! config.steam.silent)

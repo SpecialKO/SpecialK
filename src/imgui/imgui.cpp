@@ -12232,7 +12232,7 @@ SK_ImGui_PollGamepad (void)
   //}
 
 
-         XINPUT_STATE state;
+         XINPUT_STATE state    = {      };
   static XINPUT_STATE last_state { 1, 0 };
 
   for (int i = 0; i < ImGuiNavInput_COUNT; i++)

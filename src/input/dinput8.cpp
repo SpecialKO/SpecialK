@@ -199,7 +199,7 @@ SK_BootDI8 (void)
 
     if ( MH_OK ==
             SK_CreateDLLHook2 ( L"dinput8.dll",
-                                "DirectInput8Create",
+                                 "DirectInput8Create",
                                   DirectInput8Create,
      reinterpret_cast <LPVOID *>(&DirectInput8Create_Import) )
         )
@@ -877,20 +877,20 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
     */
     if (IDirectInputDevice8_GetDeviceState_GAMEPAD_Original == nullptr)
     {
-      SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
-                           vftable [9],
-                           IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour,
-                (LPVOID *)&IDirectInputDevice8_GetDeviceState_GAMEPAD_Original );
+      SK_CreateFuncHook (   L"IDirectInputDevice8::GetDeviceState",
+                              vftable [9],
+                              IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour,
+reinterpret_cast <LPVOID *> (&IDirectInputDevice8_GetDeviceState_GAMEPAD_Original) );
       MH_QueueEnableHook (vftable [9]);
     }
     //}
 
     if (! IDirectInputDevice8_SetCooperativeLevel_Original)
     {
-      SK_CreateFuncHook ( L"IDirectInputDevice8::SetCooperativeLevel",
-                           vftable [13],
-                           IDirectInputDevice8_SetCooperativeLevel_Detour,
-                 (LPVOID*)&IDirectInputDevice8_SetCooperativeLevel_Original );
+      SK_CreateFuncHook (   L"IDirectInputDevice8::SetCooperativeLevel",
+                              vftable [13],
+                              IDirectInputDevice8_SetCooperativeLevel_Detour,
+reinterpret_cast <LPVOID *> (&IDirectInputDevice8_SetCooperativeLevel_Original) );
       MH_QueueEnableHook (vftable [13]);
     }
 
@@ -934,11 +934,11 @@ SK_Input_HookDI8 (void)
       (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
                                       GetModuleHandle (L"dinput8.dll");
 
-    SK_CreateFuncHook ( L"DirectInput8Create",
-                          GetProcAddress ( hBackend,
-                                             "DirectInput8Create" ),
-                            DirectInput8Create,
-                 (LPVOID *)&DirectInput8Create_Import );
+    SK_CreateFuncHook (     L"DirectInput8Create",
+            GetProcAddress ( hBackend,
+                             "DirectInput8Create" ),
+                              DirectInput8Create,
+reinterpret_cast <LPVOID *> (&DirectInput8Create_Import) );
 
     InterlockedIncrement (&hooked);
   }

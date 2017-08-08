@@ -832,9 +832,6 @@ SK_InitFinishCallback (void)
 #ifdef _WIN64
   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
     SK_DS3_InitPlugin ();
-
-  else if (! lstrcmpW (SK_GetHostApp (), L"RiME.exe"))
-    SK_REASON_InitPlugin ();
 #endif
 
   if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
@@ -1734,12 +1731,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
     config.steam.appid = 405900;
 
-  if (! lstrcmpW (SK_GetHostApp (), L"FairyFencerAD.exe"))
-  {
-    extern void SK_FFAD_InitPlugin (void);
-    SK_FFAD_InitPlugin ();
-  }
-
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
 
@@ -2356,7 +2347,7 @@ SK_BeginBufferSwap (void)
     if (SK_Steam_PiratesAhoy () != 0x00)
     {
       extern float target_fps;
-      target_fps = (float)*(uint8_t*)(szFirst+5);
+      target_fps = static_cast <float> (*reinterpret_cast <const uint8_t *>(szFirst+5));
     }
 
     SK::Framerate::GetLimiter ()->wait ();

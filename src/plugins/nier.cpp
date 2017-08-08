@@ -48,17 +48,19 @@
 
 #include <atlbase.h>
 
+#include <SpecialK/plugin/nier.h>
 
-#define FAR_VERSION_NUM L"0.7.0.11"
+
+#define FAR_VERSION_NUM L"0.7.0.12"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
 //   will be dismissed as the game crashes when it tries to
 //     draw the first frame.
-volatile LONG __FAR_init = FALSE;
-
-
-float __FAR_MINIMUM_EXT = 0.0f;
+volatile LONG   __FAR_init        = FALSE;
+         float  __FAR_MINIMUM_EXT = 0.0f;
+         bool   __FAR_Freelook    = false;
+         double __FAR_TargetFPS   = 59.94;
 
 
 #define WORKING_FPS_UNCAP
@@ -67,14 +69,15 @@ float __FAR_MINIMUM_EXT = 0.0f;
 #define WORKING_FPS_SLEEP_FIX
 
 
-struct far_game_state_s {
+struct far_game_state_s
+{
   // Game state addresses courtesy of Francesco149
-  DWORD* pMenu       = (DWORD *)0x14190D494;//0x1418F39C4;
-  DWORD* pLoading    = (DWORD *)0x14198F0A0;//0x141975520;
-  DWORD* pHacking    = (DWORD *)0x1410FA090;//0x1410E0AB4;
-  DWORD* pShortcuts  = (DWORD *)0x141415AC4;//0x1413FC35C;
+  DWORD* pMenu       = reinterpret_cast <DWORD *> (0x14190D494);//0x1418F39C4;
+  DWORD* pLoading    = reinterpret_cast <DWORD *> (0x14198F0A0);//0x141975520;
+  DWORD* pHacking    = reinterpret_cast <DWORD *> (0x1410FA090);//0x1410E0AB4;
+  DWORD* pShortcuts  = reinterpret_cast <DWORD *> (0x141415AC4);//0x1413FC35C;
 
-  float* pHUDOpacity = (float *)0x1419861BC;//0x14196C63C;
+  float* pHUDOpacity = reinterpret_cast <float *> (0x1419861BC);//0x14196C63C;
 
   bool   capped      = true;  // Actual state of limiter
   bool   enforce_cap = true;  // User's current preference
@@ -113,7 +116,22 @@ sk::ParameterStringW* far_center_lock           = nullptr;
 sk::ParameterStringW* far_focus_lock            = nullptr;
 sk::ParameterStringW* far_free_look             = nullptr;
 
-struct {
+
+D3D11Dev_CreateBuffer_pfn              _D3D11Dev_CreateBuffer_Original              = nullptr;
+D3D11Dev_CreateShaderResourceView_pfn  _D3D11Dev_CreateShaderResourceView_Original  = nullptr;
+D3D11Dev_CreateTexture2D_pfn           _D3D11Dev_CreateTexture2D_Original           = nullptr;
+D3D11_DrawIndexed_pfn                  _D3D11_DrawIndexed_Original                  = nullptr;
+D3D11_Draw_pfn                         _D3D11_Draw_Original                         = nullptr;
+D3D11_DrawIndexedInstanced_pfn         _D3D11_DrawIndexedInstanced_Original         = nullptr;
+D3D11_DrawIndexedInstancedIndirect_pfn _D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
+D3D11_DrawInstanced_pfn                _D3D11_DrawInstanced_Original                = nullptr;
+D3D11_DrawInstancedIndirect_pfn        _D3D11_DrawInstancedIndirect_Original        = nullptr;
+D3D11_UpdateSubresource_pfn            _D3D11_UpdateSubresource_Original            = nullptr;
+D3D11_PSSetConstantBuffers_pfn         _D3D11_PSSetConstantBuffers_Original         = nullptr;
+
+
+struct
+{
   bool        enqueue = false; // Trigger a Steam screenshot
   int         clear   = 4;     // Reset enqueue after 3 frames
   float       opacity = 1.0f;  // Original HUD opacity
@@ -124,10 +142,8 @@ struct {
   };
 } static __FAR_HUDLESS;
 
-
-typedef float vec3_t [3]; // X,Z,Y
-
-struct far_cam_state_s {
+struct far_cam_state_s
+{
   SK_Keybind freelook_binding = {
     "Toggle Camera Freelook Mode", L"Num 5",
       false, false, false, VK_NUMPAD5
@@ -135,9 +151,9 @@ struct far_cam_state_s {
 
   // Memory addresses courtesy of Idk31 and Smithfield
   //  Ptr at  { F3 44 0F 11 88 74 02 00 00 89 88 84 02 00 00 }  +  4
-  vec3_t* pCamera    = (vec3_t *)0x141605400;//0x1415EB950; 
-  vec3_t* pLook      = (vec3_t *)0x141605410;//0x1415EB960;
-  float*  pRoll      = (float *) 0x141415B90;//1415EB990;
+  vec3_t* pCamera    = reinterpret_cast <vec3_t *> (0x141605400);//0x1415EB950; 
+  vec3_t* pLook      = reinterpret_cast <vec3_t *> (0x141605410);//0x1415EB960;
+  float*  pRoll      = reinterpret_cast <float  *> (0x141415B90);//1415EB990;
 
   vec3_t  fwd, right, up;
 
@@ -164,7 +180,8 @@ struct far_cam_state_s {
     return (center_lock = (! center_lock));
   }
 
-  bool toggleFocusLock (void) {
+  bool toggleFocusLock (void)
+  {
     // Center Lock - C1
     if (focus_lock) SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4D5668 850112FDA10D290F");
     else            SK_GetCommandProcessor ()->ProcessCommandLine ("mem l 4D5668 8590909090909090");
@@ -172,15 +189,6 @@ struct far_cam_state_s {
     return (focus_lock = (! focus_lock));
   }
 } static far_cam;
-
-bool __FAR_Freelook = false;
-
-
-typedef void (__stdcall *SK_PlugIn_ControlPanelWidget_pfn)(void);
-        void  __stdcall SK_FAR_ControlPanel               (void);
-
-static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
-
 
 // (Presumable) Size of compute shader workgroup
 UINT   __FAR_GlobalIllumWorkGroupSize =   128;
@@ -203,107 +211,10 @@ struct {
   bool disable         = false;
   bool fix_motion_blur = true;
 } far_ao;
- 
-double __FAR_TargetFPS                = 59.94;
 
+void __stdcall SK_FAR_ControlPanel (void);
 
-extern void
-__stdcall
-SK_SetPluginName (std::wstring name);
-
-
-typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
-  _In_           ID3D11Device            *This,
-  _In_     const D3D11_BUFFER_DESC       *pDesc,
-  _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_      ID3D11Buffer           **ppBuffer
-);
-typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
-  _In_           ID3D11Device                     *This,
-  _In_           ID3D11Resource                   *pResource,
-  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView
-);
-
-static D3D11Dev_CreateBuffer_pfn             D3D11Dev_CreateBuffer_Original;
-static D3D11Dev_CreateShaderResourceView_pfn D3D11Dev_CreateShaderResourceView_Original;
-
-extern
-HRESULT
-WINAPI
-D3D11Dev_CreateBuffer_Override (
-  _In_           ID3D11Device            *This,
-  _In_     const D3D11_BUFFER_DESC       *pDesc,
-  _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_      ID3D11Buffer           **ppBuffer );
-
-extern
-HRESULT
-WINAPI
-D3D11Dev_CreateShaderResourceView_Override (
-  _In_           ID3D11Device                     *This,
-  _In_           ID3D11Resource                   *pResource,
-  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView );
-
-extern
-void
-STDMETHODCALLTYPE
-D3D11_PSSetConstantBuffers_Override (
-  _In_     ID3D11DeviceContext*  This,
-  _In_     UINT                  StartSlot,
-  _In_     UINT                  NumBuffers,
-  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers );
-
-extern
-void
-WINAPI
-D3D11_DrawIndexedInstanced_Override (
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 IndexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation,
-  _In_ UINT                 StartInstanceLocation );
-
-extern
-void
-WINAPI
-D3D11_DrawIndexedInstancedIndirect_Override (
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs );
-
-extern
-void
-WINAPI
-D3D11_DrawInstanced_Override (
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation );
-
-extern
-void
-WINAPI
-D3D11_DrawInstancedIndirect_Override (
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs );
-
-extern
-void
-STDMETHODCALLTYPE
-D3D11_UpdateSubresource_Override (
-  _In_           ID3D11DeviceContext* This,
-  _In_           ID3D11Resource      *pDstResource,
-  _In_           UINT                 DstSubresource,
-  _In_opt_ const D3D11_BOX           *pDstBox,
-  _In_     const void                *pSrcData,
-  _In_           UINT                 SrcRowPitch,
-  _In_           UINT                 SrcDepthPitch);
-
+static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
 
 // Was threaded originally, but it is important to block until
 //   the update check completes.
@@ -312,14 +223,6 @@ __stdcall
 SK_FAR_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
-
-  extern bool
-  __stdcall
-  SK_FetchVersionInfo (const wchar_t* wszProduct);
-
-  extern HRESULT
-  __stdcall
-  SK_UpdateSoftware   (const wchar_t* wszProduct);
 
   if (SK_FetchVersionInfo (L"FAR/dinput8"))
     SK_UpdateSoftware (L"FAR/dinput8");
@@ -378,14 +281,14 @@ SK_FAR_CreateBuffer (
                    sizeof (far_light_volume_s) * 128 );
 
       // This code is bloody ugly, but it works ;)
-      for (int i = 0; i < __FAR_GlobalIllumWorkGroupSize; i++)
+      for (UINT i = 0; i < __FAR_GlobalIllumWorkGroupSize; i++)
       {
         float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
                                 lights [i].world_pos [2], lights [i].world_pos [3] };
 
-        glm::vec4   cam_pos_world ( light_pos [0] - ((float *)far_cam.pCamera) [0],
-                                    light_pos [1] - ((float *)far_cam.pCamera) [1],
-                                    light_pos [2] - ((float *)far_cam.pCamera) [2],
+        glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam.pCamera)) [0],
+                                    light_pos [1] - (reinterpret_cast <float *> (far_cam.pCamera)) [1],
+                                    light_pos [2] - (reinterpret_cast <float *> (far_cam.pCamera)) [2],
                                                  1.0f );
 
         glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
@@ -412,7 +315,7 @@ SK_FAR_CreateBuffer (
         }
       }
 
-      new_data.pSysMem = (void *)new_lights;
+      new_data.pSysMem = static_cast <void *> (new_lights);
 
       pInitialData = &new_data;
     }
@@ -420,7 +323,7 @@ SK_FAR_CreateBuffer (
     pDesc = &new_desc;
   }
 
-  return D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
+  return _D3D11Dev_CreateBuffer_Original (This, pDesc, pInitialData, ppBuffer);
 }
 
 HRESULT
@@ -461,7 +364,7 @@ SK_FAR_CreateShaderResourceView (
   }
 
   HRESULT hr =
-    D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
+    _D3D11Dev_CreateShaderResourceView_Original (This, pResource, pDesc, ppSRView);
 
   return hr;
 }
@@ -474,7 +377,7 @@ SK_FAR_PSSetConstantBuffers (
   _In_     UINT                  NumBuffers,
   _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
 {
-  D3D11_PSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
+  _D3D11_PSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
 }
 
 
@@ -485,12 +388,6 @@ enum class SK_FAR_WaitBehavior
 };
 
 SK_FAR_WaitBehavior wait_behavior (SK_FAR_WaitBehavior::Sleep);
-
-extern LPVOID __SK_base_img_addr;
-extern LPVOID __SK_end_img_addr;
-
-extern void* __stdcall SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask);
-
 
 void
 SK_FAR_SetFramerateCap (bool enable)
@@ -507,10 +404,10 @@ SK_FAR_SetFramerateCap (bool enable)
 
 // Altimor's FPS cap removal
 //
-uint8_t* psleep     = (uint8_t *)0x14092E887; // Original pre-patch
-uint8_t* pspinlock  = (uint8_t *)0x14092E8CF; // +0x48
-uint8_t* pmin_tstep = (uint8_t *)0x140805DEC; // Original pre-patch
-uint8_t* pmax_tstep = (uint8_t *)0x140805E18; // +0x2c
+uint8_t* psleep     = reinterpret_cast <uint8_t *> (0x14092E887); // Original pre-patch
+uint8_t* pspinlock  = reinterpret_cast <uint8_t *> (0x14092E8CF); // +0x48
+uint8_t* pmin_tstep = reinterpret_cast <uint8_t *> (0x140805DEC); // Original pre-patch
+uint8_t* pmax_tstep = reinterpret_cast <uint8_t *> (0x140805E18); // +0x2c
 
 bool
 SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
@@ -542,7 +439,7 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
       uint8_t tstep0      [] = { 0x73, 0x1C, 0xC7, 0x05, 0x00, 0x00 };
       uint8_t tstep0_mask [] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
 
-      pmin_tstep = (uint8_t *)SK_Scan ( tstep0, sizeof tstep0, tstep0_mask );
+      pmin_tstep = static_cast <uint8_t *> (SK_Scan ( tstep0, sizeof tstep0, tstep0_mask ));
       pmax_tstep = pmin_tstep + 0x2c;
 
       dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
@@ -577,16 +474,6 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
   return true;
 }
 
-
-extern void
-STDMETHODCALLTYPE
-SK_BeginBufferSwap (void);
-
-extern BOOL
-__stdcall
-SK_DrawExternalOSD (std::string app_name, std::string text);
-
-typedef void (STDMETHODCALLTYPE *SK_EndFrame_pfn)(void);
 static SK_EndFrame_pfn SK_EndFrame_Original = nullptr;
 
 void
@@ -611,7 +498,8 @@ SK_FAR_EndFrame (void)
       validation += "FRAME: ";
 
       static char szFrameNum [32] = { '\0' };
-      snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' + (int)(frames_drawn++ % 26LL) );
+      snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' + 
+                            static_cast <int>(frames_drawn++ % 26LL) );
 
       validation += szFrameNum;
     }
@@ -656,7 +544,8 @@ SK_FAR_EndFrame (void)
       frames_drawn = -1;
   }
 
-  else {
+  else
+  {
     SK_DrawExternalOSD            ( "FAR", "" );
 
     if (frames_drawn > 0)
@@ -711,10 +600,6 @@ SK_FAR_EndFrame (void)
     float LY   = state.Gamepad.sThumbLY;
 
     float norm = sqrt (LX*LX + LY*LY);
-
-    float nLX  = LX / norm;
-    float nLY  = LY / norm;
-
     float unit = 1.0f;
 
     if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
@@ -737,10 +622,6 @@ SK_FAR_EndFrame (void)
     float RY   = state.Gamepad.sThumbRY;
 
           norm = sqrt (RX*RX + RY*RY);
-
-    float nRX  = RX / norm;
-    float nRY  = RY / norm;
-
           unit = 1.0f;
 
     if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
@@ -755,15 +636,8 @@ SK_FAR_EndFrame (void)
       unit = 0.0f;
     }
 
-    float uRX = (RX / 32767.0f) * unit;
-    float uRY = (RY / 32767.0f) * unit;
-
-
     float ddX = uLX;
     float ddY = uLY;
-
-    float ddA = uRX;
-    float ddB = uRY;
 
     vec3_t pos;     pos     [0] = (*far_cam.pCamera) [0]; pos    [1] = (*far_cam.pCamera) [1]; pos    [2] = (*far_cam.pCamera) [2];
     vec3_t target;  target  [0] = (*far_cam.pLook)   [0]; target [1] = (*far_cam.pLook)   [1]; target [2] = (*far_cam.pLook)   [2];
@@ -779,21 +653,6 @@ SK_FAR_EndFrame (void)
     dX = ddX*diff [2]/hypXY;
     dY = ddX*diff [0]/hypXY;
 
-#if 0
-    if (ddZ != 0.0f)
-    {
-      float roll    = far_cam.roll;
-      float cosRoll = cosf (roll);
-
-      dX = dX*cosRoll
-      dY = dY*cosRoll
-      dZ = ddX*sinf(roll)
-
-      (*far_cam.pLook)[1]   = target [1] - dZ;
-      (*far_cam.pCamera)[1] = pos    [1] - dZ;
-    }
-#endif
-
     (*far_cam.pLook) [0]   = target [0] - dX;
     (*far_cam.pLook) [2]   = target [2] + dY;
 
@@ -807,19 +666,8 @@ SK_FAR_EndFrame (void)
     diff    [1] = target [1] - pos [1];
     diff    [2] = target [2] - pos [2];
 
-          hypXY = sqrtf (diff [0] * diff [0] + diff [2] * diff [2]);
-    float hypZ  = sqrtf (diff [1] * diff [1] + hypXY * hypXY);
+    hypXY = sqrtf (diff [0] * diff [0] + diff [2] * diff [2]);
 
-#if 0
-    if useZ then
-      dX = flySpeed*Xdiff/hypZ
-      dY = flySpeed*Ydiff/hypZ
-      dZ = flySpeed*Zdiff/hypZ
-      if moveDir == "backward" then dZ = -dZ end
-      writeFloat(tarZAD, tarZ+dZ)
-      writeFloat(camZAD, camZ+dZ)
-    else
-#endif
     dX = ddY * diff [0] / hypXY;
     dY = ddY * diff [2] / hypXY;
     dZ = ddY * diff [1] / hypXY;
@@ -856,10 +704,7 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
 }
 
 
-typedef void (CALLBACK *SK_PluginKeyPress_pfn)(
-  BOOL Control, BOOL Shift, BOOL Alt,
-  BYTE vkCode
-);
+
 static SK_PluginKeyPress_pfn SK_PluginKeyPress_Original;
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
@@ -980,11 +825,11 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
     // Hook keyboard input, only necessary for the FPS cap toggle right now
     //
     extern void WINAPI SK_PluginKeyPress (BOOL,BOOL,BOOL,BYTE);
-    SK_CreateFuncHook ( L"SK_PluginKeyPress",
-                          SK_PluginKeyPress,
-                          SK_FAR_PluginKeyPress,
-               (LPVOID *)&SK_PluginKeyPress_Original );
-    SK_EnableHook        (SK_PluginKeyPress);
+    SK_CreateFuncHook (      L"SK_PluginKeyPress",
+                               SK_PluginKeyPress,
+                               SK_FAR_PluginKeyPress,
+ reinterpret_cast <LPVOID *> (&SK_PluginKeyPress_Original) );
+    SK_EnableHook        (     SK_PluginKeyPress           );
   }
 
   if (GetModuleHandle (L"RTSSHooks64.dll"))
@@ -1016,85 +861,6 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   return S_OK;
 }
 
-
-
-typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
-  _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D
-);
-typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 IndexCount,
-  _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation
-);
-typedef void (WINAPI *D3D11_Draw_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCount,
-  _In_ UINT                 StartVertexLocation
-);
-typedef void (WINAPI *D3D11_DrawIndexedInstanced_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 IndexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation,
-  _In_ UINT                 StartInstanceLocation
-);
-typedef void (WINAPI *D3D11_DrawIndexedInstancedIndirect_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs
-);
-typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation
-);
-typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs
-);
-
-static D3D11Dev_CreateTexture2D_pfn           D3D11Dev_CreateTexture2D_Original           = nullptr;
-static D3D11_DrawIndexed_pfn                  D3D11_DrawIndexed_Original                  = nullptr;
-static D3D11_Draw_pfn                         D3D11_Draw_Original                         = nullptr;
-static D3D11_DrawIndexedInstanced_pfn         D3D11_DrawIndexedInstanced_Original         = nullptr;
-static D3D11_DrawIndexedInstancedIndirect_pfn D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
-static D3D11_DrawInstanced_pfn                D3D11_DrawInstanced_Original                = nullptr;
-static D3D11_DrawInstancedIndirect_pfn        D3D11_DrawInstancedIndirect_Original        = nullptr;
-static D3D11_UpdateSubresource_pfn            D3D11_UpdateSubbresource_Original           = nullptr;
-
-
-extern HRESULT
-WINAPI
-D3D11Dev_CreateTexture2D_Override (
-  _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D );
-
-extern void
-WINAPI
-D3D11_DrawIndexed_Override (
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 IndexCount,
-  _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation );
-
-extern void
-WINAPI
-D3D11_Draw_Override (
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCount,
-  _In_ UINT                 StartVertexLocation );
-
-
 // Overview (Durante):
 //
 //  The bloom pyramid in Nier:A is built up of 5 buffers, which are sized
@@ -1123,7 +889,7 @@ SK_FAR_CreateTexture2D (
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
   if (ppTexture2D == nullptr)
-    return D3D11Dev_CreateTexture2D_Original ( This, pDesc, pInitialData, nullptr );
+    return _D3D11Dev_CreateTexture2D_Original ( This, pDesc, pInitialData, nullptr );
 
   static UINT   resW      = far_bloom.width; // horizontal resolution, must be set at application start
   static double resFactor = resW / 1600.0;   // the factor required to scale to the largest part of the pyramid
@@ -1164,11 +930,11 @@ SK_FAR_CreateTexture2D (
           {
             // Scale the upper parts of the pyramid fully
             // and lower levels progressively less
-            double pyramidLevelFactor  = ((double)pDesc->Width - 50.0) / 750.0;
+            double pyramidLevelFactor  = (static_cast <double> (pDesc->Width) - 50.0) / 750.0;
             double scalingFactor       = 1.0 + (resFactor - 1.0) * pyramidLevelFactor;
 
-            copy.Width  = (UINT)(copy.Width  * scalingFactor);
-            copy.Height = (UINT)(copy.Height * scalingFactor);
+            copy.Width  = static_cast <UINT> (copy.Width  * scalingFactor);
+            copy.Height = static_cast <UINT> (copy.Height * scalingFactor);
 
             pDesc       = &copy;
           }
@@ -1221,9 +987,9 @@ SK_FAR_CreateTexture2D (
   }
 
 
-  HRESULT hr = D3D11Dev_CreateTexture2D_Original ( This,
-                                                     pDesc, pInitialData,
-                                                       ppTexture2D );
+  HRESULT hr = _D3D11Dev_CreateTexture2D_Original ( This,
+                                                      pDesc, pInitialData,
+                                                        ppTexture2D );
 
   return hr;
 }
@@ -1311,15 +1077,19 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                 // Here we go!
                 // Viewport is the easy part
 
-                vp.Width  = (float)texdesc.Width;
-                vp.Height = (float)texdesc.Height;
+                vp.Width  = static_cast <float> (texdesc.Width);
+                vp.Height = static_cast <float> (texdesc.Height);
 
                 // AO
                 //   If we are at mip slice N, divide by 2^N
                 if (desc.Texture2D.MipSlice > 0)
                 {
-                  vp.Width  = (texdesc.Width  / powf (2.0f, (float)desc.Texture2D.MipSlice));
-                  vp.Height = (texdesc.Height / powf (2.0f, (float)desc.Texture2D.MipSlice));
+                  vp.Width  = ( texdesc.Width  /
+                                  powf ( 2.0f,
+                    static_cast <float> (desc.Texture2D.MipSlice) ) );
+                  vp.Height = ( texdesc.Height /
+                                  powf ( 2.0f,
+                    static_cast <float> (desc.Texture2D.MipSlice) ) );
                 }
 
                 pDevCtx->RSSetViewports (1, &vp);
@@ -1390,8 +1160,8 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
                                 L"FAR PlugIn" );
 
                     float constants [4] = {
-                                         vp.Width,   vp.Height,
-                      (float)desc.Texture2D.MipSlice - 1, 0.0f
+                                         vp.Width,                     vp.Height,
+                    static_cast <float> (desc.Texture2D.MipSlice) - 1, 0.0f
                     };
 
                     initialdata.pSysMem = constants;
@@ -1430,9 +1200,9 @@ SK_FAR_UpdateSubresource (
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch)
 {
-  return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
-                                              pDstBox, pSrcData, SrcRowPitch,
-                                                SrcDepthPitch );
+  return _D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                               pDstBox, pSrcData, SrcRowPitch,
+                                                 SrcDepthPitch );
 }
 
 D3D11_VIEWPORT backup_vp;
@@ -1444,7 +1214,7 @@ SK_FAR_RestoreAspectRatio (ID3D11DeviceContext *pDevCtx)
 }
 
 bool
-SK_FAR_CorrectAspectRatio (ID3D11DeviceContext *pDevCtx)
+SK_FAR_CorrectAspectRatio (ID3D11DeviceContext* /*pDevCtx*/)
 {
 #if 1
   return false;
@@ -1512,8 +1282,8 @@ SK_FAR_DrawIndexed (
     aspect = SK_FAR_CorrectAspectRatio (This);
 
   if (! cull)
-    D3D11_DrawIndexed_Original ( This, IndexCount,
-                                   StartIndexLocation, BaseVertexLocation );
+    _D3D11_DrawIndexed_Original ( This, IndexCount,
+                                    StartIndexLocation, BaseVertexLocation );
 
   if (aspect)
     SK_FAR_RestoreAspectRatio (This);
@@ -1536,8 +1306,8 @@ SK_FAR_Draw (
     aspect = SK_FAR_CorrectAspectRatio (This);
 
   if (! cull)
-    D3D11_Draw_Original ( This, VertexCount,
-                            StartVertexLocation );
+    _D3D11_Draw_Original ( This, VertexCount,
+                             StartVertexLocation );
 
   if (aspect)
     SK_FAR_RestoreAspectRatio (This);
@@ -1557,7 +1327,7 @@ SK_FAR_DrawIndexedInstanced (
 {
   bool aspect = SK_FAR_CorrectAspectRatio (This);
 
-  D3D11_DrawIndexedInstanced_Original (This, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+  _D3D11_DrawIndexedInstanced_Original (This, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 
   if (aspect)
     SK_FAR_RestoreAspectRatio (This);
@@ -1573,7 +1343,7 @@ SK_FAR_DrawIndexedInstancedIndirect (
 {
   bool aspect = SK_FAR_CorrectAspectRatio (This);
 
-  D3D11_DrawIndexedInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
+  _D3D11_DrawIndexedInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
 
   if (aspect)
     SK_FAR_RestoreAspectRatio (This);
@@ -1591,7 +1361,7 @@ SK_FAR_DrawInstanced (
 {
   bool aspect = SK_FAR_CorrectAspectRatio (This);
 
-  D3D11_DrawInstanced_Original (This, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+  _D3D11_DrawInstanced_Original (This, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 
   if (aspect)
     SK_FAR_RestoreAspectRatio (This);
@@ -1607,7 +1377,7 @@ SK_FAR_DrawInstancedIndirect (
 {
   bool aspect = SK_FAR_CorrectAspectRatio (This);
 
-  D3D11_DrawInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
+  _D3D11_DrawInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
 
   if (aspect)
     SK_FAR_RestoreAspectRatio (This);
@@ -1615,13 +1385,6 @@ SK_FAR_DrawInstancedIndirect (
 
 #include <cmath>
 #include <memory>
-
-
-extern
-__declspec (noinline)
-void
-__stdcall
-SK_ImGui_DrawEULA_PlugIn (LPVOID reserved);
 
 __declspec (noinline)
 void
@@ -1664,100 +1427,86 @@ SK_FAR_InitPlugin (void)
 {
   SK_SetPluginName (FAR_VERSION_STR);
 
-  SK_CreateFuncHook ( L"ID3D11Device::CreateBuffer",
-                        D3D11Dev_CreateBuffer_Override,
-                          SK_FAR_CreateBuffer,
-                            (LPVOID *)&D3D11Dev_CreateBuffer_Original );
-  MH_QueueEnableHook (D3D11Dev_CreateBuffer_Override);
+  SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
+                               D3D11Dev_CreateBuffer_Override,
+                                 SK_FAR_CreateBuffer,
+reinterpret_cast <LPVOID *> (&_D3D11Dev_CreateBuffer_Original) );
+  MH_QueueEnableHook (         D3D11Dev_CreateBuffer_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11Device::CreateShaderResourceView",
-                        D3D11Dev_CreateShaderResourceView_Override,
-                          SK_FAR_CreateShaderResourceView,
-                            (LPVOID *)&D3D11Dev_CreateShaderResourceView_Original );
-  MH_QueueEnableHook (D3D11Dev_CreateShaderResourceView_Override);
+  SK_CreateFuncHook (       L"ID3D11Device::CreateShaderResourceView",
+                               D3D11Dev_CreateShaderResourceView_Override,
+                                 SK_FAR_CreateShaderResourceView,
+reinterpret_cast <LPVOID *> (&_D3D11Dev_CreateShaderResourceView_Original) );
+  MH_QueueEnableHook (         D3D11Dev_CreateShaderResourceView_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11Device::CreateTexture2D",
-                        D3D11Dev_CreateTexture2D_Override,
-                          SK_FAR_CreateTexture2D,
-                            (LPVOID *)&D3D11Dev_CreateTexture2D_Original );
-  MH_QueueEnableHook (D3D11Dev_CreateTexture2D_Override);
+  SK_CreateFuncHook (       L"ID3D11Device::CreateTexture2D",
+                               D3D11Dev_CreateTexture2D_Override,
+                                 SK_FAR_CreateTexture2D,
+reinterpret_cast <LPVOID *> (&_D3D11Dev_CreateTexture2D_Original) );
+  MH_QueueEnableHook (         D3D11Dev_CreateTexture2D_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::Draw",
-                        D3D11_Draw_Override,
-                          SK_FAR_Draw,
-                            (LPVOID *)&D3D11_Draw_Original );
-  MH_QueueEnableHook (D3D11_Draw_Override);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::Draw",
+                               D3D11_Draw_Override,
+                              SK_FAR_Draw,
+reinterpret_cast <LPVOID *> (&_D3D11_Draw_Original) );
+  MH_QueueEnableHook (         D3D11_Draw_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexed",
-                        D3D11_DrawIndexed_Override,
-                          SK_FAR_DrawIndexed,
-                            (LPVOID *)&D3D11_DrawIndexed_Original );
-  MH_QueueEnableHook (D3D11_DrawIndexed_Override);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexed",
+                               D3D11_DrawIndexed_Override,
+                              SK_FAR_DrawIndexed,
+reinterpret_cast <LPVOID *> (&_D3D11_DrawIndexed_Original) );
+  MH_QueueEnableHook (         D3D11_DrawIndexed_Override  );
 
-  SK_CreateFuncHook ( L"SK_PlugIn_ControlPanelWidget",
-                        SK_PlugIn_ControlPanelWidget,
-                          SK_FAR_ControlPanel,
-               (LPVOID *)&SK_PlugIn_ControlPanelWidget_Original );
-
-  MH_QueueEnableHook (SK_PlugIn_ControlPanelWidget);
+  SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
+                              SK_PlugIn_ControlPanelWidget,
+                                 SK_FAR_ControlPanel,
+reinterpret_cast <LPVOID *> (&SK_PlugIn_ControlPanelWidget_Original) );
+  MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
   LPVOID dontcare = nullptr;
 
   SK_CreateFuncHook ( L"SK_ImGUI_DrawEULA_PlugIn",
-                      SK_ImGui_DrawEULA_PlugIn,
-                      SK_FAR_EULA_Insert,
-                     &dontcare );
+                        SK_ImGui_DrawEULA_PlugIn,
+                              SK_FAR_EULA_Insert,
+                                &dontcare     );
 
   MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
 
-typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation
-);
-typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs
-);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexedInstanced",
+                               D3D11_DrawIndexedInstanced_Override,
+                              SK_FAR_DrawIndexedInstanced,
+reinterpret_cast <LPVOID *> (&_D3D11_DrawIndexedInstanced_Original) );
+  MH_QueueEnableHook (         D3D11_DrawIndexedInstanced_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexedInstanced",
-                        D3D11_DrawIndexedInstanced_Override,
-                          SK_FAR_DrawIndexedInstanced,
-                            (LPVOID *)&D3D11_DrawIndexedInstanced_Original );
-  MH_QueueEnableHook (D3D11_DrawIndexedInstanced_Override);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexedInstancedIndirect",
+                               D3D11_DrawIndexedInstancedIndirect_Override,
+                              SK_FAR_DrawIndexedInstancedIndirect,
+reinterpret_cast <LPVOID *> (&_D3D11_DrawIndexedInstancedIndirect_Original) );
+  MH_QueueEnableHook (         D3D11_DrawIndexedInstancedIndirect_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawIndexedInstancedIndirect",
-                        D3D11_DrawIndexedInstancedIndirect_Override,
-                          SK_FAR_DrawIndexedInstancedIndirect,
-                            (LPVOID *)&D3D11_DrawIndexedInstancedIndirect_Original );
-  MH_QueueEnableHook (D3D11_DrawIndexedInstancedIndirect_Override);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawInstanced",
+                               D3D11_DrawInstanced_Override,
+                              SK_FAR_DrawInstanced,
+reinterpret_cast <LPVOID *> (&_D3D11_DrawInstanced_Original) );
+  MH_QueueEnableHook (         D3D11_DrawInstanced_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawInstanced",
-                        D3D11_DrawInstanced_Override,
-                          SK_FAR_DrawInstanced,
-                            (LPVOID *)&D3D11_DrawInstanced_Original );
-  MH_QueueEnableHook (D3D11_DrawInstanced_Override);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawInstancedIndirect",
+                               D3D11_DrawInstancedIndirect_Override,
+                              SK_FAR_DrawInstancedIndirect,
+reinterpret_cast <LPVOID *> (&_D3D11_DrawInstancedIndirect_Original) );
+  MH_QueueEnableHook (         D3D11_DrawInstancedIndirect_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::DrawInstancedIndirect",
-                        D3D11_DrawInstancedIndirect_Override,
-                          SK_FAR_DrawInstancedIndirect,
-                            (LPVOID *)&D3D11_DrawInstancedIndirect_Original );
-  MH_QueueEnableHook (D3D11_DrawInstancedIndirect_Override);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::PSSetConstantBuffers",
+                               D3D11_PSSetConstantBuffers_Override,
+                              SK_FAR_PSSetConstantBuffers,
+reinterpret_cast <LPVOID *> (&_D3D11_PSSetConstantBuffers_Original) );
+  MH_QueueEnableHook (         D3D11_PSSetConstantBuffers_Override  );
 
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::PSSetConstantBuffers",
-                        D3D11_PSSetConstantBuffers_Override,
-                          SK_FAR_PSSetConstantBuffers,
-                            (LPVOID *)&D3D11_PSSetConstantBuffers_Original );
-  MH_QueueEnableHook (D3D11_PSSetConstantBuffers_Override);
-
-  SK_CreateFuncHook ( L"ID3D11DeviceContext::UpdateSubresource",
-                        D3D11_UpdateSubresource_Override,
-                          SK_FAR_UpdateSubresource,
-                            (LPVOID *)&D3D11_UpdateSubresource_Original );
-  MH_QueueEnableHook (D3D11_UpdateSubresource_Override);
+  SK_CreateFuncHook (       L"ID3D11DeviceContext::UpdateSubresource",
+                               D3D11_UpdateSubresource_Override,
+                              SK_FAR_UpdateSubresource,
+reinterpret_cast <LPVOID *> (&_D3D11_UpdateSubresource_Original) );
+  MH_QueueEnableHook (         D3D11_UpdateSubresource_Override  );
 
 
   if (far_prefs == nullptr)
@@ -2074,7 +1823,7 @@ typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
 
     SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
                                                SK_FAR_EndFrame,
-                                    (LPVOID *)&SK_EndFrame_Original );
+                 reinterpret_cast <LPVOID *> (&SK_EndFrame_Original) );
     MH_QueueEnableHook (SK_BeginBufferSwap);
 
 
@@ -2165,7 +1914,7 @@ SK_FAR_ControlPanel (void)
         // 1/4 resolution actually, but this is easier to describe to the end-user
         if (ImGui::RadioButton ("Native Bloom Res.",            &bloom_behavior, 1))
         {
-          far_bloom_width->set_value ((int)ImGui::GetIO ().DisplaySize.x);
+          far_bloom_width->set_value (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
           far_bloom_width->store     ();
 
           changed = true;
@@ -2224,10 +1973,10 @@ SK_FAR_ControlPanel (void)
         // 1/4 resolution actually, but this is easier to describe to the end-user
         if (ImGui::RadioButton ("Native AO Res.   ",            &ao_behavior, 3))
         {
-          far_ao_width->set_value  ((int)(ImGui::GetIO ().DisplaySize.x));
+          far_ao_width->set_value  (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
           far_ao_width->store      ();
 
-          far_ao_height->set_value ((int)(ImGui::GetIO ().DisplaySize.y));
+          far_ao_height->set_value (static_cast <int> (ImGui::GetIO ().DisplaySize.y));
           far_ao_height->store     ();
 
           changed = true;
@@ -2461,7 +2210,7 @@ SK_FAR_ControlPanel (void)
 
         ImGui::Text ( "Origin: (%.3f, %.3f, %.3f) - Look: (%.3f,%.3f,%.3f",
                         ((float *)far_cam.pCamera)[0], ((float *)far_cam.pCamera)[1], ((float *)far_cam.pCamera)[2],
-                        ((float *)far_cam.pLook)[0], ((float *)far_cam.pLook)[1], ((float *)far_cam.pLook)[2] );
+                        ((float *)far_cam.pLook)[0],   ((float *)far_cam.pLook)[1],   ((float *)far_cam.pLook)[2] );
 
       ImGui::TreePop        ();
     }

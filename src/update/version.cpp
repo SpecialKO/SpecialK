@@ -238,7 +238,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
         remind_time->load ();
 
-        if (uliNow.QuadPart >= (uint64_t)remind_time->get_value ())
+        if (uliNow.QuadPart >= static_cast <uint64_t> (remind_time->get_value ()))
         {
           need_remind = true;
 
@@ -688,7 +688,7 @@ SK_Version_ForceUpdateNextLaunch (const wchar_t* wszProduct)
     if (install_ini.contains_section (L"Update.User"))
     {
       if (install_ini.get_section (L"Update.User").contains_key (L"Reminder"))
-        install_ini.get_section (L"Update.User").remove_key (L"Reminder");
+          install_ini.get_section (L"Update.User").remove_key   (L"Reminder");
     }
 
     iSK_INISection& user_prefs =

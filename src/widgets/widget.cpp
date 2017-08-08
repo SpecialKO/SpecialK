@@ -273,10 +273,10 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
     }
 
     ImVec4 col = ImColor::HSV ( 0.133333f, 
-                                    std::min ( (float)(0.161616f +  (timeGetTime () % 250) / 250.0f -
-                                                            floor ( (timeGetTime () % 250) / 250.0f) ), 1.0f),
-                                        std::min ( (float)(0.333 +  (timeGetTime () % 500) / 500.0f -
-                                                            floor ( (timeGetTime () % 500) / 500.0f) ), 1.0f) );
+                                    std::min ( static_cast <float>(0.161616f +  (timeGetTime () % 250) / 250.0f -
+                                                                        floor ( (timeGetTime () % 250) / 250.0f) ), 1.0f),
+                                        std::min ( static_cast <float>(0.333 +  (timeGetTime () % 500) / 500.0f -
+                                                                        floor ( (timeGetTime () % 500) / 500.0f) ), 1.0f) );
     const ImU32 col32 =
       ImColor (col);
     
@@ -355,10 +355,10 @@ SK_Widget::draw_base (void)
   }
 
 
-  bool n = (int)docking & (int)DockAnchor::North,
-       s = (int)docking & (int)DockAnchor::South,
-       e = (int)docking & (int)DockAnchor::East,
-       w = (int)docking & (int)DockAnchor::West;
+  bool n = static_cast <int> (docking) & static_cast <int> (DockAnchor::North),
+       s = static_cast <int> (docking) & static_cast <int> (DockAnchor::South),
+       e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
+       w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
 
   ImGui::Begin           ( SK_FormatString ("###Widget_%s", name.c_str ()).c_str (),
                              nullptr,
@@ -514,10 +514,10 @@ SK_Widget::config_base (void)
     changed = true;
   }
 
-  bool n = (int)docking & (int)DockAnchor::North,
-       s = (int)docking & (int)DockAnchor::South,
-       e = (int)docking & (int)DockAnchor::East,
-       w = (int)docking & (int)DockAnchor::West;
+  bool n = static_cast <int> (docking) & static_cast <int> (DockAnchor::North),
+       s = static_cast <int> (docking) & static_cast <int> (DockAnchor::South),
+       e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
+       w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
 
   const char* anchors = "Undocked\0North\0South\0\0";
 
@@ -528,11 +528,16 @@ SK_Widget::config_base (void)
 
   if (ImGui::Combo ("Vertical Docking Anchor", &dock, anchors, 3))
   {
-    int mask = (dock == 1 ? (int)DockAnchor::North : 0x0) |
-               (dock == 2 ? (int)DockAnchor::South : 0x0);
+    int mask = (dock == 1 ? static_cast <int> (DockAnchor::North) : 0x0) |
+               (dock == 2 ? static_cast <int> (DockAnchor::South) : 0x0);
 
-    docking = (DockAnchor)(mask | (int)docking & ~( (int)DockAnchor::North |
-                                                    (int)DockAnchor::South ) );
+    docking = static_cast <DockAnchor> (
+                 mask | static_cast <int>     (docking) & ~(
+                            static_cast <int> (DockAnchor::North) |
+                            static_cast <int> (DockAnchor::South)
+                                                           )
+              );
+
     changed = true;
   }
 
@@ -545,11 +550,16 @@ SK_Widget::config_base (void)
 
   if (ImGui::Combo ("Horizonal Docking Anchor", &dock, anchors, 3))
   {
-    int mask = (dock == 1 ? (int)DockAnchor::West : 0x0) |
-               (dock == 2 ? (int)DockAnchor::East : 0x0);
+    int mask = (dock == 1 ? static_cast <int> (DockAnchor::West) : 0x0) |
+               (dock == 2 ? static_cast <int> (DockAnchor::East) : 0x0);
 
-    docking = (DockAnchor)(mask | (int)docking & ~( (int)DockAnchor::West |
-                                                    (int)DockAnchor::East ) );
+    docking = static_cast <DockAnchor> (
+                 mask | static_cast <int>     (docking) & ~(
+                            static_cast <int> (DockAnchor::West) |
+                            static_cast <int> (DockAnchor::East)
+                                                           )
+              );
+
     changed = true;
   }
 

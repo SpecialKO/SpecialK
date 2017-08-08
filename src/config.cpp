@@ -2184,7 +2184,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     Sacred2,              // sacred2.exe
     FinalFantasy9,        // FF9.exe   
     EdithFinch,           // FinchGame.exe
-    FinalFantasyX_X2      // FFX.exe / FFX-2.exe
+    FinalFantasyX_X2,     // FFX.exe / FFX-2.exe
+    DeadlyPremonition     // DP.exe DPLauncher.exe
   };
 
   static std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -2212,6 +2213,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"FinchGame.exe",                SK_GAME_ID::EdithFinch           );
   games.emplace ( L"FFX.exe",                      SK_GAME_ID::FinalFantasyX_X2     );
   games.emplace ( L"FFX-2.exe",                    SK_GAME_ID::FinalFantasyX_X2     );
+  games.emplace ( L"DP.exe",                       SK_GAME_ID::DeadlyPremonition    );
 
   //
   // Application Compatibility Overrides
@@ -2428,6 +2430,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
         //  Excessively lenghty startup is followed by actual SteamAPI init eventually...
         config.steam.auto_pump_callbacks = false;
         break;
+
+
+#ifndef _WIN64
+      case SK_GAME_ID::DeadlyPremonition:
+        config.steam.force_load_steamapi       = true;
+        config.apis.d3d9.hook                  = true;
+        config.apis.d3d9ex.hook                = false;
+        config.apis.d3d8.hook                  = false;
+        config.input.mouse.add_relative_motion = false;
+        break;
+#endif
     }
   }
 

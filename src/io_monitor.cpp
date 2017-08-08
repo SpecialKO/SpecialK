@@ -79,17 +79,17 @@ SK_CountIO (io_perf_t& ioc, const double update)
   ioc.accum.OtherOperationCount +=
     current_io.OtherOperationCount - ioc.last_counter.OtherOperationCount;
 
-  double dRB = (double)ioc.accum.ReadTransferCount;
-  double dWB = (double)ioc.accum.WriteTransferCount;
-  double dOB = (double)ioc.accum.OtherTransferCount;
+  double dRB = static_cast <double> (ioc.accum.ReadTransferCount);
+  double dWB = static_cast <double> (ioc.accum.WriteTransferCount);
+  double dOB = static_cast <double> (ioc.accum.OtherTransferCount);
 
-  double dRC = (double)ioc.accum.ReadOperationCount;
-  double dWC = (double)ioc.accum.WriteOperationCount;
-  double dOC = (double)ioc.accum.OtherOperationCount;
+  double dRC = static_cast <double> (ioc.accum.ReadOperationCount);
+  double dWC = static_cast <double> (ioc.accum.WriteOperationCount);
+  double dOC = static_cast <double> (ioc.accum.OtherOperationCount);
 
-  double& read_mb_sec  = ioc.read_mb_sec;
-  double& write_mb_sec = ioc.write_mb_sec;
-  double& other_mb_sec = ioc.other_mb_sec;
+  double& read_mb_sec   = ioc.read_mb_sec;
+  double& write_mb_sec  = ioc.write_mb_sec;
+  double& other_mb_sec  = ioc.other_mb_sec;
 
   double& read_iop_sec  = ioc.read_iop_sec;
   double& write_iop_sec = ioc.write_iop_sec;
@@ -98,18 +98,18 @@ SK_CountIO (io_perf_t& ioc, const double update)
   if (ioc.dt >= update)
   {
     read_mb_sec  = (
-      read_mb_sec + ((dRB / 1048576.0) / (1.0e-7 * (double)ioc.dt))
+      read_mb_sec + ((dRB / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)))
                    ) / 2.0;
     write_mb_sec = (
-      write_mb_sec + ((dWB / 1048576.0) / (1.0e-7 * (double)ioc.dt))
+      write_mb_sec + ((dWB / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)))
                    ) / 2.0;
     other_mb_sec = (
-      other_mb_sec + ((dOB / 1048576.0) / (1.0e-7 * (double)ioc.dt))
+      other_mb_sec + ((dOB / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)))
                    ) / 2.0;
 
-    read_iop_sec  = (read_iop_sec  + (dRC / (1.0e-7 * (double)ioc.dt))) / 2.0;
-    write_iop_sec = (write_iop_sec + (dWC / (1.0e-7 * (double)ioc.dt))) / 2.0;
-    other_iop_sec = (other_iop_sec + (dOC / (1.0e-7 * (double)ioc.dt))) / 2.0;
+    read_iop_sec  = (read_iop_sec  + (dRC / (1.0e-7 * static_cast <double> (ioc.dt)))) / 2.0;
+    write_iop_sec = (write_iop_sec + (dWC / (1.0e-7 * static_cast <double> (ioc.dt)))) / 2.0;
+    other_iop_sec = (other_iop_sec + (dOC / (1.0e-7 * static_cast <double> (ioc.dt)))) / 2.0;
 
     ioc.accum.ReadTransferCount   = 0;
     ioc.accum.WriteTransferCount  = 0;
@@ -1065,7 +1065,7 @@ SK_MonitorDisk (LPVOID user)
                              disk.lNameHandle,
                              sizeof (wchar_t) * 64,
                              &bytes,
-                             (LPBYTE)name )
+                             reinterpret_cast <LPBYTE> (name) )
                  )
          )
       {
@@ -1089,17 +1089,17 @@ SK_MonitorDisk (LPVOID user)
       disk.disks [i].percent_read   = (disk.disks [i].percent_read   + percent_read)   / 2;
       disk.disks [i].percent_write  = (disk.disks [i].percent_write  + percent_write)  / 2;
 
-      write_rate    [i].addSample ((double)bytes_write_sec, now);
-      read_rate     [i].addSample ((double)bytes_read_sec,  now);
-      combined_rate [i].addSample ((double)bytes_sec,       now);
+      write_rate    [i].addSample ( static_cast <double> (bytes_write_sec), now );
+      read_rate     [i].addSample (static_cast <double> (bytes_read_sec),   now );
+      combined_rate [i].addSample (static_cast <double> (bytes_sec),        now );
 
       double combined_mean = combined_rate [i].calcMean (3.0);
       double write_mean    = write_rate    [i].calcMean (3.0);
       double read_mean     = read_rate     [i].calcMean (3.0);
 
-      disk.disks [i].bytes_sec       = isnan (combined_mean) ? 0ULL : (uint64_t)combined_mean;
-      disk.disks [i].write_bytes_sec = isnan (write_mean)    ? 0ULL : (uint64_t)write_mean;
-      disk.disks [i].read_bytes_sec  = isnan (read_mean)     ? 0ULL : (uint64_t)read_mean;
+      disk.disks [i].bytes_sec       = isnan (combined_mean) ? 0ULL : static_cast <uint64_t> (combined_mean);
+      disk.disks [i].write_bytes_sec = isnan (write_mean)    ? 0ULL : static_cast <uint64_t> (write_mean);
+      disk.disks [i].read_bytes_sec  = isnan (read_mean)     ? 0ULL : static_cast <uint64_t> (read_mean);
 
       //disk.disks [i].bytes_sec       = (disk.disks [i].bytes_sec       + bytes_sec)       >> 1;
       //disk.disks [i].write_bytes_sec = (disk.disks [i].write_bytes_sec + bytes_write_sec) >> 1;
@@ -1408,7 +1408,7 @@ SK_MonitorPagefile (LPVOID user)
                              pagefile.lNameHandle,
                              sizeof (wchar_t) * 255,
                              &bytes,
-                             (LPBYTE)name )
+                             reinterpret_cast <LPBYTE> (name) )
                  )
          )
       {

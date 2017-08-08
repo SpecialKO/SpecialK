@@ -108,13 +108,13 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   ImDrawIdx*    idx_dst = 0;
 
   if ( g_pVB->Lock ( 0,
-                       (UINT)(draw_data->TotalVtxCount * sizeof CUSTOMVERTEX),
+    static_cast <UINT> (draw_data->TotalVtxCount * sizeof CUSTOMVERTEX),
                          (void **)&vtx_dst,
                            D3DLOCK_DISCARD ) < 0 )
     return;
 
   if ( g_pIB->Lock ( 0,
-                       (UINT)(draw_data->TotalIdxCount * sizeof ImDrawIdx),
+    static_cast <UINT> (draw_data->TotalIdxCount * sizeof ImDrawIdx),
                          (void **)&idx_dst,
                            D3DLOCK_DISCARD ) < 0 )
     return;
@@ -274,8 +274,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
       else
       {
         const RECT r = {
-          (LONG)pcmd->ClipRect.x, (LONG)pcmd->ClipRect.y,
-          (LONG)pcmd->ClipRect.z, (LONG)pcmd->ClipRect.w
+          static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
+          static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
         };
 
         g_pd3dDevice->SetTexture           ( 0, (LPDIRECT3DTEXTURE9)pcmd->TextureId );
@@ -283,7 +283,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
         g_pd3dDevice->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST,
                                                vtx_offset,
                                                  0,
-                                                   (UINT)cmd_list->VtxBuffer.Size,
+                               static_cast <UINT> (cmd_list->VtxBuffer.Size),
                                                      idx_offset,
                                                        pcmd->ElemCount / 3 );
       }
@@ -306,15 +306,17 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
 IMGUI_API
 bool
-ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* pparams)
+ImGui_ImplDX9_Init ( void*                  hwnd,
+                     IDirect3DDevice9*      device,
+                     D3DPRESENT_PARAMETERS* pparams )
 {
-  g_hWnd       = (HWND)hwnd;
+  g_hWnd       = static_cast <HWND> (hwnd);
   g_pd3dDevice = device;
 
-  if (! QueryPerformanceFrequency        ((LARGE_INTEGER *)&g_TicksPerSecond))
+  if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
     return false;
 
-  if (! QueryPerformanceCounter_Original ((LARGE_INTEGER *)&g_Time))
+  if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
     return false;
 
   ImGuiIO& io (ImGui::GetIO ());
@@ -346,12 +348,13 @@ ImGui_ImplDX9_Init (void* hwnd, IDirect3DDevice9* device, D3DPRESENT_PARAMETERS*
   io.ImeWindowHandle   = g_hWnd;
 
 
-  float width = 0.0f, height = 0.0f;
+  float width  = 0.0f,
+        height = 0.0f;
 
   if ( pparams != nullptr )
   {
-    width  = (float)pparams->BackBufferWidth;
-    height = (float)pparams->BackBufferHeight;
+    width  = static_cast <float> (pparams->BackBufferWidth);
+    height = static_cast <float> (pparams->BackBufferHeight);
   }
 
   io.DisplayFramebufferScale = ImVec2 ( width, height );
@@ -421,7 +424,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
 
   // Store our identifier
   io.Fonts->TexID =
-    (void *)g_FontTexture;
+    static_cast <void *> (g_FontTexture);
 
   return true;
 }
@@ -467,12 +470,13 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
   g_FontTexture = NULL;
 
 
-  float width = 0.0f, height = 0.0f;
+  float width  = 0.0f,
+        height = 0.0f;
 
   if ( pparams != nullptr )
   {
-    width  = (float)pparams->BackBufferWidth;
-    height = (float)pparams->BackBufferHeight;
+    width  = static_cast <float> (pparams->BackBufferWidth);
+    height = static_cast <float> (pparams->BackBufferHeight);
   }
 
   io.DisplayFramebufferScale = ImVec2 ( width, height );
@@ -495,7 +499,8 @@ ImGui_ImplDX9_NewFrame (void)
   if (! g_FontTexture)
     ImGui_ImplDX9_CreateDeviceObjects ();
 
-  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+  static HMODULE hModTBFix =
+    GetModuleHandle (L"tbfix.dll");
 
 
   // Setup display size (every frame to accommodate for window resizing)
@@ -503,8 +508,8 @@ ImGui_ImplDX9_NewFrame (void)
   GetClientRect (g_hWnd, &rect);
 
   io.DisplayFramebufferScale =
-    ImVec2 ( (float)(rect.right - rect.left),
-               (float)(rect.bottom - rect.top) );
+    ImVec2 ( static_cast <float> (rect.right  - rect.left),
+             static_cast <float> (rect.bottom - rect.top ) );
 
 
   if (! g_pd3dDevice)
@@ -515,16 +520,18 @@ ImGui_ImplDX9_NewFrame (void)
 
   if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain )))
   {
-    D3DPRESENT_PARAMETERS pp;
+    D3DPRESENT_PARAMETERS pp = { };
 
     if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp)))
     {
       if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0)
       {
-        io.DisplaySize.x = (float)pp.BackBufferWidth;
-        io.DisplaySize.y = (float)pp.BackBufferHeight;
+        io.DisplaySize.x = static_cast <float> (pp.BackBufferWidth);
+        io.DisplaySize.y = static_cast <float> (pp.BackBufferHeight);
 
-        io.DisplayFramebufferScale = ImVec2 ( (float)pp.BackBufferWidth, (float)pp.BackBufferHeight );
+        io.DisplayFramebufferScale = 
+          ImVec2 ( static_cast <float> (pp.BackBufferWidth),
+                   static_cast <float> (pp.BackBufferHeight) );
       }
     }
   }
@@ -532,10 +539,13 @@ ImGui_ImplDX9_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter_Original ((LARGE_INTEGER *)&current_time);
+  QueryPerformanceCounter_Original (
+    reinterpret_cast <LARGE_INTEGER *> (&current_time)
+  );
 
-  io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
-  g_Time       =         current_time;
+  io.DeltaTime = static_cast <float> (current_time - g_Time) /
+                 static_cast <float> (g_TicksPerSecond);
+  g_Time       =                      current_time;
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;

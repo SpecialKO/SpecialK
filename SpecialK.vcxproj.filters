@@ -199,7 +199,7 @@
     <Filter Include="Source Files\Widgets">
       <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input\RawInput\Steam">
+    <Filter Include="Source Files\Backends\Input\Steam">
       <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -405,6 +405,9 @@
     <ClInclude Include="include\SpecialK\widgets\widget.h">
       <Filter>Header Files\ImGui\Widgets</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\plugin\nier.h">
+      <Filter>Header Files\Plugins</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -575,14 +578,8 @@
     <ClCompile Include="src\import.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\rime.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\ddraw.cpp">
       <Filter>Source Files\Backends\Render\DDraw</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\ffencer_ad.cpp">
-      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\input\dinput8.cpp">
       <Filter>Source Files\Backends\Input\DirectInput</Filter>

@@ -93,7 +93,10 @@ SK_TLS_Bottom (void)
   if (lpvData == nullptr)
   {
     lpvData =
-      (LPVOID)LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max);
+      static_cast <LPVOID> (
+        LocalAlloc ( LPTR,
+                       sizeof (SK_TLS) * SK_TLS::stack::max )
+      );
 
     if (lpvData != nullptr)
     {
@@ -103,11 +106,11 @@ SK_TLS_Bottom (void)
         return nullptr;
       }
 
-      ((SK_TLS *)lpvData)->stack.current = 0;
+      static_cast <SK_TLS *> (lpvData)->stack.current = 0;
     }
   }
 
-  return (SK_TLS *)lpvData;
+  return static_cast <SK_TLS *> (lpvData);
 }
 
 SK_TLS*
@@ -129,8 +132,8 @@ SK_TLS_Push (void)
 
   if (SK_TLS_Bottom ()->stack.current < SK_TLS::stack::max)
   {
-    ((SK_TLS *)SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current + 1] =
-      ((SK_TLS *)SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current++];
+    static_cast <SK_TLS *>   (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current + 1] =
+      static_cast <SK_TLS *> (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current++];
 
     return true;
   }
@@ -148,7 +151,7 @@ SK_TLS_Pop  (void)
 
   if (SK_TLS_Bottom ()->stack.current > 0)
   {
-    ((SK_TLS *)SK_TLS_Bottom ())->stack.current--;
+    static_cast <SK_TLS *> (SK_TLS_Bottom ())->stack.current--;
 
     return true;
   }
@@ -179,7 +182,7 @@ HMODULE
 __stdcall
 SK_GetDLL (void)
 {
-  return (HMODULE)(LPVOID *)hModSelf;
+  return reinterpret_cast <HMODULE> (hModSelf);
 }
 
 #include <unordered_set>
@@ -274,6 +277,7 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"FF9_Launcher.exe");
     blacklist.emplace (L"A17Config.exe");
     blacklist.emplace (L"A18Config.exe"); // Atelier Firis
+    blacklist.emplace (L"DPLauncher.exe");
 
     // Other Stuff
     blacklist.emplace (L"ActivationUI.exe");
@@ -325,7 +329,7 @@ SK_EstablishDllRole (HMODULE hModule)
   const wchar_t* wszShort =
     SK_Path_wcsrchr (wszDllFullName, L'\\') + 1;
 
-  if (wszShort == (const wchar_t *)nullptr + 1)
+  if (wszShort == static_cast <const wchar_t *>(nullptr) + 1)
     wszShort = wszDllFullName;
 
   if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
@@ -898,9 +902,10 @@ DllMain ( HMODULE hModule,
 
 
       QueryPerformanceCounter_Original =
-        (QueryPerformanceCounter_pfn)GetProcAddress (
-          GetModuleHandle (L"kernel32.dll"),
-                             "QueryPerformanceCounter"
+        reinterpret_cast <QueryPerformanceCounter_pfn> (
+          GetProcAddress (
+            GetModuleHandle ( L"kernel32.dll"),
+                                "QueryPerformanceCounter" )
         );
 
       SK_Init_MinHook        ();
@@ -986,7 +991,9 @@ DllMain ( HMODULE hModule,
       if (__SK_TLS_INDEX != MAXDWORD)
       {
         LPVOID lpvData =
-          (LPVOID)LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max);
+          static_cast <LPVOID> (
+            LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
+          );
 
         if (lpvData != nullptr)
         {
@@ -996,7 +1003,7 @@ DllMain ( HMODULE hModule,
           }
 
           else
-            ((SK_TLS *)lpvData)->stack.current = 0;
+            (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
         }
       }
     } break;
@@ -1007,7 +1014,7 @@ DllMain ( HMODULE hModule,
       if (__SK_TLS_INDEX != MAXDWORD)
       {
         LPVOID lpvData =
-          (LPVOID)TlsGetValue (__SK_TLS_INDEX);
+          static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
 
         if (lpvData != nullptr)
         {

@@ -221,7 +221,7 @@ public:
                              vram_used_mib.getOffset (),
                                szAvg,
                                  0.0f,//vram_used_mib.getMin   (),//0.0f,
-                                   capacity_in_mib * 1.05,
+                                   capacity_in_mib * 1.05f,
                                      ImVec2 (
                                        ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 

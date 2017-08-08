@@ -82,7 +82,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   if (fINI != 0)
   {
     long size =
-      (long)SK_GetFileSize (filename);
+      static_cast <long> (SK_GetFileSize (filename));
 
     wszData = new wchar_t [size + 2] { };
     alloc   = wszData;
@@ -123,18 +123,18 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      bool utf8 = ((unsigned char *)wszData) [0] == 0xEF &&
-                  ((unsigned char *)wszData) [1] == 0xBB &&
-                  ((unsigned char *)wszData) [2] == 0xBF;
+      bool utf8 = (reinterpret_cast <unsigned char *> (wszData)) [0] == 0xEF &&
+                  (reinterpret_cast <unsigned char *> (wszData)) [1] == 0xBB &&
+                  (reinterpret_cast <unsigned char *> (wszData)) [2] == 0xBF;
 
       const uintptr_t offset =
         utf8 ? 3 : 0;
 
       const int       real_size =
-        size - (int)offset;
+        size - static_cast <int> (offset);
 
       char*           start_addr =
-        ((char *)wszData) + offset;
+      (reinterpret_cast <char *> (wszData)) + offset;
 
       char*           string =
         new char [real_size];
@@ -384,7 +384,8 @@ iSK_INI::parse (void)
 
       memset ( wszDataEnd,
                  0x00,
-                   (uintptr_t)wszNext - (uintptr_t)wszDataEnd );
+                   reinterpret_cast <uintptr_t> (wszNext) -
+                   reinterpret_cast <uintptr_t> (wszDataEnd) );
 
       len =
         lstrlenW (wszData);
@@ -518,7 +519,8 @@ iSK_INI::import (const wchar_t* import_data)
 
       memset ( wszImportEnd,
                  0x00,
-                   (uintptr_t)wszNext - (uintptr_t)wszImportEnd );
+                   reinterpret_cast <uintptr_t> (wszNext) -
+                   reinterpret_cast <uintptr_t> (wszImportEnd) );
 
       len =
         lstrlenW (wszImport);

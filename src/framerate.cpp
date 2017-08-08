@@ -155,7 +155,9 @@ Sleep_Detour (DWORD dwMilliseconds)
 #ifdef DUAL_USE_MAX_DELTA
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
-  if (dwMilliseconds >= (DWORD)config.render.framerate.max_delta_time)
+  if ( static_cast <DWORD> (config.render.framerate.max_delta_time) <=
+                            dwMilliseconds
+     )
   {
     //if (dwMilliseconds == 0)
       //return YieldProcessor ();
@@ -264,10 +266,10 @@ SK::Framerate::Init (void)
       ULONG min, max, cur;
       NtQueryTimerResolution (&min, &max, &cur);
       dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                      (float)(cur * 100)/1000000.0f );
+                      static_cast <float> (cur * 100)/1000000.0f );
       NtSetTimerResolution   (max, TRUE,  &cur);
       dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
-                      (float)(cur * 100)/1000000.0f );
+                      static_cast <float> (cur * 100)/1000000.0f );
 
     }
   }
@@ -572,6 +574,27 @@ SK::Framerate::Limiter::wait (void)
       bGUI ? IsWindowUnicode (hWndThis) :
              false;
 
+    auto PeekAndDispatch =
+    [&]
+    {
+      MSG msg     = {      };
+      msg.hwnd    = hWndThis;
+      msg.message = WM_NULL ;
+
+      if (bUnicode)
+      {
+        if (PeekMessageW   (&msg, hWndThis, 0, 0, PM_REMOVE))
+          DispatchMessageW (&msg);
+      }
+
+      else
+      {
+        if (PeekMessageA   (&msg, hWndThis, 0, 0, PM_REMOVE))
+          DispatchMessageA (&msg);
+      }
+    };
+
+
     bool bYielded = false;
 
     while (time.QuadPart < next.QuadPart)
@@ -602,29 +625,22 @@ SK::Framerate::Limiter::wait (void)
           if (bGUI)
           {
             MsgWaitForMultipleObjects (0, nullptr, TRUE, dwWaitMS, QS_ALLINPUT);
-
-            MSG msg         = {      };
-                msg.hwnd    = hWndThis;
-                msg.message = WM_NULL ;
-
-            if (bUnicode)
-            {
-              PeekMessageW     (&msg, hWndThis, 0, 0, PM_REMOVE);
-              DispatchMessageW (&msg);
-            }
-
-            else
-            {
-              PeekMessageA     (&msg, hWndThis, 0, 0, PM_REMOVE);
-              DispatchMessageA (&msg);
-            }
+            PeekAndDispatch           (                                       );
           }
 
           else
-            SleepEx            (dwWaitMS,   TRUE);
+            SleepEx              (dwWaitMS,   TRUE);
         }
 
         bYielded = true;
+        QueryPerformanceCounter_Original (&time);
+
+        continue;
+      }
+
+      if (bGUI)
+      {
+        PeekAndDispatch ();
       }
 
       QueryPerformanceCounter_Original (&time);
@@ -674,8 +690,8 @@ SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
 
   now = SK_CurrentPerf ();
 
-  dt = (double)(now.QuadPart - last_frame.QuadPart) /
-        (double)SK::Framerate::Stats::freq.QuadPart;
+  dt = static_cast  <double> (now.QuadPart - last_frame.QuadPart) /
+        static_cast <double> (SK::Framerate::Stats::freq.QuadPart);
 
   last_frame = now;
 };

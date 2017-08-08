@@ -54,6 +54,7 @@ CRITICAL_SECTION cs_render_view = { };
 CRITICAL_SECTION cs_mmio        = { };
 
 extern volatile DWORD SK_D3D11_init_tid;
+extern volatile DWORD SK_D3D11_ansel_tid;
 
 SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
 
@@ -282,7 +283,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   else
   {
-    if (SK_GetCallingDLL () != SK_GetDLL () && InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId ())
+    if (SK_GetCallingDLL () != SK_GetDLL () && InterlockedExchangeAdd (&SK_D3D11_init_tid,  0) != GetCurrentThreadId () &&
+                                               InterlockedExchangeAdd (&SK_D3D11_ansel_tid, 0) != GetCurrentThreadId () )
       WaitForInitDXGI ();
   }
 
@@ -436,14 +438,33 @@ D3D11CreateDevice_Detour (
 {
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
 
-  // Fix for Ansel ... oh how I hate Ansel.
-  InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
+  // Ansel is the purest form of evil known to man
+  if (! InterlockedExchangeAdd (&__d3d11_ready, 0))
+  {
+    if ( InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () &&
+         SK_GetCallerName ()                            != L"NvCamera64.dll"        )
+    {
+      WaitForInitD3D11 ();
+    }
 
-  return
-    D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags,
+    else if (SK_GetCallerName () == L"NvCamera64.dll")
+      InterlockedExchange (&SK_D3D11_ansel_tid, GetCurrentThreadId ());
+
+    return
+      D3D11CreateDeviceAndSwapChain_Import ( pAdapter, DriverType, Software, Flags,
                                              pFeatureLevels, FeatureLevels, SDKVersion,
                                                nullptr, nullptr, ppDevice, pFeatureLevel,
                                                  ppImmediateContext );
+  }
+
+  else
+  {
+    return
+      D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags,
+                                               pFeatureLevels, FeatureLevels, SDKVersion,
+                                                 nullptr, nullptr, ppDevice, pFeatureLevel,
+                                                   ppImmediateContext );
+  }
 }
 
 

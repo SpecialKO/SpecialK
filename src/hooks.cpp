@@ -214,7 +214,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
         dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
                       L"(Status: \"%hs\")",
-                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
+                        reinterpret_cast <uintptr_t> (pszProcName) > 65536 ? pszProcName : "Ordinal",
                           pwszModule,
                             MH_StatusToString (status) );
 
@@ -241,7 +241,7 @@ SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
 
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
-                    (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
+                    reinterpret_cast <uintptr_t> (pszProcName) > 65536 ? pszProcName : "Ordinal",
                       pwszModule,
                         MH_StatusToString (status) );
 
