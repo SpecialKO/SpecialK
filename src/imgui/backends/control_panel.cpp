@@ -2101,7 +2101,8 @@ SK_ImGui_ControlPanel (void)
                       ImGui::SetTooltip
                                      ( "(%llu ms asleep, %llu ms awake)",
                                          /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                           InterlockedAdd64 (&stats.time.allowed, 0), InterlockedAdd64 (&stats.time.deprived, 0) );
+                                           InterlockedAdd64 (&stats.time.allowed,  0),
+                                           InterlockedAdd64 (&stats.time.deprived, 0) );
                     }
                      ImGui::SameLine (                                                                              );
 
@@ -2114,21 +2115,36 @@ SK_ImGui_ControlPanel (void)
                       ImGui::SetTooltip
                                      ( "(%llu ms asleep, %llu ms awake)",
                                          /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                           InterlockedAdd64 (&stats.time.allowed, 0), InterlockedAdd64 (&stats.time.deprived, 0) );
+                                           InterlockedAdd64 (&stats.time.allowed,  0),
+                                           InterlockedAdd64 (&stats.time.deprived, 0) );
                   }
 
+          ImGui::Separator ();
+
           extern bool  SK_Framerate_Busy;
+          extern float SK_Framerate_SleepToBusy;
           extern float SK_Framerate_WaitScalar;
           extern bool  SK_Framerate_YieldOnce;
 
-          ImGui::Checkbox   ("Busy-Wait Limiter",            &SK_Framerate_Busy);
-
-          if (! SK_Framerate_Busy)
+          if (target_fps > 0.0f)
           {
-            ImGui::SameLine   ();
-            ImGui::InputFloat ("Wait Scale (% of TargetMS)", &SK_Framerate_WaitScalar);
+            ImGui::Checkbox      ("Busy-Wait Limiter",                                &SK_Framerate_Busy);
+            ImGui::SameLine      ();
 
-            ImGui::Checkbox   ("Yield Once",                 &SK_Framerate_YieldOnce);
+            extern bool                                                 SK_Framerate_ReduceInputLatency ;
+            ImGui::Checkbox      ("Reduce Input Latency",              &SK_Framerate_ReduceInputLatency);
+
+            if (! SK_Framerate_Busy)
+            {
+              ImGui::SameLine    (                                                                     );
+              ImGui::Checkbox    ( "Sleep Once, then Busy-Wait",               &SK_Framerate_YieldOnce );
+              ImGui::Separator   (                                                                     );
+              ImGui::SliderFloat ( "Sleep->Busy (Next Frame Deadline)"       , &SK_Framerate_SleepToBusy, 0.00f,
+                                   1000.0f / target_fps, "%4.1f ms or Sooner"                          );
+              ImGui::SliderFloat ( "Sleep Duration",                           &SK_Framerate_WaitScalar,  0.01f,
+                                   99.9f, SK_FormatString ( "%4.1f ms", (10.0f / target_fps )          *
+                                                            SK_Framerate_WaitScalar).c_str ()          );
+            }
           }
 
           ImGui::EndGroup ();
@@ -2138,7 +2154,8 @@ SK_ImGui_ControlPanel (void)
       ImGui::PopItemWidth ();
     }
 
-    SK_RenderAPI api = SK_GetCurrentRenderBackend ().api;
+    SK_RenderAPI api =
+      SK_GetCurrentRenderBackend ().api;
 
     if ( (int)api & (int)SK_RenderAPI::D3D11 &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
@@ -2155,7 +2172,8 @@ SK_ImGui_ControlPanel (void)
 
       extern BOOL SK_DXGI_SupportsTearing (void);
 
-      bool swapchain = ImGui::CollapsingHeader ("SwapChain Management");
+      bool swapchain =
+        ImGui::CollapsingHeader ("SwapChain Management");
 
       if (ImGui::IsItemHovered ())
       {
@@ -2177,7 +2195,6 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePush ("");
 
         ImGui::Checkbox ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
-
         ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
 
         if (ImGui::IsItemHovered ())
@@ -2302,8 +2319,8 @@ SK_ImGui_ControlPanel (void)
       if (res_limits)
       {
         ImGui::TreePush  ("");
-        ImGui::InputInt2 ("Minimum Resolution", (int *)&config.render.dxgi.res.min.x);
-        ImGui::InputInt2 ("Maximum Resolution", (int *)&config.render.dxgi.res.max.x);
+        ImGui::InputInt2 ("Minimum Resolution", reinterpret_cast <int *> (&config.render.dxgi.res.min.x));
+        ImGui::InputInt2 ("Maximum Resolution", reinterpret_cast <int *> (&config.render.dxgi.res.max.x));
         ImGui::TreePop   ();
        }
 
@@ -2326,7 +2343,8 @@ SK_ImGui_ControlPanel (void)
       ImGui::SameLine ();
 #endif
 
-      bool advanced = ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
+      bool advanced =
+        ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
 
       if (advanced)
       {
@@ -2368,7 +2386,9 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::CollapsingHeader ("Render Backends", SK_IsInjected () ? ImGuiTreeNodeFlags_DefaultOpen : 0))
       {
         ImGui::TreePush ("");
-        auto EnableActiveAPI = [](SK_RenderAPI api)
+
+        auto EnableActiveAPI =
+        [ ](SK_RenderAPI api)
         {
           switch (api)
           {
@@ -2412,8 +2432,10 @@ SK_ImGui_ControlPanel (void)
 
         using Tooltip_pfn = void (*)(void);
 
-        auto ImGui_CheckboxEx = []( const char* szName,         bool*       pVar,
-                                          bool  enabled = true, Tooltip_pfn tooltip_disabled = nullptr )
+        auto ImGui_CheckboxEx =
+        [ ]( const char* szName, bool* pVar,
+                                 bool  enabled = true,
+             Tooltip_pfn tooltip_disabled      = nullptr )
         {
           if (enabled)
           {
@@ -2554,16 +2576,17 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::CollapsingHeader ("Debugging"))
       {
-        ImGui::TreePush  ("");
-        ImGui::BeginGroup ( );
-        ImGui::Checkbox  ("Enable Crash Handler",           &config.system.handle_crashes);
+        ImGui::TreePush   ("");
+        ImGui::BeginGroup (  );
+        ImGui::Checkbox   ("Enable Crash Handler",          &config.system.handle_crashes);
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Play Metal Gear Solid Alert Sound and Log Crashes in logs/crash.log");
 
         ImGui::Checkbox  ("ReHook LoadLibrary",             &config.compatibility.rehook_loadlibrary);
 
-        if (ImGui::IsItemHovered ()) {
+        if (ImGui::IsItemHovered ())
+{
           ImGui::BeginTooltip ();
           ImGui::Text         ("Keep LoadLibrary Hook at Front of Hook Chain");
           ImGui::Separator    ();
@@ -4565,6 +4588,25 @@ SK_NvAPI_GetGPUInfoStr (void)
 
 
 
+typedef void (__stdcall *SK_ImGui_DrawCallback_pfn)(void *user);
+
+struct
+{
+  SK_ImGui_DrawCallback_pfn fn   = nullptr;
+  void*                     data = nullptr;
+} SK_ImGui_DrawCallback;
+
+__declspec (noinline)
+IMGUI_API
+void
+SK_ImGui_InstallDrawCallback (SK_ImGui_DrawCallback_pfn fn, void* user)
+{
+  SK_ImGui_DrawCallback.fn   = fn;
+  SK_ImGui_DrawCallback.data = user;
+}
+
+
+
 //
 // Hook this to override Special K's GUI
 //
@@ -4650,6 +4692,10 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   //        from your hook.
 
   bool keep_open = true;
+
+
+  if (SK_ImGui_DrawCallback.fn != nullptr)
+    SK_ImGui_DrawCallback.fn (SK_ImGui_DrawCallback.data);
 
 
   if (SK_ImGui_Visible)

@@ -1521,18 +1521,18 @@ strtok_ex (char* str, char* seps)
   return pos;
 }
 
-auto SK_CountLines = [](const char* line)->
- int
-  {
-    int num_lines;
+auto SK_CountLines =
+[](const char* line)
+{
+  int num_lines;
 
-    for ( num_lines = 0;
-            line [num_lines];
-              line [num_lines] == '\n' ?  num_lines++ :
-                                         *line++ );
+  for ( num_lines = 0;
+          line [num_lines];
+            line [num_lines] == '\n' ?  num_lines++ :
+                                       *line++ );
 
-    return num_lines;
-  };
+  return num_lines;
+};
 
 void
 __stdcall

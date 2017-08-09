@@ -579,12 +579,19 @@ SK_RawInput_ClassifyDevices (void)
 UINT
 SK_RawInput_PopulateDeviceList (void)
 {
+  raw_devices.clear   ( );
+  raw_mice.clear      ( );
+  raw_keyboards.clear ( );
+  raw_gamepads.clear  ( );
+
   DWORD            dwLastError = GetLastError ();
   RAWINPUTDEVICE*  pDevices    = nullptr;
   UINT            uiNumDevices = 0;
 
   UINT ret =
-    GetRegisteredRawInputDevices_Original (pDevices, &uiNumDevices, sizeof RAWINPUTDEVICE);
+    GetRegisteredRawInputDevices_Original ( pDevices,
+                                              &uiNumDevices,
+                                                sizeof RAWINPUTDEVICE );
 
   assert (ret == -1);
 
@@ -595,7 +602,9 @@ SK_RawInput_PopulateDeviceList (void)
     pDevices = new
       RAWINPUTDEVICE [uiNumDevices + 1];
 
-    GetRegisteredRawInputDevices_Original (pDevices, &uiNumDevices, sizeof RAWINPUTDEVICE);
+    GetRegisteredRawInputDevices_Original ( pDevices,
+                                              &uiNumDevices,
+                                                sizeof RAWINPUTDEVICE );
 
     raw_devices.clear ();
 
@@ -610,7 +619,9 @@ SK_RawInput_PopulateDeviceList (void)
   return uiNumDevices;
 }
 
-UINT WINAPI GetRegisteredRawInputDevices_Detour (
+UINT
+WINAPI
+GetRegisteredRawInputDevices_Detour (
   _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
   _Inout_   PUINT           puiNumDevices,
   _In_      UINT            cbSize )
@@ -624,11 +635,11 @@ UINT WINAPI GetRegisteredRawInputDevices_Detour (
   // On the first call to this function, we will need to query this stuff.
   static bool init = false;
 
-  if (! init)
-  {
+  //if (! init)
+  //{
     SK_RawInput_PopulateDeviceList ();
-    init = true;
-  }
+    //init = true;
+  //}
 
 
   if (*puiNumDevices < static_cast <UINT> (raw_devices.size ()))
@@ -652,7 +663,8 @@ UINT WINAPI GetRegisteredRawInputDevices_Detour (
 
   else
   {
-    idx += static_cast <int> (raw_devices.size ());
+    idx +=
+      static_cast <int> (raw_devices.size ());
   }
 
   return idx;
@@ -1255,15 +1267,20 @@ GetMouseMovePointsEx_Detour(
     //   (even if ImGui doesn't want mouse capture)
     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant ()       ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+    {
       implicit_capture = true;
+    }
 
     if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
+      *lpptBuf = *lppt;
+
       return 0;
     }
   }
 
-  return GetMouseMovePointsEx_Original (cbSize, lppt, lpptBuf, nBufPoints, resolution);
+  return
+    GetMouseMovePointsEx_Original (cbSize, lppt, lpptBuf, nBufPoints, resolution);
 }
 
 

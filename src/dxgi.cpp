@@ -1712,10 +1712,8 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
 {
   HRESULT hr = S_OK;
 
-  __try                                  {
-    __try                                { hr = Present_Original (This, SyncInterval, Flags); }
-    __except (EXCEPTION_CONTINUE_SEARCH) {                                                    } }
-    __except (EXCEPTION_EXECUTE_HANDLER) {                                                    }
+  __try                                { hr = Present_Original (This, SyncInterval, Flags); }
+  __except (EXCEPTION_EXECUTE_HANDLER) {                                                    }
 
   return hr;
 }
@@ -3586,9 +3584,10 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
   if (SUCCEEDED (hr))
   {
-    DXGI_ADAPTER_DESC1 desc1;
+    DXGI_ADAPTER_DESC1 desc1 = { };
 
-    if (SUCCEEDED (GetDesc1_Original (pAdapter1, &desc1)))
+    if (            GetDesc1_Original != nullptr &&
+         SUCCEEDED (GetDesc1_Original (pAdapter1, &desc1)) )
     {
 #define DXGI_ADAPTER_FLAG_REMOTE   0x1
 #define DXGI_ADAPTER_FLAG_SOFTWARE 0x2

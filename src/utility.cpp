@@ -136,9 +136,9 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
     {
       *buf = '\0';
       wcsncat (buf, str, *pdwLen);
-    }
 
-    return true;
+      return true;
+    }
   }
 
   return false;
@@ -152,7 +152,10 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! GetUserProfileDirectory (hToken, buf, reinterpret_cast <DWORD *> (pdwLen)))
+  if (! GetUserProfileDirectory ( hToken, buf,
+                                    reinterpret_cast <DWORD *> (pdwLen)
+                                )
+     )
   {
     return false;
   }
@@ -304,7 +307,8 @@ SK_FullCopy (std::wstring from, std::wstring to)
   CopyFile   (from.c_str (), to.c_str (), FALSE);
 
   WIN32_FIND_DATA FromFileData;
-  HANDLE hFrom = FindFirstFile (from.c_str (), &FromFileData);
+  HANDLE          hFrom =
+    FindFirstFile (from.c_str (), &FromFileData);
 
   CHandle hTo (
     CreateFile ( to.c_str (),
@@ -1012,27 +1016,40 @@ calculate_table_hw (void)
 {
   for (int i = 0; i < 256; i++) 
   {
-    uint32_t res = (uint32_t)i;
+    uint32_t res =
+      static_cast <uint32_t> (i);
+
     for (int k = 0; k < 8 * (SHORT_SHIFT - 4); k++)
+    {
       res = (res & 1) == 1 ? POLY ^ (res >> 1) :
                                     (res >> 1);
+    }
 
-    for (int t = 0; t < 4; t++) {
+    for (int t = 0; t < 4; t++)
+    {
       for (int k = 0; k < 8; k++)
+      {
         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
                                       (res >> 1);
+      }
 
       short_shifts [3 - t][i] = res;
     }
 
     for (int k = 0; k < 8 * (LONG_SHIFT - 4 - SHORT_SHIFT); k++)
+    {
       res = (res & 1) == 1 ? POLY ^ (res >> 1) :
                                     (res >> 1);
+    }
 
-    for(int t = 0; t < 4; t++) {
+    for (int t = 0; t < 4; t++)
+    {
       for (int k = 0; k < 8; k++)
+      {
         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
                                       (res >> 1);
+      }
+
       long_shifts [3 - t][i] = res;
     }
   }
@@ -1050,7 +1067,8 @@ __crc32_init (void)
   // somebody can call sw version directly, so, precalculate table for this version
   calculate_table ();
 
-  if (crc32c_hw_available ()) {
+  if (crc32c_hw_available ())
+  {
     //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
     calculate_table_hw ();
     append_func = crc32c_append_hw;
@@ -1089,14 +1107,30 @@ SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc)
 }
 
 std::wstring
+SK_GetModuleFullName (HMODULE hDll)
+{
+  wchar_t wszDllFullName [MAX_PATH + 2] = { };
+          wszDllFullName [  MAX_PATH  ] = { };
+
+  GetModuleFileName ( hDll,
+                        wszDllFullName,
+                          MAX_PATH - 1 );
+
+  return wszDllFullName;
+}
+
+std::wstring
 SK_GetModuleName (HMODULE hDll)
 {
-  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { };
-          wszDllFullName [   MAX_PATH   ] = { };
+  wchar_t wszDllFullName [MAX_PATH + 2] = { };
+          wszDllFullName [  MAX_PATH  ] = { };
 
-  GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
+  GetModuleFileName ( hDll,
+                        wszDllFullName,
+                          MAX_PATH - 1 );
 
-  const wchar_t* wszShort = wcsrchr (wszDllFullName, L'\\');
+  const wchar_t* wszShort =
+    wcsrchr (wszDllFullName, L'\\');
 
   if (wszShort == nullptr)
     wszShort = wszDllFullName;
@@ -1106,21 +1140,10 @@ SK_GetModuleName (HMODULE hDll)
   return wszShort;
 }
 
-std::wstring
-SK_GetModuleFullName (HMODULE hDll)
-{
-  wchar_t wszDllFullName [ MAX_PATH + 2 ] = { };
-          wszDllFullName [   MAX_PATH   ] = { };
-
-  GetModuleFileName (hDll, wszDllFullName, MAX_PATH - 1);
-
-  return wszDllFullName;
-}
-
 PROCESSENTRY32
 FindProcessByName (const wchar_t* wszName)
 {
-  PROCESSENTRY32 pe32         = { };
+  PROCESSENTRY32 pe32 = { };
 
   CHandle hProcessSnap (
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0)
@@ -1206,7 +1229,7 @@ SK_SelfDestruct (void)
     //FreeLibrary (SK_GetDLL ());
     const wchar_t* wszBackend = SK_GetBackend ();
 
-    if (! _wcsicmp (wszBackend, L"d3d9"))
+    if (     ! _wcsicmp (wszBackend, L"d3d9"))
       SK::D3D9::Shutdown ();
     else if (! _wcsicmp (wszBackend, L"dxgi"))
       SK::DXGI::Shutdown ();
@@ -1306,8 +1329,8 @@ SK_SuspendAllOtherThreads (void)
 
   if (hSnap != INVALID_HANDLE_VALUE)
   {
-    THREADENTRY32 tent = { };
-    tent.dwSize        = sizeof THREADENTRY32;
+    THREADENTRY32 tent        = {                  };
+                  tent.dwSize = sizeof THREADENTRY32;
 
     if (Thread32First (hSnap, &tent))
     {
@@ -1404,7 +1427,7 @@ SK_TestImports (          HMODULE  hMod,
     {
       uintptr_t end = (uintptr_t)pImpDesc + pImgDir->Size;
 
-      while ((uintptr_t)pImpDesc < end)
+      while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
       {
         __try
         {
@@ -1415,7 +1438,9 @@ SK_TestImports (          HMODULE  hMod,
           }
 
           const char* szImport =
-            (const char *)(pImgBase + (pImpDesc++)->Name);
+            reinterpret_cast <const char *> (
+              pImgBase + (pImpDesc++)->Name
+            );
 
           //dll_log.Log (L"%hs", szImport);
 
@@ -1592,7 +1617,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
 
   uint8_t  cbData     [4096] = { };
 
-  wchar_t* wszProduct = nullptr; // Will point somewhere in cbData
+  wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
   struct LANGANDCODEPAGE {
     WORD wLanguage;
@@ -1608,7 +1633,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   if (GetFileAttributes (wszFullyQualifiedName) == INVALID_FILE_ATTRIBUTES)
     return false;
 
-  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
+  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
+                         FILE_VER_GET_PREFETCHED,
                            wszFullyQualifiedName,
                              0x00,
                                4096,
@@ -1616,19 +1642,19 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
 
   if ( VerQueryValue ( cbData,
                        TEXT ("\\VarFileInfo\\Translation"),
-                         (LPVOID *)&lpTranslate,
+      reinterpret_cast <LPVOID *> (&lpTranslate),
                                    &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
   {
     wchar_t wszPropName [64] = { };
 
     wsprintfW ( wszPropName,
                   L"\\StringFileInfo\\%04x%04x\\ProductName",
-                    lpTranslate [0].wLanguage,
+                    lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
     VerQueryValue ( cbData,
                       wszPropName,
-                        (LPVOID *)&wszProduct,
+     reinterpret_cast <LPVOID *> (&wszProduct),
                                   &cbProductBytes );
 
     return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
@@ -1658,7 +1684,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
   if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
     return L"N/A";
 
-  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL | FILE_VER_GET_PREFETCHED,
+  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
+                         FILE_VER_GET_PREFETCHED,
                            wszName,
                              0x00,
                                4096,
@@ -1666,38 +1693,42 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
   if ( VerQueryValue ( cbData,
                          TEXT ("\\VarFileInfo\\Translation"),
-                           (LPVOID *)&lpTranslate,
+        reinterpret_cast <LPVOID *> (&lpTranslate),
                                      &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
   {
     wchar_t wszPropName [64] = { };
 
     wsprintfW ( wszPropName,
                   L"\\StringFileInfo\\%04x%04x\\FileDescription",
-                    lpTranslate [0].wLanguage,
+                    lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
     VerQueryValue ( cbData,
                       wszPropName,
-                        (LPVOID *)&wszFileDescrip,
+     reinterpret_cast <LPVOID *> (&wszFileDescrip),
                                   &cbProductBytes );
 
     wsprintfW ( wszPropName,
                   L"\\StringFileInfo\\%04x%04x\\FileVersion",
-                    lpTranslate [0].wLanguage,
+                    lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
     VerQueryValue ( cbData,
                       wszPropName,
-                        (LPVOID *)&wszFileVersion,
+     reinterpret_cast <LPVOID *> (&wszFileVersion),
                                   &cbVersionBytes );
   }
 
-  if (cbTranslatedBytes == 0 || (cbProductBytes == 0 && cbVersionBytes == 0))
+  if ( cbTranslatedBytes == 0 ||
+         (cbProductBytes == 0 && cbVersionBytes == 0) )
+  {
     return L"  ";
+  }
 
   std::wstring ret = L"";
 
-  if (cbProductBytes) {
+  if (cbProductBytes)
+  {
     ret += wszFileDescrip;
     ret += L"  ";
   }
@@ -1717,7 +1748,8 @@ void*
 __stdcall
 SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
 {
-  uint8_t* base_addr = (uint8_t *)GetModuleHandle (nullptr);
+  uint8_t* base_addr =
+    reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
 
    MEMORY_BASIC_INFORMATION minfo;
   VirtualQuery (base_addr, &minfo, sizeof minfo);
@@ -2054,9 +2086,11 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
                   strlen (szNum) :
         std::min (strlen (szNum), bufLen);
 
-  for (size_t i = (len - 1); i > 1; i--) {
+  for (size_t i = (len - 1); i > 1; i--)
+  {
     if (szNum [i] == '0' && szNum [i - 1] != '.')
       len--;
+
     if (szNum [i] != '0' && szNum [i] != '\0')
       break;
   }
@@ -2069,11 +2103,11 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufLen)
 
 
 struct sk_host_process_s {
-  wchar_t wszApp       [ MAX_PATH * 2 ] = { };
-  wchar_t wszPath      [ MAX_PATH * 2 ] = { };
-  wchar_t wszFullName  [ MAX_PATH * 2 ] = { };
-  wchar_t wszBlacklist [ MAX_PATH * 2 ] = { };
-  wchar_t wszSystemDir [ MAX_PATH * 2 ] = { };
+  wchar_t wszApp       [MAX_PATH * 2] = { };
+  wchar_t wszPath      [MAX_PATH * 2] = { };
+  wchar_t wszFullName  [MAX_PATH * 2] = { };
+  wchar_t wszBlacklist [MAX_PATH * 2] = { };
+  wchar_t wszSystemDir [MAX_PATH * 2] = { };
 } host_proc;
 
 bool
@@ -2113,9 +2147,10 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
           *CharPrevW (wszInOut, wszPrev) != L'.' )
     wszPrev = CharPrevW (wszInOut, wszPrev);
 
-  if (CharPrevW (wszInOut, wszPrev) > wszInOut) {
+  if (CharPrevW (wszInOut, wszPrev) > wszInOut)
+  {
     if (*CharPrevW (wszInOut, wszPrev) == L'.')
-      *CharPrevW (wszInOut, wszPrev) = L'\0';
+        *CharPrevW (wszInOut, wszPrev)  = L'\0';
   }
 }
 
@@ -2199,8 +2234,8 @@ SK_GetFullyQualifiedApp (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
+    DWORD   dwProcessSize = MAX_PATH * 2;
+    wchar_t wszProcessName [MAX_PATH * 2] = { };
 
     HANDLE hProc =
       GetCurrentProcess ();
@@ -2232,8 +2267,8 @@ SK_GetHostPath (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
+    DWORD   dwProcessSize = MAX_PATH * 2;
+    wchar_t wszProcessName [MAX_PATH * 2] = { };
 
     HANDLE hProc =
       GetCurrentProcess ();
@@ -2270,7 +2305,7 @@ SK_GetHostPath (void)
     }
 
     if (wszFirstSep != nullptr)
-      *wszFirstSep = L'\0';
+       *wszFirstSep  = L'\0';
 
     lstrcpynW (
       host_proc.wszPath,
@@ -2315,9 +2350,9 @@ SK_GetSystemDirectory (void)
 size_t
 SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
 {
-  WIN32_FIND_DATA fd     = { };
+  WIN32_FIND_DATA fd     = {      };
   HANDLE          hFind  = INVALID_HANDLE_VALUE;
-  size_t          files  = 0UL;
+  size_t          files  =   0UL;
   LARGE_INTEGER   liSize = { 0ULL };
 
   wchar_t wszFindPattern [MAX_PATH * 2] = { };
@@ -2393,7 +2428,6 @@ HRESULT ModifyPrivilege(
                           TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
                           &hToken ))
     {
-        printf("Failed OpenProcessToken\n");
         return ERROR_FUNCTION_FAILED;
     }
 
@@ -2403,14 +2437,13 @@ HRESULT ModifyPrivilege(
                                 &luid ))
     {
         CloseHandle( hToken );
-        printf("Failed LookupPrivilegeValue\n");
         return ERROR_FUNCTION_FAILED;
     }
 
     // Assign values to the TOKEN_PRIVILEGE structure.
-    NewState.PrivilegeCount = 1;
-    NewState.Privileges[0].Luid = luid;
-    NewState.Privileges[0].Attributes = 
+    NewState.PrivilegeCount            = 1;
+    NewState.Privileges [0].Luid       = luid;
+    NewState.Privileges [0].Attributes = 
               (fEnable ? SE_PRIVILEGE_ENABLED : 0);
 
     // Adjust the token privilege.
@@ -2421,7 +2454,6 @@ HRESULT ModifyPrivilege(
                                NULL,
                                NULL))
     {
-        printf("Failed AdjustTokenPrivileges\n");
         hr = ERROR_FUNCTION_FAILED;
     }
 
@@ -2449,11 +2481,12 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 
     CHandle hFile (
       CreateFileW ( wszFileName,
-                      GENERIC_WRITE | DELETE,
+                      GENERIC_WRITE      | DELETE,
                         FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                           nullptr,
                             OPEN_EXISTING,
-                              GetFileAttributes (wszFileName) | FILE_FLAG_BACKUP_SEMANTICS,
+                              GetFileAttributes (wszFileName) |
+                              FILE_FLAG_BACKUP_SEMANTICS,
                                 nullptr ) );
 
     if (hFile == INVALID_HANDLE_VALUE)

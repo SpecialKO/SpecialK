@@ -620,11 +620,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   HMODULE hMod = hModEarly;
 
-  __try
-  {
-    __try                                  { hMod = LoadLibraryA_Original (lpFileName); }
-    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                            }
-  }
+  __try                                  { hMod = LoadLibraryA_Original (lpFileName); }
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
@@ -685,11 +681,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
 
   HMODULE hMod = hModEarly;
 
-  __try
-  {
-    __try                                  { hMod = LoadLibraryW_Original (lpFileName); }
-    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                            }
-  }
+  __try                                  { hMod = LoadLibraryW_Original (lpFileName); }
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
@@ -818,11 +810,7 @@ LoadLibraryExA_Detour (
 
   HMODULE hMod = hModEarly;
 
-  __try
-  {
-    __try                                  { hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags); }
-    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                                              }
-  }
+  __try                                  { hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags); }
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
@@ -900,11 +888,7 @@ LoadLibraryExW_Detour (
 
   HMODULE hMod = hModEarly;
 
-  __try
-  {
-    __try                                  { hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags); }
-    __except ( EXCEPTION_CONTINUE_SEARCH ) {                                                              }
-  }
+  __try                                  { hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags); }
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
@@ -1225,7 +1209,9 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
   EnterCriticalSection (&cs_thread_walk);
 
   enum_working_set_s* pWorkingSet_ =
-    static_cast <enum_working_set_s *> (malloc (sizeof (enum_working_set_s)));
+    static_cast <enum_working_set_s *> (
+      malloc (sizeof (enum_working_set_s))
+    );
 
   memcpy (pWorkingSet_, user, sizeof (enum_working_set_s));
 

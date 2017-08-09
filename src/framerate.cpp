@@ -419,6 +419,8 @@ SK::Framerate::Limiter::init (double target)
   next.QuadPart = static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0) * freq.QuadPart);
 }
 
+#include <SpecialK/window.h>
+
 bool
 SK::Framerate::Limiter::try_wait (void)
 {
@@ -443,9 +445,11 @@ SK::Framerate::Limiter::try_wait (void)
   return false;
 }
 
-bool  SK_Framerate_Busy       = true; // Keep original behavior
-bool  SK_Framerate_YieldOnce  = true;
-float SK_Framerate_WaitScalar = 28.0f;
+bool  SK_Framerate_Busy               = false; // Keep original behavior
+bool  SK_Framerate_YieldOnce          = true;
+bool  SK_Framerate_ReduceInputLatency = false;
+float SK_Framerate_WaitScalar         = 59.998800f;
+float SK_Framerate_SleepToBusy        = 3.3f;
 
 void
 SK::Framerate::Limiter::wait (void)
@@ -550,11 +554,12 @@ SK::Framerate::Limiter::wait (void)
         }
       }
 
-      else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
+      else if ( static_cast <int> (api)       &
+                static_cast <int> (SK_RenderAPI::D3D9) )
       {
         if (rb.device != nullptr)
         {
-          if (FAILED (rb.device->QueryInterface ( IID_PPV_ARGS (&d3d9ex) )))
+          if (FAILED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&d3d9ex)))
           {
             d3d9ex =
               SK_D3D9_GetTimingDevice ();
@@ -564,10 +569,10 @@ SK::Framerate::Limiter::wait (void)
     }
 
     bool bGUI =
-      IsGUIThread (FALSE);
+      IsGUIThread (FALSE) && GetActiveWindow () == game_window.hWnd;
 
     HWND hWndThis =
-      bGUI ? GetActiveWindow () :
+      bGUI ? game_window.hWnd :
              HWND_DESKTOP;
 
     bool bUnicode =
@@ -577,23 +582,36 @@ SK::Framerate::Limiter::wait (void)
     auto PeekAndDispatch =
     [&]
     {
+      if (! SK_Framerate_ReduceInputLatency)
+        return;
+
       MSG msg     = {      };
       msg.hwnd    = hWndThis;
       msg.message = WM_NULL ;
 
+      // Avoid having Windows marshall Unicode messages like a dumbass
       if (bUnicode)
       {
-        if (PeekMessageW   (&msg, hWndThis, 0, 0, PM_REMOVE))
+        if ( PeekMessageW ( &msg, hWndThis, 0, 0,
+                                              PM_REMOVE | PM_QS_INPUT )
+                 &&          msg.message != WM_NULL
+           )
+        {
           DispatchMessageW (&msg);
+        }
       }
 
       else
       {
-        if (PeekMessageA   (&msg, hWndThis, 0, 0, PM_REMOVE))
+        if ( PeekMessageA ( &msg, hWndThis, 0, 0,
+                                              PM_REMOVE | PM_QS_INPUT )
+                 &&          msg.message != WM_NULL
+           )
+        {
           DispatchMessageA (&msg);
+        }
       }
     };
-
 
     bool bYielded = false;
 
@@ -602,8 +620,8 @@ SK::Framerate::Limiter::wait (void)
       // Attempt to use a deeper sleep when possible instead of hammering the
       //   CPU into submission ;)
       if ( ( static_cast <double> (next.QuadPart  - time.QuadPart) >
-                 ( 0.001        * (1000.0         / target_fps) *
-             static_cast <double> (freq.QuadPart) * 0.555 ) )      &&
+             static_cast <double> (freq.QuadPart) * 0.001 *
+                                   SK_Framerate_SleepToBusy) &&
                                   (! (SK_Framerate_YieldOnce && bYielded))
          )
       {
@@ -617,31 +635,34 @@ SK::Framerate::Limiter::wait (void)
         }
 
         else if (! SK_Framerate_Busy)
-        {
+        {                
           DWORD dwWaitMS =
             static_cast <DWORD>
               ( (SK_Framerate_WaitScalar * 10.0f) / target_fps ); // 10% of full frame
 
-          if (bGUI)
+          if ( ( static_cast <double> (next.QuadPart - time.QuadPart) /
+                 static_cast <double> (freq.QuadPart                ) ) * 1000.0 >
+                   dwWaitMS )
           {
-            MsgWaitForMultipleObjects (0, nullptr, TRUE, dwWaitMS, QS_ALLINPUT);
-            PeekAndDispatch           (                                       );
-          }
+            if (bGUI && SK_Framerate_ReduceInputLatency)
+            {
+              MsgWaitForMultipleObjects (0, nullptr, TRUE, dwWaitMS, QS_INPUT);
+              PeekAndDispatch           (                                    );
+            }
 
-          else
-            SleepEx              (dwWaitMS,   TRUE);
+            else
+             SleepEx                   (dwWaitMS,   TRUE);
+
+            bYielded = true;
+          }
         }
 
-        bYielded = true;
         QueryPerformanceCounter_Original (&time);
-
         continue;
       }
 
       if (bGUI)
-      {
         PeekAndDispatch ();
-      }
 
       QueryPerformanceCounter_Original (&time);
     }

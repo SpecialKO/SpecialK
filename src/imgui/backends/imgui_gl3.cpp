@@ -437,7 +437,7 @@ ImGui_ImplGL3_NewFrame (void)
                  static_cast <float> (g_TicksPerSecond);
   g_Time       =                      current_time;
 
-  // Read keyboard modifiers inputs
+  // Read keyboard modifiers inputS
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
   io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
   io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;

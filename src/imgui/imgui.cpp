@@ -2805,8 +2805,8 @@ static void NavUpdate()
 
 #include <SpecialK/console.h>
 #include <SpecialK/window.h>
-extern bool SK_ImGui_Visible;
-extern bool SK_ImGui_IsMouseRelevant (void);
+extern IMGUI_API bool SK_ImGui_Visible;
+extern bool           SK_ImGui_IsMouseRelevant (void);
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
 struct show_eula_s {
@@ -10955,6 +10955,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 
 
 
+IMGUI_API
 bool SK_ImGui_Visible = false;
 
 #include <SpecialK/utility.h>
@@ -11264,7 +11265,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         // VKeys 0-7 aren't on the keyboard :)
         if (VKey & 0xFFF8) // Valid Keys:  8 - 65535
         {
-          if (! ((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK)
+          if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
           {
             if (foreground)
               ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;

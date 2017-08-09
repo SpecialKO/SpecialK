@@ -306,9 +306,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                         swap_chain_desc->BufferDesc.Width,
                         swap_chain_desc->BufferDesc.Height,
                         swap_chain_desc->BufferDesc.RefreshRate.Denominator > 0 ?
-                 (float)swap_chain_desc->BufferDesc.RefreshRate.Numerator /
-                 (float)swap_chain_desc->BufferDesc.RefreshRate.Denominator :
-                 (float)swap_chain_desc->BufferDesc.RefreshRate.Numerator,
+   static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Numerator) /
+   static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Denominator) :
+   static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Numerator),
                         swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
                           L"Unspecified" :
                           swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED  ?
@@ -441,20 +441,13 @@ D3D11CreateDevice_Detour (
   // Ansel is the purest form of evil known to man
   if (! InterlockedExchangeAdd (&__d3d11_ready, 0))
   {
-    if ( InterlockedExchangeAdd (&SK_D3D11_init_tid, 0) != GetCurrentThreadId () &&
-         SK_GetCallerName ()                            != L"NvCamera64.dll"        )
-    {
-      WaitForInitD3D11 ();
-    }
-
-    else if (SK_GetCallerName () == L"NvCamera64.dll")
+    if (SK_GetCallerName () == L"NvCamera64.dll")
       InterlockedExchange (&SK_D3D11_ansel_tid, GetCurrentThreadId ());
 
     return
-      D3D11CreateDeviceAndSwapChain_Import ( pAdapter, DriverType, Software, Flags,
-                                             pFeatureLevels, FeatureLevels, SDKVersion,
-                                               nullptr, nullptr, ppDevice, pFeatureLevel,
-                                                 ppImmediateContext );
+      D3D11CreateDevice_Import ( pAdapter, DriverType, Software, Flags,
+                                   pFeatureLevels, FeatureLevels, SDKVersion,
+                                     ppDevice, pFeatureLevel, ppImmediateContext );
   }
 
   else

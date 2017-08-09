@@ -101,7 +101,7 @@ bool USE_SLI = true;
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init       = FALSE;
 HMODULE                  backend_dll      = 0;
-const wchar_t*           __SK_DLL_Backend = nullptr;
+const wchar_t*           __SK_DLL_Backend = L"INVALID";
 
 // LOL -- This tests for RunDLL32 / SKIM
 bool
@@ -110,8 +110,8 @@ SK_IsSuperSpecialK (void);
 
 
 struct init_params_t {
-  const wchar_t* backend;
-  void*          callback;
+  const wchar_t* backend  = L"INVALID";
+  void*          callback =    nullptr;
 } init_;
 
 
@@ -119,7 +119,7 @@ std::queue <DWORD> __SK_Init_Suspended_tids;
 
 wchar_t SK_RootPath   [MAX_PATH + 2] = { };
 wchar_t SK_ConfigPath [MAX_PATH + 2] = { };
-wchar_t SK_Backend    [128];
+wchar_t SK_Backend    [     128    ] = { };
 
 __declspec (noinline)
 const wchar_t*
@@ -777,11 +777,9 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
-  SK_Input_Init ();
+  SK_Input_Init       ();
 
-
-  SK_ApplyQueuedHooks    ();
-
+  SK_ApplyQueuedHooks ();
 
   SK_DeleteTemporaryFiles ();
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
@@ -804,7 +802,7 @@ SK_InitFinishCallback (void)
       )
   );
 
-  SK_GetCommandProcessor()->AddVariable(
+  SK_GetCommandProcessor ()->AddVariable (
     "GPU.StatPollFreq",
       new SK_IVarStub <float> (
         &config.gpu.interval
@@ -849,15 +847,15 @@ SK_InitFinishCallback (void)
     game_debug.silent = true;
   }
 
-  const wchar_t* config_name = init_.backend;
+  const wchar_t* config_name =
+    init_.backend;
 
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
   SK_SaveConfig (config_name);
 
-  SK_Console* pConsole = SK_Console::getInstance ();
-  pConsole->Start ();
+  SK_Console::getInstance ()->Start ();
 
     // Create a thread that pumps the OSD
   if (config.osd.pump || SK_UsingVulkan ())
@@ -883,8 +881,7 @@ SK_InitFinishCallback (void)
   }
 
   SK_StartPerfMonThreads ();
-
-  SK_ApplyQueuedHooks  ();
+  SK_ApplyQueuedHooks    ();
 
   LeaveCriticalSection (&init_mutex);
 }
@@ -905,7 +902,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   dll_log.Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
 
-  nvapi_init = sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
+  nvapi_init =
+    sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
 
   dll_log.Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
                                                      nvapi_init ? L"Success" :
@@ -913,12 +911,14 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   if (nvapi_init)
   {
-    int num_sli_gpus = sk::NVAPI::CountSLIGPUs ();
+    int num_sli_gpus =
+      sk::NVAPI::CountSLIGPUs ();
 
     dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
                     sk::NVAPI::GetDriverVersion ().c_str () );
 
-    int gpu_count = sk::NVAPI::CountPhysicalGPUs ();
+    int gpu_count =
+      sk::NVAPI::CountPhysicalGPUs ();
 
     dll_log.Log ( gpu_count > 1 ? L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  "
                                   L"{ SLI: '%s' }"
@@ -983,7 +983,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
   {
     dll_log.Log (L"[DisplayLib] Initializing AMD Display Library (ADL)...");
 
-    BOOL adl_init = SK_InitADL ();
+    BOOL adl_init =
+      SK_InitADL ();
 
     dll_log.Log   (L"[DisplayLib]              ADL   Init         { %s }",
                                                      adl_init ? L"Success" :
@@ -997,11 +998,16 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
-  HMODULE hMod = GetModuleHandle (SK_GetHostApp ());
+  HMODULE hMod =
+    GetModuleHandle (SK_GetHostApp ());
 
   if (hMod != NULL)
   {
-    DWORD* dwOptimus = (DWORD *)GetProcAddress (hMod, "NvOptimusEnablement");
+    DWORD* dwOptimus =
+      reinterpret_cast <DWORD *> (
+        GetProcAddress ( hMod,
+                           "NvOptimusEnablement" )
+      );
 
     if (dwOptimus != NULL)
     {
@@ -1017,7 +1023,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
 
     DWORD* dwPowerXpress =
-      (DWORD *)GetProcAddress (hMod, "AmdPowerXpressRequestHighPerformance");
+      reinterpret_cast <DWORD *> (
+        GetProcAddress ( hMod,
+                           "AmdPowerXpressRequestHighPerformance" )
+      );
 
     if (dwPowerXpress != NULL)
     {
@@ -1038,13 +1047,11 @@ SK_InitCore (const wchar_t* backend, void* callback)
 #endif
 
   //
-  // TEMP HACK: dgVoodoo2
+  // NOT-SO-TEMP HACK: dgVoodoo2
   //
-  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+  if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
+       SK_GetDLLRole () == DLL_ROLE::DDraw  )
     SK_BootDXGI ();
-  else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
-    SK_BootDXGI ();
-
 
   SK_ResumeThreads (__SK_Init_Suspended_tids);
          callback_fn (SK_InitFinishCallback);
@@ -1098,7 +1105,10 @@ WaitForInit (void)
   {
     SK_ApplyQueuedHooks ();
 
-    CloseHandle (InterlockedExchangePointer ((LPVOID *)&hInitThread, INVALID_HANDLE_VALUE));
+    CloseHandle (
+      InterlockedExchangePointer ( const_cast <LPVOID *> (&hInitThread),
+                                     INVALID_HANDLE_VALUE )
+    );
 
     // Load user-defined DLLs (Lazy)
 #ifdef _WIN64
@@ -1322,7 +1332,7 @@ WINAPI
 DllThread (LPVOID user)
 {
   init_params_t* params =
-    (init_params_t *)user;
+    static_cast <init_params_t *> (user);
 
   SK_InitCore (params->backend, params->callback);
 
@@ -1974,8 +1984,7 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_AutoClose_Log (game_debug);
   SK_AutoClose_Log (   dll_log);
 
-  SK_Console* pConsole = SK_Console::getInstance ();
-  pConsole->End ();
+  SK_Console::getInstance ()->End ();
 
   SK::DXGI::ShutdownBudgetThread ();
 
@@ -1997,7 +2006,10 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx   (false, L"done!\n");
   }
 
-  auto ShutdownWMIThread = [](volatile HANDLE& hSignal, volatile HANDLE& hThread, wchar_t* wszName)
+  auto ShutdownWMIThread =
+  []( volatile HANDLE&  hSignal,
+      volatile HANDLE&  hThread,
+               wchar_t* wszName )
   {
     wchar_t wszFmtName [32] = { };
 
@@ -2311,7 +2323,8 @@ SK_BeginBufferSwap (void)
 
           if (config.apis.dxgi.d3d11.hook)
           {
-            if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
+            if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+                 static_cast <int> (SK_RenderAPI::D3D11              ) )
             {
               if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
                 config.cegui.enable = true;
@@ -2678,8 +2691,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
-         (int&)__SK_RBkEnd.api  = ( (int)SK_RenderAPI::D3D9 |
-                                    (int)SK_RenderAPI::D3D9Ex );
+      reinterpret_cast <int &> (__SK_RBkEnd.api) = 
+        ( static_cast <int> (SK_RenderAPI::D3D9  ) |
+          static_cast <int> (SK_RenderAPI::D3D9Ex)  );
+
       wcsncpy (__SK_RBkEnd.name, L"D3D9Ex", 8);
     }
 
@@ -2737,14 +2752,17 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
         wcscpy (__SK_RBkEnd.name, L"DDraw");
       }
 
-      if ((int)__SK_RBkEnd.api & (int)SK_RenderAPI::D3D11)
+      if ( static_cast <int> (__SK_RBkEnd.api)  &
+           static_cast <int> (SK_RenderAPI::D3D11) )
       {
         BOOL fullscreen = FALSE;
 
-        CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-        if (__SK_RBkEnd.swapchain) __SK_RBkEnd.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+        CComPtr                                 <IDXGISwapChain>   pSwapChain = nullptr;
+        if (__SK_RBkEnd.swapchain)
+          __SK_RBkEnd.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
 
-        if (pSwapChain && SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+        if ( pSwapChain &&
+  SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
         {
           __SK_RBkEnd.fullscreen_exclusive = fullscreen;
         }
@@ -2781,9 +2799,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
-  config.apis.last_known = __SK_RBkEnd.api;
+  config.apis.last_known =
+    __SK_RBkEnd.api;
 
-  static volatile ULONG budget_init = FALSE;
+  static volatile
+    ULONG budget_init = FALSE;
 
   if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE))
   {

@@ -1456,5 +1456,5 @@ extern IMGUI_API void __stdcall SK_PlugIn_ControlPanelWidget (void);
 #include "imgui_user.h"
 #endif
 
-extern bool SK_ImGui_Visible;
-extern bool nav_usable;
+extern IMGUI_API bool SK_ImGui_Visible;
+extern           bool nav_usable;

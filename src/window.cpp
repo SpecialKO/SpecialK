@@ -402,11 +402,15 @@ public:
               config.window.res.override.y = last_known_client.bottom - last_known_client.top;
 
               // Trigger re-calc on adjust
-              game_window.game.client   = RECT { last_known_client.left,last_known_client.top,last_known_client.right,last_known_client.bottom };
-              game_window.game.window   = RECT { last_known_window.left,last_known_window.top,last_known_window.right,last_known_window.bottom };
+              game_window.game.client   = RECT { last_known_client.left,  last_known_client.top,
+                                                 last_known_client.right, last_known_client.bottom };
+              game_window.game.window   = RECT { last_known_window.left,  last_known_window.top,
+                                                 last_known_window.right, last_known_window.bottom };
 
-              game_window.actual.client = RECT { last_known_client.left,last_known_client.top,last_known_client.right,last_known_client.bottom };
-              game_window.actual.window = RECT { last_known_window.left,last_known_window.top,last_known_window.right,last_known_window.bottom };
+              game_window.actual.client = RECT { last_known_client.left,  last_known_client.top,
+                                                 last_known_client.right, last_known_client.bottom };
+              game_window.actual.window = RECT { last_known_window.left,  last_known_window.top,
+                                                 last_known_window.right, last_known_window.bottom };
 
               if (! config.window.unconfine_cursor)
               {
@@ -425,8 +429,10 @@ public:
               config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
               config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
-              game_window.actual.client = RECT { 0,0, mi.rcMonitor.right-mi.rcMonitor.left, mi.rcMonitor.bottom-mi.rcMonitor.top };
-              game_window.actual.window = RECT { mi.rcMonitor.left,mi.rcMonitor.top,mi.rcMonitor.right,mi.rcMonitor.bottom };
+              game_window.actual.client = RECT { 0,                                    0,
+                                                 mi.rcMonitor.right-mi.rcMonitor.left, mi.rcMonitor.bottom-mi.rcMonitor.top };
+              game_window.actual.window = RECT { mi.rcMonitor.left,  mi.rcMonitor.top,
+                                                 mi.rcMonitor.right, mi.rcMonitor.bottom };
             }
 
             SK_AdjustWindow ();
@@ -607,25 +613,25 @@ public:
     );
 
     borderless_ =
-      SK_CreateVar (SK_IVariable::Boolean, &config.window.borderless, this);
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.borderless,      this);
 
     background_mute_ =
       SK_CreateVar (SK_IVariable::Boolean, &config.window.background_mute, this);
 
     center_window_ =
-      SK_CreateVar (SK_IVariable::Boolean, &config.window.center, this);
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.center,          this);
 
     fullscreen_ =
-      SK_CreateVar (SK_IVariable::Boolean, &config.window.fullscreen, this);
+      SK_CreateVar (SK_IVariable::Boolean, &config.window.fullscreen,      this);
 
     x_override_ =
-      SK_CreateVar (SK_IVariable::Int,     &config.window.res.override.x, this);
+      SK_CreateVar (SK_IVariable::Int,     &config.window.res.override.x,  this);
 
     y_override_ =
-      SK_CreateVar (SK_IVariable::Int,     &config.window.res.override.y, this);
+      SK_CreateVar (SK_IVariable::Int,     &config.window.res.override.y,  this);
 
     res_override_ =
-      SK_CreateVar (SK_IVariable::String,  override_res, this);
+      SK_CreateVar (SK_IVariable::String,  override_res,                   this);
 
     // Don't need to listen for this event, actually.
     fix_mouse_ =
@@ -638,10 +644,10 @@ public:
       SK_CreateVar (SK_IVariable::Int,     &config.window.offset.y.absolute, this);
 
     x_off_pct_ =
-      SK_CreateVar (SK_IVariable::Float,   &config.window.offset.x.percent, this);
+      SK_CreateVar (SK_IVariable::Float,   &config.window.offset.x.percent,  this);
 
     y_off_pct_ =
-      SK_CreateVar (SK_IVariable::Float,   &config.window.offset.y.percent, this);
+      SK_CreateVar (SK_IVariable::Float,   &config.window.offset.y.percent,  this);
 
     static_rects_ =
       SK_CreateVar (SK_IVariable::Boolean, &override_window_rects);
@@ -1270,7 +1276,7 @@ AdjustWindowRectEx_Detour (
 {
   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
               L"{%4li,%4li / %4li,%4li}, 0x%04X, %li, 0x%04X ) - %s",
-                lpRect->left, lpRect->top,
+                lpRect->left,       lpRect->top,
                   lpRect->right, lpRect->bottom,
                     dwStyle, bMenu,
                       dwExStyle,
@@ -1649,7 +1655,8 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr)
   // Ensure that the border style is sane
   if (dwStyle_ptr == game_window.border_style)
   {
-    game_window.border_style |= WS_CAPTION | WS_SYSMENU | WS_POPUP | WS_MINIMIZEBOX | WS_VISIBLE;
+    game_window.border_style |= WS_CAPTION     | WS_SYSMENU | WS_POPUP |
+                                WS_MINIMIZEBOX | WS_VISIBLE;
     dwStyle_ptr               = game_window.border_style;
   }
 
@@ -1693,7 +1700,7 @@ SK_ComputeClientSize (void)
   if (use_override)
   {
     return ( RECT { 0L, 0L,
-                      static_cast <LONG>   (config.window.res.override.x),
+                      static_cast   <LONG> (config.window.res.override.x),
                         static_cast <LONG> (config.window.res.override.y)
                   }
            );
@@ -1705,7 +1712,7 @@ SK_ComputeClientSize (void)
   GetClientRect_Original ( game_window.hWnd, &ret );
 
   ret = { 0, 0,
-            ret.right - ret.left,
+            ret.right    - ret.left,
               ret.bottom - ret.top };
 
   return ret;
@@ -1719,7 +1726,7 @@ SK_ComputeClientOrigin (void)
   GetWindowRect_Original ( game_window.hWnd, &window );
   GetClientRect_Original ( game_window.hWnd, &client );
 
-  return POINT { window.left + client.left,
+  return POINT { window.left  + client.left,
                    window.top + client.top };
 }
 
@@ -1730,8 +1737,8 @@ SK_IsRectTooBigForDesktop (RECT wndRect)
     MonitorFromWindow ( game_window.hWnd,
                           MONITOR_DEFAULTTONEAREST );
 
-  MONITORINFO mi  = { };
-  mi.cbSize       = sizeof (mi);
+  MONITORINFO mi   = {         };
+  mi.cbSize        = sizeof (mi);
   GetMonitorInfo (hMonitor, &mi);
 
   int win_width      = wndRect.right       - wndRect.left;
@@ -1896,8 +1903,8 @@ SK_AdjustWindow (void)
     MonitorFromWindow ( game_window.hWnd,
                           MONITOR_DEFAULTTONEAREST );
 
-  MONITORINFO mi  = { };
-  mi.cbSize       = sizeof (mi);
+  MONITORINFO mi   = {         };
+  mi.cbSize        = sizeof (mi);
   GetMonitorInfo (hMonitor, &mi);
 
   if (config.window.borderless && config.window.fullscreen)
@@ -2368,6 +2375,12 @@ SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
   return false;
 }
 
+typedef BOOL (WINAPI *GetMessageA_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
+typedef BOOL (WINAPI *GetMessageW_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
+
+GetMessageA_pfn GetMessageA_Original;
+GetMessageW_pfn GetMessageW_Original;
+
 typedef BOOL (WINAPI *PeekMessageW_pfn)(
   _Out_    LPMSG lpMsg,
   _In_opt_ HWND  hWnd,
@@ -2389,26 +2402,39 @@ PeekMessageW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-
-  if (config.render.dxgi.safe_fullscreen) wRemoveMsg |= PM_REMOVE;
-
+  if (config.render.dxgi.safe_fullscreen && (IsWindowUnicode (GetActiveWindow ())))
+    wRemoveMsg |= PM_REMOVE;
 
   MSG msg = { };
 
-  if (PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg & ~PM_REMOVE))
+  if (PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
   {
-    if (SK_EarlyDispatchMessage (&msg, true, true))
+    *lpMsg = msg;
+
+    // Avoid processing the message twice if it's marshalled because
+    //   stupid software called the wrong version of this function ;)
+    if (IsWindowUnicode (msg.hwnd))
     {
-      //*lpMsg = msg;
-  
-      PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
-  
-      return FALSE;
+      if (SK_EarlyDispatchMessage (&msg, true, true))
+      {
+        if (! (wRemoveMsg & PM_REMOVE))
+        {
+          PeekMessageW_Original ( &msg, hWnd, lpMsg->message,
+                                              lpMsg->message, PM_REMOVE );
+        }
+
+        if (lpMsg->message == WM_INPUT)
+          DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+        lpMsg->message = WM_NULL;
+        lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+      }
     }
+
+    return TRUE;
   }
 
-
-  return PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+  return FALSE;
 }
 
 typedef BOOL (WINAPI *PeekMessageA_pfn)(
@@ -2432,32 +2458,40 @@ PeekMessageA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-
-  if (config.render.dxgi.safe_fullscreen) wRemoveMsg |= PM_REMOVE;
-
+  if (config.render.dxgi.safe_fullscreen && (! IsWindowUnicode (GetActiveWindow ())))
+    wRemoveMsg |= PM_REMOVE;
 
   MSG msg = { };
-  if (PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg & ~PM_REMOVE))
+
+  if (PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
   {
-    if (SK_EarlyDispatchMessage (&msg, true, true))
+    *lpMsg = msg;
+
+    // Avoid processing the message twice if it's marshalled because
+    //   stupid software called the wrong version of this function ;)
+    if (! IsWindowUnicode (lpMsg->hwnd))
     {
-      //*lpMsg = msg;
-  
-      PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg | PM_REMOVE);
-  
-      return FALSE;
+      if (SK_EarlyDispatchMessage (&msg, true, true))
+      {
+        if (! (wRemoveMsg & PM_REMOVE))
+        {
+          PeekMessageA_Original ( &msg, hWnd, lpMsg->message,
+                                              lpMsg->message, PM_REMOVE );
+        }
+
+        if (lpMsg->message == WM_INPUT)
+          DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+        lpMsg->message = WM_NULL;
+        lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+      }
     }
+
+    return TRUE;
   }
 
-
-  return PeekMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+  return FALSE;
 }
-
-typedef BOOL (WINAPI *GetMessageA_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
-typedef BOOL (WINAPI *GetMessageW_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
-
-GetMessageA_pfn GetMessageA_Original;
-GetMessageW_pfn GetMessageW_Original;
 
 BOOL
 WINAPI
@@ -2468,7 +2502,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (lpMsg->hwnd != HWND_DESKTOP)
+  if (lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
@@ -2483,7 +2517,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
-  if (lpMsg->hwnd != HWND_DESKTOP)
+  if (lpMsg->hwnd == game_window.hWnd)
     SK_EarlyDispatchMessage (lpMsg, true);
 
   return TRUE;
@@ -2495,13 +2529,13 @@ DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  if (lpMsg->hwnd != HWND_DESKTOP)
+  if (lpMsg->hwnd == game_window.hWnd)
   {
     if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
                                      false )
        )
-    {  
-      return 0;
+    {
+      return 1;
     }
   }
 
@@ -2514,13 +2548,13 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  if (lpMsg->hwnd != HWND_DESKTOP)
+  if (lpMsg->hwnd == game_window.hWnd)
   {
     if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
                                      false )
        )
     {
-      return 0;
+      return 1;
     }
   }
 
@@ -2529,11 +2563,11 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 
 // Avoid static storage in the callback function
 struct {
-  POINTS pos      = { }; // POINT (Short) - Not POINT plural ;)
-  DWORD  sampled  = 0UL;
-  bool   cursor   = true;
+  POINTS pos      = {     }; // POINT (Short) - Not POINT plural ;)
+  DWORD  sampled  =     0UL;
+  bool   cursor   =    true;
 
-  int    init     = false;
+  int    init     =   false;
   UINT   timer_id = 0x68993;
 } last_mouse;
 
@@ -2643,13 +2677,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     game_window.hWnd = hWnd;
 
-    game_window.active        = true;
-    game_window.game.style    = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.actual.style  = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.unicode       = IsWindowUnicode (game_window.hWnd) != FALSE;
+    game_window.active       = true;
+    game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
 
-    GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
-    GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+    GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
+    GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
@@ -2706,9 +2740,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        return (last_mouse.cursor != was_active);
      };
 
-   auto DeactivateCursor = []()->
-    bool
-     {
+   auto DeactivateCursor = 
+   []{
        if (! last_mouse.cursor)
          return false;
 
@@ -2787,7 +2820,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  auto ActivateWindow = [&](bool active = false)
+  auto ActivateWindow =[&](bool active = false)
   {
     bool state_changed =
       (game_window.active != active);
@@ -3207,14 +3240,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       break;
   }
 
-
-  bool handled = false;
-
-  static bool eqgame = wcsstr (SK_GetHostApp (), L"eqgame.exe");
+         bool handled = false;
+  static bool eqgame  =
+    wcsstr (SK_GetHostApp (), L"eqgame.exe");
 
   if (eqgame)
   {
-    handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+    handled =
+      ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
   }
 
 
@@ -3274,13 +3307,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   //   [ Mostly for EverQuest ]
   //
-  if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture ())
+  if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
-  if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST && SK_ImGui_WantKeyboardCapture ())
+  if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
-  if (uMsg == WM_INPUT && SK_ImGui_WantGamepadCapture ())
+  if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 
@@ -3296,11 +3329,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
-      if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
+      if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
       // Block RAW Input
-      if (console_visible && uMsg == WM_INPUT)
+      if (console_visible       && uMsg == WM_INPUT)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
     }
   }
@@ -3329,7 +3362,7 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   GetWindowRect_Original (hWnd, &game_window.actual.window);
   GetClientRect_Original (hWnd, &game_window.actual.client);
 
-  GetCursorPos_Original  (&game_window.cursor_pos);
+  GetCursorPos_Original  (      &game_window.cursor_pos);
 
   if (game_window.GetWindowLongPtr == nullptr)
     return;
@@ -3382,7 +3415,8 @@ SK_InstallWindowHook (HWND hWnd)
 #ifdef _WIN64
     game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
 #else
-    game_window.GetWindowLongPtr = static_cast <GetWindowLongPtr_pfn> (GetWindowLongW_Original);
+    game_window.GetWindowLongPtr =
+      static_cast <GetWindowLongPtr_pfn> (GetWindowLongW_Original);
 #endif
     game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
     game_window.DefWindowProc    = (DefWindowProc_pfn)
@@ -3398,7 +3432,8 @@ SK_InstallWindowHook (HWND hWnd)
 #ifdef _WIN64
     game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
 #else
-    game_window.GetWindowLongPtr = static_cast <GetWindowLongPtr_pfn> (GetWindowLongA_Original);
+    game_window.GetWindowLongPtr =
+      static_cast <GetWindowLongPtr_pfn> (GetWindowLongA_Original);
 #endif
     game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
     game_window.DefWindowProc    = reinterpret_cast <DefWindowProc_pfn>
@@ -3557,9 +3592,12 @@ reinterpret_cast <LPVOID *> (&DispatchMessageA_Original) );
 
   if (count > 0)
   {
-    RAWINPUTDEVICE* pDevs = new RAWINPUTDEVICE [count + 1];
+    RAWINPUTDEVICE* pDevs =
+      new RAWINPUTDEVICE [count + 1];
 
-    GetRegisteredRawInputDevices_Original (pDevs, &count, sizeof RAWINPUTDEVICE);
+    GetRegisteredRawInputDevices_Original ( pDevs,
+                                              &count,
+                                                sizeof RAWINPUTDEVICE );
 
     for (UINT i = 0 ; i < count ; i++)
     {
@@ -3588,7 +3626,8 @@ reinterpret_cast <LPVOID *> (&DispatchMessageA_Original) );
     rid.hwndTarget  = hWnd;
     rid.usUsage     = HID_USAGE_GENERIC_MOUSE;
     rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
-    rid.dwFlags     = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY;
+    rid.dwFlags     = RIDEV_INPUTSINK |
+                      RIDEV_DEVNOTIFY;
   
     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
   }
