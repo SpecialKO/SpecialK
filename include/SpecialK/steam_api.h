@@ -177,6 +177,7 @@ bool           SK_Steam_LoadOverlayEarly            (void);
 void           SK_Steam_InitCommandConsoleVariables (void);
 
 ISteamUtils*   SK_SteamAPI_Utils                    (void);
+ISteamMusic*   SK_SteamAPI_Music                    (void);
 
 uint32_t __stdcall SK_Steam_PiratesAhoy             (void);
 
@@ -499,6 +500,13 @@ public:
       //return false;
     }
 
+    music_ =
+      client_->GetISteamMusic (
+        hSteamUser,
+          hSteamPipe,
+            STEAMMUSIC_INTERFACE_VERSION
+      );
+
     SK::SteamAPI::player = user_->GetSteamID ();
 
 #if 0
@@ -553,6 +561,7 @@ public:
       utils_       = nullptr;
       screenshots_ = nullptr;
       controller_  = nullptr;
+      music_       = nullptr;
       
       if (SteamAPI_Shutdown_Original != nullptr)
       {
@@ -573,6 +582,7 @@ public:
   ISteamUtils*       Utils       (void) { return utils_;       }
   ISteamScreenshots* Screenshots (void) { return screenshots_; }
   ISteamController*  Controller  (void) { return controller_;  }
+  ISteamMusic*       Music       (void) { return music_;       }
 
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;
@@ -601,6 +611,7 @@ private:
   ISteamUtils*       utils_         = nullptr;
   ISteamScreenshots* screenshots_   = nullptr;
   ISteamController*  controller_    = nullptr;
+  ISteamMusic*       music_         = nullptr;
 } extern steam_ctx;
 
 

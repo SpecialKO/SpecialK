@@ -17,8 +17,8 @@ EXPORTS
   D3DPERF_SetMarker        = D3DPERF_SetMarker         PRIVATE
   D3DPERF_SetOptions       = D3DPERF_SetOptions        PRIVATE
   D3DPERF_SetRegion        = D3DPERF_SetRegion         PRIVATE
-  Direct3DCreate9          = Direct3DCreate9           PRIVATE
-  Direct3DCreate9Ex        = Direct3DCreate9Ex         PRIVATE
+  Direct3DCreate9          = Direct3DCreate9
+  Direct3DCreate9Ex        = Direct3DCreate9Ex
 
   D3D9TestCooperativeLevel_Override      = D3D9TestCooperativeLevel_Override       PRIVATE
   D3D9SetSamplerState_Override           = D3D9SetSamplerState_Override            PRIVATE
@@ -82,9 +82,9 @@ EXPORTS
 ;LIBRARY "dxgi"
 
 EXPORTS
-  CreateDXGIFactory              = CreateDXGIFactory               PRIVATE
-  CreateDXGIFactory1             = CreateDXGIFactory1              PRIVATE
-  CreateDXGIFactory2             = CreateDXGIFactory2              PRIVATE
+  CreateDXGIFactory              = CreateDXGIFactory
+  CreateDXGIFactory1             = CreateDXGIFactory1
+  CreateDXGIFactory2             = CreateDXGIFactory2
   DXGID3D10CreateDevice          = DXGID3D10CreateDevice           PRIVATE
   DXGID3D10CreateLayeredDevice   = DXGID3D10CreateLayeredDevice    PRIVATE
   DXGID3D10GetLayeredDeviceSize  = DXGID3D10GetLayeredDeviceSize   PRIVATE
@@ -92,15 +92,15 @@ EXPORTS
   DXGIDumpJournal                = DXGIDumpJournal                 PRIVATE
   DXGIReportAdapterConfiguration = DXGIReportAdapterConfiguration  PRIVATE
 
-  SK_D3D11_SetResourceRoot       = SK_D3D11_SetResourceRoot        PRIVATE
-  SK_D3D11_EnableTexDump         = SK_D3D11_EnableTexDump          PRIVATE
-  SK_D3D11_EnableTexInject       = SK_D3D11_EnableTexInject        PRIVATE
+  SK_D3D11_SetResourceRoot       = SK_D3D11_SetResourceRoot
+  SK_D3D11_EnableTexDump         = SK_D3D11_EnableTexDump
+  SK_D3D11_EnableTexInject       = SK_D3D11_EnableTexInject
   SK_D3D11_EnableTexInject_FFX   = SK_D3D11_EnableTexInject_FFX    PRIVATE
-  SK_D3D11_EnableTexCache        = SK_D3D11_EnableTexCache         PRIVATE
-  SK_D3D11_AddTexHash            = SK_D3D11_AddTexHash             PRIVATE
-  SK_D3D11_RemoveTexHash         = SK_D3D11_RemoveTexHash          PRIVATE
-  SK_D3D11_PopulateResourceList  = SK_D3D11_PopulateResourceList   PRIVATE
-  SK_DXGI_SetPreferredAdapter    = SK_DXGI_SetPreferredAdapter     PRIVATE
+  SK_D3D11_EnableTexCache        = SK_D3D11_EnableTexCache
+  SK_D3D11_AddTexHash            = SK_D3D11_AddTexHash
+  SK_D3D11_RemoveTexHash         = SK_D3D11_RemoveTexHash
+  SK_D3D11_PopulateResourceList  = SK_D3D11_PopulateResourceList
+  SK_DXGI_SetPreferredAdapter    = SK_DXGI_SetPreferredAdapter
   SKX_D3D11_MarkTextures         = SKX_D3D11_MarkTextures          PRIVATE
   SKX_D3D11_EnableFullscreen     = SKX_D3D11_EnableFullscreen      PRIVATE
 
@@ -238,7 +238,7 @@ glGetPixelMapuiv           = glGetPixelMapuiv            PRIVATE
 glGetPixelMapusv           = glGetPixelMapusv            PRIVATE
 glGetPointerv              = glGetPointerv               PRIVATE
 glGetPolygonStipple        = glGetPolygonStipple         PRIVATE
-glGetString                = glGetString                 PRIVATE
+glGetString                = glGetString                 ; ReShade should use this instead of hooking
 glGetTexEnvfv              = glGetTexEnvfv               PRIVATE
 glGetTexEnviv              = glGetTexEnviv               PRIVATE
 glGetTexGendv              = glGetTexGendv               PRIVATE
@@ -463,32 +463,32 @@ glVertex4s                 = glVertex4s                  PRIVATE
 glVertex4sv                = glVertex4sv                 PRIVATE
 glVertexPointer            = glVertexPointer             PRIVATE
 glViewport                 = glViewport                  PRIVATE
-wglChoosePixelFormat       = wglChoosePixelFormat        PRIVATE
-wglCopyContext             = wglCopyContext              PRIVATE
-wglCreateContext           = wglCreateContext            PRIVATE
-wglCreateLayerContext      = wglCreateLayerContext       PRIVATE
-wglDeleteContext           = wglDeleteContext            PRIVATE
-wglDescribeLayerPlane      = wglDescribeLayerPlane       PRIVATE
-wglDescribePixelFormat     = wglDescribePixelFormat      PRIVATE
-wglGetCurrentContext       = wglGetCurrentContext        PRIVATE
-wglGetCurrentDC            = wglGetCurrentDC             PRIVATE
+wglChoosePixelFormat       = wglChoosePixelFormat
+wglCopyContext             = wglCopyContext
+wglCreateContext           = wglCreateContext
+wglCreateLayerContext      = wglCreateLayerContext
+wglDeleteContext           = wglDeleteContext
+wglDescribeLayerPlane      = wglDescribeLayerPlane
+wglDescribePixelFormat     = wglDescribePixelFormat
+wglGetCurrentContext       = wglGetCurrentContext
+wglGetCurrentDC            = wglGetCurrentDC
 ;wglGetDefaultProcAddress   = wglGetDefaultProcAddress    ?????
-wglGetLayerPaletteEntries  = wglGetLayerPaletteEntries   PRIVATE
-wglGetPixelFormat          = wglGetPixelFormat           PRIVATE
-wglGetProcAddress          = wglGetProcAddress           PRIVATE
-wglMakeCurrent             = wglMakeCurrent              PRIVATE
-wglRealizeLayerPalette     = wglRealizeLayerPalette      PRIVATE
-wglSetLayerPaletteEntries  = wglSetLayerPaletteEntries   PRIVATE
-wglSetPixelFormat          = wglSetPixelFormat           PRIVATE
-wglShareLists              = wglShareLists               PRIVATE
-wglSwapBuffers             = wglSwapBuffers              PRIVATE
-wglSwapLayerBuffers        = wglSwapLayerBuffers         PRIVATE
-wglSwapMultipleBuffers     = wglSwapMultipleBuffers      PRIVATE
+wglGetLayerPaletteEntries  = wglGetLayerPaletteEntries
+wglGetPixelFormat          = wglGetPixelFormat
+wglGetProcAddress          = wglGetProcAddress
+wglMakeCurrent             = wglMakeCurrent
+wglRealizeLayerPalette     = wglRealizeLayerPalette
+wglSetLayerPaletteEntries  = wglSetLayerPaletteEntries
+wglSetPixelFormat          = wglSetPixelFormat
+wglShareLists              = wglShareLists
+wglSwapBuffers             = wglSwapBuffers
+wglSwapLayerBuffers        = wglSwapLayerBuffers
+wglSwapMultipleBuffers     = wglSwapMultipleBuffers
 wglUseFontBitmapsA         = wglUseFontBitmapsA          PRIVATE
 wglUseFontBitmapsW         = wglUseFontBitmapsW          PRIVATE
 wglUseFontOutlinesA        = wglUseFontOutlinesA         PRIVATE
 wglUseFontOutlinesW        = wglUseFontOutlinesW         PRIVATE
-SwapBuffers                = SwapBuffers                 PRIVATE
+SwapBuffers                = SwapBuffers
 
 DI8_GetDeviceState_Override      = IDirectInputDevice8_GetDeviceState_Detour PRIVATE
 XInputGetState9_1_0_Override     = XInputGetState9_1_0_Detour                PRIVATE
@@ -498,20 +498,22 @@ RegisterRawInputDevices_Override = RegisterRawInputDevices_Detour            PRI
 GetRawInputData_Override         = GetRawInputData_Detour                    PRIVATE
 HidP_GetData_Override            = HidP_GetData_Detour                       PRIVATE
 
-SK_Input_GetDI8Keyboard          = SK_Input_GetDI8Keyboard                   PRIVATE
-SK_Input_GetDI8Mouse             = SK_Input_GetDI8Mouse                      PRIVATE
-SK_XInput_PollController         = SK_XInput_PollController                  PRIVATE
-SK_ImGui_ToggleEx                = SK_ImGui_ToggleEx                         PRIVATE
+SK_Input_GetDI8Keyboard          = SK_Input_GetDI8Keyboard
+SK_Input_GetDI8Mouse             = SK_Input_GetDI8Mouse
+SK_XInput_PollController         = SK_XInput_PollController
+SK_ImGui_ToggleEx                = SK_ImGui_ToggleEx
 
 
 SK_BeginBufferSwap               = SK_BeginBufferSwap                PRIVATE
 SK_EndBufferSwap                 = SK_EndBufferSwap                  PRIVATE
+
+; Not in import lib because of C++ object in params
 SK_DrawExternalOSD               = SK_DrawExternalOSD                PRIVATE
 SK_SetPresentParamsD3D9          = SK_SetPresentParamsD3D9           PRIVATE
 
 SK_ImGui_DrawFrame               = SK_ImGui_DrawFrame                PRIVATE
-SK_ImGui_Toggle                  = SK_ImGui_Toggle                   PRIVATE
-SK_ImGui_DrawEULA                = SK_ImGui_DrawEULA                 PRIVATE
+SK_ImGui_Toggle                  = SK_ImGui_Toggle
+SK_ImGui_DrawEULA                = SK_ImGui_DrawEULA
 
 ; Deprecated stuff
 BMF_BeginBufferSwap              = SK_BeginBufferSwap                PRIVATE
@@ -521,24 +523,24 @@ BMF_SetPresentParamsD3D9         = SK_SetPresentParamsD3D9           PRIVATE
 
 ; First new symbol to use the new name for this project
 SK_SetPluginName                 = SK_SetPluginName                  PRIVATE
-SK_SetOSDColor                   = SK_SetOSDColor                    PRIVATE
-SK_SetOSDPos                     = SK_SetOSDPos                      PRIVATE
-SK_SetOSDScale                   = SK_SetOSDScale                    PRIVATE
-SK_ResizeOSD                     = SK_ResizeOSD                      PRIVATE
-SK_GetCommandProcessor           = SK_GetCommandProcessor            PRIVATE
-SK_GetFramesDrawn                = SK_GetFramesDrawn                 PRIVATE
+SK_SetOSDColor                   = SK_SetOSDColor
+SK_SetOSDPos                     = SK_SetOSDPos
+SK_SetOSDScale                   = SK_SetOSDScale
+SK_ResizeOSD                     = SK_ResizeOSD
+SK_GetCommandProcessor           = SK_GetCommandProcessor
+SK_GetFramesDrawn                = SK_GetFramesDrawn
 SK_DetourWindowProc              = SK_DetourWindowProc               PRIVATE
 SK_DetourWindowProc2             = SK_DetourWindowProc2              PRIVATE
 SK_GetCursorPos                  = GetCursorPos_Detour               PRIVATE
 SK_GetCursorInfo                 = GetCursorInfo_Detour              PRIVATE
-SK_GetGameWindow                 = SK_GetGameWindow                  PRIVATE
-SK_PluginKeyPress                = SK_PluginKeyPress                 PRIVATE
+SK_GetGameWindow                 = SK_GetGameWindow
+SK_PluginKeyPress                = SK_PluginKeyPress
 SK_PlugIn_ControlPanelWidget     = SK_PlugIn_ControlPanelWidget      PRIVATE
-SK_GetConfigPath                 = SK_GetConfigPath                  PRIVATE
-SK_CreateLog                     = SK_CreateLog                      PRIVATE
-SK_CreateINI                     = SK_CreateINI                      PRIVATE
-SK_CreateVar                     = SK_CreateVar                      PRIVATE
-SK_IsConsoleVisible              = SK_IsConsoleVisible               PRIVATE
+SK_GetConfigPath                 = SK_GetConfigPath
+SK_CreateLog                     = SK_CreateLog
+SK_CreateINI                     = SK_CreateINI
+SK_CreateVar                     = SK_CreateVar
+SK_IsConsoleVisible              = SK_IsConsoleVisible
 SK_SelfDestruct                  = SK_SelfDestruct                   PRIVATE
                                  
 SK_FetchVersionInfo              = SK_FetchVersionInfo               PRIVATE
@@ -546,22 +548,22 @@ SK_UpdateSoftware                = SK_UpdateSoftware                 PRIVATE
 SK_FetchVersionInfo1             = SK_FetchVersionInfo1              PRIVATE
 SK_UpdateSoftware1               = SK_UpdateSoftware1                PRIVATE
                                  
-SK_GetFileCRC32                  = SK_GetFileCRC32                   PRIVATE
-SK_GetFileCRC32C                 = SK_GetFileCRC32C                  PRIVATE
-SK_GetFileHash_32                = SK_GetFileHash_32                 PRIVATE
+SK_GetFileCRC32                  = SK_GetFileCRC32
+SK_GetFileCRC32C                 = SK_GetFileCRC32C
+SK_GetFileHash_32                = SK_GetFileHash_32
                                  
 QueryPerformanceCounter_Detour   = QueryPerformanceCounter_Detour    PRIVATE
 Sleep_Detour                     = Sleep_Detour                      PRIVATE
 GetAsyncKeyState_Detour          = GetAsyncKeyState_Detour           PRIVATE
 GetRawInputData_Detour           = GetRawInputData_Detour            PRIVATE
                                  
-SK_NvAPI_IsInit                  = SK_NvAPI_IsInit                   PRIVATE
-SK_NvAPI_SetAntiAliasingOverride = SK_NvAPI_SetAntiAliasingOverride  PRIVATE
-SK_NvAPI_SetFramerateLimit       = SK_NvAPI_SetFramerateLimit        PRIVATE
-SK_NvAPI_SetAppFriendlyName      = SK_NvAPI_SetAppFriendlyName       PRIVATE
-SK_NvAPI_SetAppName              = SK_NvAPI_SetAppName               PRIVATE
-SK_NvAPI_SetLauncher             = SK_NvAPI_SetLauncher              PRIVATE
-SK_NvAPI_AddLauncherToProf       = SK_NvAPI_AddLauncherToProf        PRIVATE
+SK_NvAPI_IsInit                  = SK_NvAPI_IsInit
+SK_NvAPI_SetAntiAliasingOverride = SK_NvAPI_SetAntiAliasingOverride
+SK_NvAPI_SetFramerateLimit       = SK_NvAPI_SetFramerateLimit
+SK_NvAPI_SetAppFriendlyName      = SK_NvAPI_SetAppFriendlyName
+SK_NvAPI_SetAppName              = SK_NvAPI_SetAppName
+SK_NvAPI_SetLauncher             = SK_NvAPI_SetLauncher
+SK_NvAPI_AddLauncherToProf       = SK_NvAPI_AddLauncherToProf
                                  
 BMF_NvAPI_IsInit                 = SK_NvAPI_IsInit                   PRIVATE
 BMF_NvAPI_SetFramerateLimit      = SK_NvAPI_SetFramerateLimit        PRIVATE
@@ -571,15 +573,15 @@ BMF_NvAPI_SetLauncher            = SK_NvAPI_SetLauncher              PRIVATE
 BMF_NvAPI_AddLauncherToProf      = SK_NvAPI_AddLauncherToProf        PRIVATE
 
 
-SK_CreateFuncHook                = SK_CreateFuncHook                 PRIVATE
-SK_CreateDLLHook                 = SK_CreateDLLHook                  PRIVATE
-SK_CreateDLLHook2                = SK_CreateDLLHook2                 PRIVATE
-SK_CreateVFTableHook             = SK_CreateVFTableHook              PRIVATE
-SK_CreateVFTableHook2            = SK_CreateVFTableHook2             PRIVATE
-SK_ApplyQueuedHooks              = SK_ApplyQueuedHooks               PRIVATE
-SK_EnableHook                    = SK_EnableHook                     PRIVATE
-SK_DisableHook                   = SK_DisableHook                    PRIVATE
-SK_RemoveHook                    = SK_RemoveHook                     PRIVATE
+SK_CreateFuncHook                = SK_CreateFuncHook
+SK_CreateDLLHook                 = SK_CreateDLLHook
+SK_CreateDLLHook2                = SK_CreateDLLHook2
+SK_CreateVFTableHook             = SK_CreateVFTableHook
+SK_CreateVFTableHook2            = SK_CreateVFTableHook2
+SK_ApplyQueuedHooks              = SK_ApplyQueuedHooks
+SK_EnableHook                    = SK_EnableHook
+SK_DisableHook                   = SK_DisableHook
+SK_RemoveHook                    = SK_RemoveHook
 
 BMF_CreateFuncHook               = SK_CreateFuncHook                 PRIVATE
 BMF_CreateDLLHook                = SK_CreateDLLHook                  PRIVATE
@@ -587,21 +589,21 @@ BMF_EnableHook                   = SK_EnableHook                     PRIVATE
 BMF_DisableHook                  = SK_DisableHook                    PRIVATE
 BMF_RemoveHook                   = SK_RemoveHook                     PRIVATE
 
-SK_GPU_GetClockRateInkHz         = SK_GPU_GetClockRateInkHz          PRIVATE
-SK_GPU_GetMemClockRateInkHz      = SK_GPU_GetMemClockRateInkHz       PRIVATE
-SK_GPU_GetMemoryBandwidth        = SK_GPU_GetMemoryBandwidth         PRIVATE
-SK_GPU_GetMemoryLoad             = SK_GPU_GetMemoryLoad              PRIVATE
-SK_GPU_GetGPULoad                = SK_GPU_GetGPULoad                 PRIVATE
-SK_GPU_GetTempInC                = SK_GPU_GetTempInC                 PRIVATE
-SK_GPU_GetFanSpeedRPM            = SK_GPU_GetFanSpeedRPM             PRIVATE
-SK_GPU_GetVRAMUsed               = SK_GPU_GetVRAMUsed                PRIVATE
-SK_GPU_GetVRAMShared             = SK_GPU_GetVRAMShared              PRIVATE
-SK_GPU_GetVRAMBudget             = SK_GPU_GetVRAMBudget              PRIVATE
+SK_GPU_GetClockRateInkHz         = SK_GPU_GetClockRateInkHz
+SK_GPU_GetMemClockRateInkHz      = SK_GPU_GetMemClockRateInkHz
+SK_GPU_GetMemoryBandwidth        = SK_GPU_GetMemoryBandwidth
+SK_GPU_GetMemoryLoad             = SK_GPU_GetMemoryLoad
+SK_GPU_GetGPULoad                = SK_GPU_GetGPULoad
+SK_GPU_GetTempInC                = SK_GPU_GetTempInC
+SK_GPU_GetFanSpeedRPM            = SK_GPU_GetFanSpeedRPM
+SK_GPU_GetVRAMUsed               = SK_GPU_GetVRAMUsed
+SK_GPU_GetVRAMShared             = SK_GPU_GetVRAMShared
+SK_GPU_GetVRAMBudget             = SK_GPU_GetVRAMBudget
 
 
-SK_SteamAPI_TakeScreenshot         = SK_SteamAPI_TakeScreenshot         PRIVATE
-SK_SteamAPI_WriteScreenshot        = SK_SteamAPI_WriteScreenshot        PRIVATE
-SK_SteamAPI_AddScreenshotToLibrary = SK_SteamAPI_AddScreenshotToLibrary PRIVATE
+SK_SteamAPI_TakeScreenshot         = SK_SteamAPI_TakeScreenshot
+SK_SteamAPI_WriteScreenshot        = SK_SteamAPI_WriteScreenshot
+SK_SteamAPI_AddScreenshotToLibrary = SK_SteamAPI_AddScreenshotToLibrary
 SK_Steam_PiratesAhoy               = SK_Steam_PiratesAhoy2              PRIVATE
 
 
@@ -611,10 +613,10 @@ SK_Steam_PiratesAhoy               = SK_Steam_PiratesAhoy2              PRIVATE
 ;     redesign.  TRY NOT TO USE THESE!
 ;
 
-SK_SteamAPI_SetOverlayState  = SK_SteamAPI_SetOverlayState    PRIVATE
+SK_SteamAPI_SetOverlayState  = SK_SteamAPI_SetOverlayState
 
-SKX_DrawExternalOSD          = SKX_DrawExternalOSD            PRIVATE ; No more C++ string across DLL boundaries
-SKX_SetPluginName            = SKX_SetPluginName              PRIVATE ; No more C++ string across DLL boundaries
+SKX_DrawExternalOSD          = SKX_DrawExternalOSD            ; No more C++ string across DLL boundaries
+SKX_SetPluginName            = SKX_SetPluginName              ; No more C++ string across DLL boundaries
 
 BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState    PRIVATE
 
@@ -622,10 +624,10 @@ RunDLL_ElevateMe             = RunDLL_ElevateMe               PRIVATE
 RunDLL_RestartGame           = RunDLL_RestartGame             PRIVATE
 RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
 
-SKX_InstallCBTHook           = SKX_InstallCBTHook             PRIVATE
-SKX_RemoveCBTHook            = SKX_RemoveCBTHook              PRIVATE
-SKX_IsHookingCBT             = SKX_IsHookingCBT               PRIVATE
-SKX_GetInjectedPIDs          = SKX_GetInjectedPIDs            PRIVATE
+SKX_InstallCBTHook           = SKX_InstallCBTHook
+SKX_RemoveCBTHook            = SKX_RemoveCBTHook
+SKX_IsHookingCBT             = SKX_IsHookingCBT
+SKX_GetInjectedPIDs          = SKX_GetInjectedPIDs
 
 g_hHookCBT                   = g_hHookCBT                     DATA
 g_vBlacklist                 = blacklist                      DATA

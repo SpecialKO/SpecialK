@@ -148,5 +148,5 @@ protected:
 private:
   DWORD last_update = 0UL;
 
-  std::vector <SK_ImGui_DataHistory <float, 96>> cpu_records;
+  std::vector <SK_Stat_DataHistory <float, 96>> cpu_records;
 } __cpu_monitor__;

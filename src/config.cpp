@@ -4135,6 +4135,8 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     path += name;
     path += L"\\";
 
+    SK_StripTrailingSlashesW (path.data ());
+
     MoveFileExW ( original_dir.c_str (),
                     path.c_str       (),
                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );

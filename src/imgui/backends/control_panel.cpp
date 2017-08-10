@@ -192,8 +192,6 @@ namespace SK_ImGui
   bool
   VerticalToggleButton (const char *text, bool *v)
   {
-    using namespace ImGui;
-
           ImFont        *font      = GImGui->Font;
     const ImFont::Glyph *glyph     = nullptr;
           char           c         = 0;
@@ -203,11 +201,11 @@ namespace SK_ImGui
           float          pad       = style.FramePadding.x;
           ImVec4         color     = { };
     const char*          hash_mark = strstr (text, "##");
-          ImVec2         text_size = CalcTextSize     (text, hash_mark);
-          ImGuiWindow*   window    = GetCurrentWindow ();
+          ImVec2         text_size = ImGui::CalcTextSize     (text, hash_mark);
+          ImGuiWindow*   window    = ImGui::GetCurrentWindow ();
           ImVec2         pos       = ImVec2 ( window->DC.CursorPos.x + pad,
                                               window->DC.CursorPos.y + text_size.x + pad );
-    
+
     const ImU32 text_color =
       ImGui::ColorConvertFloat4ToU32 (style.Colors [ImGuiCol_Text]);
 
@@ -349,8 +347,8 @@ SK_ImGui_UpdateCursor (void)
   SetCursorPos_Original (orig_pos.x, orig_pos.y);
 }
 
-ImVec2 SK_ImGui_LastWindowCenter (-1.0f, -1.0f);
-void   SK_ImGui_CenterCursorOnWindow (void);
+ImVec2 SK_ImGui_LastWindowCenter  (-1.0f, -1.0f);
+void   SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter);
 
 const char*
 SK_ImGui_ControlPanelTitle (void)
@@ -521,7 +519,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
           volume_ctl->GetMasterVolume (&volume);
 
           char      szLabel [32] = { };
-          snprintf (szLabel, 31, "###VoumeSlider%i", i);
+          snprintf (szLabel, 31, "###VolumeSlider%i", i);
 
           ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImColor (0.5f, 0.5f, 0.5f) : ImColor (1.0f, 1.0f, 1.0f));
           ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
@@ -606,10 +604,10 @@ bool reset_frame_history = true;
 bool was_reset           = false;
 
 
-class SK_ImGui_FrameHistory : public SK_ImGui_DataHistory <float, 120>
+class SK_ImGui_FrameHistory : public SK_Stat_DataHistory <float, 120>
 {
 public:
-  void timeFrame      (double seconds)
+  void timeFrame       (double seconds)
   {
     addValue ((float)(1000.0 * seconds));
   }
@@ -634,8 +632,11 @@ SK_PlugIn_ControlPanelWidget (void)
 void
 DisplayModeMenu (bool windowed)
 {
-  if (! ( ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) ||
-          ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) ) )
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (! ( (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
+          (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11) ) ) )
     return;
 
   enum {
@@ -657,7 +658,7 @@ DisplayModeMenu (bool windowed)
     {
       case DISPLAY_MODE_WINDOWED:
       {
-        SK_GetCurrentRenderBackend ().requestWindowedMode (force);
+        rb.requestWindowedMode (force);
 
         bool borderless = config.window.borderless;
         bool fullscreen = config.window.fullscreen;
@@ -679,7 +680,7 @@ DisplayModeMenu (bool windowed)
       default:
       case DISPLAY_MODE_FULLSCREEN:
       {
-        SK_GetCurrentRenderBackend ().requestFullscreenMode (force);
+        rb.requestFullscreenMode (force);
       } break;
     }
   }
@@ -707,7 +708,7 @@ DisplayModeMenu (bool windowed)
     }
   }
 
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)
+  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     if (mode == DISPLAY_MODE_FULLSCREEN)
     {
@@ -735,7 +736,7 @@ DisplayModeMenu (bool windowed)
             break;
         }
 
-        SK_GetCurrentRenderBackend ().requestFullscreenMode (force);
+        rb.requestFullscreenMode (force);
       }
 
       if (ImGui::IsItemHovered ())
@@ -749,7 +750,7 @@ DisplayModeMenu (bool windowed)
     }
   }
 
-  if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+  if (! rb.fullscreen_exclusive)
   {
     mode      = config.window.borderless ? config.window.fullscreen ? 2 : 1 : 0;
     orig_mode = mode;
@@ -824,18 +825,12 @@ SK_ImGui_NV_DepthBoundsD3D11 (void)
   if (changed)
   {
     NvAPI_D3D11_SetDepthBoundsTest ( SK_GetCurrentRenderBackend ().device,
-                                     enable ? 0x1 : 0x0,
-                                     fMin, fMax );
+                                       enable ? 0x1 : 0x0,
+                                         fMin, fMax );
   }
 }
 
 extern float target_fps;
-
-
-void
-SK_ImGui_DrawGraph_CPU (void)
-{
-}
 
 void
 SK_ImGui_DrawGraph_FramePacing (void)
@@ -1032,6 +1027,14 @@ SK_ImGui_VolumeManager (void)
     ImGui::PushItemWidth (-1);
     if (ImGui::Button (u8"  <<  "))
     {
+      ISteamMusic* pMusic =
+        SK_SteamAPI_Music ();
+
+      if (pMusic && pMusic->BIsEnabled ())
+      {
+        if (pMusic->BIsPlaying ()) pMusic->PlayPrevious ();
+      }
+
       keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
       keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
     }
@@ -1040,6 +1043,16 @@ SK_ImGui_VolumeManager (void)
 
     if (ImGui::Button (u8"  Play / Pause  "))
     {
+      ISteamMusic* pMusic =
+        SK_SteamAPI_Music ();
+
+      if (pMusic && pMusic->BIsEnabled ())
+      {
+        if (pMusic->BIsPlaying ()) pMusic->Pause ();
+        else                       pMusic->Play  ();
+      }
+
+
       keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY,                   0);
       keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0); 
     }
@@ -1048,6 +1061,15 @@ SK_ImGui_VolumeManager (void)
 
     if (ImGui::Button (u8"  >>  "))
     {
+      ISteamMusic* pMusic =
+        SK_SteamAPI_Music ();
+
+      if (pMusic && pMusic->BIsEnabled ())
+      {
+        if (pMusic->BIsPlaying ()) pMusic->PlayNext ();
+      }
+
+
       keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
       keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
     }
@@ -1177,7 +1199,7 @@ SK_ImGui_VolumeManager (void)
           history [i].vu_peaks.inst_min = std::min (history [i].vu_peaks.inst_min, channel_peaks_ [i]);
           history [i].vu_peaks.inst_max = std::max (history [i].vu_peaks.inst_max, channel_peaks_ [i]);
 
-          history [i].vu_peaks.disp_min    = history [i].vu_peaks.inst_min;
+          history [i].vu_peaks.disp_min      = history [i].vu_peaks.inst_min;
 
           if (history [i].vu_peaks.dwMinSample < timeGetTime () - VUMETER_TIME * 3)
           {
@@ -1185,7 +1207,7 @@ SK_ImGui_VolumeManager (void)
             history [i].vu_peaks.dwMinSample = timeGetTime ();
           }
 
-          history [i].vu_peaks.disp_max    = history [i].vu_peaks.inst_max;
+          history [i].vu_peaks.disp_max      = history [i].vu_peaks.inst_max;
 
           if (history [i].vu_peaks.dwMaxSample < timeGetTime () - VUMETER_TIME * 3)
           {
@@ -1197,7 +1219,7 @@ SK_ImGui_VolumeManager (void)
 
           if (i & 0x1)
           {
-            history [i].current_idx = (history [i].current_idx - 1);
+            history [i].current_idx          = (history [i].current_idx - 1);
 
             if (history [i].current_idx < 0)
                 history [i].current_idx = IM_ARRAYSIZE (history [i].peaks) - 1;
@@ -1205,7 +1227,7 @@ SK_ImGui_VolumeManager (void)
 
           else
           {
-            history [i].current_idx = (history [i].current_idx + 1) % IM_ARRAYSIZE (history [i].peaks);
+            history [i].current_idx           = (history [i].current_idx + 1) % IM_ARRAYSIZE (history [i].peaks);
           }
 
           ImGui::BeginGroup ();
@@ -1313,13 +1335,13 @@ SK_ImGui_VolumeManager (void)
                                                ImVec2 (ImGui::GetContentRegionAvailWidth (), ht) );
           ImGui::PopStyleColor  ();
 
-          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,     ImVec4 (0.9f, 0.1f, 0.1f, 0.15f));
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,        ImVec4 (0.9f, 0.1f, 0.1f, 0.15f));
           ImGui::ProgressBar    (history [i].vu_peaks.disp_max, ImVec2 (-1.0f, 0.0f));
           ImGui::PopStyleColor  ();
 
-          ImGui::ProgressBar    (channel_peaks_ [i],          ImVec2 (-1.0f, 0.0f));
+          ImGui::ProgressBar    (channel_peaks_ [i],            ImVec2 (-1.0f, 0.0f));
 
-          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,     ImVec4 (0.1f, 0.1f, 0.9f, 0.15f));
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,        ImVec4 (0.1f, 0.1f, 0.9f, 0.15f));
           ImGui::ProgressBar    (history [i].vu_peaks.disp_min, ImVec2 (-1.0f, 0.0f));
           ImGui::PopStyleColor  ();
           ImGui::EndGroup       ();
@@ -1552,7 +1574,7 @@ SK_ImGui_ControlPanel (void)
         }
 
         snprintf        (current_ver, 127, "%ws (%li)", vinfo_latest.package.c_str (), vinfo_latest.build);
-        ImGui::MenuItem ("Latest Version###Menu_LatestVersion",   current_ver,    &selected, false);
+        ImGui::MenuItem ("Latest Version###Menu_LatestVersion",   current_ver,                                                      &selected, false);
         ImGui::MenuItem ("Last Checked###Menu_LastUpdateCheck",   SK_WideCharToUTF8 (SK_Version_GetLastCheckTime_WStr ()).c_str (), &selected, false);
 
         enum {
@@ -1671,7 +1693,8 @@ SK_ImGui_ControlPanel (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("%lu-Bit Injection History", sizeof (uintptr_t) == 4 ? 32 : 64);
+            ImGui::Text         ("%lu-Bit Injection History", sizeof (uintptr_t) == 4 ? 32 :
+                                                                                        64);
             ImGui::Separator    ();
 
             int count = InterlockedAdd (&SK_InjectionRecord_s::count, 0UL);
@@ -1807,7 +1830,7 @@ SK_ImGui_ControlPanel (void)
 
 
   const char* szTitle     = SK_ImGui_ControlPanelTitle ();
-  static int  title_len   = int ((float)ImGui::CalcTextSize (szTitle).x * 1.075f);
+  static int  title_len   = int (static_cast <float> (ImGui::CalcTextSize (szTitle).x) * 1.075f);
   static bool first_frame = true;
   bool        open        = true;
 
@@ -1830,10 +1853,10 @@ SK_ImGui_ControlPanel (void)
   ImGuiStyle& style =
     ImGui::GetStyle ();
 
-  ImGuiStyle orig = style;
-
   style.WindowTitleAlign =
     ImVec2 (0.5f, 0.5f);
+
+  ImGuiStyle orig = style;
 
   style.WindowMinSize.x = title_len * 1.075f * io.FontGlobalScale;
   style.WindowMinSize.y = 200;
@@ -1862,16 +1885,26 @@ SK_ImGui_ControlPanel (void)
     }
   }
 
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
           char szAPIName [32] = { };
-    snprintf ( szAPIName, 32, "%ws",  SK_GetCurrentRenderBackend ().name );
+    snprintf ( szAPIName, 32, "%ws",  rb.name );
 
     // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
-    int api_mask = (int)SK_GetCurrentRenderBackend ().api;
+    int api_mask = static_cast <int> (rb.api);
 
-    if ((api_mask & (int)SK_RenderAPI::D3D12)      != 0x0 && api_mask != (int)SK_RenderAPI::D3D12)
+    if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D12))      != 0x0 && 
+          api_mask != static_cast <int> (SK_RenderAPI::D3D12) )
+    {
       lstrcatA (szAPIName,   "On12");
-    else if ((api_mask & (int)SK_RenderAPI::D3D11) != 0x0 && api_mask != (int)SK_RenderAPI::D3D11)
+    }
+
+    else if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) != 0x0 && 
+               api_mask != static_cast <int> (SK_RenderAPI::D3D11) )
+    {
       lstrcatA (szAPIName, u8"→11" );
+    }
 
 #ifndef _WIN64
     lstrcatA (szAPIName, "    [ 32-bit ]");
@@ -1887,9 +1920,9 @@ SK_ImGui_ControlPanel (void)
       ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
     }
 
-    if (ImGui::BeginPopup ("RenderSubMenu"))
+    if (ImGui::BeginPopup      ("RenderSubMenu"))
     {
-      DisplayMenu ();
+      DisplayMenu     ();
       ImGui::EndPopup ();
     }
 
@@ -1897,27 +1930,27 @@ SK_ImGui_ControlPanel (void)
 
     char szResolution [128] = { };
 
-    bool sRGB     = SK_GetCurrentRenderBackend ().framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB;
+    bool sRGB     = rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB;
     bool override = false;
 
     RECT client;
     GetClientRect (game_window.hWnd, &client);
 
-    if ( (LONG)io.DisplayFramebufferScale.x != client.right  - client.left ||
-         (LONG)io.DisplayFramebufferScale.y != client.bottom - client.top  ||
+    if ( static_cast <int> (io.DisplayFramebufferScale.x) != client.right  - client.left ||
+         static_cast <int> (io.DisplayFramebufferScale.y) != client.bottom - client.top  ||
          sRGB )
     {
       snprintf ( szResolution, 63, "   %lux%lu", 
-                   (UINT)io.DisplayFramebufferScale.x,
-                   (UINT)io.DisplayFramebufferScale.y );
+                   static_cast <UINT> (io.DisplayFramebufferScale.x),
+                   static_cast <UINT> (io.DisplayFramebufferScale.y) );
 
       if (sRGB)
         strcat (szResolution, "    (sRGB)");
 
       if (ImGui::MenuItem (" Framebuffer Resolution", szResolution))
       {
-        config.window.res.override.x = (UINT)io.DisplayFramebufferScale.x;
-        config.window.res.override.y = (UINT)io.DisplayFramebufferScale.y;
+        config.window.res.override.x = static_cast <UINT> (io.DisplayFramebufferScale.x);
+        config.window.res.override.y = static_cast <UINT> (io.DisplayFramebufferScale.y);
 
         override = true;
       }
@@ -1993,10 +2026,10 @@ SK_ImGui_ControlPanel (void)
     {
       char szGSyncStatus [128] = { };
 
-      if (SK_GetCurrentRenderBackend ().gsync_state.capable)
+      if (rb.gsync_state.capable)
       {
         strcat (szGSyncStatus, "Supported + ");
-        if (SK_GetCurrentRenderBackend ().gsync_state.active)
+        if (rb.gsync_state.active)
           strcat (szGSyncStatus, "Active");
         else
           strcat (szGSyncStatus, "Inactive");
@@ -2154,10 +2187,9 @@ SK_ImGui_ControlPanel (void)
       ImGui::PopItemWidth ();
     }
 
-    SK_RenderAPI api =
-      SK_GetCurrentRenderBackend ().api;
+    SK_RenderAPI api = rb.api;
 
-    if ( (int)api & (int)SK_RenderAPI::D3D11 &&
+    if ( static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11) &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
     {
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
@@ -2181,17 +2213,19 @@ SK_ImGui_ControlPanel (void)
         ImGui::TextColored    ( ImColor (235, 235, 235),
                                 "Highly Advanced Render Tweaks" );
         ImGui::Separator      ();
-        ImGui::BulletText     ("Altering these Settings may Require Manual INI Edits to Fix.");
-        ImGui::BulletText     ("Nearly all SwapChain settings require a Game Restart.");
-        ImGui::BulletText     ("NieR: Automata is Broken and Not Compatible With (m)Any of These.");
+        ImGui::BulletText     ("Altering these settings may require manual INI edits to recover from");
         ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.85f, 0.1f, 0.9f));
-        ImGui::BulletText     ("For Best Results, Consult your Nearest Kaldaien ;)");
+        ImGui::BulletText     ("For best results, consult your nearest Kaldaien ;)");
         ImGui::PopStyleColor  ();
         ImGui::EndTooltip     ();
       }
 
       if (swapchain)
       {
+        static bool flip         = config.render.framerate.flip_discard;
+        static bool waitable     = config.render.framerate.swapchain_wait > 0;
+        static int  buffer_count = config.render.framerate.buffer_count;
+
         ImGui::TreePush ("");
 
         ImGui::Checkbox ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
@@ -2212,31 +2246,35 @@ SK_ImGui_ControlPanel (void)
           {
             ImGui::Text       ("In Flip Model, this Controls Frame Queuing Rather than V-Sync)");
             ImGui::Separator  (                                                                );
-            ImGui::BulletText ("Values > 1 will disable G - Sync but will produce the most "
+            ImGui::BulletText ("Values > 1 will disable G-Sync but will produce the most "
                                "consistent framerates possible."                               );
           }
 
           ImGui::EndTooltip ();
         }
 
-        config.render.framerate.present_interval = std::max (-1, std::min (4, config.render.framerate.present_interval));
+        config.render.framerate.present_interval =
+          std::max (-1, std::min (4, config.render.framerate.present_interval));
+
+        ImGui::InputInt ("BackBuffer Count",       &config.render.framerate.buffer_count);
+        ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit);
 
         if (config.render.framerate.flip_discard)
         {
-          bool waitable = config.render.framerate.swapchain_wait > 0;
+          bool waitable_ = config.render.framerate.swapchain_wait > 0;
 
-          if (ImGui::Checkbox ("Waitable SwapChain", &waitable))
+          if (ImGui::Checkbox ("Waitable SwapChain", &waitable_))
           {
-            if (! waitable) config.render.framerate.swapchain_wait = 0;
-            else            config.render.framerate.swapchain_wait = 15;
+            if (! waitable_) config.render.framerate.swapchain_wait = 0;
+            else             config.render.framerate.swapchain_wait = 15;
           }
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Reduces input latency, BUT makes it impossible to change resolution.");
 
           if (waitable) {
             ImGui::SliderInt ("Maximum Wait Period", &config.render.framerate.swapchain_wait, 1, 66);
           }
-
-          ImGui::InputInt ("BackBuffer Count",       &config.render.framerate.buffer_count);
-          ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit);
 
           if (SK_DXGI_SupportsTearing ())
           {
@@ -2249,10 +2287,21 @@ SK_ImGui_ControlPanel (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip ();
-              ImGui::Text         ("This Feature is HIGHLY Experimental");
+              ImGui::Text         ("Enables tearing in windowed mode (Windows 10+); not particularly useful.");
               ImGui::EndTooltip   ();
             }
           }
+        }
+
+        bool changed = (flip         != config.render.framerate.flip_discard      ) ||
+                       (waitable     != config.render.framerate.swapchain_wait > 0) ||
+                       (buffer_count != config.render.framerate.buffer_count      );
+
+        if (changed)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+          ImGui::BulletText     ("Game Restart Required");
+          ImGui::PopStyleColor  ();
         }
 
         ImGui::TreePop  (  );
@@ -2377,7 +2426,7 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::CollapsingHeader ("Third-Party Software"))
       {
         ImGui::TreePush ("");
-        ImGui::Checkbox ("Disable GeForce Experience and NVIDIA Shield", &config.compatibility.disable_nv_bloat);
+        ImGui::Checkbox     ("Disable GeForce Experience and NVIDIA Shield", &config.compatibility.disable_nv_bloat);
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("May improve software compatibility, but disables ShadowPlay, couch co-op and various Shield-related functionality.");
         ImGui::TreePop  ();
@@ -2470,12 +2519,12 @@ SK_ImGui_ControlPanel (void)
         ImGui_CheckboxEx ("Direct3D 9",   &config.apis.d3d9.hook);
         ImGui_CheckboxEx ("Direct3D 9Ex", &config.apis.d3d9ex.hook, config.apis.d3d9.hook);
 
-        ImGui::NextColumn (  );
+        ImGui::NextColumn (   );
 
-        ImGui_CheckboxEx ("Direct3D 11", &config.apis.dxgi.d3d11.hook);
+        ImGui_CheckboxEx ("Direct3D 11",  &config.apis.dxgi.d3d11.hook);
 
 #ifdef _WIN64
-        ImGui_CheckboxEx ("Direct3D 12", &config.apis.dxgi.d3d12.hook, config.apis.dxgi.d3d11.hook);
+        ImGui_CheckboxEx ("Direct3D 12",  &config.apis.dxgi.d3d12.hook, config.apis.dxgi.d3d11.hook);
 #endif
 
         ImGui::Columns    ( 1 );
@@ -2683,19 +2732,19 @@ SK_ImGui_ControlPanel (void)
         GetClientRect (game_window.hWnd, &client);
         GetWindowRect (game_window.hWnd, &window);
 
-        DescribeRect (&window,   "Window", "GetWindowRect"   );
-        DescribeRect (&client,   "Client", "GetClientRect"   );
+        DescribeRect  (&window,   "Window", "GetWindowRect"   );
+        DescribeRect  (&client,   "Client", "GetClientRect"   );
                            
         ImGui::Columns     (1);
         ImGui::Separator   ( );
         ImGui::EndGroup    ( );
 
-        ImGui::Text ( "ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }",
-                        SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x,
-                                                 SK_ImGui_Cursor.pos.y,
-                          SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
-        ImGui::SameLine ();
-        ImGui::Text (" {%s :: Last Update: %lu}", SK_ImGui_Cursor.idle ? "Idle" : "Not Idle", SK_ImGui_Cursor.last_move);
+        ImGui::Text        ( "ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }",
+                               SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x,
+                                                        SK_ImGui_Cursor.pos.y,
+                                 SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
+        ImGui::SameLine    ( );
+        ImGui::Text        (" {%s :: Last Update: %lu}", SK_ImGui_Cursor.idle ? "Idle" : "Not Idle", SK_ImGui_Cursor.last_move);
         ImGui::TreePop     ( );
       }
 
@@ -2720,15 +2769,15 @@ SK_ImGui_ControlPanel (void)
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
 
-      xinput.reads      = SK_XInput_Backend.reads [2];
+      xinput.reads            = SK_XInput_Backend.reads   [2];
 
-      di8.kbd_reads     = SK_DI8_Backend.reads [1];
-      di8.mouse_reads   = SK_DI8_Backend.reads [0];
-      di8.gamepad_reads = SK_DI8_Backend.reads [2];
+      di8.kbd_reads           = SK_DI8_Backend.reads      [1];
+      di8.mouse_reads         = SK_DI8_Backend.reads      [0];
+      di8.gamepad_reads       = SK_DI8_Backend.reads      [2];
 
-      hid.kbd_reads     = SK_HID_Backend.reads [1];
-      hid.mouse_reads   = SK_HID_Backend.reads [0];
-      hid.gamepad_reads = SK_HID_Backend.reads [2];
+      hid.kbd_reads           = SK_HID_Backend.reads      [1];
+      hid.mouse_reads         = SK_HID_Backend.reads      [0];
+      hid.gamepad_reads       = SK_HID_Backend.reads      [2];
 
       raw_input.kbd_reads     = SK_RawInput_Backend.reads [1];
       raw_input.mouse_reads   = SK_RawInput_Backend.reads [0];
@@ -3049,8 +3098,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (ImGui::CollapsingHeader ("Low-Level Mouse Settings", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        static bool deadzone_hovered = false;
-        float  float_thresh          = std::max (1.0f, std::min (100.0f, config.input.mouse.antiwarp_deadzone));
+        static bool  deadzone_hovered = false;
+               float float_thresh     = std::max (1.0f, std::min (100.0f, config.input.mouse.antiwarp_deadzone));
 
         ImVec2 deadzone_pos    = ImGui::GetIO ().DisplaySize;
                deadzone_pos.x /= 2.0f;
@@ -3688,8 +3737,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
           int temp_unit = config.system.prefer_fahrenheit ? 1 : 0;
 
-          ImGui::RadioButton (" Celsius ",    (int*)&temp_unit, 0); ImGui::SameLine ();
-          ImGui::RadioButton (" Fahrenheit ", (int*)&temp_unit, 1);  ImGui::SameLine ();
+          ImGui::RadioButton (" Celsius ",    &temp_unit, 0); ImGui::SameLine ();
+          ImGui::RadioButton (" Fahrenheit ", &temp_unit, 1); ImGui::SameLine ();
           ImGui::Checkbox    (" Print Slowdown", &config.gpu.print_slowdown);
 
           config.system.prefer_fahrenheit = temp_unit == 1 ? true : false;
@@ -3729,17 +3778,17 @@ extern float SK_ImGui_PulseNav_Strength;
         {
           ImGui::TreePush ("");
           ImGui::Checkbox (" Simplified View",         &config.cpu.simple);
-          ImGui::TreePop  ();
+          ImGui::TreePop  (  );
         }
 
         spawn |= ImGui::Checkbox ("Memory Stats",      &config.mem.show);
 
-        ImGui::NextColumn ();
+        ImGui::NextColumn (  );
 
         spawn |= ImGui::Checkbox ("General I/O Stats", &config.io.show);
         spawn |= ImGui::Checkbox ("Pagefile Stats",    &config.pagefile.show);
 
-        ImGui::NextColumn ();
+        ImGui::NextColumn (  );
 
         spawn |= ImGui::Checkbox ("Disk Stats",        &config.disk.show);
 
@@ -3782,13 +3831,13 @@ extern float SK_ImGui_PulseNav_Strength;
       {
         ImGui::TreePush ("");
 
-        float color [3] = { (float)config.osd.red   / 255.0f,
-                            (float)config.osd.green / 255.0f,
-                            (float)config.osd.blue  / 255.0f };
+        float color [3] = { static_cast <float> (config.osd.red)   / 255.0f,
+                            static_cast <float> (config.osd.green) / 255.0f,
+                            static_cast <float> (config.osd.blue)  / 255.0f };
 
         float default_r, default_g, default_b;
 
-        extern void __stdcall SK_OSD_GetDefaultColor (float& r, float& g, float& b);
+        extern void __stdcall SK_OSD_GetDefaultColor ( float& r,  float& g,  float& b);
                               SK_OSD_GetDefaultColor (default_r, default_g, default_b);
 
         if (config.osd.red   == MAXDWORD) color [0] = default_r;
@@ -3801,9 +3850,9 @@ extern float SK_ImGui_PulseNav_Strength;
           color [1] = std::max (std::min (color [1], 1.0f), 0.0f);
           color [2] = std::max (std::min (color [2], 1.0f), 0.0f);
 
-          config.osd.red   = (int)(color [0] * 255);
-          config.osd.green = (int)(color [1] * 255);
-          config.osd.blue  = (int)(color [2] * 255);
+          config.osd.red   = static_cast <int>(color [0] * 255);
+          config.osd.green = static_cast <int>(color [1] * 255);
+          config.osd.blue  = static_cast <int>(color [2] * 255);
 
           if ( color [0] >= default_r - 0.001f &&
                color [0] <= default_r + 0.001f    ) config.osd.red   = MAXDWORD;
@@ -3832,9 +3881,9 @@ extern float SK_ImGui_PulseNav_Strength;
         bool bottom_align = config.osd.pos_y < 0;
 
         bool
-        moved  = ImGui::SliderInt ("X Origin##OSD",       &x_pos, 1, (int)io.DisplaySize.x); ImGui::SameLine ();
+        moved  = ImGui::SliderInt ("X Origin##OSD",       &x_pos, 1, static_cast <int> (io.DisplaySize.x)); ImGui::SameLine ();
         moved |= ImGui::Checkbox  ("Right-aligned##OSD",  &right_align);
-        moved |= ImGui::SliderInt ("Y Origin##OSD",       &y_pos, 1, (int)io.DisplaySize.y); ImGui::SameLine ();
+        moved |= ImGui::SliderInt ("Y Origin##OSD",       &y_pos, 1, static_cast <int> (io.DisplaySize.y)); ImGui::SameLine ();
         moved |= ImGui::Checkbox  ("Bottom-aligned##OSD", &bottom_align);
 
         if (moved)
@@ -3846,7 +3895,7 @@ extern float SK_ImGui_PulseNav_Strength;
           config.osd.pos_x = x_pos * (right_align  ? -1 : 1);
           config.osd.pos_y = y_pos * (bottom_align ? -1 : 1);
 
-          if (right_align && config.osd.pos_x >= 0)
+          if (right_align  && config.osd.pos_x >= 0)
             config.osd.pos_x = -1;
 
           if (bottom_align && config.osd.pos_y >= 0)
@@ -3890,13 +3939,13 @@ extern float SK_ImGui_PulseNav_Strength;
       }
       ImGui::SameLine ();
 
-      if (ImGui::Checkbox ("CPU",          &cpumon))
+      if (ImGui::Checkbox ("CPU",         &cpumon))
       {
         SK_ImGui_Widgets.cpu_monitor->setVisible (cpumon);
       }
       ImGui::SameLine ();
 
-      if (ImGui::Checkbox ("GPU", &gpumon))
+      if (ImGui::Checkbox ("GPU",         &gpumon))
       {
         SK_ImGui_Widgets.gpu_monitor->setVisible (gpumon);//.setActive (gpumon);
       }
@@ -3931,44 +3980,51 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePush ("");
 
       extern iSK_INI*       dll_ini;
-      
 
+      wchar_t imp_path_reshade [MAX_PATH + 2] = { };
+      wchar_t imp_name_reshade [64]           = { };
 
-      wchar_t imp_path [MAX_PATH + 2] = { };
-      wchar_t imp_name [64]           = { };
+      wchar_t imp_path_reshade_ex [MAX_PATH + 2] = { };
+      wchar_t imp_name_reshade_ex [64]           = { };
 
 #ifdef _WIN64
-      wcscat   (imp_name, L"Import.ReShade64");
+      wcscat   (imp_name_reshade, L"Import.ReShade64");
+      wsprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
-      //if (SK_IsInjected ())
-        wsprintf (imp_path, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-      //else
-        //wsprintf (imp_path, L"%s\\ReShade64.dll", SK_GetHostPath ());
+      wcscat   (imp_name_reshade_ex, L"Import.ReShade64_Custom");
+      wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 #else
-      wcscat   (imp_name, L"Import.ReShade32");
+      wcscat   (imp_name_reshade, L"Import.ReShade32");
+      wsprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
-      //if (SK_IsInjected ())
-        wsprintf (imp_path, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-      //else
-        //wsprintf (imp_path, L"%s\\ReShade32.dll", SK_GetHostPath ());
+      wcscat   (imp_name_reshade_ex, L"Import.ReShade32_Custom");
+      wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 #endif
-      bool reshade = dll_ini->contains_section (imp_name);
+      bool reshade_official   = dll_ini->contains_section (imp_name_reshade);
+      bool reshade_unofficial = dll_ini->contains_section (imp_name_reshade_ex);
 
       ImGui::Text     ("Third-Party");
       ImGui::TreePush ("");
 
       bool changed = false;
-      changed |= ImGui::Checkbox ("ReShade", &reshade);
+      changed |= ImGui::Checkbox ("ReShade##Official", &reshade_official);
 
-      static int order = 0;
+      if (ImGui::IsItemHovered ())
+      {
+        if (GetFileAttributesW (imp_path_reshade) == INVALID_FILE_ATTRIBUTES)
+          ImGui::SetTooltip ("Please install ReShade to %ws", imp_path_reshade);
+      }
 
-      if (dll_ini->contains_section (imp_name) && dll_ini->get_section (imp_name).get_value (L"When") == L"Early")
+      static int order    = 0;
+      static int order_ex = 0;
+
+      if (dll_ini->contains_section (imp_name_reshade) && dll_ini->get_section (imp_name_reshade).get_value (L"When") == L"Early")
         order = 0;
-      else if (dll_ini->contains_section (imp_name) || (! SK_IsInjected ()))
+      else if (dll_ini->contains_section (imp_name_reshade) || (! SK_IsInjected ()))
         order = 1;
 
       ImGui::SameLine ();
-      changed |= ImGui::Combo ("Load Order", &order, "Early\0Plug-In\0\0");
+      changed |= ImGui::Combo ("Load Order##ReShade", &order, "Early\0Plug-In\0\0");
 
       if (ImGui::IsItemHovered ())
       {
@@ -3980,22 +4036,64 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::EndTooltip   ();
       }
 
+      ImGui::TreePop    ();
+
+      if (SK_IsInjected ())
+      {
+        ImGui::Text     ("Unofficial (Custom to Special K)");
+        ImGui::TreePush ("");
+
+        changed |= ImGui::Checkbox ("ReShade##Unofficial", &reshade_unofficial);
+
+        if (ImGui::IsItemHovered ())
+        {
+          if (GetFileAttributesW (imp_path_reshade_ex) == INVALID_FILE_ATTRIBUTES)
+            ImGui::SetTooltip ("Please install ReShade to %ws", imp_path_reshade_ex);
+        }
+
+        if (dll_ini->contains_section (imp_name_reshade_ex) && dll_ini->get_section (imp_name_reshade_ex).get_value (L"When") == L"Early")
+          order_ex = 0;
+        else if (dll_ini->contains_section (imp_name_reshade_ex))
+          order_ex = 1;
+
+        ImGui::SameLine ();
+        changed |= ImGui::Combo ("Load Order##ReShade_Unofficial", &order_ex, "Early\0Plug-In\0\0");
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Plug-In Load Order is Suggested by Default.");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
+          ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
+          ImGui::EndTooltip   ();
+        }
+
+        ImGui::TreePop        ();
+      }
+
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
       ImGui::TextWrapped    ("If you run into problems with the plug-in, pressing and holding Ctrl + Shift at game startup can disable it.");
       ImGui::PopStyleColor  ();
 
       if (changed)
       {
-        if (! reshade) {
-          dll_ini->remove_section (imp_name);
+        if (reshade_unofficial)
+          reshade_official = false;
+
+        if (reshade_official)
+          reshade_unofficial = false;
+
+        if (! reshade_official) {
+          dll_ini->remove_section (imp_name_reshade);
           dll_ini->write          (dll_ini->get_filename ());
         }
 
-        else if (GetFileAttributesW (imp_path) != INVALID_FILE_ATTRIBUTES)
+        else if (GetFileAttributesW (imp_path_reshade) != INVALID_FILE_ATTRIBUTES)
         {
           wchar_t wszImportRecord [4096];
 
-          _swprintf (wszImportRecord, L"[%s]\n", imp_name);
+          _swprintf (wszImportRecord, L"[%s]\n", imp_name_reshade);
 #ifdef _WIN64
           wcscat (wszImportRecord, L"Architecture=x64\n");
 #else
@@ -4009,7 +4107,37 @@ extern float SK_ImGui_PulseNav_Strength;
             wcscat (wszImportRecord, L"When=PlugIn\n");
 
           wcscat (wszImportRecord, L"Filename=");
-          wcscat (wszImportRecord, imp_path);
+          wcscat (wszImportRecord, imp_path_reshade);
+          wcscat (wszImportRecord, L"\n\n");
+
+          dll_ini->import         (wszImportRecord);
+          dll_ini->write          (dll_ini->get_filename ());
+        }
+
+        if (! reshade_unofficial) {
+          dll_ini->remove_section (imp_name_reshade_ex);
+          dll_ini->write          (dll_ini->get_filename ());
+        }
+
+        else if (GetFileAttributesW (imp_path_reshade_ex) != INVALID_FILE_ATTRIBUTES)
+        {
+          wchar_t wszImportRecord [4096];
+
+          _swprintf (wszImportRecord, L"[%s]\n", imp_name_reshade_ex);
+#ifdef _WIN64
+          wcscat (wszImportRecord, L"Architecture=x64\n");
+#else
+          wcscat (wszImportRecord, L"Architecture=Win32\n");
+#endif
+          wcscat (wszImportRecord, L"Role=Unofficial\n");
+
+          if (order_ex == 0)
+            wcscat (wszImportRecord, L"When=Early\n");
+          else
+            wcscat (wszImportRecord, L"When=PlugIn\n");
+
+          wcscat (wszImportRecord, L"Filename=");
+          wcscat (wszImportRecord, imp_path_reshade_ex);
           wcscat (wszImportRecord, L"\n\n");
 
           dll_ini->import         (wszImportRecord);
@@ -4017,13 +4145,6 @@ extern float SK_ImGui_PulseNav_Strength;
         }
       }
 
-      if (ImGui::IsItemHovered ())
-      {
-        if (GetFileAttributesW (imp_path) == INVALID_FILE_ATTRIBUTES)
-          ImGui::SetTooltip ("Please install ReShade to %ws", imp_path);
-      }
-
-      ImGui::TreePop ();
       ImGui::TreePop ();
     }
 
@@ -4045,8 +4166,8 @@ extern float SK_ImGui_PulseNav_Strength;
           size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
 
           snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
-                       ratio * 100.0f, (uint32_t)(ratio * (float)num_achievements),
-                                       (uint32_t)                num_achievements );
+                       ratio * 100.0f, static_cast <uint32_t> ((ratio * static_cast <float> (num_achievements))),
+                                       static_cast <uint32_t> (                              num_achievements) );
 
           ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImColor (0.90f, 0.72f, 0.07f, 0.80f) ); 
           ImGui::ProgressBar    ( ratio,
@@ -4054,11 +4175,12 @@ extern float SK_ImGui_PulseNav_Strength;
                                       szProgress );
           ImGui::PopStyleColor  ();
 
-          int friends = SK_SteamAPI_GetNumFriends ();
+          int friends =
+            SK_SteamAPI_GetNumFriends ();
 
           if (friends && ImGui::IsItemHovered ())
           {
-            ImGui::BeginTooltip ( );
+            ImGui::BeginTooltip   ();
 
             static int num_records = 0;
 
@@ -4082,7 +4204,7 @@ extern float SK_ImGui_PulseNav_Strength;
               if (percent > 0.0f)
               {
                 ImGui::ProgressBar    ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
-                ImGui::SameLine       ();
+                ImGui::SameLine       ( );
                 ImGui::PushStyleColor (ImGuiCol_Text, ImColor (.81f, 0.81f, 0.81f));
                 ImGui::Text           (szName);
                 ImGui::PopStyleColor  (1);
@@ -4091,9 +4213,9 @@ extern float SK_ImGui_PulseNav_Strength;
 
                 if (cur_line >= max_lines)
                 {
-                  ImGui::EndGroup   ();
-                  ImGui::SameLine   ();
-                  ImGui::BeginGroup ();
+                  ImGui::EndGroup     ( );
+                  ImGui::SameLine     ( );
+                  ImGui::BeginGroup   ( );
                   cur_line = 0;
                 }
 
@@ -4172,12 +4294,12 @@ extern float SK_ImGui_PulseNav_Strength;
               changed |=
                 ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
 
-                ImGui::SameLine   ( );
-                ImGui::Combo      ( "##PopupLoc",         &config.steam.achievements.popup.origin,
-                                            "Top-Left\0"
-                                            "Top-Right\0"
-                                            "Bottom-Left\0"
-                                            "Bottom-Right\0\0" );
+                ImGui::SameLine    ( );
+                ImGui::Combo       ( "##PopupLoc",         &config.steam.achievements.popup.origin,
+                                             "Top-Left\0"
+                                             "Top-Right\0"
+                                             "Bottom-Left\0"
+                                             "Bottom-Right\0\0" );
 
               if ( changed )
               {
@@ -4198,11 +4320,13 @@ extern float SK_ImGui_PulseNav_Strength;
                 ImGui::TreePush   ("");
                 ImGui::Text       ("Duration:"); ImGui::SameLine ();
 
-                float duration = std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
+                float duration =
+                  std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
 
                 if ( ImGui::SliderFloat ( "##PopupDuration", &duration, 1.0f, 30.0f, "%.2f Seconds" ) )
                 {
-                  config.steam.achievements.popup.duration = static_cast <LONG> ( duration * 1000.0f );
+                  config.steam.achievements.popup.duration =
+                    static_cast <LONG> ( duration * 1000.0f );
                 }
                 ImGui::TreePop   ( );
                 ImGui::EndGroup  ( );
@@ -4248,12 +4372,12 @@ extern float SK_ImGui_PulseNav_Strength;
         if (ImGui::CollapsingHeader ("Compatibility"))
         {
           ImGui::TreePush ("");
-          ImGui::Checkbox (" Load Steam Overlay Early  ", &config.steam.preload_overlay);
+          ImGui::Checkbox (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
 
-          ImGui::Checkbox (" Load Steam Client DLL Early  ", &config.steam.preload_client);
+          ImGui::Checkbox (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
@@ -4262,7 +4386,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
           ImGui::Checkbox (" Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
 
-          if (ImGui::IsItemHovered ()) {
+          if (ImGui::IsItemHovered ())
+          {
             ImGui::BeginTooltip ();
             ImGui::Text         ("Fix for Games that Panic when Flooded with Achievement Data");
             ImGui::Separator    ();
@@ -4368,10 +4493,13 @@ extern float SK_ImGui_PulseNav_Strength;
         snprintf ( szLabel, 511,
                      "Fetching Achievements... %.2f%% (%u/%u) : %s",
                        100.0f * ratio,
-                     (uint32_t)(ratio * (float)friends),
-                                     (uint32_t)friends,
+static_cast <uint32_t> (
+                        ratio * static_cast <float>    (friends)
+                       ),
+                                static_cast <uint32_t> (friends),
                       SK_SteamAPI_GetFriendName (
-                       (uint32_t)(ratio * (float)friends)
+static_cast <uint32_t> (
+                        ratio * static_cast <float>    (friends))
                       )
                  );
         
@@ -4391,7 +4519,7 @@ extern float SK_ImGui_PulseNav_Strength;
   SK_ImGui_LastWindowCenter.y = pos.y + size.y / 2.0f;
 
   if (recenter)
-    SK_ImGui_CenterCursorOnWindow ();
+    SK_ImGui_CenterCursorAtPos ();
 
 
   if (show_test_window)
@@ -4588,7 +4716,7 @@ SK_NvAPI_GetGPUInfoStr (void)
 
 
 
-typedef void (__stdcall *SK_ImGui_DrawCallback_pfn)(void *user);
+typedef UINT (__stdcall *SK_ImGui_DrawCallback_pfn)(void *user);
 
 struct
 {
@@ -4632,14 +4760,14 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui_ImplGL3_NewFrame ();
   }
 
-  else if ((int)rb.api & (int)SK_RenderAPI::D3D9)
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
   {
     d3d9 = true;
 
     ImGui_ImplDX9_NewFrame ();
   }
 
-  else if ((int)rb.api & (int)SK_RenderAPI::D3D11)
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     d3d11 = true;
 
@@ -4694,10 +4822,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   bool keep_open = true;
 
 
-  if (SK_ImGui_DrawCallback.fn != nullptr)
-    SK_ImGui_DrawCallback.fn (SK_ImGui_DrawCallback.data);
-
-
   if (SK_ImGui_Visible)
     keep_open = SK_ImGui_ControlPanel ();
 
@@ -4712,6 +4836,27 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
 
+
+  if (SK_ImGui_DrawCallback.fn != nullptr)
+  {
+    if (SK_ImGui_DrawCallback.fn (SK_ImGui_DrawCallback.data) > 0)
+    {
+      if (! SK_ImGui_Visible)
+      {
+        SK_ImGui_Toggle ();
+
+        ImGuiWindow* pWin =
+          ImGui::FindWindowByName ("###ReShade_Main");
+
+        if (pWin)
+        {
+          SK_ImGui_CenterCursorAtPos (pWin->Rect ().GetCenter ());
+        }
+      }
+    }
+  }
+
+
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
@@ -4722,11 +4867,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
       static bool move = true;
       if (move)
       {
-        ImGui::SetNextWindowPos  (ImVec2 ((io.DisplaySize.x + font_size * 35) / 2.0f, 0.0f), ImGuiSetCond_Always);
+        ImGui::SetNextWindowPos (ImVec2 ((io.DisplaySize.x + font_size * 35) / 2.0f, 0.0f), ImGuiSetCond_Always);
         move = false;
       }
 
-      ImGui::SetNextWindowSize (ImVec2 (font_size * 35, font_size_multiline * 6.25f), ImGuiSetCond_Always);
+      ImGui::SetNextWindowSize  (ImVec2 (font_size * 35, font_size_multiline * 6.25f),      ImGuiSetCond_Always);
       
       ImGui::Begin            ("###Widget_TexCacheD3D11", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
                                                                    ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
@@ -4744,8 +4889,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   if (io.WantMoveMouse)
   {
-    SK_ImGui_Cursor.pos.x = (LONG)io.MousePos.x;
-    SK_ImGui_Cursor.pos.y = (LONG)io.MousePos.y;
+    SK_ImGui_Cursor.pos.x = static_cast <LONG> (io.MousePos.x);
+    SK_ImGui_Cursor.pos.y = static_cast <LONG> (io.MousePos.y);
 
     POINT screen_pos = SK_ImGui_Cursor.pos;
 
@@ -4817,9 +4962,12 @@ SK_ImGui_Toggle (void)
   bool d3d9  = false;
   bool gl    = false;
 
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9)   d3d9  = true;
-  if ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11)  d3d11 = true;
-  if (     SK_GetCurrentRenderBackend ().api ==     SK_RenderAPI::OpenGL) gl    = true;
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9) )  d3d9  = true;
+  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))  d3d11 = true;
+  if (                   rb.api ==                    SK_RenderAPI::OpenGL)  gl    = true;
 
   auto EnableEULAIfPirate = [](void) ->
   bool
@@ -4933,20 +5081,20 @@ SK_ImGui_Toggle (void)
   }
 }
 
-extern LONG SK_RawInput_MouseX;
-extern LONG SK_RawInput_MouseY;
+extern LONG  SK_RawInput_MouseX;
+extern LONG  SK_RawInput_MouseY;
 extern POINT SK_RawInput_Mouse;
 
 void
-SK_ImGui_CenterCursorOnWindow (void)
+SK_ImGui_CenterCursorAtPos (ImVec2 center)
 {
   ImGuiIO& io (ImGui::GetIO ());
 
-  SK_ImGui_Cursor.pos.x = (LONG)(SK_ImGui_LastWindowCenter.x);
-  SK_ImGui_Cursor.pos.y = (LONG)(SK_ImGui_LastWindowCenter.y);
+  SK_ImGui_Cursor.pos.x = static_cast <LONG> (center.x);
+  SK_ImGui_Cursor.pos.y = static_cast <LONG> (center.y);
   
-  io.MousePos.x = SK_ImGui_LastWindowCenter.x;
-  io.MousePos.y = SK_ImGui_LastWindowCenter.y;
+  io.MousePos.x = center.x;
+  io.MousePos.y = center.y;
 
   POINT screen_pos = SK_ImGui_Cursor.pos;
 
@@ -4954,12 +5102,18 @@ SK_ImGui_CenterCursorOnWindow (void)
     SK_ImGui_Cursor.orig_img = GetCursor ();
 
   SK_ImGui_Cursor.LocalToScreen (&screen_pos);
-  SetCursorPos_Original ( screen_pos.x,
-                          screen_pos.y );
+  SetCursorPos_Original         ( screen_pos.x,
+                                  screen_pos.y );
 
   io.WantCaptureMouse = true;
 
   SK_ImGui_UpdateCursor ();
+}
+
+void
+SK_ImGui_CenterCursorOnWindow (void)
+{
+  return SK_ImGui_CenterCursorAtPos ();
 }
 
 
@@ -4971,7 +5125,8 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 
-  ImGui::SetNextWindowSizeConstraints ( ImVec2 (font_size * 9, font_size * 3), ImVec2 (font_size * 30, font_size * 6));
+  ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
+                                          ImVec2 (font_size * 30, font_size * 6) );
 
   if (ImGui::BeginPopupModal (keybind->bind_name, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
                                                         ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))

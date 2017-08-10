@@ -338,28 +338,28 @@ private:
 
   struct {
     struct {
-      SK_ImGui_DataHistory <float, 600> verts_invoked;
-      SK_ImGui_DataHistory <float, 600> verts_input;
-      SK_ImGui_DataHistory <float, 600> prims_input;
-      SK_ImGui_DataHistory <float, 600> gs_invokeed;
-      SK_ImGui_DataHistory <float, 600> gs_output;
+      SK_Stat_DataHistory <float, 600> verts_invoked;
+      SK_Stat_DataHistory <float, 600> verts_input;
+      SK_Stat_DataHistory <float, 600> prims_input;
+      SK_Stat_DataHistory <float, 600> gs_invokeed;
+      SK_Stat_DataHistory <float, 600> gs_output;
     } vertex;
 
     struct {
-      SK_ImGui_DataHistory <float, 600> hull;
-      SK_ImGui_DataHistory <float, 600> domain;
+      SK_Stat_DataHistory <float, 600> hull;
+      SK_Stat_DataHistory <float, 600> domain;
     } tessellation;
 
     struct {
-      SK_ImGui_DataHistory <float, 600> fill_ratio;
-      SK_ImGui_DataHistory <float, 600> triangles_submitted;
-      SK_ImGui_DataHistory <float, 600> triangles_filled;
-      SK_ImGui_DataHistory <float, 600> pixels_filled;
+      SK_Stat_DataHistory <float, 600> fill_ratio;
+      SK_Stat_DataHistory <float, 600> triangles_submitted;
+      SK_Stat_DataHistory <float, 600> triangles_filled;
+      SK_Stat_DataHistory <float, 600> pixels_filled;
     } raster;
 
     struct
     {
-      SK_ImGui_DataHistory <float, 600> dispatches;
+      SK_Stat_DataHistory <float, 600> dispatches;
     } compute;
   } pipeline;
 } __d3d11_pipeline__;

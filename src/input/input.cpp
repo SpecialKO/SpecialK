@@ -1651,13 +1651,14 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
     case WM_XBUTTONDOWN:
     case WM_XBUTTONUP:
 
+    case WM_CAPTURECHANGED:
     case WM_MOUSEMOVE:
     case WM_MOUSEWHEEL:
     case WM_MOUSEHWHEEL:
     {
-      ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-
-      handled = SK_ImGui_WantMouseCapture ();
+      handled =
+        ( ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0 ) &&
+       SK_ImGui_WantMouseCapture ();
     } break;
 
     case WM_INPUT:

@@ -246,12 +246,12 @@ protected:
 private:
   DWORD last_update = 0UL;
 
-  SK_ImGui_DataHistory <float,    96> core_clock_ghz;
-  SK_ImGui_DataHistory <float,    96> vram_clock_ghz;
-  SK_ImGui_DataHistory <float,    96> gpu_load;
-  SK_ImGui_DataHistory <float,    96> gpu_temp_c;
-  SK_ImGui_DataHistory <float,    96> vram_used_mib;
-  SK_ImGui_DataHistory <uint64_t, 96> vram_shared;
-  SK_ImGui_DataHistory <uint32_t, 96> fan_rpm;
+  SK_Stat_DataHistory <float,    96> core_clock_ghz;
+  SK_Stat_DataHistory <float,    96> vram_clock_ghz;
+  SK_Stat_DataHistory <float,    96> gpu_load;
+  SK_Stat_DataHistory <float,    96> gpu_temp_c;
+  SK_Stat_DataHistory <float,    96> vram_used_mib;
+  SK_Stat_DataHistory <uint64_t, 96> vram_shared;
+  SK_Stat_DataHistory <uint32_t, 96> fan_rpm;
 } __gpu_monitor__;
 

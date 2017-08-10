@@ -445,7 +445,7 @@ SK::Framerate::Limiter::try_wait (void)
   return false;
 }
 
-bool  SK_Framerate_Busy               = false; // Keep original behavior
+bool  SK_Framerate_Busy               = true; // Keep original behavior
 bool  SK_Framerate_YieldOnce          = true;
 bool  SK_Framerate_ReduceInputLatency = false;
 float SK_Framerate_WaitScalar         = 59.998800f;

@@ -661,6 +661,8 @@ SK_HookD3D9 (void)
     }
   }
 
+  SK_ApplyQueuedHooks ();
+
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
   SK_LoadPlugIns64 ();

@@ -11925,16 +11925,23 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
     if (config.input.ui.capture_mouse)
     {
-      mouse_capture = (uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST)       ||
-                      (uMsg >= WM_NCMOUSEMOVE && uMsg <= WM_NCXBUTTONDBLCLK);
+      mouse_capture = (uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST);
     }
 
     if ( keyboard_capture || mouse_capture || filter_raw_input )
     {
-      if (filter_raw_input)
+      if (uMsg == WM_INPUT)
       {
-        return DefWindowProcW (hWnd, uMsg, lParam, wParam);
+        bool bUnicode =
+          IsWindowUnicode (hWnd);
+
+        ( bUnicode ? DefWindowProcW (hWnd, uMsg, lParam, wParam) :
+                     DefWindowProcA (hWnd, uMsg, lParam, wParam) );
       }
+
+      // Fix unusual behavior in Fairy Fencer F AD
+      if (mouse_capture && uMsg == WM_MOUSEMOVE)
+        return 0; // We have other means of removing this message
 
       return 1;
     }

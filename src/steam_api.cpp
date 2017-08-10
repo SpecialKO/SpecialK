@@ -3805,6 +3805,12 @@ SK_SteamAPI_Utils (void)
   return steam_ctx.Utils ();
 }
 
+ISteamMusic*
+SK_SteamAPI_Music (void)
+{
+  return steam_ctx.Music ();
+}
+
 
 //
 // ATTENTION PIRATES:  Forking Special K and circumventing this is 99% of the work you need

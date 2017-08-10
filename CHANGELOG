@@ -1,3 +1,25 @@
+0.8.34
+
+ + Framerate limiter defaults to busy-wait again
+  * The customization you do to the non-busy-wait method (under Advanced) are not saved
+      when you exit a game.
+
+ Added Support for Custom ReShade
+ ================================
+  + This release comes bundled with a test version of unofficial ReShade 3.0.666 ;)
+  + The custom version goes in PlugIns/Unofficial, and you should place the official
+      release (if you want/need it) into PlugIns/ThirdParty
+  + Only the global injector version of Special K supports custom ReShade, you can
+      select between official / custom under the PlugIns menu
+
+   >> The custom version includes:
+    * Gamepad / keyboard suppot on config menu
+    * Per-game presets, textures and shaders
+     + Place Textures in Documents/My Mods/SpecialK/Profiles/<App Name>/ReShade/Textures
+     + Place Shaders in Documents/My Mods/SpecialK/Profiles/<App Name>/ReShade/Shaders
+    * Always loads a game's preset on start, instead of the last used preset
+
+
 0.8.33
 
  + Fixed low-resolution issues with the EULA window

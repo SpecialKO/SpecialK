@@ -46,6 +46,7 @@ struct CUSTOMVERTEX
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
+IMGUI_API
 void
 ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 {

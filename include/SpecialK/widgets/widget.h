@@ -295,7 +295,7 @@ LoadWidgetVec2 (ImVec2* piv2Val, iSK_INI* ini_file, const wchar_t* wszDesc, cons
 #include <array>
 
 template <typename _T, int max_samples>
-class SK_ImGui_DataHistory
+class SK_Stat_DataHistory
 {
 public:
   int   getCapacity   (void)
