@@ -1,3 +1,11 @@
+0.8.34.1
+
+ + Fixed SteamAPI problem in Dark Souls III
+ + Added Browse ReShade Assets to File Menu
+ + Improved ReShade stats screen
+ + Improved controller support in ReShade's UI
+ + ReShade game presets are now stored in Profiles\<appname>\ReShade\<executable.ini>
+
 0.8.34
 
  + Framerate limiter defaults to busy-wait again
@@ -13,7 +21,7 @@
       select between official / custom under the PlugIns menu
 
    >> The custom version includes:
-    * Gamepad / keyboard suppot on config menu
+    * Gamepad / keyboard support on config menu
     * Per-game presets, textures and shaders
      + Place Textures in Documents/My Mods/SpecialK/Profiles/<App Name>/ReShade/Textures
      + Place Shaders in Documents/My Mods/SpecialK/Profiles/<App Name>/ReShade/Shaders

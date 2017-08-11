@@ -273,6 +273,9 @@ void                       SK_Steam_StartPump       (bool force = false);
 
 #include <SpecialK/command.h>
 
+ISteamMusic*
+SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion);
+
 class SK_SteamAPIContext : public SK_IVariableListener
 {
 public:
@@ -500,12 +503,12 @@ public:
       //return false;
     }
 
+    // This crashes Dark Souls 3, so... do this
     music_ =
-      client_->GetISteamMusic (
-        hSteamUser,
-          hSteamPipe,
-            STEAMMUSIC_INTERFACE_VERSION
-      );
+      SAFE_GetISteamMusic ( client_,
+                              hSteamUser,
+                                hSteamPipe,
+                                  STEAMMUSIC_INTERFACE_VERSION );
 
     SK::SteamAPI::player = user_->GetSteamID ();
 

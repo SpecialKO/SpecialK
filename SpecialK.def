@@ -540,6 +540,7 @@ SK_GetConfigPath                 = SK_GetConfigPath
 SK_CreateLog                     = SK_CreateLog
 SK_CreateINI                     = SK_CreateINI
 SK_CreateVar                     = SK_CreateVar
+SK_CreateDirectories             = SK_CreateDirectories
 SK_IsConsoleVisible              = SK_IsConsoleVisible
 SK_SelfDestruct                  = SK_SelfDestruct                   PRIVATE
                                  

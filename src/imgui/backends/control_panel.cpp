@@ -1421,12 +1421,51 @@ SK_ImGui_ControlPanel (void)
       {
         bool selected = false;
 
+        static HMODULE hModReShade =
+#ifdef _WIN64
+          GetModuleHandle (L"ReShade64.dll");
+#else
+          GetModuleHandle (L"ReShade32.dll");
+#endif
+        static bool bIsReShadeCustom =
+                          hModReShade != 0 &&
+          GetProcAddress (hModReShade, "SK_ImGui_DrawCallback");
+
+
         if (ImGui::MenuItem ( "Browse Logs", "", &selected ))
         {
           std::wstring log_dir =
             std::wstring (SK_GetConfigPath ()) + std::wstring (L"\\logs");
 
           ShellExecuteW (GetActiveWindow (), L"explore", log_dir.c_str (), nullptr, nullptr, SW_NORMAL);
+        }
+
+        if (bIsReShadeCustom && ImGui::MenuItem ( "Browse ReShade Assets", "", nullptr ))
+        {
+          std::wstring reshade_dir =
+            std::wstring (SK_GetConfigPath ()) + std::wstring (L"\\ReShade");
+
+          static bool dir_exists =
+            PathIsDirectory ( std::wstring (
+                                std::wstring ( SK_GetConfigPath () ) +
+                                  L"\\ReShade\\Shaders\\"
+                              ).c_str () );
+
+          if (! dir_exists)
+          {
+            SK_CreateDirectories ( std::wstring (
+                                     std::wstring ( SK_GetConfigPath () ) +
+                                       L"\\ReShade\\Shaders\\"
+                                   ).c_str () );
+            SK_CreateDirectories ( std::wstring (
+                                     std::wstring ( SK_GetConfigPath () ) +
+                                       L"\\ReShade\\Textures\\"
+                                   ).c_str () );
+
+            dir_exists = true;
+          }
+
+          ShellExecuteW (GetActiveWindow (), L"explore", reshade_dir.c_str (), nullptr, nullptr, SW_NORMAL);
         }
 
         ImGui::Separator ();
@@ -4003,61 +4042,39 @@ extern float SK_ImGui_PulseNav_Strength;
       bool reshade_official   = dll_ini->contains_section (imp_name_reshade);
       bool reshade_unofficial = dll_ini->contains_section (imp_name_reshade_ex);
 
-      ImGui::Text     ("Third-Party");
-      ImGui::TreePush ("");
-
-      bool changed = false;
-      changed |= ImGui::Checkbox ("ReShade##Official", &reshade_official);
-
-      if (ImGui::IsItemHovered ())
-      {
-        if (GetFileAttributesW (imp_path_reshade) == INVALID_FILE_ATTRIBUTES)
-          ImGui::SetTooltip ("Please install ReShade to %ws", imp_path_reshade);
-      }
-
       static int order    = 0;
-      static int order_ex = 0;
+      static int order_ex = 1;
 
-      if (dll_ini->contains_section (imp_name_reshade) && dll_ini->get_section (imp_name_reshade).get_value (L"When") == L"Early")
-        order = 0;
-      else if (dll_ini->contains_section (imp_name_reshade) || (! SK_IsInjected ()))
-        order = 1;
-
-      ImGui::SameLine ();
-      changed |= ImGui::Combo ("Load Order##ReShade", &order, "Early\0Plug-In\0\0");
-
-      if (ImGui::IsItemHovered ())
+      auto PlugInSelector = [&](iSK_INI* ini, std::string name, auto path, auto import_name, bool& enable, int& order, auto default_order = 1) ->
+      bool
       {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Plug-In Load Order is Suggested by Default.");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
-        ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
-        ImGui::EndTooltip   ();
-      }
+        std::string hash_name  = name + "##PlugIn";
+        std::string hash_load  = "Load Order##";
+                    hash_load += name;
 
-      ImGui::TreePop    ();
-
-      if (SK_IsInjected ())
-      {
-        ImGui::Text     ("Unofficial (Custom to Special K)");
-        ImGui::TreePush ("");
-
-        changed |= ImGui::Checkbox ("ReShade##Unofficial", &reshade_unofficial);
+        bool changed =
+          ImGui::Checkbox (hash_name.c_str (), &enable);
 
         if (ImGui::IsItemHovered ())
         {
-          if (GetFileAttributesW (imp_path_reshade_ex) == INVALID_FILE_ATTRIBUTES)
-            ImGui::SetTooltip ("Please install ReShade to %ws", imp_path_reshade_ex);
+          if (GetFileAttributesW (path) == INVALID_FILE_ATTRIBUTES)
+            ImGui::SetTooltip ("Please install %s to %ws", name.c_str (), path);
         }
 
-        if (dll_ini->contains_section (imp_name_reshade_ex) && dll_ini->get_section (imp_name_reshade_ex).get_value (L"When") == L"Early")
-          order_ex = 0;
-        else if (dll_ini->contains_section (imp_name_reshade_ex))
-          order_ex = 1;
+        if (ini->contains_section (import_name))
+        {
+          if (ini->get_section (import_name).get_value (L"When") == L"Early")
+            order = 0;
+          else
+            order = 1;
+        }
+        else
+          order = default_order;
 
         ImGui::SameLine ();
-        changed |= ImGui::Combo ("Load Order##ReShade_Unofficial", &order_ex, "Early\0Plug-In\0\0");
+
+        changed |=
+          ImGui::Combo (hash_load.c_str (), &order, "Early\0Plug-In\0\0");
 
         if (ImGui::IsItemHovered ())
         {
@@ -4069,12 +4086,83 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::EndTooltip   ();
         }
 
-        ImGui::TreePop        ();
+        return changed;
+      };
+
+      auto SavePlugInPreference = [](iSK_INI* ini, bool enable, auto import_name, auto role, auto order, auto path)
+      {
+        if (! enable)
+        {
+          ini->remove_section (import_name);
+          ini->write          (ini->get_filename ());
+        }
+
+        else if (GetFileAttributesW (path) != INVALID_FILE_ATTRIBUTES)
+        {
+          wchar_t wszImportRecord [4096];
+
+          _swprintf ( wszImportRecord, L"[%s]\n"
+#ifdef _WIN64
+                                       L"Architecture=x64\n"
+#else
+                                       L"Architecture=Win32\n"
+#endif
+                                       L"Role=%s\n"
+                                       L"When=%s\n"
+                                       L"Filename=%s\n\n",
+                                         import_name,
+                                           role,
+                                             order == 0 ? L"Early" :
+                                                          L"PlugIn",
+                                               path );
+
+          ini->import (wszImportRecord);
+          ini->write  (ini->get_filename ());
+        }
+      };
+
+      bool changed = false;
+
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+
+      if (ImGui::CollapsingHeader ("Third-Party"))
+      {
+        ImGui::TreePush    ("");
+        changed |= 
+            PlugInSelector (dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order, 1);
+        ImGui::TreePop     (  );
+      }
+      ImGui::PopStyleColor ( 3);
+
+      if (SK_IsInjected ())
+      {
+        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
+
+        bool unofficial = ImGui::CollapsingHeader ("Unofficial");
+
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.247f, .95f, .98f));
+        ImGui::SameLine       ();
+        ImGui::Text           ("           Customized for Special K");
+        ImGui::PopStyleColor  ();
+
+        if (unofficial)
+        {
+          ImGui::TreePush    ("");
+          changed |=
+              PlugInSelector (dll_ini, "ReShade (Custom)", imp_path_reshade_ex, imp_name_reshade_ex, reshade_unofficial, order_ex, 1);
+          ImGui::TreePop     (  );
+        }
+        ImGui::PopStyleColor ( 3);
       }
 
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
-      ImGui::TextWrapped    ("If you run into problems with the plug-in, pressing and holding Ctrl + Shift at game startup can disable it.");
+      ImGui::TextWrapped    ("If you run into problems with a Plug-In, pressing and holding Ctrl + Shift at game startup can disable them.");
       ImGui::PopStyleColor  ();
+
 
       if (changed)
       {
@@ -4084,65 +4172,8 @@ extern float SK_ImGui_PulseNav_Strength;
         if (reshade_official)
           reshade_unofficial = false;
 
-        if (! reshade_official) {
-          dll_ini->remove_section (imp_name_reshade);
-          dll_ini->write          (dll_ini->get_filename ());
-        }
-
-        else if (GetFileAttributesW (imp_path_reshade) != INVALID_FILE_ATTRIBUTES)
-        {
-          wchar_t wszImportRecord [4096];
-
-          _swprintf (wszImportRecord, L"[%s]\n", imp_name_reshade);
-#ifdef _WIN64
-          wcscat (wszImportRecord, L"Architecture=x64\n");
-#else
-          wcscat (wszImportRecord, L"Architecture=Win32\n");
-#endif
-          wcscat (wszImportRecord, L"Role=ThirdParty\n");
-
-          if (order == 0)
-            wcscat (wszImportRecord, L"When=Early\n");
-          else
-            wcscat (wszImportRecord, L"When=PlugIn\n");
-
-          wcscat (wszImportRecord, L"Filename=");
-          wcscat (wszImportRecord, imp_path_reshade);
-          wcscat (wszImportRecord, L"\n\n");
-
-          dll_ini->import         (wszImportRecord);
-          dll_ini->write          (dll_ini->get_filename ());
-        }
-
-        if (! reshade_unofficial) {
-          dll_ini->remove_section (imp_name_reshade_ex);
-          dll_ini->write          (dll_ini->get_filename ());
-        }
-
-        else if (GetFileAttributesW (imp_path_reshade_ex) != INVALID_FILE_ATTRIBUTES)
-        {
-          wchar_t wszImportRecord [4096];
-
-          _swprintf (wszImportRecord, L"[%s]\n", imp_name_reshade_ex);
-#ifdef _WIN64
-          wcscat (wszImportRecord, L"Architecture=x64\n");
-#else
-          wcscat (wszImportRecord, L"Architecture=Win32\n");
-#endif
-          wcscat (wszImportRecord, L"Role=Unofficial\n");
-
-          if (order_ex == 0)
-            wcscat (wszImportRecord, L"When=Early\n");
-          else
-            wcscat (wszImportRecord, L"When=PlugIn\n");
-
-          wcscat (wszImportRecord, L"Filename=");
-          wcscat (wszImportRecord, imp_path_reshade_ex);
-          wcscat (wszImportRecord, L"\n\n");
-
-          dll_ini->import         (wszImportRecord);
-          dll_ini->write          (dll_ini->get_filename ());
-        }
+        SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   );
+        SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex);
       }
 
       ImGui::TreePop ();

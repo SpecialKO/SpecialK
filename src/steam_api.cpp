@@ -4186,6 +4186,20 @@ SK_SteamOverlay_GoToFriendStats (CSteamID friend_sid)
   return false;
 }
 
+
+
+ISteamMusic*
+SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
+{
+  __try {
+    return pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+    return nullptr;
+  }
+}
+
+
 SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                = nullptr;
 SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original       = nullptr;
 

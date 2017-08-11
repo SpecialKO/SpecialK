@@ -164,6 +164,7 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 }
 
 bool
+__stdcall
 SK_CreateDirectories ( const wchar_t* wszPath )
 {
   CHeapPtr <wchar_t>

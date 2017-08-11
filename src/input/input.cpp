@@ -1611,6 +1611,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
       break;
 
     case WM_CHAR:
+    case WM_MENUCHAR:
       handled = SK_ImGui_WantTextCapture ();
       break;
 

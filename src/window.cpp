@@ -2339,6 +2339,7 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
       // This shouldn't happen considering this function is supposed
       //   to generate this message, but better to be on the safe side.
       case WM_CHAR:
+      case WM_MENUCHAR:
       {
         return TRUE;
       } break;
@@ -3343,7 +3344,20 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+  LRESULT lRet =
+    SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+
+
+  // Post-Process the game's result to fix any non-compliant behaviors
+  //
+
+
+  // Fix for Skyrim SE beeping when Alt is pressed.
+  if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
+    return MAKEWPARAM (0, MNC_CLOSE);
+
+
+  return lRet;
 }
 
 #include <SpecialK/core.h>
