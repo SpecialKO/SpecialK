@@ -1,3 +1,12 @@
+0.8.35
+ 
+ + Added option to flip textures in D3D11 Live Texture View
+ + Added indicator for injected textures to D3D11 Live Texture View
+ + Corrected texture hashes listed in D3D11 Live Texture View
+ + ReShade can now be opened independently of Special K's config menu
+ + Fixed ReShade draw order in OpenGL games
+
+
 0.8.34.1
 
  + Fixed SteamAPI problem in Dark Souls III

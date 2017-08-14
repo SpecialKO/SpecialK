@@ -908,6 +908,10 @@ ImGui_ImplVulkan_InvalidateDeviceObjects (void)
   if (g_DescriptorSetLayout)  { vkDestroyDescriptorSetLayout (g_Device, g_DescriptorSetLayout, g_Allocator); g_DescriptorSetLayout = VK_NULL_HANDLE; }
   if (g_PipelineLayout)       { vkDestroyPipelineLayout      (g_Device, g_PipelineLayout,      g_Allocator); g_PipelineLayout      = VK_NULL_HANDLE; }
   if (g_Pipeline)             { vkDestroyPipeline            (g_Device, g_Pipeline,            g_Allocator); g_Pipeline            = VK_NULL_HANDLE; }
+
+  extern void
+  SK_ImGui_ResetExternal (void);
+  SK_ImGui_ResetExternal ();
 }
 
 #define SK_IMPORT_VK_FUNC(name) {                                                \

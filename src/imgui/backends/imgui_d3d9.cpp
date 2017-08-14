@@ -445,6 +445,10 @@ ImGui_ImplDX9_CreateDeviceObjects (void)
 void
 ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
 {
+  extern void
+  SK_ImGui_ResetExternal (void);
+  SK_ImGui_ResetExternal ();
+
   if (! g_pd3dDevice)
     return;
 
@@ -471,17 +475,17 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
   g_FontTexture = NULL;
 
 
-  float width  = 0.0f,
-        height = 0.0f;
-
   if ( pparams != nullptr )
   {
+    float width  = 0.0f,
+          height = 0.0f;
+
     width  = static_cast <float> (pparams->BackBufferWidth);
     height = static_cast <float> (pparams->BackBufferHeight);
-  }
 
-  io.DisplayFramebufferScale = ImVec2 ( width, height );
-  io.DisplaySize             = ImVec2 ( width, height );
+    io.DisplayFramebufferScale = ImVec2 ( width, height );
+    io.DisplaySize             = ImVec2 ( width, height );
+  }
 }
 
 #include <SpecialK/window.h>

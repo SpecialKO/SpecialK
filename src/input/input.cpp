@@ -750,7 +750,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_ImGui_Visible)
+  if (SK_ImGui_Active ())
   {
     ImGuiIO& io =
       ImGui::GetIO ();
@@ -877,7 +877,7 @@ SK_ImGui_IsMouseRelevant (void)
   // SK_ImGui_Visible is the full-blown config UI;
   //   but we also have floating widgets that may capture mouse
   //     input.
-  return SK_ImGui_Visible || ImGui::IsAnyWindowHovered ();
+  return SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 }
 
 __inline
@@ -1141,7 +1141,7 @@ SK_ImGui_WantGamepadCapture (void)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_Visible)
+  if (SK_ImGui_Active ())
   {
     if (nav_usable)
       imgui_capture = true;
@@ -1153,6 +1153,11 @@ SK_ImGui_WantGamepadCapture (void)
   if (__FAR_Freelook)
     imgui_capture = true;
 #endif
+
+  extern bool SK_ImGui_GamepadComboDialogActive;
+
+  if (SK_ImGui_GamepadComboDialogActive)
+    imgui_capture = true;
 
   return imgui_capture;
 }
@@ -1438,7 +1443,7 @@ SendInput_Detour (
 
   // TODO: Process this the right way...
 
-  if (SK_ImGui_Visible)
+  if (SK_ImGui_Active ())
   {
     return 0;
   }
@@ -1461,7 +1466,7 @@ keybd_event_Detour (
 
 // TODO: Process this the right way...
 
-  if (SK_ImGui_Visible)
+  if (SK_ImGui_Active ())
   {
     return;
   }

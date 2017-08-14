@@ -74,7 +74,7 @@ struct sk_config_t
 
 
   struct {
-    bool   show           = true;
+    bool   show           = false;
 
     bool   pump           = false;
     float  pump_interval  = 0.0166666666f;

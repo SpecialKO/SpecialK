@@ -12019,16 +12019,16 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   if (toggle_ui)
     SK_ImGui_Toggle ();
   
-  if (toggle_nav && SK_ImGui_Visible)
+  if (toggle_nav && SK_ImGui_Active ())
     nav_usable = (! nav_usable);
   
   //if (nav_usable)
     ImGui::SetNextWindowFocus ();
 
-  toggle_ui  = SK_ImGui_Visible;
+  toggle_ui  = SK_ImGui_Active ();
   toggle_nav = nav_usable;
 
-  if (SK_ImGui_Visible && nav_usable)
+  if (SK_ImGui_Active () && nav_usable)
   {
     SK_Input_RememberPressedKeys ();
 
@@ -12040,10 +12040,10 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   //ImGui::GetIO ().NavActive = nav_usable;
 
   // Zero-out any residual haptic data
-  if (! SK_ImGui_Visible)
+  if (! SK_ImGui_Active ())
       SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
 
-  return SK_ImGui_Visible;
+  return SK_ImGui_Active ();
 }
 
 #include <SpecialK/input/dinput8_backend.h>
@@ -12144,10 +12144,10 @@ SK_ImGui_PollGamepad_EndFrame (void)
       {
         if (dwLastPress < timeGetTime () - LONG_PRESS)
         {
-          bool toggle_vis = (! SK_ImGui_Visible);
+          bool toggle_vis = (! SK_ImGui_Active ());
           bool toggle_nav =    true;
 
-          if (SK_ImGui_Visible)
+          if (SK_ImGui_Active ())
             SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
 
           dwLastPress = MAXDWORD;
@@ -12166,7 +12166,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
     ZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
 
 
-  if (SK_ImGui_Visible && config.input.gamepad.haptic_ui)
+  if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)
   {
     ImGuiContext& g =
       *GImGui;

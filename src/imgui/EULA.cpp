@@ -136,7 +136,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
 
-  ImGui::SetNextWindowPosCenter (ImGuiSetCond_Always);
+  ImGui::SetNextWindowPosCenter (ImGuiSetCond_Appearing);
   ImGui::SetNextWindowFocus     ();
 
   if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))

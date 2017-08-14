@@ -268,10 +268,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     //bool   keyDown  = ! (lParam & 0x80000000UL);
 
 
-    extern bool SK_ImGui_Visible;
-
     // Disable the command console if the ImGui overlay is visible
-    if (SK_ImGui_Visible)
+    if (SK_ImGui_Active ())
       visible = false;
 
 

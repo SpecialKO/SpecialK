@@ -2366,10 +2366,8 @@ SK_BeginBufferSwap (void)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  extern bool SK_ImGui_Visible;
-
   extern uint32_t WINAPI SK_Steam_PiratesAhoy (void);
-  if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Visible))
+  if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
   {
     extern void SK_ImGui_Toggle (void);
                 SK_ImGui_Toggle ();

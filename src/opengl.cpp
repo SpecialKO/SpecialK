@@ -1920,16 +1920,23 @@ SK_HookGL (void)
     {
       wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
-#if 0
+#if 1
       SK_CreateDLLHook (      wszBackendDLL,
                              "wglSwapBuffers",
                               wglSwapBuffers,
 reinterpret_cast <LPVOID *> (&wgl_swap_buffers) );
 #else
-      SK_CreateDLLHook2 (       L"gdi32.dll",
+      SK_CreateDLLHook (       L"gdi32.dll",
                                  "SwapBuffers",
                                   SwapBuffers,
 reinterpret_cast <LPVOID *> (&gdi_swap_buffers) );
+#endif
+
+// Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+    SK_LoadPlugIns64 ();
+#else
+    SK_LoadPlugIns32 ();
 #endif
 
       ++GL_HOOKS;
@@ -2301,13 +2308,6 @@ reinterpret_cast <LPVOID *> (&gdi_swap_buffers) );
 
     dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
                     GL_HOOKS );
-
-// Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-    SK_LoadPlugIns64 ();
-#else
-    SK_LoadPlugIns32 ();
-#endif
   }
 
   InterlockedExchange (&__gl_ready, TRUE);

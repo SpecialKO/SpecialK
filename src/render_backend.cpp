@@ -522,3 +522,21 @@ SK_RenderBackend_V2::~SK_RenderBackend_V2 (void)
 
 reset_stage_e         trigger_reset       (reset_stage_e::Clear);
 mode_change_request_e request_mode_change (mode_change_request_e::None);
+
+
+
+__declspec (dllexport)
+IUnknown*
+__stdcall
+SK_Render_GetDevice (void)
+{
+  return SK_GetCurrentRenderBackend ().device;
+}
+
+__declspec (dllexport)
+IUnknown*
+__stdcall
+SK_Render_GetSwapChain (void)
+{
+  return SK_GetCurrentRenderBackend ().swapchain;
+}

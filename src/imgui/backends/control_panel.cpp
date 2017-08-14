@@ -160,6 +160,7 @@ extern void SK_Steam_SetNotifyCorner (void);
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
 extern bool           SK_ImGui_Visible;
+       bool           SK_ReShade_Visible = false;
 
 extern void
 __stdcall
@@ -1429,7 +1430,11 @@ SK_ImGui_ControlPanel (void)
 #endif
         static bool bIsReShadeCustom =
                           hModReShade != 0 &&
-          GetProcAddress (hModReShade, "SK_ImGui_DrawCallback");
+#ifndef _WIN64
+          GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YGIPAX@Z");
+#else
+          GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YAIPEAX@Z");
+#endif
 
 
         if (ImGui::MenuItem ( "Browse Logs", "", &selected ))
@@ -4747,13 +4752,20 @@ SK_NvAPI_GetGPUInfoStr (void)
 
 
 
-typedef UINT (__stdcall *SK_ImGui_DrawCallback_pfn)(void *user);
+typedef UINT (__stdcall *SK_ImGui_DrawCallback_pfn)     (void *user);
+typedef bool (__stdcall *SK_ImGui_OpenCloseCallback_pfn)(void *user);
 
 struct
 {
   SK_ImGui_DrawCallback_pfn fn   = nullptr;
   void*                     data = nullptr;
 } SK_ImGui_DrawCallback;
+
+struct
+{
+  SK_ImGui_OpenCloseCallback_pfn fn   = nullptr;
+  void*                          data = nullptr;
+} SK_ImGui_OpenCloseCallback;
 
 __declspec (noinline)
 IMGUI_API
@@ -4762,6 +4774,14 @@ SK_ImGui_InstallDrawCallback (SK_ImGui_DrawCallback_pfn fn, void* user)
 {
   SK_ImGui_DrawCallback.fn   = fn;
   SK_ImGui_DrawCallback.data = user;
+}
+
+IMGUI_API
+void
+SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user)
+{
+  SK_ImGui_OpenCloseCallback.fn   = fn;
+  SK_ImGui_OpenCloseCallback.data = user;
 }
 
 
@@ -4774,6 +4794,17 @@ DWORD
 SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags, 
                                               LPVOID lpUser )
 {
+//  static bool skip;
+//
+//  if (dwFlags == 0)
+//    skip = true;
+//
+//  if (skip)
+//    return 0;
+//
+//  if (dwFlags == 1)
+//    skip = false;
+
   UNREFERENCED_PARAMETER (dwFlags);
   UNREFERENCED_PARAMETER (lpUser);
 
@@ -4867,24 +4898,27 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
 
-
   if (SK_ImGui_DrawCallback.fn != nullptr)
   {
     if (SK_ImGui_DrawCallback.fn (SK_ImGui_DrawCallback.data) > 0)
     {
-      if (! SK_ImGui_Visible)
+      if (! SK_ImGui_Active ())
       {
-        SK_ImGui_Toggle ();
-
         ImGuiWindow* pWin =
-          ImGui::FindWindowByName ("###ReShade_Main");
+          ImGui::FindWindowByName ("ReShade 3.0.8 by crosire; modified for Special K by Kaldaien###ReShade_Main");
 
         if (pWin)
         {
           SK_ImGui_CenterCursorAtPos (pWin->Rect ().GetCenter ());
+          ImGui::SetWindowFocus      (pWin->Name);
         }
       }
+
+      SK_ReShade_Visible = true;
     }
+
+    else
+      SK_ReShade_Visible = false;
   }
 
 
@@ -5023,7 +5057,7 @@ SK_ImGui_Toggle (void)
 
   if (d3d9 || d3d11 || gl)
   {
-    if (SK_ImGui_Visible)
+    if (SK_ImGui_Active ())
       GetKeyboardState_Original (__imgui_keybd_state);
 
     SK_ImGui_Visible = (! SK_ImGui_Visible);
@@ -5110,6 +5144,12 @@ SK_ImGui_Toggle (void)
 
     reset_frame_history = true;
   }
+
+  if ((! SK_ImGui_Visible) && SK_ImGui_OpenCloseCallback.fn != nullptr)
+  {
+    if (SK_ImGui_OpenCloseCallback.fn (SK_ImGui_OpenCloseCallback.data))
+      SK_ImGui_OpenCloseCallback.fn (SK_ImGui_OpenCloseCallback.data);
+  }
 }
 
 extern LONG  SK_RawInput_MouseX;
@@ -5149,7 +5189,9 @@ SK_ImGui_CenterCursorOnWindow (void)
 
 
 
+__declspec (dllexport)
 void
+__stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 {
   ImGuiIO& io (ImGui::GetIO ());
@@ -5193,4 +5235,131 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 
     ImGui::EndPopup ();
   }
+}
+
+struct SK_GamepadCombo_V0 {
+  const wchar_t** button_names     = nullptr;
+  std::string     combo_name       =  "";
+  std::wstring    unparsed         = L"";
+  int             buttons          = 0;
+};
+
+bool SK_ImGui_GamepadComboDialogActive = false;
+
+__declspec (dllexport)
+INT
+__stdcall
+SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
+{
+  ImGuiIO& io (ImGui::GetIO ());
+
+  const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
+
+  ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
+                                          ImVec2 (font_size * 30, font_size * 6) );
+
+  if (ImGui::BeginPopupModal (combo->combo_name.c_str (), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                                                ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
+  {
+    SK_ImGui_GamepadComboDialogActive = true;
+    nav_usable                        = false;
+    io.NavUsable                      = false;
+    io.NavActive                      = false;
+
+    io.WantCaptureKeyboard = true;
+
+    static WORD                last_buttons     = 0;
+    static DWORD               last_change      = 0;
+    static BYTE                last_trigger_l   = 0;
+    static BYTE                last_trigger_r   = 0;
+    static SK_GamepadCombo_V0* last_combo       = nullptr;
+           XINPUT_STATE        state;
+    static std::wstring        unparsed         = L"";
+
+    if (SK_XInput_PollController (0, &state))
+    {
+      if (last_combo != combo)
+      {
+        unparsed       = L"";
+        last_combo     = combo;
+        last_change    = 0;
+        last_buttons   = state.Gamepad.wButtons;
+        last_trigger_l = state.Gamepad.bLeftTrigger;
+        last_trigger_r = state.Gamepad.bRightTrigger;
+      }
+
+      if ( last_buttons != state.Gamepad.wButtons || ( ( state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD && last_trigger_l < XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ||
+                                                       ( state.Gamepad.bLeftTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD && last_trigger_l > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) )  ||
+                                                     ( ( state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD && last_trigger_r < XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ||
+                                                       ( state.Gamepad.bRightTrigger < XINPUT_GAMEPAD_TRIGGER_THRESHOLD && last_trigger_r > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) )
+      {
+        last_trigger_l = state.Gamepad.bLeftTrigger;
+        last_trigger_r = state.Gamepad.bRightTrigger;
+
+        std::queue <const wchar_t*> buttons;
+
+        if (state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+          buttons.push (combo->button_names [16]);
+
+        if (state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+          buttons.push (combo->button_names [17]);
+
+        for (int i = 0; i < 16; i++)
+        {
+          if (state.Gamepad.wButtons & ( 1 << i ))
+          {
+            buttons.push (combo->button_names [i]);
+          }
+        }
+
+        unparsed = L"";
+
+        while (! buttons.empty ())
+        {
+          unparsed += buttons.front ();
+                      buttons.pop   ();
+
+          if (! buttons.empty ())
+            unparsed += L"+";
+        }
+
+        last_buttons = state.Gamepad.wButtons;
+        last_change  = timeGetTime ();
+      }
+
+      else if (last_change > 0 && last_change < timeGetTime () - 1000UL)
+      {
+        combo->unparsed = unparsed;
+
+        for (int i = 0; i < 16; i++)
+        {
+          io.NavInputsDownDuration     [i] = 0.1f;
+          io.NavInputsDownDurationPrev [i] = 0.1f;
+        }
+
+        SK_ImGui_GamepadComboDialogActive = false;
+        nav_usable                        = true;
+        io.NavUsable                      = true;
+        io.NavActive                      = true;
+        last_combo                        = nullptr;
+        ImGui::CloseCurrentPopup ();
+        ImGui::EndPopup          ();
+        return 1;
+      }
+    }
+
+    if (io.KeysDown [VK_ESCAPE])
+    {
+      last_combo                          = nullptr;
+      ImGui::CloseCurrentPopup ();
+      ImGui::EndPopup          ();
+      return -1;
+    }
+
+    ImGui::Text ("Binding:  %ws", unparsed.c_str ());
+
+    ImGui::EndPopup ();
+  }
+
+  return 0;
 }

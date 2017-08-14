@@ -559,7 +559,7 @@ public:
       unsigned int x = 65535;
       unsigned int y = 65535;
 
-         char szTemp    [32] = { };
+         char szTemp    [31] = { };
 
       if (val != nullptr) {
         strncat (szTemp, *static_cast <char **> (val), 31);
@@ -573,16 +573,16 @@ public:
 
         SK_AdjustWindow ();
 
-        char *pszRes = *((SK_IVarStub <char *>*)var)->getValuePtr ();
-        snprintf (pszRes, 32, "%lux%lu", x, y);
+        char *pszRes = (char *)((SK_IVarStub <char *>*)var)->getValuePointer ();
+        snprintf (pszRes, 31, "%ux%u", x, y);
 
         return true;
       }
 
       else
       {
-        char *pszRes = *((SK_IVarStub <char *>*)var)->getValuePtr ();
-        snprintf (pszRes, 32, "INVALID");
+        char *pszRes = (char *)((SK_IVarStub <char *>*)var)->getValuePointer ();
+        snprintf (pszRes, 31, "INVALID");
 
         return false;
       }
@@ -798,7 +798,7 @@ protected:
                                // This solves display scaling problems in Fallout 4 and
                                //   Skyrim...
 
-  char override_res [32];
+  char override_res [32] = { };
 
 private:
   static SK_WindowManager* pWindowManager;

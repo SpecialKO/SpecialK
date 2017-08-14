@@ -142,6 +142,12 @@ void
 __stdcall
 SK_InitRenderBackends (void);
 
+__declspec (dllexport)
+IUnknown* __stdcall SK_Render_GetDevice (void);
+
+__declspec (dllexport)
+IUnknown* __stdcall SK_Render_GetSwapChain (void);
+
 void SK_BootD3D8   (void);
 void SK_BootDDraw  (void);
 void SK_BootGlide  (void);

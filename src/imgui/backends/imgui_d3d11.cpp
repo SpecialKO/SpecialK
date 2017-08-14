@@ -595,6 +595,55 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   return true;
 }
 
+
+typedef void (__stdcall *SK_ImGui_ResetCallback_pfn)(void);
+
+std::vector <IUnknown *>                 external_resources;
+std::set    <SK_ImGui_ResetCallback_pfn> reset_callbacks;
+
+__declspec (dllexport)
+void
+__stdcall
+SKX_ImGui_RegisterResource (IUnknown* pRes)
+{
+  external_resources.push_back (pRes);
+}
+
+
+__declspec (dllexport)
+void
+__stdcall
+SKX_ImGui_RegisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
+{
+  reset_callbacks.emplace (pCallback);
+}
+
+__declspec (dllexport)
+void
+__stdcall
+SKX_ImGui_UnregisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
+{
+  if (reset_callbacks.count (pCallback))
+    reset_callbacks.erase (pCallback);
+}
+
+void
+SK_ImGui_ResetExternal (void)
+{
+  for ( auto it : external_resources )
+  {
+    it->Release ();
+  }
+
+  external_resources.clear ();
+
+  for ( auto reset_fn : reset_callbacks )
+  {
+    reset_fn ();
+  }
+}
+
+
 void
 ImGui_ImplDX11_InvalidateDeviceObjects (void)
 {
@@ -605,6 +654,8 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 
   // Do not dump ImGui font textures
   SK_TLS_Top ()->imgui.drawing = true;
+
+  SK_ImGui_ResetExternal ();
 
   if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = NULL; }
   if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = NULL; ImGui::GetIO ().Fonts->TexID = 0; }

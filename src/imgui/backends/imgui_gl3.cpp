@@ -318,6 +318,10 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
 void
 ImGui_ImplGL3_InvalidateDeviceObjects (void)
 {
+  extern void
+  SK_ImGui_ResetExternal (void);
+  SK_ImGui_ResetExternal ();
+
   if (g_VaoHandle)      glDeleteVertexArrays (1, &g_VaoHandle);
   if (g_VboHandle)      glDeleteBuffers      (1, &g_VboHandle);
   if (g_ElementsHandle) glDeleteBuffers      (1, &g_ElementsHandle);

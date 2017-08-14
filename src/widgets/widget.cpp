@@ -324,7 +324,7 @@ SK_Widget::draw_base (void)
   if (! resizable)
     flags |= ImGuiWindowFlags_NoResize;
 
-  if (click_through && (! SK_ImGui_Visible) && state__ != 1)
+  if (click_through && (! SK_ImGui_Active ()) && state__ != 1)
     flags |= ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
 
@@ -338,13 +338,13 @@ SK_Widget::draw_base (void)
 
     ImGui::SetNextWindowSize (ImVec2 (std::max (size.x, 420.0f), std::max (size.y, 190.0f)));
 
-    if (! SK_ImGui_Visible)
+    if (! SK_ImGui_Active ())
       nav_usable = true;
   }
 
   else
   {
-    if (! SK_ImGui_Visible)
+    if (! SK_ImGui_Active ())
       nav_usable = false;
 
     if ((! autofit) && (! resizable))
@@ -414,7 +414,8 @@ SK_Widget::draw_base (void)
   ImGui::End         ();
 }
 
-extern void
+extern __declspec (dllexport) void
+__stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 void
@@ -578,7 +579,7 @@ SK_Widget::config_base (void)
 
       std::wstring original_binding = binding->human_readable;
 
-      extern void SK_ImGui_KeybindDialog (SK_Keybind* keybind);
+      extern void __stdcall SK_ImGui_KeybindDialog (SK_Keybind* keybind);
       SK_ImGui_KeybindDialog (binding);
 
       if (original_binding != binding->human_readable)
