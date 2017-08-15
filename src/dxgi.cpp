@@ -4435,7 +4435,7 @@ HookDXGI (LPVOID user)
       SK_Win32_CleanupDummyWindow (void);
 
       
-      HWND                 hWnd = SK_Win32_CreateDummyWindow ();
+      HWND                   hWnd = SK_Win32_CreateDummyWindow ();
       
       if (hWnd != HWND_DESKTOP)
       {
@@ -4446,11 +4446,11 @@ HookDXGI (LPVOID user)
         desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
         desc.SampleDesc.Count            = 1;
         desc.SampleDesc.Quality          = 0;
-        desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        desc.BufferCount                 = 2;
+        desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER;
+        desc.BufferCount                 = 1;
         desc.OutputWindow                = hWnd;
         desc.Windowed                    = TRUE;
-        desc.SwapEffect                  = DXGI_SWAP_EFFECT_DISCARD;
+        desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
 
         CComPtr <IDXGISwapChain>   pSwapChain = nullptr;
         pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain);

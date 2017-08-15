@@ -3185,7 +3185,7 @@ HookD3D9 (LPVOID user)
 
       D3DPRESENT_PARAMETERS pparams = { };
 
-      pparams.SwapEffect            = D3DSWAPEFFECT_DISCARD;
+      pparams.SwapEffect            = D3DSWAPEFFECT_COPY;
       pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
       pparams.Windowed              = TRUE;
       pparams.BackBufferCount       = 1;
