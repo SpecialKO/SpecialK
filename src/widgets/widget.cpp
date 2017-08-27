@@ -400,12 +400,24 @@ SK_Widget::draw_base (void)
 
   if (right_clicked || focus_change)
   {
-    ImGui::SetWindowFocus ();
-    ImGui::GetIO          ().WantMoveMouse = true;
+    ImVec2 min (pos.x,          pos.y);
+    ImVec2 max (pos.x + size.x, pos.y + size.y);
 
-    ImGui::GetIO ().MousePos =
-      ImVec2 ( pos.x + size.x / 2.0f,
-               pos.y + size.y / 2.0f );
+    extern bool SK_ControlPanel_Activated;
+
+    if (SK_ControlPanel_Activated)
+    {
+      if (! ImGui::IsMouseHoveringRect (min, max)/* && ImGui::IsWindowFocused ()*/)
+      {
+        ImGui::GetIO ().WantMoveMouse = true;
+
+        ImGui::GetIO ().MousePos =
+          ImVec2 ( pos.x + size.x / 2.0f,
+                   pos.y + size.y / 2.0f );
+      }
+    }
+
+    ImGui::SetWindowFocus ();
 
     if (right_clicked)
       state__ = 1;

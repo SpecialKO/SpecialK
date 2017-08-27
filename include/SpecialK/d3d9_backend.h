@@ -22,6 +22,8 @@
 #ifndef __SK__D3D9_BACKEND_H__
 #define __SK__D3D9_BACKEND_H__
 
+#undef D3D_DISABLE_9EX
+
 #include <Windows.h>
 #include <d3d9.h>
 

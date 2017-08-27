@@ -33,66 +33,66 @@ interface iSK_INI;
 typedef void *HANDLE;
 
 const wchar_t* __stdcall
-               SK_GetRootPath          (void);
-const wchar_t* SK_GetHostApp           (void);
-const wchar_t* SK_GetHostPath          (void);
-const wchar_t* SK_GetBlacklistFilename (void);
+               SK_GetRootPath            (void);
+const wchar_t* SK_GetHostApp             (void);
+const wchar_t* SK_GetHostPath            (void);
+const wchar_t* SK_GetBlacklistFilename   (void);
 
-bool           SK_GetDocumentsDir      (_Out_opt_ wchar_t* buf, _Inout_ uint32_t* pdwLen);
-std::wstring   SK_GetDocumentsDir      (void);
-std::wstring   SK_GetFontsDir          (void);
-std::wstring   SK_GetRTSSInstallDir    (void);
+bool           SK_GetDocumentsDir        (_Out_opt_ wchar_t* buf, _Inout_ uint32_t* pdwLen);
+std::wstring   SK_GetDocumentsDir        (void);
+std::wstring   SK_GetFontsDir            (void);
+std::wstring   SK_GetRTSSInstallDir      (void);
 bool
-__stdcall      SK_CreateDirectories    (const wchar_t* wszPath);
-size_t         SK_DeleteTemporaryFiles (const wchar_t* wszPath    = SK_GetHostPath (),
-                                        const wchar_t* wszPattern = L"SKI*.tmp");
-std::wstring   SK_EvalEnvironmentVars  (const wchar_t* wszEvaluateMe);
-bool           SK_GetUserProfileDir    (wchar_t*       buf, uint32_t* pdwLen);
-bool           SK_IsTrue               (const wchar_t* string);
-bool           SK_IsAdmin              (void);
-void           SK_ElevateToAdmin       (void); // Needs DOS 8.3 filename support
-void           SK_RestartGame          (const wchar_t* wszDLL = nullptr);
-int            SK_MessageBox           (std::wstring caption,
-                                        std::wstring title,
-                                        uint32_t     flags);
+__stdcall      SK_CreateDirectories      (const wchar_t* wszPath);
+size_t         SK_DeleteTemporaryFiles   (const wchar_t* wszPath    = SK_GetHostPath (),
+                                          const wchar_t* wszPattern = L"SKI*.tmp");
+std::wstring   SK_EvalEnvironmentVars    (const wchar_t* wszEvaluateMe);
+bool           SK_GetUserProfileDir      (wchar_t*       buf, uint32_t* pdwLen);
+bool           SK_IsTrue                 (const wchar_t* string);
+bool           SK_IsAdmin                (void);
+void           SK_ElevateToAdmin         (void); // Needs DOS 8.3 filename support
+void           SK_RestartGame            (const wchar_t* wszDLL = nullptr);
+int            SK_MessageBox             (std::wstring caption,
+                                          std::wstring title,
+                                          uint32_t     flags);
 
-std::string    SK_WideCharToUTF8       (std::wstring in);
-std::wstring   SK_UTF8ToWideChar       (std::string  in);
+std::string    SK_WideCharToUTF8         (std::wstring in);
+std::wstring   SK_UTF8ToWideChar         (std::string  in);
 
 std::string
-__cdecl        SK_FormatString         (char    const* const _Format, ...);
+__cdecl        SK_FormatString           (char    const* const _Format, ...);
 std::wstring
-__cdecl        SK_FormatStringW        (wchar_t const* const _Format, ...);
+__cdecl        SK_FormatStringW          (wchar_t const* const _Format, ...);
 
-void           SK_StripTrailingSlashesW (wchar_t* wszInOut);
-void           SK_FixSlashesW           (wchar_t* wszInOut);
-void           SK_StripTrailingSlashesA (char*     szInOut);
-void           SK_FixSlashesA           (char*     szInOut);
+void           SK_StripTrailingSlashesW  (wchar_t* wszInOut);
+void           SK_FixSlashesW            (wchar_t* wszInOut);
+void           SK_StripTrailingSlashesA  (char*     szInOut);
+void           SK_FixSlashesA            (char*     szInOut);
 
-void           SK_SetNormalFileAttribs (std::wstring   file);
-void           SK_MoveFileNoFail       (const wchar_t* wszOld, const wchar_t* wszNew);
-void           SK_FullCopy             (std::wstring   from,   std::wstring   to);
-std::wstring   SK_SYS_GetInstallPath   (void);
+void           SK_SetNormalFileAttribs   (std::wstring   file);
+void           SK_MoveFileNoFail         (const wchar_t* wszOld, const wchar_t* wszNew);
+void           SK_FullCopy               (std::wstring   from,   std::wstring   to);
+std::wstring   SK_SYS_GetInstallPath     (void);
 
-const wchar_t* SK_GetHostApp           (void);
-const wchar_t* SK_GetSystemDirectory   (void);
-iSK_INI*       SK_GetDLLConfig         (void);
+const wchar_t* SK_GetHostApp             (void);
+const wchar_t* SK_GetSystemDirectory     (void);
+iSK_INI*       SK_GetDLLConfig           (void);
 
 #pragma intrinsic (_ReturnAddress)
 
-HMODULE        SK_GetCallingDLL        (LPVOID pReturn = _ReturnAddress ());
-std::wstring   SK_GetCallerName        (LPVOID pReturn = _ReturnAddress ());
-std::wstring   SK_GetModuleName        (HMODULE hDll);
-std::wstring   SK_GetModuleFullName    (HMODULE hDll);
+HMODULE        SK_GetCallingDLL          (LPVOID pReturn = _ReturnAddress ());
+std::wstring   SK_GetCallerName          (LPVOID pReturn = _ReturnAddress ());
+std::wstring   SK_GetModuleName          (HMODULE hDll);
+std::wstring   SK_GetModuleFullName      (HMODULE hDll);
 
-LPVOID         SK_GetProcAddress       (const wchar_t* wszModule, const char* szFunc);
+LPVOID         SK_GetProcAddress         (const wchar_t* wszModule, const char* szFunc);
 
 
 HMODULE __stdcall
-               SK_GetDLL               (void);
+               SK_GetDLL                 (void);
 std::wstring
         __stdcall
-               SK_GetDLLVersionStr     (const wchar_t* wszName);
+               SK_GetDLLVersionStr       (const wchar_t* wszName);
 
 #include <queue>
 
@@ -101,8 +101,30 @@ std::queue <DWORD>
 void
                SK_ResumeThreads          (std::queue <DWORD> threads);
 
-bool __stdcall SK_IsDLLSpecialK        (const wchar_t* wszName);
-void __stdcall SK_SelfDestruct         (void);
+
+bool __cdecl   SK_IsRunDLLInvocation     (void);
+bool __cdecl   SK_IsSuperSpecialK        (void);
+
+// TODO: Push the SK_GetHostApp (...) stuff into this class
+class SK_HostAppUtil
+{
+public:
+               SK_HostAppUtil            (void);
+
+  bool         isInjectionTool           (void)
+  {
+    return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
+  }
+
+
+protected:
+  bool        SKIM     = false;
+  bool        RunDll32 = false;
+} extern SK_HostApp;
+
+bool __stdcall SK_IsDLLSpecialK          (const wchar_t* wszName);
+void __stdcall SK_SelfDestruct           (void);
+
 
 
 struct sk_import_test_s {
@@ -161,7 +183,23 @@ SK_RemoveTrailingDecimalZeros (char* szNum, size_t bufSize = 0);
 
 void*
 __stdcall
-SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask);
+SK_Scan         (const void* pattern, size_t len, const void* mask);
+
+void*
+__stdcall
+SK_ScanAligned  (const void* pattern, size_t len, const void* mask, int align = 1);
+
+void*
+__stdcall
+SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after = nullptr, int align = 1);
+
+BOOL
+__stdcall
+SK_InjectMemory ( LPVOID  base_addr,
+                  void   *new_data,
+                  size_t  data_size,
+                  DWORD   permissions,
+                  void   *old_data     = nullptr );
 
 
 class SK_AutoCriticalSection {

@@ -40,7 +40,7 @@ public:
   SKWG_FramePacing (void) : SK_Widget ("FramePacing")
   {
     setResizable    (                false).setAutoFit      (true).setMovable (false).
-    setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (true);
+    setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (false);//setVisible (true);
 
     SK_ImGui_Widgets.frame_pacing = this;
   };

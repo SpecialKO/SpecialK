@@ -160,7 +160,8 @@ extern void SK_Steam_SetNotifyCorner (void);
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
 extern bool           SK_ImGui_Visible;
-       bool           SK_ReShade_Visible = false;
+       bool           SK_ReShade_Visible        = false;
+       bool           SK_ControlPanel_Activated = false;
 
 extern void
 __stdcall
@@ -4885,7 +4886,10 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
 
   if (SK_ImGui_Visible)
+  {
+    SK_ControlPanel_Activated = true;
     keep_open = SK_ImGui_ControlPanel ();
+  }
 
 
   for (auto& widget : widgets)

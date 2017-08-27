@@ -283,6 +283,7 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"ActivationUI.exe");
     blacklist.emplace (L"zosSteamStarter.exe");
     blacklist.emplace (L"notepad.exe");
+    blacklist.emplace (L"mspaint.exe");
     blacklist.emplace (L"7zFM.exe");
     blacklist.emplace (L"WinRar.exe");
     blacklist.emplace (L"EAC.exe");
@@ -296,6 +297,8 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"GameBarPresenceWriter.exe");
     blacklist.emplace (L"OAWrapper.exe");
     blacklist.emplace (L"NvOAWrapperCache.exe");
+    blacklist.emplace (L"waifu2x-caffe.exe");
+    blacklist.emplace (L"waifu2x-caffe-cui.exe");
 
     blacklist.emplace (L"GameServer.exe");// Sacred   Game Server
     blacklist.emplace (L"s2gs.exe");      // Sacred 2 Game Server
@@ -846,8 +849,7 @@ DllMain ( HMODULE hModule,
       // We use SKIM for injection and rundll32 for various tricks involving restarting
       //   the currently running game; neither needs or even wants this DLL fully
       //     initialized!
-      if ( StrStrIW (SK_GetHostApp (), L"SKIM") ||
-           StrStrIW (SK_GetHostApp (), L"rundll32") )
+      if (SK_HostApp.isInjectionTool ())
       {
         SK_EstablishRootPath ();
         return TRUE;

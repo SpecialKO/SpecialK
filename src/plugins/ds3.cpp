@@ -449,31 +449,6 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
   return nullptr;
 }
 
-BOOL
-SK_InjectMemory ( LPVOID   base_addr,
-                  uint8_t* new_data,
-                  size_t   data_size,
-                  DWORD    permissions,
-                  uint8_t* old_data = nullptr
-                )
-{
-  DWORD dwOld;
-
-  if (VirtualProtect (base_addr, data_size, permissions, &dwOld))
-  {
-    if (old_data != nullptr)
-      memcpy (old_data, base_addr, data_size);
-
-    memcpy (base_addr, new_data, data_size);
-
-    VirtualProtect (base_addr, data_size, dwOld, &dwOld);
-
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
 // This should be unnecessary on x86/x64 due to cache snooping, but
 //   do it anyway for completeness.
 void
@@ -510,7 +485,7 @@ SK_DS3_GetMonitorDims (void)
 {
   monitor_dims_s dims;
 
-  MONITORINFO minfo = { 0 };
+  MONITORINFO minfo = { };
   minfo.cbSize      = sizeof MONITORINFO;
 
   GetMonitorInfo ( MonitorFromWindow ( ds3_state.Window,

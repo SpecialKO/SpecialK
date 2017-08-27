@@ -48,6 +48,38 @@ iSK_INI*             achievement_ini = nullptr;
 sk_config_t          config;
 sk::ParameterFactory g_ParameterFactory;
 
+
+  enum class SK_GAME_ID {
+    Tyranny,              // Tyranny.exe
+    Shadowrun_HongKong,   // SRHK.exe
+    TidesOfNumenera,      // TidesOfNumenera.exe
+    MassEffect_Andromeda, // MassEffectAndromeda.exe
+    MadMax,               // MadMax.exe
+    Dreamfall_Chapters,   // Dreamfall Chapters.exe
+    TheWitness,           // witness_d3d11.exe, witness64_d3d11.exe
+    Obduction,            // Obduction-Win64-Shipping.exe
+    TheWitcher3,          // witcher3.exe
+    ResidentEvil7,        // re7.exe
+    DragonsDogma,         // DDDA.exe
+    EverQuest,            // eqgame.exe
+    GodEater2RageBurst,   // GE2RB.exe
+    WatchDogs2,           // WatchDogs2.exe
+    NieRAutomata,         // NieRAutomata.exe
+    Warframe_x64,         // Warframe.x64.exe
+    LEGOCityUndercover,   // LEGOLCUR_DX11.exe
+    Sacred ,              // sacred.exe
+    Sacred2,              // sacred2.exe
+    FinalFantasy9,        // FF9.exe   
+    EdithFinch,           // FinchGame.exe
+    FinalFantasyX_X2,     // FFX.exe / FFX-2.exe
+    DeadlyPremonition,    // DP.exe DPLauncher.exe
+    GalGun_Double_Peace,  // GG2Game.exe
+    AKIBAs_Trip           // AkibaUU.exe
+  };
+
+  static std::unordered_map <std::wstring, SK_GAME_ID> games;
+
+
 struct {
   struct {
     sk::ParameterBool*    show;
@@ -2161,35 +2193,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
   config.render.dxgi.exception_mode = -1;
   config.render.dxgi.scaling_mode   = -1;
 
-
-  enum class SK_GAME_ID {
-    Tyranny,              // Tyranny.exe
-    Shadowrun_HongKong,   // SRHK.exe
-    TidesOfNumenera,      // TidesOfNumenera.exe
-    MassEffect_Andromeda, // MassEffectAndromeda.exe
-    MadMax,               // MadMax.exe
-    Dreamfall_Chapters,   // Dreamfall Chapters.exe
-    TheWitness,           // witness_d3d11.exe, witness64_d3d11.exe
-    Obduction,            // Obduction-Win64-Shipping.exe
-    TheWitcher3,          // witcher3.exe
-    ResidentEvil7,        // re7.exe
-    DragonsDogma,         // DDDA.exe
-    EverQuest,            // eqgame.exe
-    GodEater2RageBurst,   // GE2RB.exe
-    WatchDogs2,           // WatchDogs2.exe
-    NieRAutomata,         // NieRAutomata.exe
-    Warframe_x64,         // Warframe.x64.exe
-    LEGOCityUndercover,   // LEGOLCUR_DX11.exe
-    Sacred ,              // sacred.exe
-    Sacred2,              // sacred2.exe
-    FinalFantasy9,        // FF9.exe   
-    EdithFinch,           // FinchGame.exe
-    FinalFantasyX_X2,     // FFX.exe / FFX-2.exe
-    DeadlyPremonition     // DP.exe DPLauncher.exe
-  };
-
-  static std::unordered_map <std::wstring, SK_GAME_ID> games;
-
   games.emplace ( L"Tyranny.exe",                  SK_GAME_ID::Tyranny              );
   games.emplace ( L"SRHK.exe",                     SK_GAME_ID::Shadowrun_HongKong   );
   games.emplace ( L"TidesOfNumenera.exe",          SK_GAME_ID::TidesOfNumenera      );
@@ -2214,6 +2217,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"FFX.exe",                      SK_GAME_ID::FinalFantasyX_X2     );
   games.emplace ( L"FFX-2.exe",                    SK_GAME_ID::FinalFantasyX_X2     );
   games.emplace ( L"DP.exe",                       SK_GAME_ID::DeadlyPremonition    );
+  games.emplace ( L"GG2Game.exe",                  SK_GAME_ID::GalGun_Double_Peace  );
+  games.emplace ( L"AkibaUU.exe",                  SK_GAME_ID::AKIBAs_Trip          );
 
   //
   // Application Compatibility Overrides
@@ -2429,8 +2434,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
         // Don't auto-pump callbacks 
         //  Excessively lenghty startup is followed by actual SteamAPI init eventually...
         config.steam.auto_pump_callbacks = false;
-        break;
 
+        //config.render.dxgi.full_state_cache    = true;
+        //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
+        break;
 
 #ifndef _WIN64
       case SK_GAME_ID::DeadlyPremonition:
@@ -3111,6 +3118,62 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 
+  static bool scanned = false;
+
+  if ((! scanned) && (! config.window.res.override.isZero ()))
+  {
+    scanned = true;
+
+    if (games.count (std::wstring (SK_GetHostApp ())))
+    {
+      switch (games [std::wstring (SK_GetHostApp ())])
+      {
+        case SK_GAME_ID::GalGun_Double_Peace:
+        {
+          CreateThread (nullptr, 0, [](LPVOID) ->
+          DWORD
+          {
+            // Wait for the image relocation to settle down, or we'll probably
+            //   break the memory scanner.
+            SleepEx (25UL, TRUE);
+
+            void
+            SK_ResHack_PatchGame (uint32_t w, uint32_t h);
+
+            SK_ResHack_PatchGame (1920, 1080);
+
+            CloseHandle (GetCurrentThread ());
+
+            return 0;
+          }, nullptr, 0x00, nullptr);
+        } break;
+
+
+        case SK_GAME_ID::AKIBAs_Trip:
+        {
+          CreateThread (nullptr, 0, [](LPVOID) ->
+          DWORD
+          {
+            // Wait for the image relocation to settle down, or we'll probably
+            //   break the memory scanner.
+            SleepEx (25UL, TRUE);
+
+            void
+            SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
+
+            SK_ResHack_PatchGame2 (1920, 1080);
+
+            CloseHandle (GetCurrentThread ());
+
+            return 0;
+          }, nullptr, 0x00, nullptr);
+        } break;
+      }
+    }
+  }
+
+
+
   //if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
   //     SK_GetDLLRole () == DLL_ROLE::DDraw )
   //{
@@ -3123,6 +3186,123 @@ SK_LoadConfigEx (std::wstring name, bool create)
     return false;
 
   return true;
+}
+
+void
+SK_ResHack_PatchGame ( uint32_t width,
+                       uint32_t height )
+{
+  static int replacements = 0;
+
+  struct
+  {
+    struct
+    {
+      uint32_t w, h;
+    } pattern;
+
+    struct
+    {
+      uint32_t w = config.window.res.override.x,
+               h = config.window.res.override.y;
+    } replacement;
+  } res_mod;
+
+  res_mod.pattern.w = width;
+  res_mod.pattern.h = height;
+
+        uint32_t* pOut;
+  const void*     pPattern = &res_mod.pattern;
+
+  pOut =
+    reinterpret_cast <uint32_t *> (
+      GetModuleHandle (nullptr)
+    );
+
+
+  for (int i = 0 ; i < 3; i++)
+  {
+    pOut =
+      reinterpret_cast <uint32_t *>
+      (
+        SK_ScanAlignedEx ( pPattern, 8, nullptr, pOut + 16, 16 )
+      );
+
+
+    if (pOut != nullptr)
+    {
+      if ( SK_InjectMemory ( pOut,
+                               &res_mod.replacement.w,
+                                8,
+                                  PAGE_READWRITE )
+         )
+      {
+        ++replacements;
+      }
+    }
+
+    else
+    {
+      dll_log.Log ( L"[GalGunHACK] ** %lu Resolution Replacements Made  ==>  "
+                                         L"( %lux%lu --> %lux%lu )",
+                      replacements,
+                        width, height,
+                          res_mod.replacement.w, res_mod.replacement.h );
+      break;
+    }
+  }
+}
+
+void
+SK_ResHack_PatchGame2 ( uint32_t width,
+                        uint32_t height )
+{
+  static int replacements = 0;
+
+  uint32_t orig [2] = { 0x00000000,
+                        0x00000000 };
+
+  *(orig    ) = width;
+  *(orig + 1) = height;
+
+  uint32_t* pOut =
+    reinterpret_cast  <uint32_t *> (GetModuleHandle (nullptr));
+
+  for (int i = 0 ; i < 3; i++)
+  {
+    pOut =
+      reinterpret_cast <uint32_t *> (
+        SK_ScanAlignedEx (orig, 8, nullptr, pOut + 8, 8)
+      );
+
+    if (pOut != nullptr)
+    {
+      struct {
+        uint32_t w = static_cast <uint32_t> (config.window.res.override.x),
+                 h = static_cast <uint32_t> (config.window.res.override.y);
+      } out_data;
+
+
+      if ( SK_InjectMemory ( pOut,
+                               &out_data.w,
+                                 8,
+                                   PAGE_READWRITE )
+         )
+      {
+        ++replacements;
+      }
+    }
+
+    else
+    {
+      dll_log.Log ( L"[AkibasHACK] ** %lu Resolution Replacements Made  ==>  "
+                                      L"( %lux%lu --> %lux%lu )",
+                      replacements,
+                        width, height,
+                          config.window.res.override.x, config.window.res.override.y );
+      break;
+    }
+  }
 }
 
 bool
@@ -4169,4 +4349,28 @@ SK_AppCache_Manager::migrateProfileData (LPVOID)
 {
   // TODO
   return 0;
+}
+
+
+__declspec (dllexport)
+SK_RenderAPI
+__stdcall
+SK_Render_GetAPIHookMask (void)
+{
+  int mask = 0;
+
+#ifndef _WIN64
+  if (config.apis.d3d8.hook)       mask |= (int)SK_RenderAPI::D3D8;
+  if (config.apis.ddraw.hook)      mask |= (int)SK_RenderAPI::DDraw;
+#endif
+  if (config.apis.d3d9.hook)       mask |= (int)SK_RenderAPI::D3D9;
+  if (config.apis.d3d9ex.hook)     mask |= (int)SK_RenderAPI::D3D9Ex;
+  if (config.apis.dxgi.d3d11.hook) mask |= (int)SK_RenderAPI::D3D11;
+  if (config.apis.OpenGL.hook)     mask |= (int)SK_RenderAPI::OpenGL;
+#ifdef _WIN64
+  if (config.apis.Vulkan.hook)     mask |= (int)SK_RenderAPI::Vulkan;
+  if (config.apis.dxgi.d3d12.hook) mask |= (int)SK_RenderAPI::D3D12;
+#endif
+
+  return (SK_RenderAPI)mask;
 }

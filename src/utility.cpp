@@ -1747,31 +1747,63 @@ LPVOID __SK_end_img_addr  = nullptr;
 
 void*
 __stdcall
-SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
+SK_Scan (const void* pattern, size_t len, const void* mask)
+{
+  return SK_ScanAligned (pattern, len, mask);
+}
+
+void*
+__stdcall
+SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after, int align)
 {
   uint8_t* base_addr =
     reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
 
-   MEMORY_BASIC_INFORMATION minfo;
+  MEMORY_BASIC_INFORMATION minfo;
   VirtualQuery (base_addr, &minfo, sizeof minfo);
 
-           base_addr = (uint8_t *)minfo.BaseAddress;
-  uint8_t* end_addr  = (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
+  //
+  // VMProtect kills this, so let's do something else...
+  //
+#ifdef VMPROTECT_IS_NOT_A_FACTOR
+  IMAGE_DOS_HEADER* pDOS =
+    (IMAGE_DOS_HEADER *)minfo.AllocationBase;
+  IMAGE_NT_HEADERS* pNT  =
+    (IMAGE_NT_HEADERS *)((uintptr_t)(pDOS + pDOS->e_lfanew));
 
-#if 0
-  if (base_addr != (uint8_t *)0x400000) {
-    dll_log->Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
-                     base_addr );
-  }
-#endif
+  uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
+#else
+           base_addr = reinterpret_cast <uint8_t *> (minfo.BaseAddress);//AllocationBase;
+  uint8_t* end_addr  = reinterpret_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
+
+  ///if (base_addr != (uint8_t *)0x400000)
+  ///{
+  ///  static bool warned = false;
+  ///  if (! warned)
+  ///  {
+  ///    dll_log.Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
+  ///                    base_addr );
+  ///    warned = true;
+  ///  }
+  ///}
 
   size_t pages = 0;
 
-// Scan up to 32 MiB worth of data
-#define PAGE_WALK_LIMIT (base_addr) + (1 << 26)
+#ifndef _WIN64
+  // Account for possible overflow in 32-bit address space in very rare (address randomization) cases
+uint8_t* const PAGE_WALK_LIMIT = 
+  base_addr + static_cast <uintptr_t>(1UL << 27) > base_addr ?
+                                                   base_addr + static_cast      <uintptr_t>( 1UL << 27) :
+                                                               reinterpret_cast <uint8_t *>(~0UL      );
+#else
+  // Dark Souls 3 needs this, its address space is completely random to the point
+  //   where it may be occupying a range well in excess of 36 bits. Probably a stupid
+  //     anti-cheat attempt.
+uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36));
+#endif
 
   //
-  // For practical purposes, let's just assume that all valid games have less than 32 MiB of
+  // For practical purposes, let's just assume that all valid games have less than 256 MiB of
   //   committed executable image data.
   //
   while (VirtualQuery (end_addr, &minfo, sizeof minfo) && end_addr < PAGE_WALK_LIMIT)
@@ -1781,32 +1813,41 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
 
     pages += VirtualQuery (end_addr, &minfo, sizeof minfo);
 
-    end_addr = (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
+    end_addr =
+      static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
   } 
 
-  if (end_addr > PAGE_WALK_LIMIT) {
-#if 0
-    dll_log->Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
-                     end_addr );
-    dll_log->Log ( L"[ Sig Scan ]  >> Restricting to %ph",
-                     PAGE_WALK_LIMIT );
-#endif
-    end_addr = PAGE_WALK_LIMIT;
+  if (end_addr > PAGE_WALK_LIMIT)
+  {
+    static bool warned = false;
+
+    if (! warned)
+    {
+      dll_log.Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
+                      end_addr );
+      dll_log.Log ( L"[ Sig Scan ]  >> Restricting to %ph",
+                      PAGE_WALK_LIMIT );
+      warned = true;
+    }
+
+    end_addr =
+      static_cast <uint8_t *> (PAGE_WALK_LIMIT);
   }
 
 #if 0
-  dll_log->Log ( L"[ Sig Scan ] Module image consists of %lu pages, from %ph to %ph",
-                   pages,
-                     base_addr,
-                       end_addr );
+  dll_log->Log ( L"[ Sig Scan ] Module image consists of %zu pages, from %ph to %ph",
+                  pages,
+                    base_addr,
+                      end_addr );
+#endif
 #endif
 
   __SK_base_img_addr = base_addr;
   __SK_end_img_addr  = end_addr;
 
-  uint8_t*  begin = (uint8_t *)base_addr;
-  uint8_t*  it    = begin;
-  uint32_t  idx   = 0;
+  uint8_t* begin = static_cast <uint8_t *> (after) + align;
+  uint8_t* it    = begin;
+  size_t   idx   = 0;
 
   while (it < end_addr)
   {
@@ -1827,6 +1868,7 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
       it    = next_rgn;
       idx   = 0;
       begin = it;
+
       continue;
     }
 
@@ -1838,19 +1880,35 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
     {
       uint8_t* scan_addr = it;
 
-      bool match = (*scan_addr == pattern [idx]);
+      bool match = (*scan_addr == static_cast <const uint8_t *> (pattern) [idx]);
 
       // For portions we do not care about... treat them
       //   as matching.
-      if (mask != nullptr && (! mask [idx]))
+      if (mask != nullptr && (! static_cast <const uint8_t *> (mask) [idx]))
         match = true;
 
       if (match)
       {
         if (++idx == len)
-          return (void *)begin;
+        {
+          if ((reinterpret_cast <uintptr_t> (begin) % align) == 0)
+          {
+            return
+              static_cast <void *> (begin);
+          }
 
-        ++it;
+          else
+          {
+            begin += (idx + 1);
+            begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
+
+            it     = begin;
+            idx    = 0;
+          }
+        }
+
+        else
+          ++it;
       }
 
       else
@@ -1859,13 +1917,49 @@ SK_Scan (const uint8_t* pattern, size_t len, const uint8_t* mask)
         if (it > end_addr - len)
           break;
 
-        it  = ++begin;
+        begin += (idx + 1);
+        begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
+
+        it  = begin;
         idx = 0;
       }
     }
   }
 
   return nullptr;
+}
+
+void*
+__stdcall
+SK_ScanAligned (const void* pattern, size_t len, const void* mask, int align)
+{
+  return SK_ScanAlignedEx (pattern, len, mask, nullptr, align);
+}
+
+BOOL
+__stdcall
+SK_InjectMemory ( LPVOID  base_addr,
+                  void   *new_data,
+                  size_t  data_size,
+                  DWORD   permissions,
+                  void   *old_data )
+{
+  DWORD dwOld =
+    PAGE_NOACCESS;
+
+  if ( VirtualProtect ( base_addr,   data_size,
+                        permissions, &dwOld )   )
+  {
+    if (old_data != nullptr) memcpy (old_data, base_addr, data_size);
+                             memcpy (base_addr, new_data, data_size);
+
+    VirtualProtect ( base_addr, data_size,
+                     dwOld,     &dwOld );
+
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 uint64_t
@@ -2122,7 +2216,27 @@ bool
 __cdecl
 SK_IsRunDLLInvocation (void)
 {
-  return (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+  bool rundll_invoked =
+    (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+
+  if (rundll_invoked)
+  {
+    // Not all instances of RunDLL32 that load this DLL are Special K ...
+    //
+    //  The CBT hook may have been triggered by some other software that used
+    //    rundll32 and then launched a Win32 application with it.
+    //
+    wchar_t* wszArgs =
+      _wcsdup (PathGetArgsW (GetCommandLineW ()));
+
+    // If the command line does not reference our DLL
+    if (! StrStrW (wszArgs, L"RunDLL_"))
+      rundll_invoked = false;
+
+    free (wszArgs);
+  }
+
+  return rundll_invoked;
 }
 
 bool
@@ -2133,6 +2247,8 @@ SK_IsSuperSpecialK (void)
 }
 
 
+// Using this rather than the Path Shell API stuff due to
+//   AppInit_DLL support requirements
 void
 SK_PathRemoveExtension (wchar_t* wszInOut)
 {
@@ -2858,3 +2974,13 @@ SK_FixSlashesA (char* szInOut)
 
   strcpy (szInOut, str.c_str ());
 }
+
+
+
+SK_HostAppUtil::SK_HostAppUtil (void)
+{
+  SKIM     = StrStrIW (SK_GetHostApp (), L"SKIM")     != nullptr;
+  RunDll32 = StrStrIW (SK_GetHostApp (), L"RunDLL32") != nullptr;
+}
+
+SK_HostAppUtil SK_HostApp;

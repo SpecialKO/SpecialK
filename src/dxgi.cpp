@@ -332,6 +332,13 @@ SK_CEGUI_InitBase (void)
 
 void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 {
+  void
+  __stdcall
+  SK_D3D11_ResetTexCache (void);
+
+  SK_D3D11_ResetTexCache (    );
+
+
   if (! config.cegui.enable)
   {
     // XXX: TODO (Full shutdown isn't necessary, just invalidate)
@@ -4348,8 +4355,14 @@ HookDXGI (LPVOID user)
 
   bool success =
     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
+  DBG_UNREFERENCED_LOCAL_VARIABLE (success);
 
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
+
+  D3D_FEATURE_LEVEL             levels [] = { D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,
+                                              D3D_FEATURE_LEVEL_9_3,  D3D_FEATURE_LEVEL_10_0,
+                                              D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0,
+                                              D3D_FEATURE_LEVEL_11_1 };
 
   D3D_FEATURE_LEVEL             featureLevel;
   CComPtr <ID3D11Device>        pDevice           = nullptr;
@@ -4370,7 +4383,7 @@ HookDXGI (LPVOID user)
       0,
         D3D_DRIVER_TYPE_HARDWARE,
           nullptr,
-            0,
+            0x0,
               nullptr,
                 0,
                   D3D11_SDK_VERSION,
@@ -4386,7 +4399,7 @@ HookDXGI (LPVOID user)
       0,
         D3D_DRIVER_TYPE_HARDWARE,
           nullptr,
-            0,
+            0x0,
               nullptr,
                 0,
                   D3D11_SDK_VERSION,
@@ -4446,18 +4459,21 @@ HookDXGI (LPVOID user)
         desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
         desc.SampleDesc.Count            = 1;
         desc.SampleDesc.Quality          = 0;
-        desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER;
+        // Deliberately unusual set of flags, prevents most vidcap software from altering vtables
+        //   for the COM objects we are about to create.
+        desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_SHADER_INPUT |
+                                           DXGI_USAGE_SHARED      | DXGI_USAGE_DISCARD_ON_PRESENT;
         desc.BufferCount                 = 1;
         desc.OutputWindow                = hWnd;
         desc.Windowed                    = TRUE;
         desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
 
         CComPtr <IDXGISwapChain>   pSwapChain = nullptr;
-        pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain);
-        SK_DXGI_HookSwapChain     (pSwapChain);
-        SK_ApplyQueuedHooks       (          );
-      
+        if (SUCCEEDED (pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain)))
         {
+          SK_DXGI_HookSwapChain     (pSwapChain);
+          SK_ApplyQueuedHooks       (          );
+
           // Copy the vtable, so we can defer hook installation if needed
           IDXGISwapChain* pSwapCopy =
             (IDXGISwapChain *)malloc (sizeof IDXGISwapChain);
@@ -4501,10 +4517,10 @@ HookDXGI (LPVOID user)
                            0x00,
                           nullptr );
         }
-
-        DestroyWindow               (hWnd);
-        SK_Win32_CleanupDummyWindow (    );
       }
+
+      DestroyWindow               (hWnd);
+      SK_Win32_CleanupDummyWindow (    );
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
@@ -4522,7 +4538,7 @@ HookDXGI (LPVOID user)
                              err.WCode (), err.ErrorMessage () );
   }
 
-  if (success) CoUninitialize ();
+  //if (success) CoUninitialize ();
 
   return 0;
 }

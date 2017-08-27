@@ -11939,10 +11939,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
                      DefWindowProcA (hWnd, uMsg, lParam, wParam) );
       }
 
-      // Fix unusual behavior in Fairy Fencer F AD
-      if (mouse_capture && uMsg == WM_MOUSEMOVE)
-        return 0; // We have other means of removing this message
-
       return 1;
     }
   }

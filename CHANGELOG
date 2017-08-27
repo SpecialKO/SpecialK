@@ -1,5 +1,15 @@
+0.8.36
+
+ + Added D3D11 Wireframe Mode (per-shader)
+ + Added additional D3D11 Shader Culling options (per-Shader Resource View)
+ + Added support for BC7 and BC6H textures to Final Fantasy X/X-2
+ + Fixed Shader Resource View formats for injected D3D11 textures using alternate formats
+ + Fixed Global Injection Blacklist issues
+ + Turned off all widgets by default for new installs
+
+
 0.8.35
- 
+
  + Added option to flip textures in D3D11 Live Texture View
  + Added indicator for injected textures to D3D11 Live Texture View
  + Corrected texture hashes listed in D3D11 Live Texture View

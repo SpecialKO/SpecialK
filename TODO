@@ -1,4 +1,5 @@
-*** nb: Migrate SKIM architecture to GitLab instead of GitHub
+Unify D3D9 texture mod codebase (streaming, reload, in-game compare UI) with
+D3D11 mod tools.
 
 
 Work licensing terms for third-party add-ons / plug-ins into project so that

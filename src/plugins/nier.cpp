@@ -424,7 +424,7 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
   {
     init = true;
 
-    if ( (psleep = (uint8_t *)SK_Scan ( sleep_wait, 6, nullptr )) == nullptr )
+    if ( (psleep = (uint8_t *)SK_ScanAligned ( sleep_wait, 6, nullptr, 16 )) == nullptr )
     {
       dll_log.Log (L"[ FARLimit ]  Could not locate Framerate Limiter Sleep Addr.");
     }
@@ -439,7 +439,7 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
       uint8_t tstep0      [] = { 0x73, 0x1C, 0xC7, 0x05, 0x00, 0x00 };
       uint8_t tstep0_mask [] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
 
-      pmin_tstep = static_cast <uint8_t *> (SK_Scan ( tstep0, sizeof tstep0, tstep0_mask ));
+      pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 4 ));
       pmax_tstep = pmin_tstep + 0x2c;
 
       dll_log.Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);

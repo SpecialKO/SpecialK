@@ -320,12 +320,24 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
                                                             (StrStrI_pfn) &StrStrIA );
   static std::vector <const _T*> pinnable_libs =
   {
-    SK_TEXT ("CEGUI"), SK_TEXT ("OpenCL"),
+    SK_TEXT ("OpenCL"),    SK_TEXT ("CEGUI"),
+    SK_TEXT ("perfos"),    SK_TEXT ("avrt"),
 
-    // Some software repeatedly loads and unloads this, which can
-    //   cause TLS-related problems if left unchecked... just leave
-    //     the damn thing loaded permanently!
-    SK_TEXT ("d3dcompiler_")
+    SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),
+    SK_TEXT ("d3dx11_43"), SK_TEXT ("d3dx9_43"),
+
+#ifndef _WIN64
+    SK_TEXT ("steam_api"),   SK_TEXT ("nvapi"),
+#else
+    SK_TEXT ("steam_api64"), SK_TEXT ("nvapi64"),
+#endif
+
+    //// Some software repeatedly loads and unloads this, which can
+    ////   cause TLS-related problems if left unchecked... just leave
+    ////     the damn thing loaded permanently!
+    SK_TEXT ("d3dcompiler_"),
+
+    //SK_TEXT ("magicFiles\\FFX\\magic_0") // Final Fantasy X / X-2
   };
 
   for (auto it : pinnable_libs)
@@ -431,23 +443,25 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
            StrStrIW (wszModName, L"GeDoSaTo")            ||
            StrStrIW (wszModName, L"gameoverlayrenderer") ||
            StrStrIW (wszModName, L"RTSSHooks")           ||
+           StrStrIW (wszModName, L"Nahimic2DevProps")    ||
+           StrStrIW (wszModName, L"ReShade")             ||
            StrStrIW (wszModName, L"Activation") )
       {   
         SK_ReHookLoadLibrary ();
       }
     }
 
-    if ( StrStrIW (wszModName, L"Nahimic2DevProps")    ||
-         StrStrIW (wszModName, L"ReShade") )
-    {
-      static int tries = 0;
-
-      // If these things ever repeatedly try to rehook what we
-      //   just rehooked, then give up eventuall to prevent
-      //     infinite recursion.
-      if (tries++ < 2)
-        SK_ReHookLoadLibrary ();
-    }
+    //if ( StrStrIW (wszModName, L"Nahimic2DevProps")    ||
+    //     StrStrIW (wszModName, L"ReShade") )
+    //{
+    //  static int tries = 0;
+    //
+    //  // If these things ever repeatedly try to rehook what we
+    //  //   just rehooked, then give up eventuall to prevent
+    //  //     infinite recursion.
+    //  if (tries++ < 2)
+    //    SK_ReHookLoadLibrary ();
+    //}
   }
 
   if (hCallingMod != SK_GetDLL ()/* && SK_IsInjected ()*/)

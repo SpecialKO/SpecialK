@@ -341,6 +341,7 @@ void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 
 #include <unordered_set>
 #include <unordered_map>
+#include <array>
 #include <set>
 #include <map>
 
@@ -813,19 +814,25 @@ struct shader_tracking_s
 
 struct SK_D3D11_KnownShaders
 {
+  typedef std::unordered_map <uint32_t, std::unordered_set <ID3D11ShaderResourceView *>> conditional_blacklist_t;
 
   template <typename _T> 
   struct ShaderRegistry
   {
-    std::unordered_map <_T*, uint32_t>                 rev;
-    std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
+    std::unordered_map <_T*, uint32_t>                   rev;
+    std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>   descs;
 
-    std::unordered_set <uint32_t>                      blacklist;
+    std::unordered_set <uint32_t>                        wireframe;
+    std::unordered_set <uint32_t>                        blacklist;
 
-    uint32_t                                           current = 0x0;
-    shader_tracking_s                                  tracked;
+    conditional_blacklist_t                              blacklist_if_texture;
 
-    ULONG                                              changes_last_frame = 0;
+    uint32_t                                             current = 0x0;
+    shader_tracking_s                                    tracked;
+
+    ULONG                                                changes_last_frame = 0;
+
+    std::array         <ID3D11ShaderResourceView *, 128> current_views;
   };
 
   ShaderRegistry <ID3D11PixelShader>    pixel;

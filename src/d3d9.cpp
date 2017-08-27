@@ -28,6 +28,9 @@
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/import.h>
 
+MIDL_INTERFACE("D0223B96-BF7A-43fd-92BD-A43B0D82B9EB") IDirect3DDevice9;
+MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
+
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
 
@@ -331,7 +334,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     if (cegD3D9 != nullptr)
     {
       SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
-      SK_PopupManager::getInstance ()->destroyAllPopups         ();
+      SK_PopupManager::getInstance       ()->destroyAllPopups   ();
 
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
     }
@@ -796,7 +799,7 @@ WINAPI
 SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
                        D3DDISPLAYMODEEX*      pFullscreenMode = nullptr )
 {
-  int TargetFPS = (int)config.render.framerate.target_fps;
+  int TargetFPS = static_cast <int> (config.render.framerate.target_fps);
 
   // First consider D3D9Ex FullScreen Mode
   int Refresh   = pFullscreenMode != nullptr ?
@@ -886,19 +889,23 @@ extern bool WINAPI SK_CheckForGeDoSaTo (void);
 
 __declspec (noinline)
 HRESULT
-WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
-                   _In_ const RECT               *pSourceRect,
-                   _In_ const RECT               *pDestRect,
-                   _In_       HWND                hDestWindowOverride,
-                   _In_ const RGNDATA            *pDirtyRegion,
-                   _In_       DWORD               dwFlags)
+WINAPI
+D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
+             _In_ const RECT               *pSourceRect,
+             _In_ const RECT               *pDestRect,
+             _In_       HWND                hDestWindowOverride,
+             _In_ const RGNDATA            *pDirtyRegion,
+             _In_       DWORD               dwFlags )
 {
   if (This == nullptr)
     return E_NOINTERFACE;
 
   //SK_D3D9_UpdateRenderStats (nullptr, This);
 
-  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9Ex;
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  rb.api = SK_RenderAPI::D3D9Ex;
   SK_BeginBufferSwap ();
 
   HRESULT hr = E_FAIL;
@@ -913,9 +920,6 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
     if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
     {
-      SK_RenderBackend& rb =
-        SK_GetCurrentRenderBackend ();
-
       rb.device    = This;
       rb.swapchain = pSwapChain;
 
@@ -961,11 +965,12 @@ WINAPI D3D9PresentCallbackEx (IDirect3DDevice9Ex *This,
 
 __declspec (noinline)
 HRESULT
-WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
-                      _In_ const RECT             *pSourceRect,
-                      _In_ const RECT             *pDestRect,
-                      _In_       HWND              hDestWindowOverride,
-                      _In_ const RGNDATA          *pDirtyRegion )
+WINAPI
+D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
+               _In_ const RECT             *pSourceRect,
+               _In_ const RECT             *pDestRect,
+               _In_       HWND              hDestWindowOverride,
+               _In_ const RGNDATA          *pDirtyRegion )
 {
   if ( config.render.d3d9.osd_in_vidcap && InterlockedExchangeAdd (
          &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
@@ -989,11 +994,12 @@ WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
 
 __declspec (noinline)
 HRESULT
-WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
-                 _In_ const RECT             *pSourceRect,
-                 _In_ const RECT             *pDestRect,
-                 _In_       HWND              hDestWindowOverride,
-                 _In_ const RGNDATA          *pDirtyRegion)
+WINAPI
+D3D9PresentCallback ( IDirect3DDevice9 *This,
+           _In_ const RECT             *pSourceRect,
+           _In_ const RECT             *pDestRect,
+           _In_       HWND              hDestWindowOverride,
+           _In_ const RGNDATA          *pDirtyRegion )
 {
 #if 0
   SetThreadIdealProcessor (GetCurrentThread (),       6);
@@ -1002,6 +1008,9 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   if (This == nullptr)
     return E_NOINTERFACE;
+
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
 
   if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX)
   {
@@ -1035,9 +1044,6 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
       if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
       {
-        SK_RenderBackend& rb =
-          SK_GetCurrentRenderBackend ();
-
         rb.device    = This;
         rb.swapchain = pSwapChain;
 
@@ -1056,15 +1062,15 @@ WINAPI D3D9PresentCallback (IDirect3DDevice9 *This,
 
   CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
 
-  if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface (IID_PPV_ARGS (&pDev9Ex))))
+  if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
   {
-       (int&)SK_GetCurrentRenderBackend ().api  = ( (int)SK_RenderAPI::D3D9 |
-                                                    (int)SK_RenderAPI::D3D9Ex );
+    reinterpret_cast <int &> (rb.api) = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
+                                          static_cast <int> (SK_RenderAPI::D3D9Ex)   );
   }
 
   else
   {
-    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
+    rb.api = SK_RenderAPI::D3D9;
   }
 
   SK_BeginBufferSwap ();
@@ -1219,19 +1225,24 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
   __declspec (noinline)
   HRESULT
-  WINAPI D3D9PresentSwapCallback (IDirect3DSwapChain9 *This,
-                          _In_ const RECT             *pSourceRect,
-                          _In_ const RECT             *pDestRect,
-                          _In_       HWND              hDestWindowOverride,
-                          _In_ const RGNDATA          *pDirtyRegion,
-                          _In_       DWORD             dwFlags)
+  WINAPI
+  D3D9PresentSwapCallback ( IDirect3DSwapChain9 *This,
+                 _In_ const RECT                *pSourceRect,
+                 _In_ const RECT                *pDestRect,
+                 _In_       HWND                 hDestWindowOverride,
+                 _In_ const RGNDATA             *pDirtyRegion,
+                 _In_       DWORD                dwFlags )
   {
     if (This == nullptr)
       return E_NOINTERFACE;
 
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
     //SK_D3D9_UpdateRenderStats (This);
 
-    CComPtr <IDirect3DDevice9> pDev = nullptr;
+    CComPtr <IDirect3DDevice9>   pDev    = nullptr;
+    CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
 
     if (SUCCEEDED (This->GetDevice (&pDev)))
     {
@@ -1241,9 +1252,6 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
       if (SUCCEEDED (This->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, &pSurf)))
       {
-        SK_RenderBackend& rb =
-          SK_GetCurrentRenderBackend ();
-
         rb.device    = pDev;
         rb.swapchain = This;
 
@@ -1259,57 +1267,53 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
       }
     }
 
-    CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
-
-    if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface (IID_PPV_ARGS (&pDev9Ex))))
+    if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
-         (int&)SK_GetCurrentRenderBackend ().api  = ( (int)SK_RenderAPI::D3D9 |
-                                                      (int)SK_RenderAPI::D3D9Ex );
+      reinterpret_cast <int &> (rb.api)  = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
+                                             static_cast <int> (SK_RenderAPI::D3D9Ex)   );
     }
 
     else
     {
-      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D9;
+      rb.api = SK_RenderAPI::D3D9;
     }
 
     SK_BeginBufferSwap ();
 
-    HRESULT hr = D3D9PresentSwap_Original (This,
-                                           pSourceRect,
-                                           pDestRect,
-                                           hDestWindowOverride,
-                                           pDirtyRegion,
-                                           dwFlags);
+    HRESULT hr =
+      D3D9PresentSwap_Original ( This,
+                                   pSourceRect,
+                                     pDestRect,
+                                       hDestWindowOverride,
+                                         pDirtyRegion,
+                                           dwFlags );
 
     // We are manually pumping OSD updates, do not do them on buffer swaps.
-    if (config.osd.pump) {
+    if (config.osd.pump)
+    {
       return hr;
     }
 
-    //
-    // Get the Device Pointer so we can check the SLI state through NvAPI
-    //
-    IDirect3DDevice9* dev = nullptr;
+    hr =
+      D3DERR_DEVICELOST;
 
-    if (SUCCEEDED (This->GetDevice (&dev)) && dev != nullptr)
+    if (pDev != nullptr)
     {
       if (trigger_reset == reset_stage_e::Clear)
       {
-        hr = SK_EndBufferSwap (hr, dev);
+        hr =
+          SK_EndBufferSwap (hr, pDev);
       }
-      else
-        hr = D3DERR_DEVICELOST;
 
-      ((IUnknown *)dev)->Release ();
       return hr;
     }
 
+    // pDev should be nullptr ... I'm not exactly sure what I was trying to accomplish? :P
     if (trigger_reset == reset_stage_e::Clear)
     {
-      hr = SK_EndBufferSwap (hr, dev);
+      hr =
+        SK_EndBufferSwap (hr, pDev);
     }
-    else
-      hr = D3DERR_DEVICELOST;
 
     return hr;
   }
@@ -1317,11 +1321,9 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9CreateAdditionalSwapChain_Override (
-    IDirect3DDevice9       *This,
-    D3DPRESENT_PARAMETERS  *pPresentationParameters,
-    IDirect3DSwapChain9   **pSwapChain
-  )
+D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
+                                         D3DPRESENT_PARAMETERS  *pPresentationParameters,
+                                         IDirect3DSwapChain9   **pSwapChain )
 {
   dll_log.Log (L"[   D3D9   ] [!] %s (%ph, %ph, %ph) - "
     L"%s",
@@ -1330,8 +1332,7 @@ D3D9CreateAdditionalSwapChain_Override (
         SK_SummarizeCaller ().c_str ()
   );
 
-  HRESULT hr;
-
+  HRESULT    hr = E_FAIL;
   D3D9_CALL (hr,D3D9CreateAdditionalSwapChain_Original ( This,
                                                            pPresentationParameters,
                                                              pSwapChain ) );
@@ -1340,8 +1341,9 @@ D3D9CreateAdditionalSwapChain_Override (
   {
     D3D9_INTERCEPT ( pSwapChain, 3,
                      "IDirect3DSwapChain9::Present",
-                     D3D9PresentSwapCallback, D3D9PresentSwap_Original,
-                     D3D9PresentSwapChain_pfn );
+                      D3D9PresentSwapCallback,
+                      D3D9PresentSwap_Original,
+                      D3D9PresentSwapChain_pfn );
   }
 
   return hr;
@@ -1350,34 +1352,32 @@ D3D9CreateAdditionalSwapChain_Override (
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9TestCooperativeLevel_Override (IDirect3DDevice9* This)
+D3D9TestCooperativeLevel_Override (IDirect3DDevice9 *This)
 {
-  HRESULT hr = E_FAIL;
-
   if (trigger_reset == reset_stage_e::Initiate)
   {
     trigger_reset = reset_stage_e::Respond;
+
     return D3DERR_DEVICELOST;
   }
+
 
   else if (trigger_reset == reset_stage_e::Respond)
   {
     return D3DERR_DEVICENOTRESET;
   }
 
-  hr = D3D9TestCooperativeLevel_Original (This);
 
-  return hr;
+  return D3D9TestCooperativeLevel_Original (This);
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9BeginScene_Override (IDirect3DDevice9* This)
+D3D9BeginScene_Override (IDirect3DDevice9 *This)
 {
-  HRESULT hr;
-
-  hr = D3D9BeginScene_Original (This);
+  HRESULT hr =
+    D3D9BeginScene_Original (This);
 
   //D3D9_CALL (hr, D3D9Begincene_Original (This));
 
@@ -1387,7 +1387,7 @@ D3D9BeginScene_Override (IDirect3DDevice9* This)
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9EndScene_Override (IDirect3DDevice9* This)
+D3D9EndScene_Override (IDirect3DDevice9 *This)
 {
   //dll_log.Log (L"[   D3D9   ] [!] %s (%ph) - "
     //L"[Calling Thread: 0x%04x]",
@@ -1395,11 +1395,7 @@ D3D9EndScene_Override (IDirect3DDevice9* This)
     //GetCurrentThreadId ()
   //);
 
-  HRESULT hr;
-
-  hr = D3D9EndScene_Original (This);
-
-  return hr;
+  return D3D9EndScene_Original (This);
 }
 
 __declspec (noinline)
@@ -1421,7 +1417,8 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   static LPVOID vftable_16  = nullptr;
   static LPVOID vftable_132 = nullptr;
 
-  void** vftable = *(void***)*&pDev;
+  void** vftable =
+    *(reinterpret_cast <void ***> (*&pDev));
 
   if (D3D9Reset_Original != nullptr)
   {
@@ -1446,12 +1443,14 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
     }
   }
 
-  int hook_type = config.render.d3d9.hook_type;
+  int hook_type =
+    config.render.d3d9.hook_type;
 
   if (config.compatibility.d3d9.hook_reset_vftbl)
-    config.render.d3d9.hook_type = 1;
+      config.render.d3d9.hook_type = 1;
 
-  if (D3D9Reset_Original == nullptr || config.compatibility.d3d9.rehook_reset)
+  if ( D3D9Reset_Original == nullptr ||
+       config.compatibility.d3d9.rehook_reset )
   {
     D3D9_INTERCEPT ( &pDev, 16,
                      "IDirect3DDevice9::Reset",
@@ -1473,9 +1472,10 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
 
   CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
 
-  if (SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevEx))))
+  if (SUCCEEDED ((static_cast <IUnknown *> (pDev))->QueryInterface <IDirect3DDevice9Ex> (&pDevEx)))
   {
-    vftable = *(void***)*&pDevEx;
+    vftable =
+      *( reinterpret_cast <void ***> (*&pDevEx) );
 
     if (D3D9ResetEx_Original != nullptr)
     {
@@ -1501,10 +1501,11 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
     }
 
     if (config.compatibility.d3d9.hook_reset_vftbl)
-      config.render.d3d9.hook_type = 1;
+        config.render.d3d9.hook_type = 1;
 
-  if (D3D9ResetEx_Original == nullptr || config.compatibility.d3d9.rehook_reset)
-  {
+    if ( D3D9ResetEx_Original == nullptr ||
+         config.compatibility.d3d9.rehook_reset )
+    {
       D3D9_INTERCEPT ( &pDevEx, 132,
                       "IDirect3DDevice9Ex::ResetEx",
                       D3D9ResetEx,
@@ -1525,9 +1526,11 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   static LPVOID vftable_17  = nullptr;
   static LPVOID vftable_121 = nullptr;
 
-  void** vftable = *(void***)*&pDev;
+  void** vftable =
+    *( reinterpret_cast <void ***> (*&pDev) );
 
-  if (D3D9Present_Original != nullptr) {
+  if (D3D9Present_Original != nullptr)
+  {
     if ( config.render.d3d9.hook_type == 0                &&
          (! config.compatibility.d3d9.hook_present_vftbl) &&
             config.compatibility.d3d9.rehook_present )
@@ -1549,12 +1552,14 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
     }
   }
 
-  int hook_type = config.render.d3d9.hook_type;
+  int hook_type =
+    config.render.d3d9.hook_type;
 
   if (config.compatibility.d3d9.hook_present_vftbl)
-    config.render.d3d9.hook_type = 1;
+      config.render.d3d9.hook_type = 1;
 
-  if (D3D9Present_Original == nullptr || config.compatibility.d3d9.rehook_present)
+  if ( D3D9Present_Original == nullptr ||
+       config.compatibility.d3d9.rehook_present )
   {
     D3D9_INTERCEPT ( &pDev, 17,
                      "IDirect3DDevice9::Present",
@@ -1573,13 +1578,14 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 
   CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
 
-  if (SUCCEEDED (pDev->QueryInterface (IID_PPV_ARGS (&pDevEx))))
+  if (SUCCEEDED (static_cast <IUnknown *> (pDev)->QueryInterface <IDirect3DDevice9Ex> (&pDevEx)))
   {
-    vftable = *(void***)*&pDevEx;
+    vftable =
+      *( reinterpret_cast <void ***> (*&pDevEx) );
 
     if (D3D9PresentEx_Original != nullptr)
     {
-      if ( config.render.d3d9.hook_type == 0              &&
+      if (  config.render.d3d9.hook_type == 0             &&
          (! config.compatibility.d3d9.hook_present_vftbl) &&
             config.compatibility.d3d9.rehook_present )
       {
@@ -1757,11 +1763,9 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     SK_SetPresentParamsD3D9 (This, pPresentationParameters);
   }
 
-  HRESULT hr;
-
   CComPtr <IDirect3DDevice9> pDev = nullptr;
 
-  if (SUCCEEDED (This->QueryInterface ( IID_PPV_ARGS (&pDev) )))
+  if (SUCCEEDED (static_cast <IUnknown *> (This)->QueryInterface <IDirect3DDevice9> (&pDev)))
   {
     if (config.compatibility.d3d9.rehook_reset)
       SK_D3D9_HookReset   (pDev);
@@ -1777,6 +1781,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
   }
 
+  HRESULT    hr = E_FAIL;
   D3D9_CALL (hr, D3D9ResetEx_Original ( This,
                                           pPresentationParameters,
                                             pFullscreenDisplayMode ));
@@ -1822,7 +1827,7 @@ D3D9SetGammaRamp_Override ( IDirect3DDevice9 *This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9DrawPrimitive_Override ( IDirect3DDevice9* This,
+D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                              D3DPRIMITIVETYPE  PrimitiveType,
                              UINT              StartVertex,
                              UINT              PrimitiveCount )
@@ -1837,7 +1842,7 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9* This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9* This,
+D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                     D3DPRIMITIVETYPE  Type,
                                     INT               BaseVertexIndex,
                                     UINT              MinVertexIndex,
@@ -1858,11 +1863,11 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9* This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9DrawPrimitiveUP_Override ( IDirect3DDevice9* This,
-                               D3DPRIMITIVETYPE  PrimitiveType,
-                               UINT              PrimitiveCount,
-                               const void       *pVertexStreamZeroData,
-                               UINT              VertexStreamZeroStride )
+D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
+                                     D3DPRIMITIVETYPE  PrimitiveType,
+                                     UINT              PrimitiveCount,
+                               const void             *pVertexStreamZeroData,
+                                     UINT              VertexStreamZeroStride )
 {
   return
     D3D9DrawPrimitiveUP_Original ( This,
@@ -1875,15 +1880,15 @@ D3D9DrawPrimitiveUP_Override ( IDirect3DDevice9* This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9DrawIndexedPrimitiveUP_Override ( IDirect3DDevice9* This,
-                                      D3DPRIMITIVETYPE  PrimitiveType,
-                                      UINT              MinVertexIndex,
-                                      UINT              NumVertices,
-                                      UINT              PrimitiveCount,
-                                      const void       *pIndexData,
-                                      D3DFORMAT         IndexDataFormat,
-                                      const void       *pVertexStreamZeroData,
-                                      UINT              VertexStreamZeroStride )
+D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
+                                            D3DPRIMITIVETYPE  PrimitiveType,
+                                            UINT              MinVertexIndex,
+                                            UINT              NumVertices,
+                                            UINT              PrimitiveCount,
+                                      const void             *pIndexData,
+                                            D3DFORMAT         IndexDataFormat,
+                                      const void             *pVertexStreamZeroData,
+                                            UINT              VertexStreamZeroStride )
 {
   return
     D3D9DrawIndexedPrimitiveUP_Original (
@@ -1905,103 +1910,132 @@ D3D9SetTexture_Override ( IDirect3DDevice9      *This,
                     _In_  DWORD                  Sampler,
                     _In_  IDirect3DBaseTexture9 *pTexture )
 {
-  return D3D9SetTexture_Original (This, Sampler, pTexture);
+  return
+    D3D9SetTexture_Original ( This,
+                                Sampler,
+                                  pTexture );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetSamplerState_Override (IDirect3DDevice9*   This,
-                              DWORD               Sampler,
-                              D3DSAMPLERSTATETYPE Type,
-                              DWORD               Value)
+D3D9SetSamplerState_Override ( IDirect3DDevice9    *This,
+                               DWORD                Sampler,
+                               D3DSAMPLERSTATETYPE  Type,
+                               DWORD                Value )
 {
-  return D3D9SetSamplerState_Original (This, Sampler, Type, Value);
+  return
+    D3D9SetSamplerState_Original ( This,
+                                     Sampler,
+                                       Type,
+                                         Value );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetViewport_Override (IDirect3DDevice9* This,
-                    CONST D3DVIEWPORT9*     pViewport)
+D3D9SetViewport_Override (       IDirect3DDevice9 *This,
+                           CONST D3DVIEWPORT9     *pViewport )
 {
-  return D3D9SetViewport_Original (This, pViewport);
+  return
+    D3D9SetViewport_Original ( This,
+                                 pViewport );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetRenderState_Override (IDirect3DDevice9*  This,
-                             D3DRENDERSTATETYPE State,
-                             DWORD              Value)
+D3D9SetRenderState_Override ( IDirect3DDevice9   *This,
+                              D3DRENDERSTATETYPE  State,
+                              DWORD               Value )
 {
-  return D3D9SetRenderState_Original (This, State, Value);
+  return
+    D3D9SetRenderState_Original ( This,
+                                    State,
+                                      Value );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetVertexShaderConstantF_Override (IDirect3DDevice9* This,
-                                       UINT             StartRegister,
-                                       CONST float*     pConstantData,
-                                       UINT             Vector4fCount)
+D3D9SetVertexShaderConstantF_Override (       IDirect3DDevice9 *This,
+                                              UINT              StartRegister,
+                                        CONST float            *pConstantData,
+                                              UINT              Vector4fCount )
 {
-  return D3D9SetVertexShaderConstantF_Original (This, StartRegister, pConstantData, Vector4fCount);
+  return
+    D3D9SetVertexShaderConstantF_Original ( This,
+                                              StartRegister,
+                                                pConstantData,
+                                                  Vector4fCount );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetPixelShaderConstantF_Override (IDirect3DDevice9* This,
-                                      UINT             StartRegister,
-                                      CONST float*     pConstantData,
-                                      UINT             Vector4fCount)
+D3D9SetPixelShaderConstantF_Override (       IDirect3DDevice9 *This,
+                                             UINT              StartRegister,
+                                       CONST float            *pConstantData,
+                                             UINT              Vector4fCount )
 {
-  return D3D9SetPixelShaderConstantF_Original (This, StartRegister, pConstantData, Vector4fCount);
+  return
+    D3D9SetPixelShaderConstantF_Original ( This,
+                                             StartRegister,
+                                               pConstantData,
+                                                 Vector4fCount );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetPixelShader_Override (IDirect3DDevice9* This,
-                        IDirect3DPixelShader9* pShader)
+D3D9SetPixelShader_Override ( IDirect3DDevice9      *This,
+                              IDirect3DPixelShader9 *pShader )
 {
-  return D3D9SetPixelShader_Original (This, pShader);
+  return 
+    D3D9SetPixelShader_Original ( This,
+                                    pShader );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetVertexShader_Override (IDirect3DDevice9* This,
-                        IDirect3DVertexShader9* pShader)
+D3D9SetVertexShader_Override ( IDirect3DDevice9       *This,
+                               IDirect3DVertexShader9 *pShader )
 {
-  return D3D9SetVertexShader_Original (This, pShader);
+  return
+    D3D9SetVertexShader_Original ( This,
+                                     pShader );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetScissorRect_Override (IDirect3DDevice9* This,
-                                   const RECT* pRect)
+D3D9SetScissorRect_Override ( IDirect3DDevice9 *This,
+                        const RECT             *pRect)
 {
-  return D3D9SetScissorRect_Original (This, pRect);
+  return
+    D3D9SetScissorRect_Original ( This,
+                                    pRect );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9CreateTexture_Override (IDirect3DDevice9   *This,
-                            UINT                Width,
-                            UINT                Height,
-                            UINT                Levels,
-                            DWORD               Usage,
-                            D3DFORMAT           Format,
-                            D3DPOOL             Pool,
-                            IDirect3DTexture9 **ppTexture,
-                            HANDLE             *pSharedHandle)
+D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
+                             UINT                Width,
+                             UINT                Height,
+                             UINT                Levels,
+                             DWORD               Usage,
+                             D3DFORMAT           Format,
+                             D3DPOOL             Pool,
+                             IDirect3DTexture9 **ppTexture,
+                             HANDLE             *pSharedHandle )
 {
-  return D3D9CreateTexture_Original (This, Width, Height, Levels, Usage,
-                                     Format, Pool, ppTexture, pSharedHandle);
+  return
+    D3D9CreateTexture_Original ( This,
+                                   Width, Height, Levels,
+                                     Usage, Format, Pool,
+                                       ppTexture, pSharedHandle );
 }
 
 __declspec (noinline)
@@ -2062,22 +2096,23 @@ D3D9SetStreamSourceFreq_Override
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetFVF_Override
-(
-  IDirect3DDevice9 *This,
-  DWORD             FVF )
+D3D9SetFVF_Override ( IDirect3DDevice9 *This,
+                      DWORD             FVF )
 {
-  return D3D9SetFVF_Original ( This, FVF );
+  return
+    D3D9SetFVF_Original ( This,
+                            FVF );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetVertexDeclaration_Override
-( IDirect3DDevice9            *This,
-  IDirect3DVertexDeclaration9 *pDecl )
+D3D9SetVertexDeclaration_Override ( IDirect3DDevice9            *This,
+                                    IDirect3DVertexDeclaration9 *pDecl )
 {
-  return D3D9SetVertexDeclaration_Original ( This, pDecl );
+  return
+    D3D9SetVertexDeclaration_Original ( This,
+                                          pDecl );
 }
 
 __declspec (noinline)
@@ -2089,7 +2124,10 @@ D3D9CreateVertexDeclaration_Override
   CONST D3DVERTEXELEMENT9            *pVertexElements,
         IDirect3DVertexDeclaration9 **ppDecl )
 {
-  return D3D9CreateVertexDeclaration_Original ( This, pVertexElements, ppDecl );
+  return
+    D3D9CreateVertexDeclaration_Original ( This,
+                                             pVertexElements,
+                                               ppDecl );
 }
 
 __declspec (noinline)
@@ -2105,58 +2143,72 @@ D3D9CreateRenderTarget_Override (IDirect3DDevice9     *This,
                                  IDirect3DSurface9   **ppSurface,
                                  HANDLE               *pSharedHandle)
 {
-  return D3D9CreateRenderTarget_Original (This, Width, Height, Format,
-                                          MultiSample, MultisampleQuality,
-                                          Lockable, ppSurface, pSharedHandle);
+  return
+    D3D9CreateRenderTarget_Original ( This,
+                                        Width, Height,
+                                          Format,
+                                            MultiSample, MultisampleQuality,
+                                              Lockable,
+                                                ppSurface, pSharedHandle );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9CreateDepthStencilSurface_Override (IDirect3DDevice9     *This,
-                                        UINT                  Width,
-                                        UINT                  Height,
-                                        D3DFORMAT             Format,
-                                        D3DMULTISAMPLE_TYPE   MultiSample,
-                                        DWORD                 MultisampleQuality,
-                                        BOOL                  Discard,
-                                        IDirect3DSurface9   **ppSurface,
-                                        HANDLE               *pSharedHandle)
+D3D9CreateDepthStencilSurface_Override ( IDirect3DDevice9     *This,
+                                         UINT                  Width,
+                                         UINT                  Height,
+                                         D3DFORMAT             Format,
+                                         D3DMULTISAMPLE_TYPE   MultiSample,
+                                         DWORD                 MultisampleQuality,
+                                         BOOL                  Discard,
+                                         IDirect3DSurface9   **ppSurface,
+                                         HANDLE               *pSharedHandle )
 {
-  return D3D9CreateDepthStencilSurface_Original (This, Width, Height, Format,
-                                                 MultiSample, MultisampleQuality,
-                                                 Discard, ppSurface, pSharedHandle);
+  return
+    D3D9CreateDepthStencilSurface_Original ( This,
+                                               Width, Height,
+                                                 Format,
+                                                   MultiSample, MultisampleQuality,
+                                                     Discard,
+                                                       ppSurface, pSharedHandle );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetRenderTarget_Override (IDirect3DDevice9  *This,
-                              DWORD              RenderTargetIndex,
-                              IDirect3DSurface9 *pRenderTarget)
+D3D9SetRenderTarget_Override ( IDirect3DDevice9  *This,
+                               DWORD              RenderTargetIndex,
+                               IDirect3DSurface9 *pRenderTarget )
 {
-  return D3D9SetRenderTarget_Original (This, RenderTargetIndex, pRenderTarget);
+  return
+    D3D9SetRenderTarget_Original ( This,
+                                     RenderTargetIndex,
+                                       pRenderTarget );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9SetDepthStencilSurface_Override (IDirect3DDevice9  *This,
-                                     IDirect3DSurface9 *pNewZStencil)
+D3D9SetDepthStencilSurface_Override ( IDirect3DDevice9  *This,
+                                      IDirect3DSurface9 *pNewZStencil )
 {
-  return D3D9SetDepthStencilSurface_Original (This, pNewZStencil);
+  return
+    D3D9SetDepthStencilSurface_Original ( This,
+                                            pNewZStencil );
 }
 
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9UpdateTexture_Override (IDirect3DDevice9      *This,
-                            IDirect3DBaseTexture9 *pSourceTexture,
-                            IDirect3DBaseTexture9 *pDestinationTexture)
+D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
+                             IDirect3DBaseTexture9 *pSourceTexture,
+                             IDirect3DBaseTexture9 *pDestinationTexture )
 {
-  return D3D9UpdateTexture_Original ( This,
-                                        pSourceTexture,
-                                          pDestinationTexture );
+  return
+    D3D9UpdateTexture_Original ( This,
+                                   pSourceTexture,
+                                     pDestinationTexture );
 }
 
 __declspec (noinline)
@@ -2169,12 +2221,13 @@ D3D9StretchRect_Override (      IDirect3DDevice9    *This,
                           const RECT                *pDestRect,
                                 D3DTEXTUREFILTERTYPE Filter )
 {
-  return D3D9StretchRect_Original ( This,
-                                      pSourceSurface,
-                                      pSourceRect,
-                                        pDestSurface,
-                                        pDestRect,
-                                          Filter );
+  return
+    D3D9StretchRect_Original ( This,
+                                 pSourceSurface,
+                                 pSourceRect,
+                                   pDestSurface,
+                                   pDestRect,
+                                     Filter );
 }
 
 __declspec (noinline)
@@ -2185,10 +2238,11 @@ D3D9SetCursorPosition_Override (      IDirect3DDevice9 *This,
                                  _In_ INT               Y,
                                  _In_ DWORD             Flags )
 {
-  return D3D9SetCursorPosition_Original ( This,
-                                            X,
-                                              Y,
-                                                Flags );
+  return
+    D3D9SetCursorPosition_Original ( This,
+                                       X,
+                                         Y,
+                                           Flags );
 }
 
 //
@@ -2212,6 +2266,9 @@ D3DPRESENT_PARAMETERS*
 WINAPI
 SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pparams)
 {
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
     if (pparams != nullptr)
@@ -2230,15 +2287,20 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       }
 
 
-      if (hWndRender == 0 || (! IsWindow (hWndRender))) {
-        hWndRender = pparams->hDeviceWindow != 0 ? pparams->hDeviceWindow : hWndRender;
+      if (hWndRender == 0 || (! IsWindow (hWndRender)))
+      {
+        hWndRender  =  pparams->hDeviceWindow != 0 ?
+                            pparams->hDeviceWindow :
+                                     hWndRender;
       }
 
-      bool switch_to_fullscreen = config.display.force_fullscreen || ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && 
-                                                                          request_mode_change == mode_change_request_e::Fullscreen );
-      bool switch_to_windowed   = config.display.force_windowed   || ( (  SK_GetCurrentRenderBackend ().fullscreen_exclusive) && 
-                                                                          request_mode_change == mode_change_request_e::Windowed   );
+      bool switch_to_fullscreen = config.display.force_fullscreen  ||
+                                 ( (! rb.fullscreen_exclusive)  && 
+                                      request_mode_change       ==   mode_change_request_e::Fullscreen );
 
+      bool switch_to_windowed   = config.display.force_windowed    ||
+                                 (    rb.fullscreen_exclusive   && 
+                                      request_mode_change       ==   mode_change_request_e::Windowed   );
 
       if (switch_to_fullscreen)
       {
@@ -2254,8 +2316,11 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         pparams->BackBufferCount            = 1;
         pparams->EnableAutoDepthStencil     = true;
         pparams->FullScreen_RefreshRateInHz = 60;
-        if (pparams->BackBufferWidth  < 512) pparams->BackBufferWidth  = mi.rcMonitor.right  - mi.rcMonitor.left;
-        if (pparams->BackBufferHeight < 256) pparams->BackBufferHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+        if (pparams->BackBufferWidth  < 512)
+            pparams->BackBufferWidth  =      ( mi.rcMonitor.right  - mi.rcMonitor.left );
+        if (pparams->BackBufferHeight < 256)
+            pparams->BackBufferHeight =      ( mi.rcMonitor.bottom - mi.rcMonitor.top  );
       }
 
       else if (switch_to_windowed)
@@ -2264,30 +2329,54 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         {
           pparams->Windowed                   = TRUE;
           pparams->FullScreen_RefreshRateInHz = 0;
-        } else
+        }
+
+        else
+        {
           dll_log.Log (L"[  D3D9  ] Could not force windowed mode, game has no device window?!");
+        }
       }
 
+      //
+      //  <-(+] Forced Borderless Window [+)->
+      //     ------------------------------
+      //        -> ( NOT FULLSCREEN ) <-
+      //
       if (pparams->Windowed && config.window.borderless && (! config.window.fullscreen))
       {
-        if (config.window.res.override.isZero ()) {
-          RECT wnd_rect = *SK_GetGameRect ();
+        //  <- @  [No Resolution Override]  @ ->
+        //
+        if (config.window.res.override.isZero ())
+        {
+          RECT wnd_rect =
+            *SK_GetGameRect ();
 
           int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
           int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
-          int title = SK_GetSystemMetrics (SM_CYCAPTION);
+          int title = SK_GetSystemMetrics (SM_CYCAPTION );
 
-          if ( SK_DiscontEpsilon (pparams->BackBufferWidth,  wnd_rect.right  - wnd_rect.left, 2 * x_dlg + 1) ||
-               SK_DiscontEpsilon (pparams->BackBufferHeight, wnd_rect.bottom - wnd_rect.top,  2 * y_dlg + title + 1) )
+          if ( SK_DiscontEpsilon ( pparams->BackBufferWidth,
+                                     ( wnd_rect.right  - wnd_rect.left ),
+                                     (       2 * x_dlg + 1             ) )
+
+                                 ||
+
+               SK_DiscontEpsilon ( pparams->BackBufferHeight,
+                                     ( wnd_rect.bottom - wnd_rect.top  ),
+                                     (       2 * y_dlg + title + 1     ) )
+             )
           {
-            pparams->BackBufferWidth  = wnd_rect.right  - wnd_rect.left;
-            pparams->BackBufferHeight = wnd_rect.bottom - wnd_rect.top;
+            pparams->BackBufferWidth  = ( wnd_rect.right  - wnd_rect.left );
+            pparams->BackBufferHeight = ( wnd_rect.bottom - wnd_rect.top  );
 
             dll_log.Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
-                            pparams->BackBufferWidth, pparams->BackBufferHeight );
+                            pparams->BackBufferWidth,
+                              pparams->BackBufferHeight );
           }
         }
 
+        //  <- @  [OVERRIDE Resolution]  @ ->
+        //
         else
         {
           pparams->BackBufferWidth  = config.window.res.override.x;
@@ -2295,22 +2384,54 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         }
       }
 
+
+      extern GetClientRect_pfn    GetClientRect_Original;
+
+             RECT                 client = {        };
+      GetClientRect_Original ( pparams->hDeviceWindow,
+                                 &client );
+
+
+      //  Non-Zero Values for Backbuffer Width / Height
+      //  =============================================
+      //
+      //   An override may be necessary; at the very least we will make
+      //     note of the explicit values provided by the game.
+      //
+      //
+      //  NOTE:    If (Zero, Zero) is supplied for (Width, Height) -- it is a
+      // ~~~~~~~     special-case indicating to Windows that the client rect.
+      //               determines SwapChain resolution
+      //
+      //     -=> * The client rectangle can be spoofed by Special K even +
+      //         +   to the D3D9 Runtime itself !                        * <=-
+      //
+      //
+      //    -------------------------------------------------------------------
+      //    (  The 0x0 case is one we have to consider carefully in order     )
+      //    (    to figure out how the game is designed to behave vis-a-vis.  )
+      //    (      resolution scaling if the window is resized.               )
+      //
       if (pparams->BackBufferWidth != 0 && pparams->BackBufferHeight != 0)
       {
-        RECT client;
-        GetClientRect (pparams->hDeviceWindow, &client);
+        /* User wants an override, so let's get down to brass tacks... */
+        if (! config.window.res.override.isZero ())
+        {
+          pparams->BackBufferWidth  = config.window.res.override.x;
+          pparams->BackBufferHeight = config.window.res.override.y;
+        }
 
-        // If this is zero, we need to actually create the render device / swapchain and
-        //   then get the value Windows assigned us...
+        /* If this is Zero, we need to actually create the render device / swapchain and
+             then get the value Windows assigned us... */
         SK_SetWindowResX (pparams->BackBufferWidth);
         SK_SetWindowResY (pparams->BackBufferHeight);
       }
 
+      // Implicit Resolution
+      //
+      //  
       else
       {
-        RECT client;
-        GetClientRect (pparams->hDeviceWindow, &client);
-
         // If this is zero, we need to actually create the render device / swapchain and
         //   then get the value Windows assigned us...
         SK_SetWindowResX (client.right  - client.left);
@@ -2319,7 +2440,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
       // Range Restrict to prevent D3DERR_INVALID_CALL
       if (pparams->PresentationInterval > 16)
-        pparams->PresentationInterval = 0;
+          pparams->PresentationInterval = 0;
 
       if (pparams->Windowed)
       {
@@ -2335,23 +2456,25 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         if ( SetWindowLongPtrW_Original == nullptr ||
              GetWindowLongPtrW_Original == nullptr )
         {
-          SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) | (WS_EX_TOPMOST | WS_EX_APPWINDOW)));
-          SetWindowPos      (pparams->hDeviceWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
-                                                                               SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+          SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+          SetWindowPos      (pparams->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
+                                                                           SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOREPOSITION );
           SK_InstallWindowHook (pparams->hDeviceWindow);
         }
 
         else
         {
-          SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST | WS_EX_APPWINDOW)));
-          SetWindowPos_Original      (game_window.hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
-                                                                                  SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+          SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+          SetWindowPos_Original      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
+                                                                              SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOREPOSITION );
         }
       }
 
-      memcpy (&g_D3D9PresentParams, pparams, sizeof D3DPRESENT_PARAMETERS);
+      memcpy ( &g_D3D9PresentParams,
+                pparams,
+                  sizeof D3DPRESENT_PARAMETERS );
 
-      SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pparams->Windowed);
+      rb.fullscreen_exclusive = (! pparams->Windowed);
     }
   }
 
@@ -2361,14 +2484,14 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
-D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
-                             UINT                    Adapter,
-                             D3DDEVTYPE              DeviceType,
-                             HWND                    hFocusWindow,
-                             DWORD                   BehaviorFlags,
-                             D3DPRESENT_PARAMETERS  *pPresentationParameters,
-                             D3DDISPLAYMODEEX       *pFullscreenDisplayMode,
-                             IDirect3DDevice9Ex    **ppReturnedDeviceInterface)
+D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
+                              UINT                    Adapter,
+                              D3DDEVTYPE              DeviceType,
+                              HWND                    hFocusWindow,
+                              DWORD                   BehaviorFlags,
+                              D3DPRESENT_PARAMETERS  *pPresentationParameters,
+                              D3DDISPLAYMODEEX       *pFullscreenDisplayMode,
+                              IDirect3DDevice9Ex    **ppReturnedDeviceInterface )
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %lu, %lu, %ph, 0x%04X, %ph, %ph, %ph) - "
                 L"%s",
@@ -2392,14 +2515,14 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
   if (config.display.force_windowed)
     hFocusWindow = pPresentationParameters->hDeviceWindow;
 
-  D3D9_CALL (ret, D3D9CreateDeviceEx_Original (This,
-                                               Adapter,
-                                               DeviceType,
-                                               hFocusWindow,
-                                               BehaviorFlags,
-                                               pPresentationParameters,
-                                               pFullscreenDisplayMode,
-                                               ppReturnedDeviceInterface));
+  D3D9_CALL ( ret, D3D9CreateDeviceEx_Original ( This,
+                                                   Adapter,
+                                                     DeviceType,
+                                                       hFocusWindow,
+                                                         BehaviorFlags,
+                                                           pPresentationParameters,
+                                                             pFullscreenDisplayMode,
+                                                               ppReturnedDeviceInterface ) );
 
   if (! SUCCEEDED (ret))
     return ret;
@@ -2642,13 +2765,13 @@ D3D9CreateDeviceEx_Override (IDirect3D9Ex           *This,
 HRESULT
 __declspec (noinline)
 WINAPI
-D3D9CreateDevice_Override (IDirect3D9*            This,
-                           UINT                   Adapter,
-                           D3DDEVTYPE             DeviceType,
-                           HWND                   hFocusWindow,
-                           DWORD                  BehaviorFlags,
-                           D3DPRESENT_PARAMETERS* pPresentationParameters,
-                           IDirect3DDevice9**     ppReturnedDeviceInterface)
+D3D9CreateDevice_Override ( IDirect3D9*            This,
+                            UINT                   Adapter,
+                            D3DDEVTYPE             DeviceType,
+                            HWND                   hFocusWindow,
+                            DWORD                  BehaviorFlags,
+                            D3DPRESENT_PARAMETERS* pPresentationParameters,
+                            IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
   dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %lu, %lu, %ph, 0x%04X, %ph, %ph) - "
                 L"%s",
@@ -2671,12 +2794,12 @@ D3D9CreateDevice_Override (IDirect3D9*            This,
   if (config.display.force_windowed)
     hFocusWindow = pPresentationParameters->hDeviceWindow;
 
-  D3D9_CALL (ret, D3D9CreateDevice_Original ( This, Adapter,
-                                          DeviceType,
-                                            hFocusWindow,
-                                              BehaviorFlags,
-                                                pPresentationParameters,
-                                                  ppReturnedDeviceInterface ));
+  D3D9_CALL ( ret, D3D9CreateDevice_Original ( This, Adapter,
+                                                 DeviceType,
+                                                   hFocusWindow,
+                                                     BehaviorFlags,
+                                                       pPresentationParameters,
+                                                         ppReturnedDeviceInterface ) );
 
   // Do not attempt to do vtable override stuff if this failed,
   //   that will cause an immediate crash! Instead log some information that
@@ -3197,7 +3320,7 @@ HookD3D9 (LPVOID user)
 
       HRESULT hr = pD3D9->CreateDevice (
                      D3DADAPTER_DEFAULT,
-                       D3DDEVTYPE_HAL,
+                       D3DDEVTYPE_NULLREF,
                          hwnd,
                            D3DCREATE_HARDWARE_VERTEXPROCESSING,
                              &pparams,
@@ -3370,7 +3493,7 @@ HookD3D9 (LPVOID user)
 
         if ( SUCCEEDED ( pD3D9Ex->CreateDeviceEx (
                           D3DADAPTER_DEFAULT,
-                            D3DDEVTYPE_HAL,
+                            D3DDEVTYPE_NULLREF,
                                hwnd,
                                 D3DCREATE_HARDWARE_VERTEXPROCESSING,
                                   &pparams,

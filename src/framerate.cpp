@@ -121,6 +121,14 @@ Sleep_Detour (DWORD dwMilliseconds)
 
   if (bGUIThread)
   {
+    static bool ffx = GetModuleHandle (L"UnX.dll") != nullptr;
+
+    if (ffx && dwMilliseconds == 5)
+    {
+      MsgWaitForMultipleObjects (0, nullptr, FALSE, 0, QS_ALLEVENTS);
+      return;
+    }
+
     if (config.render.framerate.sleepless_window && dwMilliseconds != INFINITE)
     {
       static bool reported = false;
@@ -135,7 +143,7 @@ Sleep_Detour (DWORD dwMilliseconds)
       if (bRenderThread)
         SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
-      MsgWaitForMultipleObjects (0, nullptr, FALSE, dwMilliseconds, QS_ALLINPUT);
+      MsgWaitForMultipleObjects (0, nullptr, FALSE, dwMilliseconds, QS_ALLEVENTS);
 
       return;
     }
@@ -163,7 +171,7 @@ Sleep_Detour (DWORD dwMilliseconds)
       //return YieldProcessor ();
 #endif
 
-    SleepEx (dwMilliseconds, TRUE);
+    SleepEx (dwMilliseconds, FALSE);//TRUE);
 #ifdef DUAL_USE_MAX_DELTA
   }
 #endif

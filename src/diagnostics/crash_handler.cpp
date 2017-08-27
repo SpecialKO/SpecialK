@@ -114,7 +114,7 @@ CrashHandler::Init (void)
     crash_log.init (L"logs/crash.log", L"w");
   }
 
-  SK_CreateDLLHook2 (       L"kernel32.dll",
+  SK_CreateDLLHook  (       L"kernel32.dll",
                              "SetUnhandledExceptionFilter",
                               SetUnhandledExceptionFilter_Detour,
 reinterpret_cast <LPVOID *> (&SetUnhandledExceptionFilter_Original) );

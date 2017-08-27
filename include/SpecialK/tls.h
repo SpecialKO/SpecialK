@@ -28,9 +28,13 @@
 #define _NO_CVCONST_H
 #include <dbghelp.h>
 
+struct ID3D11RasterizerState;
+
 struct SK_TLS {
   struct {
-    BOOL texinject_thread    = FALSE;
+    BOOL                    texinject_thread = FALSE;
+    ID3D11RasterizerState* pRasterStateOrig  = nullptr;
+    ID3D11RasterizerState* pRasterStateNew   = nullptr;
   } d3d11;
 
   struct {

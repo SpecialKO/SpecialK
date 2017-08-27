@@ -368,11 +368,12 @@ public:
           {
             config.window.fullscreen = *static_cast <bool *> (val);
 
-            static bool first_set = true;
-            static RECT last_known_client;
-            static RECT last_known_window;
+            static bool first_set         = true;
+            static RECT last_known_client = { };
+            static RECT last_known_window = { };
 
-            RECT client;
+                   RECT client            = { };
+
             GetClientRect_Original (game_window.hWnd, &client);
 
             HMONITOR hMonitor =
@@ -1160,10 +1161,26 @@ GetClientRect_Detour (
   SK_LOG_FIRST_CALL
 
   if ( config.window.borderless &&
-       hWnd == game_window.hWnd &&
-       override_window_rects )
+       hWnd == game_window.hWnd && config.window.fullscreen )
   {
-    *lpRect = game_window.game.client;
+    //lpRect->left = 0; lpRect->right  = config.window.res.override.x;
+    //lpRect->top  = 0; lpRect->bottom = config.window.res.override.y;
+
+    HMONITOR hMonitor =
+      MonitorFromWindow ( game_window.hWnd,
+                            MONITOR_DEFAULTTOPRIMARY );
+
+    MONITORINFO mi   = {         };
+    mi.cbSize        = sizeof (mi);
+    GetMonitorInfo (hMonitor, &mi);
+
+    lpRect->left  = 0;
+    lpRect->right = mi.rcMonitor.right - mi.rcMonitor.left;
+
+    lpRect->top    = 0;
+    lpRect->bottom = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+//    *lpRect = game_window.game.client;
 
     return TRUE;
   }
@@ -1184,9 +1201,26 @@ GetWindowRect_Detour (
 
   if ( config.window.borderless &&
        hWnd == game_window.hWnd && 
-       override_window_rects )
+       config.window.fullscreen )
   {
-    *lpRect = game_window.game.window;
+    //lpRect->left = 0; lpRect->right  = config.window.res.override.x;
+    //lpRect->top  = 0; lpRect->bottom = config.window.res.override.y;
+
+    HMONITOR hMonitor =
+      MonitorFromWindow ( game_window.hWnd,
+                            MONITOR_DEFAULTTOPRIMARY );
+
+    MONITORINFO mi   = {         };
+    mi.cbSize        = sizeof (mi);
+    GetMonitorInfo (hMonitor, &mi);
+
+    lpRect->left  = mi.rcMonitor.left;
+    lpRect->right = mi.rcMonitor.right;
+
+    lpRect->top    = mi.rcMonitor.top;
+    lpRect->bottom = mi.rcMonitor.bottom;
+
+    //*lpRect = game_window.game.window;
 
     return TRUE;
   }
@@ -1257,6 +1291,27 @@ AdjustWindowRect_Detour (
                       SK_SummarizeCaller ().c_str () ),
                 L"Window Mgr" );
 
+  // Override if forcing Fullscreen Bordereless
+  //
+  if (config.window.fullscreen && config.window.borderless && (! bMenu))
+  {
+    HMONITOR hMonitor =
+      MonitorFromWindow ( game_window.hWnd,
+                            MONITOR_DEFAULTTONEAREST );
+
+    MONITORINFO mi   = {         };
+    mi.cbSize        = sizeof (mi);
+    GetMonitorInfo (hMonitor, &mi);
+
+    lpRect->left  = mi.rcMonitor.left;
+    lpRect->right = mi.rcMonitor.right;
+
+    lpRect->top    = mi.rcMonitor.top;
+    lpRect->bottom = mi.rcMonitor.bottom;
+
+    return TRUE;
+  }
+
   return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
 }
 
@@ -1282,6 +1337,27 @@ AdjustWindowRectEx_Detour (
                       dwExStyle,
                         SK_SummarizeCaller ().c_str () ),
                L"Window Mgr" );
+
+  // Override if forcing Fullscreen Bordereless
+  //
+  if (config.window.fullscreen && config.window.borderless && (! bMenu))
+  {
+    HMONITOR hMonitor =
+      MonitorFromWindow ( game_window.hWnd,
+                            MONITOR_DEFAULTTONEAREST );
+
+    MONITORINFO mi   = {         };
+    mi.cbSize        = sizeof (mi);
+    GetMonitorInfo (hMonitor, &mi);
+
+    lpRect->left  = mi.rcMonitor.left;
+    lpRect->right = mi.rcMonitor.right;
+
+    lpRect->top    = mi.rcMonitor.top;
+    lpRect->bottom = mi.rcMonitor.bottom;
+
+    return TRUE;
+  }
 
   return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
 }
@@ -1721,7 +1797,8 @@ SK_ComputeClientSize (void)
 POINT
 SK_ComputeClientOrigin (void)
 {
-  RECT window, client;
+  RECT window = { },
+       client = { };
 
   GetWindowRect_Original ( game_window.hWnd, &window );
   GetClientRect_Original ( game_window.hWnd, &client );
@@ -1796,7 +1873,9 @@ SK_AdjustBorder (void)
       SK_BORDERLESS_EX :
         game_window.border_style_ex;
 
-  RECT orig_client;
+  RECT orig_client =
+    { };
+
   GetClientRect_Original (game_window.hWnd, &orig_client);
 
   RECT new_client =
@@ -1973,7 +2052,8 @@ SK_AdjustWindow (void)
       int  render_width_before  = game_window.game.client.right  - game_window.game.client.left;
       int  render_height_before = game_window.game.client.bottom - game_window.game.client.top;
 
-      RECT client_before = game_window.game.client;
+      RECT client_before = 
+        game_window.game.client;
 
       GetClientRect_Original (game_window.hWnd, &game_window.game.client);
       GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
@@ -2420,8 +2500,8 @@ PeekMessageW_Detour (
       {
         if (! (wRemoveMsg & PM_REMOVE))
         {
-          PeekMessageW_Original ( &msg, hWnd, lpMsg->message,
-                                              lpMsg->message, PM_REMOVE );
+          PeekMessageW_Original ( &msg, lpMsg->hwnd, lpMsg->message,
+                                                     lpMsg->message, PM_REMOVE | PM_NOYIELD );
         }
 
         if (lpMsg->message == WM_INPUT)
@@ -2429,6 +2509,8 @@ PeekMessageW_Detour (
 
         lpMsg->message = WM_NULL;
         lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+
+        return FALSE;
       }
     }
 
@@ -2476,8 +2558,8 @@ PeekMessageA_Detour (
       {
         if (! (wRemoveMsg & PM_REMOVE))
         {
-          PeekMessageA_Original ( &msg, hWnd, lpMsg->message,
-                                              lpMsg->message, PM_REMOVE );
+          PeekMessageA_Original ( &msg, lpMsg->hwnd, lpMsg->message,
+                                                     lpMsg->message, PM_REMOVE | PM_NOYIELD );
         }
 
         if (lpMsg->message == WM_INPUT)
@@ -2485,6 +2567,8 @@ PeekMessageA_Detour (
 
         lpMsg->message = WM_NULL;
         lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+
+        return FALSE;
       }
     }
 
@@ -2536,7 +2620,7 @@ DispatchMessageW_Detour (_In_ const MSG *lpMsg)
                                      false )
        )
     {
-      return 1;
+      return DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     }
   }
 
@@ -2555,7 +2639,7 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
                                      false )
        )
     {
-      return 1;
+      return DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     }
   }
 
@@ -3136,9 +3220,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         // Prevent all of this craziness from resizing the window accidentally
         if (config.window.res.override.isZero ())
         {
-          temp_override = true;
+               temp_override = true;
+          RECT client        = {  };
 
-          RECT client;
           GetClientRect_Original (game_window.hWnd, &client);
 
           config.window.res.override.x = client.right  - client.left;
@@ -3169,7 +3253,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
-        return 0;
+        return 1;
     } break;
 
 
@@ -3342,6 +3426,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   else {
     return 0;
   }
+
+
+  // Filter this out for fullscreen override safety
+  if (uMsg == WM_DISPLAYCHANGE)    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 
   LRESULT lRet =
@@ -3777,29 +3866,32 @@ reinterpret_cast <LPVOID *> (&GetWindowLongPtrA_Original) );
 reinterpret_cast <LPVOID *> (&GetWindowLongPtrW_Original) );
 #endif
 
-#if 0
+#if 1
   SK_CreateDLLHook2 (         L"user32.dll",
                              "GetWindowRect",
                               GetWindowRect_Detour,
 reinterpret_cast <LPVOID *> (&GetWindowRect_Original) );
-
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetClientRect",
-                              GetClientRect_Detour,
-reinterpret_cast <LPVOID *> (&GetClientRect_Original) );
 #else
     GetWindowRect_Original =
       reinterpret_cast <GetWindowRect_pfn> (
         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
                                             "GetWindowRect" )
       );
+#endif
 
+#if 1
+  SK_CreateDLLHook2 (       L"user32.dll",
+                             "GetClientRect",
+                              GetClientRect_Detour,
+reinterpret_cast <LPVOID *> (&GetClientRect_Original) );
+#else
     GetClientRect_Original =
       reinterpret_cast <GetClientRect_pfn> (
         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
                                             "GetClientRect" )
       );
 #endif
+
   SK_CreateDLLHook2 (       L"user32.dll",
                              "AdjustWindowRect",
                               AdjustWindowRect_Detour,

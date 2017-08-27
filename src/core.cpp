@@ -614,7 +614,7 @@ skUpdateCmd::execute (const char* szArgs)
   else
   {
     wchar_t wszProduct [128] = { };
-    
+
     mbtowc (wszProduct, szArgs, strlen (szArgs));
 
     SK_FetchVersionInfo1 (wszProduct, true);
@@ -818,11 +818,8 @@ SK_InitFinishCallback (void)
 
   SK_InitRenderBackends ();
 
-  skMemCmd*    mem    = new skMemCmd    ();
-  skUpdateCmd* update = new skUpdateCmd ();
-
-  SK_GetCommandProcessor ()->AddCommand ("mem",       mem);
-  SK_GetCommandProcessor ()->AddCommand ("GetUpdate", update);
+  SK_GetCommandProcessor ()->AddCommand ("mem",       new skMemCmd    ());
+  SK_GetCommandProcessor ()->AddCommand ("GetUpdate", new skUpdateCmd ());
 
   //
   // Game-Specific Stuff that I am not proud of
@@ -979,6 +976,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     }
   }
 
+  // Not NVIDIA, maybe AMD?
   else
   {
     dll_log.Log (L"[DisplayLib] Initializing AMD Display Library (ADL)...");
@@ -990,6 +988,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
                                                      adl_init ? L"Success" :
                                                                 L"Failed ");
 
+    // Yes, AMD driver is in working order ...
     if (adl_init)
     {
       dll_log.Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
@@ -1538,7 +1537,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     if ( blacklist )
     {
       //FreeLibrary_Original (SK_GetDLL ());
-      return true;
+      return false;
     }
 
     // For the global injector, when not started by SKIM, check its version
@@ -1695,32 +1694,32 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       if (! GetModuleHandle (wszSteamDLL))
       {
-        wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { };
-
-        if (SK_IsInjected ())
-          wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
-        else
-        {
-          _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
-                        SK_GetDocumentsDir ().c_str () );
-        }
-
-        if (PathRemoveFileSpec (wszDLLPath))
-        {
-          lstrcatW (wszDLLPath, L"\\");
-          lstrcatW (wszDLLPath, wszSteamDLL);
-
-          if (SK_GetFileSize (wszDLLPath) > 0)
-          {
-            HMODULE hMod = LoadLibraryW_Original (wszDLLPath);
+        //wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { };
+        //
+        //if (SK_IsInjected ())
+        //  wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+        //else
+        //{
+        //  _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
+        //                SK_GetDocumentsDir ().c_str () );
+        //}
+        //
+        //if (PathRemoveFileSpec (wszDLLPath))
+        //{
+        //  lstrcatW (wszDLLPath, L"\\");
+        //  lstrcatW (wszDLLPath, wszSteamDLL);
+        //
+        //  if (SK_GetFileSize (wszDLLPath) > 0)
+        //  {
+            HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
 
             if (hMod)
             {
               dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
-                              wszDLLPath );
+                              wszSteamDLL );//wszDLLPath );
             }
-          }
-        }
+          //}
+        //}
       }
     }
   }
