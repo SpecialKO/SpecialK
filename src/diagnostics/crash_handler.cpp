@@ -117,7 +117,7 @@ CrashHandler::Init (void)
   SK_CreateDLLHook  (       L"kernel32.dll",
                              "SetUnhandledExceptionFilter",
                               SetUnhandledExceptionFilter_Detour,
-reinterpret_cast <LPVOID *> (&SetUnhandledExceptionFilter_Original) );
+     static_cast_p2p <void> (&SetUnhandledExceptionFilter_Original) );
 
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
                   SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
@@ -947,15 +947,15 @@ SK_BypassSteamCrashHandler (void)
       {
         crash_log.Log (L"Disabling Steam Breakpad...");
 
-        SK_CreateDLLHook2 (  wszSteamDLL,
-                             "SteamAPI_UseBreakpadCrashHandler",
-                              SteamAPI_UseBreakpadCrashHandler_Detour,
-reinterpret_cast <LPVOID *> (&SteamAPI_UseBrakepadCrashHandler_NEVER) );
+        SK_CreateDLLHook2 (       wszSteamDLL,
+                                  "SteamAPI_UseBreakpadCrashHandler",
+                                   SteamAPI_UseBreakpadCrashHandler_Detour,
+          static_cast_p2p <void> (&SteamAPI_UseBrakepadCrashHandler_NEVER) );
       
-        SK_CreateDLLHook2 (  wszSteamDLL,
-                             "SteamAPI_SetBreakpadAppID",
-                              SteamAPI_SetBreakpadAppID_Detour,
-reinterpret_cast <LPVOID *> (&SteamAPI_SetBreakpadAppID_NEVER) );
+        SK_CreateDLLHook2 (       wszSteamDLL,
+                                  "SteamAPI_SetBreakpadAppID",
+                                   SteamAPI_SetBreakpadAppID_Detour,
+          static_cast_p2p <void> (&SteamAPI_SetBreakpadAppID_NEVER) );
 
         SK_ApplyQueuedHooks ();
       }

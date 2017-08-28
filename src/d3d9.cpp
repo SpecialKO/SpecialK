@@ -643,7 +643,7 @@ SK_HookD3D9 (void)
            SK_CreateDLLHook2 ( L"d3d9.dll",
                                 "Direct3DCreate9",
                                  Direct3DCreate9,
-                      (LPVOID *)&Direct3DCreate9_Import )
+        static_cast_p2p <void> (&Direct3DCreate9_Import) )
        )
     {
       dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %p  { Hooked }",
@@ -655,7 +655,7 @@ SK_HookD3D9 (void)
                SK_CreateDLLHook2 ( L"d3d9.dll",
                                     "Direct3DCreate9Ex",
                                      Direct3DCreate9Ex,
-                          (LPVOID *)&Direct3DCreate9Ex_Import )
+            static_cast_p2p <void> (&Direct3DCreate9Ex_Import) )
          )
       {
         dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %p  { Hooked }",

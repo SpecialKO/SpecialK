@@ -338,19 +338,22 @@ SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
 
   // Fix the broken borderless window system that doesn't scale the swapchain
   //   properly.
-  if (SK_FO4_IsBorderlessWindow ()) {
+  if (SK_FO4_IsBorderlessWindow ())
+  {
     window.top    = 0;
     window.left   = 0;
     window.bottom = desc.BufferDesc.Height;
     window.right  = desc.BufferDesc.Width;
 
-    SK_CreateDLLHook ( L"user32.dll", "GetWindowRect",
-                       GetWindowRect_Detour,
-             (LPVOID*)&GetWindowRect_Original );
+    SK_CreateDLLHook (       L"user32.dll",
+                              "GetWindowRect",
+                               GetWindowRect_Detour,
+      static_cast_p2p <void> (&GetWindowRect_Original) );
 
-    SK_CreateDLLHook ( L"user32.dll", "GetClientRect",
-                       GetClientRect_Detour,
-             (LPVOID*)&GetClientRect_Original );
+    SK_CreateDLLHook (       L"user32.dll",
+                              "GetClientRect",
+                               GetClientRect_Detour,
+      static_cast_p2p <void> (&GetClientRect_Original) );
 
     extern __declspec (noinline)
     LRESULT
@@ -360,10 +363,10 @@ SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
                           _In_  WPARAM wParam,
                           _In_  LPARAM lParam );
 
-    SK_CreateFuncHook ( L"SK_DetourWindowProc",
-                          SK_DetourWindowProc,
-                          SK_FO4_DetourWindowProc,
-               (LPVOID *)&SK_DetourWindowProc_Original );
+    SK_CreateFuncHook (      L"SK_DetourWindowProc",
+                               SK_DetourWindowProc,
+                               SK_FO4_DetourWindowProc,
+      static_cast_p2p <void> (&SK_DetourWindowProc_Original) );
     SK_EnableHook (SK_DetourWindowProc);
 
     _beginthreadex ( nullptr,

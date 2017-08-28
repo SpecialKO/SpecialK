@@ -257,22 +257,22 @@ SK_Input_HookHID (void)
     SK_CreateDLLHook2 (     L"HID.DLL",
                              "HidP_GetData",
                               HidP_GetData_Detour,
-reinterpret_cast <LPVOID *> (&HidP_GetData_Original) );
+     static_cast_p2p <void> (&HidP_GetData_Original) );
 
     SK_CreateDLLHook2 (     L"HID.DLL",
                              "HidD_GetPreparsedData",
                               HidD_GetPreparsedData_Detour,
-reinterpret_cast <LPVOID *> (&HidD_GetPreparsedData_Original) );
+     static_cast_p2p <void> (&HidD_GetPreparsedData_Original) );
 
     SK_CreateDLLHook2 (     L"HID.DLL",
                              "HidD_FreePreparsedData",
                               HidD_FreePreparsedData_Detour,
-reinterpret_cast <LPVOID *> (&HidD_FreePreparsedData_Original) );
+     static_cast_p2p <void> (&HidD_FreePreparsedData_Original) );
 
     SK_CreateDLLHook2 (     L"HID.DLL",
                              "HidD_GetFeature",
                               HidD_GetFeature_Detour,
-reinterpret_cast <LPVOID *> (&HidD_GetFeature_Original) );
+     static_cast_p2p <void> (&HidD_GetFeature_Original) );
 
     HidP_GetCaps_Original =
       (HidP_GetCaps_pfn)GetProcAddress ( GetModuleHandle (L"HID.DLL"),
@@ -1693,78 +1693,78 @@ void SK_Input_PreInit (void)
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetRawInputData",
                               GetRawInputData_Detour,
-reinterpret_cast <LPVOID *> (&GetRawInputData_Original) );
+     static_cast_p2p <void> (&GetRawInputData_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetAsyncKeyState",
                               GetAsyncKeyState_Detour,
-reinterpret_cast <LPVOID *> (&GetAsyncKeyState_Original) );
+     static_cast_p2p <void> (&GetAsyncKeyState_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetKeyState",
                               GetKeyState_Detour,
-reinterpret_cast <LPVOID *> (&GetKeyState_Original) );
+     static_cast_p2p <void> (&GetKeyState_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetKeyboardState",
                               GetKeyboardState_Detour,
-reinterpret_cast <LPVOID *> (&GetKeyboardState_Original) );
+     static_cast_p2p <void> (&GetKeyboardState_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetCursorPos",
                               GetCursorPos_Detour,
-reinterpret_cast <LPVOID *> (&GetCursorPos_Original) );
+     static_cast_p2p <void> (&GetCursorPos_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetCursorInfo",
                               GetCursorInfo_Detour,
-reinterpret_cast <LPVOID *> (&GetCursorInfo_Original) );
+     static_cast_p2p <void> (&GetCursorInfo_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetMouseMovePointsEx",
                               GetMouseMovePointsEx_Detour,
-reinterpret_cast <LPVOID *> (&GetMouseMovePointsEx_Original) );
+     static_cast_p2p <void> (&GetMouseMovePointsEx_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "SetCursor",
                               SetCursor_Detour,
-reinterpret_cast <LPVOID *> (&SetCursor_Original) );
+     static_cast_p2p <void> (&SetCursor_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "SetCursorPos",
                               SetCursorPos_Detour,
-reinterpret_cast <LPVOID *> (&SetCursorPos_Original) );
+     static_cast_p2p <void> (&SetCursorPos_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "SendInput",
                               SendInput_Detour,
-reinterpret_cast <LPVOID *> (&SendInput_Original) );
+     static_cast_p2p <void> (&SendInput_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "mouse_event",
                               mouse_event_Detour,
-reinterpret_cast <LPVOID *> (&mouse_event_Original) );
+     static_cast_p2p <void> (&mouse_event_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "keybd_event",
                               keybd_event_Detour,
-reinterpret_cast <LPVOID *> (&keybd_event_Original) );
+     static_cast_p2p <void> (&keybd_event_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "RegisterRawInputDevices",
                               RegisterRawInputDevices_Detour,
-reinterpret_cast <LPVOID *> (&RegisterRawInputDevices_Original) );
+     static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetRegisteredRawInputDevices",
                               GetRegisteredRawInputDevices_Detour,
-reinterpret_cast <LPVOID *> (&GetRegisteredRawInputDevices_Original) );
+     static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 
 #if 0
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetRawInputBuffer",
                               GetRawInputBuffer_Detour,
-reinterpret_cast <LPVOID *> (&GetRawInputBuffer_Original) );
+     static_cast_p2p <void> (&GetRawInputBuffer_Original) );
 #endif
 
   if (config.input.gamepad.hook_xinput)

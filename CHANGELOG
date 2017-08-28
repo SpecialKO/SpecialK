@@ -1,5 +1,16 @@
 0.8.36
 
+ + Performance-tuned memory pattern scanner to offer alignment and address above/below
+     search heuristics.
+
+   >> Significantly speeds up repeating pattern searches (i.e. hard-coded resolutions)
+    
+ + Added Resolution Override to Gal Gun and Akiba's Trip
+
+  >> This is different from the way this feature normally works, it goes beyond API
+       reflection/introspection and instead patches certain hardcoded arrays of memory
+         in really crappy JRPG ports.
+
  + Added D3D11 Wireframe Mode (per-shader)
  + Added additional D3D11 Shader Culling options (per-Shader Resource View)
  + Added support for BC7 and BC6H textures to Final Fantasy X/X-2

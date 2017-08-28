@@ -828,7 +828,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
     SK_CreateFuncHook (      L"SK_PluginKeyPress",
                                SK_PluginKeyPress,
                                SK_FAR_PluginKeyPress,
- reinterpret_cast <LPVOID *> (&SK_PluginKeyPress_Original) );
+      static_cast_p2p <void> (&SK_PluginKeyPress_Original) );
     SK_EnableHook        (     SK_PluginKeyPress           );
   }
 
@@ -1430,37 +1430,37 @@ SK_FAR_InitPlugin (void)
   SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
                                D3D11Dev_CreateBuffer_Override,
                                  SK_FAR_CreateBuffer,
-reinterpret_cast <LPVOID *> (&_D3D11Dev_CreateBuffer_Original) );
+     static_cast_p2p <void> (&_D3D11Dev_CreateBuffer_Original) );
   MH_QueueEnableHook (         D3D11Dev_CreateBuffer_Override  );
 
   SK_CreateFuncHook (       L"ID3D11Device::CreateShaderResourceView",
                                D3D11Dev_CreateShaderResourceView_Override,
                                  SK_FAR_CreateShaderResourceView,
-reinterpret_cast <LPVOID *> (&_D3D11Dev_CreateShaderResourceView_Original) );
+     static_cast_p2p <void> (&_D3D11Dev_CreateShaderResourceView_Original) );
   MH_QueueEnableHook (         D3D11Dev_CreateShaderResourceView_Override  );
 
   SK_CreateFuncHook (       L"ID3D11Device::CreateTexture2D",
                                D3D11Dev_CreateTexture2D_Override,
                                  SK_FAR_CreateTexture2D,
-reinterpret_cast <LPVOID *> (&_D3D11Dev_CreateTexture2D_Original) );
+     static_cast_p2p <void> (&_D3D11Dev_CreateTexture2D_Original) );
   MH_QueueEnableHook (         D3D11Dev_CreateTexture2D_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::Draw",
                                D3D11_Draw_Override,
                               SK_FAR_Draw,
-reinterpret_cast <LPVOID *> (&_D3D11_Draw_Original) );
+     static_cast_p2p <void> (&_D3D11_Draw_Original) );
   MH_QueueEnableHook (         D3D11_Draw_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexed",
                                D3D11_DrawIndexed_Override,
                               SK_FAR_DrawIndexed,
-reinterpret_cast <LPVOID *> (&_D3D11_DrawIndexed_Original) );
+     static_cast_p2p <void> (&_D3D11_DrawIndexed_Original) );
   MH_QueueEnableHook (         D3D11_DrawIndexed_Override  );
 
   SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
                               SK_PlugIn_ControlPanelWidget,
                                  SK_FAR_ControlPanel,
-reinterpret_cast <LPVOID *> (&SK_PlugIn_ControlPanelWidget_Original) );
+     static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
 
   LPVOID dontcare = nullptr;
@@ -1475,37 +1475,37 @@ reinterpret_cast <LPVOID *> (&SK_PlugIn_ControlPanelWidget_Original) );
   SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexedInstanced",
                                D3D11_DrawIndexedInstanced_Override,
                               SK_FAR_DrawIndexedInstanced,
-reinterpret_cast <LPVOID *> (&_D3D11_DrawIndexedInstanced_Original) );
+     static_cast_p2p <void> (&_D3D11_DrawIndexedInstanced_Original) );
   MH_QueueEnableHook (         D3D11_DrawIndexedInstanced_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexedInstancedIndirect",
                                D3D11_DrawIndexedInstancedIndirect_Override,
                               SK_FAR_DrawIndexedInstancedIndirect,
-reinterpret_cast <LPVOID *> (&_D3D11_DrawIndexedInstancedIndirect_Original) );
+     static_cast_p2p <void> (&_D3D11_DrawIndexedInstancedIndirect_Original) );
   MH_QueueEnableHook (         D3D11_DrawIndexedInstancedIndirect_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawInstanced",
                                D3D11_DrawInstanced_Override,
                               SK_FAR_DrawInstanced,
-reinterpret_cast <LPVOID *> (&_D3D11_DrawInstanced_Original) );
+     static_cast_p2p <void> (&_D3D11_DrawInstanced_Original) );
   MH_QueueEnableHook (         D3D11_DrawInstanced_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawInstancedIndirect",
                                D3D11_DrawInstancedIndirect_Override,
                               SK_FAR_DrawInstancedIndirect,
-reinterpret_cast <LPVOID *> (&_D3D11_DrawInstancedIndirect_Original) );
+     static_cast_p2p <void> (&_D3D11_DrawInstancedIndirect_Original) );
   MH_QueueEnableHook (         D3D11_DrawInstancedIndirect_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::PSSetConstantBuffers",
                                D3D11_PSSetConstantBuffers_Override,
                               SK_FAR_PSSetConstantBuffers,
-reinterpret_cast <LPVOID *> (&_D3D11_PSSetConstantBuffers_Original) );
+     static_cast_p2p <void> (&_D3D11_PSSetConstantBuffers_Original) );
   MH_QueueEnableHook (         D3D11_PSSetConstantBuffers_Override  );
 
   SK_CreateFuncHook (       L"ID3D11DeviceContext::UpdateSubresource",
                                D3D11_UpdateSubresource_Override,
                               SK_FAR_UpdateSubresource,
-reinterpret_cast <LPVOID *> (&_D3D11_UpdateSubresource_Original) );
+     static_cast_p2p <void> (&_D3D11_UpdateSubresource_Original) );
   MH_QueueEnableHook (         D3D11_UpdateSubresource_Override  );
 
 
@@ -1823,7 +1823,7 @@ reinterpret_cast <LPVOID *> (&_D3D11_UpdateSubresource_Original) );
 
     SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
                                                SK_FAR_EndFrame,
-                 reinterpret_cast <LPVOID *> (&SK_EndFrame_Original) );
+                      static_cast_p2p <void> (&SK_EndFrame_Original) );
     MH_QueueEnableHook (SK_BeginBufferSwap);
 
 

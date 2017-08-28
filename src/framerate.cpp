@@ -235,18 +235,20 @@ SK::Framerate::Init (void)
 
 #define NO_HOOK_QPC
 #ifndef NO_HOOK_QPC
-  SK_CreateDLLHook2 ( L"kernel32.dll", "QueryPerformanceCounter",
-                     QueryPerformanceCounter_Detour,
-          (LPVOID *)&QueryPerformanceCounter_Original,
-          (LPVOID *)&pfnQueryPerformanceCounter );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "QueryPerformanceCounter",
+                             QueryPerformanceCounter_Detour,
+    static_cast_p2p <void> (&QueryPerformanceCounter_Original),
+    static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
 #endif
 
   if (! GetModuleHandle (L"PrettyPrinny.dll"))
   {
-    SK_CreateDLLHook2 ( L"kernel32.dll", "Sleep",
-                       Sleep_Detour,
-            (LPVOID *)&Sleep_Original,
-            (LPVOID *)&pfnSleep );
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "Sleep",
+                               Sleep_Detour,
+      static_cast_p2p <void> (&Sleep_Original),
+      static_cast_p2p <void> (&pfnSleep) );
   }
 
 #ifdef NO_HOOK_QPC

@@ -376,6 +376,7 @@ RegisterDeviceNotificationA_Detour (
 }
 
 #include <SpecialK/hooks.h>
+#include <SpecialK/utility.h>
 
 void
 SK_XInput_InitHotPlugHooks (void)
@@ -386,10 +387,10 @@ SK_XInput_InitHotPlugHooks (void)
   SK_CreateDLLHook3 (       L"user32.dll",
                              "RegisterDeviceNotificationW",
                               RegisterDeviceNotificationW_Detour,
-reinterpret_cast <LPVOID *> (&RegisterDeviceNotificationW_Original) );
+     static_cast_p2p <void> (&RegisterDeviceNotificationW_Original) );
 
   SK_CreateDLLHook3 (       L"user32.dll",
                              "RegisterDeviceNotificationA",
                               RegisterDeviceNotificationA_Detour,
-reinterpret_cast <LPVOID *> (&RegisterDeviceNotificationA_Original) );
+     static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );
 }

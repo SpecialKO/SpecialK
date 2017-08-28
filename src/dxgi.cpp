@@ -3908,22 +3908,28 @@ SK_HookDXGI (void)
   else
   {
     if (GetProcAddress (hBackend, "CreateDXGIFactory"))
-      SK_CreateDLLHook2 ( L"dxgi.dll",
-                          "CreateDXGIFactory",
-                          CreateDXGIFactory,
-               (LPVOID *)&CreateDXGIFactory_Import );
+    {
+      SK_CreateDLLHook2 (      L"dxgi.dll",
+                                "CreateDXGIFactory",
+                                 CreateDXGIFactory,
+        static_cast_p2p <void> (&CreateDXGIFactory_Import) );
+    }
 
     if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
-      SK_CreateDLLHook2 ( L"dxgi.dll",
-                          "CreateDXGIFactory1",
-                          CreateDXGIFactory1,
-               (LPVOID *)&CreateDXGIFactory1_Import );
+    {
+      SK_CreateDLLHook2 (      L"dxgi.dll",
+                                "CreateDXGIFactory1",
+                                 CreateDXGIFactory1,
+        static_cast_p2p <void> (&CreateDXGIFactory1_Import) );
+    }
 
     if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
-      SK_CreateDLLHook2 ( L"dxgi.dll",
-                          "CreateDXGIFactory2",
-                          CreateDXGIFactory2,
-               (LPVOID *)&CreateDXGIFactory2_Import );
+    {
+      SK_CreateDLLHook2 (      L"dxgi.dll",
+                                "CreateDXGIFactory2",
+                                 CreateDXGIFactory2,
+        static_cast_p2p <void> (&CreateDXGIFactory2_Import) );
+    }
 
     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph  %s",
       (CreateDXGIFactory_Import),

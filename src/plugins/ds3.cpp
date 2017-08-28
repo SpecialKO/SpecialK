@@ -974,65 +974,66 @@ SK_DS3_InitPlugin (void)
   }
 
 
-  SK_CreateDLLHook2 ( L"user32.dll",
-                      "SetActiveWindow",
-                       SK_DS3_SetActiveWindow,
-            (LPVOID *)&SetActiveWindow_Original );
+  SK_CreateDLLHook2 (      L"user32.dll",
+                            "SetActiveWindow",
+                             SK_DS3_SetActiveWindow,
+    static_cast_p2p <void> (&SetActiveWindow_Original) );
 
   SK_CreateFuncHook ( L"ID3D11DeviceContext::RSSetViewports",
-                        D3D11_RSSetViewports_Override,
-                          SK_DS3_RSSetViewports,
-                            (LPVOID *)&D3D11_RSSetViewports_Original );
-  MH_QueueEnableHook (D3D11_RSSetViewports_Override);
+                                       D3D11_RSSetViewports_Override,
+                                      SK_DS3_RSSetViewports,
+              static_cast_p2p <void> (&D3D11_RSSetViewports_Original) );
+  MH_QueueEnableHook (                 D3D11_RSSetViewports_Override);
 
   SK_CreateFuncHook ( L"IDXGISwapChain::ResizeTarget",
-                        DXGISwap_ResizeTarget_Override,
-                          SK_DS3_ResizeTarget,
-                            (LPVOID *)&DXGISwap_ResizeTarget_Original );
-  MH_QueueEnableHook (DXGISwap_ResizeTarget_Override);
+                               DXGISwap_ResizeTarget_Override,
+                                 SK_DS3_ResizeTarget,
+      static_cast_p2p <void> (&DXGISwap_ResizeTarget_Original) );
+  MH_QueueEnableHook (         DXGISwap_ResizeTarget_Override);
 
   SK_CreateFuncHook ( L"IDXGISwapChain::ResizeBuffers",
                         DXGISwap_ResizeBuffers_Override,
                           SK_DS3_ResizeBuffers,
-                            (LPVOID *)&DXGISwap_ResizeBuffers_Original );
+                            static_cast_p2p <void> (&DXGISwap_ResizeBuffers_Original) );
   MH_QueueEnableHook (DXGISwap_ResizeBuffers_Override);
 
 
   SK_CreateFuncHook ( L"IDXGISwapChain::GetFullscreenState",
-                        DXGISwap_GetFullscreenState_Override,
-                          SK_DS3_GetFullscreenState,
-                            (LPVOID *)&DXGISwap_GetFullscreenState_Original );
-  MH_QueueEnableHook (DXGISwap_GetFullscreenState_Override);
+                               DXGISwap_GetFullscreenState_Override,
+                                 SK_DS3_GetFullscreenState,
+      static_cast_p2p <void> (&DXGISwap_GetFullscreenState_Original) );
+  MH_QueueEnableHook (         DXGISwap_GetFullscreenState_Override);
 
   SK_CreateFuncHook ( L"IDXGISwapChain::SetFullscreenState",
-                        DXGISwap_SetFullscreenState_Override,
-                          SK_DS3_SetFullscreenState,
-                            (LPVOID *)&DXGISwap_SetFullscreenState_Original );
-  MH_QueueEnableHook (DXGISwap_SetFullscreenState_Override);
+                               DXGISwap_SetFullscreenState_Override,
+                                 SK_DS3_SetFullscreenState,
+      static_cast_p2p <void> (&DXGISwap_SetFullscreenState_Original) );
+  MH_QueueEnableHook (         DXGISwap_SetFullscreenState_Override);
 
 
   LPVOID lpvPluginKeyPress = nullptr;
 
-  SK_CreateFuncHook ( L"SK_PluginKeyPress",
-                        SK_PluginKeyPress,
-                          SK_DS3_PluginKeyPress,
-                            (LPVOID *)&lpvPluginKeyPress );
-  MH_QueueEnableHook (SK_PluginKeyPress);
+  SK_CreateFuncHook (      L"SK_PluginKeyPress",
+                             SK_PluginKeyPress,
+                         SK_DS3_PluginKeyPress,
+    static_cast_p2p <void> (&lpvPluginKeyPress) );
+  MH_QueueEnableHook (       SK_PluginKeyPress);
 
 
 
 #if 0
-  SK_CreateFuncHook ( L"SK_ShutdownCore",
-                         SK_ShutdownCore,
-                           SK_DS3_ShutdownPlugin,
-                             (LPVOID *)&SK_ShutdownCore_Original );
-  MH_QueueEnableHook (SK_ShutdownCore);
+  SK_CreateFuncHook (      L"SK_ShutdownCore",
+                             SK_ShutdownCore,
+                         SK_DS3_ShutdownPlugin,
+    static_cast_p2p <void> (&SK_ShutdownCore_Original) );
+  MH_QueueEnableHook (       SK_ShutdownCore);
 #endif
 
-  SK_CreateFuncHook ( L"SK_BeginBufferSwap", SK_BeginBufferSwap,
-                                             SK_DS3_EndFrame,
-                                  (LPVOID *)&SK_EndFrame_Original );
-  MH_QueueEnableHook (SK_BeginBufferSwap);
+  SK_CreateFuncHook (      L"SK_BeginBufferSwap",
+                             SK_BeginBufferSwap,
+                         SK_DS3_EndFrame,
+    static_cast_p2p <void> (&SK_EndFrame_Original) );
+  MH_QueueEnableHook (       SK_BeginBufferSwap);
 
   InterlockedExchange (&__SUS_init, 1);
 }

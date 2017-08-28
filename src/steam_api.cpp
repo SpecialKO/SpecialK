@@ -303,7 +303,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
         SK_CreateFuncHook ( L"Callback Redirect",
                               vftable [3],
                               SteamAPI_UserStatsReceived_Detour, 
-                   (LPVOID *)&SteamAPI_UserStatsReceived_Original );
+     static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
         SK_EnableHook (vftable [3]);
 
         steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remvove "
@@ -313,7 +313,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
         SK_CreateFuncHook ( L"Callback Redirect",
                               vftable [4],
                               SteamAPI_UserStatsReceived_Detour, 
-                   (LPVOID *)&SteamAPI_UserStatsReceived_Original );
+     static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
         SK_EnableHook (vftable [4]);
 
         steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remvove "
@@ -3290,46 +3290,46 @@ SK_HookSteamAPI (void)
 
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_InitSafe",
-                     SteamAPI_InitSafe_Detour,
-          (LPVOID *)&SteamAPI_InitSafe_Original,
-          (LPVOID *)&SteamAPI_InitSafe );
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                        "SteamAPI_InitSafe",
+                         SteamAPI_InitSafe_Detour,
+static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
+static_cast_p2p <void> (&SteamAPI_InitSafe) );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_Init",
-                     SteamAPI_Init_Detour,
-          (LPVOID *)&SteamAPI_Init_Original,
-          (LPVOID *)&SteamAPI_Init );
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                        "SteamAPI_Init",
+                         SteamAPI_Init_Detour,
+static_cast_p2p <void> (&SteamAPI_Init_Original),
+static_cast_p2p <void> (&SteamAPI_Init) );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_RegisterCallback",
-                      SteamAPI_RegisterCallback_Detour,
-           (LPVOID *)&SteamAPI_RegisterCallback_Original,
-           (LPVOID *)&SteamAPI_RegisterCallback );
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                        "SteamAPI_RegisterCallback",
+                         SteamAPI_RegisterCallback_Detour,
+static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
+static_cast_p2p <void> (&SteamAPI_RegisterCallback) );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                      "SteamAPI_UnregisterCallback",
-                      SteamAPI_UnregisterCallback_Detour,
-            (LPVOID *)&SteamAPI_UnregisterCallback_Original,
-            (LPVOID *)&SteamAPI_UnregisterCallback );
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                        "SteamAPI_UnregisterCallback",
+                         SteamAPI_UnregisterCallback_Detour,
+static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
+static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );
 
-  SK_CreateDLLHook2 ( wszSteamAPI,
-                     "SteamAPI_RunCallbacks",
-                      SteamAPI_RunCallbacks_Detour,
-           (LPVOID *)&SteamAPI_RunCallbacks_Original,
-           (LPVOID *)&SteamAPI_RunCallbacks );
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                        "SteamAPI_RunCallbacks",
+                         SteamAPI_RunCallbacks_Detour,
+static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
+static_cast_p2p <void> (&SteamAPI_RunCallbacks) );
 
-  //
-  // Do not queue these up (by calling CreateDLLHook2),
-  //   they will be installed only upon the game successfully
-  //     calling one of the SteamAPI initialization functions.
-  //
-  SK_CreateDLLHook ( wszSteamAPI,
-                     "SteamAPI_Shutdown",
-                      SteamAPI_Shutdown_Detour,
-           (LPVOID *)&SteamAPI_Shutdown_Original,
-           (LPVOID *)&SteamAPI_Shutdown );
+    //
+    // Do not queue these up (by calling CreateDLLHook2),
+    //   they will be installed only upon the game successfully
+    //     calling one of the SteamAPI initialization functions.
+    //
+    SK_CreateDLLHook  ( wszSteamAPI,
+                        "SteamAPI_Shutdown",
+                         SteamAPI_Shutdown_Detour,
+static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
+static_cast_p2p <void> (&SteamAPI_Shutdown) );
 
   SK_ApplyQueuedHooks ();
 

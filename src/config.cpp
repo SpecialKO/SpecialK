@@ -3840,8 +3840,15 @@ SK_SaveConfig ( std::wstring name,
   ignore_rtss_delay->set_value           (config.system.ignore_rtss_delay);
   ignore_rtss_delay->store               ();
 
-  handle_crashes->set_value              (config.system.handle_crashes);
-  handle_crashes->store                  ();
+
+  // Don't store this setting at shutdown
+  extern volatile ULONG __SK_DLL_Ending;
+
+  if (! InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+  {
+    handle_crashes->set_value              (config.system.handle_crashes);
+    handle_crashes->store                  ();
+  }
 
   game_output->set_value                 (config.system.game_output);
   game_output->store                     ();

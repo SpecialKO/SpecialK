@@ -612,7 +612,7 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
   SK_CreateDLLHook2 (         pCtx->wszModuleName,
                                    "XInputGetState",
                               pCtx->XInputGetState_Detour,
-reinterpret_cast <LPVOID *> (&pCtx->XInputGetState_Original) );
+     static_cast_p2p <void> (&pCtx->XInputGetState_Original) );
 
   pCtx->XInputGetCapabilities_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
@@ -621,7 +621,7 @@ reinterpret_cast <LPVOID *> (&pCtx->XInputGetState_Original) );
   SK_CreateDLLHook2 (         pCtx->wszModuleName,
                                    "XInputGetCapabilities",
                               pCtx->XInputGetCapabilities_Detour,
-reinterpret_cast <LPVOID *> (&pCtx->XInputGetCapabilities_Original) );
+     static_cast_p2p <void> (&pCtx->XInputGetCapabilities_Original) );
 
   pCtx->XInputSetState_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
@@ -630,7 +630,7 @@ reinterpret_cast <LPVOID *> (&pCtx->XInputGetCapabilities_Original) );
   SK_CreateDLLHook2 (         pCtx->wszModuleName,
                                    "XInputSetState",
                               pCtx->XInputSetState_Detour,
-reinterpret_cast <LPVOID *> (&pCtx->XInputSetState_Original) );
+     static_cast_p2p <void> (&pCtx->XInputSetState_Original) );
 
   pCtx->XInputGetBatteryInformation_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
@@ -643,7 +643,7 @@ reinterpret_cast <LPVOID *> (&pCtx->XInputSetState_Original) );
     SK_CreateDLLHook2 (       pCtx->wszModuleName,
                                    "XInputGetBatteryInformation",
                               pCtx->XInputGetBatteryInformation_Detour,
-reinterpret_cast <LPVOID *> (&pCtx->XInputGetBatteryInformation_Original) );
+     static_cast_p2p <void> (&pCtx->XInputGetBatteryInformation_Original) );
   }
 
   pCtx->XInputGetStateEx_Target =
@@ -657,7 +657,7 @@ reinterpret_cast <LPVOID *> (&pCtx->XInputGetBatteryInformation_Original) );
     SK_CreateDLLHook2 (       pCtx->wszModuleName,
                               XINPUT_GETSTATEEX_ORDINAL,
                               pCtx->XInputGetStateEx_Detour,
-reinterpret_cast <LPVOID *> (&pCtx->XInputGetStateEx_Original) );
+     static_cast_p2p <void> (&pCtx->XInputGetStateEx_Original) );
   }
 
   MH_ApplyQueued ();
@@ -804,7 +804,7 @@ SK_XInput_RehookIfNeeded (void)
              SK_CreateDLLHook2 (  pCtx->wszModuleName,
                                        "XInputGetState",
                                   pCtx->XInputGetState_Detour,
-    reinterpret_cast <LPVOID *> (&pCtx->XInputGetState_Original) )
+         static_cast_p2p <void> (&pCtx->XInputGetState_Original) )
          )
       {
         SK_LOG0 ( ( L" Re-hooked XInput using '%s'...",
@@ -853,7 +853,7 @@ SK_XInput_RehookIfNeeded (void)
              SK_CreateDLLHook2 (  pCtx->wszModuleName,
                                        "XInputSetState",
                                   pCtx->XInputSetState_Detour,
-    reinterpret_cast <LPVOID *> (&pCtx->XInputSetState_Original) )
+         static_cast_p2p <void> (&pCtx->XInputSetState_Original) )
          )
       {
         SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
@@ -902,7 +902,7 @@ SK_XInput_RehookIfNeeded (void)
              SK_CreateDLLHook2 ( pCtx->wszModuleName,
                                       "XInputGetCapabilities",
                                  pCtx->XInputGetCapabilities_Detour,
-   reinterpret_cast <LPVOID *> (&pCtx->XInputGetCapabilities_Original) )
+        static_cast_p2p <void> (&pCtx->XInputGetCapabilities_Original) )
          )
       {
         SK_LOG0 ( ( L" Re-hooked XInput (Caps) using '%s'...",
@@ -954,7 +954,7 @@ SK_XInput_RehookIfNeeded (void)
                SK_CreateDLLHook2 ( pCtx->wszModuleName,
                                         "XInputGetBatteryInformation",
                                    pCtx->XInputGetBatteryInformation_Detour,
-     reinterpret_cast <LPVOID *> (&pCtx->XInputGetBatteryInformation_Original) )
+          static_cast_p2p <void> (&pCtx->XInputGetBatteryInformation_Original) )
            )
         {
           SK_LOG0 ( ( L" Re-hooked XInput (Battery) using '%s'...",
@@ -1004,7 +1004,7 @@ SK_XInput_RehookIfNeeded (void)
                SK_CreateDLLHook2 (  pCtx->wszModuleName,
                                     XINPUT_GETSTATEEX_ORDINAL,
                                     pCtx->XInputGetStateEx_Detour,
-      reinterpret_cast <LPVOID *> (&pCtx->XInputGetStateEx_Original) )
+           static_cast_p2p <void> (&pCtx->XInputGetStateEx_Original) )
            )
         {
           SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",

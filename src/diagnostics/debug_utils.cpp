@@ -172,32 +172,32 @@ DebugBreak_Detour (void)
 bool
 SK::Diagnostics::Debugger::Allow (bool bAllow)
 {
-  SK_CreateDLLHook2 (       L"kernel32.dll",
-                             "IsDebuggerPresent",
-                              IsDebuggerPresent_Detour,
-reinterpret_cast <LPVOID *> (&IsDebuggerPresent_Original) );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "IsDebuggerPresent",
+                             IsDebuggerPresent_Detour,
+    static_cast_p2p <void> (&IsDebuggerPresent_Original) );
 
   spoof_debugger = bAllow;
 
   SK_CreateDLLHook2 (      L"kernel32.dll",
                             "OutputDebugStringA",
                              OutputDebugStringA_Detour,
-reinterpret_cast <LPVOID *> (&OutputDebugStringA_Original) );
+    static_cast_p2p <void> (&OutputDebugStringA_Original) );
 
-  SK_CreateDLLHook2 (       L"kernel32.dll",
-                             "OutputDebugStringW",
-                              OutputDebugStringW_Detour,
-reinterpret_cast <LPVOID *> (&OutputDebugStringW_Original) );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "OutputDebugStringW",
+                             OutputDebugStringW_Detour,
+    static_cast_p2p <void> (&OutputDebugStringW_Original) );
 
-  SK_CreateDLLHook2 (       L"kernel32.dll",
-                             "ExitProcess",
-                              ExitProcess_Detour,
-reinterpret_cast <LPVOID *> (&ExitProcess_Original) );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "ExitProcess",
+                             ExitProcess_Detour,
+    static_cast_p2p <void> (&ExitProcess_Original) );
 
-  SK_CreateDLLHook2 (       L"kernel32.dll",
-                             "DebugBreak",
-                              DebugBreak_Detour,
-reinterpret_cast <LPVOID *> (&DebugBreak_Original) );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "DebugBreak",
+                             DebugBreak_Detour,
+    static_cast_p2p <void> (&DebugBreak_Original) );
 
   return bAllow;
 }
@@ -215,10 +215,10 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
     freopen ("CONOUT$", "w", stdout);
     freopen ("CONOUT$", "w", stderr);
 
-    SK_CreateDLLHook2 (     L"kernel32.dll",
-                             "TerminateProcess",
-                              TerminateProcess_Detour,
-reinterpret_cast <LPVOID *> (&TerminateProcess_Original) );
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "TerminateProcess",
+                               TerminateProcess_Detour,
+      static_cast_p2p <void> (&TerminateProcess_Original) );
   }
 }
 

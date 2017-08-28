@@ -29,77 +29,81 @@
 
 MH_STATUS
 __stdcall
-SK_CreateFuncHook ( LPCWSTR pwszFuncName,
-                    LPVOID  pTarget,
-                    LPVOID  pDetour,
-                    LPVOID *ppOriginal );
+SK_CreateFuncHook ( const wchar_t  *pwszFuncName,
+                          void     *pTarget,
+                          void     *pDetour,
+                          void    **ppOriginal );
 
 MH_STATUS
 __stdcall
-SK_CreateFuncHookEx ( LPCWSTR pwszFuncName,
-                      LPVOID  pTarget,
-                      LPVOID  pDetour,
-                      LPVOID *ppOriginal,
-                      UINT    idx );
+SK_CreateFuncHookEx ( const wchar_t  *pwszFuncName,
+                            void     *pTarget,
+                            void     *pDetour,
+                            void    **ppOriginal,
+                            UINT      idx );
 
 MH_STATUS
 __stdcall
-SK_CreateDLLHook ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                   LPVOID  pDetour,    LPVOID *ppOriginal,
-                   LPVOID *ppFuncAddr = nullptr );
+SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
+                         void     *pDetour,          void **ppOriginal,
+                         void    **ppFuncAddr 
+                                     = nullptr );
 
 // Queues a hook rather than enabling it immediately.
 MH_STATUS
 __stdcall
-SK_CreateDLLHook2 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                    LPVOID  pDetour,    LPVOID *ppOriginal,
-                    LPVOID *ppFuncAddr = nullptr );
+SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
+                          void     *pDetour,          void **ppOriginal,
+                          void    **ppFuncAddr 
+                                      = nullptr );
 
 // Queues a hook rather than enabling it immediately.
 //   (If already hooked, fails silently)
 MH_STATUS
 __stdcall
-SK_CreateDLLHook3 ( LPCWSTR pwszModule, LPCSTR  pszProcName,
-                    LPVOID  pDetour,    LPVOID *ppOriginal,
-                    LPVOID *ppFuncAddr = nullptr );
+SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
+                          void     *pDetour,          void **ppOriginal,
+                          void    **ppFuncAddr
+                                      = nullptr );
 
 MH_STATUS
 __stdcall
-SK_CreateVFTableHook ( LPCWSTR pwszFuncName,
-                       LPVOID *ppVFTable,
-                       DWORD   dwOffset,
-                       LPVOID  pDetour,
-                       LPVOID *ppOriginal );
+SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
+                             void    **ppVFTable,
+                             DWORD     dwOffset,
+                             void     *pDetour,
+                             void    **ppOriginal );
 
 // Setup multiple hooks for the same function by using different
 //   instances of MinHook; this functionality helps with enabling
 //     or disabling Special K's OSD in video capture software.
 MH_STATUS
 __stdcall
-SK_CreateVFTableHookEx ( LPCWSTR pwszFuncName,
-                         LPVOID *ppVFTable,
-                         DWORD   dwOffset,
-                         LPVOID  pDetour,
-                         LPVOID *ppOriginal,
-                         UINT    idx = 1 );
+SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
+                               void    **ppVFTable,
+                               DWORD     dwOffset,
+                               void     *pDetour,
+                               void    **ppOriginal,
+                               UINT      idx
+                                          = 1 );
 
 // Queues a hook rather than enabling it immediately.
 MH_STATUS
 __stdcall
-SK_CreateVFTableHook2 ( LPCWSTR pwszFuncName,
-                        LPVOID *ppVFTable,
-                        DWORD   dwOffset,
-                        LPVOID  pDetour,
-                        LPVOID *ppOriginal );
+SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
+                              void    **ppVFTable,
+                              DWORD     dwOffset,
+                              void     *pDetour,
+                              void    **ppOriginal );
 
 MH_STATUS __stdcall SK_ApplyQueuedHooks (void);
 
-MH_STATUS __stdcall SK_EnableHook   (LPVOID pTarget);
-MH_STATUS __stdcall SK_EnableHookEx (LPVOID pTarget, UINT idx);
+MH_STATUS __stdcall SK_EnableHook     (void *pTarget);
+MH_STATUS __stdcall SK_EnableHookEx   (void *pTarget, UINT idx);
 
 
-MH_STATUS __stdcall SK_DisableHook (LPVOID pTarget);
-MH_STATUS __stdcall SK_RemoveHook  (LPVOID pTarget);
+MH_STATUS __stdcall SK_DisableHook    (void *pTarget);
+MH_STATUS __stdcall SK_RemoveHook     (void *pTarget);
 
 MH_STATUS __stdcall SK_Init_MinHook   (void);
 MH_STATUS __stdcall SK_UnInit_MinHook (void);

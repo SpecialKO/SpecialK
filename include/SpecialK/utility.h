@@ -32,6 +32,18 @@ interface iSK_INI;
 
 typedef void *HANDLE;
 
+
+template <typename T, typename Q>
+  __inline
+  T**
+    static_cast_p2p ( typename Q** p2p )
+    {
+      return static_cast <T **> (
+               static_cast <T*>   ( p2p )
+                                );
+    };
+
+
 const wchar_t* __stdcall
                SK_GetRootPath            (void);
 const wchar_t* SK_GetHostApp             (void);

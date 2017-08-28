@@ -1643,7 +1643,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
 
   if ( VerQueryValue ( cbData,
                        TEXT ("\\VarFileInfo\\Translation"),
-      reinterpret_cast <LPVOID *> (&lpTranslate),
+           static_cast_p2p <void> (&lpTranslate),
                                    &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
   {
     wchar_t wszPropName [64] = { };
@@ -1655,7 +1655,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
 
     VerQueryValue ( cbData,
                       wszPropName,
-     reinterpret_cast <LPVOID *> (&wszProduct),
+          static_cast_p2p <void> (&wszProduct),
                                   &cbProductBytes );
 
     return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
@@ -1694,7 +1694,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
   if ( VerQueryValue ( cbData,
                          TEXT ("\\VarFileInfo\\Translation"),
-        reinterpret_cast <LPVOID *> (&lpTranslate),
+             static_cast_p2p <void> (&lpTranslate),
                                      &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
   {
     wchar_t wszPropName [64] = { };
@@ -1706,7 +1706,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
     VerQueryValue ( cbData,
                       wszPropName,
-     reinterpret_cast <LPVOID *> (&wszFileDescrip),
+          static_cast_p2p <void> (&wszFileDescrip),
                                   &cbProductBytes );
 
     wsprintfW ( wszPropName,
@@ -1716,7 +1716,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
     VerQueryValue ( cbData,
                       wszPropName,
-     reinterpret_cast <LPVOID *> (&wszFileVersion),
+          static_cast_p2p <void> (&wszFileVersion),
                                   &cbVersionBytes );
   }
 
@@ -1845,7 +1845,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
   __SK_base_img_addr = base_addr;
   __SK_end_img_addr  = end_addr;
 
-  uint8_t* begin = static_cast <uint8_t *> (after) + align;
+  uint8_t* begin = std::max (static_cast <uint8_t *> (after) + align, base_addr);
   uint8_t* it    = begin;
   size_t   idx   = 0;
 
@@ -1899,7 +1899,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
           else
           {
-            begin += (idx + 1);
+            begin += idx;
             begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
 
             it     = begin;
@@ -1917,7 +1917,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
         if (it > end_addr - len)
           break;
 
-        begin += (idx + 1);
+        begin += idx;
         begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
 
         it  = begin;

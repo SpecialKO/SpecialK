@@ -1892,7 +1892,7 @@ SK::OpenGL::getPipelineStatsDesc (void)
   SK_CreateDLLHook2 ( Backend,                             \
                      #Func,                                \
                       Func,                                \
-reinterpret_cast <LPVOID *> (&imp_ ## Func) ); ++GL_HOOKS;
+    static_cast_p2p <void> (&imp_ ## Func) ); ++GL_HOOKS;
 
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
 
@@ -1921,15 +1921,15 @@ SK_HookGL (void)
       wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
 #if 1
-      SK_CreateDLLHook (      wszBackendDLL,
-                             "wglSwapBuffers",
-                              wglSwapBuffers,
-reinterpret_cast <LPVOID *> (&wgl_swap_buffers) );
+      SK_CreateDLLHook (         wszBackendDLL,
+                                "wglSwapBuffers",
+                                 wglSwapBuffers,
+        static_cast_p2p <void> (&wgl_swap_buffers) );
 #else
       SK_CreateDLLHook (       L"gdi32.dll",
-                                 "SwapBuffers",
-                                  SwapBuffers,
-reinterpret_cast <LPVOID *> (&gdi_swap_buffers) );
+                                "SwapBuffers",
+                                 SwapBuffers,
+        static_cast_p2p <void> (&gdi_swap_buffers) );
 #endif
 
 // Load user-defined DLLs (Plug-In)

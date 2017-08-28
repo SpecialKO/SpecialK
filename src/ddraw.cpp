@@ -302,35 +302,35 @@ SK_HookDDraw (void)
     bool bProxy = GetModuleHandle (L"ddraw.dll") != hBackend;
 
     if ( MH_OK ==
-           SK_CreateDLLHook2 ( L"ddraw.dll",
-                                "DirectDrawCreate",
-                                 DirectDrawCreate,
-   reinterpret_cast <LPVOID *> (&DirectDrawCreate_Import) ) &&
+           SK_CreateDLLHook2 (      L"ddraw.dll",
+                                     "DirectDrawCreate",
+                                      DirectDrawCreate,
+             static_cast_p2p <void> (&DirectDrawCreate_Import) ) &&
          MH_OK ==
-           SK_CreateDLLHook2 ( L"ddraw.dll",
-                                "DirectDrawCreateEx",
-                                 DirectDrawCreateEx,
-   reinterpret_cast <LPVOID *> (&DirectDrawCreateEx_Import) ) &&
+           SK_CreateDLLHook2 (      L"ddraw.dll",
+                                     "DirectDrawCreateEx",
+                                      DirectDrawCreateEx,
+             static_cast_p2p <void> (&DirectDrawCreateEx_Import) ) &&
          MH_OK ==
-           SK_CreateDLLHook2 ( L"ddraw.dll",
-                                "DirectDrawEnumerateA",
-                                 DirectDrawEnumerateA,
-   reinterpret_cast <LPVOID *> (&DirectDrawEnumerateA_Import) ) &&
+           SK_CreateDLLHook2 (      L"ddraw.dll",
+                                     "DirectDrawEnumerateA",
+                                      DirectDrawEnumerateA,
+             static_cast_p2p <void> (&DirectDrawEnumerateA_Import) ) &&
          MH_OK ==
-           SK_CreateDLLHook2 ( L"ddraw.dll",
-                                "DirectDrawEnumerateW",
-                                 DirectDrawEnumerateW,
-   reinterpret_cast <LPVOID *> (&DirectDrawEnumerateW_Import) ) &&
+           SK_CreateDLLHook2 (      L"ddraw.dll",
+                                     "DirectDrawEnumerateW",
+                                      DirectDrawEnumerateW,
+             static_cast_p2p <void> (&DirectDrawEnumerateW_Import) ) &&
          MH_OK ==
-           SK_CreateDLLHook2 ( L"ddraw.dll",
-                                "DirectDrawEnumerateExA",
-                                 DirectDrawEnumerateExA,
-   reinterpret_cast <LPVOID *> (&DirectDrawEnumerateExA_Import) ) &&
+           SK_CreateDLLHook2 (      L"ddraw.dll",
+                                     "DirectDrawEnumerateExA",
+                                      DirectDrawEnumerateExA,
+             static_cast_p2p <void> (&DirectDrawEnumerateExA_Import) ) &&
          MH_OK ==
-           SK_CreateDLLHook2 ( L"ddraw.dll",
-                                "DirectDrawEnumerateExW",
-                                 DirectDrawEnumerateExW,
-   reinterpret_cast <LPVOID *> (&DirectDrawEnumerateExW_Import) )
+           SK_CreateDLLHook2 (      L"ddraw.dll",
+                                     "DirectDrawEnumerateExW",
+                                      DirectDrawEnumerateExW,
+             static_cast_p2p <void> (&DirectDrawEnumerateExW_Import) )
        )
     {
       if (bProxy)

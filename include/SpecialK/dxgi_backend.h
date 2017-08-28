@@ -320,9 +320,9 @@ typedef HRESULT (WINAPI *D3D12CreateDevice_pfn)(
   _In_      REFIID             riid,
   _Out_opt_ void             **ppDevice);
 
-extern volatile D3D11CreateDevice_pfn             D3D11CreateDevice_Import;
-extern volatile D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import;
-extern volatile D3D12CreateDevice_pfn             D3D12CreateDevice_Import;
+extern D3D11CreateDevice_pfn             D3D11CreateDevice_Import;
+extern D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import;
+extern D3D12CreateDevice_pfn             D3D12CreateDevice_Import;
 
   extern          ID3D11Device*         g_pD3D11Dev;
   extern          IUnknown*             g_pD3D12Dev;

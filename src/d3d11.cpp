@@ -167,8 +167,8 @@ struct d3d11_caps_t {
   } feature_level;
 } d3d11_caps;
 
-volatile D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import = nullptr;
-volatile D3D11CreateDevice_pfn             D3D11CreateDevice_Import             = nullptr;
+D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import = nullptr;
+D3D11CreateDevice_pfn             D3D11CreateDevice_Import             = nullptr;
 
 void
 SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
@@ -6795,19 +6795,19 @@ SK_D3D11_Init (void)
       LoadLibraryW_Original (L"d3d11.dll");
 
     if ( MH_OK ==
-           SK_CreateDLLHook2 ( L"d3d11.dll",
-                                "D3D11CreateDevice",
-                                 D3D11CreateDevice_Detour,
-                      (LPVOID *)&D3D11CreateDevice_Import,
-                             &pfnD3D11CreateDevice )
+           SK_CreateDLLHook2 (      L"d3d11.dll",
+                                     "D3D11CreateDevice",
+                                      D3D11CreateDevice_Detour,
+             static_cast_p2p <void> (&D3D11CreateDevice_Import),
+                                     &pfnD3D11CreateDevice )
        )
     {
       if ( MH_OK ==
-             SK_CreateDLLHook2 ( L"d3d11.dll",
-                                  "D3D11CreateDeviceAndSwapChain",
-                                   D3D11CreateDeviceAndSwapChain_Detour,
-                        (LPVOID *)&D3D11CreateDeviceAndSwapChain_Import,
-                               &pfnD3D11CreateDeviceAndSwapChain )
+             SK_CreateDLLHook2 (      L"d3d11.dll",
+                                       "D3D11CreateDeviceAndSwapChain",
+                                        D3D11CreateDeviceAndSwapChain_Detour,
+               static_cast_p2p <void> (&D3D11CreateDeviceAndSwapChain_Import),
+                                       &pfnD3D11CreateDeviceAndSwapChain )
          )
       {
         if ( MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice) &&

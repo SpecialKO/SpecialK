@@ -980,10 +980,11 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryA_target = nullptr;
   }
 
-  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryA",
-                     LoadLibraryA_Detour,
-           (LPVOID*)&LoadLibraryA_Original,
-                    &_loader_hooks.LoadLibraryA_target );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "LoadLibraryA",
+                             LoadLibraryA_Detour,
+    static_cast_p2p <void> (&LoadLibraryA_Original),
+                           &_loader_hooks.LoadLibraryA_target );
 
   MH_QueueEnableHook (_loader_hooks.LoadLibraryA_target);
 
@@ -994,10 +995,11 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryW_target = nullptr;
   }
 
-  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryW",
-                     LoadLibraryW_Detour,
-           (LPVOID*)&LoadLibraryW_Original,
-                    &_loader_hooks.LoadLibraryW_target );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "LoadLibraryW",
+                             LoadLibraryW_Detour,
+    static_cast_p2p <void> (&LoadLibraryW_Original),
+                           &_loader_hooks.LoadLibraryW_target );
 
   MH_QueueEnableHook (_loader_hooks.LoadLibraryW_target);
 
@@ -1010,10 +1012,11 @@ SK_ReHookLoadLibrary (void)
       _loader_hooks.LoadPackagedLibrary_target = nullptr;
     }
 
-    SK_CreateDLLHook2 ( L"kernel32.dll", "LoadPackagedLibrary",
-                       LoadPackagedLibrary_Detour,
-             (LPVOID*)&LoadPackagedLibrary_Original,
-                      &_loader_hooks.LoadPackagedLibrary_target );
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "LoadPackagedLibrary",
+                               LoadPackagedLibrary_Detour,
+      static_cast_p2p <void> (&LoadPackagedLibrary_Original),
+                             &_loader_hooks.LoadPackagedLibrary_target );
 
     MH_QueueEnableHook (_loader_hooks.LoadPackagedLibrary_target);
   }
@@ -1025,10 +1028,11 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryExA_target = nullptr;
   }
 
-  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryExA",
-                     LoadLibraryExA_Detour,
-           (LPVOID*)&LoadLibraryExA_Original,
-                    &_loader_hooks.LoadLibraryExA_target );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "LoadLibraryExA",
+                             LoadLibraryExA_Detour,
+    static_cast_p2p <void> (&LoadLibraryExA_Original),
+                           &_loader_hooks.LoadLibraryExA_target );
 
   MH_QueueEnableHook (_loader_hooks.LoadLibraryExA_target);
 
@@ -1039,10 +1043,11 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryExW_target = nullptr;
   }
 
-  SK_CreateDLLHook2 ( L"kernel32.dll", "LoadLibraryExW",
-                     LoadLibraryExW_Detour,
-           (LPVOID*)&LoadLibraryExW_Original,
-                    &_loader_hooks.LoadLibraryExW_target );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "LoadLibraryExW",
+                             LoadLibraryExW_Detour,
+    static_cast_p2p <void> (&LoadLibraryExW_Original),
+                           &_loader_hooks.LoadLibraryExW_target );
 
   MH_QueueEnableHook (_loader_hooks.LoadLibraryExW_target);
 
@@ -1058,10 +1063,11 @@ SK_ReHookLoadLibrary (void)
   //   to prevent this from showing up during debug sessions,
   //     don't hook this function :)
 #if 0
-  SK_CreateDLLHook2 ( L"kernel32.dll", "FreeLibrary",
-                     FreeLibrary_Detour,
-           (LPVOID*)&FreeLibrary_Original,
-                    &_loader_hooks.FreeLibrary_target );
+   SK_CreateDLLHook2 (      L"kernel32.dll",
+                             "FreeLibrary",
+                              FreeLibrary_Detour,
+     static_cast_p2p <void> (&FreeLibrary_Original),
+                            &_loader_hooks.FreeLibrary_target );
 
   MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
 #endif
@@ -2770,17 +2776,17 @@ std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {
-  SK_CreateDLLHook ( L"user32.dll",
-                      "GetWindowRect",
-                       GetWindowRect_BlockingCallOfDeath,
-             (LPVOID*)&GetWindowRect_DeadEnd,
-             (LPVOID*)&pfnGetWindowRect );
+  SK_CreateDLLHook (       L"user32.dll",
+                            "GetWindowRect",
+                             GetWindowRect_BlockingCallOfDeath,
+    static_cast_p2p <void> (&GetWindowRect_DeadEnd),
+    static_cast_p2p <void> (&pfnGetWindowRect) );
 
-  SK_CreateDLLHook ( L"user32.dll",
-                      "GetClientRect",
-                       GetClientRect_BlockingCallOfDeath,
-             (LPVOID*)&GetClientRect_DeadEnd,
-             (LPVOID*)&pfnGetClientRect  );
+  SK_CreateDLLHook (       L"user32.dll",
+                            "GetClientRect",
+                             GetClientRect_BlockingCallOfDeath,
+    static_cast_p2p <void> (&GetClientRect_DeadEnd),
+    static_cast_p2p <void> (&pfnGetClientRect)  );
 
   //SK_CreateDLLHook ( L"user32.dll",
   //                    "GetSystemMetrics",
