@@ -113,7 +113,7 @@ SK_DescribeVkResult (VkResult result)
 
   default:
     dll_log.Log (L" *** Encountered unknown VkResult: (0x%08X)",
-      (unsigned long)result);
+      static_cast <unsigned long> (result));
     return L"UNKNOWN";
   }
 }
@@ -267,40 +267,40 @@ SK_HookVulkan (void)
 
     dll_log.Log (L"[  Vulkan  ] Hooking Vk (1.x)");
 
-    SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                         "vkCreateWin32SurfaceKHR",
-                          vkCreateWin32SurfaceKHR_Detour,
-             (LPVOID *)&SK::Vulkan::funcs.
-                          vkCreateWin32SurfaceKHR
+    SK_CreateDLLHook2 (      L"vulkan-1.dll",
+                              "vkCreateWin32SurfaceKHR",
+                               vkCreateWin32SurfaceKHR_Detour,
+      static_cast_p2p <void> (&SK::Vulkan::funcs.
+                               vkCreateWin32SurfaceKHR)
                       );
 
-    SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                         "vkQueuePresentKHR",
-                          vkQueuePresentKHR_Detour,
-             (LPVOID *)&SK::Vulkan::funcs.
-                          vkQueuePresentKHR
+    SK_CreateDLLHook2 (      L"vulkan-1.dll",
+                              "vkQueuePresentKHR",
+                               vkQueuePresentKHR_Detour,
+      static_cast_p2p <void> (&SK::Vulkan::funcs.
+                               vkQueuePresentKHR)
                       );
 
-    SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                         "vkAcquireNextImageKHR",
-                          vkAcquireNextImageKHR_Detour,
-             (LPVOID *)&SK::Vulkan::funcs.
-                          vkAcquireNextImageKHR
+    SK_CreateDLLHook2 (      L"vulkan-1.dll",
+                              "vkAcquireNextImageKHR",
+                               vkAcquireNextImageKHR_Detour,
+      static_cast_p2p <void> (&SK::Vulkan::funcs.
+                               vkAcquireNextImageKHR)
                       );
 
-    SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                         "vkCreateSwapchainKHR",
-                          vkCreateSwapchainKHR_Detour,
-             (LPVOID *)&SK::Vulkan::funcs.
-                          vkCreateSwapchainKHR
+    SK_CreateDLLHook2 (      L"vulkan-1.dll",
+                              "vkCreateSwapchainKHR",
+                               vkCreateSwapchainKHR_Detour,
+      static_cast_p2p <void> (&SK::Vulkan::funcs.
+                               vkCreateSwapchainKHR)
                       );
 
 #if 0
-    SK_CreateDLLHook2 ( L"vulkan-1.dll",
-                         "vkDestroySwapchainKHR",
-                          vkDestroySwapchainKHR_Detour,
-             (LPVOID *)&SK::Vulkan::funcs.
-                          vkDestroySwapchainKHR
+    SK_CreateDLLHook2 (      L"vulkan-1.dll",
+                              "vkDestroySwapchainKHR",
+                               vkDestroySwapchainKHR_Detour,
+      static_cast_p2p <void> (&SK::Vulkan::funcs.
+                               vkDestroySwapchainKHR)
                       );
 #endif
 

@@ -61,7 +61,7 @@ public:
 
       for (unsigned int i = 0; i < cpu_records.size (); i++)
       {
-        cpu_records [i].addValue ((float)cpu_stats.cpus [i].percent_load);
+        cpu_records [i].addValue (static_cast <float> (cpu_stats.cpus [i].percent_load));
       }
 
       last_update = dwNow;

@@ -595,9 +595,10 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       SK_DI8_READ (sk_input_dev_type::Gamepad)
       static DIJOYSTATE2 last_state;
 
-      DIJOYSTATE2* out = (DIJOYSTATE2 *)lpvData;
+      DIJOYSTATE2* out =
+        static_cast <DIJOYSTATE2 *> (lpvData);
 
-      SK_DI8_TranslateToXInput ((DIJOYSTATE *)out);
+      SK_DI8_TranslateToXInput (reinterpret_cast <DIJOYSTATE *> (out));
 
       if (nav_usable)
       {
@@ -619,7 +620,8 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
       static DIJOYSTATE last_state;
 
-      DIJOYSTATE* out = (DIJOYSTATE *)lpvData;
+      DIJOYSTATE* out =
+        static_cast <DIJOYSTATE *> (lpvData);
 
       SK_DI8_TranslateToXInput (out);
 
@@ -685,17 +687,17 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
         switch (cbData)
         {
           case sizeof (DIMOUSESTATE2):
-            ((DIMOUSESTATE2 *)lpvData)->lX = 0;
-            ((DIMOUSESTATE2 *)lpvData)->lY = 0;
-            ((DIMOUSESTATE2 *)lpvData)->lZ = 0;
-            memset (((DIMOUSESTATE2 *)lpvData)->rgbButtons, 0, 8);
+            static_cast <DIMOUSESTATE2 *> (lpvData)->lX = 0;
+            static_cast <DIMOUSESTATE2 *> (lpvData)->lY = 0;
+            static_cast <DIMOUSESTATE2 *> (lpvData)->lZ = 0;
+            memset (static_cast <DIMOUSESTATE2 *> (lpvData)->rgbButtons, 0, 8);
             break;
 
           case sizeof (DIMOUSESTATE):
-            ((DIMOUSESTATE *)lpvData)->lX = 0;
-            ((DIMOUSESTATE *)lpvData)->lY = 0;
-            ((DIMOUSESTATE *)lpvData)->lZ = 0;
-            memset (((DIMOUSESTATE *)lpvData)->rgbButtons, 0, 4);
+            static_cast <DIMOUSESTATE *> (lpvData)->lX = 0;
+            static_cast <DIMOUSESTATE *> (lpvData)->lY = 0;
+            static_cast <DIMOUSESTATE *> (lpvData)->lZ = 0;
+            memset (static_cast <DIMOUSESTATE *> (lpvData)->rgbButtons, 0, 4);
             break;
         }
       }
@@ -847,7 +849,8 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
 
   if (SUCCEEDED (hr))
   {
-    void** vftable = *(void***)*lplpDirectInputDevice;
+    void** vftable =
+      *reinterpret_cast <void ***> (*lplpDirectInputDevice);
 
     //
     // This weird hack is necessary for EverQuest; crazy game hooks itself to try and thwart

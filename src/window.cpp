@@ -235,7 +235,7 @@ auto DeferCommand = [&] (const char* szCommand)
 class SK_WindowManager : public SK_IVariableListener
 {
 public:
-  static bool StyleHasBorder (DWORD_PTR style)
+  static constexpr bool StyleHasBorder (DWORD_PTR style)
   {
     return (  ( style == 0x0            ) ||
               ( style  &  WS_BORDER     ) ||
@@ -1030,7 +1030,7 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
       DWORD {
   EnterCriticalSection (&cs_center);
 
-  BOOL  remember_pos = (BOOL)(user != nullptr);
+  BOOL  remember_pos = (user != nullptr);
   POINT mouse        = { 0, 0 };
 
   if (GetCursorPos_Original != nullptr)
@@ -1775,11 +1775,10 @@ SK_ComputeClientSize (void)
 
   if (use_override)
   {
-    return ( RECT { 0L, 0L,
-                      static_cast   <LONG> (config.window.res.override.x),
-                        static_cast <LONG> (config.window.res.override.y)
-                  }
-           );
+    return RECT { 0L, 0L,
+                    static_cast   <LONG> (config.window.res.override.x),
+                      static_cast <LONG> (config.window.res.override.y)
+                };
   }
 
   RECT ret =
@@ -3635,13 +3634,13 @@ SK_InstallWindowHook (HWND hWnd)
   {
     if ( MH_OK ==
            MH_CreateHook (
-             reinterpret_cast <LPVOID>   (class_proc),
+                                                   class_proc,
                                           SK_DetourWindowProc,
                  static_cast_p2p <void> (&game_window.WndProc_Original)
            )
       )
     {
-      MH_QueueEnableHook (static_cast <LPVOID> (class_proc));
+      MH_QueueEnableHook (class_proc);
 
       dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
 
@@ -3650,13 +3649,13 @@ SK_InstallWindowHook (HWND hWnd)
 
     else if ( MH_OK ==
                 MH_CreateHook (
-                  reinterpret_cast <LPVOID>   (wnd_proc),
-                                                SK_DetourWindowProc,
-                       static_cast_p2p <void> (&game_window.WndProc_Original)
+                                                      wnd_proc,
+                                           SK_DetourWindowProc,
+                  static_cast_p2p <void> (&game_window.WndProc_Original)
                 )
             )
     {
-      MH_QueueEnableHook (reinterpret_cast <LPVOID> (wnd_proc));
+      MH_QueueEnableHook (wnd_proc);
 
       dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
 

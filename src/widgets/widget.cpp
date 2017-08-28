@@ -675,7 +675,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
 
   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
 
-  for (auto widget : widgets)
+  for (auto&& widget : widgets)
   {
     if (widget && uiMaskedKeyCode == widget->getToggleKey ().masked_code)
     {

@@ -789,9 +789,10 @@ SK_UnloadImports (void)
       if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
       {
         SKPlugIn_Shutdown_pfn SKPlugIn_Shutdown =
-          (SKPlugIn_Shutdown_pfn)
+          reinterpret_cast <SKPlugIn_Shutdown_pfn> (
             GetProcAddress ( imports [i].hLibrary,
-                               "SKPlugIn_Shutdown" );
+                               "SKPlugIn_Shutdown" )
+          );
 
         if (SKPlugIn_Shutdown != nullptr)
           SKPlugIn_Shutdown (nullptr);

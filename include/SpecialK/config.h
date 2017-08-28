@@ -79,9 +79,9 @@ struct sk_config_t
     bool   pump           = false;
     float  pump_interval  = 0.0166666666f;
 
-    DWORD  red            = MAXDWORD32;
-    DWORD  green          = MAXDWORD32;
-    DWORD  blue           = MAXDWORD32;
+    int    red            = MAXDWORD32;
+    int    green          = MAXDWORD32;
+    int    blue           = MAXDWORD32;
     float  scale          =  1.0f;
     int    pos_x          =  0;
     int    pos_y          =  0;

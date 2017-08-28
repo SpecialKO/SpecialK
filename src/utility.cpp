@@ -844,7 +844,7 @@ crc32c_append_hw (uint32_t crc, buffer buf, size_t len)
 
   /* compute the crc for up to seven leading bytes to bring the data pointer
      to an eight-byte boundary */
-  while (len && ((uintptr_t)next & 7) != 0)
+  while (len && (reinterpret_cast <uintptr_t> (next) & 7) != 0)
   {
     crc0 = _mm_crc32_u8 (static_cast <uint32_t> (crc0), *next);
     ++next;
@@ -998,12 +998,15 @@ calculate_table (void)
 {
   for (int i = 0; i < 256; i++)
   {
-    uint32_t res = (uint32_t)i;
-    for (int t = 0; t < 16; t++) {
+    uint32_t res =
+      static_cast <uint32_t> (i);
+
+    for (int t = 0; t < 16; t++)
+    {
       for (int k = 0; k < 8; k++)
         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
                                       (res >> 1);
-      table[t][i] = res;
+      table [t][i] = res;
     }
   }
 
@@ -1296,7 +1299,7 @@ SK_GetCallingDLL (LPVOID pReturn)
 
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                        (LPCWSTR)pReturn,
+                        static_cast <const wchar_t *> (pReturn),
                           &hCallingMod );
 
   SK_ModulesMap.Lock   (                    );
@@ -1457,8 +1460,10 @@ SK_TestImports (          HMODULE  hMod,
           if (hits == nCount)
             break;
         }
+
         __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
-                     EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
+                     EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+        {
         }
       }
     }
@@ -1773,8 +1778,8 @@ SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after
 
   uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
 #else
-           base_addr = reinterpret_cast <uint8_t *> (minfo.BaseAddress);//AllocationBase;
-  uint8_t* end_addr  = reinterpret_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
+           base_addr = static_cast <uint8_t *> (minfo.BaseAddress);//AllocationBase;
+  uint8_t* end_addr  = static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
 
   ///if (base_addr != (uint8_t *)0x400000)
   ///{
@@ -2501,7 +2506,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
       }
     } while (FindNextFileW (hFind, &fd) != 0);
 
-    dll_log.LogEx ( false, L"%lu files deleted\n", files);
+    dll_log.LogEx ( false, L"%zu files deleted\n", files);
 
     FindClose (hFind);
   }

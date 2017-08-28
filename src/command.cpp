@@ -520,7 +520,8 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
 
   if (getValue ())
   {
-    len = (uint32_t)strlen ("true");
+    len =
+      static_cast <uint32_t> (strlen ("true"));
 
     if (szOut != nullptr)
       strncpy (szOut, "true", *dwLen);
@@ -530,7 +531,8 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
 
   else
   {
-    len = (uint32_t)strlen ("false");
+    len =
+      static_cast <uint32_t> (strlen ("false"));
 
     if (szOut != nullptr)
       strncpy (szOut, "false", *dwLen);
@@ -554,9 +556,9 @@ SK_IVarStub <char*>::getValueString ( _Out_opt_     char* szOut,
                                       _Inout_   uint32_t* dwLen ) const
 {
   if (szOut != nullptr)
-    strncpy (szOut, (char *)var_, *dwLen);
+    strncpy (szOut, reinterpret_cast <char *> (var_), *dwLen);
 
-  *dwLen = std::min (*dwLen, (uint32_t)strlen ((char *)var_));
+  *dwLen = std::min (*dwLen, static_cast <uint32_t> (strlen (reinterpret_cast <char *> (var_))));
 }
 
 template <>
@@ -576,7 +578,7 @@ SK_IVarStub <int>::getValueString ( _Out_opt_ char*     szOut,
   if (szOut != nullptr)
     *dwLen = snprintf (szOut, *dwLen, "%li", getValue ());
   else
-    *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%li", getValue ()));
+    *dwLen = std::min (*dwLen, static_cast <uint32_t> (_scprintf ("%li", getValue ())));
 }
 
 
@@ -597,7 +599,7 @@ SK_IVarStub <short>::getValueString ( _Out_opt_ char*     szOut,
   if (szOut != nullptr)
     *dwLen = snprintf (szOut, *dwLen, "%i", getValue ());
   else
-    *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%i", getValue ()));
+    *dwLen = std::min (*dwLen, static_cast <uint32_t> (_scprintf ("%i", getValue ())));
 }
 
 
@@ -615,13 +617,17 @@ void
 SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
                                       _Inout_   uint32_t* dwLen ) const
 {
-  if (szOut != nullptr) {
+  if (szOut != nullptr)
+  {
     *dwLen = snprintf (szOut, *dwLen, "%f", getValue ());
 
     // Remove trailing 0's after the .
-    *dwLen = (uint32_t)SK_RemoveTrailingDecimalZeros (szOut, *dwLen);
-  } else {
-    *dwLen = std::min (*dwLen, (uint32_t)_scprintf ("%f", getValue ()));
+    *dwLen = static_cast <uint32_t> (SK_RemoveTrailingDecimalZeros (szOut, *dwLen));
+  }
+
+  else
+  {
+    *dwLen = std::min (*dwLen, static_cast <uint32_t> (_scprintf ("%f", getValue ())));
   }
 }
 
@@ -631,23 +637,24 @@ SK_CreateVar ( SK_IVariable::VariableType type,
                void*                      var,
                SK_IVariableListener      *pListener )
 {
-  switch (type) {
+  switch (type)
+  {
     case SK_IVariable::Float:
-      return new SK_IVarStub <float> ((float *)var, pListener);
+      return new SK_IVarStub <float>  (static_cast <float *> (var), pListener);
     case SK_IVariable::Double:
       return nullptr;
     case SK_IVariable::Boolean:
-      return new SK_IVarStub <bool> ((bool *)var, pListener);
+      return new SK_IVarStub <bool>   (static_cast <bool *>  (var), pListener);
     case SK_IVariable::Byte:
       return nullptr;
     case SK_IVariable::Short:
-      return new SK_IVarStub <short> ((short *)var, pListener);
+      return new SK_IVarStub <short>  (static_cast <short *> (var), pListener);
     case SK_IVariable::Int:
-      return new SK_IVarStub <int> ((int *)var, pListener);
+      return new SK_IVarStub <int>    (static_cast <int *>   (var), pListener);
     case SK_IVariable::LongInt:
       return nullptr;
     case SK_IVariable::String:
-      return new SK_IVarStub <char *> ((char **)var, pListener);
+      return new SK_IVarStub <char *> (static_cast <char **> (var), pListener);
   }
 
   return nullptr;

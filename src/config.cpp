@@ -3192,7 +3192,7 @@ void
 SK_ResHack_PatchGame ( uint32_t width,
                        uint32_t height )
 {
-  static int replacements = 0;
+  static unsigned int replacements = 0;
 
   struct
   {
@@ -3223,8 +3223,7 @@ SK_ResHack_PatchGame ( uint32_t width,
   for (int i = 0 ; i < 3; i++)
   {
     pOut =
-      reinterpret_cast <uint32_t *>
-      (
+      static_cast <uint32_t *> (
         SK_ScanAlignedEx ( pPattern, 8, nullptr, pOut + 16, 16 )
       );
 
@@ -3257,7 +3256,7 @@ void
 SK_ResHack_PatchGame2 ( uint32_t width,
                         uint32_t height )
 {
-  static int replacements = 0;
+  static unsigned int replacements = 0;
 
   uint32_t orig [2] = { 0x00000000,
                         0x00000000 };
@@ -3271,7 +3270,7 @@ SK_ResHack_PatchGame2 ( uint32_t width,
   for (int i = 0 ; i < 3; i++)
   {
     pOut =
-      reinterpret_cast <uint32_t *> (
+      static_cast <uint32_t *> (
         SK_ScanAlignedEx (orig, 8, nullptr, pOut + 8, 8)
       );
 
@@ -3380,7 +3379,7 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_input_apis->set_value            (config.imgui.show_input_apis);
 
 
-  apis.last_known->set_value                  ((int)config.apis.last_known);
+  apis.last_known->set_value                  (static_cast <int> (config.apis.last_known));
 
 #ifndef _WIN64
   apis.ddraw.hook->set_value                  (config.apis.ddraw.hook);
@@ -3397,7 +3396,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
-  input.cursor.timeout->set_value             ((float)config.input.cursor.timeout / 1000.0f);
+  input.cursor.timeout->set_value             (static_cast <float> (config.input.cursor.timeout) / 1000.0f);
   input.cursor.ui_capture->set_value          (config.input.ui.capture);
   input.cursor.hw_cursor->set_value           (config.input.ui.use_hw_cursor);
   input.cursor.block_invisible->set_value     (config.input.ui.capture_hidden);
@@ -4367,16 +4366,16 @@ SK_Render_GetAPIHookMask (void)
   int mask = 0;
 
 #ifndef _WIN64
-  if (config.apis.d3d8.hook)       mask |= (int)SK_RenderAPI::D3D8;
-  if (config.apis.ddraw.hook)      mask |= (int)SK_RenderAPI::DDraw;
+  if (config.apis.d3d8.hook)       mask |= static_cast <int> (SK_RenderAPI::D3D8);
+  if (config.apis.ddraw.hook)      mask |= static_cast <int> (SK_RenderAPI::DDraw);
 #endif
-  if (config.apis.d3d9.hook)       mask |= (int)SK_RenderAPI::D3D9;
-  if (config.apis.d3d9ex.hook)     mask |= (int)SK_RenderAPI::D3D9Ex;
-  if (config.apis.dxgi.d3d11.hook) mask |= (int)SK_RenderAPI::D3D11;
-  if (config.apis.OpenGL.hook)     mask |= (int)SK_RenderAPI::OpenGL;
+  if (config.apis.d3d9.hook)       mask |= static_cast <int> (SK_RenderAPI::D3D9);
+  if (config.apis.d3d9ex.hook)     mask |= static_cast <int> (SK_RenderAPI::D3D9Ex);
+  if (config.apis.dxgi.d3d11.hook) mask |= static_cast <int> (SK_RenderAPI::D3D11);
+  if (config.apis.OpenGL.hook)     mask |= static_cast <int> (SK_RenderAPI::OpenGL);
 #ifdef _WIN64
-  if (config.apis.Vulkan.hook)     mask |= (int)SK_RenderAPI::Vulkan;
-  if (config.apis.dxgi.d3d12.hook) mask |= (int)SK_RenderAPI::D3D12;
+  if (config.apis.Vulkan.hook)     mask |= static_cast <int> (SK_RenderAPI::Vulkan);
+  if (config.apis.dxgi.d3d12.hook) mask |= static_cast <int> (SK_RenderAPI::D3D12);
 #endif
 
   return (SK_RenderAPI)mask;

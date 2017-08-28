@@ -365,7 +365,7 @@ SK_RenderBackendUtil_IsFullscreen (void)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ((int)rb.api & (int)SK_RenderAPI::D3D11)
+  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     CComPtr <IDXGISwapChain> pSwapChain = nullptr;
     BOOL                     fullscreen = rb.fullscreen_exclusive;
@@ -378,7 +378,7 @@ SK_RenderBackendUtil_IsFullscreen (void)
     return true;//rb.fullscreen_exclusive;
   }
 
-  if ((int)rb.api & (int)SK_RenderAPI::D3D9)
+  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
   {
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
@@ -408,12 +408,12 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
 
   if (! fullscreen_exclusive)
   {
-    if ((int)api & (int)SK_RenderAPI::D3D9)
+    if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
     {
       SK_D3D9_TriggerReset (true);
     }
 
-    else if ((int)api & (int)SK_RenderAPI::D3D11)
+    else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
     {
       CComPtr <IDXGISwapChain> pSwapChain = nullptr;
       swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
@@ -422,7 +422,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
     }
   }
 
-  if ((int)api & (int)SK_RenderAPI::D3D11)
+  if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     DXGI_SWAP_CHAIN_DESC swap_desc;
 
@@ -455,12 +455,12 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 
   if (fullscreen_exclusive)
   {
-    if ((int)api & (int)SK_RenderAPI::D3D9)
+    if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
     {
       SK_D3D9_TriggerReset (true);
     }
 
-    else if ((int)api & (int)SK_RenderAPI::D3D11)
+    else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
     {
       CComPtr <IDXGISwapChain> pSwapChain = nullptr;
       swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);

@@ -253,9 +253,10 @@ SK::Framerate::Init (void)
 
 #ifdef NO_HOOK_QPC
     QueryPerformanceCounter_Original =
-      (QueryPerformanceCounter_pfn)
+      reinterpret_cast <QueryPerformanceCounter_pfn> (
         GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                           "QueryPerformanceCounter" );
+                           "QueryPerformanceCounter" )
+      );
 #endif
 
   if (NtDll == 0)
@@ -263,12 +264,14 @@ SK::Framerate::Init (void)
     NtDll = LoadLibrary (L"ntdll.dll");
 
     NtQueryTimerResolution =
-      (NtQueryTimerResolution_pfn)
-        GetProcAddress (NtDll, "NtQueryTimerResolution");
+      reinterpret_cast <NtQueryTimerResolution_pfn> (
+        GetProcAddress (NtDll, "NtQueryTimerResolution")
+      );
 
     NtSetTimerResolution =
-      (NtSetTimerResolution_pfn)
-        GetProcAddress (NtDll, "NtSetTimerResolution");
+      reinterpret_cast <NtSetTimerResolution_pfn> (
+        GetProcAddress (NtDll, "NtSetTimerResolution")
+      );
 
     if (NtQueryTimerResolution != nullptr &&
         NtSetTimerResolution   != nullptr)

@@ -5277,7 +5277,7 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
     static BYTE                last_trigger_l   = 0;
     static BYTE                last_trigger_r   = 0;
     static SK_GamepadCombo_V0* last_combo       = nullptr;
-           XINPUT_STATE        state;
+           XINPUT_STATE        state            = { };
     static std::wstring        unparsed         = L"";
 
     if (SK_XInput_PollController (0, &state))

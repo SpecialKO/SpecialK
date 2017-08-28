@@ -6515,7 +6515,7 @@ SK_CountToString (uint64_t count)
 void
 SK_D3D11_SetPipelineStats (void* pData)
 {
-  memcpy ( (void *)&SK::DXGI::pipeline_stats_d3d11.last_results,
+  memcpy ( &SK::DXGI::pipeline_stats_d3d11.last_results,
              pData,
                sizeof D3D11_QUERY_DATA_PIPELINE_STATISTICS );
 }
@@ -6599,8 +6599,8 @@ SK_D3D11_GetRasterPipelineDesc (wchar_t* wszDesc)
     _swprintf ( wszDesc,
                  L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )",
                    wszDesc, 100.0f *
-                       ( (float)stats.CPrimitives /
-                         (float)stats.CInvocations ),
+                       ( static_cast <float> (stats.CPrimitives) /
+                         static_cast <float> (stats.CInvocations) ),
                      SK_CountToString (stats.CInvocations).c_str () );
   }
 

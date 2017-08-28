@@ -2246,13 +2246,14 @@ sk::d3d9::TextureManager::Init (void)
 #endif
 
     tex_log.LogEx ( false, L" %lu files (%3.1f MiB)\n",
-                      files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
+                      files, static_cast <double> (liSize.QuadPart) / (1024.0 * 1024.0) );
   }
 
   if ( GetFileAttributesW (SK_TEXTURE_DIR L"\\dump\\textures") !=
-         INVALID_FILE_ATTRIBUTES ) {
-    WIN32_FIND_DATA fd;
-    WIN32_FIND_DATA fd_sub;
+         INVALID_FILE_ATTRIBUTES )
+  {
+    WIN32_FIND_DATA fd       = { };
+    WIN32_FIND_DATA fd_sub   = { };
     HANDLE          hSubFind = INVALID_HANDLE_VALUE;
     HANDLE          hFind    = INVALID_HANDLE_VALUE;
     int             files    = 0;
@@ -2270,9 +2271,12 @@ sk::d3d9::TextureManager::Init (void)
 
           hSubFind = FindFirstFileW (wszSubDir, &fd_sub);
 
-          if (hSubFind != INVALID_HANDLE_VALUE) {
-            do {
-              if (wcsstr (_wcslwr (fd_sub.cFileName), L".dds")) {
+          if (hSubFind != INVALID_HANDLE_VALUE)
+          {
+            do
+            {
+              if (wcsstr (_wcslwr (fd_sub.cFileName), L".dds"))
+              {
                 uint32_t checksum;
                 swscanf (fd_sub.cFileName, L"%08x.dds", &checksum);
 
@@ -2430,10 +2434,10 @@ sk::d3d9::TextureManager::Shutdown (void)
 void
 sk::d3d9::TextureManager::purge (void)
 {
-  int      released           = 0;
-  int      released_injected  = 0;
-  int64_t  reclaimed          = 0;
-  int64_t  reclaimed_injected = 0;
+  unsigned int released           = 0;
+  unsigned int released_injected  = 0;
+  int64_t      reclaimed          = 0;
+  int64_t      reclaimed_injected = 0;
 
   tex_log.Log (L"[ Tex. Mgr ] -- TextureManager::purge (...) -- ");
 

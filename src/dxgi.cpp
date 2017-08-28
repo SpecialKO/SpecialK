@@ -418,7 +418,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
       try
       {
-        cegD3D11 = static_cast <CEGUI::Direct3D11Renderer *>
+        cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
           (&CEGUI::Direct3D11Renderer::bootstrapSystem (
             static_cast <ID3D11Device *>       (rb.device),
             static_cast <ID3D11DeviceContext *>(rb.d3d11.immediate_ctx)
@@ -1177,7 +1177,7 @@ __forceinline
 UINT
 calc_count (_T** arr, UINT max_count)
 {
-  for ( int i = (int)max_count - 1 ;
+  for ( int i = static_cast <int> (max_count) - 1 ;
             i >= 0 ;
           --i )
   {
@@ -3087,7 +3087,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
                        L"%ph, %ph, %ph",
                          pDevice, pDesc, ppSwapChain );
 
-  HRESULT ret;
+  HRESULT ret = E_FAIL;
 
   auto                   orig_desc = pDesc;
   DXGI_SWAP_CHAIN_DESC1  new_desc1 =
@@ -3220,7 +3220,7 @@ DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *Th
                        L"%ph, %ph, %ph",
                          pDevice, pDesc, ppSwapChain );
 
-  HRESULT ret;
+  HRESULT ret = E_FAIL;
 
   assert (pDesc != nullptr);
 
@@ -3308,9 +3308,9 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
   if (FAILED (res))
   {
     if (SK_DXGI_use_factory1)
-      res = CreateDXGIFactory1_Import (__uuidof (IDXGIFactory1), (void **)&pFactory);
+      res = CreateDXGIFactory1_Import (__uuidof (IDXGIFactory1), static_cast_p2p <void> (&pFactory));
     else
-      res = CreateDXGIFactory_Import  (__uuidof (IDXGIFactory),  (void **)&pFactory);
+      res = CreateDXGIFactory_Import  (__uuidof (IDXGIFactory),  static_cast_p2p <void> (&pFactory));
   }
 
   if (SUCCEEDED (res))

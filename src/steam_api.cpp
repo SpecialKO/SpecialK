@@ -298,13 +298,13 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       else if (config.steam.filter_stat_callback)
       {
 #ifdef _WIN64
-        void** vftable = *(void ***)&pCallback;
+        void** vftable = *reinterpret_cast <void ***> (&pCallback);
 
-        SK_CreateFuncHook ( L"Callback Redirect",
-                              vftable [3],
-                              SteamAPI_UserStatsReceived_Detour, 
-     static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
-        SK_EnableHook (vftable [3]);
+        SK_CreateFuncHook (      L"Callback Redirect",
+                                   vftable [3],
+                                   SteamAPI_UserStatsReceived_Detour, 
+          static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
+        SK_EnableHook (            vftable [3]);
 
         steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remvove "
                              L"Third-Party CSteamID / AppID Achievements) ###" );
@@ -635,7 +635,7 @@ SK_Steam_SetNotifyCorner (void)
     if (steam_ctx.Utils ())
     {
       steam_ctx.Utils ()->SetOverlayNotificationPosition (
-        (ENotificationPosition)config.steam.notify_corner
+        static_cast <ENotificationPosition> (config.steam.notify_corner)
       );
     }
   }
@@ -661,9 +661,9 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
     static float history [4] = { 45.0f, 45.0f, 45.0f, 45.0f };
     static int   idx         = 0;
 
-    history [idx] = *(float *)val;
+    history [idx] = *static_cast <float *> (val);
 
-    if (*(float *)val != 45.0f)
+    if (*static_cast <float *> (val) != 45.0f)
     {
       if (idx > 0 && history [idx-1] != 45.0f)
       {
@@ -674,7 +674,8 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
         
         if (_var != nullptr)
         {
-          *(float *)_var->getValuePointer () = *(float *)val;
+          *static_cast <float *> (_var->getValuePointer ()) =
+            *static_cast <float *> (val);
         }
       }
     }
@@ -695,7 +696,7 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
     known = true;
 
     config.steam.notify_corner =
-      SK_Steam_PopupOriginStrToEnum (*(char **)val);
+      SK_Steam_PopupOriginStrToEnum (*reinterpret_cast <char **> (val));
 
     strcpy (var_strings.notify_corner,
       SK_Steam_PopupOriginToStr (config.steam.notify_corner)
@@ -711,7 +712,7 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
     known = true;
 
     config.steam.achievements.popup.origin =
-      SK_Steam_PopupOriginStrToEnum (*(char **)val);
+      SK_Steam_PopupOriginStrToEnum (*reinterpret_cast <char **> (val));
 
     strcpy (var_strings.popup_origin,
       SK_Steam_PopupOriginToStr (config.steam.achievements.popup.origin)
@@ -902,14 +903,14 @@ public:
 
       if (icons_.unachieved != nullptr)
       {
-        free ((void *)icons_.unachieved);
-                      icons_.unachieved = nullptr;
+        free (icons_.unachieved);
+              icons_.unachieved = nullptr;
       }
 
       if (icons_.achieved != nullptr)
       {
-        free ((void *)icons_.achieved);
-                      icons_.achieved = nullptr;
+        free (icons_.achieved);
+              icons_.achieved = nullptr;
       }
     }
 
@@ -1042,8 +1043,8 @@ public:
       if (achievement.friends_.possible > 0)
         steam_log.LogEx ( false,
                                  L"  #-- Rarity (Friend).....: %6.2f%%\n",
-                           100.0 * ((double)achievement.friends_.unlocked /
-                                    (double)achievement.friends_.possible) );
+                           100.0 * (static_cast <double> (achievement.friends_.unlocked) /
+                                    static_cast <double> (achievement.friends_.possible)) );
 
       if (achievement.unlocked_)
       {
@@ -1205,7 +1206,7 @@ public:
             ///steam_log.Log (L" >> Has unlocked '%24hs'", szName);
           }
 
-          free ((void *)szName);
+          free (const_cast <char *> (szName));
         }
 
         friend_stats [friend_idx].percent_unlocked =
@@ -1800,7 +1801,7 @@ public:
           //if (! achievements.list [i]->unlocked_)
             //stats->ClearAchievement (szName);
 
-          free ((void *)szName);
+          free (const_cast <char *> (szName));
         }
 
         else
@@ -1877,7 +1878,8 @@ public:
       long size = ftell  (fWAV);
                   rewind (fWAV);
 
-      unlock_sound = (uint8_t *)new uint8_t [size];
+      unlock_sound =
+        new uint8_t [size];
 
       if (unlock_sound != nullptr)
         fread  (unlock_sound, size, 1, fWAV);
@@ -1911,9 +1913,11 @@ public:
       {
         HGLOBAL sound_ref     =
           LoadResource (SK_GetDLL (), default_sound);
+
         if (sound_ref != 0)
         {
-          unlock_sound        = (uint8_t *)LockResource (sound_ref);
+          unlock_sound        =
+            static_cast <uint8_t *> (LockResource (sound_ref));
 
           default_loaded = true;
         }
@@ -2261,7 +2265,7 @@ SK_UnlockSteamAchievement (uint32_t idx)
       }
 
 #endif
-      free ((void *)szName);
+      free (const_cast <char *> (szName));
     }
 
     else
@@ -2300,7 +2304,7 @@ SK_SteamAPI_UpdateGlobalAchievements (void)
                         szName );
       }
 
-      free ((void *)szName);
+      free (const_cast <char *> (szName));
     }
   }
 
@@ -2455,8 +2459,10 @@ SteamAPI_RunCallbacks_Detour (void)
 
                 if (! steam_ctx.UserStats ())
                 {
-                  InterlockedExchangePointer ((void **)user, nullptr);
+                  InterlockedExchangePointer (static_cast <void **> (user), nullptr);
+
                   CloseHandle (GetCurrentThread ());
+
                   return (DWORD)-1;
                 }
               }
@@ -2479,7 +2485,7 @@ SteamAPI_RunCallbacks_Detour (void)
                 InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
               }
 
-              InterlockedExchangePointer ((void **)user, nullptr);
+              InterlockedExchangePointer (static_cast <void **> (user), nullptr);
 
               CloseHandle (GetCurrentThread ());
 

@@ -365,7 +365,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       break;
   }
 
-  HMODULE hModSource = nullptr;
+  HMODULE hModSource           = nullptr;
   char    szModName [MAX_PATH] = { };
   HANDLE  hProc                = GetCurrentProcess ();
 
@@ -472,9 +472,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   CONTEXT ctx (*ExceptionInfo->ContextRecord);
 
 #ifdef _WIN64
-  STACKFRAME64 stackframe;
+  STACKFRAME64 stackframe = { };
 #else
-  STACKFRAME   stackframe;
+  STACKFRAME   stackframe = { };
 #endif
 
   stackframe.AddrPC.Mode   = AddrModeFlat;
@@ -542,7 +542,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                               0 );
 #endif
 
-    SYMBOL_INFO_PACKAGE sip;
+    SYMBOL_INFO_PACKAGE sip = { };
+
     sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
     sip.si.MaxNameLen   = sizeof sip.name;
 

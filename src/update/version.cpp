@@ -227,8 +227,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
         sk::ParameterFactory ParameterFactory;
 
         sk::ParameterInt64* remind_time =
-          (sk::ParameterInt64 *)
-            ParameterFactory.create_parameter <int64_t> (L"Reminder");
+          dynamic_cast <sk::ParameterInt64 *> (
+            ParameterFactory.create_parameter <int64_t> (L"Reminder")
+          );
 
         remind_time->register_to_ini (
           &install_ini,
@@ -324,7 +325,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                             nullptr, nullptr,
                               INTERNET_SERVICE_HTTP,
                                 0x00,
-                                  (DWORD_PTR)&dwInetCtx );
+                                  reinterpret_cast <DWORD_PTR> (&dwInetCtx) );
 
   if (! hInetGitHub)
   {
@@ -367,7 +368,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                               nullptr,
                                 rgpszAcceptTypes,
                                   dwFlags,
-                                    (DWORD_PTR)&dwInetCtx );
+                                    reinterpret_cast <DWORD_PTR> (&dwInetCtx) );
 
   if (! hInetGitHubOpen)
   {

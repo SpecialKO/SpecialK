@@ -741,7 +741,7 @@ ImGui_ImplDX11_Shutdown (void)
   ImGui_ImplDX11_InvalidateDeviceObjects ();
   ImGui::Shutdown                        ();
 
-  g_hWnd              = (HWND)0;
+  g_hWnd              = HWND_DESKTOP;
 }
 
 #include <SpecialK/window.h>

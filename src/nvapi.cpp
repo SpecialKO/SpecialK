@@ -237,9 +237,8 @@ sk::NVAPI::EnumGPUs_DXGI (void)
 
   for (int i = 0; i < CountPhysicalGPUs (); i++)
   {
-    DXGI_ADAPTER_DESC adapterDesc;
-
-    NvAPI_ShortString name;
+    DXGI_ADAPTER_DESC adapterDesc = { };
+    NvAPI_ShortString name        = { };
 
     int   sli_group = 0;
     int   sli_size  = 0;
@@ -252,7 +251,7 @@ sk::NVAPI::EnumGPUs_DXGI (void)
     NVAPI_CALL (GetLogicalGPUFromPhysicalGPU  (_nv_dxgi_gpus [i], &logical));
     NVAPI_CALL (GetPhysicalGPUsFromLogicalGPU (logical, phys, &phys_count));
 
-    sli_group = (size_t)logical & 0xffffffff;
+    sli_group = reinterpret_cast <size_t> (logical) & 0xffffffff;
     sli_size  = phys_count;
 
     NVAPI_CALL (GPU_GetFullName (_nv_dxgi_gpus [i], name));
@@ -273,11 +272,11 @@ sk::NVAPI::EnumGPUs_DXGI (void)
     // NVIDIA's driver measures these numbers in KiB (to store as a 32-bit int)
     //  * We want the numbers in bytes (64-bit)
     adapterDesc.DedicatedVideoMemory  =
-      (size_t)meminfo.dedicatedVideoMemory << 10;
+      static_cast <size_t> (meminfo.dedicatedVideoMemory) << 10;
     adapterDesc.DedicatedSystemMemory =
-      (size_t)meminfo.systemVideoMemory    << 10;
+      static_cast <size_t> (meminfo.systemVideoMemory)    << 10;
     adapterDesc.SharedSystemMemory    = 
-      (size_t)meminfo.sharedSystemMemory   << 10;
+      static_cast <size_t> (meminfo.sharedSystemMemory)   << 10;
 
     _nv_dxgi_adapters [i] = adapterDesc;
   }
@@ -330,8 +329,8 @@ NVAPI::FindGPUByDXGIName (const wchar_t* wszName)
 std::wstring
 NVAPI::GetDriverVersion (NvU32* pVer)
 {
-  NvU32             ver;
-  NvAPI_ShortString ver_str;             // ANSI
+  NvU32             ver           =  0;
+  NvAPI_ShortString ver_str       = { }; // ANSI
   wchar_t           ver_wstr [64] = { }; // Unicode
 
   NvAPI_SYS_GetDriverAndBranchVersion (&ver, ver_str);
@@ -537,11 +536,12 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   NvU32 compat_bits = 0xFFFFFFFF;
 
   struct property_pair_s {
-    const wchar_t* wszName;
-    const wchar_t* wszValue;
+    const wchar_t* wszName  = nullptr;
+    const wchar_t* wszValue = nullptr;
   } prop;
 
-  const wchar_t** pwszPropertyListEntry = pwszPropertyList;
+  const wchar_t** pwszPropertyListEntry =
+    pwszPropertyList;
 
   prop.wszName  = *(pwszPropertyListEntry++);
   prop.wszValue = *(pwszPropertyListEntry++);
@@ -1069,8 +1069,8 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   NVAPI_CALL (DRS_CreateSession (&hSession));
   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
-  NvDRSProfileHandle hProfile;
-  static NVDRS_APPLICATION  app = { };
+         NvDRSProfileHandle hProfile = { };
+  static NVDRS_APPLICATION  app      = { };
 
   NvU32 compat_bits_enum = 
     (role == DXGI ? SLI_COMPAT_BITS_DXGI_ID :

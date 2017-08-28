@@ -309,7 +309,9 @@ END:
   return 0;
 }
 
-HWND hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+HWND hWndUpdateDlg =
+  static_cast <HWND> (INVALID_HANDLE_VALUE);
+
 HWND hWndRemind    = 0;
 
 #define ID_REMIND 0
@@ -682,8 +684,8 @@ Update_DlgProc (
       std::vector <sk_file_entry_s> files =
         SK_Get7ZFileContents (update_dlg_file);
 
-      wchar_t wszDownloadSize [32],
-              wszBackupSize   [32];
+      wchar_t wszDownloadSize [32] = { },
+              wszBackupSize   [32] = { };
 
       swprintf ( wszDownloadSize, L"   1 File,  %5.2f MiB",
                    (double)fsize / (1024.0 * 1024.0) );
@@ -926,7 +928,9 @@ Update_DlgProc (
           // SUCCESS:
           InterlockedExchange ( &__SK_UpdateStatus, 1 );
           EndDialog           (  hWndUpdateDlg,     0 );
-          hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+
+          hWndUpdateDlg =
+            static_cast <HWND> (INVALID_HANDLE_VALUE);
         }
 
         else
@@ -934,7 +938,9 @@ Update_DlgProc (
           // FAILURE:
           InterlockedExchange ( &__SK_UpdateStatus, -1 );
           EndDialog           (  hWndUpdateDlg,      0 );
-          hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+
+          hWndUpdateDlg =
+            static_cast <HWND> (INVALID_HANDLE_VALUE);
         }
       }
 
@@ -943,7 +949,9 @@ Update_DlgProc (
 
     case WM_DESTROY:
     {
-      hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
+      hWndUpdateDlg =
+        static_cast <HWND> (INVALID_HANDLE_VALUE);
+
       return 0;
     }
 
@@ -1230,8 +1238,9 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
           sk::ParameterFactory ParameterFactory;
 
           sk::ParameterBool* backup_pref =
-            (sk::ParameterBool *)
-              ParameterFactory.create_parameter <bool> (L"BackupFiles");
+            dynamic_cast <sk::ParameterBool *> (
+              ParameterFactory.create_parameter <bool> (L"BackupFiles")
+            );
 
           backup_pref->register_to_ini (
             &install_ini,
@@ -1239,8 +1248,9 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
                 L"BackupFiles" );
 
           sk::ParameterBool* keep_pref =
-            (sk::ParameterBool *)
-              ParameterFactory.create_parameter <bool> (L"KeepDownloads");
+            dynamic_cast <sk::ParameterBool *> (
+              ParameterFactory.create_parameter <bool> (L"KeepDownloads")
+            );
 
           keep_pref->register_to_ini (
             &install_ini,

@@ -135,8 +135,9 @@ void ResetCEGUI_GL (void)
   if (cegGL == nullptr)
   {
     try {
-      cegGL = (CEGUI::OpenGL3Renderer *)
-        &CEGUI::OpenGL3Renderer::bootstrapSystem ();
+      cegGL = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
+        &CEGUI::OpenGL3Renderer::bootstrapSystem ()
+      );
 
       cegGL->enableExtraStateSettings (true);
 
@@ -1221,8 +1222,8 @@ SK_CEGUI_DrawGL (void)
     {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
-            (float)(rect_now.right - rect_now.left),
-              (float)(rect_now.bottom - rect_now.top)
+            static_cast <float> (rect_now.right - rect_now.left),
+              static_cast <float> (rect_now.bottom - rect_now.top)
           )
       );
 
@@ -1317,17 +1318,21 @@ SwapBuffers (HDC hDC)
   SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
   SK_BeginBufferSwap ();
 
-  if (gdi_swap_buffers == nullptr) {
+  if (gdi_swap_buffers == nullptr)
+  {
     HMODULE hModGDI32 = LoadLibraryW_Original (L"gdi32.dll");
 
     gdi_swap_buffers =
-      (SwapBuffers_pfn)GetProcAddress (hModGDI32, "SwapBuffers");
+      reinterpret_cast <SwapBuffers_pfn> (
+        GetProcAddress (hModGDI32, "SwapBuffers")
+      );
   }
 
 
   if (SK_GetCurrentGLContext ())
   {
-    if (SK_GetFramesDrawn () < 1) {
+    if (SK_GetFramesDrawn () < 1)
+    {
       glewExperimental = GL_TRUE;
       glewInit ();
     }
@@ -1336,7 +1341,8 @@ SwapBuffers (HDC hDC)
     SK_CEGUI_DrawGL         ();
 
     static bool first = true;
-    if (first) {
+    if (first)
+    {
       ImGui_ImplGL3_Init ();
       first = false;
     }
@@ -1520,6 +1526,7 @@ namespace GLPerf
       ready_     = GL_TRUE;
 
       target_    = target;
+      active_    = false;
     }
 
    ~PipelineQuery (GLvoid)
@@ -1837,8 +1844,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
     _swprintf ( wszDesc,
                   L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
                     wszDesc, 100.0f *
-                        ( (float)stats.CPrimitives /
-                          (float)stats.CInvocations ),
+                        ( static_cast <float> (stats.CPrimitives) /
+                          static_cast <float> (stats.CInvocations) ),
                       SK_CountToString (stats.CInvocations).c_str () );
   }
 

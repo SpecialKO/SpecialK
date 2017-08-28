@@ -1383,7 +1383,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 {
   SK_LockDllLoader ();
 
-  for ( int i = 0; i < (int)(cbNeeded / sizeof (HMODULE)); i++ )
+  for ( int i = 0; i < static_cast <int> (cbNeeded / sizeof (HMODULE)); i++ )
   {
     wchar_t wszModName [MAX_PATH + 2] = { };
             ZeroMemory (wszModName, sizeof (wchar_t) * (MAX_PATH + 2));

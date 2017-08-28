@@ -194,7 +194,7 @@ class SK_D3D9RenderBackend : public SK_IVariableListener
     {
       if (var == osd_vidcap_)
       {
-        if (*(bool *)val == true)
+        if (*static_cast <bool *> (val) == true)
         {
           static volatile ULONG __installed_second_hook = FALSE;
 
