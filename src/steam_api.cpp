@@ -3337,7 +3337,11 @@ static_cast_p2p <void> (&SteamAPI_RunCallbacks) );
 static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
 static_cast_p2p <void> (&SteamAPI_Shutdown) );
 
-  SK_ApplyQueuedHooks ();
+  if (!lstrcmpW (SK_GetHostApp ( ), L"SonicMania.exe"))
+  {
+    extern void SK_SMOKE_InitPlugin (void);
+    SK_SMOKE_InitPlugin ( );
+  }
 
   if (! config.steam.force_load_steamapi)
   {

@@ -76,6 +76,10 @@ extern LoadLibraryExW_pfn      LoadLibraryExW_Original;
 
 extern LoadPackagedLibrary_pfn LoadPackagedLibrary_Original;
 
-#endif
+template <typename _T>
+BOOL
+__stdcall
+SK_LoadLibrary_PinModule (const _T* pStr);
 
+#endif
 #endif /* __SK_COMPATIBILITY_H__ */

@@ -602,6 +602,9 @@
     <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp">
       <Filter>Source Files\Widgets</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\sonic_mania.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">

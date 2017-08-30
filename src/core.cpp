@@ -1045,6 +1045,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK_FAR_InitPlugin ();
 #endif
 
+
   //
   // NOT-SO-TEMP HACK: dgVoodoo2
   //
@@ -1570,6 +1571,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     LeaveCriticalSection (&init_mutex);
     return TRUE;
   }
+
 
   extern bool SK_Steam_LoadOverlayEarly (void);
   extern void SK_Input_PreInit          (void);

@@ -1639,6 +1639,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\plugins\plugin_mgr.cpp" />
+    <ClCompile Include="src\plugins\sonic_mania.cpp" />
     <ClCompile Include="src\render_backend.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
