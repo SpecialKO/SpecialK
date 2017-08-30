@@ -3279,7 +3279,13 @@ SK_HookSteamAPI (void)
 #else
     const wchar_t* wszSteamAPI = L"steam_api.dll";
 #endif
-  SK::SteamAPI::steam_size = SK_GetFileSize (wszSteamAPI);
+  static bool runonce = false;
+
+  if (! runonce)
+  {
+    SK::SteamAPI::steam_size = SK_GetFileSize (wszSteamAPI);
+                  runonce    = true;
+  }
 
   if (config.steam.silent)
     return;
@@ -3287,10 +3293,17 @@ SK_HookSteamAPI (void)
   if (! GetModuleHandle (wszSteamAPI))
     return;
 
-  EnterCriticalSection (&init_cs);
-  if (InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
+  if (TryEnterCriticalSection (&init_cs))
   {
-    LeaveCriticalSection (&init_cs);
+    if (InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
+    {
+      LeaveCriticalSection (&init_cs);
+      return;
+    }
+  }
+
+  else
+  {
     return;
   }
 
@@ -3337,11 +3350,13 @@ static_cast_p2p <void> (&SteamAPI_RunCallbacks) );
 static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
 static_cast_p2p <void> (&SteamAPI_Shutdown) );
 
-  if (!lstrcmpW (SK_GetHostApp ( ), L"SonicMania.exe"))
-  {
-    extern void SK_SMOKE_InitPlugin (void);
-    SK_SMOKE_InitPlugin ( );
-  }
+  SK_ApplyQueuedHooks ();
+
+  //if (! lstrcmpW (SK_GetHostApp (), L"SonicMania.exe"))
+  //{
+  //  extern void SK_SMOKE_InitPlugin (void);
+  //              SK_SMOKE_InitPlugin (    );
+  //}
 
   if (! config.steam.force_load_steamapi)
   {

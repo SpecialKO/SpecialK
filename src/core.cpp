@@ -1045,6 +1045,12 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK_FAR_InitPlugin ();
 #endif
 
+  if (! lstrcmpW (SK_GetHostApp (), L"SonicMania.exe"))
+  {
+    extern void SK_SMOKE_InitPlugin (void);
+                SK_SMOKE_InitPlugin (    );
+  }
+
 
   //
   // NOT-SO-TEMP HACK: dgVoodoo2
@@ -1571,7 +1577,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     LeaveCriticalSection (&init_mutex);
     return TRUE;
   }
-
 
   extern bool SK_Steam_LoadOverlayEarly (void);
   extern void SK_Input_PreInit          (void);
