@@ -92,7 +92,7 @@ static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 
-volatile HANDLE  hInitThread   = { 0 };
+volatile HANDLE  hInitThread   = { nullptr };
          HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
 
 // Disable SLI memory in Batman Arkham Knight
@@ -100,7 +100,7 @@ bool USE_SLI = true;
 
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init       = FALSE;
-HMODULE                  backend_dll      = 0;
+HMODULE                  backend_dll      = nullptr;
 const wchar_t*           __SK_DLL_Backend = L"INVALID";
 
 // LOL -- This tests for RunDLL32 / SKIM
@@ -443,7 +443,7 @@ SK_DescribeHRESULT (HRESULT result)
 
 HANDLE osd_shutdown = INVALID_HANDLE_VALUE;
 
-// Stupid solution for games that inexplicibly draw to the screen
+// Stupid solution for games that inexplicably draw to the screen
 //   without ever swapping buffers.
 DWORD
 WINAPI
@@ -475,7 +475,7 @@ SK_StartPerfMonThreads (void)
     //
     // Spawn Process Monitor Thread
     //
-    if ( InterlockedCompareExchangePointer (&process_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+    if ( InterlockedCompareExchangePointer (&process_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
@@ -501,7 +501,7 @@ SK_StartPerfMonThreads (void)
     //
     // Spawn CPU Refresh Thread
     //
-    if ( InterlockedCompareExchangePointer (&cpu_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+    if ( InterlockedCompareExchangePointer (&cpu_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
@@ -524,7 +524,7 @@ SK_StartPerfMonThreads (void)
 
   if (config.disk.show)
   {
-    if ( InterlockedCompareExchangePointer (&disk_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+    if ( InterlockedCompareExchangePointer (&disk_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
@@ -547,7 +547,7 @@ SK_StartPerfMonThreads (void)
 
   if (config.pagefile.show)
   {
-    if ( InterlockedCompareExchangePointer (&pagefile_stats.hThread, 0, INVALID_HANDLE_VALUE) ==
+    if ( InterlockedCompareExchangePointer (&pagefile_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
@@ -575,11 +575,11 @@ SK_StartPerfMonThreads (void)
 //
 class skMemCmd : public SK_ICommand {
 public:
-  SK_ICommandResult execute (const char* szArgs);
+  virtual SK_ICommandResult execute (const char* szArgs) override;
 
-  int         getNumArgs         (void) { return 2; }
-  int         getNumOptionalArgs (void) { return 1; }
-  int         getNumRequiredArgs (void) {
+  virtual int getNumArgs         (void) override { return 2; }
+  virtual int getNumOptionalArgs (void) override { return 1; }
+  virtual int getNumRequiredArgs (void) override {
     return getNumArgs () - getNumOptionalArgs ();
   }
 
@@ -589,11 +589,11 @@ private:
 
 class skUpdateCmd : public SK_ICommand {
 public:
-  SK_ICommandResult execute (const char* szArgs);
+  virtual SK_ICommandResult execute (const char* szArgs) override;
 
-  int         getNumArgs         (void) { return 1; }
-  int         getNumOptionalArgs (void) { return 1; }
-  int         getNumRequiredArgs (void) {
+  virtual int getNumArgs         (void) override { return 1; }
+  virtual int getNumOptionalArgs (void) override { return 1; }
+  virtual int getNumRequiredArgs (void) override {
     return getNumArgs () - getNumOptionalArgs ();
   }
 
@@ -891,10 +891,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   wcscpy (SK_Backend, backend);
 
-  typedef void (WINAPI *finish_pfn)  (void);
-  typedef void (WINAPI *callback_pfn)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
+  using finish_pfn = void (WINAPI *)  (void);
+  using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
 
-  callback_pfn callback_fn =
+  auto callback_fn =
     (callback_pfn)callback;
 
   dll_log.Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
@@ -969,8 +969,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
       ShellExecute ( GetDesktopWindow (),
                        L"OPEN",
                          SK_GetHostApp (),
-                           NULL,
-                             NULL,
+                           nullptr,
+                             nullptr,
                                SW_SHOWDEFAULT );
       exit (0);
     }
@@ -1000,15 +1000,15 @@ SK_InitCore (const wchar_t* backend, void* callback)
   HMODULE hMod =
     GetModuleHandle (SK_GetHostApp ());
 
-  if (hMod != NULL)
+  if (hMod != nullptr)
   {
-    DWORD* dwOptimus =
+    auto* dwOptimus =
       reinterpret_cast <DWORD *> (
         GetProcAddress ( hMod,
                            "NvOptimusEnablement" )
       );
 
-    if (dwOptimus != NULL)
+    if (dwOptimus != nullptr)
     {
       dll_log.Log ( L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
                       *dwOptimus,
@@ -1021,13 +1021,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
       dll_log.Log (L"[Hybrid GPU]  NvOptimusEnablement..................: UNDEFINED");
     }
 
-    DWORD* dwPowerXpress =
+    auto* dwPowerXpress =
       reinterpret_cast <DWORD *> (
         GetProcAddress ( hMod,
                            "AmdPowerXpressRequestHighPerformance" )
       );
 
-    if (dwPowerXpress != NULL)
+    if (dwPowerXpress != nullptr)
     {
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: 0x%02X (%s)",
         *dwPowerXpress,
@@ -1071,7 +1071,7 @@ WaitForInit (void)
   if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE))
     return;
 
-  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) == 0)
+  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) == nullptr)
     SleepEx (150, TRUE);
 
   while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) != INVALID_HANDLE_VALUE)
@@ -1121,7 +1121,7 @@ WaitForInit (void)
   }
 }
 
-typedef HWND (WINAPI *CreateWindowW_pfn)(
+using CreateWindowW_pfn = HWND (WINAPI *)(
   _In_opt_ LPCWSTR   lpClassName,
   _In_opt_ LPCWSTR   lpWindowName,
   _In_     DWORD     dwStyle,
@@ -1135,7 +1135,7 @@ typedef HWND (WINAPI *CreateWindowW_pfn)(
   _In_opt_ LPVOID    lpParam
 );
 
-typedef HWND (WINAPI *CreateWindowA_pfn)(
+using CreateWindowA_pfn = HWND (WINAPI *)(
   _In_opt_ LPCSTR    lpClassName,
   _In_opt_ LPCSTR    lpWindowName,
   _In_     DWORD     dwStyle,
@@ -1149,7 +1149,7 @@ typedef HWND (WINAPI *CreateWindowA_pfn)(
   _In_opt_ LPVOID    lpParam
 );
 
-typedef HWND (WINAPI *CreateWindowExW_pfn)(
+using CreateWindowExW_pfn = HWND (WINAPI *)(
   _In_     DWORD     dwExStyle,
   _In_opt_ LPCWSTR   lpClassName,
   _In_opt_ LPCWSTR   lpWindowName,
@@ -1164,7 +1164,7 @@ typedef HWND (WINAPI *CreateWindowExW_pfn)(
   _In_opt_ LPVOID    lpParam
 );
 
-typedef HWND (WINAPI *CreateWindowExA_pfn)(
+using CreateWindowExA_pfn = HWND (WINAPI *)(
   _In_     DWORD     dwExStyle,
   _In_opt_ LPCSTR    lpClassName,
   _In_opt_ LPCSTR    lpWindowName,
@@ -1330,7 +1330,7 @@ DWORD
 WINAPI
 DllThread (LPVOID user)
 {
-  init_params_t* params =
+  auto* params =
     static_cast <init_params_t *> (user);
 
   SK_InitCore (params->backend, params->callback);
@@ -1810,12 +1810,12 @@ BACKEND_INIT:
 
   if (! SK_IsInjected ())
   {
-    for (int i = 0; i < SK_MAX_IMPORTS; i++)
+    for (auto& import : imports)
     {
-      if (imports [i].role != nullptr && imports [i].role->get_value () == backend)
+      if (import.role != nullptr && import.role->get_value () == backend)
       {
         dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
-        dll_name   = _wcsdup (imports [i].filename->get_value ().c_str ());
+        dll_name   = _wcsdup (import.filename->get_value ().c_str ());
         load_proxy = true;
         break;
       }
@@ -1847,7 +1847,7 @@ BACKEND_INIT:
   //  backend_dll = LoadLibraryExW_Original ( dll_name, nullptr, use_system_dll ?
   //                                           LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00);
 
-  if (backend_dll != NULL)
+  if (backend_dll != nullptr)
     dll_log.LogEx (false, L" (%s)\n", dll_name);
   else
     dll_log.LogEx (false, L" FAILED (%s)!\n", dll_name);
@@ -2150,7 +2150,7 @@ SK_BeginBufferSwap (void)
 
   if (InterlockedCompareExchange (&first, 0, 0))
   {
-    if (SK_GetGameWindow () != 0)
+    if (SK_GetGameWindow () != nullptr)
     {
       extern void SK_ResetWindow ();
 
@@ -2238,21 +2238,21 @@ SK_BeginBufferSwap (void)
   
       // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
       //   do support it if a certain Windows Update (KB2533623) is installed.
-      typedef DLL_DIRECTORY_COOKIE (WINAPI *AddDllDirectory_pfn)          (_In_ PCWSTR               NewDirectory);
-      typedef BOOL                 (WINAPI *RemoveDllDirectory_pfn)       (_In_ DLL_DIRECTORY_COOKIE Cookie);
-      typedef BOOL                 (WINAPI *SetDefaultDllDirectories_pfn) (_In_ DWORD                DirectoryFlags);
+      using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
+      using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
+      using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
   
-      static AddDllDirectory_pfn k32_AddDllDirectory =
+      static auto k32_AddDllDirectory =
         (AddDllDirectory_pfn)
           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
                              "AddDllDirectory" );
   
-      static RemoveDllDirectory_pfn k32_RemoveDllDirectory =
+      static auto k32_RemoveDllDirectory =
         (RemoveDllDirectory_pfn)
           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
                              "RemoveDllDirectory" );
   
-      static SetDefaultDllDirectories_pfn k32_SetDefaultDllDirectories =
+      static auto k32_SetDefaultDllDirectories =
         (SetDefaultDllDirectories_pfn)
           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
                              "SetDefaultDllDirectories" );
@@ -2281,7 +2281,7 @@ SK_BeginBufferSwap (void)
                 LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
               );
   
-              DLL_DIRECTORY_COOKIE cookie = 0;
+              DLL_DIRECTORY_COOKIE cookie = nullptr;
               bool                 ret    = false;
   
               __try
@@ -2790,7 +2790,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   else
   {
-    if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != 0)
+    if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != nullptr)
     {
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
@@ -2813,8 +2813,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   // Treat resize and obscured statuses as failures; DXGI does not, but
   //  we should not draw the OSD when these events happen.
-  if (FAILED (hr))
-    return hr;
+  ////if (FAILED (hr))
+  ////  return hr;
 
   DoKeyboard ();
 

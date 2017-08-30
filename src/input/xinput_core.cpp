@@ -46,7 +46,7 @@ struct SK_XInputContext
   struct instance_s
   {
     const wchar_t*                  wszModuleName                        =     L"";
-    HMODULE                         hMod                                 =       0;
+    HMODULE                         hMod                                 =       nullptr;
 
     XInputGetState_pfn              XInputGetState_Detour                = nullptr;
     XInputGetState_pfn              XInputGetState_Original              = nullptr;
@@ -793,7 +793,7 @@ SK_XInput_RehookIfNeeded (void)
 
   // Test for modified hooks
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                 ( pCtx->XInputGetState_Target != 0 &&
+                 ( pCtx->XInputGetState_Target != nullptr &&
            memcmp (pCtx->orig_inst,
                    pCtx->XInputGetState_Target, 11 ) )
      )
@@ -842,7 +842,7 @@ SK_XInput_RehookIfNeeded (void)
 
   // Test for modified hooks
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                 ( pCtx->XInputSetState_Target != 0 &&
+                 ( pCtx->XInputSetState_Target != nullptr &&
            memcmp (pCtx->orig_inst_set,
                    pCtx->XInputSetState_Target, 11 ) )
      )
@@ -891,7 +891,7 @@ SK_XInput_RehookIfNeeded (void)
 
   // Test for modified hooks
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                 ( pCtx->XInputGetCapabilities_Target != 0 &&
+                 ( pCtx->XInputGetCapabilities_Target != nullptr &&
            memcmp (pCtx->orig_inst_caps,
                    pCtx->XInputGetCapabilities_Target, 11 ) )
      )
@@ -943,7 +943,7 @@ SK_XInput_RehookIfNeeded (void)
 
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                   ( pCtx->XInputGetBatteryInformation_Target != 0 &&
+                   ( pCtx->XInputGetBatteryInformation_Target != nullptr &&
              memcmp (pCtx->orig_inst_batt,
                      pCtx->XInputGetBatteryInformation_Target, 11 ) )
        )
@@ -993,7 +993,7 @@ SK_XInput_RehookIfNeeded (void)
   
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                   ( pCtx->XInputGetStateEx_Target != 0 &&
+                   ( pCtx->XInputGetStateEx_Target != nullptr &&
              memcmp (pCtx->orig_inst_ex,
                      pCtx->XInputGetStateEx_Target, 11 ) )
        )
@@ -1134,7 +1134,7 @@ SK_XInput_PollController ( INT           iJoyID,
       HMODULE hModXInput1_3 =
         LoadLibraryW_Original (L"XInput1_3.dll");
 
-      if (hModXInput1_3 != 0)
+      if (hModXInput1_3 != nullptr)
       {
         pCtx->XInputGetState_Original =
           (XInputGetState_pfn)

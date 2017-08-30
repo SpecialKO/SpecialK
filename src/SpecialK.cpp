@@ -61,7 +61,7 @@
 
 
 // We need this to load embedded resources correctly...
-volatile HMODULE hModSelf              = 0;
+volatile HMODULE hModSelf              = nullptr;
 
 
 volatile ULONG      __SK_DLL_Attached     = FALSE;
@@ -211,9 +211,9 @@ SK_EstablishDllRole (HMODULE hModule)
   //___________________________________________________________________________
 
   //
-  // Init Once ===> C++14 allows constexpr hashtables, use those instead dummy!
+  // Init Once ===> C++14 allows constexpr hash tables, use those instead dummy!
   //
-  if (blacklist.size () == 0)
+  if (blacklist.empty ())
   {
     blacklist.reserve (512);
 
@@ -841,7 +841,7 @@ DllMain ( HMODULE hModule,
       //
       //          0xc0000142
       //
-      if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, 0))
+      if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, nullptr))
       {
         return FALSE;
       }
@@ -992,7 +992,7 @@ DllMain ( HMODULE hModule,
 
       if (__SK_TLS_INDEX != MAXDWORD)
       {
-        LPVOID lpvData =
+        auto lpvData =
           static_cast <LPVOID> (
             LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
           );
@@ -1015,7 +1015,7 @@ DllMain ( HMODULE hModule,
     {
       if (__SK_TLS_INDEX != MAXDWORD)
       {
-        LPVOID lpvData =
+        auto lpvData =
           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
 
         if (lpvData != nullptr)

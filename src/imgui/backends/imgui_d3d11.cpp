@@ -24,7 +24,7 @@
 static INT64                    g_Time                  = 0;
 static INT64                    g_TicksPerSecond        = 0;
 
-static HWND                     g_hWnd                  = 0;
+static HWND                     g_hWnd                  = nullptr;
 static ID3D11Buffer*            g_pVB                   = nullptr;
 static ID3D11Buffer*            g_pIB                   = nullptr;
 static ID3D10Blob *             g_pVertexShaderBlob     = nullptr;
@@ -160,8 +160,8 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   if (pDevCtx->Map (g_pIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
     return;
 
-  ImDrawVert* vtx_dst = static_cast <ImDrawVert *> (vtx_resource.pData);
-  ImDrawIdx*  idx_dst = static_cast <ImDrawIdx  *> (idx_resource.pData);
+  auto* vtx_dst = static_cast <ImDrawVert *> (vtx_resource.pData);
+  auto* idx_dst = static_cast <ImDrawIdx  *> (idx_resource.pData);
 
   for (int n = 0; n < draw_data->CmdListsCount; n++)
   {
@@ -185,7 +185,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     if (pDevCtx->Map (g_pVertexConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
       return;
 
-    VERTEX_CONSTANT_BUFFER* constant_buffer =
+    auto* constant_buffer =
       static_cast <VERTEX_CONSTANT_BUFFER *> (mapped_resource.pData);
 
     float L = 0.0f;
@@ -477,9 +477,9 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
     // Create the input layout
     D3D11_INPUT_ELEMENT_DESC local_layout [] = {
-      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+      { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
 
     if ( pDev->CreateInputLayout ( local_layout, 3,
@@ -596,7 +596,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 }
 
 
-typedef void (__stdcall *SK_ImGui_ResetCallback_pfn)(void);
+using SK_ImGui_ResetCallback_pfn = void (__stdcall *)(void);
 
 std::vector <IUnknown *>                 external_resources;
 std::set    <SK_ImGui_ResetCallback_pfn> reset_callbacks;
@@ -657,20 +657,20 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 
   SK_ImGui_ResetExternal ();
 
-  if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = NULL; }
-  if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = NULL; ImGui::GetIO ().Fonts->TexID = 0; }
-  if (g_pIB)                   { g_pIB->Release              ();              g_pIB = NULL; }
-  if (g_pVB)                   { g_pVB->Release              ();              g_pVB = NULL; }
+  if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = nullptr; }
+  if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = nullptr; ImGui::GetIO ().Fonts->TexID = nullptr; }
+  if (g_pIB)                   { g_pIB->Release              ();              g_pIB = nullptr; }
+  if (g_pVB)                   { g_pVB->Release              ();              g_pVB = nullptr; }
 
-  if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = NULL; }
-  if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = NULL; }
-  if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = NULL; }
-  if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = NULL; }
-  if (g_pPixelShaderBlob)      { g_pPixelShaderBlob->Release      ();      g_pPixelShaderBlob = NULL; }
-  if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release (); g_pVertexConstantBuffer = NULL; }
-  if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = NULL; }
-  if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = NULL; }
-  if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = NULL; }
+  if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = nullptr; }
+  if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
+  if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = nullptr; }
+  if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = nullptr; }
+  if (g_pPixelShaderBlob)      { g_pPixelShaderBlob->Release      ();      g_pPixelShaderBlob = nullptr; }
+  if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release (); g_pVertexConstantBuffer = nullptr; }
+  if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = nullptr; }
+  if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = nullptr; }
+  if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = nullptr; }
 }
 
 bool

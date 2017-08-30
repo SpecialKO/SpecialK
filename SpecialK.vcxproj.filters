@@ -306,9 +306,6 @@
     <ClInclude Include="include\SpecialK\ini.h">
       <Filter>Header Files\Config</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\update\archive.h">
-      <Filter>Source Files\Backends\Update</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\steam_api.h">
       <Filter>Header Files\Steam</Filter>
     </ClInclude>
@@ -335,12 +332,6 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\sound.h">
       <Filter>Header Files\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\update\version.h">
-      <Filter>Source Files\Backends\Update</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\update\network.h">
-      <Filter>Source Files\Backends\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_d3d9.h">
       <Filter>Header Files\ImGui</Filter>
@@ -407,6 +398,15 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\plugin\nier.h">
       <Filter>Header Files\Plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\update\archive.h">
+      <Filter>Header Files\Update</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\update\network.h">
+      <Filter>Header Files\Update</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\update\version.h">
+      <Filter>Header Files\Update</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -49,7 +49,7 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  void run (void)
+  virtual void run (void) override
   {
     DWORD dwNow = timeGetTime ();
 
@@ -69,7 +69,7 @@ public:
     }
   }
 
-  void draw (void)
+  virtual void draw (void) override
   {
     ImGuiIO& io (ImGui::GetIO ( ));
 
@@ -203,7 +203,7 @@ public:
       std::min ( (float)vram_used_mib.getUpdates  (),
                  (float)vram_used_mib.getCapacity () );
 
-    float capacity_in_mib =
+    auto capacity_in_mib =
       static_cast <float> (SK_GPU_GetVRAMBudget (0) >> 20ULL);
 
     if (capacity_in_mib <= 0.0f)
@@ -228,7 +228,7 @@ public:
     ImGui::PopStyleColor (4);
   }
 
-  void OnConfig (ConfigEvent event)
+  virtual void OnConfig (ConfigEvent event) override
   {
     switch (event)
     {

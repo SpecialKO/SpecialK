@@ -104,11 +104,11 @@ private:
 template <typename _T>
 class Parameter : public iParameter {
 public:
-  virtual std::wstring get_value_str (void) = 0;
+  virtual std::wstring get_value_str (void) override = 0;
   virtual _T           get_value     (void) = 0;
 
-  virtual void         set_value     (_T val)           = 0;
-  virtual void         set_value_str (std::wstring str) = 0;
+  virtual void         set_value     (_T           val)          = 0;
+  virtual void         set_value_str (std::wstring str) override = 0;
 
 protected:
   _T                       value;
@@ -117,11 +117,11 @@ protected:
 class ParameterInt : public Parameter <int>
 {
 public:
-  std::wstring get_value_str (void);
-  int          get_value     (void);
+  virtual std::wstring get_value_str (void)             override;
+  virtual int          get_value     (void)             override;
 
-  void         set_value     (int val);
-  void         set_value_str (std::wstring str);
+  virtual void         set_value     (int          val) override;
+  virtual void         set_value_str (std::wstring str) override;
 
 protected:
   int value;
@@ -130,11 +130,11 @@ protected:
 class ParameterInt64 : public Parameter <int64_t>
 {
 public:
-  std::wstring get_value_str (void);
-  int64_t      get_value     (void);
+  virtual std::wstring get_value_str (void)             override;
+  virtual int64_t      get_value     (void)             override;
 
-  void         set_value     (int64_t val);
-  void         set_value_str (std::wstring str);
+  virtual void         set_value     (int64_t      val) override;
+  virtual void         set_value_str (std::wstring str) override;
 
 protected:
   int64_t value;
@@ -143,11 +143,11 @@ protected:
 class ParameterBool : public Parameter <bool>
 {
 public:
-  std::wstring get_value_str (void);
-  bool         get_value     (void);
+  virtual std::wstring get_value_str (void)             override;
+  virtual bool         get_value     (void)             override;
 
-  void         set_value     (bool val);
-  void         set_value_str (std::wstring str);
+  virtual void         set_value     (bool         val) override;
+  virtual void         set_value_str (std::wstring str) override;
 
   enum boolean_term_t {
     TrueFalse   = 0,
@@ -164,11 +164,11 @@ protected:
 class ParameterFloat : public Parameter <float>
 {
 public:
-  std::wstring get_value_str (void);
-  float        get_value (void);
+  virtual std::wstring get_value_str (void)             override;
+  virtual float        get_value     (void)             override;
 
-  void         set_value (float val);
-  void         set_value_str (std::wstring str);
+  virtual void         set_value     (float        val) override;
+  virtual void         set_value_str (std::wstring str) override;
 
 protected:
   float value;
@@ -177,11 +177,11 @@ protected:
 class ParameterStringW : public Parameter <std::wstring>
 {
 public:
-  std::wstring get_value_str (void);
-  std::wstring get_value     (void);
+  virtual std::wstring get_value_str (void)             override;
+  virtual std::wstring get_value     (void)             override;
 
-  void         set_value     (std::wstring str);
-  void         set_value_str (std::wstring str);
+  virtual void         set_value     (std::wstring str) override;
+  virtual void         set_value_str (std::wstring str) override;
 
 protected:
   std::wstring value;
@@ -190,11 +190,11 @@ protected:
 class ParameterVec2f : public Parameter <ImVec2>
 {
 public:
-  std::wstring get_value_str (void);
-  ImVec2       get_value     (void);
+  virtual std::wstring get_value_str (void)             override;
+  virtual ImVec2       get_value     (void)             override;
 
-  void         set_value     (ImVec2       val);
-  void         set_value_str (std::wstring str);
+  virtual void         set_value     (ImVec2       val) override;
+  virtual void         set_value_str (std::wstring str) override;
 
 protected:
   ImVec2 value;

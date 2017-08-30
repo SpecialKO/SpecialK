@@ -313,7 +313,8 @@ NVAPI::FindGPUByDXGIName (const wchar_t* wszName)
                                     // -----
                                     // What the heck?!
 
-    if (wcsstr (adapters->Description, wszFixedName) != NULL) {
+    if (wcsstr (adapters->Description, wszFixedName) != nullptr)
+    {
       delete [] wszFixedName;
       return adapters;
     }
@@ -323,7 +324,7 @@ NVAPI::FindGPUByDXGIName (const wchar_t* wszName)
 
   delete [] wszFixedName;
 
-  return NULL;
+  return nullptr;
 }
 
 std::wstring
@@ -341,7 +342,7 @@ NVAPI::GetDriverVersion (NvU32* pVer)
   _snwprintf (ver_wstr, 63, L"%u.%u", ver / 100, ver % 100);
   ver_wstr [63] = L'\0';
 
-  if (pVer != NULL)
+  if (pVer != nullptr)
     *pVer = ver;
 
   return ver_wstr;
@@ -425,11 +426,14 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
 #endif
 
-    if (hLib != nullptr) {
-      typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int ordinal);
+    if (hLib != nullptr)
+    {
+      using NvAPI_QueryInterface_pfn = void* (*)(unsigned int ordinal);
 
-      static NvAPI_QueryInterface_pfn NvAPI_QueryInterface =
-        (NvAPI_QueryInterface_pfn)GetProcAddress (hLib, "nvapi_QueryInterface");
+      static auto NvAPI_QueryInterface =
+        reinterpret_cast <NvAPI_QueryInterface_pfn> (
+          GetProcAddress (hLib, "nvapi_QueryInterface")
+        );
 
       NvAPI_GPU_GetRamType =
         (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface            (0x57F7CAACu);
@@ -757,7 +761,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
     if (ret == NVAPI_INVALID_USER_PRIVILEGE)
     {
       int result = 
-        MessageBox ( NULL,
+        MessageBox ( nullptr,
                        L"Please run this game as Administrator to install Anti-Aliasing "
                        L"compatibility bits\r\n\r\n"
                        L"\t>> Pressing Cancel will disable AA Override",
@@ -1221,7 +1225,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
     if (ret == NVAPI_INVALID_USER_PRIVILEGE)
     {
       int result = 
-        MessageBox ( NULL,
+        MessageBox ( nullptr,
                        L"Please run this game as Administrator to install SLI "
                        L"compatibility bits\r\n\r\n"
                        L"\t>> Pressing Cancel will disable SLI Override",

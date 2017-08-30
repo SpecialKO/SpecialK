@@ -200,7 +200,7 @@ interface iSK_Logger : public IUnknown
                                  char const* const    _Format,
                                                       ... );
 
-  FILE*            fLog        = NULL;
+  FILE*            fLog        = nullptr;
   std::wstring     name        = L"";
   bool             silent      = false;
   bool             initialized = false;

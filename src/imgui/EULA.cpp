@@ -51,8 +51,8 @@ SK_GetLicenseText (SHORT id)
     // There's no forseeable reason this would be NULL, but the Application Verifier won't shutup about it.
     if (! license_ref) return std::string ("");
 
-    char* res_data =
-      (char *)malloc (res_size + 1);
+    auto* res_data =
+      static_cast <char *> (malloc (res_size + 1));
 
     if (res_data != nullptr)
     {
@@ -87,8 +87,6 @@ SK_ImGui_DrawEULA_PlugIn (LPVOID reserved)
     ImGui::GetIO ();
 
   DBG_UNREFERENCED_LOCAL_VARIABLE (io);
-
-  return;
 }
 
 extern std::wstring

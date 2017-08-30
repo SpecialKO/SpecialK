@@ -50,8 +50,8 @@ bool          SK_DiscontEpsilon   (int x1, int x2, int tolerance);
 DWORD __stdcall SK_RealizeForegroundWindow (HWND hWndForeground);
 HWND  __stdcall SK_GetGameWindow           (void);
 
-typedef BOOL
-(WINAPI *MoveWindow_pfn)(
+using MoveWindow_pfn = BOOL
+(WINAPI *)(
     _In_ HWND hWnd,
     _In_ int  X,
     _In_ int  Y,
@@ -59,13 +59,13 @@ typedef BOOL
     _In_ int  nHeight,
     _In_ BOOL bRedraw );
 
-typedef BOOL (WINAPI *SetWindowPlacement_pfn)(
-  _In_       HWND            hWnd,
+using SetWindowPlacement_pfn = BOOL (WINAPI *)(
+  _In_       HWND              hWnd,
   _In_ const WINDOWPLACEMENT *lpwndpl
 );
 
-typedef BOOL
-(WINAPI *SetWindowPos_pfn)(
+using SetWindowPos_pfn = BOOL
+(WINAPI *)(
     _In_     HWND hWnd,
     _In_opt_ HWND hWndInsertAfter,
     _In_     int  X,
@@ -74,66 +74,66 @@ typedef BOOL
     _In_     int  cy,
     _In_     UINT uFlags );
 
-typedef LONG
-(WINAPI *SetWindowLong_pfn)(
+using SetWindowLong_pfn = LONG
+(WINAPI *)(
     _In_ HWND hWnd,
     _In_ int  nIndex,
     _In_ LONG dwNewLong);
 
-typedef LONG_PTR
-(WINAPI *SetWindowLongPtr_pfn)(
+using SetWindowLongPtr_pfn = LONG_PTR
+(WINAPI *)(
     _In_ HWND     hWnd,
     _In_ int      nIndex,
     _In_ LONG_PTR dwNewLong);
 
-typedef LONG
-(WINAPI *GetWindowLong_pfn)(
+using GetWindowLong_pfn = LONG
+(WINAPI *)(
   _In_ HWND hWnd,
   _In_ int  nIndex
 );
 
-typedef LONG_PTR
-(WINAPI *GetWindowLongPtr_pfn)(
+using GetWindowLongPtr_pfn = LONG_PTR
+(WINAPI *)(
   _In_ HWND hWnd,
   _In_ int  nIndex
 );
 
 
-typedef BOOL
-(WINAPI *AdjustWindowRect_pfn)(
+using AdjustWindowRect_pfn = BOOL
+(WINAPI *)(
     _Inout_ LPRECT lpRect,
     _In_    DWORD  dwStyle,
     _In_    BOOL   bMenu );
 
-typedef BOOL
-(WINAPI *AdjustWindowRectEx_pfn)(
+using AdjustWindowRectEx_pfn = BOOL
+(WINAPI *)(
     _Inout_ LPRECT lpRect,
     _In_    DWORD  dwStyle,
     _In_    BOOL   bMenu,
     _In_    DWORD  dwExStyle );
 
-typedef int
-(WINAPI *GetSystemMetrics_pfn)(
+using GetSystemMetrics_pfn = int
+(WINAPI *)(
   _In_ int nIndex
 );
 
-typedef BOOL
-(WINAPI *GetWindowRect_pfn)(
+using GetWindowRect_pfn = BOOL
+(WINAPI *)(
   HWND, 
   LPRECT );
-typedef BOOL
-(WINAPI *GetClientRect_pfn)(
+using GetClientRect_pfn = BOOL
+(WINAPI *)(
   HWND,
   LPRECT );
 
-typedef LRESULT (WINAPI *DefWindowProc_pfn)(
+using DefWindowProc_pfn = LRESULT (WINAPI *)(
     _In_ HWND   hWnd,
     _In_ UINT   Msg,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam
 );
 
-typedef LRESULT (WINAPI *CallWindowProc_pfn)(
+using CallWindowProc_pfn = LRESULT (WINAPI *)(
     _In_ WNDPROC lpPrevWndFunc,
     _In_ HWND    hWnd,
     _In_ UINT    Msg,
@@ -141,40 +141,40 @@ typedef LRESULT (WINAPI *CallWindowProc_pfn)(
     _In_ LPARAM  lParam
 );
 
-typedef LONG_PTR (WINAPI *GetWindowLongPtr_pfn)(
+using GetWindowLongPtr_pfn = LONG_PTR (WINAPI *)(
     _In_ HWND hWnd,
     _In_ int  nIndex
 );
 
 
-typedef BOOL
-(WINAPI *ClipCursor_pfn)(
+using ClipCursor_pfn = BOOL
+(WINAPI *)(
     _In_opt_ const RECT *lpRect );
 
-typedef BOOL
-(WINAPI *GetCursorPos_pfn)(
+using GetCursorPos_pfn = BOOL
+(WINAPI *)(
   _Out_ LPPOINT lpPoint );
 
-typedef BOOL
-(WINAPI *GetCursorInfo_pfn)(
+using GetCursorInfo_pfn = BOOL
+(WINAPI *)(
   _Inout_ PCURSORINFO pci );
 
 
-typedef SHORT (WINAPI *GetAsyncKeyState_pfn)(
+using GetAsyncKeyState_pfn = SHORT (WINAPI *)(
   _In_ int vKey
 );
 
-typedef SHORT (WINAPI *GetKeyState_pfn)(
+using GetKeyState_pfn = SHORT (WINAPI *)(
   _In_ int nVirtKey
 );
 
-typedef BOOL (WINAPI *RegisterRawInputDevices_pfn)(
+using RegisterRawInputDevices_pfn = BOOL (WINAPI *)(
   _In_ PCRAWINPUTDEVICE pRawInputDevices,
   _In_ UINT             uiNumDevices,
   _In_ UINT             cbSize
 );
 
-typedef UINT (WINAPI *GetRawInputData_pfn)(
+using GetRawInputData_pfn = UINT (WINAPI *)(
   _In_      HRAWINPUT hRawInput,
   _In_      UINT      uiCommand,
   _Out_opt_ LPVOID    pData,
@@ -182,26 +182,26 @@ typedef UINT (WINAPI *GetRawInputData_pfn)(
   _In_      UINT      cbSizeHeader
 );
 
-typedef UINT (WINAPI *GetRawInputBuffer_pfn)(
+using GetRawInputBuffer_pfn = UINT (WINAPI *)(
                                _Out_opt_ PRAWINPUT pData,
                                _Inout_   PUINT     pcbSize,
                                _In_      UINT      cbSizeHeader);
-typedef BOOL (WINAPI *GetKeyboardState_pfn)(PBYTE lpKeyState);
+using GetKeyboardState_pfn = BOOL (WINAPI *)(PBYTE lpKeyState);
 
 
-typedef BOOL (WINAPI *SetCursorPos_pfn)
+using SetCursorPos_pfn = BOOL (WINAPI *)
 (
   _In_ int X,
   _In_ int Y
 );
 
-typedef UINT (WINAPI *SendInput_pfn)(
+using SendInput_pfn = UINT (WINAPI *)(
   _In_ UINT    nInputs,
   _In_ LPINPUT pInputs,
   _In_ int     cbSize
 );
 
-typedef VOID(WINAPI *mouse_event_pfn)(
+using mouse_event_pfn = VOID(WINAPI *)(
   _In_ DWORD     dwFlags,
   _In_ DWORD     dx,
   _In_ DWORD     dy,
@@ -243,7 +243,7 @@ extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 struct sk_window_s {
   bool       unicode          = false;
 
-  HWND       hWnd             = 0x00;
+  HWND       hWnd             = nullptr;
   WNDPROC    WndProc_Original = nullptr;
   WNDPROC    RawProc_Original = nullptr;
 

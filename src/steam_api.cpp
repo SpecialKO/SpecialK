@@ -178,8 +178,10 @@ void             SK_SteamAPI_ContextInit (HMODULE hSteamAPI);
   }                                                                          \
 }
 
-typedef void (__fastcall *callback_func_t)     ( CCallbackBase*, LPVOID );
-typedef void (__fastcall *callback_func_fail_t)( CCallbackBase*, LPVOID, bool bIOFailure, SteamAPICall_t hSteamAPICall );
+using callback_func_t      =
+  void (__fastcall *)( CCallbackBase*, LPVOID );
+using callback_func_fail_t =
+  void (__fastcall *)( CCallbackBase*, LPVOID, bool bIOFailure, SteamAPICall_t hSteamAPICall );
 
 callback_func_t SteamAPI_UserStatsReceived_Original = nullptr;
 
@@ -1371,7 +1373,7 @@ public:
         achievement->progress_.max     = 1;
 
         if (config.steam.achievements.play_sound)
-          PlaySound ( (LPCWSTR)unlock_sound, NULL, SND_ASYNC | SND_MEMORY );
+          PlaySound ( (LPCWSTR)unlock_sound, nullptr, SND_ASYNC | SND_MEMORY );
 
         if (achievement != nullptr)
         {
@@ -1448,7 +1450,7 @@ public:
   {
     EnterCriticalSection (&popup_cs);
 
-    if (! popups.size ())
+    if (popups.empty ())
     {
       LeaveCriticalSection (&popup_cs);
       return;
@@ -1463,7 +1465,7 @@ public:
   {
     EnterCriticalSection (&popup_cs);
 
-    if (! popups.size ())
+    if (popups.empty ())
     {
       LeaveCriticalSection (&popup_cs);
       return;
@@ -1482,9 +1484,11 @@ public:
 
         #define POPUP_DURATION_MS config.steam.achievements.popup.duration
 
-        std::vector <SK_AchievementPopup>::iterator it = popups.begin ();
+        auto it =
+          popups.begin ();
 
-        float inset = config.steam.achievements.popup.inset;
+        float inset =
+          config.steam.achievements.popup.inset;
 
         if (inset < 0.0001f)  inset = 0.0f;
 
@@ -1835,7 +1839,7 @@ public:
         ).c_str () );
 
       // If the config file is empty, establish defaults and then write it.
-      if (achievement_ini.get_sections ().size () == 0)
+      if (achievement_ini.get_sections ().empty ())
       {
         achievement_ini.import ( L"[Steam.Achievements]\n"
                                  L"SoundFile=psn\n"
@@ -1914,7 +1918,7 @@ public:
         HGLOBAL sound_ref     =
           LoadResource (SK_GetDLL (), default_sound);
 
-        if (sound_ref != 0)
+        if (sound_ref != nullptr)
         {
           unlock_sound        =
             static_cast <uint8_t *> (LockResource (sound_ref));
@@ -2331,13 +2335,8 @@ SK_Steam_ClearPopups (void)
 class SK_Steam_UserManager
 {
 public:
-  SK_Steam_UserManager (void)
-  {
-  }
-
-  ~SK_Steam_UserManager (void)
-  {
-  }
+   SK_Steam_UserManager (void) = default;
+  ~SK_Steam_UserManager (void) = default;
 
   int32_t  GetNumPlayers    (void) { return InterlockedAdd (&num_players_, 0L); }
   void     UpdateNumPlayers (void)
@@ -2431,9 +2430,9 @@ SteamAPI_RunCallbacks_Detour (void)
            SK_SteamAPI_InitManagers ();
     }
 
-    static volatile HANDLE hThread = 0;
+    static volatile HANDLE hThread = nullptr;
 
-    if (InterlockedCompareExchangePointer (&hThread, 0, 0) == 0)
+    if (InterlockedCompareExchangePointer (&hThread, nullptr, nullptr) == nullptr)
     {
       InterlockedExchangePointer ((void **)&hThread,
         CreateThread ( nullptr, 0,
@@ -2568,7 +2567,7 @@ void SK::SteamAPI::Pump (void)
   }
 }
 
-volatile HANDLE hSteamPump = 0;
+volatile HANDLE hSteamPump = nullptr;
 
 DWORD
 WINAPI
@@ -2621,7 +2620,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
     }
   }
 
-  CloseHandle (InterlockedExchangePointer ((void **)&hSteamPump, 0));
+  CloseHandle (InterlockedExchangePointer ((void **)&hSteamPump, nullptr));
 
   return 0;
 }
@@ -2629,7 +2628,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 void
 SK_Steam_StartPump (bool force)
 {
-  if (InterlockedCompareExchangePointer (&hSteamPump, 0, 0) != 0)
+  if (InterlockedCompareExchangePointer (&hSteamPump, nullptr, nullptr) != nullptr)
     return;
 
   if (config.steam.auto_pump_callbacks || force)
@@ -2649,10 +2648,10 @@ void
 SK_Steam_KillPump (void)
 {
   CHandle hOriginal (
-    InterlockedExchangePointer ((void **)&hSteamPump, 0)
+    InterlockedExchangePointer ((void **)&hSteamPump, nullptr)
   );
 
-  if (hOriginal != 0)
+  if (hOriginal != nullptr)
   {
     TerminateThread (hOriginal, 0x00);
   }
@@ -2727,7 +2726,7 @@ SK_GetSteamDir (void)
                      L"SOFTWARE\\Valve\\Steam\\",
                        L"SteamPath",
                          RRF_RT_REG_SZ,
-                           NULL,
+                           nullptr,
                              wszSteamPath,
                                (LPDWORD)&len );
 
@@ -2740,11 +2739,12 @@ SK_GetSteamDir (void)
 std::string
 SK_UseManifestToGetAppName (uint32_t appid)
 {
-  typedef char* steam_library_t [MAX_PATH * 2];
-  static bool   scanned_libs = false;
+  using steam_library_t =
+    char* [MAX_PATH * 2];
 
 #define MAX_STEAM_LIBRARIES 16
-  static int             steam_libs = 0;
+  static bool            scanned_libs = false;
+  static int             steam_libs   = 0;
   static steam_library_t steam_lib_paths [MAX_STEAM_LIBRARIES] = { };
 
   static const wchar_t* wszSteamPath;
@@ -2837,7 +2837,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
       char szManifest [MAX_PATH * 2 + 1] = { };
 
       sprintf ( szManifest,
-                  "%s\\steamapps\\appmanifest_%lu.acf",
+                  R"(%s\steamapps\appmanifest_%lu.acf)",
                     (char *)steam_lib_paths [i],
                       appid );
 
@@ -2860,7 +2860,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
         dwSize =
           GetFileSize (hManifest, &dwSizeHigh);
 
-        char* szManifestData =
+        auto* szManifestData =
           new char [dwSize + 1] { };
 
         if (! szManifestData)
@@ -2881,17 +2881,17 @@ SK_UseManifestToGetAppName (uint32_t appid)
         }
 
         char* szAppName =
-          StrStrIA (szManifestData, "\"name\"");
+          StrStrIA (szManifestData, R"("name")");
 
         char szGameName [513] = { };
 
         if (szAppName != nullptr)
         {
           // Make sure everything is lowercase
-          memcpy (szAppName, "\"name\"", 6);
+          memcpy (szAppName, R"("name")", 6);
 
           sscanf ( szAppName,
-                     "\"name\" \"%512[^\"]\"",
+                     R"("name" "%512[^"]")",
                        szGameName );
 
           return szGameName;
@@ -2904,7 +2904,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
   char szManifest [MAX_PATH * 2 + 1] = { };
 
   sprintf ( szManifest,
-              "%ls\\steamapps\\appmanifest_%lu.acf",
+              R"(%ls\steamapps\appmanifest_%lu.acf)",
                 wszSteamPath,
                   appid );
 
@@ -2927,7 +2927,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
     dwSize =
       GetFileSize (hManifest, &dwSizeHigh);
 
-    char* szManifestData =
+    auto* szManifestData =
       new char [dwSize + 1] { };
 
     if (szManifestData == nullptr)
@@ -2950,7 +2950,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
     }
 
     char* szAppName =
-      StrStrIA (szManifestData, "\"name\"");
+      StrStrIA (szManifestData, R"("name")");
 
     char szGameName [513] = { };
 
@@ -2959,10 +2959,10 @@ SK_UseManifestToGetAppName (uint32_t appid)
       *szAppName = '\0';
 
       // Make sure everything is lowercase
-      memcpy (szAppName, "\"name\"", 6);
+      memcpy (szAppName, R"("name")", 6);
 
       sscanf ( szAppName,
-                 "\"name\" \"%512[^\"]\"",
+                 R"("name" "%512[^"]")",
                    szGameName );
 
       return szGameName;
@@ -3002,7 +3002,7 @@ SK::SteamAPI::SetOverlayState (bool active)
     state.m_bActive = active;
     overlay_state   = active;
 
-    std::multiset <CCallbackBase *>::iterator it =
+    auto it =
       overlay_activation_callbacks.begin ();
 
     while (it != overlay_activation_callbacks.end ())
@@ -3742,7 +3742,7 @@ SK_Steam_LoadOverlayEarly (void)
   hModOverlay =
     LoadLibraryW (wszOverlayDLL);
 
-  return hModOverlay != NULL;
+  return hModOverlay != nullptr;
 }
 
 

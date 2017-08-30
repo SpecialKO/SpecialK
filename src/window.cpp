@@ -194,7 +194,7 @@ SK_FindRootWindow (DWORD proc_id)
   window_t win;
 
   win.proc_id  = proc_id;
-  win.root     = 0;
+  win.root     = nullptr;
 
   EnumWindows (SK_EnumWindows, (LPARAM)&win);
 
@@ -243,7 +243,7 @@ public:
               ( style  &  WS_DLGFRAME   )    );
   }
 
-  virtual bool OnVarChange (SK_IVariable* var, void* val)
+  virtual bool OnVarChange (SK_IVariable* var, void* val) override
   {
     if (var == confine_cursor_)
     {
@@ -424,7 +424,7 @@ public:
                 ClipCursor_Original (nullptr);
             }
 
-            // Go Fullscreen (Stetch Window to Fill)
+            // Go Fullscreen (Stretch Window to Fill)
             else
             {
               config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
@@ -574,7 +574,9 @@ public:
 
         SK_AdjustWindow ();
 
-        char *pszRes = (char *)((SK_IVarStub <char *>*)var)->getValuePointer ();
+        auto *pszRes =
+          static_cast <char *> (((SK_IVarStub <char *> *)var)->getValuePointer ());
+
         snprintf (pszRes, 31, "%ux%u", x, y);
 
         return true;
@@ -582,7 +584,9 @@ public:
 
       else
       {
-        char *pszRes = (char *)((SK_IVarStub <char *>*)var)->getValuePointer ();
+        auto *pszRes =
+          static_cast <char *> (((SK_IVarStub <char *> *)var)->getValuePointer ());
+
         snprintf (pszRes, 31, "INVALID");
 
         return false;
@@ -1291,7 +1295,7 @@ AdjustWindowRect_Detour (
                       SK_SummarizeCaller ().c_str () ),
                 L"Window Mgr" );
 
-  // Override if forcing Fullscreen Bordereless
+  // Override if forcing Fullscreen Borderless
   //
   if (config.window.fullscreen && config.window.borderless && (! bMenu))
   {
@@ -1338,7 +1342,7 @@ AdjustWindowRectEx_Detour (
                         SK_SummarizeCaller ().c_str () ),
                L"Window Mgr" );
 
-  // Override if forcing Fullscreen Bordereless
+  // Override if forcing Fullscreen Borderless
   //
   if (config.window.fullscreen && config.window.borderless && (! bMenu))
   {
@@ -2400,8 +2404,50 @@ SK_GetSystemMetrics (_In_ int nIndex)
 
 
 
-typedef BOOL (WINAPI *TranslateMessage_pfn)(_In_ const MSG *lpMsg);
+using TranslateMessage_pfn =
+  BOOL (WINAPI *)(_In_ const MSG *lpMsg);
+
+using DispatchMessageW_pfn =
+  LRESULT (WINAPI *)(
+    _In_ const MSG *lpmsg
+  );
+
+using DispatchMessageA_pfn =
+  LRESULT (WINAPI *)(
+    _In_ const MSG *lpmsg
+  );
+
+using GetMessageA_pfn =
+  BOOL (WINAPI *)( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
+using GetMessageW_pfn =
+  BOOL (WINAPI *)( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
+
+using PeekMessageW_pfn =
+  BOOL (WINAPI *)(
+    _Out_    LPMSG lpMsg,
+    _In_opt_ HWND  hWnd,
+    _In_     UINT  wMsgFilterMin,
+    _In_     UINT  wMsgFilterMax,
+    _In_     UINT  wRemoveMsg
+  );
+
+using PeekMessageA_pfn =
+  BOOL (WINAPI *)(
+    _Out_    LPMSG lpMsg,
+    _In_opt_ HWND  hWnd,
+    _In_     UINT  wMsgFilterMin,
+    _In_     UINT  wMsgFilterMax,
+    _In_     UINT  wRemoveMsg
+  );
+
 TranslateMessage_pfn TranslateMessage_Original = nullptr;
+
+PeekMessageW_pfn     PeekMessageW_Original     = nullptr;
+PeekMessageA_pfn     PeekMessageA_Original     = nullptr;
+GetMessageA_pfn      GetMessageA_Original      = nullptr;
+GetMessageW_pfn      GetMessageW_Original      = nullptr;
+DispatchMessageW_pfn DispatchMessageW_Original = nullptr;
+DispatchMessageA_pfn DispatchMessageA_Original = nullptr;
 
 BOOL
 WINAPI
@@ -2430,17 +2476,6 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
 
 LPMSG last_message = nullptr;
 
-typedef LRESULT (WINAPI *DispatchMessageW_pfn)(
-  _In_ const MSG *lpmsg
-);
-
-typedef LRESULT (WINAPI *DispatchMessageA_pfn)(
-  _In_ const MSG *lpmsg
-);
-
-DispatchMessageW_pfn DispatchMessageW_Original = nullptr;
-DispatchMessageA_pfn DispatchMessageA_Original = nullptr;
-
 bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
@@ -2454,22 +2489,6 @@ SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 
   return false;
 }
-
-typedef BOOL (WINAPI *GetMessageA_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
-typedef BOOL (WINAPI *GetMessageW_pfn)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
-
-GetMessageA_pfn GetMessageA_Original;
-GetMessageW_pfn GetMessageW_Original;
-
-typedef BOOL (WINAPI *PeekMessageW_pfn)(
-  _Out_    LPMSG lpMsg,
-  _In_opt_ HWND  hWnd,
-  _In_     UINT  wMsgFilterMin,
-  _In_     UINT  wMsgFilterMax,
-  _In_     UINT  wRemoveMsg
-);
-
-PeekMessageW_pfn PeekMessageW_Original = nullptr;
 
 BOOL
 WINAPI
@@ -2518,16 +2537,6 @@ PeekMessageW_Detour (
 
   return FALSE;
 }
-
-typedef BOOL (WINAPI *PeekMessageA_pfn)(
-  _Out_    LPMSG lpMsg,
-  _In_opt_ HWND  hWnd,
-  _In_     UINT  wMsgFilterMin,
-  _In_     UINT  wMsgFilterMax,
-  _In_     UINT  wRemoveMsg
-);
-
-PeekMessageW_pfn PeekMessageA_Original = nullptr;
 
 BOOL
 WINAPI
@@ -2752,7 +2761,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   if (hWnd != game_window.hWnd)
   {
-    if (game_window.hWnd != 0)
+    if (game_window.hWnd != nullptr)
     {
       dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
                     L" for rendering... (Old=%p, New=%p)",
@@ -3154,7 +3163,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_WINDOWPOSCHANGING:
     {
-      LPWINDOWPOS wnd_pos =
+      auto wnd_pos =
         reinterpret_cast <LPWINDOWPOS> (lParam);
 
       if (wnd_pos->flags ^ SWP_NOMOVE)
@@ -3191,7 +3200,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       // Unconditionally doing this tends to anger Obduction :)
       //ImGui_ImplDX11_InvalidateDeviceObjects ();
 
-      LPWINDOWPOS wnd_pos =
+      auto wnd_pos =
         reinterpret_cast <LPWINDOWPOS> (lParam);
 
       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
@@ -3550,11 +3559,12 @@ SK_InstallWindowHook (HWND hWnd)
 
   WNDPROC class_proc = game_window.unicode ? (WNDPROC)
     GetClassLongPtrW  ( hWnd, GCLP_WNDPROC ) :
-                                 (WNDPROC)
+                                             (WNDPROC)
     GetClassLongPtrA  ( hWnd, GCLP_WNDPROC );
 
-  WNDPROC wnd_proc = (WNDPROC)
-    game_window.GetWindowLongPtr ( hWnd, GWLP_WNDPROC );
+  auto wnd_proc = reinterpret_cast <WNDPROC> (
+    game_window.GetWindowLongPtr ( hWnd, GWLP_WNDPROC )
+  );
 
 
   // When ImGui is active, we will do character translation internally
@@ -3694,7 +3704,7 @@ SK_InstallWindowHook (HWND hWnd)
 
   if (count > 0)
   {
-    RAWINPUTDEVICE* pDevs =
+    auto* pDevs =
       new RAWINPUTDEVICE [count + 1];
 
     GetRegisteredRawInputDevices_Original ( pDevs,
@@ -3865,7 +3875,7 @@ SK_HookWinAPI (void)
      static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
 #endif
 
-#if 1
+#if 0
   SK_CreateDLLHook2 (         L"user32.dll",
                              "GetWindowRect",
                               GetWindowRect_Detour,
@@ -3878,7 +3888,7 @@ SK_HookWinAPI (void)
       );
 #endif
 
-#if 1
+#if 0
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetClientRect",
                               GetClientRect_Detour,

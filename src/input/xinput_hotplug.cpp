@@ -291,7 +291,7 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
 
 static GUID GUID_Zero;
 
-typedef HDEVNOTIFY (WINAPI *RegisterDeviceNotification_pfn)(
+using RegisterDeviceNotification_pfn = HDEVNOTIFY (WINAPI *)(
   _In_ HANDLE hRecipient,
   _In_ LPVOID NotificationFilter,
   _In_ DWORD  Flags
@@ -308,8 +308,8 @@ RegisterDeviceNotificationW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  DEV_BROADCAST_DEVICEINTERFACE_W* pNotifyFilter = 
-    (DEV_BROADCAST_DEVICEINTERFACE_W *)NotificationFilter;
+  auto* pNotifyFilter = 
+    static_cast <DEV_BROADCAST_DEVICEINTERFACE_W *> (NotificationFilter);
 
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
   {
@@ -347,8 +347,8 @@ RegisterDeviceNotificationA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  DEV_BROADCAST_DEVICEINTERFACE_A* pNotifyFilter = 
-    (DEV_BROADCAST_DEVICEINTERFACE_A *)NotificationFilter;
+  auto* pNotifyFilter = 
+    static_cast <DEV_BROADCAST_DEVICEINTERFACE_A *> (NotificationFilter);
 
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
   {

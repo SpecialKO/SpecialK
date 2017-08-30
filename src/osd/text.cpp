@@ -79,12 +79,13 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
 
   if (overlays_.count (app_name))
   {
-    SK_TextOverlay* overlay = overlays_ [app_name];
+    SK_TextOverlay* overlay =
+      overlays_ [app_name];
 
     return overlay;
   }
 
-  SK_TextOverlay* overlay =
+  auto* overlay =
     new SK_TextOverlay (szAppName);
 
   overlay->setPos   ( static_cast <float> (config.osd.pos_x),
@@ -404,7 +405,7 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   else if (in_unit == Fahrenheit && out_unit == Celsius)
   {
     converted = (int32_t)(((float)in_temp - 32.0f) * (5.0f/9.0f));
-    _swprintf (wszOut, L"%#2li°C", converted);\
+    _swprintf (wszOut, L"%#2li°C", converted);
   }
 
   else
@@ -1367,9 +1368,11 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
   SK_TextOverlay* overlay =
     SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
-  if (overlay != nullptr) {
-    float fX = static_cast <float> (x);
-    float fY = static_cast <float> (y);
+  if (overlay != nullptr)
+  {
+    auto fX = static_cast <float> (x);
+    auto fY = static_cast <float> (y);
+
     overlay->setPos (fX, fY);
   }
 }
@@ -1946,8 +1949,8 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
       auto  it =  overlays_.begin ();
     while ( it != overlays_.end   () )
     {
-      float pos_x = static_cast <float> (config.osd.pos_x);
-      float pos_y = static_cast <float> (config.osd.pos_y);
+      auto pos_x = static_cast <float> (config.osd.pos_x);
+      auto pos_y = static_cast <float> (config.osd.pos_y);
 
       if (var == pos_.x || var == pos_.y)
         it->second->setPos (pos_x, pos_y);

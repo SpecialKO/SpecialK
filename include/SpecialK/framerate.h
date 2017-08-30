@@ -40,8 +40,7 @@ namespace SK
     public:
       Limiter (double target = 60.0);
 
-      ~Limiter (void) {
-      }
+      ~Limiter (void) = default;
 
       void     init (double target);
       void     wait (void);
@@ -59,7 +58,7 @@ namespace SK
       uint32_t      frames;
     };
 
-    typedef class EventCounter_V1 EventCounter;
+    using EventCounter = class EventCounter_V1;
 
     class EventCounter_V1
     {
@@ -109,7 +108,8 @@ namespace SK
       } data [MAX_SAMPLES];
       int    samples       = 0;
 
-      void addSample (double sample, LARGE_INTEGER time) {
+      void addSample (double sample, LARGE_INTEGER time)
+      {
         data [samples % MAX_SAMPLES].val  = sample;
         data [samples % MAX_SAMPLES].when = time;
 
@@ -118,15 +118,18 @@ namespace SK
 
       double calcMean (double seconds = 1.0);
 
-      double calcMean (LARGE_INTEGER start) {
+      double calcMean (LARGE_INTEGER start)
+      {
         double mean = 0.0;
 
         int samples_used = 0;
 
-        for (int i = 0; i < MAX_SAMPLES; i++) {
-          if (data [i].when.QuadPart >= start.QuadPart) {
+        for (auto& i : data)
+        {
+          if (i.when.QuadPart >= start.QuadPart)
+          {
             ++samples_used;
-            mean += data [i].val;
+            mean += i.val;
           }
         }
 
@@ -135,15 +138,18 @@ namespace SK
 
       double calcSqStdDev (double mean, double seconds = 1.0);
 
-      double calcSqStdDev (double mean, LARGE_INTEGER start) {
+      double calcSqStdDev (double mean, LARGE_INTEGER start)
+      {
         double sd = 0.0;
 
         int samples_used = 0;
 
-        for (int i = 0; i < MAX_SAMPLES; i++) {
-          if (data [i].when.QuadPart >= start.QuadPart) {
-            sd += (data [i].val - mean) *
-                  (data [i].val - mean);
+        for (auto& i : data)
+        {
+          if (i.when.QuadPart >= start.QuadPart)
+          {
+            sd += (i.val - mean) *
+                  (i.val - mean);
             samples_used++;
           }
         }
@@ -153,13 +159,16 @@ namespace SK
 
       double calcMin (double seconds = 1.0);
 
-      double calcMin (LARGE_INTEGER start) {
+      double calcMin (LARGE_INTEGER start)
+      {
         double min = INFINITY;
 
-        for (int i = 0; i < MAX_SAMPLES; i++) {
-          if (data [i].when.QuadPart >= start.QuadPart) {
-            if (data [i].val < min)
-              min = data [i].val;
+        for (auto& i : data)
+        {
+          if (i.when.QuadPart >= start.QuadPart)
+          {
+            if (i.val < min)
+              min = i.val;
           }
         }
 
@@ -168,13 +177,16 @@ namespace SK
 
       double calcMax (double seconds = 1.0);
 
-      double calcMax (LARGE_INTEGER start) {
+      double calcMax (LARGE_INTEGER start)
+      {
         double max = -INFINITY;
 
-        for (int i = 0; i < MAX_SAMPLES; i++) {
-          if (data [i].when.QuadPart >= start.QuadPart) {
-            if (data [i].val > max)
-              max = data [i].val;
+        for (auto& i : data)
+        {
+          if (i.when.QuadPart >= start.QuadPart)
+          {
+            if (i.val > max)
+              max = i.val;
           }
         }
 
@@ -183,7 +195,8 @@ namespace SK
 
       int calcHitches (double tolerance, double mean, double seconds = 1.0);
 
-      int calcHitches (double tolerance, double mean, LARGE_INTEGER start) {
+      int calcHitches (double tolerance, double mean, LARGE_INTEGER start)
+      {
         int hitches = 0;
 
     #if 0
@@ -206,13 +219,19 @@ namespace SK
     #else
         bool last_late = false;
 
-        for (int i = 0; i < MAX_SAMPLES; i++) {
-          if (data [i].when.QuadPart >= start.QuadPart) {
-            if (data [i].val > tolerance * mean) {
+        for (auto& i : data)
+        {
+          if (i.when.QuadPart >= start.QuadPart)
+          {
+            if (i.val > tolerance * mean)
+            {
               if (! last_late)
                 hitches++;
               last_late = true;
-            } else {
+            }
+
+            else
+            {
               last_late = false;
             }
           }
@@ -224,11 +243,14 @@ namespace SK
 
       int calcNumSamples (double seconds = 1.0);
 
-      int calcNumSamples (LARGE_INTEGER start) {
+      int calcNumSamples (LARGE_INTEGER start)
+      {
         int samples_used = 0;
 
-        for (int i = 0; i < MAX_SAMPLES; i++) {
-          if (data [i].when.QuadPart >= start.QuadPart) {
+        for (auto& i : data)
+        {
+          if (i.when.QuadPart >= start.QuadPart)
+          {
             samples_used++;
           }
         }
@@ -239,8 +261,8 @@ namespace SK
   };
 };
 
-typedef void (WINAPI *Sleep_pfn)                                 (DWORD dwMilliseconds);
-typedef BOOL (WINAPI *QueryPerformanceCounter_pfn)(_Out_ LARGE_INTEGER *lpPerformanceCount);
+using Sleep_pfn                   = void (WINAPI *)(      DWORD          dwMilliseconds);
+using QueryPerformanceCounter_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
 
 extern Sleep_pfn                   Sleep_Original;
 extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;

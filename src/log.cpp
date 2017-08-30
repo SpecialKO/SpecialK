@@ -59,8 +59,8 @@ SK_Timestamp (wchar_t* const out)
   wchar_t date [64] = { };
   wchar_t time [64] = { };
 
-  GetDateFormat (LOCALE_INVARIANT,DATE_SHORTDATE,   &stLogTime,NULL,date,64);
-  GetTimeFormat (LOCALE_INVARIANT,TIME_NOTIMEMARKER,&stLogTime,NULL,time,64);
+  GetDateFormat (LOCALE_INVARIANT,DATE_SHORTDATE,   &stLogTime,nullptr,date,64);
+  GetTimeFormat (LOCALE_INVARIANT,TIME_NOTIMEMARKER,&stLogTime,nullptr,time,64);
 
   out [0] = L'\0';
 
@@ -106,7 +106,7 @@ iSK_Logger::close (void)
   else
     return;
 
-  if (fLog != NULL)
+  if (fLog != nullptr)
   {
     fflush (fLog);
     fclose (fLog);
@@ -156,7 +156,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
    lockless = true;
 
-  if ((! bRet) || (fLog == NULL))
+  if ((! bRet) || (fLog == nullptr))
   {
     silent = true;
     return false;
@@ -297,7 +297,8 @@ iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName)
 {
-  iSK_Logger* pLog = new iSK_Logger ();
+  auto* pLog =
+    new iSK_Logger ();
 
   pLog->init   (wszName, L"w+");
   pLog->silent = false;

@@ -30,8 +30,18 @@
 
 interface iSK_INI;
 
-typedef void *HANDLE;
+using HANDLE = void *;
 
+
+template <typename T, typename T2, typename Q>
+  __inline
+  T
+    static_const_cast ( const typename Q q )
+    {
+      return static_cast <T>  (
+               const_cast <T2>  ( q )
+                              );
+    };
 
 template <typename T, typename Q>
   __inline
@@ -168,7 +178,7 @@ SK_wcsrep ( const wchar_t*   wszIn,
             const wchar_t*   wszOld,
             const wchar_t*   wszNew );
 
-typedef void (__stdcall *SK_HashProgressCallback_pfn)(uint64_t current, uint64_t total);
+using SK_HashProgressCallback_pfn = void (__stdcall *)(uint64_t current, uint64_t total);
 
 uint64_t __stdcall SK_GetFileSize   ( const wchar_t* wszFile );
 uint32_t __stdcall SK_GetFileCRC32  ( const wchar_t* wszFile,
@@ -199,7 +209,7 @@ SK_Scan         (const void* pattern, size_t len, const void* mask);
 
 void*
 __stdcall
-SK_ScanAligned  (const void* pattern, size_t len, const void* mask, int align = 1);
+SK_ScanAligned (const void* pattern, size_t len, const void* mask, int align = 1);
 
 void*
 __stdcall

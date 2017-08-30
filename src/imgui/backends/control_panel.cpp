@@ -885,7 +885,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
         ( szAvg,
             512,
               u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-              u8"    Extreme frametimes:      %6.3f min, %6.3f max\n\n\n\n"
+              u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
               u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
                 sum / frames,
                   target_frametime,
@@ -2292,7 +2292,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::Text       ("In Flip Model, this Controls Frame Queuing Rather than V-Sync)");
             ImGui::Separator  (                                                                );
             ImGui::BulletText ("Values > 1 will disable G-Sync but will produce the most "
-                               "consistent framerates possible."                               );
+                               "consistent frame rates possible."                              );
           }
 
           ImGui::EndTooltip ();

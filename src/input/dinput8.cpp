@@ -56,7 +56,7 @@
 extern bool nav_usable;
 
 
-typedef void (WINAPI *finish_pfn)(void);
+using finish_pfn = void (WINAPI *)(void);
 
 
 #define SK_DI8_READ(type)  SK_DI8_Backend.markRead  (type);
@@ -595,7 +595,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
       SK_DI8_READ (sk_input_dev_type::Gamepad)
       static DIJOYSTATE2 last_state;
 
-      DIJOYSTATE2* out =
+      auto* out =
         static_cast <DIJOYSTATE2 *> (lpvData);
 
       SK_DI8_TranslateToXInput (reinterpret_cast <DIJOYSTATE *> (out));
@@ -620,7 +620,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
       static DIJOYSTATE last_state;
 
-      DIJOYSTATE* out =
+      auto* out =
         static_cast <DIJOYSTATE *> (lpvData);
 
       SK_DI8_TranslateToXInput (out);

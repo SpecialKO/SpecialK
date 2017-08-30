@@ -38,7 +38,7 @@
 
 // Dispatch through the trampoline, rather than hook
 //
-typedef HRESULT (STDMETHODCALLTYPE *WaitForVBlank_pfn)(
+using WaitForVBlank_pfn = HRESULT (STDMETHODCALLTYPE *)(
   IDXGIOutput *This
 );
 extern WaitForVBlank_pfn WaitForVBlank_Original;
@@ -71,7 +71,7 @@ auto SK_DeltaPerf =
    };
 
 LARGE_INTEGER
-SK_QueryPerf (void)
+SK_QueryPerf ()
 {
   return SK_CurrentPerf ();
 }
@@ -186,23 +186,23 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
   return QueryPerformanceCounter_Original (lpPerformanceCount);
 }
 
-typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
+using NTSTATUS = _Return_type_success_(return >= 0) LONG;
 
-typedef NTSTATUS (NTAPI *NtQueryTimerResolution_pfn)
+using NtQueryTimerResolution_pfn = NTSTATUS (NTAPI *)
 (
   OUT PULONG              MinimumResolution,
   OUT PULONG              MaximumResolution,
   OUT PULONG              CurrentResolution
 );
 
-typedef NTSTATUS (NTAPI *NtSetTimerResolution_pfn)
+using NtSetTimerResolution_pfn = NTSTATUS (NTAPI *)
 (
   IN  ULONG               DesiredResolution,
   IN  BOOLEAN             SetResolution,
   OUT PULONG              CurrentResolution
 );
 
-HMODULE                    NtDll                  = 0;
+HMODULE                    NtDll                  = nullptr;
 
 NtQueryTimerResolution_pfn NtQueryTimerResolution = nullptr;
 NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
@@ -259,7 +259,7 @@ SK::Framerate::Init (void)
       );
 #endif
 
-  if (NtDll == 0)
+  if (NtDll == nullptr)
   {
     NtDll = LoadLibrary (L"ntdll.dll");
 
@@ -306,15 +306,15 @@ SK_D3D9_GetTimingDevice (void)
   if (! config.render.framerate.wait_for_vblank)
     return nullptr;
 
-  static IDirect3DDevice9Ex* pTimingDevice = (IDirect3DDevice9Ex *)-1;
+  static auto* pTimingDevice =
+    reinterpret_cast <IDirect3DDevice9Ex *> (-1);
 
-  if (pTimingDevice == (IDirect3DDevice9Ex *)-1)
+  if (pTimingDevice == reinterpret_cast <IDirect3DDevice9Ex *> (-1))
   {
     CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
-    typedef HRESULT
-      (STDMETHODCALLTYPE *Direct3DCreate9ExPROC)(UINT           SDKVersion,
-                                                 IDirect3D9Ex** d3d9ex);
+    using Direct3DCreate9ExPROC = HRESULT (STDMETHODCALLTYPE *)(UINT           SDKVersion,
+                                                                IDirect3D9Ex** d3d9ex);
 
     extern Direct3DCreate9ExPROC Direct3DCreate9Ex_Import;
 
@@ -323,7 +323,7 @@ SK_D3D9_GetTimingDevice (void)
                                     :
                                E_NOINTERFACE;
 
-    HWND hwnd = 0;
+    HWND hwnd = nullptr;
 
     IDirect3DDevice9Ex* pDev9Ex = nullptr;
 
@@ -649,7 +649,7 @@ SK::Framerate::Limiter::wait (void)
 
         else if (! SK_Framerate_Busy)
         {                
-          DWORD dwWaitMS =
+          auto dwWaitMS =
             static_cast <DWORD>
               ( (SK_Framerate_WaitScalar * 10.0f) / target_fps ); // 10% of full frame
 

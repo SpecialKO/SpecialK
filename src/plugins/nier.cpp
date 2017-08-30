@@ -271,8 +271,8 @@ SK_FAR_CreateBuffer (
     //
     if (pInitialData != nullptr && pInitialData->pSysMem != nullptr)
     {
-      far_light_volume_s* lights =
-        (far_light_volume_s *)pInitialData->pSysMem;
+      auto* lights =
+        static_const_cast <far_light_volume_s *, void *> (pInitialData->pSysMem);
 
       static far_light_volume_s new_lights [128];
 
@@ -708,9 +708,9 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
 static SK_PluginKeyPress_pfn SK_PluginKeyPress_Original;
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
-  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
-                  (((shift)!= 0) << 10) |   \
-                  (((alt)  != 0) << 11))
+  static_cast <UINT>((vKey) | (((ctrl) != 0) <<  9) |   \
+                              (((shift)!= 0) << 10) |   \
+                              (((alt)  != 0) << 11))
 
 #define SK_ControlShiftKey(vKey) SK_MakeKeyMask ((vKey), true, true, false)
 
@@ -718,22 +718,22 @@ void
 CALLBACK
 SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
-  UINT uiMaskedKeyCode =
+  auto uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  const UINT uiHudlessMask =
+  const auto uiHudlessMask =
     SK_MakeKeyMask ( __FAR_HUDLESS.keybind.vKey,  __FAR_HUDLESS.keybind.ctrl,
                      __FAR_HUDLESS.keybind.shift, __FAR_HUDLESS.keybind.alt );
 
-  const UINT uiLockCenterMask =
+  const auto uiLockCenterMask =
     SK_MakeKeyMask ( far_cam.center_binding.vKey,  far_cam.center_binding.ctrl,
                      far_cam.center_binding.shift, far_cam.center_binding.alt );
 
-  const UINT uiLockFocusMask =
+  const auto uiLockFocusMask =
     SK_MakeKeyMask ( far_cam.focus_binding.vKey,  far_cam.focus_binding.ctrl,
                      far_cam.focus_binding.shift, far_cam.focus_binding.alt );
 
-  const UINT uiToggleFreelookMask =
+  const auto uiToggleFreelookMask =
     SK_MakeKeyMask ( far_cam.freelook_binding.vKey,  far_cam.freelook_binding.ctrl,
                      far_cam.freelook_binding.shift, far_cam.freelook_binding.alt );
 
@@ -1795,7 +1795,7 @@ SK_FAR_InitPlugin (void)
       [](SK_Keybind* binding, wchar_t* ini_name) ->
         auto
         {
-          sk::ParameterStringW* ret =
+          auto* ret =
            dynamic_cast <sk::ParameterStringW *>
             (far_factory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
 

@@ -48,11 +48,11 @@ void SK_Input_Init (void);
 
 struct sk_imgui_cursor_s
 {
-  HCURSOR orig_img   =      NULL;
+  HCURSOR orig_img   =      nullptr;
   POINT   orig_pos   =  { 0, 0 };
   bool    orig_vis   =     false;
                        
-  HCURSOR img        =      NULL;
+  HCURSOR img        =      nullptr;
   POINT   pos        =  { 0, 0 };
                        
   bool    visible    =     false;
@@ -255,20 +255,19 @@ bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek);
 
 
-typedef void (WINAPI *keybd_event_pfn)(
-    _In_ BYTE bVk,
-    _In_ BYTE bScan,
-    _In_ DWORD dwFlags,
-    _In_ ULONG_PTR dwExtraInfo );
+using keybd_event_pfn = void (WINAPI *)(
+  _In_ BYTE      bVk,
+  _In_ BYTE      bScan,
+  _In_ DWORD     dwFlags,
+  _In_ ULONG_PTR dwExtraInfo
+);
+
+using SetCursor_pfn = HCURSOR (WINAPI *)(HCURSOR hCursor);
 
 extern keybd_event_pfn keybd_event_Original;
-
+extern SetCursor_pfn   SetCursor_Original;
 
 #include <cstdint>
-
-
-typedef HCURSOR (WINAPI *SetCursor_pfn)(HCURSOR hCursor);
-extern SetCursor_pfn SetCursor_Original;
 
 extern
 void
@@ -286,21 +285,21 @@ SK_ImGui_CenterCursorOnWindow (void);
 #include <hidusage.h>
 #include <Hidpi.h>
 
-typedef NTSTATUS (__stdcall *HidP_GetCaps_pfn)(
+using HidP_GetCaps_pfn = NTSTATUS (__stdcall *)(
   _In_  PHIDP_PREPARSED_DATA PreparsedData,
   _Out_ PHIDP_CAPS           Capabilities
 );
 
-typedef BOOLEAN (__stdcall *HidD_GetPreparsedData_pfn)(
+using HidD_GetPreparsedData_pfn = BOOLEAN (__stdcall *)(
   _In_  HANDLE                HidDeviceObject,
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData
 );
 
-typedef BOOLEAN (__stdcall *HidD_FreePreparsedData_pfn)(
+using HidD_FreePreparsedData_pfn = BOOLEAN (__stdcall *)(
   _In_ PHIDP_PREPARSED_DATA PreparsedData
 );
 
-typedef NTSTATUS (__stdcall *HidP_GetData_pfn)(
+using HidP_GetData_pfn = NTSTATUS (__stdcall *)(
   _In_    HIDP_REPORT_TYPE     ReportType,
   _Out_   PHIDP_DATA           DataList,
   _Inout_ PULONG               DataLength,
@@ -309,7 +308,7 @@ typedef NTSTATUS (__stdcall *HidP_GetData_pfn)(
   _In_    ULONG                ReportLength
 );
 
-typedef BOOLEAN (__stdcall *HidD_GetFeature_pfn)(
+using HidD_GetFeature_pfn = BOOLEAN (__stdcall *)(
   _In_  HANDLE HidDeviceObject,
   _Out_ PVOID  ReportBuffer,
   _In_  ULONG  ReportBufferLength
@@ -341,10 +340,11 @@ void
 SK_RawInput_RestoreLegacyKeyboard (void);
 
 
-typedef UINT (WINAPI *GetRegisteredRawInputDevices_pfn)(
+using GetRegisteredRawInputDevices_pfn = UINT (WINAPI *)(
   _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
   _Inout_   PUINT           puiNumDevices,
-  _In_      UINT            cbSize );
+  _In_      UINT            cbSize
+);
 
 extern GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original;
 

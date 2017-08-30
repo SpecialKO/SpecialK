@@ -663,14 +663,14 @@ SK_Widget::load (iSK_INI*)
 
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
-  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
-                  (((shift)!= 0) << 10) |   \
-                  (((alt)  != 0) << 11))
+  static_cast <UINT>((vKey) | (((ctrl) != 0) <<  9) |   \
+                              (((shift)!= 0) << 10) |   \
+                              (((alt)  != 0) << 11))
 
 BOOL
 SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
-  UINT uiMaskedKeyCode =
+  auto uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };

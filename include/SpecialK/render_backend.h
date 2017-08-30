@@ -89,7 +89,7 @@ public:
 
   IUnknown*               device               = nullptr;
   IUnknown*               swapchain            = nullptr;
-  NVDX_ObjectHandle       surface              = 0;
+  NVDX_ObjectHandle       surface              = nullptr;
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
 
@@ -132,7 +132,7 @@ public:
   void releaseOwnedResources (void);
 };
 
-typedef SK_RenderBackend_V2 SK_RenderBackend;
+using SK_RenderBackend = SK_RenderBackend_V2;
 
 SK_RenderBackend&
 __stdcall

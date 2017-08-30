@@ -34,8 +34,7 @@ static const GUID IID_SK_INISection =
 interface iSK_INISection : public IUnknown
 {
 public:
-  iSK_INISection (void) {
-  }
+  iSK_INISection (void) = default;
 
   iSK_INISection (const wchar_t* section_name) {
     name = section_name;
@@ -67,7 +66,8 @@ static const GUID IID_SK_INI =
 
 interface iSK_INI : public IUnknown
 {
-  typedef const std::unordered_map <std::wstring, iSK_INISection> _TSectionMap;
+  using _TSectionMap =
+    const std::unordered_map <std::wstring, iSK_INISection>;
 
    iSK_INI (const wchar_t* filename);
   ~iSK_INI (void);

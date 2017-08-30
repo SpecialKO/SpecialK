@@ -85,7 +85,7 @@ SK_InitRenderBackends (void)
 void
 SK_BootD3D9 (void)
 {
-  while (backend_dll == 0)
+  while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
@@ -128,7 +128,7 @@ SK_BootD3D9 (void)
 void
 SK_BootD3D8 (void)
 {
-  while (backend_dll == 0)
+  while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
@@ -160,7 +160,7 @@ SK_BootD3D8 (void)
 void
 SK_BootDDraw (void)
 {
-  while (backend_dll == 0)
+  while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
@@ -193,7 +193,7 @@ SK_BootDDraw (void)
 void
 SK_BootDXGI (void)
 {
-  while (backend_dll == 0)
+  while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
@@ -238,7 +238,7 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
-  while (backend_dll == 0)
+  while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (500UL, TRUE);
@@ -310,7 +310,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
   if ( rb.device    == nullptr ||
        rb.swapchain == nullptr ||
-       rb.surface   == 0 )
+       rb.surface   == nullptr )
   {
     last_checked = timeGetTime ();
     active       = false;
@@ -354,7 +354,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
     // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
     //   we can generally assume their lifetime is only as long as the D3D resource
     //     they identify.
-    rb.surface = 0;
+    rb.surface = nullptr;
   }
 }
 

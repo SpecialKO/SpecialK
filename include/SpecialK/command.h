@@ -45,8 +45,8 @@ interface SK_ICommandResult
                             const char*   arguments = "",
                             const char*   result    = "",
                             int           status = false,
-                      const SK_IVariable*  var    = NULL,
-                      const SK_ICommand*   cmd    = NULL ) : word_   (word),
+                      const SK_IVariable*  var    = nullptr,
+                      const SK_ICommand*   cmd    = nullptr ) : word_   (word),
                                                              args_   (arguments),
                                                              result_ (result) {
     var_    = var;
@@ -117,7 +117,7 @@ protected:
 
 interface SK_IVariableListener
 {
-  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL) = 0;
+  virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) = 0;
 };
 
 template <typename T>
@@ -128,18 +128,18 @@ interface SK_IVarStub : public SK_IVariable
 
   SK_IVarStub (void) : type_     (Unknown),
                        var_      (NULL),
-                       listener_ (NULL)     { };
+                       listener_ (nullptr)     { };
 
   SK_IVarStub ( T*                    var,
-                SK_IVariableListener* pListener = NULL );
+                SK_IVariableListener* pListener = nullptr );
 
-  SK_IVariable::VariableType getType (void) const
+  virtual SK_IVariable::VariableType getType (void) const override
   {
     return type_;
   }
 
   virtual void          getValueString  ( _Out_opt_ char*     szOut,
-                                          _Inout_   uint32_t* dwLen ) const {
+                                          _Inout_   uint32_t* dwLen ) const override {
     if (szOut != nullptr)
       strncpy_s (szOut, 7, "(null)", *dwLen);
 
@@ -155,14 +155,14 @@ interface SK_IVarStub : public SK_IVariable
   }
 
   // Public interface, the other one is not visible outside this DLL.
-  void* getValuePointer (void) const {
+  virtual void* getValuePointer (void) const override {
     return (void *)getValuePtr ();
   }
 
   /// NOTE: Avoid doing this, as much as possible...
   T* getValuePtr (void) const { return var_; }
 
-  typedef  T _Tp;
+  using _Tp =  T;
 
 protected:
   typename SK_IVarStub::_Tp* var_;
@@ -178,8 +178,8 @@ template < class _Kty, class _Pr = std::less <_Kty> >
 class str_hash_compare
 {
 public:
-  typedef typename _Kty::value_type value_type;
-  typedef typename _Kty::size_type  size_type;  /* Was originally size_t ... */
+  using value_type = typename _Kty::value_type;
+  using size_type  = typename _Kty::size_type;  /* Was originally size_t ... */
 
   enum
   {
@@ -199,17 +199,15 @@ private:
   _Pr comp;
 };
 
-typedef std::pair <std::string, SK_ICommand*>  SK_CommandRecord;
-typedef std::pair <std::string, SK_IVariable*> SK_VariableRecord;
+using SK_CommandRecord  = std::pair <std::string, SK_ICommand*>;
+using SK_VariableRecord = std::pair <std::string, SK_IVariable*>;
 
 
 interface SK_ICommandProcessor
 {
   SK_ICommandProcessor (void);
 
-  virtual ~SK_ICommandProcessor (void)
-  {
-  }
+  virtual ~SK_ICommandProcessor (void) = default;
 
   virtual SK_ICommand*       FindCommand   (const char* szCommand) const;
 

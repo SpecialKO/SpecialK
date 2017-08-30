@@ -50,7 +50,7 @@ struct SK_VersionInfo_V1
   int          build;
 };
 
-typedef SK_VersionInfo_V1 SK_VersionInfo;
+using SK_VersionInfo = SK_VersionInfo_V1;
 
 SK_VersionInfo SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct);
 SK_VersionInfo SK_Version_GetLocalInfo_V1  (const wchar_t* wszProduct);
@@ -80,7 +80,7 @@ struct SK_BranchInfo_V1
              std::wstring > archives;
 };
 
-typedef SK_BranchInfo_V1 SK_BranchInfo;
+using SK_BranchInfo = SK_BranchInfo_V1;
 
 SK_BranchInfo SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBranch);
 

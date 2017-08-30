@@ -69,7 +69,7 @@ SK_InputUtil_IsHWCursorVisible (void)
 
 //////////////////////////////////////////////////////////////
 //
-// HIDClass (Usermode)
+// HIDClass (User mode)
 //
 //////////////////////////////////////////////////////////////
 bool
@@ -99,6 +99,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       case HID_USAGE_GENERIC_MOUSE:
       {
         SK_HID_READ (sk_input_dev_type::Mouse)
+
         if (SK_ImGui_WantMouseCapture ())
           filter = true;
       } break;
@@ -309,7 +310,7 @@ std::vector <RAWINPUTDEVICE> raw_devices;   // ALL devices, this is the list as 
 
 std::vector <RAWINPUTDEVICE> raw_mice;      // View of only mice
 std::vector <RAWINPUTDEVICE> raw_keyboards; // View of only keyboards
-std::vector <RAWINPUTDEVICE> raw_gamepads;  // View of only gamepads
+std::vector <RAWINPUTDEVICE> raw_gamepads;  // View of only game pads
 
 struct
 {
@@ -336,7 +337,7 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
     std::vector <RAWINPUTDEVICE> overrides;
 
     // Aw, the game doesn't have any mice -- let's fix that.
-    if (raw_mice.size () == 0)
+    if (raw_mice.empty ())
     {
       //raw_devices.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
       //raw_mice.push_back    (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0x00, NULL });
@@ -392,7 +393,7 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
     std::vector <RAWINPUTDEVICE> overrides;
 
     // Aw, the game doesn't have any mice -- let's fix that.
-    if (raw_keyboards.size () == 0)
+    if (raw_keyboards.empty ())
     {
       //raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
       //raw_keyboards.push_back (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
@@ -772,10 +773,10 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
         ZeroMemory (pData, *pcbSize);
         const int max_items = (sizeof RAWINPUT / *pcbSize);
               int count     =                            0;
-        uint8_t *pTemp      = (uint8_t *)
+            auto *pTemp     = (uint8_t *)
                                   new RAWINPUT [max_items];
         uint8_t *pInput     =                        pTemp;
-        uint8_t *pOutput    =             (uint8_t *)pData;
+           auto *pOutput    =             (uint8_t *)pData;
         UINT     cbSize     =                     *pcbSize;
                   *pcbSize  =                            0;
 
@@ -784,7 +785,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 
         for (int i = 0; i < temp_ret; i++)
         {
-          RAWINPUT* pItem = (RAWINPUT *)pInput;
+          auto* pItem = (RAWINPUT *)pInput;
 
           bool  remove = false;
           int  advance = pItem->header.dwSize;
@@ -984,9 +985,9 @@ sk_imgui_cursor_s::ScreenToLocal (LPPOINT lpPoint)
 HCURSOR
 ImGui_DesiredCursor (void)
 {
-  static HCURSOR last_cursor = 0;
+  static HCURSOR last_cursor = nullptr;
 
-  if (ImGui::GetIO ().MouseDownDuration [0] <= 0.0f || last_cursor == 0)
+  if (ImGui::GetIO ().MouseDownDuration [0] <= 0.0f || last_cursor == nullptr)
   {
     switch (ImGui::GetMouseCursor ())
     {
@@ -1100,7 +1101,7 @@ sk_imgui_cursor_s::activateWindow (bool active)
 
 
 
-HCURSOR game_cursor = 0;
+HCURSOR game_cursor = nullptr;
 
 bool
 SK_ImGui_WantKeyboardCapture (void)
@@ -1190,7 +1191,7 @@ HCURSOR GetGameCursor (void)
   static HCURSOR sys_arrow      = LoadCursor (nullptr, IDC_ARROW);
   static HCURSOR sys_wait       = LoadCursor (nullptr, IDC_WAIT);
 
-  static HCURSOR hCurLast = 0;
+  static HCURSOR hCurLast = nullptr;
          HCURSOR hCur     = GetCursor ();
 
   if ( hCur != sk_imgui_horz && hCur != sk_imgui_arrow && hCur != sk_imgui_ibeam &&
@@ -1243,7 +1244,7 @@ ImGui_ToggleCursor (void)
 
 
 
-typedef int (WINAPI *GetMouseMovePointsEx_pfn)(
+using GetMouseMovePointsEx_pfn = int (WINAPI *)(
   _In_  UINT             cbSize,
   _In_  LPMOUSEMOVEPOINT lppt,
   _Out_ LPMOUSEMOVEPOINT lpptBuf,
@@ -1317,7 +1318,8 @@ GetCursorInfo_Detour (PCURSORINFO pci)
   BOOL  ret = GetCursorInfo_Original (pci);
         pci->ptScreenPos = pt;
 
-  pci->hCursor = SK_ImGui_Cursor.orig_img;
+  pci->hCursor =
+    SK_ImGui_Cursor.orig_img;
 
 
   if (ret && SK_ImGui_IsMouseRelevant ())
@@ -1332,17 +1334,22 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
     if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
-      POINT client = SK_ImGui_Cursor.orig_pos;
+      POINT client =
+        SK_ImGui_Cursor.orig_pos;
 
       SK_ImGui_Cursor.LocalToScreen (&client);
+
       pci->ptScreenPos.x = client.x;
       pci->ptScreenPos.y = client.y;
     }
 
-    else {
-      POINT client = SK_ImGui_Cursor.pos;
+    else
+    {
+      POINT client =
+        SK_ImGui_Cursor.pos;
 
       SK_ImGui_Cursor.LocalToScreen (&client);
+
       pci->ptScreenPos.x = client.x;
       pci->ptScreenPos.y = client.y;
     }
@@ -1373,17 +1380,22 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
     if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
-      POINT client = SK_ImGui_Cursor.orig_pos;
+      POINT client =
+        SK_ImGui_Cursor.orig_pos;
 
       SK_ImGui_Cursor.LocalToScreen (&client);
+
       lpPoint->x = client.x;
       lpPoint->y = client.y;
     }
 
-    else {
-      POINT client = SK_ImGui_Cursor.pos;
+    else
+    {
+      POINT client =
+        SK_ImGui_Cursor.pos;
 
       SK_ImGui_Cursor.LocalToScreen (&client);
+
       lpPoint->x = client.x;
       lpPoint->y = client.y;
     }
@@ -1632,7 +1644,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
 
     case WM_SETCURSOR:
     {
-      if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != 0)
+      if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != nullptr)
         SK_ImGui_Cursor.update ();
     } break;
 

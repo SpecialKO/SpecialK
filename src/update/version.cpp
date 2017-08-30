@@ -226,7 +226,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
         sk::ParameterFactory ParameterFactory;
 
-        sk::ParameterInt64* remind_time =
+        auto* remind_time =
           dynamic_cast <sk::ParameterInt64 *> (
             ParameterFactory.create_parameter <int64_t> (L"Reminder")
           );
@@ -542,11 +542,11 @@ SK_Version_GetLastCheckTime_WStr (void)
 
   wchar_t wszFileTime [512] = { };
 
-  GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, NULL, wszFileTime, 512);
+  GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, nullptr, wszFileTime, 512);
 
   std::wstring date_time = wszFileTime;
 
-  GetTimeFormat (LOCALE_USER_DEFAULT, TIME_NOSECONDS, &stModified, NULL, wszFileTime, 512);
+  GetTimeFormat (LOCALE_USER_DEFAULT, TIME_NOSECONDS, &stModified, nullptr, wszFileTime, 512);
 
   date_time += L" ";
   date_time += wszFileTime;

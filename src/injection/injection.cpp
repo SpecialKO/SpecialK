@@ -33,7 +33,7 @@
 
 #pragma data_seg (".SK_Hooks")
 volatile HHOOK          g_hHookCBT    = nullptr;
-volatile HANDLE         g_hShutdown   = 0;
+volatile HANDLE         g_hShutdown   = nullptr;
 
 // TODO: Replace with interlocked linked-list instead of obliterating cache
 //         every time two processes try to walk this thing simultaneously.
@@ -52,7 +52,7 @@ static          SK_InjectionRecord_s __SK_InjectionHistory
 
 extern volatile ULONG   __SK_DLL_Attached;
 extern volatile ULONG   __SK_HookContextOwner;
-                HMODULE hModHookInstance = NULL;
+                HMODULE hModHookInstance = nullptr;
 
 
 
@@ -69,15 +69,15 @@ SK_InjectionRecord_s* local_record = nullptr;
 void
 SK_Inject_ValidateProcesses (void)
 {
-  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
   {
     HANDLE hProc =
       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
-                      InterlockedExchangeAdd (&g_sHookedPIDs [i], 0) );
+                      InterlockedExchangeAdd (&g_sHookedPID, 0) );
 
-    if (hProc == NULL)
+    if (hProc == nullptr)
     {
-      InterlockedExchange (&g_sHookedPIDs [i], 0);
+      InterlockedExchange (&g_sHookedPID, 0);
     }
 
     else
@@ -87,7 +87,7 @@ SK_Inject_ValidateProcesses (void)
       GetExitCodeProcess (hProc, &dwExitCode);
 
       if (dwExitCode != STILL_ACTIVE)
-        InterlockedExchange (&g_sHookedPIDs [i], 0);
+        InterlockedExchange (&g_sHookedPID, 0);
 
       CloseHandle (hProc);
     }
@@ -100,9 +100,9 @@ SK_Inject_ReleaseProcess (void)
   if (! SK_IsInjected ())
     return;
 
-  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
   {
-    InterlockedCompareExchange (&g_sHookedPIDs [i], 0, GetCurrentProcessId ());
+    InterlockedCompareExchange (&g_sHookedPID, 0, GetCurrentProcessId ());
   }
 
   if (local_record != nullptr)
@@ -126,9 +126,9 @@ SK_Inject_AcquireProcess (void)
   if (! SK_IsInjected ())
     return;
 
-  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
   {
-    if (! InterlockedCompareExchange (&g_sHookedPIDs [i], GetCurrentProcessId (), 0))
+    if (! InterlockedCompareExchange (&g_sHookedPID, GetCurrentProcessId (), 0))
     {
       ULONG injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
 
@@ -170,9 +170,9 @@ SK_Inject_AcquireProcess (void)
 bool
 SK_Inject_InvadingProcess (DWORD dwThreadId)
 {
-  for (int i = 0; i < MAX_INJECTED_PROCS; i++)
+  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
   {
-    if (InterlockedExchangeAdd (&g_sHookedPIDs [i], 0) == dwThreadId)
+    if (InterlockedExchangeAdd (&g_sHookedPID, 0) == dwThreadId)
       return true;
   }
 
@@ -191,7 +191,7 @@ CBTProc ( _In_ int    nCode,
     return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
 
-  if (hModHookInstance == NULL && g_hHookCBT)
+  if (hModHookInstance == nullptr && g_hHookCBT)
   {
     static volatile LONG lHookIters = 0L;
 
@@ -265,7 +265,7 @@ SKX_InstallCBTHook (void)
   if (g_hHookCBT != nullptr)
     return;
 
-  HMODULE hMod = 0;
+  HMODULE hMod = nullptr;
 
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 #ifdef _WIN64
@@ -281,7 +281,7 @@ SKX_InstallCBTHook (void)
 
   if (hMod == SK_GetDLL ())
   {
-    if (g_hShutdown == 0)
+    if (g_hShutdown == nullptr)
     {
 #ifdef _WIN64
       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
@@ -298,7 +298,7 @@ SKX_InstallCBTHook (void)
     g_hHookCBT =
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
 
-    if (g_hHookCBT != 0)
+    if (g_hHookCBT != nullptr)
     {
       InterlockedExchange (&__SK_HookContextOwner, TRUE);
     }
@@ -310,7 +310,7 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  if (g_hShutdown != 0)
+  if (g_hShutdown != nullptr)
     SetEvent (g_hShutdown);
 
   if (g_hHookCBT)
@@ -532,7 +532,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
     *wszIn = L'\0';
 
     std::string ver_dir   =
-      SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
+      SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
       GetFileAttributesA (ver_dir.c_str ());
@@ -688,7 +688,7 @@ SK_Inject_SwitchToRenderWrapper (void)
     *wszIn = L'\0';
 
     std::string ver_dir   =
-      SK_FormatString ("%ws\\Version", SK_GetConfigPath ());
+      SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
       GetFileAttributesA (ver_dir.c_str ());
@@ -919,10 +919,10 @@ SK_Inject_Stop (void)
   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
   {
     PathAppendW   (wszWOW64, L"rundll32.exe");
-    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+    ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
     PathAppendW   (wszSys32, L"rundll32.exe");
-    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+    ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
   }
 
   else
@@ -940,7 +940,7 @@ SK_Inject_Stop (void)
     // Worst-case, we do this manually and confuse Steam
     else
     {
-      ShellExecuteA        (NULL, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+      ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
       SleepEx              (100UL, FALSE);
       SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
     }
@@ -976,22 +976,22 @@ SK_Inject_Start (void)
   {
     if (SKX_IsHookingCBT ())
     {
-      RunDLL_InjectionManager ( NULL, NULL,
+      RunDLL_InjectionManager ( nullptr, nullptr,
                                 "Remove", -128 );
     }
 
     PathAppendW   (wszSys32, L"rundll32.exe");
-    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+    ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
     PathAppendW   (wszWOW64, L"rundll32.exe");
-    ShellExecuteA (NULL, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+    ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
   }
 
   else
   {
     if (SKX_IsHookingCBT ())
     {
-      RunDLL_InjectionManager ( NULL, NULL,
+      RunDLL_InjectionManager ( nullptr, nullptr,
                                 "Remove", -128 );
     }
 
@@ -1008,7 +1008,7 @@ SK_Inject_Start (void)
 
     // Worst-case, we do this manually and confuse Steam
     else
-      ShellExecuteA (NULL, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+      ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
   }
 
   SetCurrentDirectoryW (wszCurrentDir);
@@ -1027,15 +1027,15 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 
   SK_Inject_ValidateProcesses ();
 
-  for (int idx = 0; idx < MAX_INJECTED_PROCS; idx++)
+  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
   {
-    if (InterlockedExchangeAdd (&g_sHookedPIDs [idx], 0) != 0)
+    if (InterlockedExchangeAdd (&g_sHookedPID, 0) != 0)
     {
       if (i < (SSIZE_T)capacity - 1)
       {
         if (pdwListIter != nullptr)
         {
-          *pdwListIter = InterlockedExchangeAdd (&g_sHookedPIDs [idx], 0);
+          *pdwListIter = InterlockedExchangeAdd (&g_sHookedPID, 0);
           pdwListIter++;
         }
       }

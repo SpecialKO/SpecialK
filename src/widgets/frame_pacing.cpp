@@ -45,7 +45,7 @@ public:
     SK_ImGui_Widgets.frame_pacing = this;
   };
 
-  void run (void)
+  virtual void run (void) override
   {
     ImGuiIO& io (ImGui::GetIO ());
 
@@ -59,7 +59,7 @@ public:
       ImGui::SetNextWindowSize (new_size, ImGuiSetCond_Always);
   }
 
-  void draw (void)
+  virtual void draw (void) override
   {
     static bool move = true;
     
@@ -79,7 +79,7 @@ public:
     has_battery = SK_ImGui::BatteryMeter ();
   }
 
-  void OnConfig (ConfigEvent event)
+  virtual void OnConfig (ConfigEvent event) override
   {
     switch (event)
     {

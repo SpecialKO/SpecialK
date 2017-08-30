@@ -39,7 +39,7 @@ extern const std::wstring SK_IMPORT_ARCH_WIN32;
 struct import_s
 {
   // Parameters populated after load
-  HMODULE               hLibrary     = 0;
+  HMODULE               hLibrary     = nullptr;
   std::wstring          product_desc = L"";
 
   // User-defined parameters

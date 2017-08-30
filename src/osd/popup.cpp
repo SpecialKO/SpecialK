@@ -134,7 +134,8 @@ SK_PopupManager::getInstance (void)
 {
   if (__manager__ == nullptr)
   {
-    __manager__ = new SK_PopupManager ();
+    __manager__ =
+      new SK_PopupManager ();
   }
 
   return __manager__;
@@ -165,7 +166,7 @@ SK_PopupManager::createPopup (const char* szLayout)
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
   }
 
-  SK_PopupWindow* popup =
+  auto* popup =
     new SK_PopupWindow (szLayout);
 
   if (popup)
@@ -249,7 +250,7 @@ SK_PopupManager::destroyAllPopups (void)
 bool
 SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
 {
-  CEGUI::WindowEventArgs& win_event =
+  auto& win_event =
     (CEGUI::WindowEventArgs &)e;
 
   if (popups_rev_.count (win_event.window))

@@ -187,37 +187,37 @@ uint32_t __stdcall SK_Steam_PiratesAhoy             (void);
 #include <SpecialK/hooks.h>
 
 
-typedef bool (S_CALLTYPE *SteamAPI_Init_pfn    )(void);
-typedef bool (S_CALLTYPE *SteamAPI_InitSafe_pfn)(void);
+using SteamAPI_Init_pfn                  = bool (S_CALLTYPE *    )(void);
+using SteamAPI_InitSafe_pfn              = bool (S_CALLTYPE *)(void);
 
-typedef bool (S_CALLTYPE *SteamAPI_RestartAppIfNecessary_pfn)
+using SteamAPI_RestartAppIfNecessary_pfn = bool (S_CALLTYPE *)
     (uint32 unOwnAppID);
-typedef bool (S_CALLTYPE *SteamAPI_IsSteamRunning_pfn)(void);
+using SteamAPI_IsSteamRunning_pfn        = bool (S_CALLTYPE *)(void);
 
-typedef void (S_CALLTYPE *SteamAPI_Shutdown_pfn)(void);
+using SteamAPI_Shutdown_pfn              = void (S_CALLTYPE *)(void);
 
-typedef void (S_CALLTYPE *SteamAPI_RegisterCallback_pfn)
+using SteamAPI_RegisterCallback_pfn      = void (S_CALLTYPE *)
     (class CCallbackBase *pCallback, int iCallback);
-typedef void (S_CALLTYPE *SteamAPI_UnregisterCallback_pfn)
+using SteamAPI_UnregisterCallback_pfn    = void (S_CALLTYPE *)
     (class CCallbackBase *pCallback);
 
-typedef void (S_CALLTYPE *SteamAPI_RegisterCallResult_pfn)
+using SteamAPI_RegisterCallResult_pfn   = void (S_CALLTYPE *)
     (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
-typedef void (S_CALLTYPE *SteamAPI_UnregisterCallResult_pfn)
+using SteamAPI_UnregisterCallResult_pfn = void (S_CALLTYPE *)
     (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
 
-typedef void (S_CALLTYPE *SteamAPI_RunCallbacks_pfn)(void);
+using SteamAPI_RunCallbacks_pfn         = void (S_CALLTYPE *)(void);
 
-typedef HSteamUser (*SteamAPI_GetHSteamUser_pfn)(void);
-typedef HSteamPipe (*SteamAPI_GetHSteamPipe_pfn)(void);
+using SteamAPI_GetHSteamUser_pfn        = HSteamUser (*)(void);
+using SteamAPI_GetHSteamPipe_pfn        = HSteamPipe (*)(void);
 
-typedef ISteamClient* (S_CALLTYPE *SteamClient_pfn)(void);
+using SteamClient_pfn                   = ISteamClient* (S_CALLTYPE *)(void);
 
-typedef bool (*GetControllerState_pfn)
+using GetControllerState_pfn            = bool (*)
     (ISteamController* This, uint32 unControllerIndex, SteamControllerState_t *pState);
 
-typedef bool (S_CALLTYPE* SteamAPI_InitSafe_pfn)(void);
-typedef bool (S_CALLTYPE* SteamAPI_Init_pfn)    (void);
+using SteamAPI_InitSafe_pfn             = bool (S_CALLTYPE*)(void);
+using SteamAPI_Init_pfn                 = bool (S_CALLTYPE*)(void);
 
 
 
@@ -279,7 +279,7 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
 class SK_SteamAPIContext : public SK_IVariableListener
 {
 public:
-  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
+  virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 
   bool InitCSteamworks (HMODULE hSteamDLL);
 

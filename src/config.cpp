@@ -2086,7 +2086,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
 
-  iSK_INI::_TSectionMap::const_iterator sec =
+  auto sec =
     sections.begin ();
 
   int import = 0;
@@ -2157,7 +2157,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       imports [import].architecture->load ();
       imports [import].blacklist->load    ();
 
-      imports [import].hLibrary = NULL;
+      imports [import].hLibrary = nullptr;
 
       ++import;
 
@@ -3264,7 +3264,7 @@ SK_ResHack_PatchGame2 ( uint32_t width,
   *(orig    ) = width;
   *(orig + 1) = height;
 
-  uint32_t* pOut =
+  auto* pOut =
     reinterpret_cast  <uint32_t *> (GetModuleHandle (nullptr));
 
   for (int i = 0 ; i < 3; i++)

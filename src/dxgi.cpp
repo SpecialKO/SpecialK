@@ -185,8 +185,8 @@ SK_CEGUI_RelocateLog (void)
     wcscpy   (wszNewLogPath, SK_GetConfigPath ());
     wcstombs ( szNewLogPath, SK_GetConfigPath (), MAX_PATH * 4 - 1);
 
-    lstrcatA ( szNewLogPath,  "logs\\CEGUI.log");
-    lstrcatW (wszNewLogPath, L"logs\\CEGUI.log");
+    lstrcatA ( szNewLogPath, R"(logs\CEGUI.log)");
+    lstrcatW (wszNewLogPath, L"logs\\CEGUI.log" );
 
     CopyFileExW ( L"CEGUI.log", wszNewLogPath,
                     nullptr, nullptr, nullptr,
@@ -210,12 +210,12 @@ SK_CEGUI_GetSystem (void)
 }
 
 void
-SK_CEGUI_InitBase (void)
+SK_CEGUI_InitBase ()
 {
   try
   {
     // initialise the required dirs for the DefaultResourceProvider
-    CEGUI::DefaultResourceProvider* rp =
+    auto* rp =
         dynamic_cast <CEGUI::DefaultResourceProvider *>
             (CEGUI::System::getDllSingleton ().getResourceProvider ());
 
@@ -318,7 +318,7 @@ SK_CEGUI_InitBase (void)
 
     // This window is never used, it is the prototype from which all
     //   achievement popup dialogs will be cloned. This makes the whole
-    //     process of instantiating popups quicker.
+    //     process of instantiating pop ups quicker.
     SK_achv_popup =
       window_mgr.loadLayoutFromFile ("Achievements.layout");
  }
@@ -392,7 +392,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
 
     // For CEGUI to work correctly, it is necessary to set the viewport dimensions
-    //   to the backbuffer size prior to bootstrap.
+    //   to the back buffer size prior to bootstrap.
     CComPtr <ID3D11Texture2D> pBackBuffer = nullptr;
 
     D3D11_VIEWPORT vp_orig = { };
@@ -618,7 +618,7 @@ SK_DXGI_BringRenderWindowToTop (void)
 extern int                      gpu_prio;
 
 bool             bAlwaysAllowFullscreen = true;
-HWND             hWndRender             = 0;
+HWND             hWndRender             = nullptr;
 
 bool bFlipMode = false;
 bool bWait     = false;
@@ -1379,7 +1379,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (FAILED (hr))
     {
-      SK_LOG_ONCE (L"[   DXGI   ]  *** Backbuffer unavailable! ***");
+      SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
       return;
     }
 
@@ -1481,7 +1481,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
       if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
-        pImmediateContext->OMSetBlendState (pBlendState, NULL, 0xffffffff);
+        pImmediateContext->OMSetBlendState (pBlendState, nullptr, 0xffffffff);
 
       vp.Width    = static_cast <float> (backbuffer_desc.Width);
       vp.Height   = static_cast <float> (backbuffer_desc.Height);
@@ -1603,7 +1603,7 @@ HRESULT
                    pPresentParameters );
   }
 
-  // Start / End / Readback Pipeline Stats
+  // Start / End / Read back Pipeline Stats
   SK_D3D11_UpdateRenderStats (This);
   SK_D3D12_UpdateRenderStats (This);
 
@@ -1670,7 +1670,7 @@ HRESULT
         DXGI_SWAP_CHAIN_DESC desc;
         This->GetDesc (&desc);
 
-        if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( 0, 0 );
+        if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( nullptr, 0 );
 
 
         if (bAlwaysAllowFullscreen)
@@ -1681,7 +1681,7 @@ HRESULT
           );
         }
 
-        if (hWndRender == 0 || (! IsWindow (hWndRender)))
+        if (hWndRender == nullptr || (! IsWindow (hWndRender)))
         {
           hWndRender       = desc.OutputWindow;
 
@@ -1813,7 +1813,7 @@ HRESULT
         //  NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
 
 
-        if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( 0, 0 );
+        if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( nullptr, 0 );
 
 
         if (bAlwaysAllowFullscreen)
@@ -3095,7 +3095,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
       *pDesc :
         DXGI_SWAP_CHAIN_DESC1 { };
 
-  HWND hWnd = 0;
+  HWND hWnd = nullptr;
   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
 
 
@@ -3179,9 +3179,9 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
         DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
                                                              pRestrictToOutput, ppSwapChain ) );
 
-        if ( SUCCEEDED (ret)      &&
-             ppSwapChain  != NULL &&
-           (*ppSwapChain) != NULL )
+        if ( SUCCEEDED (ret)         &&
+             ppSwapChain  != nullptr &&
+           (*ppSwapChain) != nullptr )
         {
           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, ppSwapChain);
 
@@ -3227,16 +3227,16 @@ DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *Th
   DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc = {    };
 
-  HWND hWnd = 0;
+  HWND hWnd = nullptr;
   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
 
 
   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
                                                              pRestrictToOutput, ppSwapChain ));
 
-  if ( SUCCEEDED (ret)      &&
-       ppSwapChain  != NULL &&
-     (*ppSwapChain) != NULL )
+  if ( SUCCEEDED (ret)         &&
+       ppSwapChain  != nullptr &&
+     (*ppSwapChain) != nullptr )
   {
     SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, ppSwapChain);
   }
@@ -3266,7 +3266,7 @@ SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (hWndRender != 0)
+  if (hWndRender != nullptr)
   {
     SetActiveWindow     (hWndRender);
     SetForegroundWindow (hWndRender);
@@ -3392,7 +3392,7 @@ STDMETHODCALLTYPE GetDesc2_Override (IDXGIAdapter2      *This,
     DXGI_ADAPTER_DESC* match =
       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
-    if (match != NULL)
+    if (match != nullptr)
     {
       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
@@ -3429,7 +3429,7 @@ STDMETHODCALLTYPE GetDesc1_Override (IDXGIAdapter1      *This,
     DXGI_ADAPTER_DESC* match =
       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
-    if (match != NULL)
+    if (match != nullptr)
     {
       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
@@ -3467,7 +3467,7 @@ STDMETHODCALLTYPE GetDesc_Override (IDXGIAdapter      *This,
     DXGI_ADAPTER_DESC* match =
       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
-    if (match != NULL)
+    if (match != nullptr)
     {
       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
@@ -3831,7 +3831,7 @@ DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
 LPVOID pfnChangeDisplaySettingsA        = nullptr;
 
 // SAL notation in Win32 API docs is wrong
-typedef LONG (WINAPI *ChangeDisplaySettingsA_pfn)(
+using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
   _In_opt_ DEVMODEA *lpDevMode,
   _In_     DWORD     dwFlags
 );
@@ -3853,7 +3853,7 @@ ChangeDisplaySettingsA_Detour (
   if (dwFlags != CDS_TEST)
   {
     if (called)
-      ChangeDisplaySettingsA_Original (NULL, CDS_RESET);
+      ChangeDisplaySettingsA_Original (nullptr, CDS_RESET);
 
     called = true;
 
@@ -3864,7 +3864,7 @@ ChangeDisplaySettingsA_Detour (
     return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
 }
 
-typedef void (WINAPI *finish_pfn)(void);
+using finish_pfn = void (WINAPI *)(void);
 
 void
 WINAPI
@@ -4402,7 +4402,7 @@ HookDXGI (LPVOID user)
   //
   hr =
     D3D11CreateDevice_Import (
-      0,
+      nullptr,
         D3D_DRIVER_TYPE_HARDWARE,
           nullptr,
             0x0,
@@ -4628,7 +4628,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
       budget_thread.pAdapter = pAdapter3;
       budget_thread.tid      = 0;
-      budget_thread.event    = 0;
+      budget_thread.event    = nullptr;
       budget_log.silent      = true;
 
 
@@ -4840,7 +4840,7 @@ DWORD
 WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
 {
-  budget_thread_params_t* params =
+  auto* params =
     static_cast <budget_thread_params_t *> (user_data);
 
   budget_log.silent = true;
@@ -4869,7 +4869,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
       break;
 
-    if ( params->event == 0 )
+    if ( params->event == nullptr )
       break;
 
     HANDLE phEvents [] = { params->event, params->shutdown };
@@ -5090,7 +5090,7 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
 
   if (hDXGI)
   {
-    static CreateDXGIFactory_pfn
+    static auto
       CreateDXGIFactory =
         (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
                                                    "CreateDXGIFactory" );

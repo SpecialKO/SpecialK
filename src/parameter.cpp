@@ -212,7 +212,7 @@ sk::ParameterFloat::set_value (float val)
 void
 sk::ParameterFloat::set_value_str (std::wstring str)
 {
-  value = (float)wcstod (str.c_str (), NULL);
+  value = (float)wcstod (str.c_str (), nullptr);
 }
 
 

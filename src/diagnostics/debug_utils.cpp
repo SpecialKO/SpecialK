@@ -142,7 +142,7 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 
 bool spoof_debugger = false;
 
-typedef BOOL (WINAPI *IsDebuggerPresent_pfn)(void);
+using IsDebuggerPresent_pfn = BOOL (WINAPI *)(void);
 IsDebuggerPresent_pfn IsDebuggerPresent_Original = nullptr;
 
 BOOL
@@ -155,7 +155,7 @@ IsDebuggerPresent_Detour (void)
   return IsDebuggerPresent_Original ();
 }
 
-typedef void (WINAPI *DebugBreak_pfn)(void);
+using DebugBreak_pfn = void (WINAPI *)(void);
 DebugBreak_pfn DebugBreak_Original = nullptr;
 
 __declspec (noinline)
@@ -165,8 +165,6 @@ DebugBreak_Detour (void)
 {
   //if (config.debug.allow_break)
   //  return DebugBreak_Original ();
-
-  return;
 }
 
 bool

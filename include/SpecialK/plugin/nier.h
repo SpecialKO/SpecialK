@@ -28,15 +28,15 @@
 
 #include <minwindef.h>
 
-typedef float vec3_t [3]; // X,Z,Y
+using vec3_t = float [3]; // X,Z,Y
 
 
-typedef void (__stdcall         *SK_PlugIn_ControlPanelWidget_pfn)(void);
-typedef void (STDMETHODCALLTYPE *SK_EndFrame_pfn)                 (void);
-typedef void (CALLBACK          *SK_PluginKeyPress_pfn)           ( BOOL Control,
-                                                                    BOOL Shift,
-                                                                    BOOL Alt,
-                                                                    BYTE vkCode );
+using SK_PlugIn_ControlPanelWidget_pfn = void (__stdcall         *)(void);
+using SK_EndFrame_pfn                  = void (STDMETHODCALLTYPE *)(void);
+using SK_PluginKeyPress_pfn            = void (CALLBACK          *)( BOOL Control,
+                                                                     BOOL Shift,
+                                                                     BOOL Alt,
+                                                                     BYTE vkCode );
 
 
 extern LPVOID __SK_base_img_addr;
@@ -76,49 +76,49 @@ SK_UpdateSoftware   (const wchar_t* wszProduct);
 
 
 
-typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
+using D3D11Dev_CreateBuffer_pfn = HRESULT (WINAPI *)(
   _In_           ID3D11Device            *This,
   _In_     const D3D11_BUFFER_DESC       *pDesc,
   _In_opt_ const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_      ID3D11Buffer           **ppBuffer
 );
-typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
+using D3D11Dev_CreateShaderResourceView_pfn = HRESULT (WINAPI *)(
   _In_           ID3D11Device                     *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView
 );
 
-typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
+using D3D11_DrawInstanced_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCountPerInstance,
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartVertexLocation,
   _In_ UINT                 StartInstanceLocation
 );
-typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
+using D3D11_DrawInstancedIndirect_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs
 );
-typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
-  _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+using D3D11Dev_CreateTexture2D_pfn = HRESULT (WINAPI *)(
+  _In_            ID3D11Device            *This,
+  _In_      const D3D11_TEXTURE2D_DESC    *pDesc,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D
 );
-typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
+using D3D11_DrawIndexed_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 IndexCount,
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation
 );
-typedef void (WINAPI *D3D11_Draw_pfn)(
+using D3D11_Draw_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCount,
   _In_ UINT                 StartVertexLocation
 );
-typedef void (WINAPI *D3D11_DrawIndexedInstanced_pfn)(
+using D3D11_DrawIndexedInstanced_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 IndexCountPerInstance,
   _In_ UINT                 InstanceCount,
@@ -126,19 +126,19 @@ typedef void (WINAPI *D3D11_DrawIndexedInstanced_pfn)(
   _In_ INT                  BaseVertexLocation,
   _In_ UINT                 StartInstanceLocation
 );
-typedef void (WINAPI *D3D11_DrawIndexedInstancedIndirect_pfn)(
+using D3D11_DrawIndexedInstancedIndirect_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs
 );
-typedef void (WINAPI *D3D11_DrawInstanced_pfn)(
+using D3D11_DrawInstanced_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ UINT                 VertexCountPerInstance,
   _In_ UINT                 InstanceCount,
   _In_ UINT                 StartVertexLocation,
   _In_ UINT                 StartInstanceLocation
 );
-typedef void (WINAPI *D3D11_DrawInstancedIndirect_pfn)(
+using D3D11_DrawInstancedIndirect_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
   _In_ ID3D11Buffer        *pBufferForArgs,
   _In_ UINT                 AlignedByteOffsetForArgs

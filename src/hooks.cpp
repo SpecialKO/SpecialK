@@ -56,9 +56,9 @@ protected:
     } vftbl;
 
     struct {
-      HANDLE       module   = 0; // Hold a reference; don't let
-                                 //   software unload the DLL while it is
-                                 //     hooked!
+      HANDLE       module   = nullptr; // Hold a reference; don't let
+                                       //   software unload the DLL while it is
+                                       //     hooked!
     } dll;
   };
 
@@ -188,7 +188,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
   void      *pFuncAddr = nullptr;
   MH_STATUS  status    = MH_OK;
 
-  if (hMod == 0)
+  if (hMod == nullptr)
     status = MH_ERROR_MODULE_NOT_FOUND;
 
   else
@@ -278,7 +278,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
   void      *pFuncAddr = nullptr;
   MH_STATUS  status    = MH_OK;
 
-  if (hMod == 0)
+  if (hMod == nullptr)
     status = MH_ERROR_MODULE_NOT_FOUND;
 
   else
@@ -371,7 +371,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
   void      *pFuncAddr = nullptr;
   MH_STATUS  status    = MH_OK;
 
-  if (hMod == 0)
+  if (hMod == nullptr)
     status = MH_ERROR_MODULE_NOT_FOUND;
 
   else {

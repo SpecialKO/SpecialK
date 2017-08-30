@@ -50,7 +50,7 @@ int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
   return
-    MessageBox (NULL, caption.c_str (), title.c_str (),
+    MessageBox (nullptr, caption.c_str (), title.c_str (),
                 flags | MB_SYSTEMMODAL | MB_TOPMOST | MB_SETFOREGROUND);
 }
 
@@ -668,7 +668,7 @@ uint32_t
 __cdecl
 crc32 (uint32_t crc, const void *buf, size_t size)
 {
-  const uint8_t *p =
+  const auto *p =
        reinterpret_cast <const uint8_t *> (buf);
 
   crc = crc ^ ~0U;
@@ -719,7 +719,7 @@ crc32 (uint32_t crc, const void *buf, size_t size)
 #define LONG_SHIFT  8192
 #define SHORT_SHIFT 256
 
-typedef const uint8_t *buffer;
+using buffer = const uint8_t *;
 
 static uint32_t table        [16][256];
 static uint32_t long_shifts  [ 4][256];
@@ -998,15 +998,15 @@ calculate_table (void)
 {
   for (int i = 0; i < 256; i++)
   {
-    uint32_t res =
+    auto res =
       static_cast <uint32_t> (i);
 
-    for (int t = 0; t < 16; t++)
+    for (auto& t : table)
     {
       for (int k = 0; k < 8; k++)
         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
                                       (res >> 1);
-      table [t][i] = res;
+      t [i] = res;
     }
   }
 
@@ -1020,7 +1020,7 @@ calculate_table_hw (void)
 {
   for (int i = 0; i < 256; i++) 
   {
-    uint32_t res =
+    auto res =
       static_cast <uint32_t> (i);
 
     for (int k = 0; k < 8 * (SHORT_SHIFT - 4); k++)
@@ -1285,7 +1285,7 @@ private:
 HMODULE
 SK_GetCallingDLL (LPVOID pReturn)
 {
-  HMODULE hCallingMod = 0;
+  HMODULE hCallingMod = nullptr;
 
   SK_ModulesMap.Lock ();
 
@@ -1353,7 +1353,7 @@ SK_SuspendAllOtherThreads (void)
               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
             );
 
-            if (hThread != NULL)
+            if (hThread != nullptr)
             {
               threads.push  (tent.th32ThreadID);
 
@@ -1384,7 +1384,7 @@ SK_ResumeThreads (std::queue <DWORD> threads)
       OpenThread (THREAD_SUSPEND_RESUME, FALSE, tid)
     );
 
-    if (hThread != NULL)
+    if (hThread != nullptr)
     {
       ResumeThread (hThread);
     }
@@ -1949,19 +1949,34 @@ SK_InjectMemory ( LPVOID  base_addr,
                   DWORD   permissions,
                   void   *old_data )
 {
-  DWORD dwOld =
-    PAGE_NOACCESS;
+  __try {
+    DWORD dwOld =
+      PAGE_NOACCESS;
 
-  if ( VirtualProtect ( base_addr,   data_size,
-                        permissions, &dwOld )   )
+    if ( VirtualProtect ( base_addr,   data_size,
+                          permissions, &dwOld )   )
+    {
+      if (old_data != nullptr) memcpy (old_data, base_addr, data_size);
+                               memcpy (base_addr, new_data, data_size);
+
+      VirtualProtect ( base_addr, data_size,
+                       dwOld,     &dwOld );
+
+      return TRUE;
+    }
+  }
+
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+               EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
   {
-    if (old_data != nullptr) memcpy (old_data, base_addr, data_size);
-                             memcpy (base_addr, new_data, data_size);
+    //assert (false);
 
-    VirtualProtect ( base_addr, data_size,
-                     dwOld,     &dwOld );
-
-    return TRUE;
+    // Bad memory address, just discard the write attempt
+    //
+    //   This isn't atomic; if we fail, it's possible we wrote part
+    //     of the data successfully - consider an undo mechanism.
+    //
+    return FALSE;
   }
 
   return FALSE;
@@ -1985,7 +2000,8 @@ SK_GetFileSize (const wchar_t* wszFile)
   return 0ULL;
 }
 
-typedef void (__stdcall *SK_HashProgressCallback_pfn)(uint64_t current, uint64_t total);
+using SK_HashProgressCallback_pfn =
+  void (__stdcall *)(uint64_t current, uint64_t total);
 
 enum sk_hash_algo {
   SK_NO_HASH    = 0x0,
@@ -2543,7 +2559,7 @@ HRESULT ModifyPrivilege(
     HRESULT hr = S_OK;
     TOKEN_PRIVILEGES NewState;
     LUID             luid;
-    HANDLE hToken    = NULL;
+    HANDLE hToken    = nullptr;
 
     // Open the process token for this process.
     if (!OpenProcessToken(GetCurrentProcess(),
@@ -2554,7 +2570,7 @@ HRESULT ModifyPrivilege(
     }
 
     // Get the local unique ID for the privilege.
-    if ( !LookupPrivilegeValue( NULL,
+    if ( !LookupPrivilegeValue( nullptr,
                                 szPrivilege,
                                 &luid ))
     {
@@ -2573,8 +2589,8 @@ HRESULT ModifyPrivilege(
                                FALSE,
                                &NewState,
                                0,
-                               NULL,
-                               NULL))
+                               nullptr,
+                               nullptr))
     {
         hr = ERROR_FUNCTION_FAILED;
     }
@@ -2741,7 +2757,7 @@ SK_RestartGame (const wchar_t* wszDLL)
                       L"This is a common problem for non-boot drives, please ensure that the drive your "
                       L"game is installed to has 8.3 filename generation enabled and then re-install "
                       L"the mod.",
-                        L"Cannot Automatically Restart Game Because of Bad Filesystem Policy.",
+                        L"Cannot Automatically Restart Game Because of Bad File system Policy.",
                           MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
     }
 
@@ -2820,7 +2836,7 @@ SK_ElevateToAdmin (void)
                     L"This is a common problem for non-boot drives, please ensure that the drive your "
                     L"game is installed to has 8.3 filename generation enabled and then re-install "
                     L"the mod.",
-                      L"Cannot Elevate To Admin Because of Bad Filesystem Policy.",
+                      L"Cannot Elevate To Admin Because of Bad File system Policy.",
                         MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
     ExitProcess   (0x00);
   }
@@ -2860,7 +2876,7 @@ SK_FormatString (char const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  char* out = new char [len + 1] { };
+  auto* out = new char [len + 1] { };
 
   va_start (_ArgList, _Format);
   {
@@ -2888,7 +2904,7 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  wchar_t* out = new wchar_t [len + 1] { };
+  auto* out = new wchar_t [len + 1] { };
 
   va_start (_ArgList, _Format);
   {

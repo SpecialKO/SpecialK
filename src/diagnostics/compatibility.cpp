@@ -69,12 +69,12 @@
 #define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
 
-typedef PSTR    (__stdcall *StrStrI_pfn)            (LPCVOID lpFirst,   LPCVOID lpSearch);
-typedef BOOL    (__stdcall *PathRemoveFileSpec_pfn) (LPVOID  lpPath);
-typedef HMODULE (__stdcall *LoadLibrary_pfn)        (LPCVOID lpLibFileName);
-typedef LPVOID  (__cdecl   *strncpy_pfn)            (LPVOID  lpDest,    LPCVOID lpSource,     size_t   nCount);
-typedef LPVOID  (__stdcall *lstrcat_pfn)            (LPVOID  lpString1, LPCVOID lpString2);
-typedef BOOL    (__stdcall *GetModuleHandleEx_pfn)  (DWORD   dwFlags,   LPCVOID lpModuleName, HMODULE* phModule);
+using StrStrI_pfn            = PSTR    (__stdcall *)(LPCVOID lpFirst,   LPCVOID lpSearch);
+using PathRemoveFileSpec_pfn = BOOL    (__stdcall *)(LPVOID  lpPath);
+using LoadLibrary_pfn        = HMODULE (__stdcall *)(LPCVOID lpLibFileName);
+using strncpy_pfn            = LPVOID  (__cdecl   *)(LPVOID  lpDest,    LPCVOID lpSource,     size_t   nCount);
+using lstrcat_pfn            = LPVOID  (__stdcall *)(LPVOID  lpString1, LPCVOID lpString2);
+using GetModuleHandleEx_pfn  = BOOL    (__stdcall *)(DWORD   dwFlags,   LPCVOID lpModuleName, HMODULE* phModule);
 
 
 extern DWORD __stdcall SK_RaptrWarn (LPVOID user);
@@ -436,7 +436,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
   {
     if (config.compatibility.rehook_loadlibrary)
     {
-      // This is silly, this many string comparions per-load is
+      // This is silly, this many string comparisons per-load is
       //   not good. Hash the string and compare it in the future.
       if ( StrStrIW (wszModName, L"Activation")          ||
            StrStrIW (wszModName, L"rxcore")              ||
@@ -600,7 +600,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
   LPVOID lpRet = _ReturnAddress ();
 
   if (lpFileName == nullptr)
-    return NULL;
+    return nullptr;
 
   SK_LockDllLoader ();
 
@@ -628,7 +628,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
     free ( static_cast <void *> (compliant_path) );
 
     SK_UnlockDllLoader ();
-    return NULL;
+    return nullptr;
   }
 
 
@@ -663,7 +663,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
   LPVOID lpRet = _ReturnAddress ();
 
   if (lpFileName == nullptr)
-    return NULL;
+    return nullptr;
 
  SK_LockDllLoader ();
 
@@ -689,7 +689,7 @@ LoadLibraryW_Detour (LPCWSTR lpFileName)
     free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
-    return NULL;
+    return nullptr;
   }
 
 
@@ -724,7 +724,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
   LPVOID lpRet = _ReturnAddress ();
 
   if (lpLibFileName == nullptr)
-    return NULL;
+    return nullptr;
 
  SK_LockDllLoader ();
 
@@ -750,7 +750,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
     free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
-    return NULL;
+    return nullptr;
   }
 
 
@@ -780,7 +780,7 @@ LoadLibraryExA_Detour (
   LPVOID lpRet = _ReturnAddress ();
 
   if (lpFileName == nullptr)
-    return NULL;
+    return nullptr;
 
   char*           compliant_path = _strdup (lpFileName);
   SK_FixSlashesA (compliant_path);
@@ -813,12 +813,12 @@ LoadLibraryExA_Detour (
     SetLastError (0);
   }
 
-  if (hModEarly == NULL && BlacklistLibrary (lpFileName))
+  if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
   {
     free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
-    return NULL;
+    return nullptr;
   }
 
 
@@ -858,7 +858,7 @@ LoadLibraryExW_Detour (
   LPVOID lpRet = _ReturnAddress ();
 
   if (lpFileName == nullptr)
-    return NULL;
+    return nullptr;
 
   wchar_t*        compliant_path = _wcsdup (lpFileName);
   SK_FixSlashesW (compliant_path);
@@ -891,12 +891,12 @@ LoadLibraryExW_Detour (
     SetLastError (0);
   }
 
-  if (hModEarly == NULL && BlacklistLibrary (lpFileName))
+  if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
   {
     free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
-    return NULL;
+    return nullptr;
   }
 
 
@@ -1212,7 +1212,8 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 {
 #else
 {
-  LPVOID user = static_cast <LPVOID> (pWorkingSet);
+  auto user =
+    static_cast <LPVOID> (pWorkingSet);
 #endif
   static bool             init           = false;
   static CRITICAL_SECTION cs_thread_walk = { };
@@ -1228,7 +1229,7 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 
   EnterCriticalSection (&cs_thread_walk);
 
-  enum_working_set_s* pWorkingSet_ =
+  auto* pWorkingSet_ =
     static_cast <enum_working_set_s *> (
       malloc (sizeof (enum_working_set_s))
     );
@@ -1544,10 +1545,11 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     //   and learn to deal with the fact that some symbol names will be invalid;
     //     the crash handler will load them, but certain diagnostic readings under
     //       normal operation will not.
-    enum_working_set_s* pWorkingSet = (enum_working_set_s *)&working_set;
-    SK_ThreadWalkModules (pWorkingSet);
+    auto* pWorkingSet =
+      static_cast <enum_working_set_s *> (&working_set);
 
-    SK_WalkModules (cbNeeded, hProc, hMods, when);
+    SK_ThreadWalkModules (pWorkingSet);
+    SK_WalkModules       (cbNeeded, hProc, hMods, when);
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr)
@@ -1635,7 +1637,7 @@ TaskDialogCallback (
 
   if (uNotification == TDN_DESTROYED)
   {
-    SK_bypass_dialog_hwnd = 0;
+    SK_bypass_dialog_hwnd = nullptr;
     InterlockedDecrementRelease (&SK_bypass_dialog_active);
   }
 
@@ -1722,13 +1724,13 @@ SK_ValidateGlobalRTSSProfile (void)
     const int     num_delay_dlls =
       sizeof (delay_dlls) / sizeof (const wchar_t *);
 
-    for (int i = 0; i < num_delay_dlls; i++)
+    for (auto& delay_dll : delay_dlls)
     {
-      if (triggers.find (delay_dlls [i]) == std::wstring::npos)
+      if (triggers.find (delay_dll) == std::wstring::npos)
       {
         valid = false;
         triggers += L",";
-        triggers += delay_dlls [i];
+        triggers += delay_dll;
       }
     }
   }
@@ -2102,7 +2104,7 @@ SK_Bypass_CRT (LPVOID user)
     {
       return
         GetFileAttributesA (
-          SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll",
+          SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
                               std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
                           ).c_str ()
         ) != INVALID_FILE_ATTRIBUTES;
@@ -2338,7 +2340,7 @@ SK_Bypass_CRT (LPVOID user)
             SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
 
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                              32
@@ -2375,7 +2377,7 @@ SK_Bypass_CRT (LPVOID user)
             SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
 
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                              32
@@ -2403,7 +2405,7 @@ SK_Bypass_CRT (LPVOID user)
           else
           {
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                              32
@@ -2432,7 +2434,7 @@ SK_Bypass_CRT (LPVOID user)
           {
             SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DXGI);
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                              32
@@ -2490,7 +2492,7 @@ SK_Bypass_CRT (LPVOID user)
           {
             SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::OpenGL);
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                              32
@@ -2527,7 +2529,7 @@ SK_Bypass_CRT (LPVOID user)
             {
               SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::D3D8);
               temp_dll = SK_UTF8ToWideChar (
-                           SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                              SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                                32
@@ -2556,7 +2558,7 @@ SK_Bypass_CRT (LPVOID user)
               SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DDraw);
 
               temp_dll = SK_UTF8ToWideChar (
-                           SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                           SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                              SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                                32
@@ -2672,15 +2674,15 @@ SK_Bypass_CRT (LPVOID user)
 
 
 
-typedef BOOL (WINAPI *GetClientRect_pfn)(
+using GetClientRect_pfn    = BOOL (WINAPI *)(
   _In_  HWND   hWnd,
   _Out_ LPRECT lpRect
 );
-typedef BOOL (WINAPI *GetWindowRect_pfn)(
+using GetWindowRect_pfn    = BOOL (WINAPI *)(
   _In_  HWND   hWnd,
   _Out_ LPRECT lpRect
 );
-typedef int (WINAPI *GetSystemMetrics_pfn)(
+using GetSystemMetrics_pfn = int (WINAPI *)(
   _In_ int nIndex
 );
 
@@ -2704,10 +2706,9 @@ int
   const int never = 0;
         MSG msg;
 
-  while (GetMessage (&msg, 0, 0, 0))
+  while (GetMessage (&msg, nullptr, 0, 0))
   {
     MsgWaitForMultipleObjects (0, nullptr, FALSE, 0, QS_ALLINPUT);
-    continue;
   }
 
   SleepEx (INFINITE, FALSE);

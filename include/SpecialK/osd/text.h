@@ -146,7 +146,7 @@ private:
   SK_IVariable*                            scale_ = nullptr;
 
 public:
-  virtual bool OnVarChange (SK_IVariable* var, void* val = NULL);
+  virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 };
 
 #endif /* __SK__OSD_TEXT_H__ */

@@ -37,7 +37,7 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::East).setClickThrough (true);
   };
 
-  void run (void)
+  virtual void run (void) override
   {
     static bool started = false;
 
@@ -68,7 +68,7 @@ public:
     }
   }
 
-  void draw (void)
+  virtual void draw (void) override
   {
     ImGuiIO& io (ImGui::GetIO ());
 
@@ -130,7 +130,7 @@ public:
     }
   }
 
-  void OnConfig (ConfigEvent event)
+  virtual void OnConfig (ConfigEvent event) override
   {
     switch (event)
     {

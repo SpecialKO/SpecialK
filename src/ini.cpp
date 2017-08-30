@@ -79,9 +79,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   TRY_FILE_IO (_wfsopen (filename, L"rb", _SH_DENYNO), filename, fINI);
 
-  if (fINI != 0)
+  if (fINI != nullptr)
   {
-    long size =
+    auto size =
       static_cast <long> (SK_GetFileSize (filename));
 
     wszData = new wchar_t [size + 2] { };
@@ -136,7 +136,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
       char*           start_addr =
       (reinterpret_cast <char *> (wszData)) + offset;
 
-      char*           string =
+      auto*           string =
         new char [real_size];
 
       memcpy (string, start_addr, real_size);
@@ -239,7 +239,7 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
   {
     if (k < penultimate && *k == L'=')
     {
-      wchar_t* key_str = new wchar_t [k - key + 2] { };
+      auto*    key_str = new wchar_t [k - key + 2] { };
       size_t   key_len =          wcrlen (key, k);
       wcsncpy (key_str,                   key, key_len);
 
@@ -259,7 +259,7 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
             k = end;
           }
 
-          wchar_t* val_str = new wchar_t [l - value + 2] { };
+          auto*    val_str = new wchar_t [l - value + 2] { };
           size_t   val_len = wcrlen          (value, l);
           wcsncpy (val_str,                   value, val_len);
 
@@ -288,7 +288,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
   {
     if (k < penultimate && *k == L'=')
     {
-      wchar_t* key_str = new wchar_t [k - key + 2] { };
+      auto*    key_str = new wchar_t [k - key + 2] { };
       size_t   key_len =          wcrlen (key, k);
       wcsncpy (key_str,                   key, key_len);
 
@@ -302,7 +302,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
           key = CharNextW (l);
             k = key;
 
-          wchar_t* val_str = new wchar_t [l - value + 2] { };
+          auto*    val_str = new wchar_t [l - value + 2] { };
           size_t   val_len = wcrlen          (value, l);
           wcsncat (val_str,                   value, val_len);
 
@@ -418,7 +418,7 @@ iSK_INI::parse (void)
 
       if (begin != nullptr && end != nullptr && begin < end)
       {
-        wchar_t* sec_name = new wchar_t    [end - begin + 2] { };
+        auto*    sec_name = new wchar_t    [end - begin + 2] { };
         size_t   sec_len  = wcrlen  (begin, end);
         wcsncpy (sec_name,           begin, sec_len);
 
@@ -554,7 +554,7 @@ iSK_INI::import (const wchar_t* import_data)
 
       if (begin != nullptr && end != nullptr)
       {
-        wchar_t* sec_name = new wchar_t [end - begin + 2] { };
+        auto*    sec_name = new wchar_t [end - begin + 2] { };
         size_t   sec_len  = wcrlen            (begin, end);
         wcsncpy (sec_name,                     begin, sec_len);
 
@@ -626,7 +626,7 @@ std::wstring&
 __stdcall
 iSK_INISection::get_value (const wchar_t* key)
 {
-  std::unordered_map <std::wstring, std::wstring>::iterator it_key =
+  auto it_key =
     keys.find (key);
 
   if (it_key != keys.end ())
@@ -739,7 +739,7 @@ iSK_INI::write (const wchar_t* fname)
       break;
   }
 
-  if (ret != 0 || fOut == 0)
+  if (ret != 0 || fOut == nullptr)
   {
     //SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname, MB_OK | MB_ICONSTOP);
     return;
@@ -772,8 +772,8 @@ iSK_INI::write (const wchar_t* fname)
     iSK_INISection& section =
       get_section (it.c_str ());
 
-    if ( section.name.length       () &&
-         section.ordered_keys.size () )
+    if (    section.name.length       () &&
+         (! section.ordered_keys.empty ()) )
     {
       outbuf += L"[";
       outbuf += section.name + L"]\n";
@@ -934,7 +934,7 @@ iSK_INI*
 __stdcall
 SK_CreateINI (const wchar_t* const wszName)
 {
-  iSK_INI* pINI =
+  auto* pINI =
     new iSK_INI (wszName);
 
   return pINI;
