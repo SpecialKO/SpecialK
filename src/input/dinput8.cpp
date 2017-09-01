@@ -572,7 +572,7 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
   //joy_to_xi.Gamepad.bRightTrigger =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwZpos / 255.0f));
 
   // One-eighth of a full rotation
-  DWORD JOY_OCTSPACE = JOY_POVRIGHT / 2;
+  //DWORD JOY_OCTSPACE = JOY_POVRIGHT / 2;
 
 #if 0
   // 315 - 45
@@ -1034,7 +1034,7 @@ SK_Input_HookDI8 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedExchangeAdd (&hooked, 0))
+  if (! InterlockedExchangeAdd (&hooked, 1))
   {
     SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
                   L"   Input  " );
@@ -1048,8 +1048,6 @@ SK_Input_HookDI8 (void)
                               "DirectInput8Create" ),
                                DirectInput8Create,
       static_cast_p2p <void> (&DirectInput8Create_Import) );
-
-    InterlockedIncrement (&hooked);
   }
 }
 

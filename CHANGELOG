@@ -1,3 +1,9 @@
+0.8.38
+
+ + Integrates about 33 - 50% of Tales of Berseria Fix's shader modding functionality
+ + Fixes SteamAPI problems in older games
+
+
 0.8.37
 
  + Preliminary support for a native Steam Controller input backend
@@ -5,6 +11,7 @@
        while the config UI is open
   >> Generally for the 1% of games that use native Steam, this requires Special K to be
        installed as a local wrapper because it needs to catch SteamAPI initialization early.
+
 
 0.8.36
 

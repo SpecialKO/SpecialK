@@ -730,9 +730,11 @@ extern "C" void __cdecl calculate_table (void);
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_sw (uint32_t crci, buffer input, size_t length)
+crc32c_append_sw (uint32_t crci, const void *input, size_t length)
 {
-  buffer next = input;
+  buffer next =
+    static_cast <buffer> (input);
+
 #ifdef _M_X64
   uint64_t crc;
 #else
@@ -824,9 +826,11 @@ shift_crc (uint32_t shift_table[][256], uint32_t crc)
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_hw (uint32_t crc, buffer buf, size_t len)
+crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
 {
-  buffer next = buf;
+  buffer next =
+    static_cast <buffer> (buf);
+
   buffer end;
 #ifdef _M_X64
   uint64_t crc0, crc1, crc2;      /* need to be 64 bits for crc32q */
@@ -1054,7 +1058,7 @@ calculate_table_hw (void)
   }
 }
 
-static uint32_t (__cdecl *append_func)(uint32_t, buffer, size_t) = nullptr;
+static uint32_t (__cdecl *append_func)(uint32_t, const void*, size_t) = nullptr;
 
 #include <SpecialK/log.h>
 
@@ -1082,7 +1086,7 @@ __crc32_init (void)
 extern "C"
 uint32_t
 __cdecl
-crc32c (uint32_t crc, buffer input, size_t length)
+crc32c (uint32_t crc, const void *input, size_t length)
 {
   if (append_func == nullptr)
     __crc32_init ();

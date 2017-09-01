@@ -317,29 +317,8 @@ public:
                                       //     set when SetTexture (...) is called.
 };
 
-typedef enum D3DXIMAGE_FILEFORMAT { 
-  D3DXIFF_BMP          = 0,
-  D3DXIFF_JPG          = 1,
-  D3DXIFF_TGA          = 2,
-  D3DXIFF_PNG          = 3,
-  D3DXIFF_DDS          = 4,
-  D3DXIFF_PPM          = 5,
-  D3DXIFF_DIB          = 6,
-  D3DXIFF_HDR          = 7,
-  D3DXIFF_PFM          = 8,
-  D3DXIFF_FORCE_DWORD  = 0x7fffffff
-} D3DXIMAGE_FILEFORMAT, *LPD3DXIMAGE_FILEFORMAT;
+#include <d3dx9shader.h>
 
-#define D3DX_DEFAULT ((UINT) -1)
-typedef struct D3DXIMAGE_INFO {
-  UINT                 Width;
-  UINT                 Height;
-  UINT                 Depth;
-  UINT                 MipLevels;
-  D3DFORMAT            Format;
-  D3DRESOURCETYPE      ResourceType;
-  D3DXIMAGE_FILEFORMAT ImageFileFormat;
-} D3DXIMAGE_INFO, *LPD3DXIMAGE_INFO;
 typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateTextureFromFileInMemoryEx_pfn)
 (
   _In_        LPDIRECT3DDEVICE9  pDevice,

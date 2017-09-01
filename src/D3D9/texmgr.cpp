@@ -1,4 +1,4 @@
-
+#if 0
 #include <d3d9.h>
 
 #include <SpecialK/d3d9/texmgr.h>
@@ -686,27 +686,6 @@ static D3DXCreateTextureFromFile_pfn
   D3DXCreateTextureFromFile = nullptr;
 
 #define FONT_CRC32 0xef2d9b55
-
-#define D3DX_FILTER_NONE             0x00000001
-#define D3DX_FILTER_POINT            0x00000002
-#define D3DX_FILTER_LINEAR           0x00000003
-#define D3DX_FILTER_TRIANGLE         0x00000004
-#define D3DX_FILTER_BOX              0x00000005
-#define D3DX_FILTER_MIRROR_U         0x00010000
-#define D3DX_FILTER_MIRROR_V         0x00020000
-#define D3DX_FILTER_MIRROR_W         0x00040000
-#define D3DX_FILTER_MIRROR           0x00070000
-#define D3DX_FILTER_DITHER           0x00080000
-#define D3DX_FILTER_DITHER_DIFFUSION 0x00100000
-#define D3DX_FILTER_SRGB_IN          0x00200000
-#define D3DX_FILTER_SRGB_OUT         0x00400000
-#define D3DX_FILTER_SRGB             0x00600000
-
-
-#define D3DX_SKIP_DDS_MIP_LEVELS_MASK 0x1f
-#define D3DX_SKIP_DDS_MIP_LEVELS_SHIFT 26
-#define D3DX_SKIP_DDS_MIP_LEVELS(l, f) ((((l) & D3DX_SKIP_DDS_MIP_LEVELS_MASK) \
-<< D3DX_SKIP_DDS_MIP_LEVELS_SHIFT) | ((f) == D3DX_DEFAULT ? D3DX_FILTER_BOX : (f)))
 
 typedef BOOL(WINAPI *QueryPerformanceCounter_t)(_Out_ LARGE_INTEGER *lpPerformanceCount);
 extern QueryPerformanceCounter_t QueryPerformanceCounter_Original;
@@ -2973,3 +2952,4 @@ SK_TextureWorkerThread::finishJob (void)
 {
   job_ = nullptr;
 }
+#endif

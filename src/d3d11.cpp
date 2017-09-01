@@ -883,13 +883,13 @@ struct target_tracking_s
 ID3D11Texture2D* tracked_texture            = nullptr;
 DWORD            tracked_tex_blink_duration = 666UL;
 
-struct SK_DisjointTimerQueryD3D11 shader_tracking_s::disjoint_query;
+struct SK_DisjointTimerQueryD3D11 d3d11_shader_tracking_s::disjoint_query;
 
 
 
 void
-shader_tracking_s::activate ( ID3D11ClassInstance *const *ppClassInstances,
-                              UINT                        NumClassInstances )
+d3d11_shader_tracking_s::activate ( ID3D11ClassInstance *const *ppClassInstances,
+                                    UINT                        NumClassInstances )
 {
   for ( UINT i = 0 ; i < NumClassInstances ; i++ )
     if (ppClassInstances && ppClassInstances [i])
@@ -946,7 +946,7 @@ shader_tracking_s::activate ( ID3D11ClassInstance *const *ppClassInstances,
 }
 
 void
-shader_tracking_s::deactivate (void)
+d3d11_shader_tracking_s::deactivate (void)
 {
   if (active)
   {
@@ -983,7 +983,7 @@ shader_tracking_s::deactivate (void)
 }
 
 void
-shader_tracking_s::use (IUnknown* pShader)
+d3d11_shader_tracking_s::use (IUnknown* pShader)
 {
   UNREFERENCED_PARAMETER (pShader);
 
@@ -2289,7 +2289,8 @@ D3D11_VSSetShaderResources_Override (
 
     SK_AutoCriticalSection auto_cs (&cs_shader);
 
-    shader_tracking_s& tracked = SK_D3D11_Shaders.vertex.tracked;
+    d3d11_shader_tracking_s& tracked =
+      SK_D3D11_Shaders.vertex.tracked;
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -2340,7 +2341,8 @@ D3D11_PSSetShaderResources_Override (
 
     SK_AutoCriticalSection auto_cs (&cs_shader);
 
-    shader_tracking_s& tracked = SK_D3D11_Shaders.pixel.tracked;
+    d3d11_shader_tracking_s& tracked =
+      SK_D3D11_Shaders.pixel.tracked;
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -2391,7 +2393,8 @@ D3D11_GSSetShaderResources_Override (
 
     SK_AutoCriticalSection auto_cs (&cs_shader);
 
-    shader_tracking_s& tracked = SK_D3D11_Shaders.geometry.tracked;
+    d3d11_shader_tracking_s& tracked =
+      SK_D3D11_Shaders.geometry.tracked;
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -2443,7 +2446,8 @@ D3D11_HSSetShaderResources_Override (
 
     SK_AutoCriticalSection auto_cs (&cs_shader);
 
-    shader_tracking_s& tracked = SK_D3D11_Shaders.hull.tracked;
+    d3d11_shader_tracking_s& tracked =
+      SK_D3D11_Shaders.hull.tracked;
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -2495,7 +2499,8 @@ D3D11_DSSetShaderResources_Override (
 
     SK_AutoCriticalSection auto_cs (&cs_shader);
 
-    shader_tracking_s& tracked = SK_D3D11_Shaders.domain.tracked;
+    d3d11_shader_tracking_s& tracked =
+      SK_D3D11_Shaders.domain.tracked;
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -2547,7 +2552,8 @@ D3D11_CSSetShaderResources_Override (
 
     SK_AutoCriticalSection auto_cs (&cs_shader);
 
-    shader_tracking_s& tracked = SK_D3D11_Shaders.compute.tracked;
+    d3d11_shader_tracking_s& tracked =
+      SK_D3D11_Shaders.compute.tracked;
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -8189,7 +8195,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   auto GetShaderTracker =
     [](sk_shader_class& type) ->
-      shader_tracking_s*
+      d3d11_shader_tracking_s*
       {
         switch (type)
         {
@@ -8206,7 +8212,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         return nullptr;
       };
 
-  shader_tracking_s*
+  d3d11_shader_tracking_s*
     tracker = GetShaderTracker (shader_type);
 
   auto GetShaderSet =
@@ -8595,9 +8601,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     last_sel = list->sel;
 
-    auto ChangeSelectedShader = []( shader_class_imp_s*  list,
-                                    shader_tracking_s*   tracker,
-                                    SK_D3D11_ShaderDesc& rDesc )
+    auto ChangeSelectedShader = [](       shader_class_imp_s*  list,
+                                    d3d11_shader_tracking_s*   tracker,
+                                    SK_D3D11_ShaderDesc&       rDesc )
     {
       list->last_sel           = rDesc.crc32c;
       tracker->crc32c          = rDesc.crc32c;
@@ -9157,41 +9163,41 @@ SK_D3D11_EndFrame (void)
     disjoint_done = true;
 
   // End the Query and probe results (when the pipeline has drained)
-  if (pDevCtx && (! disjoint_done) && shader_tracking_s::disjoint_query.async)
+  if (pDevCtx && (! disjoint_done) && d3d11_shader_tracking_s::disjoint_query.async)
   {
     if (pDevCtx != nullptr)
     {
-      if (shader_tracking_s::disjoint_query.active)
+      if (d3d11_shader_tracking_s::disjoint_query.active)
       {
-        pDevCtx->End (shader_tracking_s::disjoint_query.async);
-        shader_tracking_s::disjoint_query.active = false;
+        pDevCtx->End (d3d11_shader_tracking_s::disjoint_query.async);
+        d3d11_shader_tracking_s::disjoint_query.active = false;
       }
 
       else
       {
         HRESULT const hr =
-            pDevCtx->GetData ( shader_tracking_s::disjoint_query.async,
-                                &shader_tracking_s::disjoint_query.last_results,
+            pDevCtx->GetData ( d3d11_shader_tracking_s::disjoint_query.async,
+                                &d3d11_shader_tracking_s::disjoint_query.last_results,
                                   sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT,
                                     0x0 );
 
         if (hr == S_OK)
         {
-          shader_tracking_s::disjoint_query.async->Release ();
-          shader_tracking_s::disjoint_query.async = nullptr;
+          d3d11_shader_tracking_s::disjoint_query.async->Release ();
+          d3d11_shader_tracking_s::disjoint_query.async = nullptr;
 
           // Check for failure, if so, toss out the results.
-          if (! shader_tracking_s::disjoint_query.last_results.Disjoint)
+          if (! d3d11_shader_tracking_s::disjoint_query.last_results.Disjoint)
             disjoint_done = true;
 
           else
           {
-            auto ClearTimers = [](shader_tracking_s* tracker)
+            auto ClearTimers = [](d3d11_shader_tracking_s* tracker)
             {
               for (auto& it : tracker->timers)
               {
-                SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
-                SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
+                SK_COM_ValidateRelease (reinterpret_cast <IUnknown **> (&it.start.async));
+                SK_COM_ValidateRelease (reinterpret_cast <IUnknown **> (&it.end.async));
               }
 
               tracker->timers.clear ();
@@ -9213,7 +9219,7 @@ SK_D3D11_EndFrame (void)
 
   if (pDevCtx && disjoint_done)
   {
-    auto GetTimerDataStart = [](ID3D11DeviceContext* dev_ctx, shader_tracking_s::duration_s* duration, bool& success) ->
+    auto GetTimerDataStart = [](ID3D11DeviceContext* dev_ctx, d3d11_shader_tracking_s::duration_s* duration, bool& success) ->
       UINT64
       {
         if (! FAILED (dev_ctx->GetData ( duration->start.async, &duration->start.last_results, sizeof UINT64, 0x00 )))
@@ -9230,7 +9236,7 @@ SK_D3D11_EndFrame (void)
         return 0;
       };
 
-    auto GetTimerDataEnd = [](ID3D11DeviceContext* dev_ctx, shader_tracking_s::duration_s* duration, bool& success) ->
+    auto GetTimerDataEnd = [](ID3D11DeviceContext* dev_ctx, d3d11_shader_tracking_s::duration_s* duration, bool& success) ->
       UINT64
       {
         if (duration->end.async == nullptr)
@@ -9250,7 +9256,7 @@ SK_D3D11_EndFrame (void)
         return 0;
       };
 
-    auto CalcRuntimeMS = [](shader_tracking_s* tracker)
+    auto CalcRuntimeMS = [](d3d11_shader_tracking_s* tracker)
     {
       if (tracker->runtime_ticks != 0)
       {
@@ -9268,10 +9274,10 @@ SK_D3D11_EndFrame (void)
       }
     };
 
-    auto AccumulateRuntimeTicks = [&](ID3D11DeviceContext* dev_ctx, shader_tracking_s* tracker, std::unordered_set <uint32_t>& blacklist) ->
+    auto AccumulateRuntimeTicks = [&](ID3D11DeviceContext* dev_ctx, d3d11_shader_tracking_s* tracker, std::unordered_set <uint32_t>& blacklist) ->
       void
       {
-        std::vector <shader_tracking_s::duration_s> rejects;
+        std::vector <d3d11_shader_tracking_s::duration_s> rejects;
 
         tracker->runtime_ticks = 0;
 

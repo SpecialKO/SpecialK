@@ -90,6 +90,15 @@ Sleep_Detour (DWORD dwMilliseconds)
   if (SK_GetFramesDrawn () < 30)
     return Sleep_Original (dwMilliseconds);
 
+#ifndef _WIN64
+  if (SK_GetCallingDLL () == GetModuleHandle (L"steam_api.dll"))
+    return Sleep_Original (dwMilliseconds);
+#else
+  if (SK_GetCallingDLL () == GetModuleHandle (L"steam_api64.dll"))
+    return Sleep_Original (dwMilliseconds);
+#endif
+
+
   BOOL bGUIThread    = IsGUIThread (FALSE);
   BOOL bRenderThread = (SK_GetCurrentRenderBackend ().thread == GetCurrentThreadId ());
 

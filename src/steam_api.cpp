@@ -106,25 +106,31 @@ SK_Steam_PreHookCore (void)
     L"steam_api64.dll";
 #endif
 
-  LoadLibraryW_Original (wszSteamLib);
+  if (GetProcAddress (LoadLibraryW_Original (wszSteamLib), "SteamInternal_CreateInterface"))
+  {
+    bool
+    SK_Steam_HookController (void);
+    SK_Steam_HookController ();
 
-  bool
-  SK_Steam_HookController (void);
-  SK_Steam_HookController ();
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamAPI_ISteamClient_GetISteamUser",
+                                   SteamAPI_ISteamClient_GetISteamUser_Detour,
+          static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamUser_Original) );
 
-  SK_CreateDLLHook2 (          wszSteamLib,
-                                "SteamAPI_ISteamClient_GetISteamUser",
-                                 SteamAPI_ISteamClient_GetISteamUser_Detour,
-        static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamUser_Original) );
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamInternal_CreateInterface",
+                                   SteamInternal_CreateInterface_Detour,
+          static_cast_p2p <void> (&SteamInternal_CreateInterface_Original) );
 
-  SK_CreateDLLHook2 (          wszSteamLib,
-                                "SteamInternal_CreateInterface",
-                                 SteamInternal_CreateInterface_Detour,
-        static_cast_p2p <void> (&SteamInternal_CreateInterface_Original) );
+    SK_ApplyQueuedHooks ();
 
-  SK_ApplyQueuedHooks ();
+    if (SteamInternal_CreateInterface_Original != nullptr)
+      SteamInternal_CreateInterface_Original (STEAMCLIENT_INTERFACE_VERSION);
 
-  return TRUE;
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 #include <CEGUI/CEGUI.h>

@@ -715,7 +715,7 @@ struct SK_TimerQueryD3D11
   UINT64 last_results = { };
 };
 
-struct shader_tracking_s
+struct d3d11_shader_tracking_s
 {
   void clear (void)
   {
@@ -827,7 +827,7 @@ struct SK_D3D11_KnownShaders
     conditional_blacklist_t                              blacklist_if_texture;
 
     uint32_t                                             current = 0x0;
-    shader_tracking_s                                    tracked;
+    d3d11_shader_tracking_s                              tracked;
 
     ULONG                                                changes_last_frame = 0;
 

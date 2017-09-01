@@ -245,9 +245,9 @@ SK_Input_HookHID (void)
   if (! config.input.gamepad.hook_hid)
     return;
 
-  static volatile LONG hooked = FALSE;
+  volatile LONG hooked = FALSE;
 
-  if (! InterlockedExchangeAdd (&hooked, 0))
+  if (! InterlockedExchangeAdd (&hooked, 1))
   {
     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
                 L"   Input  " );
@@ -276,8 +276,8 @@ SK_Input_HookHID (void)
       (HidP_GetCaps_pfn)GetProcAddress ( GetModuleHandle (L"HID.DLL"),
                                            "HidP_GetCaps" );
 
-    if (HidP_GetData_Original != nullptr)
-      InterlockedIncrement (&hooked);
+    if (HidP_GetData_Original == nullptr)
+      InterlockedDecrement (&hooked);
   }
 }
 

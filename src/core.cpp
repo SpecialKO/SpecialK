@@ -2362,8 +2362,6 @@ SK_BeginBufferSwap (void)
 
   SK_DrawOSD         ();
   SK_DrawConsole     ();
-  extern void SK_DrawTexMgrStats (void);
-  SK_DrawTexMgrStats ();
 
   static HMODULE hModTBFix = GetModuleHandle( L"tbfix.dll");
 

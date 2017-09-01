@@ -285,11 +285,11 @@ extern "C"
 uint32_t
 __cdecl
 crc32c (
-    uint32_t crc,               // Initial CRC value. Typically it's 0.
+    uint32_t    crc,            // Initial CRC value. Typically it's 0.
                                 // You can supply non-trivial initial value here.
                                 // Initial value can be used to chain CRC from multiple buffers.
-    const uint8_t *input,       // Data to be put through the CRC algorithm.
-    size_t length);             // Length of the data in the input buffer.
+    const void *input,          // Data to be put through the CRC algorithm.
+    size_t      length);        // Length of the data in the input buffer.
 
 
 extern "C" void __cdecl __crc32_init (void);
@@ -300,7 +300,7 @@ extern "C" void __cdecl __crc32_init (void);
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_sw (uint32_t crc, const uint8_t *input, size_t length);
+crc32c_append_sw (uint32_t crc, const void *input, size_t length);
 
 /*
 	Hardware version of CRC-32C (Castagnoli) checksum. Will fail, if CPU does not support related instructions. Use a crc32c_append version instead of.
@@ -308,7 +308,7 @@ crc32c_append_sw (uint32_t crc, const uint8_t *input, size_t length);
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_hw (uint32_t crc, const uint8_t *input, size_t length);
+crc32c_append_hw (uint32_t crc, const void *input, size_t length);
 
 /*
 	Checks is hardware version of CRC-32C is available.

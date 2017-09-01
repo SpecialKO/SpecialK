@@ -2236,6 +2236,28 @@ SK_ImGui_ControlPanel (void)
 
     SK_RenderAPI api = rb.api;
 
+    if ( static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9) &&
+         ImGui::CollapsingHeader ("Direct3D 9 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
+    {
+      ImGui::TreePush ("");
+
+      extern bool
+      SK_D3D9_TextureModDlg (void);
+
+      static bool shader_mod = false;
+
+      if (ImGui::Button ("  D3D9 Render Mod Tools  "))
+        shader_mod ^= 1;
+
+      if (shader_mod)
+      {
+        shader_mod =
+          SK_D3D9_TextureModDlg ();
+      }
+
+      ImGui::TreePop ();
+    }
+
     if ( static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11) &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
     {
@@ -3256,7 +3278,7 @@ extern float SK_ImGui_PulseNav_Strength;
                                         static_cast <float> (joy_caps.wVmax),
                                         static_cast <float> (joy_ex.dwVpos) } };
 
-            for (int axis = 0; axis < joy_caps.wMaxAxes; axis++)
+            for (UINT axis = 0; axis < joy_caps.wMaxAxes; axis++)
             {
               float range  = static_cast <float>  (axes [axis].max - axes [axis].min);
               float center = static_cast <float> ((axes [axis].max + axes [axis].min)) / 2.0f;

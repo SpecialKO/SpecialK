@@ -184,6 +184,240 @@ WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
     D3D9_VIRTUAL_HOOK_EX (   _Base,   _Index, _Name, _Override,        \
                         _Original, _Type );                            \
 
+
+
+
+IDirect3DVertexShader9* g_pVS;
+IDirect3DPixelShader9*  g_pPS;
+
+struct sk_d3d9_draw_states_s
+{
+  // Most of these states are not tracked
+  DWORD           srcblend        = 0;
+  DWORD           dstblend        = 0;
+  DWORD           srcalpha        = 0;     // Separate Alpha Blend Eq: Src
+  DWORD           dstalpha        = 0;     // Separate Alpha Blend Eq: Dst
+  bool            alpha_test      = false; // Test Alpha?
+  DWORD           alpha_ref       = 0;     // Value to test.
+  bool            zwrite          = false; // Depth Mask
+
+  int             draws           = 0; // Number of draw calls
+  int             frames          = 0;
+
+  bool            cegui_active    = false;
+  
+  int             instances       = 0;
+
+  uint32_t        current_tex  [256];
+  float           viewport_off [4]  = { 0.0f }; // Most vertex shaders use this and we can
+                                                //   test the set values to determine if a draw
+                                                //     is HUD or world-space.
+                                                //     
+  int             draw_count  = 0;
+  int             next_draw   = 0;
+  int             scene_count = 0;
+} draw_state;
+
+struct frame_state_s
+{
+  void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear (); }
+
+  std::unordered_set <uint32_t>                 pixel_shaders;
+  std::unordered_set <uint32_t>                 vertex_shaders;
+
+  struct {
+    std::unordered_set <IDirect3DVertexBuffer9 *> dynamic;
+    std::unordered_set <IDirect3DVertexBuffer9 *> immutable;
+  } vertex_buffers;
+} last_frame;
+
+struct known_objects_s
+{
+  void clear (void) { static_vbs.clear (); dynamic_vbs.clear (); };
+
+  std::unordered_set <IDirect3DVertexBuffer9 *> static_vbs;
+  std::unordered_set <IDirect3DVertexBuffer9 *> dynamic_vbs;
+} known_objs;
+
+struct render_target_tracking_s
+{
+  void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); active = false; }
+
+  IDirect3DBaseTexture9*        tracking_tex  = nullptr;
+
+  std::unordered_set <uint32_t> pixel_shaders;
+  std::unordered_set <uint32_t> vertex_shaders;
+
+  bool                          active        = false;
+} tracked_rt;
+
+struct shader_tracking_s
+{
+  void clear (void)
+  {
+    active    = false;
+    num_draws = 0;
+    used_textures.clear ();
+
+    for (unsigned int& current_texture : current_textures)
+      current_texture = 0x00;
+  }
+
+  void use (IUnknown* pShader);
+
+  uint32_t                      crc32c       =  0x00;
+  bool                          cancel_draws = false;
+  bool                          clamp_coords = false;
+  bool                          active       = false;
+  int                           num_draws    =     0;
+  std::unordered_set <uint32_t>    used_textures;
+                      uint32_t  current_textures [16];
+
+  //std::vector <IDirect3DBaseTexture9 *> samplers;
+
+  IUnknown*                     shader_obj  = nullptr;
+  ID3DXConstantTable*           ctable      = nullptr;
+
+  struct shader_constant_s
+  {
+    char                Name [128];
+    D3DXREGISTER_SET    RegisterSet;
+    UINT                RegisterIndex;
+    UINT                RegisterCount;
+    D3DXPARAMETER_CLASS Class;
+    D3DXPARAMETER_TYPE  Type;
+    UINT                Rows;
+    UINT                Columns;
+    UINT                Elements;
+    std::vector <shader_constant_s>
+                        struct_members;
+    bool                Override;
+    float               Data [4]; // TEMP HACK
+  };
+
+  std::vector <shader_constant_s> constants;
+} tracked_vs, tracked_ps;
+
+struct vertex_buffer_tracking_s
+{
+  void clear (void)
+  {
+    active = false; num_draws = 0; instances = 0;
+
+    vertex_shaders.clear ();
+    pixel_shaders.clear  ();
+    textures.clear       ();
+
+    for ( auto& it : vertex_decls ) it->Release ();
+
+    vertex_decls.clear ();
+  }
+
+  void use (void)
+  {
+    IDirect3DVertexDeclaration9* decl = nullptr;
+    CComPtr <IDirect3DDevice9>   pDev = nullptr;
+
+    IUnknown *pUnkDev = 
+      SK_GetCurrentRenderBackend ().device;
+
+    if (         pUnkDev == nullptr ||
+         FAILED (pUnkDev->QueryInterface <IDirect3DDevice9> (&pDev)) )
+    {
+      return;
+    }
+
+    extern uint32_t vs_checksum,
+                    ps_checksum;
+
+    vertex_shaders.emplace (vs_checksum);
+    pixel_shaders.emplace  (ps_checksum);
+
+    if (SUCCEEDED (pDev->GetVertexDeclaration (&decl)))
+    {
+      static D3DVERTEXELEMENT9 elem_decl [MAXD3DDECLLENGTH];
+      static UINT              num_elems;
+
+      // Run through the vertex decl and figure out which samplers have texcoords,
+      //   that is a pretty good indicator as to which textures are actually used...
+      if (SUCCEEDED (decl->GetDeclaration (elem_decl, &num_elems)))
+      {
+        for ( UINT i = 0; i < num_elems; i++ )
+        {
+          if (elem_decl [i].Usage == D3DDECLUSAGE_TEXCOORD)
+            textures.emplace (draw_state.current_tex [elem_decl [i].UsageIndex]);
+        }
+      }
+
+      if (! vertex_decls.count   (decl))
+            vertex_decls.emplace (decl);
+      else
+        decl->Release ();
+    }
+  }
+
+  IDirect3DVertexBuffer9*       vertex_buffer = nullptr;
+
+  std::unordered_set <
+    IDirect3DVertexDeclaration9*
+  >                             vertex_decls;
+
+  //uint32_t                      crc32c       =  0x00;
+  bool                          cancel_draws  = false;
+  bool                          wireframe     = false;
+  bool                          active        = false;
+  int                           num_draws     =     0;
+  int                           instanced     =     0;
+  int                           instances     =     1;
+
+  std::unordered_set <uint32_t> vertex_shaders;
+  std::unordered_set <uint32_t> pixel_shaders;
+  std::unordered_set <uint32_t> textures;
+
+  std::unordered_set <IDirect3DVertexBuffer9 *>
+                                wireframes;
+} tracked_vb;
+
+struct sk_d3d9_shader_disasm_s {
+  std::string header;
+  std::string code;
+  std::string footer;
+};
+
+// For now, let's just focus on stream0 and pretend nothing else exists...
+IDirect3DVertexBuffer9* vb_stream0 = nullptr;
+
+std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> ps_disassembly;
+std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> vs_disassembly;
+
+std::unordered_map <LPVOID, uint32_t>                  vs_checksums;
+std::unordered_map <LPVOID, uint32_t>                  ps_checksums;
+
+// Store the CURRENT shader's checksum instead of repeatedly
+//   looking it up in the above hashmaps.
+uint32_t vs_checksum = 0;
+uint32_t ps_checksum = 0;
+
+enum class sk_d3d9_shader_class {
+  Unknown = 0x00,
+  Pixel   = 0x01,
+  Vertex  = 0x02
+};
+
+
+void SK_D3D9_InitShaderModTools   (void);
+bool SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, UINT StartVertex);
+void SK_D3D9_EndFrame             (void);
+void SK_D3D9_EndScene             (void);
+void SK_D3D9_SetPixelShader       ( IDirect3DDevice9       *pDev,
+                                    IDirect3DPixelShader9  *pShader );
+void SK_D3D9_SetVertexShader      ( IDirect3DDevice9       *pDev,
+                                    IDirect3DVertexShader9 *pShader );
+
+
+
+
+
 class SK_D3D9RenderBackend : public SK_IVariableListener
 {
   virtual bool OnVarChange (SK_IVariable* var, void* val) override
@@ -689,6 +923,8 @@ d3d9_init_callback (finish_pfn finish)
 
     while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
       SleepEx (100UL, TRUE);
+
+    SK_D3D9_InitShaderModTools ();
   }
 
   finish ();
@@ -1028,6 +1264,8 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
                                         D3DPRESENT_FORCEIMMEDIATE |
                                         D3DPRESENT_DONOTWAIT );
 
+    SK_D3D9_EndFrame ();
+
     return hr;
   }
 
@@ -1095,6 +1333,8 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
     else
       hr = D3DERR_DEVICELOST;
   }
+
+  SK_D3D9_EndFrame ();
 
   return hr;
 }
@@ -1240,13 +1480,17 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
   {
     if (dwFlags & D3DPRESENT_DONOTWAIT)
     {
-      return
+      HRESULT hr = 
         D3D9PresentSwap_Original ( This,
                                      pSourceRect,
                                        pDestRect,
                                          hDestWindowOverride,
                                            pDirtyRegion,
                                              dwFlags );
+
+      SK_D3D9_EndFrame ();
+
+      return hr;
     }
 
     if (This == nullptr)
@@ -1321,6 +1565,8 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
           SK_EndBufferSwap (hr, pDev);
       }
 
+      SK_D3D9_EndFrame ();
+
       return hr;
     }
 
@@ -1330,6 +1576,8 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
       hr =
         SK_EndBufferSwap (hr, pDev);
     }
+
+    SK_D3D9_EndFrame ();
 
     return hr;
   }
@@ -1410,6 +1658,8 @@ D3D9EndScene_Override (IDirect3DDevice9 *This)
     //L"IDirect3DDevice9::EndScene", This,
     //GetCurrentThreadId ()
   //);
+
+  SK_D3D9_EndScene ();
 
   return D3D9EndScene_Original (This);
 }
@@ -1658,6 +1908,30 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
     ResetCEGUI_D3D9                       (nullptr);
     ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
   }
+
+
+  known_objs.clear ();
+
+  last_frame.clear ();
+  tracked_rt.clear ();
+  tracked_vs.clear ();
+  tracked_ps.clear ();
+  tracked_vb.clear ();
+
+  // Clearing the tracked VB only clears state, it doesn't
+  //   get rid of any data pointers.
+  //
+  //  (WE DID NOT QUERY THIS FROM THE D3D RUNTIME, DO NOT RELEASE)
+  tracked_vb.vertex_buffer = nullptr;
+  tracked_vb.wireframe     = false;
+  tracked_vb.wireframes.clear ();
+  // ^^^^ This is stupid, add a reset method.
+
+  vs_checksums.clear ();
+  ps_checksums.clear ();
+
+  g_pPS   = nullptr;
+  g_pVS   = nullptr;
 }
 
 __declspec (noinline)
@@ -1846,11 +2120,21 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                              UINT              StartVertex,
                              UINT              PrimitiveCount )
 {
-  return
+  ++draw_state.draws;
+  ++draw_state.draw_count;
+
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, StartVertex))
+    return S_OK;
+
+  HRESULT hr =
     D3D9DrawPrimitive_Original ( This,
                                    PrimitiveType,
                                      StartVertex,
                                        PrimitiveCount );
+
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -1864,7 +2148,13 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                     UINT              startIndex,
                                     UINT              primCount )
 {
-  return
+  ++draw_state.draws;
+  ++draw_state.draw_count;
+
+  if (SK_D3D9_ShouldSkipRenderPass (Type, primCount, startIndex))
+    return S_OK;
+
+  HRESULT hr =
     D3D9DrawIndexedPrimitive_Original ( This,
                                           Type,
                                             BaseVertexIndex,
@@ -1872,6 +2162,10 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                                 NumVertices,
                                                   startIndex,
                                                     primCount );
+
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -1883,12 +2177,22 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                const void             *pVertexStreamZeroData,
                                      UINT              VertexStreamZeroStride )
 {
-  return
+  ++draw_state.draws;
+  ++draw_state.draw_count;
+
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, 0))
+    return S_OK;
+
+  HRESULT hr =
     D3D9DrawPrimitiveUP_Original ( This,
                                      PrimitiveType,
                                        PrimitiveCount,
                                          pVertexStreamZeroData,
                                            VertexStreamZeroStride );
+
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -1904,7 +2208,13 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                       const void             *pVertexStreamZeroData,
                                             UINT              VertexStreamZeroStride )
 {
-  return
+  ++draw_state.draws;
+  ++draw_state.draw_count;
+
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex))
+    return S_OK;
+
+  HRESULT hr = 
     D3D9DrawIndexedPrimitiveUP_Original (
       This,
         PrimitiveType,
@@ -1915,6 +2225,10 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                   IndexDataFormat,
                     pVertexStreamZeroData,
                       VertexStreamZeroStride );
+
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -2005,9 +2319,16 @@ STDMETHODCALLTYPE
 D3D9SetPixelShader_Override ( IDirect3DDevice9      *This,
                               IDirect3DPixelShader9 *pShader )
 {
-  return 
+  HRESULT hr =
     D3D9SetPixelShader_Original ( This,
                                     pShader );
+
+  if (SUCCEEDED (hr))
+  {
+    SK_D3D9_SetPixelShader (This, pShader);
+  }
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -2016,9 +2337,16 @@ STDMETHODCALLTYPE
 D3D9SetVertexShader_Override ( IDirect3DDevice9       *This,
                                IDirect3DVertexShader9 *pShader )
 {
-  return
+  HRESULT hr =
     D3D9SetVertexShader_Original ( This,
                                      pShader );
+
+  if (SUCCEEDED (hr))
+  {
+    SK_D3D9_SetVertexShader (This, pShader);
+  }
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -2065,12 +2393,22 @@ D3D9CreateVertexBuffer_Override
   _Out_ IDirect3DVertexBuffer9 **ppVertexBuffer,
   _In_  HANDLE                  *pSharedHandle )
 {
-  return
+  HRESULT hr =
     D3D9CreateVertexBuffer_Original ( This,
                                         Length, Usage,
                                         FVF,    Pool,
                                           ppVertexBuffer,
                                            pSharedHandle );
+
+  if (SUCCEEDED (hr))
+  {
+    if (Usage & D3DUSAGE_DYNAMIC)
+      known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
+    else
+      known_objs.static_vbs.emplace  (*ppVertexBuffer);
+  }
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -2084,12 +2422,25 @@ D3D9SetStreamSource_Override
   UINT                    OffsetInBytes,
   UINT                    Stride )
 {
-  return
+  HRESULT hr =
     D3D9SetStreamSource_Original ( This,
                                      StreamNumber,
                                        pStreamData,
                                          OffsetInBytes,
                                            Stride );
+
+  if (SUCCEEDED (hr))
+  {
+    if (known_objs.dynamic_vbs.count (pStreamData))
+      last_frame.vertex_buffers.dynamic.emplace (pStreamData);
+    else
+      last_frame.vertex_buffers.immutable.emplace (pStreamData);
+
+    if (StreamNumber == 0)
+      vb_stream0 = pStreamData;
+  }
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -2101,6 +2452,17 @@ D3D9SetStreamSourceFreq_Override
   UINT              StreamNumber,
   UINT              FrequencyParameter )
 {
+  if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
+  {
+    draw_state.instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
+  }
+
+  if (StreamNumber == 1 && FrequencyParameter & D3DSTREAMSOURCE_INSTANCEDATA)
+  {
+  }
+
+
+
   return 
     D3D9SetStreamSourceFreq_Original ( This,
                                          StreamNumber,
@@ -3593,13 +3955,8 @@ SK_D3D9_TriggerReset (bool temporary)
 
 
 
-#if 0
-#define _CRT_SECURE_NO_WARNINGS
-
-#define NOMINMAX
-
 #include "DLL_VERSION.H"
-#include "imgui\imgui.h"
+#include <imgui/imgui.h>
 
 #include <string>
 #include <vector>
@@ -3608,7 +3965,7 @@ SK_D3D9_TriggerReset (bool temporary)
 #include "config.h"
 #include "command.h"
 
-
+#include <d3dx9shader.h>
 #include <atlbase.h>
 
 extern std::wstring
@@ -3851,211 +4208,6 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 #endif
 
 
-    struct sk_d3d9_draw_states_s
-    {
-      bool            has_aniso       = false; // Has he game even once set anisotropy?!
-      int             max_aniso       = 4;
-
-      D3DVIEWPORT9    vp              = { 0 };
-      bool            postprocessing  = false;
-      bool            fullscreen      = false;
-
-      // Most of these states are not tracked
-      DWORD           srcblend        = 0;
-      DWORD           dstblend        = 0;
-      DWORD           srcalpha        = 0;     // Separate Alpha Blend Eq: Src
-      DWORD           dstalpha        = 0;     // Separate Alpha Blend Eq: Dst
-      bool            alpha_test      = false; // Test Alpha?
-      DWORD           alpha_ref       = 0;     // Value to test.
-      bool            zwrite          = false; // Depth Mask
-
-      // This one is
-      bool            scissor_test    = false;
-
-      int             last_vs_vec4    = 0; // Number of vectors in the last call to
-                                          //   set vertex shader constant...
-
-      int             draws           = 0; // Number of draw calls
-      int             frames          = 0;
-
-      bool            cegui_active    = false;
-      
-      bool            fullscreen_blit = false;
-      bool            fix_scissor     = true;
-      int             instances       = 0;
-
-      uint32_t        current_tex  [256];
-      float           viewport_off [4]  = { 0.0f }; // Most vertex shaders use this and we can
-                                                    //   test the set values to determine if a draw
-                                                    //     is HUD or world-space.
-    } extern draw_state;                            
-
-    struct frame_state_s
-    {
-      void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear (); }
-    
-      std::unordered_set <uint32_t>                 pixel_shaders;
-      std::unordered_set <uint32_t>                 vertex_shaders;
-
-      struct {
-        std::unordered_set <IDirect3DVertexBuffer9 *> dynamic;
-        std::unordered_set <IDirect3DVertexBuffer9 *> immutable;
-      } vertex_buffers;
-    } extern last_frame;
-
-    struct known_objects_s
-    {
-      void clear (void) { static_vbs.clear (); dynamic_vbs.clear (); };
-
-      std::unordered_set <IDirect3DVertexBuffer9 *> static_vbs;
-      std::unordered_set <IDirect3DVertexBuffer9 *> dynamic_vbs;
-    } extern known_objs;
-
-    struct render_target_tracking_s
-    {
-      void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); active = false; }
-
-      IDirect3DBaseTexture9*        tracking_tex  = nullptr;
-
-      std::unordered_set <uint32_t> pixel_shaders;
-      std::unordered_set <uint32_t> vertex_shaders;
-
-      bool                          active        = false;
-    } extern tracked_rt;
-
-    struct shader_tracking_s
-    {
-      void clear (void) {
-        active    = false;
-        num_draws = 0;
-        used_textures.clear ();
-
-        for (int i = 0; i < 16; i++)
-          current_textures [i] = 0x00;
-      }
-
-      void use (IUnknown* pShader);
-
-      uint32_t                      crc32        =  0x00;
-      bool                          cancel_draws = false;
-      bool                          clamp_coords = false;
-      bool                          active       = false;
-      int                           num_draws    =     0;
-      std::unordered_set <uint32_t>    used_textures;
-                          uint32_t  current_textures [16];
-
-      //std::vector <IDirect3DBaseTexture9 *> samplers;
-
-      IUnknown*                     shader_obj  = nullptr;
-      ID3DXConstantTable*           ctable      = nullptr;
-
-      struct shader_constant_s
-      {
-        char                Name [128];
-        D3DXREGISTER_SET    RegisterSet;
-        UINT                RegisterIndex;
-        UINT                RegisterCount;
-        D3DXPARAMETER_CLASS Class;
-        D3DXPARAMETER_TYPE  Type;
-        UINT                Rows;
-        UINT                Columns;
-        UINT                Elements;
-        std::vector <shader_constant_s>
-                            struct_members;
-        bool                Override;
-        float               Data [4]; // TEMP HACK
-      };
-
-      std::vector <shader_constant_s> constants;
-    } extern tracked_vs, tracked_ps;
-
-    struct vertex_buffer_tracking_s
-    {
-      void clear (void) {
-        active = false; num_draws = 0; instances = 0;
-
-        vertex_shaders.clear ();
-        pixel_shaders.clear  ();
-        textures.clear       ();
-
-        for (auto it : vertex_decls) it->Release ();
-
-        vertex_decls.clear ();
-      }
-
-      void use (void)
-      {
-        extern uint32_t vs_checksum, ps_checksum;
-
-        vertex_shaders.emplace (vs_checksum);
-        pixel_shaders.emplace  (ps_checksum);
-
-        IDirect3DVertexDeclaration9* decl = nullptr;
-
-        if (SUCCEEDED (tbf::RenderFix::pDevice->GetVertexDeclaration (&decl)))
-        {
-          static D3DVERTEXELEMENT9 elem_decl [MAXD3DDECLLENGTH];
-          static UINT              num_elems;
-
-          // Run through the vertex decl and figure out which samplers have texcoords,
-          //   that is a pretty good indicator as to which textures are actually used...
-          if (SUCCEEDED (decl->GetDeclaration (elem_decl, &num_elems)))
-          {
-            for ( UINT i = 0; i < num_elems; i++ )
-            {
-              if (elem_decl [i].Usage == D3DDECLUSAGE_TEXCOORD)
-                textures.emplace (draw_state.current_tex [elem_decl [i].UsageIndex]);
-            }
-          }
-
-          if (! vertex_decls.count (decl))
-            vertex_decls.emplace (decl);
-          else
-            decl->Release ();
-        }
-      }
-
-      IDirect3DVertexBuffer9*       vertex_buffer = nullptr;
-
-      std::unordered_set <
-        IDirect3DVertexDeclaration9*
-      >                             vertex_decls;
-
-      //uint32_t                      crc32        =  0x00;
-      bool                          cancel_draws  = false;
-      bool                          wireframe     = false;
-      bool                          active        = false;
-      int                           num_draws     =     0;
-      int                           instanced     =     0;
-      int                           instances     =     1;
-
-      std::unordered_set <uint32_t> vertex_shaders;
-      std::unordered_set <uint32_t> pixel_shaders;
-      std::unordered_set <uint32_t> textures;
-
-      std::unordered_set <IDirect3DVertexBuffer9 *>
-                                    wireframes;
-    } extern tracked_vb;
-
-    struct shader_disasm_s {
-      std::string header;
-      std::string code;
-      std::string footer;
-    };
-
-    extern std::unordered_set <IDirect3DBaseTexture9 *> ui_map_rts;
-    extern bool                                         ui_map_active;
-  }
-}
-
-extern std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> ps_disassembly;
-extern std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> vs_disassembly;
-
-enum class sk_d3d9_shader_class {
-  Unknown = 0x00,
-  Pixel   = 0x01,
-  Vertex  = 0x02
-};
 
 void
 SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
@@ -4083,9 +4235,9 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
   shader_class_imp_s*
     list    = ( shader_type == sk_d3d9_shader_class::Pixel ? &list_base.ps :
-                                                         &list_base.vs );
+                                                             &list_base.vs );
 
-  tbf::RenderFix::shader_tracking_s*
+  shader_tracking_s*
     tracker = ( shader_type == sk_d3d9_shader_class::Pixel ? &tracked_ps :
                                                              &tracked_vs );
 
@@ -4095,18 +4247,18 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
                 shader_type == sk_d3d9_shader_class::Pixel ? last_frame.pixel_shaders.end    () :
                                                              last_frame.vertex_shaders.end   () );
 
-  std::unordered_map <uint32_t, shader_disasm_s>&
+  std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s>&
     disassembly = ( shader_type == sk_d3d9_shader_class::Pixel ? ps_disassembly :
                                                                  vs_disassembly );
 
   const char*
-    szShaderWord =  shader_type == tbf_shader_class::Pixel ? "Pixel" :
-                                                             "Vertex";
+    szShaderWord =  shader_type == sk_d3d9_shader_class::Pixel ? "Pixel" :
+                                                                 "Vertex";
 
   if (list->dirty)
   {
         list->sel = -1;
-    int idx    =  0;
+    int idx       =  0;
         list->contents.clear ();
 
     // The underlying list is unsorted for speed, but that's not at all
@@ -4120,14 +4272,18 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
     {
       char szDesc [16] = { };
 
+#ifdef _WIN64
       sprintf (szDesc, "%08llx", (uintptr_t)it);
+#else
+      sprintf (szDesc, "%08lx",  (uintptr_t)it);
+#endif
 
       list->contents.emplace_back (szDesc);
 
       if ((uint32_t)it == list->last_sel)
       {
         list->sel = idx;
-        //tbf::RenderFix::tracked_rt.tracking_tex = render_textures [sel];
+        //tracked_rt.tracking_tex = render_textures [sel];
       }
 
       ++idx;
@@ -4162,7 +4318,7 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
     else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
-  if (shaders.size ())
+  if (! shaders.empty ())
   {
     struct {
       int  last_sel    = 0;
@@ -4177,9 +4333,9 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
     last_sel = list->sel;
 
-    for ( int line = 0; line < shaders.size (); line++ )
+    for ( size_t line = 0; line < shaders.size (); line++ )
     {
-      if (line == list->sel)
+      if (line == static_cast <size_t> (list->sel))
       {
         bool selected    = true;
 
@@ -4189,9 +4345,9 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
         {
           ImGui::SetScrollHere (0.5f);
 
-          sel_changed    = false;
-          list->last_sel = (uint32_t)shaders [list->sel];
-          tracker->crc32 = (uint32_t)shaders [list->sel];
+          sel_changed     = false;
+          list->last_sel  = (uint32_t)shaders [list->sel];
+          tracker->crc32c = (uint32_t)shaders [list->sel];
         }
       }
 
@@ -4201,10 +4357,10 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
         if (ImGui::Selectable (list->contents [line].c_str (), &selected))
         {
-          sel_changed    = true;
-          list->sel      =  line;
-          list->last_sel = (uint32_t)shaders [list->sel];
-          tracker->crc32 = (uint32_t)shaders [list->sel];
+          sel_changed     = true;
+          list->sel       =  line;
+          list->last_sel  = (uint32_t)shaders [list->sel];
+          tracker->crc32c = (uint32_t)shaders [list->sel];
         }
       }
     }
@@ -4221,7 +4377,7 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
     else if (ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
   }
 
-  if (tracker->crc32 != 0x00)
+  if (tracker->crc32c != 0x00)
   {
     ImGui::BeginGroup ();
     ImGui::Checkbox ( shader_type == sk_d3d9_shader_class::Pixel ? "Cancel Draws Using Selected Pixel Shader" :
@@ -4240,6 +4396,8 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
     ImGui::Separator      ();
     ImGui::EndGroup       ();
 
+//  Need to port-over texture manager
+#if 0
     if (ImGui::IsItemHoveredRect () && tracker->used_textures.size ())
     {
       ImGui::BeginTooltip ();
@@ -4248,7 +4406,7 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
       for ( auto it : tracker->used_textures )
       {
-        ISKTextureD3D9* pTex = tbf::RenderFix::tex_mgr.getTexture (it)->d3d9_tex;
+        ISKTextureD3D9* pTex = tex_mgr.getTexture (it)->d3d9_tex;
         
         if (pTex && pTex->pTex)
         {
@@ -4273,9 +4431,12 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
       ImGui::EndTooltip ();
     }
+#endif
+
+    ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
 
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.80f, 0.80f, 1.0f, 1.0f));
-    ImGui::TextWrapped    (disassembly [tracker->crc32].header.c_str ());
+    ImGui::TextWrapped    (disassembly [tracker->crc32c].header.c_str ());
 
     ImGui::SameLine       ();
     ImGui::BeginGroup     ();
@@ -4283,42 +4444,50 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
     ImGui::Spacing        (); ImGui::Spacing ();
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.666f, 0.666f, 0.666f, 1.0f));
 
-    char szName    [192] = { '\0' };
-    char szOrdinal [64 ] = { '\0' };
-    char szOrdEl   [ 96] = { '\0' };
-
-    int  el = 0;
-
     ImGui::PushItemWidth (font_size * 25);
 
-    for ( auto&& it : tracker->constants )
-    {
-      if (it.struct_members.size ())
-      {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.9f, 0.1f, 0.7f, 1.0f));
-        ImGui::Text           (it.Name);
-        ImGui::PopStyleColor  ();
+    char szName [128] = { };
 
-        for ( auto&& it2 : it.struct_members )
+    ImGui::PushID (tracker->crc32c);
+
+    for ( auto& it : tracker->constants )
+    {
+      ImGui::PushID (it.RegisterIndex);
+
+      if (! it.struct_members.empty ())
+      {
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.9f, 0.1f, 0.7f, 1.0f));
+        ImGui::TextUnformatted (it.Name);
+        ImGui::PopStyleColor   ();
+
+        for ( auto& it2 : it.struct_members )
         {
-          snprintf ( szOrdinal, 64, " (%c%-3lu) ",
-                        it2.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
-                          it2.RegisterIndex );
-          snprintf ( szOrdEl,  96,  "%s::%lu %c", // Uniquely identify parameters that share registers
-                       szOrdinal, el++, shader_type == sk_d3d9_shader_class::Pixel ? 'p' : 'v' );
-          snprintf ( szName, 192, "[%s] %-24s :%s",
-                       shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                    "vs",
-                         it2.Name, szOrdinal );
+          ImGui::PushID (it2.RegisterIndex);
 
           if (it2.Type == D3DXPT_FLOAT && it2.Class == D3DXPC_VECTOR)
           {
-            ImGui::Checkbox    (szName,  &it2.Override); ImGui::SameLine ();
-            ImGui::InputFloat4 (szOrdEl,  it2.Data);
+            snprintf ( szName, 127, "[%s] %-24s",
+                         shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
+                                                                      "vs",
+                           it2.Name );
+
+            ImGui::Checkbox    (szName, &it2.Override);
+            ImGui::InputFloat4 ("",      it2.Data);
           }
-          else {
+
+          else
+          {
+            snprintf ( szName, 127, "[%s] %-24s :(%c%-3lu)",
+                         shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
+                                                                      "vs",
+                           it2.Name,
+                             it2.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
+                               it2.RegisterIndex );
+
             ImGui::TreePush (""); ImGui::TextColored (ImVec4 (0.45f, 0.75f, 0.45f, 1.0f), szName); ImGui::TreePop ();
           }
+
+          ImGui::PopID ();
         }
 
         ImGui::Separator ();
@@ -4326,24 +4495,30 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
       else
       {
-        snprintf ( szOrdinal, 64, " (%c%-3lu) ",
-                     it.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
-                        it.RegisterIndex );
-        snprintf ( szOrdEl,  96,  "%s::%lu %c", // Uniquely identify parameters that share registers
-                       szOrdinal, el++, shader_type == tbf_shader_class::Pixel ? 'p' : 'v' );
-        snprintf ( szName, 192, "[%s] %-24s :%s",
-                     shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                  "vs",
-                         it.Name, szOrdinal );
-
         if (it.Type == D3DXPT_FLOAT && it.Class == D3DXPC_VECTOR)
         {
-          ImGui::Checkbox    (szName,  &it.Override); ImGui::SameLine ();
-          ImGui::InputFloat4 (szOrdEl,  it.Data);
-        } else {
+          snprintf ( szName, 127, "[%s] %-24s",
+                       shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
+                                                                    "vs",
+                           it.Name );
+
+          ImGui::Checkbox    (szName, &it.Override); ImGui::SameLine ();
+          ImGui::InputFloat4 ("",      it.Data);
+        }
+
+        else
+        {
+            snprintf ( szName, 127, "[%s] %-24s :(%c%-3lu)",
+                         shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
+                                                                      "vs",
+                           it.Name,
+                             it.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
+                               it.RegisterIndex );
+
           ImGui::TreePush (""); ImGui::TextColored (ImVec4 (0.45f, 0.75f, 0.45f, 1.0f), szName); ImGui::TreePop ();
         }
       }
+      ImGui::PopID ();
     }
     ImGui::PopItemWidth ();
     ImGui::TreePop      ();
@@ -4352,12 +4527,13 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
     ImGui::Separator      ();
 
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.99f, 0.99f, 0.01f, 1.0f));
-    ImGui::TextWrapped    (disassembly [tracker->crc32].code.c_str ());
+    ImGui::TextWrapped    (disassembly [tracker->crc32c].code.c_str ());
 
     ImGui::Separator      ();
 
     ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.5f, 0.95f, 0.5f, 1.0f));
-    ImGui::TextWrapped    (disassembly [tracker->crc32].footer.c_str ());
+    ImGui::TextWrapped    (disassembly [tracker->crc32c].footer.c_str ());
+    ImGui::PopFont        ();
 
     ImGui::PopStyleColor (4);
   }
@@ -4376,7 +4552,7 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 }
 
 void
-TBF_LiveVertexStreamView (bool& can_scroll)
+SK_LiveVertexStreamView (bool& can_scroll)
 {
   static int filter_type = 0; // ALL
 
@@ -4403,8 +4579,8 @@ TBF_LiveVertexStreamView (bool& can_scroll)
   vertex_stream_s*
     list    = &list_base.stream0;
 
-  tbf::RenderFix::vertex_buffer_tracking_s*
-    tracker = &tbf::RenderFix::tracked_vb;
+  vertex_buffer_tracking_s*
+    tracker = &tracked_vb;
 
   std::vector <IDirect3DVertexBuffer9 *> buffers;
 
@@ -4439,14 +4615,18 @@ TBF_LiveVertexStreamView (bool& can_scroll)
     {
       char szDesc [16] = { };
 
+#ifdef _WIN64
       sprintf (szDesc, "%08llx", (uintptr_t)it);
+#else
+      sprintf (szDesc, "%08lx",  (uintptr_t)it);
+#endif
 
       list->contents.emplace_back (szDesc);
 
       if ((uintptr_t)it == list->last_sel)
       {
         list->sel = idx;
-        //tbf::RenderFix::tracked_rt.tracking_tex = render_textures [sel];
+        //tracked_rt.tracking_tex = render_textures [sel];
       }
 
       ++idx;
@@ -4481,7 +4661,7 @@ TBF_LiveVertexStreamView (bool& can_scroll)
     else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
-  if (buffers.size ())
+  if (! buffers.empty ())
   {
     struct {
       int  last_sel    = 0;
@@ -4496,9 +4676,9 @@ TBF_LiveVertexStreamView (bool& can_scroll)
 
     last_sel = list->sel;
 
-    for ( int line = 0; line < buffers.size (); line++ )
+    for ( size_t line = 0; line < buffers.size (); line++ )
     {
-      if (line == list->sel)
+      if (line == static_cast <size_t> (list->sel))
       {
         bool selected    = true;
 
@@ -4544,16 +4724,18 @@ TBF_LiveVertexStreamView (bool& can_scroll)
          if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
     else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
 
-    if ( ImGui::GetIO ().KeysDownDuration ['W'] == 0.0f &&
-         ImGui::GetIO ().KeysDown [VK_CONTROL]          &&
-         ImGui::GetIO ().KeysDown [VK_SHIFT]               )
+    if ( ImGui::GetIO ().KeysDownDuration [    'W'   ] == 0.0f &&
+         ImGui::GetIO ().KeysDown         [VK_CONTROL]         &&
+         ImGui::GetIO ().KeysDown         [VK_SHIFT  ]            )
     {
       ImGui::GetIO ().WantCaptureKeyboard = true;
 
-      if (tracker->vertex_buffer != nullptr) {
-        bool wireframe = tracker->wireframes.count (tracker->vertex_buffer);
-        
-        if (wireframe && tracker->wireframes.count (tracker->vertex_buffer))
+      if (tracker->vertex_buffer != nullptr)
+      {
+        bool wireframe =
+          tracker->wireframes.count (tracker->vertex_buffer);
+
+        if (wireframe)
           tracker->wireframes.erase   (tracker->vertex_buffer);
         else
           tracker->wireframes.emplace (tracker->vertex_buffer);
@@ -4578,8 +4760,8 @@ TBF_LiveVertexStreamView (bool& can_scroll)
 
 
   if ( tracker->vertex_buffer != nullptr &&
-         ( tbf::RenderFix::last_frame.vertex_buffers.dynamic.count   (tracker->vertex_buffer) ||
-           tbf::RenderFix::last_frame.vertex_buffers.immutable.count (tracker->vertex_buffer) ) )
+         ( last_frame.vertex_buffers.dynamic.count   (tracker->vertex_buffer) ||
+           last_frame.vertex_buffers.immutable.count (tracker->vertex_buffer) ) )
   {
     bool wireframe = tracker->wireframes.count (tracker->vertex_buffer);
 
@@ -4608,16 +4790,23 @@ TBF_LiveVertexStreamView (bool& can_scroll)
                                 true,
                                   ImGuiWindowFlags_AlwaysAutoResize );
 
-      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Format:  "); ImGui::SameLine ();
+      ImGui::BeginGroup  ();
+      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Format:  ");
+      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Type:    ");
+      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Usage:   ");
+      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Size:    ");
+      ImGui::EndGroup    ();
+
+      ImGui::SameLine    ();
+
+      ImGui::BeginGroup  ();
       ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%ws",  SK_D3D9_FormatToStr (desc.Format).c_str ());
-      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Type:    "); ImGui::SameLine ();
       ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%s",  desc.Type == D3DRTYPE_VERTEXBUFFER ? "Vertex Buffer" :
                                                                   desc.Type == D3DRTYPE_INDEXBUFFER  ? "Index Buffer"  :
                                                                                                        "Unknown?!" );
-      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Usage:   "); ImGui::SameLine ();
       ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%ws",  SK_D3D9_UsageToStr (desc.Usage).c_str ());
-      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), "Size:    "); ImGui::SameLine ();
       ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%llu", desc.Size);
+      ImGui::EndGroup    ();
 
       last_count = 0;
 
@@ -4656,36 +4845,61 @@ TBF_LiveVertexStreamView (bool& can_scroll)
             return "UNKNOWN";
           };
 
-        auto SK_D3D9_DeclUsageToStr = [](D3DDECLUSAGE usage, int idx) ->
+        auto SK_D3D9_DeclUsageToStr = [](D3DDECLUSAGE usage, int idx, int part) ->
           const char*
           {
             static char szOut [64] = { '\0' };
 
-            switch (usage)
+            switch (part)
             {
-              case D3DDECLUSAGE_POSITION:     snprintf (szOut, 64, "POSITION     [%lu]", idx); break;
-              case D3DDECLUSAGE_BLENDWEIGHT:  snprintf (szOut, 64, "BLENDWEIGHT  [%lu]", idx); break;
-              case D3DDECLUSAGE_BLENDINDICES: snprintf (szOut, 64, "BLENDINDICES [%lu]", idx); break;
-              case D3DDECLUSAGE_NORMAL:       snprintf (szOut, 64, "NORMAL       [%lu]", idx); break;
-              case D3DDECLUSAGE_PSIZE:        snprintf (szOut, 64, "PSIZE"                  ); break;
-              case D3DDECLUSAGE_TEXCOORD:     snprintf (szOut, 64, "TEXCOORD     [%lu]", idx); break;
-              case D3DDECLUSAGE_TANGENT:      snprintf (szOut, 64, "TANGENT      [%lu]", idx); break;
-              case D3DDECLUSAGE_BINORMAL:     snprintf (szOut, 64, "BINORMAL     [%lu]", idx); break;
-              case D3DDECLUSAGE_TESSFACTOR:   snprintf (szOut, 64, "TESSFACTOR   [%lu]", idx); break;
-              case D3DDECLUSAGE_POSITIONT:    snprintf (szOut, 64, "POSITIONT"              ); break;
-              case D3DDECLUSAGE_COLOR:        snprintf (szOut, 64, "COLOR        [%lu]", idx); break;
-              case D3DDECLUSAGE_FOG:          snprintf (szOut, 64, "FOG"                    ); break;
-              case D3DDECLUSAGE_DEPTH:        snprintf (szOut, 64, "DEPTH        [%lu]", idx); break;
-              case D3DDECLUSAGE_SAMPLE:       snprintf (szOut, 64, "SV_SampleIndex"         ); break;
-            };
+              case 0:
+                switch (usage)
+                {
+                  case D3DDECLUSAGE_POSITION:     snprintf (szOut, 64, "POSITION      "); break;
+                  case D3DDECLUSAGE_BLENDWEIGHT:  snprintf (szOut, 64, "BLENDWEIGHT   "); break;
+                  case D3DDECLUSAGE_BLENDINDICES: snprintf (szOut, 64, "BLENDINDICES  "); break;
+                  case D3DDECLUSAGE_NORMAL:       snprintf (szOut, 64, "NORMAL        "); break;
+                  case D3DDECLUSAGE_PSIZE:        snprintf (szOut, 64, "PSIZE         "); break;
+                  case D3DDECLUSAGE_TEXCOORD:     snprintf (szOut, 64, "TEXCOORD      "); break;
+                  case D3DDECLUSAGE_TANGENT:      snprintf (szOut, 64, "TANGENT       "); break;
+                  case D3DDECLUSAGE_BINORMAL:     snprintf (szOut, 64, "BINORMAL      "); break;
+                  case D3DDECLUSAGE_TESSFACTOR:   snprintf (szOut, 64, "TESSFACTOR    "); break;
+                  case D3DDECLUSAGE_POSITIONT:    snprintf (szOut, 64, "POSITIONT     "); break;
+                  case D3DDECLUSAGE_COLOR:        snprintf (szOut, 64, "COLOR         "); break;
+                  case D3DDECLUSAGE_FOG:          snprintf (szOut, 64, "FOG           "); break;
+                  case D3DDECLUSAGE_DEPTH:        snprintf (szOut, 64, "DEPTH         "); break;
+                  case D3DDECLUSAGE_SAMPLE:       snprintf (szOut, 64, "SV_SampleIndex"); break;
+                };
+                break;
+
+              case 1:
+                switch (usage)
+                {
+                  case D3DDECLUSAGE_POSITION:     snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_BLENDWEIGHT:  snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_BLENDINDICES: snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_NORMAL:       snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_PSIZE:        snprintf (szOut, 64, " "          ); break;
+                  case D3DDECLUSAGE_TEXCOORD:     snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_TANGENT:      snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_BINORMAL:     snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_TESSFACTOR:   snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_POSITIONT:    snprintf (szOut, 64, " "          ); break;
+                  case D3DDECLUSAGE_COLOR:        snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_FOG:          snprintf (szOut, 64, " "          ); break;
+                  case D3DDECLUSAGE_DEPTH:        snprintf (szOut, 64, " [%lu]", idx); break;
+                  case D3DDECLUSAGE_SAMPLE:       snprintf (szOut, 64, " "          ); break;
+                };
+                break;
+            }
 
             return szOut;
           };
 
         if (SUCCEEDED (vtx_decl->GetDeclaration (elem_decl, &num_elems)))
         {
-          ImGui::Separator ();
-
+          ImGui::Separator  ();
+          ImGui::BeginGroup ();
           for (UINT i = 0; i < num_elems; i++)
           {
             if (elem_decl [i].Type != D3DDECLTYPE_UNUSED)
@@ -4693,19 +4907,63 @@ TBF_LiveVertexStreamView (bool& can_scroll)
               ++last_count;
 
               ImGui::TextColored (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f),    "Stream %3lu ", elem_decl [i].Stream);
-              ImGui::SameLine    ();
-              ImGui::TextColored (ImVec4 (0.66f, 0.66f, 0.66f, 1.0f), "(+%02lu): ",
-                              elem_decl [i].Offset);
-              ImGui::SameLine    ();
-              ImGui::TextColored (ImVec4 (0.35f, 0.85f, 0.35f, 1.0f), "%16s ",
-                                SK_D3D9_DeclTypeToStr  ((D3DDECLTYPE)elem_decl [i].Type) );
-              ImGui::SameLine    ();
-              ImGui::TextColored (ImVec4 (0.6f, 0.6f, 1.0f, 1.0f), "\"Attrib%02lu\"", i);
-              ImGui::SameLine    ();
-              ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), " : %s",
-                                SK_D3D9_DeclUsageToStr ((D3DDECLUSAGE)elem_decl [i].Usage, elem_decl [i].UsageIndex) );
             }
           }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for (UINT i = 0; i < num_elems; i++)
+          {
+            if (elem_decl [i].Type != D3DDECLTYPE_UNUSED)
+            {
+              ImGui::TextColored (ImVec4 (0.66f, 0.66f, 0.66f, 1.0f), "(+%02lu): ",
+                                  elem_decl [i].Offset);
+            }
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for (UINT i = 0; i < num_elems; i++)
+          {
+            if (elem_decl [i].Type != D3DDECLTYPE_UNUSED)
+            {
+              ImGui::TextColored (ImVec4 (0.35f, 0.85f, 0.35f, 1.0f), "%16s ",
+                                  SK_D3D9_DeclTypeToStr ((D3DDECLTYPE)elem_decl [i].Type));
+            }
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for (UINT i = 0; i < num_elems; i++)
+          {
+            if (elem_decl [i].Type != D3DDECLTYPE_UNUSED)
+            {
+              ImGui::TextColored (ImVec4 (0.6f, 0.6f, 1.0f, 1.0f), R"("Attrib%02lu")", i);
+            }
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for (UINT i = 0; i < num_elems; i++)
+          {
+            if (elem_decl [i].Type != D3DDECLTYPE_UNUSED)
+            {
+              ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), " : %s",
+                    SK_D3D9_DeclUsageToStr ((D3DDECLUSAGE)elem_decl [i].Usage, elem_decl [i].UsageIndex, 0));
+            }
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for (UINT i = 0; i < num_elems; i++)
+          {
+            if (elem_decl [i].Type != D3DDECLTYPE_UNUSED)
+            {
+              ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), " : %s",
+                    SK_D3D9_DeclUsageToStr ((D3DDECLUSAGE)elem_decl [i].Usage, elem_decl [i].UsageIndex, 1));
+            }
+          }
+          ImGui::EndGroup   ();
 
           --last_count;
         }
@@ -4716,6 +4974,7 @@ TBF_LiveVertexStreamView (bool& can_scroll)
       ImGui::PopStyleVar   ();
       ImGui::EndGroup      ();
 
+#if 0
       if (ImGui::IsItemHoveredRect () && tracker->textures.size ())
       {
         ImGui::BeginTooltip ();
@@ -4724,7 +4983,7 @@ TBF_LiveVertexStreamView (bool& can_scroll)
 
         for ( auto it : tracker->textures )
         {
-          ISKTextureD3D9* pTex = tbf::RenderFix::tex_mgr.getTexture (it)->d3d9_tex;
+          ISKTextureD3D9* pTex = tex_mgr.getTexture (it)->d3d9_tex;
           
           if (pTex && pTex->pTex)
           {
@@ -4749,6 +5008,7 @@ TBF_LiveVertexStreamView (bool& can_scroll)
 
         ImGui::EndTooltip ();
       }
+#endif
 
       ImGui::SameLine ();
       ImGui::Checkbox ("Always Draw This Buffer In Wireframe", &wireframe);
@@ -4759,7 +5019,7 @@ TBF_LiveVertexStreamView (bool& can_scroll)
         tracker->wireframes.erase   (tracker->vertex_buffer);
     }
 
-    if (tracker->vertex_shaders.size () > 0 || tracker->pixel_shaders.size () > 0)
+    if ((! tracker->vertex_shaders.empty ()) || (! tracker->pixel_shaders.empty ()))
     {
       ImGui::Separator ();
 
@@ -4791,24 +5051,32 @@ TBF_LiveVertexStreamView (bool& can_scroll)
 }
 
 
+
 bool
-TBFix_TextureModDlg (void)
+SK_D3D9_TextureModDlg (void)
 {
   const float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
 
   bool show_dlg = true;
 
-  ImGui::SetNextWindowSizeConstraints ( ImVec2 (256.0f, 384.0f), ImVec2 ( ImGui::GetIO ().DisplaySize.x * 0.75f, ImGui::GetIO ().DisplaySize.y * 0.75f ) );
+  ImGuiIO& io =
+    ImGui::GetIO ();
 
-  ImGui::Begin ( "D3D9 Texture Mod Toolkit (v " SK_VERSION_STR_A ")",
+  ImGui::SetNextWindowSize            (ImVec2 (io.DisplaySize.x * 0.66f, io.DisplaySize.y * 0.42f), ImGuiSetCond_Appearing);
+  ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
+                                       ImVec2 (io.DisplaySize.x * 0.16f, io.DisplaySize.y * 0.16f),
+                                       ImVec2 (io.DisplaySize.x * 0.96f, io.DisplaySize.y * 0.96f));
+
+  ImGui::Begin ( "D3D9 Render Mod Toolkit (v " SK_VERSION_STR_A ")",
                    &show_dlg,
-                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders );
+                     ImGuiWindowFlags_ShowBorders );
 
   bool can_scroll = ImGui::IsWindowFocused () && ImGui::IsMouseHoveringRect ( ImVec2 (ImGui::GetWindowPos ().x,                             ImGui::GetWindowPos ().y),
                                                                               ImVec2 (ImGui::GetWindowPos ().x + ImGui::GetWindowSize ().x, ImGui::GetWindowPos ().y + ImGui::GetWindowSize ().y) );
 
   ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.666f);
 
+#if 0
   if (ImGui::CollapsingHeader ("Preliminary Documentation"))
   {
     ImGui::BeginChild (ImGui::GetID ("ModDescription"), ImVec2 (font_size * 66.0f, font_size * 25.0f), true);
@@ -5194,7 +5462,9 @@ TBFix_TextureModDlg (void)
     ImGui::PopStyleColor (1);
     ImGui::PopStyleVar   (2);
   }
+#endif
 
+#if 0
   if (ImGui::CollapsingHeader ("Live Render Target View"))
   {
     static float last_ht    = 256.0f;
@@ -5384,16 +5654,17 @@ TBFix_TextureModDlg (void)
 
     ImGui::EndGroup ();
   }
+#endif
 
   if (ImGui::CollapsingHeader ("Live Shader View"))
   {
     ImGui::TreePush ("");
 
     if (ImGui::CollapsingHeader ("Pixel Shaders"))
-      TBF_LiveShaderClassView (tbf_shader_class::Pixel, can_scroll);
+      SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class::Pixel, can_scroll);
 
     if (ImGui::CollapsingHeader ("Vertex Shaders"))
-      TBF_LiveShaderClassView (tbf_shader_class::Vertex, can_scroll);
+      SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class::Vertex, can_scroll);
 
     ImGui::TreePop ();
   }
@@ -5403,26 +5674,26 @@ TBFix_TextureModDlg (void)
     ImGui::TreePush ("");
 
     if (ImGui::CollapsingHeader ("Stream 0"))
-      TBF_LiveVertexStreamView (can_scroll);
+      SK_LiveVertexStreamView (can_scroll);
 
     ImGui::TreePop ();
   }
 
-  if (ImGui::CollapsingHeader ("Misc. Settings"))
-  {
-    ImGui::TreePush ("");
-    if (ImGui::Checkbox ("Dump ALL Shaders   (TBFix_Res\\dump\\shaders\\<ps|vs>_<checksum>.html)", &config.render.dump_shaders)) tbf::RenderFix::need_reset.graphics = true;
-    if (ImGui::Checkbox ("Dump ALL Textures  (TBFix_Res\\dump\\textures\\<format>\\*.dds)",        &config.textures.dump))       tbf::RenderFix::need_reset.graphics = true;
+  //if (ImGui::CollapsingHeader ("Misc. Settings"))
+  //{
+  //  ImGui::TreePush ("");
+//    if (ImGui::Checkbox ("Dump ALL Shaders   (TBFix_Res\\dump\\shaders\\<ps|vs>_<checksum>.html)", &config.render.dump_shaders)) need_reset.graphics = true;
+//    if (ImGui::Checkbox ("Dump ALL Textures  (TBFix_Res\\dump\\textures\\<format>\\*.dds)",        &config.textures.dump))       need_reset.graphics = true;
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::BeginTooltip ();
-      ImGui::Text         ("Enabling this will cause the game to run slower and waste disk space, only enable if you know what you are doing.");
-      ImGui::EndTooltip   ();
-    }
+//    if (ImGui::IsItemHovered ())
+//    {
+//      ImGui::BeginTooltip ();
+//      ImGui::Text         ("Enabling this will cause the game to run slower and waste disk space, only enable if you know what you are doing.");
+//      ImGui::EndTooltip   ();
+//    }
 
-    ImGui::TreePop ();
-  }
+    //ImGui::TreePop ();
+  //}
 
   ImGui::PopItemWidth ();
 
@@ -5433,4 +5704,869 @@ TBFix_TextureModDlg (void)
 
   return show_dlg;
 }
+
+
+
+
+
+std::wstring
+SK_D3D9_UsageToStr (DWORD dwUsage)
+{
+  std::wstring usage;
+
+  if (dwUsage & D3DUSAGE_RENDERTARGET)
+    usage += L"RenderTarget ";
+
+  if (dwUsage & D3DUSAGE_DEPTHSTENCIL)
+    usage += L"Depth/Stencil ";
+
+  if (dwUsage & D3DUSAGE_DYNAMIC)
+    usage += L"Dynamic";
+
+  if (usage.empty ())
+    usage = L"Don't Care";
+
+  return usage;
+}
+
+INT
+__stdcall
+SK_D3D9_BytesPerPixel (D3DFORMAT Format)
+{
+  switch (Format)
+  {
+    case D3DFMT_UNKNOWN:
+      return 0;
+
+    case D3DFMT_R8G8B8:       return 3;
+    case D3DFMT_A8R8G8B8:     return 4;
+    case D3DFMT_X8R8G8B8:     return 4;
+    case D3DFMT_R5G6B5:       return 2;
+    case D3DFMT_X1R5G5B5:     return 2;
+    case D3DFMT_A1R5G5B5:     return 2;
+    case D3DFMT_A4R4G4B4:     return 2;
+    case D3DFMT_R3G3B2:       return 8;
+    case D3DFMT_A8:           return 1;
+    case D3DFMT_A8R3G3B2:     return 2;
+    case D3DFMT_X4R4G4B4:     return 2;
+    case D3DFMT_A2B10G10R10:  return 4;
+    case D3DFMT_A8B8G8R8:     return 4;
+    case D3DFMT_X8B8G8R8:     return 4;
+    case D3DFMT_G16R16:       return 4;
+    case D3DFMT_A2R10G10B10:  return 4;
+    case D3DFMT_A16B16G16R16: return 8;
+    case D3DFMT_A8P8:         return 2;
+    case D3DFMT_P8:           return 1;
+    case D3DFMT_L8:           return 1;
+    case D3DFMT_A8L8:         return 2;
+    case D3DFMT_A4L4:         return 1;
+    case D3DFMT_V8U8:         return 2;
+    case D3DFMT_L6V5U5:       return 2;
+    case D3DFMT_X8L8V8U8:     return 4;
+    case D3DFMT_Q8W8V8U8:     return 4;
+    case D3DFMT_V16U16:       return 4;
+    case D3DFMT_A2W10V10U10:  return 4;
+
+#if 0
+    case D3DFMT_UYVY                 :
+      return std::wstring (L"FourCC 'UYVY'");
+    case D3DFMT_R8G8_B8G8            :
+      return std::wstring (L"FourCC 'RGBG'");
+    case D3DFMT_YUY2                 :
+      return std::wstring (L"FourCC 'YUY2'");
+    case D3DFMT_G8R8_G8B8            :
+      return std::wstring (L"FourCC 'GRGB'");
 #endif
+    case D3DFMT_DXT1:          return -1;
+    case D3DFMT_DXT2:          return -2;
+    case D3DFMT_DXT3:          return -2;
+    case D3DFMT_DXT4:          return -1;
+    case D3DFMT_DXT5:          return -2;
+                               
+    case D3DFMT_D16_LOCKABLE:  return  2;
+    case D3DFMT_D32:           return  4;
+    case D3DFMT_D15S1:         return  2;
+    case D3DFMT_D24S8:         return  4;
+    case D3DFMT_D24X8:         return  4;
+    case D3DFMT_D24X4S4:       return  4;
+    case D3DFMT_D16:           return  2;
+    case D3DFMT_D32F_LOCKABLE: return  4;
+    case D3DFMT_D24FS8:        return  4;
+
+/* D3D9Ex only -- */
+#if !defined(D3D_DISABLE_9EX)
+
+    /* Z-Stencil formats valid for CPU access */
+    case D3DFMT_D32_LOCKABLE:  return 4;
+    case D3DFMT_S8_LOCKABLE:   return 1;
+#endif // !D3D_DISABLE_9EX
+
+
+
+    case D3DFMT_L16:           return 2;
+
+#if 0
+    case D3DFMT_VERTEXDATA           :
+      return std::wstring (L"VERTEXDATA") +
+                (include_ordinal ? L" (100)" : L"");
+#endif
+    case D3DFMT_INDEX16:       return 2;
+    case D3DFMT_INDEX32:       return 4;
+
+    case D3DFMT_Q16W16V16U16:  return 8;
+
+#if 0
+    case D3DFMT_MULTI2_ARGB8         :
+      return std::wstring (L"FourCC 'MET1'");
+#endif
+
+    // Floating point surface formats
+
+    // s10e5 formats (16-bits per channel)
+    case D3DFMT_R16F:          return 2;
+    case D3DFMT_G16R16F:       return 4;
+    case D3DFMT_A16B16G16R16F: return 8;
+
+    // IEEE s23e8 formats (32-bits per channel)
+    case D3DFMT_R32F:          return 4;
+    case D3DFMT_G32R32F:       return 8;
+    case D3DFMT_A32B32G32R32F: return 16;
+
+#if 0
+    case D3DFMT_CxV8U8               :
+      return std::wstring (L"CxV8U8") +
+                (include_ordinal ? L" (117)" : L"");
+#endif
+
+/* D3D9Ex only -- */
+#if !defined(D3D_DISABLE_9EX)
+
+    // Monochrome 1 bit per pixel format
+    case D3DFMT_A1:            return -8;
+
+#if 0
+    // 2.8 biased fixed point
+    case D3DFMT_A2B10G10R10_XR_BIAS  :
+      return std::wstring (L"A2B10G10R10_XR_BIAS") +
+                (include_ordinal ? L" (119)" : L"");
+#endif
+
+
+#if 0
+    // Binary format indicating that the data has no inherent type
+    case D3DFMT_BINARYBUFFER         :
+      return std::wstring (L"BINARYBUFFER") +
+                (include_ordinal ? L" (199)" : L"");
+#endif
+
+#endif // !D3D_DISABLE_9EX
+/* -- D3D9Ex only */
+  }
+
+  return 0;
+}
+
+std::wstring
+SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal)
+{
+  switch (Format)
+  {
+    case D3DFMT_UNKNOWN:
+      return std::wstring (L"Unknown") + (include_ordinal ? L" (0)" :
+                                                            L"");
+
+    case D3DFMT_R8G8B8:
+      return std::wstring (L"R8G8B8")   +
+                (include_ordinal ? L" (20)" : L"");
+    case D3DFMT_A8R8G8B8:
+      return std::wstring (L"A8R8G8B8") +
+                (include_ordinal ? L" (21)" : L"");
+    case D3DFMT_X8R8G8B8:
+      return std::wstring (L"X8R8G8B8") +
+                (include_ordinal ? L" (22)" : L"");
+    case D3DFMT_R5G6B5               :
+      return std::wstring (L"R5G6B5")   +
+                (include_ordinal ? L" (23)" : L"");
+    case D3DFMT_X1R5G5B5             :
+      return std::wstring (L"X1R5G5B5") +
+                (include_ordinal ? L" (24)" : L"");
+    case D3DFMT_A1R5G5B5             :
+      return std::wstring (L"A1R5G5B5") +
+                (include_ordinal ? L" (25)" : L"");
+    case D3DFMT_A4R4G4B4             :
+      return std::wstring (L"A4R4G4B4") +
+                (include_ordinal ? L" (26)" : L"");
+    case D3DFMT_R3G3B2               :
+      return std::wstring (L"R3G3B2")   +
+                (include_ordinal ? L" (27)" : L"");
+    case D3DFMT_A8                   :
+      return std::wstring (L"A8")       +
+                (include_ordinal ? L" (28)" : L"");
+    case D3DFMT_A8R3G3B2             :
+      return std::wstring (L"A8R3G3B2") +
+                (include_ordinal ? L" (29)" : L"");
+    case D3DFMT_X4R4G4B4             :
+      return std::wstring (L"X4R4G4B4") +
+                (include_ordinal ? L" (30)" : L"");
+    case D3DFMT_A2B10G10R10          :
+      return std::wstring (L"A2B10G10R10") +
+                (include_ordinal ? L" (31)" : L"");
+    case D3DFMT_A8B8G8R8             :
+      return std::wstring (L"A8B8G8R8") +
+                (include_ordinal ? L" (32)" : L"");
+    case D3DFMT_X8B8G8R8             :
+      return std::wstring (L"X8B8G8R8") +
+                (include_ordinal ? L" (33)" : L"");
+    case D3DFMT_G16R16               :
+      return std::wstring (L"G16R16") +
+                (include_ordinal ? L" (34)" : L"");
+    case D3DFMT_A2R10G10B10          :
+      return std::wstring (L"A2R10G10B10") +
+                (include_ordinal ? L" (35)" : L"");
+    case D3DFMT_A16B16G16R16         :
+      return std::wstring (L"A16B16G16R16") +
+                (include_ordinal ? L" (36)" : L"");
+
+    case D3DFMT_A8P8                 :
+      return std::wstring (L"A8P8") +
+                (include_ordinal ? L" (40)" : L"");
+    case D3DFMT_P8                   :
+      return std::wstring (L"P8") +
+                (include_ordinal ? L" (41)" : L"");
+
+    case D3DFMT_L8                   :
+      return std::wstring (L"L8") +
+                (include_ordinal ? L" (50)" : L"");
+    case D3DFMT_A8L8                 :
+      return std::wstring (L"A8L8") +
+                (include_ordinal ? L" (51)" : L"");
+    case D3DFMT_A4L4                 :
+      return std::wstring (L"A4L4") +
+                (include_ordinal ? L" (52)" : L"");
+
+    case D3DFMT_V8U8                 :
+      return std::wstring (L"V8U8") +
+                (include_ordinal ? L" (60)" : L"");
+    case D3DFMT_L6V5U5               :
+      return std::wstring (L"L6V5U5") +
+                (include_ordinal ? L" (61)" : L"");
+    case D3DFMT_X8L8V8U8             :
+      return std::wstring (L"X8L8V8U8") +
+                (include_ordinal ? L" (62)" : L"");
+    case D3DFMT_Q8W8V8U8             :
+      return std::wstring (L"Q8W8V8U8") +
+                (include_ordinal ? L" (63)" : L"");
+    case D3DFMT_V16U16               :
+      return std::wstring (L"V16U16") +
+                (include_ordinal ? L" (64)" : L"");
+    case D3DFMT_A2W10V10U10          :
+      return std::wstring (L"A2W10V10U10") +
+                (include_ordinal ? L" (67)" : L"");
+
+    case D3DFMT_UYVY                 :
+      return std::wstring (L"FourCC 'UYVY'");
+    case D3DFMT_R8G8_B8G8            :
+      return std::wstring (L"FourCC 'RGBG'");
+    case D3DFMT_YUY2                 :
+      return std::wstring (L"FourCC 'YUY2'");
+    case D3DFMT_G8R8_G8B8            :
+      return std::wstring (L"FourCC 'GRGB'");
+    case D3DFMT_DXT1                 :
+      return std::wstring (L"DXT1");
+    case D3DFMT_DXT2                 :
+      return std::wstring (L"DXT2");
+    case D3DFMT_DXT3                 :
+      return std::wstring (L"DXT3");
+    case D3DFMT_DXT4                 :
+      return std::wstring (L"DXT4");
+    case D3DFMT_DXT5                 :
+      return std::wstring (L"DXT5");
+
+    case D3DFMT_D16_LOCKABLE         :
+      return std::wstring (L"D16_LOCKABLE") +
+                (include_ordinal ? L" (70)" : L"");
+    case D3DFMT_D32                  :
+      return std::wstring (L"D32") +
+                (include_ordinal ? L" (71)" : L"");
+    case D3DFMT_D15S1                :
+      return std::wstring (L"D15S1") +
+                (include_ordinal ? L" (73)" : L"");
+    case D3DFMT_D24S8                :
+      return std::wstring (L"D24S8") +
+                (include_ordinal ? L" (75)" : L"");
+    case D3DFMT_D24X8                :
+      return std::wstring (L"D24X8") +
+                (include_ordinal ? L" (77)" : L"");
+    case D3DFMT_D24X4S4              :
+      return std::wstring (L"D24X4S4") +
+                (include_ordinal ? L" (79)" : L"");
+    case D3DFMT_D16                  :
+      return std::wstring (L"D16") +
+                (include_ordinal ? L" (80)" : L"");
+
+    case D3DFMT_D32F_LOCKABLE        :
+      return std::wstring (L"D32F_LOCKABLE") +
+                (include_ordinal ? L" (82)" : L"");
+    case D3DFMT_D24FS8               :
+      return std::wstring (L"D24FS8") +
+                (include_ordinal ? L" (83)" : L"");
+
+/* D3D9Ex only -- */
+#if !defined(D3D_DISABLE_9EX)
+
+    /* Z-Stencil formats valid for CPU access */
+    case D3DFMT_D32_LOCKABLE         :
+      return std::wstring (L"D32_LOCKABLE") +
+                (include_ordinal ? L" (84)" : L"");
+    case D3DFMT_S8_LOCKABLE          :
+      return std::wstring (L"S8_LOCKABLE") +
+                (include_ordinal ? L" (85)" : L"");
+
+#endif // !D3D_DISABLE_9EX
+
+
+
+    case D3DFMT_L16                  :
+      return std::wstring (L"L16") +
+                (include_ordinal ? L" (81)" : L"");
+
+    case D3DFMT_VERTEXDATA           :
+      return std::wstring (L"VERTEXDATA") +
+                (include_ordinal ? L" (100)" : L"");
+    case D3DFMT_INDEX16              :
+      return std::wstring (L"INDEX16") +
+                (include_ordinal ? L" (101)" : L"");
+    case D3DFMT_INDEX32              :
+      return std::wstring (L"INDEX32") +
+                (include_ordinal ? L" (102)" : L"");
+
+    case D3DFMT_Q16W16V16U16         :
+      return std::wstring (L"Q16W16V16U16") +
+                (include_ordinal ? L" (110)" : L"");
+
+    case D3DFMT_MULTI2_ARGB8         :
+      return std::wstring (L"FourCC 'MET1'");
+
+    // Floating point surface formats
+
+    // s10e5 formats (16-bits per channel)
+    case D3DFMT_R16F                 :
+      return std::wstring (L"R16F") +
+                (include_ordinal ? L" (111)" : L"");
+    case D3DFMT_G16R16F              :
+      return std::wstring (L"G16R16F") +
+                (include_ordinal ? L" (112)" : L"");
+    case D3DFMT_A16B16G16R16F        :
+      return std::wstring (L"A16B16G16R16F") +
+               (include_ordinal ? L" (113)" : L"");
+
+    // IEEE s23e8 formats (32-bits per channel)
+    case D3DFMT_R32F                 :
+      return std::wstring (L"R32F") + 
+                (include_ordinal ? L" (114)" : L"");
+    case D3DFMT_G32R32F              :
+      return std::wstring (L"G32R32F") +
+                (include_ordinal ? L" (115)" : L"");
+    case D3DFMT_A32B32G32R32F        :
+      return std::wstring (L"A32B32G32R32F") +
+                (include_ordinal ? L" (116)" : L"");
+
+    case D3DFMT_CxV8U8               :
+      return std::wstring (L"CxV8U8") +
+                (include_ordinal ? L" (117)" : L"");
+
+/* D3D9Ex only -- */
+#if !defined(D3D_DISABLE_9EX)
+
+    // Monochrome 1 bit per pixel format
+    case D3DFMT_A1                   :
+      return std::wstring (L"A1") +
+                (include_ordinal ? L" (118)" : L"");
+
+    // 2.8 biased fixed point
+    case D3DFMT_A2B10G10R10_XR_BIAS  :
+      return std::wstring (L"A2B10G10R10_XR_BIAS") +
+                (include_ordinal ? L" (119)" : L"");
+
+
+    // Binary format indicating that the data has no inherent type
+    case D3DFMT_BINARYBUFFER         :
+      return std::wstring (L"BINARYBUFFER") +
+                (include_ordinal ? L" (199)" : L"");
+
+#endif // !D3D_DISABLE_9EX
+/* -- D3D9Ex only */
+  }
+
+  return std::wstring (L"UNKNOWN?!");
+}
+
+const wchar_t*
+SK_D3D9_PoolToStr (D3DPOOL pool)
+{
+  switch (pool)
+  {
+    case D3DPOOL_DEFAULT:
+      return L"    Default   (0)";
+    case D3DPOOL_MANAGED:
+      return L"    Managed   (1)";
+    case D3DPOOL_SYSTEMMEM:
+      return L"System Memory (2)";
+    case D3DPOOL_SCRATCH:
+      return L"   Scratch    (3)";
+    default:
+      return L"   UNKNOWN?!     ";
+  }
+}
+
+void
+SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
+                           uint32_t crc32c,
+                           LPVOID   pbFunc )
+{
+  static bool dump = false;//config.render.dump_shaders;
+
+  /////if (dump)
+  /////{
+  /////  if (GetFileAttributes (L"TBFix_Res\\dump\\shaders") !=
+  /////       FILE_ATTRIBUTE_DIRECTORY)
+  /////  {
+  /////    CreateDirectoryW (L"TBFix_Res",                nullptr);
+  /////    CreateDirectoryW (L"TBFix_Res\\dump",          nullptr);
+  /////    CreateDirectoryW (L"TBFix_Res\\dump\\shaders", nullptr);
+  /////  }
+  /////
+  /////  wchar_t wszDumpName [MAX_PATH] = { L'\0' };
+  /////
+  /////  swprintf_s ( wszDumpName,
+  /////                 MAX_PATH, 
+  /////                   L"TBFix_Res\\dump\\shaders\\%s_%08x.html",
+  /////                     wszPrefix, crc32c );
+  /////
+  /////  if ( GetFileAttributes (wszDumpName) == INVALID_FILE_ATTRIBUTES )
+  /////  {
+  /////    CComPtr <ID3DXBuffer> pDisasm = nullptr;
+  /////  
+  /////    HRESULT hr =
+  /////      D3DXDisassembleShader ((DWORD *)pbFunc, TRUE, "", &pDisasm);
+  /////  
+  /////    if (SUCCEEDED (hr))
+  /////    {
+  /////      FILE* fDump = _wfsopen (wszDumpName,  L"wb", _SH_DENYWR);
+  /////  
+  /////      if (fDump != NULL)
+  /////      {
+  /////        fwrite ( pDisasm->GetBufferPointer (),
+  /////                   pDisasm->GetBufferSize  (),
+  /////                     1,
+  /////                       fDump );
+  /////        fclose (fDump);
+  /////      }
+  /////    }
+  /////  }
+  /////}
+
+  CComPtr <ID3DXBuffer> pDisasm = nullptr;
+
+  HRESULT hr =
+    D3DXDisassembleShader ((DWORD *)pbFunc, FALSE, "", &pDisasm);
+
+  if (SUCCEEDED (hr) && strlen ((const char *)pDisasm->GetBufferPointer ()))
+  {
+    char* szDisasm = _strdup ((const char *)pDisasm->GetBufferPointer ());
+
+    char* comments_end  =                strstr (szDisasm,          "\n ");
+    char* footer_begins = comments_end ? strstr (comments_end + 1, "\n\n") : nullptr;
+
+    if (comments_end)  *comments_end  = '\0'; else (comments_end  = "  ");
+    if (footer_begins) *footer_begins = '\0'; else (footer_begins = "  ");
+
+    if (! _wcsicmp (wszPrefix, L"ps"))
+    {
+      ps_disassembly.emplace ( crc32c, sk_d3d9_shader_disasm_s {
+                                         szDisasm,
+                                           comments_end + 1,
+                                             footer_begins + 1 }
+                             );
+    }
+
+    else
+    {
+      vs_disassembly.emplace ( crc32c, sk_d3d9_shader_disasm_s {
+                                         szDisasm,
+                                           comments_end + 1,
+                                             footer_begins + 1 }
+                             );
+    }
+
+    free (szDisasm);
+  }
+}
+
+void
+SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
+                          IDirect3DVertexShader9 *pShader )
+{
+  if (g_pVS != pShader)
+  {
+    if (pShader != nullptr)
+    {
+      if (vs_checksums.find (pShader) == vs_checksums.end ())
+      {
+        UINT len = 0;
+
+        pShader->GetFunction (nullptr, &len);
+
+        void* pbFunc =
+          malloc (len);
+
+        if (pbFunc != nullptr)
+        {
+          pShader->GetFunction (pbFunc, &len);
+
+          vs_checksums [pShader] =
+            crc32c (0, pbFunc, len);
+
+          SK_D3D9_DumpShader (L"vs", vs_checksums [pShader], pbFunc);
+
+          free (pbFunc);
+        }
+      }
+    }
+
+    else
+      vs_checksum = 0;
+  }
+
+  vs_checksum = vs_checksums [pShader];
+  g_pVS       = pShader;
+
+  if (vs_checksum != 0x00)
+  {
+    last_frame.vertex_shaders.emplace (vs_checksum);
+    
+    if (tracked_rt.active)
+      tracked_rt.vertex_shaders.emplace (vs_checksum);
+    
+    if (vs_checksum == tracked_vs.crc32c)
+    {
+      tracked_vs.use (pShader);
+    
+      for ( unsigned int& current_texture : tracked_vs.current_textures )
+        current_texture = 0x0;
+    }
+  }
+}
+
+void
+SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
+                         IDirect3DPixelShader9 *pShader )
+{
+  if (g_pPS != pShader)
+  {
+    if (pShader != nullptr)
+    {
+      if (ps_checksums.find (pShader) == ps_checksums.end ())
+      {
+        UINT len = 0;
+
+        pShader->GetFunction (nullptr, &len);
+
+        void* pbFunc =
+          malloc (len);
+
+        if (pbFunc != nullptr)
+        {
+          pShader->GetFunction (pbFunc, &len);
+
+          ps_checksums [pShader] =
+            crc32c (0, pbFunc, len);
+
+          SK_D3D9_DumpShader (L"ps", ps_checksums [pShader], pbFunc);
+
+          free (pbFunc);
+        }
+      }
+    }
+
+    else
+      ps_checksum = 0;
+  }
+
+  ps_checksum = ps_checksums [pShader];
+  g_pPS       = pShader;
+
+  if (ps_checksum != 0x00)
+  {
+    last_frame.pixel_shaders.emplace (ps_checksum);
+    
+    if (tracked_rt.active)
+      tracked_rt.pixel_shaders.emplace (ps_checksum);
+    
+    if (ps_checksum == tracked_ps.crc32c)
+    {
+      tracked_ps.use (pShader);
+    
+      for ( unsigned int& current_texture : tracked_ps.current_textures )
+        current_texture = 0x0;
+    }
+  }
+}
+
+void
+SK_D3D9_EndScene (void)
+{
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+}
+
+void
+SK_D3D9_EndFrame (void)
+{
+  //draw_state.last_vs     = 0;
+  draw_state.scene_count = 0;
+
+  draw_state.draw_count = 0;
+  draw_state.next_draw  = 0;
+  
+  g_pPS = nullptr;
+  g_pVS = nullptr;
+  vs_checksum = 0;
+  ps_checksum = 0;
+
+  last_frame.clear ();
+  tracked_rt.clear ();
+  tracked_vs.clear ();
+  tracked_ps.clear ();
+  tracked_vb.clear ();
+
+  draw_state.cegui_active = false;
+}
+
+bool
+SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/)
+{
+  if (SK_GetCurrentRenderBackend ().device == nullptr)
+    return false;
+
+  CComPtr <IDirect3DDevice9> pDevice = nullptr;
+
+  if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice)))
+    return false;
+
+  const bool tracking_vs = ( vs_checksum == tracked_vs.crc32c );
+  const bool tracking_ps = ( ps_checksum == tracked_ps.crc32c );
+  const bool tracking_vb = { vb_stream0  == tracked_vb.vertex_buffer };
+
+  if (tracking_vs)
+  {
+    tracked_vs.num_draws++;
+
+    for (unsigned int& current_texture : tracked_vs.current_textures)
+    {
+      if (current_texture != 0)
+        tracked_vs.used_textures.emplace (current_texture);
+    }
+
+    //
+    // TODO: Make generic and move into class -- must pass shader type to function
+    //
+    for (auto&& it : tracked_vs.constants)
+    {
+      for (auto&& it2 : it.struct_members)
+      {
+        if (it2.Override)
+          pDevice->SetVertexShaderConstantF (it2.RegisterIndex, it2.Data, 1);
+      }
+
+      if (it.Override)
+        pDevice->SetVertexShaderConstantF (it.RegisterIndex, it.Data, 1);
+    }
+  }
+
+  if (tracking_ps)
+  {
+    tracked_ps.num_draws++;
+
+    for ( unsigned int& current_texture : tracked_ps.current_textures )
+    {
+      if (current_texture != 0)
+        tracked_ps.used_textures.emplace (current_texture);
+    }
+
+    //
+    // TODO: Make generic and move into class -- must pass shader type to function
+    //
+    for (auto&& it : tracked_ps.constants)
+    {
+      for (auto&& it2 : it.struct_members)
+      {
+        if (it2.Override)
+          pDevice->SetPixelShaderConstantF (it2.RegisterIndex, it2.Data, 1);
+      }
+
+      if (it.Override)
+        pDevice->SetPixelShaderConstantF (it.RegisterIndex, it.Data, 1);
+    }
+  }
+
+
+  bool wireframe = false;
+
+  if (tracked_vb.wireframes.count (vb_stream0))
+    wireframe = true;
+
+  if (tracking_vb)
+  {
+    tracked_vb.use ();
+
+    tracked_vb.instances  = draw_state.instances;
+    tracked_vb.instanced += draw_state.instances;
+    tracked_vb.num_draws++;
+
+    if (tracked_vb.wireframe)
+      wireframe = true;
+  }
+
+  if (tracking_vb && tracked_vb.cancel_draws)
+    return true;
+
+
+  if (tracking_vs && tracked_vs.cancel_draws)
+    return true;
+
+  if (tracking_ps && tracked_ps.cancel_draws)
+    return true;
+
+
+  //last_vs = vs_checksum;
+
+
+  if (wireframe)
+    pDevice->SetRenderState (D3DRS_FILLMODE, D3DFILL_WIREFRAME);
+
+
+  return false;
+}
+
+void
+SK_D3D9_InitShaderModTools (void)
+{
+  last_frame.vertex_shaders.reserve           (256);
+  last_frame.pixel_shaders.reserve            (256);
+  last_frame.vertex_buffers.dynamic.reserve   (128);
+  last_frame.vertex_buffers.immutable.reserve (256);
+  known_objs.dynamic_vbs.reserve              (2048);
+  known_objs.static_vbs.reserve               (8192);
+  ps_disassembly.reserve                      (512);
+  vs_disassembly.reserve                      (512);
+  vs_checksums.reserve                        (8192);
+  ps_checksums.reserve                        (8192);
+}
+
+
+
+void
+EnumConstant ( shader_tracking_s* pShader,
+               ID3DXConstantTable*                pConstantTable,
+               D3DXHANDLE                         hConstant,
+               shader_tracking_s::
+               shader_constant_s& constant,
+               std::vector <
+                 shader_tracking_s::
+                             shader_constant_s >& list )
+{
+  if (! (hConstant && pConstantTable))
+    return;
+
+  UINT              one           =  1; 
+  D3DXCONSTANT_DESC constant_desc = { };
+
+  if (SUCCEEDED (pConstantTable->GetConstantDesc (hConstant, &constant_desc, &one)))
+  {
+    strncpy (constant.Name, constant_desc.Name, 128);
+    constant.Class         = constant_desc.Class;
+    constant.Type          = constant_desc.Type;
+    constant.RegisterSet   = constant_desc.RegisterSet;
+    constant.RegisterIndex = constant_desc.RegisterIndex;
+    constant.RegisterCount = constant_desc.RegisterCount;
+    constant.Rows          = constant_desc.Rows;
+    constant.Columns       = constant_desc.Columns;
+    constant.Elements      = constant_desc.Elements;
+
+    if (constant_desc.DefaultValue != nullptr)
+      memcpy (constant.Data, constant_desc.DefaultValue, std::min (constant_desc.Bytes, sizeof (float) * 4));
+
+    for ( UINT j = 0; j < constant_desc.StructMembers; j++ )
+    {
+      D3DXHANDLE hConstantStruct =
+        pConstantTable->GetConstant (hConstant, j);
+  
+      shader_tracking_s::shader_constant_s struct_constant = { };
+  
+      if (hConstantStruct != nullptr)
+        EnumConstant (pShader, pConstantTable, hConstantStruct, struct_constant, constant.struct_members );
+    }
+  
+    list.push_back (constant);
+  }
+};
+
+
+
+void
+shader_tracking_s::use (IUnknown *pShader)
+{
+  if (shader_obj != pShader)
+  {
+    constants.clear ();
+
+    shader_obj = pShader;
+
+    UINT len = 0;
+
+    if (SUCCEEDED (((IDirect3DVertexShader9 *)pShader)->GetFunction (nullptr, &len)))
+    {
+      void* pbFunc =
+        malloc (len);
+      
+      if (pbFunc != nullptr)
+      {
+        if ( SUCCEEDED ( ((IDirect3DVertexShader9 *)pShader)->GetFunction ( pbFunc,
+                                                                              &len )
+                       )
+           )
+        {
+          CComPtr <ID3DXConstantTable> pConstantTable = nullptr;
+
+          if (SUCCEEDED (D3DXGetShaderConstantTable ((DWORD *)pbFunc, &pConstantTable)))
+          {
+            D3DXCONSTANTTABLE_DESC ct_desc = { };
+
+            if (SUCCEEDED (pConstantTable->GetDesc (&ct_desc)))
+            {
+              UINT constant_count = ct_desc.Constants;
+
+              for (UINT i = 0; i < constant_count; i++)
+              {
+                D3DXHANDLE hConstant =
+                  pConstantTable->GetConstant (nullptr, i);
+
+                shader_constant_s constant = { };
+
+                EnumConstant (this, pConstantTable, hConstant, constant, constants);
+              }
+            }
+          }
+        }
+      
+        free (pbFunc);
+      }
+    }
+  }
+}
