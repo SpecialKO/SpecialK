@@ -18,11 +18,11 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
+#include <SpecialK/config.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 

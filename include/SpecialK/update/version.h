@@ -40,8 +40,6 @@ extern bool
 __stdcall
 SK_FetchVersionInfo (const wchar_t* wszProduct = L"SpecialK");
 
-#include <string>
-
 
 struct SK_VersionInfo_V1
 {

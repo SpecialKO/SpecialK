@@ -18,10 +18,7 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define _CRT_SECURE_NO_WARNINGS
 #define DIRECTINPUT_VERSION 0x0800
-
-#define NOMINMAX
 
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/dinput8_backend.h>

@@ -18,8 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
 
 #define OSD_IMP
 #include <SpecialK/osd/text.h>

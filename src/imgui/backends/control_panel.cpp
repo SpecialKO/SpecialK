@@ -19,14 +19,12 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
-
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_gl3.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/widgets/msgbox.h>
+#include <SpecialK/render_backend.h>
 
 #include <SpecialK/widgets/widget.h>
 #include <d3d9.h>
@@ -36,6 +34,7 @@
 #include <SpecialK/DLL_VERSION.H>
 #include <SpecialK/command.h>
 #include <SpecialK/console.h>
+#include <SpecialK/utility.h>
 
 #include <SpecialK/window.h>
 #include <SpecialK/log.h>
@@ -63,6 +62,9 @@
 #include <windows.h>
 #include <cstdio>
 #include <memory>
+#include <string>
+#include <sstream>
+#include <vector>
 #include <typeindex>
 
 #include "resource.h"
@@ -2789,14 +2791,17 @@ SK_ImGui_ControlPanel (void)
                                                         SK_ImGui_Cursor.pos.y,
                                  SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
         ImGui::SameLine    ( );
-        ImGui::Text        (" {%s :: Last Update: %lu}", SK_ImGui_Cursor.idle ? "Idle" : "Not Idle", SK_ImGui_Cursor.last_move);
-        ImGui::TreePop     ( );
+        ImGui::Text        (" {%s :: Last Update: %lu}",
+                              SK_ImGui_Cursor.idle ? "Idle" :
+                                                     "Not Idle",
+                                SK_ImGui_Cursor.last_move);
+        ImGui::TreePop      ( );
       }
 
-      ImGui::PopStyleColor (3);
+      ImGui::PopStyleColor  (3);
 
-      ImGui::TreePop       ( );
-      ImGui::PopStyleColor (3);
+      ImGui::TreePop        ( );
+      ImGui::PopStyleColor  (3);
     }
 
     bool input_mgmt_open = ImGui::CollapsingHeader ("Input Management");
@@ -2806,9 +2811,11 @@ SK_ImGui_ControlPanel (void)
       static DWORD last_xinput   = 0;
       static DWORD last_hid      = 0;
       static DWORD last_di8      = 0;
+      static DWORD last_steam    = 0;
       static DWORD last_rawinput = 0;
 
       struct { ULONG reads; } xinput { };
+      struct { ULONG reads; } steam  { };
 
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
@@ -2828,9 +2835,14 @@ SK_ImGui_ControlPanel (void)
       raw_input.mouse_reads   = SK_RawInput_Backend.reads [0];
       raw_input.gamepad_reads = SK_RawInput_Backend.reads [2];
 
+      steam.reads             = SK_Steam_Backend.reads    [2];
+
 
       if (SK_XInput_Backend.nextFrame ())
         last_xinput = timeGetTime ();
+
+      if (SK_Steam_Backend.nextFrame ())
+        last_steam = timeGetTime ();
 
       if (SK_HID_Backend.nextFrame ())
         last_hid = timeGetTime ();
@@ -2841,6 +2853,21 @@ SK_ImGui_ControlPanel (void)
       if (SK_RawInput_Backend.nextFrame ())
         last_rawinput = timeGetTime ();
 
+
+      if (last_steam > timeGetTime ( ) - 500UL)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( timeGetTime ( ) - last_steam ) / 500.0f ), 1.0f, 0.8f));
+        ImGui::SameLine ( );
+        ImGui::Text ("       Steam");
+        ImGui::PopStyleColor ( );
+
+        if (ImGui::IsItemHovered ( ))
+        {
+          ImGui::BeginTooltip ( );
+          ImGui::Text ("Gamepad     %lu", steam.reads);
+          ImGui::EndTooltip ( );
+        }
+      }
 
       if (last_xinput > timeGetTime () - 500UL)
       {
@@ -3138,7 +3165,126 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::SliderFloat ("TitlePulseDuration", &SK_ImGui_PulseTitle_Duration, 0.0f, 1000.0f);
 #endif
 
-        ImGui::TreePop ();
+        auto GamepadDebug = [](UINT idx) ->
+        void
+        {
+          JOYINFOEX joy_ex   { };
+          JOYCAPSA  joy_caps { };
+
+          joy_ex.dwSize  = sizeof JOYINFOEX;
+          joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+                           JOY_RETURNCENTERED | JOY_USEDEADZONE;
+
+          if (joyGetPosEx    (idx, &joy_ex)                    != JOYERR_NOERROR)
+            return;
+
+          if (joyGetDevCapsA (idx, &joy_caps, sizeof JOYCAPSA) != JOYERR_NOERROR || joy_caps.wCaps == 0)
+            return;
+
+          std::stringstream buttons;
+
+          for ( unsigned int i = 0, j = 0; i < joy_caps.wMaxButtons; i++ )
+          {
+            if (joy_ex.dwButtons & (1 << i))
+            {
+              if (j != 0)
+                buttons << ", ";
+
+              buttons << "Button " << std::to_string (i);
+
+              ++j;
+            }
+          }
+
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+
+          bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%s###JOYSTICK_DEBUG_%lu", joy_caps.szPname, idx).c_str ());
+
+          ImGui::Combo    ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("This setting is only used if XInput or DirectInput are not working.");
+          }
+
+          ImGui::SameLine ();
+
+          ImGui::Checkbox    ("Favor DirectInput over XInput", &config.input.gamepad.native_ps4);
+
+          if (expanded)
+          {
+            ImGui::TreePush        (       ""       );
+
+            ImGui::TextUnformatted (buttons.str ().c_str ());
+
+            float angle =
+              static_cast <float> (joy_ex.dwPOV) / 100.0f;
+
+            if (joy_ex.dwPOV != JOY_POVCENTERED)
+              ImGui::Text (u8" D-Pad:  %4.1f°", angle);
+            else
+              ImGui::Text (  " D-Pad:  Centered");
+
+            struct axis_s {
+              const char* label;
+              float       min, max;
+              float       now;
+            }
+              axes [6] = { { "X-Axis", static_cast <float> (joy_caps.wXmin),
+                                       static_cast <float> (joy_caps.wXmax),
+                                       static_cast <float> (joy_ex.dwXpos) },
+
+                            { "Y-Axis", static_cast <float> (joy_caps.wYmin), 
+                                        static_cast <float> (joy_caps.wYmax),
+                                        static_cast <float> (joy_ex.dwYpos) },
+
+                            { "Z-Axis", static_cast <float> (joy_caps.wZmin),
+                                        static_cast <float> (joy_caps.wZmax),
+                                        static_cast <float> (joy_ex.dwZpos) },
+
+                            { "R-Axis", static_cast <float> (joy_caps.wRmin),
+                                        static_cast <float> (joy_caps.wRmax),
+                                        static_cast <float> (joy_ex.dwRpos) },
+
+                            { "U-Axis", static_cast <float> (joy_caps.wUmin),
+                                        static_cast <float> (joy_caps.wUmax),
+                                        static_cast <float> (joy_ex.dwUpos) },
+
+                            { "V-Axis", static_cast <float> (joy_caps.wVmin),
+                                        static_cast <float> (joy_caps.wVmax),
+                                        static_cast <float> (joy_ex.dwVpos) } };
+
+            for (int axis = 0; axis < joy_caps.wMaxAxes; axis++)
+            {
+              float range  = static_cast <float>  (axes [axis].max - axes [axis].min);
+              float center = static_cast <float> ((axes [axis].max + axes [axis].min)) / 2.0f;
+              float rpos   = 0.5f;
+
+              if (static_cast <float> (axes [axis].now) < center)
+                rpos = center - (center - axes [axis].now);
+              else
+                rpos = static_cast <float> (axes [axis].now - axes [axis].min);
+
+              ImGui::ProgressBar ( rpos / range,
+                                     ImVec2 (-1, 0),
+                                       SK_FormatString ( "%s [ %.0f, { %.0f, %.0f } ]",
+                                                           axes [axis].label, axes [axis].now,
+                                                           axes [axis].min,   axes [axis].max ).c_str () );
+            }
+
+            ImGui::TreePop     ( );
+          }
+          ImGui::PopStyleColor (3);
+        };
+
+        ImGui::Separator ();
+
+        GamepadDebug (JOYSTICKID1);
+        GamepadDebug (JOYSTICKID2);
+
+        ImGui::TreePop       ( );
       }
 
       if (ImGui::CollapsingHeader ("Low-Level Mouse Settings", ImGuiTreeNodeFlags_DefaultOpen))
@@ -4744,13 +4890,6 @@ SK_NvAPI_GetGPUInfoStr (void)
   return adapters;
 }
 #endif
-
-
-#include <string>
-#include <vector>
-
-#include <SpecialK/render_backend.h>
-
 
 
 typedef UINT (__stdcall *SK_ImGui_DrawCallback_pfn)     (void *user);

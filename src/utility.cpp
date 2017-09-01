@@ -18,9 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define _CRT_SECURE_NO_WARNINGS
-
-#define NOMINMAX
 
 #include <SpecialK/utility.h>
 #include <SpecialK/core.h>
@@ -710,8 +707,6 @@ crc32 (uint32_t crc, const void *buf, size_t size)
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
-
-#define NOMINMAX
 
 #include <algorithm>
 

@@ -23,11 +23,25 @@
 #ifndef __SK__PARAMETER_H__
 #define __SK__PARAMETER_H__
 
-#include "ini.h"
-
 #include <Windows.h>
 #include <vector>
-#include <imgui/imgui.h>
+
+#ifndef IM_VEC2_DEFINED
+#define IM_VEC2_DEFINED
+struct ImVec2
+{
+    float x, y;
+
+    ImVec2 (void)               { x = y = 0.0f;   }
+    ImVec2 (float _x, float _y) { x = _x; y = _y; }
+
+#ifdef IM_VEC2_CLASS_EXTRA          // Define constructor and implicit cast operators in imconfig.h to convert back<>forth from your math types and ImVec2.
+    IM_VEC2_CLASS_EXTRA
+#endif
+};
+#endif
+
+interface iSK_INI;
 
 namespace sk
 {
@@ -42,50 +56,10 @@ public:
   virtual void         set_value_str (std::wstring str) = 0;
 
   // Read value from INI
-  bool load (void)
-  {
-    if (ini != nullptr)
-    {
-      iSK_INISection& section = ini->get_section (ini_section.c_str ());
-
-      if (section.contains_key (ini_key.c_str ()))
-      {
-        set_value_str (section.get_value (ini_key.c_str ()));
-        return true;
-      }
-    }
-
-    return false;
-  }
+  bool load (void);
 
   // Store value in INI
-  bool store (void)
-  {
-    bool ret = false;
-
-    if (ini != nullptr)
-    {
-      iSK_INISection& section = ini->get_section (ini_section.c_str ());
-
-      // If this operation actually creates a section, we need to make sure
-      //   that section has a name!
-      section.name = ini_section;
-
-      if (section.contains_key (ini_key.c_str ()))
-      {
-        section.get_value (ini_key.c_str ()) = get_value_str ();
-        ret = true;
-      }
-
-      // Add this key/value if it doesn't already exist.
-      else {
-        section.add_key_value (ini_key.c_str (), get_value_str ().c_str ());
-        ret = true;// +1;
-      }
-    }
-
-    return ret;
-  }
+  bool store (void);
 
   void register_to_ini (iSK_INI* file, std::wstring section, std::wstring key)
   {

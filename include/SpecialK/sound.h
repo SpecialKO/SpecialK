@@ -22,8 +22,6 @@
 #ifndef __SK__SOUND_H__
 #define __SK__SOUND_H__
 
-#include <SpecialK/window.h>
-
 #include <Mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <endpointvolume.h>
@@ -37,8 +35,6 @@ void                    __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* cou
 
 const char*             __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
-
-#include <SpecialK/log.h>
 #include <SpecialK/steam_api.h>
 
 #include <atlbase.h>

@@ -19,8 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <Mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <endpointvolume.h>

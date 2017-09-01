@@ -19,8 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <memory>
 
 #include <SpecialK/command.h>
@@ -38,7 +36,9 @@ SK_GetCommandProcessor (void)
 
   if (command == nullptr)
   {
-    command = new SK_ICommandProcessor ();
+    command =
+      new SK_ICommandProcessor ();
+
     InitializeCriticalSectionAndSpinCount (&cs_process_cmd, 104858);
   }
 

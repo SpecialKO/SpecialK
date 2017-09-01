@@ -22,8 +22,6 @@
 #ifndef __SK__COMPATIBILITY_H__
 #define __SK__COMPATIBILITY_H__
 
-#define PSAPI_VERSION           1
-
 enum class SK_ModuleEnum {
   PreLoad    = 0x0,
   PostLoad   = 0x1,

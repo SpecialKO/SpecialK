@@ -18,8 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define NOMINMAX
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <Windows.h>
 
@@ -426,75 +424,183 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
   static DWORD dwPacket = 0;
 
   ZeroMemory (&joy_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+
+
+  auto ComputeAxialPos_XInput =
+    [ ] (UINT min, UINT max, DWORD pos) ->
+    SHORT
+  {
+    float range = ( static_cast <float> ( max ) - static_cast <float> ( min ) );
+    float center = ( static_cast <float> ( max ) + static_cast <float> ( min ) ) / 2.0f;
+    float rpos = 0.5f;
+
+    if (static_cast <float> ( pos ) < center)
+      rpos = center - ( center - static_cast <float> ( pos ) );
+    else
+      rpos = static_cast <float> ( pos ) - static_cast <float> ( min );
+
+    std::numeric_limits <unsigned short>::max ( );
+
+    float max_xi = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) );
+    float center_xi = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) / 2 );
+
+    return
+      static_cast <SHORT> ( max_xi * ( rpos / range ) - center_xi );
+  };
+
+  auto TestTriggerThreshold_XInput =
+    [ ] (UINT min, UINT max, float threshold, DWORD pos, bool& lt, bool& rt) ->
+    void
+  {
+    float range = ( static_cast <float> ( max ) - static_cast <float> ( min ) );
+
+    if (pos <= min + static_cast <UINT> ( threshold * range ))
+      rt = true;
+
+    if (pos >= max - static_cast <UINT> ( threshold * range ))
+      lt = true;
+  };
+
+  bool lt = false,
+       rt = false;
   
-  if (pJoy->dwButtons & (1 << 1))
-    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-  if (pJoy->dwButtons & (1 << 2))
-    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-  if (pJoy->dwButtons & 1)
-    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-  if (pJoy->dwButtons & (1 << 3))
-    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+  switch (config.input.gamepad.predefined_layout)
+  {
+    case 0:
+      if (pJoy->dwButtons & (1 << 1))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+      if (pJoy->dwButtons & (1 << 2))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+      if (pJoy->dwButtons & 1)
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+      if (pJoy->dwButtons & (1 << 3))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
 
-  if (pJoy->dwButtons & (1 << 9))
-    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
-  if (pJoy->dwButtons & (1 << 8))
-    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+      if (pJoy->dwButtons & (1 << 9))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+      if (pJoy->dwButtons & (1 << 8))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
 
-  if (pJoy->dwButtons & (1 << 10))
-    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+      if (pJoy->dwButtons & (1 << 10))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
 
-  if (pJoy->dwButtons & (1 << 11))
-    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+      if (pJoy->dwButtons & (1 << 11))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
 
-  if (pJoy->dwButtons & (1 << 6))
-    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+      if (pJoy->dwButtons & (1 << 6))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
 
-  if (pJoy->dwButtons & (1 << 7))
-    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+      if (pJoy->dwButtons & (1 << 7))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
 
-  if (pJoy->dwButtons & (1 << 4))
-    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+      if (pJoy->dwButtons & (1 << 4))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
 
-  if (pJoy->dwButtons & (1 << 5))
-    di8_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+      if (pJoy->dwButtons & (1 << 5))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
 
-  //xi_state.Gamepad.bLeftTrigger =
-  //  UNX_PollAxis (gamepad.remap.buttons.LT, joy_ex, caps);
-  //
-  //xi_state.Gamepad.bRightTrigger =
-  //  UNX_PollAxis (gamepad.remap.buttons.RT, joy_ex, caps);
-  //
-  //if (UNX_PollAxis (gamepad.remap.buttons.LB, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-  //if (UNX_PollAxis (gamepad.remap.buttons.RB, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-  //
-  //if (UNX_PollAxis (gamepad.remap.buttons.LS, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-  //if (UNX_PollAxis (gamepad.remap.buttons.RS, joy_ex, caps) > 190)
-  //  xi_state.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+      joy_to_xi.Gamepad.sThumbLX = ComputeAxialPos_XInput (pCaps->wXmin, pCaps->wXmax, pJoy->dwXpos);
+      joy_to_xi.Gamepad.sThumbLY = ComputeAxialPos_XInput (pCaps->wYmin, pCaps->wYmax, pJoy->dwYpos);
 
-  //joy_to_xi.Gamepad.sThumbLX      =  (SHORT)((float)MAXSHORT * (((float)(pJoy->dwXpos - (pCaps->wXmin + pCaps->wXmax)) /
-  //                                                               (float)(pCaps->wXmin + pCaps->wXmax))));
-  //joy_to_xi.Gamepad.sThumbLY      =  (SHORT)((float)MAXSHORT * (((float)(pJoy->dwYpos - (pCaps->wYmin + pCaps->wYmax)) /
-  //                                                               (float)(pCaps->wYmin + pCaps->wYmax))));
+      // Invert Y-Axis for Steam controller
+      joy_to_xi.Gamepad.sThumbLY = -joy_to_xi.Gamepad.sThumbLY;
 
-  //joy_to_xi.Gamepad.sThumbRX      =  (SHORT)((float)MAXSHORT * ((float)pJoy->dwZpos / 32767.0f));
-  //joy_to_xi.Gamepad.sThumbRY      = -(SHORT)((float)MAXSHORT * ((float)pJoy->dwRpos / 32767.0f));
-  //
-  //joy_to_xi.Gamepad.bLeftTrigger  =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwUpos / 255.0f));
-  //joy_to_xi.Gamepad.bRightTrigger =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwVpos / 255.0f));
+      joy_to_xi.Gamepad.sThumbRX = ComputeAxialPos_XInput (pCaps->wRmin, pCaps->wRmax, pJoy->dwRpos);
+      joy_to_xi.Gamepad.sThumbRY = ComputeAxialPos_XInput (pCaps->wUmin, pCaps->wUmax, pJoy->dwUpos);
 
+      TestTriggerThreshold_XInput (pCaps->wZmin, pCaps->wZmax, 0.00400f, pJoy->dwZpos, lt, rt);
 
+      if (lt)
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+      if (rt)
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+      break;
+
+    case 1:
+      if (pJoy->dwButtons & (1 << 0))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+      if (pJoy->dwButtons & (1 << 1))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+      if (pJoy->dwButtons & (1 << 2))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+      if (pJoy->dwButtons & (1 << 3))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+      if (pJoy->dwButtons & (1 << 4))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+      if (pJoy->dwButtons & (1 << 5))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+
+      if (pJoy->dwButtons & (1 << 6))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+      if (pJoy->dwButtons & (1 << 7))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+
+      if (pJoy->dwButtons & (1 << 8))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+
+      if (pJoy->dwButtons & (1 << 9))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+
+      if (pJoy->dwButtons & (1 << 10))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+
+      if (pJoy->dwButtons & (1 << 11))
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+
+      joy_to_xi.Gamepad.sThumbLX = ComputeAxialPos_XInput (pCaps->wXmin, pCaps->wXmax, pJoy->dwXpos);
+      joy_to_xi.Gamepad.sThumbLY = ComputeAxialPos_XInput (pCaps->wYmin, pCaps->wYmax, pJoy->dwYpos);
+
+      // Invert Y-Axis for Steam controller
+      joy_to_xi.Gamepad.sThumbLY = -joy_to_xi.Gamepad.sThumbLY;
+
+      joy_to_xi.Gamepad.sThumbRX = ComputeAxialPos_XInput (pCaps->wRmin, pCaps->wRmax, pJoy->dwRpos);
+      joy_to_xi.Gamepad.sThumbRY = ComputeAxialPos_XInput (pCaps->wUmin, pCaps->wUmax, pJoy->dwUpos);
+
+      TestTriggerThreshold_XInput (pCaps->wZmin, pCaps->wZmax, 0.00400f, pJoy->dwZpos, lt, rt);
+
+      if (lt)
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+      if (rt)
+        joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+      break;
+  };
+
+  //joy_to_xi.Gamepad.bLeftTrigger  =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwZpos / 255.0f));
+  //joy_to_xi.Gamepad.bRightTrigger =  -(BYTE)((float)MAXBYTE  * ((float)pJoy->dwZpos / 255.0f));
+  //joy_to_xi.Gamepad.bLeftTrigger  =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwZpos / 255.0f));
+  //joy_to_xi.Gamepad.bRightTrigger =   (BYTE)((float)MAXBYTE  * ((float)pJoy->dwZpos / 255.0f));
+
+  // One-eighth of a full rotation
+  DWORD JOY_OCTSPACE = JOY_POVRIGHT / 2;
+
+#if 0
+  // 315 - 45
+  if ( (pJoy->dwPOV >= JOY_POVLEFT   + JOY_OCTSPACE && pJoy->dwPOV != JOY_POVCENTERED) || pJoy->dwPOV <= JOY_POVRIGHT - JOY_OCTSPACE )
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+
+  if (pJoy->dwPOV >= JOY_POVBACKWARD - JOY_OCTSPACE && pJoy->dwPOV <= JOY_POVBACKWARD + JOY_OCTSPACE)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+
+  if (pJoy->dwPOV >= JOY_POVLEFT     - JOY_OCTSPACE && pJoy->dwPOV <= JOY_POVLEFT     + JOY_OCTSPACE)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+
+  if (pJoy->dwPOV >= JOY_POVRIGHT    - JOY_OCTSPACE && pJoy->dwPOV <= JOY_POVRIGHT    + JOY_OCTSPACE)
+    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+#else
+  // 315 - 45
   if (pJoy->dwPOV == JOY_POVFORWARD)
     joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+
   if (pJoy->dwPOV == JOY_POVBACKWARD)
     joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+
   if (pJoy->dwPOV == JOY_POVLEFT)
     joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+
   if (pJoy->dwPOV == JOY_POVRIGHT)
     joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+#endif
 
   joy_to_xi.dwPacketNumber = dwPacket++;
 

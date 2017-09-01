@@ -23,7 +23,7 @@
 #define __SK__MEMORY_MONITOR_H__
 
 #include <Windows.h>
-#include <stdint.h>
+#include <cstdint>
 
 #define _WIN32_DCOM
 #include <Wbemidl.h>

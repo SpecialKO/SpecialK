@@ -22,10 +22,9 @@
 #ifndef __SK__OSD_TEXT_H__
 #define __SK__OSD_TEXT_H__
 
-#define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #include <stdint.h>
-
+#include <string>
 #include <SpecialK/command.h>
 
 LPVOID __stdcall SK_GetSharedMemory     (void);

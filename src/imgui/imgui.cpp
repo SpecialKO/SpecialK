@@ -654,8 +654,6 @@
  - optimization: better clipping for multi-component widgets
 */
 
-#define NOMINMAX
-
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -10959,6 +10957,7 @@ IMGUI_API
 bool SK_ImGui_Visible = false;
 
 #include <SpecialK/utility.h>
+#include <SpecialK/config.h>
 
 const ImWchar*
 SK_ImGui_GetGlyphRangesDefaultEx (void)
@@ -12006,6 +12005,8 @@ extern void
 SK_XInput_ZeroHaptics ( INT iJoyID );
 
 
+#include <SpecialK/steam_api.h>
+
 extern void SK_ImGui_Toggle (void);
 
 bool
@@ -12020,6 +12021,12 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   
   //if (nav_usable)
     ImGui::SetNextWindowFocus ();
+
+  ////void
+  ////__stdcall
+  ////SK::SteamAPI::SetOverlayState (bool active);
+  ////
+  ////SK::SteamAPI::SetOverlayState (nav_usable);
 
   toggle_ui  = SK_ImGui_Active ();
   toggle_nav = nav_usable;
@@ -12047,8 +12054,9 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 extern IDirectInputDevice8_GetDeviceState_pfn
         IDirectInputDevice8_GetDeviceState_GAMEPAD_Original;
 
-extern XINPUT_STATE di8_to_xi;
-extern XINPUT_STATE joy_to_xi;
+extern XINPUT_STATE  di8_to_xi;
+extern XINPUT_STATE  joy_to_xi;
+extern XINPUT_STATE* steam_to_xi;
 
 void
 SK_ImGui_PollGamepad_EndFrame (void)
@@ -12077,12 +12085,16 @@ SK_ImGui_PollGamepad_EndFrame (void)
     ZeroMemory (io.MouseDown, sizeof (bool) * 5);
   }
 
+         XINPUT_STATE state      = {      };
+  static XINPUT_STATE last_state = { 1, 0 };
 
+  bool api_bridge =
+    config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
 
-  // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-  //   for no good reason.
-  if (config.input.gamepad.native_ps4)
+  if (api_bridge)
   {
+    // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+    //   for no good reason.
     JOYINFOEX joy_ex   { };
     JOYCAPSW  joy_caps { };
 
@@ -12093,14 +12105,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
     joyGetPosEx    (JOYSTICKID1, &joy_ex);
     joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof JOYCAPSW);
 
-    XINPUT_STATE
-    SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
-
     SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
   }
-
-         XINPUT_STATE state      = {      };
-  static XINPUT_STATE last_state = { 1, 0 };
 
 #if 1
   state = joy_to_xi;
@@ -12108,7 +12114,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
   state = di8_to_xi;
 #endif
 
-  if ( config.input.gamepad.native_ps4 ||
+  if ( api_bridge ||
        SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
   {
     if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
@@ -12242,13 +12248,16 @@ SK_ImGui_PollGamepad (void)
   for (int i = 0; i < ImGuiNavInput_COUNT; i++)
     io.NavInputs [i] = 0.0f;
 
+  bool api_bridge =
+    config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
+
 #if 1
   state = joy_to_xi;
 #else
   state = di8_to_xi;
 #endif
 
-  if ( ( config.input.gamepad.native_ps4 ||
+  if ( ( api_bridge ||
          SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
                                       &state
                                   )

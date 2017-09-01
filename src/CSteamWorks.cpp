@@ -19,17 +19,11 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-
-#define NOMINMAX
-#define PSAPI_VERSION           1
-
 #include <Windows.h>
 #include <process.h>
 #include <Shlwapi.h>
 
 #include <psapi.h>
-#pragma comment (lib, "psapi.lib")
 
 #include <SpecialK/steam_api.h>
 #include <SpecialK/resource.h>

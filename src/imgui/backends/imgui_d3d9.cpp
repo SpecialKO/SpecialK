@@ -6,8 +6,6 @@
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
-#define NOMINMAX
-
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <SpecialK/framerate.h>

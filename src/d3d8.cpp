@@ -20,8 +20,6 @@
 **/
 
 #ifndef _WIN64
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
 
 #include <SpecialK/d3d8_backend.h>
 #include <SpecialK/dxgi_backend.h>

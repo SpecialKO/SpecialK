@@ -19,9 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
-
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/D3D9/texmgr.h>
 #include <SpecialK/render_backend.h>

@@ -18,8 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <Windows.h>
 #include <SpecialK/diagnostics/compatibility.h>
@@ -30,7 +28,6 @@
 #include <DbgHelp.h>
 
 #include <psapi.h>
-#pragma comment (lib, "psapi.lib")
 
 #include <Commctrl.h>
 #pragma comment (lib,    "advapi32.lib")

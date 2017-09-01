@@ -23,10 +23,13 @@
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/nvapi.h>
+#include <SpecialK/utility.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/command.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/log.h>
 #include <SpecialK/import.h>
 
 #include <atlbase.h>
@@ -42,8 +45,6 @@ SK_GetCurrentRenderBackend (void)
 {
   return __SK_RBkEnd;
 }
-
-#include <SpecialK/log.h>
 
 extern void WINAPI SK_HookGL     (void);
 extern void WINAPI SK_HookVulkan (void);

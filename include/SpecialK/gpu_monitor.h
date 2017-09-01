@@ -23,8 +23,7 @@
 #define __SK__GPU_MONITOR_H__
 
 #include <Windows.h>
-#include <stdint.h>
-#include <nvapi/nvapi.h>
+#include <cstdint>
 
 // 64?! Isn't that a bit ridiculous memory wise? But NvAPI wants it that big
 #define MAX_GPUS 64
@@ -119,7 +118,7 @@ struct gpu_sensors_t
       }
     } hwinfo;
 
-    NvU32    nv_gpuid;
+    uint32_t nv_gpuid;
     uint32_t nv_perf_state;
   } gpus [MAX_GPUS];
 

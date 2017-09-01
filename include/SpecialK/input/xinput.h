@@ -129,28 +129,28 @@ typedef struct _XINPUT_BATTERY_INFORMATION {
 
 
 
-typedef DWORD (WINAPI *XInputGetState_pfn)(
+using XInputGetState_pfn        = DWORD (WINAPI *)(
   _In_  DWORD        dwUserIndex,
   _Out_ XINPUT_STATE *pState
 );
 
-typedef DWORD (WINAPI *XInputGetStateEx_pfn)(
+using XInputGetStateEx_pfn      = DWORD (WINAPI *)(
   _In_  DWORD            dwUserIndex,
   _Out_ XINPUT_STATE_EX *pState
 );
 
-typedef DWORD (WINAPI *XInputGetCapabilities_pfn)(
+using XInputGetCapabilities_pfn = DWORD (WINAPI *)(
   _In_  DWORD                dwUserIndex,
   _In_  DWORD                dwFlags,
   _Out_ XINPUT_CAPABILITIES *pCapabilities
 );
 
-typedef DWORD (WINAPI *XInputSetState_pfn)(
+using XInputSetState_pfn        = DWORD (WINAPI *)(
   _In_    DWORD             dwUserIndex,
   _Inout_ XINPUT_VIBRATION *pVibration
 );
 
-typedef DWORD (WINAPI *XInputGetBatteryInformation_pfn)(
+using XInputGetBatteryInformation_pfn = DWORD (WINAPI *)(
   _In_  DWORD                       dwUserIndex,
   _In_  BYTE                        devType,
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation
@@ -166,6 +166,10 @@ bool SK_XInput_PulseController ( INT           iJoyID,
                                  float         fStrengthRight   );
 
 void SK_XInput_ZeroHaptics     ( INT           iJoyID           );
+
+
+XINPUT_STATE
+SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
 
 
 #endif /* __SK__XINPUT_H__ */

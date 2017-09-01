@@ -18,7 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/diagnostics/compatibility.h>

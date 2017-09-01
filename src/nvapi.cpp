@@ -19,10 +19,6 @@
  *
 **/
 
-#define _CRT_NON_CONFORMING_SWPRINTFS
-#define _CRT_SECURE_NO_WARNINGS 
-#define NOMINMAX
-
 #include <d3d11.h>
 
 #include <SpecialK/nvapi.h>

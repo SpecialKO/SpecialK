@@ -24,8 +24,6 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/config.h>
 #include <SpecialK/command.h>

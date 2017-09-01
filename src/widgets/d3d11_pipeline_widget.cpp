@@ -18,7 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define NOMINMAX
 
 #include <SpecialK/widgets/widget.h>
 #include <SpecialK/gpu_monitor.h>

@@ -23,9 +23,6 @@
 #define __SK__DEBUG_UTILS_H__
 
 #include <Windows.h>
-#include "../log.h"
-
-extern iSK_Logger game_debug;
 
 namespace SK
 {

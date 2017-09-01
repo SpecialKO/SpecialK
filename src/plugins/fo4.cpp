@@ -5,6 +5,8 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/log.h>
 
+#include <algorithm>
+
 sk::ParameterFactory fo4_factory;
 
 // These are the actual GAME settings
@@ -245,11 +247,11 @@ SK_FO4_RealizeFullscreenBorderless (LPVOID user)
     LONG mon_width  = minfo.rcWork.right  - minfo.rcWork.left;
     LONG mon_height = minfo.rcWork.bottom - minfo.rcWork.top;
 
-    LONG win_width  = min (mon_width,  (LONG)desc.BufferDesc.Width);
-    LONG win_height = min (mon_height, (LONG)desc.BufferDesc.Height);
+    LONG win_width  = std::min (mon_width,  (LONG)desc.BufferDesc.Width);
+    LONG win_height = std::min (mon_height, (LONG)desc.BufferDesc.Height);
 
-    window.left = max (0, (mon_width  - win_width)  / 2);
-    window.top  = max (0, (mon_height - win_height) / 2);
+    window.left = std::max (0L, (mon_width  - win_width)  / 2L);
+    window.top  = std::max (0L, (mon_height - win_height) / 2L);
 
     window.right  = window.left + win_width;
     window.bottom = window.top  + win_height;
@@ -333,7 +335,7 @@ SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  DXGI_SWAP_CHAIN_DESC desc;
+  DXGI_SWAP_CHAIN_DESC desc = { };
   This->GetDesc (&desc);
 
   // Fix the broken borderless window system that doesn't scale the swapchain

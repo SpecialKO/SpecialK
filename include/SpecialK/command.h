@@ -24,13 +24,9 @@
 
 #include <Unknwn.h>
 
-# include <unordered_map>
+#include <unordered_map>
 
 #include <locale> // tolower (...)
-
-#undef min
-#undef max
-
 #include <algorithm>
 
 template <typename T>

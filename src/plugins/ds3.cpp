@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <string>
 
 #include <Windows.h>
@@ -14,14 +12,12 @@
 
 #include <process.h>
 
-#undef max
-#undef min
-
 //
 // Hook Special K's shutdown function
 //
 typedef bool (WINAPI *ShutdownPlugin_pfn)(const wchar_t *);
-static ShutdownPlugin_pfn SK_ShutdownCore_Original = nullptr;
+               static ShutdownPlugin_pfn SK_ShutdownCore_Original = nullptr;
+
 extern bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t *);
 
 ///////////////////////////////////////////

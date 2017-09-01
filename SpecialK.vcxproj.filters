@@ -202,6 +202,9 @@
     <Filter Include="Source Files\Backends\Input\Steam">
       <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Steam\Wrapper">
+      <UniqueIdentifier>{b68a55ad-9318-4278-8ca3-36d75f0cf5fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -408,6 +411,9 @@
     <ClInclude Include="include\SpecialK\update\version.h">
       <Filter>Header Files\Update</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\input\steam.h">
+      <Filter>Header Files\Backends\Input\RawInput</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -604,6 +610,45 @@
     </ClCompile>
     <ClCompile Include="src\plugins\sonic_mania.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\user.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\client.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\friends.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\utils.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\apps.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\networking.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\screenshots.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\music.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\remote_storage.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\user_stats.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\music_remote.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\controller.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\steam.cpp">
+      <Filter>Source Files\Backends\Input\Steam</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -24,6 +24,7 @@
 
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
+#include <SpecialK/render_backend.h>
 
 LRESULT
 CALLBACK

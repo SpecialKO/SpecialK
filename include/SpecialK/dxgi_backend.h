@@ -25,7 +25,6 @@
 #define __D3DX11TEX_H__
 
 #include <SpecialK/dxgi_interfaces.h>
-#include <SpecialK/utility.h>
 
 #include <string>
 #include <d3d11.h>

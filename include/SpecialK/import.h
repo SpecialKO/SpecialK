@@ -22,7 +22,7 @@
 #ifndef __SK__IMPORT_H__
 #define __SK__IMPORT_H__
 
-#include "parameter.h"
+#include <SpecialK/parameter.h>
 
 #define SK_MAX_IMPORTS 8
 

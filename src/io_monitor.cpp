@@ -20,9 +20,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
-
 #include <SpecialK/io_monitor.h>
 #include <SpecialK/log.h>
 

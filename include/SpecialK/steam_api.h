@@ -21,12 +21,11 @@
 #ifndef __SK__STEAM_API_H__
 #define __SK__STEAM_API_H__
 
-#define _CRT_SECURE_NO_WARNINGS
+#include <Windows.h>
 #include <steamapi/steam_api.h>
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
-#include <SpecialK/utility.h>
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
@@ -213,8 +212,8 @@ using SteamAPI_GetHSteamPipe_pfn        = HSteamPipe (*)(void);
 
 using SteamClient_pfn                   = ISteamClient* (S_CALLTYPE *)(void);
 
-using GetControllerState_pfn            = bool (*)
-    (ISteamController* This, uint32 unControllerIndex, SteamControllerState_t *pState);
+//using GetControllerState_pfn            = bool (*)
+//    (ISteamController* This, uint32 unControllerIndex, SteamControllerState_t *pState);
 
 using SteamAPI_InitSafe_pfn             = bool (S_CALLTYPE*)(void);
 using SteamAPI_Init_pfn                 = bool (S_CALLTYPE*)(void);
@@ -250,7 +249,7 @@ extern "C" SteamClient_pfn                    SteamClient;
 extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown;
 extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original;
 
-extern "C" GetControllerState_pfn             GetControllerState_Original;
+//extern "C" GetControllerState_pfn             GetControllerState_Original;
 
 
 extern "C" bool S_CALLTYPE SteamAPI_InitSafe_Detour     (void);
@@ -417,15 +416,22 @@ public:
     }
 
     // Blacklist of people not allowed to use my software (for being disruptive to other users)
-      uint32_t aid = user_->GetSteamID ().GetAccountID    ();
+    //uint32_t aid = user_->GetSteamID ().GetAccountID    ();
     //uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
 
-    if ( aid ==  64655118 || aid == 183437803 )
-    {
-      SK_MessageBox ( L"You are not authorized to use this software",
-                        L"Unauthorized User", MB_ICONWARNING | MB_OK );
-      ExitProcess (0x00);
-    }
+    //
+    // Obsolete now, but will remain here for historical purposes.
+    // 
+    //   I've nothing to hide, these users were not people I held personal grudges against, but rather
+    //     that hijacked my support thread before I was able to moderate them.
+    //   
+    // 
+    //if ( aid ==  64655118 || aid == 183437803 )
+    //{
+    //  SK_MessageBox ( L"You are not authorized to use this software",
+    //                    L"Unauthorized User", MB_ICONWARNING | MB_OK );
+    //  ExitProcess (0x00);
+    //}
 
     friends_ =
       client_->GetISteamFriends (
@@ -512,13 +518,13 @@ public:
 
     SK::SteamAPI::player = user_->GetSteamID ();
 
-#if 0
     controller_ =
       client_->GetISteamController (
         hSteamUser,
           hSteamPipe,
-            STEAMCONTROLLER_INTERFACE_VERSION );
+            "SteamController" );
 
+#if 0
     void** vftable = *(void***)*(&controller_);
     SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
                              vftable, 3,

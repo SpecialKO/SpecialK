@@ -23,7 +23,9 @@
 #define __SK__RENDER_BACKEND_H__
 
 #include <Windows.h>
-#include <nvapi.h>
+#include <../depends/include/nvapi/nvapi_lite_common.h>
+
+#include <cstdint>
 
 extern HGLRC WINAPI SK_GetCurrentGLContext (void);
 

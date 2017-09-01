@@ -18,8 +18,8 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define NOMINMAX
 
+#include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/input/xinput_hotplug.h>
 #include <SpecialK/log.h>

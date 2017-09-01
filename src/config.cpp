@@ -19,7 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/dxgi_interfaces.h>
@@ -29,6 +28,7 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
 #include <SpecialK/steam_api.h>
+#include <SpecialK/nvapi.h>
 
 #include <SpecialK/DLL_VERSION.H>
 #include <SpecialK/input/input.h>
@@ -74,7 +74,8 @@ sk::ParameterFactory g_ParameterFactory;
     FinalFantasyX_X2,     // FFX.exe / FFX-2.exe
     DeadlyPremonition,    // DP.exe DPLauncher.exe
     GalGun_Double_Peace,  // GG2Game.exe
-    AKIBAs_Trip           // AkibaUU.exe
+    AKIBAs_Trip,          // AkibaUU.exe
+    YS_Seven              // Ys_s.exe
   };
 
   static std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -2219,6 +2220,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"DP.exe",                       SK_GAME_ID::DeadlyPremonition    );
   games.emplace ( L"GG2Game.exe",                  SK_GAME_ID::GalGun_Double_Peace  );
   games.emplace ( L"AkibaUU.exe",                  SK_GAME_ID::AKIBAs_Trip          );
+  games.emplace ( L"Ys_s.exe",                     SK_GAME_ID::YS_Seven             );
 
   //
   // Application Compatibility Overrides
@@ -3143,6 +3145,27 @@ SK_LoadConfigEx (std::wstring name, bool create)
             SK_ResHack_PatchGame (1920, 1080);
 
             CloseHandle (GetCurrentThread ());
+
+            return 0;
+          }, nullptr, 0x00, nullptr);
+        } break;
+
+
+        case SK_GAME_ID::YS_Seven:
+        {
+          CreateThread (nullptr, 0, [ ] (LPVOID) ->
+                        DWORD
+          {
+            // Wait for the image relocation to settle down, or we'll probably
+            //   break the memory scanner.
+            SleepEx (25UL, TRUE);
+
+            void
+              SK_ResHack_PatchGame (uint32_t w, uint32_t h);
+
+            SK_ResHack_PatchGame (1920, 1080);
+
+            CloseHandle (GetCurrentThread ( ));
 
             return 0;
           }, nullptr, 0x00, nullptr);

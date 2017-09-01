@@ -22,6 +22,8 @@
 #ifndef __SK__OPENGL_BACKEND_H__
 #define __SK__OPENGL_BACKEND_H__
 
+#include <string>
+
 namespace SK
 {
   namespace OpenGL

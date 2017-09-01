@@ -19,9 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NON_CONFORMING_SWPRINTFS
-
 #include <SpecialK/core.h>
 #include <SpecialK/stdafx.h>
 #include <SpecialK/hooks.h>
@@ -48,6 +45,7 @@
 
 #include <SpecialK/config.h>
 #include <SpecialK/osd/text.h>
+#include <SpecialK/memory_monitor.h>
 #include <SpecialK/io_monitor.h>
 #include <SpecialK/import.h>
 #include <SpecialK/console.h>
@@ -57,6 +55,7 @@
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/vulkan_backend.h>
+#include <SpecialK/nvapi.h>
 #include <d3d9.h>
 #include <d3d11.h>
 #include <wingdi.h>
@@ -84,6 +83,9 @@
 #include <CEGUI/System.h>
 #include <CEGUI/Logger.h>
 
+
+extern iSK_Logger game_debug;
+
 extern void SK_InitWindow (HWND hWnd);
 
 
@@ -94,9 +96,6 @@ static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01
 
 volatile HANDLE  hInitThread   = { nullptr };
          HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
-
-// Disable SLI memory in Batman Arkham Knight
-bool USE_SLI = true;
 
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init       = FALSE;
@@ -775,116 +774,6 @@ volatile ULONG __SK_Init                 = FALSE;
 
 void
 __stdcall
-SK_InitFinishCallback (void)
-{
-  SK_Input_Init       ();
-
-  SK_ApplyQueuedHooks ();
-
-  SK_DeleteTemporaryFiles ();
-  SK_DeleteTemporaryFiles (L"Version", L"*.old");
-
-  SK::Framerate::Init ();
-
-  dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
-
-  if (SK_IsSuperSpecialK ())
-  {
-    LeaveCriticalSection (&init_mutex);
-    return;
-  }
-
-  extern int32_t SK_D3D11_amount_to_purge;
-  SK_GetCommandProcessor ()->AddVariable (
-    "VRAM.Purge",
-      new SK_IVarStub <int32_t> (
-        (int32_t *)&SK_D3D11_amount_to_purge
-      )
-  );
-
-  SK_GetCommandProcessor ()->AddVariable (
-    "GPU.StatPollFreq",
-      new SK_IVarStub <float> (
-        &config.gpu.interval
-      )
-  );
-
-  SK_GetCommandProcessor ()->AddVariable (
-    "ImGui.FontScale",
-      new SK_IVarStub <float> (
-        &config.imgui.scale
-      )      
-  );
-
-  SK_InitRenderBackends ();
-
-  SK_GetCommandProcessor ()->AddCommand ("mem",       new skMemCmd    ());
-  SK_GetCommandProcessor ()->AddCommand ("GetUpdate", new skUpdateCmd ());
-
-  //
-  // Game-Specific Stuff that I am not proud of
-  //
-#ifdef _WIN64
-  if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-    SK_DS3_InitPlugin ();
-#endif
-
-  if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
-  {
-    SK_GetCommandProcessor ()->ProcessCommandFormatted (
-      "TargetFPS %f",
-        config.render.framerate.target_fps
-    );
-  }
-
-  // Get rid of the game output log if the user doesn't want it...
-  if (! config.system.game_output)
-  {
-    game_debug.close ();
-    game_debug.silent = true;
-  }
-
-  const wchar_t* config_name =
-    init_.backend;
-
-  if (SK_IsInjected ())
-    config_name = L"SpecialK";
-
-  SK_SaveConfig (config_name);
-
-  SK_Console::getInstance ()->Start ();
-
-    // Create a thread that pumps the OSD
-  if (config.osd.pump || SK_UsingVulkan ())
-  {
-    osd_shutdown =
-      CreateEvent (nullptr, FALSE, FALSE, L"OSD Pump Shutdown");
-
-    dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
-    hPumpThread =
-        CreateThread ( nullptr,
-                         0,
-                           osd_pump,
-                             nullptr,
-                               0,
-                                 nullptr );
-
-    if (hPumpThread != INVALID_HANDLE_VALUE)
-      dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
-                        GetThreadId (hPumpThread),
-                          config.osd.pump_interval * 1000.0f );
-    else
-      dll_log.LogEx (false, L"failed!\n");
-  }
-
-  SK_StartPerfMonThreads ();
-  SK_ApplyQueuedHooks    ();
-
-  LeaveCriticalSection (&init_mutex);
-}
-
-void
-__stdcall
 SK_InitCore (const wchar_t* backend, void* callback)
 {
   EnterCriticalSection (&init_mutex);
@@ -1045,6 +934,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK_FAR_InitPlugin ();
 #endif
 
+  BOOL
+  SK_Steam_PreHookCore (void);
+  SK_Steam_PreHookCore (    );
+
   if (! lstrcmpW (SK_GetHostApp (), L"SonicMania.exe"))
   {
     extern void SK_SMOKE_InitPlugin (void);
@@ -1058,6 +951,10 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
        SK_GetDLLRole () == DLL_ROLE::DDraw  )
     SK_BootDXGI ();
+
+  void
+  __stdcall
+  SK_InitFinishCallback (void);
 
   SK_ResumeThreads (__SK_Init_Suspended_tids);
          callback_fn (SK_InitFinishCallback);
@@ -1127,6 +1024,119 @@ WaitForInit (void)
       SK::Diagnostics::CrashHandler::Reinstall ();
   }
 }
+
+
+
+void
+__stdcall
+SK_InitFinishCallback (void)
+{
+  SK_Input_Init       ();
+
+  SK_ApplyQueuedHooks ();
+
+  SK_DeleteTemporaryFiles ();
+  SK_DeleteTemporaryFiles (L"Version", L"*.old");
+
+  SK::Framerate::Init ();
+
+  dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
+
+  if (SK_IsSuperSpecialK ())
+  {
+    LeaveCriticalSection (&init_mutex);
+    return;
+  }
+
+  extern int32_t SK_D3D11_amount_to_purge;
+  SK_GetCommandProcessor ()->AddVariable (
+    "VRAM.Purge",
+      new SK_IVarStub <int32_t> (
+        (int32_t *)&SK_D3D11_amount_to_purge
+      )
+  );
+
+  SK_GetCommandProcessor ()->AddVariable (
+    "GPU.StatPollFreq",
+      new SK_IVarStub <float> (
+        &config.gpu.interval
+      )
+  );
+
+  SK_GetCommandProcessor ()->AddVariable (
+    "ImGui.FontScale",
+      new SK_IVarStub <float> (
+        &config.imgui.scale
+      )      
+  );
+
+  SK_InitRenderBackends ();
+
+  SK_GetCommandProcessor ()->AddCommand ("mem",       new skMemCmd    ());
+  SK_GetCommandProcessor ()->AddCommand ("GetUpdate", new skUpdateCmd ());
+
+  //
+  // Game-Specific Stuff that I am not proud of
+  //
+#ifdef _WIN64
+  if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+    SK_DS3_InitPlugin ();
+#endif
+
+  if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+  {
+    SK_GetCommandProcessor ()->ProcessCommandFormatted (
+      "TargetFPS %f",
+        config.render.framerate.target_fps
+    );
+  }
+
+  // Get rid of the game output log if the user doesn't want it...
+  if (! config.system.game_output)
+  {
+    game_debug.close ();
+    game_debug.silent = true;
+  }
+
+  const wchar_t* config_name =
+    init_.backend;
+
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
+
+  SK_SaveConfig (config_name);
+
+  SK_Console::getInstance ()->Start ();
+
+    // Create a thread that pumps the OSD
+  if (config.osd.pump || SK_UsingVulkan ())
+  {
+    osd_shutdown =
+      CreateEvent (nullptr, FALSE, FALSE, L"OSD Pump Shutdown");
+
+    dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
+    hPumpThread =
+        CreateThread ( nullptr,
+                         0,
+                           osd_pump,
+                             nullptr,
+                               0,
+                                 nullptr );
+
+    if (hPumpThread != INVALID_HANDLE_VALUE)
+      dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
+                        GetThreadId (hPumpThread),
+                          config.osd.pump_interval * 1000.0f );
+    else
+      dll_log.LogEx (false, L"failed!\n");
+  }
+
+  SK_StartPerfMonThreads ();
+  SK_ApplyQueuedHooks    ();
+
+  LeaveCriticalSection (&init_mutex);
+}
+
 
 using CreateWindowW_pfn = HWND (WINAPI *)(
   _In_opt_ LPCWSTR   lpClassName,
@@ -1751,9 +1761,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
 BACKEND_INIT:
-  if (! lstrcmpW (SK_GetHostApp (), L"BatmanAK.exe"))
-    USE_SLI = false;
-
   dll_log.LogEx (false,
     L"----------------------------------------------------------------------"
     L"---------------------\n");

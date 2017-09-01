@@ -18,9 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define _CRT_SECURE_NO_WARNINGS
-#define PSAPI_VERSION 1
-#define NOMINMAX
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/import.h>
@@ -4767,7 +4764,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
         pAdapter3->SetVideoMemoryReservation (
               ( i - 1 ),
                 DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-                  ( i == 1 || USE_SLI ) ?
+                  ( i == 1 ) ?
                     uint64_t ( _mem_info.AvailableForReservation *
                                  config.mem.reserve * 0.01f ) 
                            :
@@ -4808,7 +4805,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
         pAdapter3->SetVideoMemoryReservation (
               ( i - 1 ),
                 DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-                  ( i == 1 || USE_SLI ) ?
+                  ( i == 1 ) ?
                     uint64_t ( _mem_info.AvailableForReservation *
                                  config.mem.reserve * 0.01f )
                            :

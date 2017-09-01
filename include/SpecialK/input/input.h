@@ -22,7 +22,6 @@
 #ifndef __SK__INPUT_H__
 #define __SK__INPUT_H__
 
-#define NOMINMAX
 #include <Windows.h>
 #include <cstdint>
 
@@ -111,6 +110,10 @@ struct sk_input_api_context_s
   bool nextFrame (void)
   {
     bool active_data = false;
+
+
+    active.keyboard = false; active.gamepad = false;
+    active.mouse    = false; active.other   = false;
 
 
     InterlockedAdd  (&reads   [0], last_frame.reads  [0]); 

@@ -89,6 +89,8 @@ typedef void (*ImGuiSizeConstraintCallback)(ImGuiSizeConstraintCallbackData* dat
 // class ImVector<>                 // Lightweight std::vector like class.
 // IMGUI_ONCE_UPON_A_FRAME          // Execute a block of code once per frame only (convenient for creating UI within deep-nested code that runs multiple times)
 
+#ifndef IM_VEC2_DEFINED
+#define IM_VEC2_DEFINED
 struct ImVec2
 {
     float x, y;
@@ -98,6 +100,7 @@ struct ImVec2
     IM_VEC2_CLASS_EXTRA
 #endif
 };
+#endif
 
 struct ImVec4
 {

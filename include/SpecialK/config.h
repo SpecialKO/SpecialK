@@ -342,6 +342,7 @@ struct sk_config_t
       bool    hook_hid          = true;
       bool    hook_xinput       = true; // Kind of important ;)
       bool    native_ps4        = false;
+      int     predefined_layout = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
 
       struct {
         unsigned

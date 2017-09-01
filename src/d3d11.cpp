@@ -19,9 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
-
 #include <Windows.h>
 
 #include <SpecialK/diagnostics/compatibility.h>
@@ -38,6 +35,7 @@
 #include <SpecialK/widgets/widget.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
+
 #include <SpecialK/framerate.h>
 #include <SpecialK/tls.h>
 
@@ -3619,10 +3617,7 @@ SK_D3D11_ResetTexCache (void)
   SK_D3D11_Textures.reset ();
 }
 
-#define PSAPI_VERSION           1
-
 #include <psapi.h>
-#pragma comment (lib, "psapi.lib")
 
 static volatile ULONG live_textures_dirty = FALSE;
 

@@ -24,8 +24,6 @@ typedef void* LPDDENUMCALLBACK;
 typedef void* LPDDENUMCALLBACKEX;
 
 #ifndef _WIN64
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
 
 #include <SpecialK/ddraw_backend.h>
 #include <SpecialK/dxgi_backend.h>

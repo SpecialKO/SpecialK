@@ -19,9 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
-
 #include <Windows.h>
 #include <SpecialK/window.h>
 
@@ -3438,7 +3435,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   // Filter this out for fullscreen override safety
   if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-  //if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 
   LRESULT lRet =
@@ -3875,7 +3872,7 @@ SK_HookWinAPI (void)
      static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
 #endif
 
-#if 0
+#if 1
   SK_CreateDLLHook2 (         L"user32.dll",
                              "GetWindowRect",
                               GetWindowRect_Detour,
@@ -3888,7 +3885,7 @@ SK_HookWinAPI (void)
       );
 #endif
 
-#if 0
+#if 1
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetClientRect",
                               GetClientRect_Detour,
@@ -3923,6 +3920,84 @@ SK_HookWinAPI (void)
   SetWindowLongPtrW_Original = SetWindowLongW_Original;
 #else
 #endif
+}
+
+
+bool
+sk_window_s::needsCoordTransform (void)
+{
+  if (! config.window.res.override.fix_mouse)
+    return false;
+
+  bool dynamic_window =
+    (config.window.borderless /*&& config.window.fullscreen*/);
+
+  if (! dynamic_window)
+    return false;
+
+  return (! coord_remap.identical);
+}
+
+void
+sk_window_s::updateDims (void)
+{
+  if (config.window.borderless && config.window.fullscreen)
+  {
+    HMONITOR hMonitor =
+    MonitorFromWindow ( hWnd,
+                          MONITOR_DEFAULTTONEAREST );
+
+    MONITORINFO mi = { 0 };
+    mi.cbSize      = sizeof (mi);
+
+    GetMonitorInfo (hMonitor, &mi);
+
+    actual.window = mi.rcMonitor;
+
+    actual.client.left   = 0;
+    actual.client.right  = actual.window.right - actual.window.left;
+    actual.client.top    = 0;
+    actual.client.bottom = actual.window.bottom - actual.window.top;
+  }
+
+  long game_width   = (game.client.right   - game.client.left);
+  long window_width = (actual.client.right - actual.client.left);
+
+  long game_height   = (game.client.bottom   - game.client.top);
+  long window_height = (actual.client.bottom - actual.client.top);
+
+  bool resized =
+    (game_width != window_width || game_height != window_height);
+
+  bool moved =
+    ( game.window.left != actual.window.left ||
+      game.window.top  != actual.window.top );
+
+  if (resized || moved) {
+    coord_remap.identical = false;
+
+    coord_remap.scale.x =
+      (float)window_width  / (float)game_width;
+    coord_remap.scale.y =
+      (float)window_height / (float)game_height;
+
+    coord_remap.offset.x =
+      (float)(actual.window.left + actual.client.left) -
+      (float)(game.window.left   + game.client.left);
+    coord_remap.offset.y =
+      (float)(actual.window.top + actual.client.top) -
+      (float)(game.window.top   + game.client.top);
+  }
+
+  else {
+    coord_remap.identical = true;
+
+    coord_remap.offset.x  = 0.0f;
+    coord_remap.offset.y  = 0.0f;
+
+    coord_remap.scale.x   = 0.0f;
+    coord_remap.scale.y   = 0.0f;
+  }
 }
 
 

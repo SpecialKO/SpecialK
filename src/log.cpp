@@ -19,8 +19,6 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <Windows.h>
 #include <SpecialK/log.h>
 #include <SpecialK/core.h>

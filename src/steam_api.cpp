@@ -19,17 +19,11 @@
  *
 **/
 
-#define _CRT_SECURE_NO_WARNINGS
-
-#define NOMINMAX
-#define PSAPI_VERSION           1
-
 #include <Windows.h>
 #include <process.h>
 #include <Shlwapi.h>
 
 #include <psapi.h>
-#pragma comment (lib, "psapi.lib")
 
 #include <SpecialK/resource.h>
 
@@ -79,6 +73,59 @@ std::multiset <class CCallbackBase *> overlay_activation_callbacks;
 
 void SK_HookSteamAPI                      (void);
 void SK_SteamAPI_UpdateGlobalAchievements (void);
+
+
+using SteamInternal_CreateInterface_pfn       = void*       (S_CALLTYPE *)(
+        const char *ver
+      );
+extern                  SteamInternal_CreateInterface_pfn
+                        SteamInternal_CreateInterface_Original;
+extern void* S_CALLTYPE SteamInternal_CreateInterface_Detour (const char *ver);
+
+using SteamAPI_ISteamClient_GetISteamUser_pfn = ISteamUser* (S_CALLTYPE *)(
+              ISteamClient *This,
+              HSteamUser    hSteamUser,
+              HSteamPipe    hSteamPipe,
+        const char         *pchVersion
+      );
+extern                        SteamAPI_ISteamClient_GetISteamUser_pfn   SteamAPI_ISteamClient_GetISteamUser_Original;
+extern ISteamUser* S_CALLTYPE SteamAPI_ISteamClient_GetISteamUser_Detour ( ISteamClient *This,
+                                                                           HSteamUser    hSteamUser,
+                                                                           HSteamPipe    hSteamPipe,
+                                                                           const char   *pchVersion );
+
+BOOL
+SK_Steam_PreHookCore (void)
+{
+  //LoadLibraryW_Original (L"team")
+
+  const wchar_t* wszSteamLib =
+#ifdef _WIN32
+    L"steam_api.dll";
+#elif (defined _WIN64)
+    L"steam_api64.dll";
+#endif
+
+  LoadLibraryW_Original (wszSteamLib);
+
+  bool
+  SK_Steam_HookController (void);
+  SK_Steam_HookController ();
+
+  SK_CreateDLLHook2 (          wszSteamLib,
+                                "SteamAPI_ISteamClient_GetISteamUser",
+                                 SteamAPI_ISteamClient_GetISteamUser_Detour,
+        static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamUser_Original) );
+
+  SK_CreateDLLHook2 (          wszSteamLib,
+                                "SteamInternal_CreateInterface",
+                                 SteamInternal_CreateInterface_Detour,
+        static_cast_p2p <void> (&SteamInternal_CreateInterface_Original) );
+
+  SK_ApplyQueuedHooks ();
+
+  return TRUE;
+}
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
@@ -619,11 +666,11 @@ SK_Steam_PopupOriginStrToEnum (const char* str)
 void SK_Steam_SetNotifyCorner (void);
 
 
-extern bool
-ISteamController_GetControllerState_Detour (
-  ISteamController*       This,
-  uint32                  unControllerIndex,
-  SteamControllerState_t *pState );
+//extern bool
+//ISteamController_GetControllerState_Detour (
+//  ISteamController*       This,
+//  uint32                  unControllerIndex,
+//  SteamControllerState_t *pState );
 
 SK_SteamAPIContext steam_ctx;
 
@@ -3352,12 +3399,6 @@ static_cast_p2p <void> (&SteamAPI_Shutdown) );
 
   SK_ApplyQueuedHooks ();
 
-  //if (! lstrcmpW (SK_GetHostApp (), L"SonicMania.exe"))
-  //{
-  //  extern void SK_SMOKE_InitPlugin (void);
-  //              SK_SMOKE_InitPlugin (    );
-  //}
-
   if (! config.steam.force_load_steamapi)
   {
     if (config.steam.init_delay > 0)
@@ -4251,7 +4292,7 @@ SteamClient_pfn                    SteamClient                          = nullpt
 SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                    = nullptr;
 SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original           = nullptr;
 
-GetControllerState_pfn             GetControllerState_Original          = nullptr;
+//GetControllerState_pfn             GetControllerState_Original          = nullptr;
 
 
 uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;
