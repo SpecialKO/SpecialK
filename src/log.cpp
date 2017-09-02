@@ -19,7 +19,11 @@
  *
 **/
 
+#undef  _NO_CRT_STDIO_INLINE
+#define _NO_CRT_STDIO_INLINE
+
 #include <Windows.h>
+#include <stdio.h>
 #include <SpecialK/log.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
@@ -179,7 +183,7 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   {
     wchar_t wszLogTime [128];
 
-    WORD ms = SK_Timestamp (wszLogTime);
+    UINT ms = SK_Timestamp (wszLogTime);
 
     lock ();
     fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
@@ -212,7 +216,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   wchar_t wszLogTime [128];
 
-  WORD ms = SK_Timestamp (wszLogTime);
+  UINT ms = SK_Timestamp (wszLogTime);
 
   lock ();
 
@@ -244,7 +248,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   wchar_t wszLogTime [128];
 
-  WORD ms = SK_Timestamp (wszLogTime);
+  UINT ms = SK_Timestamp (wszLogTime);
 
   lock ();
 

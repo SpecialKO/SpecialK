@@ -75,7 +75,7 @@ sk::ParameterFactory g_ParameterFactory;
     DeadlyPremonition,    // DP.exe DPLauncher.exe
     GalGun_Double_Peace,  // GG2Game.exe
     AKIBAs_Trip,          // AkibaUU.exe
-    YS_Seven              // Ys_s.exe
+    YS_Seven              // Ys7.exe
   };
 
   static std::unordered_map <std::wstring, SK_GAME_ID> games;
@@ -2220,7 +2220,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"DP.exe",                       SK_GAME_ID::DeadlyPremonition    );
   games.emplace ( L"GG2Game.exe",                  SK_GAME_ID::GalGun_Double_Peace  );
   games.emplace ( L"AkibaUU.exe",                  SK_GAME_ID::AKIBAs_Trip          );
-  games.emplace ( L"Ys_s.exe",                     SK_GAME_ID::YS_Seven             );
+  games.emplace ( L"Ys7.exe",                      SK_GAME_ID::YS_Seven             );
 
   //
   // Application Compatibility Overrides
@@ -3137,7 +3137,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           {
             // Wait for the image relocation to settle down, or we'll probably
             //   break the memory scanner.
-            SleepEx (25UL, TRUE);
+            WaitForInputIdle (GetCurrentProcess (), 3333UL);
 
             void
             SK_ResHack_PatchGame (uint32_t w, uint32_t h);
@@ -3151,25 +3151,25 @@ SK_LoadConfigEx (std::wstring name, bool create)
         } break;
 
 
-        case SK_GAME_ID::YS_Seven:
-        {
-          CreateThread (nullptr, 0, [ ] (LPVOID) ->
-                        DWORD
-          {
-            // Wait for the image relocation to settle down, or we'll probably
-            //   break the memory scanner.
-            SleepEx (25UL, TRUE);
-
-            void
-              SK_ResHack_PatchGame (uint32_t w, uint32_t h);
-
-            SK_ResHack_PatchGame (1920, 1080);
-
-            CloseHandle (GetCurrentThread ( ));
-
-            return 0;
-          }, nullptr, 0x00, nullptr);
-        } break;
+        //case SK_GAME_ID::YS_Seven:
+        //{
+        //  CreateThread (nullptr, 0, [ ] (LPVOID) ->
+        //                DWORD
+        //  {
+        //    // Wait for the image relocation to settle down, or we'll probably
+        //    //   break the memory scanner.
+        //    WaitForInputIdle (GetCurrentProcess (), 3333UL);
+        //
+        //    void
+        //    SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
+        //
+        //    SK_ResHack_PatchGame2 (1920, 1080);
+        //
+        //    CloseHandle (GetCurrentThread ());
+        //
+        //    return 0;
+        //  }, nullptr, 0x00, nullptr);
+        //} break;
 
 
         case SK_GAME_ID::AKIBAs_Trip:
@@ -3179,12 +3179,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
           {
             // Wait for the image relocation to settle down, or we'll probably
             //   break the memory scanner.
-            SleepEx (25UL, TRUE);
+            WaitForInputIdle (GetCurrentProcess (), 3333UL);
 
             void
-            SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
+            SK_ResHack_PatchGame (uint32_t w, uint32_t h);
 
-            SK_ResHack_PatchGame2 (1920, 1080);
+            SK_ResHack_PatchGame (1920, 1080);
 
             CloseHandle (GetCurrentThread ());
 
@@ -3239,7 +3239,7 @@ SK_ResHack_PatchGame ( uint32_t width,
 
   pOut =
     reinterpret_cast <uint32_t *> (
-      GetModuleHandle (nullptr)
+      nullptr
     );
 
 
@@ -3247,7 +3247,7 @@ SK_ResHack_PatchGame ( uint32_t width,
   {
     pOut =
       static_cast <uint32_t *> (
-        SK_ScanAlignedEx ( pPattern, 8, nullptr, pOut + 16, 16 )
+        SK_ScanAlignedEx ( pPattern, 8, nullptr, pOut, 8 )
       );
 
 
@@ -3261,6 +3261,8 @@ SK_ResHack_PatchGame ( uint32_t width,
       {
         ++replacements;
       }
+
+      pOut += 8;
     }
 
     else
@@ -3284,17 +3286,17 @@ SK_ResHack_PatchGame2 ( uint32_t width,
   uint32_t orig [2] = { 0x00000000,
                         0x00000000 };
 
-  *(orig    ) = width;
+  *(orig + 0) = width;
   *(orig + 1) = height;
 
-  auto* pOut =
-    reinterpret_cast  <uint32_t *> (GetModuleHandle (nullptr));
+  auto* pOut = reinterpret_cast <uint32_t *> (nullptr);
+    //reinterpret_cast  <uint32_t *> (GetModuleHandle (nullptr));
 
-  for (int i = 0 ; i < 3; i++)
+  for (int i = 0 ; i < 5; i++)
   {
     pOut =
       static_cast <uint32_t *> (
-        SK_ScanAlignedEx (orig, 8, nullptr, pOut + 8, 8)
+        SK_ScanAlignedEx (orig, 8, nullptr, pOut, 4)
       );
 
     if (pOut != nullptr)
@@ -3313,9 +3315,11 @@ SK_ResHack_PatchGame2 ( uint32_t width,
       {
         ++replacements;
       }
+
+      pOut += 8;
     }
 
-    else
+    if (pOut == nullptr)
     {
       dll_log.Log ( L"[AkibasHACK] ** %lu Resolution Replacements Made  ==>  "
                                       L"( %lux%lu --> %lux%lu )",

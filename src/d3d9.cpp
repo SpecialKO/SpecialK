@@ -201,8 +201,8 @@ struct sk_d3d9_draw_states_s
   DWORD           alpha_ref       = 0;     // Value to test.
   bool            zwrite          = false; // Depth Mask
 
-  int             draws           = 0; // Number of draw calls
-  int             frames          = 0;
+  volatile ULONG  draws           = 0; // Number of draw calls
+  volatile ULONG  frames          = 0;
 
   bool            cegui_active    = false;
   
@@ -213,9 +213,9 @@ struct sk_d3d9_draw_states_s
                                                 //   test the set values to determine if a draw
                                                 //     is HUD or world-space.
                                                 //     
-  int             draw_count  = 0;
-  int             next_draw   = 0;
-  int             scene_count = 0;
+  volatile ULONG  draw_count  = 0;
+  volatile ULONG  next_draw   = 0;
+  volatile ULONG  scene_count = 0;
 } draw_state;
 
 struct frame_state_s
@@ -256,7 +256,7 @@ struct shader_tracking_s
   void clear (void)
   {
     active    = false;
-    num_draws = 0;
+    InterlockedExchange (&num_draws, 0);
     used_textures.clear ();
 
     for (unsigned int& current_texture : current_textures)
@@ -269,7 +269,7 @@ struct shader_tracking_s
   bool                          cancel_draws = false;
   bool                          clamp_coords = false;
   bool                          active       = false;
-  int                           num_draws    =     0;
+  volatile ULONG                num_draws    =     0;
   std::unordered_set <uint32_t>    used_textures;
                       uint32_t  current_textures [16];
 
@@ -302,7 +302,11 @@ struct vertex_buffer_tracking_s
 {
   void clear (void)
   {
-    active = false; num_draws = 0; instances = 0;
+    active = false;
+
+    InterlockedExchange (&num_draws, 0);
+
+    instances = 0;
 
     vertex_shaders.clear ();
     pixel_shaders.clear  ();
@@ -366,8 +370,8 @@ struct vertex_buffer_tracking_s
   bool                          cancel_draws  = false;
   bool                          wireframe     = false;
   bool                          active        = false;
-  int                           num_draws     =     0;
-  int                           instanced     =     0;
+  volatile ULONG                num_draws     =     0;
+  volatile ULONG                instanced     =     0;
   int                           instances     =     1;
 
   std::unordered_set <uint32_t> vertex_shaders;
@@ -797,8 +801,9 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 
     try
     {
-      cegD3D9 = (CEGUI::Direct3D9Renderer *)
-        &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev);
+      cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
+        &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
+      );
 
       extern void
       SK_CEGUI_RelocateLog (void);
@@ -1077,29 +1082,29 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
        pPresentationParameters   != nullptr &&
        pPresentationParameters->Windowed == FALSE)
   {
-    if (Refresh >= TargetFPS) {
-      if (! (Refresh % TargetFPS)) {
-        dll_log.Log ( L"[   D3D9   ]  >> Targeting %li FPS - using 1:%li VSYNC;"
-                      L" (refresh = %li Hz)",
-                        TargetFPS,
-                          Refresh / TargetFPS,
-                            Refresh );
-
-        pPresentationParameters->SwapEffect           = D3DSWAPEFFECT_DISCARD;
-        pPresentationParameters->PresentationInterval = Refresh / TargetFPS;
-
-      } else {
-        dll_log.Log ( L"[   D3D9   ]  >> Cannot target %li FPS using VSYNC - no such factor exists;"
-                      L" (refresh = %li Hz)",
-                        TargetFPS,
-                          Refresh );
-      }
-    } else {
-      dll_log.Log ( L"[   D3D9   ]  >> Cannot target %li FPS using VSYNC - higher than refresh rate;"
-                    L" (refresh = %li Hz)",
-                      TargetFPS,
-                        Refresh );
-    }
+    //if (Refresh >= TargetFPS) {
+    //  if (! (Refresh % TargetFPS)) {
+    //    dll_log.Log ( L"[   D3D9   ]  >> Targeting %li FPS - using 1:%li VSYNC;"
+    //                  L" (refresh = %li Hz)",
+    //                    TargetFPS,
+    //                      Refresh / TargetFPS,
+    //                        Refresh );
+    //
+    //    pPresentationParameters->SwapEffect           = D3DSWAPEFFECT_DISCARD;
+    //    pPresentationParameters->PresentationInterval = Refresh / TargetFPS;
+    //
+    //  } else {
+    //    dll_log.Log ( L"[   D3D9   ]  >> Cannot target %li FPS using VSYNC - no such factor exists;"
+    //                  L" (refresh = %li Hz)",
+    //                    TargetFPS,
+    //                      Refresh );
+    //  }
+    //} else {
+    //  dll_log.Log ( L"[   D3D9   ]  >> Cannot target %li FPS using VSYNC - higher than refresh rate;"
+    //                L" (refresh = %li Hz)",
+    //                  TargetFPS,
+    //                    Refresh );
+    //}
   }
 
   if (pPresentationParameters != nullptr)
@@ -1264,7 +1269,10 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
                                         D3DPRESENT_FORCEIMMEDIATE |
                                         D3DPRESENT_DONOTWAIT );
 
-    SK_D3D9_EndFrame ();
+    if (This == SK_GetCurrentRenderBackend ().device)
+    {
+      SK_D3D9_EndFrame ();
+    }
 
     return hr;
   }
@@ -1305,24 +1313,28 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
   CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
 
-  if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
+  if (config.apis.d3d9ex.hook)
   {
-    reinterpret_cast <int &> (rb.api) = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-                                          static_cast <int> (SK_RenderAPI::D3D9Ex)   );
+    if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
+    {
+      reinterpret_cast <int &> (rb.api) = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
+                                            static_cast <int> (SK_RenderAPI::D3D9Ex)   );
+    }
   }
 
-  else
+  if (pDev9Ex == nullptr)
   {
     rb.api = SK_RenderAPI::D3D9;
   }
 
   SK_BeginBufferSwap ();
 
-  HRESULT hr = D3D9Present_Original (This,
-                                     pSourceRect,
-                                     pDestRect,
-                                     hDestWindowOverride,
-                                     pDirtyRegion);
+  HRESULT hr =
+    D3D9Present_Original ( This,
+                             pSourceRect,
+                               pDestRect,
+                                 hDestWindowOverride,
+                                   pDirtyRegion );
 
   if (! config.osd.pump)
   {
@@ -1334,7 +1346,10 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
       hr = D3DERR_DEVICELOST;
   }
 
-  SK_D3D9_EndFrame ();
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    SK_D3D9_EndFrame ();
+  }
 
   return hr;
 }
@@ -1478,23 +1493,9 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                  _In_ const RGNDATA             *pDirtyRegion,
                  _In_       DWORD                dwFlags )
   {
-    if (dwFlags & D3DPRESENT_DONOTWAIT)
-    {
-      HRESULT hr = 
-        D3D9PresentSwap_Original ( This,
-                                     pSourceRect,
-                                       pDestRect,
-                                         hDestWindowOverride,
-                                           pDirtyRegion,
-                                             dwFlags );
-
-      SK_D3D9_EndFrame ();
-
-      return hr;
-    }
-
     if (This == nullptr)
       return E_NOINTERFACE;
+
 
     SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
@@ -1538,6 +1539,38 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
       rb.api = SK_RenderAPI::D3D9;
     }
 
+
+    if ( (dwFlags & D3DPRESENT_DONOTWAIT) && SK_GetFramesDrawn () )
+    {
+      HRESULT hr =
+        D3D9PresentSwap_Original (This,
+                                  pSourceRect,
+                                  pDestRect,
+                                  hDestWindowOverride,
+                                  pDirtyRegion,
+                                  dwFlags);
+    
+      if (This == SK_GetCurrentRenderBackend ().device || SK_GetCurrentRenderBackend ().device == nullptr)
+      {
+        SK_D3D9_EndFrame ();
+      }
+
+      // On a failure (i.e. Must wait), skip the frame
+      //
+      //  Only do input processing and UI drawing on real frames
+      if (SUCCEEDED (hr))
+      {
+        SK_BeginBufferSwap ();
+
+        hr =
+          SK_EndBufferSwap (hr, pDev);
+      }
+
+      return hr;
+    }
+
+
+
     SK_BeginBufferSwap ();
 
     HRESULT hr =
@@ -1565,7 +1598,10 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
           SK_EndBufferSwap (hr, pDev);
       }
 
-      SK_D3D9_EndFrame ();
+      if (This == SK_GetCurrentRenderBackend ().device)
+      {
+        SK_D3D9_EndFrame ();
+      }
 
       return hr;
     }
@@ -1577,7 +1613,10 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
         SK_EndBufferSwap (hr, pDev);
     }
 
-    SK_D3D9_EndFrame ();
+    if (This == SK_GetCurrentRenderBackend ().device)
+    {
+      SK_D3D9_EndFrame ();
+    }
 
     return hr;
   }
@@ -1659,7 +1698,10 @@ D3D9EndScene_Override (IDirect3DDevice9 *This)
     //GetCurrentThreadId ()
   //);
 
-  SK_D3D9_EndScene ();
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    SK_D3D9_EndScene ();
+  }
 
   return D3D9EndScene_Original (This);
 }
@@ -1910,28 +1952,31 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
   }
 
 
-  known_objs.clear ();
+  //if (This == SK_GetCurrentRenderBackend ().device)
+  //{
+    known_objs.clear ();
 
-  last_frame.clear ();
-  tracked_rt.clear ();
-  tracked_vs.clear ();
-  tracked_ps.clear ();
-  tracked_vb.clear ();
+    last_frame.clear ();
+    tracked_rt.clear ();
+    tracked_vs.clear ();
+    tracked_ps.clear ();
+    tracked_vb.clear ();
 
-  // Clearing the tracked VB only clears state, it doesn't
-  //   get rid of any data pointers.
-  //
-  //  (WE DID NOT QUERY THIS FROM THE D3D RUNTIME, DO NOT RELEASE)
-  tracked_vb.vertex_buffer = nullptr;
-  tracked_vb.wireframe     = false;
-  tracked_vb.wireframes.clear ();
-  // ^^^^ This is stupid, add a reset method.
+    // Clearing the tracked VB only clears state, it doesn't
+    //   get rid of any data pointers.
+    //
+    //  (WE DID NOT QUERY THIS FROM THE D3D RUNTIME, DO NOT RELEASE)
+    tracked_vb.vertex_buffer = nullptr;
+    tracked_vb.wireframe     = false;
+    tracked_vb.wireframes.clear ();
+    // ^^^^ This is stupid, add a reset method.
 
-  vs_checksums.clear ();
-  ps_checksums.clear ();
+    vs_checksums.clear ();
+    ps_checksums.clear ();
 
-  g_pPS   = nullptr;
-  g_pVS   = nullptr;
+    g_pPS   = nullptr;
+    g_pVS   = nullptr;
+  //}
 }
 
 __declspec (noinline)
@@ -2120,11 +2165,14 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                              UINT              StartVertex,
                              UINT              PrimitiveCount )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    ++draw_state.draws;
+    ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, StartVertex))
-    return S_OK;
+    if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, StartVertex))
+      return S_OK;
+  }
 
   HRESULT hr =
     D3D9DrawPrimitive_Original ( This,
@@ -2132,7 +2180,10 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                                      StartVertex,
                                        PrimitiveCount );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  }
 
   return hr;
 }
@@ -2148,11 +2199,14 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                     UINT              startIndex,
                                     UINT              primCount )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    ++draw_state.draws;
+    ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (Type, primCount, startIndex))
-    return S_OK;
+    if (SK_D3D9_ShouldSkipRenderPass (Type, primCount, startIndex))
+      return S_OK;
+  }
 
   HRESULT hr =
     D3D9DrawIndexedPrimitive_Original ( This,
@@ -2163,7 +2217,10 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                                   startIndex,
                                                     primCount );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  }
 
   return hr;
 }
@@ -2177,11 +2234,14 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                const void             *pVertexStreamZeroData,
                                      UINT              VertexStreamZeroStride )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    ++draw_state.draws;
+    ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, 0))
-    return S_OK;
+    if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, 0))
+      return S_OK;
+  }
 
   HRESULT hr =
     D3D9DrawPrimitiveUP_Original ( This,
@@ -2190,7 +2250,10 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                          pVertexStreamZeroData,
                                            VertexStreamZeroStride );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  }
 
   return hr;
 }
@@ -2208,11 +2271,14 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                       const void             *pVertexStreamZeroData,
                                             UINT              VertexStreamZeroStride )
 {
-  ++draw_state.draws;
-  ++draw_state.draw_count;
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    ++draw_state.draws;
+    ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex))
-    return S_OK;
+    if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex))
+      return S_OK;
+  }
 
   HRESULT hr = 
     D3D9DrawIndexedPrimitiveUP_Original (
@@ -2226,7 +2292,10 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                     pVertexStreamZeroData,
                       VertexStreamZeroStride );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  }
 
   return hr;
 }
@@ -2323,9 +2392,12 @@ D3D9SetPixelShader_Override ( IDirect3DDevice9      *This,
     D3D9SetPixelShader_Original ( This,
                                     pShader );
 
-  if (SUCCEEDED (hr))
+  if (This == SK_GetCurrentRenderBackend ().device)
   {
-    SK_D3D9_SetPixelShader (This, pShader);
+    if (SUCCEEDED (hr))
+    {
+      SK_D3D9_SetPixelShader (This, pShader);
+    }
   }
 
   return hr;
@@ -2341,9 +2413,12 @@ D3D9SetVertexShader_Override ( IDirect3DDevice9       *This,
     D3D9SetVertexShader_Original ( This,
                                      pShader );
 
-  if (SUCCEEDED (hr))
+  if (This == SK_GetCurrentRenderBackend ().device)
   {
-    SK_D3D9_SetVertexShader (This, pShader);
+    if (SUCCEEDED (hr))
+    {
+      SK_D3D9_SetVertexShader (This, pShader);
+    }
   }
 
   return hr;
@@ -2380,6 +2455,47 @@ D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
                                        ppTexture, pSharedHandle );
 }
 
+
+std::unordered_set <IDirect3DVertexBuffer9 *>        ffxiii_dynamic;
+std::unordered_map <IDirect3DVertexBuffer9 *, ULONG> ffxiii_dynamic_updates;
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D9VertexBuffer_Lock_pfn)( IDirect3DVertexBuffer9 *This,
+                                                                UINT                    OffsetToLock,
+                                                                UINT                    SizeToLock,
+                                                                void**                  ppbData,
+                                                                DWORD                   Flags );
+
+D3D9VertexBuffer_Lock_pfn D3D9VertexBuffer_Lock_Original = nullptr;
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9VertexBuffer_Lock_Override ( IDirect3DVertexBuffer9 *This,
+                                 UINT                    OffsetToLock,
+                                 UINT                    SizeToLock,
+                                 void**                  ppbData,
+                                 DWORD                   Flags )
+{
+  if (ffxiii_dynamic.count (This))
+  {
+    ULONG current_frame = SK_GetFramesDrawn ();
+    DWORD dwFlags       = D3DLOCK_NOOVERWRITE;
+
+    if (ffxiii_dynamic_updates [This] != current_frame)
+    {
+      // Discard each frame, and no-overwrite updates mid-frame
+      dwFlags                       = D3DLOCK_DISCARD;
+      ffxiii_dynamic_updates [This] = current_frame;
+    }
+
+    return D3D9VertexBuffer_Lock_Original (This, OffsetToLock, SizeToLock, ppbData, dwFlags);
+  }
+
+  else
+    return D3D9VertexBuffer_Lock_Original (This, OffsetToLock, SizeToLock, ppbData, Flags);
+}
+
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2393,19 +2509,67 @@ D3D9CreateVertexBuffer_Override
   _Out_ IDirect3DVertexBuffer9 **ppVertexBuffer,
   _In_  HANDLE                  *pSharedHandle )
 {
+  static bool ffxiii =
+    GetModuleHandle (L"ffxiiiimg.exe") != nullptr;
+
+  if (ffxiii)
+  {
+    // This is the UI vertex buffer
+    //if (Length == 358400)
+    if (Length >= 10240)
+    {
+      Usage = D3DUSAGE_DYNAMIC | Usage | D3DUSAGE_WRITEONLY;
+      Pool  = D3DPOOL_DEFAULT;
+    }
+  }
+
+
   HRESULT hr =
     D3D9CreateVertexBuffer_Original ( This,
                                         Length, Usage,
                                         FVF,    Pool,
                                           ppVertexBuffer,
-                                           pSharedHandle );
+                                            pSharedHandle );
 
-  if (SUCCEEDED (hr))
+  if (SUCCEEDED (hr) && ffxiii)
   {
-    if (Usage & D3DUSAGE_DYNAMIC)
-      known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
+    if (Length >= 10240)
+    {
+      static bool hooked = false;
+
+      if (! hooked)
+      {
+        hooked = true;
+
+        D3D9_INTERCEPT ( ppVertexBuffer, 11,
+                         "IDirect3DVertexBuffer9::Lock",
+                          D3D9VertexBuffer_Lock_Override,
+                          D3D9VertexBuffer_Lock_Original,
+                          D3D9VertexBuffer_Lock_pfn );
+        SK_ApplyQueuedHooks ( );
+      }
+
+      ffxiii_dynamic.emplace (*ppVertexBuffer);
+      ffxiii_dynamic_updates [*ppVertexBuffer] = 0;
+    }
+
     else
-      known_objs.static_vbs.emplace  (*ppVertexBuffer);
+    {
+      ffxiii_dynamic.erase   (*ppVertexBuffer);
+      ffxiii_dynamic_updates [*ppVertexBuffer] = 0;
+    }
+  }
+
+
+  if (This == SK_GetCurrentRenderBackend ().device)
+  {
+    if (SUCCEEDED (hr))
+    {
+      if (Usage & D3DUSAGE_DYNAMIC)
+        known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
+      else
+        known_objs.static_vbs.emplace  (*ppVertexBuffer);
+    }
   }
 
   return hr;
@@ -2429,15 +2593,18 @@ D3D9SetStreamSource_Override
                                          OffsetInBytes,
                                            Stride );
 
-  if (SUCCEEDED (hr))
+  if (This == SK_GetCurrentRenderBackend ().device)
   {
-    if (known_objs.dynamic_vbs.count (pStreamData))
-      last_frame.vertex_buffers.dynamic.emplace (pStreamData);
-    else
-      last_frame.vertex_buffers.immutable.emplace (pStreamData);
+    if (SUCCEEDED (hr))
+    {
+      if (known_objs.dynamic_vbs.count (pStreamData))
+        last_frame.vertex_buffers.dynamic.emplace (pStreamData);
+      else
+        last_frame.vertex_buffers.immutable.emplace (pStreamData);
 
-    if (StreamNumber == 0)
-      vb_stream0 = pStreamData;
+      if (StreamNumber == 0)
+        vb_stream0 = pStreamData;
+    }
   }
 
   return hr;
@@ -2452,16 +2619,17 @@ D3D9SetStreamSourceFreq_Override
   UINT              StreamNumber,
   UINT              FrequencyParameter )
 {
-  if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
+  if (This == SK_GetCurrentRenderBackend ().device)
   {
-    draw_state.instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
+    if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
+    {
+      draw_state.instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
+    }
+
+    if (StreamNumber == 1 && FrequencyParameter & D3DSTREAMSOURCE_INSTANCEDATA)
+    {
+    }
   }
-
-  if (StreamNumber == 1 && FrequencyParameter & D3DSTREAMSOURCE_INSTANCEDATA)
-  {
-  }
-
-
 
   return 
     D3D9SetStreamSourceFreq_Original ( This,
@@ -3155,6 +3323,21 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                     hFocusWindow, BehaviorFlags, pPresentationParameters,
                       ppReturnedDeviceInterface,
                         SK_SummarizeCaller ().c_str () );
+
+  if (config.render.d3d9.force_d3d9ex)
+  {
+    CComPtr <IDirect3D9Ex> pEx = nullptr;
+    IDirect3DDevice9Ex* pDevEx = nullptr;
+
+    if (SUCCEEDED (static_cast <IUnknown *> (This)->QueryInterface <IDirect3D9Ex> (&pEx)))
+    {
+      if (SUCCEEDED (D3D9CreateDeviceEx_Override (pEx, Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, nullptr, &pDevEx)))
+      {
+        if (SUCCEEDED (static_cast <IUnknown *> (pDevEx)->QueryInterface <IDirect3DDevice9> (ppReturnedDeviceInterface)))
+          return S_OK;
+      }
+    }
+  }
 
   HRESULT ret = E_FAIL;
 
@@ -4384,10 +4567,13 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
                                                                    "Cancel Draws Using Selected Vertex Shader", 
                         &tracker->cancel_draws );  ImGui::SameLine ();
 
+    ULONG num_draws =
+     InterlockedExchangeAdd (&tracker->num_draws, 0UL);
+
     if (tracker->cancel_draws)
-      ImGui::TextDisabled ("%lu Skipped Draw%c Last Frame (%lu textures)", tracker->num_draws, tracker->num_draws != 1 ? 's' : ' ', tracker->used_textures.size () );
+      ImGui::TextDisabled ("%lu Skipped Draw%c Last Frame (%lu textures)", num_draws, num_draws != 1 ? 's' : ' ', tracker->used_textures.size () );
     else
-      ImGui::TextDisabled ("%lu Draw%c Last Frame         (%lu textures)", tracker->num_draws, tracker->num_draws != 1 ? 's' : ' ', tracker->used_textures.size () );
+      ImGui::TextDisabled ("%lu Draw%c Last Frame         (%lu textures)", num_draws, num_draws != 1 ? 's' : ' ', tracker->used_textures.size () );
 
     ImGui::Checkbox ( shader_type == sk_d3d9_shader_class::Pixel ? "Clamp Texture Coordinates For Selected Pixel Shader" :
                                                                    "Clamp Texture Coordinates For Selected Vertex Shader",
@@ -4749,10 +4935,13 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
   ImGui::Checkbox ("Cancel Draws Using Selected Vertex Buffer",  &tracker->cancel_draws);  ImGui::SameLine ();
 
+  ULONG num_draws = InterlockedExchangeAdd (&tracker->num_draws, 0);
+  ULONG instanced = InterlockedExchangeAdd (&tracker->instanced, 0);
+
   if (tracker->cancel_draws)
-    ImGui::TextDisabled ("%lu Skipped Draw%c Last Frame [%lu Instanced]", tracker->num_draws, tracker->num_draws != 1 ? 's' : ' ', tracker->instanced);
+    ImGui::TextDisabled ("%lu Skipped Draw%c Last Frame [%lu Instanced]", num_draws, num_draws != 1 ? 's' : ' ', instanced);
   else
-    ImGui::TextDisabled ("%lu Draw%c Last Frame [%lu Instanced]        ", tracker->num_draws, tracker->num_draws != 1 ? 's' : ' ', tracker->instanced);
+    ImGui::TextDisabled ("%lu Draw%c Last Frame [%lu Instanced]        ", num_draws, num_draws != 1 ? 's' : ' ', instanced);
 
   ImGui::Checkbox ("Highlight Selected Vertex Buffer (Wireframe)", &tracker->wireframe);
 
@@ -4763,12 +4952,14 @@ SK_LiveVertexStreamView (bool& can_scroll)
          ( last_frame.vertex_buffers.dynamic.count   (tracker->vertex_buffer) ||
            last_frame.vertex_buffers.immutable.count (tracker->vertex_buffer) ) )
   {
-    bool wireframe = tracker->wireframes.count (tracker->vertex_buffer);
+    bool wireframe =
+      tracker->wireframes.count (tracker->vertex_buffer);
 
     extern std::wstring
     SK_D3D9_UsageToStr (DWORD dwUsage);
 
-    D3DVERTEXBUFFER_DESC desc;
+    D3DVERTEXBUFFER_DESC desc = { };
+
     if (SUCCEEDED (tracker->vertex_buffer->GetDesc (&desc)))
     {
       ImGui::BeginGroup   ();
@@ -5702,6 +5893,9 @@ SK_D3D9_TextureModDlg (void)
 
   ImGui::End          ();
 
+  tracked_ps.clear (); tracked_vs.clear (); last_frame.clear ();
+  tracked_rt.clear (); tracked_vb.clear (); known_objs.clear ();
+
   return show_dlg;
 }
 
@@ -6365,7 +6559,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
   if (tracking_vs)
   {
-    tracked_vs.num_draws++;
+    InterlockedIncrement (&tracked_vs.num_draws);
 
     for (unsigned int& current_texture : tracked_vs.current_textures)
     {
@@ -6391,7 +6585,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
   if (tracking_ps)
   {
-    tracked_ps.num_draws++;
+    InterlockedIncrement (&tracked_ps.num_draws);
 
     for ( unsigned int& current_texture : tracked_ps.current_textures )
     {
@@ -6426,8 +6620,9 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
     tracked_vb.use ();
 
     tracked_vb.instances  = draw_state.instances;
-    tracked_vb.instanced += draw_state.instances;
-    tracked_vb.num_draws++;
+
+    InterlockedExchangeAdd (&tracked_vb.instanced, static_cast <ULONG> (draw_state.instances));
+    InterlockedIncrement   (&tracked_vb.num_draws);
 
     if (tracked_vb.wireframe)
       wireframe = true;
@@ -6500,7 +6695,7 @@ EnumConstant ( shader_tracking_s* pShader,
     constant.Elements      = constant_desc.Elements;
 
     if (constant_desc.DefaultValue != nullptr)
-      memcpy (constant.Data, constant_desc.DefaultValue, std::min (constant_desc.Bytes, sizeof (float) * 4));
+      memcpy (constant.Data, constant_desc.DefaultValue, std::min (static_cast <size_t> (constant_desc.Bytes), sizeof (float) * 4));
 
     for ( UINT j = 0; j < constant_desc.StructMembers; j++ )
     {

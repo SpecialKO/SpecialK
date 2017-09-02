@@ -3423,7 +3423,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
       // Block RAW Input
-      if (console_visible       && uMsg == WM_INPUT)
+      if (uMsg == WM_INPUT)
         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
     }
   }
@@ -3434,8 +3434,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
 
   // Filter this out for fullscreen override safety
-  if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-  if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 
   LRESULT lRet =
@@ -3872,7 +3872,7 @@ SK_HookWinAPI (void)
      static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
 #endif
 
-#if 1
+#if 0
   SK_CreateDLLHook2 (         L"user32.dll",
                              "GetWindowRect",
                               GetWindowRect_Detour,
@@ -3885,7 +3885,7 @@ SK_HookWinAPI (void)
       );
 #endif
 
-#if 1
+#if 0
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetClientRect",
                               GetClientRect_Detour,

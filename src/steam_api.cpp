@@ -106,7 +106,7 @@ SK_Steam_PreHookCore (void)
     L"steam_api64.dll";
 #endif
 
-  if (GetProcAddress (LoadLibraryW_Original (wszSteamLib), "SteamInternal_CreateInterface"))
+  if (GetProcAddress (LoadLibraryW (wszSteamLib), "SteamInternal_CreateInterface"))
   {
     bool
     SK_Steam_HookController (void);
@@ -2476,12 +2476,8 @@ SteamAPI_RunCallbacks_Detour (void)
   {
     // Handle situations where Steam was initialized earlier than
     //   expected...
-    if (InterlockedCompareExchange (&__SK_Steam_init, 0, 0))
-    {
-      // Init the managers after the first callback run
-      void SK_SteamAPI_InitManagers (void);
-           SK_SteamAPI_InitManagers ();
-    }
+    void SK_SteamAPI_InitManagers (void);
+         SK_SteamAPI_InitManagers (    );
 
     static volatile HANDLE hThread = nullptr;
 
@@ -2525,7 +2521,11 @@ SteamAPI_RunCallbacks_Detour (void)
 
                 SteamAPI_RunCallbacks_Original ();
 
-                steam_ctx.UserStats ()->RequestGlobalAchievementPercentages ();
+                ISteamUserStats* pStats =
+                  steam_ctx.UserStats ();
+
+                if (pStats)
+                  pStats->RequestGlobalAchievementPercentages ();
 
                 SteamAPI_RunCallbacks_Original ();
               }
@@ -3820,7 +3820,7 @@ __stdcall
 SK_SteamAPI_UpdateNumPlayers (void)
 {
   if (user_manager != nullptr)
-    user_manager->UpdateNumPlayers ();
+      user_manager->UpdateNumPlayers ();
 }
 
 int32_t
@@ -3829,7 +3829,8 @@ SK_SteamAPI_GetNumPlayers (void)
 {
   if (user_manager != nullptr)
   {
-    int32 num = user_manager->GetNumPlayers ();
+    int32 num =
+      user_manager->GetNumPlayers ();
 
     if (num <= 1)
       user_manager->UpdateNumPlayers ();
