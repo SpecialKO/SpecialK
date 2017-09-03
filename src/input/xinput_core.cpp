@@ -108,7 +108,7 @@ SK_XInput_EstablishPrimaryHook (HMODULE hModCaller, SK_XInputContext::instance_s
     if (! warned_modules.count (hModCaller))
     {
       SK_LOG0 ( ( L"WARNING: Third-party module '%s' uses different XInput interface version "
-                  L"(%s) than the game (%s); input remapping software may not work correctly.",
+                  L"(%s) than the game (%s); input reassignment software may not work correctly.",
                     SK_GetModuleName (hModCaller).c_str (),
                     pCtx->wszModuleName, xinput_ctx.primary_hook->wszModuleName ),
                   L"Input Mgr." );
@@ -131,6 +131,9 @@ XInputGetState1_3_Detour (
   _Out_ XINPUT_STATE *pState )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
@@ -169,6 +172,9 @@ XInputGetStateEx1_3_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
@@ -209,6 +215,9 @@ XInputGetCapabilities1_3_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
@@ -243,6 +252,9 @@ XInputGetBatteryInformation1_3_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
@@ -275,6 +287,9 @@ XInputSetState1_3_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
@@ -315,6 +330,9 @@ XInputGetState1_4_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
@@ -352,6 +370,9 @@ XInputGetStateEx1_4_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
@@ -392,6 +413,9 @@ XInputGetCapabilities1_4_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
@@ -426,6 +450,9 @@ XInputGetBatteryInformation1_4_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
@@ -458,6 +485,9 @@ XInputSetState1_4_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
@@ -498,6 +528,9 @@ XInputGetState9_1_0_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
@@ -537,6 +570,9 @@ XInputGetCapabilities9_1_0_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
@@ -569,6 +605,9 @@ XInputSetState9_1_0_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
@@ -1060,6 +1099,9 @@ SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
 {
+  iJoyID =
+    config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
+
   if (config.input.gamepad.xinput.disable_rumble)
     return false;
 
@@ -1084,6 +1126,9 @@ bool
 SK_XInput_PollController ( INT           iJoyID,
                            XINPUT_STATE* pState )
 {
+  iJoyID =
+    config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
+
   if (! config.input.gamepad.hook_xinput)
     return false;
 
@@ -1262,6 +1307,9 @@ SK_Input_PreHookXInput (void)
 void
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
+  iJoyID =
+    config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
+
   if (iJoyID >= XUSER_MAX_COUNT) return;
 
   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);

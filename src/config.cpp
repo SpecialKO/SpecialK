@@ -290,9 +290,10 @@ struct {
     sk::ParameterBool*    hook_xinput;
 
     struct {
-      sk::ParameterInt*  ui_slot;
-      sk::ParameterInt*  placeholders;
-      sk::ParameterBool* disable_rumble;
+      sk::ParameterInt*     ui_slot;
+      sk::ParameterInt*     placeholders;
+      sk::ParameterBool*    disable_rumble;
+      sk::ParameterStringW* assignment;
     } xinput;
 
     sk::ParameterBool*   native_ps4;
@@ -794,6 +795,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.XInput",
         L"DisableRumble" );
+
+  input.gamepad.xinput.assignment =
+    dynamic_cast <sk::ParameterStringW *>
+    ( g_ParameterFactory.create_parameter <std::wstring> (
+      L"Re-Assign XInput Slots")
+      );
+  input.gamepad.xinput.assignment->register_to_ini (
+    dll_ini,
+      L"Input.XInput",
+        L"SlotReassignment");
 
 
   window.borderless =
@@ -2901,6 +2912,36 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (input.gamepad.xinput.disable_rumble->load ())
     config.input.gamepad.xinput.disable_rumble = input.gamepad.xinput.disable_rumble->get_value ();
 
+
+  if (input.gamepad.xinput.assignment->load ())
+  {
+    wchar_t* wszAssign =
+      _wcsdup (input.gamepad.xinput.assignment->get_value ().c_str ());
+
+    wchar_t* wszBuf = nullptr;
+    wchar_t* wszTok =
+      std::wcstok (wszAssign, L",", &wszBuf);
+
+    if (wszTok == nullptr)
+    {
+      config.input.gamepad.xinput.assignment [0] = 0; config.input.gamepad.xinput.assignment [1] = 1;
+      config.input.gamepad.xinput.assignment [2] = 2; config.input.gamepad.xinput.assignment [3] = 3;
+    }
+
+    int idx = 0;
+
+    while (wszTok && idx < 4)
+    {
+      config.input.gamepad.xinput.assignment [idx++] =
+        _wtoi (wszTok);
+
+      wszTok =
+        std::wcstok (nullptr, L",", &wszBuf);
+    }
+
+    free (wszAssign);
+  }
+
   if (input.gamepad.xinput.ui_slot->load ())
     config.input.gamepad.xinput.ui_slot = input.gamepad.xinput.ui_slot->get_value ();
 
@@ -3442,6 +3483,20 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.placeholders->set_value (placeholder_mask);
   input.gamepad.xinput.ui_slot->set_value      (config.input.gamepad.xinput.ui_slot);
 
+  std::wstring xinput_assign = L"";
+
+  for (int i = 0; i < 4; i++)
+  {
+    xinput_assign += std::to_wstring (
+      config.input.gamepad.xinput.assignment [i]
+    );
+
+    if (i != 3)
+      xinput_assign += L",";
+  }
+
+  input.gamepad.xinput.assignment->set_value (xinput_assign);
+
   input.gamepad.xinput.disable_rumble->set_value (config.input.gamepad.xinput.disable_rumble);
 
   window.borderless->set_value                (config.window.borderless);
@@ -3727,6 +3782,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.placeholders->store   ();
   input.gamepad.xinput.disable_rumble->store ();
   input.gamepad.haptic_ui->store             ();
+  input.gamepad.xinput.assignment->store   ();
 
   window.borderless->store                 ();
   window.center->store                     ();

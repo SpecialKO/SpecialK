@@ -47,6 +47,9 @@ static SK_XInput_PacketJournal packets [XUSER_MAX_COUNT + 1];
 SK_XInput_PacketJournal
 SK_XInput_GetPacketJournal (DWORD dwUserIndex)
 {
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
   if (dwUserIndex >= XUSER_MAX_COUNT)
     return packets [XUSER_MAX_COUNT];
 

@@ -1,3 +1,10 @@
+0.8.40
+
+ + Added somewhat functional texture modding support to D3D9
+  >> Will finish at a later date
+ + Added XInput Controller Slot Reassignment (refer to INI file -- default is 0,1,2,3)
+
+
 0.8.39
 
  + Fixed D3D9Ex D3DPRESENT_DONOTWAIT support in Lightning Returns: FFXIII
