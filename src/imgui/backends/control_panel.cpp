@@ -42,6 +42,7 @@
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/d3d9_backend.h>
 #include <SpecialK/sound.h>
 
 #include <SpecialK/update/version.h>
@@ -2113,6 +2114,43 @@ SK_ImGui_ControlPanel (void)
 
 
     SK_PlugIn_ControlPanelWidget ();
+
+
+#ifdef _WIN64
+    if (SK_GetCurrentGameID () == SK_GAME_ID::GalGun_Double_Peace)
+    {
+      if (ImGui::CollapsingHeader ("Gal*Gun: Double Peace", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        static bool emperor_has_no_clothes = false;
+
+        ImGui::TreePush ("");
+
+        if (ImGui::Checkbox ("The emperor of Japan has no clothes", &emperor_has_no_clothes))
+        {
+          const uint32_t ps_primary = 0x9b826e8a;
+          const uint32_t vs_outline = 0x2e1993cf;
+
+          if (emperor_has_no_clothes)
+          {
+            SK_D3D9_Shaders.vertex.blacklist.emplace (vs_outline);
+            SK_D3D9_Shaders.pixel.blacklist.emplace  (ps_primary);
+          }
+
+          else
+          {
+            SK_D3D9_Shaders.vertex.blacklist.erase (vs_outline);
+            SK_D3D9_Shaders.pixel.blacklist.erase  (ps_primary);
+          }
+        }
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ( emperor_has_no_clothes ? "And neither do the girls in this game!" :
+                                                       "But the prudes in this game do." );
+
+        ImGui::TreePop ();
+      }
+    }
+#endif
 
 
     static bool has_own_limiter = (hModTZFix || hModTBFix);

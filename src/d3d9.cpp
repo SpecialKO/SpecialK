@@ -186,9 +186,11 @@ WINAPI D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
 
 
 
+CRITICAL_SECTION cs_vs = { };
+CRITICAL_SECTION cs_ps = { };
+CRITICAL_SECTION cs_vb = { };
 
-IDirect3DVertexShader9* g_pVS;
-IDirect3DPixelShader9*  g_pPS;
+SK_D3D9_KnownShaders SK_D3D9_Shaders;
 
 struct sk_d3d9_draw_states_s
 {
@@ -319,6 +321,8 @@ struct vertex_buffer_tracking_s
 
   void use (void)
   {
+    SK_AutoCriticalSection auto_cs (&cs_vb);
+
     IDirect3DVertexDeclaration9* decl = nullptr;
     CComPtr <IDirect3DDevice9>   pDev = nullptr;
 
@@ -331,8 +335,8 @@ struct vertex_buffer_tracking_s
       return;
     }
 
-    extern uint32_t vs_checksum,
-                    ps_checksum;
+    const uint32_t vs_checksum = SK_D3D9_Shaders.vertex.current.crc32c;
+    const uint32_t ps_checksum = SK_D3D9_Shaders.pixel.current.crc32c;
 
     vertex_shaders.emplace (vs_checksum);
     pixel_shaders.emplace  (ps_checksum);
@@ -393,14 +397,6 @@ IDirect3DVertexBuffer9* vb_stream0 = nullptr;
 
 std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> ps_disassembly;
 std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> vs_disassembly;
-
-std::unordered_map <LPVOID, uint32_t>                  vs_checksums;
-std::unordered_map <LPVOID, uint32_t>                  ps_checksums;
-
-// Store the CURRENT shader's checksum instead of repeatedly
-//   looking it up in the above hashmaps.
-uint32_t vs_checksum = 0;
-uint32_t ps_checksum = 0;
 
 enum class sk_d3d9_shader_class {
   Unknown = 0x00,
@@ -928,8 +924,6 @@ d3d9_init_callback (finish_pfn finish)
 
     while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
       SleepEx (100UL, TRUE);
-
-    SK_D3D9_InitShaderModTools ();
   }
 
   finish ();
@@ -1971,11 +1965,8 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
     tracked_vb.wireframes.clear ();
     // ^^^^ This is stupid, add a reset method.
 
-    vs_checksums.clear ();
-    ps_checksums.clear ();
-
-    g_pPS   = nullptr;
-    g_pVS   = nullptr;
+    SK_D3D9_Shaders.vertex.clear ();
+    SK_D3D9_Shaders.pixel.clear  ();
   //}
 }
 
@@ -2476,6 +2467,8 @@ D3D9VertexBuffer_Lock_Override ( IDirect3DVertexBuffer9 *This,
                                  void**                  ppbData,
                                  DWORD                   Flags )
 {
+  SK_AutoCriticalSection auto_cs (&cs_vb);
+
   if (ffxiii_dynamic.count (This))
   {
     ULONG current_frame = SK_GetFramesDrawn ();
@@ -2533,6 +2526,8 @@ D3D9CreateVertexBuffer_Override
 
   if (SUCCEEDED (hr) && ffxiii)
   {
+    SK_AutoCriticalSection auto_cs (&cs_vb);
+
     if (Length >= 10240)
     {
       static bool hooked = false;
@@ -2565,6 +2560,8 @@ D3D9CreateVertexBuffer_Override
   {
     if (SUCCEEDED (hr))
     {
+      SK_AutoCriticalSection auto_cs (&cs_vb);
+
       if (Usage & D3DUSAGE_DYNAMIC)
         known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
       else
@@ -2593,14 +2590,34 @@ D3D9SetStreamSource_Override
                                          OffsetInBytes,
                                            Stride );
 
-  if (This == SK_GetCurrentRenderBackend ().device)
+  if (This == SK_GetCurrentRenderBackend ().device && pStreamData != nullptr)
   {
     if (SUCCEEDED (hr))
     {
+      SK_AutoCriticalSection auto_cs (&cs_vb);
+
       if (known_objs.dynamic_vbs.count (pStreamData))
         last_frame.vertex_buffers.dynamic.emplace (pStreamData);
-      else
+      else if (known_objs.static_vbs.count (pStreamData))
         last_frame.vertex_buffers.immutable.emplace (pStreamData);
+
+      else
+      {
+        D3DVERTEXBUFFER_DESC   desc = { };
+        pStreamData->GetDesc (&desc);
+
+        if (desc.Usage & D3DUSAGE_DYNAMIC)
+        {
+                         known_objs.dynamic_vbs.emplace (pStreamData);
+          last_frame.vertex_buffers.dynamic.emplace     (pStreamData);
+        }
+
+        else
+        {
+                        known_objs.static_vbs.emplace (pStreamData);
+          last_frame.vertex_buffers.immutable.emplace (pStreamData);
+        }
+      }
 
       if (StreamNumber == 0)
         vb_stream0 = pStreamData;
@@ -2621,6 +2638,8 @@ D3D9SetStreamSourceFreq_Override
 {
   if (This == SK_GetCurrentRenderBackend ().device)
   {
+    SK_AutoCriticalSection auto_cs (&cs_vb);
+
     if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
     {
       draw_state.instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
@@ -4650,20 +4669,51 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
         {
           ImGui::PushID (it2.RegisterIndex);
 
-          if (it2.Type == D3DXPT_FLOAT && it2.Class == D3DXPC_VECTOR)
+          bool tweakable = false;
+
+          if (it2.Type == D3DXPT_FLOAT)
           {
-            snprintf ( szName, 127, "[%s] %-24s",
+            snprintf ( szName, 127, "[%s] %-32s",
                          shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
                                                                       "vs",
                            it2.Name );
 
-            ImGui::Checkbox    (szName, &it2.Override);
-            ImGui::InputFloat4 ("",      it2.Data);
+            if (it2.Class == D3DXPC_VECTOR ||
+                it2.Class == D3DXPC_SCALAR)
+            {
+              switch (it2.Columns)
+              {
+                case 1:
+                  tweakable = true;
+                  ImGui::Checkbox    (szName, &it2.Override);
+                  ImGui::SameLine    ( );
+                  ImGui::InputFloat  ("", it2.Data);
+                  break;
+                case 2:
+                  tweakable = true;
+                  ImGui::Checkbox    (szName, &it2.Override);
+                  ImGui::SameLine    ( );
+                  ImGui::InputFloat2 ("", it2.Data);
+                  break;
+                case 3:
+                  tweakable = true;
+                  ImGui::Checkbox    (szName, &it2.Override);
+                  ImGui::SameLine    ( );
+                  ImGui::InputFloat3 ("", it2.Data);
+                  break;
+                case 4:
+                  tweakable = true;
+                  ImGui::Checkbox    (szName, &it2.Override);
+                  ImGui::SameLine    ( );
+                  ImGui::InputFloat4 ("", it2.Data);
+                  break;
+              }
+            }
           }
 
-          else
+          if (! tweakable)
           {
-            snprintf ( szName, 127, "[%s] %-24s :(%c%-3lu)",
+            snprintf ( szName, 127, "[%s] %-32s :(%c%-3lu)",
                          shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
                                                                       "vs",
                            it2.Name,
@@ -4681,25 +4731,72 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
       else
       {
-        if (it.Type == D3DXPT_FLOAT && it.Class == D3DXPC_VECTOR)
-        {
-          snprintf ( szName, 127, "[%s] %-24s",
-                       shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                    "vs",
-                           it.Name );
+        bool tweakable = false;
 
-          ImGui::Checkbox    (szName, &it.Override); ImGui::SameLine ();
-          ImGui::InputFloat4 ("",      it.Data);
+        snprintf ( szName, 127, "[%s] %-32s",
+                     shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
+                                                                  "vs",
+                       it.Name );
+
+        if (it.Type == D3DXPT_FLOAT)
+        {
+          if (it.Class == D3DXPC_VECTOR ||
+              it.Class == D3DXPC_SCALAR)
+          {
+            switch (it.Columns)
+            {
+              case 1:
+                tweakable = true;
+                ImGui::Checkbox    (szName, &it.Override);
+                ImGui::SameLine    ( );
+                ImGui::InputFloat  ("", it.Data);
+                break;
+              case 2:
+                tweakable = true;
+                ImGui::Checkbox    (szName, &it.Override);
+                ImGui::SameLine    ( );
+                ImGui::InputFloat2 ("", it.Data);
+                break;
+              case 3:
+                tweakable = true;
+                ImGui::Checkbox    (szName, &it.Override);
+                ImGui::SameLine    ( );
+                ImGui::InputFloat3 ("", it.Data);
+                break;
+              case 4:
+                tweakable = true;
+                ImGui::Checkbox    (szName, &it.Override);
+                ImGui::SameLine    ( );
+                ImGui::InputFloat4 ("", it.Data);
+                break;
+            }
+          }
         }
 
-        else
+        if (it.Type == D3DXPT_BOOL)
         {
-            snprintf ( szName, 127, "[%s] %-24s :(%c%-3lu)",
-                         shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                      "vs",
-                           it.Name,
-                             it.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
-                               it.RegisterIndex );
+          if (it.Class == D3DXPC_SCALAR)
+          {
+            switch (it.Columns)
+            {
+              case 1:
+                tweakable = true;
+                ImGui::Checkbox (szName, &it.Override);
+                ImGui::SameLine ( );
+                ImGui::Checkbox ("Enable", reinterpret_cast <bool *> (it.Data));
+                break;
+            }
+          }
+        }
+
+        if (! tweakable)
+        {
+          snprintf ( szName, 127, "[%s] %-32s :(%c%-3lu)",
+                       shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
+                                                                    "vs",
+                         it.Name,
+                           it.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
+                             it.RegisterIndex );
 
           ImGui::TreePush (""); ImGui::TextColored (ImVec4 (0.45f, 0.75f, 0.45f, 1.0f), szName); ImGui::TreePop ();
         }
@@ -4996,7 +5093,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
                                                                   desc.Type == D3DRTYPE_INDEXBUFFER  ? "Index Buffer"  :
                                                                                                        "Unknown?!" );
       ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%ws",  SK_D3D9_UsageToStr (desc.Usage).c_str ());
-      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%llu", desc.Size);
+      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%lu", desc.Size);
       ImGui::EndGroup    ();
 
       last_count = 0;
@@ -5852,10 +5949,16 @@ SK_D3D9_TextureModDlg (void)
     ImGui::TreePush ("");
 
     if (ImGui::CollapsingHeader ("Pixel Shaders"))
+    {
+      SK_AutoCriticalSection auto_cs (&cs_ps);
       SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class::Pixel, can_scroll);
+    }
 
     if (ImGui::CollapsingHeader ("Vertex Shaders"))
+    {
+      SK_AutoCriticalSection auto_cs (&cs_vs);
       SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class::Vertex, can_scroll);
+    }
 
     ImGui::TreePop ();
   }
@@ -5865,7 +5968,10 @@ SK_D3D9_TextureModDlg (void)
     ImGui::TreePush ("");
 
     if (ImGui::CollapsingHeader ("Stream 0"))
+    {
+      SK_AutoCriticalSection auto_cs (&cs_vb);
       SK_LiveVertexStreamView (can_scroll);
+    }
 
     ImGui::TreePop ();
   }
@@ -5892,6 +5998,10 @@ SK_D3D9_TextureModDlg (void)
     ImGui::SetScrollY (ImGui::GetScrollY () + 5.0f * ImGui::GetFont ()->FontSize * -ImGui::GetIO ().MouseWheel);
 
   ImGui::End          ();
+
+  SK_AutoCriticalSection auto_cs0 (&cs_vs);
+  SK_AutoCriticalSection auto_cs1 (&cs_ps);
+  SK_AutoCriticalSection auto_cs2 (&cs_vb);
 
   tracked_ps.clear (); tracked_vs.clear (); last_frame.clear ();
   tracked_rt.clear (); tracked_vb.clear (); known_objs.clear ();
@@ -6401,12 +6511,16 @@ void
 SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
                           IDirect3DVertexShader9 *pShader )
 {
-  if (g_pVS != pShader)
+  if (SK_D3D9_Shaders.vertex.current.ptr != pShader)
   {
     if (pShader != nullptr)
     {
-      if (vs_checksums.find (pShader) == vs_checksums.end ())
+      EnterCriticalSection (&cs_vs);
+
+      if (SK_D3D9_Shaders.vertex.rev.find (pShader) == SK_D3D9_Shaders.vertex.rev.end ())
       {
+        LeaveCriticalSection (&cs_vs);
+
         UINT len = 0;
 
         pShader->GetFunction (nullptr, &len);
@@ -6418,22 +6532,35 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
         {
           pShader->GetFunction (pbFunc, &len);
 
-          vs_checksums [pShader] =
+          uint32_t checksum =
             crc32c (0, pbFunc, len);
-
-          SK_D3D9_DumpShader (L"vs", vs_checksums [pShader], pbFunc);
+            
+          SK_D3D9_DumpShader (L"vs", checksum, pbFunc);
 
           free (pbFunc);
+
+          EnterCriticalSection (&cs_vs);
+
+          SK_D3D9_Shaders.vertex.rev [pShader] = checksum;
         }
       }
+
+      LeaveCriticalSection (&cs_vs);
     }
 
     else
-      vs_checksum = 0;
+      SK_D3D9_Shaders.vertex.current.crc32c = 0;
   }
 
-  vs_checksum = vs_checksums [pShader];
-  g_pVS       = pShader;
+
+  SK_AutoCriticalSection csVS (&cs_vs);
+
+  const uint32_t vs_checksum =
+    SK_D3D9_Shaders.vertex.rev [pShader];
+
+  SK_D3D9_Shaders.vertex.current.crc32c = vs_checksum;
+  SK_D3D9_Shaders.vertex.current.ptr    = pShader;
+
 
   if (vs_checksum != 0x00)
   {
@@ -6456,12 +6583,16 @@ void
 SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
                          IDirect3DPixelShader9 *pShader )
 {
-  if (g_pPS != pShader)
+  if (SK_D3D9_Shaders.pixel.current.ptr != pShader)
   {
     if (pShader != nullptr)
     {
-      if (ps_checksums.find (pShader) == ps_checksums.end ())
+      EnterCriticalSection (&cs_ps);
+
+      if (SK_D3D9_Shaders.pixel.rev.find (pShader) == SK_D3D9_Shaders.pixel.rev.end ())
       {
+        LeaveCriticalSection (&cs_ps);
+
         UINT len = 0;
 
         pShader->GetFunction (nullptr, &len);
@@ -6473,22 +6604,36 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
         {
           pShader->GetFunction (pbFunc, &len);
 
-          ps_checksums [pShader] =
+          uint32_t checksum =
             crc32c (0, pbFunc, len);
 
-          SK_D3D9_DumpShader (L"ps", ps_checksums [pShader], pbFunc);
+          SK_D3D9_DumpShader (L"ps", checksum, pbFunc);
 
           free (pbFunc);
+
+          EnterCriticalSection (&cs_ps);
+
+          SK_D3D9_Shaders.pixel.rev  [pShader] = checksum;
         }
       }
+
+      LeaveCriticalSection (&cs_ps);
     }
 
     else
-      ps_checksum = 0;
+      SK_D3D9_Shaders.pixel.current.crc32c = 0x0;
   }
 
-  ps_checksum = ps_checksums [pShader];
-  g_pPS       = pShader;
+
+  SK_AutoCriticalSection csPS (&cs_ps);
+
+  const uint32_t ps_checksum =
+    SK_D3D9_Shaders.pixel.rev [pShader];
+
+  SK_D3D9_Shaders.pixel.current.crc32c = ps_checksum;
+  SK_D3D9_Shaders.pixel.current.ptr    = pShader;
+
+
 
   if (ps_checksum != 0x00)
   {
@@ -6528,16 +6673,21 @@ SK_D3D9_EndFrame (void)
   draw_state.draw_count = 0;
   draw_state.next_draw  = 0;
   
-  g_pPS = nullptr;
-  g_pVS = nullptr;
-  vs_checksum = 0;
-  ps_checksum = 0;
+  SK_D3D9_Shaders.vertex.clear_state ();
+  SK_D3D9_Shaders.pixel.clear_state  ();
 
-  last_frame.clear ();
-  tracked_rt.clear ();
-  tracked_vs.clear ();
-  tracked_ps.clear ();
-  tracked_vb.clear ();
+  {
+    SK_AutoCriticalSection csVS (&cs_vs);
+    last_frame.clear ();
+    tracked_vs.clear ();
+    tracked_vb.clear ();
+    tracked_rt.clear ();
+  }
+
+  {
+    SK_AutoCriticalSection csVS (&cs_ps);
+    tracked_ps.clear ( );
+  }
 
   draw_state.cegui_active = false;
 }
@@ -6553,9 +6703,37 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice)))
     return false;
 
+  const uint32_t vs_checksum = SK_D3D9_Shaders.vertex.current.crc32c;
+  const uint32_t ps_checksum = SK_D3D9_Shaders.pixel.current.crc32c;
+
   const bool tracking_vs = ( vs_checksum == tracked_vs.crc32c );
   const bool tracking_ps = ( ps_checksum == tracked_ps.crc32c );
   const bool tracking_vb = { vb_stream0  == tracked_vb.vertex_buffer };
+
+
+  bool skip      = false;
+  bool wireframe = false;
+
+  {
+    SK_AutoCriticalSection auto_cs (&cs_vs);
+
+    if (SK_D3D9_Shaders.vertex.blacklist.count (vs_checksum))
+      skip      = true;
+
+    if (SK_D3D9_Shaders.vertex.wireframe.count (vs_checksum))
+      wireframe = true;
+  }
+
+  {
+    SK_AutoCriticalSection auto_cs (&cs_ps);
+
+    if (SK_D3D9_Shaders.pixel.blacklist.count (ps_checksum))
+      skip      = true;
+
+    if (SK_D3D9_Shaders.pixel.wireframe.count (ps_checksum))
+      wireframe = true;
+  }
+
 
   if (tracking_vs)
   {
@@ -6585,6 +6763,8 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
   if (tracking_ps)
   {
+    SK_AutoCriticalSection auto_cs (&cs_ps);
+
     InterlockedIncrement (&tracked_ps.num_draws);
 
     for ( unsigned int& current_texture : tracked_ps.current_textures )
@@ -6610,8 +6790,6 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   }
 
 
-  bool wireframe = false;
-
   if (tracked_vb.wireframes.count (vb_stream0))
     wireframe = true;
 
@@ -6627,6 +6805,11 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
     if (tracked_vb.wireframe)
       wireframe = true;
   }
+
+
+  if (skip)
+    return true;
+
 
   if (tracking_vb && tracked_vb.cancel_draws)
     return true;
@@ -6660,8 +6843,12 @@ SK_D3D9_InitShaderModTools (void)
   known_objs.static_vbs.reserve               (8192);
   ps_disassembly.reserve                      (512);
   vs_disassembly.reserve                      (512);
-  vs_checksums.reserve                        (8192);
-  ps_checksums.reserve                        (8192);
+  SK_D3D9_Shaders.vertex.rev.reserve          (8192);
+  SK_D3D9_Shaders.pixel.rev.reserve           (8192);
+
+  InitializeCriticalSectionAndSpinCount (&cs_vs, 1024 * 2048 * 128);
+  InitializeCriticalSectionAndSpinCount (&cs_ps, 1024 * 2048 * 128);
+  InitializeCriticalSectionAndSpinCount (&cs_vb, 1024 * 2048 * 128);
 }
 
 
@@ -6719,6 +6906,9 @@ shader_tracking_s::use (IUnknown *pShader)
 {
   if (shader_obj != pShader)
   {
+    SK_AutoCriticalSection auto_crit0 (&cs_vs);
+    SK_AutoCriticalSection auto_crit1 (&cs_ps);
+
     constants.clear ();
 
     shader_obj = pShader;

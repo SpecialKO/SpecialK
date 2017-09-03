@@ -294,6 +294,11 @@ SK_Widget::draw_base (void)
   if (SK_ImGui_Widgets.hide_all)
     return;
 
+  float fScale = 
+    ImGui::GetFont ()->Scale;
+
+                   ImGui::GetFont ()->Scale = scale;
+  ImGui::PushFont (ImGui::GetFont ());
 
   static std::unordered_set <SK_Widget *> initialized;
 
@@ -363,6 +368,8 @@ SK_Widget::draw_base (void)
                              nullptr,
                                flags );
 
+  ImGui::SetWindowFontScale (SK_ImGui_Widgets.scale);
+
   static SK_Widget* focus_widget = nullptr;
 
   bool focus_change = false;
@@ -423,6 +430,9 @@ SK_Widget::draw_base (void)
   }
 
   ImGui::End         ();
+
+  ImGui::PopFont ();
+  ImGui::GetFont ()->Scale = fScale;
 }
 
 extern __declspec (dllexport) void
@@ -481,9 +491,7 @@ SK_Widget::config_base (void)
 {
   static bool changed = false;
 
-  ImGuiIO& io (ImGui::GetIO ());
-
-  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+  const  float font_size           =             ImGui::GetFont  ()->FontSize;//                        * scale;//io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
   if (ImGui::Checkbox ("Movable", &movable))
@@ -628,6 +636,10 @@ SK_Widget::config_base (void)
   ImGui::EndGroup   (  );
 
   ImGui::TreePop    (  );
+
+  ImGui::Separator ();
+
+  ImGui::SliderFloat ("Widget Scale", &scale, 0.25f, 2.0f);
 
   ImGui::Separator ();
 

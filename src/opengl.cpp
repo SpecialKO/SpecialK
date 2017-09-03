@@ -46,6 +46,12 @@ extern HMODULE WINAPI SK_GetDLL (void);
 
 #include <imgui/backends/imgui_gl3.h>
 
+
+//SK_OpenGL_KnownPrograms SK_GL_Programs;
+//SK_OpenGL_KnownTextures SK_GL_Textures;
+//SK_OpenGL_KnownBuffers  SK_GL_Buffers;
+
+
 volatile ULONG __gl_ready = FALSE;
 
 void
@@ -1525,7 +1531,7 @@ namespace GLPerf
       ready_     = GL_TRUE;
 
       target_    = target;
-      active_    = false;
+      active_    = GL_FALSE;
     }
 
    ~PipelineQuery (GLvoid)
@@ -1737,7 +1743,11 @@ SK_GL_UpdateRenderStats (void)
     {
       if (GLPerf::pipeline_states [i]->isReady ())
       {
-        GLPerf::pipeline_states [i]->beginQuery ();
+        GLuint64 result;
+        if (GLPerf::pipeline_states [i]->getResulIfFinished (&result))
+        {
+          GLPerf::pipeline_states [i]->beginQuery ();
+        }
       }
 
       else if (GLPerf::pipeline_states [i]->isActive ())
@@ -1745,11 +1755,10 @@ SK_GL_UpdateRenderStats (void)
         GLPerf::pipeline_states [i]->endQuery ();
       }
 
-      if (! GLPerf::pipeline_states [i]->isActive ())
-      {
-        GLuint64 result;
-        GLPerf::pipeline_states [i]->getResulIfFinished (&result);
-      }
+      //if (! GLPerf::pipeline_states [i]->isActive ())
+      //{
+      //
+      //}
     }
   }
 }

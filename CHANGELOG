@@ -1,3 +1,12 @@
+0.8.39
+
+ + Fixed D3D9Ex D3DPRESENT_DONOTWAIT support in Lightning Returns: FFXIII
+ + Integrated UI memory management fixes for FFXIII
+ + Improved thread-safety in D3D9 shader mod tools
+ + Added scaling option to widgets (needs a ton of work)
+ + Added clothing preferences to Gal*Gun: Double Peace
+
+
 0.8.38
 
  + Integrates about 33 - 50% of Tales of Berseria Fix's shader modding functionality

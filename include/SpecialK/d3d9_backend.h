@@ -967,4 +967,54 @@ using CreateAdditionalSwapChain_pfn = HRESULT (STDMETHODCALLTYPE *)
   (IDirect3DDevice9* This, D3DPRESENT_PARAMETERS* pPresentationParameters,
    IDirect3DSwapChain9** pSwapChain);
 
+
+
+#include <unordered_map>
+#include <unordered_set>
+#include <cstdint>
+
+struct SK_D3D9_KnownShaders
+{
+  //typedef std::unordered_map <uint32_t, std::unordered_set <ID3D11ShaderResourceView *>> conditional_blacklist_t;
+
+  template <typename _T>
+  struct ShaderRegistry
+  {
+    void clear (void)
+    {
+      rev.clear   ();
+      clear_state ();
+
+      changes_last_frame = 0;
+    }
+
+    void clear_state (void)
+    {
+      current.crc32c = 0x0;
+      current.ptr    = nullptr;
+    }
+
+    std::unordered_map <_T*, uint32_t>      rev;
+    //std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
+
+    std::unordered_set <uint32_t>           wireframe;
+    std::unordered_set <uint32_t>           blacklist;
+
+    //conditional_blacklist_t                 blacklist_if_texture;
+
+    struct
+    {
+      uint32_t                              crc32c = 0x00;
+      _T*                                   ptr    = nullptr;
+    } current;
+
+    //d3d11_shader_tracking_s                 tracked;
+
+    ULONG                                   changes_last_frame = 0;
+  };
+
+  ShaderRegistry <IDirect3DPixelShader9>    pixel;
+  ShaderRegistry <IDirect3DVertexShader9>   vertex;
+} extern SK_D3D9_Shaders;
+
 #endif /* __SK__D3D9_BACKEND_H__ */

@@ -934,12 +934,12 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK_FAR_InitPlugin ();
 #endif
 
-  BOOL
-  SK_Steam_PreHookCore (void);
-  SK_Steam_PreHookCore (    );
-
   if (! lstrcmpW (SK_GetHostApp (), L"SonicMania.exe"))
   {
+    BOOL
+    SK_Steam_PreHookCore (void);
+    SK_Steam_PreHookCore ( );
+
     extern void SK_SMOKE_InitPlugin (void);
                 SK_SMOKE_InitPlugin (    );
   }

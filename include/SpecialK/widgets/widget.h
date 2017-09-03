@@ -34,6 +34,31 @@
 extern sk::ParameterFactory SK_Widget_ParameterFactory;
 
 struct ImGuiWindow;
+class  SK_Widget;
+
+struct SK_ImGui_WidgetRegistry
+{
+  bool texcache = false;
+
+  SK_Widget* frame_pacing;
+  SK_Widget* volume_control;
+  SK_Widget* gpu_monitor;
+  SK_Widget* cpu_monitor;
+  SK_Widget* d3d11_pipeline;
+
+  //SK_Widget* texcache;
+
+  SK_Widget* memory_monitor = nullptr;
+  SK_Widget* disk_monitor   = nullptr;
+
+  BOOL DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+  BOOL SaveConfig (void);
+
+  bool  hide_all = false;
+  float scale    = 1.0f;
+} extern SK_ImGui_Widgets;
+
+
 
 class SK_Widget
 {
@@ -100,7 +125,8 @@ public:
 
   const std::string& getName         (void) const { return    name;           }
         float        getScale        (void) const { return    scale;          }
-        bool         isVisible       (void) const { return    visible;        }
+        bool         isVisible       (void) const { return    visible &&
+                                               (! SK_ImGui_Widgets.hide_all); }
         bool         isActive        (void) const { return    active;         }
         bool         isMovable       (void) const { return    movable;        }
         bool         isResizable     (void) const { return    resizable;      }
@@ -412,28 +438,6 @@ protected:
     int last_calc = 0;
   } cached_stats;
 };
-
-
-
-struct SK_ImGui_WidgetRegistry {
-  bool texcache    = false;
-
-  SK_Widget* frame_pacing;
-  SK_Widget* volume_control;
-  SK_Widget* gpu_monitor;
-  SK_Widget* cpu_monitor;
-  SK_Widget* d3d11_pipeline;
-
-  //SK_Widget* texcache;
-
-  SK_Widget* memory_monitor = nullptr;
-  SK_Widget* disk_monitor   = nullptr;
-
-  BOOL DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
-  BOOL SaveConfig       (void);
-
-  bool hide_all             = false;
-} extern SK_ImGui_Widgets;
 
 
 

@@ -97,6 +97,9 @@ SK_BootD3D9 (void)
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
 
+  void SK_D3D9_InitShaderModTools (void);
+  SK_D3D9_InitShaderModTools ( );
+
   // Establish the minimal set of APIs necessary to work as d3d9.dll
   if (SK_GetDLLRole () == DLL_ROLE::D3D9)
     config.apis.d3d9.hook = true;

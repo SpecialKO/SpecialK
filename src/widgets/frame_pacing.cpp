@@ -47,9 +47,7 @@ public:
 
   virtual void run (void) override
   {
-    ImGuiIO& io (ImGui::GetIO ());
-
-    const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+    const  float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
     const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
     ImVec2 new_size (font_size * 35, font_size_multiline * (has_battery ? 6.5f : 5.44f));
@@ -61,13 +59,13 @@ public:
 
   virtual void draw (void) override
   {
+    ImGuiIO& io (ImGui::GetIO ());
+
     static bool move = true;
     
     if (move)
     {
-      ImGuiIO& io (ImGui::GetIO ());
-
-      const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+      const  float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
       const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
       ImGui::SetWindowPos (ImVec2 (io.DisplaySize.x - getSize ().x, io.DisplaySize.y - getSize ().y ));

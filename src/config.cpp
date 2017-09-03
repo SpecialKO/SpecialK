@@ -49,36 +49,19 @@ sk_config_t          config;
 sk::ParameterFactory g_ParameterFactory;
 
 
-  enum class SK_GAME_ID {
-    Tyranny,              // Tyranny.exe
-    Shadowrun_HongKong,   // SRHK.exe
-    TidesOfNumenera,      // TidesOfNumenera.exe
-    MassEffect_Andromeda, // MassEffectAndromeda.exe
-    MadMax,               // MadMax.exe
-    Dreamfall_Chapters,   // Dreamfall Chapters.exe
-    TheWitness,           // witness_d3d11.exe, witness64_d3d11.exe
-    Obduction,            // Obduction-Win64-Shipping.exe
-    TheWitcher3,          // witcher3.exe
-    ResidentEvil7,        // re7.exe
-    DragonsDogma,         // DDDA.exe
-    EverQuest,            // eqgame.exe
-    GodEater2RageBurst,   // GE2RB.exe
-    WatchDogs2,           // WatchDogs2.exe
-    NieRAutomata,         // NieRAutomata.exe
-    Warframe_x64,         // Warframe.x64.exe
-    LEGOCityUndercover,   // LEGOLCUR_DX11.exe
-    Sacred ,              // sacred.exe
-    Sacred2,              // sacred2.exe
-    FinalFantasy9,        // FF9.exe   
-    EdithFinch,           // FinchGame.exe
-    FinalFantasyX_X2,     // FFX.exe / FFX-2.exe
-    DeadlyPremonition,    // DP.exe DPLauncher.exe
-    GalGun_Double_Peace,  // GG2Game.exe
-    AKIBAs_Trip,          // AkibaUU.exe
-    YS_Seven              // Ys7.exe
-  };
+static std::unordered_map <std::wstring, SK_GAME_ID> games;
 
-  static std::unordered_map <std::wstring, SK_GAME_ID> games;
+SK_GAME_ID
+__stdcall
+SK_GetCurrentGameID (void)
+{
+  static SK_GAME_ID current_game =
+    games.count (SK_GetHostApp ()) ?
+          games [SK_GetHostApp ()] :
+          SK_GAME_ID::UNKNOWN_GAME;
+
+  return current_game;
+}
 
 
 struct {
