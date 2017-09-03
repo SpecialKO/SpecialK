@@ -26,6 +26,213 @@
 
 #include <Windows.h>
 #include <d3d9.h>
+#include <d3dx9shader.h>
+
+#include <unordered_map>
+#include <unordered_set>
+#include <cstdint>
+
+namespace SK   {
+namespace D3D9 {
+  struct KnownShaders
+  {
+    //typedef std::unordered_map <uint32_t, std::unordered_set <ID3D11ShaderResourceView *>> conditional_blacklist_t;
+  
+    template <typename _T>
+    struct ShaderRegistry
+    {
+      void clear (void)
+      {
+        rev.clear   ();
+        clear_state ();
+  
+        changes_last_frame = 0;
+      }
+  
+      void clear_state (void)
+      {
+        current.crc32c = 0x0;
+        current.ptr    = nullptr;
+      }
+  
+      std::unordered_map <_T*, uint32_t>      rev;
+      //std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
+  
+      std::unordered_set <uint32_t>           wireframe;
+      std::unordered_set <uint32_t>           blacklist;
+  
+      //conditional_blacklist_t                 blacklist_if_texture;
+  
+      struct
+      {
+        uint32_t                              crc32c = 0x00;
+        _T*                                   ptr    = nullptr;
+      } current;
+  
+      //d3d11_shader_tracking_s                 tracked;
+  
+      ULONG                                   changes_last_frame = 0;
+    };
+  
+    ShaderRegistry <IDirect3DPixelShader9>    pixel;
+    ShaderRegistry <IDirect3DVertexShader9>   vertex;
+  } extern Shaders;
+
+// Dumb macro in WinUser.h
+#undef DrawState
+
+  struct DrawState
+  {
+    // Most of these states are not tracked
+    DWORD           srcblend        = 0;
+    DWORD           dstblend        = 0;
+    DWORD           srcalpha        = 0;     // Separate Alpha Blend Eq: Src
+    DWORD           dstalpha        = 0;     // Separate Alpha Blend Eq: Dst
+    bool            alpha_test      = false; // Test Alpha?
+    DWORD           alpha_ref       = 0;     // Value to test.
+    bool            zwrite          = false; // Depth Mask
+  
+    volatile ULONG  draws           = 0; // Number of draw calls
+    volatile ULONG  frames          = 0;
+  
+    bool            cegui_active    = false;
+    
+    int             instances       = 0;
+  
+    uint32_t        current_tex  [256];
+    float           viewport_off [4]  = { 0.0f }; // Most vertex shaders use this and we can
+                                                  //   test the set values to determine if a draw
+                                                  //     is HUD or world-space.
+                                                  //     
+    volatile ULONG  draw_count  = 0;
+    volatile ULONG  next_draw   = 0;
+    volatile ULONG  scene_count = 0;
+  } extern draw_state;
+
+
+  struct FrameState
+  {
+    void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear (); }
+  
+    std::unordered_set <uint32_t>                 pixel_shaders;
+    std::unordered_set <uint32_t>                 vertex_shaders;
+  
+    struct {
+      std::unordered_set <IDirect3DVertexBuffer9 *> dynamic;
+      std::unordered_set <IDirect3DVertexBuffer9 *> immutable;
+    } vertex_buffers;
+  } extern last_frame;
+  
+  struct KnownObjects
+  {
+    void clear (void) { static_vbs.clear (); dynamic_vbs.clear (); };
+  
+    std::unordered_set <IDirect3DVertexBuffer9 *> static_vbs;
+    std::unordered_set <IDirect3DVertexBuffer9 *> dynamic_vbs;
+  } extern known_objs;
+  
+  struct RenderTargetTracker
+  {
+    void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); active = false; }
+  
+    IDirect3DBaseTexture9*        tracking_tex  = nullptr;
+  
+    std::unordered_set <uint32_t> pixel_shaders;
+    std::unordered_set <uint32_t> vertex_shaders;
+  
+    bool                          active        = false;
+  } extern tracked_rt;
+  
+  struct ShaderTracker
+  {
+    void clear (void)
+    {
+      active    = false;
+      InterlockedExchange (&num_draws, 0);
+      used_textures.clear ();
+  
+      for (auto& current_texture : current_textures)
+        current_texture = 0x00;
+    }
+  
+    void use (IUnknown* pShader);
+  
+    uint32_t                      crc32c       =  0x00;
+    bool                          cancel_draws = false;
+    bool                          clamp_coords = false;
+    bool                          active       = false;
+    volatile ULONG                num_draws    =     0;
+    std::unordered_set <IDirect3DBaseTexture9*> used_textures;
+                        IDirect3DBaseTexture9*  current_textures [16];
+  
+    //std::vector <IDirect3DBaseTexture9 *> samplers;
+  
+    IUnknown*                     shader_obj  = nullptr;
+    ID3DXConstantTable*           ctable      = nullptr;
+  
+    struct shader_constant_s
+    {
+      char                Name [128];
+      D3DXREGISTER_SET    RegisterSet;
+      UINT                RegisterIndex;
+      UINT                RegisterCount;
+      D3DXPARAMETER_CLASS Class;
+      D3DXPARAMETER_TYPE  Type;
+      UINT                Rows;
+      UINT                Columns;
+      UINT                Elements;
+      std::vector <shader_constant_s>
+                          struct_members;
+      bool                Override;
+      float               Data [4]; // TEMP HACK
+    };
+  
+    std::vector <shader_constant_s> constants;
+  };
+  
+  extern ShaderTracker tracked_vs;
+  extern ShaderTracker tracked_ps;
+  
+  struct VertexBufferTracker
+  {
+    void clear (void);
+    void use   (void);
+  
+    IDirect3DVertexBuffer9*       vertex_buffer = nullptr;
+  
+    std::unordered_set <
+      IDirect3DVertexDeclaration9*
+    >                             vertex_decls;
+  
+    //uint32_t                      crc32c       =  0x00;
+    bool                          cancel_draws  = false;
+    bool                          wireframe     = false;
+    bool                          active        = false;
+    volatile ULONG                num_draws     =     0;
+    volatile ULONG                instanced     =     0;
+    int                           instances     =     1;
+  
+    std::unordered_set <uint32_t> vertex_shaders;
+    std::unordered_set <uint32_t> pixel_shaders;
+    std::unordered_set <uint32_t> textures;
+  
+    std::unordered_set <IDirect3DVertexBuffer9 *>
+                                  wireframes;
+  } extern tracked_vb;
+  
+  struct ShaderDisassembly {
+    std::string header;
+    std::string code;
+    std::string footer;
+  };
+
+  enum class ShaderClass {
+    Unknown = 0x00,
+    Pixel   = 0x01,
+    Vertex  = 0x02
+  };
+}
+}
 
 class SK_IDirect3D9 : public IDirect3D9
 {
@@ -791,6 +998,11 @@ using DrawIndexedPrimitiveUP_pfn = HRESULT (STDMETHODCALLTYPE *)
     const void       *pVertexStreamZeroData,
     UINT              VertexStreamZeroStride );
 
+using GetTexture_pfn = HRESULT (STDMETHODCALLTYPE *)
+  (     IDirect3DDevice9      *This,
+   _In_ DWORD                  Sampler,
+  _Out_ IDirect3DBaseTexture9 *pTexture);
+
 using SetTexture_pfn = HRESULT (STDMETHODCALLTYPE *)
   (     IDirect3DDevice9      *This,
    _In_ DWORD                  Sampler,
@@ -966,55 +1178,5 @@ using GetSwapChain_pfn              = HRESULT (STDMETHODCALLTYPE *)
 using CreateAdditionalSwapChain_pfn = HRESULT (STDMETHODCALLTYPE *)
   (IDirect3DDevice9* This, D3DPRESENT_PARAMETERS* pPresentationParameters,
    IDirect3DSwapChain9** pSwapChain);
-
-
-
-#include <unordered_map>
-#include <unordered_set>
-#include <cstdint>
-
-struct SK_D3D9_KnownShaders
-{
-  //typedef std::unordered_map <uint32_t, std::unordered_set <ID3D11ShaderResourceView *>> conditional_blacklist_t;
-
-  template <typename _T>
-  struct ShaderRegistry
-  {
-    void clear (void)
-    {
-      rev.clear   ();
-      clear_state ();
-
-      changes_last_frame = 0;
-    }
-
-    void clear_state (void)
-    {
-      current.crc32c = 0x0;
-      current.ptr    = nullptr;
-    }
-
-    std::unordered_map <_T*, uint32_t>      rev;
-    //std::unordered_map <uint32_t, SK_D3D11_ShaderDesc> descs;
-
-    std::unordered_set <uint32_t>           wireframe;
-    std::unordered_set <uint32_t>           blacklist;
-
-    //conditional_blacklist_t                 blacklist_if_texture;
-
-    struct
-    {
-      uint32_t                              crc32c = 0x00;
-      _T*                                   ptr    = nullptr;
-    } current;
-
-    //d3d11_shader_tracking_s                 tracked;
-
-    ULONG                                   changes_last_frame = 0;
-  };
-
-  ShaderRegistry <IDirect3DPixelShader9>    pixel;
-  ShaderRegistry <IDirect3DVertexShader9>   vertex;
-} extern SK_D3D9_Shaders;
 
 #endif /* __SK__D3D9_BACKEND_H__ */

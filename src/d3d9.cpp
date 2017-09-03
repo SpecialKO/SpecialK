@@ -54,8 +54,10 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
-volatile LONG                        __d3d9_ready = FALSE;
-SK::D3D9::PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
+using namespace SK::D3D9;
+
+volatile LONG               __d3d9_ready = FALSE;
+PipelineStatsD3D9 SK::D3D9::pipeline_stats_d3d9;
 
 unsigned int
 __stdcall
@@ -121,6 +123,7 @@ DrawPrimitive_pfn             D3D9DrawPrimitive_Original             = nullptr;
 DrawIndexedPrimitive_pfn      D3D9DrawIndexedPrimitive_Original      = nullptr;
 DrawPrimitiveUP_pfn           D3D9DrawPrimitiveUP_Original           = nullptr;
 DrawIndexedPrimitiveUP_pfn    D3D9DrawIndexedPrimitiveUP_Original    = nullptr;
+GetTexture_pfn                D3D9GetTexture_Original                = nullptr;
 SetTexture_pfn                D3D9SetTexture_Original                = nullptr;
 SetSamplerState_pfn           D3D9SetSamplerState_Original           = nullptr;
 SetViewport_pfn               D3D9SetViewport_Original               = nullptr;
@@ -190,219 +193,86 @@ CRITICAL_SECTION cs_vs = { };
 CRITICAL_SECTION cs_ps = { };
 CRITICAL_SECTION cs_vb = { };
 
-SK_D3D9_KnownShaders SK_D3D9_Shaders;
+KnownObjects        SK::D3D9::known_objs = { };
+KnownShaders        SK::D3D9::Shaders    = { };
+ShaderTracker       SK::D3D9::tracked_vs = { };
+ShaderTracker       SK::D3D9::tracked_ps = { };
 
-struct sk_d3d9_draw_states_s
+VertexBufferTracker SK::D3D9::tracked_vb = { };
+RenderTargetTracker SK::D3D9::tracked_rt = { };
+
+DrawState           SK::D3D9::draw_state = { };
+FrameState          SK::D3D9::last_frame = { };
+
+void
+SK::D3D9::VertexBufferTracker::clear (void)
 {
-  // Most of these states are not tracked
-  DWORD           srcblend        = 0;
-  DWORD           dstblend        = 0;
-  DWORD           srcalpha        = 0;     // Separate Alpha Blend Eq: Src
-  DWORD           dstalpha        = 0;     // Separate Alpha Blend Eq: Dst
-  bool            alpha_test      = false; // Test Alpha?
-  DWORD           alpha_ref       = 0;     // Value to test.
-  bool            zwrite          = false; // Depth Mask
+  active = false;
 
-  volatile ULONG  draws           = 0; // Number of draw calls
-  volatile ULONG  frames          = 0;
+  InterlockedExchange (&num_draws, 0);
 
-  bool            cegui_active    = false;
-  
-  int             instances       = 0;
+  instances = 0;
 
-  uint32_t        current_tex  [256];
-  float           viewport_off [4]  = { 0.0f }; // Most vertex shaders use this and we can
-                                                //   test the set values to determine if a draw
-                                                //     is HUD or world-space.
-                                                //     
-  volatile ULONG  draw_count  = 0;
-  volatile ULONG  next_draw   = 0;
-  volatile ULONG  scene_count = 0;
-} draw_state;
+  vertex_shaders.clear ();
+  pixel_shaders.clear  ();
+  textures.clear       ();
 
-struct frame_state_s
+  for ( auto& it : vertex_decls ) it->Release ();
+
+  vertex_decls.clear ();
+}
+
+void
+SK::D3D9::VertexBufferTracker::use (void)
 {
-  void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear (); }
+  SK_AutoCriticalSection auto_cs (&cs_vb);
 
-  std::unordered_set <uint32_t>                 pixel_shaders;
-  std::unordered_set <uint32_t>                 vertex_shaders;
+  IDirect3DVertexDeclaration9* decl = nullptr;
+  CComPtr <IDirect3DDevice9>   pDev = nullptr;
 
-  struct {
-    std::unordered_set <IDirect3DVertexBuffer9 *> dynamic;
-    std::unordered_set <IDirect3DVertexBuffer9 *> immutable;
-  } vertex_buffers;
-} last_frame;
+  IUnknown *pUnkDev = 
+    SK_GetCurrentRenderBackend ().device;
 
-struct known_objects_s
-{
-  void clear (void) { static_vbs.clear (); dynamic_vbs.clear (); };
-
-  std::unordered_set <IDirect3DVertexBuffer9 *> static_vbs;
-  std::unordered_set <IDirect3DVertexBuffer9 *> dynamic_vbs;
-} known_objs;
-
-struct render_target_tracking_s
-{
-  void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); active = false; }
-
-  IDirect3DBaseTexture9*        tracking_tex  = nullptr;
-
-  std::unordered_set <uint32_t> pixel_shaders;
-  std::unordered_set <uint32_t> vertex_shaders;
-
-  bool                          active        = false;
-} tracked_rt;
-
-struct shader_tracking_s
-{
-  void clear (void)
+  if (         pUnkDev == nullptr ||
+       FAILED (pUnkDev->QueryInterface <IDirect3DDevice9> (&pDev)) )
   {
-    active    = false;
-    InterlockedExchange (&num_draws, 0);
-    used_textures.clear ();
-
-    for (unsigned int& current_texture : current_textures)
-      current_texture = 0x00;
+    return;
   }
 
-  void use (IUnknown* pShader);
+  const uint32_t vs_checksum = Shaders.vertex.current.crc32c;
+  const uint32_t ps_checksum = Shaders.pixel.current.crc32c;
 
-  uint32_t                      crc32c       =  0x00;
-  bool                          cancel_draws = false;
-  bool                          clamp_coords = false;
-  bool                          active       = false;
-  volatile ULONG                num_draws    =     0;
-  std::unordered_set <uint32_t>    used_textures;
-                      uint32_t  current_textures [16];
+  vertex_shaders.emplace (vs_checksum);
+  pixel_shaders.emplace  (ps_checksum);
 
-  //std::vector <IDirect3DBaseTexture9 *> samplers;
-
-  IUnknown*                     shader_obj  = nullptr;
-  ID3DXConstantTable*           ctable      = nullptr;
-
-  struct shader_constant_s
+  if (SUCCEEDED (pDev->GetVertexDeclaration (&decl)))
   {
-    char                Name [128];
-    D3DXREGISTER_SET    RegisterSet;
-    UINT                RegisterIndex;
-    UINT                RegisterCount;
-    D3DXPARAMETER_CLASS Class;
-    D3DXPARAMETER_TYPE  Type;
-    UINT                Rows;
-    UINT                Columns;
-    UINT                Elements;
-    std::vector <shader_constant_s>
-                        struct_members;
-    bool                Override;
-    float               Data [4]; // TEMP HACK
-  };
+    static D3DVERTEXELEMENT9 elem_decl [MAXD3DDECLLENGTH];
+    static UINT              num_elems;
 
-  std::vector <shader_constant_s> constants;
-} tracked_vs, tracked_ps;
-
-struct vertex_buffer_tracking_s
-{
-  void clear (void)
-  {
-    active = false;
-
-    InterlockedExchange (&num_draws, 0);
-
-    instances = 0;
-
-    vertex_shaders.clear ();
-    pixel_shaders.clear  ();
-    textures.clear       ();
-
-    for ( auto& it : vertex_decls ) it->Release ();
-
-    vertex_decls.clear ();
-  }
-
-  void use (void)
-  {
-    SK_AutoCriticalSection auto_cs (&cs_vb);
-
-    IDirect3DVertexDeclaration9* decl = nullptr;
-    CComPtr <IDirect3DDevice9>   pDev = nullptr;
-
-    IUnknown *pUnkDev = 
-      SK_GetCurrentRenderBackend ().device;
-
-    if (         pUnkDev == nullptr ||
-         FAILED (pUnkDev->QueryInterface <IDirect3DDevice9> (&pDev)) )
+    // Run through the vertex decl and figure out which samplers have texcoords,
+    //   that is a pretty good indicator as to which textures are actually used...
+    if (SUCCEEDED (decl->GetDeclaration (elem_decl, &num_elems)))
     {
-      return;
-    }
-
-    const uint32_t vs_checksum = SK_D3D9_Shaders.vertex.current.crc32c;
-    const uint32_t ps_checksum = SK_D3D9_Shaders.pixel.current.crc32c;
-
-    vertex_shaders.emplace (vs_checksum);
-    pixel_shaders.emplace  (ps_checksum);
-
-    if (SUCCEEDED (pDev->GetVertexDeclaration (&decl)))
-    {
-      static D3DVERTEXELEMENT9 elem_decl [MAXD3DDECLLENGTH];
-      static UINT              num_elems;
-
-      // Run through the vertex decl and figure out which samplers have texcoords,
-      //   that is a pretty good indicator as to which textures are actually used...
-      if (SUCCEEDED (decl->GetDeclaration (elem_decl, &num_elems)))
+      for ( UINT i = 0; i < num_elems; i++ )
       {
-        for ( UINT i = 0; i < num_elems; i++ )
-        {
-          if (elem_decl [i].Usage == D3DDECLUSAGE_TEXCOORD)
-            textures.emplace (draw_state.current_tex [elem_decl [i].UsageIndex]);
-        }
+        if (elem_decl [i].Usage == D3DDECLUSAGE_TEXCOORD)
+          textures.emplace (draw_state.current_tex [elem_decl [i].UsageIndex]);
       }
-
-      if (! vertex_decls.count   (decl))
-            vertex_decls.emplace (decl);
-      else
-        decl->Release ();
     }
+
+    if (! vertex_decls.count   (decl))
+          vertex_decls.emplace (decl);
+    else
+      decl->Release ();
   }
-
-  IDirect3DVertexBuffer9*       vertex_buffer = nullptr;
-
-  std::unordered_set <
-    IDirect3DVertexDeclaration9*
-  >                             vertex_decls;
-
-  //uint32_t                      crc32c       =  0x00;
-  bool                          cancel_draws  = false;
-  bool                          wireframe     = false;
-  bool                          active        = false;
-  volatile ULONG                num_draws     =     0;
-  volatile ULONG                instanced     =     0;
-  int                           instances     =     1;
-
-  std::unordered_set <uint32_t> vertex_shaders;
-  std::unordered_set <uint32_t> pixel_shaders;
-  std::unordered_set <uint32_t> textures;
-
-  std::unordered_set <IDirect3DVertexBuffer9 *>
-                                wireframes;
-} tracked_vb;
-
-struct sk_d3d9_shader_disasm_s {
-  std::string header;
-  std::string code;
-  std::string footer;
-};
+}
 
 // For now, let's just focus on stream0 and pretend nothing else exists...
 IDirect3DVertexBuffer9* vb_stream0 = nullptr;
 
-std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> ps_disassembly;
-std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s> vs_disassembly;
-
-enum class sk_d3d9_shader_class {
-  Unknown = 0x00,
-  Pixel   = 0x01,
-  Vertex  = 0x02
-};
+std::unordered_map <uint32_t, ShaderDisassembly> ps_disassembly;
+std::unordered_map <uint32_t, ShaderDisassembly> vs_disassembly;
 
 
 void SK_D3D9_InitShaderModTools   (void);
@@ -413,10 +283,6 @@ void SK_D3D9_SetPixelShader       ( IDirect3DDevice9       *pDev,
                                     IDirect3DPixelShader9  *pShader );
 void SK_D3D9_SetVertexShader      ( IDirect3DDevice9       *pDev,
                                     IDirect3DVertexShader9 *pShader );
-
-
-
-
 
 class SK_D3D9RenderBackend : public SK_IVariableListener
 {
@@ -1945,6 +1811,17 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
     ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
   }
 
+  if (tex_mgr.injector.hasPendingLoads ())
+    tex_mgr.loadQueuedTextures ();
+
+  tex_mgr.reset ();
+
+  //need_reset.textures = false;
+
+  tex_mgr.resetUsedTextures ();
+
+  //need_reset.graphics = false;
+
 
   //if (This == SK_GetCurrentRenderBackend ().device)
   //{
@@ -1965,8 +1842,10 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
     tracked_vb.wireframes.clear ();
     // ^^^^ This is stupid, add a reset method.
 
-    SK_D3D9_Shaders.vertex.clear ();
-    SK_D3D9_Shaders.pixel.clear  ();
+    Shaders.vertex.clear ();
+    Shaders.pixel.clear  ();
+
+    SK::D3D9::tex_mgr.reset ();
   //}
 }
 
@@ -2294,13 +2173,28 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
+D3D9GetTexture_Override ( IDirect3DDevice9      *This,
+                     _In_ DWORD                  Stage,
+                    _Out_ IDirect3DBaseTexture9 *pTexture )
+{
+  dll_log.Log (L"Impure Get Texture");
+
+  return
+    D3D9GetTexture_Original ( This,
+                                Stage,
+                                  pTexture );
+}
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
 D3D9SetTexture_Override ( IDirect3DDevice9      *This,
-                    _In_  DWORD                  Sampler,
+                    _In_  DWORD                  Stage,
                     _In_  IDirect3DBaseTexture9 *pTexture )
 {
   return
     D3D9SetTexture_Original ( This,
-                                Sampler,
+                                Stage,
                                   pTexture );
 }
 
@@ -2768,10 +2662,26 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                              IDirect3DBaseTexture9 *pSourceTexture,
                              IDirect3DBaseTexture9 *pDestinationTexture )
 {
+  IDirect3DBaseTexture9* pRealSource = pSourceTexture;
+  IDirect3DBaseTexture9* pRealDest   = pDestinationTexture;
+
+  void* dontcare;
+  if (pSourceTexture != nullptr &&
+      pSourceTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
+  {
+    pRealSource = ((ISKTextureD3D9 *)dontcare)->pTex;
+  }
+
+  if (pDestinationTexture != nullptr &&
+      pDestinationTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
+  {
+    pRealDest = ( (ISKTextureD3D9 *)dontcare )->pTex;
+  }
+
   return
     D3D9UpdateTexture_Original ( This,
-                                   pSourceTexture,
-                                     pDestinationTexture );
+                                   pRealSource,
+                                     pRealDest );
 }
 
 __declspec (noinline)
@@ -3528,6 +3438,12 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                     D3D9SetRenderState_Original,
                     SetRenderState_pfn );
 
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 64,
+                   "IDirect3DDevice9::GetTexture",
+                    D3D9GetTexture_Override,
+                    D3D9GetTexture_Original,
+                    GetTexture_pfn );
+
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 65,
                    "IDirect3DDevice9::SetTexture",
                     D3D9SetTexture_Override,
@@ -3749,8 +3665,8 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
   if (! ((pDevice || pSwapChain) && config.render.show))
     return;
 
-  SK::D3D9::PipelineStatsD3D9& pipeline_stats =
-    SK::D3D9::pipeline_stats_d3d9;
+  PipelineStatsD3D9& pipeline_stats =
+    pipeline_stats_d3d9;
 
   CComPtr <IDirect3DDevice9> dev = pDevice;
 
@@ -4167,13 +4083,11 @@ SK_D3D9_TriggerReset (bool temporary)
 #include "config.h"
 #include "command.h"
 
-#include <d3dx9shader.h>
 #include <atlbase.h>
 
 extern std::wstring
 SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
 
-#if 0
 void
 SK_D3D9_DrawFileList (bool& can_scroll)
 {
@@ -4187,7 +4101,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     std::vector <uint32_t> checksums;
 
     struct {
-      std::vector < std::pair < uint32_t, sk_d3d9_tex_record_s > >
+      std::vector < std::pair < uint32_t, SK::D3D9::TexRecord > >
                  records;
       uint64_t   size                 = 0ULL;
     } streaming, blocking;
@@ -4195,11 +4109,11 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     uint64_t     totalSize (void) { return streaming.size + blocking.size; };
   };
 
-  static std::vector <enumerated_source_s>                        sources;
-  static std::vector < std::pair < uint32_t, tbf_tex_record_s > > injectable;
-  static std::vector < std::wstring >                             archives;
-  static bool                                                     list_dirty = true;
-  static int                                                      sel        = 0;
+  static std::vector <enumerated_source_s> sources;
+  static SK::D3D9::TexList                 injectable;
+  static std::vector < std::wstring >      archives;
+  static bool                              list_dirty = true;
+  static int                               sel        = 0;
 
   auto EnumerateSource =
     [](int archive_no) ->
@@ -4244,8 +4158,8 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
   if (list_dirty)
   {
-    injectable = TBF_GetInjectableTextures ();
-    archives   = TBF_GetTextureArchives    ();
+    injectable = SK::D3D9::tex_mgr.getInjectableTextures ();
+    archives   = SK::D3D9::tex_mgr.getTextureArchives    ();
 
     sources.clear  ();
 
@@ -4362,8 +4276,8 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
     for ( auto it : sources [sel].checksums )
     {
-      tbf_tex_record_s* injectable =
-        TBF_GetInjectableTexture (it);
+      SK::D3D9::TexRecord* injectable =
+        &SK::D3D9::tex_mgr.getInjectableTexture (it);
 
       if (injectable != nullptr) {
                     
@@ -4391,7 +4305,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
     if (ImGui::Button ("  Refresh Data Sources  "))
     {
-      TBF_RefreshDataSources ();
+      SK::D3D9::tex_mgr.refreshDataSources ();
       list_dirty = true;
     }
 
@@ -4399,7 +4313,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
     if (ImGui::Button ("  Reload All Textures  "))
     {
-      tbf::RenderFix::TriggerReset ();
+      SK_D3D9_TriggerReset (false);
     }
 
     ImGui::EndGroup ();
@@ -4407,12 +4321,11 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
   ImGui::PopItemWidth ();
 }
-#endif
 
 
 
 void
-SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
+SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll)
 {
   ImGui::BeginGroup ();
 
@@ -4436,26 +4349,26 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
   } static list_base;
 
   shader_class_imp_s*
-    list    = ( shader_type == sk_d3d9_shader_class::Pixel ? &list_base.ps :
-                                                             &list_base.vs );
+    list    = ( shader_type == SK::D3D9::ShaderClass::Pixel ? &list_base.ps :
+                                                              &list_base.vs );
 
-  shader_tracking_s*
-    tracker = ( shader_type == sk_d3d9_shader_class::Pixel ? &tracked_ps :
-                                                             &tracked_vs );
+  SK::D3D9::ShaderTracker*
+    tracker = ( shader_type == SK::D3D9::ShaderClass::Pixel ? &tracked_ps :
+                                                              &tracked_vs );
 
   std::vector <uint32_t>
-    shaders   ( shader_type == sk_d3d9_shader_class::Pixel ? last_frame.pixel_shaders.begin  () :
-                                                             last_frame.vertex_shaders.begin (),
-                shader_type == sk_d3d9_shader_class::Pixel ? last_frame.pixel_shaders.end    () :
-                                                             last_frame.vertex_shaders.end   () );
+    shaders   ( shader_type == SK::D3D9::ShaderClass::Pixel ? last_frame.pixel_shaders.begin  () :
+                                                              last_frame.vertex_shaders.begin (),
+                shader_type == SK::D3D9::ShaderClass::Pixel ? last_frame.pixel_shaders.end    () :
+                                                              last_frame.vertex_shaders.end   () );
 
-  std::unordered_map <uint32_t, sk_d3d9_shader_disasm_s>&
-    disassembly = ( shader_type == sk_d3d9_shader_class::Pixel ? ps_disassembly :
-                                                                 vs_disassembly );
+  std::unordered_map <uint32_t, SK::D3D9::ShaderDisassembly>&
+    disassembly = ( shader_type == SK::D3D9::ShaderClass::Pixel ? ps_disassembly :
+                                                                  vs_disassembly );
 
   const char*
-    szShaderWord =  shader_type == sk_d3d9_shader_class::Pixel ? "Pixel" :
-                                                                 "Vertex";
+    szShaderWord =  shader_type == SK::D3D9::ShaderClass::Pixel ? "Pixel" :
+                                                                  "Vertex";
 
   if (list->dirty)
   {
@@ -4582,8 +4495,8 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
   if (tracker->crc32c != 0x00)
   {
     ImGui::BeginGroup ();
-    ImGui::Checkbox ( shader_type == sk_d3d9_shader_class::Pixel ? "Cancel Draws Using Selected Pixel Shader" :
-                                                                   "Cancel Draws Using Selected Vertex Shader", 
+    ImGui::Checkbox ( shader_type == SK::D3D9::ShaderClass::Pixel ? "Cancel Draws Using Selected Pixel Shader" :
+                                                                    "Cancel Draws Using Selected Vertex Shader", 
                         &tracker->cancel_draws );  ImGui::SameLine ();
 
     ULONG num_draws =
@@ -4594,15 +4507,14 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
     else
       ImGui::TextDisabled ("%lu Draw%c Last Frame         (%lu textures)", num_draws, num_draws != 1 ? 's' : ' ', tracker->used_textures.size () );
 
-    ImGui::Checkbox ( shader_type == sk_d3d9_shader_class::Pixel ? "Clamp Texture Coordinates For Selected Pixel Shader" :
-                                                                   "Clamp Texture Coordinates For Selected Vertex Shader",
+    ImGui::Checkbox ( shader_type == SK::D3D9::ShaderClass::Pixel ? "Clamp Texture Coordinates For Selected Pixel Shader" :
+                                                                    "Clamp Texture Coordinates For Selected Vertex Shader",
                         &tracker->clamp_coords );
 
     ImGui::Separator      ();
     ImGui::EndGroup       ();
 
 //  Need to port-over texture manager
-#if 0
     if (ImGui::IsItemHoveredRect () && tracker->used_textures.size ())
     {
       ImGui::BeginTooltip ();
@@ -4611,15 +4523,15 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
       for ( auto it : tracker->used_textures )
       {
-        ISKTextureD3D9* pTex = tex_mgr.getTexture (it)->d3d9_tex;
+        IDirect3DBaseTexture9* pTex = it;//ISKTextureD3D9* pTex = tex_mgr.getTexture (it)->d3d9_tex;
         
-        if (pTex && pTex->pTex)
+        if (pTex /*&& pTex->pTex*/)
         {
           D3DSURFACE_DESC desc;
-          if (SUCCEEDED (pTex->pTex->GetLevelDesc (0, &desc)))
+          if (SUCCEEDED (((IDirect3DTexture9 *)pTex/*->pTex*/)->GetLevelDesc (0, &desc)))
           {
             fmt = desc.Format;
-            ImGui::Image ( pTex->pTex, ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
+            ImGui::Image ( pTex/*->pTex*/, ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
       ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
                                        ImVec2  (0,0),             ImVec2  (1,1),
                                        ImColor (255,255,255,255), ImColor (242,242,13,255) );
@@ -4636,7 +4548,6 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
 
       ImGui::EndTooltip ();
     }
-#endif
 
     ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font
 
@@ -4674,8 +4585,8 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
           if (it2.Type == D3DXPT_FLOAT)
           {
             snprintf ( szName, 127, "[%s] %-32s",
-                         shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                      "vs",
+                         shader_type == SK::D3D9::ShaderClass::Pixel ? "ps" :
+                                                                       "vs",
                            it2.Name );
 
             if (it2.Class == D3DXPC_VECTOR ||
@@ -4714,8 +4625,8 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
           if (! tweakable)
           {
             snprintf ( szName, 127, "[%s] %-32s :(%c%-3lu)",
-                         shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                      "vs",
+                         shader_type == SK::D3D9::ShaderClass::Pixel ? "ps" :
+                                                                       "vs",
                            it2.Name,
                              it2.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
                                it2.RegisterIndex );
@@ -4734,8 +4645,8 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
         bool tweakable = false;
 
         snprintf ( szName, 127, "[%s] %-32s",
-                     shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                  "vs",
+                     shader_type == SK::D3D9::ShaderClass::Pixel ? "ps" :
+                                                                   "vs",
                        it.Name );
 
         if (it.Type == D3DXPT_FLOAT)
@@ -4792,8 +4703,8 @@ SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class shader_type, bool& can_scroll)
         if (! tweakable)
         {
           snprintf ( szName, 127, "[%s] %-32s :(%c%-3lu)",
-                       shader_type == sk_d3d9_shader_class::Pixel ? "ps" :
-                                                                    "vs",
+                       shader_type == SK::D3D9::ShaderClass::Pixel ? "ps" :
+                                                                     "vs",
                          it.Name,
                            it.RegisterSet != D3DXRS_SAMPLER ? 'c' : 's',
                              it.RegisterIndex );
@@ -4862,7 +4773,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
   vertex_stream_s*
     list    = &list_base.stream0;
 
-  vertex_buffer_tracking_s*
+  SK::D3D9::VertexBufferTracker*
     tracker = &tracked_vb;
 
   std::vector <IDirect3DVertexBuffer9 *> buffers;
@@ -5401,10 +5312,11 @@ SK_D3D9_TextureModDlg (void)
                                 "summary pannel to compare modified and unmodified." );
     ImGui::EndChild         ();
   }
+#endif
 
   if (ImGui::CollapsingHeader("Injectable Data Sources", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
   {
-    TBF_DrawFileList  (can_scroll);
+    SK_D3D9_DrawFileList  (can_scroll);
   }
 
   if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
@@ -5429,7 +5341,7 @@ SK_D3D9_TextureModDlg (void)
 
       command.ProcessCommandLine ("Textures.Trace true");
 
-      tbf::RenderFix::tex_mgr.updateOSD ();
+      SK::D3D9::tex_mgr.updateOSD ();
 
       list_dirty = true;
     }
@@ -5451,7 +5363,9 @@ SK_D3D9_TextureModDlg (void)
 
     ImGui::SameLine ();
 
-    if (ImGui::Checkbox ("Enable On-Demand Texture Dumping",    &config.textures.on_demand_dump)) tbf::RenderFix::need_reset.graphics = true;
+    bool need_reset_graphics = false;
+
+    if (ImGui::Checkbox ("Enable On-Demand Texture Dumping",    &config.textures.on_demand_dump)) need_reset_graphics = true;
     
     if (ImGui::IsItemHovered ())
     {
@@ -5472,8 +5386,8 @@ SK_D3D9_TextureModDlg (void)
 
     if (list_dirty)
     {
-           list_contents.clear ();
-                sel = tex_dbg_idx;
+      list_contents.clear ();
+           sel = tex_dbg_idx;
 
       if (debug_tex_id == 0)
         last_ht = 0;
@@ -5535,12 +5449,12 @@ SK_D3D9_TextureModDlg (void)
        {
          bool selected = false;
 
-         if (ImGui::Selectable (list_contents[line].c_str (), &selected))
+         if (ImGui::Selectable (list_contents [line].c_str (), &selected))
          {
-           sel_changed = true;
-           tex_dbg_idx                 =  line;
-           sel                         =  line;
-           debug_tex_id                =  textures_used_last_dump [line];
+           sel_changed  = true;
+           tex_dbg_idx  =  line;
+           sel          =  line;
+           debug_tex_id =  textures_used_last_dump [line];
          }
        }
      }
@@ -5566,8 +5480,8 @@ SK_D3D9_TextureModDlg (void)
 
    if (debug_tex_id != 0x00)
    {
-     tbf::RenderFix::Texture* pTex =
-       tbf::RenderFix::tex_mgr.getTexture (debug_tex_id);
+     SK::D3D9::Texture* pTex =
+       SK::D3D9::tex_mgr.getTexture (debug_tex_id);
 
      extern bool __remap_textures;
             bool has_alternate = (pTex != nullptr && pTex->d3d9_tex->pTexOverride != nullptr);
@@ -5620,23 +5534,23 @@ SK_D3D9_TextureModDlg (void)
 
           ImGui::Separator     ();
 
-          if (! TBF_IsTextureDumped (debug_tex_id))
+          if (! SK::D3D9::tex_mgr.isTextureDumped (debug_tex_id))
           {
             if ( ImGui::Button ("  Dump Texture to Disk  ") )
             {
-              if (! config.textures.quick_load)
-                TBF_DumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
+              if (true)//! config.textures.quick_load)
+                SK::D3D9::tex_mgr.dumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
             }
 
-            if (config.textures.quick_load && ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("Turn off Texture QuickLoad to use this feature.");
+            //if (config.textures.quick_load && ImGui::IsItemHovered ())
+            //  ImGui::SetTooltip ("Turn off Texture QuickLoad to use this feature.");
           }
 
           else
           {
             if ( ImGui::Button ("  Delete Dumped Texture from Disk  ") )
             {
-              TBF_DeleteDumpedTexture (desc.Format, debug_tex_id);
+              SK::D3D9::tex_mgr.deleteDumpedTexture (desc.Format, debug_tex_id);
             }
           }
 
@@ -5696,10 +5610,11 @@ SK_D3D9_TextureModDlg (void)
 
 
           bool injected  =
-            (TBF_GetInjectableTexture (debug_tex_id) != nullptr),
-               reloading = false;;
+            (SK::D3D9::tex_mgr.getInjectableTexture (debug_tex_id).size != 0),
+               reloading = false;
 
-          int num_lods = pTex->d3d9_tex->pTexOverride->GetLevelCount ();
+          int num_lods =
+            pTex->d3d9_tex->pTexOverride->GetLevelCount ();
 
           ImGui::Text ( "Dimensions:   %lux%lu  (%lu %s)",
                           desc.Width, desc.Height,
@@ -5715,11 +5630,11 @@ SK_D3D9_TextureModDlg (void)
 
           if (injected)
           {
-            if ( ImGui::Button ("  Reload This Texture  ") && tbf::RenderFix::tex_mgr.reloadTexture (debug_tex_id) )
+            if ( ImGui::Button ("  Reload This Texture  ") && SK::D3D9::tex_mgr.reloadTexture (debug_tex_id) )
             {
               reloading    = true;
 
-              tbf::RenderFix::tex_mgr.updateOSD ();
+              SK::D3D9::tex_mgr.updateOSD ();
             }
           }
 
@@ -5750,9 +5665,7 @@ SK_D3D9_TextureModDlg (void)
     ImGui::PopStyleColor (1);
     ImGui::PopStyleVar   (2);
   }
-#endif
 
-#if 0
   if (ImGui::CollapsingHeader ("Live Render Target View"))
   {
     static float last_ht    = 256.0f;
@@ -5764,9 +5677,9 @@ SK_D3D9_TextureModDlg (void)
     static int                            sel       =   -1;
 
     std::vector <IDirect3DBaseTexture9*> render_textures =
-      tbf::RenderFix::tex_mgr.getUsedRenderTargets ();
+      tex_mgr.getUsedRenderTargets ();
 
-    tbf::RenderFix::tracked_rt.tracking_tex = 0;
+    tracked_rt.tracking_tex = 0;
 
     if (list_dirty)
     {
@@ -5790,13 +5703,18 @@ SK_D3D9_TextureModDlg (void)
       {
         char szDesc [16] = { };
 
+#ifdef _WIN64
         sprintf (szDesc, "%llx", (uintptr_t)it);
+#else
+        sprintf (szDesc, "%lx",  (uintptr_t)it);
+#endif
 
         list_contents.push_back (szDesc);
 
-        if ((uintptr_t)it == last_sel_ptr) {
+        if ((uintptr_t)it == last_sel_ptr)
+        {
           sel = idx;
-          tbf::RenderFix::tracked_rt.tracking_tex = render_textures [sel];
+          tracked_rt.tracking_tex = render_textures [sel];
         }
 
         ++idx;
@@ -5854,7 +5772,7 @@ SK_D3D9_TextureModDlg (void)
                sel_changed  = true;
                sel          =  line;
                last_sel_ptr = (uintptr_t)render_textures [sel];
-               tbf::RenderFix::tracked_rt.tracking_tex = render_textures [sel];
+               tracked_rt.tracking_tex = render_textures [sel];
              }
            }
          }
@@ -5880,8 +5798,8 @@ SK_D3D9_TextureModDlg (void)
 
       if (SUCCEEDED (pTex->GetLevelDesc (0, &desc)))
       {
-        size_t shaders = std::max ( tbf::RenderFix::tracked_rt.pixel_shaders.size  (),
-                                    tbf::RenderFix::tracked_rt.vertex_shaders.size () );
+        size_t shaders = std::max ( tracked_rt.pixel_shaders.size  (),
+                                    tracked_rt.vertex_shaders.size () );
 
         // Some Render Targets are MASSIVE, let's try to keep the damn things on the screen ;)
         float effective_width  = std::min (0.75f * ImGui::GetIO ().DisplaySize.x, (float)desc.Width  / 2.0f);
@@ -5924,12 +5842,12 @@ SK_D3D9_TextureModDlg (void)
         {
           ImGui::Columns (2);
 
-          for ( auto it : tbf::RenderFix::tracked_rt.vertex_shaders )
+          for ( auto it : tracked_rt.vertex_shaders )
             ImGui::Text ("Vertex Shader: %08x", it);
 
           ImGui::NextColumn ();
 
-          for ( auto it : tbf::RenderFix::tracked_rt.pixel_shaders )
+          for ( auto it : tracked_rt.pixel_shaders )
             ImGui::Text ("Pixel Shader: %08x", it);
 
           ImGui::Columns (1);
@@ -5942,7 +5860,6 @@ SK_D3D9_TextureModDlg (void)
 
     ImGui::EndGroup ();
   }
-#endif
 
   if (ImGui::CollapsingHeader ("Live Shader View"))
   {
@@ -5951,13 +5868,13 @@ SK_D3D9_TextureModDlg (void)
     if (ImGui::CollapsingHeader ("Pixel Shaders"))
     {
       SK_AutoCriticalSection auto_cs (&cs_ps);
-      SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class::Pixel, can_scroll);
+      SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass::Pixel, can_scroll);
     }
 
     if (ImGui::CollapsingHeader ("Vertex Shaders"))
     {
       SK_AutoCriticalSection auto_cs (&cs_vs);
-      SK_D3D9_LiveShaderClassView (sk_d3d9_shader_class::Vertex, can_scroll);
+      SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass::Vertex, can_scroll);
     }
 
     ImGui::TreePop ();
@@ -6487,7 +6404,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
 
     if (! _wcsicmp (wszPrefix, L"ps"))
     {
-      ps_disassembly.emplace ( crc32c, sk_d3d9_shader_disasm_s {
+      ps_disassembly.emplace ( crc32c, SK::D3D9::ShaderDisassembly {
                                          szDisasm,
                                            comments_end + 1,
                                              footer_begins + 1 }
@@ -6496,7 +6413,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
 
     else
     {
-      vs_disassembly.emplace ( crc32c, sk_d3d9_shader_disasm_s {
+      vs_disassembly.emplace ( crc32c, SK::D3D9::ShaderDisassembly {
                                          szDisasm,
                                            comments_end + 1,
                                              footer_begins + 1 }
@@ -6511,13 +6428,13 @@ void
 SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
                           IDirect3DVertexShader9 *pShader )
 {
-  if (SK_D3D9_Shaders.vertex.current.ptr != pShader)
+  if (Shaders.vertex.current.ptr != pShader)
   {
     if (pShader != nullptr)
     {
       EnterCriticalSection (&cs_vs);
 
-      if (SK_D3D9_Shaders.vertex.rev.find (pShader) == SK_D3D9_Shaders.vertex.rev.end ())
+      if (Shaders.vertex.rev.find (pShader) == Shaders.vertex.rev.end ())
       {
         LeaveCriticalSection (&cs_vs);
 
@@ -6541,7 +6458,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
 
           EnterCriticalSection (&cs_vs);
 
-          SK_D3D9_Shaders.vertex.rev [pShader] = checksum;
+          Shaders.vertex.rev [pShader] = checksum;
         }
       }
 
@@ -6549,17 +6466,17 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
     }
 
     else
-      SK_D3D9_Shaders.vertex.current.crc32c = 0;
+      Shaders.vertex.current.crc32c = 0;
   }
 
 
   SK_AutoCriticalSection csVS (&cs_vs);
 
   const uint32_t vs_checksum =
-    SK_D3D9_Shaders.vertex.rev [pShader];
+    Shaders.vertex.rev [pShader];
 
-  SK_D3D9_Shaders.vertex.current.crc32c = vs_checksum;
-  SK_D3D9_Shaders.vertex.current.ptr    = pShader;
+  Shaders.vertex.current.crc32c = vs_checksum;
+  Shaders.vertex.current.ptr    = pShader;
 
 
   if (vs_checksum != 0x00)
@@ -6573,7 +6490,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
     {
       tracked_vs.use (pShader);
     
-      for ( unsigned int& current_texture : tracked_vs.current_textures )
+      for ( auto& current_texture : tracked_vs.current_textures )
         current_texture = 0x0;
     }
   }
@@ -6583,13 +6500,13 @@ void
 SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
                          IDirect3DPixelShader9 *pShader )
 {
-  if (SK_D3D9_Shaders.pixel.current.ptr != pShader)
+  if (Shaders.pixel.current.ptr != pShader)
   {
     if (pShader != nullptr)
     {
       EnterCriticalSection (&cs_ps);
 
-      if (SK_D3D9_Shaders.pixel.rev.find (pShader) == SK_D3D9_Shaders.pixel.rev.end ())
+      if (Shaders.pixel.rev.find (pShader) == Shaders.pixel.rev.end ())
       {
         LeaveCriticalSection (&cs_ps);
 
@@ -6613,7 +6530,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
 
           EnterCriticalSection (&cs_ps);
 
-          SK_D3D9_Shaders.pixel.rev  [pShader] = checksum;
+          Shaders.pixel.rev  [pShader] = checksum;
         }
       }
 
@@ -6621,17 +6538,17 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
     }
 
     else
-      SK_D3D9_Shaders.pixel.current.crc32c = 0x0;
+      Shaders.pixel.current.crc32c = 0x0;
   }
 
 
   SK_AutoCriticalSection csPS (&cs_ps);
 
   const uint32_t ps_checksum =
-    SK_D3D9_Shaders.pixel.rev [pShader];
+    Shaders.pixel.rev [pShader];
 
-  SK_D3D9_Shaders.pixel.current.crc32c = ps_checksum;
-  SK_D3D9_Shaders.pixel.current.ptr    = pShader;
+  Shaders.pixel.current.crc32c = ps_checksum;
+  Shaders.pixel.current.ptr    = pShader;
 
 
 
@@ -6646,7 +6563,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
     {
       tracked_ps.use (pShader);
     
-      for ( unsigned int& current_texture : tracked_ps.current_textures )
+      for ( auto& current_texture : tracked_ps.current_textures )
         current_texture = 0x0;
     }
   }
@@ -6673,12 +6590,15 @@ SK_D3D9_EndFrame (void)
   draw_state.draw_count = 0;
   draw_state.next_draw  = 0;
   
-  SK_D3D9_Shaders.vertex.clear_state ();
-  SK_D3D9_Shaders.pixel.clear_state  ();
+  Shaders.vertex.clear_state ();
+  Shaders.pixel.clear_state  ();
 
   {
     SK_AutoCriticalSection csVS (&cs_vs);
     last_frame.clear ();
+
+    for (auto& it : tracked_vs.used_textures) it->Release ();
+
     tracked_vs.clear ();
     tracked_vb.clear ();
     tracked_rt.clear ();
@@ -6686,8 +6606,21 @@ SK_D3D9_EndFrame (void)
 
   {
     SK_AutoCriticalSection csVS (&cs_ps);
-    tracked_ps.clear ( );
+
+    for (auto& it : tracked_ps.used_textures) it->Release ();
+
+    tracked_ps.clear ();
   }
+
+  if (trigger_reset == Clear)
+  {
+    if (tex_mgr.injector.hasPendingLoads ())
+      tex_mgr.loadQueuedTextures ();
+
+    tex_mgr.logUsedTextures ();
+  }
+
+  tex_mgr.resetUsedTextures ();
 
   draw_state.cegui_active = false;
 }
@@ -6703,8 +6636,8 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice)))
     return false;
 
-  const uint32_t vs_checksum = SK_D3D9_Shaders.vertex.current.crc32c;
-  const uint32_t ps_checksum = SK_D3D9_Shaders.pixel.current.crc32c;
+  const uint32_t vs_checksum = Shaders.vertex.current.crc32c;
+  const uint32_t ps_checksum = Shaders.pixel.current.crc32c;
 
   const bool tracking_vs = ( vs_checksum == tracked_vs.crc32c );
   const bool tracking_ps = ( ps_checksum == tracked_ps.crc32c );
@@ -6717,20 +6650,20 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   {
     SK_AutoCriticalSection auto_cs (&cs_vs);
 
-    if (SK_D3D9_Shaders.vertex.blacklist.count (vs_checksum))
+    if (Shaders.vertex.blacklist.count (vs_checksum))
       skip      = true;
 
-    if (SK_D3D9_Shaders.vertex.wireframe.count (vs_checksum))
+    if (Shaders.vertex.wireframe.count (vs_checksum))
       wireframe = true;
   }
 
   {
     SK_AutoCriticalSection auto_cs (&cs_ps);
 
-    if (SK_D3D9_Shaders.pixel.blacklist.count (ps_checksum))
+    if (Shaders.pixel.blacklist.count (ps_checksum))
       skip      = true;
 
-    if (SK_D3D9_Shaders.pixel.wireframe.count (ps_checksum))
+    if (Shaders.pixel.wireframe.count (ps_checksum))
       wireframe = true;
   }
 
@@ -6739,10 +6672,16 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   {
     InterlockedIncrement (&tracked_vs.num_draws);
 
-    for (unsigned int& current_texture : tracked_vs.current_textures)
+    for (auto& current_texture : tracked_vs.current_textures)
     {
       if (current_texture != 0)
-        tracked_vs.used_textures.emplace (current_texture);
+      {
+        if (! tracked_vs.used_textures.count (current_texture))
+        {
+          tracked_vs.used_textures.emplace (current_texture);
+          current_texture->AddRef ();
+        }
+      }
     }
 
     //
@@ -6767,10 +6706,16 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
     InterlockedIncrement (&tracked_ps.num_draws);
 
-    for ( unsigned int& current_texture : tracked_ps.current_textures )
+    for ( auto& current_texture : tracked_ps.current_textures )
     {
       if (current_texture != 0)
-        tracked_ps.used_textures.emplace (current_texture);
+      {
+        if (! tracked_ps.used_textures.count (current_texture))
+        {
+          tracked_ps.used_textures.emplace (current_texture);
+          current_texture->AddRef ();
+        }
+      }
     }
 
     //
@@ -6843,8 +6788,8 @@ SK_D3D9_InitShaderModTools (void)
   known_objs.static_vbs.reserve               (8192);
   ps_disassembly.reserve                      (512);
   vs_disassembly.reserve                      (512);
-  SK_D3D9_Shaders.vertex.rev.reserve          (8192);
-  SK_D3D9_Shaders.pixel.rev.reserve           (8192);
+  Shaders.vertex.rev.reserve                  (8192);
+  Shaders.pixel.rev.reserve                   (8192);
 
   InitializeCriticalSectionAndSpinCount (&cs_vs, 1024 * 2048 * 128);
   InitializeCriticalSectionAndSpinCount (&cs_ps, 1024 * 2048 * 128);
@@ -6854,13 +6799,13 @@ SK_D3D9_InitShaderModTools (void)
 
 
 void
-EnumConstant ( shader_tracking_s* pShader,
-               ID3DXConstantTable*                pConstantTable,
+EnumConstant ( SK::D3D9::ShaderTracker           *pShader,
+               ID3DXConstantTable                *pConstantTable,
                D3DXHANDLE                         hConstant,
-               shader_tracking_s::
-               shader_constant_s& constant,
+               SK::D3D9::ShaderTracker::
+               shader_constant_s&                 constant,
                std::vector <
-                 shader_tracking_s::
+                 SK::D3D9::ShaderTracker::
                              shader_constant_s >& list )
 {
   if (! (hConstant && pConstantTable))
@@ -6889,7 +6834,7 @@ EnumConstant ( shader_tracking_s* pShader,
       D3DXHANDLE hConstantStruct =
         pConstantTable->GetConstant (hConstant, j);
   
-      shader_tracking_s::shader_constant_s struct_constant = { };
+      SK::D3D9::ShaderTracker::shader_constant_s struct_constant = { };
   
       if (hConstantStruct != nullptr)
         EnumConstant (pShader, pConstantTable, hConstantStruct, struct_constant, constant.struct_members );
@@ -6902,7 +6847,7 @@ EnumConstant ( shader_tracking_s* pShader,
 
 
 void
-shader_tracking_s::use (IUnknown *pShader)
+SK::D3D9::ShaderTracker::use (IUnknown *pShader)
 {
   if (shader_obj != pShader)
   {

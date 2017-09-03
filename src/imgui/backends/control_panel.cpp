@@ -2132,20 +2132,70 @@ SK_ImGui_ControlPanel (void)
 
           if (emperor_has_no_clothes)
           {
-            SK_D3D9_Shaders.vertex.blacklist.emplace (vs_outline);
-            SK_D3D9_Shaders.pixel.blacklist.emplace  (ps_primary);
+            SK::D3D9::Shaders.vertex.blacklist.emplace (vs_outline);
+            SK::D3D9::Shaders.pixel.blacklist.emplace  (ps_primary);
           }
 
           else
           {
-            SK_D3D9_Shaders.vertex.blacklist.erase (vs_outline);
-            SK_D3D9_Shaders.pixel.blacklist.erase  (ps_primary);
+            SK::D3D9::Shaders.vertex.blacklist.erase (vs_outline);
+            SK::D3D9::Shaders.pixel.blacklist.erase  (ps_primary);
           }
         }
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ( emperor_has_no_clothes ? "And neither do the girls in this game!" :
                                                        "But the prudes in this game do." );
+
+        ImGui::TreePop ();
+      }
+    }
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::LifeIsStrange_BeforeTheStorm)
+    {
+      if (ImGui::CollapsingHeader ("Life is Strange: Before the Storm", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        static bool evil          = false;
+        static bool even_stranger = false;
+
+        const uint32_t vs_eyes = 0x223ccf2d;
+        const uint32_t ps_face = 0xbde11248;
+        const uint32_t ps_skin = 0xa79e425c;
+
+        ImGui::TreePush ("");
+
+        if (ImGui::Checkbox ("Life is Evil", &evil))
+        {
+          if (evil)
+          {
+            SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
+          }
+
+          else
+          {
+            SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
+          }
+        }
+
+        if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
+        {
+          if (even_stranger)
+          {
+            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
+            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
+          }
+
+          else
+          {
+            SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
+            SK_D3D11_Shaders.pixel.blacklist.erase (ps_skin);
+          }
+        }
+
+        bool enable = evil || even_stranger;
+
+        extern bool SK_D3D11_EnableTracking;
+        SK_D3D11_EnableTracking = enable || show_shader_mod_dlg;
 
         ImGui::TreePop ();
       }

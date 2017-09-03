@@ -2177,33 +2177,34 @@ SK_LoadConfigEx (std::wstring name, bool create)
   config.render.dxgi.exception_mode = -1;
   config.render.dxgi.scaling_mode   = -1;
 
-  games.emplace ( L"Tyranny.exe",                  SK_GAME_ID::Tyranny              );
-  games.emplace ( L"SRHK.exe",                     SK_GAME_ID::Shadowrun_HongKong   );
-  games.emplace ( L"TidesOfNumenera.exe",          SK_GAME_ID::TidesOfNumenera      );
-  games.emplace ( L"MassEffectAndromeda.exe",      SK_GAME_ID::MassEffect_Andromeda );
-  games.emplace ( L"MadMax.exe",                   SK_GAME_ID::MadMax               );
-  games.emplace ( L"Dreamfall Chapters.exe",       SK_GAME_ID::Dreamfall_Chapters   );
-  games.emplace ( L"TheWitness.exe",               SK_GAME_ID::TheWitness           );
-  games.emplace ( L"Obduction-Win64-Shipping.exe", SK_GAME_ID::Obduction            );
-  games.emplace ( L"witcher3.exe",                 SK_GAME_ID::TheWitcher3          );
-  games.emplace ( L"re7.exe",                      SK_GAME_ID::ResidentEvil7        );
-  games.emplace ( L"DDDA.exe",                     SK_GAME_ID::DragonsDogma         );
-  games.emplace ( L"eqgame.exe",                   SK_GAME_ID::EverQuest            );
-  games.emplace ( L"GE2RB.exe",                    SK_GAME_ID::GodEater2RageBurst   );
-  games.emplace ( L"WatchDogs2.exe",               SK_GAME_ID::WatchDogs2           );
-  games.emplace ( L"NieRAutomata.exe",             SK_GAME_ID::NieRAutomata         );
-  games.emplace ( L"Warframe.x64.exe",             SK_GAME_ID::Warframe_x64         );
-  games.emplace ( L"LEGOLCUR_DX11.exe",            SK_GAME_ID::LEGOCityUndercover   );
-  games.emplace ( L"Sacred.exe",                   SK_GAME_ID::Sacred               );
-  games.emplace ( L"sacred2.exe",                  SK_GAME_ID::Sacred2              );
-  games.emplace ( L"FF9.exe",                      SK_GAME_ID::FinalFantasy9        );
-  games.emplace ( L"FinchGame.exe",                SK_GAME_ID::EdithFinch           );
-  games.emplace ( L"FFX.exe",                      SK_GAME_ID::FinalFantasyX_X2     );
-  games.emplace ( L"FFX-2.exe",                    SK_GAME_ID::FinalFantasyX_X2     );
-  games.emplace ( L"DP.exe",                       SK_GAME_ID::DeadlyPremonition    );
-  games.emplace ( L"GG2Game.exe",                  SK_GAME_ID::GalGun_Double_Peace  );
-  games.emplace ( L"AkibaUU.exe",                  SK_GAME_ID::AKIBAs_Trip          );
-  games.emplace ( L"Ys7.exe",                      SK_GAME_ID::YS_Seven             );
+  games.emplace ( L"Tyranny.exe",                            SK_GAME_ID::Tyranny                      );
+  games.emplace ( L"SRHK.exe",                               SK_GAME_ID::Shadowrun_HongKong           );
+  games.emplace ( L"TidesOfNumenera.exe",                    SK_GAME_ID::TidesOfNumenera              );
+  games.emplace ( L"MassEffectAndromeda.exe",                SK_GAME_ID::MassEffect_Andromeda         );
+  games.emplace ( L"MadMax.exe",                             SK_GAME_ID::MadMax                       );
+  games.emplace ( L"Dreamfall Chapters.exe",                 SK_GAME_ID::Dreamfall_Chapters           );
+  games.emplace ( L"TheWitness.exe",                         SK_GAME_ID::TheWitness                   );
+  games.emplace ( L"Obduction-Win64-Shipping.exe",           SK_GAME_ID::Obduction                    );
+  games.emplace ( L"witcher3.exe",                           SK_GAME_ID::TheWitcher3                  );
+  games.emplace ( L"re7.exe",                                SK_GAME_ID::ResidentEvil7                );
+  games.emplace ( L"DDDA.exe",                               SK_GAME_ID::DragonsDogma                 );
+  games.emplace ( L"eqgame.exe",                             SK_GAME_ID::EverQuest                    );
+  games.emplace ( L"GE2RB.exe",                              SK_GAME_ID::GodEater2RageBurst           );
+  games.emplace ( L"WatchDogs2.exe",                         SK_GAME_ID::WatchDogs2                   );
+  games.emplace ( L"NieRAutomata.exe",                       SK_GAME_ID::NieRAutomata                 );
+  games.emplace ( L"Warframe.x64.exe",                       SK_GAME_ID::Warframe_x64                 );
+  games.emplace ( L"LEGOLCUR_DX11.exe",                      SK_GAME_ID::LEGOCityUndercover           );
+  games.emplace ( L"Sacred.exe",                             SK_GAME_ID::Sacred                       );
+  games.emplace ( L"sacred2.exe",                            SK_GAME_ID::Sacred2                      );
+  games.emplace ( L"FF9.exe",                                SK_GAME_ID::FinalFantasy9                );
+  games.emplace ( L"FinchGame.exe",                          SK_GAME_ID::EdithFinch                   );
+  games.emplace ( L"FFX.exe",                                SK_GAME_ID::FinalFantasyX_X2             );
+  games.emplace ( L"FFX-2.exe",                              SK_GAME_ID::FinalFantasyX_X2             );
+  games.emplace ( L"DP.exe",                                 SK_GAME_ID::DeadlyPremonition            );
+  games.emplace ( L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          );
+  games.emplace ( L"AkibaUU.exe",                            SK_GAME_ID::AKIBAs_Trip                  );
+  games.emplace ( L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     );
+  games.emplace ( L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm );
 
   //
   // Application Compatibility Overrides
@@ -2432,6 +2433,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.d3d8.hook                  = false;
         config.input.mouse.add_relative_motion = false;
         break;
+#endif
+
+#ifdef _WIN64
+        case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
+          config.apis.d3d9.hook       = false;
+          config.apis.d3d9ex.hook     = false;
+          config.apis.OpenGL.hook     = false;
+          config.apis.Vulkan.hook     = false;
+          config.apis.dxgi.d3d11.hook = true;
+          config.apis.dxgi.d3d12.hook = false;
+          break;
 #endif
     }
   }
