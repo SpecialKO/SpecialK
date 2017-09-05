@@ -1012,7 +1012,9 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
     SK_GetCurrentRenderBackend ();
 
   rb.api = SK_RenderAPI::D3D9Ex;
-  SK_BeginBufferSwap ();
+
+  if (This == rb.device)
+    SK_BeginBufferSwap ();
 
   HRESULT hr = E_FAIL;
 
@@ -1024,11 +1026,20 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
 
     CComPtr <IDirect3DSurface9> pSurf = nullptr;
 
-    if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
+    D3DPRESENT_PARAMETERS pparams = { };
+
+    pSwapChain->GetPresentParameters (&pparams);
+
+    if (( !( pparams.Flags & D3DPRESENTFLAG_VIDEO ) ) &&
+        SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
     {
+      if (rb.device != This)
+      {
+        SK_BeginBufferSwap ();
+      }
+
       rb.device    = This;
       rb.swapchain = pSwapChain;
-
 
       //
       // Update G-Sync; doing this here prevents trying to do this on frames where
@@ -1057,13 +1068,16 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
                                       hDestWindowOverride,
                                         pDirtyRegion );
 
-  if (! config.osd.pump)
+  if (This == rb.device)
   {
-    if (trigger_reset == reset_stage_e::Clear)
-      hr = SK_EndBufferSwap (hr, This);
+    if (! config.osd.pump)
+    {
+      if (trigger_reset == reset_stage_e::Clear)
+        hr = SK_EndBufferSwap (hr, This);
 
-    else
-      hr = D3DERR_DEVICELOST;
+      else
+        hr = D3DERR_DEVICELOST;
+    }
   }
 
   return hr;
@@ -1129,7 +1143,7 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
                                         D3DPRESENT_FORCEIMMEDIATE |
                                         D3DPRESENT_DONOTWAIT );
 
-    if (This == SK_GetCurrentRenderBackend ().device)
+    if (This == rb.device)
     {
       SK_D3D9_EndFrame ();
     }
@@ -1149,14 +1163,24 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
     if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
     {
-      SK_CEGUI_DrawD3D9 (This, pSwapChain);
-
       CComPtr <IDirect3DSurface9> pSurf = nullptr;
 
-      if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)))
+      D3DPRESENT_PARAMETERS pparams = { };
+
+      pSwapChain->GetPresentParameters (&pparams);
+
+      if ( (! (pparams.Flags & D3DPRESENTFLAG_VIDEO)) &&
+           SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)) )
       {
+        if (rb.device != This)
+        {
+          SK_BeginBufferSwap ( );
+        }
+
         rb.device    = This;
         rb.swapchain = pSwapChain;
+
+        SK_CEGUI_DrawD3D9 (This, pSwapChain);
 
         //
         // Update G-Sync; doing this here prevents trying to do this on frames where
@@ -1175,7 +1199,8 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
   if (config.apis.d3d9ex.hook)
   {
-    if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
+    if (    This == rb.device &&
+         SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)) )
     {
       reinterpret_cast <int &> (rb.api) = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
                                             static_cast <int> (SK_RenderAPI::D3D9Ex)   );
@@ -1187,7 +1212,8 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
     rb.api = SK_RenderAPI::D3D9;
   }
 
-  SK_BeginBufferSwap ();
+  if (This == rb.device)
+    SK_BeginBufferSwap ();
 
   HRESULT hr =
     D3D9Present_Original ( This,
@@ -1196,18 +1222,18 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
                                  hDestWindowOverride,
                                    pDirtyRegion );
 
-  if (! config.osd.pump)
+  if (This == rb.device)
   {
-    if (trigger_reset == reset_stage_e::Clear)
+    if (! config.osd.pump)
     {
-      hr = SK_EndBufferSwap (hr, This);
+      if (trigger_reset == reset_stage_e::Clear)
+      {
+        hr = SK_EndBufferSwap (hr, This);
+      }
+      else
+        hr = D3DERR_DEVICELOST;
     }
-    else
-      hr = D3DERR_DEVICELOST;
-  }
 
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
     SK_D3D9_EndFrame ();
   }
 
@@ -1367,14 +1393,24 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
     if (SUCCEEDED (This->GetDevice (&pDev)))
     {
-      SK_CEGUI_DrawD3D9 (pDev, This);
-
       CComPtr <IDirect3DSurface9> pSurf = nullptr;
 
-      if (SUCCEEDED (This->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, &pSurf)))
+      D3DPRESENT_PARAMETERS pparams = { };
+
+      This->GetPresentParameters (&pparams);
+
+      if (( !( pparams.Flags & D3DPRESENTFLAG_VIDEO ) ) &&
+          SUCCEEDED (This->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
       {
+        if (rb.device != This)
+        {
+          SK_BeginBufferSwap ();
+        }
+
         rb.device    = pDev;
         rb.swapchain = This;
+
+        SK_CEGUI_DrawD3D9 (pDev, This);
 
         //
         // Update G-Sync; doing this here prevents trying to do this on frames where
@@ -1410,7 +1446,7 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                   pDirtyRegion,
                                   dwFlags);
     
-      if (This == SK_GetCurrentRenderBackend ().device || SK_GetCurrentRenderBackend ().device == nullptr)
+      if (This == rb.device)
       {
         SK_D3D9_EndFrame ();
       }
@@ -1420,10 +1456,13 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
       //  Only do input processing and UI drawing on real frames
       if (SUCCEEDED (hr))
       {
-        SK_BeginBufferSwap ();
+        if (This == rb.device)
+        {
+          SK_BeginBufferSwap ();
 
-        hr =
-          SK_EndBufferSwap (hr, pDev);
+          hr =
+            SK_EndBufferSwap (hr, pDev);
+        }
       }
 
       return hr;
@@ -1431,7 +1470,8 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
 
 
-    SK_BeginBufferSwap ();
+    if (This == rb.device)
+      SK_BeginBufferSwap ();
 
     HRESULT hr =
       D3D9PresentSwap_Original ( This,
@@ -1454,11 +1494,14 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
     {
       if (trigger_reset == reset_stage_e::Clear)
       {
-        hr =
-          SK_EndBufferSwap (hr, pDev);
+        if (This == rb.device)
+        {
+          hr =
+            SK_EndBufferSwap (hr, pDev);
+        }
       }
 
-      if (This == SK_GetCurrentRenderBackend ().device)
+      if (This == rb.device)
       {
         SK_D3D9_EndFrame ();
       }
@@ -1469,11 +1512,14 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
     // pDev should be nullptr ... I'm not exactly sure what I was trying to accomplish? :P
     if (trigger_reset == reset_stage_e::Clear)
     {
-      hr =
-        SK_EndBufferSwap (hr, pDev);
+      if (This == rb.device)
+      {
+        hr =
+          SK_EndBufferSwap (hr, pDev);
+      }
     }
 
-    if (This == SK_GetCurrentRenderBackend ().device)
+    if (This == rb.device)
     {
       SK_D3D9_EndFrame ();
     }
@@ -1517,17 +1563,20 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9TestCooperativeLevel_Override (IDirect3DDevice9 *This)
 {
-  if (trigger_reset == reset_stage_e::Initiate)
+  if (This == SK_GetCurrentRenderBackend ().device)
   {
-    trigger_reset = reset_stage_e::Respond;
+    if (trigger_reset == reset_stage_e::Initiate)
+    {
+      trigger_reset = reset_stage_e::Respond;
 
-    return D3DERR_DEVICELOST;
-  }
+      return D3DERR_DEVICELOST;
+    }
 
 
-  else if (trigger_reset == reset_stage_e::Respond)
-  {
-    return D3DERR_DEVICENOTRESET;
+    else if (trigger_reset == reset_stage_e::Respond)
+    {
+      return D3DERR_DEVICENOTRESET;
+    }
   }
 
 
@@ -1844,8 +1893,6 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
 
     Shaders.vertex.clear ();
     Shaders.pixel.clear  ();
-
-    SK::D3D9::tex_mgr.reset ();
   //}
 }
 
@@ -2655,6 +2702,8 @@ D3D9SetDepthStencilSurface_Override ( IDirect3DDevice9  *This,
                                             pNewZStencil );
 }
 
+extern std::wstring SK_D3D11_res_root;
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2662,20 +2711,255 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                              IDirect3DBaseTexture9 *pSourceTexture,
                              IDirect3DBaseTexture9 *pDestinationTexture )
 {
+  if (SK::D3D9::tex_mgr.injector.isInjectionThread ())
+  {
+    return
+      D3D9UpdateTexture_Original ( This,
+                                     pSourceTexture,
+                                       pDestinationTexture );
+  }
+
   IDirect3DBaseTexture9* pRealSource = pSourceTexture;
   IDirect3DBaseTexture9* pRealDest   = pDestinationTexture;
+
+  bool src_is_wrapped = false;
 
   void* dontcare;
   if (pSourceTexture != nullptr &&
       pSourceTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {
-    pRealSource = ((ISKTextureD3D9 *)dontcare)->pTex;
+    src_is_wrapped = true;
+
+    pRealSource = ((ISKTextureD3D9 *)pSourceTexture)->pTex;
   }
 
   if (pDestinationTexture != nullptr &&
       pDestinationTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {
-    pRealDest = ( (ISKTextureD3D9 *)dontcare )->pTex;
+    pRealDest = ((ISKTextureD3D9 *)pDestinationTexture)->pTex;
+
+    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
+    {
+      if (src_is_wrapped)
+      {
+        ISKTextureD3D9* pSrc = (ISKTextureD3D9 *)pSourceTexture;
+        ISKTextureD3D9* pDst = (ISKTextureD3D9 *)pDestinationTexture;
+
+        pDst->tex_crc32c = pSrc->tex_crc32c;
+        pDst->tex_size   = pSrc->tex_size;
+
+        HRESULT         hr           = S_OK;
+        TexLoadRequest* load_op      = nullptr;
+
+        wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
+
+        uint32_t checksum = pSrc->tex_crc32c;
+
+        bool remap_stream =
+          tex_mgr.injector.isStreaming (checksum);
+
+        //
+        // Generic injectable textures
+        //
+        if ( tex_mgr.isTextureInjectable (checksum) )
+        {
+          tex_log.LogEx ( true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
+                            checksum );
+
+          TexRecord& record =
+            tex_mgr.getInjectableTexture (checksum);
+
+          if (record.method == TexLoadMethod::DontCare)
+            record.method = TexLoadMethod::Blocking;//Streaming;
+
+          // If -1, load from disk...
+          if (record.archive == -1)
+          {
+            if (record.method == TexLoadMethod::Streaming)
+            {
+              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
+                            SK_D3D11_res_root.c_str (),
+                              checksum,
+                                L".dds" );
+            }
+
+            else if (record.method == TexLoadMethod::Blocking)
+            {
+              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
+                            SK_D3D11_res_root.c_str (),
+                              checksum,
+                                L".dds" );
+            }
+          }
+
+          load_op           = new TexLoadRequest ();
+
+          load_op->pDevice  = This;
+          load_op->checksum = checksum;
+
+          if (record.method == TexLoadMethod::Streaming)
+            load_op->type   = TexLoadRequest::Stream;
+          else
+            load_op->type   = TexLoadRequest::Immediate;
+
+          wcscpy (load_op->wszFilename, wszInjectFileName);
+
+          if (load_op->type == TexLoadRequest::Stream)
+          {
+            if ((! remap_stream))
+              tex_log.LogEx ( false, L"streaming\n" );
+            else
+              tex_log.LogEx ( false, L"in-flight already\n" );
+          }
+
+          else
+          {
+            tex_log.LogEx ( false, L"blocking (deferred)\n" );
+          }
+        }
+
+        if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
+                                     load_op->type == TexLoadRequest::Immediate ) )
+        {
+          load_op->SrcDataSize =
+            static_cast <UINT> (
+              tex_mgr.isTextureInjectable (checksum)         ?
+                tex_mgr.getInjectableTexture (checksum).size : 0
+            );
+
+          load_op->pDest =
+            (ISKTextureD3D9 *)pDestinationTexture;
+
+          tex_mgr.injector.lockStreaming ();
+
+          if (load_op->type == TexLoadRequest::Immediate)
+            ((ISKTextureD3D9 *)pDestinationTexture)->must_block = true;
+
+          if (tex_mgr.injector.isStreaming (load_op->checksum))
+          {
+            tex_mgr.injector.lockStreaming ();
+
+            ISKTextureD3D9* pTexOrig =
+              (ISKTextureD3D9 *)tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest;
+
+            // Remap the output of the in-flight texture
+            tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
+              (ISKTextureD3D9 *)pDestinationTexture;
+
+            tex_mgr.injector.unlockStreaming ();
+
+            if (tex_mgr.getTexture (load_op->checksum) != nullptr)
+            {
+              for ( int i = 0;
+                        i < tex_mgr.getTexture (load_op->checksum)->refs;
+                      ++i )
+              {
+                ((ISKTextureD3D9 *)pDestinationTexture)->AddRef ();
+              }
+            }
+
+            tex_mgr.removeTexture (pTexOrig);
+          }
+
+          else
+          {
+            tex_mgr.injector.addTextureInFlight (load_op);
+
+            stream_pool.postJob                 (load_op);
+            //resample_pool->postJob (load_op);
+          }
+
+          tex_mgr.injector.unlockStreaming ();
+        }
+
+      #if 0
+        //
+        // TODO:  Actually stream these, but block if the game tries to call SetTexture (...)
+        //          while the texture is in-flight.
+        //
+        else if (load_op != nullptr && load_op->type == tsf_tex_load_s::Immediate) {
+          QueryPerformanceFrequency        (&load_op->freq);
+          QueryPerformanceCounter_Original (&load_op->start);
+      
+          EnterCriticalSection (&cs_tex_inject);
+          inject_tids.insert   (GetCurrentThreadId ());
+          LeaveCriticalSection (&cs_tex_inject);
+      
+          load_op->pDest = *ppTexture;
+      
+          hr = InjectTexture (load_op);
+      
+          EnterCriticalSection (&cs_tex_inject);
+          inject_tids.erase    (GetCurrentThreadId ());
+          LeaveCriticalSection (&cs_tex_inject);
+      
+          QueryPerformanceCounter_Original (&load_op->end);
+      
+          if (SUCCEEDED (hr)) {
+            tex_log->Log ( L"[Inject Tex] Finished synchronous texture %08x (%5.2f MiB in %9.4f ms)",
+                            load_op->checksum,
+                              (double)load_op->SrcDataSize / (1024.0f * 1024.0f),
+                                1000.0f * (double)(load_op->end.QuadPart - load_op->start.QuadPart) /
+                                          (double) load_op->freq.QuadPart );
+            ISKTextureD3D9* pSKTex =
+              (ISKTextureD3D9 *)*ppTexture;
+      
+            pSKTex->pTexOverride  = load_op->pSrc;
+            pSKTex->override_size = load_op->SrcDataSize;
+      
+            pSKTex->last_used     = load_op->end;
+      
+            tsf::RenderFix::tex_mgr.addInjected (load_op->SrcDataSize);
+          } else {
+            tex_log->Log ( L"[Inject Tex] *** FAILED synchronous texture %08x",
+                            load_op->checksum );
+          }
+      
+          delete load_op;
+          load_op = nullptr;
+        }
+      #endif
+
+        else if (load_op != nullptr)
+        {
+          delete load_op;
+          load_op = nullptr;
+        }
+
+        //QueryPerformanceCounter_Original (&end);
+      
+        if (/*config.textures.cache &&*/ checksum != 0x00)
+        {
+          Texture* pTex =
+            new Texture ();
+
+          pTex->crc32c = checksum;
+
+          pTex->d3d9_tex = pDst;
+          pTex->d3d9_tex->AddRef ();
+          pTex->refs++;
+      
+          //pTex->load_time = (float)( 1000.0 *
+          //                    (double)(end.QuadPart - start.QuadPart) /
+          //                    (double)freq.QuadPart );
+
+          tex_mgr.addTexture (checksum, pTex, /*SrcDataSize*/pDst->tex_size);
+        }
+
+      //  if (true)
+      //  {//config.textures.log) {
+      //    tex_log.Log ( L"[Load Trace] Texture:   (%lu x %lu) * <LODs: %lu> - FAST_CRC32: %X",
+      //                   info.Width, info.Height, (*ppTexture)->GetLevelCount (), checksum );
+      //    tex_log.Log ( L"[Load Trace]              Usage: %-20s - Format: %-20s",
+      //                   SK_D3D9_UsageToStr    (Usage).c_str (),
+      //                     SK_D3D9_FormatToStr (Format).c_str () );
+      //    tex_log.Log ( L"[Load Trace]                Pool: %s",
+      //                   SK_D3D9_PoolToStr (Pool) );
+      //    tex_log.Log ( L"[Load Trace]      Load Time: %6.4f ms", 
+      //                   1000.0f * (double)(end.QuadPart - start.QuadPart) / (double)freq.QuadPart );
+      //  }
+      }
+    }
   }
 
   return
@@ -4200,16 +4484,32 @@ SK_D3D9_DrawFileList (bool& can_scroll)
         ImGui::TextColored  (ImVec4 (0.9f, 0.7f, 0.3f, 1.f), "Data Source  (%s)", sources [sel].name.c_str ());
         ImGui::Separator    ();
 
-        ImGui::Text ( "Total Size:                 %#5.2f MiB",
-                        (double)sources [sel].totalSize () / (1024.0 * 1024.0) );
-        ImGui::Text ( "Blocking Data:  %4lu File%c (%#5.2f MiB)",
-                        sources [sel].blocking.records.size (),
-                        sources [sel].blocking.records.size () != 1 ? 's' : ' ',
-                        (double)sources [sel].blocking.size / (1024.0 * 1024.0) );
-        ImGui::Text ( "Streaming Data: %4lu File%c (%#5.2f MiB)",
-                        sources [sel].streaming.records.size (),
-                        sources [sel].streaming.records.size () != 1 ? 's' : ' ',
-                        (double)sources [sel].streaming.size / (1024.0 * 1024.0) );
+        ImGui::BeginGroup      (    );
+        ImGui::TextUnformatted ( "Total Size:     ");
+        ImGui::TextUnformatted ( "Blocking Data:  ");
+        ImGui::TextUnformatted ( "Streaming Data: ");
+        ImGui::EndGroup        (    );
+
+        ImGui::SameLine        (    );
+
+        ImGui::BeginGroup      (    );
+        ImGui::TextUnformatted ( "" );
+        ImGui::Text            ( "%4lu File%c", sources [sel].blocking.records.size (),
+                                                sources [sel].blocking.records.size () != 1 ? 's' : ' ' );
+        ImGui::Text            ( "%4lu File%c", sources [sel].streaming.records.size (),
+                                                sources [sel].streaming.records.size () != 1 ? 's' : ' ' );
+        ImGui::EndGroup        (    );
+
+        ImGui::SameLine        (    );
+
+        ImGui::BeginGroup      (    );
+        ImGui::Text            ( "  %#5.2f MiB",
+                                   (double)sources [sel].totalSize () / ( 1024.0 * 1024.0 ) );
+        ImGui::Text            ( " (%#5.2f MiB)",
+                                   (double)sources [sel].blocking.size / (1024.0 * 1024.0) );
+        ImGui::Text            ( " (%#5.2f MiB)",
+                                   (double)sources [sel].streaming.size / (1024.0 * 1024.0) );
+        ImGui::EndGroup        (    );
 
         ImGui::EndTooltip    ();
       };
@@ -4224,7 +4524,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
   
     last_sel = sel;
   
-    for ( int line = 0; line < sources.size (); line++)
+    for ( unsigned int line = 0; line < sources.size (); line++)
     {
       if (line == sel)
       {
@@ -4514,7 +4814,6 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     ImGui::Separator      ();
     ImGui::EndGroup       ();
 
-//  Need to port-over texture manager
     if (ImGui::IsItemHoveredRect () && tracker->used_textures.size ())
     {
       ImGui::BeginTooltip ();
@@ -4540,9 +4839,16 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
           ImGui::SameLine ();
 
           ImGui::BeginGroup ();
-          ImGui::Text       ("Texture: %08lx", it);
-          ImGui::Text       ("Format:  %ws",   SK_D3D9_FormatToStr (fmt).c_str ());
+          ImGui::TextUnformatted ("Texture:");
+          ImGui::TextUnformatted ("Format: ");
           ImGui::EndGroup   ();
+
+          ImGui::SameLine    ();
+
+          ImGui::BeginGroup  ();
+          ImGui::Text        ("%08lx", it);
+          ImGui::Text        ("%ws",   SK_D3D9_FormatToStr (fmt).c_str ());
+          ImGui::EndGroup    ();
         }
       }
 
@@ -5332,7 +5638,11 @@ SK_D3D9_TextureModDlg (void)
     extern              uint32_t  tex_dbg_idx;
     extern              uint32_t  debug_tex_id;
 
-    ImGui::BeginChild (ImGui::GetID ("ToolHeadings"), ImVec2 (font_size * 66.0f, font_size * 2.5f), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+    ImGui::BeginChild ( ImGui::GetID ("D3D9_ToolHeadings"),
+                          ImVec2 (font_size * 66.0f, font_size * 2.5f),
+                            false,
+                              ImGuiWindowFlags_AlwaysUseWindowPadding |
+                              ImGuiWindowFlags_NavFlattened );
 
     if (ImGui::Button ("  Refresh Textures  "))
     {
@@ -5416,7 +5726,7 @@ SK_D3D9_TextureModDlg (void)
 
     ImGui::BeginChild ( ImGui::GetID ("Item List"),
                         ImVec2 ( font_size * 6.0f, std::max (font_size * 15.0f, last_ht)),
-                          true, ImGuiWindowFlags_AlwaysAutoResize );
+                          true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
     if (ImGui::IsWindowHovered ())
       can_scroll = false;
@@ -5522,17 +5832,28 @@ SK_D3D9_TextureModDlg (void)
 
           int num_lods = pTex->d3d9_tex->pTex->GetLevelCount ();
 
-          ImGui::Text ( "Dimensions:   %lux%lu (%lu %s)",
-                          desc.Width, desc.Height,
-                            num_lods, num_lods > 1 ? "LODs" : "LOD" );
-          ImGui::Text ( "Format:       %ws",
-                          SK_D3D9_FormatToStr (desc.Format).c_str () );
-          ImGui::Text ( "Data Size:    %.2f MiB",
-                          (double)pTex->d3d9_tex->tex_size / (1024.0f * 1024.0f) );
-          ImGui::Text ( "Load Time:    %.6f Seconds",
-                          pTex->load_time / 1000.0f );
+          ImGui::BeginGroup ();
+          ImGui::TextUnformatted ( "Dimensions:   " );
+          ImGui::TextUnformatted ( "Format:       " );
+          ImGui::TextUnformatted ( "Data Size:    " );
+          ImGui::TextUnformatted ( "Load Time:    " );
+          ImGui::EndGroup   ();
 
-          ImGui::Separator     ();
+          ImGui::SameLine   ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text ("%lux%lu (%lu %s)",
+                       desc.Width, desc.Height,
+                       num_lods, num_lods > 1 ? "LODs" : "LOD");
+          ImGui::Text ("%ws",
+                       SK_D3D9_FormatToStr (desc.Format).c_str ( ));
+          ImGui::Text ("%.2f MiB",
+            (double)pTex->d3d9_tex->tex_size / ( 1024.0f * 1024.0f ));
+          ImGui::Text ("%.6f Seconds",
+                       pTex->load_time / 1000.0f);
+          ImGui::EndGroup   ();
+
+          ImGui::Separator  ();
 
           if (! SK::D3D9::tex_mgr.isTextureDumped (debug_tex_id))
           {
@@ -5616,16 +5937,28 @@ SK_D3D9_TextureModDlg (void)
           int num_lods =
             pTex->d3d9_tex->pTexOverride->GetLevelCount ();
 
-          ImGui::Text ( "Dimensions:   %lux%lu  (%lu %s)",
-                          desc.Width, desc.Height,
-                             num_lods, num_lods > 1 ? "LODs" : "LOD" );
-          ImGui::Text ( "Format:       %ws",
-                          SK_D3D9_FormatToStr (desc.Format).c_str () );
-          ImGui::Text ( "Data Size:    %.2f MiB",
-                          (double)pTex->d3d9_tex->override_size / (1024.0f * 1024.0f) );
-          ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), injected ? "Injected Texture" : "Resampled Texture" );
+          ImGui::BeginGroup      ();
+          ImGui::TextUnformatted ( "Dimensions:   " );
+          ImGui::TextUnformatted ( "Format:       " );
+          ImGui::TextUnformatted ( "Data Size:    " );
+          ImGui::EndGroup        ();
 
-          ImGui::Separator     ();
+          ImGui::SameLine   ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text       ( "%lux%lu  (%lu %s)",
+                                desc.Width, desc.Height,
+                                   num_lods, num_lods > 1 ? "LODs" : "LOD" );
+          ImGui::Text       ( "%ws",
+                                SK_D3D9_FormatToStr (desc.Format).c_str () );
+          ImGui::Text       ( "%.2f MiB",
+                                (double)pTex->d3d9_tex->override_size / (1024.0f * 1024.0f) );
+          ImGui::EndGroup   ();
+
+          ImGui::TextColored (ImVec4 (1.0f, 1.0f, 1.0f, 1.0f), injected ? "Injected Texture" :
+                                                                          "Resampled Texture" );
+
+          ImGui::Separator  ();
 
 
           if (injected)
@@ -5726,7 +6059,7 @@ SK_D3D9_TextureModDlg (void)
 
     ImGui::BeginChild ( ImGui::GetID ("Item List2"),
                         ImVec2 ( font_size * 6.0f, std::max (font_size * 15.0f, last_ht)),
-                          true, ImGuiWindowFlags_AlwaysAutoResize );
+                          true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
     if (ImGui::IsWindowHovered ())
       can_scroll = false;

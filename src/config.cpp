@@ -238,6 +238,7 @@ struct {
     sk::ParameterBool*    force_d3d9ex;
     sk::ParameterInt*     hook_type;
     sk::ParameterBool*    impure;
+    sk::ParameterBool*    enable_texture_mods;
   } d3d9;
 } render;
 
@@ -1390,6 +1391,15 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Render.D3D9",
           L"ForceImpure" );
+    render.d3d9.enable_texture_mods =
+      dynamic_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Enable Texture Modding Support")
+        );
+    render.d3d9.enable_texture_mods->register_to_ini (
+      dll_ini,
+        L"Render.D3D9",
+          L"EnableTextureMods" );
     render.d3d9.hook_type =
       dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
@@ -2662,6 +2672,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (render.d3d9.impure->load ())
     config.render.d3d9.force_impure =
       render.d3d9.impure->get_value ();
+  if (render.d3d9.enable_texture_mods->load ())
+    config.textures.d3d9_mod =
+      render.d3d9.enable_texture_mods->get_value ();
   if (render.d3d9.hook_type->load ())
     config.render.d3d9.hook_type =
       render.d3d9.hook_type->get_value ();
@@ -3670,8 +3683,9 @@ SK_SaveConfig ( std::wstring name,
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
                              ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) )
     {
-      render.d3d9.force_d3d9ex->set_value     (config.render.d3d9.force_d3d9ex);
-      render.d3d9.hook_type->set_value        (config.render.d3d9.hook_type);
+      render.d3d9.force_d3d9ex->set_value        (config.render.d3d9.force_d3d9ex);
+      render.d3d9.hook_type->set_value           (config.render.d3d9.hook_type);
+      render.d3d9.enable_texture_mods->set_value (config.textures.d3d9_mod);
     }
   }
 
@@ -3865,8 +3879,9 @@ SK_SaveConfig ( std::wstring name,
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
         ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) )
     {
-      render.d3d9.force_d3d9ex->store     ();
-      render.d3d9.hook_type->store        ();
+      render.d3d9.force_d3d9ex->store        ();
+      render.d3d9.hook_type->store           ();
+      render.d3d9.enable_texture_mods->store ();
     }
   }
 

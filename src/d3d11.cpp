@@ -3055,6 +3055,12 @@ SK_D3D11_PostDraw (void)
 bool
 SK_D3D11_DrawHandler (void)
 {
+  if ( SK_GetCurrentRenderBackend ().d3d11.immediate_ctx == nullptr ||
+       SK_GetCurrentRenderBackend ().device              == nullptr ||
+       SK_GetCurrentRenderBackend ().swapchain           == nullptr )
+    return false;
+
+
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Top ()->imgui.drawing)
     return false;
@@ -3103,18 +3109,18 @@ SK_D3D11_DrawHandler (void)
   if (SK_D3D11_Shaders.domain.blacklist.count    (SK_D3D11_Shaders.domain.current))               return true;
 
 
-  for (auto&& it : SK_D3D11_Shaders.vertex.blacklist_if_texture [SK_D3D11_Shaders.vertex.current])
+  for (auto& it : SK_D3D11_Shaders.vertex.blacklist_if_texture [SK_D3D11_Shaders.vertex.current])
   {
-    for (auto&& it2 : SK_D3D11_Shaders.vertex.current_views)
+    for (auto& it2 : SK_D3D11_Shaders.vertex.current_views)
     {
       if (it == it2)
         return true;
     }
   }
 
-  for (auto&& it : SK_D3D11_Shaders.pixel.blacklist_if_texture [SK_D3D11_Shaders.pixel.current])
+  for (auto& it : SK_D3D11_Shaders.pixel.blacklist_if_texture [SK_D3D11_Shaders.pixel.current])
   {
-    for (auto&& it2 : SK_D3D11_Shaders.pixel.current_views)
+    for (auto& it2 : SK_D3D11_Shaders.pixel.current_views)
     {
       if (it == it2)
         return true;
@@ -3154,6 +3160,7 @@ SK_D3D11_DrawHandler (void)
       pDevCtx->RSGetState         (&SK_TLS_Top ()->d3d11.pRasterStateOrig);
 
       D3D11_RASTERIZER_DESC desc = { };
+
       SK_TLS_Top ()->d3d11.pRasterStateOrig->GetDesc (&desc);
 
       desc.FillMode = D3D11_FILL_WIREFRAME;

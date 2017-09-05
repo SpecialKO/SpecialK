@@ -304,6 +304,7 @@ struct sk_config_t
 
     bool highlight_debug_tex    = false;
     bool on_demand_dump         = true;//false;
+    bool d3d9_mod               = false;
   } textures;
 
   struct {

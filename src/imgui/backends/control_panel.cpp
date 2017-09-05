@@ -1380,8 +1380,9 @@ __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  static bool want_exit = false;
 
+  ImGuiIO& io (ImGui::GetIO ());
 
   if (ImGui::GetFont () == nullptr)
   {
@@ -1504,9 +1505,15 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
+        ImGui::Separator ();
+
+        if (ImGui::MenuItem ("Exit Game", "Alt+F4"))
+        {
+          want_exit = true;
+        }
+
         ImGui::EndMenu  ();
       }
-
 
       if (ImGui::BeginMenu ("Display"))
       {
@@ -2336,6 +2343,10 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::Button ("  D3D9 Render Mod Tools  "))
         shader_mod ^= 1;
+
+      ImGui::SameLine ();
+
+      ImGui::Checkbox ("Enable Texture Modding (Experimental)", &config.textures.d3d9_mod);
 
       if (shader_mod)
       {
@@ -4820,6 +4831,47 @@ static_cast <uint32_t> (
 
   if (show_shader_mod_dlg)
     show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
+
+
+  if (want_exit)
+  {
+    ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+    ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
+                                                                           0.925f * io.DisplaySize.y ) );
+    ImGui::SetNextWindowFocus           (                                                               );
+
+    ImGui::OpenPopup ("Confirm Forced Software Termination");
+
+    if ( ImGui::BeginPopupModal ( "Confirm Forced Software Termination",
+                                    nullptr,
+                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                      ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
+       )
+    {
+      ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n    You will lose any unsaved game progress.    \n\n");
+
+      ImGui::Separator ();
+
+      ImGui::TextColored ( ImColor::HSV (0.15f, 1.0f, 1.0f), "   Confirm Exit?      " );
+
+      ImGui::SameLine ();
+
+      ImGui::Spacing (); ImGui::SameLine ();
+
+      if (ImGui::Button ("Okay"))
+        ExitProcess (0x00);
+
+      ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth () * 0.33f); ImGui::SameLine (); ImGui::Text (""); ImGui::SameLine (); ImGui::PopItemWidth ();
+
+      if (ImGui::Button ("Cancel"))
+      {
+        want_exit = false;
+        ImGui::CloseCurrentPopup ();
+      }
+
+      ImGui::EndPopup ();
+    }
+  }
 
 
   ImGui::End   ();

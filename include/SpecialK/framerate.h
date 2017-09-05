@@ -267,4 +267,7 @@ using QueryPerformanceCounter_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerfo
 extern Sleep_pfn                   Sleep_Original;
 extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;
 
+extern LARGE_INTEGER& SK_GetPerfFreq (void);
+
+
 #endif /* __SK__FRAMERATE_H__ */

@@ -245,7 +245,7 @@ SK_Input_HookHID (void)
   if (! config.input.gamepad.hook_hid)
     return;
 
-  volatile LONG hooked = FALSE;
+  static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, 1, 0))
   {

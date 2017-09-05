@@ -49,8 +49,8 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
 {
   CrcGenerateTable ();
 
-  CFileInStream arc_stream;
-  CLookToRead   look_stream;
+  CFileInStream arc_stream  = { };
+  CLookToRead   look_stream = { };
 
   FileInStream_CreateVTable (&arc_stream);
   LookToRead_CreateVTable   (&look_stream, False);

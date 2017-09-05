@@ -86,6 +86,8 @@ SK_InitRenderBackends (void)
 #include <SpecialK/D3D9/texmgr.h>
 #include <SpecialK/hooks.h>
 
+#define D3D9_TEXTURE_MOD
+
 void
 SK_BootD3D9 (void)
 {
@@ -103,7 +105,10 @@ SK_BootD3D9 (void)
   void SK_D3D9_InitShaderModTools (void);
        SK_D3D9_InitShaderModTools ( );
 
-  SK::D3D9::tex_mgr.Init ();
+  if (config.textures.d3d9_mod)
+  {
+    SK::D3D9::tex_mgr.Init ();
+  }
 
   // Establish the minimal set of APIs necessary to work as d3d9.dll
   if (SK_GetDLLRole () == DLL_ROLE::D3D9)
@@ -132,7 +137,10 @@ SK_BootD3D9 (void)
 
   SK_HookD3D9 ();
 
-  SK::D3D9::tex_mgr.Hook ();
+  if (config.textures.d3d9_mod)
+  {
+    SK::D3D9::tex_mgr.Hook ();
+  }
 }
 
 #ifndef _WIN64

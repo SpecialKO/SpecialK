@@ -774,3 +774,19 @@ SK::Framerate::Stats::calcNumSamples (double seconds)
 {
   return calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
 }
+
+
+LARGE_INTEGER&
+SK_GetPerfFreq (void)
+{
+  static LARGE_INTEGER freq = { 0UL };
+  static bool          init = false;
+  
+  if (!init)
+  {
+    QueryPerformanceFrequency (&freq);
+    init = true;
+  }
+
+  return freq;
+}
