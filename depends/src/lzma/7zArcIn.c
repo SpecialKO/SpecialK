@@ -1671,11 +1671,14 @@ SRes SzArEx_Extract(
 
     if (unpackSize != unpackSizeSpec)
       return SZ_ERROR_MEM;
+#if 0
     *blockIndex = folderIndex;
     IAlloc_Free(allocMain, *tempBuf);
     *tempBuf = NULL;
+#endif  
     if (res == SZ_OK)
     {
+#if 0
       *outBufferSize = unpackSize;
       if (unpackSize != 0)
       {
@@ -1683,6 +1686,7 @@ SRes SzArEx_Extract(
         if (*tempBuf == NULL)
           res = SZ_ERROR_MEM;
       }
+#endif
       if (res == SZ_OK)
       {
         res = SzAr_DecodeFolder(&p->db, folderIndex,

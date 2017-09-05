@@ -246,7 +246,8 @@ static SRes FileSeqInStream_Read(void *pp, void *buf, size_t *size)
 
 void FileSeqInStream_CreateVTable(CFileSeqInStream *p)
 {
-  p->s.Read = FileSeqInStream_Read;
+  p->s.Read      = FileSeqInStream_Read;
+  p->file.handle = INVALID_HANDLE_VALUE;
 }
 
 
@@ -266,8 +267,9 @@ static SRes FileInStream_Seek(void *pp, Int64 *pos, ESzSeek origin)
 
 void FileInStream_CreateVTable(CFileInStream *p)
 {
-  p->s.Read = FileInStream_Read;
-  p->s.Seek = FileInStream_Seek;
+  p->s.Read      = FileInStream_Read;
+  p->s.Seek      = FileInStream_Seek;
+  p->file.handle = INVALID_HANDLE_VALUE;
 }
 
 
@@ -282,5 +284,6 @@ static size_t FileOutStream_Write(void *pp, const void *data, size_t size)
 
 void FileOutStream_CreateVTable(CFileOutStream *p)
 {
-  p->s.Write = FileOutStream_Write;
+  p->s.Write     = FileOutStream_Write;
+  p->file.handle = INVALID_HANDLE_VALUE;
 }

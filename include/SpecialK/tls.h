@@ -30,7 +30,18 @@
 
 struct ID3D11RasterizerState;
 
-struct SK_TLS {
+struct SK_TLS
+{
+  struct d3d9_s
+  {
+    struct stream_pool_s
+    {
+      void*    data     = nullptr;
+      size_t   data_len = 0;
+      uint32_t data_age = 0;
+    } streaming_memory;
+  } d3d9;
+
   struct {
     BOOL                    texinject_thread = FALSE;
     ID3D11RasterizerState* pRasterStateOrig  = nullptr;

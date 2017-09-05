@@ -1013,8 +1013,7 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
 
   rb.api = SK_RenderAPI::D3D9Ex;
 
-  if (This == rb.device)
-    SK_BeginBufferSwap ();
+  SK_BeginBufferSwap ();
 
   HRESULT hr = E_FAIL;
 
@@ -1030,14 +1029,8 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
 
     pSwapChain->GetPresentParameters (&pparams);
 
-    if (( !( pparams.Flags & D3DPRESENTFLAG_VIDEO ) ) &&
-        SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
+    if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
     {
-      if (rb.device != This)
-      {
-        SK_BeginBufferSwap ();
-      }
-
       rb.device    = This;
       rb.swapchain = pSwapChain;
 
@@ -1068,16 +1061,13 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
                                       hDestWindowOverride,
                                         pDirtyRegion );
 
-  if (This == rb.device)
+  if (! config.osd.pump)
   {
-    if (! config.osd.pump)
-    {
-      if (trigger_reset == reset_stage_e::Clear)
-        hr = SK_EndBufferSwap (hr, This);
+    if (trigger_reset == reset_stage_e::Clear)
+      hr = SK_EndBufferSwap (hr, This);
 
-      else
-        hr = D3DERR_DEVICELOST;
-    }
+    else
+      hr = D3DERR_DEVICELOST;
   }
 
   return hr;
@@ -1143,10 +1133,7 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
                                         D3DPRESENT_FORCEIMMEDIATE |
                                         D3DPRESENT_DONOTWAIT );
 
-    if (This == rb.device)
-    {
-      SK_D3D9_EndFrame ();
-    }
+    SK_D3D9_EndFrame ();
 
     return hr;
   }
@@ -1169,14 +1156,8 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
       pSwapChain->GetPresentParameters (&pparams);
 
-      if ( (! (pparams.Flags & D3DPRESENTFLAG_VIDEO)) &&
-           SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)) )
+      if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)) )
       {
-        if (rb.device != This)
-        {
-          SK_BeginBufferSwap ( );
-        }
-
         rb.device    = This;
         rb.swapchain = pSwapChain;
 
@@ -1199,8 +1180,7 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
   if (config.apis.d3d9ex.hook)
   {
-    if (    This == rb.device &&
-         SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)) )
+    if (     SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)) )
     {
       reinterpret_cast <int &> (rb.api) = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
                                             static_cast <int> (SK_RenderAPI::D3D9Ex)   );
@@ -1212,8 +1192,7 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
     rb.api = SK_RenderAPI::D3D9;
   }
 
-  if (This == rb.device)
-    SK_BeginBufferSwap ();
+  SK_BeginBufferSwap ();
 
   HRESULT hr =
     D3D9Present_Original ( This,
@@ -1222,20 +1201,17 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
                                  hDestWindowOverride,
                                    pDirtyRegion );
 
-  if (This == rb.device)
+  if (! config.osd.pump)
   {
-    if (! config.osd.pump)
+    if (trigger_reset == reset_stage_e::Clear)
     {
-      if (trigger_reset == reset_stage_e::Clear)
-      {
-        hr = SK_EndBufferSwap (hr, This);
-      }
-      else
-        hr = D3DERR_DEVICELOST;
+      hr = SK_EndBufferSwap (hr, This);
     }
-
-    SK_D3D9_EndFrame ();
+    else
+      hr = D3DERR_DEVICELOST;
   }
+
+  SK_D3D9_EndFrame ();
 
   return hr;
 }
@@ -1399,14 +1375,8 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
       This->GetPresentParameters (&pparams);
 
-      if (( !( pparams.Flags & D3DPRESENTFLAG_VIDEO ) ) &&
-          SUCCEEDED (This->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
+      if (SUCCEEDED (This->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
       {
-        if (rb.device != This)
-        {
-          SK_BeginBufferSwap ();
-        }
-
         rb.device    = pDev;
         rb.swapchain = This;
 
@@ -1446,23 +1416,17 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                   pDirtyRegion,
                                   dwFlags);
     
-      if (This == rb.device)
-      {
-        SK_D3D9_EndFrame ();
-      }
+      SK_D3D9_EndFrame ();
 
       // On a failure (i.e. Must wait), skip the frame
       //
       //  Only do input processing and UI drawing on real frames
       if (SUCCEEDED (hr))
       {
-        if (This == rb.device)
-        {
-          SK_BeginBufferSwap ();
+        SK_BeginBufferSwap ();
 
-          hr =
-            SK_EndBufferSwap (hr, pDev);
-        }
+        hr =
+          SK_EndBufferSwap (hr, pDev);
       }
 
       return hr;
@@ -1470,8 +1434,7 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
 
 
-    if (This == rb.device)
-      SK_BeginBufferSwap ();
+    SK_BeginBufferSwap ();
 
     HRESULT hr =
       D3D9PresentSwap_Original ( This,
@@ -1494,17 +1457,11 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
     {
       if (trigger_reset == reset_stage_e::Clear)
       {
-        if (This == rb.device)
-        {
-          hr =
-            SK_EndBufferSwap (hr, pDev);
-        }
+        hr =
+          SK_EndBufferSwap (hr, pDev);
       }
 
-      if (This == rb.device)
-      {
-        SK_D3D9_EndFrame ();
-      }
+      SK_D3D9_EndFrame ();
 
       return hr;
     }
@@ -1512,17 +1469,11 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
     // pDev should be nullptr ... I'm not exactly sure what I was trying to accomplish? :P
     if (trigger_reset == reset_stage_e::Clear)
     {
-      if (This == rb.device)
-      {
-        hr =
-          SK_EndBufferSwap (hr, pDev);
-      }
+      hr =
+        SK_EndBufferSwap (hr, pDev);
     }
 
-    if (This == rb.device)
-    {
-      SK_D3D9_EndFrame ();
-    }
+    SK_D3D9_EndFrame ();
 
     return hr;
   }
@@ -1563,22 +1514,18 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9TestCooperativeLevel_Override (IDirect3DDevice9 *This)
 {
-  if (This == SK_GetCurrentRenderBackend ().device)
+  if (trigger_reset == reset_stage_e::Initiate)
   {
-    if (trigger_reset == reset_stage_e::Initiate)
-    {
-      trigger_reset = reset_stage_e::Respond;
+    trigger_reset = reset_stage_e::Respond;
 
-      return D3DERR_DEVICELOST;
-    }
-
-
-    else if (trigger_reset == reset_stage_e::Respond)
-    {
-      return D3DERR_DEVICENOTRESET;
-    }
+    return D3DERR_DEVICELOST;
   }
 
+
+  else if (trigger_reset == reset_stage_e::Respond)
+  {
+    return D3DERR_DEVICENOTRESET;
+  }
 
   return D3D9TestCooperativeLevel_Original (This);
 }
@@ -1607,10 +1554,7 @@ D3D9EndScene_Override (IDirect3DDevice9 *This)
     //GetCurrentThreadId ()
   //);
 
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    SK_D3D9_EndScene ();
-  }
+  SK_D3D9_EndScene ();
 
   return D3D9EndScene_Original (This);
 }
@@ -2082,14 +2026,11 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                              UINT              StartVertex,
                              UINT              PrimitiveCount )
 {
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    ++draw_state.draws;
-    ++draw_state.draw_count;
+  ++draw_state.draws;
+  ++draw_state.draw_count;
 
-    if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, StartVertex))
-      return S_OK;
-  }
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, StartVertex))
+    return S_OK;
 
   HRESULT hr =
     D3D9DrawPrimitive_Original ( This,
@@ -2097,10 +2038,7 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                                      StartVertex,
                                        PrimitiveCount );
 
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
-  }
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -2116,14 +2054,11 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                     UINT              startIndex,
                                     UINT              primCount )
 {
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    ++draw_state.draws;
-    ++draw_state.draw_count;
+  ++draw_state.draws;
+  ++draw_state.draw_count;
 
-    if (SK_D3D9_ShouldSkipRenderPass (Type, primCount, startIndex))
-      return S_OK;
-  }
+  if (SK_D3D9_ShouldSkipRenderPass (Type, primCount, startIndex))
+    return S_OK;
 
   HRESULT hr =
     D3D9DrawIndexedPrimitive_Original ( This,
@@ -2134,10 +2069,7 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                                   startIndex,
                                                     primCount );
 
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
-  }
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -2151,14 +2083,11 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                const void             *pVertexStreamZeroData,
                                      UINT              VertexStreamZeroStride )
 {
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    ++draw_state.draws;
-    ++draw_state.draw_count;
+  ++draw_state.draws;
+  ++draw_state.draw_count;
 
-    if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, 0))
-      return S_OK;
-  }
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, 0))
+    return S_OK;
 
   HRESULT hr =
     D3D9DrawPrimitiveUP_Original ( This,
@@ -2167,10 +2096,7 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                          pVertexStreamZeroData,
                                            VertexStreamZeroStride );
 
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
-  }
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -2188,14 +2114,11 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                       const void             *pVertexStreamZeroData,
                                             UINT              VertexStreamZeroStride )
 {
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    ++draw_state.draws;
-    ++draw_state.draw_count;
+  ++draw_state.draws;
+  ++draw_state.draw_count;
 
-    if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex))
-      return S_OK;
-  }
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex))
+    return S_OK;
 
   HRESULT hr = 
     D3D9DrawIndexedPrimitiveUP_Original (
@@ -2209,10 +2132,7 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                     pVertexStreamZeroData,
                       VertexStreamZeroStride );
 
-  if (This == SK_GetCurrentRenderBackend ().device)
-  {
-    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
-  }
+  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -2324,12 +2244,9 @@ D3D9SetPixelShader_Override ( IDirect3DDevice9      *This,
     D3D9SetPixelShader_Original ( This,
                                     pShader );
 
-  if (This == SK_GetCurrentRenderBackend ().device)
+  if (SUCCEEDED (hr))
   {
-    if (SUCCEEDED (hr))
-    {
-      SK_D3D9_SetPixelShader (This, pShader);
-    }
+    SK_D3D9_SetPixelShader (This, pShader);
   }
 
   return hr;
@@ -2345,12 +2262,9 @@ D3D9SetVertexShader_Override ( IDirect3DDevice9       *This,
     D3D9SetVertexShader_Original ( This,
                                      pShader );
 
-  if (This == SK_GetCurrentRenderBackend ().device)
+  if (SUCCEEDED (hr))
   {
-    if (SUCCEEDED (hr))
-    {
-      SK_D3D9_SetVertexShader (This, pShader);
-    }
+    SK_D3D9_SetVertexShader (This, pShader);
   }
 
   return hr;
@@ -2496,18 +2410,14 @@ D3D9CreateVertexBuffer_Override
     }
   }
 
-
-  if (This == SK_GetCurrentRenderBackend ().device)
+  if (SUCCEEDED (hr))
   {
-    if (SUCCEEDED (hr))
-    {
-      SK_AutoCriticalSection auto_cs (&cs_vb);
+    SK_AutoCriticalSection auto_cs (&cs_vb);
 
-      if (Usage & D3DUSAGE_DYNAMIC)
-        known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
-      else
-        known_objs.static_vbs.emplace  (*ppVertexBuffer);
-    }
+    if (Usage & D3DUSAGE_DYNAMIC)
+      known_objs.dynamic_vbs.emplace (*ppVertexBuffer);
+    else
+      known_objs.static_vbs.emplace  (*ppVertexBuffer);
   }
 
   return hr;
@@ -2531,7 +2441,7 @@ D3D9SetStreamSource_Override
                                          OffsetInBytes,
                                            Stride );
 
-  if (This == SK_GetCurrentRenderBackend ().device && pStreamData != nullptr)
+  if (pStreamData != nullptr)
   {
     if (SUCCEEDED (hr))
     {
@@ -2577,18 +2487,15 @@ D3D9SetStreamSourceFreq_Override
   UINT              StreamNumber,
   UINT              FrequencyParameter )
 {
-  if (This == SK_GetCurrentRenderBackend ().device)
+  SK_AutoCriticalSection auto_cs (&cs_vb);
+
+  if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
   {
-    SK_AutoCriticalSection auto_cs (&cs_vb);
+    draw_state.instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
+  }
 
-    if (StreamNumber == 0 && FrequencyParameter & D3DSTREAMSOURCE_INDEXEDDATA)
-    {
-      draw_state.instances = ( FrequencyParameter & ( ~D3DSTREAMSOURCE_INDEXEDDATA ) );
-    }
-
-    if (StreamNumber == 1 && FrequencyParameter & D3DSTREAMSOURCE_INSTANCEDATA)
-    {
-    }
+  if (StreamNumber == 1 && FrequencyParameter & D3DSTREAMSOURCE_INSTANCEDATA)
+  {
   }
 
   return 
@@ -2711,7 +2618,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                              IDirect3DBaseTexture9 *pSourceTexture,
                              IDirect3DBaseTexture9 *pDestinationTexture )
 {
-  if (SK::D3D9::tex_mgr.injector.isInjectionThread ())
+  if ((! config.textures.d3d9_mod) || (! SK::D3D9::tex_mgr.init) || SK::D3D9::tex_mgr.injector.isInjectionThread ())
   {
     return
       D3D9UpdateTexture_Original ( This,
@@ -4574,16 +4481,27 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     if (ImGui::IsWindowHovered ())
       can_scroll = false;
 
+    ImGui::BeginGroup ();
     for ( auto it : sources [sel].checksums )
     {
       SK::D3D9::TexRecord* injectable =
         &SK::D3D9::tex_mgr.getInjectableTexture (it);
 
-      if (injectable != nullptr) {
-                    
+      if (injectable != nullptr)
+      {
         ImGui::TextColored ( ImVec4 (0.9f, 0.6f, 0.3f, 1.0f), " %08x    ", it );
-        ImGui::SameLine    (                                                  );
+      }
+    }
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto it : sources [sel].checksums )
+    {
+      SK::D3D9::TexRecord* injectable =
+        &SK::D3D9::tex_mgr.getInjectableTexture (it);
 
+      if (injectable != nullptr)
+      {
         bool streaming = 
           injectable->method == Streaming;
 
@@ -4593,12 +4511,24 @@ SK_D3D9_DrawFileList (bool& can_scroll)
                                  "  %s    ",
                                    streaming ? "Streaming" : 
                                                " Blocking" );
-        ImGui::SameLine    (                               );
+      }
+    }
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto it : sources [sel].checksums )
+    {
+      SK::D3D9::TexRecord* injectable =
+        &SK::D3D9::tex_mgr.getInjectableTexture (it);
 
+      if (injectable != nullptr)
+      {
         ImGui::TextColored ( ImVec4 (1.f, 1.f, 1.f, 1.f), "%#5.2f MiB  ",
                             (double)injectable->size / (1024.0 * 1024.0) );
       }
     }
+    ImGui::EndGroup   ();
+
 
     ImGui::EndChild      (   );
     ImGui::PopStyleColor ( 1 );

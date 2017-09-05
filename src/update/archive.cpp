@@ -74,7 +74,7 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
     return files;
   }
 
-  CSzArEx       arc;
+  CSzArEx       arc = { };
   SzArEx_Init (&arc);
 
   if ( SzArEx_Open ( &arc,

@@ -191,7 +191,7 @@ SK::D3D9::TextureManager::getInjectableTexture (uint32_t checksum)
 
   bool new_tex = false;
 
-  if (injectable_textures.count (checksum))
+  if (! injectable_textures.count (checksum))
     new_tex = true;
 
   injectable =
@@ -445,12 +445,6 @@ D3D9SetTexture_Detour (
                    _In_ IDirect3DBaseTexture9 *pTexture
 )
 {
-  // Ignore anything that's not the primary render device.
-  if (This != SK_GetCurrentRenderBackend ().device)
-  {
-    return D3D9SetTexture_Original (This, Sampler, pTexture);
-  }
-
   //if (tzf::RenderFix::tracer.log) {
     //dll_log.Log ( L"[FrameTrace] SetTexture      - Sampler: %lu, pTexture: %ph",
     //               Sampler, pTexture );
@@ -582,14 +576,6 @@ D3D9CreateTexture_Detour (IDirect3DDevice9   *This,
                            IDirect3DTexture9 **ppTexture,
                            HANDLE             *pSharedHandle)
 {
-  // Ignore anything that's not the primary render device.
-  if (This != SK_GetCurrentRenderBackend ().device)
-  {
-    return D3D9CreateTexture_Original ( This, Width, Height,
-                                          Levels, Usage, Format,
-                                            Pool, ppTexture, pSharedHandle );
-  }
-
 #if 0
   if (Usage == D3DUSAGE_RENDERTARGET)
   dll_log->Log (L" [!] IDirect3DDevice9::CreateTexture (%lu, %lu, %lu, %lu, "
@@ -840,36 +826,39 @@ SK::D3D9::TextureManager::Injector::getTextureInFlight (uint32_t checksum)
 
 HANDLE decomp_semaphore;
 
+#include <SpecialK/tls.h>
+
 // Keep a pool of memory around so that we are not allocating and freeing
 //  memory constantly...
 namespace streaming_memory {
-  std::unordered_map <DWORD, void*>    data;
-  std::unordered_map <DWORD, size_t>   data_len;
-  std::unordered_map <DWORD, uint32_t> data_age;
-
-  bool alloc (size_t len, DWORD dwThreadId = GetCurrentThreadId ())
+  bool alloc (size_t len)
   {
-    if (data_len [dwThreadId] < len)
+    SK_TLS::d3d9_s::stream_pool_s* mpool =
+      &SK_TLS_Bottom ()->d3d9.streaming_memory;
+
+    if (mpool->data_len < len)
     {
-      if (data [dwThreadId] != nullptr)
-        free (data [dwThreadId]);
+      if (mpool->data != nullptr)
+        free (mpool->data);
 
       if (len < 8192 * 1024)
-        data_len [dwThreadId] = 8192 * 1024;
+        mpool->data_len = 8192 * 1024;
       else
-        data_len [dwThreadId] = len;
+        mpool->data_len = len;
 
-      data     [dwThreadId] = malloc      (data_len [dwThreadId]);
-      data_age [dwThreadId] = timeGetTime ();
+      mpool->data =
+        malloc (mpool->data_len);
 
-      if (data [dwThreadId] != nullptr)
+      mpool->data_age = timeGetTime ();
+
+      if (mpool->data != nullptr)
       {
         return true;
       }
 
       else
       {
-        data_len [dwThreadId] = 0;
+        mpool->data_len = 0;
         return false;
       }
     }
@@ -880,27 +869,55 @@ namespace streaming_memory {
     }
   }
 
-  void trim (size_t max_size, uint32_t min_age, DWORD dwThreadId = GetCurrentThreadId ())
+  void*& data (void)
   {
-    if (  data_age [dwThreadId] < min_age ) {
-      if (data_len [dwThreadId] > max_size)
+    SK_TLS::d3d9_s::stream_pool_s* mpool =
+      &SK_TLS_Bottom ()->d3d9.streaming_memory;
+
+    return mpool->data;
+  }
+
+  size_t& data_len (void)
+  {
+    SK_TLS::d3d9_s::stream_pool_s* mpool =
+      &SK_TLS_Bottom ()->d3d9.streaming_memory;
+
+    return mpool->data_len;
+  }
+
+  uint32_t& data_age (void)
+  {
+    SK_TLS::d3d9_s::stream_pool_s* mpool =
+      &SK_TLS_Bottom ()->d3d9.streaming_memory;
+
+    return mpool->data_age;
+  }
+
+  void trim (size_t max_size, uint32_t min_age)
+  {
+    SK_TLS::d3d9_s::stream_pool_s* mpool =
+      &SK_TLS_Bottom ()->d3d9.streaming_memory;
+
+    if (  mpool->data_age < min_age )
+    {
+      if (mpool->data_len > max_size)
       {
-        free (data [dwThreadId]);
-             data  [dwThreadId] = nullptr;
+        free (mpool->data);
+             mpool->data = nullptr;
 
         if (max_size > 0)
-          data [dwThreadId] = malloc (max_size);
+          mpool->data = malloc (max_size);
 
-        if (data   [dwThreadId] != nullptr)
+        if (mpool->data != nullptr)
         {
-          data_len [dwThreadId] = max_size;
-          data_age [dwThreadId] = timeGetTime ();
+          mpool->data_len = max_size;
+          mpool->data_age = timeGetTime ();
         }
 
         else
         {
-          data_len [dwThreadId] = 0;
-          data_age [dwThreadId] = 0;
+          mpool->data_len = 0;
+          mpool->data_age = 0;
         }
       }
     }
@@ -952,6 +969,19 @@ SK::D3D9::TextureManager::removeInjectableTexture (uint32_t checksum)
   return bRet;
 }
 
+
+void *SzAlloc_null(void *p, size_t)
+{
+  return p;
+}
+
+void SzFree_null(void*, void*)
+{
+  return;
+}
+
+static ISzAlloc g_Alloc = { SzAlloc, SzFree };
+
 HRESULT
 SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 {
@@ -1001,7 +1031,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
       if (streaming_memory::alloc (size))
       {
-        load->pSrcData = streaming_memory::data [GetCurrentThreadId ()];
+        load->pSrcData = streaming_memory::data ();
 
         ReadFile (hTexFile, load->pSrcData, (DWORD)size, &read, nullptr);
 
@@ -1047,16 +1077,18 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
   else
   {
     wchar_t       arc_name [MAX_PATH] = { };
-    CFileInStream arc_stream;
-    CLookToRead   look_stream;
-    ISzAlloc      thread_alloc;
-    ISzAlloc      thread_tmp_alloc;
+
+    CFileInStream arc_stream          = { };
+    CLookToRead   look_stream         = { };
 
     FileInStream_CreateVTable (&arc_stream);
-    LookToRead_CreateVTable   (&look_stream, False);
+    LookToRead_CreateVTable (&look_stream, False);
 
     look_stream.realStream = &arc_stream.s;
     LookToRead_Init         (&look_stream);
+
+    ISzAlloc      thread_alloc;
+    ISzAlloc      thread_tmp_alloc;
 
     thread_alloc.Alloc     = SzAlloc;
     thread_alloc.Free      = SzFree;
@@ -1064,7 +1096,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
     thread_tmp_alloc.Alloc = SzAllocTemp;
     thread_tmp_alloc.Free  = SzFreeTemp;
 
-    CSzArEx      arc;
+    CSzArEx      arc    = { };
                  size   = inj_tex->size;
     int          fileno = inj_tex->fileno;
 
@@ -1098,7 +1130,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
     if (streaming_memory::alloc (size))
     {
-      load->pSrcData = streaming_memory::data [GetCurrentThreadId ()];
+      load->pSrcData = streaming_memory::data ();
       bool wait      = true;
 
       while (wait)
@@ -1116,8 +1148,8 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
         case WAIT_OBJECT_0:
         {
           uint32_t block_idx     = 0xFFFFFFFF;
-          Byte*    out           = (Byte *)streaming_memory::data     [GetCurrentThreadId ()];
-          size_t   out_len       =         streaming_memory::data_len [GetCurrentThreadId ()];
+          Byte*    out           = (Byte *)streaming_memory::data     ();
+          size_t   out_len       =         streaming_memory::data_len ();
           size_t   offset        = 0;
           size_t   decomp_size   = 0;
 
@@ -1131,7 +1163,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
           wait = false;
 
-          load->pSrcData    = (Byte *)streaming_memory::data [GetCurrentThreadId ()] + offset;
+          load->pSrcData    = (Byte *)streaming_memory::data () + offset;
           load->SrcDataSize = (UINT)decomp_size;
 
           D3DXGetImageInfoFromFileInMemory (
@@ -1441,11 +1473,16 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 #include <set>
 
 
+ static bool TOS = GetModuleHandle  (L"TOS.exe") != 0;
+
 uint32_t
 safe_crc32c (uint32_t seed, const void* pData, size_t size)
 {
   __try
   {
+    if (TOS)
+      return crc32 (seed, pData, size);
+
     return crc32c (seed, pData, size);
   }
 
@@ -1987,8 +2024,6 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
       {
         textures.erase     ((*rem)->tex_crc32c);
       }
-
-      delete *rem;
 
       ++rem;
     }
@@ -2851,13 +2886,11 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 {
   EnterCriticalSection (&cs_worker_init);
   {
-    DWORD dwThreadId = GetCurrentThreadId ();
-
-    if (! streaming_memory::data_len.count (dwThreadId))
+    if (! streaming_memory::data_len ())
     {
-      streaming_memory::data_len [dwThreadId] = 0;
-      streaming_memory::data     [dwThreadId] = nullptr;
-      streaming_memory::data_age [dwThreadId] = 0;
+      streaming_memory::data_len () = 0;
+      streaming_memory::data     () = nullptr;
+      streaming_memory::data_age () = 0;
     }
   }
   LeaveCriticalSection (&cs_worker_init);
@@ -2998,17 +3031,23 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
       const size_t   MIN_SIZE = 8192 * 1024;
       const uint32_t MIN_AGE  = 5000UL;
 
-      size_t before = streaming_memory::data_len [GetCurrentThreadId ()];
+      size_t before = streaming_memory::data_len ();
 
       streaming_memory::trim (MIN_SIZE, timeGetTime () - MIN_AGE);
 
-      size_t now    =  streaming_memory::data_len [GetCurrentThreadId ()];
+      size_t now    =  streaming_memory::data_len ();
 
       if (before != now)
       {
+#ifdef _WIN64
         tex_log.Log ( L"[ Mem. Mgr ]  Trimmed %9lzu bytes of temporary memory for tid=%x",
                         before - now,
                           GetCurrentThreadId () );
+#else
+        tex_log.Log ( L"[ Mem. Mgr ]  Trimmed %9zu bytes of temporary memory for tid=%x",
+                        before - now,
+                          GetCurrentThreadId () );
+#endif
       }
     }
 
@@ -3104,7 +3143,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
 void
 SK::D3D9::TextureWorkerThread::finishJob (void)
 {
-  InterlockedExchangeAdd     (&bytes_loaded_,
+  InterlockedExchangeAdd64   (&bytes_loaded_,
            ((TexLoadRequest *)InterlockedCompareExchangePointer ((PVOID *)&job_, nullptr, nullptr))
                              ->SrcDataSize);
   InterlockedIncrement       (&jobs_retired_);

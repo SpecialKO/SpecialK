@@ -721,9 +721,6 @@
     <None Include="installer64.dll">
       <Filter>Libraries</Filter>
     </None>
-    <None Include="depends\lib\lzma\x64\libzma.pdb">
-      <Filter>Libraries</Filter>
-    </None>
     <None Include="version.ini">
       <Filter>Update Server</Filter>
     </None>
@@ -827,12 +824,6 @@
       <Filter>Libraries</Filter>
     </Library>
     <Library Include="depends\lib\MinHook\x64\libMinHook64.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\lzma\Win32\libzma.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\lzma\x64\libzma.lib">
       <Filter>Libraries</Filter>
     </Library>
     <Library Include="depends\lib\steamapi\x64\steam_api64.lib">

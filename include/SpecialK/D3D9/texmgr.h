@@ -348,6 +348,7 @@ struct TexThreadStats {
     std::vector        <std::wstring>                        archives;
     std::unordered_set <uint32_t>                            dumped_textures;
 
+  public:
     bool                                                     init            = false;
   } extern tex_mgr;
 
@@ -380,14 +381,15 @@ struct TexThreadStats {
     }
   
     size_t bytesLoaded (void) {
-      return InterlockedExchangeAdd (&bytes_loaded_, 0ULL);
+      return static_cast <size_t> (InterlockedExchangeAdd64 (&bytes_loaded_, 0ULL));
     }
   
     int    jobsRetired  (void) {
       return InterlockedExchangeAdd (&jobs_retired_, 0L);
     }
   
-    FILETIME idleTime   (void) {
+    FILETIME idleTime   (void)
+    {
       GetThreadTimes ( thread_,
                          &runtime_.start, &runtime_.end,
                            &runtime_.kernel, &runtime_.user );
@@ -425,7 +427,7 @@ struct TexThreadStats {
   
     TexLoadRequest*       job_;
   
-    volatile ULONGLONG    bytes_loaded_ = 0ULL;
+    volatile LONGLONG     bytes_loaded_ = 0LL;
     volatile LONG         jobs_retired_ = 0L;
   
     struct {

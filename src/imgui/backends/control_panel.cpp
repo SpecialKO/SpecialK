@@ -2164,12 +2164,28 @@ SK_ImGui_ControlPanel (void)
       {
         static bool evil          = false;
         static bool even_stranger = false;
+        static bool wired         = false;
 
         const uint32_t vs_eyes = 0x223ccf2d;
         const uint32_t ps_face = 0xbde11248;
         const uint32_t ps_skin = 0xa79e425c;
 
         ImGui::TreePush ("");
+
+        if (ImGui::Checkbox ("Life is Wired", &wired))
+        {
+          if (wired)
+          {
+            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
+            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
+          }
+
+          else
+          {
+            SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
+            SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
+          }
+        }
 
         if (ImGui::Checkbox ("Life is Evil", &evil))
         {
@@ -2199,7 +2215,7 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        bool enable = evil || even_stranger;
+        bool enable = evil || even_stranger || wired;
 
         extern bool SK_D3D11_EnableTracking;
         SK_D3D11_EnableTracking = enable || show_shader_mod_dlg;
@@ -2347,6 +2363,11 @@ SK_ImGui_ControlPanel (void)
       ImGui::SameLine ();
 
       ImGui::Checkbox ("Enable Texture Modding (Experimental)", &config.textures.d3d9_mod);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Requires a game restart.");
+      }
 
       if (shader_mod)
       {
