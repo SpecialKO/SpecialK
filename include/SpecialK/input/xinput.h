@@ -156,6 +156,10 @@ using XInputGetBatteryInformation_pfn = DWORD (WINAPI *)(
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation
 );
 
+using XInputEnable_pfn = void (WINAPI *)(
+  _In_ BOOL enable
+);
+
 
 
 bool SK_XInput_PollController  ( INT           iJoyID, 

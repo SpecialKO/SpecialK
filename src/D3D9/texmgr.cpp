@@ -97,53 +97,6 @@ SK::D3D9::StreamSplitter     SK::D3D9::stream_pool;
 
 TextureManager               SK::D3D9::tex_mgr;
 
-template <typename _T>
-class SK_ThreadSafe_HashSet
-{
-public:
-  SK_ThreadSafe_HashSet (void) {
-    InitializeCriticalSection (&cs_);
-  }
-
-  ~SK_ThreadSafe_HashSet (void) {
-    DeleteCriticalSection (&cs_);
-  }
-
-  void emplace (_T item)
-  {
-    SK_AutoCriticalSection auto_crit (&cs_);
-
-    container_.emplace (item);
-  }
-
-  void erase (_T item)
-  {
-    SK_AutoCriticalSection auto_crit (&cs_);
-
-    container_.erase (item);
-  }
-
-  bool contains (_T item)
-  {
-    SK_AutoCriticalSection auto_crit (&cs_);
-
-    return container_.count (item) != 0;
-  }
-
-  bool empty (void)
-  {
-    SK_AutoCriticalSection auto_crit (&cs_);
-
-    return container_.empty ();
-  }
-
-protected:
-private:
-  std::unordered_set <_T> container_;
-  CRITICAL_SECTION        cs_;
-};
-
-
 SK_ThreadSafe_HashSet <IDirect3DSurface9 *> outstanding_screenshots;
                                             // Not excellent screenshots, but screenhots
                                             //   that aren't finished yet and we can't reset
@@ -422,6 +375,9 @@ D3D9SetTexture_Detour (
                    _In_ IDirect3DBaseTexture9 *pTexture
 )
 {
+  if (pTexture == nullptr)
+    return D3D9SetTexture_Original (This, Sampler, pTexture);
+
   //if (tzf::RenderFix::tracer.log) {
     //dll_log.Log ( L"[FrameTrace] SetTexture      - Sampler: %lu, pTexture: %ph",
     //               Sampler, pTexture );
@@ -453,7 +409,7 @@ D3D9SetTexture_Detour (
        pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK )
   {
     auto* pSKTex =
-      static_cast <ISKTextureD3D9 *> (pTexture);
+      dynamic_cast <ISKTextureD3D9 *> (pTexture);
 
     current_tex [std::min (255UL, Sampler)] = pSKTex->tex_crc32c;
 
@@ -470,8 +426,7 @@ D3D9SetTexture_Detour (
       ////tex_log.Log (L"Used: %x", pSKTex->tex_crc32c);
     }
 
-    QueryPerformanceCounter_Original (&pSKTex->last_used);
-
+    pSKTex->use ();
     tex_crc32c =
       pSKTex->tex_crc32c;
 
@@ -530,7 +485,6 @@ D3D9SetTexture_Detour (
     D3D9SetSamplerState_Original (This, Sampler, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP );
     D3D9SetSamplerState_Original (This, Sampler, D3DSAMP_MIPMAPLODBIAS, *reinterpret_cast <DWORD *>(&fMin) );
   }
-
 
   return D3D9SetTexture_Original (This, Sampler, pTexture);
 }
@@ -889,15 +843,17 @@ namespace streaming_memory {
 bool
 SK::D3D9::TextureManager::isTextureBlacklisted (uint32_t checksum) const
 {
-  bool bRet = false;
+  return false;
 
-  injector.lockBlacklist ();
-
-  bRet = ( inject_blacklist.count (checksum) != 0 );
-
-  injector.unlockBlacklist ();
-
-  return bRet;
+//  bool bRet = false;
+//
+//  injector.lockBlacklist ();
+//
+//  bRet = ( inject_blacklist.count (checksum) != 0 );
+//
+//  injector.unlockBlacklist ();
+//
+//  return bRet;
 }
 
 bool
@@ -1528,8 +1484,12 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 
 
 
+  tex_mgr.injector.beginLoad  ();
+
   D3DXIMAGE_INFO info = { };
   D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info);
+
+  tex_mgr.injector.endLoad  ();
 
 #if 0
   D3DFORMAT fmt_real = info.Format;
@@ -1834,11 +1794,15 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
     D3DXIMAGE_INFO info_     = {            };
     D3DFORMAT      fmt_real_ = D3DFMT_UNKNOWN;
 
+    tex_mgr.injector.beginLoad  ();
+
     D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info_);
 
     fmt_real_ = info_.Format;
 
     tex_mgr.dumpTexture (fmt_real_, checksum, *ppTexture);
+
+    tex_mgr.injector.endLoad  ();
   }
 
   return hr;
@@ -1888,9 +1852,9 @@ SK::D3D9::TextureManager::deleteDumpedTexture (D3DFORMAT fmt, uint32_t checksum)
 }
 
 bool
-SK::D3D9::TextureManager::isTextureDumped (uint32_t checksum) const
+SK::D3D9::TextureManager::isTextureDumped (uint32_t checksum)
 {
-  return dumped_textures.count (checksum);
+  return dumped_textures.contains (checksum);
 }
 
 HRESULT
@@ -1931,11 +1895,15 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
                       checksum,
                         L".dds" );
 
+    injector.beginLoad ();
+
     HRESULT hr =
       D3DXSaveTextureToFile (wszFileName, D3DXIFF_DDS, pTex, nullptr);
 
+    injector.endLoad ();
+
     if (SUCCEEDED (hr))
-      dumped_textures.insert (checksum);
+      dumped_textures.emplace (checksum);
 
     return hr;
   }
@@ -1950,33 +1918,35 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
 {
   EnterCriticalSection (&cs_cache);
 
-    for ( auto rem : remove_textures )
+    auto  rem = remove_textures.begin ();
+
+    while (rem != remove_textures.end ())
     {
-      if (rem->pTexOverride != nullptr)
+      if ((*rem)->pTexOverride != nullptr)
       {
         InterlockedDecrement (&injected_count);
-        InterlockedAdd64     (&injected_size, -(rem->override_size));
+        InterlockedAdd64     (&injected_size, -(*rem)->override_size);
       }
 
-      if (rem->pTex)         rem->pTex->Release         ();
-      if (rem->pTexOverride) rem->pTexOverride->Release ();
+      if ((*rem)->pTex)         (*rem)->pTex->Release         ();
+      if ((*rem)->pTexOverride) (*rem)->pTexOverride->Release ();
 
-      rem->pTex         = nullptr;
-      rem->pTexOverride = nullptr;
+      (*rem)->pTex         = nullptr;
+      (*rem)->pTexOverride = nullptr;
 
-      InterlockedAdd64 (&basic_size,  -rem->tex_size);
+      InterlockedAdd64 (&basic_size,  -(*rem)->tex_size);
       {
-        textures.erase     (rem->tex_crc32c);
+        textures.erase          ((*rem)->tex_crc32c);
       }
 
-      if (! TOS)
-        delete rem;
+      //delete *rem;
+
+      ++rem;
     }
 
     remove_textures.clear ();
 
-    auto tex =
-      textures.find (checksum);
+    auto tex = textures.find (checksum);
 
   LeaveCriticalSection (&cs_cache);
 
@@ -2022,12 +1992,14 @@ SK::D3D9::TextureManager::refTexture (Texture* pTex)
 
   InterlockedIncrement (&hits);
 
-  if (false) 
+#if 0
+  if (true) 
   {//config.textures.log) {
     tex_log.Log ( L"[CacheTrace] Cache hit (%X), saved %2.1f ms",
                     pTex->crc32c,
                       pTex->load_time );
   }
+#endif
 
   InterlockedAdd64 (&bytes_saved, pTex->size);
                     time_saved += pTex->load_time;
@@ -2181,7 +2153,7 @@ SK::D3D9::TextureManager::Init (void)
 
                 liSize.QuadPart += fsize.QuadPart;
 
-                dumped_textures.insert (checksum);
+                dumped_textures.emplace (checksum);
               }
             } while (FindNextFileW (hSubFind, &fd_sub) != 0);
 
@@ -2203,8 +2175,8 @@ SK::D3D9::TextureManager::Init (void)
 
   decomp_semaphore = 
     CreateSemaphore ( nullptr,
-                        3,//config.textures.worker_threads,
-                          3,//config.textures.worker_threads,
+                        4,//config.textures.worker_threads,
+                          4,//config.textures.worker_threads,
                             nullptr );
 
   resample_pool       = new TextureThreadPool ();
@@ -2433,6 +2405,8 @@ SK::D3D9::TextureManager::purge (void)
 
   tex_log.Log (L"[ Tex. Mgr ]   Releasing textures...");
 
+  EnterCriticalSection (&cs_cache);
+
   std::vector <Texture *> unreferenced_textures;
 
   for ( auto& it : textures )
@@ -2529,6 +2503,8 @@ SK::D3D9::TextureManager::purge (void)
   updateOSD ();
 
   tex_log.Log (L"[ Tex. Mgr ] ----------- Finished ------------ ");
+
+  LeaveCriticalSection (&cs_cache);
 }
 
 void
@@ -2847,7 +2823,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 
 
   // Ghetto sync. barrier, since Windows 7 does not support them...
-  while ( ReadAcquire (&num_threads_init) < (ULONG)3 )//config.textures.worker_threads )
+  while ( ReadAcquire (&num_threads_init) < (ULONG)4 )//config.textures.worker_threads )
   {
     SwitchToThread ();
   }

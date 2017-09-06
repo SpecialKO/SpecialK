@@ -10,15 +10,15 @@
 extern iSK_Logger tex_log;
 
 //#include "render.h"
-#include <d3d9.h>
 
 #include <set>
-
 #include <map>
 #include <unordered_map>
 
 #include <d3d9.h>
 #include <d3dx9tex.h>
+
+#include <SpecialK/d3d9_backend.h>
 
 #include <set>
 #include <map>
@@ -28,6 +28,52 @@ extern iSK_Logger tex_log;
 #include <algorithm>
 
 interface ISKTextureD3D9;
+
+template <typename _T>
+class SK_ThreadSafe_HashSet
+{
+public:
+  SK_ThreadSafe_HashSet (void) {
+    InitializeCriticalSectionAndSpinCount (&cs_, 0x10000);
+  }
+
+  ~SK_ThreadSafe_HashSet (void) {
+    DeleteCriticalSection (&cs_);
+  }
+
+  void emplace (_T item)
+  {
+    SK_AutoCriticalSection auto_crit (&cs_);
+
+    container_.emplace (item);
+  }
+
+  void erase (_T item)
+  {
+    SK_AutoCriticalSection auto_crit (&cs_);
+
+    container_.erase (item);
+  }
+
+  bool contains (_T item)
+  {
+    SK_AutoCriticalSection auto_crit (&cs_);
+
+    return container_.count (item) != 0;
+  }
+
+  bool empty (void)
+  {
+    SK_AutoCriticalSection auto_crit (&cs_);
+
+    return container_.empty ();
+  }
+
+protected:
+private:
+  std::unordered_set <_T> container_;
+  CRITICAL_SECTION        cs_;
+};
 
 uint32_t
 safe_crc32c (uint32_t seed, const void* pData, size_t size);
@@ -207,7 +253,7 @@ struct TexThreadStats {
 
     HRESULT                    dumpTexture          (D3DFORMAT fmt, uint32_t checksum, IDirect3DTexture9* pTex);
     bool                       deleteDumpedTexture  (D3DFORMAT fmt, uint32_t checksum);
-    bool                       isTextureDumped      (uint32_t  checksum) const;
+    bool                       isTextureDumped      (uint32_t  checksum);
 
     std::vector <std::wstring> getTextureArchives   (void);
     void                       refreshDataSources   (void);
@@ -241,7 +287,8 @@ struct TexThreadStats {
 
 
     // The set of textures used during the last frame
-    std::vector        <uint32_t>                            textures_last_frame;
+    std::vector           <uint32_t>                         textures_last_frame;
+    //SK_ThreadSafe_HashSet <uint32_t>                         textures_used;
     std::unordered_set <uint32_t>                            textures_used;
 //  std::unordered_set <uint32_t>                            non_power_of_two_textures;
 
@@ -331,7 +378,7 @@ struct TexThreadStats {
 
     std::unordered_map <uint32_t, TexRecord>                 injectable_textures;
     std::vector        <std::wstring>                        archives;
-    std::unordered_set <uint32_t>                            dumped_textures;
+    SK_ThreadSafe_HashSet <int32_t>                          dumped_textures;
 
   public:
     bool                                                     init            = false;
@@ -448,10 +495,10 @@ struct TexThreadStats {
       events_.shutdown =
         CreateEvent (nullptr, FALSE, FALSE, nullptr);
   
-      InitializeCriticalSectionAndSpinCount (&cs_jobs,      10UL);
+      InitializeCriticalSectionAndSpinCount (&cs_jobs,     100UL);
       InitializeCriticalSectionAndSpinCount (&cs_results, 1000UL);
   
-      const int   MAX_THREADS      = 3;//config.textures.worker_threads;  
+      const int   MAX_THREADS      = 4;//config.textures.worker_threads;  
       static bool init_worker_sync = false;
 
       if (! init_worker_sync)
@@ -696,12 +743,15 @@ public:
       tex_size      = size;
       tex_crc32c    = crc32c;
       must_block    = false;
-      refs          =  1;
+      uses          =  0;
+      InterlockedExchange (&refs, 1);
   };
 
   /*** IUnknown methods ***/
-  STDMETHOD(QueryInterface)(THIS_ REFIID riid, void** ppvObj) {
-    if (IsEqualGUID (riid, IID_SKTextureD3D9)) {
+  STDMETHOD(QueryInterface)(THIS_ REFIID riid, void** ppvObj)
+  {
+    if (IsEqualGUID (riid, IID_SKTextureD3D9))
+    {
       return S_OK;
     }
   
@@ -712,7 +762,9 @@ public:
        IsEqualGUID (riid, IID_IDirect3DBaseTexture9)    )
   {
     AddRef ();
+
     *ppvObj = this;
+
     return S_OK;
   }
   
@@ -722,25 +774,27 @@ public:
 #endif
   }
   STDMETHOD_(ULONG,AddRef)(THIS) {
-    ULONG ret = InterlockedIncrement (&refs);
-  
+    InterlockedIncrement (&refs);
+
     can_free = false;
-  
-    return ret;
+
+    return refs;
   }
   STDMETHOD_(ULONG,Release)(THIS) {
     ULONG ret = InterlockedDecrement (&refs);
-  
-    if (ret == 1) {
+
+    if (refs == 1)
+    {
       can_free = true;
     }
-  
-    if (ret == 0) {
+
+    if (refs == 0)
+    {
       // Does not delete this immediately; defers the
       //   process until the next cached texture load.
       SK::D3D9::tex_mgr.removeTexture (this);
     }
-  
+
     return ret;
   }
   
@@ -875,12 +929,12 @@ public:
 
     if (SUCCEEDED (hr))
     {
-      dirty = true;
-
-      locks [Level] = *pLockedRect;
-
       if (Level == 0)
+      {
+        lock_lvl0 = *pLockedRect;
+        dirty = true;
         QueryPerformanceCounter_Original (&begin_map);
+      }
     }
 
     return hr;
@@ -892,11 +946,11 @@ public:
       tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::UnlockRect (%lu)", Level );
     }
 
-    if (tex_crc32c == 0x00 && dirty && locks.count (Level) && Level == 0)
+    if (tex_crc32c == 0x00 && dirty && Level == 0)
     {
       auto sptr =
         static_cast <const uint8_t *> (
-          locks [Level].pBits
+          lock_lvl0.pBits
         );
 
       uint32_t crc32c_ = 0x00;
@@ -907,44 +961,50 @@ public:
       for (size_t h = 0; h < desc.Height; ++h)
       {
         uint32_t row_checksum = 
-          safe_crc32c (crc32c_, sptr, locks [Level].Pitch);
+          safe_crc32c (crc32c_, sptr, lock_lvl0.Pitch);
 
         if (row_checksum != 0x00)
           crc32c_ = row_checksum;
 
-        sptr += locks [Level].Pitch;
+        sptr += lock_lvl0.Pitch;
       }
 
       this->tex_crc32c = crc32c_;
-      this->tex_size   = locks [Level].Pitch * desc.Height;
+      this->tex_size   = lock_lvl0.Pitch * desc.Height;
 
       ////tex_log.Log ("Texture CRC3C2: %x", crc32c_);
 
-      //if (desc.Pool != D3DPOOL_SYSTEMMEM)
+      if (desc.Pool != D3DPOOL_SYSTEMMEM)
       {
-         auto* pCacheTex =
-           new SK::D3D9::Texture ();
+        SK::D3D9::Texture* pCacheTex =
+          SK::D3D9::tex_mgr.getTexture (this->tex_crc32c);
 
-         pCacheTex->crc32c = this->tex_crc32c;
+        if (pCacheTex == nullptr)
+        {
+          pCacheTex           = new SK::D3D9::Texture ();
+          pCacheTex->crc32c   = this->tex_crc32c;
+          pCacheTex->d3d9_tex = this;
 
-         pCacheTex->d3d9_tex = this;
-         //pCacheTex->d3d9_tex->AddRef ();
-         //pCacheTex->refs++;
+          //pCacheTex->d3d9_tex->AddRef ();
+          //pCacheTex->refs++;
 
-         QueryPerformanceCounter_Original (&end_map);
+          QueryPerformanceCounter_Original (&end_map);
 
-         pCacheTex->load_time = (float)( 1000.0 *
-                                  (double)( end_map.QuadPart - begin_map.QuadPart ) /
-                                   (double)SK_GetPerfFreq ().QuadPart );
+          pCacheTex->load_time = (float)( 1000.0 *
+                                   (double)( end_map.QuadPart - begin_map.QuadPart ) /
+                                    (double)SK_GetPerfFreq ().QuadPart );
 
-         //SK::D3D9::tex_mgr.addTexture (crc32c_, pCacheTex, tex_size);
+          SK::D3D9::tex_mgr.addTexture  (crc32c_, pCacheTex, tex_size);
+          SK::D3D9::tex_mgr.missTexture ();
+        }
+
+        SK::D3D9::tex_mgr.refTexture (pCacheTex);
       }
-
-      locks.erase (Level);
 
       //if (height > 1) height >>= 1;
     }
-    dirty = false;
+    if (Level == 0)
+      dirty = false;
 
     HRESULT hr =
       pTex->UnlockRect (Level);
@@ -968,6 +1028,41 @@ public:
 
     return hr;
   }
+
+  void use (void)
+  {
+    if (config.textures.dump_on_load && uses == 1)
+    {
+      D3DSURFACE_DESC desc = { };
+
+      if ( SUCCEEDED (pTex->GetLevelDesc (0, &desc)) &&
+        ( ! ( SK::D3D9::tex_mgr.isTextureDumped     (tex_crc32c) ||
+              SK::D3D9::tex_mgr.isTextureInjectable (tex_crc32c) ) ) )
+      {
+        tex_log.Log ( L"[Dump Trace] Texture:   (%lu x %lu) * <LODs: %lu> - FAST_CRC32C: %08X",
+                         desc.Width, desc.Height, pTex->GetLevelCount (), tex_crc32c);
+        tex_log.Log ( L"[Dump Trace]              Usage: %-20s - Format: %-20s",
+                         SK_D3D9_UsageToStr  (desc.Usage).c_str  (),
+                         SK_D3D9_FormatToStr (desc.Format).c_str ());
+        tex_log.Log ( L"[Dump Trace]                Pool: %s",
+                         SK_D3D9_PoolToStr (desc.Pool));
+        //tex_log.Log (L"[Load Trace]      Load Time: %6.4f ms",
+        //             1000.0f * (double)( end.QuadPart - start.QuadPart ) / (double)freq.QuadPart);
+
+
+        SK::D3D9::tex_mgr.injector.beginLoad ();
+
+        if (desc.Pool != D3DPOOL_MANAGED)
+          SK::D3D9::tex_mgr.dumpTexture (desc.Format, tex_crc32c, pTex);
+
+        SK::D3D9::tex_mgr.injector.endLoad ();
+      }
+    }
+
+    QueryPerformanceCounter_Original (&last_used);
+
+    ++uses;
+  }
   
   bool               can_free;      // Whether or not we can free this texture
   bool               must_block;    // Whether or not to draw using this texture before its
@@ -982,16 +1077,15 @@ public:
   IDirect3DTexture9* pTexOverride;  // The overridden texture data (nullptr if unchanged)
   SSIZE_T            override_size; //   Override data size
   
-  ULONG              refs;
+  volatile LONG      refs;
   LARGE_INTEGER      last_used;     // The last time this texture was used (for rendering)
                                     //   different from the last time referenced, this is
                                     //     set when SetTexture (...) is called.
                                     //     
                                     //     
 
-  std::map    <UINT, D3DLOCKED_RECT> locks;
-//  uint8_t*           pixels;
-//  int                lod0w, lod0h;
+  D3DLOCKED_RECT     lock_lvl0;
+  int                uses;
   LARGE_INTEGER      begin_map;
   LARGE_INTEGER      end_map;
 };

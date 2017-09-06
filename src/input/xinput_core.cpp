@@ -72,6 +72,12 @@ struct SK_XInputContext
 
     uint8_t                         orig_inst_set [12]                   =   {   };
 
+    XInputEnable_pfn                XInputEnable_Detour                  = nullptr;
+    XInputEnable_pfn                XInputEnable_Original                = nullptr;
+    LPVOID                          XInputEnable_Target                  = nullptr;
+
+    uint8_t                         orig_inst_enable [12]                =    {   };
+
     //
     // Extended stuff (XInput1_3 and XInput1_4 ONLY)
     //
@@ -124,6 +130,26 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState );
 
+BOOL xinput_enabled = TRUE;
+
+void
+WINAPI
+XInputEnable1_3_Detour (
+  _In_ BOOL enable )
+{
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
+  SK_XInputContext::instance_s* pCtx =
+    &xinput_ctx.XInput1_3;
+
+  xinput_enabled = enable;
+
+  // Migrate the function that we use internally over to
+  //   whatever the game is actively using -- helps with X360Ce
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+}
+
+
 DWORD
 WINAPI
 XInputGetState1_3_Detour (
@@ -138,9 +164,12 @@ XInputGetState1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return (DWORD)E_POINTER;
+  if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  ZeroMemory (pState, sizeof (XINPUT_STATE));
+  ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -179,9 +208,12 @@ XInputGetStateEx1_3_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return (DWORD)E_POINTER;
+  if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  ZeroMemory (pState, sizeof (XINPUT_STATE));
+  ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -297,6 +329,9 @@ XInputSetState1_3_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_3;
 
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
+
   if (pVibration  == nullptr)           return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
   if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                         return ERROR_DEVICE_NOT_CONNECTED;
@@ -322,6 +357,24 @@ XInputSetState1_3_Detour (
 }
 
 
+void
+WINAPI
+XInputEnable1_4_Detour (
+  _In_ BOOL enable)
+{
+  HMODULE hModCaller = SK_GetCallingDLL ( );
+
+  SK_XInputContext::instance_s* pCtx =
+    &xinput_ctx.XInput1_4;
+
+  xinput_enabled = enable;
+
+  // Migrate the function that we use internally over to
+  //   whatever the game is actively using -- helps with X360Ce
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+}
+
+
 DWORD
 WINAPI
 XInputGetState1_4_Detour (
@@ -336,9 +389,12 @@ XInputGetState1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return (DWORD)E_POINTER;
+  if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  ZeroMemory (pState, sizeof (XINPUT_STATE));
+  ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -377,9 +433,12 @@ XInputGetStateEx1_4_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return (DWORD)E_POINTER;
+  if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  ZeroMemory (pState, sizeof (XINPUT_STATE));
+  ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -495,6 +554,9 @@ XInputSetState1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
+
   if (pVibration  == nullptr)         return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
   if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
                                         return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
@@ -534,9 +596,12 @@ XInputGetState9_1_0_Detour (
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
 
-  if (pState      == nullptr)         return (DWORD)E_POINTER;
+  if (pState      == nullptr)         return ERROR_SUCCESS;
 
-  ZeroMemory (pState, sizeof (XINPUT_STATE));
+  ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
 
@@ -614,6 +679,9 @@ XInputSetState9_1_0_Detour (
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput9_1_0;
+
+  if (! xinput_enabled)
+    return ERROR_SUCCESS;
 
   if (pVibration  == nullptr)         return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
   if (dwUserIndex >= XUSER_MAX_COUNT) { ZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
@@ -699,6 +767,20 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
      static_cast_p2p <void> (&pCtx->XInputGetStateEx_Original) );
   }
 
+  pCtx->XInputEnable_Target =
+    SK_GetProcAddress ( pCtx->wszModuleName,
+                              "XInputEnable" );
+
+  // Down-level (XInput 9_1_0) does not have XInputEnable
+  //
+  if (pCtx->XInputGetStateEx_Target != nullptr)
+  {
+    SK_CreateDLLHook2 (         pCtx->wszModuleName,
+                                     "XInputEnable",
+                                pCtx->XInputEnable_Detour,
+       static_cast_p2p <void> (&pCtx->XInputEnable_Original) );
+  }
+
   MH_ApplyQueued ();
 
   if (pCtx->XInputGetState_Target != nullptr)
@@ -715,6 +797,9 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
   if (pCtx->XInputGetStateEx_Target != nullptr)
     memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              11);
+
+  if (pCtx->XInputEnable_Target != nullptr)
+    memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              11);
 }
 
 void
@@ -735,6 +820,7 @@ SK_Input_HookXInput1_4 (void)
 
     pCtx->wszModuleName                      = L"XInput1_4.dll";
     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
+    pCtx->XInputEnable_Detour                = XInputEnable1_4_Detour;
     pCtx->XInputGetState_Detour              = XInputGetState1_4_Detour;
     pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_4_Detour;
     pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_4_Detour;
@@ -767,6 +853,7 @@ SK_Input_HookXInput1_3 (void)
 
     pCtx->wszModuleName                      = L"XInput1_3.dll";
     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
+    pCtx->XInputEnable_Detour                = XInputEnable1_3_Detour;
     pCtx->XInputGetState_Detour              = XInputGetState1_3_Detour;
     pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_3_Detour;
     pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_3_Detour;
@@ -1074,6 +1161,57 @@ SK_XInput_RehookIfNeeded (void)
   }
 
 
+  if (pCtx->XInputEnable_Target != nullptr)
+  {
+    ret =
+      MH_EnableHook (pCtx->XInputEnable_Target);
+
+
+    // Test for modified hooks
+    if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
+                   ( pCtx->XInputEnable_Target != nullptr &&
+             memcmp (pCtx->orig_inst_enable,
+                     pCtx->XInputEnable_Target, 11 ) )
+       )
+    {
+      if ( MH_OK == MH_RemoveHook (pCtx->XInputEnable_Target) )
+      {
+        if ( MH_OK ==
+               SK_CreateDLLHook2 ( pCtx->wszModuleName,
+                                        "XInputEnable",
+                                   pCtx->XInputEnable_Detour,
+          static_cast_p2p <void> (&pCtx->XInputEnable_Original) )
+           )
+        {
+          SK_LOG0 ( ( L" Re-hooked XInput (Enable) using '%s'...",
+                         pCtx->wszModuleName ),
+                      L"Input Mgr." );
+
+          if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
+            xinput_ctx.XInput1_3 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
+            xinput_ctx.XInput1_4 = *pCtx;
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L" Failed to re-hook XInput (Enable) using '%s'...",
+                 pCtx->wszModuleName ),
+              L"Input Mgr." );
+        }
+      }
+
+      else
+      {
+        SK_LOG0 ( ( L" Failed to remove XInput (Enable) hook from '%s'...",
+               pCtx->wszModuleName ),
+            L"Input Mgr." );
+      }
+    }
+  }
+
+
+
   MH_ApplyQueued ();
 
 
@@ -1091,6 +1229,9 @@ SK_XInput_RehookIfNeeded (void)
 
   if (pCtx->XInputGetStateEx_Target != nullptr)
     memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              11);
+
+  if (pCtx->XInputEnable_Target != nullptr)
+    memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              11);
 }
 
 
@@ -1099,6 +1240,13 @@ SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
 {
+  if (! xinput_enabled)
+    return false;
+
+  if (xinput_ctx.primary_hook && xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+    xinput_ctx.primary_hook->XInputEnable_Original (true);
+
+
   iJoyID =
     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
 
@@ -1307,10 +1455,20 @@ SK_Input_PreHookXInput (void)
 void
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
+  if (! xinput_enabled)
+    return;
+
+
   iJoyID =
     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
 
   if (iJoyID >= XUSER_MAX_COUNT) return;
 
+  if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+    xinput_ctx.primary_hook->XInputEnable_Original (false);
+
   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
+
+  if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+    xinput_ctx.primary_hook->XInputEnable_Original (xinput_enabled);
 }

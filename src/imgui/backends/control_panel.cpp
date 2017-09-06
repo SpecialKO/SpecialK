@@ -4694,11 +4694,10 @@ extern float SK_ImGui_PulseNav_Strength;
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::TextColored  (ImColor::HSV (0.159f, 1.0f, 1.0f), "DONT TREAD ON ME");
+            ImGui::TextColored  (ImColor::HSV (0.159f, 1.0f, 1.0f), "Fixes pesky games that use SteamAPI to deny Offline mode");
             ImGui::Separator    ();
-            ImGui::BulletText   ("Fixes pesky games that use SteamAPI to deny Offline mode");
-            ImGui::BulletText   ("Did I say pesky?"); ImGui::SameLine ();
-            ImGui::TextColored  (ImColor::HSV (0.074f, 1.f, 1.f), "I meant evil; pure evil.");
+            ImGui::BulletText   ("This is a much larger problem than you would believe.");
+            ImGui::BulletText   ("This also fixes some games that crash when Steam disconnects (unrelated to DRM).");
             ImGui::EndTooltip   ();
           }
 

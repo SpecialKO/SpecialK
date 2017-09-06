@@ -2617,6 +2617,199 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                              IDirect3DBaseTexture9 *pSourceTexture,
                              IDirect3DBaseTexture9 *pDestinationTexture )
 {
+#if 1
+  if ((! config.textures.d3d9_mod) || (! SK::D3D9::tex_mgr.init) || SK::D3D9::tex_mgr.injector.isInjectionThread ())
+  {
+    return
+      D3D9UpdateTexture_Original ( This,
+                                     pSourceTexture,
+                                       pDestinationTexture );
+  }
+
+  IDirect3DBaseTexture9* pRealSource = pSourceTexture;
+  IDirect3DBaseTexture9* pRealDest   = pDestinationTexture;
+
+  bool src_is_wrapped = false;
+
+  void* dontcare;
+  if (pSourceTexture != nullptr &&
+      pSourceTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
+  {
+    src_is_wrapped = true;
+    pRealSource    = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture)->pTex;
+  }
+
+  if (pDestinationTexture != nullptr &&
+      pDestinationTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
+  {
+    pRealDest = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
+
+    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
+    {
+      if (src_is_wrapped)
+      {
+        auto* pSrc = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
+        auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
+
+        pDst->tex_crc32c = pSrc->tex_crc32c;
+        pDst->tex_size   = pSrc->tex_size;
+
+        TexLoadRequest* load_op =
+          nullptr;
+        
+        wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
+        
+        bool remap_stream =
+          tex_mgr.injector.isStreaming (pDst->tex_crc32c);
+        
+        //
+        // Generic injectable textures
+        //
+        if (tex_mgr.isTextureInjectable (pDst->tex_crc32c))
+        {
+          tex_log.LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
+                         pDst->tex_crc32c);
+        
+          TexRecord& record =
+            tex_mgr.getInjectableTexture (pDst->tex_crc32c);
+        
+          if (record.method == TexLoadMethod::DontCare)
+              record.method =  TexLoadMethod::Streaming;
+        
+          // If -1, load from disk...
+          if (record.archive == -1)
+          {
+            if (record.method == TexLoadMethod::Streaming)
+            {
+              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
+                            SK_D3D11_res_root.c_str (),
+                              pDst->tex_crc32c,
+                                L".dds" );
+            }
+        
+            else if (record.method == TexLoadMethod::Blocking)
+            {
+              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
+                            SK_D3D11_res_root.c_str (),
+                              pDst->tex_crc32c,
+                                L".dds");
+            }
+          }
+        
+          load_op =
+            new TexLoadRequest ();
+        
+          load_op->pDevice  = This;
+          load_op->checksum = pDst->tex_crc32c;
+        
+          if (record.method == TexLoadMethod::Streaming)
+            load_op->type    = TexLoadRequest::Stream;
+          else
+            load_op->type = TexLoadRequest::Immediate;
+        
+          wcscpy (load_op->wszFilename, wszInjectFileName);
+        
+          if (load_op->type == TexLoadRequest::Stream)
+          {
+            if (( !remap_stream ))
+              tex_log.LogEx (false, L"streaming\n");
+            else
+              tex_log.LogEx (false, L"in-flight already\n");
+          }
+        
+          else
+          {
+            tex_log.LogEx (false, L"blocking (deferred)\n");
+          }
+        
+          if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
+                                       load_op->type == TexLoadRequest::Immediate ) )
+          {
+          load_op->SrcDataSize =
+            static_cast <UINT> (
+              record.size
+            );
+        
+          load_op->pDest =
+             (ISKTextureD3D9 *)pDestinationTexture;
+        
+          tex_mgr.injector.lockStreaming ();
+        
+          if (load_op->type == TexLoadRequest::Immediate)
+            dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
+        
+          if (tex_mgr.injector.isStreaming (load_op->checksum))
+          {
+            tex_mgr.injector.lockStreaming ();
+        
+            auto* pTexOrig =
+              static_cast <ISKTextureD3D9 *> (
+                tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest
+               );
+        
+            // Remap the output of the in-flight texture
+            tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
+              pDst;
+        
+            tex_mgr.injector.unlockStreaming ();
+        
+            if (tex_mgr.getTexture (load_op->checksum) != nullptr)
+            {
+              for (int i = 0;
+                       i < tex_mgr.getTexture (load_op->checksum)->refs;
+                     ++i)
+              {
+                dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
+              }
+            }
+        
+            tex_mgr.removeTexture (pTexOrig);
+          }
+        
+          else
+          {
+            tex_mgr.injector.addTextureInFlight (load_op);
+        
+            load_op->pDest->AddRef ();
+            stream_pool.postJob (load_op);
+            //resample_pool->postJob (load_op);
+          }
+
+          tex_mgr.injector.unlockStreaming ();
+        }
+      }
+      if (/*config.textures.cache &&*/ pDst->tex_crc32c != 0x00)
+      {
+        Texture* pTex =
+          new Texture ();
+
+        pTex->crc32c   = pDst->tex_crc32c;
+        pTex->d3d9_tex = pDst;
+        //pTex->d3d9_tex->AddRef ();
+        //pTex->refs++;
+      
+        //pTex->load_time = (float)( 1000.0 *
+        //                    (double)(end.QuadPart - start.QuadPart) /
+        //                    (double)freq.QuadPart );
+
+        if (SUCCEEDED ( D3D9UpdateTexture_Original ( This,
+                                                       pRealSource,
+                                                         pRealDest ) ) )
+        {
+          tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
+
+          return S_OK;
+        }
+      }
+    }
+  }
+  }
+
+  return
+    D3D9UpdateTexture_Original ( This,
+                                   pRealSource,
+                                     pRealDest );
+#else
   if ((! config.textures.d3d9_mod) || (! SK::D3D9::tex_mgr.init) || SK::D3D9::tex_mgr.injector.isInjectionThread ())
   {
     return
@@ -2675,7 +2868,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             tex_mgr.getInjectableTexture (checksum);
 
           if (record.method == TexLoadMethod::DontCare)
-            record.method = TexLoadMethod::Blocking;//Streaming;
+              record.method  = TexLoadMethod::Streaming;
 
           // If -1, load from disk...
           if (record.archive == -1)
@@ -2883,6 +3076,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
       }
     }
   }
+#endif
 
   return
     D3D9UpdateTexture_Original ( This,
@@ -4390,7 +4584,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
   ImGui::BeginChild ( ImGui::GetID ("Source List"),
                         ImVec2 ( FILE_LIST_WIDTH, FILE_LIST_HEIGHT ),
                           true,
-                            ImGuiWindowFlags_AlwaysAutoResize );
+                            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
   if (ImGui::IsWindowHovered ())
     can_scroll = false;
@@ -4657,8 +4851,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
   ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
   ImGui::BeginChild ( ImGui::GetID (szShaderWord),
-                      ImVec2 ( font_size * 7.0f, std::max (font_size * 15.0f, list->last_ht)),
-                        true, ImGuiWindowFlags_AlwaysAutoResize );
+                      ImVec2 ( font_size * 7.0f, std::max (font_size * 15.0f, list->last_ht)), true,
+                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
   if (ImGui::IsWindowHovered ())
   {
@@ -5086,7 +5280,8 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
   ImGui::BeginChild ( ImGui::GetID ("Stream 0"),
                       ImVec2 ( font_size * 7.0f, std::max (font_size * 15.0f, list->last_ht)),
-                        true, ImGuiWindowFlags_AlwaysAutoResize );
+                        true,
+                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
   if (ImGui::IsWindowHovered ())
   {
@@ -5601,7 +5796,7 @@ SK_D3D9_TextureModDlg (void)
 
       ImGui::Bullet         (); ImGui::SameLine ();
       ImGui::TextWrapped    ( "If texture mods are enabled, you can click on the Injected and Base buttons on the texture cache "
-                                "summary pannel to compare modified and unmodified." );
+                                "summary panel to compare modified and unmodified." );
     ImGui::EndChild         ();
   }
 #endif
@@ -5802,7 +5997,7 @@ SK_D3D9_TextureModDlg (void)
                                   ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width + 24.0f),
                                 (float)desc.Height + font_size * 10.0f),
                                     true,
-                                      ImGuiWindowFlags_AlwaysAutoResize );
+                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
           if ((! config.textures.highlight_debug_tex) && has_alternate)
           {
@@ -5843,9 +6038,15 @@ SK_D3D9_TextureModDlg (void)
 
           ImGui::Separator  ();
 
+          static bool flip_vertical0   = false;
+          static bool flip_horizontal0 = false;
+
+          ImGui::Checkbox ("Flip Vertically##D3D9_FlipVertical0",     &flip_vertical0);   ImGui::SameLine ( );
+          ImGui::Checkbox ("Flip Horizontally##D3D9_FlipHorizontal0", &flip_horizontal0);
+
           if (! SK::D3D9::tex_mgr.isTextureDumped (debug_tex_id))
           {
-            if ( ImGui::Button ("  Dump Texture to Disk  ") )
+            if ( ImGui::Button ("  Dump Texture to Disk  ###DumpTexture") )
             {
               SK::D3D9::tex_mgr.dumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
             }
@@ -5856,17 +6057,20 @@ SK_D3D9_TextureModDlg (void)
 
           else
           {
-            if ( ImGui::Button ("  Delete Dumped Texture from Disk  ") )
+            if ( ImGui::Button ("  Delete Dumped Texture from Disk  ###DumpTexture") )
             {
               SK::D3D9::tex_mgr.deleteDumpedTexture (desc.Format, debug_tex_id);
             }
           }
 
+          ImVec2 uv0 (flip_horizontal0 ? 1.0f : 0.0f, flip_vertical0 ? 1.0f : 0.0f);
+          ImVec2 uv1 (flip_horizontal0 ? 0.0f : 1.0f, flip_vertical0 ? 0.0f : 1.0f);
+
           ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
           ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_XXX"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
           ImGui::Image           ( pTex->d3d9_tex->pTex,
                                      ImVec2 ((float)desc.Width, (float)desc.Height),
-                                       ImVec2  (0,0),             ImVec2  (1,1),
+                                       uv0,                       uv1,
                                        ImColor (255,255,255,255), ImColor (255,255,255,128)
                                  );
           ImGui::EndChildFrame   ();
@@ -5896,7 +6100,7 @@ SK_D3D9_TextureModDlg (void)
                               ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width  + 24.0f),
                                                                     (float)desc.Height + font_size * 10.0f),
                                 true,
-                                  ImGuiWindowFlags_AlwaysAutoResize );
+                                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
           if (! config.textures.highlight_debug_tex)
           {
@@ -5947,6 +6151,11 @@ SK_D3D9_TextureModDlg (void)
 
           ImGui::Separator  ();
 
+          static bool flip_vertical1   = false;
+          static bool flip_horizontal1 = false;
+
+          ImGui::Checkbox ("Flip Vertically##D3D9_FlipVertical1",     &flip_vertical1);   ImGui::SameLine ( );
+          ImGui::Checkbox ("Flip Horizontally##D3D9_FlipHorizontal1", &flip_horizontal1);
 
           if (injected)
           {
@@ -5964,12 +6173,15 @@ SK_D3D9_TextureModDlg (void)
 
           if (! reloading)
           {
+            ImVec2 uv0 (flip_horizontal1 ? 1.0f : 0.0f, flip_vertical1 ? 1.0f : 0.0f);
+            ImVec2 uv1 (flip_horizontal1 ? 0.0f : 1.0f, flip_vertical1 ? 0.0f : 1.0f);
+
             ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
             ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_YYY"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
             ImGui::Image           ( pTex->d3d9_tex->pTexOverride,
                                        ImVec2 ((float)desc.Width, (float)desc.Height),
-                                         ImVec2  (0,0),             ImVec2  (1,1),
-                                         ImColor (255,255,255,255), ImColor (255,255,255,128)
+                                       uv0,                       uv1,
+                                       ImColor (255,255,255,255), ImColor (255,255,255,128)
                                    );
             ImGui::EndChildFrame   ();
             ImGui::PopStyleColor   (1);
@@ -6132,7 +6344,7 @@ SK_D3D9_TextureModDlg (void)
                             ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
                                      std::max (256.0f,            effective_height + font_size * 4.0f + (float)shaders * font_size) ),
                               true,
-                                ImGuiWindowFlags_AlwaysAutoResize );
+                                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
         last_width  = effective_width;
         last_ht     = effective_height + font_size * 4.0f + (float)shaders * font_size;

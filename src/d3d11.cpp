@@ -7978,7 +7978,7 @@ SK_LiveTextureView (bool& can_scroll)
 
         static bool flip_vertical   = false;
         static bool flip_horizontal = false;
-        
+
         ImGui::Checkbox ("Flip Vertically##D3D11_FlipVertical",     &flip_vertical);   ImGui::SameLine ();
         ImGui::Checkbox ("Flip Horizontally##D3D11_FlipHorizontal", &flip_horizontal);
 

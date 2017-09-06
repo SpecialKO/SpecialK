@@ -1920,6 +1920,8 @@ SK_AdjustBorder (void)
 void
 SK_ResetWindow (void)
 {
+  return;
+
   static CRITICAL_SECTION cs_reset;
   static bool             init = false;
 
