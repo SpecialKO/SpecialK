@@ -1179,4 +1179,17 @@ using CreateAdditionalSwapChain_pfn = HRESULT (STDMETHODCALLTYPE *)
   (IDirect3DDevice9* This, D3DPRESENT_PARAMETERS* pPresentationParameters,
    IDirect3DSwapChain9** pSwapChain);
 
+
+
+
+std::wstring
+SK_D3D9_UsageToStr (DWORD dwUsage);
+
+std::wstring
+SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
+
+const wchar_t*
+SK_D3D9_PoolToStr (D3DPOOL pool);
+
+
 #endif /* __SK__D3D9_BACKEND_H__ */

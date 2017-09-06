@@ -3884,6 +3884,31 @@ SK_SteamAPI_Music (void)
   return steam_ctx.Music ();
 }
 
+// Returns the REAL value of this
+SK_SteamUser_LoggedOn_e
+SK_SteamUser_BLoggedOn (void)
+{
+  extern int __SK_SteamUser_BLoggedOn;
+
+  if (__SK_SteamUser_BLoggedOn == static_cast <int> (SK_SteamUser_LoggedOn_e::Unknown))
+  {
+    ISteamUser* pUser =
+      steam_ctx.User ();
+
+    if (pUser)
+      return pUser->BLoggedOn () ? SK_SteamUser_LoggedOn_e::Online :
+                                   SK_SteamUser_LoggedOn_e::Offline;
+
+    else
+      return SK_SteamUser_LoggedOn_e::Unknown;
+  }
+
+  return
+    static_cast <SK_SteamUser_LoggedOn_e> (
+      __SK_SteamUser_BLoggedOn
+    );
+}
+
 
 //
 // ATTENTION PIRATES:  Forking Special K and circumventing this is 99% of the work you need

@@ -175,6 +175,11 @@ struct {
   struct {
     sk::ParameterBool*    silent;
   } log;
+
+  struct
+  {
+    sk::ParameterBool*    spoof_BLoggedOn;
+  } drm;
 } steam;
 
 struct {
@@ -265,6 +270,8 @@ struct {
     sk::ParameterBool*    ignore_non_mipped;
     sk::ParameterBool*    allow_staging;
   } cache;
+    sk::ParameterStringW* res_root;
+    sk::ParameterBool*    dump_on_load;
 } texture;
 
 struct {
@@ -1602,6 +1609,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Textures.D3D11",
           L"ResourceRoot" );
 
+    texture.res_root =
+      dynamic_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (
+          L"Resource Root")
+        );
+    texture.res_root->register_to_ini (
+      dll_ini,
+        L"Textures.General",
+          L"ResourceRoot" );
+
+    texture.dump_on_load =
+      dynamic_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Dump Textures while Loading")
+        );
+    texture.dump_on_load->register_to_ini (
+      dll_ini,
+        L"Textures.General",
+          L"DumpOnFirstLoad" );
+
     texture.cache.min_entries =
       dynamic_cast <sk::ParameterInt *>
         (g_ParameterFactory.create_parameter <int> (
@@ -2087,6 +2114,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Steam.Log",
         L"Silent" );
+
+  steam.drm.spoof_BLoggedOn =
+    dynamic_cast <sk::ParameterBool *>
+    ( g_ParameterFactory.create_parameter <bool> (
+        L"Fix For Stupid Games That Don't Know How DRM Works.")
+      );
+  steam.drm.spoof_BLoggedOn->register_to_ini (
+    dll_ini,
+      L"Steam.DRMWorks",
+        L"SpoofBLoggedOn" );
 
   iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
@@ -2849,6 +2886,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.textures.d3d11.inject = texture.d3d11.inject->get_value ();
   if (texture.d3d11.res_root->load ())
     config.textures.d3d11.res_root = texture.d3d11.res_root->get_value ();
+  if (texture.res_root->load ())
+    config.textures.d3d11.res_root = texture.res_root->get_value ();
+  if (texture.dump_on_load->load ())
+    config.textures.dump_on_load = texture.dump_on_load->get_value ();
 
   if (texture.cache.max_entries->load ())
     config.textures.cache.max_entries = texture.cache.max_entries->get_value ();
@@ -3062,6 +3103,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (steam.log.silent->load ())
     config.steam.silent = steam.log.silent->get_value ();
+  if (steam.drm.spoof_BLoggedOn->load ())
+    config.steam.spoof_BLoggedOn = steam.drm.spoof_BLoggedOn->get_value ();
 
   if (steam.system.appid->load ())
     config.steam.appid = steam.system.appid->get_value ();
@@ -3143,6 +3186,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (version->load ())
     config.system.version = version->get_value ();
+
+
+
+
+  void
+  WINAPI
+  SK_D3D11_SetResourceRoot (const wchar_t* root);
+  SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
 
 
   //
@@ -3689,6 +3740,9 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
+  texture.res_root->set_value                   (config.textures.d3d11.res_root);
+  texture.dump_on_load->set_value               (config.textures.dump_on_load);
+
   steam.achievements.sound_file->set_value      (config.steam.achievements.sound_file);
   steam.achievements.play_sound->set_value      (config.steam.achievements.play_sound);
   steam.achievements.take_screenshot->set_value (config.steam.achievements.take_screenshot);
@@ -3723,6 +3777,7 @@ SK_SaveConfig ( std::wstring name,
   );
 
   steam.log.silent->set_value                (config.steam.silent);
+  steam.drm.spoof_BLoggedOn->set_value       (config.steam.spoof_BLoggedOn);
 
   init_delay->set_value                      (config.system.init_delay);
   silent->set_value                          (config.system.silent);
@@ -3888,6 +3943,9 @@ SK_SaveConfig ( std::wstring name,
   if (render.framerate.refresh_rate != nullptr)
     render.framerate.refresh_rate->store ();
 
+  texture.res_root->store                ();
+  texture.dump_on_load->store            ();
+
   osd.show->store                        ();
   osd.update_method.pump->store          ();
   osd.update_method.pump_interval->store ();
@@ -3923,6 +3981,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.early_overlay->store          ();
   steam.system.force_load->store             ();
   steam.log.silent->store                    ();
+  steam.drm.spoof_BLoggedOn->store           ();
 
   init_delay->store                      ();
   silent->store                          ();

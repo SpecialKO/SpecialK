@@ -1,7 +1,7 @@
 #include <SpecialK/steam_api.h>
+#include <SpecialK/config.h>
 
 #include <Windows.h>
-#include <SpecialK/steam_api.h>
 #include <cstdint>
 
 #include <unordered_map>
@@ -14,6 +14,8 @@ class ISteamUserFake;
 
 std::unordered_map <ISteamUser*, ISteamUserFake*>   SK_SteamWrapper_remap_user;
 
+int __SK_SteamUser_BLoggedOn =
+  static_cast <int> (SK_SteamUser_LoggedOn_e::Unknown);
 
 class ISteamUserFake : public ISteamUser
 {
@@ -23,7 +25,26 @@ public:
   };
 
   virtual HSteamUser GetHSteamUser          ( void ) override { return pRealUser->GetHSteamUser (); };
-  virtual bool       BLoggedOn              ( void ) override { return true;                        };
+
+
+  virtual bool       BLoggedOn              ( void ) override
+  {
+    __SK_SteamUser_BLoggedOn =
+      static_cast <int> ( pRealUser->BLoggedOn () ? SK_SteamUser_LoggedOn_e::Online :
+                                                    SK_SteamUser_LoggedOn_e::Offline );
+
+    if (config.steam.spoof_BLoggedOn)
+    {
+      if (__SK_SteamUser_BLoggedOn != static_cast <int> (SK_SteamUser_LoggedOn_e::Online))
+        __SK_SteamUser_BLoggedOn   |= static_cast <int> (SK_SteamUser_LoggedOn_e::Spoofing);
+
+      return true;
+    }
+
+    return (__SK_SteamUser_BLoggedOn & static_cast <int> (SK_SteamUser_LoggedOn_e::Online)) != 0;
+  };
+
+
   virtual CSteamID   GetSteamID             ( void ) override { return pRealUser->GetSteamID    (); };
 
   virtual int        InitiateGameConnection ( void     *pAuthBlob,

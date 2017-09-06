@@ -807,16 +807,15 @@ SK::D3D9::Startup (void)
 bool
 SK::D3D9::Shutdown (void)
 {
-#if 0
   // The texture manager built-in to SK is derived from these ...
   //   until those projects are modified to use THIS texture manager,
   //     they need special treatment.
-  if ( GetModuleHandle (L"tzfix.dll") == NULL &&
-       GetModuleHandle (L"tsfix.dll") == NULL )
+  if ( GetModuleHandle (L"tzfix.dll") == nullptr &&
+       GetModuleHandle (L"tsfix.dll") == nullptr )
   {
-    sk::d3d9::tex_mgr.Shutdown ();
+    if (tex_mgr.init)
+      tex_mgr.Shutdown ();
   }
-#endif
 
   return SK_ShutdownCore (L"d3d9");
 }
@@ -1029,7 +1028,7 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
 
     pSwapChain->GetPresentParameters (&pparams);
 
-    if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
+    if (SUCCEEDED (This->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
     {
       rb.device    = This;
       rb.swapchain = pSwapChain;
@@ -1156,7 +1155,7 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
       pSwapChain->GetPresentParameters (&pparams);
 
-      if (SUCCEEDED (pSwapChain->GetBackBuffer (0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)) )
+      if (SUCCEEDED (This->GetBackBuffer (0, 0,  D3DBACKBUFFER_TYPE_MONO, (IDirect3DSurface9 **)&pSurf)) )
       {
         rb.device    = This;
         rb.swapchain = pSwapChain;
@@ -2636,26 +2635,25 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
       pSourceTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {
     src_is_wrapped = true;
-
-    pRealSource = ((ISKTextureD3D9 *)pSourceTexture)->pTex;
+    pRealSource    = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture)->pTex;
   }
 
   if (pDestinationTexture != nullptr &&
       pDestinationTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {
-    pRealDest = ((ISKTextureD3D9 *)pDestinationTexture)->pTex;
+    pRealDest = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
 
     if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
     {
       if (src_is_wrapped)
       {
-        ISKTextureD3D9* pSrc = (ISKTextureD3D9 *)pSourceTexture;
-        ISKTextureD3D9* pDst = (ISKTextureD3D9 *)pDestinationTexture;
+        auto* pSrc = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
+        auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
 
         pDst->tex_crc32c = pSrc->tex_crc32c;
         pDst->tex_size   = pSrc->tex_size;
 
-        HRESULT         hr           = S_OK;
+      //HRESULT         hr           = S_OK;
         TexLoadRequest* load_op      = nullptr;
 
         wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
@@ -2740,18 +2738,18 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           tex_mgr.injector.lockStreaming ();
 
           if (load_op->type == TexLoadRequest::Immediate)
-            ((ISKTextureD3D9 *)pDestinationTexture)->must_block = true;
+            dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
 
           if (tex_mgr.injector.isStreaming (load_op->checksum))
           {
             tex_mgr.injector.lockStreaming ();
 
-            ISKTextureD3D9* pTexOrig =
-              (ISKTextureD3D9 *)tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest;
+            //ISKTextureD3D9* pTexOrig =
+            //  (ISKTextureD3D9 *)tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest;
 
             // Remap the output of the in-flight texture
             tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
-              (ISKTextureD3D9 *)pDestinationTexture;
+              dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
 
             tex_mgr.injector.unlockStreaming ();
 
@@ -2761,17 +2759,18 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                         i < tex_mgr.getTexture (load_op->checksum)->refs;
                       ++i )
               {
-                ((ISKTextureD3D9 *)pDestinationTexture)->AddRef ();
+                dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
               }
             }
 
-            tex_mgr.removeTexture (pTexOrig);
+            //tex_mgr.removeTexture (pTexOrig);
           }
 
           else
           {
             tex_mgr.injector.addTextureInFlight (load_op);
 
+            load_op->pDest->AddRef ();
             stream_pool.postJob                 (load_op);
             //resample_pool->postJob (load_op);
           }
@@ -2840,17 +2839,33 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           Texture* pTex =
             new Texture ();
 
-          pTex->crc32c = checksum;
-
+          pTex->crc32c   = checksum;
           pTex->d3d9_tex = pDst;
-          pTex->d3d9_tex->AddRef ();
-          pTex->refs++;
+          //pTex->d3d9_tex->AddRef ();
+          //pTex->refs++;
       
           //pTex->load_time = (float)( 1000.0 *
           //                    (double)(end.QuadPart - start.QuadPart) /
           //                    (double)freq.QuadPart );
 
-          tex_mgr.addTexture (checksum, pTex, /*SrcDataSize*/pDst->tex_size);
+          if (SUCCEEDED ( D3D9UpdateTexture_Original ( This,
+                                                         pRealSource,
+                                                           pRealDest ) ) )
+          {
+            tex_mgr.addTexture (checksum, pTex, /*SrcDataSize*/pDst->tex_size);
+
+            if (config.textures.dump_on_load)
+            {
+              {
+                D3DSURFACE_DESC desc = { };
+
+                if (SUCCEEDED (((IDirect3DTexture9 *)pRealSource)->GetLevelDesc (0, &desc)))
+                  tex_mgr.dumpTexture (desc.Format, checksum, (IDirect3DTexture9 *)pRealSource);
+              }
+            }
+          }
+
+          return S_OK;
         }
 
       //  if (true)
@@ -4276,9 +4291,6 @@ SK_D3D9_TriggerReset (bool temporary)
 
 #include <atlbase.h>
 
-extern std::wstring
-SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
-
 void
 SK_D3D9_DrawFileList (bool& can_scroll)
 {
@@ -4307,7 +4319,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
   static int                               sel        = 0;
 
   auto EnumerateSource =
-    [](int archive_no) ->
+    [](unsigned int archive_no) ->
       enumerated_source_s
       {
         enumerated_source_s source;
@@ -4330,12 +4342,12 @@ SK_D3D9_DrawFileList (bool& can_scroll)
             {
               case DontCare:
               case Streaming:
-                source.streaming.records.push_back (std::make_pair (it.first, it.second));
+                source.streaming.records.emplace_back (std::make_pair (it.first, it.second));
                 source.streaming.size += it.second.size;
                 break;
 
               case Blocking:
-                source.blocking.records.push_back (std::make_pair (it.first, it.second));
+                source.blocking.records.emplace_back (std::make_pair (it.first, it.second));
                 source.blocking.size += it.second.size;
                 break;
             }
@@ -4360,11 +4372,11 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     // First the .7z Data Sources
     for ( auto it : archives )
     {
-      sources.push_back (EnumerateSource (idx++));
+      sources.emplace_back (EnumerateSource (idx++));
     }
 
     // Then the Straight Filesystem
-    sources.push_back (EnumerateSource (std::numeric_limits <unsigned int>::max ()));
+    sources.emplace_back (EnumerateSource (std::numeric_limits <unsigned int>::max ()));
 
     list_dirty = false;
   }
@@ -4421,7 +4433,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
         ImGui::EndTooltip    ();
       };
 
-  if (sources.size ())
+  if (! sources.empty ())
   {
     static      int last_sel = 0;
     static bool sel_changed  = false;
@@ -4431,7 +4443,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
   
     last_sel = sel;
   
-    for ( unsigned int line = 0; line < sources.size (); line++)
+    for ( int line = 0; line < static_cast <int> (sources.size ()); line++)
     {
       if (line == sel)
       {
@@ -4484,10 +4496,10 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     ImGui::BeginGroup ();
     for ( auto it : sources [sel].checksums )
     {
-      SK::D3D9::TexRecord* injectable =
-        &SK::D3D9::tex_mgr.getInjectableTexture (it);
+      const TexRecord& inject_tex =
+        tex_mgr.getInjectableTexture (it);
 
-      if (injectable != nullptr)
+      if (inject_tex.size != 0)
       {
         ImGui::TextColored ( ImVec4 (0.9f, 0.6f, 0.3f, 1.0f), " %08x    ", it );
       }
@@ -4497,13 +4509,13 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     ImGui::BeginGroup ();
     for ( auto it : sources [sel].checksums )
     {
-      SK::D3D9::TexRecord* injectable =
-        &SK::D3D9::tex_mgr.getInjectableTexture (it);
+      const TexRecord& inject_tex =
+        tex_mgr.getInjectableTexture (it);
 
-      if (injectable != nullptr)
+      if (inject_tex.size != 0)
       {
         bool streaming = 
-          injectable->method == Streaming;
+          inject_tex.method == Streaming;
 
         ImGui::TextColored ( streaming ?
                                ImVec4 ( 0.2f,  0.90f, 0.3f, 1.0f ) :
@@ -4518,13 +4530,13 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     ImGui::BeginGroup ();
     for ( auto it : sources [sel].checksums )
     {
-      SK::D3D9::TexRecord* injectable =
-        &SK::D3D9::tex_mgr.getInjectableTexture (it);
+      const TexRecord& inject_tex =
+        tex_mgr.getInjectableTexture (it);
 
-      if (injectable != nullptr)
+      if (inject_tex.size != 0)
       {
         ImGui::TextColored ( ImVec4 (1.f, 1.f, 1.f, 1.f), "%#5.2f MiB  ",
-                            (double)injectable->size / (1024.0 * 1024.0) );
+                            (double)inject_tex.size / (1024.0 * 1024.0) );
       }
     }
     ImGui::EndGroup   ();
@@ -4535,7 +4547,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
     if (ImGui::Button ("  Refresh Data Sources  "))
     {
-      SK::D3D9::tex_mgr.refreshDataSources ();
+      tex_mgr.refreshDataSources ();
       list_dirty = true;
     }
 
@@ -4670,8 +4682,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
       bool sel_changed = false;
     } static shader_state [3];
 
-    int&  last_sel    = shader_state [(int)shader_type].last_sel;
-    bool& sel_changed = shader_state [(int)shader_type].sel_changed;
+    int&  last_sel    = shader_state [static_cast <int> (shader_type)].last_sel;
+    bool& sel_changed = shader_state [static_cast <int> (shader_type)].sel_changed;
 
     if (list->sel != last_sel)
       sel_changed = true;
@@ -5497,6 +5509,50 @@ SK_D3D9_TextureModDlg (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
+
+
+  auto HandleKeyboard = [&](void)
+  {
+    extern std::vector <uint32_t> textures_used_last_dump;
+    extern int32_t                tex_dbg_idx;
+
+    if (io.KeyCtrl && io.KeyShift)
+    {
+      if ( io.KeysDownDuration [VK_OEM_6] == 0.0f ||
+           io.KeysDownDuration [VK_OEM_4] == 0.0f )
+      {
+        tex_dbg_idx += (io.KeysDownDuration [VK_OEM_6] == 0.0f) ? 1 : 0;
+        tex_dbg_idx -= (io.KeysDownDuration [VK_OEM_4] == 0.0f) ? 1 : 0;
+
+        extern uint32_t debug_tex_id;
+
+        if (tex_dbg_idx < 0 || (textures_used_last_dump.empty ()))
+        {
+          tex_dbg_idx  = -1;
+          debug_tex_id =  0;
+        }
+
+        else
+        {
+          if (tex_dbg_idx >= static_cast <int32_t> (textures_used_last_dump.size ()))
+          {
+            tex_dbg_idx =
+              std::max (0UL, static_cast <uint32_t> (textures_used_last_dump.size ()) - 1UL);
+          }
+        }
+
+        debug_tex_id =
+          ( tex_dbg_idx >= 0 ?
+                textures_used_last_dump [tex_dbg_idx] :
+                                         0x00 );
+
+        SK::D3D9::tex_mgr.updateOSD ();
+      }
+    }
+  };
+
+
+
   ImGui::SetNextWindowSize            (ImVec2 (io.DisplaySize.x * 0.66f, io.DisplaySize.y * 0.42f), ImGuiSetCond_Appearing);
   ImGui::SetNextWindowSizeConstraints ( /*ImVec2 (768.0f, 384.0f),*/
                                        ImVec2 (io.DisplaySize.x * 0.16f, io.DisplaySize.y * 0.16f),
@@ -5557,6 +5613,8 @@ SK_D3D9_TextureModDlg (void)
 
   if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
   {
+    HandleKeyboard ();
+
     static float last_ht    = 256.0f;
     static float last_width = 256.0f;
 
@@ -5565,7 +5623,7 @@ SK_D3D9_TextureModDlg (void)
     static int                       sel            =     0;
 
     extern std::vector <uint32_t> textures_used_last_dump;
-    extern              uint32_t  tex_dbg_idx;
+    extern               int32_t  tex_dbg_idx;
     extern              uint32_t  debug_tex_id;
 
     ImGui::BeginChild ( ImGui::GetID ("D3D9_ToolHeadings"),
@@ -5671,7 +5729,7 @@ SK_D3D9_TextureModDlg (void)
 
      last_sel = sel;
 
-     for ( int line = 0; line < textures_used_last_dump.size (); line++)
+     for ( int line = 0; line < static_cast <int> (textures_used_last_dump.size ()); line++)
      {
        if (line == sel)
        {
@@ -5705,7 +5763,7 @@ SK_D3D9_TextureModDlg (void)
    if (ImGui::IsItemHovered ())
    {
      ImGui::BeginTooltip ();
-     ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "The \"debug\" texture will appear black to make identifying textures to modify easier.");
+     ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), R"(If highlighting is enabled, the "debug" texture will blink to make identifying textures easier.)");
      ImGui::Separator    ();
      ImGui::BulletText   ("Press Ctrl + Shift + [ to select the previous texture from this list");
      ImGui::BulletText   ("Press Ctrl + Shift + ] to select the next texture from this list");
@@ -5789,8 +5847,7 @@ SK_D3D9_TextureModDlg (void)
           {
             if ( ImGui::Button ("  Dump Texture to Disk  ") )
             {
-              if (true)//! config.textures.quick_load)
-                SK::D3D9::tex_mgr.dumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
+              SK::D3D9::tex_mgr.dumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
             }
 
             //if (config.textures.quick_load && ImGui::IsItemHovered ())
@@ -5895,7 +5952,7 @@ SK_D3D9_TextureModDlg (void)
           {
             if ( ImGui::Button ("  Reload This Texture  ") && SK::D3D9::tex_mgr.reloadTexture (debug_tex_id) )
             {
-              reloading    = true;
+              reloading = true;
 
               SK::D3D9::tex_mgr.updateOSD ();
             }
@@ -6004,7 +6061,7 @@ SK_D3D9_TextureModDlg (void)
 
      last_sel = sel;
 
-     for ( int line = 0; line < render_textures.size (); line++ )
+     for ( int line = 0; line < static_cast <int> (render_textures.size ()); line++ )
      {
        D3DSURFACE_DESC desc;
 
@@ -6156,21 +6213,21 @@ SK_D3D9_TextureModDlg (void)
     ImGui::TreePop ();
   }
 
-  //if (ImGui::CollapsingHeader ("Misc. Settings"))
-  //{
-  //  ImGui::TreePush ("");
-//    if (ImGui::Checkbox ("Dump ALL Shaders   (TBFix_Res\\dump\\shaders\\<ps|vs>_<checksum>.html)", &config.render.dump_shaders)) need_reset.graphics = true;
-//    if (ImGui::Checkbox ("Dump ALL Textures  (TBFix_Res\\dump\\textures\\<format>\\*.dds)",        &config.textures.dump))       need_reset.graphics = true;
+  if (ImGui::CollapsingHeader ("Misc. Settings"))
+  {
+    ImGui::TreePush ("");
+    //if (ImGui::Checkbox ("Dump ALL Shaders   (TBFix_Res\\dump\\shaders\\<ps|vs>_<checksum>.html)", &config.render.dump_shaders)) need_reset.graphics = true;
+    if (ImGui::Checkbox ("Dump ALL Textures at Load  (<ResourceRoot>\\dump\\textures\\<format>\\*.dds)", &config.textures.dump_on_load))
 
-//    if (ImGui::IsItemHovered ())
-//    {
-//      ImGui::BeginTooltip ();
-//      ImGui::Text         ("Enabling this will cause the game to run slower and waste disk space, only enable if you know what you are doing.");
-//      ImGui::EndTooltip   ();
-//    }
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip ();
+      ImGui::Text         ("Enabling this will cause the game to run slower and waste disk space, only enable if you know what you are doing.");
+      ImGui::EndTooltip   ();
+    }
 
-    //ImGui::TreePop ();
-  //}
+    ImGui::TreePop ();
+  }
 
   ImGui::PopItemWidth ();
 
@@ -6713,7 +6770,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
           pShader->GetFunction (pbFunc, &len);
 
           uint32_t checksum =
-            crc32c (0, pbFunc, len);
+            safe_crc32c (0, pbFunc, len);
             
           SK_D3D9_DumpShader (L"vs", checksum, pbFunc);
 
@@ -6785,7 +6842,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
           pShader->GetFunction (pbFunc, &len);
 
           uint32_t checksum =
-            crc32c (0, pbFunc, len);
+            safe_crc32c (0, pbFunc, len);
 
           SK_D3D9_DumpShader (L"ps", checksum, pbFunc);
 
@@ -6860,7 +6917,7 @@ SK_D3D9_EndFrame (void)
     SK_AutoCriticalSection csVS (&cs_vs);
     last_frame.clear ();
 
-    for (auto& it : tracked_vs.used_textures) it->Release ();
+//    for (auto& it : tracked_vs.used_textures) it->Release ();
 
     tracked_vs.clear ();
     tracked_vb.clear ();
@@ -6870,7 +6927,7 @@ SK_D3D9_EndFrame (void)
   {
     SK_AutoCriticalSection csVS (&cs_ps);
 
-    for (auto& it : tracked_ps.used_textures) it->Release ();
+//    for (auto& it : tracked_ps.used_textures) it->Release ();
 
     tracked_ps.clear ();
   }
@@ -6942,7 +6999,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
         if (! tracked_vs.used_textures.count (current_texture))
         {
           tracked_vs.used_textures.emplace (current_texture);
-          current_texture->AddRef ();
+          //current_texture->AddRef ();
         }
       }
     }
@@ -6976,7 +7033,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
         if (! tracked_ps.used_textures.count (current_texture))
         {
           tracked_ps.used_textures.emplace (current_texture);
-          current_texture->AddRef ();
+          //current_texture->AddRef ();
         }
       }
     }

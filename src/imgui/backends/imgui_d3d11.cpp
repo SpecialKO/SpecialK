@@ -315,8 +315,8 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   SK_ScopedTLS tls_scope;
 
   // Do not dump ImGui font textures
-  SK_TLS_Top ()->d3d11.texinject_thread = true;
-  SK_TLS_Top ()->imgui.drawing          = true;
+  SK_TLS_Top ()->texture_management.injection_thread = true;
+  SK_TLS_Top ()->imgui.drawing                       = true;
 
   // Build texture atlas
   ImGuiIO& io (ImGui::GetIO ());

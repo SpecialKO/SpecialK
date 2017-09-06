@@ -88,7 +88,7 @@ bool SK_D3D11_IsTexInjectThread (DWORD dwThreadId = GetCurrentThreadId ())
 
   SK_TLS* pTLS = SK_TLS_Top ();
 
-  return pTLS->d3d11.texinject_thread;
+  return pTLS->texture_management.injection_thread;
 }
 
 void
@@ -98,7 +98,7 @@ SK_D3D11_ClearTexInjectThread ( DWORD dwThreadId = GetCurrentThreadId () )
 
   SK_TLS* pTLS = SK_TLS_Top ();
 
-  pTLS->d3d11.texinject_thread = false;
+  pTLS->texture_management.injection_thread = false;
 }
 
 void
@@ -108,7 +108,7 @@ SK_D3D11_SetTexInjectThread ( DWORD dwThreadId = GetCurrentThreadId () )
 
   SK_TLS* pTLS = SK_TLS_Top ();
 
-  pTLS->d3d11.texinject_thread = true;
+  pTLS->texture_management.injection_thread = true;
 }
 
 using IUnknown_Release_pfn =
@@ -5285,7 +5285,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 {
   SK_ScopedTLS tls_scope;
 
-  SK_TLS_Top ()->d3d11.texinject_thread = true;
+  SK_TLS_Top ()->texture_management.injection_thread = true;
 
   dll_log.Log ( L"[DX11TexDmp] Dumping Texture: %08x::%08x... (fmt=%03lu, "
                     L"BindFlags=0x%04x, Usage=0x%04x, CPUAccessFlags"
@@ -7989,8 +7989,8 @@ SK_LiveTextureView (bool& can_scroll)
             if ( ImGui::Button ("  Dump Texture to Disk  ###DumpTexture") )
             {
               SK_TLS_Push ();
-              SK_TLS_Top  ()->imgui.drawing          = true;
-              SK_TLS_Top  ()->d3d11.texinject_thread = true;
+              SK_TLS_Top  ()->imgui.drawing                       = true;
+              SK_TLS_Top  ()->texture_management.injection_thread = true;
               {  
                 SK_D3D11_DumpTexture2D (pTex, entry.crc32c);
               }

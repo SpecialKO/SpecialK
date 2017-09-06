@@ -934,14 +934,20 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK_FAR_InitPlugin ();
 #endif
 
+  BOOL
+  SK_Steam_PreHookCore (void);
+
   if (! lstrcmpW (SK_GetHostApp (), L"SonicMania.exe"))
   {
-    BOOL
-    SK_Steam_PreHookCore (void);
     SK_Steam_PreHookCore ( );
 
     extern void SK_SMOKE_InitPlugin (void);
                 SK_SMOKE_InitPlugin (    );
+  }
+
+  else if (config.steam.spoof_BLoggedOn)
+  {
+    SK_Steam_PreHookCore ();
   }
 
 

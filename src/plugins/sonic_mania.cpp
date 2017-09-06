@@ -90,6 +90,10 @@ SK_SMOKE_InitPlugin (void)
     SMOKE_drm.offline.enable->store     (    );
   }
 
+  if (SMOKE_drm.offline.enable->get_value ())
+    config.steam.spoof_BLoggedOn = true;
+
+
   // SMOKE only works when locally wrapped
   if (! SK_IsInjected ())
     SK_SetPluginName (SMOKE_VERSION_STR);

@@ -95,8 +95,11 @@ extern void     __stdcall SK_FAR_ControlPanel  (void);
 extern GetCursorInfo_pfn GetCursorInfo_Original;
        bool              cursor_vis      = false;
 
-       bool              show_shader_mod_dlg;
+       bool              show_shader_mod_dlg      = false;
 extern bool              SK_D3D11_ShaderModDlg (void);
+
+       bool              show_d3d9_shader_mod_dlg = false;
+extern bool              SK_D3D9_TextureModDlg (void);
 
 std::wstring
 SK_NvAPI_GetGPUInfoStr (void);
@@ -2352,13 +2355,8 @@ SK_ImGui_ControlPanel (void)
     {
       ImGui::TreePush ("");
 
-      extern bool
-      SK_D3D9_TextureModDlg (void);
-
-      static bool shader_mod = false;
-
       if (ImGui::Button ("  D3D9 Render Mod Tools  "))
-        shader_mod ^= 1;
+        show_d3d9_shader_mod_dlg ^= 1;
 
       ImGui::SameLine ();
 
@@ -2367,12 +2365,6 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::SetTooltip ("Requires a game restart.");
-      }
-
-      if (shader_mod)
-      {
-        shader_mod =
-          SK_D3D9_TextureModDlg ();
       }
 
       ImGui::TreePop ();
@@ -4697,17 +4689,30 @@ extern float SK_ImGui_PulseNav_Strength;
         if (ImGui::CollapsingHeader ("Compatibility"))
         {
           ImGui::TreePush ("");
+          ImGui::Checkbox (" Bypass Online DRM Checks  ",          &config.steam.spoof_BLoggedOn);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::TextColored  (ImColor::HSV (0.159f, 1.0f, 1.0f), "DONT TREAD ON ME");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("Fixes pesky games that use SteamAPI to deny Offline mode");
+            ImGui::BulletText   ("Did I say pesky?"); ImGui::SameLine ();
+            ImGui::TextColored  (ImColor::HSV (0.074f, 1.f, 1.f), "I meant evil; pure evil.");
+            ImGui::EndTooltip   ();
+          }
+
           ImGui::Checkbox (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
 
+          ImGui::SameLine ();
+
           ImGui::Checkbox (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
-
-          ImGui::SameLine ();
 
           ImGui::Checkbox (" Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
 
@@ -4731,10 +4736,31 @@ extern float SK_ImGui_PulseNav_Strength;
         valid = valid && (! SK_Steam_PiratesAhoy ());
 
         if (valid)
-          ImGui::MenuItem ("I am not a pirate!", "", &valid, false);
+        {
+          bool publisher_is_stupid = false;
+
+          if (config.steam.spoof_BLoggedOn)
+          {
+            int status =
+              static_cast <int> (SK_SteamUser_BLoggedOn ());
+
+            if (status & static_cast <int> (SK_SteamUser_LoggedOn_e::Spoofing))
+            {
+              publisher_is_stupid = true;
+
+              ImGui::PushStyleColor (ImGuiCol_TextDisabled,  ImColor::HSV (0.074f, 1.f, 1.f));
+              ImGui::MenuItem       ("This game's publisher may consider you a pirate! :(", "", nullptr, false);
+              ImGui::PopStyleColor  ();
+            }
+          }
+
+          if (! publisher_is_stupid)
+            ImGui::MenuItem ("I am not a pirate!", "", &valid, false);
+        }
+
         else
         {
-          ImGui::MenuItem (u8"I am an irreverent pirate moron™", "", &valid, false);
+          ImGui::MenuItem (u8"I am probably a pirate moron™", "", &valid, false);
           {
             // Delete the CPY config, and push user back onto legitimate install,
             //   to prevent repeated pirate detection.
@@ -4852,6 +4878,9 @@ static_cast <uint32_t> (
 
   if (show_shader_mod_dlg)
     show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
+
+  if (show_d3d9_shader_mod_dlg)
+    show_d3d9_shader_mod_dlg = SK_D3D9_TextureModDlg ();
 
 
   if (want_exit)

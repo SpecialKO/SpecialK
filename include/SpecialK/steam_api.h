@@ -636,4 +636,19 @@ extern          CRITICAL_SECTION init_cs;
 extern          CRITICAL_SECTION popup_cs;
 
 
+enum class SK_SteamUser_LoggedOn_e
+{
+  Unknown  =  -1,
+  Offline  = 0x0,
+  Online   = 0x1,
+
+  Spoofing = 0x2
+};
+
+// Returns the REAL state, masked with any necessary spoofing
+SK_SteamUser_LoggedOn_e
+SK_SteamUser_BLoggedOn (void);
+
+
+
 #endif /* __SK__STEAM_API_H__ */

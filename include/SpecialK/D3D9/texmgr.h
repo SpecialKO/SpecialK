@@ -5,6 +5,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/tls.h>
 
 extern iSK_Logger tex_log;
 
@@ -15,8 +16,6 @@ extern iSK_Logger tex_log;
 
 #include <map>
 #include <unordered_map>
-
-interface ISKTextureD3D9;
 
 #include <d3d9.h>
 #include <d3dx9tex.h>
@@ -88,7 +87,7 @@ struct TexThreadStats {
              size_t        size    = 1UL;
   };
 
-  typedef std::vector < std::pair < uint32_t, TexRecord > > TexList;
+  using TexList = std::vector < std::pair < uint32_t, TexRecord > >;
 
 
   struct TexLoadRequest
@@ -122,7 +121,7 @@ struct TexThreadStats {
   {
   public:
      TexLoadRef (TexLoadRequest* ref) { ref_ = ref;}
-    ~TexLoadRef (void) { }
+    ~TexLoadRef (void) = default;
   
     operator TexLoadRequest* (void) {
       return ref_;
@@ -174,45 +173,44 @@ struct TexThreadStats {
       InterlockedAdd64     (&injected_size, size);
     }
 
-    std::string                osdStats            (void) { return osd_stats; }
-    void                       updateOSD           (void);
+    std::string                osdStats             (void) { return osd_stats; }
+    void                       updateOSD            (void);
 
 
-    float                      getTimeSaved        (void) const { return time_saved;                               }
-    LONG64                     getByteSaved        (void)       { return InterlockedAdd64       (&bytes_saved, 0); }
-    ULONG                      getHitCount         (void)       { return InterlockedExchangeAdd (&hits,   0UL);    }
-    ULONG                      getMissCount        (void)       { return InterlockedExchangeAdd (&misses, 0UL);    }
+    float                      getTimeSaved         (void) const { return time_saved;                   }
+    LONG64                     getByteSaved         (void)       { return ReadAcquire64 (&bytes_saved); }
+     LONG                      getHitCount          (void)       { return ReadAcquire   (&hits);        }
+     LONG                      getMissCount         (void)       { return ReadAcquire   (&misses);      }
 
 
-    void                       resetUsedTextures (void);
-    void                       applyTexture      (IDirect3DBaseTexture9* tex);
+    void                       resetUsedTextures    (void);
+    void                       applyTexture         (IDirect3DBaseTexture9* tex);
 
     const std::vector <IDirect3DBaseTexture9 *>
                                getUsedRenderTargets (void) const;
 
     uint32_t                   getRenderTargetCreationTime 
-                                                  (IDirect3DBaseTexture9* rt);
-    void                       trackRenderTarget  (IDirect3DBaseTexture9* rt);
-    bool                       isRenderTarget     (IDirect3DBaseTexture9* rt) const;
-    bool                       isUsedRenderTarget (IDirect3DBaseTexture9* rt) const;
+                                                    (IDirect3DBaseTexture9* rt);
+    void                       trackRenderTarget    (IDirect3DBaseTexture9* rt);
+    bool                       isRenderTarget       (IDirect3DBaseTexture9* rt) const;
+    bool                       isUsedRenderTarget   (IDirect3DBaseTexture9* rt) const;
 
-    void                       logUsedTextures    (void);
+    void                       logUsedTextures      (void);
 
-    void                       queueScreenshot    (wchar_t* wszFileName, bool hudless = true);
-    bool                       wantsScreenshot    (void);
-    HRESULT                    takeScreenshot     (IDirect3DSurface9* pSurf);
+    void                       queueScreenshot      (wchar_t* wszFileName, bool hudless = true);
+    bool                       wantsScreenshot      (void);
+    HRESULT                    takeScreenshot       (IDirect3DSurface9* pSurf);
 
     std::vector <TexThreadStats>
-                               getThreadStats     (void);
+                               getThreadStats       (void);
 
 
+    HRESULT                    dumpTexture          (D3DFORMAT fmt, uint32_t checksum, IDirect3DTexture9* pTex);
+    bool                       deleteDumpedTexture  (D3DFORMAT fmt, uint32_t checksum);
+    bool                       isTextureDumped      (uint32_t  checksum) const;
 
-    HRESULT                    dumpTexture         (D3DFORMAT fmt, uint32_t checksum, IDirect3DTexture9* pTex);
-    bool                       deleteDumpedTexture (D3DFORMAT fmt, uint32_t checksum);
-    bool                       isTextureDumped     (uint32_t  checksum) const;
-
-    std::vector <std::wstring> getTextureArchives  (void);
-    void                       refreshDataSources  (void);
+    std::vector <std::wstring> getTextureArchives   (void);
+    void                       refreshDataSources   (void);
 
     HRESULT                    injectTexture           (TexLoadRequest* load);
     bool                       isTextureInjectable     (uint32_t checksum) const;
@@ -224,8 +222,8 @@ struct TexThreadStats {
 
 
 
-    void                       updateQueueOSD        (void);
-    int                        loadQueuedTextures    (void);
+    void                       updateQueueOSD       (void);
+    int                        loadQueuedTextures   (void);
 
 
     BOOL                       isTexturePowerOfTwo (UINT sampler)
@@ -262,7 +260,7 @@ struct TexThreadStats {
     public:
       bool            hasPendingLoads    (void)              const;
 
-      void            startLoad          (void);
+      void            beginLoad          (void);
       void            endLoad            (void);
 
       bool            hasPendingStreams  (void)              const;
@@ -272,20 +270,9 @@ struct TexThreadStats {
       void            addTextureInFlight (TexLoadRequest* load_op);
       void            finishedStreaming  (uint32_t        checksum);
 
-      bool isInjectionThread (DWORD dwThreadId = GetCurrentThreadId ()) const
+      inline bool isInjectionThread (void) const
       {
-        bool inject_thread = false;
-
-        lockInjection ();
-
-        if (inject_tids.count (dwThreadId))
-        {
-          inject_thread = true;
-        }
-
-        unlockInjection ();
-
-        return inject_thread;
+        return SK_TLS_Bottom ()->texture_management.injection_thread;
       }
 
       void lockStreaming    (void) const { EnterCriticalSection (&cs_tex_stream);    };
@@ -309,8 +296,6 @@ struct TexThreadStats {
       static CRITICAL_SECTION                                  cs_tex_inject;
       static CRITICAL_SECTION                                  cs_tex_blacklist;
 
-      static std::set <DWORD>                                  inject_tids;
-
       static volatile  LONG                                    streaming;//       = 0L;
       static volatile ULONG                                    streaming_bytes;// = 0UL;
 
@@ -330,14 +315,14 @@ struct TexThreadStats {
 
     std::unordered_map <uint32_t, Texture*>                  textures;
     float                                                    time_saved      = 0.0f;
-    LONG64                                                   bytes_saved     = 0LL;
+    volatile LONG64                                          bytes_saved     = 0LL;
 
-    ULONG                                                    hits            = 0UL;
-    ULONG                                                    misses          = 0UL;
+    volatile LONG                                            hits            = 0L;
+    volatile LONG                                            misses          = 0L;
 
-    LONG64                                                   basic_size      = 0LL;
-    LONG64                                                   injected_size   = 0LL;
-    ULONG                                                    injected_count  = 0UL;
+    volatile LONG64                                          basic_size      = 0LL;
+    volatile LONG64                                          injected_size   = 0LL;
+    volatile LONG                                            injected_count  = 0L;
 
     std::string                                              osd_stats       = "";
     bool                                                     want_screenshot = false;
@@ -415,8 +400,7 @@ struct TexThreadStats {
     FILETIME kernelTime (void) { return runtime_.kernel; };
   
   protected:
-    static CRITICAL_SECTION cs_worker_init;
-    static ULONG            num_threads_init;
+    static volatile LONG  num_threads_init;
   
     static unsigned int __stdcall ThreadProc (LPVOID user);
   
@@ -467,20 +451,19 @@ struct TexThreadStats {
       InitializeCriticalSectionAndSpinCount (&cs_jobs,      10UL);
       InitializeCriticalSectionAndSpinCount (&cs_results, 1000UL);
   
-      const int   MAX_THREADS      = 2;//config.textures.worker_threads;  
+      const int   MAX_THREADS      = 3;//config.textures.worker_threads;  
       static bool init_worker_sync = false;
 
       if (! init_worker_sync)
       {
         // We will add a sync. barrier that waits for all of the threads in this pool, plus all of the threads
         //   in the other pool to initialize. This design is flawed, but safe.
-        InitializeCriticalSectionAndSpinCount (&TextureWorkerThread::cs_worker_init, 10000UL);
         init_worker_sync = true;
       }
   
       for (int i = 0; i < MAX_THREADS; i++)
       {
-        TextureWorkerThread* pWorker =
+        auto* pWorker =
           new TextureWorkerThread (this);
   
         workers_.push_back (pWorker);
@@ -939,22 +922,22 @@ public:
 
       //if (desc.Pool != D3DPOOL_SYSTEMMEM)
       {
-         SK::D3D9::Texture* pCacheTex =
+         auto* pCacheTex =
            new SK::D3D9::Texture ();
-         
+
          pCacheTex->crc32c = this->tex_crc32c;
-         
+
          pCacheTex->d3d9_tex = this;
-         pCacheTex->d3d9_tex->AddRef ();
-         pCacheTex->refs++;
-         
+         //pCacheTex->d3d9_tex->AddRef ();
+         //pCacheTex->refs++;
+
          QueryPerformanceCounter_Original (&end_map);
 
          pCacheTex->load_time = (float)( 1000.0 *
                                   (double)( end_map.QuadPart - begin_map.QuadPart ) /
                                    (double)SK_GetPerfFreq ().QuadPart );
 
-         SK::D3D9::tex_mgr.addTexture (crc32c_, pCacheTex, tex_size);
+         //SK::D3D9::tex_mgr.addTexture (crc32c_, pCacheTex, tex_size);
       }
 
       locks.erase (Level);
@@ -1007,6 +990,8 @@ public:
                                     //     
 
   std::map    <UINT, D3DLOCKED_RECT> locks;
+//  uint8_t*           pixels;
+//  int                lod0w, lod0h;
   LARGE_INTEGER      begin_map;
   LARGE_INTEGER      end_map;
 };

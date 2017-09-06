@@ -211,6 +211,7 @@ struct sk_config_t
     bool    show_playtime        = true;  // In the control panel title
     bool    force_load_steamapi  = false; // Load steam_api{64}.dll even in games
                                           //   that do not use it
+    bool    spoof_BLoggedOn      = false;
   } steam;
 
 
@@ -303,8 +304,9 @@ struct sk_config_t
     } cache;
 
     bool highlight_debug_tex    = false;
-    bool on_demand_dump         = true;//false;
+    bool on_demand_dump         = false;
     bool d3d9_mod               = false;
+    bool dump_on_load           = false;
   } textures;
 
   struct {
