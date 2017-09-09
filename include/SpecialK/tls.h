@@ -30,8 +30,24 @@
 
 struct ID3D11RasterizerState;
 
+#include <unordered_map>
+
+class SK_ModuleAddrMap
+{
+public:
+  SK_ModuleAddrMap (void);
+
+  bool contains (LPVOID pAddr, HMODULE* phMod);
+  void insert   (LPVOID pAddr, HMODULE   hMod);
+
+  void* pResolved = nullptr;
+};
+
+
 struct SK_TLS
 {
+  SK_ModuleAddrMap known_modules;
+
   struct tex_mgmt_s
   {
     struct stream_pool_s

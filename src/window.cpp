@@ -2498,6 +2498,17 @@ PeekMessageW_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
+  if (SK_GetCallingDLL () == GetModuleHandle
+#ifdef _WIN64
+    (L"GameOverlayRenderer64.dll"))
+#else
+    (L"GameOverlayRenderer.dll"))
+#endif
+  {
+    return PeekMessageW_Original ( lpMsg, hWnd,
+                                   wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
+  }
+
   SK_LOG_FIRST_CALL
 
   if (config.render.dxgi.safe_fullscreen && (IsWindowUnicode (GetActiveWindow ())))
@@ -2546,6 +2557,17 @@ PeekMessageA_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
+  if (SK_GetCallingDLL () == GetModuleHandle
+#ifdef _WIN64
+    (L"GameOverlayRenderer64.dll"))
+#else
+    (L"GameOverlayRenderer.dll"))
+#endif
+  {
+    return PeekMessageA_Original ( lpMsg, hWnd,
+                                   wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
+  }
+
   SK_LOG_FIRST_CALL
 
   if (config.render.dxgi.safe_fullscreen && (! IsWindowUnicode (GetActiveWindow ())))
@@ -2589,6 +2611,16 @@ BOOL
 WINAPI
 GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
+  if (SK_GetCallingDLL () == GetModuleHandle
+#ifdef _WIN64
+    (L"GameOverlayRenderer64.dll"))
+#else
+    (L"GameOverlayRenderer.dll"))
+#endif
+  {
+    return GetMessageA_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
+  }
+
   SK_LOG_FIRST_CALL
 
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
@@ -2604,6 +2636,16 @@ BOOL
 WINAPI
 GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
+  if (SK_GetCallingDLL () == GetModuleHandle
+#ifdef _WIN64
+    (L"GameOverlayRenderer64.dll"))
+#else
+    (L"GameOverlayRenderer.dll"))
+#endif
+  {
+    return GetMessageW_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
+  }
+
   SK_LOG_FIRST_CALL
 
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
@@ -2619,6 +2661,16 @@ LRESULT
 WINAPI
 DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
+  if (SK_GetCallingDLL () == GetModuleHandle
+#ifdef _WIN64
+    (L"GameOverlayRenderer64.dll"))
+#else
+    (L"GameOverlayRenderer.dll"))
+#endif
+  {
+    return DispatchMessageW_Original ( lpMsg );
+  }
+
   SK_LOG_FIRST_CALL
 
   if (lpMsg->hwnd == game_window.hWnd)
@@ -2638,6 +2690,16 @@ LRESULT
 WINAPI
 DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 {
+  if (SK_GetCallingDLL () == GetModuleHandle
+#ifdef _WIN64
+    (L"GameOverlayRenderer64.dll"))
+#else
+    (L"GameOverlayRenderer.dll"))
+#endif
+  {
+    return DispatchMessageA_Original ( lpMsg );
+  }
+
   SK_LOG_FIRST_CALL
 
   if (lpMsg->hwnd == game_window.hWnd)

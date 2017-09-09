@@ -2237,14 +2237,14 @@ SK_D3D11_ActivateSRV (ID3D11ShaderResourceView* pSRV)
   if (! pSRV)
     return true;
 
-  D3D11_SHADER_RESOURCE_VIEW_DESC rsv_desc = { };
+  D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
 
-  pSRV->GetDesc (&rsv_desc);
+  pSRV->GetDesc (&srv_desc);
 
   CComPtr <ID3D11Resource>  pRes = nullptr;
   CComPtr <ID3D11Texture2D> pTex = nullptr;
 
-  if (rsv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
+  if (srv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
   {
     pSRV->GetResource (&pRes);
 
@@ -7384,7 +7384,11 @@ uint32_t change_sel_hs = 0x00;
 uint32_t change_sel_ds = 0x00;
 uint32_t change_sel_cs = 0x00;
 
-#define SK_ImGui_IsItemRightClicked() ImGui::IsItemClicked (1) || (ImGui::IsItemFocused () && io.NavInputsDownDuration [ImGuiNavInput_PadActivate] > 0.4f && ((io.NavInputsDownDuration [ImGuiNavInput_PadActivate] = 0.0f) == 0.0f))
+std::vector <IUnknown *> temp_resources;
+
+
+extern bool
+SK_ImGui_IsItemRightClicked (ImGuiIO& io = ImGui::GetIO ());
 
 auto ShaderMenu =
 [&] ( std::unordered_set <uint32_t>&                       blacklist,
@@ -7408,7 +7412,44 @@ auto ShaderMenu =
     }
   }
 
-  if (! cond_blacklist.empty())
+  auto DrawRSV = [&](ID3D11ShaderResourceView* pSRV)
+  {
+    DXGI_FORMAT                     fmt = DXGI_FORMAT_UNKNOWN;
+    D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+
+    pSRV->GetDesc (&srv_desc);
+
+    if (srv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
+    {
+      CComPtr <ID3D11Resource>  pRes = nullptr;
+      CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+      pSRV->GetResource (&pRes);
+
+      if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+      {
+        D3D11_TEXTURE2D_DESC desc = { };
+        pTex->GetDesc      (&desc);
+                       fmt = desc.Format;
+
+        if (desc.Height > 0 && desc.Width > 0)
+        {
+          ImGui::TreePush ("");
+
+          temp_resources.emplace_back (pSRV);
+                                       pSRV->AddRef ();
+
+          ImGui::Image ( pSRV,       ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
+    ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
+                                     ImVec2  (0,0),             ImVec2  (1,1),
+                                     ImColor (255,255,255,255), ImColor (242,242,13,255) );
+          ImGui::TreePop  ();
+        }
+      }
+    }
+  };
+
+  if (! cond_blacklist.empty ())
   {
     if (cond_blacklist.count (shader))
     {
@@ -7416,9 +7457,16 @@ auto ShaderMenu =
       {
         if (it == nullptr)
           continue;
-          
+        
+        ImGui::BeginGroup ();
+
         bool selected = false;
         ImGui::MenuItem ( SK_FormatString ("Enable Shader for RTV %x", it).c_str (), nullptr, &selected);
+
+        if (used_resources.count (it))
+          DrawRSV (it);
+
+        ImGui::EndGroup ();
 
         if (selected)
         {
@@ -7435,7 +7483,13 @@ auto ShaderMenu =
 
         if (! cond_blacklist [shader].count (it))
         {
+          ImGui::BeginGroup ();
           ImGui::MenuItem ( SK_FormatString ("Disable Shader for RTV %x", it).c_str (), nullptr, &selected);
+
+          if (used_resources.count (it))
+            DrawRSV (it);
+
+          ImGui::EndGroup ();
 
           if (selected)
           {
@@ -7446,8 +7500,6 @@ auto ShaderMenu =
     }
   }
 };
-
-std::vector <IUnknown *> temp_resources;
 
 static size_t debug_tex_id = 0x0;
 static size_t tex_dbg_idx  = 0;
@@ -7498,8 +7550,8 @@ SK_LiveTextureView (bool& can_scroll)
   ImGui::SliderInt     ("Frames Between Texture Refreshes", &refresh_interval, 0, 120);
   ImGui::PopItemWidth  ();
 
-  ImGui::BeginChild (ImGui::GetID ("ToolHeadings##TexturesD3D11"), ImVec2 (font_size * 66.0f, font_size * 2.5f), false,
-                     ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NavFlattened);
+  ImGui::BeginChild ( ImGui::GetID ("ToolHeadings##TexturesD3D11"), ImVec2 (font_size * 66.0f, font_size * 2.5f), false,
+                        ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NavFlattened );
 
   if (InterlockedCompareExchange (&live_textures_dirty, FALSE, TRUE))
   {
@@ -7669,7 +7721,7 @@ SK_LiveTextureView (bool& can_scroll)
 
   ImGui::BeginChild ( ImGui::GetID ("D3D11_TexHashes_CRC32C"),
                       ImVec2 ( font_size * 6.0f, std::max (font_size * 15.0f, last_ht)),
-                        true, ImGuiWindowFlags_AlwaysAutoResize);
+                        true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
   if (ImGui::IsWindowHovered ())
     can_scroll = false;
@@ -7702,7 +7754,9 @@ SK_LiveTextureView (bool& can_scroll)
     
           if (sel_changed)
           {
-            ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+            ImGui::SetScrollHere        (0.5f);
+            ImGui::SetKeyboardFocusHere (    );
+
             sel_changed     = false;
             tex_dbg_idx     = line;
             sel             = line;
@@ -7860,9 +7914,8 @@ SK_LiveTextureView (bool& can_scroll)
       }
 
 
-      ID3D11ShaderResourceView* pSRV = nullptr;
-
-      D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+      ID3D11ShaderResourceView*       pSRV     = nullptr;
+      D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {     };
 
       srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
       srv_desc.Format                    = tex_desc.Format;
@@ -7924,7 +7977,8 @@ SK_LiveTextureView (bool& can_scroll)
                                 ImVec2 ( std::max (font_size * 28.0f, (float)(tex_desc.Width >> lod) + 28.0f),
                               (float)(tex_desc.Height >> lod) + font_size * 11.0f),
                                   true,
-                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened);
+                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar |
+                                    ImGuiWindowFlags_NavFlattened );
 
         //if ((! config.textures.highlight_debug_tex) && has_alternate)
         //{
@@ -8032,10 +8086,11 @@ SK_LiveTextureView (bool& can_scroll)
           ImVec2 uv1 (flip_horizontal ? 0.0f : 1.0f, flip_vertical ? 0.0f : 1.0f);
 
           ImGui::BeginChildFrame (ImGui::GetID ("TextureView_Frame"), ImVec2 ((float)(tex_desc.Width >> lod) + 8, (float)(tex_desc.Height >> lod) + 8),
-                                  ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoScrollbar |
-                                  ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus );
+                                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                  ImGuiWindowFlags_NoInputs         | ImGuiWindowFlags_NoScrollbar |
+                                  ImGuiWindowFlags_NoNavInputs      | ImGuiWindowFlags_NoNavFocus );
           temp_resources.push_back (pSRV);
-          ImGui::Image           ( pSRV,
+          ImGui::Image            ( pSRV,
                                      ImVec2 ((float)(tex_desc.Width >> lod), (float)(tex_desc.Height >> lod)),
                                        uv0,                       uv1,
                                        ImColor (255,255,255,255), ImColor (255,255,255,128)
@@ -8154,6 +8209,8 @@ void
 SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 {
   ImGuiIO& io (ImGui::GetIO ());
+
+  ImGui::PushID (static_cast <int> (shader_type));
 
   static float last_width = 256.0f;
   const  float font_size  = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
@@ -8500,7 +8557,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   ImGui::BeginChild ( ImGui::GetID (szShaderWord),
                       ImVec2 ( font_size * 7.0f, std::max (font_size * 15.0f, list->last_ht)),
-                        true, ImGuiWindowFlags_AlwaysAutoResize );
+                        true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
   if (hovering || focused)
   {
@@ -8640,23 +8697,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
         if (sel_changed)
         {
-          ImGui::SetScrollHere (0.5f);
+          ImGui::SetScrollHere        (0.0f);
+          ImGui::SetKeyboardFocusHere (    );
 
           sel_changed = false;
 
           ChangeSelectedShader (list, tracker, rDesc);
-        }
-
-        if (SK_ImGui_IsItemRightClicked ())
-        {
-          ImGui::SetNextWindowSize          (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
-          ImGui::OpenPopup (SK_FormatString ("ShaderSubMenu_%s%08lx", GetShaderWord (shader_type), (uint32_t)shaders [line]).c_str ());
-        }
-
-        if (ImGui::BeginPopup (SK_FormatString ("ShaderSubMenu_%s%08lx", GetShaderWord (shader_type), (uint32_t)shaders [line]).c_str ()))
-        {
-          ShaderMenu (GetShaderBlacklist (shader_type), GetShaderBlacklistEx (shader_type), GetShaderUsedResourceViews (shader_type), (uint32_t)shaders [line]);
-          ImGui::EndPopup ();
         }
       }
 
@@ -8676,6 +8722,30 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         }
       }
 
+      if (active || (! *hide_inactive))
+      {
+        ImGui::PushID ((uint32_t)shaders [line]);
+
+        if (SK_ImGui_IsItemRightClicked ())
+        {
+          ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+          ImGui::OpenPopup         ("ShaderSubMenu");
+        }
+
+        if (ImGui::BeginPopup      ("ShaderSubMenu"))
+        {
+          static std::unordered_set <ID3D11ShaderResourceView *> empty_list;
+
+          ShaderMenu ( GetShaderBlacklist         (shader_type),
+                       GetShaderBlacklistEx       (shader_type),
+                       line == list->sel ? GetShaderUsedResourceViews (shader_type) :
+                                           empty_list,
+                       (uint32_t)shaders [line] );
+
+          ImGui::EndPopup  ();
+        }
+        ImGui::PopID       ();
+      }
       ImGui::PopStyleColor ();
     }
 
@@ -8853,6 +8923,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   if (tracker->crc32c != 0x00 && list->sel >= 0 && list->sel < (int)list->contents.size ())
   {
     ImGui::BeginGroup ();
+    ImGui::BeginGroup ();
     switch (shader_type)
     {
       case sk_shader_class::Vertex:   ImGui::Checkbox ( "Cancel Draws Using Selected Vertex Shader",       &tracker->cancel_draws ); break;
@@ -8901,11 +8972,11 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     {
       for ( auto it : tracker->used_views )
       {
-        D3D11_SHADER_RESOURCE_VIEW_DESC rsv_desc;
+        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
 
-        it->GetDesc (&rsv_desc);
+        it->GetDesc (&srv_desc);
 
-        if (rsv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
+        if (srv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
         {
           ++num_used_textures;
         }
@@ -8932,63 +9003,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     }
 
     ImGui::TextDisabled ("GPU Runtime: %0.4f ms", tracker->runtime_ms);
-
-    ImGui::EndGroup   ();
-
-    ImGui::Separator  ();
-
-    if (ImGui::IsItemHoveredRect () && (! tracker->used_views.empty ()))
-    {
-      ImGui::BeginTooltip ();
-    
-      DXGI_FORMAT fmt = DXGI_FORMAT_UNKNOWN;
-    
-      for ( auto it : tracker->used_views )
-      {
-        D3D11_SHADER_RESOURCE_VIEW_DESC rsv_desc;
-
-        it->GetDesc (&rsv_desc);
-
-        if (rsv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
-        {
-          CComPtr <ID3D11Resource>  pRes = nullptr;
-          CComPtr <ID3D11Texture2D> pTex = nullptr;
-
-          it->GetResource (&pRes);
-
-          if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
-          {
-            D3D11_TEXTURE2D_DESC desc = { };
-            pTex->GetDesc      (&desc);
-                           fmt = desc.Format;
-
-            if (desc.Height > 0 && desc.Width > 0)
-            {
-              ImGui::Image ( it,         ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
-        ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
-                                         ImVec2  (0,0),             ImVec2  (1,1),
-                                         ImColor (255,255,255,255), ImColor (242,242,13,255) );
-            }
-
-            ImGui::SameLine   ();
-
-            ImGui::BeginGroup ();
-            ImGui::Text       ("Texture: ");
-            ImGui::Text       ("Format:  ");
-            ImGui::EndGroup   ();
-
-            ImGui::SameLine   ();
-
-            ImGui::BeginGroup ();
-            ImGui::Text       ("%08lx", pTex.p);
-            ImGui::Text       ("%ws",   SK_DXGI_FormatToStr (fmt).c_str ());
-            ImGui::EndGroup   ();
-          }
-        }
-      }
-    
-      ImGui::EndTooltip ();
-    }
+    ImGui::EndGroup     ();
+    ImGui::Separator    ();
 
     ImGui::PushFont (io.Fonts->Fonts [1]); // Fixed-width font
 
@@ -9014,6 +9030,63 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     ImGui::TreePop    ();
     ImGui::EndGroup   ();
+    ImGui::EndGroup   ();
+
+    if (ImGui::IsItemHoveredRect () && (! tracker->used_views.empty ()))
+    {
+      ImGui::BeginTooltip ();
+
+      DXGI_FORMAT fmt = DXGI_FORMAT_UNKNOWN;
+
+      for ( auto it : tracker->used_views )
+      {
+        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+
+        it->GetDesc (&srv_desc);
+
+        if (srv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
+        {
+          CComPtr <ID3D11Resource>  pRes = nullptr;
+          CComPtr <ID3D11Texture2D> pTex = nullptr;
+
+          it->GetResource (&pRes);
+
+          if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+          {
+            D3D11_TEXTURE2D_DESC desc = { };
+            pTex->GetDesc      (&desc);
+                           fmt = desc.Format;
+
+            if (desc.Height > 0 && desc.Width > 0)
+            {
+              temp_resources.emplace_back (it);
+                                           it->AddRef ();
+
+              ImGui::Image ( it,         ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
+        ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
+                                         ImVec2  (0,0),             ImVec2  (1,1),
+                                         ImColor (255,255,255,255), ImColor (242,242,13,255) );
+            }
+
+            ImGui::SameLine   ();
+
+            ImGui::BeginGroup ();
+            ImGui::Text       ("Texture: ");
+            ImGui::Text       ("Format:  ");
+            ImGui::EndGroup   ();
+
+            ImGui::SameLine   ();
+
+            ImGui::BeginGroup ();
+            ImGui::Text       ("%08lx", pTex.p);
+            ImGui::Text       ("%ws",   SK_DXGI_FormatToStr (fmt).c_str ());
+            ImGui::EndGroup   ();
+          }
+        }
+      }
+    
+      ImGui::EndTooltip ();
+    }
 #if 0
     ImGui::SameLine       ();
     ImGui::BeginGroup     ();
@@ -9111,6 +9184,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   list->last_min   = ImGui::GetItemRectMin ();
   list->last_max   = ImGui::GetItemRectMax ();
+
+  ImGui::PopID    ();
 }
 
 
@@ -9395,7 +9470,8 @@ SK_D3D11_ShaderModDlg (void)
 
     ImGui::Columns (2);
 
-    ImGui::BeginChild ( ImGui::GetID ("Render_Left_Side"), ImVec2 (0,0), false, ImGuiWindowFlags_NavFlattened  );
+    ImGui::BeginChild ( ImGui::GetID ("Render_Left_Side"), ImVec2 (0,0), false,
+                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
     if (ImGui::CollapsingHeader ("Live Shader View", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -9500,7 +9576,7 @@ SK_D3D11_ShaderModDlg (void)
       {
         SK_AutoCriticalSection auto_cs3 (&cs_mmio);
 
-        ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNavInputs );
+        ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false, ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus |  ImGuiWindowFlags_AlwaysAutoResize );
 
         ImGui::TreePush   (""                      );
         ImGui::BeginGroup (                        );
@@ -9633,7 +9709,8 @@ SK_D3D11_ShaderModDlg (void)
 
       ImGui::NextColumn ();
 
-      ImGui::BeginChild ( ImGui::GetID ("Render_Right_Side"), ImVec2 (0, 0), false, ImGuiWindowFlags_NavFlattened );
+      ImGui::BeginChild ( ImGui::GetID ("Render_Right_Side"), ImVec2 (0, 0), false, 
+                            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
       if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_DefaultOpen))
       {
@@ -9855,9 +9932,9 @@ SK_D3D11_ShaderModDlg (void)
   
         ImGui::BeginChild ( ImGui::GetID ("RenderTargetViewList"),
                             ImVec2 ( font_size * 7.0f, -1.0f),
-                              true, ImGuiWindowFlags_AlwaysAutoResize);
+                              true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
   
-        if (!render_textures.empty())
+        if (! render_textures.empty ())
         {
           ImGui::BeginGroup ();
   
@@ -9884,7 +9961,9 @@ SK_D3D11_ShaderModDlg (void)
   
               if (sel_changed)
               {
-                ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+                ImGui::SetScrollHere        (0.5f);
+                ImGui::SetKeyboardFocusHere (    );
+
                 sel_changed  = false;
                 last_sel_ptr = (uintptr_t)render_textures [sel];
                 tracked_rtv.resource =    render_textures [sel];
@@ -9948,8 +10027,7 @@ SK_D3D11_ShaderModDlg (void)
               D3D11_TEXTURE2D_DESC desc;
               pTex->GetDesc (&desc);
   
-              ID3D11ShaderResourceView* pSRV = nullptr;
-  
+              ID3D11ShaderResourceView*       pSRV     = nullptr;
               D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
   
               srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -9986,7 +10064,7 @@ SK_D3D11_ShaderModDlg (void)
                                          ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
                                                   -1.0f ),
                                            true,
-                                             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs );
+                                             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
   
                 last_width  = effective_width;
                 last_ht     = effective_height + font_size * 4.0f + (float)shaders * font_size;
@@ -10012,9 +10090,8 @@ SK_D3D11_ShaderModDlg (void)
 
                   ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
                   ImGui::BeginChildFrame   (ImGui::GetID ("ShaderResourceView_Frame"),
-                                              ImVec2 (effective_width + 8.0f, effective_height + 8.0f), ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs    |
-                                                                                                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNavInputs |
-                                                                                                        ImGuiWindowFlags_NoNavFocus);
+                                              ImVec2 (effective_width + 8.0f, effective_height + 8.0f),
+                                              ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders );
 
                   temp_resources.push_back (pSRV);
                   ImGui::Image             ( pSRV,
@@ -10042,7 +10119,8 @@ SK_D3D11_ShaderModDlg (void)
                                     ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
                                              -1.0f ),
                                       true,
-                                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_NavFlattened );
+                                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                                        ImGuiWindowFlags_NavFlattened );
   
                   if ((! tracked_rtv.ref_vs.empty ()) || (! tracked_rtv.ref_ps.empty ()))
                   {
@@ -10061,7 +10139,7 @@ SK_D3D11_ShaderModDlg (void)
                           change_sel_vs = it;
                         }
   
-                        if (SK_ImGui_IsItemRightClicked ( ))
+                        if (SK_ImGui_IsItemRightClicked ())
                         {
                           ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
                           ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_VS%08lx", it).c_str ());
@@ -10092,7 +10170,7 @@ SK_D3D11_ShaderModDlg (void)
                           change_sel_ps = it;
                         }
   
-                        if (SK_ImGui_IsItemRightClicked ( ))
+                        if (SK_ImGui_IsItemRightClicked ())
                         {
                           ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
                           ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_PS%08lx", it).c_str ());
@@ -10128,7 +10206,7 @@ SK_D3D11_ShaderModDlg (void)
                           change_sel_gs = it;
                         }
   
-                        if (SK_ImGui_IsItemRightClicked ( ))
+                        if (SK_ImGui_IsItemRightClicked ())
                         {
                           ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
                           ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_GS%08lx", it).c_str ());
@@ -10164,7 +10242,7 @@ SK_D3D11_ShaderModDlg (void)
                           change_sel_hs = it;
                         }
   
-                        if (SK_ImGui_IsItemRightClicked ( ))
+                        if (SK_ImGui_IsItemRightClicked ())
                         {
                           ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
                           ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_HS%08lx", it).c_str ());
@@ -10195,7 +10273,7 @@ SK_D3D11_ShaderModDlg (void)
                           change_sel_ds = it;
                         }
   
-                        if (SK_ImGui_IsItemRightClicked ( ))
+                        if (SK_ImGui_IsItemRightClicked ())
                         {
                           ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
                           ImGui::OpenPopup         (SK_FormatString ("ShaderSubMenu_DS%08lx", it).c_str ());

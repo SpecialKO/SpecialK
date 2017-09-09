@@ -1,3 +1,9 @@
+0.8.42
+
+ + Last update prior to hurricane Irma
+ + Improved D3D9 texture injection performance
+
+
 0.8.41
  
  + Improved support for D3D9 texture modding, and made it an opt-in thing since it's still

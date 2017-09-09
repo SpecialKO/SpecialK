@@ -179,7 +179,7 @@ Sleep_Detour (DWORD dwMilliseconds)
       //return YieldProcessor ();
 #endif
 
-    SleepEx (dwMilliseconds, FALSE);//TRUE);
+    Sleep_Original (dwMilliseconds);
 #ifdef DUAL_USE_MAX_DELTA
   }
 #endif

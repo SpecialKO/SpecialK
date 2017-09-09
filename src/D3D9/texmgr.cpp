@@ -841,7 +841,7 @@ namespace streaming_memory {
 }
 
 bool
-SK::D3D9::TextureManager::isTextureBlacklisted (uint32_t checksum) const
+SK::D3D9::TextureManager::isTextureBlacklisted (uint32_t/* checksum*/) const
 {
   return false;
 
@@ -1916,7 +1916,7 @@ std::vector <ISKTextureD3D9 *> remove_textures;
 SK::D3D9::Texture*
 SK::D3D9::TextureManager::getTexture (uint32_t checksum)
 {
-  EnterCriticalSection (&cs_cache);
+  EnterCriticalSection (&cs_free_list);
 
     auto  rem = remove_textures.begin ();
 
@@ -1945,13 +1945,20 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
     }
 
     remove_textures.clear ();
+  LeaveCriticalSection (&cs_free_list);
+
+
+  EnterCriticalSection (&cs_cache);
 
     auto tex = textures.find (checksum);
 
-  LeaveCriticalSection (&cs_cache);
+    if (tex != textures.end ())
+    {
+      LeaveCriticalSection (&cs_cache);
+      return tex->second;
+    }
 
-  if (tex != textures.end ())
-    return tex->second;
+  LeaveCriticalSection (&cs_cache);
 
   return nullptr;
 }
@@ -1959,11 +1966,11 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
 void
 SK::D3D9::TextureManager::removeTexture (ISKTextureD3D9* pTexD3D9)
 {
-  EnterCriticalSection (&cs_cache);
+  EnterCriticalSection (&cs_free_list);
 
-  remove_textures.push_back (pTexD3D9);
+    remove_textures.push_back (pTexD3D9);
 
-  LeaveCriticalSection (&cs_cache);
+  LeaveCriticalSection (&cs_free_list);
 
   updateOSD ();
 }
@@ -1987,8 +1994,19 @@ SK::D3D9::TextureManager::addTexture (uint32_t checksum, Texture* pTex, size_t s
 void
 SK::D3D9::TextureManager::refTexture (Texture* pTex)
 {
-  pTex->d3d9_tex->AddRef ();
-  pTex->refs++;
+  refTextureEx (pTex, true);
+}
+
+void
+SK::D3D9::TextureManager::refTextureEx (Texture* pTex, bool add_to_ref_count)
+{
+  if (add_to_ref_count)
+  {
+    pTex->d3d9_tex->AddRef ();
+    pTex->refs++;
+  }
+
+  pTex->d3d9_tex->can_free = false;
 
   InterlockedIncrement (&hits);
 
@@ -2084,7 +2102,10 @@ SK::D3D9::TextureManager::Init (void)
   tracked_rt.pixel_shaders.reserve    (32);
   tracked_rt.vertex_shaders.reserve   (32);
 
-  InitializeCriticalSectionAndSpinCount (&cs_cache, 8192UL);
+  InitializeCriticalSectionAndSpinCount (&cs_cache,         8192UL);
+  InitializeCriticalSectionAndSpinCount (&cs_free_list,     4096UL);
+  InitializeCriticalSectionAndSpinCount (&cs_unreferenced, 16384UL);
+
   InitializeCriticalSectionAndSpinCount (&osd_cs,   32UL);
 
   InitializeCriticalSectionAndSpinCount (&injector.cs_tex_inject,    10000000);
@@ -2405,6 +2426,7 @@ SK::D3D9::TextureManager::purge (void)
 
   tex_log.Log (L"[ Tex. Mgr ]   Releasing textures...");
 
+  EnterCriticalSection (&cs_unreferenced);
   EnterCriticalSection (&cs_cache);
 
   std::vector <Texture *> unreferenced_textures;
@@ -2416,6 +2438,7 @@ SK::D3D9::TextureManager::purge (void)
       unreferenced_textures.emplace_back (it.second);
     }
   }
+  LeaveCriticalSection (&cs_cache);
 
   std::sort ( unreferenced_textures.begin (),
                 unreferenced_textures.end (),
@@ -2490,6 +2513,7 @@ SK::D3D9::TextureManager::purge (void)
     ++released;
     reclaimed  += base_size;
   }
+  LeaveCriticalSection (&cs_unreferenced);
 
   tex_log.Log ( L"[ Tex. Mgr ]   %4d textures (%4zu remain)",
                   released,
@@ -2503,8 +2527,6 @@ SK::D3D9::TextureManager::purge (void)
   updateOSD ();
 
   tex_log.Log (L"[ Tex. Mgr ] ----------- Finished ------------ ");
-
-  LeaveCriticalSection (&cs_cache);
 }
 
 void
@@ -3523,14 +3545,16 @@ SK::D3D9::TextureThreadPool::postJob (TexLoadRequest* job)
                                          0x00,
                                            nullptr );
     }
-  
+    LeaveCriticalSection (&cs_jobs);
+
     // Don't let the game free this while we are working on it...
     job->pDest->AddRef ();
   
+    EnterCriticalSection (&cs_jobs);
     jobs_.push (job);
+    LeaveCriticalSection (&cs_jobs);
     SetEvent   (events_.jobs_added);
   }
-  LeaveCriticalSection (&cs_jobs);
 }
 
 

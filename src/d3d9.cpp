@@ -148,6 +148,33 @@ UpdateTexture_pfn             D3D9UpdateTexture_Original             = nullptr;
 StretchRect_pfn               D3D9StretchRect_Original               = nullptr;
 SetCursorPosition_pfn         D3D9SetCursorPosition_Original         = nullptr;
 
+typedef HRESULT (STDMETHODCALLTYPE *CreateOffscreenPlainSurface_pfn)(
+  _In_  IDirect3DDevice9   *This,
+  _In_  UINT                Width,
+  _In_  UINT                Height,
+  _In_  D3DFORMAT           Format,
+  _In_  D3DPOOL             Pool,
+  _Out_ IDirect3DSurface9 **ppSurface,
+  _In_  HANDLE             *pSharedHandle );
+
+CreateOffscreenPlainSurface_pfn D3D9CreateOffscreenPlainSurface_Original = nullptr;
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9CreateOffscreenPlainSurface_Override (
+  _In_  IDirect3DDevice9   *This,
+  _In_  UINT                Width,
+  _In_  UINT                Height,
+  _In_  D3DFORMAT           Format,
+  _In_  D3DPOOL             Pool,
+  _Out_ IDirect3DSurface9 **ppSurface,
+  _In_  HANDLE             *pSharedHandle )
+{
+  return
+    D3D9CreateOffscreenPlainSurface_Original ( This, Width, Height, Format, Pool, ppSurface, pSharedHandle );
+}
+
 
 D3DPRESENT_PARAMETERS    g_D3D9PresentParams          = {  };
 
@@ -2656,26 +2683,28 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
         TexLoadRequest* load_op =
           nullptr;
-        
+
         wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
-        
+
         bool remap_stream =
           tex_mgr.injector.isStreaming (pDst->tex_crc32c);
-        
+
         //
         // Generic injectable textures
         //
-        if (tex_mgr.isTextureInjectable (pDst->tex_crc32c))
+        Texture* pCache = tex_mgr.getTexture (pDst->tex_crc32c);
+
+        if (tex_mgr.isTextureInjectable (pDst->tex_crc32c) && (pCache == nullptr || pCache->d3d9_tex->pTexOverride == nullptr))
         {
           tex_log.LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
                          pDst->tex_crc32c);
-        
+
           TexRecord& record =
             tex_mgr.getInjectableTexture (pDst->tex_crc32c);
-        
+
           if (record.method == TexLoadMethod::DontCare)
               record.method =  TexLoadMethod::Streaming;
-        
+
           // If -1, load from disk...
           if (record.archive == -1)
           {
@@ -2686,7 +2715,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                               pDst->tex_crc32c,
                                 L".dds" );
             }
-        
+
             else if (record.method == TexLoadMethod::Blocking)
             {
               _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
@@ -2695,20 +2724,20 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                                 L".dds");
             }
           }
-        
+
           load_op =
             new TexLoadRequest ();
-        
+
           load_op->pDevice  = This;
           load_op->checksum = pDst->tex_crc32c;
-        
+
           if (record.method == TexLoadMethod::Streaming)
             load_op->type    = TexLoadRequest::Stream;
           else
             load_op->type = TexLoadRequest::Immediate;
-        
+
           wcscpy (load_op->wszFilename, wszInjectFileName);
-        
+
           if (load_op->type == TexLoadRequest::Stream)
           {
             if (( !remap_stream ))
@@ -2716,12 +2745,12 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             else
               tex_log.LogEx (false, L"in-flight already\n");
           }
-        
+
           else
           {
             tex_log.LogEx (false, L"blocking (deferred)\n");
           }
-        
+
           if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
                                        load_op->type == TexLoadRequest::Immediate ) )
           {
@@ -2729,24 +2758,24 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             static_cast <UINT> (
               record.size
             );
-        
+
           load_op->pDest =
              (ISKTextureD3D9 *)pDestinationTexture;
-        
+
           tex_mgr.injector.lockStreaming ();
-        
+
           if (load_op->type == TexLoadRequest::Immediate)
             dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
-        
+
           if (tex_mgr.injector.isStreaming (load_op->checksum))
           {
             tex_mgr.injector.lockStreaming ();
-        
+
             auto* pTexOrig =
               static_cast <ISKTextureD3D9 *> (
                 tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest
                );
-        
+
             // Remap the output of the in-flight texture
             tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
               pDst;
@@ -2762,14 +2791,14 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                 dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
               }
             }
-        
+
             tex_mgr.removeTexture (pTexOrig);
           }
-        
+
           else
           {
             tex_mgr.injector.addTextureInFlight (load_op);
-        
+
             load_op->pDest->AddRef ();
             stream_pool.postJob (load_op);
             //resample_pool->postJob (load_op);
@@ -2778,26 +2807,49 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           tex_mgr.injector.unlockStreaming ();
         }
       }
+
       if (/*config.textures.cache &&*/ pDst->tex_crc32c != 0x00)
       {
+        Texture* pCacheTex = 
+          pCache;
+
+        if (pCacheTex)
+        {
+          if (pCacheTex->d3d9_tex->refs <= 1)
+          {
+            pCacheTex->d3d9_tex->can_free = true;
+          }
+        }
+
         Texture* pTex =
           new Texture ();
 
         pTex->crc32c   = pDst->tex_crc32c;
         pTex->d3d9_tex = pDst;
-        //pTex->d3d9_tex->AddRef ();
-        //pTex->refs++;
-      
+
+        if (pCache != nullptr && pCache->d3d9_tex->pTexOverride != nullptr)
+        {
+          if (pCache->d3d9_tex->pTexOverride != pDst->pTexOverride)
+          {
+            pTex->load_time              = pCache->load_time;
+            pTex->d3d9_tex->pTexOverride = pCache->d3d9_tex->pTexOverride;
+            pTex->d3d9_tex->override_size= pCache->d3d9_tex->override_size;
+            pTex->d3d9_tex->pTexOverride->AddRef ();
+          }
+
+          tex_mgr.refTextureEx (pTex);
+        }
+
         //pTex->load_time = (float)( 1000.0 *
         //                    (double)(end.QuadPart - start.QuadPart) /
         //                    (double)freq.QuadPart );
+
+        tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
 
         if (SUCCEEDED ( D3D9UpdateTexture_Original ( This,
                                                        pRealSource,
                                                          pRealDest ) ) )
         {
-          tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
-
           return S_OK;
         }
       }
@@ -3475,6 +3527,12 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                       D3D9StretchRect_Original,
                       StretchRect_pfn );
 
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 36,
+                      "IDirect3DDevice9::CreateOffscreenPlainSurface",
+                      D3D9CreateOffscreenPlainSurface_Override,
+                      D3D9CreateOffscreenPlainSurface_Original,
+                      CreateOffscreenPlainSurface_pfn );
+
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 37,
                       "IDirect3DDevice9::SetRenderTarget",
                       D3D9SetRenderTarget_Override,
@@ -3799,6 +3857,12 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                       D3D9StretchRect_Override,
                       D3D9StretchRect_Original,
                       StretchRect_pfn );
+
+  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 36,
+                      "IDirect3DDevice9::CreateOffscreenPlainSurface",
+                      D3D9CreateOffscreenPlainSurface_Override,
+                      D3D9CreateOffscreenPlainSurface_Original,
+                      CreateOffscreenPlainSurface_pfn );
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 37,
                       "IDirect3DDevice9::SetRenderTarget",
@@ -4485,6 +4549,9 @@ SK_D3D9_TriggerReset (bool temporary)
 
 #include <atlbase.h>
 
+extern bool
+SK_ImGui_IsItemClicked (void);
+
 void
 SK_D3D9_DrawFileList (bool& can_scroll)
 {
@@ -4646,7 +4713,9 @@ SK_D3D9_DrawFileList (bool& can_scroll)
    
         if (sel_changed)
         {
-          ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+          ImGui::SetScrollHere        (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+          ImGui::SetKeyboardFocusHere (    );
+
           sel_changed = false;
         }
       }
@@ -4894,7 +4963,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
         if (sel_changed)
         {
-          ImGui::SetScrollHere (0.5f);
+          ImGui::SetScrollHere        (0.5f);
+          ImGui::SetKeyboardFocusHere (    );
 
           sel_changed     = false;
           list->last_sel  = (uint32_t)shaders [list->sel];
@@ -5825,7 +5895,7 @@ SK_D3D9_TextureModDlg (void)
                           ImVec2 (font_size * 66.0f, font_size * 2.5f),
                             false,
                               ImGuiWindowFlags_AlwaysUseWindowPadding |
-                              ImGuiWindowFlags_NavFlattened );
+                              ImGuiWindowFlags_NavFlattened           | ImGuiWindowFlags_AlwaysAutoResize );
 
     if (ImGui::Button ("  Refresh Textures  "))
     {
@@ -5997,7 +6067,7 @@ SK_D3D9_TextureModDlg (void)
                                   ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width + 24.0f),
                                 (float)desc.Height + font_size * 10.0f),
                                     true,
-                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
+                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened );
 
           if ((! config.textures.highlight_debug_tex) && has_alternate)
           {
@@ -6005,7 +6075,7 @@ SK_D3D9_TextureModDlg (void)
               ImGui::SetTooltip ("Click me to make this texture the visible version.");
             
             // Allow the user to toggle texture override by clicking the frame
-            if (ImGui::IsItemClicked ())
+            if (SK_ImGui_IsItemClicked ())
               __remap_textures = false;
           }
 
@@ -6067,7 +6137,8 @@ SK_D3D9_TextureModDlg (void)
           ImVec2 uv1 (flip_horizontal0 ? 0.0f : 1.0f, flip_vertical0 ? 0.0f : 1.0f);
 
           ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
-          ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_XXX"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
+          ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_XXX"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8),
+                                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoScrollbar );
           ImGui::Image           ( pTex->d3d9_tex->pTex,
                                      ImVec2 ((float)desc.Width, (float)desc.Height),
                                        uv0,                       uv1,
@@ -6100,7 +6171,7 @@ SK_D3D9_TextureModDlg (void)
                               ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width  + 24.0f),
                                                                     (float)desc.Height + font_size * 10.0f),
                                 true,
-                                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
+                                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened );
 
           if (! config.textures.highlight_debug_tex)
           {
@@ -6108,7 +6179,7 @@ SK_D3D9_TextureModDlg (void)
               ImGui::SetTooltip ("Click me to make this texture the visible version.");
 
             // Allow the user to toggle texture override by clicking the frame
-            if (ImGui::IsItemClicked ())
+            if (SK_ImGui_IsItemClicked ())
               __remap_textures = true;
           }
 
@@ -6177,7 +6248,9 @@ SK_D3D9_TextureModDlg (void)
             ImVec2 uv1 (flip_horizontal1 ? 0.0f : 1.0f, flip_vertical1 ? 0.0f : 1.0f);
 
             ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
-            ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_YYY"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8), ImGuiWindowFlags_ShowBorders);
+            ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_YYY"), ImVec2 ((float)desc.Width + 8, (float)desc.Height + 8),
+                                    ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs |
+                                    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Image           ( pTex->d3d9_tex->pTexOverride,
                                        ImVec2 ((float)desc.Width, (float)desc.Height),
                                        uv0,                       uv1,
@@ -6291,6 +6364,8 @@ SK_D3D9_TextureModDlg (void)
              if (sel_changed)
              {
                ImGui::SetScrollHere (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+               ImGui::SetKeyboardFocusHere ( );
+
                sel_changed = false;
              }
            }
@@ -6362,7 +6437,9 @@ SK_D3D9_TextureModDlg (void)
         ImGui::Separator     ();
 
         ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
-        ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_ZZZ"), ImVec2 (effective_width + 8.0f, effective_height + 8.0f), ImGuiWindowFlags_ShowBorders);
+        ImGui::BeginChildFrame (ImGui::GetID ("ChildFrame_ZZZ"), ImVec2 (effective_width + 8.0f, effective_height + 8.0f),
+                                  ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNavInputs |
+                                  ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize );
         ImGui::Image           ( pTex,
                                    ImVec2 (effective_width, effective_height),
                                      ImVec2  (0,0),             ImVec2  (1,1),

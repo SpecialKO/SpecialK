@@ -194,6 +194,7 @@ struct TexThreadStats {
 
     // Record a cached reference
     void                       refTexture          (Texture* pTex);
+    void                       refTextureEx        (Texture* pTex, bool add_to_ref_count = false);
 
     // Similar, just call this to indicate a cache miss
     void                       missTexture         (void) {
@@ -361,6 +362,7 @@ struct TexThreadStats {
     } used;
 
     std::unordered_map <uint32_t, Texture*>                  textures;
+
     float                                                    time_saved      = 0.0f;
     volatile LONG64                                          bytes_saved     = 0LL;
 
@@ -375,9 +377,11 @@ struct TexThreadStats {
     bool                                                     want_screenshot = false;
 
     CRITICAL_SECTION                                         cs_cache;
+    CRITICAL_SECTION                                         cs_free_list;
+    CRITICAL_SECTION                                         cs_unreferenced;
 
-    std::unordered_map <uint32_t, TexRecord>                 injectable_textures;
-    std::vector        <std::wstring>                        archives;
+    std::unordered_map    <uint32_t, TexRecord>              injectable_textures;
+    std::vector           <std::wstring>                     archives;
     SK_ThreadSafe_HashSet <int32_t>                          dumped_textures;
 
   public:
@@ -734,7 +738,7 @@ public:
   ISKTextureD3D9 (IDirect3DTexture9 **ppTex, SIZE_T size, uint32_t crc32c)
   {
       pTexOverride  = nullptr;
-      can_free      = true;
+      can_free      = false;
       override_size = 0;
       last_used.QuadPart
                     = 0ULL;
@@ -790,6 +794,7 @@ public:
 
     if (refs == 0)
     {
+      can_free = true;
       // Does not delete this immediately; defers the
       //   process until the next cached texture load.
       SK::D3D9::tex_mgr.removeTexture (this);
@@ -797,7 +802,7 @@ public:
 
     return ret;
   }
-  
+
   /*** IDirect3DBaseTexture9 methods ***/
   STDMETHOD(GetDevice)(THIS_ IDirect3DDevice9** ppDevice) {
     tex_log.Log (L"[ Tex. Mgr ] ISKTextureD3D9::GetDevice (%ph)", ppDevice);
@@ -970,38 +975,46 @@ public:
       }
 
       this->tex_crc32c = crc32c_;
-      this->tex_size   = lock_lvl0.Pitch * desc.Height;
+      this->tex_size   = 0;
 
-      ////tex_log.Log ("Texture CRC3C2: %x", crc32c_);
+      INT W = desc.Width; INT H = desc.Height;
 
-      if (desc.Pool != D3DPOOL_SYSTEMMEM)
+      for (UINT i = 0; i < pTex->GetLevelCount (); i++)
+      {
+        this->tex_size += ( lock_lvl0.Pitch * W );
+
+        if (W > 1) W >>= 1;
+        if (H > 1) H >>= 1;
+      } 
+
       {
         SK::D3D9::Texture* pCacheTex =
           SK::D3D9::tex_mgr.getTexture (this->tex_crc32c);
 
-        if (pCacheTex == nullptr)
+        if (pCacheTex)
         {
-          pCacheTex           = new SK::D3D9::Texture ();
-          pCacheTex->crc32c   = this->tex_crc32c;
-          pCacheTex->d3d9_tex = this;
-
-          //pCacheTex->d3d9_tex->AddRef ();
-          //pCacheTex->refs++;
-
-          QueryPerformanceCounter_Original (&end_map);
-
-          pCacheTex->load_time = (float)( 1000.0 *
-                                   (double)( end_map.QuadPart - begin_map.QuadPart ) /
-                                    (double)SK_GetPerfFreq ().QuadPart );
-
-          SK::D3D9::tex_mgr.addTexture  (crc32c_, pCacheTex, tex_size);
-          SK::D3D9::tex_mgr.missTexture ();
+          if (pCacheTex->d3d9_tex->refs <= 1)
+          {
+            pCacheTex->d3d9_tex->can_free = true;
+          }
         }
 
-        SK::D3D9::tex_mgr.refTexture (pCacheTex);
-      }
+        pCacheTex = new SK::D3D9::Texture ();
 
-      //if (height > 1) height >>= 1;
+        pCacheTex->d3d9_tex = this;
+        pCacheTex->size     = this->tex_size;
+
+        QueryPerformanceCounter_Original (&end_map);
+
+        pCacheTex->load_time = (float)( 1000.0 *
+                                 (double)( end_map.QuadPart - begin_map.QuadPart ) /
+                                 (double)(            SK_GetPerfFreq ().QuadPart ) );
+
+        SK::D3D9::tex_mgr.addTexture  (this->tex_crc32c, pCacheTex, this->tex_size);
+        SK::D3D9::tex_mgr.missTexture ();
+
+        //SK::D3D9::tex_mgr.refTexture (pCacheTex);
+      }
     }
     if (Level == 0)
       dirty = false;
@@ -1031,13 +1044,13 @@ public:
 
   void use (void)
   {
-    if (config.textures.dump_on_load && uses == 1)
+    if (config.textures.dump_on_load)
     {
       D3DSURFACE_DESC desc = { };
 
       if ( SUCCEEDED (pTex->GetLevelDesc (0, &desc)) &&
         ( ! ( SK::D3D9::tex_mgr.isTextureDumped     (tex_crc32c) ||
-              SK::D3D9::tex_mgr.isTextureInjectable (tex_crc32c) ) ) )
+              SK::D3D9::tex_mgr.isTextureInjectable (tex_crc32c) ) ) && (desc.Pool != D3DPOOL_MANAGED) && uses > 0 && uses < 2 )
       {
         tex_log.Log ( L"[Dump Trace] Texture:   (%lu x %lu) * <LODs: %lu> - FAST_CRC32C: %08X",
                          desc.Width, desc.Height, pTex->GetLevelCount (), tex_crc32c);
@@ -1046,22 +1059,18 @@ public:
                          SK_D3D9_FormatToStr (desc.Format).c_str ());
         tex_log.Log ( L"[Dump Trace]                Pool: %s",
                          SK_D3D9_PoolToStr (desc.Pool));
-        //tex_log.Log (L"[Load Trace]      Load Time: %6.4f ms",
-        //             1000.0f * (double)( end.QuadPart - start.QuadPart ) / (double)freq.QuadPart);
-
 
         SK::D3D9::tex_mgr.injector.beginLoad ();
 
-        if (desc.Pool != D3DPOOL_MANAGED)
-          SK::D3D9::tex_mgr.dumpTexture (desc.Format, tex_crc32c, pTex);
+        SK::D3D9::tex_mgr.dumpTexture (desc.Format, tex_crc32c, pTex);
 
         SK::D3D9::tex_mgr.injector.endLoad ();
       }
     }
 
-    QueryPerformanceCounter_Original (&last_used);
-
     ++uses;
+
+    QueryPerformanceCounter_Original (&last_used);
   }
   
   bool               can_free;      // Whether or not we can free this texture

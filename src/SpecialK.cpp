@@ -1019,6 +1019,12 @@ DllMain ( HMODULE hModule,
 
         if (lpvData != nullptr)
         {
+          if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
+          {
+            delete SK_TLS_Bottom ()->known_modules.pResolved;
+                   SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
+          }
+
           LocalFree   (lpvData);
           TlsSetValue (__SK_TLS_INDEX, nullptr);
         }
@@ -1027,4 +1033,46 @@ DllMain ( HMODULE hModule,
   }
 
   return TRUE;
+}
+
+
+
+
+
+#include <unordered_map>
+
+
+
+SK_ModuleAddrMap::SK_ModuleAddrMap (void)
+{
+}
+
+bool
+SK_ModuleAddrMap::contains (LPVOID pAddr, HMODULE* phMod)
+{
+  if (pResolved == nullptr)
+      pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+
+  std::unordered_map <LPVOID, HMODULE> *pResolved_ =
+    ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+
+  if (pResolved_->count (pAddr))
+  {
+    *phMod = (*pResolved_) [pAddr];
+    return true;
+  }
+
+  return false;
+}
+
+void 
+SK_ModuleAddrMap::insert (LPVOID pAddr, HMODULE hMod)
+{
+  if (pResolved == nullptr)
+    pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+
+  std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
+    ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+
+  (*pResolved_) [pAddr] = hMod;
 }
