@@ -32,6 +32,8 @@ interface iSK_INI;
 
 using HANDLE = void *;
 
+#define SK_RunOnce(x) { static bool first = true; if (first) { (x); first = false; } }
+
 
 template <typename T, typename T2, typename Q>
   __inline

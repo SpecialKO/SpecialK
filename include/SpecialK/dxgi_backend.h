@@ -1015,6 +1015,23 @@ namespace SK
 };
 
 
+void            WaitForInitDXGI             (void);
+
+void  __stdcall SK_D3D11_PreLoadTextures    (void);
+
+void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
+bool  __stdcall SK_D3D11_TextureIsCached    (ID3D11Texture2D*     pTex);
+void  __stdcall SK_D3D11_UseTexture         (ID3D11Texture2D*     pTex);
+void  __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D*     pTex, bool blacklist = false);
+
+void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*      pSwapChain);
+
+unsigned int
+__stdcall
+HookD3D11 (LPVOID user);
+
+extern volatile DWORD SK_D3D11_init_tid;
+extern volatile DWORD SK_D3D11_ansel_tid;
 
 
 #endif /* __SK__DXGI_BACKEND_H__ */

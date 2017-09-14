@@ -171,6 +171,27 @@ D3D9CreateOffscreenPlainSurface_Override (
   _Out_ IDirect3DSurface9 **ppSurface,
   _In_  HANDLE             *pSharedHandle )
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
+  {
+    CComPtr <IDirect3DSwapChain9> pSwapChain;
+
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+    {
+      D3DPRESENT_PARAMETERS pparams = { };
+      pSwapChain->GetPresentParameters (&pparams);
+
+      if (Format == D3DFMT_R5G6B5 && ( Width == pparams.BackBufferWidth ) )
+      {
+        Format = D3DFMT_X8R8G8B8;
+      }
+
+      if (Format == D3DFMT_D16 && ( Width == pparams.BackBufferWidth ) )
+      {
+        Format = D3DFMT_D24X8;
+      }
+    }
+  }
+
   return
     D3D9CreateOffscreenPlainSurface_Original ( This, Width, Height, Format, Pool, ppSurface, pSharedHandle );
 }
@@ -921,6 +942,9 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
   {
     BehaviorFlags |= D3DCREATE_MULTITHREADED;
   }
+
+  //if (config.textures.d3d9_mod)
+  //  BehaviorFlags |= D3DCREATE_MULTITHREADED;
 
   //BehaviorFlags = 0x144;
 }
@@ -2212,6 +2236,26 @@ STDMETHODCALLTYPE
 D3D9SetViewport_Override (       IDirect3DDevice9 *This,
                            CONST D3DVIEWPORT9     *pViewport )
 {
+#if 0
+  if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
+  {
+    D3DVIEWPORT9 scaled_vp = *pViewport;
+
+    scaled_vp.Width  <<= 1;
+    scaled_vp.Height <<= 1;
+
+    float left_ndc = 2.0f * ((float)pViewport->X / pViewport->Width)  - 1.0f;
+    float top_ndc  = 2.0f * ((float)pViewport->Y / pViewport->Height) - 1.0f;
+
+    scaled_vp.Y = (LONG)((top_ndc  * scaled_vp.Height + scaled_vp.Height) / 2.0f);
+    scaled_vp.X = (LONG)((left_ndc * scaled_vp.Width  + scaled_vp.Width)  / 2.0f);
+
+    return
+      D3D9SetViewport_Original ( This,
+                                   &scaled_vp );
+  }
+#endif
+
   return
     D3D9SetViewport_Original ( This,
                                  pViewport );
@@ -2580,6 +2624,26 @@ D3D9CreateRenderTarget_Override (IDirect3DDevice9     *This,
                                  IDirect3DSurface9   **ppSurface,
                                  HANDLE               *pSharedHandle)
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
+  {
+    CComPtr <IDirect3DSwapChain9> pSwapChain;
+
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+    {
+      D3DPRESENT_PARAMETERS pparams = { };
+      pSwapChain->GetPresentParameters (&pparams);
+
+      if (Format == D3DFMT_R5G6B5 && ( Width == pparams.BackBufferWidth ) )
+      {
+        Format = D3DFMT_X8R8G8B8;
+#if 0
+        Width  <<= 1;
+        Height <<= 1;
+#endif
+      }
+    }
+  }
+
   return
     D3D9CreateRenderTarget_Original ( This,
                                         Width, Height,
@@ -2602,6 +2666,26 @@ D3D9CreateDepthStencilSurface_Override ( IDirect3DDevice9     *This,
                                          IDirect3DSurface9   **ppSurface,
                                          HANDLE               *pSharedHandle )
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
+  {
+    CComPtr <IDirect3DSwapChain9> pSwapChain;
+
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+    {
+      D3DPRESENT_PARAMETERS pparams = { };
+      pSwapChain->GetPresentParameters (&pparams);
+
+      if (Format == D3DFMT_D16 && ( Width == pparams.BackBufferWidth ) )
+      {
+        Format = D3DFMT_D24X8;
+#if 0
+        Width  <<= 1;
+        Height <<= 1;
+#endif
+      }
+    }
+  }
+
   return
     D3D9CreateDepthStencilSurface_Original ( This,
                                                Width, Height,
@@ -2657,6 +2741,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
   IDirect3DBaseTexture9* pRealDest   = pDestinationTexture;
 
   bool src_is_wrapped = false;
+  bool dst_is_wrapped = false;
 
   void* dontcare;
   if (pSourceTexture != nullptr &&
@@ -2669,42 +2754,84 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
   if (pDestinationTexture != nullptr &&
       pDestinationTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {
-    pRealDest = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
+    dst_is_wrapped = true;
+    pRealDest      = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
+  }
 
-    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
+  HRESULT hr = E_FAIL;
+
+  if (pRealSource && pRealDest)
+  {
+    hr =
+      D3D9UpdateTexture_Original ( This,
+                                     pRealSource,
+                                       pRealDest );
+  }
+
+  if (SUCCEEDED (hr) && src_is_wrapped && dst_is_wrapped)
+  {
+    auto* pSrc = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
+    auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
+
+    D3DSURFACE_DESC desc;
+    pDst->GetLevelDesc (0, &desc);
+
+    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0 && pSrc->uses++ == 0)
     {
-      if (src_is_wrapped)
+      pDst->uses++;
+
+      Texture* pTex = nullptr;
+
+      if (pSrc->tex_crc32c != 0x0)
       {
-        auto* pSrc = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
-        auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
+        pTex =
+          new Texture ();
 
         pDst->tex_crc32c = pSrc->tex_crc32c;
         pDst->tex_size   = pSrc->tex_size;
+        pTex->crc32c     = pSrc->tex_crc32c;
+        pTex->size       = pSrc->tex_size;
+        pTex->d3d9_tex   = pDst;
+
+        tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
+
+        if (injected_textures.count (pDst->tex_crc32c))
+        {
+          pDst->pTexOverride  = injected_textures   [pDst->tex_crc32c];
+          pDst->override_size = injected_sizes      [pDst->tex_crc32c];
+          pTex->load_time     = injected_load_times [pDst->tex_crc32c];
+
+          tex_mgr.refTextureEx (pTex);
+        }
+
+        else
+        {
+          tex_mgr.missTexture ();
 
         TexLoadRequest* load_op =
           nullptr;
-
+        
         wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
-
+        
         bool remap_stream =
           tex_mgr.injector.isStreaming (pDst->tex_crc32c);
-
+        
         //
         // Generic injectable textures
         //
-        Texture* pCache = tex_mgr.getTexture (pDst->tex_crc32c);
-
-        if (tex_mgr.isTextureInjectable (pDst->tex_crc32c) && (pCache == nullptr || pCache->d3d9_tex->pTexOverride == nullptr))
+        Texture* pCache = nullptr;
+        
+        if (tex_mgr.isTextureInjectable (pDst->tex_crc32c))
         {
           tex_log.LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
                          pDst->tex_crc32c);
-
+          
           TexRecord& record =
             tex_mgr.getInjectableTexture (pDst->tex_crc32c);
-
+          
           if (record.method == TexLoadMethod::DontCare)
               record.method =  TexLoadMethod::Streaming;
-
+          
           // If -1, load from disk...
           if (record.archive == -1)
           {
@@ -2715,7 +2842,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                               pDst->tex_crc32c,
                                 L".dds" );
             }
-
+          
             else if (record.method == TexLoadMethod::Blocking)
             {
               _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
@@ -2730,14 +2857,14 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
           load_op->pDevice  = This;
           load_op->checksum = pDst->tex_crc32c;
-
+          
           if (record.method == TexLoadMethod::Streaming)
             load_op->type    = TexLoadRequest::Stream;
           else
             load_op->type = TexLoadRequest::Immediate;
-
+          
           wcscpy (load_op->wszFilename, wszInjectFileName);
-
+          
           if (load_op->type == TexLoadRequest::Stream)
           {
             if (( !remap_stream ))
@@ -2745,12 +2872,12 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             else
               tex_log.LogEx (false, L"in-flight already\n");
           }
-
+          
           else
           {
             tex_log.LogEx (false, L"blocking (deferred)\n");
           }
-
+          
           if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
                                        load_op->type == TexLoadRequest::Immediate ) )
           {
@@ -2759,33 +2886,39 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
               record.size
             );
 
+          load_op->pSrc =
+             ((ISKTextureD3D9 *)pDestinationTexture);
+
           load_op->pDest =
-             (ISKTextureD3D9 *)pDestinationTexture;
+             ((ISKTextureD3D9 *)pDestinationTexture);
 
           tex_mgr.injector.lockStreaming ();
-
+          
           if (load_op->type == TexLoadRequest::Immediate)
             dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
-
+          
           if (tex_mgr.injector.isStreaming (load_op->checksum))
           {
-            tex_mgr.injector.lockStreaming ();
-
+          //tex_mgr.injector.lockStreaming ();
+          
             auto* pTexOrig =
               static_cast <ISKTextureD3D9 *> (
                 tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest
                );
-
+          
             // Remap the output of the in-flight texture
             tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
               pDst;
-        
-            tex_mgr.injector.unlockStreaming ();
-        
-            if (tex_mgr.getTexture (load_op->checksum) != nullptr)
+          
+          //tex_mgr.injector.unlockStreaming ();
+          
+            Texture* pExistingTex =
+              tex_mgr.getTexture (load_op->checksum);
+          
+            if (pExistingTex != nullptr)
             {
               for (int i = 0;
-                       i < tex_mgr.getTexture (load_op->checksum)->refs;
+                       i < pExistingTex->refs;
                      ++i)
               {
                 dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
@@ -2798,69 +2931,20 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           else
           {
             tex_mgr.injector.addTextureInFlight (load_op);
-
-            load_op->pDest->AddRef ();
-            stream_pool.postJob (load_op);
-            //resample_pool->postJob (load_op);
+            pTex->d3d9_tex->AddRef              (       );
+            stream_pool.postJob                 (load_op);
           }
 
           tex_mgr.injector.unlockStreaming ();
         }
-      }
-
-      if (/*config.textures.cache &&*/ pDst->tex_crc32c != 0x00)
-      {
-        Texture* pCacheTex = 
-          pCache;
-
-        if (pCacheTex)
-        {
-          if (pCacheTex->d3d9_tex->refs <= 1)
-          {
-            pCacheTex->d3d9_tex->can_free = true;
-          }
         }
-
-        Texture* pTex =
-          new Texture ();
-
-        pTex->crc32c   = pDst->tex_crc32c;
-        pTex->d3d9_tex = pDst;
-
-        if (pCache != nullptr && pCache->d3d9_tex->pTexOverride != nullptr)
-        {
-          if (pCache->d3d9_tex->pTexOverride != pDst->pTexOverride)
-          {
-            pTex->load_time              = pCache->load_time;
-            pTex->d3d9_tex->pTexOverride = pCache->d3d9_tex->pTexOverride;
-            pTex->d3d9_tex->override_size= pCache->d3d9_tex->override_size;
-            pTex->d3d9_tex->pTexOverride->AddRef ();
-          }
-
-          tex_mgr.refTextureEx (pTex);
-        }
-
-        //pTex->load_time = (float)( 1000.0 *
-        //                    (double)(end.QuadPart - start.QuadPart) /
-        //                    (double)freq.QuadPart );
-
-        tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
-
-        if (SUCCEEDED ( D3D9UpdateTexture_Original ( This,
-                                                       pRealSource,
-                                                         pRealDest ) ) )
-        {
-          return S_OK;
         }
       }
     }
   }
-  }
 
-  return
-    D3D9UpdateTexture_Original ( This,
-                                   pRealSource,
-                                     pRealDest );
+  return hr;
+
 #else
   if ((! config.textures.d3d9_mod) || (! SK::D3D9::tex_mgr.init) || SK::D3D9::tex_mgr.injector.isInjectionThread ())
   {
@@ -3146,6 +3230,18 @@ D3D9StretchRect_Override (      IDirect3DDevice9    *This,
                           const RECT                *pDestRect,
                                 D3DTEXTUREFILTERTYPE Filter )
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
+  {
+    if (pSourceRect != nullptr && pDestRect != nullptr)
+    {
+      dll_log.Log ( L"[CompatHack] StretchRect: { %i, %i, %ix%i } -> { %i, %i, %ix%i }",
+                      pSourceRect->left, pSourceRect->top, pSourceRect->right  - pSourceRect->left,
+                                                           pSourceRect->bottom - pSourceRect->top,
+                      pDestRect->left,   pDestRect->top,   pDestRect->right    - pDestRect->left,
+                                                           pDestRect->bottom   - pDestRect->top );
+    }
+  }
+
   return
     D3D9StretchRect_Original ( This,
                                  pSourceSurface,
@@ -3196,6 +3292,22 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
+    if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
+    {
+      dll_log.Log (L"[CompatHack] D3D9 Backbuffer using format %s changed to %s.",
+        SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
+        SK_D3D9_FormatToStr (D3DFMT_X8R8G8B8).c_str ());
+
+      pparams->BackBufferFormat       = D3DFMT_X8R8G8B8;
+      pparams->BackBufferCount        = 1;
+      pparams->SwapEffect             = D3DSWAPEFFECT_COPY;
+      pparams->MultiSampleType        = D3DMULTISAMPLE_NONE;
+      pparams->MultiSampleQuality     = 0;
+      pparams->EnableAutoDepthStencil = true;
+      pparams->AutoDepthStencilFormat = D3DFMT_D24X8;
+      pparams->Flags                  = D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL;
+    }
+
     if (pparams != nullptr)
     {
       extern HWND hWndRender;
@@ -3473,11 +3585,11 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                       D3D9TestCooperativeLevel_Original,
                       TestCooperativeLevel_pfn );
 
-  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
-                      "IDirect3DDevice9::SetCursorPosition",
-                      D3D9SetCursorPosition_Override,
-                      D3D9SetCursorPosition_Original,
-                      SetCursorPosition_pfn );
+//  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
+//                      "IDirect3DDevice9::SetCursorPosition",
+//                      D3D9SetCursorPosition_Override,
+//                      D3D9SetCursorPosition_Original,
+//                      SetCursorPosition_pfn );
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 13,
                       "IDirect3DDevice9::CreateAdditionalSwapChain",
@@ -3804,11 +3916,11 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                       D3D9TestCooperativeLevel_Original,
                       TestCooperativeLevel_pfn );
 
-  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
-                      "IDirect3DDevice9::SetCursorPosition",
-                      D3D9SetCursorPosition_Override,
-                      D3D9SetCursorPosition_Original,
-                      SetCursorPosition_pfn );
+//  D3D9_INTERCEPT ( ppReturnedDeviceInterface, 11,
+//                      "IDirect3DDevice9::SetCursorPosition",
+//                      D3D9SetCursorPosition_Override,
+//                      D3D9SetCursorPosition_Original,
+//                      SetCursorPosition_pfn );
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 13,
                       "IDirect3DDevice9::CreateAdditionalSwapChain",
@@ -4613,7 +4725,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
                 break;
             }
 
-            source.checksums.push_back (it.first);
+            source.checksums.emplace_back (it.first);
           }
         }
 
@@ -4622,8 +4734,8 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
   if (list_dirty)
   {
-    injectable = SK::D3D9::tex_mgr.getInjectableTextures ();
-    archives   = SK::D3D9::tex_mgr.getTextureArchives    ();
+    SK::D3D9::tex_mgr.getInjectableTextures (injectable);
+    SK::D3D9::tex_mgr.getTextureArchives    (archives);
 
     sources.clear  ();
 
@@ -5958,8 +6070,8 @@ SK_D3D9_TextureModDlg (void)
 
       // The underlying list is unsorted for speed, but that's not at all
       //   intuitive to humans, so sort the thing when we have the RT view open.
-      std::sort ( textures_used_last_dump.begin (),
-                  textures_used_last_dump.end   () );
+      std::stable_sort ( textures_used_last_dump.begin (),
+                         textures_used_last_dump.end   () );
 
 
       for ( auto it : textures_used_last_dump )
@@ -5968,7 +6080,7 @@ SK_D3D9_TextureModDlg (void)
 
         sprintf (szDesc, "%08x", it);
 
-        list_contents.push_back (szDesc);
+        list_contents.emplace_back (szDesc);
       }
     }
 
@@ -5980,6 +6092,8 @@ SK_D3D9_TextureModDlg (void)
     ImGui::BeginChild ( ImGui::GetID ("Item List"),
                         ImVec2 ( font_size * 6.0f, std::max (font_size * 15.0f, last_ht)),
                           true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
+
+    ImGui::PopStyleColor  ();
 
     if (ImGui::IsWindowHovered ())
       can_scroll = false;
@@ -6055,10 +6169,11 @@ SK_D3D9_TextureModDlg (void)
 
         if (SUCCEEDED (pTex->d3d9_tex->pTex->GetLevelDesc (0, &desc)))
         {
-          ImVec4 border_color = config.textures.highlight_debug_tex ? 
-                                  ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
-                                    (__remap_textures && has_alternate) ? ImVec4 (0.5f,  0.5f,  0.5f, 1.0f) :
-                                                                          ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
+          ImVec4 border_color = config.textures.highlight_debug_tex ?
+                                    ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
+                                    (pTex->d3d9_tex->getDrawTexture () != pTex->d3d9_tex->pTex)
+                                                                    ? ImVec4 (0.5f,  0.5f,  0.5f, 1.0f) :
+                                                                      ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
 
           ImGui::PushStyleColor (ImGuiCol_Border, border_color);
 
@@ -6069,28 +6184,46 @@ SK_D3D9_TextureModDlg (void)
                                     true,
                                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened );
 
+          ImGui::PopStyleColor  ();
+
           if ((! config.textures.highlight_debug_tex) && has_alternate)
           {
             if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("Click me to make this texture the visible version.");
-            
+            {
+              if (pTex->d3d9_tex->img_to_use != ISKTextureD3D9::ContentPreference::Original)
+                ImGui::SetTooltip ("Click me to make this the always visible version");
+              else
+              {
+                ImGui::BeginTooltip ( );
+                ImGui::Text         ("Click me to use the system-wide texture preference");
+                ImGui::Separator    ( );
+                ImGui::BulletText   ( "The system-wide preference is currently:  (%s)",
+                                        __remap_textures ? "Draw injected textures" :
+                                                           "Draw original textures" );
+                ImGui::EndTooltip   ( );
+              }
+            }
+
             // Allow the user to toggle texture override by clicking the frame
             if (SK_ImGui_IsItemClicked ())
-              __remap_textures = false;
+            {
+              pTex->d3d9_tex->toggleOriginal ();
+            }
           }
 
           last_width  = (float)desc.Width;
           last_ht     = (float)desc.Height + font_size * 10.0f;
 
 
-          int num_lods = pTex->d3d9_tex->pTex->GetLevelCount ();
+          int num_lods =
+            pTex->d3d9_tex->pTex->GetLevelCount ();
 
-          ImGui::BeginGroup ();
+          ImGui::BeginGroup      (                  );
           ImGui::TextUnformatted ( "Dimensions:   " );
           ImGui::TextUnformatted ( "Format:       " );
           ImGui::TextUnformatted ( "Data Size:    " );
           ImGui::TextUnformatted ( "Load Time:    " );
-          ImGui::EndGroup   ();
+          ImGui::EndGroup        (                  );
 
           ImGui::SameLine   ();
 
@@ -6147,7 +6280,7 @@ SK_D3D9_TextureModDlg (void)
           ImGui::EndChildFrame   ();
           ImGui::EndChild        ();
           ImGui::EndGroup        ();
-          ImGui::PopStyleColor   (2);
+          ImGui::PopStyleColor   (1);
         }
      }
 
@@ -6159,10 +6292,12 @@ SK_D3D9_TextureModDlg (void)
 
         if (SUCCEEDED (pTex->d3d9_tex->pTexOverride->GetLevelDesc (0, &desc)))
         {
+          bool override_tex = (pTex->d3d9_tex->getDrawTexture () == pTex->d3d9_tex->pTexOverride);
+
           ImVec4 border_color = config.textures.highlight_debug_tex ? 
                                   ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
-                                    (__remap_textures) ? ImVec4 (0.3f,  1.0f,  0.3f, 1.0f) :
-                                                         ImVec4 (0.5f,  0.5f,  0.5f, 1.0f);
+                   override_tex ? ImVec4 (0.3f, 1.0f, 0.3f, 1.0f) :
+                                  ImVec4 (0.5f, 0.5f, 0.5f, 1.0f);
 
           ImGui::PushStyleColor  (ImGuiCol_Border, border_color);
 
@@ -6172,15 +6307,31 @@ SK_D3D9_TextureModDlg (void)
                                                                     (float)desc.Height + font_size * 10.0f),
                                 true,
                                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened );
+          ImGui::PopStyleColor ();
 
           if (! config.textures.highlight_debug_tex)
           {
             if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("Click me to make this texture the visible version.");
+            {
+              if (pTex->d3d9_tex->img_to_use != ISKTextureD3D9::ContentPreference::Override)
+                ImGui::SetTooltip ("Click me to make this the always visible version");
+              else
+              {
+                ImGui::BeginTooltip ( );
+                ImGui::Text         ("Click me to use the system-wide texture preference");
+                ImGui::Separator    ( );
+                ImGui::BulletText   ( "The system-wide preference is currently:  (%s)",
+                                        __remap_textures ? "Draw injected textures" :
+                                                           "Draw original textures" );
+                ImGui::EndTooltip   ( );
+              }
+            }
 
             // Allow the user to toggle texture override by clicking the frame
             if (SK_ImGui_IsItemClicked ())
-              __remap_textures = true;
+            {
+              pTex->d3d9_tex->toggleOverride ();
+            }
           }
 
 
@@ -6257,17 +6408,15 @@ SK_D3D9_TextureModDlg (void)
                                        ImColor (255,255,255,255), ImColor (255,255,255,128)
                                    );
             ImGui::EndChildFrame   ();
-            ImGui::PopStyleColor   (1);
+            ImGui::PopStyleColor   ();
           }
 
           ImGui::EndChild        ();
           ImGui::EndGroup        ();
-          ImGui::PopStyleColor   (1);
         }
       }
     }
     ImGui::EndGroup      ();
-    ImGui::PopStyleColor (1);
     ImGui::PopStyleVar   (2);
   }
 
@@ -6281,8 +6430,8 @@ SK_D3D9_TextureModDlg (void)
     static uintptr_t                 last_sel_ptr   =    0;
     static int                            sel       =   -1;
 
-    std::vector <IDirect3DBaseTexture9*> render_textures =
-      tex_mgr.getUsedRenderTargets ();
+    std::vector <IDirect3DBaseTexture9*> render_textures;
+           tex_mgr.getUsedRenderTargets (render_textures);
 
     tracked_rt.tracking_tex = 0;
 
@@ -6314,7 +6463,7 @@ SK_D3D9_TextureModDlg (void)
         sprintf (szDesc, "%lx",  (uintptr_t)it);
 #endif
 
-        list_contents.push_back (szDesc);
+        list_contents.emplace_back (szDesc);
 
         if ((uintptr_t)it == last_sel_ptr)
         {
@@ -6695,6 +6844,67 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
 
   return 0;
 }
+
+std::wstring
+SK_D3D9_SwapEffectToStr (D3DSWAPEFFECT Effect)
+{
+  switch (Effect)
+  {
+    case D3DSWAPEFFECT_COPY:
+      return std::wstring (L"Copy");
+    case D3DSWAPEFFECT_FLIP:
+      return std::wstring (L"Flip");
+    case D3DSWAPEFFECT_DISCARD:
+      return std::wstring (L"Discard");
+    case D3DSWAPEFFECT_OVERLAY:
+      return std::wstring (L"Overlay");
+    case D3DSWAPEFFECT_FLIPEX:
+      return std::wstring   (L"FlipEx");
+    default:
+      return L"UNKNOWN";
+  }
+};
+
+std::wstring
+SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags)
+{
+  std::wstring out = L"";
+
+  if (dwFlags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER)
+    out += L"D3DPRESENTFLAG_LOCKABLE_BACKBUFFER  ";
+
+  if (dwFlags & D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL)
+    out += L"D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL  ";
+
+  if (dwFlags & D3DPRESENTFLAG_DEVICECLIP)
+    out += L"D3DPRESENTFLAG_DEVICECLIP  ";
+
+  if (dwFlags & D3DPRESENTFLAG_VIDEO)
+    out += L"D3DPRESENTFLAG_VIDEO  ";
+
+  if (dwFlags & D3DPRESENTFLAG_NOAUTOROTATE)
+    out += L"D3DPRESENTFLAG_NOAUTOROTATE  ";
+
+  if (dwFlags & D3DPRESENTFLAG_UNPRUNEDMODE)
+    out += L"D3DPRESENTFLAG_UNPRUNEDMODE  ";
+
+  if (dwFlags & D3DPRESENTFLAG_OVERLAY_LIMITEDRGB)
+    out += L"D3DPRESENTFLAG_OVERLAY_LIMITEDRGB  ";
+
+  if (dwFlags & D3DPRESENTFLAG_OVERLAY_YCbCr_BT709)
+    out += L"D3DPRESENTFLAG_OVERLAY_YCbCr_BT709  ";
+
+  if (dwFlags & D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC)
+    out += L"D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC  ";
+
+  if (dwFlags & D3DPRESENTFLAG_RESTRICTED_CONTENT)
+    out += L"D3DPRESENTFLAG_RESTRICTED_CONTENT  ";
+
+  if (dwFlags & D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER)
+    out += L"D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER  ";
+
+  return out;
+};
 
 std::wstring
 SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal)
@@ -7234,6 +7444,7 @@ SK_D3D9_EndFrame (void)
   draw_state.cegui_active = false;
 }
 
+__declspec (noinline)
 bool
 SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/)
 {
@@ -7330,9 +7541,9 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
     //
     // TODO: Make generic and move into class -- must pass shader type to function
     //
-    for (auto&& it : tracked_ps.constants)
+    for (auto& it : tracked_ps.constants)
     {
-      for (auto&& it2 : it.struct_members)
+      for (auto& it2 : it.struct_members)
       {
         if (it2.Override)
           pDevice->SetPixelShaderConstantF (it2.RegisterIndex, it2.Data, 1);
@@ -7400,9 +7611,9 @@ SK_D3D9_InitShaderModTools (void)
   Shaders.vertex.rev.reserve                  (8192);
   Shaders.pixel.rev.reserve                   (8192);
 
-  InitializeCriticalSectionAndSpinCount (&cs_vs, 1024 * 2048 * 128);
-  InitializeCriticalSectionAndSpinCount (&cs_ps, 1024 * 2048 * 128);
-  InitializeCriticalSectionAndSpinCount (&cs_vb, 1024 * 2048 * 128);
+  InitializeCriticalSectionAndSpinCount (&cs_vs, 1024 * 2048 * 2);
+  InitializeCriticalSectionAndSpinCount (&cs_ps, 1024 * 2048 * 4);
+  InitializeCriticalSectionAndSpinCount (&cs_vb, 1024 * 32);
 }
 
 
@@ -7449,7 +7660,7 @@ EnumConstant ( SK::D3D9::ShaderTracker           *pShader,
         EnumConstant (pShader, pConstantTable, hConstantStruct, struct_constant, constant.struct_members );
     }
   
-    list.push_back (constant);
+    list.emplace_back (constant);
   }
 };
 

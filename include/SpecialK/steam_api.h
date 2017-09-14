@@ -649,6 +649,12 @@ enum class SK_SteamUser_LoggedOn_e
 SK_SteamUser_LoggedOn_e
 SK_SteamUser_BLoggedOn (void);
 
+const wchar_t*
+SK_Steam_PopupOriginToWStr (int origin);
+
+int
+SK_Steam_PopupOriginWStrToEnum (const wchar_t* str);
+
 
 
 #endif /* __SK__STEAM_API_H__ */

@@ -591,11 +591,19 @@ enum class SK_GAME_ID
   AKIBAs_Trip,                  // AkibaUU.exe
   YS_Seven,                     // Ys7.exe
   LifeIsStrange_BeforeTheStorm, // Life is Strange - Before the Storm.exe
-  UNKNOWN_GAME
+  Tales_of_Symphonia,           // TOS.exe
+  UNKNOWN_GAME               = 0xffff
 };
 
 SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void);
+
+const wchar_t*
+__stdcall
+SK_GetNaiveConfigPath (void);
+
+extern const wchar_t*
+SK_GetFullyQualifiedApp (void);
 
 #endif __SK__CONFIG_H__

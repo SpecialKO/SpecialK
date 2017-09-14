@@ -86,11 +86,6 @@ void
 WINAPI
 SK_HookGL (void);
 
-extern
-ULONG
-__stdcall
-SK_GetFramesDrawn (void);
-
 extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
 
 unsigned int

@@ -1191,5 +1191,11 @@ SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
 const wchar_t*
 SK_D3D9_PoolToStr (D3DPOOL pool);
 
+std::wstring
+SK_D3D9_SwapEffectToStr (D3DSWAPEFFECT Effect);
+
+std::wstring
+SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags);
+
 
 #endif /* __SK__D3D9_BACKEND_H__ */

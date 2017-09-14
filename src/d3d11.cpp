@@ -51,14 +51,9 @@ CRITICAL_SECTION cs_shader      = { };
 CRITICAL_SECTION cs_render_view = { };
 CRITICAL_SECTION cs_mmio        = { };
 
-extern volatile DWORD SK_D3D11_init_tid;
-extern volatile DWORD SK_D3D11_ansel_tid;
+HMODULE SK::DXGI::hModD3D11 = nullptr;
 
 SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
-
-extern void WaitForInitDXGI (void);
-
-HMODULE SK::DXGI::hModD3D11 = nullptr;
 
 volatile LONG SK_D3D11_tex_init = FALSE;
 volatile LONG  __d3d11_ready    = FALSE;
@@ -70,13 +65,6 @@ void WaitForInitD3D11 (void)
     MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 }
-
-void  __stdcall SK_D3D11_TexCacheCheckpoint    ( void);
-bool  __stdcall SK_D3D11_TextureIsCached       ( ID3D11Texture2D*     pTex );
-void  __stdcall SK_D3D11_UseTexture            ( ID3D11Texture2D*     pTex );
-void  __stdcall SK_D3D11_RemoveTexFromCache    ( ID3D11Texture2D*     pTex, bool blacklist = false);
-
-void  __stdcall SK_D3D11_UpdateRenderStats     ( IDXGISwapChain*      pSwapChain );
 
 D3DX11CreateTextureFromFileW_pfn D3DX11CreateTextureFromFileW = nullptr;
 D3DX11GetImageInfoFromFileW_pfn  D3DX11GetImageInfoFromFileW  = nullptr;
@@ -159,8 +147,6 @@ IUnknown_AddRef (IUnknown* This)
 
 // NEVER, under any circumstances, call any functions using this!
 ID3D11Device* g_pD3D11Dev = nullptr;
-
-unsigned int __stdcall HookD3D11 (LPVOID user);
 
 struct d3d11_caps_t {
   struct {
@@ -3698,10 +3684,6 @@ SK_D3D11_TexCacheCheckpoint (void)
 
     if (rb.d3d11.immediate_ctx != nullptr)
     {
-      void
-      WINAPI
-      SK_D3D11_PreLoadTextures (void);
-
       SK_D3D11_PreLoadTextures ();
     }
   }

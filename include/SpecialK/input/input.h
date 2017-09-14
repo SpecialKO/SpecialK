@@ -351,4 +351,8 @@ using GetRegisteredRawInputDevices_pfn = UINT (WINAPI *)(
 
 extern GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original;
 
+extern LONG  SK_RawInput_MouseX;
+extern LONG  SK_RawInput_MouseY;
+extern POINT SK_RawInput_Mouse;
+
 #endif /* __SK__INPUT_H__ */

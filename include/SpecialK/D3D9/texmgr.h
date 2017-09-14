@@ -233,8 +233,7 @@ struct TexThreadStats {
     void                       resetUsedTextures    (void);
     void                       applyTexture         (IDirect3DBaseTexture9* tex);
 
-    const std::vector <IDirect3DBaseTexture9 *>
-                               getUsedRenderTargets (void) const;
+    size_t                     getUsedRenderTargets (std::vector <IDirect3DBaseTexture9 *>& targets) const;
 
     uint32_t                   getRenderTargetCreationTime 
                                                     (IDirect3DBaseTexture9* rt);
@@ -248,24 +247,23 @@ struct TexThreadStats {
     bool                       wantsScreenshot      (void);
     HRESULT                    takeScreenshot       (IDirect3DSurface9* pSurf);
 
-    std::vector <TexThreadStats>
-                               getThreadStats       (void);
+    void                       getThreadStats       (std::vector <TexThreadStats>& stats);
 
 
     HRESULT                    dumpTexture          (D3DFORMAT fmt, uint32_t checksum, IDirect3DTexture9* pTex);
     bool                       deleteDumpedTexture  (D3DFORMAT fmt, uint32_t checksum);
     bool                       isTextureDumped      (uint32_t  checksum);
 
-    std::vector <std::wstring> getTextureArchives   (void);
+    size_t                     getTextureArchives   (std::vector <std::wstring>& arcs);
     void                       refreshDataSources   (void);
 
     HRESULT                    injectTexture           (TexLoadRequest* load);
-    bool                       isTextureInjectable     (uint32_t checksum) const;
-    bool                       removeInjectableTexture (uint32_t checksum);
-    TexList                    getInjectableTextures   (void)              const;
-    TexRecord&                 getInjectableTexture    (uint32_t checksum);
+    bool                       isTextureInjectable     (uint32_t        checksum)    const;
+    bool                       removeInjectableTexture (uint32_t        checksum);
+    size_t                     getInjectableTextures   (TexList&        texure_list) const;
+    TexRecord&                 getInjectableTexture    (uint32_t        checksum);
 
-    bool                       isTextureBlacklisted    (uint32_t checksum) const;
+    bool                       isTextureBlacklisted    (uint32_t        checksum)    const;
 
 
 
@@ -288,7 +286,7 @@ struct TexThreadStats {
 
 
     // The set of textures used during the last frame
-    std::vector           <uint32_t>                         textures_last_frame;
+    std::vector        <uint32_t>                            textures_last_frame;
     //SK_ThreadSafe_HashSet <uint32_t>                         textures_used;
     std::unordered_set <uint32_t>                            textures_used;
 //  std::unordered_set <uint32_t>                            non_power_of_two_textures;
@@ -325,11 +323,13 @@ struct TexThreadStats {
 
       void lockStreaming    (void) const { EnterCriticalSection (&cs_tex_stream);    };
       void lockResampling   (void) const { EnterCriticalSection (&cs_tex_resample);  };
+      void lockDumping      (void) const { EnterCriticalSection (&cs_tex_dump);      };
       void lockInjection    (void) const { EnterCriticalSection (&cs_tex_inject);    };
       void lockBlacklist    (void) const { EnterCriticalSection (&cs_tex_blacklist); };
 
       void unlockStreaming  (void) const { LeaveCriticalSection (&cs_tex_stream);    };
       void unlockResampling (void) const { LeaveCriticalSection (&cs_tex_resample);  };
+      void unlockDumping    (void) const { LeaveCriticalSection (&cs_tex_dump);      };
       void unlockInjection  (void) const { LeaveCriticalSection (&cs_tex_inject);    };
       void unlockBlacklist  (void) const { LeaveCriticalSection (&cs_tex_blacklist); };
 
@@ -341,6 +341,7 @@ struct TexThreadStats {
 
       static CRITICAL_SECTION                                  cs_tex_stream;
       static CRITICAL_SECTION                                  cs_tex_resample;
+      static CRITICAL_SECTION                                  cs_tex_dump;
       static CRITICAL_SECTION                                  cs_tex_inject;
       static CRITICAL_SECTION                                  cs_tex_blacklist;
 
@@ -433,19 +434,21 @@ struct TexThreadStats {
       FILETIME now;
       GetSystemTimeAsFileTime (&now);
   
-      ULONGLONG elapsed =
-        ULARGE_INTEGER { now.dwLowDateTime,            now.dwHighDateTime            }.QuadPart -
-        ULARGE_INTEGER { runtime_.start.dwLowDateTime, runtime_.start.dwHighDateTime }.QuadPart;
+      //ULONGLONG elapsed =
+      //  ULARGE_INTEGER { now.dwLowDateTime,            now.dwHighDateTime            }.QuadPart -
+      //  ULARGE_INTEGER { runtime_.start.dwLowDateTime, runtime_.start.dwHighDateTime }.QuadPart;
+      //
+      //ULONGLONG busy =
+      //  ULARGE_INTEGER { runtime_.kernel.dwLowDateTime, runtime_.kernel.dwHighDateTime }.QuadPart +
+      //  ULARGE_INTEGER { runtime_.user.dwLowDateTime,   runtime_.user.dwHighDateTime   }.QuadPart;
+
+      volatile LONG64 idle = 0LL;
+
+      //InterlockedAdd64 (&idle, elapsed);
+      //InterlockedAdd64 (&idle, -busy);
   
-      ULONGLONG busy =
-        ULARGE_INTEGER { runtime_.kernel.dwLowDateTime, runtime_.kernel.dwHighDateTime }.QuadPart +
-        ULARGE_INTEGER { runtime_.user.dwLowDateTime,   runtime_.user.dwHighDateTime   }.QuadPart;
-  
-      ULARGE_INTEGER idle;
-      idle.QuadPart = elapsed - busy;
-  
-      return FILETIME { idle.LowPart,
-                        idle.HighPart };
+      return FILETIME { (DWORD) idle        & 0xFFFFFFFF,
+                        (DWORD)(idle >> 31) & 0xFFFFFFFF };
     }
     FILETIME userTime   (void) { return runtime_.user;   };
     FILETIME kernelTime (void) { return runtime_.kernel; };
@@ -502,8 +505,7 @@ struct TexThreadStats {
       InitializeCriticalSectionAndSpinCount (&cs_jobs,     100UL);
       InitializeCriticalSectionAndSpinCount (&cs_results, 1000UL);
   
-      const int   MAX_THREADS      = 4;//config.textures.worker_threads;  
-      static bool init_worker_sync = false;
+      const int MAX_THREADS = 4;///*config.textures.worker_threads*/ 4 / 2;
 
       if (! init_worker_sync)
       {
@@ -517,7 +519,7 @@ struct TexThreadStats {
         auto* pWorker =
           new TextureWorkerThread (this);
   
-        workers_.push_back (pWorker);
+        workers_.emplace_back (pWorker);
       }
   
       // This will be deferred until it is first needed...
@@ -544,28 +546,24 @@ struct TexThreadStats {
   
     void postJob (TexLoadRequest* job);
   
-    std::vector <TexLoadRequest *> getFinished (void)
+    void getFinished (std::vector <TexLoadRequest *>& results)
     {
-      std::vector <TexLoadRequest *> results;
-  
       DWORD dwResults =
         WaitForSingleObject (events_.results_waiting, 0);
   
       // Nothing waiting
       if (dwResults != WAIT_OBJECT_0)
-        return results;
+        return;
   
       EnterCriticalSection (&cs_results);
       {
         while (! results_.empty ())
         {
-          results.push_back (results_.front ());
-                             results_.pop   ();
+          results.emplace_back (results_.front ());
+                                results_.pop   ();
         }
       }
       LeaveCriticalSection (&cs_results);
-  
-      return results;
     }
   
     bool   working     (void) { return (! results_.empty ()); }
@@ -600,7 +598,7 @@ struct TexThreadStats {
         stat.runtime.kernel = it->kernelTime  ();
         stat.runtime.user   = it->userTime    ();
   
-        stats.push_back (stat);
+        stats.emplace_back (stat);
       }
   
       return stats;
@@ -631,7 +629,9 @@ struct TexThreadStats {
   
       return job;
     }
-  
+
+    friend class SK::D3D9::TextureManager;
+
     void            postFinished (TexLoadRequest* finished)
     {
       EnterCriticalSection (&cs_results);
@@ -661,6 +661,8 @@ struct TexThreadStats {
     CRITICAL_SECTION cs_results;
   
     HANDLE spool_thread_;
+
+    bool init_worker_sync = false;
   } extern *resample_pool;
   
   //
@@ -692,21 +694,19 @@ struct TexThreadStats {
   
       return len;
     }
-  
-    std::vector <TexLoadRequest *> getFinished (void)
+
+    void getFinished (std::vector <TexLoadRequest *>& results)
     {
-      std::vector <TexLoadRequest *> results;
-  
       std::vector <TexLoadRequest *> lrg_loads;
       std::vector <TexLoadRequest *> sm_loads;
   
-      if (lrg_tex) lrg_loads = lrg_tex->getFinished ();
-      if (sm_tex)  sm_loads  = sm_tex->getFinished  ();
+      if (lrg_tex) lrg_tex->getFinished (lrg_loads);
+      if (sm_tex)  sm_tex->getFinished  (sm_loads);
   
       results.insert (results.begin (), lrg_loads.begin (), lrg_loads.end ());
       results.insert (results.begin (), sm_loads.begin  (), sm_loads.end  ());
   
-      return results;
+      return;
     }
   
     void postJob (TexLoadRequest* job)
@@ -735,6 +735,13 @@ const GUID IID_SKTextureD3D9 =
 interface ISKTextureD3D9 : public IDirect3DTexture9
 {
 public:
+  enum class ContentPreference
+  {
+    DontCare = 0, // Follow the remap setting
+    Original = 1,
+    Override = 2
+  };
+
   ISKTextureD3D9 (IDirect3DTexture9 **ppTex, SIZE_T size, uint32_t crc32c)
   {
       pTexOverride  = nullptr;
@@ -749,6 +756,7 @@ public:
       must_block    = false;
       uses          =  0;
       InterlockedExchange (&refs, 1);
+      img_to_use    = ContentPreference::DontCare;
   };
 
   /*** IUnknown methods ***/
@@ -787,12 +795,12 @@ public:
   STDMETHOD_(ULONG,Release)(THIS) {
     ULONG ret = InterlockedDecrement (&refs);
 
-    if (refs == 1)
+    if (ret == 1)
     {
       can_free = true;
     }
 
-    if (refs == 0)
+    if (ret == 0)
     {
       can_free = true;
       // Does not delete this immediately; defers the
@@ -806,6 +814,10 @@ public:
   /*** IDirect3DBaseTexture9 methods ***/
   STDMETHOD(GetDevice)(THIS_ IDirect3DDevice9** ppDevice) {
     tex_log.Log (L"[ Tex. Mgr ] ISKTextureD3D9::GetDevice (%ph)", ppDevice);
+
+    if (pTex == nullptr)
+      return E_FAIL;
+
     return pTex->GetDevice (ppDevice);
   }
   STDMETHOD(SetPrivateData)(THIS_ REFGUID refguid,CONST void* pData,DWORD SizeOfData,DWORD Flags)
@@ -819,6 +831,9 @@ public:
                             Flags );
     }
 
+    if (pTex == nullptr)
+      return E_FAIL;
+
     return pTex->SetPrivateData (refguid, pData, SizeOfData, Flags);
   }
   STDMETHOD(GetPrivateData)(THIS_ REFGUID refguid,void* pData,DWORD* pSizeOfData)
@@ -831,44 +846,68 @@ public:
                           *pSizeOfData );
     }
 
+    if (pTex == nullptr)
+      return E_FAIL;
+
     return pTex->GetPrivateData (refguid, pData, pSizeOfData);
   }
   STDMETHOD(FreePrivateData)(THIS_ REFGUID refguid) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::FreePrivateData (%x)",
                     refguid );
-  
+
+    if (pTex == nullptr)
+      return E_FAIL;
+
     return pTex->FreePrivateData (refguid);
   }
   STDMETHOD_(DWORD, SetPriority)(THIS_ DWORD PriorityNew) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetPriority (%lu)",
                     PriorityNew );
+
+    if (pTex == nullptr)
+      return 0;
   
     return pTex->SetPriority (PriorityNew);
   }
   STDMETHOD_(DWORD, GetPriority)(THIS) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetPriority ()" );
+
+    if (pTex == nullptr)
+      return 0;
   
     return pTex->GetPriority ();
   }
   STDMETHOD_(void, PreLoad)(THIS) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::PreLoad ()" );
+
+    if (pTex == nullptr)
+      return;
   
     pTex->PreLoad ();
   }
   STDMETHOD_(D3DRESOURCETYPE, GetType)(THIS) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetType ()" );
-  
+
+    if (pTex == nullptr)
+      return D3DRTYPE_TEXTURE;
+
     return pTex->GetType ();
   }
   STDMETHOD_(DWORD, SetLOD)(THIS_ DWORD LODNew) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetLOD (%lu)",
                      LODNew );
-  
+
+    if (pTex == nullptr)
+      return 0;
+
     return pTex->SetLOD (LODNew);
   }
   STDMETHOD_(DWORD, GetLOD)(THIS) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLOD ()" );
   
+    if (pTex == nullptr)
+      return 0;
+
     return pTex->GetLOD ();
   }
   STDMETHOD_(DWORD, GetLevelCount)(THIS)
@@ -877,22 +916,34 @@ public:
     {
       tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetLevelCount ()" );
     }
-  
+
+    if (pTex == nullptr)
+      return 0;
+
     return pTex->GetLevelCount ();
   }
   STDMETHOD(SetAutoGenFilterType)(THIS_ D3DTEXTUREFILTERTYPE FilterType) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::SetAutoGenFilterType (%x)",
                     FilterType );
   
+    if (pTex == nullptr)
+      return E_FAIL;
+
     return pTex->SetAutoGenFilterType (FilterType);
   }
   STDMETHOD_(D3DTEXTUREFILTERTYPE, GetAutoGenFilterType)(THIS) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetAutoGenFilterType ()" );
+
+    if (pTex == nullptr)
+      return D3DTEXF_POINT;
   
     return pTex->GetAutoGenFilterType ();
   }
   STDMETHOD_(void, GenerateMipSubLevels)(THIS) {
     tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GenerateMipSubLevels ()" );
+
+    if (pTex == nullptr)
+      return;
   
     pTex->GenerateMipSubLevels ();
   }
@@ -905,6 +956,9 @@ public:
                        pDesc );
     }
 
+    if (pTex == nullptr)
+      return E_FAIL;
+
     return pTex->GetLevelDesc (Level, pDesc);
   }
   STDMETHOD(GetSurfaceLevel)(THIS_ UINT Level,IDirect3DSurface9** ppSurfaceLevel)
@@ -915,6 +969,9 @@ public:
                       Level,
                         ppSurfaceLevel );
     }
+
+    if (pTex == nullptr)
+      return E_FAIL;
 
     return pTex->GetSurfaceLevel (Level, ppSurfaceLevel);
   }
@@ -928,6 +985,9 @@ public:
                           pRect,
                             Flags );
     }
+
+    if (pTex == nullptr)
+      return E_FAIL;
 
     HRESULT hr =
       pTex->LockRect (Level, pLockedRect, pRect, Flags);
@@ -950,6 +1010,9 @@ public:
     {
       tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::UnlockRect (%lu)", Level );
     }
+
+    if (pTex == nullptr)
+      return E_FAIL;
 
     if (tex_crc32c == 0x00 && dirty && Level == 0)
     {
@@ -987,33 +1050,22 @@ public:
         if (H > 1) H >>= 1;
       } 
 
+      if (desc.Pool != D3DPOOL_SYSTEMMEM && (! SK::D3D9::tex_mgr.injector.isInjectionThread ()))
       {
         SK::D3D9::Texture* pCacheTex =
-          SK::D3D9::tex_mgr.getTexture (this->tex_crc32c);
-
-        if (pCacheTex)
-        {
-          if (pCacheTex->d3d9_tex->refs <= 1)
-          {
-            pCacheTex->d3d9_tex->can_free = true;
-          }
-        }
-
-        pCacheTex = new SK::D3D9::Texture ();
+          new SK::D3D9::Texture ();
 
         pCacheTex->d3d9_tex = this;
         pCacheTex->size     = this->tex_size;
 
         QueryPerformanceCounter_Original (&end_map);
-
+        
         pCacheTex->load_time = (float)( 1000.0 *
                                  (double)( end_map.QuadPart - begin_map.QuadPart ) /
                                  (double)(            SK_GetPerfFreq ().QuadPart ) );
-
+        
         SK::D3D9::tex_mgr.addTexture  (this->tex_crc32c, pCacheTex, this->tex_size);
-        SK::D3D9::tex_mgr.missTexture ();
-
-        //SK::D3D9::tex_mgr.refTexture (pCacheTex);
+        //SK::D3D9::tex_mgr.missTexture ();
       }
     }
     if (Level == 0)
@@ -1031,6 +1083,9 @@ public:
       tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::AddDirtyRect (...)" );
     }
 
+    if (pTex == nullptr)
+      return E_FAIL;
+
     HRESULT hr = 
       pTex->AddDirtyRect (pDirtyRect);
 
@@ -1042,37 +1097,12 @@ public:
     return hr;
   }
 
-  void use (void)
-  {
-    if (config.textures.dump_on_load)
-    {
-      D3DSURFACE_DESC desc = { };
+  IDirect3DTexture9* getDrawTexture (void) const;
+  IDirect3DTexture9* use            (void);
 
-      if ( SUCCEEDED (pTex->GetLevelDesc (0, &desc)) &&
-        ( ! ( SK::D3D9::tex_mgr.isTextureDumped     (tex_crc32c) ||
-              SK::D3D9::tex_mgr.isTextureInjectable (tex_crc32c) ) ) && (desc.Pool != D3DPOOL_MANAGED) && uses > 0 && uses < 2 )
-      {
-        tex_log.Log ( L"[Dump Trace] Texture:   (%lu x %lu) * <LODs: %lu> - FAST_CRC32C: %08X",
-                         desc.Width, desc.Height, pTex->GetLevelCount (), tex_crc32c);
-        tex_log.Log ( L"[Dump Trace]              Usage: %-20s - Format: %-20s",
-                         SK_D3D9_UsageToStr  (desc.Usage).c_str  (),
-                         SK_D3D9_FormatToStr (desc.Format).c_str ());
-        tex_log.Log ( L"[Dump Trace]                Pool: %s",
-                         SK_D3D9_PoolToStr (desc.Pool));
+  void               toggleOverride (void);
+  void               toggleOriginal (void);
 
-        SK::D3D9::tex_mgr.injector.beginLoad ();
-
-        SK::D3D9::tex_mgr.dumpTexture (desc.Format, tex_crc32c, pTex);
-
-        SK::D3D9::tex_mgr.injector.endLoad ();
-      }
-    }
-
-    ++uses;
-
-    QueryPerformanceCounter_Original (&last_used);
-  }
-  
   bool               can_free;      // Whether or not we can free this texture
   bool               must_block;    // Whether or not to draw using this texture before its
                                     //  override finishes streaming
@@ -1097,7 +1127,13 @@ public:
   int                uses;
   LARGE_INTEGER      begin_map;
   LARGE_INTEGER      end_map;
+
+  ContentPreference  img_to_use;
 };
+
+extern std::unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
+extern std::unordered_map <uint32_t, float>              injected_load_times;
+extern std::unordered_map <uint32_t, size_t>             injected_sizes;
 
 typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateTextureFromFileInMemoryEx_pfn)
 (

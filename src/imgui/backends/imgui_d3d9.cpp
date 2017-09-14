@@ -8,6 +8,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
+#include <SpecialK/d3d9_backend.h>
 #include <SpecialK/framerate.h>
 
 // DirectX
@@ -398,7 +399,8 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   // Upload texture to graphics system
   g_FontTexture = nullptr;
 
-  if ( g_pd3dDevice->CreateTexture ( width, height,
+  extern CreateTexture_pfn D3D9CreateTexture_Original;
+  if ( D3D9CreateTexture_Original ( g_pd3dDevice, width, height,
                                        1, D3DUSAGE_DYNAMIC,
                                           D3DFMT_A8R8G8B8,
                                           D3DPOOL_DEFAULT,

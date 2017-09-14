@@ -12213,11 +12213,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
 }
 
 
+#include <SpecialK/core.h>
 #include <SpecialK/widgets/widget.h>
-
-ULONG
-__stdcall
-SK_GetFramesDrawn (void);
 
 #define SK_Threshold(x,y) (x) > (y) ? ( (x) - (y) ) : 0
 

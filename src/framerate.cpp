@@ -475,6 +475,9 @@ float SK_Framerate_SleepToBusy        = 3.3f;
 void
 SK::Framerate::Limiter::wait (void)
 {
+  SK_RunOnce ( SetThreadPriority ( GetCurrentThread (),
+                                     THREAD_PRIORITY_ABOVE_NORMAL ) );
+
   static bool restart      = false;
   static bool full_restart = false;
 

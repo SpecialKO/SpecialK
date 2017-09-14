@@ -357,12 +357,6 @@ struct {
   sk::ParameterInt*       last_known;
 } apis;
 
-
-extern const wchar_t*
-SK_Steam_PopupOriginToWStr (int origin);
-extern int
-SK_Steam_PopupOriginWStrToEnum (const wchar_t* str);
-
 bool
 SK_LoadConfig (std::wstring name) {
   return SK_LoadConfigEx (name);
@@ -370,13 +364,6 @@ SK_LoadConfig (std::wstring name) {
 
 
 SK_AppCache_Manager app_cache_mgr;
-
-const wchar_t*
-__stdcall
-SK_GetNaiveConfigPath (void);
-
-extern const wchar_t*
-SK_GetFullyQualifiedApp (void);
 
 __declspec (noinline)
 const wchar_t*
@@ -2262,6 +2249,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          );
   games.emplace ( L"AkibaUU.exe",                            SK_GAME_ID::AKIBAs_Trip                  );
   games.emplace ( L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     );
+  games.emplace ( L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           );
   games.emplace ( L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm );
 
   //
@@ -3251,25 +3239,25 @@ SK_LoadConfigEx (std::wstring name, bool create)
         } break;
 
 
-        //case SK_GAME_ID::YS_Seven:
-        //{
-        //  CreateThread (nullptr, 0, [ ] (LPVOID) ->
-        //                DWORD
-        //  {
-        //    // Wait for the image relocation to settle down, or we'll probably
-        //    //   break the memory scanner.
-        //    WaitForInputIdle (GetCurrentProcess (), 3333UL);
-        //
-        //    void
-        //    SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
-        //
-        //    SK_ResHack_PatchGame2 (1920, 1080);
-        //
-        //    CloseHandle (GetCurrentThread ());
-        //
-        //    return 0;
-        //  }, nullptr, 0x00, nullptr);
-        //} break;
+        case SK_GAME_ID::YS_Seven:
+        {
+          CreateThread (nullptr, 0, [ ] (LPVOID) ->
+                        DWORD
+          {
+            // Wait for the image relocation to settle down, or we'll probably
+            //   break the memory scanner.
+            WaitForInputIdle (GetCurrentProcess (), 3333UL);
+        
+            void
+              SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
+        
+            SK_ResHack_PatchGame2 (1920, 1080);
+        
+            CloseHandle (GetCurrentThread ());
+        
+            return 0;
+          }, nullptr, 0x00, nullptr);
+        } break;
 
 
         case SK_GAME_ID::AKIBAs_Trip:

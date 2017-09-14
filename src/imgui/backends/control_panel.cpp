@@ -2058,6 +2058,80 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+    if (ImGui::IsItemHovered ())
+    {
+      if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
+      {
+        CComPtr <IDirect3DDevice9> pDev9 = nullptr;
+
+        if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9> (&pDev9)))
+        {
+          CComPtr <IDirect3DSwapChain9> pSwap9 = nullptr;
+
+          if (rb.swapchain != nullptr)
+          {
+            rb.swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwap9);
+          }
+
+          if (pSwap9 != nullptr)
+          {
+            D3DPRESENT_PARAMETERS pparams = { };
+
+            if (SUCCEEDED (pSwap9->GetPresentParameters (&pparams)))
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
+              ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
+              ImGui::PopStyleColor   ();
+              ImGui::Separator       ();
+
+              ImGui::BeginGroup      ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.785f, 0.785f, 0.785f));
+              ImGui::TextUnformatted ("Color:");
+              ImGui::TextUnformatted ("Depth/Stencil:");
+              ImGui::TextUnformatted ("Resolution:");
+              ImGui::TextUnformatted ("Back Buffers:");
+              if (! pparams.Windowed)
+              ImGui::TextUnformatted ("Refresh Rate:");
+              ImGui::TextUnformatted ("Swap Interval:");
+              ImGui::TextUnformatted ("Swap Effect:");
+              ImGui::TextUnformatted ("MSAA Samples:");
+              if (pparams.Flags != 0)
+              ImGui::TextUnformatted ("Flags:");
+              ImGui::PopStyleColor   ();
+              ImGui::EndGroup        ();
+
+              ImGui::SameLine        ();
+
+              ImGui::BeginGroup      ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
+              ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.BackBufferFormat).c_str       ());
+              ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.AutoDepthStencilFormat).c_str ());
+              ImGui::Text            ("%ux%u",                                   pparams.BackBufferWidth, pparams.BackBufferHeight);
+              ImGui::Text            ("%u",                                      pparams.BackBufferCount);
+              if (! pparams.Windowed)
+              ImGui::Text            ("%u Hz",                                   pparams.FullScreen_RefreshRateInHz);
+              if (pparams.PresentationInterval == 1)
+                ImGui::Text          ("%u: Normal V-SYNC",                       pparams.PresentationInterval);
+              if (pparams.PresentationInterval == 2)
+                ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  pparams.PresentationInterval);
+              if (pparams.PresentationInterval == 3)
+                ImGui::Text          ("%u: 1/3 Refresh V-SYNC",                  pparams.PresentationInterval);
+              if (pparams.PresentationInterval == 4)
+                ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  pparams.PresentationInterval);
+              ImGui::Text            ("%ws",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
+              ImGui::Text            ("%u",                                      pparams.MultiSampleType);
+              if (pparams.Flags != 0)
+              ImGui::Text            ("%ws", SK_D3D9_PresentParameterFlagsToStr (pparams.Flags).c_str ()) ;
+              ImGui::PopStyleColor   ();
+              ImGui::EndGroup        ();
+              ImGui::EndTooltip      ();
+            }
+          }
+        }
+      }
+    }
+
     HDC hDC = GetWindowDC (game_window.hWnd);
 
     int res_x = GetDeviceCaps (hDC, HORZRES);
@@ -2388,16 +2462,16 @@ SK_ImGui_ControlPanel (void)
       if (config.textures.d3d9_mod)
       {
       ImGui::TreePush ("");
-      if (ImGui::CollapsingHeader ("Performance", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
+      if (ImGui::CollapsingHeader ("Texture Memory Stats", ImGuiTreeNodeFlags_DefaultOpen))
       {
         extern bool __remap_textures;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 15.0f);
-        ImGui::TreePush  ("");
+        ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 15.0f);
+        ImGui::TreePush     ("");
 
-        ImGui::BeginChild  ("Texture Details", ImVec2 ( font_size           * 70,
-                                                        font_size_multiline * 5.1f ),
-                                                 true, ImGuiWindowFlags_AlwaysAutoResize );
+        ImGui::BeginChild  ("Texture Details", ImVec2 ( font_size           * 30,
+                                                        font_size_multiline * 4.8f ),
+                                                 true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
         ImGui::Columns   ( 3 );
           ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
@@ -2412,13 +2486,14 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Separator (   );
 
+      //ImGui::PushFont  (ImGui::GetIO ().Fonts->Fonts [1]);
         ImGui::Columns   ( 3 );
           ImGui::Text    ( "%#6zu MiB Total",
-                                                         SK::D3D9::tex_mgr.cacheSizeTotal () >> 20ULL ); ImGui::NextColumn (); 
+                                                         SK::D3D9::tex_mgr.cacheSizeTotal () >> 20ULL ); ImGui::NextColumn ();
           ImGui::TextColored
                          (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
-                           "%#5lu     Hits",             SK::D3D9::tex_mgr.getHitCount    ()          );  ImGui::NextColumn ();
-          ImGui::Text    ( "Budget: %#7zu MiB  ",        static_cast <IDirect3DDevice9 *>(SK_GetCurrentRenderBackend ().device)->
+                           "%#5lu     Hits",             SK::D3D9::tex_mgr.getHitCount    ()          ); ImGui::NextColumn ();
+          ImGui::Text       ( "Budget: %#7zu MiB  ",        static_cast <IDirect3DDevice9 *>(SK_GetCurrentRenderBackend ().device)->
                                                                          GetAvailableTextureMem ()  / 1048576UL );
         ImGui::Columns   ( 1 );
 
@@ -2428,32 +2503,49 @@ SK_ImGui_ControlPanel (void)
         ImColor  inactive (0.75f, 0.75f, 0.75f, 1.0f);
         ImColor& color   = __remap_textures ? inactive : active;
 
+        ImGui::PushStyleColor (ImGuiCol_Text, color);
+
+        bool selected = (! __remap_textures);
+
         ImGui::Columns   ( 3 );
-          ImGui::TextColored ( color,
-                                 "%#6zu MiB Base",
-                                                         SK::D3D9::tex_mgr.cacheSizeBasic () >> 20ULL );  ImGui::NextColumn (); 
-          if (ImGui::IsItemClicked ())
+          ImGui::Selectable  ( SK_FormatString ( "%#6zu MiB Base###D3D9_BaseTextures",
+                                                   SK::D3D9::tex_mgr.cacheSizeBasic () >> 20ULL ).c_str (),
+                                 &selected ); ImGui::NextColumn ();
+
+          ImGui::PopStyleColor ();
+
+          if (SK_ImGui_IsItemClicked ())
             __remap_textures = false;
+          if ((! selected) && (ImGui::IsItemHovered () || ImGui::IsItemFocused ()))
+            ImGui::SetTooltip ("Click here to use the game's original textures.");
 
           ImGui::TextColored
                          (ImVec4 (1.0f, 0.3f, 0.3f, 1.0f),
                            "%#5lu   Misses",             SK::D3D9::tex_mgr.getMissCount   ()          );  ImGui::NextColumn ();
-          ImGui::Text    ( "Time:    %#6.04lf  s  ",     SK::D3D9::tex_mgr.getTimeSaved   () / 1000.0f);
+          ImGui::Text    ( "Time:    %#7.03lf  s  ",     SK::D3D9::tex_mgr.getTimeSaved   () / 1000.0f);
         ImGui::Columns   ( 1 );
 
         ImGui::Separator (   );
 
-        color = __remap_textures ? active : inactive;
+        color    = __remap_textures ? active : inactive;
+        selected = __remap_textures;
+
+        ImGui::PushStyleColor (ImGuiCol_Text, color);
 
         ImGui::Columns   ( 3 );
-          ImGui::TextColored ( color,
-                                 "%#6zu MiB Injected",
-                                                         SK::D3D9::tex_mgr.cacheSizeInjected () >> 20ULL ); ImGui::NextColumn (); 
+          ImGui::Selectable  ( SK_FormatString ( "%#6zu MiB Injected###D3D9_InjectedTextures",
+                                                             SK::D3D9::tex_mgr.cacheSizeInjected () >> 20ULL ).c_str (),
+                                           &selected ); ImGui::NextColumn ();
 
-          if (ImGui::IsItemClicked ())
+          ImGui::PopStyleColor ();
+
+          if (SK_ImGui_IsItemClicked ())
             __remap_textures = true;
+          if ((! selected) && (ImGui::IsItemHovered () || ImGui::IsItemFocused ()))
+            ImGui::SetTooltip ("Click here to use custom textures.");
 
-          ImGui::TextColored (ImVec4 (0.555f, 0.555f, 1.0f, 1.0f),
+          ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK::D3D9::tex_mgr.getHitCount  ()   / 
+                                                              (float)SK::D3D9::tex_mgr.getMissCount (), 0.4f ), 0.98f, 1.0f),
                            "%.2f  Hit/Miss",          (double)SK::D3D9::tex_mgr.getHitCount  () / 
                                                       (double)SK::D3D9::tex_mgr.getMissCount ()          ); ImGui::NextColumn ();
           ImGui::Text    ( "Driver: %#7zu MiB  ",    SK::D3D9::tex_mgr.getByteSaved          () >> 20ULL );
@@ -2461,6 +2553,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::PopStyleColor
                          (   );
         ImGui::Columns   ( 1 );
+      //ImGui::PopFont   (   );
+        ImGui::EndChild  (   );
 
 #if 0
         if (ImGui::CollapsingHeader ("Thread Stats"))
@@ -2470,7 +2564,7 @@ SK_ImGui_ControlPanel (void)
 
           int thread_id = 0;
 
-          for (auto it : stats)
+          for (auto&& it : stats)
           {
             ImGui::Text ("Thread #%lu  -  %6lu jobs retired, %5lu MiB loaded  -  %.6f User / %.6f Kernel / %3.1f Idle",
                          thread_id++,
@@ -2490,11 +2584,13 @@ SK_ImGui_ControlPanel (void)
           }
         }
 #endif
-        ImGui::EndChild ();
+
         ImGui::TreePop  ();
       }
       ImGui::TreePop ();
       }
+
+      ImGui::TreePop ();
     }
 
     if ( static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11) &&
@@ -5632,10 +5728,6 @@ SK_ImGui_Toggle (void)
       SK_ImGui_OpenCloseCallback.fn (SK_ImGui_OpenCloseCallback.data);
   }
 }
-
-extern LONG  SK_RawInput_MouseX;
-extern LONG  SK_RawInput_MouseY;
-extern POINT SK_RawInput_Mouse;
 
 void
 SK_ImGui_CenterCursorAtPos (ImVec2 center)

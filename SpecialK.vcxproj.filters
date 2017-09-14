@@ -412,7 +412,7 @@
       <Filter>Header Files\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\input\steam.h">
-      <Filter>Header Files\Backends\Input\RawInput</Filter>
+      <Filter>Header Files\Backends\Input\Steam</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
