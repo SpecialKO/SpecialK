@@ -310,7 +310,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     SteamAPI_RegisterCallback_Original (pCallback, iCallback);
     return;
   }
-  std::wstring caller = 
+  std::wstring caller =
     SK_GetCallerName ();
 
   EnterCriticalSection (&callback_cs);
@@ -357,21 +357,21 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 
         SK_CreateFuncHook (      L"Callback Redirect",
                                    vftable [3],
-                                   SteamAPI_UserStatsReceived_Detour, 
+                                   SteamAPI_UserStatsReceived_Detour,
           static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
         SK_EnableHook (            vftable [3]);
 
-        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remvove "
+        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
                              L"Third-Party CSteamID / AppID Achievements) ###" );
 #else
         /*
         SK_CreateFuncHook ( L"Callback Redirect",
                               vftable [4],
-                              SteamAPI_UserStatsReceived_Detour, 
+                              SteamAPI_UserStatsReceived_Detour,
      static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
         SK_EnableHook (vftable [4]);
 
-        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remvove "
+        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
                              L"Third-Party CSteamID / AppID Achievements) ###" );
         */
 #endif
@@ -478,7 +478,7 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     return;
   }
 
-  std::wstring caller = 
+  std::wstring caller =
     SK_GetCallerName ();
 
   EnterCriticalSection (&callback_cs);
@@ -704,7 +704,7 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
 
   UNREFERENCED_PARAMETER (pCommandProc);
 
- 
+
   bool known = false;
 
   // ( Dead man's switch for silly pirates that attempt to bypass framerate limit
@@ -726,7 +726,7 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
           SK_GetCommandProcessor ()->ProcessCommandLine (
             "Textures.LODBias"
           ).getVariable ();
-        
+
         if (_var != nullptr)
         {
           *static_cast <float *> (_var->getValuePointer ()) =
@@ -1448,7 +1448,7 @@ public:
 
       else
       {
-        float progress = 
+        float progress =
           static_cast <float> (pParam->m_nCurProgress) /
           static_cast <float> (pParam->m_nMaxProgress);
 
@@ -1488,7 +1488,7 @@ public:
           popup.achievement = achievement;
 
           popups.push_back (popup);
-        } 
+        }
 
         catch (...)
         {
@@ -1616,7 +1616,7 @@ public:
         {
           if (timeGetTime () < (*it).time + POPUP_DURATION_MS)
           {
-            float percent_of_lifetime = (static_cast <float> ((*it).time + POPUP_DURATION_MS - timeGetTime ()) / 
+            float percent_of_lifetime = (static_cast <float> ((*it).time + POPUP_DURATION_MS - timeGetTime ()) /
                                          static_cast <float> (POPUP_DURATION_MS));
 
             //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
@@ -1636,10 +1636,10 @@ public:
 
               CEGUI::UVector2 win_pos (x_pos, y_pos);
 
-              float bottom_y = win_pos.d_y.d_scale * full_ht + 
+              float bottom_y = win_pos.d_y.d_scale * full_ht +
                                  win_pos.d_y.d_offset        +
                                    win_ht;
- 
+
               // The bottom of the window would be off-screen, so
               //   move it to the top and offset by the width of
               //     each popup.
@@ -1651,7 +1651,7 @@ public:
                 win_pos   = (CEGUI::UVector2 (x_pos, y_pos));
               }
 
-              float right_x = win_pos.d_x.d_scale * full_wd + 
+              float right_x = win_pos.d_x.d_scale * full_wd +
                                  win_pos.d_x.d_offset       +
                                    win_wd;
 
@@ -1684,7 +1684,7 @@ public:
                   else if (percent_of_lifetime >= 0.9f)
                   {
                       win_pos.d_y /= (percent * 100.0f *
-                            CEGUI::UDim ( (1.0f - 
+                            CEGUI::UDim ( (1.0f -
                                 (percent_of_lifetime - 0.9f) / 0.1f),
                                             0.0f ));
                   }
@@ -1928,6 +1928,8 @@ public:
 
     if ((! psn) && (! xbox) && fWAV != nullptr)
     {
+      SK_StripUserNameFromPathW (wszFileName);
+
       steam_log.LogEx (true, L"  >> Loading Achievement Unlock Sound: '%s'...",
                        wszFileName);
 
@@ -2034,7 +2036,7 @@ protected:
                  "Global: %6.2f%%",
                    achievement->global_percent_ );
     achv_global->setText (szGlobal);
-    
+
     CEGUI::Window* achv_friend = achv_popup->getChild ("FriendRarity");
     char szFriend [32] = { };
     snprintf ( szFriend, 32,
@@ -2052,7 +2054,7 @@ protected:
     CEGUI::Window* achv_percent = achv_popup->getChild ("ProgressBar");
 
     float progress = achievement->progress_.getPercent ();
-    
+
     char szUnlockTime [128] = { };
     if (progress == 100.0f)
     {
@@ -2062,7 +2064,7 @@ protected:
 
       achv_percent->setProperty ( "CurrentProgress", "1.0" );
     }
-    
+
     else
     {
       snprintf ( szUnlockTime, 16,
@@ -2071,7 +2073,7 @@ protected:
                );
 
       achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
-    
+
       snprintf ( szUnlockTime, 128,
                    "Current Progress: %li/%li (%6.2f%%)",
                      achievement->progress_.current,
@@ -2082,7 +2084,7 @@ protected:
     achv_unlock->setText (szUnlockTime);
 
     int icon_idx =
-      steam_ctx.UserStats () ? 
+      steam_ctx.UserStats () ?
         steam_ctx.UserStats ()->GetAchievementIcon (achievement->name_) :
         0;
 
@@ -2094,7 +2096,7 @@ protected:
     {
       if (steam_ctx.Utils ())
         steam_ctx.Utils ()->GetImageSize (icon_idx, &w, &h);
-    
+
       int tries = 1;
 
       while (achievement->icons_.achieved == nullptr && tries < 8)
@@ -2107,7 +2109,7 @@ protected:
           if ( ! steam_ctx.Utils ()->GetImageRGBA (
                    icon_idx,
                      achievement->icons_.achieved,
-                       4 * w * h 
+                       4 * w * h
                  )
              )
           {
@@ -2172,7 +2174,7 @@ protected:
     if (config.steam.achievements.popup.show_title)
     {
       std::string app_name = SK::SteamAPI::AppName ();
-    
+
       if (strlen (app_name.c_str ()))
       {
         achv_popup->setText (
@@ -3729,7 +3731,7 @@ SK_TestSteamImports (HMODULE hMod)
   static const wchar_t* steam_dll_str = L"steam_api.dll";
 #endif
 
-  sk_import_test_s steam_api [] = { 
+  sk_import_test_s steam_api [] = {
 #ifdef _WIN64
                                     { "steam_api64.dll", false } };
 #else

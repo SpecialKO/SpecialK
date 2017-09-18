@@ -1,3 +1,16 @@
+0.8.43
+
+ + Enabled triple-buffering override in D3D11 fullscreen (non-flip-model) mode
+ + Disabled non-mipmapped texture cache in Divinity: Original Sin 2
+
+  >> If you want to mod its UI textures, turn this option back on and turn staging texture
+       uploads on. This is under the D3D11 / Texture Management settings.
+
+ + Improved multi-threaded texture cache performance for games like Divinity: Original Sin 2
+ + Removed username from file paths in logs
+ + Add SteamAPI offline check bypass option
+
+
 0.8.42
 
  + Last update prior to hurricane Irma
@@ -5,7 +18,7 @@
 
 
 0.8.41
- 
+
  + Improved support for D3D9 texture modding, and made it an opt-in thing since it's still
      experimental.
  + Added File | Exit to the control panel
@@ -48,7 +61,7 @@
      search heuristics.
 
    >> Significantly speeds up repeating pattern searches (i.e. hard-coded resolutions)
-    
+
  + Added Resolution Override to Gal Gun and Akiba's Trip
 
   >> This is different from the way this feature normally works, it goes beyond API

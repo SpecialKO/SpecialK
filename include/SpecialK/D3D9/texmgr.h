@@ -75,9 +75,6 @@ private:
   CRITICAL_SECTION        cs_;
 };
 
-uint32_t
-safe_crc32c (uint32_t seed, const void* pData, size_t size);
-
 namespace SK   {
 namespace D3D9 {
 

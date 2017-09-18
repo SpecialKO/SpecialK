@@ -68,7 +68,7 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
 }
 
 
-SK_TextOverlay* 
+SK_TextOverlay*
 SK_TextOverlayManager::createTextOverlay (const char *szAppName)
 {
   SK_AutoCriticalSection auto_crit (&cs_);
@@ -549,8 +549,6 @@ SK_DrawOSD (void)
         isNieRAutomata = true;
       else if (StrStrIW (wszGameName, L"DarkSoulsIII.exe"))
         isDarkSouls3 = true;
-      else if (StrStrIW (wszGameName, L"EoCApp.exe"))
-        isDivinityOrigSin = true;
     }
 
     if (isFallout4)
@@ -564,13 +562,6 @@ SK_DrawOSD (void)
     {
       OSD_PRINTF "%ws   %ws\n\n",
                  SK_GetPluginName ().c_str (), time
-      OSD_END
-    }
-
-    else if (isDivinityOrigSin)
-    {
-      OSD_PRINTF "Divinity: Original Sin \"Works\" v 0.0.1   %ws\n\n",
-                 time
       OSD_END
     }
 
@@ -783,7 +774,7 @@ SK_DrawOSD (void)
       OSD_END
     }
 
-    std::wstring temp = 
+    std::wstring temp =
       SK_FormatTemperature (
         gpu_stats.gpus [i].temps_c.gpu,
           Celsius,
@@ -862,7 +853,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       // Add memory temperature if it exists
       if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
       {
-        std::wstring temp = 
+        std::wstring temp =
           SK_FormatTemperature (
             gpu_stats.gpus [i].temps_c.gpu,
               Celsius,
@@ -976,7 +967,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       // Add memory temperature if it exists
       if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
       {
-        std::wstring temp = 
+        std::wstring temp =
           SK_FormatTemperature (
             gpu_stats.gpus [i].temps_c.gpu,
               Celsius,
@@ -1005,7 +996,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       OSD_R_PRINTF "\n%ws",
         SK::D3D9::getPipelineStatsDesc ().c_str ()
       OSD_END
-    } 
+    }
 
     else if (SK_IsOpenGL ())
     {
@@ -1024,9 +1015,9 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   {
     OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
                    "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-          cpu_stats.cpus [0].percent_load, 
-            cpu_stats.cpus [0].percent_kernel, 
-              cpu_stats.cpus [0].percent_user, 
+          cpu_stats.cpus [0].percent_load,
+            cpu_stats.cpus [0].percent_kernel,
+              cpu_stats.cpus [0].percent_user,
                 cpu_stats.cpus [0].percent_interrupt
     OSD_END
 
@@ -1037,9 +1028,9 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
         OSD_C_PRINTF "  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   "
                      "User: %#3llu%%   Interrupt: %#3llu%%)\n",
           i-1,
-            cpu_stats.cpus [i].percent_load, 
-              cpu_stats.cpus [i].percent_kernel, 
-                cpu_stats.cpus [i].percent_user, 
+            cpu_stats.cpus [i].percent_load,
+              cpu_stats.cpus [i].percent_kernel,
+                cpu_stats.cpus [i].percent_user,
                   cpu_stats.cpus [i].percent_interrupt
         OSD_END
       }
@@ -1159,7 +1150,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       SK_SizeToString (process_stats.memory.working_set,   MiB);
     std::wstring commit =
       SK_SizeToString (process_stats.memory.private_bytes, MiB);
-    std::wstring virtual_size = 
+    std::wstring virtual_size =
       SK_SizeToString (process_stats.memory.virtual_bytes, MiB);
 
     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
@@ -1172,7 +1163,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       SK_SizeToString (process_stats.memory.working_set_peak,     MiB);
     std::wstring commit_peak =
       SK_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
-    std::wstring virtual_peak = 
+    std::wstring virtual_peak =
       SK_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
 
     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
@@ -1277,7 +1268,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     {
       std::wstring usage =
         SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
-      std::wstring size = 
+      std::wstring size =
         SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
       std::wstring peak =
         SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
@@ -1322,7 +1313,7 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 
 #define IMPLICIT_CREATION
 #ifdef IMPLICIT_CREATION
-    if (pOverlay == nullptr) 
+    if (pOverlay == nullptr)
     {
       pOverlay =
         SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
@@ -1394,7 +1385,7 @@ SK_SetOSDColor ( int    red,
 }
 
 void
-__stdcall 
+__stdcall
 SK_SetOSDScale ( float  fScale,
                  bool   relative,
                  LPCSTR lpAppName )
@@ -1428,7 +1419,7 @@ SK_SetOSDScale ( float  fScale,
 }
 
 void
-__stdcall 
+__stdcall
 SK_ResizeOSD (float scale_incr, LPCSTR lpAppName)
 {
   if (lpAppName == nullptr)
@@ -1798,7 +1789,7 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
       it->second->font_.scale = config.osd.scale;
 
       it->second->font_.primary_color =
-       ( ( (config.osd.red   << 16) & 0xff0000 ) | 
+       ( ( (config.osd.red   << 16) & 0xff0000 ) |
          ( (config.osd.green << 8)  & 0xff00   ) |
            (config.osd.blue         & 0xff     ) );
 

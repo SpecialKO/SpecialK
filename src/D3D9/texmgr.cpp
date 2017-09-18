@@ -122,7 +122,7 @@ SK::D3D9::TextureManager::getTextureArchives (std::vector <std::wstring>& arcs)
 size_t
 SK::D3D9::TextureManager::getInjectableTextures (SK::D3D9::TexList& texture_list) const
 {
-  for ( auto&& it : injectable_textures ) 
+  for ( auto&& it : injectable_textures )
   {
     texture_list.emplace_back (std::make_pair (it.first, it.second));
   }
@@ -456,7 +456,7 @@ D3D9SetTexture_Detour (
       {
         tex_mgr.loadQueuedTextures ();
       }
-    
+
       else
       {
         SwitchToThread ();
@@ -545,12 +545,12 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
     }
   }
 
-  HRESULT result = 
+  HRESULT result =
     D3D9CreateTexture_Original (This, Width, Height, levels, Usage,
                                 Format, Pool, ppTexture, pSharedHandle);
 
   if ( SUCCEEDED (result) &&
-       ( ( Usage & D3DUSAGE_RENDERTARGET ) || 
+       ( ( Usage & D3DUSAGE_RENDERTARGET ) ||
          ( Usage & D3DUSAGE_DEPTHSTENCIL ) /*||
          ( Usage & D3DUSAGE_DYNAMIC      )*/ ) )
   {
@@ -715,7 +715,6 @@ SK::D3D9::TextureManager::Injector::hasPendingStreams (void) const
 {
   bool ret = false;
 
-  
   if (ReadAcquire (&streaming) || stream_pool.queueLength () || (resample_pool && resample_pool->queueLength ()))
     ret = true;
 
@@ -1087,7 +1086,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
             WaitForSingleObject ( decomp_semaphore, INFINITE );
         }
 
-        switch (dwResult) 
+        switch (dwResult)
         {
         case WAIT_OBJECT_0:
         {
@@ -1145,7 +1144,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
                           dwResult,
                             load->checksum );
           wait = false;
-          break; 
+          break;
         }
       }
 
@@ -1187,7 +1186,7 @@ SK::D3D9::TextureManager::updateQueueOSD (void)
 
       static std::string resampling_text; static DWORD dwLastResample = 0;
       static std::string streaming_text;  static DWORD dwLastStream   = 0;
-      
+
       if (is_resampling)
       {
         size_t count = queue_len + resample_count;
@@ -1209,7 +1208,7 @@ SK::D3D9::TextureManager::updateQueueOSD (void)
         if (count)
           dwLastResample = dwTime;
       }
-      
+
       if (is_streaming)
       {
         size_t count = stream_count + to_stream;
@@ -1243,7 +1242,7 @@ SK::D3D9::TextureManager::updateQueueOSD (void)
 
       if (mod_text != "")
         last_queue_update = dwTime;
-      
+
       //LeaveCriticalSection (&osd_cs);
     }
   }
@@ -1424,7 +1423,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
     last_size = cacheSizeTotal ();
 
     if ( last_size >
-           (1024LL * 1024ULL) * (int64_t)d3d9_max_cache_in_mib/*config.textures.max_cache_in_mib*/ )
+           (1024LL * 1024LL) * (int64_t)d3d9_max_cache_in_mib/*config.textures.max_cache_in_mib*/ )
       __need_purge = true;
   }
 
@@ -1522,7 +1521,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 
   // Don't dump or cache these
 
-  
+
   if ( (Usage & D3DUSAGE_DYNAMIC) || (Usage & D3DUSAGE_RENDERTARGET) || pSrcData == nullptr || SrcDataSize == 0 )
     checksum = 0x00;
   else
@@ -1567,7 +1566,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 #if 0
   D3DFORMAT fmt_real = info.Format;
 
-  bool power_of_two_in_one_way =  
+  bool power_of_two_in_one_way =
     (! (info.Width  & (info.Width  - 1)))  !=  (! (info.Height & (info.Height - 1)));
 
 
@@ -1855,7 +1854,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
                        SK_D3D9_FormatToStr (Format).c_str () );
       tex_log.Log ( L"[Load Trace]                Pool: %s",
                      SK_D3D9_PoolToStr (Pool) );
-      tex_log.Log ( L"[Load Trace]      Load Time: %6.4f ms", 
+      tex_log.Log ( L"[Load Trace]      Load Time: %6.4f ms",
                      1000.0f * (double)(end.QuadPart - start.QuadPart) / (double)SK_GetPerfFreq ().QuadPart );
     }
   }
@@ -2108,7 +2107,7 @@ SK::D3D9::TextureManager::refTextureEx (Texture* pTex, bool add_to_ref_count)
   InterlockedIncrement (&hits);
 
 #if 0
-  if (true) 
+  if (true)
   {//config.textures.log) {
     tex_log.Log ( L"[CacheTrace] Cache hit (%X), saved %2.1f ms",
                     pTex->crc32c,
@@ -2296,7 +2295,7 @@ SK::D3D9::TextureManager::Init (void)
 
   time_saved  = 0.0f;
 
-  decomp_semaphore = 
+  decomp_semaphore =
     CreateSemaphore ( nullptr,
                         2,//config.textures.worker_threads,
                           2,//config.textures.worker_threads,
@@ -2878,8 +2877,8 @@ SK::D3D9::TextureManager::logUsedTextures (void)
                           (double)pSKTex->tex_size /
                             (1024.0 * 1024.0),
 
-                    pSKTex->override_size != 0 ? 
-                      (double)pSKTex->override_size / 
+                    pSKTex->override_size != 0 ?
+                      (double)pSKTex->override_size /
                             (1024.0 * 1024.0) : 0.0,
 
                           getTexture (it)->load_time );
@@ -3084,7 +3083,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 
       size_t before = streaming_memory::data_len ();
 
-      streaming_memory::trim ( MIN_SIZE, 
+      streaming_memory::trim ( MIN_SIZE,
                                  timeGetTime () - MIN_AGE );
 
       size_t now    = streaming_memory::data_len ();
@@ -3249,7 +3248,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
       {
         if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
         {
-          if (wcsstr (_wcslwr (fd.cFileName), L".dds")) 
+          if (wcsstr (_wcslwr (fd.cFileName), L".dds"))
 {
             uint32_t checksum;
             swscanf (fd.cFileName, L"%x.dds", &checksum);
@@ -3521,7 +3520,7 @@ SK::D3D9::TextureManager::TextureManager::reloadTexture (uint32_t checksum)
   Texture* pCacheTex =
     getTexture (checksum);
 
-  ISKTextureD3D9* pTex = 
+  ISKTextureD3D9* pTex =
     pCacheTex ? pCacheTex->d3d9_tex :
                 nullptr;
 
@@ -3670,7 +3669,7 @@ SK::D3D9::TextureThreadPool::postJob (TexLoadRequest* job)
 
     // Don't let the game free this while we are working on it...
     job->pDest->AddRef ();
-  
+
     jobs_.push           (job);
 
     LeaveCriticalSection (&cs_jobs);

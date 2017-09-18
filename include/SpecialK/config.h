@@ -592,6 +592,7 @@ enum class SK_GAME_ID
   YS_Seven,                     // Ys7.exe
   LifeIsStrange_BeforeTheStorm, // Life is Strange - Before the Storm.exe
   Tales_of_Symphonia,           // TOS.exe
+  DivinityOriginalSin,          // EoCApp.exe
   UNKNOWN_GAME               = 0xffff
 };
 

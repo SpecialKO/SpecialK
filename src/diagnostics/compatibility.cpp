@@ -29,6 +29,7 @@
 
 #include <psapi.h>
 
+#include <atlbase.h>
 #include <Commctrl.h>
 #pragma comment (lib,    "advapi32.lib")
 #pragma comment (lib,    "user32.lib")
@@ -407,7 +408,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
   {    
     char  szSymbol [1024] = { };
     ULONG ulLen  =  1024;
-    
+
     ulLen =
       SK_GetSymbolNameFromModuleAddr (
         SK_GetCallingDLL      (lpCallerFunc),
@@ -416,17 +417,34 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                               ulLen );
 
     if (constexpr (typeid (_T) == typeid (char)))
+    {
+      CHeapPtr <char> file_name (
+        _strdup (reinterpret_cast <const char *> (lpFileName))
+      ); 
+
+      SK_StripUserNameFromPathA (file_name);
+
       dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%hs> { '%21hs' }",
                       wszModName,
-                        lpFileName,
+                        file_name.m_pData,
                           lpFunction,
                             szSymbol );
+    }
+
     else
+    {
+      CHeapPtr <wchar_t> file_name (
+        _wcsdup (reinterpret_cast <const wchar_t *> (lpFileName))
+      );
+
+      SK_StripUserNameFromPathW (file_name);
+
       dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116ws' <%ws> { '%21hs' }",
                       wszModName,
-                        lpFileName,
+                        file_name.m_pData,
                           lpFunction,
                             szSymbol );
+    }
   }
 
   if (hCallingMod != SK_GetDLL ())

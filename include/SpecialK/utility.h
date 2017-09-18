@@ -109,6 +109,9 @@ std::wstring   SK_GetCallerName          (LPVOID pReturn = _ReturnAddress ());
 std::wstring   SK_GetModuleName          (HMODULE hDll);
 std::wstring   SK_GetModuleFullName      (HMODULE hDll);
 
+bool           SK_StripUserNameFromPathA (   char*  szInOut);
+bool           SK_StripUserNameFromPathW (wchar_t* wszInOut);
+
 LPVOID         SK_GetProcAddress         (const wchar_t* wszModule, const char* szFunc);
 
 
@@ -277,7 +280,10 @@ private:
 };
 
 
-extern "C" uint32_t __cdecl crc32 (uint32_t crc, const void *buf, size_t size);
+extern "C" uint32_t __cdecl crc32       (uint32_t crc, const void *buf, size_t size);
+
+// Returns the value of crc if attempting to checksum this memory throws an access violation exception
+           uint32_t __cdecl safe_crc32c (uint32_t crc, const void *buf, size_t size);
 
 /*
     Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.

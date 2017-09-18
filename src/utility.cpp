@@ -1979,7 +1979,9 @@ enum sk_hash_algo {
 
 uint32_t
 __stdcall
-SK_GetFileHash_32 (sk_hash_algo algorithm, const wchar_t* wszFile, SK_HashProgressCallback_pfn callback = nullptr)
+SK_GetFileHash_32 (       sk_hash_algo                 algorithm,
+                    const wchar_t                     *wszFile,
+                          SK_HashProgressCallback_pfn  callback = nullptr )
 {
   uint32_t _hash32 = 0UL;
 
@@ -2953,6 +2955,69 @@ SK_FixSlashesA (char* szInOut)
   }
 
   strcpy (szInOut, str.c_str ());
+}
+
+
+bool
+SK_StripUserNameFromPathA (char* szInOut)
+{
+  static char szUserName [MAX_PATH] = { };
+
+  if (*szUserName == '\0')
+  {
+                         DWORD dwLen = MAX_PATH;
+    GetUserNameA (szUserName, &dwLen);
+  }
+
+  char* pszUserNameSubstr =
+    strstr (szInOut, szUserName);
+
+  if (pszUserNameSubstr != nullptr)
+  {
+    const size_t user_name_len =
+      strlen (szUserName);
+
+    for (size_t i = 0; i < user_name_len; i++)
+    {
+      *pszUserNameSubstr = '*';
+       pszUserNameSubstr = CharNextA (pszUserNameSubstr);
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
+SK_StripUserNameFromPathW (wchar_t* wszInOut)
+{
+  static wchar_t wszUserName [MAX_PATH] = { };
+
+  if (*wszUserName == L'\0')
+  {
+                          DWORD dwLen = MAX_PATH;
+    GetUserNameW (wszUserName, &dwLen);
+  }
+
+  wchar_t* pwszUserNameSubstr =
+    wcsstr (wszInOut, wszUserName);
+
+  if (pwszUserNameSubstr != nullptr)
+  {
+    const size_t user_name_len =
+      wcslen (wszUserName);
+
+    for (size_t i = 0; i < user_name_len; i++)
+    {
+      *pwszUserNameSubstr = L'*';
+       pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
+    }
+
+    return true;
+  }
+
+  return false;
 }
 
 

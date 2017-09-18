@@ -2831,13 +2831,13 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     else
     {
       // Resort to triple-buffering if flip mode is not available
-      if (config.render.framerate.buffer_count > 2)
-        config.render.framerate.buffer_count = 2;
+      if (config.render.framerate.buffer_count > 3)
+        config.render.framerate.buffer_count = 3;
 
       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     }
 
-    if (config.render.framerate.buffer_count != -1)
+    if (config.render.framerate.buffer_count > 0)
       pDesc->BufferCount = config.render.framerate.buffer_count;
 
     // We cannot switch modes on a waitable swapchain

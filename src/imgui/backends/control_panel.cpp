@@ -960,33 +960,33 @@ SK_ImGui_DrawTexCache_Chart (void)
     ImGui::PushStyleColor(ImGuiCol_Border, ImColor(0.5f, 0.5f, 0.5f, 0.666f));
     ImGui::Columns   ( 3 );
       ImGui::Text    ( "%#7zu      MiB",
-                                                     SK_D3D11_Textures.AggregateSize_2D >> 20ULL );  ImGui::NextColumn (); 
+                                                     ReadAcquire64 (&SK_D3D11_Textures.AggregateSize_2D) >> 20ULL );  ImGui::NextColumn (); 
        ImGui::TextColored
                      (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
-                       "%#5lu      Hits",            SK_D3D11_Textures.RedundantLoads_2D         );  ImGui::NextColumn ();
-       if (InterlockedAdd64 (&SK_D3D11_Textures.Budget, 0) != 0)
-         ImGui::Text ( "Budget:  %#7zu MiB  ",        SK_D3D11_Textures.Budget / 1048576UL );
+                       "%#5lu      Hits",            ReadAcquire   (&SK_D3D11_Textures.RedundantLoads_2D)         );  ImGui::NextColumn ();
+       if (ReadAcquire64 (&SK_D3D11_Textures.Budget) != 0)
+         ImGui::Text ( "Budget:  %#7zu MiB  ",       ReadNoFence64 (&SK_D3D11_Textures.Budget) / 1048576ULL );
     ImGui::Columns   ( 1 );
 
     ImGui::Separator (   );
 
     ImGui::Columns   ( 3 );
-      ImGui::Text    ( "%#7zu Textures",             SK_D3D11_Textures.TexRefs_2D.size () );        ImGui::NextColumn ();
+      ImGui::Text    ( "%#7zu Textures",             ReadAcquire (&SK_D3D11_Textures.Entries_2D)     ); ImGui::NextColumn ();
       ImGui::TextColored
                      ( ImVec4 (1.0f, 0.3f, 0.3f, 1.60f),
-                       "%#5lu   Misses",             SK_D3D11_Textures.CacheMisses_2D          );   ImGui::NextColumn ();
-     ImGui::Text   ( "Time:        %#7.01lf ms  ", SK_D3D11_Textures.RedundantTime_2D          );
+                       "%#5lu   Misses",             ReadAcquire (&SK_D3D11_Textures.CacheMisses_2D) ); ImGui::NextColumn ();
+     ImGui::Text   ( "Time:        %#7.01lf ms  ", SK_D3D11_Textures.RedundantTime_2D                );
     ImGui::Columns   ( 1 );
 
     ImGui::Separator (   );
 
     ImGui::Columns   ( 3 );  
-      ImGui::Text    ( "%#6lu   Evictions",            SK_D3D11_Textures.Evicted_2D         );        ImGui::NextColumn ();
-      ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK_D3D11_Textures.RedundantLoads_2D   / 
-                                                          (float)SK_D3D11_Textures.CacheMisses_2D, 0.4f ), 0.95f, 0.8f),
-                       " %.2f  Hit/Miss",                  (double)SK_D3D11_Textures.RedundantLoads_2D / 
-                                                          (double)SK_D3D11_Textures.CacheMisses_2D  ); ImGui::NextColumn ();
-      ImGui::Text    ( "Driver I/O: %#7zu MiB  ",    SK_D3D11_Textures.RedundantData_2D >> 20ULL );
+      ImGui::Text    ( "%#6lu   Evictions",            ReadAcquire (&SK_D3D11_Textures.Evicted_2D)   );                ImGui::NextColumn ();
+      ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)ReadAcquire   (&SK_D3D11_Textures.RedundantLoads_2D) / 
+                                                          (float)ReadAcquire   (&SK_D3D11_Textures.CacheMisses_2D), 0.4f ), 0.95f, 0.8f),
+                       " %.2f  Hit/Miss",                  (double)ReadAcquire (&SK_D3D11_Textures.RedundantLoads_2D) / 
+                                                           (double)ReadAcquire (&SK_D3D11_Textures.CacheMisses_2D)  ); ImGui::NextColumn ();
+      ImGui::Text    ( "Driver I/O: %#7llu MiB  ",    ReadAcquire64 (&SK_D3D11_Textures.RedundantData_2D) >> 20ULL );
 
     ImGui::Columns   ( 1 );
 
@@ -2661,6 +2661,11 @@ SK_ImGui_ControlPanel (void)
           std::max (-1, std::min (4, config.render.framerate.present_interval));
 
         ImGui::InputInt ("BackBuffer Count",       &config.render.framerate.buffer_count);
+
+        // Clamp to [-1,oo)
+        if (config.render.framerate.buffer_count < -1)
+          config.render.framerate.buffer_count = -1;
+
         ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit);
 
         if (config.render.framerate.flip_discard)

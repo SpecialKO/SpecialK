@@ -278,7 +278,7 @@ SK::D3D9::VertexBufferTracker::use (void)
   IDirect3DVertexDeclaration9* decl = nullptr;
   CComPtr <IDirect3DDevice9>   pDev = nullptr;
 
-  IUnknown *pUnkDev = 
+  IUnknown *pUnkDev =
     SK_GetCurrentRenderBackend ().device;
 
   if (         pUnkDev == nullptr ||
@@ -377,7 +377,7 @@ class SK_D3D9RenderBackend : public SK_IVariableListener
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -542,8 +542,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       pDev->SetRenderState (D3DRS_ZENABLE,                  FALSE);
       pDev->SetRenderState (D3DRS_ZWRITEENABLE,             FALSE);
       pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
-      pDev->SetRenderState (D3DRS_COLORWRITEENABLE,         D3DCOLORWRITEENABLE_RED   | 
-                                                            D3DCOLORWRITEENABLE_GREEN | 
+      pDev->SetRenderState (D3DRS_COLORWRITEENABLE,         D3DCOLORWRITEENABLE_RED   |
+                                                            D3DCOLORWRITEENABLE_GREEN |
                                                             D3DCOLORWRITEENABLE_BLUE  |
                                                             D3DCOLORWRITEENABLE_ALPHA );
 
@@ -606,7 +606,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
         hWndRender = pp.hDeviceWindow;
     }
 
-#if 0    
+#if 0
     surf_desc.Width  = ImGui::GetIO ().DisplaySize.x;
     surf_desc.Height = ImGui::GetIO ().DisplaySize.y;
 
@@ -739,7 +739,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     //
     D3DDEVICE_CREATION_PARAMETERS params;
     pDev->GetCreationParameters (&params);
-    
+
     if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
                                     pDev,
                                      nullptr )
@@ -766,7 +766,7 @@ SK_HookD3D9 (void)
     return;
   }
 
-  HMODULE hBackend = 
+  HMODULE hBackend =
     (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
                                    GetModuleHandle (L"d3d9.dll");
 
@@ -798,8 +798,8 @@ SK_HookD3D9 (void)
     {
       dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %p  { Hooked }",
         (Direct3DCreate9_Import) );
-      
-      
+
+
       if ( config.apis.d3d9ex.hook &&
              MH_OK ==
                SK_CreateDLLHook2 ( L"d3d9.dll",
@@ -1020,7 +1020,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
   if (pPresentationParameters != nullptr)
   {
     if (       config.render.framerate.buffer_count != -1 &&
-         (UINT)config.render.framerate.buffer_count != 
+         (UINT)config.render.framerate.buffer_count !=
            pPresentationParameters->BackBufferCount ) {
       dll_log.Log ( L"[   D3D9   ]  >> Backbuffer Override: (Requested=%lu, Override=%li)",
                       pPresentationParameters->BackBufferCount,
@@ -1146,7 +1146,7 @@ D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
 
   return
     D3D9Present_Original_Pre ( This,
-                                 pSourceRect, 
+                                 pSourceRect,
                                    pDestRect,
                                      hDestWindowOverride,
                                        pDirtyRegion );
@@ -1465,7 +1465,7 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                   hDestWindowOverride,
                                   pDirtyRegion,
                                   dwFlags);
-    
+
       SK_D3D9_EndFrame ();
 
       // On a failure (i.e. Must wait), skip the frame
@@ -1928,7 +1928,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
-    SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
+    SK_InitWindow ( pPresentationParameters->hDeviceWindow,
                  (! pPresentationParameters->Windowed) );
 
     SK_D3D9_SetFPSTarget    (      pPresentationParameters);
@@ -2000,7 +2000,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   if (InterlockedExchangeAdd (&__d3d9_ready, 0))
   {
-    SK_InitWindow ( pPresentationParameters->hDeviceWindow, 
+    SK_InitWindow ( pPresentationParameters->hDeviceWindow,
                  (! pPresentationParameters->Windowed) );
 
     SK_D3D9_SetFPSTarget    (      pPresentationParameters, pFullscreenDisplayMode);
@@ -2170,7 +2170,7 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
   if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex))
     return S_OK;
 
-  HRESULT hr = 
+  HRESULT hr =
     D3D9DrawIndexedPrimitiveUP_Original (
       This,
         PrimitiveType,
@@ -2568,7 +2568,7 @@ D3D9SetStreamSourceFreq_Override
   {
   }
 
-  return 
+  return
     D3D9SetStreamSourceFreq_Original ( This,
                                          StreamNumber,
                                            FrequencyParameter );
@@ -2810,28 +2810,26 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
         TexLoadRequest* load_op =
           nullptr;
-        
+
         wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
-        
+
         bool remap_stream =
           tex_mgr.injector.isStreaming (pDst->tex_crc32c);
-        
+
         //
         // Generic injectable textures
         //
-        Texture* pCache = nullptr;
-        
         if (tex_mgr.isTextureInjectable (pDst->tex_crc32c))
         {
           tex_log.LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
                          pDst->tex_crc32c);
-          
+
           TexRecord& record =
             tex_mgr.getInjectableTexture (pDst->tex_crc32c);
-          
+
           if (record.method == TexLoadMethod::DontCare)
               record.method =  TexLoadMethod::Streaming;
-          
+
           // If -1, load from disk...
           if (record.archive == -1)
           {
@@ -2842,7 +2840,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                               pDst->tex_crc32c,
                                 L".dds" );
             }
-          
+
             else if (record.method == TexLoadMethod::Blocking)
             {
               _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
@@ -2857,14 +2855,14 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
           load_op->pDevice  = This;
           load_op->checksum = pDst->tex_crc32c;
-          
+
           if (record.method == TexLoadMethod::Streaming)
             load_op->type    = TexLoadRequest::Stream;
           else
             load_op->type = TexLoadRequest::Immediate;
-          
+
           wcscpy (load_op->wszFilename, wszInjectFileName);
-          
+
           if (load_op->type == TexLoadRequest::Stream)
           {
             if (( !remap_stream ))
@@ -2872,12 +2870,12 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             else
               tex_log.LogEx (false, L"in-flight already\n");
           }
-          
+
           else
           {
             tex_log.LogEx (false, L"blocking (deferred)\n");
           }
-          
+
           if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
                                        load_op->type == TexLoadRequest::Immediate ) )
           {
@@ -2893,28 +2891,28 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
              ((ISKTextureD3D9 *)pDestinationTexture);
 
           tex_mgr.injector.lockStreaming ();
-          
+
           if (load_op->type == TexLoadRequest::Immediate)
             dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
-          
+
           if (tex_mgr.injector.isStreaming (load_op->checksum))
           {
           //tex_mgr.injector.lockStreaming ();
-          
+
             auto* pTexOrig =
               static_cast <ISKTextureD3D9 *> (
                 tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest
                );
-          
+
             // Remap the output of the in-flight texture
             tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
               pDst;
-          
+
           //tex_mgr.injector.unlockStreaming ();
-          
+
             Texture* pExistingTex =
               tex_mgr.getTexture (load_op->checksum);
-          
+
             if (pExistingTex != nullptr)
             {
               for (int i = 0;
@@ -3115,21 +3113,21 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
         else if (load_op != nullptr && load_op->type == tsf_tex_load_s::Immediate) {
           QueryPerformanceFrequency        (&load_op->freq);
           QueryPerformanceCounter_Original (&load_op->start);
-      
+
           EnterCriticalSection (&cs_tex_inject);
           inject_tids.insert   (GetCurrentThreadId ());
           LeaveCriticalSection (&cs_tex_inject);
-      
+
           load_op->pDest = *ppTexture;
-      
+
           hr = InjectTexture (load_op);
-      
+
           EnterCriticalSection (&cs_tex_inject);
           inject_tids.erase    (GetCurrentThreadId ());
           LeaveCriticalSection (&cs_tex_inject);
-      
+
           QueryPerformanceCounter_Original (&load_op->end);
-      
+
           if (SUCCEEDED (hr)) {
             tex_log->Log ( L"[Inject Tex] Finished synchronous texture %08x (%5.2f MiB in %9.4f ms)",
                             load_op->checksum,
@@ -3138,18 +3136,18 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                                           (double) load_op->freq.QuadPart );
             ISKTextureD3D9* pSKTex =
               (ISKTextureD3D9 *)*ppTexture;
-      
+
             pSKTex->pTexOverride  = load_op->pSrc;
             pSKTex->override_size = load_op->SrcDataSize;
-      
+
             pSKTex->last_used     = load_op->end;
-      
+
             tsf::RenderFix::tex_mgr.addInjected (load_op->SrcDataSize);
           } else {
             tex_log->Log ( L"[Inject Tex] *** FAILED synchronous texture %08x",
                             load_op->checksum );
           }
-      
+
           delete load_op;
           load_op = nullptr;
         }
@@ -3162,7 +3160,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
         }
 
         //QueryPerformanceCounter_Original (&end);
-      
+
         if (/*config.textures.cache &&*/ checksum != 0x00)
         {
           Texture* pTex =
@@ -3172,7 +3170,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           pTex->d3d9_tex = pDst;
           //pTex->d3d9_tex->AddRef ();
           //pTex->refs++;
-      
+
           //pTex->load_time = (float)( 1000.0 *
           //                    (double)(end.QuadPart - start.QuadPart) /
           //                    (double)freq.QuadPart );
@@ -3206,7 +3204,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
       //                     SK_D3D9_FormatToStr (Format).c_str () );
       //    tex_log.Log ( L"[Load Trace]                Pool: %s",
       //                   SK_D3D9_PoolToStr (Pool) );
-      //    tex_log.Log ( L"[Load Trace]      Load Time: %6.4f ms", 
+      //    tex_log.Log ( L"[Load Trace]      Load Time: %6.4f ms",
       //                   1000.0f * (double)(end.QuadPart - start.QuadPart) / (double)freq.QuadPart );
       //  }
       }
@@ -3332,11 +3330,11 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       }
 
       bool switch_to_fullscreen = config.display.force_fullscreen  ||
-                                 ( (! rb.fullscreen_exclusive)  && 
+                                 ( (! rb.fullscreen_exclusive)  &&
                                       request_mode_change       ==   mode_change_request_e::Fullscreen );
 
       bool switch_to_windowed   = config.display.force_windowed    ||
-                                 (    rb.fullscreen_exclusive   && 
+                                 (    rb.fullscreen_exclusive   &&
                                       request_mode_change       ==   mode_change_request_e::Windowed   );
 
       if (switch_to_fullscreen)
@@ -3466,7 +3464,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
       // Implicit Resolution
       //
-      //  
+      //
       else
       {
         // If this is zero, we need to actually create the render device / swapchain and
@@ -4372,7 +4370,7 @@ HookD3D9 (LPVOID user)
     HWND hwnd = nullptr;
 
     if (pD3D9 != nullptr)
-    {      
+    {
       hwnd =
         SK_Win32_CreateDummyWindow ();
 
@@ -4548,7 +4546,7 @@ HookD3D9 (LPVOID user)
       if (SUCCEEDED (hr))
       {
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
-        
+
         hwnd    =
           SK_Win32_CreateDummyWindow ();
         pparams = { };
@@ -4700,7 +4698,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
         char szFileName [MAX_PATH] = { '\0' };
 
         if (archive_no != std::numeric_limits <unsigned int>::max ()) {
-          sprintf (szFileName, "%ws", archives [archive_no].c_str ()); 
+          sprintf (szFileName, "%ws", archives [archive_no].c_str ());
         }
 
         else strncpy (szFileName, "Regular Filesystem", MAX_PATH);
@@ -4810,19 +4808,19 @@ SK_D3D9_DrawFileList (bool& can_scroll)
   {
     static      int last_sel = 0;
     static bool sel_changed  = false;
-  
+
     if (sel != last_sel)
       sel_changed = true;
-  
+
     last_sel = sel;
-  
+
     for ( int line = 0; line < static_cast <int> (sources.size ()); line++)
     {
       if (line == sel)
       {
         bool selected = true;
         ImGui::Selectable (sources [line].name.c_str (), &selected);
-   
+
         if (sel_changed)
         {
           ImGui::SetScrollHere        (0.5f); // 0.0f:top, 0.5f:center, 1.0f:bottom
@@ -4831,7 +4829,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
           sel_changed = false;
         }
       }
-   
+
       else
       {
         bool selected = false;
@@ -4889,14 +4887,14 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
       if (inject_tex.size != 0)
       {
-        bool streaming = 
+        bool streaming =
           inject_tex.method == Streaming;
 
         ImGui::TextColored ( streaming ?
                                ImVec4 ( 0.2f,  0.90f, 0.3f, 1.0f ) :
                                ImVec4 ( 0.90f, 0.3f,  0.2f, 1.0f ),
                                  "  %s    ",
-                                   streaming ? "Streaming" : 
+                                   streaming ? "Streaming" :
                                                " Blocking" );
       }
     }
@@ -5091,7 +5089,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
         if (ImGui::Selectable (list->contents [line].c_str (), &selected))
         {
           sel_changed     = true;
-          list->sel       =  line;
+          list->sel       = (int)line;
           list->last_sel  = (uint32_t)shaders [list->sel];
           tracker->crc32c = (uint32_t)shaders [list->sel];
         }
@@ -5114,7 +5112,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
   {
     ImGui::BeginGroup ();
     ImGui::Checkbox ( shader_type == SK::D3D9::ShaderClass::Pixel ? "Cancel Draws Using Selected Pixel Shader" :
-                                                                    "Cancel Draws Using Selected Vertex Shader", 
+                                                                    "Cancel Draws Using Selected Vertex Shader",
                         &tracker->cancel_draws );  ImGui::SameLine ();
 
     ULONG num_draws =
@@ -5141,7 +5139,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
       for ( auto it : tracker->used_textures )
       {
         IDirect3DBaseTexture9* pTex = it;//ISKTextureD3D9* pTex = tex_mgr.getTexture (it)->d3d9_tex;
-        
+
         if (pTex /*&& pTex->pTex*/)
         {
           D3DSURFACE_DESC desc;
@@ -5520,7 +5518,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
         if (ImGui::Selectable (list->contents [line].c_str (), &selected))
         {
           sel_changed            = true;
-          list->sel              =  line;
+          list->sel              = (int)line;
           list->last_sel         = (uintptr_t)buffers [list->sel];
           tracker->vertex_buffer =            buffers [list->sel];
         }
@@ -5599,7 +5597,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
       ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 20.0f);
 
       ImVec4 border_color = wireframe ? ImVec4 (1.0f, 0.5f, 0.5f, 1.0f) :
-                              tracker->wireframe ? 
+                              tracker->wireframe ?
                                 ImVec4 (0.5f, 0.5f, 1.0f, 1.0f) :
                                 ImVec4 (0.6f, 0.6f, 0.6f, 1.0f);
 
@@ -5642,11 +5640,11 @@ SK_LiveVertexStreamView (bool& can_scroll)
         static UINT              num_elems;
 
         auto SK_D3D9_DeclTypeToStr = [](D3DDECLTYPE type) ->
-          const char* 
+          const char*
           {
             switch (type)
             {
-              case D3DDECLTYPE_FLOAT1:     return "float";    
+              case D3DDECLTYPE_FLOAT1:     return "float";
               case D3DDECLTYPE_FLOAT2:     return "float2";
               case D3DDECLTYPE_FLOAT3:     return "float3";
               case D3DDECLTYPE_FLOAT4:     return "float4";
@@ -5808,7 +5806,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
         for ( auto it : tracker->textures )
         {
           ISKTextureD3D9* pTex = tex_mgr.getTexture (it)->d3d9_tex;
-          
+
           if (pTex && pTex->pTex)
           {
             D3DSURFACE_DESC desc;
@@ -5836,7 +5834,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
       ImGui::SameLine ();
       ImGui::Checkbox ("Always Draw This Buffer In Wireframe", &wireframe);
-      
+
       if (wireframe)
         tracker->wireframes.emplace (tracker->vertex_buffer);
       else if (tracker->wireframes.count (tracker->vertex_buffer))
@@ -6041,7 +6039,7 @@ SK_D3D9_TextureModDlg (void)
     bool need_reset_graphics = false;
 
     if (ImGui::Checkbox ("Enable On-Demand Texture Dumping",    &config.textures.on_demand_dump)) need_reset_graphics = true;
-    
+
     if (ImGui::IsItemHovered ())
     {
       ImGui::BeginTooltip ();
@@ -6294,7 +6292,7 @@ SK_D3D9_TextureModDlg (void)
         {
           bool override_tex = (pTex->d3d9_tex->getDrawTexture () == pTex->d3d9_tex->pTexOverride);
 
-          ImVec4 border_color = config.textures.highlight_debug_tex ? 
+          ImVec4 border_color = config.textures.highlight_debug_tex ?
                                   ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
                    override_tex ? ImVec4 (0.3f, 1.0f, 0.3f, 1.0f) :
                                   ImVec4 (0.5f, 0.5f, 0.5f, 1.0f);
@@ -6761,7 +6759,7 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
     case D3DFMT_DXT3:          return -2;
     case D3DFMT_DXT4:          return -1;
     case D3DFMT_DXT5:          return -2;
-                               
+
     case D3DFMT_D16_LOCKABLE:  return  2;
     case D3DFMT_D32:           return  4;
     case D3DFMT_D15S1:         return  2;
@@ -7102,7 +7100,7 @@ SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal)
 
     // IEEE s23e8 formats (32-bits per channel)
     case D3DFMT_R32F                 :
-      return std::wstring (L"R32F") + 
+      return std::wstring (L"R32F") +
                 (include_ordinal ? L" (114)" : L"");
     case D3DFMT_G32R32F              :
       return std::wstring (L"G32R32F") +
@@ -7179,21 +7177,21 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
   /////  wchar_t wszDumpName [MAX_PATH] = { L'\0' };
   /////
   /////  swprintf_s ( wszDumpName,
-  /////                 MAX_PATH, 
+  /////                 MAX_PATH,
   /////                   L"TBFix_Res\\dump\\shaders\\%s_%08x.html",
   /////                     wszPrefix, crc32c );
   /////
   /////  if ( GetFileAttributes (wszDumpName) == INVALID_FILE_ATTRIBUTES )
   /////  {
   /////    CComPtr <ID3DXBuffer> pDisasm = nullptr;
-  /////  
+  /////
   /////    HRESULT hr =
   /////      D3DXDisassembleShader ((DWORD *)pbFunc, TRUE, "", &pDisasm);
-  /////  
+  /////
   /////    if (SUCCEEDED (hr))
   /////    {
   /////      FILE* fDump = _wfsopen (wszDumpName,  L"wb", _SH_DENYWR);
-  /////  
+  /////
   /////      if (fDump != NULL)
   /////      {
   /////        fwrite ( pDisasm->GetBufferPointer (),
@@ -7270,7 +7268,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
 
           uint32_t checksum =
             safe_crc32c (0, pbFunc, len);
-            
+
           SK_D3D9_DumpShader (L"vs", checksum, pbFunc);
 
           free (pbFunc);
@@ -7301,14 +7299,14 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
   if (vs_checksum != 0x00)
   {
     last_frame.vertex_shaders.emplace (vs_checksum);
-    
+
     if (tracked_rt.active)
       tracked_rt.vertex_shaders.emplace (vs_checksum);
-    
+
     if (vs_checksum == tracked_vs.crc32c)
     {
       tracked_vs.use (pShader);
-    
+
       for ( auto& current_texture : tracked_vs.current_textures )
         current_texture = 0x0;
     }
@@ -7374,14 +7372,14 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
   if (ps_checksum != 0x00)
   {
     last_frame.pixel_shaders.emplace (ps_checksum);
-    
+
     if (tracked_rt.active)
       tracked_rt.pixel_shaders.emplace (ps_checksum);
-    
+
     if (ps_checksum == tracked_ps.crc32c)
     {
       tracked_ps.use (pShader);
-    
+
       for ( auto& current_texture : tracked_ps.current_textures )
         current_texture = 0x0;
     }
@@ -7408,7 +7406,7 @@ SK_D3D9_EndFrame (void)
 
   draw_state.draw_count = 0;
   draw_state.next_draw  = 0;
-  
+
   Shaders.vertex.clear_state ();
   Shaders.pixel.clear_state  ();
 
@@ -7631,7 +7629,7 @@ EnumConstant ( SK::D3D9::ShaderTracker           *pShader,
   if (! (hConstant && pConstantTable))
     return;
 
-  UINT              one           =  1; 
+  UINT              one           =  1;
   D3DXCONSTANT_DESC constant_desc = { };
 
   if (SUCCEEDED (pConstantTable->GetConstantDesc (hConstant, &constant_desc, &one)))
@@ -7653,13 +7651,13 @@ EnumConstant ( SK::D3D9::ShaderTracker           *pShader,
     {
       D3DXHANDLE hConstantStruct =
         pConstantTable->GetConstant (hConstant, j);
-  
+
       SK::D3D9::ShaderTracker::shader_constant_s struct_constant = { };
-  
+
       if (hConstantStruct != nullptr)
         EnumConstant (pShader, pConstantTable, hConstantStruct, struct_constant, constant.struct_members );
     }
-  
+
     list.emplace_back (constant);
   }
 };
@@ -7684,7 +7682,7 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
     {
       void* pbFunc =
         malloc (len);
-      
+
       if (pbFunc != nullptr)
       {
         if ( SUCCEEDED ( ((IDirect3DVertexShader9 *)pShader)->GetFunction ( pbFunc,
@@ -7714,7 +7712,7 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
             }
           }
         }
-      
+
         free (pbFunc);
       }
     }

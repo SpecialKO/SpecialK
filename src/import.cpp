@@ -1,4 +1,4 @@
-/**s
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -22,6 +22,7 @@
 #include <Windows.h>
 #include <comdef.h>
 #include <shlwapi.h>
+#include <atlbase.h>
 
 #include <SpecialK/import.h>
 #include <SpecialK/log.h>
@@ -140,9 +141,12 @@ SK_LoadEarlyImports64 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
               import.when->get_value         () == SK_IMPORT_EARLY)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
-              import.filename->get_value_str ().c_str ());
+              file.m_pData);
 
             if (! blacklisted)
             {
@@ -221,9 +225,12 @@ SK_LoadPlugIns64 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
               import.when->get_value         () == SK_IMPORT_PLUGIN)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
-              import.filename->get_value_str ().c_str ());
+              file.m_pData);
 
             if (! blacklisted)
             {
@@ -303,9 +310,12 @@ SK_LoadLateImports64 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
               import.when->get_value         () == SK_IMPORT_LATE)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
-              import.filename->get_value_str ().c_str ());
+              file.m_pData);
 
             if (! blacklisted)
             {
@@ -377,9 +387,12 @@ SK_LoadLazyImports64 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
               import.when->get_value         () == SK_IMPORT_LAZY)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
-                import.filename->get_value_str ().c_str ());
+                file.m_pData);
 
             if (! blacklisted)
             {
@@ -497,8 +510,12 @@ SK_LoadEarlyImports32 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
               import.when->get_value         () == SK_IMPORT_EARLY)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
+
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
-              import.filename->get_value_str ().c_str ());
+              file.m_pData);
 
             if (! blacklisted)
             {
@@ -578,8 +595,12 @@ SK_LoadPlugIns32 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
               import.when->get_value         () == SK_IMPORT_PLUGIN)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
+
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
-              import.filename->get_value_str ().c_str ());
+              file.m_pData);
 
             if (! blacklisted)
             {
@@ -659,9 +680,12 @@ SK_LoadLateImports32 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
               import.when->get_value         () == SK_IMPORT_LATE)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
 
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
-              import.filename->get_value_str ().c_str ());
+              file.m_pData);
 
             if (! blacklisted)
             {
@@ -733,8 +757,12 @@ SK_LoadLazyImports32 (void)
           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
               import.when->get_value         () == SK_IMPORT_LAZY)
           {
+            CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+
+            SK_StripUserNameFromPathW (file);
+
             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
-                import.filename->get_value_str ().c_str ());
+                file.m_pData);
 
             if (! blacklisted)
             {

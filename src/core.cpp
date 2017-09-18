@@ -145,7 +145,7 @@ void
 __stdcall
 SK_SetConfigPath (const wchar_t* path)
 {
-  lstrcpyW (SK_ConfigPath, path);
+  lstrcpynW (SK_ConfigPath, path, MAX_PATH);
 }
 
 
@@ -163,14 +163,15 @@ SK_GetNaiveConfigPath (void)
 }
 
 volatile
-ULONG frames_drawn = 0UL;
+LONG frames_drawn = 0L;
 
 __declspec (noinline)
 ULONG
 __stdcall
 SK_GetFramesDrawn (void)
 {
-  return InterlockedExchangeAdd (&frames_drawn, 0);
+  return
+    static_cast <ULONG> (ReadNoFence (&frames_drawn));
 }
 
 const wchar_t*
@@ -447,7 +448,7 @@ HANDLE osd_shutdown = INVALID_HANDLE_VALUE;
 DWORD
 WINAPI
 osd_pump (LPVOID lpThreadParam)
-{ 
+{
   UNREFERENCED_PARAMETER (lpThreadParam);
 
   // TODO: This actually increases the number of frames rendered, which
@@ -479,7 +480,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
-      InterlockedExchangePointer ( (void **)&process_stats.hThread, 
+      InterlockedExchangePointer ( (void **)&process_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorProcess,
@@ -769,8 +770,8 @@ DWORD
 WINAPI
 CheckVersionThread (LPVOID user);
 
-volatile LONG    SK_bypass_dialog_active = FALSE;
-volatile ULONG __SK_Init                 = FALSE;
+volatile LONG   SK_bypass_dialog_active = FALSE;
+volatile LONG __SK_Init                 = FALSE;
 
 void
 __stdcall
@@ -937,15 +938,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
   BOOL
   SK_Steam_PreHookCore (void);
 
-  if (! lstrcmpW (SK_GetHostApp (), L"SonicMania.exe"))
-  {
-    SK_Steam_PreHookCore ( );
-
-    extern void SK_SMOKE_InitPlugin (void);
-                SK_SMOKE_InitPlugin (    );
-  }
-
-  else if (config.steam.spoof_BLoggedOn)
+  if (config.steam.spoof_BLoggedOn)
   {
     SK_Steam_PreHookCore ();
   }
@@ -978,21 +971,21 @@ SK_InitCore (const wchar_t* backend, void* callback)
 void
 WaitForInit (void)
 {
-  if (InterlockedCompareExchange (&__SK_Init, FALSE, FALSE))
+  if (ReadNoFence (&__SK_Init))
     return;
 
-  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) == nullptr)
+  while (ReadPointerAcquire ((LPVOID *)&hInitThread) == nullptr)
     SleepEx (150, TRUE);
 
-  while (InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr) != INVALID_HANDLE_VALUE)
+  while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
   {
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
-      InterlockedCompareExchangePointer ((LPVOID *)&hInitThread, nullptr, nullptr),
+      ReadPointerAcquire ((LPVOID *)&hInitThread),
         150 ) )
       break;
   }
 
-  while (InterlockedCompareExchange (&SK_bypass_dialog_active, FALSE, FALSE))
+  while (ReadAcquire (&SK_bypass_dialog_active))
   {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
@@ -1073,7 +1066,7 @@ SK_InitFinishCallback (void)
     "ImGui.FontScale",
       new SK_IVarStub <float> (
         &config.imgui.scale
-      )      
+      )
   );
 
   SK_InitRenderBackends ();
@@ -1224,7 +1217,7 @@ CreateWindowW_Detour (
 {
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
-    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+    if (ReadAcquire (&SK_bypass_dialog_active))
       MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
@@ -1251,7 +1244,7 @@ CreateWindowA_Detour (
 {
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
-    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+    if (ReadAcquire (&SK_bypass_dialog_active))
       MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
@@ -1279,7 +1272,7 @@ CreateWindowExW_Detour (
 {
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
-    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+    if (ReadAcquire (&SK_bypass_dialog_active))
       MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
@@ -1309,7 +1302,7 @@ CreateWindowExA_Detour (
 {
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
-    if (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+    if (ReadAcquire (&SK_bypass_dialog_active))
       MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
@@ -1391,13 +1384,13 @@ SK_HasGlobalInjector (void)
 
 extern std::pair <std::queue <DWORD>, BOOL> __stdcall SK_BypassInject (void);
 
-
-// True if the user has rebased their %UserProfile% directory the wrong way
-static bool    altered_user_profile     = false;
-static wchar_t wszProfile    [MAX_PATH] = { };
-static wchar_t wszDocs       [MAX_PATH] = { };
-static wchar_t wszEnvProfile [MAX_PATH] = { };
-static wchar_t wszEnvDocs    [MAX_PATH] = { };
+struct sk_user_profile_s
+{
+  wchar_t wszProfile    [MAX_PATH] = { };
+  wchar_t wszDocs       [MAX_PATH] = { };
+  wchar_t wszEnvProfile [MAX_PATH] = { };
+  wchar_t wszEnvDocs    [MAX_PATH] = { };
+} static user_profile;
 
 void
 __stdcall
@@ -1406,46 +1399,17 @@ SK_EstablishRootPath (void)
   wchar_t wszConfigPath [MAX_PATH + 1] = { };
           wszConfigPath [  MAX_PATH  ] = { };
 
-  // Make expansion of %UserProfile% agree with the actual directory, for people
-  //   who rebase their documents directory without fixing this env. variable.
-  if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_PROFILE, nullptr, 0, wszProfile ) ) )
-  {
-    ExpandEnvironmentStringsW (L"%USERPROFILE%", wszEnvProfile, MAX_PATH);
-    SetEnvironmentVariableW   (L"USERPROFILE",   wszProfile);
-
-    if (_wcsicmp (wszEnvProfile, wszProfile))
-      altered_user_profile = true;
-
-    ExpandEnvironmentStringsW (L"%USERPROFILE%\\Documents", wszEnvDocs, MAX_PATH);
-
-    if (SUCCEEDED ( SHGetFolderPath ( nullptr, CSIDL_MYDOCUMENTS, nullptr, 0, wszDocs ) ) )
-    {
-      if (_wcsicmp (wszEnvDocs, wszDocs))
-        altered_user_profile = true;
-    }
-  }
-
-
+  // Store config profiles in a centralized location rather than relative to the game's executable
+  //
+  //   Currently, this location is always Documents\My Mods\SpecialK\
+  //
   if (config.system.central_repository)
   {
     if (! SK_IsSuperSpecialK ())
     {
-#if 0
-      if (SK_IsInjected ()) {
-        wchar_t *wszPath = wcsdup (SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-        PathRemoveFileSpec (wszPath);
-        wcsncpy ( SK_RootPath,
-                    wszPath,
-                      MAX_PATH - 1 );
-        free (wszPath);
-      }
-      else
-#endif
-      {
-        wcsncpy ( SK_RootPath,
-                    std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
-                      MAX_PATH - 1 );
-      }
+      wcsncpy ( SK_RootPath,
+                  std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
+                    MAX_PATH - 1 );
     }
 
     else
@@ -1458,11 +1422,14 @@ SK_EstablishRootPath (void)
     lstrcatW (wszConfigPath, SK_GetHostApp  ());
   }
 
+
+  // Relative to game's executable path
+  //
   else
   {
     if (! SK_IsSuperSpecialK ())
     {
-      lstrcatW (SK_RootPath,   SK_GetHostPath ());
+      lstrcatW (SK_RootPath, SK_GetHostPath ());
     }
 
     else
@@ -1473,8 +1440,11 @@ SK_EstablishRootPath (void)
     lstrcatW (wszConfigPath, SK_GetRootPath ());
   }
 
+
+  // Not using the ShellW API because at this stage we can only reliably use Kernel32 functions
   lstrcatW (SK_RootPath,   L"\\");
   lstrcatW (wszConfigPath, L"\\");
+
 
   SK_SetConfigPath     (wszConfigPath);
 }
@@ -1606,21 +1576,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     L"-------------------\n");
 
 
-  if (altered_user_profile)
-  {
-    dll_log.Log ( L"*** WARNING: User has altered their user profile directory the wrong way. ***");
-    dll_log.Log ( L"  >> %%UserProfile%%       = '%ws'",
-                    wszEnvProfile );
-    dll_log.Log ( L"  >> Profile Directory   = '%ws'",
-                    wszProfile );
-    dll_log.Log ( L"  >> Documents Directory = '%ws'",
-                    wszDocs );
-    dll_log.LogEx ( false,
-      L"------------------------------------------------------------------------"
-      L"-------------------\n" );
-  }
-
-
   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
   const wchar_t* wszModuleName = module_name.c_str ();
 
@@ -1717,23 +1672,22 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       if (! GetModuleHandle (wszSteamDLL))
       {
-        //wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { };
-        //
-        //if (SK_IsInjected ())
-        //  wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
-        //else
-        //{
-        //  _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
-        //                SK_GetDocumentsDir ().c_str () );
-        //}
-        //
-        //if (PathRemoveFileSpec (wszDLLPath))
-        //{
-        //  lstrcatW (wszDLLPath, L"\\");
-        //  lstrcatW (wszDLLPath, wszSteamDLL);
-        //
-        //  if (SK_GetFileSize (wszDLLPath) > 0)
-        //  {
+        wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { };
+
+        if (SK_IsInjected ())
+          wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+        else
+        {
+          _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
+                        SK_GetDocumentsDir ().c_str () );
+        }
+
+        if (PathRemoveFileSpec (wszDLLPath))
+        {
+          PathAppendW (wszDLLPath, wszSteamDLL);
+
+          if (SK_GetFileSize (wszDLLPath) > 0)
+          {
             HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
 
             if (hMod)
@@ -1741,8 +1695,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
               dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
                               wszSteamDLL );//wszDLLPath );
             }
-          //}
-        //}
+          }
+        }
       }
     }
   }
@@ -1752,17 +1706,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   // Do this from the startup thread
-  SK_HookWinAPI       ();
-
-
-  // Hard-code the AppID for ToZ
-  if (! lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
-    config.steam.appid = 351970;
-
-  // Game won't start from the commandline without this...
-  if (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))
-    config.steam.appid = 405900;
-
+  SK_HookWinAPI        ();
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
 
@@ -1915,6 +1859,8 @@ BACKEND_INIT:
   CreateThread ( nullptr, 0,
                    [](LPVOID) -> DWORD
                    {
+                     WaitForInputIdle (GetCurrentProcess (), INFINITE);
+
                      bool SK_InitWMI (void);
                        SK_InitWMI    (    );
 
@@ -2019,10 +1965,10 @@ SK_ShutdownCore (const wchar_t* backend)
   if (hPumpThread != INVALID_HANDLE_VALUE)
   {
     dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
-  
+
     CloseHandle     (hPumpThread);
                      hPumpThread = INVALID_HANDLE_VALUE;
-  
+
     dll_log.LogEx   (false, L"done!\n");
   }
 
@@ -2044,7 +1990,7 @@ SK_ShutdownCore (const wchar_t* backend)
     SetEvent (hSignal);
 
     if (SignalObjectAndWait (hSignal, hThread, 1000UL, TRUE) != WAIT_OBJECT_0) // Give 1 second, and
-    {                                                                          // then we're killing 
+    {                                                                          // then we're killing
       TerminateThread (hThread, 0x00);                                         // the thing!
     }
 
@@ -2077,7 +2023,7 @@ SK_ShutdownCore (const wchar_t* backend)
   SK::Framerate::Shutdown ();
 
   dll_log.LogEx        (true, L"[ SpecialK ] Shutting down MinHook...                     ");
-                                                                     
+
   dwTime = timeGetTime ();
   SK_UnInit_MinHook    ();
   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
@@ -2121,7 +2067,7 @@ STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
   // Throttle, but do not deadlock the render loop
-  while (InterlockedCompareExchangeNoFence (&SK_bypass_dialog_active, FALSE, FALSE))
+  while (ReadNoFence (&SK_bypass_dialog_active))
     MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
 
   // ^^^ Use condition variable instead
@@ -2154,7 +2100,7 @@ SK_BeginBufferSwap (void)
     SK_LoadLateImports32 ();
 #endif
 
-    if (InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) < 1)
+    if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) < 1)
     {
       // Steam Init: Better late than never
 
@@ -2166,15 +2112,15 @@ SK_BeginBufferSwap (void)
   }
 
 
-  static volatile ULONG first = TRUE;
+  static volatile LONG first = TRUE;
 
-  if (InterlockedCompareExchange (&first, 0, 0))
+  if (ReadNoFence (&first))
   {
     if (SK_GetGameWindow () != nullptr)
     {
       extern void SK_ResetWindow ();
 
-      InterlockedExchange (&first, 0);
+      InterlockedExchange (&first, FALSE);
 
       SK_ResetWindow ();
     }
@@ -2202,15 +2148,15 @@ SK_BeginBufferSwap (void)
       //
 
       SK_LockDllLoader ();
-  
+
       // Disable until we validate CEGUI's state
       config.cegui.enable = false;
-  
+
       wchar_t wszCEGUIModPath [MAX_PATH]        = { };
       wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
       wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
 
-  
+
   #ifdef _WIN64
       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
 
@@ -2218,7 +2164,7 @@ SK_BeginBufferSwap (void)
       {
         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\x64",
                       SK_GetDocumentsDir ().c_str () );
-  
+
         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
       }
 
@@ -2241,7 +2187,7 @@ SK_BeginBufferSwap (void)
   #endif
 
       _wputenv  (wszEnvPath);
-  
+
       lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
       lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
 
@@ -2255,40 +2201,42 @@ SK_BeginBufferSwap (void)
         GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
         SetCurrentDirectory    (        wszCEGUIModPath);
       }
-  
+
       // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
       //   do support it if a certain Windows Update (KB2533623) is installed.
       using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
       using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
       using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
-  
+
       static auto k32_AddDllDirectory =
         (AddDllDirectory_pfn)
           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
                              "AddDllDirectory" );
-  
+
       static auto k32_RemoveDllDirectory =
         (RemoveDllDirectory_pfn)
           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
                              "RemoveDllDirectory" );
-  
+
       static auto k32_SetDefaultDllDirectories =
         (SetDefaultDllDirectories_pfn)
           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
                              "SetDefaultDllDirectories" );
-  
+
       if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
            k32_SetDefaultDllDirectories &&
-  
+
              GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
       {
+        SK_StripUserNameFromPathW (wszCEGUITestDLL);
+
         dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
-  
+
         wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
-  
+
         _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
         _wputenv  (wszEnvVar);
-  
+
         // This tests for the existence of the DLL before attempting to load it...
         auto DelayLoadDLL = [&](const char* szDLL)->
           bool
@@ -2300,26 +2248,25 @@ SK_BeginBufferSwap (void)
                 LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
                 LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
               );
-  
+
               DLL_DIRECTORY_COOKIE cookie = nullptr;
               bool                 ret    = false;
-  
+
               __try
               {
                 cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
                 ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
               }
-  
-              __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+
+              __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
                          EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
               {
               }
-  
               k32_RemoveDllDirectory (cookie);
-  
+
               return ret;
             };
-  
+
         if (DelayLoadDLL ("CEGUIBase-0.dll"))
         {
           if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
@@ -2369,12 +2316,12 @@ SK_BeginBufferSwap (void)
   SK_DrawOSD         ();
   SK_DrawConsole     ();
 
-  static HMODULE hModTBFix = GetModuleHandle( L"tbfix.dll");
-
-  const char* szFirst = "First-frame Done";
+  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
   if (hModTBFix)
   {
+    const char* szFirst = "First-frame Done";
+
     if (SK_Steam_PiratesAhoy () != 0x00)
     {
       extern float target_fps;
@@ -2439,7 +2386,7 @@ DoKeyboard (void)
     toggle_drag = true;
 
     if (config.window.drag_lock)
-      ClipCursor (nullptr); 
+      ClipCursor (nullptr);
   } else {
     toggle_drag = false;
   }
@@ -2707,7 +2654,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
-      reinterpret_cast <int &> (__SK_RBkEnd.api) = 
+      reinterpret_cast <int &> (__SK_RBkEnd.api) =
         ( static_cast <int> (SK_RenderAPI::D3D9  ) |
           static_cast <int> (SK_RenderAPI::D3D9Ex)  );
 
@@ -2768,6 +2715,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
         wcscpy (__SK_RBkEnd.name, L"DDraw");
       }
 
+
       if ( static_cast <int> (__SK_RBkEnd.api)  &
            static_cast <int> (SK_RenderAPI::D3D11) )
       {
@@ -2791,6 +2739,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
                   SK_D3D11_EndFrame ();
 #ifdef _WIN64
     }
+
 
     else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12))))
     {
@@ -2826,13 +2775,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::DXGI::StartBudgetThread_NoAdapter ();
   }
 
-  // Draw after present, this may make stuff 1 frame late, but... it
-  //   helps with VSYNC performance.
-
-  // Treat resize and obscured statuses as failures; DXGI does not, but
-  //  we should not draw the OSD when these events happen.
-  ////if (FAILED (hr))
-  ////  return hr;
 
   DoKeyboard ();
 
@@ -2880,7 +2822,7 @@ SK_SetDLLRole (DLL_ROLE role)
 
 
 // Stupid solution, but very effective way of re-launching a game as admin without
-//   the Steam client throwing a tempur tantrum.
+//   the Steam client throwing a temper tantrum.
 void
 CALLBACK
 RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,

@@ -342,12 +342,12 @@ struct {
 struct {
   struct {
     sk::ParameterBool*    hook;
-  }   
+  }
 #ifndef _WIN64
       ddraw, d3d8,
 #endif
       d3d9,  d3d9ex,
-      d3d11, 
+      d3d11,
 #ifdef _WIN64
       d3d12,
       Vulkan,
@@ -418,7 +418,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   achievement_config =
     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini";
 
-  
+
   if (! init)
   {
    dll_ini =
@@ -2012,7 +2012,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Steam.Achievements",
         L"PopupDuration" );
 
-  steam.system.appid = 
+  steam.system.appid =
     dynamic_cast <sk::ParameterInt *>
     (g_ParameterFactory.create_parameter <int> (
       L"Steam AppID")
@@ -2130,7 +2130,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       imports [import].name =
         CharNextW (wcsstr ((*sec).first.c_str (), L"."));
 
-      imports [import].filename = 
+      imports [import].filename =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Filename")
@@ -2140,7 +2140,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           (*sec).first.c_str (),
             L"Filename" );
 
-      imports [import].when = 
+      imports [import].when =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Timeframe")
@@ -2150,7 +2150,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           (*sec).first.c_str (),
             L"When" );
 
-      imports [import].role = 
+      imports [import].role =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Role")
@@ -2160,7 +2160,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           (*sec).first.c_str (),
             L"Role" );
 
-      imports [import].architecture = 
+      imports [import].architecture =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Import Architecture")
@@ -2170,7 +2170,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
           (*sec).first.c_str (),
             L"Architecture" );
 
-      imports [import].blacklist = 
+      imports [import].blacklist =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
                 L"Blakclisted Executables")
@@ -2201,7 +2201,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
                                             //
-  config.system.trace_load_library = true;  // Generally safe even with the 
+  config.system.trace_load_library = true;  // Generally safe even with the
                                             //   worst third-party software;
                                             //
                                             //  NEEDED for injector API detect
@@ -2251,6 +2251,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     );
   games.emplace ( L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           );
   games.emplace ( L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm );
+  games.emplace ( L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          );
 
   //
   // Application Compatibility Overrides
@@ -2463,7 +2464,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
       case SK_GAME_ID::FinalFantasyX_X2:
-        // Don't auto-pump callbacks 
+        // Don't auto-pump callbacks
         //  Excessively lenghty startup is followed by actual SteamAPI init eventually...
         config.steam.auto_pump_callbacks = false;
 
@@ -2489,6 +2490,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
           config.apis.Vulkan.hook     = false;
           config.apis.dxgi.d3d11.hook = true;
           config.apis.dxgi.d3d12.hook = false;
+          break;
+
+        case SK_GAME_ID::DivinityOriginalSin:
+          config.textures.cache.ignore_nonmipped = true;
           break;
 #endif
     }
@@ -3202,7 +3207,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   config.imgui.font.korean.file   = "malgun.ttf";
   config.imgui.font.korean.size   = 18.0f;
-                                  
+
   config.imgui.font.chinese.file  = "msyh.ttc";
   config.imgui.font.chinese.size  = 18.0f;
 
@@ -3247,14 +3252,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
             // Wait for the image relocation to settle down, or we'll probably
             //   break the memory scanner.
             WaitForInputIdle (GetCurrentProcess (), 3333UL);
-        
+
             void
               SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
-        
+
             SK_ResHack_PatchGame2 (1920, 1080);
-        
+
             CloseHandle (GetCurrentThread ());
-        
+
             return 0;
           }, nullptr, 0x00, nullptr);
         } break;
@@ -3864,7 +3869,7 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.sleepless_render->store  ();
   render.framerate.sleepless_window->store  ();
 
-  if (  SK_IsInjected ()                     || 
+  if (  SK_IsInjected ()                     ||
       ( SK_GetDLLRole () & DLL_ROLE::DInput8 ||
         SK_GetDLLRole () & DLL_ROLE::DXGI    ||
         SK_GetDLLRole () & DLL_ROLE::D3D9 ) )
@@ -4162,7 +4167,7 @@ SK_Keybind::parse (void)
 
                         BYTE buf [256] = { };
           unsigned short int temp      =  0;
-          
+
           bool asc = (i <= 32);
 
           if (! asc && i != VK_DIVIDE)
@@ -4173,14 +4178,14 @@ SK_Keybind::parse (void)
 
           if (! asc)
             scanCode |= ( 0x1 << 24   );
-    
+
           GetKeyNameText ( scanCode,
                              name,
                                32 );
         } break;
       }
 
-    
+
       if ( i != VK_CONTROL  && i != VK_MENU     &&
            i != VK_SHIFT    && i != VK_OEM_PLUS && i != VK_OEM_MINUS &&
            i != VK_LSHIFT   && i != VK_RSHIFT   &&
@@ -4192,7 +4197,7 @@ SK_Keybind::parse (void)
         virtKeyCodeToHumanKeyName.emplace ((BYTE)i, name);
       }
     }
-    
+
     humanKeyNameToVirtKeyCode.emplace (L"Plus",        (BYTE)VK_OEM_PLUS);
     humanKeyNameToVirtKeyCode.emplace (L"Minus",       (BYTE)VK_OEM_MINUS);
     humanKeyNameToVirtKeyCode.emplace (L"Ctrl",        (BYTE)VK_CONTROL);
@@ -4204,7 +4209,7 @@ SK_Keybind::parse (void)
     humanKeyNameToVirtKeyCode.emplace (L"Right Alt",   (BYTE)VK_RMENU);
     humanKeyNameToVirtKeyCode.emplace (L"Left Ctrl",   (BYTE)VK_LCONTROL);
     humanKeyNameToVirtKeyCode.emplace (L"Right Ctrl",  (BYTE)VK_RCONTROL);
-    
+
     virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_CONTROL,   L"Ctrl");
     virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_MENU,      L"Alt");
     virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_SHIFT,     L"Shift");
@@ -4213,8 +4218,8 @@ SK_Keybind::parse (void)
     virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LSHIFT,    L"Left Shift");
     virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RSHIFT,    L"Right Shift");
     virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LMENU,     L"Left Alt");
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RMENU,     L"Right Alt");  
-    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LCONTROL,  L"Left Ctrl"); 
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RMENU,     L"Right Alt");
+    virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_LCONTROL,  L"Left Ctrl");
     virtKeyCodeToHumanKeyName.emplace ((BYTE)VK_RCONTROL,  L"Right Ctrl");
 
     init = true;
