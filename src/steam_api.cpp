@@ -48,6 +48,7 @@
 //  by hand.
 #define STEAM_API_NODLL
 #include <SpecialK/steam_api.h>
+#include <../depends/include/steamapi/steamclientpublic.h>
 
 // PlaySound
 #pragma comment (lib, "winmm.lib")
@@ -75,6 +76,14 @@ void SK_HookSteamAPI                      (void);
 void SK_SteamAPI_UpdateGlobalAchievements (void);
 
 
+using SteamClient_pfn = ISteamClient* (S_CALLTYPE *)(
+        void
+      );
+extern                          SteamClient_pfn
+                                SteamClient_Original;
+extern ISteamClient* S_CALLTYPE SteamClient_Detour (void);
+
+
 using SteamInternal_CreateInterface_pfn       = void*       (S_CALLTYPE *)(
         const char *ver
       );
@@ -93,6 +102,61 @@ extern ISteamUser* S_CALLTYPE SteamAPI_ISteamClient_GetISteamUser_Detour ( IStea
                                                                            HSteamUser    hSteamUser,
                                                                            HSteamPipe    hSteamPipe,
                                                                            const char   *pchVersion );
+
+using SteamAPI_ISteamClient_GetISteamUtils_pfn = ISteamUtils* (S_CALLTYPE *)(
+  ISteamClient *This,
+  HSteamPipe    hSteamPipe,
+  const char   *pchVersion
+  );
+extern                         SteamAPI_ISteamClient_GetISteamUtils_pfn   SteamAPI_ISteamClient_GetISteamUtils_Original;
+extern ISteamUtils* S_CALLTYPE SteamAPI_ISteamClient_GetISteamUtils_Detour ( ISteamClient *This,
+                                                                             HSteamPipe    hSteamPipe,
+                                                                             const char   *pchVersion );
+
+using SteamAPI_ISteamClient_GetISteamController_pfn = ISteamController* (S_CALLTYPE *)(
+              ISteamClient *This,
+              HSteamUser    hSteamUser,
+              HSteamPipe    hSteamPipe,
+        const char         *pchVersion
+      );
+extern                        SteamAPI_ISteamClient_GetISteamController_pfn   SteamAPI_ISteamClient_GetISteamController_Original;
+extern ISteamController* S_CALLTYPE SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
+                                                                                       HSteamUser    hSteamUser,
+                                                                                       HSteamPipe    hSteamPipe,
+                                                                                       const char   *pchVersion );
+
+
+
+extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe_Original             = nullptr;
+extern "C" SteamAPI_Init_pfn                  SteamAPI_Init_Original                 = nullptr;
+
+extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                  = nullptr;
+extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original         = nullptr;
+
+extern "C" SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback              = nullptr;
+extern "C" SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original     = nullptr;
+
+extern "C" SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback            = nullptr;
+extern "C" SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original   = nullptr;
+
+extern "C" SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult            = nullptr;
+extern "C" SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult          = nullptr;
+
+extern "C" SteamAPI_Init_pfn                  SteamAPI_Init                          = nullptr;
+extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe                      = nullptr;
+
+extern "C" SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary         = nullptr;
+extern "C" SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning                = nullptr;
+
+extern "C" SteamAPI_GetHSteamUser_pfn         SteamAPI_GetHSteamUser                 = nullptr;
+extern "C" SteamAPI_GetHSteamPipe_pfn         SteamAPI_GetHSteamPipe                 = nullptr;
+
+extern "C" SteamClient_pfn                    SteamClient                            = nullptr;
+
+extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                      = nullptr;
+extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original             = nullptr;
+
+extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath           = nullptr;
 
 BOOL
 SK_Steam_PreHookCore (void)
@@ -118,9 +182,24 @@ SK_Steam_PreHookCore (void)
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamUser_Original) );
 
     SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamAPI_ISteamClient_GetISteamUtils",
+                                   SteamAPI_ISteamClient_GetISteamUtils_Detour,
+          static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamUtils_Original) );
+
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamAPI_ISteamClient_GetISteamController",
+                                   SteamAPI_ISteamClient_GetISteamController_Detour,
+          static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
+
+    SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamInternal_CreateInterface",
                                    SteamInternal_CreateInterface_Detour,
           static_cast_p2p <void> (&SteamInternal_CreateInterface_Original) );
+
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamClient",
+                                   SteamClient_Detour,
+          static_cast_p2p <void> (&SteamClient_Original) );
 
     SK_ApplyQueuedHooks ();
 
@@ -588,10 +667,6 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 
   LeaveCriticalSection (&callback_cs);
 }
-
-SteamAPI_InitSafe_pfn SteamAPI_InitSafe_Original = nullptr;
-SteamAPI_Init_pfn     SteamAPI_Init_Original     = nullptr;
-
 extern "C" void __cdecl SteamAPIDebugTextHook (int nSeverity, const char *pchDebugText);
 
 
@@ -694,6 +769,12 @@ SK_Steam_SetNotifyCorner (void)
       );
     }
   }
+}
+
+const char*
+SK_SteamAPIContext::GetSteamInstallPath (void)
+{
+  return SteamAPI_GetSteamInstallPath ();
 }
 
 bool
@@ -2719,6 +2800,26 @@ SK_GetFullyQualifiedApp (void);
 std::string
 SK_UseManifestToGetAppName (uint32_t appid);
 
+CSteamID
+SK::SteamAPI::UserSteamID (void)
+{
+  static CSteamID usr_steam_id (0ui64);
+
+  if (usr_steam_id.ConvertToUint64 () != 0ui64)
+    return usr_steam_id.ConvertToUint64 ();
+
+  ISteamUser *pUser =
+    steam_ctx.User ();
+
+  if (pUser != nullptr)
+  {
+    usr_steam_id =
+      pUser->GetSteamID ();
+  }
+
+  return usr_steam_id;
+}
+
 uint32_t
 SK::SteamAPI::AppID (void)
 {
@@ -3442,6 +3543,13 @@ SK_SteamAPI_UserStats (void)
 void
 SK_SteamAPI_ContextInit (HMODULE hSteamAPI)
 {
+  if (! SteamAPI_GetSteamInstallPath)
+  {
+    SteamAPI_GetSteamInstallPath =
+      (SteamAPI_GetSteamInstallPath_pfn)
+        GetProcAddress (hSteamAPI, "SteamAPI_GetSteamInstallPath");
+  }
+
   if (! steam_ctx.UserStats ())
     steam_ctx.InitSteamAPI (hSteamAPI);
 }
@@ -4298,36 +4406,6 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
     return nullptr;
   }
 }
-
-
-SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                = nullptr;
-SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original       = nullptr;
-
-SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback            = nullptr;
-SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original   = nullptr;
-
-SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback          = nullptr;
-SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original = nullptr;
-
-SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult          = nullptr;
-SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult        = nullptr;
-
-SteamAPI_Init_pfn                  SteamAPI_Init                        = nullptr;
-SteamAPI_InitSafe_pfn              SteamAPI_InitSafe                    = nullptr;
-
-SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary       = nullptr;
-SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning              = nullptr;
-
-SteamAPI_GetHSteamUser_pfn         SteamAPI_GetHSteamUser               = nullptr;
-SteamAPI_GetHSteamPipe_pfn         SteamAPI_GetHSteamPipe               = nullptr;
-
-SteamClient_pfn                    SteamClient                          = nullptr;
-
-SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                    = nullptr;
-SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original           = nullptr;
-
-//GetControllerState_pfn             GetControllerState_Original          = nullptr;
-
 
 uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;
 

@@ -215,7 +215,17 @@ public:
 	virtual CSteamID GetConsoleSteamID() = 0;
 #endif
 
+  // 019
+  //
+  virtual bool BIsPhoneVerified()              = 0;
+  virtual bool BIsTwoFactorEnabled()           = 0;
+  virtual bool BIsPhoneIdentifying()           = 0;
+  virtual bool BIsPhoneRequiringVerification() = 0;
 };
+
+#define STEAMUSER_INTERFACE_VERSION_017 "SteamUser017"
+#define STEAMUSER_INTERFACE_VERSION_018 "SteamUser018"
+#define STEAMUSER_INTERFACE_VERSION_019 "SteamUser019"
 
 #define STEAMUSER_INTERFACE_VERSION "SteamUser018"
 

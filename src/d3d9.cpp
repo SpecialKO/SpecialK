@@ -67,7 +67,7 @@ unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user);
 
-extern volatile ULONG ImGui_Init = FALSE;
+volatile LONG ImGui_Init = FALSE;
 
 void
 WINAPI
@@ -683,7 +683,25 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     return;
 
   if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
+  {
+    if (! ReadAcquire (&ImGui_Init))
+    {
+      //
+      // Initialize ImGui for D3D9 games
+      //
+      D3DDEVICE_CREATION_PARAMETERS params;
+      pDev->GetCreationParameters (&params);
+
+      if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
+                                      pDev,
+                                       nullptr )
+         )
+      {
+        InterlockedExchange ( &ImGui_Init, TRUE );
+      }
+    }
     return;
+  }
 
   if (cegD3D9 != nullptr || (pDev == nullptr))
   {
@@ -733,20 +751,6 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
 
     SK_Steam_ClearPopups ();
-
-    //
-    // Initialize ImGui for D3D9 games
-    //
-    D3DDEVICE_CREATION_PARAMETERS params;
-    pDev->GetCreationParameters (&params);
-
-    if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
-                                    pDev,
-                                     nullptr )
-       )
-    {
-      InterlockedExchange ( &ImGui_Init, TRUE );
-    }
   }
 }
 
@@ -1848,7 +1852,7 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
   UNREFERENCED_PARAMETER (This);
   UNREFERENCED_PARAMETER (pFullscreenDisplayMode);
 
-  if (InterlockedCompareExchange (&ImGui_Init, 0, 0))
+  if (ReadAcquire (&ImGui_Init))
   {
     ResetCEGUI_D3D9                       (nullptr);
     ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
@@ -3310,15 +3314,18 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
     {
       extern HWND hWndRender;
 
-      //
-      // Initialize ImGui for D3D9 games
-      //
-      if ( ImGui_ImplDX9_Init ( static_cast <void *> (pparams->hDeviceWindow),
-                                  pDevice,
-                                    pparams )
-         )
+      if (! ReadAcquire (&ImGui_Init))
       {
-        InterlockedExchange ( &ImGui_Init, TRUE );
+        //
+        // Initialize ImGui for D3D9 games
+        //
+        if ( ImGui_ImplDX9_Init ( static_cast <void *> (pparams->hDeviceWindow),
+                                    pDevice,
+                                      pparams )
+           )
+        {
+          InterlockedExchange ( &ImGui_Init, TRUE );
+        }
       }
 
 

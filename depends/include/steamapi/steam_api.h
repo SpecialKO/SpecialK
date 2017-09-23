@@ -370,7 +370,7 @@ S_API void Steam_RegisterInterfaceFuncs( void *hModule );
 S_API HSteamUser Steam_GetHSteamUserCurrent();
 
 // returns the filename path of the current running Steam process, used if you need to load an explicit steam dll by name
-S_API const char *SteamAPI_GetSteamInstallPath();
+//S_API const char *SteamAPI_GetSteamInstallPath();
 
 // returns the pipe we are communicating to Steam with
 ////////////////////S_API HSteamPipe SteamAPI_GetHSteamPipe();

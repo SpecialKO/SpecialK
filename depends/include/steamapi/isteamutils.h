@@ -16,7 +16,7 @@
 // Steam API call failure results
 enum ESteamAPICallFailure
 {
-	k_ESteamAPICallFailureNone = -1,			// no failure
+k_ESteamAPICallFailureNone = -1,			// no failure
 	k_ESteamAPICallFailureSteamGone = 0,		// the local Steam process has gone away
 	k_ESteamAPICallFailureNetworkFailure = 1,	// the network connection to Steam has been broken, or was already broken
 	// SteamServersDisconnected_t callback will be sent around the same time
@@ -163,6 +163,14 @@ public:
 	
 	// Sets the inset of the overlay notification from the corner specified by SetOverlayNotificationPosition.
 	virtual void SetOverlayNotificationInset( int nHorizontalInset, int nVerticalInset ) = 0;
+
+	//SteamUtils008
+	virtual bool IsSteamInBigPictureMode() = 0;
+
+	//SteamUtils009
+	virtual void StartVRDashboard() = 0;
+	virtual bool IsVRHeadsetStreamingEnabled() = 0;
+	virtual void SetVRHeadsetStreamingEnabled(bool bEnabled) = 0;
 };
 
 #define STEAMUTILS_INTERFACE_VERSION "SteamUtils007"

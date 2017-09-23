@@ -1,5 +1,6 @@
 #include <SpecialK/steam_api.h>
 #include <SpecialK/config.h>
+#include <SpecialK/utility.h>
 
 #include <Windows.h>
 #include <cstdint>
@@ -7,20 +8,20 @@
 #include <unordered_map>
 
 class ISteamClient;
-class ISteamClientFake;
+class IWrapSteamClient;
 
 class ISteamUser;
-class ISteamUserFake;
+class IWrapSteamUser;
 
-std::unordered_map <ISteamUser*, ISteamUserFake*>   SK_SteamWrapper_remap_user;
+std::unordered_map <ISteamUser*, IWrapSteamUser*>   SK_SteamWrapper_remap_user;
 
 int __SK_SteamUser_BLoggedOn =
   static_cast <int> (SK_SteamUser_LoggedOn_e::Unknown);
 
-class ISteamUserFake : public ISteamUser
+class IWrapSteamUser : public ISteamUser
 {
 public:
-  ISteamUserFake (ISteamUser* pUser) :
+  IWrapSteamUser (ISteamUser* pUser) :
                    pRealUser (pUser) {
   };
 
@@ -197,6 +198,26 @@ public:
     return pRealUser->RequestStoreAuthURL   (pchRedirectURL);
   };
 
+
+  // 019
+  //
+  virtual bool                        BIsPhoneVerified          (void)                          override
+  {
+    return pRealUser->BIsPhoneVerified              ();
+  }
+  virtual bool                        BIsTwoFactorEnabled       (void)                          override
+  {
+    return pRealUser->BIsTwoFactorEnabled           ();
+  }
+  virtual bool                        BIsPhoneIdentifying       (void)                          override
+  {
+    return pRealUser->BIsPhoneIdentifying           ();
+  }
+  virtual bool                        BIsPhoneRequiringVerification (void)                      override
+  {
+    return pRealUser->BIsPhoneRequiringVerification ();
+  }
+
 private:
   ISteamUser* pRealUser;
 };
@@ -207,7 +228,7 @@ using SteamAPI_ISteamClient_GetISteamUser_pfn = ISteamUser* (S_CALLTYPE *)(
   ISteamClient *This,
   HSteamUser    hSteamUser,
   HSteamPipe    hSteamPipe,
-  const char         *pchVersion
+  const char   *pchVersion
   );
 SteamAPI_ISteamClient_GetISteamUser_pfn   SteamAPI_ISteamClient_GetISteamUser_Original = nullptr;
 
@@ -216,25 +237,40 @@ S_CALLTYPE
 SteamAPI_ISteamClient_GetISteamUser_Detour (ISteamClient *This,
                                             HSteamUser    hSteamUser,
                                             HSteamPipe    hSteamPipe,
-                                            const char         *pchVersion)
+                                            const char   *pchVersion)
 {
   ISteamUser* pUser =
-    SteamAPI_ISteamClient_GetISteamUser_Original (This,
-                                                  hSteamUser,
-                                                  hSteamPipe,
-                                                  pchVersion);
+    SteamAPI_ISteamClient_GetISteamUser_Original ( This,
+                                                     hSteamUser,
+                                                       hSteamPipe,
+                                                         pchVersion );
 
   if (pUser != nullptr)
   {
-    if (SK_SteamWrapper_remap_user.count (pUser))
-       return SK_SteamWrapper_remap_user [pUser];
+    if ((! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_018)) ||
+        (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_019)) ||
+        (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_017)))
+    {
+      if (SK_SteamWrapper_remap_user.count (pUser))
+         return SK_SteamWrapper_remap_user [pUser];
+
+      else
+      {
+        SK_SteamWrapper_remap_user [pUser] =
+                new IWrapSteamUser (pUser);
+
+        return SK_SteamWrapper_remap_user [pUser];
+      }
+    }
 
     else
     {
-      SK_SteamWrapper_remap_user [pUser] =
-              new ISteamUserFake (pUser);
+      SK_RunOnce (
+        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
+                          pchVersion )
+      );
 
-      return SK_SteamWrapper_remap_user [pUser];
+      return pUser;
     }
   }
 
@@ -243,27 +279,42 @@ SteamAPI_ISteamClient_GetISteamUser_Detour (ISteamClient *This,
 
 
 ISteamUser*
-SK_SteamWrapper_FakeClient_GetISteamUser (ISteamClient *This,
-                                          HSteamUser    hSteamUser,
-                                          HSteamPipe    hSteamPipe,
-                                          const char   *pchVersion)
+SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
+                                              HSteamUser    hSteamUser,
+                                              HSteamPipe    hSteamPipe,
+                                              const char   *pchVersion )
 {
   ISteamUser* pUser =
-    This->GetISteamUser (hSteamUser,
-                         hSteamPipe,
-                         pchVersion);
+    This->GetISteamUser ( hSteamUser,
+                            hSteamPipe,
+                              pchVersion );
 
   if (pUser != nullptr)
   {
-    if (SK_SteamWrapper_remap_user.count (pUser))
-       return SK_SteamWrapper_remap_user [pUser];
+    if ((! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_018)) ||
+        (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_019)) ||
+        (! lstrcmpA (pchVersion, STEAMUSER_INTERFACE_VERSION_017)))
+    {
+      if (SK_SteamWrapper_remap_user.count (pUser))
+         return SK_SteamWrapper_remap_user [pUser];
+
+      else
+      {
+        SK_SteamWrapper_remap_user [pUser] =
+                new IWrapSteamUser (pUser);
+
+        return SK_SteamWrapper_remap_user [pUser];
+      }
+    }
 
     else
     {
-      SK_SteamWrapper_remap_user [pUser] =
-              new ISteamUserFake (pUser);
+      SK_RunOnce (
+        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
+                          pchVersion )
+      );
 
-      return SK_SteamWrapper_remap_user [pUser];
+      return pUser;
     }
   }
 

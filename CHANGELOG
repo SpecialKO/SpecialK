@@ -1,3 +1,19 @@
+0.8.44
+
+ + Added Denuvo activation management to all Denuvo-based (STEAM games)
+
+  >> I am not a fan of Origin, maybe if they publish more games I like and open up their
+       platform's API a littlebit I will give Origin+Denuvo the same features? :)
+
+ + Corrected formatting on the D3D9 framebuffer tooltip
+
+  >> Mouseover the resolution number in a D3D9 game for Special K's "stats for Nerds" :P
+
+ + Added support for games that use the very latest version of SteamAPI (mostly VR nonsense)
+ + Improved performance in games that busy-wait using PeekMessage (...)  (i.e. Sonic Mania)
+ + Minor correction for some D3D9 games having issues with texture modding
+
+
 0.8.43
 
  + Enabled triple-buffering override in D3D11 fullscreen (non-flip-model) mode

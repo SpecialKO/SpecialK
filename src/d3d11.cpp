@@ -6050,10 +6050,14 @@ SK_D3DX11_SAFE_GetImageInfoFromFileW (const wchar_t* wszTex, D3DX11_IMAGE_INFO* 
     return D3DX11GetImageInfoFromFileW (wszTex, nullptr, pInfo, nullptr);
   }
 
-  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-               EXCEPTION_EXECUTE_HANDLER :
-               EXCEPTION_CONTINUE_SEARCH )
+  __except ( /* GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ? */
+               EXCEPTION_EXECUTE_HANDLER /* :
+               EXCEPTION_CONTINUE_SEARCH */ )
   {
+    SK_LOG0 ( ( L"Texture '%s' is corrupt, please delete it.",
+                  wszTex ),
+                L" TexCache " );
+
     return E_FAIL;
   }
 }
@@ -9869,7 +9873,7 @@ SK_D3D11_ShaderModDlg (void)
 
         if (list_dirty)
         {
-              sel =  std::numeric_limits <size_t>::max ();;
+              sel =  std::numeric_limits <size_t>::max ();
           int idx =  0;
               list_contents.clear ();
 

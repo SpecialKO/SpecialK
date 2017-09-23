@@ -79,6 +79,10 @@ LARGE_INTEGER SK::Framerate::Stats::freq;
 
 #include <SpecialK/utility.h>
 
+HANDLE hModSteamAPI = nullptr;
+
+#include <SpecialK/steam_api.h>
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
@@ -90,13 +94,18 @@ Sleep_Detour (DWORD dwMilliseconds)
   if (SK_GetFramesDrawn () < 30)
     return Sleep_Original (dwMilliseconds);
 
+  if (SK::SteamAPI::AppID () > 0)
+  {
+    hModSteamAPI = 
 #ifndef _WIN64
-  if (SK_GetCallingDLL () == GetModuleHandle (L"steam_api.dll"))
-    return Sleep_Original (dwMilliseconds);
+      GetModuleHandle (L"steam_api.dll");
 #else
-  if (SK_GetCallingDLL () == GetModuleHandle (L"steam_api64.dll"))
-    return Sleep_Original (dwMilliseconds);
+      GetModuleHandle (L"steam_api64.dll");
 #endif
+
+    if (SK_GetCallingDLL () == hModSteamAPI)
+      return Sleep_Original (dwMilliseconds);
+  }
 
 
   BOOL bGUIThread    = IsGUIThread (FALSE);

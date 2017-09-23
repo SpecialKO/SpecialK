@@ -47,8 +47,10 @@ namespace SK
 
     bool __stdcall TakeScreenshot  (void);
 
-    uint32_t    AppID   (void);
-    std::string AppName (void);
+    uint32_t    AppID        (void);
+    std::string AppName      (void);
+
+    CSteamID    UserSteamID  (void);
 
     // The state that we are explicitly telling the game
     //   about, not the state of the actual overlay...
@@ -218,36 +220,41 @@ using SteamClient_pfn                   = ISteamClient* (S_CALLTYPE *)(void);
 using SteamAPI_InitSafe_pfn             = bool (S_CALLTYPE*)(void);
 using SteamAPI_Init_pfn                 = bool (S_CALLTYPE*)(void);
 
+using SteamAPI_GetSteamInstallPath_pfn  = const char* (S_CALLTYPE *)(void);
 
 
-extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe_Original;
-extern "C" SteamAPI_Init_pfn                  SteamAPI_Init_Original;
 
-extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks;
-extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original;
+extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe_Original             ;
+extern "C" SteamAPI_Init_pfn                  SteamAPI_Init_Original                 ;
 
-extern "C" SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback;
-extern "C" SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original;
+extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                  ;
+extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original         ;
 
-extern "C" SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback;
-extern "C" SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original;
+extern "C" SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback              ;
+extern "C" SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original     ;
 
-extern "C" SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult;
-extern "C" SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult;
+extern "C" SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback            ;
+extern "C" SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original   ;
 
-extern "C" SteamAPI_Init_pfn                  SteamAPI_Init;
-extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe;
+extern "C" SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult            ;
+extern "C" SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult          ;
 
-extern "C" SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary;
-extern "C" SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning;
+extern "C" SteamAPI_Init_pfn                  SteamAPI_Init                          ;
+extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe                      ;
 
-extern "C" SteamAPI_GetHSteamUser_pfn         SteamAPI_GetHSteamUser;
-extern "C" SteamAPI_GetHSteamPipe_pfn         SteamAPI_GetHSteamPipe;
+extern "C" SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary         ;
+extern "C" SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning                ;
 
-extern "C" SteamClient_pfn                    SteamClient;
+extern "C" SteamAPI_GetHSteamUser_pfn         SteamAPI_GetHSteamUser                 ;
+extern "C" SteamAPI_GetHSteamPipe_pfn         SteamAPI_GetHSteamPipe                 ;
 
-extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown;
-extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original;
+extern "C" SteamClient_pfn                    SteamClient                            ;
+extern "C" SteamClient_pfn                    SteamClient_Original                   ;
+
+extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                      ;
+extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original             ;
+
+extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath           ;
 
 //extern "C" GetControllerState_pfn             GetControllerState_Original;
 
@@ -317,9 +324,9 @@ public:
            "SteamAPI_IsSteamRunning"
       );
 
-    if (SteamClient == nullptr)
+    if (SteamClient_Original == nullptr)
     {
-      SteamClient =
+      SteamClient_Original =
         (SteamClient_pfn)GetProcAddress (
            hSteamDLL,
              "SteamClient"
@@ -359,7 +366,7 @@ public:
       success = false;
     }
 
-    if (SteamClient == nullptr)
+    if (SteamClient_Original == nullptr)
     {
       steam_log.Log (L"Could not load SteamClient (...)");
       success = false;
@@ -387,7 +394,7 @@ public:
       return false;
     }
 
-    client_ = SteamClient ();
+    client_ = SteamClient_Original ();
 
     if (! client_)
     {
@@ -606,6 +613,8 @@ public:
     char popup_origin  [16] = { "DontCare" };
     char notify_corner [16] = { "DontCare" };
   } var_strings;
+
+  const char*        GetSteamInstallPath (void);
 
 protected:
 private:

@@ -40,9 +40,6 @@
     <Filter Include="Libraries\64-bit">
       <UniqueIdentifier>{f24af793-8b2e-4853-96dc-0d0fb7754f2f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Stats">
-      <UniqueIdentifier>{3875728f-4125-4054-8f97-91f239a011e9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Plugins">
       <UniqueIdentifier>{a28dbd7c-faa6-49fb-a3f1-1f61813370e6}</UniqueIdentifier>
     </Filter>
@@ -204,6 +201,9 @@
     </Filter>
     <Filter Include="Source Files\Steam\Wrapper">
       <UniqueIdentifier>{b68a55ad-9318-4278-8ca3-36d75f0cf5fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\OSD\Stats">
+      <UniqueIdentifier>{3875728f-4125-4054-8f97-91f239a011e9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -426,19 +426,19 @@
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\adl.cpp">
-      <Filter>Source Files\Stats</Filter>
+      <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\gpu_monitor.cpp">
-      <Filter>Source Files\Stats</Filter>
+      <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\io_monitor.cpp">
-      <Filter>Source Files\Stats</Filter>
+      <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\memory_monitor.cpp">
-      <Filter>Source Files\Stats</Filter>
+      <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\nvapi.cpp">
-      <Filter>Source Files\Stats</Filter>
+      <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\steam_api.cpp">
       <Filter>Source Files\Steam</Filter>
@@ -646,6 +646,9 @@
     </ClCompile>
     <ClCompile Include="src\input\steam.cpp">
       <Filter>Source Files\Backends\Input\Steam</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\denuvo.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

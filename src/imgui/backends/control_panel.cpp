@@ -71,6 +71,23 @@
 
 #include "resource.h"
 
+
+extern bool
+SK_Denuvo_UsedByGame (bool retest = false);
+
+struct denuvo_file_s
+{
+  AppId_t      app;
+  CSteamID     user;
+  uint64       hash;
+  std::wstring path;
+  FILETIME     ft_key;
+  SYSTEMTIME   st_local;
+};
+
+extern std::vector <denuvo_file_s> denuvo_files;
+
+
 __declspec (dllexport)
 void
 SK_ImGui_Toggle (void);
@@ -413,7 +430,8 @@ SK_ImGui_ControlPanelTitle (void)
 
     if (steam)
     {
-      std::string appname = SK::SteamAPI::AppName ();
+      std::string appname =
+        SK::SteamAPI::AppName ();
 
       if (appname.length ())
         title += L"      -      ";
@@ -2111,14 +2129,18 @@ SK_ImGui_ControlPanel (void)
               ImGui::Text            ("%u",                                      pparams.BackBufferCount);
               if (! pparams.Windowed)
               ImGui::Text            ("%u Hz",                                   pparams.FullScreen_RefreshRateInHz);
-              if (pparams.PresentationInterval == 1)
+              if (pparams.PresentationInterval == 0)
+                ImGui::Text          ("%u: VSYNC OFF",                           pparams.PresentationInterval);
+              else if (pparams.PresentationInterval == 1)
                 ImGui::Text          ("%u: Normal V-SYNC",                       pparams.PresentationInterval);
-              if (pparams.PresentationInterval == 2)
+              else if (pparams.PresentationInterval == 2)
                 ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  pparams.PresentationInterval);
-              if (pparams.PresentationInterval == 3)
+              else if (pparams.PresentationInterval == 3)
                 ImGui::Text          ("%u: 1/3 Refresh V-SYNC",                  pparams.PresentationInterval);
-              if (pparams.PresentationInterval == 4)
+              else if (pparams.PresentationInterval == 4)
                 ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  pparams.PresentationInterval);
+              else
+                ImGui::Text          ("%u: UNKNOWN or Invalid",                  pparams.PresentationInterval);
               ImGui::Text            ("%ws",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
               ImGui::Text            ("%u",                                      pparams.MultiSampleType);
               if (pparams.Flags != 0)
@@ -4908,6 +4930,94 @@ extern float SK_ImGui_PulseNav_Strength;
             ImGui::SetTooltip ("Applies Only to Traditional Overlay (not Big Picture)");
 
           ImGui::TreePop ();
+        }
+
+        if (SK_Denuvo_UsedByGame ())
+        {
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
+          ImGui::PushStyleColor (ImGuiCol_Text,          ImColor::HSV (0.15f, 1.0f, 1.0f));
+
+          if (ImGui::CollapsingHeader ("Denuvo"))
+          {
+            ImGui::PopStyleColor (4);
+
+            ImGui::TreePush ("");
+
+            int idx = 0;
+
+            ImGui::BeginGroup ();
+            for ( auto it : denuvo_files )
+            {
+              size_t found =
+                it.path.find_last_of (L'\\');
+
+              ImGui::BeginGroup      ();
+              ImGui::Text            ( "Key %lu:",
+                                             idx++ );
+              ImGui::TextUnformatted ( "First Activated:" );
+              ImGui::EndGroup        ();
+
+              ImGui::SameLine        ();
+
+              ImGui::BeginGroup      ();
+              ImGui::Text            ( "%ws", &it.path.c_str ()[found + 1] );
+
+              if (denuvo_files.size () > idx)
+              {
+                ImGui::SameLine    (  );
+                ImGui::TextColored (ImColor::HSV (0.08f, 1.f, 1.f), " [ Expired ]");
+              }
+
+              ImGui::Text            ( "%02d/%02d/%d  %02d:%02d",
+                                         it.st_local.wMonth, it.st_local.wDay, it.st_local.wYear,
+                                         it.st_local.wHour,  it.st_local.wMinute );
+
+              ImGui::EndGroup        ();
+            }
+            ImGui::EndGroup          ();
+
+            ImGui::SameLine          ();
+
+            ImGui::BeginGroup        ();
+            for ( auto it : denuvo_files )
+            {
+              size_t found =
+                it.path.find_last_of (L'\\');
+
+              ImGui::PushID (_wtol (&it.path.c_str ()[found + 1]));
+
+              if (ImGui::Button      ("  Delete Me  "))
+              {
+                DeleteFileW (it.path.c_str ());
+
+                SK_Denuvo_UsedByGame (true); // Re-Test
+              }
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip  ();
+                ImGui::Text          ("Force Denuvo to Re-Activate the next time the Game Starts");
+                ImGui::Separator     ();
+                ImGui::BulletText    ("Useful if you plan to go offline for an extended period.");
+                ImGui::BulletText    (" >> RESTART the game immediately after doing this to re-activate <<");
+                ImGui::EndTooltip    ();
+              }
+
+              ImGui::TextUnformatted ( "" );
+
+              ImGui::PopID           ();
+            }
+            ImGui::EndGroup          ();
+
+            ImGui::TreePop  ();
+          }
+
+          else
+          {
+            ImGui::PopStyleColor   (4);
+          }
         }
 
         ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));

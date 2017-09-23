@@ -1,37 +1,52 @@
 #include <Windows.h>
 #include <SpecialK/steam_api.h>
+#include <SpecialK/utility.h>
 #include <cstdint>
 
 #include <unordered_map>
 
 class ISteamUser;
-class ISteamUserFake;
+class IWrapSteamUser;
+
+class ISteamUtils;
+class IWrapSteamUtils;
+
+class ISteamController;
+class IWrapSteamController;
 
 class ISteamClient;
-class ISteamClientFake;
+class IWrapSteamClient;
 
-extern std::unordered_map <ISteamUser*,   ISteamUserFake*>   SK_SteamWrapper_remap_user;
-       std::unordered_map <ISteamClient*, ISteamClientFake*> SK_SteamWrapper_remap_client;
+extern std::unordered_map <ISteamUser*,       IWrapSteamUser*>       SK_SteamWrapper_remap_user;
+extern std::unordered_map <ISteamUtils*,      IWrapSteamUtils*>      SK_SteamWrapper_remap_utils;
+extern std::unordered_map <ISteamController*, IWrapSteamController*> SK_SteamWrapper_remap_controller;
+       std::unordered_map <ISteamClient*,     IWrapSteamClient*>     SK_SteamWrapper_remap_client;
 
 
 extern
 ISteamUser*
-SK_SteamWrapper_FakeClient_GetISteamUser ( ISteamClient *This,
-                                           HSteamUser    hSteamUser,
-                                           HSteamPipe    hSteamPipe,
-                                           const char   *pchVersion );
+SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
+                                              HSteamUser    hSteamUser,
+                                              HSteamPipe    hSteamPipe,
+                                              const char   *pchVersion );
 
 extern
 ISteamController*
-SK_SteamWrapper_FakeClient_GetISteamController ( ISteamClient *pRealClient,
-                                                 HSteamUser     hSteamUser,
-                                                 HSteamPipe     hSteamPipe,
-                                                 const char    *pchVersion );
+SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *This,
+                                                    HSteamUser    hSteamUser,
+                                                    HSteamPipe    hSteamPipe,
+                                                    const char   *pchVersion );
 
-class ISteamClientFake : public ISteamClient
+extern
+ISteamUtils*
+SK_SteamWrapper_WrappedClient_GetISteamUtils ( ISteamClient *This,
+                                               HSteamPipe    hSteamPipe,
+                                               const char   *pchVersion );
+
+class IWrapSteamClient : public ISteamClient
 {
 public:
-  ISteamClientFake (ISteamClient* pSteamClient) :
+  IWrapSteamClient (ISteamClient* pSteamClient) :
                      pRealClient (pSteamClient) {
   };
 
@@ -47,10 +62,10 @@ public:
                                                  HSteamPipe  hSteamPipe,
                                            const char       *pchVersion ) override
   {
-    return SK_SteamWrapper_FakeClient_GetISteamUser ( pRealClient,
-                                                        hSteamUser,
-                                                          hSteamPipe,
-                                                            pchVersion );
+    return SK_SteamWrapper_WrappedClient_GetISteamUser ( pRealClient,
+                                                           hSteamUser,
+                                                             hSteamPipe,
+                                                               pchVersion );
   }
 
 
@@ -61,8 +76,11 @@ public:
     return pRealClient->SetLocalIPBinding           (unIP, usPort);                                                                              }
   virtual ISteamFriends            *GetISteamFriends             (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
     return pRealClient->GetISteamFriends            (hSteamUser, hSteamPipe, pchVersion);                                                        }
-  virtual ISteamUtils              *GetISteamUtils               (HSteamPipe hSteamPipe, const char *pchVersion)                        override {
-    return pRealClient->GetISteamUtils              (hSteamPipe, pchVersion);                                                                    }
+  virtual ISteamUtils              *GetISteamUtils               (HSteamPipe hSteamPipe, const char *pchVersion)                        override
+  {
+    return SK_SteamWrapper_WrappedClient_GetISteamUtils ( pRealClient,
+                                                            hSteamPipe,
+                                                              pchVersion );                                                                      }
   virtual ISteamMatchmaking        *GetISteamMatchmaking         (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
     return pRealClient->GetISteamMatchmaking        (hSteamUser, hSteamPipe, pchVersion);                                                        }
   virtual ISteamMatchmakingServers *GetISteamMatchmakingServers  (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
@@ -97,7 +115,7 @@ public:
 
 
   virtual ISteamController         *GetISteamController          (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
-    return SK_SteamWrapper_FakeClient_GetISteamController (pRealClient, hSteamUser, hSteamPipe, pchVersion);                                     }
+    return SK_SteamWrapper_WrappedClient_GetISteamController (pRealClient, hSteamUser, hSteamPipe, pchVersion);                                  }
 
 
 
@@ -133,6 +151,36 @@ private:
 
 
 
+using SteamClient_pfn = ISteamClient* (S_CALLTYPE *)(
+        void
+      );
+SteamClient_pfn SteamClient_Original = nullptr;
+
+ISteamClient*
+S_CALLTYPE
+SteamClient_Detour (void)
+{
+  ISteamClient* pClient =
+    static_cast <ISteamClient *> ( SteamClient_Original () );
+
+  if (pClient != nullptr)
+  {
+    if (SK_SteamWrapper_remap_client.count (pClient))
+       return SK_SteamWrapper_remap_client [pClient];
+
+    else
+    {
+      SK_SteamWrapper_remap_client [pClient] =
+              new IWrapSteamClient (pClient);
+
+      return SK_SteamWrapper_remap_client [pClient];
+    }
+  }
+
+  return nullptr;
+}
+
+
 using SteamInternal_CreateInterface_pfn = void*       (S_CALLTYPE *)(
   const char *ver
   );
@@ -158,12 +206,21 @@ SteamInternal_CreateInterface_Detour (const char *ver)
       else
       {
         SK_SteamWrapper_remap_client [pClient] =
-                new ISteamClientFake (pClient);
+                new IWrapSteamClient (pClient);
 
         return SK_SteamWrapper_remap_client [pClient];
       }
     }
   }
 
-  return SteamInternal_CreateInterface_Original (ver);
+  else
+  {
+    SK_RunOnce (
+      steam_log.Log ( L"Game requested unexpected interface version (%s)!",
+                        ver )
+    );
+  }
+
+  return
+    SteamInternal_CreateInterface_Original (ver);
 }

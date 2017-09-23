@@ -1,6 +1,6 @@
 #include <SpecialK/steam_api.h>
 
-class ISteamFriendsFake : public ISteamFriends
+class IWrapSteamFriends : public ISteamFriends
 {
 public:
   virtual const char          *GetPersonaName                  ( void ) = 0;

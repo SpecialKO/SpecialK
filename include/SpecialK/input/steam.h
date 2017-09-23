@@ -142,10 +142,10 @@ ISteamController_GetDigitalActionData_Detour ( ISteamController                *
 
 
 
-class ISteamControllerFake : public ISteamController
+class IWrapSteamController : public ISteamController
 {
 public:
-  ISteamControllerFake (ISteamController* pController) :
+  IWrapSteamController (ISteamController* pController) :
                                                          pRealController (pController) {
   };
 
