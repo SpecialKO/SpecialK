@@ -781,7 +781,16 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   wcscpy (SK_Backend, backend);
 
-  using finish_pfn = void (WINAPI *)  (void);
+
+  BOOL
+  SK_Steam_PreHookCore (void);
+
+  if (config.steam.spoof_BLoggedOn)
+  {
+    SK_Steam_PreHookCore ();
+  }
+
+  using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
 
   auto callback_fn =
@@ -934,14 +943,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
   if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
     SK_FAR_InitPlugin ();
 #endif
-
-  BOOL
-  SK_Steam_PreHookCore (void);
-
-  if (config.steam.spoof_BLoggedOn)
-  {
-    SK_Steam_PreHookCore ();
-  }
 
 
   //

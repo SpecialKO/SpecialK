@@ -119,11 +119,23 @@ using SteamAPI_ISteamClient_GetISteamController_pfn = ISteamController* (S_CALLT
               HSteamPipe    hSteamPipe,
         const char         *pchVersion
       );
-extern                        SteamAPI_ISteamClient_GetISteamController_pfn   SteamAPI_ISteamClient_GetISteamController_Original;
+extern                              SteamAPI_ISteamClient_GetISteamController_pfn   SteamAPI_ISteamClient_GetISteamController_Original;
 extern ISteamController* S_CALLTYPE SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
                                                                                        HSteamUser    hSteamUser,
                                                                                        HSteamPipe    hSteamPipe,
                                                                                        const char   *pchVersion );
+
+using SteamAPI_ISteamClient_GetISteamRemoteStorage_pfn = ISteamRemoteStorage* (S_CALLTYPE *)(
+  ISteamClient *This,
+  HSteamUser    hSteamuser,
+  HSteamPipe    hSteamPipe,
+  const char   *pchVersion
+  );
+extern                                 SteamAPI_ISteamClient_GetISteamRemoteStorage_pfn   SteamAPI_ISteamClient_GetISteamRemoteStorage_Original;
+extern ISteamRemoteStorage* S_CALLTYPE SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour ( ISteamClient *This,
+                                                                                             HSteamUser    hSteamuser,
+                                                                                             HSteamPipe    hSteamPipe,
+                                                                                             const char   *pchVersion );
 
 
 
@@ -161,6 +173,13 @@ extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath      
 BOOL
 SK_Steam_PreHookCore (void)
 {
+  static volatile LONG init = FALSE;
+
+  if (ReadAcquire (&init))
+    return TRUE;
+
+  InterlockedExchange (&init, TRUE);
+
   //LoadLibraryW_Original (L"team")
 
   const wchar_t* wszSteamLib =
@@ -190,6 +209,11 @@ SK_Steam_PreHookCore (void)
                                   "SteamAPI_ISteamClient_GetISteamController",
                                    SteamAPI_ISteamClient_GetISteamController_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
+
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamAPI_ISteamClient_GetISteamRemoteStorage",
+                                   SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour,
+          static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamRemoteStorage_Original) );
 
     SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamInternal_CreateInterface",

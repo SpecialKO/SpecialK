@@ -67,6 +67,9 @@ SK_GPUPollingThread (LPVOID user)
     if (dwWait == WAIT_OBJECT_0 + 1)
       break;
 
+    else if (dwWait != WAIT_OBJECT_0)
+      break;
+
     current_gpu_stat = (! current_gpu_stat);
 
     gpu_sensors_t& stats = gpu_stats_buffers [current_gpu_stat];
@@ -411,6 +414,7 @@ SK_GPUPollingThread (LPVOID user)
     }
 
     gpu_stats = gpu_stats_buffers [current_gpu_stat];
+    ResetEvent (hPollEvent);
   }
 
   hPollThread = 0;
@@ -452,7 +456,7 @@ SK_PollGPU (void)
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     hShutdownEvent = CreateEvent  (nullptr, FALSE, FALSE, nullptr);
-    hPollEvent     = CreateEvent  (nullptr, FALSE, FALSE, nullptr);
+    hPollEvent     = CreateEvent  (nullptr, TRUE,  FALSE, nullptr);
     hPollThread    = CreateThread (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
   }
 
@@ -470,10 +474,13 @@ SK_PollGPU (void)
 
   if (dt > config.gpu.interval)
   {
-    gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
+    if (WaitForSingleObject (hPollEvent, 0) == WAIT_TIMEOUT)
+    {
+      gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
 
-    if (hPollEvent != 0)
+      if (hPollEvent != 0)
       SetEvent (hPollEvent);
+    }
   }
 }
 

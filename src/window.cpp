@@ -2518,8 +2518,6 @@ PeekMessageW_Detour (
 
   SK_LOG_FIRST_CALL
 
-  MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);
-
   if (config.render.dxgi.safe_fullscreen && (IsWindowUnicode (GetActiveWindow ())))
     wRemoveMsg |= PM_REMOVE;
 
@@ -2583,8 +2581,6 @@ PeekMessageA_Detour (
   }
 
   SK_LOG_FIRST_CALL
-
-  MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);
 
   if (config.render.dxgi.safe_fullscreen && (! IsWindowUnicode (GetActiveWindow ())))
     wRemoveMsg |= PM_REMOVE;

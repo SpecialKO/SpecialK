@@ -190,6 +190,11 @@ SteamAPI_ISteamClient_GetISteamUtils_Detour ( ISteamClient *This,
                                               HSteamPipe    hSteamPipe,
                                               const char   *pchVersion )
 {
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs (..., %hs)",
+                      __FUNCTION__, pchVersion )
+  );
+
   ISteamUtils* pUtils =
     SteamAPI_ISteamClient_GetISteamUtils_Original ( This,
                                                       hSteamPipe,
@@ -234,6 +239,11 @@ SK_SteamWrapper_WrappedClient_GetISteamUtils ( ISteamClient *This,
                                                HSteamPipe    hSteamPipe,
                                                const char   *pchVersion )
 {
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs (..., %hs)",
+                      __FUNCTION__, pchVersion )
+  );
+
   ISteamUtils* pUtils =
     This->GetISteamUtils ( hSteamPipe,
                              pchVersion );

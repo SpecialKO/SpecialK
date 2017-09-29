@@ -96,12 +96,15 @@ Sleep_Detour (DWORD dwMilliseconds)
 
   if (SK::SteamAPI::AppID () > 0)
   {
-    hModSteamAPI = 
+    if (hModSteamAPI == nullptr)
+    {
+      hModSteamAPI = 
 #ifndef _WIN64
-      GetModuleHandle (L"steam_api.dll");
+        GetModuleHandle (L"steam_api.dll");
 #else
-      GetModuleHandle (L"steam_api64.dll");
+        GetModuleHandle (L"steam_api64.dll");
 #endif
+    }
 
     if (SK_GetCallingDLL () == hModSteamAPI)
       return Sleep_Original (dwMilliseconds);

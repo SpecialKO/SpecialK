@@ -6,6 +6,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/tls.h>
+#include <SpecialK/utility.h>
 
 extern iSK_Logger tex_log;
 
@@ -82,11 +83,12 @@ class Texture {
 public:
   Texture (void)
   {
-    crc32c    = 0;
-    size      = 0;
-    refs      = 0;
-    load_time = 0.0f;
-    d3d9_tex  = nullptr;
+    crc32c        = 0;
+    size          = 0;
+    refs          = 0;
+    load_time     = 0.0f;
+    d3d9_tex      = nullptr;
+    original_pool = D3DPOOL_DEFAULT;
   }
 
   uint32_t        crc32c;
@@ -94,6 +96,7 @@ public:
   int             refs;
   float           load_time;
   ISKTextureD3D9* d3d9_tex;
+  D3DPOOL         original_pool;
 };
 
 struct TexThreadStats {
@@ -128,6 +131,8 @@ struct TexThreadStats {
              int           fileno  = 0UL;
     enum     TexLoadMethod method  = DontCare;
              size_t        size    = 1UL;
+    volatile LONG          removed = FALSE; // Rather than removing entries and
+                                            //   shuffling lists in memory, alter this
   };
 
   using TexList = std::vector < std::pair < uint32_t, TexRecord > >;
@@ -212,10 +217,10 @@ struct TexThreadStats {
 
     int                        numMSAASurfs        (void);
 
-    void                       addInjected         (size_t size) {
-      InterlockedIncrement (&injected_count);
-      InterlockedAdd64     (&injected_size, size);
-    }
+    void                       addInjected         ( ISKTextureD3D9*    pWrapperTex,
+                                                     IDirect3DTexture9* pOverrideTex,
+                                                     size_t             size,
+                                                     float              load_time );
 
     std::string                osdStats             (void) { return osd_stats; }
     void                       updateOSD            (void);
@@ -321,13 +326,11 @@ struct TexThreadStats {
       void lockStreaming    (void) const { EnterCriticalSection (&cs_tex_stream);    };
       void lockResampling   (void) const { EnterCriticalSection (&cs_tex_resample);  };
       void lockDumping      (void) const { EnterCriticalSection (&cs_tex_dump);      };
-      void lockInjection    (void) const { EnterCriticalSection (&cs_tex_inject);    };
       void lockBlacklist    (void) const { EnterCriticalSection (&cs_tex_blacklist); };
 
       void unlockStreaming  (void) const { LeaveCriticalSection (&cs_tex_stream);    };
       void unlockResampling (void) const { LeaveCriticalSection (&cs_tex_resample);  };
       void unlockDumping    (void) const { LeaveCriticalSection (&cs_tex_dump);      };
-      void unlockInjection  (void) const { LeaveCriticalSection (&cs_tex_inject);    };
       void unlockBlacklist  (void) const { LeaveCriticalSection (&cs_tex_blacklist); };
 
     //protected:
@@ -339,7 +342,6 @@ struct TexThreadStats {
       static CRITICAL_SECTION                                  cs_tex_stream;
       static CRITICAL_SECTION                                  cs_tex_resample;
       static CRITICAL_SECTION                                  cs_tex_dump;
-      static CRITICAL_SECTION                                  cs_tex_inject;
       static CRITICAL_SECTION                                  cs_tex_blacklist;
 
       static volatile  LONG                                    streaming;//       = 0L;
@@ -374,6 +376,7 @@ struct TexThreadStats {
     std::string                                              osd_stats       = "";
     bool                                                     want_screenshot = false;
 
+public:
     CRITICAL_SECTION                                         cs_cache;
     CRITICAL_SECTION                                         cs_free_list;
     CRITICAL_SECTION                                         cs_unreferenced;
@@ -464,7 +467,7 @@ struct TexThreadStats {
   
     volatile LONGLONG     bytes_loaded_ = 0LL;
     volatile LONG         jobs_retired_ = 0L;
-  
+
     struct {
       FILETIME start, end;
       FILETIME user,  kernel;
@@ -491,10 +494,10 @@ struct TexThreadStats {
     TextureThreadPool (void)
     {
       events_.jobs_added =
-        CreateEvent (nullptr, FALSE, FALSE, nullptr);
+        CreateEvent (nullptr, TRUE, FALSE, nullptr);
   
       events_.results_waiting =
-        CreateEvent (nullptr, FALSE, FALSE, nullptr);
+        CreateEvent (nullptr, TRUE, FALSE, nullptr);
   
       events_.shutdown =
         CreateEvent (nullptr, FALSE, FALSE, nullptr);
@@ -502,7 +505,7 @@ struct TexThreadStats {
       InitializeCriticalSectionAndSpinCount (&cs_jobs,     100UL);
       InitializeCriticalSectionAndSpinCount (&cs_results, 1000UL);
   
-      const int MAX_THREADS = 4;///*config.textures.worker_threads*/ 4 / 2;
+      const int MAX_THREADS = 5;///*config.textures.worker_threads*/ 4 / 2;
 
       if (! init_worker_sync)
       {
@@ -540,43 +543,38 @@ struct TexThreadStats {
       CloseHandle (events_.jobs_added);
       CloseHandle (events_.shutdown);
     }
-  
+
     void postJob (TexLoadRequest* job);
-  
+
     void getFinished (std::vector <TexLoadRequest *>& results)
     {
       DWORD dwResults =
         WaitForSingleObject (events_.results_waiting, 0);
-  
+
       // Nothing waiting
-      if (dwResults != WAIT_OBJECT_0)
+      if (dwResults != WAIT_OBJECT_0 && (! ReadAcquire (&jobs_done_)))
         return;
-  
+
       EnterCriticalSection (&cs_results);
       {
         while (! results_.empty ())
         {
           results.emplace_back (results_.front ());
                                 results_.pop   ();
+          InterlockedDecrement (&jobs_done_);
         }
       }
+
+      ResetEvent (events_.results_waiting);
       LeaveCriticalSection (&cs_results);
     }
-  
-    bool   working     (void) { return (! results_.empty ()); }
+
+    bool   working     (void) { return ReadAcquire (&jobs_done_) > 0; }
     void   shutdown    (void) { SetEvent (events_.shutdown);  }
   
     size_t queueLength (void)
     {
-      size_t num = 0;
-  
-      EnterCriticalSection (&cs_jobs);
-      {
-        num = jobs_.size ();
-      }
-      LeaveCriticalSection (&cs_jobs);
-  
-      return num;
+      return ReadAcquire (&jobs_waiting_);
     }
   
   
@@ -608,22 +606,26 @@ struct TexThreadStats {
     TexLoadRequest* getNextJob   (void)
     {
       TexLoadRequest* job       = nullptr;
-//      DWORD           dwResults = 0;
-  
-      //while (dwResults != WAIT_OBJECT_0) {
-        //dwResults = WaitForSingleObject (events_.jobs_added, INFINITE);
-      //}
-  
-      if (jobs_.empty ())
+      DWORD           dwResults = 0;
+
+      while (dwResults != WAIT_OBJECT_0)
+      {
+        dwResults =
+          WaitForSingleObject (events_.jobs_added, 0);
+      }
+
+      if (! ReadAcquire (&jobs_waiting_))
         return nullptr;
-  
+
       EnterCriticalSection (&cs_jobs);
       {
         job = jobs_.front ();
               jobs_.pop   ();
+        InterlockedDecrement (&jobs_waiting_);
+        ResetEvent (events_.jobs_added);
       }
       LeaveCriticalSection (&cs_jobs);
-  
+
       return job;
     }
 
@@ -635,14 +637,18 @@ struct TexThreadStats {
       {
         // Remove the temporary reference we added earlier
         finished->pDest->Release ();
-  
-        results_.push (finished);
-        SetEvent      (events_.results_waiting);
+
+        results_.push        (finished);
+        SetEvent             (events_.results_waiting);
+        InterlockedIncrement (&jobs_done_);
       }
       LeaveCriticalSection (&cs_results);
     }
   
   private:
+    volatile LONG                       jobs_waiting_ = 0L;
+    volatile LONG                       jobs_done_    = 0L;
+
     std::queue <TexLoadRef>             jobs_;
     std::queue <TexLoadRef>             results_;
   
@@ -660,7 +666,7 @@ struct TexThreadStats {
     HANDLE spool_thread_;
 
     bool init_worker_sync = false;
-  } extern *resample_pool;
+  };//extern *resample_pool;
   
   //
   // Split stream jobs into small and large in order to prevent
@@ -675,10 +681,10 @@ struct TexThreadStats {
     {
       if (lrg_tex && lrg_tex->working ())
         return true;
-  
+
       if (sm_tex  && sm_tex->working  ())
         return true;
-  
+
       return false;
     }
   
@@ -696,16 +702,16 @@ struct TexThreadStats {
     {
       std::vector <TexLoadRequest *> lrg_loads;
       std::vector <TexLoadRequest *> sm_loads;
-  
-      if (lrg_tex) lrg_tex->getFinished (lrg_loads);
+
       if (sm_tex)  sm_tex->getFinished  (sm_loads);
-  
+      if (lrg_tex) lrg_tex->getFinished (lrg_loads);
+
       results.insert (results.begin (), lrg_loads.begin (), lrg_loads.end ());
       results.insert (results.begin (), sm_loads.begin  (), sm_loads.end  ());
-  
+
       return;
     }
-  
+
     void postJob (TexLoadRequest* job)
     {
       // A "Large" load is one >= 128 KiB
@@ -728,6 +734,9 @@ struct TexThreadStats {
 
 const GUID IID_SKTextureD3D9 =
   { 0xace1f81b, 0x5f3f, 0x45f4, 0xbf, 0x9f, 0x1b, 0xaf, 0xdf, 0xba, 0x11, 0x9b };
+
+
+    extern std::unordered_map <uint32_t, int32_t> injected_refs;
 
 interface ISKTextureD3D9 : public IDirect3DTexture9
 {
@@ -752,6 +761,7 @@ public:
       tex_crc32c    = crc32c;
       must_block    = false;
       uses          =  0;
+      freed         = false;
       InterlockedExchange (&refs, 1);
       img_to_use    = ContentPreference::DontCare;
   };
@@ -763,7 +773,7 @@ public:
     {
       return S_OK;
     }
-  
+
 #if 1
   if ( IsEqualGUID (riid, IID_IUnknown)              ||
        IsEqualGUID (riid, IID_IDirect3DResource9)    ||
@@ -776,7 +786,7 @@ public:
 
     return S_OK;
   }
-  
+
   return E_NOINTERFACE;
 #else
   return pTex->QueryInterface (riid, ppvObj);
@@ -785,12 +795,18 @@ public:
   STDMETHOD_(ULONG,AddRef)(THIS) {
     InterlockedIncrement (&refs);
 
+    if (injected_refs.count (tex_crc32c))
+      injected_refs [tex_crc32c]++;
+
     can_free = false;
 
     return refs;
   }
   STDMETHOD_(ULONG,Release)(THIS) {
     ULONG ret = InterlockedDecrement (&refs);
+
+    if (injected_refs.count (tex_crc32c))
+      injected_refs [tex_crc32c]--;
 
     if (ret == 1)
     {
@@ -799,6 +815,18 @@ public:
 
     if (ret == 0)
     {
+      if (pTex != nullptr && pTex != this)
+      {
+        LPVOID dontcare;
+        if (FAILED (pTex->QueryInterface (IID_SKTextureD3D9, &dontcare)) && (! freed))
+        {
+          if (pTex != nullptr) pTex->Release         ();
+
+          pTex  = nullptr;
+          freed = true;
+        }
+      }
+
       can_free = true;
       // Does not delete this immediately; defers the
       //   process until the next cached texture load.
@@ -829,7 +857,7 @@ public:
     }
 
     if (pTex == nullptr)
-      return E_FAIL;
+      return S_OK;
 
     return pTex->SetPrivateData (refguid, pData, SizeOfData, Flags);
   }
@@ -844,7 +872,7 @@ public:
     }
 
     if (pTex == nullptr)
-      return E_FAIL;
+      return S_OK;
 
     return pTex->GetPrivateData (refguid, pData, pSizeOfData);
   }
@@ -863,7 +891,7 @@ public:
 
     if (pTex == nullptr)
       return 0;
-  
+
     return pTex->SetPriority (PriorityNew);
   }
   STDMETHOD_(DWORD, GetPriority)(THIS) {
@@ -871,7 +899,7 @@ public:
 
     if (pTex == nullptr)
       return 0;
-  
+
     return pTex->GetPriority ();
   }
   STDMETHOD_(void, PreLoad)(THIS) {
@@ -879,7 +907,7 @@ public:
 
     if (pTex == nullptr)
       return;
-  
+
     pTex->PreLoad ();
   }
   STDMETHOD_(D3DRESOURCETYPE, GetType)(THIS) {
@@ -924,7 +952,7 @@ public:
                     FilterType );
   
     if (pTex == nullptr)
-      return E_FAIL;
+      return S_OK;
 
     return pTex->SetAutoGenFilterType (FilterType);
   }
@@ -933,7 +961,7 @@ public:
 
     if (pTex == nullptr)
       return D3DTEXF_POINT;
-  
+
     return pTex->GetAutoGenFilterType ();
   }
   STDMETHOD_(void, GenerateMipSubLevels)(THIS) {
@@ -941,7 +969,7 @@ public:
 
     if (pTex == nullptr)
       return;
-  
+
     pTex->GenerateMipSubLevels ();
   }
   STDMETHOD(GetLevelDesc)(THIS_ UINT Level,D3DSURFACE_DESC *pDesc)
@@ -954,7 +982,7 @@ public:
     }
 
     if (pTex == nullptr)
-      return E_FAIL;
+      return S_OK;
 
     return pTex->GetLevelDesc (Level, pDesc);
   }
@@ -968,7 +996,7 @@ public:
     }
 
     if (pTex == nullptr)
-      return E_FAIL;
+      return S_OK;
 
     return pTex->GetSurfaceLevel (Level, ppSurfaceLevel);
   }
@@ -984,7 +1012,7 @@ public:
     }
 
     if (pTex == nullptr)
-      return E_FAIL;
+      return S_OK;
 
     HRESULT hr =
       pTex->LockRect (Level, pLockedRect, pRect, Flags);
@@ -994,85 +1022,14 @@ public:
       if (Level == 0)
       {
         lock_lvl0 = *pLockedRect;
-        dirty = true;
+        dirty     = true;
         QueryPerformanceCounter_Original (&begin_map);
       }
     }
 
     return hr;
   }
-  STDMETHOD(UnlockRect)(THIS_ UINT Level)
-  {
-    if (config.system.log_level > 1)
-    {
-      tex_log.Log ( L"[ Tex. Mgr ] ISKTextureD3D9::UnlockRect (%lu)", Level );
-    }
-
-    if (pTex == nullptr)
-      return E_FAIL;
-
-    if (tex_crc32c == 0x00 && dirty && Level == 0)
-    {
-      auto sptr =
-        static_cast <const uint8_t *> (
-          lock_lvl0.pBits
-        );
-
-      uint32_t crc32c_ = 0x00;
-
-      D3DSURFACE_DESC desc = { };
-      pTex->GetLevelDesc (Level, &desc);
-
-      for (size_t h = 0; h < desc.Height; ++h)
-      {
-        uint32_t row_checksum = 
-          safe_crc32c (crc32c_, sptr, lock_lvl0.Pitch);
-
-        if (row_checksum != 0x00)
-          crc32c_ = row_checksum;
-
-        sptr += lock_lvl0.Pitch;
-      }
-
-      this->tex_crc32c = crc32c_;
-      this->tex_size   = 0;
-
-      INT W = desc.Width; INT H = desc.Height;
-
-      for (UINT i = 0; i < pTex->GetLevelCount (); i++)
-      {
-        this->tex_size += ( lock_lvl0.Pitch * W );
-
-        if (W > 1) W >>= 1;
-        if (H > 1) H >>= 1;
-      } 
-
-      if (desc.Pool != D3DPOOL_SYSTEMMEM && (! SK::D3D9::tex_mgr.injector.isInjectionThread ()))
-      {
-        SK::D3D9::Texture* pCacheTex =
-          new SK::D3D9::Texture ();
-
-        pCacheTex->d3d9_tex = this;
-        pCacheTex->size     = this->tex_size;
-
-        QueryPerformanceCounter_Original (&end_map);
-        
-        pCacheTex->load_time = (float)( 1000.0 *
-                                 (double)( end_map.QuadPart - begin_map.QuadPart ) /
-                                 (double)(            SK_GetPerfFreq ().QuadPart ) );
-        
-        SK::D3D9::tex_mgr.addTexture  (this->tex_crc32c, pCacheTex, this->tex_size);
-        //SK::D3D9::tex_mgr.missTexture ();
-      }
-    }
-    if (Level == 0)
-      dirty = false;
-
-    HRESULT hr =
-      pTex->UnlockRect (Level);
-
-    return hr;
-  }
+  STDMETHOD(UnlockRect)(THIS_ UINT Level);
   STDMETHOD(AddDirtyRect)(THIS_ CONST RECT* pDirtyRect)
   {
     if (config.system.log_level > 1)
@@ -1081,7 +1038,7 @@ public:
     }
 
     if (pTex == nullptr)
-      return E_FAIL;
+      return S_OK;
 
     HRESULT hr = 
       pTex->AddDirtyRect (pDirtyRect);
@@ -1105,6 +1062,7 @@ public:
                                     //  override finishes streaming
 
   bool               dirty  = false;//   If the game has changed this texture
+  bool               freed  = false;
   
   IDirect3DTexture9* pTex;          // The original texture data
   SSIZE_T            tex_size;      //   Original data size

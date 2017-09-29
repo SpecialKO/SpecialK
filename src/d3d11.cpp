@@ -673,6 +673,9 @@ struct SK_D3D11_KnownThreads
   SK_D3D11_KnownThreads (void)
   {
     InitializeCriticalSectionAndSpinCount (&cs, 0x66666);
+
+    ids.reserve    (16);
+    active.reserve (16);
   }
 
   void   clear_all    (void);
@@ -680,21 +683,34 @@ struct SK_D3D11_KnownThreads
 
   void   clear_active (void)
   {
-    SK_AutoCriticalSection auto_cs (&cs);
+    if (use_lock)
+    {
+      SK_AutoCriticalSection auto_cs (&cs);
+      active.clear ();
+      return;
+    }
 
     active.clear ();
   }
 
   size_t count_active (void)
   {
-    SK_AutoCriticalSection auto_cs (&cs);
+    if (use_lock)
+    {
+      SK_AutoCriticalSection auto_cs (&cs);
+      return active.size ();
+    }
 
     return active.size ();
   }
 
   float  active_ratio (void)
   {
-    SK_AutoCriticalSection auto_cs (&cs);
+    if (use_lock)
+    {
+      SK_AutoCriticalSection auto_cs (&cs);
+      return (float)active.size () / (float)ids.size ();
+    }
 
     return (float)active.size () / (float)ids.size ();
   }
@@ -705,6 +721,7 @@ private:
   std::unordered_set <DWORD> ids;
   std::unordered_set <DWORD> active;
   CRITICAL_SECTION           cs;
+  bool                       use_lock = false;
 } SK_D3D11_MemoryThreads,
   SK_D3D11_DrawThreads,
   SK_D3D11_ShaderThreads;
@@ -713,7 +730,12 @@ private:
 void
 SK_D3D11_KnownThreads::clear_all (void)
 {
-  SK_AutoCriticalSection auto_cs (&cs);
+  if (use_lock)
+  {
+    SK_AutoCriticalSection auto_cs (&cs);
+    ids.clear ();
+    return;
+  }
 
   ids.clear ();
 }
@@ -721,7 +743,11 @@ SK_D3D11_KnownThreads::clear_all (void)
 size_t
 SK_D3D11_KnownThreads::count_all (void)
 {
-  SK_AutoCriticalSection auto_cs (&cs);
+  if (use_lock)
+  {
+    SK_AutoCriticalSection auto_cs (&cs);
+    return ids.size ();
+  }
 
   return ids.size ();
 }
@@ -732,7 +758,13 @@ SK_D3D11_KnownThreads::mark (void)
   if (! SK_D3D11_EnableTracking)
     return;
 
-  SK_AutoCriticalSection auto_cs (&cs);
+  if (use_lock)
+  {
+    SK_AutoCriticalSection auto_cs (&cs);
+    ids.emplace    (GetCurrentThreadId ());
+    active.emplace (GetCurrentThreadId ());
+    return;
+  }
 
   ids.emplace    (GetCurrentThreadId ());
   active.emplace (GetCurrentThreadId ());
@@ -5781,7 +5813,7 @@ D3D11Dev_CreateShaderResourceView_Override (
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           override = true;
 
-        SK_AutoCriticalSection critical (&cache_cs);
+        EnterCriticalSection (&cache_cs);
 
         if ( SK_D3D11_Textures.Textures_2D.count (reinterpret_cast <ID3D11Texture2D *> (pResource)) )
         {
@@ -5809,6 +5841,8 @@ D3D11Dev_CreateShaderResourceView_Override (
           pDescCopy->Format = newFormat;
           pDesc             = pDescCopy.get ();
 
+          LeaveCriticalSection (&cache_cs);
+
           HRESULT hr =
             D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
                                                            pDesc, ppSRView );
@@ -5818,6 +5852,10 @@ D3D11Dev_CreateShaderResourceView_Override (
             return hr;
           }
         }
+
+        else
+          LeaveCriticalSection (&cache_cs);
+
       }
     }
 
@@ -6087,7 +6125,20 @@ D3D11Dev_CreateTexture2D_Impl (
   _In_opt_    const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_         ID3D11Texture2D        **ppTexture2D )
 {
+  bool early_out = false;
+
+  if (SK_D3D11_IsTexInjectThread ())
+    return D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
+
+  if ((! (SK_D3D11_cache_textures || SK_D3D11_dump_textures || SK_D3D11_inject_textures)))
+    early_out = true;
+
+
   SK_D3D11_MemoryThreads.mark ();
+
+
+  if (early_out || (! ppTexture2D))
+    return D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
 
   if (pDesc != nullptr)
@@ -6121,15 +6172,6 @@ D3D11Dev_CreateTexture2D_Impl (
     //  }
     //}
   }
-
-  bool early_out = false;
-
-  if ((! (SK_D3D11_cache_textures || SK_D3D11_dump_textures || SK_D3D11_inject_textures)) ||
-         SK_D3D11_IsTexInjectThread ())
-    early_out = true;
-
-  if (early_out || (! ppTexture2D))
-    return D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
   uint32_t checksum   = 0;
   uint32_t cache_tag  = 0;
@@ -10972,7 +11014,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < IAVertexBufferCount; i++)
     {
       if (sb->IAVertexBuffers [i] != nullptr)
-        sb->IAVertexBuffers [i]->Release ();
+          sb->IAVertexBuffers [i]->Release ();
     }
   }
 

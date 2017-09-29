@@ -947,8 +947,11 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
     BehaviorFlags |= D3DCREATE_MULTITHREADED;
   }
 
-  //if (config.textures.d3d9_mod)
-  //  BehaviorFlags |= D3DCREATE_MULTITHREADED;
+  if (config.textures.d3d9_mod)
+  {
+    BehaviorFlags |=  D3DCREATE_MULTITHREADED;
+    BehaviorFlags &= (~D3DCREATE_DISABLE_DRIVER_MANAGEMENT);
+  }
 
   //BehaviorFlags = 0x144;
 }
@@ -1589,6 +1592,9 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9BeginScene_Override (IDirect3DDevice9 *This)
 {
+  if (tex_mgr.injector.hasPendingLoads ())
+    tex_mgr.loadQueuedTextures ();
+
   HRESULT hr =
     D3D9BeginScene_Original (This);
 
@@ -1610,7 +1616,12 @@ D3D9EndScene_Override (IDirect3DDevice9 *This)
 
   SK_D3D9_EndScene ();
 
-  return D3D9EndScene_Original (This);
+  HRESULT hr = D3D9EndScene_Original (This);
+
+  if (tex_mgr.injector.hasPendingLoads ())
+    tex_mgr.loadQueuedTextures ();
+
+  return hr;
 }
 
 __declspec (noinline)
@@ -2732,7 +2743,6 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                              IDirect3DBaseTexture9 *pSourceTexture,
                              IDirect3DBaseTexture9 *pDestinationTexture )
 {
-#if 1
   if ((! config.textures.d3d9_mod) || (! SK::D3D9::tex_mgr.init) || SK::D3D9::tex_mgr.injector.isInjectionThread ())
   {
     return
@@ -2740,6 +2750,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                                      pSourceTexture,
                                        pDestinationTexture );
   }
+
 
   IDirect3DBaseTexture9* pRealSource = pSourceTexture;
   IDirect3DBaseTexture9* pRealDest   = pDestinationTexture;
@@ -2762,26 +2773,30 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
     pRealDest      = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
   }
 
-  HRESULT hr = E_FAIL;
 
-  if (pRealSource && pRealDest)
-  {
-    hr =
-      D3D9UpdateTexture_Original ( This,
-                                     pRealSource,
-                                       pRealDest );
-  }
+  HRESULT hr =
+    D3D9UpdateTexture_Original ( This,
+                                   pRealSource,
+                                     pRealDest );
+
 
   if (SUCCEEDED (hr) && src_is_wrapped && dst_is_wrapped)
   {
     auto* pSrc = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
     auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
 
-    D3DSURFACE_DESC desc;
-    pDst->GetLevelDesc (0, &desc);
+    extern
+    LARGE_INTEGER                      liLastReset;
+    LARGE_INTEGER                      liNow;
+    QueryPerformanceCounter_Original (&liNow);
 
-    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0 && pSrc->uses++ == 0)
+                                                                      // Rudimentary protection against video textures 
+    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
     {
+      pSrc->last_used.QuadPart = liNow.QuadPart;
+      pDst->last_used.QuadPart = liNow.QuadPart;
+
+      pSrc->uses++;
       pDst->uses++;
 
       Texture* pTex = nullptr;
@@ -2799,6 +2814,8 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
         tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
 
+        EnterCriticalSection (&tex_mgr.cs_cache);
+
         if (injected_textures.count (pDst->tex_crc32c))
         {
           pDst->pTexOverride  = injected_textures   [pDst->tex_crc32c];
@@ -2806,420 +2823,152 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           pTex->load_time     = injected_load_times [pDst->tex_crc32c];
 
           tex_mgr.refTextureEx (pTex);
+          LeaveCriticalSection (&tex_mgr.cs_cache);
+
+          pTex->refs++;
+          pTex->d3d9_tex->AddRef ();
         }
 
         else
         {
+          LeaveCriticalSection (&tex_mgr.cs_cache);
+
           tex_mgr.missTexture ();
 
-        TexLoadRequest* load_op =
-          nullptr;
+          TexLoadRequest* load_op =
+            nullptr;
 
-        wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
+          wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
 
-        bool remap_stream =
-          tex_mgr.injector.isStreaming (pDst->tex_crc32c);
+          bool remap_stream =
+            tex_mgr.injector.isStreaming (pDst->tex_crc32c);
 
-        //
-        // Generic injectable textures
-        //
-        if (tex_mgr.isTextureInjectable (pDst->tex_crc32c))
-        {
-          tex_log.LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
-                         pDst->tex_crc32c);
-
-          TexRecord& record =
-            tex_mgr.getInjectableTexture (pDst->tex_crc32c);
-
-          if (record.method == TexLoadMethod::DontCare)
-              record.method =  TexLoadMethod::Streaming;
-
-          // If -1, load from disk...
-          if (record.archive == -1)
+          //
+          // Generic injectable textures
+          //
+          if (tex_mgr.isTextureInjectable (pDst->tex_crc32c))
           {
-            if (record.method == TexLoadMethod::Streaming)
+            tex_log.LogEx (true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
+                           pDst->tex_crc32c);
+
+            TexRecord& record =
+              tex_mgr.getInjectableTexture (pDst->tex_crc32c);
+
+            if (record.method == TexLoadMethod::DontCare)
+                record.method =  TexLoadMethod::Streaming;
+
+            // If -1, load from disk...
+            if (record.archive == -1)
             {
-              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
-                            SK_D3D11_res_root.c_str (),
-                              pDst->tex_crc32c,
-                                L".dds" );
-            }
-
-            else if (record.method == TexLoadMethod::Blocking)
-            {
-              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
-                            SK_D3D11_res_root.c_str (),
-                              pDst->tex_crc32c,
-                                L".dds");
-            }
-          }
-
-          load_op =
-            new TexLoadRequest ();
-
-          load_op->pDevice  = This;
-          load_op->checksum = pDst->tex_crc32c;
-
-          if (record.method == TexLoadMethod::Streaming)
-            load_op->type    = TexLoadRequest::Stream;
-          else
-            load_op->type = TexLoadRequest::Immediate;
-
-          wcscpy (load_op->wszFilename, wszInjectFileName);
-
-          if (load_op->type == TexLoadRequest::Stream)
-          {
-            if (( !remap_stream ))
-              tex_log.LogEx (false, L"streaming\n");
-            else
-              tex_log.LogEx (false, L"in-flight already\n");
-          }
-
-          else
-          {
-            tex_log.LogEx (false, L"blocking (deferred)\n");
-          }
-
-          if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
-                                       load_op->type == TexLoadRequest::Immediate ) )
-          {
-          load_op->SrcDataSize =
-            static_cast <UINT> (
-              record.size
-            );
-
-          load_op->pSrc =
-             ((ISKTextureD3D9 *)pDestinationTexture);
-
-          load_op->pDest =
-             ((ISKTextureD3D9 *)pDestinationTexture);
-
-          tex_mgr.injector.lockStreaming ();
-
-          if (load_op->type == TexLoadRequest::Immediate)
-            dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
-
-          if (tex_mgr.injector.isStreaming (load_op->checksum))
-          {
-          //tex_mgr.injector.lockStreaming ();
-
-            auto* pTexOrig =
-              static_cast <ISKTextureD3D9 *> (
-                tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest
-               );
-
-            // Remap the output of the in-flight texture
-            tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
-              pDst;
-
-          //tex_mgr.injector.unlockStreaming ();
-
-            Texture* pExistingTex =
-              tex_mgr.getTexture (load_op->checksum);
-
-            if (pExistingTex != nullptr)
-            {
-              for (int i = 0;
-                       i < pExistingTex->refs;
-                     ++i)
+              if (record.method == TexLoadMethod::Streaming)
               {
-                dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
+                _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
+                              SK_D3D11_res_root.c_str (),
+                                pDst->tex_crc32c,
+                                  L".dds" );
+              }
+
+              else if (record.method == TexLoadMethod::Blocking)
+              {
+                _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
+                              SK_D3D11_res_root.c_str (),
+                                pDst->tex_crc32c,
+                                  L".dds");
               }
             }
 
-            tex_mgr.removeTexture (pTexOrig);
-          }
+            load_op =
+              new TexLoadRequest ();
 
-          else
-          {
-            tex_mgr.injector.addTextureInFlight (load_op);
-            pTex->d3d9_tex->AddRef              (       );
-            stream_pool.postJob                 (load_op);
-          }
+            load_op->pDevice  = This;
+            load_op->checksum = pDst->tex_crc32c;
 
-          tex_mgr.injector.unlockStreaming ();
-        }
-        }
+            if (record.method == TexLoadMethod::Streaming)
+              load_op->type    = TexLoadRequest::Stream;
+            else
+              load_op->type = TexLoadRequest::Immediate;
+
+            wcscpy (load_op->wszFilename, wszInjectFileName);
+
+            if (load_op->type == TexLoadRequest::Stream)
+            {
+              if (( !remap_stream ))
+                tex_log.LogEx (false, L"streaming\n");
+              else
+                tex_log.LogEx (false, L"in-flight already\n");
+            }
+
+            else
+            {
+              tex_log.LogEx (false, L"blocking (deferred)\n");
+            }
+
+            if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
+                                         load_op->type == TexLoadRequest::Immediate ) )
+            {
+              load_op->SrcDataSize =
+                static_cast <UINT> (
+                  record.size
+                );
+
+              load_op->pSrc =
+                 ((ISKTextureD3D9 *)pDestinationTexture);
+
+              load_op->pDest =
+                 ((ISKTextureD3D9 *)pDestinationTexture);
+
+              tex_mgr.injector.lockStreaming ();
+
+              if (load_op->type == TexLoadRequest::Immediate)
+                dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
+
+              if (tex_mgr.injector.isStreaming (load_op->checksum))
+              {
+              //tex_mgr.injector.lockStreaming ();
+
+                auto* pTexOrig =
+                  static_cast <ISKTextureD3D9 *> (
+                    tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest
+                   );
+
+                // Remap the output of the in-flight texture
+                tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
+                  pDst;
+
+              //tex_mgr.injector.unlockStreaming ();
+
+                Texture* pExistingTex =
+                  tex_mgr.getTexture (load_op->checksum);
+
+                if (pExistingTex != nullptr)
+                {
+                  for (int i = 0;
+                           i < pExistingTex->refs;
+                         ++i)
+                  {
+                    dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
+                  }
+                }
+
+                tex_mgr.removeTexture (pTexOrig);
+              }
+
+              else
+              {
+                tex_mgr.injector.addTextureInFlight (load_op);
+                pTex->d3d9_tex->AddRef              (       );
+                stream_pool.postJob                 (load_op);
+              }
+
+              tex_mgr.injector.unlockStreaming ();
+            }
+          }
         }
       }
     }
   }
 
   return hr;
-
-#else
-  if ((! config.textures.d3d9_mod) || (! SK::D3D9::tex_mgr.init) || SK::D3D9::tex_mgr.injector.isInjectionThread ())
-  {
-    return
-      D3D9UpdateTexture_Original ( This,
-                                     pSourceTexture,
-                                       pDestinationTexture );
-  }
-
-  IDirect3DBaseTexture9* pRealSource = pSourceTexture;
-  IDirect3DBaseTexture9* pRealDest   = pDestinationTexture;
-
-  bool src_is_wrapped = false;
-
-  void* dontcare;
-  if (pSourceTexture != nullptr &&
-      pSourceTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
-  {
-    src_is_wrapped = true;
-    pRealSource    = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture)->pTex;
-  }
-
-  if (pDestinationTexture != nullptr &&
-      pDestinationTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
-  {
-    pRealDest = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->pTex;
-
-    if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
-    {
-      if (src_is_wrapped)
-      {
-        auto* pSrc = dynamic_cast <ISKTextureD3D9 *> (pSourceTexture);
-        auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
-
-        pDst->tex_crc32c = pSrc->tex_crc32c;
-        pDst->tex_size   = pSrc->tex_size;
-
-      //HRESULT         hr           = S_OK;
-        TexLoadRequest* load_op      = nullptr;
-
-        wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
-
-        uint32_t checksum = pSrc->tex_crc32c;
-
-        bool remap_stream =
-          tex_mgr.injector.isStreaming (checksum);
-
-        //
-        // Generic injectable textures
-        //
-        if ( tex_mgr.isTextureInjectable (checksum) )
-        {
-          tex_log.LogEx ( true, L"[Inject Tex] Injectable texture for checksum (%08x)... ",
-                            checksum );
-
-          TexRecord& record =
-            tex_mgr.getInjectableTexture (checksum);
-
-          if (record.method == TexLoadMethod::DontCare)
-              record.method  = TexLoadMethod::Streaming;
-
-          // If -1, load from disk...
-          if (record.archive == -1)
-          {
-            if (record.method == TexLoadMethod::Streaming)
-            {
-              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
-                            SK_D3D11_res_root.c_str (),
-                              checksum,
-                                L".dds" );
-            }
-
-            else if (record.method == TexLoadMethod::Blocking)
-            {
-              _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
-                            SK_D3D11_res_root.c_str (),
-                              checksum,
-                                L".dds" );
-            }
-          }
-
-          load_op           = new TexLoadRequest ();
-
-          load_op->pDevice  = This;
-          load_op->checksum = checksum;
-
-          if (record.method == TexLoadMethod::Streaming)
-            load_op->type   = TexLoadRequest::Stream;
-          else
-            load_op->type   = TexLoadRequest::Immediate;
-
-          wcscpy (load_op->wszFilename, wszInjectFileName);
-
-          if (load_op->type == TexLoadRequest::Stream)
-          {
-            if ((! remap_stream))
-              tex_log.LogEx ( false, L"streaming\n" );
-            else
-              tex_log.LogEx ( false, L"in-flight already\n" );
-          }
-
-          else
-          {
-            tex_log.LogEx ( false, L"blocking (deferred)\n" );
-          }
-        }
-
-        if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
-                                     load_op->type == TexLoadRequest::Immediate ) )
-        {
-          load_op->SrcDataSize =
-            static_cast <UINT> (
-              tex_mgr.isTextureInjectable (checksum)         ?
-                tex_mgr.getInjectableTexture (checksum).size : 0
-            );
-
-          load_op->pDest =
-            (ISKTextureD3D9 *)pDestinationTexture;
-
-          tex_mgr.injector.lockStreaming ();
-
-          if (load_op->type == TexLoadRequest::Immediate)
-            dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->must_block = true;
-
-          if (tex_mgr.injector.isStreaming (load_op->checksum))
-          {
-            tex_mgr.injector.lockStreaming ();
-
-            //ISKTextureD3D9* pTexOrig =
-            //  (ISKTextureD3D9 *)tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest;
-
-            // Remap the output of the in-flight texture
-            tex_mgr.injector.getTextureInFlight (load_op->checksum)->pDest =
-              dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
-
-            tex_mgr.injector.unlockStreaming ();
-
-            if (tex_mgr.getTexture (load_op->checksum) != nullptr)
-            {
-              for ( int i = 0;
-                        i < tex_mgr.getTexture (load_op->checksum)->refs;
-                      ++i )
-              {
-                dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture)->AddRef ();
-              }
-            }
-
-            //tex_mgr.removeTexture (pTexOrig);
-          }
-
-          else
-          {
-            tex_mgr.injector.addTextureInFlight (load_op);
-
-            load_op->pDest->AddRef ();
-            stream_pool.postJob                 (load_op);
-            //resample_pool->postJob (load_op);
-          }
-
-          tex_mgr.injector.unlockStreaming ();
-        }
-
-      #if 0
-        //
-        // TODO:  Actually stream these, but block if the game tries to call SetTexture (...)
-        //          while the texture is in-flight.
-        //
-        else if (load_op != nullptr && load_op->type == tsf_tex_load_s::Immediate) {
-          QueryPerformanceFrequency        (&load_op->freq);
-          QueryPerformanceCounter_Original (&load_op->start);
-
-          EnterCriticalSection (&cs_tex_inject);
-          inject_tids.insert   (GetCurrentThreadId ());
-          LeaveCriticalSection (&cs_tex_inject);
-
-          load_op->pDest = *ppTexture;
-
-          hr = InjectTexture (load_op);
-
-          EnterCriticalSection (&cs_tex_inject);
-          inject_tids.erase    (GetCurrentThreadId ());
-          LeaveCriticalSection (&cs_tex_inject);
-
-          QueryPerformanceCounter_Original (&load_op->end);
-
-          if (SUCCEEDED (hr)) {
-            tex_log->Log ( L"[Inject Tex] Finished synchronous texture %08x (%5.2f MiB in %9.4f ms)",
-                            load_op->checksum,
-                              (double)load_op->SrcDataSize / (1024.0f * 1024.0f),
-                                1000.0f * (double)(load_op->end.QuadPart - load_op->start.QuadPart) /
-                                          (double) load_op->freq.QuadPart );
-            ISKTextureD3D9* pSKTex =
-              (ISKTextureD3D9 *)*ppTexture;
-
-            pSKTex->pTexOverride  = load_op->pSrc;
-            pSKTex->override_size = load_op->SrcDataSize;
-
-            pSKTex->last_used     = load_op->end;
-
-            tsf::RenderFix::tex_mgr.addInjected (load_op->SrcDataSize);
-          } else {
-            tex_log->Log ( L"[Inject Tex] *** FAILED synchronous texture %08x",
-                            load_op->checksum );
-          }
-
-          delete load_op;
-          load_op = nullptr;
-        }
-      #endif
-
-        else if (load_op != nullptr)
-        {
-          delete load_op;
-          load_op = nullptr;
-        }
-
-        //QueryPerformanceCounter_Original (&end);
-
-        if (/*config.textures.cache &&*/ checksum != 0x00)
-        {
-          Texture* pTex =
-            new Texture ();
-
-          pTex->crc32c   = checksum;
-          pTex->d3d9_tex = pDst;
-          //pTex->d3d9_tex->AddRef ();
-          //pTex->refs++;
-
-          //pTex->load_time = (float)( 1000.0 *
-          //                    (double)(end.QuadPart - start.QuadPart) /
-          //                    (double)freq.QuadPart );
-
-          if (SUCCEEDED ( D3D9UpdateTexture_Original ( This,
-                                                         pRealSource,
-                                                           pRealDest ) ) )
-          {
-            tex_mgr.addTexture (checksum, pTex, /*SrcDataSize*/pDst->tex_size);
-
-            if (config.textures.dump_on_load)
-            {
-              {
-                D3DSURFACE_DESC desc = { };
-
-                if (SUCCEEDED (((IDirect3DTexture9 *)pRealSource)->GetLevelDesc (0, &desc)))
-                  tex_mgr.dumpTexture (desc.Format, checksum, (IDirect3DTexture9 *)pRealSource);
-              }
-            }
-          }
-
-          return S_OK;
-        }
-
-      //  if (true)
-      //  {//config.textures.log) {
-      //    tex_log.Log ( L"[Load Trace] Texture:   (%lu x %lu) * <LODs: %lu> - FAST_CRC32: %X",
-      //                   info.Width, info.Height, (*ppTexture)->GetLevelCount (), checksum );
-      //    tex_log.Log ( L"[Load Trace]              Usage: %-20s - Format: %-20s",
-      //                   SK_D3D9_UsageToStr    (Usage).c_str (),
-      //                     SK_D3D9_FormatToStr (Format).c_str () );
-      //    tex_log.Log ( L"[Load Trace]                Pool: %s",
-      //                   SK_D3D9_PoolToStr (Pool) );
-      //    tex_log.Log ( L"[Load Trace]      Load Time: %6.4f ms",
-      //                   1000.0f * (double)(end.QuadPart - start.QuadPart) / (double)freq.QuadPart );
-      //  }
-      }
-    }
-  }
-#endif
-
-  return
-    D3D9UpdateTexture_Original ( This,
-                                   pRealSource,
-                                     pRealDest );
 }
 
 __declspec (noinline)
@@ -4925,17 +4674,20 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     ImGui::EndChild      (   );
     ImGui::PopStyleColor ( 1 );
 
-    if (ImGui::Button ("  Refresh Data Sources  "))
+    if (trigger_reset == reset_stage_e::Clear)
     {
-      tex_mgr.refreshDataSources ();
-      list_dirty = true;
-    }
+      if (ImGui::Button ("  Refresh Data Sources  "))
+      {
+        tex_mgr.refreshDataSources ();
+        list_dirty = true;
+      }
 
-    ImGui::SameLine ();
+      ImGui::SameLine ();
 
-    if (ImGui::Button ("  Reload All Textures  "))
-    {
-      SK_D3D9_TriggerReset (false);
+      if (ImGui::Button ("  Reload All Textures  "))
+      {
+        SK_D3D9_TriggerReset (false);
+      }
     }
 
     ImGui::EndGroup ();
@@ -6168,7 +5920,7 @@ SK_D3D9_TextureModDlg (void)
      extern bool __remap_textures;
             bool has_alternate = (pTex != nullptr && pTex->d3d9_tex->pTexOverride != nullptr);
 
-     if (pTex != nullptr)
+     if (pTex != nullptr && pTex->d3d9_tex != nullptr && pTex->d3d9_tex->pTex != nullptr)
      {
         D3DSURFACE_DESC desc;
 
@@ -6228,6 +5980,7 @@ SK_D3D9_TextureModDlg (void)
           ImGui::TextUnformatted ( "Format:       " );
           ImGui::TextUnformatted ( "Data Size:    " );
           ImGui::TextUnformatted ( "Load Time:    " );
+          //ImGui::TextUnformatted ( "Inj. Refs:    " );
           ImGui::EndGroup        (                  );
 
           ImGui::SameLine   ();
@@ -6242,6 +5995,10 @@ SK_D3D9_TextureModDlg (void)
             (double)pTex->d3d9_tex->tex_size / ( 1024.0f * 1024.0f ));
           ImGui::Text ("%.6f Seconds",
                        pTex->load_time / 1000.0f);
+
+
+          //extern std::unordered_map <uint32_t, int32_t>            injected_refs;
+          //ImGui::Text ("%lu", injected_refs [pTex->crc32c]);
           ImGui::EndGroup   ();
 
           ImGui::Separator  ();
@@ -7438,15 +7195,20 @@ SK_D3D9_EndFrame (void)
 
   if (trigger_reset == Clear)
   {
-    if (tex_mgr.injector.hasPendingLoads ())
+    //if (tex_mgr.injector.hasPendingLoads ())
       tex_mgr.loadQueuedTextures ();
 
     tex_mgr.logUsedTextures ();
+
+    if ( (static_cast <IDirect3DDevice9 *>(SK_GetCurrentRenderBackend ().device)->GetAvailableTextureMem () / 1048576UL) < 64UL )
+    {
+      void
+      SK_D3D9_TriggerReset (bool temporary);
+      SK_D3D9_TriggerReset (false);
+    }
   }
 
   tex_mgr.resetUsedTextures ();
-
-  draw_state.cegui_active = false;
 }
 
 __declspec (noinline)

@@ -18,6 +18,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libzma", "depends\src\lzma\libzma\libzma.vcxproj", "{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|VS2017 (x64) = Debug|VS2017 (x64)
 		Debug|VS2017 (x86) = Debug|VS2017 (x86)

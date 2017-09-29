@@ -21,6 +21,11 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
                                                    HSteamPipe    hSteamPipe,
                                                    const char   *pchVersion )
 {
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs (..., %hs)",
+                      __FUNCTION__, pchVersion )
+  );
+
   ISteamController* pController =
     SteamAPI_ISteamClient_GetISteamController_Original ( This,
                                                            hSteamUser,

@@ -239,6 +239,11 @@ SteamAPI_ISteamClient_GetISteamUser_Detour (ISteamClient *This,
                                             HSteamPipe    hSteamPipe,
                                             const char   *pchVersion)
 {
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs (..., %hs)",
+                      __FUNCTION__, pchVersion )
+  );
+
   ISteamUser* pUser =
     SteamAPI_ISteamClient_GetISteamUser_Original ( This,
                                                      hSteamUser,
@@ -284,6 +289,11 @@ SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
                                               HSteamPipe    hSteamPipe,
                                               const char   *pchVersion )
 {
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs (..., %hs)",
+                      __FUNCTION__, pchVersion )
+  );
+
   ISteamUser* pUser =
     This->GetISteamUser ( hSteamUser,
                             hSteamPipe,

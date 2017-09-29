@@ -375,10 +375,14 @@ ImGui_ImplDX9_Shutdown (void)
   g_hWnd       = 0;
 }
 
+#include <SpecialK/tls.h>
+
 IMGUI_API
 bool
 ImGui_ImplDX9_CreateFontsTexture (void)
 {
+  SK_TLS_Bottom ()->texture_management.injection_thread = TRUE;
+
   // Build texture atlas
   ImGuiIO& io (ImGui::GetIO ());
 
@@ -405,13 +409,19 @@ ImGui_ImplDX9_CreateFontsTexture (void)
                                           D3DPOOL_DEFAULT,
                                             &g_FontTexture,
                                               nullptr ) < 0 )
+  {
+    SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
     return false;
+  }
 
   D3DLOCKED_RECT tex_locked_rect;
 
   if ( g_FontTexture->LockRect ( 0,       &tex_locked_rect,
                                  nullptr, 0 ) != D3D_OK )
+  {
+    SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
     return false;
+  }
 
   for (int y = 0; y < height; y++)
   {
@@ -425,6 +435,8 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   // Store our identifier
   io.Fonts->TexID =
     static_cast <void *> (g_FontTexture);
+
+  SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
 
   return true;
 }

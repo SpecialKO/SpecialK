@@ -2492,7 +2492,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePush     ("");
 
         ImGui::BeginChild  ("Texture Details", ImVec2 ( font_size           * 30,
-                                                        font_size_multiline * 4.8f ),
+                                                        font_size_multiline * 6.0f ),
                                                  true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
         ImGui::Columns   ( 3 );
@@ -2575,6 +2575,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::PopStyleColor
                          (   );
         ImGui::Columns   ( 1 );
+        ImGui::SliderInt ("Cache Size (in MiB)###D3D9_TexCache_Size_MiB", &config.textures.cache.max_size, 256, 4096);
       //ImGui::PopFont   (   );
         ImGui::EndChild  (   );
 
@@ -4945,7 +4946,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
             ImGui::TreePush ("");
 
-            int idx = 0;
+            size_t idx = 0;
 
             ImGui::BeginGroup ();
             for ( auto it : denuvo_files )
@@ -4966,8 +4967,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
               if (denuvo_files.size () > idx)
               {
-                ImGui::SameLine    (  );
-                ImGui::TextColored (ImColor::HSV (0.08f, 1.f, 1.f), " [ Expired ]");
+                ImGui::SameLine      ();
+                ImGui::TextColored   (ImColor::HSV (0.08f, 1.f, 1.f), " [ Expired ]");
               }
 
               ImGui::Text            ( "%02d/%02d/%d  %02d:%02d",
@@ -5255,6 +5256,8 @@ static_cast <uint32_t> (
         want_exit = false;
         ImGui::CloseCurrentPopup ();
       }
+
+      ImGui::SetItemDefaultFocus ();
 
       ImGui::EndPopup ();
     }
