@@ -2811,28 +2811,22 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
         pTex->crc32c     = pSrc->tex_crc32c;
         pTex->size       = pSrc->tex_size;
         pTex->d3d9_tex   = pDst;
+        pTex->refs++;
+        pTex->d3d9_tex->AddRef ();
 
         tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
 
-        EnterCriticalSection (&tex_mgr.cs_cache);
-
-        if (injected_textures.count (pDst->tex_crc32c))
+        if (injected_textures.count (pDst->tex_crc32c) && injected_textures [pDst->tex_crc32c] != nullptr)
         {
           pDst->pTexOverride  = injected_textures   [pDst->tex_crc32c];
           pDst->override_size = injected_sizes      [pDst->tex_crc32c];
           pTex->load_time     = injected_load_times [pDst->tex_crc32c];
 
           tex_mgr.refTextureEx (pTex);
-          LeaveCriticalSection (&tex_mgr.cs_cache);
-
-          pTex->refs++;
-          pTex->d3d9_tex->AddRef ();
         }
 
         else
         {
-          LeaveCriticalSection (&tex_mgr.cs_cache);
-
           tex_mgr.missTexture ();
 
           TexLoadRequest* load_op =
@@ -5647,8 +5641,8 @@ SK_D3D9_TextureModDlg (void)
 
   auto HandleKeyboard = [&](void)
   {
-    extern std::vector <uint32_t> textures_used_last_dump;
-    extern int32_t                tex_dbg_idx;
+    extern std::set <uint32_t> textures_used_last_dump;
+    extern int32_t             tex_dbg_idx;
 
     if (io.KeyCtrl && io.KeyShift)
     {
@@ -5675,10 +5669,19 @@ SK_D3D9_TextureModDlg (void)
           }
         }
 
-        debug_tex_id =
-          ( tex_dbg_idx >= 0 ?
-                textures_used_last_dump [tex_dbg_idx] :
-                                         0x00 );
+        if (tex_dbg_idx >= 0)
+        {
+          debug_tex_id = 0;
+          int idx = 0;
+          for (auto it : textures_used_last_dump)
+          {
+            if (tex_dbg_idx == idx++)
+            {
+              debug_tex_id = it;
+              break;
+            }
+          }
+        }
 
         SK::D3D9::tex_mgr.updateOSD ();
       }
@@ -5756,7 +5759,7 @@ SK_D3D9_TextureModDlg (void)
     static bool                      list_dirty     = false;
     static int                       sel            =     0;
 
-    extern std::vector <uint32_t> textures_used_last_dump;
+    extern std::set <uint32_t> textures_used_last_dump;
     extern               int32_t  tex_dbg_idx;
     extern              uint32_t  debug_tex_id;
 
@@ -5824,13 +5827,6 @@ SK_D3D9_TextureModDlg (void)
       if (debug_tex_id == 0)
         last_ht = 0;
 
-
-      // The underlying list is unsorted for speed, but that's not at all
-      //   intuitive to humans, so sort the thing when we have the RT view open.
-      std::stable_sort ( textures_used_last_dump.begin (),
-                         textures_used_last_dump.end   () );
-
-
       for ( auto it : textures_used_last_dump )
       {
         char szDesc [16] = { };
@@ -5888,7 +5884,14 @@ SK_D3D9_TextureModDlg (void)
            sel_changed  = true;
            tex_dbg_idx  =  line;
            sel          =  line;
-           debug_tex_id =  textures_used_last_dump [line];
+
+           int idx = 0;
+           for (auto it : textures_used_last_dump)
+           {
+             if (line == idx++)
+               debug_tex_id = it;
+           }
+           //debug_tex_id =  textures_used_last_dump [line];
          }
        }
      }

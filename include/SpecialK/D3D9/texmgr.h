@@ -28,6 +28,12 @@ extern iSK_Logger tex_log;
 #include <cstdint>
 #include <algorithm>
 
+#include <concurrent_unordered_set.h>
+#include <concurrent_unordered_map.h>
+#include <concurrent_queue.h>
+
+using namespace concurrency;
+
 interface ISKTextureD3D9;
 
 template <typename _T>
@@ -290,12 +296,12 @@ struct TexThreadStats {
     // The set of textures used during the last frame
     std::vector        <uint32_t>                            textures_last_frame;
     //SK_ThreadSafe_HashSet <uint32_t>                         textures_used;
-    std::unordered_set <uint32_t>                            textures_used;
+    concurrent_unordered_set <uint32_t>                            textures_used;
 //  std::unordered_set <uint32_t>                            non_power_of_two_textures;
 
     // Textures that we will not allow injection for
     //   (primarily to speed things up, but also for EULA-related reasons).
-    std::unordered_set <uint32_t>                            inject_blacklist;
+    concurrent_unordered_set <uint32_t>                            inject_blacklist;
 
 
     //
@@ -334,10 +340,10 @@ struct TexThreadStats {
       void unlockBlacklist  (void) const { LeaveCriticalSection (&cs_tex_blacklist); };
 
     //protected:
-      static std::unordered_map   <uint32_t, TexLoadRequest *>
+      static concurrent_unordered_map   <uint32_t, TexLoadRequest *>
                                                                textures_in_flight;
-      static std::queue <TexLoadRef>                           textures_to_stream;
-      static std::queue <TexLoadRef>                           finished_loads;
+      static concurrent_queue <TexLoadRef>                     textures_to_stream;
+      static concurrent_queue <TexLoadRef>                     finished_loads;
 
       static CRITICAL_SECTION                                  cs_tex_stream;
       static CRITICAL_SECTION                                  cs_tex_resample;
@@ -354,14 +360,14 @@ struct TexThreadStats {
     struct {
       // In lieu of actually wrapping render targets with a COM interface, just add the creation time
       //   as the mapped parameter
-      std::unordered_map <IDirect3DBaseTexture9 *, uint32_t> render_targets;
+      concurrent_unordered_map <IDirect3DBaseTexture9 *, uint32_t> render_targets;
     } known;
     
     struct {
-      std::unordered_set <IDirect3DBaseTexture9 *>           render_targets;
+      concurrent_unordered_set <IDirect3DBaseTexture9 *>           render_targets;
     } used;
 
-    std::unordered_map <uint32_t, Texture*>                  textures;
+    concurrent_unordered_map <uint32_t, Texture*>                  textures;
 
     float                                                    time_saved      = 0.0f;
     volatile LONG64                                          bytes_saved     = 0LL;
@@ -381,9 +387,9 @@ public:
     CRITICAL_SECTION                                         cs_free_list;
     CRITICAL_SECTION                                         cs_unreferenced;
 
-    std::unordered_map    <uint32_t, TexRecord>              injectable_textures;
-    std::vector           <std::wstring>                     archives;
-    SK_ThreadSafe_HashSet <int32_t>                          dumped_textures;
+    concurrent_unordered_map <uint32_t, TexRecord>           injectable_textures;
+    std::vector              <std::wstring>                  archives;
+    concurrent_unordered_map <int32_t, bool>                 dumped_textures;
 
   public:
     bool                                                     init            = false;
@@ -559,8 +565,10 @@ public:
       {
         while (! results_.empty ())
         {
-          results.emplace_back (results_.front ());
-                                results_.pop   ();
+          SK::D3D9::TexLoadRef ref (nullptr);
+
+          while (! results_.try_pop (ref)) ;
+          results.emplace_back (ref);
           InterlockedDecrement (&jobs_done_);
         }
       }
@@ -617,14 +625,15 @@ public:
       if (! ReadAcquire (&jobs_waiting_))
         return nullptr;
 
-      EnterCriticalSection (&cs_jobs);
       {
-        job = jobs_.front ();
-              jobs_.pop   ();
+        SK::D3D9::TexLoadRef ref (nullptr);
+
+        while (! jobs_.try_pop (ref)) ;
+          job = ref;
+
         InterlockedDecrement (&jobs_waiting_);
         ResetEvent (events_.jobs_added);
       }
-      LeaveCriticalSection (&cs_jobs);
 
       return job;
     }
@@ -649,8 +658,8 @@ public:
     volatile LONG                       jobs_waiting_ = 0L;
     volatile LONG                       jobs_done_    = 0L;
 
-    std::queue <TexLoadRef>             jobs_;
-    std::queue <TexLoadRef>             results_;
+    concurrent_queue <TexLoadRef>       jobs_;
+    concurrent_queue <TexLoadRef>       results_;
   
     std::vector <TextureWorkerThread *> workers_;
   
@@ -736,7 +745,8 @@ const GUID IID_SKTextureD3D9 =
   { 0xace1f81b, 0x5f3f, 0x45f4, 0xbf, 0x9f, 0x1b, 0xaf, 0xdf, 0xba, 0x11, 0x9b };
 
 
-    extern std::unordered_map <uint32_t, int32_t> injected_refs;
+    extern concurrent_unordered_map <uint32_t, int32_t> injected_refs;
+    extern concurrent_unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
 
 interface ISKTextureD3D9 : public IDirect3DTexture9
 {
@@ -795,18 +805,12 @@ public:
   STDMETHOD_(ULONG,AddRef)(THIS) {
     InterlockedIncrement (&refs);
 
-    if (injected_refs.count (tex_crc32c))
-      injected_refs [tex_crc32c]++;
-
     can_free = false;
 
     return refs;
   }
   STDMETHOD_(ULONG,Release)(THIS) {
     ULONG ret = InterlockedDecrement (&refs);
-
-    if (injected_refs.count (tex_crc32c))
-      injected_refs [tex_crc32c]--;
 
     if (ret == 1)
     {
@@ -821,6 +825,14 @@ public:
         if (FAILED (pTex->QueryInterface (IID_SKTextureD3D9, &dontcare)) && (! freed))
         {
           if (pTex != nullptr) pTex->Release         ();
+
+          if (pTexOverride != nullptr)
+          {
+            if (injected_textures.count (tex_crc32c) && injected_textures.at (tex_crc32c) != nullptr && injected_refs.count (tex_crc32c))
+              injected_refs [tex_crc32c]--;
+
+            pTexOverride = nullptr;
+          }
 
           pTex  = nullptr;
           freed = true;
@@ -1086,9 +1098,9 @@ public:
   ContentPreference  img_to_use;
 };
 
-extern std::unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
-extern std::unordered_map <uint32_t, float>              injected_load_times;
-extern std::unordered_map <uint32_t, size_t>             injected_sizes;
+extern concurrent_unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
+extern concurrent_unordered_map <uint32_t, float>              injected_load_times;
+extern concurrent_unordered_map <uint32_t, size_t>             injected_sizes;
 
 typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateTextureFromFileInMemoryEx_pfn)
 (

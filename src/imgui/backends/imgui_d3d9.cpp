@@ -36,11 +36,12 @@ static int                     g_VertexBufferSize = 5000,
 
 struct CUSTOMVERTEX
 {
-  float    pos [3];
-  D3DCOLOR col;
-  float    uv  [2];
+  float     pos [3];
+  D3DCOLOR  col;
+  float     uv  [2];
+  float padding [2];
 };
-#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_DIFFUSE|D3DFVF_TEX1)
+#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_DIFFUSE|D3DFVF_TEX2)
 
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
@@ -100,8 +101,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   // Backup the DX9 state
   IDirect3DStateBlock9* d3d9_state_block = nullptr;
 
-  if (g_pd3dDevice->CreateStateBlock ( D3DSBT_ALL, &d3d9_state_block ) < 0 )
-    return;
+  //if (g_pd3dDevice->CreateStateBlock ( D3DSBT_ALL, &d3d9_state_block ) < 0 )
+  //  return;
 
   // Copy and convert all vertices into a single contiguous buffer
   CUSTOMVERTEX* vtx_dst = 0;
@@ -299,9 +300,9 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
   g_pd3dDevice->SetDepthStencilSurface (pDS);
 
-  // Restore the DX9 state
-  d3d9_state_block->Apply   ();
-  d3d9_state_block->Release ();
+  //// Restore the DX9 state
+  //d3d9_state_block->Apply   ();
+  //d3d9_state_block->Release ();
 }
 
 IMGUI_API

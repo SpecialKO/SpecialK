@@ -2512,11 +2512,22 @@ SK_ImGui_ControlPanel (void)
         ImGui::Columns   ( 3 );
           ImGui::Text    ( "%#6zu MiB Total",
                                                          SK::D3D9::tex_mgr.cacheSizeTotal () >> 20ULL ); ImGui::NextColumn ();
+
+          static DWORD  dwLastVRAMUpdate   = 0UL;
+                 DWORD  dwNow              = timeGetTime ();
+          static size_t d3d9_tex_mem_avail = 0UL;
+
+          if (dwLastVRAMUpdate < dwNow - 1500)
+          {
+            d3d9_tex_mem_avail =
+              static_cast <IDirect3DDevice9 *>(SK_GetCurrentRenderBackend ().device)->GetAvailableTextureMem () / 1048576UL;
+            dwLastVRAMUpdate = dwNow;
+          }
+
           ImGui::TextColored
                          (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
                            "%#5lu     Hits",             SK::D3D9::tex_mgr.getHitCount    ()          ); ImGui::NextColumn ();
-          ImGui::Text       ( "Budget: %#7zu MiB  ",        static_cast <IDirect3DDevice9 *>(SK_GetCurrentRenderBackend ().device)->
-                                                                         GetAvailableTextureMem ()  / 1048576UL );
+          ImGui::Text       ( "Budget: %#7zu MiB  ",     d3d9_tex_mem_avail );
         ImGui::Columns   ( 1 );
 
         ImGui::Separator (   );
@@ -2608,7 +2619,8 @@ SK_ImGui_ControlPanel (void)
         }
 #endif
 
-        ImGui::TreePop  ();
+        ImGui::TreePop     ();
+        ImGui::PopStyleVar ();
       }
       ImGui::TreePop ();
       }
