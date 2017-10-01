@@ -2289,48 +2289,48 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePush ("");
 
-        if (ImGui::Checkbox ("Life is Wired", &wired))
-        {
-          if (wired)
-          {
-            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
-            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
-          }
-
-          else
-          {
-            SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
-            SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
-          }
-        }
-
-        if (ImGui::Checkbox ("Life is Evil", &evil))
-        {
-          if (evil)
-          {
-            SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
-          }
-
-          else
-          {
-            SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
-          }
-        }
-
-        if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
-        {
-          if (even_stranger)
-          {
-            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
-            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
-          }
-
-          else
-          {
-            SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
-            SK_D3D11_Shaders.pixel.blacklist.erase (ps_skin);
-          }
-        }
+        //if (ImGui::Checkbox ("Life is Wired", &wired))
+        //{
+        //  if (wired)
+        //  {
+        //    SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
+        //    SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
+        //  }
+        //
+        //  else
+        //  {
+        //    SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
+        //    SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
+        //  }
+        //}
+        //
+        //if (ImGui::Checkbox ("Life is Evil", &evil))
+        //{
+        //  if (evil)
+        //  {
+        //    SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
+        //  }
+        //
+        //  else
+        //  {
+        //    SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
+        //  }
+        //}
+        //
+        //if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
+        //{
+        //  if (even_stranger)
+        //  {
+        //    SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
+        //    SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
+        //  }
+        //
+        //  else
+        //  {
+        //    SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
+        //    SK_D3D11_Shaders.pixel.blacklist.erase (ps_skin);
+        //  }
+        //}
 
         bool enable = evil || even_stranger || wired;
 

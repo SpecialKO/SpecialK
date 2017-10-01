@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -25,6 +25,8 @@
 #define __D3DX11TEX_H__
 
 #include <SpecialK/dxgi_interfaces.h>
+#include <SpecialK/utility.h>
+#include <concurrent_unordered_map.h>
 
 #include <string>
 #include <d3d11.h>
@@ -353,7 +355,7 @@ public:
     Blacklist_2D.resize (32);
 
     TexRefs_2D.reserve       (8192);
-    Textures_2D.reserve      (8192);
+//    Textures_2D.reserve      (8192);
     HashMap_2D [ 1].reserve  ( 512);
     HashMap_2D [ 2].reserve  ( 128);
     HashMap_2D [ 3].reserve  (1024);
@@ -402,7 +404,7 @@ public:
     D3D11_TEXTURE2D_DESC  desc       = { };
     size_t                mem_size   = 0L;
     uint64_t              load_time  = 0ULL;
-    uint32_t              tag        = 0x00;
+    uint32_t              tag        = 0x00; // Combined data and descriptor hash for collision mitigation
     uint32_t              crc32c     = 0x00;
     bool                  injected   = false;
     uint32_t              hits       = 0;
@@ -411,16 +413,33 @@ public:
 
   std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
 
-  std::vector        < std::unordered_map < 
-                        uint32_t,
-                        ID3D11Texture2D * >
-                     >                        HashMap_2D;
+  struct lod_hash_table_s {
+    lod_hash_table_s (void) {
+      InitializeCriticalSectionAndSpinCount (&mutex, 6000);
+    }
+
+    ~lod_hash_table_s (void)
+    {
+      DeleteCriticalSection (&mutex);
+    }
+
+    void              reserve     (size_t   resrv)  { SK_AutoCriticalSection cs (&mutex);        entries.reserve (resrv);  }
+    bool              contains    (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); return entries.count   (crc32c); };
+    void              erase       (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex);        entries.erase   (crc32c); };
+    ID3D11Texture2D*& operator [] (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); return entries         [crc32c]; };
+
+    std::unordered_map < uint32_t,
+                         ID3D11Texture2D * > entries;
+    CRITICAL_SECTION                         mutex;
+  };
+
+  std::vector        < lod_hash_table_s   >   HashMap_2D;
   std::vector        < std::unordered_set <
                         uint32_t          >
                      >                        Blacklist_2D;
 
-  std::unordered_map < ID3D11Texture2D *,
-                       tex2D_descriptor_s  >  Textures_2D;
+  concurrency::concurrent_unordered_map < ID3D11Texture2D *,
+                                          tex2D_descriptor_s  >  Textures_2D;
   std::vector        <ID3D11Texture2D  *>     TexFreeList_2D;
 
   volatile LONG64                             AggregateSize_2D  = 0ULL;
@@ -832,6 +851,8 @@ struct SK_D3D11_KnownShaders
 
     std::unordered_set <uint32_t>                        wireframe;
     std::unordered_set <uint32_t>                        blacklist;
+    std::unordered_set <uint32_t>                        on_top;
+    std::unordered_set <uint32_t>                        rewind;
 
     conditional_blacklist_t                              blacklist_if_texture;
 

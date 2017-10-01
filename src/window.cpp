@@ -1746,9 +1746,9 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr)
 
   game_window.actual.style = dwStyle;
 
-  SetWindowLongPtrA_Original ( game_window.hWnd,
-                                 GWL_STYLE,
-                                   game_window.actual.style );
+  game_window.SetWindowLongPtr ( game_window.hWnd,
+                                   GWL_STYLE,
+                                     game_window.actual.style );
 }
 
 void
@@ -1764,9 +1764,9 @@ SK_SetWindowStyleEx (DWORD_PTR dwStyleEx_ptr)
 
   game_window.actual.style_ex = dwStyleEx;
 
-  SetWindowLongPtrA_Original ( game_window.hWnd,
-                                 GWL_EXSTYLE,
-                                   game_window.actual.style_ex );
+  game_window.SetWindowLongPtr ( game_window.hWnd,
+                                   GWL_EXSTYLE,
+                                     game_window.actual.style_ex );
 }
 
 RECT

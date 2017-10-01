@@ -1455,7 +1455,9 @@ SK_Input_PreHookXInput (void)
 void
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
-  if (! xinput_enabled)
+  SK_XInput_RehookIfNeeded ();
+
+  if (! (xinput_enabled && xinput_ctx.primary_hook))
     return;
 
 

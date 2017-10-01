@@ -29,6 +29,7 @@
 #include <dbghelp.h>
 
 struct ID3D11RasterizerState;
+struct ID3D11DepthStencilState;
 
 #include <unordered_map>
 
@@ -57,12 +58,18 @@ struct SK_TLS
       uint32_t data_age = 0;
     } streaming_memory;
 
-    BOOL injection_thread;
+    BOOL injection_thread = FALSE;
   } texture_management;
 
   struct {
-    ID3D11RasterizerState* pRasterStateOrig  = nullptr;
-    ID3D11RasterizerState* pRasterStateNew   = nullptr;
+    ID3D11RasterizerState*   pRasterStateOrig       = nullptr;
+    ID3D11RasterizerState*   pRasterStateNew        = nullptr;
+
+    ID3D11DepthStencilState* pDepthStencilStateOrig = nullptr;
+    ID3D11DepthStencilState* pDepthStencilStateNew  = nullptr;
+
+    UINT                     StencilRefOrig         = 0;
+    UINT                     StencilRefNew          = 0;
   } d3d11;
 
   struct {
@@ -88,7 +95,7 @@ struct SK_TLS
   struct stack
   {
                  int current = 0;
-    static const int max     = 8;
+    static const int max     = 10;
   } stack;
 };
 
