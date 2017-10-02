@@ -830,8 +830,6 @@ SK_HookD3D9 (void)
   HookD3D9 (nullptr);
 }
 
-static std::queue <DWORD> old_threads;
-
 void
 WINAPI
 d3d9_init_callback (finish_pfn finish)
@@ -3048,7 +3046,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       pparams->MultiSampleQuality     = 0;
       pparams->EnableAutoDepthStencil = true;
       pparams->AutoDepthStencilFormat = D3DFMT_D24X8;
-      pparams->Flags                  = D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL;
     }
 
     if (pparams != nullptr)

@@ -1,3 +1,15 @@
+0.8.46
+
+ + Local Wrapper DLLs no longer use AppCache for config
+ + Fix for Steam games with Trademark symbols in their name when using the
+     global injector config repository... you may need to clear Special K's
+       AppCache directory before this takes affect.
+ + Corrected attempts to auto-detect D3D8 / DDraw as the primary graphics API
+     when the required dgVoodoo API support plug-in is not present
+ + D3D11 Texture injection optimizations
+ + Disabled Sleepless Render Thread by default for improved compatibility
+
+
 0.8.45
 
  + Improved vertex memory alignment in ImGui D3D9 renderer

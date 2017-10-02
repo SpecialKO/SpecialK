@@ -61,6 +61,8 @@ dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
+  encoding_ = INI_UTF16LE;
+
   if (wcsstr (filename, L"Version"))
     SK_CreateDirectories (filename);
 
@@ -75,7 +77,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   wcscpy (wszName, filename);
 
-  TRY_FILE_IO (_wfsopen (filename, L"rb", _SH_DENYNO), filename, fINI);
+  TRY_FILE_IO (_wfsopen (filename, L"rbS", _SH_DENYNO), filename, fINI);
 
   if (fINI != nullptr)
   {
@@ -159,7 +161,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
       }
 
       wszData =
-        new wchar_t [converted_size + 2] { };
+        new wchar_t [converted_size + 1] { };
 
       MultiByteToWideChar ( CP_UTF8, 0, string, real_size, wszData, converted_size );
 
@@ -237,7 +239,7 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
   {
     if (k < penultimate && *k == L'=')
     {
-      auto*    key_str = new wchar_t [k - key + 2] { };
+      auto*    key_str = new wchar_t [k - key + 1] { };
       size_t   key_len =          wcrlen (key, k);
       wcsncpy (key_str,                   key, key_len);
 
@@ -257,7 +259,7 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
             k = end;
           }
 
-          auto*    val_str = new wchar_t [l - value + 2] { };
+          auto*    val_str = new wchar_t [l - value + 1] { };
           size_t   val_len = wcrlen          (value, l);
           wcsncpy (val_str,                   value, val_len);
 
@@ -286,7 +288,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
   {
     if (k < penultimate && *k == L'=')
     {
-      auto*    key_str = new wchar_t [k - key + 2] { };
+      auto*    key_str = new wchar_t [k - key + 1] { };
       size_t   key_len =          wcrlen (key, k);
       wcsncpy (key_str,                   key, key_len);
 
@@ -300,9 +302,9 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
           key = CharNextW (l);
             k = key;
 
-          auto*    val_str = new wchar_t [l - value + 2] { };
+          auto*    val_str = new wchar_t [l - value + 1] { };
           size_t   val_len = wcrlen          (value, l);
-          wcsncat (val_str,                   value, val_len);
+          wcsncpy (val_str,                   value, val_len);
 
           // Prefer to change an existing value
           if (section.contains_key (key_str))

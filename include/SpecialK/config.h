@@ -228,7 +228,7 @@ struct sk_config_t
       int     refresh_rate      = -1;
       int     pin_render_thread = -1;
       bool    wait_for_vblank   = false;
-      bool    sleepless_render  = true;
+      bool    sleepless_render  = false;
       bool    sleepless_window  = false;
     } framerate;
     struct {
@@ -394,9 +394,9 @@ struct sk_config_t
       int   absolute            = 0;
       float percent             = 0.0f;
       } x, y;
-      bool isZero (void) { return x.absolute == 0    && y.absolute == 0 &&
-                                  x.percent > -0.00001f && x.percent < 0.00001f &&
-                                  y.percent > -0.00001f && y.percent < 0.00001f; }
+      bool isZero (void) { return x.absolute == 0        && y.absolute == 0        &&
+                                  x.percent  > -0.00001f && x.percent   < 0.00001f &&
+                                  y.percent  > -0.00001f && y.percent   < 0.00001f; }
     } offset;
     bool    background_render   = false;
     bool    background_mute     = false;

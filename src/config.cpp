@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -365,11 +365,15 @@ SK_LoadConfig (std::wstring name) {
 
 SK_AppCache_Manager app_cache_mgr;
 
+
 __declspec (noinline)
 const wchar_t*
 __stdcall
 SK_GetConfigPath (void)
 {
+  if ((! SK_IsInjected ()) && (! config.system.central_repository))
+    return SK_GetNaiveConfigPath ();
+
   static bool init = false;
 
   if (! init)
@@ -4449,9 +4453,9 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                                       const std::unordered_set <wchar_t>
                                         invalid_file_char =
                                         {
-                                          L'\\', L'/', L':',
-                                          L'*',  L'?', L'\"',
-                                          L'<',  L'>', L'|'
+                                          L'\\', L'/', L':',L'©',
+                                          L'*',  L'?', L'\"',L'®',
+                                          L'<',  L'>', L'|',L'™',L'℠'
                                         };
 
                                       return invalid_file_char.count (tval) > 0;

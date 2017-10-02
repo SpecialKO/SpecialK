@@ -292,9 +292,6 @@ SKX_InstallCBTHook (void)
 
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
-    //
-    //  >>  ** Thank you GeForce Experience :-\
-    //
     g_hHookCBT =
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
 
@@ -890,15 +887,16 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 void
 SK_Inject_Stop (void)
 {
-  //std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
-
   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
-  GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
+  GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
+#ifdef _WIN32
   LoadLibrary (L"SpecialK32.dll");
+#else
   LoadLibrary (L"SpecialK64.dll");
+#endif
 
 #ifdef _WIN64
   wchar_t wszWOW64 [MAX_PATH + 2] = { };
@@ -944,17 +942,13 @@ SK_Inject_Stop (void)
   }
 
   SetCurrentDirectoryW (wszCurrentDir);
-
-  //SK_ResumeThreads (suspended);
 }
 
 void
 SK_Inject_Start (void)
 {
-  //std::queue <DWORD> suspended = SK_SuspendAllOtherThreads ();
-
   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
-  GetCurrentDirectoryW (MAX_PATH * 2 - 1, wszCurrentDir);
+  GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
@@ -1009,8 +1003,6 @@ SK_Inject_Start (void)
   }
 
   SetCurrentDirectoryW (wszCurrentDir);
-
-  //SK_ResumeThreads (suspended);
 }
 
 
@@ -1033,7 +1025,7 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
         if (pdwListIter != nullptr)
         {
           *pdwListIter = ReadAcquire (&g_sHookedPID);
-          pdwListIter++;
+           pdwListIter++;
         }
       }
 
@@ -1042,7 +1034,7 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
   }
 
   if (pdwListIter != nullptr)
-    *pdwListIter = 0;
+     *pdwListIter  = 0;
 
   return i;
 }

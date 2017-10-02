@@ -1944,8 +1944,7 @@ SK_ShutdownCore (const wchar_t* backend)
        (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))     ||
        (! lstrcmpW (SK_GetHostApp (), L"FFX.exe"))          ||
        (! lstrcmpW (SK_GetHostApp (), L"FFX-2.exe"))        ||
-       (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe"))      ||
-       (! lstrcmpW (SK_GetHostApp (), L"EoCApp.exe")) )
+       (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe")) )
     ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);

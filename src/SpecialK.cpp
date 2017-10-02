@@ -324,6 +324,15 @@ SK_EstablishDllRole (HMODULE hModule)
     return false;
   }
 
+
+  static bool has_dgvoodoo =
+    GetFileAttributesA (
+      SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll",
+                          std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
+                      ).c_str ()
+    ) != INVALID_FILE_ATTRIBUTES;
+
+
   wchar_t wszDllFullName [  MAX_PATH  ] = { };
 
   GetModuleFileName (hModule, wszDllFullName, MAX_PATH - 1);
@@ -338,10 +347,10 @@ SK_EstablishDllRole (HMODULE hModule)
     SK_SetDLLRole (DLL_ROLE::DXGI);
 
 #ifndef _WIN64
-  else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll"))
+  else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll")  && has_dgvoodoo)
     SK_SetDLLRole (DLL_ROLE::D3D8);
 
-  else if (! SK_Path_wcsicmp (wszShort, L"ddraw.dll"))
+  else if (! SK_Path_wcsicmp (wszShort, L"ddraw.dll") && has_dgvoodoo)
     SK_SetDLLRole (DLL_ROLE::DDraw);
 #endif
 
@@ -413,13 +422,13 @@ SK_EstablishDllRole (HMODULE hModule)
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (wszD3D8) != INVALID_FILE_ATTRIBUTES )
+    else if ( GetFileAttributesW (wszD3D8) != INVALID_FILE_ATTRIBUTES && has_dgvoodoo )
     {
       SK_SetDLLRole (DLL_ROLE::D3D8);
       explicit_inject = true;
     }
 
-    else if ( GetFileAttributesW (wszDDraw) != INVALID_FILE_ATTRIBUTES )
+    else if ( GetFileAttributesW (wszDDraw) != INVALID_FILE_ATTRIBUTES && has_dgvoodoo )
     {
       SK_SetDLLRole (DLL_ROLE::DDraw);
       explicit_inject = true;
@@ -503,7 +512,7 @@ SK_EstablishDllRole (HMODULE hModule)
         d3d8   |= (GetModuleHandle (L"d3d8.dll")     != nullptr);
         ddraw  |= (GetModuleHandle (L"ddraw.dll")    != nullptr);
 
-        if (config.apis.d3d8.hook && d3d8)
+        if (config.apis.d3d8.hook && d3d8 && has_dgvoodoo)
         {
           SK_SetDLLRole (DLL_ROLE::D3D8);
 
@@ -544,7 +553,7 @@ SK_EstablishDllRole (HMODULE hModule)
 
 #else
 
-        else if (config.apis.ddraw.hook && ddraw)
+        else if (config.apis.ddraw.hook && ddraw && has_dgvoodoo)
         {
           SK_SetDLLRole (DLL_ROLE::DDraw);
         
@@ -572,9 +581,9 @@ SK_EstablishDllRole (HMODULE hModule)
           else if (config.apis.Vulkan.hook)
             SK_SetDLLRole (DLL_ROLE::Vulkan);
 #else
-          else if (config.apis.d3d8.hook)
+          else if (config.apis.d3d8.hook && has_dgvoodoo)
             SK_SetDLLRole (DLL_ROLE::D3D8);
-          else if (config.apis.ddraw.hook)
+          else if (config.apis.ddraw.hook && has_dgvoodoo)
             SK_SetDLLRole (DLL_ROLE::DDraw);
 #endif
         }
