@@ -3986,9 +3986,7 @@ SK_SaveConfig ( std::wstring name,
 
 
   // Don't store this setting at shutdown
-  extern volatile ULONG __SK_DLL_Ending;
-
-  if (! InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+  if (! ReadAcquire (&__SK_DLL_Ending))
   {
     handle_crashes->set_value              (config.system.handle_crashes);
     handle_crashes->store                  ();

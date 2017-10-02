@@ -3295,7 +3295,7 @@ void
 SK::D3D9::TextureWorkerThread::finishJob (void)
 {
   InterlockedExchangeAdd64   (&bytes_loaded_,
-           ((TexLoadRequest *)InterlockedCompareExchangePointer ((PVOID *)&job_, nullptr, nullptr))
+           ((TexLoadRequest *)ReadPointerAcquire ((PVOID *)&job_))
                              ->SrcDataSize);
   InterlockedIncrement       (&jobs_retired_);
   InterlockedExchangePointer ((PVOID *)&job_, nullptr);
@@ -3968,7 +3968,7 @@ ISKTextureD3D9::UnlockRect (UINT Level)
 
     if (SUCCEEDED (hr) && crc32c_ != 0x0 && (! SK::D3D9::tex_mgr.injector.isInjectionThread ()))
     {
-      SK::D3D9::Texture* pCacheTex =
+      auto* pCacheTex =
         new SK::D3D9::Texture ();
 
       pCacheTex->original_pool = desc.Pool;

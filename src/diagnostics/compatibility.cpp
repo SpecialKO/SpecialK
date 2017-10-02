@@ -554,16 +554,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 #pragma pop_macro ("GetModuleHandleEx")
 }
 
-
-extern volatile ULONG __SK_DLL_Ending;
-
 BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
   LPVOID pAddr = _ReturnAddress ();
 
-  if (InterlockedCompareExchange (&__SK_DLL_Ending, 0, 0) != 0)
+  if (ReadAcquire (&__SK_DLL_Ending) != 0)
   {
     return FreeLibrary_Original (hLibModule);
   }
@@ -1637,7 +1634,7 @@ TaskDialogCallback (
                             SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
                             SWP_NOMOVE         | SWP_NOSIZE );
 
-    while (InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0) > 1)
+    while (ReadAcquire (&SK_bypass_dialog_active) > 1)
       SleepEx (10, TRUE);
 
     SK_bypass_dialog_hwnd = hWnd;
@@ -2478,7 +2475,7 @@ SK_Bypass_CRT (LPVOID user)
           {
             SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DXGI);
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( "%ws\\My Mods\\SpecialK\\SpecialK%lu.dll",
+                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
 #ifndef _WIN64
                              32

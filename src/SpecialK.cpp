@@ -63,13 +63,13 @@
 volatile HMODULE hModSelf              = nullptr;
 
 
-volatile ULONG      __SK_DLL_Attached     = FALSE;
+volatile LONG       __SK_DLL_Attached     = FALSE;
          __time64_t __SK_DLL_AttachTime   = 0ULL;
-volatile ULONG      __SK_Threads_Attached = 0;
-volatile ULONG      __SK_DLL_Refs         = 0;
+volatile ULONG      __SK_Threads_Attached = 0UL;
+volatile ULONG      __SK_DLL_Refs         = 0UL;
 volatile DWORD      __SK_TLS_INDEX        = MAXDWORD;
-volatile ULONG      __SK_DLL_Ending       = FALSE;
-volatile ULONG      __SK_HookContextOwner = FALSE;
+volatile LONG       __SK_DLL_Ending       = FALSE;
+volatile LONG       __SK_HookContextOwner = FALSE;
 
 
 CRITICAL_SECTION init_mutex    = { };
@@ -168,7 +168,7 @@ SK_IsInjected (bool set)
 //   as a wrapper DLL.
   static volatile LONG __injected = 0L;
 
-  if (InterlockedExchangeAdd (&__injected, 0L) > 0L)
+  if (ReadAcquire (&__injected) > 0L)
     return true;
 
   if (set)
@@ -608,11 +608,7 @@ SK_Attach (DLL_ROLE role)
       };
 
 
-  if (! InterlockedCompareExchangeAcquire (
-          &__SK_DLL_Attached,
-            FALSE,
-              FALSE )
-     )
+  if (! ReadAcquire (&__SK_DLL_Attached))
   {
     InitializeCriticalSectionAndSpinCount (&budget_mutex,   400);
     InitializeCriticalSectionAndSpinCount (&init_mutex,    5000);
@@ -854,8 +850,8 @@ DllMain ( HMODULE hModule,
         return TRUE;
       }
 
-      if ( InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0) ||
-           InterlockedExchangeAddAcquire (&__SK_DLL_Ending,   0) )
+      if ( ReadAcquire (&__SK_DLL_Attached) ||
+           ReadAcquire (&__SK_DLL_Ending)      )
       {
         SK_EstablishRootPath ();
         return TRUE;
@@ -948,12 +944,12 @@ DllMain ( HMODULE hModule,
       {
         // If the DLL being unloaded is the source of a CBT hook, then
         //   shut that down before detaching the DLL.
-        if (InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
+        if (ReadAcquire (&__SK_HookContextOwner))
         {
           SKX_RemoveCBTHook ();
       
           // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
-          if (! InterlockedExchangeAdd (&__SK_HookContextOwner, 0UL))
+          if (! ReadAcquire (&__SK_HookContextOwner))
           {
 #ifdef _WIN64
             DeleteFileW (L"SpecialK64.pid");
@@ -963,13 +959,13 @@ DllMain ( HMODULE hModule,
           }
         }
 //
-        if (InterlockedExchangeAddAcquire (&__SK_DLL_Attached, 0))
+        if (ReadAcquire (&__SK_DLL_Attached))
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);
         }
       }
 
-      if (InterlockedExchangeAddRelease (&__SK_DLL_Attached, 0))
+      if (ReadAcquire (&__SK_DLL_Attached))
         SK_Detach (SK_GetDLLRole ());
 
       if (__SK_TLS_INDEX != MAXDWORD)
@@ -1043,9 +1039,7 @@ DllMain ( HMODULE hModule,
 
 
 
-SK_ModuleAddrMap::SK_ModuleAddrMap (void)
-{
-}
+SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
 
 bool
 SK_ModuleAddrMap::contains (LPVOID pAddr, HMODULE* phMod)

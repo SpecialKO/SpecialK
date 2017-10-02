@@ -45,6 +45,20 @@ public:
 };
 
 
+enum SK_TLS_STACK_MASK
+{
+  SK_TLS_RESERVED_BIT   = 0x01,
+
+  SK_TLS_INPUT_BIT      = 0x02,
+  SK_TLS_RENDER_BIT     = 0x04,
+  SK_TLS_IMGUI_BIT      = 0x08,
+  SK_TLS_TEX_INJECT_BIT = 0x10,
+
+  SK_TLS_DEBUG_BIT      = 0x80,
+
+  SK_TLS_DWORD_ALIGNED  = 0xFFFFFFFF
+};
+
 struct SK_TLS
 {
   SK_ModuleAddrMap known_modules;
@@ -96,6 +110,8 @@ struct SK_TLS
   {
                  int current = 0;
     static const int max     = 10;
+
+
   } stack;
 };
 
@@ -107,6 +123,9 @@ SK_TLS* __stdcall SK_TLS_Bottom (void);
 
 bool    __stdcall SK_TLS_Push   (void);
 bool    __stdcall SK_TLS_Pop    (void);
+
+void    __stdcall SK_TLS_Push   (SK_TLS_STACK_MASK mask);
+void    __stdcall SK_TLS_Pop    (SK_TLS_STACK_MASK mask);
 
 
 class SK_ScopedTLS

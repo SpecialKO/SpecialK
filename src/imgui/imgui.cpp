@@ -10997,7 +10997,7 @@ SK_ImGui_LoadFonts (void)
 
       else
       {
-        snprintf (szFullPath, MAX_PATH * 2, "%ws\\%s", SK_GetFontsDir ().c_str (), filename.c_str ());
+        snprintf (szFullPath, MAX_PATH * 2, R"(%ws\%s)", SK_GetFontsDir ().c_str (), filename.c_str ());
 
 
         if (GetFileAttributesA (szFullPath) == INVALID_FILE_ATTRIBUTES)
@@ -11068,10 +11068,10 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 
-  static HRAWINPUT last_input = 0;
+  static HRAWINPUT last_input = nullptr;
 
   bool already_processed = (last_input == hRawInput);
-       last_input        =  (! self) ? hRawInput : 0;
+       last_input        =  (! self) ? hRawInput : nullptr;
 
 
   if (self && (! already_processed))
@@ -11436,14 +11436,17 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
       filter = true;
     }
 
-    POINT center { (LONG)(ImGui::GetIO ().DisplaySize.x / 2.0f),
-                   (LONG)(ImGui::GetIO ().DisplaySize.y / 2.0f) };
+    ImGuiIO& io =
+      ImGui::GetIO ();
+
+    POINT center { static_cast <LONG> (io.DisplaySize.x / 2.0f),
+                   static_cast <LONG> (io.DisplaySize.y / 2.0f) };
 
     SK_ImGui_Cursor.LocalToClient (&center);
 
     // Now test the cursor against the center of the screen
-    if ( abs (center.x - GET_X_LPARAM (lParam)) <= ((float)center.x / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
-         abs (center.y - GET_Y_LPARAM (lParam)) <= ((float)center.y / (100.0f / config.input.mouse.antiwarp_deadzone)) )
+    if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
+         abs (center.y - GET_Y_LPARAM (lParam)) <= (static_cast <float> (center.y) / (100.0f / config.input.mouse.antiwarp_deadzone)) )
     {
       filter = true;
     }
@@ -11451,8 +11454,8 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
     POINT local { GET_X_LPARAM (lParam),
                   GET_Y_LPARAM (lParam) };
 
-    last_pos.x = (SHORT)local.x;
-    last_pos.y = (SHORT)local.y;
+    last_pos.x = static_cast <SHORT> (local.x);
+    last_pos.y = static_cast <SHORT> (local.y);
 
     // Dispose Without Processing
     if (filter)
@@ -11478,7 +11481,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     {
       case DBT_DEVICEARRIVAL:
       {
-        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
+        auto *pHdr = reinterpret_cast <DEV_BROADCAST_HDR *> (lParam);
   
         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
         {
@@ -11495,7 +11498,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       case DBT_DEVICEREMOVEPENDING:
       case DBT_DEVICEREMOVECOMPLETE:
       {
-        DEV_BROADCAST_HDR* pHdr = (DEV_BROADCAST_HDR*)lParam;
+        auto *pHdr = reinterpret_cast <DEV_BROADCAST_HDR *> (lParam);
   
         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
         {
@@ -11850,7 +11853,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
         if (ret)
         {
-          uint8_t *pData = new uint8_t [size];
+          auto *pData =
+            new uint8_t [size];
 
           if (! pData)
             return 0;
@@ -11985,7 +11989,7 @@ struct {
           start,    end;
   
     float run (void) {
-      float now = static_cast <float> (timeGetTime ());
+      auto now = static_cast <float> (timeGetTime ());
       
       return config.input.gamepad.haptic_ui ?
                std::max (0.0f, strength * ((end - now) / (end - start))) :
@@ -12242,8 +12246,8 @@ SK_ImGui_PollGamepad (void)
          XINPUT_STATE state    = {      };
   static XINPUT_STATE last_state { 1, 0 };
 
-  for (int i = 0; i < ImGuiNavInput_COUNT; i++)
-    io.NavInputs [i] = 0.0f;
+  for ( float& NavInput : io.NavInputs )
+    NavInput = 0.0f;
 
   bool api_bridge =
     config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
@@ -12586,7 +12590,7 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
     {
       const float  t1      = t0 + t_step;
 
-      const int    v1_idx  = static_cast <int> (t0 * item_count + 0.5f);
+      const auto   v1_idx  = static_cast <int> (t0 * item_count + 0.5f);
       IM_ASSERT(   v1_idx >= 0 && v1_idx < values_count);
 
       const float  v1      =

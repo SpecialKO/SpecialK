@@ -57,8 +57,8 @@
 
          iSK_Logger       steam_log;
 
-volatile ULONG            __SK_Steam_init = FALSE;
-volatile ULONG            __SteamAPI_hook = FALSE;
+volatile LONG             __SK_Steam_init = FALSE;
+volatile LONG             __SteamAPI_hook = FALSE;
 
          CRITICAL_SECTION callback_cs     = { };
          CRITICAL_SECTION init_cs         = { };
@@ -2498,7 +2498,7 @@ public:
    SK_Steam_UserManager (void) = default;
   ~SK_Steam_UserManager (void) = default;
 
-  int32_t  GetNumPlayers    (void) { return InterlockedAdd (&num_players_, 0L); }
+  int32_t  GetNumPlayers    (void) { return ReadAcquire (&num_players_); }
   void     UpdateNumPlayers (void)
   {
     // Service Only One Update
@@ -2569,7 +2569,7 @@ SteamAPI_RunCallbacks_Detour (void)
 
   else
   {
-    if (InterlockedCompareExchange (&__SK_Steam_init, 0, 0))
+    if (ReadAcquire (&__SK_Steam_init))
     {
       InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
       // Skip the callbacks, one call every 1 ms is enough!!
@@ -2579,7 +2579,7 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
-  if ((! failure) && (( InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) == 0 || steam_achievements == nullptr )))
+  if ((! failure) && (( ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) == 0LL || steam_achievements == nullptr )))
   {
     // Handle situations where Steam was initialized earlier than
     //   expected...
@@ -2588,7 +2588,7 @@ SteamAPI_RunCallbacks_Detour (void)
 
     static volatile HANDLE hThread = nullptr;
 
-    if (InterlockedCompareExchangePointer (&hThread, nullptr, nullptr) == nullptr)
+    if (ReadPointerAcquire (&hThread) == nullptr)
     {
       InterlockedExchangePointer ((void **)&hThread,
         CreateThread ( nullptr, 0,
@@ -2658,8 +2658,7 @@ SteamAPI_RunCallbacks_Detour (void)
 
   __try
   {
-    extern volatile ULONG          __SK_DLL_Ending;
-    if (! InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+    if (! ReadAcquire (&__SK_DLL_Ending))
     {
       InterlockedIncrement64         (&SK_SteamAPI_CallbackRunCount);
       SteamAPI_RunCallbacks_Original ();
@@ -2788,7 +2787,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
 void
 SK_Steam_StartPump (bool force)
 {
-  if (InterlockedCompareExchangePointer (&hSteamPump, nullptr, nullptr) != nullptr)
+  if (ReadPointerAcquire (&hSteamPump) != nullptr)
     return;
 
   if (config.steam.auto_pump_callbacks || force)
@@ -3232,7 +3231,7 @@ S_CALLTYPE
 SteamAPI_InitSafe_Detour (void)
 {
   // In case we already initialized stuff...
-  if (InterlockedExchangeAdd (&__SK_Steam_init, 0))
+  if (ReadAcquire (&__SK_Steam_init))
     return SteamAPI_InitSafe_Original ();
 
   EnterCriticalSection (&init_cs);
@@ -3297,8 +3296,7 @@ SteamAPI_Shutdown_Detour (void)
       {
         SleepEx (100UL, TRUE);
 
-        extern volatile ULONG        __SK_DLL_Ending;
-        if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+        if (ReadAcquire (&__SK_DLL_Ending))
         {
           CloseHandle (GetCurrentThread ());
 
@@ -3323,7 +3321,7 @@ S_CALLTYPE
 SteamAPI_Init_Detour (void)
 {
   // In case we already initialized stuff...
-  if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE))
+  if (ReadAcquire (&__SK_Steam_init))
     return true;
 
   EnterCriticalSection (&init_cs);
@@ -3432,12 +3430,12 @@ SteamAPI_Delay_Init (LPVOID user)
 
   int tries = 0;
 
-  while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
+  while ( (! ReadAcquire (&__SK_Steam_init)) &&
             tries < 120 )
   {
     SleepEx (config.steam.init_delay, FALSE);
 
-    if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
+    if (ReadAcquire (&__SK_Steam_init))
       break;
 
     if (SteamAPI_InitSafe_Original != nullptr)

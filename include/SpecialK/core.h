@@ -71,6 +71,7 @@ extern CRITICAL_SECTION         cs_dbghelp;
 extern HMODULE                  backend_dll;
 extern CRITICAL_SECTION         init_mutex;
 
+extern volatile LONG     __SK_DLL_Ending;
 extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;
 
 extern void SK_DS3_InitPlugin    (void);

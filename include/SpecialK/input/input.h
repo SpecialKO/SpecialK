@@ -119,26 +119,26 @@ struct sk_input_api_context_s
     InterlockedAdd  (&reads   [0], last_frame.reads  [0]); 
     InterlockedAdd  (&writes  [0], last_frame.writes [0]);
 
-      if (InterlockedAdd (&last_frame.reads  [0], 0))  { active.keyboard = true; active_data = true; }
-      if (InterlockedAdd (&last_frame.writes [0], 0))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [0]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [0]))  { active.keyboard = true; active_data = true; }
 
     InterlockedAdd  (&reads   [1], last_frame.reads  [1]);
     InterlockedAdd  (&writes  [1], last_frame.writes [1]); 
 
-      if (InterlockedAdd (&last_frame.reads  [1], 0))  { active.mouse    = true; active_data = true; }
-      if (InterlockedAdd (&last_frame.writes [1], 0))  { active.mouse    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [1]))  { active.mouse    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [1]))  { active.mouse    = true; active_data = true; }
 
     InterlockedAdd  (&reads   [2], last_frame.reads  [2]);
     InterlockedAdd  (&writes  [2], last_frame.writes [2]);
 
-      if (InterlockedAdd (&last_frame.reads  [2], 0))  { active.gamepad  = true; active_data = true; }
-      if (InterlockedAdd (&last_frame.writes [2], 0))  { active.gamepad  = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [2]))  { active.gamepad  = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [2]))  { active.gamepad  = true; active_data = true; }
 
     InterlockedAdd  (&reads   [3], last_frame.reads  [3]);
     InterlockedAdd  (&writes  [3], last_frame.writes [3]);
 
-      if (InterlockedAdd (&last_frame.reads  [2], 0))  { active.other    = true; active_data = true; }
-      if (InterlockedAdd (&last_frame.writes [2], 0))  { active.other    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [2]))  { active.other    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [2]))  { active.other    = true; active_data = true; }
 
 
     InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);

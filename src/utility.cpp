@@ -1221,8 +1221,6 @@ const wchar_t*
 __stdcall
 SK_GetBackend (void);
 
-extern volatile ULONG __SK_DLL_Ending;
-
 void
 __stdcall
 SK_SelfDestruct (void)

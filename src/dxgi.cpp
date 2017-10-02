@@ -64,9 +64,8 @@
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log.Log ((x)); logged = true; } }
 
-extern volatile ULONG __SK_DLL_Ending;
-volatile DWORD SK_D3D11_init_tid  = 0;
-volatile DWORD SK_D3D11_ansel_tid = 0;
+volatile LONG SK_D3D11_init_tid  = 0;
+volatile LONG SK_D3D11_ansel_tid = 0;
 
 extern CRITICAL_SECTION cs_shader;
 extern CRITICAL_SECTION cs_mmio;
@@ -485,7 +484,7 @@ void WaitForInitDXGI (void)
     SK_BootDXGI ();
   }
 
-  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+  while (! ReadAcquire (&__dxgi_ready))
   {
     MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
   }
@@ -1312,7 +1311,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   if (! config.cegui.enable)
     return;
 
-  if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+  if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
   SK_RenderBackend& rb =
@@ -3715,8 +3714,8 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
                       iname.c_str (), ppFactory );
 
-  if ( InterlockedExchangeAdd (&SK_D3D11_init_tid,  0) != GetCurrentThreadId () &&
-       InterlockedExchangeAdd (&SK_D3D11_ansel_tid, 0) != GetCurrentThreadId () )
+  if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -3745,8 +3744,8 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
                       iname.c_str (), ppFactory );
 
-  if ( InterlockedExchangeAdd (&SK_D3D11_init_tid,  0) != GetCurrentThreadId () &&
-       InterlockedExchangeAdd (&SK_D3D11_ansel_tid, 0) != GetCurrentThreadId () )
+  if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -3778,8 +3777,8 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
                       Flags, iname.c_str (), ppFactory );
 
-  if ( InterlockedExchangeAdd (&SK_D3D11_init_tid,  0) != GetCurrentThreadId () &&
-       InterlockedExchangeAdd (&SK_D3D11_ansel_tid, 0) != GetCurrentThreadId () )
+  if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -3963,7 +3962,7 @@ SK_HookDXGI (void)
 
   SK_DXGI_BeginHooking ();
 
-  while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+  while (! ReadAcquire (&__dxgi_ready))
     SleepEx (100UL, TRUE);
 }
 
@@ -3977,7 +3976,7 @@ dxgi_init_callback (finish_pfn finish)
   {
     SK_BootDXGI ();
 
-    while (! InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+    while (! ReadAcquire (&__dxgi_ready))
       MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
@@ -4350,7 +4349,7 @@ HookDXGI (LPVOID user)
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
 
-  if (InterlockedCompareExchange (&__dxgi_ready, TRUE, TRUE))
+  if (ReadAcquire (&__dxgi_ready))
   {
     WaitForInit ();
     return 0;
@@ -4588,7 +4587,7 @@ struct budget_thread_params_t
            DWORD          cookie   = 0UL;
            HANDLE         event    = INVALID_HANDLE_VALUE;
            HANDLE         shutdown = INVALID_HANDLE_VALUE;
-  volatile ULONG          ready    = FALSE;
+  volatile LONG           ready    = FALSE;
 } budget_thread;
 
 
@@ -4638,9 +4637,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
                                    nullptr );
 
 
-      while ( ! InterlockedCompareExchange ( &budget_thread.ready,
-                                               FALSE,
-                                                 FALSE )
+      while ( ! ReadAcquire ( &budget_thread.ready )
             ) SleepEx (100, TRUE);
 
 
@@ -4861,9 +4858,9 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
 
 
-  while ( InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
+  while ( ReadAcquire ( &params->ready ) )
   {
-    if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+    if (ReadAcquire (&__SK_DLL_Ending))
       break;
 
     if ( params->event == nullptr )
@@ -4877,7 +4874,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
                                    FALSE,
                                      BUDGET_POLL_INTERVAL * 3 );
 
-    if (! InterlockedCompareExchange ( &params->ready, FALSE, FALSE ) )
+    if (! ReadAcquire ( &params->ready ) )
     {
       ResetEvent ( params->event );
       break;

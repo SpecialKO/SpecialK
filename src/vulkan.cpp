@@ -36,12 +36,12 @@
 #include <Shlwapi.h>
 #include <process.h>
 
-volatile ULONG __vk_ready = FALSE;
+volatile LONG __vk_ready = FALSE;
 
 void
 WaitForInit_Vk (void)
 {
-  while (! InterlockedCompareExchange (&__vk_ready, FALSE, FALSE))
+  while (! ReadAcquire (&__vk_ready))
     MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
@@ -335,7 +335,7 @@ SK::Vulkan::Shutdown (void)
 
 BOOL SK_UsingVulkan (void)
 {
-  return InterlockedCompareExchange (&__vk_ready, FALSE, FALSE);
+  return ReadAcquire (&__vk_ready);
 }
 
 HMODULE                SK::Vulkan::hModVk = nullptr;

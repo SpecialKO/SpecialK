@@ -33,7 +33,7 @@
 
 #include <algorithm>
 
-HANDLE        hShutdownWMI = 0;
+HANDLE        hShutdownWMI = nullptr;
 thread_events perfmon;
 
 void
@@ -76,13 +76,13 @@ SK_CountIO (io_perf_t& ioc, const double update)
   ioc.accum.OtherOperationCount +=
     current_io.OtherOperationCount - ioc.last_counter.OtherOperationCount;
 
-  double dRB = static_cast <double> (ioc.accum.ReadTransferCount);
-  double dWB = static_cast <double> (ioc.accum.WriteTransferCount);
-  double dOB = static_cast <double> (ioc.accum.OtherTransferCount);
+  auto dRB = static_cast <double> (ioc.accum.ReadTransferCount);
+  auto dWB = static_cast <double> (ioc.accum.WriteTransferCount);
+  auto dOB = static_cast <double> (ioc.accum.OtherTransferCount);
 
-  double dRC = static_cast <double> (ioc.accum.ReadOperationCount);
-  double dWC = static_cast <double> (ioc.accum.WriteOperationCount);
-  double dOC = static_cast <double> (ioc.accum.OtherOperationCount);
+  auto dRC = static_cast <double> (ioc.accum.ReadOperationCount);
+  auto dWC = static_cast <double> (ioc.accum.WriteOperationCount);
+  auto dOC = static_cast <double> (ioc.accum.OtherOperationCount);
 
   double& read_mb_sec   = ioc.read_mb_sec;
   double& write_mb_sec  = ioc.write_mb_sec;
@@ -134,7 +134,7 @@ extern void __stdcall SK_StartPerfMonThreads (void);
 
 namespace COM {
   struct Base {
-    volatile ULONG     init            = FALSE;
+    volatile   LONG    init            = FALSE;
 
     struct WMI {
       volatile LONG    init            = 0;
@@ -144,7 +144,7 @@ namespace COM {
       BSTR             bstrNameSpace   = nullptr;
 
       HANDLE           hServerThread   = INVALID_HANDLE_VALUE;
-      HANDLE           hShutdownServer = 0;
+      HANDLE           hShutdownServer = nullptr;
 
       void Lock         (void);
       void Unlock       (void);
@@ -182,7 +182,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemLocator, 
-                     NULL,
+                     nullptr,
                      CLSCTX_INPROC_SERVER,
                      IID_IWbemLocator,
                      (void**) &COM::base.wmi.pWbemLocator )
@@ -206,12 +206,12 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   if (FAILED (hr = COM::base.wmi.pWbemLocator->ConnectServer (
                      COM::base.wmi.bstrNameSpace,
-                     NULL, // User name
-                     NULL, // Password
-                     NULL, // Locale
-                     0L,   // Security flags
-                     NULL, // Authority
-                     NULL, // Wbem context
+                     nullptr, // User name
+                     nullptr, // Password
+                     nullptr, // Locale
+                     0L,      // Security flags
+                     nullptr, // Authority
+                     nullptr, // Wbem context
                      &COM::base.wmi.pNameSpace )
              )
      )
@@ -231,10 +231,10 @@ SK_WMI_ServerThread (LPVOID lpUser)
                      pUnk,
                      RPC_C_AUTHN_WINNT,
                      RPC_C_AUTHZ_NONE,
-                     NULL,
+                     nullptr,
                      RPC_C_AUTHN_LEVEL_CALL,
                      RPC_C_IMP_LEVEL_IMPERSONATE,
-                     NULL,
+                     nullptr,
                      EOAC_NONE )
              )
      )
@@ -310,13 +310,13 @@ SK_InitCOM (void)
   SleepEx (50, TRUE);
 
   if (FAILED (hr = CoInitializeSecurity (
-                     NULL,
+                     nullptr,
                      -1,
-                     NULL,
-                     NULL,
+                     nullptr,
+                     nullptr,
                      RPC_C_AUTHN_LEVEL_NONE,
                      RPC_C_IMP_LEVEL_IMPERSONATE,
-                     NULL, EOAC_NONE, 0 )
+                     nullptr, EOAC_NONE, nullptr )
              )
      )
   {
@@ -344,13 +344,13 @@ SK_InitWMI (void)
 
   COM::base.wmi.Lock ();
 
-  if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0) > 0)
+  if (ReadAcquire (&COM::base.wmi.init) > 0)
   {
     COM::base.wmi.Unlock ();
     return true;
   }
 
-  if (InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
+  if (InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, nullptr, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
   {
     COM::base.wmi.hShutdownServer =
       CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
@@ -363,7 +363,7 @@ SK_InitWMI (void)
 
   else
   {
-    while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+    while (! ReadAcquire (&COM::base.wmi.init))
       SleepEx (333, FALSE);
   }
 
@@ -376,16 +376,16 @@ SK_ShutdownWMI (void)
   if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 1))
   {
     HANDLE hServerThread = 
-     InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, 0, 0);
+     ReadPointerAcquire (&COM::base.wmi.hServerThread);
 
     SetEvent (COM::base.wmi.hShutdownServer);
 
     if (hServerThread)
     {
-      InterlockedExchangePointer (&hServerThread, 0);
+      InterlockedExchangePointer (&hServerThread, nullptr);
     }
 
-    while (InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+    while (ReadAcquire (&COM::base.wmi.init))
       SleepEx (333, TRUE);
   }
 }
@@ -398,7 +398,7 @@ DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
-  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+  while (! ReadAcquire (&COM::base.wmi.init))
     SleepEx (150, FALSE);
 
   SK_AutoCOMInit auto_com;
@@ -414,7 +414,7 @@ SK_MonitorCPU (LPVOID user_param)
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemRefresher,
-                     NULL,
+                     nullptr,
                      CLSCTX_INPROC_SERVER,
                      IID_IWbemRefresher, 
                      (void**) &cpu.pRefresher )
@@ -442,7 +442,7 @@ SK_MonitorCPU (LPVOID user_param)
                      COM::base.wmi.pNameSpace,
                      L"Win32_PerfFormattedData_PerfOS_Processor",
                      0,
-                     NULL,
+                     nullptr,
                      &cpu.pEnum,
                      &cpu.lID )
              )
@@ -737,7 +737,7 @@ CPU_CLEANUP:
   if (cpu.hShutdownSignal != INVALID_HANDLE_VALUE)
   {
     CloseHandle (cpu.hShutdownSignal);
-    cpu.hShutdownSignal = 0;
+    cpu.hShutdownSignal = nullptr;
   }
 
   COM::base.wmi.Unlock   ();
@@ -751,7 +751,7 @@ DWORD
 WINAPI
 SK_MonitorDisk (LPVOID user)
 {
-  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+  while (! ReadAcquire (&COM::base.wmi.init))
     SleepEx (150, FALSE);
 
   SK_AutoCOMInit auto_com;
@@ -769,7 +769,7 @@ SK_MonitorDisk (LPVOID user)
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemRefresher,
-                     NULL,
+                     nullptr,
                      CLSCTX_INPROC_SERVER,
                      IID_IWbemRefresher, 
                      (void**) &disk.pRefresher )
@@ -795,7 +795,7 @@ SK_MonitorDisk (LPVOID user)
                      L"Win32_PerfFormattedData_PerfDisk_LogicalDisk" :
                      L"Win32_PerfFormattedData_PerfDisk_PhysicalDisk",
                      0,
-                     NULL,
+                     nullptr,
                      &disk.pEnum,
                      &disk.lID )
              )
@@ -1069,7 +1069,7 @@ SK_MonitorDisk (LPVOID user)
         goto DISK_CLEANUP;
       }
 
-      WideCharToMultiByte (CP_OEMCP, 0, name, 31, disk.disks [i].name, 31, " ", NULL);
+      WideCharToMultiByte (CP_OEMCP, 0, name, 31, disk.disks [i].name, 31, " ", nullptr);
       disk.disks [i].name [31] = '\0';
 
       if (i == 0)
@@ -1168,7 +1168,7 @@ DWORD
 WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
-  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+  while (! ReadAcquire (&COM::base.wmi.init))
     SleepEx (150, FALSE);
 
   SK_AutoCOMInit auto_com;
@@ -1188,7 +1188,7 @@ SK_MonitorPagefile (LPVOID user)
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemRefresher,
-                     NULL,
+                     nullptr,
                      CLSCTX_INPROC_SERVER,
                      IID_IWbemRefresher, 
                      (void**) &pagefile.pRefresher )
@@ -1214,7 +1214,7 @@ SK_MonitorPagefile (LPVOID user)
                      COM::base.wmi.pNameSpace,
                      L"Win32_PerfRawData_PerfOS_PagingFile",
                      0,
-                     NULL,
+                     nullptr,
                      &pagefile.pEnum,
                      &pagefile.lID )
              )
@@ -1414,7 +1414,7 @@ SK_MonitorPagefile (LPVOID user)
       }
 
       WideCharToMultiByte (CP_OEMCP, 0, name, 255, pagefile.pagefiles [i].name,
-                           255, " ", NULL);
+                           255, " ", nullptr);
 
       pagefile.pagefiles [i].name [31] = '\0';
 
@@ -1508,7 +1508,7 @@ DWORD
 WINAPI
 SK_MonitorProcess (LPVOID user)
 {
-  while (! InterlockedCompareExchange (&COM::base.wmi.init, 0, 0))
+  while (! ReadAcquire (&COM::base.wmi.init))
     SleepEx (150, FALSE);
 
   SK_AutoCOMInit auto_com;
@@ -1524,7 +1524,7 @@ SK_MonitorProcess (LPVOID user)
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemRefresher,
-                     NULL,
+                     nullptr,
                      CLSCTX_INPROC_SERVER,
                      IID_IWbemRefresher,
                      (void**) &proc.pRefresher )
@@ -1571,9 +1571,9 @@ SK_MonitorProcess (LPVOID user)
                      COM::base.wmi.pNameSpace,
                      wszInstance,
                      0,
-                     0,
+                     nullptr,
                      &pClassObj,
-                     0 )
+                     nullptr )
              )
      )
   {

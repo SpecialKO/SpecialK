@@ -73,7 +73,7 @@ void
 WINAPI
 WaitForInit_D3D9 (void)
 {
-  while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
+  while (! ReadAcquire (&__d3d9_ready))
     SleepEx (config.system.init_delay, TRUE);
 }
 
@@ -148,7 +148,7 @@ UpdateTexture_pfn             D3D9UpdateTexture_Original             = nullptr;
 StretchRect_pfn               D3D9StretchRect_Original               = nullptr;
 SetCursorPosition_pfn         D3D9SetCursorPosition_Original         = nullptr;
 
-typedef HRESULT (STDMETHODCALLTYPE *CreateOffscreenPlainSurface_pfn)(
+using CreateOffscreenPlainSurface_pfn = HRESULT (STDMETHODCALLTYPE *)(
   _In_  IDirect3DDevice9   *This,
   _In_  UINT                Width,
   _In_  UINT                Height,
@@ -382,9 +382,9 @@ class SK_D3D9RenderBackend : public SK_IVariableListener
   }
 
 public:
-  volatile ULONG __D3D9Present_PreHooked      = FALSE;
-  volatile ULONG __D3D9PresentEx_PreHooked    = FALSE;
-  volatile ULONG __D3D9PresentChain_PreHooked = FALSE;
+  volatile LONG __D3D9Present_PreHooked      = FALSE;
+  volatile LONG __D3D9PresentEx_PreHooked    = FALSE;
+  volatile LONG __D3D9PresentChain_PreHooked = FALSE;
 
   static SK_D3D9RenderBackend* getInstance (void)
   {
@@ -458,8 +458,8 @@ SK_D3D9RenderBackend* SK_D3D9RenderBackend::pBackend = nullptr;
 CEGUI::Direct3D9Renderer* cegD3D9    = nullptr;
 IDirect3DStateBlock9*     cegD3D9_SB = nullptr;
 
-static volatile ULONG __gui_reset          = TRUE;
-static volatile ULONG __cegui_frames_drawn = 0;
+static volatile LONG __gui_reset          = TRUE;
+static volatile LONG __cegui_frames_drawn = 0L;
 
 void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
 
@@ -682,7 +682,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
   if (! config.cegui.enable)
     return;
 
-  if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 5)
+  if (static_cast <ULONG> (ReadAcquire (&__cegui_frames_drawn)) < 5)
   {
     if (! ReadAcquire (&ImGui_Init))
     {
@@ -840,7 +840,7 @@ d3d9_init_callback (finish_pfn finish)
   {
     SK_BootD3D9 ();
 
-    while (! InterlockedCompareExchange (&__d3d9_ready, FALSE, FALSE))
+    while (! ReadAcquire (&__d3d9_ready))
       SleepEx (100UL, TRUE);
   }
 
@@ -1139,9 +1139,8 @@ D3D9PresentCallback_Pre ( IDirect3DDevice9 *This,
                _In_       HWND              hDestWindowOverride,
                _In_ const RGNDATA          *pDirtyRegion )
 {
-  if ( config.render.d3d9.osd_in_vidcap && InterlockedExchangeAdd (
-         &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
-           0 )
+  if ( config.render.d3d9.osd_in_vidcap && ReadAcquire (
+         &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked )
      )
   {
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
@@ -1197,9 +1196,8 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
   //SK_D3D9_UpdateRenderStats (nullptr, This);
 
-  if (! ( config.render.d3d9.osd_in_vidcap && InterlockedExchangeAdd (
-            &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked,
-              0 )
+  if (! ( config.render.d3d9.osd_in_vidcap && ReadAcquire (
+            &SK_D3D9RenderBackend::getInstance ()->__D3D9Present_PreHooked )
         )
      )
   {
@@ -1941,7 +1939,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
                   SK_SummarizeCaller ().c_str ()
   );
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     SK_InitWindow ( pPresentationParameters->hDeviceWindow,
                  (! pPresentationParameters->Windowed) );
@@ -1962,7 +1960,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   HRESULT hr = E_FAIL;
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
   }
@@ -1979,7 +1977,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
          D3D9Present_Original == nullptr )
       SK_D3D9_HookPresent (This);
 
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    if (ReadAcquire (&__d3d9_ready))
     {
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
       D3D9Reset_Post          (This, pPresentationParameters, nullptr);
@@ -1988,7 +1986,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   else
   {
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    if (ReadAcquire (&__d3d9_ready))
     {
       D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
     }
@@ -2013,7 +2011,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                     This, pPresentationParameters, pFullscreenDisplayMode,
                       SK_SummarizeCaller ().c_str () );
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     SK_InitWindow ( pPresentationParameters->hDeviceWindow,
                  (! pPresentationParameters->Windowed) );
@@ -2035,7 +2033,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     pDev.Release ();
   }
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
   }
@@ -2047,7 +2045,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   if (SUCCEEDED (hr))
   {
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    if (ReadAcquire (&__d3d9_ready))
     {
       SK_SetPresentParamsD3D9 (This, pPresentationParameters);
       D3D9Reset_Post          (This, pPresentationParameters, pFullscreenDisplayMode);
@@ -2056,7 +2054,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   else
   {
-    if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+    if (ReadAcquire (&__d3d9_ready))
     {
       D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
     }
@@ -2390,11 +2388,11 @@ D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
 std::unordered_set <IDirect3DVertexBuffer9 *>        ffxiii_dynamic;
 std::unordered_map <IDirect3DVertexBuffer9 *, ULONG> ffxiii_dynamic_updates;
 
-typedef HRESULT (STDMETHODCALLTYPE *D3D9VertexBuffer_Lock_pfn)( IDirect3DVertexBuffer9 *This,
-                                                                UINT                    OffsetToLock,
-                                                                UINT                    SizeToLock,
-                                                                void**                  ppbData,
-                                                                DWORD                   Flags );
+using D3D9VertexBuffer_Lock_pfn = HRESULT (STDMETHODCALLTYPE *)( IDirect3DVertexBuffer9 *This,
+                                                                 UINT                    OffsetToLock,
+                                                                 UINT                    SizeToLock,
+                                                                 void**                  ppbData,
+                                                                 DWORD                   Flags );
 
 D3D9VertexBuffer_Lock_pfn D3D9VertexBuffer_Lock_Original = nullptr;
 
@@ -3035,7 +3033,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
     {
@@ -3289,7 +3287,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   HRESULT ret = E_FAIL;
 
   // Don't do this for the dummy context we create during init.
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     SK_D3D9_SetFPSTarget       (pPresentationParameters, pFullscreenDisplayMode);
     SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
@@ -3533,7 +3531,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
     //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     ResetCEGUI_D3D9 (nullptr);
 
@@ -3588,7 +3586,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
 
   HRESULT ret = E_FAIL;
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     SK_D3D9_SetFPSTarget       (pPresentationParameters);
     SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
@@ -3870,7 +3868,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
     //(*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
 
-  if (InterlockedExchangeAdd (&__d3d9_ready, 0))
+  if (ReadAcquire (&__d3d9_ready))
   {
     ResetCEGUI_D3D9 (nullptr);
     //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
@@ -4868,8 +4866,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
                                                                     "Cancel Draws Using Selected Vertex Shader",
                         &tracker->cancel_draws );  ImGui::SameLine ();
 
-    ULONG num_draws =
-     InterlockedExchangeAdd (&tracker->num_draws, 0UL);
+    LONG num_draws =
+     ReadAcquire (&tracker->num_draws);
 
     if (tracker->cancel_draws)
       ImGui::TextDisabled ("%lu Skipped Draw%c Last Frame (%lu textures)", num_draws, num_draws != 1 ? 's' : ' ', tracker->used_textures.size () );
@@ -4883,7 +4881,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     ImGui::Separator      ();
     ImGui::EndGroup       ();
 
-    if (ImGui::IsItemHoveredRect () && tracker->used_textures.size ())
+    if (ImGui::IsItemHoveredRect () && ! tracker->used_textures.empty ())
     {
       ImGui::BeginTooltip ();
 
@@ -5319,8 +5317,8 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
   ImGui::Checkbox ("Cancel Draws Using Selected Vertex Buffer",  &tracker->cancel_draws);  ImGui::SameLine ();
 
-  ULONG num_draws = InterlockedExchangeAdd (&tracker->num_draws, 0);
-  ULONG instanced = InterlockedExchangeAdd (&tracker->instanced, 0);
+  LONG num_draws = ReadAcquire (&tracker->num_draws);
+  LONG instanced = ReadAcquire (&tracker->instanced);
 
   if (tracker->cancel_draws)
     ImGui::TextDisabled ("%lu Skipped Draw%c Last Frame [%lu Instanced]", num_draws, num_draws != 1 ? 's' : ' ', instanced);
@@ -5851,7 +5849,7 @@ SK_D3D9_TextureModDlg (void)
     if (ImGui::IsWindowHovered ())
       can_scroll = false;
 
-   if (textures_used_last_dump.size ())
+   if (! textures_used_last_dump.empty ())
    {
      static      int last_sel = 0;
      static bool sel_changed  = false;
@@ -5940,7 +5938,7 @@ SK_D3D9_TextureModDlg (void)
           ImGui::BeginGroup     ();
           ImGui::BeginChild     ( ImGui::GetID ("Item Selection"),
                                   ImVec2 ( std::max (font_size * 19.0f, (float)desc.Width + 24.0f),
-                                (float)desc.Height + font_size * 10.0f),
+                                (float)desc.Height + font_size * 11.0f),
                                     true,
                                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened );
 
@@ -5972,7 +5970,7 @@ SK_D3D9_TextureModDlg (void)
           }
 
           last_width  = (float)desc.Width;
-          last_ht     = (float)desc.Height + font_size * 10.0f;
+          last_ht     = (float)desc.Height + font_size * 11.0f;
 
 
           int num_lods =
@@ -5983,7 +5981,7 @@ SK_D3D9_TextureModDlg (void)
           ImGui::TextUnformatted ( "Format:       " );
           ImGui::TextUnformatted ( "Data Size:    " );
           ImGui::TextUnformatted ( "Load Time:    " );
-          //ImGui::TextUnformatted ( "Inj. Refs:    " );
+          ImGui::TextUnformatted ( "References:   " );
           ImGui::EndGroup        (                  );
 
           ImGui::SameLine   ();
@@ -5994,10 +5992,12 @@ SK_D3D9_TextureModDlg (void)
                        num_lods, num_lods > 1 ? "LODs" : "LOD");
           ImGui::Text ("%ws",
                        SK_D3D9_FormatToStr (desc.Format).c_str ( ));
-          ImGui::Text ("%.2f MiB",
+          ImGui::Text ("%.3f MiB",
             (double)pTex->d3d9_tex->tex_size / ( 1024.0f * 1024.0f ));
-          ImGui::Text ("%.6f Seconds",
-                       pTex->load_time / 1000.0f);
+          ImGui::Text ("%.3f ms",
+                       pTex->load_time);
+          ImGui::Text ("%lu",
+                       pTex->refs);
 
 
           //extern std::unordered_map <uint32_t, int32_t>            injected_refs;
@@ -6129,7 +6129,7 @@ SK_D3D9_TextureModDlg (void)
                                    num_lods, num_lods > 1 ? "LODs" : "LOD" );
           ImGui::Text       ( "%ws",
                                 SK_D3D9_FormatToStr (desc.Format).c_str () );
-          ImGui::Text       ( "%.2f MiB",
+          ImGui::Text       ( "%.3f MiB",
                                 (double)pTex->d3d9_tex->override_size / (1024.0f * 1024.0f) );
           ImGui::EndGroup   ();
 
@@ -6198,7 +6198,7 @@ SK_D3D9_TextureModDlg (void)
     std::vector <IDirect3DBaseTexture9*> render_textures;
            tex_mgr.getUsedRenderTargets (render_textures);
 
-    tracked_rt.tracking_tex = 0;
+    tracked_rt.tracking_tex = nullptr;
 
     if (list_dirty)
     {
@@ -6250,7 +6250,7 @@ SK_D3D9_TextureModDlg (void)
     if (ImGui::IsWindowHovered ())
       can_scroll = false;
 
-   if (render_textures.size ())
+   if (! render_textures.empty ())
    {
      static      int last_sel = 0;
      static bool sel_changed  = false;
@@ -6310,7 +6310,7 @@ SK_D3D9_TextureModDlg (void)
 
    CComPtr <IDirect3DTexture9> pTex = nullptr;
 
-   if (render_textures.size () && sel >= 0)
+   if ((! render_textures.empty ()) && sel >= 0)
      render_textures [sel]->QueryInterface (IID_PPV_ARGS (&pTex));
 
    if (pTex != nullptr)
@@ -6420,7 +6420,7 @@ SK_D3D9_TextureModDlg (void)
   {
     ImGui::TreePush ("");
     //if (ImGui::Checkbox ("Dump ALL Shaders   (TBFix_Res\\dump\\shaders\\<ps|vs>_<checksum>.html)", &config.render.dump_shaders)) need_reset.graphics = true;
-    if (ImGui::Checkbox ("Dump ALL Textures at Load  (<ResourceRoot>\\dump\\textures\\<format>\\*.dds)", &config.textures.dump_on_load))
+    if (ImGui::Checkbox (R"(Dump ALL Textures at Load  (<ResourceRoot>\dump\textures\<format>\*.dds))", &config.textures.dump_on_load))
 
     if (ImGui::IsItemHovered ())
     {
@@ -7075,7 +7075,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
       tracked_vs.use (pShader);
 
       for ( auto& current_texture : tracked_vs.current_textures )
-        current_texture = 0x0;
+        current_texture = nullptr;
     }
   }
 }
@@ -7148,7 +7148,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
       tracked_ps.use (pShader);
 
       for ( auto& current_texture : tracked_ps.current_textures )
-        current_texture = 0x0;
+        current_texture = nullptr;
     }
   }
 }
@@ -7264,7 +7264,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
     for (auto& current_texture : tracked_vs.current_textures)
     {
-      if (current_texture != 0)
+      if (current_texture != nullptr)
       {
         if (! tracked_vs.used_textures.count (current_texture))
         {
@@ -7298,7 +7298,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
     for ( auto& current_texture : tracked_ps.current_textures )
     {
-      if (current_texture != 0)
+      if (current_texture != nullptr)
       {
         if (! tracked_ps.used_textures.count (current_texture))
         {

@@ -489,7 +489,7 @@ SK_DrawOSD (void)
 
   static bool cleared = false;
 
-  if ((! InterlockedExchangeAdd (&osd_init, 0)))
+  if ((! ReadAcquire (&osd_init)))
     SK_InstallOSD ();
 
 #if 0
@@ -506,7 +506,7 @@ SK_DrawOSD (void)
   if ((! config.osd.show) && cleared)
     return TRUE;
 
-  if (! InterlockedExchangeAdd (&osd_init, 0))
+  if (! ReadAcquire (&osd_init))
     return FALSE;
 
   char* pszOSD = szOSD;
@@ -1300,7 +1300,7 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
 {
   UNREFERENCED_PARAMETER (pMapAddr);
 
-  if (! InterlockedExchangeAdd (&osd_init, 0))
+  if (! ReadAcquire (&osd_init))
     return FALSE;
 
   if (lpAppName == nullptr)

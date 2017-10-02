@@ -161,7 +161,7 @@ namespace D3D9 {
     bool                          cancel_draws = false;
     bool                          clamp_coords = false;
     bool                          active       = false;
-    volatile ULONG                num_draws    =     0;
+    volatile LONG                 num_draws    =     0;
     std::unordered_set <IDirect3DBaseTexture9*> used_textures;
                         IDirect3DBaseTexture9*  current_textures [16];
   
@@ -208,8 +208,8 @@ namespace D3D9 {
     bool                          cancel_draws  = false;
     bool                          wireframe     = false;
     bool                          active        = false;
-    volatile ULONG                num_draws     =     0;
-    volatile ULONG                instanced     =     0;
+    volatile LONG                 num_draws     =     0L;
+    volatile LONG                 instanced     =     0L;
     int                           instances     =     1;
   
     std::unordered_set <uint32_t> vertex_shaders;

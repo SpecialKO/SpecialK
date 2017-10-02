@@ -38,7 +38,7 @@ volatile HANDLE         g_hShutdown   = nullptr;
 // TODO: Replace with interlocked linked-list instead of obliterating cache
 //         every time two processes try to walk this thing simultaneously.
 //
-static volatile DWORD g_sHookedPIDs [MAX_INJECTED_PROCS]        = { };
+static volatile LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { };
 
 static          SK_InjectionRecord_s __SK_InjectionHistory
                                     [MAX_INJECTED_PROC_HISTORY];
@@ -50,8 +50,8 @@ static          SK_InjectionRecord_s __SK_InjectionHistory
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
 
-extern volatile ULONG   __SK_DLL_Attached;
-extern volatile ULONG   __SK_HookContextOwner;
+extern volatile LONG   __SK_DLL_Attached;
+extern volatile LONG   __SK_HookContextOwner;
                 HMODULE hModHookInstance = nullptr;
 
 
@@ -69,15 +69,15 @@ SK_InjectionRecord_s* local_record = nullptr;
 void
 SK_Inject_ValidateProcesses (void)
 {
-  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
   {
     HANDLE hProc =
       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
-                      InterlockedExchangeAdd (&g_sHookedPID, 0) );
+                      ReadAcquire (&g_sHookedPID) );
 
     if (hProc == nullptr)
     {
-      InterlockedExchange (&g_sHookedPID, 0);
+      ReadAcquire (&g_sHookedPID);
     }
 
     else
@@ -87,7 +87,7 @@ SK_Inject_ValidateProcesses (void)
       GetExitCodeProcess (hProc, &dwExitCode);
 
       if (dwExitCode != STILL_ACTIVE)
-        InterlockedExchange (&g_sHookedPID, 0);
+        ReadAcquire (&g_sHookedPID);
 
       CloseHandle (hProc);
     }
@@ -100,7 +100,7 @@ SK_Inject_ReleaseProcess (void)
   if (! SK_IsInjected ())
     return;
 
-  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
   {
     InterlockedCompareExchange (&g_sHookedPID, 0, GetCurrentProcessId ());
   }
@@ -126,7 +126,7 @@ SK_Inject_AcquireProcess (void)
   if (! SK_IsInjected ())
     return;
 
-  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
   {
     if (! InterlockedCompareExchange (&g_sHookedPID, GetCurrentProcessId (), 0))
     {
@@ -170,9 +170,9 @@ SK_Inject_AcquireProcess (void)
 bool
 SK_Inject_InvadingProcess (DWORD dwThreadId)
 {
-  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
   {
-    if (InterlockedExchangeAdd (&g_sHookedPID, 0) == dwThreadId)
+    if (ReadAcquire (&g_sHookedPID) == static_cast <LONG> (dwThreadId))
       return true;
   }
 
@@ -197,7 +197,7 @@ CBTProc ( _In_ int    nCode,
 
     // Don't create that thread more than once, but don't bother with a complete
     //   critical section.
-    if (InterlockedAdd (&lHookIters, 1L) > 1L)
+    if (InterlockedIncrement (&lHookIters) > 1L)
       return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -215,10 +215,10 @@ CBTProc ( _In_ int    nCode,
              {
                UNREFERENCED_PARAMETER (user);
 
-               if (g_hShutdown != 0)
+               if (g_hShutdown != nullptr)
                  WaitForSingleObject (g_hShutdown, INFINITE);
 
-               hModHookInstance = NULL;
+               hModHookInstance = nullptr;
 
                CloseHandle (GetCurrentThread ());
 
@@ -364,13 +364,10 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
          [](LPVOID user) ->
            DWORD
              {
-               if (g_hShutdown != 0)
+               if (g_hShutdown != nullptr)
                  WaitForSingleObject (g_hShutdown, INFINITE);
 
-               while (  InterlockedCompareExchangeAcquire (
-                        &__SK_DLL_Attached,
-                          FALSE,
-                            FALSE ) || (! SK_IsHostAppSKIM ()))
+               while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
                  SleepEx (250UL, FALSE);
 
 
@@ -1027,15 +1024,15 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 
   SK_Inject_ValidateProcesses ();
 
-  for (volatile unsigned long& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
   {
-    if (InterlockedExchangeAdd (&g_sHookedPID, 0) != 0)
+    if (ReadAcquire (&g_sHookedPID) != 0)
     {
       if (i < (SSIZE_T)capacity - 1)
       {
         if (pdwListIter != nullptr)
         {
-          *pdwListIter = InterlockedExchangeAdd (&g_sHookedPID, 0);
+          *pdwListIter = ReadAcquire (&g_sHookedPID);
           pdwListIter++;
         }
       }

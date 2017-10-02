@@ -52,8 +52,6 @@
 
 #include <windowsx.h>
 
-extern volatile ULONG __SK_DLL_Ending;
-
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 
@@ -2768,9 +2766,9 @@ DWORD
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
 {
-  static volatile ULONG nest_lvl = 0UL;
+  static volatile LONG nest_lvl = 0L;
 
-  while (InterlockedExchangeAdd (&nest_lvl, 0))
+  while (ReadAcquire (&nest_lvl))
     MsgWaitForMultipleObjectsEx (0, nullptr, 125, QS_ALLINPUT, MWMO_ALERTABLE);
 
   InterlockedIncrementAcquire (&nest_lvl);
@@ -2835,7 +2833,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 {
   // If we are forcing a shutdown, then route any messages through the
   //   default Win32 handler.
-  if (InterlockedExchangeAdd (&__SK_DLL_Ending, 0))
+  if (ReadAcquire (&__SK_DLL_Ending))
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 

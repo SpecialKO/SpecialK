@@ -1060,8 +1060,8 @@ unsigned int
 __stdcall
 HookD3D11 (LPVOID user);
 
-extern volatile DWORD SK_D3D11_init_tid;
-extern volatile DWORD SK_D3D11_ansel_tid;
+extern volatile LONG SK_D3D11_init_tid;
+extern volatile LONG SK_D3D11_ansel_tid;
 
 
 #endif /* __SK__DXGI_BACKEND_H__ */

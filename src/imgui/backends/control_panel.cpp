@@ -92,7 +92,7 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void);
 
-typedef BOOL (WINAPI *SetCursorPos_pfn)
+using SetCursorPos_pfn = BOOL (WINAPI *)
 (
   _In_ int X,
   _In_ int Y
@@ -422,7 +422,7 @@ SK_ImGui_ControlPanelTitle (void)
     __time64_t now     = 0ULL;
      _time64 (&now);
 
-    uint32_t   elapsed = static_cast <uint32_t> (now - __SK_DLL_AttachTime);
+    auto       elapsed = static_cast <uint32_t> (now - __SK_DLL_AttachTime);
 
     uint32_t   secs    =  elapsed % 60ULL;
     uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
@@ -490,8 +490,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
                                         ImVec2 (io.DisplaySize.x * 0.75f,
                                                 io.DisplaySize.y * 0.666f) );
 
-  if (ImGui::BeginPopupModal ("Audio Session Selector", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
-                                                              ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
+  if (ImGui::BeginPopupModal ("Audio Session Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                                                 ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
   {
     int count = 0;
 
@@ -1473,7 +1473,7 @@ SK_ImGui_ControlPanel (void)
           GetModuleHandle (L"ReShade32.dll");
 #endif
         static bool bIsReShadeCustom =
-                          hModReShade != 0 &&
+                          hModReShade != nullptr &&
 #ifndef _WIN64
           GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YGIPAX@Z");
 #else
@@ -1753,7 +1753,7 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePush ("");
         {
-          if (ImGui::MenuItem ("\"Kaldaien's Mod\"", "Steam Group", &selected, true))
+          if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Steam Group", &selected, true))
             SK_SteamOverlay_GoToURL ("http://steamcommunity.com/groups/SpecialK_Mods", true);
         }
         ImGui::TreePop ();
@@ -1833,17 +1833,17 @@ SK_ImGui_ControlPanel (void)
        ImGui::TreePush ("");
        ImGui::TreePush ("");
 
-       for (int i = 0; i < SK_MAX_IMPORTS; i++)
+       for ( auto& import : imports )
        {
-         if (imports [i].filename != nullptr)
+         if (import.filename != nullptr)
          {
-           if (imports [i].role->get_value ( ) != L"PlugIn")
+           if (import.role->get_value () != L"PlugIn")
            {
              ImGui::MenuItem (
                SK_FormatString ( "Third-Party Plug-In:  (%ws)",
-                                   imports [i].name.c_str () ).c_str (),
+                                   import.name.c_str () ).c_str (),
                SK_WideCharToUTF8 (
-                 imports [i].product_desc
+                 import.product_desc
                ).c_str ()
              );
            }
@@ -1852,9 +1852,9 @@ SK_ImGui_ControlPanel (void)
            {
              ImGui::MenuItem (
                SK_FormatString ( "Official Plug-In:  (%ws)",
-                                   imports [i].name.c_str () ).c_str (),
+                                   import.name.c_str () ).c_str (),
                SK_WideCharToUTF8 (
-                 imports [i].product_desc
+                 import.product_desc
                ).c_str ()
              );
            }
@@ -1986,7 +1986,7 @@ SK_ImGui_ControlPanel (void)
     snprintf ( szAPIName, 32, "%ws",  rb.name );
 
     // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
-    int api_mask = static_cast <int> (rb.api);
+    auto api_mask = static_cast <int> (rb.api);
 
     if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D12))      != 0x0 && 
           api_mask != static_cast <int> (SK_RenderAPI::D3D12) )
@@ -3655,7 +3655,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
             for (UINT axis = 0; axis < joy_caps.wMaxAxes; axis++)
             {
-              float range  = static_cast <float>  (axes [axis].max - axes [axis].min);
+              auto  range  = static_cast <float>  (axes [axis].max - axes [axis].min);
               float center = static_cast <float> ((axes [axis].max + axes [axis].min)) / 2.0f;
               float rpos   = 0.5f;
 
@@ -4764,9 +4764,9 @@ extern float SK_ImGui_PulseNav_Strength;
 
             static int num_records = 0;
 
-            int max_lines = (int)((io.DisplaySize.y * 0.725f) / (font_size_multiline * 0.9f));
-            int cur_line  = 0;
-              num_records = 0;
+            auto max_lines = static_cast <int> ((io.DisplaySize.y * 0.725f) / (font_size_multiline * 0.9f));
+            int  cur_line  = 0;
+               num_records = 0;
 
             ImGui::BeginGroup     ();
 
@@ -5091,7 +5091,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
           if (config.steam.spoof_BLoggedOn)
           {
-            int status =
+            auto status =
               static_cast <int> (SK_SteamUser_BLoggedOn ());
 
             if (status & static_cast <int> (SK_SteamUser_LoggedOn_e::Spoofing))
@@ -5456,8 +5456,8 @@ SK_NvAPI_GetGPUInfoStr (void)
 #endif
 
 
-typedef UINT (__stdcall *SK_ImGui_DrawCallback_pfn)     (void *user);
-typedef bool (__stdcall *SK_ImGui_OpenCloseCallback_pfn)(void *user);
+using SK_ImGui_DrawCallback_pfn      = UINT (__stdcall *)(void *user);
+using SK_ImGui_OpenCloseCallback_pfn = bool (__stdcall *)(void *user);
 
 struct
 {
@@ -5904,8 +5904,8 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
   ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
                                           ImVec2 (font_size * 30, font_size * 6) );
 
-  if (ImGui::BeginPopupModal (keybind->bind_name, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
-                                                        ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
+  if (ImGui::BeginPopupModal (keybind->bind_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                                           ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
   {
     io.WantCaptureKeyboard = true;
 
@@ -5961,8 +5961,8 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
   ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
                                           ImVec2 (font_size * 30, font_size * 6) );
 
-  if (ImGui::BeginPopupModal (combo->combo_name.c_str (), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
-                                                                ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
+  if (ImGui::BeginPopupModal (combo->combo_name.c_str (), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                                                   ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
   {
     SK_ImGui_GamepadComboDialogActive = true;
     nav_usable                        = false;

@@ -261,7 +261,7 @@ InitSafe_Detour (void)
   EnterCriticalSection (&init_cs);
 
   // In case we already initialized stuff...
-  if (InterlockedCompareExchange (&__SK_Steam_init, FALSE, FALSE))
+  if (ReadAcquire (&__SK_Steam_init))
   {
     LeaveCriticalSection (&init_cs);
     return true;
@@ -317,12 +317,12 @@ CSteamworks_Delay_Init (LPVOID user)
 
   int tries = 0;
 
-  while ( (! InterlockedExchangeAddAcquire (&__SK_Steam_init, 0)) &&
+  while ( (! ReadAcquire (&__SK_Steam_init)) &&
             tries < 120 )
   {
     SleepEx (config.steam.init_delay, FALSE);
 
-    if (InterlockedExchangeAddRelease (&__SK_Steam_init, 0))
+    if (ReadAcquire (&__SK_Steam_init))
       break;
 
     if (InitSafe_Detour != nullptr)

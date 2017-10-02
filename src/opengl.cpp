@@ -52,12 +52,12 @@ extern HMODULE WINAPI SK_GetDLL (void);
 //SK_OpenGL_KnownBuffers  SK_GL_Buffers;
 
 
-volatile ULONG __gl_ready = FALSE;
+volatile LONG __gl_ready = FALSE;
 
 void
 WaitForInit_GL (void)
 {
-  while (! InterlockedCompareExchange (&__gl_ready, FALSE, FALSE))
+  while (! ReadAcquire (&__gl_ready))
     MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
@@ -119,7 +119,7 @@ SK_CEGUI_RelocateLog (void);
 extern void
 SK_CEGUI_InitBase (void);
 
-static volatile ULONG __cegui_frames_drawn = 0UL;
+static volatile LONG __cegui_frames_drawn = 0L;
 
 void ResetCEGUI_GL (void)
 {
@@ -129,7 +129,7 @@ void ResetCEGUI_GL (void)
 
   // TOOD: Eliminate the stupid magic number, make this an option if it's something
   //         that is really going to stay here long-term.
-  if (InterlockedCompareExchange (&__cegui_frames_drawn, 0, 0) < 3)
+  if (static_cast <ULONG> (ReadAcquire (&__cegui_frames_drawn)) < 3)
     return;
 
   if (cegGL == nullptr)

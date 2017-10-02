@@ -92,7 +92,7 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
 
   if (! lstrcmpA (pchVersion, "SteamController005"))
   {
-    ISteamController* pController =
+    auto *pController =
       reinterpret_cast <ISteamController *> ( pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion) );
 
     if (pController != nullptr)

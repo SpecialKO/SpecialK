@@ -109,7 +109,7 @@ void
 WINAPI
 WaitForInit_DI8 (void)
 {
-  while (! InterlockedCompareExchange (&__di8_ready, FALSE, FALSE))
+  while (! ReadAcquire (&__di8_ready))
     SleepEx (config.system.init_delay, TRUE);
 }
 

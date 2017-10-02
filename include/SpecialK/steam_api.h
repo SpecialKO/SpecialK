@@ -62,8 +62,8 @@ namespace SK
   }
 }
 
-extern volatile ULONG __SK_Steam_init;
-extern volatile ULONG __SteamAPI_hook;
+extern volatile LONG __SK_Steam_init;
+extern volatile LONG __SteamAPI_hook;
 
 // Tests the Import Table of hMod for anything Steam-Related
 //
@@ -635,8 +635,8 @@ private:
 
 #include <SpecialK/log.h>
 
-extern volatile ULONG            __SK_Steam_init;
-extern volatile ULONG            __SteamAPI_hook;
+extern volatile LONG             __SK_Steam_init;
+extern volatile LONG             __SteamAPI_hook;
 
 extern          iSK_Logger       steam_log;
 

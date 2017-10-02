@@ -44,9 +44,9 @@ extern BOOL ADL_init;
 #define NVAPI_GPU_UTILIZATION_DOMAIN_VID 2
 #define NVAPI_GPU_UTILIZATION_DOMAIN_BUS 3
 
-static HANDLE hPollEvent     = 0;
-static HANDLE hShutdownEvent = 0;
-static HANDLE hPollThread    = 0;
+static HANDLE hPollEvent     = nullptr;
+static HANDLE hShutdownEvent = nullptr;
+static HANDLE hPollThread    = nullptr;
 
 DWORD
 __stdcall
@@ -417,7 +417,7 @@ SK_GPUPollingThread (LPVOID user)
     ResetEvent (hPollEvent);
   }
 
-  hPollThread = 0;
+  hPollThread = nullptr;
 
   CloseHandle (GetCurrentThread ());
 
@@ -427,15 +427,15 @@ SK_GPUPollingThread (LPVOID user)
 void
 SK_EndGPUPolling (void)
 {
-  if (hShutdownEvent != 0 && hPollThread != 0)
+  if (hShutdownEvent != nullptr && hPollThread != nullptr)
   {
     if (SignalObjectAndWait (hShutdownEvent, hPollThread, 333UL, TRUE) != WAIT_OBJECT_0)
     {
       TerminateThread (hPollThread, 0x00);
     }
 
-    hShutdownEvent = 0;
-    hPollThread    = 0;
+    hShutdownEvent = nullptr;
+    hPollThread    = nullptr;
   }
 }
 
@@ -478,7 +478,7 @@ SK_PollGPU (void)
     {
       gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
 
-      if (hPollEvent != 0)
+      if (hPollEvent != nullptr)
       SetEvent (hPollEvent);
     }
   }

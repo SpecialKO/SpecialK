@@ -960,7 +960,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
          callback_fn (SK_InitFinishCallback);
 
 
-  if (! InterlockedCompareExchange (&SK_bypass_dialog_active, 0, 0))
+  if (! ReadAcquire (&SK_bypass_dialog_active))
   {
     // Setup the compatibility backend, which monitors loaded libraries,
     //   blacklists bad DLLs and detects render APIs...
