@@ -593,6 +593,8 @@ enum class SK_GAME_ID
   LifeIsStrange_BeforeTheStorm, // Life is Strange - Before the Storm.exe
   Tales_of_Symphonia,           // TOS.exe
   DivinityOriginalSin,          // EoCApp.exe
+  Hob,                          // Hob.exe and HobLauncher.exe
+  DukeNukemForever,             // DukeForever.exe
   UNKNOWN_GAME               = 0xffff
 };
 

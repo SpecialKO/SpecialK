@@ -1,3 +1,21 @@
+0.8.47
+
+ + Added support for D3D11 Shader state load/store (d3d11_shaders.ini)
+
+      (Refer to the new button pannel in the Shader Mod Tools)
+
+  >> Will add annotations for hash names to something more meaningful later
+  >> Will also add ability to save shader profiles in order to enable/disable
+       known effects.
+  >> Command console will also allow loading profiles by name and manipulating
+       the stored shader values, so that you can macro this stuff to keybinds.
+
+ + Added sRGB -> UNORM override if Flip Model is enabled in D3D11 games, this
+     allows G-Sync in Unity games
+
+ + Added FlipEx mode to D3D9Ex override, allowing G-Sync in windowed mode in D3D9
+
+
 0.8.46
 
  + Local Wrapper DLLs no longer use AppCache for config

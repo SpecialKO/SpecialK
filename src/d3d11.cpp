@@ -3254,9 +3254,12 @@ SK_D3D11_DrawHandler (void)
 
       pDevCtx->OMGetDepthStencilState (&SK_TLS_Top ()->d3d11.pDepthStencilStateOrig, &SK_TLS_Top ()->d3d11.StencilRefOrig);
 
-      if (SUCCEEDED (pDev->CreateDepthStencilState (&desc, &SK_TLS_Top ()->d3d11.pDepthStencilStateNew)))
+      if (SK_TLS_Top ()->d3d11.pDepthStencilStateOrig != nullptr)
       {
-        pDevCtx->OMSetDepthStencilState (SK_TLS_Top ()->d3d11.pDepthStencilStateNew, 0);
+        if (SUCCEEDED (pDev->CreateDepthStencilState (&desc, &SK_TLS_Top ()->d3d11.pDepthStencilStateNew)))
+        {
+          pDevCtx->OMSetDepthStencilState (SK_TLS_Top ()->d3d11.pDepthStencilStateNew, 0);
+        }
       }
     }
   }
@@ -3282,13 +3285,16 @@ SK_D3D11_DrawHandler (void)
 
       D3D11_RASTERIZER_DESC desc = { };
 
-      SK_TLS_Top ()->d3d11.pRasterStateOrig->GetDesc (&desc);
-
-      desc.FillMode = D3D11_FILL_WIREFRAME;
-
-      if (SUCCEEDED (pDev->CreateRasterizerState (&desc, &SK_TLS_Top ()->d3d11.pRasterStateNew)))
+      if (SK_TLS_Top ()->d3d11.pRasterStateOrig != nullptr)
       {
-        pDevCtx->RSSetState (SK_TLS_Top ()->d3d11.pRasterStateNew);
+        SK_TLS_Top ()->d3d11.pRasterStateOrig->GetDesc (&desc);
+
+        desc.FillMode = D3D11_FILL_WIREFRAME;
+
+        if (SUCCEEDED (pDev->CreateRasterizerState (&desc, &SK_TLS_Top ()->d3d11.pRasterStateNew)))
+        {
+          pDevCtx->RSSetState (SK_TLS_Top ()->d3d11.pRasterStateNew);
+        }
       }
     }
   }
@@ -4954,7 +4960,7 @@ SK_DXGI_FormatToStr (DXGI_FORMAT fmt)
     case DXGI_FORMAT_A8P8:                       return L"DXGI_FORMAT_A8P8";
     case DXGI_FORMAT_B4G4R4A4_UNORM:             return L"DXGI_FORMAT_B4G4R4A4_UNORM";
 
-    default:                                     return L"UNKNONW";
+    default:                                     return L"UNKNOWN";
   }
 }
 
@@ -8376,7 +8382,237 @@ auto WireframeColorCycle =
                                                                 floor ( (timeGetTime () % 500) / 500.0f) ), 1.0f) );
 };
 
+void
+SK_D3D11_ClearShaderState (void)
+{
+  for (int i = 0; i < 6; i++)
+  {
+    auto shader_record =
+    [&]
+    {
+      switch (i)
+      {
+        default:
+        case 0:
+          return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex;
+        case 1:
+          return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.pixel;
+        case 2:
+          return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.geometry;
+        case 3:
+          return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.hull;
+        case 4:
+          return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.domain;
+        case 5:
+          return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute;
+      }
+    };
 
+    shader_record ()->blacklist.clear ();
+    shader_record ()->wireframe.clear ();
+    shader_record ()->on_top.clear ();
+  }
+};
+
+void
+SK_D3D11_LoadShaderState (bool clear = true)
+{
+  iSK_INI* d3d11_shaders_ini = nullptr;
+
+   d3d11_shaders_ini =
+    SK_CreateINI (SK_FormatStringW (L"%s\\d3d11_shaders.ini", SK_GetConfigPath ()).c_str ());
+
+  //d3d11_shaders_ini->parse ();
+
+  int shader_class = 0;
+
+  iSK_INI::_TSectionMap& sections =
+    d3d11_shaders_ini->get_sections ();
+
+  auto sec =
+    sections.begin ();
+
+  struct draw_state_s {
+    std::set <uint32_t> wireframe;
+    std::set <uint32_t> on_top;
+    std::set <uint32_t> disable;
+  } draw_states [7];
+
+  auto shader_class_idx = [](std::wstring name)
+  {
+         if (name == L"Vertex")   return 0;
+    else if (name == L"Pixel")    return 1;
+    else if (name == L"Geometry") return 2;
+    else if (name == L"Hull")     return 3;
+    else if (name == L"Domain")   return 4;
+    else if (name == L"Compute")  return 5;
+    else                          return 6;
+  };
+
+  while (sec != sections.end ())
+  {
+    if (wcsstr ((*sec).first.c_str (), L"DrawState."))
+    {
+      wchar_t wszClass [32] = { };
+
+      _snwscanf ((*sec).first.c_str (), 31, L"DrawState.%s", wszClass);
+
+      shader_class =
+        shader_class_idx (wszClass);
+
+      for ( auto it : (*sec).second.keys )
+      {
+        int shader = 0;
+        swscanf (it.first.c_str (), L"%x", &shader);
+
+        wchar_t* wszState =
+          _wcsdup (it.second.c_str ());
+
+        wchar_t* wszBuf = nullptr;
+        wchar_t* wszTok =
+          std::wcstok (wszState, L",", &wszBuf);
+
+        while (wszTok)
+        {
+          if (! _wcsicmp (wszTok, L"Wireframe"))
+            draw_states [shader_class].wireframe.emplace (shader);
+          if (! _wcsicmp (wszTok, L"OnTop"))
+            draw_states [shader_class].on_top.emplace (shader);
+          if (! _wcsicmp (wszTok, L"Disable"))
+            draw_states [shader_class].disable.emplace (shader);
+
+          wszTok =
+            std::wcstok (nullptr, L",", &wszBuf);
+        }
+      }
+    }
+
+    ++sec;
+  }
+
+  if (clear)
+  {
+    SK_D3D11_ClearShaderState ();
+  }
+
+  for (int i = 0; i < 6; i++)
+  {
+    auto shader_record =
+      [&]
+      {
+        switch (i)
+        {
+          default:
+          case 0:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex;
+          case 1:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.pixel;
+          case 2:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.geometry;
+          case 3:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.hull;
+          case 4:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.domain;
+          case 5:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute;
+        }
+      };
+
+    shader_record ()->blacklist.insert ( draw_states [i].disable.begin   (), draw_states [i].disable.end   () );
+    shader_record ()->wireframe.insert ( draw_states [i].wireframe.begin (), draw_states [i].wireframe.end () );
+    shader_record ()->on_top.insert    ( draw_states [i].on_top.begin    (), draw_states [i].on_top.end    () );
+  }
+
+  delete d3d11_shaders_ini;
+}
+
+
+void
+SK_D3D11_DumpShaderState (void)
+{
+  iSK_INI* d3d11_shaders_ini = nullptr;
+
+  d3d11_shaders_ini =
+   SK_CreateINI (SK_FormatStringW (L"%s\\d3d11_shaders.ini", SK_GetConfigPath ()).c_str ());
+
+  if (! d3d11_shaders_ini->get_sections ().empty ())
+  {
+    for ( auto it : d3d11_shaders_ini->get_sections () )
+    {
+      d3d11_shaders_ini->remove_section (it.first.c_str ());
+    }
+  }
+
+  auto shader_class_name = [](int i)
+  {
+    switch (i)
+    {
+      default:
+      case 0: return L"Vertex";
+      case 1: return L"Pixel";
+      case 2: return L"Geometry";
+      case 3: return L"Hull";
+      case 4: return L"Domain";
+      case 5: return L"Compute";
+    };
+  };
+
+  for (int i = 0; i < 6; i++)
+  {
+    auto shader_record =
+      [&]
+      {
+        switch (i)
+        {
+          default:
+          case 0:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex;
+          case 1:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.pixel;
+          case 2:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.geometry;
+          case 3:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.hull;
+          case 4:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.domain;
+          case 5:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute;
+        }
+      };
+
+    iSK_INISection& sec =
+      d3d11_shaders_ini->get_section_f (L"DrawState.%s", shader_class_name (i));
+
+    std::set <uint32_t> shaders;
+
+    shaders.insert ( shader_record ()->blacklist.begin (), shader_record ()->blacklist.end () );
+    shaders.insert ( shader_record ()->wireframe.begin (), shader_record ()->wireframe.end () );
+    shaders.insert ( shader_record ()->on_top.begin    (), shader_record ()->on_top.end    () );
+
+    for ( auto it : shaders )
+    {
+      std::wstring state = L"";
+
+      if (shader_record ()->blacklist.count (it))
+        state += L"Disable,";
+
+      if (shader_record ()->wireframe.count (it))
+        state += L"Wireframe,";
+
+      if (shader_record ()->on_top.count (it))
+        state += L"OnTop,";
+
+      if (state.length ())
+      {
+        sec.add_key_value ( SK_FormatStringW (L"%08x", it).c_str (), state.c_str ());
+      }
+    }
+  }
+
+  d3d11_shaders_ini->write (d3d11_shaders_ini->get_filename ());
+
+  delete d3d11_shaders_ini;
+}
 
 void
 SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
@@ -8731,11 +8967,13 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     last_size   = shaders.size ();
   }
 
-  if (list->dirty || GetShaderChange (shader_type) != 0)
+  if (true || list->dirty || GetShaderChange (shader_type) != 0)
   {
         list->sel = 0;
     int idx       = 0;
         list->contents.clear ();
+
+    ImGui::PushID (static_cast <int> (shader_type));
 
     for ( auto it : shaders )
     {
@@ -8744,7 +8982,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       const bool disabled =
         ( GetShaderBlacklist (shader_type).count (it) != 0 );
 
-      sprintf (szDesc, "%s%08lx##%s", disabled ? "*" : " ", it, GetShaderWord (shader_type));
+      sprintf (szDesc, "%s%08lx", disabled ? "*" : " ", it);
 
       list->contents.emplace_back (szDesc);
 
@@ -8768,6 +9006,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
       ++idx;
     }
+
+    ImGui::PopID ();
 
     list->dirty = false;
   }
@@ -9846,7 +10086,9 @@ SK_D3D11_ShaderModDlg (void)
               ImGui::SetNextTreeNodeOpen (true, ImGuiSetCond_Always);
 
             if (ImGui::CollapsingHeader (label))
+            {
               SK_LiveShaderClassView (shader_type, can_scroll);
+            }
           }
         };
 
@@ -9854,6 +10096,35 @@ SK_D3D11_ShaderModDlg (void)
         ImGui::PushFont    (io.Fonts->Fonts [1]); // Fixed-width font
         ImGui::TextColored (ImColor (238, 250, 5), "%ws", SK::DXGI::getPipelineStatsDesc ().c_str ());
         ImGui::PopFont     ();
+
+        ImGui::Separator   ();
+
+        if (ImGui::Button (" Clear Shader State "))
+        {
+          SK_D3D11_ClearShaderState ();
+        }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Button (" Dump Shader State "))
+        {
+          SK_D3D11_DumpShaderState ();
+        }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Button (" Add to Shader State "))
+        {
+          SK_D3D11_LoadShaderState (false);
+        }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Button (" Restore FULL Shader State "))
+        {
+          SK_D3D11_LoadShaderState ();
+        }
+
         ImGui::TreePop     ();
 
         ShaderClassMenu (sk_shader_class::Vertex);

@@ -252,8 +252,21 @@ extern CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 extern DWORD dwRenderThread;
 extern HWND  hWndRender;
 
+std::wstring
+__stdcall
+SK_DXGI_FormatToStr (DXGI_FORMAT fmt);
+
 const wchar_t*
 SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode);
+
+const wchar_t*
+SK_DXGI_DescribeScanlineOrder (DXGI_MODE_SCANLINE_ORDER order);
+
+const wchar_t*
+SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect);
+
+std::wstring
+SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags);
 
 std::wstring
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
@@ -851,6 +864,7 @@ struct SK_D3D11_KnownShaders
 
     std::unordered_set <uint32_t>                        wireframe;
     std::unordered_set <uint32_t>                        blacklist;
+
     std::unordered_set <uint32_t>                        on_top;
     std::unordered_set <uint32_t>                        rewind;
 

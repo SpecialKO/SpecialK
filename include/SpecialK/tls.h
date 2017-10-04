@@ -109,7 +109,7 @@ struct SK_TLS
   struct stack
   {
                  int current = 0;
-    static const int max     = 10;
+    static const int max     = 16;
 
 
   } stack;

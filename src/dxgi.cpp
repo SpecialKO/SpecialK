@@ -529,6 +529,64 @@ SK_DXGI_DescribeScanlineOrder (DXGI_MODE_SCANLINE_ORDER order)
   }
 }
 
+const wchar_t*
+SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect)
+{
+  switch (swap_effect)
+  {
+    case DXGI_SWAP_EFFECT_DISCARD:
+      return    L"Discard  (BitBlt)";
+    case DXGI_SWAP_EFFECT_SEQUENTIAL:
+      return L"Sequential  (BitBlt)";
+    case DXGI_SWAP_EFFECT_FLIP_DISCARD:
+      return    L"Discard  (Flip)";
+    case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL:
+      return L"Sequential  (Flip)";
+    default:
+      return L"UNKNOWN";
+  }
+}
+
+std::wstring
+SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags)
+{
+  std::wstring out = L"";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_NONPREROTATED)
+    out += L"Non-Pre Rotated\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH)
+    out += L"Allow Fullscreen Mode Switch\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE)
+    out += L"GDI Compatible\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT)
+    out += L"DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER)
+    out += L"DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+    out += L"Latency Waitable\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER)
+    out += L"DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)
+    out += L"DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO\n";
+
+  #define DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED 1024
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED)
+    out += L"DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED\n";
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+    out += L"Supports Tearing in Windowed Mode\n";
+
+  return out;
+}
+
 
 std::wstring
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
@@ -1599,6 +1657,8 @@ HRESULT
                    pPresentParameters );
   }
 
+  SK_GetCurrentRenderBackend ().present_interval = SyncInterval;
+
   // Start / End / Read back Pipeline Stats
   SK_D3D11_UpdateRenderStats (This);
   SK_D3D12_UpdateRenderStats (This);
@@ -1726,8 +1786,6 @@ HRESULT
                                      UINT            SyncInterval,
                                      UINT            Flags)
 {
-  //dll_log.Log (L"SWAP %x, %lu, %p", Flags, SyncInterval, This);
-
   //
   // Early-out for games that use testing to minimize blocking
   //
@@ -1849,9 +1907,11 @@ HRESULT
   if (interval == -1)
     interval = SyncInterval;
 
+  SK_GetCurrentRenderBackend ().present_interval = interval;
+
   if (bFlipMode)
   {
-    flags = Flags | DXGI_PRESENT_RESTART;
+    flags |= DXGI_PRESENT_USE_DURATION | DXGI_PRESENT_RESTART;
 
     if (bWait)
       flags |= DXGI_PRESENT_DO_NOT_WAIT;
@@ -1913,8 +1973,8 @@ HRESULT
             SK_DXGI_Present (
               This,
                 0,
-                  flags | DXGI_PRESENT_DO_NOT_SEQUENCE       | DXGI_PRESENT_DO_NOT_WAIT  |
-                          DXGI_PRESENT_STEREO_TEMPORARY_MONO | DXGI_PRESENT_USE_DURATION | DXGI_PRESENT_TEST );
+                  DXGI_PRESENT_DO_NOT_SEQUENCE | DXGI_PRESENT_DO_NOT_WAIT |
+                  DXGI_PRESENT_USE_DURATION    | DXGI_PRESENT_TEST );
 
                 // ^^^ Deliberately invalid set of flags so that this call will fail, we just
                 //       want third-party overlays that don't hook Present1 to understand what
@@ -1925,9 +1985,9 @@ HRESULT
 
         /////}
 
-        hr = Present1_Original (pSwapChain1, interval, flags | DXGI_PRESENT_DO_NOT_WAIT, &pparams);
+        hr = Present1_Original (pSwapChain1, interval, flags, &pparams);
 #else
-        hr = SK_DXGI_Present   (This, interval, flags | (bWait ? DXGI_PRESENT_DO_NOT_WAIT : 0x00));
+        hr = SK_DXGI_Present   (This, interval, flags);
 #endif
       }
     }
@@ -1935,7 +1995,7 @@ HRESULT
     else
     {
       // Fallback for something that will probably only ever happen on Windows 7.
-      hr = SK_DXGI_Present (This, interval, flags);
+      hr = SK_DXGI_Present (This, interval, Flags);
     }
   }
 
@@ -2728,6 +2788,24 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       {
         bFlipMode = dxgi_caps.present.flip_sequential;
         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
+
+        // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+        switch (pDesc->BufferDesc.Format)
+        {
+          case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+            pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS;
+            dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+            break;
+          case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+            dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+            break;
+          case DXGI_FORMAT_R10G10B10A2_UNORM:
+          case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+            pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
+            dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+            break;
+        }
       }
     }
 
@@ -2739,7 +2817,7 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
     }
 
-    if ( config.render.framerate.flip_discard &&  dxgi_caps.swapchain.allow_tearing )
+    if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
     {
       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
@@ -4019,6 +4097,8 @@ STDMETHODCALLTYPE PresentCallback_Pre (IDXGISwapChain *This,
                                        UINT            SyncInterval,
                                        UINT            Flags)
 {
+  SK_GetCurrentRenderBackend ().present_interval = SyncInterval;
+
   SK_CEGUI_DrawD3D11 (This);
 
   return PresentSwapChain_Original_Pre (This, SyncInterval, Flags);

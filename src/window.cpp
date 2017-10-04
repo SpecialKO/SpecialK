@@ -1918,7 +1918,8 @@ SK_AdjustBorder (void)
 void
 SK_ResetWindow (void)
 {
-  return;
+  if (! (config.window.borderless || config.window.center))
+    return;
 
   static CRITICAL_SECTION cs_reset;
   static bool             init = false;
@@ -2870,9 +2871,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-
-    //SK_AdjustBorder        ();
-    //SK_AdjustWindow        ();
 
     SK_InitWindow (hWnd, false);
   }

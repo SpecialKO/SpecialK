@@ -214,11 +214,35 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   switch (tex2d_desc.Format)
   {
     case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
     {
       D3D11_RENDER_TARGET_VIEW_DESC rtdesc
                            = { };
 
       rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
+      rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+    } break;
+
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+    {
+      D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+                           = { };
+
+      rtdesc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
+      rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+    } break;
+
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    {
+      D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+                           = { };
+
+      rtdesc.Format        = DXGI_FORMAT_R16G16B16A16_FLOAT;
       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);

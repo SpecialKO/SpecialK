@@ -850,6 +850,168 @@ NvAPI_D3D11_SetDepthBoundsTest ( IUnknown* pDeviceOrContext,
 };
 
 void
+SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9* pSwap9)
+{
+  if (pSwap9 != nullptr)
+  {
+    D3DPRESENT_PARAMETERS pparams = { };
+
+    if (SUCCEEDED (pSwap9->GetPresentParameters (&pparams)))
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
+      ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
+      ImGui::PopStyleColor   ();
+      ImGui::Separator       ();
+
+      ImGui::BeginGroup      ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.785f, 0.785f, 0.785f));
+      ImGui::TextUnformatted ("Color:");
+      ImGui::TextUnformatted ("Depth/Stencil:");
+      ImGui::TextUnformatted ("Resolution:");
+      ImGui::TextUnformatted ("Back Buffers:");
+      if (! pparams.Windowed)
+      ImGui::TextUnformatted ("Refresh Rate:");
+      ImGui::TextUnformatted ("Swap Interval:");
+      ImGui::TextUnformatted ("Swap Effect:");
+      ImGui::TextUnformatted ("MSAA Samples:");
+      if (pparams.Flags != 0)
+      ImGui::TextUnformatted ("Flags:");
+      ImGui::PopStyleColor   ();
+      ImGui::EndGroup        ();
+
+      ImGui::SameLine        ();
+
+      ImGui::BeginGroup      ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
+      ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.BackBufferFormat).c_str       ());
+      ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.AutoDepthStencilFormat).c_str ());
+      ImGui::Text            ("%ux%u",                                   pparams.BackBufferWidth, pparams.BackBufferHeight);
+      ImGui::Text            ("%u",                                      pparams.BackBufferCount);
+      if (! pparams.Windowed)
+      ImGui::Text            ("%u Hz",                                   pparams.FullScreen_RefreshRateInHz);
+      if (pparams.PresentationInterval == 0)
+        ImGui::Text          ("%u: VSYNC OFF",                           pparams.PresentationInterval);
+      else if (pparams.PresentationInterval == 1)
+        ImGui::Text          ("%u: Normal V-SYNC",                       pparams.PresentationInterval);
+      else if (pparams.PresentationInterval == 2)
+        ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  pparams.PresentationInterval);
+      else if (pparams.PresentationInterval == 3)
+        ImGui::Text          ("%u: 1/3 Refresh V-SYNC",                  pparams.PresentationInterval);
+      else if (pparams.PresentationInterval == 4)
+        ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  pparams.PresentationInterval);
+      else
+        ImGui::Text          ("%u: UNKNOWN or Invalid",                  pparams.PresentationInterval);
+      ImGui::Text            ("%ws",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
+      ImGui::Text            ("%u",                                      pparams.MultiSampleType);
+      if (pparams.Flags != 0)
+      ImGui::Text            ("%ws", SK_D3D9_PresentParameterFlagsToStr (pparams.Flags).c_str ()) ;
+      ImGui::PopStyleColor   ();
+      ImGui::EndGroup        ();
+      ImGui::EndTooltip      ();
+    }
+  }
+}
+
+void
+SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
+{
+  if (pSwapDXGI != nullptr)
+  {
+    DXGI_SWAP_CHAIN_DESC swap_desc = { };
+
+    if (SUCCEEDED (pSwapDXGI->GetDesc (&swap_desc)))
+    {
+      SK_RenderBackend& rb =
+        SK_GetCurrentRenderBackend ();
+
+      ID3D11DeviceContext* pDevCtx =
+        static_cast <ID3D11DeviceContext *> (rb.d3d11.immediate_ctx);
+
+      // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
+      if (! pDevCtx)
+        return;
+
+      //CComPtr <ID3D11RenderTargetView> pRTView = nullptr;
+      //CComPtr <ID3D11DepthStencilView> pDSView = nullptr;
+      //
+      //pDevCtx->OMGetRenderTargets (1, &pRTView, &pDSView);
+      //
+      //D3D11_DEPTH_STENCIL_VIEW_DESC              dsv_desc = { };
+      //if (pDSView != nullptr) pDSView->GetDesc (&dsv_desc);
+
+      //D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = { };
+      //pRTView->GetDesc (&rtv_desc);
+
+      ImGui::BeginTooltip    ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
+      ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
+      ImGui::PopStyleColor   ();
+      ImGui::Separator       ();
+
+      ImGui::BeginGroup      ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.785f, 0.785f, 0.785f));
+      ImGui::TextUnformatted ("Color:");
+    //ImGui::TextUnformatted ("Depth/Stencil:");
+      ImGui::TextUnformatted ("Resolution:");
+      ImGui::TextUnformatted ("Back Buffers:");
+      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
+      ImGui::TextUnformatted ("Scaling Mode:");
+      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+      ImGui::TextUnformatted ("Scanlines:");
+      if (! swap_desc.Windowed && swap_desc.BufferDesc.RefreshRate.Denominator != 0)
+      ImGui::TextUnformatted ("Refresh Rate:");
+      ImGui::TextUnformatted ("Swap Interval:");
+      ImGui::TextUnformatted ("Swap Effect:");
+      if  (swap_desc.SampleDesc.Count > 1)
+      ImGui::TextUnformatted ("MSAA Samples:");
+      if (swap_desc.Flags != 0)
+      ImGui::TextUnformatted ("Flags:");
+      ImGui::PopStyleColor   ();
+      ImGui::EndGroup        ();
+
+      ImGui::SameLine        ();
+
+      
+
+      ImGui::BeginGroup      ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
+      ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.BufferDesc.Format).c_str ());
+    //ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (dsv_desc.Format).c_str             ());
+      ImGui::Text            ("%ux%u",                                   swap_desc.BufferDesc.Width, swap_desc.BufferDesc.Height);
+      ImGui::Text            ("%u",                                      std::max (1UL, swap_desc.Windowed ? swap_desc.BufferCount : swap_desc.BufferCount - 1UL));
+      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
+      ImGui::Text            ("%ws",        SK_DXGI_DescribeScalingMode (swap_desc.BufferDesc.Scaling));
+      if ((! swap_desc.Windowed) && swap_desc.BufferDesc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+      ImGui::Text            ("%ws",      SK_DXGI_DescribeScanlineOrder (swap_desc.BufferDesc.ScanlineOrdering));
+      if (! swap_desc.Windowed && swap_desc.BufferDesc.RefreshRate.Denominator != 0)
+      ImGui::Text            ("%.2f Hz",                                 static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator) /
+                                                                         static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator));
+      if (rb.present_interval == 0)
+        ImGui::Text          ("%u: VSYNC OFF",                           rb.present_interval);
+      else if (rb.present_interval == 1)
+        ImGui::Text          ("%u: Normal V-SYNC",                       rb.present_interval);
+      else if (rb.present_interval == 2)
+        ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  rb.present_interval);
+      else if (rb.present_interval == 3)
+        ImGui::Text          ("%u: 1/3 Refresh V-SYNC",                  rb.present_interval);
+      else if (rb.present_interval == 4)
+        ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  rb.present_interval);
+      else
+        ImGui::Text          ("%u: UNKNOWN or Invalid",                  0);//pparams.PresentationInterval);
+      ImGui::Text            ("%ws",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
+      if  (swap_desc.SampleDesc.Count > 1)
+      ImGui::Text            ("%u",                                         swap_desc.SampleDesc.Count);
+      if (swap_desc.Flags != 0)
+        ImGui::Text          ("%ws",        SK_DXGI_DescribeSwapChainFlags (static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags)).c_str ());
+      ImGui::PopStyleColor   ();
+      ImGui::EndGroup        ();
+      ImGui::EndTooltip      ();
+    }
+  }
+}
+
+void
 SK_ImGui_NV_DepthBoundsD3D11 (void)
 {
   static bool  enable = false;
@@ -2088,68 +2250,21 @@ SK_ImGui_ControlPanel (void)
 
           if (rb.swapchain != nullptr)
           {
-            rb.swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwap9);
-          }
-
-          if (pSwap9 != nullptr)
-          {
-            D3DPRESENT_PARAMETERS pparams = { };
-
-            if (SUCCEEDED (pSwap9->GetPresentParameters (&pparams)))
+            if (SUCCEEDED (rb.swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwap9)))
             {
-              ImGui::BeginTooltip    ();
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
-              ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
-              ImGui::PopStyleColor   ();
-              ImGui::Separator       ();
-
-              ImGui::BeginGroup      ();
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.785f, 0.785f, 0.785f));
-              ImGui::TextUnformatted ("Color:");
-              ImGui::TextUnformatted ("Depth/Stencil:");
-              ImGui::TextUnformatted ("Resolution:");
-              ImGui::TextUnformatted ("Back Buffers:");
-              if (! pparams.Windowed)
-              ImGui::TextUnformatted ("Refresh Rate:");
-              ImGui::TextUnformatted ("Swap Interval:");
-              ImGui::TextUnformatted ("Swap Effect:");
-              ImGui::TextUnformatted ("MSAA Samples:");
-              if (pparams.Flags != 0)
-              ImGui::TextUnformatted ("Flags:");
-              ImGui::PopStyleColor   ();
-              ImGui::EndGroup        ();
-
-              ImGui::SameLine        ();
-
-              ImGui::BeginGroup      ();
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
-              ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.BackBufferFormat).c_str       ());
-              ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.AutoDepthStencilFormat).c_str ());
-              ImGui::Text            ("%ux%u",                                   pparams.BackBufferWidth, pparams.BackBufferHeight);
-              ImGui::Text            ("%u",                                      pparams.BackBufferCount);
-              if (! pparams.Windowed)
-              ImGui::Text            ("%u Hz",                                   pparams.FullScreen_RefreshRateInHz);
-              if (pparams.PresentationInterval == 0)
-                ImGui::Text          ("%u: VSYNC OFF",                           pparams.PresentationInterval);
-              else if (pparams.PresentationInterval == 1)
-                ImGui::Text          ("%u: Normal V-SYNC",                       pparams.PresentationInterval);
-              else if (pparams.PresentationInterval == 2)
-                ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  pparams.PresentationInterval);
-              else if (pparams.PresentationInterval == 3)
-                ImGui::Text          ("%u: 1/3 Refresh V-SYNC",                  pparams.PresentationInterval);
-              else if (pparams.PresentationInterval == 4)
-                ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  pparams.PresentationInterval);
-              else
-                ImGui::Text          ("%u: UNKNOWN or Invalid",                  pparams.PresentationInterval);
-              ImGui::Text            ("%ws",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
-              ImGui::Text            ("%u",                                      pparams.MultiSampleType);
-              if (pparams.Flags != 0)
-              ImGui::Text            ("%ws", SK_D3D9_PresentParameterFlagsToStr (pparams.Flags).c_str ()) ;
-              ImGui::PopStyleColor   ();
-              ImGui::EndGroup        ();
-              ImGui::EndTooltip      ();
+              SK_ImGui_SummarizeD3D9Swapchain (pSwap9);
             }
           }
+        }
+      }
+
+      else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
+      {
+        CComPtr <IDXGISwapChain>pSwapDXGI = nullptr;
+
+        if (SUCCEEDED (rb.swapchain->QueryInterface <IDXGISwapChain>  (&pSwapDXGI)))
+        {
+          SK_ImGui_SummarizeDXGISwapchain (pSwapDXGI);
         }
       }
     }
@@ -2977,7 +3092,7 @@ SK_ImGui_ControlPanel (void)
 #ifndef _WIN64
         ImGui::Columns    ( 2 );
 
-        static bool has_dgvoodoo =
+        static bool has_dgvoodoo2 =
           GetFileAttributesA (
             SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll",
                                 std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
@@ -2985,32 +3100,32 @@ SK_ImGui_ControlPanel (void)
           ) != INVALID_FILE_ATTRIBUTES;
 
         // Leaks memory, but who cares? :P
-        static const char* dgvoodoo_install_path =
+        static const char* dgvoodoo2_install_path =
           _strdup (
             SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo",
                     std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
                 ).c_str ()
           );
 
-        auto Tooltip_dgVoodoo = []
+        auto Tooltip_dgVoodoo2 = []
         {
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
               ImGui::TextColored (ImColor (235, 235, 235), "Requires Third-Party Plug-In:");
               ImGui::SameLine    ();
-              ImGui::TextColored (ImColor (255, 255, 0),   "dgVoodoo");
+              ImGui::TextColored (ImColor (255, 255, 0),   "dgVoodoo2");
               ImGui::Separator   ();
-              ImGui::BulletText  ("Please install this to: '%s'", dgvoodoo_install_path);
+              ImGui::BulletText  ("Please install this to: '%s'", dgvoodoo2_install_path);
             ImGui::EndTooltip   ();
           }
         };
 
-        ImGui_CheckboxEx ("Direct3D 8", &config.apis.d3d8.hook, has_dgvoodoo, Tooltip_dgVoodoo);
+        ImGui_CheckboxEx ("Direct3D 8", &config.apis.d3d8.hook,   has_dgvoodoo2, Tooltip_dgVoodoo2);
 
         ImGui::NextColumn (  );
 
-        ImGui_CheckboxEx ("Direct Draw", &config.apis.ddraw.hook, has_dgvoodoo, Tooltip_dgVoodoo);
+        ImGui_CheckboxEx ("Direct Draw", &config.apis.ddraw.hook, has_dgvoodoo2, Tooltip_dgVoodoo2);
 
         ImGui::Columns    ( 1 );
         ImGui::Separator  (   );
@@ -3129,16 +3244,23 @@ SK_ImGui_ControlPanel (void)
 
         if (ImGui::IsItemHovered ())
         {
-          ImGui::BeginTooltip (  );
-          ImGui::Text         ("Prevent Loading DLLs Simultaneousely Across Multiple Threads");
-          ImGui::Separator    (  );
-          ImGui::BulletText   ("Eliminates Race Conditions During DLL Startup");
-          ImGui::BulletText   ("Unsafe for a LOT of Improperly Designed Third-Party Software");
-          ImGui::TreePush     ("");
-          ImGui::Text         ("\nPROPER DLL DESIGN:  Never Call LoadLibrary (...) from DllMain (...)'s Thread !!!");
-          ImGui::Text         (  "                    Never Wait on a Synchronization Object from DllMain (...) !!");
-          ImGui::TreePop      (  );
-          ImGui::EndTooltip   (  );
+          ImGui::BeginTooltip    (  );
+          ImGui::TextUnformatted ("Prevent Loading DLLs Simultaneously Across Multiple Threads");
+          ImGui::Separator       (  );
+          ImGui::BulletText      ("Eliminates Race Conditions During DLL Startup");
+          ImGui::BulletText      ("Unsafe for a LOT of Improperly Designed Third-Party Software\n");
+          ImGui::TreePush        ("");
+          ImGui::TextUnformatted ("");
+          ImGui::BeginGroup      (  );
+          ImGui::TextUnformatted ("PROPER DLL DESIGN:  ");
+          ImGui::EndGroup        (  );
+          ImGui::SameLine        (  );
+          ImGui::BeginGroup      (  );
+          ImGui::TextUnformatted ("Never Call LoadLibrary (...) from DllMain (...)'s Thread !!!");
+          ImGui::TextUnformatted ("Never Wait on a Synchronization Object from DllMain (...) !!");
+          ImGui::EndGroup        (  );
+          ImGui::TreePop         (  );
+          ImGui::EndTooltip      (  );
         }
 
         ImGui::EndGroup    ( );
@@ -4569,8 +4691,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
       extern iSK_INI*       dll_ini;
 
-      wchar_t imp_path_reshade [MAX_PATH + 2] = { };
-      wchar_t imp_name_reshade [64]           = { };
+      wchar_t imp_path_reshade    [MAX_PATH + 2] = { };
+      wchar_t imp_name_reshade    [64]           = { };
 
       wchar_t imp_path_reshade_ex [MAX_PATH + 2] = { };
       wchar_t imp_name_reshade_ex [64]           = { };

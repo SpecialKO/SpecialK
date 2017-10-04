@@ -2256,6 +2256,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           );
   games.emplace ( L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm );
   games.emplace ( L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          );
+  games.emplace ( L"Hob.exe",                                SK_GAME_ID::Hob                          );
+  games.emplace ( L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             );
 
   //
   // Application Compatibility Overrides
@@ -2487,18 +2489,40 @@ SK_LoadConfigEx (std::wstring name, bool create)
 #endif
 
 #ifdef _WIN64
-        case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
-          config.apis.d3d9.hook       = false;
-          config.apis.d3d9ex.hook     = false;
-          config.apis.OpenGL.hook     = false;
-          config.apis.Vulkan.hook     = false;
-          config.apis.dxgi.d3d11.hook = true;
-          config.apis.dxgi.d3d12.hook = false;
-          break;
+      case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+        config.apis.OpenGL.hook     = false;
+        config.apis.Vulkan.hook     = false;
+        config.apis.dxgi.d3d11.hook = true;
+        config.apis.dxgi.d3d12.hook = false;
+        break;
 
-        case SK_GAME_ID::DivinityOriginalSin:
-          config.textures.cache.ignore_nonmipped = true;
-          break;
+      case SK_GAME_ID::DivinityOriginalSin:
+        config.textures.cache.ignore_nonmipped = true;
+        break;
+#endif
+
+      case SK_GAME_ID::Hob:
+        // Fails to start Steamworks correctly, we have to kickstart it
+        config.steam.force_load_steamapi = true;
+        break;
+
+#ifndef _WIN64
+      case SK_GAME_ID::DukeNukemForever:
+        // The mouse cursor's coordinate space is limited to 1920x1080 even at 4K, which
+        //   has the unfortunate side effect of reducing aiming precision when the game
+        //     isn't using RawInput.
+        config.window.unconfine_cursor = true; // Remap the coordinates and increase precision
+
+        // The graphics engine doesn't import any render APIs directly aside from ddraw.dll,
+        //   which is obviously not the correct API. D3D9 and only D3D9 is the correct API.
+        config.apis.d3d9.hook          = true;
+        config.apis.ddraw.hook         = false;
+        config.apis.d3d8.hook          = false;
+        config.apis.dxgi.d3d11.hook    = false;
+        config.apis.OpenGL.hook        = false;
+        break;
 #endif
     }
   }
@@ -4525,5 +4549,5 @@ SK_Render_GetAPIHookMask (void)
   if (config.apis.dxgi.d3d12.hook) mask |= static_cast <int> (SK_RenderAPI::D3D12);
 #endif
 
-  return (SK_RenderAPI)mask;
+  return static_cast <SK_RenderAPI> (mask);
 }

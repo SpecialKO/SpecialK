@@ -1723,7 +1723,7 @@ BACKEND_INIT:
 
 #ifndef _WIN64
   //
-  // TEMP HACK: dgVoodoo
+  // TEMP HACK: dgVoodoo2
   //
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
