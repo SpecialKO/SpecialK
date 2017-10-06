@@ -2868,11 +2868,95 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::CollapsingHeader ("Texture Management"))
       {
+        static bool orig_cache = config.textures.d3d11.cache;
+
         ImGui::TreePush ("");
         ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache); 
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Reduce driver memory management overhead in games that stream textures.");
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Reduces Driver Memory Management Overhead in Games that Stream Textures");
+
+          if (orig_cache)
+          {
+            LONG reserve_  = 0L;
+            LONG contains_ = 0L;
+            LONG erase_    = 0L;
+            LONG index_    = 0L;
+
+            std::pair <int, std::pair <LONG, std::pair <LONG, char*>>> busiest = { 0, { 0, { 0, "Invalid" } } };
+
+            int idx = 0;
+
+            for (auto it : SK_D3D11_Textures.HashMap_2D)
+            {
+              LONG i = ReadAcquire (&it.contention_score.index);
+              LONG c = ReadAcquire (&it.contention_score.contains);
+              LONG a = 0L;
+              LONG r = ReadAcquire (&it.contention_score.reserve);
+              LONG e = ReadAcquire (&it.contention_score.erase);
+
+              a = ( i + c + a + r + e );
+
+              if ( idx > 0 && busiest.second.first < a )
+              {
+                busiest.first        = idx;
+                busiest.second.first = a;
+
+                LONG max_val =
+                  std::max (i, std::max (c, std::max (r, e)));
+
+                if (max_val == i)
+                  busiest.second.second.second = "operator []()";
+                else if (max_val == c)
+                  busiest.second.second.second = "contains ()";
+                else if (max_val == r)
+                  busiest.second.second.second = "reserve ()";
+                else if (max_val == e)
+                  busiest.second.second.second = "erase ()";
+
+                busiest.second.second.first    = max_val;
+              }
+
+              ++idx;
+
+              reserve_ += r; contains_ += c; erase_ += e; index_ += i;
+            }
+
+            if (busiest.first != 0)
+            {
+              ImGui::Separator  (                                 );
+              ImGui::BeginGroup (                                 );
+              ImGui::BulletText ( "HashMap Reserve:  "            );
+              ImGui::BulletText ( "HashMap Contains: "            );
+              ImGui::BulletText ( "HashMap Erase:    "            );
+              ImGui::BulletText ( "HashMap Index:    "            );
+              ImGui::Text       ( ""                              );
+              ImGui::BulletText ( "Most Contended:   "            );
+              ImGui::EndGroup   (                                 );
+              ImGui::SameLine   (                                 );
+              ImGui::BeginGroup (                                 );
+              ImGui::Text       ( "%li Ops", reserve_             );
+              ImGui::Text       ( "%li Ops", contains_            );
+              ImGui::Text       ( "%li Ops", erase_               );
+              ImGui::Text       ( "%li Ops", index_               );
+              ImGui::Text       ( ""                              );
+              ImGui::Text       ( "Mipmap LOD%02li ("
+                                            "%li :: <\"%s\">)",
+                                   busiest.first - 1,
+                                     busiest.second.second.first,
+                                     busiest.second.second.second );
+              ImGui::EndGroup   (                                 );
+            }
+          }
+          else
+          {
+            ImGui::Separator  (                                   );
+            ImGui::BulletText ( "Requires Application Restart"    );
+          }
+          ImGui::EndTooltip   (                                   );
+        }
 
         //ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.85f, 0.1f, 0.9f));
         //ImGui::SameLine (); ImGui::BulletText ("Requires restart");

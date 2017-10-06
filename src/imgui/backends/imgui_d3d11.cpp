@@ -158,7 +158,12 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     return;
 
   if (pDevCtx->Map (g_pIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
+  {
+    // If for some reason the first one succceeded, but this one failed.... unmap the first one
+    //   then abandon all hope.
+    pDevCtx->Unmap (g_pVB, 0);
     return;
+  }
 
   auto* vtx_dst = static_cast <ImDrawVert *> (vtx_resource.pData);
   auto* idx_dst = static_cast <ImDrawIdx  *> (idx_resource.pData);

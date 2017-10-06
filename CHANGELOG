@@ -1,3 +1,16 @@
+0.8.47.2/3
+
+ + Added rescale-to-fit behavior to Live Render Target and Texture View (D3D11)
+ + Added support for DisableIfTexture predicate to d3d11_shaders.ini
+
+  >> Right click a shader to access this menu (generally pixel shaders only)
+
+0.8.47.1
+
+ + Added per-tracked shader wireframe/on-top state and cleaned up D3D11 shader UI
+
+  >> Default is now to draw the tracked shader on-top
+
 0.8.47
 
  + Added support for D3D11 Shader state load/store (d3d11_shaders.ini)

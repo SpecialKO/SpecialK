@@ -29,6 +29,7 @@
 #include <concurrent_unordered_map.h>
 
 #include <string>
+#include <typeindex>
 #include <d3d11.h>
 #include <d3d11_1.h>
 
@@ -413,22 +414,25 @@ public:
   bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
 
   struct tex2D_descriptor_s {
-    ID3D11Texture2D      *texture    = nullptr;
-    D3D11_TEXTURE2D_DESC  desc       = { };
-    size_t                mem_size   = 0L;
-    uint64_t              load_time  = 0ULL;
-    uint32_t              tag        = 0x00; // Combined data and descriptor hash for collision mitigation
-    uint32_t              crc32c     = 0x00;
-    bool                  injected   = false;
-    uint32_t              hits       = 0;
-    uint64_t              last_used  = 0ULL;
+    ID3D11Texture2D      *texture     = nullptr;
+    D3D11_TEXTURE2D_DESC  desc        = { };
+    size_t                mem_size    = 0L;
+    uint64_t              load_time   = 0ULL;
+    uint32_t              tag         = 0x00; // Combined data and descriptor hash for collision mitigation
+    uint32_t              crc32c      = 0x00;
+    bool                  injected    = false;
+    bool                  too_dynamic = false;
+    volatile LONG         hits        = 0L;
+    uint32_t              last_frame  = 0UL;
+    uint64_t              last_used   = 0ULL;
   };
 
   std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
 
-  struct lod_hash_table_s {
+  struct lod_hash_table_s
+  {
     lod_hash_table_s (void) {
-      InitializeCriticalSectionAndSpinCount (&mutex, 6000);
+      InitializeCriticalSectionAndSpinCount (&mutex, 1500);
     }
 
     ~lod_hash_table_s (void)
@@ -436,14 +440,21 @@ public:
       DeleteCriticalSection (&mutex);
     }
 
-    void              reserve     (size_t   resrv)  { SK_AutoCriticalSection cs (&mutex);        entries.reserve (resrv);  }
-    bool              contains    (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); return entries.count   (crc32c); };
-    void              erase       (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex);        entries.erase   (crc32c); };
-    ID3D11Texture2D*& operator [] (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); return entries         [crc32c]; };
+    void              reserve     (size_t   resrv ) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.reserve);         entries.reserve (resrv ); };
+    bool              contains    (uint32_t crc32c) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.contains); return entries.count   (crc32c); };
+    void              erase       (uint32_t crc32c) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.erase);           entries.erase   (crc32c); };
+    ID3D11Texture2D*& operator [] (uint32_t crc32c) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.index);    return entries         [crc32c]; };
 
     std::unordered_map < uint32_t,
                          ID3D11Texture2D * > entries;
     CRITICAL_SECTION                         mutex;
+
+    struct {
+      volatile LONG reserve  = 0L;
+      volatile LONG contains = 0L;
+      volatile LONG erase    = 0L;
+      volatile LONG index    = 0L;
+    } contention_score;
   };
 
   std::vector        < lod_hash_table_s   >   HashMap_2D;
@@ -451,8 +462,13 @@ public:
                         uint32_t          >
                      >                        Blacklist_2D;
 
+#if 0
   concurrency::concurrent_unordered_map < ID3D11Texture2D *,
                                           tex2D_descriptor_s  >  Textures_2D;
+#else
+  std::unordered_map <ID3D11Texture2D *, tex2D_descriptor_s> Textures_2D;
+#endif
+
   std::vector        <ID3D11Texture2D  *>     TexFreeList_2D;
 
   volatile LONG64                             AggregateSize_2D  = 0ULL;
@@ -709,8 +725,6 @@ extern D3D11_CSSetShader_pfn                              D3D11_CSSetShader_Orig
 extern D3D11_CopyResource_pfn                             D3D11_CopyResource_Original;
 extern D3D11_CopySubresourceRegion_pfn                    D3D11_CopySubresourceRegion_Original;
 
-
-
 enum class SK_D3D11_ShaderType {
   Vertex   =  1,
   Pixel    =  2,
@@ -722,10 +736,12 @@ enum class SK_D3D11_ShaderType {
   Invalid  = MAXINT
 };
 
+
 struct SK_D3D11_ShaderDesc
 {
-  SK_D3D11_ShaderType type   = SK_D3D11_ShaderType::Invalid;
-  uint32_t            crc32c = 0UL;
+  SK_D3D11_ShaderType type    = SK_D3D11_ShaderType::Invalid;
+  uint32_t            crc32c  = 0UL;
+  IUnknown*           pShader = nullptr;
 
   std::vector <BYTE>  bytecode;
 
@@ -742,16 +758,16 @@ struct SK_D3D11_ShaderDesc
 struct SK_DisjointTimerQueryD3D11
 {
 
-  ID3D11Query* async  = nullptr;
-  bool         active = false;
+  volatile ID3D11Query* async  = nullptr;
+  volatile LONG         active = false;
 
   D3D11_QUERY_DATA_TIMESTAMP_DISJOINT last_results = { };
 };
 
 struct SK_TimerQueryD3D11
 {
-  ID3D11Query* async  = nullptr;
-  bool         active = false;
+  volatile ID3D11Query* async  = nullptr;
+  volatile LONG         active = FALSE;
 
   UINT64 last_results = { };
 };
@@ -762,12 +778,13 @@ struct d3d11_shader_tracking_s
   {
     //active    = false;
 
-    num_draws = 0;
+    InterlockedExchange (&num_draws, 0);
 
-    for ( auto it : used_views )
+    for ( auto it : set_of_views )
       it->Release ();
 
-    used_views.clear ();
+    set_of_views.clear ();
+    used_views.clear   ();
 
 
     for ( auto it : classes )
@@ -788,15 +805,19 @@ struct d3d11_shader_tracking_s
                     UINT                        NumClassInstances );
   void deactivate (void);
 
-  uint32_t                      crc32c       =  0x00;
-  bool                          cancel_draws = false;
-  bool                          active       = false;
-  int                           num_draws    =     0;
+  volatile uint32_t             crc32c          =  0x00;
+  volatile LONG                 cancel_draws    = false;
+  volatile LONG                 highlight_draws = false;
+  volatile LONG                 wireframe       = false;
+  volatile LONG                 on_top          =  true;
+  volatile LONG                 active          = false;
+  volatile LONG                 num_draws       =     0;
 
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
 
-  std::unordered_set <ID3D11ShaderResourceView *> used_views;
+  std::set    <ID3D11ShaderResourceView *> set_of_views;
+  std::vector <ID3D11ShaderResourceView *> used_views;
 
   IUnknown*                         shader_obj     = nullptr;
 
@@ -816,7 +837,7 @@ struct d3d11_shader_tracking_s
   // Cumulative runtime of all timers after the disjoint query
   //   is finished and reading these results would not stall
   //     the pipeline
-  UINT64                            runtime_ticks   = 0ULL;
+  volatile ULONG64                  runtime_ticks   = 0ULL;
   double                            runtime_ms      = 0.0;
   double                            last_runtime_ms = 0.0;
 
@@ -850,15 +871,36 @@ struct d3d11_shader_tracking_s
 //  };
 
 //  std::vector <shader_constant_s> constants;
+
+    SK_D3D11_ShaderType type_;
 };
 
 struct SK_D3D11_KnownShaders
 {
-  typedef std::unordered_map <uint32_t, std::unordered_set <ID3D11ShaderResourceView *>> conditional_blacklist_t;
+  typedef std::unordered_map <uint32_t, std::unordered_set <uint32_t>> conditional_blacklist_t;
 
-  template <typename _T> 
-  struct ShaderRegistry
+  template <typename _T>
+  class ShaderRegistry
   {
+  public:
+    ShaderRegistry (void)
+    {
+           if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11VertexShader)))
+        type_ = SK_D3D11_ShaderType::Vertex;
+      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11PixelShader)))
+        type_ = SK_D3D11_ShaderType::Pixel;
+      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11GeometryShader)))
+        type_ = SK_D3D11_ShaderType::Geometry;
+      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11DomainShader)))
+        type_ = SK_D3D11_ShaderType::Domain;
+      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11HullShader)))
+        type_ = SK_D3D11_ShaderType::Hull;
+      else if (std::type_index (typeid (_T)) == std::type_index (typeid (ID3D11ComputeShader)))
+        type_ = SK_D3D11_ShaderType::Compute;
+
+      tracked.type_ = type_;
+    }
+
     std::unordered_map <_T*, uint32_t>                   rev;
     std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>   descs;
 
@@ -870,21 +912,22 @@ struct SK_D3D11_KnownShaders
 
     conditional_blacklist_t                              blacklist_if_texture;
 
-    uint32_t                                             current = 0x0;
+    volatile uint32_t                                    current = 0x0;
     d3d11_shader_tracking_s                              tracked;
 
-    ULONG                                                changes_last_frame = 0;
+    volatile LONG                                        changes_last_frame = 0;
 
     std::array         <ID3D11ShaderResourceView *, 128> current_views;
+
+    SK_D3D11_ShaderType type_;
   };
 
-  ShaderRegistry <ID3D11PixelShader>    pixel;
+  ShaderRegistry <ID3D11PixelShader>    pixel; 
   ShaderRegistry <ID3D11VertexShader>   vertex;
   ShaderRegistry <ID3D11GeometryShader> geometry;
-  ShaderRegistry <ID3D11HullShader>     hull;
+  ShaderRegistry <ID3D11HullShader>     hull; 
   ShaderRegistry <ID3D11DomainShader>   domain;
   ShaderRegistry <ID3D11ComputeShader>  compute;
-
 } extern SK_D3D11_Shaders;
 
 
@@ -1048,8 +1091,8 @@ namespace SK
     {
       struct StatQueryD3D11  
       {
-        ID3D11Query* async  = nullptr;
-        bool         active = false;
+        volatile ID3D11Query* async  = nullptr;
+        volatile LONG         active = FALSE;
       } query;
 
       D3D11_QUERY_DATA_PIPELINE_STATISTICS

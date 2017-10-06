@@ -234,7 +234,8 @@ public:
   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
                            bool              try_only = false )
   {
-    cs_ = pCS;
+    acquired_ = false;
+    cs_       = pCS;
 
     if (try_only)
       TryEnter ();
@@ -251,6 +252,13 @@ public:
   bool try_result (void)
   {
     return acquired_;
+  }
+
+  void enter (void)
+  {
+    EnterCriticalSection (this->cs_);
+
+    acquired_ = true;
   }
 
 protected:

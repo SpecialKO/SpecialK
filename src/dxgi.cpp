@@ -67,7 +67,6 @@
 volatile LONG SK_D3D11_init_tid  = 0;
 volatile LONG SK_D3D11_ansel_tid = 0;
 
-extern CRITICAL_SECTION cs_shader;
 extern CRITICAL_SECTION cs_mmio;
 
 extern void

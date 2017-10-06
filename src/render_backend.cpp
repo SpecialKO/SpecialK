@@ -494,7 +494,7 @@ _Return_type_success_ (nullptr)
 IUnknown*
 SK_COM_ValidateRelease (IUnknown** ppObj)
 {
-  if ((! ppObj) || (! InterlockedCompareExchangePointer ((volatile LPVOID *)ppObj, nullptr, nullptr)))
+  if ((! ppObj) || (! ReadPointerAcquire ((volatile LPVOID *)ppObj)))
     return nullptr;
   
   ULONG refs =
