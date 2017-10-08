@@ -2242,27 +2242,24 @@ SK_ImGui_ControlPanel (void)
     {
       if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
       {
-        CComPtr <IDirect3DDevice9> pDev9 = nullptr;
+        CComQIPtr <IDirect3DDevice9> pDev9 (rb.device);
 
-        if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9> (&pDev9)))
+        if (pDev9 != nullptr)
         {
-          CComPtr <IDirect3DSwapChain9> pSwap9 = nullptr;
+          CComQIPtr <IDirect3DSwapChain9> pSwap9 (rb.swapchain);
 
-          if (rb.swapchain != nullptr)
+          if (pSwap9 != nullptr)
           {
-            if (SUCCEEDED (rb.swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwap9)))
-            {
-              SK_ImGui_SummarizeD3D9Swapchain (pSwap9);
-            }
+            SK_ImGui_SummarizeD3D9Swapchain (pSwap9);
           }
         }
       }
 
       else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
       {
-        CComPtr <IDXGISwapChain>pSwapDXGI = nullptr;
+        CComQIPtr <IDXGISwapChain> pSwapDXGI (rb.swapchain);
 
-        if (SUCCEEDED (rb.swapchain->QueryInterface <IDXGISwapChain>  (&pSwapDXGI)))
+        if (pSwapDXGI != nullptr)
         {
           SK_ImGui_SummarizeDXGISwapchain (pSwapDXGI);
         }

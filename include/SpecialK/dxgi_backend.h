@@ -408,23 +408,25 @@ public:
                                   uint32_t              tag,
                                   size_t                mem_size,
                                   uint64_t              load_time,
-                                  uint32_t              crc32c );
+                                  uint32_t              crc32c,
+                            const D3D11_TEXTURE2D_DESC *pOrigDesc = nullptr );
 
   void             reset         (void);
   bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
 
   struct tex2D_descriptor_s {
-    ID3D11Texture2D      *texture     = nullptr;
-    D3D11_TEXTURE2D_DESC  desc        = { };
-    size_t                mem_size    = 0L;
-    uint64_t              load_time   = 0ULL;
-    uint32_t              tag         = 0x00; // Combined data and descriptor hash for collision mitigation
-    uint32_t              crc32c      = 0x00;
-    bool                  injected    = false;
-    bool                  too_dynamic = false;
-    volatile LONG         hits        = 0L;
-    uint32_t              last_frame  = 0UL;
-    uint64_t              last_used   = 0ULL;
+    ID3D11Texture2D      *texture    = nullptr;
+    D3D11_TEXTURE2D_DESC  desc       = { };
+    D3D11_TEXTURE2D_DESC  orig_desc  = { };
+    size_t                mem_size   = 0L;
+    uint64_t              load_time  = 0ULL;
+    uint32_t              tag        = 0x00; // Combined data and descriptor hash for collision mitigation
+    uint32_t              crc32c     = 0x00;
+    bool                  injected   = false;
+    bool                  discard    = false;
+    volatile LONG         hits       = 0L;
+    uint32_t              last_frame = 0UL;
+    uint64_t              last_used  = 0ULL;
   };
 
   std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;

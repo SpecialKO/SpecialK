@@ -383,8 +383,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     if (rb.device == nullptr)
       SK_DXGI_UpdateSwapChain (This);
 
-                                   CComPtr <ID3D11DeviceContext>   pDevCtx = nullptr;
-    rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
+    CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
     // For CEGUI to work correctly, it is necessary to set the viewport dimensions
     //   to the back buffer size prior to bootstrap.
@@ -1956,10 +1955,10 @@ HRESULT
 
   else
   {
-    DXGI_PRESENT_PARAMETERS   pparams     = { };
-    CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
+    DXGI_PRESENT_PARAMETERS     pparams      = { };
+    CComQIPtr <IDXGISwapChain1> pSwapChain1 (This);
 
-    if (SUCCEEDED (This->QueryInterface <IDXGISwapChain1> (&pSwapChain1)))
+    if (pSwapChain1 != nullptr)
     {
       if (can_present)
       {
@@ -2000,9 +1999,9 @@ HRESULT
 
   if (bWait)
   {
-    CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
+    CComQIPtr <IDXGISwapChain2> pSwapChain2 (This);
 
-    if (SUCCEEDED (This->QueryInterface <IDXGISwapChain2> (&pSwapChain2)))
+    if (pSwapChain2 != nullptr)
     {
       if (pSwapChain2 != nullptr)
       {
@@ -3040,9 +3039,9 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     }
   }
 
-  CComPtr <ID3D11Device> pDev = nullptr;
+  CComQIPtr <ID3D11Device> pDev (pDevice);
 
-  if (SUCCEEDED (pDevice->QueryInterface <ID3D11Device> (&pDev)))
+  if (pDev != nullptr)
   {
     g_pD3D11Dev = pDev;
 
@@ -3078,9 +3077,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
     desc.BufferDesc.ScanlineOrdering = pFullscreenDesc->ScanlineOrdering;
   }
 
-  CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-
-  (*ppSwapChain1)->QueryInterface <IDXGISwapChain> (&pSwapChain);
+  CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
 
   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
 }
@@ -3587,9 +3584,9 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
     {
       if (! GetDesc2_Original)
       {
-        CComPtr <IDXGIAdapter2> pAdapter2 = nullptr;
+        CComQIPtr <IDXGIAdapter2> pAdapter2 (*ppAdapter);
 
-        if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter2> (&pAdapter2)))
+        if (pAdapter2 != nullptr)
         {
           DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
             GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
@@ -3602,9 +3599,9 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
     {
       if (! GetDesc1_Original)
       {
-        CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+        CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
 
-        if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter1> (&pAdapter1)))
+        if (pAdapter1 != nullptr)
         {
           DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
@@ -3657,12 +3654,9 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
   //
   // Windows 8 has a software implementation, which we can detect.
   //
-  CComPtr <IDXGIAdapter1> pAdapter1 = nullptr;
+  CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
 
-  HRESULT hr =
-    (*ppAdapter)->QueryInterface <IDXGIAdapter1> (&pAdapter1);
-
-  if (SUCCEEDED (hr))
+  if (pAdapter1 != nullptr)
   {
     DXGI_ADAPTER_DESC1 desc1 = { };
 
@@ -4204,8 +4198,9 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook)
 {
   SK_DXGI_HookPresentBase (pSwapChain, rehook);
 
-                                    CComPtr <IDXGISwapChain1>   pSwapChain1 = nullptr;
-  if (SUCCEEDED (pSwapChain->QueryInterface <IDXGISwapChain1> (&pSwapChain1)))
+  CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+  if (pSwapChain1 != nullptr)
   {
     SK_DXGI_HookPresent1 (pSwapChain1, rehook);
   }
@@ -4305,11 +4300,11 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                    CreateSwapChain_Original,
                                    CreateSwapChain_pfn );
 
-  CComPtr <IDXGIFactory1> pFactory1 = nullptr;
+  CComQIPtr <IDXGIFactory1> pFactory1 (pFactory);
 
   // 12 EnumAdapters1
   // 13 IsCurrent
-  if (SUCCEEDED (pFactory->QueryInterface <IDXGIFactory1> (&pFactory1)))
+  if (pFactory1 != nullptr)
   {
     DXGI_VIRTUAL_HOOK ( &pFactory1,     12,
                         "IDXGIFactory1::EnumAdapters1",
@@ -4348,9 +4343,9 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   // 22 RegisterOcclusionStatusEvent
   // 23 UnregisterOcclusionStatus
   // 24 CreateSwapChainForComposition
-  CComPtr <IDXGIFactory2> pFactory2 = nullptr;
+  CComQIPtr <IDXGIFactory2> pFactory2 (pFactory);
 
-  if ( SUCCEEDED (pFactory->QueryInterface <IDXGIFactory2> (&pFactory2)) ||
+  if ( pFactory2 != nullptr ||
        CreateDXGIFactory2_Import != nullptr )
   {
     if ( pFactory2 != nullptr ||
@@ -4570,9 +4565,9 @@ HookDXGI (LPVOID user)
           //   and we can deal with it later if it happens.
           SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
 
-          CComPtr <IDXGISwapChain1> pSwapChain1 = nullptr;
+          CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
 
-          if (SUCCEEDED (pSwapChain->QueryInterface <IDXGISwapChain1> (&pSwapChain1)))
+          if (pSwapChain1 != nullptr)
             SK_DXGI_HookPresent1 (pSwapChain1, false);
 
           CreateThread ( nullptr,
