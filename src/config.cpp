@@ -257,6 +257,7 @@ struct {
     sk::ParameterBool*    precise_hash;
     sk::ParameterBool*    dump;
     sk::ParameterBool*    inject;
+    sk::ParameterBool*    injection_keeps_format;
     sk::ParameterBool*    cache;
     sk::ParameterStringW* res_root;
   } d3d11;
@@ -1600,6 +1601,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Textures.D3D11",
           L"ResourceRoot" );
 
+    texture.d3d11.injection_keeps_format =
+      dynamic_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Allow image format to change during texture injection")
+        );
+    texture.d3d11.injection_keeps_format->register_to_ini (
+      dll_ini,
+        L"Textures.D3D11",
+          L"InjectionKeepsFormat" );
+
     texture.res_root =
       dynamic_cast <sk::ParameterStringW *>
         (g_ParameterFactory.create_parameter <std::wstring> (
@@ -2909,6 +2920,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.textures.d3d11.res_root = texture.d3d11.res_root->get_value ();
   if (texture.res_root->load ())
     config.textures.d3d11.res_root = texture.res_root->get_value ();
+  if (texture.d3d11.injection_keeps_format->load ())
+    config.textures.d3d11.injection_keeps_fmt = texture.d3d11.injection_keeps_format->get_value ();
   if (texture.dump_on_load->load ())
     config.textures.dump_on_load = texture.dump_on_load->get_value ();
 
@@ -3669,11 +3682,12 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.flip_discard->set_value      (config.render.framerate.flip_discard);
       render.framerate.allow_dwm_tearing->set_value (config.render.dxgi.allow_tearing);
 
-      texture.d3d11.cache->set_value        (config.textures.d3d11.cache);
-      texture.d3d11.precise_hash->set_value (config.textures.d3d11.precise_hash);
-      texture.d3d11.dump->set_value         (config.textures.d3d11.dump);
-      texture.d3d11.inject->set_value       (config.textures.d3d11.inject);
-      texture.d3d11.res_root->set_value     (config.textures.d3d11.res_root);
+      texture.d3d11.cache->set_value                  (config.textures.d3d11.cache);
+      texture.d3d11.precise_hash->set_value           (config.textures.d3d11.precise_hash);
+      texture.d3d11.dump->set_value                   (config.textures.d3d11.dump);
+      texture.d3d11.inject->set_value                 (config.textures.d3d11.inject);
+      texture.d3d11.injection_keeps_format->set_value (config.textures.d3d11.injection_keeps_fmt);
+      texture.d3d11.res_root->set_value               (config.textures.d3d11.res_root);
 
       texture.cache.max_entries->set_value (config.textures.cache.max_entries);
       texture.cache.min_entries->set_value (config.textures.cache.min_entries);
@@ -3682,8 +3696,8 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.max_size->set_value    (config.textures.cache.max_size);
       texture.cache.min_size->set_value    (config.textures.cache.min_size);
 
-      texture.cache.ignore_non_mipped->set_value (config.textures.cache.ignore_nonmipped);
-      texture.cache.allow_staging->set_value     (config.textures.cache.allow_staging);
+      texture.cache.ignore_non_mipped->set_value (  config.textures.cache.ignore_nonmipped);
+      texture.cache.allow_staging->set_value     (  config.textures.cache.allow_staging);
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,
@@ -3923,11 +3937,12 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.flip_discard->store      ();
       render.framerate.allow_dwm_tearing->store ();
 
-      texture.d3d11.cache->store        ();
-      texture.d3d11.precise_hash->store ();
-      texture.d3d11.dump->store         ();
-      texture.d3d11.inject->store       ();
-      texture.d3d11.res_root->store     ();
+      texture.d3d11.cache->store                  ();
+      texture.d3d11.precise_hash->store           ();
+      texture.d3d11.dump->store                   ();
+      texture.d3d11.inject->store                 ();
+      texture.d3d11.injection_keeps_format->store ();
+      texture.d3d11.res_root->store               ();
 
       texture.cache.max_entries->store ();
       texture.cache.min_entries->store ();

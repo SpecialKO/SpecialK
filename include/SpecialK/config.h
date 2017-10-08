@@ -272,41 +272,42 @@ struct sk_config_t
   } render;
 
   struct {
-    bool      force_fullscreen  = false;
-    bool      force_windowed    = false;
-    int       monitor_idx       =    -1; // TODO
-    float     refresh_rate      =  0.0f; // TODO
+    bool      force_fullscreen    = false;
+    bool      force_windowed      = false;
+    int       monitor_idx         =    -1; // TODO
+    float     refresh_rate        =  0.0f; // TODO
   } display;
 
   struct {
     struct {
-      bool    precise_hash      = false;
-      bool    dump              = false;
-      bool    inject            = true;
-      bool    cache             = true;
+      bool    precise_hash        = false;
+      bool    dump                = false;
+      bool    inject              = true;
+      bool    cache               = true;
       std::wstring
-              res_root          = L"SK_Res";
-      bool    highlight_debug   = true;
+              res_root            = L"SK_Res";
+      bool    highlight_debug     = true;
+      bool    injection_keeps_fmt = false;
     } d3d11;
     struct {
-      int     min_evict         = 64;
-      int     max_evict         = 1024;
-      int     min_entries       = 512;
-      int     max_entries       = 16384; // Bump max up from 8192 since the hashmap
-                                         //   is now segmented by number of mipmap LODs;
-                                         //
-                                         //  Overhead of managing a large hashmap is
-                                         //    much lower.
-      int     min_size          = 384L;
-      int     max_size          = 2048L;
-      bool    ignore_nonmipped  = false;
-      bool    allow_staging     = false;
+      int     min_evict           = 64;
+      int     max_evict           = 1024;
+      int     min_entries         = 512;
+      int     max_entries         = 16384; // Bump max up from 8192 since the hashmap
+                                           //   is now segmented by number of mipmap LODs;
+                                           //
+                                           //  Overhead of managing a large hashmap is
+                                           //    much lower.
+      int     min_size            = 384L;
+      int     max_size            = 2048L;
+      bool    ignore_nonmipped    = false;
+      bool    allow_staging       = false;
     } cache;
 
-    bool highlight_debug_tex    = false;
-    bool on_demand_dump         = false;
-    bool d3d9_mod               = true;
-    bool dump_on_load           = false;
+    bool highlight_debug_tex      = false;
+    bool on_demand_dump           = false;
+    bool d3d9_mod                 = true;
+    bool dump_on_load             = false;
   } textures;
 
   struct {

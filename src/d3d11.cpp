@@ -6560,6 +6560,7 @@ SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWS
 }
 
 
+__forceinline
 HRESULT
 WINAPI
 D3D11Dev_CreateTexture2D_Impl (
@@ -6844,10 +6845,10 @@ D3D11Dev_CreateTexture2D_Impl (
           load_info.Filter         = D3DX11_DEFAULT;
           load_info.FirstMipLevel  = 0;
 
-          //if (ffx)
-          //  load_info.Format       = pDesc->Format;
-          //else
-            load_info.Format       = img_info.Format;//pDesc->Format;
+          if (config.textures.d3d11.injection_keeps_fmt)
+            load_info.Format       = pDesc->Format;
+          else
+            load_info.Format       = img_info.Format;
 
           load_info.Height         = img_info.Height;
           load_info.MipFilter      = D3DX11_DEFAULT;
