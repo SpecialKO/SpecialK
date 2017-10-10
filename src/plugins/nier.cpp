@@ -115,17 +115,17 @@ sk::ParameterStringW* far_focus_lock            = nullptr;
 sk::ParameterStringW* far_free_look             = nullptr;
 
 
-D3D11Dev_CreateBuffer_pfn              _D3D11Dev_CreateBuffer_Original              = nullptr;
-D3D11Dev_CreateShaderResourceView_pfn  _D3D11Dev_CreateShaderResourceView_Original  = nullptr;
-D3D11Dev_CreateTexture2D_pfn           _D3D11Dev_CreateTexture2D_Original           = nullptr;
-D3D11_DrawIndexed_pfn                  _D3D11_DrawIndexed_Original                  = nullptr;
-D3D11_Draw_pfn                         _D3D11_Draw_Original                         = nullptr;
-D3D11_DrawIndexedInstanced_pfn         _D3D11_DrawIndexedInstanced_Original         = nullptr;
-D3D11_DrawIndexedInstancedIndirect_pfn _D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
-D3D11_DrawInstanced_pfn                _D3D11_DrawInstanced_Original                = nullptr;
-D3D11_DrawInstancedIndirect_pfn        _D3D11_DrawInstancedIndirect_Original        = nullptr;
-D3D11_UpdateSubresource_pfn            _D3D11_UpdateSubresource_Original            = nullptr;
-D3D11_PSSetConstantBuffers_pfn         _D3D11_PSSetConstantBuffers_Original         = nullptr;
+static D3D11Dev_CreateBuffer_pfn              _D3D11Dev_CreateBuffer_Original              = nullptr;
+static D3D11Dev_CreateShaderResourceView_pfn  _D3D11Dev_CreateShaderResourceView_Original  = nullptr;
+static D3D11Dev_CreateTexture2D_pfn           _D3D11Dev_CreateTexture2D_Original           = nullptr;
+static D3D11_DrawIndexed_pfn                  _D3D11_DrawIndexed_Original                  = nullptr;
+static D3D11_Draw_pfn                         _D3D11_Draw_Original                         = nullptr;
+static D3D11_DrawIndexedInstanced_pfn         _D3D11_DrawIndexedInstanced_Original         = nullptr;
+static D3D11_DrawIndexedInstancedIndirect_pfn _D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
+static D3D11_DrawInstanced_pfn                _D3D11_DrawInstanced_Original                = nullptr;
+static D3D11_DrawInstancedIndirect_pfn        _D3D11_DrawInstancedIndirect_Original        = nullptr;
+static D3D11_UpdateSubresource_pfn            _D3D11_UpdateSubresource_Original            = nullptr;
+static D3D11_PSSetConstantBuffers_pfn         _D3D11_PSSetConstantBuffers_Original         = nullptr;
 
 
 struct

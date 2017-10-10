@@ -1506,8 +1506,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (SUCCEEDED (hr))
     {
-      SK_TLS_Push ();
-      SK_TLS_Top  ()->imgui.drawing = true;
+      SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+      SK_TLS_Bottom ()->imgui.drawing = true;
 
       std::unique_ptr <SK_D3D11_Stateblock_Lite> sb (
         new SK_D3D11_Stateblock_Lite { }
@@ -1577,8 +1577,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
         rb.gsync_state.update ();
       }
-
-      SK_TLS_Pop ();
     }
   }
 
@@ -2791,11 +2789,11 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
         switch (pDesc->BufferDesc.Format)
         {
           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-            pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS;
+            pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
             break;
           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
             break;
           case DXGI_FORMAT_R10G10B10A2_UNORM:
@@ -4451,7 +4449,7 @@ HookDXGI (LPVOID user)
 
   InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
-#if 0//def _WIN64
+#ifdef _WIN64
   extern LPVOID pfnD3D11CreateDevice;
 
   hr =
@@ -4511,6 +4509,8 @@ HookDXGI (LPVOID user)
       {
         InterlockedExchange (&__dxgi_ready, TRUE);
       }
+
+      pDevice->GetImmediateContext (d3d11_hook_ctx.ppImmediateContext);
 
       HookD3D11           (&d3d11_hook_ctx);
       SK_DXGI_HookFactory (pFactory);

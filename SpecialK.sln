@@ -18,9 +18,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libzma", "depends\src\lzma\libzma\libzma.vcxproj", "{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|VS2017 (x64) = Debug|VS2017 (x64)
 		Debug|VS2017 (x86) = Debug|VS2017 (x86)
@@ -135,8 +132,8 @@ Global
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x64.Build.0 = Debug|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x86.ActiveCfg = Debug|Win32
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x86.Build.0 = Debug|Win32
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.FAR|VS2017 (x64).ActiveCfg = FAR|x64
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.FAR|VS2017 (x64).Build.0 = FAR|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.FAR|VS2017 (x64).ActiveCfg = Release|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.FAR|VS2017 (x64).Build.0 = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.FAR|VS2017 (x86).ActiveCfg = FAR|Win32
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.FAR|x64.ActiveCfg = FAR|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.FAR|x64.Build.0 = FAR|x64
@@ -324,5 +321,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

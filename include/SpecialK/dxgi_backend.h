@@ -481,6 +481,10 @@ public:
   volatile LONG                               Evicted_2D        = 0UL;
   volatile LONG64                             Budget            = 0ULL;
   float                                       RedundantTime_2D  = 0.0f;
+
+  volatile LONG64                             LastModified_2D   = 0ULL;
+  volatile LONG64                             LastPurge_2D      = 0ULL;
+
   LARGE_INTEGER                               PerfFreq;
 } extern SK_D3D11_Textures;
 
@@ -911,6 +915,14 @@ struct SK_D3D11_KnownShaders
 
     std::unordered_set <uint32_t>                        on_top;
     std::unordered_set <uint32_t>                        rewind;
+
+    std::unordered_map <uint32_t, std::wstring>          names;
+
+    struct {
+      uint32_t before    = 0x0;
+      uint32_t after     = 0x0;
+      bool     triggered = false;
+    } trigger_reshade;
 
     conditional_blacklist_t                              blacklist_if_texture;
 

@@ -42,24 +42,28 @@
 
 bool config_files_changed = false;
 
-static ISzAlloc g_Alloc = { SzAlloc, SzFree };
+static ISzAlloc g_Alloc  = { SzAlloc, SzFree };
+static bool     crc_init = false;
 
 std::vector <sk_file_entry_s>
 SK_Get7ZFileContents (const wchar_t* wszArchive)
 {
-  CrcGenerateTable ();
+  if (! crc_init)
+  {
+    CrcGenerateTable ();
+    crc_init = true;
+  }
 
-  CFileInStream arc_stream  = { };
-  CLookToRead   look_stream = { };
+  CFileInStream arc_stream       = { };
+  CLookToRead   look_stream      = { };
+  ISzAlloc      thread_alloc     = { };
+  ISzAlloc      thread_tmp_alloc = { };
 
   FileInStream_CreateVTable (&arc_stream);
   LookToRead_CreateVTable   (&look_stream, False);
 
   look_stream.realStream = &arc_stream.s;
   LookToRead_Init         (&look_stream);
-
-  ISzAlloc      thread_alloc;
-  ISzAlloc      thread_tmp_alloc;
 
   thread_alloc.Alloc     = SzAlloc;
   thread_alloc.Free      = SzFree;
@@ -117,6 +121,13 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                   bool                      backup,
                   SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
+  if (! crc_init)
+  {
+    CrcGenerateTable ();
+    crc_init = true;
+  }
+
+
   // Don't back stuff up if we're installing :P
   if (SK_IsHostAppSKIM ())
     backup = false;
@@ -166,10 +177,10 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   }
 
 
-  CrcGenerateTable ();
-
-  CFileInStream arc_stream;
-  CLookToRead   look_stream;
+  CFileInStream arc_stream       = { };
+  CLookToRead   look_stream      = { };
+  ISzAlloc      thread_alloc     = { };
+  ISzAlloc      thread_tmp_alloc = { };
 
   FileInStream_CreateVTable (&arc_stream);
   LookToRead_CreateVTable   (&look_stream, False);
@@ -177,17 +188,13 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   look_stream.realStream = &arc_stream.s;
   LookToRead_Init         (&look_stream);
 
-  ISzAlloc      thread_alloc;
-  ISzAlloc      thread_tmp_alloc;
-
   thread_alloc.Alloc     = SzAlloc;
   thread_alloc.Free      = SzFree;
 
   thread_tmp_alloc.Alloc = SzAllocTemp;
   thread_tmp_alloc.Free  = SzFreeTemp;
 
-  CSzArEx      arc;
-
+  CSzArEx       arc = { };
   SzArEx_Init (&arc);
 
   uint32_t block_idx     = 0xFFFFFFFF;

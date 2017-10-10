@@ -64,9 +64,9 @@ IMGUI_API
 void
 ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 {
-  SK_ScopedTLS tls_scope;
+  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
-  SK_TLS_Top ()->imgui.drawing = true;
+  SK_TLS_Bottom ()->imgui.drawing = true;
 
   ImGuiIO& io =
     ImGui::GetIO ();
@@ -341,11 +341,12 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 static void
 ImGui_ImplDX11_CreateFontsTexture (void)
 {
-  SK_ScopedTLS tls_scope;
+  SK_ScopedBool auto_bool0 (&SK_TLS_Bottom ()->texture_management.injection_thread);
+  SK_ScopedBool auto_bool1 (&SK_TLS_Bottom ()->imgui.drawing                      );
 
   // Do not dump ImGui font textures
   SK_TLS_Bottom ()->texture_management.injection_thread = true;
-  SK_TLS_Top    ()->imgui.drawing                       = true;
+  SK_TLS_Bottom ()->imgui.drawing                       = true;
 
   // Build texture atlas
   ImGuiIO& io (ImGui::GetIO ());
@@ -434,10 +435,10 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 bool
 ImGui_ImplDX11_CreateDeviceObjects (void)
 {
-  SK_ScopedTLS tls_scope;
+  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
   // Do not dump ImGui font textures
-  SK_TLS_Top ()->imgui.drawing = true;
+  SK_TLS_Bottom ()->imgui.drawing = true;
 
   if (g_pFontSampler)
     ImGui_ImplDX11_InvalidateDeviceObjects ();
@@ -681,10 +682,10 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   //if (! g_pd3dDevice)
   //  return;
 
-  SK_ScopedTLS tls_scope;
+  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
   // Do not dump ImGui font textures
-  SK_TLS_Top ()->imgui.drawing = true;
+  SK_TLS_Bottom ()->imgui.drawing = true;
 
   SK_ImGui_ResetExternal ();
 
@@ -764,10 +765,10 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
 void
 ImGui_ImplDX11_Shutdown (void)
 {
-  SK_ScopedTLS tls_scope;
+  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
   // Do not dump ImGui font textures
-  SK_TLS_Top ()->imgui.drawing = true;
+  SK_TLS_Bottom ()->imgui.drawing = true;
 
   ImGui_ImplDX11_InvalidateDeviceObjects ();
   ImGui::Shutdown                        ();
@@ -847,17 +848,17 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (This);
 
 
-  SK_ScopedTLS tls_scope;
-
-  // Do not dump ImGui font textures
-  SK_TLS_Top ()->imgui.drawing = true;
-
-
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
     return;
+
+  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+
+  // Do not dump ImGui font textures
+  SK_TLS_Bottom ()->imgui.drawing = true;
+
 
   assert (This == rb.swapchain);
 

@@ -1421,6 +1421,9 @@ Exit 0</Command>
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
     <ProjectReference />
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">
     <ClCompile>

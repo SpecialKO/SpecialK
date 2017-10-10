@@ -109,7 +109,7 @@ struct SK_TLS
   struct stack
   {
                  int current = 0;
-    static const int max     = 16;
+    static const int max     = 2;
 
 
   } stack;
@@ -121,23 +121,27 @@ SK_TLS* __stdcall SK_TLS_Get    (void); // Alias: SK_TLS_Top
 SK_TLS* __stdcall SK_TLS_Top    (void);
 SK_TLS* __stdcall SK_TLS_Bottom (void);
 
-bool    __stdcall SK_TLS_Push   (void);
-bool    __stdcall SK_TLS_Pop    (void);
+//bool    __stdcall SK_TLS_Push   (void);
+//bool    __stdcall SK_TLS_Pop    (void);
 
 void    __stdcall SK_TLS_Push   (SK_TLS_STACK_MASK mask);
 void    __stdcall SK_TLS_Pop    (SK_TLS_STACK_MASK mask);
 
-
-class SK_ScopedTLS
+class SK_ScopedBool
 {
 public:
-  SK_ScopedTLS (void)
+  SK_ScopedBool (BOOL* pBool)
   {
-    SK_TLS_Push ();
+    pBool_ =  pBool;
+    bOrig_ = *pBool;
   }
 
-  ~SK_ScopedTLS (void)
+  ~SK_ScopedBool (void)
   {
-    SK_TLS_Pop ();
+    *pBool_ = bOrig_;
   }
+
+private:
+  BOOL* pBool_;
+  BOOL  bOrig_;
 };

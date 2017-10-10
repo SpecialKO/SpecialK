@@ -2877,7 +2877,6 @@ SK_ImGui_ControlPanel (void)
 
           if (orig_cache)
           {
-            LONG reserve_  = 0L;
             LONG contains_ = 0L;
             LONG erase_    = 0L;
             LONG index_    = 0L;
@@ -2891,10 +2890,9 @@ SK_ImGui_ControlPanel (void)
               LONG i = ReadAcquire (&it.contention_score.index);
               LONG c = ReadAcquire (&it.contention_score.contains);
               LONG a = 0L;
-              LONG r = ReadAcquire (&it.contention_score.reserve);
               LONG e = ReadAcquire (&it.contention_score.erase);
 
-              a = ( i + c + a + r + e );
+              a = ( i + c + a + e );
 
               if ( idx > 0 && busiest.second.first < a )
               {
@@ -2902,14 +2900,12 @@ SK_ImGui_ControlPanel (void)
                 busiest.second.first = a;
 
                 LONG max_val =
-                  std::max (i, std::max (c, std::max (r, e)));
+                  std::max (i, std::max (c, e));
 
                 if (max_val == i)
                   busiest.second.second.second = "operator []()";
                 else if (max_val == c)
                   busiest.second.second.second = "contains ()";
-                else if (max_val == r)
-                  busiest.second.second.second = "reserve ()";
                 else if (max_val == e)
                   busiest.second.second.second = "erase ()";
 
@@ -2918,14 +2914,13 @@ SK_ImGui_ControlPanel (void)
 
               ++idx;
 
-              reserve_ += r; contains_ += c; erase_ += e; index_ += i;
+              contains_ += c; erase_ += e; index_ += i;
             }
 
             if (busiest.first != 0)
             {
               ImGui::Separator  (                                 );
               ImGui::BeginGroup (                                 );
-              ImGui::BulletText ( "HashMap Reserve:  "            );
               ImGui::BulletText ( "HashMap Contains: "            );
               ImGui::BulletText ( "HashMap Erase:    "            );
               ImGui::BulletText ( "HashMap Index:    "            );
@@ -2934,7 +2929,6 @@ SK_ImGui_ControlPanel (void)
               ImGui::EndGroup   (                                 );
               ImGui::SameLine   (                                 );
               ImGui::BeginGroup (                                 );
-              ImGui::Text       ( "%li Ops", reserve_             );
               ImGui::Text       ( "%li Ops", contains_            );
               ImGui::Text       ( "%li Ops", erase_               );
               ImGui::Text       ( "%li Ops", index_               );
