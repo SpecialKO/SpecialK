@@ -942,6 +942,14 @@ SK_InitCore (const wchar_t* backend, void* callback)
 #ifdef _WIN64
   if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
     SK_FAR_InitPlugin ();
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::BlueReflection)
+  {
+    extern void
+    SK_IT_InitPlugin (void);
+
+    SK_IT_InitPlugin ();
+  }
 #endif
 
 

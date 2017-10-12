@@ -596,6 +596,7 @@ enum class SK_GAME_ID
   DivinityOriginalSin,          // EoCApp.exe
   Hob,                          // Hob.exe and HobLauncher.exe
   DukeNukemForever,             // DukeForever.exe
+  BlueReflection,               // BLUE_REFLECTION.exe
   UNKNOWN_GAME               = 0xffff
 };
 

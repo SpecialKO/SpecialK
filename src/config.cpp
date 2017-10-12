@@ -2269,6 +2269,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          );
   games.emplace ( L"Hob.exe",                                SK_GAME_ID::Hob                          );
   games.emplace ( L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             );
+  games.emplace ( L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               );
 
   //
   // Application Compatibility Overrides

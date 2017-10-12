@@ -919,9 +919,8 @@ struct SK_D3D11_KnownShaders
     std::unordered_map <uint32_t, std::wstring>          names;
 
     struct {
-      uint32_t before    = 0x0;
-      uint32_t after     = 0x0;
-      bool     triggered = false;
+      std::set <uint32_t> before;
+      std::set <uint32_t> after;
     } trigger_reshade;
 
     conditional_blacklist_t                              blacklist_if_texture;
@@ -935,6 +934,8 @@ struct SK_D3D11_KnownShaders
 
     SK_D3D11_ShaderType type_;
   };
+
+  static bool reshade_triggered;
 
   ShaderRegistry <ID3D11PixelShader>    pixel; 
   ShaderRegistry <ID3D11VertexShader>   vertex;

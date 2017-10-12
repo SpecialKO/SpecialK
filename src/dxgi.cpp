@@ -651,6 +651,9 @@ extern HRESULT STDMETHODCALLTYPE
 
 extern HRESULT STDMETHODCALLTYPE
             SK_FAR_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
+
+extern HRESULT STDMETHODCALLTYPE
+            SK_IT_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
 #endif
 
 extern DWORD WINAPI SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID);
@@ -1840,6 +1843,9 @@ HRESULT
 
     else if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
       SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
+
+    else if (! lstrcmpW (SK_GetHostApp (), L"BLUE_REFLECTION.exe"))
+      SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
 #endif
 
     // TODO: Clean this code up
@@ -2241,12 +2247,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                      L"%s, %ph",
                       Fullscreen ? L"{ Fullscreen }" :
                                    L"{ Windowed }",     pTarget );
-
-  {
-    SK_AutoCriticalSection auto_mmio_cs (&cs_mmio);
-
-    SK_D3D11_EndFrame ();
-  }
 
   InterlockedExchange (&__gui_reset, TRUE);
 
@@ -4464,6 +4464,16 @@ HookDXGI (LPVOID user)
                     &pDevice,
                       &featureLevel,
                         &pImmediateContext );
+
+      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+      {
+        // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+        SK_LoadPlugIns64 ();
+#else
+        SK_LoadPlugIns32 ();
+#endif
+      }
 #else
   // We have to take this codepath through the x86 ABI for compat.
   //   with FFX / X-2 HD
@@ -4480,6 +4490,15 @@ HookDXGI (LPVOID user)
                     &pDevice,
                       &featureLevel,
                         &pImmediateContext );
+      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+      {
+        // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+        SK_LoadPlugIns64 ();
+#else
+        SK_LoadPlugIns32 ();
+#endif
+      }
 #endif
 
   if (SUCCEEDED (hr))
@@ -4494,21 +4513,6 @@ HookDXGI (LPVOID user)
     {
       d3d11_hook_ctx.ppDevice           = &pDevice;
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
-
-      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-      {
-        // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-        SK_LoadPlugIns64 ();
-#else
-        SK_LoadPlugIns32 ();
-#endif
-      }
-
-      else
-      {
-        InterlockedExchange (&__dxgi_ready, TRUE);
-      }
 
       pDevice->GetImmediateContext (d3d11_hook_ctx.ppImmediateContext);
 
