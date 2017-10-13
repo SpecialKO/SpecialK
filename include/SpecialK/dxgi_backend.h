@@ -387,13 +387,13 @@ public:
     HashMap_2D [15].reserve  (   8);
     HashMap_2D [16].reserve  (   4);
 
-    InterlockedExchange64 (&AggregateSize_2D, 0LL);
-    InterlockedExchange64 (&RedundantData_2D, 0LL);
-    InterlockedExchange   (&RedundantLoads_2D, 0L);
-    InterlockedExchange   (&Entries_2D,        0L);
-    InterlockedExchange   (&CacheMisses_2D,    0L);
-    InterlockedExchange   (&Evicted_2D,        0L);
-    InterlockedExchange64 (&Budget,           0LL);
+    AggregateSize_2D  = 0ULL;
+    RedundantData_2D  = 0ULL;
+    RedundantLoads_2D = 0UL;
+    Entries_2D        = 0UL;
+    CacheMisses_2D    = 0UL;
+    Evicted_2D        = 0UL;
+    Budget            = 0ULL;
   }
 
   bool             isTexture2D  (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc);
@@ -473,17 +473,17 @@ public:
 
   std::vector        <ID3D11Texture2D  *>     TexFreeList_2D;
 
-  volatile LONG64                             AggregateSize_2D  = 0ULL;
-  volatile LONG64                             RedundantData_2D  = 0ULL;
-  volatile LONG                               RedundantLoads_2D = 0UL;
-  volatile LONG                               Entries_2D        = 0UL;
-  volatile LONG                               CacheMisses_2D    = 0UL;
-  volatile LONG                               Evicted_2D        = 0UL;
-  volatile LONG64                             Budget            = 0ULL;
+  std::atomic_uint64_t                        AggregateSize_2D  = 0ULL;
+  std::atomic_uint64_t                        RedundantData_2D  = 0ULL;
+  std::atomic_uint32_t                        RedundantLoads_2D = 0UL;
+  std::atomic_uint32_t                        Entries_2D        = 0UL;
+  std::atomic_uint32_t                        CacheMisses_2D    = 0UL;
+  std::atomic_uint32_t                        Evicted_2D        = 0UL;
+  std::atomic_uint64_t                        Budget            = 0ULL;
   float                                       RedundantTime_2D  = 0.0f;
 
-  volatile LONG64                             LastModified_2D   = 0ULL;
-  volatile LONG64                             LastPurge_2D      = 0ULL;
+  std::atomic_int64_t                         LastModified_2D   = 0ULL;
+  std::atomic_int64_t                         LastPurge_2D      = 0ULL;
 
   LARGE_INTEGER                               PerfFreq;
 } extern SK_D3D11_Textures;
@@ -784,7 +784,7 @@ struct d3d11_shader_tracking_s
   {
     //active    = false;
 
-    InterlockedExchange (&num_draws, 0);
+    num_draws = 0;
 
     for ( auto it : set_of_views )
       it->Release ();
@@ -807,17 +807,18 @@ struct d3d11_shader_tracking_s
   void use (IUnknown* pShader);
 
   // Used for timing queries and interface tracking
-  void activate   ( ID3D11ClassInstance *const *ppClassInstances,
+  void activate   ( ID3D11DeviceContext        *pDevContext,
+                    ID3D11ClassInstance *const *ppClassInstances,
                     UINT                        NumClassInstances );
   void deactivate (void);
 
-  volatile uint32_t             crc32c          =  0x00;
-  volatile LONG                 cancel_draws    = false;
-  volatile LONG                 highlight_draws = false;
-  volatile LONG                 wireframe       = false;
-  volatile LONG                 on_top          =  true;
-  volatile LONG                 active          = false;
-  volatile LONG                 num_draws       =     0;
+  std::atomic_uint32_t          crc32c          =  0x00;
+  std::atomic_bool              cancel_draws    = false;
+  std::atomic_bool              highlight_draws = false;
+  std::atomic_bool              wireframe       = false;
+  std::atomic_bool              on_top          =  true;
+  std::atomic_bool              active          = false;
+  std::atomic_ulong             num_draws       =     0;
 
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;
@@ -843,7 +844,7 @@ struct d3d11_shader_tracking_s
   // Cumulative runtime of all timers after the disjoint query
   //   is finished and reading these results would not stall
   //     the pipeline
-  volatile ULONG64                  runtime_ticks   = 0ULL;
+  std::atomic_uint64_t              runtime_ticks   = 0ULL;
   double                            runtime_ms      = 0.0;
   double                            last_runtime_ms = 0.0;
 
@@ -919,18 +920,21 @@ struct SK_D3D11_KnownShaders
     std::unordered_map <uint32_t, std::wstring>          names;
 
     struct {
-      std::set <uint32_t> before;
-      std::set <uint32_t> after;
+      std::unordered_set <uint32_t> before;
+      std::unordered_set <uint32_t> after;
     } trigger_reshade;
 
     conditional_blacklist_t                              blacklist_if_texture;
-
-    volatile uint32_t                                    current = 0x0;
     d3d11_shader_tracking_s                              tracked;
 
-    volatile LONG                                        changes_last_frame = 0;
+    struct {
+      std::unordered_map < ID3D11DeviceContext*, uint32_t>      shader;
+      std::unordered_map < ID3D11DeviceContext*,
+                           std::array 
+                             <ID3D11ShaderResourceView *, 128>> views;
+    } current;
 
-    std::array         <ID3D11ShaderResourceView *, 128> current_views;
+    volatile LONG                                        changes_last_frame = 0;
 
     SK_D3D11_ShaderType type_;
   };
@@ -943,7 +947,9 @@ struct SK_D3D11_KnownShaders
   ShaderRegistry <ID3D11HullShader>     hull; 
   ShaderRegistry <ID3D11DomainShader>   domain;
   ShaderRegistry <ID3D11ComputeShader>  compute;
-} extern SK_D3D11_Shaders;
+};
+
+extern SK_D3D11_KnownShaders SK_D3D11_Shaders;
 
 
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(

@@ -20,7 +20,7 @@
 
 #include <atlbase.h>
 
-#define IT_VERSION_NUM L"0.0.2"
+#define IT_VERSION_NUM L"0.0.4"
 #define IT_VERSION_STR L"Indigo Translation v " IT_VERSION_NUM
 
 volatile LONG __IT_init = FALSE;
@@ -125,11 +125,16 @@ struct
   float max_intensity = 30.0f;
 } shaft_prefs;
 
-__declspec (thread) std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE> mapped_shafts;
-__declspec (thread) std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE> mapped_shadows;
+float fSteps [3] =  { 0.0002f, 0.0004f, 0.001f };
+
+float fBiasMultipliers [3][4] = { { 1.3000f, 1.1000f, 1.0000f, 0.6800f },
+                                  { 2.1000f, 1.3400f, 1.0910f, 1.3483f },
+                                  { 1.1500f, 1.2600f, 1.0000f, 0.9300f } };
+
+std::unordered_map <ID3D11DeviceContext *, std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>> mapped_shafts;
+std::unordered_map <ID3D11DeviceContext *, std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>> mapped_shadows;
 
 bool  dump_bias       = false;
-float fBiasScale      = 1.0f;
 float min_shadow_bias = 0.0f;
 
 HRESULT
@@ -163,17 +168,17 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
     {
       CComQIPtr <ID3D11Buffer> pBuffer (pResource);
 
-      D3D11_BUFFER_DESC desc;
-      pBuffer->GetDesc (&desc);
+      D3D11_BUFFER_DESC  buffer_desc;
+      pBuffer->GetDesc (&buffer_desc);
 
-      if (desc.ByteWidth == sizeof (light_shaft_s) + 8)
+      if (buffer_desc.ByteWidth == sizeof (light_shaft_s) + 8)
       {
-        mapped_shafts.emplace (std::make_pair (pResource, *pMappedResource));
+        mapped_shafts [This].emplace (std::make_pair (pResource, *pMappedResource));
       }
 
-      if (desc.ByteWidth == 16)
+      if (buffer_desc.ByteWidth == 16)
       {
-        mapped_shadows.emplace (std::make_pair (pResource, *pMappedResource));
+        mapped_shadows [This].emplace (std::make_pair (pResource, *pMappedResource));
       }
     }
   }
@@ -195,10 +200,10 @@ SK_IT_Unmap (
 
   if (rDim == D3D11_RESOURCE_DIMENSION_BUFFER)
   {
-    if (mapped_shafts.count (pResource))
+    if (mapped_shafts [This].count (pResource))
     {
       light_shaft_s * pShaft =
-     (light_shaft_s *)mapped_shafts [pResource].pData;
+     (light_shaft_s *)mapped_shafts [This][pResource].pData;
 
       if (! pShaft)
         return;
@@ -217,14 +222,14 @@ SK_IT_Unmap (
         shaft = *pShaft;
       }
 
-      mapped_shafts.erase (pResource);
+      mapped_shafts [This].erase (pResource);
     }
 
-    else if (mapped_shadows.count (pResource))
+    else if (mapped_shadows [This].count (pResource))
     {
-      if (SK_D3D11_Shaders.pixel.current == 0x2117b8e3)
+      if (SK_D3D11_Shaders.pixel.current.shader [This] == 0x2117b8e3)
       {
-        float* pShadow = (float *)mapped_shadows [pResource].pData;
+        float* pShadow = (float *)mapped_shadows [This][pResource].pData;
 
         if (dump_bias)
         {
@@ -232,24 +237,32 @@ SK_IT_Unmap (
         }
 
         // Landscape shadows (need an increased bias)
-        if ((pShadow [1] == 0.0002f || pShadow [1] == 0.0004f || pShadow [1] == 0.001f) && min_shadow_bias != 0.0f)
+        if ((pShadow [1] == fSteps [0] || pShadow [1] == fSteps [1] || pShadow [1] == fSteps [2]) && min_shadow_bias != 0.0f)
         {
-          pShadow [1] *= 2.26f;
-          pShadow [0] *= 1.24f;
-          pShadow [2] *= 1.24f;
-          pShadow [3] *= 1.24f;
+          if (pShadow [1] == fSteps [0])
+          {
+            pShadow [0] *= fBiasMultipliers [0][0]; pShadow [1] *= fBiasMultipliers [0][1];
+            pShadow [2] *= fBiasMultipliers [0][2]; pShadow [3] *= fBiasMultipliers [0][3];
+          }
+
+          if (pShadow [1] == fSteps [1])
+          {
+            pShadow [0] *= fBiasMultipliers [1][0]; pShadow [1] *= fBiasMultipliers [1][1];
+            pShadow [2] *= fBiasMultipliers [1][2]; pShadow [3] *= fBiasMultipliers [1][3];
+          }
+
+          if (pShadow [1] == fSteps [2])
+          {
+            pShadow [0] *= fBiasMultipliers [2][0]; pShadow [1] *= fBiasMultipliers [2][1];
+            pShadow [2] *= fBiasMultipliers [2][2]; pShadow [3] *= fBiasMultipliers [2][3];
+          }
         }
 
         if (pShadow [1] * pShadow [3] < min_shadow_bias)
           pShadow [1] = min_shadow_bias / pShadow [3];
-
-        pShadow [0] *= fBiasScale;
-        pShadow [1] *= fBiasScale;
-        pShadow [2] *= fBiasScale;
-        pShadow [3] *= fBiasScale;
       }
 
-      mapped_shadows.erase (pResource);
+      mapped_shadows [This].erase (pResource);
     }
   }
 
@@ -385,9 +398,17 @@ SK_IT_ControlPanel (void)
           dump_bias = true;
         }
 
-        ImGui::SliderFloat ("Shadowmap Bias Multiplier", &fBiasScale, 0.5f, 2.0f);
         ImGui::SliderFloat ("Minimum Shadow Bias", &min_shadow_bias, 0.0f, 0.001f);
+
+        ImGui::InputFloat3 ("Shadowmap Steps", fSteps);
+
+        ImGui::InputFloat4 ("Bias Multipliers (LOD0)", fBiasMultipliers [0]);
+        ImGui::InputFloat4 ("Bias Multipliers (LOD1)", fBiasMultipliers [1]);
+        ImGui::InputFloat4 ("Bias Multipliers (LOD2)", fBiasMultipliers [2]);
       }
+
+
+      //ImGui::SliderFloat ("Minimum Shadow Bias", &min_shadow_bias, 0.0f, 0.001f);
 
       ImGui::TreePop  ();
     }
@@ -446,8 +467,6 @@ SK_IT_InitPlugin (void)
                                   SK_IT_ControlPanel,
      static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
-
-  LPVOID dontcare = nullptr;
 
   
   it_config.godrays.min =

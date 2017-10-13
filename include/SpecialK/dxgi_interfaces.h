@@ -7921,6 +7921,25 @@ typedef void (STDMETHODCALLTYPE *D3D11_OMSetRenderTargetsAndUnorderedAccessViews
                                                                        _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
                                                                        _In_opt_ const UINT                             *pUAVInitialCounts);
 
+typedef void (STDMETHODCALLTYPE *D3D11_OMGetRenderTargets_pfn)(ID3D11DeviceContext     *This,
+                                                          _In_ UINT                     NumViews,
+                                                         _Out_ ID3D11RenderTargetView **ppRenderTargetViews,
+                                                         _Out_ ID3D11DepthStencilView **ppDepthStencilView);
+
+typedef void (STDMETHODCALLTYPE *D3D11_OMGetRenderTargetsAndUnorderedAccessViews_pfn)(ID3D11DeviceContext         *This,
+                                                                                 _In_  UINT                        NumRTVs,
+                                                                                 _Out_ ID3D11RenderTargetView    **ppRenderTargetViews,
+                                                                                 _Out_ ID3D11DepthStencilView    **ppDepthStencilView,
+                                                                                 _In_  UINT                        UAVStartSlot,
+                                                                                 _In_  UINT                        NumUAVs,
+                                                                                 _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews);
+
+typedef void (STDMETHODCALLTYPE *D3D11_ClearDepthStencilView_pfn)(ID3D11DeviceContext    *This,
+                                                             _In_ ID3D11DepthStencilView *pDepthStencilView,
+                                                             _In_ UINT                    ClearFlags,
+                                                             _In_ FLOAT                   Depth,
+                                                             _In_ UINT8                   Stencil);
+
 
 
 #define DXGI_PRESENT_ALLOW_TEARING          0x00000200UL

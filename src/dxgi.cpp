@@ -67,7 +67,7 @@
 volatile LONG SK_D3D11_init_tid  = 0;
 volatile LONG SK_D3D11_ansel_tid = 0;
 
-extern CRITICAL_SECTION cs_mmio;
+extern SK_Thread_HybridSpinlock cs_mmio;
 
 extern void
 ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
@@ -2348,7 +2348,7 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
 
   {
-    SK_AutoCriticalSection auto_mmio_cs (&cs_mmio);
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
     SK_D3D11_EndFrame        ();
     SK_D3D11_Textures.reset  ();
@@ -2448,7 +2448,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     return S_OK;
 
   {
-    SK_AutoCriticalSection auto_mmio_cs (&cs_mmio);
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
     SK_D3D11_EndFrame        ();
     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
@@ -4449,7 +4449,7 @@ HookDXGI (LPVOID user)
 
   InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
-#ifdef _WIN64
+#if 0
   extern LPVOID pfnD3D11CreateDevice;
 
   hr =
@@ -4513,8 +4513,6 @@ HookDXGI (LPVOID user)
     {
       d3d11_hook_ctx.ppDevice           = &pDevice;
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
-
-      pDevice->GetImmediateContext (d3d11_hook_ctx.ppImmediateContext);
 
       HookD3D11           (&d3d11_hook_ctx);
       SK_DXGI_HookFactory (pFactory);
@@ -4971,8 +4969,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       mem_info [node].buffer;
 
 
-    InterlockedExchange64 (&SK_D3D11_Textures.Budget, mem_info [buffer].local [0].Budget -
-                                                      mem_info [buffer].local [0].CurrentUsage );
+    SK_D3D11_Textures.Budget = mem_info [buffer].local [0].Budget -
+                               mem_info [buffer].local [0].CurrentUsage;
 
 
     // Double-Buffer Updates

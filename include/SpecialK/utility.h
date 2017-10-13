@@ -27,6 +27,7 @@
 
 #include <cstdint>
 #include <string>
+#include <mutex>
 
 interface iSK_INI;
 
@@ -228,6 +229,44 @@ SK_InjectMemory ( LPVOID  base_addr,
                   DWORD   permissions,
                   void   *old_data     = nullptr );
 
+class SK_Thread_CriticalSection
+{
+public:
+  SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+  {
+    cs_ = pCS;
+  };
+
+  ~SK_Thread_CriticalSection (void) = default;
+
+  void lock (void) {
+    EnterCriticalSection (cs_);
+  }
+
+  void unlock (void)
+  {
+    LeaveCriticalSection (cs_);
+  }
+
+protected:
+  CRITICAL_SECTION* cs_;
+};
+
+class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+{
+public:
+  SK_Thread_HybridSpinlock (int spin_count = 3000) :
+                                                     SK_Thread_CriticalSection (new CRITICAL_SECTION)
+  {
+    InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+  }
+
+  ~SK_Thread_HybridSpinlock (void)
+  {
+    DeleteCriticalSection (cs_);
+    delete cs_;
+  }
+};
 
 class SK_AutoCriticalSection {
 public:
