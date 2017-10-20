@@ -577,10 +577,10 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     pDev->GetDeviceCaps (&caps);
 
     CComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
-    CComPtr <IDirect3DSurface9> rts [32];
+    CComPtr <IDirect3DSurface9> rts [8];
     CComPtr <IDirect3DSurface9> ds          = nullptr;
 
-    for (UINT target = 0; target < caps.NumSimultaneousRTs; target++) {
+    for (UINT target = 0; target < std::min (caps.NumSimultaneousRTs, 8UL); target++) {
       pDev->GetRenderTarget (target, &rts [target]);
     }
 
@@ -663,7 +663,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     pDev->SetViewport (&vp_orig);
 
-    for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
+    for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
       pDev->SetRenderTarget (target, rts [target]);
 
     pDev->SetDepthStencilSurface (ds);
@@ -723,7 +723,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
         cegD3D9  = nullptr;
   }
 
-  else if (cegD3D9 == nullptr)
+  else if (cegD3D9 == nullptr && GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
   {
     if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
         cegD3D9_SB  = nullptr;
@@ -819,14 +819,14 @@ SK_HookD3D9 (void)
     }
   }
 
-  SK_ApplyQueuedHooks ();
-
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
   SK_LoadPlugIns64 ();
 #else
   SK_LoadPlugIns32 ();
 #endif
+
+  SK_ApplyQueuedHooks ();
 
   HookD3D9 (nullptr);
 }
@@ -1108,20 +1108,12 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
     }
   }
 
-  // Hack for GeDoSaTo
-  if (! SK_CheckForGeDoSaTo ())
-    hr = D3D9PresentEx_Original ( This,
-                                    pSourceRect,
-                                      pDestRect,
-                                        hDestWindowOverride,
-                                           pDirtyRegion,
-                                            dwFlags );
-  else
-    hr = D3D9Present_Original ( This,
+  hr = D3D9PresentEx_Original ( This,
                                   pSourceRect,
                                     pDestRect,
                                       hDestWindowOverride,
-                                        pDirtyRegion );
+                                         pDirtyRegion,
+                                          dwFlags );
 
   if (! config.osd.pump)
   {
@@ -1256,12 +1248,13 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
 
   SK_BeginBufferSwap ();
 
-  HRESULT hr =
-    D3D9Present_Original ( This,
-                             pSourceRect,
-                               pDestRect,
-                                 hDestWindowOverride,
-                                   pDirtyRegion );
+  HRESULT
+    hr =
+      D3D9Present_Original ( This,
+                               pSourceRect,
+                                 pDestRect,
+                                   hDestWindowOverride,
+                                     pDirtyRegion );
 
   if (! config.osd.pump)
   {
@@ -2245,7 +2238,7 @@ D3D9GetTexture_Override ( IDirect3DDevice9      *This,
                      _In_ DWORD                  Stage,
                     _Out_ IDirect3DBaseTexture9 *pTexture )
 {
-  dll_log.Log (L"Impure Get Texture");
+//  dll_log.Log (L"Impure Get Texture");
 
   return
     D3D9GetTexture_Original ( This,
@@ -3128,6 +3121,13 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         }
       }
 
+      if (game_window.hWnd == nullptr || (! IsWindow (game_window.hWnd)))
+      {
+        if (pparams->hDeviceWindow)
+          game_window.hWnd = pparams->hDeviceWindow;
+        else if (GetActiveWindow () != HWND_DESKTOP)
+          game_window.hWnd = GetActiveWindow ();
+      }
 
       if (hWndRender == nullptr || (! IsWindow (hWndRender)))
       {
@@ -3587,6 +3587,8 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
   SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
 
+  SK_ApplyQueuedHooks     ();
+
   //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
     //(*ppReturnedDeviceInterface)->ResetEx (pPresentationParameters, nullptr);
 
@@ -3910,6 +3912,8 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
   SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
 
+  SK_ApplyQueuedHooks     ();
+
   //if (InterlockedExchangeAdd (&__d3d9_ready, 0))
     //(*ppReturnedDeviceInterface)->Reset (pPresentationParameters);
 
@@ -3976,7 +3980,7 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
   if (ret == E_FAIL)
     D3D9_CALL ( ret, D3D9CreateDeviceEx_Original ( (IDirect3D9Ex *)This, Adapter,
                                                      DeviceType,
-                                                       0,
+                                                       nullptr,
                                                          BehaviorFlags,
                                                            pPresentationParameters,
                                                              nullptr,
@@ -4244,6 +4248,8 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
 
   SK_SetPresentParamsD3D9 (*ppReturnedDeviceInterface, pPresentationParameters);
   SK_D3D9_HookPresent     (*ppReturnedDeviceInterface);
+
+  SK_ApplyQueuedHooks     ();
 
   if (ReadAcquire (&__d3d9_ready))
   {
@@ -4660,8 +4666,7 @@ HookD3D9 (LPVOID user)
                       err.ErrorMessage () );
       }
 
-      DestroyWindow               (hwnd);
-      SK_Win32_CleanupDummyWindow (    );
+      SK_Win32_CleanupDummyWindow ();
 
       CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
@@ -4730,8 +4735,7 @@ HookD3D9 (LPVOID user)
           dll_log.Log (L"[   D3D9   ]   * Failure");
         }
 
-        DestroyWindow               (hwnd);
-        SK_Win32_CleanupDummyWindow (    );
+        SK_Win32_CleanupDummyWindow ();
       }
 
       else

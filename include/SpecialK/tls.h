@@ -30,6 +30,7 @@
 
 struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
+struct ID3D11DepthStencilView;
 
 #include <unordered_map>
 
@@ -81,6 +82,7 @@ struct SK_TLS
 
     ID3D11DepthStencilState* pDepthStencilStateOrig = nullptr;
     ID3D11DepthStencilState* pDepthStencilStateNew  = nullptr;
+    ID3D11DepthStencilView*  pDSVOrig               = nullptr;
 
     UINT                     StencilRefOrig         = 0;
     UINT                     StencilRefNew          = 0;

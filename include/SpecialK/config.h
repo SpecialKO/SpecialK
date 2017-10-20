@@ -251,17 +251,18 @@ struct sk_config_t
           bool isZero (void) { return x == 0 && y == 0; };
         } max;
       } res;
-      int     exception_mode    =    -1; // -1 = Don't Care
-      int     scaling_mode      =    -1; // -1 = Don't Care
-      int     scanline_order    =    -1; // -1 = Don't Care
+      int     exception_mode     =    -1; // -1 = Don't Care
+      int     scaling_mode       =    -1; // -1 = Don't Care
+      int     scanline_order     =    -1; // -1 = Don't Care
       // DXGI 1.1 (Ignored for now)
-      int     rotation          =    -1; // -1 = Don't Care
-      bool    test_present      = false;
-      bool    full_state_cache  = false;
-      bool    debug_layer       = false;
-      bool    allow_tearing     = false;
-      bool    safe_fullscreen   = false;
-      bool    enhanced_depth    = false;
+      int     rotation           =    -1; // -1 = Don't Care
+      bool    test_present       = false;
+      bool    full_state_cache   = false;
+      bool    debug_layer        = false;
+      bool    allow_tearing      = false;
+      bool    safe_fullscreen    = false;
+      bool    enhanced_depth     = false;
+      bool    deferred_isolation = false;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
@@ -306,7 +307,7 @@ struct sk_config_t
 
     bool highlight_debug_tex      = false;
     bool on_demand_dump           = false;
-    bool d3d9_mod                 = true;
+    bool d3d9_mod                 = false; // Causing compat issues in some D3D9Ex games ATM
     bool dump_on_load             = false;
   } textures;
 

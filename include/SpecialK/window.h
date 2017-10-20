@@ -96,6 +96,29 @@ using GetWindowLongPtr_pfn   = LONG_PTR (WINAPI *)(
 );
 
 
+using SetClassLong_pfn      = LONG (WINAPI *)(
+  _In_ HWND hWnd,
+  _In_ int  nIndex,
+  _In_ LONG dwNewLong
+);
+
+using SetClassLongPtr_pfn   = LONG_PTR (WINAPI *)(
+  _In_ HWND     hWnd,
+  _In_ int      nIndex,
+  _In_ LONG_PTR dwNewLong
+);
+
+using GetClassLong_pfn      = LONG (WINAPI *)(
+  _In_ HWND hWnd,
+  _In_ int  nIndex
+);
+
+using GetClassLongPtr_pfn   = LONG_PTR (WINAPI *)(
+  _In_ HWND hWnd,
+  _In_ int  nIndex
+);
+
+
 using AdjustWindowRect_pfn   = BOOL (WINAPI *)(
   _Inout_ LPRECT lpRect,
   _In_    DWORD  dwStyle,
@@ -317,6 +340,8 @@ struct sk_window_s {
 
   SetWindowLongPtr_pfn SetWindowLongPtr = nullptr;
   GetWindowLongPtr_pfn GetWindowLongPtr = nullptr;
+  SetClassLongPtr_pfn  SetClassLongPtr  = nullptr;
+  GetClassLongPtr_pfn  GetClassLongPtr  = nullptr;
   DefWindowProc_pfn    DefWindowProc    = nullptr;
   CallWindowProc_pfn   CallWindowProc   = nullptr;
 

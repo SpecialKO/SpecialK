@@ -26,6 +26,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/config.h>
+#include <SpecialK/utility.h>
 
 #include <SpecialK/widgets/widget.h>
 
@@ -128,7 +129,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
 #include <unordered_map>
 
-extern CRITICAL_SECTION wmi_cs;
+//extern SK_Thread_HybridSpinlock* wmi_cs;
 
 extern void __stdcall SK_StartPerfMonThreads (void);
 
@@ -155,13 +156,15 @@ namespace COM {
 void
 COM::Base::WMI::Lock (void)
 {
-  EnterCriticalSection (&wmi_cs);
+  //EnterCriticalSection (&wmi_cs);
+  wmi_cs->lock ();
 }
 
 void
 COM::Base::WMI::Unlock (void)
 {
-  LeaveCriticalSection (&wmi_cs);
+  //LeaveCriticalSection (&wmi_cs);
+  wmi_cs->unlock ();
 }
 
 DWORD

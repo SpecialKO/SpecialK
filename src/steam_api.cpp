@@ -2658,7 +2658,8 @@ SteamAPI_RunCallbacks_Detour (void)
 
   __try
   {
-    if (! ReadAcquire (&__SK_DLL_Ending))
+    //if (! ReadAcquire (&__SK_DLL_Ending))
+    if (__SK_DLL_Ending == false)
     {
       InterlockedIncrement64         (&SK_SteamAPI_CallbackRunCount);
       SteamAPI_RunCallbacks_Original ();
@@ -3296,7 +3297,8 @@ SteamAPI_Shutdown_Detour (void)
       {
         SleepEx (100UL, TRUE);
 
-        if (ReadAcquire (&__SK_DLL_Ending))
+        //if (ReadAcquire (&__SK_DLL_Ending))
+        if (__SK_DLL_Ending)
         {
           CloseHandle (GetCurrentThread ());
 

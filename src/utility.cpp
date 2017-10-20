@@ -732,7 +732,7 @@ uint32_t
 __cdecl
 crc32c_append_sw (uint32_t crci, const void *input, size_t length)
 {
-  buffer next =
+  auto next =
     static_cast <buffer> (input);
 
 #ifdef _M_X64
@@ -822,13 +822,13 @@ shift_crc (uint32_t shift_table[][256], uint32_t crc)
        ^ shift_table [3][ crc >> 24];
 }
 
-/* Compute CRC-32C using the Intel hardware instruction. */
+/* Comput e CRC-32C using the Intel hardware instruction. */
 extern "C"
 uint32_t
 __cdecl
 crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
 {
-  buffer next =
+  auto next =
     static_cast <buffer> (buf);
 
   buffer end;
@@ -1225,7 +1225,7 @@ void
 __stdcall
 SK_SelfDestruct (void)
 {
-  if (InterlockedIncrement (&__SK_DLL_Ending) == 1)
+  if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
   {
     //FreeLibrary (SK_GetDLL ());
     const wchar_t* wszBackend = SK_GetBackend ();

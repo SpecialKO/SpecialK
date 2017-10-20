@@ -179,7 +179,11 @@
   DXGI_LOG_CALL_END                                            \
 }
 
+#if 1
+extern SK_Thread_HybridSpinlock* budget_mutex;
+#else
 extern CRITICAL_SECTION budget_mutex;
+#endif
        const int        MAX_GPU_NODES = 4;
 
 struct memory_stats_t {
@@ -365,27 +369,29 @@ class SK_D3D11_TexMgr {
 public:
   SK_D3D11_TexMgr (void) {
     QueryPerformanceFrequency (&PerfFreq);
-    HashMap_2D.resize   (32);
-    Blacklist_2D.resize (32);
+    HashMap_2D.resize   (20);
+    Blacklist_2D.resize (20);
 
     TexRefs_2D.reserve       (8192);
-//    Textures_2D.reserve      (8192);
-    HashMap_2D [ 1].reserve  ( 512);
-    HashMap_2D [ 2].reserve  ( 128);
-    HashMap_2D [ 3].reserve  (1024);
-    HashMap_2D [ 4].reserve  ( 512);
-    HashMap_2D [ 5].reserve  ( 256);
-    HashMap_2D [ 6].reserve  ( 128);
-    HashMap_2D [ 7].reserve  (  64);
-    HashMap_2D [ 8].reserve  (  64);
-    HashMap_2D [ 9].reserve  ( 128);
+    Textures_2D.reserve      (8192);
+    HashMap_2D [ 1].reserve  (2048);
+    HashMap_2D [ 2].reserve  ( 256);
+    HashMap_2D [ 3].reserve  ( 512);
+    HashMap_2D [ 4].reserve  (1024);
+    HashMap_2D [ 5].reserve  ( 512);
+    HashMap_2D [ 6].reserve  ( 256);
+    HashMap_2D [ 7].reserve  ( 128);
+    HashMap_2D [ 8].reserve  ( 128);
+    HashMap_2D [ 9].reserve  ( 256);
     HashMap_2D [10].reserve  ( 256);
-    HashMap_2D [11].reserve  ( 128);
-    HashMap_2D [12].reserve  (  64);
+    HashMap_2D [11].reserve  ( 512);
+    HashMap_2D [12].reserve  ( 128);
     HashMap_2D [13].reserve  (  32);
     HashMap_2D [14].reserve  (  16);
     HashMap_2D [15].reserve  (   8);
     HashMap_2D [16].reserve  (   4);
+    HashMap_2D [17].reserve  (   2);
+    HashMap_2D [18].reserve  (   1);
 
     AggregateSize_2D  = 0ULL;
     RedundantData_2D  = 0ULL;
@@ -629,6 +635,14 @@ typedef void (WINAPI *D3D11_CSSetShaderResources_pfn)(
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews
 );
+typedef void (WINAPI *D3D11_CSSetUnorderedAccessViews_pfn)(
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumUAVs,
+  _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+  _In_opt_ const UINT                             *pUAVInitialCounts
+);
+
 
 typedef HRESULT (WINAPI *D3D11Dev_CreateBuffer_pfn)(
   _In_           ID3D11Device            *This,

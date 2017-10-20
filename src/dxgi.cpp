@@ -1370,7 +1370,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   if (! config.cegui.enable)
     return;
 
-  if (ReadAcquire (&__SK_DLL_Ending))
+  if (__SK_DLL_Ending)
     return;
 
   SK_RenderBackend& rb =
@@ -2223,7 +2223,9 @@ DXGIOutput_WaitForVBlank_Override ( IDXGIOutput *This )
 {
   DXGI_LOG_CALL_I0 (L"       IDXGIOutput", L"WaitForVBlank         ");
 
-  return WaitForVBlank_Original (This);
+  This->AddRef (); This->Release ();
+
+  return S_OK;//return WaitForVBlank_Original (This);
 }
 
 __declspec (noinline)
@@ -4490,15 +4492,6 @@ HookDXGI (LPVOID user)
                     &pDevice,
                       &featureLevel,
                         &pImmediateContext );
-      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-      {
-        // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-        SK_LoadPlugIns64 ();
-#else
-        SK_LoadPlugIns32 ();
-#endif
-      }
 #endif
 
   if (SUCCEEDED (hr))
@@ -4517,19 +4510,25 @@ HookDXGI (LPVOID user)
       HookD3D11           (&d3d11_hook_ctx);
       SK_DXGI_HookFactory (pFactory);
 
-      InterlockedExchange (&__dxgi_ready, TRUE);
-
       extern HWND
       SK_Win32_CreateDummyWindow (void);
 
       extern void
       SK_Win32_CleanupDummyWindow (void);
 
-      
       HWND                   hWnd = SK_Win32_CreateDummyWindow ();
       
       if (hWnd != HWND_DESKTOP)
       {
+      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+      {
+        // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+        SK_LoadPlugIns64 ();
+#else
+        SK_LoadPlugIns32 ();
+#endif
+      }
         DXGI_SWAP_CHAIN_DESC desc = { };
       
         desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -4549,6 +4548,18 @@ HookDXGI (LPVOID user)
         CComPtr <IDXGISwapChain>   pSwapChain = nullptr;
         if (SUCCEEDED (pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain)))
         {
+          CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+
+          config.render.dxgi.deferred_isolation = true;
+          if (config.render.dxgi.deferred_isolation)
+          {
+            CComPtr <ID3D11Device> pDev = nullptr;
+            pImmediateContext->GetDevice (&pDev);
+
+            pDev->CreateDeferredContext (0x00,  &pDevCtx);
+            d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+          }
+
           SK_DXGI_HookSwapChain     (pSwapChain);
           SK_ApplyQueuedHooks       (          );
 
@@ -4597,8 +4608,10 @@ HookDXGI (LPVOID user)
         }
       }
 
-      DestroyWindow               (hWnd);
-      SK_Win32_CleanupDummyWindow (    );
+      SK_Win32_CleanupDummyWindow ();
+
+      InterlockedExchange (&__dxgi_ready, TRUE);
+
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
@@ -4680,7 +4693,8 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
   {
     // We darn sure better not spawn multiple threads!
-    EnterCriticalSection ( &budget_mutex );
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
+    //SK_AutoCriticalSection auto_cs (&budget_mutex);
 
     if ( budget_thread.handle == INVALID_HANDLE_VALUE )
     {
@@ -4891,8 +4905,6 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
       dll_log.LogEx ( false, L"\n" );
     }
-
-    LeaveCriticalSection ( &budget_mutex );
   }
 
   return hr;
@@ -4936,7 +4948,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
   while ( ReadAcquire ( &params->ready ) )
   {
-    if (ReadAcquire (&__SK_DLL_Ending))
+    if (__SK_DLL_Ending)
       break;
 
     if ( params->event == nullptr )

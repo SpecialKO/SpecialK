@@ -925,7 +925,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      ID3D11DeviceContext* pDevCtx =
+      auto* pDevCtx =
         static_cast <ID3D11DeviceContext *> (rb.d3d11.immediate_ctx);
 
       // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
@@ -1007,6 +1007,8 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
       ImGui::EndTooltip      ();
+
+      pDevCtx->Release ();
     }
   }
 }
@@ -2921,6 +2923,7 @@ SK_ImGui_ControlPanel (void)
             {
               ImGui::Separator  (                                 );
               ImGui::BeginGroup (                                 );
+              ImGui::BeginGroup (                                 );
               ImGui::BulletText ( "HashMap Contains: "            );
               ImGui::BulletText ( "HashMap Erase:    "            );
               ImGui::BulletText ( "HashMap Index:    "            );
@@ -2933,11 +2936,26 @@ SK_ImGui_ControlPanel (void)
               ImGui::Text       ( "%li Ops", erase_               );
               ImGui::Text       ( "%li Ops", index_               );
               ImGui::Text       ( ""                              );
-              ImGui::Text       ( "Mipmap LOD%02li ("
-                                            "%li :: <\"%s\">)",
+              ImGui::Text       ( R"(Mipmap LOD%02li (%li :: <"%s">))",
                                    busiest.first - 1,
                                      busiest.second.second.first,
                                      busiest.second.second.second );
+              ImGui::EndGroup   (                                 );
+              ImGui::EndGroup   (                                 );
+              ImGui::SameLine   (                                 );
+              ImGui::BeginGroup (                                 );
+              int lod = 0;
+              for ( auto& it : SK_D3D11_Textures.HashMap_2D )
+              {
+                ImGui::BulletText ("LOD %02lu Load Factor: ", lod++);
+              }
+              ImGui::EndGroup   (                                 );
+              ImGui::SameLine   (                                 );
+              ImGui::BeginGroup (                                 );
+              for ( auto& it : SK_D3D11_Textures.HashMap_2D )
+              {
+                ImGui::Text     (" %.2f", it.entries.load_factor());
+              }
               ImGui::EndGroup   (                                 );
             }
           }
@@ -5054,7 +5072,11 @@ extern float SK_ImGui_PulseNav_Strength;
             ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
             ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
-            if (ImGui::CollapsingHeader ("Enhanced Popup"))
+            bool uncollapsed = ImGui::CollapsingHeader ("Enhanced Popup");
+
+            ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
+
+            if (uncollapsed)
             {
               ImGui::TreePush ("");
 

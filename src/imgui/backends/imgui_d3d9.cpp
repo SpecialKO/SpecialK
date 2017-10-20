@@ -489,11 +489,8 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
 
   if ( pparams != nullptr )
   {
-    float width  = 0.0f,
-          height = 0.0f;
-
-    width  = static_cast <float> (pparams->BackBufferWidth);
-    height = static_cast <float> (pparams->BackBufferHeight);
+    float width = static_cast <float> (pparams->BackBufferWidth),
+         height = static_cast <float> (pparams->BackBufferHeight);
 
     io.DisplayFramebufferScale = ImVec2 ( width, height );
     io.DisplaySize             = ImVec2 ( width, height );

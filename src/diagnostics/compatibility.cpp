@@ -119,8 +119,6 @@ struct sk_loader_hooks_t {
   LPVOID FreeLibrary_target         = nullptr;
 } _loader_hooks;
 
-extern CRITICAL_SECTION loader_lock;
-
 void
 __stdcall
 SK_LockDllLoader (void)
@@ -128,7 +126,9 @@ SK_LockDllLoader (void)
   if (config.system.strict_compliance)
   {
     //bool unlocked = TryEnterCriticalSection (&loader_lock);
-                       EnterCriticalSection (&loader_lock);
+                       //loader_lock->lock ();
+    //EnterCriticalSection (&loader_lock);
+    loader_lock->lock ();
      //if (unlocked)
                        //LeaveCriticalSection (&loader_lock);
     //else
@@ -141,7 +141,7 @@ __stdcall
 SK_UnlockDllLoader (void)
 {
   if (config.system.strict_compliance)
-    LeaveCriticalSection (&loader_lock);
+    loader_lock->unlock ();
 }
 
 template <typename _T>
@@ -172,23 +172,23 @@ BlacklistLibrary (const _T* lpFileName)
       constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour : 
                                                                                                 (LoadLibrary_pfn) &LoadLibraryA_Detour );
 
-
 #ifdef _WIN64
   if (StrStrI (lpFileName, SK_TEXT("action_x64")))
   {
-    WaitForInit ();
-  
-    while (SK_GetFramesDrawn () < 2) SleepEx (8, FALSE);
+    WaitForInit      ();
+    WaitForInputIdle (GetCurrentProcess (), 16);
+
+    while (SK_GetFramesDrawn () < 60) SleepEx (120, FALSE);
   }
 #else
   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
   {
-    WaitForInit ();
-  
-    while (SK_GetFramesDrawn () < 2) SleepEx (8, FALSE);
+    WaitForInit      ();
+    WaitForInputIdle (GetCurrentProcess (), 16);
+
+    while (SK_GetFramesDrawn () < 60) SleepEx (120, FALSE);
   }
 #endif
-
   //else if (StrStrI (lpFileName, SK_TEXT("rxcore")) || StrStrI (lpFileName, SK_TEXT("nvinject")) || StrStrI (lpFileName, SK_TEXT("detoured")) || StrStrI (lpFileName, SK_TEXT("rxinput")))
   //{
   //  if (SK_GetFramesDrawn () < 2)
@@ -560,7 +560,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
 {
   LPVOID pAddr = _ReturnAddress ();
 
-  if (ReadAcquire (&__SK_DLL_Ending) != 0)
+  if (ReadAcquire (&__SK_DLL_Ending) == TRUE)
   {
     return FreeLibrary_Original (hLibModule);
   }
@@ -2064,7 +2064,7 @@ SK_Bypass_CRT (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  static BOOL     disable      = false;//__bypass.disable;
+  static BOOL     disable      = __bypass.disable;
          wchar_t* wszBlacklist = __bypass.wszBlacklist;
 
   bool timer = true;
@@ -2255,7 +2255,8 @@ SK_Bypass_CRT (LPVOID user)
     task_config.pszVerificationText = nullptr;
   }
 
-  //task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
+  if (__bypass.disable)
+  task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
   if (timer)
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
@@ -2669,10 +2670,6 @@ SK_Bypass_CRT (LPVOID user)
 
     SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
-    SK_RemoveHook (pfnGetClientRect);
-    SK_RemoveHook (pfnGetWindowRect);
-    //SK_RemoveHook (pfnGetSystemMetrics);
-
     InterlockedDecrement (&SK_bypass_dialog_active);
 
     SK_ResumeThreads (suspended_tids);
@@ -2789,33 +2786,12 @@ std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {
-  SK_CreateDLLHook (       L"user32.dll",
-                            "GetWindowRect",
-                             GetWindowRect_BlockingCallOfDeath,
-    static_cast_p2p <void> (&GetWindowRect_DeadEnd),
-    static_cast_p2p <void> (&pfnGetWindowRect) );
-
-  SK_CreateDLLHook (       L"user32.dll",
-                            "GetClientRect",
-                             GetClientRect_BlockingCallOfDeath,
-    static_cast_p2p <void> (&GetClientRect_DeadEnd),
-    static_cast_p2p <void> (&pfnGetClientRect)  );
-
-  //SK_CreateDLLHook ( L"user32.dll",
-  //                    "GetSystemMetrics",
-  //                     GetSystemMetrics_BlockingCallOfDeath,
-  //          (LPVOID *)&GetSystemMetrics_DeadEnd,
-  //          (LPVOID *)&pfnGetSystemMetrics  );
-
-
   suspended_tids = SK_SuspendAllOtherThreads ();
 
   lstrcpyW (__bypass.wszBlacklist, SK_GetBlacklistFilename ());
 
   __bypass.disable = 
     (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
-
-  IsGUIThread (TRUE);
 
   InterlockedIncrement (&SK_bypass_dialog_active);
 

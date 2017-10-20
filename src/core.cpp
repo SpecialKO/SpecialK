@@ -777,7 +777,7 @@ void
 __stdcall
 SK_InitCore (const wchar_t* backend, void* callback)
 {
-  EnterCriticalSection (&init_mutex);
+  init_mutex->lock ();
 
   wcscpy (SK_Backend, backend);
 
@@ -1052,7 +1052,7 @@ SK_InitFinishCallback (void)
 
   if (SK_IsSuperSpecialK ())
   {
-    LeaveCriticalSection (&init_mutex);
+    init_mutex->unlock ();
     return;
   }
 
@@ -1142,185 +1142,7 @@ SK_InitFinishCallback (void)
   SK_StartPerfMonThreads ();
   SK_ApplyQueuedHooks    ();
 
-  LeaveCriticalSection (&init_mutex);
-}
-
-
-using CreateWindowW_pfn = HWND (WINAPI *)(
-  _In_opt_ LPCWSTR   lpClassName,
-  _In_opt_ LPCWSTR   lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam
-);
-
-using CreateWindowA_pfn = HWND (WINAPI *)(
-  _In_opt_ LPCSTR    lpClassName,
-  _In_opt_ LPCSTR    lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam
-);
-
-using CreateWindowExW_pfn = HWND (WINAPI *)(
-  _In_     DWORD     dwExStyle,
-  _In_opt_ LPCWSTR   lpClassName,
-  _In_opt_ LPCWSTR   lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam
-);
-
-using CreateWindowExA_pfn = HWND (WINAPI *)(
-  _In_     DWORD     dwExStyle,
-  _In_opt_ LPCSTR    lpClassName,
-  _In_opt_ LPCSTR    lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam
-);
-
-CreateWindowW_pfn    CreateWindowW_Original   = nullptr;
-CreateWindowA_pfn    CreateWindowA_Original   = nullptr;
-CreateWindowExW_pfn  CreateWindowExW_Original = nullptr;
-CreateWindowExA_pfn  CreateWindowExA_Original = nullptr;
-
-HWND
-WINAPI
-CreateWindowW_Detour (
-  _In_opt_ LPCWSTR   lpClassName,
-  _In_opt_ LPCWSTR   lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam )
-{
-  if (SK_GetCallingDLL () != SK_GetDLL ())
-  {
-    if (ReadAcquire (&SK_bypass_dialog_active))
-      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-
-  return CreateWindowW_Original ( lpClassName, lpWindowName, dwStyle,
-                                    x, y, nWidth, nHeight,
-                                      hWndParent, hMenu, hInstance,
-                                        lpParam );
-}
-
-HWND
-WINAPI
-CreateWindowA_Detour (
-  _In_opt_ LPCSTR    lpClassName,
-  _In_opt_ LPCSTR    lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam)
-{
-  if (SK_GetCallingDLL () != SK_GetDLL ())
-  {
-    if (ReadAcquire (&SK_bypass_dialog_active))
-      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-
-  return CreateWindowA_Original ( lpClassName, lpWindowName, dwStyle,
-                                    x, y, nWidth, nHeight,
-                                      hWndParent, hMenu, hInstance,
-                                        lpParam );
-}
-
-HWND
-WINAPI
-CreateWindowExW_Detour (
-  _In_     DWORD     dwExStyle,
-  _In_opt_ LPCWSTR   lpClassName,
-  _In_opt_ LPCWSTR   lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam )
-{
-  if (SK_GetCallingDLL () != SK_GetDLL ())
-  {
-    if (ReadAcquire (&SK_bypass_dialog_active))
-      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-
-  return CreateWindowExW_Original ( dwExStyle,
-                                      lpClassName, lpWindowName,
-                                        dwStyle,
-                                          x, y, nWidth, nHeight,
-                                            hWndParent, hMenu, hInstance,
-                                              lpParam );
-}
-
-HWND
-WINAPI
-CreateWindowExA_Detour (
-  _In_     DWORD     dwExStyle,
-  _In_opt_ LPCSTR    lpClassName,
-  _In_opt_ LPCSTR    lpWindowName,
-  _In_     DWORD     dwStyle,
-  _In_     int       x,
-  _In_     int       y,
-  _In_     int       nWidth,
-  _In_     int       nHeight,
-  _In_opt_ HWND      hWndParent,
-  _In_opt_ HMENU     hMenu,
-  _In_opt_ HINSTANCE hInstance,
-  _In_opt_ LPVOID    lpParam )
-{
-  if (SK_GetCallingDLL () != SK_GetDLL ())
-  {
-    if (ReadAcquire (&SK_bypass_dialog_active))
-      MsgWaitForMultipleObjectsEx (0, nullptr, 0, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-
-  return CreateWindowExA_Original ( dwExStyle,
-                                      lpClassName, lpWindowName,
-                                        dwStyle,
-                                          x, y, nWidth, nHeight,
-                                            hWndParent, hMenu, hInstance,
-                                              lpParam );
+  init_mutex->unlock ();
 }
 
 DWORD
@@ -1351,12 +1173,16 @@ CheckVersionThread (LPVOID user)
   return 0;
 }
 
+init_params_t reentrant_core;
+
 DWORD
 WINAPI
 DllThread (LPVOID user)
 {
   auto* params =
     static_cast <init_params_t *> (user);
+
+  reentrant_core = *params;
 
   SK_InitCore (params->backend, params->callback);
 
@@ -1458,6 +1284,16 @@ SK_EstablishRootPath (void)
   SK_SetConfigPath     (wszConfigPath);
 }
 
+void
+__stdcall
+SK_ReenterCore  (void) // During startup, we have the option of bypassing init and resuming later
+{
+  auto* params =
+    static_cast <init_params_t *> (&reentrant_core);
+
+  SK_StartupCore (params->backend, params->callback);
+}
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
@@ -1513,15 +1349,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
-  bool bypass = false;
+  static bool bypass = false;
 
   // Injection Compatibility Menu
-  if ( (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
-       (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
+  if ( (! bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
+                     (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
   {
+    bypass = true;
+
     SK_BypassInject ();
 
-    //bypass = true;
+    bypass = false;
 
     return true;
   }
@@ -1542,9 +1380,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return false;
     }
 
+    // Do this from the startup thread
+    SK_HookWinAPI  ();
+    MH_ApplyQueued ();
+
     // For the global injector, when not started by SKIM, check its version
-    //if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-    CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+    if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+      CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
   }
 
   // Don't let Steam prevent me from attaching a debugger at startup
@@ -1552,7 +1394,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   game_debug.lockless = true;
   SK::Diagnostics::Debugger::Allow ();
 
-  EnterCriticalSection (&init_mutex);
+  init_mutex->lock ();
 
   init_          = {               };
   init_.backend  = _wcsdup (backend);
@@ -1569,7 +1411,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (SK_IsSuperSpecialK ())
   {
-    LeaveCriticalSection (&init_mutex);
+    init_mutex->unlock ();
     return TRUE;
   }
 
@@ -1714,8 +1556,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_TestSteamImports                  (GetModuleHandle (nullptr));
 
 
-  // Do this from the startup thread
-  SK_HookWinAPI        ();
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
 
@@ -1881,19 +1721,36 @@ BACKEND_INIT:
                nullptr );
 
 
-  LeaveCriticalSection (&init_mutex);
+  init_mutex->unlock ();
 
   return true;
 }
 
+using CreateWindowExW_pfn = HWND (WINAPI *)(
+    _In_     DWORD     dwExStyle,
+    _In_opt_ LPCWSTR   lpClassName,
+    _In_opt_ LPCWSTR   lpWindowName,
+    _In_     DWORD     dwStyle,
+    _In_     int       X,
+    _In_     int       Y,
+    _In_     int       nWidth,
+    _In_     int       nHeight,
+    _In_opt_ HWND      hWndParent,
+    _In_opt_ HMENU     hMenu,
+    _In_opt_ HINSTANCE hInstance,
+    _In_opt_ LPVOID    lpParam );
 
+extern CreateWindowExW_pfn CreateWindowExW_Original;
+
+
+std::set <HWND> dummy_windows;
 
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
   WNDCLASSW wc = { };
 
-  wc.style         = CS_OWNDC;
+  wc.style         = CS_CLASSDC | CS_GLOBALCLASS;
   wc.lpfnWndProc   = DefWindowProcW;
   wc.hInstance     = SK_GetDLL ();
   wc.lpszClassName = L"Special K Dummy Window Class";
@@ -1901,16 +1758,24 @@ SK_Win32_CreateDummyWindow (void)
   if (RegisterClassW (&wc))
   {
     HWND hWnd =
-      CreateWindowW ( L"Special K Dummy Window Class",
-                        L"Special K Dummy Window",
-                          WS_POPUP | WS_CLIPCHILDREN |
-                          WS_CLIPSIBLINGS,
-                            0, 0,
-                            1, 1,
-                              HWND_DESKTOP,   nullptr,
-                                SK_GetDLL (), nullptr );
+      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
+                                     L"Special K Dummy Window",
+                                       WS_POPUP | WS_CLIPCHILDREN |
+                                       WS_CLIPSIBLINGS,
+                                         0, 0,
+                                         1, 1,
+                                           HWND_DESKTOP,   nullptr,
+                                             SK_GetDLL (), nullptr );
+
+    if (hWnd != HWND_DESKTOP)
+      dummy_windows.emplace (hWnd);
 
     return hWnd;
+  }
+
+  else
+  {
+    dll_log.Log (L"Window Class Registration Failed!");
   }
 
   return nullptr;
@@ -1919,6 +1784,14 @@ SK_Win32_CreateDummyWindow (void)
 void
 SK_Win32_CleanupDummyWindow (void)
 {
+  for (auto& it : dummy_windows)
+  {
+    if (DestroyWindow (it))
+    {
+      dummy_windows.erase (it);
+    }
+  }
+
   UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
 }
 
@@ -2128,9 +2001,8 @@ SK_BeginBufferSwap (void)
     {
       extern void SK_ResetWindow ();
 
-      InterlockedExchange (&first, FALSE);
-
-      SK_ResetWindow ();
+      if (InterlockedCompareExchange (&first, FALSE, TRUE))
+        SK_ResetWindow ();
     }
   }
 

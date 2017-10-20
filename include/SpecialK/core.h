@@ -24,6 +24,10 @@
 
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
+#include <atomic>
+
+
+class SK_Thread_HybridSpinlock;
 
 
 
@@ -61,15 +65,23 @@ enum DLL_ROLE
 };
 
 
-
-extern CRITICAL_SECTION         init_mutex;
-extern CRITICAL_SECTION         budget_mutex;
-extern CRITICAL_SECTION         loader_lock;
-extern CRITICAL_SECTION         wmi_cs;
-extern CRITICAL_SECTION         cs_dbghelp;
+#if 1
+extern SK_Thread_HybridSpinlock* init_mutex;
+extern SK_Thread_HybridSpinlock* budget_mutex;
+extern SK_Thread_HybridSpinlock* loader_lock;
+extern SK_Thread_HybridSpinlock* wmi_cs;
+extern SK_Thread_HybridSpinlock* cs_dbghelp;
+extern SK_Thread_HybridSpinlock* init_mutex;
+#else
+extern CRITICAL_SECTION init_mutex;
+extern CRITICAL_SECTION budget_mutex;
+extern CRITICAL_SECTION loader_lock;
+extern CRITICAL_SECTION wmi_cs;
+extern CRITICAL_SECTION cs_dbghelp;
+extern CRITICAL_SECTION init_mutex;
+#endif
 
 extern HMODULE                  backend_dll;
-extern CRITICAL_SECTION         init_mutex;
 
 extern volatile LONG     __SK_DLL_Ending;
 extern volatile LONGLONG SK_SteamAPI_CallbackRunCount;

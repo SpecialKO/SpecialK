@@ -20,7 +20,7 @@
 
 #include <atlbase.h>
 
-#define IT_VERSION_NUM L"0.0.4"
+#define IT_VERSION_NUM L"0.0.5"
 #define IT_VERSION_STR L"Indigo Translation v " IT_VERSION_NUM
 
 volatile LONG __IT_init = FALSE;
@@ -202,7 +202,7 @@ SK_IT_Unmap (
   {
     if (mapped_shafts [This].count (pResource))
     {
-      light_shaft_s * pShaft =
+      auto * pShaft =
      (light_shaft_s *)mapped_shafts [This][pResource].pData;
 
       if (! pShaft)
@@ -229,32 +229,42 @@ SK_IT_Unmap (
     {
       if (SK_D3D11_Shaders.pixel.current.shader [This] == 0x2117b8e3)
       {
-        float* pShadow = (float *)mapped_shadows [This][pResource].pData;
+        auto* pShadow =
+          static_cast <float *> (mapped_shadows [This][pResource].pData);
 
         if (dump_bias)
         {
-          dll_log.Log (L"Shadowmap Bias: %f, %f, %f, %f", pShadow [0], pShadow [1], pShadow [2], pShadow [3]);
+          dll_log.Log (L"Shadowmap Bias: %f, %f, %f, %f",
+                         pShadow [0], pShadow [1], pShadow [2], pShadow [3]);
         }
 
         // Landscape shadows (need an increased bias)
-        if ((pShadow [1] == fSteps [0] || pShadow [1] == fSteps [1] || pShadow [1] == fSteps [2]) && min_shadow_bias != 0.0f)
+        if ( (pShadow [1] == fSteps [0]
+           || pShadow [1] == fSteps [1]
+           || pShadow [1] == fSteps [2]) && min_shadow_bias != 0.0f )
         {
           if (pShadow [1] == fSteps [0])
           {
-            pShadow [0] *= fBiasMultipliers [0][0]; pShadow [1] *= fBiasMultipliers [0][1];
-            pShadow [2] *= fBiasMultipliers [0][2]; pShadow [3] *= fBiasMultipliers [0][3];
+            for (int i = 0 ; i < 4; i++)
+            {
+              pShadow [i] *= fBiasMultipliers [0][i];
+            }
           }
 
           if (pShadow [1] == fSteps [1])
           {
-            pShadow [0] *= fBiasMultipliers [1][0]; pShadow [1] *= fBiasMultipliers [1][1];
-            pShadow [2] *= fBiasMultipliers [1][2]; pShadow [3] *= fBiasMultipliers [1][3];
+            for (int i = 0 ; i < 4; i++)
+            {
+              pShadow [i] *= fBiasMultipliers [1][i];
+            }
           }
 
           if (pShadow [1] == fSteps [2])
           {
-            pShadow [0] *= fBiasMultipliers [2][0]; pShadow [1] *= fBiasMultipliers [2][1];
-            pShadow [2] *= fBiasMultipliers [2][2]; pShadow [3] *= fBiasMultipliers [2][3];
+            for (int i = 0 ; i < 4; i++)
+            {
+              pShadow [i] *= fBiasMultipliers [2][i];
+            }
           }
         }
 

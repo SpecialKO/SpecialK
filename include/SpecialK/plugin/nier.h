@@ -88,6 +88,12 @@ using D3D11Dev_CreateShaderResourceView_pfn = HRESULT (WINAPI *)(
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView
 );
+using D3D11Dev_CreateUnorderedAccessView_pfn = HRESULT (WINAPI *)(
+  _In_            ID3D11Device                     *This,
+  _In_            ID3D11Resource                   *pResource,
+  _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
+  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView
+);
 
 using D3D11_DrawInstanced_pfn = void (WINAPI *)(
   _In_ ID3D11DeviceContext *This,
@@ -164,6 +170,24 @@ D3D11Dev_CreateShaderResourceView_Override (
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView );
 
 extern
+HRESULT
+STDMETHODCALLTYPE
+D3D11Dev_CreateRenderTargetView_Override (
+  _In_            ID3D11Device                   *This,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
+  _Out_opt_       ID3D11RenderTargetView        **ppRTView );
+
+extern
+HRESULT
+STDMETHODCALLTYPE
+D3D11Dev_CreateUnorderedAccessView_Override (
+  _In_            ID3D11Device                     *This,
+  _In_            ID3D11Resource                   *pResource,
+  _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
+  _Out_opt_       ID3D11UnorderedAccessView       **ppUAView );
+
+extern
 void
 STDMETHODCALLTYPE
 D3D11_PSSetConstantBuffers_Override (
@@ -171,6 +195,56 @@ D3D11_PSSetConstantBuffers_Override (
   _In_     UINT                  StartSlot,
   _In_     UINT                  NumBuffers,
   _In_opt_ ID3D11Buffer *const  *ppConstantBuffers );
+
+extern
+void
+STDMETHODCALLTYPE
+D3D11_PSSetShaderResources_Override (
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+
+extern
+void
+STDMETHODCALLTYPE
+D3D11_CSSetShaderResources_Override (
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumViews,
+  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews );
+
+extern
+void
+STDMETHODCALLTYPE
+D3D11_CSSetUnorderedAccessViews_Override (
+  _In_           ID3D11DeviceContext             *This,
+  _In_           UINT                             StartSlot,
+  _In_           UINT                             NumUAVs,
+  _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+  _In_opt_ const UINT                             *pUAVInitialCounts );
+
+extern
+void
+STDMETHODCALLTYPE
+D3D11_OMSetRenderTargets_Override (
+  _In_     ID3D11DeviceContext           *This,
+  _In_     UINT                           NumViews,
+  _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
+  _In_opt_ ID3D11DepthStencilView        *pDepthStencilView );
+
+extern
+void
+STDMETHODCALLTYPE
+D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
+  _In_           ID3D11DeviceContext              *This,
+  _In_           UINT                              NumRTVs,
+  _In_opt_       ID3D11RenderTargetView    *const *ppRenderTargetViews,
+  _In_opt_       ID3D11DepthStencilView           *pDepthStencilView,
+  _In_           UINT                              UAVStartSlot,
+  _In_           UINT                              NumUAVs,
+  _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
+  _In_opt_ const UINT                             *pUAVInitialCounts );
 
 extern
 void

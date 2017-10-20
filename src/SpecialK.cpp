@@ -60,23 +60,22 @@
 
 
 // We need this to load embedded resources correctly...
-volatile HMODULE hModSelf              = nullptr;
+//std::atomic <HMODULE> hModSelf            = nullptr;
+volatile HMODULE hModSelf                       = nullptr;
 
+SK_Thread_HybridSpinlock* init_mutex   = nullptr;
+SK_Thread_HybridSpinlock* budget_mutex = nullptr;
+SK_Thread_HybridSpinlock* loader_lock  = nullptr;
+SK_Thread_HybridSpinlock* wmi_cs       = nullptr;
+SK_Thread_HybridSpinlock* cs_dbghelp   = nullptr;
 
-volatile LONG       __SK_DLL_Attached     = FALSE;
-         __time64_t __SK_DLL_AttachTime   = 0ULL;
-volatile ULONG      __SK_Threads_Attached = 0UL;
-volatile ULONG      __SK_DLL_Refs         = 0UL;
-volatile DWORD      __SK_TLS_INDEX        = MAXDWORD;
-volatile LONG       __SK_DLL_Ending       = FALSE;
-volatile LONG       __SK_HookContextOwner = FALSE;
-
-
-CRITICAL_SECTION init_mutex    = { };
-CRITICAL_SECTION budget_mutex  = { };
-CRITICAL_SECTION loader_lock   = { };
-CRITICAL_SECTION wmi_cs        = { };
-CRITICAL_SECTION cs_dbghelp    = { };
+volatile LONG  __SK_DLL_Ending       = FALSE;
+volatile LONG  __SK_DLL_Attached     = FALSE;
+    __time64_t __SK_DLL_AttachTime   = 0ULL;
+volatile ULONG __SK_Threads_Attached = 0UL;
+volatile ULONG __SK_DLL_Refs         = 0UL;
+volatile DWORD __SK_TLS_INDEX        = MAXDWORD;
+volatile LONG  __SK_HookContextOwner = false;
 
 
 SK_TLS*
@@ -166,13 +165,13 @@ SK_IsInjected (bool set)
 {
 // Indicates that the DLL is injected purely as a hooker, rather than
 //   as a wrapper DLL.
-  static volatile LONG __injected = 0L;
+  static std::atomic_bool __injected = false;
 
-  if (ReadAcquire (&__injected) > 0L)
+  if (__injected == true)
     return true;
 
   if (set)
-    InterlockedExchange (&__injected, 1L);
+    __injected = true;
 
   return set;
 }
@@ -181,7 +180,7 @@ HMODULE
 __stdcall
 SK_GetDLL (void)
 {
-  return reinterpret_cast <HMODULE> (hModSelf);
+  return reinterpret_cast <HMODULE> (ReadPointerAcquire ((const volatile LPVOID*)&hModSelf));
 }
 
 #include <unordered_set>
@@ -327,7 +326,7 @@ SK_EstablishDllRole (HMODULE hModule)
 
   static bool has_dgvoodoo =
     GetFileAttributesA (
-      SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll",
+      SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
                           std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
                       ).c_str ()
     ) != INVALID_FILE_ATTRIBUTES;
@@ -619,11 +618,19 @@ SK_Attach (DLL_ROLE role)
 
   if (! ReadAcquire (&__SK_DLL_Attached))
   {
+#if 1
+    budget_mutex = new SK_Thread_HybridSpinlock ( 400);
+    init_mutex   = new SK_Thread_HybridSpinlock (5000);
+    loader_lock  = new SK_Thread_HybridSpinlock (6536);
+    wmi_cs       = new SK_Thread_HybridSpinlock (128);
+    cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
+#else
     InitializeCriticalSectionAndSpinCount (&budget_mutex,   400);
     InitializeCriticalSectionAndSpinCount (&init_mutex,    5000);
     InitializeCriticalSectionAndSpinCount (&loader_lock,   6536);
     InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
     InitializeCriticalSectionAndSpinCount (&cs_dbghelp,  104857);
+#endif
 
     switch (role)
     {
@@ -804,11 +811,19 @@ SK_Detach (DLL_ROLE role)
         break;
     }
 
+#if 1
+    delete budget_mutex;
+    delete loader_lock;
+    delete init_mutex;
+    delete cs_dbghelp;
+    delete wmi_cs;
+#else
     DeleteCriticalSection (&budget_mutex);
     DeleteCriticalSection (&loader_lock);
     DeleteCriticalSection (&init_mutex);
     DeleteCriticalSection (&cs_dbghelp);
     DeleteCriticalSection (&wmi_cs);
+#endif
   }
 
   else {
@@ -860,14 +875,17 @@ DllMain ( HMODULE hModule,
       }
 
       if ( ReadAcquire (&__SK_DLL_Attached) ||
-           ReadAcquire (&__SK_DLL_Ending)      )
+                         __SK_DLL_Ending       )
+//      if ( ReadAcquire (&__SK_DLL_Attached) ||
+//           ReadAcquire (&__SK_DLL_Ending)      )
       {
         SK_EstablishRootPath ();
         return TRUE;
       }
 
 
-      InterlockedIncrement (&__SK_DLL_Refs);
+      ++__SK_DLL_Refs;
+      //InterlockedIncrement (&__SK_DLL_Refs);
 
 
       // Setup unhooked function pointers
@@ -948,7 +966,7 @@ DllMain ( HMODULE hModule,
     case DLL_PROCESS_DETACH:
     {
       SK_Inject_ReleaseProcess ();
-      
+
       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
       {
         // If the DLL being unloaded is the source of a CBT hook, then
@@ -956,7 +974,7 @@ DllMain ( HMODULE hModule,
         if (ReadAcquire (&__SK_HookContextOwner))
         {
           SKX_RemoveCBTHook ();
-      
+
           // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
           if (! ReadAcquire (&__SK_HookContextOwner))
           {

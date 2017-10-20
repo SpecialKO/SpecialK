@@ -129,7 +129,7 @@ void ResetCEGUI_GL (void)
 
   // TOOD: Eliminate the stupid magic number, make this an option if it's something
   //         that is really going to stay here long-term.
-  if (static_cast <ULONG> (ReadAcquire (&__cegui_frames_drawn)) < 3)
+  if (static_cast <ULONG> (ReadAcquire (&__cegui_frames_drawn)) < 5)
     return;
 
   if (cegGL == nullptr)

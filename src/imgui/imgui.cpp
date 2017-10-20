@@ -10975,9 +10975,13 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
   return &ranges [0];
 }
 
+SK_Thread_HybridSpinlock font_lock (300);
+
 void
 SK_ImGui_LoadFonts (void)
 {
+  std::lock_guard <SK_Thread_CriticalSection> cs_load_font (font_lock);
+
   static volatile ULONG init = FALSE;
 
   if (! InterlockedCompareExchange (&init, 1, 0))

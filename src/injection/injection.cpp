@@ -50,8 +50,9 @@ static          SK_InjectionRecord_s __SK_InjectionHistory
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
 
-extern volatile LONG   __SK_DLL_Attached;
-extern volatile LONG   __SK_HookContextOwner;
+extern volatile LONG    __SK_DLL_Attached;
+//extern std::atomic_bool __SK_HookContextOwner;
+extern volatile LONG __SK_HookContextOwner;
                 HMODULE hModHookInstance = nullptr;
 
 
@@ -297,7 +298,7 @@ SKX_InstallCBTHook (void)
 
     if (g_hHookCBT != nullptr)
     {
-      InterlockedExchange (&__SK_HookContextOwner, TRUE);
+      __SK_HookContextOwner = true;
     }
   }
 }
@@ -314,7 +315,7 @@ SKX_RemoveCBTHook (void)
   {
     if (UnhookWindowsHookEx (g_hHookCBT))
     {
-      InterlockedExchange (&__SK_HookContextOwner, FALSE);
+      __SK_HookContextOwner = false;
       g_hHookCBT = nullptr;
     }
   }

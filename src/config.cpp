@@ -149,6 +149,7 @@ struct {
     sk::ParameterStringW*   sound_file;
     sk::ParameterBool*      play_sound;
     sk::ParameterBool*      take_screenshot;
+    sk::ParameterBool*      fetch_friend_stats;
 
     struct {
       sk::ParameterBool*    show;
@@ -1967,6 +1968,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Steam.Achievements",
         L"TakeScreenshot" );
 
+  steam.achievements.fetch_friend_stats =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Friendly Competition")
+      );
+  steam.achievements.fetch_friend_stats->register_to_ini (
+    achievement_ini,
+      L"Steam.Achievements",
+        L"FetchFriendStats" );
+
   steam.system.notify_corner =
     dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
@@ -3105,6 +3116,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (steam.achievements.take_screenshot->load ())
     config.steam.achievements.take_screenshot =
       steam.achievements.take_screenshot->get_value ();
+  if (steam.achievements.fetch_friend_stats->load ())
+    config.steam.achievements.pull_friend_stats =
+      steam.achievements.fetch_friend_stats->get_value ();
   if (steam.achievements.popup.animate->load ())
     config.steam.achievements.popup.animate =
       steam.achievements.popup.animate->get_value ();
@@ -3776,23 +3790,24 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
-  texture.res_root->set_value                   (config.textures.d3d11.res_root);
-  texture.dump_on_load->set_value               (config.textures.dump_on_load);
+  texture.res_root->set_value                      (config.textures.d3d11.res_root);
+  texture.dump_on_load->set_value                  (config.textures.dump_on_load);
 
-  steam.achievements.sound_file->set_value      (config.steam.achievements.sound_file);
-  steam.achievements.play_sound->set_value      (config.steam.achievements.play_sound);
-  steam.achievements.take_screenshot->set_value (config.steam.achievements.take_screenshot);
-  steam.achievements.popup.origin->set_value    (
+  steam.achievements.sound_file->set_value         (config.steam.achievements.sound_file);
+  steam.achievements.play_sound->set_value         (config.steam.achievements.play_sound);
+  steam.achievements.take_screenshot->set_value    (config.steam.achievements.take_screenshot);
+  steam.achievements.fetch_friend_stats->set_value (config.steam.achievements.pull_friend_stats);
+  steam.achievements.popup.origin->set_value       (
     SK_Steam_PopupOriginToWStr (config.steam.achievements.popup.origin)
   );
-  steam.achievements.popup.inset->set_value      (config.steam.achievements.popup.inset);
+  steam.achievements.popup.inset->set_value        (config.steam.achievements.popup.inset);
 
   if (! config.steam.achievements.popup.show)
     config.steam.achievements.popup.duration = 0;
 
-  steam.achievements.popup.duration->set_value   (config.steam.achievements.popup.duration);
-  steam.achievements.popup.animate->set_value    (config.steam.achievements.popup.animate);
-  steam.achievements.popup.show_title->set_value (config.steam.achievements.popup.show_title);
+  steam.achievements.popup.duration->set_value     (config.steam.achievements.popup.duration);
+  steam.achievements.popup.animate->set_value      (config.steam.achievements.popup.animate);
+  steam.achievements.popup.show_title->set_value   (config.steam.achievements.popup.show_title);
 
   if (config.steam.appid == 0) {
     if (SK::SteamAPI::AppID () != 0 &&
@@ -4000,25 +4015,26 @@ SK_SaveConfig ( std::wstring name,
   imgui.mac_style_menu->store            ();
   imgui.show_input_apis->store           ();
 
-  steam.achievements.sound_file->store       ();
-  steam.achievements.play_sound->store       ();
-  steam.achievements.take_screenshot->store  ();
-  steam.achievements.popup.show_title->store ();
-  steam.achievements.popup.animate->store    ();
-  steam.achievements.popup.duration->store   ();
-  steam.achievements.popup.inset->store      ();
-  steam.achievements.popup.origin->store     ();
-  steam.system.notify_corner->store          ();
-  steam.system.appid->store                  ();
-  steam.system.init_delay->store             ();
-  steam.system.auto_pump->store              ();
-  steam.system.block_stat_callback->store    ();
-  steam.system.filter_stat_callbacks->store  ();
-  steam.system.load_early->store             ();
-  steam.system.early_overlay->store          ();
-  steam.system.force_load->store             ();
-  steam.log.silent->store                    ();
-  steam.drm.spoof_BLoggedOn->store           ();
+  steam.achievements.sound_file->store         ();
+  steam.achievements.play_sound->store         ();
+  steam.achievements.take_screenshot->store    ();
+  steam.achievements.fetch_friend_stats->store ();
+  steam.achievements.popup.show_title->store   ();
+  steam.achievements.popup.animate->store      ();
+  steam.achievements.popup.duration->store     ();
+  steam.achievements.popup.inset->store        ();
+  steam.achievements.popup.origin->store       ();
+  steam.system.notify_corner->store            ();
+  steam.system.appid->store                    ();
+  steam.system.init_delay->store               ();
+  steam.system.auto_pump->store                ();
+  steam.system.block_stat_callback->store      ();
+  steam.system.filter_stat_callbacks->store    ();
+  steam.system.load_early->store               ();
+  steam.system.early_overlay->store            ();
+  steam.system.force_load->store               ();
+  steam.log.silent->store                      ();
+  steam.drm.spoof_BLoggedOn->store             ();
 
   init_delay->store                      ();
   silent->store                          ();
@@ -4030,7 +4046,7 @@ SK_SaveConfig ( std::wstring name,
 
 
   // Don't store this setting at shutdown
-  if (! ReadAcquire (&__SK_DLL_Ending))
+  if (__SK_DLL_Ending == false)
   {
     handle_crashes->set_value              (config.system.handle_crashes);
     handle_crashes->store                  ();

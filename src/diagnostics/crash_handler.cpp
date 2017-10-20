@@ -804,9 +804,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
 }
 
-
-extern CRITICAL_SECTION cs_dbghelp;
-
 ULONG
 SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
                                  char*   pszOut, ULONG     ulLen )
@@ -814,7 +811,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
   ULONG ret = 0;
 
   //if (config.system.strict_compliance)
-    EnterCriticalSection (&cs_dbghelp);
+    cs_dbghelp->lock ();
 
   HANDLE hProc =
     GetCurrentProcess ();
@@ -872,7 +869,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
   }
 
   //if (config.system.strict_compliance)
-    LeaveCriticalSection (&cs_dbghelp);
+    cs_dbghelp->unlock ();
 
   return ret;
 }
@@ -882,12 +879,12 @@ WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc = GetCurrentProcess () )
 {
   //if (config.system.strict_compliance)
-    EnterCriticalSection (&cs_dbghelp);
+    cs_dbghelp->lock ();
 
   SymRefreshModuleList (hProc);
 
   //if (config.system.strict_compliance)
-    LeaveCriticalSection (&cs_dbghelp);
+    cs_dbghelp->unlock ();
 }
 
 using SteamAPI_SetBreakpadAppID_pfn = void (__cdecl *)( uint32_t unAppID );
@@ -967,7 +964,7 @@ void
 CrashHandler::InitSyms (void)
 {
   //if (config.system.strict_compliance)
-    EnterCriticalSection (&cs_dbghelp);
+    cs_dbghelp->lock ();
 
   static volatile ULONG init = 0UL;
 
@@ -1004,5 +1001,5 @@ CrashHandler::InitSyms (void)
   }
 
   //if (config.system.strict_compliance)
-    LeaveCriticalSection (&cs_dbghelp);
+    cs_dbghelp->unlock ();
 }

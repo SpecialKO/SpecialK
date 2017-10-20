@@ -1,3 +1,5 @@
+Fixed incorrect alt+tab operation in fullscreen exclusive w/ window centering on
+
 0.8.47.2/3
 
  + Added rescale-to-fit behavior to Live Render Target and Texture View (D3D11)

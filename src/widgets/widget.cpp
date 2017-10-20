@@ -294,6 +294,10 @@ SK_Widget::draw_base (void)
   if (SK_ImGui_Widgets.hide_all)
     return;
 
+  if (! ImGui::GetFont ())
+    return;
+
+
   float fScale = 
     ImGui::GetFont ()->Scale;
 
