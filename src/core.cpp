@@ -89,6 +89,9 @@ extern iSK_Logger game_debug;
 extern void SK_InitWindow (HWND hWnd);
 
 
+std::queue <DWORD> init_tids;
+
+
 static const GUID IID_ID3D11Device2 = { 0x9d06dffa, 0xd1e5, 0x4d07, { 0x83, 0xa8, 0x1b, 0xb1, 0x23, 0xf2, 0xf8, 0x41 } };
 static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0, 0x9c, 0xe0, 0xb0, 0xdc, 0x9a, 0xe6 } };
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
@@ -1142,6 +1145,8 @@ SK_InitFinishCallback (void)
   SK_StartPerfMonThreads ();
   SK_ApplyQueuedHooks    ();
 
+  SK_ResumeThreads    (init_tids);
+
   init_mutex->unlock ();
 }
 
@@ -1693,6 +1698,8 @@ BACKEND_INIT:
     dll_log.silent = false;
 
 
+  init_tids = SK_SuspendAllOtherThreads ();
+
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,
       CreateThread ( nullptr,
@@ -1702,6 +1709,8 @@ BACKEND_INIT:
                              0x00,
                                nullptr )
   ); // Avoid the temptation to wait on this thread
+
+  init_mutex->unlock ();
 
 
   //// Performance monitorng pre-init  (Steam overlay hack; it hooks Wbem and blows stuff up almost immediately)
@@ -1719,10 +1728,6 @@ BACKEND_INIT:
                    }, nullptr,
                  0x00,
                nullptr );
-
-
-  init_mutex->unlock ();
-
   return true;
 }
 

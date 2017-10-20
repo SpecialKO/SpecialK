@@ -178,7 +178,7 @@ BlacklistLibrary (const _T* lpFileName)
     WaitForInit      ();
     WaitForInputIdle (GetCurrentProcess (), 16);
 
-    while (SK_GetFramesDrawn () < 60) SleepEx (120, FALSE);
+    while (SK_GetFramesDrawn () < 5) SleepEx (30, FALSE);
   }
 #else
   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
@@ -186,7 +186,7 @@ BlacklistLibrary (const _T* lpFileName)
     WaitForInit      ();
     WaitForInputIdle (GetCurrentProcess (), 16);
 
-    while (SK_GetFramesDrawn () < 60) SleepEx (120, FALSE);
+    while (SK_GetFramesDrawn () < 5) SleepEx (30, FALSE);
   }
 #endif
   //else if (StrStrI (lpFileName, SK_TEXT("rxcore")) || StrStrI (lpFileName, SK_TEXT("nvinject")) || StrStrI (lpFileName, SK_TEXT("detoured")) || StrStrI (lpFileName, SK_TEXT("rxinput")))

@@ -4492,6 +4492,15 @@ HookDXGI (LPVOID user)
                     &pDevice,
                       &featureLevel,
                         &pImmediateContext );
+      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+      {
+        // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+        SK_LoadPlugIns64 ();
+#else
+        SK_LoadPlugIns32 ();
+#endif
+      }
 #endif
 
   if (SUCCEEDED (hr))
@@ -4517,18 +4526,9 @@ HookDXGI (LPVOID user)
       SK_Win32_CleanupDummyWindow (void);
 
       HWND                   hWnd = SK_Win32_CreateDummyWindow ();
-      
+
       if (hWnd != HWND_DESKTOP)
       {
-      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-      {
-        // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-        SK_LoadPlugIns64 ();
-#else
-        SK_LoadPlugIns32 ();
-#endif
-      }
         DXGI_SWAP_CHAIN_DESC desc = { };
       
         desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;

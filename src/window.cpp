@@ -4032,10 +4032,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  bool handled = false;
-
-  if (game_window.hooked)
-    handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+  bool handled = false;//game_window.hooked ?
+    //ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
 
   // Synaptics Touchpad Compat Hack:
@@ -4059,8 +4057,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   //
   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
   {
-    if (! game_window.hooked)
-      handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+    //if (! game_window.hooked)
+    //  handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
     if ((! handled) && config.input.mouse.fix_synaptics)
     {
@@ -4350,7 +4348,7 @@ SK_InstallWindowHook (HWND hWnd)
   {
     game_window.hooked = false;
 
-#if 1
+#if 0
     game_window.WndProc_Original = (WNDPROC)GetWindowLongPtrW (game_window.hWnd, GWLP_WNDPROC);
     g_hkCallWndProc = SetWindowsHookEx (WH_CALLWNDPROC, CallWndProc, SK_GetDLL (), GetCurrentThreadId ());
 #else
@@ -4686,7 +4684,7 @@ CreateWindowExA_Detour (
   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
   //{
-  //  if ((dwStyle & (WS_OVERLAPPEDWINDOW | WS_VISIBLE) && (dwExStyle != 0x0)))
+  //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
   //  {
   //    caught_register = true;
   //      
@@ -4764,7 +4762,7 @@ CreateWindowExW_Detour(
   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
   //{
-  //  if ((dwStyle & (WS_OVERLAPPEDWINDOW | WS_VISIBLE) && (dwExStyle != 0x0)))
+  //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
   //  {
   //    caught_register = true;
   //

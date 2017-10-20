@@ -1,4 +1,13 @@
-Fixed incorrect alt+tab operation in fullscreen exclusive w/ window centering on
+0.8.48
+
+ + Fixed incorrect alt+tab operation in fullscreen exclusive w/ window centering on
+ + Eliminated D3D11 reference counting issues at startup
+ + Improved window management reliability
+ + Disabled cursor restriction while dragging windows
+ + Added support for evaluating commands in parallel on deferred render contexts
+     before they are coallesced by a (working) graphics driver.
+   >> Fixes problems in Blue Reflection, though probably hurts performance.
+
 
 0.8.47.2/3
 

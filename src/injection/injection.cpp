@@ -33,6 +33,7 @@
 
 #pragma data_seg (".SK_Hooks")
 volatile HHOOK          g_hHookCBT    = nullptr;
+volatile HHOOK          g_hHookShell  = nullptr;
 volatile HANDLE         g_hShutdown   = nullptr;
 
 // TODO: Replace with interlocked linked-list instead of obliterating cache
@@ -235,6 +236,59 @@ CBTProc ( _In_ int    nCode,
   return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 }
 
+LRESULT
+CALLBACK
+ShellProc ( _In_ int    nCode,
+            _In_ WPARAM wParam,
+            _In_ LPARAM lParam )
+{
+  if (nCode < 0)
+    return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+
+
+  if (hModHookInstance == nullptr && g_hHookShell)
+  {
+    static volatile LONG lHookIters = 0L;
+
+    // Don't create that thread more than once, but don't bother with a complete
+    //   critical section.
+    if (InterlockedIncrement (&lHookIters) > 1L)
+      return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+
+    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+#ifdef _WIN64
+                          L"SpecialK64.dll",
+#else
+                          L"SpecialK32.dll",
+#endif
+                            (HMODULE *) &hModHookInstance );
+
+    // Get and keep a reference to this DLL if this is the first time we are injecting.
+    CreateThread ( nullptr, 0,
+         [](LPVOID user) ->
+           DWORD
+             {
+               UNREFERENCED_PARAMETER (user);
+
+               if (g_hShutdown != nullptr)
+                 WaitForSingleObject (g_hShutdown, INFINITE);
+
+               hModHookInstance = nullptr;
+
+               CloseHandle (GetCurrentThread ());
+
+               return 0;
+             },
+           nullptr,
+         0x00,
+       nullptr
+    );
+  }
+
+
+  return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+}
+
 
 BOOL
 SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
@@ -258,10 +312,20 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 
 
 
+//#define USE_SHELL_HOOK
+
+void
+__stdcall
+SKX_InstallShellHook (void);
+
 void
 __stdcall
 SKX_InstallCBTHook (void)
 {
+#ifdef USE_SHELL_HOOK
+  SKX_InstallShellHook ();
+#endif
+
   // Nothing to do here, move along.
   if (g_hHookCBT != nullptr)
     return;
@@ -306,8 +370,16 @@ SKX_InstallCBTHook (void)
 
 void
 __stdcall
+SKX_RemoveShellHook (void);
+
+void
+__stdcall
 SKX_RemoveCBTHook (void)
 {
+#ifdef USE_SHELL_HOOK
+  SKX_RemoveShellHook ();
+#endif
+
   if (g_hShutdown != nullptr)
     SetEvent (g_hShutdown);
 
@@ -326,6 +398,73 @@ __stdcall
 SKX_IsHookingCBT (void)
 {
   return (g_hHookCBT != nullptr);
+}
+
+void
+__stdcall
+SKX_InstallShellHook (void)
+{
+  // Nothing to do here, move along.
+  if (g_hHookShell != nullptr)
+    return;
+
+  HMODULE hMod = nullptr;
+
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+#ifdef _WIN64
+                          L"SpecialK64.dll",
+#else
+                          L"SpecialK32.dll",
+#endif
+                          (HMODULE *) &hMod );
+
+  extern HMODULE
+  __stdcall
+  SK_GetDLL (void);
+
+  if (hMod == SK_GetDLL ())
+  {
+    if (g_hShutdown == nullptr)
+    {
+#ifdef _WIN64
+      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
+#else
+      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
+#endif
+    }
+
+    g_hHookShell =
+      SetWindowsHookEx (WH_SHELL, ShellProc, hMod, 0);
+
+    if (g_hHookShell != nullptr)
+    {
+      __SK_HookContextOwner = true;
+    }
+  }
+}
+
+void
+__stdcall
+SKX_RemoveShellHook (void)
+{
+  if (g_hShutdown != nullptr)
+    SetEvent (g_hShutdown);
+
+  if (g_hHookShell)
+  {
+    if (UnhookWindowsHookEx (g_hHookShell))
+    {
+      __SK_HookContextOwner = false;
+      g_hHookShell = nullptr;
+    }
+  }
+}
+
+bool
+__stdcall
+SKX_IsHookingShell (void)
+{
+  return (g_hHookShell != nullptr);
 }
 
 
