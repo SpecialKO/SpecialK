@@ -612,11 +612,12 @@ SK_Attach (DLL_ROLE role)
     BOOL
       {
         SK_SetDLLRole (DLL_ROLE::INVALID);
+        InterlockedExchange (&__SK_DLL_Attached, 0);
         return FALSE;
       };
 
 
-  if (! ReadAcquire (&__SK_DLL_Attached))
+  if (! InterlockedCompareExchange (&__SK_DLL_Attached, 1, 0))
   {
 #if 1
     budget_mutex = new SK_Thread_HybridSpinlock ( 400);
@@ -631,112 +632,6 @@ SK_Attach (DLL_ROLE role)
     InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
     InitializeCriticalSectionAndSpinCount (&cs_dbghelp,  104857);
 #endif
-
-    switch (role)
-    {
-      case DLL_ROLE::DXGI:
-      {
-        // If this is the global injector and there is a wrapper version
-        //   of Special K in the DLL search path, then bail-out!
-        if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
-        {
-          return DontInject ();
-        }
-
-        InterlockedCompareExchange (
-          &__SK_DLL_Attached,
-            SK::DXGI::Startup (),
-              FALSE
-        );
-      } break;
-
-      case DLL_ROLE::D3D9:
-      {
-        // If this is the global injector and there is a wrapper version
-        //   of Special K in the DLL search path, then bail-out!
-        if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
-        {
-          return DontInject ();
-        }
-
-        InterlockedCompareExchange (
-          &__SK_DLL_Attached,
-            SK::D3D9::Startup (),
-              FALSE
-        );
-      } break;
-
-#ifndef _WIN64
-      case DLL_ROLE::D3D8:
-      {
-        // If this is the global injector and there is a wrapper version
-        //   of Special K in the DLL search path, then bail-out!
-        if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
-        {
-          return DontInject ();
-        }
-
-        InterlockedCompareExchange (
-          &__SK_DLL_Attached,
-            SK::D3D8::Startup (),
-              FALSE
-        );
-      } break;
-
-      case DLL_ROLE::DDraw:
-      {
-        // If this is the global injector and there is a wrapper version
-        //   of Special K in the DLL search path, then bail-out!
-        if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
-        {
-          return DontInject ();
-        }
-
-        InterlockedCompareExchange (
-          &__SK_DLL_Attached,
-            SK::DDraw::Startup (),
-              FALSE
-        );
-      } break;
-#endif
-
-      case DLL_ROLE::OpenGL:
-      {
-        // If this is the global injector and there is a wrapper version
-        //   of Special K in the DLL search path, then bail-out!
-        if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
-        {
-          return DontInject ();
-        }
-
-        InterlockedCompareExchange (
-          &__SK_DLL_Attached,
-            SK::OpenGL::Startup (),
-              FALSE
-        );
-      } break;
-
-      case DLL_ROLE::Vulkan:
-      {
-        return DontInject ();
-      } break;
-
-      case DLL_ROLE::DInput8:
-      {
-        // If this is the global injector and there is a wrapper version
-        //   of Special K in the DLL search path, then bail-out!
-        if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
-        {
-          return DontInject ();
-        }
-
-        InterlockedCompareExchange (
-          &__SK_DLL_Attached,
-            SK::DI8::Startup (),
-              FALSE
-        );
-      } break;
-    }
 
     __SK_TLS_INDEX = TlsAlloc ();
 
@@ -755,11 +650,118 @@ SK_Attach (DLL_ROLE role)
     {
       _time64 (&__SK_DLL_AttachTime);
 
-      return
-        InterlockedExchangeAddRelease (
-          &__SK_DLL_Attached,
-            1
-        );
+      switch (role)
+      {
+        case DLL_ROLE::DXGI:
+        {
+          // If this is the global injector and there is a wrapper version
+          //   of Special K in the DLL search path, then bail-out!
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
+          {
+            return DontInject ();
+          }
+
+          InterlockedCompareExchange (
+            &__SK_DLL_Attached,
+              SK::DXGI::Startup (),
+                1
+          );
+        } break;
+
+        case DLL_ROLE::D3D9:
+        {
+          // If this is the global injector and there is a wrapper version
+          //   of Special K in the DLL search path, then bail-out!
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
+          {
+            return DontInject ();
+          }
+
+          InterlockedCompareExchange (
+            &__SK_DLL_Attached,
+              SK::D3D9::Startup (),
+                1
+          );
+        } break;
+
+#ifndef _WIN64
+        case DLL_ROLE::D3D8:
+        {
+          // If this is the global injector and there is a wrapper version
+          //   of Special K in the DLL search path, then bail-out!
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
+          {
+            return DontInject ();
+          }
+
+          InterlockedCompareExchange (
+            &__SK_DLL_Attached,
+              SK::D3D8::Startup (),
+                1
+          );
+        } break;
+
+        case DLL_ROLE::DDraw:
+        {
+          // If this is the global injector and there is a wrapper version
+          //   of Special K in the DLL search path, then bail-out!
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
+          {
+            return DontInject ();
+          }
+
+          InterlockedCompareExchange (
+            &__SK_DLL_Attached,
+              SK::DDraw::Startup (),
+                1
+          );
+        } break;
+#endif
+
+        case DLL_ROLE::OpenGL:
+        {
+          // If this is the global injector and there is a wrapper version
+          //   of Special K in the DLL search path, then bail-out!
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
+          {
+            return DontInject ();
+          }
+
+          InterlockedCompareExchange (
+            &__SK_DLL_Attached,
+              SK::OpenGL::Startup (),
+                1
+          );
+        } break;
+
+        case DLL_ROLE::Vulkan:
+        {
+          return DontInject ();
+        } break;
+
+        case DLL_ROLE::DInput8:
+        {
+          // If this is the global injector and there is a wrapper version
+          //   of Special K in the DLL search path, then bail-out!
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
+          {
+            return DontInject ();
+          }
+
+          InterlockedCompareExchange (
+            &__SK_DLL_Attached,
+              SK::DI8::Startup (),
+                1
+          );
+        } break;
+      }
+
+      return true;
+      //return
+      //  InterlockedExchangeAddRelease (
+      //    &__SK_DLL_Attached,
+      //      1
+      //  );
     }
   }
 
@@ -875,17 +877,15 @@ DllMain ( HMODULE hModule,
       }
 
       if ( ReadAcquire (&__SK_DLL_Attached) ||
-                         __SK_DLL_Ending       )
-//      if ( ReadAcquire (&__SK_DLL_Attached) ||
-//           ReadAcquire (&__SK_DLL_Ending)      )
+           ReadAcquire (&__SK_DLL_Ending)      )
       {
         SK_EstablishRootPath ();
         return TRUE;
       }
 
 
-      ++__SK_DLL_Refs;
-      //InterlockedIncrement (&__SK_DLL_Refs);
+      //++__SK_DLL_Refs;
+      InterlockedIncrement (&__SK_DLL_Refs);
 
 
       // Setup unhooked function pointers
@@ -934,8 +934,6 @@ DllMain ( HMODULE hModule,
 
       SK_Init_MinHook        ();
       SK_InitCompatBlacklist ();
-      SK_ApplyQueuedHooks    ();
-
 
       BOOL bRet = SK_Attach (SK_GetDLLRole ());
 

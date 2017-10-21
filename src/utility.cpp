@@ -2192,10 +2192,16 @@ SK_IsHostAppSKIM (void)
   return (StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
 }
 
+bool __SK_RunDLL_Bypass = false;
+
 bool
 __cdecl
 SK_IsRunDLLInvocation (void)
 {
+  // Allow some commands invoked by RunDLL to function as a normal DLL
+  if (__SK_RunDLL_Bypass)
+    return false;
+
   bool rundll_invoked =
     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 

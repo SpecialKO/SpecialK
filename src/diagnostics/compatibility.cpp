@@ -172,21 +172,18 @@ BlacklistLibrary (const _T* lpFileName)
       constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour : 
                                                                                                 (LoadLibrary_pfn) &LoadLibraryA_Detour );
 
+#if 1
 #ifdef _WIN64
   if (StrStrI (lpFileName, SK_TEXT("action_x64")))
   {
     WaitForInit      ();
     WaitForInputIdle (GetCurrentProcess (), 16);
-
-    while (SK_GetFramesDrawn () < 5) SleepEx (30, FALSE);
   }
 #else
   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
   {
     WaitForInit      ();
     WaitForInputIdle (GetCurrentProcess (), 16);
-
-    while (SK_GetFramesDrawn () < 5) SleepEx (30, FALSE);
   }
 #endif
   //else if (StrStrI (lpFileName, SK_TEXT("rxcore")) || StrStrI (lpFileName, SK_TEXT("nvinject")) || StrStrI (lpFileName, SK_TEXT("detoured")) || StrStrI (lpFileName, SK_TEXT("rxinput")))
@@ -211,7 +208,9 @@ BlacklistLibrary (const _T* lpFileName)
   //  }
   //}
 
-  else if (StrStrI (lpFileName, SK_TEXT("RTSSHooks")))
+  else
+#endif
+  if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
   {
     WaitForInit ();
   
@@ -1085,7 +1084,7 @@ SK_ReHookLoadLibrary (void)
 #endif
 
   MH_ApplyQueued     ();
-  SK_UnlockDllLoader ();
+  SK_UnlockDllLoader ( );
 
   //CloseHandle (GetCurrentThread ());
 

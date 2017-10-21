@@ -1145,9 +1145,9 @@ SK_InitFinishCallback (void)
   SK_StartPerfMonThreads ();
   SK_ApplyQueuedHooks    ();
 
-  SK_ResumeThreads    (init_tids);
-
   init_mutex->unlock ();
+
+  SK_ResumeThreads    (init_tids);
 }
 
 DWORD
@@ -1699,6 +1699,14 @@ BACKEND_INIT:
 
 
   init_tids = SK_SuspendAllOtherThreads ();
+
+  void
+  SK_D3D9_PreHook (void);
+  SK_D3D9_PreHook ();
+
+  void
+  SK_DXGI_PreHook (void);
+  SK_DXGI_PreHook ();
 
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,

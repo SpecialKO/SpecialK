@@ -13248,3 +13248,89 @@ SKX_ImGui_RegisterDiscardableResource (IUnknown* pRes)
 }
 
 bool SK_D3D11_KnownShaders::reshade_triggered = false;
+
+
+
+
+
+
+
+
+void
+CALLBACK
+RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
+                          LPSTR lpszCmdLine, int )
+{
+  UNREFERENCED_PARAMETER (hInst);
+  UNREFERENCED_PARAMETER (hwnd);
+
+  if (StrStrA (lpszCmdLine, "dump"))
+  {
+    extern volatile ULONG  __SK_DLL_Refs;
+    InterlockedIncrement (&__SK_DLL_Refs);
+
+    extern void
+    __stdcall
+    SK_EstablishRootPath (void);
+
+    config.system.central_repository = true;
+    SK_EstablishRootPath ();
+
+    // Setup unhooked function pointers
+    SK_PreInitLoadLibrary ();
+
+    QueryPerformanceCounter_Original =
+      reinterpret_cast <QueryPerformanceCounter_pfn> (
+        GetProcAddress (
+          GetModuleHandle ( L"kernel32.dll"),
+                              "QueryPerformanceCounter" )
+      );
+
+    SK_Init_MinHook        ();
+    SK_ApplyQueuedHooks    ();
+
+    SK_SetDLLRole (DLL_ROLE::DXGI);
+
+    BOOL
+    __stdcall
+    SK_Attach (DLL_ROLE role);
+
+    extern bool __SK_RunDLL_Bypass;
+                __SK_RunDLL_Bypass = true;
+
+    BOOL bRet =
+      SK_Attach (DLL_ROLE::DXGI);
+
+    if (bRet)
+    {
+      WaitForInit ();
+
+      auto injection_config =
+        SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+
+      iSK_INI* inject_ini =
+        SK_CreateINI (injection_config.c_str ());
+
+      std::wstring out = L"";
+#ifdef _WIN64
+      out += L"[dxgi.x64]\n";
+#else
+      out += L"[dxgi.x86]\n";
+#endif
+
+      extern PresentSwapChain_pfn Present_Target;
+      out += SK_FormatStringW (L"IDXGISwapChain::Present=%p\n\n", Present_Target);
+
+      inject_ini->import (out.c_str ());
+      inject_ini->write  (inject_ini->get_filename ());
+
+      delete inject_ini;
+
+      dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
+
+      SK::DXGI::Shutdown ();
+    }
+
+    ExitProcess (0x00);
+  }
+}

@@ -144,6 +144,8 @@ struct window_message_dispatch_s {
 public:
   bool ProcessMessage (HWND hWnd, UINT uMsg, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet = nullptr)
   {
+    MH_ApplyQueued ();
+
     if (config.input.cursor.manage)
     {
       //extern bool IsControllerPluggedIn (INT iJoyID);

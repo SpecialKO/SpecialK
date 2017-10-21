@@ -816,7 +816,11 @@ SK_DXGI_SupportsTearing (void)
 }
 
 CreateSwapChain_pfn               CreateSwapChain_Original               = nullptr;
+
+uint8_t                           Present_GuardBytes [16]                = { };
+PresentSwapChain_pfn              Present_Target                         = nullptr;
 PresentSwapChain_pfn              Present_Original                       = nullptr;
+
 Present1SwapChain1_pfn            Present1_Original                      = nullptr;
 SetFullscreenState_pfn            SetFullscreenState_Original            = nullptr;
 GetFullscreenState_pfn            GetFullscreenState_Original            = nullptr;
@@ -1777,6 +1781,62 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
   __try                                { hr = Present_Original (This, SyncInterval, Flags); }
   __except (EXCEPTION_EXECUTE_HANDLER) {                                                    }
 
+  extern HRESULT
+    STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
+                                       UINT            SyncInterval,
+                                       UINT            Flags);
+
+  if ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain != nullptr && Present_Target != nullptr && Present_GuardBytes [0] != 0x00 && memcmp (Present_GuardBytes, Present_Target, 16))
+  {
+    SK_LOG0 ( ( L"IDXGISwapChain::Present (...) function prolog altered (expected: "
+                L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x', but got "
+                L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'); "
+                L"falling back to vftable override.",
+                Present_GuardBytes [0], Present_GuardBytes [ 1], Present_GuardBytes [ 2],
+                Present_GuardBytes [3], Present_GuardBytes [ 4], Present_GuardBytes [ 5],
+                Present_GuardBytes [6], Present_GuardBytes [ 7], Present_GuardBytes [ 8],
+                Present_GuardBytes [9], Present_GuardBytes [10], Present_GuardBytes [11],
+               ((uint8_t *)Present_Target) [0], ((uint8_t *)Present_Target) [ 1], ((uint8_t *)Present_Target) [ 2],
+               ((uint8_t *)Present_Target) [3], ((uint8_t *)Present_Target) [ 4], ((uint8_t *)Present_Target) [ 5],
+               ((uint8_t *)Present_Target) [6], ((uint8_t *)Present_Target) [ 7], ((uint8_t *)Present_Target) [ 8],
+               ((uint8_t *)Present_Target) [9], ((uint8_t *)Present_Target) [10], ((uint8_t *)Present_Target) [11] ),
+               L"DXGI Hooks" );
+
+                 IDXGISwapChain* pSwap = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+    void** vftable = *(void***)*&pSwap;
+
+    Present_GuardBytes [0] = 0x00;
+
+    static volatile LONG nest = 0;
+    if (! InterlockedCompareExchange (&nest, 1, 0))
+    {
+    CreateThread (nullptr, 0x0, [](LPVOID) -> DWORD
+    {
+      MH_DisableHook (Present_Target);
+
+                   IDXGISwapChain* pSwap = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+      void** vftable = *(void***)*&pSwap;
+
+      DWORD dwProtect;
+      VirtualProtect (&vftable [8], sizeof (uintptr_t), PAGE_EXECUTE_READWRITE, &dwProtect);
+      Present_Original = (PresentSwapChain_pfn)vftable [8];
+      vftable [8]      =  PresentCallback;
+      Present_Target   = (PresentSwapChain_pfn)vftable [8];
+      VirtualProtect (&vftable [8], sizeof (uintptr_t), dwProtect, &dwProtect);
+
+      //memcpy ( Present_GuardBytes,
+      //                          vftable [8], 16 );
+               Present_GuardBytes [0] = 0x00;
+
+      InterlockedExchange (&nest, 0);
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, nullptr, 0x00, nullptr);
+    }
+  }
+
   return hr;
 }
 
@@ -1785,6 +1845,10 @@ HRESULT
                                      UINT            SyncInterval,
                                      UINT            Flags)
 {
+extern HRESULT
+  STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
+                                     UINT            SyncInterval,
+                                     UINT            Flags);
   //
   // Early-out for games that use testing to minimize blocking
   //
@@ -4055,6 +4119,49 @@ dxgi_init_callback (finish_pfn finish)
 }
 
 
+#include <SpecialK/ini.h>
+
+void
+SK_DXGI_PreHook (void)
+{
+  extern HRESULT
+  STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
+                                     UINT            SyncInterval,
+                                     UINT            Flags);
+
+  if (Present_Target == nullptr)
+  {
+    auto injection_config =
+      SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+
+    iSK_INI* inject_ini =
+      SK_CreateINI (injection_config.c_str ());
+
+    iSK_INISection& ini_sec =
+#ifdef _WIN64
+      inject_ini->get_section (L"dxgi.x64");
+#else
+      inject_ini->get_section (L"dxgi.x86");
+#endif
+
+    std::swscanf (ini_sec.get_value (L"IDXGISwapChain::Present").c_str (), L"%p", &Present_Target);
+
+    delete inject_ini;
+
+    if (MH_OK == MH_CreateHook (Present_Target, PresentCallback, (LPVOID *)&Present_Original))
+    {
+                 MH_EnableHook (Present_Target);
+      memcpy ( Present_GuardBytes,
+                                Present_Target, 16 );
+    }
+
+    else
+    {
+      Present_Target = nullptr; ZeroMemory (Present_GuardBytes, 16); Present_Original = nullptr;
+    }
+  }
+}
+
 bool
 SK::DXGI::Startup (void)
 {
@@ -4143,12 +4250,15 @@ SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain, bool rehook)
 
   if (Present_Original == nullptr)
   {
+    Present_Target = (PresentSwapChain_pfn)vftable [8];
+
     DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
                         "IDXGISwapChain::Present",
                          PresentCallback,
                          Present_Original,
                          PresentSwapChain_pfn );
 
+    memcpy (Present_GuardBytes, Present_Target, 16);
     vftable_8 = vftable [8];
   }
 }
@@ -4425,7 +4535,7 @@ HookDXGI (LPVOID user)
 
   if (ReadAcquire (&__dxgi_ready))
   {
-    WaitForInit ();
+    //WaitForInit ();
     return 0;
   }
 
@@ -4561,18 +4671,6 @@ HookDXGI (LPVOID user)
           }
 
           SK_DXGI_HookSwapChain     (pSwapChain);
-          SK_ApplyQueuedHooks       (          );
-
-          // Copy the vtable, so we can defer hook installation if needed
-          IDXGISwapChain* pSwapCopy =
-            (IDXGISwapChain *)malloc (sizeof IDXGISwapChain);
-
-          // ^^^ A check needs to be added to see if the DLL that the vtable points to
-          //       is still resident.
-          //
-          // Some third-party software uninjects itself and unhooks stuff.
-
-          memcpy (pSwapCopy, pSwapChain, sizeof IDXGISwapChain);
 
           // This won't catch Present1 (...), but no games use that
           //   and we can deal with it later if it happens.
@@ -4583,41 +4681,19 @@ HookDXGI (LPVOID user)
           if (pSwapChain1 != nullptr)
             SK_DXGI_HookPresent1 (pSwapChain1, false);
 
-          CreateThread ( nullptr,
-                           0x0,
-                             [](LPVOID user) -> DWORD
-                             {
-                               Sleep (3000UL);
-
-                               if (! SK_GetFramesDrawn ())
-                               {
-                                 // This won't catch Present1 (...), but no games use that
-                                 //   and we can deal with it later if it happens.
-                                 SK_DXGI_HookPresentBase ((IDXGISwapChain *)user, false);
-                                                                      free (user);
-                               }
-
-                               SK_ApplyQueuedHooks ();
-
-                               CloseHandle (GetCurrentThread ());
-
-                               return 0;
-                             }, pSwapCopy,
-                           0x00,
-                          nullptr );
+          MH_ApplyQueued  ();
         }
       }
 
       SK_Win32_CleanupDummyWindow ();
-
-      InterlockedExchange (&__dxgi_ready, TRUE);
-
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
 #ifdef _WIN64
       if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
 #endif
+
+      InterlockedExchange (&__dxgi_ready, TRUE);
     }
   }
 

@@ -1187,7 +1187,9 @@ Exit 0</Command>
       <OptimizeReferences>false</OptimizeReferences>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
+      <BaseAddress>
+      </BaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
