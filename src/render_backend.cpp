@@ -135,6 +135,10 @@ SK_BootD3D9 (void)
 #endif
   }
 
+  void
+  SK_D3D9_PreHook (void);
+  SK_D3D9_PreHook ();
+
   SK_HookD3D9 ();
 
   if (config.textures.d3d9_mod)
@@ -249,6 +253,10 @@ SK_BootDXGI (void)
     SK_LoadEarlyImports32 ();
 #endif
   }
+
+  void
+  SK_DXGI_PreHook (void);
+  SK_DXGI_PreHook ();
 
   SK_HookDXGI ();
 }

@@ -3033,3 +3033,29 @@ SK_HostAppUtil::SK_HostAppUtil (void)
 }
 
 SK_HostAppUtil SK_HostApp;
+
+const wchar_t*
+__stdcall
+SK_GetCanonicalDLLForRole (enum DLL_ROLE role)
+{
+  switch (role)
+  {
+    case DLL_ROLE::DXGI:
+      return L"dxgi.dll";
+    case DLL_ROLE::D3D9:
+      return L"d3d9.dll";
+    case DLL_ROLE::D3D8:
+      return L"d3d8.dll";
+    case DLL_ROLE::DDraw:
+      return L"ddraw.dll";
+    case DLL_ROLE::OpenGL:
+      return L"OpenGL32.dll";
+    case DLL_ROLE::Vulkan:
+      return L"vk-1.dll";
+    case DLL_ROLE::DInput8:
+      return L"dinput8.dll";
+    default:
+      return SK_GetBitness () == 32 ?
+               L"SpecialK32.dll" : L"SpecialK64.dll";
+  }
+}

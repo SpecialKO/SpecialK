@@ -141,14 +141,6 @@ Sleep_Detour (DWORD dwMilliseconds)
 
   if (bGUIThread)
   {
-    static bool ffx = GetModuleHandle (L"UnX.dll") != nullptr;
-
-    if (ffx && dwMilliseconds == 5)
-    {
-      MsgWaitForMultipleObjects (0, nullptr, FALSE, 0, QS_ALLEVENTS);
-      return;
-    }
-
     if (config.render.framerate.sleepless_window && dwMilliseconds != INFINITE)
     {
       static bool reported = false;

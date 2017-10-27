@@ -60,6 +60,8 @@
 
 #include <SpecialK/io_monitor.h>
 
+#include <SpecialK/plugin/reshade.h>
+
 
 #include <windows.h>
 #include <cstdio>
@@ -1630,20 +1632,12 @@ SK_ImGui_ControlPanel (void)
       {
         bool selected = false;
 
-        static HMODULE hModReShade =
-#ifdef _WIN64
-          GetModuleHandle (L"ReShade64.dll");
-#else
-          GetModuleHandle (L"ReShade32.dll");
-#endif
-        static bool bIsReShadeCustom =
-                          hModReShade != nullptr &&
-#ifndef _WIN64
-          GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YGIPAX@Z");
-#else
-          GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YAIPEAX@Z");
-#endif
+        static HMODULE hModReShade      = SK_ReShade_GetDLL ();
+        static bool    bIsReShadeCustom =
+                          ( hModReShade != nullptr &&
 
+        SK_RunLHIfBitness ( 64, GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YAIPEAX@Z"),
+                                GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YGIPAX@Z" ) ) );
 
         if (ImGui::MenuItem ( "Browse Logs", "", &selected ))
         {
@@ -1689,8 +1683,6 @@ SK_ImGui_ControlPanel (void)
         {
           if (ImGui::MenuItem ("Install Wrapper DLL for this game"))
           {
-            extern bool SK_Inject_SwitchToRenderWrapper (void);
-
             if (SK_Inject_SwitchToRenderWrapper ())
               wrappable = false;
           }
@@ -1700,9 +1692,6 @@ SK_ImGui_ControlPanel (void)
         {
           if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game"))
           {
-            extern bool
-            SK_Inject_SwitchToGlobalInjector (void);
-
             wrappable = 
               SK_Inject_SwitchToGlobalInjector ();
           }
@@ -2164,11 +2153,8 @@ SK_ImGui_ControlPanel (void)
       lstrcatA (szAPIName, u8"→11" );
     }
 
-#ifndef _WIN64
-    lstrcatA (szAPIName, "    [ 32-bit ]");
-#else
-    lstrcatA (szAPIName, "    [ 64-bit ]");
-#endif
+    lstrcatA ( szAPIName, SK_GetBitness () == 32 ? "    [ 32-bit ]" :
+                                                   "    [ 64-bit ]" );
 
     ImGui::MenuItem ("Active Render API        ", szAPIName);
 
@@ -4790,18 +4776,45 @@ extern float SK_ImGui_PulseNav_Strength;
       wchar_t imp_path_reshade_ex [MAX_PATH + 2] = { };
       wchar_t imp_name_reshade_ex [64]           = { };
 
+      wchar_t* wszShimFormat =
+        L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade%u.dll";
+
 #ifdef _WIN64
       wcscat   (imp_name_reshade, L"Import.ReShade64");
       wsprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
       wcscat   (imp_name_reshade_ex, L"Import.ReShade64_Custom");
-      wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+
+      if (SK_IsInjected ())
+      {
+        wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+      }
+
+      else
+      {
+        wsprintf ( imp_path_reshade_ex, wszShimFormat,
+                     std::wstring (SK_GetDocumentsDir        (                ) +
+                                               L"\\My Mods\\SpecialK").c_str (  ),
+                                   SK_GetBitness             (                ) );
+      }
 #else
       wcscat   (imp_name_reshade, L"Import.ReShade32");
       wsprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
       wcscat   (imp_name_reshade_ex, L"Import.ReShade32_Custom");
-      wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+
+      if (SK_IsInjected ())
+      {
+        wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+      }
+
+      else
+      {
+        wsprintf ( imp_path_reshade_ex, wszShimFormat,
+                     std::wstring (SK_GetDocumentsDir        (                ) +
+                                               L"\\My Mods\\SpecialK").c_str (  ),
+                                   SK_GetBitness             (                ) );
+      }
 #endif
       bool reshade_official   = dll_ini->contains_section (imp_name_reshade);
       bool reshade_unofficial = dll_ini->contains_section (imp_name_reshade_ex);
@@ -4900,7 +4913,10 @@ extern float SK_ImGui_PulseNav_Strength;
       }
       ImGui::PopStyleColor ( 3);
 
-      if (SK_IsInjected ())
+      if (SK_IsInjected () || SK_GetModuleName (SK_GetDLL ()).find (L"dxgi.dll")     != std::wstring::npos ||
+                              SK_GetModuleName (SK_GetDLL ()).find (L"d3d9.dll")     != std::wstring::npos ||
+                              SK_GetModuleName (SK_GetDLL ()).find (L"OpenGL32.dll") != std::wstring::npos ||
+                              SK_GetModuleName (SK_GetDLL ()).find (L"dinput8.dll")  != std::wstring::npos)
       {
         ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
         ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));

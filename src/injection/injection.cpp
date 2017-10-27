@@ -374,6 +374,7 @@ SKX_InstallCBTHook (void)
 
 
 
+#ifdef _WIN64
   GetSystemDirectoryW (wszSys32, MAX_PATH);
   PathAppendW         (wszSys32, L"rundll32.exe");
   ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
@@ -381,8 +382,7 @@ SKX_InstallCBTHook (void)
   GetSystemDirectoryW (wszSys32, MAX_PATH);
   PathAppendW         (wszSys32, L"rundll32.exe");
   ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
-
-
+#else
   GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
   PathAppendW              (wszWOW64, L"rundll32.exe");
   ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
@@ -390,6 +390,7 @@ SKX_InstallCBTHook (void)
   GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
   PathAppendW              (wszWOW64, L"rundll32.exe");
   ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
+#endif
 
 
 

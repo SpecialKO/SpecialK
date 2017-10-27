@@ -423,8 +423,13 @@ SK_FAR_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
+  extern volatile LONG   SK_bypass_dialog_active;
+  InterlockedIncrement (&SK_bypass_dialog_active);
+
   if (SK_FetchVersionInfo (L"FAR/dinput8"))
     SK_UpdateSoftware (L"FAR/dinput8");
+
+  InterlockedDecrement (&SK_bypass_dialog_active);
 
   return 0;
 }

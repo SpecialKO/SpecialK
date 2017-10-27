@@ -33,9 +33,6 @@ interface iSK_INI;
 
 using HANDLE = void *;
 
-#define SK_RunOnce(x) { static bool first = true; if (first) { (x); first = false; } }
-
-
 template <typename T, typename T2, typename Q>
   __inline
   T
@@ -121,6 +118,27 @@ HMODULE __stdcall
 std::wstring
         __stdcall
                SK_GetDLLVersionStr       (const wchar_t* wszName);
+
+const wchar_t*
+        __stdcall
+               SK_GetCanonicalDLLForRole (enum DLL_ROLE role);
+
+
+constexpr uint8_t
+__stdcall
+SK_GetBitness (void)
+{
+#ifdef _WIN64
+  return 64;
+#endif
+  return 32;
+}
+
+#define SK_RunOnce(x)    { static bool first = true; if (first) { (x); first = false; } }
+
+#define SK_RunIf32Bit(x)         { SK_GetBitness () == 32  ? (x) :  0; }
+#define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }
+#define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b) ? (l) : (r)
 
 #include <queue>
 

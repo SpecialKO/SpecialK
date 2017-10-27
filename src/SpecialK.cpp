@@ -159,6 +159,8 @@ SK_TLS_Pop  (void)
 }
 
 
+#include <SpecialK/injection/address_cache.h>
+
 bool
 __stdcall
 SK_IsInjected (bool set)
@@ -171,7 +173,10 @@ SK_IsInjected (bool set)
     return true;
 
   if (set)
-    __injected = true;
+  {
+    __injected               = true;
+    SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+  }
 
   return set;
 }
@@ -276,6 +281,7 @@ SK_EstablishDllRole (HMODULE hModule)
     blacklist.emplace (L"A17Config.exe");
     blacklist.emplace (L"A18Config.exe"); // Atelier Firis
     blacklist.emplace (L"DPLauncher.exe");
+    blacklist.emplace (L"ZeroEscape-Launcher.exe");
 
     // Other Stuff
     blacklist.emplace (L"ActivationUI.exe");
@@ -368,7 +374,7 @@ SK_EstablishDllRole (HMODULE hModule)
   //
   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
   {
-    // Skip lengthy tests if we already have the wrapper version loaded.
+    /////// Skip lengthy tests if we already have the wrapper version loaded.
     if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
          ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
          ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
@@ -619,19 +625,11 @@ SK_Attach (DLL_ROLE role)
 
   if (! InterlockedCompareExchange (&__SK_DLL_Attached, 1, 0))
   {
-#if 1
     budget_mutex = new SK_Thread_HybridSpinlock ( 400);
     init_mutex   = new SK_Thread_HybridSpinlock (5000);
     loader_lock  = new SK_Thread_HybridSpinlock (6536);
     wmi_cs       = new SK_Thread_HybridSpinlock (128);
     cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
-#else
-    InitializeCriticalSectionAndSpinCount (&budget_mutex,   400);
-    InitializeCriticalSectionAndSpinCount (&init_mutex,    5000);
-    InitializeCriticalSectionAndSpinCount (&loader_lock,   6536);
-    InitializeCriticalSectionAndSpinCount (&wmi_cs,         128);
-    InitializeCriticalSectionAndSpinCount (&cs_dbghelp,  104857);
-#endif
 
     __SK_TLS_INDEX = TlsAlloc ();
 
@@ -813,19 +811,11 @@ SK_Detach (DLL_ROLE role)
         break;
     }
 
-#if 1
     delete budget_mutex;
     delete loader_lock;
     delete init_mutex;
     delete cs_dbghelp;
     delete wmi_cs;
-#else
-    DeleteCriticalSection (&budget_mutex);
-    DeleteCriticalSection (&loader_lock);
-    DeleteCriticalSection (&init_mutex);
-    DeleteCriticalSection (&cs_dbghelp);
-    DeleteCriticalSection (&wmi_cs);
-#endif
   }
 
   else {
@@ -976,14 +966,11 @@ DllMain ( HMODULE hModule,
           // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
           if (! ReadAcquire (&__SK_HookContextOwner))
           {
-#ifdef _WIN64
-            DeleteFileW (L"SpecialK64.pid");
-#else
-            DeleteFileW (L"SpecialK32.pid");
-#endif
+            SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
+            SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
           }
         }
-//
+
         if (ReadAcquire (&__SK_DLL_Attached))
         {
           InterlockedExchange (&__SK_DLL_Ending, TRUE);

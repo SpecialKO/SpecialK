@@ -67,6 +67,28 @@ using SKPlugIn_Shutdown_pfn = BOOL (WINAPI *)(LPVOID  user);
 
 #pragma comment( lib, "dbghelp.lib" )
 
+bool
+SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
+{
+  typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
+
+  SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
+    (SK_SHIM_GetReShade_pfn)GetProcAddress (hModShim, "SK_SHIM_GetReShade");
+
+  if (SK_SHIM_GetReShade != nullptr)
+  {
+    hModReal =
+      SK_SHIM_GetReShade ();
+
+    if (hModReal != 0)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 HMODULE
 SK_InitPlugIn64 (HMODULE hLibrary)
 {
@@ -156,6 +178,9 @@ SK_LoadEarlyImports64 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 import.product_desc =
                   SK_GetDLLVersionStr (
                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
@@ -240,6 +265,9 @@ SK_LoadPlugIns64 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -325,6 +353,9 @@ SK_LoadLateImports64 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -402,6 +433,9 @@ SK_LoadLazyImports64 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -525,6 +559,9 @@ SK_LoadEarlyImports32 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -610,6 +647,9 @@ SK_LoadPlugIns32 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -695,6 +735,9 @@ SK_LoadLateImports32 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -772,6 +815,9 @@ SK_LoadLazyImports32 (void)
 
               if (import.hLibrary != nullptr)
               {
+                if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
+                  std::swap (import.hLibrary, import.hShim);
+
                 dll_log.LogEx (false, L"success!\n");
                 ++success;
 
@@ -830,6 +876,11 @@ SK_UnloadImports (void)
 
       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
                     imports [i].filename->get_value_str ().c_str () );
+
+      if (imports [i].hShim != nullptr)
+      {
+        FreeLibrary_Original (imports [i].hShim);
+      }
 
       if (FreeLibrary_Original (imports [i].hLibrary))
       {

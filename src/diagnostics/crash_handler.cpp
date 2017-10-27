@@ -128,7 +128,7 @@ CrashHandler::Init (void)
   //    NULL,
   //      TRUE );
 
-  Reinstall ();
+Reinstall ();
 }
 
 void

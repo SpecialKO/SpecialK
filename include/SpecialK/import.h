@@ -40,6 +40,7 @@ struct import_s
 {
   // Parameters populated after load
   HMODULE               hLibrary     = nullptr;
+  HMODULE               hShim        = nullptr;
   std::wstring          product_desc = L"";
 
   // User-defined parameters

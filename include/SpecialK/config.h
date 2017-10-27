@@ -263,6 +263,7 @@ struct sk_config_t
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
+      bool    rehook_present     = false;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)
@@ -386,6 +387,12 @@ struct sk_config_t
       float   antiwarp_deadzone = 2.5f;
     } mouse;
   } input;
+
+  struct {
+    struct {
+      bool  use_static_addresses = false;
+    } global;
+  } injection;
 
   struct {
     bool    borderless          = false;
@@ -598,6 +605,7 @@ enum class SK_GAME_ID
   Hob,                          // Hob.exe and HobLauncher.exe
   DukeNukemForever,             // DukeForever.exe
   BlueReflection,               // BLUE_REFLECTION.exe
+  ZeroEscape,                   // Zero Escape.exe
   UNKNOWN_GAME               = 0xffff
 };
 

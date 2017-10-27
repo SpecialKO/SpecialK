@@ -75,6 +75,8 @@
 
 #include <SpecialK/widgets/widget.h>
 
+#include <SpecialK/injection/address_cache.h>
+
 #include <atlbase.h>
 #include <comdef.h>
 #include <delayimp.h>
@@ -1112,6 +1114,8 @@ SK_InitFinishCallback (void)
   const wchar_t* config_name =
     init_.backend;
 
+  // Use a generic "SpecialK" name instead of the primary wrapped/hooked API name
+  //   for this DLL when it is injected at run-time rather than a proxy DLL.
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
@@ -1156,11 +1160,11 @@ CheckVersionThread (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  InterlockedIncrement (&SK_bypass_dialog_active);
-
   // If a local repository is present, use that.
   if (GetFileAttributes (L"Version\\installed.ini") == INVALID_FILE_ATTRIBUTES)
   {
+    InterlockedIncrement (&SK_bypass_dialog_active);
+
     if (SK_FetchVersionInfo (L"SpecialK"))
     {
       // ↑ Check, but ↓ don't update unless running the global injector version
@@ -1169,9 +1173,9 @@ CheckVersionThread (LPVOID user)
         SK_UpdateSoftware (L"SpecialK");
       }
     }
-  }
 
-  InterlockedDecrement (&SK_bypass_dialog_active);
+    InterlockedDecrement (&SK_bypass_dialog_active);
+  }
 
   CloseHandle (GetCurrentThread ());
 
@@ -1479,6 +1483,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     goto BACKEND_INIT;
 
 
+
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
@@ -1487,6 +1492,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   SK::Diagnostics::CrashHandler::InitSyms ();
+
 
   if (config.steam.preload_overlay)
   {
@@ -1699,14 +1705,6 @@ BACKEND_INIT:
 
 
   init_tids = SK_SuspendAllOtherThreads ();
-
-  void
-  SK_D3D9_PreHook (void);
-  SK_D3D9_PreHook ();
-
-  void
-  SK_DXGI_PreHook (void);
-  SK_DXGI_PreHook ();
 
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,

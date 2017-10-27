@@ -373,25 +373,24 @@ public:
     Blacklist_2D.resize (20);
 
     TexRefs_2D.reserve       (8192);
-    Textures_2D.reserve      (8192);
-    HashMap_2D [ 1].reserve  (2048);
-    HashMap_2D [ 2].reserve  ( 256);
-    HashMap_2D [ 3].reserve  ( 512);
-    HashMap_2D [ 4].reserve  (1024);
-    HashMap_2D [ 5].reserve  ( 512);
-    HashMap_2D [ 6].reserve  ( 256);
-    HashMap_2D [ 7].reserve  ( 128);
-    HashMap_2D [ 8].reserve  ( 128);
-    HashMap_2D [ 9].reserve  ( 256);
-    HashMap_2D [10].reserve  ( 256);
-    HashMap_2D [11].reserve  ( 512);
-    HashMap_2D [12].reserve  ( 128);
-    HashMap_2D [13].reserve  (  32);
-    HashMap_2D [14].reserve  (  16);
-    HashMap_2D [15].reserve  (   8);
-    HashMap_2D [16].reserve  (   4);
-    HashMap_2D [17].reserve  (   2);
-    HashMap_2D [18].reserve  (   1);
+    //Textures_2D.reserve      (8192);
+    HashMap_2D [ 1].reserve  ( 128); // Only      1x1
+    HashMap_2D [ 2].reserve  ( 256); // Up to     2x2
+    HashMap_2D [ 3].reserve  ( 256); // Up to     4x4
+    HashMap_2D [ 4].reserve  ( 256); // Up to     8x8
+    HashMap_2D [ 5].reserve  ( 512); // Up to    16x16
+    HashMap_2D [ 6].reserve  ( 256); // Up to    32x32
+    HashMap_2D [ 7].reserve  ( 128); // Up to    64x64
+    HashMap_2D [ 8].reserve  ( 128); // Up to   128x128
+    HashMap_2D [ 9].reserve  ( 640); // Up to   256x256
+    HashMap_2D [10].reserve  (1024); // Up to   512x512
+    HashMap_2D [11].reserve  (2048); // Up to  1024x1024
+    HashMap_2D [12].reserve  (2048); // Up to  2048x2048
+    HashMap_2D [13].reserve  ( 512); // Up to  4096x4096
+    HashMap_2D [14].reserve  (   8); // Up to  8192x8192
+    HashMap_2D [15].reserve  (   4); // Up to 16384x16384
+    HashMap_2D [16].reserve  (   2); // Up to 32768x32768
+    HashMap_2D [17].reserve  (   1); // Up to 65536x65536
 
     AggregateSize_2D  = 0ULL;
     RedundantData_2D  = 0ULL;
@@ -440,7 +439,7 @@ public:
   struct lod_hash_table_s
   {
     lod_hash_table_s (void) {
-      InitializeCriticalSectionAndSpinCount (&mutex, 1500);
+      InitializeCriticalSectionAndSpinCount (&mutex, 600);
     }
 
     ~lod_hash_table_s (void)
@@ -448,10 +447,10 @@ public:
       DeleteCriticalSection (&mutex);
     }
 
-    void              reserve     (size_t   resrv ) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.reserve);         entries.reserve (resrv ); };
-    bool              contains    (uint32_t crc32c) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.contains); return entries.count   (crc32c); };
-    void              erase       (uint32_t crc32c) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.erase);           entries.erase   (crc32c); };
-    ID3D11Texture2D*& operator [] (uint32_t crc32c) { /*SK_AutoCriticalSection cs (&mutex);*/ InterlockedIncrement (&contention_score.index);    return entries         [crc32c]; };
+    void              reserve     (size_t   resrv ) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.reserve);         entries.reserve (resrv ); };
+    bool              contains    (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.contains); return entries.count   (crc32c); };
+    void              erase       (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.erase);           entries.erase   (crc32c); };
+    ID3D11Texture2D*& operator [] (uint32_t crc32c) { SK_AutoCriticalSection cs (&mutex); InterlockedIncrement (&contention_score.index);    return entries         [crc32c]; };
 
     std::unordered_map < uint32_t,
                          ID3D11Texture2D * > entries;
@@ -470,7 +469,7 @@ public:
                         uint32_t          >
                      >                        Blacklist_2D;
 
-#if 0
+#if 1
   concurrency::concurrent_unordered_map < ID3D11Texture2D *,
                                           tex2D_descriptor_s  >  Textures_2D;
 #else

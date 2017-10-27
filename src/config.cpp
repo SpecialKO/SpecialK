@@ -183,6 +183,15 @@ struct {
   } drm;
 } steam;
 
+struct
+{
+  struct
+  {
+    sk::ParameterBool*    use_static_addresses;
+    bool                  has_local_preference = false;
+  } global;
+} injection;
+
 struct {
   struct {
     sk::ParameterBool*    override;
@@ -239,6 +248,8 @@ struct {
     sk::ParameterBool*    debug_layer;
     sk::ParameterBool*    safe_fullscreen;
     sk::ParameterBool*    enhanced_depth;
+    sk::ParameterBool*    deferred_isolation;
+    sk::ParameterBool*    rehook_present;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -1551,6 +1562,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
         L"Render.DXGI",
           L"Use64BitDepthStencil" );
 
+    render.dxgi.deferred_isolation =
+      dynamic_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Isolate D3D11 Deferred Context Queues instead of Tracking Immediate State")
+        );
+    render.dxgi.deferred_isolation->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"IsolateD3D11DeferredContexts" );
+
+    render.dxgi.rehook_present =
+      dynamic_cast <sk::ParameterBool *>
+        (g_ParameterFactory.create_parameter <bool> (
+          L"Attempt to Fix Altered SwapChain Presentation Hooks")
+        );
+    render.dxgi.rehook_present->register_to_ini (
+      dll_ini,
+        L"Render.DXGI",
+          L"RehookPresent" );
+
 
     texture.d3d11.cache =
       dynamic_cast <sk::ParameterBool *>
@@ -1711,6 +1742,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
       dll_ini,
         L"Textures.Cache",
           L"AllowStaging" );
+
+
+  injection.global.use_static_addresses =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Use Cached Memory Addresses in Global\\injection.ini")
+      );
+  injection.global.use_static_addresses->register_to_ini (
+    dll_ini,
+      L"Injection.Global",
+        L"UseStaticAddresses" );
 
 
   nvidia.api.disable =
@@ -2281,6 +2323,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"Hob.exe",                                SK_GAME_ID::Hob                          );
   games.emplace ( L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             );
   games.emplace ( L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               );
+  games.emplace ( L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   );
 
   //
   // Application Compatibility Overrides
@@ -2673,6 +2716,60 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
 
 
+
+
+  // Global Injection
+  //
+  //   Hook Address Policy
+  //
+  if (injection.global.use_static_addresses->load ())
+  {
+    injection.global.has_local_preference        = true;
+    config.injection.global.use_static_addresses = injection.global.use_static_addresses->get_value ();
+  }
+
+  else
+  {
+    auto inject_config =
+      SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+
+    iSK_INI* pInjectINI =
+      SK_CreateINI (inject_config.c_str ());
+
+    sk::ParameterBool* default_usage =
+      dynamic_cast <sk::ParameterBool *> (
+        g_ParameterFactory.create_parameter <bool> (L"Default Usage")
+      );
+    default_usage->register_to_ini (pInjectINI, L"Injection.Policy", L"DefaultStaticAddressUsage");
+
+    if (default_usage->load ())
+    {      
+      config.injection.global.use_static_addresses = default_usage->get_value ();
+    }
+
+    // Highly Experimental, so OFF by default
+    else
+    {
+      default_usage->set_value (false);
+      default_usage->store     (     );
+
+      config.injection.global.use_static_addresses = false;
+
+      pInjectINI->write (pInjectINI->get_filename ());
+    }
+
+    if (SK_IsInjected ())
+    {
+      // Apply this by default
+      config.render.dxgi.rehook_present = config.injection.global.use_static_addresses;
+    }
+
+    delete pInjectINI;
+  }
+
+
+
+
   if (display.force_fullscreen->load ())
     config.display.force_fullscreen =
       display.force_fullscreen->get_value ();
@@ -2918,6 +3015,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (render.dxgi.enhanced_depth->load ())
     config.render.dxgi.enhanced_depth = render.dxgi.enhanced_depth->get_value ();
+
+  if (render.dxgi.deferred_isolation->load ())
+    config.render.dxgi.deferred_isolation = render.dxgi.deferred_isolation->get_value ();
+  if (render.dxgi.rehook_present->load ())
+    config.render.dxgi.rehook_present = render.dxgi.rehook_present->get_value ();
 
 
   if (texture.d3d11.cache->load ())
@@ -3776,9 +3878,11 @@ SK_SaveConfig ( std::wstring name,
           break;
       }
 
-      render.dxgi.debug_layer->set_value     (config.render.dxgi.debug_layer);
-      render.dxgi.safe_fullscreen->set_value (config.render.dxgi.safe_fullscreen);
-      render.dxgi.enhanced_depth->set_value  (config.render.dxgi.enhanced_depth);
+      render.dxgi.debug_layer->set_value        (config.render.dxgi.debug_layer);
+      render.dxgi.safe_fullscreen->set_value    (config.render.dxgi.safe_fullscreen);
+      render.dxgi.enhanced_depth->set_value     (config.render.dxgi.enhanced_depth);
+      render.dxgi.deferred_isolation->set_value (config.render.dxgi.deferred_isolation);
+      render.dxgi.rehook_present->set_value     (config.render.dxgi.rehook_present);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
@@ -3917,6 +4021,12 @@ SK_SaveConfig ( std::wstring name,
   window.fix_mouse_coords->store           ();
   window.override->store                   ();
 
+  if (SK_IsInjected () && injection.global.has_local_preference)
+  {
+    injection.global.use_static_addresses->get_value ();
+    injection.global.use_static_addresses->store     ();
+  }
+
   nvidia.api.disable->store                ();
 
   display.force_fullscreen->store          ();
@@ -3970,16 +4080,18 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.ignore_non_mipped->store ();
       texture.cache.allow_staging->store     ();
 
-      render.dxgi.max_res->store         ();
-      render.dxgi.min_res->store         ();
-      render.dxgi.scaling_mode->store    ();
-      render.dxgi.scanline_order->store  ();
-      render.dxgi.exception_mode->store  ();
-      render.dxgi.debug_layer->store     ();
-      render.dxgi.safe_fullscreen->store ();
-      render.dxgi.enhanced_depth->store  ();
+      render.dxgi.max_res->store            ();
+      render.dxgi.min_res->store            ();
+      render.dxgi.scaling_mode->store       ();
+      render.dxgi.scanline_order->store     ();
+      render.dxgi.exception_mode->store     ();
+      render.dxgi.debug_layer->store        ();
+      render.dxgi.safe_fullscreen->store    ();
+      render.dxgi.enhanced_depth->store     ();
+      render.dxgi.deferred_isolation->store ();
+      render.dxgi.rehook_present->store     ();
 
-      render.dxgi.swapchain_wait->store ();
+      render.dxgi.swapchain_wait->store     ();
     }
 
     if (  SK_IsInjected ()                       ||

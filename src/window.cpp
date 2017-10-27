@@ -1807,6 +1807,9 @@ AdjustWindowRect_Detour (
                       SK_SummarizeCaller ().c_str () ),
                 L"Window Mgr" );
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
+    return TRUE;
+
   // Override if forcing Fullscreen Borderless
   //
   if (config.window.fullscreen && config.window.borderless && (! bMenu))
@@ -1850,6 +1853,9 @@ AdjustWindowRectEx_Detour (
                       dwExStyle,
                         SK_SummarizeCaller ().c_str () ),
                L"Window Mgr" );
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
+    return TRUE;
 
   // Override if forcing Fullscreen Borderless
   //
@@ -2996,7 +3002,8 @@ GetSystemMetrics_Detour (_In_ int nIndex)
               L"Resolution" );
 
 #if 0
-  if (config.window.borderless) {
+  if (config.window.borderless)
+  {
     if (nIndex == SM_CYCAPTION)
       return 0;
     if (nIndex == SM_CYMENU)
@@ -3771,8 +3778,8 @@ LRESULT CALLBACK CallWndProc(
   }
 
 
-  bool handled = false;
-    //ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+  bool handled = 
+    ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
 
 
@@ -4034,8 +4041,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  bool handled = false;//game_window.hooked ?
-    //ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+  bool handled =
+    ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
 
   // Synaptics Touchpad Compat Hack:
