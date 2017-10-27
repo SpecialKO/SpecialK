@@ -1294,6 +1294,9 @@ SK_XInput_PollController ( INT           iJoyID,
 
     tried_to_hook = true;
 
+    std::queue <DWORD> suspended_tids =
+      SK_SuspendAllOtherThreads ();
+
     // First try 1.3, that's generally available.
     SK_Input_HookXInput1_3 ();
     pCtx = xinput_ctx.primary_hook;
@@ -1337,12 +1340,17 @@ SK_XInput_PollController ( INT           iJoyID,
     }
 
     SK_ApplyQueuedHooks ();
+
+    SK_ResumeThreads (suspended_tids);
   }
 
   // Lazy-load DLLs if somehow a game uses an XInput DLL not listed
   //   in its import table and also not caught by our LoadLibrary hook
   if (first_frame)
   {
+    std::queue <DWORD> suspended_tids =
+      SK_SuspendAllOtherThreads ();
+
     if (GetModuleHandle (L"XInput1_3.dll"))
       SK_Input_HookXInput1_3 ();
 
@@ -1355,6 +1363,7 @@ SK_XInput_PollController ( INT           iJoyID,
     first_frame = false;
 
     SK_ApplyQueuedHooks ();
+    SK_ResumeThreads    (suspended_tids);
   }
 
   if (iJoyID == -1)
@@ -1430,6 +1439,9 @@ SK_Input_PreHookXInput (void)
 
     SK_TestImports (GetModuleHandle (nullptr), tests, 3);
 
+    std::queue <DWORD> suspended_tids =
+      SK_SuspendAllOtherThreads ();
+
     if (tests [0].used || tests [1].used || tests [2].used)
     {
       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
@@ -1447,6 +1459,8 @@ SK_Input_PreHookXInput (void)
     
     if (GetModuleHandle (L"XInput9_1_0.dll"))
       SK_Input_HookXInput9_1_0 ();
+
+    SK_ResumeThreads (suspended_tids);
   }
 }
 

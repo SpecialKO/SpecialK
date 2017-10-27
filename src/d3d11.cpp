@@ -5167,7 +5167,10 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
     SK_D3D11_Textures.Entries_2D--;
 
     if (blacklist)
+    {
       SK_D3D11_Textures.Blacklist_2D [desc.MipLevels].emplace (tag);
+      pTex->Release ();
+    }
     else
       SK_D3D11_Textures.HashMap_2D   [desc.MipLevels].erase   (tag);
 
@@ -9988,7 +9991,10 @@ SK_D3D11_DumpShaderState (void)
 
   if (! d3d11_shaders_ini->get_sections ().empty ())
   {
-    for ( auto& it : d3d11_shaders_ini->get_sections () )
+    auto secs =
+      d3d11_shaders_ini->get_sections ();
+
+    for ( auto& it : secs )
     {
       d3d11_shaders_ini->remove_section (it.first.c_str ());
     }

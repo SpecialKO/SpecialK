@@ -11001,7 +11001,7 @@ SK_ImGui_LoadFonts (void)
 
       else
       {
-        snprintf (szFullPath, MAX_PATH * 2, R"(%ws\%s)", SK_GetFontsDir ().c_str (), filename.c_str ());
+        snprintf (szFullPath, MAX_PATH * 2 - 1, R"(%ws\%s)", SK_GetFontsDir ().c_str (), filename.c_str ());
 
 
         if (GetFileAttributesA (szFullPath) == INVALID_FILE_ATTRIBUTES)

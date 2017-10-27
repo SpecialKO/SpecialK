@@ -1267,8 +1267,8 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
           else
             update_dlg_keep = true;
 
-          wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH );
-          wcsncpy ( update_dlg_build, wszCurrentBuild,   127      );
+          wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH - 1 );
+          wcsncpy ( update_dlg_build, wszCurrentBuild,   127          );
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 

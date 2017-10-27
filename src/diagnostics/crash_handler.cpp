@@ -364,9 +364,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       break;
   }
 
-  HMODULE hModSource           = nullptr;
-  char    szModName [MAX_PATH] = { };
-  HANDLE  hProc                = GetCurrentProcess ();
+  HMODULE hModSource               = nullptr;
+  char    szModName [MAX_PATH + 2] = { };
+  HANDLE  hProc                    = GetCurrentProcess ();
 
   SymRefreshModuleList ( hProc );
 
@@ -664,7 +664,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     {
       wchar_t wszBaseDir [MAX_PATH * 2] = { };
       wchar_t wszOutDir  [MAX_PATH * 2] = { };
-      wchar_t wszTime    [MAX_PATH    ] = { };
+      wchar_t wszTime    [MAX_PATH + 2] = { };
 
       lstrcatW (wszBaseDir, SK_GetConfigPath ( ));
       lstrcatW (wszBaseDir, L"logs\\");

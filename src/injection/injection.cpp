@@ -39,16 +39,20 @@ volatile HANDLE         g_hShutdown   = nullptr;
 // TODO: Replace with interlocked linked-list instead of obliterating cache
 //         every time two processes try to walk this thing simultaneously.
 //
-static volatile LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { };
+                 LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { };
 
-static          SK_InjectionRecord_s __SK_InjectionHistory
-                                    [MAX_INJECTED_PROC_HISTORY];
+          SK_InjectionRecord_s __SK_InjectionHistory
+                                    [MAX_INJECTED_PROC_HISTORY] = { };
 
        volatile LONG SK_InjectionRecord_s::count               = 0L;
        volatile LONG SK_InjectionRecord_s::rollovers           = 0L;
 
+
+wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
+int     whitelist_count                    =   0;
+
 #pragma data_seg ()
-#pragma comment  (linker, "/section:.SK_Hooks,RWS")
+#pragma comment  (linker, "/SECTION:.SK_Hooks,RWS")
 
 
 extern volatile LONG    __SK_DLL_Attached;
@@ -154,7 +158,7 @@ SK_Inject_AcquireProcess (void)
       _time64 (&local_record->process.inject);
       wcsncpy ( local_record->process.name,
                   SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
-                    MAX_PATH );
+                    MAX_PATH - 1 );
 
       PathStripPath (local_record->process.name);
 
@@ -330,6 +334,9 @@ SKX_InstallCBTHook (void)
   if (g_hHookCBT != nullptr)
     return;
 
+  ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+  whitelist_count = 0;
+
   HMODULE hMod = nullptr;
 
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -427,8 +434,11 @@ SKX_RemoveCBTHook (void)
   {
     if (UnhookWindowsHookEx (g_hHookCBT))
     {
+      ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+      whitelist_count = 0;
+
       __SK_HookContextOwner = false;
-      g_hHookCBT = nullptr;
+      g_hHookCBT            = nullptr;
     }
   }
 }
@@ -605,6 +615,59 @@ extern void
 __stdcall
 SK_EstablishRootPath (void);
 
+void
+SK_Inject_EnableCentralizedConfig (void)
+{
+  wchar_t wszOut [MAX_PATH * 2] = { };
+
+  lstrcatW (wszOut, SK_GetHostPath ());
+  lstrcatW (wszOut, L"\\SpecialK.central");
+
+  FILE* fOut = _wfopen (wszOut, L"w");
+               fputws (L" ", fOut);
+                     fclose (fOut);
+
+  config.system.central_repository = true;
+
+  SK_EstablishRootPath ();
+
+  switch (SK_GetCurrentRenderBackend ().api)
+  {
+    case SK_RenderAPI::D3D9:
+    case SK_RenderAPI::D3D9Ex:
+      SK_SaveConfig (L"d3d9");
+      break;
+
+#ifndef _WIN64
+  case SK_RenderAPI::D3D8On11:
+    SK_SaveConfig (L"d3d8");
+    break;
+
+  case SK_RenderAPI::DDrawOn11:
+    SK_SaveConfig (L"ddraw");
+    break;
+#endif
+
+    case SK_RenderAPI::D3D10:
+    case SK_RenderAPI::D3D11:
+#ifdef _WIN64
+    case SK_RenderAPI::D3D12:
+#endif
+    {
+      SK_SaveConfig (L"dxgi");
+    } break;
+
+    case SK_RenderAPI::OpenGL:
+      SK_SaveConfig (L"OpenGL32");
+      break;
+
+    //case SK_RenderAPI::Vulkan:
+      //lstrcatW (wszOut, L"\\vk-1.dll");
+      //break;
+  }
+}
+
+
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 {
@@ -643,18 +706,47 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
       //break;
   }
 
+
+  //std::queue <DWORD> suspended =
+  //  SK_SuspendAllOtherThreads ();
+  //
+  //extern volatile LONG   SK_bypass_dialog_active;
+  //InterlockedIncrement (&SK_bypass_dialog_active);
+  //
+  //int mb_ret = 
+  //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
+  //                       L"\r\n"
+  //                       L"Linked installs allow you to update wrapped games the same way "
+  //                       L"as global injection, but require administrator privileges to setup.",
+  //                         L"Perform a Linked Wrapper Install?",
+  //                           MB_YESNO | MB_ICONQUESTION
+  //                     );
+  //
+  //InterlockedIncrement (&SK_bypass_dialog_active);
+  //
+  //SK_ResumeThreads (suspended);
+
+  //if ( mb_ret == IDYES )
+  //{
+  //  wchar_t   wszCmd [MAX_PATH * 3] = { };
+  //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
+  //
+  //  ShellExecuteW ( GetActiveWindow (),
+  //                    L"runas",
+  //                      L"cmd.exe",
+  //                        wszCmd,
+  //                          nullptr,
+  //                            SW_HIDE );
+  //
+  //  SK_Inject_EnableCentralizedConfig ();
+  //
+  //  return true;
+  //}
+
+
   if (CopyFile (wszIn, wszOut, TRUE))
   {
-    *wszOut = L'\0';
-
-    lstrcatW (wszOut, SK_GetHostPath ());
-    lstrcatW (wszOut, L"\\SpecialK.central");
-
-    FILE* fOut = _wfopen (wszOut, L"w");
-                 fputws (L" ", fOut);
-                       fclose (fOut);
-
-    config.system.central_repository = true;
+    SK_Inject_EnableCentralizedConfig ();
 
     *wszOut = L'\0';
     *wszIn  = L'\0';
@@ -671,37 +763,6 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     if (! CopyFileW (wszIn, wszOut, TRUE))
       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
-
-    SK_EstablishRootPath ();
-
-    switch (role)
-    {
-      case DLL_ROLE::D3D9:
-        SK_SaveConfig (L"d3d9");
-        break;
-
-      case DLL_ROLE::DXGI:
-        SK_SaveConfig (L"dxgi");
-        break;
-
-      case DLL_ROLE::OpenGL:
-        SK_SaveConfig (L"OpenGL32");
-        break;
-
-#ifndef _WIN64
-      case DLL_ROLE::DDraw:
-        SK_SaveConfig (L"ddraw");
-        break;
-
-      case DLL_ROLE::D3D8:
-        SK_SaveConfig (L"d3d8");
-        break;
-#endif
-
-      //case SK_RenderAPI::Vulkan:
-        //lstrcatW (wszOut, L"\\vk-1.dll");
-        //break;
-    }
 
     *wszIn = L'\0';
 
@@ -793,18 +854,47 @@ SK_Inject_SwitchToRenderWrapper (void)
       //break;
   }
 
+
+  //std::queue <DWORD> suspended =
+  //  SK_SuspendAllOtherThreads ();
+  //
+  //extern volatile LONG   SK_bypass_dialog_active;
+  //InterlockedIncrement (&SK_bypass_dialog_active);
+  //
+  //int mb_ret = 
+  //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
+  //                       L"\r\n"
+  //                       L"Linked installs allow you to update wrapped games the same way "
+  //                       L"as global injection, but require administrator privileges to setup.",
+  //                         L"Perform a Linked Wrapper Install?",
+  //                           MB_YESNO | MB_ICONQUESTION
+  //                     );
+  //
+  //InterlockedIncrement (&SK_bypass_dialog_active);
+  //
+  //SK_ResumeThreads (suspended);
+  //
+  //if ( mb_ret == IDYES )
+  //{
+  //  wchar_t   wszCmd [MAX_PATH * 3] = { };
+  //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
+  //
+  //  ShellExecuteW ( GetActiveWindow (),
+  //                    L"runas",
+  //                      L"cmd.exe",
+  //                        wszCmd,
+  //                          nullptr,
+  //                            SW_HIDE );
+  //
+  //  SK_Inject_EnableCentralizedConfig ();
+  //
+  //  return true;
+  //}
+
+
   if (CopyFile (wszIn, wszOut, TRUE))
   {
-    *wszOut = L'\0';
-
-    lstrcatW (wszOut, SK_GetHostPath ());
-    lstrcatW (wszOut, L"\\SpecialK.central");
-
-    FILE* fOut = _wfopen (wszOut, L"w");
-                 fputws (L" ", fOut);
-                       fclose (fOut);
-
-    config.system.central_repository = true;
+    SK_Inject_EnableCentralizedConfig ();
 
     *wszOut = L'\0';
     *wszIn  = L'\0';
@@ -821,43 +911,6 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     if (! CopyFileW (wszIn, wszOut, TRUE))
       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
-
-    SK_EstablishRootPath ();
-
-    switch (SK_GetCurrentRenderBackend ().api)
-    {
-      case SK_RenderAPI::D3D9:
-      case SK_RenderAPI::D3D9Ex:
-        SK_SaveConfig (L"d3d9");
-        break;
-
-#ifndef _WIN64
-    case SK_RenderAPI::D3D8On11:
-      SK_SaveConfig (L"d3d8");
-      break;
-
-    case SK_RenderAPI::DDrawOn11:
-      SK_SaveConfig (L"ddraw");
-      break;
-#endif
-
-      case SK_RenderAPI::D3D10:
-      case SK_RenderAPI::D3D11:
-#ifdef _WIN64
-      case SK_RenderAPI::D3D12:
-#endif
-      {
-        SK_SaveConfig (L"dxgi");
-      } break;
-
-      case SK_RenderAPI::OpenGL:
-        SK_SaveConfig (L"OpenGL32");
-        break;
-
-      //case SK_RenderAPI::Vulkan:
-        //lstrcatW (wszOut, L"\\vk-1.dll");
-        //break;
-    }
 
     *wszIn = L'\0';
 
@@ -1218,3 +1271,98 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 
   return i;
 }
+
+
+#include <fstream>
+#include <regex>
+
+bool
+SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
+{
+  if (whitelist_count == 0)
+  {
+    std::wifstream whitelist_file (std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\whitelist.ini"));
+
+    if (whitelist_file.is_open ())
+    {
+      std::wstring line;
+
+      while (whitelist_file.good ())
+      {
+        std::getline (whitelist_file, line);
+
+        // Skip blank lines, since they would match everything....
+        for (const auto& it : line)
+        {
+          if (iswalpha (it))
+          {
+            wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
+            break;
+          }
+        }
+      }
+
+      if (whitelist_count == 0)
+        whitelist_count = -1;
+    }
+
+    else
+      whitelist_count = -1;
+  }
+
+  for ( int i = 0; i < whitelist_count; i++ )
+  {
+    std::wregex regexp ((wchar_t *)&whitelist_patterns [MAX_PATH * i], std::regex_constants::icase);
+
+    if (std::regex_search (wszExecutable, regexp))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+//bool
+//SK_Inject_TestUserBlacklist (const wchar_t* wszExecutable)
+//{
+//  if (blacklist.count == 0)
+//  {
+//    std::wifstream blacklist_file (std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\blacklist.ini"));
+//
+//    if (blacklist_file.is_open ())
+//    {
+//      std::wstring line;
+//
+//      while (blacklist_file.good ())
+//      {
+//        std::getline (blacklist_file, line);
+//
+//        // Skip blank lines, since they would match everything....
+//        for (const auto& it : line)
+//        {
+//          if (iswalpha (it))
+//          {
+//            wcsncpy (blacklist.patterns [blacklist.count++], line.c_str (), MAX_PATH);
+//            break;
+//          }
+//        }
+//      }
+//    }
+//
+//    else
+//      blacklist.count = -1;
+//  }
+//
+//  for ( int i = 0; i < blacklist.count; i++ )
+//  {
+//    std::wregex regexp (blacklist.patterns [i], std::regex_constants::icase);
+//
+//    if (std::regex_search (wszExecutable, regexp))
+//    {
+//      return true;
+//    }
+//  }
+//
+//  return false;
+//}

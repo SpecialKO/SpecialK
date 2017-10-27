@@ -225,7 +225,7 @@ HMODULE local_gl = 0;
 HMODULE
 SK_LoadRealGL (void)
 {
-  wchar_t wszBackendDLL [MAX_PATH] = { };
+  wchar_t wszBackendDLL [MAX_PATH + 2] = { };
 
   if (! SK_IsInjected ()) {
 #ifdef _WIN64

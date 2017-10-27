@@ -533,7 +533,7 @@ SK_DrawOSD (void)
                               128 );
 
     static HMODULE hModGame = GetModuleHandle (nullptr);
-    static wchar_t wszGameName [MAX_PATH] = { };
+    static wchar_t wszGameName [MAX_PATH + 1] = { };
 
     if (wszGameName [0] == L'\0')
     {

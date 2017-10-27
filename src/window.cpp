@@ -1260,8 +1260,8 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
           break;
       }
 
-      bool    SKIM               = false;
-      wchar_t wszName [MAX_PATH] = { };
+      bool    SKIM                   = false;
+      wchar_t wszName [MAX_PATH + 2] = { };
 
       if (RealGetWindowClassW (hWnd, wszName, MAX_PATH))
       {

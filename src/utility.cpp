@@ -1113,11 +1113,10 @@ std::wstring
 SK_GetModuleFullName (HMODULE hDll)
 {
   wchar_t wszDllFullName [MAX_PATH + 2] = { };
-          wszDllFullName [  MAX_PATH  ] = { };
 
   GetModuleFileName ( hDll,
                         wszDllFullName,
-                          MAX_PATH - 1 );
+                          MAX_PATH );
 
   return wszDllFullName;
 }
@@ -1126,11 +1125,10 @@ std::wstring
 SK_GetModuleName (HMODULE hDll)
 {
   wchar_t wszDllFullName [MAX_PATH + 2] = { };
-          wszDllFullName [  MAX_PATH  ] = { };
 
   GetModuleFileName ( hDll,
                         wszDllFullName,
-                          MAX_PATH - 1 );
+                          MAX_PATH );
 
   const wchar_t* wszShort =
     wcsrchr (wszDllFullName, L'\\');
@@ -1461,16 +1459,17 @@ SK_TestRenderImports ( HMODULE hMod,
                        bool*   ddraw,
                        bool*   glide )
 {
-  static sk_import_test_s tests [] = { { "OpenGL32.dll", false },
-                                       { "vulkan-1.dll", false },
-                                       { "d3d9.dll",     false },
+  static sk_import_test_s tests [] = { { "OpenGL32.dll",  false },
+                                       { "vulkan-1.dll",  false },
+                                       { "d3d9.dll",      false },
                                        //{ "dxgi.dll",     false },
-                                       { "d3d11.dll",    false },
-                                       { "d3d8.dll",     false },
-                                       { "ddraw.dll",    false },
+                                       { "d3d11.dll",     false },
+                                       { "d3d8.dll",      false },
+                                       { "ddraw.dll",     false },
+                                       { "d3dx11_43.dll", false },
 
                                        // 32-bit only
-                                       { "glide.dll",    false } };
+                                       { "glide.dll",     false } };
 
   SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);
 
@@ -1482,7 +1481,9 @@ SK_TestRenderImports ( HMODULE hMod,
   *d3d11  = tests [3].used;
   *d3d8   = tests [4].used;
   *ddraw  = tests [5].used;
-  *glide  = tests [6].used;
+  *d3d11 |= tests [6].used;
+  *dxgi  |= tests [6].used;
+  *glide  = tests [7].used;
 }
 
 int
@@ -2507,8 +2508,8 @@ SK_FileHas8Dot3Name (const wchar_t* wszLongFileName)
 {
   wchar_t wszShortPath [MAX_PATH + 2] = { };
  
-  if ((! GetShortPathName   (wszLongFileName, wszShortPath, MAX_PATH - 1)) ||
-         GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES      ||
+  if ((! GetShortPathName   (wszLongFileName, wszShortPath, MAX_PATH )) ||
+         GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES   ||
          StrStrIW           (wszLongFileName, L" "))
   {
     return FALSE;
@@ -2705,13 +2706,13 @@ SK_RestartGame (const wchar_t* wszDLL)
   wcsncpy ( wszFullname, wszDLL != nullptr ?
                          wszDLL :
                            SK_GetModuleFullName ( SK_GetDLL ()).c_str (),
-                                                    MAX_PATH - 1 );
+                                                    MAX_PATH );
 
   SK_Generate8Dot3 (wszFullname);
   wcscpy           (wszShortPath, wszFullname);
  
   if (SK_FileHasSpaces (wszFullname))
-    GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1);
+    GetShortPathName   (wszFullname, wszShortPath, MAX_PATH  );
   
   if (SK_FileHasSpaces (wszShortPath))
   {
@@ -2737,8 +2738,8 @@ SK_RestartGame (const wchar_t* wszDLL)
       global_dll += L"32.dll";
 #endif
 
-                wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH - 1 );
-      GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1);
+                wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH );
+      GetShortPathName   (wszFullname, wszShortPath,        MAX_PATH );
     }
 
     if (SK_FileHasSpaces (wszShortPath))
@@ -2786,13 +2787,13 @@ SK_ElevateToAdmin (void)
   wchar_t wszShortPath [MAX_PATH + 2] = { };
   wchar_t wszFullname  [MAX_PATH + 2] = { };
 
-  wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH - 1);
+  wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
  
   SK_Generate8Dot3 (wszFullname);
   wcscpy (wszShortPath, wszFullname);
  
   if (SK_FileHasSpaces (wszFullname))
-    GetShortPathName   (wszFullname, wszShortPath, MAX_PATH - 1);
+    GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
   
   if (SK_FileHasSpaces (wszShortPath))
   {
@@ -2965,7 +2966,7 @@ SK_FixSlashesA (char* szInOut)
 bool
 SK_StripUserNameFromPathA (char* szInOut)
 {
-  static char szUserName [MAX_PATH] = { };
+  static char szUserName [MAX_PATH + 2] = { };
 
   if (*szUserName == '\0')
   {
@@ -2996,7 +2997,7 @@ SK_StripUserNameFromPathA (char* szInOut)
 bool
 SK_StripUserNameFromPathW (wchar_t* wszInOut)
 {
-  static wchar_t wszUserName [MAX_PATH] = { };
+  static wchar_t wszUserName [MAX_PATH + 2] = { };
 
   if (*wszUserName == L'\0')
   {

@@ -338,9 +338,9 @@ SK_EstablishDllRole (HMODULE hModule)
     ) != INVALID_FILE_ATTRIBUTES;
 
 
-  wchar_t wszDllFullName [  MAX_PATH  ] = { };
+  wchar_t wszDllFullName [  MAX_PATH + 2 ] = { };
 
-  GetModuleFileName (hModule, wszDllFullName, MAX_PATH - 1);
+  GetModuleFileName (hModule, wszDllFullName, MAX_PATH );
 
   const wchar_t* wszShort =
     SK_Path_wcsrchr (wszDllFullName, L'\\') + 1;
@@ -393,12 +393,12 @@ SK_EstablishDllRole (HMODULE hModule)
     bool explicit_inject = false;
 
 
-    wchar_t wszD3D9  [MAX_PATH] = { };
-    wchar_t wszD3D8  [MAX_PATH] = { };
-    wchar_t wszDDraw [MAX_PATH] = { };
-    wchar_t wszDXGI  [MAX_PATH] = { };
-    wchar_t wszGL    [MAX_PATH] = { };
-    wchar_t wszDI8   [MAX_PATH] = { };
+    wchar_t wszD3D9  [MAX_PATH + 2] = { };
+    wchar_t wszD3D8  [MAX_PATH + 2] = { };
+    wchar_t wszDDraw [MAX_PATH + 2] = { };
+    wchar_t wszDXGI  [MAX_PATH + 2] = { };
+    wchar_t wszGL    [MAX_PATH + 2] = { };
+    wchar_t wszDI8   [MAX_PATH + 2] = { };
 
     lstrcatW (wszD3D9, SK_GetHostPath ());
     lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
@@ -477,7 +477,7 @@ SK_EstablishDllRole (HMODULE hModule)
 
 
       DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH] = { };
+      wchar_t wszProcessName [MAX_PATH + 2] = { };
 
       HANDLE hProc =
         GetCurrentProcess ();
@@ -489,8 +489,12 @@ SK_EstablishDllRole (HMODULE hModule)
            SK_Path_wcsstr (wszProcessName, L"steamapps");
 
 
+      bool
+      SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable);
+
+
       // If this is a Steamworks game, then let's figure out the graphics API dynamically
-      if (is_steamworks_game)
+      if (is_steamworks_game || SK_Inject_TestUserWhitelist (SK_GetFullyQualifiedApp ()))
       {
         bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
              dxgi = false, d3d8   = false, ddraw = false, glide = false;
@@ -511,7 +515,8 @@ SK_EstablishDllRole (HMODULE hModule)
         //
         //dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr); 
 
-        d3d11  |= (GetModuleHandle (L"d3d11.dll")    != nullptr);
+        d3d11  |= (GetModuleHandle (L"d3d11.dll")     != nullptr);
+        d3d11  |= (GetModuleHandle (L"d3dx11_43.dll") != nullptr);
 
 #ifndef _WIN64
         d3d8   |= (GetModuleHandle (L"d3d8.dll")     != nullptr);
@@ -884,7 +889,7 @@ DllMain ( HMODULE hModule,
 
 
       DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH] = { };
+      wchar_t wszProcessName [MAX_PATH + 2] = { };
 
       HANDLE hProc = GetCurrentProcess ();
 

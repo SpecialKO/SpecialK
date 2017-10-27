@@ -2899,7 +2899,7 @@ const wchar_t*
 SK_GetSteamDir (void)
 {
          DWORD   len         = MAX_PATH;
-  static wchar_t wszSteamPath [MAX_PATH];
+  static wchar_t wszSteamPath [MAX_PATH + 2];
 
   LSTATUS status =
     RegGetValueW ( HKEY_CURRENT_USER,

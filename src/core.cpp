@@ -1409,8 +1409,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init_.backend  = _wcsdup (backend);
   init_.callback =          callback;
 
-  wchar_t log_fname [MAX_PATH];
-          log_fname [MAX_PATH - 1] = L'\0';
+  wchar_t log_fname [MAX_PATH + 2] = { };
 
   swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
@@ -1534,7 +1533,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       if (! GetModuleHandle (wszSteamDLL))
       {
-        wchar_t wszDLLPath [MAX_PATH * 2 + 1] = { };
+        wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
 
         if (SK_IsInjected ())
           wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
@@ -1594,7 +1593,7 @@ BACKEND_INIT:
 #endif
 
 
-  wchar_t wszBackendDLL [MAX_PATH] = { };
+  wchar_t wszBackendDLL [MAX_PATH + 2] = { };
 #ifdef _WIN64
   GetSystemDirectory (wszBackendDLL, MAX_PATH);
 #else

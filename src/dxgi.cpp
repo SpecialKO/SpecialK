@@ -5225,8 +5225,8 @@ HookDXGI (LPVOID user)
       d3d11_hook_ctx.ppDevice           = &pDevice;
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
-          HookD3D11             (&d3d11_hook_ctx);
-          SK_DXGI_HookFactory   (pFactory);
+      HookD3D11             (&d3d11_hook_ctx);
+      SK_DXGI_HookFactory   (pFactory);
 
       extern HWND
       SK_Win32_CreateDummyWindow (void);

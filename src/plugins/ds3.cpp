@@ -653,7 +653,7 @@ void
 SK_DisableDPIScaling (void)
 {
   DWORD   dwProcessSize = MAX_PATH;
-  wchar_t wszProcessName [MAX_PATH];
+  wchar_t wszProcessName [MAX_PATH + 1];
 
   HANDLE hProc =
    GetCurrentProcess ();
@@ -701,8 +701,8 @@ SK_DS3_InitPlugin (void)
   {
     // Make the graphics config file read-only while running
     DWORD    dwConfigAttribs;
-    uint32_t dwLen = MAX_PATH;
-    wchar_t  wszGraphicsConfigPath [MAX_PATH];
+    uint32_t dwLen                = MAX_PATH;
+    wchar_t  wszGraphicsConfigPath [MAX_PATH + 1];
 
     SK_GetUserProfileDir (wszGraphicsConfigPath, &dwLen);
 
@@ -1484,7 +1484,7 @@ SK_DS3_ShutdownPlugin (const wchar_t* backend)
   // Allow the graphics config file to be written again at shutdown...
   DWORD    dwConfigAttribs;
   uint32_t dwLen =                MAX_PATH;
-  wchar_t  wszGraphicsConfigPath [MAX_PATH];
+  wchar_t  wszGraphicsConfigPath [MAX_PATH + 1];
 
   SK_GetUserProfileDir (wszGraphicsConfigPath, &dwLen);
 

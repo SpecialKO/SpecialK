@@ -579,14 +579,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
-      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
       </EntryPointSymbol>
@@ -1149,7 +1148,6 @@ Exit 0</Command>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <ExceptionHandling>Sync</ExceptionHandling>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <StringPooling>false</StringPooling>
       <UseFullPaths>true</UseFullPaths>
@@ -1179,7 +1177,7 @@ Exit 0</Command>
       </AdditionalLibraryDirectories>
       <ImportLibrary />
       <Profile>false</Profile>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>false</SetChecksum>
@@ -1187,7 +1185,7 @@ Exit 0</Command>
       <OptimizeReferences>false</OptimizeReferences>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
     </Link>

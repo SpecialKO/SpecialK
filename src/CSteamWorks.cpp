@@ -360,7 +360,7 @@ SK_HookCSteamworks (void)
 
   if (! hMod) hMod  = GetModuleHandle (L"steamworks.net.dll"); // Mafia 3 nonsense
 
-  wchar_t wszModName [MAX_PATH] = { };
+  wchar_t wszModName [MAX_PATH + 2] = { };
 
   if ( GetModuleFileNameW ( hMod,
                               wszModName,
