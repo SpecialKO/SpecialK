@@ -44,6 +44,7 @@ static DWORD         dwFrameTime = timeGetTime (); // For effects that blink, up
 #include <memory>
 #include <atomic>
 #include <mutex>
+#include <concurrent_unordered_set.h>
 #include <atlbase.h>
 
 #include <d3d11.h>
@@ -769,7 +770,8 @@ D3D11Dev_CreateRenderTargetView_Override (
 }
 
 
-bool SK_D3D11_EnableTracking = false;
+bool SK_D3D11_EnableTracking     = false;
+bool SK_D3D11_EnableMMIOTracking = false;
 
 
 SK_D3D11_KnownShaders SK_D3D11_Shaders;
@@ -926,7 +928,7 @@ struct memory_tracking_s
 
     void clear (SK_Thread_CriticalSection* cs)
     {
-      std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs);
+      ///std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs);
 
       map_types [0] = 0; map_types [1] = 0;
       map_types [2] = 0; map_types [3] = 0;
@@ -948,11 +950,11 @@ struct memory_tracking_s
 
     int pinned_frames = 0;
 
-    std::unordered_set <ID3D11Buffer *>   index_buffers;
-    std::unordered_set <ID3D11Buffer *>   vertex_buffers;
-    std::unordered_set <ID3D11Buffer *>   constant_buffers;
+    concurrency::concurrent_unordered_set <ID3D11Buffer *>   index_buffers;
+    concurrency::concurrent_unordered_set <ID3D11Buffer *>   vertex_buffers;
+    concurrency::concurrent_unordered_set <ID3D11Buffer *>   constant_buffers;
 
-    std::unordered_set <ID3D11Resource *> mapped_resources;
+    concurrency::concurrent_unordered_set <ID3D11Resource *> mapped_resources;
     std::atomic <uint32_t>      map_types      [ 5 ] = { };
     std::atomic <uint32_t>      resource_types [ 5 ] = { };
 
@@ -3169,6 +3171,9 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
       }
     }
 
+    if (! SK_D3D11_EnableMMIOTracking)
+      return hr;
+
     bool read =  ( MapType == D3D11_MAP_READ      ||
                    MapType == D3D11_MAP_READ_WRITE );
 
@@ -3195,7 +3200,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
           D3D11_BUFFER_DESC  buf_desc = { };
           pBuffer->GetDesc (&buf_desc);
           {
-            std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+            ///std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
             if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
               mem_map_stats.last_frame.index_buffers.insert (pBuffer);
@@ -3208,7 +3213,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
           }
 
           if (read)
-            mem_map_stats.last_frame.bytes_read += buf_desc.ByteWidth;
+            mem_map_stats.last_frame.bytes_read    += buf_desc.ByteWidth;
 
           if (write)
             mem_map_stats.last_frame.bytes_written += buf_desc.ByteWidth;
@@ -3364,53 +3369,57 @@ D3D11_CopyResource_Override (
   }
 
 
-  SK_D3D11_MemoryThreads.mark ();
-
   D3D11_RESOURCE_DIMENSION res_dim = { };
    pSrcResource->GetType (&res_dim);
 
-  switch (res_dim)
+
+  if (SK_D3D11_EnableMMIOTracking)
   {
-    case D3D11_RESOURCE_DIMENSION_UNKNOWN:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_UNKNOWN]++;
-      break;
-    case D3D11_RESOURCE_DIMENSION_BUFFER:
+    SK_D3D11_MemoryThreads.mark ();
+
+    switch (res_dim)
     {
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
-  
-      ID3D11Buffer* pBuffer = nullptr;
-  
-      if (SUCCEEDED (pSrcResource->QueryInterface <ID3D11Buffer> (&pBuffer)))
+      case D3D11_RESOURCE_DIMENSION_UNKNOWN:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_UNKNOWN]++;
+        break;
+      case D3D11_RESOURCE_DIMENSION_BUFFER:
       {
-        D3D11_BUFFER_DESC  buf_desc = { };
-        pBuffer->GetDesc (&buf_desc);
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
+    
+        ID3D11Buffer* pBuffer = nullptr;
+    
+        if (SUCCEEDED (pSrcResource->QueryInterface <ID3D11Buffer> (&pBuffer)))
         {
-          std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+          D3D11_BUFFER_DESC  buf_desc = { };
+          pBuffer->GetDesc (&buf_desc);
+          {
+            ////std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
-          if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
-            mem_map_stats.last_frame.index_buffers.insert (pBuffer);
+            if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
+              mem_map_stats.last_frame.index_buffers.insert (pBuffer);
 
-          if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
-            mem_map_stats.last_frame.vertex_buffers.insert (pBuffer);
+            if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
+              mem_map_stats.last_frame.vertex_buffers.insert (pBuffer);
 
-          if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
-            mem_map_stats.last_frame.constant_buffers.insert (pBuffer);
+            if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
+              mem_map_stats.last_frame.constant_buffers.insert (pBuffer);
+          }
+
+          mem_map_stats.last_frame.bytes_copied += buf_desc.ByteWidth;
+
+          pBuffer->Release ();
         }
-
-        mem_map_stats.last_frame.bytes_copied += buf_desc.ByteWidth;
-
-        pBuffer->Release ();
-      }
-    } break;
-    case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE1D]++;
-      break;
-    case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE2D]++;
-      break;
-    case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE3D]++;
-      break;
+      } break;
+      case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE1D]++;
+        break;
+      case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE2D]++;
+        break;
+      case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE3D]++;
+        break;
+    }
   }
 
   D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
@@ -3504,54 +3513,61 @@ D3D11_CopySubresourceRegion_Override (
     return;
   }
 
-  SK_D3D11_MemoryThreads.mark ();
 
   D3D11_RESOURCE_DIMENSION res_dim = { };
   pSrcResource->GetType  (&res_dim);
 
-  switch (res_dim)
+
+
+  if (SK_D3D11_EnableMMIOTracking)
   {
-    case D3D11_RESOURCE_DIMENSION_UNKNOWN:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_UNKNOWN]++;
-      break;
-    case D3D11_RESOURCE_DIMENSION_BUFFER:
+    SK_D3D11_MemoryThreads.mark ();
+
+    switch (res_dim)
     {
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
-
-      ID3D11Buffer* pBuffer = nullptr;
-
-      if (SUCCEEDED (pSrcResource->QueryInterface <ID3D11Buffer> (&pBuffer)))
+      case D3D11_RESOURCE_DIMENSION_UNKNOWN:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_UNKNOWN]++;
+        break;
+      case D3D11_RESOURCE_DIMENSION_BUFFER:
       {
-        D3D11_BUFFER_DESC  buf_desc = { };
-        pBuffer->GetDesc (&buf_desc);
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
+
+        ID3D11Buffer* pBuffer = nullptr;
+
+        if (SUCCEEDED (pSrcResource->QueryInterface <ID3D11Buffer> (&pBuffer)))
         {
-          std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+          D3D11_BUFFER_DESC  buf_desc = { };
+          pBuffer->GetDesc (&buf_desc);
+          {
+            ////std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
-          if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
-            mem_map_stats.last_frame.index_buffers.insert (pBuffer);
+            if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
+              mem_map_stats.last_frame.index_buffers.insert (pBuffer);
 
-          if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
-            mem_map_stats.last_frame.vertex_buffers.insert (pBuffer);
+            if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
+              mem_map_stats.last_frame.vertex_buffers.insert (pBuffer);
 
-          if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
-            mem_map_stats.last_frame.constant_buffers.insert (pBuffer);
+            if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
+              mem_map_stats.last_frame.constant_buffers.insert (pBuffer);
+          }
+
+          mem_map_stats.last_frame.bytes_copied += buf_desc.ByteWidth;
+
+          pBuffer->Release ();
         }
-
-        mem_map_stats.last_frame.bytes_copied += buf_desc.ByteWidth;
-
-        pBuffer->Release ();
-      }
-    } break;
-    case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE1D]++;
-      break;
-    case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE2D]++;
-      break;
-    case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
-      mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE3D]++;
-      break;
+      } break;
+      case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE1D]++;
+        break;
+      case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE2D]++;
+        break;
+      case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+        mem_map_stats.last_frame.resource_types [D3D11_RESOURCE_DIMENSION_TEXTURE3D]++;
+        break;
+    }
   }
+
 
   D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
 
@@ -11632,6 +11648,10 @@ SK_D3D11_EndFrame (void)
 
   for (auto& it : SK_D3D11_RenderTargets)
     it.second.clear ();
+
+
+  if (! SK_D3D11_ShowShaderModDlg ())
+    SK_D3D11_EnableMMIOTracking = false;
 }
 
 
@@ -11809,7 +11829,8 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+        SK_D3D11_EnableMMIOTracking = true;
+        ////std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
         ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false, ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus |  ImGuiWindowFlags_AlwaysAutoResize );
 
@@ -11939,6 +11960,9 @@ SK_D3D11_ShaderModDlg (void)
         ImGui::TreePop    (                        );
         ImGui::EndChild   ();
       }
+
+      else
+        SK_D3D11_EnableMMIOTracking = false;
 
       ImGui::EndChild   ();
 

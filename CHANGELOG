@@ -1,5 +1,8 @@
 0.8.49
 
+ (.1): Performance optimization for heavily multi-threaded engines that
+         map and unmap D3D11 memory from different threads.
+
 + Added global injection whitelist using Regular Expression syntax.
 
   Manually create Documents\My Mods\SpecialK\Global\whitelist.ini and enter
