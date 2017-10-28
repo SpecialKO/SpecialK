@@ -769,9 +769,127 @@ D3D11Dev_CreateRenderTargetView_Override (
                                                     pDesc, ppRTView   );
 }
 
+struct d3d11_state_machine_s
+{
+  enum class cmd_type {
+    ImGui,
+    Clear,
+    Copy,
+    Deferred,
+    Flush,
+    MemoryMap,
+    Draw,
+    Dispatch,
+    VertexShader,
+    PixelShader,
+    GeometryShader,
+    DomainShader,
+    HullShader,
+    Raster,
+    StreamOutput,
+    OutputMerger,
+    ComputeShader,
+    UpdateResource
+  };
 
-bool SK_D3D11_EnableTracking     = false;
-bool SK_D3D11_EnableMMIOTracking = false;
+  bool enable  = false;
+
+  struct {
+    bool track = false;
+  } mmio;
+
+  struct {
+    bool track = true;
+  } shaders;
+
+  struct {
+    bool track = true;
+  } render_targets;
+
+  struct {
+    bool track = false;
+  } buffers;
+
+  struct {
+    bool isolate = false;
+
+    bool shouldProcessCommand (ID3D11DeviceContext* pDevCtx, cmd_type type)
+    {
+      UNREFERENCED_PARAMETER (pDevCtx);
+
+      auto skipDeferred = [](ID3D11DeviceContext* pCtx)
+      {
+        if (! config.render.dxgi.deferred_isolation)
+          return (pCtx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED);
+
+        return false;
+      };
+
+      if (! SK_D3D11_StateMachine.enable)
+        return false;
+
+      switch (type)
+      {
+        case cmd_type::Deferred:
+        {
+          return (! skipDeferred (pDevCtx));
+        } break;
+
+        case cmd_type::ImGui:
+        {
+          if (SK_TLS_Bottom ()->imgui.drawing)
+            return false;
+
+          return true;
+        } break;
+
+        case cmd_type::MemoryMap:
+        {
+          if (skipDeferred (pDevCtx))
+            return false;
+
+          if (SK_D3D11_StateMachine.mmio.track)
+            return true;
+
+          return false;
+        } break;
+
+        case cmd_type::Clear:
+        case cmd_type::Copy:
+        case cmd_type::Flush:
+        case cmd_type::Draw:
+        case cmd_type::Dispatch:
+        case cmd_type::VertexShader:
+        case cmd_type::PixelShader:
+        case cmd_type::GeometryShader:
+        case cmd_type::DomainShader:
+        case cmd_type::HullShader:
+        case cmd_type::Raster:
+        case cmd_type::StreamOutput:
+        case cmd_type::OutputMerger:
+        case cmd_type::ComputeShader:
+        {
+          if (SK_TLS_Bottom ()->imgui.drawing)
+            return false;
+
+          if (skipDeferred (pDevCtx))
+            return false;
+
+          return true;
+        } break;
+
+        default:
+          return true;
+      }
+    }
+  } dev_ctx;
+} SK_D3D11_StateMachine;
+
+void
+SK_D3D11_EnableTracking (bool state)
+{
+  SK_D3D11_StateMachine.enable = state;
+}
 
 
 SK_D3D11_KnownShaders SK_D3D11_Shaders;
@@ -893,7 +1011,7 @@ SK_D3D11_KnownThreads::count_all (void)
 void
 SK_D3D11_KnownThreads::mark (void)
 {
-  //if (! SK_D3D11_EnableTracking)
+  //if (! SK_D3D11_StateMachine.enable)
     return;
 
   if (use_lock)
@@ -1991,7 +2109,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext* pDevCtx, IUnknown* pShader, sk_sh
   };
 
 
-  if ((! config.render.dxgi.deferred_isolation) && pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (pDevCtx, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return Finish ();
   }
@@ -2050,40 +2168,34 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext* pDevCtx, IUnknown* pShader, sk_sh
   GetResources (&pCritical, &pShaderRepo);
 
 
-  // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (pDevCtx, d3d11_state_machine_s::cmd_type::ComputeShader))
   {
-    pShaderRepo->tracked.deactivate ();
-  
-    return Finish ();
-  }
-
-
-  SK_D3D11_ShaderDesc *pDesc = nullptr;
-  {
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (*pCritical);
-
-    if (pShaderRepo->rev.count (pShader))
-      pDesc = &pShaderRepo->descs [pShaderRepo->rev [pShader]];
-  }
-
-  if (pDesc != nullptr)
-  {
-    InterlockedIncrement (&pShaderRepo->changes_last_frame);
-
-    uint32_t checksum =
-      pDesc->crc32c;
-
-    pShaderRepo->current.shader [pDevCtx] = checksum;
-
-    InterlockedExchange (&pDesc->usage.last_frame, SK_GetFramesDrawn ());
-    _time64             (&pDesc->usage.last_time);
-
-    if (checksum == pShaderRepo->tracked.crc32c)
+    SK_D3D11_ShaderDesc *pDesc = nullptr;
     {
-      pShaderRepo->tracked.activate (pDevCtx, ppClassInstances, NumClassInstances);
+      std::lock_guard <SK_Thread_CriticalSection> auto_lock (*pCritical);
 
-      return Finish ();
+      if (pShaderRepo->rev.count (pShader))
+        pDesc = &pShaderRepo->descs [pShaderRepo->rev [pShader]];
+    }
+
+    if (pDesc != nullptr)
+    {
+      InterlockedIncrement (&pShaderRepo->changes_last_frame);
+
+      uint32_t checksum =
+        pDesc->crc32c;
+
+      pShaderRepo->current.shader [pDevCtx] = checksum;
+
+      InterlockedExchange (&pDesc->usage.last_frame, SK_GetFramesDrawn ());
+      _time64             (&pDesc->usage.last_time);
+
+      if (checksum == pShaderRepo->tracked.crc32c)
+      {
+        pShaderRepo->tracked.activate (pDevCtx, ppClassInstances, NumClassInstances);
+
+        return Finish ();
+      }
     }
   }
 
@@ -2429,8 +2541,9 @@ D3D11_VSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  // ImGui gets to pass-through without invoking the hook
-  if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (! (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::VertexShader) &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred)     &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) )
     return D3D11_VSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
   ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
@@ -2490,8 +2603,9 @@ D3D11_PSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  // ImGui gets to pass-through without invoking the hook
-  if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (! (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::PixelShader) &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred)    &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) )
     return D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
   ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
@@ -2551,8 +2665,9 @@ D3D11_GSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  // ImGui gets to pass-through without invoking the hook
-  if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (! (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::GeometryShader) &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred)       &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) )
     return D3D11_GSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
   ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
@@ -2600,7 +2715,9 @@ D3D11_HSSetShaderResources_Override (
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (! (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::HullShader) &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred)   &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) )
     return D3D11_HSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
   ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
@@ -2648,7 +2765,9 @@ D3D11_DSSetShaderResources_Override (
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (! (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::DomainShader) &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred)     &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) )
     return D3D11_DSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
   ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
@@ -2696,7 +2815,9 @@ D3D11_CSSetShaderResources_Override (
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   // ImGui gets to pass-through without invoking the hook
-  if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
+  if (! (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ComputeShader) &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred)      &&
+         SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) )
     return D3D11_CSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
   ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
@@ -2776,7 +2897,7 @@ D3D11_UpdateSubresource1_Override (
   _In_           UINT                  SrcDepthPitch,
   _In_           UINT                  CopyFlags)
 {
-  if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED))
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return D3D11_UpdateSubresource1_Original ( This, pDstResource, DstSubresource,
                                                  pDstBox, pSrcData, SrcRowPitch,
@@ -2921,7 +3042,7 @@ D3D11_UpdateSubresource_Override (
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch)
 {
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
                                                 pDstBox, pSrcData, SrcRowPitch,
@@ -3084,10 +3205,11 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                            MapType, MapFlags, pMappedResource );
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Bottom ()->imgui.drawing || (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
+  if ((! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) || config.textures.cache.allow_staging)
   {
     return hr;
   }
+
 
   if (SUCCEEDED (hr))
   {
@@ -3171,8 +3293,10 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
       }
     }
 
-    if (! SK_D3D11_EnableMMIOTracking)
+
+    if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap))
       return hr;
+
 
     bool read =  ( MapType == D3D11_MAP_READ      ||
                    MapType == D3D11_MAP_READ_WRITE );
@@ -3244,8 +3368,7 @@ D3D11_Unmap_Override (
   _In_ ID3D11Resource      *pResource,
   _In_ UINT                 Subresource )
 {
-  // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Bottom ()->imgui.drawing || (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
+  if ((! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) || config.textures.cache.allow_staging)
   {
     D3D11_Unmap_Original (This, pResource, Subresource);
     return;
@@ -3337,10 +3460,9 @@ D3D11_CopyResource_Override (
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource )
 {
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
-  {
+  // XXX: Should ReShade do this even when not tracking deferred commands?
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
     return D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
-  }
 
   SK_ReShade_CopyResourceCallback.call (pDstResource, pSrcResource);
 
@@ -3361,7 +3483,8 @@ D3D11_CopyResource_Override (
 
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Bottom ()->imgui.drawing || (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
+  if ( (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) ||
+       (  SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Copy)   || config.textures.cache.allow_staging) )
   {
     D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
   
@@ -3373,7 +3496,7 @@ D3D11_CopyResource_Override (
    pSrcResource->GetType (&res_dim);
 
 
-  if (SK_D3D11_EnableMMIOTracking)
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap))
   {
     SK_D3D11_MemoryThreads.mark ();
 
@@ -3484,7 +3607,7 @@ D3D11_CopySubresourceRegion_Override (
   _In_           UINT                 SrcSubresource,
   _In_opt_ const D3D11_BOX           *pSrcBox )
 {
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
   }
@@ -3506,7 +3629,8 @@ D3D11_CopySubresourceRegion_Override (
 
 
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Bottom ()->imgui.drawing ||  (! (SK_D3D11_EnableTracking || config.textures.cache.allow_staging)))
+  if ( (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) ||
+       (  SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Copy)   || config.textures.cache.allow_staging) )
   {
     D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
 
@@ -3519,7 +3643,7 @@ D3D11_CopySubresourceRegion_Override (
 
 
 
-  if (SK_D3D11_EnableMMIOTracking)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap))
   {
     SK_D3D11_MemoryThreads.mark ();
 
@@ -3934,7 +4058,7 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   TriggerReShade_Before ();
 
 
-  if (SK_D3D11_EnableTracking)
+  if (SK_D3D11_StateMachine.enable)
   {
     SK_D3D11_DrawThreads.mark ();
 
@@ -4183,7 +4307,7 @@ SK_D3D11_DispatchHandler (ID3D11DeviceContext* pDevCtx)
 {
   SK_D3D11_DispatchThreads.mark ();
 
-  if (SK_D3D11_EnableTracking)
+  if (SK_D3D11_StateMachine.enable)
   {
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_render_view);
 
@@ -4231,14 +4355,18 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
       D3D11_DrawAuto_Original (This);
   }
 
-  if (SK_D3D11_DrawHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+  {
+    if (SK_D3D11_DrawHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.auto_draw);
 
   D3D11_DrawAuto_Original (This);
 
-  SK_D3D11_PostDraw ();
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+    SK_D3D11_PostDraw ();
 }
 
 __declspec (noinline)
@@ -4252,7 +4380,7 @@ D3D11_DrawIndexed_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_DrawIndexed_Original ( This, IndexCount,
@@ -4260,8 +4388,11 @@ D3D11_DrawIndexed_Override (
                                        BaseVertexLocation );
   }
 
-  if (SK_D3D11_DrawHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+  {
+    if (SK_D3D11_DrawHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, IndexCount * SK_D3D11_ReshadeDrawFactors.indexed);
 
@@ -4269,7 +4400,8 @@ D3D11_DrawIndexed_Override (
                                        StartIndexLocation,
                                          BaseVertexLocation );
 
-  SK_D3D11_PostDraw ();
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+    SK_D3D11_PostDraw ();
 }
 
 __declspec (noinline)
@@ -4282,7 +4414,7 @@ D3D11_Draw_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_Draw_Original ( This,
@@ -4290,14 +4422,18 @@ D3D11_Draw_Override (
                                 StartVertexLocation );
   }
 
-  if (SK_D3D11_DrawHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+  {
+    if (SK_D3D11_DrawHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, VertexCount * SK_D3D11_ReshadeDrawFactors.draw);
 
   D3D11_Draw_Original ( This, VertexCount, StartVertexLocation );
 
-  SK_D3D11_PostDraw ();
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+    SK_D3D11_PostDraw ();
 }
 
 __declspec (noinline)
@@ -4313,7 +4449,7 @@ D3D11_DrawIndexedInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_DrawIndexedInstanced_Original ( This, IndexCountPerInstance,
@@ -4321,8 +4457,11 @@ D3D11_DrawIndexedInstanced_Override (
                                                 BaseVertexLocation, StartInstanceLocation );
   }
 
-  if (SK_D3D11_DrawHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+  {
+    if (SK_D3D11_DrawHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, IndexCountPerInstance * InstanceCount * SK_D3D11_ReshadeDrawFactors.indexed_instanced);
 
@@ -4330,7 +4469,8 @@ D3D11_DrawIndexedInstanced_Override (
                                           InstanceCount, StartIndexLocation,
                                             BaseVertexLocation, StartInstanceLocation );
 
-  SK_D3D11_PostDraw ();
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+    SK_D3D11_PostDraw ();
 }
 
 __declspec (noinline)
@@ -4343,22 +4483,26 @@ D3D11_DrawIndexedInstancedIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_DrawIndexedInstancedIndirect_Original ( This, pBufferForArgs,
                                                       AlignedByteOffsetForArgs );
   }
 
-  if (SK_D3D11_DrawHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+  {
+    if (SK_D3D11_DrawHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.indexed_instanced_indirect);
 
   D3D11_DrawIndexedInstancedIndirect_Original ( This, pBufferForArgs,
                                                   AlignedByteOffsetForArgs );
 
-  SK_D3D11_PostDraw ();
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+    SK_D3D11_PostDraw ();
 }
 
 __declspec (noinline)
@@ -4373,7 +4517,7 @@ D3D11_DrawInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_DrawInstanced_Original ( This, VertexCountPerInstance,
@@ -4381,8 +4525,11 @@ D3D11_DrawInstanced_Override (
                                          StartInstanceLocation );
   }
 
-  if (SK_D3D11_DrawHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+  {
+    if (SK_D3D11_DrawHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, VertexCountPerInstance * InstanceCount * SK_D3D11_ReshadeDrawFactors.instanced);
 
@@ -4390,7 +4537,8 @@ D3D11_DrawInstanced_Override (
                                    InstanceCount, StartVertexLocation,
                                      StartInstanceLocation );
 
-  SK_D3D11_PostDraw ();
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+    SK_D3D11_PostDraw ();
 }
 
 __declspec (noinline)
@@ -4403,22 +4551,26 @@ D3D11_DrawInstancedIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_DrawInstancedIndirect_Original ( This, pBufferForArgs,
                                                AlignedByteOffsetForArgs );
   }
 
-  if (SK_D3D11_DrawHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+  {
+    if (SK_D3D11_DrawHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.instanced_indirect);
 
   D3D11_DrawInstancedIndirect_Original ( This, pBufferForArgs,
                                            AlignedByteOffsetForArgs );
 
-  SK_D3D11_PostDraw ();
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Draw))
+    SK_D3D11_PostDraw ();
 }
 
 
@@ -4432,7 +4584,7 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_Dispatch_Original ( This,
@@ -4441,8 +4593,11 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
                                       ThreadGroupCountZ );
   }
 
-  if (SK_D3D11_DispatchHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Dispatch))
+  {
+    if (SK_D3D11_DispatchHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, 64);//std::max (1ui32, ThreadGroupCountX) * std::max (1ui32, ThreadGroupCountY) * std::max (1ui32, ThreadGroupCountZ) );
 
@@ -4461,7 +4616,7 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_DispatchIndirect_Original ( This,
@@ -4469,8 +4624,11 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
                                             AlignedByteOffsetForArgs );
   }
 
-  if (SK_D3D11_DispatchHandler (This))
-    return;
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Dispatch))
+  {
+    if (SK_D3D11_DispatchHandler (This))
+      return;
+  }
 
   SK_ReShade_DrawCallback.call (This, 64);
 
@@ -4493,7 +4651,7 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
   ID3D11DepthStencilView *pDSV =
     pDepthStencilView;
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     D3D11_OMSetRenderTargets_Original (
       This, NumViews, ppRenderTargetViews,
@@ -4509,7 +4667,8 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
       pDSV );
 
   // ImGui gets to pass-through without invoking the hook
-  if ((SK_TLS_Bottom ()->imgui.drawing) || (! SK_D3D11_EnableTracking)) 
+  if (! ( SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui) &&
+          SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::OutputMerger )))
   {
     for ( auto&& i : tracked_rtv.active ) i = false;
     return;
@@ -4568,7 +4727,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
                                             _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
                                             _In_opt_ const UINT                             *pUAVInitialCounts )
 {
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Original (
       This, NumRTVs, ppRenderTargetViews,
@@ -4590,7 +4749,8 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
   );
 
   // ImGui gets to pass-through without invoking the hook
-  if ((SK_TLS_Bottom ()->imgui.drawing) || (! SK_D3D11_EnableTracking)) 
+  if (! ( SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui) &&
+          SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::OutputMerger )))
   {
     for (auto&& i : tracked_rtv.active) i = false;
 
@@ -9990,7 +10150,7 @@ SK_D3D11_LoadShaderState (bool clear = true)
     }
   }
 
-  SK_D3D11_EnableTracking = true;
+  SK_D3D11_StateMachine.enable = true;
 }
 
 
@@ -11651,7 +11811,7 @@ SK_D3D11_EndFrame (void)
 
 
   if (! SK_D3D11_ShowShaderModDlg ())
-    SK_D3D11_EnableMMIOTracking = false;
+    SK_D3D11_StateMachine.mmio.track = false;
 }
 
 
@@ -11687,7 +11847,7 @@ SK_D3D11_ShaderModDlg (void)
                         &show_dlg,
                           ImGuiWindowFlags_ShowBorders ) )
   {
-    SK_D3D11_EnableTracking = true;
+    SK_D3D11_StateMachine.enable = true;
 
     bool can_scroll = ImGui::IsWindowFocused () && ImGui::IsMouseHoveringRect ( ImVec2 (ImGui::GetWindowPos ().x,                             ImGui::GetWindowPos ().y),
                                                                                 ImVec2 (ImGui::GetWindowPos ().x + ImGui::GetWindowSize ().x, ImGui::GetWindowPos ().y + ImGui::GetWindowSize ().y) );
@@ -11829,7 +11989,7 @@ SK_D3D11_ShaderModDlg (void)
 
       if (ImGui::CollapsingHeader ("Live Memory View", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        SK_D3D11_EnableMMIOTracking = true;
+        SK_D3D11_StateMachine.mmio.track = true;
         ////std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
         ImGui::BeginChild ( ImGui::GetID ("Render_MemStats_D3D11"), ImVec2 (0, 0), false, ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus |  ImGuiWindowFlags_AlwaysAutoResize );
@@ -11962,7 +12122,7 @@ SK_D3D11_ShaderModDlg (void)
       }
 
       else
-        SK_D3D11_EnableMMIOTracking = false;
+        SK_D3D11_StateMachine.mmio.track = false;
 
       ImGui::EndChild   ();
 
@@ -12767,7 +12927,7 @@ SK_D3D11_ShaderModDlg (void)
 
   ImGui::End            ( );
 
-  SK_D3D11_EnableTracking = show_dlg;
+  SK_D3D11_StateMachine.enable = show_dlg;
 
   return show_dlg;
 }
@@ -12828,6 +12988,21 @@ RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
                               "QueryPerformanceCounter" )
       );
 
+    config.apis.d3d9.hook    = false; config.apis.d3d9ex.hook = false;
+    config.apis.OpenGL.hook  = false;
+    config.apis.NvAPI.enable = false;
+    config.steam.preload_overlay                 = false;
+    config.steam.silent                          = true;
+    config.system.trace_load_library             = false;
+    config.system.handle_crashes                 = false;
+    config.system.central_repository             = true;
+    config.system.game_output                    = false;
+    config.render.dxgi.rehook_present            = false;
+    config.injection.global.use_static_addresses = false;
+    config.input.gamepad.hook_dinput8            = false;
+    config.input.gamepad.hook_hid                = false;
+    config.input.gamepad.hook_xinput             = false;
+
     SK_Init_MinHook        ();
     SK_ApplyQueuedHooks    ();
 
@@ -12856,6 +13031,9 @@ RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
       dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
 
       SK::DXGI::Shutdown ();
+
+      extern iSK_INI* dll_ini;
+      DeleteFileW (dll_ini->get_filename ());
     }
 
     ExitProcess (0x00);

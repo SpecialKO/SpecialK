@@ -2434,8 +2434,9 @@ SK_ImGui_ControlPanel (void)
 
         bool enable = evil || even_stranger || wired;
 
-        extern bool SK_D3D11_EnableTracking;
-        SK_D3D11_EnableTracking = enable || show_shader_mod_dlg;
+        extern void
+        SK_D3D11_EnableTracking (bool state);
+        SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
 
         ImGui::TreePop ();
       }

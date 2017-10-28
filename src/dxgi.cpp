@@ -4252,7 +4252,6 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
         {
           DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
             GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
-          SK_ApplyQueuedHooks ();
         }
       }
     }
@@ -4267,7 +4266,6 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
         {
           DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
-          SK_ApplyQueuedHooks ();
         }
       }
     }
@@ -4278,7 +4276,6 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
       {
         DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
           GetDesc_Override, GetDesc_Original, GetDesc_pfn);
-        SK_ApplyQueuedHooks ();
       }
 
       if (GetDesc_Original)

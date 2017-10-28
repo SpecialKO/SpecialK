@@ -877,12 +877,9 @@ SK_UnloadImports (void)
       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
                     imports [i].filename->get_value_str ().c_str () );
 
-      if (imports [i].hShim != nullptr)
-      {
-        FreeLibrary_Original (imports [i].hShim);
-      }
-
-      if (FreeLibrary_Original (imports [i].hLibrary))
+      // The shim will free the plug-in for us
+      if ( (imports [i].hShim != nullptr && FreeLibrary_Original (imports [i].hShim) ) ||
+                                            FreeLibrary_Original (imports [i].hLibrary) )
       {
         dll_log.LogEx ( false,
                         L"-------------------------[ Free Lib ]                "

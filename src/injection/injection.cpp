@@ -379,29 +379,6 @@ SKX_InstallCBTHook (void)
   wchar_t wszSys32 [MAX_PATH + 2] = { };
   GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
-
-
-#ifdef _WIN64
-  GetSystemDirectoryW (wszSys32, MAX_PATH);
-  PathAppendW         (wszSys32, L"rundll32.exe");
-  ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
-
-  GetSystemDirectoryW (wszSys32, MAX_PATH);
-  PathAppendW         (wszSys32, L"rundll32.exe");
-  ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
-#else
-  GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
-  PathAppendW              (wszWOW64, L"rundll32.exe");
-  ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
-
-  GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
-  PathAppendW              (wszWOW64, L"rundll32.exe");
-  ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
-#endif
-
-
-
-
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
     g_hHookCBT =
@@ -410,6 +387,24 @@ SKX_InstallCBTHook (void)
     if (g_hHookCBT != nullptr)
     {
       __SK_HookContextOwner = true;
+
+#ifdef _WIN64
+      GetSystemDirectoryW (wszSys32, MAX_PATH);
+      PathAppendW         (wszSys32, L"rundll32.exe");
+      ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
+
+      GetSystemDirectoryW (wszSys32, MAX_PATH);
+      PathAppendW         (wszSys32, L"rundll32.exe");
+      ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
+#else
+      GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+      PathAppendW              (wszWOW64, L"rundll32.exe");
+      ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
+    
+      GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+      PathAppendW              (wszWOW64, L"rundll32.exe");
+      ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
+#endif
     }
   }
 }

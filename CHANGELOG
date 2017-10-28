@@ -1,5 +1,7 @@
 0.8.49
 
+ (.2): Fixes startup issues in Elex
+
  (.1): Performance optimization for heavily multi-threaded engines that
          map and unmap D3D11 memory from different threads.
 

@@ -8270,6 +8270,21 @@ RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
                               "QueryPerformanceCounter" )
       );
 
+    config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
+    config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
+    config.apis.NvAPI.enable = false;
+    config.steam.preload_overlay                 = false;
+    config.steam.silent                          = true;
+    config.system.trace_load_library             = false;
+    config.system.handle_crashes                 = false;
+    config.system.central_repository             = true;
+    config.system.game_output                    = false;
+    config.render.dxgi.rehook_present            = false;
+    config.injection.global.use_static_addresses = false;
+    config.input.gamepad.hook_dinput8            = false;
+    config.input.gamepad.hook_hid                = false;
+    config.input.gamepad.hook_xinput             = false;
+
     SK_Init_MinHook        ();
     SK_ApplyQueuedHooks    ();
 
@@ -8301,6 +8316,9 @@ RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
       delete SK_Inject_AddressManager;
 
       SK::DXGI::Shutdown ();
+
+      extern iSK_INI* dll_ini;
+      DeleteFileW (dll_ini->get_filename ());
     }
 
     ExitProcess (0x00);

@@ -1045,7 +1045,6 @@ __stdcall
 SK_InitFinishCallback (void)
 {
   SK_Input_Init       ();
-
   SK_ApplyQueuedHooks ();
 
   SK_DeleteTemporaryFiles ();
@@ -1147,7 +1146,6 @@ SK_InitFinishCallback (void)
   }
 
   SK_StartPerfMonThreads ();
-  SK_ApplyQueuedHooks    ();
 
   init_mutex->unlock ();
 
@@ -1611,7 +1609,7 @@ BACKEND_INIT:
   wchar_t wszWorkDir   [MAX_PATH + 2] = { };
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
 
-  dll_log.Log (L" Working Directory:          %s", wszWorkDir);
+  dll_log.Log (L" Working Directory:          %s", SK_StripUserNameFromPathW (wszWorkDir));
   dll_log.Log (L" System Directory:           %s", wszBackendDLL);
 
   lstrcatW (wszBackendDLL, L"\\");

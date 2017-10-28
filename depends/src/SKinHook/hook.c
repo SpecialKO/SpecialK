@@ -330,6 +330,9 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
   HANDLE hSnapshot =
     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0);
 
+  DWORD dwPID = GetCurrentProcessId ();
+  DWORD dwTID = GetCurrentThreadId ();
+
   if (hSnapshot != INVALID_HANDLE_VALUE)
   {
                         THREADENTRY32 te;
@@ -342,8 +345,8 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
         if ( te.dwSize >= 
               (FIELD_OFFSET ( THREADENTRY32,
                                 th32OwnerProcessID ) + sizeof (DWORD) ) &&
-             te.th32OwnerProcessID == GetCurrentProcessId ()            &&
-             te.th32ThreadID       != GetCurrentThreadId  ()
+             te.th32OwnerProcessID == dwPID                             &&
+             te.th32ThreadID       != dwTID
            )
         {
           if (pThreads->pItems == NULL)
@@ -583,7 +586,7 @@ EnterSpinLock (VOID)
         // generates a full memory barrier itself.
 
         // Prevent the loop from being too busy.
-        if (spinCount < 32)
+        if (spinCount < 64)
             SleepEx (0, FALSE);
         else
             SleepEx (1, FALSE);

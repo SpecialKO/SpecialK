@@ -405,9 +405,6 @@ public:
     hSteamPipe = SteamAPI_GetHSteamPipe ();
     hSteamUser = SteamAPI_GetHSteamUser ();
 
-    MH_QueueEnableHook (SteamAPI_Shutdown);
-    MH_QueueEnableHook (SteamAPI_RunCallbacks);
-
     user_ =
       client_->GetISteamUser (
         hSteamUser,
@@ -539,7 +536,8 @@ public:
                     (LPVOID *)&GetControllerState_Original );
 #endif
 
-    MH_ApplyQueued     ();
+    MH_EnableHook (SteamAPI_Shutdown);
+    MH_EnableHook (SteamAPI_RunCallbacks);
 
     return true;
   }
