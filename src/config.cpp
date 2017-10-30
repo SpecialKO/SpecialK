@@ -288,6 +288,11 @@ struct {
 } texture;
 
 struct {
+  struct
+  {
+    sk::ParameterBool*    catch_alt_f4;
+  } keyboard;
+
   struct {
     sk::ParameterBool*    manage;
     sk::ParameterBool*    keys_activate;
@@ -586,6 +591,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
     osd_ini,
       L"Monitor.Time",
         L"Show" );
+
+
+  input.keyboard.catch_alt_f4 =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"If the game does not handle Alt+F4, offer a replacement.")
+      );
+  input.keyboard.catch_alt_f4->register_to_ini (
+    dll_ini,
+      L"Input.Keyboard",
+        L"CatchAltF4" );
 
 
   input.cursor.manage =
@@ -3061,6 +3077,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (config.render.dxgi.adapter_override != -1)
     SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
 
+  if (input.keyboard.catch_alt_f4->load ())
+    config.input.keyboard.catch_alt_f4 = input.keyboard.catch_alt_f4->get_value ();
+
   if (input.cursor.manage->load ())
     config.input.cursor.manage = input.cursor.manage->get_value ();
   if (input.cursor.keys_activate->load ())
@@ -3672,6 +3691,8 @@ SK_SaveConfig ( std::wstring name,
   apis.Vulkan.hook->set_value                 (config.apis.Vulkan.hook);
 #endif
 
+  input.keyboard.catch_alt_f4->set_value      (config.input.keyboard.catch_alt_f4);
+
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
   input.cursor.timeout->set_value             (static_cast <float> (config.input.cursor.timeout) / 1000.0f);
@@ -3987,6 +4008,8 @@ SK_SaveConfig ( std::wstring name,
 
   monitoring.pagefile.show->store          ();
   monitoring.pagefile.interval->store      ();
+
+  input.keyboard.catch_alt_f4->store       ();
 
   input.cursor.manage->store               ();
   input.cursor.keys_activate->store        ();

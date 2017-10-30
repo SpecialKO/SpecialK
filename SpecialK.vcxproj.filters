@@ -656,14 +656,14 @@
     <ClCompile Include="src\widgets\denuvo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\blue_reflection.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\injection\address_cache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\reshade.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\blue_reflection.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

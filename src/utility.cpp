@@ -1384,7 +1384,8 @@ SK_TestImports (          HMODULE  hMod,
 
     if (pImgDir->Size < (1024 * 8192))
     {
-      uintptr_t end = (uintptr_t)pImpDesc + pImgDir->Size;
+      auto end =
+        reinterpret_cast <uintptr_t> (pImpDesc) + pImgDir->Size;
 
       while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
       {
@@ -1405,7 +1406,7 @@ SK_TestImports (          HMODULE  hMod,
 
           for (int i = 0; i < nCount; i++)
           {
-            if ((! pTests [i].used) && StrStrIA (szImport, pTests [i].szModuleName))
+            if ((! pTests [i].used) && (! StrCmpIA (szImport, pTests [i].szModuleName)))
             {
               pTests [i].used = true;
                        ++hits;

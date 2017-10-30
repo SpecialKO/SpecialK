@@ -364,6 +364,7 @@ struct sk_config_t
 
     struct {
       bool    block_windows_key = false;
+      bool    catch_alt_f4      = true;
     } keyboard;
 
     struct {

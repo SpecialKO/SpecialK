@@ -3205,7 +3205,9 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                            MapType, MapFlags, pMappedResource );
 
   // ImGui gets to pass-through without invoking the hook
-  if ((! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) || config.textures.cache.allow_staging)
+  if ( (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui))    ||
+       (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap) &&
+         (! config.textures.cache.allow_staging) ) )
   {
     return hr;
   }
@@ -3368,7 +3370,7 @@ D3D11_Unmap_Override (
   _In_ ID3D11Resource      *pResource,
   _In_ UINT                 Subresource )
 {
-  if ((! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) || config.textures.cache.allow_staging)
+  if ((! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) || (! config.textures.cache.allow_staging))
   {
     D3D11_Unmap_Original (This, pResource, Subresource);
     return;
@@ -3484,7 +3486,8 @@ D3D11_CopyResource_Override (
 
   // ImGui gets to pass-through without invoking the hook
   if ( (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) ||
-       (  SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Copy)   || config.textures.cache.allow_staging) )
+       (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap) &&
+         (! config.textures.cache.allow_staging) ) )
   {
     D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
   
@@ -3630,7 +3633,8 @@ D3D11_CopySubresourceRegion_Override (
 
   // ImGui gets to pass-through without invoking the hook
   if ( (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::ImGui)) ||
-       (  SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Copy)   || config.textures.cache.allow_staging) )
+       (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap) &&
+         (! config.textures.cache.allow_staging) ) )
   {
     D3D11_CopySubresourceRegion_Original (This, pDstResource, DstSubresource, DstX, DstY, DstZ, pSrcResource, SrcSubresource, pSrcBox);
 
@@ -3643,7 +3647,7 @@ D3D11_CopySubresourceRegion_Override (
 
 
 
-  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap))
+  if (SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::MemoryMap))
   {
     SK_D3D11_MemoryThreads.mark ();
 
@@ -3947,9 +3951,10 @@ public:
 
                 SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
                 SK_TLS_Bottom ()->imgui.drawing = true;
+
                 SK_ReShade_PresentCallback.explicit_draw.calls++;
                 SK_ReShade_PresentCallback.fn (&SK_ReShade_PresentCallback.explicit_draw);
-                SK_TLS_Bottom ()->imgui.drawing = false;
+
                 break;
               }
             }
@@ -4042,10 +4047,12 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
             {
               SK_D3D11_Shaders.reshade_triggered = true;
 
+              SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
               SK_TLS_Bottom ()->imgui.drawing = true;
+
               SK_ReShade_PresentCallback.explicit_draw.calls++;
               SK_ReShade_PresentCallback.fn (&SK_ReShade_PresentCallback.explicit_draw);
-              SK_TLS_Bottom ()->imgui.drawing = false;
+
               break;
             }
           }
@@ -4349,7 +4356,7 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
 {
   SK_LOG_FIRST_CALL
 
-  if ((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  if (! SK_D3D11_StateMachine.dev_ctx.shouldProcessCommand (This, d3d11_state_machine_s::cmd_type::Deferred))
   {
     return
       D3D11_DrawAuto_Original (This);
@@ -4359,9 +4366,9 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
   {
     if (SK_D3D11_DrawHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.auto_draw);
+    SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.auto_draw);
+  }
 
   D3D11_DrawAuto_Original (This);
 
@@ -4392,9 +4399,9 @@ D3D11_DrawIndexed_Override (
   {
     if (SK_D3D11_DrawHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, IndexCount * SK_D3D11_ReshadeDrawFactors.indexed);
+    SK_ReShade_DrawCallback.call (This, IndexCount * SK_D3D11_ReshadeDrawFactors.indexed);
+  }
 
   D3D11_DrawIndexed_Original ( This, IndexCount,
                                        StartIndexLocation,
@@ -4426,9 +4433,9 @@ D3D11_Draw_Override (
   {
     if (SK_D3D11_DrawHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, VertexCount * SK_D3D11_ReshadeDrawFactors.draw);
+    SK_ReShade_DrawCallback.call (This, VertexCount * SK_D3D11_ReshadeDrawFactors.draw);
+  }
 
   D3D11_Draw_Original ( This, VertexCount, StartVertexLocation );
 
@@ -4461,9 +4468,9 @@ D3D11_DrawIndexedInstanced_Override (
   {
     if (SK_D3D11_DrawHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, IndexCountPerInstance * InstanceCount * SK_D3D11_ReshadeDrawFactors.indexed_instanced);
+    SK_ReShade_DrawCallback.call (This, IndexCountPerInstance * InstanceCount * SK_D3D11_ReshadeDrawFactors.indexed_instanced);
+  }
 
   D3D11_DrawIndexedInstanced_Original ( This, IndexCountPerInstance,
                                           InstanceCount, StartIndexLocation,
@@ -4494,9 +4501,9 @@ D3D11_DrawIndexedInstancedIndirect_Override (
   {
     if (SK_D3D11_DrawHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.indexed_instanced_indirect);
+    SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.indexed_instanced_indirect);
+  }
 
   D3D11_DrawIndexedInstancedIndirect_Original ( This, pBufferForArgs,
                                                   AlignedByteOffsetForArgs );
@@ -4529,9 +4536,9 @@ D3D11_DrawInstanced_Override (
   {
     if (SK_D3D11_DrawHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, VertexCountPerInstance * InstanceCount * SK_D3D11_ReshadeDrawFactors.instanced);
+    SK_ReShade_DrawCallback.call (This, VertexCountPerInstance * InstanceCount * SK_D3D11_ReshadeDrawFactors.instanced);
+  }
 
   D3D11_DrawInstanced_Original ( This, VertexCountPerInstance,
                                    InstanceCount, StartVertexLocation,
@@ -4562,9 +4569,9 @@ D3D11_DrawInstancedIndirect_Override (
   {
     if (SK_D3D11_DrawHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.instanced_indirect);
+    SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.instanced_indirect);
+  }
 
   D3D11_DrawInstancedIndirect_Original ( This, pBufferForArgs,
                                            AlignedByteOffsetForArgs );
@@ -4597,9 +4604,9 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
   {
     if (SK_D3D11_DispatchHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, 64);//std::max (1ui32, ThreadGroupCountX) * std::max (1ui32, ThreadGroupCountY) * std::max (1ui32, ThreadGroupCountZ) );
+    SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.dispatch);//std::max (1ui32, ThreadGroupCountX) * std::max (1ui32, ThreadGroupCountY) * std::max (1ui32, ThreadGroupCountZ) );
+  }
 
   D3D11_Dispatch_Original ( This,
                               ThreadGroupCountX,
@@ -4628,9 +4635,9 @@ D3D11_DispatchIndirect_Override ( _In_ ID3D11DeviceContext *This,
   {
     if (SK_D3D11_DispatchHandler (This))
       return;
-  }
 
-  SK_ReShade_DrawCallback.call (This, 64);
+    SK_ReShade_DrawCallback.call (This, SK_D3D11_ReshadeDrawFactors.dispatch_indirect);
+  }
 
   D3D11_DispatchIndirect_Original ( This,
                                       pBufferForArgs,
@@ -5364,6 +5371,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
                                 size_t                mem_size,
                                 uint64_t              load_time,
                                 uint32_t              crc32c,
+                                std::wstring          fileName,
                           const D3D11_TEXTURE2D_DESC *pOrigDesc )
 {
   if (! SK_D3D11_cache_textures)
@@ -5457,6 +5465,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   desc2d.crc32c     =  crc32c;
   desc2d.last_used  =  SK_QueryPerf ().QuadPart;
   desc2d.last_frame =  SK_GetFramesDrawn ();
+  desc2d.file_name  =  fileName;
 
   SK_AutoCriticalSection critical (&cache_cs);
 
@@ -7531,6 +7540,102 @@ SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWS
 }
 
 
+
+HRESULT
+SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
+{
+  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->texture_management.injection_thread);
+
+  SK_TLS_Bottom ()->texture_management.injection_thread = true;
+  {
+    SK_D3D11_TexMgr::tex2D_descriptor_s texDesc2D =
+      SK_D3D11_Textures.Textures_2D [pTex];
+
+    std::wstring fname = texDesc2D.file_name;
+
+    if (GetFileAttributes (fname.c_str ()) != INVALID_FILE_ATTRIBUTES )
+    {
+#define D3DX11_DEFAULT static_cast <UINT> (-1)
+
+      D3DX11_IMAGE_INFO      img_info   = {   };
+      D3DX11_IMAGE_LOAD_INFO load_info  = {   };
+
+      LARGE_INTEGER load_start =
+        SK_QueryPerf ();
+
+      HRESULT hr =
+        E_UNEXPECTED;
+
+      if (SUCCEEDED ((hr = SK_D3DX11_SAFE_GetImageInfoFromFileW (fname.c_str (), &img_info))))
+      {
+        load_info.BindFlags      = texDesc2D.desc.BindFlags;
+        load_info.CpuAccessFlags = texDesc2D.desc.CPUAccessFlags;
+        load_info.Depth          = img_info.Depth;
+        load_info.Filter         = D3DX11_DEFAULT;
+        load_info.FirstMipLevel  = 0;
+      
+        if (config.textures.d3d11.injection_keeps_fmt)
+          load_info.Format       = texDesc2D.desc.Format;
+        else
+          load_info.Format       = img_info.Format;
+
+        load_info.Height         = img_info.Height;
+        load_info.MipFilter      = D3DX11_DEFAULT;
+        load_info.MipLevels      = img_info.MipLevels;
+        load_info.MiscFlags      = img_info.MiscFlags;
+        load_info.pSrcInfo       = &img_info;
+        load_info.Usage          = texDesc2D.desc.Usage;
+        load_info.Width          = img_info.Width;
+
+        CComPtr <ID3D11Texture2D> pInjTex = nullptr;
+
+        hr =
+          SK_D3DX11_SAFE_CreateTextureFromFileW (
+            (ID3D11Device *)SK_GetCurrentRenderBackend ().device, fname.c_str (),
+              &load_info,
+reinterpret_cast <ID3D11Resource **> (&pInjTex)
+          );
+
+        if (SUCCEEDED (hr))
+        {
+          D3D11_CopyResource_Original ((ID3D11DeviceContext *)SK_GetCurrentRenderBackend ().d3d11.immediate_ctx, pTex, pInjTex);
+
+          LARGE_INTEGER load_end =
+            SK_QueryPerf ();
+
+          SK_D3D11_Textures.Textures_2D [pTex].load_time = (load_end.QuadPart - load_start.QuadPart);
+
+          return S_OK;
+        }
+      }
+    }
+  }
+
+  return E_FAIL;
+}
+
+
+int
+SK_D3D11_ReloadAllTextures (void)
+{
+  int count = 0;
+
+  for ( auto& it : SK_D3D11_Textures.Textures_2D )
+  {
+    if (SK_D3D11_TextureIsCached (it.first))
+    {
+      if (! (it.second.injected || it.second.discard))
+        continue;
+
+      if (SUCCEEDED (SK_D3D11_ReloadTexture (it.first)))
+        ++count;
+    }
+  }
+
+  return count;
+}
+
+
 __forceinline
 HRESULT
 WINAPI
@@ -7837,8 +7942,8 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
                     size,
                       load_end.QuadPart - load_start.QuadPart,
                         top_crc32,
-                          &orig_desc
-            );
+                          wszTex,
+                            &orig_desc );
 
             SK_D3D11_Textures.Textures_2D [*ppTexture2D].injected = true;
 
@@ -9328,6 +9433,13 @@ SK_LiveTextureView (bool& can_scroll)
   if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Exits texture debug mode.");
 
   ImGui::SameLine ();
+
+  if (ImGui::Button ("  Reload All Injected Textures  "))
+  {
+    SK_D3D11_ReloadAllTextures ();
+  }
+
+  ImGui::SameLine ();
   ImGui::Checkbox ("Highlight Selected Texture in Game##D3D11_HighlightSelectedTexture", &config.textures.d3d11.highlight_debug);
   ImGui::SameLine ();
 
@@ -9783,6 +9895,12 @@ SK_LiveTextureView (bool& can_scroll)
 
         if (entry.injected)
         {
+          if ( ImGui::Button ("  Reload Texture  ###ReloadTexture") )
+          {
+            SK_D3D11_ReloadTexture (pTex);
+          }
+
+          ImGui::SameLine    ();
           ImGui::TextColored (ImVec4 (0.05f, 0.95f, 0.95f, 1.0f), "This texture has been injected over the original.");
         }
 
@@ -10010,8 +10128,6 @@ SK_D3D11_LoadShaderState (bool clear = true)
   std::unique_ptr <iSK_INI> d3d11_shaders_ini (
     SK_CreateINI (wszShaderConfigFile.c_str ())
   );
-
-  //d3d11_shaders_ini->parse ();
 
   int shader_class = 0;
 
@@ -11861,6 +11977,18 @@ SK_D3D11_ShaderModDlg (void)
 
     if (ImGui::CollapsingHeader ("Live Shader View", ImGuiTreeNodeFlags_DefaultOpen))
     {
+#if 0
+      ImGui::InputInt ("Indexed Weight",                    &SK_D3D11_ReshadeDrawFactors.indexed);
+      ImGui::InputInt ("Draw Weight",                       &SK_D3D11_ReshadeDrawFactors.draw);
+      ImGui::InputInt ("Auto Draw Weight",                  &SK_D3D11_ReshadeDrawFactors.auto_draw);
+      ImGui::InputInt ("Indexed Instanced Weight",          &SK_D3D11_ReshadeDrawFactors.indexed_instanced);
+      ImGui::InputInt ("Indexed Instanced Indirect Weight", &SK_D3D11_ReshadeDrawFactors.indexed_instanced_indirect);
+      ImGui::InputInt ("Instanced Weight",                  &SK_D3D11_ReshadeDrawFactors.instanced);
+      ImGui::InputInt ("Instanced Indirect Weight",         &SK_D3D11_ReshadeDrawFactors.instanced_indirect);
+      ImGui::InputInt ("Dispatch Weight",                   &SK_D3D11_ReshadeDrawFactors.dispatch);
+      ImGui::InputInt ("Dispatch Indirect Weight",          &SK_D3D11_ReshadeDrawFactors.dispatch_indirect);
+#endif
+
       // This causes the stats below to update
       SK_ImGui_Widgets.d3d11_pipeline->setActive (true);
 
@@ -12988,9 +13116,9 @@ RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
                               "QueryPerformanceCounter" )
       );
 
-    config.apis.d3d9.hook    = false; config.apis.d3d9ex.hook = false;
-    config.apis.OpenGL.hook  = false;
-    config.apis.NvAPI.enable = false;
+    config.apis.d3d9.hook                        = false; config.apis.d3d9ex.hook = false;
+    config.apis.OpenGL.hook                      = false;
+    config.apis.NvAPI.enable                     = false;
     config.steam.preload_overlay                 = false;
     config.steam.silent                          = true;
     config.system.trace_load_library             = false;

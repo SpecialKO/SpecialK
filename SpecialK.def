@@ -635,7 +635,6 @@ SKX_IsHookingCBT             = SKX_IsHookingCBT
 SKX_GetInjectedPIDs          = SKX_GetInjectedPIDs
 
 g_hHookCBT                   = g_hHookCBT                     DATA
-g_vBlacklist                 = blacklist                      DATA
 whitelist_patterns           = whitelist_patterns             DATA
 whitelist_count              = whitelist_count                DATA
 

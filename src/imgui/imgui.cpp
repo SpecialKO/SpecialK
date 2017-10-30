@@ -12085,6 +12085,16 @@ SK_ImGui_PollGamepad_EndFrame (void)
     //   think tab is stuck down.
     for (int i = 8; i < 256; i++)
       io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+
+    if (config.input.keyboard.catch_alt_f4)
+    {
+      if ( io.KeyAlt && io.KeysDown [VK_F4] && ( io.KeysDownDuration [VK_MENU] == 0 ||
+                                                 io.KeysDownDuration [VK_F4]   == 0 ) )
+      {
+        extern bool SK_ImGui_WantExit;
+                    SK_ImGui_WantExit = true;
+      }
+    }
   }
 
   else

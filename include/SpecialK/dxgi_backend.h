@@ -414,6 +414,7 @@ public:
                                   size_t                mem_size,
                                   uint64_t              load_time,
                                   uint32_t              crc32c,
+                                  std::wstring          fileName  = L"",
                             const D3D11_TEXTURE2D_DESC *pOrigDesc = nullptr );
 
   void             reset         (void);
@@ -432,6 +433,7 @@ public:
     volatile LONG         hits       = 0L;
     uint32_t              last_frame = 0UL;
     uint64_t              last_used  = 0ULL;
+    std::wstring          file_name  = L"";  // If injected, this is the source file
   };
 
   std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;

@@ -144,109 +144,6 @@ struct window_message_dispatch_s {
 public:
   bool ProcessMessage (HWND hWnd, UINT uMsg, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet = nullptr)
   {
-    if (config.input.cursor.manage)
-    {
-      //extern bool IsControllerPluggedIn (INT iJoyID);
-
-     auto ActivateCursor = [](bool changed = false)->
-      bool
-       {
-         bool was_active = last_mouse.cursor;
-
-         if (! last_mouse.cursor)
-         {
-           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-           {
-             while (ShowCursor (TRUE) < 0) ;
-             last_mouse.cursor = true;
-           }
-         }
-
-         if (changed && (! SK_IsSteamOverlayActive ()))
-           last_mouse.sampled = timeGetTime ();
-
-         return (last_mouse.cursor != was_active);
-       };
-
-     auto DeactivateCursor = 
-     []{
-         if (! last_mouse.cursor)
-           return false;
-
-         bool was_active = last_mouse.cursor;
-
-         if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
-         {
-           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-           {
-             while (ShowCursor (FALSE) >= -1) ;
-             last_mouse.cursor = false;
-
-             last_mouse.sampled = timeGetTime ();
-           }
-         }
-
-         return (last_mouse.cursor != was_active);
-       };
-
-      if (! last_mouse.init)
-      {
-        if (config.input.cursor.timeout != 0)
-        {
-          SetTimer ( hWnd,
-                       static_cast <UINT_PTR> (        last_mouse.timer_id),
-                       static_cast <UINT>     (config.input.cursor.timeout) / 2,
-                         nullptr );
-        }
-        else
-        {
-          SetTimer ( hWnd,
-                       static_cast <UINT_PTR> (last_mouse.timer_id),
-                         250UL/*USER_TIMER_MINIMUM*/,
-                           nullptr );
-        }
-
-        last_mouse.init = true;
-      }
-
-      bool activation_event =
-        (! SK_IsSteamOverlayActive ());
-
-      // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
-      if (activation_event)
-      {
-        const short threshold = 2;
-
-        // Filter out small movements
-        if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
-             abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
-          activation_event = false;
-
-        last_mouse.pos = MAKEPOINTS (lParam);
-      }
-
-      if (config.input.cursor.keys_activate)
-        activation_event |= ( uMsg == WM_CHAR       ||
-                              uMsg == WM_SYSKEYDOWN ||
-                              uMsg == WM_SYSKEYUP );
-
-      // If timeout is 0, just hide the thing indefinitely
-      if (activation_event && config.input.cursor.timeout != 0)
-        ActivateCursor (true);
-
-      else if ( uMsg   == WM_TIMER            &&
-                wParam == last_mouse.timer_id &&
-               (! SK_IsSteamOverlayActive ()) &&
-                game_window.active )
-      {
-        if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
-          DeactivateCursor ();
-
-        else
-          ActivateCursor ();
-      }
-    }
-
     switch (uMsg)
     {
       case WM_WINDOWPOSCHANGING:
@@ -3118,13 +3015,13 @@ bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
   LRESULT lRet = 0;
-  if (wm_dispatch.ProcessMessage (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam, &lRet))
-  {
-    if (remove)
-      lpMsg->message = WM_NULL;
-
-    return true;
-  }
+  //if (wm_dispatch.ProcessMessage (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam, &lRet))
+  //{
+  //  if (remove)
+  //    lpMsg->message = WM_NULL;
+  //
+  //  return true;
+  //}
 
   if ( SK_ImGui_HandlesMessage (lpMsg, remove, peek) )
   {
@@ -3688,6 +3585,115 @@ LRESULT CALLBACK CallWndProc(
   }
 #endif
 
+
+
+
+    if (config.input.cursor.manage)
+    {
+      //extern bool IsControllerPluggedIn (INT iJoyID);
+
+     auto ActivateCursor = [](bool changed = false)->
+      bool
+       {
+         bool was_active = last_mouse.cursor;
+
+         if (! last_mouse.cursor)
+         {
+           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+           {
+             while (ShowCursor (TRUE) < 0) ;
+             last_mouse.cursor = true;
+           }
+         }
+
+         if (changed && (! SK_IsSteamOverlayActive ()))
+           last_mouse.sampled = timeGetTime ();
+
+         return (last_mouse.cursor != was_active);
+       };
+
+     auto DeactivateCursor = 
+     []{
+         if (! last_mouse.cursor)
+           return false;
+
+         bool was_active = last_mouse.cursor;
+
+         if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+         {
+           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+           {
+             while (ShowCursor (FALSE) >= -1) ;
+             last_mouse.cursor = false;
+
+             last_mouse.sampled = timeGetTime ();
+           }
+         }
+
+         return (last_mouse.cursor != was_active);
+       };
+
+      if (! last_mouse.init)
+      {
+        if (config.input.cursor.timeout != 0)
+        {
+          SetTimer ( hWnd,
+                       static_cast <UINT_PTR> (        last_mouse.timer_id),
+                       static_cast <UINT>     (config.input.cursor.timeout) / 2,
+                         nullptr );
+        }
+        else
+        {
+          SetTimer ( hWnd,
+                       static_cast <UINT_PTR> (last_mouse.timer_id),
+                         250UL/*USER_TIMER_MINIMUM*/,
+                           nullptr );
+        }
+
+        last_mouse.init = true;
+      }
+
+      bool activation_event =
+        (! SK_IsSteamOverlayActive ());
+
+      // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
+      if (activation_event)
+      {
+        const short threshold = 2;
+
+        // Filter out small movements
+        if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
+             abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
+          activation_event = false;
+
+        last_mouse.pos = MAKEPOINTS (lParam);
+      }
+
+      if (config.input.cursor.keys_activate)
+        activation_event |= ( uMsg == WM_CHAR       ||
+                              uMsg == WM_SYSKEYDOWN ||
+                              uMsg == WM_SYSKEYUP );
+
+      // If timeout is 0, just hide the thing indefinitely
+      if (activation_event && config.input.cursor.timeout != 0)
+        ActivateCursor (true);
+
+      else if ( uMsg   == WM_TIMER            &&
+                wParam == last_mouse.timer_id &&
+               (! SK_IsSteamOverlayActive ()) &&
+                game_window.active )
+      {
+        if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
+          DeactivateCursor ();
+
+        else
+          ActivateCursor ();
+      }
+    }
+
+
+
+
   switch (uMsg)
   {
     case WM_SYSCOMMAND:
@@ -3897,6 +3903,7 @@ LRESULT CALLBACK CallWndProc(
   return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 }
 
+#if 0
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -3947,6 +3954,114 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     SK_InitWindow (hWnd, false);
   }
+
+
+
+    if (config.input.cursor.manage)
+    {
+      //extern bool IsControllerPluggedIn (INT iJoyID);
+
+     auto ActivateCursor = [](bool changed = false)->
+      bool
+       {
+         bool was_active = last_mouse.cursor;
+
+         if (! last_mouse.cursor)
+         {
+           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+           {
+             while (ShowCursor (TRUE) < 0) ;
+             last_mouse.cursor = true;
+           }
+         }
+
+         if (changed && (! SK_IsSteamOverlayActive ()))
+           last_mouse.sampled = timeGetTime ();
+
+         return (last_mouse.cursor != was_active);
+       };
+
+     auto DeactivateCursor = 
+     []{
+         if (! last_mouse.cursor)
+           return false;
+
+         bool was_active = last_mouse.cursor;
+
+         if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+         {
+           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+           {
+             while (ShowCursor (FALSE) >= -1) ;
+             last_mouse.cursor = false;
+
+             last_mouse.sampled = timeGetTime ();
+           }
+         }
+
+         return (last_mouse.cursor != was_active);
+       };
+
+      if (! last_mouse.init)
+      {
+        if (config.input.cursor.timeout != 0)
+        {
+          SetTimer ( hWnd,
+                       static_cast <UINT_PTR> (        last_mouse.timer_id),
+                       static_cast <UINT>     (config.input.cursor.timeout) / 2,
+                         nullptr );
+        }
+        else
+        {
+          SetTimer ( hWnd,
+                       static_cast <UINT_PTR> (last_mouse.timer_id),
+                         250UL/*USER_TIMER_MINIMUM*/,
+                           nullptr );
+        }
+
+        last_mouse.init = true;
+      }
+
+      bool activation_event =
+        (! SK_IsSteamOverlayActive ());
+
+      // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
+      if (activation_event)
+      {
+        const short threshold = 2;
+
+        // Filter out small movements
+        if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
+             abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
+          activation_event = false;
+
+        last_mouse.pos = MAKEPOINTS (lParam);
+      }
+
+      if (config.input.cursor.keys_activate)
+        activation_event |= ( uMsg == WM_CHAR       ||
+                              uMsg == WM_SYSKEYDOWN ||
+                              uMsg == WM_SYSKEYUP );
+
+      // If timeout is 0, just hide the thing indefinitely
+      if (activation_event && config.input.cursor.timeout != 0)
+        ActivateCursor (true);
+
+      else if ( uMsg   == WM_TIMER            &&
+                wParam == last_mouse.timer_id &&
+               (! SK_IsSteamOverlayActive ()) &&
+                game_window.active )
+      {
+        if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
+          DeactivateCursor ();
+
+        else
+          ActivateCursor ();
+      }
+    }
+
+
+
 
   switch (uMsg)
   {
@@ -4157,6 +4272,729 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   return lRet;
 }
+#else
+__declspec (noinline)
+LRESULT
+CALLBACK
+SK_DetourWindowProc ( _In_  HWND   hWnd,
+                      _In_  UINT   uMsg,
+                      _In_  WPARAM wParam,
+                      _In_  LPARAM lParam )
+{
+  // If we are forcing a shutdown, then route any messages through the
+  //   default Win32 handler.
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+
+  static bool first_run = true;
+
+  if (first_run)
+  {
+    // Start unmuted (in case the game crashed in the background)
+    if (config.window.background_mute)
+      SK_SetGameMute (FALSE);
+
+    first_run = false;
+  }
+
+
+
+  if (hWnd != game_window.hWnd)
+  {
+    if (game_window.hWnd != nullptr)
+    {
+      dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
+                    L" for rendering... (Old=%p, New=%p)",
+                      game_window.hWnd, hWnd );
+    }
+
+    game_window.hWnd = hWnd;
+
+    game_window.active       = true;
+    game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
+
+    GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
+    GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
+    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+    SK_InitWindow (hWnd, false);
+  }
+
+
+
+  static bool last_active = game_window.active;
+
+  bool console_visible =
+    SK_Console::getInstance ()->isVisible ();
+
+
+#if 0
+  if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
+  {
+    POINT pt;
+
+    pt.x = GET_X_LPARAM (lParam);
+    pt.y = GET_Y_LPARAM (lParam);
+
+    SK_CalcCursorPos (&pt);
+
+    lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
+  }
+#endif
+
+
+  if (config.input.cursor.manage)
+  {
+    //extern bool IsControllerPluggedIn (INT iJoyID);
+
+   auto ActivateCursor = [](bool changed = false)->
+    bool
+     {
+       bool was_active = last_mouse.cursor;
+
+       if (! last_mouse.cursor)
+       {
+         if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+         {
+           while (ShowCursor (TRUE) < 0) ;
+           last_mouse.cursor = true;
+         }
+       }
+
+       if (changed && (! SK_IsSteamOverlayActive ()))
+         last_mouse.sampled = timeGetTime ();
+
+       return (last_mouse.cursor != was_active);
+     };
+
+   auto DeactivateCursor = 
+   []{
+       if (! last_mouse.cursor)
+         return false;
+
+       bool was_active = last_mouse.cursor;
+
+       if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+       {
+         if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+         {
+           while (ShowCursor (FALSE) >= -1) ;
+           last_mouse.cursor = false;
+
+           last_mouse.sampled = timeGetTime ();
+         }
+       }
+
+       return (last_mouse.cursor != was_active);
+     };
+
+    if (! last_mouse.init)
+    {
+      if (config.input.cursor.timeout != 0)
+      {
+        SetTimer ( hWnd,
+                     static_cast <UINT_PTR> (        last_mouse.timer_id),
+                     static_cast <UINT>     (config.input.cursor.timeout) / 2,
+                       nullptr );
+      }
+      else
+      {
+        SetTimer ( hWnd,
+                     static_cast <UINT_PTR> (last_mouse.timer_id),
+                       250UL/*USER_TIMER_MINIMUM*/,
+                         nullptr );
+      }
+
+      last_mouse.init = true;
+    }
+
+    bool activation_event =
+      (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
+
+    // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
+    if (activation_event)
+    {
+      const short threshold = 2;
+
+      // Filter out small movements
+      if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
+           abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
+        activation_event = false;
+
+      last_mouse.pos = MAKEPOINTS (lParam);
+    }
+
+    if (config.input.cursor.keys_activate)
+      activation_event |= ( uMsg == WM_CHAR       ||
+                            uMsg == WM_SYSKEYDOWN ||
+                            uMsg == WM_SYSKEYUP );
+
+    // If timeout is 0, just hide the thing indefinitely
+    if (activation_event && config.input.cursor.timeout != 0)
+      ActivateCursor (true);
+
+    else if ( uMsg   == WM_TIMER            &&
+              wParam == last_mouse.timer_id &&
+             (! SK_IsSteamOverlayActive ()) &&
+              game_window.active )
+    {
+      if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
+        DeactivateCursor ();
+
+      else
+        ActivateCursor ();
+    }
+  }
+
+
+  auto ActivateWindow =[&](bool active = false)
+  {
+    bool state_changed =
+      (game_window.active != active);
+
+    game_window.active = active;
+
+    if (state_changed)
+    {
+      SK_Console::getInstance ()->reset ();
+
+      if (config.window.background_mute)
+        SK_WindowManager::getInstance ()->muteGame ((! active));
+
+      // Keep Unity games from crashing at startup when forced into FULLSCREEN
+      //
+      //  ... also prevents a game from staying topmost when you Alt+Tab
+      //
+
+      if ( active && config.display.force_fullscreen &&
+           ( static_cast <int> (SK_GetCurrentRenderBackend ().api)  &
+             static_cast <int> (SK_RenderAPI::D3D9               )
+           )
+         )
+      {
+        SetWindowLongPtrW    (game_window.hWnd, GWL_EXSTYLE,
+         ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)
+         ) | WS_EX_APPWINDOW );
+        //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+        //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+        //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+        //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+        //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+        //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
+
+        extern void
+        SK_D3D9_TriggerReset (bool);
+      
+        SK_D3D9_TriggerReset (false);
+      }
+    }
+
+
+    if (active && state_changed)
+    {
+      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+      {
+        if (! game_window.cursor_visible)
+        {
+          while (ShowCursor (FALSE) >= 0)
+            ;
+        }
+
+        ClipCursor_Original (&game_window.cursor_clip);
+      }
+    }
+
+    else if ((! active) && state_changed)
+    {
+      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+      {
+        game_window.cursor_visible =
+          ShowCursor (TRUE) >= 1;
+
+        while (ShowCursor (TRUE) < 0)
+          ;
+
+        ClipCursor_Original (nullptr);
+      }
+    }
+
+
+    if (config.window.confine_cursor && state_changed)
+    {
+      if (active)
+      {
+        SK_LOG4 ( ( L"Confining Mouse Cursor" ),
+                    L"Window Mgr" );
+
+        ////// XXX: Is this really necessary? State should be consistent unless we missed
+        //////        an event --- Write unit test?
+        GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+        ClipCursor_Original    (&game_window.actual.window);
+      }
+
+      else
+      {
+        SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
+                    L"Window Mgr" );
+
+        ClipCursor_Original (nullptr);
+      }
+    }
+
+    if (config.window.unconfine_cursor && state_changed)
+    {
+      SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
+                  L"Window Mgr" );
+      
+      ClipCursor_Original (nullptr);
+    }
+
+    if (state_changed)
+      SK_ImGui_Cursor.activateWindow (active);
+  };
+
+
+  switch (uMsg)
+  {
+    case WM_SYSCOMMAND:
+      if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
+        return 0;
+      break;
+
+    // Ignore (and physically remove) this event from the message queue if background_render = true
+    case WM_MOUSEACTIVATE:
+    {
+      if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
+      {
+        ActivateWindow (true);
+
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+        {
+          SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
+                      L"Window Mgr" );
+          return MA_ACTIVATEANDEAT;
+        }
+      }
+
+      else
+      {
+        ActivateWindow (false);
+
+        // Game window was deactivated, but the game doesn't need to know this!
+        //   in fact, it needs to be told the opposite.
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+        {
+          SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
+                      L"Window Mgr" );
+          return MA_ACTIVATE;
+        }
+
+        SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+      }
+    } break;
+
+    // Allow the game to run in the background
+    case WM_ACTIVATEAPP:
+    case WM_ACTIVATE:
+    case WM_NCACTIVATE:
+    {
+      if (uMsg == WM_NCACTIVATE || uMsg == WM_ACTIVATEAPP)
+      {
+        if (wParam != FALSE)
+        {
+          if (last_active == false)
+            SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
+                        L"Window Mgr" );
+
+          ActivateWindow (true);
+        }
+
+        else
+        {
+          if (last_active == true)
+            SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+                        L"Window Mgr" );
+
+          ActivateWindow (false);
+
+          // We must fully consume one of these messages or audio will stop playing
+          //   when the game loses focus, so do not simply pass this through to the
+          //     default window procedure.
+          if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+                  config.window.background_render
+             )
+          {
+            game_window.CallProc (
+              hWnd,
+                uMsg,
+                  TRUE,
+                    reinterpret_cast <LPARAM> (hWnd) );
+
+            return 0;
+          }
+
+          SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+        }
+      }
+
+      else if (uMsg == WM_ACTIVATE)
+      {
+        const wchar_t* source   = L"UNKKNOWN";
+        bool           activate = false;
+
+        switch (LOWORD (wParam))
+        {
+          case WA_ACTIVE:
+          case WA_CLICKACTIVE:
+          default: // Unknown
+          {
+            activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
+            source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
+                                              L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
+            ActivateWindow (activate);
+          } break;
+
+          case WA_INACTIVE:
+          {
+            activate = ( lParam                           == 0                ) ||
+                       ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
+            source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
+            ActivateWindow (activate);
+          } break;
+        }
+
+        switch (last_active)
+        {
+          case true:
+            if (! activate)
+            {
+              SK_LOG2 ( ( L"Application Deactivated %s", source ),
+                          L"Window Mgr" );
+            }
+            break;
+
+          case false:
+            if (activate)
+            {
+              SK_LOG2 ( ( L"Application Activated %s", source ),
+                          L"Window Mgr" );
+            }
+            break;
+        }
+
+        if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+        {
+          return 1;
+        }
+
+        if (! activate)
+          SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+      }
+    } break;
+
+    case WM_NCCALCSIZE:
+      break;
+
+    case WM_WINDOWPOSCHANGING:
+    {
+      auto wnd_pos =
+        reinterpret_cast <LPWINDOWPOS> (lParam);
+
+      if (wnd_pos->flags ^ SWP_NOMOVE)
+      {
+        int width  = game_window.game.window.right  - game_window.game.window.left;
+        int height = game_window.game.window.bottom - game_window.game.window.top;
+
+        game_window.game.window.left   = wnd_pos->x;
+        game_window.game.window.top    = wnd_pos->y;
+
+        game_window.game.window.right  = wnd_pos->x + width;
+        game_window.game.window.bottom = wnd_pos->y + height;
+      }
+
+      if (wnd_pos->flags ^ SWP_NOSIZE)
+      {
+        game_window.game.window.right  = game_window.game.window.left + wnd_pos->cx;
+        game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
+      }
+
+      if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
+        SK_AdjustBorder ();
+
+      //game_window.game.client = game_window.game.window;
+
+      // Filter this message
+      if (config.window.borderless && config.window.fullscreen)
+        return 0;
+    } break;
+
+    
+    case WM_WINDOWPOSCHANGED:
+    {
+      // Unconditionally doing this tends to anger Obduction :)
+      //ImGui_ImplDX11_InvalidateDeviceObjects ();
+
+      auto wnd_pos =
+        reinterpret_cast <LPWINDOWPOS> (lParam);
+
+      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+      //game_window.game.client = game_window.actual.client;
+      //game_window.game.window = game_window.actual.window;
+
+      if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
+      {
+        bool offset = false;
+
+        // Test for user-defined position; if it exists, then we must
+        //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
+        if ( config.window.offset.x.absolute                 || config.window.offset.y.absolute ||
+             ( config.window.offset.x.percent >  0.000001f ||
+               config.window.offset.x.percent < -0.000001f ) ||
+             ( config.window.offset.y.percent >  0.000001f ||
+               config.window.offset.y.percent < -0.000001f )
+           )
+          offset = true;
+
+        bool temp_override = false;
+
+        // Prevent all of this craziness from resizing the window accidentally
+        if (config.window.res.override.isZero ())
+        {
+               temp_override = true;
+          RECT client        = {  };
+
+          GetClientRect_Original (game_window.hWnd, &client);
+
+          config.window.res.override.x = client.right  - client.left;
+          config.window.res.override.y = client.bottom - client.top;
+        }
+
+        if (config.window.center)
+          SK_AdjustWindow ();
+
+        else if (offset                                                      && (wnd_pos->flags ^ SWP_NOMOVE))
+          SK_AdjustWindow ();
+
+        else if ((! (config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
+          SK_AdjustWindow ();
+
+        if (temp_override)
+        {
+          config.window.res.override.x = 0;
+          config.window.res.override.y = 0;
+        }
+
+        if (config.window.unconfine_cursor)
+          ClipCursor_Original (nullptr);
+
+        else if (config.window.confine_cursor)
+          ClipCursor_Original (&game_window.actual.window);
+      }
+
+      // Filter this message
+      if (config.window.borderless && config.window.fullscreen)
+        return 1;
+    } break;
+
+
+    case WM_SIZE:
+      ImGui_ImplDX11_InvalidateDeviceObjects ();
+      // Fallthrough to WM_MOVE
+
+    case WM_MOVE:
+      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+      if (config.window.confine_cursor)
+        ClipCursor_Original (&game_window.actual.window);
+      else if (config.window.unconfine_cursor)
+        ClipCursor_Original (nullptr);
+
+
+      // Filter this message
+      if (config.window.borderless && config.window.fullscreen)
+        return 0;
+      break;
+
+
+      case WM_SIZING:
+      case WM_MOVING:
+        if (config.window.unconfine_cursor)
+          ClipCursor_Original (nullptr);
+
+        // Filter this message
+        if (config.window.borderless && config.window.fullscreen)
+          return 0;
+        break;
+
+
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+      if (game_window.active)
+      {
+        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
+        {
+          return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+        }
+      }
+      else
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
+      break;
+
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+      if (game_window.active)
+      {
+        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
+        {
+          return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+        }
+      }
+      else
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
+      break;
+
+    case WM_MOUSEMOVE:
+      if (! game_window.active)
+        GetCursorPos_Original (&game_window.cursor_pos);
+      break;
+
+    case WM_INPUT:
+      if (! game_window.active)
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
+      break;
+  }
+
+         bool handled = false;
+  static bool eqgame  =
+    wcsstr (SK_GetHostApp (), L"eqgame.exe");
+
+  if (eqgame)
+  {
+    handled =
+      ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+  }
+
+
+
+  // Synaptics Touchpad Compat Hack:
+  // -------------------------------
+  //
+  //  PROBLEM:    Driver only generates window messages for mousewheel, it does
+  //                not activate RawInput, DirectInput or HID like a real mouse
+  //
+  //  WORKAROUND: Generate a full-blown input event using SendInput (...); be
+  //                aware that this event will generate ANOTHER WM_MOUSEWHEEL.
+  //
+  //    ** MUST handle recursive behavior caused by this fix-up **
+  //
+  static bool recursive_wheel = false;
+
+  // Dual purpose: This also catches any WM_MOUSEWHEEL messages that Synaptics
+  //                 issued through CallWindowProc (...) rather than
+  //                   SendMessage (...) / PostMessage (...) -- UGH.
+  //
+  //      >> We need to process those for ImGui <<
+  //
+  if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
+  {
+    if (! eqgame)
+      handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+
+    if ((! handled) && config.input.mouse.fix_synaptics)
+    {
+      INPUT input        = { };
+
+      input.type         = INPUT_MOUSE;
+      input.mi.dwFlags   = MOUSEEVENTF_WHEEL;
+      input.mi.mouseData = GET_WHEEL_DELTA_WPARAM (wParam);
+
+      recursive_wheel    = true;
+
+      SendInput_Original (1, &input, sizeof INPUT);
+    }
+  }
+
+  // In-lieu of a proper fence, this solves the recursion problem.
+  //
+  //   There's no guarantee the message we are ignoring is the one we
+  //     generated, but one misplaced message won't kill anything.
+  //
+  else if (recursive_wheel && uMsg == WM_MOUSEWHEEL)
+    recursive_wheel = false;
+
+
+
+  //
+  // Squelch input messages that managed to get into the loop without triggering
+  //   filtering logic in the GetMessage (...), PeekMessage (...) and
+  //     DispatchMessage (...) hooks.
+  //
+  //   [ Mostly for EverQuest ]
+  //
+  if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
+    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+  if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
+    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+  if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
+    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+
+
+  //
+  // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
+  //
+  if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
+  {
+    // Block keyboard input to the game while the console is visible
+    if (console_visible)
+    {
+      if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
+        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+      if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)
+        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+      // Block RAW Input
+      if (uMsg == WM_INPUT)
+        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    }
+  }
+  
+  else {
+    return 0;
+  }
+
+
+  // Filter this out for fullscreen override safety
+  ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+
+  LRESULT lRet =
+    SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+
+
+  // Post-Process the game's result to fix any non-compliant behaviors
+  //
+
+
+  // Fix for Skyrim SE beeping when Alt is pressed.
+  if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
+    return MAKEWPARAM (0, MNC_CLOSE);
+
+
+  return lRet;
+}
+#endif
 
 #include <SpecialK/core.h>
 

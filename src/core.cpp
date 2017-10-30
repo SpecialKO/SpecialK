@@ -1608,8 +1608,9 @@ BACKEND_INIT:
 
   wchar_t wszWorkDir   [MAX_PATH + 2] = { };
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
+       SK_StripUserNameFromPathW (wszWorkDir);
 
-  dll_log.Log (L" Working Directory:          %s", SK_StripUserNameFromPathW (wszWorkDir));
+  dll_log.Log (L" Working Directory:          %s", wszWorkDir);
   dll_log.Log (L" System Directory:           %s", wszBackendDLL);
 
   lstrcatW (wszBackendDLL, L"\\");

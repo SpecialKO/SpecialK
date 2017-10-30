@@ -328,6 +328,23 @@ namespace SK_ImGui
   }
 } // namespace SK_ImGui
 
+bool SK_ImGui_WantExit = false;
+
+void
+SK_ImGui_ConfirmExit (void)
+{
+  ImGuiIO& io = ImGui::GetIO ();
+
+  SK_ImGui_WantExit = true;
+
+  ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
+                                                                         0.925f * io.DisplaySize.y ) );
+  ImGui::SetNextWindowFocus           (                                                               );
+
+  ImGui::OpenPopup ("Confirm Forced Software Termination");
+}
+
 bool
 SK_ImGui_IsItemClicked (void)
 {
@@ -1585,8 +1602,6 @@ __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
 {
-  static bool want_exit = false;
-
   ImGuiIO& io (ImGui::GetIO ());
 
   if (ImGui::GetFont () == nullptr)
@@ -1701,7 +1716,7 @@ SK_ImGui_ControlPanel (void)
 
         if (ImGui::MenuItem ("Exit Game", "Alt+F4"))
         {
-          want_exit = true;
+          SK_ImGui_WantExit = true;
         }
 
         ImGui::EndMenu  ();
@@ -2434,9 +2449,9 @@ SK_ImGui_ControlPanel (void)
 
         bool enable = evil || even_stranger || wired;
 
-        extern void
-        SK_D3D11_EnableTracking (bool state);
-        SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
+        ////extern void
+        ////SK_D3D11_EnableTracking (bool state);
+        ////SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
 
         ImGui::TreePop ();
       }
@@ -4914,10 +4929,10 @@ extern float SK_ImGui_PulseNav_Strength;
       }
       ImGui::PopStyleColor ( 3);
 
-      if (SK_IsInjected () || SK_GetModuleName (SK_GetDLL ()).find (L"dxgi.dll")     != std::wstring::npos ||
-                              SK_GetModuleName (SK_GetDLL ()).find (L"d3d9.dll")     != std::wstring::npos ||
-                              SK_GetModuleName (SK_GetDLL ()).find (L"OpenGL32.dll") != std::wstring::npos ||
-                              SK_GetModuleName (SK_GetDLL ()).find (L"dinput8.dll")  != std::wstring::npos)
+      if (SK_IsInjected () || StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")     ||
+                              StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll")     ||
+                              StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"OpenGL32.dll") ||
+                              StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
       {
         ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
         ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
@@ -5468,50 +5483,6 @@ static_cast <uint32_t> (
   if (show_d3d9_shader_mod_dlg)
     show_d3d9_shader_mod_dlg = SK_D3D9_TextureModDlg ();
 
-
-  if (want_exit)
-  {
-    ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
-    ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
-                                                                           0.925f * io.DisplaySize.y ) );
-    ImGui::SetNextWindowFocus           (                                                               );
-
-    ImGui::OpenPopup ("Confirm Forced Software Termination");
-
-    if ( ImGui::BeginPopupModal ( "Confirm Forced Software Termination",
-                                    nullptr,
-                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
-                                      ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
-       )
-    {
-      ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n    You will lose any unsaved game progress.    \n\n");
-
-      ImGui::Separator ();
-
-      ImGui::TextColored ( ImColor::HSV (0.15f, 1.0f, 1.0f), "   Confirm Exit?      " );
-
-      ImGui::SameLine ();
-
-      ImGui::Spacing (); ImGui::SameLine ();
-
-      if (ImGui::Button ("Okay"))
-        ExitProcess (0x00);
-
-      ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth () * 0.33f); ImGui::SameLine (); ImGui::Text (""); ImGui::SameLine (); ImGui::PopItemWidth ();
-
-      if (ImGui::Button ("Cancel"))
-      {
-        want_exit = false;
-        ImGui::CloseCurrentPopup ();
-      }
-
-      ImGui::SetItemDefaultFocus ();
-
-      ImGui::EndPopup ();
-    }
-  }
-
-
   ImGui::End   ();
 
   if (! open)
@@ -5893,6 +5864,57 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
       ImGui::End              ();
     }
   }
+
+
+
+  if (SK_ImGui_WantExit)
+  {
+    SK_ReShade_Visible = true;
+
+    SK_ImGui_ConfirmExit ();
+
+    if ( ImGui::BeginPopupModal ( "Confirm Forced Software Termination",
+                                    nullptr,
+                                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                      ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
+       )
+    {
+      ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         You will lose any unsaved game progress.         \n\n");
+
+      ImGui::Separator ();
+
+      ImGui::TextColored ( ImColor::HSV (0.15f, 1.0f, 1.0f), " Confirm Exit? " );
+
+      ImGui::SameLine ();
+
+      ImGui::Spacing (); ImGui::SameLine ();
+
+      if (ImGui::Button ("Okay"))
+        ExitProcess (0x00);
+
+      //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth () * 0.33f); ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();
+
+      ImGui::SameLine ();
+
+      if (ImGui::Button ("Cancel"))
+      {
+        SK_ImGui_WantExit  = false;
+        SK_ReShade_Visible = false;
+        ImGui::CloseCurrentPopup ();
+      }
+
+      ImGui::SetItemDefaultFocus ();
+
+      ImGui::SameLine ();
+      ImGui::TextUnformatted (" ");
+      ImGui::SameLine ();
+
+      ImGui::Checkbox ("Enable Alt + F4", &config.input.keyboard.catch_alt_f4);
+
+      ImGui::EndPopup ();
+    }
+  }
+
 
 
   if (io.WantMoveMouse)
